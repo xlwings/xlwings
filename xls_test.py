@@ -1,17 +1,11 @@
-import os
-import sys
-from win32com.client import GetObject
 import numpy as np
+from xlwings import XlWings
 
-# Reference to the calling Excel File
-file_name = sys.argv[1]
-dir_path = os.path.dirname(os.path.abspath(__file__))
-file_path = r'{0}\{1}'.format(dir_path, file_name)
-xl = GetObject(file_path)
-
+xl = XlWings()
 
 def rand_numbers():
-    sheet = xl.Sheets(1)
+    """ produces a standard normally distributed random numbers with dim (n,n)"""
+    sheet = xl.xl_app.Sheets(1)
     n = sheet.Cells(1,2).Value
     rand_num = np.random.randn(n,n)
     sheet.Range(sheet.Cells(3,3), sheet.Cells(2 + n, 2 + n)).Value = rand_num
