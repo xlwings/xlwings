@@ -1,6 +1,6 @@
 .metadata
 *.py[cod]
-*~
+*~*
 
 # Config files
 *.cfg
