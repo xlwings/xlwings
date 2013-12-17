@@ -1,18 +1,24 @@
 import os
 import sys
 from win32com.client import GetObject
+import win32com
 from pywintypes import UnicodeType, TimeType
+import logging
+from datetime import datetime
 
 
 class XlWings:
     """TODO: Description """
 
     def __init__(self):
-        filename = sys.argv[1]
-        #TODO: provide filepath of calling function in case installed in python dir
-        _dirpath = os.path.dirname(os.path.abspath(__file__)) 
-        _filepath = r'{0}\{1}'.format(_dirpath, filename)
-        self.xl_app = GetObject(_filepath)
+        logging.info('{0} - start class __init__'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+#        filename = sys.argv[1]
+#        #TODO: provide filepath of calling function in case installed in python dir
+#        _dirpath = os.path.dirname(os.path.abspath(__file__))
+#        _filepath = r'{0}\{1}'.format(_dirpath, filename)
+#        self.xl_app = GetObject(_filepath)
+        self.xl_app = win32com.client.Dispatch("Excel.Application")
+        logging.info('{0} - end class __init__'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
         
     def save(self, newfilename=None):
         if newfilename:
