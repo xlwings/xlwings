@@ -1,5 +1,6 @@
 import sys
 import os
+import inspect
 from win32com.client import GetObject
 from pywintypes import UnicodeType, TimeType
 
@@ -7,13 +8,17 @@ from pywintypes import UnicodeType, TimeType
 class Xl:
     """TODO: Description """
 
-    def __init__(self):
-        filename = sys.argv[1]
-#        #TODO: provide filepath of calling function in case this module is somewhere else
-        _dirpath = os.path.dirname(os.path.abspath(__file__))
-        _filepath = r'{0}\{1}'.format(_dirpath, filename)
-        #  GetObject() gives us the correct Excel instance if there are > 1
-        self.xlBook = GetObject(_filepath)
+    def __init__(self, filepath=None):
+        if filepath:
+            # For debugging, the filepath can be provided
+            # GetObject() gives us the correct Excel instance if there are > 1
+            self.xlBook = GetObject(filepath)
+        else:
+            filename = sys.argv[1]
+            # Get filepath of calling function in case this module is somewhere else
+            _dirpath = os.path.dirname(inspect.getmodule(inspect.stack()[1][0]).__file__)
+            filepath = os.path.abspath(os.path.join(_dirpath, filename))
+            self.xlBook = GetObject(filepath)
 
     def save(self, newfilename=None):
         if newfilename:
