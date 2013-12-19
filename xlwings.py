@@ -1,52 +1,43 @@
-import os
 import sys
+import os
 from win32com.client import GetObject
-import win32com
 from pywintypes import UnicodeType, TimeType
-import logging
-from datetime import datetime
 
 
-class XlWings:
+class Xl:
     """TODO: Description """
 
     def __init__(self):
-        logging.info('{0} - start class __init__'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-#        filename = sys.argv[1]
-#        #TODO: provide filepath of calling function in case installed in python dir
-#        _dirpath = os.path.dirname(os.path.abspath(__file__))
-#        _filepath = r'{0}\{1}'.format(_dirpath, filename)
-#        self.xl_app = GetObject(_filepath)
-        self.xl_app = win32com.client.Dispatch("Excel.Application")
-        logging.info('{0} - end class __init__'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-        
+        filename = sys.argv[1]
+#        #TODO: provide filepath of calling function in case this module is somewhere else
+        _dirpath = os.path.dirname(os.path.abspath(__file__))
+        _filepath = r'{0}\{1}'.format(_dirpath, filename)
+        #  GetObject() gives us the correct Excel instance if there are > 1
+        self.xlBook = GetObject(_filepath)
+
     def save(self, newfilename=None):
         if newfilename:
             self.filename = newfilename
             self.xlBook.SaveAs(newfilename)
         else:
             self.xlBook.Save()
-
-    def close(self):
-        self.xlBook.Close(SaveChanges=0)
-        del self.xl_app
         
-    def getCell(self, sheet, row, col):
+    def get_cell(self, sheet, row, col):
         "Get value of one cell"
         sht = self.xlBook.Worksheets(sheet)
         return sht.Cells(row, col).Value
 
-    def setCell(self, sheet, row, col, value):
+    def set_cell(self, sheet, row, col, value):
         "set value of one cell"
         sht = self.xlBook.Worksheets(sheet)
         sht.Cells(row, col).Value = value
 
-    def getRange(self, sheet, row1, col1, row2, col2):
+    def get_range(self, sheet, row1, col1, row2, col2):
         "return a 2d array (i.e. tuple of tuples)"
         sht = self.xlBook.Worksheet(sheet)
         return sht.Range(sht.Cells(row1, col1), sht.Cells(row2, col2)).Value
         
-    def setRange(self, sheet, leftCol, topRow, data):
+    def set_range(self, sheet, leftCol, topRow, data):
         """insert a 2d array starting at given location.
         Works out the size needed for itself"""
     
@@ -59,7 +50,7 @@ class XlWings:
             sht.Cells(bottomRow, rightCol)
             ).Value = data
             
-    def getContiguousRange(self, sheet, row, col):
+    def get_contiguous_range(self, sheet, row, col):
         """Tracks down and across from top left cell until it
         encounters blank cells; returns the non-blank range.
         Looks at first row and column; blanks at bottom or right
@@ -79,7 +70,7 @@ class XlWings:
     
         return sht.Range(sht.Cells(row, col), sht.Cells(bottom, right)).Value
         
-    def fixStringsAndDates(self, aMatrix):
+    def fix_strings_and_dates(self, aMatrix):
         # converts all unicode strings and times
         newmatrix = []
         for row in aMatrix:
