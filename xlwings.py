@@ -1,14 +1,35 @@
+"""
+xlwings is an easy way to hook up your Excel apps with Python on Windows.
+The aim is to make it as easy as possible to distribute the Excel files.
+
+Homepage and documentation: http://xlwings.org/
+
+Copyright (c) 2013, Felix Zumstein.
+License: MIT (see LICENSE.txt for details)
+
+This module is largely based on the EasyExcel class as described in the book
+"Python Programming on Win32". It can be downloadable from
+http://starship.python.net/crew/mhammond/ppw32
+Copyright (c) 2000, Mark Hammond and Andy Robinson
+"""
+
 import sys
 import os
 import inspect
 from win32com.client import GetObject
 from pywintypes import UnicodeType, TimeType
 
+__version__ = '0.1-dev'
+__license__ = 'MIT'
 
 class Xl:
-    """For debugging, provide the full filepath, otherwise leave blank
+    """
+    Xl provides an easy interface to the Excel file from which this code is being called
     
-    
+    Parameters
+    ----------
+    filepath : string, default None
+        For debugging/running in Python, provide the full filepath. Leave empty if called from Excel.
     """
 
     def __init__(self, filepath=None):
