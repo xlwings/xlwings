@@ -8,6 +8,15 @@ Public Function RunPython(PythonCommand As String)
     ' Python interpreter and Python file location can be adjusted, the defaults are:
     ' Python interpreter: "python"
     ' Python file location: Same as the calling Excel file
+    '
+	' xlwings is an easy way to connect your Excel tools with Python (Windows only).
+    ' The aim is to make it as easy as possible to distribute the Excel files.
+    '
+    ' Homepage and documentation: http://xlwings.org/
+    '
+    ' Copyright (c) 2013, Felix Zumstein.
+    ' Version: 0.1-dev
+    ' License: MIT (see LICENSE.txt for details)
     
     Dim wsh As Object
     Dim pyFilePath As String
