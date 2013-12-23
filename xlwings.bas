@@ -23,10 +23,10 @@ Public Function RunPython(PythonCommand As String)
     pythonExe = "python"
     
     ' Adjust according to the directory of the Python file
-    pyFilePath = Application.ThisWorkbook.Path
+    pyFilePath = ThisWorkbook.Path
     
     ' Get Workbook name
-    wbName = Application.ThisWorkbook.Name
+    wbName = ThisWorkbook.Name
     
     ' Call a command window, change to filePath, run the Python file with the Command Interface Option (-c) and provide the
     ' PythonCommand as first argument and the wbName as second argument. Wait with proceeding until the call returns.
