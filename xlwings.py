@@ -19,8 +19,7 @@ import inspect
 from win32com.client import GetObject
 import adodbapi
 from pywintypes import UnicodeType, TimeType
-from pandas import DataFrame
-import pandas as pd
+from pandas import MultiIndex
 
 __version__ = '0.1-dev'
 __license__ = 'MIT'
@@ -92,6 +91,29 @@ class Xl:
         sht = self.Workbook.Worksheets(sheet)
         sht.Range(sht.Cells(top_row, left_col), sht.Cells(bottom_row, right_col)).Value = data
 
+    def set_dataframe(self, sheet, top_row, left_col, dataframe, index=True, header=True):
+        """
+        Writes out a Pandas DataFrame
+
+        Parameters
+        ----------
+        TODO:
+
+        """
+        if index:
+            dataframe = dataframe.reset_index()
+
+        if header:
+            if type(dataframe.columns) is MultiIndex:
+                columns = zip(*dataframe.columns.tolist())
+            else:
+                columns = [dataframe.columns.tolist()]
+            self.set_range(sheet, top_row, left_col, columns)
+            top_row += len(columns)
+
+        self.set_range(sheet, top_row, left_col, dataframe.values)
+
+
     def get_contiguous_range(self, sheet, row, col):
         # TODO: shortcut/option to ignore "" cells with xlup/xlright or CurrentRegion
         # TODO: don't restrict to first col/row
@@ -117,10 +139,19 @@ class Xl:
     
         return list(sht.Range(sht.Cells(row, col), sht.Cells(bottom, right)).Value)
 
+    def get_current_range(self, sheet, row, col):
+        """
+        Equivalent to CurrentRange in Excel: Takes all surrounding cells into account
+        """
+        data = self.Workbook.Worksheets(sheet).Cells(row, col).CurrentRegion.Value
+        data = [list(row) for row in data]
+        return data
+
     @staticmethod
     def to_datetime(data):
         """
         Transforms PyTime Objects from COM into datetime objects
+        TODO: simplify
 
         Parameters
         ----------
