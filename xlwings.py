@@ -8,7 +8,7 @@ Copyright (c) 2013, Felix Zumstein.
 License: MIT (see LICENSE.txt for details)
 
 This module is largely based on the EasyExcel class as described in the book
-"Python Programming on Win32". It can be downloadable from
+"Python Programming on Win32". It can be downloaded from
 http://starship.python.net/crew/mhammond/ppw32
 Copyright (c) 2000, Mark Hammond and Andy Robinson
 """
@@ -41,8 +41,10 @@ class Xl:
             self.Workbook = GetObject(filepath)
             self.filepath = filepath
         else:
+            # TODO: catch AttributeError in case called from Python without filepath
             filename = sys.argv[1]
             # Get filepath of calling function in case this module is somewhere else
+            # TODO: currently, this requires that the excel and python file are in the same directory
             _dirpath = os.path.dirname(inspect.getmodule(inspect.stack()[1][0]).__file__)
             self.filepath = os.path.abspath(os.path.join(_dirpath, filename))
             self.Workbook = GetObject(self.filepath)
@@ -59,10 +61,8 @@ class Xl:
         sht = self.Workbook.Worksheets(sheet)
         cell = sht.Cells(row, col).Value
         if type(cell) is TimeType:
-            tc = adodbapi.pythonDateTimeConverter()
-            return tc.DateObjectFromCOMDate(cell)
-        else:
-            return cell
+            return self.to_datetime([[cell]])[0][0]
+        return cell
 
     def set_cell(self, sheet, row, col, value):
         """set value of one cell"""
@@ -70,9 +70,15 @@ class Xl:
         sht.Cells(row, col).Value = value
 
     def get_range(self, sheet, row1, col1, row2, col2):
-        """return a 2d array (i.e. tuple of tuples)"""
-        sht = self.Workbook.Worksheets(sheet)
-        return list(sht.Range(sht.Cells(row1, col1), sht.Cells(row2, col2)).Value)
+        """returns a list of lists"""
+        if row1 == row2 and col1 == col2:
+            return self.get_cell(sheet, row1, row1)
+        else:
+            sht = self.Workbook.Worksheets(sheet)
+            data = sht.Range(sht.Cells(row1, col1), sht.Cells(row2, col2)).Value
+            # Turn from tuple of tuples into list of lists and transform dates
+            data = [list(row) for row in data]
+            return self.to_datetime(data)
         
     def set_range(self, sheet, top_row, left_col, data):
         """
@@ -87,7 +93,8 @@ class Xl:
         sht.Range(sht.Cells(top_row, left_col), sht.Cells(bottom_row, right_col)).Value = data
 
     def get_contiguous_range(self, sheet, row, col):
-        # TODO: shortcut/option to ignore "" cells with xlup/xlright
+        # TODO: shortcut/option to ignore "" cells with xlup/xlright or CurrentRegion
+        # TODO: don't restrict to first col/row
         """
         Tracks down and across from top left cell until it
         encounters blank cells; returns the non-blank range.
@@ -110,38 +117,26 @@ class Xl:
     
         return list(sht.Range(sht.Cells(row, col), sht.Cells(bottom, right)).Value)
 
-    def fix_dates(self, matrix):
-        # TODO: make it work for single cols or rows
-        """converts all unicode strings and times"""
+    @staticmethod
+    def to_datetime(data):
+        """
+        Transforms PyTime Objects from COM into datetime objects
+
+        Parameters
+        ----------
+        data : list of list
+
+        """
+        # Check which columns contain COM dates
+        cols_with_dates = []
+        for i in range(len(data[0])):
+            if any([type(row[i]) is TimeType for row in data]):
+                cols_with_dates.append(i)
+
+        # Transform PyTime into datetime
         tc = adodbapi.pythonDateTimeConverter()
-        newmatrix = []
-        for row in matrix:
-            newrow = []
-            for cell in row:
+        for i in cols_with_dates:
+            for j, cell in enumerate([row[i] for row in data]):
                 if type(cell) is TimeType:
-                    newrow.append(tc.DateObjectFromCOMDate(cell))
-                else:
-                    newrow.append(cell)
-            newmatrix.append(tuple(newrow))
-        return newmatrix
-        
-    def create_dataframe(self, data):
-        """Create a pandas DataFrame"""
-        
-        data_fixed = self.fix_dates(data)
-        df = DataFrame(data_fixed[1:], columns=data_fixed[0])
-        df['test 1'] = pd.to_datetime(df['test 1'])
-        return df
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+                    data[j][i] = tc.DateObjectFromCOMDate(cell)
+        return data
