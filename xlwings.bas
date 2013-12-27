@@ -18,39 +18,47 @@ Public Function RunPython(PythonCommand As String)
     ' Version: 0.1-dev
     ' License: MIT (see LICENSE.txt for details)
     
-    Dim wsh As Object
-    Dim pyFilePath As String
+    Dim PYTHON_DIR As String
+    Dim PYTHONFILE_PATH As String
     Dim wbName As String
-    Dim pythonExe As String
-    Dim drive As String
-    Dim returnValue As Integer
+    Dim driveCommand As String
+    Dim exitCode As Integer
+    Dim wsh As Object
     Dim waitOnReturn As Boolean: waitOnReturn = True
     Dim windowStyle As Integer: windowStyle = 0
     
-    ' Adjust according to the desired Python executable
-    ' e.g.: "python", "python3", "C:\Python27\python"
-    pythonExe = "python"
+    ' Adjust according to the desired Python installation, e.g.: "C:\Python27"
+    ' Leave empty if you want to use the installation on your PATH
+    
+    PYTHON_DIR = ""
     
     ' Adjust according to the directory of the Python file
-    pyFilePath = ThisWorkbook.Path
+    PYTHONFILE_PATH = ThisWorkbook.Path
     
     ' Get Workbook name
     wbName = ThisWorkbook.Name
     
-    ' Call a command window, change to filePath, run the Python file with the Command Interface Option (-c) and provide the
-    ' PythonCommand as first argument and the wbName as second argument. Wait with proceeding until the call returns.
-    Set wsh = VBA.CreateObject("WScript.Shell")
-    If Left$(pyFilePath, 2) = "\\" Then
-        ' If UNC path, temporarily mount and activate a drive letter with pushd
-        returnValue = wsh.Run("cmd.exe /C pushd " & pyFilePath & " & " & pythonExe & " -c """ & PythonCommand & """ """ & wbName & """", windowStyle, waitOnReturn)
-    ElseIf Left$(pyFilePath, 2) Like "[A-Z]:" Then
-        ' If mapped or local drive, change to drive, then cd to path
-        drive = Left$(pyFilePath, 2)
-        returnValue = wsh.Run("cmd.exe /C " & drive & " & cd " & pyFilePath & " & " & pythonExe & " -c """ & PythonCommand & """ """ & wbName & """", windowStyle, waitOnReturn)
+    ' Call a command window and change to the directory of the Python installation
+    ' Note: If Python is called from a different directory with the full qualified path, pywintypesXX.dll won't be found
+    ' this is likely a pywin32 bug, see http://stackoverflow.com/q/7238403/918626
+    ' Run Python with the Command Interface Option (-c): add the path of the python file and run the
+    ' PythonCommand as first argument and provide the wbName as second argument. Wait with proceeding until the call returns.
+    Set wsh = CreateObject("WScript.Shell")
+    If Left$(PYTHON_DIR, 2) Like "[A-Z]:" Then
+        ' If Python is installed on a mapped or local drive, change to drive, then cd to path
+        driveCommand = Left$(PYTHON_DIR, 2) & " & cd "
+    ElseIf Left$(PYTHON_DIR, 2) = "\\" Then
+        ' In the unlikely event that Python is installed on a UNC path, temporarily mount and activate a drive letter with pushd
+        driveCommand = "pushd "
     End If
     
-    'If returnValue <> 0 then there's something wrong
-    If returnValue <> 0 Then
+    exitCode = wsh.Run("cmd.exe /C " & driveCommand & PYTHON_DIR & " & " & _
+                       "python -c """ & "import sys;sys.path.append(r'" & PYTHONFILE_PATH & "'); " & PythonCommand & _
+                       """ """ & wbName & """", _
+                       windowStyle, waitOnReturn)
+
+    'If exitCode <> 0 then there's something wrong
+    If exitCode <> 0 Then
         MsgBox "Oops - Something went wrong."
     End If
     
