@@ -59,7 +59,7 @@ class Xl:
         sht = self.Workbook.Worksheets(sheet)
         cell = sht.Cells(row, col).Value
         if type(cell) is TimeType:
-            return self.clean_data([[cell]])[0][0]
+            return self.clean_com_data([[cell]])[0][0]
         return cell
 
     def get_range(self, sheet, row1, col1, row2, col2):
@@ -69,7 +69,7 @@ class Xl:
         else:
             sht = self.Workbook.Worksheets(sheet)
             data = sht.Range(sht.Cells(row1, col1), sht.Cells(row2, col2)).Value
-            return self.clean_data(data)
+            return self.clean_com_data(data)
 
     def get_contiguous_range(self, sheet, row, col):
         # TODO: shortcut/option to ignore "" cells with xlup/xlright or CurrentRegion
@@ -82,18 +82,18 @@ class Xl:
         """
         sht = self.Workbook.Worksheets(sheet)
 
-        # find the bottom row
+        # Find the bottom row
         bottom = row
         while sht.Cells(bottom + 1, col).Value not in [None, ""]:
             bottom += 1
 
-        # right column
+        # Right column
         right = col
         while sht.Cells(row, right + 1).Value not in [None, ""]:
             right += 1
 
         data = sht.Range(sht.Cells(row, col), sht.Cells(bottom, right)).Value
-        return self.clean_data(data)
+        return self.clean_com_data(data)
 
     def get_current_range(self, sheet, row, col):
         """
@@ -102,7 +102,7 @@ class Xl:
         """
         data = self.Workbook.Worksheets(sheet).Cells(row, col).CurrentRegion.Value
         data = [list(row) for row in data]
-        return self.clean_data(data)
+        return self.clean_com_data(data)
 
     def set_cell(self, sheet, row, col, value):
         """ Set value of one cell """
@@ -145,7 +145,7 @@ class Xl:
         self.set_range(sheet, top_row, left_col, dataframe.values)
 
     @staticmethod
-    def clean_data(data):
+    def clean_com_data(data):
         """
         Transforms data from tuples of tuples into list of list and
         on Python 2, transforms PyTime Objects from COM into datetime objects.
@@ -155,23 +155,19 @@ class Xl:
         data : raw data as returned from Excel (tuple of tuple)
 
         """
-        # turn into list of list for easier handling (e.g. for Pandas DataFrame)
+        # Turn into list of list for easier handling (e.g. for Pandas DataFrame)
         data = [list(row) for row in data]
 
         # Check which columns contain COM dates
-        # TODO: simplify
+        # TODO: replace with datetime transformations from pyvot -> python3?
         if _is_python3 is True:
             return data
         else:
-            cols_with_dates = []
             for i in range(len(data[0])):
                 if any([type(row[i]) is TimeType for row in data]):
-                    cols_with_dates.append(i)
-
-            # Transform PyTime into datetime
-            tc = adodbapi.pythonDateTimeConverter()
-            for i in cols_with_dates:
-                for j, cell in enumerate([row[i] for row in data]):
-                    if type(cell) is TimeType:
-                        data[j][i] = tc.DateObjectFromCOMDate(cell)
-            return data
+                    # Transform PyTime into datetime
+                    tc = adodbapi.pythonDateTimeConverter()
+                    for j, cell in enumerate([row[i] for row in data]):
+                        if type(cell) is TimeType:
+                            data[j][i] = tc.DateObjectFromCOMDate(cell)
+        return data

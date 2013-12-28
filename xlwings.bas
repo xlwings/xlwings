@@ -5,14 +5,14 @@ Public Function RunPython(PythonCommand As String)
     ' Runs the Python command, e.g.: to run the function foo() in module bar, call the function like this:
     ' RunPython ("import bar; bar.foo(*args, **kwargs)")
     '
-    ' Python interpreter and Python source file directories can be changed, the defaults are:
+    ' Python installation and Python source file directories can be changed, the defaults are:
     ' Python interpreter: Default interpreter from PATH, i.e. the one you get by typing "python" at the command prompt
     ' Python file location: Same as the Excel file
     '
     ' xlwings makes it easy to deploy your Python powered Excel tools on Windows.
     ' Homepage and documentation: http://xlwings.org/
     '
-    ' Copyright (c) 2013, Felix Zumstein.
+    ' Copyright (c) 2014, Felix Zumstein.
     ' Version: 0.1-dev
     ' License: MIT (see LICENSE.txt for details)
     
@@ -31,7 +31,7 @@ Public Function RunPython(PythonCommand As String)
     ' Adjust according to the directory of the Python files
     SOURCECODE_DIR = ThisWorkbook.Path
     
-    ' Log file as fully qualified name
+    ' Fully qualified name of temporary error log file
     LOG_FILE = ThisWorkbook.Path & "\" & "log.txt"
     
     ' Get fully qualified name of Workbook
@@ -66,7 +66,7 @@ Public Function RunPython(PythonCommand As String)
         On Error GoTo 0
     End If
     
-    ' Make sure wsh is cleared as moving the file could create troubles otherwise
+    ' Make sure Wsh is cleared as otherwise moving the file between directoreis could create troubles
     Set Wsh = Nothing
     
 End Function
