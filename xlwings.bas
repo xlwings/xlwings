@@ -60,11 +60,12 @@ Public Function RunPython(PythonCommand As String)
     'If ExitCode <> 0 then there's something wrong
     If ExitCode <> 0 Then
         Call ShowError(LOG_FILE)
-        ' Delete file after the error message has been shown
-        On Error Resume Next
-            Kill LOG_FILE
-        On Error GoTo 0
     End If
+    
+    ' Delete file after the error message has been shown
+    On Error Resume Next
+        Kill LOG_FILE
+    On Error GoTo 0
     
     ' Make sure Wsh is cleared as otherwise moving the file between directoreis could create troubles
     Set Wsh = Nothing
