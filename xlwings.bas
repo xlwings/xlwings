@@ -16,54 +16,49 @@ Public Function RunPython(PythonCommand As String)
     ' Version: 0.1-dev
     ' License: MIT (see LICENSE.txt for details)
     
-    Dim PYTHON_DIR As String
-    Dim PYTHONFILE_PATH As String
-    Dim LOG_FILE As String
-    Dim wbName As String
-    Dim driveCommand As String
-    Dim exitCode As Integer
-    Dim wsh As Object
-    Dim waitOnReturn As Boolean: waitOnReturn = True
-    Dim windowStyle As Integer: windowStyle = 0
+    Dim PYTHON_DIR As String, SOURCECODE_DIR As String, LOG_FILE As String, WORKBOOK_FULL_NAME As String
+    Dim DriveCommand As String
+    Dim ExitCode As Integer
+    Dim Wsh As Object
+    Dim WaitOnReturn As Boolean: WaitOnReturn = True
+    Dim WindowStyle As Integer: WindowStyle = 0
     
-    ' Adjust according to the desired Python installation directory, e.g.: "C:\Python27"
-    ' Leave as empty string if you want to use the default installation from your PATH environment variable,
-    ' i.e. the installation you can start by just typing "python" at the command prompt
-    
+    ' Adjust according to where python.exe is on your system, e.g.: "C:\Python27"
+    ' Leave empty if you want to use the default installation from your PATH environment variable,
+    ' i.e. you want to use the installation you can start by just typing "python" at the command prompt
     PYTHON_DIR = ""
     
-    ' Adjust according to the directory of the Python file
-    PYTHONFILE_PATH = ThisWorkbook.Path
+    ' Adjust according to the directory of the Python files
+    SOURCECODE_DIR = ThisWorkbook.Path
     
-    ' Log File (fully qualified name)
+    ' Log file as fully qualified name
     LOG_FILE = ThisWorkbook.Path & "\" & "log.txt"
     
-    ' Get Workbook name
-    wbName = ThisWorkbook.Name
+    ' Get fully qualified name of Workbook
+    WORKBOOK_FULL_NAME = ThisWorkbook.FullName
     
     ' Call a command window and change to the directory of the Python installation
     ' Note: If Python is called from a different directory with the full qualified path, pywintypesXX.dll won't be found.
     ' This is likely a pywin32 bug, see http://stackoverflow.com/q/7238403/918626
     ' Run Python with the "-c" command line switch: add the path of the python file and run the
-    ' PythonCommand as first argument, then provide the wbName as second argument.
-    ' Write out the errors into "log.txt" next to this Excel file.
-    ' Wait with proceeding until the call returns.
-    Set wsh = CreateObject("WScript.Shell")
+    ' PythonCommand as first argument, then provide the WORKBOOK_FULL_NAME as second argument.
+    ' Write out the errors to the LOG_FILE and wait with proceeding until the call returns.
+    Set Wsh = CreateObject("WScript.Shell")
     If Left$(PYTHON_DIR, 2) Like "[A-Z]:" Then
         ' If Python is installed on a mapped or local drive, change to drive, then cd to path
-        driveCommand = Left$(PYTHON_DIR, 2) & " & cd " & PYTHON_DIR & " & "
+        DriveCommand = Left$(PYTHON_DIR, 2) & " & cd " & PYTHON_DIR & " & "
     ElseIf Left$(PYTHON_DIR, 2) = "\\" Then
         ' In the unlikely event that Python is installed on a UNC path, temporarily mount and activate a drive letter with pushd
-        driveCommand = "pushd " & PYTHON_DIR & " & "
+        DriveCommand = "pushd " & PYTHON_DIR & " & "
     End If
     
-    exitCode = wsh.Run("cmd.exe /C " & driveCommand & _
-                       "python -c " & """import sys; sys.path.append(r'" & PYTHONFILE_PATH & "'); " & PythonCommand & _
-                        """ """ & wbName & """ 2> """ & LOG_FILE & """  ", _
-                       windowStyle, waitOnReturn)
+    ExitCode = Wsh.Run("cmd.exe /C " & DriveCommand & _
+                       "python -c " & """import sys; sys.path.append(r'" & SOURCECODE_DIR & "'); " & PythonCommand & _
+                        """ """ & WORKBOOK_FULL_NAME & """ 2> """ & LOG_FILE & """  ", _
+                       WindowStyle, WaitOnReturn)
 
-    'If exitCode <> 0 then there's something wrong
-    If exitCode <> 0 Then
+    'If ExitCode <> 0 then there's something wrong
+    If ExitCode <> 0 Then
         Call ShowError(LOG_FILE)
         ' Delete file after the error message has been shown
         On Error Resume Next
@@ -72,11 +67,11 @@ Public Function RunPython(PythonCommand As String)
     End If
     
     ' Make sure wsh is cleared as moving the file could create troubles otherwise
-    Set wsh = Nothing
+    Set Wsh = Nothing
     
 End Function
 
-Sub ShowError(Filename As String)
+Sub ShowError(FileName As String)
     Dim ReadData As String
     Dim Token As String
     Dim FileNum As Integer
@@ -85,7 +80,7 @@ Sub ShowError(Filename As String)
     ReadData = ""
     
     ' Read Text File
-    Open Filename For Input As #FileNum
+    Open FileName For Input As #FileNum
         Do While Not EOF(FileNum)
             Line Input #FileNum, Token
             ReadData = ReadData & Token & vbCr
@@ -97,5 +92,4 @@ Sub ShowError(Filename As String)
     
     ' MsgBox
     MsgBox ReadData, vbCritical, "Error"
-    
 End Sub
