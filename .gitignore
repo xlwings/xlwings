@@ -8,7 +8,6 @@
 # SQLite Database
 *.db 
 
-/assetjet/logfiles
 logfiles
 .settings
 

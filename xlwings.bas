@@ -9,7 +9,7 @@ Public Function RunPython(PythonCommand As String)
     ' Python interpreter: Default interpreter from PATH, i.e. the one you get by typing "python" at the command prompt
     ' Python file location: Same as the Excel file
     '
-    ' xlwings makes it easy to deploy your Python powered Excel tools (Windows only).
+    ' xlwings makes it easy to deploy your Python powered Excel tools on Windows.
     ' Homepage and documentation: http://xlwings.org/
     '
     ' Copyright (c) 2013, Felix Zumstein.
@@ -18,6 +18,7 @@ Public Function RunPython(PythonCommand As String)
     
     Dim PYTHON_DIR As String
     Dim PYTHONFILE_PATH As String
+    Dim LOG_FILE As String
     Dim wbName As String
     Dim driveCommand As String
     Dim exitCode As Integer
@@ -34,14 +35,18 @@ Public Function RunPython(PythonCommand As String)
     ' Adjust according to the directory of the Python file
     PYTHONFILE_PATH = ThisWorkbook.Path
     
+    ' Log File (fully qualified name)
+    LOG_FILE = ThisWorkbook.Path & "\" & "log.txt"
+    
     ' Get Workbook name
     wbName = ThisWorkbook.Name
     
     ' Call a command window and change to the directory of the Python installation
     ' Note: If Python is called from a different directory with the full qualified path, pywintypesXX.dll won't be found.
     ' This is likely a pywin32 bug, see http://stackoverflow.com/q/7238403/918626
-    ' Run Python with the Command Interface Option (-c): add the path of the python file and run the
+    ' Run Python with the "-c" command line switch: add the path of the python file and run the
     ' PythonCommand as first argument, then provide the wbName as second argument.
+    ' Write out the errors into "log.txt" next to this Excel file.
     ' Wait with proceeding until the call returns.
     Set wsh = CreateObject("WScript.Shell")
     If Left$(PYTHON_DIR, 2) Like "[A-Z]:" Then
@@ -53,16 +58,44 @@ Public Function RunPython(PythonCommand As String)
     End If
     
     exitCode = wsh.Run("cmd.exe /C " & driveCommand & _
-                       "python -c """ & "import sys; sys.path.append(r'" & PYTHONFILE_PATH & "'); " & PythonCommand & _
-                       """ """ & wbName & """", _
+                       "python -c " & """import sys; sys.path.append(r'" & PYTHONFILE_PATH & "'); " & PythonCommand & _
+                        """ """ & wbName & """ 2> """ & LOG_FILE & """  ", _
                        windowStyle, waitOnReturn)
 
     'If exitCode <> 0 then there's something wrong
     If exitCode <> 0 Then
-        MsgBox "Oops - Something went wrong."
+        Call ShowError(LOG_FILE)
+        ' Delete file after the error message has been shown
+        On Error Resume Next
+            Kill LOG_FILE
+        On Error GoTo 0
     End If
     
     ' Make sure wsh is cleared as moving the file could create troubles otherwise
     Set wsh = Nothing
     
 End Function
+
+Sub ShowError(Filename As String)
+    Dim ReadData As String
+    Dim Token As String
+    Dim FileNum As Integer
+    
+    FileNum = FreeFile
+    ReadData = ""
+    
+    ' Read Text File
+    Open Filename For Input As #FileNum
+        Do While Not EOF(FileNum)
+            Line Input #FileNum, Token
+            ReadData = ReadData & Token & vbCr
+        Loop
+    Close #FileNum
+    
+    ReadData = ReadData & vbCr
+    ReadData = ReadData & "Press Ctrl+C to copy this message to the clipboard."
+    
+    ' MsgBox
+    MsgBox ReadData, vbCritical, "Error"
+    
+End Sub
