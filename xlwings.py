@@ -163,10 +163,10 @@ class Xl:
         if _is_python3 is True:
             return data
         else:
+            tc = adodbapi.pythonDateTimeConverter()
             for i in range(len(data[0])):
                 if any([type(row[i]) is TimeType for row in data]):
                     # Transform PyTime into datetime
-                    tc = adodbapi.pythonDateTimeConverter()
                     for j, cell in enumerate([row[i] for row in data]):
                         if type(cell) is TimeType:
                             data[j][i] = tc.DateObjectFromCOMDate(cell)
