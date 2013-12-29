@@ -30,22 +30,22 @@ class Xl:
     
     Parameters
     ----------
-    filepath : string, default None
-        For debugging/interactive use from within Python, provide the full filepath. Leave empty if called from Excel.
+    fullname : string, default None
+        For debugging/interactive use from within Python, provide the fully qualified filename.
+        Leave empty if called from Excel.
 
     """
 
     def __init__(self, fullname=None):
+        # TODO: check if fullname exists
         if fullname:
-            # GetObject() gives us the correct Excel instance if there are > 1
-            self.Workbook = GetObject(fullname)
             self.fullname = fullname
-            self.filename = os.path.split(self.fullname)[1]
         else:
             # TODO: catch AttributeError in case called from Python without argument
             self.fullname = sys.argv[1]
-            self.Workbook = GetObject(self.fullname)
-            self.filename = os.path.split(self.fullname)[1]
+        # GetObject() gives us the correct Excel instance if there are > 1
+        self.Workbook = GetObject(self.fullname)
+        self.filename = os.path.split(self.fullname)[1]
 
     def save(self, newfilename=None):
         if newfilename:
