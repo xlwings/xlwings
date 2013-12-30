@@ -13,7 +13,8 @@ Copyright (c) 2000, Mark Hammond and Andy Robinson
 
 import sys
 import os
-from win32com.client import GetObject
+from win32com.client import Dispatch, GetObject
+import win32com.client.dynamic
 import adodbapi
 from pywintypes import TimeType
 import numpy as np
@@ -39,12 +40,12 @@ class Xl:
     def __init__(self, fullname=None):
         # TODO: check if fullname exists
         if fullname:
-            self.fullname = fullname
+            self.fullname = fullname.lower()
         else:
             # TODO: catch AttributeError in case called from Python without argument
-            self.fullname = sys.argv[1]
-        # GetObject() gives us the correct Excel instance if there are > 1
-        self.Workbook = GetObject(self.fullname)
+            self.fullname = sys.argv[1].lower()
+        self.App = win32com.client.dynamic.Dispatch('Excel.Application')
+        self.Workbook = GetObject(self.fullname)  # GetObject() gives us the correct Excel instance if there are > 1
         self.filename = os.path.split(self.fullname)[1]
 
     def save(self, newfilename=None):
@@ -59,7 +60,7 @@ class Xl:
         sht = self.Workbook.Worksheets(sheet)
         cell = sht.Cells(row, col).Value
         if type(cell) is TimeType:
-            return self.clean_com_data([[cell]])[0][0]
+            return self.clean_com_data([[cell]])[0][0]  # TODO: introduce as_array method?
         return cell
 
     def get_range(self, sheet, row1, col1, row2, col2):
