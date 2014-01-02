@@ -2,13 +2,9 @@
 xlwings makes it easy to deploy your Python powered Excel tools on Windows.
 Homepage and documentation: http://xlwings.org/
 
-Copyright (c) 2013, Felix Zumstein.
+Copyright (c) 2014, Felix Zumstein.
 License: MIT (see LICENSE.txt for details)
 
-This module partly based on the easyExcel class as shown in the book
-"Python Programming on Win32". It can be downloaded from
-http://starship.python.net/crew/mhammond/ppw32
-Copyright (c) 2000, Mark Hammond and Andy Robinson
 """
 
 import sys
@@ -26,13 +22,23 @@ __license__ = 'MIT'
 _is_python3 = sys.version_info.major > 2
 
 
-def connect_workbook(fullname=None):
-        if fullname:
-            fullname = fullname.lower()
-        else:
-            fullname = sys.argv[1].lower()
-        global Workbook
-        Workbook = GetObject(fullname)  # GetObject() gives us the correct Excel instance if there are > 1
+def xlwings_connect(fullname=None):
+    """
+    Establishes a connection between a specific Excel file and Python
+
+
+    Parameters
+    ----------
+    fullname : string, default None
+        For debugging/interactive use from within Python, provide the fully qualified name, e.g: 'C:\path\to\file.xlsx'
+        Leave empty if called from Excel.
+    """
+    if fullname:
+        fullname = fullname.lower()
+    else:
+        fullname = sys.argv[1].lower()
+    global Workbook
+    Workbook = GetObject(fullname)  # GetObject() gives us the correct Excel instance if there are > 1
 
 
 class Xl:
@@ -55,9 +61,8 @@ class Xl:
             # TODO: catch AttributeError in case called from Python without argument
             self.fullname = sys.argv[1].lower()
         self.App = win32com.client.dynamic.Dispatch('Excel.Application')
-        self.Workbook = Workbook
+        self.Workbook = GetObject(self.fullname)  # GetObject() gives us the correct Excel instance if there are > 1
         self.filename = os.path.split(self.fullname)[1]
-        self._cell = None
 
     def save(self, newfilename=None):
         if newfilename:
@@ -71,7 +76,7 @@ class Xl:
         sht = self.Workbook.Worksheets(sheet)
         cell = sht.Cells(row, col).Value
         if type(cell) is TimeType:
-            return self.clean_com_data([[cell]])[0][0]  # TODO: introduce as_array method?
+            return clean_com_data([[cell]])[0][0]  # TODO: introduce as_array method?
         return cell
 
     def get_range(self, sheet, row1, col1, row2, col2):
@@ -81,7 +86,7 @@ class Xl:
         else:
             sht = self.Workbook.Worksheets(sheet)
             data = sht.Range(sht.Cells(row1, col1), sht.Cells(row2, col2)).Value
-            return self.clean_com_data(data)
+            return clean_com_data(data)
 
     def get_contiguous_range(self, sheet, row, col):
         # TODO: shortcut/option to ignore "" cells with xlup/xlright or CurrentRegion
@@ -105,7 +110,7 @@ class Xl:
             right += 1
 
         data = sht.Range(sht.Cells(row, col), sht.Cells(bottom, right)).Value
-        return self.clean_com_data(data)
+        return clean_com_data(data)
 
     def get_current_range(self, sheet, row, col):
         """
@@ -114,7 +119,7 @@ class Xl:
         """
         data = self.Workbook.Worksheets(sheet).Cells(row, col).CurrentRegion.Value
         data = [list(row) for row in data]
-        return self.clean_com_data(data)
+        return clean_com_data(data)
 
     def set_cell(self, sheet, row, col, value):
         """ Set value of one cell """
@@ -156,45 +161,206 @@ class Xl:
 
         self.set_range(sheet, top_row, left_col, dataframe.values)
 
-    @staticmethod
-    def clean_com_data(data):
-        """
-        Transforms data from tuples of tuples into list of list and
-        on Python 2, transforms PyTime Objects from COM into datetime objects.
 
-        Parameters
-        ----------
-        data : raw data as returned from Excel (tuple of tuple)
+def clean_com_data(data):
+    """
+    Transforms data from tuples of tuples into list of list and
+    on Python 2, transforms PyTime Objects from COM into datetime objects.
 
-        """
-        # Turn into list of list for easier handling (e.g. for Pandas DataFrame)
-        data = [list(row) for row in data]
+    Parameters
+    ----------
+    data : raw data as returned from Excel (tuple of tuple)
 
-        # Check which columns contain COM dates
-        # TODO: replace with datetime transformations from pyvot -> python3?
-        if _is_python3 is True:
-            return data
-        else:
-            tc = adodbapi.pythonDateTimeConverter()
-            for i in range(len(data[0])):
-                if any([type(row[i]) is TimeType for row in data]):
-                    # Transform PyTime into datetime
-                    for j, cell in enumerate([row[i] for row in data]):
-                        if type(cell) is TimeType:
-                            data[j][i] = tc.DateObjectFromCOMDate(cell)
+    """
+    # Turn into list of list for easier handling (e.g. for Pandas DataFrame)
+    data = [list(row) for row in data]
+
+    # Check which columns contain COM dates
+    # TODO: replace with datetime transformations from pyvot -> python3?
+    # TODO: simplify like this: [[tc.DateObjectFromCOMDate(c) for c in row] for row in data]
+    if _is_python3 is True:
         return data
+    else:
+        tc = adodbapi.pythonDateTimeConverter()
+        for i in range(len(data[0])):
+            if any([type(row[i]) is TimeType for row in data]):
+                # Transform PyTime into datetime
+                for j, cell in enumerate([row[i] for row in data]):
+                    if type(cell) is TimeType:
+                        data[j][i] = tc.DateObjectFromCOMDate(cell)
+    return data
 
 
 class Cell(object):
-    def __init__(self, sheet, row, col):
-        self.sheet = sheet
-        self.row = row
-        self.col = col
+    """
+    A Cell object can be created with the following arguments:
+
+    Cell('A1')
+    Cell('NamedRange')
+    Cell(1,1)
+
+    If no worksheet name is provided as first argument, it will take the cells from the active sheet. To get
+    the cells from a specific sheet, provide the worksheet name as first argument like so:
+
+    Cell('Sheet1','A1')
+    """
+    def __init__(self, *args):
+        # Parse arguments
+        if len(args) == 1:
+            sheet = None
+            self.range = args[0]
+        if len(args) == 2 and type(args[0]) is str:
+            sheet = args[0]
+            self.range = args[1]
+        if len(args) == 2 and type(args[0]) is int:
+            sheet = None
+            self.range = None
+            self.row = args[0]
+            self.col = args[1]
+        if len(args) == 3:
+            sheet = args[0]
+            self.range = None
+            self.row = args[1]
+            self.col = args[2]
+
+        # Get cell
+        if sheet:
+            self.sheet = Workbook.Worksheets(sheet)
+        else:
+            self.sheet = Workbook.ActiveSheet
+        if self.range:
+            self.cell = self.sheet.Range(self.range)
+            self.row = self.cell.Row
+            self.col = self.cell.Column
+        else:
+            self.cell = self.sheet.Cells(self.row, self.col)
 
     @property
     def value(self):
-        return Workbook.Worksheets(self.sheet).Cells(self.row, self.col).Value
+        if type(self.cell.Value) is TimeType:
+            return clean_com_data([[self.cell.Value]])[0][0]  # TODO: introduce as_matrix method?
+        return self.cell.Value
 
     @value.setter
     def value(self, data):
-        Workbook.Worksheets(self.sheet).Cells(self.row, self.col).Value = data
+        self.cell.Value = data
+
+    def clear(self):
+        self.cell.Clear()
+
+    def clear_contents(self):
+        self.cell.ClearContents()
+
+    @property
+    def table(self):
+        bottom = self.row
+        while self.sheet.Cells(bottom + 1, self.col).Value not in [None, ""]:
+            bottom += 1
+
+        # Right column
+        right = self.col
+        while self.sheet.Cells(self.row, right + 1).Value not in [None, ""]:
+            right += 1
+
+        data = self.sheet.Range(self.sheet.Cells(self.row, self.col),
+                                self.sheet.Cells(bottom, right)).Value
+        return clean_com_data(data)
+
+
+class CellRange(object):
+    """
+    A CellRange object can be created with the following arguments:
+
+    CellRange('A1', table=True)
+    CellRange('A1:C3')
+    CellRange('NamedRange')
+    CellRange((1,1), (3,3))
+
+    If no worksheet name is provided as first argument, it will take the range from the active sheet. To get
+    the range from a specific sheet, provide the worksheet name as first argument like so:
+
+    CellRange('Sheet1','A1')
+    """
+    def __init__(self, *args, **kwargs):
+        # Parse arguments
+        if len(args) == 1:
+            sheet = None
+            cell_range = args[0]
+        if len(args) == 2 and type(args[0]) is str:
+            sheet = args[0]
+            cell_range = args[1]
+        if len(args) == 2 and type(args[0]) is not str:
+            sheet = None
+            cell_range = None
+            self.row1 = args[0][0]
+            self.col1 = args[0][1]
+            self.row2 = args[1][0]
+            self.col2 = args[1][1]
+        if len(args) == 3:
+            sheet = args[0]
+            cell_range = None
+            self.row1 = args[1][0]
+            self.col1 = args[1][1]
+            self.row2 = args[2][0]
+            self.col2 = args[2][1]
+
+        # Get cells
+        if sheet:
+            self.sheet = Workbook.Worksheets(sheet)
+        else:
+            self.sheet = Workbook.ActiveSheet
+        if cell_range:
+            self.cell_range = self.sheet.Range(cell_range)
+            self.row1 = self.sheet.Range(cell_range.split(':')[0]).Row
+            self.col1 = self.sheet.Range(cell_range.split(':')[0]).Column
+            if len(cell_range.split(':')) == 2:
+                self.row2 = self.sheet.Range(cell_range.split(':')[1]).Row
+                self.col2 = self.sheet.Range(cell_range.split(':')[1]).Column
+            else:
+                self.row2 = self.row1
+                self.col2 = self.col1
+
+        else:
+            self.cell_range = self.sheet.Range(self.sheet.Cells(self.row1, self.col1),
+                                               self.sheet.Cells(self.row2, self.col2))
+
+    @property
+    def value(self):
+            if self.row1 == self.row2 and self.col1 == self.col2:
+                return clean_com_data([[self.cell_range.Value]])[0][0]  # TODO: introduce as_matrix method?
+            else:
+                return clean_com_data(self.cell_range.Value)
+
+    @value.setter
+    def value(self, data):
+        # TODO: Range('A1:C3').value = 5 should apply 5 to the whole range
+        bottom_row = self.row1 + len(data) - 1
+        right_col = self.col1 + len(data[0]) - 1
+        if type(data) is np.ndarray:
+            data = data.tolist()  # Python 3 can't handle arrays directly
+        self.sheet.Range(self.sheet.Cells(self.row1, self.col1), self.sheet.Cells(bottom_row, right_col)).Value = data
+
+
+if __name__ == "__main__":
+    xlwings_connect(r'C:\DEV\Git\xlwings\example.xlsm')
+    # Cell
+    print Cell('B1').value
+    print Cell('Sheet3', 'A1').value
+    Cell('G2').value = 23
+
+    # CellRange
+    print CellRange('A1').value
+    print np.array(CellRange('A1:C3').value)
+    print np.array(CellRange('test_range').value)
+    print np.array(CellRange((1,1), (3,3)).value)
+
+    print CellRange('Sheet3', 'A1').value
+    print np.array(CellRange('Sheet3', 'A1:C3').value)
+    print np.array(CellRange('Sheet3', 'test_range').value)
+    print np.array(CellRange('Sheet3', (1,1), (3,3)).value)
+
+
+    # CellRange('A25').value = 23
+    CellRange('A1:C3').value = 23
+    CellRange('single_cell').value = np.eye(4)
+    CellRange((5,5), (8,8)).value = [[1,2,3], [4,5,6], [7,8,9]]
