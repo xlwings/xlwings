@@ -25,6 +25,16 @@ __license__ = 'MIT'
 
 _is_python3 = sys.version_info.major > 2
 
+
+def connect_workbook(fullname=None):
+        if fullname:
+            fullname = fullname.lower()
+        else:
+            fullname = sys.argv[1].lower()
+        global Workbook
+        Workbook = GetObject(fullname)  # GetObject() gives us the correct Excel instance if there are > 1
+
+
 class Xl:
     """
     Xl provides an easy interface to the Excel file from which this code is being called
@@ -45,8 +55,9 @@ class Xl:
             # TODO: catch AttributeError in case called from Python without argument
             self.fullname = sys.argv[1].lower()
         self.App = win32com.client.dynamic.Dispatch('Excel.Application')
-        self.Workbook = GetObject(self.fullname)  # GetObject() gives us the correct Excel instance if there are > 1
+        self.Workbook = Workbook
         self.filename = os.path.split(self.fullname)[1]
+        self._cell = None
 
     def save(self, newfilename=None):
         if newfilename:
@@ -172,3 +183,18 @@ class Xl:
                         if type(cell) is TimeType:
                             data[j][i] = tc.DateObjectFromCOMDate(cell)
         return data
+
+
+class Cell(object):
+    def __init__(self, sheet, row, col):
+        self.sheet = sheet
+        self.row = row
+        self.col = col
+
+    @property
+    def value(self):
+        return Workbook.Worksheets(self.sheet).Cells(self.row, self.col).Value
+
+    @value.setter
+    def value(self, data):
+        Workbook.Worksheets(self.sheet).Cells(self.row, self.col).Value = data
