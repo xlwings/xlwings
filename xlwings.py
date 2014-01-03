@@ -15,6 +15,8 @@ import adodbapi
 from pywintypes import TimeType
 import numpy as np
 from pandas import MultiIndex
+import pandas as pd
+
 
 __version__ = '0.1-dev'
 __license__ = 'MIT'
@@ -58,7 +60,8 @@ class Xl:
         if fullname:
             self.fullname = fullname.lower()
         else:
-            # TODO: catch AttributeError in case called from Python without argument
+            # TODO: catch AttributeError in case called from Python without argument or
+            # TODO: pass 'from_excel' arg when called from VBA
             self.fullname = sys.argv[1].lower()
         self.App = win32com.client.dynamic.Dispatch('Excel.Application')
         self.Workbook = GetObject(self.fullname)  # GetObject() gives us the correct Excel instance if there are > 1
@@ -283,11 +286,10 @@ class CellRange(object):
     """
     def __init__(self, *args, **kwargs):
         # Parse arguments
-        self.table = kwargs.get('table')
         if len(args) == 1:
             sheet = None
             cell_range = args[0]
-        if len(args) == 2 and type(args[0]) is str:
+        if len(args) == 2 and type(args[0]) is str:  # TODO: change to isinstance
             sheet = args[0]
             cell_range = args[1]
         if len(args) == 2 and type(args[0]) is not str:
@@ -318,8 +320,6 @@ class CellRange(object):
             if len(cell_range.split(':')) == 2:
                 self.row2 = self.sheet.Range(cell_range.split(':')[1]).Row
                 self.col2 = self.sheet.Range(cell_range.split(':')[1]).Column
-            elif self.table:
-                self.row2, self.col2 = get_table(self.sheet, self.row1, self.col1)
             else:
                 self.row2 = self.row1
                 self.col2 = self.col1
@@ -344,6 +344,22 @@ class CellRange(object):
         self.sheet.Range(self.sheet.Cells(self.row1, self.col1), self.sheet.Cells(bottom_row, right_col)).Value = data
 
     @property
+    def table(self):
+        """
+        TODO:
+        """
+        row2 = self.row1
+        while self.sheet.Cells(row2 + 1, self.col1).Value not in [None, ""]:
+            row2 += 1
+
+        # Right column
+        col2 = self.col1
+        while self.sheet.Cells(self.row1, col2 + 1).Value not in [None, ""]:
+            col2 += 1
+
+        return CellRange(self.sheet.Name, (self.row1, self.col1), (row2, col2))
+
+    @property
     def current_region(self):
         """
         The current_region property returns a CellRange object representing a range bounded by (but not including) any
@@ -351,9 +367,9 @@ class CellRange(object):
         VBA equivalent: CurrentRegion property of Range object
         """
         current_region = self.sheet.Cells(self.row1, self.col1).CurrentRegion
-        self.row2 = self.row1 + current_region.Rows.Count - 1
-        self.col2 = self.col1 + current_region.Columns.Count - 1
-        return CellRange(self.sheet.Name, (self.row1, self.col1), (self.row2, self.col2))
+        row2 = self.row1 + current_region.Rows.Count - 1
+        col2 = self.col1 + current_region.Columns.Count - 1
+        return CellRange(self.sheet.Name, (self.row1, self.col1), (row2, col2))
 
     def clear(self):
         self.cell_range.Clear()
@@ -387,3 +403,4 @@ if __name__ == "__main__":
     # print np.array(CellRange('Sheet3', 'G23', table=True).value)
     # print np.array(CellRange('Sheet3', 'G23', current_region=True).value)
     print np.array(CellRange('Sheet3', 'G23').current_region.value)
+    print np.array(CellRange('Sheet3', 'G23').table.value)
