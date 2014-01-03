@@ -251,20 +251,20 @@ class Cell(object):
     def clear_contents(self):
         self.cell.ClearContents()
 
-    @property
-    def table(self):
-        bottom = self.row
-        while self.sheet.Cells(bottom + 1, self.col).Value not in [None, ""]:
-            bottom += 1
+def get_table(sheet, row, col):
+    """
+    Returns  down_row and right_col from table starting at Cell(row, col)
+    """
+    bottom = row
+    while sheet.Cells(bottom + 1, col).Value not in [None, ""]:
+        bottom += 1
 
-        # Right column
-        right = self.col
-        while self.sheet.Cells(self.row, right + 1).Value not in [None, ""]:
-            right += 1
+    # Right column
+    right = col
+    while sheet.Cells(row, right + 1).Value not in [None, ""]:
+        right += 1
 
-        data = self.sheet.Range(self.sheet.Cells(self.row, self.col),
-                                self.sheet.Cells(bottom, right)).Value
-        return clean_com_data(data)
+    return bottom, right
 
 
 class CellRange(object):
@@ -283,6 +283,7 @@ class CellRange(object):
     """
     def __init__(self, *args, **kwargs):
         # Parse arguments
+        self.table = kwargs.get('table')
         if len(args) == 1:
             sheet = None
             cell_range = args[0]
@@ -309,20 +310,22 @@ class CellRange(object):
             self.sheet = Workbook.Worksheets(sheet)
         else:
             self.sheet = Workbook.ActiveSheet
+
         if cell_range:
-            self.cell_range = self.sheet.Range(cell_range)
             self.row1 = self.sheet.Range(cell_range.split(':')[0]).Row
             self.col1 = self.sheet.Range(cell_range.split(':')[0]).Column
+
             if len(cell_range.split(':')) == 2:
                 self.row2 = self.sheet.Range(cell_range.split(':')[1]).Row
                 self.col2 = self.sheet.Range(cell_range.split(':')[1]).Column
+            elif self.table:
+                self.row2, self.col2 = get_table(self.sheet, self.row1, self.col1)
             else:
                 self.row2 = self.row1
                 self.col2 = self.col1
 
-        else:
-            self.cell_range = self.sheet.Range(self.sheet.Cells(self.row1, self.col1),
-                                               self.sheet.Cells(self.row2, self.col2))
+        self.cell_range = self.sheet.Range(self.sheet.Cells(self.row1, self.col1),
+                                           self.sheet.Cells(self.row2, self.col2))
 
     @property
     def value(self):
@@ -340,6 +343,11 @@ class CellRange(object):
             data = data.tolist()  # Python 3 can't handle arrays directly
         self.sheet.Range(self.sheet.Cells(self.row1, self.col1), self.sheet.Cells(bottom_row, right_col)).Value = data
 
+    def clear(self):
+        self.cell_range.Clear()
+
+    def clear_contents(self):
+        self.cell_range.ClearContents()
 
 if __name__ == "__main__":
     xlwings_connect(r'C:\DEV\Git\xlwings\example.xlsm')
@@ -358,9 +366,10 @@ if __name__ == "__main__":
     print np.array(CellRange('Sheet3', 'A1:C3').value)
     print np.array(CellRange('Sheet3', 'test_range').value)
     print np.array(CellRange('Sheet3', (1,1), (3,3)).value)
-
-
-    # CellRange('A25').value = 23
-    CellRange('A1:C3').value = 23
+    
+    CellRange('A25').value = [[23]]
+    CellRange('A1:C3').value = [[11,22,33], [44,55,66], [77,88,99]]
     CellRange('single_cell').value = np.eye(4)
     CellRange((5,5), (8,8)).value = [[1,2,3], [4,5,6], [7,8,9]]
+
+    print np.array(CellRange('Sheet3', 'G23', table=True).value)
