@@ -38,7 +38,7 @@ def xlwings_connect(fullname=None):
     else:
         fullname = sys.argv[1].lower()
     global Workbook
-    Workbook = GetObject(fullname)  # GetObject() gives us the correct Excel instance if there are > 1
+    Workbook = GetObject(fullname)  # GetObject() returns the correct Excel instance if there are > 1
 
 
 class Xl:
@@ -343,6 +343,18 @@ class CellRange(object):
             data = data.tolist()  # Python 3 can't handle arrays directly
         self.sheet.Range(self.sheet.Cells(self.row1, self.col1), self.sheet.Cells(bottom_row, right_col)).Value = data
 
+    @property
+    def current_region(self):
+        """
+        The current_region property returns a CellRange object representing a range bounded by (but not including) any
+        combination of blank rows and blank columns or the edges of the worksheet
+        VBA equivalent: CurrentRegion property of Range object
+        """
+        current_region = self.sheet.Cells(self.row1, self.col1).CurrentRegion
+        self.row2 = self.row1 + current_region.Rows.Count - 1
+        self.col2 = self.col1 + current_region.Columns.Count - 1
+        return CellRange(self.sheet.Name, (self.row1, self.col1), (self.row2, self.col2))
+
     def clear(self):
         self.cell_range.Clear()
 
@@ -352,24 +364,26 @@ class CellRange(object):
 if __name__ == "__main__":
     xlwings_connect(r'C:\DEV\Git\xlwings\example.xlsm')
     # Cell
-    print Cell('B1').value
-    print Cell('Sheet3', 'A1').value
-    Cell('G2').value = 23
-
-    # CellRange
-    print CellRange('A1').value
-    print np.array(CellRange('A1:C3').value)
-    print np.array(CellRange('test_range').value)
-    print np.array(CellRange((1,1), (3,3)).value)
-
-    print CellRange('Sheet3', 'A1').value
-    print np.array(CellRange('Sheet3', 'A1:C3').value)
-    print np.array(CellRange('Sheet3', 'test_range').value)
-    print np.array(CellRange('Sheet3', (1,1), (3,3)).value)
-    
-    CellRange('A25').value = [[23]]
-    CellRange('A1:C3').value = [[11,22,33], [44,55,66], [77,88,99]]
-    CellRange('single_cell').value = np.eye(4)
-    CellRange((5,5), (8,8)).value = [[1,2,3], [4,5,6], [7,8,9]]
-
-    print np.array(CellRange('Sheet3', 'G23', table=True).value)
+    # print Cell('B1').value
+    # print Cell('Sheet3', 'A1').value
+    # Cell('G2').value = 23
+    #
+    # # CellRange
+    # print CellRange('A1').value
+    # print np.array(CellRange('A1:C3').value)
+    # print np.array(CellRange('test_range').value)
+    # print np.array(CellRange((1,1), (3,3)).value)
+    #
+    # print CellRange('Sheet3', 'A1').value
+    # print np.array(CellRange('Sheet3', 'A1:C3').value)
+    # print np.array(CellRange('Sheet3', 'test_range').value)
+    # print np.array(CellRange('Sheet3', (1,1), (3,3)).value)
+    #
+    # CellRange('A25').value = [[23]]
+    # CellRange('A1:C3').value = [[11,22,33], [44,55,66], [77,88,99]]
+    # CellRange('single_cell').value = np.eye(4)
+    # CellRange((5,5), (8,8)).value = [[1,2,3], [4,5,6], [7,8,9]]
+    #
+    # print np.array(CellRange('Sheet3', 'G23', table=True).value)
+    # print np.array(CellRange('Sheet3', 'G23', current_region=True).value)
+    print np.array(CellRange('Sheet3', 'G23').current_region.value)
