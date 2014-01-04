@@ -1,5 +1,5 @@
 """
-xlwings makes it easy to deploy your Python powered Excel tools on Windows.
+xlwings is the easiest way to deploy your Python powered Excel tools on Windows.
 Homepage and documentation: http://xlwings.org/
 
 Copyright (c) 2014, Zoomer Analytics.
@@ -18,7 +18,7 @@ import pandas as pd
 import numbers
 
 
-__version__ = '0.1-dev'
+__version__ = '0.1.0-dev'
 
 _is_python3 = sys.version_info.major > 2
 
@@ -81,16 +81,17 @@ class Range(object):
     """
     A Range object can be created with the following arguments:
 
-    Range('A1')
-    Range('A1:C3')
-    Range((1,2))
-    Range((1,1), (3,3))
-    Range('NamedRange')
+    Range('A1')          Range('Sheet1', 'A1')          Range(1, 'A1')
+    Range('A1:C3')       Range('Sheet1', 'A1:C3')       Range(1, 'A1:C3')
+    Range((1,2))         Range('Sheet1, (1,2))          Range(1, (1,2))
+    Range((1,1), (3,3))  Range('Sheet1', (1,1), (3,3))  Range(1, (1,1), (3,3))
+    Range('NamedRange')  Range('Sheet1', 'NamedRange')  Range(1, 'NamedRange')
 
     If no worksheet name is provided as first argument, it will take the range from the active sheet. To get
-    the range from a specific sheet, provide the worksheet name as first argument like so:
+    the range from a specific sheet, provide the worksheet name as first argument either as name or index.
 
-    Range('Sheet1', 'A1')
+    You usually want to go for Range(...).value to get the values as list of lists.
+    Specify Range(..., asarray=True).value if you want to get back a NumPy array.
     """
     def __init__(self, *args, **kwargs):
         # Parse arguments
@@ -104,9 +105,20 @@ class Range(object):
             self.col1 = args[0][1]
             self.row2 = self.row1
             self.col2 = self.col1
-        elif len(args) == 2 and isinstance(args[0], (str, unicode)):
+        elif (len(args) == 2
+              and isinstance(args[0], (numbers.Number, str, unicode))
+              and isinstance(args[1], (str, unicode))):
             sheet = args[0]
             cell_range = args[1]
+        elif (len(args) == 2
+              and isinstance(args[0], (numbers.Number, str, unicode))
+              and isinstance(args[1], tuple)):
+            sheet = args[0]
+            cell_range = None
+            self.row1 = args[1][0]
+            self.col1 = args[1][1]
+            self.row2 = self.row1
+            self.col2 = self.col1
         elif len(args) == 2 and isinstance(args[0], tuple):
             sheet = None
             cell_range = None
@@ -123,9 +135,10 @@ class Range(object):
             self.col2 = args[2][1]
 
         # Keyword Arguments
+        self.kwargs = kwargs
         self.index = kwargs.get('index', True)  # Set DataFrame with index
         self.header = kwargs.get('header', True)  # Set DataFrame with header
-        self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array TODO: What shoudl be the default?
+        self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array
 
         # Get cells
         if sheet:
@@ -134,17 +147,10 @@ class Range(object):
             self.sheet = Workbook.ActiveSheet
 
         if cell_range:
-            # TODO: correct for NamedRange
-            self.row1 = self.sheet.Range(cell_range.split(':')[0]).Row
-            self.col1 = self.sheet.Range(cell_range.split(':')[0]).Column
-
-            if len(cell_range.split(':')) == 2:
-                self.row2 = self.sheet.Range(cell_range.split(':')[1]).Row
-                self.col2 = self.sheet.Range(cell_range.split(':')[1]).Column
-            elif
-            else:
-                self.row2 = self.row1
-                self.col2 = self.col1
+            self.row1 = self.sheet.Range(cell_range).Row
+            self.col1 = self.sheet.Range(cell_range).Column
+            self.row2 = self.row1 + self.sheet.Range(cell_range).Rows.Count - 1
+            self.col2 = self.col1 + self.sheet.Range(cell_range).Columns.Count - 1
 
         self.cell_range = self.sheet.Range(self.sheet.Cells(self.row1, self.col1),
                                            self.sheet.Cells(self.row2, self.col2))
@@ -164,7 +170,8 @@ class Range(object):
     @value.setter
     def value(self, data):
         if isinstance(data, np.ndarray):
-            data = data.tolist()  # Python 3 can't handle arrays directly
+            # Python 3 can't handle arrays directly
+            data = data.tolist()
         elif isinstance(data, pd.DataFrame):
             if self.index:
                 data = data.reset_index()
@@ -201,7 +208,7 @@ class Range(object):
         while self.sheet.Cells(self.row1, col2 + 1).Value not in [None, ""]:
             col2 += 1
 
-        return Range(self.sheet.Name, (self.row1, self.col1), (row2, col2))
+        return Range(self.sheet.Name, (self.row1, self.col1), (row2, col2), **self.kwargs)
 
     @property
     def current_region(self):
@@ -213,7 +220,7 @@ class Range(object):
         current_region = self.sheet.Cells(self.row1, self.col1).CurrentRegion
         row2 = self.row1 + current_region.Rows.Count - 1
         col2 = self.col1 + current_region.Columns.Count - 1
-        return Range(self.sheet.Name, (self.row1, self.col1), (row2, col2))
+        return Range(self.sheet.Name, (self.row1, self.col1), (row2, col2), **self.kwargs)
 
     def clear(self):
         self.cell_range.Clear()
@@ -224,33 +231,39 @@ class Range(object):
 if __name__ == "__main__":
     xlwings_connect(r'C:\DEV\Git\xlwings\example.xlsm')
 
-    # Get Values without qualifying Sheet. Assumes Sheet3 to be the active one.
-    print Range('B1').value
+    # Get all Combinations
+    print Range('A1').value
+    print Range('Sheet3', 'A1').value
+    print Range(3, 'A1').value
     print Range('A1:C3').value
-    print Range('test_range').value
-    print Range((1,1), (3,3)).value
-
-    # Get Values with qualified Sheet
-    print Range('Sheet3', 'A1').value
-    print Range('Sheet3', 'A1').value
     print Range('Sheet3', 'A1:C3').value
-    print Range('Sheet3', 'test_range').value
+    print Range(3, 'A1:C3').value
+    print Range((1,2)).value
+    print Range('Sheet3', (1,2)).value
+    print Range(3, (1,2)).value
+    print Range((1,1), (3,3)).value
     print Range('Sheet3', (1,1), (3,3)).value
-    print Range('Sheet3', 'G23', table=True).value
-    print Range('Sheet3', 'G23', current_region=True).value
-    print Range('Sheet3', 'G23').current_region.value
-    print Range('Sheet3', 'G23').table.value
+    print Range(3, (1,1), (3,3)).value
+    print Range('test_range').value
+    print Range('Sheet3', 'test_range').value
+    print Range(3, 'test_range').value
 
-    # Set Values without qualifying Sheet. Assumes Sheet3 to be the active one.
-    Range((1,1)).value = 23
-    Range('H2').value = 'test string'
-    Range('A25').value = [[23]]
+    # Set all Combinations
+    Range('A20').value = 11
+    Range('Sheet4', 'A20').value = 11
+    Range(5, 'A20').value = 11
     Range('A1:C3').value = [[11,22,33], [44,55,66], [77,88,99]]
-    Range('single_cell').value = np.eye(4)
-    Range((5,5), (8,8)).value = [[1,2,3], [4,5,6], [7,8,9]]
-
-    # Set Values with qualified Sheet
-    # TODO
+    Range('Sheet4', 'A1:C3').value = 23
+    Range(5, 'A1:C3').value = 23
+    Range((1,2)).value = 12
+    Range('Sheet4', (1,2)).value =  12
+    Range(5, (1,2)).value = 12
+    Range((1,1), (3,3)).value = 12
+    Range('Sheet4', (1,1), (3,3)).value = 12
+    Range(5, (1,1), (3,3)).value = np.eye(3)
+    Range('test_range').value = 255
+    Range('Sheet3', 'test_range').value = 255
+    Range(3, 'test_range').value = 255
 
     # Get and Set DataFrame
     test_data = Range('Sheet2', 'A1:E7').value
@@ -260,4 +273,4 @@ if __name__ == "__main__":
     print(df)
     print(df.info())
 
-    Range('Sheet2', 'H1', index=False, header=False).value = df
+    Range('Sheet2', 'H1').value = df
