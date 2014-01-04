@@ -94,7 +94,7 @@ class Range(object):
     Specify Range(..., asarray=True).value if you want to get back a NumPy array.
     """
     def __init__(self, *args, **kwargs):
-        # Parse arguments
+        # Arguments
         if len(args) == 1 and isinstance(args[0], (str, unicode)):
             sheet = None
             cell_range = args[0]
@@ -140,12 +140,13 @@ class Range(object):
         self.header = kwargs.get('header', True)  # Set DataFrame with header
         self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array
 
-        # Get cells
+        # Get sheet
         if sheet:
             self.sheet = Workbook.Worksheets(sheet)
         else:
             self.sheet = Workbook.ActiveSheet
 
+        # Get row1, col1, row2, col2 out of Range object
         if cell_range:
             self.row1 = self.sheet.Range(cell_range).Row
             self.col1 = self.sheet.Range(cell_range).Column
@@ -169,10 +170,7 @@ class Range(object):
 
     @value.setter
     def value(self, data):
-        if isinstance(data, np.ndarray):
-            # Python 3 can't handle arrays directly
-            data = data.tolist()
-        elif isinstance(data, pd.DataFrame):
+        if isinstance(data, pd.DataFrame):
             if self.index:
                 data = data.reset_index()
 
@@ -184,6 +182,10 @@ class Range(object):
                 data = np.vstack((columns, data.values))
             else:
                 data = data.values
+
+        if isinstance(data, np.ndarray):
+            # Python 3 can't handle arrays directly
+            data = data.tolist()
 
         if isinstance(data, (numbers.Number, str, unicode)):
             row2 = self.row2
@@ -231,6 +233,23 @@ class Range(object):
 if __name__ == "__main__":
     xlwings_connect(r'C:\DEV\Git\xlwings\example.xlsm')
 
+    # Set all Combinations
+    Range('A20').value = 11
+    Range('Sheet4', 'A20').value = 11
+    Range(5, 'A20').value = 11
+    Range('A1:C3').value = [[11,22,33], [44,55,66], [77,88,99]]
+    Range('Sheet4', 'A1:C3').value = 23
+    Range(5, 'A1:C3').value = 23
+    Range((1,2)).value = 12
+    Range('Sheet4', (1,2)).value = 12
+    Range(5, (1,2)).value = 12
+    Range((1,1), (3,3)).value = 12
+    Range('Sheet4', (1,1), (3,3)).value = 12
+    Range(5, (1,1), (3,3)).value = np.eye(3)
+    Range('test_range').value = 255
+    Range('Sheet3', 'test_range').value = 255
+    Range(3, 'test_range').value = 255
+
     # Get all Combinations
     print Range('A1').value
     print Range('Sheet3', 'A1').value
@@ -247,23 +266,6 @@ if __name__ == "__main__":
     print Range('test_range').value
     print Range('Sheet3', 'test_range').value
     print Range(3, 'test_range').value
-
-    # Set all Combinations
-    Range('A20').value = 11
-    Range('Sheet4', 'A20').value = 11
-    Range(5, 'A20').value = 11
-    Range('A1:C3').value = [[11,22,33], [44,55,66], [77,88,99]]
-    Range('Sheet4', 'A1:C3').value = 23
-    Range(5, 'A1:C3').value = 23
-    Range((1,2)).value = 12
-    Range('Sheet4', (1,2)).value =  12
-    Range(5, (1,2)).value = 12
-    Range((1,1), (3,3)).value = 12
-    Range('Sheet4', (1,1), (3,3)).value = 12
-    Range(5, (1,1), (3,3)).value = np.eye(3)
-    Range('test_range').value = 255
-    Range('Sheet3', 'test_range').value = 255
-    Range(3, 'test_range').value = 255
 
     # Get and Set DataFrame
     test_data = Range('Sheet2', 'A1:E7').value
