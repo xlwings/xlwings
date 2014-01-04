@@ -1,14 +1,11 @@
 import numpy as np
-import xlwings
+from xlwings import xlwings_connect, Range
 
-xl = xlwings.Xl()
+xlwings_connect()  # Creates a reference to the calling Excel workbook
 
 
 def rand_numbers():
     """ produces standard normally distributed random numbers with dim (n,n)"""
-    n = xl.get_cell('Sheet1', 1, 2)
+    n = Range('Sheet1', 'B1').value
     rand_num = np.random.randn(n, n)
-    xl.set_range('Sheet1', 3, 3, rand_num)
-    
-if __name__ == '__main__':
-    rand_numbers()
+    Range('Sheet1', 'C3').value = rand_num

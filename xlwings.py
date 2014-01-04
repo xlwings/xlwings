@@ -8,7 +8,6 @@ License: MIT (see LICENSE.txt for details)
 """
 
 import sys
-import os
 from win32com.client import GetObject
 import win32com.client.dynamic
 import adodbapi
@@ -16,16 +15,19 @@ from pywintypes import TimeType
 import numpy as np
 from pandas import MultiIndex
 import pandas as pd
+import numbers
 
 
 __version__ = '0.1-dev'
 
 _is_python3 = sys.version_info.major > 2
 
+App = win32com.client.dynamic.Dispatch('Excel.Application')
+
 
 def xlwings_connect(fullname=None):
     """
-    Establishes a connection between an Excel file and Python
+    Establishes a connection between an Excel file and Python. Returns the Workbook as COM object.
 
 
     Parameters
@@ -34,14 +36,15 @@ def xlwings_connect(fullname=None):
         For debugging/interactive use from within Python, provide the fully qualified name, e.g: 'C:\path\to\file.xlsx'
         No arguments must be provided if called from Excel through the xlwings VBA module.
     """
+    # TODO: pass 'from_excel' arg when called from VBA to catch error when called without fullname from within Python
     if fullname:
         fullname = fullname.lower()
     else:
         fullname = sys.argv[1].lower()
+
     global Workbook
-    global xlApp
-    xlApp = win32com.client.dynamic.Dispatch('Excel.Application')
     Workbook = GetObject(fullname)  # GetObject() returns the correct Excel instance if there are > 1
+    return Workbook
 
 
 def clean_com_data(data):
@@ -60,6 +63,7 @@ def clean_com_data(data):
     # Check which columns contain COM dates
     # TODO: replace with datetime transformations from pyvot -> python3?
     # TODO: simplify like this: [[tc.DateObjectFromCOMDate(c) for c in row] for row in data]
+    # TODO: use isinstance instead of type
     if _is_python3 is True:
         return data
     else:
@@ -78,40 +82,50 @@ class Range(object):
     A Range object can be created with the following arguments:
 
     Range('A1')
-    TODO: Range((1,2))
     Range('A1:C3')
-    Range('NamedRange')
+    Range((1,2))
     Range((1,1), (3,3))
+    Range('NamedRange')
 
     If no worksheet name is provided as first argument, it will take the range from the active sheet. To get
     the range from a specific sheet, provide the worksheet name as first argument like so:
 
-    Range('Sheet1','A1')
+    Range('Sheet1', 'A1')
     """
     def __init__(self, *args, **kwargs):
-        self.index = kwargs.get('index', True)
-        self.header = kwargs.get('header', True)
         # Parse arguments
-        if len(args) == 1:
+        if len(args) == 1 and isinstance(args[0], (str, unicode)):
             sheet = None
             cell_range = args[0]
-        if len(args) == 2 and type(args[0]) is str:  # TODO: change to isinstance // elif
+        elif len(args) == 1 and isinstance(args[0], tuple):
+            sheet = None
+            cell_range = None
+            self.row1 = args[0][0]
+            self.col1 = args[0][1]
+            self.row2 = self.row1
+            self.col2 = self.col1
+        elif len(args) == 2 and isinstance(args[0], (str, unicode)):
             sheet = args[0]
             cell_range = args[1]
-        if len(args) == 2 and type(args[0]) is not str:
+        elif len(args) == 2 and isinstance(args[0], tuple):
             sheet = None
             cell_range = None
             self.row1 = args[0][0]
             self.col1 = args[0][1]
             self.row2 = args[1][0]
             self.col2 = args[1][1]
-        if len(args) == 3:
+        elif len(args) == 3:
             sheet = args[0]
             cell_range = None
             self.row1 = args[1][0]
             self.col1 = args[1][1]
             self.row2 = args[2][0]
             self.col2 = args[2][1]
+
+        # Keyword Arguments
+        self.index = kwargs.get('index', True)  # Set DataFrame with index
+        self.header = kwargs.get('header', True)  # Set DataFrame with header
+        self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array TODO: What shoudl be the default?
 
         # Get cells
         if sheet:
@@ -120,12 +134,14 @@ class Range(object):
             self.sheet = Workbook.ActiveSheet
 
         if cell_range:
+            # TODO: correct for NamedRange
             self.row1 = self.sheet.Range(cell_range.split(':')[0]).Row
             self.col1 = self.sheet.Range(cell_range.split(':')[0]).Column
 
             if len(cell_range.split(':')) == 2:
                 self.row2 = self.sheet.Range(cell_range.split(':')[1]).Row
                 self.col2 = self.sheet.Range(cell_range.split(':')[1]).Column
+            elif
             else:
                 self.row2 = self.row1
                 self.col2 = self.col1
@@ -136,38 +152,45 @@ class Range(object):
     @property
     def value(self):
             if self.row1 == self.row2 and self.col1 == self.col2:
-                return clean_com_data([[self.cell_range.Value]])[0][0]  # TODO: introduce as_matrix method?
+                data = clean_com_data([[self.cell_range.Value]])[0][0]  # TODO: introduce as_matrix method?
             else:
-                return clean_com_data(self.cell_range.Value)
+                data = clean_com_data(self.cell_range.Value)
+
+            if self.asarray and not isinstance(data, (numbers.Number, str, unicode)):
+                return np.array(data)
+            else:
+                return data
 
     @value.setter
     def value(self, data):
-        # TODO: Range('A1:C3').value = 5 should apply 5 to the whole range
         if isinstance(data, np.ndarray):
             data = data.tolist()  # Python 3 can't handle arrays directly
         elif isinstance(data, pd.DataFrame):
-            df = data
             if self.index:
-                df = data.reset_index()
+                data = data.reset_index()
 
             if self.header:
-                if type(df.columns) is MultiIndex:
-                    columns = np.array(zip(*df.columns.tolist()))
+                if isinstance(data.columns, MultiIndex):
+                    columns = np.array(zip(*data.columns.tolist()))
                 else:
-                    columns = np.array([df.columns.tolist()])
-                    data = np.vstack((columns, df.values))
+                    columns = np.array([data.columns.tolist()])
+                data = np.vstack((columns, data.values))
             else:
-                data = df.values  # TODO: simplify
+                data = data.values
 
-        row2 = self.row1 + len(data) - 1
-        col2 = self.col1 + len(data[0]) - 1
+        if isinstance(data, (numbers.Number, str, unicode)):
+            row2 = self.row2
+            col2 = self.col2
+        else:
+            row2 = self.row1 + len(data) - 1
+            col2 = self.col1 + len(data[0]) - 1
 
         self.sheet.Range(self.sheet.Cells(self.row1, self.col1), self.sheet.Cells(row2, col2)).Value = data
 
     @property
     def table(self):
         """
-        TODO:
+        TODO: introduce stop_at_empty_strings=False with End(xlUp) and End(xlToRight)
         """
         row2 = self.row1
         while self.sheet.Cells(row2 + 1, self.col1).Value not in [None, ""]:
@@ -183,7 +206,7 @@ class Range(object):
     @property
     def current_region(self):
         """
-        The current_region property returns a CellRange object representing a range bounded by (but not including) any
+        The current_region property returns a Range object representing a range bounded by (but not including) any
         combination of blank rows and blank columns or the edges of the worksheet
         VBA equivalent: CurrentRegion property of Range object
         """
@@ -201,66 +224,40 @@ class Range(object):
 if __name__ == "__main__":
     xlwings_connect(r'C:\DEV\Git\xlwings\example.xlsm')
 
-    # Assumes Sheet3 to be the active one
-
-    # Cell
+    # Get Values without qualifying Sheet. Assumes Sheet3 to be the active one.
     print Range('B1').value
+    print Range('A1:C3').value
+    print Range('test_range').value
+    print Range((1,1), (3,3)).value
+
+    # Get Values with qualified Sheet
     print Range('Sheet3', 'A1').value
-    Range('G2').value = [[23]]  # TODO: accept numbers or strings without having to do [[]]
-
-    # CellRange
-    print Range('A1').value
-    print np.array(Range('A1:C3').value)
-    print np.array(Range('test_range').value)
-    print np.array(Range((1,1), (3,3)).value)
-
     print Range('Sheet3', 'A1').value
-    print np.array(Range('Sheet3', 'A1:C3').value)
-    print np.array(Range('Sheet3', 'test_range').value)
-    print np.array(Range('Sheet3', (1,1), (3,3)).value)
+    print Range('Sheet3', 'A1:C3').value
+    print Range('Sheet3', 'test_range').value
+    print Range('Sheet3', (1,1), (3,3)).value
+    print Range('Sheet3', 'G23', table=True).value
+    print Range('Sheet3', 'G23', current_region=True).value
+    print Range('Sheet3', 'G23').current_region.value
+    print Range('Sheet3', 'G23').table.value
 
+    # Set Values without qualifying Sheet. Assumes Sheet3 to be the active one.
+    Range((1,1)).value = 23
+    Range('H2').value = 'test string'
     Range('A25').value = [[23]]
     Range('A1:C3').value = [[11,22,33], [44,55,66], [77,88,99]]
     Range('single_cell').value = np.eye(4)
     Range((5,5), (8,8)).value = [[1,2,3], [4,5,6], [7,8,9]]
 
-    print np.array(Range('Sheet3', 'G23', table=True).value)
-    print np.array(Range('Sheet3', 'G23', current_region=True).value)
-    print np.array(Range('Sheet3', 'G23').current_region.value)
-    print np.array(Range('Sheet3', 'G23').table.value)
+    # Set Values with qualified Sheet
+    # TODO
 
-    # DataFrame
-    data = Range('Sheet2', 'A1:E7').value
-    df = pd.DataFrame(data[1:], columns=data[0])
+    # Get and Set DataFrame
+    test_data = Range('Sheet2', 'A1:E7').value
+    df = pd.DataFrame(test_data[1:], columns=test_data[0])
     df.set_index('test 1', inplace=True)
     df.index = pd.to_datetime(df.index)
     print(df)
     print(df.info())
 
     Range('Sheet2', 'H1', index=False, header=False).value = df
-
-
-class Xl:
-    """
-    TODO: Deprecated
-
-    """
-
-    def __init__(self, fullname=None):
-        # TODO: check if fullname exists
-        if fullname:
-            self.fullname = fullname.lower()
-        else:
-            # TODO: catch AttributeError in case called from Python without argument or
-            # TODO: pass 'from_excel' arg when called from VBA
-            self.fullname = sys.argv[1].lower()
-        self.App = win32com.client.dynamic.Dispatch('Excel.Application')
-        self.Workbook = GetObject(self.fullname)  # GetObject() gives us the correct Excel instance if there are > 1
-        self.filename = os.path.split(self.fullname)[1]
-
-    def save(self, newfilename=None):
-        if newfilename:
-            self.filename = newfilename
-            self.Workbook.SaveAs(newfilename)
-        else:
-            self.Workbook.Save()
