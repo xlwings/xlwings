@@ -16,6 +16,7 @@ import numpy as np
 from pandas import MultiIndex
 import pandas as pd
 import numbers
+from datetime import date, datetime
 
 
 __version__ = '0.1.0-dev'
@@ -64,7 +65,7 @@ def clean_com_data(data):
     # TODO: replace with datetime transformations from pyvot -> python3?
     # TODO: simplify like this: [[tc.DateObjectFromCOMDate(c) for c in row] for row in data]
     # TODO: use isinstance instead of type
-    if _is_python3 is True:
+    if _is_python3:
         return data
     else:
         tc = adodbapi.pythonDateTimeConverter()
@@ -187,7 +188,7 @@ class Range(object):
             # Python 3 can't handle arrays directly
             data = data.tolist()
 
-        if isinstance(data, (numbers.Number, str, unicode)):
+        if isinstance(data, (numbers.Number, str, unicode, date, datetime)):
             row2 = self.row2
             col2 = self.col2
         else:
