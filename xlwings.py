@@ -165,6 +165,8 @@ class Range(object):
                 data = clean_com_data(self.cell_range.Value)
 
             if self.asarray and not isinstance(data, (numbers.Number, str, unicode)):
+                # replace None (empty cells) with nan as None produces arrays with dtype=object
+                data = [[np.nan if x is None else x for x in i] for i in data]
                 return np.array(data)
             else:
                 return data
@@ -186,10 +188,10 @@ class Range(object):
 
         if isinstance(data, np.ndarray):
             try:
-                # nan have to be transformed to None as otherwise Excel shows them as 65535
+                # nan have to be transformed to None, otherwise Excel shows them as 65535
                 data = np.where(np.isnan(data), None, data)
             except TypeError:
-                # isnan doesn't work on arrays of dtype object
+                # isnan doesn't work on arrays of dtype=object
                 data[pd.isnull(data)] = None
             # Python 3 can't handle arrays directly
             data = data.tolist()
@@ -239,40 +241,6 @@ class Range(object):
 
 if __name__ == "__main__":
     xlwings_connect(r'C:\DEV\Git\xlwings\example.xlsm')
-
-    # Set all Combinations
-    Range('A20').value = 11
-    Range('Sheet4', 'A20').value = 11
-    Range(5, 'A20').value = 11
-    Range('A1:C3').value = [[11,22,33], [44,55,66], [77,88,99]]
-    Range('Sheet4', 'A1:C3').value = 23
-    Range(5, 'A1:C3').value = 23
-    Range((1,2)).value = 12
-    Range('Sheet4', (1,2)).value = 12
-    Range(5, (1,2)).value = 12
-    Range((1,1), (3,3)).value = 12
-    Range('Sheet4', (1,1), (3,3)).value = 12
-    Range(5, (1,1), (3,3)).value = np.eye(3)
-    Range('test_range').value = 255
-    Range('Sheet3', 'test_range').value = 255
-    Range(3, 'test_range').value = 255
-
-    # Get all Combinations
-    print Range('A1').value
-    print Range('Sheet3', 'A1').value
-    print Range(3, 'A1').value
-    print Range('A1:C3').value
-    print Range('Sheet3', 'A1:C3').value
-    print Range(3, 'A1:C3').value
-    print Range((1,2)).value
-    print Range('Sheet3', (1,2)).value
-    print Range(3, (1,2)).value
-    print Range((1,1), (3,3)).value
-    print Range('Sheet3', (1,1), (3,3)).value
-    print Range(3, (1,1), (3,3)).value
-    print Range('test_range').value
-    print Range('Sheet3', 'test_range').value
-    print Range(3, 'test_range').value
 
     # Get and Set DataFrame
     test_data = Range('Sheet2', 'A1:E7').value

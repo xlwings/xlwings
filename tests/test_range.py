@@ -59,7 +59,7 @@ def test_range_address():
     address = 'C1:E3'
 
     # Active Sheet
-    Range(address).value = data
+    Range(address[:2]).value = data  # assigns to starting cell only
     cells = Range(address).value
     assert_equal(cells, data)
 
@@ -125,10 +125,9 @@ def test_named_range():
 
 
 def test_array():
-    numpy_array = np.array([[1.1, 2.2, 3.3], [4.4, 5.5, 6.6], [7.7, 8.8, np.nan]])
+    numpy_array = np.array([[1.1, 2.2, 3.3], [4.4, 5.5, -6.6], [7.7, 8.8, np.nan]])
     Range('L1').value = numpy_array
     cells = Range('L1:N3', asarray=True).value
-    numpy_array = np.where(np.isnan(numpy_array), None, numpy_array)
     assert_array_equal(cells, numpy_array)
 
 
