@@ -185,6 +185,12 @@ class Range(object):
                 data = data.values
 
         if isinstance(data, np.ndarray):
+            try:
+                # nan have to be transformed to None as otherwise Excel shows them as 65535
+                data = np.where(np.isnan(data), None, data)
+            except TypeError:
+                # isnan doesn't work on arrays of dtype object
+                data[pd.isnull(data)] = None
             # Python 3 can't handle arrays directly
             data = data.tolist()
 
