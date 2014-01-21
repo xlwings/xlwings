@@ -164,12 +164,14 @@ class Range(object):
             else:
                 data = clean_com_data(self.cell_range.Value)
 
-            if self.asarray and not isinstance(data, (numbers.Number, str, unicode)):
+            if self.asarray:
                 # replace None (empty cells) with nan as None produces arrays with dtype=object
-                data = [[np.nan if x is None else x for x in i] for i in data]
+                if data is None:
+                    data = np.nan
+                elif not isinstance(data, (numbers.Number, str, unicode)):
+                    data = [[np.nan if x is None else x for x in i] for i in data]
                 return np.array(data)
-            else:
-                return data
+            return data
 
     @value.setter
     def value(self, data):
