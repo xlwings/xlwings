@@ -43,12 +43,12 @@ def check_cell(address, value):
     cell = Range(address).value
     assert_equal(cell, value)
 
-    # Sheetname
+    # SheetName
     Range('Sheet2', address).value = value
     cell = Range('Sheet2', address).value
     assert_equal(cell, value)
 
-    # Sheetindex
+    # SheetIndex
     Range(3, address).value = value
     cell = Range(3, address).value
     assert_equal(cell, value)
@@ -59,7 +59,7 @@ def test_range_address():
     address = 'C1:E3'
 
     # Active Sheet
-    Range(address[:2]).value = data  # assigns to starting cell only
+    Range(address[:2]).value = data  # assign to starting cell only
     cells = Range(address).value
     assert_equal(cells, data)
 
@@ -152,8 +152,12 @@ def test_clear():
 
 
 def test_dataframe():
-    df = DataFrame({'a': [1, 2, 3.3, np.nan], 'b': ['test1', 'test2', 'test3', np.nan]})
-    Range('Sheet5', 'A1').value = df
+    df_expected = DataFrame({'a': [1, 2, 3.3, np.nan], 'b': ['test1', 'test2', 'test3', None]})
+    Range('Sheet5', 'A1').value = df_expected
+    cells = Range('Sheet5', 'B1:C5').value
+    df_result = DataFrame(cells[1:], columns=cells[0])
+    assert_equal(df_expected, df_result)
+
 
 if __name__ == '__main__':
     nose.main()
