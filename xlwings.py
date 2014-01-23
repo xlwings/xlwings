@@ -10,6 +10,7 @@ License: MIT (see LICENSE.txt for details)
 import sys
 from win32com.client import GetObject
 import win32com.client.dynamic
+from win32com.client import constants
 import adodbapi
 from pywintypes import TimeType
 import numpy as np
@@ -140,6 +141,7 @@ class Range(object):
         self.index = kwargs.get('index', True)  # Set DataFrame with index
         self.header = kwargs.get('header', True)  # Set DataFrame with header
         self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array
+        self.strict = kwargs.get('strict', False)  # stop table/horizontal/vertical at empty formulas, e.g. =""
 
         # Get sheet
         if sheet:
@@ -210,16 +212,63 @@ class Range(object):
     @property
     def table(self):
         """
-        TODO: introduce stop_at_empty_strings=False with End(xlUp) and End(xlToRight)
-        """
-        row2 = self.row1
-        while self.sheet.Cells(row2 + 1, self.col1).Value not in [None, ""]:
-            row2 += 1
 
-        # Right column
-        col2 = self.col1
-        while self.sheet.Cells(self.row1, col2 + 1).Value not in [None, ""]:
-            col2 += 1
+        """
+        if self.sheet.Cells(self.row1 + 1, self.col1).Value in [None, ""]:
+            row2 = self.row1
+        else:
+            row2 = self.sheet.Cells(self.row1, self.col1).End(constants.xlDown).Row
+        if self.sheet.Cells(self.row1, self.col1 + 1).Value in [None, ""]:
+            col2 = self.col2
+        else:
+            col2 = self.sheet.Cells(self.row1, self.col1).End(constants.xlToRight).Column
+
+        if self.strict:
+            row2 = self.row1
+            while self.sheet.Cells(row2 + 1, self.col1).Value not in [None, ""]:
+                row2 += 1
+
+            col2 = self.col1
+            while self.sheet.Cells(self.row1, col2 + 1).Value not in [None, ""]:
+                col2 += 1
+
+        return Range(self.sheet.Name, (self.row1, self.col1), (row2, col2), **self.kwargs)
+
+    @property
+    def vertical(self):
+        """
+
+        """
+        if self.sheet.Cells(self.row1 + 1, self.col1).Value in [None, ""]:
+            row2 = self.row1
+        else:
+            row2 = self.sheet.Cells(self.row1, self.col1).End(constants.xlDown).Row
+
+        if self.strict:
+            row2 = self.row1
+            while self.sheet.Cells(row2 + 1, self.col1).Value not in [None, ""]:
+                row2 += 1
+
+        col2 = self.col2
+
+        return Range(self.sheet.Name, (self.row1, self.col1), (row2, col2), **self.kwargs)
+
+    @property
+    def horizontal(self):
+        """
+
+        """
+        if self.sheet.Cells(self.row1, self.col1 + 1).Value in [None, ""]:
+            col2 = self.col1
+        else:
+            col2 = self.sheet.Cells(self.row1, self.col1).End(constants.xlToRight).Column
+
+        if self.strict:
+            col2 = self.col1
+            while self.sheet.Cells(self.row1, col2 + 1).Value not in [None, ""]:
+                col2 += 1
+
+        row2 = self.row2
 
         return Range(self.sheet.Name, (self.row1, self.col1), (row2, col2), **self.kwargs)
 
@@ -242,14 +291,7 @@ class Range(object):
         self.cell_range.ClearContents()
 
 if __name__ == "__main__":
-    xlwings_connect(r'C:\DEV\Git\xlwings\example.xlsm')
+    xlwings_connect(r'C:\DEV\Git\xlwings\tests\test1.xlsx')
 
-    # Get and Set DataFrame
-    test_data = Range('Sheet2', 'A1:E7').value
-    df = pd.DataFrame(test_data[1:], columns=test_data[0])
-    df.set_index('test 1', inplace=True)
-    df.index = pd.to_datetime(df.index)
-    print(df)
-    print(df.info())
+    print Range('C1').horizontal.value
 
-    Range('Sheet2', 'H1').value = df

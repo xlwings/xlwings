@@ -131,6 +131,19 @@ def test_array():
     assert_array_equal(cells, numpy_array)
 
 
+def test_vertical():
+    vertical = [[1.2],['Test'],[3.3]]
+    Range('Sheet4', 'A10').value = vertical
+    cells = Range('Sheet4', 'A10').vertical.value
+    assert_equal(cells, vertical)
+
+
+def test_horizontal():
+    horizontal = [[1.2, 'Test', 3.3]]
+    Range('Sheet4', 'A20').value = horizontal
+    cells = Range('Sheet4', 'A20').horizontal.value
+    assert_equal(cells, horizontal)
+
 def test_table():
     Range('Sheet4', 'A1').value = data
     cells = Range('Sheet4', 'A1').table.value
