@@ -21,6 +21,7 @@ data = [[1, 2.222, 3.333],
 
 
 def test_cell():
+
     params = [('A1', 22),
               ((1,1), 22),
               ('A1', 22.2222),
@@ -132,17 +133,16 @@ def test_array():
 
 
 def test_vertical():
-    vertical = [[1.2],['Test'],[3.3]]
-    Range('Sheet4', 'A10').value = vertical
+    Range('Sheet4', 'A10').value = data
     cells = Range('Sheet4', 'A10').vertical.value
-    assert_equal(cells, vertical)
+    assert_equal(cells, [[row[0]] for row in data])
 
 
 def test_horizontal():
-    horizontal = [[1.2, 'Test', 3.3]]
-    Range('Sheet4', 'A20').value = horizontal
+    Range('Sheet4', 'A20').value = data
     cells = Range('Sheet4', 'A20').horizontal.value
-    assert_equal(cells, horizontal)
+    assert_equal(cells, [data[0]])
+
 
 def test_table():
     Range('Sheet4', 'A1').value = data

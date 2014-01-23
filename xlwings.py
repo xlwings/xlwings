@@ -212,31 +212,46 @@ class Range(object):
     @property
     def table(self):
         """
+        Returns a contiguous Range starting with the indicated cell as top-left corner and going down and right as long
+        as no empty cell is hit. For example, to get the values of a contiguous range or clear its contents use:
+
+            Range('A1').table.value
+            Range('A1').table.clear_contents()
+
+        Parameters
+        ----------
+        strict : bool, default False
+            strict stops the table at empty cells even if they contain a formula. Less efficient than if set to False.
+
+        Returns
+        -------
+        Range
+            xlwings Range object
 
         """
-        if self.sheet.Cells(self.row1 + 1, self.col1).Value in [None, ""]:
-            row2 = self.row1
-        else:
-            row2 = self.sheet.Cells(self.row1, self.col1).End(constants.xlDown).Row
-        if self.sheet.Cells(self.row1, self.col1 + 1).Value in [None, ""]:
-            col2 = self.col2
-        else:
-            col2 = self.sheet.Cells(self.row1, self.col1).End(constants.xlToRight).Column
-
-        if self.strict:
-            row2 = self.row1
-            while self.sheet.Cells(row2 + 1, self.col1).Value not in [None, ""]:
-                row2 += 1
-
-            col2 = self.col1
-            while self.sheet.Cells(self.row1, col2 + 1).Value not in [None, ""]:
-                col2 += 1
+        row2 = Range(self.sheet.Name, (self.row1, self.col1), **self.kwargs).vertical.row2
+        col2 = Range(self.sheet.Name, (self.row1, self.col1), **self.kwargs).horizontal.col2
 
         return Range(self.sheet.Name, (self.row1, self.col1), (row2, col2), **self.kwargs)
 
     @property
     def vertical(self):
         """
+        Returns a contiguous Range starting with the indicated cell and going down as long as no empty cell is hit. For
+        example, to get the values of a contiguous range or clear its contents use:
+
+            Range('A1').vertical.value
+            Range('A1').vertical.clear_contents()
+
+        Parameters
+        ----------
+        strict : bool, default False
+            strict stops the table at empty cells even if they contain a formula. Less efficient than if set to False.
+
+        Returns
+        -------
+        Range
+            xlwings Range object
 
         """
         if self.sheet.Cells(self.row1 + 1, self.col1).Value in [None, ""]:
@@ -256,6 +271,21 @@ class Range(object):
     @property
     def horizontal(self):
         """
+        Returns a contiguous Range starting with the indicated cell and going right as long as no empty cell is hit. For
+        example, to get the values of a contiguous range or clear its contents use:
+
+            Range('A1').horizontal.value
+            Range('A1').horizontal.clear_contents()
+
+        Parameters
+        ----------
+        strict : bool, default False
+            strict stops the table at empty cells even if they contain a formula. Less efficient than if set to False.
+
+        Returns
+        -------
+        Range
+            xlwings Range object
 
         """
         if self.sheet.Cells(self.row1, self.col1 + 1).Value in [None, ""]:
@@ -278,6 +308,12 @@ class Range(object):
         The current_region property returns a Range object representing a range bounded by (but not including) any
         combination of blank rows and blank columns or the edges of the worksheet
         VBA equivalent: CurrentRegion property of Range object
+
+        Returns
+        -------
+        Range
+            xlwings Range object
+
         """
         current_region = self.sheet.Cells(self.row1, self.col1).CurrentRegion
         row2 = self.row1 + current_region.Rows.Count - 1
@@ -293,5 +329,5 @@ class Range(object):
 if __name__ == "__main__":
     xlwings_connect(r'C:\DEV\Git\xlwings\tests\test1.xlsx')
 
-    print Range('C1').horizontal.value
+    print Range('C1').table.value
 
