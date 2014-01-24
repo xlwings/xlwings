@@ -11,7 +11,6 @@ import sys
 from win32com.client import GetObject
 import win32com.client.dynamic
 import pywintypes
-from pywintypes import TimeType
 import numpy as np
 from pandas import MultiIndex
 import pandas as pd
@@ -27,8 +26,10 @@ __version__ = '0.1.0-dev'
 PY3 = sys.version_info.major >= 3
 if PY3:
     string_types = str
+    time_types = (dt.datetime, type(pywintypes.Time(0)))
 else:
     string_types = basestring
+    time_types = (dt.datetime, pywintypes.TimeType)
 
 # Excel constants: We can't use 'from win32com.client import constants' as we're dynamically dispatching
 xlDown = -4121
@@ -78,8 +79,7 @@ def clean_com_data(data):
     data = [list(row) for row in data]
 
     # Handle dates
-    data = [[_com_time_to_datetime(c) if isinstance(c, (TimeType, type(pywintypes.Time(0)))) else c for c in row]
-            for row in data]
+    data = [[_com_time_to_datetime(c) if isinstance(c, time_types) else c for c in row] for row in data]
 
     return data
 
@@ -268,12 +268,12 @@ class Range(object):
         if isinstance(data, (numbers.Number, string_types, dt.date, dt.datetime)):
             row2 = self.row2
             col2 = self.col2
-            if isinstance(data, (TimeType, dt.datetime, type(pywintypes.Time(0)))):
+            if isinstance(data, time_types):
                 data = _datetime_to_com_time(data)
         else:
             row2 = self.row1 + len(data) - 1
             col2 = self.col1 + len(data[0]) - 1
-            data = [[_datetime_to_com_time(c) if isinstance(c, (TimeType, dt.datetime, type(pywintypes.Time(0)))) else c for c in row] for row in data]
+            data = [[_datetime_to_com_time(c) if isinstance(c, time_types) else c for c in row] for row in data]
 
         self.sheet.Range(self.sheet.Cells(self.row1, self.col1), self.sheet.Cells(row2, col2)).Value = data
 
