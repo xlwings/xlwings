@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import sys
 import os
 import nose
 from nose.tools import assert_equal
@@ -6,8 +7,13 @@ from datetime import datetime
 import numpy as np
 from numpy.testing import assert_array_equal
 from pandas import DataFrame
+import pytz
 
+sys.path.append('..')
 from xlwings import xlwings_connect, Range
+
+# Python 2 and 3 compatibility
+PY3 = sys.version_info.major >= 3
 
 # Connect to test file and make Sheet1 the active sheet
 xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test1.xlsx')
@@ -15,9 +21,20 @@ wb = xlwings_connect(xl_file1)
 wb.Sheets('Sheet1').Activate()
 
 # Testdata
-data = [[1, 2.222, 3.333],
-        ['Test1', None, u'éöà'],
-        [datetime(1962, 11, 3), datetime(2020, 12, 31, 12, 12, 20), 9.999]]
+if PY3:
+    data = [[1, 2.222, 3.333],
+            ['Test1', None, u'éöà'],
+            [datetime(1962, 11, 3, tzinfo=pytz.utc), datetime(2020, 12, 31, 12, 12, 20, tzinfo=pytz.utc), 9.999]]
+
+    test_date_1 = datetime(1962, 11, 3, tzinfo=pytz.utc)
+    test_date_2 = datetime(2020, 12, 31, 12, 12, 20, tzinfo=pytz.utc)
+else:
+    data = [[1, 2.222, 3.333],
+            ['Test1', None, u'éöà'],
+            [datetime(1962, 11, 3), datetime(2020, 12, 31, 12, 12, 20), 9.999]]
+
+    test_date_1 = datetime(1962, 11, 3)
+    test_date_2 = datetime(2020, 12, 31, 12, 12, 20)
 
 
 def test_cell():
@@ -30,10 +47,10 @@ def test_cell():
               ((1,1), 'Test String'),
               ('A1', u'éöà'),
               ((1,1), u'éöà'),
-              ('A2', datetime(1962, 11, 3)),
-              ((2,1), datetime(1962, 11, 3)),
-              ('A3', datetime(2020, 12, 31, 12, 12, 20)),
-              ((3,1), datetime(2020, 12, 31, 12, 12, 20))]
+              ('A2', test_date_1),
+              ((2,1), test_date_1),
+              ('A3', test_date_2),
+              ((3,1), test_date_2)]
     for param in params:
         yield check_cell, param[0], param[1]
 
@@ -42,6 +59,7 @@ def check_cell(address, value):
     # Active Sheet
     Range(address).value = value
     cell = Range(address).value
+
     assert_equal(cell, value)
 
     # SheetName

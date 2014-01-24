@@ -10,20 +10,31 @@ License: MIT (see LICENSE.txt for details)
 import sys
 from win32com.client import GetObject
 import win32com.client.dynamic
-from win32com.client import constants
-import adodbapi
+import pywintypes
 from pywintypes import TimeType
 import numpy as np
 from pandas import MultiIndex
 import pandas as pd
 import numbers
-from datetime import date, datetime
+import datetime as dt
+import pytz
 
 
 __version__ = '0.1.0-dev'
 
-_is_python3 = sys.version_info.major > 2
 
+# Python 2 and 3 compatibility
+PY3 = sys.version_info.major >= 3
+if PY3:
+    string_types = str
+else:
+    string_types = basestring
+
+# Excel constants: We can't use 'from win32com.client import constants' as we're dynamically dispatching
+xlDown = -4121
+xlToRight = -4161
+
+# Create a reference to Excel
 App = win32com.client.dynamic.Dispatch('Excel.Application')
 
 
@@ -51,32 +62,86 @@ def xlwings_connect(fullname=None):
 
 def clean_com_data(data):
     """
-    Transforms data from tuples of tuples into list of list and
-    on Python 2, transforms PyTime Objects from COM into datetime objects.
+    Brings data from tuples of tuples into list of list and
+    transforms pywintypes Time objects into Python datetime objects.
 
     Parameters
     ----------
     data : raw data as returned from Excel (tuple of tuple)
 
+    Returns
+    -------
+    data : list
+
     """
     # Turn into list of list for easier handling (e.g. for Pandas DataFrame)
     data = [list(row) for row in data]
 
-    # Check which columns contain COM dates
-    # TODO: replace with datetime transformations from pyvot -> python3?
-    # TODO: simplify like this: [[tc.DateObjectFromCOMDate(c) for c in row] for row in data]
-    # TODO: use isinstance instead of type
-    if _is_python3:
-        return data
-    else:
-        tc = adodbapi.pythonDateTimeConverter()
-        for i in range(len(data[0])):
-            if any([type(row[i]) is TimeType for row in data]):
-                # Transform PyTime into datetime
-                for j, cell in enumerate([row[i] for row in data]):
-                    if type(cell) is TimeType:
-                        data[j][i] = tc.DateObjectFromCOMDate(cell)
+    # Handle dates
+    data = [[_com_time_to_datetime(c) if isinstance(c, (TimeType, type(pywintypes.Time(0)))) else c for c in row]
+            for row in data]
+
     return data
+
+
+def _com_time_to_datetime(com_time):
+    """
+    This function is a modified version from Pyvot and subject to the following copyright:
+
+    Copyright (c) Microsoft Corporation.
+
+    This source code is subject to terms and conditions of the Apache License, Version 2.0. A
+    copy of the license can be found in the LICENSE.txt file at the root of this distribution. If
+    you cannot locate the Apache License, Version 2.0, please send an email to
+    vspython@microsoft.com. By using this source code in any fashion, you are agreeing to be bound
+    by the terms of the Apache License, Version 2.0.
+
+    You must not remove this notice, or any other, from this software.
+
+    """
+
+    if PY3:
+        # The py3 version of pywintypes has its time type inherit from datetime.
+        # We copy to a new datetime so that the returned type is the same between 2/3
+        # pywintypes promises to only return instances set to UTC; see doc link in _datetime_to_com_time
+        assert com_time.tzinfo is not None
+        return dt.datetime(month=com_time.month, day=com_time.day, year=com_time.year,
+                           hour=com_time.hour, minute=com_time.minute, second=com_time.second,
+                           microsecond=com_time.microsecond, tzinfo=com_time.tzinfo)
+    else:
+        assert com_time.msec == 0, "fractional seconds not yet handled"
+        return dt.datetime(month=com_time.month, day=com_time.day, year=com_time.year,
+                           hour=com_time.hour, minute=com_time.minute, second=com_time.second)
+
+
+def _datetime_to_com_time(pydt):
+    """
+    This function is a modified version from Pyvot and subject to the following copyright:
+
+    Copyright (c) Microsoft Corporation.
+
+    This source code is subject to terms and conditions of the Apache License, Version 2.0. A
+    copy of the license can be found in the LICENSE.txt file at the root of this distribution. If
+    you cannot locate the Apache License, Version 2.0, please send an email to
+    vspython@microsoft.com. By using this source code in any fashion, you are agreeing to be bound
+    by the terms of the Apache License, Version 2.0.
+
+    You must not remove this notice, or any other, from this software.
+
+    """
+
+    if PY3:
+        # The py3 version of pywintypes has its time type inherit from datetime.
+        # For some reason, though it accepts plain datetimes, they must have a timezone set.
+        # See http://docs.activestate.com/activepython/2.7/pywin32/html/win32/help/py3k.html
+        # We replace no timezone -> UTC to allow round-trips in the naive case
+        if pydt.tzinfo is None:
+            pydt = pydt.replace(tzinfo=pytz.utc)
+            
+        return pydt
+    else:
+        assert pydt.microsecond == 0, "fractional seconds not yet handled"
+        return pywintypes.Time(pydt.timetuple())
 
 
 class Range(object):
@@ -97,7 +162,7 @@ class Range(object):
     """
     def __init__(self, *args, **kwargs):
         # Arguments
-        if len(args) == 1 and isinstance(args[0], (str, unicode)):
+        if len(args) == 1 and isinstance(args[0], string_types):
             sheet = None
             cell_range = args[0]
         elif len(args) == 1 and isinstance(args[0], tuple):
@@ -108,12 +173,12 @@ class Range(object):
             self.row2 = self.row1
             self.col2 = self.col1
         elif (len(args) == 2
-              and isinstance(args[0], (numbers.Number, str, unicode))
-              and isinstance(args[1], (str, unicode))):
+              and isinstance(args[0], (numbers.Number, string_types))
+              and isinstance(args[1], string_types)):
             sheet = args[0]
             cell_range = args[1]
         elif (len(args) == 2
-              and isinstance(args[0], (numbers.Number, str, unicode))
+              and isinstance(args[0], (numbers.Number, string_types))
               and isinstance(args[1], tuple)):
             sheet = args[0]
             cell_range = None
@@ -141,7 +206,7 @@ class Range(object):
         self.index = kwargs.get('index', True)  # Set DataFrame with index
         self.header = kwargs.get('header', True)  # Set DataFrame with header
         self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array
-        self.strict = kwargs.get('strict', False)  # stop table/horizontal/vertical at empty formulas, e.g. =""
+        self.strict = kwargs.get('strict', False)  # Stop table/horizontal/vertical at empty cells that contain formulas
 
         # Get sheet
         if sheet:
@@ -170,7 +235,7 @@ class Range(object):
                 # replace None (empty cells) with nan as None produces arrays with dtype=object
                 if data is None:
                     data = np.nan
-                elif not isinstance(data, (numbers.Number, str, unicode)):
+                elif not isinstance(data, (numbers.Number, string_types)):
                     data = [[np.nan if x is None else x for x in i] for i in data]
                 return np.array(data)
             return data
@@ -200,12 +265,15 @@ class Range(object):
             # Python 3 can't handle arrays directly
             data = data.tolist()
 
-        if isinstance(data, (numbers.Number, str, unicode, date, datetime)):
+        if isinstance(data, (numbers.Number, string_types, dt.date, dt.datetime)):
             row2 = self.row2
             col2 = self.col2
+            if isinstance(data, (TimeType, dt.datetime, type(pywintypes.Time(0)))):
+                data = _datetime_to_com_time(data)
         else:
             row2 = self.row1 + len(data) - 1
             col2 = self.col1 + len(data[0]) - 1
+            data = [[_datetime_to_com_time(c) if isinstance(c, (TimeType, dt.datetime, type(pywintypes.Time(0)))) else c for c in row] for row in data]
 
         self.sheet.Range(self.sheet.Cells(self.row1, self.col1), self.sheet.Cells(row2, col2)).Value = data
 
@@ -257,7 +325,7 @@ class Range(object):
         if self.sheet.Cells(self.row1 + 1, self.col1).Value in [None, ""]:
             row2 = self.row1
         else:
-            row2 = self.sheet.Cells(self.row1, self.col1).End(constants.xlDown).Row
+            row2 = self.sheet.Cells(self.row1, self.col1).End(xlDown).Row
 
         if self.strict:
             row2 = self.row1
@@ -291,7 +359,7 @@ class Range(object):
         if self.sheet.Cells(self.row1, self.col1 + 1).Value in [None, ""]:
             col2 = self.col1
         else:
-            col2 = self.sheet.Cells(self.row1, self.col1).End(constants.xlToRight).Column
+            col2 = self.sheet.Cells(self.row1, self.col1).End(xlToRight).Column
 
         if self.strict:
             col2 = self.col1
@@ -329,5 +397,7 @@ class Range(object):
 if __name__ == "__main__":
     xlwings_connect(r'C:\DEV\Git\xlwings\tests\test1.xlsx')
 
-    print Range('C1').table.value
+#    data = Range('A2').value
+    import pytz
+    Range('A6').value = dt.datetime(1999, 12,12, tzinfo=pytz.utc)
 
