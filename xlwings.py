@@ -26,10 +26,10 @@ __version__ = '0.1.0-dev'
 PY3 = sys.version_info.major >= 3
 if PY3:
     string_types = str
-    time_types = (dt.datetime, type(pywintypes.Time(0)))
+    time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
 else:
     string_types = basestring
-    time_types = (dt.datetime, pywintypes.TimeType)
+    time_types = (dt.date, dt.datetime, pywintypes.TimeType)
 
 # Excel constants: We can't use 'from win32com.client import constants' as we're dynamically dispatching
 xlDown = -4121
@@ -68,11 +68,13 @@ def clean_com_data(data):
 
     Parameters
     ----------
-    data : raw data as returned from Excel (tuple of tuple)
+    data : tuple of tuple
+        raw data as returned from Excel through pywin32
 
     Returns
     -------
-    data : list
+    data : list of list
+        data is a list of list with native Python datetime objects
 
     """
     # Turn into list of list for easier handling (e.g. for Pandas DataFrame)
@@ -86,7 +88,8 @@ def clean_com_data(data):
 
 def _com_time_to_datetime(com_time):
     """
-    This function is a modified version from Pyvot and subject to the following copyright:
+    This function is a modified version from Pyvot (https://pypi.python.org/pypi/Pyvot)
+    and subject to the following copyright:
 
     Copyright (c) Microsoft Corporation.
 
@@ -114,9 +117,10 @@ def _com_time_to_datetime(com_time):
                            hour=com_time.hour, minute=com_time.minute, second=com_time.second)
 
 
-def _datetime_to_com_time(pydt):
+def _datetime_to_com_time(dt_time):
     """
-    This function is a modified version from Pyvot and subject to the following copyright:
+    This function is a modified version from Pyvot (https://pypi.python.org/pypi/Pyvot)
+    and subject to the following copyright:
 
     Copyright (c) Microsoft Corporation.
 
@@ -135,13 +139,13 @@ def _datetime_to_com_time(pydt):
         # For some reason, though it accepts plain datetimes, they must have a timezone set.
         # See http://docs.activestate.com/activepython/2.7/pywin32/html/win32/help/py3k.html
         # We replace no timezone -> UTC to allow round-trips in the naive case
-        if pydt.tzinfo is None:
-            pydt = pydt.replace(tzinfo=pytz.utc)
+        if dt_time.tzinfo is None:
+            dt_time = dt_time.replace(tzinfo=pytz.utc)
             
-        return pydt
+        return dt_time
     else:
-        assert pydt.microsecond == 0, "fractional seconds not yet handled"
-        return pywintypes.Time(pydt.timetuple())
+        assert dt_time.microsecond == 0, "fractional seconds not yet handled"
+        return pywintypes.Time(dt_time.timetuple())
 
 
 class Range(object):
@@ -226,22 +230,44 @@ class Range(object):
 
     @property
     def value(self):
-            if self.row1 == self.row2 and self.col1 == self.col2:
-                data = clean_com_data([[self.cell_range.Value]])[0][0]  # TODO: introduce as_matrix method?
-            else:
-                data = clean_com_data(self.cell_range.Value)
+        """
+        Returns or sets the values for the given Range.
 
-            if self.asarray:
-                # replace None (empty cells) with nan as None produces arrays with dtype=object
-                if data is None:
-                    data = np.nan
-                elif not isinstance(data, (numbers.Number, string_types)):
-                    data = [[np.nan if x is None else x for x in i] for i in data]
-                return np.array(data)
-            return data
+        Parameters
+        ----------
+        asarray : boolean, default False
+            returns a NumPy array where empty cells are shown as nan
+
+        index : boolean, default True
+            Includes the index when setting a Pandas DataFrame
+
+        header : boolean, default True
+            Includes the column headers when setting a Pandas DataFrame
+
+        Returns
+        -------
+        data : list of list or NumPy array
+        """
+        if self.row1 == self.row2 and self.col1 == self.col2:
+            # Single cell - clean_com_data requires and returns a list of list
+            data = clean_com_data([[self.cell_range.Value]])[0][0]
+        else:
+            # At least 2 cells
+            data = clean_com_data(self.cell_range.Value)
+
+        # Return as NumPy Array
+        if self.asarray:
+            # replace None (empty cells) with nan as None produces arrays with dtype=object
+            if data is None:
+                data = np.nan
+            elif not isinstance(data, (numbers.Number, string_types)):
+                data = [[np.nan if x is None else x for x in i] for i in data]
+            return np.array(data)
+        return data
 
     @value.setter
     def value(self, data):
+        # Pandas DataFrame: Turn into NumPy object array with or without Index and Headers
         if isinstance(data, pd.DataFrame):
             if self.index:
                 data = data.reset_index()
@@ -255,6 +281,7 @@ class Range(object):
             else:
                 data = data.values
 
+        # NumPy array: Handle NaN values and turn into list of list (Python 3 can't handle arrays directly)
         if isinstance(data, np.ndarray):
             try:
                 # nan have to be transformed to None, otherwise Excel shows them as 65535
@@ -262,10 +289,10 @@ class Range(object):
             except TypeError:
                 # isnan doesn't work on arrays of dtype=object
                 data[pd.isnull(data)] = None
-            # Python 3 can't handle arrays directly
             data = data.tolist()
 
-        if isinstance(data, (numbers.Number, string_types, dt.date, dt.datetime)):
+        # Get dimensions and handle date values for single cells and cell arrays
+        if isinstance(data, (numbers.Number, string_types, time_types)):
             row2 = self.row2
             col2 = self.col2
             if isinstance(data, time_types):
@@ -288,7 +315,7 @@ class Range(object):
 
         Parameters
         ----------
-        strict : bool, default False
+        strict : boolean, default False
             strict stops the table at empty cells even if they contain a formula. Less efficient than if set to False.
 
         Returns
@@ -322,11 +349,13 @@ class Range(object):
             xlwings Range object
 
         """
+        # A single cell is a special case as End(xlDown) jumps over adjacent empty cells
         if self.sheet.Cells(self.row1 + 1, self.col1).Value in [None, ""]:
             row2 = self.row1
         else:
             row2 = self.sheet.Cells(self.row1, self.col1).End(xlDown).Row
 
+        # Strict stops at cells that contain a formula but show an empty value
         if self.strict:
             row2 = self.row1
             while self.sheet.Cells(row2 + 1, self.col1).Value not in [None, ""]:
@@ -356,11 +385,13 @@ class Range(object):
             xlwings Range object
 
         """
+        # A single cell is a special case as End(xlDown) jumps over adjacent empty cells
         if self.sheet.Cells(self.row1, self.col1 + 1).Value in [None, ""]:
             col2 = self.col1
         else:
             col2 = self.sheet.Cells(self.row1, self.col1).End(xlToRight).Column
 
+        # Strict stops at cells that contain a formula but show an empty value
         if self.strict:
             col2 = self.col1
             while self.sheet.Cells(self.row1, col2 + 1).Value not in [None, ""]:
@@ -389,9 +420,15 @@ class Range(object):
         return Range(self.sheet.Name, (self.row1, self.col1), (row2, col2), **self.kwargs)
 
     def clear(self):
+        """
+        Clears the content and the formatting of a Range.
+        """
         self.cell_range.Clear()
 
     def clear_contents(self):
+        """
+        Clears the content of a Range but leaves the formatting.
+        """
         self.cell_range.ClearContents()
 
 if __name__ == "__main__":
