@@ -10,17 +10,17 @@ from pandas import DataFrame
 import pytz
 
 sys.path.append('..')
-from xlwings import xlwings_connect, Range
+from xlwings import Workbook, Range
 
 # Python 2 and 3 compatibility
 PY3 = sys.version_info.major >= 3
 
 # Connect to test file and make Sheet1 the active sheet
 xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test1.xlsx')
-wb = xlwings_connect(xl_file1)
-wb.Sheets('Sheet1').Activate()
+wb = Workbook(xl_file1)
+wb.xlWorkbook.Sheets('Sheet1').Activate()
 
-# Testdata
+# Test data
 if PY3:
     data = [[1, 2.222, 3.333],
             ['Test1', None, u'éöà'],
