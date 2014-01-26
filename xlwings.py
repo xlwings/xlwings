@@ -35,13 +35,14 @@ else:
 xlDown = -4121
 xlToRight = -4161
 
-# Create a reference to Excel
-App = win32com.client.dynamic.Dispatch('Excel.Application')
-
 
 class Workbook(object):
     """
-
+    Parameters
+    ----------
+    fullname : string, default None
+        For debugging/interactive use from within Python, provide the fully qualified name, e.g: 'C:\path\to\file.xlsx'
+        No arguments must be provided if called from Excel through the xlwings VBA module.
     """
     def __init__(self, fullname=None):
         if fullname:
@@ -50,29 +51,43 @@ class Workbook(object):
             self.fullname = sys.argv[1].lower()
 
         self.xlApp = win32com.client.dynamic.Dispatch('Excel.Application')
-        self.xlWorkbook = GetObject(fullname)  # GetObject() returns the correct Excel instance if there are > 1
+        self.xlWorkbook = GetObject(self.fullname)  # GetObject() returns the correct Excel instance if there are > 1
 
+        if not 'wb' in globals():
+            global wb
+        wb = self.xlWorkbook
 
-def xlwings_connect(fullname=None):
-    """
-    Establishes a connection between an Excel file and Python. Returns the Workbook as COM object.
+    def range(self, *args, **kwargs):
+        """
+        The range method gets and sets the Range object with the following arguments:
 
+        range('A1')          range('Sheet1', 'A1')          range(1, 'A1')
+        range('A1:C3')       range('Sheet1', 'A1:C3')       range(1, 'A1:C3')
+        range((1,2))         range('Sheet1, (1,2))          range(1, (1,2))
+        range((1,1), (3,3))  range('Sheet1', (1,1), (3,3))  range(1, (1,1), (3,3))
+        range('NamedRange')  range('Sheet1', 'NamedRange')  range(1, 'NamedRange')
 
-    Parameters
-    ----------
-    fullname : string, default None
-        For debugging/interactive use from within Python, provide the fully qualified name, e.g: 'C:\path\to\file.xlsx'
-        No arguments must be provided if called from Excel through the xlwings VBA module.
-    """
-    # TODO: pass 'from_excel' arg when called from VBA to catch error when called without fullname from within Python
-    if fullname:
-        fullname = fullname.lower()
-    else:
-        fullname = sys.argv[1].lower()
+        If no worksheet name is provided as first argument, it will take the range from the active sheet. To get
+        the range from a specific sheet, provide the worksheet name as first argument either as name or index.
 
-    global wb
-    wb = Workbook(fullname)
-    return wb
+        You usually want to go for something like wb.range('A1').value to get the values as list of lists.
+
+        Parameters
+        ----------
+        asarray : boolean, default False
+            returns a NumPy array where empty cells are shown as nan
+
+        index : boolean, default True
+            Includes the index when setting a Pandas DataFrame
+
+        header : boolean, default True
+            Includes the column headers when setting a Pandas DataFrame
+
+        Returns
+        -------
+        Range : xlwings Range object
+        """
+        return Range(*args, workbook=self.xlWorkbook, **kwargs)
 
 
 def clean_com_data(data):
@@ -176,7 +191,17 @@ class Range(object):
     the range from a specific sheet, provide the worksheet name as first argument either as name or index.
 
     You usually want to go for Range(...).value to get the values as list of lists.
-    Specify Range(..., asarray=True).value if you want to get back a NumPy array.
+
+    Parameters
+    ----------
+    asarray : boolean, default False
+        returns a NumPy array where empty cells are shown as nan
+
+    index : boolean, default True
+        Includes the index when setting a Pandas DataFrame
+
+    header : boolean, default True
+        Includes the column headers when setting a Pandas DataFrame
     """
     def __init__(self, *args, **kwargs):
         # Arguments
@@ -229,9 +254,9 @@ class Range(object):
 
         # Get sheet
         if sheet:
-            self.sheet = self.workbook.xlWorkbook.Worksheets(sheet)
+            self.sheet = self.workbook.Worksheets(sheet)
         else:
-            self.sheet = self.workbook.xlWorkbook.ActiveSheet
+            self.sheet = self.workbook.ActiveSheet
 
         # Get row1, col1, row2, col2 out of Range object
         if cell_range:
@@ -247,17 +272,6 @@ class Range(object):
     def value(self):
         """
         Returns or sets the values for the given Range.
-
-        Parameters
-        ----------
-        asarray : boolean, default False
-            returns a NumPy array where empty cells are shown as nan
-
-        index : boolean, default True
-            Includes the index when setting a Pandas DataFrame
-
-        header : boolean, default True
-            Includes the column headers when setting a Pandas DataFrame
 
         Returns
         -------
@@ -447,7 +461,15 @@ class Range(object):
         self.cell_range.ClearContents()
 
 if __name__ == "__main__":
-    xlwings_connect(r'C:\DEV\Git\xlwings\tests\test1.xlsx')
+    # wb_test = Workbook(r'C:\DEV\Git\xlwings\tests\test1.xlsx')
+    wb_ex = Workbook(r'C:\DEV\Git\xlwings\example.xlsm')
 
-    print Range('A1').value
+    # print wb_test.range('Sheet2', 'A8').value
+    # print wb_ex.range('B1').value
+    # print wb_test.xlWorkbook.Application.Selection.Value
+    # print wb_ex.xlWorkbook.Application.Selection.Value
 
+    # print wb_test.range('C3').value
+    # print wb_ex.range('C3').value
+
+    wb_ex.range('A7').value = 88

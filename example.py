@@ -1,7 +1,7 @@
 import numpy as np
-from xlwings import xlwings_connect, Range
+from xlwings import Workbook, Range
 
-xlwings_connect()  # Creates a reference to the calling Excel workbook
+wb = Workbook()  # Creates a reference to the calling Excel workbook
 
 
 def rand_numbers():
