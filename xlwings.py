@@ -9,7 +9,6 @@ License: MIT (see LICENSE.txt for details)
 
 import sys
 from win32com.client import GetObject
-import win32com.client.dynamic
 import pywintypes
 import numpy as np
 from pandas import MultiIndex
@@ -34,60 +33,6 @@ else:
 # Excel constants: We can't use 'from win32com.client import constants' as we're dynamically dispatching
 xlDown = -4121
 xlToRight = -4161
-
-
-class Workbook(object):
-    """
-    Parameters
-    ----------
-    fullname : string, default None
-        For debugging/interactive use from within Python, provide the fully qualified name, e.g: 'C:\path\to\file.xlsx'
-        No arguments must be provided if called from Excel through the xlwings VBA module.
-    """
-    def __init__(self, fullname=None):
-        if fullname:
-            self.fullname = fullname.lower()
-        else:
-            self.fullname = sys.argv[1].lower()
-
-        self.xlApp = win32com.client.dynamic.Dispatch('Excel.Application')
-        self.xlWorkbook = GetObject(self.fullname)  # GetObject() returns the correct Excel instance if there are > 1
-
-        if not 'wb' in globals():
-            global wb
-        wb = self.xlWorkbook
-
-    def range(self, *args, **kwargs):
-        """
-        The range method gets and sets the Range object with the following arguments:
-
-        range('A1')          range('Sheet1', 'A1')          range(1, 'A1')
-        range('A1:C3')       range('Sheet1', 'A1:C3')       range(1, 'A1:C3')
-        range((1,2))         range('Sheet1, (1,2))          range(1, (1,2))
-        range((1,1), (3,3))  range('Sheet1', (1,1), (3,3))  range(1, (1,1), (3,3))
-        range('NamedRange')  range('Sheet1', 'NamedRange')  range(1, 'NamedRange')
-
-        If no worksheet name is provided as first argument, it will take the range from the active sheet. To get
-        the range from a specific sheet, provide the worksheet name as first argument either as name or index.
-
-        You usually want to go for something like wb.range('A1').value to get the values as list of lists.
-
-        Parameters
-        ----------
-        asarray : boolean, default False
-            returns a NumPy array where empty cells are shown as nan
-
-        index : boolean, default True
-            Includes the index when setting a Pandas DataFrame
-
-        header : boolean, default True
-            Includes the column headers when setting a Pandas DataFrame
-
-        Returns
-        -------
-        Range : xlwings Range object
-        """
-        return Range(*args, workbook=self.xlWorkbook, **kwargs)
 
 
 def clean_com_data(data):
@@ -177,6 +122,68 @@ def _datetime_to_com_time(dt_time):
         return pywintypes.Time(dt_time.timetuple())
 
 
+class Workbook(object):
+    """
+    Parameters
+    ----------
+    fullname : string, default None
+        For debugging/interactive use from within Python, provide the fully qualified name, e.g: 'C:\path\to\file.xlsx'
+        No arguments must be provided if called from Excel through the xlwings VBA module.
+    """
+    def __init__(self, fullname=None):
+        if fullname:
+            self.fullname = fullname.lower()
+        else:
+            self.fullname = sys.argv[1].lower()
+
+        self.Workbook = GetObject(self.fullname)  # GetObject() returns the correct Excel instance if there are > 1
+        self.App = self.Workbook.Application
+
+        # Make the most recently created Workbook the default when creating Range objects directly
+        global wb
+        wb = self.Workbook
+
+    def get_selection(self, asarray=False):
+        """
+
+        """
+        return self.range(str(self.Workbook.Application.Selection.Address), asarray=asarray)
+
+
+
+    def range(self, *args, **kwargs):
+        """
+        The range method gets and sets the Range object with the following arguments:
+
+        range('A1')          range('Sheet1', 'A1')          range(1, 'A1')
+        range('A1:C3')       range('Sheet1', 'A1:C3')       range(1, 'A1:C3')
+        range((1,2))         range('Sheet1, (1,2))          range(1, (1,2))
+        range((1,1), (3,3))  range('Sheet1', (1,1), (3,3))  range(1, (1,1), (3,3))
+        range('NamedRange')  range('Sheet1', 'NamedRange')  range(1, 'NamedRange')
+
+        If no worksheet name is provided as first argument (as name or index),
+        it will take the range from the active sheet.
+
+        You usually want to go for something like wb.range('A1').value to get the values as list of lists.
+
+        Parameters
+        ----------
+        asarray : boolean, default False
+            returns a NumPy array where empty cells are shown as nan
+
+        index : boolean, default True
+            Includes the index when setting a Pandas DataFrame
+
+        header : boolean, default True
+            Includes the column headers when setting a Pandas DataFrame
+
+        Returns
+        -------
+        Range : xlwings Range object
+        """
+        return Range(*args, workbook=self.Workbook, **kwargs)
+
+
 class Range(object):
     """
     A Range object can be created with the following arguments:
@@ -187,8 +194,8 @@ class Range(object):
     Range((1,1), (3,3))  Range('Sheet1', (1,1), (3,3))  Range(1, (1,1), (3,3))
     Range('NamedRange')  Range('Sheet1', 'NamedRange')  Range(1, 'NamedRange')
 
-    If no worksheet name is provided as first argument, it will take the range from the active sheet. To get
-    the range from a specific sheet, provide the worksheet name as first argument either as name or index.
+    If no worksheet name is provided as first argument (as name or index),
+    it will take the Range from the active sheet.
 
     You usually want to go for Range(...).value to get the values as list of lists.
 
@@ -271,7 +278,7 @@ class Range(object):
     @property
     def value(self):
         """
-        Returns or sets the values for the given Range.
+        Gets or sets the values for the given Range.
 
         Returns
         -------
@@ -420,7 +427,7 @@ class Range(object):
         else:
             col2 = self.sheet.Cells(self.row1, self.col1).End(xlToRight).Column
 
-        # Strict stops at cells that contain a formula but show an empty value
+        # Strict: stops at cells that contain a formula but show an empty value
         if self.strict:
             col2 = self.col1
             while self.sheet.Cells(self.row1, col2 + 1).Value not in [None, ""]:
@@ -461,15 +468,9 @@ class Range(object):
         self.cell_range.ClearContents()
 
 if __name__ == "__main__":
-    # wb_test = Workbook(r'C:\DEV\Git\xlwings\tests\test1.xlsx')
+
     wb_ex = Workbook(r'C:\DEV\Git\xlwings\example.xlsm')
+    wb_test = Workbook(r'C:\DEV\Git\xlwings\tests\test1.xlsx')
 
-    # print wb_test.range('Sheet2', 'A8').value
-    # print wb_ex.range('B1').value
-    # print wb_test.xlWorkbook.Application.Selection.Value
-    # print wb_ex.xlWorkbook.Application.Selection.Value
 
-    # print wb_test.range('C3').value
-    # print wb_ex.range('C3').value
 
-    wb_ex.range('A7').value = 88

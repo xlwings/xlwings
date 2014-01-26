@@ -18,7 +18,7 @@ PY3 = sys.version_info.major >= 3
 # Connect to test file and make Sheet1 the active sheet
 xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test1.xlsx')
 wb = Workbook(xl_file1)
-wb.xlWorkbook.Sheets('Sheet1').Activate()
+wb.Workbook.Sheets('Sheet1').Activate()
 
 # Test data
 if PY3:
