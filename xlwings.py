@@ -39,6 +39,20 @@ xlToRight = -4161
 App = win32com.client.dynamic.Dispatch('Excel.Application')
 
 
+class Workbook(object):
+    """
+
+    """
+    def __init__(self, fullname=None):
+        if fullname:
+            self.fullname = fullname.lower()
+        else:
+            self.fullname = sys.argv[1].lower()
+
+        self.xlApp = win32com.client.dynamic.Dispatch('Excel.Application')
+        self.xlWorkbook = GetObject(fullname)  # GetObject() returns the correct Excel instance if there are > 1
+
+
 def xlwings_connect(fullname=None):
     """
     Establishes a connection between an Excel file and Python. Returns the Workbook as COM object.
@@ -56,9 +70,9 @@ def xlwings_connect(fullname=None):
     else:
         fullname = sys.argv[1].lower()
 
-    global Workbook
-    Workbook = GetObject(fullname)  # GetObject() returns the correct Excel instance if there are > 1
-    return Workbook
+    global wb
+    wb = Workbook(fullname)
+    return wb
 
 
 def clean_com_data(data):
@@ -211,12 +225,13 @@ class Range(object):
         self.header = kwargs.get('header', True)  # Set DataFrame with header
         self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array
         self.strict = kwargs.get('strict', False)  # Stop table/horizontal/vertical at empty cells that contain formulas
+        self.workbook = kwargs.get('workbook', wb)
 
         # Get sheet
         if sheet:
-            self.sheet = Workbook.Worksheets(sheet)
+            self.sheet = self.workbook.xlWorkbook.Worksheets(sheet)
         else:
-            self.sheet = Workbook.ActiveSheet
+            self.sheet = self.workbook.xlWorkbook.ActiveSheet
 
         # Get row1, col1, row2, col2 out of Range object
         if cell_range:
@@ -434,7 +449,5 @@ class Range(object):
 if __name__ == "__main__":
     xlwings_connect(r'C:\DEV\Git\xlwings\tests\test1.xlsx')
 
-#    data = Range('A2').value
-    import pytz
-    Range('A6').value = dt.datetime(1999, 12,12, tzinfo=pytz.utc)
+    print Range('A1').value
 
