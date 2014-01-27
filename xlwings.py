@@ -9,7 +9,9 @@ License: MIT (see LICENSE.txt for details)
 
 import sys
 from win32com.client import GetObject
+import win32com.client.dynamic
 import pywintypes
+import pythoncom
 import numpy as np
 from pandas import MultiIndex
 import pandas as pd
@@ -122,6 +124,18 @@ def _datetime_to_com_time(dt_time):
         return pywintypes.Time(dt_time.timetuple())
 
 
+def _is_file_open(fullname):
+    """
+    Checks the Running Object Table (ROT) for the fully qualified filename
+    """
+    context = pythoncom.CreateBindCtx(0)
+    for moniker in pythoncom.GetRunningObjectTable():
+        name = moniker.GetDisplayName(context, None)
+        if name.lower() == fullname.lower():
+            return True
+    return False
+
+
 class Workbook(object):
     """
     Workbook connects an Excel Workbook with Python. You can create a new connection from Python with
@@ -145,11 +159,24 @@ class Workbook(object):
     def __init__(self, fullname=None):
         if fullname:
             self.fullname = fullname.lower()
-        else:
+            if _is_file_open(self.fullname):
+                # GetObject() returns the correct Excel instance if there are > 1
+                self.Workbook = GetObject(self.fullname)
+                self.App = self.Workbook.Application
+            else:
+                self.App = win32com.client.dynamic.Dispatch('Excel.Application')
+                self.Workbook = self.App.Workbooks.Open(self.fullname)
+                self.App.Visible = True
+        elif len(sys.argv) >= 2 and sys.argv[2] == 'from_xl':
             self.fullname = sys.argv[1].lower()
+            self.Workbook = GetObject(self.fullname)
+            self.App = self.Workbook.Application
+        else:
+            self.App = win32com.client.dynamic.Dispatch('Excel.Application')
+            self.App.Visible = True
+            self.Workbook = self.App.Workbooks.Add()
 
-        self.Workbook = GetObject(self.fullname)  # GetObject() returns the correct Excel instance if there are > 1
-        self.App = self.Workbook.Application
+        self.name = self.Workbook.Name
 
         # Make the most recently created Workbook the default when creating Range objects directly
         global wb
@@ -346,13 +373,15 @@ class Range(object):
                 data[pd.isnull(data)] = None
             data = data.tolist()
 
-        # Get dimensions and handle date values for single cells and cell arrays
+        # Get dimensions and handle date values for
         if isinstance(data, (numbers.Number, string_types, time_types)):
+            # Single cells
             row2 = self.row2
             col2 = self.col2
             if isinstance(data, time_types):
                 data = _datetime_to_com_time(data)
         else:
+            # Cell arrays
             row2 = self.row1 + len(data) - 1
             col2 = self.col1 + len(data[0]) - 1
             data = [[_datetime_to_com_time(c) if isinstance(c, time_types) else c for c in row] for row in data]
@@ -485,13 +514,6 @@ class Range(object):
         Clears the content of a Range but leaves the formatting.
         """
         self.cell_range.ClearContents()
-
-if __name__ == "__main__":
-
-    wb_ex = Workbook(r'C:\DEV\Git\xlwings\example.xlsm')
-    wb_test = Workbook(r'C:\DEV\Git\xlwings\tests\test1.xlsx')
-
-    wb_test.range('Sheet2', 'A8').value = 'test'
 
 
 

@@ -6,17 +6,17 @@ Public Function RunPython(PythonCommand As String)
     ' RunPython ("import bar; bar.foo(*args, **kwargs)")
     '
     ' Python installation and Python source file directories can be changed, the defaults are:
-    ' Python interpreter: Default interpreter from PATH, i.e. the one you get by typing "python" at the command prompt
+    ' Python interpreter: Default interpreter from your PATH environment variable,i.e. the one you get by typing "python" at the command prompt
     ' Python file location: Same as the Excel file
     '
     ' xlwings makes it easy to deploy your Python powered Excel tools on Windows.
     ' Homepage and documentation: http://xlwings.org/
     '
-    ' Copyright (c) 2014, Felix Zumstein.
-    ' Version: 0.1-dev
+    ' Copyright (c) 2014, Zoomer Analytics.
+    ' Version: 0.1.0-dev
     ' License: MIT (see LICENSE.txt for details)
     
-    Dim PYTHON_DIR As String, SOURCECODE_DIR As String, LOG_FILE As String, WORKBOOK_FULL_NAME As String
+    Dim PYTHON_DIR As String, SOURCECODE_DIR As String, LOG_FILE As String, WORKBOOK_FULLNAME As String
     Dim DriveCommand As String
     Dim ExitCode As Integer
     Dim Wsh As Object
@@ -35,14 +35,14 @@ Public Function RunPython(PythonCommand As String)
     LOG_FILE = ThisWorkbook.Path & "\" & "log.txt"
     
     ' Get fully qualified name of Workbook
-    WORKBOOK_FULL_NAME = ThisWorkbook.FullName
+    WORKBOOK_FULLNAME = ThisWorkbook.FullName
     
     ' Call a command window and change to the directory of the Python installation
-    ' Note: If Python is called from a different directory with the full qualified path, pywintypesXX.dll won't be found.
+    ' Note: If Python is called from a different directory with the fully qualified path, pywintypesXX.dll won't be found.
     ' This is likely a pywin32 bug, see http://stackoverflow.com/q/7238403/918626
     ' Run Python with the "-c" command line switch: add the path of the python file and run the
-    ' PythonCommand as first argument, then provide the WORKBOOK_FULL_NAME as second argument.
-    ' Write out the errors to the LOG_FILE and wait with proceeding until the call returns.
+    ' PythonCommand as first argument, then provide the WORKBOOK_FULLNAME as second argument.
+    ' Log the errors in the LOG_FILE and wait with proceeding until the call returns.
     Set Wsh = CreateObject("WScript.Shell")
     If Left$(PYTHON_DIR, 2) Like "[A-Z]:" Then
         ' If Python is installed on a mapped or local drive, change to drive, then cd to path
@@ -53,9 +53,9 @@ Public Function RunPython(PythonCommand As String)
     End If
     
     ExitCode = Wsh.Run("cmd.exe /C " & DriveCommand & _
-                       "python -c " & """import sys; sys.path.append(r'" & SOURCECODE_DIR & "'); " & PythonCommand & _
-                        """ """ & WORKBOOK_FULL_NAME & """ 2> """ & LOG_FILE & """  ", _
-                       WindowStyle, WaitOnReturn)
+                   "python -c " & """import sys; sys.path.append(r'" & SOURCECODE_DIR & "'); " & PythonCommand & _
+                    """ """ & WORKBOOK_FULLNAME & """ ""from_xl"" 2> """ & LOG_FILE & """  ", _
+                   WindowStyle, WaitOnReturn)
 
     'If ExitCode <> 0 then there's something wrong
     If ExitCode <> 0 Then
