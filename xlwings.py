@@ -124,11 +124,23 @@ def _datetime_to_com_time(dt_time):
 
 class Workbook(object):
     """
+    Workbook connects an Excel Workbook with Python. You can create a new connection from Python with
+    - TODO: a new workbook: wb = Workbook()
+    - an existing workbook: wb = Workbook(r'C:\path\to\file.xlsx')
+
+    If you want to create the connection from Excel through the xlwings VBA module, use:
+        wb = Workbook()
+
     Parameters
     ----------
     fullname : string, default None
         For debugging/interactive use from within Python, provide the fully qualified name, e.g: 'C:\path\to\file.xlsx'
         No arguments must be provided if called from Excel through the xlwings VBA module.
+
+    Returns
+    -------
+    workbook : xlwings Workbook object
+
     """
     def __init__(self, fullname=None):
         if fullname:
@@ -145,11 +157,18 @@ class Workbook(object):
 
     def get_selection(self, asarray=False):
         """
+        Returns the currently selected Range from Excel as xlwing Range object.
 
+        Parameters
+        ----------
+        asarray : boolean, default False
+            returns a NumPy array where empty cells are shown as nan
+
+        Returns
+        -------
+        Range : xlwings Range object
         """
         return self.range(str(self.Workbook.Application.Selection.Address), asarray=asarray)
-
-
 
     def range(self, *args, **kwargs):
         """
@@ -356,7 +375,7 @@ class Range(object):
 
         Returns
         -------
-        Range
+        range : Range
             xlwings Range object
 
         """
@@ -381,7 +400,7 @@ class Range(object):
 
         Returns
         -------
-        Range
+        range : Range
             xlwings Range object
 
         """
@@ -417,7 +436,7 @@ class Range(object):
 
         Returns
         -------
-        Range
+        range : Range
             xlwings Range object
 
         """
@@ -446,7 +465,7 @@ class Range(object):
 
         Returns
         -------
-        Range
+        range : Range
             xlwings Range object
 
         """
@@ -471,6 +490,8 @@ if __name__ == "__main__":
 
     wb_ex = Workbook(r'C:\DEV\Git\xlwings\example.xlsm')
     wb_test = Workbook(r'C:\DEV\Git\xlwings\tests\test1.xlsx')
+
+    wb_test.range('Sheet2', 'A8').value = 'test'
 
 
 
