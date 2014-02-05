@@ -7,6 +7,7 @@ from datetime import datetime
 import numpy as np
 from numpy.testing import assert_array_equal
 from pandas import DataFrame
+from pandas.util.testing import assert_frame_equal
 import pytz
 
 sys.path.append('..')
@@ -22,6 +23,7 @@ wb.Workbook.Sheets('Sheet1').Activate()
 
 # Test data
 if PY3:
+    # Python 3 requires a timezone set for datetime objects
     data = [[1, 2.222, 3.333],
             ['Test1', None, u'éöà'],
             [datetime(1962, 11, 3, tzinfo=pytz.utc), datetime(2020, 12, 31, 12, 12, 20, tzinfo=pytz.utc), 9.999]]
@@ -168,6 +170,13 @@ def test_table():
     assert_equal(cells, data)
 
 
+def test_simple_list():
+    l = [1, 2, 3]
+    Range('Sheet4', 'A27').value = l
+    cells = Range('Sheet4', 'A27').horizontal.value
+    assert_equal(l, cells[0])
+
+
 def test_clear_content():
     Range('Sheet4', 'G1').value = 22
     Range('Sheet4', 'G1').clear_contents()
@@ -187,7 +196,7 @@ def test_dataframe():
     Range('Sheet5', 'A1').value = df_expected
     cells = Range('Sheet5', 'B1:C5').value
     df_result = DataFrame(cells[1:], columns=cells[0])
-    assert_equal(df_expected, df_result)
+    assert_frame_equal(df_expected, df_result)
 
 
 if __name__ == '__main__':

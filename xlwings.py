@@ -373,7 +373,11 @@ class Range(object):
                 data[pd.isnull(data)] = None
             data = data.tolist()
 
-        # Get dimensions and handle date values for
+        # Simple Lists: Turn into list of lists
+        if isinstance(data, list) and isinstance(data[0], (numbers.Number, string_types, time_types)):
+            data = [data]
+
+        # Get dimensions and handle date values
         if isinstance(data, (numbers.Number, string_types, time_types)):
             # Single cells
             row2 = self.row2
@@ -381,7 +385,7 @@ class Range(object):
             if isinstance(data, time_types):
                 data = _datetime_to_com_time(data)
         else:
-            # Cell arrays
+            # List of List
             row2 = self.row1 + len(data) - 1
             col2 = self.col1 + len(data[0]) - 1
             data = [[_datetime_to_com_time(c) if isinstance(c, time_types) else c for c in row] for row in data]
