@@ -3,7 +3,7 @@ xlwings is the easiest way to deploy your Python powered Excel tools on Windows.
 Homepage and documentation: http://xlwings.org/
 
 Copyright (c) 2014, Zoomer Analytics.
-License: MIT (see LICENSE.txt for details)
+License: BSD (see LICENSE.txt for details)
 
 """
 

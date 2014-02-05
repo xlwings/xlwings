@@ -14,7 +14,7 @@ Public Function RunPython(PythonCommand As String)
     '
     ' Copyright (c) 2014, Zoomer Analytics.
     ' Version: 0.1.0-dev
-    ' License: MIT (see LICENSE.txt for details)
+    ' License: BSD (see LICENSE.txt for details)
     
     Dim PYTHON_DIR As String, SOURCECODE_DIR As String, LOG_FILE As String, WORKBOOK_FULLNAME As String
     Dim DriveCommand As String
