@@ -36,7 +36,7 @@ On the developer side, xlwings is equally easy:
     ```
 
 ## Interactive use and debugging
-xlwings let's you comfortably interact with Excel by calling `Workbook()` either with no arguments to work off a new file or with the full path to your Excel file (from your favorite Python environment). The `Range` object can be used as shortcut for `wb.range()`. It always refers to latest created workbook. Also, when omitting the sheet name, it refers to the currently active sheet.
+xlwings let's you comfortably interact with Excel by calling `Workbook()` either with no arguments to work off a new file or with the full path to your Excel file (from your favorite Python environment). The `Range` object can be used as shortcut for `wb.range()`. It always refers to the workbook created last. Also, when omitting the sheet name, it refers to the currently active sheet.
 
 ```python
 >>> from xlwings import Workbook, Range
