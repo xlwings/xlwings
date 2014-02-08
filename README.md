@@ -35,8 +35,8 @@ On the developer side, xlwings is equally easy:
         wb.range('Sheet1', 'C3').value = rand_num
     ```
 
-## Interactive use and debugging
-xlwings let's you comfortably interact with Excel by calling `Workbook()` either with no arguments to work off a new file or with the full path to your Excel file (from your favorite Python environment). The `Range` object can be used as shortcut for `wb.range()`. It always refers to the workbook created last. Also, when omitting the sheet name, it refers to the currently active sheet.
+## Interactive use
+xlwings let's you comfortably interact with Excel by calling `Workbook()` either with no arguments to work off a new file or with the full path to your Excel file (from your favorite Python environment). `Range` can be used as shortcut for `wb.range()`. It always refers to the workbook created last. Also, when omitting the sheet name, it refers to the currently active sheet.
 
 ```python
 >>> from xlwings import Workbook, Range
