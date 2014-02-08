@@ -7,9 +7,6 @@ xlwings makes it easy to deploy your Python powered Excel tools on Windows. Just
 
 *Note that xlwings works with every Python installation but then you need to manually install [pywin32](http://sourceforge.net/projects/pywin32/) which can sometimes be a bit troublesome.
 
-## Give it a try!
-Download the zip file (button at the top) and follow the two steps above. Open the `example.xlsm` and try the examples. Note that the only files needed to run the example are: `example.xlsm`, `example.py` and `xlwings.py`.
-
 ## Developing the Excel tool
 
 On the developer side, xlwings is equally easy:
@@ -39,7 +36,7 @@ On the developer side, xlwings is equally easy:
     ```
 
 ## Interactive use and debugging
-xlwings let's you comfortably develop, debug and interact with Excel by calling `Workbook()` either with no arguments to work off a new file or with the full path to your Excel file (from your favorite Python environment). The `Range` object can be used as shortcut for `wb.range()`. It always refers to latest created workbook. Also, when omitting the sheet name, it refers to the currently active sheet.
+xlwings let's you comfortably interact with Excel by calling `Workbook()` either with no arguments to work off a new file or with the full path to your Excel file (from your favorite Python environment). The `Range` object can be used as shortcut for `wb.range()`. It always refers to latest created workbook. Also, when omitting the sheet name, it refers to the currently active sheet.
 
 ```python
 >>> from xlwings import Workbook, Range
