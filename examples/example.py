@@ -1,9 +1,3 @@
-# This hack is only here to make the examples work without the need to install it 
-# and without the need to copy the xlwings.py file into the examples directory
-import sys, os
-this_path =  os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.abspath(os.path.join(this_path, os.pardir)))
-
 import numpy as np
 from xlwings import Workbook, Range
 
