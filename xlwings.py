@@ -240,6 +240,8 @@ class Workbook(object):
         """
         return Range(*args, workbook=self.Workbook, **kwargs)
 
+    def __repr__(self):
+        return "<xlwings.Workbook '{0}'>".format(self.name)
 
 class Range(object):
     """
