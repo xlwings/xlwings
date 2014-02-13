@@ -1,9 +1,10 @@
 """
+Make Excel fly!
 xlwings is the easiest way to deploy your Python powered Excel tools on Windows.
-Homepage and documentation: http://xlwings.org/
+Homepage and documentation: http://xlwings.org
 
 Copyright (c) 2014, Zoomer Analytics LLC.
-License: BSD (see LICENSE.txt for details)
+License: BSD 3-clause (see LICENSE.txt for details)
 
 """
 
@@ -383,7 +384,8 @@ class Range(object):
                 data = np.where(np.isnan(data), None, data)
             except TypeError:
                 # isnan doesn't work on arrays of dtype=object
-                data[pd.isnull(data)] = None
+                if hasattr(pd, 'isnull'):
+                    data[pd.isnull(data)] = None
             data = data.tolist()
 
         # Simple Lists: Turn into list of lists
