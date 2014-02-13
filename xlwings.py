@@ -384,6 +384,7 @@ class Range(object):
                 data = np.where(np.isnan(data), None, data)
             except TypeError:
                 # isnan doesn't work on arrays of dtype=object
+                # TODO: this only handles object Arrays that were originally Pandas DataFrames
                 if hasattr(pd, 'isnull'):
                     data[pd.isnull(data)] = None
             data = data.tolist()
