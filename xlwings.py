@@ -2,7 +2,7 @@
 xlwings is the easiest way to deploy your Python powered Excel tools on Windows.
 Homepage and documentation: http://xlwings.org/
 
-Copyright (c) 2014, Zoomer Analytics.
+Copyright (c) 2014, Zoomer Analytics LLC.
 License: BSD (see LICENSE.txt for details)
 
 """
@@ -12,12 +12,23 @@ from win32com.client import GetObject
 import win32com.client.dynamic
 import pywintypes
 import pythoncom
-import numpy as np
-from pandas import MultiIndex
-import pandas as pd
 import numbers
 import datetime as dt
 import pytz
+
+# Optional imports
+try:
+    import numpy as np
+except ImportError:
+    np = None
+try:
+    from pandas import MultiIndex
+except ImportError:
+    MultiIndex = None
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 
 __version__ = '0.1.0-dev'
@@ -139,7 +150,7 @@ def _is_file_open(fullname):
 class Workbook(object):
     """
     Workbook connects an Excel Workbook with Python. You can create a new connection from Python with
-    - TODO: a new workbook: wb = Workbook()
+    - a new workbook: wb = Workbook()
     - an existing workbook: wb = Workbook(r'C:\path\to\file.xlsx')
 
     If you want to create the connection from Excel through the xlwings VBA module, use:
@@ -350,7 +361,7 @@ class Range(object):
     @value.setter
     def value(self, data):
         # Pandas DataFrame: Turn into NumPy object array with or without Index and Headers
-        if isinstance(data, pd.DataFrame):
+        if hasattr(pd, 'DataFrame') and isinstance(data, pd.DataFrame):
             if self.index:
                 data = data.reset_index()
 
@@ -364,7 +375,7 @@ class Range(object):
                 data = data.values
 
         # NumPy array: Handle NaN values and turn into list of list (Python 3 can't handle arrays directly)
-        if isinstance(data, np.ndarray):
+        if hasattr(np, 'ndarray') and isinstance(data, np.ndarray):
             try:
                 # nan have to be transformed to None, otherwise Excel shows them as 65535
                 data = np.where(np.isnan(data), None, data)
