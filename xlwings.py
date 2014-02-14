@@ -4,6 +4,8 @@ xlwings is the easiest way to deploy your Python powered Excel tools on Windows.
 Homepage and documentation: http://xlwings.org
 
 Copyright (c) 2014, Zoomer Analytics LLC.
+http://zoomeranalytics.com
+
 License: BSD 3-clause (see LICENSE.txt for details)
 
 """
@@ -382,12 +384,15 @@ class Range(object):
             try:
                 # nan have to be transformed to None, otherwise Excel shows them as 65535
                 data = np.where(np.isnan(data), None, data)
+                data = data.tolist()
             except TypeError:
                 # isnan doesn't work on arrays of dtype=object
-                # TODO: this only handles object Arrays that were originally Pandas DataFrames
                 if hasattr(pd, 'isnull'):
                     data[pd.isnull(data)] = None
-            data = data.tolist()
+                    data = data.tolist()
+                else:
+                    # expensive way of replacing nan with None in object arrays in case Pandas is not available
+                    data = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in data]
 
         # Simple Lists: Turn into list of lists
         if isinstance(data, list) and isinstance(data[0], (numbers.Number, string_types, time_types)):
