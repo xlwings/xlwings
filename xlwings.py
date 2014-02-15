@@ -25,10 +25,6 @@ try:
 except ImportError:
     np = None
 try:
-    from pandas import MultiIndex
-except ImportError:
-    MultiIndex = None
-try:
     import pandas as pd
 except ImportError:
     pd = None
@@ -67,10 +63,7 @@ def clean_com_data(data):
         data is a list of list with native Python datetime objects
 
     """
-    # Turn into list of list for easier handling (e.g. for Pandas DataFrame)
-    data = [list(row) for row in data]
-
-    # Handle dates
+    # Turn into list of list (e.g. for Pandas DataFrame) and handle dates
     data = [[_com_time_to_datetime(c) if isinstance(c, time_types) else c for c in row] for row in data]
 
     return data
@@ -371,7 +364,7 @@ class Range(object):
                 data = data.reset_index()
 
             if self.header:
-                if isinstance(data.columns, MultiIndex):
+                if isinstance(data.columns, pd.MultiIndex):
                     columns = np.array(zip(*data.columns.tolist()))
                 else:
                     columns = np.array([data.columns.tolist()])
