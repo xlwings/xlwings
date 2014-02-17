@@ -443,7 +443,7 @@ class Range(object):
     @property
     def formula(self):
         """
-        Gets or sets the formula for
+        Gets or sets the formula for the given Range.
         """
         return self._cell_range.Formula
 
