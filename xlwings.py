@@ -577,3 +577,15 @@ class Range(object):
         """
         self._cell_range.ClearContents()
 
+
+class Chart(object):
+
+    def __init__(self, sheet, name_or_index):
+        self.chart = wb.Sheets(sheet).ChartObjects(name_or_index)
+
+    @property
+    def name(self):
+        return self.chart.Name
+
+    def set_source_data(self, data):
+        self.chart.Chart.SetSourceData(data._cell_range)
