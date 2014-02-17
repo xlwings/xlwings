@@ -155,7 +155,7 @@ class Workbook(object):
     Parameters
     ----------
     fullname : string, default None
-        For debugging/interactive use from within Python, provide the fully qualified name, e.g: 'C:\path\to\file.xlsx'
+        For debugging/interactive use from within Python, provide the fully qualified name, e.g: r'C:\path\to\file.xlsx'
         No arguments must be provided if called from Excel through the xlwings VBA module.
 
     Returns
@@ -236,8 +236,31 @@ class Workbook(object):
         """
         return Range(*args, workbook=self.Workbook, **kwargs)
 
+    def clear_contents_sheet(self, sheet):
+        """
+        Clears the content of a whole Sheet but leaves the formatting.
+
+        Parameters
+        ----------
+        sheet : string or integer
+            Sheet name or index.
+        """
+        self.Workbook.Sheets(sheet).Cells.ClearContents()
+
+    def clear_sheet(self, sheet):
+        """
+        Clears the content and formatting of a whole Sheet.
+
+        Parameters
+        ----------
+        sheet : string or integer
+            Sheet name or index.
+        """
+        self.Workbook.Sheets(sheet).Cells.Clear()
+
     def __repr__(self):
         return "<xlwings.Workbook '{0}'>".format(self.name)
+
 
 class Range(object):
     """
@@ -372,10 +395,10 @@ class Range(object):
             else:
                 data = data.values
 
-        # NumPy array: Handle NaN values and turn into list of list (Python 3 can't handle arrays directly)
+        # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535
+        # Also, turn into list of list (Python 3 can't handle arrays directly)
         if hasattr(np, 'ndarray') and isinstance(data, np.ndarray):
             try:
-                # nan have to be transformed to None, otherwise Excel shows them as 65535
                 data = np.where(np.isnan(data), None, data)
                 data = data.tolist()
             except TypeError:
@@ -508,7 +531,6 @@ class Range(object):
         """
         The current_region property returns a Range object representing a range bounded by (but not including) any
         combination of blank rows and blank columns or the edges of the worksheet
-        VBA equivalent: CurrentRegion property of Range object
 
         Returns
         -------
