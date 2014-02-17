@@ -236,7 +236,7 @@ class Workbook(object):
         """
         return Range(*args, workbook=self.Workbook, **kwargs)
 
-    def clear_contents_sheet(self, sheet):
+    def clear_contents(self, sheet):
         """
         Clears the content of a whole Sheet but leaves the formatting.
 
@@ -247,7 +247,7 @@ class Workbook(object):
         """
         self.Workbook.Sheets(sheet).Cells.ClearContents()
 
-    def clear_sheet(self, sheet):
+    def clear(self, sheet):
         """
         Clears the content and formatting of a whole Sheet.
 
