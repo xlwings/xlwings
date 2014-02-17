@@ -258,6 +258,17 @@ class Workbook(object):
         """
         self.Workbook.Sheets(sheet).Cells.Clear()
 
+    def activate(self, sheet):
+        """
+        Activates the given sheet.
+
+        Parameters
+        ----------
+        sheet : string or integer
+            Sheet name or index.
+        """
+        self.Workbook.Sheets(sheet).Activate()
+
     def __repr__(self):
         return "<xlwings.Workbook '{0}'>".format(self.name)
 
@@ -350,7 +361,7 @@ class Range(object):
             self.row2 = self.row1 + self.sheet.Range(cell_range).Rows.Count - 1
             self.col2 = self.col1 + self.sheet.Range(cell_range).Columns.Count - 1
 
-        self.cell_range = self.sheet.Range(self.sheet.Cells(self.row1, self.col1),
+        self._cell_range = self.sheet.Range(self.sheet.Cells(self.row1, self.col1),
                                            self.sheet.Cells(self.row2, self.col2))
 
     @property
@@ -364,10 +375,10 @@ class Range(object):
         """
         if self.row1 == self.row2 and self.col1 == self.col2:
             # Single cell - clean_com_data requires and returns a list of list
-            data = clean_com_data([[self.cell_range.Value]])[0][0]
+            data = clean_com_data([[self._cell_range.Value]])[0][0]
         else:
             # At least 2 cells
-            data = clean_com_data(self.cell_range.Value)
+            data = clean_com_data(self._cell_range.Value)
 
         # Return as NumPy Array
         if self.asarray:
@@ -428,6 +439,17 @@ class Range(object):
             data = [[_datetime_to_com_time(c) if isinstance(c, time_types) else c for c in row] for row in data]
 
         self.sheet.Range(self.sheet.Cells(self.row1, self.col1), self.sheet.Cells(row2, col2)).Value = data
+
+    @property
+    def formula(self):
+        """
+        Gets or sets the formula for
+        """
+        return self._cell_range.Formula
+
+    @formula.setter
+    def formula(self, value):
+        self._cell_range.Formula = value
 
     @property
     def table(self):
@@ -547,13 +569,11 @@ class Range(object):
         """
         Clears the content and the formatting of a Range.
         """
-        self.cell_range.Clear()
+        self._cell_range.Clear()
 
     def clear_contents(self):
         """
         Clears the content of a Range but leaves the formatting.
         """
-        self.cell_range.ClearContents()
-
-
+        self._cell_range.ClearContents()
 
