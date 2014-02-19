@@ -163,6 +163,7 @@ class Workbook(object):
     workbook : xlwings Workbook object
 
     """
+    # TODO: rename Workbook, App into com_workbook, com_app
     def __init__(self, fullname=None):
         if fullname:
             self.fullname = fullname.lower()
@@ -184,6 +185,7 @@ class Workbook(object):
             self.Workbook = self.App.Workbooks.Add()
 
         self.name = self.Workbook.Name
+        self.active_sheet = ActiveSheet(workbook=self.Workbook)
 
         # Make the most recently created Workbook the default when creating Range objects directly
         global wb
@@ -273,6 +275,18 @@ class Workbook(object):
         return "<xlwings.Workbook '{0}'>".format(self.name)
 
 
+class ActiveSheet(object):
+    """
+
+    """
+    def __init__(self, workbook=None):
+        if workbook is None:
+            workbook = wb
+        self.com_active_sheet = workbook.ActiveSheet
+        self.name = self.com_active_sheet.Name
+
+
+
 class Range(object):
     """
     A Range object can be created with the following arguments:
@@ -354,15 +368,15 @@ class Range(object):
         else:
             self.sheet = self.workbook.ActiveSheet
 
-        # Get row1, col1, row2, col2 out of Range object
+        # Get COM Range object
         if cell_range:
             self.row1 = self.sheet.Range(cell_range).Row
             self.col1 = self.sheet.Range(cell_range).Column
             self.row2 = self.row1 + self.sheet.Range(cell_range).Rows.Count - 1
             self.col2 = self.col1 + self.sheet.Range(cell_range).Columns.Count - 1
 
-        self._cell_range = self.sheet.Range(self.sheet.Cells(self.row1, self.col1),
-                                           self.sheet.Cells(self.row2, self.col2))
+        self.com_range = self.sheet.Range(self.sheet.Cells(self.row1, self.col1),
+                                          self.sheet.Cells(self.row2, self.col2))
 
     @property
     def value(self):
@@ -375,10 +389,10 @@ class Range(object):
         """
         if self.row1 == self.row2 and self.col1 == self.col2:
             # Single cell - clean_com_data requires and returns a list of list
-            data = clean_com_data([[self._cell_range.Value]])[0][0]
+            data = clean_com_data([[self.com_range.Value]])[0][0]
         else:
             # At least 2 cells
-            data = clean_com_data(self._cell_range.Value)
+            data = clean_com_data(self.com_range.Value)
 
         # Return as NumPy Array
         if self.asarray:
@@ -445,11 +459,11 @@ class Range(object):
         """
         Gets or sets the formula for the given Range.
         """
-        return self._cell_range.Formula
+        return self.com_range.Formula
 
     @formula.setter
     def formula(self, value):
-        self._cell_range.Formula = value
+        self.com_range.Formula = value
 
     @property
     def table(self):
@@ -556,7 +570,7 @@ class Range(object):
 
         Returns
         -------
-        range : Range
+        out : Range
             xlwings Range object
 
         """
@@ -567,23 +581,49 @@ class Range(object):
         """
         Clears the content and the formatting of a Range.
         """
-        self._cell_range.Clear()
+        self.com_range.Clear()
 
     def clear_contents(self):
         """
         Clears the content of a Range but leaves the formatting.
         """
-        self._cell_range.ClearContents()
+        self.com_range.ClearContents()
 
 
 class Chart(object):
+    """
 
-    def __init__(self, sheet, name_or_index):
-        self.chart = wb.Sheets(sheet).ChartObjects(name_or_index)
+    """
+    def __init__(self, *args, **kwargs):
+        # Keyword Arguments
+        self.workbook = kwargs.get('workbook', wb)
+
+        # Arguments
+        if len(args) == 1:
+            sheet = self.workbook.ActiveSheet.Name
+            name_or_index = args[0]
+        elif len(args) == 2:
+            sheet = args[0]
+            name_or_index = args[1]
+
+        # Get Chart COM object
+        self.com_chart = wb.Sheets(sheet).ChartObjects(name_or_index)
+
+        self.index = self.com_chart.Index
 
     @property
     def name(self):
-        return self.chart.Name
+        return self.com_chart.Name
 
-    def set_source_data(self, data):
-        self.chart.Chart.SetSourceData(data._cell_range)
+    @name.setter
+    def name(self, value):
+        self.com_chart.Name = value
+
+    def set_source_data(self, source):
+        """
+        Arguments
+        ---------
+        source : Range
+            xlwings Range object, e.g. Range('A1')
+        """
+        self.com_chart.Chart.SetSourceData(source.com_range)
