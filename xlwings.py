@@ -2,12 +2,12 @@
 Make Excel fly!
 xlwings is the easiest way to deploy your Python powered Excel tools on Windows.
 Homepage and documentation: http://xlwings.org
+See also: http://zoomeranalytics.com
 
-Copyright (c) 2014, Zoomer Analytics LLC.
-http://zoomeranalytics.com
+Copyright (C) 2014, Zoomer Analytics LLC.
+All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
-
 """
 
 import sys
@@ -552,7 +552,7 @@ class Range(object):
     def current_region(self):
         """
         The current_region property returns a Range object representing a range bounded by (but not including) any
-        combination of blank rows and blank columns or the edges of the worksheet
+        combination of blank rows and blank columns or the edges of the worksheet. It corresponds to Ctrl-* in Excel.
 
         Returns
         -------
@@ -560,10 +560,8 @@ class Range(object):
             xlwings Range object
 
         """
-        current_region = self.sheet.Cells(self.row1, self.col1).CurrentRegion
-        row2 = self.row1 + current_region.Rows.Count - 1
-        col2 = self.col1 + current_region.Columns.Count - 1
-        return Range(self.sheet.Name, (self.row1, self.col1), (row2, col2), **self.kwargs)
+        address = str(self.sheet.Cells(self.row1, self.col1).CurrentRegion.Address)
+        return Range(self.sheet.Name, address, **self.kwargs)
 
     def clear(self):
         """

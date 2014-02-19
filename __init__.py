@@ -1,1 +1,1 @@
-from xlwings import Workbook, Range
+from xlwings import Workbook, Range, Chart
