@@ -160,36 +160,38 @@ class Workbook(object):
 
     Returns
     -------
-    workbook : xlwings Workbook object
+    out : xlwings Workbook object
 
     """
-    # TODO: rename Workbook, App into com_workbook, com_app
     def __init__(self, fullname=None):
         if fullname:
+            # Use/open an existing workbook
             self.fullname = fullname.lower()
             if _is_file_open(self.fullname):
                 # GetObject() returns the correct Excel instance if there are > 1
-                self.Workbook = GetObject(self.fullname)
-                self.App = self.Workbook.Application
+                self.com_workbook = GetObject(self.fullname)
+                self.com_app = self.com_workbook.Application
             else:
-                self.App = win32com.client.dynamic.Dispatch('Excel.Application')
-                self.Workbook = self.App.Workbooks.Open(self.fullname)
-                self.App.Visible = True
+                self.com_app = win32com.client.dynamic.Dispatch('Excel.Application')
+                self.com_workbook = self.com_app.Workbooks.Open(self.fullname)
+                self.com_app.Visible = True
         elif len(sys.argv) >= 2 and sys.argv[2] == 'from_xl':
+            # Connect to the workbook from which this code has been invoked
             self.fullname = sys.argv[1].lower()
-            self.Workbook = GetObject(self.fullname)
-            self.App = self.Workbook.Application
+            self.com_workbook = GetObject(self.fullname)
+            self.com_app = self.com_workbook.Application
         else:
-            self.App = win32com.client.dynamic.Dispatch('Excel.Application')
-            self.App.Visible = True
-            self.Workbook = self.App.Workbooks.Add()
+            # Open Excel if necessary and create a new workbook
+            self.com_app = win32com.client.dynamic.Dispatch('Excel.Application')
+            self.com_app.Visible = True
+            self.com_workbook = self.com_app.Workbooks.Add()
 
-        self.name = self.Workbook.Name
-        self.active_sheet = ActiveSheet(workbook=self.Workbook)
+        self.name = self.com_workbook.Name
+        self.active_sheet = ActiveSheet(workbook=self.com_workbook)
 
         # Make the most recently created Workbook the default when creating Range objects directly
         global wb
-        wb = self.Workbook
+        wb = self.com_workbook
 
     def get_selection(self, asarray=False):
         """
@@ -204,7 +206,7 @@ class Workbook(object):
         -------
         Range : xlwings Range object
         """
-        return self.range(str(self.Workbook.Application.Selection.Address), asarray=asarray)
+        return self.range(str(self.com_workbook.Application.Selection.Address), asarray=asarray)
 
     def range(self, *args, **kwargs):
         """
@@ -236,7 +238,10 @@ class Workbook(object):
         -------
         Range : xlwings Range object
         """
-        return Range(*args, workbook=self.Workbook, **kwargs)
+        return Range(*args, workbook=self.com_workbook, **kwargs)
+
+    def chart(self, *args, **kwargs):
+        return Chart(*args, workbook=self.com_workbook, **kwargs)
 
     def clear_contents(self, sheet):
         """
@@ -247,7 +252,7 @@ class Workbook(object):
         sheet : string or integer
             Sheet name or index.
         """
-        self.Workbook.Sheets(sheet).Cells.ClearContents()
+        self.com_workbook.Sheets(sheet).Cells.ClearContents()
 
     def clear(self, sheet):
         """
@@ -258,7 +263,7 @@ class Workbook(object):
         sheet : string or integer
             Sheet name or index.
         """
-        self.Workbook.Sheets(sheet).Cells.Clear()
+        self.com_workbook.Sheets(sheet).Cells.Clear()
 
     def activate(self, sheet):
         """
@@ -269,7 +274,7 @@ class Workbook(object):
         sheet : string or integer
             Sheet name or index.
         """
-        self.Workbook.Sheets(sheet).Activate()
+        self.com_workbook.Sheets(sheet).Activate()
 
     def __repr__(self):
         return "<xlwings.Workbook '{0}'>".format(self.name)
@@ -385,7 +390,8 @@ class Range(object):
 
         Returns
         -------
-        data : list of list or NumPy array
+        data : list of list. Empty cells will be None.
+            If asarray=True, a numpy array is returned where empty cells are nan.
         """
         if self.row1 == self.row2 and self.col1 == self.col2:
             # Single cell - clean_com_data requires and returns a list of list
@@ -589,9 +595,29 @@ class Range(object):
         """
         self.com_range.ClearContents()
 
+    def __repr__(self):
+        return "<xlwings.Range of Workbook '{0}'>".format(self.workbook.name)
 
 class Chart(object):
     """
+    A Chart object can be created with the following arguments:
+
+    Chart(1)            Chart('Sheet1', 1)              Chart(1, 1)
+    Chart('Chart 1')    Chart('Sheet1', 'Chart 1')      Chart(1, 'Chart 1')
+
+    If no worksheet name is provided as first argument (as name or index),
+    it will take the Chart from the active sheet.
+
+    Parameters
+    ----------
+    sheet : string or integer, optional
+        Name or index of the Worksheet
+
+    name_or_index : string or integer
+        Name or index of the Chart
+
+    workbook : com_workbook object, default wb
+        COM Workbook object, defaults to the last one created
 
     """
     def __init__(self, *args, **kwargs):
@@ -627,3 +653,6 @@ class Chart(object):
             xlwings Range object, e.g. Range('A1')
         """
         self.com_chart.Chart.SetSourceData(source.com_range)
+
+    def __repr__(self):
+        return "<xlwings.Chart '{0}'>".format(self.name)
