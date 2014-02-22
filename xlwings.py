@@ -241,6 +241,27 @@ class Workbook(object):
         return Range(*args, workbook=self.com_workbook, **kwargs)
 
     def chart(self, *args, **kwargs):
+        """
+        The chart method gives access to the Chart object and can be called with the following arguments:
+
+        chart(1)            chart('Sheet1', 1)              chart(1, 1)
+        chart('Chart 1')    chart('Sheet1', 'Chart 1')      chart(1, 'Chart 1')
+
+        If no worksheet name is provided as first argument (as name or index),
+        it will take the Chart from the active sheet.
+
+        Parameters
+        ----------
+        sheet : string or integer, optional
+            Name or index of the Worksheet
+
+        name_or_index : string or integer
+            Name or index of the Chart
+
+        workbook : com_workbook object, default wb
+            COM Workbook object, defaults to the last one created
+
+        """
         return Chart(*args, workbook=self.com_workbook, **kwargs)
 
     def clear_contents(self, sheet):
@@ -598,6 +619,7 @@ class Range(object):
     def __repr__(self):
         return "<xlwings.Range of Workbook '{0}'>".format(self.workbook.name)
 
+
 class Chart(object):
     """
     A Chart object can be created with the following arguments:
@@ -625,28 +647,41 @@ class Chart(object):
         self.workbook = kwargs.get('workbook', wb)
 
         # Arguments
-        if len(args) == 1:
-            sheet = self.workbook.ActiveSheet.Name
-            name_or_index = args[0]
-        elif len(args) == 2:
-            sheet = args[0]
-            name_or_index = args[1]
+        if len(args) == 0:
+            pass
+        elif len(args) > 0:
+            if len(args) == 1:
+                sheet = self.workbook.ActiveSheet.Name
+                name_or_index = args[0]
+            elif len(args) == 2:
+                sheet = args[0]
+                name_or_index = args[1]
 
-        # Get Chart COM object
-        self.com_chart = wb.Sheets(sheet).ChartObjects(name_or_index)
+            # Get Chart COM object
+            self.com_chart = wb.Sheets(sheet).ChartObjects(name_or_index)
+            self.index = self.com_chart.Index
 
-        self.index = self.com_chart.Index
+    def __repr__(self):
+        return "<xlwings.Chart '{0}'>".format(self.name)
 
     @property
     def name(self):
+        """
+        Gets and sets the name of a Chart
+        """
         return self.com_chart.Name
 
     @name.setter
     def name(self, value):
         self.com_chart.Name = value
 
+    def activate(self):
+        self.com_chart.Activate()
+
     def set_source_data(self, source):
         """
+        Sets the source for the chart
+
         Arguments
         ---------
         source : Range
@@ -654,5 +689,25 @@ class Chart(object):
         """
         self.com_chart.Chart.SetSourceData(source.com_range)
 
-    def __repr__(self):
-        return "<xlwings.Chart '{0}'>".format(self.name)
+    def add(self, left=168, top=217, width=355, height=211, sheet=None):
+        """
+        Adds a new Chart
+
+        Arguments
+        ---------
+        left : float, default 100
+            left position in points
+        top : float, default 75
+            top position in points
+        width : float, default 375
+            width in points
+        height : float, default 225
+            height in points
+        sheet : string, default None
+            Name of the sheet, default to the active sheet
+        """
+        if sheet is None:
+            sheet = wb.ActiveSheet.Name
+
+        com_chart = wb.Sheets(sheet).ChartObjects().Add(left, top, width, height)
+        return Chart(sheet, com_chart.Name)
