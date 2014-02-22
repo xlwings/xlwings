@@ -43,8 +43,7 @@ else:
     time_types = (dt.date, dt.datetime, pywintypes.TimeType)
 
 # Excel constants: We can't use 'from win32com.client import constants' as we're dynamically dispatching
-xlDown = -4121
-xlToRight = -4161
+xlDown, xlToRight = -4121, -4161
 
 
 def clean_com_data(data):
