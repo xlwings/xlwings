@@ -11,6 +11,9 @@
 logfiles
 .settings
 
+# Sphinx
+_build
+
 # PyCharm
 .idea
 
