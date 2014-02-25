@@ -12,6 +12,7 @@
 # serve to show the default.
 
 import sys, os
+sys.path.insert(0, os.path.abspath('..'))
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -25,7 +26,7 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.mathjax']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.mathjax']  # requires Sphinx 1.3
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -41,14 +42,14 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'xlwings'
-copyright = u'2014, Zoomer Analytics LLC'
+copyright = u'2014. Zoomer Analytics LLC'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = '0.1.0'
+version = '0.1'
 # The full version, including alpha/beta/rc tags.
 release = '0.1.0'
 
@@ -122,7 +123,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+#html_static_path = ['_static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.

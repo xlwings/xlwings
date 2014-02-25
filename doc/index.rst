@@ -1,20 +1,21 @@
-.. xlwings documentation master file, created by
-   sphinx-quickstart on Sat Feb 22 22:00:11 2014.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 xlwings - make Excel fly!
 =========================
 
-xlwings is a BSD-licensed Python library that allows you to call Python from Excel and vice versa:
+xlwings is a BSD-licensed Python library that makes it easy to call Python from Excel and vice versa:
 
 * Interact with Excel from Python using a syntax that is close to VBA yet Pythonic.
-* Replace your VBA macros with Python code and still pass around your workbooks easily.
+* Replace your VBA macros with Python code and still pass around your workbooks as easy as before.
 
-Currently, xlwings only works on Windows.
+xlwings fully supports NumPy arrays and Pandas DataFrames. Currently, it only works on Windows.
+
+.. note:: xlwings is currently in an early stage.
+   The API might change in backward incompatible ways.
 
 Interact with Excel from Python
 -------------------------------
+
+Writing some values to Excel and adding a chart is as easy as:
+
 .. code-block:: python
 
     >>> from xlwings import Workbook, Range, Chart
@@ -27,10 +28,10 @@ Interact with Excel from Python
     >>> chart.set_source_data(Range('A1').table)
 
 
-Replace VBA macros with Python
-------------------------------
+Call Python from Excel
+----------------------
 
-Let's say you want to fill your spreadsheet with standard normally distributed random numbers. Your VBA code is just one
+If, for example, you want to fill your spreadsheet with standard normally distributed random numbers, your VBA code is just one
 line:
 
 .. code-block:: vb.net
@@ -70,6 +71,11 @@ Easy deployment
   dependencies.
 
 
+.. toctree::
+    :maxdepth: 1
+    :hidden:
+
+    range
 
 
 

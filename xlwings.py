@@ -58,7 +58,7 @@ def clean_com_data(data):
 
     Returns
     -------
-    data : list of list
+    list
         data is a list of list with native Python datetime objects
 
     """
@@ -241,10 +241,10 @@ class Workbook(object):
 
     def chart(self, *args, **kwargs):
         """
-        The chart method gives access to the Chart object and can be called with the following arguments:
+        The chart method gives access to the Chart object and can be called with the following arguments::
 
-        chart(1)            chart('Sheet1', 1)              chart(1, 1)
-        chart('Chart 1')    chart('Sheet1', 'Chart 1')      chart(1, 'Chart 1')
+            chart(1)            chart('Sheet1', 1)              chart(1, 1)
+            chart('Chart 1')    chart('Sheet1', 'Chart 1')      chart(1, 'Chart 1')
 
         If no worksheet name is provided as first argument (as name or index),
         it will take the Chart from the active sheet.
@@ -311,32 +311,32 @@ class ActiveSheet(object):
         self.name = self.com_active_sheet.Name
 
 
-
 class Range(object):
-    """
-    A Range object can be created with the following arguments:
+    """A Range object can be created with the following arguments::
 
-    Range('A1')          Range('Sheet1', 'A1')          Range(1, 'A1')
-    Range('A1:C3')       Range('Sheet1', 'A1:C3')       Range(1, 'A1:C3')
-    Range((1,2))         Range('Sheet1, (1,2))          Range(1, (1,2))
-    Range((1,1), (3,3))  Range('Sheet1', (1,1), (3,3))  Range(1, (1,1), (3,3))
-    Range('NamedRange')  Range('Sheet1', 'NamedRange')  Range(1, 'NamedRange')
+        Range('A1')          Range('Sheet1', 'A1')          Range(1, 'A1')
+        Range('A1:C3')       Range('Sheet1', 'A1:C3')       Range(1, 'A1:C3')
+        Range((1,2))         Range('Sheet1, (1,2))          Range(1, (1,2))
+        Range((1,1), (3,3))  Range('Sheet1', (1,1), (3,3))  Range(1, (1,1), (3,3))
+        Range('NamedRange')  Range('Sheet1', 'NamedRange')  Range(1, 'NamedRange')
 
     If no worksheet name is provided as first argument (as name or index),
     it will take the Range from the active sheet.
 
-    You usually want to go for Range(...).value to get the values as list of lists.
+    You usually want to go for ``Range(...).value`` to get the values (as list of lists).
 
     Parameters
     ----------
+    *args :
+        Definition of Sheet (optional) and Range in the above described combinations.
     asarray : boolean, default False
-        returns a NumPy array where empty cells are shown as nan
+        Returns a NumPy array where empty cells are transformed into nan.
 
     index : boolean, default True
-        Includes the index when setting a Pandas DataFrame
+        Includes the index when setting a Pandas DataFrame.
 
     header : boolean, default True
-        Includes the column headers when setting a Pandas DataFrame
+        Includes the column headers when setting a Pandas DataFrame.
     """
     def __init__(self, *args, **kwargs):
         # Arguments
@@ -405,13 +405,12 @@ class Range(object):
 
     @property
     def value(self):
-        """
-        Gets or sets the values for the given Range.
+        """Gets or sets the values for the given Range.
 
         Returns
         -------
-        data : list of list. Empty cells will be None.
-            If asarray=True, a numpy array is returned where empty cells are nan.
+        list
+            Empty cells are set to None. If ``asarray=True``, a numpy array is returned where empty cells are set to nan.
         """
         if self.row1 == self.row2 and self.col1 == self.col2:
             # Single cell - clean_com_data requires and returns a list of list
@@ -482,8 +481,7 @@ class Range(object):
 
     @property
     def formula(self):
-        """
-        Gets or sets the formula for the given Range.
+        """Gets or sets the formula for the given Range.
         """
         return self.com_range.Formula
 
@@ -493,12 +491,8 @@ class Range(object):
 
     @property
     def table(self):
-        """
-        Returns a contiguous Range starting with the indicated cell as top-left corner and going down and right as long
-        as no empty cell is hit. For example, to get the values of a contiguous range or clear its contents use:
-
-            Range('A1').table.value
-            Range('A1').table.clear_contents()
+        """Returns a contiguous Range starting with the indicated cell as top-left corner and going down and right as long
+        as no empty cell is hit.
 
         Parameters
         ----------
@@ -507,8 +501,15 @@ class Range(object):
 
         Returns
         -------
-        range : Range
+        Range
             xlwings Range object
+
+        Examples
+        --------
+        To get the values of a contiguous range or clear its contents use::
+
+            Range('A1').table.value
+            Range('A1').table.clear_contents()
 
         """
         row2 = Range(self.sheet.Name, (self.row1, self.col1), **self.kwargs).vertical.row2
@@ -518,9 +519,8 @@ class Range(object):
 
     @property
     def vertical(self):
-        """
-        Returns a contiguous Range starting with the indicated cell and going down as long as no empty cell is hit. For
-        example, to get the values of a contiguous range or clear its contents use:
+        """Returns a contiguous Range starting with the indicated cell and going down as long as no empty cell is hit. For
+        example, to get the values of a contiguous range or clear its contents use::
 
             Range('A1').vertical.value
             Range('A1').vertical.clear_contents()
@@ -532,7 +532,7 @@ class Range(object):
 
         Returns
         -------
-        range : Range
+        Range
             xlwings Range object
 
         """
@@ -554,9 +554,8 @@ class Range(object):
 
     @property
     def horizontal(self):
-        """
-        Returns a contiguous Range starting with the indicated cell and going right as long as no empty cell is hit. For
-        example, to get the values of a contiguous range or clear its contents use:
+        """Returns a contiguous Range starting with the indicated cell and going right as long as no empty cell is hit. For
+        example, to get the values of a contiguous range or clear its contents use::
 
             Range('A1').horizontal.value
             Range('A1').horizontal.clear_contents()
@@ -568,7 +567,7 @@ class Range(object):
 
         Returns
         -------
-        range : Range
+        Range
             xlwings Range object
 
         """
@@ -590,13 +589,12 @@ class Range(object):
 
     @property
     def current_region(self):
-        """
-        The current_region property returns a Range object representing a range bounded by (but not including) any
-        combination of blank rows and blank columns or the edges of the worksheet. It corresponds to Ctrl-* in Excel.
+        """The current_region property returns a Range object representing a range bounded by (but not including) any
+        combination of blank rows and blank columns or the edges of the worksheet. It corresponds to ``Ctrl-*`` in Excel.
 
         Returns
         -------
-        out : Range
+        Range
             xlwings Range object
 
         """
@@ -604,14 +602,12 @@ class Range(object):
         return Range(self.sheet.Name, address, **self.kwargs)
 
     def clear(self):
-        """
-        Clears the content and the formatting of a Range.
+        """Clears the content and the formatting of a Range.
         """
         self.com_range.Clear()
 
     def clear_contents(self):
-        """
-        Clears the content of a Range but leaves the formatting.
+        """Clears the content of a Range but leaves the formatting.
         """
         self.com_range.ClearContents()
 
