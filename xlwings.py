@@ -59,7 +59,7 @@ def clean_com_data(data):
     Returns
     -------
     list
-        data is a list of list with native Python datetime objects
+        list of list with native Python datetime objects
 
     """
     # Turn into list of list (e.g. for Pandas DataFrame) and handle dates
@@ -159,7 +159,8 @@ class Workbook(object):
 
     Returns
     -------
-    out : xlwings Workbook object
+    Workbook
+        xlwings Workbook object
 
     """
     def __init__(self, fullname=None):
@@ -194,7 +195,7 @@ class Workbook(object):
 
     def get_selection(self, asarray=False):
         """
-        Returns the currently selected Range from Excel as xlwing Range object.
+        Returns the currently selected Range from Excel as xlwings Range object.
 
         Parameters
         ----------
@@ -203,7 +204,8 @@ class Workbook(object):
 
         Returns
         -------
-        Range : xlwings Range object
+        Range
+            xlwings Range object
         """
         return self.range(str(self.com_workbook.Application.Selection.Address), asarray=asarray)
 
@@ -235,7 +237,8 @@ class Workbook(object):
 
         Returns
         -------
-        Range : xlwings Range object
+        Range
+            xlwings Range object
         """
         return Range(*args, workbook=self.com_workbook, **kwargs)
 
@@ -312,7 +315,8 @@ class ActiveSheet(object):
 
 
 class Range(object):
-    """A Range object can be created with the following arguments::
+    """
+    A Range object can be created with the following arguments::
 
         Range('A1')          Range('Sheet1', 'A1')          Range(1, 'A1')
         Range('A1:C3')       Range('Sheet1', 'A1:C3')       Range(1, 'A1:C3')
@@ -405,7 +409,8 @@ class Range(object):
 
     @property
     def value(self):
-        """Gets or sets the values for the given Range.
+        """
+        Gets or sets the values for the given Range.
 
         Returns
         -------
@@ -481,7 +486,8 @@ class Range(object):
 
     @property
     def formula(self):
-        """Gets or sets the formula for the given Range.
+        """
+        Gets or sets the formula for the given Range.
         """
         return self.com_range.Formula
 
@@ -491,8 +497,9 @@ class Range(object):
 
     @property
     def table(self):
-        """Returns a contiguous Range starting with the indicated cell as top-left corner and going down and right as long
-        as no empty cell is hit.
+        """
+        Returns a contiguous Range starting with the indicated cell as top-left corner and going down and right as
+        long as no empty cell is hit.
 
         Parameters
         ----------
@@ -519,11 +526,9 @@ class Range(object):
 
     @property
     def vertical(self):
-        """Returns a contiguous Range starting with the indicated cell and going down as long as no empty cell is hit. For
-        example, to get the values of a contiguous range or clear its contents use::
-
-            Range('A1').vertical.value
-            Range('A1').vertical.clear_contents()
+        """
+        Returns a contiguous Range starting with the indicated cell and going down as long as no empty cell is hit.
+        This corresponds to ``Ctrl + Shift + Down Arrow`` in Excel.
 
         Parameters
         ----------
@@ -534,6 +539,13 @@ class Range(object):
         -------
         Range
             xlwings Range object
+
+        Examples
+        --------
+        To get the values of a contiguous range or clear its contents use::
+
+            Range('A1').vertical.value
+            Range('A1').vertical.clear_contents()
 
         """
         # A single cell is a special case as End(xlDown) jumps over adjacent empty cells
@@ -554,11 +566,8 @@ class Range(object):
 
     @property
     def horizontal(self):
-        """Returns a contiguous Range starting with the indicated cell and going right as long as no empty cell is hit. For
-        example, to get the values of a contiguous range or clear its contents use::
-
-            Range('A1').horizontal.value
-            Range('A1').horizontal.clear_contents()
+        """
+        Returns a contiguous Range starting with the indicated cell and going right as long as no empty cell is hit.
 
         Parameters
         ----------
@@ -569,6 +578,13 @@ class Range(object):
         -------
         Range
             xlwings Range object
+
+        Examples
+        --------
+        To get the values of a contiguous range or clear its contents use::
+
+            Range('A1').horizontal.value
+            Range('A1').horizontal.clear_contents()
 
         """
         # A single cell is a special case as End(xlDown) jumps over adjacent empty cells
@@ -589,8 +605,9 @@ class Range(object):
 
     @property
     def current_region(self):
-        """The current_region property returns a Range object representing a range bounded by (but not including) any
-        combination of blank rows and blank columns or the edges of the worksheet. It corresponds to ``Ctrl-*`` in Excel.
+        """
+        The current_region property returns a Range object representing a range bounded by (but not including) any
+        combination of blank rows and blank columns or the edges of the worksheet. It corresponds to ``Ctrl + *``.
 
         Returns
         -------
@@ -602,12 +619,14 @@ class Range(object):
         return Range(self.sheet.Name, address, **self.kwargs)
 
     def clear(self):
-        """Clears the content and the formatting of a Range.
+        """
+        Clears the content and the formatting of a Range.
         """
         self.com_range.Clear()
 
     def clear_contents(self):
-        """Clears the content of a Range but leaves the formatting.
+        """
+        Clears the content of a Range but leaves the formatting.
         """
         self.com_range.ClearContents()
 
@@ -684,12 +703,14 @@ class Chart(object):
         """
         self.com_chart.Chart.SetSourceData(source.com_range)
 
-    def add(self, left=168, top=217, width=355, height=211, sheet=None):
+    def add(self, sheet=None, left=168, top=217, width=355, height=211):
         """
         Adds a new Chart
 
         Arguments
         ---------
+        sheet : string, default None
+            Name of the sheet, default to the active sheet
         left : float, default 100
             left position in points
         top : float, default 75
@@ -698,8 +719,7 @@ class Chart(object):
             width in points
         height : float, default 225
             height in points
-        sheet : string, default None
-            Name of the sheet, default to the active sheet
+
         """
         if sheet is None:
             sheet = wb.ActiveSheet.Name
