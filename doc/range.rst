@@ -11,7 +11,6 @@ contiguous blocks of cells in Excel.
 
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
     :hidden:
 
-    index
