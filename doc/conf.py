@@ -271,6 +271,10 @@ class Mock(object):
         else:
             return Mock()
 
-MOCK_MODULES = ['win32com', 'win32com.client', 'win32com.client.dynamic', 'pywintypes', 'pythoncom']
+MOCK_MODULES = ['win32com', 'win32com.client', 'pywintypes', 'pythoncom']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
+
+# Latex Options
+
+latex_documents = [('latexindex', 'xlwings.tex', u'xlwings - Make Excel Fly!', u'Zoomer Analytics LLC', 'manual', True)]
