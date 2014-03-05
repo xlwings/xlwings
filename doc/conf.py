@@ -243,3 +243,34 @@ texinfo_documents = [
 
 # How to display URL addresses: 'footnote', 'no', or 'inline'.
 #texinfo_show_urls = 'footnote'
+
+# Read the Docs Hosting
+# pywin32 can't be installed on RDT, therefore mock it
+# http://read-the-docs.readthedocs.org/en/latest/faq.html#i-get-import-errors-on-libraries-that-depend-on-c-modules
+# Also, under Admin > Advanced Settings, check to box 'Install your project inside a virtualenv...' and provide a
+# setup.py and requirements.txt file for the extension 'sphinxcontrib.napoleon' (will be included in sphinx 1.3)
+
+class Mock(object):
+
+    __all__ = []
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        return Mock()
+
+    @classmethod
+    def __getattr__(cls, name):
+        if name in ('__file__', '__path__'):
+            return '/dev/null'
+        elif name[0] == name[0].upper():
+            mockType = type(name, (), {})
+            mockType.__module__ = __name__
+            return mockType
+        else:
+            return Mock()
+
+MOCK_MODULES = ['win32com', 'win32com.client', 'win32com.client.dynamic', 'pywintypes', 'pythoncom']
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = Mock()

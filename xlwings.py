@@ -11,8 +11,7 @@ License: BSD 3-clause (see LICENSE.txt for details)
 """
 
 import sys
-from win32com.client import GetObject
-import win32com.client.dynamic
+from win32com.client import GetObject, dynamic
 import pywintypes
 import pythoncom
 import numbers
@@ -172,7 +171,7 @@ class Workbook(object):
                 self.com_workbook = GetObject(self.fullname)
                 self.com_app = self.com_workbook.Application
             else:
-                self.com_app = win32com.client.dynamic.Dispatch('Excel.Application')
+                self.com_app = dynamic.Dispatch('Excel.Application')
                 self.com_workbook = self.com_app.Workbooks.Open(self.fullname)
                 self.com_app.Visible = True
         elif len(sys.argv) >= 2 and sys.argv[2] == 'from_xl':
@@ -182,7 +181,7 @@ class Workbook(object):
             self.com_app = self.com_workbook.Application
         else:
             # Open Excel if necessary and create a new workbook
-            self.com_app = win32com.client.dynamic.Dispatch('Excel.Application')
+            self.com_app = dynamic.Dispatch('Excel.Application')
             self.com_app.Visible = True
             self.com_workbook = self.com_app.Workbooks.Add()
 
