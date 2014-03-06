@@ -11,15 +11,23 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
-sys.path.insert(0, os.path.abspath('..'))
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
 
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath('..'))
+
 # -- General configuration -----------------------------------------------------
+
+# READTHEDOCS
+# on_rtd is whether we are on readthedocs.org
+# Note: under Admin > Advanced Settings, check the box 'Install your project inside a virtualenv...' and provide a
+# setup.py and requirements.txt file for the extension 'sphinxcontrib-napoleon' (will be obsolete under sphinx 1.3)
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.0'
@@ -92,9 +100,11 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-# import sphinx_rtd_theme
-# html_theme = "sphinx_rtd_theme"
-# html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
+# if not on_rtd:  # only import and set the theme if we're building docs locally
+#     import sphinx_rtd_theme
+#     html_theme = 'sphinx_rtd_theme'
+#     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -141,7 +151,7 @@ pygments_style = 'sphinx'
 #html_additional_pages = {}
 
 # If false, no module index is generated.
-#html_domain_indices = True
+html_domain_indices = False
 
 # If false, no index is generated.
 #html_use_index = True
@@ -184,10 +194,10 @@ latex_elements = {
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title, author, documentclass [howto/manual]).
+# (source start file, target name, title, author, documentclass [howto/manual], toctree_only).
 latex_documents = [
-  ('index', 'xlwings.tex', u'xlwings Documentation',
-   u'Zoomer Analytics LLC', 'manual'),
+  ('index', 'xlwings.tex', u'xlwings - Make Excel fly!',
+   u'Zoomer Analytics LLC', 'manual', True),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -196,7 +206,7 @@ latex_documents = [
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
-#latex_use_parts = False
+# latex_use_parts = False
 
 # If true, show page references after internal links.
 #latex_show_pagerefs = False
@@ -215,10 +225,10 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    ('index', 'xlwings', u'xlwings Documentation',
-     [u'Zoomer Analytics LLC'], 1)
-]
+# man_pages = [
+#     ('index', 'xlwings', u'xlwings Documentation',
+#      [u'Zoomer Analytics LLC'], 1)
+# ]
 
 # If true, show URL addresses after external links.
 #man_show_urls = False
@@ -229,26 +239,24 @@ man_pages = [
 # Grouping the document tree into Texinfo files. List of tuples
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
-texinfo_documents = [
-  ('index', 'xlwings', u'xlwings Documentation',
-   u'Zoomer Analytics LLC', 'xlwings', 'One line description of project.',
-   'Miscellaneous'),
-]
+# texinfo_documents = [
+#   ('index', 'xlwings', u'xlwings Documentation',
+#    u'Zoomer Analytics LLC', 'xlwings', 'One line description of project.',
+#    'Miscellaneous'),
+# ]
 
 # Documents to append as an appendix to all manuals.
 #texinfo_appendices = []
 
 # If false, no module index is generated.
-#texinfo_domain_indices = True
+texinfo_domain_indices = False
 
 # How to display URL addresses: 'footnote', 'no', or 'inline'.
 #texinfo_show_urls = 'footnote'
 
-# Read the Docs Hosting
-# pywin32 can't be installed on RDT, therefore mock it
+# -- Handle unavailable packages/modules on build machine -----------------------
+# pywin32 can't be installed on non-Windows OS (e.g. on Read-the-Docs), therefore mock it
 # http://read-the-docs.readthedocs.org/en/latest/faq.html#i-get-import-errors-on-libraries-that-depend-on-c-modules
-# Also, under Admin > Advanced Settings, check to box 'Install your project inside a virtualenv...' and provide a
-# setup.py and requirements.txt file for the extension 'sphinxcontrib.napoleon' (will be included in sphinx 1.3)
 
 class Mock(object):
 
@@ -274,7 +282,3 @@ class Mock(object):
 MOCK_MODULES = ['win32com', 'win32com.client', 'pywintypes', 'pythoncom']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
-
-# Latex Options
-
-latex_documents = [('latexindex', 'xlwings.tex', u'xlwings - Make Excel Fly!', u'Zoomer Analytics LLC', 'manual', True)]
