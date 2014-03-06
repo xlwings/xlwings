@@ -21,8 +21,8 @@ Writing some values to Excel and adding a chart is as easy as:
 Call Python from Excel
 ----------------------
 
-If, for example, you want to fill your spreadsheet with standard normally distributed random numbers, your VBA code is just one
-line:
+If, for example, you want to fill your spreadsheet with standard normally distributed random numbers, your VBA code is
+just one line:
 
 .. code-block:: vb.net
 

@@ -5,8 +5,13 @@ Anologous to its counterpart in Excel, the xlwings Range object represents a sel
 contiguous blocks of cells in Excel.
 
 .. module:: xlwings
-    :noindex:
+
 
 .. autoclass:: Range
-    :members:
+    :members: formula
+
+    some text here
+
+    .. automethod:: value
+
 

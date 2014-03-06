@@ -1,4 +1,4 @@
-xlwings - make Excel fly!
+xlwings - Make Excel Fly!
 =========================
 
 xlwings is a BSD-licensed Python library that makes it easy to call Python from Excel and vice versa:
