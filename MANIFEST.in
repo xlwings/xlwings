@@ -1,8 +1,0 @@
-include LICENSE.txt README.md
-recursive-include tests *
-recursive-include xlwings/examples *
-recursive-include docs *
-recursive-exclude tests *.pyc
-recursive-exclude xlwings/examples *.pyc
-recursive-exclude docs *.pyc
-prune docs/_build
