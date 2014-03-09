@@ -40,6 +40,7 @@ develop-eggs
 .installed.cfg
 lib
 lib64
+MANIFEST
 
 # logs
 pip-log.txt
