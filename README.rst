@@ -1,51 +1,58 @@
-## The easiest way to deploy your Python powered Excel tools
+Interact with Excel from Python
+-------------------------------
 
-xlwings makes it easy to deploy your Python powered Excel tools on Windows. Just zip up your Excel and Python files and send them to your users with the following instructions:
+Writing some values to Excel and adding a chart is as easy as:
 
-> 1. Install a scientific Python distribution like [Anaconda](https://store.continuum.io/cshop/anaconda/), [Canopy](https://enthought.com/downloads/) or [WinPython](https://code.google.com/p/winpython/) *.
-> 2. Extract the zip file and work with the Excel workbook as usual.
+.. code-block:: python
 
-*Note that xlwings works with every Python installation but then you need to manually install [pywin32](http://sourceforge.net/projects/pywin32/) which can sometimes be a bit troublesome.
+    >>> from xlwings import Workbook, Range, Chart
+    >>> wb = Workbook()  # Creates a connection with a new workbook
+    >>> Range('A1').value = ['Foo 1', 'Foo 2', 'Foo 3', 'Foo 4']
+    >>> Range('A2').value = [10, 20, 30, 40]
+    >>> Range('A1').table.value
+    [[u'Foo 1', u'Foo 2', u'Foo 3', u'Foo 4'], [10.0, 20.0, 30.0, 40.0]]
+    >>> chart = Chart().add()
+    >>> chart.set_source_data(Range('A1').table)
 
-## Developing the Excel tool
 
-On the developer side, xlwings is equally easy:
+Call Python from Excel
+----------------------
 
-1. Open the VBA editor (`Alt-F11`), then go to `File > Import File...` and import the `xlwings.bas` file. Alternatively, just work off the `example.xlsm` and continue to the next step:
-2. Call Python from VBA like so:
- 
-    ```VB.net
-    Sub Example()
-        RunPython ("import example; example.rand_numbers()")
+If, for example, you want to fill your spreadsheet with standard normally distributed random numbers, your VBA code is
+just one line:
+
+.. code-block:: vb.net
+
+    Sub RandomNumbers()
+        RunPython ("import mymodule; mymodule.rand_numbers()")
     End Sub
-    ```
 
-3. This essentially hands over control to `example.py` :
+This essentially hands over control to ``mymodule.py``:
 
-    ```python
+.. code-block:: python
+
     import numpy as np
-    from xlwings import Workbook
+    from xlwings import Workbook, Range
 
     wb = Workbook()  # Creates a reference to the calling Excel file
 
     def rand_numbers():
-        """ produces standard normally distributed random numbers with dim (n,n)"""
-        n = wb.range('Sheet1', 'B1').value
+        """ produces standard normally distributed random numbers with shape (n,n)"""
+        n = Range('Sheet1', 'B1').value
         rand_num = np.random.randn(n, n)
-        wb.range('Sheet1', 'C3').value = rand_num
-    ```
+        Range('Sheet1', 'C3').value = rand_num
 
-## Interactive use
-xlwings let's you comfortably interact with Excel by calling `Workbook()` either with no arguments to work off a new file or with the full path to your Excel file (from your favorite Python environment). `Range` can be used as shortcut for `wb.range()`. It always refers to the workbook created last. Also, when omitting the sheet name, it refers to the currently active sheet.
 
-```python
->>> from xlwings import Workbook, Range
->>> wb = Workbook(r'C:\full\path\to\file.xlsx')  # Use Workbook() for a new file
->>> Range('A1').value = 'Hello xlwings!'
->>> Range('A1').value
-u'Hello xlwings!'
-```
+To make this run, just import de VBA module ``xlwings.bas`` in the VBA editor. It can be found in the directory of
+your xlwings installation.
 
-## License
+Easy deployment
+---------------
 
-BSD (3-clause) license
+* Just zip-up your Spreadsheet with your Python code and the ``xlwings.py`` file and send it around. The receiver only
+  needs to have an installation of Python with `pywin32 <http://sourceforge.net/projects/pywin32/>`_ (and obviously
+  all the other packages you're using).
+* There is no need to install any Excel add-in.
+* If this still sounds too complicated, just freeze your Python code into an exectuable and use
+  ``RunFrozenPython`` instead ``RunPython``. This gives youa a standalone version of your Spreadsheet tool without any
+  dependencies.
