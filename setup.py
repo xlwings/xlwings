@@ -19,6 +19,7 @@ setup(
     author_email='felix.zumstein@zoomeranalytics.com',
     description='Make Excel fly: Interact with Excel from Python and vice versa.',
     long_description=readme,
+    data_files=[('', ['README.rst'])],
     packages=['xlwings'],
     package_data={'xlwings': ['*.bas',
                               'tests/*.*',
