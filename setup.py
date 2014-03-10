@@ -16,6 +16,7 @@ setup(
     url='http://xlwings.org',
     license='BSD 3-clause',
     author='Zoomer Analytics LLC',
+    author_email='felix.zumstein@zoomeranalytics.com',
     description='Make Excel fly: Interact with Excel from Python and vice versa.',
     long_description=readme,
     packages=['xlwings'],

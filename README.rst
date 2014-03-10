@@ -59,7 +59,7 @@ This essentially hands over control to ``mymodule.py``:
 
 
 To make this run, just import de VBA module ``xlwings.bas`` in the VBA editor. It can be found in the directory of
-your ``xlwings` installation.
+your ``xlwings`` installation.
 
 Easy deployment
 ---------------
