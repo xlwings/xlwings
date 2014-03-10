@@ -64,7 +64,7 @@ your ``xlwings`` installation.
 Easy deployment
 ---------------
 
-Please check the available methods/properties directly under the Range object.
+Deployment is really the part where xlwings shines:
 
 * Just zip-up your Spreadsheet with your Python code and the ``xlwings.py`` file and send it around. The receiver only
   needs to have an installation of Python with `pywin32 <http://sourceforge.net/projects/pywin32/>`_ (and obviously
