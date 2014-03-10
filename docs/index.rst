@@ -1,7 +1,8 @@
 xlwings - Make Excel Fly!
 =========================
 
-xlwings is a BSD-licensed Python library that makes it easy to call Python from Excel and vice versa:
+xlwings is a `BSD-licensed <http://opensource.org/licenses/BSD-3-Clause>`_ Python library that makes it easy to call
+Python from Excel and vice versa:
 
 * Interact with Excel from Python using a syntax that is close to VBA yet Pythonic.
 * Replace your VBA macros with Python code and still pass around your workbooks as easy as before.
@@ -12,12 +13,12 @@ xlwings fully supports NumPy arrays and Pandas DataFrames. Currently, it only wo
    The API might change in backward incompatible ways.
 
 
-
 .. toctree::
     :maxdepth: 2
     :hidden:
 
-    getting_started
+    installation
+    quickstart
     range
 
 

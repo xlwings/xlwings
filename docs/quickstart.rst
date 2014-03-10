@@ -1,17 +1,5 @@
-xlwings - Make Excel Fly!
--------------------------
-
-xlwings is a `BSD-licensed <http://opensource.org/licenses/BSD-3-Clause>`_ Python library that makes it easy to call
-Python from Excel and vice versa:
-
-* Interact with Excel from Python using a syntax that is close to VBA yet Pythonic.
-* Replace your VBA macros with Python code and still pass around your workbooks as easy as before.
-
-xlwings fully supports NumPy arrays and Pandas DataFrames. Currently, it only works on Windows.
-
-.. note:: xlwings is currently in an early stage.
-   The API might change in backward incompatible ways.
-
+Quickstart
+==========
 
 Interact with Excel from Python
 -------------------------------
@@ -72,25 +60,5 @@ Easy deployment
   ``RunFrozenPython`` instead of ``RunPython``. This gives you a standalone version of your Spreadsheet tool without any
   dependencies.
 
-
-Installation
-------------
-
-The easiest way to install xlwings is via pip::
-
-    pip install xlwings
-
-
-Alternatively it can be installed from source. From within the ``xlwings`` directory, execute::
-
-    python setup.py install
-
-
-Links
------
-
-* Homepage: http://xlwings.org
-* Documentation: http://docs.xlwings.org
-* Source Code: http://github.com/zoomeranalytics/xlwings
 
 
