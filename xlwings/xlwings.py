@@ -22,6 +22,7 @@ import pythoncom
 
 
 
+
 # Optional imports
 try:
     import numpy as np
@@ -152,9 +153,9 @@ class Workbook(object):
     * a new workbook: ``wb = Workbook()``
     * an existing workbook: ``wb = Workbook(r'C:\\path\\to\\file.xlsx')``
 
-    If you want to create the connection from Excel through the xlwings VBA module, use::
+    If you want to create the connection from Excel through the xlwings VBA module, use:
 
-        wb = Workbook()
+    ``wb = Workbook()``
 
     Parameters
     ----------
