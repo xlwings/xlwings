@@ -19,7 +19,9 @@ xlwings fully supports NumPy arrays and Pandas DataFrames. Currently, it only wo
 
     installation
     quickstart
+    workbook
     range
+    chart
 
 
 

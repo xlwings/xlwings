@@ -11,12 +11,15 @@ License: BSD 3-clause (see LICENSE.txt for details)
 """
 
 import sys
+import numbers
+import datetime as dt
+
+import pytz
+
 from win32com.client import GetObject, dynamic
 import pywintypes
 import pythoncom
-import numbers
-import datetime as dt
-import pytz
+
 
 # Optional imports
 try:
@@ -29,7 +32,7 @@ except ImportError:
     pd = None
 
 
-__version__ = '0.1.0-dev'
+__version__ = '0.1.0b'
 
 
 # Python 2 and 3 compatibility
@@ -144,17 +147,18 @@ def _is_file_open(fullname):
 class Workbook(object):
     """
     Workbook connects an Excel Workbook with Python. You can create a new connection from Python with
-    - a new workbook: wb = Workbook()
-    - an existing workbook: wb = Workbook(r'C:\path\to\file.xlsx')
+
+    * a new workbook: ``wb = Workbook()``
+    * an existing workbook: ``wb = Workbook(r'C:\\path\\to\\file.xlsx')``
 
     If you want to create the connection from Excel through the xlwings VBA module, use:
-        wb = Workbook()
+        ``wb = Workbook()``
 
     Parameters
     ----------
     fullname : string, default None
-        For debugging/interactive use from within Python, provide the fully qualified name, e.g: r'C:\path\to\file.xlsx'
-        No arguments must be provided if called from Excel through the xlwings VBA module.
+        If you want to connect to an existing Excel file from Python, use the fullname, e.g:
+        ``r'C:\\path\\to\\file.xlsx'``
 
     Returns
     -------
@@ -192,6 +196,17 @@ class Workbook(object):
         global wb
         wb = self.com_workbook
 
+    def activate(self, sheet):
+        """
+        Activates the given sheet.
+
+        Parameters
+        ----------
+        sheet : string or integer
+            Sheet name or index.
+        """
+        self.com_workbook.Sheets(sheet).Activate()
+
     def get_selection(self, asarray=False):
         """
         Returns the currently selected Range from Excel as xlwings Range object.
@@ -210,18 +225,18 @@ class Workbook(object):
 
     def range(self, *args, **kwargs):
         """
-        The range method gets and sets the Range object with the following arguments:
+        The range method gets and sets the Range object with the following arguments::
 
-        range('A1')          range('Sheet1', 'A1')          range(1, 'A1')
-        range('A1:C3')       range('Sheet1', 'A1:C3')       range(1, 'A1:C3')
-        range((1,2))         range('Sheet1, (1,2))          range(1, (1,2))
-        range((1,1), (3,3))  range('Sheet1', (1,1), (3,3))  range(1, (1,1), (3,3))
-        range('NamedRange')  range('Sheet1', 'NamedRange')  range(1, 'NamedRange')
+            range('A1')          range('Sheet1', 'A1')          range(1, 'A1')
+            range('A1:C3')       range('Sheet1', 'A1:C3')       range(1, 'A1:C3')
+            range((1,2))         range('Sheet1, (1,2))          range(1, (1,2))
+            range((1,1), (3,3))  range('Sheet1', (1,1), (3,3))  range(1, (1,1), (3,3))
+            range('NamedRange')  range('Sheet1', 'NamedRange')  range(1, 'NamedRange')
 
         If no worksheet name is provided as first argument (as name or index),
         it will take the range from the active sheet.
 
-        You usually want to go for something like wb.range('A1').value to get the values as list of lists.
+        Please check the available methods/properties directly under the Range object.
 
         Parameters
         ----------
@@ -251,16 +266,14 @@ class Workbook(object):
         If no worksheet name is provided as first argument (as name or index),
         it will take the Chart from the active sheet.
 
+        Please check the available methods/properties directly under the Chart object.
+
         Parameters
         ----------
-        sheet : string or integer, optional
-            Name or index of the Worksheet
+        *args :
+            Definition of Sheet (optional) and Chart in the above described combinations.
 
-        name_or_index : string or integer
-            Name or index of the Chart
 
-        workbook : com_workbook object, default wb
-            COM Workbook object, defaults to the last one created
 
         """
         return Chart(*args, workbook=self.com_workbook, **kwargs)
@@ -286,17 +299,6 @@ class Workbook(object):
             Sheet name or index.
         """
         self.com_workbook.Sheets(sheet).Cells.Clear()
-
-    def activate(self, sheet):
-        """
-        Activates the given sheet.
-
-        Parameters
-        ----------
-        sheet : string or integer
-            Sheet name or index.
-        """
-        self.com_workbook.Sheets(sheet).Activate()
 
     def __repr__(self):
         return "<xlwings.Workbook '{0}'>".format(self.name)
@@ -635,24 +637,18 @@ class Range(object):
 
 class Chart(object):
     """
-    A Chart object can be created with the following arguments:
+    A Chart object can be created with the following arguments::
 
-    Chart(1)            Chart('Sheet1', 1)              Chart(1, 1)
-    Chart('Chart 1')    Chart('Sheet1', 'Chart 1')      Chart(1, 'Chart 1')
+        Chart(1)            Chart('Sheet1', 1)              Chart(1, 1)
+        Chart('Chart 1')    Chart('Sheet1', 'Chart 1')      Chart(1, 'Chart 1')
 
     If no worksheet name is provided as first argument (as name or index),
     it will take the Chart from the active sheet.
 
     Parameters
     ----------
-    sheet : string or integer, optional
-        Name or index of the Worksheet
-
-    name_or_index : string or integer
-        Name or index of the Chart
-
-    workbook : com_workbook object, default wb
-        COM Workbook object, defaults to the last one created
+    *args :
+        Definition of Sheet (optional) and Chart in the above described combinations.
 
     """
     def __init__(self, *args, **kwargs):
@@ -698,7 +694,7 @@ class Chart(object):
         Arguments
         ---------
         source : Range
-            xlwings Range object, e.g. Range('A1')
+            xlwings Range object, e.g. ``Range('A1')``
         """
         self.com_chart.Chart.SetSourceData(source.com_range)
 
@@ -708,8 +704,8 @@ class Chart(object):
 
         Arguments
         ---------
-        sheet : string, default None
-            Name of the sheet, default to the active sheet
+        sheet : string or integer, default None
+            Name or Index of the sheet, defaults to the active sheet
         left : float, default 100
             left position in points
         top : float, default 75

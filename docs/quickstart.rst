@@ -4,7 +4,7 @@ Quickstart
 Interact with Excel from Python
 -------------------------------
 
-Writing some values to Excel and adding a chart is as easy as:
+Writing/reading values to/from Excel and adding a chart is as easy as:
 
 .. code-block:: python
 
@@ -47,10 +47,12 @@ This essentially hands over control to ``mymodule.py``:
 
 
 To make this run, just import de VBA module ``xlwings.bas`` in the VBA editor. It can be found in the directory of
-your ``xlwings` installation.
+your ``xlwings`` installation.
 
 Easy deployment
 ---------------
+
+Deployment is really the part where xlwings shines:
 
 * Just zip-up your Spreadsheet with your Python code and the ``xlwings.py`` file and send it around. The receiver only
   needs to have an installation of Python with `pywin32 <http://sourceforge.net/projects/pywin32/>`_ (and obviously
