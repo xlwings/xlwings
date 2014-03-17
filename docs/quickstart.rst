@@ -1,6 +1,8 @@
 Quickstart
 ==========
 
+This guide assumes you have already installed xlwings. If that's not the case, head over to :ref:`installation`.
+
 Interact with Excel from Python
 -------------------------------
 
@@ -16,6 +18,18 @@ Writing/reading values to/from Excel and adding a chart is as easy as:
     [[u'Foo 1', u'Foo 2', u'Foo 3', u'Foo 4'], [10.0, 20.0, 30.0, 40.0]]
     >>> chart = Chart().add()
     >>> chart.set_source_data(Range('A1').table)
+
+The Range object as used above will refer to the active sheet. Include the Sheet name like this:
+
+.. code-block:: python
+
+    Range('Sheet', 'A1').value
+
+Include the Workbook name additionally like this:
+
+.. code-block:: python
+
+    wb.range('Sheet', 'A1').value
 
 
 Call Python from Excel
