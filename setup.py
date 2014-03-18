@@ -22,8 +22,7 @@ setup(
     data_files=[('', ['README.rst'])],
     packages=['xlwings'],
     package_data={'xlwings': ['*.bas',
-                              'tests/*.*',
-                              'examples/*.*']},
+                              'tests/*.*']},
     platforms='Operating System :: Microsoft :: Windows',
     keywords=['xls', 'excel', 'spreadsheet', 'workbook'],
     classifiers=[
