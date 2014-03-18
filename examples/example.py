@@ -1,12 +1,21 @@
-import numpy as np
 from xlwings import Workbook, Range
 
-wb = Workbook()  # Creates a reference to the calling Excel workbook
+wb = Workbook()  # Create a reference to the calling Excel Workbook
 
+def fibonacci():
+    """
+    Generates the first n Fibonacci numbers.
+    """
+    # Get the input from Excel and turn into integer
+    n = int(Range('B1').value)
 
-def rand_numbers():
-    """ produces standard normally distributed random numbers with dim (n,n)"""
-    n = Range('Sheet1', 'B1').value
-    rand_num = np.random.randn(n, n)
-    Range('Sheet1', 'C3').table.clear_contents()
-    Range('Sheet1', 'C3').value = rand_num
+    # Calculate the Fibonacci Sequence
+    seq = [1, 1]
+    for i in range(1, n):
+        seq.append(seq[i-1] + seq[i])
+
+    # Clear output
+    Range('C1').vertical.clear_contents()
+
+    # Return the output to Excel - use zip to get column format
+    Range('C1').value = zip(seq[:n])
