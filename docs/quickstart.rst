@@ -23,13 +23,13 @@ The Range object as used above will refer to the active sheet. Include the Sheet
 
 .. code-block:: python
 
-    Range('Sheet', 'A1').value
+    Range('Sheet1', 'A1').value
 
-Include the Workbook name additionally like this:
+Qualify the Workbook additionally like this:
 
 .. code-block:: python
 
-    wb.range('Sheet', 'A1').value
+    wb.range('Sheet1', 'A1').value
 
 
 Call Python from Excel
@@ -60,7 +60,8 @@ This essentially hands over control to ``mymodule.py``:
         Range('Sheet1', 'C3').value = rand_num
 
 
-To make this run, just import de VBA module ``xlwings.bas`` in the VBA editor. It can be found in the directory of
+To make this run, just import de VBA module ``xlwings.bas`` in the VBA editor (Open the VBA editor with ``Alt-F11``,
+then go to ``File > Import File...`` and import the ``xlwings.bas`` file. ). It can be found in the directory of
 your ``xlwings`` installation.
 
 Easy deployment
@@ -68,9 +69,9 @@ Easy deployment
 
 Deployment is really the part where xlwings shines:
 
-* Just zip-up your Spreadsheet with your Python code and the ``xlwings.py`` file and send it around. The receiver only
-  needs to have an installation of Python with `pywin32 <http://sourceforge.net/projects/pywin32/>`_ (and obviously
-  all the other packages you're using).
+* Just zip-up your Spreadsheet with your Python code and the ``xlwings.py`` file (can be found in the directory of your
+  xlwings installation) and send it around. The receiver only needs to have an installation of Python with
+  `pywin32 <http://sourceforge.net/projects/pywin32/>`_ (and obviously all the other packages you're using).
 * There is no need to install any Excel add-in.
 * If this still sounds too complicated, just freeze your Python code into an executable and use
   ``RunFrozenPython`` instead of ``RunPython``. This gives you a standalone version of your Spreadsheet tool without any
