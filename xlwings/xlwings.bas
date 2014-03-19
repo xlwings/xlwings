@@ -1,20 +1,18 @@
 Attribute VB_Name = "xlwings"
 ' Make Excel fly!
-' xlwings is the easiest way to deploy your Python powered Excel tools on Windows.
+'
 ' Homepage and documentation: http://xlwings.org
 ' See also: http://zoomeranalytics.com
 '
-' Copyright (c) 2014, Zoomer Analytics LLC.
-' Version: 0.1.0-dev
+' Copyright (C) 2014, Zoomer Analytics LLC.
+' Version: 0.1.0
 '
 ' License: BSD 3-clause (see LICENSE.txt for details)
 
 Option Explicit
 
 Dim PYTHON_DIR As String, SOURCECODE_DIR As String, WORKBOOK_FULLNAME As String
-Dim LOG_FILE As String
-Dim DriveCommand As String
-Dim RunCommand As String
+Dim LOG_FILE As String, DriveCommand As String, RunCommand As String
 Dim ExitCode As Integer
 Dim Wsh As Object
 Dim IsFrozen As Boolean

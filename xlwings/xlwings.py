@@ -1,6 +1,6 @@
 """
 Make Excel fly!
-xlwings is the easiest way to deploy your Python powered Excel tools on Windows.
+
 Homepage and documentation: http://xlwings.org
 See also: http://zoomeranalytics.com
 
@@ -22,7 +22,6 @@ import pythoncom
 
 
 
-
 # Optional imports
 try:
     import numpy as np
@@ -34,7 +33,7 @@ except ImportError:
     pd = None
 
 
-__version__ = '0.1.0b'
+__version__ = '0.1.0'
 
 
 # Python 2 and 3 compatibility

@@ -34,7 +34,7 @@ This program makes use of the following free and open-source software:
 Python
 xlwings
 
-Their licenses are included below: 
+Their licenses are included below:
 
 ------------------------------------------------------------------------
 PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2
