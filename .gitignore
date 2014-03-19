@@ -29,6 +29,7 @@ _build
 # Packages
 *.egg
 *.egg-info
+*.zip
 dist
 build
 eggs

@@ -1,15 +1,10 @@
 """
-Make Excel fly!
-xlwings is the easiest way to deploy your Python powered Excel tools on Windows.
-Homepage and documentation: http://xlwings.org
-See also: http://zoomeranalytics.com
-
 Copyright (C) 2014, Zoomer Analytics LLC.
 All rights reserved.
 
+Version: 0.1.0
 License: BSD 3-clause (see LICENSE.txt for details)
 """
-
 from xlwings import Workbook, Range
 
 wb = Workbook()  # Create a reference to the calling Excel Workbook
@@ -40,3 +35,6 @@ def xl_fibonacci():
 
     # Return the output to Excel - turn into list of list for column orientation
     Range('C1').value = [list(i) for i in zip(seq)]
+
+if __name__ == "__main__":
+    xl_fibonacci()
