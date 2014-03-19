@@ -26,5 +26,5 @@ def xl_fibonacci():
     # Clear output
     Range('C1').vertical.clear_contents()
 
-    # Return the output to Excel - use zip to get column format
-    Range('C1').value = zip(seq)
+    # Return the output to Excel - turn into list of list for column orientation
+    Range('C1').value = [list(i) for i in zip(seq)]
