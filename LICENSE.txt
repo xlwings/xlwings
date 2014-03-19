@@ -1,4 +1,4 @@
-xlwings is licensed under the BSD 3-clause license.
+xlwings is distributed under a BSD 3-clause license.
 
 Copyright (c) 2014, Zoomer Analytics
 All rights reserved.
