@@ -1,3 +1,15 @@
+"""
+Make Excel fly!
+xlwings is the easiest way to deploy your Python powered Excel tools on Windows.
+Homepage and documentation: http://xlwings.org
+See also: http://zoomeranalytics.com
+
+Copyright (C) 2014, Zoomer Analytics LLC.
+All rights reserved.
+
+License: BSD 3-clause (see LICENSE.txt for details)
+"""
+
 from xlwings import Workbook, Range
 
 wb = Workbook()  # Create a reference to the calling Excel Workbook
