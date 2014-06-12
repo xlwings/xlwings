@@ -13,14 +13,9 @@ License: BSD 3-clause (see LICENSE.txt for details)
 import sys
 import numbers
 import datetime as dt
-
-import pytz
-
 from win32com.client import GetObject, dynamic
 import pywintypes
 import pythoncom
-
-
 
 # Optional imports
 try:
@@ -32,13 +27,12 @@ try:
 except ImportError:
     pd = None
 
-
-__version__ = '0.1.0'
-
+__version__ = '0.1.1dev'
 
 # Python 2 and 3 compatibility
-PY3 = sys.version_info.major >= 3
+PY3 = sys.version_info[0] >= 3
 if PY3:
+    import pytz  # only a dependency for Python 3
     string_types = str
     time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
 else:
