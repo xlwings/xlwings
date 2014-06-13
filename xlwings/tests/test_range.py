@@ -189,10 +189,20 @@ def test_dataframe():
     assert_frame_equal(df_expected, df_result)
 
 
-def test_none_list():
+def test_none():
     """ Covers Issue #16"""
+    # None
+    Range('Sheet1', 'A7').value = None
+    assert_equal(None, Range('Sheet1', 'A7').value)
+    # List
     Range('Sheet1', 'A7').value = [None, None]
     assert_equal(None, Range('Sheet1', 'A7').horizontal.value)
+
+
+def test_scalar_nan():
+    """Covers Issue #15"""
+    Range('Sheet1', 'A20').value = np.nan
+    assert_equal(None, Range('Sheet1', 'A20').value)
 
 
 if __name__ == '__main__':

@@ -468,7 +468,7 @@ class Range(object):
             data = [data]
 
         # Get dimensions and handle date values
-        if isinstance(data, (numbers.Number, string_types, time_types)):
+        if isinstance(data, (numbers.Number, string_types, time_types)) or data is None:
             # Single cells
             row2 = self.row2
             col2 = self.col2
