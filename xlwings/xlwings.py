@@ -189,7 +189,7 @@ class Workbook(object):
         self.active_sheet = ActiveSheet(workbook=self.com_workbook)
 
         # Make the most recently created Workbook the default when creating Range objects directly
-        global wb
+        global wb  # TODO: rename into com_wb
         wb = self.com_workbook
 
     def activate(self, sheet):
@@ -448,7 +448,7 @@ class Range(object):
                 data = data.values
 
         # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535
-        # Also, turn into list of list (Python 3 can't handle arrays directly)
+        # Also, turn into list (Python 3 can't handle arrays directly)
         if hasattr(np, 'ndarray') and isinstance(data, np.ndarray):
             try:
                 data = np.where(np.isnan(data), None, data)
@@ -462,7 +462,7 @@ class Range(object):
                     # expensive way of replacing nan with None in object arrays in case Pandas is not available
                     data = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in data]
 
-        # Simple Lists: Turn into list of lists
+        # Simple Lists: Turn into list of lists (np.nan is part of numbers.Number)
         if isinstance(data, list) and (isinstance(data[0],
                                                  (numbers.Number, string_types, time_types)) or data[0] is None):
             data = [data]
@@ -474,6 +474,13 @@ class Range(object):
             col2 = self.col2
             if isinstance(data, time_types):
                 data = _datetime_to_com_time(data)
+            try:
+                # scalar np.nan need to be turned into None, otherwise Excel shows it as 65535 (same as for NumPy array)
+                if hasattr(np, 'ndarray') and np.isnan(data):
+                    data = None
+            except TypeError:
+                pass
+
         else:
             # List of List
             row2 = self.row1 + len(data) - 1
