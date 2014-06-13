@@ -19,7 +19,6 @@ setup(
     author_email='felix.zumstein@zoomeranalytics.com',
     description='Make Excel fly: Interact with Excel from Python and vice versa.',
     long_description=readme,
-    data_files=[('', ['README.rst'])],
     packages=['xlwings'],
     package_data={'xlwings': ['*.bas',
                               'tests/*.*']},
@@ -30,7 +29,12 @@ setup(
         'Operating System :: Microsoft :: Windows',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Office/Business :: Financial :: Spreadsheet',
         'License :: OSI Approved :: BSD License']
 )
