@@ -14,6 +14,7 @@ import sys
 import numbers
 import datetime as dt
 from win32com.client import GetObject, dynamic
+import win32timezone
 import pywintypes
 import pythoncom
 
@@ -32,7 +33,6 @@ __version__ = '0.1.1dev'
 # Python 2 and 3 compatibility
 PY3 = sys.version_info[0] >= 3
 if PY3:
-    import pytz  # only a dependency for Python 3
     string_types = str
     time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
 else:
@@ -119,7 +119,7 @@ def _datetime_to_com_time(dt_time):
         # See http://docs.activestate.com/activepython/2.7/pywin32/html/win32/help/py3k.html
         # We replace no timezone -> UTC to allow round-trips in the naive case
         if dt_time.tzinfo is None:
-            dt_time = dt_time.replace(tzinfo=pytz.utc)
+            dt_time = dt_time.replace(tzinfo=win32timezone.TimeZoneInfo.utc())
             
         return dt_time
     else:
