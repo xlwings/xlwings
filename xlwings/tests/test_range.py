@@ -84,6 +84,7 @@ def test_range_address():
     cells = Range(3, address).value
     assert_equal(cells, data)
 
+
 def test_range_index():
     """ Style: Range((1,1), (3,3)) """
     index1 = (1,3)

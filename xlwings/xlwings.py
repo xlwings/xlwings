@@ -85,11 +85,10 @@ def _com_time_to_datetime(com_time):
     if PY3:
         # The py3 version of pywintypes has its time type inherit from datetime.
         # We copy to a new datetime so that the returned type is the same between 2/3
-        # pywintypes promises to only return instances set to UTC; see doc link in _datetime_to_com_time
-        assert com_time.tzinfo is not None
+        # Changed: We make the datetime object timezone naive as Excel doesn't provide info
         return dt.datetime(month=com_time.month, day=com_time.day, year=com_time.year,
                            hour=com_time.hour, minute=com_time.minute, second=com_time.second,
-                           microsecond=com_time.microsecond, tzinfo=com_time.tzinfo)
+                           microsecond=com_time.microsecond, tzinfo=None)
     else:
         assert com_time.msec == 0, "fractional seconds not yet handled"
         return dt.datetime(month=com_time.month, day=com_time.day, year=com_time.year,
