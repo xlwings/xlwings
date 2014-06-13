@@ -463,7 +463,8 @@ class Range(object):
                     data = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in data]
 
         # Simple Lists: Turn into list of lists
-        if isinstance(data, list) and isinstance(data[0], (numbers.Number, string_types, time_types)):
+        if isinstance(data, list) and (isinstance(data[0],
+                                                 (numbers.Number, string_types, time_types)) or data[0] is None):
             data = [data]
 
         # Get dimensions and handle date values

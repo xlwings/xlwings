@@ -189,5 +189,11 @@ def test_dataframe():
     assert_frame_equal(df_expected, df_result)
 
 
+def test_none_list():
+    """ Covers Issue #16"""
+    Range('Sheet1', 'A7').value = [None, None]
+    assert_equal(None, Range('Sheet1', 'A7').horizontal.value)
+
+
 if __name__ == '__main__':
     nose.main()
