@@ -295,6 +295,10 @@ class Workbook(object):
         """
         self.com_workbook.Sheets(sheet).Cells.Clear()
 
+    def close(self):
+        """Closes the Workbook without saving it"""
+        self.com_workbook.Close(SaveChanges=False)
+
     def __repr__(self):
         return "<xlwings.Workbook '{0}'>".format(self.name)
 
@@ -724,3 +728,7 @@ class Chart(object):
 
         com_chart = wb.Sheets(sheet).ChartObjects().Add(left, top, width, height)
         return Chart(sheet, com_chart.Name)
+
+if __name__ == '__main__':
+    wb = Workbook()
+    Range('A1').value
