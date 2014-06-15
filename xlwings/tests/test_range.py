@@ -29,6 +29,10 @@ test_date_1 = datetime(1962, 11, 3)
 test_date_2 = datetime(2020, 12, 31, 12, 12, 20)
 
 
+def teardown_module():
+    wb.close()
+
+
 def test_cell():
 
     params = [('A1', 22),
@@ -204,7 +208,6 @@ def test_scalar_nan():
     """Covers Issue #15"""
     Range('Sheet1', 'A20').value = np.nan
     assert_equal(None, Range('Sheet1', 'A20').value)
-
 
 if __name__ == '__main__':
     nose.main()
