@@ -19,9 +19,8 @@ setup(
     author_email='felix.zumstein@zoomeranalytics.com',
     description='Make Excel fly: Interact with Excel from Python and vice versa.',
     long_description=readme,
-    packages=['xlwings'],
-    package_data={'xlwings': ['*.bas',
-                              'tests/*.*']},
+    packages=['xlwings', 'xlwings.tests'],
+    package_data={'xlwings': ['*.bas', 'tests/*.xlsx']},
     platforms='Operating System :: Microsoft :: Windows',
     keywords=['xls', 'excel', 'spreadsheet', 'workbook'],
     classifiers=[

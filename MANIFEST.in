@@ -2,5 +2,3 @@ include LICENSE.txt
 include README.rst
 
 recursive-include docs *
-
-prune docs/_build
