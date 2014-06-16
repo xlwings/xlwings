@@ -167,13 +167,13 @@ def test_array():
 def test_vertical():
     Range('Sheet4', 'A10').value = data
     cells = Range('Sheet4', 'A10').vertical.value
-    assert_equal(cells, [[row[0]] for row in data])
+    assert_equal(cells, [row[0] for row in data])
 
 
 def test_horizontal():
     Range('Sheet4', 'A20').value = data
     cells = Range('Sheet4', 'A20').horizontal.value
-    assert_equal(cells, [data[0]])
+    assert_equal(cells, data[0])
 
 
 def test_table():
@@ -186,7 +186,7 @@ def test_simple_list():
     l = [1, 2, 3]
     Range('Sheet4', 'A27').value = l
     cells = Range('Sheet4', 'A27').horizontal.value
-    assert_equal(l, cells[0])
+    assert_equal(l, cells)
 
 
 def test_clear_content():

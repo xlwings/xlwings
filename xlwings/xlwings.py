@@ -334,13 +334,16 @@ class Range(object):
     *args :
         Definition of Sheet (optional) and Range in the above described combinations.
     asarray : boolean, default False
-        Returns a NumPy array where empty cells are transformed into nan.
+        Returns a NumPy array (atleast_1d) where empty cells are transformed into nan.
 
     index : boolean, default True
         Includes the index when setting a Pandas DataFrame.
 
     header : boolean, default True
         Includes the column headers when setting a Pandas DataFrame.
+
+    atleast_2d : boolean, default False
+        Returns 2d lists/arrays even if the Range is a Row or Column.
     """
     def __init__(self, *args, **kwargs):
         # Arguments
@@ -389,6 +392,7 @@ class Range(object):
         self.header = kwargs.get('header', True)  # Set DataFrame with header
         self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array
         self.strict = kwargs.get('strict', False)  # Stop table/horizontal/vertical at empty cells that contain formulas
+        self.atleast_2d = kwargs.get('atleast_2d', False)  # Force data to be list of list or a 2d numpy array
         self.workbook = kwargs.get('workbook', wb)
 
         # Get sheet
@@ -407,6 +411,42 @@ class Range(object):
         self.com_range = self.sheet.Range(self.sheet.Cells(self.row1, self.col1),
                                           self.sheet.Cells(self.row2, self.col2))
 
+    def is_cell(self):
+        """
+        Returns True if the Range consists of a single Cell otherwise False
+        """
+        if self.row1 == self.row2 and self.col1 == self.col2:
+            return True
+        else:
+            return False
+
+    def is_row(self):
+        """
+        Returns True if the Range consists of a single Row otherwise False
+        """
+        if self.row1 == self.row2 and self.col1 != self.col2:
+            return True
+        else:
+            return False
+
+    def is_column(self):
+        """
+        Returns True if the Range consists of a single Column otherwise False
+        """
+        if self.row1 != self.row2 and self.col1 == self.col2:
+            return True
+        else:
+            return False
+
+    def is_table(self):
+        """
+        Returns True if the Range consists of a 2d array otherwise False
+        """
+        if self.row1 != self.row2 and self.col1 != self.col2:
+            return True
+        else:
+            return False
+
     @property
     def value(self):
         """
@@ -417,11 +457,18 @@ class Range(object):
         list
             Empty cells are set to None. If ``asarray=True``, a numpy array is returned where empty cells are set to nan.
         """
-        if self.row1 == self.row2 and self.col1 == self.col2:
-            # Single cell - clean_com_data requires and returns a list of list
+        if self.is_cell():
+            # Clean_com_data requires and returns a list of list
             data = clean_com_data([[self.com_range.Value]])[0][0]
-        else:
-            # At least 2 cells
+        elif self.is_row():
+            data = clean_com_data(self.com_range.Value)
+            if not self.atleast_2d:
+                data = data[0]
+        elif self.is_column():
+            data = clean_com_data(self.com_range.Value)
+            if not self.atleast_2d:
+                data = [item for sublist in data for item in sublist]
+        else:  # 2d Range, leave as list of list
             data = clean_com_data(self.com_range.Value)
 
         # Return as NumPy Array
@@ -429,7 +476,9 @@ class Range(object):
             # replace None (empty cells) with nan as None produces arrays with dtype=object
             if data is None:
                 data = np.nan
-            elif not isinstance(data, (numbers.Number, string_types)):
+            if self.is_column() or self.is_row():
+                data = [np.nan if x is None else x for x in data]
+            elif self.is_table():
                 data = [[np.nan if x is None else x for x in i] for i in data]
             return np.atleast_1d(np.array(data))
         return data
@@ -482,7 +531,7 @@ class Range(object):
                 if hasattr(np, 'ndarray') and np.isnan(data):
                     data = None
             except TypeError:
-                pass
+                pass  # raised if data is not a np.nan
 
         else:
             # List of List
@@ -728,7 +777,3 @@ class Chart(object):
 
         com_chart = wb.Sheets(sheet).ChartObjects().Add(left, top, width, height)
         return Chart(sheet, com_chart.Name)
-
-if __name__ == '__main__':
-    wb = Workbook()
-    Range('A1').value
