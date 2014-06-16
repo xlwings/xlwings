@@ -1,19 +1,34 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import sys
 import os
 import nose
 from nose.tools import assert_equal
 from datetime import datetime
-import numpy as np
-from numpy.testing import assert_array_equal
-from pandas import DataFrame
-from pandas.util.testing import assert_frame_equal
+from ..xlwings import Workbook, Range
 
-from xlwings import Workbook, Range
+# Optional imports
+try:
+    import numpy as np
+    from numpy.testing import assert_array_equal
+except ImportError:
+    np = None
+try:
+    import pandas as pd
+    from pandas import DataFrame
+    from pandas.util.testing import assert_frame_equal
+except ImportError:
+    pd = None
 
-# Python 2 and 3 compatibility
-PY3 = sys.version_info[0] >= 3
+
+def _skip_if_no_numpy():
+    if np is None:
+        raise nose.SkipTest('numpy missing')
+
+
+def _skip_if_no_pandas():
+    if pd is None:
+        raise nose.SkipTest('pandas missing')
+
 
 # Connect to test file and make Sheet1 the active sheet
 xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test1.xlsx')
@@ -141,6 +156,8 @@ def test_named_range():
 
 
 def test_array():
+    _skip_if_no_numpy()
+
     numpy_array = np.array([[1.1, 2.2, 3.3], [4.4, 5.5, -6.6], [7.7, 8.8, np.nan]])
     Range('L1').value = numpy_array
     cells = Range('L1:N3', asarray=True).value
@@ -187,6 +204,8 @@ def test_clear():
 
 
 def test_dataframe():
+    _skip_if_no_pandas()
+
     df_expected = DataFrame({'a': [1, 2, 3.3, np.nan], 'b': ['test1', 'test2', 'test3', None]})
     Range('Sheet5', 'A1').value = df_expected
     cells = Range('Sheet5', 'B1:C5').value
@@ -206,6 +225,8 @@ def test_none():
 
 def test_scalar_nan():
     """Covers Issue #15"""
+    _skip_if_no_numpy()
+
     Range('Sheet1', 'A20').value = np.nan
     assert_equal(None, Range('Sheet1', 'A20').value)
 
