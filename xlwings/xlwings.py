@@ -431,7 +431,7 @@ class Range(object):
                 data = np.nan
             elif not isinstance(data, (numbers.Number, string_types)):
                 data = [[np.nan if x is None else x for x in i] for i in data]
-            return np.array(data)
+            return np.atleast_1d(np.array(data))
         return data
 
     @value.setter
