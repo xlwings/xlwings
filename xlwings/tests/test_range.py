@@ -40,6 +40,30 @@ if np is not None:
     array_1d = np.array([1.1, 2.2, np.nan, -4.4])
     array_2d = np.array([[1.1, 2.2, 3.3], [-4.4, 5.5, np.nan]])
 
+if pd is not None:
+    series_1 = pd.Series([1, 3, 5, np.nan, 6, 8])
+
+    rng = pd.date_range('1/1/2012', periods=10, freq='D')
+    timeseries_1 = pd.Series(np.arange(len(rng)) + 0.1, rng)
+    timeseries_1[1] = np.nan
+
+    df_1 = pd.DataFrame([[1, 'test1'],
+                         [2, 'test2'],
+                         [np.nan, None],
+                         [3.3, 'test3']], columns=['a', 'b'])
+
+    df_2 = pd.DataFrame([1, 3, 5, np.nan, 6, 8], columns=['col1'])
+
+    # MultiIndex
+    tuples = list(zip(*[['bar', 'bar', 'baz', 'baz',
+                         'foo', 'foo', 'qux', 'qux'],
+                        ['one', 'two', 'one', 'two',
+                         'one', 'two', 'one', 'two'],
+                        ['x', 'x', 'x', 'x',
+                         'y', 'y', 'y', 'y']]))
+    index = pd.MultiIndex.from_tuples(tuples, names=['first', 'second', 'third'])
+    df_multiindex = pd.DataFrame([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12], [13, 14], [15, 16]], index=index)
+
 
 # Test skips and fixtures
 def _skip_if_no_numpy():
@@ -238,13 +262,23 @@ def test_clear():
     assert_equal(cell, None)
 
 
-def test_dataframe():
+def test_dataframe_1():
     _skip_if_no_pandas()
 
-    df_expected = DataFrame({'a': [1, 2, 3.3, np.nan], 'b': ['test1', 'test2', 'test3', None]})
+    df_expected = df_1
     Range('Sheet5', 'A1').value = df_expected
     cells = Range('Sheet5', 'B1:C5').value
     df_result = DataFrame(cells[1:], columns=cells[0])
+    assert_frame_equal(df_expected, df_result)
+
+
+def test_dataframe_2():
+    _skip_if_no_pandas()
+
+    df_expected = df_2
+    Range('Sheet5', 'A9').value = df_expected
+    cells = Range('Sheet5', 'B9:B15').value
+    df_result = DataFrame(cells[1:], columns=[cells[0]])
     assert_frame_equal(df_expected, df_result)
 
 
