@@ -337,7 +337,7 @@ class Range(object):
         Returns a NumPy array (atleast_1d) where empty cells are transformed into nan.
 
     index : boolean, default True
-        Includes the index when setting a Pandas DataFrame.
+        Includes the index when setting a Pandas DataFrame or Series.
 
     header : boolean, default True
         Includes the column headers when setting a Pandas DataFrame.
@@ -494,12 +494,23 @@ class Range(object):
                 if isinstance(data.columns, pd.MultiIndex):
                     columns = np.array(zip(*data.columns.tolist()))
                 else:
-                    columns = np.array([data.columns.tolist()])
+                    # Ensure dtype=object because otherwise it may get assigned a string type which transforms the
+                    # values during vstacking into strings, too. Then we can't easily transform np.nan anymore.
+                    columns = np.empty((data.columns.shape[0],), dtype=object)
+                    columns[:] = np.array([data.columns.tolist()])
                 data = np.vstack((columns, data.values))
             else:
                 data = data.values
 
-        # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535
+        # Pandas Series
+        if hasattr(pd, 'Series') and isinstance(data, pd.Series):
+            if self.index:
+                data = data.reset_index().values
+            else:
+                data = data.values[:,np.newaxis]
+
+        # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535. This seems to be an
+        # Excel bug, see: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx
         # Also, turn into list (Python 3 can't handle arrays directly)
         if hasattr(np, 'ndarray') and isinstance(data, np.ndarray):
             try:
