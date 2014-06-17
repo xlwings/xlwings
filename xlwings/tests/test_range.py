@@ -4,7 +4,7 @@ import os
 import nose
 from nose.tools import assert_equal
 from datetime import datetime
-from ..xlwings import Workbook, Range
+from xlwings import Workbook, Range
 
 # Optional imports
 try:
@@ -19,7 +19,29 @@ try:
 except ImportError:
     pd = None
 
+# Connect to test file and make Sheet1 the active sheet
+xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test1.xlsx')
+wb = Workbook(xl_file1)
+wb.activate('Sheet1')
 
+# Test data
+data = [[1, 2.222, 3.333],
+        ['Test1', None, 'éöà'],
+        [datetime(1962, 11, 3), datetime(2020, 12, 31, 12, 12, 20), 9.999]]
+
+test_date_1 = datetime(1962, 11, 3)
+test_date_2 = datetime(2020, 12, 31, 12, 12, 20)
+
+list_row_1d = [1.1, None, 3.3]
+list_row_2d = [[1.1, None, 3.3]]
+list_col = [[1.1], [None], [3.3]]
+
+if np is not None:
+    array_1d = np.array([1.1, 2.2, np.nan, -4.4])
+    array_2d = np.array([[1.1, 2.2, 3.3], [-4.4, 5.5, np.nan]])
+
+
+# Test skips and fixtures
 def _skip_if_no_numpy():
     if np is None:
         raise nose.SkipTest('numpy missing')
@@ -30,26 +52,11 @@ def _skip_if_no_pandas():
         raise nose.SkipTest('pandas missing')
 
 
-# Connect to test file and make Sheet1 the active sheet
-xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test1.xlsx')
-wb = Workbook(xl_file1)
-wb.com_workbook.Sheets('Sheet1').Activate()
-
-# Test data
-data = [[1, 2.222, 3.333],
-        ['Test1', None, 'éöà'],
-        [datetime(1962, 11, 3), datetime(2020, 12, 31, 12, 12, 20), 9.999]]
-
-test_date_1 = datetime(1962, 11, 3)
-test_date_2 = datetime(2020, 12, 31, 12, 12, 20)
-
-
-def teardown_module():
-    wb.close()
+# def teardown_module():
+#     wb.close()
 
 
 def test_cell():
-
     params = [('A1', 22),
               ((1,1), 22),
               ('A1', 22.2222),
@@ -70,7 +77,6 @@ def check_cell(address, value):
     # Active Sheet
     Range(address).value = value
     cell = Range(address).value
-
     assert_equal(cell, value)
 
     # SheetName
@@ -158,10 +164,25 @@ def test_named_range():
 def test_array():
     _skip_if_no_numpy()
 
-    numpy_array = np.array([[1.1, 2.2, 3.3], [4.4, 5.5, -6.6], [7.7, 8.8, np.nan]])
-    Range('L1').value = numpy_array
-    cells = Range('L1:N3', asarray=True).value
-    assert_array_equal(cells, numpy_array)
+    # 1d array
+    Range('Sheet6', 'A1').value = array_1d
+    cells = Range('Sheet6', 'A1:D1', asarray=True).value
+    assert_array_equal(cells, array_1d)
+
+    # 2d array
+    Range('Sheet6', 'A4').value = array_2d
+    cells = Range('Sheet6', 'A4', asarray=True).table.value
+    assert_array_equal(cells, array_2d)
+
+    # 1d array (atleast_2d)
+    Range('Sheet6', 'A10').value = array_1d
+    cells = Range('Sheet6', 'A10:D10', asarray=True, atleast_2d=True).value
+    assert_array_equal(cells, np.atleast_2d(array_1d))
+
+    # 2d array (atleast_2d)
+    Range('Sheet6', 'A12').value = array_2d
+    cells = Range('Sheet6', 'A12', asarray=True, atleast_2d=True).table.value
+    assert_array_equal(cells, array_2d)
 
 
 def test_vertical():
@@ -182,11 +203,25 @@ def test_table():
     assert_equal(cells, data)
 
 
-def test_simple_list():
-    l = [1, 2, 3]
-    Range('Sheet4', 'A27').value = l
-    cells = Range('Sheet4', 'A27').horizontal.value
-    assert_equal(l, cells)
+def test_list():
+
+    # 1d List Row
+    Range('Sheet4', 'A27').value = list_row_1d
+    cells = Range('Sheet4', 'A27:C27').value
+    assert_equal(list_row_1d, cells)
+
+    # 2d List Row
+    Range('Sheet4', 'A29').value = list_row_2d
+    cells = Range('Sheet4', 'A29:C29', atleast_2d=True).value
+    assert_equal(list_row_2d, cells)
+
+    # 1d List Col
+    Range('Sheet4', 'A31').value = list_col
+    cells = Range('Sheet4', 'A31:A33').value
+    assert_equal([i[0] for i in list_col], cells)
+    # 2d List Col
+    cells = Range('Sheet4', 'A31:A33', atleast_2d=True).value
+    assert_equal(list_col, cells)
 
 
 def test_clear_content():

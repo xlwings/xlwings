@@ -476,9 +476,9 @@ class Range(object):
             # replace None (empty cells) with nan as None produces arrays with dtype=object
             if data is None:
                 data = np.nan
-            if self.is_column() or self.is_row():
+            if (self.is_column() or self.is_row()) and not self.atleast_2d:
                 data = [np.nan if x is None else x for x in data]
-            elif self.is_table():
+            elif self.is_table() or self.atleast_2d:
                 data = [[np.nan if x is None else x for x in i] for i in data]
             return np.atleast_1d(np.array(data))
         return data
