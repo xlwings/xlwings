@@ -118,8 +118,12 @@ def _datetime_to_com_time(dt_time):
         # See http://docs.activestate.com/activepython/2.7/pywin32/html/win32/help/py3k.html
         # We replace no timezone -> UTC to allow round-trips in the naive case
         if dt_time.tzinfo is None:
+            if hasattr(pd, 'tslib') and isinstance(dt_time, pd.tslib.Timestamp):
+                # Otherwise pandas prints ignored exceptions on Python 3
+                dt_time = dt_time.to_datetime()
+            # We don't use pytz.utc to get rid of additional dependency
             dt_time = dt_time.replace(tzinfo=win32timezone.TimeZoneInfo.utc())
-            
+
         return dt_time
     else:
         assert dt_time.microsecond == 0, "fractional seconds not yet handled"
