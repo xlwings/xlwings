@@ -14,8 +14,8 @@ except ImportError:
     np = None
 try:
     import pandas as pd
-    from pandas import DataFrame
-    from pandas.util.testing import assert_frame_equal
+    from pandas import DataFrame, Series
+    from pandas.util.testing import assert_frame_equal, assert_series_equal
 except ImportError:
     pd = None
 
@@ -41,7 +41,7 @@ if np is not None:
     array_2d = np.array([[1.1, 2.2, 3.3], [-4.4, 5.5, np.nan]])
 
 if pd is not None:
-    series_1 = pd.Series([1, 3, 5, np.nan, 6, 8])
+    series_1 = pd.Series([1.1, 3.3, 5., np.nan, 6., 8.])
 
     rng = pd.date_range('1/1/2012', periods=10, freq='D')
     timeseries_1 = pd.Series(np.arange(len(rng)) + 0.1, rng)
@@ -55,14 +55,12 @@ if pd is not None:
     df_2 = pd.DataFrame([1, 3, 5, np.nan, 6, 8], columns=['col1'])
 
     # MultiIndex
-    tuples = list(zip(*[['bar', 'bar', 'baz', 'baz',
-                         'foo', 'foo', 'qux', 'qux'],
-                        ['one', 'two', 'one', 'two',
-                         'one', 'two', 'one', 'two'],
-                        ['x', 'x', 'x', 'x',
-                         'y', 'y', 'y', 'y']]))
+    tuples = list(zip(*[['bar', 'bar', 'baz', 'baz', 'foo', 'foo', 'qux', 'qux'],
+                        ['one', 'two', 'one', 'two', 'one', 'two', 'one', 'two'],
+                        ['x', 'x', 'x', 'x', 'y', 'y', 'y', 'y']]))
     index = pd.MultiIndex.from_tuples(tuples, names=['first', 'second', 'third'])
-    df_multiindex = pd.DataFrame([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12], [13, 14], [15, 16]], index=index)
+    df_multiindex = pd.DataFrame([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6], [7.7, 8.8], [9.9, 10.10],
+                                  [11.11, 12.12],[13.13, 14.14], [15.15, 16.16]], index=index)
 
 
 # Test skips and fixtures
@@ -273,6 +271,7 @@ def test_dataframe_1():
 
 
 def test_dataframe_2():
+    """ Covers Issue #31"""
     _skip_if_no_pandas()
 
     df_expected = df_2
@@ -280,6 +279,39 @@ def test_dataframe_2():
     cells = Range('Sheet5', 'B9:B15').value
     df_result = DataFrame(cells[1:], columns=[cells[0]])
     assert_frame_equal(df_expected, df_result)
+
+
+def test_dataframe_multiindex():
+    _skip_if_no_pandas()
+
+    df_expected = df_multiindex
+    Range('Sheet5', 'A20').value = df_expected
+    cells = Range('Sheet5', 'D20').table.value
+    multiindex = Range('Sheet5', 'A20:C28').value
+    ix = pd.MultiIndex.from_tuples(multiindex[1:], names=multiindex[0])
+    df_result = DataFrame(cells[1:], columns=cells[0], index=ix)
+    assert_frame_equal(df_expected, df_result)
+
+
+def test_series_1():
+    _skip_if_no_pandas()
+
+    series_expected = series_1
+    Range('Sheet5', 'A32').value = series_expected
+    cells = Range('Sheet5', 'B32:B37').value
+    series_result = Series(cells)
+    assert_series_equal(series_expected, series_result)
+
+
+def test_timeseries_1():
+    _skip_if_no_pandas()
+
+    series_expected = timeseries_1
+    Range('Sheet5', 'A40').value = series_expected
+    cells = Range('Sheet5', 'B40:B49').value
+    date_index = Range('Sheet5', 'A40:A49').value
+    series_result = Series(cells, index=date_index)
+    assert_series_equal(series_expected, series_result)
 
 
 def test_none():
