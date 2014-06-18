@@ -29,6 +29,9 @@ for py in [py26, py27, py31, py32, py33, py34]:
 
     print('### {} ###'.format(py))
 
+    # Uninstall in case there is still an existing installation
+    call('{} uninstall xlwings -y'.format(pip))
+
     # Install
     os.chdir(py)
     call('{} install {}'.format(pip, xlwings_package))

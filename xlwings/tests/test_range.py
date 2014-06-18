@@ -74,8 +74,8 @@ def _skip_if_no_pandas():
         raise nose.SkipTest('pandas missing')
 
 
-# def teardown_module():
-#     wb.close()
+def teardown_module():
+    wb.close()
 
 
 def test_cell():
