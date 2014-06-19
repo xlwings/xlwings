@@ -1,5 +1,5 @@
 """
-Make Excel fly!
+xlwings - Make Excel fly!
 
 Homepage and documentation: http://xlwings.org
 See also: http://zoomeranalytics.com
@@ -17,6 +17,7 @@ from win32com.client import GetObject, dynamic
 import win32timezone
 import pywintypes
 import pythoncom
+from .constants import Direction, ChartType
 
 # Optional imports
 try:
@@ -38,9 +39,6 @@ if PY3:
 else:
     string_types = basestring
     time_types = (dt.date, dt.datetime, pywintypes.TimeType)
-
-# Excel constants: We can't use 'from win32com.client import constants' as we're dynamically dispatching
-xlDown, xlToRight = -4121, -4161
 
 
 def clean_com_data(data):
@@ -624,7 +622,7 @@ class Range(object):
         if self.sheet.Cells(self.row1 + 1, self.col1).Value in [None, ""]:
             row2 = self.row1
         else:
-            row2 = self.sheet.Cells(self.row1, self.col1).End(xlDown).Row
+            row2 = self.sheet.Cells(self.row1, self.col1).End(Direction.xlDown).Row
 
         # Strict stops at cells that contain a formula but show an empty value
         if self.strict:
@@ -663,7 +661,7 @@ class Range(object):
         if self.sheet.Cells(self.row1, self.col1 + 1).Value in [None, ""]:
             col2 = self.col1
         else:
-            col2 = self.sheet.Cells(self.row1, self.col1).End(xlToRight).Column
+            col2 = self.sheet.Cells(self.row1, self.col1).End(Direction.xlToRight).Column
 
         # Strict: stops at cells that contain a formula but show an empty value
         if self.strict:
@@ -708,7 +706,7 @@ class Range(object):
 
 class Chart(object):
     """
-    A Chart object can be created with the following arguments::
+    A Chart object that represents an existing Excel chart can be created with the following arguments::
 
         Chart(1)            Chart('Sheet1', 1)              Chart(1, 1)
         Chart('Chart 1')    Chart('Sheet1', 'Chart 1')      Chart(1, 'Chart 1')
@@ -716,33 +714,74 @@ class Chart(object):
     If no worksheet name is provided as first argument (as name or index),
     it will take the Chart from the active sheet.
 
+    To insert a new Chart into Excel, create it as follows:
+
+        Chart.add()
+
+    The ChartType can be passed in like this:
+
+        from xlwings import ChartType
+        Chart.add('Sheet2', chart_name='ChartName', chart_type=ChartType.xlLine)
+
     Parameters
     ----------
     *args :
         Definition of Sheet (optional) and Chart in the above described combinations.
 
+    chart_type : Member of ChartType, default xlColumnClustered
+        Chart type, can also be set later using the chart_type property
+
     """
     def __init__(self, *args, **kwargs):
-        # Keyword Arguments
+        # Use global Workbook if none provided
         self.workbook = kwargs.get('workbook', wb)
 
         # Arguments
-        if len(args) == 0:
-            pass
-        elif len(args) > 0:
-            if len(args) == 1:
-                sheet = self.workbook.ActiveSheet.Name
-                name_or_index = args[0]
-            elif len(args) == 2:
-                sheet = args[0]
-                name_or_index = args[1]
+        if len(args) == 1:
+            sheet = self.workbook.ActiveSheet.Name
+            name_or_index = args[0]
+        elif len(args) == 2:
+            sheet = args[0]
+            name_or_index = args[1]
 
-            # Get Chart COM object
-            self.com_chart = wb.Sheets(sheet).ChartObjects(name_or_index)
-            self.index = self.com_chart.Index
+        # Get Chart COM object
+        self.com_chart = wb.Sheets(sheet).ChartObjects(name_or_index)
+        self.index = self.com_chart.Index
+        self.chart_type = kwargs.get('chart_type')
 
-    def __repr__(self):
-        return "<xlwings.Chart '{0}'>".format(self.name)
+    @classmethod
+    def add(cls, sheet=None, left=168, top=217, width=355, height=211, **kwargs):
+        """
+        Adds a new Chart
+
+        Arguments
+        ---------
+        sheet : string or integer, default None
+            Name or Index of the sheet, defaults to the active sheet
+        left : float, default 100
+            left position in points
+        top : float, default 75
+            top position in points
+        width : float, default 375
+            width in points
+        height : float, default 225
+            height in points
+
+        """
+        # Use global Workbook if none provided
+        com_workbook = kwargs.get('workbook', wb)
+        chart_type = kwargs.get('chart_type', ChartType.xlLine)
+        chart_name = kwargs.get('chart_name')
+
+        if sheet is None:
+            sheet = com_workbook.ActiveSheet.Name
+
+        com_chart = com_workbook.Sheets(sheet).ChartObjects().Add(left, top, width, height)
+
+        if chart_name:
+            com_chart.Name = chart_name
+
+        return cls(sheet, com_chart.Name, chart_type=chart_type)
 
     @property
     def name(self):
@@ -780,26 +819,6 @@ class Chart(object):
         """
         self.com_chart.Chart.SetSourceData(source.com_range)
 
-    def add(self, sheet=None, left=168, top=217, width=355, height=211):
-        """
-        Adds a new Chart
+    def __repr__(self):
+        return "<xlwings.Chart '{0}'>".format(self.name)
 
-        Arguments
-        ---------
-        sheet : string or integer, default None
-            Name or Index of the sheet, defaults to the active sheet
-        left : float, default 100
-            left position in points
-        top : float, default 75
-            top position in points
-        width : float, default 375
-            width in points
-        height : float, default 225
-            height in points
-
-        """
-        if sheet is None:
-            sheet = wb.ActiveSheet.Name
-
-        com_chart = wb.Sheets(sheet).ChartObjects().Add(left, top, width, height)
-        return Chart(sheet, com_chart.Name)
