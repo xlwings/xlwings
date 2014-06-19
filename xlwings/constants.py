@@ -1,5 +1,5 @@
 """
-Make Excel fly!
+xlwings - Make Excel fly!
 
 Homepage and documentation: http://xlwings.org
 See also: http://zoomeranalytics.com
@@ -313,7 +313,7 @@ class AutoFillType:
     xlLinearTrend = 9  # from enum XlAutoFillType
 
 
-class AutoFilterOpterator:
+class AutoFilterOperator:
     xlAnd = 1  # from enum XlAutoFilterOperator
     xlBottom10Items = 4  # from enum XlAutoFilterOperator
     xlBottom10Percent = 6  # from enum XlAutoFilterOperator
@@ -1314,7 +1314,7 @@ class FileFormat:
     xlXMLSpreadsheet = 46  # from enum XlFileFormat
 
 
-class FileVallidationPivotMode:
+class FileValidationPivotMode:
     xlFileValidationPivotDefault = 0  # from enum XlFileValidationPivotMode
     xlFileValidationPivotRun = 1  # from enum XlFileValidationPivotMode
     xlFileValidationPivotSkip = 2  # from enum XlFileValidationPivotMode
@@ -1451,7 +1451,7 @@ class HtmlType:
     xlHtmlStatic = 0  # from enum XlHtmlType
 
 
-class IMEMOde:
+class IMEMode:
     xlIMEModeAlpha = 8  # from enum XlIMEMode
     xlIMEModeAlphaFull = 7  # from enum XlIMEMode
     xlIMEModeDisable = 3  # from enum XlIMEMode
@@ -2666,7 +2666,7 @@ class SubscribeToFormat:
     xlSubscribeToText = -4158  # from enum XlSubscribeToFormat
 
 
-class SubtototalLocationType:
+class SubtotalLocationType:
     xlAtBottom = 2  # from enum XlSubtototalLocationType
     xlAtTop = 1  # from enum XlSubtototalLocationType
 
@@ -2838,7 +2838,7 @@ class TotalsCalculation:
     xlTotalsCalculationVar = 8  # from enum XlTotalsCalculation
 
 
-class TrendinglineType:
+class TrendlineType:
     xlExponential = 5  # from enum XlTrendlineType
     xlLinear = -4132  # from enum XlTrendlineType
     xlLogarithmic = -4133  # from enum XlTrendlineType
