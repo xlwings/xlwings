@@ -10,6 +10,7 @@ All rights reserved.
 License: BSD 3-clause (see LICENSE.txt for details)
 """
 
+# Excel constants: We can't use 'from win32com.client import constants' as we're dynamically dispatching
 
 class AboveBelow:
     xlAboveAverage = 0  # from enum XlAboveBelow
