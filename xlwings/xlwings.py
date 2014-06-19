@@ -755,6 +755,17 @@ class Chart(object):
     def name(self, value):
         self.com_chart.Name = value
 
+    @property
+    def chart_type(self):
+        """
+        Gets and sets the chart type of a Chart
+        """
+        return self.com_chart.Chart.ChartType
+
+    @chart_type.setter
+    def chart_type(self, value):
+        self.com_chart.Chart.ChartType = value
+
     def activate(self):
         self.com_chart.Activate()
 
