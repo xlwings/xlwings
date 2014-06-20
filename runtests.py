@@ -2,7 +2,6 @@
 # I had to fall back to clean full installations for now.
 from __future__ import print_function
 import os
-import sys
 from subprocess import call
 from xlwings import __version__
 
