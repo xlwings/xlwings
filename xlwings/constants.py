@@ -18,15 +18,15 @@ class AboveBelow:
     xlBelowAverage = 1  # from enum XlAboveBelow
     xlBelowStdDev = 5  # from enum XlAboveBelow
     xlEqualAboveAverage = 2  # from enum XlAboveBelow
+    xlEqualBelowAverage = 3  # from enum XlAboveBelow
+
+
+class Constants:
     xlNextToAxis = 4  # from enum Constants
     xlNoDocuments = 3  # from enum Constants
     xlNone = -4142  # from enum Constants
     xlNotes = -4144  # from enum Constants
     xlOff = -4146  # from enum Constants
-    xlEqualBelowAverage = 3  # from enum XlAboveBelow
-
-
-class Constants:
     xl3DEffects1 = 13  # from enum Constants
     xl3DBar = -4099  # from enum Constants
     xl3DEffects2 = 14  # from enum Constants
@@ -774,6 +774,9 @@ class ChartPicturePlacement:
     xlFrontEnd = 6  # from enum XlChartPicturePlacement
     xlFrontSides = 5  # from enum XlChartPicturePlacement
     xlSides = 1  # from enum XlChartPicturePlacement
+
+
+class ChartPictureType:
     xlStack = 2  # from enum XlChartPictureType
     xlStackScale = 3  # from enum XlChartPictureType
     xlStretch = 1  # from enum XlChartPictureType
@@ -1023,6 +1026,9 @@ class CubeFieldType:
     xlHierarchy = 1  # from enum XlCubeFieldType
     xlMeasure = 2  # from enum XlCubeFieldType
     xlSet = 3  # from enum XlCubeFieldType
+
+
+class CutCopyMode:
     xlCopy = 1  # from enum XlCutCopyMode
     xlCut = 2  # from enum XlCutCopyMode
 
