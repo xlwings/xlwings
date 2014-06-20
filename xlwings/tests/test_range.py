@@ -54,7 +54,7 @@ if pd is not None:
 
     df_2 = pd.DataFrame([1, 3, 5, np.nan, 6, 8], columns=['col1'])
 
-    # MultiIndex
+    # MultiIndex (Index)
     tuples = list(zip(*[['bar', 'bar', 'baz', 'baz', 'foo', 'foo', 'qux', 'qux'],
                         ['one', 'two', 'one', 'two', 'one', 'two', 'one', 'two'],
                         ['x', 'x', 'x', 'x', 'y', 'y', 'y', 'y']]))
@@ -62,6 +62,15 @@ if pd is not None:
     df_multiindex = pd.DataFrame([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6], [7.7, 8.8], [9.9, 10.10],
                                   [11.11, 12.12],[13.13, 14.14], [15.15, 16.16]], index=index)
 
+    # MultiIndex (Header)
+    header = [['Foo', 'Foo', 'Bar', 'Bar', 'Baz'], ['A', 'B', 'C', 'D', 'E']]
+
+    df_multiheader = pd.DataFrame([[0.0, 1.0, 2.0, 3.0, 4.0],
+                                   [0.0, 1.0, 2.0, 3.0, 4.0],
+                                   [0.0, 1.0, 2.0, 3.0, 4.0],
+                                   [0.0, 1.0, 2.0, 3.0, 4.0],
+                                   [0.0, 1.0, 2.0, 3.0, 4.0],
+                                   [0.0, 1.0, 2.0, 3.0, 4.0]], columns=pd.MultiIndex.from_arrays(header))
 
 # Test skips and fixtures
 def _skip_if_no_numpy():
@@ -290,6 +299,16 @@ def test_dataframe_multiindex():
     multiindex = Range('Sheet5', 'A20:C28').value
     ix = pd.MultiIndex.from_tuples(multiindex[1:], names=multiindex[0])
     df_result = DataFrame(cells[1:], columns=cells[0], index=ix)
+    assert_frame_equal(df_expected, df_result)
+
+
+def test_dataframe_multiheader():
+    _skip_if_no_pandas()
+
+    df_expected = df_multiheader
+    Range('Sheet5', 'A52').value = df_expected
+    cells = Range('Sheet5', 'B52').table.value
+    df_result = DataFrame(cells[2:], columns=pd.MultiIndex.from_arrays(cells[:2]))
     assert_frame_equal(df_expected, df_result)
 
 

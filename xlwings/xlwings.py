@@ -494,7 +494,7 @@ class Range(object):
 
             if self.header:
                 if isinstance(data.columns, pd.MultiIndex):
-                    columns = np.array(zip(*data.columns.tolist()))
+                    columns = np.array(list(zip(*data.columns.tolist())))  # Python 3 requires zip wrapped in list
                 else:
                     # Ensure dtype=object because otherwise it may get assigned a string type which transforms the
                     # values during vstacking into strings, too. Then we can't easily transform np.nan anymore.
