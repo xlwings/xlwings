@@ -269,9 +269,6 @@ class Workbook(object):
         ----------
         *args :
             Definition of Sheet (optional) and Chart in the above described combinations.
-
-
-
         """
         return Chart(*args, workbook=self.com_workbook, **kwargs)
 
@@ -734,27 +731,29 @@ class Chart(object):
     """
     def __init__(self, *args, **kwargs):
         # Use global Workbook if none provided
-        self.workbook = kwargs.get('workbook', wb)
+        self.com_workbook = kwargs.get('workbook', wb)
 
         # Arguments
-        if len(args) == 1:
-            sheet = self.workbook.ActiveSheet.Name
-            name_or_index = args[0]
-        elif len(args) == 2:
-            sheet = args[0]
-            name_or_index = args[1]
+        if len(args) == 0:
+            pass
+        elif len(args) > 0:
+            if len(args) == 1:
+                sheet = self.com_workbook.ActiveSheet.Name
+                name_or_index = args[0]
+            elif len(args) == 2:
+                sheet = args[0]
+                name_or_index = args[1]
 
-        # Get Chart COM object
-        self.com_chart = wb.Sheets(sheet).ChartObjects(name_or_index)
-        self.index = self.com_chart.Index
+            # Get Chart COM object
+            self.com_chart = self.com_workbook.Sheets(sheet).ChartObjects(name_or_index)
+            self.index = self.com_chart.Index
 
         # Chart Type
         chart_type = kwargs.get('chart_type')
         if chart_type:
             self.chart_type = chart_type
 
-    @classmethod
-    def add(cls, sheet=None, left=168, top=217, width=355, height=211, **kwargs):
+    def add(self, sheet=None, left=168, top=217, width=355, height=211, **kwargs):
         """
         Adds a new Chart
 
@@ -772,20 +771,18 @@ class Chart(object):
             height in points
 
         """
-        # Use global Workbook if none provided
-        com_workbook = kwargs.get('workbook', wb)
         chart_type = kwargs.get('chart_type', ChartType.xlColumnClustered)
         chart_name = kwargs.get('chart_name')
 
         if sheet is None:
-            sheet = com_workbook.ActiveSheet.Name
+            sheet = self.com_workbook.ActiveSheet.Name
 
-        com_chart = com_workbook.Sheets(sheet).ChartObjects().Add(left, top, width, height)
+        com_chart = self.com_workbook.Sheets(sheet).ChartObjects().Add(left, top, width, height)
 
         if chart_name:
             com_chart.Name = chart_name
 
-        return cls(sheet, com_chart.Name, chart_type=chart_type)
+        return Chart(sheet, com_chart.Name, workbook=self.com_workbook, chart_type=chart_type)
 
     @property
     def name(self):
