@@ -69,8 +69,8 @@ Easy deployment
 
 Deployment is really the part where xlwings shines:
 
-* Just zip-up your Spreadsheet with your Python code and the ``xlwings.py`` file (can be found in the directory of your
-  xlwings installation) and send it around. The receiver only needs to have an installation of Python with
+* Just zip-up your Spreadsheet with your Python code and the ``xlwings`` directory from your installation and send it
+  around. The receiver only needs to have an installation of Python with
   `pywin32 <http://sourceforge.net/projects/pywin32/>`_ (and obviously all the other packages you're using).
 * There is no need to install any Excel add-in.
 * If this still sounds too complicated, just freeze your Python code into an executable and use

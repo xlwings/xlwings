@@ -5,7 +5,7 @@ xlwings is a `BSD-licensed <http://opensource.org/licenses/BSD-3-Clause>`_ Pytho
 Python from Excel and vice versa:
 
 * Interact with Excel from Python using a syntax that is close to VBA yet Pythonic.
-* Replace your VBA macros with Python code and still pass around your workbooks as easy as before.
+* Replace your VBA macros with Python code and still pass around your workbooks as easily as before.
 
 xlwings fully supports NumPy arrays and Pandas DataFrames. Currently, it only works on Windows.
 
