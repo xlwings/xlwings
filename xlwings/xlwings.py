@@ -263,7 +263,9 @@ class Workbook(object):
         If no worksheet name is provided as first argument (as name or index),
         it will take the Chart from the active sheet.
 
-        Please check the available methods/properties directly under the Chart object.
+        To insert a new Chart into Excel, create it as follows:
+
+        wb.chart().add()
 
         Parameters
         ----------
@@ -713,12 +715,7 @@ class Chart(object):
 
     To insert a new Chart into Excel, create it as follows:
 
-        Chart.add()
-
-    The ChartType can be passed in like this:
-
-        from xlwings import ChartType
-        Chart.add('Sheet2', chart_name='ChartName', chart_type=ChartType.xlLine)
+        Chart().add()
 
     Parameters
     ----------
@@ -755,20 +752,30 @@ class Chart(object):
 
     def add(self, sheet=None, left=168, top=217, width=355, height=211, **kwargs):
         """
-        Adds a new Chart
+        Inserts a new Chart in Excel.
 
         Arguments
         ---------
         sheet : string or integer, default None
             Name or Index of the sheet, defaults to the active sheet
+
         left : float, default 100
             left position in points
+
         top : float, default 75
             top position in points
+
         width : float, default 375
             width in points
+
         height : float, default 225
             height in points
+
+        chart_type : xlwings.ChartType member, default xlColumnClustered
+            Excel chart type. E.g. xlwings.ChartType.xlLine
+
+        chart_name : str, default None
+            Excel chart name. Defaults to Excel standard name if not provided, e.g. 'Chart 1'
 
         """
         chart_type = kwargs.get('chart_type', ChartType.xlColumnClustered)
