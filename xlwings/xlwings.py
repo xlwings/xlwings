@@ -747,7 +747,7 @@ class Chart(object):
         # Get Chart COM object
         self.com_chart = wb.Sheets(sheet).ChartObjects(name_or_index)
         self.index = self.com_chart.Index
-        self.chart_type = kwargs.get('chart_type')
+        self.chart_type = kwargs.get('chart_type', ChartType.xlColumnStacked)
 
     @classmethod
     def add(cls, sheet=None, left=168, top=217, width=355, height=211, **kwargs):
