@@ -1,10 +1,15 @@
+What's New
+==========
+
+Here are the Release Notes for each version:
+
 v0.1.1 (June 27, 2014)
-======================
+----------------------
 
 Enhancements
-------------
+************
 * xlwings is now officially suppported on Python 2.6-2.7 and 3.1-3.4
-* Support for Pandas Series has been added (:issue:`24`)::
+* Support for Pandas ``Series`` has been added (:issue:`24`)::
 
     >>> import numpy as np
     >>> import pandas as pd
@@ -24,7 +29,8 @@ Enhancements
 
   .. figure:: images/pandas_series.png
 
-* Excel constants have been added under their original Excel name, but ordered per enum (:issue:`18`), e.g.::
+* Excel constants have been added under their original Excel name, but categorized under their enum (:issue:`18`),
+  e.g.::
 
     # Extra long version
     import xlwings as xl
@@ -38,7 +44,7 @@ Enhancements
     from xlwings import ChartType
     ChartType.xlArea
 
-* Slightly enhanced Chart support to control the ChartType (:issue:`1`)::
+* Slightly enhanced Chart support to control the ``ChartType`` (:issue:`1`)::
 
     >>> from xlwings import Workbook, Range, Chart, ChartType
     >>> wb = Workbook()
@@ -57,22 +63,26 @@ Enhancements
   .. figure:: images/chart_type.png
     :scale: 70%
 
-* ``pytz`` is no longer a dependency as ``datetime`` object are being read in from Excel as time-zone naive
+* ``pytz`` is no longer a dependency as ``datetime`` object are now being read in from Excel as time-zone naive (Excel
+  doesn't know timezones). Before, ``datetime`` objects got the UTC timezone attached.
 
-* The ``Workbook`` object has the following additional methods: ``close()``, ``is_cell()``, ``is_column()``,
-  ``is_row()``, ``is_table()``
+* The ``Workbook`` object has the following additional methods: ``close()``
+* The ``Range`` object has the following additional methods: ``is_cell()``, ``is_column()``, ``is_row()``,
+  ``is_table()``
 
 
 API Changes
------------
-* If ``asarray=True``, NumPy arrays are now always at least 1d arrays, even in case of a single cell (:issue:`14`)::
+***********
+
+* If ``asarray=True``, NumPy arrays are now always at least 1d arrays, even in the case of a single cell (:issue:`14`)::
 
     >>> Range('A1', asarray=True).value
     array([34.])
 
 * Similar to NumPy's logic, 1d Ranges in Excel, i.e. rows or columns, are now being read in as flat lists or 1d arrays.
-  If you want the same behavior as before, you can use the ``atleast_2d`` keyword (:issue:`13`). Note that the ``table``
-  property is also delivering a 1d array/list, if the Range is really a column or row.
+  If you want the same behavior as before, you can use the ``atleast_2d`` keyword (:issue:`13`).
+
+  .. note:: The ``table`` property is also delivering a 1d array/list, if the table Range is really a column or row.
 
   .. figure:: images/1d_ranges.png
 
@@ -98,16 +108,17 @@ API Changes
 
 
 Bug Fixes
----------
-* Installation is now putting all files in the correct place (:issue:`20`).
+*********
+
 * Writing ``None`` or ``np.nan`` to Excel works now (:issue:`16`) & (:issue:`15`).
 * The import error on Python 3 has been fixed (:issue:`26`).
-* Python 3 now handles Pandas DataFrames with MultiIndex headers correctly.
+* Python 3 now handles Pandas DataFrames with MultiIndex headers correctly (:issue:`39`).
 * Sometimes, a Pandas DataFrame was not handling ``nan`` correctly in Excel or numbers were being truncated
   (:issue:`31`) & (:issue:`35`).
+* Installation is now putting all files in the correct place (:issue:`20`).
 
 
 v0.1.0 (March 19, 2014)
-=======================
+-----------------------
 
 Initial release of xlwings.
