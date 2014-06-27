@@ -72,6 +72,7 @@ if pd is not None:
                                    [0.0, 1.0, 2.0, 3.0, 4.0],
                                    [0.0, 1.0, 2.0, 3.0, 4.0]], columns=pd.MultiIndex.from_arrays(header))
 
+
 # Test skips and fixtures
 def _skip_if_no_numpy():
     if np is None:
@@ -280,7 +281,7 @@ def test_dataframe_1():
 
 
 def test_dataframe_2():
-    """ Covers Issue #31"""
+    """ Covers GH Issue #31"""
     _skip_if_no_pandas()
 
     df_expected = df_2
@@ -334,7 +335,7 @@ def test_timeseries_1():
 
 
 def test_none():
-    """ Covers Issue #16"""
+    """ Covers GH Issue #16"""
     # None
     Range('Sheet1', 'A7').value = None
     assert_equal(None, Range('Sheet1', 'A7').value)
@@ -344,7 +345,7 @@ def test_none():
 
 
 def test_scalar_nan():
-    """Covers Issue #15"""
+    """Covers GH Issue #15"""
     _skip_if_no_numpy()
 
     Range('Sheet1', 'A20').value = np.nan

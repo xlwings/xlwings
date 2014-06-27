@@ -46,7 +46,7 @@ for py in [py26, py27, py31, py32, py33, py34]:
     call('{} install {}'.format(pip, xlwings_package))
 
     # Run tests
-    call('{} {}'.format(test_runner, test_dir))
+    # call('{} {}'.format(test_runner, test_dir))
 
     # Uninstall
-    call('{} uninstall xlwings -y'.format(pip))
+    # call('{} uninstall xlwings -y'.format(pip))
