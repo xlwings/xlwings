@@ -750,6 +750,11 @@ class Chart(object):
         if chart_type:
             self.chart_type = chart_type
 
+        # Source Data
+        source_data = kwargs.get('source_data')
+        if source_data:
+            self.set_source_data(source_data)
+
     def add(self, sheet=None, left=168, top=217, width=355, height=211, **kwargs):
         """
         Inserts a new Chart in Excel.
@@ -771,25 +776,31 @@ class Chart(object):
         height : float, default 225
             height in points
 
-        chart_type : xlwings.ChartType member, default xlColumnClustered
+        type : xlwings.ChartType member, default xlColumnClustered
             Excel chart type. E.g. xlwings.ChartType.xlLine
 
-        chart_name : str, default None
+        name : str, default None
             Excel chart name. Defaults to Excel standard name if not provided, e.g. 'Chart 1'
+
+        source_data : xlwings Range
+            e.g. Range('A1').table
 
         """
         chart_type = kwargs.get('chart_type', ChartType.xlColumnClustered)
-        chart_name = kwargs.get('chart_name')
+        name = kwargs.get('name')
+        source_data = kwargs.get('source_data')
 
         if sheet is None:
             sheet = self.com_workbook.ActiveSheet.Name
 
         com_chart = self.com_workbook.Sheets(sheet).ChartObjects().Add(left, top, width, height)
 
-        if chart_name:
-            com_chart.Name = chart_name
+        if name:
+            com_chart.Name = name
+        else:
+            name = com_chart.Name
 
-        return Chart(sheet, com_chart.Name, workbook=self.com_workbook, chart_type=chart_type)
+        return Chart(sheet, name, workbook=self.com_workbook, chart_type=chart_type, source_data=source_data)
 
     @property
     def name(self):
