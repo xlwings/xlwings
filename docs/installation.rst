@@ -20,6 +20,6 @@ Alternatively it can be installed from source. From within the ``xlwings`` direc
 
 
 Python version support
-======================
+----------------------
 
-xlwings runs on Python 2.6, 2.7, 3.1, 3.2, 3.3, 3.4
+xlwings runs on Python 2.6-2.7 and 3.1-3.4

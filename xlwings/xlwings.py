@@ -776,7 +776,7 @@ class Chart(object):
         height : float, default 225
             height in points
 
-        type : xlwings.ChartType member, default xlColumnClustered
+        chart_type : xlwings.ChartType member, default xlColumnClustered
             Excel chart type. E.g. xlwings.ChartType.xlLine
 
         name : str, default None
