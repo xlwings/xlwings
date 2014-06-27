@@ -281,7 +281,7 @@ class Workbook(object):
         Parameters
         ----------
         sheet : string or integer, default None
-            Sheet name or index. If sheet is None, the active work is used.
+            Sheet name or index. If sheet is None, the active sheet is used.
         """
         if sheet is None:
             sheet = self.active_sheet.index
@@ -295,7 +295,7 @@ class Workbook(object):
         Parameters
         ----------
         sheet : string or integer, default None
-            Sheet name or index. If sheet is None, the active work is used.
+            Sheet name or index. If sheet is None, the active sheet is used.
         """
         if sheet is None:
             sheet = self.active_sheet.index
