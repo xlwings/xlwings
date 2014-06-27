@@ -37,7 +37,6 @@ for py in [py26, py27, py31, py32, py33, py34]:
     call('{}\python -c "import sys;print(sys.version)"'.format(py))
     call('{}\python -c "import numpy;import pandas;print(numpy.__version__);print(pandas.__version__)"'.format(py))
 
-
     # Uninstall in case there is still an existing installation
     call('{} uninstall xlwings -y'.format(pip))
 
@@ -46,7 +45,7 @@ for py in [py26, py27, py31, py32, py33, py34]:
     call('{} install {}'.format(pip, xlwings_package))
 
     # Run tests
-    # call('{} {}'.format(test_runner, test_dir))
+    call('{} {}'.format(test_runner, test_dir))
 
     # Uninstall
-    # call('{} uninstall xlwings -y'.format(pip))
+    call('{} uninstall xlwings -y'.format(pip))

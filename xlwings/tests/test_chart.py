@@ -19,10 +19,10 @@ try:
 except ImportError:
     pd = None
 
-# Connect to test file and make Sheet1 the active sheet
-xl_file_1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_chart_1.xlsx')
-wb = Workbook(xl_file_1)
-wb.activate('Sheet1')
+# # Connect to test file and make Sheet1 the active sheet
+# xl_file_1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_chart_1.xlsx')
+# wb = Workbook(xl_file_1)
+# wb.activate('Sheet1')
 
 # Test skips and fixtures
 def _skip_if_no_numpy():
@@ -35,41 +35,48 @@ def _skip_if_no_pandas():
         raise nose.SkipTest('pandas missing')
 
 
-def teardown_module():
-    wb.close()
-
-
 # Test Data
 chart_data = [['one', 'two'], [1.1, 2.2]]
 
 
-def test_add_keywords():
-    name = 'My Chart'
-    chart_type = ChartType.xlLine
-    Range('A1').value = chart_data
-    chart = Chart().add(chart_type=chart_type, name=name, source_data=Range('A1').table)
+class TestRange:
+    def setUp(self):
+        # Connect to test file and make Sheet1 the active sheet
+        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_chart_1.xlsx')
+        # global wb
+        self.wb = Workbook(xl_file1)
+        self.wb.activate('Sheet1')
 
-    chart_actual = Chart(name)
-    name_actual = chart_actual.name
-    chart_type_actual = chart_actual.chart_type
-    assert_equal(name, name_actual)
-    assert_equal(chart_type, chart_type_actual)
+    def tearDown(self):
+        self.wb.close()
+
+    def test_add_keywords(self):
+        name = 'My Chart'
+        chart_type = ChartType.xlLine
+        Range('A1').value = chart_data
+        chart = Chart().add(chart_type=chart_type, name=name, source_data=Range('A1').table)
+
+        chart_actual = Chart(name)
+        name_actual = chart_actual.name
+        chart_type_actual = chart_actual.chart_type
+        assert_equal(name, name_actual)
+        assert_equal(chart_type, chart_type_actual)
 
 
-def test_add_properties():
-    name = 'My Chart'
-    chart_type = ChartType.xlLine
-    Range('Sheet2', 'A1').value = chart_data
-    chart = Chart().add('Sheet2')
-    chart.chart_type = chart_type
-    chart.name = name
-    chart.set_source_data(Range('Sheet2', 'A1').table)
+    def test_add_properties(self):
+        name = 'My Chart'
+        chart_type = ChartType.xlLine
+        Range('Sheet2', 'A1').value = chart_data
+        chart = Chart().add('Sheet2')
+        chart.chart_type = chart_type
+        chart.name = name
+        chart.set_source_data(Range('Sheet2', 'A1').table)
 
-    chart_actual = Chart('Sheet2', name)
-    name_actual = chart_actual.name
-    chart_type_actual = chart_actual.chart_type
-    assert_equal(name, name_actual)
-    assert_equal(chart_type, chart_type_actual)
+        chart_actual = Chart('Sheet2', name)
+        name_actual = chart_actual.name
+        chart_type_actual = chart_actual.chart_type
+        assert_equal(name, name_actual)
+        assert_equal(chart_type, chart_type_actual)
 
 if __name__ == '__main__':
     nose.main()
