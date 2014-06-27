@@ -17,6 +17,7 @@ xlwings fully supports NumPy arrays and Pandas DataFrames. Currently, it only wo
     :maxdepth: 2
     :hidden:
 
+    whatsnew
     installation
     quickstart
     workbook

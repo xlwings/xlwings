@@ -64,7 +64,10 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinxcontrib.napoleon', 'sphinx.ext.mathjax']
+extensions = ['sphinx.ext.autodoc',
+              'sphinxcontrib.napoleon',
+              'sphinx.ext.mathjax',
+              'sphinx.ext.extlinks']
 
 autodoc_member_order = 'bysource'
 
@@ -128,6 +131,10 @@ pygments_style = 'sphinx'
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
+
+# extlinks alias
+extlinks = {'issue': ('https://github.com/ZoomerAnalytics/xlwings/issues/%s',
+                      'GH')}
 
 # -- Options for HTML output ---------------------------------------------------
 
