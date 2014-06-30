@@ -4,7 +4,7 @@ import os
 import nose
 from nose.tools import assert_equal
 from datetime import datetime
-from xlwings import Workbook, Range
+from xlwings import Workbook, Range, Chart, ChartType
 
 # Optional imports
 try:
@@ -68,6 +68,8 @@ if pd is not None:
                                    [0.0, 1.0, 2.0, 3.0, 4.0],
                                    [0.0, 1.0, 2.0, 3.0, 4.0]], columns=pd.MultiIndex.from_arrays(header))
 
+    chart_data = [['one', 'two'], [1.1, 2.2]]
+
 
 # Test skips and fixtures
 def _skip_if_no_numpy():
@@ -83,7 +85,7 @@ def _skip_if_no_pandas():
 class TestRange:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
-        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test1.xlsx')
+        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_range_1.xlsx')
         self.wb = Workbook(xl_file1)
         self.wb.activate('Sheet1')
 
@@ -333,6 +335,79 @@ class TestRange:
 
         Range('Sheet1', 'A20').value = np.nan
         assert_equal(None, Range('Sheet1', 'A20').value)
+
+
+class TestChart:
+    def setUp(self):
+        # Connect to test file and make Sheet1 the active sheet
+        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_chart_1.xlsx')
+        self.wb = Workbook(xl_file1)
+        self.wb.activate('Sheet1')
+
+    def tearDown(self):
+        self.wb.close()
+
+    def test_add_keywords(self):
+        name = 'My Chart'
+        chart_type = ChartType.xlLine
+        Range('A1').value = chart_data
+        chart = Chart().add(chart_type=chart_type, name=name, source_data=Range('A1').table)
+
+        chart_actual = Chart(name)
+        name_actual = chart_actual.name
+        chart_type_actual = chart_actual.chart_type
+        assert_equal(name, name_actual)
+        assert_equal(chart_type, chart_type_actual)
+
+    def test_add_properties(self):
+        name = 'My Chart'
+        chart_type = ChartType.xlLine
+        Range('Sheet2', 'A1').value = chart_data
+        chart = Chart().add('Sheet2')
+        chart.chart_type = chart_type
+        chart.name = name
+        chart.set_source_data(Range('Sheet2', 'A1').table)
+
+        chart_actual = Chart('Sheet2', name)
+        name_actual = chart_actual.name
+        chart_type_actual = chart_actual.chart_type
+        assert_equal(name, name_actual)
+        assert_equal(chart_type, chart_type_actual)
+
+class TestWorkbook:
+    def setUp(self):
+        # Connect to test file and make Sheet1 the active sheet
+        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx')
+        self.wb = Workbook(xl_file1)
+        self.wb.activate('Sheet1')
+
+    def tearDown(self):
+        self.wb.close()
+
+    def test_clear_content_active_sheet(self):
+        Range('G10').value = 22
+        self.wb.clear_contents()
+        cell = Range('G10').value
+        assert_equal(cell, None)
+
+    def test_clear_active_sheet(self):
+        Range('G10').value = 22
+        self.wb.clear()
+        cell = Range('G10').value
+        assert_equal(cell, None)
+
+    def test_clear_content(self):
+        Range('Sheet2', 'G10').value = 22
+        self.wb.clear_contents('Sheet2')
+        cell = Range('Sheet2', 'G10').value
+        assert_equal(cell, None)
+
+    def test_clear(self):
+        Range('Sheet2', 'G10').value = 22
+        self.wb.clear('Sheet2')
+        cell = Range('Sheet2', 'G10').value
+        assert_equal(cell, None)
+
 
 if __name__ == '__main__':
     nose.main()
