@@ -31,6 +31,7 @@ test_date_2 = datetime(2020, 12, 31, 12, 12, 20)
 list_row_1d = [1.1, None, 3.3]
 list_row_2d = [[1.1, None, 3.3]]
 list_col = [[1.1], [None], [3.3]]
+chart_data = [['one', 'two'], [1.1, 2.2]]
 
 if np is not None:
     array_1d = np.array([1.1, 2.2, np.nan, -4.4])
@@ -67,8 +68,6 @@ if pd is not None:
                                    [0.0, 1.0, 2.0, 3.0, 4.0],
                                    [0.0, 1.0, 2.0, 3.0, 4.0],
                                    [0.0, 1.0, 2.0, 3.0, 4.0]], columns=pd.MultiIndex.from_arrays(header))
-
-    chart_data = [['one', 'two'], [1.1, 2.2]]
 
 
 # Test skips and fixtures
