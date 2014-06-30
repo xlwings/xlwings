@@ -274,26 +274,32 @@ class Workbook(object):
         """
         return Chart(*args, workbook=self.com_workbook, **kwargs)
 
-    def clear_contents(self, sheet):
+    def clear_contents(self, sheet=None):
         """
         Clears the content of a whole Sheet but leaves the formatting.
 
         Parameters
         ----------
-        sheet : string or integer
-            Sheet name or index.
+        sheet : string or integer, default None
+            Sheet name or index. If sheet is None, the active sheet is used.
         """
+        if sheet is None:
+            sheet = self.active_sheet.index
+
         self.com_workbook.Sheets(sheet).Cells.ClearContents()
 
-    def clear(self, sheet):
+    def clear(self, sheet=None):
         """
         Clears the content and formatting of a whole Sheet.
 
         Parameters
         ----------
-        sheet : string or integer
-            Sheet name or index.
+        sheet : string or integer, default None
+            Sheet name or index. If sheet is None, the active sheet is used.
         """
+        if sheet is None:
+            sheet = self.active_sheet.index
+
         self.com_workbook.Sheets(sheet).Cells.Clear()
 
     def close(self):
@@ -312,7 +318,14 @@ class ActiveSheet(object):
         if workbook is None:
             workbook = wb
         self.com_active_sheet = workbook.ActiveSheet
-        self.name = self.com_active_sheet.Name
+
+    @property
+    def name(self):
+        return self.com_active_sheet.Name
+
+    @property
+    def index(self):
+        return self.com_active_sheet.Index
 
 
 class Range(object):
