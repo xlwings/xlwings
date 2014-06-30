@@ -29,7 +29,7 @@ try:
 except ImportError:
     pd = None
 
-__version__ = '0.1.1'
+__version__ = '0.1.2dev'
 
 # Python 2 and 3 compatibility
 PY3 = sys.version_info[0] >= 3

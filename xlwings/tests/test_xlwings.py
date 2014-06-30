@@ -374,6 +374,7 @@ class TestChart:
         assert_equal(name, name_actual)
         assert_equal(chart_type, chart_type_actual)
 
+
 class TestWorkbook:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
