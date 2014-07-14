@@ -34,6 +34,10 @@ def get_workbook_name(xl_workbook):
     return xl_workbook.Name
 
 
+def get_workbook_index(xl_workbook):
+    return xl_workbook.Index
+
+
 def open_xl_workbook(fullname):
     """
 
@@ -49,3 +53,7 @@ def new_xl_workbook():
     xl_app.Visible = True
     xl_workbook = xl_app.Workbooks.Add()
     return xl_app, xl_workbook
+
+
+def get_active_sheet(xl_workbook):
+    return xl_workbook.ActiveSheet

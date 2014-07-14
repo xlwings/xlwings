@@ -170,12 +170,11 @@ class Workbook(object):
             self.xl_app, self.xl_workbook = xlplatform.new_xl_workbook()
 
         self.name = xlplatform.get_workbook_name(self.xl_workbook)
-        # TODO: reactivate
-        # self.active_sheet = ActiveSheet(workbook=self.xl_workbook)
+        self.active_sheet = ActiveSheet(xl_workbook=self.xl_workbook)
 
         # Make the most recently created Workbook the default when creating Range objects directly
-        global xl_workbook
-        xl_workbook = self.xl_workbook
+        global xl_workbook_latest
+        xl_workbook_latest = self.xl_workbook
 
     def activate(self, sheet):
         """
@@ -298,18 +297,18 @@ class ActiveSheet(object):
     """
 
     """
-    def __init__(self, workbook=None):
-        if workbook is None:
-            workbook = xl_workbook
-        self.xl_active_sheet = workbook.ActiveSheet
+    def __init__(self, xl_workbook=None):
+        if xl_workbook is None:
+            xl_workbook = xl_workbook_latest
+        self.xl_active_sheet = xlplatform.get_active_sheet(xl_workbook)
 
     @property
     def name(self):
-        return self.xl_active_sheet.Name
+        return xlplatform.get_workbook_name(self.xl_active_sheet)
 
     @property
     def index(self):
-        return self.xl_active_sheet.Index
+        return xlplatform.get_workbook_index(self.xl_active_sheet)
 
 
 class Range(object):
@@ -391,7 +390,7 @@ class Range(object):
         self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array
         self.strict = kwargs.get('strict', False)  # Stop table/horizontal/vertical at empty cells that contain formulas
         self.atleast_2d = kwargs.get('atleast_2d', False)  # Force data to be list of list or a 2d numpy array
-        self.xl_workbook = kwargs.get('workbook', xl_workbook)
+        self.xl_workbook = kwargs.get('workbook', xl_workbook_latest)
 
         # Get sheet
         if sheet:
@@ -725,7 +724,7 @@ class Chart(object):
     """
     def __init__(self, *args, **kwargs):
         # Use global Workbook if none provided
-        self.xl_workbook = kwargs.get('workbook', xl_workbook)
+        self.xl_workbook = kwargs.get('workbook', xl_workbook_latest)
 
         # Arguments
         if len(args) == 0:
