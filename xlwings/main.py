@@ -17,7 +17,7 @@ from win32com.client import GetObject, dynamic
 import win32timezone
 import pywintypes
 import pythoncom
-from .constants import Direction, ChartType
+from xlwings.constants import Direction, ChartType
 
 # Optional imports
 try:

@@ -1,2 +1,2 @@
-from .xlwings import Workbook, Range, Chart, __version__
-from .constants import *
+from xlwings.main import Workbook, Range, Chart, __version__
+from xlwings.constants import *

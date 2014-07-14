@@ -11,7 +11,7 @@ def main():
     call('7z a -tzip {}.zip {}.xlsm'.format(file_name, file_name))
     call('7z a -tzip {}.zip LICENSE.txt'.format(file_name))
     call('7z a -tzip {}.zip simulation.py'.format(file_name))
-    call('7z a -tzip {}.zip ../../xlwings/xlwings.py'.format(file_name))
+    call('7z a -tzip {}.zip ../../xlwings/main.py'.format(file_name))
 
 
 if __name__ == '__main__':
