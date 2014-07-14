@@ -22,7 +22,7 @@ def main():
     starting_price = Range('E8').value
     perc_selection = [5, 50, 95]  # percentiles (hardcoded for now)
     # Animation
-    if wb.com_workbook.ActiveSheet.OLEObjects("ComboBox1").Object.Value == 'Yes':
+    if wb.xl_workbook.ActiveSheet.OLEObjects("ComboBox1").Object.Value == 'Yes':
         animate = True
     else:
         animate = False
@@ -50,7 +50,7 @@ def main():
         if animate:
             Range((t+2,16)).value = percentiles[t,:]
             Range((t+2,19)).value = price[t,0]  # Sample path
-            wb.com_app.Application.ScreenUpdating = True
+            wb.xl_app.Application.ScreenUpdating = True
 
     if not animate:
         Range('P2').value = percentiles

@@ -154,13 +154,13 @@ class Workbook(object):
     """
     def __init__(self, fullname=None):
         if fullname:
-            # Use/open an existing workbook
             self.fullname = fullname.lower()
             if xlplatform.is_file_open(self.fullname):
-                # GetObject() returns the correct Excel instance if there are > 1
-                self.xl_workbook = GetObject(self.fullname)
-                self.xl_app = self.xl_workbook.Application
+                # Connect to an open Workbook
+                self.xl_workbook = xlplatform.get_xl_workbook(self.fullname)
+                self.xl_app = xlplatform.get_xl_application(self.xl_workbook)
             else:
+                # Open Excel and the Workbook
                 self.xl_app = dynamic.Dispatch('Excel.Application')
                 self.xl_workbook = self.xl_app.Workbooks.Open(self.fullname)
                 self.xl_app.Visible = True
@@ -179,8 +179,8 @@ class Workbook(object):
         self.active_sheet = ActiveSheet(workbook=self.xl_workbook)
 
         # Make the most recently created Workbook the default when creating Range objects directly
-        global wb  # TODO: rename into xl_wb
-        wb = self.xl_workbook
+        global xl_workbook
+        xl_workbook = self.xl_workbook
 
     def activate(self, sheet):
         """
@@ -305,7 +305,7 @@ class ActiveSheet(object):
     """
     def __init__(self, workbook=None):
         if workbook is None:
-            workbook = wb
+            workbook = xl_workbook
         self.xl_active_sheet = workbook.ActiveSheet
 
     @property
@@ -396,13 +396,13 @@ class Range(object):
         self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array
         self.strict = kwargs.get('strict', False)  # Stop table/horizontal/vertical at empty cells that contain formulas
         self.atleast_2d = kwargs.get('atleast_2d', False)  # Force data to be list of list or a 2d numpy array
-        self.workbook = kwargs.get('workbook', wb)
+        self.xl_workbook = kwargs.get('workbook', xl_workbook)
 
         # Get sheet
         if sheet:
-            self.sheet = self.workbook.Worksheets(sheet)
+            self.sheet = self.xl_workbook.Worksheets(sheet)
         else:
-            self.sheet = self.workbook.ActiveSheet
+            self.sheet = self.xl_workbook.ActiveSheet
 
         # Get COM Range object
         if cell_range:
@@ -702,7 +702,7 @@ class Range(object):
         self.xl_range.ClearContents()
 
     def __repr__(self):
-        return "<xlwings.Range of Workbook '{0}'>".format(self.workbook.name)
+        return "<xlwings.Range of Workbook '{0}'>".format(self.xl_workbook.Name)
 
 
 class Chart(object):
@@ -730,7 +730,7 @@ class Chart(object):
     """
     def __init__(self, *args, **kwargs):
         # Use global Workbook if none provided
-        self.xl_workbook = kwargs.get('workbook', wb)
+        self.xl_workbook = kwargs.get('workbook', xl_workbook)
 
         # Arguments
         if len(args) == 0:

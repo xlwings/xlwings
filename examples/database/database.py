@@ -26,7 +26,7 @@ def playlist():
     """
 
     # Get PlaylistId from ComboBox
-    playlist_id = wb.com_workbook.ActiveSheet.OLEObjects("ComboBox1").Object.Value
+    playlist_id = wb.xl_workbook.ActiveSheet.OLEObjects("ComboBox1").Object.Value
 
     # Database query
     cursor.execute(
@@ -72,11 +72,11 @@ def combobox():
     # Format and fill the ComboBox to show Names (Text) and give back IDs (Values)
     # TODO: implement natively in xlwings
     combo = "ComboBox1"
-    wb.com_workbook.ActiveSheet.OLEObjects(combo).Object.ListFillRange = \
+    wb.xl_workbook.ActiveSheet.OLEObjects(combo).Object.ListFillRange = \
         'Source!{}'.format(str(Range('Source', 'A1').table.com_range.Address))
-    wb.com_workbook.ActiveSheet.OLEObjects(combo).Object.BoundColumn = 1
-    wb.com_workbook.ActiveSheet.OLEObjects(combo).Object.ColumnCount = 2
-    wb.com_workbook.ActiveSheet.OLEObjects(combo).Object.ColumnWidths = 0
+    wb.xl_workbook.ActiveSheet.OLEObjects(combo).Object.BoundColumn = 1
+    wb.xl_workbook.ActiveSheet.OLEObjects(combo).Object.ColumnCount = 2
+    wb.xl_workbook.ActiveSheet.OLEObjects(combo).Object.ColumnWidths = 0
 
     # Close cursor and connection
     cursor.close()
