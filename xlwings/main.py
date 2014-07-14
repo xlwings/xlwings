@@ -17,6 +17,7 @@ from win32com.client import GetObject, dynamic
 import win32timezone
 import pywintypes
 import pythoncom
+from xlwings import PY3, xlplatform
 from xlwings.constants import Direction, ChartType
 
 # Optional imports
@@ -32,13 +33,13 @@ except ImportError:
 __version__ = '0.1.2dev'
 
 # Python 2 and 3 compatibility
-PY3 = sys.version_info[0] >= 3
 if PY3:
     string_types = str
-    time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
 else:
     string_types = basestring
-    time_types = (dt.date, dt.datetime, pywintypes.TimeType)
+
+# Platform compatibility
+time_types = xlplatform.time_types
 
 
 def clean_com_data(data):
@@ -128,18 +129,6 @@ def _datetime_to_com_time(dt_time):
         return pywintypes.Time(dt_time.timetuple())
 
 
-def _is_file_open(fullname):
-    """
-    Checks the Running Object Table (ROT) for the fully qualified filename
-    """
-    context = pythoncom.CreateBindCtx(0)
-    for moniker in pythoncom.GetRunningObjectTable():
-        name = moniker.GetDisplayName(context, None)
-        if name.lower() == fullname.lower():
-            return True
-    return False
-
-
 class Workbook(object):
     """
     Workbook connects an Excel Workbook with Python. You can create a new connection from Python with
@@ -167,31 +156,31 @@ class Workbook(object):
         if fullname:
             # Use/open an existing workbook
             self.fullname = fullname.lower()
-            if _is_file_open(self.fullname):
+            if xlplatform.is_file_open(self.fullname):
                 # GetObject() returns the correct Excel instance if there are > 1
-                self.com_workbook = GetObject(self.fullname)
-                self.com_app = self.com_workbook.Application
+                self.xl_workbook = GetObject(self.fullname)
+                self.xl_app = self.xl_workbook.Application
             else:
-                self.com_app = dynamic.Dispatch('Excel.Application')
-                self.com_workbook = self.com_app.Workbooks.Open(self.fullname)
-                self.com_app.Visible = True
+                self.xl_app = dynamic.Dispatch('Excel.Application')
+                self.xl_workbook = self.xl_app.Workbooks.Open(self.fullname)
+                self.xl_app.Visible = True
         elif len(sys.argv) >= 2 and sys.argv[2] == 'from_xl':
             # Connect to the workbook from which this code has been invoked
             self.fullname = sys.argv[1].lower()
-            self.com_workbook = GetObject(self.fullname)
-            self.com_app = self.com_workbook.Application
+            self.xl_workbook = GetObject(self.fullname)
+            self.xl_app = self.xl_workbook.Application
         else:
             # Open Excel if necessary and create a new workbook
-            self.com_app = dynamic.Dispatch('Excel.Application')
-            self.com_app.Visible = True
-            self.com_workbook = self.com_app.Workbooks.Add()
+            self.xl_app = dynamic.Dispatch('Excel.Application')
+            self.xl_app.Visible = True
+            self.xl_workbook = self.xl_app.Workbooks.Add()
 
-        self.name = self.com_workbook.Name
-        self.active_sheet = ActiveSheet(workbook=self.com_workbook)
+        self.name = self.xl_workbook.Name
+        self.active_sheet = ActiveSheet(workbook=self.xl_workbook)
 
         # Make the most recently created Workbook the default when creating Range objects directly
-        global wb  # TODO: rename into com_wb
-        wb = self.com_workbook
+        global wb  # TODO: rename into xl_wb
+        wb = self.xl_workbook
 
     def activate(self, sheet):
         """
@@ -202,7 +191,7 @@ class Workbook(object):
         sheet : string or integer
             Sheet name or index.
         """
-        self.com_workbook.Sheets(sheet).Activate()
+        self.xl_workbook.Sheets(sheet).Activate()
 
     def get_selection(self, asarray=False):
         """
@@ -218,7 +207,7 @@ class Workbook(object):
         Range
             xlwings Range object
         """
-        return self.range(str(self.com_workbook.Application.Selection.Address), asarray=asarray)
+        return self.range(str(self.xl_workbook.Application.Selection.Address), asarray=asarray)
 
     def range(self, *args, **kwargs):
         """
@@ -251,7 +240,7 @@ class Workbook(object):
         Range
             xlwings Range object
         """
-        return Range(*args, workbook=self.com_workbook, **kwargs)
+        return Range(*args, workbook=self.xl_workbook, **kwargs)
 
     def chart(self, *args, **kwargs):
         """
@@ -272,7 +261,7 @@ class Workbook(object):
         *args :
             Definition of Sheet (optional) and Chart in the above described combinations.
         """
-        return Chart(*args, workbook=self.com_workbook, **kwargs)
+        return Chart(*args, workbook=self.xl_workbook, **kwargs)
 
     def clear_contents(self, sheet=None):
         """
@@ -286,7 +275,7 @@ class Workbook(object):
         if sheet is None:
             sheet = self.active_sheet.index
 
-        self.com_workbook.Sheets(sheet).Cells.ClearContents()
+        self.xl_workbook.Sheets(sheet).Cells.ClearContents()
 
     def clear(self, sheet=None):
         """
@@ -300,11 +289,11 @@ class Workbook(object):
         if sheet is None:
             sheet = self.active_sheet.index
 
-        self.com_workbook.Sheets(sheet).Cells.Clear()
+        self.xl_workbook.Sheets(sheet).Cells.Clear()
 
     def close(self):
         """Closes the Workbook without saving it"""
-        self.com_workbook.Close(SaveChanges=False)
+        self.xl_workbook.Close(SaveChanges=False)
 
     def __repr__(self):
         return "<xlwings.Workbook '{0}'>".format(self.name)
@@ -317,15 +306,15 @@ class ActiveSheet(object):
     def __init__(self, workbook=None):
         if workbook is None:
             workbook = wb
-        self.com_active_sheet = workbook.ActiveSheet
+        self.xl_active_sheet = workbook.ActiveSheet
 
     @property
     def name(self):
-        return self.com_active_sheet.Name
+        return self.xl_active_sheet.Name
 
     @property
     def index(self):
-        return self.com_active_sheet.Index
+        return self.xl_active_sheet.Index
 
 
 class Range(object):
@@ -422,7 +411,7 @@ class Range(object):
             self.row2 = self.row1 + self.sheet.Range(cell_range).Rows.Count - 1
             self.col2 = self.col1 + self.sheet.Range(cell_range).Columns.Count - 1
 
-        self.com_range = self.sheet.Range(self.sheet.Cells(self.row1, self.col1),
+        self.xl_range = self.sheet.Range(self.sheet.Cells(self.row1, self.col1),
                                           self.sheet.Cells(self.row2, self.col2))
 
     def is_cell(self):
@@ -473,17 +462,17 @@ class Range(object):
         """
         if self.is_cell():
             # Clean_com_data requires and returns a list of list
-            data = clean_com_data([[self.com_range.Value]])[0][0]
+            data = clean_com_data([[self.xl_range.Value]])[0][0]
         elif self.is_row():
-            data = clean_com_data(self.com_range.Value)
+            data = clean_com_data(self.xl_range.Value)
             if not self.atleast_2d:
                 data = data[0]
         elif self.is_column():
-            data = clean_com_data(self.com_range.Value)
+            data = clean_com_data(self.xl_range.Value)
             if not self.atleast_2d:
                 data = [item for sublist in data for item in sublist]
         else:  # 2d Range, leave as list of list
-            data = clean_com_data(self.com_range.Value)
+            data = clean_com_data(self.xl_range.Value)
 
         # Return as NumPy Array
         if self.asarray:
@@ -571,11 +560,11 @@ class Range(object):
         """
         Gets or sets the formula for the given Range.
         """
-        return self.com_range.Formula
+        return self.xl_range.Formula
 
     @formula.setter
     def formula(self, value):
-        self.com_range.Formula = value
+        self.xl_range.Formula = value
 
     @property
     def table(self):
@@ -704,13 +693,13 @@ class Range(object):
         """
         Clears the content and the formatting of a Range.
         """
-        self.com_range.Clear()
+        self.xl_range.Clear()
 
     def clear_contents(self):
         """
         Clears the content of a Range but leaves the formatting.
         """
-        self.com_range.ClearContents()
+        self.xl_range.ClearContents()
 
     def __repr__(self):
         return "<xlwings.Range of Workbook '{0}'>".format(self.workbook.name)
@@ -741,22 +730,22 @@ class Chart(object):
     """
     def __init__(self, *args, **kwargs):
         # Use global Workbook if none provided
-        self.com_workbook = kwargs.get('workbook', wb)
+        self.xl_workbook = kwargs.get('workbook', wb)
 
         # Arguments
         if len(args) == 0:
             pass
         elif len(args) > 0:
             if len(args) == 1:
-                sheet = self.com_workbook.ActiveSheet.Name
+                sheet = self.xl_workbook.ActiveSheet.Name
                 name_or_index = args[0]
             elif len(args) == 2:
                 sheet = args[0]
                 name_or_index = args[1]
 
             # Get Chart COM object
-            self.com_chart = self.com_workbook.Sheets(sheet).ChartObjects(name_or_index)
-            self.index = self.com_chart.Index
+            self.xl_chart = self.xl_workbook.Sheets(sheet).ChartObjects(name_or_index)
+            self.index = self.xl_chart.Index
 
         # Chart Type
         chart_type = kwargs.get('chart_type')
@@ -804,41 +793,41 @@ class Chart(object):
         source_data = kwargs.get('source_data')
 
         if sheet is None:
-            sheet = self.com_workbook.ActiveSheet.Name
+            sheet = self.xl_workbook.ActiveSheet.Name
 
-        com_chart = self.com_workbook.Sheets(sheet).ChartObjects().Add(left, top, width, height)
+        xl_chart = self.xl_workbook.Sheets(sheet).ChartObjects().Add(left, top, width, height)
 
         if name:
-            com_chart.Name = name
+            xl_chart.Name = name
         else:
-            name = com_chart.Name
+            name = xl_chart.Name
 
-        return Chart(sheet, name, workbook=self.com_workbook, chart_type=chart_type, source_data=source_data)
+        return Chart(sheet, name, workbook=self.xl_workbook, chart_type=chart_type, source_data=source_data)
 
     @property
     def name(self):
         """
         Gets and sets the name of a Chart
         """
-        return self.com_chart.Name
+        return self.xl_chart.Name
 
     @name.setter
     def name(self, value):
-        self.com_chart.Name = value
+        self.xl_chart.Name = value
 
     @property
     def chart_type(self):
         """
         Gets and sets the chart type of a Chart
         """
-        return self.com_chart.Chart.ChartType
+        return self.xl_chart.Chart.ChartType
 
     @chart_type.setter
     def chart_type(self, value):
-        self.com_chart.Chart.ChartType = value
+        self.xl_chart.Chart.ChartType = value
 
     def activate(self):
-        self.com_chart.Activate()
+        self.xl_chart.Activate()
 
     def set_source_data(self, source):
         """
@@ -849,7 +838,7 @@ class Chart(object):
         source : Range
             xlwings Range object, e.g. ``Range('A1')``
         """
-        self.com_chart.Chart.SetSourceData(source.com_range)
+        self.xl_chart.Chart.SetSourceData(source.xl_range)
 
     def __repr__(self):
         return "<xlwings.Chart '{0}'>".format(self.name)
