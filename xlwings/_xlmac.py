@@ -45,6 +45,10 @@ def get_workbook_name(xl_workbook):
     return xl_workbook.name.get()
 
 
+def get_workbook_index(xl_workbook):
+    return xl_workbook.entry_index.get()
+
+
 def open_xl_workbook(fullname):
     filename = os.path.basename(fullname)
     xl_app = app('Microsoft Excel')
@@ -71,3 +75,7 @@ def new_xl_workbook():
         xl_workbook = xl_app.active_workbook
 
     return xl_app, xl_workbook
+
+
+def get_active_sheet(xl_workbook):
+    return xl_workbook.active_sheet
