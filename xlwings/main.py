@@ -13,10 +13,10 @@ License: BSD 3-clause (see LICENSE.txt for details)
 import sys
 import numbers
 import datetime as dt
-from win32com.client import GetObject, dynamic
-import win32timezone
-import pywintypes
-import pythoncom
+# from win32com.client import GetObject, dynamic
+# import win32timezone
+# import pywintypes
+# import pythoncom
 from xlwings import PY3, xlplatform
 from xlwings.constants import Direction, ChartType
 
@@ -157,26 +157,21 @@ class Workbook(object):
             self.fullname = fullname.lower()
             if xlplatform.is_file_open(self.fullname):
                 # Connect to an open Workbook
-                self.xl_workbook = xlplatform.get_xl_workbook(self.fullname)
-                self.xl_app = xlplatform.get_xl_application(self.xl_workbook)
+                self.xl_app, self.xl_workbook = xlplatform.get_xl_workbook(self.fullname)
             else:
                 # Open Excel and the Workbook
-                self.xl_app = dynamic.Dispatch('Excel.Application')
-                self.xl_workbook = self.xl_app.Workbooks.Open(self.fullname)
-                self.xl_app.Visible = True
+                self.xl_app, self.xl_workbook = xlplatform.open_xl_workbook(self.fullname)
         elif len(sys.argv) >= 2 and sys.argv[2] == 'from_xl':
             # Connect to the workbook from which this code has been invoked
             self.fullname = sys.argv[1].lower()
-            self.xl_workbook = GetObject(self.fullname)
-            self.xl_app = self.xl_workbook.Application
+            self.xl_app, self.xl_workbook = xlplatform.get_xl_workbook(self.fullname)
         else:
             # Open Excel if necessary and create a new workbook
-            self.xl_app = dynamic.Dispatch('Excel.Application')
-            self.xl_app.Visible = True
-            self.xl_workbook = self.xl_app.Workbooks.Add()
+            self.xl_app, self.xl_workbook = xlplatform.new_xl_workbook()
 
-        self.name = self.xl_workbook.Name
-        self.active_sheet = ActiveSheet(workbook=self.xl_workbook)
+        self.name = xlplatform.get_workbook_name(self.xl_workbook)
+        # TODO: reactivate
+        # self.active_sheet = ActiveSheet(workbook=self.xl_workbook)
 
         # Make the most recently created Workbook the default when creating Range objects directly
         global xl_workbook
