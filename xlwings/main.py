@@ -394,19 +394,18 @@ class Range(object):
 
         # Get sheet
         if sheet:
-            self.sheet = self.xl_workbook.Worksheets(sheet)
+            self.xl_sheet = xlplatform.get_worksheet(self.xl_workbook, sheet)
         else:
-            self.sheet = self.xl_workbook.ActiveSheet
+            self.xl_sheet = xlplatform.get_active_sheet(self.xl_workbook)
 
         # Get COM Range object
         if cell_range:
-            self.row1 = self.sheet.Range(cell_range).Row
-            self.col1 = self.sheet.Range(cell_range).Column
-            self.row2 = self.row1 + self.sheet.Range(cell_range).Rows.Count - 1
-            self.col2 = self.col1 + self.sheet.Range(cell_range).Columns.Count - 1
+            self.row1 = xlplatform.get_first_row(self.xl_sheet, cell_range)
+            self.col1 = xlplatform.get_first_column(self.xl_sheet, cell_range)
+            self.row2 = self.row1 + xlplatform.count_rows(self.xl_sheet, cell_range) - 1
+            self.col2 = self.col1 + xlplatform.count_columns(self.xl_sheet, cell_range) - 1
 
-        self.xl_range = self.sheet.Range(self.sheet.Cells(self.row1, self.col1),
-                                          self.sheet.Cells(self.row2, self.col2))
+        self.xl_range = xlplatform.get_range_from_indices(self.xl_sheet, self.row1, self.col1, self.row2, self.col2)
 
     def is_cell(self):
         """
@@ -549,7 +548,7 @@ class Range(object):
             col2 = self.col1 + len(data[0]) - 1
             data = [[_datetime_to_com_time(c) if isinstance(c, time_types) else c for c in row] for row in data]
 
-        self.sheet.Range(self.sheet.Cells(self.row1, self.col1), self.sheet.Cells(row2, col2)).Value = data
+        self.xl_sheet.Range(self.xl_sheet.Cells(self.row1, self.col1), self.xl_sheet.Cells(row2, col2)).Value = data
 
     @property
     def formula(self):
@@ -586,10 +585,10 @@ class Range(object):
             Range('A1').table.clear_contents()
 
         """
-        row2 = Range(self.sheet.Name, (self.row1, self.col1), **self.kwargs).vertical.row2
-        col2 = Range(self.sheet.Name, (self.row1, self.col1), **self.kwargs).horizontal.col2
+        row2 = Range(self.xl_sheet.Name, (self.row1, self.col1), **self.kwargs).vertical.row2
+        col2 = Range(self.xl_sheet.Name, (self.row1, self.col1), **self.kwargs).horizontal.col2
 
-        return Range(self.sheet.Name, (self.row1, self.col1), (row2, col2), **self.kwargs)
+        return Range(self.xl_sheet.Name, (self.row1, self.col1), (row2, col2), **self.kwargs)
 
     @property
     def vertical(self):
@@ -616,20 +615,20 @@ class Range(object):
 
         """
         # A single cell is a special case as End(xlDown) jumps over adjacent empty cells
-        if self.sheet.Cells(self.row1 + 1, self.col1).Value in [None, ""]:
+        if self.xl_sheet.Cells(self.row1 + 1, self.col1).Value in [None, ""]:
             row2 = self.row1
         else:
-            row2 = self.sheet.Cells(self.row1, self.col1).End(Direction.xlDown).Row
+            row2 = self.xl_sheet.Cells(self.row1, self.col1).End(Direction.xlDown).Row
 
         # Strict stops at cells that contain a formula but show an empty value
         if self.strict:
             row2 = self.row1
-            while self.sheet.Cells(row2 + 1, self.col1).Value not in [None, ""]:
+            while self.xl_sheet.Cells(row2 + 1, self.col1).Value not in [None, ""]:
                 row2 += 1
 
         col2 = self.col2
 
-        return Range(self.sheet.Name, (self.row1, self.col1), (row2, col2), **self.kwargs)
+        return Range(self.xl_sheet.Name, (self.row1, self.col1), (row2, col2), **self.kwargs)
 
     @property
     def horizontal(self):
@@ -655,20 +654,20 @@ class Range(object):
 
         """
         # A single cell is a special case as End(xlDown) jumps over adjacent empty cells
-        if self.sheet.Cells(self.row1, self.col1 + 1).Value in [None, ""]:
+        if self.xl_sheet.Cells(self.row1, self.col1 + 1).Value in [None, ""]:
             col2 = self.col1
         else:
-            col2 = self.sheet.Cells(self.row1, self.col1).End(Direction.xlToRight).Column
+            col2 = self.xl_sheet.Cells(self.row1, self.col1).End(Direction.xlToRight).Column
 
         # Strict: stops at cells that contain a formula but show an empty value
         if self.strict:
             col2 = self.col1
-            while self.sheet.Cells(self.row1, col2 + 1).Value not in [None, ""]:
+            while self.xl_sheet.Cells(self.row1, col2 + 1).Value not in [None, ""]:
                 col2 += 1
 
         row2 = self.row2
 
-        return Range(self.sheet.Name, (self.row1, self.col1), (row2, col2), **self.kwargs)
+        return Range(self.xl_sheet.Name, (self.row1, self.col1), (row2, col2), **self.kwargs)
 
     @property
     def current_region(self):
@@ -682,8 +681,8 @@ class Range(object):
             xlwings Range object
 
         """
-        address = str(self.sheet.Cells(self.row1, self.col1).CurrentRegion.Address)
-        return Range(self.sheet.Name, address, **self.kwargs)
+        address = str(self.xl_sheet.Cells(self.row1, self.col1).CurrentRegion.Address)
+        return Range(self.xl_sheet.Name, address, **self.kwargs)
 
     def clear(self):
         """

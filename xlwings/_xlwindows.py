@@ -57,3 +57,28 @@ def new_xl_workbook():
 
 def get_active_sheet(xl_workbook):
     return xl_workbook.ActiveSheet
+
+
+def get_worksheet(xl_workbook, sheet):
+    return xl_workbook.Sheets[sheet]
+
+
+def get_first_row(xl_sheet, cell_range):
+    return xl_sheet.Range(cell_range).Row
+
+
+def get_first_column(xl_sheet, cell_range):
+    return xl_sheet.Range(cell_range).Column
+
+
+def count_rows(xl_sheet, cell_range):
+    return xl_sheet.Range(cell_range).Rows.Count
+
+
+def count_columns(xl_sheet, cell_range):
+    return xl_sheet.Range(cell_range).Columns.Count
+
+
+def get_range_from_indices(xl_sheet, first_row, first_column, last_row, last_column):
+    return xl_sheet.Range(xl_sheet.Cells(first_row, first_column),
+                          xl_sheet.Cells(last_row, last_column))
