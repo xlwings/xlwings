@@ -108,7 +108,7 @@ class Workbook(object):
         Range
             xlwings Range object
         """
-        return self.range(str(self.xl_workbook.Application.Selection.Address), asarray=asarray)
+        return self.range(xlplatform.get_selection_address(self.xl_app), asarray=asarray)
 
     def range(self, *args, **kwargs):
         """
@@ -608,7 +608,7 @@ class Range(object):
         self.xl_range.ClearContents()
 
     def __repr__(self):
-        return "<xlwings.Range of Workbook '{0}'>".format(self.xl_workbook.Name)
+        return "<xlwings.Range of Workbook '{0}'>".format(xlplatform.get_workbook_name(self.xl_workbook))
 
 
 class Chart(object):

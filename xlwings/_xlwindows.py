@@ -200,3 +200,7 @@ def _datetime_to_com_time(dt_time):
     else:
         assert dt_time.microsecond == 0, "fractional seconds not yet handled"
         return pywintypes.Time(dt_time.timetuple())
+
+
+def get_selection_address(xl_app):
+    return str(xl_app.Selection.Address)

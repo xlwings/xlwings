@@ -131,4 +131,6 @@ def set_value(xl_range, data):
     xl_range.value.set(data)
 
 
+def get_selection_address(xl_app):
+    return str(xl_app.selection.get_address())
 
