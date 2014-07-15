@@ -90,25 +90,25 @@ def get_worksheet(xl_workbook, sheet):
 
 
 def get_first_row(xl_sheet, cell_range):
-    return xl_sheet.range.cells[cell_range].first_row_index.get()
+    return xl_sheet.cells[cell_range].first_row_index.get()
 
 
 def get_first_column(xl_sheet, cell_range):
-    return xl_sheet.range.cells[cell_range].first_column_index.get()
+    return xl_sheet.cells[cell_range].first_column_index.get()
 
 
 def count_rows(xl_sheet, cell_range):
-    return xl_sheet.range.cells[cell_range].count(each=kw.row)
+    return xl_sheet.cells[cell_range].count(each=kw.row)
 
 
 def count_columns(xl_sheet, cell_range):
-    return xl_sheet.range.cells[cell_range].count(each=kw.column)
+    return xl_sheet.cells[cell_range].count(each=kw.column)
 
 
 def get_range_from_indices(xl_sheet, first_row, first_column, last_row, last_column):
     first_address = xl_sheet.columns[first_column].rows[first_row].get_address()
     last_address = xl_sheet.columns[last_column].rows[last_row].get_address()
-    return xl_sheet.range.cells['{0}:{1}'.format(first_address, last_address)]
+    return xl_sheet.cells['{0}:{1}'.format(first_address, last_address)]
 
 
 def get_value(xl_range):
