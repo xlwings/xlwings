@@ -400,11 +400,12 @@ class Range(object):
 
             if self.header:
                 if isinstance(data.columns, pd.MultiIndex):
-                    columns = np.array(list(zip(*data.columns.tolist())))  # Python 3 requires zip wrapped in list
-                else:
+                    # Python 3 requires zip wrapped in list
                     # Ensure dtype=object because otherwise it may get assigned a string type which transforms the
-                    # values during vstacking into strings, too: Values might be truncated and we can't easily transform
-                    #  np.nan anymore.
+                    # values during vstacking into strings, too: Values might be truncated and we can't easily
+                    # transform np.nan anymore.
+                    columns = np.array(list(zip(*data.columns.tolist())), dtype=object)
+                else:
                     columns = np.empty((data.columns.shape[0],), dtype=object)
                     columns[:] = np.array([data.columns.tolist()])
                 data = np.vstack((columns, data.values))
