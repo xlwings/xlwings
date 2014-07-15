@@ -57,6 +57,10 @@ def open_xl_workbook(fullname):
     return xl_app, xl_workbook
 
 
+def close_workbook(xl_workbook):
+    xl_workbook.Close(SaveChanges=False)
+
+
 def new_xl_workbook():
     xl_app = dynamic.Dispatch('Excel.Application')
     xl_app.Visible = True

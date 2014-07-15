@@ -194,7 +194,7 @@ class Workbook(object):
 
     def close(self):
         """Closes the Workbook without saving it"""
-        self.xl_workbook.Close(SaveChanges=False)
+        xlplatform.close_workbook(self.xl_workbook)
 
     def __repr__(self):
         return "<xlwings.Workbook '{0}'>".format(self.name)

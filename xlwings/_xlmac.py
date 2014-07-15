@@ -57,6 +57,10 @@ def open_xl_workbook(fullname):
     return xl_app, xl_workbook
 
 
+def close_workbook(xl_workbook):
+    xl_workbook.close(saving=kw.no)
+
+
 def new_xl_workbook():
     """
 
@@ -125,4 +129,6 @@ def prepare_xl_data(data):
 
 def set_value(xl_range, data):
     xl_range.value.set(data)
+
+
 
