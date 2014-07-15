@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import sys
 
 # Python 2 vs 3
@@ -11,5 +12,5 @@ if sys.platform.startswith('darwin'):
     import xlwings._xlmac as xlplatform
 
 # API
-from xlwings.main import Workbook, Range, Chart, __version__
-from xlwings.constants import *
+from .main import Workbook, Range, Chart, __version__
+from .constants import *

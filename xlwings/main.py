@@ -9,12 +9,11 @@ All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
 """
-
 import sys
 import numbers
 import datetime as dt
-from xlwings import PY3, xlplatform
-from xlwings.constants import Direction, ChartType
+from . import PY3, xlplatform
+from .constants import Direction, ChartType
 
 # Optional imports
 try:
