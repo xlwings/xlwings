@@ -69,7 +69,7 @@ def get_active_sheet(xl_workbook):
 
 
 def get_worksheet(xl_workbook, sheet):
-    return xl_workbook.Sheets[sheet]
+    return xl_workbook.Sheets(sheet)
 
 
 def get_first_row(xl_sheet, cell_range):
@@ -126,6 +126,8 @@ def clean_xl_data(data):
 def prepare_xl_data(data):
     if isinstance(data, time_types):
         return _datetime_to_com_time(data)
+    else:
+        return data
 
 def _com_time_to_datetime(com_time):
     """

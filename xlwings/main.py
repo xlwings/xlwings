@@ -11,7 +11,6 @@ License: BSD 3-clause (see LICENSE.txt for details)
 """
 import sys
 import numbers
-import datetime as dt
 from . import PY3, xlplatform
 from .constants import Direction, ChartType
 
@@ -455,12 +454,12 @@ class Range(object):
 
         else:
             # List of List
-            self.row2 = self.row1 + len(data) - 1
-            self.col2 = self.col1 + len(data[0]) - 1
+            row2 = self.row1 + len(data) - 1
+            col2 = self.col1 + len(data[0]) - 1
             data = [[xlplatform.prepare_xl_data(c) for c in row] for row in data]
 
         xlplatform.set_value(xlplatform.get_range_from_indices(self.xl_sheet,
-                                                               self.row1, self.col1, self.row2, self.col2), data)
+                                                               self.row1, self.col1, row2, col2), data)
 
     @property
     def formula(self):
