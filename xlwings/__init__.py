@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 import sys
 
+__version__ = '0.1.2dev'
+
 # Python 2 vs 3
 PY3 = sys.version_info[0] == 3
 
@@ -12,5 +14,5 @@ if sys.platform.startswith('darwin'):
     import xlwings._xlmac as xlplatform
 
 # API
-from .main import Workbook, Range, Chart, __version__
+from .main import Workbook, Range, Chart
 from .constants import *
