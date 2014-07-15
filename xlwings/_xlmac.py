@@ -105,3 +105,20 @@ def get_range_from_indices(xl_sheet, first_row, first_column, last_row, last_col
     first_address = xl_sheet.columns[first_column].rows[first_row].get_address()
     last_address = xl_sheet.columns[last_column].rows[last_row].get_address()
     return xl_sheet.range.cells['{0}:{1}'.format(first_address, last_address)]
+
+
+def get_value(xl_range):
+    return xl_range.value.get()
+
+
+def clean_xl_data(data):
+    return [[None if c == '' else c for c in row] for row in data]
+
+
+def prepare_xl_data(data):
+    return data
+
+
+def set_value(xl_range, data):
+    xl_range.value.set(data)
+

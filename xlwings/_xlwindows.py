@@ -3,6 +3,15 @@ import win32api
 import pywintypes
 import pythoncom
 from win32com.client import GetObject, dynamic
+import win32timezone
+
+# Optional imports
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
+
+from xlwings import PY3
 
 # Time types: pywintypes.timetype doesn't work on Python 3
 time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
@@ -82,3 +91,102 @@ def count_columns(xl_sheet, cell_range):
 def get_range_from_indices(xl_sheet, first_row, first_column, last_row, last_column):
     return xl_sheet.Range(xl_sheet.Cells(first_row, first_column),
                           xl_sheet.Cells(last_row, last_column))
+
+
+def get_value(xl_range):
+    return xl_range.Value
+
+
+def set_value(xl_range, data):
+    xl_range.Value = data
+
+
+def clean_xl_data(data):
+    """
+    Brings data from tuples of tuples into list of list and
+    transforms pywintypes Time objects into Python datetime objects.
+
+    Parameters
+    ----------
+    data : tuple of tuple
+        raw data as returned from Excel through pywin32
+
+    Returns
+    -------
+    list
+        list of list with native Python datetime objects
+
+    """
+    # Turn into list of list (e.g. for Pandas DataFrame) and handle dates
+    data = [[_com_time_to_datetime(c) if isinstance(c, time_types) else c for c in row] for row in data]
+
+    return data
+
+
+def prepare_xl_data(data):
+    if isinstance(data, time_types):
+        return _datetime_to_com_time(data)
+
+def _com_time_to_datetime(com_time):
+    """
+    This function is a modified version from Pyvot (https://pypi.python.org/pypi/Pyvot)
+    and subject to the following copyright:
+
+    Copyright (c) Microsoft Corporation.
+
+    This source code is subject to terms and conditions of the Apache License, Version 2.0. A
+    copy of the license can be found in the LICENSE.txt file at the root of this distribution. If
+    you cannot locate the Apache License, Version 2.0, please send an email to
+    vspython@microsoft.com. By using this source code in any fashion, you are agreeing to be bound
+    by the terms of the Apache License, Version 2.0.
+
+    You must not remove this notice, or any other, from this software.
+
+    """
+
+    if PY3:
+        # The py3 version of pywintypes has its time type inherit from datetime.
+        # We copy to a new datetime so that the returned type is the same between 2/3
+        # Changed: We make the datetime object timezone naive as Excel doesn't provide info
+        return dt.datetime(month=com_time.month, day=com_time.day, year=com_time.year,
+                           hour=com_time.hour, minute=com_time.minute, second=com_time.second,
+                           microsecond=com_time.microsecond, tzinfo=None)
+    else:
+        assert com_time.msec == 0, "fractional seconds not yet handled"
+        return dt.datetime(month=com_time.month, day=com_time.day, year=com_time.year,
+                           hour=com_time.hour, minute=com_time.minute, second=com_time.second)
+
+
+def _datetime_to_com_time(dt_time):
+    """
+    This function is a modified version from Pyvot (https://pypi.python.org/pypi/Pyvot)
+    and subject to the following copyright:
+
+    Copyright (c) Microsoft Corporation.
+
+    This source code is subject to terms and conditions of the Apache License, Version 2.0. A
+    copy of the license can be found in the LICENSE.txt file at the root of this distribution. If
+    you cannot locate the Apache License, Version 2.0, please send an email to
+    vspython@microsoft.com. By using this source code in any fashion, you are agreeing to be bound
+    by the terms of the Apache License, Version 2.0.
+
+    You must not remove this notice, or any other, from this software.
+
+    """
+
+    if PY3:
+        # The py3 version of pywintypes has its time type inherit from datetime.
+        # For some reason, though it accepts plain datetimes, they must have a timezone set.
+        # See http://docs.activestate.com/activepython/2.7/pywin32/html/win32/help/py3k.html
+        # We replace no timezone -> UTC to allow round-trips in the naive case
+        if dt_time.tzinfo is None:
+            if hasattr(pd, 'tslib') and isinstance(dt_time, pd.tslib.Timestamp):
+                # Otherwise pandas prints ignored exceptions on Python 3
+                dt_time = dt_time.to_datetime()
+            # We don't use pytz.utc to get rid of additional dependency
+            dt_time = dt_time.replace(tzinfo=win32timezone.TimeZoneInfo.utc())
+
+        return dt_time
+    else:
+        assert dt_time.microsecond == 0, "fractional seconds not yet handled"
+        return pywintypes.Time(dt_time.timetuple())

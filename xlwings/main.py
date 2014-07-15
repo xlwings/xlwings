@@ -13,10 +13,6 @@ License: BSD 3-clause (see LICENSE.txt for details)
 import sys
 import numbers
 import datetime as dt
-# from win32com.client import GetObject, dynamic
-# import win32timezone
-# import pywintypes
-# import pythoncom
 from xlwings import PY3, xlplatform
 from xlwings.constants import Direction, ChartType
 
@@ -40,93 +36,6 @@ else:
 
 # Platform compatibility
 time_types = xlplatform.time_types
-
-
-def clean_com_data(data):
-    """
-    Brings data from tuples of tuples into list of list and
-    transforms pywintypes Time objects into Python datetime objects.
-
-    Parameters
-    ----------
-    data : tuple of tuple
-        raw data as returned from Excel through pywin32
-
-    Returns
-    -------
-    list
-        list of list with native Python datetime objects
-
-    """
-    # Turn into list of list (e.g. for Pandas DataFrame) and handle dates
-    data = [[_com_time_to_datetime(c) if isinstance(c, time_types) else c for c in row] for row in data]
-
-    return data
-
-
-def _com_time_to_datetime(com_time):
-    """
-    This function is a modified version from Pyvot (https://pypi.python.org/pypi/Pyvot)
-    and subject to the following copyright:
-
-    Copyright (c) Microsoft Corporation.
-
-    This source code is subject to terms and conditions of the Apache License, Version 2.0. A
-    copy of the license can be found in the LICENSE.txt file at the root of this distribution. If
-    you cannot locate the Apache License, Version 2.0, please send an email to
-    vspython@microsoft.com. By using this source code in any fashion, you are agreeing to be bound
-    by the terms of the Apache License, Version 2.0.
-
-    You must not remove this notice, or any other, from this software.
-
-    """
-
-    if PY3:
-        # The py3 version of pywintypes has its time type inherit from datetime.
-        # We copy to a new datetime so that the returned type is the same between 2/3
-        # Changed: We make the datetime object timezone naive as Excel doesn't provide info
-        return dt.datetime(month=com_time.month, day=com_time.day, year=com_time.year,
-                           hour=com_time.hour, minute=com_time.minute, second=com_time.second,
-                           microsecond=com_time.microsecond, tzinfo=None)
-    else:
-        assert com_time.msec == 0, "fractional seconds not yet handled"
-        return dt.datetime(month=com_time.month, day=com_time.day, year=com_time.year,
-                           hour=com_time.hour, minute=com_time.minute, second=com_time.second)
-
-
-def _datetime_to_com_time(dt_time):
-    """
-    This function is a modified version from Pyvot (https://pypi.python.org/pypi/Pyvot)
-    and subject to the following copyright:
-
-    Copyright (c) Microsoft Corporation.
-
-    This source code is subject to terms and conditions of the Apache License, Version 2.0. A
-    copy of the license can be found in the LICENSE.txt file at the root of this distribution. If
-    you cannot locate the Apache License, Version 2.0, please send an email to
-    vspython@microsoft.com. By using this source code in any fashion, you are agreeing to be bound
-    by the terms of the Apache License, Version 2.0.
-
-    You must not remove this notice, or any other, from this software.
-
-    """
-
-    if PY3:
-        # The py3 version of pywintypes has its time type inherit from datetime.
-        # For some reason, though it accepts plain datetimes, they must have a timezone set.
-        # See http://docs.activestate.com/activepython/2.7/pywin32/html/win32/help/py3k.html
-        # We replace no timezone -> UTC to allow round-trips in the naive case
-        if dt_time.tzinfo is None:
-            if hasattr(pd, 'tslib') and isinstance(dt_time, pd.tslib.Timestamp):
-                # Otherwise pandas prints ignored exceptions on Python 3
-                dt_time = dt_time.to_datetime()
-            # We don't use pytz.utc to get rid of additional dependency
-            dt_time = dt_time.replace(tzinfo=win32timezone.TimeZoneInfo.utc())
-
-        return dt_time
-    else:
-        assert dt_time.microsecond == 0, "fractional seconds not yet handled"
-        return pywintypes.Time(dt_time.timetuple())
 
 
 class Workbook(object):
@@ -451,21 +360,23 @@ class Range(object):
         Returns
         -------
         list
-            Empty cells are set to None. If ``asarray=True``, a numpy array is returned where empty cells are set to nan.
+            Empty cells are set to None. If ``asarray=True``,
+            a numpy array is returned where empty cells are set to nan.
         """
+        # TODO: refactor
         if self.is_cell():
-            # Clean_com_data requires and returns a list of list
-            data = clean_com_data([[self.xl_range.Value]])[0][0]
+            # Clean_xl_data requires and returns a list of list
+            data = xlplatform.clean_xl_data([[xlplatform.get_value(self.xl_range)]])[0][0]
         elif self.is_row():
-            data = clean_com_data(self.xl_range.Value)
+            data = xlplatform.clean_xl_data(xlplatform.get_value(self.xl_range))
             if not self.atleast_2d:
                 data = data[0]
         elif self.is_column():
-            data = clean_com_data(self.xl_range.Value)
+            data = xlplatform.clean_xl_data(xlplatform.get_value(self.xl_range))
             if not self.atleast_2d:
                 data = [item for sublist in data for item in sublist]
         else:  # 2d Range, leave as list of list
-            data = clean_com_data(self.xl_range.Value)
+            data = xlplatform.clean_xl_data(xlplatform.get_value(self.xl_range))
 
         # Return as NumPy Array
         if self.asarray:
@@ -524,17 +435,17 @@ class Range(object):
                     data = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in data]
 
         # Simple Lists: Turn into list of lists (np.nan is part of numbers.Number)
-        if isinstance(data, list) and (isinstance(data[0],
-                                                 (numbers.Number, string_types, time_types)) or data[0] is None):
+        if isinstance(data, list) and (isinstance(data[0], (numbers.Number, string_types, time_types))
+                                       or data[0] is None):
             data = [data]
 
-        # Get dimensions and handle date values
+        # Get dimensions and prepare data for Excel
+        # TODO: refactor
         if isinstance(data, (numbers.Number, string_types, time_types)) or data is None:
             # Single cells
             row2 = self.row2
             col2 = self.col2
-            if isinstance(data, time_types):
-                data = _datetime_to_com_time(data)
+            data = xlplatform.prepare_xl_data(data)
             try:
                 # scalar np.nan need to be turned into None, otherwise Excel shows it as 65535 (same as for NumPy array)
                 if hasattr(np, 'ndarray') and np.isnan(data):
@@ -544,11 +455,12 @@ class Range(object):
 
         else:
             # List of List
-            row2 = self.row1 + len(data) - 1
-            col2 = self.col1 + len(data[0]) - 1
-            data = [[_datetime_to_com_time(c) if isinstance(c, time_types) else c for c in row] for row in data]
+            self.row2 = self.row1 + len(data) - 1
+            self.col2 = self.col1 + len(data[0]) - 1
+            data = [[xlplatform.prepare_xl_data(c) for c in row] for row in data]
 
-        self.xl_sheet.Range(self.xl_sheet.Cells(self.row1, self.col1), self.xl_sheet.Cells(row2, col2)).Value = data
+        xlplatform.set_value(xlplatform.get_range_from_indices(self.xl_sheet,
+                                                               self.row1, self.col1, self.row2, self.col2), data)
 
     @property
     def formula(self):
