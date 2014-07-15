@@ -5,7 +5,7 @@ from appscript import k as kw
 import psutil
 
 
-# Time types: pywintypes.timetype doesn't work on Python 3
+# Time types
 time_types = (dt.date, dt.datetime)
 
 
@@ -79,6 +79,10 @@ def new_xl_workbook():
 
 def get_active_sheet(xl_workbook):
     return xl_workbook.active_sheet
+
+
+def activate_sheet(xl_workbook, sheet):
+    return xl_workbook.sheets[sheet].activate_object()
 
 
 def get_worksheet(xl_workbook, sheet):

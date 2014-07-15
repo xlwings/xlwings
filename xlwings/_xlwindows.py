@@ -68,6 +68,10 @@ def get_active_sheet(xl_workbook):
     return xl_workbook.ActiveSheet
 
 
+def activate_sheet(xl_workbook, sheet):
+    return xl_workbook.Sheets(sheet).Activate()
+
+
 def get_worksheet(xl_workbook, sheet):
     return xl_workbook.Sheets(sheet)
 

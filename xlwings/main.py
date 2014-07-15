@@ -92,7 +92,7 @@ class Workbook(object):
         sheet : string or integer
             Sheet name or index.
         """
-        self.xl_workbook.Sheets(sheet).Activate()
+        xlplatform.activate_sheet(self.xl_workbook, sheet)
 
     def get_selection(self, asarray=False):
         """
