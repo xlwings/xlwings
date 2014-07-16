@@ -249,3 +249,35 @@ def get_column_index_end_right(xl_sheet, row_index, column_index):
 
 def get_current_region_address(xl_sheet, row_index, column_index):
     return str(xl_sheet.Cells(row_index, column_index).CurrentRegion.Address)
+
+
+def get_chart_object(xl_workbook, sheet, name_or_index):
+    return xl_workbook.Sheets(sheet).ChartObjects(name_or_index)
+
+
+def get_chart_index(xl_chart):
+    return xl_chart.Index
+
+
+def get_chart_name(xl_chart):
+    return xl_chart.Name
+
+
+def add_chart(xl_workbook, sheet, left, top, width, height):
+    return xl_workbook.Sheets(sheet).ChartObjects().Add(left, top, width, height)
+
+
+def set_chart_name(xl_chart, name):
+    xl_chart.Name = name
+
+
+def set_source_data_chart(xl_chart, xl_range):
+    xl_chart.Chart.SetSourceData(xl_range)
+
+
+def get_chart_type(xl_chart):
+    return xl_chart.Chart.ChartType
+
+
+def set_chart_type(xl_chart, chart_type):
+    xl_chart.Chart.ChartType = chart_type

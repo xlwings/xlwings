@@ -179,3 +179,37 @@ def get_column_index_end_right(xl_sheet, row_index, column_index):
 
 def get_current_region_address(xl_sheet, row_index, column_index):
     return str(xl_sheet.columns[column_index].rows[row_index].current_region.get_address())
+
+
+def get_chart_object(xl_workbook, sheet, name_or_index):
+    return xl_workbook.sheets[sheet].chart_objects[name_or_index]
+
+
+def get_chart_index(xl_chart):
+    return xl_chart.entry_index.get()
+
+
+def get_chart_name(xl_chart):
+    return xl_chart.name.get()
+
+
+def add_chart(xl_workbook, sheet, left, top, width, height):
+    return xl_workbook.make(at=xl_workbook.sheets[sheet],
+                            new=kw.chart_object,
+                            with_properties={kw.width: width, kw.top: top, kw.left_position: left, kw.height: height})
+
+
+def set_chart_name(xl_chart, name):
+    xl_chart.name.set(name)
+
+
+def set_source_data_chart(xl_chart, xl_range):
+    xl_chart.chart.set_source_data(source=xl_range)
+
+
+def get_chart_type(xl_chart):
+    return xl_chart.chart.chart_type.get()
+
+
+def set_chart_type(xl_chart, chart_type):
+    xl_chart.chart.chart_type.set(chart_type)

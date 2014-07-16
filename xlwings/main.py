@@ -647,15 +647,15 @@ class Chart(object):
             pass
         elif len(args) > 0:
             if len(args) == 1:
-                sheet = self.xl_workbook.ActiveSheet.Name
+                sheet = xlplatform.get_worksheet_name(xlplatform.get_active_sheet(self.xl_workbook))
                 name_or_index = args[0]
             elif len(args) == 2:
                 sheet = args[0]
                 name_or_index = args[1]
 
-            # Get Chart COM object
-            self.xl_chart = self.xl_workbook.Sheets(sheet).ChartObjects(name_or_index)
-            self.index = self.xl_chart.Index
+            # Get xl_chart object
+            self.xl_chart = xlplatform.get_chart_object(self.xl_workbook, sheet, name_or_index)
+            self.index = xlplatform.get_chart_index(self.xl_chart)
 
         # Chart Type
         chart_type = kwargs.get('chart_type')
@@ -703,14 +703,14 @@ class Chart(object):
         source_data = kwargs.get('source_data')
 
         if sheet is None:
-            sheet = self.xl_workbook.ActiveSheet.Name
+            sheet = xlplatform.get_worksheet_name(xlplatform.get_active_sheet(self.xl_workbook))
 
-        xl_chart = self.xl_workbook.Sheets(sheet).ChartObjects().Add(left, top, width, height)
+        xl_chart = xlplatform.add_chart(self.xl_workbook, sheet, left, top, width, height)
 
         if name:
-            xl_chart.Name = name
+            xlplatform.set_chart_name(xl_chart, name)
         else:
-            name = xl_chart.Name
+            name = xlplatform.get_chart_name(xl_chart)
 
         return Chart(sheet, name, workbook=self.xl_workbook, chart_type=chart_type, source_data=source_data)
 
@@ -719,24 +719,25 @@ class Chart(object):
         """
         Gets and sets the name of a Chart
         """
-        return self.xl_chart.Name
+        return xlplatform.get_chart_name(self.xl_chart)
 
     @name.setter
     def name(self, value):
-        self.xl_chart.Name = value
+        xlplatform.set_chart_name(self.xl_chart, value)
 
     @property
     def chart_type(self):
         """
         Gets and sets the chart type of a Chart
         """
-        return self.xl_chart.Chart.ChartType
+        return xlplatform.get_chart_type(self.xl_chart)
 
     @chart_type.setter
     def chart_type(self, value):
-        self.xl_chart.Chart.ChartType = value
+        xlplatform.set_chart_type(self.xl_chart, value)
 
     def activate(self):
+        # TODO: cross-platform
         self.xl_chart.Activate()
 
     def set_source_data(self, source):
@@ -748,7 +749,7 @@ class Chart(object):
         source : Range
             xlwings Range object, e.g. ``Range('A1')``
         """
-        self.xl_chart.Chart.SetSourceData(source.xl_range)
+        xlplatform.set_source_data_chart(self.xl_chart, source.xl_range)
 
     def __repr__(self):
         return "<xlwings.Chart '{0}'>".format(self.name)
