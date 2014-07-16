@@ -567,21 +567,22 @@ class Range(object):
             Range('A1').horizontal.clear_contents()
 
         """
-        # A single cell is a special case as End(xlDown) jumps over adjacent empty cells
-        if self.xl_sheet.Cells(self.row1, self.col1 + 1).Value in [None, ""]:
+        # A single cell is a special case as End(xlToRight) jumps over adjacent empty cells
+        if xlplatform.get_value_from_index(self.xl_sheet, self.row1, self.col1 + 1) in [None, ""]:
             col2 = self.col1
         else:
-            col2 = self.xl_sheet.Cells(self.row1, self.col1).End(Direction.xlToRight).Column
+            col2 = xlplatform.get_column_index_end_right(self.xl_sheet, self.row1, self.col1)
 
         # Strict: stops at cells that contain a formula but show an empty value
         if self.strict:
             col2 = self.col1
-            while self.xl_sheet.Cells(self.row1, col2 + 1).Value not in [None, ""]:
+            while xlplatform.get_value_from_index(self.xl_sheet, self.row1, col2 + 1) not in [None, ""]:
                 col2 += 1
 
         row2 = self.row2
 
-        return Range(self.xl_sheet.Name, (self.row1, self.col1), (row2, col2), **self.kwargs)
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet),
+                     (self.row1, self.col1), (row2, col2), **self.kwargs)
 
     @property
     def current_region(self):

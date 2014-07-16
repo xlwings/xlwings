@@ -123,8 +123,8 @@ def get_value_from_range(xl_range):
     return xl_range.value.get()
 
 
-def get_value_from_index(xl_sheet, row_index, col_index):
-    return xl_sheet.columns[col_index].rows[row_index].value.get()
+def get_value_from_index(xl_sheet, row_index, column_index):
+    return xl_sheet.columns[column_index].rows[row_index].value.get()
 
 
 def clean_xl_data(data):
@@ -159,5 +159,11 @@ def set_formula(xl_range, value):
     xl_range.formula.set(value)
 
 
-def get_row_index_end_down(xl_sheet, row_index, col_index):
-    return xl_sheet.columns[col_index].rows[row_index].get_end(direction=kw.toward_the_bottom).first_row_index.get()
+def get_row_index_end_down(xl_sheet, row_index, column_index):
+    ix = xl_sheet.columns[column_index].rows[row_index].get_end(direction=kw.toward_the_bottom).first_row_index.get()
+    return ix
+
+
+def get_column_index_end_right(xl_sheet, row_index, column_index):
+    ix = xl_sheet.columns[column_index].rows[row_index].get_end(direction=kw.toward_the_right).first_column_index.get()
+    return ix

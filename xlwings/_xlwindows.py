@@ -110,8 +110,8 @@ def get_value_from_range(xl_range):
     return xl_range.Value
 
 
-def get_value_from_index(xl_sheet, row_index, col_index):
-    return xl_sheet.Cells(row_index, col_index).Value
+def get_value_from_index(xl_sheet, row_index, column_index):
+    return xl_sheet.Cells(row_index, column_index).Value
 
 
 def set_value(xl_range, data):
@@ -231,5 +231,9 @@ def set_formula(xl_range, value):
     xl_range.Formula = value
 
 
-def get_row_index_end_down(xl_sheet, row_index, col_index):
-    return xl_sheet.Cells(row_index, col_index).End(Direction.xlDown).Row
+def get_row_index_end_down(xl_sheet, row_index, column_index):
+    return xl_sheet.Cells(row_index, column_index).End(Direction.xlDown).Row
+
+
+def get_column_index_end_right(xl_sheet, row_index, column_index):
+    return xl_sheet.Cells(row_index, column_index).End(Direction.xlToRight).Column
