@@ -237,3 +237,7 @@ def get_row_index_end_down(xl_sheet, row_index, column_index):
 
 def get_column_index_end_right(xl_sheet, row_index, column_index):
     return xl_sheet.Cells(row_index, column_index).End(Direction.xlToRight).Column
+
+
+def get_current_region_address(xl_sheet, row_index, column_index):
+    return str(xl_sheet.Cells(row_index, column_index).CurrentRegion.Address)

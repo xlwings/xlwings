@@ -596,8 +596,8 @@ class Range(object):
             xlwings Range object
 
         """
-        address = str(self.xl_sheet.Cells(self.row1, self.col1).CurrentRegion.Address)
-        return Range(self.xl_sheet.Name, address, **self.kwargs)
+        address = xlplatform.get_current_region_address(self.xl_sheet, self.row1, self.col1)
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet), address, **self.kwargs)
 
     def clear(self):
         """
