@@ -204,3 +204,11 @@ def _datetime_to_com_time(dt_time):
 
 def get_selection_address(xl_app):
     return str(xl_app.Selection.Address)
+
+
+def clear_contents(xl_workbook, sheet):
+    xl_workbook.Sheets(sheet).Cells.ClearContents()
+
+
+def clear(xl_workbook, sheet):
+    xl_workbook.Sheets(sheet).Cells.Clear()

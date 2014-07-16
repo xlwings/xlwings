@@ -175,7 +175,7 @@ class Workbook(object):
         if sheet is None:
             sheet = self.active_sheet.index
 
-        self.xl_workbook.Sheets(sheet).Cells.ClearContents()
+        xlplatform.clear_contents(self.xl_workbook, sheet)
 
     def clear(self, sheet=None):
         """
@@ -189,7 +189,7 @@ class Workbook(object):
         if sheet is None:
             sheet = self.active_sheet.index
 
-        self.xl_workbook.Sheets(sheet).Cells.Clear()
+        xlplatform.clear(self.xl_workbook, sheet)
 
     def close(self):
         """Closes the Workbook without saving it"""

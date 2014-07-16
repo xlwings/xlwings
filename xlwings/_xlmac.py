@@ -134,3 +134,10 @@ def set_value(xl_range, data):
 def get_selection_address(xl_app):
     return str(xl_app.selection.get_address())
 
+
+def clear_contents(xl_workbook, sheet):
+    xl_workbook.sheets[sheet].used_range.clear_contents()
+
+
+def clear(xl_workbook, sheet):
+    xl_workbook.sheets[sheet].used_range.clear_range()
