@@ -215,12 +215,20 @@ def get_selection_address(xl_app):
     return str(xl_app.Selection.Address)
 
 
-def clear_contents(xl_workbook, sheet):
+def clear_contents_worksheet(xl_workbook, sheet):
     xl_workbook.Sheets(sheet).Cells.ClearContents()
 
 
-def clear(xl_workbook, sheet):
+def clear_worksheet(xl_workbook, sheet):
     xl_workbook.Sheets(sheet).Cells.Clear()
+
+
+def clear_contents_range(xl_range):
+    xl_range.ClearContents()
+
+
+def clear_range(xl_range):
+    xl_range.Clear()
 
 
 def get_formula(xl_range):

@@ -143,12 +143,20 @@ def get_selection_address(xl_app):
     return str(xl_app.selection.get_address())
 
 
-def clear_contents(xl_workbook, sheet):
+def clear_contents_worksheet(xl_workbook, sheet):
     xl_workbook.sheets[sheet].used_range.clear_contents()
 
 
-def clear(xl_workbook, sheet):
+def clear_worksheet(xl_workbook, sheet):
     xl_workbook.sheets[sheet].used_range.clear_range()
+
+
+def clear_contents_range(xl_range):
+    xl_range.clear_contents()
+
+
+def clear_range(xl_range):
+    xl_range.clear_range()
 
 
 def get_formula(xl_range):

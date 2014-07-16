@@ -175,7 +175,7 @@ class Workbook(object):
         if sheet is None:
             sheet = self.active_sheet.index
 
-        xlplatform.clear_contents(self.xl_workbook, sheet)
+        xlplatform.clear_contents_worksheet(self.xl_workbook, sheet)
 
     def clear(self, sheet=None):
         """
@@ -189,7 +189,7 @@ class Workbook(object):
         if sheet is None:
             sheet = self.active_sheet.index
 
-        xlplatform.clear(self.xl_workbook, sheet)
+        xlplatform.clear_worksheet(self.xl_workbook, sheet)
 
     def close(self):
         """Closes the Workbook without saving it"""
@@ -603,13 +603,13 @@ class Range(object):
         """
         Clears the content and the formatting of a Range.
         """
-        self.xl_range.Clear()
+        xlplatform.clear_range(self.xl_range)
 
     def clear_contents(self):
         """
         Clears the content of a Range but leaves the formatting.
         """
-        self.xl_range.ClearContents()
+        xlplatform.clear_contents_range(self.xl_range)
 
     def __repr__(self):
         return "<xlwings.Range of Workbook '{0}'>".format(xlplatform.get_workbook_name(self.xl_workbook))
