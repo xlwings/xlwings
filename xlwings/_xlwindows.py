@@ -44,6 +44,10 @@ def get_workbook_name(xl_workbook):
     return xl_workbook.Name
 
 
+def get_worksheet_name(xl_sheet):
+    return xl_sheet.Name
+
+
 def get_workbook_index(xl_workbook):
     return xl_workbook.Index
 
