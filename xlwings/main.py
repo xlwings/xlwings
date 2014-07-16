@@ -465,11 +465,11 @@ class Range(object):
         """
         Gets or sets the formula for the given Range.
         """
-        return self.xl_range.Formula
+        return xlplatform.get_formula(self.xl_range)
 
     @formula.setter
     def formula(self, value):
-        self.xl_range.Formula = value
+        xlplatform.set_formula(self.xl_range, value)
 
     @property
     def table(self):

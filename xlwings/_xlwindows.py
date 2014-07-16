@@ -212,3 +212,11 @@ def clear_contents(xl_workbook, sheet):
 
 def clear(xl_workbook, sheet):
     xl_workbook.Sheets(sheet).Cells.Clear()
+
+
+def get_formula(xl_range):
+    return xl_range.Formula
+
+
+def set_formula(xl_range, value):
+    xl_range.Formula = value

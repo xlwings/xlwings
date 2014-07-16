@@ -141,3 +141,11 @@ def clear_contents(xl_workbook, sheet):
 
 def clear(xl_workbook, sheet):
     xl_workbook.sheets[sheet].used_range.clear_range()
+
+
+def get_formula(xl_range):
+    return xl_range.formula.get()
+
+
+def set_formula(xl_range, value):
+    xl_range.formula.set(value)
