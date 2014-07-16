@@ -305,7 +305,7 @@ class Range(object):
             self.xl_sheet = xlplatform.get_active_sheet(self.xl_workbook)
 
         # Get COM Range object
-        if cell_range:
+        if cell_range:  # TODO: refactor into range_address
             self.row1 = xlplatform.get_first_row(self.xl_sheet, cell_range)
             self.col1 = xlplatform.get_first_column(self.xl_sheet, cell_range)
             self.row2 = self.row1 + xlplatform.count_rows(self.xl_sheet, cell_range) - 1
@@ -363,17 +363,17 @@ class Range(object):
         # TODO: refactor
         if self.is_cell():
             # Clean_xl_data requires and returns a list of list
-            data = xlplatform.clean_xl_data([[xlplatform.get_value(self.xl_range)]])[0][0]
+            data = xlplatform.clean_xl_data([[xlplatform.get_value_from_range(self.xl_range)]])[0][0]
         elif self.is_row():
-            data = xlplatform.clean_xl_data(xlplatform.get_value(self.xl_range))
+            data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
             if not self.atleast_2d:
                 data = data[0]
         elif self.is_column():
-            data = xlplatform.clean_xl_data(xlplatform.get_value(self.xl_range))
+            data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
             if not self.atleast_2d:
                 data = [item for sublist in data for item in sublist]
         else:  # 2d Range, leave as list of list
-            data = xlplatform.clean_xl_data(xlplatform.get_value(self.xl_range))
+            data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
 
         # Return as NumPy Array
         if self.asarray:
@@ -495,10 +495,13 @@ class Range(object):
             Range('A1').table.clear_contents()
 
         """
-        row2 = Range(self.xl_sheet.Name, (self.row1, self.col1), **self.kwargs).vertical.row2
-        col2 = Range(self.xl_sheet.Name, (self.row1, self.col1), **self.kwargs).horizontal.col2
+        row2 = Range(xlplatform.get_worksheet_name(self.xl_sheet),
+                     (self.row1, self.col1), **self.kwargs).vertical.row2
+        col2 = Range(xlplatform.get_worksheet_name(self.xl_sheet),
+                     (self.row1, self.col1), **self.kwargs).horizontal.col2
 
-        return Range(self.xl_sheet.Name, (self.row1, self.col1), (row2, col2), **self.kwargs)
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet),
+                     (self.row1, self.col1), (row2, col2), **self.kwargs)
 
     @property
     def vertical(self):
@@ -525,20 +528,21 @@ class Range(object):
 
         """
         # A single cell is a special case as End(xlDown) jumps over adjacent empty cells
-        if self.xl_sheet.Cells(self.row1 + 1, self.col1).Value in [None, ""]:
+        if xlplatform.get_value_from_index(self.xl_sheet, self.row1 + 1, self.col1) in [None, ""]:
             row2 = self.row1
         else:
-            row2 = self.xl_sheet.Cells(self.row1, self.col1).End(Direction.xlDown).Row
+            row2 = xlplatform.get_row_index_end_down(self.xl_sheet, self.row1, self.col1)
 
         # Strict stops at cells that contain a formula but show an empty value
         if self.strict:
             row2 = self.row1
-            while self.xl_sheet.Cells(row2 + 1, self.col1).Value not in [None, ""]:
+            while xlplatform.get_value_from_index(self.xl_sheet, row2 + 1, self.col1) not in [None, ""]:
                 row2 += 1
 
         col2 = self.col2
 
-        return Range(self.xl_sheet.Name, (self.row1, self.col1), (row2, col2), **self.kwargs)
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet),
+                     (self.row1, self.col1), (row2, col2), **self.kwargs)
 
     @property
     def horizontal(self):

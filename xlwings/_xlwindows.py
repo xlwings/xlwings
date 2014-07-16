@@ -4,6 +4,7 @@ import pywintypes
 import pythoncom
 from win32com.client import GetObject, dynamic
 import win32timezone
+from .constants import Direction
 
 # Optional imports
 try:
@@ -101,8 +102,12 @@ def get_range_from_indices(xl_sheet, first_row, first_column, last_row, last_col
                           xl_sheet.Cells(last_row, last_column))
 
 
-def get_value(xl_range):
+def get_value_from_range(xl_range):
     return xl_range.Value
+
+
+def get_value_from_index(xl_sheet, row_index, col_index):
+    return xl_sheet.Cells(row_index, col_index).Value
 
 
 def set_value(xl_range, data):
@@ -220,3 +225,7 @@ def get_formula(xl_range):
 
 def set_formula(xl_range, value):
     xl_range.Formula = value
+
+
+def get_row_index_end_down(xl_sheet, row_index, col_index):
+    return xl_sheet.Cells(row_index, col_index).End(Direction.xlDown).Row

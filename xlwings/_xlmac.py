@@ -45,6 +45,10 @@ def get_workbook_name(xl_workbook):
     return xl_workbook.name.get()
 
 
+def get_worksheet_name(xl_sheet):
+    return xl_sheet.name.get()
+
+
 def get_workbook_index(xl_workbook):
     return xl_workbook.entry_index.get()
 
@@ -115,8 +119,12 @@ def get_range_from_indices(xl_sheet, first_row, first_column, last_row, last_col
     return xl_sheet.cells['{0}:{1}'.format(first_address, last_address)]
 
 
-def get_value(xl_range):
+def get_value_from_range(xl_range):
     return xl_range.value.get()
+
+
+def get_value_from_index(xl_sheet, row_index, col_index):
+    return xl_sheet.columns[col_index].rows[row_index].value.get()
 
 
 def clean_xl_data(data):
@@ -149,3 +157,7 @@ def get_formula(xl_range):
 
 def set_formula(xl_range, value):
     xl_range.formula.set(value)
+
+
+def get_row_index_end_down(xl_sheet, row_index, col_index):
+    return xl_sheet.columns[col_index].rows[row_index].get_end(direction=kw.toward_the_bottom).first_row_index.get()
