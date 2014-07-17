@@ -98,8 +98,7 @@ class Workbook(object):
 
         Returns
         -------
-        Range
-            xlwings Range object
+        xlwings Range object
         """
         return self.range(xlplatform.get_selection_address(self.xl_app), asarray=asarray)
 
@@ -138,7 +137,7 @@ class Workbook(object):
 
     def chart(self, *args, **kwargs):
         """
-        The chart method gives access to the Chart object and can be called with the following arguments::
+        The chart method gives access to the chart object and can be called with the following arguments::
 
             chart(1)            chart('Sheet1', 1)              chart(1, 1)
             chart('Chart 1')    chart('Sheet1', 'Chart 1')      chart(1, 'Chart 1')
@@ -153,13 +152,13 @@ class Workbook(object):
         Parameters
         ----------
         *args :
-            Definition of Sheet (optional) and Chart in the above described combinations.
+            Definition of sheet (optional) and chart in the above described combinations.
         """
         return Chart(*args, workbook=self.xl_workbook, **kwargs)
 
     def clear_contents(self, sheet=None):
         """
-        Clears the content of a whole Sheet but leaves the formatting.
+        Clears the content of a whole sheet but leaves the formatting.
 
         Parameters
         ----------
@@ -173,7 +172,7 @@ class Workbook(object):
 
     def clear(self, sheet=None):
         """
-        Clears the content and formatting of a whole Sheet.
+        Clears the content and formatting of a whole sheet.
 
         Parameters
         ----------
@@ -237,7 +236,7 @@ class Range(object):
     Parameters
     ----------
     *args :
-        Definition of Sheet (optional) and Range in the above described combinations.
+        Definition of sheet (optional) and Range in the above described combinations.
     asarray : boolean, default False
         Returns a NumPy array (atleast_1d) where empty cells are transformed into nan.
 
@@ -615,22 +614,22 @@ class Range(object):
 
 class Chart(object):
     """
-    A Chart object that represents an existing Excel chart can be created with the following arguments::
+    A chart object that represents an existing Excel chart can be created with the following arguments::
 
         Chart(1)            Chart('Sheet1', 1)              Chart(1, 1)
         Chart('Chart 1')    Chart('Sheet1', 'Chart 1')      Chart(1, 'Chart 1')
 
     If no worksheet name is provided as first argument (as name or index),
-    it will take the Chart from the active sheet.
+    it will take the chart from the active sheet.
 
-    To insert a new Chart into Excel, create it as follows::
+    To insert a new chart into Excel, create it as follows::
 
-        Chart.add()
+        Chart().add()
 
     Parameters
     ----------
     *args
-        Definition of Sheet (optional) and Chart in the above described combinations.
+        Definition of sheet (optional) and chart in the above described combinations.
 
     chart_type : Member of ChartType, default xlColumnClustered
         Chart type, can also be set using the ``chart_type`` property
@@ -668,7 +667,7 @@ class Chart(object):
 
     def add(self, sheet=None, left=168, top=217, width=355, height=211, **kwargs):
         """
-        Inserts a new Chart in Excel.
+        Inserts a new chart in Excel.
 
         Arguments
         ---------
@@ -716,7 +715,7 @@ class Chart(object):
     @property
     def name(self):
         """
-        Gets and sets the name of a Chart
+        Gets and sets the name of a chart
         """
         return xlplatform.get_chart_name(self.xl_chart)
 
@@ -727,7 +726,7 @@ class Chart(object):
     @property
     def chart_type(self):
         """
-        Gets and sets the chart type of a Chart
+        Gets and sets the chart type of a chart
         """
         return xlplatform.get_chart_type(self.xl_chart)
 
