@@ -1,5 +1,5 @@
 import datetime as dt
-import win32api
+import win32api  # needed as first import to find all dlls
 import pywintypes
 import pythoncom
 from win32com.client import GetObject, dynamic
@@ -48,8 +48,8 @@ def get_worksheet_name(xl_sheet):
     return xl_sheet.Name
 
 
-def get_workbook_index(xl_workbook):
-    return xl_workbook.Index
+def get_worksheet_index(xl_sheet):
+    return xl_sheet.Index
 
 
 def open_xl_workbook(fullname):

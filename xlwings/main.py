@@ -214,7 +214,7 @@ class ActiveSheet(object):
 
     @property
     def index(self):
-        return xlplatform.get_workbook_index(self.xl_active_sheet)
+        return xlplatform.get_worksheet_index(self.xl_active_sheet)
 
 
 class Range(object):
@@ -667,7 +667,8 @@ class Chart(object):
         if source_data:
             self.set_source_data(source_data)
 
-    def add(self, sheet=None, left=168, top=217, width=355, height=211, **kwargs):
+    @staticmethod
+    def add(sheet=None, left=168, top=217, width=355, height=211, **kwargs):
         """
         Inserts a new Chart in Excel.
 
@@ -698,21 +699,22 @@ class Chart(object):
             e.g. Range('A1').table
 
         """
+        xl_workbook = kwargs.get('workbook', xl_workbook_latest)
         chart_type = kwargs.get('chart_type', ChartType.xlColumnClustered)
         name = kwargs.get('name')
         source_data = kwargs.get('source_data')
 
         if sheet is None:
-            sheet = xlplatform.get_worksheet_name(xlplatform.get_active_sheet(self.xl_workbook))
+            sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
 
-        xl_chart = xlplatform.add_chart(self.xl_workbook, sheet, left, top, width, height)
+        xl_chart = xlplatform.add_chart(xl_workbook, sheet, left, top, width, height)
 
         if name:
             xlplatform.set_chart_name(xl_chart, name)
         else:
             name = xlplatform.get_chart_name(xl_chart)
 
-        return Chart(sheet, name, workbook=self.xl_workbook, chart_type=chart_type, source_data=source_data)
+        return Chart(sheet, name, workbook=xl_workbook, chart_type=chart_type, source_data=source_data)
 
     @property
     def name(self):

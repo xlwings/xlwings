@@ -49,13 +49,14 @@ def get_worksheet_name(xl_sheet):
     return xl_sheet.name.get()
 
 
-def get_workbook_index(xl_workbook):
-    return xl_workbook.entry_index.get()
+def get_worksheet_index(xl_sheet):
+    return xl_sheet.entry_index.get()
 
 
 def open_xl_workbook(fullname):
     filename = os.path.basename(fullname)
     xl_app = app('Microsoft Excel')
+    xl_app.activate()
     xl_app.open(fullname)
     xl_workbook = xl_app.workbooks[filename]
     return xl_app, xl_workbook
@@ -194,9 +195,14 @@ def get_chart_name(xl_chart):
 
 
 def add_chart(xl_workbook, sheet, left, top, width, height):
-    return xl_workbook.make(at=xl_workbook.sheets[sheet],
+    # with the sheet name directly it won't find the chart later
+    sheet_index = xl_workbook.sheets[sheet].entry_index.get()
+    return xl_workbook.make(at=xl_workbook.sheets[sheet_index],
                             new=kw.chart_object,
-                            with_properties={kw.width: width, kw.top: top, kw.left_position: left, kw.height: height})
+                            with_properties={kw.width: width,
+                                             kw.top: top,
+                                             kw.left_position: left,
+                                             kw.height: height})
 
 
 def set_chart_name(xl_chart, name):
