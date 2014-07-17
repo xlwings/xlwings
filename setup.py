@@ -7,7 +7,7 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as f:
     readme = f.read()
 
 # Version Number
-with open(os.path.join(os.path.dirname(__file__), 'xlwings', 'main.py')) as f:
+with open(os.path.join(os.path.dirname(__file__), 'xlwings', '__init__.py')) as f:
     version = re.compile(r".*__version__ = '(.*?)'", re.S).match(f.read()).group(1)
 
 setup(
@@ -26,6 +26,7 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Operating System :: Microsoft :: Windows',
+        'Operating System :: MacOS :: MacOS X',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.6',
