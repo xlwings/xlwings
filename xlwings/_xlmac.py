@@ -18,8 +18,7 @@ def is_file_open(fullname):
             for i in proc.get_open_files():
                 if i.path.lower() == fullname.lower():
                     return True
-            else:
-                return False
+    return False
 
 
 def is_excel_running():
@@ -29,7 +28,7 @@ def is_excel_running():
     return False
 
 
-def get_xl_workbook(fullname):
+def get_workbook(fullname):
     """
     Get the appscript Workbook object.
     On Mac, it seems that we don't have to deal with >1 instances of Excel,
@@ -53,7 +52,7 @@ def get_worksheet_index(xl_sheet):
     return xl_sheet.entry_index.get()
 
 
-def open_xl_workbook(fullname):
+def open_workbook(fullname):
     filename = os.path.basename(fullname)
     xl_app = app('Microsoft Excel')
     xl_app.activate()
@@ -66,19 +65,14 @@ def close_workbook(xl_workbook):
     xl_workbook.close(saving=kw.no)
 
 
-def new_xl_workbook():
-    """
-
-    """
-    is_running = is_excel_running()
-
+def new_workbook():
     xl_app = app('Microsoft Excel')
     xl_app.activate()
 
-    if is_running:
+    if is_excel_running():
         # If Excel is being fired up, a "Workbook1" is automatically added
-        # If its already running, we create an new one that is called "Sheet1".
-        # That's a feature: See p.14 on Excel 2004 AppleScript Reference
+        # If its already running, we create an new one that is unfortunately called "Sheet1", but
+        # it's a feature: See p.14 on Excel 2004 AppleScript Reference
         xl_workbook = xl_app.make(new=kw.workbook)
     else:
         xl_workbook = xl_app.active_workbook
@@ -90,28 +84,28 @@ def get_active_sheet(xl_workbook):
     return xl_workbook.active_sheet
 
 
-def activate_sheet(xl_workbook, sheet):
-    return xl_workbook.sheets[sheet].activate_object()
+def activate_sheet(xl_workbook, sheet_name_or_index):
+    return xl_workbook.sheets[sheet_name_or_index].activate_object()
 
 
-def get_worksheet(xl_workbook, sheet):
-    return xl_workbook.sheets[sheet]
+def get_worksheet(xl_workbook, sheet_name_or_index):
+    return xl_workbook.sheets[sheet_name_or_index]
 
 
-def get_first_row(xl_sheet, cell_range):
-    return xl_sheet.cells[cell_range].first_row_index.get()
+def get_first_row(xl_sheet, range_address):
+    return xl_sheet.cells[range_address].first_row_index.get()
 
 
-def get_first_column(xl_sheet, cell_range):
-    return xl_sheet.cells[cell_range].first_column_index.get()
+def get_first_column(xl_sheet, range_address):
+    return xl_sheet.cells[range_address].first_column_index.get()
 
 
-def count_rows(xl_sheet, cell_range):
-    return xl_sheet.cells[cell_range].count(each=kw.row)
+def count_rows(xl_sheet, range_address):
+    return xl_sheet.cells[range_address].count(each=kw.row)
 
 
-def count_columns(xl_sheet, cell_range):
-    return xl_sheet.cells[cell_range].count(each=kw.column)
+def count_columns(xl_sheet, range_address):
+    return xl_sheet.cells[range_address].count(each=kw.column)
 
 
 def get_range_from_indices(xl_sheet, first_row, first_column, last_row, last_column):
@@ -129,6 +123,9 @@ def get_value_from_index(xl_sheet, row_index, column_index):
 
 
 def clean_xl_data(data):
+    """
+    appscript returns empty cells as ''. So we replace those with None to be in line with pywin32
+    """
     return [[None if c == '' else c for c in row] for row in data]
 
 
@@ -144,12 +141,12 @@ def get_selection_address(xl_app):
     return str(xl_app.selection.get_address())
 
 
-def clear_contents_worksheet(xl_workbook, sheet):
-    xl_workbook.sheets[sheet].used_range.clear_contents()
+def clear_contents_worksheet(xl_workbook, sheets_name_or_index):
+    xl_workbook.sheets[sheets_name_or_index].used_range.clear_contents()
 
 
-def clear_worksheet(xl_workbook, sheet):
-    xl_workbook.sheets[sheet].used_range.clear_range()
+def clear_worksheet(xl_workbook, sheet_name_or_index):
+    xl_workbook.sheets[sheet_name_or_index].used_range.clear_range()
 
 
 def clear_contents_range(xl_range):
@@ -182,8 +179,8 @@ def get_current_region_address(xl_sheet, row_index, column_index):
     return str(xl_sheet.columns[column_index].rows[row_index].current_region.get_address())
 
 
-def get_chart_object(xl_workbook, sheet, name_or_index):
-    return xl_workbook.sheets[sheet].chart_objects[name_or_index]
+def get_chart_object(xl_workbook, sheet_name_or_index, chart_name_or_index):
+    return xl_workbook.sheets[sheet_name_or_index].chart_objects[chart_name_or_index]
 
 
 def get_chart_index(xl_chart):
@@ -194,9 +191,9 @@ def get_chart_name(xl_chart):
     return xl_chart.name.get()
 
 
-def add_chart(xl_workbook, sheet, left, top, width, height):
-    # with the sheet name directly it won't find the chart later
-    sheet_index = xl_workbook.sheets[sheet].entry_index.get()
+def add_chart(xl_workbook, sheet_name_or_index, left, top, width, height):
+    # With the sheet name it won't find the chart later, so we go with the index (no idea why)
+    sheet_index = xl_workbook.sheets[sheet_name_or_index].entry_index.get()
     return xl_workbook.make(at=xl_workbook.sheets[sheet_index],
                             new=kw.chart_object,
                             with_properties={kw.width: width,

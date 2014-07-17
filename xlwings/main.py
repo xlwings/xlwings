@@ -12,7 +12,7 @@ License: BSD 3-clause (see LICENSE.txt for details)
 import sys
 import numbers
 from . import PY3, xlplatform
-from .constants import Direction, ChartType
+from .constants import ChartType
 
 # Optional imports
 try:
@@ -51,29 +51,23 @@ class Workbook(object):
     fullname : string, default None
         If you want to connect to an existing Excel file from Python, use the fullname, e.g:
         ``r'C:\\path\\to\\file.xlsx'``
-
-    Returns
-    -------
-    Workbook
-        xlwings Workbook object
-
     """
     def __init__(self, fullname=None):
         if fullname:
             self.fullname = fullname.lower()
             if xlplatform.is_file_open(self.fullname):
                 # Connect to an open Workbook
-                self.xl_app, self.xl_workbook = xlplatform.get_xl_workbook(self.fullname)
+                self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname)
             else:
                 # Open Excel and the Workbook
-                self.xl_app, self.xl_workbook = xlplatform.open_xl_workbook(self.fullname)
+                self.xl_app, self.xl_workbook = xlplatform.open_workbook(self.fullname)
         elif len(sys.argv) >= 2 and sys.argv[2] == 'from_xl':
             # Connect to the workbook from which this code has been invoked
             self.fullname = sys.argv[1].lower()
-            self.xl_app, self.xl_workbook = xlplatform.get_xl_workbook(self.fullname)
+            self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname)
         else:
             # Open Excel if necessary and create a new workbook
-            self.xl_app, self.xl_workbook = xlplatform.new_xl_workbook()
+            self.xl_app, self.xl_workbook = xlplatform.new_workbook()
 
         self.name = xlplatform.get_workbook_name(self.xl_workbook)
         self.active_sheet = ActiveSheet(xl_workbook=self.xl_workbook)
@@ -201,7 +195,15 @@ class Workbook(object):
 
 class ActiveSheet(object):
     """
+    Returns an object that represents the active sheet. Supposed to be used from the Workbook object like so::
 
+        wb = Workbook()
+        wb.active_sheet.name
+
+    Parameters
+    ----------
+    xl_workbook : pywin32 or appscript object
+        Underlying Workbook object
     """
     def __init__(self, xl_workbook=None):
         if xl_workbook is None:
@@ -251,11 +253,11 @@ class Range(object):
     def __init__(self, *args, **kwargs):
         # Arguments
         if len(args) == 1 and isinstance(args[0], string_types):
-            sheet = None
-            cell_range = args[0]
+            sheet_name_or_index = None
+            range_address = args[0]
         elif len(args) == 1 and isinstance(args[0], tuple):
-            sheet = None
-            cell_range = None
+            sheet_name_or_index = None
+            range_address = None
             self.row1 = args[0][0]
             self.col1 = args[0][1]
             self.row2 = self.row1
@@ -263,27 +265,27 @@ class Range(object):
         elif (len(args) == 2
               and isinstance(args[0], (numbers.Number, string_types))
               and isinstance(args[1], string_types)):
-            sheet = args[0]
-            cell_range = args[1]
+            sheet_name_or_index = args[0]
+            range_address = args[1]
         elif (len(args) == 2
               and isinstance(args[0], (numbers.Number, string_types))
               and isinstance(args[1], tuple)):
-            sheet = args[0]
-            cell_range = None
+            sheet_name_or_index = args[0]
+            range_address = None
             self.row1 = args[1][0]
             self.col1 = args[1][1]
             self.row2 = self.row1
             self.col2 = self.col1
         elif len(args) == 2 and isinstance(args[0], tuple):
-            sheet = None
-            cell_range = None
+            sheet_name_or_index = None
+            range_address = None
             self.row1 = args[0][0]
             self.col1 = args[0][1]
             self.row2 = args[1][0]
             self.col2 = args[1][1]
         elif len(args) == 3:
-            sheet = args[0]
-            cell_range = None
+            sheet_name_or_index = args[0]
+            range_address = None
             self.row1 = args[1][0]
             self.col1 = args[1][1]
             self.row2 = args[2][0]
@@ -299,17 +301,17 @@ class Range(object):
         self.xl_workbook = kwargs.get('workbook', xl_workbook_latest)
 
         # Get sheet
-        if sheet:
-            self.xl_sheet = xlplatform.get_worksheet(self.xl_workbook, sheet)
+        if sheet_name_or_index:
+            self.xl_sheet = xlplatform.get_worksheet(self.xl_workbook, sheet_name_or_index)
         else:
             self.xl_sheet = xlplatform.get_active_sheet(self.xl_workbook)
 
-        # Get COM Range object
-        if cell_range:  # TODO: refactor into range_address
-            self.row1 = xlplatform.get_first_row(self.xl_sheet, cell_range)
-            self.col1 = xlplatform.get_first_column(self.xl_sheet, cell_range)
-            self.row2 = self.row1 + xlplatform.count_rows(self.xl_sheet, cell_range) - 1
-            self.col2 = self.col1 + xlplatform.count_columns(self.xl_sheet, cell_range) - 1
+        # Get xl_range object
+        if range_address:
+            self.row1 = xlplatform.get_first_row(self.xl_sheet, range_address)
+            self.col1 = xlplatform.get_first_column(self.xl_sheet, range_address)
+            self.row2 = self.row1 + xlplatform.count_rows(self.xl_sheet, range_address) - 1
+            self.col2 = self.col1 + xlplatform.count_columns(self.xl_sheet, range_address) - 1
 
         self.xl_range = xlplatform.get_range_from_indices(self.xl_sheet, self.row1, self.col1, self.row2, self.col2)
 
@@ -352,11 +354,11 @@ class Range(object):
     @property
     def value(self):
         """
-        Gets or sets the values for the given Range.
+        Gets and sets the values for the given Range.
 
         Returns
         -------
-        list
+        list or numpy array
             Empty cells are set to None. If ``asarray=True``,
             a numpy array is returned where empty cells are set to nan.
         """
@@ -397,10 +399,10 @@ class Range(object):
 
             if self.header:
                 if isinstance(data.columns, pd.MultiIndex):
+                    # Ensure dtype=object because otherwise it may get assigned a string type which sometimes makes
+                    # vstacking return a string array. This would cause values to be truncated and we can't easily
+                    # transform np.nan in string form.
                     # Python 3 requires zip wrapped in list
-                    # Ensure dtype=object because otherwise it may get assigned a string type which transforms the
-                    # values during vstacking into strings, too: Values might be truncated and we can't easily
-                    # transform np.nan anymore.
                     columns = np.array(list(zip(*data.columns.tolist())), dtype=object)
                 else:
                     columns = np.empty((data.columns.shape[0],), dtype=object)
@@ -484,8 +486,7 @@ class Range(object):
 
         Returns
         -------
-        Range
-            xlwings Range object
+        xlwings Range object
 
         Examples
         --------
@@ -516,8 +517,7 @@ class Range(object):
 
         Returns
         -------
-        Range
-            xlwings Range object
+        xlwings Range object
 
         Examples
         --------
@@ -556,8 +556,7 @@ class Range(object):
 
         Returns
         -------
-        Range
-            xlwings Range object
+        xlwings Range object
 
         Examples
         --------
@@ -592,8 +591,7 @@ class Range(object):
 
         Returns
         -------
-        Range
-            xlwings Range object
+        xlwings Range object
 
         """
         address = xlplatform.get_current_region_address(self.xl_sheet, self.row1, self.col1)
@@ -625,17 +623,17 @@ class Chart(object):
     If no worksheet name is provided as first argument (as name or index),
     it will take the Chart from the active sheet.
 
-    To insert a new Chart into Excel, create it as follows:
+    To insert a new Chart into Excel, create it as follows::
 
-        Chart().add()
+        Chart.add()
 
     Parameters
     ----------
-    *args :
+    *args
         Definition of Sheet (optional) and Chart in the above described combinations.
 
     chart_type : Member of ChartType, default xlColumnClustered
-        Chart type, can also be set later using the chart_type property
+        Chart type, can also be set using the ``chart_type`` property
 
     """
     def __init__(self, *args, **kwargs):
@@ -647,15 +645,16 @@ class Chart(object):
             pass
         elif len(args) > 0:
             if len(args) == 1:
-                sheet = xlplatform.get_worksheet_name(xlplatform.get_active_sheet(self.xl_workbook))
-                name_or_index = args[0]
+                _sheet_name_or_index = xlplatform.get_worksheet_name(xlplatform.get_active_sheet(self.xl_workbook))
+                _name_or_index = args[0]
             elif len(args) == 2:
-                sheet = args[0]
-                name_or_index = args[1]
+                _sheet_name_or_index = args[0]
+                _name_or_index = args[1]
 
             # Get xl_chart object
-            self.xl_chart = xlplatform.get_chart_object(self.xl_workbook, sheet, name_or_index)
+            self.xl_chart = xlplatform.get_chart_object(self.xl_workbook, _sheet_name_or_index, _name_or_index)
             self.index = xlplatform.get_chart_index(self.xl_chart)
+            self.name = xlplatform.get_chart_name(self.xl_chart)
 
         # Chart Type
         chart_type = kwargs.get('chart_type')

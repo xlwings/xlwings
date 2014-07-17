@@ -1,15 +1,3 @@
-"""
-xlwings - Make Excel fly!
-
-Homepage and documentation: http://xlwings.org
-See also: http://zoomeranalytics.com
-
-Copyright (C) 2014, Zoomer Analytics LLC.
-All rights reserved.
-
-License: BSD 3-clause (see LICENSE.txt for details)
-"""
-
 # Excel constants: We can't use 'from win32com.client import constants' as we're dynamically dispatching
 
 class AboveBelow:

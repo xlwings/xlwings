@@ -22,7 +22,7 @@ def is_file_open(fullname):
     """
     Checks the Running Object Table (ROT) for the fully qualified filename
     """
-    context = pythoncom.CreateBindCtx(0)
+    context = pythoncom.CreateBindCtx()
     for moniker in pythoncom.GetRunningObjectTable():
         name = moniker.GetDisplayName(context, None)
         if name.lower() == fullname.lower():
@@ -30,7 +30,7 @@ def is_file_open(fullname):
     return False
 
 
-def get_xl_workbook(fullname):
+def get_workbook(fullname):
     """
     Returns the COM Application and Workbook objects of an open Workbook.
     GetObject() returns the correct Excel instance if there are > 1
@@ -52,10 +52,7 @@ def get_worksheet_index(xl_sheet):
     return xl_sheet.Index
 
 
-def open_xl_workbook(fullname):
-    """
-
-    """
+def open_workbook(fullname):
     xl_app = dynamic.Dispatch('Excel.Application')
     xl_workbook = xl_app.Workbooks.Open(fullname)
     xl_app.Visible = True
@@ -66,7 +63,7 @@ def close_workbook(xl_workbook):
     xl_workbook.Close(SaveChanges=False)
 
 
-def new_xl_workbook():
+def new_workbook():
     xl_app = dynamic.Dispatch('Excel.Application')
     xl_app.Visible = True
     xl_workbook = xl_app.Workbooks.Add()
@@ -85,20 +82,20 @@ def get_worksheet(xl_workbook, sheet):
     return xl_workbook.Sheets(sheet)
 
 
-def get_first_row(xl_sheet, cell_range):
-    return xl_sheet.Range(cell_range).Row
+def get_first_row(xl_sheet, range_address):
+    return xl_sheet.Range(range_address).Row
 
 
-def get_first_column(xl_sheet, cell_range):
-    return xl_sheet.Range(cell_range).Column
+def get_first_column(xl_sheet, range_address):
+    return xl_sheet.Range(range_address).Column
 
 
-def count_rows(xl_sheet, cell_range):
-    return xl_sheet.Range(cell_range).Rows.Count
+def count_rows(xl_sheet, range_address):
+    return xl_sheet.Range(range_address).Rows.Count
 
 
-def count_columns(xl_sheet, cell_range):
-    return xl_sheet.Range(cell_range).Columns.Count
+def count_columns(xl_sheet, range_address):
+    return xl_sheet.Range(range_address).Columns.Count
 
 
 def get_range_from_indices(xl_sheet, first_row, first_column, last_row, last_column):
@@ -130,13 +127,11 @@ def clean_xl_data(data):
 
     Returns
     -------
-    list
-        list of list with native Python datetime objects
+    list of list with native Python datetime objects
 
     """
-    # Turn into list of list (e.g. for Pandas DataFrame) and handle dates
+    # Turn into list of list (e.g. makes it easier to create Pandas DataFrame) and handle dates
     data = [[_com_time_to_datetime(c) if isinstance(c, time_types) else c for c in row] for row in data]
-
     return data
 
 
@@ -215,12 +210,12 @@ def get_selection_address(xl_app):
     return str(xl_app.Selection.Address)
 
 
-def clear_contents_worksheet(xl_workbook, sheet):
-    xl_workbook.Sheets(sheet).Cells.ClearContents()
+def clear_contents_worksheet(xl_workbook, sheet_name_or_index):
+    xl_workbook.Sheets(sheet_name_or_index).Cells.ClearContents()
 
 
-def clear_worksheet(xl_workbook, sheet):
-    xl_workbook.Sheets(sheet).Cells.Clear()
+def clear_worksheet(xl_workbook, sheet_name_or_index):
+    xl_workbook.Sheets(sheet_name_or_index).Cells.Clear()
 
 
 def clear_contents_range(xl_range):
@@ -251,8 +246,8 @@ def get_current_region_address(xl_sheet, row_index, column_index):
     return str(xl_sheet.Cells(row_index, column_index).CurrentRegion.Address)
 
 
-def get_chart_object(xl_workbook, sheet, name_or_index):
-    return xl_workbook.Sheets(sheet).ChartObjects(name_or_index)
+def get_chart_object(xl_workbook, sheet_name_or_index, chart_name_or_index):
+    return xl_workbook.Sheets(sheet_name_or_index).ChartObjects(chart_name_or_index)
 
 
 def get_chart_index(xl_chart):
@@ -263,8 +258,8 @@ def get_chart_name(xl_chart):
     return xl_chart.Name
 
 
-def add_chart(xl_workbook, sheet, left, top, width, height):
-    return xl_workbook.Sheets(sheet).ChartObjects().Add(left, top, width, height)
+def add_chart(xl_workbook, sheet_name_or_index, left, top, width, height):
+    return xl_workbook.Sheets(sheet_name_or_index).ChartObjects().Add(left, top, width, height)
 
 
 def set_chart_name(xl_chart, name):
