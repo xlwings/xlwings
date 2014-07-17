@@ -68,13 +68,15 @@ def close_workbook(xl_workbook):
 
 
 def new_workbook():
+    is_running = is_excel_running()
+
     xl_app = app('Microsoft Excel')
     xl_app.activate()
 
-    if is_excel_running():
+    if is_running:
         # If Excel is being fired up, a "Workbook1" is automatically added
-        # If its already running, we create an new one that is unfortunately called "Sheet1", but
-        # it's a feature: See p.14 on Excel 2004 AppleScript Reference
+        # If its already running, we create an new one that Excel unfortunately calls "Sheet1".
+        # It's a feature though: See p.14 on Excel 2004 AppleScript Reference
         xl_workbook = xl_app.make(new=kw.workbook)
     else:
         xl_workbook = xl_app.active_workbook
