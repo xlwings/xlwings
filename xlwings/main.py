@@ -738,8 +738,10 @@ class Chart(object):
         xlplatform.set_chart_type(self.xl_chart, value)
 
     def activate(self):
-        # TODO: cross-platform
-        self.xl_chart.Activate()
+        """
+        Makes the chart the active chart.
+        """
+        xlplatform.activate_chart(self.xl_chart)
 
     def set_source_data(self, source):
         """

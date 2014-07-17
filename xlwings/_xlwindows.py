@@ -1,3 +1,6 @@
+# TODO: create classes
+# TODO: align clean_xl_data and prepare_xl_data (should work on same dimensions of data)
+
 import datetime as dt
 import win32api  # needed as first import to find all dlls
 import pywintypes
@@ -276,3 +279,7 @@ def get_chart_type(xl_chart):
 
 def set_chart_type(xl_chart, chart_type):
     xl_chart.Chart.ChartType = chart_type
+
+
+def activate_chart(xl_chart):
+    xl_chart.Activate()

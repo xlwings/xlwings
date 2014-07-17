@@ -1,9 +1,11 @@
+# TODO: create classes
+# TODO: align clean_xl_data and prepare_xl_data (should work on same dimensions of data)
+
 import os
 import datetime as dt
 from appscript import app
 from appscript import k as kw
 import psutil
-
 
 # Time types
 time_types = (dt.date, dt.datetime)
@@ -216,3 +218,10 @@ def get_chart_type(xl_chart):
 
 def set_chart_type(xl_chart, chart_type):
     xl_chart.chart.chart_type.set(chart_type)
+
+
+def activate_chart(xl_chart):
+    """
+    activate() doesn't seem to do anything so resolving to select() for now
+    """
+    xl_chart.select()
