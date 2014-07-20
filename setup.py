@@ -1,4 +1,5 @@
 import os
+import sys
 import re
 from distutils.core import setup
 
@@ -9,6 +10,12 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as f:
 # Version Number
 with open(os.path.join(os.path.dirname(__file__), 'xlwings', '__init__.py')) as f:
     version = re.compile(r".*__version__ = '(.*?)'", re.S).match(f.read()).group(1)
+
+# Dependencies
+if sys.platform.startswith('win'):
+    install_requires = []  # pywin32 can't be installed (yet) with pip
+if sys.platform.startswith('darwin'):
+    install_requires = ['psutil', 'appscript']
 
 setup(
     name='xlwings',
@@ -23,6 +30,7 @@ setup(
     package_data={'xlwings': ['*.bas', 'tests/*.xlsx']},
     platforms='Operating System :: Microsoft :: Windows',
     keywords=['xls', 'excel', 'spreadsheet', 'workbook'],
+    install_requires=install_requires,
     classifiers=[
         'Development Status :: 4 - Beta',
         'Operating System :: Microsoft :: Windows',
