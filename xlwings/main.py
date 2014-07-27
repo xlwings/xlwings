@@ -75,6 +75,68 @@ class Workbook(object):
         # Make the most recently created Workbook the default when creating Range objects directly
         global xl_workbook_latest
         xl_workbook_latest = self.xl_workbook
+    
+    def add_worksheet(self,worksheet_name = ''):
+        if not worksheet_name.lower() in list(map(
+        lambda x:x.lower(),xlplatform.sheet_list(self.xl_workbook))):
+            xlplatform.new_worksheet(self.xl_workbook, worksheet_name)
+        else:
+            raise Exception("Sheetname '{}', with case ignored, is already in use."
+            .format(worksheet_name))
+    
+    def remove_sheet(self, sheetname):
+        if sheetname.lower() in list(map(
+        lambda x:x.lower(),xlplatform.sheet_list(self.xl_workbook))):
+            xlplatform.delete_worksheet(self.xl_workbook,sheetname)
+        else:
+            raise Exception("Sheetname '{}', with case ignored, does not exist."
+            .format(sheetname))
+
+        
+    def all_sheets(self):
+        return xlplatform.sheet_list(self.xl_workbook)
+        
+    
+    def auto_fit(self, sheetname = None):
+        if sheetname != None:
+            if not sheetname.lower() in list(map(
+            lambda x:x.lower(),xlplatform.sheet_list(self.xl_workbook))):        
+                raise Exception("Sheetname '{}', with case ignored, does not exist."
+            .format(sheetname))
+            else:
+                xlplatform.fit_columns(self.xl_workbook, sheetname)    
+        else:
+            xlplatform.fit_columns(self.xl_workbook, sheetname)
+            
+        
+    def hide_rows(self,rows, status = True):
+        """
+        Row values can be either int for single rows or string like '1:5' 
+        for multiple rows. Only works on active worksheet.
+        
+        In order to hide just pass row number, pass False to unhide
+        i.e. wb.hidden_rows(4) # Hide the given rows
+        i.e. wb.hidden_rows('5:10', False)  #Unhide given rows
+        """
+        return xlplatform.hiden_rows(self.xl_workbook, rows, status)
+        
+    def hide_columns(self, cols, status = True):
+        """
+        Columns values must be string like 'A' for single columns or 
+        'A:E' for multiple columns
+        
+        In order to hide just pass col name, pass False to unhide.
+        i.e. wb.hidden_columns('A') # Hide the given rows
+        i.e. wb.hidden_rows('A:E', False)  #Unhide given rows
+        
+        """
+        return xlplatform.hiden_columns(self.xl_workbook, cols, status)
+
+    def is_row_hidden(self, row):
+        return xlplatform.is_row_hidden(self.xl_workbook, row)
+        
+    def is_column_hidden(self, column):
+        return xlplatform.is_col_hidden(self.xl_workbook, column)
 
     def activate(self, sheet):
         """
@@ -101,6 +163,7 @@ class Workbook(object):
         xlwings Range object
         """
         return self.range(xlplatform.get_selection_address(self.xl_app), asarray=asarray)
+    
 
     def range(self, *args, **kwargs):
         """
@@ -134,6 +197,8 @@ class Workbook(object):
             xlwings Range object
         """
         return Range(*args, workbook=self.xl_workbook, **kwargs)
+        
+            
 
     def chart(self, *args, **kwargs):
         """
@@ -349,6 +414,8 @@ class Range(object):
             return True
         else:
             return False
+    
+       
 
     @property
     def value(self):
@@ -595,6 +662,35 @@ class Range(object):
         """
         address = xlplatform.get_current_region_address(self.xl_sheet, self.row1, self.col1)
         return Range(xlplatform.get_worksheet_name(self.xl_sheet), address, **self.kwargs)
+           
+    def offset(self,row,col):
+        """wb:workbook, cell:"A1", row: offset row, col: offset col"""
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet),
+                     (self.row1+row, self.col1+col))
+    @property                 
+    def color(self):
+        """
+        Sets and Gets color for given Range with either Excel Color Codes[1-56]
+        or simply write the name of the color.(check list below)
+        Available colors:   Black, White, Red, Bright Green, Blue, Yellow, 
+                            Pink, Turquoise, Dark Red, Green, Dark Blue, 
+                            Dark Yellow, Violet, Teal, Gray-25%, Gray-50%, 
+                            Periwinkle, Plum+, Ivory, Lite Turquoise, 
+                            Dark Purple, Coral, Ocean Blue, Ice Blue, 
+                            Dark Blue+, Pink+, Yellow+, Turquoise+, Violet+, 
+                            Dark Red+, Teal+, Blue+, Sky Blue, Light Turquoise, 
+                            Light Green, Light Yellow, Pale Blue, Rose, 
+                            Lavender, Tan, Light Blue, Aqua, Lime, Gold, 
+                            Light Orange, Orange, Blue-Gray, Gray-40%, 
+                            Dark Teal, Sea Green, Dark Green, Olive Green, 
+                            Brown, Plum, Indigo, Gray-80%      
+        """
+        return xlplatform.get_color(self.xl_range)
+
+    @color.setter
+    def color(self, color_name_or_number):
+        xlplatform.set_color(self.xl_range, color_name_or_number)
+        
 
     def clear(self):
         """

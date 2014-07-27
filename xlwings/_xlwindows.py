@@ -72,21 +72,58 @@ def new_workbook():
     xl_workbook = xl_app.Workbooks.Add()
     return xl_app, xl_workbook
 
+def new_worksheet(xl_workbook,worksheet_name):
+    sheet_count = xl_workbook.Worksheets.Count    
+    if worksheet_name == '':        
+        xl_sheet = xl_workbook.Worksheets.Add (After=xl_workbook.Worksheets(sheet_count))
+    else:
+        xl_sheet = xl_workbook.Worksheets.Add (After=xl_workbook.Worksheets(sheet_count))
+        xl_sheet.Name = worksheet_name
+    return xl_sheet
+
+def delete_worksheet(xl_workbook, sheetname):
+    xl_workbook.Application.DisplayAlerts = False    
+    xl_workbook.Sheets(sheetname).Delete()
+
+def fit_columns(xl_workbook, sheetname):
+    if sheetname == None:
+        xl_workbook.ActiveSheet.Columns.AutoFit()
+    else:    
+        xl_workbook.Sheets(sheetname).Columns.AutoFit()
+
 
 def get_active_sheet(xl_workbook):
     return xl_workbook.ActiveSheet
 
-
 def activate_sheet(xl_workbook, sheet):
     return xl_workbook.Sheets(sheet).Activate()
-
 
 def get_worksheet(xl_workbook, sheet):
     return xl_workbook.Sheets(sheet)
 
-
 def get_first_row(xl_sheet, range_address):
     return xl_sheet.Range(range_address).Row
+
+
+def sheet_list(xl_workbook):
+    z = []
+    sheet_count = xl_workbook.Worksheets.Count
+    for i in range(1,sheet_count+1):
+        z.append(xl_workbook.Worksheets(i).Name)
+    return z
+
+def hiden_rows(xl_workbook,rows, status):
+    xl_workbook.ActiveSheet.Rows(str(rows)).EntireRow.Hidden = status
+    
+def hiden_columns(xl_workbook, cols, status):
+    xl_workbook.ActiveSheet.Columns(str(cols)).EntireColumn.Hidden = status
+    
+def is_row_hidden(xl_workbook, row):
+    return xl_workbook.ActiveSheet.Rows(str(row)).EntireRow.Hidden
+    
+def is_col_hidden(xl_workbook, col):
+    return xl_workbook.ActiveSheet.Columns(str(col)).EntireColumn.Hidden
+    
 
 
 def get_first_column(xl_sheet, range_address):
@@ -227,7 +264,7 @@ def clear_contents_range(xl_range):
 
 def clear_range(xl_range):
     xl_range.Clear()
-
+    
 
 def get_formula(xl_range):
     return xl_range.Formula
@@ -283,3 +320,52 @@ def set_chart_type(xl_chart, chart_type):
 
 def activate_chart(xl_chart):
     xl_chart.Activate()
+    
+def set_color(xl_range,color_name_or_number):
+    all_colors = {'Light Orange': 45.0, 'Ivory': 19.0, 'Teal+': 31.0,
+                  'Teal': 14.0, 'Green': 10.0, 'Pale Blue': 37.0,
+                  'Ice Blue': 24.0, 'Gray-80%': 56.0, 'Aqua': 42.0,
+                  'Coral': 22.0, 'Dark Blue+': 25.0, 'Light Blue': 41.0,
+                  'Plum+': 18.0, 'Sea Green': 50.0, 'Ocean Blue': 23.0,
+                  'Dark Red+': 30.0, 'Violet+': 29.0, 'Brown': 53.0,
+                  'Dark Teal': 49.0, 'Gray-25%': 15.0, 'Sky Blue': 33.0,
+                  'Pink': 7.0, 'Light Yellow': 36.0, 'Periwinkle': 17.0,
+                  'Turquoise': 8.0, 'Yellow+': 27.0, 'Lite Turquoise': 20.0,
+                  'Red': 3.0, 'White': 2.0, 'Dark Green': 51.0, 'Orange': 46.0,
+                  'Dark Purple': 21.0, 'Dark Yellow': 12.0, 'Black': 1.0,
+                  'Light Turquoise': 34.0, 'Olive Green': 52.0, 'Rose': 38.0,
+                  'Blue': 5.0, 'Blue-Gray': 47.0, 'Lime': 43.0, 'Tan': 40.0,
+                  'Bright Green': 4.0, 'Light Green': 35.0, 'Violet': 13.0,
+                  'Blue+': 32.0, 'Dark Blue': 11.0, 'Yellow': 6.0,
+                  'Gray-50%': 16.0, 'Lavender': 39.0, 'Dark Red': 9.0,
+                  'Gold': 44.0, 'Plum': 54.0, 'Indigo': 55.0, 'Pink+': 26.0,
+                  'Gray-40%': 48.0, 'Turquoise+': 28.0, '':-4142}
+    try:
+        xl_range.Interior.ColorIndex = all_colors[color_name_or_number]
+    except KeyError:
+        xl_range.Interior.ColorIndex = color_name_or_number
+
+def get_color(xl_range):
+    color_codes = {1.0: 'Black', 2.0: 'White', 3.0: 'Red', 4.0: 'Bright Green',
+                   5.0: 'Blue', 6.0: 'Yellow', 7.0: 'Pink', 8.0: 'Turquoise',
+                   9.0: 'Dark Red', 10.0: 'Green', 11.0: 'Dark Blue',
+                   12.0: 'Dark Yellow', 13.0: 'Violet', 14.0: 'Teal',
+                   15.0: 'Gray-25%', 16.0: 'Gray-50%', 17.0: 'Periwinkle',
+                   18.0: 'Plum+', 19.0: 'Ivory', 20.0: 'Lite Turquoise',
+                   21.0: 'Dark Purple', 22.0: 'Coral', 23.0: 'Ocean Blue',
+                   24.0: 'Ice Blue', 25.0: 'Dark Blue+', 26.0: 'Pink+',
+                   27.0: 'Yellow+', 28.0: 'Turquoise+', 29.0: 'Violet+',
+                   30.0: 'Dark Red+', 31.0: 'Teal+', 32.0: 'Blue+',
+                   33.0: 'Sky Blue', 34.0: 'Light Turquoise', 35.0: 'Light Green',
+                   36.0: 'Light Yellow', 37.0: 'Pale Blue', 38.0: 'Rose',
+                   39.0: 'Lavender', 40.0: 'Tan', 41.0: 'Light Blue',
+                   42.0: 'Aqua', 43.0: 'Lime', 44.0: 'Gold', 45.0: 'Light Orange',
+                   46.0: 'Orange', 47.0: 'Blue-Gray', 48.0: 'Gray-40%',
+                   49.0: 'Dark Teal', 50.0: 'Sea Green', 51.0: 'Dark Green',
+                   52.0: 'Olive Green', 53.0: 'Brown', 54.0: 'Plum',
+                   55.0: 'Indigo', 56.0: 'Gray-80%', -4142: ''}
+
+    try:
+        return color_codes[xl_range.Interior.ColorIndex]
+    except KeyError:
+        return xl_range.Interior.ColorIndex
