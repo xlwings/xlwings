@@ -51,6 +51,8 @@ if pd is not None:
 
     df_2 = pd.DataFrame([1, 3, 5, np.nan, 6, 8], columns=['col1'])
 
+    df_dateindex = pd.DataFrame(np.arange(50).reshape(10,5) + 0.1, index=rng)
+
     # MultiIndex (Index)
     tuples = list(zip(*[['bar', 'bar', 'baz', 'baz', 'foo', 'foo', 'qux', 'qux'],
                         ['one', 'two', 'one', 'two', 'one', 'two', 'one', 'two'],
@@ -298,6 +300,16 @@ class TestRange:
         Range('Sheet5', 'A52').value = df_expected
         cells = Range('Sheet5', 'B52').table.value
         df_result = DataFrame(cells[2:], columns=pd.MultiIndex.from_arrays(cells[:2]))
+        assert_frame_equal(df_expected, df_result)
+
+    def test_dataframe_dateindex(self):
+        _skip_if_no_pandas()
+
+        df_expected = df_dateindex
+        Range('Sheet5', 'A100').value = df_expected
+        cells = Range('Sheet5', 'B100').table.value
+        index = Range('Sheet5', 'A101').vertical.value
+        df_result = DataFrame(cells[1:], index=index, columns=cells[0])
         assert_frame_equal(df_expected, df_result)
 
     def test_series_1(self):
