@@ -17,7 +17,7 @@ def is_file_open(fullname):
     """
     for proc in psutil.process_iter():
         if proc.name() == 'Microsoft Excel':
-            for i in proc.get_open_files():
+            for i in proc.open_files():
                 if i.path.lower() == fullname.lower():
                     return True
     return False
