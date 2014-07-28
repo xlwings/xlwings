@@ -6,6 +6,10 @@ import datetime as dt
 from appscript import app
 from appscript import k as kw
 import psutil
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 # Time types
 time_types = (dt.date, dt.datetime)
@@ -134,6 +138,9 @@ def clean_xl_data(data):
 
 
 def prepare_xl_data(data):
+    # This transformation seems to be only needed on Python 2.6 (?)
+    if hasattr(pd, 'tslib') and isinstance(data, pd.tslib.Timestamp):
+        data = data.to_datetime()
     return data
 
 
