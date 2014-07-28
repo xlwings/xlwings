@@ -28,8 +28,7 @@ setup(
     long_description=readme,
     packages=['xlwings', 'xlwings.tests'],
     package_data={'xlwings': ['*.bas', 'tests/*.xlsx']},
-    platforms='Operating System :: Microsoft :: Windows',
-    keywords=['xls', 'excel', 'spreadsheet', 'workbook'],
+    keywords=['xls', 'excel', 'spreadsheet', 'workbook', 'vba', 'macro'],
     install_requires=install_requires,
     classifiers=[
         'Development Status :: 4 - Beta',
