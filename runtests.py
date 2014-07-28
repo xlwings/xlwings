@@ -22,7 +22,7 @@ this_path = os.path.dirname(__file__)
 setup_file = os.path.abspath(os.path.join(this_path, 'setup.py'))
 
 # Create distribution package
-call('python {} sdist'.format(setup_file))
+call('python {0} sdist'.format(setup_file))
 
 # Install it, run the tests and uninstall it for each Python version
 for py in [py26, py27, py31, py32, py33, py34]:
@@ -30,22 +30,22 @@ for py in [py26, py27, py31, py32, py33, py34]:
     pip = os.path.abspath(os.path.join(py, 'Scripts/pip'))
     test_runner = os.path.abspath(os.path.join(py, 'Scripts/nosetests'))
     test_dir = os.path.abspath(os.path.join(py, 'Lib/site-packages/xlwings/tests'))
-    xlwings_package = os.path.abspath(os.path.join(this_path, 'dist/xlwings-{}.zip'.format(__version__)))
+    xlwings_package = os.path.abspath(os.path.join(this_path, 'dist/xlwings-{0}.zip'.format(__version__)))
 
-    print('{}### {} ###{}'.format(colors.yellow, py, colors.end))
+    print('{0}### {1} ###{2}'.format(colors.yellow, py, colors.end))
 
-    call('{}\python -c "import sys;print(sys.version)"'.format(py))
-    call('{}\python -c "import numpy;import pandas;print(numpy.__version__);print(pandas.__version__)"'.format(py))
+    call('{0}\python -c "import sys;print(sys.version)"'.format(py))
+    call('{0}\python -c "import numpy;import pandas;print(numpy.__version__);print(pandas.__version__)"'.format(py))
 
     # Uninstall in case there is still an existing installation
-    call('{} uninstall xlwings -y'.format(pip))
+    call('{0} uninstall xlwings -y'.format(pip))
 
     # Install
     os.chdir(py)
-    call('{} install {}'.format(pip, xlwings_package))
+    call('{0} install {1}'.format(pip, xlwings_package))
 
     # Run tests
-    call('{} {}'.format(test_runner, test_dir))
+    call('{0} {1}'.format(test_runner, test_dir))
 
     # Uninstall
-    call('{} uninstall xlwings -y'.format(pip))
+    call('{0} uninstall xlwings -y'.format(pip))
