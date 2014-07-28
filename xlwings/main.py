@@ -83,7 +83,7 @@ class Workbook(object):
         else:
             raise Exception("Sheetname '{}', with case ignored, is already in use."
             .format(worksheet_name))
-    
+
     def remove_sheet(self, sheetname):
         if sheetname.lower() in list(map(
         lambda x:x.lower(),xlplatform.sheet_list(self.xl_workbook))):
@@ -92,7 +92,7 @@ class Workbook(object):
             raise Exception("Sheetname '{}', with case ignored, does not exist."
             .format(sheetname))
 
-        
+
     def all_sheets(self):
         return xlplatform.sheet_list(self.xl_workbook)
         
@@ -414,8 +414,6 @@ class Range(object):
             return True
         else:
             return False
-    
-       
 
     @property
     def value(self):
@@ -667,6 +665,36 @@ class Range(object):
         """wb:workbook, cell:"A1", row: offset row, col: offset col"""
         return Range(xlplatform.get_worksheet_name(self.xl_sheet),
                      (self.row1+row, self.col1+col))
+
+
+    @property    
+    def address(self):
+        """Returns 'A1' or 'A1:B1' style (str) cell or range reference"""
+        return xlplatform.get_address(self.xl_range)                        
+    
+    
+    @property
+    def position(self):
+        """Returns tuples of position like (1,2) or ((1,2),(3,4))"""
+        if self.row1 == self.row2 and self.col1 == self.col2:
+            return (self.row1, self.col1)
+        else:
+            return (self.row1, self.col1),(self.row2, self.col2)
+            
+    @property
+    def range(self):
+        """
+        Returns a list of tuples with cell positions within the given range
+        i.e.    Range("A1").cell_range >> returns [(1,1)]
+                Range("A1:B2"),cell_range >> returns [(1,1),(1,2),(2,1),(2,2)]
+        """
+        z = []
+        for row in range(self.row1,self.row2+1):
+            for col in range(self.col1,self.col2+1):
+                z.append((row,col))
+        return z
+    
+
     @property                 
     def color(self):
         """

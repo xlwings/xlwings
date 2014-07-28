@@ -114,13 +114,13 @@ def sheet_list(xl_workbook):
 
 def hiden_rows(xl_workbook,rows, status):
     xl_workbook.ActiveSheet.Rows(str(rows)).EntireRow.Hidden = status
-    
+
 def hiden_columns(xl_workbook, cols, status):
     xl_workbook.ActiveSheet.Columns(str(cols)).EntireColumn.Hidden = status
-    
+
 def is_row_hidden(xl_workbook, row):
     return xl_workbook.ActiveSheet.Rows(str(row)).EntireRow.Hidden
-    
+
 def is_col_hidden(xl_workbook, col):
     return xl_workbook.ActiveSheet.Columns(str(col)).EntireColumn.Hidden
     
@@ -246,9 +246,12 @@ def _datetime_to_com_time(dt_time):
         return pywintypes.Time(dt_time.timetuple())
 
 
+def get_address(xl_range):
+    return xl_range.Address.replace('$','')
+
+
 def get_selection_address(xl_app):
     return str(xl_app.Selection.Address)
-
 
 def clear_contents_worksheet(xl_workbook, sheet_name_or_index):
     xl_workbook.Sheets(sheet_name_or_index).Cells.ClearContents()
