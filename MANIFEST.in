@@ -1,4 +1,6 @@
 include LICENSE.txt
 include README.rst
+include xlwings/tests/*.xlsx
+
 
 recursive-include docs *
