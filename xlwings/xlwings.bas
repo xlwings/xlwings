@@ -29,7 +29,12 @@ Public Function RunFrozenPython(Executable As String)
     LOG_FILE = ThisWorkbook.Path & "\log.txt"
     
     ' Call Python
-    ExecuteProgram True, Executable, PYTHON_DIR
+    #If Mac Then
+        MsgBox "This functionality is not yet supported on Mac." & vbNewLine & _
+               "Please run your scripts directly in Python!", vbCritical + vbOKOnly, "Unsupported Feature"
+    #Else
+        ExecuteProgram True, Executable, PYTHON_DIR
+    #End If
 End Function
 
 Public Function RunPython(PythonCommand As String)
@@ -48,7 +53,12 @@ Public Function RunPython(PythonCommand As String)
     LOG_FILE = ThisWorkbook.Path & "\" & "log.txt"
     
     ' Call Python
-    ExecuteProgram False, PythonCommand, PYTHON_DIR, SOURCECODE_DIR
+    #If Mac Then
+        MsgBox "This functionality is not yet supported on Mac." & vbNewLine & _
+               "Please run your scripts directly in Python!", vbCritical + vbOKOnly, "Unsupported Feature"
+    #Else
+        ExecuteProgram False, PythonCommand, PYTHON_DIR, SOURCECODE_DIR
+    #End If
 End Function
 
 Sub ExecuteProgram(IsFrozen As Boolean, Command As String, PYTHON_DIR As String, Optional SOURCECODE_DIR As String)
