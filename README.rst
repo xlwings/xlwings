@@ -7,7 +7,7 @@ Python from Excel and vice versa:
 * Interact with Excel from Python using a syntax that is close to VBA yet Pythonic.
 * Replace your VBA macros with Python code and still pass around your workbooks as easy as before.
 
-xlwings fully supports NumPy arrays and Pandas DataFrames. Currently, it only works on Windows.
+xlwings fully supports NumPy arrays and Pandas DataFrames. It works with Microsoft Excel on Windows and Mac.
 
 .. note:: xlwings is currently in an early stage.
    The API might change in backward incompatible ways.
@@ -16,7 +16,7 @@ xlwings fully supports NumPy arrays and Pandas DataFrames. Currently, it only wo
 Interact with Excel from Python
 -------------------------------
 
-Writing some values to Excel and adding a chart is as easy as:
+Writing/reading values to/from Excel and adding a chart is as easy as:
 
 .. code-block:: python
 
@@ -26,15 +26,28 @@ Writing some values to Excel and adding a chart is as easy as:
     >>> Range('A2').value = [10, 20, 30, 40]
     >>> Range('A1').table.value  # Read the whole table back
     [[u'Foo 1', u'Foo 2', u'Foo 3', u'Foo 4'], [10.0, 20.0, 30.0, 40.0]]
-    >>> chart = Chart().add()
-    >>> chart.set_source_data(Range('A1').table)
+    >>> chart = Chart().add(source_data=Range('A1').table)
+
+The Range object as used above will refer to the active sheet. Include the Sheet name like this:
+
+.. code-block:: python
+
+    Range('Sheet1', 'A1').value
+
+Qualify the Workbook additionally like this:
+
+.. code-block:: python
+
+    wb.range('Sheet1', 'A1').value
+
+The good news is that these commands also work seamlessly with *NumPy arrays* and *Pandas DataFrames*.
 
 
-Call Python from Excel
-----------------------
+Call Python from Excel (Windows only)
+-------------------------------------
 
-If, for example, you want to fill your spreadsheet with standard normally distributed random numbers, your VBA code is
-just one line:
+This functionality is currently only available on Windows: If, for example, you want to fill your spreadsheet
+with standard normally distributed random numbers, your VBA code is just one line:
 
 .. code-block:: vb.net
 
@@ -53,12 +66,13 @@ This essentially hands over control to ``mymodule.py``:
 
     def rand_numbers():
         """ produces standard normally distributed random numbers with shape (n,n)"""
-        n = Range('Sheet1', 'B1').value
+        n = Range('Sheet1', 'B1').value  # Write desired dimensions into Cell B1
         rand_num = np.random.randn(n, n)
         Range('Sheet1', 'C3').value = rand_num
 
 
-To make this run, just import de VBA module ``xlwings.bas`` in the VBA editor. It can be found in the directory of
+To make this run, just import de VBA module ``xlwings.bas`` in the VBA editor (Open the VBA editor with ``Alt-F11``,
+then go to ``File > Import File...`` and import the ``xlwings.bas`` file. ). It can be found in the directory of
 your ``xlwings`` installation.
 
 Easy deployment
@@ -66,9 +80,8 @@ Easy deployment
 
 Deployment is really the part where xlwings shines:
 
-* Just zip-up your Spreadsheet with your Python code and the ``xlwings.py`` file and send it around. The receiver only
-  needs to have an installation of Python with `pywin32 <http://sourceforge.net/projects/pywin32/>`_ (and obviously
-  all the other packages you're using).
+* Just zip-up your Spreadsheet with your Python code and send it around. The receiver only needs to have an
+  installation of Python with xlwings (and obviously all the other packages you're using).
 * There is no need to install any Excel add-in.
 * If this still sounds too complicated, just freeze your Python code into an executable and use
   ``RunFrozenPython`` instead of ``RunPython``. This gives you a standalone version of your Spreadsheet tool without any
@@ -87,6 +100,15 @@ Alternatively it can be installed from source. From within the ``xlwings`` direc
 
     python setup.py install
 
+Dependencies
+------------
+
+* **Windows**: pywin32
+
+* **Mac**: psutil, appscript
+
+Note that on Mac, the dependencies are automatically being handled if xlwings is installed with pip. However, the Xcode
+command line tools need to be available.
 
 Links
 -----
