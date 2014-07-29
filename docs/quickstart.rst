@@ -1,7 +1,7 @@
 Quickstart
 ==========
 
-This guide assumes you have already installed xlwings. If that's not the case, head over to :ref:`installation`.
+This guide assumes you have xlwings already installed. If that's not the case, head over to :ref:`installation`.
 
 Interact with Excel from Python
 -------------------------------
@@ -30,12 +30,13 @@ Qualify the Workbook additionally like this:
 
     wb.range('Sheet1', 'A1').value
 
+The good news is that these commands also work seamlessly with *NumPy arrays* and *Pandas DataFrames*.
 
-Call Python from Excel
-----------------------
+Call Python from Excel (Windows only)
+-------------------------------------
 
-If, for example, you want to fill your spreadsheet with standard normally distributed random numbers, your VBA code is
-just one line:
+This functionality is currently only available on Windows: If, for example, you want to fill your spreadsheet
+with standard normally distributed random numbers, your VBA code is just one line:
 
 .. code-block:: vb.net
 
@@ -54,7 +55,7 @@ This essentially hands over control to ``mymodule.py``:
 
     def rand_numbers():
         """ produces standard normally distributed random numbers with shape (n,n)"""
-        n = Range('Sheet1', 'B1').value
+        n = Range('Sheet1', 'B1').value  # Write desired dimensions into Cell B1
         rand_num = np.random.randn(n, n)
         Range('Sheet1', 'C3').value = rand_num
 
@@ -68,9 +69,8 @@ Easy deployment
 
 Deployment is really the part where xlwings shines:
 
-* Just zip-up your Spreadsheet with your Python code and the ``xlwings`` directory from your installation and send it
-  around. The receiver only needs to have an installation of Python with
-  `pywin32 <http://sourceforge.net/projects/pywin32/>`_ (and obviously all the other packages you're using).
+* Just zip-up your Spreadsheet with your Python code and send it around. The receiver only needs to have an
+  installation of Python with xlwings (and obviously all the other packages you're using).
 * There is no need to install any Excel add-in.
 * If this still sounds too complicated, just freeze your Python code into an executable and use
   ``RunFrozenPython`` instead of ``RunPython``. This gives you a standalone version of your Spreadsheet tool without any
