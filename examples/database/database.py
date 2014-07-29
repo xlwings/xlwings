@@ -73,7 +73,7 @@ def combobox():
     # TODO: implement natively in xlwings
     combo = "ComboBox1"
     wb.xl_workbook.ActiveSheet.OLEObjects(combo).Object.ListFillRange = \
-        'Source!{}'.format(str(Range('Source', 'A1').table.com_range.Address))
+        'Source!{}'.format(str(Range('Source', 'A1').table.xl_range.Address))
     wb.xl_workbook.ActiveSheet.OLEObjects(combo).Object.BoundColumn = 1
     wb.xl_workbook.ActiveSheet.OLEObjects(combo).Object.ColumnCount = 2
     wb.xl_workbook.ActiveSheet.OLEObjects(combo).Object.ColumnWidths = 0
