@@ -12,7 +12,6 @@ def main():
     call('7z a -tzip {}.zip LICENSE.txt'.format(file_name))
     call('7z a -tzip {}.zip chinook.sqlite'.format(file_name))
     call('7z a -tzip {}.zip database.py'.format(file_name))
-    call('7z a -tzip {}.zip ../../xlwings/main.py'.format(file_name))
 
 
 if __name__ == '__main__':
