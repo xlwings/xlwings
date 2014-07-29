@@ -16,8 +16,7 @@ Writing/reading values to/from Excel and adding a chart is as easy as:
     >>> Range('A2').value = [10, 20, 30, 40]
     >>> Range('A1').table.value  # Read the whole table back
     [[u'Foo 1', u'Foo 2', u'Foo 3', u'Foo 4'], [10.0, 20.0, 30.0, 40.0]]
-    >>> chart = Chart().add()
-    >>> chart.set_source_data(Range('A1').table)
+    >>> chart = Chart().add(source_data=Range('A1').table)
 
 The Range object as used above will refer to the active sheet. Include the Sheet name like this:
 

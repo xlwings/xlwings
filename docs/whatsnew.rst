@@ -3,6 +3,24 @@ What's New
 
 Here are the Release Notes for each version:
 
+v0.2.0 (July 29, 2014)
+----------------------
+
+Enhancements
+************
+* Cross-platform: xlwings is now additionally supporting Microsoft Excel for Mac. The only functionality that is not
+  yet available is the possibility to call the Python code from within Excel via a VBA macro.
+* The ``clear`` and ``clear_contents`` methods of the ``Workbook`` object now default to the active
+  sheet (:issue:`5`)::
+
+    wb = Workbook()
+    wb.clear_contents()  # Clears contents of the entire active sheet
+
+Bug Fixes
+*********
+* DataFrames with MultiHeaders were sometimes getting truncated (:issue:`41`).
+
+
 v0.1.1 (June 27, 2014)
 ----------------------
 
