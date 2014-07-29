@@ -688,11 +688,9 @@ class Range(object):
         i.e.    Range("A1").cell_range >> returns [(1,1)]
                 Range("A1:B2"),cell_range >> returns [(1,1),(1,2),(2,1),(2,2)]
         """
-        z = []
-        for row in range(self.row1,self.row2+1):
-            for col in range(self.col1,self.col2+1):
-                z.append((row,col))
-        return z
+        rows = range(self.row1,self.row2+1)
+        cols = range(self.col1,self.col2+1)
+        return [(row,col) for row in rows for col in cols]
     
 
     @property                 
