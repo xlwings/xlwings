@@ -6,6 +6,7 @@ import datetime as dt
 from appscript import app
 from appscript import k as kw
 import psutil
+import atexit
 try:
     import pandas as pd
 except ImportError:
@@ -13,6 +14,20 @@ except ImportError:
 
 # Time types
 time_types = (dt.date, dt.datetime)
+
+
+def reset_status_bar():
+    """
+    Since Apple Script cannot access Excel while a Macro is running, we have to run the Python call in a
+    background process which makes the call return immediately: we rely on the StatusBar to give the user
+    feedback.
+    This function is triggered when the interpreter exits and makes sure that the StatusBar in Excel is
+    reset. Due to a bug in Apple Script, False doesn't reset it properly so we're hardcoding 'Ready' here
+    which admittedly isn't very nice for other languages.
+    """
+    app('Microsoft Excel').status_bar.set('Ready')
+
+atexit.register(reset_status_bar)
 
 
 def is_file_open(fullname):
