@@ -23,7 +23,7 @@ Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef 
     ' For details, see http://xlwings.org
 
     PYTHON_WIN = ""
-    PYTHON_MAC = GetMacDir("Home") & "/anaconda3/anaconda/bin"
+    PYTHON_MAC = GetMacDir("Home") & "/anaconda/bin"
     PYTHON_FROZEN = ThisWorkbook.Path & "\build\exe.win32-2.7"
     PYTHONPATH = ThisWorkbook.Path
     LOG_FILE = ThisWorkbook.Path & "\xlwings_log.txt"
