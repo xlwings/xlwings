@@ -1,96 +1,125 @@
 Attribute VB_Name = "xlwings"
-' Make Excel fly!
+' Make Excel fly with Python!
 '
 ' Homepage and documentation: http://xlwings.org
 ' See also: http://zoomeranalytics.com
 '
 ' Copyright (C) 2014, Zoomer Analytics LLC.
-' Version: 0.2.0
+' Version: 0.2.1dev
 '
 ' License: BSD 3-clause (see LICENSE.txt for details)
 
 Option Explicit
+Private Declare Function system Lib "libc.dylib" (ByVal Command As String) As Long
 
-Dim PYTHON_DIR As String, SOURCECODE_DIR As String, WORKBOOK_FULLNAME As String
-Dim LOG_FILE As String, DriveCommand As String, RunCommand As String
-Dim ExitCode As Integer
-Dim Wsh As Object
-Dim IsFrozen As Boolean
+Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef PYTHON_FROZEN As String, ByRef PYTHONPATH As String, ByRef LOG_FILE As String)
+    ' PYTHON_WIN: Directory of Python Interpreter on Windows, "" resolves to default on PATH
+    ' PYTHON_MAC: Directory of Python Interpreter on Mac OSX, "" resolves to default on $PATH but NOT .bash_profile!
+    ' PYTHON_FROZEN [Optional]: Currently only on Windows, indicate directory of exe file
+    ' PYTHONPATH [Optional]: If the source file of your code is not found, add the path here. Otherwise set to "".
+    ' LOG_FILE: Directory including file name, necessary for error handling.
+    '
+    ' For cross-platform compatibility, use backslashes in relative directories
+    ' For details, see http://xlwings.org
 
-Public Function RunFrozenPython(Executable As String)
-    ' Runs a Python executable that has been frozen by cx_Freeze or py2exe. Call the function like this:
-    ' RunFrozenPython("frozen_executable.exe")
-    
-    ' Adjust according to where the frozen executable is
-    ' Preferrably use a path relative to this workbook: ThisWorkbook.Path & "\..."
-    PYTHON_DIR = ThisWorkbook.Path & "\build\exe.win-amd64-2.7"
-    
-    ' Fully qualified name of temporary error log file
-    LOG_FILE = ThisWorkbook.Path & "\log.txt"
-    
-    ' Call Python
-    #If Mac Then
-        MsgBox "This functionality is not yet supported on Mac." & vbNewLine & _
-               "Please run your scripts directly in Python!", vbCritical + vbOKOnly, "Unsupported Feature"
-    #Else
-        ExecuteProgram True, Executable, PYTHON_DIR
-    #End If
+    PYTHON_WIN = ""
+    PYTHON_MAC = GetMacDir("Home") & "/anaconda3/anaconda/bin"
+    PYTHON_FROZEN = ThisWorkbook.Path & "\build\exe.win32-2.7"
+    PYTHONPATH = ThisWorkbook.Path
+    LOG_FILE = ThisWorkbook.Path & "\xlwings_log.txt"
+
 End Function
+' DO NOT EDIT BELOW THIS LINE
 
 Public Function RunPython(PythonCommand As String)
-    ' Runs the Python command, e.g.: to run the function foo() in module bar, call the function like this:
+    ' Public API: Runs the Python command, e.g.: to run the function foo() in module bar, call the function like this:
     ' RunPython ("import bar; bar.foo()")
-    
-    ' Adjust according to where python.exe is on your system, e.g.: "C:\Python27"
-    ' Use an empty string if you want to call the default installation from your PATH environment variable,
-    ' i.e. you want to use the installation you can start by typing "python" at the command prompt
-    PYTHON_DIR = ""
-    
-    ' Adjust according to the directory of the Python files
-    SOURCECODE_DIR = ThisWorkbook.Path
-    
-    ' Fully qualified name of temporary error log file
-    LOG_FILE = ThisWorkbook.Path & "\" & "log.txt"
-    
-    ' Call Python
+
+    Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
+    Dim WORKBOOK_FULLNAME As String, LOG_FILE As String, DriveCommand As String, RunCommand As String
+    Dim ExitCode As Integer, Res As Integer
+
+    ' Get the settings by using the ByRef trick
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE)
+
+    ' Call Python platform-dependent
     #If Mac Then
-        MsgBox "This functionality is not yet supported on Mac." & vbNewLine & _
-               "Please run your scripts directly in Python!", vbCritical + vbOKOnly, "Unsupported Feature"
+        Application.StatusBar = "Running..."  ' Non-blocking way of giving feedback that something is happening
+        ExcecuteMac PythonCommand, PYTHON_MAC, LOG_FILE, PYTHONPATH
     #Else
-        ExecuteProgram False, PythonCommand, PYTHON_DIR, SOURCECODE_DIR
+        ExecuteWindows False, PythonCommand, PYTHON_WIN, LOG_FILE, PYTHONPATH
     #End If
 End Function
 
-Sub ExecuteProgram(IsFrozen As Boolean, Command As String, PYTHON_DIR As String, Optional SOURCECODE_DIR As String)
+Sub ExcecuteMac(Command As String, PYTHON_MAC As String, LOG_FILE As String, Optional PYTHONPATH As String)
+    ' Run Python with the "-c" command line switch: add the path of the python file and run the
+    ' Command as first argument, then provide the WORKBOOK_FULLNAME and "from_xl" as 2nd and 3rd arguments.
+    ' Finally, redirect stderr to the LOG_FILE and run as background process.
+
+    Dim PythonInterpreter As String, RunCommand As String, WORKBOOK_FULLNAME As String, Log As String
+    Dim Res As Integer
+
+    ' Delete Log file just to make sure we don't show an old error
+    On Error Resume Next
+        KillFileOnMac ToMacPath(ToPosixPath(LOG_FILE))
+    On Error GoTo 0
+
+    ' Transform from MacOS Classic path style (":") and Windows style ("\") to Bash friendly style ("/")
+    PYTHONPATH = ToPosixPath(PYTHONPATH)
+    LOG_FILE = ToPosixPath(LOG_FILE)
+    PythonInterpreter = ToPosixPath(PYTHON_MAC & "/python")
+    WORKBOOK_FULLNAME = ToPosixPath(ThisWorkbook.FullName)
+
+    ' Build the command
+    RunCommand = PythonInterpreter & " -c ""import sys; sys.path.append(r'" & PYTHONPATH & "'); " & Command & """ "
+
+    ' Send the command to the shell. Courtesy of Robert Knight (http://stackoverflow.com/a/12320294/918626)
+    ' Since Excel blocks AppleScript as long as a VBA macro is running, we have to excecute the call as background call
+    ' so it can do its magic after this Function has terminated. Python resets the StatusBar via the atexit handler.
+    Res = system(RunCommand & """" & WORKBOOK_FULLNAME & """ ""from_xl"" >" & LOG_FILE & " 2>&1 &")
+
+    ' If there's a log at this point (normally that will be from the Shell only, not Python) show it and reset the StatusBar
+    Log = ReadFile(LOG_FILE)
+    If Log = "" Then
+        Exit Sub
+    Else
+        ShowError (LOG_FILE)
+        Application.StatusBar = False
+    End If
+
+End Sub
+
+Sub ExecuteWindows(IsFrozen As Boolean, Command As String, PYTHON_WIN As String, LOG_FILE As String, Optional PYTHONPATH As String)
     ' Call a command window and change to the directory of the Python installation or frozen executable
     ' Note: If Python is called from a different directory with the fully qualified path, pywintypesXX.dll won't be found.
-    ' This is likely a pywin32 bug, see http://stackoverflow.com/q/7238403/918626
+    ' This seems to be a general issue with pywin32, see http://stackoverflow.com/q/7238403/918626
 
-    ' Log the errors in the LOG_FILE and wait with proceeding until the call returns.
+    Dim Wsh As Object
     Dim WaitOnReturn As Boolean: WaitOnReturn = True
     Dim WindowStyle As Integer: WindowStyle = 0
     Set Wsh = CreateObject("WScript.Shell")
-    
-    If Left$(PYTHON_DIR, 2) Like "[A-Z]:" Then
+    Dim DriveCommand As String, RunCommand As String, WORKBOOK_FULLNAME As String
+    Dim ExitCode As Integer
+
+    If Left$(PYTHON_WIN, 2) Like "[A-Z]:" Then
         ' If Python is installed on a mapped or local drive, change to drive, then cd to path
-        DriveCommand = Left$(PYTHON_DIR, 2) & " & cd " & PYTHON_DIR & " & "
-    ElseIf Left$(PYTHON_DIR, 2) = "\\" Then
+        DriveCommand = Left$(PYTHON_WIN, 2) & " & cd " & PYTHON_WIN & " & "
+    ElseIf Left$(PYTHON_WIN, 2) = "\\" Then
         ' If Python is installed on a UNC path, temporarily mount and activate a drive letter with pushd
-        DriveCommand = "pushd " & PYTHON_DIR & " & "
+        DriveCommand = "pushd " & PYTHON_WIN & " & "
     End If
-    
+
     ' Run Python with the "-c" command line switch: add the path of the python file and run the
-    ' PythonCommand as first argument, then provide the WORKBOOK_FULLNAME as second argument.
+    ' Command as first argument, then provide the WORKBOOK_FULLNAME and "from_xl" as 2nd and 3rd arguments.
+    ' Then redirect stderr to the LOG_FILE and wait for the call to return.
+    WORKBOOK_FULLNAME = ThisWorkbook.FullName
+
     If IsFrozen = False Then
-        ' Run Python with the "-c" command line switch: add the path of the python file
-        RunCommand = "python -c ""import sys; sys.path.append(r'" & SOURCECODE_DIR & "'); " & Command & """ "
+        RunCommand = "python -c ""import sys; sys.path.append(r'" & PYTHONPATH & "'); " & Command & """ "
     ElseIf IsFrozen = True Then
         RunCommand = Command & " "
     End If
-    
-    ' Get the fully qualified name of Workbook
-    WORKBOOK_FULLNAME = ThisWorkbook.FullName
-    
+
     ExitCode = Wsh.Run("cmd.exe /C " & DriveCommand & _
                    RunCommand & _
                    """" & WORKBOOK_FULLNAME & """ ""from_xl"" 2> """ & LOG_FILE & """ ", _
@@ -100,35 +129,134 @@ Sub ExecuteProgram(IsFrozen As Boolean, Command As String, PYTHON_DIR As String,
     If ExitCode <> 0 Then
         Call ShowError(LOG_FILE)
     End If
-    
+
     ' Delete file after the error message has been shown
     On Error Resume Next
         Kill LOG_FILE
     On Error GoTo 0
-    
-    ' Make sure Wsh is cleared as otherwise moving the file between directories could create troubles
+
+    ' Clean up
     Set Wsh = Nothing
 End Sub
 
-Sub ShowError(FileName As String)
-    Dim ReadData As String
+Public Function RunFrozenPython(Executable As String)
+    ' Runs a Python executable that has been frozen by cx_Freeze or py2exe. Call the function like this:
+    ' RunFrozenPython("frozen_executable.exe"). Currently not implemented for Mac.
+
+    Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String, LOG_FILE As String
+    Dim Res As Integer
+
+    ' Get the settings by using the ByRef trick
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE)
+
+    ' Call Python
+    #If Mac Then
+        MsgBox "This functionality is not yet supported on Mac." & vbNewLine & _
+               "Please run your scripts directly in Python!", vbCritical + vbOKOnly, "Unsupported Feature"
+    #Else
+        ExecuteWindows True, Executable, PYTHON_FROZEN, LOG_FILE
+    #End If
+End Function
+
+Function ReadFile(ByVal FileName As String)
+    ' Read a text file
+
+    Dim Content As String
     Dim Token As String
     Dim FileNum As Integer
-    
+
+    #If Mac Then
+        FileName = ToMacPath(FileName)
+    #End If
+
     FileNum = FreeFile
-    ReadData = ""
-    
+    Content = ""
+
     ' Read Text File
     Open FileName For Input As #FileNum
         Do While Not EOF(FileNum)
             Line Input #FileNum, Token
-            ReadData = ReadData & Token & vbCr
+            Content = Content & Token & vbCr
         Loop
     Close #FileNum
-    
-    ReadData = ReadData & vbCr
-    ReadData = ReadData & "Press Ctrl+C to copy this message to the clipboard."
-    
-    ' MsgBox
-    MsgBox ReadData, vbCritical, "Error"
+
+    ReadFile = Content
+End Function
+
+Sub ShowError(FileName As String)
+    ' Shows a MsgBox with the content of a text file
+
+    Dim Content As String
+
+    Content = ReadFile(FileName)
+    #If Win32 Or Win64 Then
+        Content = Content & vbCr
+        Content = Content & "Press Ctrl+C to copy this message to the clipboard."
+    #End If
+    MsgBox Content, vbCritical, "Error"
+End Sub
+
+Function ToPosixPath(ByVal MacPath As String) As String
+    'This function accepts relative paths with backward and forward slashes: ThisWorkbook & "\test"
+    ' E.g. "MacintoshHD:Users:<User>" --> "/Users/<User>"
+
+    Dim s As String
+
+    MacPath = Replace(MacPath, "\", ":")
+    MacPath = Replace(MacPath, "/", ":")
+    s = "tell application " & Chr(34) & "Finder" & Chr(34) & Chr(13)
+    s = s & "POSIX path of " & Chr(34) & MacPath & Chr(34) & Chr(13)
+    s = s & "end tell" & Chr(13)
+    ToPosixPath = MacScript(s)
+End Function
+
+Function GetMacDir(Name As String) As String
+    ' Get Mac special folders. Protetcted so they don't exectue on Windows.
+
+    Dim Path As String
+
+    #If Mac Then
+        Select Case Name
+            Case "Home"
+                Path = MacScript("return (path to home folder) as string")
+             Case "Desktop"
+                Path = MacScript("return (path to desktop folder) as string")
+            Case "Applications"
+                Path = MacScript("return (path to applications folder) as string")
+            Case "Documents"
+                Path = MacScript("return (path to documents folder) as string")
+        End Select
+            GetMacDir = Left$(Path, Len(Path) - 1) ' get rid of trailing ":"
+    #Else
+        GetMacDir = ""
+    #End If
+End Function
+
+Function ToMacPath(PosixPath As String) As String
+    ' This function transforms a Posix Path into a MacOS Path
+    ' E.g. "/Users/<User>" --> "MacintoshHD:Users:<User>"
+
+    ToMacPath = MacScript("set mac_path to POSIX file " & Chr(34) & PosixPath & Chr(34) & " as string")
+End Function
+
+Function KillFileOnMac(Filestr As String)
+    'Ron de Bruin
+    '30-July-2012
+    'Delete files from a Mac.
+    'Uses AppleScript to avoid the problem with long file names
+
+    Dim ScriptToKillFile As String
+
+    ScriptToKillFile = "tell application " & Chr(34) & "Finder" & Chr(34) & Chr(13)
+    ScriptToKillFile = ScriptToKillFile & "do shell script ""rm "" & quoted form of posix path of " & Chr(34) & Filestr & Chr(34) & Chr(13)
+    ScriptToKillFile = ScriptToKillFile & "end tell"
+
+    On Error Resume Next
+        MacScript (ScriptToKillFile)
+    On Error GoTo 0
+End Function
+
+Sub ClearStatusBar()
+    ' There is a bug in AppleScript when setting it to False, so we call it from here
+    Application.StatusBar = False
 End Sub

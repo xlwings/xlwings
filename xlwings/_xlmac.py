@@ -22,10 +22,10 @@ def reset_status_bar():
     background process which makes the call return immediately: we rely on the StatusBar to give the user
     feedback.
     This function is triggered when the interpreter exits and makes sure that the StatusBar in Excel is
-    reset. Due to a bug in Apple Script, False doesn't reset it properly so we're hardcoding 'Ready' here
-    which admittedly isn't very nice for other languages.
+    reset. Due to a bug in Apple Script, False doesn't reset it properly so we're calling it through an
+    Excel Macro to get it right.
     """
-    app('Microsoft Excel').status_bar.set('Ready')
+    app('Microsoft Excel').run_VB_macro('ClearStatusBar')
 
 atexit.register(reset_status_bar)
 
