@@ -32,10 +32,10 @@ Qualify the Workbook additionally like this:
 
 The good news is that these commands also work seamlessly with *NumPy arrays* and *Pandas DataFrames*.
 
-Call Python from Excel (Windows only)
--------------------------------------
+Call Python from Excel
+----------------------
 
-This functionality is currently only available on Windows: If, for example, you want to fill your spreadsheet
+If, for example, you want to fill your spreadsheet
 with standard normally distributed random numbers, your VBA code is just one line:
 
 .. code-block:: vb.net
@@ -60,7 +60,7 @@ This essentially hands over control to ``mymodule.py``:
         Range('Sheet1', 'C3').value = rand_num
 
 
-To make this run, just import de VBA module ``xlwings.bas`` in the VBA editor (Open the VBA editor with ``Alt-F11``,
+To make this run, just import the VBA module ``xlwings.bas`` in the VBA editor (Open the VBA editor with ``Alt-F11``,
 then go to ``File > Import File...`` and import the ``xlwings.bas`` file. ). It can be found in the directory of
 your ``xlwings`` installation.
 

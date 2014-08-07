@@ -43,11 +43,11 @@ Qualify the Workbook additionally like this:
 The good news is that these commands also work seamlessly with *NumPy arrays* and *Pandas DataFrames*.
 
 
-Call Python from Excel (Windows only)
--------------------------------------
+Call Python from Excel
+----------------------
 
-This functionality is currently only available on Windows: If, for example, you want to fill your spreadsheet
-with standard normally distributed random numbers, your VBA code is just one line:
+If, for example, you want to fill your spreadsheet with standard normally distributed random numbers, your VBA code is
+just one line:
 
 .. code-block:: vb.net
 

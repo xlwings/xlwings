@@ -30,6 +30,15 @@ On Windows, it is recommended to use one of the scientific Python distributions 
 `Canopy <https://www.enthought.com/products/canopy/>`_ as they already include pywin32. Otherwise it needs to be
 installed from `here <http://sourceforge.net/projects/pywin32/files/pywin32/>`_.
 
+Optional Dependencies
+---------------------
+
+* NumPy
+* Pandas
+
+These packages are not required but highly recommended as NumPy arrays and Pandas DataFrames/Series play very nicely
+with xlwings.
+
 
 Python version support
 ----------------------

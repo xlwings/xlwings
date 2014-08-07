@@ -1,7 +1,34 @@
 What's New
 ==========
 
-Here are the Release Notes for each version:
+v0.2.1 (August 7, 2014)
+-----------------------
+
+Enhancements
+************
+* All VBA user settings have been reorganized into a section at the top of the VBA xlwings module::
+
+    PYTHON_WIN = ""
+    PYTHON_MAC = GetMacDir("Home") & "/anaconda/bin"
+    PYTHON_FROZEN = ThisWorkbook.Path & "\build\exe.win32-2.7"
+    PYTHONPATH = ThisWorkbook.Path
+    LOG_FILE = ThisWorkbook.Path & "\xlwings_log.txt"
+
+* Calling Python from within Excel VBA is now also supported on Mac, i.e. Python functions can be called like
+  this: ``RunPython("import bar; bar.foo()")``. Running frozen executables (``RunFrozenPython``) isn't available
+  yet on Mac though.
+
+Note that there is a slight difference in the way that this functionality behaves on Windows and Mac:
+
+* **Windows**: After calling the Macro (e.g. by pressing a button), Excel waits until Python is done. In case there's an
+  error in the Python code, a pop-up message is being shown with the traceback.
+
+* **Mac**: After calling the Macro, the call returns instantly but Excel's Status Bar turns into "Running..." during the
+  duration of the Python call. Python errors are currently not shown as a pop-up, but need to be checked in the
+  log file. I.e. if the Status Bar returns to its default ("Ready") but nothing has happened, check out the log file
+  for the Python traceback.
+
+Special thanks go to Georgi Petrov for helping with this release.
 
 v0.2.0 (July 29, 2014)
 ----------------------
@@ -9,7 +36,7 @@ v0.2.0 (July 29, 2014)
 Enhancements
 ************
 * Cross-platform: xlwings is now additionally supporting Microsoft Excel for Mac. The only functionality that is not
-  yet available is the possibility to call the Python code from within Excel via a VBA macro.
+  yet available is the possibility to call the Python code from within Excel via VBA macros.
 * The ``clear`` and ``clear_contents`` methods of the ``Workbook`` object now default to the active
   sheet (:issue:`5`)::
 
