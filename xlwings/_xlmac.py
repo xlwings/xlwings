@@ -25,7 +25,7 @@ def reset_status_bar():
     reset. Due to a bug in Apple Script, False doesn't reset it properly so we're calling it through an
     Excel Macro to get it right.
     """
-    app('Microsoft Excel').run_VB_macro('ClearStatusBar')
+    app('Microsoft Excel').run_VB_macro('ResetStatusBar')
 
 atexit.register(reset_status_bar)
 

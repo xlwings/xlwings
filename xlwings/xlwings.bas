@@ -256,7 +256,7 @@ Function KillFileOnMac(Filestr As String)
     On Error GoTo 0
 End Function
 
-Sub ClearStatusBar()
+Sub ResetStatusBar()
     ' There is a bug in AppleScript when setting it to False, so we call it from here
     Application.StatusBar = False
 End Sub
