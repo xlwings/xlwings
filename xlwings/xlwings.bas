@@ -76,7 +76,7 @@ Sub ExcecuteMac(Command As String, PYTHON_MAC As String, LOG_FILE As String, Opt
     ' Send the command to the shell. Courtesy of Robert Knight (http://stackoverflow.com/a/12320294/918626)
     ' Since Excel blocks AppleScript as long as a VBA macro is running, we have to excecute the call as background call
     ' so it can do its magic after this Function has terminated. Python resets the StatusBar via the atexit handler.
-    Res = system(RunCommand & """" & WORKBOOK_FULLNAME & """ ""from_xl"" >" & LOG_FILE & " 2>&1 &")
+    Res = system(RunCommand & """" & WORKBOOK_FULLNAME & """ ""from_xl"" >" & Chr(34) & LOG_FILE & Chr(34) & " 2>&1 &")
 
     ' If there's a log at this point (normally that will be from the Shell only, not Python) show it and reset the StatusBar
     Log = ReadFile(LOG_FILE)
