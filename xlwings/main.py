@@ -54,13 +54,17 @@ class Workbook(object):
     """
     def __init__(self, fullname=None):
         if fullname:
-            self.fullname = fullname.lower()
-            if xlplatform.is_file_open(self.fullname):
-                # Connect to an open Workbook
-                self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname)
+            if xlplatform.is_xl_object(fullname):
+                self.xl_workbook = fullname
+                self.xl_app = self.xl_workbook.Application
             else:
-                # Open Excel and the Workbook
-                self.xl_app, self.xl_workbook = xlplatform.open_workbook(self.fullname)
+                self.fullname = fullname.lower()
+                if xlplatform.is_file_open(self.fullname):
+                    # Connect to an open Workbook
+                    self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname)
+                else:
+                    # Open Excel and the Workbook
+                    self.xl_app, self.xl_workbook = xlplatform.open_workbook(self.fullname)
         elif len(sys.argv) >= 2 and sys.argv[2] == 'from_xl':
             # Connect to the workbook from which this code has been invoked
             self.fullname = sys.argv[1].lower()
@@ -75,6 +79,13 @@ class Workbook(object):
         # Make the most recently created Workbook the default when creating Range objects directly
         global xl_workbook_latest
         xl_workbook_latest = self.xl_workbook
+        
+    @classmethod
+    def current(cls):
+        """
+        Returns the workbook object which is currently active.
+        """
+        return cls(xl_workbook_latest)
 
     def activate(self, sheet):
         """

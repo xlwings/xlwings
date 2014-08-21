@@ -283,3 +283,9 @@ def set_chart_type(xl_chart, chart_type):
 
 def activate_chart(xl_chart):
     xl_chart.Activate()
+
+
+def is_xl_object(xl_object):
+    from win32com.client import CDispatch
+    from types import InstanceType
+    return type(xl_object) is InstanceType and xl_object.__class__ is CDispatch

@@ -249,3 +249,7 @@ def activate_chart(xl_chart):
     activate() doesn't seem to do anything so resolving to select() for now
     """
     xl_chart.select()
+
+
+def is_xl_object(xl_object):
+    return False
