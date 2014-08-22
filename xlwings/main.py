@@ -65,7 +65,7 @@ class Workbook(object):
                 else:
                     # Open Excel and the Workbook
                     self.xl_app, self.xl_workbook = xlplatform.open_workbook(self.fullname)
-        elif len(sys.argv) >= 2 and sys.argv[2] == 'from_xl':
+        elif len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
             # Connect to the workbook from which this code has been invoked
             self.fullname = sys.argv[1].lower()
             self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname)
