@@ -5,7 +5,7 @@ Attribute VB_Name = "xlwings"
 ' See also: http://zoomeranalytics.com
 '
 ' Copyright (C) 2014, Zoomer Analytics LLC.
-' Version: 0.2.1
+' Version: 0.2.2dev
 '
 ' License: BSD 3-clause (see LICENSE.txt for details)
 
@@ -259,4 +259,5 @@ End Function
 Private Sub ResetStatusBar()
     ' There is a bug in AppleScript when setting it to False, so we call it from here
     Application.StatusBar = False
+    Application.ScreenUpdating = True
 End Sub
