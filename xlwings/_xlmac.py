@@ -249,3 +249,15 @@ def activate_chart(xl_chart):
     activate() doesn't seem to do anything so resolving to select() for now
     """
     xl_chart.select()
+
+
+def autofit(range_, axis):
+    if axis == 0 or axis == 'rows' or axis == 'r' and not range_.is_column():
+        range_.xl_range.rows.autofit()
+    elif (axis == 1 or axis == 'columns' or axis == 'c') and not range_.is_row():
+        range_.xl_range.columns.autofit()
+    elif axis is None:
+        if not range_.is_row():
+            range_.xl_range.columns.autofit()
+        if not range_.is_column():
+            range_.xl_range.rows.autofit()

@@ -608,6 +608,35 @@ class Range(object):
         """
         xlplatform.clear_contents_range(self.xl_range)
 
+    def autofit(self, axis=None):
+        """
+        Autofits the width of either columns, rows or both.
+
+        Parameters
+        ----------
+        axis : string or integer, default None
+            - To autofit rows, use one of the following: 0 or 'rows' or 'r'
+            - To autofit columns, use one of the following: 1 or 'columns' or 'c'
+            - To autofit rows and columns, provide no arguments
+
+        Examples
+        --------
+        ::
+
+            # Autofit column A
+            Range('A:A').autofit()
+            # Autofit row 1
+            Range('1:1').autofit()
+            # Autofit columns and rows, taking into account Range('A1:E4')
+            Range('A1:E4').autofit()
+            # AutoFit columns, taking into account Range('A1:E4')
+            Range('A1:E4').autofit(axis=1)
+            # AutoFit rows, taking into account Range('A1:E4')
+            Range('A1:E4').autofit('rows')
+
+        """
+        xlplatform.autofit(self, axis)
+
     def __repr__(self):
         return "<xlwings.Range of Workbook '{0}'>".format(xlplatform.get_workbook_name(self.xl_workbook))
 
