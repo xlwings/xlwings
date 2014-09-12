@@ -16,18 +16,18 @@ except ImportError:
 time_types = (dt.date, dt.datetime)
 
 
-def reset_status_bar():
+def clean_up():
     """
-    Since Apple Script cannot access Excel while a Macro is running, we have to run the Python call in a
+    Since AppleScript cannot access Excel while a Macro is running, we have to run the Python call in a
     background process which makes the call return immediately: we rely on the StatusBar to give the user
     feedback.
-    This function is triggered when the interpreter exits and makes sure that the StatusBar in Excel is
-    reset. Due to a bug in Apple Script, False doesn't reset it properly so we're calling it through an
-    Excel Macro to get it right.
+    This function is triggered when the interpreter exits and runs the CleanUp Macro in VBA to show any
+    errors and to reset the StatusBar.
     """
-    app('Microsoft Excel').run_VB_macro('ResetStatusBar')
+    if is_excel_running():
+        app('Microsoft Excel').run_VB_macro('CleanUp')
 
-atexit.register(reset_status_bar)
+atexit.register(clean_up)
 
 
 def is_file_open(fullname):

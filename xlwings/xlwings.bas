@@ -256,8 +256,23 @@ Function KillFileOnMac(Filestr As String)
     On Error GoTo 0
 End Function
 
-Private Sub ResetStatusBar()
-    ' There is a bug in AppleScript when setting it to False, so we call it from here
+Private Sub CleanUp()
+    'On Mac only, this function is being called after Python is done (using Python's atexit handler)
+
+    Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
+    Dim WORKBOOK_FULLNAME As String, LOG_FILE As String
+    Dim Res As Integer
+
+    'Get LOG_FILE
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE)
+    LOG_FILE = ToPosixPath(LOG_FILE)
+
+    'Show the LOG_FILE as MsgBox if not empty
+    If ReadFile(LOG_FILE) <> "" Then
+        Call ShowError(LOG_FILE)
+    End If
+
+    'Clean up
     Application.StatusBar = False
     Application.ScreenUpdating = True
 End Sub
