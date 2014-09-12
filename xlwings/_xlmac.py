@@ -261,3 +261,7 @@ def autofit(range_, axis):
             range_.xl_range.columns.autofit()
         if not range_.is_column():
             range_.xl_range.rows.autofit()
+
+
+def is_xl_object(xl_object):
+    return False

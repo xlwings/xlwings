@@ -21,6 +21,13 @@ from xlwings import PY3
 time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
 
 
+# The following global variable specifies current Excel instance object.
+# This can be useful because `dynamic.Dispatch('Excel.Application')` always returns the
+# first instance found in the COM Running Object Table, thus if multiple instances of
+# Excel are running, this variable provides a way to specify which instance we want the
+# functions `new_workbook` and `open_workbook` to act.
+xl_app_latest = None
+
 def is_file_open(fullname):
     """
     Checks the Running Object Table (ROT) for the fully qualified filename
@@ -54,9 +61,25 @@ def get_worksheet_name(xl_sheet):
 def get_worksheet_index(xl_sheet):
     return xl_sheet.Index
 
+def _get_app():
+    global xl_app_latest
 
+    # try communicating with the app, in case it has disappeared
+    if xl_app_latest is not None:
+        from pywintypes import com_error
+        try:
+            unused = xl_app_latest.Visible
+        except com_error:
+            xl_app_latest = None
+            
+    # app has not yet been obtained: get first runing instance of Excel
+    if xl_app_latest is None:
+        xl_app_latest = dynamic.Dispatch('Excel.Application')
+        
+    return xl_app_latest
+    
 def open_workbook(fullname):
-    xl_app = dynamic.Dispatch('Excel.Application')
+    xl_app = _get_app()
     xl_workbook = xl_app.Workbooks.Open(fullname)
     xl_app.Visible = True
     return xl_app, xl_workbook
@@ -67,7 +90,7 @@ def close_workbook(xl_workbook):
 
 
 def new_workbook():
-    xl_app = dynamic.Dispatch('Excel.Application')
+    xl_app = _get_app()
     xl_app.Visible = True
     xl_workbook = xl_app.Workbooks.Add()
     return xl_app, xl_workbook
@@ -295,3 +318,9 @@ def autofit(range_, axis):
             range_.xl_range.Columns.AutoFit()
         if not range_.is_column():
             range_.xl_range.Rows.AutoFit()
+
+
+def is_xl_object(xl_object):
+    from win32com.client import CDispatch
+    from types import InstanceType
+    return type(xl_object) is InstanceType and xl_object.__class__ is CDispatch
