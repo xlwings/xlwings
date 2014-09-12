@@ -21,13 +21,6 @@ from xlwings import PY3
 time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
 
 
-# The following global variable specifies current Excel instance object.
-# This can be useful because `dynamic.Dispatch('Excel.Application')` always returns the
-# first instance found in the COM Running Object Table, thus if multiple instances of
-# Excel are running, this variable provides a way to specify which instance we want the
-# functions `new_workbook` and `open_workbook` to act.
-xl_app_latest = None
-
 def is_file_open(fullname):
     """
     Checks the Running Object Table (ROT) for the fully qualified filename
@@ -67,21 +60,16 @@ def get_app(xl_workbook):
 
 
 def _get_latest_app():
-    global xl_app_latest
-
-    # try communicating with the app, in case it has disappeared
-    if xl_app_latest is not None:
-        from pywintypes import com_error
-        try:
-            unused = xl_app_latest.Visible
-        except com_error:
-            xl_app_latest = None
-            
-    # app has not yet been obtained: get first running instance of Excel
-    if xl_app_latest is None:
-        xl_app_latest = dynamic.Dispatch('Excel.Application')
-        
-    return xl_app_latest
+    """
+    Only dispatch Excel if there isn't an existing application - this allows us to run open_workbook() and
+    new_workbook() in the correct Excel instance, i.e. in the one that was instantiated last. Otherwise it just picks
+    the application that appears first in the Running Object Table (ROT).
+    """
+    try:
+        from main import xl_workbook_latest
+    except ImportError:
+        return dynamic.Dispatch('Excel.Application')
+    return get_app(xl_workbook_latest)
 
 
 def open_workbook(fullname):
