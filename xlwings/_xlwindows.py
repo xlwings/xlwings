@@ -61,7 +61,12 @@ def get_worksheet_name(xl_sheet):
 def get_worksheet_index(xl_sheet):
     return xl_sheet.Index
 
-def _get_app():
+
+def get_app(xl_workbook):
+    return xl_workbook.Application
+
+
+def _get_latest_app():
     global xl_app_latest
 
     # try communicating with the app, in case it has disappeared
@@ -72,14 +77,15 @@ def _get_app():
         except com_error:
             xl_app_latest = None
             
-    # app has not yet been obtained: get first runing instance of Excel
+    # app has not yet been obtained: get first running instance of Excel
     if xl_app_latest is None:
         xl_app_latest = dynamic.Dispatch('Excel.Application')
         
     return xl_app_latest
-    
+
+
 def open_workbook(fullname):
-    xl_app = _get_app()
+    xl_app = _get_latest_app()
     xl_workbook = xl_app.Workbooks.Open(fullname)
     xl_app.Visible = True
     return xl_app, xl_workbook
@@ -90,7 +96,7 @@ def close_workbook(xl_workbook):
 
 
 def new_workbook():
-    xl_app = _get_app()
+    xl_app = _get_latest_app()
     xl_app.Visible = True
     xl_workbook = xl_app.Workbooks.Add()
     return xl_app, xl_workbook

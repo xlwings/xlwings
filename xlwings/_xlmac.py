@@ -3,7 +3,7 @@
 
 import os
 import datetime as dt
-from appscript import app
+from appscript import app, reference
 from appscript import k as kw
 import psutil
 import atexit
@@ -71,6 +71,11 @@ def get_worksheet_name(xl_sheet):
 
 def get_worksheet_index(xl_sheet):
     return xl_sheet.entry_index.get()
+
+
+def get_app(xl_workbook):
+    # Since we can't have multiple instances of Excel on Mac (?), we ignore xl_workbook
+    return app('Microsoft Excel')
 
 
 def open_workbook(fullname):
@@ -264,4 +269,7 @@ def autofit(range_, axis):
 
 
 def is_xl_object(xl_object):
-    return False
+    if type(xl_object) is reference.Reference:
+        return True
+    else:
+        return False

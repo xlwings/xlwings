@@ -56,7 +56,7 @@ class Workbook(object):
         if fullname:
             if xlplatform.is_xl_object(fullname):
                 self.xl_workbook = fullname
-                self.xl_app = self.xl_workbook.Application
+                self.xl_app = xlplatform.get_app(self.xl_workbook)
             else:
                 self.fullname = fullname.lower()
                 if xlplatform.is_file_open(self.fullname):
