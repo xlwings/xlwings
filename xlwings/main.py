@@ -375,7 +375,9 @@ class Range(object):
         # TODO: refactor
         if self.is_cell():
             # Clean_xl_data requires and returns a list of list
-            data = xlplatform.clean_xl_data([[xlplatform.get_value_from_range(self.xl_range)]])[0][0]
+            data = xlplatform.clean_xl_data([[xlplatform.get_value_from_range(self.xl_range)]])
+            if not self.atleast_2d:
+                data = data[0][0]
         elif self.is_row():
             data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
             if not self.atleast_2d:
