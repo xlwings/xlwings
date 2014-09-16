@@ -67,7 +67,8 @@ def _get_latest_app():
     """
     try:
         from main import xl_workbook_latest
-    except ImportError:
+        _ = get_app(xl_workbook_latest).Visible
+    except (ImportError, pywintypes.com_error):
         return dynamic.Dispatch('Excel.Application')
     return get_app(xl_workbook_latest)
 
