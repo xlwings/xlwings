@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import os
+import sys
 import nose
 from nose.tools import assert_equal
 from datetime import datetime
@@ -218,6 +219,8 @@ class TestRange:
 
     def test_vertical(self):
         Range('Sheet4', 'A10').value = data
+        if sys.platform.startswith('win') and self.wb.xl_app.Version == '14.0':
+            Range('Sheet4', 'A12:B12').xl_range.NumberFormat = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
         cells = Range('Sheet4', 'A10').vertical.value
         assert_equal(cells, [row[0] for row in data])
 
@@ -228,6 +231,8 @@ class TestRange:
 
     def test_table(self):
         Range('Sheet4', 'A1').value = data
+        if sys.platform.startswith('win') and self.wb.xl_app.Version == '14.0':
+            Range('Sheet4', 'A3:B3').xl_range.NumberFormat = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
         cells = Range('Sheet4', 'A1').table.value
         assert_equal(cells, data)
 
@@ -307,6 +312,8 @@ class TestRange:
 
         df_expected = df_dateindex
         Range('Sheet5', 'A100').value = df_expected
+        if sys.platform.startswith('win') and self.wb.xl_app.Version == '14.0':
+            Range('Sheet5', 'A100').vertical.xl_range.NumberFormat = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
         cells = Range('Sheet5', 'B100').table.value
         index = Range('Sheet5', 'A101').vertical.value
         df_result = DataFrame(cells[1:], index=index, columns=cells[0])
@@ -326,6 +333,8 @@ class TestRange:
 
         series_expected = timeseries_1
         Range('Sheet5', 'A40').value = series_expected
+        if sys.platform.startswith('win') and self.wb.xl_app.Version == '14.0':
+            Range('Sheet5', 'A40').vertical.xl_range.NumberFormat = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
         cells = Range('Sheet5', 'B40:B49').value
         date_index = Range('Sheet5', 'A40:A49').value
         series_result = Series(cells, index=date_index)
