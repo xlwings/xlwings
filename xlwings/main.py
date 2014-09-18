@@ -216,7 +216,7 @@ class Sheet(object):
 
     @property
     def index(self):
-        return xlplatform.get_worksheet_index(self.sheet)
+        return xlplatform.get_worksheet_index(self.xl_sheet)
 
     @classmethod
     def active(cls, xl_workbook=None):
