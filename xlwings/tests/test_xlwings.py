@@ -6,6 +6,8 @@ import nose
 from nose.tools import assert_equal
 from datetime import datetime
 from xlwings import Workbook, Range, Chart, ChartType
+if sys.platform.startswith('darwin'):
+    from appscript import k as kw
 
 # Optional imports
 try:
@@ -390,7 +392,10 @@ class TestChart:
         name_actual = chart_actual.name
         chart_type_actual = chart_actual.chart_type
         assert_equal(name, name_actual)
-        assert_equal(chart_type, chart_type_actual)
+        if sys.platform.startswith('win'):
+            assert_equal(chart_type, chart_type_actual)
+        else:
+            assert_equal(kw.line_chart, chart_type_actual)
 
     def test_add_properties(self):
         name = 'My Chart'
@@ -405,7 +410,10 @@ class TestChart:
         name_actual = chart_actual.name
         chart_type_actual = chart_actual.chart_type
         assert_equal(name, name_actual)
-        assert_equal(chart_type, chart_type_actual)
+        if sys.platform.startswith('win'):
+            assert_equal(chart_type, chart_type_actual)
+        else:
+            assert_equal(kw.line_chart, chart_type_actual)
 
 
 class TestWorkbook:
