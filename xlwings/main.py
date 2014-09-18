@@ -80,7 +80,7 @@ class Workbook(object):
         xl_workbook_latest = self.xl_workbook
         
     @classmethod
-    def active(cls):
+    def current(cls):
         """
         Returns the workbook object which is currently active.
         """
