@@ -356,6 +356,19 @@ class TestRange:
         Range('Sheet1', 'A20').value = np.nan
         assert_equal(None, Range('Sheet1', 'A20').value)
 
+    def test_atleast_2d_scalar(self):
+        """Covers GH Issue #53a"""
+        Range('Sheet1', 'A50').value = 23
+        result = Range('Sheet1', 'A50', atleast_2d=True).value
+        assert_equal([[23]], result)
+
+    def test_atleast_2d_scalar_as_array(self):
+        """Covers GH Issue #53b"""
+        _skip_if_no_numpy()
+
+        Range('Sheet1', 'A50').value = 23
+        result = Range('Sheet1', 'A50', atleast_2d=True, asarray=True).value
+        assert_equal(np.array([[23]]), result)
 
 class TestChart:
     def setUp(self):
@@ -428,6 +441,9 @@ class TestWorkbook:
         self.wb.clear('Sheet2')
         cell = Range('Sheet2', 'G10').value
         assert_equal(cell, None)
+
+    def test_active(self):
+        assert_equal(self.wb.xl_workbook, Workbook.active().xl_workbook)
 
 
 if __name__ == '__main__':
