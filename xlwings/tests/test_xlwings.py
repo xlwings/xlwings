@@ -450,8 +450,8 @@ class TestWorkbook:
         cell = Range('Sheet2', 'G10').value
         assert_equal(cell, None)
 
-    def test_active(self):
-        assert_equal(self.wb.xl_workbook, Workbook.active().xl_workbook)
+    def test_current(self):
+        assert_equal(self.wb.xl_workbook, Workbook.current().xl_workbook)
 
 
 if __name__ == '__main__':
