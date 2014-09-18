@@ -55,22 +55,16 @@ def get_worksheet_index(xl_sheet):
     return xl_sheet.Index
 
 
-def get_app(xl_workbook):
-    return xl_workbook.Application
-
-
 def _get_latest_app():
     """
     Only dispatch Excel if there isn't an existing application - this allows us to run open_workbook() and
-    new_workbook() in the correct Excel instance, i.e. in the one that was instantiated last. Otherwise it just picks
+    new_workbook() in the correct Excel instance, i.e. in the one that was instantiated last. Otherwise it would pick
     the application that appears first in the Running Object Table (ROT).
     """
     try:
-        from main import xl_workbook_latest
-        _ = get_app(xl_workbook_latest).Visible
-    except (ImportError, pywintypes.com_error):
+        return xl_workbook_latest.Application
+    except NameError:
         return dynamic.Dispatch('Excel.Application')
-    return get_app(xl_workbook_latest)
 
 
 def open_workbook(fullname):
@@ -313,3 +307,15 @@ def autofit(range_, axis):
             range_.xl_range.Columns.AutoFit()
         if not range_.is_column():
             range_.xl_range.Rows.AutoFit()
+
+
+def set_xl_workbook_latest(xl_workbook):
+    global xl_workbook_latest
+    xl_workbook_latest = xl_workbook
+
+
+def get_xl_workbook_latest():
+    try:
+        return xl_workbook_latest
+    except NameError:
+        return False

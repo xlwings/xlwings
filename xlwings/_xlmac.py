@@ -268,8 +268,13 @@ def autofit(range_, axis):
             range_.xl_range.rows.autofit()
 
 
-def is_xl_object(xl_object):
-    if type(xl_object) is reference.Reference:
-        return True
-    else:
+def set_xl_workbook_latest(xl_workbook):
+    global xl_workbook_latest
+    xl_workbook_latest = xl_workbook
+
+
+def get_xl_workbook_latest():
+    try:
+        return xl_workbook_latest
+    except NameError:
         return False
