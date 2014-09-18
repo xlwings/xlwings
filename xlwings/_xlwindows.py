@@ -313,9 +313,3 @@ def autofit(range_, axis):
             range_.xl_range.Columns.AutoFit()
         if not range_.is_column():
             range_.xl_range.Rows.AutoFit()
-
-
-def is_xl_object(xl_object):
-    from win32com.client import CDispatch
-    from types import InstanceType
-    return type(xl_object) is InstanceType and xl_object.__class__ is CDispatch

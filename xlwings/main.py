@@ -52,19 +52,18 @@ class Workbook(object):
         If you want to connect to an existing Excel file from Python, use the fullname, e.g:
         ``r'C:\\path\\to\\file.xlsx'``
     """
-    def __init__(self, fullname=None):
-        if fullname:
-            if xlplatform.is_xl_object(fullname):
-                self.xl_workbook = fullname
-                self.xl_app = xlplatform.get_app(self.xl_workbook)
+    def __init__(self, fullname=None, xl_workbook=None):
+        if xl_workbook:
+            self.xl_workbook = xl_workbook
+            self.xl_app = xlplatform.get_app(self.xl_workbook)
+        elif fullname:
+            self.fullname = fullname.lower()
+            if xlplatform.is_file_open(self.fullname):
+                # Connect to an open Workbook
+                self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname)
             else:
-                self.fullname = fullname.lower()
-                if xlplatform.is_file_open(self.fullname):
-                    # Connect to an open Workbook
-                    self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname)
-                else:
-                    # Open Excel and the Workbook
-                    self.xl_app, self.xl_workbook = xlplatform.open_workbook(self.fullname)
+                # Open Excel and the Workbook
+                self.xl_app, self.xl_workbook = xlplatform.open_workbook(self.fullname)
         elif len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
             # Connect to the workbook from which this code has been invoked
             self.fullname = sys.argv[1].lower()
@@ -81,11 +80,11 @@ class Workbook(object):
         xl_workbook_latest = self.xl_workbook
         
     @classmethod
-    def current(cls):
+    def active(cls):
         """
         Returns the workbook object which is currently active.
         """
-        return cls(xl_workbook_latest)
+        return cls(xl_workbook=xl_workbook_latest)
 
     def activate(self, sheet):
         """
