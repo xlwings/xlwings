@@ -69,6 +69,14 @@ def get_worksheet_name(xl_sheet):
     return xl_sheet.name.get()
 
 
+def get_xl_sheet(xl_workbook, sheet_name_or_index):
+    return xl_workbook.sheets[sheet_name_or_index]
+
+
+def set_worksheet_name(xl_sheet, value):
+    return xl_sheet.name.set(value)
+
+
 def get_worksheet_index(xl_sheet):
     return xl_sheet.entry_index.get()
 

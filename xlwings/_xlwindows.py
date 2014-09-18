@@ -51,6 +51,14 @@ def get_worksheet_name(xl_sheet):
     return xl_sheet.Name
 
 
+def get_xl_sheet(xl_workbook, sheet_name_or_index):
+    pass  # TODO
+
+
+def set_worksheet_name(xl_sheet, value):
+    pass  # TODO
+
+
 def get_worksheet_index(xl_sheet):
     return xl_sheet.Index
 

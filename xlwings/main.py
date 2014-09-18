@@ -73,7 +73,7 @@ class Workbook(object):
             self.xl_app, self.xl_workbook = xlplatform.new_workbook()
 
         self.name = xlplatform.get_workbook_name(self.xl_workbook)
-        self.active_sheet = ActiveSheet(xl_workbook=self.xl_workbook)
+        self.active_sheet = Sheet.active(xl_workbook=self.xl_workbook)
 
         # Make the most recently created Workbook the default when creating Range objects directly
         xlplatform.set_xl_workbook_latest(self.xl_workbook)
@@ -84,17 +84,6 @@ class Workbook(object):
         Returns the workbook object which is currently active.
         """
         return cls(xl_workbook=xlplatform.get_xl_workbook_latest())
-
-    def activate(self, sheet):
-        """
-        Activates the given sheet.
-
-        Parameters
-        ----------
-        sheet : string or integer
-            Sheet name or index.
-        """
-        xlplatform.activate_sheet(self.xl_workbook, sheet)
 
     def get_selection(self, asarray=False):
         """
@@ -165,34 +154,6 @@ class Workbook(object):
         """
         return Chart(*args, workbook=self.xl_workbook, **kwargs)
 
-    def clear_contents(self, sheet=None):
-        """
-        Clears the content of a whole sheet but leaves the formatting.
-
-        Parameters
-        ----------
-        sheet : string or integer, default None
-            Sheet name or index. If sheet is None, the active sheet is used.
-        """
-        if sheet is None:
-            sheet = self.active_sheet.index
-
-        xlplatform.clear_contents_worksheet(self.xl_workbook, sheet)
-
-    def clear(self, sheet=None):
-        """
-        Clears the content and formatting of a whole sheet.
-
-        Parameters
-        ----------
-        sheet : string or integer, default None
-            Sheet name or index. If sheet is None, the active sheet is used.
-        """
-        if sheet is None:
-            sheet = self.active_sheet.index
-
-        xlplatform.clear_worksheet(self.xl_workbook, sheet)
-
     def close(self):
         """Closes the Workbook without saving it"""
         xlplatform.close_workbook(self.xl_workbook)
@@ -201,30 +162,73 @@ class Workbook(object):
         return "<xlwings.Workbook '{0}'>".format(self.name)
 
 
-class ActiveSheet(object):
+class Sheet(object):
     """
-    Returns an object that represents the active sheet. Supposed to be used from the Workbook object like so::
+    Represents a Sheet of the current Workbook. Either call it with the Sheet name or index::
 
-        wb = Workbook()
-        wb.active_sheet.name
+        Sheet('Sheet1')
+        Sheet(1)
 
     Parameters
-    ----------
-    xl_workbook : pywin32 or appscript object
-        Underlying Workbook object
+    ---------
+    sheet : str or int
+        Sheet name or index
     """
-    def __init__(self, xl_workbook=None):
+
+    def __init__(self, sheet, xl_workbook=None):
         if xl_workbook is None:
-            xl_workbook = xlplatform.get_xl_workbook_latest()
-        self.xl_active_sheet = xlplatform.get_active_sheet(xl_workbook)
+            self.xl_workbook = xlplatform.get_xl_workbook_latest()
+        else:
+            self.xl_workbook = xl_workbook
+        self.sheet = sheet
+        self.xl_sheet = xlplatform.get_xl_sheet(self.xl_workbook, self.sheet)
+
+    def activate(self):
+        """
+        Activates the given sheet.
+
+        Parameters
+        ----------
+        sheet : string or integer
+            Sheet name or index.
+        """
+        xlplatform.activate_sheet(self.xl_workbook, self.sheet)
+
+    def clear_contents(self):
+        """
+        Clears the content of a whole sheet but leaves the formatting.
+        """
+        xlplatform.clear_contents_worksheet(self.xl_workbook, self.sheet)
+
+    def clear(self):
+        """
+        Clears the content and formatting of a whole sheet.
+        """
+        xlplatform.clear_worksheet(self.xl_workbook, self.sheet)
 
     @property
     def name(self):
-        return xlplatform.get_workbook_name(self.xl_active_sheet)
+        return xlplatform.get_worksheet_name(self.xl_sheet)
+
+    @name.setter
+    def name(self, value):
+        xlplatform.set_worksheet_name(self.xl_sheet, value)
 
     @property
     def index(self):
-        return xlplatform.get_worksheet_index(self.xl_active_sheet)
+        return xlplatform.get_worksheet_index(self.sheet)
+
+    @classmethod
+    def active(cls, xl_workbook=None):
+        """
+        Returns the workbook object which is currently active.
+        """
+        if xl_workbook is None:
+            xl_workbook = xlplatform.get_xl_workbook_latest()
+        return cls(xlplatform.get_worksheet_name(xlplatform.get_active_sheet(xl_workbook)), xl_workbook)
+
+    def __repr__(self):
+        return "<xlwings.Sheet '{0}'>".format(self.name)
 
 
 class Range(object):

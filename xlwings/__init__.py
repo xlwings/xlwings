@@ -13,5 +13,5 @@ else:
     import xlwings._xlmac as xlplatform
 
 # API
-from .main import Workbook, Range, Chart
+from .main import Workbook, Range, Chart, Sheet
 from .constants import *
