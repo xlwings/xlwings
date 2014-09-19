@@ -86,6 +86,85 @@ def _skip_if_no_pandas():
         raise nose.SkipTest('pandas missing')
 
 
+class TestWorkbook:
+    def setUp(self):
+        # Connect to test file and make Sheet1 the active sheet
+        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx')
+        self.wb = Workbook(xl_file1)
+        Sheet('Sheet1').activate()
+
+    def tearDown(self):
+        self.wb.close()
+
+    def test_name(self):
+        assert_equal(self.wb.name, 'test_workbook_1.xlsx')
+
+    def test_active_sheet(self):
+        assert_equal(self.wb.active_sheet.name, 'Sheet1')
+
+    def test_current(self):
+        assert_equal(self.wb.xl_workbook, Workbook.current().xl_workbook)
+
+    def test_set_current(self):
+        wb2 = Workbook()
+        assert_equal(Workbook.current().xl_workbook, wb2.xl_workbook)
+        self.wb.set_current()
+        assert_equal(Workbook.current().xl_workbook, self.wb.xl_workbook)
+
+    def test_get_selection(self):
+        Range('A1').value = 1000
+        assert_equal(self.wb.get_selection().value, 1000)
+
+
+class TestSheet:
+    def setUp(self):
+        # Connect to test file and make Sheet1 the active sheet
+        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx')
+        self.wb = Workbook(xl_file1)
+        Sheet('Sheet1').activate()
+
+    def tearDown(self):
+        self.wb.close()
+
+    def test_activate(self):
+        Sheet('Sheet2').activate()
+        assert_equal(Sheet.active().name, 'Sheet2')
+        Sheet(3).activate()
+        assert_equal(Sheet.active().index, 3)
+
+    def test_name(self):
+        Sheet(1).name = 'NewName'
+        assert_equal(Sheet(1).name, 'NewName')
+
+    def test_index(self):
+        assert_equal(Sheet('Sheet1').index, 1)
+
+
+    def test_clear_content_active_sheet(self):
+        Range('G10').value = 22
+        Sheet.active().clear_contents()
+        cell = Range('G10').value
+        assert_equal(cell, None)
+
+    def test_clear_active_sheet(self):
+        Range('G10').value = 22
+        Sheet.active().clear()
+        cell = Range('G10').value
+        assert_equal(cell, None)
+
+    def test_clear_content(self):
+        Range('Sheet2', 'G10').value = 22
+        Sheet('Sheet2').clear_contents()
+        cell = Range('Sheet2', 'G10').value
+        assert_equal(cell, None)
+
+    def test_clear(self):
+        Range('Sheet2', 'G10').value = 22
+        Sheet('Sheet2').clear()
+        cell = Range('Sheet2', 'G10').value
+        assert_equal(cell, None)
+
+
 class TestRange:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
@@ -258,6 +337,39 @@ class TestRange:
         cells = Range('Sheet4', 'A31:A33', atleast_2d=True).value
         assert_equal(list_col, cells)
 
+    def test_is_cell(self):
+        assert_equal(Range('A1').is_cell(), True)
+        assert_equal(Range('A1:B1').is_cell(), False)
+        assert_equal(Range('A1:A2').is_cell(), False)
+        assert_equal(Range('A1:B2').is_cell(), False)
+
+    def test_is_row(self):
+        assert_equal(Range('A1').is_row(), False)
+        assert_equal(Range('A1:B1').is_row(), True)
+        assert_equal(Range('A1:A2').is_row(), False)
+        assert_equal(Range('A1:B2').is_row(), False)
+
+    def test_is_column(self):
+        assert_equal(Range('A1').is_column(), False)
+        assert_equal(Range('A1:B1').is_column(), False)
+        assert_equal(Range('A1:A2').is_column(), True)
+        assert_equal(Range('A1:B2').is_column(), False)
+
+    def test_is_table(self):
+        assert_equal(Range('A1').is_table(), False)
+        assert_equal(Range('A1:B1').is_table(), False)
+        assert_equal(Range('A1:A2').is_table(), False)
+        assert_equal(Range('A1:B2').is_table(), True)
+
+    def test_formula(self):
+        Range('A1').formula = '=SUM(A2:A10)'
+        assert_equal(Range('A1').formula, '=SUM(A2:A10)')
+
+    def test_current_region(self):
+        values = [[1.,2.],[3.,4.]]
+        Range('A20').value = values
+        assert_equal(Range('B21').current_region.value, values)
+
     def test_clear_content(self):
         Range('Sheet4', 'G1').value = 22
         Range('Sheet4', 'G1').clear_contents()
@@ -372,6 +484,10 @@ class TestRange:
         result = Range('Sheet1', 'A50', atleast_2d=True, asarray=True).value
         assert_equal(np.array([[23]]), result)
 
+    def test_autofit(self):
+        pass  # TODO
+
+
 class TestChart:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
@@ -386,7 +502,7 @@ class TestChart:
         name = 'My Chart'
         chart_type = ChartType.xlLine
         Range('A1').value = chart_data
-        chart = Chart().add(chart_type=chart_type, name=name, source_data=Range('A1').table)
+        chart = Chart.add(chart_type=chart_type, name=name, source_data=Range('A1').table)
 
         chart_actual = Chart(name)
         name_actual = chart_actual.name
@@ -401,7 +517,7 @@ class TestChart:
         name = 'My Chart'
         chart_type = ChartType.xlLine
         Range('Sheet2', 'A1').value = chart_data
-        chart = Chart().add('Sheet2')
+        chart = Chart.add('Sheet2')
         chart.chart_type = chart_type
         chart.name = name
         chart.set_source_data(Range('Sheet2', 'A1').table)
@@ -415,54 +531,6 @@ class TestChart:
         else:
             assert_equal(kw.line_chart, chart_type_actual)
 
-
-class TestWorkbook:
-    def setUp(self):
-        # Connect to test file and make Sheet1 the active sheet
-        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx')
-        self.wb = Workbook(xl_file1)
-        Sheet('Sheet1').activate()
-
-    def tearDown(self):
-        self.wb.close()
-
-    def test_current(self):
-        assert_equal(self.wb.xl_workbook, Workbook.current().xl_workbook)
-
-
-class TestSheet:
-    def setUp(self):
-        # Connect to test file and make Sheet1 the active sheet
-        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx')
-        self.wb = Workbook(xl_file1)
-        Sheet('Sheet1').activate()
-
-    def tearDown(self):
-        self.wb.close()
-
-    def test_clear_content_active_sheet(self):
-        Range('G10').value = 22
-        Sheet.active().clear_contents()
-        cell = Range('G10').value
-        assert_equal(cell, None)
-
-    def test_clear_active_sheet(self):
-        Range('G10').value = 22
-        Sheet.active().clear()
-        cell = Range('G10').value
-        assert_equal(cell, None)
-
-    def test_clear_content(self):
-        Range('Sheet2', 'G10').value = 22
-        Sheet('Sheet2').clear_contents()
-        cell = Range('Sheet2', 'G10').value
-        assert_equal(cell, None)
-
-    def test_clear(self):
-        Range('Sheet2', 'G10').value = 22
-        Sheet('Sheet2').clear()
-        cell = Range('Sheet2', 'G10').value
-        assert_equal(cell, None)
 
 if __name__ == '__main__':
     nose.main()

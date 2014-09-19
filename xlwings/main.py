@@ -31,7 +31,7 @@ class Workbook(object):
 
     * a new workbook: ``wb = Workbook()``
     * an unsaved workbook: ``wb = Workbook('Book1')``
-    * a closed workbook: ``wb = Workbook(r'C:\\path\\to\\file.xlsx')``
+    * a saved workbook (open or closed): ``wb = Workbook(r'C:\\path\\to\\file.xlsx')``
 
     If you want to create the connection from Excel through the xlwings VBA module, use:
 
@@ -41,7 +41,7 @@ class Workbook(object):
     ---------
     fullname : string, default None
         If you want to connect to an existing Excel file from Python, use the fullname, e.g:
-        ``r'C:\\path\\to\\file.xlsx'``. If the file is already open, the name is enough: ``file.xlsx``
+        ``r'C:\\path\\to\\file.xlsx'``. If the file is unsaved, then use the name only, e.g.: ``Book1``
     """
     def __init__(self, fullname=None, workbook=None):
         if workbook:
@@ -72,7 +72,7 @@ class Workbook(object):
     @classmethod
     def current(cls):
         """
-        Returns the workbook object which is currently active, i.e. used by Range, Sheet and Chart if not specified
+        Returns the current workbook object, i.e. the default workbook used by Range, Sheet and Chart if not specified
         otherwise. On Windows, it also means that Workbook.new() Workbook.open() are acting on the same instance of
         Excel as this Workbook.
         """
@@ -80,7 +80,7 @@ class Workbook(object):
 
     def set_current(self):
         """
-        This activates a workbook, i.e. it makes it the Workbook that Range, Sheet and Chart refer to if not specified
+        This makes the workbook the default Workbook that Range, Sheet and Chart use if not specified
         otherwise. On Windows, it also means that Workbook.new() Workbook.open() are acting on the same instance of
         Excel as this Workbook.
         """
@@ -88,16 +88,16 @@ class Workbook(object):
 
     def get_selection(self, asarray=False):
         """
-        Returns the currently selected Range from Excel as xlwings Range object.
+        Returns the currently selected Range from Excel as Range object.
 
-        Arguments
-        ---------
+        Keyword Arguments
+        -----------------
         asarray : boolean, default False
             returns a NumPy array where empty cells are shown as nan
 
         Returns
         -------
-        xlwings Range object
+        Range object
         """
         return Range(xlplatform.get_selection_address(self.xl_app), workbook=self, asarray=asarray)
 
@@ -106,7 +106,7 @@ class Workbook(object):
         xlplatform.close_workbook(self.xl_workbook)
 
     def __repr__(self):
-        return "<xlwings.Workbook '{0}'>".format(self.name)
+        return "<Workbook '{0}'>".format(self.name)
 
 
 class Sheet(object):
@@ -123,7 +123,7 @@ class Sheet(object):
 
     Keyword Arguments
     -----------------
-    workbook : xlwings Workbook object, default Workbook.current()
+    workbook : Workbook object, default Workbook.current()
         Defaults to the Workbook that was instantiated last or set via Workbook.set_current().
     """
 
@@ -150,18 +150,19 @@ class Sheet(object):
 
     def clear_contents(self):
         """
-        Clears the content of a whole sheet but leaves the formatting.
+        Clears the content of the whole sheet but leaves the formatting.
         """
         xlplatform.clear_contents_worksheet(self.xl_workbook, self.sheet)
 
     def clear(self):
         """
-        Clears the content and formatting of a whole sheet.
+        Clears the content and formatting of the whole sheet.
         """
         xlplatform.clear_worksheet(self.xl_workbook, self.sheet)
 
     @property
     def name(self):
+        "Get or set the name of the Sheet."
         return xlplatform.get_worksheet_name(self.xl_sheet)
 
     @name.setter
@@ -170,6 +171,7 @@ class Sheet(object):
 
     @property
     def index(self):
+        "Returns the index of the Sheet."
         return xlplatform.get_worksheet_index(self.xl_sheet)
 
     @classmethod
@@ -221,7 +223,7 @@ class Range(object):
     atleast_2d : boolean, default False
         Returns 2d lists/arrays even if the Range is a Row or Column.
 
-    workbook : xlwings Workbook object, default Workbook.current()
+    workbook : Workbook object, default Workbook.current()
         Defaults to the Workbook that was instantiated last or set via Workbook.set_current().
     """
     def __init__(self, *args, **kwargs):
@@ -463,7 +465,7 @@ class Range(object):
 
         Returns
         -------
-        xlwings Range object
+        Range object
 
         Examples
         --------
@@ -487,14 +489,14 @@ class Range(object):
         Returns a contiguous Range starting with the indicated cell and going down as long as no empty cell is hit.
         This corresponds to ``Ctrl + Shift + Down Arrow`` in Excel.
 
-        Parameters
-        ----------
+        Arguments
+        ---------
         strict : bool, default False
             strict stops the table at empty cells even if they contain a formula. Less efficient than if set to False.
 
         Returns
         -------
-        xlwings Range object
+        Range object
 
         Examples
         --------
@@ -533,7 +535,7 @@ class Range(object):
 
         Returns
         -------
-        xlwings Range object
+        Range object
 
         Examples
         --------
@@ -564,11 +566,12 @@ class Range(object):
     def current_region(self):
         """
         The current_region property returns a Range object representing a range bounded by (but not including) any
-        combination of blank rows and blank columns or the edges of the worksheet. It corresponds to ``Ctrl + *``.
+        combination of blank rows and blank columns or the edges of the worksheet. It corresponds to ``Ctrl + *`` on
+        Windows and ``Shift-Ctrl-Space``on Mac.
 
         Returns
         -------
-        xlwings Range object
+        Range object
 
         """
         address = xlplatform.get_current_region_address(self.xl_sheet, self.row1, self.col1)
@@ -616,7 +619,7 @@ class Range(object):
         xlplatform.autofit(self, axis)
 
     def __repr__(self):
-        return "<xlwings.Range of Workbook '{0}'>".format(xlplatform.get_workbook_name(self.xl_workbook))
+        return "<Range of Workbook '{0}'>".format(xlplatform.get_workbook_name(self.xl_workbook))
 
 
 class Chart(object):
@@ -631,7 +634,7 @@ class Chart(object):
 
     To insert a new chart into Excel, create it as follows::
 
-        Chart().add()
+        Chart.add()
 
     Arguments
     ---------
@@ -643,7 +646,7 @@ class Chart(object):
     chart_type : Member of ChartType, default xlColumnClustered
         Chart type, can also be set using the ``chart_type`` property
 
-    workbook : xlwings Workbook object, default Workbook.current()
+    workbook : Workbook object, default Workbook.current()
         Defaults to the Workbook that was instantiated last or set via Workbook.set_current().
     """
     def __init__(self, *args, **kwargs):
@@ -652,20 +655,17 @@ class Chart(object):
         self.xl_workbook = self.workbook.xl_workbook
 
         # Arguments
-        if len(args) == 0:
-            pass
-        elif len(args) > 0:
-            if len(args) == 1:
-                _sheet_name_or_index = xlplatform.get_worksheet_name(xlplatform.get_active_sheet(self.xl_workbook))
-                _name_or_index = args[0]
-            elif len(args) == 2:
-                _sheet_name_or_index = args[0]
-                _name_or_index = args[1]
+        if len(args) == 1:
+            _sheet_name_or_index = xlplatform.get_worksheet_name(xlplatform.get_active_sheet(self.xl_workbook))
+            _name_or_index = args[0]
+        elif len(args) == 2:
+            _sheet_name_or_index = args[0]
+            _name_or_index = args[1]
 
-            # Get xl_chart object
-            self.xl_chart = xlplatform.get_chart_object(self.xl_workbook, _sheet_name_or_index, _name_or_index)
-            self.index = xlplatform.get_chart_index(self.xl_chart)
-            self.name = xlplatform.get_chart_name(self.xl_chart)
+        # Get xl_chart object
+        self.xl_chart = xlplatform.get_chart_object(self.xl_workbook, _sheet_name_or_index, _name_or_index)
+        self.index = xlplatform.get_chart_index(self.xl_chart)
+        self.name = xlplatform.get_chart_name(self.xl_chart)
 
         # Chart Type
         chart_type = kwargs.get('chart_type')
@@ -677,7 +677,8 @@ class Chart(object):
         if source_data:
             self.set_source_data(source_data)
 
-    def add(self, sheet=None, left=168, top=217, width=355, height=211, **kwargs):
+    @classmethod
+    def add(cls, sheet=None, left=168, top=217, width=355, height=211, **kwargs):
         """
         Inserts a new chart in Excel.
 
@@ -706,25 +707,29 @@ class Chart(object):
         name : str, default None
             Excel chart name. Defaults to Excel standard name if not provided, e.g. 'Chart 1'
 
-        source_data : xlwings Range
+        source_data : Range
             e.g. Range('A1').table
 
+        workbook : Workbook object, default Workbook.current()
+            Defaults to the Workbook that was instantiated last or set via Workbook.set_current().
         """
+        workbook = kwargs.get('workbook', xlplatform.get_workbook_latest())
+        xl_workbook = workbook.xl_workbook
         chart_type = kwargs.get('chart_type', ChartType.xlColumnClustered)
         name = kwargs.get('name')
         source_data = kwargs.get('source_data')
 
         if sheet is None:
-            sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(self.xl_workbook))
+            sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
 
-        xl_chart = xlplatform.add_chart(self.xl_workbook, sheet, left, top, width, height)
+        xl_chart = xlplatform.add_chart(xl_workbook, sheet, left, top, width, height)
 
         if name:
             xlplatform.set_chart_name(xl_chart, name)
         else:
             name = xlplatform.get_chart_name(xl_chart)
 
-        return Chart(sheet, name, workbook=self.workbook, chart_type=chart_type, source_data=source_data)
+        return cls(sheet, name, workbook=workbook, chart_type=chart_type, source_data=source_data)
 
     @property
     def name(self):
@@ -761,10 +766,10 @@ class Chart(object):
         Arguments
         ---------
         source : Range
-            xlwings Range object, e.g. ``Range('A1')``
+            Range object, e.g. ``Range('A1')``
         """
         xlplatform.set_source_data_chart(self.xl_chart, source.xl_range)
 
     def __repr__(self):
-        return "<Chart '{0}'>".format(self.name)
+        return "<Chart '{0}' on Workbook '{1}'>".format(self.name, self.workbook.name)
 
