@@ -110,6 +110,7 @@ class TestWorkbook:
         assert_equal(Workbook.current().xl_workbook, wb2.xl_workbook)
         self.wb.set_current()
         assert_equal(Workbook.current().xl_workbook, self.wb.xl_workbook)
+        wb2.close()
 
     def test_get_selection(self):
         Range('A1').value = 1000
