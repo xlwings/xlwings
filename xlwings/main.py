@@ -40,7 +40,8 @@ class Workbook(object):
     Workbook connects an Excel Workbook with Python. You can create a new connection from Python with
 
     * a new workbook: ``wb = Workbook()``
-    * an existing workbook: ``wb = Workbook(r'C:\\path\\to\\file.xlsx')``
+    * an open workbook: ``wb = Workbook('file.xlsx')``
+    * a closed workbook: ``wb = Workbook(r'C:\\path\\to\\file.xlsx')``
 
     If you want to create the connection from Excel through the xlwings VBA module, use:
 
@@ -50,7 +51,7 @@ class Workbook(object):
     ----------
     fullname : string, default None
         If you want to connect to an existing Excel file from Python, use the fullname, e.g:
-        ``r'C:\\path\\to\\file.xlsx'``
+        ``r'C:\\path\\to\\file.xlsx'``. If the file is already open, the name is enough: ``file.xlsx``
     """
     def __init__(self, fullname=None, xl_workbook=None):
         if xl_workbook:
