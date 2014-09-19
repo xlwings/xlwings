@@ -52,15 +52,19 @@ def get_worksheet_name(xl_sheet):
 
 
 def get_xl_sheet(xl_workbook, sheet_name_or_index):
-    pass  # TODO
+    return xl_workbook.Sheets(sheet_name_or_index)
 
 
 def set_worksheet_name(xl_sheet, value):
-    pass  # TODO
+    xl_sheet.Name = value
 
 
 def get_worksheet_index(xl_sheet):
     return xl_sheet.Index
+
+
+def get_app(xl_workbook):
+    return xl_workbook.Application
 
 
 def _get_latest_app():
@@ -70,8 +74,9 @@ def _get_latest_app():
     the application that appears first in the Running Object Table (ROT).
     """
     try:
+        _ = xl_workbook_latest.Application.Visible
         return xl_workbook_latest.Application
-    except NameError:
+    except (NameError, pywintypes.com_error):
         return dynamic.Dispatch('Excel.Application')
 
 
