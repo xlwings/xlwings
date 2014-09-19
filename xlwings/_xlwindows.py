@@ -74,8 +74,8 @@ def _get_latest_app():
     the application that appears first in the Running Object Table (ROT).
     """
     try:
-        _ = xl_workbook_latest.xl_workbook.Application.Visible
-        return xl_workbook_latest.xl_workbook.Application
+        _ = xl_workbook_latest.Application.Visible
+        return xl_workbook_latest.Application
     except (NameError, pywintypes.com_error):
         return dynamic.Dispatch('Excel.Application')
 
