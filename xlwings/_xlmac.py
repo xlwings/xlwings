@@ -265,7 +265,7 @@ def activate_chart(xl_chart):
 
 
 def autofit(range_, axis):
-    if axis == 0 or axis == 'rows' or axis == 'r' and not range_.is_column():
+    if (axis == 0 or axis == 'rows' or axis == 'r') and not range_.is_column():
         range_.xl_range.rows.autofit()
     elif (axis == 1 or axis == 'columns' or axis == 'c') and not range_.is_row():
         range_.xl_range.columns.autofit()
