@@ -5,7 +5,7 @@ import sys
 import nose
 from nose.tools import assert_equal
 from datetime import datetime
-from xlwings import Workbook, Range, Chart, ChartType
+from xlwings import Workbook, Sheet, Range, Chart, ChartType
 if sys.platform.startswith('darwin'):
     from appscript import k as kw
 
@@ -91,7 +91,7 @@ class TestRange:
         # Connect to test file and make Sheet1 the active sheet
         xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_range_1.xlsx')
         self.wb = Workbook(xl_file1)
-        self.wb.activate('Sheet1')
+        Sheet('Sheet1').activate()
 
     def tearDown(self):
         self.wb.close()
@@ -377,7 +377,7 @@ class TestChart:
         # Connect to test file and make Sheet1 the active sheet
         xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_chart_1.xlsx')
         self.wb = Workbook(xl_file1)
-        self.wb.activate('Sheet1')
+        Sheet('Sheet1').activate()
 
     def tearDown(self):
         self.wb.close()
@@ -421,38 +421,48 @@ class TestWorkbook:
         # Connect to test file and make Sheet1 the active sheet
         xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx')
         self.wb = Workbook(xl_file1)
-        self.wb.activate('Sheet1')
+        Sheet('Sheet1').activate()
+
+    def tearDown(self):
+        self.wb.close()
+
+    def test_current(self):
+        assert_equal(self.wb.xl_workbook, Workbook.current().xl_workbook)
+
+
+class TestSheet:
+    def setUp(self):
+        # Connect to test file and make Sheet1 the active sheet
+        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx')
+        self.wb = Workbook(xl_file1)
+        Sheet('Sheet1').activate()
 
     def tearDown(self):
         self.wb.close()
 
     def test_clear_content_active_sheet(self):
         Range('G10').value = 22
-        self.wb.clear_contents()
+        Sheet.active().clear_contents()
         cell = Range('G10').value
         assert_equal(cell, None)
 
     def test_clear_active_sheet(self):
         Range('G10').value = 22
-        self.wb.clear()
+        Sheet.active().clear()
         cell = Range('G10').value
         assert_equal(cell, None)
 
     def test_clear_content(self):
         Range('Sheet2', 'G10').value = 22
-        self.wb.clear_contents('Sheet2')
+        Sheet('Sheet2').clear_contents()
         cell = Range('Sheet2', 'G10').value
         assert_equal(cell, None)
 
     def test_clear(self):
         Range('Sheet2', 'G10').value = 22
-        self.wb.clear('Sheet2')
+        Sheet('Sheet2').clear()
         cell = Range('Sheet2', 'G10').value
         assert_equal(cell, None)
-
-    def test_current(self):
-        assert_equal(self.wb.xl_workbook, Workbook.current().xl_workbook)
-
 
 if __name__ == '__main__':
     nose.main()

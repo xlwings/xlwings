@@ -74,8 +74,8 @@ def _get_latest_app():
     the application that appears first in the Running Object Table (ROT).
     """
     try:
-        _ = xl_workbook_latest.Application.Visible
-        return xl_workbook_latest.Application
+        _ = workbook_latest.xl_workbook.Application.Visible
+        return workbook_latest.xl_workbook.Application
     except (NameError, pywintypes.com_error):
         return dynamic.Dispatch('Excel.Application')
 
@@ -322,13 +322,13 @@ def autofit(range_, axis):
             range_.xl_range.Rows.AutoFit()
 
 
-def set_xl_workbook_latest(xl_workbook):
-    global xl_workbook_latest
-    xl_workbook_latest = xl_workbook
+def set_workbook_latest(workbook):
+    global workbook_latest
+    workbook_latest = workbook
 
 
-def get_xl_workbook_latest():
+def get_workbook_latest():
     try:
-        return xl_workbook_latest
+        return workbook_latest
     except NameError:
         return False
