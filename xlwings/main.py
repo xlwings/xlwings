@@ -81,9 +81,18 @@ class Workbook(object):
     @classmethod
     def current(cls):
         """
-        Returns the workbook object which is currently active.
+        Returns the workbook object which is currently active, i.e. used by Range, Sheet and Chart if not specified
+        otherwise.
         """
         return cls(xl_workbook=xlplatform.get_xl_workbook_latest())
+
+    def set_current(self):
+        """
+        This activates a workbook, i.e. it makes it the Workbook that Range, Sheet and Chart refer to if not specified
+        otherwise. On Windows, it also means that Workbook.new() Workbook.open() are acting on the same instance of
+        Excel as this Workbook.
+        """
+        xlplatform.set_xl_workbook_latest(self.xl_workbook)
 
     def get_selection(self, asarray=False):
         """
