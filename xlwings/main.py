@@ -43,9 +43,9 @@ class Workbook(object):
         If you want to connect to an existing Excel file from Python, use the fullname, e.g:
         ``r'C:\\path\\to\\file.xlsx'``. If the file is unsaved, then use the name only, e.g.: ``Book1``
     """
-    def __init__(self, fullname=None, workbook=None):
-        if workbook:
-            self.xl_workbook = workbook.xl_workbook
+    def __init__(self, fullname=None, xl_workbook=None):
+        if xl_workbook:
+            self.xl_workbook = xl_workbook
             self.xl_app = xlplatform.get_app(self.xl_workbook)
         elif fullname:
             self.fullname = fullname.lower()
@@ -67,7 +67,7 @@ class Workbook(object):
         self.active_sheet = Sheet.active(workbook=self)
 
         # Make the most recently created Workbook the default when creating Range objects directly
-        xlplatform.set_workbook_latest(self)
+        xlplatform.set_xl_workbook_latest(self.xl_workbook)
         
     @classmethod
     def current(cls):
@@ -76,7 +76,7 @@ class Workbook(object):
         otherwise. On Windows, it also means that Workbook.new() Workbook.open() are acting on the same instance of
         Excel as this Workbook.
         """
-        return cls(workbook=xlplatform.get_workbook_latest())
+        return cls(xl_workbook=xlplatform.get_xl_workbook_latest())
 
     def set_current(self):
         """
@@ -84,7 +84,7 @@ class Workbook(object):
         otherwise. On Windows, it also means that Workbook.new() Workbook.open() are acting on the same instance of
         Excel as this Workbook.
         """
-        xlplatform.set_workbook_latest(self)
+        xlplatform.set_xl_workbook_latest(self.xl_workbook)
 
     def get_selection(self, asarray=False):
         """
@@ -129,10 +129,8 @@ class Sheet(object):
 
     def __init__(self, sheet, workbook=None):
         if workbook is None:
-            self.workbook = xlplatform.get_workbook_latest()
-            self.xl_workbook = self.workbook.xl_workbook
+            self.xl_workbook = xlplatform.get_xl_workbook_latest()
         else:
-            self.workbook = workbook
             self.xl_workbook = workbook.xl_workbook
         self.sheet = sheet
         self.xl_sheet = xlplatform.get_xl_sheet(self.xl_workbook, self.sheet)
@@ -149,20 +147,16 @@ class Sheet(object):
         xlplatform.activate_sheet(self.xl_workbook, self.sheet)
 
     def clear_contents(self):
-        """
-        Clears the content of the whole sheet but leaves the formatting.
-        """
+        """Clears the content of the whole sheet but leaves the formatting."""
         xlplatform.clear_contents_worksheet(self.xl_workbook, self.sheet)
 
     def clear(self):
-        """
-        Clears the content and formatting of the whole sheet.
-        """
+        """Clears the content and formatting of the whole sheet."""
         xlplatform.clear_worksheet(self.xl_workbook, self.sheet)
 
     @property
     def name(self):
-        "Get or set the name of the Sheet."
+        """Get or set the name of the Sheet."""
         return xlplatform.get_worksheet_name(self.xl_sheet)
 
     @name.setter
@@ -171,22 +165,20 @@ class Sheet(object):
 
     @property
     def index(self):
-        "Returns the index of the Sheet."
+        """Returns the index of the Sheet."""
         return xlplatform.get_worksheet_index(self.xl_sheet)
 
     @classmethod
     def active(cls, workbook=None):
-        """
-        Returns the workbook object which is currently active.
-        """
+        """Returns the workbook object which is currently active."""
         if workbook is None:
-            xl_workbook = xlplatform.get_workbook_latest().xl_workbook
+            xl_workbook = xlplatform.get_xl_workbook_latest()
         else:
             xl_workbook = workbook.xl_workbook
         return cls(xlplatform.get_worksheet_name(xlplatform.get_active_sheet(xl_workbook)), workbook)
 
     def __repr__(self):
-        return "<Sheet '{0}' of Workbook '{1}'>".format(self.name, self.workbook.name)
+        return "<Sheet '{0}'>".format(self.name)
 
 
 class Range(object):
@@ -269,8 +261,11 @@ class Range(object):
 
         # Keyword Arguments
         self.kwargs = kwargs
-        self.workbook = kwargs.get('workbook', xlplatform.get_workbook_latest())
-        self.xl_workbook = self.workbook.xl_workbook
+        self.workbook = kwargs.get('workbook', None)
+        if self.workbook is None:
+            self.xl_workbook = xlplatform.get_xl_workbook_latest()
+        else:
+            self.xl_workbook = self.workbook.xl_workbook
         self.index = kwargs.get('index', True)  # Set DataFrame with index
         self.header = kwargs.get('header', True)  # Set DataFrame with header
         self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array
@@ -651,8 +646,11 @@ class Chart(object):
     """
     def __init__(self, *args, **kwargs):
         # Use global Workbook if none provided
-        self.workbook = kwargs.get('workbook', xlplatform.get_workbook_latest())
-        self.xl_workbook = self.workbook.xl_workbook
+        self.workbook = kwargs.get('workbook', None)
+        if self.workbook is None:
+            self.xl_workbook = xlplatform.get_xl_workbook_latest()
+        else:
+            self.xl_workbook = self.workbook.xl_workbook
 
         # Arguments
         if len(args) == 1:
@@ -713,8 +711,12 @@ class Chart(object):
         workbook : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via Workbook.set_current().
         """
-        workbook = kwargs.get('workbook', xlplatform.get_workbook_latest())
-        xl_workbook = workbook.xl_workbook
+        workbook = kwargs.get('workbook', None)
+        if workbook is None:
+            xl_workbook = xlplatform.get_xl_workbook_latest()
+        else:
+            xl_workbook = workbook.xl_workbook
+
         chart_type = kwargs.get('chart_type', ChartType.xlColumnClustered)
         name = kwargs.get('name')
         source_data = kwargs.get('source_data')
