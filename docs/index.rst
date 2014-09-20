@@ -21,10 +21,7 @@ xlwings fully supports NumPy arrays and Pandas DataFrames. It works with Microso
     installation
     quickstart
     vba
-    workbook
-    sheet
-    range
-    chart
+    api
 
 
 

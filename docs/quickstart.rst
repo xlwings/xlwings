@@ -10,25 +10,38 @@ Writing/reading values to/from Excel and adding a chart is as easy as:
 
 .. code-block:: python
 
-    >>> from xlwings import Workbook, Range, Chart
+    >>> from xlwings import Workbook, Sheet, Range, Chart
     >>> wb = Workbook()  # Creates a connection with a new workbook
     >>> Range('A1').value = ['Foo 1', 'Foo 2', 'Foo 3', 'Foo 4']
     >>> Range('A2').value = [10, 20, 30, 40]
     >>> Range('A1').table.value  # Read the whole table back
     [[u'Foo 1', u'Foo 2', u'Foo 3', u'Foo 4'], [10.0, 20.0, 30.0, 40.0]]
-    >>> chart = Chart().add(source_data=Range('A1').table)
+    >>> Sheet(1).name
+    u'Sheet1'
+    >>> chart = Chart.add(source_data=Range('A1').table)
 
-The Range object as used above will refer to the active sheet. Include the Sheet name like this:
+The Range and Chart objects as used above will refer to the active sheet and the current Workbook ``wb``. Include the
+Sheet name like this:
 
 .. code-block:: python
 
     Range('Sheet1', 'A1').value
+    Chart.add('Sheet1', source_data=Range('A1').table)
 
 Qualify the Workbook additionally like this:
 
 .. code-block:: python
 
-    wb.range('Sheet1', 'A1').value
+    Range('Sheet1', 'A1', wkb=wb).value
+    Chart.add('Sheet1', wkb=wb, source_data=Range('Sheet1', 'A1', wkb=wb).table)
+
+or simply set the current workbook first:
+
+.. code-block:: python
+
+    wb.set_current()
+    Range('Sheet1', 'A1').value
+
 
 The good news is that these commands also work seamlessly with *NumPy arrays* and *Pandas DataFrames*.
 
@@ -51,10 +64,9 @@ This essentially hands over control to ``mymodule.py``:
     import numpy as np
     from xlwings import Workbook, Range
 
-    wb = Workbook()  # Creates a reference to the calling Excel file
-
     def rand_numbers():
         """ produces standard normally distributed random numbers with shape (n,n)"""
+        wb = Workbook()  # Creates a reference to the calling Excel file
         n = Range('Sheet1', 'B1').value  # Write desired dimensions into Cell B1
         rand_num = np.random.randn(n, n)
         Range('Sheet1', 'C3').value = rand_num
