@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# To run a single TestClass: nosetests -q -s test_xlwings:TestClass
+
 from __future__ import unicode_literals
 import os
 import sys
@@ -116,6 +118,20 @@ class TestWorkbook:
         Range('A1').value = 1000
         assert_equal(self.wb.get_selection().value, 1000)
 
+    def test_reference_two_unsaved_wb(self):
+        """Covers GH Issue #63"""
+        wb1 = Workbook()
+        wb2 = Workbook()
+
+        Range('A1').value = 2.  # wb2
+        Range('A1', workbook=wb1).value = 1.  # wb2
+
+        assert_equal(Range('A1').value, 2.)
+        assert_equal(Range('A1', workbook=wb1).value, 1.)
+
+        wb1.close()
+        wb2.close()
+
 
 class TestSheet:
     def setUp(self):
@@ -139,7 +155,6 @@ class TestSheet:
 
     def test_index(self):
         assert_equal(Sheet('Sheet1').index, 1)
-
 
     def test_clear_content_active_sheet(self):
         Range('G10').value = 22
