@@ -111,7 +111,7 @@ def new_workbook():
         # It's a feature though: See p.14 on Excel 2004 AppleScript Reference
         xl_workbook = xl_app.make(new=kw.workbook)
     else:
-        xl_workbook = xl_app.active_workbook
+        xl_workbook = xl_app.workbooks[1]
 
     return xl_app, xl_workbook
 
