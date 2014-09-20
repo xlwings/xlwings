@@ -72,9 +72,9 @@ class Workbook(object):
     @classmethod
     def current(cls):
         """
-        Returns the current workbook object, i.e. the default workbook used by Range, Sheet and Chart if not specified
-        otherwise. On Windows, it also means that Workbook.new() Workbook.open() are acting on the same instance of
-        Excel as this Workbook.
+        Returns the current workbook object, i.e. the default workbook used by ``Sheet``, ``Range`` and ``Chart`` if not
+        specified otherwise. On Windows, it also means that ``Workbook.new()`` and  ``Workbook.open()`` are acting on
+        the same instance of Excel as this Workbook. Use liek this: ``Workbook.current()``.
         """
         return cls(xl_workbook=xlplatform.get_xl_workbook_current())
 
@@ -102,7 +102,7 @@ class Workbook(object):
         return Range(xlplatform.get_selection_address(self.xl_app), wkb=self, asarray=asarray)
 
     def close(self):
-        """Closes the Workbook without saving it"""
+        """Closes the Workbook without saving it."""
         xlplatform.close_workbook(self.xl_workbook)
 
     def __repr__(self):
@@ -128,7 +128,9 @@ class Sheet(object):
     """
 
     def __init__(self, sheet, wkb=None):
-        if wkb is None:
+        if wkb is None and xlplatform.get_xl_workbook_current() is None:
+            raise NameError('You must first instantiate a Workbook object.')
+        elif wkb is None:
             self.xl_workbook = xlplatform.get_xl_workbook_current()
         else:
             self.xl_workbook = wkb.xl_workbook
@@ -136,14 +138,7 @@ class Sheet(object):
         self.xl_sheet = xlplatform.get_xl_sheet(self.xl_workbook, self.sheet)
 
     def activate(self):
-        """
-        Activates the given sheet.
-
-        Arguments
-        ---------
-        sheet : string or integer
-            Sheet name or index.
-        """
+        """Activates the sheet."""
         xlplatform.activate_sheet(self.xl_workbook, self.sheet)
 
     def clear_contents(self):
@@ -178,7 +173,7 @@ class Sheet(object):
         return cls(xlplatform.get_worksheet_name(xlplatform.get_active_sheet(xl_workbook)), wkb)
 
     def __repr__(self):
-        return "<Sheet '{0}'>".format(self.name)
+        return "<Sheet '{0}' of Workbook '{1}'>".format(self.name, xlplatform.get_workbook_name(self.xl_workbook))
 
 
 class Range(object):
@@ -262,7 +257,9 @@ class Range(object):
         # Keyword Arguments
         self.kwargs = kwargs
         self.workbook = kwargs.get('wkb', None)
-        if self.workbook is None:
+        if self.workbook is None and xlplatform.get_xl_workbook_current() is None:
+            raise NameError('You must first instantiate a Workbook object.')
+        elif self.workbook is None:
             self.xl_workbook = xlplatform.get_xl_workbook_current()
         else:
             self.xl_workbook = self.workbook.xl_workbook
@@ -614,7 +611,8 @@ class Range(object):
         xlplatform.autofit(self, axis)
 
     def __repr__(self):
-        return "<Range of Workbook '{0}'>".format(xlplatform.get_workbook_name(self.xl_workbook))
+        return "<Range on Sheet '{0}' of Workbook '{1}'>".format(xlplatform.get_worksheet_name(self.xl_sheet),
+                                                                 xlplatform.get_workbook_name(self.xl_workbook))
 
 
 class Chart(object):
@@ -647,21 +645,23 @@ class Chart(object):
     def __init__(self, *args, **kwargs):
         # Use global Workbook if none provided
         self.workbook = kwargs.get('wkb', None)
-        if self.workbook is None:
+        if self.workbook is None and xlplatform.get_xl_workbook_current() is None:
+            raise NameError('You must first instantiate a Workbook object.')
+        elif self.workbook is None:
             self.xl_workbook = xlplatform.get_xl_workbook_current()
         else:
             self.xl_workbook = self.workbook.xl_workbook
 
         # Arguments
         if len(args) == 1:
-            _sheet_name_or_index = xlplatform.get_worksheet_name(xlplatform.get_active_sheet(self.xl_workbook))
-            _name_or_index = args[0]
+            self.sheet_name_or_index = xlplatform.get_worksheet_name(xlplatform.get_active_sheet(self.xl_workbook))
+            self.name_or_index = args[0]
         elif len(args) == 2:
-            _sheet_name_or_index = args[0]
-            _name_or_index = args[1]
+            self.sheet_name_or_index = args[0]
+            self.name_or_index = args[1]
 
         # Get xl_chart object
-        self.xl_chart = xlplatform.get_chart_object(self.xl_workbook, _sheet_name_or_index, _name_or_index)
+        self.xl_chart = xlplatform.get_chart_object(self.xl_workbook, self.sheet_name_or_index, self.name_or_index)
         self.index = xlplatform.get_chart_index(self.xl_chart)
         self.name = xlplatform.get_chart_name(self.xl_chart)
 
@@ -773,5 +773,7 @@ class Chart(object):
         xlplatform.set_source_data_chart(self.xl_chart, source.xl_range)
 
     def __repr__(self):
-        return "<Chart '{0}' on Workbook '{1}'>".format(self.name, self.workbook.name)
+        return "<Chart '{0}' on Sheet '{1}' of Workbook '{2}'>".format(self.name,
+                                                                       Sheet(self.sheet_name_or_index).name,
+                                                                       xlplatform.get_workbook_name(self.xl_workbook))
 

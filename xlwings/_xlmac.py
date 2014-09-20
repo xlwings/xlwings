@@ -285,4 +285,4 @@ def get_xl_workbook_current():
     try:
         return xl_workbook_current
     except NameError:
-        return False
+        return None
