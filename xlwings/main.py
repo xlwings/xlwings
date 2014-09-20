@@ -64,10 +64,10 @@ class Workbook(object):
             self.xl_app, self.xl_workbook = xlplatform.new_workbook()
 
         self.name = xlplatform.get_workbook_name(self.xl_workbook)
-        self.active_sheet = Sheet.active(workbook=self)
+        self.active_sheet = Sheet.active(wkb=self)
 
         # Make the most recently created Workbook the default when creating Range objects directly
-        xlplatform.set_xl_workbook_latest(self.xl_workbook)
+        xlplatform.set_xl_workbook_current(self.xl_workbook)
         
     @classmethod
     def current(cls):
@@ -76,7 +76,7 @@ class Workbook(object):
         otherwise. On Windows, it also means that Workbook.new() Workbook.open() are acting on the same instance of
         Excel as this Workbook.
         """
-        return cls(xl_workbook=xlplatform.get_xl_workbook_latest())
+        return cls(xl_workbook=xlplatform.get_xl_workbook_current())
 
     def set_current(self):
         """
@@ -84,7 +84,7 @@ class Workbook(object):
         otherwise. On Windows, it also means that Workbook.new() Workbook.open() are acting on the same instance of
         Excel as this Workbook.
         """
-        xlplatform.set_xl_workbook_latest(self.xl_workbook)
+        xlplatform.set_xl_workbook_current(self.xl_workbook)
 
     def get_selection(self, asarray=False):
         """
@@ -99,7 +99,7 @@ class Workbook(object):
         -------
         Range object
         """
-        return Range(xlplatform.get_selection_address(self.xl_app), workbook=self, asarray=asarray)
+        return Range(xlplatform.get_selection_address(self.xl_app), wkb=self, asarray=asarray)
 
     def close(self):
         """Closes the Workbook without saving it"""
@@ -123,15 +123,15 @@ class Sheet(object):
 
     Keyword Arguments
     -----------------
-    workbook : Workbook object, default Workbook.current()
+    wkb : Workbook object, default Workbook.current()
         Defaults to the Workbook that was instantiated last or set via Workbook.set_current().
     """
 
-    def __init__(self, sheet, workbook=None):
-        if workbook is None:
-            self.xl_workbook = xlplatform.get_xl_workbook_latest()
+    def __init__(self, sheet, wkb=None):
+        if wkb is None:
+            self.xl_workbook = xlplatform.get_xl_workbook_current()
         else:
-            self.xl_workbook = workbook.xl_workbook
+            self.xl_workbook = wkb.xl_workbook
         self.sheet = sheet
         self.xl_sheet = xlplatform.get_xl_sheet(self.xl_workbook, self.sheet)
 
@@ -169,13 +169,13 @@ class Sheet(object):
         return xlplatform.get_worksheet_index(self.xl_sheet)
 
     @classmethod
-    def active(cls, workbook=None):
+    def active(cls, wkb=None):
         """Returns the workbook object which is currently active."""
-        if workbook is None:
-            xl_workbook = xlplatform.get_xl_workbook_latest()
+        if wkb is None:
+            xl_workbook = xlplatform.get_xl_workbook_current()
         else:
-            xl_workbook = workbook.xl_workbook
-        return cls(xlplatform.get_worksheet_name(xlplatform.get_active_sheet(xl_workbook)), workbook)
+            xl_workbook = wkb.xl_workbook
+        return cls(xlplatform.get_worksheet_name(xlplatform.get_active_sheet(xl_workbook)), wkb)
 
     def __repr__(self):
         return "<Sheet '{0}'>".format(self.name)
@@ -215,7 +215,7 @@ class Range(object):
     atleast_2d : boolean, default False
         Returns 2d lists/arrays even if the Range is a Row or Column.
 
-    workbook : Workbook object, default Workbook.current()
+    wkb : Workbook object, default Workbook.current()
         Defaults to the Workbook that was instantiated last or set via Workbook.set_current().
     """
     def __init__(self, *args, **kwargs):
@@ -261,9 +261,9 @@ class Range(object):
 
         # Keyword Arguments
         self.kwargs = kwargs
-        self.workbook = kwargs.get('workbook', None)
+        self.workbook = kwargs.get('wkb', None)
         if self.workbook is None:
-            self.xl_workbook = xlplatform.get_xl_workbook_latest()
+            self.xl_workbook = xlplatform.get_xl_workbook_current()
         else:
             self.xl_workbook = self.workbook.xl_workbook
         self.index = kwargs.get('index', True)  # Set DataFrame with index
@@ -646,9 +646,9 @@ class Chart(object):
     """
     def __init__(self, *args, **kwargs):
         # Use global Workbook if none provided
-        self.workbook = kwargs.get('workbook', None)
+        self.workbook = kwargs.get('wkb', None)
         if self.workbook is None:
-            self.xl_workbook = xlplatform.get_xl_workbook_latest()
+            self.xl_workbook = xlplatform.get_xl_workbook_current()
         else:
             self.xl_workbook = self.workbook.xl_workbook
 
@@ -708,12 +708,12 @@ class Chart(object):
         source_data : Range
             e.g. Range('A1').table
 
-        workbook : Workbook object, default Workbook.current()
+        wkb : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via Workbook.set_current().
         """
-        workbook = kwargs.get('workbook', None)
+        workbook = kwargs.get('wkb', None)
         if workbook is None:
-            xl_workbook = xlplatform.get_xl_workbook_latest()
+            xl_workbook = xlplatform.get_xl_workbook_current()
         else:
             xl_workbook = workbook.xl_workbook
 
@@ -731,7 +731,7 @@ class Chart(object):
         else:
             name = xlplatform.get_chart_name(xl_chart)
 
-        return cls(sheet, name, workbook=workbook, chart_type=chart_type, source_data=source_data)
+        return cls(sheet, name, wkb=workbook, chart_type=chart_type, source_data=source_data)
 
     @property
     def name(self):

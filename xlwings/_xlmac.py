@@ -276,13 +276,13 @@ def autofit(range_, axis):
             range_.xl_range.rows.autofit()
 
 
-def set_xl_workbook_latest(xl_workbook):
-    global xl_workbook_latest
-    xl_workbook_latest = xl_workbook
+def set_xl_workbook_current(xl_workbook):
+    global xl_workbook_current
+    xl_workbook_current = xl_workbook
 
 
-def get_xl_workbook_latest():
+def get_xl_workbook_current():
     try:
-        return xl_workbook_latest
+        return xl_workbook_current
     except NameError:
         return False

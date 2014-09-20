@@ -124,10 +124,10 @@ class TestWorkbook:
         wb2 = Workbook()
 
         Range('A1').value = 2.  # wb2
-        Range('A1', workbook=wb1).value = 1.  # wb1
+        Range('A1', wkb=wb1).value = 1.  # wb1
 
         assert_equal(Range('A1').value, 2.)
-        assert_equal(Range('A1', workbook=wb1).value, 1.)
+        assert_equal(Range('A1', wkb=wb1).value, 1.)
 
         wb1.close()
         wb2.close()
