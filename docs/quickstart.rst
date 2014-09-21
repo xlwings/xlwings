@@ -12,21 +12,22 @@ Writing/reading values to/from Excel and adding a chart is as easy as:
 
     >>> from xlwings import Workbook, Sheet, Range, Chart
     >>> wb = Workbook()  # Creates a connection with a new workbook
-    >>> Range('A1').value = ['Foo 1', 'Foo 2', 'Foo 3', 'Foo 4']
-    >>> Range('A2').value = [10, 20, 30, 40]
+    >>> Range('A1').value = 'Foo 1'
+    Range('A1').value = u'Foo1'
+    >>> Range('A1').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
     >>> Range('A1').table.value  # Read the whole table back
-    [[u'Foo 1', u'Foo 2', u'Foo 3', u'Foo 4'], [10.0, 20.0, 30.0, 40.0]]
+    [[u'Foo 1', u'Foo 2', u'Foo 3'], [10.0, 20.0, 30.0]]
     >>> Sheet(1).name
     u'Sheet1'
     >>> chart = Chart.add(source_data=Range('A1').table)
 
-The Range and Chart objects as used above will refer to the active sheet and the current Workbook ``wb``. Include the
+The Range and Chart objects as used above will refer to the active sheet of the current Workbook ``wb``. Include the
 Sheet name like this:
 
 .. code-block:: python
 
     Range('Sheet1', 'A1').value
-    Chart.add('Sheet1', source_data=Range('A1').table)
+    Chart.add('Sheet1', source_data=Range('Sheet1', 'A1').table)
 
 Qualify the Workbook additionally like this:
 
@@ -34,16 +35,19 @@ Qualify the Workbook additionally like this:
 
     Range('Sheet1', 'A1', wkb=wb).value
     Chart.add('Sheet1', wkb=wb, source_data=Range('Sheet1', 'A1', wkb=wb).table)
-
+    Sheet(1, wkb=wb).name
 or simply set the current workbook first:
 
 .. code-block:: python
 
     wb.set_current()
     Range('Sheet1', 'A1').value
+    Chart.add('Sheet1', source_data=Range('Sheet1', 'A1').table)
+    Sheet(1).name
 
 
-The good news is that these commands also work seamlessly with *NumPy arrays* and *Pandas DataFrames*.
+
+These commands also work seamlessly with *NumPy arrays* and *Pandas DataFrames*.
 
 Call Python from Excel
 ----------------------
@@ -75,6 +79,9 @@ This essentially hands over control to ``mymodule.py``:
 To make this run, just import the VBA module ``xlwings.bas`` in the VBA editor (Open the VBA editor with ``Alt-F11``,
 then go to ``File > Import File...`` and import the ``xlwings.bas`` file. ). It can be found in the directory of
 your ``xlwings`` installation.
+
+.. note:: Always instantiate the ``Workbook`` within the function that is called from Excel and not outside as global
+    variable. Older versions of the docs/samples were showing the wrong approach.
 
 Easy deployment
 ---------------

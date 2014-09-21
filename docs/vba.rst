@@ -47,16 +47,13 @@ under ``Function Settings``::
     in relative file path, i.e. ``ThisWorkbook.Path & "\mydirectory"``.
 
 
-Differences between the Windows and Mac Version
------------------------------------------------
+Subtle difference between the Windows and Mac Version
+-----------------------------------------------------
 
-* **Windows**: After calling the Macro (e.g. by pressing a button), Excel waits until Python is done. In case there's an
-  error in the Python code, a pop-up message is being shown with the traceback.
+* **Windows**: After calling the Macro (e.g. by pressing a button), Excel waits until Python is done.
 
-* **Mac**: After calling the Macro, the call returns instantly but Excel's Status Bar turns into "Running..." during the
-  duration of the Python call. Python errors are currently not shown as a pop-up, but need to be checked in the
-  log file. I.e. if the Status Bar returns to its default ("Ready") but nothing has happened, check out the log file
-  for the Python traceback.
+* **Mac**: After calling the Macro, the call returns instantly but Excel's Status Bar turns into ``Running...`` during the
+  duration of the Python call.
 
 
 Call Python with "RunPython"
@@ -78,12 +75,14 @@ This essentially hands over control to ``mymodule.py``:
     import numpy as np
     from xlwings import Workbook, Range
 
-    wb = Workbook()  # Creates a reference to the calling Excel file
-
     def rand_numbers():
-        """ produces standard normally distributed random numbers with shape (n,n)"""
+        """ produces std. normally distributed random numbers with shape (n,n)"""
+        wb = Workbook()  # Creates a reference to the calling Excel file
         n = Range('Sheet1', 'B1').value  # Write desired dimensions into Cell B1
         rand_num = np.random.randn(n, n)
         Range('Sheet1', 'C3').value = rand_num
 
 You can then attach ``MyMacro`` to a button or run it directly in the VBA Editor by hitting ``F5``.
+
+.. note:: Always instantiate the ``Workbook`` within the function that is called from Excel and not outside as
+    module-wide global variable. Older versions of the docs/samples were showing the wrong approach.

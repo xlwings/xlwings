@@ -17,18 +17,18 @@ Alternatively, it can be installed from source. From within the ``xlwings`` dire
 Dependencies
 ------------
 
-* **Windows**: pywin32
+* **Windows**: ``pywin32``
 
-* **Mac**: psutil, appscript
-
-Note that on Mac, the dependencies are automatically being handled if xlwings is installed with pip. However, the Xcode
-command line tools need to be available. Mac OS X 10.4 ("Tiger") or later is required.
+* **Mac**: ``psutil``, ``appscript``
 
 On Windows, it is recommended to use one of the scientific Python distributions like
 `Anaconda <https://store.continuum.io/cshop/anaconda/>`_,
 `WinPython <http://winpython.sourceforge.net/>`_ or
 `Canopy <https://www.enthought.com/products/canopy/>`_ as they already include pywin32. Otherwise it needs to be
 installed from `here <http://sourceforge.net/projects/pywin32/files/pywin32/>`_.
+
+.. note:: On Mac, the dependencies are automatically being handled if xlwings is installed with ``pip``. However,
+    the Xcode command line tools need to be available. Mac OS X 10.4 (*Tiger*) or later is required.
 
 Optional Dependencies
 ---------------------
