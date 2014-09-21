@@ -27,21 +27,23 @@ except ImportError:
 
 class Workbook(object):
     """
-    Workbook connects an Excel Workbook with Python. You can create a new connection from Python with
+    ``Workbook`` connects an Excel Workbook with Python. You can create a new connection from Python with
 
     * a new workbook: ``wb = Workbook()``
     * an unsaved workbook: ``wb = Workbook('Book1')``
     * a saved workbook (open or closed): ``wb = Workbook(r'C:\\path\\to\\file.xlsx')``
 
-    If you want to create the connection from Excel through the xlwings VBA module, use:
+    To create a connection when the Python function is called through the Excel VBA module, use:
 
     ``wb = Workbook()``
 
-    Arguments
-    ---------
-    fullname : string, default None
-        If you want to connect to an existing Excel file from Python, use the fullname, e.g:
-        ``r'C:\\path\\to\\file.xlsx'``. If the file is unsaved, then use the name only, e.g.: ``Book1``
+    When calling from VBA, always pack the ``Workbook`` call into the function being called from Excel, e.g.:
+
+    .. code-block:: python
+
+         def my_macro():
+            wb = Workbook()
+            Range('A1').value = 1
     """
     def __init__(self, fullname=None, xl_workbook=None):
         if xl_workbook:
@@ -72,34 +74,37 @@ class Workbook(object):
     @classmethod
     def current(cls):
         """
-        Returns the current workbook object, i.e. the default workbook used by ``Sheet``, ``Range`` and ``Chart`` if not
-        specified otherwise. On Windows, it also means that ``Workbook.new()`` and  ``Workbook.open()`` are acting on
-        the same instance of Excel as this Workbook. Use liek this: ``Workbook.current()``.
+        Returns the current Workbook object, i.e. the default Workbook used by ``Sheet``, ``Range`` and ``Chart`` if not
+        specified otherwise. On Windows, the ``new()`` and  ``open()`` methods are acting on the same instance of Excel
+        as this Workbook. Use like this: ``Workbook.curent()``.
         """
         return cls(xl_workbook=xlplatform.get_xl_workbook_current())
 
     def set_current(self):
         """
-        This makes the workbook the default Workbook that Range, Sheet and Chart use if not specified
-        otherwise. On Windows, it also means that Workbook.new() Workbook.open() are acting on the same instance of
-        Excel as this Workbook.
+        This makes the Workbook the default that ``Sheet``, ``Range`` and ``Chart`` use if not specified
+        otherwise. On Windows, the ``new()`` and ``open()`` methods are acting on the same instance of Excel as this
+        Workbook.
         """
         xlplatform.set_xl_workbook_current(self.xl_workbook)
 
-    def get_selection(self, asarray=False):
+    def get_selection(self, asarray=False, atleast_2d=False):
         """
-        Returns the currently selected Range from Excel as Range object.
+        Returns the currently selected cells from Excel as ``Range`` object.
 
         Keyword Arguments
         -----------------
         asarray : boolean, default False
             returns a NumPy array where empty cells are shown as nan
 
+        atleast_2d : boolean, default False
+            Returns 2d lists/arrays even if the Range is a Row or Column.
+
         Returns
         -------
         Range object
         """
-        return Range(xlplatform.get_selection_address(self.xl_app), wkb=self, asarray=asarray)
+        return Range(xlplatform.get_selection_address(self.xl_app), wkb=self, asarray=asarray, atleast_2d=atleast_2d)
 
     def close(self):
         """Closes the Workbook without saving it."""
@@ -124,7 +129,7 @@ class Sheet(object):
     Keyword Arguments
     -----------------
     wkb : Workbook object, default Workbook.current()
-        Defaults to the Workbook that was instantiated last or set via Workbook.set_current().
+        Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
     """
 
     def __init__(self, sheet, wkb=None):
@@ -166,7 +171,9 @@ class Sheet(object):
     @classmethod
     def active(cls, wkb=None):
         """Returns the workbook object which is currently active."""
-        if wkb is None:
+        if wkb is None and xlplatform.get_xl_workbook_current() is None:
+            raise NameError('You must first instantiate a Workbook object.')
+        elif wkb is None:
             xl_workbook = xlplatform.get_xl_workbook_current()
         else:
             xl_workbook = wkb.xl_workbook
@@ -211,7 +218,7 @@ class Range(object):
         Returns 2d lists/arrays even if the Range is a Row or Column.
 
     wkb : Workbook object, default Workbook.current()
-        Defaults to the Workbook that was instantiated last or set via Workbook.set_current().
+        Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
     """
     def __init__(self, *args, **kwargs):
         # Arguments
@@ -286,7 +293,7 @@ class Range(object):
 
     def is_cell(self):
         """
-        Returns True if the Range consists of a single Cell otherwise False
+        Returns ``True`` if the Range consists of a single Cell otherwise ``False``.
         """
         if self.row1 == self.row2 and self.col1 == self.col2:
             return True
@@ -295,7 +302,7 @@ class Range(object):
 
     def is_row(self):
         """
-        Returns True if the Range consists of a single Row otherwise False
+        Returns ``True`` if the Range consists of a single Row otherwise ``False``.
         """
         if self.row1 == self.row2 and self.col1 != self.col2:
             return True
@@ -304,7 +311,7 @@ class Range(object):
 
     def is_column(self):
         """
-        Returns True if the Range consists of a single Column otherwise False
+        Returns ``True`` if the Range consists of a single Column otherwise ``False``.
         """
         if self.row1 != self.row2 and self.col1 == self.col2:
             return True
@@ -313,7 +320,7 @@ class Range(object):
 
     def is_table(self):
         """
-        Returns True if the Range consists of a 2d array otherwise False
+        Returns ``True`` if the Range consists of a 2d array otherwise ``False``.
         """
         if self.row1 != self.row2 and self.col1 != self.col2:
             return True
@@ -328,8 +335,8 @@ class Range(object):
         Returns
         -------
         list or numpy array
-            Empty cells are set to None. If ``asarray=True``,
-            a numpy array is returned where empty cells are set to nan.
+            Empty cells are set to ``None``. If ``asarray=True``,
+            a numpy array is returned where empty cells are set to ``nan``.
         """
         # TODO: refactor
         if self.is_cell():
@@ -453,7 +460,8 @@ class Range(object):
         Keyword Arguments
         -----------------
         strict : boolean, default False
-            strict stops the table at empty cells even if they contain a formula. Less efficient than if set to False.
+            ``True`` stops the table at empty cells even if they contain a formula. Less efficient than if set to
+            ``False``.
 
         Returns
         -------
@@ -479,12 +487,13 @@ class Range(object):
     def vertical(self):
         """
         Returns a contiguous Range starting with the indicated cell and going down as long as no empty cell is hit.
-        This corresponds to ``Ctrl + Shift + Down Arrow`` in Excel.
+        This corresponds to ``Ctrl-Shift-DownArrow`` in Excel.
 
         Arguments
         ---------
         strict : bool, default False
-            strict stops the table at empty cells even if they contain a formula. Less efficient than if set to False.
+            ``True`` stops the table at empty cells even if they contain a formula. Less efficient than if set to
+            ``False``.
 
         Returns
         -------
@@ -523,7 +532,8 @@ class Range(object):
         Keyword Arguments
         -----------------
         strict : bool, default False
-            strict stops the table at empty cells even if they contain a formula. Less efficient than if set to False.
+            ``True`` stops the table at empty cells even if they contain a formula. Less efficient than if set to
+            ``False``.
 
         Returns
         -------
@@ -531,7 +541,7 @@ class Range(object):
 
         Examples
         --------
-        To get the values of a contiguous range or clear its contents use::
+        To get the values of a contiguous Range or clear its contents use::
 
             Range('A1').horizontal.value
             Range('A1').horizontal.clear_contents()
@@ -557,9 +567,9 @@ class Range(object):
     @property
     def current_region(self):
         """
-        The current_region property returns a Range object representing a range bounded by (but not including) any
-        combination of blank rows and blank columns or the edges of the worksheet. It corresponds to ``Ctrl + *`` on
-        Windows and ``Shift-Ctrl-Space``on Mac.
+        This property returns a Range object representing a range bounded by (but not including) any
+        combination of blank rows and blank columns or the edges of the worksheet. It corresponds to ``Ctrl-*`` on
+        Windows and ``Shift-Ctrl-Space`` on Mac.
 
         Returns
         -------
@@ -617,30 +627,38 @@ class Range(object):
 
 class Chart(object):
     """
-    A chart object that represents an existing Excel chart can be created with the following arguments::
+    A Chart object that represents an existing Excel chart can be created with the following arguments::
 
         Chart(1)            Chart('Sheet1', 1)              Chart(1, 1)
         Chart('Chart 1')    Chart('Sheet1', 'Chart 1')      Chart(1, 'Chart 1')
 
-    If no worksheet name is provided as first argument (as name or index),
-    it will take the chart from the active sheet.
+    If no Worksheet is provided as first argument (as name or index),
+    it will take the Chart from the active Sheet.
 
-    To insert a new chart into Excel, create it as follows::
+    To insert a new Chart into Excel, create it as follows::
 
         Chart.add()
 
     Arguments
     ---------
     *args
-        Definition of sheet (optional) and chart in the above described combinations.
+        Definition of Sheet (optional) and chart in the above described combinations.
 
     Keyword Arguments
     -----------------
-    chart_type : Member of ChartType, default xlColumnClustered
-        Chart type, can also be set using the ``chart_type`` property
+    wkb : Workbook object, default Workbook.current()
+        Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
 
-    workbook : Workbook object, default Workbook.current()
-        Defaults to the Workbook that was instantiated last or set via Workbook.set_current().
+    Example
+    -------
+    >>> from xlwings import Workbook, Range, Chart, ChartType
+    >>> wb = Workbook()
+    >>> Range('A1').value = [['Foo1', 'Foo2'], [1, 2]]
+    >>> chart = Chart.add(source_data=Range('A1').table, chart_type=ChartType.xlLine)
+    >>> chart.name
+    u'Chart1'
+    >>> chart.chart_type = ChartType.xl3DArea
+
     """
     def __init__(self, *args, **kwargs):
         # Use global Workbook if none provided
@@ -678,12 +696,12 @@ class Chart(object):
     @classmethod
     def add(cls, sheet=None, left=168, top=217, width=355, height=211, **kwargs):
         """
-        Inserts a new chart in Excel.
+        Inserts a new Chart in Excel.
 
         Arguments
         ---------
         sheet : string or integer, default None
-            Name or Index of the sheet, defaults to the active sheet
+            Name or index of the Sheet, defaults to the active Sheet
 
         left : float, default 100
             left position in points
@@ -709,7 +727,7 @@ class Chart(object):
             e.g. Range('A1').table
 
         wkb : Workbook object, default Workbook.current()
-            Defaults to the Workbook that was instantiated last or set via Workbook.set_current().
+            Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
         """
         workbook = kwargs.get('wkb', None)
         if workbook is None:
@@ -736,7 +754,7 @@ class Chart(object):
     @property
     def name(self):
         """
-        Gets and sets the name of a chart
+        Gets and sets the name of a chart.
         """
         return xlplatform.get_chart_name(self.xl_chart)
 
@@ -747,7 +765,7 @@ class Chart(object):
     @property
     def chart_type(self):
         """
-        Gets and sets the chart type of a chart
+        Gets and sets the chart type of a chart.
         """
         return xlplatform.get_chart_type(self.xl_chart)
 
@@ -763,7 +781,7 @@ class Chart(object):
 
     def set_source_data(self, source):
         """
-        Sets the source for the chart
+        Sets the source for the chart.
 
         Arguments
         ---------
