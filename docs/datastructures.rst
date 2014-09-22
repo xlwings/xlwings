@@ -1,0 +1,134 @@
+Working with Data Structures
+============================
+
+Single Cells
+------------
+Single cells are returned either as ``floats``, ``unicode``, ``None`` or ``datetime`` objects, depending on whether the
+cell contains a number, a string, is empty or represents a date:
+
+.. code-block:: python
+
+    >>> from xlwings import Workbook, Range
+    >>> from datetime import datetime
+    >>> wb = Workbook()
+    >>> Range('A1').value = 1
+    >>> Range('A1').value
+    1.0
+    >>> Range('A2').value = 'Hello'
+    >>> Range('A2').value
+    u'Hello'
+    >>> Range('A3').value is None
+    True
+    >>> Range('A4').value = datetime(2000, 1, 1)
+    >>> Range('A4').value
+    datetime.datetime(2000, 1, 1, 0, 0)
+
+Lists
+-----
+* 1d lists: Ranges that represent rows or columns in Excel are returned as simple lists:
+
+  .. code-block:: python
+
+    >>> wb = Workbook()
+    >>> Range('A1:A5').value = 1
+    >>> Range('A1:A5').value
+    [1.0, 1.0, 1.0, 1.0, 1.0]
+    >>> Range('A1:E1').value = [1, 2, 3, 4, 5]
+    >>> Range('A1:E1').value
+    [1.0, 2.0, 3.0, 4.0, 5.0]
+
+* 2d lists: If the row or column orientation has to be preserved, use the ``atleast_2d`` keyword. This will return the
+  Ranges as nested lists ("2d lists"):
+
+  .. code-block:: python
+
+    >>> Range('A1:A5', atleast_2d=True).value
+    [[1.0], [1.0], [1.0], [1.0], [1.0]]
+    >>> Range('A1:E1', atleast_2d=True).value
+    [[1.0, 1.0, 1.0, 1.0, 1.0]]
+
+
+* 2 dimensional Ranges are automatically returned as nested lists. It's enough to just specify the top left cell
+  as target address. This sample also makes use of index notation to read the values back into Python:
+
+  .. code-block:: python
+
+    >>> Range('A10').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10, 20, 30]]
+    >>> Range((10,1),(11,3)).value
+    [[u'Foo 1', u'Foo 2', u'Foo 3'], [10.0, 20.0, 30.0]]
+
+
+.. note:: Try to minimize the number of interactions with Excel. It is always more efficient to do
+    ``Range('A1').value = [[1,2],[3,4]]`` than ``Range('A1').value = [1, 2]`` and ``Range('A2').value = [3, 4]``.
+
+Convenience properties: table, vertical, horizontal
+---------------------------------------------------
+
+Following up on the above sample, you can get the dimensions dynamically through the properties ``table``, ``vertical``
+and ``horizontal``. All that's needed is the top left cell together with one of these properties (they return a
+``Range`` object):
+
+.. code-block:: python
+
+    >>> Range('A10').table.value
+    [[u'Foo 1', u'Foo 2', u'Foo 3'], [10.0, 20.0, 30.0]]
+    >>> Range('A10').horizontal.value
+    [u'Foo 1', u'Foo 2', u'Foo 3']
+    >>> Range('A10').vertical.value
+    [u'Foo 1', 10.0]
+
+.. note:: Using these properties together with a named Range as top left cell gives you an extremely flexible setup in
+    Excel: You can move around the table and change it's size without having to adjust your code, e.g. by using
+    ``Range('NamedRange').table.value``.
+
+NumPy Arrays
+------------
+
+NumPy arrays work similar to nested lists. However, empty cells are represented by ``nan`` instead of
+``None``. If you want to read in a Range as array, set the ``asarray`` keyword to True:
+
+.. code-block:: python
+
+    >>> import numpy as np
+    >>> wb = Workbook()
+    >>> Range('A1').value = np.eye(5)
+    >>> Range('A1', asarray=True).table.value
+    array([[ 1.,  0.,  0.,  0.,  0.],
+           [ 0.,  1.,  0.,  0.,  0.],
+           [ 0.,  0.,  1.,  0.,  0.],
+           [ 0.,  0.,  0.,  1.,  0.],
+           [ 0.,  0.,  0.,  0.,  1.]])
+
+Pandas DataFrames and Series
+----------------------------
+
+Pandas DataFrames and Series are also easy to work with:
+
+* Series:
+
+  .. code-block:: python
+
+    >>> import pandas as pd
+    >>> wb = Workbook()
+    >>> s = pd.Series([1.1, 3.3, 5., np.nan, 6., 8.])
+    >>> s
+    0    1.1
+    1    3.3
+    2    5.0
+    3    NaN
+    4    6.0
+    5    8.0
+    dtype: float64
+    >>> Range('A1').value = s
+    >>> data = Range('A1', asarray=True).table.value
+    >>> pd.Series(data[:,1], index=data[:,0])
+
+* DataFrame:
+
+  .. code-block:: python
+
+    >>>
+
+.. note:: It's enough to just specify the top left cell when pushing a list, an NumPy array or a Pandas
+    DataFrame over to Excel: ``Range('A1').value = np.eye(10)``
+

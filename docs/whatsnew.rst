@@ -47,7 +47,7 @@ Enhancements
     >>> Sheet.active()
     <Sheet 'Sheet1' of Workbook 'Book1'>
 
-* New method ``autofit()`` in the ``Range`` class: Autofits the width of either columns, rows or both.
+* The ``Range`` class has a new method ``autofit()`` that autofits the width/height of either columns, rows or both.
 
   *Arguments*::
 
@@ -84,6 +84,9 @@ Enhancements
 
 * If a ``Sheet``, ``Range`` or ``Chart`` object is instantiated without an existing ``Workbook`` object, a user-friendly
   error message is raised (:issue:`58`).
+
+* New docs about `Debugging <http://docs.xlwings.org/debugging.html>`_ and
+  `Working with Data Structures <http://docs.xlwings.org/datastructures.html>`_.
 
 
 Bug Fixes
