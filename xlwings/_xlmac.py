@@ -3,7 +3,7 @@
 
 import os
 import datetime as dt
-from appscript import app, reference
+from appscript import app
 from appscript import k as kw
 import psutil
 import atexit

@@ -75,16 +75,17 @@ class Workbook(object):
     def current(cls):
         """
         Returns the current Workbook object, i.e. the default Workbook used by ``Sheet``, ``Range`` and ``Chart`` if not
-        specified otherwise. On Windows, the ``new()`` and  ``open()`` methods are acting on the same instance of Excel
-        as this Workbook. Use like this: ``Workbook.curent()``.
+        specified otherwise. On Windows, in case there are various instances of Excel running, opening an existing or
+        creating a new Workbook through ``Workbook()`` is acting on the same instance of Excel as this Workbook. Use
+        like this: ``Workbook.current()``.
         """
         return cls(xl_workbook=xlplatform.get_xl_workbook_current())
 
     def set_current(self):
         """
         This makes the Workbook the default that ``Sheet``, ``Range`` and ``Chart`` use if not specified
-        otherwise. On Windows, the ``new()`` and ``open()`` methods are acting on the same instance of Excel as this
-        Workbook.
+        otherwise. On Windows, in case there are various instances of Excel running, opening an existing or creating a
+        new Workbook through ``Workbook()`` is acting on the same instance of Excel as this Workbook.
         """
         xlplatform.set_xl_workbook_current(self.xl_workbook)
 

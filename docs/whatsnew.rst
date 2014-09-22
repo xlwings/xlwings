@@ -1,6 +1,111 @@
 What's New
 ==========
 
+v0.2.2 (September ??, 2014)
+---------------------------
+
+API changes
+***********
+
+* The ``Workbook`` qualification changed: It now has to be specified as keyword argument. Assume we have instantiated two
+  Workbooks like so: ``wb1 = Workbook()`` and ``wb2 = Workbook()``:
+
+  - **Old**: ``wb1.range('A1').value``  - **New**: ``Range('A1', wkb=wb1).value``
+
+  - **Old**: ``wb1.chart('Chart1')`` - **New**: ``Chart('Chart1', wkb=wb1)``
+
+  Alternatively, simply set the current Workbook before using the ``Sheet``, ``Range`` or ``Chart`` classes::
+
+    wb1.set_current()
+    Range('A1').value
+
+* Through the introduction of the ``Sheet`` class (see Enhancements), a few methods moved from the ``Workbook``
+  to the ``Sheet`` class. Assume the current Workbook is: ``wb = Workbook()``:
+
+  - **Old**: ``wb.activate('Sheet1')``  - **New**: ``Sheet('Sheet1').activate()``
+  - **Old**: ``wb.clear('Sheet1')``  - **New**: ``Sheet('Sheet1').clear()``
+  - **Old**: ``wb.clear_contents('Sheet1')``  - **New**: ``Sheet('Sheet1').clear_contents()``
+  - **Old**: ``wb.clear_contents()``  - **New**: ``Sheet.active().clear_contents()``
+
+* The syntax to add a new Chart has been slightly changed (it is a class method now):
+
+  - **Old**: ``Chart().add()``  - **New**: ``Chart.add()``
+
+Enhancements
+************
+* Mac version: Python errors are now also shown in a Message Box. This makes the Mac version feature equivalent with the
+  Windows version (:issue:`57`):
+
+  .. figure:: images/mac_error.png
+
+* New ``Sheet`` class: The new class handles everything directly related to a Sheet. See the
+  `docs <http://docs.xlwings.org/api.html#sheet>`_ for the details (:issue:`62`). A few examples::
+
+    >>> Sheet(1).name
+    u'Sheet1'
+    >>> Sheet('Sheet1').clear_contents()
+    >>> Sheet.active()
+    <Sheet 'Sheet1' of Workbook 'Book1'>
+
+* New method ``autofit()`` in the ``Range`` class: Autofits the width of either columns, rows or both.
+
+  *Arguments*::
+
+    axis : string or integer, default None
+        - To autofit rows, use one of the following: 0 or 'rows' or 'r'
+        - To autofit columns, use one of the following: 1 or 'columns' or 'c'
+        - To autofit rows and columns, provide no arguments
+
+  *Examples*::
+
+    # Autofit column A
+    Range('A:A').autofit()
+    # Autofit row 1
+    Range('1:1').autofit()
+    # Autofit columns and rows, taking into account Range('A1:E4')
+    Range('A1:E4').autofit()
+    # AutoFit columns, taking into account Range('A1:E4')
+    Range('A1:E4').autofit(axis=1)
+    # AutoFit rows, taking into account Range('A1:E4')
+    Range('A1:E4').autofit('rows')
+
+* The ``Workbook`` class has the following additional methods: ``current()`` and ``set_current``. They determine the
+  default Workbook for ``Sheet``, ``Range`` or ``Chart``. On Windows, in case there are various Excel instances, when
+  creating new or opening existing Workbooks,
+  they are being created in the same instance as the current Workbook.
+
+    >>> wb1 = Workbook()
+    >>> wb2 = Workbook()
+    >>> Workbook.current()
+    <Workbook 'Book2'>
+    >>> wb1.set_current()
+    >>> Workbook.current()
+    <Workbook 'Book1'>
+
+* If a ``Sheet``, ``Range`` or ``Chart`` object is instantiated without an existing ``Workbook`` object, a user-friendly
+  error message is raised (:issue:`58`).
+
+
+Bug Fixes
+*********
+* The ``atleast_2d`` keyword had no effect on Ranges consisting of a single cell and was raising an error when used in
+  combination with the ``asarray`` keyword. Both have been fixed (:issue:`53`)::
+
+    >>> Range('A1').value = 1
+    >>> Range('A1', atleast_2d=True).value
+    [[1.0]]
+    >>> Range('A1', atleast_2d=True, asarray=True).value
+    array([[1.]])
+
+* Mac version: After creating two new unsaved Workbooks with ``Workbook()``, any ``Sheet``, ``Range`` or ``Chart``
+  object would always just access the latest one, even if the Workbook had been specified (:issue:`63`).
+
+* Mac version: When xlwings was imported without ever instantiating a ``Workbook`` object, Excel would start upon
+  quitting the Python interpreter.
+
+* Mac version: When installing xlwings, it now requires ``psutil`` to be at least version ``2.0.0``.
+
+
 v0.2.1 (August 7, 2014)
 -----------------------
 
@@ -50,6 +155,41 @@ Bug Fixes
 
 v0.1.1 (June 27, 2014)
 ----------------------
+
+API Changes
+***********
+
+* If ``asarray=True``, NumPy arrays are now always at least 1d arrays, even in the case of a single cell (:issue:`14`)::
+
+    >>> Range('A1', asarray=True).value
+    array([34.])
+
+* Similar to NumPy's logic, 1d Ranges in Excel, i.e. rows or columns, are now being read in as flat lists or 1d arrays.
+  If you want the same behavior as before, you can use the ``atleast_2d`` keyword (:issue:`13`).
+
+  .. note:: The ``table`` property is also delivering a 1d array/list, if the table Range is really a column or row.
+
+  .. figure:: images/1d_ranges.png
+
+  ::
+
+    >>> Range('A1').vertical.value
+    [1.0, 2.0, 3.0, 4.0]
+    >>> Range('A1', atleast_2d=True).vertical.value
+    [[1.0], [2.0], [3.0], [4.0]]
+    >>> Range('C1').horizontal.value
+    [1.0, 2.0, 3.0, 4.0]
+    >>> Range('C1', atleast_2d=True).horizontal.value
+    [[1.0, 2.0, 3.0, 4.0]]
+    >>> Range('A1', asarray=True).table.value
+    array([ 1.,  2.,  3.,  4.])
+    >>> Range('A1', asarray=True, atleast_2d=True).table.value
+    array([[ 1.],
+           [ 2.],
+           [ 3.],
+           [ 4.]])
+
+* The single file approach has been dropped. xlwings is now a traditional Python package.
 
 Enhancements
 ************
@@ -111,51 +251,15 @@ Enhancements
 * ``pytz`` is no longer a dependency as ``datetime`` object are now being read in from Excel as time-zone naive (Excel
   doesn't know timezones). Before, ``datetime`` objects got the UTC timezone attached.
 
-* The ``Workbook`` object has the following additional methods: ``close()``
-* The ``Range`` object has the following additional methods: ``is_cell()``, ``is_column()``, ``is_row()``,
+* The ``Workbook`` class has the following additional methods: ``close()``
+* The ``Range`` class has the following additional methods: ``is_cell()``, ``is_column()``, ``is_row()``,
   ``is_table()``
-
-
-API Changes
-***********
-
-* If ``asarray=True``, NumPy arrays are now always at least 1d arrays, even in the case of a single cell (:issue:`14`)::
-
-    >>> Range('A1', asarray=True).value
-    array([34.])
-
-* Similar to NumPy's logic, 1d Ranges in Excel, i.e. rows or columns, are now being read in as flat lists or 1d arrays.
-  If you want the same behavior as before, you can use the ``atleast_2d`` keyword (:issue:`13`).
-
-  .. note:: The ``table`` property is also delivering a 1d array/list, if the table Range is really a column or row.
-
-  .. figure:: images/1d_ranges.png
-
-  ::
-
-    >>> Range('A1').vertical.value
-    [1.0, 2.0, 3.0, 4.0]
-    >>> Range('A1', atleast_2d=True).vertical.value
-    [[1.0], [2.0], [3.0], [4.0]]
-    >>> Range('C1').horizontal.value
-    [1.0, 2.0, 3.0, 4.0]
-    >>> Range('C1', atleast_2d=True).horizontal.value
-    [[1.0, 2.0, 3.0, 4.0]]
-    >>> Range('A1', asarray=True).table.value
-    array([ 1.,  2.,  3.,  4.])
-    >>> Range('A1', asarray=True, atleast_2d=True).table.value
-    array([[ 1.],
-           [ 2.],
-           [ 3.],
-           [ 4.]])
-
-* The single file approach has been dropped. xlwings is now a traditional Python package.
 
 
 Bug Fixes
 *********
 
-* Writing ``None`` or ``np.nan`` to Excel works now (:issue:`16`) & (:issue:`15`).
+* Writing ``None`` or ``np.nan`` to Excel works now (:issue:`16` & :issue:`15`).
 * The import error on Python 3 has been fixed (:issue:`26`).
 * Python 3 now handles Pandas DataFrames with MultiIndex headers correctly (:issue:`39`).
 * Sometimes, a Pandas DataFrame was not handling ``nan`` correctly in Excel or numbers were being truncated
