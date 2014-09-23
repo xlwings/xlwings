@@ -20,34 +20,51 @@ Writing/reading values to/from Excel and adding a chart is as easy as:
 
 .. code-block:: python
 
-    >>> from xlwings import Workbook, Range, Chart
+    >>> from xlwings import Workbook, Sheet, Range, Chart
     >>> wb = Workbook()  # Creates a connection with a new workbook
-    >>> Range('A1').value = ['Foo 1', 'Foo 2', 'Foo 3', 'Foo 4']
-    >>> Range('A2').value = [10, 20, 30, 40]
+    >>> Range('A1').value = 'Foo 1'
+    Range('A1').value = u'Foo1'
+    >>> Range('A1').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
     >>> Range('A1').table.value  # Read the whole table back
-    [[u'Foo 1', u'Foo 2', u'Foo 3', u'Foo 4'], [10.0, 20.0, 30.0, 40.0]]
-    >>> chart = Chart().add(source_data=Range('A1').table)
+    [[u'Foo 1', u'Foo 2', u'Foo 3'], [10.0, 20.0, 30.0]]
+    >>> Sheet(1).name
+    u'Sheet1'
+    >>> chart = Chart.add(source_data=Range('A1').table)
 
-The Range object as used above will refer to the active sheet. Include the Sheet name like this:
+The Range and Chart objects as used above will refer to the active sheet of the current Workbook ``wb``. Include the
+Sheet name like this:
 
 .. code-block:: python
 
     Range('Sheet1', 'A1').value
+    Chart.add('Sheet1', source_data=Range('Sheet1', 'A1').table)
 
 Qualify the Workbook additionally like this:
 
 .. code-block:: python
 
-    wb.range('Sheet1', 'A1').value
+    Range('Sheet1', 'A1', wkb=wb).value
+    Chart.add('Sheet1', wkb=wb, source_data=Range('Sheet1', 'A1', wkb=wb).table)
+    Sheet(1, wkb=wb).name
+or simply set the current workbook first:
 
-The good news is that these commands also work seamlessly with *NumPy arrays* and *Pandas DataFrames*.
+.. code-block:: python
+
+    wb.set_current()
+    Range('Sheet1', 'A1').value
+    Chart.add('Sheet1', source_data=Range('Sheet1', 'A1').table)
+    Sheet(1).name
+
+
+
+These commands also work seamlessly with **NumPy arrays** and **Pandas DataFrames**.
 
 
 Call Python from Excel
 ----------------------
 
-If, for example, you want to fill your spreadsheet with standard normally distributed random numbers, your VBA code is
-just one line:
+If, for example, you want to fill your spreadsheet
+with standard normally distributed random numbers, your VBA code is just one line:
 
 .. code-block:: vb.net
 
@@ -62,18 +79,20 @@ This essentially hands over control to ``mymodule.py``:
     import numpy as np
     from xlwings import Workbook, Range
 
-    wb = Workbook()  # Creates a reference to the calling Excel file
-
     def rand_numbers():
         """ produces standard normally distributed random numbers with shape (n,n)"""
+        wb = Workbook()  # Creates a reference to the calling Excel file
         n = Range('Sheet1', 'B1').value  # Write desired dimensions into Cell B1
         rand_num = np.random.randn(n, n)
         Range('Sheet1', 'C3').value = rand_num
 
 
-To make this run, just import de VBA module ``xlwings.bas`` in the VBA editor (Open the VBA editor with ``Alt-F11``,
+To make this run, just import the VBA module ``xlwings.bas`` in the VBA editor (Open the VBA editor with ``Alt-F11``,
 then go to ``File > Import File...`` and import the ``xlwings.bas`` file. ). It can be found in the directory of
 your ``xlwings`` installation.
+
+.. note:: Always instantiate the ``Workbook`` within the function that is called from Excel and not outside as global
+    variable. Older versions of the docs/samples were showing the wrong approach.
 
 Easy deployment
 ---------------
@@ -85,7 +104,7 @@ Deployment is really the part where xlwings shines:
 * There is no need to install any Excel add-in.
 * If this still sounds too complicated, just freeze your Python code into an executable and use
   ``RunFrozenPython`` instead of ``RunPython``. This gives you a standalone version of your Spreadsheet tool without any
-  dependencies.
+  dependencies (``RunFrozenPython`` is currently only available on Windows).
 
 
 Installation
@@ -103,12 +122,33 @@ Alternatively it can be installed from source. From within the ``xlwings`` direc
 Dependencies
 ------------
 
-* **Windows**: pywin32
+* **Windows**: ``pywin32``
 
-* **Mac**: psutil, appscript
+* **Mac**: ``psutil``, ``appscript``
 
-Note that on Mac, the dependencies are automatically being handled if xlwings is installed with pip. However, the Xcode
-command line tools need to be available.
+On Windows, it is recommended to use one of the scientific Python distributions like
+`Anaconda <https://store.continuum.io/cshop/anaconda/>`_,
+`WinPython <http://winpython.sourceforge.net/>`_ or
+`Canopy <https://www.enthought.com/products/canopy/>`_ as they already include pywin32. Otherwise it needs to be
+installed from `here <http://sourceforge.net/projects/pywin32/files/pywin32/>`_.
+
+.. note:: On Mac, the dependencies are automatically being handled if xlwings is installed with ``pip``. However,
+    the Xcode command line tools need to be available. Mac OS X 10.4 (*Tiger*) or later is required.
+
+Optional Dependencies
+---------------------
+
+* NumPy
+* Pandas
+
+These packages are not required but highly recommended as NumPy arrays and Pandas DataFrames/Series play very nicely
+with xlwings.
+
+
+Python version support
+----------------------
+
+xlwings runs on Python 2.6-2.7 and 3.1-3.4
 
 Links
 -----
