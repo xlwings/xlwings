@@ -1,18 +1,22 @@
 What's New
 ==========
 
-v0.2.2 (September ??, 2014)
+v0.2.2 (September 23, 2014)
 ---------------------------
 
 API changes
 ***********
 
-* The ``Workbook`` qualification changed: It now has to be specified as keyword argument. Assume we have instantiated two
-  Workbooks like so: ``wb1 = Workbook()`` and ``wb2 = Workbook()``:
+* The ``Workbook`` qualification changed: It now has to be specified as keyword argument. Assume we have instantiated
+  two Workbooks like so: ``wb1 = Workbook()`` and ``wb2 = Workbook()``. ``Sheet``, ``Range`` and ``Chart`` classes will
+  default to ``wb2`` as it was instantiated last. To target ``wb1``, use the new ``wkb`` keyword argument:
 
-  - **Old**: ``wb1.range('A1').value``  - **New**: ``Range('A1', wkb=wb1).value``
-
-  - **Old**: ``wb1.chart('Chart1')`` - **New**: ``Chart('Chart1', wkb=wb1)``
+  ==============================  =========================
+  **New**                         **Old**
+  ==============================  =========================
+  ``Range('A1', wkb=wb1).value``  ``wb1.range('A1').value``
+  ``Chart('Chart1', wkb=wb1)``    ``wb1.chart('Chart1')``
+  ==============================  =========================
 
   Alternatively, simply set the current Workbook before using the ``Sheet``, ``Range`` or ``Chart`` classes::
 
@@ -22,24 +26,33 @@ API changes
 * Through the introduction of the ``Sheet`` class (see Enhancements), a few methods moved from the ``Workbook``
   to the ``Sheet`` class. Assume the current Workbook is: ``wb = Workbook()``:
 
-  - **Old**: ``wb.activate('Sheet1')``  - **New**: ``Sheet('Sheet1').activate()``
-  - **Old**: ``wb.clear('Sheet1')``  - **New**: ``Sheet('Sheet1').clear()``
-  - **Old**: ``wb.clear_contents('Sheet1')``  - **New**: ``Sheet('Sheet1').clear_contents()``
-  - **Old**: ``wb.clear_contents()``  - **New**: ``Sheet.active().clear_contents()``
+  ====================================  ====================================
+  **New**                               **Old**
+  ====================================  ====================================
+  ``Sheet('Sheet1').activate()``        ``wb.activate('Sheet1')``
+  ``Sheet('Sheet1').clear()``           ``wb.clear('Sheet1')``
+  ``Sheet('Sheet1').clear_contents()``  ``wb.clear_contents('Sheet1')``
+  ``Sheet.active().clear_contents()``   ``wb.clear_contents()``
+  ====================================  ====================================
 
 * The syntax to add a new Chart has been slightly changed (it is a class method now):
 
-  - **Old**: ``Chart().add()``  - **New**: ``Chart.add()``
+  ===============================  ====================================
+  **New**                          **Old**
+  ===============================  ====================================
+  ``Chart.add()``                  ``Chart().add()``
+  ===============================  ====================================
 
 Enhancements
 ************
-* Mac version: Python errors are now also shown in a Message Box. This makes the Mac version feature equivalent with the
+* [Mac version]: Python errors are now also shown in a Message Box. This makes the Mac version feature equivalent with the
   Windows version (:issue:`57`):
 
   .. figure:: images/mac_error.png
+    :scale: 75%
 
-* New ``Sheet`` class: The new class handles everything directly related to a Sheet. See the
-  `docs <http://docs.xlwings.org/api.html#sheet>`_ for the details (:issue:`62`). A few examples::
+* New ``Sheet`` class: The new class handles everything directly related to a Sheet. See the section about
+  :ref:`api_sheet` for details (:issue:`62`). A few examples::
 
     >>> Sheet(1).name
     u'Sheet1'
@@ -69,7 +82,7 @@ Enhancements
     # AutoFit rows, taking into account Range('A1:E4')
     Range('A1:E4').autofit('rows')
 
-* The ``Workbook`` class has the following additional methods: ``current()`` and ``set_current``. They determine the
+* The ``Workbook`` class has the following additional methods: ``current()`` and ``set_current()``. They determine the
   default Workbook for ``Sheet``, ``Range`` or ``Chart``. On Windows, in case there are various Excel instances, when
   creating new or opening existing Workbooks,
   they are being created in the same instance as the current Workbook.
@@ -85,8 +98,7 @@ Enhancements
 * If a ``Sheet``, ``Range`` or ``Chart`` object is instantiated without an existing ``Workbook`` object, a user-friendly
   error message is raised (:issue:`58`).
 
-* New docs about `Debugging <http://docs.xlwings.org/debugging.html>`_ and
-  `Working with Data Structures <http://docs.xlwings.org/datastructures.html>`_.
+* New docs about :ref:`debugging` and :ref:`datastructures`.
 
 
 Bug Fixes
@@ -100,13 +112,13 @@ Bug Fixes
     >>> Range('A1', atleast_2d=True, asarray=True).value
     array([[1.]])
 
-* Mac version: After creating two new unsaved Workbooks with ``Workbook()``, any ``Sheet``, ``Range`` or ``Chart``
+* [Mac version]: After creating two new unsaved Workbooks with ``Workbook()``, any ``Sheet``, ``Range`` or ``Chart``
   object would always just access the latest one, even if the Workbook had been specified (:issue:`63`).
 
-* Mac version: When xlwings was imported without ever instantiating a ``Workbook`` object, Excel would start upon
+* [Mac version]: When xlwings was imported without ever instantiating a ``Workbook`` object, Excel would start upon
   quitting the Python interpreter.
 
-* Mac version: When installing xlwings, it now requires ``psutil`` to be at least version ``2.0.0``.
+* [Mac version]: When installing xlwings, it now requires ``psutil`` to be at least version ``2.0.0``.
 
 
 v0.2.1 (August 7, 2014)
@@ -243,7 +255,7 @@ Enhancements
 
   alternatively, the properties can also be set like this::
 
-    >>> my_chart = Chart().add()  # To work with an existing Chart: my_chart = Chart('My Chart')
+    >>> my_chart = Chart().add()  # Existing Charts: my_chart = Chart('My Chart')
     >>> my_chart.name = 'My Chart'
     >>> my_chart.chart_type = ChartType.xlLine
     >>> my_chart.set_source_data(Range('A1').table)

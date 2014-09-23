@@ -1,9 +1,11 @@
+.. _datastructures:
+
 Working with Data Structures
 ============================
 
 Single Cells
 ------------
-Single cells are returned either as ``floats``, ``unicode``, ``None`` or ``datetime`` objects, depending on whether the
+Single cells are returned either as ``float``, ``unicode``, ``None`` or ``datetime`` objects, depending on whether the
 cell contains a number, a string, is empty or represents a date:
 
 .. code-block:: python
@@ -48,8 +50,9 @@ Lists
     [[1.0, 1.0, 1.0, 1.0, 1.0]]
 
 
-* 2 dimensional Ranges are automatically returned as nested lists. It's enough to just specify the top left cell
-  as target address. This sample also makes use of index notation to read the values back into Python:
+* 2 dimensional Ranges are automatically returned as nested lists. When assigning (nested) lists to a Range in Excel,
+  it's enough to just specify the top left cell as target address. This sample also makes use of index notation to read the
+  values back into Python:
 
   .. code-block:: python
 
@@ -61,12 +64,12 @@ Lists
 .. note:: Try to minimize the number of interactions with Excel. It is always more efficient to do
     ``Range('A1').value = [[1,2],[3,4]]`` than ``Range('A1').value = [1, 2]`` and ``Range('A2').value = [3, 4]``.
 
-Convenience properties: table, vertical, horizontal
----------------------------------------------------
+The table, vertical and horizontal properties
+---------------------------------------------
 
-Following up on the above sample, you can get the dimensions dynamically through the properties ``table``, ``vertical``
-and ``horizontal``. All that's needed is the top left cell together with one of these properties (they return a
-``Range`` object):
+Continuing the sample from above, you can get the dimensions of Excel Ranges dynamically through the properties
+``table``, ``vertical`` and ``horizontal``. All that's needed is the top left cell together with one of these
+properties.
 
 .. code-block:: python
 
@@ -79,7 +82,7 @@ and ``horizontal``. All that's needed is the top left cell together with one of 
 
 .. note:: Using these properties together with a named Range as top left cell gives you an extremely flexible setup in
     Excel: You can move around the table and change it's size without having to adjust your code, e.g. by using
-    ``Range('NamedRange').table.value``.
+    something like ``Range('NamedRange').table.value``.
 
 NumPy Arrays
 ------------
@@ -109,6 +112,7 @@ Pandas DataFrames and Series are also easy to work with:
   .. code-block:: python
 
     >>> import pandas as pd
+    >>> import numpy as np
     >>> wb = Workbook()
     >>> s = pd.Series([1.1, 3.3, 5., np.nan, 6., 8.])
     >>> s
@@ -122,13 +126,30 @@ Pandas DataFrames and Series are also easy to work with:
     >>> Range('A1').value = s
     >>> data = Range('A1', asarray=True).table.value
     >>> pd.Series(data[:,1], index=data[:,0])
+    0    1.1
+    1    3.3
+    2    5.0
+    3    NaN
+    4    6.0
+    5    8.0
+    dtype: float64
 
 * DataFrame:
 
   .. code-block:: python
 
-    >>>
+    >>> wb = Workbook()
+    >>> Range('A1').value = [['one', 'two'], [1.1, 2.2], [3.3, None]]
+    >>> data = Range('A1').table.value
+    >>> df = pd.DataFrame(data[1:], columns=data[0])
+    >>> df
+       one  two
+    0  1.1  2.2
+    1  3.3  NaN
+    >>> Range('A5').value = df
+    >>> Range('A9', index=False).value = df  # Control index and header
+    >>> Range('A13', index=False, header=False).value = df
 
-.. note:: It's enough to just specify the top left cell when pushing a list, an NumPy array or a Pandas
-    DataFrame over to Excel: ``Range('A1').value = np.eye(10)``
+.. note:: You only need to specify the top left cell when writing a list, an NumPy array or a Pandas
+    DataFrame to Excel, e.g.: ``Range('A1').value = np.eye(10)``
 

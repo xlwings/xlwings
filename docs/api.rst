@@ -23,6 +23,8 @@ In order to use xlwings, instantiating a workbook object is always the first thi
     :members:
 
 
+.. _api_sheet:
+
 Sheet
 -----
 

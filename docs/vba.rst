@@ -1,3 +1,5 @@
+.. _vba:
+
 VBA: Calling Python from Excel
 ==============================
 
@@ -60,7 +62,7 @@ Call Python with "RunPython"
 ----------------------------
 
 After you have imported the xlwings VBA module and potentially adjusted the Settings, go to ``Insert > Module`` (still
-in the VBA-Editor) and write your Python call as follows:
+in the VBA-Editor). This will create a new Excel module where you can write your Python call as follows:
 
 .. code-block:: vb.net
 

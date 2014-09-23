@@ -171,7 +171,7 @@ class Sheet(object):
 
     @classmethod
     def active(cls, wkb=None):
-        """Returns the workbook object which is currently active."""
+        """Returns the active Sheet. Use like so: ``Sheet.active()``"""
         if wkb is None and xlplatform.get_xl_workbook_current() is None:
             raise NameError('You must first instantiate a Workbook object.')
         elif wkb is None:
@@ -599,8 +599,8 @@ class Range(object):
         Arguments
         ---------
         axis : string or integer, default None
-            - To autofit rows, use one of the following: 0 or 'rows' or 'r'
-            - To autofit columns, use one of the following: 1 or 'columns' or 'c'
+            - To autofit rows, use one of the following: 0 or ``rows`` or ``r``
+            - To autofit columns, use one of the following: 1 or ``columns`` or ``c``
             - To autofit rows and columns, provide no arguments
 
         Examples

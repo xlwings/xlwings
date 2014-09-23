@@ -1,13 +1,16 @@
+.. _debugging:
+
 Debugging
 =========
 
-Since xlwings runs in every Python environment, you can use your preferred ways of debugging. When running xlwings
-through Excel, there are a few tricks that make it easier to switch back and forth between Excel for testing and Python
-for development and debugging.
+Since xlwings runs in every Python environment, you can use your preferred way of debugging. When running xlwings
+through Excel, there are a few tricks that make it easier to switch back and forth between Excel (for testing) and
+Python (for development and debugging).
 
-To begin with, Excel will show any Python errors (but not Warnings) in a Message Box:
+To begin with, Excel will show any Python errors (but not warnings) in a Message Box:
 
 .. figure:: images/debugging_error.png
+    :scale: 65%
 
 Consider the following code structure of your Python source code:
 
@@ -18,8 +21,9 @@ Consider the following code structure of your Python source code:
 
     def get_workbook():
         if __name__ == '__main__':
-            # This expects the Excel file to sit next to this source file. Adjust accordingly.
-            xl_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'myfile.xlsm'))
+            # This expects the Excel file to sit next to this source file.
+            this_dir = os.path.dirname(__file__)
+            xl_file_path = os.path.abspath(os.path.join(this_dir, 'myfile.xlsm'))
             return Workbook(xl_file_path)
         else:
             return Workbook()

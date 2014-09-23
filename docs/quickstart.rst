@@ -47,7 +47,7 @@ or simply set the current workbook first:
 
 
 
-These commands also work seamlessly with *NumPy arrays* and *Pandas DataFrames*.
+These commands also work seamlessly with **NumPy arrays** and **Pandas DataFrames**, see :ref:`datastructures` for details.
 
 Call Python from Excel
 ----------------------
@@ -83,6 +83,8 @@ your ``xlwings`` installation.
 .. note:: Always instantiate the ``Workbook`` within the function that is called from Excel and not outside as global
     variable. Older versions of the docs/samples were showing the wrong approach.
 
+For further details, see :ref:`vba`.
+
 Easy deployment
 ---------------
 
@@ -93,7 +95,7 @@ Deployment is really the part where xlwings shines:
 * There is no need to install any Excel add-in.
 * If this still sounds too complicated, just freeze your Python code into an executable and use
   ``RunFrozenPython`` instead of ``RunPython``. This gives you a standalone version of your Spreadsheet tool without any
-  dependencies.
+  dependencies (``RunFrozenPython`` is currently only available on Windows).
 
 
 
