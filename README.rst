@@ -12,7 +12,6 @@ xlwings fully supports NumPy arrays and Pandas DataFrames. It works with Microso
 .. note:: xlwings is currently in an early stage.
    The API might change in backward incompatible ways.
 
-
 Interact with Excel from Python
 -------------------------------
 
@@ -46,6 +45,7 @@ Qualify the Workbook additionally like this:
     Range('Sheet1', 'A1', wkb=wb).value
     Chart.add('Sheet1', wkb=wb, source_data=Range('Sheet1', 'A1', wkb=wb).table)
     Sheet(1, wkb=wb).name
+
 or simply set the current workbook first:
 
 .. code-block:: python
@@ -55,10 +55,7 @@ or simply set the current workbook first:
     Chart.add('Sheet1', source_data=Range('Sheet1', 'A1').table)
     Sheet(1).name
 
-
-
 These commands also work seamlessly with **NumPy arrays** and **Pandas DataFrames**.
-
 
 Call Python from Excel
 ----------------------
@@ -86,7 +83,6 @@ This essentially hands over control to ``mymodule.py``:
         rand_num = np.random.randn(n, n)
         Range('Sheet1', 'C3').value = rand_num
 
-
 To make this run, just import the VBA module ``xlwings.bas`` in the VBA editor (Open the VBA editor with ``Alt-F11``,
 then go to ``File > Import File...`` and import the ``xlwings.bas`` file. ). It can be found in the directory of
 your ``xlwings`` installation.
@@ -105,7 +101,6 @@ Deployment is really the part where xlwings shines:
 * If this still sounds too complicated, just freeze your Python code into an executable and use
   ``RunFrozenPython`` instead of ``RunPython``. This gives you a standalone version of your Spreadsheet tool without any
   dependencies (``RunFrozenPython`` is currently only available on Windows).
-
 
 Installation
 ------------
@@ -143,7 +138,6 @@ Optional Dependencies
 
 These packages are not required but highly recommended as NumPy arrays and Pandas DataFrames/Series play very nicely
 with xlwings.
-
 
 Python version support
 ----------------------
