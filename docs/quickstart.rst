@@ -13,7 +13,7 @@ Writing/reading values to/from Excel and adding a chart is as easy as:
     >>> from xlwings import Workbook, Sheet, Range, Chart
     >>> wb = Workbook()  # Creates a connection with a new workbook
     >>> Range('A1').value = 'Foo 1'
-    Range('A1').value = u'Foo1'
+    u'Foo1'
     >>> Range('A1').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
     >>> Range('A1').table.value  # Read the whole table back
     [[u'Foo 1', u'Foo 2', u'Foo 3'], [10.0, 20.0, 30.0]]
