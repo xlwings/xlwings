@@ -5,7 +5,7 @@ Attribute VB_Name = "xlwings"
 ' See also: http://zoomeranalytics.com
 '
 ' Copyright (C) 2014, Zoomer Analytics LLC.
-' Version: 0.2.2
+' Version: 0.2.3dev
 '
 ' License: BSD 3-clause (see LICENSE.txt for details)
 
