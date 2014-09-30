@@ -429,8 +429,10 @@ class Range(object):
                 # scalar np.nan need to be turned into None, otherwise Excel shows it as 65535 (same as for NumPy array)
                 if hasattr(np, 'ndarray') and np.isnan(data):
                     data = None
-            except TypeError:
-                pass  # raised if data is not a np.nan
+            except (TypeError, NotImplementedError):
+                # raised if data is not a np.nan.
+                # NumPy < 1.7.0 raises NotImplementedError, >= 1.7.0 raises TypeError
+                pass
 
         else:
             # List of List
