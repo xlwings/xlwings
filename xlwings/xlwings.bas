@@ -10,7 +10,10 @@ Attribute VB_Name = "xlwings"
 ' License: BSD 3-clause (see LICENSE.txt for details)
 
 Option Explicit
+#If Mac Then
+'This line is only needed on Mac and would fail on Windows 64bit without PtrSafe - PtrSafe, however, fails on Mac
 Private Declare Function system Lib "libc.dylib" (ByVal Command As String) As Long
+#End If
 
 Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef PYTHON_FROZEN As String, ByRef PYTHONPATH As String, ByRef LOG_FILE As String)
     ' PYTHON_WIN: Directory of Python Interpreter on Windows, "" resolves to default on PATH
@@ -72,7 +75,6 @@ Sub ExcecuteMac(Command As String, PYTHON_MAC As String, LOG_FILE As String, Opt
 
     ' Build the command (ignore warnings to be in line with Windows where we only show the popup if the ExitCode <>0
     RunCommand = PythonInterpreter & " -W ignore -c ""import sys; sys.path.append(r'" & PYTHONPATH & "'); " & Command & """ "
-
 
     ' Send the command to the shell. Courtesy of Robert Knight (http://stackoverflow.com/a/12320294/918626)
     ' Since Excel blocks AppleScript as long as a VBA macro is running, we have to excecute the call as background call
@@ -269,11 +271,16 @@ Private Sub CleanUp()
     LOG_FILE = ToPosixPath(LOG_FILE)
 
     'Show the LOG_FILE as MsgBox if not empty
+    On Error Resume Next
     If ReadFile(LOG_FILE) <> "" Then
         Call ShowError(LOG_FILE)
     End If
+    On Error GoTo 0
 
     'Clean up
     Application.StatusBar = False
     Application.ScreenUpdating = True
+    On Error Resume Next
+        KillFileOnMac ToMacPath(ToPosixPath(LOG_FILE))
+    On Error GoTo 0
 End Sub
