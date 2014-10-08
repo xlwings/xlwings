@@ -16,6 +16,7 @@ except ImportError:
 time_types = (dt.date, dt.datetime)
 
 
+@atexit.register
 def clean_up():
     """
     Since AppleScript cannot access Excel while a Macro is running, we have to run the Python call in a
@@ -26,8 +27,6 @@ def clean_up():
     """
     if is_excel_running():
         app('Microsoft Excel').run_VB_macro('CleanUp')
-
-atexit.register(clean_up)
 
 
 def is_file_open(fullname):
