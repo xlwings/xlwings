@@ -332,3 +332,7 @@ def get_xl_workbook_current():
         return xl_workbook_current
     except NameError:
         return None
+
+
+def get_address(xl_range, row_absolute, col_absolute, external):
+    return xl_range.GetAddress(row_absolute, col_absolute, 1, external)
