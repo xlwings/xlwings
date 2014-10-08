@@ -73,8 +73,9 @@ Sub ExcecuteMac(Command As String, PYTHON_MAC As String, LOG_FILE As String, Opt
     PythonInterpreter = ToPosixPath(PYTHON_MAC & "/python")
     WORKBOOK_FULLNAME = ToPosixPath(ThisWorkbook.FullName)
 
-    ' Build the command (ignore warnings to be in line with Windows where we only show the popup if the ExitCode <>0
-    RunCommand = PythonInterpreter & " -W ignore -c ""import sys; sys.path.append(r'" & PYTHONPATH & "'); " & Command & """ "
+    ' Build the command (ignore warnings to be in line with Windows where we only show the popup if the ExitCode <> 0
+    ' -u is needed because on PY3 stderr is buffered by default and so wouldn't be available on time for the pop-up to show
+    RunCommand = PythonInterpreter & " -u -W ignore -c ""import sys; sys.path.append(r'" & PYTHONPATH & "'); " & Command & """ "
 
     ' Send the command to the shell. Courtesy of Robert Knight (http://stackoverflow.com/a/12320294/918626)
     ' Since Excel blocks AppleScript as long as a VBA macro is running, we have to excecute the call as background call
