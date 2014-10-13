@@ -12,7 +12,7 @@ with open(os.path.join(os.path.dirname(__file__), 'xlwings', '__init__.py')) as 
     version = re.compile(r".*__version__ = '(.*?)'", re.S).match(f.read()).group(1)
 
 # Dependencies
-if sys.platform.startswith('win'):
+if sys.platform.startswith('win') or sys.platform.startswith('linux'):
     install_requires = []  # pywin32 can't be installed (yet) with pip
 if sys.platform.startswith('darwin'):
     install_requires = ['psutil >= 2.0.0', 'appscript >= 1.0.1']
