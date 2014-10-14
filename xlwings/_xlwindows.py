@@ -340,3 +340,11 @@ def get_xl_workbook_current():
         return xl_workbook_current
     except NameError:
         return None
+
+
+def get_number_format(range_):
+    return range_.xl_range.NumberFormat
+
+
+def set_number_format(range_, value):
+    range_.xl_range.NumberFormat = value
