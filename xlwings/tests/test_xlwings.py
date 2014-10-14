@@ -500,9 +500,38 @@ class TestRange:
         result = Range('Sheet1', 'A50', atleast_2d=True, asarray=True).value
         assert_equal(np.array([[23]]), result)
 
-    def test_autofit(self):
-        pass  # TODO
+    def test_autofit_range(self):
+        # TODO: compare col/row widths before/after - not implemented yet
+        Range('Sheet1', 'A1:D4').value = 'test_string'
+        Range('Sheet1', 'A1:D4').autofit()
+        Range('Sheet1', 'A1:D4').autofit(0)
+        Range('Sheet1', 'A1:D4').autofit(1)
+        Range('Sheet1', 'A1:D4').autofit('r')
+        Range('Sheet1', 'A1:D4').autofit('c')
+        Range('Sheet1', 'A1:D4').autofit('rows')
+        Range('Sheet1', 'A1:D4').autofit('columns')
 
+    def test_autofit_col(self):
+        # TODO: compare col/row widths before/after - not implemented yet
+        Range('Sheet1', 'A1:D4').value = 'test_string'
+        Range('Sheet1', 'A:D').autofit()
+        Range('Sheet1', 'A:D').autofit(0)
+        Range('Sheet1', 'A:D').autofit(1)
+        Range('Sheet1', 'A:D').autofit('r')
+        Range('Sheet1', 'A:D').autofit('c')
+        Range('Sheet1', 'A:D').autofit('rows')
+        Range('Sheet1', 'A:D').autofit('columns')
+
+    def test_autofit_row(self):
+        # TODO: compare col/row widths before/after - not implemented yet
+        Range('Sheet1', 'A1:D4').value = 'test_string'
+        Range('Sheet1', '1:1000000').autofit()
+        Range('Sheet1', '1:1000000').autofit(0)
+        Range('Sheet1', '1:1000000').autofit(1)
+        Range('Sheet1', '1:1000000').autofit('r')
+        Range('Sheet1', '1:1000000').autofit('c')
+        Range('Sheet1', '1:1000000').autofit('rows')
+        Range('Sheet1', '1:1000000').autofit('columns')
 
 class TestChart:
     def setUp(self):

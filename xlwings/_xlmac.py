@@ -264,15 +264,16 @@ def activate_chart(xl_chart):
 
 
 def autofit(range_, axis):
-    if (axis == 0 or axis == 'rows' or axis == 'r') and not range_.is_column():
-        range_.xl_range.rows.autofit()
-    elif (axis == 1 or axis == 'columns' or axis == 'c') and not range_.is_row():
-        range_.xl_range.columns.autofit()
+    address = range_.xl_range.get_address()
+    app('Microsoft Excel').screen_updating.set(False)
+    if axis == 0 or axis == 'rows' or axis == 'r':
+        range_.xl_sheet.rows[address].autofit()
+    elif axis == 1 or axis == 'columns' or axis == 'c':
+        range_.xl_sheet.columns[address].autofit()
     elif axis is None:
-        if not range_.is_row():
-            range_.xl_range.columns.autofit()
-        if not range_.is_column():
-            range_.xl_range.rows.autofit()
+        range_.xl_sheet.rows[address].autofit()
+        range_.xl_sheet.columns[address].autofit()
+    app('Microsoft Excel').screen_updating.set(True)
 
 
 def set_xl_workbook_current(xl_workbook):
