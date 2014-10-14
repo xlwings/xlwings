@@ -606,6 +606,17 @@ class Range(object):
         address = xlplatform.get_current_region_address(self.xl_sheet, self.row1, self.col1)
         return Range(xlplatform.get_worksheet_name(self.xl_sheet), address, **self.kwargs)
 
+    @property
+    def number_format(self):
+        """
+        Gets and sets the number_format of a Range.
+        """
+        return xlplatform.get_number_format(self)
+
+    @number_format.setter
+    def number_format(self, value):
+        xlplatform.set_number_format(self, value)
+
     def clear(self):
         """
         Clears the content and the formatting of a Range.

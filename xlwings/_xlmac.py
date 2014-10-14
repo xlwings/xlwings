@@ -303,3 +303,13 @@ def get_xl_workbook_current():
         return xl_workbook_current
     except NameError:
         return None
+
+
+def get_number_format(range_):
+    return range_.xl_range.number_format.get()
+
+
+def set_number_format(range_, value):
+    app('Microsoft Excel').screen_updating.set(False)
+    range_.xl_range.number_format.set(value)
+    app('Microsoft Excel').screen_updating.set(True)

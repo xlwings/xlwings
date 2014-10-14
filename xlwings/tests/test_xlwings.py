@@ -542,6 +542,19 @@ class TestRange:
         Range('Sheet1', '1:1000000').autofit('rows')
         Range('Sheet1', '1:1000000').autofit('columns')
 
+    def test_number_format_cell(self):
+        format_string = "mm/dd/yy;@"
+        Range('Sheet1', 'A1').number_format = format_string
+        result = Range('Sheet1', 'A1').number_format
+        assert_equal(format_string, result)
+
+    def test_number_format_range(self):
+        format_string = "mm/dd/yy;@"
+        Range('Sheet1', 'A1:D4').number_format = format_string
+        result = Range('Sheet1', 'A1:D4').number_format
+        assert_equal(format_string, result)
+
+
 class TestChart:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
