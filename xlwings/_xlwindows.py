@@ -311,15 +311,23 @@ def activate_chart(xl_chart):
 
 
 def autofit(range_, axis):
-    if (axis == 0 or axis == 'rows' or axis == 'r') and not range_.is_column():
+    if axis == 0 or axis == 'rows' or axis == 'r':
         range_.xl_range.Rows.AutoFit()
-    elif (axis == 1 or axis == 'columns' or axis == 'c') and not range_.is_row():
+    elif axis == 1 or axis == 'columns' or axis == 'c':
         range_.xl_range.Columns.AutoFit()
     elif axis is None:
-        if not range_.is_row():
-            range_.xl_range.Columns.AutoFit()
-        if not range_.is_column():
-            range_.xl_range.Rows.AutoFit()
+        range_.xl_range.Columns.AutoFit()
+        range_.xl_range.Rows.AutoFit()
+
+
+def autofit_sheet(sheet, axis):
+    if axis == 0 or axis == 'rows' or axis == 'r':
+        sheet.xl_sheet.Rows.AutoFit()
+    elif axis == 1 or axis == 'columns' or axis == 'c':
+        sheet.xl_sheet.Columns.AutoFit()
+    elif axis is None:
+        sheet.xl_sheet.Rows.AutoFit()
+        sheet.xl_sheet.Columns.AutoFit()
 
 
 def set_xl_workbook_current(xl_workbook):
