@@ -180,6 +180,30 @@ class Sheet(object):
             xl_workbook = wkb.xl_workbook
         return cls(xlplatform.get_worksheet_name(xlplatform.get_active_sheet(xl_workbook)), wkb)
 
+    def autofit(self, axis=None):
+        """
+        Autofits the width of either columns, rows or both on a whole Sheet.
+
+        Arguments
+        ---------
+        axis : string or integer, default None
+            - To autofit rows, use one of the following: 0 or ``rows`` or ``r``
+            - To autofit columns, use one of the following: 1 or ``columns`` or ``c``
+            - To autofit rows and columns, provide no arguments
+
+        Examples
+        --------
+        ::
+
+            # Autofit columns
+            Sheet('Sheet1').autofit('c')
+            # Autofit rows
+            Sheet('Sheet1').autofit('r')
+            # Autofit columns and rows
+            Range('Sheet1').autofit()
+        """
+        xlplatform.autofit_sheet(self, axis)
+
     def __repr__(self):
         return "<Sheet '{0}' of Workbook '{1}'>".format(self.name, xlplatform.get_workbook_name(self.xl_workbook))
 
@@ -610,9 +634,9 @@ class Range(object):
         ::
 
             # Autofit column A
-            Range('A:A').autofit()
+            Range('A:A').autofit('c')
             # Autofit row 1
-            Range('1:1').autofit()
+            Range('1:1').autofit('r')
             # Autofit columns and rows, taking into account Range('A1:E4')
             Range('A1:E4').autofit()
             # AutoFit columns, taking into account Range('A1:E4')

@@ -276,6 +276,23 @@ def autofit(range_, axis):
     app('Microsoft Excel').screen_updating.set(True)
 
 
+def autofit_sheet(sheet, axis):
+    #TODO: combine with autofit that works on Range objects
+    num_columns = sheet.xl_sheet.count(each=kw.column)
+    num_rows = sheet.xl_sheet.count(each=kw.row)
+    xl_range = get_range_from_indices(sheet.xl_sheet, 1, 1, num_rows, num_columns)
+    address = xl_range.get_address()
+    app('Microsoft Excel').screen_updating.set(False)
+    if axis == 0 or axis == 'rows' or axis == 'r':
+        sheet.xl_sheet.rows[address].autofit()
+    elif axis == 1 or axis == 'columns' or axis == 'c':
+        sheet.xl_sheet.columns[address].autofit()
+    elif axis is None:
+        sheet.xl_sheet.rows[address].autofit()
+        sheet.xl_sheet.columns[address].autofit()
+    app('Microsoft Excel').screen_updating.set(True)
+
+
 def set_xl_workbook_current(xl_workbook):
     global xl_workbook_current
     xl_workbook_current = xl_workbook

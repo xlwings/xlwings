@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# To run a single TestClass: nosetests -q -s test_xlwings:TestClass
+# To run a single TestClass: nosetests -q -s test_xlwings:TestRange
 
 from __future__ import unicode_literals
 import os
@@ -180,6 +180,15 @@ class TestSheet:
         cell = Range('Sheet2', 'G10').value
         assert_equal(cell, None)
 
+    def test_autofit(self):
+        Range('Sheet1', 'A1:D4').value = 'test_string'
+        Sheet('Sheet1').autofit()
+        Sheet('Sheet1').autofit(0)
+        Sheet('Sheet1').autofit(1)
+        Sheet('Sheet1').autofit('r')
+        Sheet('Sheet1').autofit('c')
+        Sheet('Sheet1').autofit('rows')
+        Sheet('Sheet1').autofit('columns')
 
 class TestRange:
     def setUp(self):
