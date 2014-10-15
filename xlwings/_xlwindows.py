@@ -352,3 +352,10 @@ def set_number_format(range_, value):
 
 def get_address(xl_range, row_absolute, col_absolute, external):
     return xl_range.GetAddress(row_absolute, col_absolute, 1, external)
+
+
+def add_sheet(xl_workbook, before, after):
+    if before:
+        return xl_workbook.Worksheets.Add(Before=before.xl_sheet)
+    else:
+        return xl_workbook.Worksheets.Add(After=after.xl_sheet)
