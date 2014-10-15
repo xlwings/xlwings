@@ -348,3 +348,7 @@ def get_number_format(range_):
 
 def set_number_format(range_, value):
     range_.xl_range.NumberFormat = value
+
+
+def get_address(xl_range, row_absolute, col_absolute, external):
+    return xl_range.GetAddress(row_absolute, col_absolute, 1, external)

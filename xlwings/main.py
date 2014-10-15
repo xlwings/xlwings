@@ -662,6 +662,60 @@ class Range(object):
         return "<Range on Sheet '{0}' of Workbook '{1}'>".format(xlplatform.get_worksheet_name(self.xl_sheet),
                                                                  xlplatform.get_workbook_name(self.xl_workbook))
 
+    def get_address(self, row_absolute=True, column_absolute=True, include_sheetname=False, external=False):
+        """
+        Returns the address of the range in the specified format.
+        
+        Arguments
+        ----------
+        row_absolute : bool, default True
+            True to return the row part of the reference as an absolute reference. 
+
+        column_absolute : bool, default True   
+            True to return the column part of the reference as an absolute reference. 
+
+        include_sheetname : bool, default False
+            Set to True to include the Sheet name in the address.
+
+        external : bool, default False
+            True to return an external reference with workbook and worksheet name. 
+
+        Returns
+        -------
+        str
+
+        Examples
+        --------
+        Examples to return variations of the range address::
+
+            >>> Range((1,1)).get_address()
+            $A$1
+            
+            >>> Range((1,1)).get_address(False, False)
+            A1
+
+            >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, True)
+            Sheet1!A$1:C$3
+
+            >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, external=True)
+            '[Workbook Name]Sheet1'!A$1:C$3
+        """        
+        
+        if include_sheetname and not external:
+            # Remove the Workbook name
+            temp_str = xlplatform.get_address(self.xl_range, row_absolute, column_absolute, True)
+
+            if temp_str.find("[") > -1:
+                results_address = temp_str[temp_str.rfind("]") + 1:]
+                if results_address.find("'") > -1:
+                    results_address = "'" + results_address
+                return results_address
+            else:
+                return temp_str
+
+        else:
+            return xlplatform.get_address(self.xl_range, row_absolute, column_absolute, external)
+
 
 class Chart(object):
     """
