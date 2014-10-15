@@ -1,5 +1,5 @@
 """
-xlwings - Make Excel fly!
+xlwings - Make Excel fly with Python!
 
 Homepage and documentation: http://xlwings.org
 See also: http://zoomeranalytics.com
@@ -111,6 +111,24 @@ class Workbook(object):
         """Closes the Workbook without saving it."""
         xlplatform.close_workbook(self.xl_workbook)
 
+    @staticmethod
+    def get_xl_workbook(wkb):
+        """
+        Returns the current xl_workbook if wkb=None, otherwise the xl_workbook of wkb.
+
+        Arguments
+        ---------
+        wkb : Workbook or None
+            Workbook object
+        """
+        if wkb is None and xlplatform.get_xl_workbook_current() is None:
+            raise NameError('You must first instantiate a Workbook object.')
+        elif wkb is None:
+            xl_workbook = xlplatform.get_xl_workbook_current()
+        else:
+            xl_workbook = wkb.xl_workbook
+        return xl_workbook
+
     def __repr__(self):
         return "<Workbook '{0}'>".format(self.name)
 
@@ -134,12 +152,7 @@ class Sheet(object):
     """
 
     def __init__(self, sheet, wkb=None):
-        if wkb is None and xlplatform.get_xl_workbook_current() is None:
-            raise NameError('You must first instantiate a Workbook object.')
-        elif wkb is None:
-            self.xl_workbook = xlplatform.get_xl_workbook_current()
-        else:
-            self.xl_workbook = wkb.xl_workbook
+        self.xl_workbook = Workbook.get_xl_workbook(wkb)
         self.sheet = sheet
         self.xl_sheet = xlplatform.get_xl_sheet(self.xl_workbook, self.sheet)
 
@@ -172,13 +185,20 @@ class Sheet(object):
     @classmethod
     def active(cls, wkb=None):
         """Returns the active Sheet. Use like so: ``Sheet.active()``"""
-        if wkb is None and xlplatform.get_xl_workbook_current() is None:
-            raise NameError('You must first instantiate a Workbook object.')
-        elif wkb is None:
-            xl_workbook = xlplatform.get_xl_workbook_current()
-        else:
-            xl_workbook = wkb.xl_workbook
+        xl_workbook = Workbook.get_xl_workbook(wkb)
         return cls(xlplatform.get_worksheet_name(xlplatform.get_active_sheet(xl_workbook)), wkb)
+
+    # @staticmethod
+    # def add(before=None, after=None, count=1, wkb=None):
+    #     """
+    #     Creates a new worksheet, chart, or macro sheet.
+    #     The new worksheet becomes the active sheet.
+    #     """
+    #     xl_workbook = Workbook.get_xl_workbook(wkb)
+    #     if not before and not after:
+    #         before = Sheet.active()
+    #
+    #     xlplatform.add_sheet(self.xl_workbook, self.sheet, before, after, count)
 
     def autofit(self, axis=None):
         """
@@ -421,8 +441,8 @@ class Range(object):
             else:
                 data = data.values[:,np.newaxis]
 
-        # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535. This seems to be an
-        # Excel bug, see: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx
+        # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535.
+        # See: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx
         # Also, turn into list (Python 3 can't handle arrays directly)
         if hasattr(np, 'ndarray') and isinstance(data, np.ndarray):
             try:
@@ -754,14 +774,9 @@ class Chart(object):
 
     """
     def __init__(self, *args, **kwargs):
-        # Use global Workbook if none provided
-        self.workbook = kwargs.get('wkb', None)
-        if self.workbook is None and xlplatform.get_xl_workbook_current() is None:
-            raise NameError('You must first instantiate a Workbook object.')
-        elif self.workbook is None:
-            self.xl_workbook = xlplatform.get_xl_workbook_current()
-        else:
-            self.xl_workbook = self.workbook.xl_workbook
+        # Use current Workbook if none provided
+        wkb = kwargs.get('wkb', None)
+        self.xl_workbook = Workbook.get_xl_workbook(wkb)
 
         # Arguments
         if len(args) == 1:
@@ -822,11 +837,8 @@ class Chart(object):
         wkb : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
         """
-        workbook = kwargs.get('wkb', None)
-        if workbook is None:
-            xl_workbook = xlplatform.get_xl_workbook_current()
-        else:
-            xl_workbook = workbook.xl_workbook
+        wkb = kwargs.get('wkb', None)
+        xl_workbook = Workbook.get_xl_workbook(wkb)
 
         chart_type = kwargs.get('chart_type', ChartType.xlColumnClustered)
         name = kwargs.get('name')
@@ -842,7 +854,7 @@ class Chart(object):
         else:
             name = xlplatform.get_chart_name(xl_chart)
 
-        return cls(sheet, name, wkb=workbook, chart_type=chart_type, source_data=source_data)
+        return cls(sheet, name, wkb=wkb, chart_type=chart_type, source_data=source_data)
 
     @property
     def name(self):
