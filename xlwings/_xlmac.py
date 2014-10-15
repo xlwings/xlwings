@@ -317,3 +317,11 @@ def set_number_format(range_, value):
 
 def get_address(xl_range, row_absolute, col_absolute, external):
     return xl_range.get_address(row_absolute=row_absolute, column_absolute=col_absolute, external=external)
+
+
+def add_sheet(xl_workbook, before, after):
+    if before:
+        position = before.xl_sheet.before
+    else:
+        position = after.xl_sheet.after
+    return xl_workbook.make(new=kw.worksheet, at=position)

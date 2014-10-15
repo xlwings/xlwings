@@ -190,6 +190,17 @@ class TestSheet:
         Sheet('Sheet1').autofit('rows')
         Sheet('Sheet1').autofit('columns')
 
+    def test_add(self):
+
+        new_sheet = Sheet.add(before=Sheet('Sheet1'))
+        assert_equal(Sheet(1).name, new_sheet.name)
+
+        Sheet.add(after=Sheet(1))
+        assert_equal(Sheet(2).name, Sheet.active().name)
+
+        Sheet.add()  # TODO: test call without args properly
+
+
 class TestRange:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet

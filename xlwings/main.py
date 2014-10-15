@@ -188,17 +188,34 @@ class Sheet(object):
         xl_workbook = Workbook.get_xl_workbook(wkb)
         return cls(xlplatform.get_worksheet_name(xlplatform.get_active_sheet(xl_workbook)), wkb)
 
-    # @staticmethod
-    # def add(before=None, after=None, count=1, wkb=None):
-    #     """
-    #     Creates a new worksheet, chart, or macro sheet.
-    #     The new worksheet becomes the active sheet.
-    #     """
-    #     xl_workbook = Workbook.get_xl_workbook(wkb)
-    #     if not before and not after:
-    #         before = Sheet.active()
-    #
-    #     xlplatform.add_sheet(self.xl_workbook, self.sheet, before, after, count)
+    @classmethod
+    def add(cls, before=None, after=None, wkb=None):
+        """
+        Creates a new worksheet: the new worksheet becomes the active sheet.
+
+        Arguments
+        ---------
+        before : Sheet, default None
+            Sheet object, e.g. Sheet(1)
+
+        after : Sheet, default None
+            Sheet object, e.g. Sheet(1)
+
+        count : int, default 1
+            Number of Sheets to be inserted
+
+        Returns
+        -------
+        Sheet object
+
+        """
+        xl_workbook = Workbook.get_xl_workbook(wkb)
+
+        if before is None and after is None:
+            before = Sheet.active(wkb)
+
+        xl_sheet = xlplatform.add_sheet(xl_workbook, before, after)
+        return cls(xlplatform.get_worksheet_name(xl_sheet), wkb)
 
     def autofit(self, axis=None):
         """
