@@ -554,6 +554,28 @@ class TestRange:
         result = Range('Sheet1', 'A1:D4').number_format
         assert_equal(format_string, result)
 
+    def test_get_address(self):
+        res = Range((1,1),(3,3)).get_address()
+        assert_equal(res, '$A$1:$C$3')
+
+        res = Range((1,1),(3,3)).get_address(False)
+        assert_equal(res, '$A1:$C3')
+
+        res = Range((1,1),(3,3)).get_address(True, False)
+        assert_equal(res, 'A$1:C$3')
+
+        res = Range((1,1),(3,3)).get_address(False, False)
+        assert_equal(res, 'A1:C3')
+
+        res = Range((1,1),(3,3)).get_address(include_sheetname=True)
+        assert_equal(res, 'Sheet1!$A$1:$C$3')
+
+        res = Range('Sheet2', (1,1),(3,3)).get_address(include_sheetname=True)
+        assert_equal(res, 'Sheet2!$A$1:$C$3')
+
+        res = Range((1,1),(3,3)).get_address(external=True)
+        assert_equal(res, '[test_range_1.xlsx]Sheet1!$A$1:$C$3')
+
 
 class TestChart:
     def setUp(self):

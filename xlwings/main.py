@@ -669,16 +669,16 @@ class Range(object):
         Arguments
         ----------
         row_absolute : bool, default True
-            True to return the row part of the reference as an absolute reference. 
+            Set to True to return the row part of the reference as an absolute reference.
 
         column_absolute : bool, default True   
-            True to return the column part of the reference as an absolute reference. 
+            Set to True to return the column part of the reference as an absolute reference.
 
         include_sheetname : bool, default False
-            Set to True to include the Sheet name in the address.
+            Set to True to include the Sheet name in the address. Ignored if external=True.
 
         external : bool, default False
-            True to return an external reference with workbook and worksheet name. 
+            Set to True to return an external reference with workbook and worksheet name.
 
         Returns
         -------
@@ -698,11 +698,12 @@ class Range(object):
             Sheet1!A$1:C$3
 
             >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, external=True)
-            '[Workbook Name]Sheet1'!A$1:C$3
+            [WorkbookName.xlsx]Sheet1!A$1:C$3
         """        
         
         if include_sheetname and not external:
-            # Remove the Workbook name
+            # TODO: when the Workbook name contains spaces but not the Worksheet name, it will still be surrounded
+            # by '' when include_sheetname=True. Also, should probably changed to regex
             temp_str = xlplatform.get_address(self.xl_range, row_absolute, column_absolute, True)
 
             if temp_str.find("[") > -1:
