@@ -686,7 +686,7 @@ class Range(object):
 
         Examples
         --------
-        Examples to return variations of the range address::
+        ::
 
             >>> Range((1,1)).get_address()
             $A$1

@@ -313,3 +313,7 @@ def set_number_format(range_, value):
     app('Microsoft Excel').screen_updating.set(False)
     range_.xl_range.number_format.set(value)
     app('Microsoft Excel').screen_updating.set(True)
+
+
+def get_address(xl_range, row_absolute, col_absolute, external):
+    return xl_range.get_address(row_absolute=row_absolute, column_absolute=col_absolute, external=external)
