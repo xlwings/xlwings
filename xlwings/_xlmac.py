@@ -325,3 +325,7 @@ def add_sheet(xl_workbook, before, after):
     else:
         position = after.xl_sheet.after
     return xl_workbook.make(new=kw.worksheet, at=position)
+
+
+def count_worksheets(xl_workbook):
+    return xl_workbook.count(each=kw.worksheet)

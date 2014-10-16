@@ -160,6 +160,30 @@ class Sheet(object):
         """Activates the sheet."""
         xlplatform.activate_sheet(self.xl_workbook, self.sheet)
 
+    def autofit(self, axis=None):
+        """
+        Autofits the width of either columns, rows or both on a whole Sheet.
+
+        Arguments
+        ---------
+        axis : string or integer, default None
+            - To autofit rows, use one of the following: 0 or ``rows`` or ``r``
+            - To autofit columns, use one of the following: 1 or ``columns`` or ``c``
+            - To autofit rows and columns, provide no arguments
+
+        Examples
+        --------
+        ::
+
+            # Autofit columns
+            Sheet('Sheet1').autofit('c')
+            # Autofit rows
+            Sheet('Sheet1').autofit('r')
+            # Autofit columns and rows
+            Range('Sheet1').autofit()
+        """
+        xlplatform.autofit_sheet(self, axis)
+
     def clear_contents(self):
         """Clears the content of the whole sheet but leaves the formatting."""
         xlplatform.clear_contents_worksheet(self.xl_workbook, self.sheet)
@@ -189,20 +213,21 @@ class Sheet(object):
         return cls(xlplatform.get_worksheet_name(xlplatform.get_active_sheet(xl_workbook)), wkb)
 
     @classmethod
-    def add(cls, before=None, after=None, wkb=None):
+    def add(cls, name=None, before=None, after=None, wkb=None):
         """
-        Creates a new worksheet: the new worksheet becomes the active sheet.
+        Creates a new worksheet: the new worksheet becomes the active sheet. If neither ``before`` nor
+        ``after`` is specified, the new Sheet will be placed before the active Sheet.
 
         Arguments
         ---------
-        before : Sheet, default None
-            Sheet object, e.g. Sheet(1)
+        name : str, default None
+            Sheet name, defaults to Excel standard name
 
-        after : Sheet, default None
-            Sheet object, e.g. Sheet(1)
+        before : str or int, default None
+            Sheet name or index
 
-        count : int, default 1
-            Number of Sheets to be inserted
+        after : str or int, default None
+            Sheet name or index
 
         Returns
         -------
@@ -213,33 +238,64 @@ class Sheet(object):
 
         if before is None and after is None:
             before = Sheet.active(wkb)
+        elif before:
+            before = Sheet(before, wkb=wkb)
+        elif after:
+            after = Sheet(after, wkb=wkb)
 
-        xl_sheet = xlplatform.add_sheet(xl_workbook, before, after)
-        return cls(xlplatform.get_worksheet_name(xl_sheet), wkb)
+        if name:
+            if name in [i.name.lower() for i in Sheet.all(wkb=wkb)]:
+                raise Exception('That sheet name is already in use.')
+            else:
+                xl_sheet = xlplatform.add_sheet(xl_workbook, before, after)
+                xlplatform.set_worksheet_name(xl_sheet, name)
+                return cls(name, wkb)
+        else:
+            xl_sheet = xlplatform.add_sheet(xl_workbook, before, after)
+            return cls(xlplatform.get_worksheet_name(xl_sheet), wkb)
 
-    def autofit(self, axis=None):
+    @staticmethod
+    def count(wkb=None):
         """
-        Autofits the width of either columns, rows or both on a whole Sheet.
+        Counts the number of Sheets.
 
-        Arguments
-        ---------
-        axis : string or integer, default None
-            - To autofit rows, use one of the following: 0 or ``rows`` or ``r``
-            - To autofit columns, use one of the following: 1 or ``columns`` or ``c``
-            - To autofit rows and columns, provide no arguments
+        Keyword Arguments
+        -----------------
+        wkb : Workbook object, default Workbook.current()
+            Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
 
         Examples
         --------
-        ::
-
-            # Autofit columns
-            Sheet('Sheet1').autofit('c')
-            # Autofit rows
-            Sheet('Sheet1').autofit('r')
-            # Autofit columns and rows
-            Range('Sheet1').autofit()
+        >>> Sheet.count()
+        3
         """
-        xlplatform.autofit_sheet(self, axis)
+        xl_workbook = Workbook.get_xl_workbook(wkb)
+        return xlplatform.count_worksheets(xl_workbook)
+
+    @staticmethod
+    def all(wkb=None):
+        """
+        Returns a list with all Sheet objects.
+
+        Keyword Arguments
+        -----------------
+        wkb : Workbook object, default Workbook.current()
+            Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
+        Examples
+        --------
+        >>> Sheet.all()
+        [<Sheet 'Sheet1' of Workbook 'Book1'>, <Sheet 'Sheet2' of Workbook 'Book1'>]
+        >>> [i.name.lower() for i in Sheet.all()]
+        [u'sheet1', u'sheet2']
+        >>> [i.autofit() for i in Sheet.all()]
+        """
+        xl_workbook = Workbook.get_xl_workbook(wkb)
+        sheet_list = []
+        for i in range(1, xlplatform.count_worksheets(xl_workbook) + 1):
+            sheet_list.append(Sheet(i, wkb=wkb))
+
+        return sheet_list
 
     def __repr__(self):
         return "<Sheet '{0}' of Workbook '{1}'>".format(self.name, xlplatform.get_workbook_name(self.xl_workbook))

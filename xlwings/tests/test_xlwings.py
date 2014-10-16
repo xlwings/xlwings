@@ -192,13 +192,24 @@ class TestSheet:
 
     def test_add(self):
 
-        new_sheet = Sheet.add(before=Sheet('Sheet1'))
+        new_sheet = Sheet.add(before='Sheet1')
         assert_equal(Sheet(1).name, new_sheet.name)
 
-        Sheet.add(after=Sheet(1))
+        Sheet.add(after=1)
         assert_equal(Sheet(2).name, Sheet.active().name)
 
         Sheet.add()  # TODO: test call without args properly
+
+        Sheet.add('test', before=1)
+        assert_equal(Sheet(1).name, u'test')
+
+    def test_count(self):
+        count = Sheet.count()
+        assert_equal(count, 3)
+
+    def test_all(self):
+        all_names = [i.name for i in Sheet.all()]
+        assert_equal(all_names, [u'Sheet1', u'Sheet2', u'Sheet3'])
 
 
 class TestRange:
