@@ -364,7 +364,6 @@ def add_sheet(xl_workbook, before, after):
         new_sheet_index = after.xl_sheet.Index + 1
         if new_sheet_index > count:
             xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index))
-            print xl_sheet
             xl_workbook.Worksheets(xl_workbook.Worksheets.Count).Move(Before=xl_workbook.Sheets(xl_workbook.Worksheets.Count - 1))
             xl_workbook.Worksheets(xl_workbook.Worksheets.Count).Activate()
         else:
