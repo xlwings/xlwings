@@ -358,7 +358,18 @@ def add_sheet(xl_workbook, before, after):
     if before:
         return xl_workbook.Worksheets.Add(Before=before.xl_sheet)
     else:
-        return xl_workbook.Worksheets.Add(After=after.xl_sheet)
+        # Hack, since "After" is broken in certain environments
+        # see: http://code.activestate.com/lists/python-win32/11554/
+        count = xl_workbook.Worksheets.Count
+        new_sheet_index = after.xl_sheet.Index + 1
+        if new_sheet_index > count:
+            xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index))
+            print xl_sheet
+            xl_workbook.Worksheets(xl_workbook.Worksheets.Count).Move(Before=xl_workbook.Sheets(xl_workbook.Worksheets.Count - 1))
+            xl_workbook.Worksheets(xl_workbook.Worksheets.Count).Activate()
+        else:
+            xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index + 1))
+        return xl_sheet
 
 
 def count_worksheets(xl_workbook):

@@ -190,16 +190,22 @@ class TestSheet:
         Sheet('Sheet1').autofit('rows')
         Sheet('Sheet1').autofit('columns')
 
-    def test_add(self):
-
+    def test_add_before(self):
         new_sheet = Sheet.add(before='Sheet1')
         assert_equal(Sheet(1).name, new_sheet.name)
+
+    def test_add_after(self):
+        Sheet.add(after=Sheet.count())
+        assert_equal(Sheet(Sheet.count()).name, Sheet.active().name)
 
         Sheet.add(after=1)
         assert_equal(Sheet(2).name, Sheet.active().name)
 
-        Sheet.add()  # TODO: test call without args properly
+    def test_add_default(self):
+        # TODO: test call without args properly
+        Sheet.add()
 
+    def test_add_named(self):
         Sheet.add('test', before=1)
         assert_equal(Sheet(1).name, 'test')
 
