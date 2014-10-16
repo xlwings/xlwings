@@ -114,7 +114,8 @@ class Workbook(object):
     @staticmethod
     def get_xl_workbook(wkb):
         """
-        Returns the current xl_workbook if wkb=None, otherwise the xl_workbook of wkb.
+        Returns the current xl_workbook if wkb=None, otherwise the xl_workbook of wkb. On Windows, xl_workbook is
+        a pywin32 COM object, on Mac it's an appscript object.
 
         Arguments
         ---------
