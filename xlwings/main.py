@@ -114,8 +114,8 @@ class Workbook(object):
     @staticmethod
     def get_xl_workbook(wkb):
         """
-        Returns the current xl_workbook if wkb=None, otherwise the xl_workbook of wkb. On Windows, xl_workbook is
-        a pywin32 COM object, on Mac it's an appscript object.
+        Returns the current xl_workbook if ``wkb`` is ``None``, otherwise the ``xl_workbook`` of ``wkb``. On Windows,
+        ``xl_workbook`` is a pywin32 COM object, on Mac it's an appscript object.
 
         Arguments
         ---------
@@ -752,16 +752,12 @@ class Range(object):
         """
         xlplatform.autofit(self, axis)
 
-    def __repr__(self):
-        return "<Range on Sheet '{0}' of Workbook '{1}'>".format(xlplatform.get_worksheet_name(self.xl_sheet),
-                                                                 xlplatform.get_workbook_name(self.xl_workbook))
-
     def get_address(self, row_absolute=True, column_absolute=True, include_sheetname=False, external=False):
         """
         Returns the address of the range in the specified format.
         
         Arguments
-        ----------
+        ---------
         row_absolute : bool, default True
             Set to True to return the row part of the reference as an absolute reference.
 
@@ -784,13 +780,10 @@ class Range(object):
 
             >>> Range((1,1)).get_address()
             $A$1
-            
             >>> Range((1,1)).get_address(False, False)
             A1
-
             >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, True)
             Sheet1!A$1:C$3
-
             >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, external=True)
             [WorkbookName.xlsx]Sheet1!A$1:C$3
         """        
@@ -811,6 +804,9 @@ class Range(object):
         else:
             return xlplatform.get_address(self.xl_range, row_absolute, column_absolute, external)
 
+    def __repr__(self):
+        return "<Range on Sheet '{0}' of Workbook '{1}'>".format(xlplatform.get_worksheet_name(self.xl_sheet),
+                                                                 xlplatform.get_workbook_name(self.xl_workbook))
 
 class Chart(object):
     """
