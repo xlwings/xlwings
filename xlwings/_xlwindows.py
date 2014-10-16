@@ -359,3 +359,7 @@ def add_sheet(xl_workbook, before, after):
         return xl_workbook.Worksheets.Add(Before=before.xl_sheet)
     else:
         return xl_workbook.Worksheets.Add(After=after.xl_sheet)
+
+
+def count_worksheets(xl_workbook):
+    return xl_workbook.Worksheets.Count
