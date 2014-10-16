@@ -201,7 +201,7 @@ class TestSheet:
         Sheet.add()  # TODO: test call without args properly
 
         Sheet.add('test', before=1)
-        assert_equal(Sheet(1).name, u'test')
+        assert_equal(Sheet(1).name, 'test')
 
     def test_count(self):
         count = Sheet.count()
@@ -209,7 +209,7 @@ class TestSheet:
 
     def test_all(self):
         all_names = [i.name for i in Sheet.all()]
-        assert_equal(all_names, [u'Sheet1', u'Sheet2', u'Sheet3'])
+        assert_equal(all_names, ['Sheet1', 'Sheet2', 'Sheet3'])
 
 
 class TestRange:
