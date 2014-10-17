@@ -779,13 +779,13 @@ class Range(object):
         ::
 
             >>> Range((1,1)).get_address()
-            $A$1
+            u'$A$1'
             >>> Range((1,1)).get_address(False, False)
-            A1
+            u'A1'
             >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, True)
-            Sheet1!A$1:C$3
+            u'Sheet1!A$1:C$3'
             >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, external=True)
-            [WorkbookName.xlsx]Sheet1!A$1:C$3
+            u'[Workbook1]Sheet1!A$1:C$3'
         """        
         
         if include_sheetname and not external:
