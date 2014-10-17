@@ -13,9 +13,9 @@ else:
 
 # Platform specifics
 if sys.platform.startswith('win'):
-    import xlwings._xlwindows as xlplatform
+    from . import _xlwindows as xlplatform
 else:
-    import xlwings._xlmac as xlplatform
+    from . import _xlmac as xlplatform
 
 time_types = xlplatform.time_types
 
