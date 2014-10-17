@@ -38,6 +38,7 @@ Qualify the Workbook additionally like this:
     Range('Sheet1', 'A1', wkb=wb).value
     Chart.add('Sheet1', wkb=wb, source_data=Range('Sheet1', 'A1', wkb=wb).table)
     Sheet(1, wkb=wb).name
+
 or simply set the current workbook first:
 
 .. code-block:: python
@@ -46,8 +47,6 @@ or simply set the current workbook first:
     Range('Sheet1', 'A1').value
     Chart.add('Sheet1', source_data=Range('Sheet1', 'A1').table)
     Sheet(1).name
-
-
 
 These commands also work seamlessly with **NumPy arrays** and **Pandas DataFrames**, see :ref:`datastructures` for details.
 
