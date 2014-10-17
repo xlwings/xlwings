@@ -217,7 +217,7 @@ class Sheet(object):
     def add(cls, name=None, before=None, after=None, wkb=None):
         """
         Creates a new worksheet: the new worksheet becomes the active sheet. If neither ``before`` nor
-        ``after`` is specified, the new Sheet will be placed before the active Sheet.
+        ``after`` is specified, the new Sheet will be placed at the end.
 
         Arguments
         ---------
@@ -234,11 +234,20 @@ class Sheet(object):
         -------
         Sheet object
 
+        Examples
+        --------
+
+        >>> Sheet.add()  # Before the active sheet (Excel's default name)
+        >>> Sheet.add('NewSheet', before='Sheet1')  # Include name
+        >>> new_sheet = Sheet.add(after=3)
+        >>> new_sheet.index
+        4
+
         """
         xl_workbook = Workbook.get_xl_workbook(wkb)
 
         if before is None and after is None:
-            before = Sheet.active(wkb)
+            after = Sheet(Sheet.count())
         elif before:
             before = Sheet(before, wkb=wkb)
         elif after:
@@ -288,7 +297,7 @@ class Sheet(object):
         >>> Sheet.all()
         [<Sheet 'Sheet1' of Workbook 'Book1'>, <Sheet 'Sheet2' of Workbook 'Book1'>]
         >>> [i.name.lower() for i in Sheet.all()]
-        [u'sheet1', u'sheet2']
+        ['sheet1', 'sheet2']
         >>> [i.autofit() for i in Sheet.all()]
         """
         xl_workbook = Workbook.get_xl_workbook(wkb)
@@ -779,13 +788,13 @@ class Range(object):
         ::
 
             >>> Range((1,1)).get_address()
-            u'$A$1'
+            '$A$1'
             >>> Range((1,1)).get_address(False, False)
-            u'A1'
+            'A1'
             >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, True)
-            u'Sheet1!A$1:C$3'
+            'Sheet1!A$1:C$3'
             >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, external=True)
-            u'[Workbook1]Sheet1!A$1:C$3'
+            '[Workbook1]Sheet1!A$1:C$3'
         """        
         
         if include_sheetname and not external:
@@ -839,7 +848,7 @@ class Chart(object):
     >>> Range('A1').value = [['Foo1', 'Foo2'], [1, 2]]
     >>> chart = Chart.add(source_data=Range('A1').table, chart_type=ChartType.xlLine)
     >>> chart.name
-    u'Chart1'
+    'Chart1'
     >>> chart.chart_type = ChartType.xl3DArea
 
     """
