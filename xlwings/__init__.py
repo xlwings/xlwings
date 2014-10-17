@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import sys
 
-__version__ = '0.2.3dev'
+__version__ = '0.2.3'
 
 # Python 2 vs 3
 PY3 = sys.version_info[0] == 3
