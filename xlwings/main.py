@@ -237,8 +237,8 @@ class Sheet(object):
         Examples
         --------
 
-        >>> Sheet.add()  # Before the active sheet (Excel's default name)
-        >>> Sheet.add('NewSheet', before='Sheet1')  # Include name
+        >>> Sheet.add()  # Place at end with default name
+        >>> Sheet.add('NewSheet', before='Sheet1')  # Include name and position
         >>> new_sheet = Sheet.add(after=3)
         >>> new_sheet.index
         4
@@ -713,6 +713,15 @@ class Range(object):
     def number_format(self):
         """
         Gets and sets the number_format of a Range.
+
+        Examples
+        --------
+
+        >>> Range('A1').number_format
+        'General'
+        >>> Range('A1:C3').number_format = '0.00%'
+        >>> Range('A1:C3').number_format
+        '0.00%'
         """
         return xlplatform.get_number_format(self)
 
@@ -853,6 +862,7 @@ class Chart(object):
 
     """
     def __init__(self, *args, **kwargs):
+        # TODO: this should be doable without *args and **kwargs - same for .add()
         # Use current Workbook if none provided
         wkb = kwargs.get('wkb', None)
         self.xl_workbook = Workbook.get_xl_workbook(wkb)

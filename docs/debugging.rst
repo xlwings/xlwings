@@ -22,15 +22,15 @@ Consider the following code structure of your Python source code:
     import os
     from xlwings import Workbook, Range
 
-
     def my_macro(workbook_path=None):
         wb = Workbook(workbook_path)
         Range('A1').value = 1
 
     if __name__ == '__main__':
-        # To run from Python, adjust the workbook path. Not needed when called from Excel.
-        # This expects the Excel file to sit next to this source file.
-        my_macro(os.path.abspath(os.path.join(os.path.dirname(__file__), 'myfile.xlsm')))
+        # To run from Python, not needed when called from Excel.
+        # Expects the Excel file next to this source file, adjust accordingly.
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'myfile.xlsm'))
+        my_macro(path)
 
 
 ``my_macro()`` can now easily be run from Python for debugging and from Excel for testing without having to change the

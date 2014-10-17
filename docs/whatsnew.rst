@@ -12,8 +12,8 @@ Enhancements
 ************
 * New method ``Sheet.add()`` (:issue:`71`)::
 
-    >>> Sheet.add()  # Before the active sheet (Excel's default name)
-    >>> Sheet.add('NewSheet', before='Sheet1')  # Include name
+    >>> Sheet.add()  # Place at end with default name
+    >>> Sheet.add('NewSheet', before='Sheet1')  # Include name and position
     >>> new_sheet = Sheet.add(after=3)
     >>> new_sheet.index
     4
@@ -52,6 +52,14 @@ Enhancements
     'Sheet1!A$1:C$3'
     >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, external=True)
     '[Workbook1]Sheet1!A$1:C$3'
+
+* New method ``Sheet.all()`` returning a list with all Sheet objects::
+
+    >>> Sheet.all()
+    [<Sheet 'Sheet1' of Workbook 'Book1'>, <Sheet 'Sheet2' of Workbook 'Book1'>]
+    >>> [i.name.lower() for i in Sheet.all()]
+    ['sheet1', 'sheet2']
+    >>> [i.autofit() for i in Sheet.all()]
 
 Bug Fixes
 *********
