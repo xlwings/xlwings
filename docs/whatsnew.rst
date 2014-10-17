@@ -1,6 +1,71 @@
 What's New
 ==========
 
+v0.2.3 (October 17, 2014)
+-------------------------
+
+API changes
+***********
+None
+
+Enhancements
+************
+* New method ``Sheet.add()`` (:issue:`71`)::
+
+    >>> Sheet.add()  # Before the active sheet (Excel's default name)
+    >>> Sheet.add('NewSheet', before='Sheet1')  # Include name
+    >>> Sheet.add(after=3)
+
+* New method ``Sheet.count()``::
+
+    >>> Sheet.count()
+    3
+
+* ``autofit`` works now also on ``Sheet`` objects, not only on ``Range`` objects (:issue:`66`)::
+
+    >>> Sheet(1).autofit()  # autofit columns and rows
+    >>> Sheet('Sheet1').autofit('c')  # autofit columns
+    >>> Sheet('Sheet1').autofit(0)  # autofit rows
+
+* New property ``number_format`` for ``Range`` objects (:issue:`60`)::
+
+    >>> Range('A1').number_format
+    u'General'
+    >>> Range('A1').number_format = '0.00%'
+    >>> Range('A1').number_format
+    u'0.00%'
+
+  Works also with ``Range`` properties ``table``, ``vertical``, ``horizontal``::
+
+    >>> Range('A1').value = [1,2,3,4,5]
+    >>> Range('A1').table.number_format = '0.00%'
+
+* New method ``get_address`` for ``Range`` objects (:issue:`7`)::
+
+    >>> Range((1,1)).get_address()
+    u'$A$1'
+    >>> Range((1,1)).get_address(False, False)
+    u'A1'
+    >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, include_sheetname=True)
+    u'Sheet1!A$1:C$3'
+    >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, external=True)
+    u'[Workbook1]Sheet1!A$1:C$3'
+
+Bug Fixes
+*********
+
+* xlwings works now also with NumPy < 1.7.0. Before, doing something like ``Range('A1').value = 'Foo'`` was causing
+  a ``NotImplementedError:Not implemented for this type`` error when NumPy < 1.7.0 was installed (:issue:`73`).
+
+* [Win version]: The VBA module caused an error on the 64bit version of Excel (:issue:`72`).
+
+* [Mac version]: The error pop-up wasn't shown on Python 3 (:issue:`85`).
+
+* [Mac version]: Autofitting bigger Ranges, e.g. ``Range('A:D').autofit()`` was causing a time out (:issue:`74`).
+
+* [Mac version]: Sometimes, calling xlwings from Python was causing Excel to show old errors as pop-up alert (:issue:`70`).
+
+
 v0.2.2 (September 23, 2014)
 ---------------------------
 
@@ -60,7 +125,8 @@ Enhancements
     >>> Sheet.active()
     <Sheet 'Sheet1' of Workbook 'Book1'>
 
-* The ``Range`` class has a new method ``autofit()`` that autofits the width/height of either columns, rows or both.
+* The ``Range`` class has a new method ``autofit()`` that autofits the width/height of either columns, rows or both
+  (:issue:`33`).
 
   *Arguments*::
 
@@ -116,13 +182,18 @@ Bug Fixes
   object would always just access the latest one, even if the Workbook had been specified (:issue:`63`).
 
 * [Mac version]: When xlwings was imported without ever instantiating a ``Workbook`` object, Excel would start upon
-  quitting the Python interpreter.
+  quitting the Python interpreter (:issue:`51`).
 
-* [Mac version]: When installing xlwings, it now requires ``psutil`` to be at least version ``2.0.0``.
+* [Mac version]: When installing xlwings, it now requires ``psutil`` to be at least version ``2.0.0`` (:issue:`48`).
 
 
 v0.2.1 (August 7, 2014)
 -----------------------
+
+API changes
+***********
+
+None
 
 Enhancements
 ************
@@ -148,10 +219,20 @@ Note that there is a slight difference in the way that this functionality behave
   log file. I.e. if the Status Bar returns to its default ("Ready") but nothing has happened, check out the log file
   for the Python traceback.
 
+Bug Fixes
+*********
+
+None
+
 Special thanks go to Georgi Petrov for helping with this release.
 
 v0.2.0 (July 29, 2014)
 ----------------------
+
+API changes
+***********
+
+None
 
 Enhancements
 ************
