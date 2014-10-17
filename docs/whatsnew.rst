@@ -14,14 +14,16 @@ Enhancements
 
     >>> Sheet.add()  # Before the active sheet (Excel's default name)
     >>> Sheet.add('NewSheet', before='Sheet1')  # Include name
-    >>> Sheet.add(after=3)
+    >>> new_sheet = Sheet.add(after=3)
+    >>> new_sheet.index
+    4
 
 * New method ``Sheet.count()``::
 
     >>> Sheet.count()
     3
 
-* ``autofit`` works now also on ``Sheet`` objects, not only on ``Range`` objects (:issue:`66`)::
+* ``autofit()`` works now also on ``Sheet`` objects, not only on ``Range`` objects (:issue:`66`)::
 
     >>> Sheet(1).autofit()  # autofit columns and rows
     >>> Sheet('Sheet1').autofit('c')  # autofit columns
@@ -30,12 +32,12 @@ Enhancements
 * New property ``number_format`` for ``Range`` objects (:issue:`60`)::
 
     >>> Range('A1').number_format
-    u'General'
-    >>> Range('A1').number_format = '0.00%'
-    >>> Range('A1').number_format
-    u'0.00%'
+    'General'
+    >>> Range('A1:C3').number_format = '0.00%'
+    >>> Range('A1:C3').number_format
+    '0.00%'
 
-  Works also with ``Range`` properties ``table``, ``vertical``, ``horizontal``::
+  Works also with the ``Range`` properties ``table``, ``vertical``, ``horizontal``::
 
     >>> Range('A1').value = [1,2,3,4,5]
     >>> Range('A1').table.number_format = '0.00%'
@@ -43,19 +45,19 @@ Enhancements
 * New method ``get_address`` for ``Range`` objects (:issue:`7`)::
 
     >>> Range((1,1)).get_address()
-    u'$A$1'
+    '$A$1'
     >>> Range((1,1)).get_address(False, False)
-    u'A1'
+    'A1'
     >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, include_sheetname=True)
-    u'Sheet1!A$1:C$3'
+    'Sheet1!A$1:C$3'
     >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, external=True)
-    u'[Workbook1]Sheet1!A$1:C$3'
+    '[Workbook1]Sheet1!A$1:C$3'
 
 Bug Fixes
 *********
 
 * xlwings works now also with NumPy < 1.7.0. Before, doing something like ``Range('A1').value = 'Foo'`` was causing
-  a ``NotImplementedError:Not implemented for this type`` error when NumPy < 1.7.0 was installed (:issue:`73`).
+  a ``NotImplementedError: Not implemented for this type`` error when NumPy < 1.7.0 was installed (:issue:`73`).
 
 * [Win version]: The VBA module caused an error on the 64bit version of Excel (:issue:`72`).
 
@@ -120,7 +122,7 @@ Enhancements
   :ref:`api_sheet` for details (:issue:`62`). A few examples::
 
     >>> Sheet(1).name
-    u'Sheet1'
+    'Sheet1'
     >>> Sheet('Sheet1').clear_contents()
     >>> Sheet.active()
     <Sheet 'Sheet1' of Workbook 'Book1'>

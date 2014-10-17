@@ -18,7 +18,7 @@ cell contains a number, a string, is empty or represents a date:
     1.0
     >>> Range('A2').value = 'Hello'
     >>> Range('A2').value
-    u'Hello'
+    'Hello'
     >>> Range('A3').value is None
     True
     >>> Range('A4').value = datetime(2000, 1, 1)
@@ -58,7 +58,7 @@ Lists
 
     >>> Range('A10').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10, 20, 30]]
     >>> Range((10,1),(11,3)).value
-    [[u'Foo 1', u'Foo 2', u'Foo 3'], [10.0, 20.0, 30.0]]
+    [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
 
 
 .. note:: Try to minimize the number of interactions with Excel. It is always more efficient to do
@@ -74,11 +74,11 @@ properties.
 .. code-block:: python
 
     >>> Range('A10').table.value
-    [[u'Foo 1', u'Foo 2', u'Foo 3'], [10.0, 20.0, 30.0]]
+    [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
     >>> Range('A10').horizontal.value
-    [u'Foo 1', u'Foo 2', u'Foo 3']
+    ['Foo 1', 'Foo 2', 'Foo 3']
     >>> Range('A10').vertical.value
-    [u'Foo 1', 10.0]
+    ['Foo 1', 10.0]
 
 .. note:: Using these properties together with a named Range as top left cell gives you an extremely flexible setup in
     Excel: You can move around the table and change it's size without having to adjust your code, e.g. by using
