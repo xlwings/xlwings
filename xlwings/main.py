@@ -580,6 +580,13 @@ class Range(object):
     @formula.setter
     def formula(self, value):
         xlplatform.set_formula(self.xl_range, value)
+        
+
+    def offset(self,row,col):
+        """wb:workbook, cell:"A1", row: offset row, col: offset col"""
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet),
+                     (self.row1+row, self.col1+col))
+    
 
     @property
     def table(self):
