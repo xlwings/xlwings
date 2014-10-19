@@ -264,6 +264,16 @@ class Sheet(object):
             xl_sheet = xlplatform.add_sheet(xl_workbook, before, after)
             return cls(xlplatform.get_worksheet_name(xl_sheet), wkb)
 
+
+    @classmethod    
+    def remove(cls,name, wkb=None):
+        xl_workbook = Workbook.get_xl_workbook(wkb)
+        if name.lower() in [i.name.lower() for i in Sheet.all(wkb=wkb)]:
+            xlplatform.remove_sheet(xl_workbook,name)
+        else:
+            raise Exception("'That sheetname does not exist.")
+
+
     @staticmethod
     def count(wkb=None):
         """

@@ -371,5 +371,10 @@ def add_sheet(xl_workbook, before, after):
         return xl_sheet
 
 
+def remove_sheet(xl_workbook, sheetname):
+    xl_workbook.Application.DisplayAlerts = False    
+    xl_workbook.Sheets(sheetname).Delete()
+
+
 def count_worksheets(xl_workbook):
     return xl_workbook.Worksheets.Count
