@@ -5,7 +5,7 @@ Attribute VB_Name = "xlwings"
 ' See also: http://zoomeranalytics.com
 '
 ' Copyright (C) 2014, Zoomer Analytics LLC.
-' Version: 0.2.3
+' Version: 0.2.4dev
 '
 ' License: BSD 3-clause (see LICENSE.txt for details)
 
@@ -15,21 +15,23 @@ Option Explicit
 Private Declare Function system Lib "libc.dylib" (ByVal Command As String) As Long
 #End If
 
-Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef PYTHON_FROZEN As String, ByRef PYTHONPATH As String, ByRef LOG_FILE As String)
+Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef PYTHON_FROZEN As String, ByRef PYTHONPATH As String, ByRef LOG_FILE As String, ByRef SHOW_LOG)
     ' PYTHON_WIN: Directory of Python Interpreter on Windows, "" resolves to default on PATH
     ' PYTHON_MAC: Directory of Python Interpreter on Mac OSX, "" resolves to default on $PATH but NOT .bash_profile!
     ' PYTHON_FROZEN [Optional]: Currently only on Windows, indicate directory of exe file
     ' PYTHONPATH [Optional]: If the source file of your code is not found, add the path here. Otherwise set to "".
     ' LOG_FILE: Directory including file name, necessary for error handling.
+    ' SHOW_LOG: If False, no pop-up with the Log messages (usually errors) will be shown
     '
     ' For cross-platform compatibility, use backslashes in relative directories
-    ' For details, see http://xlwings.org
+    ' For details, see http://docs.xlwings.org
 
     PYTHON_WIN = ""
     PYTHON_MAC = GetMacDir("Home") & "/anaconda/bin"
     PYTHON_FROZEN = ThisWorkbook.Path & "\build\exe.win32-2.7"
     PYTHONPATH = ThisWorkbook.Path
     LOG_FILE = ThisWorkbook.Path & "\xlwings_log.txt"
+    SHOW_LOG = True
 
 End Function
 ' DO NOT EDIT BELOW THIS LINE
@@ -41,20 +43,21 @@ Public Function RunPython(PythonCommand As String)
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
     Dim WORKBOOK_FULLNAME As String, LOG_FILE As String, DriveCommand As String, RunCommand As String
     Dim ExitCode As Integer, Res As Integer
+    Dim SHOW_LOG As Boolean
 
     ' Get the settings by using the ByRef trick
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE)
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG)
 
     ' Call Python platform-dependent
     #If Mac Then
         Application.StatusBar = "Running..."  ' Non-blocking way of giving feedback that something is happening
-        ExcecuteMac PythonCommand, PYTHON_MAC, LOG_FILE, PYTHONPATH
+        ExcecuteMac PythonCommand, PYTHON_MAC, LOG_FILE, SHOW_LOG, PYTHONPATH
     #Else
-        ExecuteWindows False, PythonCommand, PYTHON_WIN, LOG_FILE, PYTHONPATH
+        ExecuteWindows False, PythonCommand, PYTHON_WIN, LOG_FILE, SHOW_LOG, PYTHONPATH
     #End If
 End Function
 
-Sub ExcecuteMac(Command As String, PYTHON_MAC As String, LOG_FILE As String, Optional PYTHONPATH As String)
+Sub ExcecuteMac(Command As String, PYTHON_MAC As String, LOG_FILE As String, SHOW_LOG As Boolean, Optional PYTHONPATH As String)
     ' Run Python with the "-c" command line switch: add the path of the python file and run the
     ' Command as first argument, then provide the WORKBOOK_FULLNAME and "from_xl" as 2nd and 3rd arguments.
     ' Finally, redirect stderr to the LOG_FILE and run as background process.
@@ -86,14 +89,14 @@ Sub ExcecuteMac(Command As String, PYTHON_MAC As String, LOG_FILE As String, Opt
     Log = ReadFile(LOG_FILE)
     If Log = "" Then
         Exit Sub
-    Else
+    ElseIf SHOW_LOG = True Then
         ShowError (LOG_FILE)
         Application.StatusBar = False
     End If
 
 End Sub
 
-Sub ExecuteWindows(IsFrozen As Boolean, Command As String, PYTHON_WIN As String, LOG_FILE As String, Optional PYTHONPATH As String)
+Sub ExecuteWindows(IsFrozen As Boolean, Command As String, PYTHON_WIN As String, LOG_FILE As String, SHOW_LOG As Boolean, Optional PYTHONPATH As String)
     ' Call a command window and change to the directory of the Python installation or frozen executable
     ' Note: If Python is called from a different directory with the fully qualified path, pywintypesXX.dll won't be found.
     ' This seems to be a general issue with pywin32, see http://stackoverflow.com/q/7238403/918626
@@ -124,13 +127,13 @@ Sub ExecuteWindows(IsFrozen As Boolean, Command As String, PYTHON_WIN As String,
         RunCommand = Command & " "
     End If
 
-    ExitCode = Wsh.Run("cmd.exe /C " & DriveCommand & _
+    ExitCode = Wsh.run("cmd.exe /C " & DriveCommand & _
                    RunCommand & _
                    """" & WORKBOOK_FULLNAME & """ ""from_xl"" 2> """ & LOG_FILE & """ ", _
                    WindowStyle, WaitOnReturn)
 
     'If ExitCode <> 0 then there's something wrong
-    If ExitCode <> 0 Then
+    If ExitCode <> 0 And SHOW_LOG = True Then
         Call ShowError(LOG_FILE)
     End If
 
@@ -266,17 +269,20 @@ Private Sub CleanUp()
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
     Dim WORKBOOK_FULLNAME As String, LOG_FILE As String
     Dim Res As Integer
+    Dim SHOW_LOG As Boolean
 
     'Get LOG_FILE
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE)
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG)
     LOG_FILE = ToPosixPath(LOG_FILE)
 
     'Show the LOG_FILE as MsgBox if not empty
-    On Error Resume Next
-    If ReadFile(LOG_FILE) <> "" Then
-        Call ShowError(LOG_FILE)
+    If SHOW_LOG = True Then
+        On Error Resume Next
+        If ReadFile(LOG_FILE) <> "" Then
+            Call ShowError(LOG_FILE)
+        End If
+        On Error GoTo 0
     End If
-    On Error GoTo 0
 
     'Clean up
     Application.StatusBar = False
