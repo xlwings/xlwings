@@ -83,17 +83,24 @@ Sub ExcecuteMac(Command As String, PYTHON_MAC As String, LOG_FILE As String, SHO
     ' Send the command to the shell. Courtesy of Robert Knight (http://stackoverflow.com/a/12320294/918626)
     ' Since Excel blocks AppleScript as long as a VBA macro is running, we have to excecute the call as background call
     ' so it can do its magic after this Function has terminated. Python calls ClearUp via the atexit handler.
-    Res = system("source ~/.bash_profile;" & RunCommand & """" & WORKBOOK_FULLNAME & """ ""from_xl"" >" & Chr(34) & LOG_FILE & Chr(34) & " 2>&1 &")
 
-    ' If there's a log at this point (normally that will be from the Shell only, not Python) show it and reset the StatusBar
-    Log = ReadFile(LOG_FILE)
-    If Log = "" Then
-        Exit Sub
-    ElseIf SHOW_LOG = True Then
-        ShowError (LOG_FILE)
-        Application.StatusBar = False
+    'Check if .bash_profile is existing and source it
+    Res = system("source ~/.bash_profile")
+    If Res = 0 Then
+        Res = system("source ~/.bash_profile;" & RunCommand & """" & WORKBOOK_FULLNAME & """ ""from_xl"" >" & Chr(34) & LOG_FILE & Chr(34) & " 2>&1 &")
+    Else
+        Res = system(RunCommand & """" & WORKBOOK_FULLNAME & """ ""from_xl"" >" & Chr(34) & LOG_FILE & Chr(34) & " 2>&1 &")
     End If
-
+    ' If there's a log at this point (normally that will be from the Shell only, not Python) show it and reset the StatusBar
+    On Error Resume Next
+        Log = ReadFile(LOG_FILE)
+        If Log = "" Then
+            Exit Sub
+        ElseIf SHOW_LOG = True Then
+            ShowError (LOG_FILE)
+            Application.StatusBar = False
+        End If
+    On Error GoTo 0
 End Sub
 
 Sub ExecuteWindows(IsFrozen As Boolean, Command As String, PYTHON_WIN As String, LOG_FILE As String, SHOW_LOG As Boolean, Optional PYTHONPATH As String)
