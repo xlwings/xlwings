@@ -17,7 +17,7 @@ Private Declare Function system Lib "libc.dylib" (ByVal Command As String) As Lo
 
 Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef PYTHON_FROZEN As String, ByRef PYTHONPATH As String, ByRef LOG_FILE As String, ByRef SHOW_LOG)
     ' PYTHON_WIN: Directory of Python Interpreter on Windows, "" resolves to default on PATH
-    ' PYTHON_MAC: Directory of Python Interpreter on Mac OSX, "" resolves to default on $PATH but NOT .bash_profile!
+    ' PYTHON_MAC: Directory of Python Interpreter on Mac OSX, "" resolves to default path in ~/.bash_profile
     ' PYTHON_FROZEN [Optional]: Currently only on Windows, indicate directory of exe file
     ' PYTHONPATH [Optional]: If the source file of your code is not found, add the path here. Otherwise set to "".
     ' LOG_FILE: Directory including file name, necessary for error handling.
@@ -27,7 +27,7 @@ Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef 
     ' For details, see http://docs.xlwings.org
 
     PYTHON_WIN = ""
-    PYTHON_MAC = GetMacDir("Home") & "/anaconda/bin"
+    PYTHON_MAC = ""
     PYTHON_FROZEN = ThisWorkbook.Path & "\build\exe.win32-2.7"
     PYTHONPATH = ThisWorkbook.Path
     LOG_FILE = ThisWorkbook.Path & "\xlwings_log.txt"
@@ -83,7 +83,7 @@ Sub ExcecuteMac(Command As String, PYTHON_MAC As String, LOG_FILE As String, SHO
     ' Send the command to the shell. Courtesy of Robert Knight (http://stackoverflow.com/a/12320294/918626)
     ' Since Excel blocks AppleScript as long as a VBA macro is running, we have to excecute the call as background call
     ' so it can do its magic after this Function has terminated. Python calls ClearUp via the atexit handler.
-    Res = system(RunCommand & """" & WORKBOOK_FULLNAME & """ ""from_xl"" >" & Chr(34) & LOG_FILE & Chr(34) & " 2>&1 &")
+    Res = system("source ~/.bash_profile;" & RunCommand & """" & WORKBOOK_FULLNAME & """ ""from_xl"" >" & Chr(34) & LOG_FILE & Chr(34) & " 2>&1 &")
 
     ' If there's a log at this point (normally that will be from the Shell only, not Python) show it and reset the StatusBar
     Log = ReadFile(LOG_FILE)
