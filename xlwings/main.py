@@ -264,6 +264,16 @@ class Sheet(object):
             xl_sheet = xlplatform.add_sheet(xl_workbook, before, after)
             return cls(xlplatform.get_worksheet_name(xl_sheet), wkb)
 
+
+    @classmethod    
+    def remove(cls,name, wkb=None):
+        xl_workbook = Workbook.get_xl_workbook(wkb)
+        if name.lower() in [i.name.lower() for i in Sheet.all(wkb=wkb)]:
+            xlplatform.remove_sheet(xl_workbook,name)
+        else:
+            raise Exception("'That sheetname does not exist.")
+
+
     @staticmethod
     def count(wkb=None):
         """
@@ -580,6 +590,13 @@ class Range(object):
     @formula.setter
     def formula(self, value):
         xlplatform.set_formula(self.xl_range, value)
+        
+
+    def offset(self,row,col):
+        """wb:workbook, cell:"A1", row: offset row, col: offset col"""
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet),
+                     (self.row1+row, self.col1+col))
+    
 
     @property
     def table(self):
@@ -654,6 +671,37 @@ class Range(object):
         return Range(xlplatform.get_worksheet_name(self.xl_sheet),
                      (self.row1, self.col1), (row2, col2), **self.kwargs)
 
+
+    @vertical.setter
+    def vertical_value(self, data):
+        """
+        Assign lists vertically, nested lists or simple lists is written vertically
+        
+        Examples
+        --------
+        To set the values of a list range :
+        data1 = [1,2,3,4,'trial',None, 0.3,6]
+        data2 = [[1, 2, 3, 4, 'car', 6], [7, 8, 9],[[[6,None,10]]]]
+
+            Range('A1').vertical_value = data1
+            Range('A1').vertical_value = data2
+        
+        """
+
+        if not isinstance(data, list) and not (isinstance(data[0], (numbers.Number, string_types, time_types)) or data[0] is None):
+            raise TypeError
+        else:
+            flatten = lambda *n: (e for a in n for e in (flatten(*a) if isinstance(a, (tuple, list)) else (a,)))
+            data = list(flatten(data))        
+            data = [[i] for i in data]
+            row2 = self.row1 + len(data) - 1
+            col2 = self.col1 
+            xlplatform.set_value(xlplatform.get_range_from_indices(self.xl_sheet, 
+                                                                   self.row1, 
+                                                                   self.col1, 
+                                                                   row2, col2), data)
+
+
     @property
     def horizontal(self):
         """
@@ -693,6 +741,36 @@ class Range(object):
 
         return Range(xlplatform.get_worksheet_name(self.xl_sheet),
                      (self.row1, self.col1), (row2, col2), **self.kwargs)
+
+
+    @horizontal.setter
+    def horizontal_value(self, data):
+        """
+        Assign lists horizontally, nested lists or simple lists is written horizontally
+        
+        Examples
+        --------
+        To set the values of a list range :
+        data1 = [1,2,3,4,'trial',None, 0.3,6]
+        data2 = [[1, 2, 3, 4, 'car', 6], [7, 8, 9],[[[6,None,10]]]]
+
+            Range('A1').horizontal_value = data1
+            Range('A1').horizontal_value = data2
+        
+        
+        """
+        if not isinstance(data, list) and not (isinstance(data[0], (numbers.Number, string_types, time_types)) or data[0] is None):
+            raise TypeError
+        else:
+            flatten = lambda *n: (e for a in n for e in (flatten(*a) if isinstance(a, (tuple, list)) else (a,)))
+            data = list(flatten(data))
+            row2 = self.row1
+            col2 = self.col1 + + len(data) - 1
+            xlplatform.set_value(xlplatform.get_range_from_indices(self.xl_sheet, 
+                                                                   self.row1, 
+                                                                   self.col1, 
+                                                                   row2, col2), data)
+
 
     @property
     def current_region(self):

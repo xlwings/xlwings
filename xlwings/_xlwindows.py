@@ -373,3 +373,52 @@ def add_sheet(xl_workbook, before, after):
 
 def count_worksheets(xl_workbook):
     return xl_workbook.Worksheets.Count
+
+
+def remove_sheet(xl_workbook, sheetname):
+    xl_workbook.Application.DisplayAlerts = False    
+    xl_workbook.Sheets(sheetname).Delete()
+    
+    
+def get_hyperlink_address(xl_range):
+    return xl_range.Hyperlinks(1).Address
+
+
+def set_hyperlink(xl_range, address = None, text2display = None, screen_tip = 'Link'):
+    if text2display == None:
+        xl_range.Hyperlinks.Add(Anchor = xl_range, Address = address,
+                                TextToDisplay = address, ScreenTip = screen_tip)    
+    else:
+        xl_range.Hyperlinks.Add(Anchor = xl_range, Address = address,
+                                TextToDisplay = text2display, ScreenTip = screen_tip)
+
+   
+def dec2rgb(number):
+    'Given a dec sequel, return the rgb'
+    r = int(number % 256)
+    g = int((number / 256) % 256)
+    b = int((number / 65536) % 256)
+    rgb = (r,g,b)
+    return rgb
+    
+    
+def rgb2hex(rgb):
+    'Given an rgb, return the hex string'
+    hex_value =  '&H%02x%02x%02x' % tuple([round(val) for val in rgb[:3]])
+    return hex_value[0:2]+hex_value[6:8]+hex_value[4:6]+hex_value[2:4]
+
+    
+def set_color(xl_range,color_name_or_RGB):               
+    if color_name_or_RGB == 'Blank':
+        xl_range.Interior.ColorIndex = -4142
+    elif color_name_or_RGB in RgbColor.__dict__.keys():
+        xl_range.Interior.Color = RgbColor.__dict__[color_name_or_RGB]
+    else:
+        xl_range.Interior.Color = rgb2hex(color_name_or_RGB)
+
+
+def get_color(xl_range):
+    if xl_range.Interior.ColorIndex == -4142:
+        return 'Blank'
+    else:
+        return dec2rgb(int(xl_range.Interior.Color))
