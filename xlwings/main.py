@@ -826,6 +826,38 @@ class Range(object):
         return "<Range on Sheet '{0}' of Workbook '{1}'>".format(xlplatform.get_worksheet_name(self.xl_sheet),
                                                                  xlplatform.get_workbook_name(self.xl_workbook))
 
+
+    @property                 
+    def color(self):      
+        """
+        Examples
+        --------
+        ::
+            >>> Range("A1:B2").color = 'rgbAqua'
+            
+            >>> Range("A1:B2").color = (255,255,255)
+        
+        Ref to the Contants.RgbColor Parameters. 
+        
+        rgbAliceBlue 		rgbAntiqueWhite 	rgbAqua 		rgbAquamarine 		
+        rgbAzure 		      rgbBeige 		rgbBisque 		rgbBlack 		
+        rgbBlanchedAlmond 	rgbBlue 		rgbBlueViolet 	rgbBrown 		
+        rgbBurlyWood 		rgbCadetBlue 	rgbChartreuse 	rgbCoral 		
+        rgbCornflowerBlue 	rgbCornsilk 	rgbCrimson 		rgbDarkBlue 		
+        rgbDarkCyan 		rgbDarkGoldenrod 	rgbDarkGray 	rgbDarkGreen 		
+        rgbDarkGrey 		rgbDarkKhaki 	rgbDarkMagenta 	rgbDarkOliveGreen 		
+        rgbDarkOrange 	      rgbDarkOrchid 	rgbDarkRed 		rgbDarkSalmon 		
+        .                   .                 .                 .
+        .                   .                 .                 .
+        .                   .                 .                 .       
+        """
+        return xlplatform.get_color(self.xl_range)
+
+    @color.setter
+    def color(self, color_name_or_RGB_value):
+        xlplatform.set_color(self.xl_range, color_name_or_RGB_value)
+
+
 class Chart(object):
     """
     A Chart object that represents an existing Excel chart can be created with the following arguments::
