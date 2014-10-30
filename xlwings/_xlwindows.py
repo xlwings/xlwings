@@ -374,6 +374,24 @@ def add_sheet(xl_workbook, before, after):
 def count_worksheets(xl_workbook):
     return xl_workbook.Worksheets.Count
 
+
+def get_hyperlink_address(xl_range):
+    return xl_range.Hyperlinks(1).Address
+
+
+def set_hyperlink(xl_range, link = None, text2display = None, screen_tip = None):
+    if text2display is None and screen_tip is None:
+        hyperlink = xl_range.Hyperlinks.Add(Anchor = xl_range, Address = link,TextToDisplay = link, ScreenTip = 'Click once to follow.  Click and hold to select this cell.')    
+    elif text2display is None:
+        hyperlink = xl_range.Hyperlinks.Add(Anchor = xl_range, Address = link,TextToDisplay = link, ScreenTip = screen_tip)    
+    elif screen_tip is None:
+        hyperlink = xl_range.Hyperlinks.Add(Anchor = xl_range, Address = link,TextToDisplay = text2display, ScreenTip = 'Click once to follow.  Click and hold to select this cell.')    
+    else:
+        hyperlink = xl_range.Hyperlinks.Add(Anchor = xl_range, Address = link,
+                                TextToDisplay = text2display, ScreenTip = screen_tip)
+    return hyperlink
+
+
 def dec2rgb(number):
     'Given a dec sequel, return the rgb'
     r = int(number % 256)
