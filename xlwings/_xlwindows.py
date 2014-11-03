@@ -1,4 +1,3 @@
-# TODO: create classes
 # TODO: align clean_xl_data and prepare_xl_data (should work on same dimensions of data)
 
 import datetime as dt
@@ -7,7 +6,7 @@ import pywintypes
 import pythoncom
 from win32com.client import GetObject, dynamic
 import win32timezone
-from .constants import Direction, RgbColor, ColorIndex
+from .constants import Direction, ColorIndex
 from .utils import rgb_to_int, int_to_rgb
 
 # Optional imports

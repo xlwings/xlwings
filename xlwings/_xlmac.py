@@ -1,4 +1,3 @@
-# TODO: create classes
 # TODO: align clean_xl_data and prepare_xl_data (should work on same dimensions of data)
 
 import os
@@ -7,6 +6,8 @@ from appscript import app
 from appscript import k as kw
 import psutil
 import atexit
+from .constants import ColorIndex
+from .utils import rgb_to_int, int_to_rgb
 try:
     import pandas as pd
 except ImportError:
@@ -339,3 +340,19 @@ def set_hyperlink(xl_range, address, text_to_display=None, screen_tip=None):
     xl_range.make(at=xl_range, new=kw.hyperlink, with_properties={kw.address: address,
                                                                   kw.text_to_display: text_to_display,
                                                                   kw.screen_tip: screen_tip})
+
+
+def set_color(xl_range, color_or_rgb):
+    if color_or_rgb is None:
+        xl_range.interior_object.color_index = ColorIndex.xlColorIndexNone
+    elif isinstance(color_or_rgb, int):
+        xl_range.interior_object.color.set(int_to_rgb(color_or_rgb))
+    else:
+        xl_range.interior_object.color.set(color_or_rgb)
+
+
+def get_color(xl_range):
+    if xl_range.interior_object.color_index.get() == ColorIndex.xlColorIndexNone:
+        return None
+    else:
+        return tuple(xl_range.interior_object.color.get())

@@ -7,7 +7,7 @@ import sys
 import nose
 from nose.tools import assert_equal
 from datetime import datetime
-from xlwings import Workbook, Sheet, Range, Chart, ChartType
+from xlwings import Workbook, Sheet, Range, Chart, ChartType, RgbColor
 if sys.platform.startswith('darwin'):
     from appscript import k as kw
 
@@ -620,6 +620,17 @@ class TestRange:
         else:
             assert_equal(Range('A2').hyperlink, 'http://' + address + '/')
 
+    def test_color(self):
+        rgb = (30, 100, 200)
+
+        Range('A1').color = rgb
+        assert_equal(rgb, Range('A1').color)
+
+        Range('A2').color = RgbColor.rgbAqua
+        assert_equal((0, 255, 255), Range('A2').color)
+
+        Range('A1:D4').color = rgb
+        assert_equal(rgb, Range('A1:D4').color)
 
 
 class TestChart:

@@ -867,7 +867,8 @@ class Range(object):
         """
         Gets and sets the background color of the specified Range.
 
-        To set the color, either use an RGB tuple ``(0, 0, 0)`` or a color constant, see Examples.
+        To set the color, either use an RGB tuple ``(0, 0, 0)`` or a color constant.
+        To remove the background, set the color to ``None``, see Examples.
 
         Returns
         -------
@@ -880,6 +881,9 @@ class Range(object):
         >>> Range('A2').color = RgbColor.rgbAqua
         >>> Range('A2').color
         (0, 255, 255)
+        >>> Range('A2').color = None
+        >>> Range('A2').color is None
+        True
         """
         return xlplatform.get_color(self.xl_range)
 
