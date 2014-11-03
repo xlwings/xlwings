@@ -329,3 +329,16 @@ def add_sheet(xl_workbook, before, after):
 
 def count_worksheets(xl_workbook):
     return xl_workbook.count(each=kw.worksheet)
+
+
+def get_hyperlink_address(xl_range):
+    return xl_range.hyperlinks[1].address.get()
+
+
+def set_hyperlink(xl_range, address, text_to_display=None, screen_tip=None):
+    if address[:4] == 'www.':
+        address = 'http://' + address
+
+    xl_range.make(at=xl_range, new=kw.hyperlink, with_properties={kw.address: address,
+                                                                  kw.text_to_display: text_to_display,
+                                                                  kw.screen_tip: screen_tip})

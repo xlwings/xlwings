@@ -828,24 +828,32 @@ class Range(object):
 
     @property
     def hyperlink(self):
+        """
+        Returns the hyperlink address of the specified Range (single Cell)
+        """
         return xlplatform.get_hyperlink_address(self.xl_range)
 
 
-    def add_hyperlink(self, link = None, text2display = None, screen_tip = None):
+    def add_hyperlink(self, address, text_to_display=None, screen_tip=None):
         """
-        Adds the hyperlink to the given range with specified format
+        Adds a hyperlink to the specified Range (single Cell)
         
         Arguments
         ---------
-        link            : str
+        address : str
             The address of the hyperlink.
-        screen_tip	: str
+        text_to_display : str, default None
+            The text to be displayed for the hyperlink. Defaults to the hyperlink address.
+        screen_tip: str, default None
             The screen tip to be displayed when the mouse pointer is paused over the hyperlink.
-            Default is set to 'Click once to follow.  Click and hold to select this cell.'
-        text2display   : str, default is hyperlink address itself
-            The text to be displayed for the hyperlink.      
-        """          
-        xlplatform.set_hyperlink(self.xl_range, link, text2display, screen_tip)
+            Default is set to 'Click once to follow. Click and hold to select this cell.'
+
+        """
+        if text_to_display is None:
+            text_to_display = address
+        if screen_tip is None:
+            screen_tip = 'Click once to follow. Click and hold to select this cell.'
+        xlplatform.set_hyperlink(self.xl_range, address, text_to_display, screen_tip)
 
 
     @property                 

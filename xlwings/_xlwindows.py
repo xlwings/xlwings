@@ -364,7 +364,8 @@ def add_sheet(xl_workbook, before, after):
         new_sheet_index = after.xl_sheet.Index + 1
         if new_sheet_index > count:
             xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index))
-            xl_workbook.Worksheets(xl_workbook.Worksheets.Count).Move(Before=xl_workbook.Sheets(xl_workbook.Worksheets.Count - 1))
+            xl_workbook.Worksheets(xl_workbook.Worksheets.Count
+                                   ).Move(Before=xl_workbook.Sheets(xl_workbook.Worksheets.Count - 1))
             xl_workbook.Worksheets(xl_workbook.Worksheets.Count).Activate()
         else:
             xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index + 1))
@@ -379,17 +380,8 @@ def get_hyperlink_address(xl_range):
     return xl_range.Hyperlinks(1).Address
 
 
-def set_hyperlink(xl_range, link = None, text2display = None, screen_tip = None):
-    if text2display is None and screen_tip is None:
-        hyperlink = xl_range.Hyperlinks.Add(Anchor = xl_range, Address = link,TextToDisplay = link, ScreenTip = 'Click once to follow.  Click and hold to select this cell.')    
-    elif text2display is None:
-        hyperlink = xl_range.Hyperlinks.Add(Anchor = xl_range, Address = link,TextToDisplay = link, ScreenTip = screen_tip)    
-    elif screen_tip is None:
-        hyperlink = xl_range.Hyperlinks.Add(Anchor = xl_range, Address = link,TextToDisplay = text2display, ScreenTip = 'Click once to follow.  Click and hold to select this cell.')    
-    else:
-        hyperlink = xl_range.Hyperlinks.Add(Anchor = xl_range, Address = link,
-                                TextToDisplay = text2display, ScreenTip = screen_tip)
-    return hyperlink
+def set_hyperlink(xl_range, address, text_to_display=None, screen_tip=None):
+        xl_range.Hyperlinks.Add(Anchor=xl_range, Address=address, TextToDisplay=text_to_display, ScreenTip=screen_tip)
 
 
 def dec2rgb(number):
