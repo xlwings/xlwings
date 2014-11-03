@@ -826,6 +826,59 @@ class Range(object):
         return "<Range on Sheet '{0}' of Workbook '{1}'>".format(xlplatform.get_worksheet_name(self.xl_sheet),
                                                                  xlplatform.get_workbook_name(self.xl_workbook))
 
+    @property
+    def hyperlink(self):
+        return xlplatform.get_hyperlink_address(self.xl_range)
+
+
+    def add_hyperlink(self, link = None, text2display = None, screen_tip = None):
+        """
+        Adds the hyperlink to the given range with specified format
+        
+        Arguments
+        ---------
+        link            : str
+            The address of the hyperlink.
+        screen_tip	: str
+            The screen tip to be displayed when the mouse pointer is paused over the hyperlink.
+            Default is set to 'Click once to follow.  Click and hold to select this cell.'
+        text2display   : str, default is hyperlink address itself
+            The text to be displayed for the hyperlink.      
+        """          
+        xlplatform.set_hyperlink(self.xl_range, link, text2display, screen_tip)
+
+
+    @property                 
+    def color(self):      
+        """
+        Examples
+        --------
+        ::
+            >>> Range("A1:B2").color = 'rgbAqua'
+            
+            >>> Range("A1:B2").color = (255,255,255)
+        
+        Ref to the Contants.RgbColor Parameters. 
+        
+        rgbAliceBlue 		rgbAntiqueWhite 	rgbAqua 		rgbAquamarine 		
+        rgbAzure 		      rgbBeige 		rgbBisque 		rgbBlack 		
+        rgbBlanchedAlmond 	rgbBlue 		rgbBlueViolet 	rgbBrown 		
+        rgbBurlyWood 		rgbCadetBlue 	rgbChartreuse 	rgbCoral 		
+        rgbCornflowerBlue 	rgbCornsilk 	rgbCrimson 		rgbDarkBlue 		
+        rgbDarkCyan 		rgbDarkGoldenrod 	rgbDarkGray 	rgbDarkGreen 		
+        rgbDarkGrey 		rgbDarkKhaki 	rgbDarkMagenta 	rgbDarkOliveGreen 		
+        rgbDarkOrange 	      rgbDarkOrchid 	rgbDarkRed 		rgbDarkSalmon 		
+        .                   .                 .                 .
+        .                   .                 .                 .
+        .                   .                 .                 .       
+        """
+        return xlplatform.get_color(self.xl_range)
+
+    @color.setter
+    def color(self, color_name_or_RGB_value):
+        xlplatform.set_color(self.xl_range, color_name_or_RGB_value)
+
+
 class Chart(object):
     """
     A Chart object that represents an existing Excel chart can be created with the following arguments::
