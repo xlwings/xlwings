@@ -826,6 +826,72 @@ class Range(object):
         return "<Range on Sheet '{0}' of Workbook '{1}'>".format(xlplatform.get_worksheet_name(self.xl_sheet),
                                                                  xlplatform.get_workbook_name(self.xl_workbook))
 
+    @property
+    def hyperlink(self):
+        """
+        Returns the hyperlink address of the specified Range (single Cell)
+
+        Examples
+        --------
+        >>> Range('A1').value
+        'www.xlwings.org'
+        >>> Range('A1').hyperlink
+        'http://www.xlwings.org'
+        """
+        return xlplatform.get_hyperlink_address(self.xl_range)
+
+    def add_hyperlink(self, address, text_to_display=None, screen_tip=None):
+        """
+        Adds a hyperlink to the specified Range (single Cell)
+        
+        Arguments
+        ---------
+        address : str
+            The address of the hyperlink.
+        text_to_display : str, default None
+            The text to be displayed for the hyperlink. Defaults to the hyperlink address.
+        screen_tip: str, default None
+            The screen tip to be displayed when the mouse pointer is paused over the hyperlink.
+            Default is set to '<address> - Click once to follow. Click and hold to select this cell.'
+        """
+        if text_to_display is None:
+            text_to_display = address
+        if address[:4] == 'www.':
+            address = 'http://' + address
+        if screen_tip is None:
+            screen_tip = address + ' - Click once to follow. Click and hold to select this cell.'
+        xlplatform.set_hyperlink(self.xl_range, address, text_to_display, screen_tip)
+
+    @property                 
+    def color(self):      
+        """
+        Gets and sets the background color of the specified Range.
+
+        To set the color, either use an RGB tuple ``(0, 0, 0)`` or a color constant.
+        To remove the background, set the color to ``None``, see Examples.
+
+        Returns
+        -------
+        RGB : tuple
+
+        Examples
+        --------
+        >>> Range('A1').color = (255,255,255)
+        >>> from xlwings import RgbColor
+        >>> Range('A2').color = RgbColor.rgbAqua
+        >>> Range('A2').color
+        (0, 255, 255)
+        >>> Range('A2').color = None
+        >>> Range('A2').color is None
+        True
+        """
+        return xlplatform.get_color(self.xl_range)
+
+    @color.setter
+    def color(self, color_or_rgb):
+        xlplatform.set_color(self.xl_range, color_or_rgb)
+
+
 class Chart(object):
     """
     A Chart object that represents an existing Excel chart can be created with the following arguments::

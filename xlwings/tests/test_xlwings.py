@@ -7,7 +7,7 @@ import sys
 import nose
 from nose.tools import assert_equal
 from datetime import datetime
-from xlwings import Workbook, Sheet, Range, Chart, ChartType
+from xlwings import Workbook, Sheet, Range, Chart, ChartType, RgbColor
 if sys.platform.startswith('darwin'):
     from appscript import k as kw
 
@@ -603,6 +603,34 @@ class TestRange:
 
         res = Range((1,1),(3,3)).get_address(external=True)
         assert_equal(res, '[test_range_1.xlsx]Sheet1!$A$1:$C$3')
+
+    def test_hyperlink(self):
+        address = 'www.xlwings.org'
+        Range('A1').add_hyperlink(address)
+        assert_equal(Range('A1').value, address)
+        if sys.platform.startswith('darwin'):
+            assert_equal(Range('A1').hyperlink, 'http://' + address)
+        else:
+            assert_equal(Range('A1').hyperlink, 'http://' + address + '/')
+
+        Range('A2').add_hyperlink(address, 'test_link')
+        assert_equal(Range('A2').value, 'test_link')
+        if sys.platform.startswith('darwin'):
+            assert_equal(Range('A2').hyperlink, 'http://' + address)
+        else:
+            assert_equal(Range('A2').hyperlink, 'http://' + address + '/')
+
+    def test_color(self):
+        rgb = (30, 100, 200)
+
+        Range('A1').color = rgb
+        assert_equal(rgb, Range('A1').color)
+
+        Range('A2').color = RgbColor.rgbAqua
+        assert_equal((0, 255, 255), Range('A2').color)
+
+        Range('A1:D4').color = rgb
+        assert_equal(rgb, Range('A1:D4').color)
 
 
 class TestChart:

@@ -1,4 +1,3 @@
-# TODO: create classes
 # TODO: align clean_xl_data and prepare_xl_data (should work on same dimensions of data)
 
 import datetime as dt
@@ -7,7 +6,8 @@ import pywintypes
 import pythoncom
 from win32com.client import GetObject, dynamic
 import win32timezone
-from .constants import Direction
+from .constants import Direction, ColorIndex
+from .utils import rgb_to_int, int_to_rgb
 
 # Optional imports
 try:
@@ -364,7 +364,8 @@ def add_sheet(xl_workbook, before, after):
         new_sheet_index = after.xl_sheet.Index + 1
         if new_sheet_index > count:
             xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index))
-            xl_workbook.Worksheets(xl_workbook.Worksheets.Count).Move(Before=xl_workbook.Sheets(xl_workbook.Worksheets.Count - 1))
+            xl_workbook.Worksheets(xl_workbook.Worksheets.Count
+                                   ).Move(Before=xl_workbook.Sheets(xl_workbook.Worksheets.Count - 1))
             xl_workbook.Worksheets(xl_workbook.Worksheets.Count).Activate()
         else:
             xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index + 1))
@@ -373,3 +374,27 @@ def add_sheet(xl_workbook, before, after):
 
 def count_worksheets(xl_workbook):
     return xl_workbook.Worksheets.Count
+
+
+def get_hyperlink_address(xl_range):
+    return xl_range.Hyperlinks(1).Address
+
+
+def set_hyperlink(xl_range, address, text_to_display=None, screen_tip=None):
+        xl_range.Hyperlinks.Add(Anchor=xl_range, Address=address, TextToDisplay=text_to_display, ScreenTip=screen_tip)
+
+
+def set_color(xl_range, color_or_rgb):
+    if color_or_rgb is None:
+        xl_range.Interior.ColorIndex = ColorIndex.xlColorIndexNone
+    elif isinstance(color_or_rgb, int):
+        xl_range.Interior.Color = color_or_rgb
+    else:
+        xl_range.Interior.Color = rgb_to_int(color_or_rgb)
+
+
+def get_color(xl_range):
+    if xl_range.Interior.ColorIndex == ColorIndex.xlColorIndexNone:
+        return None
+    else:
+        return int_to_rgb(xl_range.Interior.Color)
