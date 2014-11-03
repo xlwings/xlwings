@@ -862,6 +862,33 @@ class Range(object):
         """          
         xlplatform.set_hyperlink(self.xl_range, link, text2display, screen_tip)
 
+    @property
+    def cells(self):
+        """
+        Returns
+        -------
+        Generator Object for tuples of range cells
+
+        Useful for looping through a specific range:
+
+        Examples
+        --------
+        ::
+
+            >>> list(Range("A1").cells)
+            '[(1,1)]'
+            >>> list(Range("A1:B2").cells)
+            '[(1,1),(1,2),(2,1),(2,2)]'
+
+            >>>for cell in Range("A1:E5").cells:  
+                   if Range(cell).value < 2:
+                       Range(cell).color = 'rgbRed'
+                       
+        """
+        rows = range(self.row1,self.row2+1)
+        cols = range(self.col1,self.col2+1)
+        return ((row,col) for row in rows for col in cols)
+
 
     @property                 
     def color(self):      
