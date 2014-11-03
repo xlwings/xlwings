@@ -375,6 +375,11 @@ def count_worksheets(xl_workbook):
     return xl_workbook.Worksheets.Count
 
 
+def remove_sheet(xl_workbook, sheetname):
+    xl_workbook.Application.DisplayAlerts = False    
+    xl_workbook.Sheets(sheetname).Delete()
+    
+    
 def get_hyperlink_address(xl_range):
     return xl_range.Hyperlinks(1).Address
 
