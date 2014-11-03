@@ -344,7 +344,7 @@ def set_hyperlink(xl_range, address, text_to_display=None, screen_tip=None):
 
 def set_color(xl_range, color_or_rgb):
     if color_or_rgb is None:
-        xl_range.interior_object.color_index = ColorIndex.xlColorIndexNone
+        xl_range.interior_object.color_index.set(ColorIndex.xlColorIndexNone)
     elif isinstance(color_or_rgb, int):
         xl_range.interior_object.color.set(int_to_rgb(color_or_rgb))
     else:
@@ -352,7 +352,7 @@ def set_color(xl_range, color_or_rgb):
 
 
 def get_color(xl_range):
-    if xl_range.interior_object.color_index.get() == ColorIndex.xlColorIndexNone:
+    if xl_range.interior_object.color_index.get() == kw.color_index_none:
         return None
     else:
         return tuple(xl_range.interior_object.color.get())

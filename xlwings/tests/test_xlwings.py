@@ -629,6 +629,9 @@ class TestRange:
         Range('A2').color = RgbColor.rgbAqua
         assert_equal((0, 255, 255), Range('A2').color)
 
+        Range('A2').color = None
+        assert_equal(Range('A2').color, None)
+
         Range('A1:D4').color = rgb
         assert_equal(rgb, Range('A1:D4').color)
 
