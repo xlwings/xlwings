@@ -604,6 +604,16 @@ class TestRange:
         res = Range((1,1),(3,3)).get_address(external=True)
         assert_equal(res, '[test_range_1.xlsx]Sheet1!$A$1:$C$3')
 
+    def test_hyperlink(self):
+        address = 'www.xlwings.org'
+        Range('A1').add_hyperlink(address)
+        assert_equal(Range('A1').hyperlink, 'http://' + address + '/')
+        assert_equal(Range('A1').value, address)
+
+        Range('A2').add_hyperlink(address, 'test_link')
+        assert_equal(Range('A2').hyperlink, 'http://' + address + '/')
+        assert_equal(Range('A2').value, 'test_link')
+
 
 class TestChart:
     def setUp(self):
