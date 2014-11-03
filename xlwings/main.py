@@ -865,32 +865,27 @@ class Range(object):
     @property                 
     def color(self):      
         """
+        Gets and sets the background color of the specified Range.
+
+        To set the color, either use an RGB tuple ``(0, 0, 0)`` or a color constant, see Examples.
+
+        Returns
+        -------
+        RGB : tuple
+
         Examples
         --------
-        ::
-            >>> Range("A1:B2").color = 'rgbAqua'
-            
-            >>> Range("A1:B2").color = (255,255,255)
-        
-        Ref to the Contants.RgbColor Parameters. 
-        
-        rgbAliceBlue 		rgbAntiqueWhite 	rgbAqua 		rgbAquamarine 		
-        rgbAzure 		      rgbBeige 		rgbBisque 		rgbBlack 		
-        rgbBlanchedAlmond 	rgbBlue 		rgbBlueViolet 	rgbBrown 		
-        rgbBurlyWood 		rgbCadetBlue 	rgbChartreuse 	rgbCoral 		
-        rgbCornflowerBlue 	rgbCornsilk 	rgbCrimson 		rgbDarkBlue 		
-        rgbDarkCyan 		rgbDarkGoldenrod 	rgbDarkGray 	rgbDarkGreen 		
-        rgbDarkGrey 		rgbDarkKhaki 	rgbDarkMagenta 	rgbDarkOliveGreen 		
-        rgbDarkOrange 	      rgbDarkOrchid 	rgbDarkRed 		rgbDarkSalmon 		
-        .                   .                 .                 .
-        .                   .                 .                 .
-        .                   .                 .                 .       
+        >>> Range('A1').color = (255,255,255)
+        >>> from xlwings import RgbColor
+        >>> Range('A2').color = RgbColor.rgbAqua
+        >>> Range('A2').color
+        (0, 255, 255)
         """
         return xlplatform.get_color(self.xl_range)
 
     @color.setter
-    def color(self, color_name_or_RGB_value):
-        xlplatform.set_color(self.xl_range, color_name_or_RGB_value)
+    def color(self, color_or_rgb):
+        xlplatform.set_color(self.xl_range, color_or_rgb)
 
 
 class Chart(object):

@@ -7,7 +7,8 @@ import pywintypes
 import pythoncom
 from win32com.client import GetObject, dynamic
 import win32timezone
-from .constants import Direction
+from .constants import Direction, RgbColor, ColorIndex
+from .utils import rgb_to_int, int_to_rgb
 
 # Optional imports
 try:
@@ -384,31 +385,17 @@ def set_hyperlink(xl_range, address, text_to_display=None, screen_tip=None):
         xl_range.Hyperlinks.Add(Anchor=xl_range, Address=address, TextToDisplay=text_to_display, ScreenTip=screen_tip)
 
 
-def dec2rgb(number):
-    'Given a dec sequel, return the rgb'
-    r = int(number % 256)
-    g = int((number / 256) % 256)
-    b = int((number / 65536) % 256)
-    rgb = (r,g,b)
-    return rgb
-    
-def rgb2hex(rgb):
-    'Given an rgb, return the hex string'
-    hex_value =  '&H%02x%02x%02x' % tuple([round(val) for val in rgb[:3]])
-    return hex_value[0:2]+hex_value[6:8]+hex_value[4:6]+hex_value[2:4]
-
-    
-def set_color(xl_range,color_name_or_RGB):               
-    if color_name_or_RGB == 'Blank':
-        xl_range.Interior.ColorIndex = -4142
-    elif color_name_or_RGB in RgbColor.__dict__.keys():
-        xl_range.Interior.Color = RgbColor.__dict__[color_name_or_RGB]
+def set_color(xl_range, color_or_rgb):
+    if color_or_rgb is None:
+        xl_range.Interior.ColorIndex = ColorIndex.xlColorIndexNone
+    elif isinstance(color_or_rgb, int):
+        xl_range.Interior.Color = color_or_rgb
     else:
-        xl_range.Interior.Color = rgb2hex(color_name_or_RGB)
+        xl_range.Interior.Color = rgb_to_int(color_or_rgb)
 
 
 def get_color(xl_range):
-    if xl_range.Interior.ColorIndex == -4142:
-        return 'Blank'
+    if xl_range.Interior.ColorIndex == ColorIndex.xlColorIndexNone:
+        return None
     else:
-        return dec2rgb(int(xl_range.Interior.Color))
+        return int_to_rgb(xl_range.Interior.Color)
