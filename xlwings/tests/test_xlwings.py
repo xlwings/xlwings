@@ -607,12 +607,19 @@ class TestRange:
     def test_hyperlink(self):
         address = 'www.xlwings.org'
         Range('A1').add_hyperlink(address)
-        assert_equal(Range('A1').hyperlink, 'http://' + address + '/')
         assert_equal(Range('A1').value, address)
+        if sys.platform.startswith('darwin'):
+            assert_equal(Range('A1').hyperlink, 'http://' + address)
+        else:
+            assert_equal(Range('A1').hyperlink, 'http://' + address + '/')
 
         Range('A2').add_hyperlink(address, 'test_link')
-        assert_equal(Range('A2').hyperlink, 'http://' + address + '/')
         assert_equal(Range('A2').value, 'test_link')
+        if sys.platform.startswith('darwin'):
+            assert_equal(Range('A2').hyperlink, 'http://' + address)
+        else:
+            assert_equal(Range('A2').hyperlink, 'http://' + address + '/')
+
 
 
 class TestChart:
