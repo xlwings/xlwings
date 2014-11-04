@@ -635,6 +635,15 @@ class TestRange:
         Range('A1:D4').color = rgb
         assert_equal(rgb, Range('A1:D4').color)
 
+    def test_size(self):
+        assert_equal(Range('A1:C4').size, 12)
+
+    def test_shape(self):
+        assert_equal(Range('A1:C4').shape, (4, 3))
+
+    def test_len(self):
+        assert_equal(len(Range('A1:C4')), 4)
+
 
 class TestChart:
     def setUp(self):
