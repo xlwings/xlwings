@@ -456,6 +456,23 @@ class Range(object):
             return False
 
     @property
+    def shape(self):
+        """
+        Tuple of Range dimensions.
+        """
+        return self.row2 - self.row1 + 1, self.col2 - self.col1 + 1
+
+    @property
+    def size(self):
+        """
+        Number of elements in the Range.
+        """
+        return self.shape[0] * self.shape[1]
+
+    def __len__(self):
+        return self.row2 - self.row1 + 1
+
+    @property
     def value(self):
         """
         Gets and sets the values for the given Range.
