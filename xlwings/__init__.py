@@ -8,8 +8,16 @@ PY3 = sys.version_info[0] == 3
 
 if PY3:
     string_types = str
+    xrange = range
+    next = next
 else:
     string_types = basestring
+    xrange = xrange
+
+    def advance_iterator(it):
+        return it.next()
+
+    next = advance_iterator
 
 # Platform specifics
 if sys.platform.startswith('win'):

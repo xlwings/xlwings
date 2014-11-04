@@ -644,6 +644,16 @@ class TestRange:
     def test_len(self):
         assert_equal(len(Range('A1:C4')), 4)
 
+    def test_iterator(self):
+        Range('A20').value = [[1., 2.], [3., 4.]]
+        l = []
+
+        for i in Range('A20:B21'):
+            l.append(i.value)
+
+        assert_equal(l, [1., 2., 3., 4.])
+
+
 
 class TestChart:
     def setUp(self):

@@ -11,7 +11,8 @@ License: BSD 3-clause (see LICENSE.txt for details)
 """
 import sys
 import numbers
-from . import xlplatform, string_types, time_types
+import itertools
+from . import xlplatform, string_types, time_types, xrange, next
 from .constants import ChartType
 
 # Optional imports
@@ -418,6 +419,19 @@ class Range(object):
             self.col2 = self.col1 + xlplatform.count_columns(self.xl_sheet, range_address) - 1
 
         self.xl_range = xlplatform.get_range_from_indices(self.xl_sheet, self.row1, self.col1, self.row2, self.col2)
+
+        # Iterator object that returns cell coordinates: (1, 1), (1, 2) etc.
+        self.cell_iterator = itertools.product(xrange(self.row1, self.row2 + 1), xrange(self.col1, self.col2 + 1))
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        # StopIteration raised by itertools.product
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet), next(self.cell_iterator), **self.kwargs)
+
+    # PY2 compatibility
+    next = __next__
 
     def is_cell(self):
         """
