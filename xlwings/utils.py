@@ -1,9 +1,12 @@
+from __future__ import division
+
+
 def int_to_rgb(number):
-    """Given a int sequel, return the rgb"""
+    """Given an integer, return the rgb"""
     number = int(number)
     r = number % 256
-    g = (number / 256) % 256
-    b = (number / (256 * 256)) % 256
+    g = (number // 256) % 256
+    b = (number // (256 * 256)) % 256
     return r, g, b
 
 
