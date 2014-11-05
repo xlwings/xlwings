@@ -34,17 +34,9 @@ class Workbook(object):
     * an unsaved workbook: ``wb = Workbook('Book1')``
     * a saved workbook (open or closed): ``wb = Workbook(r'C:\\path\\to\\file.xlsx')``
 
-    To create a connection when the Python function is called through the Excel VBA module, use:
+    To create a connection when the Python function is called from Excel, use:
 
-    ``wb = Workbook()``
-
-    When calling from VBA, always pack the ``Workbook`` call into the function being called from Excel, e.g.:
-
-    .. code-block:: python
-
-         def my_macro():
-            wb = Workbook()
-            Range('A1').value = 1
+    ``wb = Workbook.caller()``
     """
     def __init__(self, fullname=None, xl_workbook=None):
         if xl_workbook:
@@ -58,10 +50,6 @@ class Workbook(object):
             else:
                 # Open Excel and the Workbook
                 self.xl_app, self.xl_workbook = xlplatform.open_workbook(self.fullname)
-        elif len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
-            # Connect to the workbook from which this code has been invoked
-            self.fullname = sys.argv[1].lower()
-            self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname)
         else:
             # Open Excel if necessary and create a new workbook
             self.xl_app, self.xl_workbook = xlplatform.new_workbook()
@@ -71,7 +59,31 @@ class Workbook(object):
 
         # Make the most recently created Workbook the default when creating Range objects directly
         xlplatform.set_xl_workbook_current(self.xl_workbook)
-        
+
+    @classmethod
+    def caller(cls):
+        """
+        Creates a connection when the Python function is called from Excel:
+
+        ``wb = Workbook.caller()``
+
+        When called from Excel, always pack the ``Workbook`` call into the function being called from Excel, e.g.:
+
+        .. code-block:: python
+
+             def my_macro():
+                wb = Workbook.caller()
+                Range('A1').value = 1
+        """
+        if len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
+            # Connect to the workbook from which this code has been invoked
+            fullname = sys.argv[1].lower()
+            return cls(fullname)
+
+        if xlplatform.get_xl_workbook_current():
+            # Called through ExcelPython connection
+            return cls(xl_workbook=xlplatform.get_xl_workbook_current())
+
     @classmethod
     def current(cls):
         """
