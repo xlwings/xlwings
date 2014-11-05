@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # To run a single TestClass: nosetests -q -s test_xlwings:TestRange
+# To run a single Test: nosetests -q -s test_xlwings:TestRange.test_
 
 from __future__ import unicode_literals
 import os
@@ -653,6 +654,13 @@ class TestRange:
 
         assert_equal(l, [1., 2., 3., 4.])
 
+        Range('Sheet2', 'A20').value = [[1., 2.], [3., 4.]]
+        l = []
+
+        for i in Range('Sheet2', 'A20:B21'):
+            l.append(i.value)
+
+        assert_equal(l, [1., 2., 3., 4.])
 
 
 class TestChart:

@@ -12,7 +12,7 @@ License: BSD 3-clause (see LICENSE.txt for details)
 import sys
 import numbers
 import itertools
-from . import xlplatform, string_types, time_types, xrange, next
+from . import xlplatform, string_types, time_types, xrange
 from .constants import ChartType
 
 # Optional imports
