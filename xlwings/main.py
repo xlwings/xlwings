@@ -79,10 +79,11 @@ class Workbook(object):
             # Connect to the workbook from which this code has been invoked
             fullname = sys.argv[1].lower()
             return cls(fullname)
-
-        if xlplatform.get_xl_workbook_current():
+        elif xlplatform.get_xl_workbook_current():
             # Called through ExcelPython connection
             return cls(xl_workbook=xlplatform.get_xl_workbook_current())
+        else:
+            raise Exception('Workbook.caller() must not be called directly in Python but only through Excel.')
 
     @classmethod
     def current(cls):
