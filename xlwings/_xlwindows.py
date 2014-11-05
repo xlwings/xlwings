@@ -381,7 +381,11 @@ def get_hyperlink_address(xl_range):
 
 
 def set_hyperlink(xl_range, address, text_to_display=None, screen_tip=None):
-        xl_range.Hyperlinks.Add(Anchor=xl_range, Address=address, TextToDisplay=text_to_display, ScreenTip=screen_tip)
+    # Another one of these pywin32 bugs that only materialize under certain circumstances:
+    # http://stackoverflow.com/questions/6284227/hyperlink-will-not-show-display-proper-text
+    link = xl_range.Hyperlinks.Add(Anchor=xl_range, Address=address)
+    link.TextToDisplay = text_to_display
+    link.ScreenTip = screen_tip
 
 
 def set_color(xl_range, color_or_rgb):
