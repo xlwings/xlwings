@@ -5,7 +5,7 @@ Attribute VB_Name = "xlwings"
 ' See also: http://zoomeranalytics.com
 '
 ' Copyright (C) 2014, Zoomer Analytics LLC.
-' Parts are Copyright (C) 2014, ericremoreynolds
+' Parts are Copyright (C) 2014, ericremoreynolds.
 ' Version: 0.2.4dev
 '
 ' License: BSD 3-clause (see LICENSE.txt for details)
@@ -15,31 +15,30 @@ Option Explicit
 #End If
 #If VBA7 Then
     #If Win64 Then
-        Const XLPyDLLName As String = "xlpython64-2.0.7.dll"
-        Declare PtrSafe Function XLPyDLLActivate Lib "xlpython64-2.0.7.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
-        Declare PtrSafe Function XLPyDLLNDims Lib "xlpython64-2.0.7.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
+        Const XLPyDLLName As String = "xlpython64-xlwings.dll"
+        Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlpython64-xlwings.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
+        Declare PtrSafe Function XLPyDLLNDims Lib "xlpython64-xlwings.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
     #Else
-        Private Const XLPyDLLName As String = "xlpython32-2.0.7.dll"
-        Private Declare PtrSafe Function XLPyDLLActivate Lib "xlpython32-2.0.7.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
-        Private Declare PtrSafe Function XLPyDLLNDims Lib "xlpython32-2.0.7.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
+        Private Const XLPyDLLName As String = "xlpython32-xlwings.dll"
+        Private Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlpython32-xlwings.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
+        Private Declare PtrSafe Function XLPyDLLNDims Lib "xlpython32-xlwings.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
     #End If
     Private Declare PtrSafe Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
 #Else
-    Private Const XLPyDLLName As String = "xlpython32-2.0.7.dll"
-    Private Declare Function XLPyDLLActivate Lib "xlpython32-2.0.7.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
-    Private Declare Function XLPyDLLNDims Lib "xlpython32-2.0.7.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
+    Private Const XLPyDLLName As String = "xlpython32-xlwings.dll"
+    Private Declare Function XLPyDLLActivateAuto Lib "xlpython32-xlwings.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
+    Private Declare Function XLPyDLLNDims Lib "xlpython32-xlwings.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
     Private Declare Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
 #End If
 
-Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef PYTHON_FROZEN As String, ByRef PYTHONPATH As String, ByRef LOG_FILE As String, ByRef SHOW_LOG As Boolean, ByRef OPTIMIZED_CONNECTION As Boolean, XLWINGS_PATH As String)
+Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef PYTHON_FROZEN As String, ByRef PYTHONPATH As String, ByRef LOG_FILE As String, ByRef SHOW_LOG As Boolean, ByRef OPTIMIZED_CONNECTION As Boolean)
     ' PYTHON_WIN: Directory of Python Interpreter on Windows, "" resolves to default on PATH
     ' PYTHON_MAC: Directory of Python Interpreter on Mac OSX, "" resolves to default path in ~/.bash_profile
     ' PYTHON_FROZEN [Optional]: Currently only on Windows, indicate directory of exe file
     ' PYTHONPATH [Optional]: If the source file of your code is not found, add the path here. Otherwise set to "".
     ' LOG_FILE: Directory including file name, necessary for error handling.
     ' SHOW_LOG: If False, no pop-up with the Log messages (usually errors) will be shown
-    ' OPTIMIZED_CONNECTION:
-    ' XLWINGS_PATH:
+    ' OPTIMIZED_CONNECTION: Only on Windows: Use a COM Server for an efficient connection
     '
     ' For cross-platform compatibility, use backslashes in relative directories
     ' For details, see http://docs.xlwings.org
@@ -51,7 +50,6 @@ Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef 
     LOG_FILE = ThisWorkbook.Path & "\xlwings_log.txt"
     SHOW_LOG = True
     OPTIMIZED_CONNECTION = True
-    XLWINGS_PATH = "C:\Users\Felix\Anaconda\Lib\site-packages\xlwings"
 
 End Function
 ' DO NOT EDIT BELOW THIS LINE
@@ -60,13 +58,13 @@ Public Function RunPython(PythonCommand As String)
     ' Public API: Runs the Python command, e.g.: to run the function foo() in module bar, call the function like this:
     ' RunPython ("import bar; bar.foo()")
 
-    Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String, XLWINGS_PATH As String
+    Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
     Dim WORKBOOK_FULLNAME As String, LOG_FILE As String, DriveCommand As String, RunCommand As String
     Dim ExitCode As Integer, Res As Integer
     Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
 
     ' Get the settings by using the ByRef trick
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION, XLWINGS_PATH)
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
 
     ' Call Python platform-dependent
     #If Mac Then
@@ -182,12 +180,12 @@ Public Function RunFrozenPython(Executable As String)
     ' Runs a Python executable that has been frozen by cx_Freeze or py2exe. Call the function like this:
     ' RunFrozenPython("frozen_executable.exe"). Currently not implemented for Mac.
 
-    Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String, LOG_FILE As String, XLWINGS_PATH As String
+    Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String, LOG_FILE As String
     Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
     Dim Res As Integer
 
     ' Get the settings by using the ByRef trick
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION, XLWINGS_PATH)
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
 
     ' Call Python
     #If Mac Then
@@ -300,12 +298,12 @@ Private Sub CleanUp()
     'On Mac only, this function is being called after Python is done (using Python's atexit handler)
 
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
-    Dim WORKBOOK_FULLNAME As String, LOG_FILE As String, XLWINGS_PATH As String
+    Dim WORKBOOK_FULLNAME As String, LOG_FILE As String
     Dim Res As Integer
     Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
 
     'Get LOG_FILE
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION, XLWINGS_PATH)
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
     LOG_FILE = ToPosixPath(LOG_FILE)
 
     'Show the LOG_FILE as MsgBox if not empty
@@ -326,22 +324,32 @@ Private Sub CleanUp()
 End Sub
 
 'ExcelPython
-Private Function XLPyFolder() As String
+Function XLPyCommand()
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
-    Dim WORKBOOK_FULLNAME As String, LOG_FILE As String, XLWINGS_PATH As String
+    Dim LOG_FILE As String, Tail As String
     Dim Res As Integer
     Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
 
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION, XLWINGS_PATH)
-    XLPyFolder = XLWINGS_PATH + "\xlpython"
-End Function
-
-Function XLPyConfig() As String
-    XLPyConfig = XLPyFolder + "\xlpython.cfg"
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
+    Tail = " -c ""import xlwings.server; xlwings.server.serve('$(CLSID)')"""
+    If PYTHON_WIN = "" Then
+        XLPyCommand = "pythonw.exe" + Tail
+    Else
+        XLPyCommand = PYTHON_WIN + "\pythonw.exe" + Tail
+    End If
 End Function
 
 Sub XLPyLoadDLL()
-    LoadLibrary XLPyFolder + "\" + XLPyDLLName
+    Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
+    Dim LOG_FILE As String, Tail As String
+    Dim Res As Integer
+    Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
+
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
+
+    If PYTHON_WIN <> "" Then
+        LoadLibrary PYTHON_WIN + "\" + XLPyDLLName
+    End If
 End Sub
 
 Function NDims(ByRef src As Variant, dims As Long, Optional transpose As Boolean = False)
@@ -350,6 +358,6 @@ Function NDims(ByRef src As Variant, dims As Long, Optional transpose As Boolean
 End Function
 
 Function Py()
-    LoadLibrary XLPyFolder + "\" + XLPyDLLName
-    If 0 <> XLPyDLLActivate(Py, XLPyConfig) Then Err.Raise 1000, Description:=Py
+    XLPyLoadDLL
+    If 0 <> XLPyDLLActivateAuto(Py, XLPyCommand) Then Err.Raise 1000, Description:=Py
 End Function
