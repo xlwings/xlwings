@@ -1,6 +1,8 @@
 include LICENSE.txt
 include README.rst
 include xlwings/tests/*.xlsx
+include xlpython32-xlwings.dll
+include xlpython64-xlwings.dll
 
 
 recursive-include docs *

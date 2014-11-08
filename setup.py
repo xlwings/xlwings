@@ -12,10 +12,12 @@ with open(os.path.join(os.path.dirname(__file__), 'xlwings', '__init__.py')) as 
     version = re.compile(r".*__version__ = '(.*?)'", re.S).match(f.read()).group(1)
 
 # Dependencies
-if sys.platform.startswith('win') or sys.platform.startswith('linux'):
+if sys.platform.startswith('win'):
     install_requires = []  # pywin32 can't be installed (yet) with pip
+    data_files = [('', ['xlpython32-xlwings.dll', 'xlpython64-xlwings.dll'])]  # place next to python.exe
 if sys.platform.startswith('darwin'):
     install_requires = ['psutil >= 2.0.0', 'appscript >= 1.0.1']
+    data_files =[]
 
 setup(
     name='xlwings',
@@ -26,6 +28,7 @@ setup(
     author_email='felix.zumstein@zoomeranalytics.com',
     description='Make Excel fly: Interact with Excel from Python and vice versa.',
     long_description=readme,
+    data_files=data_files,
     packages=['xlwings', 'xlwings.tests'],
     package_data={'xlwings': ['*.bas', 'tests/*.xlsx']},
     keywords=['xls', 'excel', 'spreadsheet', 'workbook', 'vba', 'macro'],

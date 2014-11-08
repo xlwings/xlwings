@@ -1,11 +1,20 @@
 # TODO: align clean_xl_data and prepare_xl_data (should work on same dimensions of data)
 
-import datetime as dt
-import win32api  # needed as first import to find all dlls
+import os
+import sys
+
+# Hack to find pythoncom.dll - needed for some distribution/setups
+# E.g. if python is started with the full path outside of the python path, then it almost certainly fails
+cwd = os.getcwd()
+os.chdir(sys.exec_prefix)
+import win32api
+os.chdir(cwd)
+
 import pywintypes
 import pythoncom
 from win32com.client import GetObject, dynamic
 import win32timezone
+import datetime as dt
 from .constants import Direction, ColorIndex
 from .utils import rgb_to_int, int_to_rgb
 
