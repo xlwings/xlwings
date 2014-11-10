@@ -32,6 +32,7 @@ Option Explicit
     Private Declare Function XLPyDLLNDims Lib "xlwings32.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
     Private Declare Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
     Declare Function XLPyDLLVersion Lib "xlwings32.dll" (tag As String, version As Double, arch As String) As Long
+
 #End If
 
 Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef PYTHON_FROZEN As String, ByRef PYTHONPATH As String, ByRef LOG_FILE As String, ByRef SHOW_LOG As Boolean, ByRef OPTIMIZED_CONNECTION As Boolean)
@@ -52,7 +53,7 @@ Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef 
     PYTHONPATH = ThisWorkbook.Path
     LOG_FILE = ThisWorkbook.Path & "\xlwings_log.txt"
     SHOW_LOG = True
-    OPTIMIZED_CONNECTION = True
+    OPTIMIZED_CONNECTION = False
 
 End Function
 ' DO NOT EDIT BELOW THIS LINE
@@ -326,6 +327,10 @@ Private Sub CleanUp()
     On Error GoTo 0
 End Sub
 
+Function ParentFolder(ByVal Folder)
+  ParentFolder = Left$(Folder, InStrRev(Folder, "\") - 1)
+End Function
+
 'ExcelPython
 Function XLPyCommand()
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
@@ -351,7 +356,10 @@ Sub XLPyLoadDLL()
     Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
 
     If PYTHON_WIN <> "" Then
-        LoadLibrary PYTHON_WIN + "\" + XLPyDLLName
+        On Error Resume Next
+            LoadLibrary PYTHON_WIN + "\" + XLPyDLLName 'Standard instllation
+            LoadLibrary ParentFolder(PYTHON_WIN) + "\" + XLPyDLLName 'Virtualenv
+        On Error GoTo 0
     End If
 End Sub
 
