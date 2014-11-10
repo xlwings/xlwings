@@ -14,7 +14,7 @@ with open(os.path.join(os.path.dirname(__file__), 'xlwings', '__init__.py')) as 
 # Dependencies
 if sys.platform.startswith('win'):
     install_requires = []  # pywin32 can't be installed (yet) with pip
-    data_files = [('', ['xlpython32-xlwings.dll', 'xlpython64-xlwings.dll'])]  # place next to python.exe
+    data_files = [('', ['xlwings32.dll', 'xlwings64.dll'])]  # place next to python.exe
 if sys.platform.startswith('darwin'):
     install_requires = ['psutil >= 2.0.0', 'appscript >= 1.0.1']
     data_files =[]

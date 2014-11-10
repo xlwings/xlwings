@@ -15,19 +15,19 @@ Option Explicit
 #End If
 #If VBA7 Then
     #If Win64 Then
-        Const XLPyDLLName As String = "xlpython64-xlwings.dll"
-        Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlpython64-xlwings.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
-        Declare PtrSafe Function XLPyDLLNDims Lib "xlpython64-xlwings.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
+        Const XLPyDLLName As String = "xlwings64.dll"
+        Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlwings64.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
+        Declare PtrSafe Function XLPyDLLNDims Lib "xlwings64.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
     #Else
-        Private Const XLPyDLLName As String = "xlpython32-xlwings.dll"
-        Private Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlpython32-xlwings.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
-        Private Declare PtrSafe Function XLPyDLLNDims Lib "xlpython32-xlwings.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
+        Private Const XLPyDLLName As String = "xlwings32.dll"
+        Private Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlwings32.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
+        Private Declare PtrSafe Function XLPyDLLNDims Lib "xlwings32.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
     #End If
     Private Declare PtrSafe Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
 #Else
-    Private Const XLPyDLLName As String = "xlpython32-xlwings.dll"
-    Private Declare Function XLPyDLLActivateAuto Lib "xlpython32-xlwings.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
-    Private Declare Function XLPyDLLNDims Lib "xlpython32-xlwings.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
+    Private Const XLPyDLLName As String = "xlwings32.dll"
+    Private Declare Function XLPyDLLActivateAuto Lib "xlwings32.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
+    Private Declare Function XLPyDLLNDims Lib "xlwings32.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
     Private Declare Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
 #End If
 
