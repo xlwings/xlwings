@@ -5,6 +5,7 @@ All rights reserved.
 License: BSD 3-clause (see LICENSE.txt for details)
 """
 from __future__ import division
+import sys
 import numpy as np
 from xlwings import Workbook, Range, Chart
 
@@ -49,7 +50,8 @@ def main():
         if animate:
             Range((t+2,16)).value = percentiles[t,:]
             Range((t+2,19)).value = price[t,0]  # Sample path
-            wb.xl_app.Application.ScreenUpdating = True
+            if sys.platform.startswith('win'):
+                wb.xl_app.Application.ScreenUpdating = True  # TODO: implement in xlwings
 
     if not animate:
         Range('P2').value = percentiles
