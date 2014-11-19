@@ -2,16 +2,15 @@
 Copyright (C) 2014, Zoomer Analytics LLC.
 All rights reserved.
 
-Version: 0.1.0
 License: BSD 3-clause (see LICENSE.txt for details)
 """
 from __future__ import division
 import numpy as np
 from xlwings import Workbook, Range, Chart
 
-wb = Workbook()
 
 def main():
+    wb = Workbook.caller()
     # User Inputs
     num_simulations = int(Range('E3').value)
     time = Range('E4').value
@@ -22,7 +21,7 @@ def main():
     starting_price = Range('E8').value
     perc_selection = [5, 50, 95]  # percentiles (hardcoded for now)
     # Animation
-    if wb.xl_workbook.ActiveSheet.OLEObjects("ComboBox1").Object.Value == 'Yes':
+    if Range('E9').value.lower() == 'yes':
         animate = True
     else:
         animate = False
