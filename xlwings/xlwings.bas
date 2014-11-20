@@ -6,7 +6,7 @@ Attribute VB_Name = "xlwings"
 '
 ' Copyright (C) 2014, Zoomer Analytics LLC.
 ' Parts are Copyright (C) 2014, ericremoreynolds.
-' Version: 0.2.4dev
+' Version: 0.3.0dev
 '
 ' License: BSD 3-clause (see LICENSE.txt for details)
 Option Explicit
@@ -76,7 +76,7 @@ Public Function RunPython(PythonCommand As String)
     #Else
         If OPTIMIZED_CONNECTION = True Then
             Py.SetAttr Py.Module("xlwings._xlwindows"), "xl_workbook_current", ThisWorkbook
-            Py.Exec "import sys;sys.path.append(r'" & PYTHONPATH & "');" & PythonCommand & ""
+            Py.Exec "" & PythonCommand & ""
         Else
             ExecuteWindows False, PythonCommand, PYTHON_WIN, LOG_FILE, SHOW_LOG, PYTHONPATH
         End If
@@ -338,7 +338,7 @@ Function XLPyCommand()
     Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
 
     Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
-    Tail = " -c ""import xlwings.server; xlwings.server.serve('$(CLSID)')"""
+    Tail = " -c ""import sys;sys.path.append(r'" & PYTHONPATH & "');import xlwings.server; xlwings.server.serve('$(CLSID)')"""
     If PYTHON_WIN = "" Then
         XLPyCommand = "pythonw.exe" + Tail
     Else
