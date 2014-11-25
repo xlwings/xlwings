@@ -662,6 +662,16 @@ class TestRange:
 
         assert_equal(l, [1., 2., 3., 4.])
 
+    def test_resize(self):
+        r = Range('A1').resize(4, 5)
+        assert_equal(r.shape, (4, 5))
+
+        r = Range('A1').resize(row_size=4)
+        assert_equal(r.shape, (4, 1))
+
+        r = Range('A1').resize(column_size=5)
+        assert_equal(r.shape, (1, 5))
+
 
 class TestChart:
     def setUp(self):

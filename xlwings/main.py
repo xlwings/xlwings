@@ -128,7 +128,7 @@ class Workbook(object):
     @staticmethod
     def get_xl_workbook(wkb):
         """
-        Returns the current xl_workbook if ``wkb`` is ``None``, otherwise the ``xl_workbook`` of ``wkb``. On Windows,
+        Returns the ``xl_workbook_current`` if ``wkb`` is ``None``, otherwise the ``xl_workbook`` of ``wkb``. On Windows,
         ``xl_workbook`` is a pywin32 COM object, on Mac it's an appscript object.
 
         Arguments
@@ -934,6 +934,25 @@ class Range(object):
     @color.setter
     def color(self, color_or_rgb):
         xlplatform.set_color(self.xl_range, color_or_rgb)
+
+    def resize(self, row_size=None, column_size=None):
+        """
+        Resizes the specified range.
+
+        Returns
+        -------
+        Range : a Range object that represents the resized Range.
+        """
+        if row_size:
+            row2 = self.row1 + row_size - 1
+        else:
+            row2 = self.row1
+        if column_size:
+            col2 = self.col1 + column_size - 1
+        else:
+            col2 = self.col1
+
+        return Range((self.row1, self.col1),(row2, col2))
 
 
 class Chart(object):
