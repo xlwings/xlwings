@@ -669,8 +669,18 @@ class TestRange:
         r = Range('A1').resize(row_size=4)
         assert_equal(r.shape, (4, 1))
 
-        r = Range('A1').resize(column_size=5)
+        r = Range('A1:B4').resize(column_size=5)
         assert_equal(r.shape, (1, 5))
+
+    def test_offset(self):
+        o = Range('A1:B3').offset(3, 4)
+        assert_equal(o.get_address(), '$E$4:$F$6')
+
+        o = Range('A1:B3').offset(row_offset=3)
+        assert_equal(o.get_address(), '$A$4:$B$6')
+
+        o = Range('A1:B3').offset(column_offset=4)
+        assert_equal(o.get_address(), '$E$1:$F$3')
 
 
 class TestChart:

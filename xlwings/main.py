@@ -937,11 +937,11 @@ class Range(object):
 
     def resize(self, row_size=None, column_size=None):
         """
-        Resizes the specified range.
+        Resizes the specified Range.
 
         Returns
         -------
-        Range : a Range object that represents the resized Range.
+        Range : Range object
         """
         if row_size:
             row2 = self.row1 + row_size - 1
@@ -952,7 +952,30 @@ class Range(object):
         else:
             col2 = self.col1
 
-        return Range((self.row1, self.col1),(row2, col2))
+        return Range((self.row1, self.col1), (row2, col2))
+
+    def offset(self, row_offset=None, column_offset=None):
+        """
+        Returns a Range object that represents a Range that's offset from the specified range.
+
+        Returns
+        -------
+        Range : Range object
+        """
+
+        if row_offset:
+            row1 = self.row1 + row_offset
+            row2 = self.row2 + row_offset
+        else:
+            row1, row2 = self.row1, self.row2
+
+        if column_offset:
+            col1 = self.col1 + column_offset
+            col2 = self.col2 + column_offset
+        else:
+            col1, col2 = self.col1, self.col2
+
+        return Range((row1, col1), (row2, col2))
 
 
 class Chart(object):
