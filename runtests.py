@@ -29,7 +29,7 @@ setup_file = os.path.abspath(os.path.join(this_dir, 'setup.py'))
 call('python {0} sdist'.format(setup_file))
 
 # Install it, run the tests and uninstall it for each Python version
-for py in [py26]:
+for py in [py26, py27, py31, py32, py33, py34]:
     # Paths
     pip = os.path.abspath(os.path.join(py, 'Scripts/pip'))
     test_runner = os.path.abspath(os.path.join(py, 'Scripts/nosetests'))
@@ -48,8 +48,8 @@ for py in [py26]:
     os.chdir(py)
     call('{0} install {1}'.format(pip, xlwings_package))
 
-    # # Run tests
-    # call('{0} {1}'.format(test_runner, test_dir))
-    #
-    # # Uninstall
-    # call('{0} uninstall xlwings -y'.format(pip))
+    # Run tests
+    call('{0} {1}'.format(test_runner, test_dir))
+
+    # Uninstall
+    call('{0} uninstall xlwings -y'.format(pip))
