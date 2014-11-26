@@ -952,7 +952,7 @@ class Range(object):
         else:
             col2 = self.col1
 
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet), (self.row1, self.col1), (row2, col2))
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet), (self.row1, self.col1), (row2, col2), **self.kwargs)
 
     def offset(self, row_offset=None, column_offset=None):
         """
@@ -975,7 +975,7 @@ class Range(object):
         else:
             col1, col2 = self.col1, self.col2
 
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet), (row1, col1), (row2, col2))
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet), (row1, col1), (row2, col2), **self.kwargs)
 
 
 class Chart(object):
