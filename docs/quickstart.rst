@@ -71,7 +71,7 @@ This essentially hands over control to ``mymodule.py``:
 
     def rand_numbers():
         """ produces standard normally distributed random numbers with shape (n,n)"""
-        wb = Workbook()  # Creates a reference to the calling Excel file
+        wb = Workbook.caller()  # Creates a reference to the calling Excel file
         n = Range('Sheet1', 'B1').value  # Write desired dimensions into Cell B1
         rand_num = np.random.randn(n, n)
         Range('Sheet1', 'C3').value = rand_num
@@ -82,7 +82,7 @@ then go to ``File > Import File...`` and import the ``xlwings.bas`` file. ). It 
 your ``xlwings`` installation.
 
 .. note:: Always instantiate the ``Workbook`` within the function that is called from Excel and not outside as global
-    variable. Older versions of the docs/samples were showing the wrong approach.
+    variable.
 
 For further details, see :ref:`vba`.
 

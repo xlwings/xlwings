@@ -9,7 +9,7 @@ API changes
 
 * To reference the calling Workbook when running code from VBA, you now have to use ``Workbook.caller()``. This means
   that ``wb = Workbook()`` is now consistently creating a new Workbook, whether the code is called interactively or
-  through VBA.
+  from VBA.
 
   ==============================  =========================
   **New**                         **Old**
@@ -26,7 +26,7 @@ This version adds two exciting but still **experimental** features from
   will keep the connection to Python alive between different calls and is therefore much more efficient. However,
   changes in the Python code are not being picked up until the ``pythonw.exe`` process is restarted by killing it
   manually in the Windows Task Manager. The suggested workflow is hence to set ``OPTIMIZED_CONNECTION = False`` for
-  development and only set it to ``True`` for production - keep in mind though that this feature is stil experimental!
+  development and only set it to ``True`` for production - keep in mind though that this feature is still experimental!
 
 * User Defined Functions (UDFs): Using ExcelPython's wrapper syntax in VBA, you can expose Python functions as UDFs.
 
@@ -36,18 +36,12 @@ isn't available through xlwings yet.
 
 Further enhancements include:
 
-* New method :meth:`xlwings.Range.resize` (:issue:`90`)
-
-* New method :meth:`xlwings.Range.offset` (:issue:`89`)
-
-* New property :attr:`xlwings.Range.shape` (:issue:`109`)
-
-* New property :attr:`xlwings.Range.size` (:issue:`109`)
-
-* New property :attr:`xlwings.Range.hyperlink` and new method :meth:`xlwings.Range.add_hyperlink` (:issue:`104`)
-
-* New property :attr:`xlwings.Range.color` (:issue:`97`)
-
+* New method :meth:`xlwings.Range.resize` (:issue:`90`).
+* New method :meth:`xlwings.Range.offset` (:issue:`89`).
+* New property :attr:`xlwings.Range.shape` (:issue:`109`).
+* New property :attr:`xlwings.Range.size` (:issue:`109`).
+* New property :attr:`xlwings.Range.hyperlink` and new method :meth:`xlwings.Range.add_hyperlink` (:issue:`104`).
+* New property :attr:`xlwings.Range.color` (:issue:`97`).
 * The ``len`` built-in function can now be used on ``Range`` (:issue:`109`):
 
     >>> len(Range('A1:B5'))
@@ -60,8 +54,7 @@ Further enhancements include:
             cell.color = (255, 0, 0)
 
 * [Mac version]: The VBA module finds now automatically the default Python installation as per ``PATH`` variable on
-  ``.bash_profile`` when ``PYTHON_MAC = ""`` (the default now in the VBA settings) (:issue:`95`).
-
+  ``.bash_profile`` when ``PYTHON_MAC = ""`` (the default in the VBA settings) (:issue:`95`).
 * The VBA error pop-up can now be muted by setting ``SHOW_LOG = False`` in the VBA settings. To be used with
   care, but it can be useful on Mac, as the pop-up window is currently showing printed log messages even if no error
   occurred(:issue:`94`).

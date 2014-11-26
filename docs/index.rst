@@ -23,6 +23,7 @@ xlwings fully supports NumPy arrays and Pandas DataFrames. It works with Microso
     datastructures
     vba
     debugging
+    udfs
     api
 
 
