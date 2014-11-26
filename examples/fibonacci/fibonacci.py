@@ -2,17 +2,15 @@
 Copyright (C) 2014, Zoomer Analytics LLC.
 All rights reserved.
 
-Version: 0.1.0
 License: BSD 3-clause (see LICENSE.txt for details)
 """
 from xlwings import Workbook, Range
-
-wb = Workbook()  # Create a reference to the calling Excel Workbook
 
 
 def fibonacci(n):
     """
     Generates the first n Fibonacci numbers.
+    TODO: Pythonic implementation
     """
     seq = [1, 1]
     for i in range(1, n-1):
@@ -24,6 +22,9 @@ def xl_fibonacci():
     """
     This is a wrapper around fibonacci() to handle all the Excel stuff
     """
+    # Create a reference to the calling Excel Workbook
+    wb = Workbook.caller()
+
     # Get the input from Excel and turn into integer
     n = int(Range('B1').value)
 
