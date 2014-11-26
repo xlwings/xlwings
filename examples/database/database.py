@@ -2,28 +2,26 @@
 Copyright (C) 2014, Zoomer Analytics LLC.
 All rights reserved.
 
-Version: 0.1.0
 License: BSD 3-clause (see LICENSE.txt for details)
 """
 import sqlite3
 import os
 from xlwings import Workbook, Range
 
-# Make a connection to the calling Excel file
-wb = Workbook()
-
-# Place the database next to the Excel file
-db_file = os.path.join(os.path.dirname(wb.fullname), 'chinook.sqlite')
-
-# Database connection and creation of cursor
-con = sqlite3.connect(db_file, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
-cursor = con.cursor()
-
 
 def playlist():
     """
     Get the playlist content based on the ID from the Dropdown
     """
+    # Make a connection to the calling Excel file
+    wb = Workbook.caller()
+
+    # Place the database next to the Excel file
+    db_file = os.path.join(os.path.dirname(wb.fullname), 'chinook.sqlite')
+
+    # Database connection and creation of cursor
+    con = sqlite3.connect(db_file, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+    cursor = con.cursor()
 
     # Get PlaylistId from ComboBox
     playlist_id = wb.xl_workbook.ActiveSheet.OLEObjects("ComboBox1").Object.Value
@@ -61,6 +59,16 @@ def combobox():
     """
     This populates the ComboBox with the values from the database
     """
+
+    # Make a connection to the calling Excel file
+    wb = Workbook.caller()
+
+    # Place the database next to the Excel file
+    db_file = os.path.join(os.path.dirname(wb.fullname), 'chinook.sqlite')
+
+    # Database connection and creation of cursor
+    con = sqlite3.connect(db_file, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+    cursor = con.cursor()
 
     # Database Query
     cursor.execute("SELECT PlaylistId, Name FROM Playlist")
