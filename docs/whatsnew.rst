@@ -1,15 +1,89 @@
 What's New
 ==========
 
+v0.3.0 (November 26, 2014)
+--------------------------
+
+API changes
+***********
+
+* To reference the calling Workbook when running code from VBA, you now have to use ``Workbook.caller()``. This means
+  that ``wb = Workbook()`` is now consistently creating a new Workbook, whether the code is called interactively or
+  through VBA.
+
+  ==============================  =========================
+  **New**                         **Old**
+  ==============================  =========================
+  ``Workbook.caller()``           ``Workbook()``
+  ==============================  =========================
+
+Enhancements
+************
+This version adds two exciting but still **experimental** features from
+`ExcelPython <http://ericremoreynolds.github.io/excelpython//>`_ (**Windows only!**):
+
+* Optimized connection: Set the ``OPTIMIZED_CONNECTION = True`` in the VBA settings. This will use a COM server that
+  will keep the connection to Python alive between different calls and is therefore much more efficient. However,
+  changes in the Python code are not being picked up until the ``pythonw.exe`` process is restarted by killing it
+  manually in the Windows Task Manager. The suggested workflow is hence to set ``OPTIMIZED_CONNECTION = False`` for
+  development and only set it to ``True`` for production - keep in mind though that this feature is stil experimental!
+
+* User Defined Functions (UDFs): Using ExcelPython's wrapper syntax in VBA, you can expose Python functions as UDFs.
+
+**Note:** ExcelPython's developer add-in that autogenerates the VBA wrapper code by simply using Python decorators
+isn't available through xlwings yet.
+
+
+Further enhancements include:
+
+* New method :meth:`xlwings.Range.resize` (:issue:`90`)
+
+* New method :meth:`xlwings.Range.offset` (:issue:`89`)
+
+* New property :attr:`xlwings.Range.shape` (:issue:`109`)
+
+* New property :attr:`xlwings.Range.size` (:issue:`109`)
+
+* New property :attr:`xlwings.Range.hyperlink` and new method :meth:`xlwings.Range.add_hyperlink` (:issue:`104`)
+
+* New property :attr:`xlwings.Range.color` (:issue:`97`)
+
+* The ``len`` built-in function can now be used on ``Range`` (:issue:`109`):
+
+    >>> len(Range('A1:B5'))
+    5
+
+* The ``Range`` object is now iterable (:issue:`108`)::
+
+    for cell in Range('A1:B2'):
+        if cell.value < 2:
+            cell.color = (255, 0, 0)
+
+* [Mac version]: The VBA module finds now automatically the default Python installation as per ``PATH`` variable on
+  ``.bash_profile`` when ``PYTHON_MAC = ""`` (the default now in the VBA settings) (:issue:`95`).
+
+* The VBA error pop-up can now be muted by setting ``SHOW_LOG = False`` in the VBA settings. To be used with
+  care, but it can be useful on Mac, as the pop-up window is currently showing printed log messages even if no error
+  occurred(:issue:`94`).
+
+Bug Fixes
+*********
+
+* [Mac version]: Environment variables from ``.bash_profile`` are now available when called from VBA, e.g. by using:
+  ``os.environ['USERNAME']`` (:issue:`95`)
+
+
 v0.2.3 (October 17, 2014)
 -------------------------
 
 API changes
 ***********
+
 None
 
 Enhancements
 ************
+
 * New method ``Sheet.add()`` (:issue:`71`)::
 
     >>> Sheet.add()  # Place at end with default name
@@ -120,6 +194,7 @@ API changes
 
 Enhancements
 ************
+
 * [Mac version]: Python errors are now also shown in a Message Box. This makes the Mac version feature equivalent with the
   Windows version (:issue:`57`):
 
@@ -179,6 +254,7 @@ Enhancements
 
 Bug Fixes
 *********
+
 * The ``atleast_2d`` keyword had no effect on Ranges consisting of a single cell and was raising an error when used in
   combination with the ``asarray`` keyword. Both have been fixed (:issue:`53`)::
 
@@ -207,6 +283,7 @@ None
 
 Enhancements
 ************
+
 * All VBA user settings have been reorganized into a section at the top of the VBA xlwings module::
 
     PYTHON_WIN = ""
@@ -246,6 +323,7 @@ None
 
 Enhancements
 ************
+
 * Cross-platform: xlwings is now additionally supporting Microsoft Excel for Mac. The only functionality that is not
   yet available is the possibility to call the Python code from within Excel via VBA macros.
 * The ``clear`` and ``clear_contents`` methods of the ``Workbook`` object now default to the active
@@ -256,6 +334,7 @@ Enhancements
 
 Bug Fixes
 *********
+
 * DataFrames with MultiHeaders were sometimes getting truncated (:issue:`41`).
 
 
@@ -299,6 +378,7 @@ API Changes
 
 Enhancements
 ************
+
 * xlwings is now officially suppported on Python 2.6-2.7 and 3.1-3.4
 * Support for Pandas ``Series`` has been added (:issue:`24`)::
 
