@@ -28,7 +28,8 @@ This version adds two exciting but still **experimental** features from
   manually in the Windows Task Manager. The suggested workflow is hence to set ``OPTIMIZED_CONNECTION = False`` for
   development and only set it to ``True`` for production - keep in mind though that this feature is still experimental!
 
-* User Defined Functions (UDFs): Using ExcelPython's wrapper syntax in VBA, you can expose Python functions as UDFs.
+* User Defined Functions (UDFs): Using ExcelPython's wrapper syntax in VBA, you can expose Python functions as UDFs, see
+  :ref:`udfs` for details.
 
 **Note:** ExcelPython's developer add-in that autogenerates the VBA wrapper code by simply using Python decorators
 isn't available through xlwings yet.

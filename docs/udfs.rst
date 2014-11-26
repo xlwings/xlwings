@@ -44,6 +44,10 @@ This then enables you to use ``pinv()`` as array function from Excel cells:
 4. Hit ``Ctrl-Shift-Enter`` to enter the array formula. If done right, the formula bar will automatically
    wrap the formula with curly braces ``{}``.
 
+.. note:: Note that UDFs use a COM server and don't automatically reload when the Python code is changed (same behavior
+    as if you set ``OPTIMIZED_CONNECTION = True`` for macros). To reload, you currently need to kill the ``pythonw.exe`` process
+    manually from the Windows Task Manager. Recalculating the UDFs then causes the COM server to restart.
+
 Further documentation
 ---------------------
 
