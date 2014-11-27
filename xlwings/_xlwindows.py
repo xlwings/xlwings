@@ -60,6 +60,10 @@ def get_worksheet_name(xl_sheet):
     return xl_sheet.Name
 
 
+def get_worksheet_last_row_and_column(xl_sheet):
+    return xl_sheet.Cells.SpecialCells(11).Row, xl_sheet.Cells.SpecialCells(11).Column
+
+
 def get_xl_sheet(xl_workbook, sheet_name_or_index):
     return xl_workbook.Sheets(sheet_name_or_index)
 

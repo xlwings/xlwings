@@ -217,6 +217,11 @@ class Sheet(object):
         xlplatform.set_worksheet_name(self.xl_sheet, value)
 
     @property
+    def lastrowcol(self):
+        """Get or set the the last row and last column of the Sheet that is not empty."""
+        return xlplatform.get_worksheet_last_row_and_column(self.xl_sheet)
+
+    @property
     def index(self):
         """Returns the index of the Sheet."""
         return xlplatform.get_worksheet_index(self.xl_sheet)
