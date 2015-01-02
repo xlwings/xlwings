@@ -67,15 +67,20 @@ class Workbook(object):
 
         ``wb = Workbook.caller()``
 
-        When called from Excel, always pack the ``Workbook`` call into the function being called from Excel, e.g.:
+        Always pack the ``Workbook`` call into the function being called from Excel, e.g.:
 
         .. code-block:: python
 
              def my_macro():
                 wb = Workbook.caller()
                 Range('A1').value = 1
+
+        To be able to easily invoke such code from Python for debugging, use ``Workbook.set_mock_caller()``.
         """
-        if len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
+        if hasattr(Workbook, '_mock_file'):
+            # Use mocking Workbook, see Workbook.set_mock_caller()
+            return cls(Workbook._mock_file)
+        elif len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
             # Connect to the workbook from which this code has been invoked
             fullname = sys.argv[1].lower()
             return cls(fullname)
@@ -83,7 +88,33 @@ class Workbook(object):
             # Called through ExcelPython connection
             return cls(xl_workbook=xlplatform.get_xl_workbook_current())
         else:
-            raise Exception('Workbook.caller() must not be called directly in Python but only through Excel.')
+            raise Exception('Workbook.caller() must not be called directly. Call through Excel or set a mock caller '
+                            'first with Workbook.set_mock_caller().')
+
+    @staticmethod
+    def set_mock_caller(fullpath):
+        """
+        Sets the Excel file which is used to mock ``Workbook.caller()`` when the code is called from within Python.
+
+        Examples
+        --------
+        ::
+
+            # This code runs unchanged from Excel and Python directly
+            import os
+            from xlwings import Workbook, Range
+
+            def my_macro():
+                wb = Workbook.caller()
+                Range('A1').value = 'Hello xlwings!'
+
+            if __name__ == '__main__':
+                # Mock the calling Excel file
+                Workbook.set_mock_caller(r'C:\\path\\to\\file.xlsx')
+
+                my_macro()
+        """
+        Workbook._mock_file = fullpath
 
     @classmethod
     def current(cls):
