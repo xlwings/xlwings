@@ -79,7 +79,8 @@ class Workbook(object):
         """
         if hasattr(Workbook, '_mock_file'):
             # Use mocking Workbook, see Workbook.set_mock_caller()
-            return cls(Workbook._mock_file)
+            xl_workbook = xlplatform.get_xl_workbook_from_xl(Workbook._mock_file)
+            return cls(xl_workbook=xl_workbook)
         elif len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
             # Connect to the workbook from which this code has been invoked
             fullname = sys.argv[1].lower()

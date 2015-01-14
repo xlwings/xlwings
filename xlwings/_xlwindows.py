@@ -423,8 +423,8 @@ def get_xl_workbook_from_xl(fullname):
         xl_app = GetActiveObject('Excel.Application')
         xl_workbook = xl_app.ActiveWorkbook
         if xl_workbook.FullName.lower() != fullname.lower():
-            raise Exception("Can't establish connection!"
-                            "Make sure that the calling workbook is the active one"
+            raise Exception("Can't establish connection! "
+                            "Make sure that the calling workbook is the active one "
                             "and is opened in the first instance of Excel.")
     else:
         xl_workbook = GetObject(fullname)
