@@ -356,3 +356,11 @@ def get_color(xl_range):
         return None
     else:
         return tuple(xl_range.interior_object.color.get())
+
+
+def get_xl_workbook_from_xl(fullname):
+    """
+    Doesn't really do anything on Mac, but on Windows, this is needed due to some
+    Workbooks not turning up in the RunningObjectTable
+    """
+    return get_workbook(fullname)[1]

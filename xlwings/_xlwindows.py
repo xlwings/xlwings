@@ -12,7 +12,7 @@ os.chdir(cwd)
 
 import pywintypes
 import pythoncom
-from win32com.client import GetObject, dynamic
+from win32com.client import GetObject, GetActiveObject, dynamic
 import win32timezone
 import datetime as dt
 from .constants import Direction, ColorIndex
@@ -411,3 +411,21 @@ def get_color(xl_range):
         return None
     else:
         return int_to_rgb(xl_range.Interior.Color)
+
+
+def get_xl_workbook_from_xl(fullname):
+    """
+    Under certain circumstances, only the GetActiveObject
+    call will work (e.g. when Excel opens with a Security Warning, the Workbook
+    will not be registered in the RunningObjectTable and thus not accessible via GetObject)
+    """
+    if not is_file_open(fullname):
+        xl_app = GetActiveObject('Excel.Application')
+        xl_workbook = xl_app.ActiveWorkbook
+        if xl_workbook.FullName.lower() != fullname.lower():
+            raise Exception("Can't establish connection!"
+                            "Make sure that the calling workbook is the active one"
+                            "and is opened in the first instance of Excel.")
+    else:
+        xl_workbook = GetObject(fullname)
+    return xl_workbook

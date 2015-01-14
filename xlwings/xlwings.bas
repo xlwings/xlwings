@@ -74,6 +74,12 @@ Public Function RunPython(PythonCommand As String)
         Application.StatusBar = "Running..."  ' Non-blocking way of giving feedback that something is happening
         ExcecuteMac PythonCommand, PYTHON_MAC, LOG_FILE, SHOW_LOG, PYTHONPATH
     #Else
+        ' Make sure that the calling Workbook is the active Workbook
+        ' This is necessary because under certain circumstances, only the GetActiveObject
+        ' call will work (e.g. when Excel opens with a Security Warning, the Workbook
+        ' will not be registered in the RunningObjectTable and thus not accessible via GetObject)
+        ThisWorkbook.Activate
+
         If OPTIMIZED_CONNECTION = True Then
             Py.SetAttr Py.Module("xlwings._xlwindows"), "xl_workbook_current", ThisWorkbook
             Py.Exec "" & PythonCommand & ""

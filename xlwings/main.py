@@ -83,7 +83,8 @@ class Workbook(object):
         elif len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
             # Connect to the workbook from which this code has been invoked
             fullname = sys.argv[1].lower()
-            return cls(fullname)
+            xl_workbook = xlplatform.get_xl_workbook_from_xl(fullname)
+            return cls(xl_workbook=xl_workbook)
         elif xlplatform.get_xl_workbook_current():
             # Called through ExcelPython connection
             return cls(xl_workbook=xlplatform.get_xl_workbook_current())
