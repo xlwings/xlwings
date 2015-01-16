@@ -368,7 +368,7 @@ def get_xl_workbook_from_xl(fullname):
 
 def save_workbook(xl_workbook, path):
     if path is None:
-        path = os.path.join(os.getcwd(), xl_workbook.name.get())
+        path = os.path.join(os.getcwd(), xl_workbook.name.get() + '.xlsx')
 
     dir_name, file_name = os.path.split(path)
     dir_name_hfs = mactypes.Alias(dir_name).hfspath  # turn into HFS path format

@@ -433,6 +433,6 @@ def get_xl_workbook_from_xl(fullname):
 
 def save_workbook(xl_workbook, path):
     if path is None:
-        path = os.path.join(os.getcwd(), xl_workbook.Name)
+        path = os.path.join(os.getcwd(), xl_workbook.Name + '.xlsx')
 
     xl_workbook.SaveAs(path)

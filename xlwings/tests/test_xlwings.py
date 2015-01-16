@@ -137,7 +137,7 @@ class TestWorkbook:
 
         cwd = os.getcwd()
         wb1 = Workbook()
-        target_file_path = os.path.join(cwd, wb1.name)
+        target_file_path = os.path.join(cwd, wb1.name + '.xlsx')
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
 
@@ -145,7 +145,8 @@ class TestWorkbook:
 
         assert_equal(os.path.isfile(target_file_path), True)
 
-        wb1.close()
+        wb2 = Workbook(target_file_path)
+        wb2.close()
 
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
