@@ -1,6 +1,48 @@
 What's New
 ==========
 
+v0.3.1 (January 16, 2015)
+-------------------------
+
+API changes
+***********
+
+None
+
+Enhancements
+************
+
+* New method :meth:`xlwings.Workbook.save` (:issue:`110`).
+
+* New method :meth:`xlwings.Workbook.set_mock_caller` (:issue:`129`). This makes calling files from both
+  Excel and Python much easier::
+
+    import os
+    from xlwings import Workbook, Range
+
+    def my_macro():
+        wb = Workbook.caller()
+        Range('A1').value = 1
+
+    if __name__ == '__main__':
+        # To run from Python, not needed when called from Excel.
+        # Expects the Excel file next to this source file, adjust accordingly.
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'myfile.xlsm'))
+        Workbook.set_mock_caller(path)
+        my_macro()
+
+* The ``simulation`` example on the homepage works now also on Mac.
+
+Bug Fixes
+*********
+
+* [Win Version]: A long-standing bug that caused the Excel file to close and reopen under certain circumstances has been
+  fixed (:issue:`10`): Depending on your security settings (Trust Center) and in connection with files downloaded from
+  the internet or possibly in connection with some add-ins, Excel was either closing the file and reopening it or giving
+  a "file already open" warning. This has now been fixed which means that the examples downloaded from the homepage should
+  work right away after downloading and unzipping.
+
+
 v0.3.0 (November 26, 2014)
 --------------------------
 
