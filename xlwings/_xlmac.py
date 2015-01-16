@@ -2,7 +2,7 @@
 
 import os
 import datetime as dt
-from appscript import app
+from appscript import app, mactypes
 from appscript import k as kw
 import psutil
 import atexit
@@ -364,3 +364,14 @@ def get_xl_workbook_from_xl(fullname):
     Workbooks not turning up in the RunningObjectTable
     """
     return get_workbook(fullname)[1]
+
+
+def save_workbook(xl_workbook, path):
+    if path is None:
+        path = os.path.join(os.getcwd(), xl_workbook.name.get())
+
+    dir_name, file_name = os.path.split(path)
+    dir_name_hfs = mactypes.Alias(dir_name).hfspath  # turn into HFS path format
+    hfs_path = dir_name_hfs + ':' + file_name
+
+    xl_workbook.save_workbook_as(filename=hfs_path)

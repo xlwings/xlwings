@@ -429,3 +429,10 @@ def get_xl_workbook_from_xl(fullname):
     else:
         xl_workbook = GetObject(fullname)
     return xl_workbook
+
+
+def save_workbook(xl_workbook, path):
+    if path is None:
+        path = os.path.join(os.getcwd(), xl_workbook.Name)
+
+    xl_workbook.SaveAs(path)

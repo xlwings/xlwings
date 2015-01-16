@@ -43,7 +43,7 @@ class Workbook(object):
             self.xl_workbook = xl_workbook
             self.xl_app = xlplatform.get_app(self.xl_workbook)
         elif fullname:
-            self.fullname = fullname.lower()
+            self.fullname = fullname
             if xlplatform.is_file_open(self.fullname):
                 # Connect to an open Workbook
                 self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname)
@@ -157,6 +157,24 @@ class Workbook(object):
     def close(self):
         """Closes the Workbook without saving it."""
         xlplatform.close_workbook(self.xl_workbook)
+
+    def save(self, path=None):
+        """
+        Saves the Workbook under the specified path.
+
+        Arguments
+        ---------
+        path : str
+            Full path to the workbook, e.g. '/path/to/file_name.xlsx'
+
+        Example
+        -------
+        >>> from xlwings import Workbook
+        >>> wb = Workbook()
+        >>> wb.save(r'C:\\path\\to\\file.xlsx')
+
+        """
+        xlplatform.save_workbook(self.xl_workbook, path)
 
     @staticmethod
     def get_xl_workbook(wkb):

@@ -133,6 +133,41 @@ class TestWorkbook:
         wb1.close()
         wb2.close()
 
+    def test_save_naked(self):
+
+        cwd = os.getcwd()
+        wb1 = Workbook()
+        target_file_path = os.path.join(cwd, wb1.name)
+        if os.path.isfile(target_file_path):
+            os.remove(target_file_path)
+
+        wb1.save()
+
+        assert_equal(os.path.isfile(target_file_path), True)
+
+        wb1.close()
+
+        if os.path.isfile(target_file_path):
+            os.remove(target_file_path)
+
+    def test_save_path(self):
+
+        cwd = os.getcwd()
+        wb1 = Workbook()
+        target_file_path = os.path.join(cwd, 'TestFile.xlsx')
+        if os.path.isfile(target_file_path):
+            os.remove(target_file_path)
+
+        wb1.save(target_file_path)
+
+        assert_equal(os.path.isfile(target_file_path), True)
+
+        wb2 = Workbook(target_file_path)
+        wb2.close()
+
+        if os.path.isfile(target_file_path):
+            os.remove(target_file_path)
+
 
 class TestSheet:
     def setUp(self):
