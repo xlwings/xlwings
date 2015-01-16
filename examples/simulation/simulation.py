@@ -5,6 +5,7 @@ All rights reserved.
 License: BSD 3-clause (see LICENSE.txt for details)
 """
 from __future__ import division
+import os
 import sys
 import numpy as np
 from xlwings import Workbook, Range, Chart
@@ -58,6 +59,8 @@ def main():
         Range('S2').value = price[:,:1]  # Sample path
 
 if __name__ == '__main__':
+    path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'simulation.xlsm'))
+    Workbook.set_mock_caller(path)
     main()
 
 
