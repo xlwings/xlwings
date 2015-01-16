@@ -38,8 +38,8 @@ def xl_fibonacci():
     Range('C1').vertical.clear_contents()
 
     # Return the output to Excel
-    # zip() is used to push a list over in column orientation
-    Range('C1').value = zip(seq)
+    # zip() is used to push a list over in column orientation (list() needed on PY3)
+    Range('C1').value = list(zip(seq))
 
 if __name__ == "__main__":
     path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'fibonacci.xlsm'))
