@@ -352,7 +352,7 @@ Function XLPyCommand()
     End If
 End Function
 
-Sub XLPyLoadDLL()
+Private Sub XLPyLoadDLL()
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
     Dim LOG_FILE As String, Tail As String
     Dim Res As Integer
@@ -378,7 +378,7 @@ Function Py()
     If 0 <> XLPyDLLActivateAuto(Py, XLPyCommand) Then Err.Raise 1000, Description:=Py
 End Function
 
-Sub GetDLLVersion()
+Private Sub GetDLLVersion()
     ' Currently only for testing
     Dim tag As String, arch As String
     Dim ver As Double
