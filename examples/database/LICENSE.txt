@@ -1,5 +1,4 @@
-database.xlsm  Version 0.1.0
-Copyright (C) 2014, Zoomer Analytics LLC.
+Copyright (C) 2014-2015, Zoomer Analytics LLC.
 
 database.xlsm is distributed under a BSD 3-Clause License:
 
