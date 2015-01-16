@@ -4,7 +4,7 @@ xlwings - Make Excel fly with Python!
 Homepage and documentation: http://xlwings.org
 See also: http://zoomeranalytics.com
 
-Copyright (C) 2014, Zoomer Analytics LLC.
+Copyright (C) 2014-2015, Zoomer Analytics LLC.
 All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
@@ -160,12 +160,13 @@ class Workbook(object):
 
     def save(self, path=None):
         """
-        Saves the Workbook under the specified path.
+        Saves the Workbook under the specified path. If no path is specified, it's being saved in the current
+        working directory with the current filename.
 
         Arguments
         ---------
-        path : str
-            Full path to the workbook, e.g. '/path/to/file_name.xlsx'
+        path : str, default None
+            Full path to the workbook
 
         Example
         -------
