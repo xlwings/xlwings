@@ -201,7 +201,7 @@ Public Function RunFrozenPython(Executable As String)
         MsgBox "This functionality is not yet supported on Mac." & vbNewLine & _
                "Please run your scripts directly in Python!", vbCritical + vbOKOnly, "Unsupported Feature"
     #Else
-        ExecuteWindows True, Executable, PYTHON_FROZEN, LOG_FILE
+        ExecuteWindows True, Executable, PYTHON_FROZEN, LOG_FILE, SHOW_LOG
     #End If
 End Function
 
