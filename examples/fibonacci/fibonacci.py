@@ -1,21 +1,24 @@
 """
-Copyright (C) 2014, Zoomer Analytics LLC.
+Copyright (C) 2014-2015, Zoomer Analytics LLC.
 All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
 """
+import os
 from xlwings import Workbook, Range
 
 
 def fibonacci(n):
     """
     Generates the first n Fibonacci numbers.
-    TODO: Pythonic implementation
+    Adopted from: https://docs.python.org/3/tutorial/modules.html
     """
-    seq = [1, 1]
-    for i in range(1, n-1):
-        seq.append(seq[i-1] + seq[i])
-    return seq[:n]
+    result = []
+    a, b = 0, 1
+    while len(result) < n:
+        result.append(b)
+        a, b = b, a + b
+    return result
 
 
 def xl_fibonacci():
@@ -34,8 +37,11 @@ def xl_fibonacci():
     # Clear output
     Range('C1').vertical.clear_contents()
 
-    # Return the output to Excel - turn into list of list for column orientation
-    Range('C1').value = [list(i) for i in zip(seq)]
+    # Return the output to Excel
+    # zip() is used to push a list over in column orientation
+    Range('C1').value = zip(seq)
 
 if __name__ == "__main__":
+    path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'fibonacci.xlsm'))
+    Workbook.set_mock_caller(path)
     xl_fibonacci()
