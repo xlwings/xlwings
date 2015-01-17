@@ -367,11 +367,21 @@ def get_xl_workbook_from_xl(fullname):
 
 
 def save_workbook(xl_workbook, path):
-    if path is None:
+    saved_path = xl_workbook.properties().get(kw.path)
+    if (saved_path != '') and (path is None):
+        # Previously saved: Save under existing name
+        xl_workbook.save()
+    elif (saved_path == '') and (path is None):
+        # Previously unsaved: Save under current name in current working directory
         path = os.path.join(os.getcwd(), xl_workbook.name.get() + '.xlsx')
+        dir_name, file_name = os.path.split(path)
+        dir_name_hfs = mactypes.Alias(dir_name).hfspath  # turn into HFS path format
+        hfs_path = dir_name_hfs + ':' + file_name
+        xl_workbook.save_workbook_as(filename=hfs_path, overwrite=True)
+    elif path:
+        # Save under new name/location
+        dir_name, file_name = os.path.split(path)
+        dir_name_hfs = mactypes.Alias(dir_name).hfspath  # turn into HFS path format
+        hfs_path = dir_name_hfs + ':' + file_name
+        xl_workbook.save_workbook_as(filename=hfs_path, overwrite=True)
 
-    dir_name, file_name = os.path.split(path)
-    dir_name_hfs = mactypes.Alias(dir_name).hfspath  # turn into HFS path format
-    hfs_path = dir_name_hfs + ':' + file_name
-
-    xl_workbook.save_workbook_as(filename=hfs_path)
