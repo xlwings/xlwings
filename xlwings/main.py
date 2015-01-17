@@ -160,8 +160,9 @@ class Workbook(object):
 
     def save(self, path=None):
         """
-        Saves the Workbook under the specified path. If no path is specified, it's being saved in the current
-        working directory with the current filename.
+        Saves the Workbook. If a path is being provided, this works like SaveAs() in Excel. If no path is specified and
+        if the file hasn't been saved previously, it's being saved in the current working directory with the current
+        filename. Existing files are overwritten without prompting.
 
         Arguments
         ---------
@@ -172,7 +173,8 @@ class Workbook(object):
         -------
         >>> from xlwings import Workbook
         >>> wb = Workbook()
-        >>> wb.save(r'C:\\path\\to\\file.xlsx')
+        >>> wb.save()
+        >>> wb.save(r'C:\\path\\to\\new_file_name.xlsx')
 
         """
         xlplatform.save_workbook(self.xl_workbook, path)
