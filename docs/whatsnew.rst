@@ -1,6 +1,28 @@
 What's New
 ==========
 
+v0.3.2 (January 17, 2015)
+-------------------------
+
+API changes
+***********
+
+None
+
+Enhancements
+************
+
+None
+
+Bug Fixes
+*********
+
+* The :meth:`xlwings.Workbook.save` method has been fixed to show the expected behavior (:issue:`138`): Previously,
+  calling `save()` without a `path` argument would always create a new file in the current working directory. This is
+  now only happening if the file hasn't been previously saved.
+
+
+
 v0.3.1 (January 16, 2015)
 -------------------------
 
