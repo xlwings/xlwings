@@ -6,7 +6,9 @@ import sys
 # Hack to find pythoncom.dll - needed for some distribution/setups
 # E.g. if python is started with the full path outside of the python path, then it almost certainly fails
 cwd = os.getcwd()
-os.chdir(sys.exec_prefix)
+if not hasattr(sys, 'frozen'):
+    # cx_Freeze etc. will fail here otherwise
+    os.chdir(sys.exec_prefix)
 import win32api
 os.chdir(cwd)
 

@@ -5,6 +5,7 @@ All rights reserved.
 License: BSD 3-clause (see LICENSE.txt for details)
 """
 import os
+import sys
 from xlwings import Workbook, Range
 
 
@@ -42,6 +43,9 @@ def xl_fibonacci():
     Range('C1').value = list(zip(seq))
 
 if __name__ == "__main__":
-    path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'fibonacci.xlsm'))
-    Workbook.set_mock_caller(path)
+    if not hasattr(sys, 'frozen'):
+        # The next two lines are here to run the example from Python
+        # Ignore them when called in the frozen/standalone version
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'fibonacci.xlsm'))
+        Workbook.set_mock_caller(path)
     xl_fibonacci()
