@@ -16,7 +16,7 @@ def main():
     file_name = 'simulation_standalone'
     if os.path.isfile('{}.zip'.format(file_name)):
         os.remove('{}.zip'.format(file_name))
-    call('7z a -tzip {}.zip {}.xlsm'.format(file_name, file_name))
+    call('7z a -tzip {}.zip simulation.xlsm'.format(file_name, file_name))
     call('7z a -tzip {}.zip LICENSE.txt'.format(file_name))
     call('7z a -tzip {}.zip build'.format(file_name))
 

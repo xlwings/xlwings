@@ -59,8 +59,11 @@ def main():
         Range('S2').value = price[:,:1]  # Sample path
 
 if __name__ == '__main__':
-    path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'simulation.xlsm'))
-    Workbook.set_mock_caller(path)
+    if not hasattr(sys, 'frozen'):
+        # The next two lines are here to run the example from Python
+        # Ignore them when called in the frozen/standalone version
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'simulation.xlsm'))
+        Workbook.set_mock_caller(path)
     main()
 
 
