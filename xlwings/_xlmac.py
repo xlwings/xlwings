@@ -69,6 +69,13 @@ def get_worksheet_name(xl_sheet):
     return xl_sheet.name.get()
 
 
+def get_worksheet_last_row_and_column(xl_sheet):
+    ur = xl_sheet.used_range
+    nrow = ur.first_row_index.get() + ur.count(each=kw.row) - 1
+    ncol = ur.first_column_index.get() + ur.count(each=kw.column) - 1
+    return nrow, ncol
+
+
 def get_xl_sheet(xl_workbook, sheet_name_or_index):
     return xl_workbook.sheets[sheet_name_or_index]
 
