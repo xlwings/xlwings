@@ -63,6 +63,8 @@ class Workbook(object):
     @classmethod
     def caller(cls):
         """
+        .. versionadded:: 0.3.0
+
         Creates a connection when the Python function is called from Excel:
 
         ``wb = Workbook.caller()``
@@ -96,6 +98,8 @@ class Workbook(object):
     @staticmethod
     def set_mock_caller(fullpath):
         """
+        .. versionadded:: 0.3.1
+
         Sets the Excel file which is used to mock ``Workbook.caller()`` when the code is called from within Python.
 
         Examples
@@ -121,6 +125,8 @@ class Workbook(object):
     @classmethod
     def current(cls):
         """
+        .. versionadded:: 0.2.2
+
         Returns the current Workbook object, i.e. the default Workbook used by ``Sheet``, ``Range`` and ``Chart`` if not
         specified otherwise. On Windows, in case there are various instances of Excel running, opening an existing or
         creating a new Workbook through ``Workbook()`` is acting on the same instance of Excel as this Workbook. Use
@@ -130,6 +136,8 @@ class Workbook(object):
 
     def set_current(self):
         """
+        .. versionadded:: 0.2.2
+
         This makes the Workbook the default that ``Sheet``, ``Range`` and ``Chart`` use if not specified
         otherwise. On Windows, in case there are various instances of Excel running, opening an existing or creating a
         new Workbook through ``Workbook()`` is acting on the same instance of Excel as this Workbook.
@@ -155,11 +163,17 @@ class Workbook(object):
         return Range(xlplatform.get_selection_address(self.xl_app), wkb=self, asarray=asarray, atleast_2d=atleast_2d)
 
     def close(self):
-        """Closes the Workbook without saving it."""
+        """
+        .. versionadded:: 0.1.1
+
+        Closes the Workbook without saving it.
+        """
         xlplatform.close_workbook(self.xl_workbook)
 
     def save(self, path=None):
         """
+        .. versionadded:: 0.3.1
+
         Saves the Workbook. If a path is being provided, this works like SaveAs() in Excel. If no path is specified and
         if the file hasn't been saved previously, it's being saved in the current working directory with the current
         filename. Existing files are overwritten without prompting.
@@ -231,6 +245,8 @@ class Sheet(object):
 
     def autofit(self, axis=None):
         """
+        .. versionadded:: 0.2.3
+
         Autofits the width of either columns, rows or both on a whole Sheet.
 
         Arguments
@@ -284,6 +300,8 @@ class Sheet(object):
     @classmethod
     def add(cls, name=None, before=None, after=None, wkb=None):
         """
+        .. versionadded:: 0.2.3
+
         Creates a new worksheet: the new worksheet becomes the active sheet. If neither ``before`` nor
         ``after`` is specified, the new Sheet will be placed at the end.
 
@@ -335,6 +353,8 @@ class Sheet(object):
     @staticmethod
     def count(wkb=None):
         """
+        .. versionadded:: 0.2.3
+
         Counts the number of Sheets.
 
         Keyword Arguments
@@ -353,6 +373,8 @@ class Sheet(object):
     @staticmethod
     def all(wkb=None):
         """
+        .. versionadded:: 0.2.3
+
         Returns a list with all Sheet objects.
 
         Keyword Arguments
@@ -502,6 +524,8 @@ class Range(object):
 
     def is_cell(self):
         """
+        .. versionadded:: 0.1.1
+
         Returns ``True`` if the Range consists of a single Cell otherwise ``False``.
         """
         if self.row1 == self.row2 and self.col1 == self.col2:
@@ -511,6 +535,8 @@ class Range(object):
 
     def is_row(self):
         """
+        .. versionadded:: 0.1.1
+
         Returns ``True`` if the Range consists of a single Row otherwise ``False``.
         """
         if self.row1 == self.row2 and self.col1 != self.col2:
@@ -520,6 +546,8 @@ class Range(object):
 
     def is_column(self):
         """
+        .. versionadded:: 0.1.1
+
         Returns ``True`` if the Range consists of a single Column otherwise ``False``.
         """
         if self.row1 != self.row2 and self.col1 == self.col2:
@@ -529,6 +557,8 @@ class Range(object):
 
     def is_table(self):
         """
+        .. versionadded:: 0.1.1
+
         Returns ``True`` if the Range consists of a 2d array otherwise ``False``.
         """
         if self.row1 != self.row2 and self.col1 != self.col2:
@@ -539,6 +569,8 @@ class Range(object):
     @property
     def shape(self):
         """
+        .. versionadded:: 0.3.0
+
         Tuple of Range dimensions.
         """
         return self.row2 - self.row1 + 1, self.col2 - self.col1 + 1
@@ -546,6 +578,8 @@ class Range(object):
     @property
     def size(self):
         """
+        .. versionadded:: 0.3.0
+
         Number of elements in the Range.
         """
         return self.shape[0] * self.shape[1]
@@ -810,6 +844,8 @@ class Range(object):
     @property
     def number_format(self):
         """
+        .. versionadded:: 0.2.3
+
         Gets and sets the number_format of a Range.
 
         Examples
@@ -841,6 +877,8 @@ class Range(object):
 
     def autofit(self, axis=None):
         """
+        .. versionadded:: 0.2.2
+
         Autofits the width of either columns, rows or both.
 
         Arguments
@@ -870,6 +908,8 @@ class Range(object):
 
     def get_address(self, row_absolute=True, column_absolute=True, include_sheetname=False, external=False):
         """
+        .. versionadded:: 0.2.3
+
         Returns the address of the range in the specified format.
         
         Arguments
@@ -927,6 +967,8 @@ class Range(object):
     @property
     def hyperlink(self):
         """
+        .. versionadded:: 0.3.0
+
         Returns the hyperlink address of the specified Range (single Cell)
 
         Examples
@@ -940,6 +982,8 @@ class Range(object):
 
     def add_hyperlink(self, address, text_to_display=None, screen_tip=None):
         """
+        .. versionadded:: 0.3.0
+
         Adds a hyperlink to the specified Range (single Cell)
         
         Arguments
@@ -963,6 +1007,8 @@ class Range(object):
     @property                 
     def color(self):      
         """
+        .. versionadded:: 0.3.0
+
         Gets and sets the background color of the specified Range.
 
         To set the color, either use an RGB tuple ``(0, 0, 0)`` or a color constant.
@@ -991,6 +1037,8 @@ class Range(object):
 
     def resize(self, row_size=None, column_size=None):
         """
+        .. versionadded:: 0.3.0
+
         Resizes the specified Range.
 
         Returns
@@ -1010,6 +1058,8 @@ class Range(object):
 
     def offset(self, row_offset=None, column_offset=None):
         """
+        .. versionadded:: 0.3.0
+
         Returns a Range object that represents a Range that's offset from the specified range.
 
         Returns
@@ -1165,6 +1215,8 @@ class Chart(object):
     @property
     def chart_type(self):
         """
+        .. versionadded:: 0.1.1
+
         Gets and sets the chart type of a chart.
         """
         return xlplatform.get_chart_type(self.xl_chart)
