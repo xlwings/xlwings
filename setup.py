@@ -31,7 +31,7 @@ setup(
     long_description=readme,
     data_files=data_files,
     packages=['xlwings', 'xlwings.tests'],
-    package_data={'xlwings': ['*.bas', 'tests/*.xlsx']},
+    package_data={'xlwings': ['*.bas', 'tests/*.xlsx', 'xlwings_template.xltm']},
     keywords=['xls', 'excel', 'spreadsheet', 'workbook', 'vba', 'macro'],
     install_requires=install_requires,
     classifiers=[

@@ -16,6 +16,9 @@ except ImportError:
 # Time types
 time_types = (dt.date, dt.datetime)
 
+# Open command for subprocess.Popen
+open_cmd = 'open'
+
 
 @atexit.register
 def clean_up():

@@ -1,6 +1,7 @@
 include LICENSE.txt
 include README.rst
 include xlwings/tests/*.xlsx
+include xlwings/xlwings_template.xltm
 include xlwings32.dll
 include xlwings64.dll
 

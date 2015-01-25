@@ -9,9 +9,12 @@ All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
 """
+import os
 import sys
 import numbers
 import itertools
+import subprocess
+import inspect
 from . import xlplatform, string_types, time_types, xrange
 from .constants import ChartType
 
@@ -211,6 +214,26 @@ class Workbook(object):
         else:
             xl_workbook = wkb.xl_workbook
         return xl_workbook
+
+    @staticmethod
+    def open_template():
+        """
+        .. versionadded:: 0.3.3
+
+        Creates a new Excel file with the xlwings VBA module already included. This method must be called from an
+        interactive Python shell::
+
+        >>> Workbook.open_template()
+
+        """
+        this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
+        template_file = 'xlwings_template.xltm'
+        try:
+            os.remove(os.path.join(this_dir, '~$' + template_file))
+        except OSError:
+            pass
+
+        subprocess.call([xlplatform.open_cmd, os.path.realpath(os.path.join(this_dir, template_file))])
 
     def __repr__(self):
         return "<Workbook '{0}'>".format(self.name)
