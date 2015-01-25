@@ -13,7 +13,6 @@ import os
 import sys
 import numbers
 import itertools
-import subprocess
 import inspect
 from . import xlplatform, string_types, time_types, xrange
 from .constants import ChartType
@@ -233,7 +232,7 @@ class Workbook(object):
         except OSError:
             pass
 
-        subprocess.call([xlplatform.open_cmd, os.path.realpath(os.path.join(this_dir, template_file))])
+        xlplatform.open_template(os.path.realpath(os.path.join(this_dir, template_file)))
 
     def __repr__(self):
         return "<Workbook '{0}'>".format(self.name)

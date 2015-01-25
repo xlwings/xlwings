@@ -31,9 +31,6 @@ from xlwings import PY3
 # Time types: pywintypes.timetype doesn't work on Python 3
 time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
 
-# Open command for subprocess.Popen
-open_cmd = 'start'
-
 
 def is_file_open(fullname):
     """
@@ -452,3 +449,7 @@ def save_workbook(xl_workbook, path):
         xl_workbook.Application.DisplayAlerts = False
         xl_workbook.SaveAs(path)
         xl_workbook.Application.DisplayAlerts = True
+
+
+def open_template(fullpath):
+    os.startfile(fullpath)

@@ -2,6 +2,7 @@
 
 import os
 import datetime as dt
+import subprocess
 from appscript import app, mactypes
 from appscript import k as kw
 import psutil
@@ -15,9 +16,6 @@ except ImportError:
 
 # Time types
 time_types = (dt.date, dt.datetime)
-
-# Open command for subprocess.Popen
-open_cmd = 'open'
 
 
 @atexit.register
@@ -388,3 +386,6 @@ def save_workbook(xl_workbook, path):
         hfs_path = dir_name_hfs + ':' + file_name
         xl_workbook.save_workbook_as(filename=hfs_path, overwrite=True)
 
+
+def open_template(fullpath):
+    subprocess.call(['open', fullpath])
