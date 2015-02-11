@@ -39,8 +39,12 @@ class Workbook(object):
     To create a connection when the Python function is called from Excel, use:
 
     ``wb = Workbook.caller()``
+
+    The resulting Workbook will be visible by default. To open it without showing a window,
+    set visible to False. Or, to not change alter the visibility (e.g., if Excel is already running),
+    set visible to None.
     """
-    def __init__(self, fullname=None, xl_workbook=None):
+    def __init__(self, fullname=None, xl_workbook=None, visible=True):
         if xl_workbook:
             self.xl_workbook = xl_workbook
             self.xl_app = xlplatform.get_app(self.xl_workbook)
@@ -61,6 +65,9 @@ class Workbook(object):
 
         # Make the most recently created Workbook the default when creating Range objects directly
         xlplatform.set_xl_workbook_current(self.xl_workbook)
+
+        if visible is not None:
+            xlplatform.set_visible(self.xl_app, visible)
 
     @classmethod
     def caller(cls):
@@ -134,7 +141,7 @@ class Workbook(object):
         creating a new Workbook through ``Workbook()`` is acting on the same instance of Excel as this Workbook. Use
         like this: ``Workbook.current()``.
         """
-        return cls(xl_workbook=xlplatform.get_xl_workbook_current())
+        return cls(xl_workbook=xlplatform.get_xl_workbook_current(), visible=None)
 
     def set_current(self):
         """
@@ -933,13 +940,13 @@ class Range(object):
         .. versionadded:: 0.2.3
 
         Returns the address of the range in the specified format.
-        
+
         Arguments
         ---------
         row_absolute : bool, default True
             Set to True to return the row part of the reference as an absolute reference.
 
-        column_absolute : bool, default True   
+        column_absolute : bool, default True
             Set to True to return the column part of the reference as an absolute reference.
 
         include_sheetname : bool, default False
@@ -964,8 +971,8 @@ class Range(object):
             'Sheet1!A$1:C$3'
             >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, external=True)
             '[Workbook1]Sheet1!A$1:C$3'
-        """        
-        
+        """
+
         if include_sheetname and not external:
             # TODO: when the Workbook name contains spaces but not the Worksheet name, it will still be surrounded
             # by '' when include_sheetname=True. Also, should probably changed to regex
@@ -1007,7 +1014,7 @@ class Range(object):
         .. versionadded:: 0.3.0
 
         Adds a hyperlink to the specified Range (single Cell)
-        
+
         Arguments
         ---------
         address : str
@@ -1026,8 +1033,8 @@ class Range(object):
             screen_tip = address + ' - Click once to follow. Click and hold to select this cell.'
         xlplatform.set_hyperlink(self.xl_range, address, text_to_display, screen_tip)
 
-    @property                 
-    def color(self):      
+    @property
+    def color(self):
         """
         .. versionadded:: 0.3.0
 

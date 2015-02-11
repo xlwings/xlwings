@@ -389,3 +389,7 @@ def save_workbook(xl_workbook, path):
 
 def open_template(fullpath):
     subprocess.call(['open', fullpath])
+
+def set_visible(xl_app, visible):
+    # FIXME: Implement
+    pass

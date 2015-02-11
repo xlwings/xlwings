@@ -85,7 +85,6 @@ def _get_latest_app():
     the application that appears first in the Running Object Table (ROT).
     """
     try:
-        _ = xl_workbook_current.Application.Visible
         return xl_workbook_current.Application
     except (NameError, pywintypes.com_error):
         return dynamic.Dispatch('Excel.Application')
@@ -94,7 +93,6 @@ def _get_latest_app():
 def open_workbook(fullname):
     xl_app = _get_latest_app()
     xl_workbook = xl_app.Workbooks.Open(fullname)
-    xl_app.Visible = True
     return xl_app, xl_workbook
 
 
@@ -104,7 +102,6 @@ def close_workbook(xl_workbook):
 
 def new_workbook():
     xl_app = _get_latest_app()
-    xl_app.Visible = True
     xl_workbook = xl_app.Workbooks.Add()
     return xl_app, xl_workbook
 
@@ -453,3 +450,6 @@ def save_workbook(xl_workbook, path):
 
 def open_template(fullpath):
     os.startfile(fullpath)
+
+def set_visible(xl_app, visible):
+    xl_app.visible = visible
