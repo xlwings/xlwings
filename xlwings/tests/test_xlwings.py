@@ -93,7 +93,7 @@ class TestWorkbook:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
         xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx')
-        self.wb = Workbook(xl_file1)
+        self.wb = Workbook(xl_file1, visible=False)
         Sheet('Sheet1').activate()
 
     def tearDown(self):
@@ -109,7 +109,7 @@ class TestWorkbook:
         assert_equal(self.wb.xl_workbook, Workbook.current().xl_workbook)
 
     def test_set_current(self):
-        wb2 = Workbook()
+        wb2 = Workbook(visible=False)
         assert_equal(Workbook.current().xl_workbook, wb2.xl_workbook)
         self.wb.set_current()
         assert_equal(Workbook.current().xl_workbook, self.wb.xl_workbook)
@@ -121,8 +121,8 @@ class TestWorkbook:
 
     def test_reference_two_unsaved_wb(self):
         """Covers GH Issue #63"""
-        wb1 = Workbook()
-        wb2 = Workbook()
+        wb1 = Workbook(visible=False)
+        wb2 = Workbook(visible=False)
 
         Range('A1').value = 2.  # wb2
         Range('A1', wkb=wb1).value = 1.  # wb1
@@ -136,7 +136,7 @@ class TestWorkbook:
     def test_save_naked(self):
 
         cwd = os.getcwd()
-        wb1 = Workbook()
+        wb1 = Workbook(visible=False)
         target_file_path = os.path.join(cwd, wb1.name + '.xlsx')
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
@@ -145,7 +145,7 @@ class TestWorkbook:
 
         assert_equal(os.path.isfile(target_file_path), True)
 
-        wb2 = Workbook(target_file_path)
+        wb2 = Workbook(target_file_path, visible=False)
         wb2.close()
 
         if os.path.isfile(target_file_path):
@@ -154,7 +154,7 @@ class TestWorkbook:
     def test_save_path(self):
 
         cwd = os.getcwd()
-        wb1 = Workbook()
+        wb1 = Workbook(visible=False)
         target_file_path = os.path.join(cwd, 'TestFile.xlsx')
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
@@ -163,7 +163,7 @@ class TestWorkbook:
 
         assert_equal(os.path.isfile(target_file_path), True)
 
-        wb2 = Workbook(target_file_path)
+        wb2 = Workbook(target_file_path, visible=False)
         wb2.close()
 
         if os.path.isfile(target_file_path):
@@ -174,7 +174,7 @@ class TestSheet:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
         xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx')
-        self.wb = Workbook(xl_file1)
+        self.wb = Workbook(xl_file1, visible=False)
         Sheet('Sheet1').activate()
 
     def tearDown(self):
@@ -259,7 +259,7 @@ class TestRange:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
         xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_range_1.xlsx')
-        self.wb = Workbook(xl_file1)
+        self.wb = Workbook(xl_file1, visible=False)
         Sheet('Sheet1').activate()
 
     def tearDown(self):
@@ -723,7 +723,7 @@ class TestChart:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
         xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_chart_1.xlsx')
-        self.wb = Workbook(xl_file1)
+        self.wb = Workbook(xl_file1, visible=False)
         Sheet('Sheet1').activate()
 
     def tearDown(self):
