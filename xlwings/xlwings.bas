@@ -41,7 +41,7 @@ Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef 
     ' PYTHONPATH [Optional]: If the source file of your code is not found, add the path here. Otherwise set to "".
     ' LOG_FILE: Directory including file name, necessary for error handling.
     ' SHOW_LOG: If False, no pop-up with the Log messages (usually errors) will be shown
-    ' OPTIMIZED_CONNECTION (EXERIMENTAL!): Currently only on Windows, use a COM Server for an efficient connection
+    ' OPTIMIZED_CONNECTION (EXPERIMENTAL!): Currently only on Windows, use a COM Server for an efficient connection
     '
     ' For cross-platform compatibility, use backslashes in relative directories
     ' For details, see http://docs.xlwings.org
