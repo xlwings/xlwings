@@ -1036,10 +1036,13 @@ class Range(object):
         """
         if self.formula.lower().startswith('='):
             # If it's a formula, extract the URL from the formula string
-            formula = Range('A1').formula
-            return re.compile(r'\"(.+?)\"').search(formula).group(1)
+            formula = self.formula
+            try:
+                return re.compile(r'\"(.+?)\"').search(formula).group(1)
+            except AttributeError:
+                raise Exception("The cell doesn't seem to contain a hyperlink!")
         else:
-            # If it has been set programmatically
+            # If it has been set pragmatically
             return xlplatform.get_hyperlink_address(self.xl_range)
 
     def add_hyperlink(self, address, text_to_display=None, screen_tip=None):

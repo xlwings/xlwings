@@ -385,7 +385,11 @@ def count_worksheets(xl_workbook):
 
 
 def get_hyperlink_address(xl_range):
-    return xl_range.Hyperlinks(1).Address
+    try:
+        return xl_range.Hyperlinks(1).Address
+    except pywintypes.com_error:
+        raise Exception("The cell doesn't seem to contain a hyperlink!")
+
 
 
 def set_hyperlink(xl_range, address, text_to_display=None, screen_tip=None):
