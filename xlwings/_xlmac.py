@@ -340,7 +340,10 @@ def count_worksheets(xl_workbook):
 
 
 def get_hyperlink_address(xl_range):
-    return xl_range.hyperlinks[1].address.get()
+    try:
+        return xl_range.hyperlinks[1].address.get()
+    except CommandError:
+        raise Exception("The cell doesn't seem to contain a hyperlink!")
 
 
 def set_hyperlink(xl_range, address, text_to_display=None, screen_tip=None):

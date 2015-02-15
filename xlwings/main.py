@@ -11,6 +11,7 @@ License: BSD 3-clause (see LICENSE.txt for details)
 """
 import os
 import sys
+import re
 import numbers
 import itertools
 import inspect
@@ -1024,7 +1025,7 @@ class Range(object):
         """
         .. versionadded:: 0.3.0
 
-        Returns the hyperlink address of the specified Range (single Cell)
+        Returns the hyperlink address of the specified Range (single Cell only)
 
         Examples
         --------
@@ -1033,7 +1034,13 @@ class Range(object):
         >>> Range('A1').hyperlink
         'http://www.xlwings.org'
         """
-        return xlplatform.get_hyperlink_address(self.xl_range)
+        if self.formula.lower().startswith('='):
+            # If it's a formula, extract the URL from the formula string
+            formula = Range('A1').formula
+            return re.compile(r'\"(.+?)\"').search(formula).group(1)
+        else:
+            # If it has been set programmatically
+            return xlplatform.get_hyperlink_address(self.xl_range)
 
     def add_hyperlink(self, address, text_to_display=None, screen_tip=None):
         """
