@@ -5,6 +5,7 @@ import datetime as dt
 import subprocess
 from appscript import app, mactypes
 from appscript import k as kw
+from appscript.reference import CommandError
 import psutil
 import atexit
 from .constants import ColorIndex
@@ -28,7 +29,12 @@ def clean_up():
     errors and to reset the StatusBar.
     """
     if is_excel_running():
-        app('Microsoft Excel').run_VB_macro('CleanUp')
+        # Prevents Excel from reopening if it has been closed manually or never been opened
+        try:
+            app('Microsoft Excel').run_VB_macro('CleanUp')
+        except CommandError:
+            # Excel files initiated from Python don't have the xlwings VBA module
+            pass
 
 
 def is_file_open(fullname):
