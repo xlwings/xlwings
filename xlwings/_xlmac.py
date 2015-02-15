@@ -188,12 +188,14 @@ def clear_worksheet(xl_workbook, sheet_name_or_index):
 
 
 def clear_contents_range(xl_range):
+    app('Microsoft Excel').screen_updating.set(False)
     xl_range.clear_contents()
-
+    app('Microsoft Excel').screen_updating.set(True)
 
 def clear_range(xl_range):
+    app('Microsoft Excel').screen_updating.set(False)
     xl_range.clear_range()
-
+    app('Microsoft Excel').screen_updating.set(True)
 
 def get_formula(xl_range):
     return xl_range.formula.get()
