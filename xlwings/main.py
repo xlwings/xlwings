@@ -241,6 +241,20 @@ class Workbook(object):
 
         xlplatform.open_template(os.path.realpath(os.path.join(this_dir, template_file)))
 
+    @property
+    def visible(self):
+        """
+        .. versionadded:: 0.3.3
+
+        Gets or sets the visibility of Excel to ``True`` or  ``False``. Note that this property will move under the
+        Application object once it is being added to xlwings.
+        """
+        return xlplatform.get_visible(self.xl_app)
+
+    @visible.setter
+    def visible(self, visible):
+        xlplatform.set_visible(self.xl_app, visible)
+
     def __repr__(self):
         return "<Workbook '{0}'>".format(self.name)
 

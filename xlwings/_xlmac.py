@@ -394,3 +394,7 @@ def set_visible(xl_app, visible):
         xl_app.activate()
     else:
         app('System Events').processes['Microsoft Excel'].visible.set(visible)
+
+
+def get_visible(xl_app):
+    return app('System Events').processes['Microsoft Excel'].visible.get()

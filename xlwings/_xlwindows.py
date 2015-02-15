@@ -451,5 +451,10 @@ def save_workbook(xl_workbook, path):
 def open_template(fullpath):
     os.startfile(fullpath)
 
+
 def set_visible(xl_app, visible):
-    xl_app.visible = visible
+    xl_app.Visible = visible
+
+
+def get_visible(xl_app):
+    return xl_app.Visible
