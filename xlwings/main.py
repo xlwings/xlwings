@@ -36,13 +36,25 @@ class Workbook(object):
     * an unsaved workbook: ``wb = Workbook('Book1')``
     * a saved workbook (open or closed): ``wb = Workbook(r'C:\\path\\to\\file.xlsx')``
 
+    Keyword Arguments
+    -----------------
+    fullname : str, default None
+        Full path of existing spreadsheet or name of an unsaved spreadsheet, defaults to new Workbook
+
+    xl_workbook : pywin32 or appscript Workbook object, default None
+        This enables to turn existing Workbook objects of the underlying libraries into xlwings objects
+
+    visible : boolean, default True
+        The resulting Workbook will be visible by default. To open it without showing a window,
+        set ``visible=False``. Or, to not alter the visibility (e.g., if Excel is already running),
+        set ``visible=None``. Note that this property acts on the whole Excel instance, not just the
+        specific Workbook.
+
+
     To create a connection when the Python function is called from Excel, use:
 
     ``wb = Workbook.caller()``
 
-    The resulting Workbook will be visible by default. To open it without showing a window,
-    set visible to False. Or, to not alter the visibility (e.g., if Excel is already running),
-    set visible to None.
     """
     def __init__(self, fullname=None, xl_workbook=None, visible=True):
         if xl_workbook:
@@ -246,8 +258,8 @@ class Workbook(object):
         """
         .. versionadded:: 0.3.3
 
-        Gets or sets the visibility of Excel to ``True`` or  ``False``. Note that this property will move under the
-        Application object once it is being added to xlwings.
+        Gets or sets the visibility of Excel to ``True`` or  ``False``. Note that this property acts on the whole
+        Excel instance, not just the specific Workbook.
         """
         return xlplatform.get_visible(self.xl_app)
 
