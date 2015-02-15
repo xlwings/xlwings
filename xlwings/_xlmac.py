@@ -90,7 +90,6 @@ def get_app(xl_workbook):
 def open_workbook(fullname):
     filename = os.path.basename(fullname)
     xl_app = app('Microsoft Excel')
-    xl_app.activate()
     xl_app.open(fullname)
     xl_workbook = xl_app.workbooks[filename]
     return xl_app, xl_workbook
@@ -104,7 +103,6 @@ def new_workbook():
     is_running = is_excel_running()
 
     xl_app = app('Microsoft Excel')
-    xl_app.activate()
 
     if is_running:
         # If Excel is being fired up, a "Workbook1" is automatically added
@@ -390,6 +388,9 @@ def save_workbook(xl_workbook, path):
 def open_template(fullpath):
     subprocess.call(['open', fullpath])
 
+
 def set_visible(xl_app, visible):
-    # FIXME: Implement
-    pass
+    if visible:
+        xl_app.activate()
+    else:
+        app('System Events').processes['Microsoft Excel'].visible.set(visible)

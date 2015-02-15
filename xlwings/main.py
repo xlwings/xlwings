@@ -41,7 +41,7 @@ class Workbook(object):
     ``wb = Workbook.caller()``
 
     The resulting Workbook will be visible by default. To open it without showing a window,
-    set visible to False. Or, to not change alter the visibility (e.g., if Excel is already running),
+    set visible to False. Or, to not alter the visibility (e.g., if Excel is already running),
     set visible to None.
     """
     def __init__(self, fullname=None, xl_workbook=None, visible=True):
