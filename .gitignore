@@ -55,3 +55,6 @@ nosetests.xml
 
 # Translations
 *.mo
+
+# google analytics example
+client_secrets.json
