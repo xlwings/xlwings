@@ -17,7 +17,7 @@ def playlist():
     wb = Workbook.caller()
 
     # Place the database next to the Excel file
-    db_file = os.path.join(os.path.dirname(__file__), 'chinook.sqlite')
+    db_file = os.path.join(os.path.dirname(wb.fullname), 'chinook.sqlite')
 
     # Database connection and creation of cursor
     con = sqlite3.connect(db_file, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
@@ -64,7 +64,7 @@ def combobox():
     wb = Workbook.caller()
 
     # Place the database next to the Excel file
-    db_file = os.path.join(os.path.dirname(__file__), 'chinook.sqlite')
+    db_file = os.path.join(os.path.dirname(wb.fullname), 'chinook.sqlite')
 
     # Database connection and creation of cursor
     con = sqlite3.connect(db_file, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
