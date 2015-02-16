@@ -76,6 +76,10 @@ class Workbook(object):
         self.name = xlplatform.get_workbook_name(self.xl_workbook)
         self.active_sheet = Sheet.active(wkb=self)
 
+        if fullname is None:
+            self.fullname = xlplatform.get_fullname(self.xl_workbook)
+
+
         # Make the most recently created Workbook the default when creating Range objects directly
         xlplatform.set_xl_workbook_current(self.xl_workbook)
 

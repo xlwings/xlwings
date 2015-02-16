@@ -409,3 +409,11 @@ def set_visible(xl_app, visible):
 
 def get_visible(xl_app):
     return app('System Events').processes['Microsoft Excel'].visible.get()
+
+
+def get_fullname(xl_workbook):
+    hfs_path = xl_workbook.properties().get(kw.full_name)
+    if hfs_path == xl_workbook.properties().get(kw.name):
+        return hfs_path
+    url = mactypes.convertpathtourl(hfs_path, 1)  # kCFURLHFSPathStyle = 1
+    return mactypes.converturltopath(url, 0)  # kCFURLPOSIXPathStyle = 0
