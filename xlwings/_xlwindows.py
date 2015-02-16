@@ -462,3 +462,7 @@ def set_visible(xl_app, visible):
 
 def get_visible(xl_app):
     return xl_app.Visible
+
+
+def get_fullname(xl_workbook):
+    return xl_workbook.FullName
