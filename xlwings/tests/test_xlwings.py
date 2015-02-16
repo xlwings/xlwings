@@ -643,6 +643,7 @@ class TestRange:
 
     def test_hyperlink(self):
         address = 'www.xlwings.org'
+        # Naked address
         Range('A1').add_hyperlink(address)
         assert_equal(Range('A1').value, address)
         if sys.platform.startswith('darwin'):
@@ -650,12 +651,17 @@ class TestRange:
         else:
             assert_equal(Range('A1').hyperlink, 'http://' + address + '/')
 
+        # Address + FriendlyName
         Range('A2').add_hyperlink(address, 'test_link')
         assert_equal(Range('A2').value, 'test_link')
         if sys.platform.startswith('darwin'):
             assert_equal(Range('A2').hyperlink, 'http://' + address)
         else:
             assert_equal(Range('A2').hyperlink, 'http://' + address + '/')
+
+    def test_hyperlink_formula(self):
+        Range('B10').formula = '=HYPERLINK("http://xlwings.org", "xlwings")'
+        assert_equal(Range('B10').hyperlink, 'http://xlwings.org')
 
     def test_color(self):
         rgb = (30, 100, 200)
