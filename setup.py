@@ -19,6 +19,8 @@ if sys.platform.startswith('win'):
 if sys.platform.startswith('darwin'):
     install_requires = ['psutil >= 2.0.0', 'appscript >= 1.0.1']
     data_files =[]
+else:
+    raise OSError("currently only Windows and OSX are supported.")
 
 setup(
     name='xlwings',
