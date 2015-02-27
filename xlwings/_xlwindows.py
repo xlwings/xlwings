@@ -466,3 +466,9 @@ def get_visible(xl_app):
 
 def get_fullname(xl_workbook):
     return xl_workbook.FullName
+
+
+def quit_app(xl_app):
+    xl_app.DisplayAlerts = False
+    xl_app.Quit()
+    xl_app.DisplayAlerts = True

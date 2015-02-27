@@ -417,3 +417,7 @@ def get_fullname(xl_workbook):
         return hfs_path
     url = mactypes.convertpathtourl(hfs_path, 1)  # kCFURLHFSPathStyle = 1
     return mactypes.converturltopath(url, 0)  # kCFURLPOSIXPathStyle = 0
+
+
+def quit_app(xl_app):
+    xl_app.quit(saving=kw.no)

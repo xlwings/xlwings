@@ -29,6 +29,27 @@ except ImportError:
     pd = None
 
 
+class Application(object):
+    """
+    .. versionadded:: 0.3.3
+
+    Application is dependent on the Workbook since there might be different application instances. You can therefore
+    also access it as attribute of a workbook::
+
+        wb = Workbook()
+        wb.application
+    """
+    def __init__(self, wkb):
+        self.wkb = wkb
+        self.xl_app = wkb.xl_app
+
+    def quit(self):
+        """
+        Closes the application without saving any workbooks.
+        """
+        xlplatform.quit_app(self.xl_app)
+
+
 class Workbook(object):
     """
     ``Workbook`` connects an Excel Workbook with Python. You can create a new connection from Python with
@@ -75,6 +96,7 @@ class Workbook(object):
 
         self.name = xlplatform.get_workbook_name(self.xl_workbook)
         self.active_sheet = Sheet.active(wkb=self)
+        self.application = Application(wkb=self)
 
         if fullname is None:
             self.fullname = xlplatform.get_fullname(self.xl_workbook)
@@ -277,6 +299,8 @@ class Workbook(object):
 
 class Sheet(object):
     """
+    .. versionadded:: 0.2.3
+
     Represents a Sheet of the current Workbook. Either call it with the Sheet name or index::
 
         Sheet('Sheet1')

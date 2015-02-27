@@ -10,13 +10,19 @@ The xlwings object model is very similar to the one used by Excel VBA but the hi
 | ``wb = Workbook("Book1")``
 | ``Range("Sheet1", "A1").value = "Some Text"``
 
+
+.. module:: xlwings
+
+Application
+-----------
+
+.. autoclass:: Application
+    :members:
+
 Workbook
 --------
 
 In order to use xlwings, instantiating a workbook object is always the first thing to do:
-
-
-.. module:: xlwings
 
 
 .. autoclass:: Workbook
