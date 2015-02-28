@@ -480,3 +480,11 @@ def get_screen_updating(xl_app):
 
 def set_screen_updating(xl_app, value):
     xl_app.ScreenUpdating = value
+
+
+def get_calculation(xl_app):
+    return xl_app.Calculation
+
+
+def set_calculation(xl_app, value):
+    xl_app.Calculation = value

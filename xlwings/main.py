@@ -75,8 +75,27 @@ class Application(object):
         return xlplatform.get_visible(self.xl_app)
 
     @visible.setter
-    def visible(self, visible):
-        xlplatform.set_visible(self.xl_app, visible)
+    def visible(self, value):
+        xlplatform.set_visible(self.xl_app, value)
+
+    @property
+    def calculation(self):
+        """
+        .. versionadded:: 0.3.3
+
+        Returns or sets a Calculation value that represents the calculation mode::
+
+        >>> from xlwings import Workbook
+        >>> from xlwings.constants import Calculation
+        >>> wb = Workbook()
+        >>> wb.application.calculation = Calculation.xlCalculationManual
+
+        """
+        return xlplatform.get_calculation(self.xl_app)
+
+    @calculation.setter
+    def calculation(self, value):
+        xlplatform.set_calculation(self.xl_app, value)
 
 
 class Workbook(object):

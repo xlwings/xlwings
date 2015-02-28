@@ -429,3 +429,11 @@ def get_screen_updating(xl_app):
 
 def set_screen_updating(xl_app, value):
     xl_app.screen_updating.set(value)
+
+
+def get_calculation(xl_app):
+    return xl_app.calculation.get()
+
+
+def set_calculation(xl_app, value):
+    xl_app.calculation.set(value)
