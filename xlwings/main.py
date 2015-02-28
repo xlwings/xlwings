@@ -64,6 +64,20 @@ class Application(object):
     def screen_updating(self, value):
         xlplatform.set_screen_updating(self.xl_app, value)
 
+    @property
+    def visible(self):
+        """
+        .. versionadded:: 0.3.3
+
+        Gets or sets the visibility of Excel to ``True`` or  ``False``. This property can also be
+        conveniently set during instantiation of a new Workbook: ``Workbook(app_visible=False)``
+        """
+        return xlplatform.get_visible(self.xl_app)
+
+    @visible.setter
+    def visible(self, visible):
+        xlplatform.set_visible(self.xl_app, visible)
+
 
 class Workbook(object):
     """
@@ -81,10 +95,10 @@ class Workbook(object):
     xl_workbook : pywin32 or appscript Workbook object, default None
         This enables to turn existing Workbook objects of the underlying libraries into xlwings objects
 
-    visible : boolean, default True
+    app_visible : boolean, default True
         The resulting Workbook will be visible by default. To open it without showing a window,
-        set ``visible=False``. Or, to not alter the visibility (e.g., if Excel is already running),
-        set ``visible=None``. Note that this property acts on the whole Excel instance, not just the
+        set ``app_visible=False``. Or, to not alter the visibility (e.g., if Excel is already running),
+        set ``app_visible=None``. Note that this property acts on the whole Excel instance, not just the
         specific Workbook.
 
 
@@ -93,7 +107,7 @@ class Workbook(object):
     ``wb = Workbook.caller()``
 
     """
-    def __init__(self, fullname=None, xl_workbook=None, visible=True):
+    def __init__(self, fullname=None, xl_workbook=None, app_visible=True):
         if xl_workbook:
             self.xl_workbook = xl_workbook
             self.xl_app = xlplatform.get_app(self.xl_workbook)
@@ -119,8 +133,8 @@ class Workbook(object):
         # Make the most recently created Workbook the default when creating Range objects directly
         xlplatform.set_xl_workbook_current(self.xl_workbook)
 
-        if visible is not None:
-            xlplatform.set_visible(self.xl_app, visible)
+        if app_visible is not None:
+            xlplatform.set_visible(self.xl_app, app_visible)
 
     @classmethod
     def caller(cls):
@@ -194,7 +208,7 @@ class Workbook(object):
         creating a new Workbook through ``Workbook()`` is acting on the same instance of Excel as this Workbook. Use
         like this: ``Workbook.current()``.
         """
-        return cls(xl_workbook=xlplatform.get_xl_workbook_current(), visible=None)
+        return cls(xl_workbook=xlplatform.get_xl_workbook_current(), app_visible=None)
 
     def set_current(self):
         """
@@ -293,20 +307,6 @@ class Workbook(object):
             pass
 
         xlplatform.open_template(os.path.realpath(os.path.join(this_dir, template_file)))
-
-    @property
-    def visible(self):
-        """
-        .. versionadded:: 0.3.3
-
-        Gets or sets the visibility of Excel to ``True`` or  ``False``. Note that this property acts on the whole
-        Excel instance, not just the specific Workbook.
-        """
-        return xlplatform.get_visible(self.xl_app)
-
-    @visible.setter
-    def visible(self, visible):
-        xlplatform.set_visible(self.xl_app, visible)
 
     def __repr__(self):
         return "<Workbook '{0}'>".format(self.name)
