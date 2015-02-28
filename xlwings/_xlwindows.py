@@ -472,3 +472,11 @@ def quit_app(xl_app):
     xl_app.DisplayAlerts = False
     xl_app.Quit()
     xl_app.DisplayAlerts = True
+
+
+def get_screen_updating(xl_app):
+    return xl_app.ScreenUpdating
+
+
+def set_screen_updating(xl_app, value):
+    xl_app.ScreenUpdating = value

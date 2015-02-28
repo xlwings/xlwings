@@ -421,3 +421,11 @@ def get_fullname(xl_workbook):
 
 def quit_app(xl_app):
     xl_app.quit(saving=kw.no)
+
+
+def get_screen_updating(xl_app):
+    return xl_app.screen_updating.get()
+
+
+def set_screen_updating(xl_app, value):
+    xl_app.screen_updating.set(value)

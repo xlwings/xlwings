@@ -45,9 +45,24 @@ class Application(object):
 
     def quit(self):
         """
-        Closes the application without saving any workbooks.
+        .. versionadded:: 0.3.3
+
+        Quits the application without saving any workbooks.
         """
         xlplatform.quit_app(self.xl_app)
+
+    @property
+    def screen_updating(self):
+        """
+        .. versionadded:: 0.3.3
+
+        True if screen updating is turned on. Read/write Boolean.
+        """
+        return xlplatform.get_screen_updating(self.xl_app)
+
+    @screen_updating.setter
+    def screen_updating(self, value):
+        xlplatform.set_screen_updating(self.xl_app, value)
 
 
 class Workbook(object):

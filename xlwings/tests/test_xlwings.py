@@ -89,6 +89,24 @@ def _skip_if_no_pandas():
         raise nose.SkipTest('pandas missing')
 
 
+class TestApplication:
+    def setUp(self):
+        # Connect to test file and make Sheet1 the active sheet
+        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx')
+        self.wb = Workbook(xl_file1, visible=False)
+        Sheet('Sheet1').activate()
+
+    def tearDown(self):
+        self.wb.close()
+
+    def test_screen_updating(self):
+        self.wb.application.screen_updating = False
+        assert_equal(self.wb.application.screen_updating, False)
+
+        self.wb.application.screen_updating = True
+        assert_equal(self.wb.application.screen_updating, True)
+
+
 class TestWorkbook:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
