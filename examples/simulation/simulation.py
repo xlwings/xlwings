@@ -52,7 +52,7 @@ def main():
             Range((t+2,16)).value = percentiles[t,:]
             Range((t+2,19)).value = price[t,0]  # Sample path
             if sys.platform.startswith('win'):
-                wb.xl_app.Application.ScreenUpdating = True  # TODO: implement in xlwings
+                wb.application.screen_updating = True
 
     if not animate:
         Range('P2').value = percentiles
