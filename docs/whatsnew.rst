@@ -1,6 +1,54 @@
 What's New
 ==========
 
+v0.3.3 (March 8, 2015)
+----------------------
+
+API changes
+***********
+
+None
+
+Enhancements
+************
+
+* New class ``Application`` with ``quit`` method and properties ``screen_updating`` und ``calculation`` (:issue:`101`,
+  :issue:`158`, :issue:`159`). It can be
+  conveniently accessed from within a Workbook (on Windows, ``Application`` is instance dependent). A few examples:
+
+  >>> from xlwings import Workbook, Calculation
+  >>> wb = Workbook()
+  >>> wb.application.screen_updating = False
+  >>> wb.application.calculation = Calculation.xlCalculationManual
+  >>> wb.application.quit()
+
+* New headless mode: The Excel application can be hidden either during ``Workbook`` instantiation or through the
+  ``application`` object:
+
+  >>> wb = Workbook(app_visible=False)
+  >>> wb.application.visible
+  False
+  >>> wb.application.visible = True
+
+* Newly included Excel template which includes the xlwings VBA module and boilerplate code. This is currently
+  accessible from an interactive interpreter session only:
+
+  >>> from xlwings import Workbook
+  >>> Workbook.open_template()
+
+Bug Fixes
+*********
+
+* [Win Version]: ``datetime.date`` objects were causing an error (:issue:`44`).
+
+* Depending on how it was instantiated, Workbook was sometimes missing the ``fullname`` attribute (:issue:`76`).
+
+* ``Range.hyperlink`` was failing if the hyperlink had been set as formula (:issue:`132`).
+
+* A bug introduced in v0.3.0 caused frozen versions (eg. with ``cx_Freeze``) to fail (:issue:`133`).
+
+* [Mac Version]: Sometimes, xlwings was causing an error when quitting the Python interpreter (:issue:`136`).
+
 v0.3.2 (January 17, 2015)
 -------------------------
 

@@ -17,8 +17,13 @@ If you don't know the location of your xlwings installation, you can find it as 
 
     $ python
     >>> import xlwings
-    >>> xlwings.__file__
+    >>> xlwings.__path__
 
+An even easier way is to start from a template that already includes the xlwings VBA module and
+boilerplate code:
+
+    >>> from xlwings import Workbook
+    >>> Workbook.open_template()
 
 
 Settings

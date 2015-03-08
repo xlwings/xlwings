@@ -31,8 +31,6 @@ except ImportError:
 
 class Application(object):
     """
-    .. versionadded:: 0.3.3
-
     Application is dependent on the Workbook since there might be different application instances. You can therefore
     also access it as attribute of a workbook::
 

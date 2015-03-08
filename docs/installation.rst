@@ -7,6 +7,10 @@ The easiest way to install xlwings is via pip::
 
     pip install xlwings
 
+or conda::
+
+    conda install xlwings
+
 
 Alternatively, it can be installed from source. From within the ``xlwings`` directory, execute::
 
