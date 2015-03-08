@@ -223,6 +223,10 @@ def _datetime_to_com_time(dt_time):
     You must not remove this notice, or any other, from this software.
 
     """
+    # Convert date to datetime
+    if type(dt_time) is dt.date:
+        dt_time = dt.datetime(dt_time.year, dt_time.month, dt_time.day,
+                              tzinfo=win32timezone.TimeZoneInfo.utc())
 
     if PY3:
         # The py3 version of pywintypes has its time type inherit from datetime.
@@ -422,7 +426,7 @@ def get_xl_workbook_from_xl(fullname):
     call will work (e.g. when Excel opens with a Security Warning, the Workbook
     will not be registered in the RunningObjectTable and thus not accessible via GetObject)
     """
-    if not is_file_open(fullname):
+    if not is_file_open(unicode(fullname)):
         xl_app = GetActiveObject('Excel.Application')
         xl_workbook = xl_app.ActiveWorkbook
         if xl_workbook.FullName.lower() != fullname.lower():

@@ -7,7 +7,7 @@ import os
 import sys
 import nose
 from nose.tools import assert_equal
-from datetime import datetime
+from datetime import datetime, date
 from xlwings import Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation
 if sys.platform.startswith('darwin'):
     from appscript import k as kw
@@ -750,6 +750,13 @@ class TestRange:
 
         o = Range('A1:B3').offset(column_offset=4)
         assert_equal(o.get_address(), '$E$1:$F$3')
+
+    def test_date(self):
+        date_1 = date(2000, 12, 3)
+        Range('X1').value = date_1
+        date_2 = Range('X1').value
+        assert_equal(date_1, date(date_2.year, date_2.month, date_2.day))
+
 
 
 class TestChart:
