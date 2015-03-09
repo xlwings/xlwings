@@ -1,6 +1,13 @@
 What's New
 ==========
 
+v0.3.4 (March 9, 2015)
+----------------------
+
+Bug Fixes
+*********
+* The installation error on Windows has been fixed (:issue:`160`)
+
 v0.3.3 (March 8, 2015)
 ----------------------
 
