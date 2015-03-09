@@ -16,7 +16,7 @@ if sys.platform.startswith('win'):
     install_requires = []  # pywin32 can't be installed (yet) with pip
     # This places dlls next to python.exe for standard setup and in the parent folder for virtualenv
     data_files = [('', ['xlwings32.dll', 'xlwings64.dll'])]
-if sys.platform.startswith('darwin'):
+elif sys.platform.startswith('darwin'):
     install_requires = ['psutil >= 2.0.0', 'appscript >= 1.0.1']
     data_files =[]
 else:
