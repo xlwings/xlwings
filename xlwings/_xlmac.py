@@ -10,6 +10,7 @@ import psutil
 import atexit
 from .constants import ColorIndex
 from .utils import rgb_to_int, int_to_rgb
+from . import mac_dict
 try:
     import pandas as pd
 except ImportError:
@@ -18,6 +19,10 @@ except ImportError:
 # Time types
 time_types = (dt.date, dt.datetime)
 
+# We're only dealing with one instance of Excel on Mac
+# TODO: refactor into function with path argument, see
+# https://github.com/ZoomerAnalytics/xlwings/issues/169
+xl_app = app('Microsoft Excel', terms=mac_dict)
 
 @atexit.register
 def clean_up():
@@ -31,7 +36,7 @@ def clean_up():
     if is_excel_running():
         # Prevents Excel from reopening if it has been closed manually or never been opened
         try:
-            app('Microsoft Excel').run_VB_macro('CleanUp')
+            xl_app.run_VB_macro('CleanUp')
         except CommandError:
             # Excel files initiated from Python don't have the xlwings VBA module
             pass
@@ -63,8 +68,7 @@ def get_workbook(fullname):
     as each spreadsheet opens in a separate window anyway.
     """
     filename = os.path.basename(fullname)
-    xl_workbook = app('Microsoft Excel').workbooks[filename]
-    xl_app = app('Microsoft Excel')
+    xl_workbook = xl_app.workbooks[filename]
     return xl_app, xl_workbook
 
 
@@ -89,13 +93,12 @@ def get_worksheet_index(xl_sheet):
 
 
 def get_app(xl_workbook):
-    # Since we can't have multiple instances of Excel on Mac (?), we ignore xl_workbook
-    return app('Microsoft Excel')
+    # Since we can't have multiple instances of Excel on Mac, we ignore xl_workbook
+    return xl_app
 
 
 def open_workbook(fullname):
     filename = os.path.basename(fullname)
-    xl_app = app('Microsoft Excel')
     xl_app.open(fullname)
     xl_workbook = xl_app.workbooks[filename]
     return xl_app, xl_workbook
@@ -107,8 +110,6 @@ def close_workbook(xl_workbook):
 
 def new_workbook():
     is_running = is_excel_running()
-
-    xl_app = app('Microsoft Excel')
 
     if is_running:
         # If Excel is being fired up, a "Workbook1" is automatically added
@@ -194,14 +195,14 @@ def clear_worksheet(xl_workbook, sheet_name_or_index):
 
 
 def clear_contents_range(xl_range):
-    app('Microsoft Excel').screen_updating.set(False)
+    xl_app.screen_updating.set(False)
     xl_range.clear_contents()
-    app('Microsoft Excel').screen_updating.set(True)
+    xl_app.screen_updating.set(True)
 
 def clear_range(xl_range):
-    app('Microsoft Excel').screen_updating.set(False)
+    xl_app.screen_updating.set(False)
     xl_range.clear_range()
-    app('Microsoft Excel').screen_updating.set(True)
+    xl_app.screen_updating.set(True)
 
 def get_formula(xl_range):
     return xl_range.formula.get()
@@ -273,7 +274,7 @@ def activate_chart(xl_chart):
 
 def autofit(range_, axis):
     address = range_.xl_range.get_address()
-    app('Microsoft Excel').screen_updating.set(False)
+    xl_app.screen_updating.set(False)
     if axis == 0 or axis == 'rows' or axis == 'r':
         range_.xl_sheet.rows[address].autofit()
     elif axis == 1 or axis == 'columns' or axis == 'c':
@@ -281,7 +282,7 @@ def autofit(range_, axis):
     elif axis is None:
         range_.xl_sheet.rows[address].autofit()
         range_.xl_sheet.columns[address].autofit()
-    app('Microsoft Excel').screen_updating.set(True)
+    xl_app.screen_updating.set(True)
 
 
 def autofit_sheet(sheet, axis):
@@ -290,7 +291,7 @@ def autofit_sheet(sheet, axis):
     num_rows = sheet.xl_sheet.count(each=kw.row)
     xl_range = get_range_from_indices(sheet.xl_sheet, 1, 1, num_rows, num_columns)
     address = xl_range.get_address()
-    app('Microsoft Excel').screen_updating.set(False)
+    xl_app.screen_updating.set(False)
     if axis == 0 or axis == 'rows' or axis == 'r':
         sheet.xl_sheet.rows[address].autofit()
     elif axis == 1 or axis == 'columns' or axis == 'c':
@@ -298,7 +299,7 @@ def autofit_sheet(sheet, axis):
     elif axis is None:
         sheet.xl_sheet.rows[address].autofit()
         sheet.xl_sheet.columns[address].autofit()
-    app('Microsoft Excel').screen_updating.set(True)
+    xl_app.screen_updating.set(True)
 
 
 def set_xl_workbook_current(xl_workbook):
@@ -318,9 +319,9 @@ def get_number_format(range_):
 
 
 def set_number_format(range_, value):
-    app('Microsoft Excel').screen_updating.set(False)
+    xl_app.screen_updating.set(False)
     range_.xl_range.number_format.set(value)
-    app('Microsoft Excel').screen_updating.set(True)
+    xl_app.screen_updating.set(True)
 
 
 def get_address(xl_range, row_absolute, col_absolute, external):
