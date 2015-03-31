@@ -20,8 +20,7 @@ except ImportError:
 time_types = (dt.date, dt.datetime)
 
 # We're only dealing with one instance of Excel on Mac
-# TODO: refactor into function with path argument, see
-# https://github.com/ZoomerAnalytics/xlwings/issues/169
+# TODO: refactor into function with path argument, see issue 169
 xl_app = app('Microsoft Excel', terms=mac_dict)
 
 @atexit.register
