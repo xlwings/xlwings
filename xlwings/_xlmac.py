@@ -10,7 +10,7 @@ import psutil
 import atexit
 from .constants import ColorIndex
 from .utils import rgb_to_int, int_to_rgb
-from . import mac_dict
+from . import mac_dict, PY3
 try:
     import pandas as pd
 except ImportError:
@@ -40,7 +40,7 @@ def clean_up():
         # Prevents Excel from reopening if it has been closed manually or never been opened
         try:
             _xl_app.run_VB_macro('CleanUp')
-        except CommandError:
+        except (CommandError, AttributeError):
             # Excel files initiated from Python don't have the xlwings VBA module
             pass
 
@@ -52,8 +52,12 @@ def is_file_open(fullname):
     for proc in psutil.process_iter():
         if proc.name() == 'Microsoft Excel':
             for i in proc.open_files():
-                if i.path.lower() == fullname.lower():
-                    return True
+                if PY3:
+                    if i.path.lower() == fullname.lower():
+                        return True
+                else:
+                    if unicode(i.path.lower(), 'utf-8') == fullname.lower():
+                        return True
     return False
 
 
@@ -71,8 +75,8 @@ def get_workbook(fullname):
     as each spreadsheet opens in a separate window anyway.
     """
     filename = os.path.basename(fullname)
-    xl_workbook = _xl_app.workbooks[filename]
     set_xl_app()
+    xl_workbook = _xl_app.workbooks[filename]
     return _xl_app, xl_workbook
 
 
