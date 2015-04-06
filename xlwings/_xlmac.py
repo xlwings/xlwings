@@ -9,7 +9,7 @@ from appscript import k as kw
 from appscript.reference import CommandError
 import psutil
 import atexit
-from .constants import ColorIndex
+from .constants import ColorIndex, Calculation
 from .utils import rgb_to_int, int_to_rgb
 from . import mac_dict, PY3
 try:
@@ -455,9 +455,16 @@ def set_screen_updating(xl_app, value):
     xl_app.screen_updating.set(value)
 
 
+# TODO: Hack for Excel 2016, to be refactored
+calculation = {kw.calculation_automatic: Calculation.xlCalculationAutomatic,
+               kw.calculation_manual: Calculation.xlCalculationManual,
+               kw.calculation_semiautomatic: Calculation.xlCalculationSemiautomatic}
+
+
 def get_calculation(xl_app):
-    return xl_app.calculation.get()
+    return calculation[xl_app.calculation.get()]
 
 
 def set_calculation(xl_app, value):
-    xl_app.calculation.set(value)
+    calculation_reverse = dict((v, k) for k, v in calculation.iteritems())
+    xl_app.calculation.set(calculation_reverse[value])
