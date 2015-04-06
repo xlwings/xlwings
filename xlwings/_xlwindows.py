@@ -36,6 +36,9 @@ def is_file_open(fullname):
     """
     Checks the Running Object Table (ROT) for the fully qualified filename
     """
+    if not PY3:
+        if isinstance(fullname, str):
+            fullname = unicode(fullname, 'utf-8')
     context = pythoncom.CreateBindCtx()
     for moniker in pythoncom.GetRunningObjectTable():
         name = moniker.GetDisplayName(context, None)
@@ -426,6 +429,9 @@ def get_xl_workbook_from_xl(fullname):
     call will work (e.g. when Excel opens with a Security Warning, the Workbook
     will not be registered in the RunningObjectTable and thus not accessible via GetObject)
     """
+    if not PY3:
+        # On Windows, Python uses the name 'mbcs' to refer to whatever the currently configured file system encoding is
+        fullname = unicode(fullname.lower(), 'mbcs')
     if not is_file_open(fullname):
         xl_app = GetActiveObject('Excel.Application')
         xl_workbook = xl_app.ActiveWorkbook
