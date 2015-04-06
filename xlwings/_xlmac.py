@@ -3,6 +3,7 @@
 import os
 import datetime as dt
 import subprocess
+import unicodedata
 from appscript import app, mactypes
 from appscript import k as kw
 from appscript.reference import CommandError
@@ -52,11 +53,18 @@ def is_file_open(fullname):
     for proc in psutil.process_iter():
         if proc.name() == 'Microsoft Excel':
             for i in proc.open_files():
+                path = i.path
                 if PY3:
-                    if i.path.lower() == fullname.lower():
+                    if path.lower() == fullname.lower():
                         return True
                 else:
-                    if unicode(i.path.lower(), 'utf-8') == fullname.lower():
+                    if isinstance(path, str):
+                        path = unicode(path, 'utf-8')
+                        # Mac saves unicode data in decomposed form, e.g. an e with accent is stored as 2 code points
+                        path = unicodedata.normalize('NFKC', path)
+                    if isinstance(fullname, str):
+                        fullname = unicode(fullname, 'utf-8')
+                    if path.lower() == fullname.lower():
                         return True
     return False
 
