@@ -196,6 +196,17 @@ class TestWorkbook:
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
 
+    def test_unicode_path(self):
+        wb = Workbook(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicodé_päth.xlsx'))
+        Range('A1').value = 1
+        wb.close()
+
+    def unsaved_workbook_reference(self):
+        wb = Workbook(app_visible=False)
+        Range('B2').value = 123
+        wb2 = Workbook(wb.name)
+        assert_equal(Range('B2', wkb=wb2).value, 123)
+
 
 class TestSheet:
     def setUp(self):
