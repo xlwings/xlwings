@@ -466,5 +466,5 @@ def get_calculation(xl_app):
 
 
 def set_calculation(xl_app, value):
-    calculation_reverse = dict((v, k) for k, v in calculation.iteritems())
+    calculation_reverse = dict(zip(calculation.values(), calculation.keys()))
     xl_app.calculation.set(calculation_reverse[value])
