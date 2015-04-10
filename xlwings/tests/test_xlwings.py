@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import os
 import sys
+import shutil
 import nose
 from nose.tools import assert_equal
 from datetime import datetime, date
@@ -200,11 +201,11 @@ class TestWorkbook:
         # pip3 seems to struggle with unicode filenames
         src = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'unicode_path.xlsx')
         dst = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicödé_päth.xlsx')
-        os.rename(src, dst)
+        shutil.move(src, dst)
         wb = Workbook(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicödé_päth.xlsx'))
         Range('A1').value = 1
         wb.close()
-        os.rename(dst, src)
+        shutil.move(dst, src)
 
     def unsaved_workbook_reference(self):
         wb = Workbook(app_visible=False)
