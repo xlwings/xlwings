@@ -366,9 +366,9 @@ class Sheet(object):
 
         Arguments
         ---------
-        axis : string or integer, default None
-            - To autofit rows, use one of the following: 0 or ``rows`` or ``r``
-            - To autofit columns, use one of the following: 1 or ``columns`` or ``c``
+        axis : string, default None
+            - To autofit rows, use one of the following: ``rows`` or ``r``
+            - To autofit columns, use one of the following: ``columns`` or ``c``
             - To autofit rows and columns, provide no arguments
 
         Examples
@@ -999,8 +999,8 @@ class Range(object):
         Arguments
         ---------
         axis : string or integer, default None
-            - To autofit rows, use one of the following: 0 or ``rows`` or ``r``
-            - To autofit columns, use one of the following: 1 or ``columns`` or ``c``
+            - To autofit rows, use one of the following: ``rows`` or ``r``
+            - To autofit columns, use one of the following: ``columns`` or ``c``
             - To autofit rows and columns, provide no arguments
 
         Examples
@@ -1013,8 +1013,6 @@ class Range(object):
             Range('1:1').autofit('r')
             # Autofit columns and rows, taking into account Range('A1:E4')
             Range('A1:E4').autofit()
-            # AutoFit columns, taking into account Range('A1:E4')
-            Range('A1:E4').autofit(axis=1)
             # AutoFit rows, taking into account Range('A1:E4')
             Range('A1:E4').autofit('rows')
 

@@ -274,9 +274,9 @@ def activate_chart(xl_chart):
 def autofit(range_, axis):
     address = range_.xl_range.get_address()
     app('Microsoft Excel').screen_updating.set(False)
-    if axis == 0 or axis == 'rows' or axis == 'r':
+    if axis == 'rows' or axis == 'r':
         range_.xl_sheet.rows[address].autofit()
-    elif axis == 1 or axis == 'columns' or axis == 'c':
+    elif axis == 'columns' or axis == 'c':
         range_.xl_sheet.columns[address].autofit()
     elif axis is None:
         range_.xl_sheet.rows[address].autofit()
@@ -291,9 +291,9 @@ def autofit_sheet(sheet, axis):
     xl_range = get_range_from_indices(sheet.xl_sheet, 1, 1, num_rows, num_columns)
     address = xl_range.get_address()
     app('Microsoft Excel').screen_updating.set(False)
-    if axis == 0 or axis == 'rows' or axis == 'r':
+    if axis == 'rows' or axis == 'r':
         sheet.xl_sheet.rows[address].autofit()
-    elif axis == 1 or axis == 'columns' or axis == 'c':
+    elif axis == 'columns' or axis == 'c':
         sheet.xl_sheet.columns[address].autofit()
     elif axis is None:
         sheet.xl_sheet.rows[address].autofit()

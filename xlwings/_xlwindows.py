@@ -323,9 +323,9 @@ def activate_chart(xl_chart):
 
 
 def autofit(range_, axis):
-    if axis == 0 or axis == 'rows' or axis == 'r':
+    if axis == 'rows' or axis == 'r':
         range_.xl_range.Rows.AutoFit()
-    elif axis == 1 or axis == 'columns' or axis == 'c':
+    elif axis == 'columns' or axis == 'c':
         range_.xl_range.Columns.AutoFit()
     elif axis is None:
         range_.xl_range.Columns.AutoFit()
@@ -333,9 +333,9 @@ def autofit(range_, axis):
 
 
 def autofit_sheet(sheet, axis):
-    if axis == 0 or axis == 'rows' or axis == 'r':
+    if axis == 'rows' or axis == 'r':
         sheet.xl_sheet.Rows.AutoFit()
-    elif axis == 1 or axis == 'columns' or axis == 'c':
+    elif axis == 'columns' or axis == 'c':
         sheet.xl_sheet.Columns.AutoFit()
     elif axis is None:
         sheet.xl_sheet.Rows.AutoFit()
