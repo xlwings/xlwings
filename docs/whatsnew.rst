@@ -1,6 +1,36 @@
 What's New
 ==========
 
+v0.3.5 (April 26, 2015)
+-----------------------
+
+API changes
+***********
+
+``Sheet.autofit()`` and ``Range.autofit()``: The integer argument for the axis has been removed (:issue:`186`).
+Use string arguments ``rows`` or ``r`` for autofitting rows and ``columns`` or ``c`` for autofitting columns
+(as before).
+
+Enhancements
+************
+New methods:
+
+* :meth:`xlwings.Range.row` (:issue:`143`)
+* :meth:`xlwings.Range.column` (:issue:`143`)
+* :meth:`xlwings.Range.last_cell` (:issue:`142`)
+
+Example::
+
+    >>> rng = Range('A1').table
+    >>> rng.row, rng.column
+    (1, 1)
+    >>> rng.last_cell.row, rng.last_cell.column
+    (4, 5)
+
+Bug Fixes
+*********
+* The ``unicode`` bug on Windows/Python3 has been fixed (:issue:`161`)
+
 v0.3.4 (March 9, 2015)
 ----------------------
 
@@ -214,7 +244,6 @@ Enhancements
 
     >>> Sheet(1).autofit()  # autofit columns and rows
     >>> Sheet('Sheet1').autofit('c')  # autofit columns
-    >>> Sheet('Sheet1').autofit(0)  # autofit rows
 
 * New property ``number_format`` for ``Range`` objects (:issue:`60`)::
 
@@ -329,8 +358,8 @@ Enhancements
   *Arguments*::
 
     axis : string or integer, default None
-        - To autofit rows, use one of the following: 0 or 'rows' or 'r'
-        - To autofit columns, use one of the following: 1 or 'columns' or 'c'
+        - To autofit rows, use one of the following: 'rows' or 'r'
+        - To autofit columns, use one of the following: 'columns' or 'c'
         - To autofit rows and columns, provide no arguments
 
   *Examples*::
@@ -341,8 +370,6 @@ Enhancements
     Range('1:1').autofit()
     # Autofit columns and rows, taking into account Range('A1:E4')
     Range('A1:E4').autofit()
-    # AutoFit columns, taking into account Range('A1:E4')
-    Range('A1:E4').autofit(axis=1)
     # AutoFit rows, taking into account Range('A1:E4')
     Range('A1:E4').autofit('rows')
 
