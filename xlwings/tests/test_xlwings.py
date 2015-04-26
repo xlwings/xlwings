@@ -749,6 +749,15 @@ class TestRange:
         date_2 = Range('X1').value
         assert_equal(date_1, date(date_2.year, date_2.month, date_2.day))
 
+    def test_row(self):
+        assert_equal(Range('B3:F5').row, 3)
+
+    def test_column(self):
+        assert_equal(Range('B3:F5').column, 2)
+
+    def test_last_cell(self):
+        assert_equal(Range('B3:F5').last_cell.row, 5)
+        assert_equal(Range('B3:F5').last_cell.column, 6)
 
 
 class TestChart:

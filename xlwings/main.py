@@ -1203,6 +1203,53 @@ class Range(object):
 
         return Range(xlplatform.get_worksheet_name(self.xl_sheet), (row1, col1), (row2, col2), **self.kwargs)
 
+    @property
+    def column(self):
+        """
+        .. versionadded:: 0.3.5
+
+        Returns the number of the first column in the in the specified range. Read-only.
+
+        Returns
+        -------
+        Integer
+        """
+        return self.col1
+
+    @property
+    def row(self):
+        """
+        .. versionadded:: 0.3.5
+
+        Returns the number of the first row in the in the specified range. Read-only.
+
+        Returns
+        -------
+        Integer
+        """
+        return self.row1
+
+    @property
+    def last_cell(self):
+        """
+        .. versionadded:: 0.3.5
+
+        Returns the bottom right cell of the specified range. Read-only.
+
+        Returns
+        -------
+        Range object
+
+        Example
+        -------
+        >>> rng = Range('A1').table
+        >>> rng.last_cell.row, rng.last_cell.column
+        (4, 5)
+
+        """
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet),
+                     (self.row2, self.col2), **self.kwargs)
+
 
 class Chart(object):
     """
