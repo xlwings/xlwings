@@ -196,6 +196,12 @@ class TestWorkbook:
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
 
+    def test_mock_caller(self):
+        Workbook.set_mock_caller(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx'))
+        wb = Workbook.caller()
+        Range('A1', wkb=wb).value = 333
+        assert_equal(Range('A1', wkb=wb).value, 333)
+
 
 class TestSheet:
     def setUp(self):
