@@ -23,10 +23,7 @@ def main():
     starting_price = Range('E8').value
     perc_selection = [5, 50, 95]  # percentiles (hardcoded for now)
     # Animation
-    if Range('E9').value.lower() == 'yes':
-        animate = True
-    else:
-        animate = False
+    animate = Range('E9').value.lower() == 'yes'
 
     # Excel: clear output, write out initial values of percentiles/sample path and set chart source
     # and x-axis values
