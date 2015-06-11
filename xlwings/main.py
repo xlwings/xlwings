@@ -130,7 +130,10 @@ class Workbook(object):
             self.xl_app = xlplatform.get_app(self.xl_workbook)
         elif fullname:
             self.fullname = fullname
-            if xlplatform.is_file_open(self.fullname):
+            if not os.path.isfile(fullname):
+                # unsaved Workobook, e.g. 'Workbook1'
+                self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname)
+            elif xlplatform.is_file_open(self.fullname):
                 # Connect to an open Workbook
                 self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname)
             else:

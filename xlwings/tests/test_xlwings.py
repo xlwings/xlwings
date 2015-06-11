@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import os
 import sys
+import shutil
 import nose
 from nose.tools import assert_equal
 from datetime import datetime, date
@@ -201,6 +202,21 @@ class TestWorkbook:
         wb = Workbook.caller()
         Range('A1', wkb=wb).value = 333
         assert_equal(Range('A1', wkb=wb).value, 333)
+    def test_unicode_path(self):
+        # pip3 seems to struggle with unicode filenames
+        src = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'unicode_path.xlsx')
+        dst = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicödé_päth.xlsx')
+        shutil.move(src, dst)
+        wb = Workbook(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicödé_päth.xlsx'))
+        Range('A1').value = 1
+        wb.close()
+        shutil.move(dst, src)
+
+    def unsaved_workbook_reference(self):
+        wb = Workbook(app_visible=False)
+        Range('B2').value = 123
+        wb2 = Workbook(wb.name)
+        assert_equal(Range('B2', wkb=wb2).value, 123)
 
 
 class TestSheet:
@@ -671,18 +687,18 @@ class TestRange:
         # Naked address
         Range('A1').add_hyperlink(address)
         assert_equal(Range('A1').value, address)
-        if sys.platform.startswith('darwin'):
-            assert_equal(Range('A1').hyperlink, 'http://' + address)
-        else:
-            assert_equal(Range('A1').hyperlink, 'http://' + address + '/')
+        hyperlink = Range('A1').hyperlink
+        if not hyperlink.endswith('/'):
+            hyperlink += '/'
+        assert_equal(hyperlink, 'http://' + address + '/')
 
         # Address + FriendlyName
         Range('A2').add_hyperlink(address, 'test_link')
         assert_equal(Range('A2').value, 'test_link')
-        if sys.platform.startswith('darwin'):
-            assert_equal(Range('A2').hyperlink, 'http://' + address)
-        else:
-            assert_equal(Range('A2').hyperlink, 'http://' + address + '/')
+        hyperlink = Range('A2').hyperlink
+        if not hyperlink.endswith('/'):
+            hyperlink += '/'
+        assert_equal(hyperlink, 'http://' + address + '/')
 
     def test_hyperlink_formula(self):
         Range('B10').formula = '=HYPERLINK("http://xlwings.org", "xlwings")'
