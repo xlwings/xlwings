@@ -124,24 +124,24 @@ class Workbook(object):
     ``wb = Workbook.caller()``
 
     """
-    def __init__(self, fullname=None, xl_workbook=None, app_visible=True):
+    def __init__(self, fullname=None, xl_workbook=None, app_visible=True, app_path=None):
         if xl_workbook:
             self.xl_workbook = xl_workbook
-            self.xl_app = xlplatform.get_app(self.xl_workbook)
+            self.xl_app = xlplatform.get_app(self.xl_workbook, app_path)
         elif fullname:
             self.fullname = fullname
             if not os.path.isfile(fullname):
                 # unsaved Workobook, e.g. 'Workbook1'
-                self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname)
+                self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname, app_path)
             elif xlplatform.is_file_open(self.fullname):
                 # Connect to an open Workbook
-                self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname)
+                self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname, app_path)
             else:
                 # Open Excel and the Workbook
-                self.xl_app, self.xl_workbook = xlplatform.open_workbook(self.fullname)
+                self.xl_app, self.xl_workbook = xlplatform.open_workbook(self.fullname, app_path)
         else:
             # Open Excel if necessary and create a new workbook
-            self.xl_app, self.xl_workbook = xlplatform.new_workbook()
+            self.xl_app, self.xl_workbook = xlplatform.new_workbook(app_path)
 
         self.name = xlplatform.get_workbook_name(self.xl_workbook)
         self.active_sheet = Sheet.active(wkb=self)
