@@ -47,7 +47,7 @@ def is_file_open(fullname):
     return False
 
 
-def get_workbook(fullname, target_app):
+def get_workbook(fullname, app_target):
     """
     Returns the COM Application and Workbook objects of an open Workbook.
     GetObject() returns the correct Excel instance if there are > 1
@@ -81,21 +81,19 @@ def get_app(xl_workbook):
     return xl_workbook.Application
 
 
-def _get_latest_app(target_app):
+def _get_latest_app(app_target):
     """
     Only dispatch Excel if there isn't an existing application - this allows us to run open_workbook() and
     new_workbook() in the correct Excel instance, i.e. in the one that was instantiated last. Otherwise it would pick
     the application that appears first in the Running Object Table (ROT).
     """
-    if target_app is None:
-        target_app = 'Excel.Application'
     try:
         return xl_workbook_current.Application
-    except (NameError, pywintypes.com_error):
-        return dynamic.Dispatch(target_app)
+    except (NameError, AttributeError, pywintypes.com_error):
+        return dynamic.Dispatch('Excel.Application')
 
 
-def open_workbook(fullname, target_app):
+def open_workbook(fullname, app_target):
     xl_app = _get_latest_app()
     xl_workbook = xl_app.Workbooks.Open(fullname)
     return xl_app, xl_workbook
@@ -105,8 +103,8 @@ def close_workbook(xl_workbook):
     xl_workbook.Close(SaveChanges=False)
 
 
-def new_workbook(target_app):
-    xl_app = _get_latest_app(target_app)
+def new_workbook(app_target):
+    xl_app = _get_latest_app(app_target)
     xl_workbook = xl_app.Workbooks.Add()
     return xl_app, xl_workbook
 
@@ -435,7 +433,7 @@ def get_xl_workbook_from_xl(fullname):
         # On Windows, Python uses the name 'mbcs' to refer to whatever the currently configured file system encoding is
         fullname = unicode(fullname.lower(), 'mbcs')
     if not is_file_open(fullname):
-        # Windows doesn't allow to simultaneously work with two versions of Excel, so we don't need to use target_app
+        # Windows doesn't allow to simultaneously work with two versions of Excel, so we don't need to use app_target
         xl_app = GetActiveObject('Excel.Application')
         xl_workbook = xl_app.ActiveWorkbook
         if xl_workbook.FullName.lower() != fullname.lower():
