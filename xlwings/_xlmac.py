@@ -23,11 +23,11 @@ time_types = (dt.date, dt.datetime)
 # We're only dealing with one instance of Excel on Mac
 _xl_app = None
 
-def set_xl_app(app_path=None):
-    if app_path is None:
-        app_path = 'Microsoft Excel'
+def set_xl_app(target_app=None):
+    if target_app is None:
+        target_app = 'Microsoft Excel'
     global _xl_app
-    _xl_app = app(app_path, terms=mac_dict)
+    _xl_app = app(target_app, terms=mac_dict)
 
 
 @atexit.register
@@ -78,14 +78,14 @@ def is_excel_running():
     return False
 
 
-def get_workbook(fullname, app_path):
+def get_workbook(fullname, target_app):
     """
     Get the appscript Workbook object.
     On Mac, it seems that we don't have to deal with >1 instances of Excel,
     as each spreadsheet opens in a separate window anyway.
     """
     filename = os.path.basename(fullname)
-    set_xl_app(app_path)
+    set_xl_app(target_app)
     xl_workbook = _xl_app.workbooks[filename]
     return _xl_app, xl_workbook
 
@@ -110,14 +110,14 @@ def get_worksheet_index(xl_sheet):
     return xl_sheet.entry_index.get()
 
 
-def get_app(xl_workbook, app_path):
-    set_xl_app(app_path)
+def get_app(xl_workbook, target_app):
+    set_xl_app(target_app)
     return _xl_app
 
 
-def open_workbook(fullname, app_path):
+def open_workbook(fullname, target_app):
     filename = os.path.basename(fullname)
-    set_xl_app(app_path)
+    set_xl_app(target_app)
     _xl_app.open(fullname)
     xl_workbook = _xl_app.workbooks[filename]
     return _xl_app, xl_workbook
@@ -127,10 +127,10 @@ def close_workbook(xl_workbook):
     xl_workbook.close(saving=kw.no)
 
 
-def new_workbook(app_path):
+def new_workbook(target_app):
     is_running = is_excel_running()
 
-    set_xl_app(app_path)
+    set_xl_app(target_app)
 
     if is_running:
         # If Excel is being fired up, a "Workbook1" is automatically added

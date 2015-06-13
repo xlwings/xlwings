@@ -118,30 +118,38 @@ class Workbook(object):
         set ``app_visible=None``. Note that this property acts on the whole Excel instance, not just the
         specific Workbook.
 
+    target_app : str, default None
+        On Windows, specify the version of Excel as follows:
+        e.g. ``Excel.Application.14`` for Excel 2010, ``Excel.Application.15`` for Excel 2013,
+        ``Excel.Application.16`` for Excel 2016
+
+        On Mac, use the full path to the Excel application,
+        e.g. ``/Applications/Microsoft Office 2011/Microsoft Excel`` or ``/Applications/Microsoft Excel``
+
 
     To create a connection when the Python function is called from Excel, use:
 
     ``wb = Workbook.caller()``
 
     """
-    def __init__(self, fullname=None, xl_workbook=None, app_visible=True, app_path=None):
+    def __init__(self, fullname=None, xl_workbook=None, app_visible=True, target_app=None):
         if xl_workbook:
             self.xl_workbook = xl_workbook
-            self.xl_app = xlplatform.get_app(self.xl_workbook, app_path)
+            self.xl_app = xlplatform.get_app(self.xl_workbook, target_app)
         elif fullname:
             self.fullname = fullname
             if not os.path.isfile(fullname):
                 # unsaved Workobook, e.g. 'Workbook1'
-                self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname, app_path)
+                self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname, target_app)
             elif xlplatform.is_file_open(self.fullname):
                 # Connect to an open Workbook
-                self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname, app_path)
+                self.xl_app, self.xl_workbook = xlplatform.get_workbook(self.fullname, target_app)
             else:
                 # Open Excel and the Workbook
-                self.xl_app, self.xl_workbook = xlplatform.open_workbook(self.fullname, app_path)
+                self.xl_app, self.xl_workbook = xlplatform.open_workbook(self.fullname, target_app)
         else:
             # Open Excel if necessary and create a new workbook
-            self.xl_app, self.xl_workbook = xlplatform.new_workbook(app_path)
+            self.xl_app, self.xl_workbook = xlplatform.new_workbook(target_app)
 
         self.name = xlplatform.get_workbook_name(self.xl_workbook)
         self.active_sheet = Sheet.active(wkb=self)
