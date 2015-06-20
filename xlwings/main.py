@@ -31,11 +31,7 @@ except ImportError:
 
 class Application(object):
     """
-    Application is dependent on the Workbook since there might be different application instances. You can therefore
-    also access it as attribute of a workbook::
-
-        wb = Workbook()
-        wb.application
+    Application is dependent on the Workbook since there might be different application instances on Windows.
     """
     def __init__(self, wkb):
         self.wkb = wkb
@@ -83,10 +79,10 @@ class Application(object):
 
         Returns or sets a Calculation value that represents the calculation mode::
 
-        >>> from xlwings import Workbook
+        >>> from xlwings import Workbook, Application
         >>> from xlwings.constants import Calculation
         >>> wb = Workbook()
-        >>> wb.application.calculation = Calculation.xlCalculationManual
+        >>> Application(wkb=wb).calculation = Calculation.xlCalculationManual
 
         """
         return xlplatform.get_calculation(self.xl_app)
@@ -152,7 +148,6 @@ class Workbook(object):
 
         self.name = xlplatform.get_workbook_name(self.xl_workbook)
         self.active_sheet = Sheet.active(wkb=self)
-        self.application = Application(wkb=self)
 
         if fullname is None:
             self.fullname = xlplatform.get_fullname(self.xl_workbook)

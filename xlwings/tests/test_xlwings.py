@@ -9,7 +9,7 @@ import shutil
 import nose
 from nose.tools import assert_equal
 from datetime import datetime, date
-from xlwings import Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation
+from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation
 if sys.platform.startswith('darwin'):
     from appscript import k as kw
 
@@ -101,20 +101,20 @@ class TestApplication:
         self.wb.close()
 
     def test_screen_updating(self):
-        self.wb.application.screen_updating = False
-        assert_equal(self.wb.application.screen_updating, False)
+        Application(wkb=self.wb).screen_updating = False
+        assert_equal(Application(wkb=self.wb).screen_updating, False)
 
-        self.wb.application.screen_updating = True
-        assert_equal(self.wb.application.screen_updating, True)
+        Application(wkb=self.wb).screen_updating = True
+        assert_equal(Application(wkb=self.wb).screen_updating, True)
 
     def test_calculation(self):
         Range('A1').value = 2
         Range('B1').formula = '=A1 * 2'
-        self.wb.application.calculation = Calculation.xlCalculationManual
+        Application(wkb=self.wb).calculation = Calculation.xlCalculationManual
         Range('A1').value = 4
 
         assert_equal(Range('B1').value, 4)
-        self.wb.application.calculation = Calculation.xlCalculationAutomatic
+        Application(wkb=self.wb).calculation = Calculation.xlCalculationAutomatic
         assert_equal(Range('B1').value, 8)
 
 class TestWorkbook:
