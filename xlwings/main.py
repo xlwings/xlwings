@@ -114,7 +114,7 @@ class Workbook(object):
         set ``app_visible=None``. Note that this property acts on the whole Excel instance, not just the
         specific Workbook.
 
-    target_app : str, default None
+    app_target : str, default None
         Mac-only, use the full path to the Excel application,
         e.g. ``/Applications/Microsoft Office 2011/Microsoft Excel`` or ``/Applications/Microsoft Excel``
 
