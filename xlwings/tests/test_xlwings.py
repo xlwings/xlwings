@@ -121,6 +121,10 @@ class TestApplication:
         app.calculate()  # This is needed on Mac Excel 2016 but not on Mac Excel 2011 (changed behaviour)
         assert_equal(Range('B1').value, 8)
 
+        Range('A1').value = 2
+        assert_equal(Range('B1').value, 4)
+
+
 class TestWorkbook:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
