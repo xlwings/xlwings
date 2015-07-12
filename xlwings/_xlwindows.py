@@ -77,11 +77,12 @@ def get_worksheet_index(xl_sheet):
     return xl_sheet.Index
 
 
-def get_app(xl_workbook):
+def get_app(xl_workbook, app_target):
+    # app_target is only used on Mac
     return xl_workbook.Application
 
 
-def _get_latest_app(app_target):
+def _get_latest_app():
     """
     Only dispatch Excel if there isn't an existing application - this allows us to run open_workbook() and
     new_workbook() in the correct Excel instance, i.e. in the one that was instantiated last. Otherwise it would pick
@@ -94,6 +95,7 @@ def _get_latest_app(app_target):
 
 
 def open_workbook(fullname, app_target):
+    # app_target is only used on Mac
     xl_app = _get_latest_app()
     xl_workbook = xl_app.Workbooks.Open(fullname)
     return xl_app, xl_workbook
@@ -104,7 +106,8 @@ def close_workbook(xl_workbook):
 
 
 def new_workbook(app_target):
-    xl_app = _get_latest_app(app_target)
+    # app_target is only used on Mac
+    xl_app = _get_latest_app()
     xl_workbook = xl_app.Workbooks.Add()
     return xl_app, xl_workbook
 

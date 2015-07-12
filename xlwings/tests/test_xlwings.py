@@ -206,6 +206,7 @@ class TestWorkbook:
         wb = Workbook.caller()
         Range('A1', wkb=wb).value = 333
         assert_equal(Range('A1', wkb=wb).value, 333)
+
     def test_unicode_path(self):
         # pip3 seems to struggle with unicode filenames
         src = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'unicode_path.xlsx')
