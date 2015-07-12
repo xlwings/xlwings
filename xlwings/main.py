@@ -92,6 +92,11 @@ class Application(object):
         xlplatform.set_calculation(self.xl_app, value)
 
     def calculate(self):
+        """
+        .. versionadded:: 0.3.6
+
+        Calculates all open Workbooks
+        """
         xlplatform.calculate(self.xl_app)
 
 
