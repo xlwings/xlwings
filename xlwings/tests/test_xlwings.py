@@ -12,6 +12,11 @@ from datetime import datetime, date
 from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation
 if sys.platform.startswith('darwin'):
     from appscript import k as kw
+    # TODO: uncomment the desired Excel installation or set to None for default installation
+    APP_TARGET = None
+    # APP_TARGET = '/Applications/Microsoft Office 2011/Microsoft Excel'
+else:
+    APP_TARGET = None
 
 # Optional imports
 try:
@@ -89,12 +94,16 @@ def _skip_if_no_pandas():
     if pd is None:
         raise nose.SkipTest('pandas missing')
 
+def _skip_if_not_default_xl():
+    if APP_TARGET is not None:
+        raise nose.SkipTest('not Excel default')
+
 
 class TestApplication:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
         xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx')
-        self.wb = Workbook(xl_file1, app_visible=False)
+        self.wb = Workbook(xl_file1, app_visible=False, app_target=APP_TARGET)
         Sheet('Sheet1').activate()
 
     def tearDown(self):
@@ -129,7 +138,7 @@ class TestWorkbook:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
         xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx')
-        self.wb = Workbook(xl_file1, app_visible=False)
+        self.wb = Workbook(xl_file1, app_visible=False, app_target=APP_TARGET)
         Sheet('Sheet1').activate()
 
     def tearDown(self):
@@ -145,7 +154,7 @@ class TestWorkbook:
         assert_equal(self.wb.xl_workbook, Workbook.current().xl_workbook)
 
     def test_set_current(self):
-        wb2 = Workbook(app_visible=False)
+        wb2 = Workbook(app_visible=False, app_target=APP_TARGET)
         assert_equal(Workbook.current().xl_workbook, wb2.xl_workbook)
         self.wb.set_current()
         assert_equal(Workbook.current().xl_workbook, self.wb.xl_workbook)
@@ -157,8 +166,8 @@ class TestWorkbook:
 
     def test_reference_two_unsaved_wb(self):
         """Covers GH Issue #63"""
-        wb1 = Workbook(app_visible=False)
-        wb2 = Workbook(app_visible=False)
+        wb1 = Workbook(app_visible=False, app_target=APP_TARGET)
+        wb2 = Workbook(app_visible=False, app_target=APP_TARGET)
 
         Range('A1').value = 2.  # wb2
         Range('A1', wkb=wb1).value = 1.  # wb1
@@ -172,7 +181,7 @@ class TestWorkbook:
     def test_save_naked(self):
 
         cwd = os.getcwd()
-        wb1 = Workbook(app_visible=False)
+        wb1 = Workbook(app_visible=False, app_target=APP_TARGET)
         target_file_path = os.path.join(cwd, wb1.name + '.xlsx')
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
@@ -181,7 +190,7 @@ class TestWorkbook:
 
         assert_equal(os.path.isfile(target_file_path), True)
 
-        wb2 = Workbook(target_file_path, app_visible=False)
+        wb2 = Workbook(target_file_path, app_visible=False, app_target=APP_TARGET)
         wb2.close()
 
         if os.path.isfile(target_file_path):
@@ -190,7 +199,7 @@ class TestWorkbook:
     def test_save_path(self):
 
         cwd = os.getcwd()
-        wb1 = Workbook(app_visible=False)
+        wb1 = Workbook(app_visible=False, app_target=APP_TARGET)
         target_file_path = os.path.join(cwd, 'TestFile.xlsx')
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
@@ -199,13 +208,15 @@ class TestWorkbook:
 
         assert_equal(os.path.isfile(target_file_path), True)
 
-        wb2 = Workbook(target_file_path, app_visible=False)
+        wb2 = Workbook(target_file_path, app_visible=False, app_target=APP_TARGET)
         wb2.close()
 
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
 
     def test_mock_caller(self):
+        _skip_if_not_default_xl()
+
         Workbook.set_mock_caller(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx'))
         wb = Workbook.caller()
         Range('A1', wkb=wb).value = 333
@@ -216,15 +227,15 @@ class TestWorkbook:
         src = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'unicode_path.xlsx')
         dst = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicödé_päth.xlsx')
         shutil.move(src, dst)
-        wb = Workbook(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicödé_päth.xlsx'))
+        wb = Workbook(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicödé_päth.xlsx'), app_target=APP_TARGET)
         Range('A1').value = 1
         wb.close()
         shutil.move(dst, src)
 
     def unsaved_workbook_reference(self):
-        wb = Workbook(app_visible=False)
+        wb = Workbook(app_visible=False, app_target=APP_TARGET)
         Range('B2').value = 123
-        wb2 = Workbook(wb.name)
+        wb2 = Workbook(wb.name, app_visible=False, app_target=APP_TARGET)
         assert_equal(Range('B2', wkb=wb2).value, 123)
 
 
@@ -232,7 +243,7 @@ class TestSheet:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
         xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx')
-        self.wb = Workbook(xl_file1, app_visible=False)
+        self.wb = Workbook(xl_file1, app_visible=False, app_target=APP_TARGET)
         Sheet('Sheet1').activate()
 
     def tearDown(self):
@@ -315,7 +326,7 @@ class TestRange:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
         xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_range_1.xlsx')
-        self.wb = Workbook(xl_file1, app_visible=False)
+        self.wb = Workbook(xl_file1, app_visible=False, app_target=APP_TARGET)
         Sheet('Sheet1').activate()
 
     def tearDown(self):
@@ -795,7 +806,7 @@ class TestChart:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
         xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_chart_1.xlsx')
-        self.wb = Workbook(xl_file1, app_visible=False)
+        self.wb = Workbook(xl_file1, app_visible=False, app_target=APP_TARGET)
         Sheet('Sheet1').activate()
 
     def tearDown(self):
