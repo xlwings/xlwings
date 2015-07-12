@@ -106,7 +106,7 @@ Sub ExcecuteMac(Command As String, PYTHON_MAC As String, LOG_FILE As String, SHO
     PYTHONPATH = ToPosixPath(PYTHONPATH)
     LOG_FILE = ToPosixPath(LOG_FILE)
     PythonInterpreter = ToPosixPath(PYTHON_MAC & "/python")
-    WORKBOOK_FULLNAME = ToPosixPath(ThisWorkbook.FullName)
+    WORKBOOK_FULLNAME = ToPosixPath(ThisWorkbook.Path & ":" & ThisWorkbook.Name) 'ThisWorkbook.FullName doesn't handle unicode on Excel 2011
 
     ' Build the command (ignore warnings to be in line with Windows where we only show the popup if the ExitCode <> 0
     ' -u is needed because on PY3 stderr is buffered by default and so wouldn't be available on time for the pop-up to show
