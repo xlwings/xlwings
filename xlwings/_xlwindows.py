@@ -499,3 +499,7 @@ def get_calculation(xl_app):
 
 def set_calculation(xl_app, value):
     xl_app.Calculation = value
+
+
+def calculate(xl_app):
+    xl_app.Calculate()

@@ -110,11 +110,15 @@ class TestApplication:
     def test_calculation(self):
         Range('A1').value = 2
         Range('B1').formula = '=A1 * 2'
-        Application(wkb=self.wb).calculation = Calculation.xlCalculationManual
-        Range('A1').value = 4
 
+        app = Application(wkb=self.wb)
+
+        app.calculation = Calculation.xlCalculationManual
+        Range('A1').value = 4
         assert_equal(Range('B1').value, 4)
-        Application(wkb=self.wb).calculation = Calculation.xlCalculationAutomatic
+
+        app.calculation = Calculation.xlCalculationAutomatic
+        app.calculate()  # This is needed on Mac Excel 2016 but not on Mac Excel 2011 (changed behaviour)
         assert_equal(Range('B1').value, 8)
 
 class TestWorkbook:

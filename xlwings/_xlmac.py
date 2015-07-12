@@ -466,3 +466,7 @@ def get_calculation(xl_app):
 def set_calculation(xl_app, value):
     calculation_reverse = dict(zip(calculation.values(), calculation.keys()))
     xl_app.calculation.set(calculation_reverse[value])
+
+
+def calculate(xl_app):
+    xl_app.calculate()

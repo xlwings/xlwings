@@ -91,6 +91,9 @@ class Application(object):
     def calculation(self, value):
         xlplatform.set_calculation(self.xl_app, value)
 
+    def calculate(self):
+        xlplatform.calculate(self.xl_app)
+
 
 class Workbook(object):
     """
