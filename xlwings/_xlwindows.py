@@ -434,7 +434,9 @@ def get_xl_workbook_from_xl(fullname):
     """
     if not PY3:
         # On Windows, Python uses the name 'mbcs' to refer to whatever the currently configured file system encoding is
-        fullname = unicode(fullname.lower(), 'mbcs')
+        # TODO: check if this is needed or just a duplicate of the equivalent code in is_file_open
+        if isinstance(fullname, str):
+            fullname = unicode(fullname.lower(), 'mbcs')
     if not is_file_open(fullname):
         # Windows doesn't allow to simultaneously work with two versions of Excel, so we don't need to use app_target
         xl_app = GetActiveObject('Excel.Application')
