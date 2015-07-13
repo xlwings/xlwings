@@ -10,6 +10,8 @@ import nose
 from nose.tools import assert_equal
 from datetime import datetime, date
 from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation
+
+# Mac imports
 if sys.platform.startswith('darwin'):
     from appscript import k as kw
     # TODO: uncomment the desired Excel installation or set to None for default installation
@@ -18,7 +20,7 @@ if sys.platform.startswith('darwin'):
 else:
     APP_TARGET = None
 
-# Optional imports
+# Optional dependencies
 try:
     import numpy as np
     from numpy.testing import assert_array_equal
