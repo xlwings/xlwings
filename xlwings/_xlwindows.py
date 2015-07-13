@@ -52,6 +52,8 @@ def get_workbook(fullname, app_target):
     Returns the COM Application and Workbook objects of an open Workbook.
     GetObject() returns the correct Excel instance if there are > 1
     """
+    if app_target is not None:
+        raise NotImplementedError('app_target is only available on Mac.')
     xl_workbook = GetObject(fullname)
     xl_app = xl_workbook.Application
     return xl_app, xl_workbook
@@ -78,7 +80,8 @@ def get_worksheet_index(xl_sheet):
 
 
 def get_app(xl_workbook, app_target):
-    # app_target is only used on Mac
+    if app_target is not None:
+        raise NotImplementedError('app_target is only available on Mac.')
     return xl_workbook.Application
 
 
@@ -95,7 +98,8 @@ def _get_latest_app():
 
 
 def open_workbook(fullname, app_target):
-    # app_target is only used on Mac
+    if app_target is not None:
+        raise NotImplementedError('app_target is only available on Mac.')
     xl_app = _get_latest_app()
     xl_workbook = xl_app.Workbooks.Open(fullname)
     return xl_app, xl_workbook
@@ -106,7 +110,8 @@ def close_workbook(xl_workbook):
 
 
 def new_workbook(app_target):
-    # app_target is only used on Mac
+    if app_target is not None:
+        raise NotImplementedError('app_target is only available on Mac.')
     xl_app = _get_latest_app()
     xl_workbook = xl_app.Workbooks.Add()
     return xl_app, xl_workbook
