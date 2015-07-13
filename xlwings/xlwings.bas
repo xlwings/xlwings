@@ -71,8 +71,13 @@ Public Function RunPython(PythonCommand As String)
 
     ' Call Python platform-dependent
     #If Mac Then
-        Application.StatusBar = "Running..."  ' Non-blocking way of giving feedback that something is happening
-        ExcecuteMac PythonCommand, PYTHON_MAC, LOG_FILE, SHOW_LOG, PYTHONPATH
+        #If MAC_OFFICE_VERSION >= 15 Then
+            MsgBox "This functionality is not yet supported on Excel 2016 for Mac." & vbNewLine & _
+               "Please run your scripts directly in Python or call them from Excel 2011!", vbCritical + vbOKOnly, "Unsupported Feature"
+        #Else
+            Application.StatusBar = "Running..."  ' Non-blocking way of giving feedback that something is happening
+            ExcecuteMac PythonCommand, PYTHON_MAC, LOG_FILE, SHOW_LOG, PYTHONPATH
+        #End If
     #Else
         ' Make sure that the calling Workbook is the active Workbook
         ' This is necessary because under certain circumstances, only the GetActiveObject
