@@ -1,6 +1,55 @@
 What's New
 ==========
 
+v0.3.6 (July 14, 2015)
+----------------------
+
+API changes
+***********
+
+``Application`` as attribute of a ``Workbook`` has been removed (``wb`` is a ``Workbook`` object):
+
+==============================  =========================
+**Correct Syntax (as before)**  **Removed**
+==============================  =========================
+``Application(wkb=wb)``         ``wb.application``
+==============================  =========================
+
+Enhancements
+************
+
+**Excel 2016 for Mac Support** (:issue:`170`)
+
+Excel 2016 for Mac is finally supported (Python side). The VBA hooks (``RunPython``) are currently not yet supported.
+In more details:
+
+* This release allows Excel 2011 and Excel 2016 to be installed in parallel.
+* ``Workbook()`` will open the default Excel installation (usually Excel 2016).
+* The new keyword argument ``app_target`` allows to connect to a different Excel installation, e.g.::
+
+    Workbook(app_target='/Applications/Microsoft Office 2011/Microsoft Excel')
+
+  Note that ``app_target`` is only available on Mac. On Windows, if you want to change the version of Excel that
+  xlwings talks to, go to ``Control Panel > Programs and Features`` and ``Repair`` the Office version that you want
+  as default.
+
+* The ``RunPython`` calls in VBA are not yet available through Excel 2016 but Excel 2011 doesn't get confused anymore if
+  Excel 2016 is installed on the same system.
+
+**Other enhancements**
+
+* New method: :meth:`xlwings.Application.calculate` (:issue:`207`)
+
+Bug Fixes
+*********
+
+* [Mac Version]: Excel 2011 for Mac now supports unicode characters in the filename when called via VBA's ``RunPython``
+  (but not in the path - this is a limitation of Excel 2011 that will be resolved in Excel 2016) (:issue:`154`).
+* [Win Version]: Excel on Windows now handles unicode file paths correctly with untrusted documents.
+  (:issue:`154`).
+* [Win Version]: When using the ``OPTIMIZED_CONNECTION`` on Windows, Excel left an orphaned process running after
+  closing (:issue:`193`).
+
 v0.3.5 (April 26, 2015)
 -----------------------
 

@@ -126,7 +126,7 @@ class Workbook(object):
         Mac-only, use the full path to the Excel application,
         e.g. ``/Applications/Microsoft Office 2011/Microsoft Excel`` or ``/Applications/Microsoft Excel``
 
-        On Windows, if you want to change the version of Excel that xlwings talks to, goto ``Control Panel >
+        On Windows, if you want to change the version of Excel that xlwings talks to, go to ``Control Panel >
         Programs and Features`` and ``Repair`` the Office version that you want as default.
 
 
