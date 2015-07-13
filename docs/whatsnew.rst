@@ -34,7 +34,7 @@ In more details:
   as default.
 
 * The ``RunPython`` calls in VBA are not yet available through Excel 2016 but Excel 2011 doesn't get confused anymore if
-  Excel 2016 is installed on the same system.
+  Excel 2016 is installed on the same system - make sure to update your VBA module!
 
 **Other enhancements**
 
