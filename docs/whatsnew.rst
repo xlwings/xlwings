@@ -43,12 +43,15 @@ In more details:
 Bug Fixes
 *********
 
+* [Win Version]: When using the ``OPTIMIZED_CONNECTION`` on Windows, Excel left an orphaned process running after
+  closing (:issue:`193`).
+
+Various improvements regarding unicode file path handling, including:
+
 * [Mac Version]: Excel 2011 for Mac now supports unicode characters in the filename when called via VBA's ``RunPython``
   (but not in the path - this is a limitation of Excel 2011 that will be resolved in Excel 2016) (:issue:`154`).
 * [Win Version]: Excel on Windows now handles unicode file paths correctly with untrusted documents.
   (:issue:`154`).
-* [Win Version]: When using the ``OPTIMIZED_CONNECTION`` on Windows, Excel left an orphaned process running after
-  closing (:issue:`193`).
 
 v0.3.5 (April 26, 2015)
 -----------------------
