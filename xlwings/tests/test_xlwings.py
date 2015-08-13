@@ -7,7 +7,7 @@ import os
 import sys
 import shutil
 import nose
-from nose.tools import assert_equal
+from nose.tools import assert_equal, raises
 from datetime import datetime, date
 from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation
 
@@ -314,6 +314,10 @@ class TestSheet:
     def test_add_named(self):
         Sheet.add('test', before=1)
         assert_equal(Sheet(1).name, 'test')
+
+    @raises(Exception)
+    def test_add_name_already_taken(self):
+        Sheet.add('Sheet1')
 
     def test_count(self):
         count = Sheet.count()

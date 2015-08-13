@@ -473,8 +473,8 @@ class Sheet(object):
             after = Sheet(after, wkb=wkb)
 
         if name:
-            if name in [i.name.lower() for i in Sheet.all(wkb=wkb)]:
-                raise Exception('That sheet name is already in use.')
+            if name.lower() in [i.name.lower() for i in Sheet.all(wkb=wkb)]:
+                raise Exception('That sheet name is already taken.')
             else:
                 xl_sheet = xlplatform.add_sheet(xl_workbook, before, after)
                 xlplatform.set_worksheet_name(xl_sheet, name)
