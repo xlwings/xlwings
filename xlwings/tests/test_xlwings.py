@@ -405,7 +405,7 @@ class TestRange:
         cells = Range(3, index1, index2).value
         assert_equal(cells, data)
 
-    def test_named_range(self):
+    def test_named_range_value(self):
         value = 22.222
         # Active Sheet
         Range('cell_sheet1').value = value
@@ -802,6 +802,16 @@ class TestRange:
     def test_last_cell(self):
         assert_equal(Range('B3:F5').last_cell.row, 5)
         assert_equal(Range('B3:F5').last_cell.column, 6)
+
+    def test_get_set_named_range(self):
+        wb = Workbook()
+        Range('A1').name = 'test1'
+        assert_equal(Range('A1').name, 'test1')
+
+        Range('A2:B4').name = 'test2'
+        assert_equal(Range('A2:B4').name, 'test2')
+
+        wb.close()
 
 
 class TestChart:

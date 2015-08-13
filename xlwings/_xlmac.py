@@ -470,3 +470,11 @@ def set_calculation(xl_app, value):
 
 def calculate(xl_app):
     xl_app.calculate()
+
+
+def get_named_range(range_):
+    return range_.xl_range.name.get()
+
+
+def set_named_range(range_, value):
+    range_.xl_range.name.set(value)

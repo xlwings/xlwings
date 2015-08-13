@@ -1268,6 +1268,20 @@ class Range(object):
         return Range(xlplatform.get_worksheet_name(self.xl_sheet),
                      (self.row2, self.col2), **self.kwargs)
 
+    @property
+    def name(self):
+        """
+        .. versionadded:: 0.3.7
+
+        Sets or gets the name of a Range.
+
+        """
+        return xlplatform.get_named_range(self)
+
+    @name.setter
+    def name(self, value):
+        xlplatform.set_named_range(self, value)
+
 
 class Chart(object):
     """
