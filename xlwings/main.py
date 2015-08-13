@@ -584,14 +584,20 @@ class Range(object):
             self.row2 = self.row1
             self.col2 = self.col1
         elif (len(args) == 2
-              and isinstance(args[0], (numbers.Number, string_types))
+              and isinstance(args[0], (numbers.Number, string_types, Sheet))
               and isinstance(args[1], string_types)):
-            sheet_name_or_index = args[0]
+            if isinstance(args[0], Sheet):
+                sheet_name_or_index = args[0].index
+            else:
+                sheet_name_or_index = args[0]
             range_address = args[1]
         elif (len(args) == 2
-              and isinstance(args[0], (numbers.Number, string_types))
+              and isinstance(args[0], (numbers.Number, string_types, Sheet))
               and isinstance(args[1], tuple)):
-            sheet_name_or_index = args[0]
+            if isinstance(args[0], Sheet):
+                sheet_name_or_index = args[0].index
+            else:
+                sheet_name_or_index = args[0]
             range_address = None
             self.row1 = args[1][0]
             self.col1 = args[1][1]
@@ -605,7 +611,10 @@ class Range(object):
             self.row2 = args[1][0]
             self.col2 = args[1][1]
         elif len(args) == 3:
-            sheet_name_or_index = args[0]
+            if isinstance(args[0], Sheet):
+                sheet_name_or_index = args[0].index
+            else:
+                sheet_name_or_index = args[0]
             range_address = None
             self.row1 = args[1][0]
             self.col1 = args[1][1]

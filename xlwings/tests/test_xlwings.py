@@ -461,6 +461,13 @@ class TestRange:
         cells = Range('Sheet6', 'A12', asarray=True, atleast_2d=True).table.value
         assert_array_equal(cells, array_2d)
 
+    def sheet_ref(self):
+        Range(Sheet(1), 'A20').value = 123
+        assert_equal(Range(1, 'A20').value, 123)
+
+        Range(Sheet(1), (2,2), (4,4)).value = 321
+        assert_equal(Range(1, (2,2)).value, 321)
+
     def test_vertical(self):
         Range('Sheet4', 'A10').value = data
         if sys.platform.startswith('win') and self.wb.xl_app.Version == '14.0':
