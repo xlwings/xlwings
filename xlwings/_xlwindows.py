@@ -513,3 +513,11 @@ def set_calculation(xl_app, value):
 
 def calculate(xl_app):
     xl_app.Calculate()
+
+
+def get_named_range(range_):
+    return range_.xl_range.Name.Name
+
+
+def set_named_range(range_, value):
+    range_.xl_range.Name = value
