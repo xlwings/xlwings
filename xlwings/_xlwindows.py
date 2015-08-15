@@ -433,25 +433,20 @@ def get_color(xl_range):
 
 def get_xl_workbook_from_xl(fullname):
     """
-    Under certain circumstances, only the GetActiveObject
-    call will work (e.g. when Excel opens with a Security Warning, the Workbook
-    will not be registered in the RunningObjectTable and thus not accessible via GetObject)
+    Use GetActiveObject: e.g. when Excel opens with a Security Warning, the Workbook
+    will not be registered in the RunningObjectTable and thus not accessible via GetObject
     """
+    xl_app = GetActiveObject('Excel.Application')
+    xl_workbook = xl_app.ActiveWorkbook
+
+    # TODO: Might make sense to remove that check
     if not PY3:
         # On Windows, Python uses the name 'mbcs' to refer to whatever the currently configured file system encoding is
-        # TODO: check if this is needed or just a duplicate of the equivalent code in is_file_open
         if isinstance(fullname, str):
             fullname = unicode(fullname.lower(), 'mbcs')
-    if not is_file_open(fullname):
-        # Windows doesn't allow to simultaneously work with two versions of Excel, so we don't need to use app_target
-        xl_app = GetActiveObject('Excel.Application')
-        xl_workbook = xl_app.ActiveWorkbook
-        if xl_workbook.FullName.lower() != fullname.lower():
-            raise Exception("Can't establish connection! "
-                            "Make sure that the calling workbook is the active one "
-                            "and is opened in the first instance of Excel.")
-    else:
-        xl_workbook = GetObject(fullname)
+    if xl_workbook.FullName.lower() != fullname.lower():
+        raise Exception("Can't establish connection! "
+                        "Make sure that the calling Workbook is the active one.")
     return xl_workbook
 
 
