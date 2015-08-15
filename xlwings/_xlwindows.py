@@ -435,6 +435,9 @@ def get_xl_workbook_from_xl(fullname):
     """
     Use GetActiveObject: e.g. when Excel opens with a Security Warning, the Workbook
     will not be registered in the RunningObjectTable and thus not accessible via GetObject
+
+    Although GetActiveObject usually gets the first instance only of Excel, it seems
+    to work fine here with multiple instance when called via VBA (??).
     """
     xl_app = GetActiveObject('Excel.Application')
     xl_workbook = xl_app.ActiveWorkbook
