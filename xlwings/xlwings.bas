@@ -174,7 +174,9 @@ Sub ExecuteWindows(IsFrozen As Boolean, Command As String, PYTHON_WIN As String,
 
     ExitCode = Wsh.run("cmd.exe /C " & DriveCommand & _
                    RunCommand & _
-                   """" & WORKBOOK_FULLNAME & """ ""from_xl"" 2> """ & LOG_FILE & """ ", _
+                   """" & WORKBOOK_FULLNAME & """ ""from_xl""" & " " & Chr(34) & _
+                   Application.Path & "\" & Application.Name & Chr(34) & " " & Chr(34) & Application.Hwnd & Chr(34) & _
+                   " 2> """ & LOG_FILE & """ ", _
                    WindowStyle, WaitOnReturn)
 
     'If ExitCode <> 0 then there's something wrong
@@ -393,3 +395,4 @@ Private Sub GetDLLVersion()
     Debug.Print ver
     Debug.Print arch
 End Sub
+

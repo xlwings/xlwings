@@ -14,6 +14,7 @@ os.chdir(cwd)
 
 import pywintypes
 import pythoncom
+import win32pdh
 from win32com.client import GetObject, GetActiveObject, dynamic
 import win32timezone
 import datetime as dt
@@ -32,13 +33,22 @@ from xlwings import PY3
 time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
 
 
+def get_number_of_instances():
+    _, instances = win32pdh.EnumObjectItems(None, None, 'process', win32pdh.PERF_DETAIL_WIZARD)
+    num_instances = 0
+    for instance in instances:
+        if instance == 'EXCEL':
+            num_instances += 1
+    return num_instances
+
+
 def is_file_open(fullname):
     """
     Checks the Running Object Table (ROT) for the fully qualified filename
     """
     if not PY3:
         if isinstance(fullname, str):
-            fullname = unicode(fullname, 'utf-8')
+            fullname = unicode(fullname, 'mbcs')
     context = pythoncom.CreateBindCtx()
     for moniker in pythoncom.GetRunningObjectTable():
         name = moniker.GetDisplayName(context, None)
@@ -47,7 +57,7 @@ def is_file_open(fullname):
     return False
 
 
-def get_workbook(fullname, app_target):
+def get_workbook(fullname, app_target=None):
     """
     Returns the COM Application and Workbook objects of an open Workbook.
     GetObject() returns the correct Excel instance if there are > 1
@@ -431,25 +441,34 @@ def get_color(xl_range):
         return int_to_rgb(xl_range.Interior.Color)
 
 
-def get_xl_workbook_from_xl(fullname):
+def get_xl_workbook_from_xl(fullname, app_target=None, hwnd=None):
     """
-    Use GetActiveObject: e.g. when Excel opens with a Security Warning, the Workbook
-    will not be registered in the RunningObjectTable and thus not accessible via GetObject
-
-    Although GetActiveObject usually gets the first instance only of Excel, it seems
-    to work fine here with multiple instance when called via VBA (??).
+    Use GetActiveObject whenever possible, GetObject with a file path will only work if the file
+    has been registered in the RunningObjectTable (ROT).
+    Sometimes, e.g. if the files opens from an untrusted location, it doesn't appear in the ROT.
+    app_target is only used on Mac.
     """
-    xl_app = GetActiveObject('Excel.Application')
-    xl_workbook = xl_app.ActiveWorkbook
+    num_of_instances = get_number_of_instances()
 
-    # TODO: Might make sense to remove that check
-    if not PY3:
-        # On Windows, Python uses the name 'mbcs' to refer to whatever the currently configured file system encoding is
-        if isinstance(fullname, str):
-            fullname = unicode(fullname.lower(), 'mbcs')
-    if xl_workbook.FullName.lower() != fullname.lower():
+    if num_of_instances < 2:
+        xl_app = GetActiveObject('Excel.Application')
+        xl_workbook = xl_app.ActiveWorkbook
+    else:
+        if not is_file_open(fullname):
+            # This means that the file doesn't appear in the ROT. If it's in the first instance of
+            # Excel, we can still get it with GetActiveObject
+            xl_app = GetActiveObject('Excel.Application')
+            xl_workbook = xl_app.ActiveWorkbook
+        else:
+            xl_workbook = GetObject(fullname)
+            xl_app = xl_workbook.Application
+    if str(xl_app.hwnd) != hwnd:
+        # The check of the window handle also works when the same file is opened
+        # in two instances, whereas the comparison of fullpath would fail
         raise Exception("Can't establish connection! "
-                        "Make sure that the calling Workbook is the active one.")
+                        "Try to open the file in the first instance of Excel or "
+                        "change your trusted location/document settings or "
+                        "set OPTIMIZED_CONNECTION = True.")
     return xl_workbook
 
 

@@ -187,18 +187,16 @@ class Workbook(object):
         """
         if hasattr(Workbook, '_mock_file'):
             # Use mocking Workbook, see Workbook.set_mock_caller()
-            xl_workbook = xlplatform.get_xl_workbook_from_xl(Workbook._mock_file)
+            _, xl_workbook = xlplatform.get_workbook(Workbook._mock_file)
             return cls(xl_workbook=xl_workbook)
         elif len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
             # Connect to the workbook from which this code has been invoked
             fullname = sys.argv[1].lower()
-            if len(sys.argv) > 3:
-                # On Mac we additionally send over the Application path
-                xl_workbook = xlplatform.get_xl_workbook_from_xl(fullname, app_target=sys.argv[3])
-                return cls(xl_workbook=xl_workbook, app_target=sys.argv[3])
-            else:
-                xl_workbook = xlplatform.get_xl_workbook_from_xl(fullname)
+            xl_workbook = xlplatform.get_xl_workbook_from_xl(fullname, app_target=sys.argv[3], hwnd=sys.argv[4])
+            if sys.platform.startswith('win'):
                 return cls(xl_workbook=xl_workbook)
+            else:
+                return cls(xl_workbook=xl_workbook, app_target=sys.argv[3])
         elif xlplatform.get_xl_workbook_current():
             # Called through ExcelPython connection
             return cls(xl_workbook=xlplatform.get_xl_workbook_current())
