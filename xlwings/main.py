@@ -192,10 +192,11 @@ class Workbook(object):
         elif len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
             # Connect to the workbook from which this code has been invoked
             fullname = sys.argv[1].lower()
-            xl_workbook = xlplatform.get_xl_workbook_from_xl(fullname, app_target=sys.argv[3], hwnd=sys.argv[4])
             if sys.platform.startswith('win'):
+                xl_workbook = xlplatform.get_xl_workbook_from_xl(fullname, app_target=sys.argv[3], hwnd=sys.argv[4])
                 return cls(xl_workbook=xl_workbook)
             else:
+                xl_workbook = xlplatform.get_xl_workbook_from_xl(fullname, app_target=sys.argv[3])
                 return cls(xl_workbook=xl_workbook, app_target=sys.argv[3])
         elif xlplatform.get_xl_workbook_current():
             # Called through ExcelPython connection

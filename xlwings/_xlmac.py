@@ -390,11 +390,10 @@ def get_color(xl_range):
         return tuple(xl_range.interior_object.color.get())
 
 
-def get_xl_workbook_from_xl(fullname, app_target=None, hwnd=None):
+def get_xl_workbook_from_xl(fullname, app_target=None):
     """
     Doesn't really do anything on Mac, but on Windows, this is needed due to some
     Workbooks not turning up in the RunningObjectTable
-    hwnd is only used on Windows.
     """
     return get_workbook(fullname, app_target)[1]
 
