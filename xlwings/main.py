@@ -983,6 +983,40 @@ class Range(object):
         return Range(xlplatform.get_worksheet_name(self.xl_sheet), address, **self.kwargs)
 
     @property
+    def number_format(self):
+        """
+        .. versionadded:: 0.2.3
+
+        Gets and sets the number_format of a Range.
+
+        Examples
+        --------
+
+        >>> Range('A1').number_format
+        'General'
+        >>> Range('A1:C3').number_format = '0.00%'
+        >>> Range('A1:C3').number_format
+        '0.00%'
+        """
+        return xlplatform.get_number_format(self)
+
+    @number_format.setter
+    def number_format(self, value):
+        xlplatform.set_number_format(self, value)
+
+    def clear(self):
+        """
+        Clears the content and the formatting of a Range.
+        """
+        xlplatform.clear_range(self.xl_range)
+
+    def clear_contents(self):
+        """
+        Clears the content of a Range but leaves the formatting.
+        """
+        xlplatform.clear_contents_range(self.xl_range)
+
+    @property
     def column_width(self):
         """
         .. versionadded:: 0.3.7
@@ -1050,41 +1084,6 @@ class Range(object):
 
         """
         return xlplatform.get_height(self.xl_range)
-
-
-    @property
-    def number_format(self):
-        """
-        .. versionadded:: 0.2.3
-
-        Gets and sets the number_format of a Range.
-
-        Examples
-        --------
-
-        >>> Range('A1').number_format
-        'General'
-        >>> Range('A1:C3').number_format = '0.00%'
-        >>> Range('A1:C3').number_format
-        '0.00%'
-        """
-        return xlplatform.get_number_format(self)
-
-    @number_format.setter
-    def number_format(self, value):
-        xlplatform.set_number_format(self, value)
-
-    def clear(self):
-        """
-        Clears the content and the formatting of a Range.
-        """
-        xlplatform.clear_range(self.xl_range)
-
-    def clear_contents(self):
-        """
-        Clears the content of a Range but leaves the formatting.
-        """
-        xlplatform.clear_contents_range(self.xl_range)
 
     def autofit(self, axis=None):
         """

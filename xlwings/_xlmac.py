@@ -293,6 +293,30 @@ def activate_chart(xl_chart):
     xl_chart.select()
 
 
+def get_column_width(xl_range):
+    return xl_range.column_width.get()
+
+
+def set_column_width(xl_range, value):
+    xl_range.column_width.set(value)
+
+
+def get_row_height(xl_range):
+    return xl_range.row_height.get()
+
+
+def set_row_height(xl_range, value):
+    xl_range.row_height.set(value)
+
+
+def get_width(xl_range):
+    return xl_range.width.get()
+
+
+def get_height(xl_range):
+    return xl_range.height.get()
+
+
 def autofit(range_, axis):
     address = range_.xl_range.get_address()
     _xl_app.screen_updating.set(False)
@@ -334,23 +358,6 @@ def get_xl_workbook_current():
     except NameError:
         return None
 
-def get_column_width(xl_range):
-    return xl_range.column_width.get()
-
-def set_column_width(xl_range, value):
-    xl_range.column_width.set(value)
-
-def get_row_height(xl_range):
-    return xl_range.row_height.get()
-
-def set_row_height(xl_range, value):
-    xl_range.row_height.set(value)
-
-def get_width(xl_range):
-    return xl_range.width.get()
-
-def get_height(xl_range):
-    return xl_range.height.get()
 
 def get_number_format(range_):
     return range_.xl_range.number_format.get()

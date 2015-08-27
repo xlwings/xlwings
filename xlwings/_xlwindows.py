@@ -343,6 +343,30 @@ def activate_chart(xl_chart):
     xl_chart.Activate()
 
 
+def get_column_width(xl_range):
+    return xl_range.ColumnWidth
+
+
+def set_column_width(xl_range, value):
+    xl_range.ColumnWidth = value
+
+
+def get_row_height(xl_range):
+    return xl_range.RowHeight
+
+
+def set_row_height(xl_range, value):
+    xl_range.RowHeight = value
+
+
+def get_width(xl_range):
+    return xl_range.Width
+
+
+def get_height(xl_range):
+    return xl_range.Height
+
+
 def autofit(range_, axis):
     if axis == 'rows' or axis == 'r':
         range_.xl_range.Rows.AutoFit()
@@ -374,23 +398,6 @@ def get_xl_workbook_current():
     except NameError:
         return None
 
-def get_column_width(xl_range):
-    return xl_range.ColumnWidth
-
-def set_column_width(xl_range, value):
-    xl_range.ColumnWidth = value
-
-def get_row_height(xl_range):
-    return xl_range.RowHeight
-
-def set_row_height(xl_range, value):
-    xl_range.RowHeight = value
-
-def get_width(xl_range):
-    return xl_range.Width
-
-def get_height(xl_range):
-    return xl_range.Height
 
 def get_number_format(range_):
     return range_.xl_range.NumberFormat
