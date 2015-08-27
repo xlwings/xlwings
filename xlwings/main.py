@@ -983,6 +983,76 @@ class Range(object):
         return Range(xlplatform.get_worksheet_name(self.xl_sheet), address, **self.kwargs)
 
     @property
+    def column_width(self):
+        """
+        .. versionadded:: 0.3.7
+
+        Gets or sets the width, in characters, of a Range.
+        One unit of column width is equal to the width of one character in the Normal style.
+        For proportional fonts, the width of the character 0 (zero) is used.
+
+        If the Range is made up of multiple columns, the width of the first column is returned.
+
+        Returns
+        -------
+        float
+
+        """
+        return xlplatform.get_column_width(self.xl_range)
+
+    @column_width.setter
+    def column_width(self, value):
+        xlplatform.set_column_width(self.xl_range, value)
+
+    @property
+    def row_height(self):
+        """
+        .. versionadded:: 0.3.7
+
+        Gets or sets the height, in points, of a Range.
+        If the Range is made up of multiple rows, the height of the first row is returned.
+
+        Returns
+        -------
+        float
+
+        """
+        return xlplatform.get_row_height(self.xl_range)
+
+    @row_height.setter
+    def row_height(self, value):
+        xlplatform.set_row_height(self.xl_range, value)
+
+    @property
+    def width(self):
+        """
+        .. versionadded:: 0.3.7
+
+        Returns the width, in points, of a Range. Read-only.
+
+        Returns
+        -------
+        float
+
+        """
+        return xlplatform.get_width(self.xl_range)
+
+    @property
+    def height(self):
+        """
+        .. versionadded:: 0.3.7
+
+        Returns the height, in points, of a Range. Read-only.
+
+        Returns
+        -------
+        float
+
+        """
+        return xlplatform.get_height(self.xl_range)
+
+
+    @property
     def number_format(self):
         """
         .. versionadded:: 0.2.3
