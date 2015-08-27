@@ -153,7 +153,7 @@ Sub ExecuteWindows(IsFrozen As Boolean, Command As String, PYTHON_WIN As String,
     Dim DriveCommand As String, RunCommand As String, WORKBOOK_FULLNAME As String
     Dim ExitCode As Integer
 
-    If Left$(PYTHON_WIN, 2) Like "[A-Z]:" Then
+    If Left$(PYTHON_WIN, 2) Like "[A-Za-z]:" Then
         ' If Python is installed on a mapped or local drive, change to drive, then cd to path
         DriveCommand = Left$(PYTHON_WIN, 2) & " & cd " & PYTHON_WIN & " & "
     ElseIf Left$(PYTHON_WIN, 2) = "\\" Then
