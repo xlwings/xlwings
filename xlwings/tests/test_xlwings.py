@@ -662,7 +662,10 @@ class TestRange:
         Range('Sheet1', 'A1:B2').value = 'ensure cells are used'
         Range('Sheet1', 'B2').column_width = 20.0
         result = Range('Sheet1', 'A1:B2').column_width
-        assert_equal(None, result)
+        if sys.platform.startswith('win'):
+            assert_equal(None, result)
+        else:
+            assert_equal(kw.missing_value, result)
 
     def test_row_height(self):
         Range('Sheet1', 'A1:B2').row_height = 15.0
@@ -672,7 +675,10 @@ class TestRange:
         Range('Sheet1', 'A1:B2').value = 'ensure cells are used'
         Range('Sheet1', 'B2').row_height = 20.0
         result = Range('Sheet1', 'A1:B2').row_height
-        assert_equal(None, result)
+        if sys.platform.startswith('win'):
+            assert_equal(None, result)
+        else:
+            assert_equal(kw.missing_value, result)
 
     def test_width(self):
         """Width depends on default style text size, so do not test absolute widths"""
