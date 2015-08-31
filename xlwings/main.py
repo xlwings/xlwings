@@ -1016,6 +1016,89 @@ class Range(object):
         """
         xlplatform.clear_contents_range(self.xl_range)
 
+    @property
+    def column_width(self):
+        """
+        .. versionadded:: 0.3.7
+
+        Gets or sets the width, in characters, of a Range.
+        One unit of column width is equal to the width of one character in the Normal style.
+        For proportional fonts, the width of the character 0 (zero) is used.
+
+        If all columns in the Range have the same width, returns the width.
+        If columns in the Range have different widths, returns None.
+
+        column_width must be in the range:
+        0 <= column_width <= 255
+
+        Note: If the Range is outside the used range of the Worksheet, and columns in the Range have different widths,
+        returns the width of the first column.
+
+        Returns
+        -------
+        float
+
+        """
+        return xlplatform.get_column_width(self.xl_range)
+
+    @column_width.setter
+    def column_width(self, value):
+        xlplatform.set_column_width(self.xl_range, value)
+
+    @property
+    def row_height(self):
+        """
+        .. versionadded:: 0.3.7
+
+        Gets or sets the height, in points, of a Range.
+        If all rows in the Range have the same height, returns the height.
+        If rows in the Range have different heights, returns None.
+
+        row_height must be in the range:
+        0 <= row_height <= 409.5
+
+        Note: If the Range is outside the used range of the Worksheet, and rows in the Range have different heights,
+        returns the height of the first row.
+
+        Returns
+        -------
+        float
+
+        """
+        return xlplatform.get_row_height(self.xl_range)
+
+    @row_height.setter
+    def row_height(self, value):
+        xlplatform.set_row_height(self.xl_range, value)
+
+    @property
+    def width(self):
+        """
+        .. versionadded:: 0.3.7
+
+        Returns the width, in points, of a Range. Read-only.
+
+        Returns
+        -------
+        float
+
+        """
+        return xlplatform.get_width(self.xl_range)
+
+    @property
+    def height(self):
+        """
+        .. versionadded:: 0.3.7
+
+        Returns the height, in points, of a Range. Read-only.
+
+        Returns
+        -------
+        float
+
+        """
+        return xlplatform.get_height(self.xl_range)
+
     def autofit(self, axis=None):
         """
         .. versionadded:: 0.2.2

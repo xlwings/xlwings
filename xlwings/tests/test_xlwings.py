@@ -7,7 +7,7 @@ import os
 import sys
 import shutil
 import nose
-from nose.tools import assert_equal, raises
+from nose.tools import assert_equal, raises, assert_greater
 from datetime import datetime, date
 from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation
 
@@ -653,6 +653,45 @@ class TestRange:
         Range('Sheet1', 'A50').value = 23
         result = Range('Sheet1', 'A50', atleast_2d=True, asarray=True).value
         assert_equal(np.array([[23]]), result)
+
+    def test_column_width(self):
+        Range('Sheet1', 'A1:B2').column_width = 10.0
+        result = Range('Sheet1', 'A1').column_width
+        assert_equal(10.0, result)
+
+        Range('Sheet1', 'A1:B2').value = 'ensure cells are used'
+        Range('Sheet1', 'B2').column_width = 20.0
+        result = Range('Sheet1', 'A1:B2').column_width
+        if sys.platform.startswith('win'):
+            assert_equal(None, result)
+        else:
+            assert_equal(kw.missing_value, result)
+
+    def test_row_height(self):
+        Range('Sheet1', 'A1:B2').row_height = 15.0
+        result = Range('Sheet1', 'A1').row_height
+        assert_equal(15.0, result)
+
+        Range('Sheet1', 'A1:B2').value = 'ensure cells are used'
+        Range('Sheet1', 'B2').row_height = 20.0
+        result = Range('Sheet1', 'A1:B2').row_height
+        if sys.platform.startswith('win'):
+            assert_equal(None, result)
+        else:
+            assert_equal(kw.missing_value, result)
+
+    def test_width(self):
+        """Width depends on default style text size, so do not test absolute widths"""
+        Range('Sheet1', 'A1:D4').column_width = 10.0
+        result_before = Range('Sheet1', 'A1').width
+        Range('Sheet1', 'A1:D4').column_width = 12.0
+        result_after = Range('Sheet1', 'A1').width
+        assert_greater(result_after, result_before)
+
+    def test_height(self):
+        Range('Sheet1', 'A1:D4').row_height = 60.0
+        result = Range('Sheet1', 'A1:D4').height
+        assert_equal(240.0, result)
 
     def test_autofit_range(self):
         # TODO: compare col/row widths before/after - not implemented yet
