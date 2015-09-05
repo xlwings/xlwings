@@ -78,7 +78,7 @@ def is_excel_running():
     return False
 
 
-def get_workbook(fullname, app_target=None):
+def get_open_workbook(fullname, app_target=None):
     """
     Get the appscript Workbook object.
     On Mac, it seems that we don't have to deal with >1 instances of Excel,
@@ -412,14 +412,6 @@ def get_color(xl_range):
         return None
     else:
         return tuple(xl_range.interior_object.color.get())
-
-
-def get_xl_workbook_from_xl(fullname, app_target=None):
-    """
-    Doesn't really do anything on Mac, but on Windows, this is needed due to some
-    Workbooks not turning up in the RunningObjectTable
-    """
-    return get_workbook(fullname, app_target)[1]
 
 
 def save_workbook(xl_workbook, path):

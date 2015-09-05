@@ -12,14 +12,19 @@ if not hasattr(sys, 'frozen'):
 import win32api
 os.chdir(cwd)
 
+from warnings import warn
 import pywintypes
 import pythoncom
 import win32pdh
-from win32com.client import GetObject, GetActiveObject, dynamic
+from win32com.client import GetObject, GetActiveObject, dynamic, Dispatch
 import win32timezone
+import win32gui
 import datetime as dt
 from .constants import Direction, ColorIndex
-from .utils import rgb_to_int, int_to_rgb
+from .utils import rgb_to_int, int_to_rgb, get_duplicates
+from ctypes import oledll, PyDLL, py_object, byref, POINTER
+from comtypes import IUnknown
+from comtypes.automation import IDispatch
 
 # Optional imports
 try:
@@ -32,41 +37,111 @@ from xlwings import PY3
 # Time types: pywintypes.timetype doesn't work on Python 3
 time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
 
+# Constants
+OBJID_NATIVEOM = -16
 
-def get_number_of_instances():
-    _, instances = win32pdh.EnumObjectItems(None, None, 'process', win32pdh.PERF_DETAIL_WIZARD)
-    num_instances = 0
-    for instance in instances:
-        if instance == 'EXCEL':
-            num_instances += 1
-    return num_instances
+
+def accessible_object_from_window(hwnd):
+    ptr = POINTER(IDispatch)()
+    res = oledll.oleacc.AccessibleObjectFromWindow(
+        hwnd, OBJID_NATIVEOM,
+        byref(IDispatch._iid_), byref(ptr))
+    return ptr
+
+
+def comtypes_to_pywin(ptr, interface=None):
+    _PyCom_PyObjectFromIUnknown = PyDLL(pythoncom.__file__).PyCom_PyObjectFromIUnknown
+    _PyCom_PyObjectFromIUnknown.restype = py_object
+
+    if interface is None:
+        interface = IUnknown
+    return _PyCom_PyObjectFromIUnknown(ptr, byref(interface._iid_), True)
+
+
+def get_xl_app_from_hwnd(hwnd):
+    child_hwnd = win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None)
+    child_hwnd = win32gui.FindWindowEx(child_hwnd, 0, 'EXCEL7', None)
+
+    ptr = accessible_object_from_window(child_hwnd)
+    p = comtypes_to_pywin(ptr, interface=IDispatch)
+    disp = Dispatch(p)
+    return disp.Application
+
+
+def get_excel_hwnds():
+    hwnds = []
+    win32gui.EnumWindows(lambda hwnd, result_list: result_list.append(hwnd), hwnds)
+
+    excel_hwnds = []
+    for hwnd in hwnds:
+        if win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None):
+            excel_hwnds.append(hwnd)
+    return excel_hwnds
+
+
+def get_xl_apps():
+    xl_apps = []
+    hwnds = get_excel_hwnds()
+    for hwnd in hwnds:
+        xl_app = get_xl_app_from_hwnd(hwnd)
+        xl_apps.append(xl_app)
+    return xl_apps
+
+
+def get_all_open_xl_workbooks(xl_app):
+    return [xl_workbook for xl_workbook in xl_app.Workbooks]
 
 
 def is_file_open(fullname):
-    """
-    Checks the Running Object Table (ROT) for the fully qualified filename
-    """
     if not PY3:
         if isinstance(fullname, str):
             fullname = unicode(fullname, 'mbcs')
-    context = pythoncom.CreateBindCtx()
-    for moniker in pythoncom.GetRunningObjectTable():
-        name = moniker.GetDisplayName(context, None)
-        if name.lower() == fullname.lower():
-            return True
-    return False
+    open_workbooks = []
+    for xl_app in get_xl_apps():
+        open_fullnames = [i.FullName.lower() for i in get_all_open_xl_workbooks(xl_app)]
+        for fn in open_fullnames:
+            open_workbooks.append(fn)
+    return fullname.lower() in open_workbooks
 
 
-def get_workbook(fullname, app_target=None):
+def get_duplicate_fullnames():
+    """Returns a list of fullnames that are opened in multiple instances"""
+    open_xl_workbooks = []
+    for xl_app in get_xl_apps():
+        for xl_workbook in get_all_open_xl_workbooks(xl_app):
+            open_xl_workbooks.append(xl_workbook)
+    return get_duplicates([i.FullName.lower() for i in open_xl_workbooks])
+
+
+def get_open_workbook(fullname, app_target=None, hwnd=None):
     """
     Returns the COM Application and Workbook objects of an open Workbook.
-    GetObject() returns the correct Excel instance if there are > 1
+    While GetObject() would return the correct Excel instance if there are > 1,
+    it cannot cope with Workbooks that don't appear in the ROT (happens with
+    untrusted locations).
     """
     if app_target is not None:
         raise NotImplementedError('app_target is only available on Mac.')
-    xl_workbook = GetObject(fullname)
-    xl_app = xl_workbook.Application
-    return xl_app, xl_workbook
+    if not PY3:
+        if isinstance(fullname, str):
+            fullname = unicode(fullname, 'mbcs')
+    duplicate_fullnames = get_duplicate_fullnames()
+
+    if hwnd is None:
+        xl_apps = get_xl_apps()
+    else:
+        hwnd = int(hwnd)  # should it need to be long in PY2?
+        xl_apps = [get_xl_app_from_hwnd(hwnd)]
+
+    for xl_app in xl_apps:
+        for xl_workbook in get_all_open_xl_workbooks(xl_app):
+            if xl_workbook.FullName.lower() == fullname.lower():
+                    if xl_workbook.FullName.lower() not in duplicate_fullnames:
+                        return xl_app, xl_workbook
+                    else:
+                        warn('This Workbook is opened in multiple instances.'
+                             'The connection was made with the one that was last active.')
+                        return xl_app, xl_workbook
 
 
 def get_workbook_name(xl_workbook):
@@ -197,6 +272,7 @@ def prepare_xl_data(data):
         return _datetime_to_com_time(data)
     else:
         return data
+
 
 def _com_time_to_datetime(com_time):
     """
@@ -440,7 +516,6 @@ def get_hyperlink_address(xl_range):
         raise Exception("The cell doesn't seem to contain a hyperlink!")
 
 
-
 def set_hyperlink(xl_range, address, text_to_display=None, screen_tip=None):
     # Another one of these pywin32 bugs that only materialize under certain circumstances:
     # http://stackoverflow.com/questions/6284227/hyperlink-will-not-show-display-proper-text
@@ -463,37 +538,6 @@ def get_color(xl_range):
         return None
     else:
         return int_to_rgb(xl_range.Interior.Color)
-
-
-def get_xl_workbook_from_xl(fullname, app_target=None, hwnd=None):
-    """
-    Use GetActiveObject whenever possible, GetObject with a file path will only work if the file
-    has been registered in the RunningObjectTable (ROT).
-    Sometimes, e.g. if the files opens from an untrusted location, it doesn't appear in the ROT.
-    app_target is only used on Mac.
-    """
-    num_of_instances = get_number_of_instances()
-
-    if num_of_instances < 2:
-        xl_app = GetActiveObject('Excel.Application')
-        xl_workbook = xl_app.ActiveWorkbook
-    else:
-        if not is_file_open(fullname):
-            # This means that the file doesn't appear in the ROT. If it's in the first instance of
-            # Excel, we can still get it with GetActiveObject
-            xl_app = GetActiveObject('Excel.Application')
-            xl_workbook = xl_app.ActiveWorkbook
-        else:
-            xl_workbook = GetObject(fullname)
-            xl_app = xl_workbook.Application
-    if str(xl_app.hwnd) != hwnd:
-        # The check of the window handle also works when the same file is opened
-        # in two instances, whereas the comparison of fullpath would fail
-        raise Exception("Can't establish connection! "
-                        "Try to open the file in the first instance of Excel or "
-                        "change your trusted location/document settings or "
-                        "set OPTIMIZED_CONNECTION = True.")
-    return xl_workbook
 
 
 def save_workbook(xl_workbook, path):
