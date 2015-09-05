@@ -15,8 +15,7 @@ os.chdir(cwd)
 from warnings import warn
 import pywintypes
 import pythoncom
-import win32pdh
-from win32com.client import GetObject, GetActiveObject, dynamic, Dispatch
+from win32com.client import dynamic, Dispatch
 import win32timezone
 import win32gui
 import datetime as dt

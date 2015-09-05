@@ -234,7 +234,7 @@ class TestWorkbook:
         wb.close()
         shutil.move(dst, src)
 
-    def unsaved_workbook_reference(self):
+    def test_unsaved_workbook_reference(self):
         wb = Workbook(app_visible=False, app_target=APP_TARGET)
         Range('B2').value = 123
         wb2 = Workbook(wb.name, app_visible=False, app_target=APP_TARGET)
