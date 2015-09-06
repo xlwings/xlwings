@@ -135,7 +135,7 @@ def get_open_workbook(fullname, app_target=None, hwnd=None):
     for xl_app in xl_apps:
         for xl_workbook in get_all_open_xl_workbooks(xl_app):
             if xl_workbook.FullName.lower() == fullname.lower():
-                    if xl_workbook.FullName.lower() not in duplicate_fullnames:
+                    if (xl_workbook.FullName.lower() not in duplicate_fullnames) or (hwnd is not None):
                         return xl_app, xl_workbook
                     else:
                         warn('This Workbook is opened in multiple instances.'
