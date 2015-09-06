@@ -138,7 +138,7 @@ def get_open_workbook(fullname, app_target=None, hwnd=None):
                     if (xl_workbook.FullName.lower() not in duplicate_fullnames) or (hwnd is not None):
                         return xl_app, xl_workbook
                     else:
-                        warn('This Workbook is opened in multiple instances.'
+                        warn('This Workbook is open in multiple instances.'
                              'The connection was made with the one that was last active.')
                         return xl_app, xl_workbook
 
