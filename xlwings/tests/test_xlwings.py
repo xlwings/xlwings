@@ -7,7 +7,7 @@ import os
 import sys
 import shutil
 import nose
-from nose.tools import assert_equal, raises, assert_greater
+from nose.tools import assert_equal, raises, assert_true
 from datetime import datetime, date
 from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation
 
@@ -686,7 +686,7 @@ class TestRange:
         result_before = Range('Sheet1', 'A1').width
         Range('Sheet1', 'A1:D4').column_width = 12.0
         result_after = Range('Sheet1', 'A1').width
-        assert_greater(result_after, result_before)
+        assert_true(result_after > result_before)
 
     def test_height(self):
         Range('Sheet1', 'A1:D4').row_height = 60.0
