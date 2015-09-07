@@ -96,6 +96,7 @@ def _skip_if_no_pandas():
     if pd is None:
         raise nose.SkipTest('pandas missing')
 
+
 def _skip_if_not_default_xl():
     if APP_TARGET is not None:
         raise nose.SkipTest('not Excel default')
@@ -110,6 +111,7 @@ class TestApplication:
 
     def tearDown(self):
         self.wb.close()
+        Application(self.wb).quit()
 
     def test_screen_updating(self):
         Application(wkb=self.wb).screen_updating = False
@@ -145,6 +147,7 @@ class TestWorkbook:
 
     def tearDown(self):
         self.wb.close()
+        Application(self.wb).quit()
 
     def test_name(self):
         assert_equal(self.wb.name, 'test_workbook_1.xlsx')
@@ -217,6 +220,7 @@ class TestWorkbook:
             os.remove(target_file_path)
 
     def test_mock_caller(self):
+        # Can't really run this one with app_visible=False
         _skip_if_not_default_xl()
 
         Workbook.set_mock_caller(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx'))
@@ -229,7 +233,7 @@ class TestWorkbook:
         src = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'unicode_path.xlsx')
         dst = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicödé_päth.xlsx')
         shutil.move(src, dst)
-        wb = Workbook(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicödé_päth.xlsx'), app_target=APP_TARGET)
+        wb = Workbook(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicödé_päth.xlsx'), app_visible=False, app_target=APP_TARGET)
         Range('A1').value = 1
         wb.close()
         shutil.move(dst, src)
@@ -250,6 +254,7 @@ class TestSheet:
 
     def tearDown(self):
         self.wb.close()
+        Application(self.wb).quit()
 
     def test_activate(self):
         Sheet('Sheet2').activate()
@@ -337,6 +342,7 @@ class TestRange:
 
     def tearDown(self):
         self.wb.close()
+        Application(self.wb).quit()
 
     def test_cell(self):
         params = [('A1', 22),
@@ -854,7 +860,7 @@ class TestRange:
         assert_equal(Range('B3:F5').last_cell.column, 6)
 
     def test_get_set_named_range(self):
-        wb = Workbook()
+        wb = Workbook(app_visible=False)
         Range('A1').name = 'test1'
         assert_equal(Range('A1').name, 'test1')
 
@@ -873,6 +879,7 @@ class TestChart:
 
     def tearDown(self):
         self.wb.close()
+        Application(self.wb).quit()
 
     def test_add_keywords(self):
         name = 'My Chart'
