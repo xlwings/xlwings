@@ -82,8 +82,13 @@ def get_xl_apps():
     xl_apps = []
     hwnds = get_excel_hwnds()
     for hwnd in hwnds:
-        xl_app = get_xl_app_from_hwnd(hwnd)
-        xl_apps.append(xl_app)
+        try:
+            xl_app = get_xl_app_from_hwnd(hwnd)
+            xl_apps.append(xl_app)
+        except WindowsError:
+            # This happens if the bare Excel Application is open without Workbook
+            # i.e. there is no 'EXCEL7' child hwnd that would be necessary to make a connection
+            pass
     return xl_apps
 
 
