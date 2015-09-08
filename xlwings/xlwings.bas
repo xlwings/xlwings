@@ -216,7 +216,7 @@ End Function
 Function ReadFile(ByVal FileName As String)
     ' Read a text file
 
-    Dim Content As Variant
+    Dim Content As String
     Dim Token As String
     Dim FileNum As Integer
 
