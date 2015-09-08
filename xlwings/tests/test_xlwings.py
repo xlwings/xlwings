@@ -102,6 +102,12 @@ def _skip_if_not_default_xl():
         raise nose.SkipTest('not Excel default')
 
 
+def class_teardown(wb):
+    wb.close()
+    if sys.platform.startswith('win'):
+        Application(wb).quit()
+
+
 class TestApplication:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
@@ -110,8 +116,7 @@ class TestApplication:
         Sheet('Sheet1').activate()
 
     def tearDown(self):
-        self.wb.close()
-        Application(self.wb).quit()
+        class_teardown(self.wb)
 
     def test_screen_updating(self):
         Application(wkb=self.wb).screen_updating = False
@@ -146,8 +151,7 @@ class TestWorkbook:
         Sheet('Sheet1').activate()
 
     def tearDown(self):
-        self.wb.close()
-        Application(self.wb).quit()
+        class_teardown(self.wb)
 
     def test_name(self):
         assert_equal(self.wb.name, 'test_workbook_1.xlsx')
@@ -243,6 +247,7 @@ class TestWorkbook:
         Range('B2').value = 123
         wb2 = Workbook(wb.name, app_visible=False, app_target=APP_TARGET)
         assert_equal(Range('B2', wkb=wb2).value, 123)
+        wb2.close()
 
 
 class TestSheet:
@@ -253,8 +258,7 @@ class TestSheet:
         Sheet('Sheet1').activate()
 
     def tearDown(self):
-        self.wb.close()
-        Application(self.wb).quit()
+        class_teardown(self.wb)
 
     def test_activate(self):
         Sheet('Sheet2').activate()
@@ -341,8 +345,7 @@ class TestRange:
         Sheet('Sheet1').activate()
 
     def tearDown(self):
-        self.wb.close()
-        Application(self.wb).quit()
+        class_teardown(self.wb)
 
     def test_cell(self):
         params = [('A1', 22),
@@ -860,15 +863,11 @@ class TestRange:
         assert_equal(Range('B3:F5').last_cell.column, 6)
 
     def test_get_set_named_range(self):
-        wb = Workbook(app_visible=False)
-        Range('A1').name = 'test1'
-        assert_equal(Range('A1').name, 'test1')
+        Range('A100').name = 'test1'
+        assert_equal(Range('A100').name, 'test1')
 
-        Range('A2:B4').name = 'test2'
-        assert_equal(Range('A2:B4').name, 'test2')
-
-        wb.close()
-
+        Range('A200:B204').name = 'test2'
+        assert_equal(Range('A200:B204').name, 'test2')
 
 class TestChart:
     def setUp(self):
@@ -878,8 +877,7 @@ class TestChart:
         Sheet('Sheet1').activate()
 
     def tearDown(self):
-        self.wb.close()
-        Application(self.wb).quit()
+        class_teardown(self.wb)
 
     def test_add_keywords(self):
         name = 'My Chart'
