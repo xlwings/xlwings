@@ -216,7 +216,7 @@ End Function
 Function ReadFile(ByVal FileName As String)
     ' Read a text file
 
-    Dim Content As String
+    Dim Content As Variant
     Dim Token As String
     Dim FileNum As Integer
 
@@ -231,7 +231,7 @@ Function ReadFile(ByVal FileName As String)
     Open FileName For Input As #FileNum
         Do While Not EOF(FileNum)
             Line Input #FileNum, Token
-            Content = Content & Token & vbCr
+            Content = Content & Token & vbCrLf
         Loop
     Close #FileNum
 
@@ -242,13 +242,20 @@ Sub ShowError(FileName As String)
     ' Shows a MsgBox with the content of a text file
 
     Dim Content As String
-
+    Dim objShell
+    
+    Const OK_BUTTON_ERROR = 16
+    Const AUTO_DISMISS = 0
+    
     Content = ReadFile(FileName)
     #If Win32 Or Win64 Then
-        Content = Content & vbCr
+        Content = Content & vbCrLf
         Content = Content & "Press Ctrl+C to copy this message to the clipboard."
     #End If
-    MsgBox Content, vbCritical, "Error"
+    
+    Set objShell = CreateObject("Wscript.Shell")
+    objShell.Popup Content, AUTO_DISMISS, "Error", OK_BUTTON_ERROR
+    
 End Sub
 
 Function ToPosixPath(ByVal MacPath As String) As String
