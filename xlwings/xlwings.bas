@@ -251,10 +251,12 @@ Sub ShowError(FileName As String)
     #If Win32 Or Win64 Then
         Content = Content & vbCrLf
         Content = Content & "Press Ctrl+C to copy this message to the clipboard."
+
+        Set objShell = CreateObject("Wscript.Shell")
+        objShell.Popup Content, AUTO_DISMISS, "Error", OK_BUTTON_ERROR
+    #Else
+        MsgBox Content, vbCritical, "Error"
     #End If
-    
-    Set objShell = CreateObject("Wscript.Shell")
-    objShell.Popup Content, AUTO_DISMISS, "Error", OK_BUTTON_ERROR
     
 End Sub
 
