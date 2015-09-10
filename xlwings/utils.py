@@ -13,3 +13,9 @@ def int_to_rgb(number):
 def rgb_to_int(rgb):
     """Given an rgb, return an int"""
     return rgb[0] + (rgb[1] * 256) + (rgb[2] * 256 * 256)
+
+
+def get_duplicates(seq):
+    seen = set()
+    duplicates = set(x for x in seq if x in seen or seen.add(x))
+    return duplicates
