@@ -15,6 +15,7 @@ import re
 import numbers
 import itertools
 import inspect
+import collections
 from . import xlplatform, string_types, time_types, xrange
 from .constants import ChartType
 
@@ -162,6 +163,10 @@ class Workbook(object):
 
         if app_visible is not None:
             xlplatform.set_visible(self.xl_app, app_visible)
+
+        # Names collection
+        self.names = NamesDict(self.xl_workbook)
+        xlplatform.set_names(self)
 
     @classmethod
     def caller(cls):
@@ -1536,3 +1541,28 @@ class Chart(object):
                                                                        Sheet(self.sheet_name_or_index).name,
                                                                        xlplatform.get_workbook_name(self.xl_workbook))
 
+
+class NamesDict(collections.MutableMapping):
+    """Implments the Workbook.Names collection"""
+    def __init__(self, xl_workbook, *args, **kwargs):
+        self.xl_workbook = xl_workbook
+        self.store = dict()
+        self.update(dict(*args, **kwargs))
+
+    def __getitem__(self, key):
+        return self.store[self.__keytransform__(key)]
+
+    def __setitem__(self, key, value):
+        self.store[self.__keytransform__(key)] = value
+
+    def __delitem__(self, key):
+        xlplatform.delete_name(self.xl_workbook, self.store[self.__keytransform__(key)].Name)
+
+    def __iter__(self):
+        return iter(self.store)
+
+    def __len__(self):
+        return len(self.store)
+
+    def __keytransform__(self, key):
+        return key
