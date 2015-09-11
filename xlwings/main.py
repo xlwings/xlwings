@@ -1368,6 +1368,9 @@ class Range(object):
 
         Sets or gets the name of a Range.
 
+        To delete a named Range, use ``del wb.names['NamedRange']`` if ``wb`` is
+        your Workbook object.
+
         """
         return xlplatform.get_named_range(self)
 
@@ -1543,7 +1546,10 @@ class Chart(object):
 
 
 class NamesDict(collections.MutableMapping):
-    """Implments the Workbook.Names collection"""
+    """
+    Implements the Workbook.Names collection.
+    Currently only used to be able to do ``del wb.names['NamedRange']``
+    """
     def __init__(self, xl_workbook, *args, **kwargs):
         self.xl_workbook = xl_workbook
         self.store = dict()
@@ -1556,7 +1562,7 @@ class NamesDict(collections.MutableMapping):
         self.store[self.__keytransform__(key)] = value
 
     def __delitem__(self, key):
-        xlplatform.delete_name(self.xl_workbook, self.store[self.__keytransform__(key)].Name)
+        xlplatform.delete_name(self.xl_workbook, key)
 
     def __iter__(self):
         return iter(self.store)

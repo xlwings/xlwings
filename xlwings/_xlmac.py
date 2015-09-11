@@ -494,3 +494,11 @@ def get_named_range(range_):
 
 def set_named_range(range_, value):
     range_.xl_range.name.set(value)
+
+def set_names(workbook):
+    for i in workbook.xl_workbook.named_items.get():
+        workbook.names[i.name.get()] = i
+
+
+def delete_name(xl_workbook, name):
+    xl_workbook.named_items[name].delete()
