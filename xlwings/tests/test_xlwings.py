@@ -7,7 +7,7 @@ import os
 import sys
 import shutil
 import nose
-from nose.tools import assert_equal, raises, assert_true
+from nose.tools import assert_equal, raises, assert_true, assert_false
 from datetime import datetime, date
 from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation
 
@@ -248,6 +248,12 @@ class TestWorkbook:
         wb2 = Workbook(wb.name, app_visible=False, app_target=APP_TARGET)
         assert_equal(Range('B2', wkb=wb2).value, 123)
         wb2.close()
+
+    def delete_named_item(self):
+        Range('B10:C11').name = 'to_be_deleted'
+        assert_true(Range('to_be_deleted').name, 'to_be_deleted')
+        del self.wb.names['to_be_deleted']
+        assert_false(Range('B10:C11').name, 'to_be_deleted')
 
 
 class TestSheet:
