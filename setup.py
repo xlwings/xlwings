@@ -21,6 +21,7 @@ elif sys.platform.startswith('darwin'):
     data_files =[]
 else:
     on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+    data_files = []
     if not on_rtd:
         raise OSError("currently only Windows and OSX are supported.")
 
