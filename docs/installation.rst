@@ -48,4 +48,4 @@ with xlwings.
 Python version support
 ----------------------
 
-xlwings runs on Python 2.6-2.7 and 3.1-3.4
+xlwings runs on Python 2.6-2.7 and 3.1+
