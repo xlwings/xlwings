@@ -119,7 +119,7 @@ Alternatively it can be installed from source. From within the ``xlwings`` direc
 Dependencies
 ------------
 
-* **Windows**: ``pywin32``
+* **Windows**: ``pywin32``, ``comptypes``
 
   On Windows, it is recommended to use one of the scientific Python distributions like
   `Anaconda <https://store.continuum.io/cshop/anaconda/>`_,
