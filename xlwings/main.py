@@ -15,6 +15,7 @@ import re
 import numbers
 import itertools
 import inspect
+import collections
 from . import xlplatform, string_types, time_types, xrange
 from .constants import ChartType
 
@@ -338,6 +339,18 @@ class Workbook(object):
             pass
 
         xlplatform.open_template(os.path.realpath(os.path.join(this_dir, template_file)))
+
+    @property
+    def names(self):
+        """
+        .. versionadded:: 0.4.0
+
+        A collection of all the (platform-specific) name objects in the application or workbook.
+        Each name object represents a defined name for a range of cells (built-in or custom ones).
+        """
+        names = NamesDict(self.xl_workbook)
+        xlplatform.set_names(self.xl_workbook, names)
+        return names
 
     def __repr__(self):
         return "<Workbook '{0}'>".format(self.name)
@@ -1363,6 +1376,9 @@ class Range(object):
 
         Sets or gets the name of a Range.
 
+        To delete a named Range, use ``del wb.names['NamedRange']`` if ``wb`` is
+        your Workbook object.
+
         """
         return xlplatform.get_named_range(self)
 
@@ -1536,3 +1552,31 @@ class Chart(object):
                                                                        Sheet(self.sheet_name_or_index).name,
                                                                        xlplatform.get_workbook_name(self.xl_workbook))
 
+
+class NamesDict(collections.MutableMapping):
+    """
+    Implements the Workbook.Names collection.
+    Currently only used to be able to do ``del wb.names['NamedRange']``
+    """
+    def __init__(self, xl_workbook, *args, **kwargs):
+        self.xl_workbook = xl_workbook
+        self.store = dict()
+        self.update(dict(*args, **kwargs))
+
+    def __getitem__(self, key):
+        return self.store[self.__keytransform__(key)]
+
+    def __setitem__(self, key, value):
+        self.store[self.__keytransform__(key)] = value
+
+    def __delitem__(self, key):
+        xlplatform.delete_name(self.xl_workbook, key)
+
+    def __iter__(self):
+        return iter(self.store)
+
+    def __len__(self):
+        return len(self.store)
+
+    def __keytransform__(self, key):
+        return key

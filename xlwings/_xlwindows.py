@@ -613,3 +613,13 @@ def get_named_range(range_):
 
 def set_named_range(range_, value):
     range_.xl_range.Name = value
+
+
+def set_names(xl_workbook, names):
+    for i in xl_workbook.Names:
+        names[i.Name] = i
+
+
+def delete_name(xl_workbook, name):
+    xl_workbook.Names(name).Delete()
+
