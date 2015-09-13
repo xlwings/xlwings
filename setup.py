@@ -23,6 +23,7 @@ else:
     on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
     if on_rtd:
         data_files = []
+        install_requires = []
     else:
         raise OSError("currently only Windows and OSX are supported.")
 
