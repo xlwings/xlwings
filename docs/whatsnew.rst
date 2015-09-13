@@ -1,6 +1,58 @@
 What's New
 ==========
 
+v0.4.0 (September 13, 2015)
+---------------------------
+
+API changes
+***********
+None
+
+Enhancements
+************
+The most important update with this release was made on Windows: The methodology used to make a connection
+to Workbooks has been completely replaced. This finally allows xlwings to reliably connect to multiple instances of
+Excel even if the Workbooks are opened from untrusted locations (network drives or files downloaded from the internet).
+This gets rid of the dreaded ``Filename is already open...`` error message that was sometimes shown in this
+context. It also allows the VBA hooks (``RunPython``) to work correctly if the very same file is opened in various instances of
+Excel.
+
+Note that you will need to update the VBA module and that apart from ``pywin32`` there is now a new dependency for the
+Windows version: ``comtypes``. It should be installed automatically though when installing/upgrading xlwings with
+``pip``.
+
+
+Other updates:
+
+* Added support to manipulate named Ranges (:issue:`92`):
+
+    >>> wb = Workbook()
+    >>> Range('A1').name = 'Name1'
+    >>> Range('A1').name
+    >>> 'Name1'
+    >>> del wb.names['Name1']
+
+* New ``Range`` properties (:issue:`81`):
+    * :meth:`xlwings.Range.column_width`
+    * :meth:`xlwings.Range.row_height`
+    * :meth:`xlwings.Range.width`
+    * :meth:`xlwings.Range.height`
+
+* ``Range`` now also accepts ``Sheet`` objects, the following 3 ways are hence all valid (:issue:`92`)::
+
+    r = Range(1, 'A1')
+    r = Range('Sheet1', 'A1')
+    sheet1 = Sheet(1)
+    r = Range(sheet1, 'A1')
+
+* [Win Version]: Error pop-ups show now the full error message that can also be copied with ``Ctrl-C`` (:issue:`221`).
+
+
+Bug Fixes
+*********
+* The VBA module was not accepting lower case drive letters (:issue:`205`).
+* Fixed an error when adding a new Sheet that was already existing (:issue:`211`).
+
 v0.3.6 (July 14, 2015)
 ----------------------
 

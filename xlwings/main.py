@@ -40,18 +40,18 @@ class Application(object):
 
     def quit(self):
         """
-        .. versionadded:: 0.3.3
-
         Quits the application without saving any workbooks.
+
+        .. versionadded:: 0.3.3
         """
         xlplatform.quit_app(self.xl_app)
 
     @property
     def screen_updating(self):
         """
-        .. versionadded:: 0.3.3
-
         True if screen updating is turned on. Read/write Boolean.
+
+        .. versionadded:: 0.3.3
         """
         return xlplatform.get_screen_updating(self.xl_app)
 
@@ -62,10 +62,10 @@ class Application(object):
     @property
     def visible(self):
         """
-        .. versionadded:: 0.3.3
-
         Gets or sets the visibility of Excel to ``True`` or  ``False``. This property can also be
         conveniently set during instantiation of a new Workbook: ``Workbook(app_visible=False)``
+
+        .. versionadded:: 0.3.3
         """
         return xlplatform.get_visible(self.xl_app)
 
@@ -76,15 +76,16 @@ class Application(object):
     @property
     def calculation(self):
         """
-        .. versionadded:: 0.3.3
+        Returns or sets a Calculation value that represents the calculation mode.
 
-        Returns or sets a Calculation value that represents the calculation mode::
-
+        Example
+        -------
         >>> from xlwings import Workbook, Application
         >>> from xlwings.constants import Calculation
         >>> wb = Workbook()
         >>> Application(wkb=wb).calculation = Calculation.xlCalculationManual
 
+        .. versionadded:: 0.3.3
         """
         return xlplatform.get_calculation(self.xl_app)
 
@@ -94,9 +95,9 @@ class Application(object):
 
     def calculate(self):
         """
-        .. versionadded:: 0.3.6
-
         Calculates all open Workbooks
+
+        .. versionadded:: 0.3.6
         """
         xlplatform.calculate(self.xl_app)
 
@@ -167,8 +168,6 @@ class Workbook(object):
     @classmethod
     def caller(cls):
         """
-        .. versionadded:: 0.3.0
-
         Creates a connection when the Python function is called from Excel:
 
         ``wb = Workbook.caller()``
@@ -182,6 +181,8 @@ class Workbook(object):
                 Range('A1').value = 1
 
         To be able to easily invoke such code from Python for debugging, use ``Workbook.set_mock_caller()``.
+
+        .. versionadded:: 0.3.0
         """
         if hasattr(Workbook, '_mock_file'):
             # Use mocking Workbook, see Workbook.set_mock_caller()
@@ -206,8 +207,6 @@ class Workbook(object):
     @staticmethod
     def set_mock_caller(fullpath):
         """
-        .. versionadded:: 0.3.1
-
         Sets the Excel file which is used to mock ``Workbook.caller()`` when the code is called from within Python.
 
         Examples
@@ -227,28 +226,30 @@ class Workbook(object):
                 Workbook.set_mock_caller(r'C:\\path\\to\\file.xlsx')
 
                 my_macro()
+
+        .. versionadded:: 0.3.1
         """
         Workbook._mock_file = fullpath
 
     @classmethod
     def current(cls):
         """
-        .. versionadded:: 0.2.2
-
         Returns the current Workbook object, i.e. the default Workbook used by ``Sheet``, ``Range`` and ``Chart`` if not
         specified otherwise. On Windows, in case there are various instances of Excel running, opening an existing or
         creating a new Workbook through ``Workbook()`` is acting on the same instance of Excel as this Workbook. Use
         like this: ``Workbook.current()``.
+
+        .. versionadded:: 0.2.2
         """
         return cls(xl_workbook=xlplatform.get_xl_workbook_current(), app_visible=None)
 
     def set_current(self):
         """
-        .. versionadded:: 0.2.2
-
         This makes the Workbook the default that ``Sheet``, ``Range`` and ``Chart`` use if not specified
         otherwise. On Windows, in case there are various instances of Excel running, opening an existing or creating a
         new Workbook through ``Workbook()`` is acting on the same instance of Excel as this Workbook.
+
+        .. versionadded:: 0.2.2
         """
         xlplatform.set_xl_workbook_current(self.xl_workbook)
 
@@ -272,16 +273,14 @@ class Workbook(object):
 
     def close(self):
         """
-        .. versionadded:: 0.1.1
-
         Closes the Workbook without saving it.
+
+        .. versionadded:: 0.1.1
         """
         xlplatform.close_workbook(self.xl_workbook)
 
     def save(self, path=None):
         """
-        .. versionadded:: 0.3.1
-
         Saves the Workbook. If a path is being provided, this works like SaveAs() in Excel. If no path is specified and
         if the file hasn't been saved previously, it's being saved in the current working directory with the current
         filename. Existing files are overwritten without prompting.
@@ -298,6 +297,7 @@ class Workbook(object):
         >>> wb.save()
         >>> wb.save(r'C:\\path\\to\\new_file_name.xlsx')
 
+        .. versionadded:: 0.3.1
         """
         xlplatform.save_workbook(self.xl_workbook, path)
 
@@ -323,13 +323,12 @@ class Workbook(object):
     @staticmethod
     def open_template():
         """
-        .. versionadded:: 0.3.3
-
         Creates a new Excel file with the xlwings VBA module already included. This method must be called from an
         interactive Python shell::
 
         >>> Workbook.open_template()
 
+        .. versionadded:: 0.3.3
         """
         this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
         template_file = 'xlwings_template.xltm'
@@ -343,10 +342,10 @@ class Workbook(object):
     @property
     def names(self):
         """
-        .. versionadded:: 0.4.0
-
         A collection of all the (platform-specific) name objects in the application or workbook.
         Each name object represents a defined name for a range of cells (built-in or custom ones).
+
+        .. versionadded:: 0.4.0
         """
         names = NamesDict(self.xl_workbook)
         xlplatform.set_names(self.xl_workbook, names)
@@ -358,8 +357,6 @@ class Workbook(object):
 
 class Sheet(object):
     """
-    .. versionadded:: 0.2.3
-
     Represents a Sheet of the current Workbook. Either call it with the Sheet name or index::
 
         Sheet('Sheet1')
@@ -374,6 +371,9 @@ class Sheet(object):
     -----------------
     wkb : Workbook object, default Workbook.current()
         Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
+
+    .. versionadded:: 0.2.3
     """
 
     def __init__(self, sheet, wkb=None):
@@ -387,8 +387,6 @@ class Sheet(object):
 
     def autofit(self, axis=None):
         """
-        .. versionadded:: 0.2.3
-
         Autofits the width of either columns, rows or both on a whole Sheet.
 
         Arguments
@@ -408,6 +406,8 @@ class Sheet(object):
             Sheet('Sheet1').autofit('r')
             # Autofit columns and rows
             Range('Sheet1').autofit()
+
+        .. versionadded:: 0.2.3
         """
         xlplatform.autofit_sheet(self, axis)
 
@@ -442,8 +442,6 @@ class Sheet(object):
     @classmethod
     def add(cls, name=None, before=None, after=None, wkb=None):
         """
-        .. versionadded:: 0.2.3
-
         Creates a new worksheet: the new worksheet becomes the active sheet. If neither ``before`` nor
         ``after`` is specified, the new Sheet will be placed at the end.
 
@@ -471,6 +469,7 @@ class Sheet(object):
         >>> new_sheet.index
         4
 
+        .. versionadded:: 0.2.3
         """
         xl_workbook = Workbook.get_xl_workbook(wkb)
 
@@ -495,8 +494,6 @@ class Sheet(object):
     @staticmethod
     def count(wkb=None):
         """
-        .. versionadded:: 0.2.3
-
         Counts the number of Sheets.
 
         Keyword Arguments
@@ -508,6 +505,8 @@ class Sheet(object):
         --------
         >>> Sheet.count()
         3
+
+        .. versionadded:: 0.2.3
         """
         xl_workbook = Workbook.get_xl_workbook(wkb)
         return xlplatform.count_worksheets(xl_workbook)
@@ -515,8 +514,6 @@ class Sheet(object):
     @staticmethod
     def all(wkb=None):
         """
-        .. versionadded:: 0.2.3
-
         Returns a list with all Sheet objects.
 
         Keyword Arguments
@@ -531,6 +528,8 @@ class Sheet(object):
         >>> [i.name.lower() for i in Sheet.all()]
         ['sheet1', 'sheet2']
         >>> [i.autofit() for i in Sheet.all()]
+
+        .. versionadded:: 0.2.3
         """
         xl_workbook = Workbook.get_xl_workbook(wkb)
         sheet_list = []
@@ -675,9 +674,9 @@ class Range(object):
 
     def is_cell(self):
         """
-        .. versionadded:: 0.1.1
-
         Returns ``True`` if the Range consists of a single Cell otherwise ``False``.
+
+        .. versionadded:: 0.1.1
         """
         if self.row1 == self.row2 and self.col1 == self.col2:
             return True
@@ -686,9 +685,9 @@ class Range(object):
 
     def is_row(self):
         """
-        .. versionadded:: 0.1.1
-
         Returns ``True`` if the Range consists of a single Row otherwise ``False``.
+
+        .. versionadded:: 0.1.1
         """
         if self.row1 == self.row2 and self.col1 != self.col2:
             return True
@@ -697,9 +696,9 @@ class Range(object):
 
     def is_column(self):
         """
-        .. versionadded:: 0.1.1
-
         Returns ``True`` if the Range consists of a single Column otherwise ``False``.
+
+        .. versionadded:: 0.1.1
         """
         if self.row1 != self.row2 and self.col1 == self.col2:
             return True
@@ -708,9 +707,9 @@ class Range(object):
 
     def is_table(self):
         """
-        .. versionadded:: 0.1.1
-
         Returns ``True`` if the Range consists of a 2d array otherwise ``False``.
+
+        .. versionadded:: 0.1.1
         """
         if self.row1 != self.row2 and self.col1 != self.col2:
             return True
@@ -720,18 +719,18 @@ class Range(object):
     @property
     def shape(self):
         """
-        .. versionadded:: 0.3.0
-
         Tuple of Range dimensions.
+
+        .. versionadded:: 0.3.0
         """
         return self.row2 - self.row1 + 1, self.col2 - self.col1 + 1
 
     @property
     def size(self):
         """
-        .. versionadded:: 0.3.0
-
         Number of elements in the Range.
+
+        .. versionadded:: 0.3.0
         """
         return self.shape[0] * self.shape[1]
 
@@ -995,8 +994,6 @@ class Range(object):
     @property
     def number_format(self):
         """
-        .. versionadded:: 0.2.3
-
         Gets and sets the number_format of a Range.
 
         Examples
@@ -1007,6 +1004,8 @@ class Range(object):
         >>> Range('A1:C3').number_format = '0.00%'
         >>> Range('A1:C3').number_format
         '0.00%'
+
+        .. versionadded:: 0.2.3
         """
         return xlplatform.get_number_format(self)
 
@@ -1029,8 +1028,6 @@ class Range(object):
     @property
     def column_width(self):
         """
-        .. versionadded:: 0.3.7
-
         Gets or sets the width, in characters, of a Range.
         One unit of column width is equal to the width of one character in the Normal style.
         For proportional fonts, the width of the character 0 (zero) is used.
@@ -1048,6 +1045,8 @@ class Range(object):
         -------
         float
 
+
+        .. versionadded:: 0.4.0
         """
         return xlplatform.get_column_width(self.xl_range)
 
@@ -1058,8 +1057,6 @@ class Range(object):
     @property
     def row_height(self):
         """
-        .. versionadded:: 0.3.7
-
         Gets or sets the height, in points, of a Range.
         If all rows in the Range have the same height, returns the height.
         If rows in the Range have different heights, returns None.
@@ -1074,6 +1071,8 @@ class Range(object):
         -------
         float
 
+
+        .. versionadded:: 0.4.0
         """
         return xlplatform.get_row_height(self.xl_range)
 
@@ -1084,35 +1083,33 @@ class Range(object):
     @property
     def width(self):
         """
-        .. versionadded:: 0.3.7
-
         Returns the width, in points, of a Range. Read-only.
 
         Returns
         -------
         float
 
+
+        .. versionadded:: 0.4.0
         """
         return xlplatform.get_width(self.xl_range)
 
     @property
     def height(self):
         """
-        .. versionadded:: 0.3.7
-
         Returns the height, in points, of a Range. Read-only.
 
         Returns
         -------
         float
 
+
+        .. versionadded:: 0.4.0
         """
         return xlplatform.get_height(self.xl_range)
 
     def autofit(self, axis=None):
         """
-        .. versionadded:: 0.2.2
-
         Autofits the width of either columns, rows or both.
 
         Arguments
@@ -1135,13 +1132,12 @@ class Range(object):
             # AutoFit rows, taking into account Range('A1:E4')
             Range('A1:E4').autofit('rows')
 
+        .. versionadded:: 0.2.2
         """
         xlplatform.autofit(self, axis)
 
     def get_address(self, row_absolute=True, column_absolute=True, include_sheetname=False, external=False):
         """
-        .. versionadded:: 0.2.3
-
         Returns the address of the range in the specified format.
 
         Arguments
@@ -1174,6 +1170,8 @@ class Range(object):
             'Sheet1!A$1:C$3'
             >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, external=True)
             '[Workbook1]Sheet1!A$1:C$3'
+
+        .. versionadded:: 0.2.3
         """
 
         if include_sheetname and not external:
@@ -1199,8 +1197,6 @@ class Range(object):
     @property
     def hyperlink(self):
         """
-        .. versionadded:: 0.3.0
-
         Returns the hyperlink address of the specified Range (single Cell only)
 
         Examples
@@ -1209,6 +1205,8 @@ class Range(object):
         'www.xlwings.org'
         >>> Range('A1').hyperlink
         'http://www.xlwings.org'
+
+        .. versionadded:: 0.3.0
         """
         if self.formula.lower().startswith('='):
             # If it's a formula, extract the URL from the formula string
@@ -1223,8 +1221,6 @@ class Range(object):
 
     def add_hyperlink(self, address, text_to_display=None, screen_tip=None):
         """
-        .. versionadded:: 0.3.0
-
         Adds a hyperlink to the specified Range (single Cell)
 
         Arguments
@@ -1236,6 +1232,9 @@ class Range(object):
         screen_tip: str, default None
             The screen tip to be displayed when the mouse pointer is paused over the hyperlink.
             Default is set to '<address> - Click once to follow. Click and hold to select this cell.'
+
+
+        .. versionadded:: 0.3.0
         """
         if text_to_display is None:
             text_to_display = address
@@ -1248,8 +1247,6 @@ class Range(object):
     @property
     def color(self):
         """
-        .. versionadded:: 0.3.0
-
         Gets and sets the background color of the specified Range.
 
         To set the color, either use an RGB tuple ``(0, 0, 0)`` or a color constant.
@@ -1269,6 +1266,8 @@ class Range(object):
         >>> Range('A2').color = None
         >>> Range('A2').color is None
         True
+
+        .. versionadded:: 0.3.0
         """
         return xlplatform.get_color(self.xl_range)
 
@@ -1278,13 +1277,14 @@ class Range(object):
 
     def resize(self, row_size=None, column_size=None):
         """
-        .. versionadded:: 0.3.0
-
         Resizes the specified Range.
 
         Returns
         -------
         Range : Range object
+
+
+        .. versionadded:: 0.3.0
         """
         if row_size:
             row2 = self.row1 + row_size - 1
@@ -1299,13 +1299,14 @@ class Range(object):
 
     def offset(self, row_offset=None, column_offset=None):
         """
-        .. versionadded:: 0.3.0
-
         Returns a Range object that represents a Range that's offset from the specified range.
 
         Returns
         -------
         Range : Range object
+
+
+        .. versionadded:: 0.3.0
         """
 
         if row_offset:
@@ -1325,34 +1326,34 @@ class Range(object):
     @property
     def column(self):
         """
-        .. versionadded:: 0.3.5
-
         Returns the number of the first column in the in the specified range. Read-only.
 
         Returns
         -------
         Integer
+
+
+        .. versionadded:: 0.3.5
         """
         return self.col1
 
     @property
     def row(self):
         """
-        .. versionadded:: 0.3.5
-
         Returns the number of the first row in the in the specified range. Read-only.
 
         Returns
         -------
         Integer
+
+
+        .. versionadded:: 0.3.5
         """
         return self.row1
 
     @property
     def last_cell(self):
         """
-        .. versionadded:: 0.3.5
-
         Returns the bottom right cell of the specified range. Read-only.
 
         Returns
@@ -1365,6 +1366,7 @@ class Range(object):
         >>> rng.last_cell.row, rng.last_cell.column
         (4, 5)
 
+        .. versionadded:: 0.3.5
         """
         return Range(xlplatform.get_worksheet_name(self.xl_sheet),
                      (self.row2, self.col2), **self.kwargs)
@@ -1372,13 +1374,12 @@ class Range(object):
     @property
     def name(self):
         """
-        .. versionadded:: 0.3.7
-
         Sets or gets the name of a Range.
 
         To delete a named Range, use ``del wb.names['NamedRange']`` if ``wb`` is
         your Workbook object.
 
+        .. versionadded:: 0.4.0
         """
         return xlplatform.get_named_range(self)
 
@@ -1520,9 +1521,9 @@ class Chart(object):
     @property
     def chart_type(self):
         """
-        .. versionadded:: 0.1.1
-
         Gets and sets the chart type of a chart.
+
+        .. versionadded:: 0.1.1
         """
         return xlplatform.get_chart_type(self.xl_chart)
 
