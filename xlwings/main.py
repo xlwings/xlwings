@@ -164,10 +164,6 @@ class Workbook(object):
         if app_visible is not None:
             xlplatform.set_visible(self.xl_app, app_visible)
 
-        # Names collection
-        self.names = NamesDict(self.xl_workbook)
-        xlplatform.set_names(self)
-
     @classmethod
     def caller(cls):
         """
@@ -343,6 +339,18 @@ class Workbook(object):
             pass
 
         xlplatform.open_template(os.path.realpath(os.path.join(this_dir, template_file)))
+
+    @property
+    def names(self):
+        """
+        .. versionadded:: 0.4.0
+
+        A collection of all the (platform-specific) name objects in the application or workbook.
+        Each name object represents a defined name for a range of cells (built-in or custom ones).
+        """
+        names = NamesDict(self.xl_workbook)
+        xlplatform.set_names(self.xl_workbook, names)
+        return names
 
     def __repr__(self):
         return "<Workbook '{0}'>".format(self.name)

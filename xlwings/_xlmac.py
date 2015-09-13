@@ -496,10 +496,10 @@ def set_named_range(range_, value):
     range_.xl_range.name.set(value)
 
 
-def set_names(workbook):
+def set_names(xl_workbook, names):
     try:
-        for i in workbook.xl_workbook.named_items.get():
-            workbook.names[i.name.get()] = i
+        for i in xl_workbook.named_items.get():
+            names[i.name.get()] = i
     except TypeError:
         pass
 

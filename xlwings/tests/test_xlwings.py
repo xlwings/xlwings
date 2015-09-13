@@ -255,6 +255,14 @@ class TestWorkbook:
         del self.wb.names['to_be_deleted']
         assert_false(Range('B10:C11').name, 'to_be_deleted')
 
+    def names_collection(self):
+        Range('A1').name = 'name1'
+        Range('A2').name = 'name2'
+        assert_true('name1' in self.wb.names and 'name2' in self.wb.names)
+
+        Range('A3').name = 'name3'
+        assert_true('name1' in self.wb.names and 'name2' in self.wb.names and
+                    'name3' in self.wb.names)
 
 class TestSheet:
     def setUp(self):
