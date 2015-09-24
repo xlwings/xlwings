@@ -148,6 +148,15 @@ def get_open_workbook(fullname, app_target=None, hwnd=None):
                         return xl_app, xl_workbook
 
 
+def get_active_workbook(app_target=None):
+    if app_target is not None:
+        raise NotImplementedError('app_target is only available on Mac.')
+    # The active workbook is the first of all HWNDs
+    hwnd_active_workbook = get_excel_hwnds()[0]
+    xl_app = get_xl_app_from_hwnd(hwnd_active_workbook)
+    return xl_app.ActiveWorkbook
+
+
 def get_workbook_name(xl_workbook):
     return xl_workbook.Name
 
