@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-# To run a single TestClass: nosetests -q -s test_xlwings:TestRange
-# To run a single Test: nosetests -q -s test_xlwings:TestRange.test_
 
 from __future__ import unicode_literals
 import os
@@ -263,6 +261,13 @@ class TestWorkbook:
         Range('A3').name = 'name3'
         assert_true('name1' in self.wb.names and 'name2' in self.wb.names and
                     'name3' in self.wb.names)
+
+    def active_workbook(self):
+        # TODO: add test over multiple Excel instances on Windows
+        Range('A1').value = 'active_workbook'
+        wb_active = Workbook.active()
+        assert_equal(Range('A1', wkb=wb_active).value, 'active_workbook')
+
 
 class TestSheet:
     def setUp(self):
