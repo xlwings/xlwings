@@ -81,13 +81,17 @@ def is_excel_running():
 def get_open_workbook(fullname, app_target=None):
     """
     Get the appscript Workbook object.
-    On Mac, it seems that we don't have to deal with >1 instances of Excel,
-    as each spreadsheet opens in a separate window anyway.
+    On Mac, there's only ever one instance of Excel.
     """
     filename = os.path.basename(fullname)
     set_xl_app(app_target)
     xl_workbook = _xl_app.workbooks[filename]
     return _xl_app, xl_workbook
+
+
+def get_active_workbook(app_target=None):
+    set_xl_app(app_target)
+    return _xl_app.active_workbook
 
 
 def get_workbook_name(xl_workbook):

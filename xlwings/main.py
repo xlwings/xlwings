@@ -166,6 +166,17 @@ class Workbook(object):
             xlplatform.set_visible(self.xl_app, app_visible)
 
     @classmethod
+    def active(cls, app_target=None):
+        """
+        Returns the Workbook that is currently active or has been active last. On Windows,
+        it takes into account all instances.
+
+        .. versionadded:: 0.4.1
+        """
+        xl_workbook = xlplatform.get_active_workbook(app_target=app_target)
+        return cls(xl_workbook=xl_workbook)
+
+    @classmethod
     def caller(cls):
         """
         Creates a connection when the Python function is called from Excel:
