@@ -1,5 +1,3 @@
-# TODO: align clean_xl_data and prepare_xl_data (should work on same dimensions of data)
-
 import os
 import datetime as dt
 import subprocess
@@ -191,15 +189,19 @@ def get_value_from_index(xl_sheet, row_index, column_index):
 
 def clean_xl_data(data):
     """
-    appscript returns empty cells as ''. So we replace those with None to be in line with pywin32
+    Expects a 2d list.
     """
+    # appscript returns empty cells as ''. So we replace those with None to be in line with pywin32
     return [[None if c == '' else c for c in row] for row in data]
 
 
 def prepare_xl_data(data):
-    # This transformation seems to be only needed on Python 2.6 (?)
-    if hasattr(pd, 'tslib') and isinstance(data, pd.tslib.Timestamp):
-        data = data.to_datetime()
+    """
+    Expects a 2d list.
+    """
+    if hasattr(pd, 'tslib'):
+        # This transformation seems to be only needed on Python 2.6 (?)
+        data = [[c.to_datetime() if isinstance(c, pd.tslib.Timestamp) else c for c in row] for row in data]
     return data
 
 

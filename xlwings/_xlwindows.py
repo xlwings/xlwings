@@ -1,5 +1,3 @@
-# TODO: align clean_xl_data and prepare_xl_data (should work on same dimensions of data)
-
 import os
 import sys
 
@@ -262,18 +260,7 @@ def set_value(xl_range, data):
 
 def clean_xl_data(data):
     """
-    Brings data from tuples of tuples into list of list and
-    transforms pywintypes Time objects into Python datetime objects.
-
-    Parameters
-    ----------
-    data : tuple of tuple
-        raw data as returned from Excel through pywin32
-
-    Returns
-    -------
-    list of list with native Python datetime objects
-
+    Expects a 2d list.
     """
     # Turn into list of list (e.g. makes it easier to create Pandas DataFrame) and handle dates
     data = [[_com_time_to_datetime(c) if isinstance(c, time_types) else c for c in row] for row in data]
@@ -281,10 +268,11 @@ def clean_xl_data(data):
 
 
 def prepare_xl_data(data):
-    if isinstance(data, time_types):
-        return _datetime_to_com_time(data)
-    else:
-        return data
+    """
+    Expects a 2d list.
+    """
+    data = [[_datetime_to_com_time(c) if isinstance(c, time_types) else c for c in row] for row in data]
+    return data
 
 
 def _com_time_to_datetime(com_time):
