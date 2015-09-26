@@ -19,7 +19,7 @@ import win32timezone
 import win32gui
 import datetime as dt
 from .constants import Direction, ColorIndex
-from .utils import rgb_to_int, int_to_rgb, get_duplicates
+from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime
 from ctypes import oledll, PyDLL, py_object, byref, POINTER
 from comtypes import IUnknown
 from comtypes.automation import IDispatch
@@ -29,11 +29,18 @@ try:
     import pandas as pd
 except ImportError:
     pd = None
+try:
+    import numpy as np
+except ImportError:
+    np = None
 
 from xlwings import PY3
 
 # Time types: pywintypes.timetype doesn't work on Python 3
 time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
+if hasattr(np, 'datetime64'):
+    time_types = time_types + (np.datetime64,)
+
 
 # Constants
 OBJID_NATIVEOM = -16
@@ -326,6 +333,10 @@ def _datetime_to_com_time(dt_time):
 
     """
     # Convert date to datetime
+    if hasattr(np, 'datetime64'):
+        if type(dt_time) is np.datetime64:
+            dt_time = np_datetime_to_datetime(dt_time)
+
     if type(dt_time) is dt.date:
         dt_time = dt.datetime(dt_time.year, dt_time.month, dt_time.day,
                               tzinfo=win32timezone.TimeZoneInfo.utc())
@@ -335,12 +346,14 @@ def _datetime_to_com_time(dt_time):
         # For some reason, though it accepts plain datetimes, they must have a timezone set.
         # See http://docs.activestate.com/activepython/2.7/pywin32/html/win32/help/py3k.html
         # We replace no timezone -> UTC to allow round-trips in the naive case
-        if dt_time.tzinfo is None:
-            if hasattr(pd, 'tslib') and isinstance(dt_time, pd.tslib.Timestamp):
-                # Otherwise pandas prints ignored exceptions on Python 3
-                dt_time = dt_time.to_datetime()
-            # We don't use pytz.utc to get rid of additional dependency
-            dt_time = dt_time.replace(tzinfo=win32timezone.TimeZoneInfo.utc())
+        if hasattr(pd, 'tslib') and isinstance(dt_time, pd.tslib.Timestamp):
+            # Otherwise pandas prints ignored exceptions on Python 3
+            dt_time = dt_time.to_datetime()
+        # We don't use pytz.utc to get rid of additional dependency
+        # Don't do any timezone transformation: simply cutoff the tz info
+        # If we don't reset it first, it gets transformed into UTC before transferred to Excel
+        dt_time = dt_time.replace(tzinfo=None)
+        dt_time = dt_time.replace(tzinfo=win32timezone.TimeZoneInfo.utc())
 
         return dt_time
     else:
@@ -609,7 +622,11 @@ def calculate(xl_app):
 
 
 def get_named_range(range_):
-    return range_.xl_range.Name.Name
+    try:
+        name = range_.xl_range.Name.Name
+    except pywintypes.com_error:
+        name = None
+    return name
 
 
 def set_named_range(range_, value):

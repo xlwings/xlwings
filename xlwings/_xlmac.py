@@ -8,15 +8,21 @@ from appscript.reference import CommandError
 import psutil
 import atexit
 from .constants import ColorIndex, Calculation
-from .utils import rgb_to_int, int_to_rgb
+from .utils import int_to_rgb, np_datetime_to_datetime
 from . import mac_dict, PY3
 try:
     import pandas as pd
 except ImportError:
     pd = None
+try:
+    import numpy as np
+except ImportError:
+    np = None
 
 # Time types
 time_types = (dt.date, dt.datetime)
+if hasattr(np, 'datetime64'):
+    time_types = time_types + (np.datetime64,)
 
 # We're only dealing with one instance of Excel on Mac
 _xl_app = None
@@ -199,12 +205,17 @@ def prepare_xl_data(data):
     """
     Expects a 2d list.
     """
+    if hasattr(np, 'datetime64'):
+        # handle numpy.datetime64
+        data = [[np_datetime_to_datetime(c) if isinstance(c, np.datetime64) else c for c in row] for row in data]
     if hasattr(pd, 'tslib'):
         # This transformation seems to be only needed on Python 2.6 (?)
         data = [[c.to_datetime() if isinstance(c, pd.tslib.Timestamp) else c for c in row] for row in data]
-        # appscript packs integers larger than SInt32 but smaller than SInt64 as typeSInt64, and integers
-        # larger than SInt64 as typeIEEE64BitFloatingPoint. Excel silently ignores typeSInt64. (GH 227)
-        data = [[float(c) if isinstance(c, int) else c for c in row] for row in data]
+    # Make datetime timezone naive
+    data = [[c.replace(tzinfo=None) if isinstance(c, dt.datetime) else c for c in row] for row in data]
+    # appscript packs integers larger than SInt32 but smaller than SInt64 as typeSInt64, and integers
+    # larger than SInt64 as typeIEEE64BitFloatingPoint. Excel silently ignores typeSInt64. (GH 227)
+    data = [[float(c) if isinstance(c, int) else c for c in row] for row in data]
 
     return data
 
