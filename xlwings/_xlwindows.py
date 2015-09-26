@@ -8,6 +8,7 @@ if not hasattr(sys, 'frozen'):
     # cx_Freeze etc. will fail here otherwise
     os.chdir(sys.exec_prefix)
 import win32api
+
 os.chdir(cwd)
 
 from warnings import warn
@@ -137,13 +138,16 @@ def get_open_workbook(fullname, app_target=None, hwnd=None):
 
     for xl_app in xl_apps:
         for xl_workbook in get_all_open_xl_workbooks(xl_app):
-            if xl_workbook.FullName.lower() == fullname.lower():
-                    if (xl_workbook.FullName.lower() not in duplicate_fullnames) or (hwnd is not None):
-                        return xl_app, xl_workbook
-                    else:
-                        warn('This Workbook is open in multiple instances.'
-                             'The connection was made with the one that was last active.')
-                        return xl_app, xl_workbook
+            if (
+                xl_workbook.FullName.lower() == fullname.lower() or
+                xl_workbook.Name.lower() == fullname.lower()
+               ):
+                if (xl_workbook.FullName.lower() not in duplicate_fullnames) or (hwnd is not None):
+                    return xl_app, xl_workbook
+                else:
+                    warn('This Workbook is open in multiple instances.'
+                         'The connection was made with the one that was last active.')
+                    return xl_app, xl_workbook
 
 
 def get_active_workbook(app_target=None):
@@ -619,4 +623,3 @@ def set_names(xl_workbook, names):
 
 def delete_name(xl_workbook, name):
     xl_workbook.Names(name).Delete()
-
