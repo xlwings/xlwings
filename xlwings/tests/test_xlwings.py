@@ -903,6 +903,21 @@ class TestRange:
         Range('A101').value = 10000000000000000000  # long
         assert_equal(Range('A101').value, 10000000000000000000)
 
+    def test_numpy_datetime(self):
+        _skip_if_no_numpy()
+
+        Range('A55').value = np.datetime64('2005-02-25T03:30Z')
+        assert_equal(Range('A55').value, datetime(2005, 2, 25, 3, 30))
+
+    def test_dataframe_timezone(self):
+        dt = np.datetime64(1434149887000, 'ms')
+        data_list = np.empty(1, dtype=np.float64)
+        data_list[:] = 1
+        dti = pd.DatetimeIndex(data=[dt], tz='GMT')
+        df = pd.DataFrame(data=data_list, index=dti, columns=['A'])
+        Range('A1').value = df
+        assert_equal(Range('A2').value, datetime(2015, 6, 12, 22, 58, 7))
+
 class TestChart:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet

@@ -29,11 +29,18 @@ try:
     import pandas as pd
 except ImportError:
     pd = None
+try:
+    import numpy as np
+except ImportError:
+    np = None
 
 from xlwings import PY3
 
 # Time types: pywintypes.timetype doesn't work on Python 3
 time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
+if hasattr(np, 'datetime64'):
+    time_types = time_types + (np.datetime64,)
+
 
 # Constants
 OBJID_NATIVEOM = -16
@@ -326,6 +333,11 @@ def _datetime_to_com_time(dt_time):
 
     """
     # Convert date to datetime
+    if hasattr(np, 'datetime64'):
+        if type(dt_time) is np.datetime64:
+            ts = (dt_time - np.datetime64('1970-01-01T00:00:00Z')) / np.timedelta64(1, 's')
+            dt_time = dt.datetime.utcfromtimestamp(ts)
+
     if type(dt_time) is dt.date:
         dt_time = dt.datetime(dt_time.year, dt_time.month, dt_time.day,
                               tzinfo=win32timezone.TimeZoneInfo.utc())
