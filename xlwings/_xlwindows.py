@@ -621,7 +621,11 @@ def calculate(xl_app):
 
 
 def get_named_range(range_):
-    return range_.xl_range.Name.Name
+    try:
+        name = range_.xl_range.Name.Name
+    except pywintypes.com_error:
+        name = None
+    return name
 
 
 def set_named_range(range_, value):

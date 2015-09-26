@@ -5,7 +5,7 @@ import os
 import sys
 import shutil
 import nose
-from nose.tools import assert_equal, raises, assert_true, assert_false
+from nose.tools import assert_equal, raises, assert_true, assert_false, assert_not_equal
 from datetime import datetime, date
 from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation
 
@@ -249,9 +249,9 @@ class TestWorkbook:
 
     def test_delete_named_item(self):
         Range('B10:C11').name = 'to_be_deleted'
-        assert_true(Range('to_be_deleted').name, 'to_be_deleted')
+        assert_equal(Range('to_be_deleted').name, 'to_be_deleted')
         del self.wb.names['to_be_deleted']
-        assert_false(Range('B10:C11').name, 'to_be_deleted')
+        assert_not_equal(Range('B10:C11').name, 'to_be_deleted')
 
     def test_names_collection(self):
         Range('A1').name = 'name1'
@@ -910,11 +910,11 @@ class TestRange:
         assert_equal(Range('A55').value, datetime(2005, 2, 25, 3, 30))
 
     def test_dataframe_timezone(self):
+        _skip_if_no_pandas()
+
         dt = np.datetime64(1434149887000, 'ms')
-        data_list = np.empty(1, dtype=np.float64)
-        data_list[:] = 1
-        dti = pd.DatetimeIndex(data=[dt], tz='GMT')
-        df = pd.DataFrame(data=data_list, index=dti, columns=['A'])
+        ix = pd.DatetimeIndex(data=[dt], tz='GMT')
+        df = pd.DataFrame(data=[1], index=ix, columns=['A'])
         Range('A1').value = df
         assert_equal(Range('A2').value, datetime(2015, 6, 12, 22, 58, 7))
 
