@@ -202,6 +202,10 @@ def prepare_xl_data(data):
     if hasattr(pd, 'tslib'):
         # This transformation seems to be only needed on Python 2.6 (?)
         data = [[c.to_datetime() if isinstance(c, pd.tslib.Timestamp) else c for c in row] for row in data]
+        # appscript packs integers larger than SInt32 but smaller than SInt64 as typeSInt64, and integers
+        # larger than SInt64 as typeIEEE64BitFloatingPoint. Excel silently ignores typeSInt64. (GH 227)
+        data = [[float(c) if isinstance(c, int) else c for c in row] for row in data]
+
     return data
 
 
