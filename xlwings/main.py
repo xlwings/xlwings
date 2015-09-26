@@ -844,7 +844,7 @@ class Range(object):
             # Single cells
             row2 = self.row2
             col2 = self.col2
-            data = xlplatform.prepare_xl_data(data)
+            data = xlplatform.prepare_xl_data([[data]])[0][0]
             try:
                 # scalar np.nan need to be turned into None, otherwise Excel shows it as 65535 (same as for NumPy array)
                 if hasattr(np, 'ndarray') and np.isnan(data):
@@ -858,7 +858,7 @@ class Range(object):
             # List of List
             row2 = self.row1 + len(data) - 1
             col2 = self.col1 + len(data[0]) - 1
-            data = [[xlplatform.prepare_xl_data(c) for c in row] for row in data]
+            data = xlplatform.prepare_xl_data(data)
 
         xlplatform.set_value(xlplatform.get_range_from_indices(self.xl_sheet,
                                                                self.row1, self.col1, row2, col2), data)
