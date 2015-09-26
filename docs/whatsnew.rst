@@ -1,6 +1,34 @@
 What's New
 ==========
 
+v0.4.1 (September 26, 2015)
+---------------------------
+
+API changes
+***********
+None
+
+Enhancements
+************
+
+This release makes it easier than ever to connect to Excel from Python! In addition to the existing ways, you can now
+connect to the active Workbook (on Windows over all instances) and if the Workbook is already open, it's good enough
+to refer to it by name (instead of having to use the full path). Accordingly, these are the ways of making a connection to...
+(:issue:`30` and :issue:`226`):
+
+* a new workbook: ``wb = Workbook()``
+* the active workbook: ``wb = Workbook.active()``
+* an unsaved workbook: ``wb = Workbook('Book1')``
+* a saved (open) workbook by name (incl. xlsx etc.): ``wb = Workbook('MyWorkbook.xlsx')``
+* a saved (open or closed) workbook by path: ``wb = Workbook(r'C:\\path\\to\\file.xlsx')``
+
+Bug Fixes
+*********
+
+* Various issues with timezone-aware objects were fixed (:issue:`195`).
+* [Mac Version]: A certain range of integers were not written to Excel (:issue:`227`).
+
+
 v0.4.0 (September 13, 2015)
 ---------------------------
 

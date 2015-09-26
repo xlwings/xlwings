@@ -107,13 +107,15 @@ class Workbook(object):
     ``Workbook`` connects an Excel Workbook with Python. You can create a new connection from Python with
 
     * a new workbook: ``wb = Workbook()``
+    * the active workbook: ``wb = Workbook.active()``
     * an unsaved workbook: ``wb = Workbook('Book1')``
-    * a saved workbook (open or closed): ``wb = Workbook(r'C:\\path\\to\\file.xlsx')``
+    * a saved (open) workbook by name (incl. xlsx, xlsm etc): ``wb = Workbook('MyWorkbook.xlsx')``
+    * a saved (open or clsoed) workbook by path: ``wb = Workbook(r'C:\\path\\to\\file.xlsx')``
 
     Keyword Arguments
     -----------------
     fullname : str, default None
-        Full path of existing spreadsheet or name of an unsaved spreadsheet, defaults to new Workbook
+        Full path or name (incl. xlsx, xlsm etc.) of existing workbook or name of an unsaved workbook.
 
     xl_workbook : pywin32 or appscript Workbook object, default None
         This enables to turn existing Workbook objects of the underlying libraries into xlwings objects
