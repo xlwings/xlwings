@@ -247,13 +247,13 @@ class TestWorkbook:
         assert_equal(Range('B2', wkb=wb2).value, 123)
         wb2.close()
 
-    def delete_named_item(self):
+    def test_delete_named_item(self):
         Range('B10:C11').name = 'to_be_deleted'
         assert_true(Range('to_be_deleted').name, 'to_be_deleted')
         del self.wb.names['to_be_deleted']
         assert_false(Range('B10:C11').name, 'to_be_deleted')
 
-    def names_collection(self):
+    def test_names_collection(self):
         Range('A1').name = 'name1'
         Range('A2').name = 'name2'
         assert_true('name1' in self.wb.names and 'name2' in self.wb.names)
@@ -262,12 +262,16 @@ class TestWorkbook:
         assert_true('name1' in self.wb.names and 'name2' in self.wb.names and
                     'name3' in self.wb.names)
 
-    def active_workbook(self):
+    def test_active_workbook(self):
         # TODO: add test over multiple Excel instances on Windows
         Range('A1').value = 'active_workbook'
         wb_active = Workbook.active()
         assert_equal(Range('A1', wkb=wb_active).value, 'active_workbook')
 
+    def test_workbook_name(self):
+        Range('A10').value = 'name-test'
+        wb2 = Workbook('test_workbook_1.xlsx', app_visible=False, app_target=APP_TARGET)
+        assert_equal(Range('A10', wkb=wb2).value, 'name-test')
 
 class TestSheet:
     def setUp(self):
