@@ -888,6 +888,17 @@ class TestRange:
         Range('A200:B204').name = 'test2'
         assert_equal(Range('A200:B204').name, 'test2')
 
+    def test_integers(self):
+        """Covers GH 227"""
+        Range('A99').value = 2147483647  # max SInt32
+        assert_equal(Range('A99').value, 2147483647)
+
+        Range('A100').value = 2147483648  # SInt32 < x < SInt64
+        assert_equal(Range('A100').value, 2147483648)
+
+        Range('A101').value = 10000000000000000000  # long
+        assert_equal(Range('A101').value, 10000000000000000000)
+
 class TestChart:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
