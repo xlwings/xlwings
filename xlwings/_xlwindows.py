@@ -19,7 +19,7 @@ import win32timezone
 import win32gui
 import datetime as dt
 from .constants import Direction, ColorIndex
-from .utils import rgb_to_int, int_to_rgb, get_duplicates
+from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime
 from ctypes import oledll, PyDLL, py_object, byref, POINTER
 from comtypes import IUnknown
 from comtypes.automation import IDispatch
@@ -335,8 +335,7 @@ def _datetime_to_com_time(dt_time):
     # Convert date to datetime
     if hasattr(np, 'datetime64'):
         if type(dt_time) is np.datetime64:
-            ts = (dt_time - np.datetime64('1970-01-01T00:00:00Z')) / np.timedelta64(1, 's')
-            dt_time = dt.datetime.utcfromtimestamp(ts)
+            dt_time = np_datetime_to_datetime(dt_time)
 
     if type(dt_time) is dt.date:
         dt_time = dt.datetime(dt_time.year, dt_time.month, dt_time.day,

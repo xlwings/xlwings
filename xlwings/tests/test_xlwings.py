@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import os
 import sys
 import shutil
+import pytz
 import nose
 from nose.tools import assert_equal, raises, assert_true, assert_false, assert_not_equal
 from datetime import datetime, date
@@ -265,7 +266,7 @@ class TestWorkbook:
     def test_active_workbook(self):
         # TODO: add test over multiple Excel instances on Windows
         Range('A1').value = 'active_workbook'
-        wb_active = Workbook.active()
+        wb_active = Workbook.active(APP_TARGET)
         assert_equal(Range('A1', wkb=wb_active).value, 'active_workbook')
 
     def test_workbook_name(self):
@@ -917,6 +918,13 @@ class TestRange:
         df = pd.DataFrame(data=[1], index=ix, columns=['A'])
         Range('A1').value = df
         assert_equal(Range('A2').value, datetime(2015, 6, 12, 22, 58, 7))
+
+    def test_datetime_timezone(self):
+        eastern = pytz.timezone('US/Eastern')
+        dt_naive = datetime(2002, 10, 27, 6, 0, 0)
+        dt_tz = eastern.localize(dt_naive)
+        Range('F34').value = dt_tz
+        assert_equal(Range('F34').value, dt_naive)
 
 class TestChart:
     def setUp(self):
