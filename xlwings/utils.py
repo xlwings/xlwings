@@ -1,6 +1,10 @@
 from __future__ import division
 import datetime as dt
-import numpy as np
+
+try:
+    import numpy as np
+except ImportError:
+    np = None
 
 
 def int_to_rgb(number):
