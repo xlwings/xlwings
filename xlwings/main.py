@@ -176,7 +176,7 @@ class Workbook(object):
         .. versionadded:: 0.4.1
         """
         xl_workbook = xlplatform.get_active_workbook(app_target=app_target)
-        return cls(xl_workbook=xl_workbook)
+        return cls(xl_workbook=xl_workbook, app_target=app_target)
 
     @classmethod
     def caller(cls):

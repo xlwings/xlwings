@@ -266,7 +266,7 @@ class TestWorkbook:
     def test_active_workbook(self):
         # TODO: add test over multiple Excel instances on Windows
         Range('A1').value = 'active_workbook'
-        wb_active = Workbook.active(APP_TARGET)
+        wb_active = Workbook.active(app_target=APP_TARGET)
         assert_equal(Range('A1', wkb=wb_active).value, 'active_workbook')
 
     def test_workbook_name(self):
