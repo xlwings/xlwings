@@ -30,7 +30,7 @@ Also, there are some new docs:
 Bug Fixes
 *********
 
-* The Excel template was updated to the latest VBA code (:isse:`234`).
+* The Excel template was updated to the latest VBA code (:issue:`234`).
 * Various issues with timezone-aware objects were fixed (:issue:`195`).
 * [Mac Version]: A certain range of integers were not written to Excel (:issue:`227`).
 
