@@ -31,6 +31,7 @@ Bug Fixes
 *********
 
 * The Excel template was updated to the latest VBA code (:issue:`234`).
+* Connections to files that are saved on OneDrive/SharePoint are now working correctly (:issue:`215`).
 * Various issues with timezone-aware objects were fixed (:issue:`195`).
 * [Mac Version]: A certain range of integers were not written to Excel (:issue:`227`).
 
