@@ -109,8 +109,8 @@ class Workbook(object):
     * a new workbook: ``wb = Workbook()``
     * the active workbook: ``wb = Workbook.active()``
     * an unsaved workbook: ``wb = Workbook('Book1')``
-    * a saved (open) workbook by name (incl. xlsx, xlsm etc): ``wb = Workbook('MyWorkbook.xlsx')``
-    * a saved (open or clsoed) workbook by path: ``wb = Workbook(r'C:\\path\\to\\file.xlsx')``
+    * a saved (open) workbook by name (incl. xlsx etc): ``wb = Workbook('MyWorkbook.xlsx')``
+    * a saved (open or closed) workbook by path: ``wb = Workbook(r'C:\\path\\to\\file.xlsx')``
 
     Keyword Arguments
     -----------------
@@ -171,7 +171,7 @@ class Workbook(object):
     def active(cls, app_target=None):
         """
         Returns the Workbook that is currently active or has been active last. On Windows,
-        it takes into account all instances.
+        this works across all instances.
 
         .. versionadded:: 0.4.1
         """

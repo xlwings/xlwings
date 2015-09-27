@@ -4,7 +4,7 @@ Connect to Workbooks
 ====================
 
 First things first: to be able to do anything with xlwings, you need to establish a connection with an
-Excel Workbook first.
+Excel Workbook.
 
 Python to Excel
 ---------------
@@ -12,7 +12,7 @@ Python to Excel
 There are various ways to connect to an Excel workbook from Python. Create a connection with...
 
 * a new workbook: ``wb = Workbook()``
-* the active workbook (works with all instances of Excel on Windows): ``wb = Workbook.active()``
+* the active workbook (works across all instances of Excel on Windows): ``wb = Workbook.active()``
 * an unsaved workbook: ``wb = Workbook('Book1')``
 * a saved (open) workbook by name (incl. xlsx etc.): ``wb = Workbook('MyWorkbook.xlsx')``
 * a saved (open or closed) workbook by path: ``wb = Workbook(r'C:\path\to\file.xlsx')``
