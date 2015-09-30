@@ -496,6 +496,7 @@ def get_xl_workbook_current():
         return None
 
 def add_comment(range_, comment):
+    range_.xl_range.ClearComments()
     range_.xl_range.AddComment()
     range_.xl_range.Comment.Visible = True
     range_.xl_range.Comment.Text(comment)
