@@ -495,6 +495,11 @@ def get_xl_workbook_current():
     except NameError:
         return None
 
+def add_comment(range_, comment):
+    range_.xl_range.AddComment()
+    range_.xl_range.Comment.Visible = True
+    range_.xl_range.Comment.Text(comment)
+    range_.xl_range.Comment.Visible = False
 
 def get_number_format(range_):
     return range_.xl_range.NumberFormat
