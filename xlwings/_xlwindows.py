@@ -502,6 +502,11 @@ def add_comment(range_, comment):
     range_.xl_range.Comment.Text(comment)
     range_.xl_range.Comment.Visible = False
 
+def read_comment(range_):
+    comment = range_.xl_range.Comment
+    if comment:
+        return comment.Text()
+
 def get_number_format(range_):
     return range_.xl_range.NumberFormat
 
