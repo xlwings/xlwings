@@ -865,8 +865,11 @@ class Range(object):
         xlplatform.set_value(xlplatform.get_range_from_indices(self.xl_sheet,
                                                                self.row1, self.col1, row2, col2), data)
     
-    def add_comment(self, comment):
-        return xlplatform.add_comment(self, comment)
+    def comment(self, comment=None):
+        if comment:
+            return xlplatform.add_comment(self, comment)
+        else:
+            return xlplatform.read_comment(self)
         
     @property
     def formula(self):
