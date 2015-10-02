@@ -481,7 +481,7 @@ def autofit_sheet(sheet, axis):
         sheet.xl_sheet.Columns.AutoFit()
 
 
-xl_workboook_current = None
+xl_workbook_current = None
 
 
 def set_xl_workbook_current(xl_workbook):
