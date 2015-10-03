@@ -1647,7 +1647,8 @@ class Picture(Shape):
         self.index = xlplatform.get_picture_index(self)
 
     @classmethod
-    def add(cls, sheet=None, filename=None, left=168, top=217, width=None, height=None, **kwargs):
+    def add(cls, sheet=None, filename=None, link_to_file=False, save_width_document=True,
+            left=0, top=0, width=None, height=None, **kwargs):
         wkb = kwargs.get('wkb', None)
         xl_workbook = Workbook.get_xl_workbook(wkb)
 
@@ -1656,7 +1657,8 @@ class Picture(Shape):
         if sheet is None:
             sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
 
-        xl_picture = xlplatform.add_picture(xl_workbook, sheet, filename, left, top, width, height)
+        xl_picture = xlplatform.add_picture(xl_workbook, sheet, filename, link_to_file, save_width_document,
+                                            left, top, width, height)
 
         if name:
             xlplatform.set_picture_name(xl_picture, name)

@@ -27,6 +27,7 @@ if hasattr(np, 'datetime64'):
 # We're only dealing with one instance of Excel on Mac
 _xl_app = None
 
+
 def set_xl_app(app_target=None):
     if app_target is None:
         app_target = 'Microsoft Excel'
@@ -258,10 +259,12 @@ def clear_contents_range(xl_range):
     xl_range.clear_contents()
     _xl_app.screen_updating.set(True)
 
+
 def clear_range(xl_range):
     _xl_app.screen_updating.set(False)
     xl_range.clear_range()
     _xl_app.screen_updating.set(True)
+
 
 def get_formula(xl_range):
     return xl_range.formula.get()
@@ -555,7 +558,7 @@ def get_picture_name(xl_picture):
 
 
 def set_picture_name(xl_picture, value):
-    return xl_picture.name.set(value)
+    xl_picture.name.set(value)
 
 
 def get_shape(shape):
@@ -602,11 +605,13 @@ def delete_shape(shape):
     shape.xl_shape.delete()
 
 
-def add_picture(xl_workbook, sheet_name_or_index, filename, left, top, width, height):
+def add_picture(xl_workbook, sheet_name_or_index, filename, link_to_file, save_with_document, left, top, width, height):
     sheet_index = xl_workbook.sheets[sheet_name_or_index].entry_index.get()
     return xl_workbook.make(at=xl_workbook.sheets[sheet_index],
                             new=kw.picture,
                             with_properties={kw.file_name: posix_to_hfs_path(filename),
+                                             kw.link_to_file: link_to_file,
+                                             kw.save_with_document: save_with_document,
                                              kw.top: top,
                                              kw.left_position: left,
                                              kw.width: width,
