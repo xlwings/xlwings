@@ -54,14 +54,14 @@ def clean_up():
 
 def posix_to_hfs_path(posix_path):
     """
-    Turns a unix path (/Path/file.ext) into an HFS path (Macintish HD:Path:file.ext)
+    Turns a posix path (/Path/file.ext) into an HFS path (Macintish HD:Path:file.ext)
     """
     dir_name, file_name = os.path.split(posix_path)
     dir_name_hfs = mactypes.Alias(dir_name).hfspath
     return dir_name_hfs + ':' + file_name
 
 
-def hfs_to_unix_path(hfs_path):
+def hfs_to_posix_path(hfs_path):
     """
     Turns an HFS path (Macintish HD:Path:file.ext) into a unix path (/Path/file.ext)
     """
@@ -453,7 +453,6 @@ def get_color(xl_range):
 
 
 def save_workbook(xl_workbook, path):
-    # TODO: replace with path transformation functions
     saved_path = xl_workbook.properties().get(kw.path)
     if (saved_path != '') and (path is None):
         # Previously saved: Save under existing name
@@ -461,15 +460,11 @@ def save_workbook(xl_workbook, path):
     elif (saved_path == '') and (path is None):
         # Previously unsaved: Save under current name in current working directory
         path = os.path.join(os.getcwd(), xl_workbook.name.get() + '.xlsx')
-        dir_name, file_name = os.path.split(path)
-        dir_name_hfs = mactypes.Alias(dir_name).hfspath  # turn into HFS path format
-        hfs_path = dir_name_hfs + ':' + file_name
+        hfs_path = posix_to_hfs_path(path)
         xl_workbook.save_workbook_as(filename=hfs_path, overwrite=True)
     elif path:
         # Save under new name/location
-        dir_name, file_name = os.path.split(path)
-        dir_name_hfs = mactypes.Alias(dir_name).hfspath  # turn into HFS path format
-        hfs_path = dir_name_hfs + ':' + file_name
+        hfs_path = posix_to_hfs_path(path)
         xl_workbook.save_workbook_as(filename=hfs_path, overwrite=True)
 
 
@@ -489,12 +484,10 @@ def get_visible(xl_app):
 
 
 def get_fullname(xl_workbook):
-    # TODO: replace with path transformation functions
     hfs_path = xl_workbook.properties().get(kw.full_name)
     if hfs_path == xl_workbook.properties().get(kw.name):
         return hfs_path
-    url = mactypes.convertpathtourl(hfs_path, 1)  # kCFURLHFSPathStyle = 1
-    return mactypes.converturltopath(url, 0)  # kCFURLPOSIXPathStyle = 0
+    return hfs_to_posix_path(hfs_path)
 
 
 def quit_app(xl_app):
