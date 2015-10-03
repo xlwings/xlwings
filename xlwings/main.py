@@ -1447,7 +1447,10 @@ class Chart(object):
             self.sheet_name_or_index = xlplatform.get_worksheet_name(xlplatform.get_active_sheet(self.xl_workbook))
             self.name_or_index = args[0]
         elif len(args) == 2:
-            self.sheet_name_or_index = args[0]
+            if isinstance(args[0], Sheet):
+                self.sheet_name_or_index = args[0].index
+            else:
+                self.sheet_name_or_index = args[0]
             self.name_or_index = args[1]
 
         # Get xl_chart object
