@@ -52,6 +52,23 @@ def clean_up():
             pass
 
 
+def posix_to_hfs_path(posix_path):
+    """
+    Turns a unix path (/Path/file.ext) into an HFS path (Macintish HD:Path:file.ext)
+    """
+    dir_name, file_name = os.path.split(posix_path)
+    dir_name_hfs = mactypes.Alias(dir_name).hfspath
+    return dir_name_hfs + ':' + file_name
+
+
+def hfs_to_unix_path(hfs_path):
+    """
+    Turns an HFS path (Macintish HD:Path:file.ext) into a unix path (/Path/file.ext)
+    """
+    url = mactypes.convertpathtourl(hfs_path, 1)  # kCFURLHFSPathStyle = 1
+    return mactypes.converturltopath(url, 0)  # kCFURLPOSIXPathStyle = 0
+
+
 def is_file_open(fullname):
     """
     Checks if the file is already open
@@ -436,6 +453,7 @@ def get_color(xl_range):
 
 
 def save_workbook(xl_workbook, path):
+    # TODO: replace with path transformation functions
     saved_path = xl_workbook.properties().get(kw.path)
     if (saved_path != '') and (path is None):
         # Previously saved: Save under existing name
@@ -471,6 +489,7 @@ def get_visible(xl_app):
 
 
 def get_fullname(xl_workbook):
+    # TODO: replace with path transformation functions
     hfs_path = xl_workbook.properties().get(kw.full_name)
     if hfs_path == xl_workbook.properties().get(kw.name):
         return hfs_path
@@ -527,3 +546,75 @@ def set_names(xl_workbook, names):
 
 def delete_name(xl_workbook, name):
     xl_workbook.named_items[name].delete()
+
+
+def get_picture(picture):
+    return picture.xl_workbook.sheets[picture.sheet_name_or_index].pictures[picture.name_or_index]
+
+
+def get_picture_index(picture):
+    # TODO: Broken in AppleScript, returns k.missing_value
+    return picture.xl_picture.entry_index.get()
+
+
+def get_picture_name(xl_picture):
+    return xl_picture.name.get()
+
+
+def set_picture_name(xl_picture, value):
+    return xl_picture.name.set(value)
+
+
+def get_shape(shape):
+    return shape.xl_workbook.sheets[shape.sheet_name_or_index].shapes[shape.name_or_index]
+
+
+def get_shape_name(shape):
+    return shape.xl_shape.name.get()
+
+
+def get_shape_left(shape):
+    return shape.xl_shape.left_position.get()
+
+
+def set_shape_left(shape, value):
+    shape.xl_shape.left_position.set(value)
+
+
+def get_shape_top(shape):
+    return shape.xl_shape.top.get()
+
+
+def set_shape_top(shape, value):
+    shape.xl_shape.top.set(value)
+
+
+def get_shape_width(shape):
+    return shape.xl_shape.width.get()
+
+
+def set_shape_width(shape, value):
+    shape.xl_shape.width.set(value)
+
+
+def get_shape_height(shape):
+    return shape.xl_shape.height.get()
+
+
+def set_shape_height(shape, value):
+    shape.xl_shape.height.set(value)
+
+
+def delete_shape(shape):
+    shape.xl_shape.delete()
+
+
+def add_picture(xl_workbook, sheet_name_or_index, filename, left, top, width, height):
+    sheet_index = xl_workbook.sheets[sheet_name_or_index].entry_index.get()
+    return xl_workbook.make(at=xl_workbook.sheets[sheet_index],
+                            new=kw.picture,
+                            with_properties={kw.file_name: posix_to_hfs_path(filename),
+                                             kw.top: top,
+                                             kw.left_position: left,
+                                             kw.width: width,
+                                             kw.height: height})

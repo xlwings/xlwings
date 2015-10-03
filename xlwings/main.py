@@ -1401,6 +1401,74 @@ class Range(object):
         xlplatform.set_named_range(self, value)
 
 
+class Shape(object):
+    """
+    A Shape object that represents an existing Excel shape can be created with the following arguments::
+
+        Shape(1)            Shape('Sheet1', 1)              Shape(1, 1)
+        Shape('Shape 1')    Shape('Sheet1', 'Shape 1')      Shape(1, 'Shape 1')
+
+    If no Worksheet is provided as first argument (as name or index),
+    it will take the Shape from the active Sheet.
+
+    .. versionadded:: 0.4.2
+    """
+    def __init__(self, *args, **kwargs):
+        # Use current Workbook if none provided
+        wkb = kwargs.get('wkb', None)
+        self.xl_workbook = Workbook.get_xl_workbook(wkb)
+
+        # Arguments
+        if len(args) == 1:
+            self.sheet_name_or_index = xlplatform.get_worksheet_name(xlplatform.get_active_sheet(self.xl_workbook))
+            self.name_or_index = args[0]
+        elif len(args) == 2:
+            if isinstance(args[0], Sheet):
+                self.sheet_name_or_index = args[0].index
+            else:
+                self.sheet_name_or_index = args[0]
+            self.name_or_index = args[1]
+
+        self.xl_shape = xlplatform.get_shape(self)
+        self.name = xlplatform.get_shape_name(self)
+
+    @property
+    def left(self):
+        return xlplatform.get_shape_left(self)
+
+    @left.setter
+    def left(self, value):
+        xlplatform.set_shape_left(self, value)
+
+    @property
+    def top(self):
+        return xlplatform.get_shape_top(self)
+
+    @top.setter
+    def top(self, value):
+        xlplatform.set_shape_top(self, value)
+
+    @property
+    def width(self):
+        return xlplatform.get_shape_width(self)
+
+    @width.setter
+    def width(self, value):
+        xlplatform.set_shape_width(self, value)
+
+    @property
+    def height(self):
+        return xlplatform.get_shape_height(self)
+
+    @height.setter
+    def height(self, value):
+        xlplatform.set_shape_height(self, value)
+
+    def delete(self):
+        xlplatform.delete_shape(self)
+
+
+# TODO: inherit from Shape
 class Chart(object):
     """
     A Chart object that represents an existing Excel chart can be created with the following arguments::
@@ -1437,7 +1505,6 @@ class Chart(object):
 
     """
     def __init__(self, *args, **kwargs):
-        # TODO: this should be doable without *args and **kwargs - same for .add()
         # Use current Workbook if none provided
         wkb = kwargs.get('wkb', None)
         self.xl_workbook = Workbook.get_xl_workbook(wkb)
@@ -1568,6 +1635,35 @@ class Chart(object):
         return "<Chart '{0}' on Sheet '{1}' of Workbook '{2}'>".format(self.name,
                                                                        Sheet(self.sheet_name_or_index).name,
                                                                        xlplatform.get_workbook_name(self.xl_workbook))
+
+
+class Picture(Shape):
+    """
+    .. versionadded:: 0.4.2
+    """
+    def __init__(self, *args, **kwargs):
+        Shape.__init__(self, *args, **kwargs)
+        self.xl_picture = xlplatform.get_picture(self)
+        self.index = xlplatform.get_picture_index(self)
+
+    @classmethod
+    def add(cls, sheet=None, filename=None, left=168, top=217, width=None, height=None, **kwargs):
+        wkb = kwargs.get('wkb', None)
+        xl_workbook = Workbook.get_xl_workbook(wkb)
+
+        name = kwargs.get('name')
+
+        if sheet is None:
+            sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
+
+        xl_picture = xlplatform.add_picture(xl_workbook, sheet, filename, left, top, width, height)
+
+        if name:
+            xlplatform.set_picture_name(xl_picture, name)
+        else:
+            name = xlplatform.get_picture_name(xl_picture)
+
+        return cls(sheet, name, wkb=wkb)
 
 
 class NamesDict(collections.MutableMapping):
