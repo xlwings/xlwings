@@ -16,6 +16,7 @@ import numbers
 import itertools
 import inspect
 import collections
+import tempfile
 from . import xlplatform, string_types, time_types, xrange
 from .constants import ChartType
 
@@ -28,6 +29,10 @@ try:
     import pandas as pd
 except ImportError:
     pd = None
+try:
+    from matplotlib.backends.backend_agg import FigureCanvas
+except ImportError:
+    FigureCanvas = None
 
 
 class Application(object):
@@ -1415,8 +1420,8 @@ class Shape(object):
     """
     def __init__(self, *args, **kwargs):
         # Use current Workbook if none provided
-        wkb = kwargs.get('wkb', None)
-        self.xl_workbook = Workbook.get_xl_workbook(wkb)
+        self.wkb = kwargs.get('wkb', None)
+        self.xl_workbook = Workbook.get_xl_workbook(self.wkb)
 
         # Arguments
         if len(args) == 1:
@@ -1639,6 +1644,14 @@ class Chart(object):
 
 class Picture(Shape):
     """
+    A Picture object that represents an existing Excel Picture can be created with the following arguments::
+
+    Picture(1)              Picture('Sheet1', 1)                Picture(1, 1)
+    Picture('Picture 1')    Picture('Sheet1', 'Picture 1')      Picture(1, 'Picture 1')
+
+    If no Worksheet is provided as first argument (as name or index),
+    it will take the Picture from the active Sheet.
+
     .. versionadded:: 0.4.2
     """
     def __init__(self, *args, **kwargs):
@@ -1648,24 +1661,117 @@ class Picture(Shape):
 
     @classmethod
     def add(cls, sheet=None, filename=None, link_to_file=False, save_width_document=True,
-            left=0, top=0, width=None, height=None, **kwargs):
-        wkb = kwargs.get('wkb', None)
-        xl_workbook = Workbook.get_xl_workbook(wkb)
+            left=0, top=0, width=None, height=None, name=None, wkb=None):
 
-        name = kwargs.get('name')
+        xl_workbook = Workbook.get_xl_workbook(wkb)
 
         if sheet is None:
             sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
 
+        if name:
+            if name in xlplatform.get_shapes_names(xl_workbook, sheet):
+                raise ShapeAlreadyExists('A shape with this name already exists.')
+
         xl_picture = xlplatform.add_picture(xl_workbook, sheet, filename, link_to_file, save_width_document,
                                             left, top, width, height)
 
-        if name:
-            xlplatform.set_picture_name(xl_picture, name)
-        else:
+        if name is None:
             name = xlplatform.get_picture_name(xl_picture)
+        else:
+            xlplatform.set_shape_name(xl_workbook, sheet, xl_picture, name)
 
         return cls(sheet, name, wkb=wkb)
+
+    def update(self, filename):
+        wkb = self.wkb
+        name = self.name
+        left, top, width, height = self.left, self.top, self.width, self.height
+        sheet_name_or_index = self.sheet_name_or_index
+        xlplatform.delete_shape(self)
+        # TODO: link_to_file, save_with_document
+        Picture.add(sheet=sheet_name_or_index, filename=filename, left=left, top=top, width=width, height=height,
+                    name=name, wkb=wkb)
+
+
+class Plot(object):
+    """
+    Plot allows to use Matplotlib charts as pictures in Excel.
+
+    Example
+    -------
+    Get a matplotlib ``figure`` object:
+
+    * via PyPlot interface::
+
+        import matplotlib.pyplot as plt
+        plt.plot([1, 2, 3, 4, 5])
+        fig = plt.gcf()
+
+
+    * via object oriented interface::
+
+        from matplotlib.figure import Figure
+        fig = Figure(figsize=(8, 6))
+        ax = fig.add_subplot(111)
+        ax.plot([1, 2, 3, 4, 5])
+
+    * via Pandas::
+
+        import pandas as pd
+        import numpy as np
+
+        df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
+        ax = df.plot(kind='bar')
+        fig = ax.get_figure()
+
+    Then plot it in Excel as picture::
+
+        plot = Plot('Plot1', fig)
+        plot.show()
+
+    .. versionadded:: 0.4.2
+    """
+    def __init__(self, name, figure, left=None, top=None, width=None, height=None):
+        self.name = name
+        self.figure = figure
+        self.left = left
+        self.top = top
+        self.width = width
+        self.height = height
+
+    def show(self, sheet=None, left=0, top=0, wkb=None):
+        xl_workbook = Workbook.get_xl_workbook(wkb)
+        wkb = Workbook(xl_workbook=xl_workbook)
+        if sheet is None:
+            sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
+
+        temp_dir = os.path.realpath(tempfile.gettempdir())
+        filename = os.path.join(temp_dir, 'xlwings.png')
+        canvas = FigureCanvas(self.figure)
+        canvas.draw()
+        self.figure.savefig(filename, format='png', bbox_inches='tight')
+        if self.width is None:
+            width = self.figure.bbox.bounds[2:][0]
+        else:
+            width = self.width
+
+        if self.height is None:
+            height = self.figure.bbox.bounds[2:][1]
+        else:
+            height = self.height
+        try:
+            return Picture.add(sheet=sheet, filename=filename, left=left, top=top, width=width,
+                               height=height, name=self.name, wkb=wkb)
+        except ShapeAlreadyExists:
+            pic = Picture(sheet, self.name, wkb=wkb)
+            pic.update(filename)
+            return pic
+        finally:
+            os.remove(filename)
+
+
+class ShapeAlreadyExists(Exception):
+    pass
 
 
 class NamesDict(collections.MutableMapping):

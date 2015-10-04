@@ -328,9 +328,7 @@ def set_chart_type(xl_chart, chart_type):
 
 
 def activate_chart(xl_chart):
-    """
-    activate() doesn't seem to do anything so resolving to select() for now
-    """
+    # TODO: xl_chart.activate_object() should work
     xl_chart.select()
 
 
@@ -557,16 +555,24 @@ def get_picture_name(xl_picture):
     return xl_picture.name.get()
 
 
-def set_picture_name(xl_picture, value):
-    xl_picture.name.set(value)
-
-
 def get_shape(shape):
     return shape.xl_workbook.sheets[shape.sheet_name_or_index].shapes[shape.name_or_index]
 
 
 def get_shape_name(shape):
     return shape.xl_shape.name.get()
+
+
+def set_shape_name(xl_workbook, sheet_name_or_index, xl_shape, value):
+    xl_workbook.sheets[sheet_name_or_index].shapes[xl_shape.name.get()].name.set(value)
+
+
+def get_shapes_names(xl_workbook, sheet):
+    shapes = xl_workbook.sheets[sheet].shapes.get()
+    if shapes != kw.missing_value:
+        return [i.name.get() for i in xl_workbook.sheets[sheet].shapes.get()]
+    else:
+        return []
 
 
 def get_shape_left(shape):

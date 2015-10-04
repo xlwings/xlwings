@@ -60,3 +60,21 @@ Chart
 
 .. autoclass:: Chart
     :members:
+
+Shape
+-----
+
+.. autoclass:: Shape
+    :members:
+
+Picture
+-------
+
+.. autoclass:: Picture
+    :members:
+
+Plot
+----
+
+.. autoclass:: Plot
+    :members:
