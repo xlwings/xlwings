@@ -505,7 +505,7 @@ def get_comment(xl_range):
     if comment:
         return comment.Text()
 
-def clear_comment(xl_range):
+def del_comment(xl_range):
     xl_range.ClearComments()
 
 def get_number_format(range_):
