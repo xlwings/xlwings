@@ -865,12 +865,26 @@ class Range(object):
         xlplatform.set_value(xlplatform.get_range_from_indices(self.xl_sheet,
                                                                self.row1, self.col1, row2, col2), data)
     
-    def comment(self, comment=None):
-        if comment:
-            return xlplatform.add_comment(self, comment)
-        else:
-            return xlplatform.read_comment(self)
+    @property
+    def comment(self):
+        """
+        Gets or sets the comment for the given Range.
         
+        To delete the comment, use ``del Range('givenRange').comment`` or set the comment to None.
+        """
+        return xlplatform.get_comment(self.xl_range)
+    
+    @comment.setter
+    def comment(self, value):
+        if value:
+            xlplatform.set_comment(self.xl_range, value)
+        else:
+            xlplatform.clear_comment(self.xl_range)
+    
+    @comment.deleter
+    def comment(self):
+        xlplatform.clear_comment(self.xl_range)
+    
     @property
     def formula(self):
         """
