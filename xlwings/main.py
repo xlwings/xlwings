@@ -879,11 +879,11 @@ class Range(object):
         if value:
             xlplatform.set_comment(self.xl_range, value)
         else:
-            xlplatform.clear_comment(self.xl_range)
+            xlplatform.del_comment(self.xl_range)
     
     @comment.deleter
     def comment(self):
-        xlplatform.clear_comment(self.xl_range)
+        xlplatform.del_comment(self.xl_range)
     
     @property
     def formula(self):
