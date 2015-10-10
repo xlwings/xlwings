@@ -43,6 +43,10 @@ class Application(object):
         self.wkb = wkb
         self.xl_app = wkb.xl_app
 
+    @property
+    def version(self):
+        xlplatform.get_app_version(self)
+
     def quit(self):
         """
         Quits the application without saving any workbooks.
@@ -1745,8 +1749,12 @@ class Plot(object):
         if sheet is None:
             sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
 
-        temp_dir = os.path.realpath(tempfile.gettempdir())
-        filename = os.path.join(temp_dir, 'xlwings.png')
+        if sys.platform.startswith('darwin') and int(xlplatform.get_app_version(Application(wkb)).split('.')[0]) >= 15:
+            # Office 2016 for Mac is sandboxed. This path seems to work without the need of granting access explicitely
+            filename = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/xlwings_plot.png'
+        else:
+            temp_dir = os.path.realpath(tempfile.gettempdir())
+            filename = os.path.join(temp_dir, 'xlwings_plot.png')
         canvas = FigureCanvas(self.figure)
         canvas.draw()
         self.figure.savefig(filename, format='png', bbox_inches='tight')

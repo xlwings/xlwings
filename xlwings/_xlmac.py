@@ -622,3 +622,7 @@ def add_picture(xl_workbook, sheet_name_or_index, filename, link_to_file, save_w
                                              kw.left_position: left,
                                              kw.width: width,
                                              kw.height: height})
+
+
+def get_app_version(app):
+    return app.xl_app.version.get()
