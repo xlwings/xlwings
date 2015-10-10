@@ -1442,6 +1442,14 @@ class Shape(object):
         self.name = xlplatform.get_shape_name(self)
 
     @property
+    def name(self):
+        return xlplatform.get_shape_name(self)
+
+    @name.setter
+    def name(self, value):
+        xlplatform.set_shape_name(self.xl_workbook, self.sheet_name_or_index, self.xl_shape, value)
+
+    @property
     def left(self):
         return xlplatform.get_shape_left(self)
 
@@ -1477,8 +1485,7 @@ class Shape(object):
         xlplatform.delete_shape(self)
 
 
-# TODO: inherit from Shape
-class Chart(object):
+class Chart(Shape):
     """
     A Chart object that represents an existing Excel chart can be created with the following arguments::
 
@@ -1514,25 +1521,11 @@ class Chart(object):
 
     """
     def __init__(self, *args, **kwargs):
-        # Use current Workbook if none provided
-        wkb = kwargs.get('wkb', None)
-        self.xl_workbook = Workbook.get_xl_workbook(wkb)
-
-        # Arguments
-        if len(args) == 1:
-            self.sheet_name_or_index = xlplatform.get_worksheet_name(xlplatform.get_active_sheet(self.xl_workbook))
-            self.name_or_index = args[0]
-        elif len(args) == 2:
-            if isinstance(args[0], Sheet):
-                self.sheet_name_or_index = args[0].index
-            else:
-                self.sheet_name_or_index = args[0]
-            self.name_or_index = args[1]
+        super(Chart, self).__init__(*args, **kwargs)
 
         # Get xl_chart object
         self.xl_chart = xlplatform.get_chart_object(self.xl_workbook, self.sheet_name_or_index, self.name_or_index)
         self.index = xlplatform.get_chart_index(self.xl_chart)
-        self.name = xlplatform.get_chart_name(self.xl_chart)
 
         # Chart Type
         chart_type = kwargs.get('chart_type')
@@ -1600,17 +1593,6 @@ class Chart(object):
         return cls(sheet, name, wkb=wkb, chart_type=chart_type, source_data=source_data)
 
     @property
-    def name(self):
-        """
-        Gets and sets the name of a chart.
-        """
-        return xlplatform.get_chart_name(self.xl_chart)
-
-    @name.setter
-    def name(self, value):
-        xlplatform.set_chart_name(self.xl_chart, value)
-
-    @property
     def chart_type(self):
         """
         Gets and sets the chart type of a chart.
@@ -1659,7 +1641,7 @@ class Picture(Shape):
     .. versionadded:: 0.4.2
     """
     def __init__(self, *args, **kwargs):
-        Shape.__init__(self, *args, **kwargs)
+        super(Picture, self).__init__(*args, **kwargs)
         self.xl_picture = xlplatform.get_picture(self)
         self.index = xlplatform.get_picture_index(self)
 
