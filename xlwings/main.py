@@ -1675,16 +1675,17 @@ class Picture(Shape):
                 im = Image.open(filename)
                 im_width, im_height = im.size
 
-        if width is None and im_width is not None:
-            width = im_width
-        else:
-            width = 100
+        if width is None:
+            if im_width is not None:
+                width = im_width
+            else:
+                width = 100
 
-        if height is None and im_height is not None:
-            height = im_height
-        else:
-            height = 100
-
+        if height is None:
+            if im_height is not None:
+                height = im_height
+            else:
+                height = 100
 
         xl_picture = xlplatform.add_picture(xl_workbook, sheet, filename, link_to_file, save_with_document,
                                             left, top, width, height)
