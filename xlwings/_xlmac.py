@@ -327,9 +327,9 @@ def set_chart_type(xl_chart, chart_type):
     xl_chart.chart.chart_type.set(chart_type)
 
 
-def activate_chart(xl_chart):
-    # TODO: xl_chart.activate_object() should work
-    xl_chart.select()
+def activate_shape(xl_shape):
+    # xl_shape.activate_object() doesn't work
+    xl_shape.select()
 
 
 def get_column_width(xl_range):

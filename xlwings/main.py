@@ -1484,6 +1484,9 @@ class Shape(object):
     def delete(self):
         xlplatform.delete_shape(self)
 
+    def activate(self):
+        xlplatform.activate_shape(self.xl_shape)
+
 
 class Chart(Shape):
     """
@@ -1605,12 +1608,6 @@ class Chart(Shape):
     def chart_type(self, value):
         xlplatform.set_chart_type(self.xl_chart, value)
 
-    def activate(self):
-        """
-        Makes the chart the active chart.
-        """
-        xlplatform.activate_chart(self.xl_chart)
-
     def set_source_data(self, source):
         """
         Sets the source for the chart.
@@ -1646,7 +1643,7 @@ class Picture(Shape):
         self.index = xlplatform.get_picture_index(self)
 
     @classmethod
-    def add(cls, sheet=None, filename=None, link_to_file=False, save_width_document=True,
+    def add(cls, sheet=None, filename=None, link_to_file=False, save_with_document=True,
             left=0, top=0, width=None, height=None, name=None, wkb=None):
 
         xl_workbook = Workbook.get_xl_workbook(wkb)
@@ -1658,7 +1655,7 @@ class Picture(Shape):
             if name in xlplatform.get_shapes_names(xl_workbook, sheet):
                 raise ShapeAlreadyExists('A shape with this name already exists.')
 
-        xl_picture = xlplatform.add_picture(xl_workbook, sheet, filename, link_to_file, save_width_document,
+        xl_picture = xlplatform.add_picture(xl_workbook, sheet, filename, link_to_file, save_with_document,
                                             left, top, width, height)
 
         if name is None:
