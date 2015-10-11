@@ -548,10 +548,14 @@ def get_picture(picture):
 
 def get_picture_index(picture):
     # Workaround since picture.xl_picture.entry_index.get() is broken in AppleScript, returns k.missing_value
+    # Also, count(each=kw.picture) returns count of shape nevertheless
     num_shapes = picture.xl_workbook.sheets[picture.sheet_name_or_index].count(each=kw.shape)
+    picture_index = 0
     for i in range(1, num_shapes + 1):
+        if picture.xl_workbook.sheets[picture.sheet_name_or_index].shapes[i].shape_type.get() == kw.shape_type_picture:
+            picture_index += 1
         if picture.xl_workbook.sheets[picture.sheet_name_or_index].shapes[i].name.get() == picture.name:
-            return i
+            return picture_index
 
 
 def get_picture_name(xl_picture):
