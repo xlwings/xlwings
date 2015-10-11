@@ -574,7 +574,7 @@ def set_shape_name(xl_workbook, sheet_name_or_index, xl_shape, value):
 def get_shapes_names(xl_workbook, sheet):
     shapes = xl_workbook.sheets[sheet].shapes.get()
     if shapes != kw.missing_value:
-        return [i.name.get() for i in xl_workbook.sheets[sheet].shapes.get()]
+        return [i.name.get() for i in shapes]
     else:
         return []
 
