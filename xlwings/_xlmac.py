@@ -558,10 +558,6 @@ def get_picture_index(picture):
             return picture_index
 
 
-def get_picture_name(xl_picture):
-    return xl_picture.name.get()
-
-
 def get_shape(shape):
     return shape.xl_workbook.sheets[shape.sheet_name_or_index].shapes[shape.name_or_index]
 

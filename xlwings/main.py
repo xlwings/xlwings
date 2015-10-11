@@ -1659,7 +1659,7 @@ class Picture(Shape):
                                             left, top, width, height)
 
         if name is None:
-            name = xlplatform.get_picture_name(xl_picture)
+            name = xlplatform.get_shape_name(xl_picture)
         else:
             xlplatform.set_shape_name(xl_workbook, sheet, xl_picture, name)
 
