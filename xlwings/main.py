@@ -46,7 +46,10 @@ class Application(object):
 
     @property
     def version(self):
-        xlplatform.get_app_version(self)
+        """
+        .. versionadded:: 0.4.2
+        """
+        return xlplatform.get_app_version(self)
 
     def quit(self):
         """
@@ -1657,7 +1660,7 @@ class Picture(Shape):
             if name in xlplatform.get_shapes_names(xl_workbook, sheet):
                 raise ShapeAlreadyExists('A shape with this name already exists.')
 
-        if sys.platform.startswith('darwin') and int(xlplatform.get_app_version(Application(wkb)).split('.')[0]) >= 15:
+        if sys.platform.startswith('darwin') and int(Application(wkb).version.split('.')[0]) >= 15:
             # Office 2016 for Mac is sandboxed. This path seems to work without the need of granting access explicitly
             xlwings_picture = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/xlwings_picture.png'
             shutil.copy2(filename, xlwings_picture)
@@ -1666,7 +1669,7 @@ class Picture(Shape):
         xl_picture = xlplatform.add_picture(xl_workbook, sheet, filename, link_to_file, save_with_document,
                                             left, top, width, height)
 
-        if sys.platform.startswith('darwin') and int(xlplatform.get_app_version(Application(wkb)).split('.')[0]) >= 15:
+        if sys.platform.startswith('darwin') and int(Application(wkb).version.split('.')[0]) >= 15:
             os.remove(xlwings_picture)
 
         if name is None:
