@@ -568,6 +568,7 @@ def get_shape_name(shape):
 
 def set_shape_name(xl_workbook, sheet_name_or_index, xl_shape, value):
     xl_workbook.sheets[sheet_name_or_index].shapes[xl_shape.name.get()].name.set(value)
+    return xl_workbook.sheets[sheet_name_or_index].shapes[value]
 
 
 def get_shapes_names(xl_workbook, sheet):

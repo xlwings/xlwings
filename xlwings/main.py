@@ -17,6 +17,7 @@ import itertools
 import inspect
 import collections
 import tempfile
+import shutil
 from . import xlplatform, string_types, time_types, xrange
 from .constants import ChartType
 
@@ -1447,7 +1448,7 @@ class Shape(object):
 
     @name.setter
     def name(self, value):
-        xlplatform.set_shape_name(self.xl_workbook, self.sheet_name_or_index, self.xl_shape, value)
+        self.xl_shape = xlplatform.set_shape_name(self.xl_workbook, self.sheet_name_or_index, self.xl_shape, value)
 
     @property
     def left(self):
@@ -1647,6 +1648,7 @@ class Picture(Shape):
             left=0, top=0, width=None, height=None, name=None, wkb=None):
 
         xl_workbook = Workbook.get_xl_workbook(wkb)
+        wkb = Workbook(xl_workbook=xl_workbook)
 
         if sheet is None:
             sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
@@ -1655,8 +1657,17 @@ class Picture(Shape):
             if name in xlplatform.get_shapes_names(xl_workbook, sheet):
                 raise ShapeAlreadyExists('A shape with this name already exists.')
 
+        if sys.platform.startswith('darwin') and int(xlplatform.get_app_version(Application(wkb)).split('.')[0]) >= 15:
+            # Office 2016 for Mac is sandboxed. This path seems to work without the need of granting access explicitly
+            xlwings_picture = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/xlwings_picture.png'
+            shutil.copy2(filename, xlwings_picture)
+            filename = xlwings_picture
+
         xl_picture = xlplatform.add_picture(xl_workbook, sheet, filename, link_to_file, save_with_document,
                                             left, top, width, height)
+
+        if sys.platform.startswith('darwin') and int(xlplatform.get_app_version(Application(wkb)).split('.')[0]) >= 15:
+            os.remove(xlwings_picture)
 
         if name is None:
             name = xlplatform.get_shape_name(xl_picture)
@@ -1729,7 +1740,7 @@ class Plot(object):
             sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
 
         if sys.platform.startswith('darwin') and int(xlplatform.get_app_version(Application(wkb)).split('.')[0]) >= 15:
-            # Office 2016 for Mac is sandboxed. This path seems to work without the need of granting access explicitely
+            # Office 2016 for Mac is sandboxed. This path seems to work without the need of granting access explicitly
             filename = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/xlwings_plot.png'
         else:
             temp_dir = os.path.realpath(tempfile.gettempdir())
