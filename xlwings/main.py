@@ -1725,15 +1725,11 @@ class Plot(object):
 
     .. versionadded:: 0.4.2
     """
-    def __init__(self, name, figure, left=None, top=None, width=None, height=None):
+    def __init__(self, name, figure):
         self.name = name
         self.figure = figure
-        self.left = left
-        self.top = top
-        self.width = width
-        self.height = height
 
-    def show(self, sheet=None, left=0, top=0, wkb=None):
+    def show(self, sheet=None, left=0, top=0, width=None, height=None, wkb=None):
         xl_workbook = Workbook.get_xl_workbook(wkb)
         wkb = Workbook(xl_workbook=xl_workbook)
         if sheet is None:
@@ -1748,15 +1744,13 @@ class Plot(object):
         canvas = FigureCanvas(self.figure)
         canvas.draw()
         self.figure.savefig(filename, format='png', bbox_inches='tight')
-        if self.width is None:
-            width = self.figure.bbox.bounds[2:][0]
-        else:
-            width = self.width
 
-        if self.height is None:
+        if width is None:
+            width = self.figure.bbox.bounds[2:][0]
+
+        if height is None:
             height = self.figure.bbox.bounds[2:][1]
-        else:
-            height = self.height
+
         try:
             return Picture.add(sheet=sheet, filename=filename, left=left, top=top, width=width,
                                height=height, name=self.name, wkb=wkb)
