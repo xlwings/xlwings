@@ -55,7 +55,7 @@ def clean_up():
 
 def posix_to_hfs_path(posix_path):
     """
-    Turns a posix path (/Path/file.ext) into an HFS path (Macintish HD:Path:file.ext)
+    Turns a posix path (/Path/file.ext) into an HFS path (Macintosh HD:Path:file.ext)
     """
     dir_name, file_name = os.path.split(posix_path)
     dir_name_hfs = mactypes.Alias(dir_name).hfspath
@@ -64,7 +64,7 @@ def posix_to_hfs_path(posix_path):
 
 def hfs_to_posix_path(hfs_path):
     """
-    Turns an HFS path (Macintish HD:Path:file.ext) into a unix path (/Path/file.ext)
+    Turns an HFS path (Macintosh HD:Path:file.ext) into a posix path (/Path/file.ext)
     """
     url = mactypes.convertpathtourl(hfs_path, 1)  # kCFURLHFSPathStyle = 1
     return mactypes.converturltopath(url, 0)  # kCFURLPOSIXPathStyle = 0
@@ -627,5 +627,5 @@ def add_picture(xl_workbook, sheet_name_or_index, filename, link_to_file, save_w
                                              kw.height: height})
 
 
-def get_app_version(app):
-    return app.xl_app.version.get()
+def get_app_version(application):
+    return application.xl_app.version.get()
