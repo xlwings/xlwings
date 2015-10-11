@@ -654,16 +654,25 @@ def get_picture_name(xl_picture):
     return xl_picture.Name
 
 
-def set_picture_name(xl_picture, value):
-    xl_picture.Name = value
-
-
 def get_shape(shape):
     return shape.xl_workbook.Sheets(shape.sheet_name_or_index).Shapes(shape.name_or_index)
 
 
 def get_shape_name(shape):
     return shape.xl_shape.Name
+
+
+def set_shape_name(xl_workbook, sheet_name_or_index, xl_shape, value):
+    xl_workbook.Sheets(sheet_name_or_index).Shapes(xl_shape.Name).Name = value
+    return xl_workbook.Sheets(sheet_name_or_index).Shapes(value)
+
+
+def get_shapes_names(xl_workbook, sheet):
+    shapes = xl_workbook.Sheets(sheet).Shapes
+    if shapes is not None:
+        return [i.Name for i in shapes]
+    else:
+        return []
 
 
 def get_shape_left(shape):
@@ -710,3 +719,11 @@ def add_picture(xl_workbook, sheet_name_or_index, filename, link_to_file, save_w
                                                                      Top=top,
                                                                      Width=width,
                                                                      Height=height)
+
+
+def get_app_version_string(xl_workbook):
+    return xl_workbook.Application.Version
+
+
+def get_major_app_version_number(xl_workbook):
+    return int(get_app_version_string(xl_workbook).split('.')[0])

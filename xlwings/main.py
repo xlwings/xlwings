@@ -34,7 +34,10 @@ try:
     from matplotlib.backends.backend_agg import FigureCanvas
 except ImportError:
     FigureCanvas = None
-
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 
 class Application(object):
     """
@@ -1665,6 +1668,24 @@ class Picture(Shape):
             shutil.copy2(filename, xlwings_picture)
             filename = xlwings_picture
 
+        # Image dimensions
+        im_width, im_height = None, None
+        if width is None or height is None:
+            if Image:
+                im = Image.open(filename)
+                im_width, im_height = im.size
+
+        if width is None and im_width is not None:
+            width = im_width
+        else:
+            width = 100
+
+        if height is None and im_height is not None:
+            height = im_height
+        else:
+            height = 100
+
+
         xl_picture = xlplatform.add_picture(xl_workbook, sheet, filename, link_to_file, save_with_document,
                                             left, top, width, height)
 
@@ -1672,7 +1693,7 @@ class Picture(Shape):
             os.remove(xlwings_picture)
 
         if name is None:
-            name = xlplatform.get_shape_name(xl_picture)
+            name = xlplatform.get_picture_name(xl_picture)
         else:
             xlplatform.set_shape_name(xl_workbook, sheet, xl_picture, name)
 

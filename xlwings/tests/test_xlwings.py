@@ -986,14 +986,14 @@ class TestPicture:
 
     def test_width(self):
         pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
-        assert_equal(pic.width, 25)
+        assert_equal(pic.width, 60)
 
         pic.width = 50
         assert_equal(pic.width, 50)
 
     def test_height(self):
         pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
-        assert_equal(pic.height, 25)
+        assert_equal(pic.height, 60)
 
         pic.height = 50
         assert_equal(pic.height, 50)
