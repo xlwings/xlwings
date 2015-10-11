@@ -628,5 +628,9 @@ def add_picture(xl_workbook, sheet_name_or_index, filename, link_to_file, save_w
                                              kw.height: height})
 
 
-def get_app_version(application):
-    return application.xl_app.version.get()
+def get_app_version_string(xl_workbook):
+    return _xl_app.version.get()
+
+
+def get_major_app_version_number(xl_workbook):
+    return int(get_app_version_string(xl_workbook).split('.')[0])

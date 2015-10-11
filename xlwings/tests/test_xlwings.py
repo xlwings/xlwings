@@ -155,6 +155,10 @@ class TestApplication:
         Range('A1').value = 2
         assert_equal(Range('B1').value, 4)
 
+    def test_version(self):
+        app = Application(wkb=self.wb)
+        assert_true(int(app.version.split('.')[0]) > 0)
+
 
 class TestWorkbook:
     def setUp(self):
