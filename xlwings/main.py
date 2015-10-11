@@ -1722,9 +1722,8 @@ class Plot(object):
     * via PyPlot interface::
 
         import matplotlib.pyplot as plt
+        fig = plt.figure()
         plt.plot([1, 2, 3, 4, 5])
-        fig = plt.gcf()
-
 
     * via object oriented interface::
 
