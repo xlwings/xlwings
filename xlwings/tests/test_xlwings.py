@@ -5,10 +5,15 @@ import os
 import sys
 import shutil
 import pytz
+import inspect
 import nose
-from nose.tools import assert_equal, raises, assert_true, assert_false, assert_not_equal
+from nose.tools import assert_equal, raises, assert_true, assert_not_equal
 from datetime import datetime, date
-from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation
+from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation, Shape, Picture, Plot
+
+# TODO: clean up used workbooks
+
+this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
 
 # Mac imports
 if sys.platform.startswith('darwin'):
@@ -31,6 +36,11 @@ try:
     from pandas.util.testing import assert_frame_equal, assert_series_equal
 except ImportError:
     pd = None
+try:
+    import matplotlib
+    from matplotlib.figure import Figure
+except ImportError:
+    matplotlib = None
 
 
 # Test data
@@ -94,6 +104,10 @@ def _skip_if_no_numpy():
 def _skip_if_no_pandas():
     if pd is None:
         raise nose.SkipTest('pandas missing')
+
+def _skip_if_no_matplotlib():
+    if matplotlib is None:
+        raise nose.SkipTest('matplotlib missing')
 
 
 def _skip_if_not_default_xl():
@@ -925,6 +939,97 @@ class TestRange:
         dt_tz = eastern.localize(dt_naive)
         Range('F34').value = dt_tz
         assert_equal(Range('F34').value, dt_naive)
+
+
+class TestPicture:
+    def setUp(self):
+        # Connect to test file and make Sheet1 the active sheet
+        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_chart_1.xlsx')
+        self.wb = Workbook(xl_file1, app_visible=False, app_target=APP_TARGET)
+        Sheet('Sheet1').activate()
+
+    def tearDown(self):
+        class_teardown(self.wb)
+
+    def test_two_wkb(self):
+        wb2 = Workbook(app_visible=False, app_target=APP_TARGET)
+        pic1 = Picture.add(sheet=1, name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        pic2 = Picture.add(sheet=1, name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'), wkb=self.wb)
+        assert_equal(pic1.name, 'pic1')
+        assert_equal(pic2.name, 'pic1')
+        wb2.close()
+
+    def test_name(self):
+        pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        assert_equal(pic.name, 'pic1')
+
+        pic.name = 'pic_new'
+        assert_equal(pic.name, 'pic_new')
+
+    def test_left(self):
+        pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        assert_equal(pic.left, 0)
+
+        pic.left = 20
+        assert_equal(pic.left, 20)
+
+    def test_top(self):
+        pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        assert_equal(pic.left, 0)
+
+        pic.top = 20
+        assert_equal(pic.top, 20)
+
+    def test_width(self):
+        pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        assert_equal(pic.width, 25)
+
+        pic.width = 50
+        assert_equal(pic.width, 50)
+
+    def test_height(self):
+        pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        assert_equal(pic.height, 25)
+
+        pic.height = 50
+        assert_equal(pic.height, 50)
+
+    @raises(Exception)
+    def test_delete(self):
+        pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        pic.delete()
+        pic.name
+
+    @raises(Exception)
+    def test_duplicate(self):
+        # TODO: organize errors so they can be imported and tested specifically ShapeAlreadyExists
+        pic1 = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        pic2 = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+
+
+class TestPlot:
+    def setUp(self):
+        # Connect to test file and make Sheet1 the active sheet
+        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_chart_1.xlsx')
+        self.wb = Workbook(xl_file1, app_visible=False, app_target=APP_TARGET)
+        Sheet('Sheet1').activate()
+
+    def tearDown(self):
+        class_teardown(self.wb)
+
+    def test_add_plot(self):
+        _skip_if_no_matplotlib()
+
+        fig = Figure(figsize=(8, 6))
+        ax = fig.add_subplot(111)
+        ax.plot([1, 2, 3, 4, 5])
+
+        plot = Plot('Plot1', fig)
+        pic = plot.show()
+        assert_equal(pic.name, 'Plot1')
+
+
+
 
 class TestChart:
     def setUp(self):
