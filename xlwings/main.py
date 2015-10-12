@@ -26,18 +26,22 @@ try:
     import numpy as np
 except ImportError:
     np = None
+
 try:
     import pandas as pd
 except ImportError:
     pd = None
+
 try:
     from matplotlib.backends.backend_agg import FigureCanvas
 except ImportError:
     FigureCanvas = None
+
 try:
     from PIL import Image
 except ImportError:
     Image = None
+
 
 class Application(object):
     """

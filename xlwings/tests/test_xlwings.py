@@ -41,6 +41,10 @@ try:
     from matplotlib.figure import Figure
 except ImportError:
     matplotlib = None
+try:
+    import PIL
+except ImportError:
+    PIL = None
 
 
 # Test data
@@ -986,14 +990,20 @@ class TestPicture:
 
     def test_width(self):
         pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
-        assert_equal(pic.width, 60)
+        if PIL:
+            assert_equal(pic.width, 60)
+        else:
+            assert_equal(pic.width, 100)
 
         pic.width = 50
         assert_equal(pic.width, 50)
 
     def test_height(self):
         pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
-        assert_equal(pic.height, 60)
+        if PIL:
+            assert_equal(pic.height, 60)
+        else:
+            assert_equal(pic.height, 100)
 
         pic.height = 50
         assert_equal(pic.height, 50)
