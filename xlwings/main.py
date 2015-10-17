@@ -9,6 +9,7 @@ All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
 """
+from contextlib import contextmanager
 import os
 import sys
 import re
@@ -16,8 +17,13 @@ import numbers
 import itertools
 import inspect
 import collections
+
 from . import xlplatform, string_types, time_types, xrange
-from .constants import ChartType
+from .constants import ChartType, Calculation
+
+
+
+
 
 # Optional imports
 try:
@@ -34,6 +40,7 @@ class Application(object):
     """
     Application is dependent on the Workbook since there might be different application instances on Windows.
     """
+
     def __init__(self, wkb):
         self.wkb = wkb
         self.xl_app = wkb.xl_app
@@ -58,6 +65,33 @@ class Application(object):
     @screen_updating.setter
     def screen_updating(self, value):
         xlplatform.set_screen_updating(self.xl_app, value)
+
+    @property
+    def display_alerts(self):
+        """
+        True if display alerts is turned on. Read/write Boolean.
+
+        .. versionadded:: ???
+        """
+        return xlplatform.get_display_alerts(self.xl_app)
+
+    @display_alerts.setter
+    def display_alerts(self, value):
+        xlplatform.set_display_alerts(self.xl_app, value)
+
+    @property
+    def enable_events(self):
+        """
+        True if enable events is turned on. Read/write Boolean.
+
+        .. versionadded:: ???
+        """
+        return xlplatform.get_enable_events(self.xl_app)
+
+    @enable_events.setter
+    def enable_events(self, value):
+        xlplatform.set_enable_events(self.xl_app, value)
+
 
     @property
     def visible(self):
@@ -101,6 +135,65 @@ class Application(object):
         """
         xlplatform.calculate(self.xl_app)
 
+    @contextmanager
+    def freeze(self, calculation=False, events=False, screen=False, alerts=False, ):
+        """
+        Context manager that freezes the Excel application regarding different behaviors.
+        If a keyword is set to False (the default), the behavior is not changed. If it was already disabled, it will not be enabled.
+
+
+        Keyword Arguments
+        -----------------
+        calculation: boolean, default False
+            True if calculation must be set to manual within the context.
+
+        events: boolean, default False
+            True if Excel must not handle events within the context.
+
+        screen: boolean, default False
+            True if Excel must not update the screen within the context.
+
+        alerts: boolean, default False
+            True if Excel should not display alerts within the context.
+
+
+        Example
+        -------
+        >>> from xlwings import Workbook, Application
+        >>> wb = Workbook()
+        >>> app = Application(wb)
+        >>> # Excel will not recalculate or update the screen while processing the loop
+        >>> with app.freeze(calculation=True, screen=False):
+        >>>     for i in range(1000):
+        >>>         Range((i,1)).value = i
+
+
+        .. versionadded:: ????
+
+        """
+        save_state = (self.screen_updating,
+                      self.enable_events,
+                      self.calculation,
+                      self.display_alerts,
+        )
+
+        if events:
+            self.enable_events = False
+        if alerts:
+            self.display_alerts = False
+        if calculation:
+            self.calculation = Calculation.xlCalculationManual
+        if screen:
+            self.screen_updating = False
+
+        yield
+
+        (self.screen_updating,
+         self.enable_events,
+         self.calculation,
+         self.display_alerts,
+        ) = save_state
+
 
 class Workbook(object):
     """
@@ -139,6 +232,7 @@ class Workbook(object):
     ``wb = Workbook.caller()``
 
     """
+
     def __init__(self, fullname=None, xl_workbook=None, app_visible=True, app_target=None):
         if xl_workbook:
             self.xl_workbook = xl_workbook
@@ -592,6 +686,7 @@ class Range(object):
     wkb : Workbook object, default Workbook.current()
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
     """
+
     def __init__(self, *args, **kwargs):
         # Arguments
         if len(args) == 1 and isinstance(args[0], string_types):
@@ -817,7 +912,7 @@ class Range(object):
             if self.index:
                 data = data.reset_index().values
             else:
-                data = data.values[:,np.newaxis]
+                data = data.values[:, np.newaxis]
 
         # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535.
         # See: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx
@@ -1436,6 +1531,7 @@ class Chart(object):
     >>> chart.chart_type = ChartType.xl3DArea
 
     """
+
     def __init__(self, *args, **kwargs):
         # TODO: this should be doable without *args and **kwargs - same for .add()
         # Use current Workbook if none provided
@@ -1572,6 +1668,7 @@ class NamesDict(collections.MutableMapping):
     Implements the Workbook.Names collection.
     Currently only used to be able to do ``del wb.names['NamedRange']``
     """
+
     def __init__(self, xl_workbook, *args, **kwargs):
         self.xl_workbook = xl_workbook
         self.store = dict()

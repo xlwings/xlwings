@@ -609,6 +609,22 @@ def set_screen_updating(xl_app, value):
     xl_app.ScreenUpdating = value
 
 
+def get_enable_events(xl_app):
+    return xl_app.EnableEvents
+
+
+def set_enable_events(xl_app, value):
+    xl_app.EnableEvents = value
+
+
+def get_display_alerts(xl_app):
+    return xl_app.DisplayAlerts
+
+
+def set_display_alerts(xl_app, value):
+    xl_app.DisplayAlerts = value
+
+
 def get_calculation(xl_app):
     return xl_app.Calculation
 
