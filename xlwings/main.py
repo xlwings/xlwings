@@ -155,8 +155,10 @@ class Workbook(object):
             # Open Excel if necessary and create a new workbook
             self.xl_app, self.xl_workbook = xlplatform.new_workbook(app_target)
 
+        self.app = Application(self)
+
         self.name = xlplatform.get_workbook_name(self.xl_workbook)
-        self.active_sheet = Sheet.active(wkb=self)
+        # self.active_sheet = Sheet.active(wkb=self)
 
         if fullname is None:
             self.fullname = xlplatform.get_fullname(self.xl_workbook)
@@ -393,6 +395,9 @@ class Sheet(object):
         self.xl_workbook = Workbook.get_xl_workbook(wkb)
         self.sheet = sheet
         self.xl_sheet = xlplatform.get_xl_sheet(self.xl_workbook, self.sheet)
+        self.wkb = Workbook(xl_workbook=self.xl_workbook)
+        self.app = self.wkb.app
+
 
     def activate(self):
         """Activates the sheet."""
