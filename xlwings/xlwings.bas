@@ -155,7 +155,7 @@ Sub ExecuteWindows(IsFrozen As Boolean, Command As String, PYTHON_WIN As String,
 
     If Left$(PYTHON_WIN, 2) Like "[A-Za-z]:" Then
         ' If Python is installed on a mapped or local drive, change to drive, then cd to path
-        DriveCommand = Left$(PYTHON_WIN, 2) & " & cd " & PYTHON_WIN & " & "
+        DriveCommand = Left$(PYTHON_WIN, 2) & " & cd """ & PYTHON_WIN & """ & "
     ElseIf Left$(PYTHON_WIN, 2) = "\\" Then
         ' If Python is installed on a UNC path, temporarily mount and activate a drive letter with pushd
         DriveCommand = "pushd " & PYTHON_WIN & " & "
@@ -167,7 +167,7 @@ Sub ExecuteWindows(IsFrozen As Boolean, Command As String, PYTHON_WIN As String,
     WORKBOOK_FULLNAME = ThisWorkbook.FullName
 
     If IsFrozen = False Then
-        RunCommand = "python -c ""import sys; sys.path.append(r'" & PYTHONPATH & "'); " & Command & """ "
+        RunCommand = "python -c ""import sys; sys.path.extend(r'" & PYTHONPATH & ".split(";")'); " & Command & """ "
     ElseIf IsFrozen = True Then
         RunCommand = Command & " "
     End If
