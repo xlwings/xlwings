@@ -163,7 +163,7 @@ class Application(object):
         >>> wb = Workbook()
         >>> app = Application(wb)
         >>> # Excel will not recalculate or update the screen while processing the loop
-        >>> with app.freeze(calculation=True, screen=False):
+        >>> with app.freeze(calculation=True, screen=True):
         >>>     for i in range(1000):
         >>>         Range((i,1)).value = i
 
@@ -186,13 +186,14 @@ class Application(object):
         if screen:
             self.screen_updating = False
 
-        yield
-
-        (self.screen_updating,
-         self.enable_events,
-         self.calculation,
-         self.display_alerts,
-        ) = save_state
+        try:
+            yield
+        finally:
+            (self.screen_updating,
+             self.enable_events,
+             self.calculation,
+             self.display_alerts,
+            ) = save_state
 
 
 class Workbook(object):
