@@ -171,12 +171,14 @@ class Application(object):
         .. versionadded:: ????
 
         """
+        # save state of current behaviors
         save_state = (self.screen_updating,
                       self.enable_events,
                       self.calculation,
                       self.display_alerts,
         )
 
+        # if need to freeze the behavior, freeze it
         if events:
             self.enable_events = False
         if alerts:
@@ -186,6 +188,7 @@ class Application(object):
         if screen:
             self.screen_updating = False
 
+        # yield in a try: finally: to force reset of behaviors even in case of exception
         try:
             yield
         finally:
