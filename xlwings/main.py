@@ -1802,9 +1802,6 @@ class Plot(object):
 
     Arguments
     ---------
-    name : str
-        Name of the picture in Excel
-
     figure : matplotlib.figure.Figure
         Matplotlib figure
 
@@ -1834,19 +1831,18 @@ class Plot(object):
         ax = df.plot(kind='bar')
         fig = ax.get_figure()
 
-    Then plot it in Excel as picture::
+    Then show it in Excel as picture::
 
-        plot = Plot('Plot1', fig)
-        plot.show()
+        plot = Plot(fig)
+        plot.show(name='Plot1')
 
 
     .. versionadded:: 0.4.2
     """
-    def __init__(self, name, figure):
-        self.name = name
+    def __init__(self, figure):
         self.figure = figure
 
-    def show(self, sheet=None, left=0, top=0, width=None, height=None, wkb=None):
+    def show(self, sheet=None, name=None, left=0, top=0, width=None, height=None, wkb=None):
         """
         Inserts the matplotlib figure as picture into Excel if a picture with that name doesn't exist yet.
         Otherwise it replaces the picture, taking over it's position and size.
@@ -1855,6 +1851,9 @@ class Plot(object):
         -----------------
         sheet : str or int or xlwings.Sheet, default None
             Name or index of the Sheet or ``xlwings.Sheet`` object, defaults to the active Sheet
+
+        name : str
+            Name of the picture in Excel
 
         left : float, default 0
             Left position in points. Only has an effect if the picture doesn't exist yet in Excel.
@@ -1898,9 +1897,9 @@ class Plot(object):
 
         try:
             return Picture.add(sheet=sheet, filename=filename, left=left, top=top, width=width,
-                               height=height, name=self.name, wkb=wkb)
+                               height=height, name=name, wkb=wkb)
         except ShapeAlreadyExists:
-            pic = Picture(sheet, self.name, wkb=wkb)
+            pic = Picture(sheet, name, wkb=wkb)
             pic.update(filename)
             return pic
         finally:

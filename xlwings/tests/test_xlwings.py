@@ -19,8 +19,8 @@ this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe(
 if sys.platform.startswith('darwin'):
     from appscript import k as kw
     # TODO: uncomment the desired Excel installation or set to None for default installation
-    APP_TARGET = None
-    # APP_TARGET = '/Applications/Microsoft Office 2011/Microsoft Excel'
+    # APP_TARGET = None
+    APP_TARGET = '/Applications/Microsoft Office 2011/Microsoft Excel'
 else:
     APP_TARGET = None
 
@@ -1038,8 +1038,8 @@ class TestPlot:
         ax = fig.add_subplot(111)
         ax.plot([1, 2, 3, 4, 5])
 
-        plot = Plot('Plot1', fig)
-        pic = plot.show()
+        plot = Plot(fig)
+        pic = plot.show(name='Plot1')
         assert_equal(pic.name, 'Plot1')
 
 
