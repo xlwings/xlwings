@@ -16,8 +16,10 @@ import numbers
 import itertools
 import inspect
 import collections
+
 from . import xlplatform, string_types, time_types, xrange
 from .constants import ChartType
+
 
 # Optional imports
 try:
@@ -34,6 +36,7 @@ class Application(object):
     """
     Application is dependent on the Workbook since there might be different application instances on Windows.
     """
+
     def __init__(self, wkb):
         self.wkb = wkb
         self.xl_app = wkb.xl_app
@@ -139,6 +142,7 @@ class Workbook(object):
     ``wb = Workbook.caller()``
 
     """
+
     def __init__(self, fullname=None, xl_workbook=None, app_visible=True, app_target=None):
         if xl_workbook:
             self.xl_workbook = xl_workbook
@@ -555,6 +559,93 @@ class Sheet(object):
         return "<Sheet '{0}' of Workbook '{1}'>".format(self.name, xlplatform.get_workbook_name(self.xl_workbook))
 
 
+class DataFrameAccessor(object):
+    def __init__(self, rng, header, index):
+        assert pd is not None, "You need the pandas package!"
+        self.rng = rng
+        self.header = header
+        self.index = index
+
+    @property
+    def value(self):
+        # get the data in 2d (make a copy of rng to avoid changing its atleast_2d flag
+        rng = self.rng.resize()
+        rng.atleast_2d = True
+        rng.asarray=True
+        data = rng._get_data()
+
+        # if header are in the range, split the header from the data
+        if self.header:
+            if self.header>1:
+                # primitive way of handle multi index on columns
+                df = pd.DataFrame(data[self.header:], columns=pd.MultiIndex.from_arrays(data[:self.header]))
+            else:
+                df = pd.DataFrame(data[1:], columns=data[:self.header])
+        else:
+            df = pd.DataFrame(data)
+
+        if self.index:
+            df.set_index(df.columns[0], inplace=True)
+
+        return df
+
+    @value.setter
+    def value(self, df):
+        assert isinstance(df, pd.DataFrame), "Data should be a pandas DataFrame"
+        if self.index:
+            df = df.reset_index()
+
+        if self.header:
+            if isinstance(df.columns, pd.MultiIndex):
+                # Ensure dtype=object because otherwise it may get assigned a string type which sometimes makes
+                # vstacking return a string array. This would cause values to be truncated and we can't easily
+                # transform np.nan in string form.
+                # Python 3 requires zip wrapped in list
+                columns = np.array(list(zip(*df.columns.tolist())), dtype=object)
+            else:
+                columns = np.empty((df.columns.shape[0],), dtype=object)
+                columns[:] = np.array([df.columns.tolist()])
+            data = np.vstack((columns, df.values))
+        else:
+            data = df.values
+
+        self.rng._set_data(data)
+
+
+class ArrayAccessor(object):
+    def __init__(self, rng):
+        self.rng = rng
+
+    @property
+    def value(self):
+        data = self.rng._get_data()
+
+        # replace None (empty cells) with nan as None produces arrays with dtype=object
+        # TODO: easier like this: np.array(my_list, dtype=np.float)
+        if data is None:
+            data = np.nan
+        if (self.rng.is_column() or self.rng.is_row()) and not self.rng.atleast_2d:
+            data = [np.nan if x is None else x for x in data]
+        elif self.rng.is_table() or self.rng.atleast_2d:
+            data = [[np.nan if x is None else x for x in i] for i in data]
+
+        return np.atleast_1d(np.array(data))
+
+    @value.setter
+    def value(self, data):
+        try:
+            data = np.where(np.isnan(data), None, data)
+            data = data.tolist()
+        except TypeError:
+            # isnan doesn't work on arrays of dtype=object
+            if hasattr(pd, 'isnull'):
+                data[pd.isnull(data)] = None
+                data = data.tolist()
+            else:
+                # expensive way of replacing nan with None in object arrays in case Pandas is not available
+                data = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in data]
+        self.rng._set_data(data)
+
 class Range(object):
     """
     A Range object can be created with the following arguments::
@@ -592,6 +683,7 @@ class Range(object):
     wkb : Workbook object, default Workbook.current()
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
     """
+
     def __init__(self, *args, **kwargs):
         # Arguments
         if len(args) == 1 and isinstance(args[0], string_types):
@@ -750,17 +842,7 @@ class Range(object):
     def __len__(self):
         return self.row2 - self.row1 + 1
 
-    @property
-    def value(self):
-        """
-        Gets and sets the values for the given Range.
-
-        Returns
-        -------
-        list or numpy array
-            Empty cells are set to ``None``. If ``asarray=True``,
-            a numpy array is returned where empty cells are set to ``nan``.
-        """
+    def _get_data(self):
         # TODO: refactor
         if self.is_cell():
             # Clean_xl_data requires and returns a list of list
@@ -777,6 +859,47 @@ class Range(object):
                 data = [item for sublist in data for item in sublist]
         else:  # 2d Range, leave as list of list
             data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
+
+        return data
+
+    def _set_data(self, data):
+        # Get dimensions and prepare data for Excel
+        # TODO: refactor
+        if isinstance(data, (numbers.Number, string_types, time_types)) or data is None:
+            # Single cells
+            row2 = self.row2
+            col2 = self.col2
+            data = xlplatform.prepare_xl_data([[data]])[0][0]
+            try:
+                # scalar np.nan need to be turned into None, otherwise Excel shows it as 65535 (same as for NumPy array)
+                if hasattr(np, 'ndarray') and np.isnan(data):
+                    data = None
+            except (TypeError, NotImplementedError):
+                # raised if data is not a np.nan.
+                # NumPy < 1.7.0 raises NotImplementedError, >= 1.7.0 raises TypeError
+                pass
+
+        else:
+            # List of List
+            row2 = self.row1 + len(data) - 1
+            col2 = self.col1 + len(data[0]) - 1
+            data = xlplatform.prepare_xl_data(data)
+
+        xlplatform.set_value(xlplatform.get_range_from_indices(self.xl_sheet,
+                                                               self.row1, self.col1, row2, col2), data)
+
+    @property
+    def value(self):
+        """
+        Gets and sets the values for the given Range.
+
+        Returns
+        -------
+        list or numpy array
+            Empty cells are set to ``None``. If ``asarray=True``,
+            a numpy array is returned where empty cells are set to ``nan``.
+        """
+        data = self._get_data()
 
         # Return as NumPy Array
         if self.asarray:
@@ -817,7 +940,7 @@ class Range(object):
             if self.index:
                 data = data.reset_index().values
             else:
-                data = data.values[:,np.newaxis]
+                data = data.values[:, np.newaxis]
 
         # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535.
         # See: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx
@@ -840,30 +963,14 @@ class Range(object):
                                        or data[0] is None):
             data = [data]
 
-        # Get dimensions and prepare data for Excel
-        # TODO: refactor
-        if isinstance(data, (numbers.Number, string_types, time_types)) or data is None:
-            # Single cells
-            row2 = self.row2
-            col2 = self.col2
-            data = xlplatform.prepare_xl_data([[data]])[0][0]
-            try:
-                # scalar np.nan need to be turned into None, otherwise Excel shows it as 65535 (same as for NumPy array)
-                if hasattr(np, 'ndarray') and np.isnan(data):
-                    data = None
-            except (TypeError, NotImplementedError):
-                # raised if data is not a np.nan.
-                # NumPy < 1.7.0 raises NotImplementedError, >= 1.7.0 raises TypeError
-                pass
+        self._set_data(data)
 
-        else:
-            # List of List
-            row2 = self.row1 + len(data) - 1
-            col2 = self.col1 + len(data[0]) - 1
-            data = xlplatform.prepare_xl_data(data)
+    def as_dataframe(self, index=True, header=True, *args, **kwargs):
+        return DataFrameAccessor(self, index=index, header=header, *args, **kwargs)
 
-        xlplatform.set_value(xlplatform.get_range_from_indices(self.xl_sheet,
-                                                               self.row1, self.col1, row2, col2), data)
+    def as_array(self, *args, **kwargs):
+        return ArrayAccessor(self, *args, **kwargs)
+
 
     @property
     def formula(self):
@@ -1299,14 +1406,14 @@ class Range(object):
 
         .. versionadded:: 0.3.0
         """
-        if row_size:
+        if row_size is not None:
             row2 = self.row1 + row_size - 1
         else:
-            row2 = self.row1
-        if column_size:
+            row2 = self.row2
+        if column_size is not None:
             col2 = self.col1 + column_size - 1
         else:
-            col2 = self.col1
+            col2 = self.col2
 
         return Range(xlplatform.get_worksheet_name(self.xl_sheet), (self.row1, self.col1), (row2, col2), **self.kwargs)
 
@@ -1436,6 +1543,7 @@ class Chart(object):
     >>> chart.chart_type = ChartType.xl3DArea
 
     """
+
     def __init__(self, *args, **kwargs):
         # TODO: this should be doable without *args and **kwargs - same for .add()
         # Use current Workbook if none provided
@@ -1572,6 +1680,7 @@ class NamesDict(collections.MutableMapping):
     Implements the Workbook.Names collection.
     Currently only used to be able to do ``del wb.names['NamedRange']``
     """
+
     def __init__(self, xl_workbook, *args, **kwargs):
         self.xl_workbook = xl_workbook
         self.store = dict()
