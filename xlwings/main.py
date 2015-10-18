@@ -54,6 +54,8 @@ class Application(object):
     @property
     def version(self):
         """
+        Returns Excel's version string.
+
         .. versionadded:: 0.4.2
         """
         return xlplatform.get_app_version_string(self.wkb.xl_workbook)
@@ -585,8 +587,12 @@ class Range(object):
         Range((1,1), (3,3))  Range('Sheet1', (1,1), (3,3))  Range(1, (1,1), (3,3))
         Range('NamedRange')  Range('Sheet1', 'NamedRange')  Range(1, 'NamedRange')
 
-    If no worksheet name is provided as first argument (as name or index),
-    it will take the Range from the active sheet.
+    The Sheet can also be provided as Sheet object::
+
+        sh = Sheet(1)
+        Range(sh, 'A1')
+
+    If no worksheet name is provided as first argument, it will take the Range from the active sheet.
 
     You usually want to go for ``Range(...).value`` to get the values (as list of lists).
 
@@ -1423,13 +1429,28 @@ class Range(object):
 
 class Shape(object):
     """
-    A Shape object that represents an existing Excel shape can be created with the following arguments::
+    A Shape object represents an existing Excel shape and can be created with the following arguments::
 
         Shape(1)            Shape('Sheet1', 1)              Shape(1, 1)
         Shape('Shape 1')    Shape('Sheet1', 'Shape 1')      Shape(1, 'Shape 1')
 
-    If no Worksheet is provided as first argument (as name or index),
-    it will take the Shape from the active Sheet.
+    The Sheet can also be provided as Sheet object::
+
+        sh = Sheet(1)
+        Shape(sh, 'Shape 1')
+
+    If no Worksheet is provided as first argument, it will take the Shape from the active Sheet.
+
+    Arguments
+    ---------
+    *args
+        Definition of Sheet (optional) and shape in the above described combinations.
+
+    Keyword Arguments
+    -----------------
+    wkb : Workbook object, default Workbook.current()
+        Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
 
     .. versionadded:: 0.4.2
     """
@@ -1501,13 +1522,17 @@ class Shape(object):
 
 class Chart(Shape):
     """
-    A Chart object that represents an existing Excel chart can be created with the following arguments::
+    A Chart object represents an existing Excel chart and can be created with the following arguments::
 
         Chart(1)            Chart('Sheet1', 1)              Chart(1, 1)
         Chart('Chart 1')    Chart('Sheet1', 'Chart 1')      Chart(1, 'Chart 1')
 
-    If no Worksheet is provided as first argument (as name or index),
-    it will take the Chart from the active Sheet.
+    The Sheet can also be provided as Sheet object::
+
+        sh = Sheet(1)
+        Chart(sh, 'Chart 1')
+
+    If no Worksheet is provided as first argument, it will take the Chart from the active Sheet.
 
     To insert a new Chart into Excel, create it as follows::
 
@@ -1552,19 +1577,19 @@ class Chart(Shape):
             self.set_source_data(source_data)
 
     @classmethod
-    def add(cls, sheet=None, left=168, top=217, width=355, height=211, **kwargs):
+    def add(cls, sheet=None, left=0, top=0, width=355, height=211, **kwargs):
         """
-        Inserts a new Chart in Excel.
+        Inserts a new Chart into Excel.
 
         Arguments
         ---------
-        sheet : string or integer, default None
-            Name or index of the Sheet, defaults to the active Sheet
+        sheet : str or int or xlwings.Sheet, default None
+            Name or index of the Sheet or Sheet object, defaults to the active Sheet
 
-        left : float, default 100
+        left : float, default 0
             left position in points
 
-        top : float, default 75
+        top : float, default 0
             top position in points
 
         width : float, default 375
@@ -1594,6 +1619,8 @@ class Chart(Shape):
         name = kwargs.get('name')
         source_data = kwargs.get('source_data')
 
+        if isinstance(sheet, Sheet):
+                sheet = sheet.index
         if sheet is None:
             sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
 
@@ -1638,13 +1665,28 @@ class Chart(Shape):
 
 class Picture(Shape):
     """
-    A Picture object that represents an existing Excel Picture can be created with the following arguments::
+    A Picture object represents an existing Excel Picture and can be created with the following arguments::
 
-    Picture(1)              Picture('Sheet1', 1)                Picture(1, 1)
-    Picture('Picture 1')    Picture('Sheet1', 'Picture 1')      Picture(1, 'Picture 1')
+        Picture(1)              Picture('Sheet1', 1)                Picture(1, 1)
+        Picture('Picture 1')    Picture('Sheet1', 'Picture 1')      Picture(1, 'Picture 1')
 
-    If no Worksheet is provided as first argument (as name or index),
-    it will take the Picture from the active Sheet.
+    The Sheet can also be provided as Sheet object::
+
+        sh = Sheet(1)
+        Shape(sh, 'Picture 1')
+
+    If no Worksheet is provided as first argument, it will take the Picture from the active Sheet.
+
+    Arguments
+    ---------
+    *args
+        Definition of Sheet (optional) and picture in the above described combinations.
+
+    Keyword Arguments
+    -----------------
+    wkb : Workbook object, default Workbook.current()
+        Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
 
     .. versionadded:: 0.4.2
     """
@@ -1656,9 +1698,36 @@ class Picture(Shape):
     @classmethod
     def add(cls, sheet=None, filename=None, link_to_file=False, save_with_document=True,
             left=0, top=0, width=None, height=None, name=None, wkb=None):
+        """
+        Inserts a picture into Excel.
+
+        Keyword Arguments
+        -----------------
+        sheet : str or int or xlwings.Sheet, default None
+            Name or index of the Sheet or ``xlwings.Sheet`` object, defaults to the active Sheet
+
+        left : float, default 0
+            Left position in points.
+
+        top : float, default 0
+            Top position in points.
+
+        width : float, default None
+            Width in points. If PIL/Pillow is installed, it defaults to the width of the picture.
+            Otherwise it defaults to 100 points.
+
+        height : float, default None
+            Height in points. If PIL/Pillow is installed, it defaults to the height of the picture.
+            Otherwise it defaults to 100 points.
+
+
+        .. versionadded:: 0.4.2
+        """
 
         xl_workbook = Workbook.get_xl_workbook(wkb)
 
+        if isinstance(sheet, Sheet):
+                sheet = sheet.index
         if sheet is None:
             sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
 
@@ -1705,6 +1774,18 @@ class Picture(Shape):
         return cls(sheet, name, wkb=wkb)
 
     def update(self, filename):
+        """
+        Replaces an existing picture with a new one, taking over the attributes of the existing picture.
+
+        Arguments
+        ---------
+
+        filename : str
+            Path to the picture.
+
+
+        .. versionadded:: 0.4.2
+        """
         wkb = self.wkb
         name = self.name
         left, top, width, height = self.left, self.top, self.width, self.height
@@ -1717,7 +1798,15 @@ class Picture(Shape):
 
 class Plot(object):
     """
-    Plot allows to use Matplotlib charts as pictures in Excel.
+    Plot allows to easily display Matplotlib figures as pictures in Excel.
+
+    Arguments
+    ---------
+    name : str
+        Name of the picture in Excel
+
+    figure : matplotlib.figure.Figure
+        Matplotlib figure
 
     Example
     -------
@@ -1750,6 +1839,7 @@ class Plot(object):
         plot = Plot('Plot1', fig)
         plot.show()
 
+
     .. versionadded:: 0.4.2
     """
     def __init__(self, name, figure):
@@ -1757,8 +1847,36 @@ class Plot(object):
         self.figure = figure
 
     def show(self, sheet=None, left=0, top=0, width=None, height=None, wkb=None):
+        """
+        Inserts the matplotlib figure as picture into Excel if a picture with that name doesn't exist yet.
+        Otherwise it replaces the picture, taking over it's position and size.
+
+        Keyword Arguments
+        -----------------
+        sheet : str or int or xlwings.Sheet, default None
+            Name or index of the Sheet or ``xlwings.Sheet`` object, defaults to the active Sheet
+
+        left : float, default 0
+            Left position in points. Only has an effect if the picture doesn't exist yet in Excel.
+
+        top : float, default 0
+            Top position in points. Only has an effect if the picture doesn't exist yet in Excel.
+
+        width : float, default None
+            Width in points, defaults to the width of the matplotlib figure.
+            Only has an effect if the picture doesn't exist yet in Excel.
+
+        height : float, default None
+            Height in points, defaults to the height of the matplotlib figure.
+            Only has an effect if the picture doesn't exist yet in Excel.
+
+
+        .. versionadded:: 0.4.2
+        """
         xl_workbook = Workbook.get_xl_workbook(wkb)
 
+        if isinstance(sheet, Sheet):
+                sheet = sheet.index
         if sheet is None:
             sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
 

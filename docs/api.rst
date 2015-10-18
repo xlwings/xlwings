@@ -34,8 +34,7 @@ In order to use xlwings, instantiating a workbook object is always the first thi
 Sheet
 -----
 
-Sheet objects allow you to interact with anything directly related to a Sheet. However, to specify the Sheet in
-a ``Range`` or ``Chart`` object, do it as follows: ``Range('Sheet1', 'A1').value``.
+Sheet objects allow you to interact with anything directly related to a Sheet.
 
 
 .. autoclass:: Sheet
