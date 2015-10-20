@@ -875,7 +875,15 @@ class Range(object):
     @formula.setter
     def formula(self, value):
         xlplatform.set_formula(self.xl_range, value)
-
+        
+    @property
+    def comment(self):
+        return xlplatform.get_comment(self.xl_range)
+        
+    @comment.setter
+    def comment(self, value):
+        xlplatform.set_comment(self.xl_range, value)
+        
     @property
     def table(self):
         """
