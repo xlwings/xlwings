@@ -21,6 +21,7 @@ from . import xlplatform, string_types, time_types, xrange
 from .constants import ChartType
 
 
+
 # Optional imports
 try:
     import numpy as np
@@ -571,12 +572,12 @@ class DataFrameAccessor(object):
         # get the data in 2d (make a copy of rng to avoid changing its atleast_2d flag
         rng = self.rng.resize()
         rng.atleast_2d = True
-        rng.asarray=True
+        rng.asarray = True
         data = rng._get_data()
 
         # if header are in the range, split the header from the data
         if self.header:
-            if self.header>1:
+            if self.header > 1:
                 # primitive way of handle multi index on columns
                 df = pd.DataFrame(data[self.header:], columns=pd.MultiIndex.from_arrays(data[:self.header]))
             else:
@@ -591,6 +592,7 @@ class DataFrameAccessor(object):
 
     @value.setter
     def value(self, df):
+        # handle dataframe by converting to Array and then using ArrayAccessor
         assert isinstance(df, pd.DataFrame), "Data should be a pandas DataFrame"
         if self.index:
             df = df.reset_index()
@@ -609,7 +611,7 @@ class DataFrameAccessor(object):
         else:
             data = df.values
 
-        self.rng._set_data(data)
+        self.rng.as_array().value = data
 
 
 class ArrayAccessor(object):
@@ -644,7 +646,9 @@ class ArrayAccessor(object):
             else:
                 # expensive way of replacing nan with None in object arrays in case Pandas is not available
                 data = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in data]
+
         self.rng._set_data(data)
+
 
 class Range(object):
     """
@@ -863,6 +867,15 @@ class Range(object):
         return data
 
     def _set_data(self, data):
+        # Simple Lists: Turn into list of lists (np.nan is part of numbers.Number)
+        if isinstance(data, list) and (isinstance(data[0], (numbers.Number, string_types, time_types))
+                                       or data[0] is None):
+            data = [data]
+
+        # print repr(data), data, isinstance(data, list), isinstance(data, list)  and (isinstance(data[0], (numbers.Number, string_types, time_types)) or data[0] is None)
+        # if isinstance(data, np.ndarray):
+        # ffsddfs
+
         # Get dimensions and prepare data for Excel
         # TODO: refactor
         if isinstance(data, (numbers.Number, string_types, time_types)) or data is None:
@@ -899,43 +912,22 @@ class Range(object):
             Empty cells are set to ``None``. If ``asarray=True``,
             a numpy array is returned where empty cells are set to ``nan``.
         """
-        data = self._get_data()
-
-        # Return as NumPy Array
         if self.asarray:
-            # replace None (empty cells) with nan as None produces arrays with dtype=object
-            # TODO: easier like this: np.array(my_list, dtype=np.float)
-            if data is None:
-                data = np.nan
-            if (self.is_column() or self.is_row()) and not self.atleast_2d:
-                data = [np.nan if x is None else x for x in data]
-            elif self.is_table() or self.atleast_2d:
-                data = [[np.nan if x is None else x for x in i] for i in data]
-            return np.atleast_1d(np.array(data))
+            return self.as_array().value
+
+        data = self._get_data()
         return data
 
     @value.setter
     def value(self, data):
         # Pandas DataFrame: Turn into NumPy object array with or without Index and Headers
         if hasattr(pd, 'DataFrame') and isinstance(data, pd.DataFrame):
-            if self.index:
-                data = data.reset_index()
-
-            if self.header:
-                if isinstance(data.columns, pd.MultiIndex):
-                    # Ensure dtype=object because otherwise it may get assigned a string type which sometimes makes
-                    # vstacking return a string array. This would cause values to be truncated and we can't easily
-                    # transform np.nan in string form.
-                    # Python 3 requires zip wrapped in list
-                    columns = np.array(list(zip(*data.columns.tolist())), dtype=object)
-                else:
-                    columns = np.empty((data.columns.shape[0],), dtype=object)
-                    columns[:] = np.array([data.columns.tolist()])
-                data = np.vstack((columns, data.values))
-            else:
-                data = data.values
+            self.as_dataframe(header=self.header, index=self.index).value = data
+            return
 
         # Pandas Series
+        # TODO: handle this through the as_dataframe accessor but may introduce backward incompatible changes
+        # TODO: or work with some extra flag to keep backward compatibility
         if hasattr(pd, 'Series') and isinstance(data, pd.Series):
             if self.index:
                 data = data.reset_index().values
@@ -946,22 +938,8 @@ class Range(object):
         # See: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx
         # Also, turn into list (Python 3 can't handle arrays directly)
         if hasattr(np, 'ndarray') and isinstance(data, np.ndarray):
-            try:
-                data = np.where(np.isnan(data), None, data)
-                data = data.tolist()
-            except TypeError:
-                # isnan doesn't work on arrays of dtype=object
-                if hasattr(pd, 'isnull'):
-                    data[pd.isnull(data)] = None
-                    data = data.tolist()
-                else:
-                    # expensive way of replacing nan with None in object arrays in case Pandas is not available
-                    data = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in data]
-
-        # Simple Lists: Turn into list of lists (np.nan is part of numbers.Number)
-        if isinstance(data, list) and (isinstance(data[0], (numbers.Number, string_types, time_types))
-                                       or data[0] is None):
-            data = [data]
+            self.as_array().value = data
+            return
 
         self._set_data(data)
 
@@ -1409,11 +1387,11 @@ class Range(object):
         if row_size is not None:
             row2 = self.row1 + row_size - 1
         else:
-            row2 = self.row2
+            row2 = self.row1
         if column_size is not None:
             col2 = self.col1 + column_size - 1
         else:
-            col2 = self.col2
+            col2 = self.col1
 
         return Range(xlplatform.get_worksheet_name(self.xl_sheet), (self.row1, self.col1), (row2, col2), **self.kwargs)
 
