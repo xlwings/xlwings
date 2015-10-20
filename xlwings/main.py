@@ -570,7 +570,7 @@ class DataFrameAccessor(object):
     @property
     def value(self):
         # get the data in 2d (make a copy of rng to avoid changing its atleast_2d flag
-        rng = self.rng.resize()
+        rng = self.rng.offset()
         rng.atleast_2d = True
         rng.asarray = True
         data = rng._get_data()
@@ -581,7 +581,7 @@ class DataFrameAccessor(object):
                 # primitive way of handle multi index on columns
                 df = pd.DataFrame(data[self.header:], columns=pd.MultiIndex.from_arrays(data[:self.header]))
             else:
-                df = pd.DataFrame(data[1:], columns=data[:self.header])
+                df = pd.DataFrame(data[1:], columns=data[0])
         else:
             df = pd.DataFrame(data)
 
