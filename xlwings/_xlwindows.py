@@ -387,7 +387,21 @@ def get_formula(xl_range):
 
 def set_formula(xl_range, value):
     xl_range.Formula = value
+    
+def get_comment(xl_range):
+    try:
+        xl_range.Comment.Text()
+        
+    except:
+        return "None"
 
+def set_comment(xl_range, value):
+    
+    xl_range.ClearComments()
+    xl_range.AddComment()
+    xl_range.Comment.Visible = True
+    value=(value).decode('utf-8')
+    xl_range.Comment.Text(value)
 
 def get_row_index_end_down(xl_sheet, row_index, column_index):
     return xl_sheet.Cells(row_index, column_index).End(Direction.xlDown).Row
