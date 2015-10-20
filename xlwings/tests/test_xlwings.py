@@ -4,11 +4,14 @@ from __future__ import unicode_literals
 import os
 import sys
 import shutil
+from datetime import datetime, date
+
 import pytz
 import nose
-from nose.tools import assert_equal, raises, assert_true, assert_false, assert_not_equal
-from datetime import datetime, date
+from nose.tools import assert_equal, raises, assert_true, assert_not_equal
+
 from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation
+
 
 # Mac imports
 if sys.platform.startswith('darwin'):
@@ -64,7 +67,7 @@ if pd is not None:
 
     df_2 = pd.DataFrame([1, 3, 5, np.nan, 6, 8], columns=['col1'])
 
-    df_dateindex = pd.DataFrame(np.arange(50).reshape(10,5) + 0.1, index=rng)
+    df_dateindex = pd.DataFrame(np.arange(50).reshape(10, 5) + 0.1, index=rng)
 
     # MultiIndex (Index)
     tuples = list(zip(*[['bar', 'bar', 'baz', 'baz', 'foo', 'foo', 'qux', 'qux'],
@@ -72,7 +75,7 @@ if pd is not None:
                         ['x', 'x', 'x', 'x', 'y', 'y', 'y', 'y']]))
     index = pd.MultiIndex.from_tuples(tuples, names=['first', 'second', 'third'])
     df_multiindex = pd.DataFrame([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6], [7.7, 8.8], [9.9, 10.10],
-                                  [11.11, 12.12],[13.13, 14.14], [15.15, 16.16]], index=index)
+                                  [11.11, 12.12], [13.13, 14.14], [15.15, 16.16]], index=index)
 
     # MultiIndex (Header)
     header = [['Foo', 'Foo', 'Bar', 'Bar', 'Baz'], ['A', 'B', 'C', 'D', 'E']]
@@ -274,6 +277,7 @@ class TestWorkbook:
         wb2 = Workbook('test_workbook_1.xlsx', app_visible=False, app_target=APP_TARGET)
         assert_equal(Range('A10', wkb=wb2).value, 'name-test')
 
+
 class TestSheet:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
@@ -373,17 +377,17 @@ class TestRange:
 
     def test_cell(self):
         params = [('A1', 22),
-                  ((1,1), 22),
+                  ((1, 1), 22),
                   ('A1', 22.2222),
-                  ((1,1), 22.2222),
+                  ((1, 1), 22.2222),
                   ('A1', 'Test String'),
-                  ((1,1), 'Test String'),
+                  ((1, 1), 'Test String'),
                   ('A1', 'éöà'),
-                  ((1,1), 'éöà'),
+                  ((1, 1), 'éöà'),
                   ('A2', test_date_1),
-                  ((2,1), test_date_1),
+                  ((2, 1), test_date_1),
                   ('A3', test_date_2),
-                  ((3,1), test_date_2)]
+                  ((3, 1), test_date_2)]
         for param in params:
             yield self.check_cell, param[0], param[1]
 
@@ -424,8 +428,8 @@ class TestRange:
 
     def test_range_index(self):
         """ Style: Range((1,1), (3,3)) """
-        index1 = (1,3)
-        index2 = (3,5)
+        index1 = (1, 3)
+        index2 = (3, 5)
 
         # Active Sheet
         Range(index1, index2).value = data
@@ -498,8 +502,8 @@ class TestRange:
         Range(Sheet(1), 'A20').value = 123
         assert_equal(Range(1, 'A20').value, 123)
 
-        Range(Sheet(1), (2,2), (4,4)).value = 321
-        assert_equal(Range(1, (2,2)).value, 321)
+        Range(Sheet(1), (2, 2), (4, 4)).value = 321
+        assert_equal(Range(1, (2, 2)).value, 321)
 
     def test_vertical(self):
         Range('Sheet4', 'A10').value = data
@@ -569,7 +573,7 @@ class TestRange:
         assert_equal(Range('A1').formula, '=SUM(A2:A10)')
 
     def test_current_region(self):
-        values = [[1.,2.],[3.,4.]]
+        values = [[1., 2.], [3., 4.]]
         Range('A20').value = values
         assert_equal(Range('B21').current_region.value, values)
 
@@ -634,6 +638,77 @@ class TestRange:
         cells = Range('Sheet5', 'B100').table.value
         index = Range('Sheet5', 'A101').vertical.value
         df_result = DataFrame(cells[1:], index=index, columns=cells[0])
+        assert_frame_equal(df_expected, df_result)
+
+    def test_accessor_dataframe_1(self):
+        _skip_if_no_pandas()
+
+        df_expected = df_1
+        Range('Sheet5', 'A1').as_dataframe(index=True, header=True).value = df_expected
+        cells = Range('Sheet5', 'B1:C5').value
+        df_result = DataFrame(cells[1:], columns=cells[0])
+        assert_frame_equal(df_expected, df_result)
+
+        df_result = Range('Sheet5', 'A1:C5').as_dataframe(index=True, header=True).value
+        df_result.index.name = None
+        assert_frame_equal(df_expected, df_result)
+
+    def test_accessor_dataframe_2(self):
+        """ Covers GH Issue #31"""
+        _skip_if_no_pandas()
+
+        df_expected = df_2
+        Range('Sheet5', 'A9').as_dataframe(index=True, header=True).value = df_expected
+        cells = Range('Sheet5', 'B9:B15').value
+        df_result = DataFrame(cells[1:], columns=[cells[0]])
+        assert_frame_equal(df_expected, df_result)
+
+        df_result = Range('Sheet5', 'A9:B15').as_dataframe(index=True, header=True).value
+        df_result.index.name = None
+        assert_frame_equal(df_expected, df_result)
+
+    def test_accessor_dataframe_multiindex(self):
+        _skip_if_no_pandas()
+
+        df_expected = df_multiindex
+        Range('Sheet5', 'A20').as_dataframe(index=True, header=True).value = df_expected
+        cells = Range('Sheet5', 'D20').table.value
+        multiindex = Range('Sheet5', 'A20:C28').value
+        ix = pd.MultiIndex.from_tuples(multiindex[1:], names=multiindex[0])
+        df_result = DataFrame(cells[1:], columns=cells[0], index=ix)
+        assert_frame_equal(df_expected, df_result)
+
+        df_result = Range('Sheet5', 'A20:C28').as_dataframe(index=True, header=True).value
+        df_result.index.name = None
+        assert_frame_equal(df_expected, df_result)
+
+    def test_accessor_dataframe_multiheader(self):
+        _skip_if_no_pandas()
+
+        df_expected = df_multiheader
+        Range('Sheet5', 'A52').as_dataframe(index=True, header=True).value = df_expected
+        cells = Range('Sheet5', 'B52').table.value
+        df_result = DataFrame(cells[2:], columns=pd.MultiIndex.from_arrays(cells[:2]))
+        assert_frame_equal(df_expected, df_result)
+
+        df_result = Range('Sheet5', 'A52').table.as_dataframe(index=True, header=True).value
+        df_result.index.name = None
+        assert_frame_equal(df_expected, df_result)
+
+    def test_accessor_dataframe_dateindex(self):
+        _skip_if_no_pandas()
+
+        df_expected = df_dateindex
+        Range('Sheet5', 'A100').as_dataframe(index=True, header=True).value = df_expected
+        if sys.platform.startswith('win') and self.wb.xl_app.Version == '14.0':
+            Range('Sheet5', 'A100').vertical.xl_range.NumberFormat = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
+        cells = Range('Sheet5', 'B100').table.value
+        index = Range('Sheet5', 'A101').vertical.value
+        df_result = DataFrame(cells[1:], index=index, columns=cells[0])
+        assert_frame_equal(df_expected, df_result)
+
+        df_result = Range('Sheet5', 'A100').table.as_dataframe(index=True, header=True).value
+        df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 
     def test_series_1(self):
@@ -766,25 +841,25 @@ class TestRange:
         assert_equal(format_string, result)
 
     def test_get_address(self):
-        res = Range((1,1),(3,3)).get_address()
+        res = Range((1, 1), (3, 3)).get_address()
         assert_equal(res, '$A$1:$C$3')
 
-        res = Range((1,1),(3,3)).get_address(False)
+        res = Range((1, 1), (3, 3)).get_address(False)
         assert_equal(res, '$A1:$C3')
 
-        res = Range((1,1),(3,3)).get_address(True, False)
+        res = Range((1, 1), (3, 3)).get_address(True, False)
         assert_equal(res, 'A$1:C$3')
 
-        res = Range((1,1),(3,3)).get_address(False, False)
+        res = Range((1, 1), (3, 3)).get_address(False, False)
         assert_equal(res, 'A1:C3')
 
-        res = Range((1,1),(3,3)).get_address(include_sheetname=True)
+        res = Range((1, 1), (3, 3)).get_address(include_sheetname=True)
         assert_equal(res, 'Sheet1!$A$1:$C$3')
 
-        res = Range('Sheet2', (1,1),(3,3)).get_address(include_sheetname=True)
+        res = Range('Sheet2', (1, 1), (3, 3)).get_address(include_sheetname=True)
         assert_equal(res, 'Sheet2!$A$1:$C$3')
 
-        res = Range((1,1),(3,3)).get_address(external=True)
+        res = Range((1, 1), (3, 3)).get_address(external=True)
         assert_equal(res, '[test_range_1.xlsx]Sheet1!$A$1:$C$3')
 
     def test_hyperlink(self):
@@ -925,6 +1000,7 @@ class TestRange:
         dt_tz = eastern.localize(dt_naive)
         Range('F34').value = dt_tz
         assert_equal(Range('F34').value, dt_naive)
+
 
 class TestChart:
     def setUp(self):
