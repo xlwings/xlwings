@@ -185,6 +185,18 @@ def set_worksheet_name(xl_sheet, value):
 def get_worksheet_index(xl_sheet):
     return xl_sheet.Index
 
+def sheet_protect(xl_sheet):
+    xl_sheet.Protect()
+    
+def sheet_protect_psword(xl_sheet, value):
+    xl_sheet.Protect(Password=value)
+        
+def sheet_unprotect(xl_sheet):
+    xl_sheet.Unprotect()
+    
+def sheet_unprotect_psword(xl_sheet, value):
+    xl_sheet.Unprotect(Password=value)
+
 
 def get_app(xl_workbook, app_target):
     if app_target is not None:
@@ -403,6 +415,24 @@ def set_comment(xl_range, value):
     value=(value).decode('utf-8')
     xl_range.Comment.Text(value)
 
+def range_protect(xl_sheet, xl_range):
+    xl_range.CurrentRegion.Locked=False
+    xl_range.Locked = True
+    xl_sheet.Protect(UserInterfaceOnly=True)
+    
+def range_protect_password(xl_sheet, xl_range, value):
+    xl_range.CurrentRegion.Locked=False
+    xl_range.Locked = True
+    xl_sheet.Protect(UserInterfaceOnly=True, Password=value)
+    
+def range_unprotect(xl_sheet, xl_range):
+    xl_sheet.Unprotect()
+    xl_range.Locked = False
+    
+def range_unprotect_password(xl_sheet, xl_range, value):
+    xl_sheet.Unprotect(Password=value)
+    xl_range.Locked = False
+    
 def get_row_index_end_down(xl_sheet, row_index, column_index):
     return xl_sheet.Cells(row_index, column_index).End(Direction.xlDown).Row
 
