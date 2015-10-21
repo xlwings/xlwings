@@ -440,7 +440,23 @@ class Sheet(object):
     @name.setter
     def name(self, value):
         xlplatform.set_worksheet_name(self.xl_sheet, value)
+    
+    @property
+    def protect(self):
+        xlplatform.sheet_protect(self.xl_sheet)
 
+    @protect.setter
+    def protect(self, value):
+        xlplatform.sheet_protect_psword(self.xl_sheet,value)
+        
+    @property
+    def unprotect(self):
+        xlplatform.sheet_unprotect(self.xl_sheet)
+
+    @protect.setter
+    def unprotect(self, value):
+        xlplatform.sheet_unprotect_psword(self.xl_sheet,value)
+        
     @property
     def index(self):
         """Returns the index of the Sheet."""
@@ -883,7 +899,23 @@ class Range(object):
     @comment.setter
     def comment(self, value):
         xlplatform.set_comment(self.xl_range, value)
-        
+    
+    @property
+    def protect(self):
+        xlplatform.range_protect(self.xl_sheet, self.xl_range)
+    
+    @protect.setter
+    def protect(self, value):
+        xlplatform.range_protect_password(self.xl_sheet, self.xl_range, value)
+    
+    @property
+    def unprotect(self):
+        xlplatform.range_unprotect(self.xl_sheet, self.xl_range)
+    
+    @protect.setter
+    def unprotect(self, value):
+        xlplatform.range_unprotect_password(self.xl_sheet, self.xl_range, value)   
+    
     @property
     def table(self):
         """
