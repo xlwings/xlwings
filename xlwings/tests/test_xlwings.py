@@ -667,6 +667,10 @@ class TestRange:
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 
+        df_result = Range('Sheet5', 'A9:B15').as_dataframe(index=True, header=1).value
+        df_result.index.name = None
+        assert_frame_equal(df_expected, df_result)
+
     def test_accessor_dataframe_multiindex(self):
         _skip_if_no_pandas()
 
@@ -678,7 +682,7 @@ class TestRange:
         df_result = DataFrame(cells[1:], columns=cells[0], index=ix)
         assert_frame_equal(df_expected, df_result)
 
-        df_result = Range('Sheet5', 'A20:C28').as_dataframe(index=True, header=True).value
+        df_result = Range('Sheet5', 'A20:E28').as_dataframe(index=3, header=True).value
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 
@@ -691,7 +695,7 @@ class TestRange:
         df_result = DataFrame(cells[2:], columns=pd.MultiIndex.from_arrays(cells[:2]))
         assert_frame_equal(df_expected, df_result)
 
-        df_result = Range('Sheet5', 'A52').table.as_dataframe(index=True, header=True).value
+        df_result = Range('Sheet5', '$A$52:$F$59').as_dataframe(index=True, header=2).value
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 
@@ -706,6 +710,7 @@ class TestRange:
         index = Range('Sheet5', 'A101').vertical.value
         df_result = DataFrame(cells[1:], index=index, columns=cells[0])
         assert_frame_equal(df_expected, df_result)
+
 
         df_result = Range('Sheet5', 'A100').table.as_dataframe(index=True, header=True).value
         df_result.index.name = None

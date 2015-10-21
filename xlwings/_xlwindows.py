@@ -79,8 +79,12 @@ def get_excel_hwnds():
 
     excel_hwnds = []
     for hwnd in hwnds:
-        if win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None):
-            excel_hwnds.append(hwnd)
+        try:
+            if win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None):
+                excel_hwnds.append(hwnd)
+        except pywintypes.error:
+            pass
+
     return excel_hwnds
 
 
@@ -90,7 +94,6 @@ def get_xl_apps():
     for hwnd in hwnds:
         try:
             xl_app = get_xl_app_from_hwnd(hwnd)
-            xl_apps.append(xl_app)
         except WindowsError:
             # This happens if the bare Excel Application is open without Workbook
             # i.e. there is no 'EXCEL7' child hwnd that would be necessary to make a connection

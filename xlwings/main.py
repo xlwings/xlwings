@@ -575,19 +575,26 @@ class DataFrameAccessor(object):
         rng.asarray = True
         data = rng._get_data()
 
-        # if header are in the range, split the header from the data
-        if self.header:
-            if self.header > 1:
-                # primitive way of handle multi index on columns
+        # if header are in the range (True or integer including 0), split the header from the data
+        if self.header is not False:
+            if isinstance(self.header, bool):
+                df = pd.DataFrame(data[1:], columns=data[0])
+            elif isinstance(self.header, int):
+                # handle multi-index on header
                 df = pd.DataFrame(data[self.header:], columns=pd.MultiIndex.from_arrays(data[:self.header]))
             else:
-                df = pd.DataFrame(data[1:], columns=data[0])
+                raise ValueError("header should be a bool or an int")
         else:
             df = pd.DataFrame(data)
 
-        if self.index:
-            df.set_index(df.columns[0], inplace=True)
-
+        if self.index is not False:
+            if isinstance(self.index, bool):
+                df.set_index(df.columns[0], inplace=True)
+            elif isinstance(self.index, int):
+                # handle multi-index on index
+                df.set_index(list(df.columns[:self.index]), inplace=True)
+            else:
+                raise ValueError("index should be a bool or an int")
         return df
 
     @value.setter
@@ -871,10 +878,6 @@ class Range(object):
         if isinstance(data, list) and (isinstance(data[0], (numbers.Number, string_types, time_types))
                                        or data[0] is None):
             data = [data]
-
-        # print repr(data), data, isinstance(data, list), isinstance(data, list)  and (isinstance(data[0], (numbers.Number, string_types, time_types)) or data[0] is None)
-        # if isinstance(data, np.ndarray):
-        # ffsddfs
 
         # Get dimensions and prepare data for Excel
         # TODO: refactor
