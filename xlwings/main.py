@@ -947,9 +947,34 @@ class Range(object):
         self._set_data(data)
 
     def as_dataframe(self, index=True, header=True, *args, **kwargs):
+        """
+        Return a DataFrameAccessor used to read/write dataframe to the range.
+
+        Keyword Arguments
+        -----------------
+        index : boolean or int, default True
+            ``True`` considers an index when reading/writing dataframes
+            ``False`` considers no index when reading/writing dataframes
+            an integer > 0 considers a multiindex with 'index' columns/dimensions.
+        header : boolean or int, default True
+            ``True`` considers a header when reading/writing dataframes
+            ``False`` considers no header when reading/writing dataframes
+            an integer > 0 considers a multiheader with 'header' rows/dimensions.
+
+        Returns
+        -------
+        DataFrameAccessor object
+        """
         return DataFrameAccessor(self, index=index, header=header, *args, **kwargs)
 
     def as_array(self, *args, **kwargs):
+        """
+        Return an ArrayAccessor used to read/write numpy arrays to the range.
+
+        Returns
+        -------
+        ArrayAccessor object
+        """
         return ArrayAccessor(self, *args, **kwargs)
 
 
