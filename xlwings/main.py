@@ -16,8 +16,10 @@ import numbers
 import itertools
 import inspect
 import collections
+
 from . import xlplatform, string_types, time_types, xrange
 from .constants import ChartType
+
 
 # Optional imports
 try:
@@ -34,6 +36,7 @@ class Application(object):
     """
     Application is dependent on the Workbook since there might be different application instances on Windows.
     """
+
     def __init__(self, wkb):
         self.wkb = wkb
         self.xl_app = wkb.xl_app
@@ -139,6 +142,7 @@ class Workbook(object):
     ``wb = Workbook.caller()``
 
     """
+
     def __init__(self, fullname=None, xl_workbook=None, app_visible=True, app_target=None):
         if xl_workbook:
             self.xl_workbook = xl_workbook
@@ -592,6 +596,7 @@ class Range(object):
     wkb : Workbook object, default Workbook.current()
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
     """
+
     def __init__(self, *args, **kwargs):
         # Arguments
         if len(args) == 1 and isinstance(args[0], string_types):
@@ -672,18 +677,12 @@ class Range(object):
 
         self.xl_range = xlplatform.get_range_from_indices(self.xl_sheet, self.row1, self.col1, self.row2, self.col2)
 
-        # Iterator object that returns cell coordinates: (1, 1), (1, 2) etc.
-        self.cell_iterator = itertools.product(xrange(self.row1, self.row2 + 1), xrange(self.col1, self.col2 + 1))
 
     def __iter__(self):
-        return self
+        # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
+        return itertools.imap(lambda cell: Range(xlplatform.get_worksheet_name(self.xl_sheet), cell, **self.kwargs),
+                              itertools.product(xrange(self.row1, self.row2 + 1), xrange(self.col1, self.col2 + 1)))
 
-    def __next__(self):
-        # StopIteration raised by itertools.product
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet), next(self.cell_iterator), **self.kwargs)
-
-    # PY2 compatibility
-    next = __next__
 
     def is_cell(self):
         """
@@ -817,7 +816,7 @@ class Range(object):
             if self.index:
                 data = data.reset_index().values
             else:
-                data = data.values[:,np.newaxis]
+                data = data.values[:, np.newaxis]
 
         # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535.
         # See: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx
@@ -1436,6 +1435,7 @@ class Chart(object):
     >>> chart.chart_type = ChartType.xl3DArea
 
     """
+
     def __init__(self, *args, **kwargs):
         # TODO: this should be doable without *args and **kwargs - same for .add()
         # Use current Workbook if none provided
@@ -1572,6 +1572,7 @@ class NamesDict(collections.MutableMapping):
     Implements the Workbook.Names collection.
     Currently only used to be able to do ``del wb.names['NamedRange']``
     """
+
     def __init__(self, xl_workbook, *args, **kwargs):
         self.xl_workbook = xl_workbook
         self.store = dict()
