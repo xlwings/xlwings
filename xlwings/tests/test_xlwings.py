@@ -13,6 +13,7 @@ from nose.tools import assert_equal, raises, assert_true, assert_not_equal
 from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation
 
 
+
 # Mac imports
 if sys.platform.startswith('darwin'):
     from appscript import k as kw
@@ -52,6 +53,7 @@ chart_data = [['one', 'two'], [1.1, 2.2]]
 if np is not None:
     array_1d = np.array([1.1, 2.2, np.nan, -4.4])
     array_2d = np.array([[1.1, 2.2, 3.3], [-4.4, 5.5, np.nan]])
+    array_2d_mix = np.array([['a', 'b', 3.3], ['c', 5.5, np.nan]], dtype=np.dtype(object))
 
 if pd is not None:
     series_1 = pd.Series([1.1, 3.3, 5., np.nan, 6., 8.])
@@ -62,6 +64,11 @@ if pd is not None:
 
     df_1 = pd.DataFrame([[1, 'test1'],
                          [2, 'test2'],
+                         [np.nan, None],
+                         [3.3, 'test3']], columns=['a', 'b'])
+
+    df_mixtextfloat = pd.DataFrame([['1', 'test1'],
+                         ['2', 'test2'],
                          [np.nan, None],
                          [3.3, 'test3']], columns=['a', 'b'])
 
@@ -86,6 +93,16 @@ if pd is not None:
                                    [0.0, 1.0, 2.0, 3.0, 4.0],
                                    [0.0, 1.0, 2.0, 3.0, 4.0],
                                    [0.0, 1.0, 2.0, 3.0, 4.0]], columns=pd.MultiIndex.from_arrays(header))
+
+    df_multiheader_multiindex = pd.DataFrame([[0.0, 1.0, 2.0, 3.0, 4.0],
+                                              [0.0, 1.0, 2.0, 3.0, 4.0],
+                                              [0.0, 1.0, 2.0, 3.0, 4.0],
+                                              [0.0, 1.0, 2.0, 3.0, 4.0],
+                                              [0.0, 1.0, 2.0, 3.0, 4.0],
+                                              [0.0, 1.0, 2.0, 3.0, 4.0],
+                                              [0.0, 1.0, 2.0, 3.0, 4.0],
+                                              [0.0, 1.0, 2.0, 3.0, 4.0],
+                                             ], columns=pd.MultiIndex.from_arrays(header), index=index)
 
 
 # Test skips and fixtures
@@ -498,6 +515,12 @@ class TestRange:
         cells = Range('Sheet6', 'A12', asarray=True, atleast_2d=True).table.value
         assert_array_equal(cells, array_2d)
 
+        # 2d array mix (atleast_2d)
+        Range('Sheet6', 'A12').value = array_2d_mix
+        cells = Range('Sheet6', 'A12', asarray=True, atleast_2d=True).table.value
+        assert_array_equal(cells, array_2d_mix)
+
+
     def sheet_ref(self):
         Range(Sheet(1), 'A20').value = 123
         assert_equal(Range(1, 'A20').value, 123)
@@ -595,8 +618,10 @@ class TestRange:
         df_expected = df_1
         Range('Sheet5', 'A1').value = df_expected
         cells = Range('Sheet5', 'B1:C5').value
+
         df_result = DataFrame(cells[1:], columns=cells[0])
         assert_frame_equal(df_expected, df_result)
+
 
     def test_dataframe_2(self):
         """ Covers GH Issue #31"""
@@ -699,6 +724,20 @@ class TestRange:
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 
+    def test_accessor_dataframe_multiheader_multiindex(self):
+        _skip_if_no_pandas()
+
+        df_expected = df_multiheader_multiindex
+        Range('Sheet5', 'A52').dataframe(index=True, header=True).value = df_expected
+        cells_data = Range('Sheet5', '$D$54:$H$61', asarray=True).value
+        cells_full = Range('Sheet5', '$A$52:$H$61', asarray=True).value
+        df_result = DataFrame(cells_data, columns=pd.MultiIndex.from_arrays(cells_full[:2,3:]),index=pd.MultiIndex.from_arrays(cells_full[2:,:3].T, names=cells_full[0,:3]))
+        assert_frame_equal(df_expected, df_result)
+
+        df_result = Range('Sheet5', '$A$52:$H$61').dataframe(index=3, header=2).value
+        df_result.index.name = None
+        assert_frame_equal(df_expected, df_result)
+
     def test_accessor_dataframe_dateindex(self):
         _skip_if_no_pandas()
 
@@ -710,7 +749,6 @@ class TestRange:
         index = Range('Sheet5', 'A101').vertical.value
         df_result = DataFrame(cells[1:], index=index, columns=cells[0])
         assert_frame_equal(df_expected, df_result)
-
 
         df_result = Range('Sheet5', 'A100').table.dataframe(index=True, header=True).value
         df_result.index.name = None

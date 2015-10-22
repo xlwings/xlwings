@@ -16,10 +16,11 @@ import numbers
 import itertools
 import inspect
 import collections
+import warnings
 
 from . import xlplatform, string_types, time_types, xrange
-import warnings
 from .constants import ChartType
+
 
 
 
@@ -576,6 +577,8 @@ class DataFrameAccessor(object):
         rng.asarray = True
         data = rng._get_data()
 
+        multi_header = False
+
         # if header are in the range (True or integer including 0), split the header from the data
         if self.header is not False:
             if isinstance(self.header, bool):
@@ -583,6 +586,7 @@ class DataFrameAccessor(object):
             elif isinstance(self.header, int):
                 # handle multi-index on header
                 df = pd.DataFrame(data[self.header:], columns=pd.MultiIndex.from_arrays(data[:self.header]))
+                multi_header = True
             else:
                 raise ValueError("header should be a bool or an int")
         else:
@@ -596,6 +600,10 @@ class DataFrameAccessor(object):
                 df.set_index(list(df.columns[:self.index]), inplace=True)
             else:
                 raise ValueError("index should be a bool or an int")
+            if multi_header:
+                # set name of index as value in the first row of data
+                df.index.names = [n[0] for n in df.index.names]
+
         return df
 
     @value.setter
@@ -639,6 +647,7 @@ class ArrayAccessor(object):
         elif self.rng.is_table() or self.rng.atleast_2d:
             data = [[np.nan if x is None else x for x in i] for i in data]
 
+        # TODO: bug when mixing unicode string and float ? see issue #6550 on numpy
         return np.atleast_1d(np.array(data))
 
     @value.setter
@@ -758,7 +767,9 @@ class Range(object):
         self.index = kwargs.get('index', True)  # Set DataFrame with index
         self.header = kwargs.get('header', True)  # Set DataFrame with header
         if self.index or self.header:
-            warnings.warn("Using index/header in the Range constructor is deprecated. Please use the Range(...).dataframe(index=..., header=...) construct", DeprecationWarning)
+            warnings.warn(
+                "Using index/header in the Range constructor is deprecated. Please use the Range(...).dataframe(index=..., header=...) construct",
+                DeprecationWarning)
         self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array
         if self.asarray:
             warnings.warn("Using asarray in the Range constructor is deprecated. Please use the Range(...).array() construct", DeprecationWarning)
