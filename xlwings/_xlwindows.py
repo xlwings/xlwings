@@ -79,8 +79,11 @@ def get_excel_hwnds():
 
     excel_hwnds = []
     for hwnd in hwnds:
-        if win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None):
-            excel_hwnds.append(hwnd)
+        try:
+            if win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None):
+                excel_hwnds.append(hwnd)
+        except pywintypes.error:
+            pass
     return excel_hwnds
 
 
