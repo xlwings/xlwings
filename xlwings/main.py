@@ -1446,6 +1446,9 @@ class Chart(object):
         # Use current Workbook if none provided
         wkb = kwargs.get('wkb', None)
         self.xl_workbook = Workbook.get_xl_workbook(wkb)
+        self.wkb = Workbook(xl_workbook=self.xl_workbook)
+        self.app = self.wkb.app
+
 
         # Arguments
         if len(args) == 1:
