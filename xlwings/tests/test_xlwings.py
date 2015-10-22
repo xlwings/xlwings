@@ -4,11 +4,16 @@ from __future__ import unicode_literals
 import os
 import sys
 import shutil
+from datetime import datetime, date
+
 import pytz
 import nose
-from nose.tools import assert_equal, raises, assert_true, assert_false, assert_not_equal
-from datetime import datetime, date
+from nose.tools import assert_equal, raises, assert_true, assert_not_equal
+
 from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation
+
+
+
 
 # Mac imports
 if sys.platform.startswith('darwin'):
@@ -64,7 +69,7 @@ if pd is not None:
 
     df_2 = pd.DataFrame([1, 3, 5, np.nan, 6, 8], columns=['col1'])
 
-    df_dateindex = pd.DataFrame(np.arange(50).reshape(10,5) + 0.1, index=rng)
+    df_dateindex = pd.DataFrame(np.arange(50).reshape(10, 5) + 0.1, index=rng)
 
     # MultiIndex (Index)
     tuples = list(zip(*[['bar', 'bar', 'baz', 'baz', 'foo', 'foo', 'qux', 'qux'],
@@ -72,7 +77,7 @@ if pd is not None:
                         ['x', 'x', 'x', 'x', 'y', 'y', 'y', 'y']]))
     index = pd.MultiIndex.from_tuples(tuples, names=['first', 'second', 'third'])
     df_multiindex = pd.DataFrame([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6], [7.7, 8.8], [9.9, 10.10],
-                                  [11.11, 12.12],[13.13, 14.14], [15.15, 16.16]], index=index)
+                                  [11.11, 12.12], [13.13, 14.14], [15.15, 16.16]], index=index)
 
     # MultiIndex (Header)
     header = [['Foo', 'Foo', 'Bar', 'Bar', 'Baz'], ['A', 'B', 'C', 'D', 'E']]
@@ -140,6 +145,111 @@ class TestApplication:
 
         Range('A1').value = 2
         assert_equal(Range('B1').value, 4)
+
+    def test_enable_events(self):
+        Application(wkb=self.wb).enable_events = False
+        assert_equal(Application(wkb=self.wb).enable_events, False)
+
+        Application(wkb=self.wb).enable_events = True
+        assert_equal(Application(wkb=self.wb).enable_events, True)
+
+    def test_display_alerts(self):
+        Application(wkb=self.wb).display_alerts = False
+        assert_equal(Application(wkb=self.wb).display_alerts, False)
+
+        Application(wkb=self.wb).display_alerts = True
+        assert_equal(Application(wkb=self.wb).display_alerts, True)
+
+    def test_freeze_screen(self):
+        app = Application(wkb=self.wb)
+
+        # test each call of the freeze method
+        with app.freeze():
+            assert_equal((app.calculation,
+                          app.enable_events,
+                          app.display_alerts,
+                          app.screen_updating),
+                         (Calculation.xlCalculationAutomatic,
+                          True,
+                          True,
+                          True))
+
+        with app.freeze(calculation=True):
+            assert_equal((app.calculation,
+                          app.enable_events,
+                          app.display_alerts,
+                          app.screen_updating),
+                         (Calculation.xlCalculationManual,
+                          True,
+                          True,
+                          True))
+
+        with app.freeze(events=True):
+            assert_equal((app.calculation,
+                          app.enable_events,
+                          app.display_alerts,
+                          app.screen_updating),
+                         (Calculation.xlCalculationAutomatic,
+                          False,
+                          True,
+                          True))
+
+        with app.freeze(alerts=True):
+            assert_equal((app.calculation,
+                          app.enable_events,
+                          app.display_alerts,
+                          app.screen_updating),
+                         (Calculation.xlCalculationAutomatic,
+                          True,
+                          False,
+                          True))
+
+        with app.freeze(screen=True):
+            assert_equal((app.calculation,
+                          app.enable_events,
+                          app.display_alerts,
+                          app.screen_updating),
+                         (Calculation.xlCalculationAutomatic,
+                          True,
+                          True,
+                          False))
+
+        with app.freeze(alerts=True, calculation=True, screen=True, events=True):
+            assert_equal((app.calculation,
+                          app.enable_events,
+                          app.display_alerts,
+                          app.screen_updating),
+                         (Calculation.xlCalculationManual,
+                          False,
+                          False,
+                          False))
+
+        # verify everything when back to normal after the context managers exit
+        assert_equal((app.calculation,
+                      app.enable_events,
+                      app.display_alerts,
+                      app.screen_updating),
+                     (Calculation.xlCalculationAutomatic,
+                      True,
+                      True,
+                      True))
+
+        # check that if an exception is raised within the context manager,
+        # the flags are set back to their original properties too
+        try:
+            with app.freeze(alerts=True, calculation=True, screen=True, events=True):
+                raise Exception
+        except Exception:
+            pass
+
+        assert_equal((app.calculation,
+                      app.enable_events,
+                      app.display_alerts,
+                      app.screen_updating),
+                     (Calculation.xlCalculationAutomatic,
+                      True,
+                      True,
+                      True))
 
 
 class TestWorkbook:
@@ -274,6 +384,7 @@ class TestWorkbook:
         wb2 = Workbook('test_workbook_1.xlsx', app_visible=False, app_target=APP_TARGET)
         assert_equal(Range('A10', wkb=wb2).value, 'name-test')
 
+
 class TestSheet:
     def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
@@ -373,17 +484,17 @@ class TestRange:
 
     def test_cell(self):
         params = [('A1', 22),
-                  ((1,1), 22),
+                  ((1, 1), 22),
                   ('A1', 22.2222),
-                  ((1,1), 22.2222),
+                  ((1, 1), 22.2222),
                   ('A1', 'Test String'),
-                  ((1,1), 'Test String'),
+                  ((1, 1), 'Test String'),
                   ('A1', 'éöà'),
-                  ((1,1), 'éöà'),
+                  ((1, 1), 'éöà'),
                   ('A2', test_date_1),
-                  ((2,1), test_date_1),
+                  ((2, 1), test_date_1),
                   ('A3', test_date_2),
-                  ((3,1), test_date_2)]
+                  ((3, 1), test_date_2)]
         for param in params:
             yield self.check_cell, param[0], param[1]
 
@@ -424,8 +535,8 @@ class TestRange:
 
     def test_range_index(self):
         """ Style: Range((1,1), (3,3)) """
-        index1 = (1,3)
-        index2 = (3,5)
+        index1 = (1, 3)
+        index2 = (3, 5)
 
         # Active Sheet
         Range(index1, index2).value = data
@@ -498,8 +609,8 @@ class TestRange:
         Range(Sheet(1), 'A20').value = 123
         assert_equal(Range(1, 'A20').value, 123)
 
-        Range(Sheet(1), (2,2), (4,4)).value = 321
-        assert_equal(Range(1, (2,2)).value, 321)
+        Range(Sheet(1), (2, 2), (4, 4)).value = 321
+        assert_equal(Range(1, (2, 2)).value, 321)
 
     def test_vertical(self):
         Range('Sheet4', 'A10').value = data
@@ -569,7 +680,7 @@ class TestRange:
         assert_equal(Range('A1').formula, '=SUM(A2:A10)')
 
     def test_current_region(self):
-        values = [[1.,2.],[3.,4.]]
+        values = [[1., 2.], [3., 4.]]
         Range('A20').value = values
         assert_equal(Range('B21').current_region.value, values)
 
@@ -766,25 +877,25 @@ class TestRange:
         assert_equal(format_string, result)
 
     def test_get_address(self):
-        res = Range((1,1),(3,3)).get_address()
+        res = Range((1, 1), (3, 3)).get_address()
         assert_equal(res, '$A$1:$C$3')
 
-        res = Range((1,1),(3,3)).get_address(False)
+        res = Range((1, 1), (3, 3)).get_address(False)
         assert_equal(res, '$A1:$C3')
 
-        res = Range((1,1),(3,3)).get_address(True, False)
+        res = Range((1, 1), (3, 3)).get_address(True, False)
         assert_equal(res, 'A$1:C$3')
 
-        res = Range((1,1),(3,3)).get_address(False, False)
+        res = Range((1, 1), (3, 3)).get_address(False, False)
         assert_equal(res, 'A1:C3')
 
-        res = Range((1,1),(3,3)).get_address(include_sheetname=True)
+        res = Range((1, 1), (3, 3)).get_address(include_sheetname=True)
         assert_equal(res, 'Sheet1!$A$1:$C$3')
 
-        res = Range('Sheet2', (1,1),(3,3)).get_address(include_sheetname=True)
+        res = Range('Sheet2', (1, 1), (3, 3)).get_address(include_sheetname=True)
         assert_equal(res, 'Sheet2!$A$1:$C$3')
 
-        res = Range((1,1),(3,3)).get_address(external=True)
+        res = Range((1, 1), (3, 3)).get_address(external=True)
         assert_equal(res, '[test_range_1.xlsx]Sheet1!$A$1:$C$3')
 
     def test_hyperlink(self):
@@ -925,6 +1036,7 @@ class TestRange:
         dt_tz = eastern.localize(dt_naive)
         Range('F34').value = dt_tz
         assert_equal(Range('F34').value, dt_naive)
+
 
 class TestChart:
     def setUp(self):
