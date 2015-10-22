@@ -7,7 +7,6 @@ cwd = os.getcwd()
 if not hasattr(sys, 'frozen'):
     # cx_Freeze etc. will fail here otherwise
     os.chdir(sys.exec_prefix)
-import win32api
 
 os.chdir(cwd)
 
@@ -79,8 +78,11 @@ def get_excel_hwnds():
 
     excel_hwnds = []
     for hwnd in hwnds:
-        if win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None):
-            excel_hwnds.append(hwnd)
+        try:
+            if win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None):
+                excel_hwnds.append(hwnd)
+        except pywintypes.error:
+            pass
     return excel_hwnds
 
 
@@ -146,9 +148,9 @@ def get_open_workbook(fullname, app_target=None, hwnd=None):
     for xl_app in xl_apps:
         for xl_workbook in get_all_open_xl_workbooks(xl_app):
             if (
-                xl_workbook.FullName.lower() == fullname.lower() or
-                xl_workbook.Name.lower() == fullname.lower()
-               ):
+                            xl_workbook.FullName.lower() == fullname.lower() or
+                            xl_workbook.Name.lower() == fullname.lower()
+            ):
                 if (xl_workbook.FullName.lower() not in duplicate_fullnames) or (hwnd is not None):
                     return xl_app, xl_workbook
                 else:
@@ -519,7 +521,7 @@ def add_sheet(xl_workbook, before, after):
         if new_sheet_index > count:
             xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index))
             xl_workbook.Worksheets(xl_workbook.Worksheets.Count
-                                   ).Move(Before=xl_workbook.Sheets(xl_workbook.Worksheets.Count - 1))
+            ).Move(Before=xl_workbook.Sheets(xl_workbook.Worksheets.Count - 1))
             xl_workbook.Worksheets(xl_workbook.Worksheets.Count).Activate()
         else:
             xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index + 1))
