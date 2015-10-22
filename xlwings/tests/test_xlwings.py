@@ -53,7 +53,7 @@ chart_data = [['one', 'two'], [1.1, 2.2]]
 if np is not None:
     array_1d = np.array([1.1, 2.2, np.nan, -4.4])
     array_2d = np.array([[1.1, 2.2, 3.3], [-4.4, 5.5, np.nan]])
-    array_2d_mix = np.array([['a', 'b', 3.3], ['c', 5.5, np.nan]], dtype=np.dtype(object))
+    array_2d_mix = np.array([['a', 'b', 3.3], ['c', 5.5, np.nan]]) #, dtype=np.dtype(object))
 
 if pd is not None:
     series_1 = pd.Series([1.1, 3.3, 5., np.nan, 6., 8.])
