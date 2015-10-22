@@ -25,6 +25,7 @@ from .constants import ChartType, Calculation
 
 
 
+
 # Optional imports
 try:
     import numpy as np
@@ -1389,7 +1390,14 @@ class Range(object):
 
     def resize(self, row_size=None, column_size=None):
         """
-        Resizes the specified Range.
+        Resizes the specified Range
+
+        Arguments
+        ---------
+        row_size: int > 0
+            The number of rows in the new range (if None, the number of rows in the range is unchanged).
+        column_size: int > 0
+            The number of columns in the new range (if None, the number of columns in the range is unchanged).
 
         Returns
         -------
@@ -1398,14 +1406,16 @@ class Range(object):
 
         .. versionadded:: 0.3.0
         """
-        if row_size:
+        if row_size is not None:
+            assert row_size > 0
             row2 = self.row1 + row_size - 1
         else:
-            row2 = self.row1
-        if column_size:
+            row2 = self.row2
+        if column_size is not None:
+            assert column_size > 0
             col2 = self.col1 + column_size - 1
         else:
-            col2 = self.col1
+            col2 = self.col2
 
         return Range(xlplatform.get_worksheet_name(self.xl_sheet), (self.row1, self.col1), (row2, col2), **self.kwargs)
 
