@@ -18,6 +18,7 @@ import inspect
 import collections
 
 from . import xlplatform, string_types, time_types, xrange
+import warnings
 from .constants import ChartType
 
 
@@ -562,7 +563,7 @@ class Sheet(object):
 
 class DataFrameAccessor(object):
     def __init__(self, rng, header, index):
-        assert pd is not None, "You need the pandas package!"
+        assert pd, "You need the pandas package!"
         self.rng = rng
         self.header = header
         self.index = index
@@ -618,7 +619,7 @@ class DataFrameAccessor(object):
         else:
             data = df.values
 
-        self.rng.as_array().value = data
+        self.rng.array().value = data
 
 
 class ArrayAccessor(object):
@@ -756,7 +757,11 @@ class Range(object):
             self.xl_workbook = self.workbook.xl_workbook
         self.index = kwargs.get('index', True)  # Set DataFrame with index
         self.header = kwargs.get('header', True)  # Set DataFrame with header
+        if self.index or self.header:
+            warnings.warn("Using index/header in the Range constructor is deprecated. Please use the Range(...).dataframe(index=..., header=...) construct", DeprecationWarning)
         self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array
+        if self.asarray:
+            warnings.warn("Using asarray in the Range constructor is deprecated. Please use the Range(...).array() construct", DeprecationWarning)
         self.strict = kwargs.get('strict', False)  # Stop table/horizontal/vertical at empty cells that contain formulas
         self.atleast_2d = kwargs.get('atleast_2d', False)  # Force data to be list of list or a 2d numpy array
 
@@ -916,7 +921,7 @@ class Range(object):
             a numpy array is returned where empty cells are set to ``nan``.
         """
         if self.asarray:
-            return self.as_array().value
+            return self.array().value
 
         data = self._get_data()
         return data
@@ -925,11 +930,11 @@ class Range(object):
     def value(self, data):
         # Pandas DataFrame: Turn into NumPy object array with or without Index and Headers
         if hasattr(pd, 'DataFrame') and isinstance(data, pd.DataFrame):
-            self.as_dataframe(header=self.header, index=self.index).value = data
+            self.dataframe(header=self.header, index=self.index).value = data
             return
 
         # Pandas Series
-        # TODO: handle this through the as_dataframe accessor but may introduce backward incompatible changes
+        # TODO: handle this through the dataframe accessor but may introduce backward incompatible changes
         # TODO: or work with some extra flag to keep backward compatibility
         if hasattr(pd, 'Series') and isinstance(data, pd.Series):
             if self.index:
@@ -941,12 +946,12 @@ class Range(object):
         # See: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx
         # Also, turn into list (Python 3 can't handle arrays directly)
         if hasattr(np, 'ndarray') and isinstance(data, np.ndarray):
-            self.as_array().value = data
+            self.array().value = data
             return
 
         self._set_data(data)
 
-    def as_dataframe(self, index=True, header=True, *args, **kwargs):
+    def dataframe(self, index=True, header=True, *args, **kwargs):
         """
         Return a DataFrameAccessor used to read/write dataframe to the range.
 
@@ -967,7 +972,7 @@ class Range(object):
         """
         return DataFrameAccessor(self, index=index, header=header, *args, **kwargs)
 
-    def as_array(self, *args, **kwargs):
+    def array(self, *args, **kwargs):
         """
         Return an ArrayAccessor used to read/write numpy arrays to the range.
 

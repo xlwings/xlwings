@@ -644,12 +644,12 @@ class TestRange:
         _skip_if_no_pandas()
 
         df_expected = df_1
-        Range('Sheet5', 'A1').as_dataframe(index=True, header=True).value = df_expected
+        Range('Sheet5', 'A1').dataframe(index=True, header=True).value = df_expected
         cells = Range('Sheet5', 'B1:C5').value
         df_result = DataFrame(cells[1:], columns=cells[0])
         assert_frame_equal(df_expected, df_result)
 
-        df_result = Range('Sheet5', 'A1:C5').as_dataframe(index=True, header=True).value
+        df_result = Range('Sheet5', 'A1:C5').dataframe(index=True, header=True).value
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 
@@ -658,16 +658,16 @@ class TestRange:
         _skip_if_no_pandas()
 
         df_expected = df_2
-        Range('Sheet5', 'A9').as_dataframe(index=True, header=True).value = df_expected
+        Range('Sheet5', 'A9').dataframe(index=True, header=True).value = df_expected
         cells = Range('Sheet5', 'B9:B15').value
         df_result = DataFrame(cells[1:], columns=[cells[0]])
         assert_frame_equal(df_expected, df_result)
 
-        df_result = Range('Sheet5', 'A9:B15').as_dataframe(index=True, header=True).value
+        df_result = Range('Sheet5', 'A9:B15').dataframe(index=True, header=True).value
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 
-        df_result = Range('Sheet5', 'A9:B15').as_dataframe(index=True, header=1).value
+        df_result = Range('Sheet5', 'A9:B15').dataframe(index=True, header=1).value
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 
@@ -675,14 +675,14 @@ class TestRange:
         _skip_if_no_pandas()
 
         df_expected = df_multiindex
-        Range('Sheet5', 'A20').as_dataframe(index=True, header=True).value = df_expected
+        Range('Sheet5', 'A20').dataframe(index=True, header=True).value = df_expected
         cells = Range('Sheet5', 'D20').table.value
         multiindex = Range('Sheet5', 'A20:C28').value
         ix = pd.MultiIndex.from_tuples(multiindex[1:], names=multiindex[0])
         df_result = DataFrame(cells[1:], columns=cells[0], index=ix)
         assert_frame_equal(df_expected, df_result)
 
-        df_result = Range('Sheet5', 'A20:E28').as_dataframe(index=3, header=True).value
+        df_result = Range('Sheet5', 'A20:E28').dataframe(index=3, header=True).value
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 
@@ -690,12 +690,12 @@ class TestRange:
         _skip_if_no_pandas()
 
         df_expected = df_multiheader
-        Range('Sheet5', 'A52').as_dataframe(index=True, header=True).value = df_expected
+        Range('Sheet5', 'A52').dataframe(index=True, header=True).value = df_expected
         cells = Range('Sheet5', 'B52').table.value
         df_result = DataFrame(cells[2:], columns=pd.MultiIndex.from_arrays(cells[:2]))
         assert_frame_equal(df_expected, df_result)
 
-        df_result = Range('Sheet5', '$A$52:$F$59').as_dataframe(index=True, header=2).value
+        df_result = Range('Sheet5', '$A$52:$F$59').dataframe(index=True, header=2).value
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 
@@ -703,7 +703,7 @@ class TestRange:
         _skip_if_no_pandas()
 
         df_expected = df_dateindex
-        Range('Sheet5', 'A100').as_dataframe(index=True, header=True).value = df_expected
+        Range('Sheet5', 'A100').dataframe(index=True, header=True).value = df_expected
         if sys.platform.startswith('win') and self.wb.xl_app.Version == '14.0':
             Range('Sheet5', 'A100').vertical.xl_range.NumberFormat = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
         cells = Range('Sheet5', 'B100').table.value
@@ -712,7 +712,7 @@ class TestRange:
         assert_frame_equal(df_expected, df_result)
 
 
-        df_result = Range('Sheet5', 'A100').table.as_dataframe(index=True, header=True).value
+        df_result = Range('Sheet5', 'A100').table.dataframe(index=True, header=True).value
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 

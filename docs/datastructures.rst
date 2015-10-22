@@ -88,14 +88,14 @@ NumPy Arrays
 ------------
 
 NumPy arrays work similar to nested lists. However, empty cells are represented by ``nan`` instead of
-``None``. If you want to read in a Range as array, set the ``asarray`` keyword to True:
+``None``. If you want to read or write in a Range as array, use the ``array`` method of the ``Range`` object:
 
 .. code-block:: python
 
     >>> import numpy as np
     >>> wb = Workbook()
-    >>> Range('A1').value = np.eye(5)
-    >>> Range('A1', asarray=True).table.value
+    >>> Range('A1').array().value = np.eye(5) # Range('A1').value = np.eye(5) also works and calls array() internally
+    >>> Range('A1').table.array().value
     array([[ 1.,  0.,  0.,  0.,  0.],
            [ 0.,  1.,  0.,  0.,  0.],
            [ 0.,  0.,  1.,  0.,  0.],
@@ -140,16 +140,15 @@ Pandas DataFrames and Series are also easy to work with:
 
     >>> wb = Workbook()
     >>> Range('A1').value = [['one', 'two'], [1.1, 2.2], [3.3, None]]
-    >>> data = Range('A1').table.value
-    >>> df = pd.DataFrame(data[1:], columns=data[0])
+    >>> data = Range('A1').table.dataframe(index=False).value
     >>> df
        one  two
     0  1.1  2.2
     1  3.3  NaN
-    >>> Range('A5').value = df
-    >>> Range('A9', index=False).value = df  # Control index and header
-    >>> Range('A13', index=False, header=False).value = df
+    >>> Range('A5').dataframe().value = df # Export per default both index and header
+    >>> Range('A9').dataframe(index=False).value = df  # Control index and header
+    >>> Range('A13').dataframe(index=False, header=False).value = df
 
 .. note:: You only need to specify the top left cell when writing a list, an NumPy array or a Pandas
-    DataFrame to Excel, e.g.: ``Range('A1').value = np.eye(10)``
+    DataFrame to Excel, e.g.: ``Range('A1').array().value = np.eye(10)``
 
