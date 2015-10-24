@@ -24,6 +24,7 @@ from .constants import ChartType
 
 
 
+
 # Optional imports
 try:
     import numpy as np
@@ -563,11 +564,12 @@ class Sheet(object):
 
 
 class DataFrameAccessor(object):
-    def __init__(self, rng, header, index):
+    def __init__(self, rng, header, index, tz):
         assert pd, "You need the pandas package!"
         self.rng = rng
         self.header = header
         self.index = index
+        self.tz = tz
 
     @property
     def value(self):
@@ -595,6 +597,8 @@ class DataFrameAccessor(object):
         if self.index is not False:
             if isinstance(self.index, bool):
                 df.set_index(df.columns[0], inplace=True)
+                if isinstance(df.index, pd.DatetimeIndex) and self.tz:
+                    df.index = df.index.tz_localize(tz=self.tz, ambiguous='infer')
             elif isinstance(self.index, int):
                 # handle multi-index on index
                 df.set_index(list(df.columns[:self.index]), inplace=True)
@@ -962,7 +966,7 @@ class Range(object):
 
         self._set_data(data)
 
-    def dataframe(self, index=True, header=True, *args, **kwargs):
+    def dataframe(self, index=True, header=True, tz=None):
         """
         Return a DataFrameAccessor used to read/write dataframe to the range.
 
@@ -976,12 +980,14 @@ class Range(object):
             ``True`` considers a header when reading/writing dataframes
             ``False`` considers no header when reading/writing dataframes
             an integer > 0 considers a multiheader with 'header' rows/dimensions.
+        tz : str, default None
+            If not None, timezone to convert to if the index is a DatetimeIndex
 
         Returns
         -------
         DataFrameAccessor object
         """
-        return DataFrameAccessor(self, index=index, header=header, *args, **kwargs)
+        return DataFrameAccessor(self, index=index, header=header, tz=tz)
 
     def array(self, *args, **kwargs):
         """
