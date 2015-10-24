@@ -19,6 +19,7 @@ import collections
 import warnings
 
 from . import xlplatform, string_types, time_types, xrange
+from pandas.core.base import FrozenList
 from .constants import ChartType
 
 
@@ -602,12 +603,28 @@ class DataFrameAccessor(object):
             elif isinstance(self.index, int):
                 # handle multi-index on index
                 df.set_index(list(df.columns[:self.index]), inplace=True)
+
+                if self.tz:
+                    # handle timezone conversion for each column in index
+                    fl = []
+                    index_has_datetimeindex = False
+                    for i in range(len(df.index.levels)):
+                        idx = df.index.get_level_values(i)
+                        if isinstance(idx, pd.DatetimeIndex):
+                            fl.append(idx.tz_localize(tz=self.tz, ambiguous='infer'))
+                            index_has_datetimeindex = True
+                        else:
+                            fl.append(idx)
+                    # if some column had an index, recreate the MultiIndex
+                    if index_has_datetimeindex:
+                        df.index = FrozenList(fl)
+
             else:
                 raise ValueError("index should be a bool or an int")
+
             if multi_header:
                 # set name of index as value in the first row of data
                 df.index.names = [n[0] for n in df.index.names]
-
         return df
 
     @value.setter

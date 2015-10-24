@@ -15,6 +15,7 @@ from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbCo
 
 
 
+
 # Mac imports
 if sys.platform.startswith('darwin'):
     from appscript import k as kw
@@ -86,6 +87,7 @@ if pd is not None:
     index = pd.MultiIndex.from_tuples(tuples, names=['first', 'second', 'third'])
     df_multiindex = pd.DataFrame([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6], [7.7, 8.8], [9.9, 10.10],
                                   [11.11, 12.12], [13.13, 14.14], [15.15, 16.16]], index=index)
+
 
     # MultiIndex (Header)
     header = [['Foo', 'Foo', 'Bar', 'Bar', 'Baz'], ['A', 'B', 'C', 'D', 'E']]
@@ -700,6 +702,17 @@ class TestRange:
         Range('Sheet5', 'A20').dataframe(index=True, header=True).value = df_expected
 
         df_result = Range('Sheet5', 'A20:E28').dataframe(index=3, header=True).value
+        df_result.index.name = None
+        assert_frame_equal(df_expected, df_result)
+
+    def test_accessor_dataframe_multiindex_tz(self):
+        _skip_if_no_pandas()
+
+        # MultiIndex with DatetimeIndex with timezone (Index)
+        df_expected = df_dateindex_tz.rename(columns={0:"second"}).reset_index().set_index(["index", "second"])
+        Range('Sheet5', 'A20').dataframe(index=True, header=True).value = df_expected
+
+        df_result = Range('Sheet5', 'A20:F30').dataframe(index=2, header=True, tz="Europe/Brussels").value
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 
