@@ -575,10 +575,7 @@ class DataFrameAccessor(object):
     @property
     def value(self):
         # get the data in 2d (make a copy of rng to avoid changing its atleast_2d flag
-        rng = self.rng.offset()
-        rng.atleast_2d = True
-        rng.asarray = True
-        data = rng._get_data()
+        data = self.rng._get_data(atleast_2d=True)
 
         multi_header = False
 
@@ -657,15 +654,16 @@ class ArrayAccessor(object):
 
     @property
     def value(self):
-        data = self.rng._get_data()
+        atleast_2d = self.rng.atleast_2d
+        data = self.rng._get_data(atleast_2d)
 
         # replace None (empty cells) with nan as None produces arrays with dtype=object
         # TODO: easier like this: np.array(my_list, dtype=np.float)
         if data is None:
             data = np.nan
-        if (self.rng.is_column() or self.rng.is_row()) and not self.rng.atleast_2d:
+        if (self.rng.is_column() or self.rng.is_row()) and not atleast_2d:
             data = [np.nan if x is None else x for x in data]
-        elif self.rng.is_table() or self.rng.atleast_2d:
+        elif self.rng.is_table() or atleast_2d:
             data = [[np.nan if x is None else x for x in i] for i in data]
 
         # TODO: bug when mixing unicode string and float ? see issue #6550 on numpy
@@ -890,20 +888,20 @@ class Range(object):
     def __len__(self):
         return self.row2 - self.row1 + 1
 
-    def _get_data(self):
+    def _get_data(self, atleast_2d):
         # TODO: refactor
         if self.is_cell():
             # Clean_xl_data requires and returns a list of list
             data = xlplatform.clean_xl_data([[xlplatform.get_value_from_range(self.xl_range)]])
-            if not self.atleast_2d:
+            if not atleast_2d:
                 data = data[0][0]
         elif self.is_row():
             data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
-            if not self.atleast_2d:
+            if not atleast_2d:
                 data = data[0]
         elif self.is_column():
             data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
-            if not self.atleast_2d:
+            if not atleast_2d:
                 data = [item for sublist in data for item in sublist]
         else:  # 2d Range, leave as list of list
             data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
@@ -955,7 +953,7 @@ class Range(object):
         if self.asarray:
             return self.array().value
 
-        data = self._get_data()
+        data = self._get_data(self.atleast_2d)
         return data
 
     @value.setter
@@ -1006,7 +1004,7 @@ class Range(object):
         """
         return DataFrameAccessor(self, index=index, header=header, tz=tz)
 
-    def array(self, *args, **kwargs):
+    def array(self):
         """
         Return an ArrayAccessor used to read/write numpy arrays to the range.
 
@@ -1014,7 +1012,7 @@ class Range(object):
         -------
         ArrayAccessor object
         """
-        return ArrayAccessor(self, *args, **kwargs)
+        return ArrayAccessor(self)
 
 
     @property
