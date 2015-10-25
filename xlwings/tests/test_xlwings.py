@@ -676,7 +676,7 @@ class TestRange:
         df_expected = df_1
         Range('Sheet5', 'A1').dataframe(index=True, header=True).value = df_expected
 
-        df_result = Range('Sheet5', 'A1:C5').dataframe(index=True, header=True).value
+        df_result = Range('Sheet5', 'A1').table.dataframe(index=True, header=True).value
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 
@@ -687,11 +687,11 @@ class TestRange:
         df_expected = df_2
         Range('Sheet5', 'A9').dataframe(index=True, header=True).value = df_expected
 
-        df_result = Range('Sheet5', 'A9:B15').dataframe(index=True, header=True).value
+        df_result = Range('Sheet5', 'A9').table.dataframe(index=True, header=True).value
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 
-        df_result = Range('Sheet5', 'A9:B15').dataframe(index=True, header=1).value
+        df_result = Range('Sheet5', 'A9').table.dataframe(index=True, header=1).value
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 
@@ -701,7 +701,7 @@ class TestRange:
         df_expected = df_multiindex
         Range('Sheet5', 'A20').dataframe(index=True, header=True).value = df_expected
 
-        df_result = Range('Sheet5', 'A20:E28').dataframe(index=3, header=True).value
+        df_result = Range('Sheet5', 'A20').table.dataframe(index=3, header=True).value
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 
@@ -712,7 +712,7 @@ class TestRange:
         df_expected = df_dateindex_tz.rename(columns={0:"second"}).reset_index().set_index(["index", "second"])
         Range('Sheet5', 'A20').dataframe(index=True, header=True).value = df_expected
 
-        df_result = Range('Sheet5', 'A20:F30').dataframe(index=2, header=True, tz="Europe/Brussels").value
+        df_result = Range('Sheet5', 'A20').table.dataframe(index=2, header=True, tz="Europe/Brussels").value
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 
@@ -722,7 +722,7 @@ class TestRange:
         df_expected = df_multiheader
         Range('Sheet5', 'A52').dataframe(index=True, header=True).value = df_expected
 
-        df_result = Range('Sheet5', '$A$52:$F$59').dataframe(index=True, header=2).value
+        df_result = Range('Sheet5', '$A$52').table.dataframe(index=True, header=2).value
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 
@@ -732,7 +732,7 @@ class TestRange:
         df_expected = df_multiheader_multiindex
         Range('Sheet5', 'A52').dataframe(index=True, header=True).value = df_expected
 
-        df_result = Range('Sheet5', '$A$52:$H$61').dataframe(index=3, header=2).value
+        df_result = Range('Sheet5', '$A$52').table.dataframe(index=3, header=2).value
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
 

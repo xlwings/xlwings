@@ -629,7 +629,7 @@ class DataFrameAccessor(object):
         # handle dataframe by converting to Array and then using ArrayAccessor
         assert isinstance(df, pd.DataFrame), "Data should be a pandas DataFrame"
         if self.index:
-            df = df.reset_index()
+            df = df.reset_index(col_fill="-")
 
         if self.header:
             if isinstance(df.columns, pd.MultiIndex):
