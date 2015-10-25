@@ -715,7 +715,7 @@ class Range(object):
         Includes the index when setting a Pandas DataFrame or Series.
 
     header : boolean, default True
-        Includes the column headers when setting a Pandas DataFrame.
+        Includes the column headers when setting a Pandas DataFrame or Series.
 
     atleast_2d : boolean, default False
         Returns 2d lists/arrays even if the Range is a Row or Column.
@@ -964,13 +964,9 @@ class Range(object):
             return
 
         # Pandas Series
-        # TODO: handle this through the dataframe accessor but may introduce backward incompatible changes
-        # TODO: or work with some extra flag to keep backward compatibility
         if hasattr(pd, 'Series') and isinstance(data, pd.Series):
-            if self.index:
-                data = data.reset_index().values
-            else:
-                data = data.values[:, np.newaxis]
+            self.dataframe(header=self.header, index=self.index).value = data.to_frame()
+            return
 
         # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535.
         # See: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx

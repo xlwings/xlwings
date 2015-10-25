@@ -765,7 +765,7 @@ class TestRange:
 
         series_expected = series_1
         Range('Sheet5', 'A32').value = series_expected
-        cells = Range('Sheet5', 'B32:B37').value
+        cells = Range('Sheet5', 'B33:B38').value
         series_result = Series(cells)
         assert_series_equal(series_expected, series_result)
 
@@ -775,9 +775,9 @@ class TestRange:
         series_expected = timeseries_1
         Range('Sheet5', 'A40').value = series_expected
         if sys.platform.startswith('win') and self.wb.xl_app.Version == '14.0':
-            Range('Sheet5', 'A40').vertical.xl_range.NumberFormat = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
-        cells = Range('Sheet5', 'B40:B49').value
-        date_index = Range('Sheet5', 'A40:A49').value
+            Range('Sheet5', 'A41').vertical.xl_range.NumberFormat = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
+        cells = Range('Sheet5', 'B41:B50').value
+        date_index = Range('Sheet5', 'A41:A50').value
         series_result = Series(cells, index=date_index)
         assert_series_equal(series_expected, series_result)
 
