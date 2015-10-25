@@ -676,7 +676,7 @@ class ArrayAccessor(object):
             data = data.tolist()
         except TypeError:
             # isnan doesn't work on arrays of dtype=object
-            if hasattr(pd, 'isnull'):
+            if pd:
                 data[pd.isnull(data)] = None
                 data = data.tolist()
             else:
@@ -715,7 +715,7 @@ class Range(object):
         Includes the index when setting a Pandas DataFrame or Series.
 
     header : boolean, default True
-        Includes the column headers when setting a Pandas DataFrame or Series.
+        Includes the column headers when setting a Pandas DataFrame.
 
     atleast_2d : boolean, default False
         Returns 2d lists/arrays even if the Range is a Row or Column.
@@ -923,7 +923,7 @@ class Range(object):
             data = xlplatform.prepare_xl_data([[data]])[0][0]
             try:
                 # scalar np.nan need to be turned into None, otherwise Excel shows it as 65535 (same as for NumPy array)
-                if hasattr(np, 'ndarray') and np.isnan(data):
+                if np and np.isnan(data):
                     data = None
             except (TypeError, NotImplementedError):
                 # raised if data is not a np.nan.
@@ -959,19 +959,19 @@ class Range(object):
     @value.setter
     def value(self, data):
         # Pandas DataFrame: Turn into NumPy object array with or without Index and Headers
-        if hasattr(pd, 'DataFrame') and isinstance(data, pd.DataFrame):
+        if pd and isinstance(data, pd.DataFrame):
             self.dataframe(header=self.header, index=self.index).value = data
             return
 
         # Pandas Series
-        if hasattr(pd, 'Series') and isinstance(data, pd.Series):
+        if pd and isinstance(data, pd.Series):
             self.dataframe(header=self.header, index=self.index).value = data.to_frame()
             return
 
         # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535.
         # See: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx
         # Also, turn into list (Python 3 can't handle arrays directly)
-        if hasattr(np, 'ndarray') and isinstance(data, np.ndarray):
+        if np and isinstance(data, np.ndarray):
             self.array().value = data
             return
 

@@ -38,7 +38,7 @@ from xlwings import PY3
 
 # Time types: pywintypes.timetype doesn't work on Python 3
 time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
-if hasattr(np, 'datetime64'):
+if np:
     time_types = time_types + (np.datetime64,)
 
 
@@ -336,7 +336,7 @@ def _datetime_to_com_time(dt_time):
 
     """
     # Convert date to datetime
-    if hasattr(np, 'datetime64'):
+    if np:
         if type(dt_time) is np.datetime64:
             dt_time = np_datetime_to_datetime(dt_time)
 
@@ -349,7 +349,7 @@ def _datetime_to_com_time(dt_time):
         # For some reason, though it accepts plain datetimes, they must have a timezone set.
         # See http://docs.activestate.com/activepython/2.7/pywin32/html/win32/help/py3k.html
         # We replace no timezone -> UTC to allow round-trips in the naive case
-        if hasattr(pd, 'tslib') and isinstance(dt_time, pd.tslib.Timestamp):
+        if pd and isinstance(dt_time, pd.tslib.Timestamp):
             # Otherwise pandas prints ignored exceptions on Python 3
             dt_time = dt_time.to_datetime()
         # We don't use pytz.utc to get rid of additional dependency

@@ -21,7 +21,7 @@ except ImportError:
 
 # Time types
 time_types = (dt.date, dt.datetime)
-if hasattr(np, 'datetime64'):
+if np:
     time_types = time_types + (np.datetime64,)
 
 # We're only dealing with one instance of Excel on Mac
@@ -205,10 +205,10 @@ def prepare_xl_data(data):
     """
     Expects a 2d list.
     """
-    if hasattr(np, 'datetime64'):
+    if np:
         # handle numpy.datetime64
         data = [[np_datetime_to_datetime(c) if isinstance(c, np.datetime64) else c for c in row] for row in data]
-    if hasattr(pd, 'tslib'):
+    if pd:
         # This transformation seems to be only needed on Python 2.6 (?)
         data = [[c.to_datetime() if isinstance(c, pd.tslib.Timestamp) else c for c in row] for row in data]
     # Make datetime timezone naive
