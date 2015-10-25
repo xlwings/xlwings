@@ -16,8 +16,10 @@ import numbers
 import itertools
 import inspect
 import collections
+
 from . import xlplatform, string_types, time_types, xrange
 from .constants import ChartType
+
 
 # Optional imports
 try:
@@ -34,6 +36,7 @@ class Application(object):
     """
     Application is dependent on the Workbook since there might be different application instances on Windows.
     """
+
     def __init__(self, wkb):
         self.wkb = wkb
         self.xl_app = wkb.xl_app
@@ -139,6 +142,7 @@ class Workbook(object):
     ``wb = Workbook.caller()``
 
     """
+
     def __init__(self, fullname=None, xl_workbook=None, app_visible=True, app_target=None):
         if xl_workbook:
             self.xl_workbook = xl_workbook
@@ -592,6 +596,7 @@ class Range(object):
     wkb : Workbook object, default Workbook.current()
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
     """
+
     def __init__(self, *args, **kwargs):
         # Arguments
         if len(args) == 1 and isinstance(args[0], string_types):
@@ -817,7 +822,7 @@ class Range(object):
             if self.index:
                 data = data.reset_index().values
             else:
-                data = data.values[:,np.newaxis]
+                data = data.values[:, np.newaxis]
 
         # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535.
         # See: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx
@@ -1290,7 +1295,14 @@ class Range(object):
 
     def resize(self, row_size=None, column_size=None):
         """
-        Resizes the specified Range.
+        Resizes the specified Range
+
+        Arguments
+        ---------
+        row_size: int > 0
+            The number of rows in the new range (if None, the number of rows in the range is unchanged).
+        column_size: int > 0
+            The number of columns in the new range (if None, the number of columns in the range is unchanged).
 
         Returns
         -------
@@ -1299,14 +1311,16 @@ class Range(object):
 
         .. versionadded:: 0.3.0
         """
-        if row_size:
+        if row_size is not None:
+            assert row_size > 0
             row2 = self.row1 + row_size - 1
         else:
-            row2 = self.row1
-        if column_size:
+            row2 = self.row2
+        if column_size is not None:
+            assert column_size > 0
             col2 = self.col1 + column_size - 1
         else:
-            col2 = self.col1
+            col2 = self.col2
 
         return Range(xlplatform.get_worksheet_name(self.xl_sheet), (self.row1, self.col1), (row2, col2), **self.kwargs)
 
@@ -1436,6 +1450,7 @@ class Chart(object):
     >>> chart.chart_type = ChartType.xl3DArea
 
     """
+
     def __init__(self, *args, **kwargs):
         # TODO: this should be doable without *args and **kwargs - same for .add()
         # Use current Workbook if none provided
@@ -1572,6 +1587,7 @@ class NamesDict(collections.MutableMapping):
     Implements the Workbook.Names collection.
     Currently only used to be able to do ``del wb.names['NamedRange']``
     """
+
     def __init__(self, xl_workbook, *args, **kwargs):
         self.xl_workbook = xl_workbook
         self.store = dict()
