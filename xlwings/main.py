@@ -715,7 +715,7 @@ class Range(object):
         Includes the index when setting a Pandas DataFrame or Series.
 
     header : boolean, default True
-        Includes the column headers when setting a Pandas DataFrame.
+        Includes the column headers when setting a Pandas DataFrame or Series.
 
     atleast_2d : boolean, default False
         Returns 2d lists/arrays even if the Range is a Row or Column.
