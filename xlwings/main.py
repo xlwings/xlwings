@@ -794,7 +794,7 @@ class Range(object):
     @value.setter
     def value(self, data):
         # Pandas DataFrame: Turn into NumPy object array with or without Index and Headers
-        if hasattr(pd, 'DataFrame') and isinstance(data, pd.DataFrame):
+        if pd and isinstance(data, pd.DataFrame):
             if self.index:
                 data = data.reset_index()
 
@@ -813,7 +813,7 @@ class Range(object):
                 data = data.values
 
         # Pandas Series
-        if hasattr(pd, 'Series') and isinstance(data, pd.Series):
+        if pd and isinstance(data, pd.Series):
             if self.index:
                 data = data.reset_index().values
             else:
@@ -822,13 +822,13 @@ class Range(object):
         # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535.
         # See: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx
         # Also, turn into list (Python 3 can't handle arrays directly)
-        if hasattr(np, 'ndarray') and isinstance(data, np.ndarray):
+        if np and isinstance(data, np.ndarray):
             try:
                 data = np.where(np.isnan(data), None, data)
                 data = data.tolist()
             except TypeError:
                 # isnan doesn't work on arrays of dtype=object
-                if hasattr(pd, 'isnull'):
+                if pd:
                     data[pd.isnull(data)] = None
                     data = data.tolist()
                 else:
@@ -849,7 +849,7 @@ class Range(object):
             data = xlplatform.prepare_xl_data([[data]])[0][0]
             try:
                 # scalar np.nan need to be turned into None, otherwise Excel shows it as 65535 (same as for NumPy array)
-                if hasattr(np, 'ndarray') and np.isnan(data):
+                if np and np.isnan(data):
                     data = None
             except (TypeError, NotImplementedError):
                 # raised if data is not a np.nan.
