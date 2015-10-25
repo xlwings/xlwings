@@ -38,7 +38,8 @@ Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef 
     ' PYTHON_WIN: Directory of Python Interpreter on Windows, "" resolves to default on PATH
     ' PYTHON_MAC: Directory of Python Interpreter on Mac OSX, "" resolves to default path in ~/.bash_profile
     ' PYTHON_FROZEN [Optional]: Currently only on Windows, indicate directory of exe file
-    ' PYTHONPATH [Optional]: If the source file of your code is not found, add the path here. Otherwise set to "".
+    ' PYTHONPATH [Optional]: If the source file of your code is not found, add the path here.
+    '                        Separate multiple directories by ";". Otherwise set to "".
     ' LOG_FILE: Directory including file name, necessary for error handling.
     ' SHOW_LOG: If False, no pop-up with the Log messages (usually errors) will be shown
     ' OPTIMIZED_CONNECTION (EXPERIMENTAL!): Currently only on Windows, use a COM Server for an efficient connection
@@ -404,4 +405,3 @@ Private Sub GetDLLVersion()
     Debug.Print ver
     Debug.Print arch
 End Sub
-
