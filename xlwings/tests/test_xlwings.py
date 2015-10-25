@@ -17,8 +17,8 @@ from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbCo
 if sys.platform.startswith('darwin'):
     from appscript import k as kw
     # TODO: uncomment the desired Excel installation or set to None for default installation
-    APP_TARGET = None
-    # APP_TARGET = '/Applications/Microsoft Office 2011/Microsoft Excel'
+    # APP_TARGET = None
+    APP_TARGET = '/Applications/Microsoft Office 2011/Microsoft Excel'
 else:
     APP_TARGET = None
 
@@ -862,13 +862,13 @@ class TestRange:
         assert_equal(r.shape, (4, 1))
 
         r = Range('A1:B4').resize(column_size=5)
-        assert_equal(r.shape, (2, 5))
+        assert_equal(r.shape, (4, 5))
 
         r = Range('A1:B4').resize(row_size=5)
-        assert_equal(r.shape, (5, 4))
+        assert_equal(r.shape, (5, 2))
 
         r = Range('A1:B4').resize()
-        assert_equal(r.shape, (2, 4))
+        assert_equal(r.shape, (4, 2))
 
         assert_raises(AssertionError, Range('A1:B4').resize, row_size=0)
         assert_raises(AssertionError, Range('A1:B4').resize, column_size=0)
