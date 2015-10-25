@@ -16,8 +16,15 @@ import numbers
 import itertools
 import inspect
 import collections
+import warnings
+
 from . import xlplatform, string_types, time_types, xrange
+from pandas.core.base import FrozenList
 from .constants import ChartType
+
+
+
+
 
 # Optional imports
 try:
@@ -34,6 +41,7 @@ class Application(object):
     """
     Application is dependent on the Workbook since there might be different application instances on Windows.
     """
+
     def __init__(self, wkb):
         self.wkb = wkb
         self.xl_app = wkb.xl_app
@@ -139,6 +147,7 @@ class Workbook(object):
     ``wb = Workbook.caller()``
 
     """
+
     def __init__(self, fullname=None, xl_workbook=None, app_visible=True, app_target=None):
         if xl_workbook:
             self.xl_workbook = xl_workbook
@@ -555,6 +564,128 @@ class Sheet(object):
         return "<Sheet '{0}' of Workbook '{1}'>".format(self.name, xlplatform.get_workbook_name(self.xl_workbook))
 
 
+class DataFrameAccessor(object):
+    def __init__(self, rng, header, index, tz):
+        assert pd, "You need the pandas package!"
+        self.rng = rng
+        self.header = header
+        self.index = index
+        self.tz = tz
+
+    @property
+    def value(self):
+        # get the data in 2d (make a copy of rng to avoid changing its atleast_2d flag
+        data = self.rng._get_data(atleast_2d=True)
+
+        multi_header = False
+
+        # if header are in the range (True or integer including 0), split the header from the data
+        if self.header is not False:
+            if isinstance(self.header, bool):
+                df = pd.DataFrame(data[1:], columns=data[0])
+            elif isinstance(self.header, int):
+                # handle multi-index on header
+                df = pd.DataFrame(data[self.header:], columns=pd.MultiIndex.from_arrays(data[:self.header]))
+                multi_header = True
+            else:
+                raise ValueError("header should be a bool or an int")
+        else:
+            df = pd.DataFrame(data)
+
+        if self.index is not False:
+            if isinstance(self.index, bool):
+                df.set_index(df.columns[0], inplace=True)
+                if isinstance(df.index, pd.DatetimeIndex) and self.tz:
+                    df.index = df.index.tz_localize(tz=self.tz, ambiguous='infer')
+            elif isinstance(self.index, int):
+                # handle multi-index on index
+                df.set_index(list(df.columns[:self.index]), inplace=True)
+
+                if self.tz:
+                    # handle timezone conversion for each column in index
+                    fl = []
+                    index_has_datetimeindex = False
+                    for i in range(len(df.index.levels)):
+                        idx = df.index.get_level_values(i)
+                        if isinstance(idx, pd.DatetimeIndex):
+                            fl.append(idx.tz_localize(tz=self.tz, ambiguous='infer'))
+                            index_has_datetimeindex = True
+                        else:
+                            fl.append(idx)
+                    # if some column had an index, recreate the MultiIndex
+                    if index_has_datetimeindex:
+                        df.index = FrozenList(fl)
+
+            else:
+                raise ValueError("index should be a bool or an int")
+
+            if multi_header:
+                # set name of index as value in the first row of data
+                df.index.names = [n[0] for n in df.index.names]
+        return df
+
+    @value.setter
+    def value(self, df):
+        # handle dataframe by converting to Array and then using ArrayAccessor
+        assert isinstance(df, pd.DataFrame), "Data should be a pandas DataFrame"
+        if self.index:
+            df = df.reset_index(col_fill="-")
+
+        if self.header:
+            if isinstance(df.columns, pd.MultiIndex):
+                # Ensure dtype=object because otherwise it may get assigned a string type which sometimes makes
+                # vstacking return a string array. This would cause values to be truncated and we can't easily
+                # transform np.nan in string form.
+                # Python 3 requires zip wrapped in list
+                columns = np.array(list(zip(*df.columns.tolist())), dtype=object)
+            else:
+                columns = np.empty((df.columns.shape[0],), dtype=object)
+                columns[:] = np.array([df.columns.tolist()])
+            data = np.vstack((columns, df.values))
+        else:
+            data = df.values
+
+        self.rng.array().value = data
+
+
+class ArrayAccessor(object):
+    def __init__(self, rng):
+        self.rng = rng
+
+    @property
+    def value(self):
+        atleast_2d = self.rng.atleast_2d
+        data = self.rng._get_data(atleast_2d)
+
+        # replace None (empty cells) with nan as None produces arrays with dtype=object
+        # TODO: easier like this: np.array(my_list, dtype=np.float)
+        if data is None:
+            data = np.nan
+        if (self.rng.is_column() or self.rng.is_row()) and not atleast_2d:
+            data = [np.nan if x is None else x for x in data]
+        elif self.rng.is_table() or atleast_2d:
+            data = [[np.nan if x is None else x for x in i] for i in data]
+
+        # TODO: bug when mixing unicode string and float ? see issue #6550 on numpy
+        return np.atleast_1d(np.array(data))
+
+    @value.setter
+    def value(self, data):
+        try:
+            data = np.where(np.isnan(data), None, data)
+            data = data.tolist()
+        except TypeError:
+            # isnan doesn't work on arrays of dtype=object
+            if pd:
+                data[pd.isnull(data)] = None
+                data = data.tolist()
+            else:
+                # expensive way of replacing nan with None in object arrays in case Pandas is not available
+                data = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in data]
+
+        self.rng._set_data(data)
+
+
 class Range(object):
     """
     A Range object can be created with the following arguments::
@@ -584,7 +715,7 @@ class Range(object):
         Includes the index when setting a Pandas DataFrame or Series.
 
     header : boolean, default True
-        Includes the column headers when setting a Pandas DataFrame.
+        Includes the column headers when setting a Pandas DataFrame or Series.
 
     atleast_2d : boolean, default False
         Returns 2d lists/arrays even if the Range is a Row or Column.
@@ -592,6 +723,7 @@ class Range(object):
     wkb : Workbook object, default Workbook.current()
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
     """
+
     def __init__(self, *args, **kwargs):
         # Arguments
         if len(args) == 1 and isinstance(args[0], string_types):
@@ -653,7 +785,13 @@ class Range(object):
             self.xl_workbook = self.workbook.xl_workbook
         self.index = kwargs.get('index', True)  # Set DataFrame with index
         self.header = kwargs.get('header', True)  # Set DataFrame with header
+        if self.index or self.header:
+            warnings.warn(
+                "Using index/header in the Range constructor is deprecated. Please use the Range(...).dataframe(index=..., header=...) construct",
+                DeprecationWarning)
         self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array
+        if self.asarray:
+            warnings.warn("Using asarray in the Range constructor is deprecated. Please use the Range(...).array() construct", DeprecationWarning)
         self.strict = kwargs.get('strict', False)  # Stop table/horizontal/vertical at empty cells that contain formulas
         self.atleast_2d = kwargs.get('atleast_2d', False)  # Force data to be list of list or a 2d numpy array
 
@@ -750,91 +888,27 @@ class Range(object):
     def __len__(self):
         return self.row2 - self.row1 + 1
 
-    @property
-    def value(self):
-        """
-        Gets and sets the values for the given Range.
-
-        Returns
-        -------
-        list or numpy array
-            Empty cells are set to ``None``. If ``asarray=True``,
-            a numpy array is returned where empty cells are set to ``nan``.
-        """
+    def _get_data(self, atleast_2d):
         # TODO: refactor
         if self.is_cell():
             # Clean_xl_data requires and returns a list of list
             data = xlplatform.clean_xl_data([[xlplatform.get_value_from_range(self.xl_range)]])
-            if not self.atleast_2d:
+            if not atleast_2d:
                 data = data[0][0]
         elif self.is_row():
             data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
-            if not self.atleast_2d:
+            if not atleast_2d:
                 data = data[0]
         elif self.is_column():
             data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
-            if not self.atleast_2d:
+            if not atleast_2d:
                 data = [item for sublist in data for item in sublist]
         else:  # 2d Range, leave as list of list
             data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
 
-        # Return as NumPy Array
-        if self.asarray:
-            # replace None (empty cells) with nan as None produces arrays with dtype=object
-            # TODO: easier like this: np.array(my_list, dtype=np.float)
-            if data is None:
-                data = np.nan
-            if (self.is_column() or self.is_row()) and not self.atleast_2d:
-                data = [np.nan if x is None else x for x in data]
-            elif self.is_table() or self.atleast_2d:
-                data = [[np.nan if x is None else x for x in i] for i in data]
-            return np.atleast_1d(np.array(data))
         return data
 
-    @value.setter
-    def value(self, data):
-        # Pandas DataFrame: Turn into NumPy object array with or without Index and Headers
-        if pd and isinstance(data, pd.DataFrame):
-            if self.index:
-                data = data.reset_index()
-
-            if self.header:
-                if isinstance(data.columns, pd.MultiIndex):
-                    # Ensure dtype=object because otherwise it may get assigned a string type which sometimes makes
-                    # vstacking return a string array. This would cause values to be truncated and we can't easily
-                    # transform np.nan in string form.
-                    # Python 3 requires zip wrapped in list
-                    columns = np.array(list(zip(*data.columns.tolist())), dtype=object)
-                else:
-                    columns = np.empty((data.columns.shape[0],), dtype=object)
-                    columns[:] = np.array([data.columns.tolist()])
-                data = np.vstack((columns, data.values))
-            else:
-                data = data.values
-
-        # Pandas Series
-        if pd and isinstance(data, pd.Series):
-            if self.index:
-                data = data.reset_index().values
-            else:
-                data = data.values[:,np.newaxis]
-
-        # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535.
-        # See: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx
-        # Also, turn into list (Python 3 can't handle arrays directly)
-        if np and isinstance(data, np.ndarray):
-            try:
-                data = np.where(np.isnan(data), None, data)
-                data = data.tolist()
-            except TypeError:
-                # isnan doesn't work on arrays of dtype=object
-                if pd:
-                    data[pd.isnull(data)] = None
-                    data = data.tolist()
-                else:
-                    # expensive way of replacing nan with None in object arrays in case Pandas is not available
-                    data = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in data]
-
+    def _set_data(self, data):
         # Simple Lists: Turn into list of lists (np.nan is part of numbers.Number)
         if isinstance(data, list) and (isinstance(data[0], (numbers.Number, string_types, time_types))
                                        or data[0] is None):
@@ -864,6 +938,78 @@ class Range(object):
 
         xlplatform.set_value(xlplatform.get_range_from_indices(self.xl_sheet,
                                                                self.row1, self.col1, row2, col2), data)
+
+    @property
+    def value(self):
+        """
+        Gets and sets the values for the given Range.
+
+        Returns
+        -------
+        list or numpy array
+            Empty cells are set to ``None``. If ``asarray=True``,
+            a numpy array is returned where empty cells are set to ``nan``.
+        """
+        if self.asarray:
+            return self.array().value
+
+        data = self._get_data(self.atleast_2d)
+        return data
+
+    @value.setter
+    def value(self, data):
+        # Pandas DataFrame: Turn into NumPy object array with or without Index and Headers
+        if pd and isinstance(data, pd.DataFrame):
+            self.dataframe(header=self.header, index=self.index).value = data
+            return
+
+        # Pandas Series
+        if pd and isinstance(data, pd.Series):
+            self.dataframe(header=self.header, index=self.index).value = data.to_frame()
+            return
+
+        # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535.
+        # See: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx
+        # Also, turn into list (Python 3 can't handle arrays directly)
+        if np and isinstance(data, np.ndarray):
+            self.array().value = data
+            return
+
+        self._set_data(data)
+
+    def dataframe(self, index=True, header=True, tz=None):
+        """
+        Return a DataFrameAccessor used to read/write dataframe to the range.
+
+        Keyword Arguments
+        -----------------
+        index : boolean or int, default True
+            ``True`` considers an index when reading/writing dataframes
+            ``False`` considers no index when reading/writing dataframes
+            an integer > 0 considers a multiindex with 'index' columns/dimensions.
+        header : boolean or int, default True
+            ``True`` considers a header when reading/writing dataframes
+            ``False`` considers no header when reading/writing dataframes
+            an integer > 0 considers a multiheader with 'header' rows/dimensions.
+        tz : str, default None
+            If not None, timezone to convert to if the index is a DatetimeIndex
+
+        Returns
+        -------
+        DataFrameAccessor object
+        """
+        return DataFrameAccessor(self, index=index, header=header, tz=tz)
+
+    def array(self):
+        """
+        Return an ArrayAccessor used to read/write numpy arrays to the range.
+
+        Returns
+        -------
+        ArrayAccessor object
+        """
+        return ArrayAccessor(self)
+
 
     @property
     def formula(self):
@@ -1299,11 +1445,11 @@ class Range(object):
 
         .. versionadded:: 0.3.0
         """
-        if row_size:
+        if row_size is not None:
             row2 = self.row1 + row_size - 1
         else:
             row2 = self.row1
-        if column_size:
+        if column_size is not None:
             col2 = self.col1 + column_size - 1
         else:
             col2 = self.col1
@@ -1436,6 +1582,7 @@ class Chart(object):
     >>> chart.chart_type = ChartType.xl3DArea
 
     """
+
     def __init__(self, *args, **kwargs):
         # TODO: this should be doable without *args and **kwargs - same for .add()
         # Use current Workbook if none provided
@@ -1572,6 +1719,7 @@ class NamesDict(collections.MutableMapping):
     Implements the Workbook.Names collection.
     Currently only used to be able to do ``del wb.names['NamedRange']``
     """
+
     def __init__(self, xl_workbook, *args, **kwargs):
         self.xl_workbook = xl_workbook
         self.store = dict()
