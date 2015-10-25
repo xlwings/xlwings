@@ -1,12 +1,13 @@
 import os
 import sys
 
-# Hack to find pythoncom.dll - needed for some distribution/setups
+# Hack to find pythoncom.dll - needed for some distribution/setups (includes seemingly unused import win32api)
 # E.g. if python is started with the full path outside of the python path, then it almost certainly fails
 cwd = os.getcwd()
 if not hasattr(sys, 'frozen'):
     # cx_Freeze etc. will fail here otherwise
     os.chdir(sys.exec_prefix)
+import win32api
 
 os.chdir(cwd)
 
@@ -79,6 +80,7 @@ def get_excel_hwnds():
     excel_hwnds = []
     for hwnd in hwnds:
         try:
+            # Apparently, this fails on some systems when Excel is closed
             if win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None):
                 excel_hwnds.append(hwnd)
         except pywintypes.error:
