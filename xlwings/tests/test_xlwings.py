@@ -841,10 +841,14 @@ class TestRange:
         Range('A20').value = [[1., 2.], [3., 4.]]
         l = []
 
-        for i in Range('A20:B21'):
+        r = Range('A20:B21')
+        for i in r:
             l.append(i.value)
 
         assert_equal(l, [1., 2., 3., 4.])
+
+        # check that reiterating on same range functions properly
+        assert_equal([c.value for c in r], [1., 2., 3., 4.])
 
         Range('Sheet2', 'A20').value = [[1., 2.], [3., 4.]]
         l = []

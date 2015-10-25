@@ -677,18 +677,12 @@ class Range(object):
 
         self.xl_range = xlplatform.get_range_from_indices(self.xl_sheet, self.row1, self.col1, self.row2, self.col2)
 
-        # Iterator object that returns cell coordinates: (1, 1), (1, 2) etc.
-        self.cell_iterator = itertools.product(xrange(self.row1, self.row2 + 1), xrange(self.col1, self.col2 + 1))
 
     def __iter__(self):
-        return self
+        # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
+        return itertools.imap(lambda cell: Range(xlplatform.get_worksheet_name(self.xl_sheet), cell, **self.kwargs),
+                              itertools.product(xrange(self.row1, self.row2 + 1), xrange(self.col1, self.col2 + 1)))
 
-    def __next__(self):
-        # StopIteration raised by itertools.product
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet), next(self.cell_iterator), **self.kwargs)
-
-    # PY2 compatibility
-    next = __next__
 
     def is_cell(self):
         """
