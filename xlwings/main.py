@@ -16,9 +16,8 @@ import numbers
 import itertools
 import inspect
 import collections
-from future_builtins import map
 
-from . import xlplatform, string_types, time_types, xrange
+from . import xlplatform, string_types, time_types, xrange, map
 from .constants import ChartType
 
 
@@ -678,12 +677,10 @@ class Range(object):
 
         self.xl_range = xlplatform.get_range_from_indices(self.xl_sheet, self.row1, self.col1, self.row2, self.col2)
 
-
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
         return map(lambda cell: Range(xlplatform.get_worksheet_name(self.xl_sheet), cell, **self.kwargs),
                    itertools.product(xrange(self.row1, self.row2 + 1), xrange(self.col1, self.col2 + 1)))
-
 
     def is_cell(self):
         """
