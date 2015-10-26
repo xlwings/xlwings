@@ -675,6 +675,8 @@ class Range(object):
             self.row2 = self.row1 + xlplatform.count_rows(self.xl_sheet, range_address) - 1
             self.col2 = self.col1 + xlplatform.count_columns(self.xl_sheet, range_address) - 1
 
+        if 0 in (self.row1, self.col1, self.row2, self.col2):
+            raise IndexError("Attempted to access cell at index-0. Excel ranges are all all base-1 index")
         self.xl_range = xlplatform.get_range_from_indices(self.xl_sheet, self.row1, self.col1, self.row2, self.col2)
 
     def __iter__(self):
@@ -859,6 +861,8 @@ class Range(object):
             col2 = self.col1 + len(data[0]) - 1
             data = xlplatform.prepare_xl_data(data)
 
+        if 0 in (self.row1, self.col1, row2, col2):
+            raise IndexError("Attempted to access cell at index-0. Excel ranges are base-1 indexed.")
         xlplatform.set_value(xlplatform.get_range_from_indices(self.xl_sheet,
                                                                self.row1, self.col1, row2, col2), data)
 
