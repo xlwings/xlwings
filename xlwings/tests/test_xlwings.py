@@ -9,7 +9,8 @@ import inspect
 import nose
 from nose.tools import assert_equal, raises, assert_true, assert_not_equal
 from datetime import datetime, date
-from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation, Shape, Picture, Plot
+from xlwings import (Application, Workbook, Sheet, Range, Chart, ChartType,
+                     RgbColor, Calculation, Shape, Picture, Plot, ShapeAlreadyExists)
 
 # TODO: clean up used workbooks
 
@@ -998,6 +999,10 @@ class TestPicture:
         pic.width = 50
         assert_equal(pic.width, 50)
 
+    def test_picture_object(self):
+        pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        assert_equal(pic.name, Picture('pic1').name)
+
     def test_height(self):
         pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
         if PIL:
@@ -1014,11 +1019,14 @@ class TestPicture:
         pic.delete()
         pic.name
 
-    @raises(Exception)
+    @raises(ShapeAlreadyExists)
     def test_duplicate(self):
-        # TODO: organize errors so they can be imported and tested specifically ShapeAlreadyExists
-        pic1 = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
-        pic2 = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        pic1 = Picture.add(os.path.join(this_dir, 'sample_picture.png'), name='pic1')
+        pic2 = Picture.add(os.path.join(this_dir, 'sample_picture.png'), name='pic1')
+
+    def test_picture_update(self):
+        pic1 = Picture.add(os.path.join(this_dir, 'sample_picture.png'), name='pic1')
+        pic1.update(os.path.join(this_dir, 'sample_picture.png'))
 
 
 class TestPlot:
@@ -1039,10 +1047,12 @@ class TestPlot:
         ax.plot([1, 2, 3, 4, 5])
 
         plot = Plot(fig)
-        pic = plot.show(name='Plot1')
+        pic = plot.show('Plot1')
         assert_equal(pic.name, 'Plot1')
 
-
+        plot.show('Plot2', sheet=2)
+        pic2 = Picture(2, 'Plot2')
+        assert_equal(pic2.name, 'Plot2')
 
 
 class TestChart:

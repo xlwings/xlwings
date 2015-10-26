@@ -18,7 +18,7 @@ import inspect
 import collections
 import tempfile
 import shutil
-from . import xlplatform, string_types, time_types, xrange
+from . import xlplatform, string_types, time_types, xrange, ShapeAlreadyExists
 from .constants import ChartType
 
 # Optional imports
@@ -1696,15 +1696,24 @@ class Picture(Shape):
         self.index = xlplatform.get_picture_index(self)
 
     @classmethod
-    def add(cls, sheet=None, filename=None, link_to_file=False, save_with_document=True,
-            left=0, top=0, width=None, height=None, name=None, wkb=None):
+    def add(cls, filename, sheet=None, name=None, link_to_file=False, save_with_document=True,
+            left=0, top=0, width=None, height=None, wkb=None):
         """
         Inserts a picture into Excel.
+
+        Arguments
+        ---------
+
+        filename : str
+            The full path to the file.
 
         Keyword Arguments
         -----------------
         sheet : str or int or xlwings.Sheet, default None
             Name or index of the Sheet or ``xlwings.Sheet`` object, defaults to the active Sheet
+
+        name : str, default None
+            Excel picture name. Defaults to Excel standard name if not provided, e.g. 'Picture 1'
 
         left : float, default 0
             Left position in points.
@@ -1719,6 +1728,9 @@ class Picture(Shape):
         height : float, default None
             Height in points. If PIL/Pillow is installed, it defaults to the height of the picture.
             Otherwise it defaults to 100 points.
+
+        wkb : Workbook object, default Workbook.current()
+            Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
 
 
         .. versionadded:: 0.4.2
@@ -1792,7 +1804,7 @@ class Picture(Shape):
         sheet_name_or_index = self.sheet_name_or_index
         xlplatform.delete_shape(self)
         # TODO: link_to_file, save_with_document
-        Picture.add(sheet=sheet_name_or_index, filename=filename, left=left, top=top, width=width, height=height,
+        Picture.add(filename, sheet=sheet_name_or_index, left=left, top=top, width=width, height=height,
                     name=name, wkb=wkb)
 
 
@@ -1834,7 +1846,7 @@ class Plot(object):
     Then show it in Excel as picture::
 
         plot = Plot(fig)
-        plot.show(name='Plot1')
+        plot.show('Plot1')
 
 
     .. versionadded:: 0.4.2
@@ -1842,18 +1854,21 @@ class Plot(object):
     def __init__(self, figure):
         self.figure = figure
 
-    def show(self, sheet=None, name=None, left=0, top=0, width=None, height=None, wkb=None):
+    def show(self, name, sheet=None, left=0, top=0, width=None, height=None, wkb=None):
         """
         Inserts the matplotlib figure as picture into Excel if a picture with that name doesn't exist yet.
         Otherwise it replaces the picture, taking over it's position and size.
+
+        Arguments
+        ---------
+
+        name : str
+            Name of the picture in Excel
 
         Keyword Arguments
         -----------------
         sheet : str or int or xlwings.Sheet, default None
             Name or index of the Sheet or ``xlwings.Sheet`` object, defaults to the active Sheet
-
-        name : str
-            Name of the picture in Excel
 
         left : float, default 0
             Left position in points. Only has an effect if the picture doesn't exist yet in Excel.
@@ -1869,6 +1884,8 @@ class Plot(object):
             Height in points, defaults to the height of the matplotlib figure.
             Only has an effect if the picture doesn't exist yet in Excel.
 
+        wkb : Workbook object, default Workbook.current()
+            Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
 
         .. versionadded:: 0.4.2
         """
@@ -1904,10 +1921,6 @@ class Plot(object):
             return pic
         finally:
             os.remove(filename)
-
-
-class ShapeAlreadyExists(Exception):
-    pass
 
 
 class NamesDict(collections.MutableMapping):

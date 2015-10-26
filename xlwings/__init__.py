@@ -21,6 +21,10 @@ else:
 
 time_types = xlplatform.time_types
 
+# Errors
+class ShapeAlreadyExists(Exception):
+    pass
+
 # API
 from .main import Application, Workbook, Range, Chart, Sheet, Picture, Shape, Plot
 from .constants import *
