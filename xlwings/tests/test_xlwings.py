@@ -943,6 +943,13 @@ class TestRange:
         Range('F34').value = dt_tz
         assert_equal(Range('F34').value, dt_naive)
 
+    @raises(IndexError)
+    def test_zero_based_index1(self):
+        Range((0, 1)).value = 123
+
+    @raises(IndexError)
+    def test_zero_based_index2(self):
+        a = Range((1, 1), (1, 0)).value
 
 class TestChart:
     def setUp(self):
