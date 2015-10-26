@@ -9,9 +9,11 @@ PY3 = sys.version_info[0] == 3
 if PY3:
     string_types = str
     xrange = range
+    from builtins import map
 else:
     string_types = basestring
     xrange = xrange
+    from future_builtins import map
 
 # Platform specifics
 if sys.platform.startswith('win'):

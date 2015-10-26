@@ -1,7 +1,7 @@
 import os
 import sys
 
-# Hack to find pythoncom.dll - needed for some distribution/setups
+# Hack to find pythoncom.dll - needed for some distribution/setups (includes seemingly unused import win32api)
 # E.g. if python is started with the full path outside of the python path, then it almost certainly fails
 cwd = os.getcwd()
 if not hasattr(sys, 'frozen'):
@@ -79,8 +79,12 @@ def get_excel_hwnds():
 
     excel_hwnds = []
     for hwnd in hwnds:
-        if win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None):
-            excel_hwnds.append(hwnd)
+        try:
+            # Apparently, this fails on some systems when Excel is closed
+            if win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None):
+                excel_hwnds.append(hwnd)
+        except pywintypes.error:
+            pass
     return excel_hwnds
 
 
@@ -518,8 +522,8 @@ def add_sheet(xl_workbook, before, after):
         new_sheet_index = after.xl_sheet.Index + 1
         if new_sheet_index > count:
             xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index))
-            xl_workbook.Worksheets(xl_workbook.Worksheets.Count
-                                   ).Move(Before=xl_workbook.Sheets(xl_workbook.Worksheets.Count - 1))
+            xl_workbook.Worksheets(xl_workbook.Worksheets.Count)\
+                .Move(Before=xl_workbook.Sheets(xl_workbook.Worksheets.Count - 1))
             xl_workbook.Worksheets(xl_workbook.Worksheets.Count).Activate()
         else:
             xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index + 1))
