@@ -16,7 +16,12 @@ from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbCo
 
 
 
+
+
+
 # Mac imports
+from xlwings.main import register_format, DataFrameAccessor, ArrayAccessor
+
 if sys.platform.startswith('darwin'):
     from appscript import k as kw
     # TODO: uncomment the desired Excel installation or set to None for default installation
@@ -709,7 +714,7 @@ class TestRange:
         _skip_if_no_pandas()
 
         # MultiIndex with DatetimeIndex with timezone (Index)
-        df_expected = df_dateindex_tz.rename(columns={0:"second"}).reset_index().set_index(["index", "second"])
+        df_expected = df_dateindex_tz.rename(columns={0: "second"}).reset_index().set_index(["index", "second"])
         Range('Sheet5', 'A20').dataframe(index=True, header=True).value = df_expected
 
         df_result = Range('Sheet5', 'A20').table.dataframe(index=2, header=True, tz="Europe/Brussels").value
@@ -1049,6 +1054,34 @@ class TestRange:
         dt_tz = eastern.localize(dt_naive)
         Range('F34').value = dt_tz
         assert_equal(Range('F34').value, dt_naive)
+
+    def test_format_dataframe(self):
+        fmt_name = "my format"
+        register_format(fmt_name,
+                        DataFrameAccessor(header=2, index=3, autotable=True))
+
+        df_expected = df_multiheader_multiindex
+        Range('Sheet5', 'A252').format(fmt_name).value = df_expected
+
+        df_result = Range('Sheet5', '$A$252').format(fmt_name).value
+        assert_frame_equal(df_expected, df_result)
+
+    def test_format_array_read_write_process(self):
+        fmt_name = "my format"
+        register_format(fmt_name,
+                        ArrayAccessor(autotable=True,
+                                      on_result_read=lambda arr: arr.T,
+                                      on_result_write=lambda arr: arr.T,
+                        ))
+
+        arr_expected = df_multiheader_multiindex.values
+        Range('Sheet5', 'A352').format(fmt_name).value = arr_expected
+
+        arr_result = Range('Sheet5', '$A$352').table.format(fmt_name).value
+        assert_array_equal(arr_expected, arr_result)
+
+        assert_equal(Range('Sheet5', '$A$352').table.value,
+                     arr_expected.tolist())
 
 
 class TestChart:

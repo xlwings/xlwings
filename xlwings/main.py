@@ -9,6 +9,7 @@ All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
 """
+import copy
 import os
 import sys
 import re
@@ -18,9 +19,18 @@ import inspect
 import collections
 import warnings
 
-from . import xlplatform, string_types, time_types, xrange
 from pandas.core.base import FrozenList
+
+from . import xlplatform, string_types, time_types, xrange
 from .constants import ChartType
+
+
+
+
+
+
+
+
 
 
 
@@ -564,18 +574,57 @@ class Sheet(object):
         return "<Sheet '{0}' of Workbook '{1}'>".format(self.name, xlplatform.get_workbook_name(self.xl_workbook))
 
 
-class DataFrameAccessor(object):
-    def __init__(self, rng, header, index, tz):
-        assert pd, "You need the pandas package!"
+class Accessor(object):
+    def __init__(self,
+                 rng=None,
+                 autotable=False,
+                 on_data_write=None,
+                 on_data_read=None,
+                 on_result_write=None,
+                 on_result_read=None,
+                 index=True,
+                 header=True,
+                 tz=None,
+                 ):
         self.rng = rng
-        self.header = header
-        self.index = index
+        self.autotable = autotable
         self.tz = tz
+        self.index = index
+        self.header = header
+        self.on_data_read = on_data_read
+        self.on_data_write = on_data_write
+        self.on_result_read = on_result_read
+        self.on_result_write = on_result_write
 
+    def bind(self, rng):
+        # make a copy of the GenericAccess
+        acc = copy.copy(self)
+        # set the rng to rng
+        acc.rng = rng
+        return acc
+
+_registered_formats = {}
+
+def register_format(name, acc):
+    _registered_formats[name] = acc
+
+def unregister_format(name):
+    _registered_formats.pop(name)
+
+
+class DataFrameAccessor(Accessor):
     @property
     def value(self):
-        # get the data in 2d (make a copy of rng to avoid changing its atleast_2d flag
-        data = self.rng._get_data(atleast_2d=True)
+        if self.autotable:
+            rng = self.rng.table
+        else:
+            rng = self.rng
+
+        # get the data in 2d
+        data = rng._get_data(atleast_2d=True)
+
+        if self.on_data_read:
+            data = self.on_data_read(data)
 
         multi_header = False
 
@@ -622,12 +671,20 @@ class DataFrameAccessor(object):
             if multi_header:
                 # set name of index as value in the first row of data
                 df.index.names = [n[0] for n in df.index.names]
+
+        if self.on_result_read:
+            df = self.on_result_read(df)
+
         return df
 
     @value.setter
     def value(self, df):
         # handle dataframe by converting to Array and then using ArrayAccessor
         assert isinstance(df, pd.DataFrame), "Data should be a pandas DataFrame"
+
+        if self.on_result_write:
+            df = self.on_result_write(df)
+
         if self.index:
             df = df.reset_index(col_fill="-")
 
@@ -645,25 +702,32 @@ class DataFrameAccessor(object):
         else:
             data = df.values
 
+        if self.on_data_write:
+            data = self.on_data_write(data)
+
         self.rng.array().value = data
 
 
-class ArrayAccessor(object):
-    def __init__(self, rng):
-        self.rng = rng
+class ArrayAccessor(Accessor):
+    # def __init__(self, rng):
+    # self.rng = rng
 
     @property
     def value(self):
-        atleast_2d = self.rng.atleast_2d
-        data = self.rng._get_data(atleast_2d)
+        if self.autotable:
+            rng = self.rng.table
+        else:
+            rng = self.rng
+        atleast_2d = rng.atleast_2d
+        data = rng._get_data(atleast_2d)
 
         # replace None (empty cells) with nan as None produces arrays with dtype=object
         # TODO: easier like this: np.array(my_list, dtype=np.float)
         if data is None:
             data = np.nan
-        if (self.rng.is_column() or self.rng.is_row()) and not atleast_2d:
+        if (rng.is_column() or rng.is_row()) and not atleast_2d:
             data = [np.nan if x is None else x for x in data]
-        elif self.rng.is_table() or atleast_2d:
+        elif rng.is_table() or atleast_2d:
             data = [[np.nan if x is None else x for x in i] for i in data]
 
         # TODO: bug when mixing unicode string and float ? see issue #6550 on numpy
@@ -998,7 +1062,7 @@ class Range(object):
         -------
         DataFrameAccessor object
         """
-        return DataFrameAccessor(self, index=index, header=header, tz=tz)
+        return DataFrameAccessor(rng=self, index=index, header=header, tz=tz)
 
     def array(self):
         """
@@ -1008,7 +1072,17 @@ class Range(object):
         -------
         ArrayAccessor object
         """
-        return ArrayAccessor(self)
+        return ArrayAccessor(rng=self)
+
+    def format(self, format_name):
+        """
+        Return the Accessor corresponding to the format format_name
+
+        Returns
+        -------
+        ArrayAccessor or DataFrameAccessor object
+        """
+        return _registered_formats[format_name].bind(rng=self)
 
 
     @property
