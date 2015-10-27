@@ -27,6 +27,7 @@ if np:
 # We're only dealing with one instance of Excel on Mac
 _xl_app = None
 
+
 def set_xl_app(app_target=None):
     if app_target is None:
         app_target = 'Microsoft Excel'
@@ -50,6 +51,23 @@ def clean_up():
         except (CommandError, AttributeError):
             # Excel files initiated from Python don't have the xlwings VBA module
             pass
+
+
+def posix_to_hfs_path(posix_path):
+    """
+    Turns a posix path (/Path/file.ext) into an HFS path (Macintosh HD:Path:file.ext)
+    """
+    dir_name, file_name = os.path.split(posix_path)
+    dir_name_hfs = mactypes.Alias(dir_name).hfspath
+    return dir_name_hfs + ':' + file_name
+
+
+def hfs_to_posix_path(hfs_path):
+    """
+    Turns an HFS path (Macintosh HD:Path:file.ext) into a posix path (/Path/file.ext)
+    """
+    url = mactypes.convertpathtourl(hfs_path, 1)  # kCFURLHFSPathStyle = 1
+    return mactypes.converturltopath(url, 0)  # kCFURLPOSIXPathStyle = 0
 
 
 def is_file_open(fullname):
@@ -241,10 +259,12 @@ def clear_contents_range(xl_range):
     xl_range.clear_contents()
     _xl_app.screen_updating.set(True)
 
+
 def clear_range(xl_range):
     _xl_app.screen_updating.set(False)
     xl_range.clear_range()
     _xl_app.screen_updating.set(True)
+
 
 def get_formula(xl_range):
     return xl_range.formula.get()
@@ -307,11 +327,9 @@ def set_chart_type(xl_chart, chart_type):
     xl_chart.chart.chart_type.set(chart_type)
 
 
-def activate_chart(xl_chart):
-    """
-    activate() doesn't seem to do anything so resolving to select() for now
-    """
-    xl_chart.select()
+def activate_shape(xl_shape):
+    # xl_shape.activate_object() doesn't work
+    xl_shape.select()
 
 
 def get_column_width(xl_range):
@@ -443,15 +461,11 @@ def save_workbook(xl_workbook, path):
     elif (saved_path == '') and (path is None):
         # Previously unsaved: Save under current name in current working directory
         path = os.path.join(os.getcwd(), xl_workbook.name.get() + '.xlsx')
-        dir_name, file_name = os.path.split(path)
-        dir_name_hfs = mactypes.Alias(dir_name).hfspath  # turn into HFS path format
-        hfs_path = dir_name_hfs + ':' + file_name
+        hfs_path = posix_to_hfs_path(path)
         xl_workbook.save_workbook_as(filename=hfs_path, overwrite=True)
     elif path:
         # Save under new name/location
-        dir_name, file_name = os.path.split(path)
-        dir_name_hfs = mactypes.Alias(dir_name).hfspath  # turn into HFS path format
-        hfs_path = dir_name_hfs + ':' + file_name
+        hfs_path = posix_to_hfs_path(path)
         xl_workbook.save_workbook_as(filename=hfs_path, overwrite=True)
 
 
@@ -474,8 +488,7 @@ def get_fullname(xl_workbook):
     hfs_path = xl_workbook.properties().get(kw.full_name)
     if hfs_path == xl_workbook.properties().get(kw.name):
         return hfs_path
-    url = mactypes.convertpathtourl(hfs_path, 1)  # kCFURLHFSPathStyle = 1
-    return mactypes.converturltopath(url, 0)  # kCFURLPOSIXPathStyle = 0
+    return hfs_to_posix_path(hfs_path)
 
 
 def quit_app(xl_app):
@@ -527,3 +540,101 @@ def set_names(xl_workbook, names):
 
 def delete_name(xl_workbook, name):
     xl_workbook.named_items[name].delete()
+
+
+def get_picture(picture):
+    return picture.xl_workbook.sheets[picture.sheet_name_or_index].pictures[picture.name_or_index]
+
+
+def get_picture_index(picture):
+    # Workaround since picture.xl_picture.entry_index.get() is broken in AppleScript, returns k.missing_value
+    # Also, count(each=kw.picture) returns count of shape nevertheless
+    num_shapes = picture.xl_workbook.sheets[picture.sheet_name_or_index].count(each=kw.shape)
+    picture_index = 0
+    for i in range(1, num_shapes + 1):
+        if picture.xl_workbook.sheets[picture.sheet_name_or_index].shapes[i].shape_type.get() == kw.shape_type_picture:
+            picture_index += 1
+        if picture.xl_workbook.sheets[picture.sheet_name_or_index].shapes[i].name.get() == picture.name:
+            return picture_index
+
+
+def get_picture_name(xl_picture):
+    return xl_picture.name.get()
+
+
+def get_shape(shape):
+    return shape.xl_workbook.sheets[shape.sheet_name_or_index].shapes[shape.name_or_index]
+
+
+def get_shape_name(shape):
+    return shape.xl_shape.name.get()
+
+
+def set_shape_name(xl_workbook, sheet_name_or_index, xl_shape, value):
+    xl_workbook.sheets[sheet_name_or_index].shapes[xl_shape.name.get()].name.set(value)
+    return xl_workbook.sheets[sheet_name_or_index].shapes[value]
+
+
+def get_shapes_names(xl_workbook, sheet):
+    shapes = xl_workbook.sheets[sheet].shapes.get()
+    if shapes != kw.missing_value:
+        return [i.name.get() for i in shapes]
+    else:
+        return []
+
+
+def get_shape_left(shape):
+    return shape.xl_shape.left_position.get()
+
+
+def set_shape_left(shape, value):
+    shape.xl_shape.left_position.set(value)
+
+
+def get_shape_top(shape):
+    return shape.xl_shape.top.get()
+
+
+def set_shape_top(shape, value):
+    shape.xl_shape.top.set(value)
+
+
+def get_shape_width(shape):
+    return shape.xl_shape.width.get()
+
+
+def set_shape_width(shape, value):
+    shape.xl_shape.width.set(value)
+
+
+def get_shape_height(shape):
+    return shape.xl_shape.height.get()
+
+
+def set_shape_height(shape, value):
+    shape.xl_shape.height.set(value)
+
+
+def delete_shape(shape):
+    shape.xl_shape.delete()
+
+
+def add_picture(xl_workbook, sheet_name_or_index, filename, link_to_file, save_with_document, left, top, width, height):
+    sheet_index = xl_workbook.sheets[sheet_name_or_index].entry_index.get()
+    return xl_workbook.make(at=xl_workbook.sheets[sheet_index],
+                            new=kw.picture,
+                            with_properties={kw.file_name: posix_to_hfs_path(filename),
+                                             kw.link_to_file: link_to_file,
+                                             kw.save_with_document: save_with_document,
+                                             kw.top: top,
+                                             kw.left_position: left,
+                                             kw.width: width,
+                                             kw.height: height})
+
+
+def get_app_version_string(xl_workbook):
+    return _xl_app.version.get()
+
+
+def get_major_app_version_number(xl_workbook):
+    return int(get_app_version_string(xl_workbook).split('.')[0])
