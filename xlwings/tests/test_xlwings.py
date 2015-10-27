@@ -10,7 +10,7 @@ from datetime import datetime, date
 import pytz
 import inspect
 import nose
-from nose.tools import assert_equal, raises, assert_true, assert_not_equal
+from nose.tools import assert_equal, raises, assert_raises, assert_true, assert_not_equal
 
 from xlwings import (Application, Workbook, Sheet, Range, Chart, ChartType,
                      RgbColor, Calculation, Shape, Picture, Plot, ShapeAlreadyExists)
