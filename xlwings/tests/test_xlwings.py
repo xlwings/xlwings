@@ -19,6 +19,7 @@ from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbCo
 
 
 
+
 # Mac imports
 from xlwings.main import register_format, DataFrameAccessor, ArrayAccessor
 
@@ -1065,6 +1066,42 @@ class TestRange:
 
         df_result = Range('Sheet5', '$A$252').format(fmt_name).value
         assert_frame_equal(df_expected, df_result)
+
+    def test_format_dataframe_kwargs(self):
+        fmt_name = "my format"
+
+        def on_result_read(df, column):
+            return df[column]
+
+        register_format(fmt_name,
+                        DataFrameAccessor(header=2, index=3, autotable=True,
+                                          on_result_read=on_result_read))
+
+        df_expected = df_multiheader_multiindex
+        Range('Sheet5', 'A252').format(fmt_name).value = df_expected
+
+
+        df_result = Range('Sheet5', '$A$252').format(fmt_name, column="Foo").value
+        df_result = Range('Sheet5', '$A$252').format(fmt_name, column="Foo").value
+        assert_frame_equal(df_expected["Foo"], df_result)
+
+    @raises(TypeError)
+    def test_format_dataframe_kwargs_no_on_kwargs(self):
+        fmt_name = "my format"
+
+        def on_result_read(df, column):
+            return df[column]
+
+        register_format(fmt_name,
+                        DataFrameAccessor(header=2, index=3, autotable=True,
+                                          on_result_read=on_result_read))
+
+        df_expected = df_multiheader_multiindex
+        Range('Sheet5', 'A252').format(fmt_name).value = df_expected
+
+        # should raise TypeError as missing arguments
+        df_result = Range('Sheet5', '$A$252').format(fmt_name).value
+
 
     def test_format_array_read_write_process(self):
         fmt_name = "my format"

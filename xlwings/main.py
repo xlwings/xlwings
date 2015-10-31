@@ -36,6 +36,8 @@ from .constants import ChartType
 
 
 
+
+
 # Optional imports
 try:
     import numpy as np
@@ -585,7 +587,8 @@ class Accessor(object):
                  index=True,
                  header=True,
                  tz=None,
-                 ):
+                 on_kwargs=None,
+    ):
         self.rng = rng
         self.autotable = autotable
         self.tz = tz
@@ -595,18 +598,24 @@ class Accessor(object):
         self.on_data_write = on_data_write
         self.on_result_read = on_result_read
         self.on_result_write = on_result_write
+        self.on_kwargs = on_kwargs or {}
 
-    def bind(self, rng):
-        # make a copy of the GenericAccess
+    def bind(self, **kwargs):
+        # make a copy of the Accessor
         acc = copy.copy(self)
-        # set the rng to rng
-        acc.rng = rng
+        # set the different arguments to the new Accessor
+        for k, v in kwargs.iteritems():
+            setattr(acc, k, v)
+
         return acc
+
 
 _registered_formats = {}
 
+
 def register_format(name, acc):
     _registered_formats[name] = acc
+
 
 def unregister_format(name):
     _registered_formats.pop(name)
@@ -624,7 +633,7 @@ class DataFrameAccessor(Accessor):
         data = rng._get_data(atleast_2d=True)
 
         if self.on_data_read:
-            data = self.on_data_read(data)
+            data = self.on_data_read(data, **self.on_kwargs)
 
         multi_header = False
 
@@ -673,7 +682,7 @@ class DataFrameAccessor(Accessor):
                 df.index.names = [n[0] for n in df.index.names]
 
         if self.on_result_read:
-            df = self.on_result_read(df)
+            df = self.on_result_read(df, **self.on_kwargs)
 
         return df
 
@@ -683,7 +692,7 @@ class DataFrameAccessor(Accessor):
         assert isinstance(df, pd.DataFrame), "Data should be a pandas DataFrame"
 
         if self.on_result_write:
-            df = self.on_result_write(df)
+            df = self.on_result_write(df, **self.on_kwargs)
 
         if self.index:
             df = df.reset_index(col_fill="-")
@@ -703,7 +712,7 @@ class DataFrameAccessor(Accessor):
             data = df.values
 
         if self.on_data_write:
-            data = self.on_data_write(data)
+            data = self.on_data_write(data, **self.on_kwargs)
 
         self.rng.array().value = data
 
@@ -1074,15 +1083,16 @@ class Range(object):
         """
         return ArrayAccessor(rng=self)
 
-    def format(self, format_name):
+    def format(self, format_name, **kwargs):
         """
-        Return the Accessor corresponding to the format format_name
+        Return the Accessor corresponding to the format format_name.
+        args and kwargs will be passed to all
 
         Returns
         -------
         ArrayAccessor or DataFrameAccessor object
         """
-        return _registered_formats[format_name].bind(rng=self)
+        return _registered_formats[format_name].bind(rng=self, on_kwargs=kwargs)
 
 
     @property
