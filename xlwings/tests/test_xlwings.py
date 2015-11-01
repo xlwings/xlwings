@@ -144,6 +144,112 @@ class TestApplication:
         Range('A1').value = 2
         assert_equal(Range('B1').value, 4)
 
+    def test_enable_events(self):
+        Application(wkb=self.wb).enable_events = False
+        assert_equal(Application(wkb=self.wb).enable_events, False)
+
+        Application(wkb=self.wb).enable_events = True
+        assert_equal(Application(wkb=self.wb).enable_events, True)
+
+    def test_display_alerts(self):
+        Application(wkb=self.wb).display_alerts = False
+        assert_equal(Application(wkb=self.wb).display_alerts, False)
+
+        Application(wkb=self.wb).display_alerts = True
+        assert_equal(Application(wkb=self.wb).display_alerts, True)
+
+    def test_freeze_screen(self):
+        app = Application(wkb=self.wb)
+
+        # test each call of the freeze method
+        with app.freeze():
+            assert_equal((app.calculation,
+                          app.enable_events,
+                          app.display_alerts,
+                          app.screen_updating),
+                         (Calculation.xlCalculationAutomatic,
+                          True,
+                          True,
+                          True))
+
+        with app.freeze(calculation=True):
+            assert_equal((app.calculation,
+                          app.enable_events,
+                          app.display_alerts,
+                          app.screen_updating),
+                         (Calculation.xlCalculationManual,
+                          True,
+                          True,
+                          True))
+
+        with app.freeze(events=True):
+            assert_equal((app.calculation,
+                          app.enable_events,
+                          app.display_alerts,
+                          app.screen_updating),
+                         (Calculation.xlCalculationAutomatic,
+                          False,
+                          True,
+                          True))
+
+        with app.freeze(alerts=True):
+            assert_equal((app.calculation,
+                          app.enable_events,
+                          app.display_alerts,
+                          app.screen_updating),
+                         (Calculation.xlCalculationAutomatic,
+                          True,
+                          False,
+                          True))
+
+        with app.freeze(screen=True):
+            assert_equal((app.calculation,
+                          app.enable_events,
+                          app.display_alerts,
+                          app.screen_updating),
+                         (Calculation.xlCalculationAutomatic,
+                          True,
+                          True,
+                          False))
+
+        with app.freeze(alerts=True, calculation=True, screen=True, events=True):
+            assert_equal((app.calculation,
+                          app.enable_events,
+                          app.display_alerts,
+                          app.screen_updating),
+                         (Calculation.xlCalculationManual,
+                          False,
+                          False,
+                          False))
+
+        # verify everything when back to normal after the context managers exit
+        assert_equal((app.calculation,
+                      app.enable_events,
+                      app.display_alerts,
+                      app.screen_updating),
+                     (Calculation.xlCalculationAutomatic,
+                      True,
+                      True,
+                      True))
+
+        # check that if an exception is raised within the context manager,
+        # the flags are set back to their original properties too
+        try:
+            with app.freeze(alerts=True, calculation=True, screen=True, events=True):
+                raise Exception
+        except Exception:
+            pass
+
+        assert_equal((app.calculation,
+                      app.enable_events,
+                      app.display_alerts,
+                      app.screen_updating),
+                     (Calculation.xlCalculationAutomatic,
+                      True,
+                      True,
+                      True))
+
+
 
 class TestWorkbook:
     def setUp(self):
