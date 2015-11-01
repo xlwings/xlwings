@@ -38,6 +38,8 @@ from .constants import ChartType
 
 
 
+
+
 # Optional imports
 try:
     import numpy as np
@@ -654,7 +656,7 @@ class DataFrameAccessor(Accessor):
             if isinstance(self.index, bool):
                 df.set_index(df.columns[0], inplace=True)
                 if isinstance(df.index, pd.DatetimeIndex) and self.tz:
-                    df.index = df.index.tz_localize(tz=self.tz, ambiguous='infer')
+                    df = df.tz_localize(tz=self.tz, ambiguous='infer')
             elif isinstance(self.index, int):
                 # handle multi-index on index
                 df.set_index(list(df.columns[:self.index]), inplace=True)
@@ -718,9 +720,6 @@ class DataFrameAccessor(Accessor):
 
 
 class ArrayAccessor(Accessor):
-    # def __init__(self, rng):
-    # self.rng = rng
-
     @property
     def value(self):
         if self.autotable:
@@ -1050,9 +1049,12 @@ class Range(object):
 
         self._set_data(data)
 
-    def dataframe(self, index=True, header=True, tz=None):
+    def dataframe(self, index=True, header=True, tz=None, autotable=False,
+                  on_data_write=None, on_data_read=None, on_result_write=None, on_result_read=None,
+                  on_kwargs=None,
+    ):
         """
-        Return a DataFrameAccessor used to read/write dataframe to the range.
+        Return a DataFrameAccessor used to read/write dataframes to the range.
 
         Keyword Arguments
         -----------------
@@ -1066,22 +1068,80 @@ class Range(object):
             an integer > 0 considers a multiheader with 'header' rows/dimensions.
         tz : str, default None
             If not None, timezone to convert to if the index is a DatetimeIndex
+        autotable: boolean, default False
+            Extend the range with .table before reading data
+        on_data_write: function, default None
+            Function that should transform a list of list and return it.
+            It will be called after transforming the DataFrame to a list of list
+            and before writing this data to Excel.
+        on_data_read: function, default None
+            Function that should transform a list of list and return it.
+            It will be called after reading the data from Excel and before interpreting the
+            data into a DataFrame
+        on_result_write: function, default None
+            Function that should transform a dataframe to another dataframe and return it.
+            It will be called before transforming the DataFrame to a list of list.
+        on_result_read: function, default None
+            Function that should transform a dataframe to another dataframe and return it.
+            It will be called after transforming the range data to a DataFrame and
+            before returning it to the user.
+        on_kwargs: dict, default None
+            Optional dictionnary that will be passed as arguments to the on_XXX_YYY functions.
 
         Returns
         -------
         DataFrameAccessor object
         """
-        return DataFrameAccessor(rng=self, index=index, header=header, tz=tz)
+        return DataFrameAccessor(rng=self, index=index, header=header, tz=tz,
+                                 autotable=autotable,
+                                 on_data_write=on_data_write,
+                                 on_data_read=on_data_read,
+                                 on_result_write=on_result_write,
+                                 on_result_read=on_result_read,
+                                 on_kwargs=on_kwargs,
+        )
 
-    def array(self):
+    def array(self, autotable=False,
+              on_data_write=None, on_data_read=None, on_result_write=None, on_result_read=None,
+              on_kwargs=None,
+    ):
         """
-        Return an ArrayAccessor used to read/write numpy arrays to the range.
+        Return an ArrayAccessor used to read/write arrays to the range.
+
+        Keyword Arguments
+        -----------------
+        autotable: boolean, default False
+            Extend the range with .table before reading data
+        on_data_write: function, default None
+            Function that should transform a list of list and return it.
+            It will be called after transforming the array to a list of list
+            and before writing this data to Excel.
+        on_data_read: function, default None
+            Function that should transform a list of list and return it.
+            It will be called after reading the data from Excel and before interpreting the
+            data into an array
+        on_result_write: function, default None
+            Function that should transform an array to another array and return it.
+            It will be called before transforming the array to a list of list.
+        on_result_read: function, default None
+            Function that should transform an array to another array and return it.
+            It will be called after transforming the range data to a array and
+            before returning it to the user.
+        on_kwargs: dict, default None
+            Dictionary that will be passed as arguments to each on_XXX_YYY functions.
 
         Returns
         -------
         ArrayAccessor object
         """
-        return ArrayAccessor(rng=self)
+        return ArrayAccessor(rng=self,
+                             autotable=autotable,
+                             on_data_write=on_data_write,
+                             on_data_read=on_data_read,
+                             on_result_write=on_result_write,
+                             on_result_read=on_result_read,
+                             on_kwargs=on_kwargs,
+        )
 
     def format(self, format_name, **kwargs):
         """

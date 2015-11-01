@@ -22,5 +22,5 @@ else:
 time_types = xlplatform.time_types
 
 # API
-from .main import Application, Workbook, Range, Chart, Sheet
+from .main import Application, Workbook, Range, Chart, Sheet, register_format, unregister_format, DataFrameAccessor, ArrayAccessor
 from .constants import *
