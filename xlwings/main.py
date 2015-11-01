@@ -487,7 +487,7 @@ class Sheet(object):
         xl_workbook = Workbook.get_xl_workbook(wkb)
 
         if before is None and after is None:
-            after = Sheet(Sheet.count(), wkb=wkb)
+            after = Sheet(Sheet.count(wkb=wkb), wkb=wkb)
         elif before:
             before = Sheet(before, wkb=wkb)
         elif after:
