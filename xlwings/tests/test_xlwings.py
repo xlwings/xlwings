@@ -370,6 +370,26 @@ class TestSheet:
         # TODO: test call without args properly
         Sheet.add()
 
+    def test_add_wkb(self):
+        # test use of add with wkb argument
+
+        # Connect to an alternative test file and make Sheet1 the active sheet
+        xl_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_range_1.xlsx')
+        wb_2nd = Workbook(xl_file, app_visible=False, app_target=APP_TARGET)
+
+        n_before = [sh.name for sh in Sheet.all(wkb=wb_2nd)]
+        Sheet.add(name="default", wkb=wb_2nd)
+        Sheet.add(name="after1", after=1, wkb=wb_2nd)
+        Sheet.add(name="before1", before=1, wkb=wb_2nd)
+        n_after = [sh.name for sh in Sheet.all(wkb=wb_2nd)]
+        
+        n_before.append("default")
+        n_before.insert(1, "after1")
+        n_before.insert(0, "before1")
+        
+        assert_equal(n_before, n_after)
+        wb_2nd.close()
+
     def test_add_named(self):
         Sheet.add('test', before=1)
         assert_equal(Sheet(1).name, 'test')
