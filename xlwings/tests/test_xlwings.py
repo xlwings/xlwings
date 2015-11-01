@@ -1067,6 +1067,17 @@ class TestRange:
         df_result = Range('Sheet5', '$A$252').format(fmt_name).value
         assert_frame_equal(df_expected, df_result)
 
+    def test_format_dataframe_from_range(self):
+        fmt_name = "my format"
+        register_format(fmt_name,
+                        Range('Sheet5', 'A252').dataframe(header=2,index=3,autotable=True))
+
+        df_expected = df_multiheader_multiindex
+        Range('Sheet5', 'A252').format(fmt_name).value = df_expected
+
+        df_result = Range('Sheet5', '$A$252').format(fmt_name).value
+        assert_frame_equal(df_expected, df_result)
+
     def test_format_dataframe_kwargs(self):
         fmt_name = "my format"
 
