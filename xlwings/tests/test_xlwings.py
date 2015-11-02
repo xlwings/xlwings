@@ -10,13 +10,15 @@ from datetime import datetime, date
 import pytz
 import inspect
 import nose
-from nose.tools import assert_equal, raises, assert_true, assert_false, assert_not_equal
+from nose.tools import assert_equal, raises, assert_true, assert_false, assert_not_equal, assert_raises
 from datetime import datetime, date
-from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation
+from xlwings import (Application, Workbook, Sheet, Range, Chart, ChartType,
+                     RgbColor, Calculation, Shape, Picture, Plot, ShapeAlreadyExists,
+                     register_format, DataFrameAccessor, ArrayAccessor)
+
+this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
 
 # Mac imports
-from xlwings.main import register_format, DataFrameAccessor, ArrayAccessor
-
 if sys.platform.startswith('darwin'):
     from appscript import k as kw
     # TODO: uncomment the desired Excel installation or set to None for default installation
