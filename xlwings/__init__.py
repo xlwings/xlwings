@@ -9,9 +9,11 @@ PY3 = sys.version_info[0] == 3
 if PY3:
     string_types = str
     xrange = range
+    from builtins import map
 else:
     string_types = basestring
     xrange = xrange
+    from future_builtins import map
 
 # Platform specifics
 if sys.platform.startswith('win'):
@@ -21,6 +23,11 @@ else:
 
 time_types = xlplatform.time_types
 
+# Errors
+class ShapeAlreadyExists(Exception):
+    pass
+
 # API
-from .main import Application, Workbook, Range, Chart, Sheet, register_format, unregister_format, DataFrameAccessor, ArrayAccessor
+from .main import Application, Workbook, Range, Chart, Sheet, Picture, Shape, Plot
+from .constants import *from .main import Application, Workbook, Range, Chart, Sheet, register_format, unregister_format, DataFrameAccessor, ArrayAccessor
 from .constants import *

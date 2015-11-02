@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# TODO: clean up used workbooks
 
 from __future__ import unicode_literals
 import os
@@ -7,18 +8,11 @@ import shutil
 from datetime import datetime, date
 
 import pytz
+import inspect
 import nose
-from nose.tools import assert_equal, raises, assert_true, assert_not_equal
-
+from nose.tools import assert_equal, raises, assert_true, assert_false, assert_not_equal
+from datetime import datetime, date
 from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation
-
-
-
-
-
-
-
-
 
 # Mac imports
 from xlwings.main import register_format, DataFrameAccessor, ArrayAccessor
@@ -26,8 +20,8 @@ from xlwings.main import register_format, DataFrameAccessor, ArrayAccessor
 if sys.platform.startswith('darwin'):
     from appscript import k as kw
     # TODO: uncomment the desired Excel installation or set to None for default installation
-    APP_TARGET = None
-    # APP_TARGET = '/Applications/Microsoft Office 2011/Microsoft Excel'
+    # APP_TARGET = None
+    APP_TARGET = '/Applications/Microsoft Office 2011/Microsoft Excel'
 else:
     APP_TARGET = None
 
@@ -43,6 +37,15 @@ try:
     from pandas.util.testing import assert_frame_equal, assert_series_equal
 except ImportError:
     pd = None
+try:
+    import matplotlib
+    from matplotlib.figure import Figure
+except ImportError:
+    matplotlib = None
+try:
+    import PIL
+except ImportError:
+    PIL = None
 
 
 # Test data
@@ -83,9 +86,9 @@ if pd is not None:
 
     df_2 = pd.DataFrame([1, 3, 5, np.nan, 6, 8], columns=['col1'])
 
-    df_dateindex = pd.DataFrame(np.arange(50).reshape(10, 5) + 0.1, index=rng)
+    df_dateindex = pd.DataFrame(np.arange(50).reshape(10,5) + 0.1, index=rng)
     df_dateindex_tz = pd.DataFrame(np.arange(50).reshape(10, 5) + 0.1, index=rng_tz)
-
+    
     # MultiIndex (Index)
     tuples = list(zip(*[['bar', 'bar', 'baz', 'baz', 'foo', 'foo', 'qux', 'qux'],
                         ['one', 'two', 'one', 'two', 'one', 'two', 'one', 'two'],
@@ -125,6 +128,10 @@ def _skip_if_no_numpy():
 def _skip_if_no_pandas():
     if pd is None:
         raise nose.SkipTest('pandas missing')
+
+def _skip_if_no_matplotlib():
+    if matplotlib is None:
+        raise nose.SkipTest('matplotlib missing')
 
 
 def _skip_if_not_default_xl():
@@ -171,6 +178,10 @@ class TestApplication:
 
         Range('A1').value = 2
         assert_equal(Range('B1').value, 4)
+
+    def test_version(self):
+        app = Application(wkb=self.wb)
+        assert_true(int(app.version.split('.')[0]) > 0)
 
 
 class TestWorkbook:
@@ -375,6 +386,26 @@ class TestSheet:
     def test_add_default(self):
         # TODO: test call without args properly
         Sheet.add()
+
+    def test_add_wkb(self):
+        # test use of add with wkb argument
+
+        # Connect to an alternative test file and make Sheet1 the active sheet
+        xl_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_range_1.xlsx')
+        wb_2nd = Workbook(xl_file, app_visible=False, app_target=APP_TARGET)
+
+        n_before = [sh.name for sh in Sheet.all(wkb=wb_2nd)]
+        Sheet.add(name="default", wkb=wb_2nd)
+        Sheet.add(name="after1", after=1, wkb=wb_2nd)
+        Sheet.add(name="before1", before=1, wkb=wb_2nd)
+        n_after = [sh.name for sh in Sheet.all(wkb=wb_2nd)]
+        
+        n_before.append("default")
+        n_before.insert(1, "after1")
+        n_before.insert(0, "before1")
+        
+        assert_equal(n_before, n_after)
+        wb_2nd.close()
 
     def test_add_named(self):
         Sheet.add('test', before=1)
@@ -967,10 +998,14 @@ class TestRange:
         Range('A20').value = [[1., 2.], [3., 4.]]
         l = []
 
-        for i in Range('A20:B21'):
+        r = Range('A20:B21')
+        for i in r:
             l.append(i.value)
 
         assert_equal(l, [1., 2., 3., 4.])
+
+        # check that reiterating on same range functions properly
+        assert_equal([c.value for c in r], [1., 2., 3., 4.])
 
         Range('Sheet2', 'A20').value = [[1., 2.], [3., 4.]]
         l = []
@@ -988,7 +1023,16 @@ class TestRange:
         assert_equal(r.shape, (4, 1))
 
         r = Range('A1:B4').resize(column_size=5)
-        assert_equal(r.shape, (1, 5))
+        assert_equal(r.shape, (4, 5))
+
+        r = Range('A1:B4').resize(row_size=5)
+        assert_equal(r.shape, (5, 2))
+
+        r = Range('A1:B4').resize()
+        assert_equal(r.shape, (4, 2))
+
+        assert_raises(AssertionError, Range('A1:B4').resize, row_size=0)
+        assert_raises(AssertionError, Range('A1:B4').resize, column_size=0)
 
     def test_offset(self):
         o = Range('A1:B3').offset(3, 4)
@@ -1055,6 +1099,15 @@ class TestRange:
         dt_tz = eastern.localize(dt_naive)
         Range('F34').value = dt_tz
         assert_equal(Range('F34').value, dt_naive)
+
+    @raises(IndexError)
+    def test_zero_based_index1(self):
+        Range((0, 1)).value = 123
+
+    @raises(IndexError)
+    def test_zero_based_index2(self):
+        a = Range((1, 1), (1, 0)).value
+
 
     def test_format_dataframe(self):
         fmt_name = "my format"
@@ -1130,6 +1183,110 @@ class TestRange:
 
         assert_equal(Range('Sheet5', '$A$352').table.value,
                      arr_expected.tolist())
+
+class TestPicture:
+    def setUp(self):
+        # Connect to test file and make Sheet1 the active sheet
+        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_chart_1.xlsx')
+        self.wb = Workbook(xl_file1, app_visible=False, app_target=APP_TARGET)
+        Sheet('Sheet1').activate()
+
+    def tearDown(self):
+        class_teardown(self.wb)
+
+    def test_two_wkb(self):
+        wb2 = Workbook(app_visible=False, app_target=APP_TARGET)
+        pic1 = Picture.add(sheet=1, name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        pic2 = Picture.add(sheet=1, name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'), wkb=self.wb)
+        assert_equal(pic1.name, 'pic1')
+        assert_equal(pic2.name, 'pic1')
+        wb2.close()
+
+    def test_name(self):
+        pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        assert_equal(pic.name, 'pic1')
+
+        pic.name = 'pic_new'
+        assert_equal(pic.name, 'pic_new')
+
+    def test_left(self):
+        pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        assert_equal(pic.left, 0)
+
+        pic.left = 20
+        assert_equal(pic.left, 20)
+
+    def test_top(self):
+        pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        assert_equal(pic.left, 0)
+
+        pic.top = 20
+        assert_equal(pic.top, 20)
+
+    def test_width(self):
+        pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        if PIL:
+            assert_equal(pic.width, 60)
+        else:
+            assert_equal(pic.width, 100)
+
+        pic.width = 50
+        assert_equal(pic.width, 50)
+
+    def test_picture_object(self):
+        pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        assert_equal(pic.name, Picture('pic1').name)
+
+    def test_height(self):
+        pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        if PIL:
+            assert_equal(pic.height, 60)
+        else:
+            assert_equal(pic.height, 100)
+
+        pic.height = 50
+        assert_equal(pic.height, 50)
+
+    @raises(Exception)
+    def test_delete(self):
+        pic = Picture.add(name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
+        pic.delete()
+        pic.name
+
+    @raises(ShapeAlreadyExists)
+    def test_duplicate(self):
+        pic1 = Picture.add(os.path.join(this_dir, 'sample_picture.png'), name='pic1')
+        pic2 = Picture.add(os.path.join(this_dir, 'sample_picture.png'), name='pic1')
+
+    def test_picture_update(self):
+        pic1 = Picture.add(os.path.join(this_dir, 'sample_picture.png'), name='pic1')
+        pic1.update(os.path.join(this_dir, 'sample_picture.png'))
+
+
+class TestPlot:
+    def setUp(self):
+        # Connect to test file and make Sheet1 the active sheet
+        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_chart_1.xlsx')
+        self.wb = Workbook(xl_file1, app_visible=False, app_target=APP_TARGET)
+        Sheet('Sheet1').activate()
+
+    def tearDown(self):
+        class_teardown(self.wb)
+
+    def test_add_plot(self):
+        _skip_if_no_matplotlib()
+
+        fig = Figure(figsize=(8, 6))
+        ax = fig.add_subplot(111)
+        ax.plot([1, 2, 3, 4, 5])
+
+        plot = Plot(fig)
+        pic = plot.show('Plot1')
+        assert_equal(pic.name, 'Plot1')
+
+        plot.show('Plot2', sheet=2)
+        pic2 = Picture(2, 'Plot2')
+        assert_equal(pic2.name, 'Plot2')
 
 
 class TestChart:
