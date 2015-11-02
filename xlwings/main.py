@@ -16,8 +16,10 @@ import numbers
 import itertools
 import inspect
 import collections
+import tempfile
+import shutil
 
-from . import xlplatform, string_types, time_types, xrange, map
+from . import xlplatform, string_types, time_types, xrange, map, ShapeAlreadyExists
 from .constants import ChartType
 
 
@@ -26,10 +28,21 @@ try:
     import numpy as np
 except ImportError:
     np = None
+
 try:
     import pandas as pd
 except ImportError:
     pd = None
+
+try:
+    from matplotlib.backends.backend_agg import FigureCanvas
+except ImportError:
+    FigureCanvas = None
+
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 
 
 class Application(object):
@@ -40,6 +53,15 @@ class Application(object):
     def __init__(self, wkb):
         self.wkb = wkb
         self.xl_app = wkb.xl_app
+
+    @property
+    def version(self):
+        """
+        Returns Excel's version string.
+
+        .. versionadded:: 0.4.2
+        """
+        return xlplatform.get_app_version_string(self.wkb.xl_workbook)
 
     def quit(self):
         """
@@ -491,7 +513,7 @@ class Sheet(object):
         xl_workbook = Workbook.get_xl_workbook(wkb)
 
         if before is None and after is None:
-            after = Sheet(Sheet.count())
+            after = Sheet(Sheet.count(wkb=wkb), wkb=wkb)
         elif before:
             before = Sheet(before, wkb=wkb)
         elif after:
@@ -569,8 +591,12 @@ class Range(object):
         Range((1,1), (3,3))  Range('Sheet1', (1,1), (3,3))  Range(1, (1,1), (3,3))
         Range('NamedRange')  Range('Sheet1', 'NamedRange')  Range(1, 'NamedRange')
 
-    If no worksheet name is provided as first argument (as name or index),
-    it will take the Range from the active sheet.
+    The Sheet can also be provided as Sheet object::
+
+        sh = Sheet(1)
+        Range(sh, 'A1')
+
+    If no worksheet name is provided as first argument, it will take the Range from the active sheet.
 
     You usually want to go for ``Range(...).value`` to get the values (as list of lists).
 
@@ -675,6 +701,8 @@ class Range(object):
             self.row2 = self.row1 + xlplatform.count_rows(self.xl_sheet, range_address) - 1
             self.col2 = self.col1 + xlplatform.count_columns(self.xl_sheet, range_address) - 1
 
+        if 0 in (self.row1, self.col1, self.row2, self.col2):
+            raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
         self.xl_range = xlplatform.get_range_from_indices(self.xl_sheet, self.row1, self.col1, self.row2, self.col2)
 
     def __iter__(self):
@@ -1407,15 +1435,112 @@ class Range(object):
         xlplatform.set_named_range(self, value)
 
 
-class Chart(object):
+class Shape(object):
     """
-    A Chart object that represents an existing Excel chart can be created with the following arguments::
+    A Shape object represents an existing Excel shape and can be created with the following arguments::
+
+        Shape(1)            Shape('Sheet1', 1)              Shape(1, 1)
+        Shape('Shape 1')    Shape('Sheet1', 'Shape 1')      Shape(1, 'Shape 1')
+
+    The Sheet can also be provided as Sheet object::
+
+        sh = Sheet(1)
+        Shape(sh, 'Shape 1')
+
+    If no Worksheet is provided as first argument, it will take the Shape from the active Sheet.
+
+    Arguments
+    ---------
+    *args
+        Definition of Sheet (optional) and shape in the above described combinations.
+
+    Keyword Arguments
+    -----------------
+    wkb : Workbook object, default Workbook.current()
+        Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
+
+    .. versionadded:: 0.4.2
+    """
+    def __init__(self, *args, **kwargs):
+        # Use current Workbook if none provided
+        self.wkb = kwargs.get('wkb', None)
+        self.xl_workbook = Workbook.get_xl_workbook(self.wkb)
+
+        # Arguments
+        if len(args) == 1:
+            self.sheet_name_or_index = xlplatform.get_worksheet_name(xlplatform.get_active_sheet(self.xl_workbook))
+            self.name_or_index = args[0]
+        elif len(args) == 2:
+            if isinstance(args[0], Sheet):
+                self.sheet_name_or_index = args[0].index
+            else:
+                self.sheet_name_or_index = args[0]
+            self.name_or_index = args[1]
+
+        self.xl_shape = xlplatform.get_shape(self)
+        self.name = xlplatform.get_shape_name(self)
+
+    @property
+    def name(self):
+        return xlplatform.get_shape_name(self)
+
+    @name.setter
+    def name(self, value):
+        self.xl_shape = xlplatform.set_shape_name(self.xl_workbook, self.sheet_name_or_index, self.xl_shape, value)
+
+    @property
+    def left(self):
+        return xlplatform.get_shape_left(self)
+
+    @left.setter
+    def left(self, value):
+        xlplatform.set_shape_left(self, value)
+
+    @property
+    def top(self):
+        return xlplatform.get_shape_top(self)
+
+    @top.setter
+    def top(self, value):
+        xlplatform.set_shape_top(self, value)
+
+    @property
+    def width(self):
+        return xlplatform.get_shape_width(self)
+
+    @width.setter
+    def width(self, value):
+        xlplatform.set_shape_width(self, value)
+
+    @property
+    def height(self):
+        return xlplatform.get_shape_height(self)
+
+    @height.setter
+    def height(self, value):
+        xlplatform.set_shape_height(self, value)
+
+    def delete(self):
+        xlplatform.delete_shape(self)
+
+    def activate(self):
+        xlplatform.activate_shape(self.xl_shape)
+
+
+class Chart(Shape):
+    """
+    A Chart object represents an existing Excel chart and can be created with the following arguments::
 
         Chart(1)            Chart('Sheet1', 1)              Chart(1, 1)
         Chart('Chart 1')    Chart('Sheet1', 'Chart 1')      Chart(1, 'Chart 1')
 
-    If no Worksheet is provided as first argument (as name or index),
-    it will take the Chart from the active Sheet.
+    The Sheet can also be provided as Sheet object::
+
+        sh = Sheet(1)
+        Chart(sh, 'Chart 1')
+
+    If no Worksheet is provided as first argument, it will take the Chart from the active Sheet.
 
     To insert a new Chart into Excel, create it as follows::
 
@@ -1444,23 +1569,11 @@ class Chart(object):
     """
 
     def __init__(self, *args, **kwargs):
-        # TODO: this should be doable without *args and **kwargs - same for .add()
-        # Use current Workbook if none provided
-        wkb = kwargs.get('wkb', None)
-        self.xl_workbook = Workbook.get_xl_workbook(wkb)
-
-        # Arguments
-        if len(args) == 1:
-            self.sheet_name_or_index = xlplatform.get_worksheet_name(xlplatform.get_active_sheet(self.xl_workbook))
-            self.name_or_index = args[0]
-        elif len(args) == 2:
-            self.sheet_name_or_index = args[0]
-            self.name_or_index = args[1]
+        super(Chart, self).__init__(*args, **kwargs)
 
         # Get xl_chart object
         self.xl_chart = xlplatform.get_chart_object(self.xl_workbook, self.sheet_name_or_index, self.name_or_index)
         self.index = xlplatform.get_chart_index(self.xl_chart)
-        self.name = xlplatform.get_chart_name(self.xl_chart)
 
         # Chart Type
         chart_type = kwargs.get('chart_type')
@@ -1473,19 +1586,19 @@ class Chart(object):
             self.set_source_data(source_data)
 
     @classmethod
-    def add(cls, sheet=None, left=168, top=217, width=355, height=211, **kwargs):
+    def add(cls, sheet=None, left=0, top=0, width=355, height=211, **kwargs):
         """
-        Inserts a new Chart in Excel.
+        Inserts a new Chart into Excel.
 
         Arguments
         ---------
-        sheet : string or integer, default None
-            Name or index of the Sheet, defaults to the active Sheet
+        sheet : str or int or xlwings.Sheet, default None
+            Name or index of the Sheet or Sheet object, defaults to the active Sheet
 
-        left : float, default 100
+        left : float, default 0
             left position in points
 
-        top : float, default 75
+        top : float, default 0
             top position in points
 
         width : float, default 375
@@ -1515,6 +1628,8 @@ class Chart(object):
         name = kwargs.get('name')
         source_data = kwargs.get('source_data')
 
+        if isinstance(sheet, Sheet):
+                sheet = sheet.index
         if sheet is None:
             sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
 
@@ -1528,17 +1643,6 @@ class Chart(object):
         return cls(sheet, name, wkb=wkb, chart_type=chart_type, source_data=source_data)
 
     @property
-    def name(self):
-        """
-        Gets and sets the name of a chart.
-        """
-        return xlplatform.get_chart_name(self.xl_chart)
-
-    @name.setter
-    def name(self, value):
-        xlplatform.set_chart_name(self.xl_chart, value)
-
-    @property
     def chart_type(self):
         """
         Gets and sets the chart type of a chart.
@@ -1550,12 +1654,6 @@ class Chart(object):
     @chart_type.setter
     def chart_type(self, value):
         xlplatform.set_chart_type(self.xl_chart, value)
-
-    def activate(self):
-        """
-        Makes the chart the active chart.
-        """
-        xlplatform.activate_chart(self.xl_chart)
 
     def set_source_data(self, source):
         """
@@ -1572,6 +1670,266 @@ class Chart(object):
         return "<Chart '{0}' on Sheet '{1}' of Workbook '{2}'>".format(self.name,
                                                                        Sheet(self.sheet_name_or_index).name,
                                                                        xlplatform.get_workbook_name(self.xl_workbook))
+
+
+class Picture(Shape):
+    """
+    A Picture object represents an existing Excel Picture and can be created with the following arguments::
+
+        Picture(1)              Picture('Sheet1', 1)                Picture(1, 1)
+        Picture('Picture 1')    Picture('Sheet1', 'Picture 1')      Picture(1, 'Picture 1')
+
+    The Sheet can also be provided as Sheet object::
+
+        sh = Sheet(1)
+        Shape(sh, 'Picture 1')
+
+    If no Worksheet is provided as first argument, it will take the Picture from the active Sheet.
+
+    Arguments
+    ---------
+    *args
+        Definition of Sheet (optional) and picture in the above described combinations.
+
+    Keyword Arguments
+    -----------------
+    wkb : Workbook object, default Workbook.current()
+        Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
+
+    .. versionadded:: 0.4.2
+    """
+    def __init__(self, *args, **kwargs):
+        super(Picture, self).__init__(*args, **kwargs)
+        self.xl_picture = xlplatform.get_picture(self)
+        self.index = xlplatform.get_picture_index(self)
+
+    @classmethod
+    def add(cls, filename, sheet=None, name=None, link_to_file=False, save_with_document=True,
+            left=0, top=0, width=None, height=None, wkb=None):
+        """
+        Inserts a picture into Excel.
+
+        Arguments
+        ---------
+
+        filename : str
+            The full path to the file.
+
+        Keyword Arguments
+        -----------------
+        sheet : str or int or xlwings.Sheet, default None
+            Name or index of the Sheet or ``xlwings.Sheet`` object, defaults to the active Sheet
+
+        name : str, default None
+            Excel picture name. Defaults to Excel standard name if not provided, e.g. 'Picture 1'
+
+        left : float, default 0
+            Left position in points.
+
+        top : float, default 0
+            Top position in points.
+
+        width : float, default None
+            Width in points. If PIL/Pillow is installed, it defaults to the width of the picture.
+            Otherwise it defaults to 100 points.
+
+        height : float, default None
+            Height in points. If PIL/Pillow is installed, it defaults to the height of the picture.
+            Otherwise it defaults to 100 points.
+
+        wkb : Workbook object, default Workbook.current()
+            Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
+
+        .. versionadded:: 0.4.2
+        """
+
+        xl_workbook = Workbook.get_xl_workbook(wkb)
+
+        if isinstance(sheet, Sheet):
+                sheet = sheet.index
+        if sheet is None:
+            sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
+
+        if name:
+            if name in xlplatform.get_shapes_names(xl_workbook, sheet):
+                raise ShapeAlreadyExists('A shape with this name already exists.')
+
+        if sys.platform.startswith('darwin') and xlplatform.get_major_app_version_number(xl_workbook) >= 15:
+            # Office 2016 for Mac is sandboxed. This path seems to work without the need of granting access explicitly
+            xlwings_picture = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/xlwings_picture.png'
+            shutil.copy2(filename, xlwings_picture)
+            filename = xlwings_picture
+
+        # Image dimensions
+        im_width, im_height = None, None
+        if width is None or height is None:
+            if Image:
+                im = Image.open(filename)
+                im_width, im_height = im.size
+
+        if width is None:
+            if im_width is not None:
+                width = im_width
+            else:
+                width = 100
+
+        if height is None:
+            if im_height is not None:
+                height = im_height
+            else:
+                height = 100
+
+        xl_picture = xlplatform.add_picture(xl_workbook, sheet, filename, link_to_file, save_with_document,
+                                            left, top, width, height)
+
+        if sys.platform.startswith('darwin') and xlplatform.get_major_app_version_number(xl_workbook) >= 15:
+            os.remove(xlwings_picture)
+
+        if name is None:
+            name = xlplatform.get_picture_name(xl_picture)
+        else:
+            xlplatform.set_shape_name(xl_workbook, sheet, xl_picture, name)
+
+        return cls(sheet, name, wkb=wkb)
+
+    def update(self, filename):
+        """
+        Replaces an existing picture with a new one, taking over the attributes of the existing picture.
+
+        Arguments
+        ---------
+
+        filename : str
+            Path to the picture.
+
+
+        .. versionadded:: 0.4.2
+        """
+        wkb = self.wkb
+        name = self.name
+        left, top, width, height = self.left, self.top, self.width, self.height
+        sheet_name_or_index = self.sheet_name_or_index
+        xlplatform.delete_shape(self)
+        # TODO: link_to_file, save_with_document
+        Picture.add(filename, sheet=sheet_name_or_index, left=left, top=top, width=width, height=height,
+                    name=name, wkb=wkb)
+
+
+class Plot(object):
+    """
+    Plot allows to easily display Matplotlib figures as pictures in Excel.
+
+    Arguments
+    ---------
+    figure : matplotlib.figure.Figure
+        Matplotlib figure
+
+    Example
+    -------
+    Get a matplotlib ``figure`` object:
+
+    * via PyPlot interface::
+
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        plt.plot([1, 2, 3, 4, 5])
+
+    * via object oriented interface::
+
+        from matplotlib.figure import Figure
+        fig = Figure(figsize=(8, 6))
+        ax = fig.add_subplot(111)
+        ax.plot([1, 2, 3, 4, 5])
+
+    * via Pandas::
+
+        import pandas as pd
+        import numpy as np
+
+        df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
+        ax = df.plot(kind='bar')
+        fig = ax.get_figure()
+
+    Then show it in Excel as picture::
+
+        plot = Plot(fig)
+        plot.show('Plot1')
+
+
+    .. versionadded:: 0.4.2
+    """
+    def __init__(self, figure):
+        self.figure = figure
+
+    def show(self, name, sheet=None, left=0, top=0, width=None, height=None, wkb=None):
+        """
+        Inserts the matplotlib figure as picture into Excel if a picture with that name doesn't exist yet.
+        Otherwise it replaces the picture, taking over it's position and size.
+
+        Arguments
+        ---------
+
+        name : str
+            Name of the picture in Excel
+
+        Keyword Arguments
+        -----------------
+        sheet : str or int or xlwings.Sheet, default None
+            Name or index of the Sheet or ``xlwings.Sheet`` object, defaults to the active Sheet
+
+        left : float, default 0
+            Left position in points. Only has an effect if the picture doesn't exist yet in Excel.
+
+        top : float, default 0
+            Top position in points. Only has an effect if the picture doesn't exist yet in Excel.
+
+        width : float, default None
+            Width in points, defaults to the width of the matplotlib figure.
+            Only has an effect if the picture doesn't exist yet in Excel.
+
+        height : float, default None
+            Height in points, defaults to the height of the matplotlib figure.
+            Only has an effect if the picture doesn't exist yet in Excel.
+
+        wkb : Workbook object, default Workbook.current()
+            Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
+        .. versionadded:: 0.4.2
+        """
+        xl_workbook = Workbook.get_xl_workbook(wkb)
+
+        if isinstance(sheet, Sheet):
+                sheet = sheet.index
+        if sheet is None:
+            sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
+
+        if sys.platform.startswith('darwin') and xlplatform.get_major_app_version_number(xl_workbook) >= 15:
+            # Office 2016 for Mac is sandboxed. This path seems to work without the need of granting access explicitly
+            filename = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/xlwings_plot.png'
+        else:
+            temp_dir = os.path.realpath(tempfile.gettempdir())
+            filename = os.path.join(temp_dir, 'xlwings_plot.png')
+        canvas = FigureCanvas(self.figure)
+        canvas.draw()
+        self.figure.savefig(filename, format='png', bbox_inches='tight')
+
+        if width is None:
+            width = self.figure.bbox.bounds[2:][0]
+
+        if height is None:
+            height = self.figure.bbox.bounds[2:][1]
+
+        try:
+            return Picture.add(sheet=sheet, filename=filename, left=left, top=top, width=width,
+                               height=height, name=name, wkb=wkb)
+        except ShapeAlreadyExists:
+            pic = Picture(sheet, name, wkb=wkb)
+            pic.update(filename)
+            return pic
+        finally:
+            os.remove(filename)
 
 
 class NamesDict(collections.MutableMapping):

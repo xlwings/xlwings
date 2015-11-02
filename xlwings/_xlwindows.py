@@ -644,3 +644,90 @@ def set_names(xl_workbook, names):
 
 def delete_name(xl_workbook, name):
     xl_workbook.Names(name).Delete()
+
+
+def get_picture(picture):
+    return picture.xl_workbook.Sheets(picture.sheet_name_or_index).Pictures(picture.name_or_index)
+
+
+def get_picture_index(picture):
+    return picture.xl_picture.Index
+
+
+def get_picture_name(xl_picture):
+    return xl_picture.Name
+
+
+def get_shape(shape):
+    return shape.xl_workbook.Sheets(shape.sheet_name_or_index).Shapes(shape.name_or_index)
+
+
+def get_shape_name(shape):
+    return shape.xl_shape.Name
+
+
+def set_shape_name(xl_workbook, sheet_name_or_index, xl_shape, value):
+    xl_workbook.Sheets(sheet_name_or_index).Shapes(xl_shape.Name).Name = value
+    return xl_workbook.Sheets(sheet_name_or_index).Shapes(value)
+
+
+def get_shapes_names(xl_workbook, sheet):
+    shapes = xl_workbook.Sheets(sheet).Shapes
+    if shapes is not None:
+        return [i.Name for i in shapes]
+    else:
+        return []
+
+
+def get_shape_left(shape):
+    return shape.xl_shape.Left
+
+
+def set_shape_left(shape, value):
+    shape.xl_shape.Left = value
+
+
+def get_shape_top(shape):
+    return shape.xl_shape.Top
+
+
+def set_shape_top(shape, value):
+    shape.xl_shape.Top = value
+
+
+def get_shape_width(shape):
+    return shape.xl_shape.Width
+
+
+def set_shape_width(shape, value):
+    shape.xl_shape.Width = value
+
+
+def get_shape_height(shape):
+    return shape.xl_shape.Height
+
+
+def set_shape_height(shape, value):
+    shape.xl_shape.Height = value
+
+
+def delete_shape(shape):
+    shape.xl_shape.Delete()
+
+
+def add_picture(xl_workbook, sheet_name_or_index, filename, link_to_file, save_with_document, left, top, width, height):
+    return xl_workbook.Sheets(sheet_name_or_index).Shapes.AddPicture(Filename=filename,
+                                                                     LinkToFile=link_to_file,
+                                                                     SaveWithDocument=save_with_document,
+                                                                     Left=left,
+                                                                     Top=top,
+                                                                     Width=width,
+                                                                     Height=height)
+
+
+def get_app_version_string(xl_workbook):
+    return xl_workbook.Application.Version
+
+
+def get_major_app_version_number(xl_workbook):
+    return int(get_app_version_string(xl_workbook).split('.')[0])
