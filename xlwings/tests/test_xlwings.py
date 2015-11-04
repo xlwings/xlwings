@@ -720,7 +720,6 @@ class TestRange:
         assert_frame_equal(df_expected, df_result)
 
     def test_accessor_dataframe_2(self):
-        """ Covers GH Issue #31"""
         _skip_if_no_pandas()
 
         df_expected = df_2
@@ -798,6 +797,37 @@ class TestRange:
         df_result = Range('Sheet5', 'A100').table.dataframe(index=True, header=True, tz="Europe/Brussels").value
         df_result.index.name = None
         assert_frame_equal(df_expected, df_result)
+
+    def test_accessor_array_1(self):
+        _skip_if_no_numpy()
+
+        arr_expected = np.random.rand(4,4)
+        Range('Sheet6', 'A1').array().value = arr_expected
+
+        arr_result = Range('Sheet6', 'A1').table.array().value
+        assert_array_equal(arr_expected, arr_result)
+
+    def test_accessor_array_horizontal(self):
+        _skip_if_no_numpy()
+
+        arr_expected = np.random.rand(4,4)
+        Range('Sheet6', 'A1').array(horizontal=True).value = arr_expected
+
+        arr_result = Range('Sheet6', 'A1').horizontal.array().value
+        assert_array_equal(arr_expected.flatten(), arr_result)
+
+    def test_accessor_array_vertical(self):
+        _skip_if_no_numpy()
+
+        arr_expected = np.random.rand(4,4)
+        Range('Sheet6', 'A1').array(vertical=True).value = arr_expected
+
+        arr_result = Range('Sheet6', 'A1').vertical.array().value
+        assert_array_equal(arr_expected.flatten(), arr_result)
+
+    @raises(ValueError)
+    def test_accessor_array_horizontal_vertical(self):
+        Range('Sheet6', 'A1').array(vertical=True, horizontal=True)
 
     def test_series_1(self):
         _skip_if_no_pandas()

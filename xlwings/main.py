@@ -19,14 +19,14 @@ import inspect
 import collections
 import tempfile
 import shutil
-
-from . import xlplatform, string_types, time_types, xrange, map, ShapeAlreadyExists
 import warnings
 
 from pandas.core.base import FrozenList
 
+from . import map, ShapeAlreadyExists
 from . import xlplatform, string_types, time_types, xrange
 from .constants import ChartType
+
 
 # Optional imports
 try:
@@ -590,6 +590,8 @@ class Accessor(object):
     def __init__(self,
                  rng=None,
                  autotable=False,
+                 vertical=False,
+                 horizontal=False,
                  on_data_write=None,
                  on_data_read=None,
                  on_result_write=None,
@@ -599,8 +601,13 @@ class Accessor(object):
                  tz=None,
                  on_kwargs=None,
     ):
+        if vertical and horizontal:
+            raise ValueError("Arguments 'vertical' and 'horizontal' cannot be both True")
+
         self.rng = rng
         self.autotable = autotable
+        self.horizontal = horizontal
+        self.vertical = vertical
         self.tz = tz
         self.index = index
         self.header = header
@@ -751,6 +758,12 @@ class ArrayAccessor(Accessor):
 
     @value.setter
     def value(self, data):
+        if self.vertical:
+            data = data.reshape((-1,1))
+        elif self.horizontal:
+            data = data.reshape((1,-1))
+
+
         try:
             data = np.where(np.isnan(data), None, data)
             data = data.tolist()
@@ -1108,6 +1121,7 @@ class Range(object):
         )
 
     def array(self, autotable=False,
+              vertical=False, horizontal=False,
               on_data_write=None, on_data_read=None, on_result_write=None, on_result_read=None,
               on_kwargs=None,
     ):
@@ -1118,6 +1132,10 @@ class Range(object):
         -----------------
         autotable: boolean, default False
             Extend the range with .table before reading data
+        horizontal: boolean, default False
+            When writing the array, write it on a single row (if the array is 2D, it will be flattened)
+        vertical: boolean, default False
+            When writing the array, write it on a single column (if the array is 2D, it will be flattened)
         on_data_write: function, default None
             Function that should transform a list of list and return it.
             It will be called after transforming the array to a list of list
@@ -1142,6 +1160,8 @@ class Range(object):
         """
         return ArrayAccessor(rng=self,
                              autotable=autotable,
+                             vertical=vertical,
+                             horizontal=horizontal,
                              on_data_write=on_data_write,
                              on_data_read=on_data_read,
                              on_result_write=on_result_write,
@@ -1733,6 +1753,7 @@ class Shape(object):
 
     .. versionadded:: 0.4.2
     """
+
     def __init__(self, *args, **kwargs):
         # Use current Workbook if none provided
         self.wkb = kwargs.get('wkb', None)
@@ -1900,7 +1921,7 @@ class Chart(Shape):
         source_data = kwargs.get('source_data')
 
         if isinstance(sheet, Sheet):
-                sheet = sheet.index
+            sheet = sheet.index
         if sheet is None:
             sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
 
@@ -1970,6 +1991,7 @@ class Picture(Shape):
 
     .. versionadded:: 0.4.2
     """
+
     def __init__(self, *args, **kwargs):
         super(Picture, self).__init__(*args, **kwargs)
         self.xl_picture = xlplatform.get_picture(self)
@@ -2019,7 +2041,7 @@ class Picture(Shape):
         xl_workbook = Workbook.get_xl_workbook(wkb)
 
         if isinstance(sheet, Sheet):
-                sheet = sheet.index
+            sheet = sheet.index
         if sheet is None:
             sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
 
@@ -2131,6 +2153,7 @@ class Plot(object):
 
     .. versionadded:: 0.4.2
     """
+
     def __init__(self, figure):
         self.figure = figure
 
@@ -2172,7 +2195,7 @@ class Plot(object):
         xl_workbook = Workbook.get_xl_workbook(wkb)
 
         if isinstance(sheet, Sheet):
-                sheet = sheet.index
+            sheet = sheet.index
         if sheet is None:
             sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
 
