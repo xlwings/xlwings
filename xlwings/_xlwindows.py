@@ -94,6 +94,7 @@ def get_xl_apps():
     for hwnd in hwnds:
         try:
             xl_app = get_xl_app_from_hwnd(hwnd)
+            xl_apps.append(xl_app)
         except WindowsError:
             # This happens if the bare Excel Application is open without Workbook
             # i.e. there is no 'EXCEL7' child hwnd that would be necessary to make a connection
@@ -601,7 +602,6 @@ def get_fullname(xl_workbook):
 def quit_app(xl_app):
     xl_app.DisplayAlerts = False
     xl_app.Quit()
-    xl_app.DisplayAlerts = True
 
 
 def get_screen_updating(xl_app):
