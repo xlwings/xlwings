@@ -621,7 +621,7 @@ class Accessor(object):
         # make a copy of the Accessor
         acc = copy.copy(self)
         # set the different arguments to the new Accessor
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             setattr(acc, k, v)
 
         return acc
