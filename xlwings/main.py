@@ -59,7 +59,7 @@ class Application(object):
         """
         Returns Excel's version string.
 
-        .. versionadded:: 0.4.2
+        .. versionadded:: 0.5.0
         """
         return xlplatform.get_app_version_string(self.wkb.xl_workbook)
 
@@ -583,7 +583,7 @@ class Sheet(object):
 
 class Range(object):
     """
-    A Range object can be created with the following arguments::
+    A Range object can be instantiated with the following arguments::
 
         Range('A1')          Range('Sheet1', 'A1')          Range(1, 'A1')
         Range('A1:C3')       Range('Sheet1', 'A1:C3')       Range(1, 'A1:C3')
@@ -1437,7 +1437,7 @@ class Range(object):
 
 class Shape(object):
     """
-    A Shape object represents an existing Excel shape and can be created with the following arguments::
+    A Shape object represents an existing Excel shape and can be instantiated with the following arguments::
 
         Shape(1)            Shape('Sheet1', 1)              Shape(1, 1)
         Shape('Shape 1')    Shape('Sheet1', 'Shape 1')      Shape(1, 'Shape 1')
@@ -1460,7 +1460,7 @@ class Shape(object):
         Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
 
 
-    .. versionadded:: 0.4.2
+    .. versionadded:: 0.5.0
     """
     def __init__(self, *args, **kwargs):
         # Use current Workbook if none provided
@@ -1530,7 +1530,7 @@ class Shape(object):
 
 class Chart(Shape):
     """
-    A Chart object represents an existing Excel chart and can be created with the following arguments::
+    A Chart object represents an existing Excel chart and can be instantiated with the following arguments::
 
         Chart(1)            Chart('Sheet1', 1)              Chart(1, 1)
         Chart('Chart 1')    Chart('Sheet1', 'Chart 1')      Chart(1, 'Chart 1')
@@ -1674,7 +1674,7 @@ class Chart(Shape):
 
 class Picture(Shape):
     """
-    A Picture object represents an existing Excel Picture and can be created with the following arguments::
+A Picture object represents an existing Excel Picture and can be instantiated with the following arguments::
 
         Picture(1)              Picture('Sheet1', 1)                Picture(1, 1)
         Picture('Picture 1')    Picture('Sheet1', 'Picture 1')      Picture(1, 'Picture 1')
@@ -1697,7 +1697,7 @@ class Picture(Shape):
         Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
 
 
-    .. versionadded:: 0.4.2
+    .. versionadded:: 0.5.0
     """
     def __init__(self, *args, **kwargs):
         super(Picture, self).__init__(*args, **kwargs)
@@ -1742,7 +1742,7 @@ class Picture(Shape):
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
 
 
-        .. versionadded:: 0.4.2
+        .. versionadded:: 0.5.0
         """
 
         xl_workbook = Workbook.get_xl_workbook(wkb)
@@ -1805,7 +1805,7 @@ class Picture(Shape):
             Path to the picture.
 
 
-        .. versionadded:: 0.4.2
+        .. versionadded:: 0.5.0
         """
         wkb = self.wkb
         name = self.name
@@ -1858,7 +1858,7 @@ class Plot(object):
         plot.show('Plot1')
 
 
-    .. versionadded:: 0.4.2
+    .. versionadded:: 0.5.0
     """
     def __init__(self, figure):
         self.figure = figure
@@ -1896,7 +1896,7 @@ class Plot(object):
         wkb : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
 
-        .. versionadded:: 0.4.2
+        .. versionadded:: 0.5.0
         """
         xl_workbook = Workbook.get_xl_workbook(wkb)
 
