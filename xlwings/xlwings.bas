@@ -18,8 +18,7 @@ Option Explicit
         Const XLPyDLLName As String = "xlwings64.dll"
         Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlwings64.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
         Declare PtrSafe Function XLPyDLLNDims Lib "xlwings64.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
-        Declare PtrSafe Function XLPyDLLVersion Lib "xlwings64.d
-        ll" (tag As String, version As Double, arch As String) As Long
+        Declare PtrSafe Function XLPyDLLVersion Lib "xlwings64.dll" (tag As String, version As Double, arch As String) As Long
     #Else
         Private Const XLPyDLLName As String = "xlwings32.dll"
         Private Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlwings32.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
