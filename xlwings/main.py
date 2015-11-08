@@ -1674,7 +1674,7 @@ class Chart(Shape):
 
 class Picture(Shape):
     """
-A Picture object represents an existing Excel Picture and can be instantiated with the following arguments::
+    A Picture object represents an existing Excel Picture and can be instantiated with the following arguments::
 
         Picture(1)              Picture('Sheet1', 1)                Picture(1, 1)
         Picture('Picture 1')    Picture('Sheet1', 'Picture 1')      Picture(1, 'Picture 1')
@@ -1866,7 +1866,7 @@ class Plot(object):
     def show(self, name, sheet=None, left=0, top=0, width=None, height=None, wkb=None):
         """
         Inserts the matplotlib figure as picture into Excel if a picture with that name doesn't exist yet.
-        Otherwise it replaces the picture, taking over it's position and size.
+        Otherwise it replaces the picture, taking over its position and size.
 
         Arguments
         ---------

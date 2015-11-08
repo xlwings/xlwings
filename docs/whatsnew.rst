@@ -1,6 +1,63 @@
 What's New
 ==========
 
+v0.5.0 (November ??, 2015)
+--------------------------
+
+API changes
+***********
+None
+
+Enhancements
+************
+This version adds support for Matplotlib! Matplotlib figures can be shown in Excel as pictures in just 2 lines of code:
+
+.. figure:: images/matplotlib.png
+  :scale: 80%
+
+1) Get a matplotlib ``figure`` object:
+
+* via PyPlot interface::
+
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    plt.plot([1, 2, 3, 4, 5])
+
+* via object oriented interface::
+
+    from matplotlib.figure import Figure
+    fig = Figure(figsize=(8, 6))
+    ax = fig.add_subplot(111)
+    ax.plot([1, 2, 3, 4, 5])
+
+* via Pandas::
+
+    import pandas as pd
+    import numpy as np
+
+    df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
+    ax = df.plot(kind='bar')
+    fig = ax.get_figure()
+
+2) Show it in Excel as picture::
+
+    plot = Plot(fig)
+    plot.show('Plot1')
+
+* New :meth:`xlwings.Shape` class
+* New :meth:`xlwings.Picture` class
+* The ``PYTHONPATH`` in the VBA settings now accepts multiple directories, separated by ``;`` (:issue:`258`)
+* An explicit exception is raised when ``Range`` is called with 0-based indices (:issue:`106`)
+
+Bug Fixes
+*********
+* ``Sheet.add`` was not always acting on the correct workbook (:issue:`287`)
+* Iteration over a ``Range`` only worked the first time (:issue:`272`)
+* [Win Version]: Sometimes, an error was raised when Excel was not running (:issue:`269`)
+* [Win Version]: Non-default python interpreters (as specified in the VBA settings under ``PYTHON_WIN``) were not found
+  if the path contained a space (:issue:`257`)
+
+
 v0.4.1 (September 27, 2015)
 ---------------------------
 
