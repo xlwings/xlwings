@@ -44,6 +44,8 @@ This version adds support for Matplotlib! Matplotlib figures can be shown in Exc
     plot = Plot(fig)
     plot.show('Plot1')
 
+**Other enhancements**:
+
 * New :meth:`xlwings.Shape` class
 * New :meth:`xlwings.Picture` class
 * The ``PYTHONPATH`` in the VBA settings now accepts multiple directories, separated by ``;`` (:issue:`258`)

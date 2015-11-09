@@ -1483,6 +1483,11 @@ class Shape(object):
 
     @property
     def name(self):
+        """
+        Returns or sets a String value representing the name of the object.
+
+        .. versionadded:: 0.5.0
+        """
         return xlplatform.get_shape_name(self)
 
     @name.setter
@@ -1491,6 +1496,12 @@ class Shape(object):
 
     @property
     def left(self):
+        """
+        Returns or sets a value that represents the distance, in points, from the left edge of the object to the
+        left edge of column A.
+
+        .. versionadded:: 0.5.0
+        """
         return xlplatform.get_shape_left(self)
 
     @left.setter
@@ -1499,6 +1510,12 @@ class Shape(object):
 
     @property
     def top(self):
+        """
+        Returns or sets a value that represents the distance, in points, from the top edge of the topmost shape
+        in the shape range to the top edge of the worksheet.
+
+        .. versionadded:: 0.5.0
+        """
         return xlplatform.get_shape_top(self)
 
     @top.setter
@@ -1507,6 +1524,11 @@ class Shape(object):
 
     @property
     def width(self):
+        """
+        Returns or sets a value that represents the width, in points, of the object.
+
+        .. versionadded:: 0.5.0
+        """
         return xlplatform.get_shape_width(self)
 
     @width.setter
@@ -1515,6 +1537,11 @@ class Shape(object):
 
     @property
     def height(self):
+        """
+        Returns or sets a value that represents the height, in points, of the object.
+
+        .. versionadded:: 0.5.0
+        """
         return xlplatform.get_shape_height(self)
 
     @height.setter
@@ -1522,9 +1549,19 @@ class Shape(object):
         xlplatform.set_shape_height(self, value)
 
     def delete(self):
+        """
+        Deletes the object.
+
+        .. versionadded:: 0.5.0
+        """
         xlplatform.delete_shape(self)
 
     def activate(self):
+        """
+        Activates the object.
+
+        .. versionadded:: 0.5.0
+        """
         xlplatform.activate_shape(self.xl_shape)
 
 
@@ -1895,6 +1932,7 @@ class Plot(object):
 
         wkb : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
 
         .. versionadded:: 0.5.0
         """

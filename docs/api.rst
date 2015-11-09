@@ -50,6 +50,11 @@ The xlwings Range object represents a block of contiguous cells in Excel.
 .. autoclass:: Range
     :members:
 
+Shape
+-----
+
+.. autoclass:: Shape
+    :members:
 
 Chart
 -----
@@ -59,18 +64,18 @@ Chart
 
 .. autoclass:: Chart
     :members:
-
-Shape
------
-
-.. autoclass:: Shape
-    :members:
+    :inherited-members:
+    :show-inheritance:
+    :exclude-members: __delattr__, __format__, __getattribute__, __hash__, __reduce__, __reduce_ex__, __setattr__, __sizeof__, __str__
 
 Picture
 -------
 
 .. autoclass:: Picture
     :members:
+    :inherited-members:
+    :show-inheritance:
+    :exclude-members: __delattr__, __format__, __getattribute__, __hash__, __reduce__, __reduce_ex__, __setattr__, __sizeof__, __str__, __repr__
 
 Plot
 ----
