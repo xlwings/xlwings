@@ -56,7 +56,7 @@ Bug Fixes
 * ``Sheet.add`` was not always acting on the correct workbook (:issue:`287`)
 * Iteration over a ``Range`` only worked the first time (:issue:`272`)
 * [Win Version]: Sometimes, an error was raised when Excel was not running (:issue:`269`)
-* [Win Version]: Non-default python interpreters (as specified in the VBA settings under ``PYTHON_WIN``) were not found
+* [Win Version]: Non-default Python interpreters (as specified in the VBA settings under ``PYTHON_WIN``) were not found
   if the path contained a space (:issue:`257`)
 
 
