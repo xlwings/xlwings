@@ -1,7 +1,7 @@
 What's New
 ==========
 
-v0.5.0 (November ??, 2015)
+v0.5.0 (November 10, 2015)
 --------------------------
 
 API changes

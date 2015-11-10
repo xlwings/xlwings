@@ -19,45 +19,56 @@ Writing/reading values to/from Excel and adding a chart is as easy as:
 
 .. code-block:: python
 
-    >>> from xlwings import Workbook, Sheet, Range, Chart
-    >>> wb = Workbook()  # Creates a connection with a new workbook
-    >>> Range('A1').value = 'Foo 1'
-    >>> Range('A1').value
+    >>> from xlwings as xw
+    >>> wb = xw.Workbook()  # Creates a connection with a new workbook
+    >>> xw.Range('A1').value = 'Foo 1'
+    >>> xw.Range('A1').value
     'Foo 1'
-    >>> Range('A1').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
-    >>> Range('A1').table.value  # or: Range('A1:C2').value
+    >>> xw.Range('A1').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
+    >>> xw.Range('A1').table.value  # or: Range('A1:C2').value
     [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
-    >>> Sheet(1).name
+    >>> xw.Sheet(1).name
     'Sheet1'
-    >>> chart = Chart.add(source_data=Range('A1').table)
+    >>> chart = xw.Chart.add(source_data=Range('A1').table)
 
 The Range and Chart objects as used above will refer to the active sheet of the current Workbook ``wb``. Include the
 Sheet name like this:
 
 .. code-block:: python
 
-    Range('Sheet1', 'A1:C3').value
-    Range(1, (1,1), (3,3)).value  # index notation
-    Chart.add('Sheet1', source_data=Range('Sheet1', 'A1').table)
+    xw.Range('Sheet1', 'A1:C3').value
+    xw.Range(1, (1,1), (3,3)).value  # index notation
+    xw.Chart.add('Sheet1', source_data=xw.Range('Sheet1', 'A1').table)
 
 Qualify the Workbook additionally like this:
 
 .. code-block:: python
 
-    Range('Sheet1', 'A1', wkb=wb).value
-    Chart.add('Sheet1', wkb=wb, source_data=Range('Sheet1', 'A1', wkb=wb).table)
-    Sheet(1, wkb=wb).name
+    xw.Range('Sheet1', 'A1', wkb=wb).value
+    xw.Chart.add('Sheet1', wkb=wb, source_data=xw.Range('Sheet1', 'A1', wkb=wb).table)
+    xw.Sheet(1, wkb=wb).name
 
 or simply set the current workbook first:
 
 .. code-block:: python
 
     wb.set_current()
-    Range('Sheet1', 'A1').value
-    Chart.add('Sheet1', source_data=Range('Sheet1', 'A1').table)
-    Sheet(1).name
+    xw.Range('Sheet1', 'A1').value
+    xw.Chart.add('Sheet1', source_data=xw.Range('Sheet1', 'A1').table)
+    xw.Sheet(1).name
 
 These commands also work seamlessly with **NumPy arrays** and **Pandas DataFrames**.
+
+**Matplotlib** figures can be shown as pictures in Excel:
+
+.. code-block:: python
+
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    plt.plot([1, 2, 3, 4, 5])
+
+    plot = xw.Plot(fig)
+    plot.show('Plot1')
 
 Call Python from Excel
 ----------------------
