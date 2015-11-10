@@ -25,11 +25,11 @@ Writing/reading values to/from Excel and adding a chart is as easy as:
     >>> xw.Range('A1').value
     'Foo 1'
     >>> xw.Range('A1').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
-    >>> xw.Range('A1').table.value  # or: Range('A1:C2').value
+    >>> xw.Range('A1').table.value  # or: xw.Range('A1:C2').value
     [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
     >>> xw.Sheet(1).name
     'Sheet1'
-    >>> chart = xw.Chart.add(source_data=Range('A1').table)
+    >>> chart = xw.Chart.add(source_data=xw.Range('A1').table)
 
 The Range and Chart objects as used above will refer to the active sheet of the current Workbook ``wb``. Include the
 Sheet name like this:
