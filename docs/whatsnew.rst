@@ -44,6 +44,10 @@ This version adds support for Matplotlib! Matplotlib figures can be shown in Exc
     plot = Plot(fig)
     plot.show('Plot1')
 
+See the full API: :meth:`xlwings.Plot`. There's also a new example available both on
+`GitHub <https://github.com/ZoomerAnalytics/xlwings/tree/master/examples/matplotlib/>`_ and as download on the
+`homepage <http://xlwings.org/examples//>`_.
+
 **Other enhancements**:
 
 * New :meth:`xlwings.Shape` class
