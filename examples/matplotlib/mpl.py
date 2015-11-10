@@ -4,11 +4,13 @@ All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
 """
-import os
-import seaborn
 import numpy as np
 import matplotlib.pyplot as plt
 import xlwings as xw
+try:
+    import seaborn
+except ImportError:
+    pass
 
 
 def get_figure(const):
