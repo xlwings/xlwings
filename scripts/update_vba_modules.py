@@ -4,12 +4,13 @@
 # under Options > Trust Center > Trust Center Settings > Macro Settings (in the case of Excel 2010)
 
 import os
-from xlwings import Workbook
+from xlwings import Workbook, FileFormat
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Template
-workbook_paths = [os.path.abspath(os.path.join(this_dir, os.pardir, 'xlwings', 'xlwings_template.xltm'))]
+template_path = os.path.abspath(os.path.join(this_dir, os.pardir, 'xlwings', 'xlwings_template.xltm'))
+workbook_paths = [template_path]
 
 # Examples
 root = os.path.abspath(os.path.join(this_dir, os.pardir, 'examples'))
@@ -22,7 +23,13 @@ for path in workbook_paths:
     wb = Workbook(path)
     wb.xl_workbook.VBProject.VBComponents.Remove(wb.xl_workbook.VBProject.VBComponents("xlwings"))
     wb.xl_workbook.VBProject.VBComponents.Import(os.path.abspath(os.path.join(this_dir, os.pardir, 'xlwings', 'xlwings.bas')))
-    wb.save()
+    if 'xlwings_template' in wb.fullname:
+        # TODO: implement FileFormat in xlwings
+        wb.xl_workbook.Application.DisplayAlerts = False
+        wb.xl_workbook.SaveAs(template_path, FileFormat=FileFormat.xlOpenXMLTemplateMacroEnabled)
+        wb.xl_workbook.Application.DisplayAlerts = True
+    else:
+        wb.save()
     wb.close()
 
 
