@@ -489,6 +489,22 @@ def get_screen_updating(xl_app):
 def set_screen_updating(xl_app, value):
     xl_app.screen_updating.set(value)
 
+def get_enable_events(xl_app):
+    return xl_app.enable_events.get()
+
+
+def set_enable_events(xl_app, value):
+    xl_app.enable_events.set(value)
+
+
+def get_display_alerts(xl_app):
+    return xl_app.display_alerts.get()
+
+
+def set_display_alerts(xl_app, value):
+    l_app.display_alerts.set(value)
+
+
 
 # TODO: Hack for Excel 2016, to be refactored
 calculation = {kw.calculation_automatic: Calculation.xlCalculationAutomatic,
