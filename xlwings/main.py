@@ -577,6 +577,14 @@ class Sheet(object):
 
         return sheet_list
 
+    def delete(self):
+        """
+        Deletes the Sheet.
+
+        .. versionadded: 0.6.0
+        """
+        xlplatform.delete_sheet(self)
+
     def __repr__(self):
         return "<Sheet '{0}' of Workbook '{1}'>".format(self.name, xlplatform.get_workbook_name(self.xl_workbook))
 
