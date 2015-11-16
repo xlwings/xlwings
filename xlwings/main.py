@@ -530,6 +530,16 @@ class Sheet(object):
             xl_sheet = xlplatform.add_sheet(xl_workbook, before, after)
             return cls(xlplatform.get_worksheet_name(xl_sheet), wkb)
 
+
+    @classmethod    
+    def remove(cls,name, wkb=None):
+        xl_workbook = Workbook.get_xl_workbook(wkb)
+        if name.lower() in [i.name.lower() for i in Sheet.all(wkb=wkb)]:
+            xlplatform.remove_sheet(xl_workbook,name)
+        else:
+            raise Exception("'That sheetname does not exist.")
+
+
     @staticmethod
     def count(wkb=None):
         """
@@ -901,6 +911,11 @@ class Range(object):
     def formula(self, value):
         xlplatform.set_formula(self.xl_range, value)
 
+    def offset(self,row,col):
+        """wb:workbook, cell:"A1", row: offset row, col: offset col"""
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet),
+                     (self.row1+row, self.col1+col))
+
     @property
     def table(self):
         """
@@ -1270,6 +1285,33 @@ class Range(object):
         screen_tip: str, default None
             The screen tip to be displayed when the mouse pointer is paused over the hyperlink.
             Default is set to '<address> - Click once to follow. Click and hold to select this cell.'
+
+    @property
+    def cells(self):
+        """
+        Returns
+        -------
+        Generator Object for tuples of range cells
+
+        Useful for looping through a specific range:
+
+        Examples
+        --------
+        ::
+
+            >>> list(Range("A1").cells)
+            '[(1,1)]'
+            >>> list(Range("A1:B2").cells)
+            '[(1,1),(1,2),(2,1),(2,2)]'
+
+            >>>for cell in Range("A1:E5").cells:  
+                   if Range(cell).value < 2:
+                       Range(cell).color = 'rgbRed'
+                       
+        """
+        rows = range(self.row1,self.row2+1)
+        cols = range(self.col1,self.col2+1)
+        return ((row,col) for row in rows for col in cols)
 
 
         .. versionadded:: 0.3.0
