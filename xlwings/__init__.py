@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import sys
 
-__version__ = '0.5.0'
+__version__ = '0.6.0dev'
 
 # Python 2 vs 3
 PY3 = sys.version_info[0] == 3
@@ -30,3 +30,6 @@ class ShapeAlreadyExists(Exception):
 # API
 from .main import Application, Workbook, Range, Chart, Sheet, Picture, Shape, Plot
 from .constants import *
+
+# UDFs
+from .decorators import xlfunc, xlsub, xlret, xlarg, udf_script

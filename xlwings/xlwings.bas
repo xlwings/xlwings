@@ -5,15 +5,16 @@ Attribute VB_Name = "xlwings"
 ' See also: http://zoomeranalytics.com
 '
 ' Copyright (C) 2014-2015, Zoomer Analytics LLC.
-' Parts are Copyright (C) 2014, ericremoreynolds.
-' Version: 0.5.0
+' Version: 0.6.0dev
 '
 ' License: BSD 3-clause (see LICENSE.txt for details)
-Option Explicit
 #If Mac Then
     Private Declare Function system Lib "libc.dylib" (ByVal Command As String) As Long
 #End If
 #If VBA7 Then
+    Private Declare PtrSafe Function GetTempPath32 Lib "kernel32" Alias "GetTempPathA" (ByVal nBufferLength As LongPtr, ByVal lpBuffer As String) As Long
+    Private Declare PtrSafe Function GetTempFileName32 Lib "kernel32" Alias "GetTempFileNameA" (ByVal lpszPath As String, ByVal lpPrefixString As String, ByVal wUnique As Long, ByVal lpTempFileName As String) As Long
+
     #If Win64 Then
         Const XLPyDLLName As String = "xlwings64.dll"
         Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlwings64.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
@@ -27,6 +28,8 @@ Option Explicit
     #End If
     Private Declare PtrSafe Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
 #Else
+    Private Declare Function GetTempPath32 Lib "kernel32" Alias "GetTempPathA" (ByVal nBufferLength As Long, ByVal lpBuffer As String) As Long
+    Private Declare Function GetTempFileName32 Lib "kernel32" Alias "GetTempFileNameA" (ByVal lpszPath As String, ByVal lpPrefixString As String, ByVal wUnique As Long, ByVal lpTempFileName As String) As Long
     Private Const XLPyDLLName As String = "xlwings32.dll"
     Private Declare Function XLPyDLLActivateAuto Lib "xlwings32.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
     Private Declare Function XLPyDLLNDims Lib "xlwings32.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
@@ -34,12 +37,16 @@ Option Explicit
     Declare Function XLPyDLLVersion Lib "xlwings32.dll" (tag As String, version As Double, arch As String) As Long
 #End If
 
-Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef PYTHON_FROZEN As String, ByRef PYTHONPATH As String, ByRef LOG_FILE As String, ByRef SHOW_LOG As Boolean, ByRef OPTIMIZED_CONNECTION As Boolean)
+Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef PYTHON_FROZEN As String, ByRef PYTHONPATH As String, ByRef UDF_PATH As String, ByRef LOG_FILE As String, ByRef SHOW_LOG As Boolean, ByRef OPTIMIZED_CONNECTION As Boolean)
     ' PYTHON_WIN: Directory of Python Interpreter on Windows, "" resolves to default on PATH
     ' PYTHON_MAC: Directory of Python Interpreter on Mac OSX, "" resolves to default path in ~/.bash_profile
     ' PYTHON_FROZEN [Optional]: Currently only on Windows, indicate directory of exe file
     ' PYTHONPATH [Optional]: If the source file of your code is not found, add the path here.
     '                        Separate multiple directories by ";". Otherwise set to "".
+    ' UDF_PATH [Optional, Windows only]: Full path to a Python file from wich the User Defined Functions are being imported.
+    '                                    Example: UDF_PATH = ThisWorkbook.Path & "\functions.py"
+    '                                    Default: UDF_PATH = "" defaults to a file in the same directory of the Excel spreadsheet with
+    '                                    the same name but ending in ".py".
     ' LOG_FILE: Directory including file name, necessary for error handling.
     ' SHOW_LOG: If False, no pop-up with the Log messages (usually errors) will be shown
     ' OPTIMIZED_CONNECTION (EXPERIMENTAL!): Currently only on Windows, use a COM Server for an efficient connection
@@ -51,12 +58,31 @@ Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef 
     PYTHON_MAC = ""
     PYTHON_FROZEN = ThisWorkbook.Path & "\build\exe.win32-2.7"
     PYTHONPATH = ThisWorkbook.Path
+    UDF_PATH = ThisWorkbook.Path & "\functions.py"
+    'UDF_PATH = ""
     LOG_FILE = ThisWorkbook.Path & "\xlwings_log.txt"
     SHOW_LOG = True
     OPTIMIZED_CONNECTION = False
 
 End Function
 ' DO NOT EDIT BELOW THIS LINE
+
+Function PyScriptPath() As String
+    Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
+    Dim LOG_FILE As String, UDF_PATH As String
+    Dim Res As Integer
+    Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
+
+    ' Get the settings
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
+
+    If UDF_PATH = "" Then
+        PyScriptPath = Left$(ThisWorkbook.Name, Len(ThisWorkbook.Name) - 5) ' assume that it ends in .xlsm
+        PyScriptPath = ThisWorkbook.Path + Application.PathSeparator + PyScriptPath + ".py"
+    Else
+        PyScriptPath = UDF_PATH
+    End If
+End Function
 
 Public Function RunPython(PythonCommand As String)
     ' Public API: Runs the Python command, e.g.: to run the function foo() in module bar, call the function like this:
@@ -68,7 +94,7 @@ Public Function RunPython(PythonCommand As String)
     Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
 
     ' Get the settings by using the ByRef trick
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
 
     ' Call Python platform-dependent
     #If Mac Then
@@ -173,7 +199,7 @@ Sub ExecuteWindows(IsFrozen As Boolean, Command As String, PYTHON_WIN As String,
         RunCommand = Command & " "
     End If
 
-    ExitCode = Wsh.run("cmd.exe /C " & DriveCommand & _
+    ExitCode = Wsh.Run("cmd.exe /C " & DriveCommand & _
                    RunCommand & _
                    """" & WORKBOOK_FULLNAME & """ ""from_xl""" & " " & Chr(34) & _
                    Application.Path & "\" & Application.Name & Chr(34) & " " & Chr(34) & Application.Hwnd & Chr(34) & _
@@ -203,7 +229,7 @@ Public Function RunFrozenPython(Executable As String)
     Dim Res As Integer
 
     ' Get the settings by using the ByRef trick
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
 
     ' Call Python
     #If Mac Then
@@ -330,7 +356,7 @@ Private Sub CleanUp()
     Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
 
     'Get LOG_FILE
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
     LOG_FILE = ToPosixPath(LOG_FILE)
 
     'Show the LOG_FILE as MsgBox if not empty
@@ -355,13 +381,37 @@ Function ParentFolder(ByVal Folder)
 End Function
 
 'ExcelPython
+Private Function GetTempFileName()
+    Dim sTmpPath As String * 512
+    Dim sTmpName As String * 576
+    Dim nRet As Long
+    nRet = GetTempPath32(512, sTmpPath)
+    If nRet = 0 Then Err.Raise 1234, Description:="GetTempPath failed."
+    nRet = GetTempFileName32(sTmpPath, "vba", 0, sTmpName)
+    If nRet = 0 Then Err.Raise 1234, Description:="GetTempFileName failed."
+    GetTempFileName = Left$(sTmpName, InStr(sTmpName, vbNullChar) - 1)
+End Function
+
+Function ModuleIsPresent(ByVal wb As Workbook, moduleName As String) As Boolean
+    On Error GoTo not_present
+    Set x = wb.VBProject.VBComponents.Item(moduleName)
+    ModuleIsPresent = True
+    Exit Function
+not_present:
+    ModuleIsPresent = False
+End Function
+
+Sub XLPMacroOptions2010(macroName As String, desc, argdescs() As String)
+    Application.MacroOptions macroName, Description:=desc, ArgumentDescriptions:=argdescs
+End Sub
+
 Function XLPyCommand()
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
-    Dim LOG_FILE As String, Tail As String
+    Dim LOG_FILE As String, UDF_PATH As String, Tail As String
     Dim Res As Integer
     Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
 
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
     Tail = " -c ""import sys;sys.path.extend(r'" & PYTHONPATH & "'.split(';'));import xlwings.server; xlwings.server.serve('$(CLSID)')"""
     If PYTHON_WIN = "" Then
         XLPyCommand = "pythonw.exe" + Tail
@@ -372,15 +422,15 @@ End Function
 
 Private Sub XLPyLoadDLL()
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
-    Dim LOG_FILE As String, Tail As String
+    Dim LOG_FILE As String, UDF_PATH As String, Tail As String
     Dim Res As Integer
     Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
 
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
 
     If PYTHON_WIN <> "" Then
         On Error Resume Next
-            LoadLibrary PYTHON_WIN + "\" + XLPyDLLName 'Standard instllation
+            LoadLibrary PYTHON_WIN + "\" + XLPyDLLName 'Standard installation
             LoadLibrary ParentFolder(PYTHON_WIN) + "\" + XLPyDLLName 'Virtualenv
         On Error GoTo 0
     End If
@@ -404,4 +454,185 @@ Private Sub GetDLLVersion()
     Debug.Print tag
     Debug.Print ver
     Debug.Print arch
+End Sub
+
+'Sub ImportPythonUDFs(control As IRibbonControl)
+Sub ImportPythonUDFs()
+    sTab = "    "
+
+    Set wb = ActiveWorkbook
+    If Not ModuleIsPresent(wb, "xlwings") Then
+        MsgBox "This workbook must contain the xlwings VBA module."
+        Exit Sub
+    End If
+    
+    ' Needed when run as add-in
+    'Set Py = Application.Run("'" + wb.Name + "'!Py")
+    
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    FileName = GetTempFileName()
+    Set f = fso.CreateTextFile(FileName, True)
+    f.WriteLine "Attribute VB_Name = ""xlwings_udfs"""
+    
+    scriptPath = PyScriptPath()
+    Set scriptVars = Py.Call(Py.Module("xlwings"), "udf_script", Py.Tuple(scriptPath))
+    
+    For Each svar In Py.Call(scriptVars, "values")
+        If Py.HasAttr(svar, "__xlfunc__") Then
+            Set xlfunc = Py.GetAttr(svar, "__xlfunc__")
+            Set xlret = Py.GetItem(xlfunc, "ret")
+            fname = Py.Str(Py.GetItem(xlfunc, "name"))
+            
+            Dim ftype As String
+            If Py.Var(Py.GetItem(xlfunc, "sub")) Then ftype = "Sub" Else ftype = "Function"
+            
+            f.Write ftype + " " + fname + "("
+            first = True
+            vararg = ""
+            nArgs = Py.Len(Py.GetItem(xlfunc, "args"))
+            For Each arg In Py.GetItem(xlfunc, "args")
+                If Not Py.Bool(Py.GetItem(arg, "vba")) Then
+                    argname = Py.Str(Py.GetItem(arg, "name"))
+                    If Not first Then f.Write ", "
+                    If Py.Bool(Py.GetItem(arg, "vararg")) Then
+                        f.Write "ParamArray "
+                        vararg = argname
+                    End If
+                    f.Write argname
+                    If Py.Bool(Py.GetItem(arg, "vararg")) Then
+                        f.Write "()"
+                    End If
+                    first = False
+                End If
+            Next arg
+            f.WriteLine ")"
+            If ftype = "Function" Then
+                f.WriteLine sTab + "If TypeOf Application.Caller Is Range Then On Error GoTo failed"
+            End If
+            
+            If vararg <> "" Then
+                f.WriteLine sTab + "ReDim argsArray(1 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + CStr(nArgs) + ")"
+            End If
+            j = 1
+            For Each arg In Py.GetItem(xlfunc, "args")
+                If Not Py.Bool(Py.GetItem(arg, "vba")) Then
+                    argname = Py.Str(Py.GetItem(arg, "name"))
+                    If Py.Bool(Py.GetItem(arg, "vararg")) Then
+                        f.WriteLine sTab + "For k = lbound(" + vararg + ") to ubound(" + vararg + ")"
+                        argname = vararg + "(k)"
+                    End If
+                    If Not Py.Var(Py.GetItem(arg, "range")) Then
+                        f.WriteLine sTab + "If TypeOf " + argname + " Is Range Then " + argname + " = " + argname + ".Value2"
+                    End If
+                    dims = Py.Var(Py.GetItem(arg, "dims"))
+                    marshal = Py.Str(Py.GetItem(arg, "marshal"))
+                    If dims <> -2 Or marshal = "nparray" Or marshal = "list" Then
+                        f.WriteLine sTab + "If Not TypeOf " + argname + " Is Object Then"
+                        If dims <> -2 Then
+                            f.WriteLine sTab + sTab + argname + " = NDims(" + argname + ", " + CStr(dims) + ")"
+                        End If
+                        If marshal = "nparray" Then
+                            dtype = Py.Var(Py.GetItem(arg, "dtype"))
+                            If IsNull(dtype) Then
+                                f.WriteLine sTab + sTab + "Set " + argname + " = Py.Call(Py.Module(""numpy""), ""array"", Py.Tuple(" + argname + "))"
+                            Else
+                                f.WriteLine sTab + sTab + "Set " + argname + " = Py.Call(Py.Module(""numpy""), ""array"", Py.Tuple(" + argname + ", """ + dtype + """))"
+                            End If
+                        ElseIf marshal = "list" Then
+                            f.WriteLine sTab + sTab + "Set " + argname + " = Py.Call(Py.Eval(""lambda t: [ list(x) if isinstance(x, tuple) else x for x in t ] if isinstance(t, tuple) else t""), Py.Tuple(" + argname + "))"
+                        End If
+                        f.WriteLine sTab + "End If"
+                    End If
+                    If Py.Bool(Py.GetItem(arg, "vararg")) Then
+                        f.WriteLine sTab + "argsArray(" + CStr(j) + " + k - LBound(" + vararg + ")) = " + argname
+                        f.WriteLine sTab + "Next k"
+                    Else
+                        If vararg <> "" Then
+                            f.WriteLine sTab + "argsArray(" + CStr(j) + ") = " + argname
+                            j = j + 1
+                        End If
+                    End If
+                End If
+            Next arg
+            
+            If vararg <> "" Then
+                f.WriteLine sTab + "Set args = Py.TupleFromArray(argsArray)"
+            Else
+                f.Write sTab + "Set args = Py.Tuple("
+                first = True
+                For Each arg In Py.GetItem(xlfunc, "args")
+                    If Not first Then f.Write ", "
+                    If Not Py.Bool(Py.GetItem(arg, "vba")) Then
+                        f.Write Py.Str(Py.GetItem(arg, "name"))
+                    Else
+                        f.Write Py.Str(Py.GetItem(arg, "vba"))
+                    End If
+                    first = False
+                Next arg
+                f.WriteLine ")"
+            End If
+            
+            f.WriteLine sTab + "Set xlpy = Py.Module(""xlwings"")"
+            f.WriteLine sTab + "Set script = Py.Call(xlpy, ""udf_script"", Py.Tuple(PyScriptPath))"
+            f.WriteLine sTab + "Set func = Py.GetItem(script, """ + fname + """)"
+            If ftype = "Sub" Then
+                f.WriteLine sTab + "Py.SetAttr Py.Module(""xlwings._xlwindows""), ""xl_workbook_current"", ThisWorkbook"
+                f.WriteLine sTab + "Py.Call func, args"
+            Else
+                f.WriteLine sTab + "Set " + fname + " = Py.Call(func, args)"
+                marshal = Py.Str(Py.GetItem(xlret, "marshal"))
+                Select Case marshal
+                Case "auto"
+                    f.WriteLine sTab + "If TypeOf Application.Caller Is Range Then " + fname + " = Py.Var(" + fname + ", " + Py.Str(Py.GetItem(xlret, "lax")) + ")"
+                Case "var"
+                    f.WriteLine sTab + fname + " = Py.Var(" + fname + ", " + Py.Str(Py.GetItem(xlret, "lax")) + ")"
+                Case "str"
+                    f.WriteLine sTab + fname + " = Py.Str(" + fname + ")"
+                End Select
+            End If
+            
+            If ftype = "Function" Then
+                f.WriteLine sTab + "Exit " + ftype
+                f.WriteLine "failed:"
+                f.WriteLine sTab + fname + " = Err.Description"
+            End If
+            f.WriteLine "End " + ftype
+            f.WriteLine
+        End If
+    Next svar
+    f.Close
+    
+    On Error GoTo not_present
+    wb.VBProject.VBComponents.Remove wb.VBProject.VBComponents("xlwings_udfs")
+not_present:
+    On Error GoTo 0
+    wb.VBProject.VBComponents.Import FileName
+    
+    For Each svar In Py.Call(scriptVars, "values")
+        If Py.HasAttr(svar, "__xlfunc__") Then
+            Set xlfunc = Py.GetAttr(svar, "__xlfunc__")
+            Set xlret = Py.GetItem(xlfunc, "ret")
+            Set xlargs = Py.GetItem(xlfunc, "args")
+            fname = Py.Str(Py.GetItem(xlfunc, "name"))
+            fdoc = Py.Str(Py.GetItem(xlret, "doc"))
+            nArgs = 0
+            For Each arg In xlargs
+                If Not Py.Bool(Py.GetItem(arg, "vba")) Then nArgs = nArgs + 1
+            Next arg
+            If nArgs > 0 And Val(Application.version) >= 14 Then
+                ReDim argdocs(1 To WorksheetFunction.Max(1, nArgs)) As String
+                nArgs = 0
+                For Each arg In xlargs
+                    If Not Py.Bool(Py.GetItem(arg, "vba")) Then
+                        nArgs = nArgs + 1
+                        argdocs(nArgs) = Left$(Py.Str(Py.GetItem(arg, "doc")), 255)
+                    End If
+                Next arg
+                XLPMacroOptions2010 "'" + wb.Name + "'!" + fname, Left$(fdoc, 255), argdocs
+            Else
+                Application.MacroOptions "'" + wb.Name + "'!" + fname, Description:=Left$(fdoc, 255)
+            End If
+        End If
+    Next svar
+    
 End Sub
