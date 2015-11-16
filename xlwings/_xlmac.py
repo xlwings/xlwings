@@ -638,3 +638,10 @@ def get_app_version_string(xl_workbook):
 
 def get_major_app_version_number(xl_workbook):
     return int(get_app_version_string(xl_workbook).split('.')[0])
+
+
+def delete_sheet(sheet):
+    _xl_app.display_alerts.set(False)
+    sheet.xl_sheet.delete()
+    _xl_app.display_alerts.set(True)
+
