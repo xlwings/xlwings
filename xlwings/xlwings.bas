@@ -12,9 +12,6 @@ Attribute VB_Name = "xlwings"
     Private Declare Function system Lib "libc.dylib" (ByVal Command As String) As Long
 #End If
 #If VBA7 Then
-    Private Declare PtrSafe Function GetTempPath32 Lib "kernel32" Alias "GetTempPathA" (ByVal nBufferLength As LongPtr, ByVal lpBuffer As String) As Long
-    Private Declare PtrSafe Function GetTempFileName32 Lib "kernel32" Alias "GetTempFileNameA" (ByVal lpszPath As String, ByVal lpPrefixString As String, ByVal wUnique As Long, ByVal lpTempFileName As String) As Long
-
     #If Win64 Then
         Const XLPyDLLName As String = "xlwings64.dll"
         Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlwings64.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
@@ -381,17 +378,6 @@ Function ParentFolder(ByVal Folder)
 End Function
 
 'ExcelPython
-Private Function GetTempFileName()
-    Dim sTmpPath As String * 512
-    Dim sTmpName As String * 576
-    Dim nRet As Long
-    nRet = GetTempPath32(512, sTmpPath)
-    If nRet = 0 Then Err.Raise 1234, Description:="GetTempPath failed."
-    nRet = GetTempFileName32(sTmpPath, "vba", 0, sTmpName)
-    If nRet = 0 Then Err.Raise 1234, Description:="GetTempFileName failed."
-    GetTempFileName = Left$(sTmpName, InStr(sTmpName, vbNullChar) - 1)
-End Function
-
 Function ModuleIsPresent(ByVal wb As Workbook, moduleName As String) As Boolean
     On Error GoTo not_present
     Set x = wb.VBProject.VBComponents.Item(moduleName)
