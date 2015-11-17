@@ -415,6 +415,8 @@ Function XLPyCommand()
     Tail = " -c ""import sys;sys.path.extend(r'" & PYTHONPATH & "'.split(';'));import xlwings.server; xlwings.server.serve('$(CLSID)')"""
     If PYTHON_WIN = "" Then
         XLPyCommand = "pythonw.exe" + Tail
+    ElseIf LCase$(Right$(PYTHON_WIN, 4)) = ".exe" Then
+        XLPyCommand = PYTHON_WIN + Tail
     Else
         XLPyCommand = PYTHON_WIN + "\pythonw.exe" + Tail
     End If
@@ -458,181 +460,21 @@ End Sub
 
 'Sub ImportPythonUDFs(control As IRibbonControl)
 Sub ImportPythonUDFs()
-    sTab = "    "
-
     Set wb = ActiveWorkbook
     If Not ModuleIsPresent(wb, "xlwings") Then
         MsgBox "This workbook must contain the xlwings VBA module."
         Exit Sub
     End If
-    
+
     ' Needed when run as add-in
     'Set Py = Application.Run("'" + wb.Name + "'!Py")
-    
-    Set fso = CreateObject("Scripting.FileSystemObject")
-    FileName = GetTempFileName()
-    Set f = fso.CreateTextFile(FileName, True)
-    f.WriteLine "Attribute VB_Name = ""xlwings_udfs"""
-    
+
     scriptPath = PyScriptPath()
-    Set scriptVars = Py.Call(Py.Module("xlwings"), "udf_script", Py.Tuple(scriptPath))
-    
-    For Each svar In Py.Call(scriptVars, "values")
-        If Py.HasAttr(svar, "__xlfunc__") Then
-            Set xlfunc = Py.GetAttr(svar, "__xlfunc__")
-            Set xlret = Py.GetItem(xlfunc, "ret")
-            fname = Py.Str(Py.GetItem(xlfunc, "name"))
-            
-            Dim ftype As String
-            If Py.Var(Py.GetItem(xlfunc, "sub")) Then ftype = "Sub" Else ftype = "Function"
-            
-            f.Write ftype + " " + fname + "("
-            first = True
-            vararg = ""
-            nArgs = Py.Len(Py.GetItem(xlfunc, "args"))
-            For Each arg In Py.GetItem(xlfunc, "args")
-                If Not Py.Bool(Py.GetItem(arg, "vba")) Then
-                    argname = Py.Str(Py.GetItem(arg, "name"))
-                    If Not first Then f.Write ", "
-                    If Py.Bool(Py.GetItem(arg, "vararg")) Then
-                        f.Write "ParamArray "
-                        vararg = argname
-                    End If
-                    f.Write argname
-                    If Py.Bool(Py.GetItem(arg, "vararg")) Then
-                        f.Write "()"
-                    End If
-                    first = False
-                End If
-            Next arg
-            f.WriteLine ")"
-            If ftype = "Function" Then
-                f.WriteLine sTab + "If TypeOf Application.Caller Is Range Then On Error GoTo failed"
-            End If
-            
-            If vararg <> "" Then
-                f.WriteLine sTab + "ReDim argsArray(1 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + CStr(nArgs) + ")"
-            End If
-            j = 1
-            For Each arg In Py.GetItem(xlfunc, "args")
-                If Not Py.Bool(Py.GetItem(arg, "vba")) Then
-                    argname = Py.Str(Py.GetItem(arg, "name"))
-                    If Py.Bool(Py.GetItem(arg, "vararg")) Then
-                        f.WriteLine sTab + "For k = lbound(" + vararg + ") to ubound(" + vararg + ")"
-                        argname = vararg + "(k)"
-                    End If
-                    If Not Py.Var(Py.GetItem(arg, "range")) Then
-                        f.WriteLine sTab + "If TypeOf " + argname + " Is Range Then " + argname + " = " + argname + ".Value2"
-                    End If
-                    dims = Py.Var(Py.GetItem(arg, "dims"))
-                    marshal = Py.Str(Py.GetItem(arg, "marshal"))
-                    If dims <> -2 Or marshal = "nparray" Or marshal = "list" Then
-                        f.WriteLine sTab + "If Not TypeOf " + argname + " Is Object Then"
-                        If dims <> -2 Then
-                            f.WriteLine sTab + sTab + argname + " = NDims(" + argname + ", " + CStr(dims) + ")"
-                        End If
-                        If marshal = "nparray" Then
-                            dtype = Py.Var(Py.GetItem(arg, "dtype"))
-                            If IsNull(dtype) Then
-                                f.WriteLine sTab + sTab + "Set " + argname + " = Py.Call(Py.Module(""numpy""), ""array"", Py.Tuple(" + argname + "))"
-                            Else
-                                f.WriteLine sTab + sTab + "Set " + argname + " = Py.Call(Py.Module(""numpy""), ""array"", Py.Tuple(" + argname + ", """ + dtype + """))"
-                            End If
-                        ElseIf marshal = "list" Then
-                            f.WriteLine sTab + sTab + "Set " + argname + " = Py.Call(Py.Eval(""lambda t: [ list(x) if isinstance(x, tuple) else x for x in t ] if isinstance(t, tuple) else t""), Py.Tuple(" + argname + "))"
-                        End If
-                        f.WriteLine sTab + "End If"
-                    End If
-                    If Py.Bool(Py.GetItem(arg, "vararg")) Then
-                        f.WriteLine sTab + "argsArray(" + CStr(j) + " + k - LBound(" + vararg + ")) = " + argname
-                        f.WriteLine sTab + "Next k"
-                    Else
-                        If vararg <> "" Then
-                            f.WriteLine sTab + "argsArray(" + CStr(j) + ") = " + argname
-                            j = j + 1
-                        End If
-                    End If
-                End If
-            Next arg
-            
-            If vararg <> "" Then
-                f.WriteLine sTab + "Set args = Py.TupleFromArray(argsArray)"
-            Else
-                f.Write sTab + "Set args = Py.Tuple("
-                first = True
-                For Each arg In Py.GetItem(xlfunc, "args")
-                    If Not first Then f.Write ", "
-                    If Not Py.Bool(Py.GetItem(arg, "vba")) Then
-                        f.Write Py.Str(Py.GetItem(arg, "name"))
-                    Else
-                        f.Write Py.Str(Py.GetItem(arg, "vba"))
-                    End If
-                    first = False
-                Next arg
-                f.WriteLine ")"
-            End If
-            
-            f.WriteLine sTab + "Set xlpy = Py.Module(""xlwings"")"
-            f.WriteLine sTab + "Set script = Py.Call(xlpy, ""udf_script"", Py.Tuple(PyScriptPath))"
-            f.WriteLine sTab + "Set func = Py.GetItem(script, """ + fname + """)"
-            If ftype = "Sub" Then
-                f.WriteLine sTab + "Py.SetAttr Py.Module(""xlwings._xlwindows""), ""xl_workbook_current"", ThisWorkbook"
-                f.WriteLine sTab + "Py.Call func, args"
-            Else
-                f.WriteLine sTab + "Set " + fname + " = Py.Call(func, args)"
-                marshal = Py.Str(Py.GetItem(xlret, "marshal"))
-                Select Case marshal
-                Case "auto"
-                    f.WriteLine sTab + "If TypeOf Application.Caller Is Range Then " + fname + " = Py.Var(" + fname + ", " + Py.Str(Py.GetItem(xlret, "lax")) + ")"
-                Case "var"
-                    f.WriteLine sTab + fname + " = Py.Var(" + fname + ", " + Py.Str(Py.GetItem(xlret, "lax")) + ")"
-                Case "str"
-                    f.WriteLine sTab + fname + " = Py.Str(" + fname + ")"
-                End Select
-            End If
-            
-            If ftype = "Function" Then
-                f.WriteLine sTab + "Exit " + ftype
-                f.WriteLine "failed:"
-                f.WriteLine sTab + fname + " = Err.Description"
-            End If
-            f.WriteLine "End " + ftype
-            f.WriteLine
-        End If
-    Next svar
-    f.Close
-    
+    tempPath = Py.Str(Py.Call(Py.Module("xlwings"), "generate_vba_udf_wrapper", Py.Tuple(scriptPath)))
+
     On Error GoTo not_present
     wb.VBProject.VBComponents.Remove wb.VBProject.VBComponents("xlwings_udfs")
 not_present:
     On Error GoTo 0
-    wb.VBProject.VBComponents.Import FileName
-    
-    For Each svar In Py.Call(scriptVars, "values")
-        If Py.HasAttr(svar, "__xlfunc__") Then
-            Set xlfunc = Py.GetAttr(svar, "__xlfunc__")
-            Set xlret = Py.GetItem(xlfunc, "ret")
-            Set xlargs = Py.GetItem(xlfunc, "args")
-            fname = Py.Str(Py.GetItem(xlfunc, "name"))
-            fdoc = Py.Str(Py.GetItem(xlret, "doc"))
-            nArgs = 0
-            For Each arg In xlargs
-                If Not Py.Bool(Py.GetItem(arg, "vba")) Then nArgs = nArgs + 1
-            Next arg
-            If nArgs > 0 And Val(Application.version) >= 14 Then
-                ReDim argdocs(1 To WorksheetFunction.Max(1, nArgs)) As String
-                nArgs = 0
-                For Each arg In xlargs
-                    If Not Py.Bool(Py.GetItem(arg, "vba")) Then
-                        nArgs = nArgs + 1
-                        argdocs(nArgs) = Left$(Py.Str(Py.GetItem(arg, "doc")), 255)
-                    End If
-                Next arg
-                XLPMacroOptions2010 "'" + wb.Name + "'!" + fname, Left$(fdoc, 255), argdocs
-            Else
-                Application.MacroOptions "'" + wb.Name + "'!" + fname, Description:=Left$(fdoc, 255)
-            End If
-        End If
-    Next svar
-    
+    wb.VBProject.VBComponents.Import tempPath
 End Sub
