@@ -58,3 +58,14 @@ nosetests.xml
 
 # google analytics example
 client_secrets.json
+
+# Visual Studio related garbage and binaries
+*.suo
+*.opensdf
+*.sdf
+Win32/
+x64/
+
+# binaries
+*.dll
+

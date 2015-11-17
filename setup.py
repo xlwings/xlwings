@@ -1,7 +1,10 @@
 import os
 import sys
 import re
-from distutils.core import setup
+try:
+    from setuptools import setup
+except:
+    from distutils.core import setup
 
 # long_description: Take from README file
 with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as f:
