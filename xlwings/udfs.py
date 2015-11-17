@@ -1,4 +1,8 @@
-def xlfunc(f = None, **kwargs):
+import os.path
+import tempfile
+
+
+def xlfunc(f=None, **kwargs):
     def inner(f):
         if not hasattr(f, "__xlfunc__"):
             xlf = f.__xlfunc__ = {}
@@ -7,7 +11,7 @@ def xlfunc(f = None, **kwargs):
             xlargs = xlf["args"] = []
             xlargmap = xlf["argmap"] = {}
             nArgs = f.__code__.co_argcount
-            if f.__code__.co_flags & 4:		# function has an '*args' argument
+            if f.__code__.co_flags & 4:  # function has an '*args' argument
                 nArgs += 1
             for vpos, vname in enumerate(f.__code__.co_varnames[:nArgs]):
                 xlargs.append({
@@ -33,7 +37,8 @@ def xlfunc(f = None, **kwargs):
     else:
         return inner(f)
 
-def xlsub(f = None, **kwargs):
+
+def xlsub(f=None, **kwargs):
     def inner(f):
         f = xlfunc(**kwargs)(f)
         f.__xlfunc__["sub"] = True
@@ -43,10 +48,12 @@ def xlsub(f = None, **kwargs):
     else:
         return inner(f)
 
-xlretparams = set(("marshal", "lax", "doc"))
+
+xlretparams = {"marshal", "lax", "doc"}
 def xlret(marshal=None, **kwargs):
     if marshal is not None:
         kwargs["marshal"] = marshal
+
     def inner(f):
         xlf = xlfunc(f).__xlfunc__
         xlr = xlf["ret"]
@@ -58,12 +65,14 @@ def xlret(marshal=None, **kwargs):
         return f
     return inner
 
-xlargparams = set(("marshal", "dims", "dtype", "range", "doc", "vba"))
+
+xlargparams = {"marshal", "dims", "dtype", "range", "doc", "vba"}
 def xlarg(arg, marshal=None, dims=None, **kwargs):
     if marshal is not None:
         kwargs["marshal"] = marshal
     if dims is not None:
         kwargs["dims"] = dims
+
     def inner(f):
         xlf = xlfunc(f).__xlfunc__
         if arg not in xlf["argmap"]:
@@ -77,9 +86,9 @@ def xlarg(arg, marshal=None, dims=None, **kwargs):
         return f
     return inner
 
+
 udf_scripts = {}
 def udf_script(filename):
-    import os.path
     filename = filename.lower()
     mtime = os.path.getmtime(filename)
     if filename in udf_scripts:
@@ -97,7 +106,6 @@ def generate_vba_udf_wrapper(script_path):
 
     tab = '\t'
 
-    import tempfile
     tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
     f = tf.file
 
