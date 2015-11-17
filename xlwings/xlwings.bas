@@ -25,8 +25,6 @@ Attribute VB_Name = "xlwings"
     #End If
     Private Declare PtrSafe Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
 #Else
-    Private Declare Function GetTempPath32 Lib "kernel32" Alias "GetTempPathA" (ByVal nBufferLength As Long, ByVal lpBuffer As String) As Long
-    Private Declare Function GetTempFileName32 Lib "kernel32" Alias "GetTempFileNameA" (ByVal lpszPath As String, ByVal lpPrefixString As String, ByVal wUnique As Long, ByVal lpTempFileName As String) As Long
     Private Const XLPyDLLName As String = "xlwings32.dll"
     Private Declare Function XLPyDLLActivateAuto Lib "xlwings32.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
     Private Declare Function XLPyDLLNDims Lib "xlwings32.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
@@ -55,8 +53,7 @@ Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef 
     PYTHON_MAC = ""
     PYTHON_FROZEN = ThisWorkbook.Path & "\build\exe.win32-2.7"
     PYTHONPATH = ThisWorkbook.Path
-    UDF_PATH = ThisWorkbook.Path & "\functions.py"
-    'UDF_PATH = ""
+    UDF_PATH = ""
     LOG_FILE = ThisWorkbook.Path & "\xlwings_log.txt"
     SHOW_LOG = True
     OPTIMIZED_CONNECTION = False
@@ -267,10 +264,10 @@ Sub ShowError(FileName As String)
 
     Dim Content As String
     Dim objShell
-    
+
     Const OK_BUTTON_ERROR = 16
     Const AUTO_DISMISS = 0
-    
+
     Content = ReadFile(FileName)
     #If Win32 Or Win64 Then
         Content = Content & vbCrLf
@@ -281,7 +278,7 @@ Sub ShowError(FileName As String)
     #Else
         MsgBox Content, vbCritical, "Error"
     #End If
-    
+
 End Sub
 
 Function ToPosixPath(ByVal MacPath As String) As String
@@ -377,7 +374,6 @@ Function ParentFolder(ByVal Folder)
   ParentFolder = Left$(Folder, InStrRev(Folder, "\") - 1)
 End Function
 
-'ExcelPython
 Function ModuleIsPresent(ByVal wb As Workbook, moduleName As String) As Boolean
     On Error GoTo not_present
     Set x = wb.VBProject.VBComponents.Item(moduleName)
@@ -444,16 +440,16 @@ Private Sub GetDLLVersion()
     Debug.Print arch
 End Sub
 
-'Sub ImportPythonUDFs(control As IRibbonControl)
+Sub ImportPythonUDFsAddIn(control As IRibbonControl)
+    ImportPythonUDFs
+End Sub
+
 Sub ImportPythonUDFs()
     Set wb = ActiveWorkbook
     If Not ModuleIsPresent(wb, "xlwings") Then
         MsgBox "This workbook must contain the xlwings VBA module."
         Exit Sub
     End If
-
-    ' Needed when run as add-in
-    'Set Py = Application.Run("'" + wb.Name + "'!Py")
 
     scriptPath = PyScriptPath()
     tempPath = Py.Str(Py.Call(Py.Module("xlwings"), "generate_vba_udf_wrapper", Py.Tuple(scriptPath)))
