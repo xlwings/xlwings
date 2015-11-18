@@ -190,6 +190,11 @@ Config* Config::GetConfig(const std::string& filename)
 	}
 }
 
+void Config::ClearConfigs()
+{
+	configs.clear();
+}
+
 int Config::GetValueAsInt(const std::string& key)
 {
 	Config::ValueMap::iterator it = values.find(key);

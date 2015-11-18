@@ -413,10 +413,14 @@ Private Sub XLPyLoadDLL()
     Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
 
     If PYTHON_WIN <> "" Then
-        On Error Resume Next
-            LoadLibrary PYTHON_WIN + "\" + XLPyDLLName 'Standard installation
-            LoadLibrary ParentFolder(PYTHON_WIN) + "\" + XLPyDLLName 'Virtualenv
-        On Error GoTo 0
+        If LoadLibrary(PYTHON_WIN + "\" + XLPyDLLName) = 0 Then  ' Standard installation
+            If LoadLibrary(ParentFolder(PYTHON_WIN) + "\" + XLPyDLLName) = 0 Then  ' Virtualenv
+                Err.Raise 1, Description:= _
+                    "Could not load " + XLPyDLLName + " from either of the following folders:" _
+                    + vbCrLf + PYTHON_WIN _
+                    + vbCrLf + ParentFolder(PYTHON_WIN)
+            End If
+        End If
     End If
 End Sub
 
@@ -440,23 +444,7 @@ Private Sub GetDLLVersion()
     Debug.Print arch
 End Sub
 
-Sub ImportPythonUDFsAddIn(control As IRibbonControl)
-    ImportPythonUDFs
-End Sub
-
 Sub ImportPythonUDFs()
-    Set wb = ActiveWorkbook
-    If Not ModuleIsPresent(wb, "xlwings") Then
-        MsgBox "This workbook must contain the xlwings VBA module."
-        Exit Sub
-    End If
-
     scriptPath = PyScriptPath()
-    tempPath = Py.Str(Py.Call(Py.Module("xlwings"), "generate_vba_udf_wrapper", Py.Tuple(scriptPath)))
-
-    On Error GoTo not_present
-    wb.VBProject.VBComponents.Remove wb.VBProject.VBComponents("xlwings_udfs")
-not_present:
-    On Error GoTo 0
-    wb.VBProject.VBComponents.Import tempPath
+    tempPath = Py.Str(Py.Call(Py.Module("xlwings"), "import_udfs", Py.Tuple(scriptPath, ThisWorkbook)))
 End Sub

@@ -6,9 +6,19 @@ HINSTANCE hInstanceDLL;
 // DLL entry point -- only stores the module handle for later use
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
-	hInstanceDLL = hinstDLL;
+	switch (fdwReason)
+	{
+	case DLL_PROCESS_ATTACH:
+		hInstanceDLL = hinstDLL;
+		return TRUE;
 
-	return TRUE;
+	case DLL_PROCESS_DETACH:
+		Config::ClearConfigs();
+		return TRUE;
+
+	default:
+		return TRUE;
+	}
 }
 
 

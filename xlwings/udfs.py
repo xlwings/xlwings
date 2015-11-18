@@ -1,3 +1,5 @@
+import os
+import re
 import os.path
 import tempfile
 
@@ -102,7 +104,7 @@ def udf_script(filename):
     return vars
 
 
-def generate_vba_udf_wrapper(script_path):
+def import_udfs(script_path, wb):
 
     tab = '\t'
 
@@ -215,27 +217,40 @@ def generate_vba_udf_wrapper(script_path):
             f.write("End " + ftype + "\n")
             f.write("\n")
 
-    # for svar in script_vars.values():
-    #     if hasattr(svar, '__xlfunc__'):
-    #         xlfunc = svar.__xlfunc__
-    #         xlret = xlfunc['ret']
-    #         xlargs = xlfunc['args']
-    #         fname = xlfunc['name']
-    #         fdoc = xlret['doc']
-    #         n_args = 0
-    #         for arg in xlargs:
-    #             if not arg['vba']:
-    #                 n_args += 1
-    #
-    #         if n_args > 0: # and Val(Application.Version) >= 14
-    #             argdocs = []
-    #             for args in xlargs:
-    #                 if not arg['vba']:
-    #                     argdocs.append(arg['doc'][:255])
-    #             fdoc = fdoc[:255]
-    #             # XLPMacroOptions2010 "'" + wb.Name + "'!" + fname, Left$(fdoc, 255), argdocs
-    #         else:
-    #             pass # Application.MacroOptions "'" + wb.Name + "'!" + fname, Description:=Left$(fdoc, 255)
+    tf.close()
 
-    return tf.name
+    try:
+        wb.VBProject.VBComponents.Remove(wb.VBProject.VBComponents("xlwings_udfs"))
+    except:
+        pass
+    wb.VBProject.VBComponents.Import(tf.name)
+
+    for svar in script_vars.values():
+        if hasattr(svar, '__xlfunc__'):
+            xlfunc = svar.__xlfunc__
+            xlret = xlfunc['ret']
+            xlargs = xlfunc['args']
+            fname = xlfunc['name']
+            fdoc = xlret['doc']
+            n_args = 0
+            for arg in xlargs:
+                if not arg['vba']:
+                    n_args += 1
+
+            excel_version = [int(x) for x in re.split("[,\\.]", wb.Application.Version)]
+            if n_args > 0 and excel_version[0] >= 14:
+                argdocs = []
+                for args in xlargs:
+                    if not arg['vba']:
+                        argdocs.append(arg['doc'][:255])
+                fdoc = fdoc[:255]
+                # XLPMacroOptions2010 "'" + wb.Name + "'!" + fname, Left$(fdoc, 255), argdocs
+            else:
+                pass # Application.MacroOptions "'" + wb.Name + "'!" + fname, Description:=Left$(fdoc, 255)
+
+    # try to delete the temp file - doesn't matter too much if it fails
+    try:
+        os.unlink(tf.name)
+    except:
+        pass
 

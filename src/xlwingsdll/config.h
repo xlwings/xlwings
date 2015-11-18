@@ -19,6 +19,7 @@ protected:
 public:
 	static Config* GetConfig(const std::string& filename);
 	static Config* GetAutoConfig(const std::string& command);
+	static void ClearConfigs();
 
 	std::string GetValue(const std::string& key);
 	std::string GetValue(const std::string& key, const std::string& dfault);
