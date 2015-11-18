@@ -412,9 +412,9 @@ Private Sub XLPyLoadDLL()
         If LoadLibrary(PYTHON_WIN + "\" + XLPyDLLName) = 0 Then  ' Standard installation
             If LoadLibrary(ParentFolder(PYTHON_WIN) + "\" + XLPyDLLName) = 0 Then  ' Virtualenv
                 Err.Raise 1, Description:= _
-                    "Could not load " + XLPyDLLName + " from either of the following folders:" _
+                    "Could not load " + XLPyDLLName + " from either of the following folders: " _
                     + vbCrLf + PYTHON_WIN _
-                    + vbCrLf + ParentFolder(PYTHON_WIN)
+                    + vbCrLf + ", " + ParentFolder(PYTHON_WIN)
             End If
         End If
     End If
