@@ -231,7 +231,7 @@ def import_udfs(script_path, wb):
             xlret = xlfunc['ret']
             xlargs = xlfunc['args']
             fname = xlfunc['name']
-            fdoc = xlret['doc']
+            fdoc = xlret['doc'][:255]
             n_args = 0
             for arg in xlargs:
                 if not arg['vba']:
@@ -240,13 +240,12 @@ def import_udfs(script_path, wb):
             excel_version = [int(x) for x in re.split("[,\\.]", wb.Application.Version)]
             if n_args > 0 and excel_version[0] >= 14:
                 argdocs = []
-                for args in xlargs:
+                for arg in xlargs:
                     if not arg['vba']:
                         argdocs.append(arg['doc'][:255])
-                fdoc = fdoc[:255]
-                # XLPMacroOptions2010 "'" + wb.Name + "'!" + fname, Left$(fdoc, 255), argdocs
+                wb.Application.MacroOptions("'" + wb.Name + "'!" + fname, Description=fdoc, ArgumentDescriptions=argdocs)
             else:
-                pass # Application.MacroOptions "'" + wb.Name + "'!" + fname, Description:=Left$(fdoc, 255)
+                wb.Application.MacroOptions("'" + wb.Name + "'!" + fname, Description=fdoc)
 
     # try to delete the temp file - doesn't matter too much if it fails
     try:

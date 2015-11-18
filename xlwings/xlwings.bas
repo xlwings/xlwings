@@ -383,10 +383,6 @@ not_present:
     ModuleIsPresent = False
 End Function
 
-Sub XLPMacroOptions2010(macroName As String, desc, argdescs() As String)
-    Application.MacroOptions macroName, Description:=desc, ArgumentDescriptions:=argdescs
-End Sub
-
 Function XLPyCommand()
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
     Dim LOG_FILE As String, UDF_PATH As String, Tail As String
