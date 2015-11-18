@@ -9,6 +9,7 @@ All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
 """
+import copy
 import os
 import sys
 import re
@@ -18,8 +19,12 @@ import inspect
 import collections
 import tempfile
 import shutil
+import warnings
 
-from . import xlplatform, string_types, time_types, xrange, map, ShapeAlreadyExists
+from pandas.core.base import FrozenList
+
+from . import map, ShapeAlreadyExists
+from . import xlplatform, string_types, time_types, xrange
 from .constants import ChartType
 
 
@@ -581,6 +586,199 @@ class Sheet(object):
         return "<Sheet '{0}' of Workbook '{1}'>".format(self.name, xlplatform.get_workbook_name(self.xl_workbook))
 
 
+class Accessor(object):
+    def __init__(self,
+                 rng=None,
+                 autotable=False,
+                 vertical=False,
+                 horizontal=False,
+                 on_data_write=None,
+                 on_data_read=None,
+                 on_result_write=None,
+                 on_result_read=None,
+                 index=True,
+                 header=True,
+                 tz=None,
+                 on_kwargs=None,
+    ):
+        if vertical and horizontal:
+            raise ValueError("Arguments 'vertical' and 'horizontal' cannot be both True")
+
+        self.rng = rng
+        self.autotable = autotable
+        self.horizontal = horizontal
+        self.vertical = vertical
+        self.tz = tz
+        self.index = index
+        self.header = header
+        self.on_data_read = on_data_read
+        self.on_data_write = on_data_write
+        self.on_result_read = on_result_read
+        self.on_result_write = on_result_write
+        self.on_kwargs = on_kwargs or {}
+
+    def bind(self, **kwargs):
+        # make a copy of the Accessor
+        acc = copy.copy(self)
+        # set the different arguments to the new Accessor
+        for k, v in kwargs.items():
+            setattr(acc, k, v)
+
+        return acc
+
+
+_registered_formats = {}
+
+
+def register_format(name, acc):
+    _registered_formats[name] = acc
+
+
+def unregister_format(name):
+    _registered_formats.pop(name)
+
+
+class DataFrameAccessor(Accessor):
+    @property
+    def value(self):
+        if self.autotable:
+            rng = self.rng.table
+        else:
+            rng = self.rng
+
+        # get the data in 2d
+        data = rng._get_data(atleast_2d=True)
+
+        if self.on_data_read:
+            data = self.on_data_read(data, **self.on_kwargs)
+
+        multi_header = False
+
+        # if header are in the range (True or integer including 0), split the header from the data
+        if self.header is not False:
+            if isinstance(self.header, bool):
+                df = pd.DataFrame(data[1:], columns=data[0])
+            elif isinstance(self.header, int):
+                # handle multi-index on header
+                df = pd.DataFrame(data[self.header:], columns=pd.MultiIndex.from_arrays(data[:self.header]))
+                multi_header = True
+            else:
+                raise ValueError("header should be a bool or an int")
+        else:
+            df = pd.DataFrame(data)
+
+        if self.index is not False:
+            if isinstance(self.index, bool):
+                df.set_index(df.columns[0], inplace=True)
+                if isinstance(df.index, pd.DatetimeIndex) and self.tz:
+                    df = df.tz_localize(tz=self.tz, ambiguous='infer')
+            elif isinstance(self.index, int):
+                # handle multi-index on index
+                df.set_index(list(df.columns[:self.index]), inplace=True)
+
+                if self.tz:
+                    # handle timezone conversion for each column in index
+                    fl = []
+                    index_has_datetimeindex = False
+                    for i in range(len(df.index.levels)):
+                        idx = df.index.get_level_values(i)
+                        if isinstance(idx, pd.DatetimeIndex):
+                            fl.append(idx.tz_localize(tz=self.tz, ambiguous='infer'))
+                            index_has_datetimeindex = True
+                        else:
+                            fl.append(idx)
+                    # if some column had an index, recreate the MultiIndex
+                    if index_has_datetimeindex:
+                        df.index = FrozenList(fl)
+
+            else:
+                raise ValueError("index should be a bool or an int")
+
+            if multi_header:
+                # set name of index as value in the first row of data
+                df.index.names = [n[0] for n in df.index.names]
+
+        if self.on_result_read:
+            df = self.on_result_read(df, **self.on_kwargs)
+
+        return df
+
+    @value.setter
+    def value(self, df):
+        # handle dataframe by converting to Array and then using ArrayAccessor
+        assert isinstance(df, pd.DataFrame), "Data should be a pandas DataFrame"
+
+        if self.on_result_write:
+            df = self.on_result_write(df, **self.on_kwargs)
+
+        if self.index:
+            df = df.reset_index(col_fill="-")
+
+        if self.header:
+            if isinstance(df.columns, pd.MultiIndex):
+                # Ensure dtype=object because otherwise it may get assigned a string type which sometimes makes
+                # vstacking return a string array. This would cause values to be truncated and we can't easily
+                # transform np.nan in string form.
+                # Python 3 requires zip wrapped in list
+                columns = np.array(list(zip(*df.columns.tolist())), dtype=object)
+            else:
+                columns = np.empty((df.columns.shape[0],), dtype=object)
+                columns[:] = np.array([df.columns.tolist()])
+            data = np.vstack((columns, df.values))
+        else:
+            data = df.values
+
+        if self.on_data_write:
+            data = self.on_data_write(data, **self.on_kwargs)
+
+        self.rng.array().value = data
+
+
+class ArrayAccessor(Accessor):
+    @property
+    def value(self):
+        if self.autotable:
+            rng = self.rng.table
+        else:
+            rng = self.rng
+        atleast_2d = rng.atleast_2d
+        data = rng._get_data(atleast_2d)
+
+        # replace None (empty cells) with nan as None produces arrays with dtype=object
+        # TODO: easier like this: np.array(my_list, dtype=np.float)
+        if data is None:
+            data = np.nan
+        if (rng.is_column() or rng.is_row()) and not atleast_2d:
+            data = [np.nan if x is None else x for x in data]
+        elif rng.is_table() or atleast_2d:
+            data = [[np.nan if x is None else x for x in i] for i in data]
+
+        # TODO: bug when mixing unicode string and float ? see issue #6550 on numpy
+        return np.atleast_1d(np.array(data))
+
+    @value.setter
+    def value(self, data):
+        if self.vertical:
+            data = data.reshape((-1,1))
+        elif self.horizontal:
+            data = data.reshape((1,-1))
+
+
+        try:
+            data = np.where(np.isnan(data), None, data)
+            data = data.tolist()
+        except TypeError:
+            # isnan doesn't work on arrays of dtype=object
+            if pd:
+                data[pd.isnull(data)] = None
+                data = data.tolist()
+            else:
+                # expensive way of replacing nan with None in object arrays in case Pandas is not available
+                data = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in data]
+
+        self.rng._set_data(data)
+
+
 class Range(object):
     """
     A Range object can be instantiated with the following arguments::
@@ -614,7 +812,7 @@ class Range(object):
         Includes the index when setting a Pandas DataFrame or Series.
 
     header : boolean, default True
-        Includes the column headers when setting a Pandas DataFrame.
+        Includes the column headers when setting a Pandas DataFrame or Series.
 
     atleast_2d : boolean, default False
         Returns 2d lists/arrays even if the Range is a Row or Column.
@@ -684,7 +882,13 @@ class Range(object):
             self.xl_workbook = self.workbook.xl_workbook
         self.index = kwargs.get('index', True)  # Set DataFrame with index
         self.header = kwargs.get('header', True)  # Set DataFrame with header
+        if self.index or self.header:
+            warnings.warn(
+                "Using index/header in the Range constructor is deprecated. Please use the Range(...).dataframe(index=..., header=...) construct",
+                DeprecationWarning)
         self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array
+        if self.asarray:
+            warnings.warn("Using asarray in the Range constructor is deprecated. Please use the Range(...).array() construct", DeprecationWarning)
         self.strict = kwargs.get('strict', False)  # Stop table/horizontal/vertical at empty cells that contain formulas
         self.atleast_2d = kwargs.get('atleast_2d', False)  # Force data to be list of list or a 2d numpy array
 
@@ -775,91 +979,27 @@ class Range(object):
     def __len__(self):
         return self.row2 - self.row1 + 1
 
-    @property
-    def value(self):
-        """
-        Gets and sets the values for the given Range.
-
-        Returns
-        -------
-        list or numpy array
-            Empty cells are set to ``None``. If ``asarray=True``,
-            a numpy array is returned where empty cells are set to ``nan``.
-        """
+    def _get_data(self, atleast_2d):
         # TODO: refactor
         if self.is_cell():
             # Clean_xl_data requires and returns a list of list
             data = xlplatform.clean_xl_data([[xlplatform.get_value_from_range(self.xl_range)]])
-            if not self.atleast_2d:
+            if not atleast_2d:
                 data = data[0][0]
         elif self.is_row():
             data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
-            if not self.atleast_2d:
+            if not atleast_2d:
                 data = data[0]
         elif self.is_column():
             data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
-            if not self.atleast_2d:
+            if not atleast_2d:
                 data = [item for sublist in data for item in sublist]
         else:  # 2d Range, leave as list of list
             data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
 
-        # Return as NumPy Array
-        if self.asarray:
-            # replace None (empty cells) with nan as None produces arrays with dtype=object
-            # TODO: easier like this: np.array(my_list, dtype=np.float)
-            if data is None:
-                data = np.nan
-            if (self.is_column() or self.is_row()) and not self.atleast_2d:
-                data = [np.nan if x is None else x for x in data]
-            elif self.is_table() or self.atleast_2d:
-                data = [[np.nan if x is None else x for x in i] for i in data]
-            return np.atleast_1d(np.array(data))
         return data
 
-    @value.setter
-    def value(self, data):
-        # Pandas DataFrame: Turn into NumPy object array with or without Index and Headers
-        if pd and isinstance(data, pd.DataFrame):
-            if self.index:
-                data = data.reset_index()
-
-            if self.header:
-                if isinstance(data.columns, pd.MultiIndex):
-                    # Ensure dtype=object because otherwise it may get assigned a string type which sometimes makes
-                    # vstacking return a string array. This would cause values to be truncated and we can't easily
-                    # transform np.nan in string form.
-                    # Python 3 requires zip wrapped in list
-                    columns = np.array(list(zip(*data.columns.tolist())), dtype=object)
-                else:
-                    columns = np.empty((data.columns.shape[0],), dtype=object)
-                    columns[:] = np.array([data.columns.tolist()])
-                data = np.vstack((columns, data.values))
-            else:
-                data = data.values
-
-        # Pandas Series
-        if pd and isinstance(data, pd.Series):
-            if self.index:
-                data = data.reset_index().values
-            else:
-                data = data.values[:, np.newaxis]
-
-        # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535.
-        # See: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx
-        # Also, turn into list (Python 3 can't handle arrays directly)
-        if np and isinstance(data, np.ndarray):
-            try:
-                data = np.where(np.isnan(data), None, data)
-                data = data.tolist()
-            except TypeError:
-                # isnan doesn't work on arrays of dtype=object
-                if pd:
-                    data[pd.isnull(data)] = None
-                    data = data.tolist()
-                else:
-                    # expensive way of replacing nan with None in object arrays in case Pandas is not available
-                    data = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in data]
-
+    def _set_data(self, data):
         # Simple Lists: Turn into list of lists (np.nan is part of numbers.Number)
         if isinstance(data, list) and (isinstance(data[0], (numbers.Number, string_types, time_types))
                                        or data[0] is None):
@@ -889,6 +1029,157 @@ class Range(object):
 
         xlplatform.set_value(xlplatform.get_range_from_indices(self.xl_sheet,
                                                                self.row1, self.col1, row2, col2), data)
+
+    @property
+    def value(self):
+        """
+        Gets and sets the values for the given Range.
+
+        Returns
+        -------
+        list or numpy array
+            Empty cells are set to ``None``. If ``asarray=True``,
+            a numpy array is returned where empty cells are set to ``nan``.
+        """
+        if self.asarray:
+            return self.array().value
+
+        data = self._get_data(self.atleast_2d)
+        return data
+
+    @value.setter
+    def value(self, data):
+        # Pandas DataFrame: Turn into NumPy object array with or without Index and Headers
+        if pd and isinstance(data, pd.DataFrame):
+            self.dataframe(header=self.header, index=self.index).value = data
+            return
+
+        # Pandas Series
+        if pd and isinstance(data, pd.Series):
+            self.dataframe(header=self.header, index=self.index).value = data.to_frame()
+            return
+
+        # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535.
+        # See: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx
+        # Also, turn into list (Python 3 can't handle arrays directly)
+        if np and isinstance(data, np.ndarray):
+            self.array().value = data
+            return
+
+        self._set_data(data)
+
+    def dataframe(self, index=True, header=True, tz=None, autotable=False,
+                  on_data_write=None, on_data_read=None, on_result_write=None, on_result_read=None,
+                  on_kwargs=None,
+    ):
+        """
+        Return a DataFrameAccessor used to read/write dataframes to the range.
+
+        Keyword Arguments
+        -----------------
+        index : boolean or int, default True
+            ``True`` considers an index when reading/writing dataframes
+            ``False`` considers no index when reading/writing dataframes
+            an integer > 0 considers a multiindex with 'index' columns/dimensions.
+        header : boolean or int, default True
+            ``True`` considers a header when reading/writing dataframes
+            ``False`` considers no header when reading/writing dataframes
+            an integer > 0 considers a multiheader with 'header' rows/dimensions.
+        tz : str, default None
+            If not None, timezone to convert to if the index is a DatetimeIndex
+        autotable: boolean, default False
+            Extend the range with .table before reading data
+        on_data_write: function, default None
+            Function that should transform a list of list and return it.
+            It will be called after transforming the DataFrame to a list of list
+            and before writing this data to Excel.
+        on_data_read: function, default None
+            Function that should transform a list of list and return it.
+            It will be called after reading the data from Excel and before interpreting the
+            data into a DataFrame
+        on_result_write: function, default None
+            Function that should transform a dataframe to another dataframe and return it.
+            It will be called before transforming the DataFrame to a list of list.
+        on_result_read: function, default None
+            Function that should transform a dataframe to another dataframe and return it.
+            It will be called after transforming the range data to a DataFrame and
+            before returning it to the user.
+        on_kwargs: dict, default None
+            Optional dictionnary that will be passed as arguments to the on_XXX_YYY functions.
+
+        Returns
+        -------
+        DataFrameAccessor object
+        """
+        return DataFrameAccessor(rng=self, index=index, header=header, tz=tz,
+                                 autotable=autotable,
+                                 on_data_write=on_data_write,
+                                 on_data_read=on_data_read,
+                                 on_result_write=on_result_write,
+                                 on_result_read=on_result_read,
+                                 on_kwargs=on_kwargs,
+        )
+
+    def array(self, autotable=False,
+              vertical=False, horizontal=False,
+              on_data_write=None, on_data_read=None, on_result_write=None, on_result_read=None,
+              on_kwargs=None,
+    ):
+        """
+        Return an ArrayAccessor used to read/write arrays to the range.
+
+        Keyword Arguments
+        -----------------
+        autotable: boolean, default False
+            Extend the range with .table before reading data
+        horizontal: boolean, default False
+            When writing the array, write it on a single row (if the array is 2D, it will be flattened)
+        vertical: boolean, default False
+            When writing the array, write it on a single column (if the array is 2D, it will be flattened)
+        on_data_write: function, default None
+            Function that should transform a list of list and return it.
+            It will be called after transforming the array to a list of list
+            and before writing this data to Excel.
+        on_data_read: function, default None
+            Function that should transform a list of list and return it.
+            It will be called after reading the data from Excel and before interpreting the
+            data into an array
+        on_result_write: function, default None
+            Function that should transform an array to another array and return it.
+            It will be called before transforming the array to a list of list.
+        on_result_read: function, default None
+            Function that should transform an array to another array and return it.
+            It will be called after transforming the range data to a array and
+            before returning it to the user.
+        on_kwargs: dict, default None
+            Dictionary that will be passed as arguments to each on_XXX_YYY functions.
+
+        Returns
+        -------
+        ArrayAccessor object
+        """
+        return ArrayAccessor(rng=self,
+                             autotable=autotable,
+                             vertical=vertical,
+                             horizontal=horizontal,
+                             on_data_write=on_data_write,
+                             on_data_read=on_data_read,
+                             on_result_write=on_result_write,
+                             on_result_read=on_result_read,
+                             on_kwargs=on_kwargs,
+        )
+
+    def format(self, format_name, **kwargs):
+        """
+        Return the Accessor corresponding to the format format_name.
+        args and kwargs will be passed to all
+
+        Returns
+        -------
+        ArrayAccessor or DataFrameAccessor object
+        """
+        return _registered_formats[format_name].bind(rng=self, on_kwargs=kwargs)
+
 
     @property
     def formula(self):
@@ -1462,6 +1753,7 @@ class Shape(object):
 
     .. versionadded:: 0.5.0
     """
+
     def __init__(self, *args, **kwargs):
         # Use current Workbook if none provided
         self.wkb = kwargs.get('wkb', None)
@@ -1666,7 +1958,7 @@ class Chart(Shape):
         source_data = kwargs.get('source_data')
 
         if isinstance(sheet, Sheet):
-                sheet = sheet.index
+            sheet = sheet.index
         if sheet is None:
             sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
 
@@ -1736,6 +2028,7 @@ class Picture(Shape):
 
     .. versionadded:: 0.5.0
     """
+
     def __init__(self, *args, **kwargs):
         super(Picture, self).__init__(*args, **kwargs)
         self.xl_picture = xlplatform.get_picture(self)
@@ -1785,7 +2078,7 @@ class Picture(Shape):
         xl_workbook = Workbook.get_xl_workbook(wkb)
 
         if isinstance(sheet, Sheet):
-                sheet = sheet.index
+            sheet = sheet.index
         if sheet is None:
             sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
 
@@ -1897,6 +2190,7 @@ class Plot(object):
 
     .. versionadded:: 0.5.0
     """
+
     def __init__(self, figure):
         self.figure = figure
 
@@ -1939,7 +2233,7 @@ class Plot(object):
         xl_workbook = Workbook.get_xl_workbook(wkb)
 
         if isinstance(sheet, Sheet):
-                sheet = sheet.index
+            sheet = sheet.index
         if sheet is None:
             sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
 

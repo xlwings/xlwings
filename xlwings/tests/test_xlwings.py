@@ -10,11 +10,11 @@ from datetime import datetime, date
 import pytz
 import inspect
 import nose
-from nose.tools import assert_equal, raises, assert_raises, assert_true, assert_not_equal
-
+from nose.tools import assert_equal, raises, assert_true, assert_false, assert_not_equal, assert_raises
+from datetime import datetime, date
 from xlwings import (Application, Workbook, Sheet, Range, Chart, ChartType,
-                     RgbColor, Calculation, Shape, Picture, Plot, ShapeAlreadyExists)
-
+                     RgbColor, Calculation, Shape, Picture, Plot, ShapeAlreadyExists,
+                     register_format, DataFrameAccessor, ArrayAccessor)
 
 this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
 
@@ -66,11 +66,13 @@ chart_data = [['one', 'two'], [1.1, 2.2]]
 if np is not None:
     array_1d = np.array([1.1, 2.2, np.nan, -4.4])
     array_2d = np.array([[1.1, 2.2, 3.3], [-4.4, 5.5, np.nan]])
+    array_2d_mix = np.array([['a', 'b', 3.3], ['c', 5.5, np.nan]])  # , dtype=np.dtype(object))
 
 if pd is not None:
     series_1 = pd.Series([1.1, 3.3, 5., np.nan, 6., 8.])
 
     rng = pd.date_range('1/1/2012', periods=10, freq='D')
+    rng_tz = pd.date_range('28/10/2012', periods=10, freq='H', tz="Europe/Brussels")
     timeseries_1 = pd.Series(np.arange(len(rng)) + 0.1, rng)
     timeseries_1[1] = np.nan
 
@@ -79,10 +81,16 @@ if pd is not None:
                          [np.nan, None],
                          [3.3, 'test3']], columns=['a', 'b'])
 
+    df_mixtextfloat = pd.DataFrame([['1', 'test1'],
+                                    ['2', 'test2'],
+                                    [np.nan, None],
+                                    [3.3, 'test3']], columns=['a', 'b'])
+
     df_2 = pd.DataFrame([1, 3, 5, np.nan, 6, 8], columns=['col1'])
 
-    df_dateindex = pd.DataFrame(np.arange(50).reshape(10, 5) + 0.1, index=rng)
-
+    df_dateindex = pd.DataFrame(np.arange(50).reshape(10,5) + 0.1, index=rng)
+    df_dateindex_tz = pd.DataFrame(np.arange(50).reshape(10, 5) + 0.1, index=rng_tz)
+    
     # MultiIndex (Index)
     tuples = list(zip(*[['bar', 'bar', 'baz', 'baz', 'foo', 'foo', 'qux', 'qux'],
                         ['one', 'two', 'one', 'two', 'one', 'two', 'one', 'two'],
@@ -90,6 +98,7 @@ if pd is not None:
     index = pd.MultiIndex.from_tuples(tuples, names=['first', 'second', 'third'])
     df_multiindex = pd.DataFrame([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6], [7.7, 8.8], [9.9, 10.10],
                                   [11.11, 12.12], [13.13, 14.14], [15.15, 16.16]], index=index)
+
 
     # MultiIndex (Header)
     header = [['Foo', 'Foo', 'Bar', 'Bar', 'Baz'], ['A', 'B', 'C', 'D', 'E']]
@@ -100,6 +109,16 @@ if pd is not None:
                                    [0.0, 1.0, 2.0, 3.0, 4.0],
                                    [0.0, 1.0, 2.0, 3.0, 4.0],
                                    [0.0, 1.0, 2.0, 3.0, 4.0]], columns=pd.MultiIndex.from_arrays(header))
+
+    df_multiheader_multiindex = pd.DataFrame([[0.0, 1.0, 2.0, 3.0, 4.0],
+                                              [0.0, 1.0, 2.0, 3.0, 4.0],
+                                              [0.0, 1.0, 2.0, 3.0, 4.0],
+                                              [0.0, 1.0, 2.0, 3.0, 4.0],
+                                              [0.0, 1.0, 2.0, 3.0, 4.0],
+                                              [0.0, 1.0, 2.0, 3.0, 4.0],
+                                              [0.0, 1.0, 2.0, 3.0, 4.0],
+                                              [0.0, 1.0, 2.0, 3.0, 4.0],
+                                             ], columns=pd.MultiIndex.from_arrays(header), index=index)
 
 
 # Test skips and fixtures
@@ -540,6 +559,12 @@ class TestRange:
         cells = Range('Sheet6', 'A12', asarray=True, atleast_2d=True).table.value
         assert_array_equal(cells, array_2d)
 
+        # 2d array mix (atleast_2d)
+        Range('Sheet6', 'A12').value = array_2d_mix
+        cells = Range('Sheet6', 'A12', asarray=True, atleast_2d=True).table.value
+        assert_array_equal(cells, array_2d_mix)
+
+
     def sheet_ref(self):
         Range(Sheet(1), 'A20').value = 123
         assert_equal(Range(1, 'A20').value, 123)
@@ -637,8 +662,10 @@ class TestRange:
         df_expected = df_1
         Range('Sheet5', 'A1').value = df_expected
         cells = Range('Sheet5', 'B1:C5').value
+
         df_result = DataFrame(cells[1:], columns=cells[0])
         assert_frame_equal(df_expected, df_result)
+
 
     def test_dataframe_2(self):
         """ Covers GH Issue #31"""
@@ -682,12 +709,132 @@ class TestRange:
         df_result = DataFrame(cells[1:], index=index, columns=cells[0])
         assert_frame_equal(df_expected, df_result)
 
+    def test_accessor_dataframe_1(self):
+        _skip_if_no_pandas()
+
+        df_expected = df_1
+        Range('Sheet5', 'A1').dataframe(index=True, header=True).value = df_expected
+
+        df_result = Range('Sheet5', 'A1').table.dataframe(index=True, header=True).value
+        df_result.index.name = None
+        assert_frame_equal(df_expected, df_result)
+
+    def test_accessor_dataframe_2(self):
+        _skip_if_no_pandas()
+
+        df_expected = df_2
+        Range('Sheet5', 'A9').dataframe(index=True, header=True).value = df_expected
+
+        df_result = Range('Sheet5', 'A9').table.dataframe(index=True, header=True).value
+        df_result.index.name = None
+        assert_frame_equal(df_expected, df_result)
+
+        df_result = Range('Sheet5', 'A9').table.dataframe(index=True, header=1).value
+        df_result.index.name = None
+        assert_frame_equal(df_expected, df_result)
+
+    def test_accessor_dataframe_multiindex(self):
+        _skip_if_no_pandas()
+
+        df_expected = df_multiindex
+        Range('Sheet5', 'A20').dataframe(index=True, header=True).value = df_expected
+
+        df_result = Range('Sheet5', 'A20').table.dataframe(index=3, header=True).value
+        df_result.index.name = None
+        assert_frame_equal(df_expected, df_result)
+
+    def test_accessor_dataframe_multiindex_tz(self):
+        _skip_if_no_pandas()
+
+        # MultiIndex with DatetimeIndex with timezone (Index)
+        df_expected = df_dateindex_tz.rename(columns={0: "second"}).reset_index().set_index(["index", "second"])
+        Range('Sheet5', 'A20').dataframe(index=True, header=True).value = df_expected
+
+        df_result = Range('Sheet5', 'A20').table.dataframe(index=2, header=True, tz="Europe/Brussels").value
+        df_result.index.name = None
+        assert_frame_equal(df_expected, df_result)
+
+    def test_accessor_dataframe_multiheader(self):
+        _skip_if_no_pandas()
+
+        df_expected = df_multiheader
+        Range('Sheet5', 'A52').dataframe(index=True, header=True).value = df_expected
+
+        df_result = Range('Sheet5', '$A$52').table.dataframe(index=True, header=2).value
+        df_result.index.name = None
+        assert_frame_equal(df_expected, df_result)
+
+    def test_accessor_dataframe_multiheader_multiindex(self):
+        _skip_if_no_pandas()
+
+        df_expected = df_multiheader_multiindex
+        Range('Sheet5', 'A52').dataframe(index=True, header=True).value = df_expected
+
+        df_result = Range('Sheet5', '$A$52').table.dataframe(index=3, header=2).value
+        df_result.index.name = None
+        assert_frame_equal(df_expected, df_result)
+
+    def test_accessor_dataframe_dateindex(self):
+        _skip_if_no_pandas()
+
+        df_expected = df_dateindex
+        Range('Sheet5', 'A100').dataframe(index=True, header=True).value = df_expected
+        if sys.platform.startswith('win') and self.wb.xl_app.Version == '14.0':
+            Range('Sheet5', 'A100').vertical.xl_range.NumberFormat = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
+
+        df_result = Range('Sheet5', 'A100').table.dataframe(index=True, header=True).value
+        df_result.index.name = None
+        assert_frame_equal(df_expected, df_result)
+
+    def test_accessor_dataframe_dateindex_tz(self):
+        _skip_if_no_pandas()
+
+        df_expected = df_dateindex_tz
+        Range('Sheet5', 'A100').dataframe(index=True, header=True).value = df_expected
+        if sys.platform.startswith('win') and self.wb.xl_app.Version == '14.0':
+            Range('Sheet5', 'A100').vertical.xl_range.NumberFormat = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
+
+        df_result = Range('Sheet5', 'A100').table.dataframe(index=True, header=True, tz="Europe/Brussels").value
+        df_result.index.name = None
+        assert_frame_equal(df_expected, df_result)
+
+    def test_accessor_array_1(self):
+        _skip_if_no_numpy()
+
+        arr_expected = np.random.rand(4,4)
+        Range('Sheet6', 'A1').array().value = arr_expected
+
+        arr_result = Range('Sheet6', 'A1').table.array().value
+        assert_array_equal(arr_expected, arr_result)
+
+    def test_accessor_array_horizontal(self):
+        _skip_if_no_numpy()
+
+        arr_expected = np.random.rand(4,4)
+        Range('Sheet6', 'A1').array(horizontal=True).value = arr_expected
+
+        arr_result = Range('Sheet6', 'A1').horizontal.array().value
+        assert_array_equal(arr_expected.flatten(), arr_result)
+
+    def test_accessor_array_vertical(self):
+        _skip_if_no_numpy()
+
+        arr_expected = np.random.rand(4,4)
+        Range('Sheet6', 'A1').array(vertical=True).value = arr_expected
+
+        arr_result = Range('Sheet6', 'A1').vertical.array().value
+        assert_array_equal(arr_expected.flatten(), arr_result)
+
+    @raises(ValueError)
+    def test_accessor_array_horizontal_vertical(self):
+        Range('Sheet6', 'A1').array(vertical=True, horizontal=True)
+
     def test_series_1(self):
         _skip_if_no_pandas()
 
         series_expected = series_1
         Range('Sheet5', 'A32').value = series_expected
-        cells = Range('Sheet5', 'B32:B37').value
+        cells = Range('Sheet5', 'B33:B38').value
         series_result = Series(cells)
         assert_series_equal(series_expected, series_result)
 
@@ -697,9 +844,9 @@ class TestRange:
         series_expected = timeseries_1
         Range('Sheet5', 'A40').value = series_expected
         if sys.platform.startswith('win') and self.wb.xl_app.Version == '14.0':
-            Range('Sheet5', 'A40').vertical.xl_range.NumberFormat = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
-        cells = Range('Sheet5', 'B40:B49').value
-        date_index = Range('Sheet5', 'A40:A49').value
+            Range('Sheet5', 'A41').vertical.xl_range.NumberFormat = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
+        cells = Range('Sheet5', 'B41:B50').value
+        date_index = Range('Sheet5', 'A41:A50').value
         series_result = Series(cells, index=date_index)
         assert_series_equal(series_expected, series_result)
 
@@ -993,6 +1140,81 @@ class TestRange:
     def test_zero_based_index2(self):
         a = Range((1, 1), (1, 0)).value
 
+
+    def test_format_dataframe(self):
+        fmt_name = "my format"
+        register_format(fmt_name,
+                        DataFrameAccessor(header=2, index=3, autotable=True))
+
+        df_expected = df_multiheader_multiindex
+        Range('Sheet5', 'A252').format(fmt_name).value = df_expected
+
+        df_result = Range('Sheet5', '$A$252').format(fmt_name).value
+        assert_frame_equal(df_expected, df_result)
+
+    def test_format_dataframe_from_range(self):
+        fmt_name = "my format"
+        register_format(fmt_name,
+                        Range('Sheet5', 'A252').dataframe(header=2,index=3,autotable=True))
+
+        df_expected = df_multiheader_multiindex
+        Range('Sheet5', 'A252').format(fmt_name).value = df_expected
+
+        df_result = Range('Sheet5', '$A$252').format(fmt_name).value
+        assert_frame_equal(df_expected, df_result)
+
+    def test_format_dataframe_kwargs(self):
+        fmt_name = "my format"
+
+        def on_result_read(df, column):
+            return df[column]
+
+        register_format(fmt_name,
+                        DataFrameAccessor(header=2, index=3, autotable=True,
+                                          on_result_read=on_result_read))
+
+        df_expected = df_multiheader_multiindex
+        Range('Sheet5', 'A252').format(fmt_name).value = df_expected
+
+
+        df_result = Range('Sheet5', '$A$252').format(fmt_name, column="Foo").value
+        df_result = Range('Sheet5', '$A$252').format(fmt_name, column="Foo").value
+        assert_frame_equal(df_expected["Foo"], df_result)
+
+    @raises(TypeError)
+    def test_format_dataframe_kwargs_no_on_kwargs(self):
+        fmt_name = "my format"
+
+        def on_result_read(df, column):
+            return df[column]
+
+        register_format(fmt_name,
+                        DataFrameAccessor(header=2, index=3, autotable=True,
+                                          on_result_read=on_result_read))
+
+        df_expected = df_multiheader_multiindex
+        Range('Sheet5', 'A252').format(fmt_name).value = df_expected
+
+        # should raise TypeError as missing arguments
+        df_result = Range('Sheet5', '$A$252').format(fmt_name).value
+
+
+    def test_format_array_read_write_process(self):
+        fmt_name = "my format"
+        register_format(fmt_name,
+                        ArrayAccessor(autotable=True,
+                                      on_result_read=lambda arr: arr.T,
+                                      on_result_write=lambda arr: arr.T,
+                        ))
+
+        arr_expected = df_multiheader_multiindex.values
+        Range('Sheet5', 'A352').format(fmt_name).value = arr_expected
+
+        arr_result = Range('Sheet5', '$A$352').table.format(fmt_name).value
+        assert_array_equal(arr_expected, arr_result)
+
+        assert_equal(Range('Sheet5', '$A$352').table.value,
+                     arr_expected.tolist())
 
 class TestPicture:
     def setUp(self):

@@ -88,14 +88,14 @@ NumPy Arrays
 ------------
 
 NumPy arrays work similar to nested lists. However, empty cells are represented by ``nan`` instead of
-``None``. If you want to read in a Range as array, set the ``asarray`` keyword to True:
+``None``. If you want to read or write in a Range as array, use the ``array`` method of the ``Range`` object:
 
 .. code-block:: python
 
     >>> import numpy as np
     >>> wb = Workbook()
-    >>> Range('A1').value = np.eye(5)
-    >>> Range('A1', asarray=True).table.value
+    >>> Range('A1').array().value = np.eye(5) # Range('A1').value = np.eye(5) also works and calls array() internally
+    >>> Range('A1').table.array().value
     array([[ 1.,  0.,  0.,  0.,  0.],
            [ 0.,  1.,  0.,  0.,  0.],
            [ 0.,  0.,  1.,  0.,  0.],
@@ -140,16 +140,77 @@ Pandas DataFrames and Series are also easy to work with:
 
     >>> wb = Workbook()
     >>> Range('A1').value = [['one', 'two'], [1.1, 2.2], [3.3, None]]
-    >>> data = Range('A1').table.value
-    >>> df = pd.DataFrame(data[1:], columns=data[0])
+    >>> data = Range('A1').table.dataframe(index=False).value
     >>> df
        one  two
     0  1.1  2.2
     1  3.3  NaN
-    >>> Range('A5').value = df
-    >>> Range('A9', index=False).value = df  # Control index and header
-    >>> Range('A13', index=False, header=False).value = df
+    >>> Range('A5').dataframe().value = df # Export per default both index and header
+    >>> Range('A9').dataframe(index=False).value = df  # Control index and header
+    >>> Range('A13').dataframe(index=False, header=False).value = df # Control index and header
 
-.. note:: You only need to specify the top left cell when writing a list, an NumPy array or a Pandas
-    DataFrame to Excel, e.g.: ``Range('A1').value = np.eye(10)``
+.. note:: You only need to specify the top left cell when writing a list, a NumPy array or a Pandas
+    DataFrame to Excel, e.g.: ``Range('A1').array().value = np.eye(10)``
 
+.. note:: You do need to specify a full range when reading a NumPy array or a Pandas
+    DataFrame to Excel, e.g.: ``arr = Range('A1:D10').array().value``.
+
+* Formats:
+
+  It is also possible to register "formats" of arrays and dataframes to simplify the calls to
+  dataframe() and array(). This may help in avoiding the repetition of the different arguments
+  in multiple part of your code if you often access (read or write) a dataframe with the same
+  format.
+
+  .. code-block:: python
+
+    >>> wb = Workbook()
+    >>> # register a format to access a DataFrame with some arguments defined
+    >>> register_format("my format",
+                        DataFrameAccessor(header=True, index=False, autotable=True))
+    >>> df1 = Range('A1').format("my format").value
+    >>> # is fully equivalent to
+    >>> df2 = Range('A1').dataframe(header=True, index=False, autotable=True).value
+    >>> df1 == df2
+
+  It also allows to define functions that transform the resulting array/dataframe before writing to or after reading from Excel.
+
+  .. code-block:: python
+
+    >>> wb = Workbook()
+    >>> # register a format to access a DataFrame and localise the index (ie add a timezone information)
+    >>> register_format("my format",
+                        DataFrameAccessor(header=True, index=False, autotable=True,
+                                          on_result_read=lambda df:df.localize("Europe/Brussels"),
+                                          ))
+    >>> df1 = Range('A1').format("my format").value
+    >>> # is fully equivalent to
+    >>> df2 = Range('A1').dataframe(header=True, index=False, autotable=True).value
+    >>> df2 = df2.localize("Europe/Brussels")
+    >>> df1 == df2
+
+  It is also possible to transform the data before passing it to the array/dataframe parser.
+
+  .. code-block:: python
+
+    >>> wb = Workbook()
+    >>> # register a format to access a DataFrame but, before letting pandas transform the data,
+    >>> # replace the value of some cell (for instance, if two columns have the same name, this may
+    >>> # cause incorrect interpretation by pandas)
+    >>> def preprocess_data(data):
+    >>>   data[0][1] = "my new column name"
+    >>>   return data
+    >>> register_format("my format",
+                        DataFrameAccessor(header=True, index=True, autotable=True,
+                                          on_data_read=preprocess_data,
+                                          ))
+    >>> df1 = Range('A1').format("my format").value
+    >>> df1.columns[0]=="my new column name"
+
+  Finally, the DataFrameAccessor can be generated from a Range
+
+  .. code-block:: python
+
+    >>> wb = Workbook()
+    >>> # register a format to access a DataFrame directly from a Range.dataframe
+    >>> register_format("my format", Range("A1").dataframe(index=True))
