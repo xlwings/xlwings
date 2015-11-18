@@ -192,6 +192,9 @@ Config* Config::GetConfig(const std::string& filename)
 
 void Config::ClearConfigs()
 {
+	Config::ConfigMap::iterator it;
+	for (it = configs.begin(); it != configs.end(); it++)
+		delete it->second;
 	configs.clear();
 }
 
