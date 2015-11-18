@@ -1,13 +1,9 @@
 Attribute VB_Name = "xlwings"
-' Make Excel fly with Python!
+' xlwings.org, version: 0.6.0dev
 '
-' Homepage and documentation: http://xlwings.org
-' See also: http://zoomeranalytics.com
-'
-' Copyright (C) 2014-2015, Zoomer Analytics LLC.
-' Version: 0.6.0dev
-'
+' Copyright (C) 2014-2015, Zoomer Analytics LLC (www.zoomeranalytics.com)
 ' License: BSD 3-clause (see LICENSE.txt for details)
+Option Explicit
 #If Mac Then
     Private Declare Function system Lib "libc.dylib" (ByVal Command As String) As Long
 #End If
@@ -374,15 +370,6 @@ Function ParentFolder(ByVal Folder)
   ParentFolder = Left$(Folder, InStrRev(Folder, "\") - 1)
 End Function
 
-Function ModuleIsPresent(ByVal wb As Workbook, moduleName As String) As Boolean
-    On Error GoTo not_present
-    Set x = wb.VBProject.VBComponents.Item(moduleName)
-    ModuleIsPresent = True
-    Exit Function
-not_present:
-    ModuleIsPresent = False
-End Function
-
 Function XLPyCommand()
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
     Dim LOG_FILE As String, UDF_PATH As String, Tail As String
@@ -441,6 +428,7 @@ Private Sub GetDLLVersion()
 End Sub
 
 Sub ImportPythonUDFs()
+    Dim scriptPath As String, tempPath As String
     scriptPath = PyScriptPath()
     tempPath = Py.Str(Py.Call(Py.Module("xlwings"), "import_udfs", Py.Tuple(scriptPath, ThisWorkbook)))
 End Sub
