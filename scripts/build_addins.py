@@ -35,8 +35,8 @@ def build_addins():
     
     # save to xla and xlam
     wb.xl_workbook.IsAddin = True
-    # wb.SaveAs(os.path.join(fld, "xlwings.xla"), FileFormat.xlAddIn)
     wb.xl_workbook.Application.DisplayAlerts = False
+    # wb.xl_workbook.SaveAs(os.path.join(this_dir, "xlwings.xla"), FileFormat.xlAddIn)
     wb.xl_workbook.SaveAs(os.path.join(this_dir, "xlwings.xlam"), FileFormat.xlOpenXMLAddIn)
     wb.xl_workbook.Application.DisplayAlerts = True
 
