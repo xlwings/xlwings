@@ -900,7 +900,15 @@ class Range(object):
     @formula.setter
     def formula(self, value):
         xlplatform.set_formula(self.xl_range, value)
+    
+    @property
+    def fontcolor(self):
+        return xlplatform.get_fontcolor(self.xl_range)
 
+    @fontcolor.setter
+    def fontcolor(self, value):
+        xlplatform.set_fontcolor(self.xl_range, value)
+        
     @property
     def table(self):
         """
