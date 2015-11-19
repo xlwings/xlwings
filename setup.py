@@ -44,6 +44,7 @@ setup(
     package_data={'xlwings': ['xlwings.bas', 'tests/*.xlsx', 'tests/*.png', 'xlwings_template.xltm', 'xlwings.xlam']},
     keywords=['xls', 'excel', 'spreadsheet', 'workbook', 'vba', 'macro'],
     install_requires=install_requires,
+    entry_points={'console_scripts': ['xlwings=xlwings.command_line:main'],},
     classifiers=[
         'Development Status :: 4 - Beta',
         'Operating System :: Microsoft :: Windows',
