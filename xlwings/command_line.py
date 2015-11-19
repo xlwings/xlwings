@@ -4,11 +4,13 @@ import shutil
 import argparse
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
-addin_path = os.path.join(os.getenv('APPDATA'), 'Microsoft', 'Excel', 'XLSTART', 'xlwings.xlam')
+
+if sys.platform.startswith('win'):
+    addin_path = os.path.join(os.getenv('APPDATA'), 'Microsoft', 'Excel', 'XLSTART', 'xlwings.xlam')
 
 def addin_install(args):
     if not sys.platform.startswith('win'):
-        print('Error: Only available on Windows right now.')
+        print('Error: This command is only available on Windows right now.')
     else:
         try:
             shutil.copyfile(os.path.join(this_dir, 'xlwings.xlam'), addin_path)
@@ -24,7 +26,7 @@ def addin_install(args):
 
 def addin_remove(args):
     if not sys.platform.startswith('win'):
-        print('Error: Only available on Windows right now.')
+        print('Error: This command is only available on Windows right now.')
     else:
         try:
             os.remove(addin_path)
@@ -42,7 +44,7 @@ def addin_remove(args):
 
 def addin_get_path(args):
     if not sys.platform.startswith('win'):
-        print('Error: Only available on Windows right now.')
+        print('Error: This command is only available on Windows right now.')
     else:
         if os.path.isfile(addin_path):
             print('The add-in is installed at: ' + addin_path)
