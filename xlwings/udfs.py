@@ -104,7 +104,7 @@ def udf_script(filename):
     return vars
 
 
-def import_udfs(script_path, wb):
+def import_udfs(script_path, xl_workbook):
 
     tab = '\t'
 
@@ -220,10 +220,10 @@ def import_udfs(script_path, wb):
     tf.close()
 
     try:
-        wb.VBProject.VBComponents.Remove(wb.VBProject.VBComponents("xlwings_udfs"))
+        xl_workbook.VBProject.VBComponents.Remove(xl_workbook.VBProject.VBComponents("xlwings_udfs"))
     except:
         pass
-    wb.VBProject.VBComponents.Import(tf.name)
+    xl_workbook.VBProject.VBComponents.Import(tf.name)
 
     for svar in script_vars.values():
         if hasattr(svar, '__xlfunc__'):
@@ -237,15 +237,15 @@ def import_udfs(script_path, wb):
                 if not arg['vba']:
                     n_args += 1
 
-            excel_version = [int(x) for x in re.split("[,\\.]", wb.Application.Version)]
+            excel_version = [int(x) for x in re.split("[,\\.]", xl_workbook.Application.Version)]
             if n_args > 0 and excel_version[0] >= 14:
                 argdocs = []
                 for arg in xlargs:
                     if not arg['vba']:
                         argdocs.append(arg['doc'][:255])
-                wb.Application.MacroOptions("'" + wb.Name + "'!" + fname, Description=fdoc, ArgumentDescriptions=argdocs)
+                xl_workbook.Application.MacroOptions("'" + xl_workbook.Name + "'!" + fname, Description=fdoc, ArgumentDescriptions=argdocs)
             else:
-                wb.Application.MacroOptions("'" + wb.Name + "'!" + fname, Description=fdoc)
+                xl_workbook.Application.MacroOptions("'" + xl_workbook.Name + "'!" + fname, Description=fdoc)
 
     # try to delete the temp file - doesn't matter too much if it fails
     try:
