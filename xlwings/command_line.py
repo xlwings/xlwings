@@ -1,12 +1,29 @@
 import os
+import os.path as op
 import sys
 import shutil
 import argparse
+import subprocess
 
-this_dir = os.path.dirname(os.path.abspath(__file__))
+from appscript import k, app
+
+from xlwings._xlmac import hfs_to_posix_path
+
+# Directories/paths
+this_dir = os.path.dirname(os.path.realpath(__file__))
+template_origin_path = os.path.join(this_dir, 'xlwings_template.xltm')
+
+if sys.platform.startswith('win'):
+    win_template_path = op.join(os.getenv('APPDATA'), 'Microsoft', 'Templates', 'xlwings_template.xltm')
+else:
+    # Mac 2011 and 2016 use different directories
+    mac_template_dirs = [op.realpath(op.join(op.expanduser("~"), 'Library', 'Application Support', 'Microsoft',
+                                             'Office', 'User Templates', 'My Templates')),
+                         hfs_to_posix_path(app('Microsoft Excel').properties().get(k.templates_path))]
 
 if sys.platform.startswith('win'):
     addin_path = os.path.join(os.getenv('APPDATA'), 'Microsoft', 'Excel', 'XLSTART', 'xlwings.xlam')
+
 
 def addin_install(args):
     if not sys.platform.startswith('win'):
@@ -52,30 +69,98 @@ def addin_get_path(args):
             print('The add-in will be installed at: ' + addin_path)
 
 
+def template_open(args):
+    if sys.platform.startswith('win'):
+        subprocess.Popen('start {0}'.format(template_origin_path), shell=True)
+    else:
+        subprocess.Popen('open {0}'.format(template_origin_path), shell=True)
+
+
+def template_install(args):
+    if sys.platform.startswith('win'):
+        try:
+            shutil.copyfile(template_origin_path, win_template_path)
+            print('Successfully installed the xlwings template!')
+        except Exception as e:
+            print(str(e))
+    else:
+        for dir in mac_template_dirs:
+            try:
+                if os.path.isdir(dir):
+                    path = op.realpath(op.join(dir, 'xlwings_template.xltm'))
+                    shutil.copyfile(template_origin_path, path)
+                    print('Successfully installed the xlwings template to {}!'.format(path))
+            except Exception as e:
+                print('Error installing template to {}. {}'.format(path, str(e)))
+
+
+def template_remove(args):
+    if sys.platform.startswith('win'):
+        try:
+            os.remove(win_template_path)
+            print('Successfully removed the xlwings template!')
+        except Exception as e:
+            print(str(e))
+    else:
+        for dir in mac_template_dirs:
+            try:
+                if os.path.isdir(dir):
+                    path = op.realpath(op.join(dir, 'xlwings_template.xltm'))
+                    os.remove(path)
+                    print('Successfully removed the xlwings template from {}!'.format(path))
+            except OSError as e:
+                print("Error: Could not remove the xlwings template. "
+                      "The template doesn't seem to be installed at {}.".format(path))
+
+            except Exception as e:
+                print('Error removing template from {}. {}'.format(path, str(e)))
+
+
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
 
-    addin_parser = subparsers.add_parser('addin', help='xlwings Excel addin')
+    # Add-in
+    addin_parser = subparsers.add_parser('addin', help='xlwings Excel Add-in')
     addin_subparsers = addin_parser.add_subparsers()
     
     addin_install_parser = addin_subparsers.add_parser('install')
     addin_install_parser.set_defaults(func=addin_install)
 
-    addin_install_parser = addin_subparsers.add_parser('update')
-    addin_install_parser.set_defaults(func=addin_install)
+    addin_update_parser = addin_subparsers.add_parser('update')
+    addin_update_parser.set_defaults(func=addin_install)
 
-    addin_install_parser = addin_subparsers.add_parser('upgrade')
-    addin_install_parser.set_defaults(func=addin_install)
+    addin_upgrade_parser = addin_subparsers.add_parser('upgrade')
+    addin_upgrade_parser.set_defaults(func=addin_install)
 
     addin_remove_parser = addin_subparsers.add_parser('remove')
     addin_remove_parser.set_defaults(func=addin_remove)    
 
-    addin_remove_parser = addin_subparsers.add_parser('uninstall')
-    addin_remove_parser.set_defaults(func=addin_remove)
+    addin_uninstall_parser = addin_subparsers.add_parser('uninstall')
+    addin_uninstall_parser.set_defaults(func=addin_remove)
 
-    addin_remove_parser = addin_subparsers.add_parser('path')
-    addin_remove_parser.set_defaults(func=addin_get_path)
+    addin_path_parser = addin_subparsers.add_parser('path')
+    addin_path_parser.set_defaults(func=addin_get_path)
+
+    # Template
+    template_parser = subparsers.add_parser('template', help='xlwings Excel template')
+    template_subparsers = template_parser.add_subparsers()
+
+    template_open_parser = template_subparsers.add_parser('open',
+                                                          help='Creates a new Workbook with the xlwings VBA module.')
+    template_open_parser.set_defaults(func=template_open)
+
+    template_install_parser = template_subparsers.add_parser('install')
+    template_install_parser.set_defaults(func=template_install)
+
+    template_update_parser = template_subparsers.add_parser('update')
+    template_update_parser.set_defaults(func=template_install)
+
+    template_remove_parser = template_subparsers.add_parser('remove')
+    template_remove_parser.set_defaults(func=template_remove)
+
+    template_uninstall_parser = template_subparsers.add_parser('uninstall')
+    template_uninstall_parser.set_defaults(func=template_remove)
 
     args = parser.parse_args()
     args.func(args)
