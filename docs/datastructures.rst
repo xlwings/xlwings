@@ -39,14 +39,14 @@ Lists
     >>> Range('A1:E1').value
     [1.0, 2.0, 3.0, 4.0, 5.0]
 
-* 2d lists: If the row or column orientation has to be preserved, use the ``atleast_2d`` keyword. This will return the
+* 2d lists: If the row or column orientation has to be preserved, use the ``ndim=2`` keyword. This will return the
   Ranges as nested lists ("2d lists"):
 
   .. code-block:: python
 
-    >>> Range('A1:A5', atleast_2d=True).value
+    >>> Range('A1:A5', ndim=2).value
     [[1.0], [2.0], [3.0], [4.0], [5.0]]
-    >>> Range('A1:E1', atleast_2d=True).value
+    >>> Range('A1:E1', ndim=2).value
     [[1.0, 2.0, 3.0, 4.0, 5.0]]
 
 

@@ -23,7 +23,7 @@ def xlfunc(f=None, **kwargs):
                     "vba": None,
                     "range": False,
                     "dtype": None,
-                    "dims": -1,
+                    "ndim": -1,
                     "doc": "Positional argument " + str(vpos+1),
                     "vararg": True if vpos == f.__code__.co_argcount else False
                 })
@@ -68,12 +68,12 @@ def xlret(marshal=None, **kwargs):
     return inner
 
 
-xlargparams = {"marshal", "dims", "dtype", "range", "doc", "vba"}
-def xlarg(arg, marshal=None, dims=None, **kwargs):
+xlargparams = {"marshal", "ndim", "dtype", "range", "doc", "vba"}
+def xlarg(arg, marshal=None, ndim=None, **kwargs):
     if marshal is not None:
         kwargs["marshal"] = marshal
-    if dims is not None:
-        kwargs["dims"] = dims
+    if ndim is not None:
+        kwargs["ndim"] = ndim
 
     def inner(f):
         xlf = xlfunc(f).__xlfunc__
@@ -156,12 +156,12 @@ def import_udfs(script_path, wb):
                         argname = vararg + "(k)"
                     if not arg['range']:
                         f.write(tab + "If TypeOf " + argname + " Is Range Then " + argname + " = " + argname + ".Value2\n")
-                    dims = arg['dims']
+                    ndim = arg['ndim']
                     marshal = arg['marshal']
-                    if dims != -2 or marshal == "nparray" or marshal == "list":
+                    if ndim != -2 or marshal == "nparray" or marshal == "list":
                         f.write(tab + "If Not TypeOf " + argname + " Is Object Then\n")
-                        if dims != -2:
-                            f.write(tab + tab + argname + " = NDims(" + argname + ", " + str(dims) + ")\n")
+                        if ndim != -2:
+                            f.write(tab + tab + argname + " = NDims(" + argname + ", " + str(ndim) + ")\n")
                         if arg['marshal'] == "nparray":
                             dtype = arg['dtype']
                             if dtype is None:
