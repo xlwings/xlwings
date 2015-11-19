@@ -392,6 +392,21 @@ def get_formula(xl_range):
 def set_formula(xl_range, value):
     xl_range.Formula = value
 
+def set_fontcolor(xl_range, color_or_rgb):
+    if color_or_rgb is None:
+        xl_range.Font.ColorIndex = ColorIndex.xlColorIndexNone
+    elif isinstance(color_or_rgb, int):
+        xl_range.Font.Color = color_or_rgb
+    else:
+        xl_range.Font.Color = rgb_to_int(color_or_rgb)
+
+
+def get_fontcolor(xl_range):
+    if xl_range.Font.ColorIndex == ColorIndex.xlColorIndexNone:
+        return None
+    else:
+        return int_to_rgb(xl_range.Font.Color)
+        
 
 def get_row_index_end_down(xl_sheet, row_index, column_index):
     return xl_sheet.Cells(row_index, column_index).End(Direction.xlDown).Row
