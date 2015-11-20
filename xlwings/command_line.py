@@ -55,7 +55,7 @@ def addin_remove(args):
             else:
                 print(str(e))
         except Exception as e:
-            print str(e)
+            print(str(e))
 
 
 def addin_get_path(args):
