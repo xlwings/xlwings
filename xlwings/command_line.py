@@ -5,9 +5,6 @@ import shutil
 import argparse
 import subprocess
 
-from appscript import k, app
-
-from xlwings._xlmac import hfs_to_posix_path
 
 # Directories/paths
 this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -17,6 +14,8 @@ if sys.platform.startswith('win'):
     win_template_path = op.join(os.getenv('APPDATA'), 'Microsoft', 'Templates', 'xlwings_template.xltm')
 else:
     # Mac 2011 and 2016 use different directories
+    from appscript import k, app
+    from xlwings._xlmac import hfs_to_posix_path
     mac_template_dirs = [op.realpath(op.join(op.expanduser("~"), 'Library', 'Application Support', 'Microsoft',
                                              'Office', 'User Templates', 'My Templates')),
                          hfs_to_posix_path(app('Microsoft Excel').properties().get(k.templates_path))]
@@ -99,6 +98,8 @@ def template_remove(args):
         try:
             os.remove(win_template_path)
             print('Successfully removed the xlwings template!')
+        except WindowsError as e:
+            print("Error: Could not remove the xlwings template. The template doesn't seem to be installed.")
         except Exception as e:
             print(str(e))
     else:
