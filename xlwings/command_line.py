@@ -63,9 +63,11 @@ def addin_status(args):
         print('Error: This command is only available on Windows right now.')
     else:
         if os.path.isfile(addin_path):
-            print('The add-in is installed. Use "xlwings addin remove" to uninstall it. Location: ' + addin_path)
+            print('The add-in is installed.')
+            print('Use "xlwings addin remove" to uninstall it. Location: {}'.format(addin_path))
         else:
-            print('The add-in is not installed. "xlwings addin install" will install it at : ' + addin_path)
+            print('The add-in is not installed.')
+            print('"xlwings addin install" will install it at: {}'.format(addin_path))
 
 
 def template_open(args):
