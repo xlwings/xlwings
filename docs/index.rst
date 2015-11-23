@@ -27,6 +27,7 @@ xlwings fully supports NumPy arrays and Pandas DataFrames. It works with Microso
     debugging
     udfs
     missing_features
+    command_line
     api
 
 
