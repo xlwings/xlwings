@@ -10,7 +10,7 @@ from datetime import datetime, date
 import pytz
 import inspect
 import nose
-from nose.tools import assert_equal, raises, assert_raises, assert_true, assert_not_equal
+from nose.tools import assert_equal, raises, assert_raises, assert_true, assert_false, assert_not_equal
 
 from xlwings import (Application, Workbook, Sheet, Range, Chart, ChartType,
                      RgbColor, Calculation, Shape, Picture, Plot, ShapeAlreadyExists)
@@ -405,6 +405,11 @@ class TestSheet:
     def test_all(self):
         all_names = [i.name for i in Sheet.all()]
         assert_equal(all_names, ['Sheet1', 'Sheet2', 'Sheet3'])
+
+    def test_delete(self):
+        assert_true('Sheet1' in [i.name for i in Sheet.all()])
+        Sheet('Sheet1').delete()
+        assert_false('Sheet1' in [i.name for i in Sheet.all()])
 
 
 class TestRange:

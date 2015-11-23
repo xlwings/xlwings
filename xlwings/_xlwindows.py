@@ -731,3 +731,9 @@ def get_app_version_string(xl_workbook):
 
 def get_major_app_version_number(xl_workbook):
     return int(get_app_version_string(xl_workbook).split('.')[0])
+
+
+def delete_sheet(sheet):
+    sheet.xl_workbook.Application.DisplayAlerts = False
+    sheet.xl_workbook.Sheets(sheet.name).Delete()
+    sheet.xl_workbook.Application.DisplayAlerts = True
