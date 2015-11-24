@@ -25,6 +25,7 @@ boilerplate code:
     >>> from xlwings import Workbook
     >>> Workbook.open_template()
 
+.. _vba_settings:
 
 Settings
 --------

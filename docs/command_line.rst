@@ -32,7 +32,8 @@ After installing, the templates are accessible via Excel's Menu:
 Add-in (Currently Windows-only)
 -------------------------------
 
-The add-in is currently in an early stage and only provides one button to import User Defined Functions (UDFs).
+The add-in is currently in an early stage and only provides one button to import User Defined Functions (UDFs). As
+such, it is only a developer add-in and not necessary to run Workbooks with xlwings.
 
 .. note:: Excel needs to be closed before installing/updating the add-in. If you're still getting an error,
   start the Task Manager and make sure there are no ``EXCEL.EXE`` processes left. Currently only available
