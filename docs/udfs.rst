@@ -106,7 +106,23 @@ To define a formula for matrix multiplication, you would define the following fu
     def matrix_mult(x, y):
         return x @ y
 
-.. note:: On Python versions < 3.5 and NumPy < 1.10 you'd have to use ``x.dot(y)`` instead of ``x @ y``.
+.. note:: If you are not on Python >= 3.5 with NumPy >= 1.10, use ``x.dot(y)`` instead of ``x @ y``.
 
 Macros
 ------
+
+On Windows, as alternative to calling macros via :ref:`RunPython <run_python>`, you can also use a decorator based
+approach that works the same as with user-defined functions::
+
+    from xlwings import Workbook, xlsub
+
+    @xlsub
+    def my_macro():
+        """Writes the name of the Workbook into Range("A1") of Sheet 1"""
+        wb = Workbook.caller()
+        Range(1, 'A1').value = wb.name
+
+After clicking on ``Import Python UDFs``, you can then use this macro by executing it via ``Alt + F8`` or by
+binding it e.g. to a button. To to the latter, make sure you have the ``Developer`` tab selected under ``File >
+Options > Customize Ribbon``. Then, under the ``Developer`` tab, you can insert a button via ``Insert > Form Controls``.
+After drawing the button, you will be prompted to assign a macro to it and you can select ``my_macro``.

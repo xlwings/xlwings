@@ -72,6 +72,7 @@ Subtle difference between the Windows and Mac Version
 * **Mac**: After calling the Macro, the call returns instantly but Excel's Status Bar turns into ``Running...`` during the
   duration of the Python call.
 
+.. _run_python:
 
 Call Python with "RunPython"
 ----------------------------
