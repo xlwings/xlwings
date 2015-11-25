@@ -21,7 +21,7 @@ import shutil
 
 from . import xlplatform, string_types, time_types, xrange, map, ShapeAlreadyExists
 from .constants import ChartType
-
+from . import formatters
 
 # Optional imports
 try:
@@ -690,11 +690,10 @@ class Range(object):
             self.xl_workbook = xlplatform.get_xl_workbook_current()
         else:
             self.xl_workbook = self.workbook.xl_workbook
-        self.index = kwargs.get('index', True)  # Set DataFrame with index
-        self.header = kwargs.get('header', True)  # Set DataFrame with header
-        self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array
         self.strict = kwargs.get('strict', False)  # Stop table/horizontal/vertical at empty cells that contain formulas
-        self.ndim = kwargs.get('ndim', None)  # Force data to be list of list or a 2d numpy array
+        self.formatter = kwargs.get('format', formatters.default)
+        if isinstance(self.format, string_types):
+            self.formatter = getattr(formatters, self.formatter)
 
         # Get sheet
         if sheet_name_or_index:
@@ -794,109 +793,11 @@ class Range(object):
             Empty cells are set to ``None``. If ``asarray=True``,
             a numpy array is returned where empty cells are set to ``nan``.
         """
-        # TODO: refactor
-        if self.is_cell():
-            # Clean_xl_data requires and returns a list of list
-            data = xlplatform.clean_xl_data([[xlplatform.get_value_from_range(self.xl_range)]])
-            if self.ndim is None:
-                data = data[0][0]
-        elif self.is_row():
-            data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
-            if self.ndim is None:
-                data = data[0]
-        elif self.is_column():
-            data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
-            if self.ndim is None:
-                data = [item for sublist in data for item in sublist]
-        else:  # 2d Range, leave as list of list
-            data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
-
-        # Return as NumPy Array
-        if self.asarray:
-            # replace None (empty cells) with nan as None produces arrays with dtype=object
-            # TODO: easier like this: np.array(my_list, dtype=np.float)
-            if data is None:
-                data = np.nan
-            if (self.is_column() or self.is_row()) and self.ndim is None:
-                data = [np.nan if x is None else x for x in data]
-            elif self.is_table() or self.ndim == 2:
-                data = [[np.nan if x is None else x for x in i] for i in data]
-            return np.atleast_1d(np.array(data))
-        return data
+        return self.formatter.read(self)
 
     @value.setter
     def value(self, data):
-        # Pandas DataFrame: Turn into NumPy object array with or without Index and Headers
-        if pd and isinstance(data, pd.DataFrame):
-            if self.index:
-                data = data.reset_index()
-
-            if self.header:
-                if isinstance(data.columns, pd.MultiIndex):
-                    # Ensure dtype=object because otherwise it may get assigned a string type which sometimes makes
-                    # vstacking return a string array. This would cause values to be truncated and we can't easily
-                    # transform np.nan in string form.
-                    # Python 3 requires zip wrapped in list
-                    columns = np.array(list(zip(*data.columns.tolist())), dtype=object)
-                else:
-                    columns = np.empty((data.columns.shape[0],), dtype=object)
-                    columns[:] = np.array([data.columns.tolist()])
-                data = np.vstack((columns, data.values))
-            else:
-                data = data.values
-
-        # Pandas Series
-        if pd and isinstance(data, pd.Series):
-            if self.index:
-                data = data.reset_index().values
-            else:
-                data = data.values[:, np.newaxis]
-
-        # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535.
-        # See: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx
-        # Also, turn into list (Python 3 can't handle arrays directly)
-        if np and isinstance(data, np.ndarray):
-            try:
-                data = np.where(np.isnan(data), None, data)
-                data = data.tolist()
-            except TypeError:
-                # isnan doesn't work on arrays of dtype=object
-                if pd:
-                    data[pd.isnull(data)] = None
-                    data = data.tolist()
-                else:
-                    # expensive way of replacing nan with None in object arrays in case Pandas is not available
-                    data = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in data]
-
-        # Simple Lists: Turn into list of lists (np.nan is part of numbers.Number)
-        if isinstance(data, list) and (isinstance(data[0], (numbers.Number, string_types, time_types))
-                                       or data[0] is None):
-            data = [data]
-
-        # Get dimensions and prepare data for Excel
-        # TODO: refactor
-        if isinstance(data, (numbers.Number, string_types, time_types)) or data is None:
-            # Single cells
-            row2 = self.row2
-            col2 = self.col2
-            data = xlplatform.prepare_xl_data([[data]])[0][0]
-            try:
-                # scalar np.nan need to be turned into None, otherwise Excel shows it as 65535 (same as for NumPy array)
-                if np and np.isnan(data):
-                    data = None
-            except (TypeError, NotImplementedError):
-                # raised if data is not a np.nan.
-                # NumPy < 1.7.0 raises NotImplementedError, >= 1.7.0 raises TypeError
-                pass
-
-        else:
-            # List of List
-            row2 = self.row1 + len(data) - 1
-            col2 = self.col1 + len(data[0]) - 1
-            data = xlplatform.prepare_xl_data(data)
-
-        xlplatform.set_value(xlplatform.get_range_from_indices(self.xl_sheet,
-                                                               self.row1, self.col1, row2, col2), data)
+        self.formatter.write(self, data)
 
     @property
     def formula(self):
