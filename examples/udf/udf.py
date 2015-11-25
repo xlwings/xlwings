@@ -9,9 +9,9 @@ from xlwings import Workbook, Range, xlsub, xlfunc, xlarg
 
 @xlsub
 def get_workbook_name():
-    """Writes the name of the Workbook into Range("D1") of Sheet 1"""
+    """Writes the name of the Workbook into Range("D3") of Sheet 1"""
     wb = Workbook.caller()
-    Range(1, 'D1').value = wb.name
+    Range(1, 'D3').value = wb.name
 
 
 @xlfunc
