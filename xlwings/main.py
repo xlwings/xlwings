@@ -717,6 +717,16 @@ class Range(object):
         return map(lambda cell: Range(xlplatform.get_worksheet_name(self.xl_sheet), cell, **self.kwargs),
                    itertools.product(xrange(self.row1, self.row2 + 1), xrange(self.col1, self.col2 + 1)))
 
+    def format(self, formatter):
+        kwargs = dict(self.kwargs)
+        kwargs['format'] = formatter
+        return Range(
+            xlplatform.get_worksheet_name(self.xl_sheet),
+            (self.row1, self.col1),
+            (self.row2, self.col2),
+            **kwargs
+        )
+
     def is_cell(self):
         """
         Returns ``True`` if the Range consists of a single Cell otherwise ``False``.
