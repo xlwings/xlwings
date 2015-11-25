@@ -1,7 +1,10 @@
 import os
 import sys
 import re
-from distutils.core import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
 # long_description: Take from README file
 with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as f:
@@ -13,7 +16,7 @@ with open(os.path.join(os.path.dirname(__file__), 'xlwings', '__init__.py')) as 
 
 # Dependencies
 if sys.platform.startswith('win'):
-    install_requires = ['comtypes']  # pywin32 can't be installed (yet) with pip
+    install_requires = ['comtypes']  # TODO: add pypiwin32 (?)
     # This places dlls next to python.exe for standard setup and in the parent folder for virtualenv
     data_files = [('', ['xlwings32.dll', 'xlwings64.dll'])]
 elif sys.platform.startswith('darwin'):
@@ -38,9 +41,10 @@ setup(
     long_description=readme,
     data_files=data_files,
     packages=['xlwings', 'xlwings.tests'],
-    package_data={'xlwings': ['*.bas', 'tests/*.xlsx', 'tests/*.png', 'xlwings_template.xltm']},
+    package_data={'xlwings': ['xlwings.bas', 'tests/*.xlsx', 'tests/*.png', 'xlwings_template.xltm', 'xlwings.xlam']},
     keywords=['xls', 'excel', 'spreadsheet', 'workbook', 'vba', 'macro'],
     install_requires=install_requires,
+    entry_points={'console_scripts': ['xlwings=xlwings.command_line:main'],},
     classifiers=[
         'Development Status :: 4 - Beta',
         'Operating System :: Microsoft :: Windows',

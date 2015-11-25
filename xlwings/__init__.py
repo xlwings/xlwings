@@ -30,3 +30,6 @@ class ShapeAlreadyExists(Exception):
 # API
 from .main import Application, Workbook, Range, Chart, Sheet, Picture, Shape, Plot
 from .constants import *
+
+# UDFs
+from .udfs import xlfunc, xlsub, xlret, xlarg, udf_script, import_udfs

@@ -535,14 +535,14 @@ class TestRange:
         cells = Range('Sheet6', 'A4', asarray=True).table.value
         assert_array_equal(cells, array_2d)
 
-        # 1d array (atleast_2d)
+        # 1d array (ndim=2)
         Range('Sheet6', 'A10').value = array_1d
-        cells = Range('Sheet6', 'A10:D10', asarray=True, atleast_2d=True).value
+        cells = Range('Sheet6', 'A10:D10', asarray=True, ndim=2).value
         assert_array_equal(cells, np.atleast_2d(array_1d))
 
-        # 2d array (atleast_2d)
+        # 2d array (ndim=2)
         Range('Sheet6', 'A12').value = array_2d
-        cells = Range('Sheet6', 'A12', asarray=True, atleast_2d=True).table.value
+        cells = Range('Sheet6', 'A12', asarray=True, ndim=2).table.value
         assert_array_equal(cells, array_2d)
 
     def sheet_ref(self):
@@ -580,7 +580,7 @@ class TestRange:
 
         # 2d List Row
         Range('Sheet4', 'A29').value = list_row_2d
-        cells = Range('Sheet4', 'A29:C29', atleast_2d=True).value
+        cells = Range('Sheet4', 'A29:C29', ndim=2).value
         assert_equal(list_row_2d, cells)
 
         # 1d List Col
@@ -588,7 +588,7 @@ class TestRange:
         cells = Range('Sheet4', 'A31:A33').value
         assert_equal([i[0] for i in list_col], cells)
         # 2d List Col
-        cells = Range('Sheet4', 'A31:A33', atleast_2d=True).value
+        cells = Range('Sheet4', 'A31:A33', ndim=2).value
         assert_equal(list_col, cells)
 
     def test_is_cell(self):
@@ -724,18 +724,18 @@ class TestRange:
         Range('Sheet1', 'A20').value = np.nan
         assert_equal(None, Range('Sheet1', 'A20').value)
 
-    def test_atleast_2d_scalar(self):
+    def test_ndim2_scalar(self):
         """Covers GH Issue #53a"""
         Range('Sheet1', 'A50').value = 23
-        result = Range('Sheet1', 'A50', atleast_2d=True).value
+        result = Range('Sheet1', 'A50', ndim=2).value
         assert_equal([[23]], result)
 
-    def test_atleast_2d_scalar_as_array(self):
+    def test_ndim2_scalar_as_array(self):
         """Covers GH Issue #53b"""
         _skip_if_no_numpy()
 
         Range('Sheet1', 'A50').value = 23
-        result = Range('Sheet1', 'A50', atleast_2d=True, asarray=True).value
+        result = Range('Sheet1', 'A50', ndim=2, asarray=True).value
         assert_equal(np.array([[23]]), result)
 
     def test_column_width(self):

@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="xlwingsdll.cpp" />
+    <ClCompile Include="utils.cpp" />
+    <ClCompile Include="config.cpp" />
+    <ClCompile Include="dispatch.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="xlwingsdll.h" />
+    <ClInclude Include="utils.h" />
+    <ClInclude Include="config.h" />
+    <ClInclude Include="dispatch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="xlwingsdll.def" />
+  </ItemGroup>
+</Project>
