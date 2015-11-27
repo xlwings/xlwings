@@ -292,7 +292,7 @@ class Workbook(object):
         """
         xlplatform.set_xl_workbook_current(self.xl_workbook)
 
-    def get_selection(self, asarray=False, ndim=None):
+    def get_selection(self, asarray=False, atleast_2d=False):
         """
         Returns the currently selected cells from Excel as ``Range`` object.
 
@@ -301,14 +301,14 @@ class Workbook(object):
         asarray : boolean, default False
             returns a NumPy array where empty cells are shown as nan
 
-        ndim : int, default None
-            If set to 2, returns 2d lists/arrays even if the Range is a Row or Column.
+        atleast_2d : boolean, default False
+            Returns 2d lists/arrays even if the Range is a Row or Column.
 
         Returns
         -------
         Range object
         """
-        return Range(xlplatform.get_selection_address(self.xl_app), wkb=self, asarray=asarray, ndim=ndim)
+        return Range(xlplatform.get_selection_address(self.xl_app), wkb=self, asarray=asarray, atleast_2d=atleast_2d)
 
     def close(self):
         """
@@ -624,8 +624,8 @@ class Range(object):
     header : boolean, default True
         Includes the column headers when setting a Pandas DataFrame.
 
-    ndim : int, default None
-        If set to 2, returns 2d lists/arrays even if the Range is a Row or Column.
+    atleast_2d : boolean, default False
+        Returns 2d lists/arrays even if the Range is a Row or Column.
 
     wkb : Workbook object, default Workbook.current()
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
@@ -694,7 +694,7 @@ class Range(object):
         self.header = kwargs.get('header', True)  # Set DataFrame with header
         self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array
         self.strict = kwargs.get('strict', False)  # Stop table/horizontal/vertical at empty cells that contain formulas
-        self.ndim = kwargs.get('ndim', None)  # Force data to be list of list or a 2d numpy array
+        self.atleast_2d = kwargs.get('atleast_2d', False)  # Force data to be list of list or a 2d numpy array
 
         # Get sheet
         if sheet_name_or_index:
@@ -798,15 +798,15 @@ class Range(object):
         if self.is_cell():
             # Clean_xl_data requires and returns a list of list
             data = xlplatform.clean_xl_data([[xlplatform.get_value_from_range(self.xl_range)]])
-            if self.ndim is None:
+            if not self.atleast_2d:
                 data = data[0][0]
         elif self.is_row():
             data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
-            if self.ndim is None:
+            if not self.atleast_2d:
                 data = data[0]
         elif self.is_column():
             data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
-            if self.ndim is None:
+            if not self.atleast_2d:
                 data = [item for sublist in data for item in sublist]
         else:  # 2d Range, leave as list of list
             data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
@@ -817,9 +817,9 @@ class Range(object):
             # TODO: easier like this: np.array(my_list, dtype=np.float)
             if data is None:
                 data = np.nan
-            if (self.is_column() or self.is_row()) and self.ndim is None:
+            if (self.is_column() or self.is_row()) and not self.atleast_2d:
                 data = [np.nan if x is None else x for x in data]
-            elif self.is_table() or self.ndim == 2:
+            elif self.is_table() or self.atleast_2d:
                 data = [[np.nan if x is None else x for x in i] for i in data]
             return np.atleast_1d(np.array(data))
         return data
