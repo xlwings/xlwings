@@ -81,7 +81,8 @@ if pd is not None:
 
     df_2 = pd.DataFrame([1, 3, 5, np.nan, 6, 8], columns=['col1'])
 
-    df_dateindex = pd.DataFrame(np.arange(50).reshape(10, 5) + 0.1, index=rng)
+    df_dateindex = pd.DataFrame(np.arange(50).reshape(10, 5) + 0.1, index=rng,
+                                columns=['one', 'two', 'three', 'four', 'five'])
 
     # MultiIndex (Index)
     tuples = list(zip(*[['bar', 'bar', 'baz', 'baz', 'foo', 'foo', 'qux', 'qux'],
@@ -89,7 +90,7 @@ if pd is not None:
                         ['x', 'x', 'x', 'x', 'y', 'y', 'y', 'y']]))
     index = pd.MultiIndex.from_tuples(tuples, names=['first', 'second', 'third'])
     df_multiindex = pd.DataFrame([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6], [7.7, 8.8], [9.9, 10.10],
-                                  [11.11, 12.12], [13.13, 14.14], [15.15, 16.16]], index=index)
+                                  [11.11, 12.12], [13.13, 14.14], [15.15, 16.16]], index=index, columns=['one', 'two'])
 
     # MultiIndex (Header)
     header = [['Foo', 'Foo', 'Bar', 'Bar', 'Baz'], ['A', 'B', 'C', 'D', 'E']]
@@ -664,6 +665,7 @@ class TestRange:
         multiindex = Range('Sheet5', 'A20:C28').value
         ix = pd.MultiIndex.from_tuples(multiindex[1:], names=multiindex[0])
         df_result = DataFrame(cells[1:], columns=cells[0], index=ix)
+        print cells[0]
         assert_frame_equal(df_expected, df_result)
 
     def test_dataframe_multiheader(self):
