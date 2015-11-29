@@ -1,4 +1,5 @@
 # Run this file on Windows only. It expects full Python installations with all dependencies in the paths below.
+# TODO: change to using conda envs
 # On Mac, run the tests with tox.
 
 
@@ -34,6 +35,8 @@ for py in [py26, py27, py31, py32, py33, py34]:
     pip = os.path.abspath(os.path.join(py, 'Scripts/pip'))
     test_runner = os.path.abspath(os.path.join(py, 'Scripts/nosetests'))
     test_dir = os.path.abspath(os.path.join(py, 'Lib/site-packages/xlwings/tests'))
+    if __version__.endswith('dev'):
+        __version__ = __version__[:-3] + '.dev0'
     xlwings_package = os.path.abspath(os.path.join(this_dir, 'dist/xlwings-{0}.zip'.format(__version__)))
 
     print('{0}### {1} ###{2}'.format(Colors.yellow, py, Colors.end))
@@ -46,7 +49,7 @@ for py in [py26, py27, py31, py32, py33, py34]:
 
     # Install
     os.chdir(py)
-    call('{0} install {1}'.format(pip, xlwings_package))
+    call('{0} install {1} --ignore-installed --no-cache-dir'.format(pip, xlwings_package))
 
     # Run tests
     call('{0} {1}'.format(test_runner, test_dir))
