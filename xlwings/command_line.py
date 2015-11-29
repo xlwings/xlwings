@@ -16,9 +16,10 @@ else:
     # Mac 2011 and 2016 use different directories
     from appscript import k, app
     from xlwings._xlmac import hfs_to_posix_path
-    mac_template_dirs = {op.realpath(op.join(op.expanduser("~"), 'Library', 'Application Support', 'Microsoft',
-                                             'Office', 'User Templates', 'My Templates')),
-                         hfs_to_posix_path(app('Microsoft Excel').properties().get(k.templates_path))}
+
+    mac_template_dirs = set((op.realpath(op.join(op.expanduser("~"), 'Library', 'Application Support', 'Microsoft',
+                                                 'Office', 'User Templates', 'My Templates')),
+                             hfs_to_posix_path(app('Microsoft Excel').properties().get(k.templates_path))))
 
 if sys.platform.startswith('win'):
     addin_path = os.path.join(os.getenv('APPDATA'), 'Microsoft', 'Excel', 'XLSTART', 'xlwings.xlam')
