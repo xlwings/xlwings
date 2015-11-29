@@ -8,7 +8,7 @@ User Defined Functions (UDFs)
 Initial one-time setup of Excel
 -------------------------------
 
-It is recommended to work with the xlwings developer add-in to import the functions:
+It is recommended (although not required) to work with the xlwings developer add-in to import the functions:
 
 1) Install the add-in on a command prompt: ``xlwings addin install`` (see :ref:`command_line`)
 2) Enable ``Trust access to the VBA project object model`` under ``File > Options > Trust Center > Trust Center Settings > Macro Settings``
@@ -42,9 +42,9 @@ the following sample function::
         return 2 * (x + y)
 
 
-* Now click on ``Import Python UDFs`` in the xlwings tab to pick up the changes made to ``Book1.py``. If you didn't
+* Now click on ``Import Python UDFs`` in the xlwings tab to pick up the changes made to ``Book1.py``. If you don't
   want to install/use the add-in, you could also run the ``ImportPythonUDFs`` macro directly (one possibility to do that
-  is to hit ``Alt + F8`` and select the macro from the appearing menu).
+  is to hit ``Alt + F8`` and select the macro from the pop-up menu).
 * Enter the formula ``=double_sum(1, 2)`` into a cell and you will see the correct result:
 
   .. figure:: images/double_sum.png

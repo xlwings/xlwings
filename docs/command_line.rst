@@ -3,9 +3,7 @@
 Command Line Client
 ===================
 
-.. versionadded:: 0.6.0
-
-xlwings comes with a command line client that allows an easy handling of template and add-in.
+xlwings (from v0.6.0) comes with a command line client that allows an easy handling of template and add-in.
 On Windows, type the commands into a ``command prompt``, on Mac, type them into a ``Terminal``.
 
 

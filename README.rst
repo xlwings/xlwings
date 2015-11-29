@@ -103,6 +103,20 @@ your ``xlwings`` installation.
 .. note:: Always instantiate the ``Workbook`` within the function that is called from Excel and not outside as global
     variable. Older versions of the docs/samples were showing the wrong approach.
 
+User Defined Functions (UDFs) - Currently Windows only
+------------------------------------------------------
+
+Writing a UDF in Python is as easy as:
+
+.. code-block:: python
+
+    from xlwings import xlfunc, xlarg
+
+    @xlfunc
+    def double_sum(x, y):
+        """Returns twice the sum of the two arguments"""
+        return 2 * (x + y)
+
 Easy deployment
 ---------------
 
@@ -149,9 +163,10 @@ Optional Dependencies
 
 * NumPy
 * Pandas
+* Matplotlib
+* Pillow/PIL
 
-These packages are not required but highly recommended as NumPy arrays and Pandas DataFrames/Series play very nicely
-with xlwings.
+These packages are not required but highly recommended as they play very nicely with xlwings.
 
 Python version support
 ----------------------

@@ -1,6 +1,44 @@
 What's New
 ==========
 
+v0.6.0 (November 29, 2015)
+--------------------------
+
+API changes
+***********
+None
+
+Enhancements
+************
+
+* **User Defined Functions (UDFs) - currently Windows only**
+
+  The `ExcelPython <https://github.com/ericremoreynolds/excelpython/>`_ project has been fully merged into xlwings. This means
+  that on Windows, UDF's are now supported via decorator syntax. A simple example::
+
+    from xlwings import xlfunc, xlarg
+
+    @xlfunc
+    def double_sum(x, y):
+        """Returns twice the sum of the two arguments"""
+        return 2 * (x + y)
+
+  For **array formulas** with or without **NumPy**, see the docs: :ref:`udfs`
+
+* **Command Line Client**
+
+  The new xlwings command line client makes it easy to work with the xlwings **template** and the developer **add-in**
+  (the add-in is currently Windows-only). E.g. to create a new Excel spreadsheet from the template, run::
+
+      xlwings template open
+
+  For all commands, see the docs: :ref:`command_line`
+
+* **Other enhancements**:
+
+  New method: :meth:`xlwings.Sheet.delete`
+
+
 v0.5.0 (November 10, 2015)
 --------------------------
 
