@@ -665,7 +665,6 @@ class TestRange:
         multiindex = Range('Sheet5', 'A20:C28').value
         ix = pd.MultiIndex.from_tuples(multiindex[1:], names=multiindex[0])
         df_result = DataFrame(cells[1:], columns=cells[0], index=ix)
-        print cells[0]
         assert_frame_equal(df_expected, df_result)
 
     def test_dataframe_multiheader(self):
