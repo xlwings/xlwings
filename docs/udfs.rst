@@ -3,7 +3,7 @@
 User Defined Functions (UDFs)
 =============================
 
-.. note:: This functionality is currently available on Windows only.
+.. note:: This functionality is currently only available on Windows.
 
 Installation of Excel Add-in (Recommended)
 ------------------------------------------

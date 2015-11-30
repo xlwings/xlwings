@@ -34,7 +34,7 @@ Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef 
     ' PYTHON_FROZEN [Optional]: Currently only on Windows, indicate directory of exe file
     ' PYTHONPATH [Optional]: If the source file of your code is not found, add the path here.
     '                        Separate multiple directories by ";". Otherwise set to "".
-    ' UDF_PATH [Optional, Windows only]: Full path to a Python file from wich the User Defined Functions are being imported.
+    ' UDF_PATH [Optional, Windows only]: Full path to a Python file from which the User Defined Functions are being imported.
     '                                    Example: UDF_PATH = ThisWorkbook.Path & "\functions.py"
     '                                    Default: UDF_PATH = "" defaults to a file in the same directory of the Excel spreadsheet with
     '                                    the same name but ending in ".py".
