@@ -68,7 +68,7 @@ def xlret(marshal=None, **kwargs):
     return inner
 
 
-xlargparams = set(("marshal", "dims", "dtype", "range", "doc", "vba"))
+xlargparams = set(("marshal", "ndim", "dtype", "range", "doc", "vba"))
 def xlarg(arg, marshal=None, ndim=None, **kwargs):
     if marshal is not None:
         kwargs["marshal"] = marshal
