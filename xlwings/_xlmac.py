@@ -356,6 +356,14 @@ def get_height(xl_range):
     return xl_range.height.get()
 
 
+def get_left(xl_range):
+    return xl_range.left.get()
+
+
+def get_top(xl_range):
+    return xl_range.left.get()
+
+
 def autofit(range_, axis):
     address = range_.xl_range.get_address()
     _xl_app.screen_updating.set(False)

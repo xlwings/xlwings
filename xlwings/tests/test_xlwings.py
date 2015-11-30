@@ -778,6 +778,16 @@ class TestRange:
         result = Range('Sheet1', 'A1:D4').height
         assert_equal(240.0, result)
 
+    def test_left(self):
+        assert_equal(Range('Sheet1','A1').left, 0.0)
+        Range('Sheet1','A1').column_width = 20.0
+        assert_equal(Range('Sheet1','B1').left, Range('Sheet1','A1').width)
+
+    def test_top(self):
+        assert_equal(Range('Sheet1','A1').top, 0.0)
+        Range('Sheet1','A1').row_height = 20.0
+        assert_equal(Range('Sheet1','A2').top, Range('Sheet1','A1').height)
+
     def test_autofit_range(self):
         # TODO: compare col/row widths before/after - not implemented yet
         Range('Sheet1', 'A1:D4').value = 'test_string'
