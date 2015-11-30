@@ -1,7 +1,7 @@
 What's New
 ==========
 
-v0.6.0 (November 29, 2015)
+v0.6.0 (November 30, 2015)
 --------------------------
 
 API changes
@@ -36,7 +36,9 @@ Enhancements
 
 * **Other enhancements**:
 
-  New method: :meth:`xlwings.Sheet.delete`
+  - New method: :meth:`xlwings.Sheet.delete`
+  - New method: :meth:`xlwings.Range.top`
+  - New method: :meth:`xlwings.Range.left`
 
 
 v0.5.0 (November 10, 2015)
