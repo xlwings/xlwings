@@ -357,11 +357,11 @@ def get_height(xl_range):
 
 
 def get_left(xl_range):
-    return xl_range.left.get()
+    return xl_range.properties().get(kw.left_position)
 
 
 def get_top(xl_range):
-    return xl_range.left.get()
+    return xl_range.properties().get(kw.top)
 
 
 def autofit(range_, axis):
