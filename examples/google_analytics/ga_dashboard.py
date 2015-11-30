@@ -82,6 +82,6 @@ def refresh():
 
 if __name__ == '__main__':
     # To run from Python. Not needed when called from Excel.
-    path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'GA_Dashboard.xlsm'))
+    path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'ga_dashboard.xlsm'))
     Workbook.set_mock_caller(path)
     refresh()
