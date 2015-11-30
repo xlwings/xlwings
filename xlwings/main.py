@@ -1153,7 +1153,31 @@ class Range(object):
         .. versionadded:: 0.4.0
         """
         return xlplatform.get_height(self.xl_range)
+		
+    @property
+    def left(self):
+        """
+        .. versionadded:: 0.6.0
+        Returns the distance, in points, from the left edge of column A to the left edge of the range. Read-only.
 
+        Returns
+        -------
+        float
+        """
+        return xlplatform.get_left(self.xl_range)
+
+    @property
+    def top(self):
+        """
+        .. versionadded:: 0.6.0
+        Returns the distance, in points, from the top edge of row 1 to the top edge of the range. Read-only.
+
+        Returns
+        -------
+        float
+        """
+        return xlplatform.get_top(self.xl_range)
+		
     def autofit(self, axis=None):
         """
         Autofits the width of either columns, rows or both.
