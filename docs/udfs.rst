@@ -5,8 +5,8 @@ User Defined Functions (UDFs)
 
 .. note:: This functionality is currently available on Windows only.
 
-Initial one-time setup of Excel
--------------------------------
+Installation of Excel Add-in (Recommended)
+------------------------------------------
 
 It is recommended (although not required) to work with the xlwings developer add-in to import the functions:
 
