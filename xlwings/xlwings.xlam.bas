@@ -13,7 +13,9 @@ End Function
 Sub ImportPythonUDFsAddIn(control As IRibbonControl)
     Set wb = ActiveWorkbook
     If Not ModuleIsPresent(wb, "xlwings") Then
-        MsgBox "This workbook must contain the xlwings VBA module."
+        MsgText = "Make sure that this workbook contains the xlwings module "
+        MsgText = MsgText & "and you are trusting access to the VBA project object module (Options)."
+        MsgBox MsgText, vbCritical, "Error"
         Exit Sub
     End If
 
