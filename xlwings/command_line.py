@@ -150,11 +150,13 @@ def template_status(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers()
+    subparsers = parser.add_subparsers(dest='command')
+    subparsers.required = True
 
     # Add-in
     addin_parser = subparsers.add_parser('addin', help='xlwings Excel Add-in')
-    addin_subparsers = addin_parser.add_subparsers()
+    addin_subparsers = addin_parser.add_subparsers(dest='subcommand')
+    addin_subparsers.required = True
     
     addin_install_parser = addin_subparsers.add_parser('install')
     addin_install_parser.set_defaults(func=addin_install)
@@ -176,7 +178,8 @@ def main():
 
     # Template
     template_parser = subparsers.add_parser('template', help='xlwings Excel template')
-    template_subparsers = template_parser.add_subparsers()
+    template_subparsers = template_parser.add_subparsers(dest='subcommand')
+    template_subparsers.required = True
 
     template_open_parser = template_subparsers.add_parser('open')
     template_open_parser.set_defaults(func=template_open)
