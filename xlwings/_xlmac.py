@@ -75,28 +75,34 @@ def is_file_open(fullname):
     Checks if the file is already open
     """
     for proc in psutil.process_iter():
-        if proc.name() == 'Microsoft Excel':
-            for i in proc.open_files():
-                path = i.path
-                if PY3:
-                    if path.lower() == fullname.lower():
-                        return True
-                else:
-                    if isinstance(path, str):
-                        path = unicode(path, 'utf-8')
-                        # Mac saves unicode data in decomposed form, e.g. an e with accent is stored as 2 code points
-                        path = unicodedata.normalize('NFKC', path)
-                    if isinstance(fullname, str):
-                        fullname = unicode(fullname, 'utf-8')
-                    if path.lower() == fullname.lower():
-                        return True
+        try:
+            if proc.name() == 'Microsoft Excel':
+                for i in proc.open_files():
+                    path = i.path
+                    if PY3:
+                        if path.lower() == fullname.lower():
+                            return True
+                    else:
+                        if isinstance(path, str):
+                            path = unicode(path, 'utf-8')
+                            # Mac saves unicode data in decomposed form, e.g. an e with accent is stored as 2 code points
+                            path = unicodedata.normalize('NFKC', path)
+                        if isinstance(fullname, str):
+                            fullname = unicode(fullname, 'utf-8')
+                        if path.lower() == fullname.lower():
+                            return True
+        except psutil.NoSuchProcess:
+            pass
     return False
 
 
 def is_excel_running():
     for proc in psutil.process_iter():
-        if proc.name() == 'Microsoft Excel':
-            return True
+        try:
+            if proc.name() == 'Microsoft Excel':
+                return True
+        except psutil.NoSuchProcess:
+            pass
     return False
 
 
