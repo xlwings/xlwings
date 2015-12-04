@@ -1,6 +1,16 @@
 What's New
 ==========
 
+v0.6.1 (December 4, 2015)
+-------------------------
+
+Bug Fixes
+*********
+
+* [Python 3]: The command line client has been fixed (:issue:`319`).
+* [Mac version]: It now works correctly with ``psutil>=3.0.0`` (:issue:`315`).
+
+
 v0.6.0 (November 30, 2015)
 --------------------------
 
