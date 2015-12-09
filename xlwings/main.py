@@ -9,22 +9,17 @@ All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
 """
-from contextlib import contextmanager
-import os
-import sys
-import re
-import numbers
-import itertools
-import inspect
 import collections
+import inspect
+import itertools
+import numbers
+import os
+import re
+import sys
+
 
 from . import xlplatform, string_types, time_types, xrange
-from .constants import ChartType, Calculation
-
-
-
-
-
+from .constants import ChartType
 
 # Optional imports
 try:
@@ -135,69 +130,6 @@ class Application(object):
         .. versionadded:: 0.3.6
         """
         xlplatform.calculate(self.xl_app)
-
-    @contextmanager
-    def freeze(self, calculation=False, events=False, screen=False, alerts=False, ):
-        """
-        Context manager that freezes the Excel application regarding different behaviors.
-        If a keyword is set to False (the default), the behavior is not changed. If it was already disabled, it will not be enabled.
-
-
-        Keyword Arguments
-        -----------------
-        calculation: boolean, default False
-            True if calculation must be set to manual within the context.
-
-        events: boolean, default False
-            True if Excel must not handle events within the context.
-
-        screen: boolean, default False
-            True if Excel must not update the screen within the context.
-
-        alerts: boolean, default False
-            True if Excel should not display alerts within the context.
-
-
-        Example
-        -------
-        >>> from xlwings import Workbook, Application
-        >>> wb = Workbook()
-        >>> app = Application(wb)
-        >>> # Excel will not recalculate or update the screen while processing the loop
-        >>> with app.freeze(calculation=True, screen=True):
-        >>>     for i in range(1000):
-        >>>         Range((i,1)).value = i
-
-
-        .. versionadded:: ????
-
-        """
-        # save state of current behaviors
-        save_state = (self.screen_updating,
-                      self.enable_events,
-                      self.calculation,
-                      self.display_alerts,
-        )
-
-        # if need to freeze the behavior, freeze it
-        if events:
-            self.enable_events = False
-        if alerts:
-            self.display_alerts = False
-        if calculation:
-            self.calculation = Calculation.xlCalculationManual
-        if screen:
-            self.screen_updating = False
-
-        # yield in a try: finally: to force reset of behaviors even in case of exception
-        try:
-            yield
-        finally:
-            (self.screen_updating,
-             self.enable_events,
-             self.calculation,
-             self.display_alerts,
-            ) = save_state
 
 
 class Workbook(object):

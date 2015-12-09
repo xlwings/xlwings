@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
-import os
-import sys
-import shutil
-from datetime import datetime, date
 
-import pytz
 import nose
+import os
+import pytz
+import shutil
+import sys
+from datetime import datetime, date
 from nose.tools import assert_equal, raises, assert_raises, assert_true, assert_not_equal
 
 from xlwings import Application, Workbook, Sheet, Range, Chart, ChartType, RgbColor, Calculation
 
-
 # Mac imports
 if sys.platform.startswith('darwin'):
     from appscript import k as kw
+
     # TODO: uncomment the desired Excel installation or set to None for default installation
     APP_TARGET = None
     # APP_TARGET = '/Applications/Microsoft Office 2011/Microsoft Excel'
@@ -34,7 +34,6 @@ try:
     from pandas.util.testing import assert_frame_equal, assert_series_equal
 except ImportError:
     pd = None
-
 
 # Test data
 data = [[1, 2.222, 3.333],
@@ -159,7 +158,12 @@ class TestApplication:
         assert_equal(Application(wkb=self.wb).display_alerts, True)
 
     def test_freeze_screen(self):
+        from xlwings.ext import freeze
         app = Application(wkb=self.wb)
+
+        from xlwings.ext.monkey_patch import enable_monkey_patch
+        enable_monkey_patch()
+
 
         # test each call of the freeze method
         with app.freeze():
@@ -172,7 +176,18 @@ class TestApplication:
                           True,
                           True))
 
-        with app.freeze(calculation=True):
+        # test each call of the freeze method
+        with freeze(app):
+            assert_equal((app.calculation,
+                          app.enable_events,
+                          app.display_alerts,
+                          app.screen_updating),
+                         (Calculation.xlCalculationAutomatic,
+                          True,
+                          True,
+                          True))
+
+        with freeze(app, calculation=True):
             assert_equal((app.calculation,
                           app.enable_events,
                           app.display_alerts,
@@ -182,7 +197,7 @@ class TestApplication:
                           True,
                           True))
 
-        with app.freeze(events=True):
+        with freeze(app, events=True):
             assert_equal((app.calculation,
                           app.enable_events,
                           app.display_alerts,
@@ -192,7 +207,7 @@ class TestApplication:
                           True,
                           True))
 
-        with app.freeze(alerts=True):
+        with freeze(app, alerts=True):
             assert_equal((app.calculation,
                           app.enable_events,
                           app.display_alerts,
@@ -202,7 +217,7 @@ class TestApplication:
                           False,
                           True))
 
-        with app.freeze(screen=True):
+        with freeze(app, screen=True):
             assert_equal((app.calculation,
                           app.enable_events,
                           app.display_alerts,
@@ -212,7 +227,7 @@ class TestApplication:
                           True,
                           False))
 
-        with app.freeze(alerts=True, calculation=True, screen=True, events=True):
+        with freeze(app, alerts=True, calculation=True, screen=True, events=True):
             assert_equal((app.calculation,
                           app.enable_events,
                           app.display_alerts,
@@ -235,7 +250,7 @@ class TestApplication:
         # check that if an exception is raised within the context manager,
         # the flags are set back to their original properties too
         try:
-            with app.freeze(alerts=True, calculation=True, screen=True, events=True):
+            with freeze(app, alerts=True, calculation=True, screen=True, events=True):
                 raise Exception
         except Exception:
             pass
@@ -248,6 +263,24 @@ class TestApplication:
                       True,
                       True,
                       True))
+
+
+    def test_freeze_monkeypatch(self):
+        app = Application(wkb=self.wb)
+
+        from xlwings.ext.monkey_patch import enable_monkey_patch
+        enable_monkey_patch()
+
+        # test monkey patched freeze
+        with app.freeze():
+            assert_equal((app.calculation,
+                          app.enable_events,
+                          app.display_alerts,
+                          app.screen_updating),
+                         (Calculation.xlCalculationAutomatic,
+                          True,
+                          True,
+                          True))
 
 
 
@@ -968,13 +1001,13 @@ class TestRange:
         assert_equal(r.shape, (4, 1))
 
         r = Range('A1:B4').resize(column_size=5)
-        assert_equal(r.shape, (2, 5))
+        assert_equal(r.shape, (4, 5))
 
         r = Range('A1:B4').resize(row_size=5)
-        assert_equal(r.shape, (5, 4))
+        assert_equal(r.shape, (5, 2))
 
         r = Range('A1:B4').resize()
-        assert_equal(r.shape, (2, 4))
+        assert_equal(r.shape, (4, 2))
 
         assert_raises(AssertionError, Range('A1:B4').resize, row_size=0)
         assert_raises(AssertionError, Range('A1:B4').resize, column_size=0)
