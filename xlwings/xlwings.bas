@@ -1,5 +1,5 @@
 Attribute VB_Name = "xlwings"
-' xlwings.org, version: 0.6.1
+' xlwings.org, version: 0.6.2dev
 '
 ' Copyright (C) 2014-2015, Zoomer Analytics LLC (www.zoomeranalytics.com)
 ' License: BSD 3-clause (see LICENSE.txt for details)
@@ -50,7 +50,7 @@ Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef 
     PYTHON_FROZEN = ThisWorkbook.Path & "\build\exe.win32-2.7"
     PYTHONPATH = ThisWorkbook.Path
     UDF_PATH = ""
-    LOG_FILE = ThisWorkbook.Path & "\xlwings_log.txt"
+    LOG_FILE = "" 'TODO
     SHOW_LOG = True
     OPTIMIZED_CONNECTION = False
 
@@ -89,19 +89,12 @@ Public Function RunPython(PythonCommand As String)
     ' Call Python platform-dependent
     #If Mac Then
         #If MAC_OFFICE_VERSION >= 15 Then
-            MsgBox "This functionality is not yet supported on Excel 2016 for Mac." & vbNewLine & _
-               "Please run your scripts directly in Python or call them from Excel 2011!", vbCritical + vbOKOnly, "Unsupported Feature"
+            ExecuteMac PythonCommand, PYTHON_MAC, LOG_FILE, SHOW_LOG, PYTHONPATH
         #Else
             Application.StatusBar = "Running..."  ' Non-blocking way of giving feedback that something is happening
-            ExcecuteMac PythonCommand, PYTHON_MAC, LOG_FILE, SHOW_LOG, PYTHONPATH
+            ExcecuteMac2011 PythonCommand, PYTHON_MAC, LOG_FILE, SHOW_LOG, PYTHONPATH
         #End If
     #Else
-        ' Make sure that the calling Workbook is the active Workbook
-        ' This is necessary because under certain circumstances, only the GetActiveObject
-        ' call will work (e.g. when Excel opens with a Security Warning, the Workbook
-        ' will not be registered in the RunningObjectTable and thus not accessible via GetObject)
-        ThisWorkbook.Activate
-
         If OPTIMIZED_CONNECTION = True Then
             Py.SetAttr Py.Module("xlwings._xlwindows"), "xl_workbook_current", ThisWorkbook
             Py.Exec "" & PythonCommand & ""
@@ -111,7 +104,7 @@ Public Function RunPython(PythonCommand As String)
     #End If
 End Function
 
-Sub ExcecuteMac(Command As String, PYTHON_MAC As String, LOG_FILE As String, SHOW_LOG As Boolean, Optional PYTHONPATH As String)
+Sub ExcecuteMac2011(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String, SHOW_LOG As Boolean, Optional PYTHONPATH As String)
     ' Run Python with the "-c" command line switch: add the path of the python file and run the
     ' Command as first argument, then provide the WORKBOOK_FULLNAME and "from_xl" as 2nd and 3rd arguments.
     ' Finally, redirect stderr to the LOG_FILE and run as background process.
@@ -132,7 +125,7 @@ Sub ExcecuteMac(Command As String, PYTHON_MAC As String, LOG_FILE As String, SHO
 
     ' Build the command (ignore warnings to be in line with Windows where we only show the popup if the ExitCode <> 0
     ' -u is needed because on PY3 stderr is buffered by default and so wouldn't be available on time for the pop-up to show
-    RunCommand = PythonInterpreter & " -u -W ignore -c ""import sys; sys.path.extend(r'" & PYTHONPATH & "'.split(';')); " & Command & """ "
+    RunCommand = PythonInterpreter & " -u -W ignore -c ""import sys; sys.path.extend(r'" & PYTHONPATH & "'.split(';')); " & PythonCommand & """ "
 
     ' Send the command to the shell. Courtesy of Robert Knight (http://stackoverflow.com/a/12320294/918626)
     ' Since Excel blocks AppleScript as long as a VBA macro is running, we have to excecute the call as background call
@@ -158,7 +151,39 @@ Sub ExcecuteMac(Command As String, PYTHON_MAC As String, LOG_FILE As String, SHO
     On Error GoTo 0
 End Sub
 
-Sub ExecuteWindows(IsFrozen As Boolean, Command As String, PYTHON_WIN As String, LOG_FILE As String, SHOW_LOG As Boolean, Optional PYTHONPATH As String)
+Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String, SHOW_LOG As Boolean, Optional PYTHONPATH As String)
+
+    Dim PythonInterpreter As String, RunCommand As String, WORKBOOK_FULLNAME As String, Log As String, StringToRun As String, ExitCode As String
+    Dim Res As Integer
+
+    ' Delete Log file just to make sure we don't show an old error
+    On Error Resume Next
+        Kill LOG_FILE
+    On Error GoTo 0
+
+    ' Transform paths
+    PYTHONPATH = ToPosixPath(PYTHONPATH)
+    PythonInterpreter = ToPosixPath(PYTHON_MAC)
+    LOG_FILE = Environ("HOME") + "/xlwings_log.txt" '/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt
+    WORKBOOK_FULLNAME = ToPosixPath(ThisWorkbook.FullName)
+
+    StringToRun = PYTHONPATH + ";"
+    StringToRun = StringToRun + "," + PythonInterpreter
+    StringToRun = StringToRun + "," + PythonCommand
+    StringToRun = StringToRun + "," + ThisWorkbook.FullName
+    StringToRun = StringToRun + "," + Left(Application.Path, Len(Application.Path) - 4)
+    StringToRun = StringToRun + "," + LOG_FILE
+
+    ExitCode = AppleScriptTask("xlwings.applescript", "VbaHandler", StringToRun)
+
+    If ExitCode = "1" And SHOW_LOG = True Then
+        Call ShowError(LOG_FILE)
+    End If
+
+End Sub
+
+
+Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As String, LOG_FILE As String, SHOW_LOG As Boolean, Optional PYTHONPATH As String)
     ' Call a command window and change to the directory of the Python installation or frozen executable
     ' Note: If Python is called from a different directory with the fully qualified path, pywintypesXX.dll won't be found.
     ' This seems to be a general issue with pywin32, see http://stackoverflow.com/q/7238403/918626
@@ -184,9 +209,9 @@ Sub ExecuteWindows(IsFrozen As Boolean, Command As String, PYTHON_WIN As String,
     WORKBOOK_FULLNAME = ThisWorkbook.FullName
 
     If IsFrozen = False Then
-        RunCommand = "python -c ""import sys; sys.path.extend(r'" & PYTHONPATH & "'.split(';')); " & Command & """ "
+        RunCommand = "python -c ""import sys; sys.path.extend(r'" & PYTHONPATH & "'.split(';')); " & PythonCommand & """ "
     ElseIf IsFrozen = True Then
-        RunCommand = Command & " "
+        RunCommand = PythonCommand & " "
     End If
 
     ExitCode = Wsh.Run("cmd.exe /C " & DriveCommand & _
@@ -283,12 +308,16 @@ Function ToPosixPath(ByVal MacPath As String) As String
 
     Dim s As String
 
-    MacPath = Replace(MacPath, "\", ":")
-    MacPath = Replace(MacPath, "/", ":")
-    s = "tell application " & Chr(34) & "Finder" & Chr(34) & Chr(13)
-    s = s & "POSIX path of " & Chr(34) & MacPath & Chr(34) & Chr(13)
-    s = s & "end tell" & Chr(13)
-    ToPosixPath = MacScript(s)
+    #If MAC_OFFICE_VERSION < 15 Then
+        MacPath = Replace(MacPath, "\", ":")
+        MacPath = Replace(MacPath, "/", ":")
+        s = "tell application " & Chr(34) & "Finder" & Chr(34) & Chr(13)
+        s = s & "POSIX path of " & Chr(34) & MacPath & Chr(34) & Chr(13)
+        s = s & "end tell" & Chr(13)
+        ToPosixPath = MacScript(s)
+    #Else
+        ToPosixPath = Replace(MacPath, "\", "/")
+    #End If
 End Function
 
 Function GetMacDir(Name As String) As String
@@ -324,7 +353,7 @@ Function KillFileOnMac(Filestr As String)
     'Ron de Bruin
     '30-July-2012
     'Delete files from a Mac.
-    'Uses AppleScript to avoid the problem with long file names
+    'Uses AppleScript to avoid the problem with long file names (on 2011 only)
 
     Dim ScriptToKillFile As String
 
@@ -339,6 +368,7 @@ End Function
 
 Private Sub CleanUp()
     'On Mac only, this function is being called after Python is done (using Python's atexit handler)
+    'TODO: only needed for 2011
 
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String, UDF_PATH As String
     Dim WORKBOOK_FULLNAME As String, LOG_FILE As String
