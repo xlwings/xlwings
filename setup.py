@@ -21,7 +21,7 @@ if sys.platform.startswith('win'):
     data_files = [('', ['xlwings32.dll', 'xlwings64.dll'])]
 elif sys.platform.startswith('darwin'):
     install_requires = ['psutil >= 2.0.0', 'appscript >= 1.0.1']
-    data_files =[]
+    data_files = [(os.path.expanduser("~") + '/Library/Application Scripts/com.microsoft.Excel', ['xlwings/xlwings.applescript'])]
 else:
     on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
     if on_rtd:
