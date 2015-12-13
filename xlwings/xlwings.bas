@@ -153,7 +153,7 @@ End Sub
 
 Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String, SHOW_LOG As Boolean, Optional PYTHONPATH As String)
 
-    Dim PythonInterpreter As String, RunCommand As String, WORKBOOK_FULLNAME As String, Log As String, StringToRun As String, ExitCode As String
+    Dim PythonInterpreter As String, RunCommand As String, WORKBOOK_FULLNAME As String, Log As String, ParameterString As String, ExitCode As String
     Dim Res As Integer
 
     ' Delete Log file just to make sure we don't show an old error
@@ -167,14 +167,14 @@ Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String
     LOG_FILE = Environ("HOME") + "/xlwings_log.txt" '/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt
     WORKBOOK_FULLNAME = ToPosixPath(ThisWorkbook.FullName)
 
-    StringToRun = PYTHONPATH + ";"
-    StringToRun = StringToRun + "," + PythonInterpreter
-    StringToRun = StringToRun + "," + PythonCommand
-    StringToRun = StringToRun + "," + ThisWorkbook.FullName
-    StringToRun = StringToRun + "," + Left(Application.Path, Len(Application.Path) - 4)
-    StringToRun = StringToRun + "," + LOG_FILE
+    ParameterString = PYTHONPATH + ";"
+    ParameterString = ParameterString + "," + PythonInterpreter
+    ParameterString = ParameterString + "," + PythonCommand
+    ParameterString = ParameterString + "," + ThisWorkbook.FullName
+    ParameterString = ParameterString + "," + Left(Application.Path, Len(Application.Path) - 4)
+    ParameterString = ParameterString + "," + LOG_FILE
 
-    ExitCode = AppleScriptTask("xlwings.applescript", "VbaHandler", StringToRun)
+    ExitCode = AppleScriptTask("xlwings.applescript", "VbaHandler", ParameterString)
 
     If ExitCode = "1" And SHOW_LOG = True Then
         Call ShowError(LOG_FILE)

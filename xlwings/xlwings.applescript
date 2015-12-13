@@ -1,8 +1,8 @@
-# Enables to run the script from Script Editor
-VbaHandler("testString")
+# Allows to run the script from Script Editor for testing
+VbaHandler("TestString")
 
-on VbaHandler(paramString)
-	set {PYTHONPATH, PythonInterpreter, PythonCommand, WORKBOOK_FULLNAME, ApplicationFullName, LOG_FILE} to SplitString(paramString, ",")
+on VbaHandler(ParameterString)
+	set {PYTHONPATH, PythonInterpreter, PythonCommand, WORKBOOK_FULLNAME, ApplicationFullName, LOG_FILE} to SplitString(ParameterString, ",")
 	try
 		return do shell script "source ~/.bash_profile;" & PythonInterpreter & "python -u -W ignore -c \"import sys;sys.path.extend('" & PYTHONPATH & "'.split(';'));" & ¬
 			PythonCommand & " \" \"" & WORKBOOK_FULLNAME & "\" \"from_xl\" \"" & ApplicationFullName & "\" 2>\"" & LOG_FILE & "\" "
