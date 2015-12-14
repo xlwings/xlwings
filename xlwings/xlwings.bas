@@ -220,6 +220,10 @@ Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As S
     Dim DriveCommand As String, RunCommand As String, WORKBOOK_FULLNAME As String
     Dim ExitCode As Integer
 
+    If LOG_FILE = "" Then
+        LOG_FILE = Environ("APPDATA") + "\xlwings_log.txt"
+    End If
+
     If Left$(PYTHON_WIN, 2) Like "[A-Za-z]:" Then
         ' If Python is installed on a mapped or local drive, change to drive, then cd to path
         DriveCommand = Left$(PYTHON_WIN, 2) & " & cd """ & PYTHON_WIN & """ & "
