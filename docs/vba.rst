@@ -53,9 +53,18 @@ under ``Function Settings``::
 * ``UDF_PATH`` [Optional, Windows only]: Full path to a Python file from which the User Defined Functions are being imported.
   Example: ``UDF_PATH = ThisWorkbook.Path & "\functions.py"``
   Default: ``UDF_PATH = ""`` defaults to a file in the same directory of the Excel spreadsheet with the same name but ending in ``.py``.
-* ``LOG_FILE``: Directory **including** the file name. This file is necessary for error handling.
+* ``LOG_FILE`` [Optional]: Leave empty for default location (see below) or provide directory including file name.
 * ``SHOW_LOG``: If False, no pop-up with the Log messages (usually errors) will be shown. Use with care.
 * ``OPTIMIZED_CONNECTION``: Currently only on Windows, use a COM Server for an efficient connection (experimental!)
+
+.. _log:
+
+LOG_FILE default locations
+**************************
+
+* Windows: ``%APPDATA%xlwings_log.txt``
+* Mac 2011: ``/tmp/xlwings_log.txt``
+* Mac 2016: ``/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt``
 
 .. note:: If the settings (especially ``PYTHONPATH`` and ``LOG_FILE``) need to work on Windows on Mac, use backslashes
     in relative file path, i.e. ``ThisWorkbook.Path & "\mydirectory"``.
