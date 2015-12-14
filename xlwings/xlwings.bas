@@ -88,10 +88,10 @@ Public Function RunPython(PythonCommand As String)
 
     ' Call Python platform-dependent
     #If Mac Then
+            Application.StatusBar = "Running..."  ' Non-blocking way of giving feedback that something is happening
         #If MAC_OFFICE_VERSION >= 15 Then
             ExecuteMac PythonCommand, PYTHON_MAC, LOG_FILE, SHOW_LOG, PYTHONPATH
         #Else
-            Application.StatusBar = "Running..."  ' Non-blocking way of giving feedback that something is happening
             ExcecuteMac2011 PythonCommand, PYTHON_MAC, LOG_FILE, SHOW_LOG, PYTHONPATH
         #End If
     #Else
@@ -156,17 +156,18 @@ Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String
     Dim PythonInterpreter As String, RunCommand As String, WORKBOOK_FULLNAME As String, Log As String, ParameterString As String, ExitCode As String
     Dim Res As Integer
 
-    ' Delete Log file just to make sure we don't show an old error
-    On Error Resume Next
-        Kill LOG_FILE
-    On Error GoTo 0
-
     ' Transform paths
     PYTHONPATH = ToPosixPath(PYTHONPATH)
     PythonInterpreter = ToPosixPath(PYTHON_MAC)
     LOG_FILE = Environ("HOME") + "/xlwings_log.txt" '/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt
     WORKBOOK_FULLNAME = ToPosixPath(ThisWorkbook.FullName)
 
+    ' Delete Log file just to make sure we don't show an old error
+    On Error Resume Next
+        Kill LOG_FILE
+    On Error GoTo 0
+
+    ' ParameterSting with all paramters (AppleScriptTask only accepts a single parameter)
     ParameterString = PYTHONPATH + ";"
     ParameterString = ParameterString + "," + PythonInterpreter
     ParameterString = ParameterString + "," + PythonCommand
@@ -176,9 +177,16 @@ Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String
 
     ExitCode = AppleScriptTask("xlwings.applescript", "VbaHandler", ParameterString)
 
-    If ExitCode = "1" And SHOW_LOG = True Then
-        Call ShowError(LOG_FILE)
-    End If
+    ' If there's a log at this point (normally that will be from the Shell only, not Python) show it and reset the StatusBar
+    On Error Resume Next
+        Log = ReadFile(LOG_FILE)
+        If Log = "" Then
+            Exit Sub
+        ElseIf SHOW_LOG = True Then
+            ShowError (LOG_FILE)
+            Application.StatusBar = False
+        End If
+    On Error GoTo 0
 
 End Sub
 

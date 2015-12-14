@@ -5,7 +5,7 @@ on VbaHandler(ParameterString)
 	set {PYTHONPATH, PythonInterpreter, PythonCommand, WORKBOOK_FULLNAME, ApplicationFullName, LOG_FILE} to SplitString(ParameterString, ",")
 	try
 		return do shell script "source ~/.bash_profile;" & PythonInterpreter & "python -u -W ignore -c \"import sys;sys.path.extend('" & PYTHONPATH & "'.split(';'));" & ¬
-			PythonCommand & " \" \"" & WORKBOOK_FULLNAME & "\" \"from_xl\" \"" & ApplicationFullName & "\" 2>\"" & LOG_FILE & "\" "
+			PythonCommand & " \" \"" & WORKBOOK_FULLNAME & "\" \"from_xl\" \"" & ApplicationFullName & "\" >\"" & LOG_FILE & "\" 2>&1 & "
 	on error errMsg number errNumber
 		return 1
 	end try
