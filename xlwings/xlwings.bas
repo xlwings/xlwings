@@ -169,7 +169,11 @@ Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String
 
     ' ParameterSting with all paramters (AppleScriptTask only accepts a single parameter)
     ParameterString = PYTHONPATH + ";"
-    ParameterString = ParameterString + "," + PythonInterpreter
+    If PYTHON_MAC <> "" Then
+        ParameterString = ParameterString + "," + PythonInterpreter + "/"
+    Else
+        ParameterString = ParameterString + "," + PythonInterpreter
+    End If
     ParameterString = ParameterString + "," + PythonCommand
     ParameterString = ParameterString + "," + ThisWorkbook.FullName
     ParameterString = ParameterString + "," + Left(Application.Path, Len(Application.Path) - 4)

@@ -3,11 +3,18 @@ VbaHandler("TestString")
 
 on VbaHandler(ParameterString)
 	set {PYTHONPATH, PythonInterpreter, PythonCommand, WORKBOOK_FULLNAME, ApplicationFullName, LOG_FILE} to SplitString(ParameterString, ",")
+	set ShellCommand to PythonInterpreter & "python -u -W ignore -c \"import sys;sys.path.extend('" & PYTHONPATH & "'.split(';'));" & ¬
+		PythonCommand & " \" \"" & WORKBOOK_FULLNAME & "\" \"from_xl\" \"" & ApplicationFullName & "\" >\"" & LOG_FILE & "\" 2>&1 & "
 	try
-		return do shell script "source ~/.bash_profile;" & PythonInterpreter & "python -u -W ignore -c \"import sys;sys.path.extend('" & PYTHONPATH & "'.split(';'));" & ¬
-			PythonCommand & " \" \"" & WORKBOOK_FULLNAME & "\" \"from_xl\" \"" & ApplicationFullName & "\" >\"" & LOG_FILE & "\" 2>&1 & "
+		do shell script "source ~/.bash_profile"
+		return do shell script "source ~/.bash_profile;" & ShellCommand
 	on error errMsg number errNumber
-		return 1
+		try
+			# Try again without sourcing .bash_profile
+			return do shell script ShellCommand
+		on error errMsg number errNumber
+			return 1
+		end try
 	end try
 end VbaHandler
 
