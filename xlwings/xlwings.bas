@@ -376,7 +376,6 @@ End Function
 
 Private Sub CleanUp()
     'On Mac only, this function is being called after Python is done (using Python's atexit handler)
-    'TODO: only needed for 2011
 
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String, UDF_PATH As String
     Dim WORKBOOK_FULLNAME As String, LOG_FILE As String
