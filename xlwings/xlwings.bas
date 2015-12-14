@@ -38,7 +38,7 @@ Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef 
     '                                    Example: UDF_PATH = ThisWorkbook.Path & "\functions.py"
     '                                    Default: UDF_PATH = "" defaults to a file in the same directory of the Excel spreadsheet with
     '                                    the same name but ending in ".py".
-    ' LOG_FILE: Directory including file name, necessary for error handling.
+    ' LOG_FILE [Optional]: Leave empty for default location (see docs) or provide directory including file name.
     ' SHOW_LOG: If False, no pop-up with the Log messages (usually errors) will be shown
     ' OPTIMIZED_CONNECTION (EXPERIMENTAL!): Currently only on Windows, use a COM Server for an efficient connection
     '
@@ -50,7 +50,7 @@ Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef 
     PYTHON_FROZEN = ThisWorkbook.Path & "\build\exe.win32-2.7"
     PYTHONPATH = ThisWorkbook.Path
     UDF_PATH = ""
-    LOG_FILE = "" 'TODO
+    LOG_FILE = ""
     SHOW_LOG = True
     OPTIMIZED_CONNECTION = False
 
@@ -112,15 +112,24 @@ Sub ExcecuteMac2011(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As S
     Dim PythonInterpreter As String, RunCommand As String, WORKBOOK_FULLNAME As String, Log As String
     Dim Res As Integer
 
+    If LOG_FILE = "" Then
+        LOG_FILE = "/tmp/xlwings_log.txt"
+    Else
+        LOG_FILE = ToPosixPath(LOG_FILE)
+    End If
+
     ' Delete Log file just to make sure we don't show an old error
     On Error Resume Next
-        KillFileOnMac ToMacPath(ToPosixPath(LOG_FILE))
+        KillFileOnMac ToMacPath(LOG_FILE)
     On Error GoTo 0
 
     ' Transform from MacOS Classic path style (":") and Windows style ("\") to Bash friendly style ("/")
     PYTHONPATH = ToPosixPath(PYTHONPATH)
-    LOG_FILE = ToPosixPath(LOG_FILE)
-    PythonInterpreter = ToPosixPath(PYTHON_MAC & "/python")
+    If PYTHON_MAC <> "" Then
+        PythonInterpreter = ToPosixPath(PYTHON_MAC & "/python")
+    Else
+        PythonInterpreter = "python"
+    End If
     WORKBOOK_FULLNAME = ToPosixPath(ThisWorkbook.Path & ":" & ThisWorkbook.Name) 'ThisWorkbook.FullName doesn't handle unicode on Excel 2011
 
     ' Build the command (ignore warnings to be in line with Windows where we only show the popup if the ExitCode <> 0
@@ -159,8 +168,12 @@ Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String
     ' Transform paths
     PYTHONPATH = ToPosixPath(PYTHONPATH)
     PythonInterpreter = ToPosixPath(PYTHON_MAC)
-    LOG_FILE = Environ("HOME") + "/xlwings_log.txt" '/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt
     WORKBOOK_FULLNAME = ToPosixPath(ThisWorkbook.FullName)
+    If LOG_FILE = "" Then
+        ' Sandbox location that requires no file access confirmation
+        LOG_FILE = Environ("HOME") + "/xlwings_log.txt" '/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt
+    End If
+
 
     ' Delete Log file just to make sure we don't show an old error
     On Error Resume Next
@@ -319,17 +332,30 @@ Function ToPosixPath(ByVal MacPath As String) As String
     ' E.g. "MacintoshHD:Users:<User>" --> "/Users/<User>"
 
     Dim s As String
+    Dim LeadingSlash As Boolean
 
-    #If MAC_OFFICE_VERSION < 15 Then
-        MacPath = Replace(MacPath, "\", ":")
-        MacPath = Replace(MacPath, "/", ":")
-        s = "tell application " & Chr(34) & "Finder" & Chr(34) & Chr(13)
-        s = s & "POSIX path of " & Chr(34) & MacPath & Chr(34) & Chr(13)
-        s = s & "end tell" & Chr(13)
-        ToPosixPath = MacScript(s)
-    #Else
-        ToPosixPath = Replace(MacPath, "\", "/")
-    #End If
+    If MacPath = "" Then
+        ToPosixPath = ""
+    Else
+        #If MAC_OFFICE_VERSION < 15 Then
+            If Left$(MacPath, 1) = "/" Then
+                LeadingSlash = True
+            End If
+            MacPath = Replace(MacPath, "\", ":")
+            MacPath = Replace(MacPath, "/", ":")
+            s = "tell application " & Chr(34) & "Finder" & Chr(34) & Chr(13)
+            s = s & "POSIX path of " & Chr(34) & MacPath & Chr(34) & Chr(13)
+            s = s & "end tell" & Chr(13)
+            If LeadingSlash = True Then
+                ToPosixPath = "/" + MacScript(s)
+            Else
+                ToPosixPath = MacScript(s)
+            End If
+
+        #Else
+            ToPosixPath = Replace(MacPath, "\", "/")
+        #End If
+    End If
 End Function
 
 Function GetMacDir(Name As String) As String
