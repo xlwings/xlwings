@@ -22,8 +22,8 @@ this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe(
 if sys.platform.startswith('darwin'):
     from appscript import k as kw
     # TODO: uncomment the desired Excel installation or set to None for default installation
-    # APP_TARGET = None
-    APP_TARGET = '/Applications/Microsoft Office 2011/Microsoft Excel'
+    APP_TARGET = None
+    # APP_TARGET = '/Applications/Microsoft Office 2011/Microsoft Excel'
 else:
     APP_TARGET = None
 
@@ -213,7 +213,8 @@ class TestWorkbook:
         wb2.close()
 
     def test_save_naked(self):
-
+        if sys.platform.startswith('darwin'):
+            os.chdir(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/')
         cwd = os.getcwd()
         wb1 = Workbook(app_visible=False, app_target=APP_TARGET)
         target_file_path = os.path.join(cwd, wb1.name + '.xlsx')
@@ -231,6 +232,8 @@ class TestWorkbook:
             os.remove(target_file_path)
 
     def test_save_path(self):
+        if sys.platform.startswith('darwin'):
+            os.chdir(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/')
 
         cwd = os.getcwd()
         wb1 = Workbook(app_visible=False, app_target=APP_TARGET)
@@ -260,12 +263,16 @@ class TestWorkbook:
     def test_unicode_path(self):
         # pip3 seems to struggle with unicode filenames
         src = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'unicode_path.xlsx')
-        dst = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicödé_päth.xlsx')
-        shutil.move(src, dst)
-        wb = Workbook(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicödé_päth.xlsx'), app_visible=False, app_target=APP_TARGET)
+        if sys.platform.startswith('darwin'):
+            dst = os.path.join(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/',
+                           'ünicödé_päth.xlsx')
+        else:
+            dst = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicödé_päth.xlsx')
+        shutil.copy(src, dst)
+        wb = Workbook(dst, app_visible=False, app_target=APP_TARGET)
         Range('A1').value = 1
         wb.close()
-        shutil.move(dst, src)
+        os.remove(dst)
 
     def test_unsaved_workbook_reference(self):
         wb = Workbook(app_visible=False, app_target=APP_TARGET)
