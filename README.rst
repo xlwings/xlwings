@@ -110,7 +110,7 @@ Writing a UDF in Python is as easy as:
 
 .. code-block:: python
 
-    from xlwings import xlfunc, xlarg
+    from xlwings import xlfunc
 
     @xlfunc
     def double_sum(x, y):
