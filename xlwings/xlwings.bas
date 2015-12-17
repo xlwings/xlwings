@@ -1,5 +1,5 @@
 Attribute VB_Name = "xlwings"
-' xlwings.org, version: 0.6.2
+' xlwings.org, version: 0.6.3
 '
 ' Copyright (C) 2014-2015, Zoomer Analytics LLC (www.zoomeranalytics.com)
 ' License: BSD 3-clause (see LICENSE.txt for details)
@@ -172,8 +172,9 @@ Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String
     If LOG_FILE = "" Then
         ' Sandbox location that requires no file access confirmation
         LOG_FILE = Environ("HOME") + "/xlwings_log.txt" '/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt
+    Else
+        LOG_FILE = ToPosixPath(LOG_FILE)
     End If
-
 
     ' Delete Log file just to make sure we don't show an old error
     On Error Resume Next
@@ -418,7 +419,16 @@ Private Sub CleanUp()
 
     'Get LOG_FILE
     Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
-    LOG_FILE = ToPosixPath(LOG_FILE)
+
+    If LOG_FILE = "" Then
+        #If MAC_OFFICE_VERSION >= 15 Then
+            LOG_FILE = Environ("HOME") + "/xlwings_log.txt" '/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt
+        #Else
+            LOG_FILE = "/tmp/xlwings_log.txt"
+        #End If
+    Else
+        LOG_FILE = ToPosixPath(LOG_FILE)
+    End If
 
     'Show the LOG_FILE as MsgBox if not empty
     If SHOW_LOG = True Then
