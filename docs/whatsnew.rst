@@ -1,6 +1,15 @@
 What's New
 ==========
 
+v0.6.3 (December 18, 2015)
+--------------------------
+
+Bug Fixes
+*********
+
+* [Mac]: When using ``RunPython`` from VBA, errors were not shown in a pop-up window.
+
+
 v0.6.2 (December 15, 2015)
 --------------------------
 
