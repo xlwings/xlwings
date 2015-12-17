@@ -7,7 +7,7 @@ v0.6.3 (December 18, 2015)
 Bug Fixes
 *********
 
-* [Mac]: This fixes a bug introduce in 0.6.2: When using ``RunPython`` from VBA, errors were not shown in a pop-up window.
+* [Mac]: This fixes a bug introduce in 0.6.2: When using ``RunPython`` from VBA, errors were not shown in a pop-up window (:issue:`330`).
 
 
 v0.6.2 (December 15, 2015)
