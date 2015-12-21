@@ -148,7 +148,28 @@ def template_status(args):
             print('Use "xlwings template remove" to uninstall it from all locations.')
 
 
+def quickstart(args):
+    project_name = args.project_name
+    cwd = os.getcwd()
+
+    # Project dir
+    project_path = os.path.join(cwd, project_name)
+    if not os.path.exists(project_path):
+        os.makedirs(project_path)
+    else:
+        parser.error('Directory already exists.')
+
+    # Python file
+    with open(os.path.join(project_path, project_name + '.py'), 'w'):
+        pass
+
+    # Excel file
+    shutil.copyfile(os.path.join(this_dir, 'quickstart.xlsm'),
+                    os.path.join(project_path, project_name + '.xlsm'))
+
+
 def main():
+    global parser
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='command')
     subparsers.required = True
@@ -198,6 +219,11 @@ def main():
 
     template_status_parser = template_subparsers.add_parser('status')
     template_status_parser.set_defaults(func=template_status)
+
+    # Quickstart
+    quickstart_parser = subparsers.add_parser('quickstart', help='xlwings quickstart')
+    quickstart_parser.add_argument("project_name")
+    quickstart_parser.set_defaults(func=quickstart)
 
     args = parser.parse_args()
     args.func(args)
