@@ -24,5 +24,6 @@ Sub ImportPythonUDFsAddIn(control As IRibbonControl)
         Exit Sub
     End If
 
-    Application.Run ActiveWorkbook.Name + "!ImportPythonUDFs"
+    Application.Run "'" + ActiveWorkbook.Name + "'!ImportPythonUDFs"
+    Set wb = Nothing
 End Sub
