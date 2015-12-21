@@ -157,7 +157,7 @@ def quickstart(args):
     if not os.path.exists(project_path):
         os.makedirs(project_path)
     else:
-        parser.error('Directory already exists.')
+        sys.exit('Error: Directory already exists.')
 
     # Python file
     with open(os.path.join(project_path, project_name + '.py'), 'w'):
@@ -169,7 +169,6 @@ def quickstart(args):
 
 
 def main():
-    global parser
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='command')
     subparsers.required = True
