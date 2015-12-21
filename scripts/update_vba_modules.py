@@ -13,7 +13,7 @@ template_path = os.path.abspath(os.path.join(this_dir, os.pardir, 'xlwings', 'xl
 workbook_paths = [template_path]
 
 # Examples
-root = os.path.abspath(os.path.join(this_dir, os.pardir, 'examples'))
+root = os.path.abspath(os.path.join(this_dir, os.pardir))
 for root, dirs, files in os.walk(root):
     for f in files:
         if f.endswith(".xlsm"):
