@@ -829,14 +829,16 @@ class Range(object):
         # Pandas DataFrame: Turn into NumPy object array with or without Index and Headers
         if pd and isinstance(data, pd.DataFrame):
             if self.index:
+                if data.index.name in data.columns:
+                    # Prevents column name collision when resetting the index
+                    data.index.rename(None, inplace=True)
                 data = data.reset_index()
 
             if self.header:
                 if isinstance(data.columns, pd.MultiIndex):
                     # Ensure dtype=object because otherwise it may get assigned a string type which sometimes makes
                     # vstacking return a string array. This would cause values to be truncated and we can't easily
-                    # transform np.nan in string form.
-                    # Python 3 requires zip wrapped in list
+                    # transform np.nan in string form. Python 3 requires zip wrapped in list.
                     columns = np.array(list(zip(*data.columns.tolist())), dtype=object)
                 else:
                     columns = np.empty((data.columns.shape[0],), dtype=object)
