@@ -30,6 +30,9 @@ else:
     else:
         raise OSError("currently only Windows and OSX are supported.")
 
+if (sys.version_info[0] == 2 and sys.version_info[:2] < (2, 7)) or (sys.version_info[0] == 3 and sys.version_info[:2] < (3, 2)):
+    install_requires = install_requires + ['argparse']
+
 setup(
     name='xlwings',
     version=version,
