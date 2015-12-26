@@ -3,9 +3,24 @@
 Command Line Client
 ===================
 
-xlwings (>=v0.6.0) comes with a command line client that allows an easy handling of template and add-in.
-On Windows, type the commands into a ``command prompt``, on Mac, type them into a ``Terminal``.
+xlwings comes with a command line client that makes the handling of workbooks and add-in very easy.
+On Windows, type the commands into a ``Command Prompt``, on Mac, type them into a ``Terminal``.
 
+Quickstart
+----------
+
+* ``xlwings quickstart myproject``
+
+This command is by far the fastest way to get off the ground: It creates a new folder ``myproject`` with the necessary
+Excel workbook (including the xlwings VBA module) and a Python file, ready to be used right away:
+
+.. code::
+
+  myproject
+    |--myproject.xlsm
+    |--myproject.py
+
+.. versionadded:: 0.6.4
 
 Template
 --------
@@ -26,6 +41,7 @@ After installing, the templates are accessible via Excel's Menu:
 * Win (Excel 2013, 2016): There's an additional step needed as explained `here <https://support.office.com/en-us/article/Where-are-my-custom-templates-88ed77ca-df34-49e9-9087-3f01ae296e6e/>`_
 * Mac (Excel 2011, 2016): ``File > New from template``
 
+.. versionadded:: 0.6.0
 
 Add-in (Currently Windows-only)
 -------------------------------
@@ -46,3 +62,5 @@ such, it is only a developer add-in and not necessary to run Workbooks with xlwi
 * ``xlwings addin status``: Shows if the add-in is installed together with the installation path
 
 After installing the add-in, it will be available as xlwings tab on the Excel Ribbon.
+
+.. versionadded:: 0.6.0
