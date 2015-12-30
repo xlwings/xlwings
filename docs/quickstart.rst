@@ -97,6 +97,22 @@ your ``xlwings`` installation.
 
 For further details, see :ref:`vba`.
 
+User Defined Functions (UDFs) - Currently Windows only
+------------------------------------------------------
+
+Writing a UDF in Python is as easy as:
+
+.. code-block:: python
+
+    from xlwings import xlfunc
+
+    @xlfunc
+    def double_sum(x, y):
+        """Returns twice the sum of the two arguments"""
+        return 2 * (x + y)
+
+For further details, see :ref:`udfs`.
+
 Easy deployment
 ---------------
 
@@ -105,9 +121,6 @@ Deployment is really the part where xlwings shines:
 * Just zip-up your Spreadsheet with your Python code and send it around. The receiver only needs to have an
   installation of Python with xlwings (and obviously all the other packages you're using).
 * There is no need to install any Excel add-in.
-* If this still sounds too complicated, just freeze your Python code into an executable and use
-  ``RunFrozenPython`` instead of ``RunPython``. This gives you a standalone version of your Spreadsheet tool without any
-  dependencies (``RunFrozenPython`` is currently only available on Windows).
 
 
 

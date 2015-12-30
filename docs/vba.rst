@@ -20,10 +20,9 @@ If you don't know the location of your xlwings installation, you can find it as 
     >>> xlwings.__path__
 
 An even easier way is to start from a template that already includes the xlwings VBA module and
-boilerplate code:
+boilerplate code. Use the command line client like this (for details see: :ref:`command_line`)::
 
-    >>> from xlwings import Workbook
-    >>> Workbook.open_template()
+    $ xlwings template open
 
 .. _vba_settings:
 
@@ -37,6 +36,7 @@ under ``Function Settings``::
     PYTHON_MAC = ""
     PYTHON_FROZEN = ThisWorkbook.Path & "\build\exe.win32-2.7"
     PYTHONPATH = ThisWorkbook.Path
+    UDF_PATH = ""
     LOG_FILE = ThisWorkbook.Path & "\xlwings_log.txt"
     SHOW_LOG = True
     OPTIMIZED_CONNECTION = False
@@ -50,9 +50,21 @@ under ``Function Settings``::
 * ``PYTHON_FROZEN`` [Optional]: Currently only on Windows, indicates the directory of the exe file that has been frozen
   by either using ``cx_Freeze`` or ``py2exe``. Can be set to ``""`` if unused.
 * ``PYTHONPATH`` [Optional]: If the source file of your code is not found, add the path here. Otherwise set it to ``""``.
-* ``LOG_FILE``: Directory **including** the file name. This file is necessary for error handling.
+* ``UDF_PATH`` [Optional, Windows only]: Full path to a Python file from which the User Defined Functions are being imported.
+  Example: ``UDF_PATH = ThisWorkbook.Path & "\functions.py"``
+  Default: ``UDF_PATH = ""`` defaults to a file in the same directory of the Excel spreadsheet with the same name but ending in ``.py``.
+* ``LOG_FILE`` [Optional]: Leave empty for default location (see below) or provide directory including file name.
 * ``SHOW_LOG``: If False, no pop-up with the Log messages (usually errors) will be shown. Use with care.
 * ``OPTIMIZED_CONNECTION``: Currently only on Windows, use a COM Server for an efficient connection (experimental!)
+
+.. _log:
+
+LOG_FILE default locations
+**************************
+
+* Windows: ``%APPDATA%xlwings_log.txt``
+* Mac 2011: ``/tmp/xlwings_log.txt``
+* Mac 2016: ``/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt``
 
 .. note:: If the settings (especially ``PYTHONPATH`` and ``LOG_FILE``) need to work on Windows on Mac, use backslashes
     in relative file path, i.e. ``ThisWorkbook.Path & "\mydirectory"``.
@@ -102,6 +114,6 @@ This essentially hands over control to ``mymodule.py``:
 
 You can then attach ``MyMacro`` to a button or run it directly in the VBA Editor by hitting ``F5``.
 
-.. note:: Always place ``Workbook.caller()`` within the function that is called from Excel and not outside as
-    module-wide global variable. Otherwise it doesn't get garbage collected with ``OPTIMIZED_CONNECTION = True``
-    which prevents Excel from shutting down properly upon exiting and and leaves you with a zombie process.
+.. note:: Always place ``Workbook.caller()`` within the function that is being called from Excel and not outside as
+    global variable. Otherwise it prevents Excel from shutting down properly upon exiting and
+    leaves you with a zombie process when you use ``OPTIMIZED_CONNECTION = True``.

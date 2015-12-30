@@ -463,8 +463,16 @@ def get_width(xl_range):
 
 def get_height(xl_range):
     return xl_range.Height
+	
+
+def get_left(xl_range):
+    return xl_range.Left
 
 
+def get_top(xl_range):
+    return xl_range.Top
+
+	
 def autofit(range_, axis):
     if axis == 'rows' or axis == 'r':
         range_.xl_range.Rows.AutoFit()

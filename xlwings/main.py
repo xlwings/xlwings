@@ -292,7 +292,7 @@ class Workbook(object):
         """
         xlplatform.set_xl_workbook_current(self.xl_workbook)
 
-    def get_selection(self, asarray=False, ndim=None):
+    def get_selection(self, asarray=False, atleast_2d=False):
         """
         Returns the currently selected cells from Excel as ``Range`` object.
 
@@ -301,14 +301,14 @@ class Workbook(object):
         asarray : boolean, default False
             returns a NumPy array where empty cells are shown as nan
 
-        ndim : int, default None
-            If set to 2, returns 2d lists/arrays even if the Range is a Row or Column.
+        atleast_2d : boolean, default False
+            Returns 2d lists/arrays even if the Range is a Row or Column.
 
         Returns
         -------
         Range object
         """
-        return Range(xlplatform.get_selection_address(self.xl_app), wkb=self, asarray=asarray, ndim=ndim)
+        return Range(xlplatform.get_selection_address(self.xl_app), wkb=self, asarray=asarray, atleast_2d=atleast_2d)
 
     def close(self):
         """
@@ -624,8 +624,8 @@ class Range(object):
     header : boolean, default True
         Includes the column headers when setting a Pandas DataFrame.
 
-    ndim : int, default None
-        If set to 2, returns 2d lists/arrays even if the Range is a Row or Column.
+    atleast_2d : boolean, default False
+        Returns 2d lists/arrays even if the Range is a Row or Column.
 
     wkb : Workbook object, default Workbook.current()
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
@@ -1064,6 +1064,34 @@ class Range(object):
         .. versionadded:: 0.4.0
         """
         return xlplatform.get_height(self.xl_range)
+
+    @property
+    def left(self):
+        """
+        Returns the distance, in points, from the left edge of column A to the left edge of the range. Read-only.
+
+        Returns
+        -------
+        float
+
+
+        .. versionadded:: 0.6.0
+        """
+        return xlplatform.get_left(self.xl_range)
+
+    @property
+    def top(self):
+        """
+        Returns the distance, in points, from the top edge of row 1 to the top edge of the range. Read-only.
+
+        Returns
+        -------
+        float
+
+
+        .. versionadded:: 0.6.0
+        """
+        return xlplatform.get_top(self.xl_range)
 
     def autofit(self, axis=None):
         """

@@ -1,6 +1,85 @@
 What's New
 ==========
 
+v0.6.3 (December 18, 2015)
+--------------------------
+
+Bug Fixes
+*********
+
+* [Mac]: This fixes a bug introduced in v0.6.2: When using ``RunPython`` from VBA, errors were not shown in a pop-up window (:issue:`330`).
+
+
+v0.6.2 (December 15, 2015)
+--------------------------
+
+API changes
+***********
+
+* LOG_FILE: So far, the log file has been placed next to the Excel file per default (VBA settings). This has been changed as it was
+  causing issues for files on SharePoint/OneDrive and Mac Excel 2016: The place where ``LOG_FILE = ""`` refers to depends on the OS and the
+  Excel version, see :ref:`log`.
+
+Enhancements
+************
+* [Mac]: This version adds support for the VBA module on Mac Excel 2016 (i.e. the ``RunPython`` command) and is now feature equivalent
+  with Mac Excel 2011 (:issue:`206`).
+
+Bug Fixes
+*********
+* [Win]: On certain systems, the xlwings dlls weren't found (:issue:`323`).
+
+
+v0.6.1 (December 4, 2015)
+-------------------------
+
+Bug Fixes
+*********
+
+* [Python 3]: The command line client has been fixed (:issue:`319`).
+* [Mac]: It now works correctly with ``psutil>=3.0.0`` (:issue:`315`).
+
+
+v0.6.0 (November 30, 2015)
+--------------------------
+
+API changes
+***********
+None
+
+Enhancements
+************
+
+* **User Defined Functions (UDFs) - currently Windows only**
+
+  The `ExcelPython <https://github.com/ericremoreynolds/excelpython/>`_ project has been fully merged into xlwings. This means
+  that on Windows, UDF's are now supported via decorator syntax. A simple example::
+
+    from xlwings import xlfunc
+
+    @xlfunc
+    def double_sum(x, y):
+        """Returns twice the sum of the two arguments"""
+        return 2 * (x + y)
+
+  For **array formulas** with or without **NumPy**, see the docs: :ref:`udfs`
+
+* **Command Line Client**
+
+  The new xlwings command line client makes it easy to work with the xlwings **template** and the developer **add-in**
+  (the add-in is currently Windows-only). E.g. to create a new Excel spreadsheet from the template, run::
+
+      xlwings template open
+
+  For all commands, see the docs: :ref:`command_line`
+
+* **Other enhancements**:
+
+  - New method: :meth:`xlwings.Sheet.delete`
+  - New method: :meth:`xlwings.Range.top`
+  - New method: :meth:`xlwings.Range.left`
+
+
 v0.5.0 (November 10, 2015)
 --------------------------
 
@@ -59,8 +138,8 @@ Bug Fixes
 *********
 * ``Sheet.add`` was not always acting on the correct workbook (:issue:`287`)
 * Iteration over a ``Range`` only worked the first time (:issue:`272`)
-* [Win Version]: Sometimes, an error was raised when Excel was not running (:issue:`269`)
-* [Win Version]: Non-default Python interpreters (as specified in the VBA settings under ``PYTHON_WIN``) were not found
+* [Win]: Sometimes, an error was raised when Excel was not running (:issue:`269`)
+* [Win]: Non-default Python interpreters (as specified in the VBA settings under ``PYTHON_WIN``) were not found
   if the path contained a space (:issue:`257`)
 
 
@@ -96,7 +175,7 @@ Bug Fixes
 * The Excel template was updated to the latest VBA code (:issue:`234`).
 * Connections to files that are saved on OneDrive/SharePoint are now working correctly (:issue:`215`).
 * Various issues with timezone-aware objects were fixed (:issue:`195`).
-* [Mac Version]: A certain range of integers were not written to Excel (:issue:`227`).
+* [Mac]: A certain range of integers were not written to Excel (:issue:`227`).
 
 
 v0.4.0 (September 13, 2015)
@@ -143,7 +222,7 @@ Other updates:
     sheet1 = Sheet(1)
     r = Range(sheet1, 'A1')
 
-* [Win Version]: Error pop-ups show now the full error message that can also be copied with ``Ctrl-C`` (:issue:`221`).
+* [Win]: Error pop-ups show now the full error message that can also be copied with ``Ctrl-C`` (:issue:`221`).
 
 
 Bug Fixes
@@ -193,14 +272,14 @@ In more details:
 Bug Fixes
 *********
 
-* [Win Version]: When using the ``OPTIMIZED_CONNECTION`` on Windows, Excel left an orphaned process running after
+* [Win]: When using the ``OPTIMIZED_CONNECTION`` on Windows, Excel left an orphaned process running after
   closing (:issue:`193`).
 
 Various improvements regarding unicode file path handling, including:
 
-* [Mac Version]: Excel 2011 for Mac now supports unicode characters in the filename when called via VBA's ``RunPython``
+* [Mac]: Excel 2011 for Mac now supports unicode characters in the filename when called via VBA's ``RunPython``
   (but not in the path - this is a limitation of Excel 2011 that will be resolved in Excel 2016) (:issue:`154`).
-* [Win Version]: Excel on Windows now handles unicode file paths correctly with untrusted documents.
+* [Win]: Excel on Windows now handles unicode file paths correctly with untrusted documents.
   (:issue:`154`).
 
 v0.3.5 (April 26, 2015)
@@ -278,7 +357,7 @@ Enhancements
 Bug Fixes
 *********
 
-* [Win Version]: ``datetime.date`` objects were causing an error (:issue:`44`).
+* [Win]: ``datetime.date`` objects were causing an error (:issue:`44`).
 
 * Depending on how it was instantiated, Workbook was sometimes missing the ``fullname`` attribute (:issue:`76`).
 
@@ -286,7 +365,7 @@ Bug Fixes
 
 * A bug introduced in v0.3.0 caused frozen versions (eg. with ``cx_Freeze``) to fail (:issue:`133`).
 
-* [Mac Version]: Sometimes, xlwings was causing an error when quitting the Python interpreter (:issue:`136`).
+* [Mac]: Sometimes, xlwings was causing an error when quitting the Python interpreter (:issue:`136`).
 
 v0.3.2 (January 17, 2015)
 -------------------------
@@ -345,7 +424,7 @@ Enhancements
 Bug Fixes
 *********
 
-* [Win Version]: A long-standing bug that caused the Excel file to close and reopen under certain circumstances has been
+* [Win]: A long-standing bug that caused the Excel file to close and reopen under certain circumstances has been
   fixed (:issue:`10`): Depending on your security settings (Trust Center) and in connection with files downloaded from
   the internet or possibly in connection with some add-ins, Excel was either closing the file and reopening it or giving
   a "file already open" warning. This has now been fixed which means that the examples downloaded from the homepage should
@@ -405,7 +484,7 @@ Further enhancements include:
         if cell.value < 2:
             cell.color = (255, 0, 0)
 
-* [Mac version]: The VBA module finds now automatically the default Python installation as per ``PATH`` variable on
+* [Mac]: The VBA module finds now automatically the default Python installation as per ``PATH`` variable on
   ``.bash_profile`` when ``PYTHON_MAC = ""`` (the default in the VBA settings) (:issue:`95`).
 * The VBA error pop-up can now be muted by setting ``SHOW_LOG = False`` in the VBA settings. To be used with
   care, but it can be useful on Mac, as the pop-up window is currently showing printed log messages even if no error
@@ -414,7 +493,7 @@ Further enhancements include:
 Bug Fixes
 *********
 
-* [Mac version]: Environment variables from ``.bash_profile`` are now available when called from VBA, e.g. by using:
+* [Mac]: Environment variables from ``.bash_profile`` are now available when called from VBA, e.g. by using:
   ``os.environ['USERNAME']`` (:issue:`95`)
 
 
@@ -485,13 +564,13 @@ Bug Fixes
 * xlwings works now also with NumPy < 1.7.0. Before, doing something like ``Range('A1').value = 'Foo'`` was causing
   a ``NotImplementedError: Not implemented for this type`` error when NumPy < 1.7.0 was installed (:issue:`73`).
 
-* [Win version]: The VBA module caused an error on the 64bit version of Excel (:issue:`72`).
+* [Win]: The VBA module caused an error on the 64bit version of Excel (:issue:`72`).
 
-* [Mac version]: The error pop-up wasn't shown on Python 3 (:issue:`85`).
+* [Mac]: The error pop-up wasn't shown on Python 3 (:issue:`85`).
 
-* [Mac version]: Autofitting bigger Ranges, e.g. ``Range('A:D').autofit()`` was causing a time out (:issue:`74`).
+* [Mac]: Autofitting bigger Ranges, e.g. ``Range('A:D').autofit()`` was causing a time out (:issue:`74`).
 
-* [Mac version]: Sometimes, calling xlwings from Python was causing Excel to show old errors as pop-up alert (:issue:`70`).
+* [Mac]: Sometimes, calling xlwings from Python was causing Excel to show old errors as pop-up alert (:issue:`70`).
 
 
 v0.2.2 (September 23, 2014)
@@ -539,7 +618,7 @@ API changes
 Enhancements
 ************
 
-* [Mac version]: Python errors are now also shown in a Message Box. This makes the Mac version feature equivalent with the
+* [Mac]: Python errors are now also shown in a Message Box. This makes the Mac version feature equivalent with the
   Windows version (:issue:`57`):
 
   .. figure:: images/mac_error.png
@@ -606,13 +685,13 @@ Bug Fixes
     >>> Range('A1', atleast_2d=True, asarray=True).value
     array([[1.]])
 
-* [Mac version]: After creating two new unsaved Workbooks with ``Workbook()``, any ``Sheet``, ``Range`` or ``Chart``
+* [Mac]: After creating two new unsaved Workbooks with ``Workbook()``, any ``Sheet``, ``Range`` or ``Chart``
   object would always just access the latest one, even if the Workbook had been specified (:issue:`63`).
 
-* [Mac version]: When xlwings was imported without ever instantiating a ``Workbook`` object, Excel would start upon
+* [Mac]: When xlwings was imported without ever instantiating a ``Workbook`` object, Excel would start upon
   quitting the Python interpreter (:issue:`51`).
 
-* [Mac version]: When installing xlwings, it now requires ``psutil`` to be at least version ``2.0.0`` (:issue:`48`).
+* [Mac]: When installing xlwings, it now requires ``psutil`` to be at least version ``2.0.0`` (:issue:`48`).
 
 
 v0.2.1 (August 7, 2014)

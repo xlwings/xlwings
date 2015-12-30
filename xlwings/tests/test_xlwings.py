@@ -81,7 +81,8 @@ if pd is not None:
 
     df_2 = pd.DataFrame([1, 3, 5, np.nan, 6, 8], columns=['col1'])
 
-    df_dateindex = pd.DataFrame(np.arange(50).reshape(10, 5) + 0.1, index=rng)
+    df_dateindex = pd.DataFrame(np.arange(50).reshape(10, 5) + 0.1, index=rng,
+                                columns=['one', 'two', 'three', 'four', 'five'])
 
     # MultiIndex (Index)
     tuples = list(zip(*[['bar', 'bar', 'baz', 'baz', 'foo', 'foo', 'qux', 'qux'],
@@ -89,7 +90,7 @@ if pd is not None:
                         ['x', 'x', 'x', 'x', 'y', 'y', 'y', 'y']]))
     index = pd.MultiIndex.from_tuples(tuples, names=['first', 'second', 'third'])
     df_multiindex = pd.DataFrame([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6], [7.7, 8.8], [9.9, 10.10],
-                                  [11.11, 12.12], [13.13, 14.14], [15.15, 16.16]], index=index)
+                                  [11.11, 12.12], [13.13, 14.14], [15.15, 16.16]], index=index, columns=['one', 'two'])
 
     # MultiIndex (Header)
     header = [['Foo', 'Foo', 'Bar', 'Bar', 'Baz'], ['A', 'B', 'C', 'D', 'E']]
@@ -212,7 +213,8 @@ class TestWorkbook:
         wb2.close()
 
     def test_save_naked(self):
-
+        if sys.platform.startswith('darwin'):
+            os.chdir(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/')
         cwd = os.getcwd()
         wb1 = Workbook(app_visible=False, app_target=APP_TARGET)
         target_file_path = os.path.join(cwd, wb1.name + '.xlsx')
@@ -230,6 +232,8 @@ class TestWorkbook:
             os.remove(target_file_path)
 
     def test_save_path(self):
+        if sys.platform.startswith('darwin'):
+            os.chdir(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/')
 
         cwd = os.getcwd()
         wb1 = Workbook(app_visible=False, app_target=APP_TARGET)
@@ -259,12 +263,16 @@ class TestWorkbook:
     def test_unicode_path(self):
         # pip3 seems to struggle with unicode filenames
         src = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'unicode_path.xlsx')
-        dst = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicödé_päth.xlsx')
-        shutil.move(src, dst)
-        wb = Workbook(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicödé_päth.xlsx'), app_visible=False, app_target=APP_TARGET)
+        if sys.platform.startswith('darwin'):
+            dst = os.path.join(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/',
+                           'ünicödé_päth.xlsx')
+        else:
+            dst = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicödé_päth.xlsx')
+        shutil.copy(src, dst)
+        wb = Workbook(dst, app_visible=False, app_target=APP_TARGET)
         Range('A1').value = 1
         wb.close()
-        shutil.move(dst, src)
+        os.remove(dst)
 
     def test_unsaved_workbook_reference(self):
         wb = Workbook(app_visible=False, app_target=APP_TARGET)
@@ -535,14 +543,14 @@ class TestRange:
         cells = Range('Sheet6', 'A4', asarray=True).table.value
         assert_array_equal(cells, array_2d)
 
-        # 1d array (ndim=2)
+        # 1d array (atleast_2d)
         Range('Sheet6', 'A10').value = array_1d
-        cells = Range('Sheet6', 'A10:D10', asarray=True, ndim=2).value
+        cells = Range('Sheet6', 'A10:D10', asarray=True, atleast_2d=True).value
         assert_array_equal(cells, np.atleast_2d(array_1d))
 
-        # 2d array (ndim=2)
+        # 2d array (atleast_2d)
         Range('Sheet6', 'A12').value = array_2d
-        cells = Range('Sheet6', 'A12', asarray=True, ndim=2).table.value
+        cells = Range('Sheet6', 'A12', asarray=True, atleast_2d=True).table.value
         assert_array_equal(cells, array_2d)
 
     def sheet_ref(self):
@@ -580,7 +588,7 @@ class TestRange:
 
         # 2d List Row
         Range('Sheet4', 'A29').value = list_row_2d
-        cells = Range('Sheet4', 'A29:C29', ndim=2).value
+        cells = Range('Sheet4', 'A29:C29', atleast_2d=True).value
         assert_equal(list_row_2d, cells)
 
         # 1d List Col
@@ -588,7 +596,7 @@ class TestRange:
         cells = Range('Sheet4', 'A31:A33').value
         assert_equal([i[0] for i in list_col], cells)
         # 2d List Col
-        cells = Range('Sheet4', 'A31:A33', ndim=2).value
+        cells = Range('Sheet4', 'A31:A33', atleast_2d=True).value
         assert_equal(list_col, cells)
 
     def test_is_cell(self):
@@ -724,18 +732,18 @@ class TestRange:
         Range('Sheet1', 'A20').value = np.nan
         assert_equal(None, Range('Sheet1', 'A20').value)
 
-    def test_ndim2_scalar(self):
+    def test_atleast_2d_scalar(self):
         """Covers GH Issue #53a"""
         Range('Sheet1', 'A50').value = 23
-        result = Range('Sheet1', 'A50', ndim=2).value
+        result = Range('Sheet1', 'A50', atleast_2d=True).value
         assert_equal([[23]], result)
 
-    def test_ndim2_scalar_as_array(self):
+    def test_atleast_2d_scalar_as_array(self):
         """Covers GH Issue #53b"""
         _skip_if_no_numpy()
 
         Range('Sheet1', 'A50').value = 23
-        result = Range('Sheet1', 'A50', ndim=2, asarray=True).value
+        result = Range('Sheet1', 'A50', atleast_2d=True, asarray=True).value
         assert_equal(np.array([[23]]), result)
 
     def test_column_width(self):
@@ -776,6 +784,16 @@ class TestRange:
         Range('Sheet1', 'A1:D4').row_height = 60.0
         result = Range('Sheet1', 'A1:D4').height
         assert_equal(240.0, result)
+
+    def test_left(self):
+        assert_equal(Range('Sheet1','A1').left, 0.0)
+        Range('Sheet1','A1').column_width = 20.0
+        assert_equal(Range('Sheet1','B1').left, Range('Sheet1','A1').width)
+
+    def test_top(self):
+        assert_equal(Range('Sheet1','A1').top, 0.0)
+        Range('Sheet1','A1').row_height = 20.0
+        assert_equal(Range('Sheet1','A2').top, Range('Sheet1','A1').height)
 
     def test_autofit_range(self):
         # TODO: compare col/row widths before/after - not implemented yet

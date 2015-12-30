@@ -40,9 +40,10 @@ Optional Dependencies
 
 * NumPy
 * Pandas
+* Matplotlib
+* Pillow/PIL
 
-These packages are not required but highly recommended as NumPy arrays and Pandas DataFrames/Series play very nicely
-with xlwings.
+These packages are not required but highly recommended as they play very nicely with xlwings.
 
 
 Python version support
