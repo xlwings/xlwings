@@ -1,6 +1,39 @@
 What's New
 ==========
 
+v0.6.4 (January 6, 2016)
+------------------------
+
+API changes
+***********
+None
+
+Enhancements
+************
+
+* Quickstart: It's now easier than ever to start a new xlwings project, simply use the commmand line client (:issue:`306`):
+
+  ``xlwings quickstart myproject`` will produce a folder with the following files, ready to be used (see :ref:`command_line`)::
+
+    myproject
+      |--myproject.xlsm
+      |--myproject.py
+
+
+* New documentation about how to use xlwings with other languages like R and Julia, see :ref:`r_and_julia`.
+
+Bug Fixes
+*********
+
+* [Win]: Importing UDFs with the add-in was throwing an error if the filename was including characters like spaces or dashes (:issue:`331`).
+  To fix this, close Excel completely and run ``xlwings addin update``.
+
+* [Win]: ``Workbook.caller()`` is now also accessible within functions that are decorated with ``@xlfunc``. Previously,
+  it was only available with functions that used the ``@xlsub`` decorator (:issue:`316`).
+
+* Writing a Pandas DataFrame failed in case the index was named the same as a column (:issue:`334`).
+
+
 v0.6.3 (December 18, 2015)
 --------------------------
 
