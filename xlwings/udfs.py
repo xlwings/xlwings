@@ -201,6 +201,7 @@ def import_udfs(script_path, xl_workbook):
                 f.write(tab + 'Py.SetAttr Py.Module("xlwings._xlwindows"), "xl_workbook_current", ThisWorkbook\n')
                 f.write(tab + "Py.Call func, args\n")
             else:
+                f.write(tab + 'Py.SetAttr Py.Module("xlwings._xlwindows"), "xl_workbook_current", ThisWorkbook\n')
                 f.write(tab + "Set " + fname + " = Py.Call(func, args)\n")
                 marshal = xlret["marshal"]
                 if marshal == "auto":
