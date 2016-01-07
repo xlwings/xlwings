@@ -21,7 +21,7 @@ import shutil
 
 from . import xlplatform, string_types, time_types, xrange, map, ShapeAlreadyExists
 from .constants import ChartType
-from . import formatters
+from . import converters
 
 # Optional imports
 try:
@@ -624,8 +624,8 @@ class Range(object):
     header : boolean, default True
         Includes the column headers when setting a Pandas DataFrame.
 
-    atleast_2d : boolean, default False
-        Returns 2d lists/arrays even if the Range is a Row or Column.
+    converter : Converter, default xlwings.converters.default
+        Sets the converter used for getting/setting the Range's value.
 
     wkb : Workbook object, default Workbook.current()
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
@@ -691,9 +691,9 @@ class Range(object):
         else:
             self.xl_workbook = self.workbook.xl_workbook
         self.strict = kwargs.get('strict', False)  # Stop table/horizontal/vertical at empty cells that contain formulas
-        self.formatter = kwargs.get('format', formatters.default)
+        self.converter = kwargs.get('convert', converters.default)
         if isinstance(self.format, string_types):
-            self.formatter = getattr(formatters, self.formatter)
+            self.converter = getattr(converters, self.converter)
 
         # Get sheet
         if sheet_name_or_index:
@@ -717,9 +717,9 @@ class Range(object):
         return map(lambda cell: Range(xlplatform.get_worksheet_name(self.xl_sheet), cell, **self.kwargs),
                    itertools.product(xrange(self.row1, self.row2 + 1), xrange(self.col1, self.col2 + 1)))
 
-    def format(self, formatter):
+    def convert(self, converter):
         kwargs = dict(self.kwargs)
-        kwargs['format'] = formatter
+        kwargs['convert'] = converter
         return Range(
             xlplatform.get_worksheet_name(self.xl_sheet),
             (self.row1, self.col1),
@@ -799,15 +799,14 @@ class Range(object):
 
         Returns
         -------
-        list or numpy array
-            Empty cells are set to ``None``. If ``asarray=True``,
-            a numpy array is returned where empty cells are set to ``nan``.
+        object
+            Empty cells are set to ``None``.
         """
-        return self.formatter.read(self)
+        return self.converter.read(self)
 
     @value.setter
     def value(self, data):
-        self.formatter.write(self, data)
+        self.converter.write(self, data)
 
     @property
     def formula(self):
