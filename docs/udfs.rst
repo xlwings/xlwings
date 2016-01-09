@@ -16,6 +16,10 @@ It is recommended (although not required) to work with the xlwings developer add
 Workbook preparation
 --------------------
 
+The easiest way is to run ``xlwings quickstart myproject`` (see :ref:`command_line`).
+
+Alternatively, you can also go via template:
+
 1) Create a new Excel file from the template: ``xlwings template open`` (see :ref:`command_line`) or just import
    the xlwings VBA module (``xlwings.bas``) manually, see :ref:`vba`.
 2) Save the Workbook as ``Excel Macro-Enabled Workbook (*.xlsm)``.
