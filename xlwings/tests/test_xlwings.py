@@ -588,7 +588,7 @@ class TestRange:
 
         # 2d List Row
         Range('Sheet4', 'A29').value = list_row_2d
-        cells = Range('Sheet4', 'A29:C29', atleast_2d=True).value
+        cells = Range('Sheet4', 'A29:C29', ndim=2).value
         assert_equal(list_row_2d, cells)
 
         # 1d List Col
@@ -596,7 +596,7 @@ class TestRange:
         cells = Range('Sheet4', 'A31:A33').value
         assert_equal([i[0] for i in list_col], cells)
         # 2d List Col
-        cells = Range('Sheet4', 'A31:A33', atleast_2d=True).value
+        cells = Range('Sheet4', 'A31:A33', ndim=2).value
         assert_equal(list_col, cells)
 
     def test_is_cell(self):
@@ -735,7 +735,7 @@ class TestRange:
     def test_atleast_2d_scalar(self):
         """Covers GH Issue #53a"""
         Range('Sheet1', 'A50').value = 23
-        result = Range('Sheet1', 'A50', atleast_2d=True).value
+        result = Range('Sheet1', 'A50').convert(ndim=2).value
         assert_equal([[23]], result)
 
     def test_atleast_2d_scalar_as_array(self):
@@ -743,7 +743,7 @@ class TestRange:
         _skip_if_no_numpy()
 
         Range('Sheet1', 'A50').value = 23
-        result = Range('Sheet1', 'A50', atleast_2d=True, asarray=True).value
+        result = Range('Sheet1', 'A50', read_as=np.array, ndim=2).value
         assert_equal(np.array([[23]]), result)
 
     def test_column_width(self):

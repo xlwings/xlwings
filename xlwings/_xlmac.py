@@ -210,19 +210,15 @@ def get_range_from_indices(xl_sheet, first_row, first_column, last_row, last_col
 
 
 def get_value_from_range(xl_range):
-    return xl_range.value.get()
+    data = xl_range.value.get()
+    if type(data) is list:
+        return [[None if c == '' else c for c in row] for row in data]
+    else:
+        return None if data == '' else data
 
 
 def get_value_from_index(xl_sheet, row_index, column_index):
     return xl_sheet.columns[column_index].rows[row_index].value.get()
-
-
-def clean_xl_data(data):
-    """
-    Expects a 2d list.
-    """
-    # appscript returns empty cells as ''. So we replace those with None to be in line with pywin32
-    return [[None if c == '' else c for c in row] for row in data]
 
 
 def prepare_xl_data(data):

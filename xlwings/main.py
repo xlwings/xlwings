@@ -21,7 +21,7 @@ import shutil
 
 from . import xlplatform, string_types, time_types, xrange, map, ShapeAlreadyExists
 from .constants import ChartType
-from . import converters
+from . import conversion
 
 # Optional imports
 try:
@@ -691,9 +691,6 @@ class Range(object):
         else:
             self.xl_workbook = self.workbook.xl_workbook
         self.strict = kwargs.get('strict', False)  # Stop table/horizontal/vertical at empty cells that contain formulas
-        self.converter = kwargs.get('convert', converters.default)
-        if isinstance(self.format, string_types):
-            self.converter = getattr(converters, self.converter)
 
         # Get sheet
         if sheet_name_or_index:
@@ -717,9 +714,9 @@ class Range(object):
         return map(lambda cell: Range(xlplatform.get_worksheet_name(self.xl_sheet), cell, **self.kwargs),
                    itertools.product(xrange(self.row1, self.row2 + 1), xrange(self.col1, self.col2 + 1)))
 
-    def convert(self, converter):
-        kwargs = dict(self.kwargs)
-        kwargs['convert'] = converter
+    def convert(self, read_as=None, **kwargs):
+        if read_as is not None:
+            kwargs['read_as'] = read_as
         return Range(
             xlplatform.get_worksheet_name(self.xl_sheet),
             (self.row1, self.col1),
@@ -802,11 +799,11 @@ class Range(object):
         object
             Empty cells are set to ``None``.
         """
-        return self.converter.read(self)
+        return conversion.DefaultAccessor.read(self, self.kwargs)
 
     @value.setter
     def value(self, data):
-        self.converter.write(self, data)
+        return conversion.DefaultAccessor.write(self, data, self.kwargs)
 
     @property
     def formula(self):

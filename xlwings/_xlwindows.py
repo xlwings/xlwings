@@ -262,7 +262,11 @@ def get_range_from_indices(xl_sheet, first_row, first_column, last_row, last_col
 
 
 def get_value_from_range(xl_range):
-    return xl_range.Value
+    data = xl_range.Value
+    if type(data) is tuple:
+        return [[_com_time_to_datetime(c) if isinstance(c, time_types) else c for c in row] for row in data]
+    else:
+        return _com_time_to_datetime(data) if isinstance(data, time_types) else data
 
 
 def get_value_from_index(xl_sheet, row_index, column_index):
@@ -271,15 +275,6 @@ def get_value_from_index(xl_sheet, row_index, column_index):
 
 def set_value(xl_range, data):
     xl_range.Value = data
-
-
-def clean_xl_data(data):
-    """
-    Expects a 2d list.
-    """
-    # Turn into list of list (e.g. makes it easier to create Pandas DataFrame) and handle dates
-    data = [[_com_time_to_datetime(c) if isinstance(c, time_types) else c for c in row] for row in data]
-    return data
 
 
 def prepare_xl_data(data):
