@@ -262,11 +262,14 @@ def get_range_from_indices(xl_sheet, first_row, first_column, last_row, last_col
 
 
 def get_value_from_range(xl_range):
-    data = xl_range.Value
+    return xl_range.Value
+
+
+def clean_value_data(data, datetime_builder):
     if type(data) is tuple:
-        return [[_com_time_to_datetime(c) if isinstance(c, time_types) else c for c in row] for row in data]
+        return [[_com_time_to_datetime(c, datetime_builder) if isinstance(c, time_types) else c for c in row] for row in data]
     else:
-        return _com_time_to_datetime(data) if isinstance(data, time_types) else data
+        return _com_time_to_datetime(data, datetime_builder) if isinstance(data, time_types) else data
 
 
 def get_value_from_index(xl_sheet, row_index, column_index):
@@ -277,15 +280,26 @@ def set_value(xl_range, data):
     xl_range.Value = data
 
 
+def _prepare_xl_data_element(x):
+    if isinstance(x, time_types):
+        return _datetime_to_com_time(x)
+    else:
+        return x
+
+
 def prepare_xl_data(data):
-    """
-    Expects a 2d list.
-    """
-    data = [[_datetime_to_com_time(c) if isinstance(c, time_types) else c for c in row] for row in data]
-    return data
+    if type(data) is list:
+        return [
+            [_prepare_xl_data_element(y) for y in x]
+            if type(x) is list
+            else _prepare_xl_data_element(x)
+            for x in data
+        ]
+    else:
+        _prepare_xl_data_element(data)
 
 
-def _com_time_to_datetime(com_time):
+def _com_time_to_datetime(com_time, datetime_builder):
     """
     This function is a modified version from Pyvot (https://pypi.python.org/pypi/Pyvot)
     and subject to the following copyright:
@@ -306,12 +320,12 @@ def _com_time_to_datetime(com_time):
         # The py3 version of pywintypes has its time type inherit from datetime.
         # We copy to a new datetime so that the returned type is the same between 2/3
         # Changed: We make the datetime object timezone naive as Excel doesn't provide info
-        return dt.datetime(month=com_time.month, day=com_time.day, year=com_time.year,
+        return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
                            hour=com_time.hour, minute=com_time.minute, second=com_time.second,
                            microsecond=com_time.microsecond, tzinfo=None)
     else:
         assert com_time.msec == 0, "fractional seconds not yet handled"
-        return dt.datetime(month=com_time.month, day=com_time.day, year=com_time.year,
+        return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
                            hour=com_time.hour, minute=com_time.minute, second=com_time.second)
 
 

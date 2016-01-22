@@ -33,3 +33,10 @@ from .constants import *
 
 # UDFs
 from .udfs import xlfunc, xlsub, xlret, xlarg, udf_script, import_udfs
+func = xlfunc
+sub = xlsub
+ret = xlret
+arg = xlarg
+
+# Server
+from .server import serve

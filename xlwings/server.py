@@ -23,6 +23,7 @@ import win32com.server.util as serverutil
 import win32com.server.dispatcher
 import win32com.server.policy
 
+from .udfs import call_udf
 
 class XLPythonOption(object):
     """ The XLPython class itself """
@@ -96,7 +97,8 @@ def ToVariant(obj):
 class XLPython(object):
     _public_methods_ = ['Module', 'Tuple', 'TupleFromArray', 'Dict', 'DictFromArray', 'List', 'ListFromArray', 'Obj',
                         'Str', 'Var', 'Call', 'GetItem', 'SetItem', 'DelItem', 'Contains', 'GetAttr', 'SetAttr',
-                        'DelAttr', 'HasAttr', 'Eval', 'Exec', 'ShowConsole', 'Builtin', 'Len', 'Bool']
+                        'DelAttr', 'HasAttr', 'Eval', 'Exec', 'ShowConsole', 'Builtin', 'Len', 'Bool',
+                        'CallUDF']
 
     def ShowConsole(self):
         import ctypes
@@ -179,6 +181,11 @@ class XLPython(object):
             return ToVariant(obj(*pargs, **kwargs))
         else:
             return ToVariant(getattr(obj, method)(*pargs, **kwargs))
+
+    def CallUDF(self, script, fname, args):
+        args = tuple(FromVariant(arg) for arg in args)
+        res = call_udf(script, fname, args)
+        return ToVariant(res)
 
     def Len(self, obj):
         obj = FromVariant(obj)

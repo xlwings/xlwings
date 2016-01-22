@@ -799,11 +799,11 @@ class Range(object):
         object
             Empty cells are set to ``None``.
         """
-        return conversion.DefaultAccessor.read(self, self.kwargs)
+        return conversion.DefaultAccessor.read_range(self, self.kwargs)
 
     @value.setter
     def value(self, data):
-        return conversion.DefaultAccessor.write(self, data, self.kwargs)
+        return conversion.DefaultAccessor.write_range(self, data, self.kwargs)
 
     @property
     def formula(self):

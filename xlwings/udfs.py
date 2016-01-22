@@ -4,6 +4,9 @@ import os.path
 import tempfile
 
 
+from . import conversion
+
+
 def xlfunc(f=None, **kwargs):
     def inner(f):
         if not hasattr(f, "__xlfunc__"):
@@ -23,7 +26,7 @@ def xlfunc(f=None, **kwargs):
                     "vba": None,
                     "range": False,
                     "dtype": None,
-                    "ndim": -1,
+                    "ndim": None,
                     "doc": "Positional argument " + str(vpos+1),
                     "vararg": True if vpos == f.__code__.co_argcount else False
                 })
@@ -51,40 +54,22 @@ def xlsub(f=None, **kwargs):
         return inner(f)
 
 
-xlretparams = set(("marshal", "lax", "doc"))
-def xlret(marshal=None, **kwargs):
-    if marshal is not None:
-        kwargs["marshal"] = marshal
-
+def xlret(**kwargs):
     def inner(f):
         xlf = xlfunc(f).__xlfunc__
         xlr = xlf["ret"]
-        for k, v in kwargs.items():
-            if k in xlretparams:
-                xlr[k] = v
-            else:
-                raise Exception("Invalid parameter '" + k + "'.")
+        xlr.update(kwargs)
         return f
     return inner
 
 
-xlargparams = set(("marshal", "ndim", "dtype", "range", "doc", "vba"))
-def xlarg(arg, marshal=None, ndim=None, **kwargs):
-    if marshal is not None:
-        kwargs["marshal"] = marshal
-    if ndim is not None:
-        kwargs["ndim"] = ndim
-
+def xlarg(arg, **kwargs):
     def inner(f):
         xlf = xlfunc(f).__xlfunc__
         if arg not in xlf["argmap"]:
             raise Exception("Invalid argument name '" + arg + "'.")
         xla = xlf["argmap"][arg]
-        for k, v in kwargs.items():
-            if k in xlargparams:
-                xla[k] = v
-            else:
-                raise Exception("Invalid parameter '" + k + "'.")
+        xla.update(kwargs)
         return f
     return inner
 
@@ -102,6 +87,24 @@ def udf_script(filename):
         exec(compile(f.read(), filename, "exec"), vars)
     udf_scripts[filename] = (mtime, vars)
     return vars
+
+
+def call_udf(script_name, func_name, args):
+    script = udf_script(script_name)
+    func = script[func_name]
+
+    func_info = func.__xlfunc__
+    args_info = func_info['args']
+    ret_info = func_info['ret']
+
+    args = list(args)
+    for i, arg in enumerate(args):
+        arg_info = args_info[i]
+        args[i] = conversion.DefaultAccessor.read_value(arg, arg_info)
+
+    ret = func(*args)
+
+    return conversion.DefaultAccessor.write_value(ret, ret_info)
 
 
 def import_udfs(script_path, xl_workbook):
@@ -155,22 +158,7 @@ def import_udfs(script_path, xl_workbook):
                         f.write(tab + "For k = LBound(" + vararg + ") To UBound(" + vararg + ")\n")
                         argname = vararg + "(k)"
                     if not arg['range']:
-                        f.write(tab + "If TypeOf " + argname + " Is Range Then " + argname + " = " + argname + ".Value2\n")
-                    ndim = arg['ndim']
-                    marshal = arg['marshal']
-                    if ndim != -2 or marshal == "nparray" or marshal == "list":
-                        f.write(tab + "If Not TypeOf " + argname + " Is Object Then\n")
-                        if ndim != -2:
-                            f.write(tab + tab + argname + " = NDims(" + argname + ", " + str(ndim) + ")\n")
-                        if arg['marshal'] == "nparray":
-                            dtype = arg['dtype']
-                            if dtype is None:
-                                f.write(tab + tab + 'Set ' + argname + ' = Py.Call(Py.Module("numpy"), "array", Py.Tuple(' + argname + '))\n')
-                            else:
-                                f.write(tab + tab + 'Set ' + argname + ' = Py.Call(Py.Module("numpy"), "array", Py.Tuple(' + argname + ', "' + dtype + '"))\n')
-                        elif marshal == 'list':
-                            f.write(tab + tab + 'Set ' + argname + ' = Py.Call(Py.Eval("lambda t: [ list(x) if isinstance(x, tuple) else x for x in t ] if isinstance(t, tuple) else t"), Py.Tuple(' + argname + '))\n')
-                        f.write(tab + "End If\n")
+                        f.write(tab + "If TypeOf " + argname + " Is Range Then " + argname + " = " + argname + ".Value\n")
                     if arg['vararg']:
                         f.write(tab + "argsArray(" + str(j) + " + k - LBound(" + vararg + ")) = " + argname + "\n")
                         f.write(tab + "Next k\n")
@@ -180,28 +168,20 @@ def import_udfs(script_path, xl_workbook):
                             j += 1
 
             if vararg != '':
-                f.write(tab + "Set args = Py.TupleFromArray(argsArray)\n")
+                args_vba = 'argsArray'
             else:
-                f.write(tab + "Set args = Py.Tuple(")
-                first = True
-                for arg in xlfunc['args']:
-                    if not first:
-                        f.write(", ")
-                    if not arg['vba']:
-                        f.write(str(arg['name']))
-                    else:
-                        f.write(str(arg['vba']))
-                    first = False
-                f.write(")\n")
+                args_vba = 'Array(' + ', '.join(arg['vba'] or arg['name'] for arg in xlfunc['args']) + ')'
 
-            f.write(tab + 'Set xlpy = Py.Module("xlwings")\n')
-            f.write(tab + 'Set script = Py.Call(xlpy, "udf_script", Py.Tuple(PyScriptPath))\n')
-            f.write(tab + 'Set func = Py.GetItem(script, "' + fname + '")\n')
             if ftype == "Sub":
-                f.write(tab + 'Py.SetAttr Py.Module("xlwings._xlwindows"), "xl_workbook_current", ThisWorkbook\n')
-                f.write(tab + "Py.Call func, args\n")
+                f.write('\tPy.CallMacro PyScriptPath, "{fname}", {args_vba}, ThisWorkbook\n'.format(
+                    fname=fname,
+                    args_vba=args_vba,
+                ))
             else:
-                f.write(tab + "Set " + fname + " = Py.Call(func, args)\n")
+                f.write('\tSet {fname} = Py.CallUDF(PyScriptPath, "{fname}", {args_vba})\n'.format(
+                    fname=fname,
+                    args_vba=args_vba,
+                ))
                 marshal = xlret["marshal"]
                 if marshal == "auto":
                     f.write(tab + "If TypeOf Application.Caller Is Range Then " + fname + " = Py.Var(" + fname + ", " + str(xlret["lax"]) + ")\n")
@@ -252,4 +232,3 @@ def import_udfs(script_path, xl_workbook):
         os.unlink(tf.name)
     except:
         pass
-

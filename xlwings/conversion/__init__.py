@@ -1,4 +1,6 @@
 from .. import xlplatform
+import datetime
+
 
 # Optional imports
 try:
@@ -15,18 +17,28 @@ except ImportError:
 converters = {}
 
 
+_date_handlers = {
+    datetime.datetime: datetime,
+    datetime.date: lambda year, month, day, **kwargs: datetime.date(year, month, day)
+}
+
+
 class DefaultAccessor(object):
 
-    @staticmethod
-    def read(rng, options):
+    @classmethod
+    def read_range(cls, rng, options):
         value = xlplatform.get_value_from_range(rng.xl_range)
+        return cls.read_value(value, options)
+
+    @classmethod
+    def read_value(cls, value, options):
+        value = xlplatform.clean_value_data(value, _date_handlers[options.get('dates_as', datetime.datetime)])
         converter = converters[options.get('read_as', None)]
         return converter.read(value, options)
 
-    @staticmethod
-    def write(rng, value, options):
-        converter = converters.get(type(value), converters[None])
-        value = converter.write(value, options)
+    @classmethod
+    def write_range(cls, rng, value, options):
+        value = cls.write_value(value, options)
 
         if isinstance(value, (tuple, list)):
             if len(value) == 0:
@@ -38,13 +50,17 @@ class DefaultAccessor(object):
                 row2 = rng.row1
                 col2 = rng.col1 + len(value) - 1
                 value = [value]
-            value = xlplatform.prepare_xl_data(value)
         else:
             row2 = rng.row2
             col2 = rng.col2
-            value = xlplatform.prepare_xl_data([[value]])[0][0]
 
         xlplatform.set_value(xlplatform.get_range_from_indices(rng.xl_sheet, rng.row1, rng.col1, row2, col2), value)
+
+    @classmethod
+    def write_value(cls, value, options):
+        converter = converters.get(type(value), converters[None])
+        value = xlplatform.prepare_xl_data(value)
+        return converter.write(value, options)
 
 
 class DefaultConverter(object):

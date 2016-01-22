@@ -211,33 +211,46 @@ def get_range_from_indices(xl_sheet, first_row, first_column, last_row, last_col
 
 def get_value_from_range(xl_range):
     data = xl_range.value.get()
+
+def clean_value_data(data):
     if type(data) is list:
         return [[None if c == '' else c for c in row] for row in data]
     else:
         return None if data == '' else data
 
-
 def get_value_from_index(xl_sheet, row_index, column_index):
     return xl_sheet.columns[column_index].rows[row_index].value.get()
 
 
-def prepare_xl_data(data):
-    """
-    Expects a 2d list.
-    """
-    if np:
+def _prepare_xl_data_element(x):
+    if np and isinstance(x, np.datetime64):
         # handle numpy.datetime64
-        data = [[np_datetime_to_datetime(c) if isinstance(c, np.datetime64) else c for c in row] for row in data]
-    if pd:
-        # This transformation seems to be only needed on Python 2.6 (?)
-        data = [[c.to_datetime() if isinstance(c, pd.tslib.Timestamp) else c for c in row] for row in data]
-    # Make datetime timezone naive
-    data = [[c.replace(tzinfo=None) if isinstance(c, dt.datetime) else c for c in row] for row in data]
-    # appscript packs integers larger than SInt32 but smaller than SInt64 as typeSInt64, and integers
-    # larger than SInt64 as typeIEEE64BitFloatingPoint. Excel silently ignores typeSInt64. (GH 227)
-    data = [[float(c) if isinstance(c, int) else c for c in row] for row in data]
+        return np_datetime_to_datetime(x).replace(tzinfo=None)
 
-    return data
+    if pd and isinstance(x, pd.tslib.Timestamp):
+        # This transformation seems to be only needed on Python 2.6 (?)
+        return x.to_datetime().replace(tzinfo=None)
+
+    # Make datetime timezone naive
+    if isinstance(x, dt.datetime):
+        return x.replace(tzinfo=None)
+
+    if isinstance(x, int):
+        # appscript packs integers larger than SInt32 but smaller than SInt64 as typeSInt64, and integers
+        # larger than SInt64 as typeIEEE64BitFloatingPoint. Excel silently ignores typeSInt64. (GH 227)
+        return float(x)
+
+
+def prepare_xl_data(data):
+    if type(data) is list:
+        return [
+            [_prepare_xl_data_element(y) for y in x]
+            if type(x) is list
+            else _prepare_xl_data_element(x)
+            for x in data
+        ]
+    else:
+        _prepare_xl_data_element(data)
 
 
 def set_value(xl_range, data):
