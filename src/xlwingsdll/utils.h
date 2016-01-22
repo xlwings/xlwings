@@ -47,13 +47,15 @@ std::string GetLastErrorMessage();
 
 static inline std::string strlower(std::string& s)
 {
-	std::transform(s.begin(), s.end(), s.begin(), std::tolower);
+	for (size_t k = 0; k < s.length(); k++)
+		s[k] = std::tolower(s[k], std::locale());
 	return s;
 }
 
 static inline std::string strupper(std::string& s)
 {
-	std::transform(s.begin(), s.end(), s.begin(), std::toupper);
+	for (size_t k = 0; k < s.length(); k++)
+		s[k] = std::toupper(s[k], std::locale());
 	return s;
 }
 
