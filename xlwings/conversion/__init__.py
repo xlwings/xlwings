@@ -1,4 +1,9 @@
 from .. import xlplatform
+
+from ..main import Range
+
+from ..utils import WithOverrides
+
 import datetime
 
 
@@ -18,52 +23,69 @@ converters = {}
 
 
 _date_handlers = {
-    datetime.datetime: datetime,
+    datetime.datetime: datetime.datetime,
     datetime.date: lambda year, month, day, **kwargs: datetime.date(year, month, day)
 }
 
 
-class DefaultAccessor(object):
+class RangeAccessor(object):
 
-    @classmethod
-    def read_range(cls, rng, options):
-        value = xlplatform.get_value_from_range(rng.xl_range)
-        return cls.read_value(value, options)
+    types = ()
 
-    @classmethod
-    def read_value(cls, value, options):
-        value = xlplatform.clean_value_data(value, _date_handlers[options.get('dates_as', datetime.datetime)])
-        converter = converters[options.get('read_as', None)]
-        return converter.read(value, options)
+    def vba_read(self, vba, argname, options):
+        # auto-expand the range
+        expand = options.get('expand', None)
+        if expand == 'vertical':
+            pass
+        elif expand == 'horizontal':
+            pass
+        elif expand == 'table':
+            pass
 
-    @classmethod
-    def write_range(cls, rng, value, options):
-        value = cls.write_value(value, options)
-
-        if isinstance(value, (tuple, list)):
-            if len(value) == 0:
-                return
-            if isinstance(value[0], (tuple, list)):
-                row2 = rng.row1 + len(value) - 1
-                col2 = rng.col1 + len(value[0]) - 1
-            else:
-                row2 = rng.row1
-                col2 = rng.col1 + len(value) - 1
-                value = [value]
+    def read(self, value, options):
+        if isinstance(value, Range):
+            # auto-expand the range
+            expand = options.get('expand', None)
+            if expand:
+                value = getattr(value, expand)
+            return value
         else:
-            row2 = rng.row2
-            col2 = rng.col2
+            raise ValueError("Expected Range object")
 
-        xlplatform.set_value(xlplatform.get_range_from_indices(rng.xl_sheet, rng.row1, rng.col1, row2, col2), value)
+    def write_any(self, value, rng, options):
+        if isinstance(value, self.types):
+            self.write(value, rng, options)
+        else:
+            return converters.get(type(value), converters[None]).write(value, rng, options)
 
-    @classmethod
-    def write_value(cls, value, options):
-        converter = converters.get(type(value), converters[None])
-        value = xlplatform.prepare_xl_data(value)
-        return converter.write(value, options)
+    def write(self, value, rng, options):
+
+        if rng is not None:
+            if isinstance(value, (tuple, list)):
+                if len(value) == 0:
+                    return
+                if isinstance(value[0], (tuple, list)):
+                    row2 = rng.row1 + len(value) - 1
+                    col2 = rng.col1 + len(value[0]) - 1
+                else:
+                    row2 = rng.row1
+                    col2 = rng.col1 + len(value) - 1
+                    value = [value]
+            else:
+                row2 = rng.row2
+                col2 = rng.col2
+
+            xlplatform.set_value(xlplatform.get_range_from_indices(rng.xl_sheet, rng.row1, rng.col1, row2, col2), value)
+
+        return value
 
 
-class DefaultConverter(object):
+converters[Range] = RangeAccessor()
+
+
+class ValueAccessor(RangeAccessor):
+
+    types = (int, float, list, tuple, str, bool)
 
     def _ensure_dimensionality(self, value, ndim):
 
@@ -101,9 +123,16 @@ class DefaultConverter(object):
 
         raise ValueError('Invalid value ndim=%s' % ndim)
 
-    def read(self, value, options):
+    def vba_read(self, vba, argname, options):
+        RangeAccessor.vba_read(self, vba, argname, options)
+        vba.write("If TypeOf {arg} Is Range Then {arg} = {arg}.Value", arg=argname)
 
-        ndim = getattr(self, 'ndim', None) or options.get('ndim', None)
+    def read(self, value, options):
+        value = RangeAccessor.read(self, value, options)
+        value = xlplatform.get_value_from_range(value.xl_range)
+        value = xlplatform.clean_value_data(value, _date_handlers[options.get('dates_as', datetime.datetime)])
+
+        ndim = options.get('ndim', None)
         value = self._ensure_dimensionality(value, ndim)
 
         if options.get('transpose', False):
@@ -112,35 +141,112 @@ class DefaultConverter(object):
 
         return value
 
-    def write(self, value, options):
+    def _write_element(self, value):
+        if np and isinstance(value, float) and np.isnan(value):
+            return None
+        return xlplatform.prepare_xl_data_element(value)
+
+    def write(self, value, rng, options):
 
         if options.get('transpose', False):
             value = [[e[i] for e in value] for i in range(len(value[0]) if value else 0)]
 
-        return value
+        if type(value) is list:
+            value = [
+                [self._write_element(y) for y in x]
+                if type(x) is list
+                else self._write_element(x)
+                for x in value
+            ]
+        else:
+            value = self._write_element(value)
 
-converters[None] = DefaultConverter()
+        return RangeAccessor.write(self, value, rng, options)
+
+
+converters[None] = ValueAccessor()
 
 
 if np:
-    class NumpyArrayConverter(DefaultConverter):
+    class NumpyArrayAccessor(ValueAccessor):
+
+        types = (np.ndarray,)
 
         def read(self, value, options):
-            return np.array(DefaultConverter.read(self, value, options))
+            value = ValueAccessor.read(self, value, WithOverrides(options, ndim=WithOverrides.deleted))
+            if value is None:
+                value = np.nan
+            elif isinstance(value, list):
+                if isinstance(value[0], list):
+                    value = [[np.nan if x is None else x for x in i] for i in value]
+                else:
+                    value = [np.nan if x is None else x for x in value]
+            dtype = options.get('dtype', None)
+            ndim = options.get('ndim', 0)
 
-        def write(self, value, options):
-            return DefaultConverter.write(self, value.tolist(), options)
+            return np.array(value, dtype=dtype, ndmin=ndim)
 
-    converters[np.array] = NumpyArrayConverter()
+        def write(self, value, rng, options):
+            try:
+                value = np.where(np.isnan(value), None, value)
+                value = value.tolist()
+            except TypeError:
+                # isnan doesn't work on arrays of dtype=object
+                if pd:
+                    value[pd.isnull(value)] = None
+                    value = value.tolist()
+                else:
+                    # expensive way of replacing nan with None in object arrays in case Pandas is not available
+                    value = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in value]
+
+            return ValueAccessor.write(self, value, rng, options)
+
+    converters[np.array] = converters[np.ndarray] = NumpyArrayAccessor()
 
 
 if pd:
-    class PandasDataFrameConverter(DefaultConverter):
+    class PandasDataFrameAccessor(ValueAccessor):
+
+        types = (pd.DataFrame,)
 
         def read(self, value, options):
-            return np.array(DefaultConverter.read(self, value, options))
+            value = ValueAccessor.read(self, value, WithOverrides(options, ndim=2))
+            return pd.DataFrame(value[1:], columns=value[0])
 
-        def write(self, value, options):
-            return DefaultConverter.write(self, value.tolist(), options)
+        def write(self, value, rng, options):
+            if options.get('index', True):
+                if value.index.name in value.columns:
+                    # Prevents column name collision when resetting the index
+                    value.index.rename(None, inplace=True)
+                value = value.reset_index()
 
-    converters[pd.DataFrame] = PandasDataFrameConverter()
+            if options.get('header', True):
+                if isinstance(value.columns, pd.MultiIndex):
+                    columns = list(zip(*value.columns.tolist()))
+                else:
+                    columns = [value.columns.tolist()]
+                value = columns + value.values.tolist()
+            else:
+                value = value.values.tolist()
+
+            return ValueAccessor.write(self, value, rng, options)
+
+    converters[pd.DataFrame] = PandasDataFrameAccessor()
+
+    class PandasSeriesAccessor(ValueAccessor):
+
+        types = (pd.Series,)
+
+        def read(self, value, options):
+            value = ValueAccessor.read(self, value, WithOverrides(options, ndim=1, expand='table'))
+            return pd.Series(value[1:])
+
+        def write(self, value, rng, options):
+            if options.get('index', True):
+                value = value.reset_index().values.tolist()
+            else:
+                value = value.values[:, np.newaxis].tolist()
+
+            return ValueAccessor.write(self, value, rng, options)
+
+    converters[pd.Series] = PandasSeriesAccessor()

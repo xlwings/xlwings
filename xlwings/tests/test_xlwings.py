@@ -214,7 +214,11 @@ class TestWorkbook:
 
     def test_save_naked(self):
         if sys.platform.startswith('darwin'):
-            os.chdir(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/')
+            try:
+                os.chdir(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/')
+            except FileNotFoundError:
+                pass
+
         cwd = os.getcwd()
         wb1 = Workbook(app_visible=False, app_target=APP_TARGET)
         target_file_path = os.path.join(cwd, wb1.name + '.xlsx')
@@ -233,7 +237,10 @@ class TestWorkbook:
 
     def test_save_path(self):
         if sys.platform.startswith('darwin'):
-            os.chdir(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/')
+            try:
+                os.chdir(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/')
+            except FileNotFoundError:
+                pass
 
         cwd = os.getcwd()
         wb1 = Workbook(app_visible=False, app_target=APP_TARGET)
@@ -263,7 +270,7 @@ class TestWorkbook:
     def test_unicode_path(self):
         # pip3 seems to struggle with unicode filenames
         src = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'unicode_path.xlsx')
-        if sys.platform.startswith('darwin'):
+        if sys.platform.startswith('darwin') and os.path.isdir(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/'):
             dst = os.path.join(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/',
                            'ünicödé_päth.xlsx')
         else:
@@ -535,22 +542,22 @@ class TestRange:
 
         # 1d array
         Range('Sheet6', 'A1').value = array_1d
-        cells = Range('Sheet6', 'A1:D1', asarray=True).value
+        cells = Range('Sheet6', 'A1:D1', _as=np.array).value
         assert_array_equal(cells, array_1d)
 
         # 2d array
         Range('Sheet6', 'A4').value = array_2d
-        cells = Range('Sheet6', 'A4', asarray=True).table.value
+        cells = Range('Sheet6', 'A4', _as=np.array).table.value
         assert_array_equal(cells, array_2d)
 
         # 1d array (atleast_2d)
         Range('Sheet6', 'A10').value = array_1d
-        cells = Range('Sheet6', 'A10:D10', asarray=True, atleast_2d=True).value
+        cells = Range('Sheet6', 'A10:D10', _as=np.array, ndim=2).value
         assert_array_equal(cells, np.atleast_2d(array_1d))
 
         # 2d array (atleast_2d)
         Range('Sheet6', 'A12').value = array_2d
-        cells = Range('Sheet6', 'A12', asarray=True, atleast_2d=True).table.value
+        cells = Range('Sheet6', 'A12', _as=np.array, ndim=2).table.value
         assert_array_equal(cells, array_2d)
 
     def sheet_ref(self):
@@ -649,8 +656,7 @@ class TestRange:
 
         df_expected = df_1
         Range('Sheet5', 'A1').value = df_expected
-        cells = Range('Sheet5', 'B1:C5').value
-        df_result = DataFrame(cells[1:], columns=cells[0])
+        df_result = Range('Sheet5', 'B1:C5', _as=pd.DataFrame).value
         assert_frame_equal(df_expected, df_result)
 
     def test_dataframe_2(self):
@@ -735,7 +741,7 @@ class TestRange:
     def test_atleast_2d_scalar(self):
         """Covers GH Issue #53a"""
         Range('Sheet1', 'A50').value = 23
-        result = Range('Sheet1', 'A50').convert(ndim=2).value
+        result = Range('Sheet1', 'A50').options(ndim=2).value
         assert_equal([[23]], result)
 
     def test_atleast_2d_scalar_as_array(self):

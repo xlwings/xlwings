@@ -5,7 +5,7 @@ import tempfile
 
 
 from . import conversion
-
+from .utils import VBAWriter
 
 def xlfunc(f=None, **kwargs):
     def inner(f):
@@ -100,23 +100,20 @@ def call_udf(script_name, func_name, args):
     args = list(args)
     for i, arg in enumerate(args):
         arg_info = args_info[i]
-        args[i] = conversion.DefaultAccessor.read_value(arg, arg_info)
+        _as = arg_info.get('_as', None)
+        converter = conversion.converters.get(_as, _as)
+        args[i] = converter.read(arg, arg_info)
 
     ret = func(*args)
 
     return conversion.DefaultAccessor.write_value(ret, ret_info)
 
 
-def import_udfs(script_path, xl_workbook):
+def generate_vba_wrapper(script_vars, f):
 
-    tab = '\t'
+    vba = VBAWriter(f)
 
-    tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
-    f = tf.file
-
-    f.write('Attribute VB_Name = "xlwings_udfs"\n')
-
-    script_vars = udf_script(script_path)
+    vba.writeln('Attribute VB_Name = "xlwings_udfs"')
 
     for svar in script_vars.values():
         if hasattr(svar, '__xlfunc__'):
@@ -126,7 +123,7 @@ def import_udfs(script_path, xl_workbook):
 
             ftype = 'Sub' if xlfunc['sub'] else 'Function'
 
-            f.write(ftype + " " + fname + "(")
+            func_sig = ftype + " " + fname + "("
 
             first = True
             vararg = ''
@@ -135,68 +132,74 @@ def import_udfs(script_path, xl_workbook):
                 if not arg['vba']:
                     argname = arg['name']
                     if not first:
-                        f.write(', ')
+                        func_sig += ', '
                     if arg['vararg']:
-                        f.write('ParamArray ')
+                        func_sig += 'ParamArray '
                         vararg = argname
-                    f.write(argname)
+                    func_sig += argname
                     if arg['vararg']:
-                        f.write('()')
+                        func_sig += '()'
                     first = False
-            f.write(')\n')
-            if ftype == 'Function':
-                f.write(tab + "If TypeOf Application.Caller Is Range Then On Error GoTo failed\n")
+            func_sig += ')'
 
-            if vararg != '':
-                f.write(tab + "ReDim argsArray(1 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + str(n_args) + ")\n")
+            with vba.block(func_sig, 'End ' + ftype):
 
-            j = 1
-            for arg in xlfunc['args']:
-                if not arg['vba']:
+                if ftype == 'Function':
+                    vba.write("If TypeOf Application.Caller Is Range Then On Error GoTo failed\n")
+
+                if vararg != '':
+                    vba.write("ReDim argsArray(1 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + str(n_args) + ")\n")
+
+                j = 1
+                for arg in xlfunc['args']:
+                    as_ = arg.get('_as', None)
+                    converter = conversion.converters.get(as_, as_)
+
                     argname = arg['name']
                     if arg['vararg']:
-                        f.write(tab + "For k = LBound(" + vararg + ") To UBound(" + vararg + ")\n")
+                        vba.write("For k = LBound(" + vararg + ") To UBound(" + vararg + ")\n")
                         argname = vararg + "(k)"
-                    if not arg['range']:
-                        f.write(tab + "If TypeOf " + argname + " Is Range Then " + argname + " = " + argname + ".Value\n")
+
+                    #converter.vba_read(vba, argname, arg)
+
                     if arg['vararg']:
-                        f.write(tab + "argsArray(" + str(j) + " + k - LBound(" + vararg + ")) = " + argname + "\n")
-                        f.write(tab + "Next k\n")
+                        vba.write("argsArray(" + str(j) + " + k - LBound(" + vararg + ")) = " + argname + "\n")
+                        vba.write("Next k\n")
                     else:
                         if vararg != "":
-                            f.write(tab + "argsArray(" + str(j) + ") = " + argname + "\n")
+                            vba.write("argsArray(" + str(j) + ") = " + argname + "\n")
                             j += 1
 
-            if vararg != '':
-                args_vba = 'argsArray'
-            else:
-                args_vba = 'Array(' + ', '.join(arg['vba'] or arg['name'] for arg in xlfunc['args']) + ')'
+                if vararg != '':
+                    args_vba = 'argsArray'
+                else:
+                    args_vba = 'Array(' + ', '.join(arg['vba'] or arg['name'] for arg in xlfunc['args']) + ')'
 
-            if ftype == "Sub":
-                f.write('\tPy.CallMacro PyScriptPath, "{fname}", {args_vba}, ThisWorkbook\n'.format(
-                    fname=fname,
-                    args_vba=args_vba,
-                ))
-            else:
-                f.write('\tSet {fname} = Py.CallUDF(PyScriptPath, "{fname}", {args_vba})\n'.format(
-                    fname=fname,
-                    args_vba=args_vba,
-                ))
-                marshal = xlret["marshal"]
-                if marshal == "auto":
-                    f.write(tab + "If TypeOf Application.Caller Is Range Then " + fname + " = Py.Var(" + fname + ", " + str(xlret["lax"]) + ")\n")
-                elif marshal == "var":
-                    f.write(tab + fname + " = Py.Var(" + fname + ", " + str(xlret["lax"]) + ")\n")
-                elif marshal == "str":
-                    f.write(tab + fname + " = Py.Str(" + fname + ")\n")
+                if ftype == "Sub":
+                    vba.write('Py.CallMacro PyScriptPath, "{fname}", {args_vba}, ThisWorkbook\n',
+                        fname=fname,
+                        args_vba=args_vba,
+                    )
+                else:
+                    vba.write('Set {fname} = Py.CallUDF(PyScriptPath, "{fname}", {args_vba})\n',
+                        fname=fname,
+                        args_vba=args_vba,
+                    )
 
-            if ftype == "Function":
-                f.write(tab + "Exit " + ftype + "\n")
-                f.write("failed:\n")
-                f.write(tab + fname + " = Err.Description\n")
-            f.write("End " + ftype + "\n")
-            f.write("\n")
+                if ftype == "Function":
+                    vba.write("Exit " + ftype + "\n")
+                    vba.write_label("failed")
+                    vba.write(fname + " = Err.Description\n")
 
+            vba.write("\n")
+
+
+def import_udfs(script_path, xl_workbook):
+
+    script_vars = udf_script(script_path)
+
+    tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
+    generate_vba_wrapper(script_vars, tf.file)
     tf.close()
 
     try:

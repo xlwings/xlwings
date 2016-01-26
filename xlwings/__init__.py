@@ -39,4 +39,5 @@ ret = xlret
 arg = xlarg
 
 # Server
-from .server import serve
+if sys.platform.startswith('win'):
+    from .server import serve

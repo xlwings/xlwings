@@ -185,7 +185,9 @@ class XLPython(object):
     def CallUDF(self, script, fname, args):
         args = tuple(FromVariant(arg) for arg in args)
         res = call_udf(script, fname, args)
-        return ToVariant(res)
+        if isinstance(res, tuple):
+            res = (res,)
+        return res
 
     def Len(self, obj):
         obj = FromVariant(obj)

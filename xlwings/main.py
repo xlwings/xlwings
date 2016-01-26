@@ -21,7 +21,7 @@ import shutil
 
 from . import xlplatform, string_types, time_types, xrange, map, ShapeAlreadyExists
 from .constants import ChartType
-from . import conversion
+from .utils import missing
 
 # Optional imports
 try:
@@ -631,7 +631,7 @@ class Range(object):
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, wkb=None, **options):
         # Arguments
         if len(args) == 1 and isinstance(args[0], string_types):
             sheet_name_or_index = None
@@ -682,15 +682,14 @@ class Range(object):
             self.col2 = args[2][1]
 
         # Keyword Arguments
-        self.kwargs = kwargs
-        self.workbook = kwargs.get('wkb', None)
+        self._options = options
+        self.workbook = wkb
         if self.workbook is None and xlplatform.get_xl_workbook_current() is None:
             raise NameError('You must first instantiate a Workbook object.')
         elif self.workbook is None:
             self.xl_workbook = xlplatform.get_xl_workbook_current()
         else:
             self.xl_workbook = self.workbook.xl_workbook
-        self.strict = kwargs.get('strict', False)  # Stop table/horizontal/vertical at empty cells that contain formulas
 
         # Get sheet
         if sheet_name_or_index:
@@ -711,17 +710,15 @@ class Range(object):
 
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
-        return map(lambda cell: Range(xlplatform.get_worksheet_name(self.xl_sheet), cell, **self.kwargs),
+        return map(lambda cell: Range(xlplatform.get_worksheet_name(self.xl_sheet), cell, wkb=self.workbook, **self._options),
                    itertools.product(xrange(self.row1, self.row2 + 1), xrange(self.col1, self.col2 + 1)))
 
-    def convert(self, read_as=None, **kwargs):
-        if read_as is not None:
-            kwargs['read_as'] = read_as
+    def options(self, **options):
         return Range(
             xlplatform.get_worksheet_name(self.xl_sheet),
             (self.row1, self.col1),
             (self.row2, self.col2),
-            **kwargs
+            **options
         )
 
     def is_cell(self):
@@ -799,11 +796,13 @@ class Range(object):
         object
             Empty cells are set to ``None``.
         """
-        return conversion.DefaultAccessor.read_range(self, self.kwargs)
+        _as = self._options.get('_as', None)
+        return conversion.converters.get(_as, _as).read(self, self._options)
 
     @value.setter
     def value(self, data):
-        return conversion.DefaultAccessor.write_range(self, data, self.kwargs)
+        _as = self._options.get('_as', None)
+        return conversion.converters.get(_as, _as).write_any(data, self, self._options)
 
     @property
     def formula(self):
@@ -841,12 +840,12 @@ class Range(object):
 
         """
         row2 = Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row1, self.col1), **self.kwargs).vertical.row2
+                     (self.row1, self.col1), wkb=self.workbook, **self._options).vertical.row2
         col2 = Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row1, self.col1), **self.kwargs).horizontal.col2
+                     (self.row1, self.col1), wkb=self.workbook, **self._options).horizontal.col2
 
         return Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row1, self.col1), (row2, col2), **self.kwargs)
+                     (self.row1, self.col1), (row2, col2), wkb=self.workbook, **self._options)
 
     @property
     def vertical(self):
@@ -887,7 +886,11 @@ class Range(object):
         col2 = self.col2
 
         return Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row1, self.col1), (row2, col2), **self.kwargs)
+                     (self.row1, self.col1), (row2, col2), wkb=self.workbook, **self._options)
+
+    @property
+    def strict(self):
+        return self._options.get('strict', False)
 
     @property
     def horizontal(self):
@@ -927,7 +930,7 @@ class Range(object):
         row2 = self.row2
 
         return Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row1, self.col1), (row2, col2), **self.kwargs)
+                     (self.row1, self.col1), (row2, col2), wbk=self.workbook, **self._options)
 
     @property
     def current_region(self):
@@ -942,7 +945,7 @@ class Range(object):
 
         """
         address = xlplatform.get_current_region_address(self.xl_sheet, self.row1, self.col1)
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet), address, **self.kwargs)
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet), address, wbk=self.workbook, **self._options)
 
     @property
     def number_format(self):
@@ -1285,7 +1288,7 @@ class Range(object):
         else:
             col2 = self.col2
 
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet), (self.row1, self.col1), (row2, col2), **self.kwargs)
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet), (self.row1, self.col1), (row2, col2), wkb=self.workbook, **self._options)
 
     def offset(self, row_offset=None, column_offset=None):
         """
@@ -1311,7 +1314,7 @@ class Range(object):
         else:
             col1, col2 = self.col1, self.col2
 
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet), (row1, col1), (row2, col2), **self.kwargs)
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet), (row1, col1), (row2, col2), wkb=self.workbook, **self._options)
 
     @property
     def column(self):
@@ -1359,7 +1362,7 @@ class Range(object):
         .. versionadded:: 0.3.5
         """
         return Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row2, self.col2), **self.kwargs)
+                     (self.row2, self.col2), **self._options)
 
     @property
     def name(self):
@@ -1376,6 +1379,10 @@ class Range(object):
     @name.setter
     def name(self, value):
         xlplatform.set_named_range(self, value)
+
+
+# This has to be after definition of Range to resolve circular reference
+from . import conversion
 
 
 class Shape(object):

@@ -164,7 +164,7 @@ def new_workbook(app_target=None):
 
     set_xl_app(app_target)
 
-    if is_running:
+    if is_running or 0 == _xl_app.count(None, each=kw.workbook):
         # If Excel is being fired up, a "Workbook1" is automatically added
         # If its already running, we create an new one that Excel unfortunately calls "Sheet1".
         # It's a feature though: See p.14 on Excel 2004 AppleScript Reference
@@ -210,19 +210,37 @@ def get_range_from_indices(xl_sheet, first_row, first_column, last_row, last_col
 
 
 def get_value_from_range(xl_range):
-    data = xl_range.value.get()
+    return xl_range.value.get()
 
-def clean_value_data(data):
+
+def _clean_value_data_element(value, datetime_builder):
+    if value == '':
+        return None
+    if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:
+        value = datetime_builder(
+            month=value.month,
+            day=value.day,
+            year=value.year,
+            hour=value.hour,
+            minute=value.minute,
+            second=value.second,
+            microsecond=value.microsecond,
+            tzinfo=None
+        )
+    return value
+
+
+def clean_value_data(data, datetime_builder):
     if type(data) is list:
-        return [[None if c == '' else c for c in row] for row in data]
+        return [[_clean_value_data_element(c, datetime_builder) for c in row] for row in data]
     else:
-        return None if data == '' else data
+        return _clean_value_data_element(data, datetime_builder)
+
 
 def get_value_from_index(xl_sheet, row_index, column_index):
     return xl_sheet.columns[column_index].rows[row_index].value.get()
 
-
-def _prepare_xl_data_element(x):
+def prepare_xl_data_element(x):
     if np and isinstance(x, np.datetime64):
         # handle numpy.datetime64
         return np_datetime_to_datetime(x).replace(tzinfo=None)
@@ -240,18 +258,7 @@ def _prepare_xl_data_element(x):
         # larger than SInt64 as typeIEEE64BitFloatingPoint. Excel silently ignores typeSInt64. (GH 227)
         return float(x)
 
-
-def prepare_xl_data(data):
-    if type(data) is list:
-        return [
-            [_prepare_xl_data_element(y) for y in x]
-            if type(x) is list
-            else _prepare_xl_data_element(x)
-            for x in data
-        ]
-    else:
-        _prepare_xl_data_element(data)
-
+    return x
 
 def set_value(xl_range, data):
     xl_range.value.set(data)

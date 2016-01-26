@@ -280,25 +280,6 @@ def set_value(xl_range, data):
     xl_range.Value = data
 
 
-def _prepare_xl_data_element(x):
-    if isinstance(x, time_types):
-        return _datetime_to_com_time(x)
-    else:
-        return x
-
-
-def prepare_xl_data(data):
-    if type(data) is list:
-        return [
-            [_prepare_xl_data_element(y) for y in x]
-            if type(x) is list
-            else _prepare_xl_data_element(x)
-            for x in data
-        ]
-    else:
-        _prepare_xl_data_element(data)
-
-
 def _com_time_to_datetime(com_time, datetime_builder):
     """
     This function is a modified version from Pyvot (https://pypi.python.org/pypi/Pyvot)
@@ -372,6 +353,11 @@ def _datetime_to_com_time(dt_time):
     else:
         assert dt_time.microsecond == 0, "fractional seconds not yet handled"
         return pywintypes.Time(dt_time.timetuple())
+
+
+def prepare_xl_data_element(x):
+    if isinstance(x, time_types):
+        return _datetime_to_com_time(x)
 
 
 def get_selection_address(xl_app):
