@@ -214,10 +214,9 @@ class TestWorkbook:
 
     def test_save_naked(self):
         if sys.platform.startswith('darwin'):
-            try:
-                os.chdir(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/')
-            except FileNotFoundError:
-                pass
+            folder = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/'
+            if os.path.isdir(folder):
+                os.chdir(folder)
 
         cwd = os.getcwd()
         wb1 = Workbook(app_visible=False, app_target=APP_TARGET)
@@ -237,10 +236,9 @@ class TestWorkbook:
 
     def test_save_path(self):
         if sys.platform.startswith('darwin'):
-            try:
-                os.chdir(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/')
-            except FileNotFoundError:
-                pass
+            folder = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/'
+            if os.path.isdir(folder):
+                os.chdir(folder)
 
         cwd = os.getcwd()
         wb1 = Workbook(app_visible=False, app_target=APP_TARGET)

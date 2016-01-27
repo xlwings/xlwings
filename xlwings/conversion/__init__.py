@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from .. import xlplatform
 
 from ..main import Range

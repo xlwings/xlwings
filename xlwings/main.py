@@ -631,7 +631,8 @@ class Range(object):
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
     """
 
-    def __init__(self, *args, wkb=None, **options):
+    def __init__(self, *args, **options):
+
         # Arguments
         if len(args) == 1 and isinstance(args[0], string_types):
             sheet_name_or_index = None
@@ -682,8 +683,8 @@ class Range(object):
             self.col2 = args[2][1]
 
         # Keyword Arguments
+        self.workbook = options.pop('wkb', None)
         self._options = options
-        self.workbook = wkb
         if self.workbook is None and xlplatform.get_xl_workbook_current() is None:
             raise NameError('You must first instantiate a Workbook object.')
         elif self.workbook is None:
