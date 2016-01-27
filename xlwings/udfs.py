@@ -181,7 +181,7 @@ def generate_vba_wrapper(script_vars, f):
                         args_vba=args_vba,
                     )
                 else:
-                    vba.write('Set {fname} = Py.CallUDF(PyScriptPath, "{fname}", {args_vba})\n',
+                    vba.write('Set {fname} = Py.CallUDF(PyScriptPath, "{fname}", {args_vba}, ThisWorkbook)\n',
                         fname=fname,
                         args_vba=args_vba,
                     )

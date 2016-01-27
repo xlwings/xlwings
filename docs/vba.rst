@@ -62,7 +62,7 @@ under ``Function Settings``::
 LOG_FILE default locations
 **************************
 
-* Windows: ``%APPDATA%xlwings_log.txt``
+* Windows: ``%APPDATA%\xlwings_log.txt``
 * Mac 2011: ``/tmp/xlwings_log.txt``
 * Mac 2016: ``/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt``
 
