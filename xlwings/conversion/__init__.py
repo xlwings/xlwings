@@ -63,19 +63,9 @@ class RangeAccessor(object):
     def write(self, value, rng, options):
 
         if rng is not None:
-            if isinstance(value, (tuple, list)):
-                if len(value) == 0:
-                    return
-                if isinstance(value[0], (tuple, list)):
-                    row2 = rng.row1 + len(value) - 1
-                    col2 = rng.col1 + len(value[0]) - 1
-                else:
-                    row2 = rng.row1
-                    col2 = rng.col1 + len(value) - 1
-                    value = [value]
-            else:
-                row2 = rng.row2
-                col2 = rng.col2
+            # it is assumed by this stage that value is a list of lists
+            row2 = rng.row1 + len(value) - 1
+            col2 = rng.col1 + len(value[0]) - 1
 
             xlplatform.set_value(xlplatform.get_range_from_indices(rng.xl_sheet, rng.row1, rng.col1, row2, col2), value)
 
@@ -150,18 +140,23 @@ class ValueAccessor(RangeAccessor):
 
     def write(self, value, rng, options):
 
+        if isinstance(value, (tuple, list)):
+            if len(value) == 0:
+                return []
+            if isinstance(value[0], (tuple, list)):
+                value = [
+                    [self._write_element(y) for y in x]
+                    for x in value
+                ]
+            else:
+                value = [
+                    [self._write_element(x) for x in value]
+                ]
+        else:
+            value = [[self._write_element(value)]]
+
         if options.get('transpose', False):
             value = [[e[i] for e in value] for i in range(len(value[0]) if value else 0)]
-
-        if type(value) is list:
-            value = [
-                [self._write_element(y) for y in x]
-                if type(x) is list
-                else self._write_element(x)
-                for x in value
-            ]
-        else:
-            value = self._write_element(value)
 
         return RangeAccessor.write(self, value, rng, options)
 

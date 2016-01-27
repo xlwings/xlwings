@@ -624,9 +624,6 @@ class Range(object):
     header : boolean, default True
         Includes the column headers when setting a Pandas DataFrame.
 
-    converter : Converter, default xlwings.converters.default
-        Sets the converter used for getting/setting the Range's value.
-
     wkb : Workbook object, default Workbook.current()
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
     """
@@ -714,7 +711,8 @@ class Range(object):
         return map(lambda cell: Range(xlplatform.get_worksheet_name(self.xl_sheet), cell, wkb=self.workbook, **self._options),
                    itertools.product(xrange(self.row1, self.row2 + 1), xrange(self.col1, self.col2 + 1)))
 
-    def options(self, **options):
+    def options(self, as_=None, **options):
+        options['as_'] = as_
         return Range(
             xlplatform.get_worksheet_name(self.xl_sheet),
             (self.row1, self.col1),
