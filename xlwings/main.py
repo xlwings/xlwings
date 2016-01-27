@@ -796,13 +796,13 @@ class Range(object):
         object
             Empty cells are set to ``None``.
         """
-        _as = self._options.get('_as', None)
-        return conversion.converters.get(_as, _as).read(self, self._options)
+        as_ = self._options.get('as_', None)
+        return conversion.converters.get(as_, as_).read(self, self._options)
 
     @value.setter
     def value(self, data):
-        _as = self._options.get('_as', None)
-        return conversion.converters.get(_as, _as).write_any(data, self, self._options)
+        as_ = self._options.get('as_', None)
+        return conversion.converters.get(as_, as_).write_any(data, self, self._options)
 
     @property
     def formula(self):

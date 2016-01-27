@@ -6,6 +6,7 @@ import tempfile
 
 from . import conversion
 from .utils import VBAWriter
+from . import xlplatform
 
 def xlfunc(f=None, **kwargs):
     def inner(f):
@@ -89,7 +90,7 @@ def udf_script(filename):
     return vars
 
 
-def call_udf(script_name, func_name, args):
+def call_udf(script_name, func_name, args, this_workbook):
     script = udf_script(script_name)
     func = script[func_name]
 
@@ -100,10 +101,11 @@ def call_udf(script_name, func_name, args):
     args = list(args)
     for i, arg in enumerate(args):
         arg_info = args_info[i]
-        _as = arg_info.get('_as', None)
-        converter = conversion.converters.get(_as, _as)
+        as_ = arg_info.get('as_', None)
+        converter = conversion.converters.get(as_, as_)
         args[i] = converter.read(arg, arg_info)
 
+    xlplatform.xl_workbook_current = this_workbook
     ret = func(*args)
 
     return conversion.DefaultAccessor.write_value(ret, ret_info)
@@ -152,7 +154,7 @@ def generate_vba_wrapper(script_vars, f):
 
                 j = 1
                 for arg in xlfunc['args']:
-                    as_ = arg.get('_as', None)
+                    as_ = arg.get('as_', None)
                     converter = conversion.converters.get(as_, as_)
 
                     argname = arg['name']

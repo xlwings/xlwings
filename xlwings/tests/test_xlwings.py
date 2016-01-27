@@ -542,22 +542,22 @@ class TestRange:
 
         # 1d array
         Range('Sheet6', 'A1').value = array_1d
-        cells = Range('Sheet6', 'A1:D1', _as=np.array).value
+        cells = Range('Sheet6', 'A1:D1', as_=np.array).value
         assert_array_equal(cells, array_1d)
 
         # 2d array
         Range('Sheet6', 'A4').value = array_2d
-        cells = Range('Sheet6', 'A4', _as=np.array).table.value
+        cells = Range('Sheet6', 'A4', as_=np.array).table.value
         assert_array_equal(cells, array_2d)
 
         # 1d array (atleast_2d)
         Range('Sheet6', 'A10').value = array_1d
-        cells = Range('Sheet6', 'A10:D10', _as=np.array, ndim=2).value
+        cells = Range('Sheet6', 'A10:D10', as_=np.array, ndim=2).value
         assert_array_equal(cells, np.atleast_2d(array_1d))
 
         # 2d array (atleast_2d)
         Range('Sheet6', 'A12').value = array_2d
-        cells = Range('Sheet6', 'A12', _as=np.array, ndim=2).table.value
+        cells = Range('Sheet6', 'A12', as_=np.array, ndim=2).table.value
         assert_array_equal(cells, array_2d)
 
     def sheet_ref(self):
@@ -656,7 +656,7 @@ class TestRange:
 
         df_expected = df_1
         Range('Sheet5', 'A1').value = df_expected
-        df_result = Range('Sheet5', 'B1:C5', _as=pd.DataFrame).value
+        df_result = Range('Sheet5', 'B1:C5', as_=pd.DataFrame).value
         assert_frame_equal(df_expected, df_result)
 
     def test_dataframe_2(self):
@@ -749,7 +749,7 @@ class TestRange:
         _skip_if_no_numpy()
 
         Range('Sheet1', 'A50').value = 23
-        result = Range('Sheet1', 'A50', read_as=np.array, ndim=2).value
+        result = Range('Sheet1', 'A50', as_=np.array, ndim=2).value
         assert_equal(np.array([[23]]), result)
 
     def test_column_width(self):

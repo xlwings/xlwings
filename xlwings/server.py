@@ -182,9 +182,9 @@ class XLPython(object):
         else:
             return ToVariant(getattr(obj, method)(*pargs, **kwargs))
 
-    def CallUDF(self, script, fname, args):
+    def CallUDF(self, script, fname, args, this_workbook):
         args = tuple(FromVariant(arg) for arg in args)
-        res = call_udf(script, fname, args)
+        res = call_udf(script, fname, args, this_workbook)
         if isinstance(res, tuple):
             res = (res,)
         return res
