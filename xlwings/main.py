@@ -630,8 +630,17 @@ class Range(object):
 
     def __init__(self, *args, **options):
 
+        self.workbook = options.pop('wkb', None)
+
         # Arguments
-        if len(args) == 1 and isinstance(args[0], string_types):
+        if xlplatform.is_range_instance(args[0]):
+            self.xl_range = args[0]
+            self.xl_sheet = xlplatform.get_range_sheet(self.xl_range)
+            self.xl_workbook = xlplatform.get_sheet_workbook(self.xl_sheet)
+            self.workbook = Workbook(xl_workbook=self.xl_workbook)
+            self.row1, self.col1, self.row2, self.col2 = xlplatform.get_range_coordinates(self.xl_range)
+            range_address = None
+        elif len(args) == 1 and isinstance(args[0], string_types):
             sheet_name_or_index = None
             range_address = args[0]
         elif len(args) == 1 and isinstance(args[0], tuple):
@@ -680,7 +689,6 @@ class Range(object):
             self.col2 = args[2][1]
 
         # Keyword Arguments
-        self.workbook = options.pop('wkb', None)
         self._options = options
         if self.workbook is None and xlplatform.get_xl_workbook_current() is None:
             raise NameError('You must first instantiate a Workbook object.')
@@ -690,10 +698,11 @@ class Range(object):
             self.xl_workbook = self.workbook.xl_workbook
 
         # Get sheet
-        if sheet_name_or_index:
-            self.xl_sheet = xlplatform.get_worksheet(self.xl_workbook, sheet_name_or_index)
-        else:
-            self.xl_sheet = xlplatform.get_active_sheet(self.xl_workbook)
+        if not hasattr(self, 'xl_sheet'):
+            if sheet_name_or_index:
+                self.xl_sheet = xlplatform.get_worksheet(self.xl_workbook, sheet_name_or_index)
+            else:
+                self.xl_sheet = xlplatform.get_active_sheet(self.xl_workbook)
 
         # Get xl_range object
         if range_address:
@@ -704,7 +713,9 @@ class Range(object):
 
         if 0 in (self.row1, self.col1, self.row2, self.col2):
             raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
-        self.xl_range = xlplatform.get_range_from_indices(self.xl_sheet, self.row1, self.col1, self.row2, self.col2)
+
+        if not hasattr(self, 'xl_range'):
+            self.xl_range = xlplatform.get_range_from_indices(self.xl_sheet, self.row1, self.col1, self.row2, self.col2)
 
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.

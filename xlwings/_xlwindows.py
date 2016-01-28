@@ -14,7 +14,7 @@ os.chdir(cwd)
 from warnings import warn
 import pywintypes
 import pythoncom
-from win32com.client import dynamic, Dispatch
+from win32com.client import dynamic, Dispatch, CDispatch
 import win32timezone
 import win32gui
 import datetime as dt
@@ -176,6 +176,26 @@ def get_workbook_name(xl_workbook):
 
 def get_worksheet_name(xl_sheet):
     return xl_sheet.Name
+
+
+def is_range_instance(xl_range):
+    return isinstance(xl_range, CDispatch) and xl_range._username_ == 'Range'
+
+
+def get_sheet_workbook(xl_sheet):
+    return xl_sheet.Parent
+
+
+def get_range_sheet(xl_range):
+    return xl_range.Worksheet
+
+
+def get_range_coordinates(xl_range):
+    row1 = xl_range.Row
+    col1 = xl_range.Column
+    row2 = row1 + xl_range.Rows.Count - 1
+    col2 = col1 + xl_range.Columns.Count - 1
+    return (row1, col1, row2, col2)
 
 
 def get_xl_sheet(xl_workbook, sheet_name_or_index):

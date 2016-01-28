@@ -130,6 +130,23 @@ def get_worksheet_name(xl_sheet):
     return xl_sheet.name.get()
 
 
+def get_sheet_workbook(xl_sheet):
+    return xl_sheet.parent.get()
+
+
+def get_range_sheet(xl_range):
+    return xl_range.worksheet.get()
+
+
+def get_range_coordinates(xl_range):
+    row1 = xl_range.first_row_index.get()
+    col1 = xl_range.first_column_index.get()
+    row2 = row1 + xl_range.count(each=kw.row) - 1
+    col2 = col1 + xl_range.count(each=kw.column) - 1
+    return (row1, col1, row2, col2)
+
+
+
 def get_xl_sheet(xl_workbook, sheet_name_or_index):
     return xl_workbook.sheets[sheet_name_or_index]
 
