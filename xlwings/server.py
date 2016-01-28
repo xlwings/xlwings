@@ -86,7 +86,7 @@ def FromVariant(var):
     except:
         obj = var
     if type(obj) is PyIDispatch:
-        obj = win32com.client.Dispatch(obj)
+        obj = win32com.client.Dispatch(obj, userName=obj.GetTypeInfo().GetDocumentation(-1)[0])
     return obj
 
 
@@ -185,7 +185,7 @@ class XLPython(object):
     def CallUDF(self, script, fname, args, this_workbook):
         args = tuple(FromVariant(arg) for arg in args)
         res = call_udf(script, fname, args, this_workbook)
-        if isinstance(res, tuple):
+        if isinstance(res, (tuple, list)):
             res = (res,)
         return res
 

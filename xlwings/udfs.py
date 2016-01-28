@@ -7,6 +7,7 @@ import tempfile
 from . import conversion
 from .utils import VBAWriter
 from . import xlplatform
+from . import Range
 
 def xlfunc(f=None, **kwargs):
     def inner(f):
@@ -103,12 +104,12 @@ def call_udf(script_name, func_name, args, this_workbook):
         arg_info = args_info[i]
         as_ = arg_info.get('as_', None)
         converter = conversion.converters.get(as_, as_)
-        args[i] = converter.read(arg, arg_info)
+        args[i] = converter.read(Range(arg), arg_info)
 
     xlplatform.xl_workbook_current = this_workbook
     ret = func(*args)
 
-    return conversion.DefaultAccessor.write_value(ret, ret_info)
+    return conversion.converters[None].write(ret, None, ret_info)
 
 
 def generate_vba_wrapper(script_vars, f):
@@ -183,7 +184,7 @@ def generate_vba_wrapper(script_vars, f):
                         args_vba=args_vba,
                     )
                 else:
-                    vba.write('Set {fname} = Py.CallUDF(PyScriptPath, "{fname}", {args_vba}, ThisWorkbook)\n',
+                    vba.write('{fname} = Py.CallUDF(PyScriptPath, "{fname}", {args_vba}, ThisWorkbook)\n',
                         fname=fname,
                         args_vba=args_vba,
                     )
