@@ -358,6 +358,8 @@ def _datetime_to_com_time(dt_time):
 def prepare_xl_data_element(x):
     if isinstance(x, time_types):
         return _datetime_to_com_time(x)
+    else:
+        return x
 
 
 def get_selection_address(xl_app):
