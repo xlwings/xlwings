@@ -234,9 +234,9 @@ def get_value_from_range(xl_range):
     return xl_range.value.get()
 
 
-def _clean_value_data_element(value, datetime_builder):
+def _clean_value_data_element(value, datetime_builder, empty_as):
     if value == '':
-        return None
+        return empty_as
     if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:
         value = datetime_builder(
             month=value.month,
@@ -251,11 +251,8 @@ def _clean_value_data_element(value, datetime_builder):
     return value
 
 
-def clean_value_data(data, datetime_builder):
-    if type(data) is list:
-        return [[_clean_value_data_element(c, datetime_builder) for c in row] for row in data]
-    else:
-        return _clean_value_data_element(data, datetime_builder)
+def clean_value_data(data, datetime_builder, empty_as):
+    return [[_clean_value_data_element(c, datetime_builder, empty_as) for c in row] for row in data]
 
 
 def get_value_from_index(xl_sheet, row_index, column_index):

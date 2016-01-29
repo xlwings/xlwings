@@ -807,12 +807,14 @@ class Range(object):
             Empty cells are set to ``None``.
         """
         as_ = self._options.get('as_', None)
-        return conversion.converters.get(as_, as_).read(self, self._options)
+        pipeline = conversion.converters.get(as_, as_).reader(self._options)
+        return conversion.execute_read_pipeline(pipeline, self)
 
     @value.setter
     def value(self, data):
         as_ = self._options.get('as_', None)
-        return conversion.converters.get(as_, as_).write_any(data, self, self._options)
+        pipeline = conversion.converters.get(as_, as_).router(data, self, self._options).writer(self._options)
+        return conversion.execute_write_pipeline(pipeline, data, self)
 
     @property
     def formula(self):

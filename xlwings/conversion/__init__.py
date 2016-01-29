@@ -28,6 +28,14 @@ _date_handlers = {
 }
 
 
+class ConversionContext(object):
+    __slots__ = ['range', 'value']
+
+    def __init__(self, range=None, value=None):
+        self.range = range
+        self.value = value
+
+
 class Options(dict):
 
     def __init__(self, original):
@@ -43,9 +51,8 @@ class Options(dict):
         return self
 
     def defaults(self, **defaults):
-        for k, v in defaults:
-            if k not in self:
-                self[k] = v
+        for k, v in defaults.items():
+            self.setdefault(k, v)
         return self
 
 
@@ -81,59 +88,73 @@ class Pipeline(list):
         return self
 
 
+def execute_write_pipeline(pipeline, value, range):
+    ctx = ConversionContext(range=range, value=value)
+    for stage in pipeline:
+        stage.write(ctx)
+
+
+def execute_read_pipeline(pipeline, range):
+    ctx = ConversionContext(range=range)
+    for stage in pipeline:
+        stage.read(ctx)
+    return ctx.value
+
+
 class ResizeRange(object):
     def __init__(self, options):
         self.expand = options.get('expand', None)
 
-    def read(self, value):
-        if isinstance(value, Range):
+    def read(self, ctx):
+        if ctx.range:
             # auto-expand the range
             if self.expand:
-                value = getattr(value, self.expand)
-            return value
-        else:
-            raise ValueError("Expected Range object")
+                ctx.range = getattr(ctx.range, self.expand)
 
 
 class WriteValueToRange(object):
 
-    def write(self, value, rng):
-        if rng is not None:
+    def write(self, ctx):
+        if ctx.range:
             # it is assumed by this stage that value is a list of lists
-            row2 = rng.row1 + len(value) - 1
-            col2 = rng.col1 + len(value[0]) - 1
-            xlplatform.set_value(xlplatform.get_range_from_indices(rng.xl_sheet, rng.row1, rng.col1, row2, col2), value)
-
-        return value, rng
+            row2 = ctx.range.row1 + len(ctx.value) - 1
+            col2 = ctx.range.col1 + len(ctx.value[0]) - 1
+            xlplatform.set_value(xlplatform.get_range_from_indices(
+                ctx.range.xl_sheet,
+                ctx.range.row1,
+                ctx.range.col1,
+                row2,
+                col2
+            ), ctx.value)
 
 
 class ExtractValue(object):
 
-    def read(self, value):
-        value = xlplatform.get_value_from_range(value.xl_range)
-        if type(value) is not list:
-            value = [[value]]
-        return value
+    def read(self, c):
+        c.value = xlplatform.get_value_from_range(c.range.xl_range)
+        if not isinstance(c.value, (list, tuple)):
+            c.value = [[c.value]]
 
 
 class CleanValueData(object):
 
     def __init__(self, options):
         dates_as = options.get('dates_as', datetime.datetime)
+        self.empty_as = options.get('empty_as', None)
         self.dates_handler = _date_handlers.get(dates_as, dates_as)
 
-    def read(self, value):
-        return xlplatform.clean_value_data(value, self.dates_handler)
+    def read(self, c):
+        c.value = xlplatform.clean_value_data(c.value, self.dates_handler, self.empty_as)
 
-    def write(self, value, range):
-        return [
+    def write(self, c):
+        c.value = [
             [
                 None
                 if np and isinstance(x, float) and np.isnan(x)
                 else xlplatform.prepare_xl_data_element(x)
                 for x in y
             ]
-            for y in value
+            for y in c.value
         ]
 
 
@@ -142,53 +163,50 @@ class AdjustDimensionality(object):
     def __init__(self, options):
         self.ndim = options.get('ndim', None)
 
-    def read(self, value):
+    def read(self, c):
 
         # the assumption is that value is 2-dimensional at this stage
 
         if self.ndim is None:
-            if len(value) == 1:
-                return value[0][0] if len(value) == 0 else value[0]
-            elif len(value[0]) == 1:
-                return [ x[0] for x in value ]
+            if len(c.value) == 1:
+                c.value = c.value[0][0] if len(c.value[0]) == 1 else c.value[0]
+            elif len(c.value[0]) == 1:
+                c.value = [x[0] for x in c.value]
             else:
-                return value
+                c.value = c.value
 
         elif self.ndim == 1:
-            if len(value) == 1:
-                return value[0]
-            elif len(value[0]) == 1:
-                return [ x[0] for x in value ]
+            if len(c.value) == 1:
+                c.value = c.value[0]
+            elif len(c.value[0]) == 1:
+                c.value = [ x[0] for x in c.value ]
             else:
                 raise Exception("Range must be 1-by-n or n-by-1 when ndim=1.")
 
-        elif self.ndim == 2:
-            return value
+        # ndim = 2 is a no-op
+        elif self.ndim != 2:
+            raise ValueError('Invalid c.value ndim=%s' % self.ndim)
 
+    def write(self, c):
+        if isinstance(c.value, (list, tuple)):
+            if len(c.value) > 0:
+                if not isinstance(c.value[0], (list, tuple)):
+                    c.value = [c.value]
         else:
-            raise ValueError('Invalid value ndim=%s' % self.ndim)
-
-    def write(self, value, rng):
-        if isinstance(value, (list, tuple)):
-            if len(value) > 0:
-                if not isinstance(value[0], (list, tuple)):
-                    value = [value]
-        else:
-            value = [[value]]
-        return value, rng
+            c.value = [[c.value]]
 
 
 class Transpose(object):
 
-    def read(self, value):
-        return [[e[i] for e in value] for i in range(len(value[0]) if value else 0)]
+    def read(self, c):
+        return [[e[i] for e in c.value] for i in range(len(c.value[0]) if c.value else 0)]
 
-    def write(self, value, rng):
-        return [[e[i] for e in value] for i in range(len(value[0]) if value else 0)], rng
+    def write(self, c):
+        return [[e[i] for e in c.value] for i in range(len(c.value[0]) if c.value else 0)]
 
 
 def default_router(value, rng, options):
-    return converters[type(value), converters[None]]
+    return converters.get(type(value), converters[None])
 
 
 class RangeAccessor(object):
@@ -212,7 +230,7 @@ class ValueAccessor:
         return (
             Pipeline()
             .append_stage(ResizeRange(options))
-            .append_stage(ExtractValue(options))
+            .append_stage(ExtractValue())
             .append_stage(CleanValueData(options))
             .append_stage(Transpose(), only_if=options.get('transpose', False))
             .append_stage(AdjustDimensionality(options))
@@ -222,7 +240,7 @@ class ValueAccessor:
     def writer(options):
         return (
             Pipeline()
-            .prepend_stage(WriteValueToRange(options))
+            .prepend_stage(WriteValueToRange())
             .prepend_stage(CleanValueData(options))
             .prepend_stage(Transpose(), only_if=options.get('transpose', False))
             .prepend_stage(AdjustDimensionality(options))
@@ -247,28 +265,24 @@ if np:
             self.dtype = options.get('dtype', None)
             self.ndim = options.get('ndim', 0)
 
-        def read(self, value):
-            value = [[np.nan if x is None else x for x in i] for i in value]
-
+        def read(self, c):
             dtype = self.dtype
             ndim = self.ndim
 
-            return np.array(value, dtype=dtype, ndmin=ndim)
+            c.value = np.array(c.value, dtype=dtype, ndmin=ndim)
 
-        def write(self, value, rng):
+        def write(self, c):
             try:
-                value = np.where(np.isnan(value), None, value)
-                value = value.tolist()
+                c.value = np.where(np.isnan(c.value), None, c.value)
+                c.value = c.value.tolist()
             except TypeError:
                 # isnan doesn't work on arrays of dtype=object
                 if pd:
-                    value[pd.isnull(value)] = None
-                    value = value.tolist()
+                    c.value[pd.isnull(c.value)] = None
+                    c.value = c.value.tolist()
                 else:
                     # expensive way of replacing nan with None in object arrays in case Pandas is not available
-                    value = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in value]
-
-            return value
+                    c.value = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in c.value]
 
 
     class NumpyArrayAccessor(object):
@@ -278,8 +292,9 @@ if np:
             return (
                 converters[None].reader(
                     Options(options)
-                    .override(ndim=2)
-                    .defaults(expand='table')
+                    # .override(ndim=2)
+                    # .defaults(expand='table')
+                    .defaults(empty_as=np.nan)
                 )
                 .append_stage(ConvertNumpyArray(options))
             )
@@ -310,26 +325,24 @@ if pd:
             self.index = options.get('index', True)
             self.header = options.get('header', True)
 
-        def read(self, value):
-            return pd.DataFrame(value[1:], columns=value[0])
+        def read(self, c):
+            c.value = pd.DataFrame(c.value[1:], columns=c.value[0])
 
-        def write(self, value, rng):
+        def write(self, c):
             if self.index:
-                if value.index.name in value.columns:
+                if c.value.index.name in c.value.columns:
                     # Prevents column name collision when resetting the index
-                    value.index.rename(None, inplace=True)
-                value = value.reset_index()
+                    c.value.index.rename(None, inplace=True)
+                c.value = c.value.reset_index()
 
             if self.header:
-                if isinstance(value.columns, pd.MultiIndex):
-                    columns = list(zip(*value.columns.tolist()))
+                if isinstance(c.value.columns, pd.MultiIndex):
+                    columns = list(zip(*c.value.columns.tolist()))
                 else:
-                    columns = [value.columns.tolist()]
-                value = columns + value.values.tolist()
+                    columns = [c.value.columns.tolist()]
+                c.value = columns + c.value.values.tolist()
             else:
-                value = value.values.tolist()
-
-            return value, rng
+                c.value = c.value.values.tolist()
 
 
     class PandasDataFrameAccessor(object):
@@ -340,7 +353,7 @@ if pd:
                 converters[None].reader(
                     Options(options)
                     .override(ndim=2)
-                    .defaults(expand='table')
+                    # .defaults(expand='table')
                 )
                 .append_stage(ConvertPandasDataFrame(options))
             )
@@ -351,7 +364,7 @@ if pd:
                 converters[None].writer(
                     options
                 )
-                .append_stage(ConvertPandasDataFrame(options))
+                .prepend_stage(ConvertPandasDataFrame(options))
             )
 
         @classmethod
@@ -372,16 +385,14 @@ if pd:
         def __init__(self, options):
             self.index = options.get('index', True)
 
-        def read(self, value, options):
-            return pd.Series(value[1:])
+        def read(self, c):
+            c.value = pd.Series(c.value[1:])
 
-        def write(self, value, rng, options):
+        def write(self, c):
             if self.index:
-                value = value.reset_index().values.tolist()
+                c.value = c.value.reset_index().values.tolist()
             else:
-                value = value.values[:, np.newaxis].tolist()
-
-            return value, rng
+                c.value = c.value.values[:, np.newaxis].tolist()
 
 
     class PandasDataSeriesAccessor(object):
@@ -392,7 +403,7 @@ if pd:
                 converters[None].reader(
                     Options(options)
                     .override(ndim=1)
-                    .defaults(expand='table')
+                    # .defaults(expand='table')
                 )
                 .append_stage(ConvertPandasDataSeries(options))
             )
@@ -425,11 +436,11 @@ class AbstractConverter(object):
             self.read_value = read_value
             self.write_value = write_value
 
-        def read(self, value):
-            return self.read_value(value, self.options)
+        def read(self, c):
+            c.value = self.read_value(c.value, self.options)
 
-        def write(self, value, rng):
-            return self.write_value(value, self.options), rng
+        def write(self, c):
+            c.value = self.write_value(c.value, self.options)
 
     @classmethod
     def base_reader(cls, options):
@@ -476,12 +487,12 @@ class DictConverter(AbstractConverter):
         )
 
     @classmethod
-    def read_value(cls, value):
+    def read_value(cls, value, options):
         assert not value or len(value[0]) == 2
         return dict(value)
 
     @classmethod
-    def write_value(cls, value):
+    def write_value(cls, value, options):
         return list(value.items())
 
 
