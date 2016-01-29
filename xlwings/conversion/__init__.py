@@ -49,6 +49,38 @@ class Options(dict):
         return self
 
 
+class Pipeline(list):
+
+    def prepend_stage(self, stage, only_if=True):
+        if only_if:
+            self.insert(0, stage)
+        return self
+
+    def append_stage(self, stage, only_if=True):
+        if only_if:
+            self.append(stage)
+        return self
+
+    def insert_stage(self, stage, index=None, after=None, before=None, replace=None, only_if=True):
+        if only_if:
+            if sum(x is not None for x in (index, after, before, replace)) != 1:
+                raise ValueError("Must specify exactly one of arguments: index, after, before, replace")
+            if index is not None:
+                indices = (index,)
+            elif after is not None:
+                indices = tuple(i+1 for i, x in enumerate(self) if isinstance(x, after))
+            elif before is not None:
+                indices = tuple(i for i, x in enumerate(self) if isinstance(x, before))
+            elif replace is not None:
+                for i, x in enumerate(self):
+                    if isinstance(x, replace):
+                        self[i] = stage
+                return self
+            for i in reversed(indices):
+                self.insert(i, stage)
+        return self
+
+
 class ResizeRange(object):
     def __init__(self, options):
         self.expand = options.get('expand', None)
@@ -63,6 +95,18 @@ class ResizeRange(object):
             raise ValueError("Expected Range object")
 
 
+class WriteValueToRange(object):
+
+    def write(self, value, rng):
+        if rng is not None:
+            # it is assumed by this stage that value is a list of lists
+            row2 = rng.row1 + len(value) - 1
+            col2 = rng.col1 + len(value[0]) - 1
+            xlplatform.set_value(xlplatform.get_range_from_indices(rng.xl_sheet, rng.row1, rng.col1, row2, col2), value)
+
+        return value, rng
+
+
 class ExtractValue(object):
 
     def read(self, value):
@@ -72,8 +116,8 @@ class ExtractValue(object):
         return value
 
 
-
 class CleanValueData(object):
+
     def __init__(self, options):
         dates_as = options.get('dates_as', datetime.datetime)
         self.dates_handler = _date_handlers.get(dates_as, dates_as)
@@ -81,13 +125,22 @@ class CleanValueData(object):
     def read(self, value):
         return xlplatform.clean_value_data(value, self.dates_handler)
 
+    def write(self, value, range):
+        return [
+            [
+                None
+                if np and isinstance(x, float) and np.isnan(x)
+                else xlplatform.prepare_xl_data_element(x)
+                for x in y
+            ]
+            for y in value
+        ]
 
 
 class AdjustDimensionality(object):
 
     def __init__(self, options):
         self.ndim = options.get('ndim', None)
-
 
     def read(self, value):
 
@@ -115,6 +168,15 @@ class AdjustDimensionality(object):
         else:
             raise ValueError('Invalid value ndim=%s' % self.ndim)
 
+    def write(self, value, rng):
+        if isinstance(value, (list, tuple)):
+            if len(value) > 0:
+                if not isinstance(value[0], (list, tuple)):
+                    value = [value]
+        else:
+            value = [[value]]
+        return value, rng
+
 
 class Transpose(object):
 
@@ -122,193 +184,78 @@ class Transpose(object):
         return [[e[i] for e in value] for i in range(len(value[0]) if value else 0)]
 
     def write(self, value, rng):
-        return [[e[i] for e in value] for i in range(len(value[0]) if value else 0)]
+        return [[e[i] for e in value] for i in range(len(value[0]) if value else 0)], rng
 
 
-
-class Pipeline(list):
-
-    def add_stage(self, stage, only_if=True):
-        if only_if:
-            self.append(stage)
-        return self
-
-    def insert_stage(self, stage, index=None, after=None, before=None, replace=None, only_if=True):
-        if only_if:
-            if sum(x is not None for x in (index, after, before, replace)) != 1:
-                raise ValueError("Must specify exactly one of arguments: index, after, before, replace")
-            if index is not None:
-                indices = (index,)
-            elif after is not None:
-                indices = tuple(i+1 for i, x in enumerate(self) if isinstance(x, after))
-            elif before is not None:
-                indices = tuple(i for i, x in enumerate(self) if isinstance(x, before))
-            elif replace is not None:
-                for i, x in enumerate(self):
-                    if isinstance(x, replace):
-                        self[i] = stage
-                return self
-            for i in reversed(indices):
-                self.insert(i, stage)
-        return self
+def default_router(value, rng, options):
+    return converters[type(value), converters[None]]
 
 
 class RangeAccessor(object):
 
-    types = ()
+    def reader(self, options):
+        return (
+            Pipeline()
+            .append_stage(ResizeRange(), only_if=options.get('expand', None))
+        )
 
-    def vba_read(self, vba, argname, options):
-        # auto-expand the range
-        expand = options.get('expand', None)
-        if expand == 'vertical':
-            with vba.block("If TypeOf {argname} Is Range", argname=argname):
-                with vba.block("If IsEmpty({argname}) Then", argname=argname):
-                    vba.writeln("{argname} = Array()", argname=argname)
-                with vba.block("ElseIf Not IsEmpty({argname}.Offset(1, 0).Value", argname=argname):
-                    vba.writeln("Set {argname} = Range({argname}, {argname}.End(xlDown))", argname=argname)
-                vba.writeln("End If")
-            vba.writeln("End If")
-        elif expand == 'horizontal':
-            with vba.block("If TypeOf {argname} Is Range", argname=argname):
-                with vba.block("If IsEmpty({argname}) Then", argname=argname):
-                    vba.writeln("{argname} = Array()", argname=argname)
-                with vba.block("ElseIf Not IsEmpty({argname}.Offset(0, 1).Value", argname=argname):
-                    vba.writeln("Set {argname} = Range({argname}, {argname}.End(xlRight))", argname=argname)
-                vba.writeln("End If")
-            vba.writeln("End If")
-        elif expand == 'table':
-            with vba.block("If TypeOf {argname} Is Range", argname=argname):
-                with vba.block("If IsEmpty({argname}) Then", argname=argname):
-                    vba.writeln("{argname} = Array()", argname=argname)
-                with vba.block("ElseIf Not IsEmpty({argname}.Offset(0, 1).Value", argname=argname):
-                    with vba.block("If Not IsEmpty({argname}.Offset(1, 0).Value", argname=argname):
-                        vba.writeln("Set {argname} = Range({argname}, {argname}.End(xlRight).End(xlDown))", argname=argname)
-                    with vba.block("Else"):
-                        vba.writeln("Set {argname} = Range({argname}, {argname}.End(xlRight))", argname=argname)
-                    vba.writeln("End If")
-                vba.writeln("End If")
-            vba.writeln("End If")
-
-    def read(self, value, options):
-        if isinstance(value, Range):
-            # auto-expand the range
-            expand = options.get('expand', None)
-            if expand:
-                value = getattr(value, expand)
-            return value
-        else:
-            raise ValueError("Expected Range object")
-
-    def write_any(self, value, rng, options):
-        if isinstance(value, self.types):
-            self.write(value, rng, options)
-        else:
-            return converters.get(type(value), converters[None]).write(value, rng, options)
-
-    def write(self, value, rng, options):
-
-        if rng is not None:
-            # it is assumed by this stage that value is a list of lists
-            row2 = rng.row1 + len(value) - 1
-            col2 = rng.col1 + len(value[0]) - 1
-
-            xlplatform.set_value(xlplatform.get_range_from_indices(rng.xl_sheet, rng.row1, rng.col1, row2, col2), value)
-
-        return value
+    router = default_router
 
 
 converters[Range] = RangeAccessor()
 
 
-class ValueAccessor(RangeAccessor):
+class ValueAccessor:
 
-    types = (int, float, list, tuple, str, bool)
-
-    def reader(self, options):
+    @staticmethod
+    def reader(options):
         return (
             Pipeline()
-            .add_stage(ResizeRange(options))
-            .add_stage(ExtractValue(options))
-            .add_stage(CleanValueData(options))
-            .add_stage(Transpose(), only_if=options.get('transpose', False))
-            .add_stage(AdjustDimensionality(options))
+            .append_stage(ResizeRange(options))
+            .append_stage(ExtractValue(options))
+            .append_stage(CleanValueData(options))
+            .append_stage(Transpose(), only_if=options.get('transpose', False))
+            .append_stage(AdjustDimensionality(options))
         )
 
-    def writer(self, options):
+    @staticmethod
+    def writer(options):
         return (
-            .add_stage()
-            .add_stage(ResizeRange(options))
+            Pipeline()
+            .prepend_stage(WriteValueToRange(options))
+            .prepend_stage(CleanValueData(options))
+            .prepend_stage(Transpose(), only_if=options.get('transpose', False))
+            .prepend_stage(AdjustDimensionality(options))
         )
 
-    def vba_read(self, vba, argname, options):
-        RangeAccessor.vba_read(self, vba, argname, options)
-        vba.write("If TypeOf {arg} Is Range Then {arg} = {arg}.Value", arg=argname)
-
-    def read(self, value, options):
-        value = RangeAccessor.read(self, value, options)
-        value = xlplatform.get_value_from_range(value.xl_range)
-        value = xlplatform.clean_value_data(value, _date_handlers[options.get('dates_as', datetime.datetime)])
-
-        ndim = options.get('ndim', None)
-        value = self._ensure_dimensionality(value, ndim)
-
-        if options.get('transpose', False):
-            if value and isinstance(value, (list, tuple)) and isinstance(value[0], (list, tuple)):
-                value = [[e[i] for e in value] for i in range(len(value[0]) if value else 0)]
-
-        return value
-
-    def _write_element(self, value):
-        if np and isinstance(value, float) and np.isnan(value):
-            return None
-        return xlplatform.prepare_xl_data_element(value)
-
-    def write(self, value, rng, options):
-
-        if isinstance(value, (tuple, list)):
-            if len(value) == 0:
-                return []
-            if isinstance(value[0], (tuple, list)):
-                value = [
-                    [self._write_element(y) for y in x]
-                    for x in value
-                ]
-            else:
-                value = [
-                    [self._write_element(x) for x in value]
-                ]
+    @classmethod
+    def router(cls, value, rng, options):
+        if isinstance(value, (int, float, list, tuple, str, bool)):
+            return cls
         else:
-            value = [[self._write_element(value)]]
-
-        if options.get('transpose', False):
-            value = [[e[i] for e in value] for i in range(len(value[0]) if value else 0)]
-
-        return RangeAccessor.write(self, value, rng, options)
+            return default_router(value, rng, options)
 
 
-converters[None] = ValueAccessor()
+converters[None] = ValueAccessor
 
 
 if np:
-    class NumpyArrayAccessor(ValueAccessor):
 
-        types = (np.ndarray,)
+    class ConvertNumpyArray(object):
 
-        def read(self, value, options):
-            value = ValueAccessor.read(self, value, Options(options).erase('ndim'))
-            if value is None:
-                value = np.nan
-            elif isinstance(value, list):
-                if isinstance(value[0], list):
-                    value = [[np.nan if x is None else x for x in i] for i in value]
-                else:
-                    value = [np.nan if x is None else x for x in value]
-            dtype = options.get('dtype', None)
-            ndim = options.get('ndim', 0)
+        def __init__(self, options):
+            self.dtype = options.get('dtype', None)
+            self.ndim = options.get('ndim', 0)
+
+        def read(self, value):
+            value = [[np.nan if x is None else x for x in i] for i in value]
+
+            dtype = self.dtype
+            ndim = self.ndim
 
             return np.array(value, dtype=dtype, ndmin=ndim)
 
-        def write(self, value, rng, options):
+        def write(self, value, rng):
             try:
                 value = np.where(np.isnan(value), None, value)
                 value = value.tolist()
@@ -321,58 +268,41 @@ if np:
                     # expensive way of replacing nan with None in object arrays in case Pandas is not available
                     value = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in value]
 
-            return ValueAccessor.write(self, value, rng, options)
+            return value
 
-    converters[np.array] = converters[np.ndarray] = NumpyArrayAccessor()
+
+    class NumpyArrayAccessor(object):
+
+        @staticmethod
+        def reader(options):
+            return (
+                converters[None].reader(
+                    Options(options)
+                    .override(ndim=2)
+                    .defaults(expand='table')
+                )
+                .append_stage(ConvertNumpyArray(options))
+            )
+
+        @staticmethod
+        def writer(options):
+            return (
+                converters[None].writer(options)
+                .prepend_stage(ConvertNumpyArray(options))
+            )
+
+        @classmethod
+        def router(cls, value, rng, options):
+            if isinstance(value, np.ndarray):
+                return cls
+            else:
+                return default_router(value, rng, options)
+
+
+    converters[np.array] = converters[np.ndarray] = NumpyArrayAccessor
 
 
 if pd:
-    class PandasDataFrameAccessor(ValueAccessor):
-
-        types = (pd.DataFrame,)
-
-        def read(self, value, options):
-            value = ValueAccessor.read(self, value, Options(options, ndim=2))
-            return pd.DataFrame(value[1:], columns=value[0])
-
-        def write(self, value, rng, options):
-            if options.get('index', True):
-                if value.index.name in value.columns:
-                    # Prevents column name collision when resetting the index
-                    value.index.rename(None, inplace=True)
-                value = value.reset_index()
-
-            if options.get('header', True):
-                if isinstance(value.columns, pd.MultiIndex):
-                    columns = list(zip(*value.columns.tolist()))
-                else:
-                    columns = [value.columns.tolist()]
-                value = columns + value.values.tolist()
-            else:
-                value = value.values.tolist()
-
-            return ValueAccessor.write(self, value, rng, options)
-
-    converters[pd.DataFrame] = PandasDataFrameAccessor()
-
-    class PandaSeriesStage(ValueAccessor):
-
-        types = (pd.Series,)
-
-        def read(self, value, options):
-            value = ValueAccessor.read(self, value, Options(options, ndim=1, expand='table'))
-            return pd.Series(value[1:])
-
-        def write(self, value, rng, options):
-            if options.get('index', True):
-                value = value.reset_index().values.tolist()
-            else:
-                value = value.values[:, np.newaxis].tolist()
-
-            return ValueAccessor.write(self, value, rng, options)
-
-    converters[pd.Series] = PandasSeriesAccessor()
-
 
     class ConvertPandasDataFrame(object):
 
@@ -401,7 +331,8 @@ if pd:
 
             return value, rng
 
-    class PandasDataFrameAccessor:
+
+    class PandasDataFrameAccessor(object):
 
         @staticmethod
         def reader(options):
@@ -411,7 +342,7 @@ if pd:
                     .override(ndim=2)
                     .defaults(expand='table')
                 )
-                .add_stage(ConvertPandasDataFrame(options))
+                .append_stage(ConvertPandasDataFrame(options))
             )
 
         @staticmethod
@@ -420,33 +351,138 @@ if pd:
                 converters[None].writer(
                     options
                 )
-                .add_stage(ConvertPandasDataFrame(options))
+                .append_stage(ConvertPandasDataFrame(options))
             )
 
+        @classmethod
+        def router(cls, value, rng, options):
+            if isinstance(value, pd.DataFrame):
+                return cls
+            else:
+                return default_router(value, rng, options)
 
 
-
-converters[pd.Series] = lambda options: (
-
-)
+    converters[pd.DataFrame] = PandasDataFrameAccessor
 
 
-    base = default_pipeline(options, )
+    class ConvertPandasDataSeries(object):
 
-    base.add(PandaSeriesStage)
+        types = (pd.Series,)
+
+        def __init__(self, options):
+            self.index = options.get('index', True)
+
+        def read(self, value, options):
+            return pd.Series(value[1:])
+
+        def write(self, value, rng, options):
+            if self.index:
+                value = value.reset_index().values.tolist()
+            else:
+                value = value.values[:, np.newaxis].tolist()
+
+            return value, rng
 
 
+    class PandasDataSeriesAccessor(object):
 
-class DictAccessor(ValueAccessor):
+        @staticmethod
+        def reader(options):
+            return (
+                converters[None].reader(
+                    Options(options)
+                    .override(ndim=1)
+                    .defaults(expand='table')
+                )
+                .append_stage(ConvertPandasDataSeries(options))
+            )
 
-    types = (dict,)
+        @staticmethod
+        def writer(options):
+            return (
+                converters[None].writer(
+                    options
+                )
+                .prepend_stage(ConvertPandasDataSeries(options))
+            )
 
-    def write(self, value, rng, options):
-        return super(DictAccessor, self).write(list(value.items()), rng, options)
+        @classmethod
+        def router(cls, value, rng, options):
+            if isinstance(value, pd.Series):
+                return cls
+            else:
+                return default_router(value, rng, options)
 
-    def read(self, value, options):
-        value = super(DictAccessor, self).read(value, WithOverrides(options, ndim=2))
-        assert len(value[0]) == 2
-        return {x[0]: x[1] for x in value}
 
-converters[dict] = DictAccessor()
+    converters[pd.Series] = PandasDataSeriesAccessor
+
+
+class AbstractConverter(object):
+
+    class ConversionStage(object):
+
+        def __init__(self, read_value, write_value, options):
+            self.read_value = read_value
+            self.write_value = write_value
+
+        def read(self, value):
+            return self.read_value(value, self.options)
+
+        def write(self, value, rng):
+            return self.write_value(value, self.options), rng
+
+    @classmethod
+    def base_reader(cls, options):
+        return converters[None].reader(options)
+
+    @classmethod
+    def base_writer(cls, options):
+        return converters[None].writer(options)
+
+    @classmethod
+    def reader(cls, options):
+        return (
+            cls.base_reader(options)
+            .append_stage(AbstractConverter.ConversionStage(cls, options))
+        )
+
+    @classmethod
+    def writer(cls, options):
+        return (
+            cls.base_writer(options)
+            .prepend_stage(AbstractConverter.ConversionStage(cls, options))
+        )
+
+    @classmethod
+    def router(cls, value, rng, options):
+        if isinstance(value, cls.writes_types):
+            return cls
+        else:
+            return default_router(value, rng, options)
+
+
+class DictConverter(AbstractConverter):
+
+    writes_types = dict
+
+    @classmethod
+    def base_reader(cls, options):
+        return (
+            super(cls).base_reader(
+                Options(options)
+                .ovveride(ndim=2)
+                .defaults(expand='table')
+            )
+        )
+
+    @classmethod
+    def read_value(cls, value):
+        assert not value or len(value[0]) == 2
+        return dict(value)
+
+    @classmethod
+    def write_value(cls, value):
+        return list(value.items())
+
+
+converters[dict] = DictConverter
