@@ -192,6 +192,10 @@ def new_workbook(app_target=None):
     return _xl_app, xl_workbook
 
 
+def is_range_instance(xl_range):
+    return False
+
+
 def get_active_sheet(xl_workbook):
     return xl_workbook.active_sheet
 
