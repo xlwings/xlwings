@@ -434,3 +434,19 @@ converters[pd.Series] = lambda options: (
     base = default_pipeline(options, )
 
     base.add(PandaSeriesStage)
+
+
+
+class DictAccessor(ValueAccessor):
+
+    types = (dict,)
+
+    def write(self, value, rng, options):
+        return super(DictAccessor, self).write(list(value.items()), rng, options)
+
+    def read(self, value, options):
+        value = super(DictAccessor, self).read(value, WithOverrides(options, ndim=2))
+        assert len(value[0]) == 2
+        return {x[0]: x[1] for x in value}
+
+converters[dict] = DictAccessor()
