@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from .. import xlplatform
+from . import xlplatform
 
-from ..main import Range
+from .main import Range
 
 import datetime
 
