@@ -66,7 +66,7 @@ class Pipeline(list):
             stage(*args, **kwargs)
 
 
-converters = {}
+accessors = {}
 
 
 class Accessor(object):
@@ -74,11 +74,11 @@ class Accessor(object):
     @classmethod
     def install_for(cls, *types):
         for type in types:
-            converters[type] = cls
+            accessors[type] = cls
 
     @classmethod
     def router(cls, value, rng, options):
-        return converters.get(type(value), converters[None])
+        return accessors.get(type(value), accessors[None])
 
 
 class ConverterAccessor(Accessor):
@@ -105,11 +105,11 @@ class ConverterAccessor(Accessor):
 
     @classmethod
     def base_reader(cls, options, base_type=None):
-        return converters[base_type or cls.base_type].reader(options)
+        return accessors[base_type or cls.base_type].reader(options)
 
     @classmethod
     def base_writer(cls, options, base_type=None):
-        return converters[base_type or cls.base_type].writer(options)
+        return accessors[base_type or cls.base_type].writer(options)
 
     @classmethod
     def reader(cls, options):
