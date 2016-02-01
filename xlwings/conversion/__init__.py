@@ -18,4 +18,6 @@ def read_from_range(rng, options):
 def write_to_range(value, rng, options):
     as_ = options.get('as_', None)
     pipeline = accessors.get(as_, as_).router(value, rng, options).writer(options)
-    pipeline(ConversionContext(range=rng, value=value))
+    ctx = ConversionContext(range=rng, value=value)
+    pipeline(ctx)
+    return ctx.value

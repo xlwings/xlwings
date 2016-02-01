@@ -102,14 +102,12 @@ def call_udf(script_name, func_name, args, this_workbook):
     args = list(args)
     for i, arg in enumerate(args):
         arg_info = args_info[i]
-        as_ = arg_info.get('as_', None)
-        converter = conversion.accessors.get(as_, as_)
-        args[i] = converter.read(Range(arg), arg_info)
+        args[i] = conversion.read_from_range(Range(arg), arg_info)
 
     xlplatform.xl_workbook_current = this_workbook
     ret = func(*args)
 
-    return conversion.accessors[None].write(ret, None, ret_info)
+    return conversion.write_to_range(ret, None, ret_info)
 
 
 def generate_vba_wrapper(script_vars, f):
@@ -145,7 +143,7 @@ def generate_vba_wrapper(script_vars, f):
                     first = False
             func_sig += ')'
 
-            with vba.block(func_sig, 'End ' + ftype):
+            with vba.block(func_sig):
 
                 if ftype == 'Function':
                     vba.write("If TypeOf Application.Caller Is Range Then On Error GoTo failed\n")
@@ -194,6 +192,7 @@ def generate_vba_wrapper(script_vars, f):
                     vba.write_label("failed")
                     vba.write(fname + " = Err.Description\n")
 
+            vba.write('End ' + ftype + "\n")
             vba.write("\n")
 
 
