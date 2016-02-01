@@ -435,6 +435,7 @@ class AbstractConverter(object):
         def __init__(self, read_value, write_value, options):
             self.read_value = read_value
             self.write_value = write_value
+            self.options = options
 
         def read(self, c):
             c.value = self.read_value(c.value, self.options)
@@ -454,14 +455,14 @@ class AbstractConverter(object):
     def reader(cls, options):
         return (
             cls.base_reader(options)
-            .append_stage(AbstractConverter.ConversionStage(cls, options))
+            .append_stage(AbstractConverter.ConversionStage(cls.read_value, cls.write_value, options))
         )
 
     @classmethod
     def writer(cls, options):
         return (
             cls.base_writer(options)
-            .prepend_stage(AbstractConverter.ConversionStage(cls, options))
+            .prepend_stage(AbstractConverter.ConversionStage(cls.read_value, cls.write_value, options))
         )
 
     @classmethod
@@ -479,9 +480,9 @@ class DictConverter(AbstractConverter):
     @classmethod
     def base_reader(cls, options):
         return (
-            super(cls).base_reader(
+            super(DictConverter, cls).base_reader(
                 Options(options)
-                .ovveride(ndim=2)
+                .override(ndim=2)
                 .defaults(expand='table')
             )
         )
