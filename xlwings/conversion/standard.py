@@ -30,6 +30,16 @@ class ExpandRangeStage(object):
                 c.range = getattr(c.range, self.expand)
 
 
+class ClearExpandedRangeStage(object):
+    def __init__(self, options):
+        self.expand = options.get('expand', None)
+
+    def __call__(self, c):
+        if c.range and self.expand:
+            getattr(c.range, self.expand).clear()
+
+
+
 class WriteValueToRangeStage(object):
     def __call__(self, ctx):
         if ctx.range:
@@ -155,6 +165,7 @@ class ValueAccessor(Accessor):
         return (
             Pipeline()
             .prepend_stage(WriteValueToRangeStage())
+            .prepend_stage(ClearExpandedRangeStage(options), only_if=options.get('expand', None))
             .prepend_stage(CleanDataForWriteStage())
             .prepend_stage(TransposeStage(), only_if=options.get('transpose', False))
             .prepend_stage(Ensure2DStage())

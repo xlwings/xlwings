@@ -182,9 +182,9 @@ class XLPython(object):
         else:
             return ToVariant(getattr(obj, method)(*pargs, **kwargs))
 
-    def CallUDF(self, script, fname, args, this_workbook):
+    def CallUDF(self, script, fname, args, this_workbook, caller):
         args = tuple(FromVariant(arg) for arg in args)
-        res = call_udf(script, fname, args, this_workbook)
+        res = call_udf(script, fname, args, this_workbook, FromVariant(caller))
         if isinstance(res, (tuple, list)):
             res = (res,)
         return res
@@ -274,6 +274,9 @@ class XLPython(object):
         exec (stmt, globals, locals)
 
 
+idle_queue = []
+
+
 def serve(clsid):
     """Launch the COM server, clsid is the XLPython object class id """
     clsid = pywintypes.IID(clsid)
@@ -300,7 +303,21 @@ def serve(clsid):
     pythoncom.EnableQuitMessage(win32api.GetCurrentThreadId())
     pythoncom.CoResumeClassObjects()
 
-    pythoncom.PumpMessages()
+    #pythoncom.PumpMessages()
+    while True:
+        pythoncom.PumpWaitingMessages()
+
+        # when idle, see if there's any tasks to do, if so do one
+        if idle_queue:
+            task = idle_queue.pop(0)
+            try:
+                res = task()
+            except:
+                import traceback
+                print("TaskQueue '%s' threw an exeception: %s", task, traceback.format_exc())
+            else:
+                if res:
+                    idle_queue.append(task)
 
     pythoncom.CoRevokeClassObject(revokeId)
     pythoncom.CoUninitialize()

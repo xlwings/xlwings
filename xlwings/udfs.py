@@ -2,8 +2,9 @@ import os
 import re
 import os.path
 import tempfile
+from _ctypes_test import func
 
-
+from xlwings.constants import AboveBelow
 from . import conversion
 from .utils import VBAWriter
 from . import xlplatform
@@ -91,7 +92,26 @@ def udf_script(filename):
     return vars
 
 
-def call_udf(script_name, func_name, args, this_workbook):
+class OutputParameter(object):
+    def __init__(self, rng, options, func, caller):
+        self.range = rng
+        self.value = None
+        self.options = options
+        self.func = func
+        self.caller = caller
+
+    def __call__(self, *args, **kwargs):
+        try:
+            self.func.__xlfunc__['writing'] = self.caller.Address
+            self.func.__xlfunc__['rval'] = self.caller.Value
+            conversion.write_to_range(self.value, self.range, self.options)
+            self.caller.Calculate()
+        finally:
+            self.func.__xlfunc__.pop('writing')
+            self.func.__xlfunc__.pop('rval')
+
+
+def call_udf(script_name, func_name, args, this_workbook, caller):
     script = udf_script(script_name)
     func = script[func_name]
 
@@ -99,13 +119,26 @@ def call_udf(script_name, func_name, args, this_workbook):
     args_info = func_info['args']
     ret_info = func_info['ret']
 
+    writing = func_info.get('writing', None)
+    if writing and writing == caller.Address:
+        return func_info['rval']
+
     args = list(args)
     for i, arg in enumerate(args):
         arg_info = args_info[i]
-        args[i] = conversion.read_from_range(Range(arg), arg_info)
+        if arg_info.get('output', False):
+            args[i] = OutputParameter(Range(arg), arg_info, func, caller)
+        else:
+            args[i] = conversion.read_from_range(Range(arg), arg_info)
 
     xlplatform.xl_workbook_current = this_workbook
     ret = func(*args)
+
+    for i, arg in enumerate(args):
+        arg_info = args_info[i]
+        if arg_info.get('output', False):
+            from .server import idle_queue
+            idle_queue.append(args[i])
 
     return conversion.write_to_range(ret, None, ret_info)
 
@@ -182,7 +215,7 @@ def generate_vba_wrapper(script_vars, f):
                         args_vba=args_vba,
                     )
                 else:
-                    vba.write('{fname} = Py.CallUDF(PyScriptPath, "{fname}", {args_vba}, ThisWorkbook)\n',
+                    vba.write('{fname} = Py.CallUDF(PyScriptPath, "{fname}", {args_vba}, ThisWorkbook, Application.Caller)\n',
                         fname=fname,
                         args_vba=args_vba,
                     )

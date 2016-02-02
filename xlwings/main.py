@@ -938,7 +938,7 @@ class Range(object):
         row2 = self.row2
 
         return Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row1, self.col1), (row2, col2), wbk=self.workbook, **self._options)
+                     (self.row1, self.col1), (row2, col2), wkb=self.workbook, **self._options)
 
     @property
     def current_region(self):
