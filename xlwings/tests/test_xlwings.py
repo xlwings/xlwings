@@ -1020,6 +1020,11 @@ class TestRange:
     def test_zero_based_index2(self):
         a = Range((1, 1), (1, 0)).value
 
+    def test_dictionary(self):
+        d = {'a': 1., 'b': 2.}
+        Range('A1').value = d
+        assert_equal(d, Range('A1:B2').options(dict).value)
+
 
 class TestPicture:
     def setUp(self):

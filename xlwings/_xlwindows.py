@@ -285,11 +285,18 @@ def get_value_from_range(xl_range):
     return xl_range.Value
 
 
-def clean_value_data(data, datetime_builder):
-    if type(data) is tuple:
-        return [[_com_time_to_datetime(c, datetime_builder) if isinstance(c, time_types) else c for c in row] for row in data]
-    else:
-        return _com_time_to_datetime(data, datetime_builder) if isinstance(data, time_types) else data
+def clean_value_data(data, datetime_builder, empty_as):
+    return [
+        [
+            _com_time_to_datetime(c, datetime_builder)
+            if isinstance(c, time_types)
+            else empty_as
+            if c is None
+            else c
+            for c in row
+        ]
+        for row in data
+    ]
 
 
 def get_value_from_index(xl_sheet, row_index, column_index):

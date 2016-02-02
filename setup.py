@@ -43,7 +43,7 @@ setup(
     description='Make Excel fly: Interact with Excel from Python and vice versa.',
     long_description=readme,
     data_files=data_files,
-    packages=['xlwings', 'xlwings.tests'],
+    packages=['xlwings', 'xlwings.tests', 'xlwings.conversion'],
     package_data={'xlwings': ['xlwings.bas', 'tests/*.xlsx', 'tests/*.png', 'xlwings_template.xltm',
                               'quickstart.xlsm', 'xlwings.xlam']},
     keywords=['xls', 'excel', 'spreadsheet', 'workbook', 'vba', 'macro'],

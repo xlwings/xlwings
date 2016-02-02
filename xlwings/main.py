@@ -806,13 +806,11 @@ class Range(object):
         object
             Empty cells are set to ``None``.
         """
-        as_ = self._options.get('as_', None)
-        return conversion.converters.get(as_, as_).read(self, self._options)
+        return conversion.read_from_range(self, self._options)
 
     @value.setter
     def value(self, data):
-        as_ = self._options.get('as_', None)
-        return conversion.converters.get(as_, as_).write_any(data, self, self._options)
+        conversion.write_to_range(data, self, self._options)
 
     @property
     def formula(self):

@@ -40,10 +40,9 @@ def np_datetime_to_datetime(np_datetime):
 class VBAWriter(object):
 
     class Block(object):
-        def __init__(self, writer, start, end):
+        def __init__(self, writer, start):
             self.writer = writer
             self.start = start
-            self.end = end
 
         def __enter__(self):
             self.writer.writeln(self.start)
@@ -51,15 +50,23 @@ class VBAWriter(object):
 
         def __exit__(self, exc_type, exc_val, exc_tb):
             self.writer._indent -= 1
-            self.writer.writeln(self.end)
+            #self.writer.writeln(self.end)
 
     def __init__(self, f):
         self.f = f
         self._indent = 0
         self._freshline = True
 
-    def block(self, start, end):
-        return VBAWriter.Block(self, start, end)
+    def block(self, template, **kwargs):
+        return VBAWriter.Block(self, template.format(**kwargs))
+
+    def start_block(self, template, **kwargs):
+        self.writeln(template, **kwargs)
+        self._indent += 1
+
+    def end_block(self, template, **kwargs):
+        self.writeln(template, **kwargs)
+        self._indent -= 1
 
     def write(self, template, **kwargs):
         if self._freshline:
@@ -78,36 +85,3 @@ class VBAWriter(object):
 
     def writeln(self, template, **kwargs):
         self.write(template + '\n', **kwargs)
-
-
-class WithOverrides(object):
-
-    deleted = object()
-
-    def __init__(self, original, **overrides):
-        self.overrides = overrides
-        self.original = original
-
-    def __contains__(self, item):
-        value = self.overrides.get(item, missing)
-        if value is WithOverrides.deleted:
-            return False
-        if value is missing:
-            return item in self.original
-        return True
-
-    def __getitem__(self, key):
-        value = self.overrides.get(key, missing)
-        if value is WithOverrides.deleted:
-            raise KeyError(key)
-        if value is missing:
-            return self.original[key]
-        return value
-
-    def get(self, key, default=None):
-        value = self.overrides.get(key, missing)
-        if value is WithOverrides.deleted:
-            return default
-        if value is missing:
-            return self.original.get(key, default)
-        return value
