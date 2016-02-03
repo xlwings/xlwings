@@ -25,7 +25,21 @@ if pd:
 
         @classmethod
         def read_value(cls, value, options):
-            return pd.DataFrame(value[1:], columns=value[0])
+            index = options.get('index', 1)
+            header = options.get('header', 1)
+            value = np.array(value, dtype=object)  # object array to prevent str arrays
+
+            if pd.isnull(value[:header, :index]).all():
+                # No index names
+                ix = value[header:, :index].T.tolist() if index > 0 else None
+                columns = pd.MultiIndex.from_arrays(value[:header, index:].tolist()) if header > 0 else None
+                df = pd.DataFrame(value[header:, index:].tolist(), index=ix, columns=columns)
+            else:
+                ix = value[header-1:, :index]
+                ix = pd.MultiIndex.from_arrays(ix[1:, :].T, names=ix[0, :]) if index > 0 else None
+                columns = pd.MultiIndex.from_arrays(value[:header, index:].tolist()) if header > 0 else None
+                df = pd.DataFrame(value[header:, index:].tolist(), index=ix, columns=columns)
+            return df
 
         @classmethod
         def write_value(cls, value, options):
