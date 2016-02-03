@@ -940,6 +940,22 @@ class Range(object):
         return Range(xlplatform.get_worksheet_name(self.xl_sheet),
                      (self.row1, self.col1), (row2, col2), wkb=self.workbook, **self._options)
 
+    def __getitem__(self, key):
+        row, col = key
+        if isinstance(row, slice):
+            row1 = self.row1 if row.start is None else self.row1 + row.start
+            row2 = self.row2 if row.stop is None else self.row1 + row.stop - 1
+        else:
+            row1 = row2 = self.row1 + row
+        if isinstance(col, slice):
+            col1 = self.col1 if col.start is None else self.col1 + col.start
+            col2 = self.col2 if col.stop is None else self.col1 + col.stop - 1
+        else:
+            col1 = col2 = self.col1 + col
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet),
+                     (row1, col1), (row2, col2), wkb=self.workbook, **self._options)
+
+
     @property
     def current_region(self):
         """

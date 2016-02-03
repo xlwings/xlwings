@@ -92,6 +92,22 @@ def udf_script(filename):
     return vars
 
 
+class DelayWrite(object):
+    def __init__(self, rng, options, value):
+        self.range = rng
+        self.options = options
+        self.value = value
+
+    def __call__(self, *args, **kwargs):
+        conversion.write_to_range(
+            self.value,
+            self.range,
+            conversion.Options(self.options)
+            .override(_skip_tl_cells=(1, 1))
+        )
+
+
+
 class OutputParameter(object):
     def __init__(self, rng, options, func, caller):
         self.range = rng
@@ -139,6 +155,10 @@ def call_udf(script_name, func_name, args, this_workbook, caller):
         if arg_info.get('output', False):
             from .server import idle_queue
             idle_queue.append(args[i])
+
+    if ret_info.get('expand', None):
+        from .server import idle_queue
+        idle_queue.append(DelayWrite(Range(caller), ret_info, ret))
 
     return conversion.write_to_range(ret, None, ret_info)
 

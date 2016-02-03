@@ -33,26 +33,44 @@ class ExpandRangeStage(object):
 class ClearExpandedRangeStage(object):
     def __init__(self, options):
         self.expand = options.get('expand', None)
+        self.skip = options.get('_skip_tl_cells', None)
 
     def __call__(self, c):
         if c.range and self.expand:
-            getattr(c.range, self.expand).clear()
-
+            rng = getattr(c.range, self.expand)
+            if self.skip:
+                r, c = self.skip
+                rng[:r, c:].clear()
+                rng[r:, :].clear()
+            else:
+                rng.clear()
 
 
 class WriteValueToRangeStage(object):
-    def __call__(self, ctx):
-        if ctx.range:
+    def __init__(self, options):
+        self.skip = options.get('_skip_tl_cells', None)
+        
+    def _write_value(self, rng, value):
+        if value:
             # it is assumed by this stage that value is a list of lists
-            row2 = ctx.range.row1 + len(ctx.value) - 1
-            col2 = ctx.range.col1 + len(ctx.value[0]) - 1
+            row2 = rng.row1 + len(value) - 1
+            col2 = rng.col1 + len(value[0]) - 1
             xlplatform.set_value(xlplatform.get_range_from_indices(
-                ctx.range.xl_sheet,
-                ctx.range.row1,
-                ctx.range.col1,
+                rng.xl_sheet,
+                rng.row1,
+                rng.col1,
                 row2,
                 col2
-            ), ctx.value)
+            ), value)
+        
+    def __call__(self, ctx):
+        if ctx.range:
+            if self.skip:
+                r, c = self.skip
+                self._write_value(ctx.range[:r, c:], [x[c:] for x in ctx.value[:r]])
+                self._write_value(ctx.range[r:, :], ctx.value[r:])
+            else:
+                self._write_value(ctx.range, ctx.value)
 
 
 class ReadValueFromRangeStage(object):
@@ -164,7 +182,7 @@ class ValueAccessor(Accessor):
     def writer(options):
         return (
             Pipeline()
-            .prepend_stage(WriteValueToRangeStage())
+            .prepend_stage(WriteValueToRangeStage(options))
             .prepend_stage(ClearExpandedRangeStage(options), only_if=options.get('expand', None))
             .prepend_stage(CleanDataForWriteStage())
             .prepend_stage(TransposeStage(), only_if=options.get('transpose', False))
