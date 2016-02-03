@@ -291,9 +291,13 @@ Function ReadFile(ByVal FileName As String)
     Dim Content As String
     Dim Token As String
     Dim FileNum As Integer
+    Dim Shell as Object
 
     #If Mac Then
         FileName = ToMacPath(FileName)
+    #Else
+        Set objShell = CreateObject("WScript.Shell")
+        FileName = objShell.ExpandEnvironmentStrings(FileName)
     #End If
 
     FileNum = FreeFile
