@@ -91,7 +91,8 @@ def xlarg(arg, marshal=None, ndim=None, **kwargs):
 
 udf_scripts = {}
 def udf_script(filename):
-    filename = filename.lower()
+    filename = os.path.expandvars(filename)
+    filename = os.path.normcase(filename)
     mtime = os.path.getmtime(filename)
     if filename in udf_scripts:
         mtime2, vars = udf_scripts[filename]
