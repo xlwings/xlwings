@@ -38,12 +38,15 @@ class ClearExpandedRangeStage(object):
     def __call__(self, c):
         if c.range and self.expand:
             rng = getattr(c.range, self.expand)
+
+            r = len(c.value)
+            c = r and len(c.value[0])
             if self.skip:
-                r, c = self.skip
-                rng[:r, c:].clear()
-                rng[r:, :].clear()
-            else:
-                rng.clear()
+                r = max(r, self.skip[0])
+                c = max(c, self.skip[1])
+
+            rng[:r, c:].clear()
+            rng[r:, :].clear()
 
 
 class WriteValueToRangeStage(object):
@@ -51,7 +54,7 @@ class WriteValueToRangeStage(object):
         self.skip = options.get('_skip_tl_cells', None)
         
     def _write_value(self, rng, value):
-        if value:
+        if rng.xl_range and value:
             # it is assumed by this stage that value is a list of lists
             row2 = rng.row1 + len(value) - 1
             col2 = rng.col1 + len(value[0]) - 1
@@ -64,7 +67,8 @@ class WriteValueToRangeStage(object):
             ), value)
         
     def __call__(self, ctx):
-        if ctx.range:
+        if ctx.range and ctx.value:
+            ctx.range = ctx.range[:len(ctx.value), :len(ctx.value[0])]
             if self.skip:
                 r, c = self.skip
                 self._write_value(ctx.range[:r, c:], [x[c:] for x in ctx.value[:r]])

@@ -711,11 +711,15 @@ class Range(object):
             self.row2 = self.row1 + xlplatform.count_rows(self.xl_sheet, range_address) - 1
             self.col2 = self.col1 + xlplatform.count_columns(self.xl_sheet, range_address) - 1
 
-        if 0 in (self.row1, self.col1, self.row2, self.col2):
+        if 0 in (self.row1, self.col1):
             raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
 
         if not hasattr(self, 'xl_range'):
-            self.xl_range = xlplatform.get_range_from_indices(self.xl_sheet, self.row1, self.col1, self.row2, self.col2)
+            if self.row1 <= self.row2 and self.col1 <= self.col2:
+                self.xl_range = xlplatform.get_range_from_indices(self.xl_sheet, self.row1, self.col1, self.row2, self.col2)
+            else:
+                self.xl_range = None
+
 
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
@@ -943,11 +947,15 @@ class Range(object):
     def __getitem__(self, key):
         row, col = key
         if isinstance(row, slice):
+            if row.step is not None:
+                raise ValueError("Slice steps not supported.")
             row1 = self.row1 if row.start is None else self.row1 + row.start
             row2 = self.row2 if row.stop is None else self.row1 + row.stop - 1
         else:
             row1 = row2 = self.row1 + row
         if isinstance(col, slice):
+            if col.step is not None:
+                raise ValueError("Slice steps not supported.")
             col1 = self.col1 if col.start is None else self.col1 + col.start
             col2 = self.col2 if col.stop is None else self.col1 + col.stop - 1
         else:
@@ -997,7 +1005,8 @@ class Range(object):
         """
         Clears the content and the formatting of a Range.
         """
-        xlplatform.clear_range(self.xl_range)
+        if self.xl_range:
+            xlplatform.clear_range(self.xl_range)
 
     def clear_contents(self):
         """
