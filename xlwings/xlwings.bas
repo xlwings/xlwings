@@ -291,7 +291,7 @@ Function ReadFile(ByVal FileName As String)
     Dim Content As String
     Dim Token As String
     Dim FileNum As Integer
-    Dim Shell as Object
+    Dim objShell as Object
 
     #If Mac Then
         FileName = ToMacPath(FileName)
