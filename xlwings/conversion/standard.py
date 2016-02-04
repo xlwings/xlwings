@@ -34,8 +34,16 @@ class WriteValueToRangeStage(object):
     def __call__(self, ctx):
         if ctx.range:
             # it is assumed by this stage that value is a list of lists
-            row2 = ctx.range.row1 + len(ctx.value) - 1
-            col2 = ctx.range.col1 + len(ctx.value[0]) - 1
+            if ctx.meta.get('scalar', False):
+                # transform scalars back from list of list so you can do:
+                # Range('A1:B2').value = scalar
+                ctx.value = ctx.value[0][0]
+                row2 = ctx.range.row2
+                col2 = ctx.range.col2
+            else:
+                row2 = ctx.range.row1 + len(ctx.value) - 1
+                col2 = ctx.range.col1 + len(ctx.value[0]) - 1
+
             xlplatform.set_value(xlplatform.get_range_from_indices(
                 ctx.range.xl_sheet,
                 ctx.range.row1,
@@ -116,6 +124,7 @@ class Ensure2DStage(object):
                 if not isinstance(c.value[0], (list, tuple)):
                     c.value = [c.value]
         else:
+            c.meta['scalar'] = True
             c.value = [[c.value]]
 
 

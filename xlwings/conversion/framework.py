@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 
-
 class ConversionContext(object):
-    __slots__ = ['range', 'value']
+    __slots__ = ['range', 'value', 'meta']
 
-    def __init__(self, range=None, value=None):
-        self.range = range
+    def __init__(self, rng=None, value=None):
+        self.range = rng
         self.value = value
+        self.meta = {}
 
 
 class Options(dict):
