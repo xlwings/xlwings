@@ -706,6 +706,131 @@ class TestRange:
         df_result = DataFrame(cells[1:], index=index, columns=cells[0])
         assert_frame_equal(df_expected, df_result)
 
+    def test_read_df_0header_0index(self):
+        _skip_if_no_pandas()
+
+        Range('A1').value = [[1, 2, 3],
+                             [4, 5, 6],
+                             [7, 8, 9]]
+
+        df1 = pd.DataFrame([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+
+        df2 = Range('A1:C3').options(pd.DataFrame, header=0, index=False).value
+        assert_frame_equal(df1, df2)
+
+    def test_read_df_1header_1namedindex(self):
+        _skip_if_no_pandas()
+
+        Range('A1').value = [['ix1', 'c', 'd', 'c'],
+                             [1, 1, 2, 3],
+                             [2, 4, 5, 6]]
+
+        df1 = pd.DataFrame([[1., 2., 3.], [4., 5., 6.]],
+                           index=pd.Index([1, 2], names=['ix1']),
+                           columns=['c', 'd', 'c'])
+
+        df2 = Range('A1:D3').options(pd.DataFrame).value
+        df2.index = pd.Int64Index(df2.index)
+
+        assert_frame_equal(df1, df2)
+
+    def test_read_df_1header_1unnamedindex(self):
+        _skip_if_no_pandas()
+
+        Range('A1').value = [[None, 'c', 'd', 'c'],
+                             [1, 1, 2, 3],
+                             [2, 4, 5, 6]]
+
+        df1 = pd.DataFrame([[1., 2., 3.], [4., 5., 6.]],
+                           index=pd.Index([1, 2]),
+                           columns=['c', 'd', 'c'])
+
+        df2 = Range('A1:D3').options(pd.DataFrame).value
+        df2.index = pd.Int64Index(df2.index)
+
+        assert_frame_equal(df1, df2)
+
+    def test_read_df_2header_1namedindex(self):
+        _skip_if_no_pandas()
+
+        Range('A1').value = [[None, 'a', 'a', 'b'],
+                             ['ix1', 'c', 'd', 'c'],
+                             [1, 1, 2, 3],
+                             [2, 4, 5, 6]]
+
+        df1 = pd.DataFrame([[1., 2., 3.], [4., 5., 6.]],
+                           index=pd.Index([1, 2], names=['ix1']),
+                           columns=pd.MultiIndex.from_arrays([['a', 'a', 'b'], ['c', 'd', 'c']]))
+
+        df2 = Range('A1:D4').options(pd.DataFrame, header=2).value
+        df2.index = pd.Int64Index(df2.index)
+
+        assert_frame_equal(df1, df2)
+
+    def test_read_df_2header_1unnamedindex(self):
+        _skip_if_no_pandas()
+
+        Range('A1').value = [[None, 'a', 'a', 'b'],
+                             [None, 'c', 'd', 'c'],
+                             [1, 1, 2, 3],
+                             [2, 4, 5, 6]]
+
+        df1 = pd.DataFrame([[1., 2., 3.], [4., 5., 6.]],
+                           index=pd.Index([1, 2]),
+                           columns=pd.MultiIndex.from_arrays([['a', 'a', 'b'], ['c', 'd', 'c']]))
+
+        df2 = Range('A1:D4').options(pd.DataFrame, header=2).value
+        df2.index = pd.Int64Index(df2.index)
+
+        assert_frame_equal(df1, df2)
+
+    def test_read_df_2header_2namedindex(self):
+        _skip_if_no_pandas()
+
+        Range('A1').value = [[None, None, 'a', 'a', 'b'],
+                             ['x1', 'x2', 'c', 'd', 'c'],
+                             ['a', 1, 1, 2, 3],
+                             ['a', 2, 4, 5, 6],
+                             ['b', 1, 7, 8, 9]]
+
+        df1 = pd.DataFrame([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]],
+                           index=pd.MultiIndex.from_arrays([['a', 'a', 'b'], [1., 2., 1.]], names=['x1', 'x2']),
+                           columns=pd.MultiIndex.from_arrays([['a', 'a', 'b'], ['c', 'd', 'c']]))
+
+        df2 = Range('A1:E5').options(pd.DataFrame, header=2, index=2).value
+        assert_frame_equal(df1, df2)
+
+    def test_read_df_2header_2unnamedindex(self):
+        _skip_if_no_pandas()
+
+        Range('A1').value = [[None, None, 'a', 'a', 'b'],
+                             [None, None, 'c', 'd', 'c'],
+                             ['a', 1, 1, 2, 3],
+                             ['a', 2, 4, 5, 6],
+                             ['b', 1, 7, 8, 9]]
+
+        df1 = pd.DataFrame([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]],
+                           index=pd.MultiIndex.from_arrays([['a', 'a', 'b'], [1., 2., 1.]]),
+                           columns=pd.MultiIndex.from_arrays([['a', 'a', 'b'], ['c', 'd', 'c']]))
+
+        df2 = Range('A1:E5').options(pd.DataFrame, header=2, index=2).value
+        assert_frame_equal(df1, df2)
+
+    def test_read_df_1header_2namedindex(self):
+        _skip_if_no_pandas()
+
+        Range('A1').value = [['x1', 'x2', 'a', 'd', 'c'],
+                             ['a', 1, 1, 2, 3],
+                             ['a', 2, 4, 5, 6],
+                             ['b', 1, 7, 8, 9]]
+
+        df1 = pd.DataFrame([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]],
+                           index=pd.MultiIndex.from_arrays([['a', 'a', 'b'], [1., 2., 1.]], names=['x1', 'x2']),
+                           columns=['a', 'd', 'c'])
+
+        df2 = Range('A1:E4').options(pd.DataFrame, header=1, index=2).value
+        assert_frame_equal(df1, df2)
+
     def test_series_1(self):
         _skip_if_no_pandas()
 
