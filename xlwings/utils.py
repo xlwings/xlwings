@@ -85,3 +85,22 @@ class VBAWriter(object):
 
     def writeln(self, template, **kwargs):
         self.write(template + '\n', **kwargs)
+
+
+class staticproperty(object):
+
+    def __init__(self, fget):
+        self.fget = staticmethod(fget)
+        self.fset = None
+
+    def __get__(self, instance, owner):
+        return self.fget()
+
+    def __set__(self, instance, value):
+        if not self.fset:
+            raise AttributeError("Static property is read-only")
+        return self.fset(value)
+
+    def setter(self, func):
+        self.fset = staticmethod(func)
+        return self

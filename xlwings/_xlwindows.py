@@ -14,7 +14,7 @@ os.chdir(cwd)
 from warnings import warn
 import pywintypes
 import pythoncom
-from win32com.client import dynamic, Dispatch, CDispatch
+from win32com.client import dynamic, Dispatch, CDispatch, DispatchEx
 import win32timezone
 import win32gui
 import datetime as dt
@@ -189,6 +189,9 @@ def get_sheet_workbook(xl_sheet):
 def get_range_sheet(xl_range):
     return xl_range.Worksheet
 
+def get_sheet_range(xl_sheet, address):
+    return xl_sheet.Range(address)
+
 
 def get_range_coordinates(xl_range):
     row1 = xl_range.Row
@@ -216,6 +219,14 @@ def get_app(xl_workbook, app_target):
     return xl_workbook.Application
 
 
+def new_app():
+   return DispatchEx('Excel.Application')
+
+
+def get_running_app():
+    return dynamic.Dispatch('Excel.Application')
+
+
 def _get_latest_app():
     """
     Only dispatch Excel if there isn't an existing application - this allows us to run open_workbook() and
@@ -240,20 +251,16 @@ def close_workbook(xl_workbook):
     xl_workbook.Close(SaveChanges=False)
 
 
-def new_workbook(app_target):
-    if app_target is not None:
-        raise NotImplementedError('app_target is only available on Mac.')
-    xl_app = _get_latest_app()
-    xl_workbook = xl_app.Workbooks.Add()
-    return xl_app, xl_workbook
+def new_workbook(xl_app):
+    return xl_app.Workbooks.Add()
 
 
 def get_active_sheet(xl_workbook):
     return xl_workbook.ActiveSheet
 
 
-def activate_sheet(xl_workbook, sheet):
-    return xl_workbook.Sheets(sheet).Activate()
+def activate_sheet(xl_sheet):
+    return xl_sheet.Activate()
 
 
 def get_worksheet(xl_workbook, sheet):

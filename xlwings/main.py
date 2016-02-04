@@ -21,7 +21,7 @@ import shutil
 
 from . import xlplatform, string_types, time_types, xrange, map, ShapeAlreadyExists
 from .constants import ChartType
-from .utils import missing
+from .utils import missing, staticproperty
 
 # Optional imports
 try:
@@ -50,9 +50,21 @@ class Application(object):
     Application is dependent on the Workbook since there might be different application instances on Windows.
     """
 
-    def __init__(self, wkb):
-        self.wkb = wkb
-        self.xl_app = wkb.xl_app
+    def __init__(self, app=None, make_visible=True):
+        if app is None:
+            self.xl_app = xlplatform.new_app()
+        elif xlplatform.is_app_instance(app):
+            self.xl_app = app
+        else:
+            raise NotImplementedError()
+
+        if make_visible:
+            self.visible = True
+
+        Application.current = self
+
+    def new_workbook(self):
+        return Workbook(xl_workbook=xlplatform.new_workbook(self.xl_app))
 
     @property
     def version(self):
@@ -126,6 +138,18 @@ class Application(object):
         """
         xlplatform.calculate(self.xl_app)
 
+    _current = None
+
+    @staticproperty
+    def current(self):
+        if self._current is None:
+            self._current = Application(xlplatform.get_running_app())
+        return self._current
+
+    @current.setter
+    def current(self, value):
+        self._current = value
+
 
 class Workbook(object):
     """
@@ -179,10 +203,12 @@ class Workbook(object):
                 self.xl_app, self.xl_workbook = xlplatform.open_workbook(self.fullname, app_target)
         else:
             # Open Excel if necessary and create a new workbook
-            self.xl_app, self.xl_workbook = xlplatform.new_workbook(app_target)
+            app = Application.current
+            wb = app.new_workbook()
+            self.xl_app = app.xl_app
+            self.xl_workbook = wb.xl_workbook
 
         self.name = xlplatform.get_workbook_name(self.xl_workbook)
-        self.active_sheet = Sheet.active(wkb=self)
 
         if fullname is None:
             self.fullname = xlplatform.get_fullname(self.xl_workbook)
@@ -415,14 +441,15 @@ class Sheet(object):
     .. versionadded:: 0.2.3
     """
 
-    def __init__(self, sheet, wkb=None):
-        self.xl_workbook = Workbook.get_xl_workbook(wkb)
-        self.sheet = sheet
-        self.xl_sheet = xlplatform.get_xl_sheet(self.xl_workbook, self.sheet)
+    def __init__(self, sheet):
+        if xlplatform.is_sheet_instance(sheet):
+            self.xl_sheet = sheet
+        else:
+            self.xl_sheet = xlplatform.get_xl_sheet(Workbook.current().xl_sheet, self.sheet)
 
     def activate(self):
         """Activates the sheet."""
-        xlplatform.activate_sheet(self.xl_workbook, self.sheet)
+        xlplatform.activate_sheet(self.xl_sheet)
 
     def autofit(self, axis=None):
         """
@@ -588,58 +615,10 @@ class Sheet(object):
     def __repr__(self):
         return "<Sheet '{0}' of Workbook '{1}'>".format(self.name, xlplatform.get_workbook_name(self.xl_workbook))
 
-
-class Range(object):
-    """
-    A Range object can be instantiated with the following arguments::
-
-        Range('A1')          Range('Sheet1', 'A1')          Range(1, 'A1')
-        Range('A1:C3')       Range('Sheet1', 'A1:C3')       Range(1, 'A1:C3')
-        Range((1,2))         Range('Sheet1, (1,2))          Range(1, (1,2))
-        Range((1,1), (3,3))  Range('Sheet1', (1,1), (3,3))  Range(1, (1,1), (3,3))
-        Range('NamedRange')  Range('Sheet1', 'NamedRange')  Range(1, 'NamedRange')
-
-    The Sheet can also be provided as Sheet object::
-
-        sh = Sheet(1)
-        Range(sh, 'A1')
-
-    If no worksheet name is provided as first argument, it will take the Range from the active sheet.
-
-    You usually want to go for ``Range(...).value`` to get the values (as list of lists).
-
-    Arguments
-    ---------
-    *args :
-        Definition of sheet (optional) and Range in the above described combinations.
-
-    Keyword Arguments
-    -----------------
-    asarray : boolean, default False
-        Returns a NumPy array (atleast_1d) where empty cells are transformed into nan.
-
-    index : boolean, default True
-        Includes the index when setting a Pandas DataFrame or Series.
-
-    header : boolean, default True
-        Includes the column headers when setting a Pandas DataFrame.
-
-    wkb : Workbook object, default Workbook.current()
-        Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
-    """
-
-    def __init__(self, *args, **options):
-
-        self.workbook = options.pop('wkb', None)
-
-        # Arguments
-        if xlplatform.is_range_instance(args[0]):
-            self.xl_range = args[0]
-            self.xl_sheet = xlplatform.get_range_sheet(self.xl_range)
-            self.xl_workbook = xlplatform.get_sheet_workbook(self.xl_sheet)
-            self.workbook = Workbook(xl_workbook=self.xl_workbook)
-            self.row1, self.col1, self.row2, self.col2 = xlplatform.get_range_coordinates(self.xl_range)
-            range_address = None
+    def range(self, *args):
+        if len(args) == 1:
+            if isinstance(args[0], string_types):
+                return Range(xlplatform.get_sheet_range(self.xl_sheet, args[0]))
         elif len(args) == 1 and isinstance(args[0], string_types):
             sheet_name_or_index = None
             range_address = args[0]
@@ -688,38 +667,57 @@ class Range(object):
             self.row2 = args[2][0]
             self.col2 = args[2][1]
 
+
+
+class Range(object):
+    """
+    A Range object can be instantiated with the following arguments::
+
+        Range('A1')          Range('Sheet1', 'A1')          Range(1, 'A1')
+        Range('A1:C3')       Range('Sheet1', 'A1:C3')       Range(1, 'A1:C3')
+        Range((1,2))         Range('Sheet1, (1,2))          Range(1, (1,2))
+        Range((1,1), (3,3))  Range('Sheet1', (1,1), (3,3))  Range(1, (1,1), (3,3))
+        Range('NamedRange')  Range('Sheet1', 'NamedRange')  Range(1, 'NamedRange')
+
+    The Sheet can also be provided as Sheet object::
+
+        sh = Sheet(1)
+        Range(sh, 'A1')
+
+    If no worksheet name is provided as first argument, it will take the Range from the active sheet.
+
+    You usually want to go for ``Range(...).value`` to get the values (as list of lists).
+
+    Arguments
+    ---------
+    *args :
+        Definition of sheet (optional) and Range in the above described combinations.
+
+    Keyword Arguments
+    -----------------
+    asarray : boolean, default False
+        Returns a NumPy array (atleast_1d) where empty cells are transformed into nan.
+
+    index : boolean, default True
+        Includes the index when setting a Pandas DataFrame or Series.
+
+    header : boolean, default True
+        Includes the column headers when setting a Pandas DataFrame.
+
+    wkb : Workbook object, default Workbook.current()
+        Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
+    """
+
+    def __init__(self, *args, **options):
+
+        # Arguments
+        if len(args) == 1 and xlplatform.is_range_instance(args[0]):
+            self.xl_range = args[0]
+        else:
+            self.xl_range = Sheet.active().range(*args).options(**options).xl_range
+
         # Keyword Arguments
         self._options = options
-        if self.workbook is None and xlplatform.get_xl_workbook_current() is None:
-            raise NameError('You must first instantiate a Workbook object.')
-        elif self.workbook is None:
-            self.xl_workbook = xlplatform.get_xl_workbook_current()
-        else:
-            self.xl_workbook = self.workbook.xl_workbook
-
-        # Get sheet
-        if not hasattr(self, 'xl_sheet'):
-            if sheet_name_or_index:
-                self.xl_sheet = xlplatform.get_worksheet(self.xl_workbook, sheet_name_or_index)
-            else:
-                self.xl_sheet = xlplatform.get_active_sheet(self.xl_workbook)
-
-        # Get xl_range object
-        if range_address:
-            self.row1 = xlplatform.get_first_row(self.xl_sheet, range_address)
-            self.col1 = xlplatform.get_first_column(self.xl_sheet, range_address)
-            self.row2 = self.row1 + xlplatform.count_rows(self.xl_sheet, range_address) - 1
-            self.col2 = self.col1 + xlplatform.count_columns(self.xl_sheet, range_address) - 1
-
-        if 0 in (self.row1, self.col1):
-            raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
-
-        if not hasattr(self, 'xl_range'):
-            if self.row1 <= self.row2 and self.col1 <= self.col2:
-                self.xl_range = xlplatform.get_range_from_indices(self.xl_sheet, self.row1, self.col1, self.row2, self.col2)
-            else:
-                self.xl_range = None
-
 
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
