@@ -1032,6 +1032,10 @@ class TestRange:
         Range('A1').value = d
         assert_equal(d, Range('A1:B2').options(dict).value)
 
+    def write_to_multicell_range(self):
+        Range('A1:B2').value = 5
+        assert_equal(Range('A1:B2').value, [[5., 5.],[5., 5.]])
+
 
 class TestPicture:
     def setUp(self):
