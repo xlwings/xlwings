@@ -19,7 +19,7 @@ Writing/reading values to/from Excel and adding a chart is as easy as:
 
 .. code-block:: python
 
-    >>> from xlwings as xw
+    >>> import xlwings as xw
     >>> wb = xw.Workbook()  # Creates a connection with a new workbook
     >>> xw.Range('A1').value = 'Foo 1'
     >>> xw.Range('A1').value
