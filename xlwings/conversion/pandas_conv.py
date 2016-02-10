@@ -69,24 +69,51 @@ if pd:
             return (
                 super(PandasSeriesConverter, cls).base_reader(
                     Options(options)
-                    .override(ndim=1)
                 )
             )
 
         @classmethod
         def read_value(cls, value, options):
-            return pd.Series(value[1:])
+            index = options.get('index', True)
+            header = options.get('header', True)
+
+            if header:
+                columns = value[0]
+                if not isinstance(columns, list):
+                    columns = [columns]
+                data = value[1:]
+            else:
+                columns = None
+                data = value
+
+            df = pd.DataFrame(data, columns=columns)
+
+            if index:
+                df = df.set_index(df.columns[0])
+
+            series = df.squeeze()
+
+            if not header:
+                series.name = None
+                series.index.name = None
+
+            return series
 
         @classmethod
         def write_value(cls, value, options):
             index = options.get('index', True)
+            header = options.get('header', True)
 
             if index:
-                value = value.reset_index().values.tolist()
+                rv = value.reset_index().values.tolist()
+                header_row = [[value.index.name, value.name]]
             else:
-                value = value.values[:, np.newaxis].tolist()
+                rv = value.values[:, np.newaxis].tolist()
+                header_row = [[value.name]]
+            if header:
+                    rv = header_row + rv
 
-            return value
+            return rv
 
 
     PandasSeriesConverter.install_for(pd.Series)
