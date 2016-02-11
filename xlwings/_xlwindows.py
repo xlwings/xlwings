@@ -507,6 +507,18 @@ def get_xl_workbook_current():
     except NameError:
         return None
 
+def set_comment(xl_range, value):
+    xl_range.ClearComments()
+    xl_range.AddComment()
+    xl_range.Comment.Text(value)
+
+def get_comment(xl_range):
+    comment = xl_range.Comment
+    if comment:
+        return comment.Text()
+
+def del_comment(xl_range):
+    xl_range.ClearComments()
 
 def get_number_format(range_):
     return range_.xl_range.NumberFormat
