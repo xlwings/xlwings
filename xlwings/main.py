@@ -808,11 +808,11 @@ class Range(object):
         object
             Empty cells are set to ``None``.
         """
-        return conversion.read_from_range(self, self._options)
+        return conversion.read(self, None, self._options)
 
     @value.setter
     def value(self, data):
-        conversion.write_to_range(data, self, self._options)
+        conversion.write(data, self, self._options)
 
     @property
     def formula(self):
