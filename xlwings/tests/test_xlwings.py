@@ -831,26 +831,91 @@ class TestRange:
         df2 = Range('A1:E4').options(pd.DataFrame, header=1, index=2).value
         assert_frame_equal(df1, df2)
 
-    def test_series_1(self):
-        _skip_if_no_pandas()
-
-        series_expected = series_1
-        Range('Sheet5', 'A32').value = series_expected
-        cells = Range('Sheet5', 'B32:B37').value
-        series_result = Series(cells)
-        assert_series_equal(series_expected, series_result)
-
     def test_timeseries_1(self):
         _skip_if_no_pandas()
 
         series_expected = timeseries_1
-        Range('Sheet5', 'A40').value = series_expected
+        Range('Sheet5', 'A40').options(header=False).value = series_expected
         if sys.platform.startswith('win') and self.wb.xl_app.Version == '14.0':
             Range('Sheet5', 'A40').vertical.xl_range.NumberFormat = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
-        cells = Range('Sheet5', 'B40:B49').value
-        date_index = Range('Sheet5', 'A40:A49').value
-        series_result = Series(cells, index=date_index)
+        series_result = Range('Sheet5', 'A40:B49').options(pd.Series, header=False).value
         assert_series_equal(series_expected, series_result)
+
+    def test_read_series_noheader_noindex(self):
+        _skip_if_no_pandas()
+
+        Range('A1').value = [[1.],
+                             [2.],
+                             [3.]]
+        s = Range('A1:A3').options(pd.Series, index=False, header=False).value
+        assert_series_equal(s, pd.Series([1., 2., 3.]))
+
+    def test_read_series_noheader_index(self):
+        _skip_if_no_pandas()
+
+        Range('A1').value = [[10., 1.],
+                             [20., 2.],
+                             [30., 3.]]
+        s = Range('A1:B3').options(pd.Series, index=True, header=False).value
+        assert_series_equal(s, pd.Series([1., 2., 3.], index=[10., 20., 30.]))
+
+    def test_read_series_header_noindex(self):
+        _skip_if_no_pandas()
+
+        Range('A1').value = [['name'],
+                             [1.],
+                             [2.],
+                             [3.]]
+        s = Range('A1:A4').options(pd.Series, index=False, header=True).value
+        assert_series_equal(s, pd.Series([1., 2., 3.], name='name'))
+
+    def test_read_series_header_index(self):
+        _skip_if_no_pandas()
+
+        # Named index
+        Range('A1').value = [['ix', 'name'],
+                             [10., 1.],
+                             [20., 2.],
+                             [30., 3.]]
+        s = Range('A1:B4').options(pd.Series, index=True, header=True).value
+        assert_series_equal(s, pd.Series([1., 2., 3.], name='name', index=pd.Index([10., 20., 30.], name='ix')))
+
+        # Nameless index
+        Range('A1').value = [[None, 'name'],
+                             [10., 1.],
+                             [20., 2.],
+                             [30., 3.]]
+        s = Range('A1:B4').options(pd.Series, index=True, header=True).value
+        assert_series_equal(s, pd.Series([1., 2., 3.], name='name', index=[10., 20., 30.]))
+
+    def test_write_series_noheader_noindex(self):
+        _skip_if_no_pandas()
+
+        Range('A1').options(index=False).value = pd.Series([1., 2., 3.])
+        assert_equal([[1.],[2.],[3.]], Range('A1').options(ndim=2, expand='table').value)
+
+    def test_write_series_noheader_index(self):
+        _skip_if_no_pandas()
+
+        Range('A1').options(index=True).value = pd.Series([1., 2., 3.], index=[10., 20., 30.])
+        assert_equal([[10., 1.],[20., 2.],[30., 3.]], Range('A1').options(ndim=2, expand='table').value)
+
+    def test_write_series_header_noindex(self):
+        _skip_if_no_pandas()
+
+        Range('A1').options(index=False).value = pd.Series([1., 2., 3.], name='name')
+        assert_equal([['name'],[1.],[2.],[3.]], Range('A1').options(ndim=2, expand='table').value)
+
+    def test_write_series_header_index(self):
+        _skip_if_no_pandas()
+
+        # Named index
+        Range('A1').value = pd.Series([1., 2., 3.], name='name', index=pd.Index([10., 20., 30.], name='ix'))
+        assert_equal([['ix', 'name'],[10., 1.],[20., 2.],[30., 3.]], Range('A1').options(ndim=2, expand='table').value)
+
+        # Nameless index
+        Range('A1').value = pd.Series([1., 2., 3.], name='name', index=[10., 20., 30.])
+        assert_equal([[None, 'name'],[10., 1.],[20., 2.],[30., 3.]], Range('A1:B4').options(ndim=2).value)
 
     def test_none(self):
         """ Covers GH Issue #16"""
