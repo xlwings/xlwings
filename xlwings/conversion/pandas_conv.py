@@ -101,8 +101,13 @@ if pd:
 
         @classmethod
         def write_value(cls, value, options):
+            if value.index.name is None and value.name is None:
+                default_header = False
+            else:
+                default_header = True
+
             index = options.get('index', True)
-            header = options.get('header', True)
+            header = options.get('header', default_header)
 
             if index:
                 rv = value.reset_index().values.tolist()
