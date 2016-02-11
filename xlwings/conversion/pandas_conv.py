@@ -62,15 +62,7 @@ if pd:
 
     class PandasSeriesConverter(ConverterAccessor):
 
-        writes_types = pd.DataFrame
-
-        @classmethod
-        def base_reader(cls, options):
-            return (
-                super(PandasSeriesConverter, cls).base_reader(
-                    Options(options)
-                )
-            )
+        writes_types = pd.Series
 
         @classmethod
         def read_value(cls, value, options):
