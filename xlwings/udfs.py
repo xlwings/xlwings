@@ -102,12 +102,14 @@ def call_udf(script_name, func_name, args, this_workbook):
     args = list(args)
     for i, arg in enumerate(args):
         arg_info = args_info[i]
-        args[i] = conversion.read_from_range(Range(arg), arg_info)
-
+        if xlplatform.is_range_instance(arg):
+            args[i] = conversion.read(Range(arg), None, arg_info)
+        else:
+            args[i] = conversion.read(None, arg, arg_info)
     xlplatform.xl_workbook_current = this_workbook
     ret = func(*args)
 
-    return conversion.write_to_range(ret, None, ret_info)
+    return conversion.write(ret, None, ret_info)
 
 
 def generate_vba_wrapper(script_vars, f):
@@ -153,15 +155,10 @@ def generate_vba_wrapper(script_vars, f):
 
                 j = 1
                 for arg in xlfunc['args']:
-                    as_ = arg.get('as_', None)
-                    converter = conversion.accessors.get(as_, as_)
-
                     argname = arg['name']
                     if arg['vararg']:
                         vba.write("For k = LBound(" + vararg + ") To UBound(" + vararg + ")\n")
                         argname = vararg + "(k)"
-
-                    #converter.vba_read(vba, argname, arg)
 
                     if arg['vararg']:
                         vba.write("argsArray(" + str(j) + " + k - LBound(" + vararg + ")) = " + argname + "\n")

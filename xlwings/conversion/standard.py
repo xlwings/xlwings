@@ -56,9 +56,8 @@ class WriteValueToRangeStage(object):
 class ReadValueFromRangeStage(object):
 
     def __call__(self, c):
-        c.value = xlplatform.get_value_from_range(c.range.xl_range)
-        if not isinstance(c.value, (list, tuple)):
-            c.value = [[c.value]]
+        if c.range:
+            c.value = xlplatform.get_value_from_range(c.range.xl_range)
 
 
 class CleanDataFromReadStage(object):
@@ -154,6 +153,7 @@ class ValueAccessor(Accessor):
         return (
             RangeAccessor.reader(options)
             .append_stage(ReadValueFromRangeStage())
+            .append_stage(Ensure2DStage())
             .append_stage(CleanDataFromReadStage(options))
             .append_stage(TransposeStage(), only_if=options.get('transpose', False))
             .append_stage(AdjustDimensionsStage(options))
