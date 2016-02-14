@@ -1227,7 +1227,7 @@ class TestRange:
         assert_equal(Range('A1:B2').value, [[5., 5.],[5., 5.]])
 
     def test_range_clipping(self):
-        Range('A1').options(list, expand=False).value = [[1., 2.], [3., 4.]]
+        Range('A1').options(expand=False).value = [[1., 2.], [3., 4.]]
         assert_equal(Range('A1:B2').value, [[1., None], [None, None]])
 
     def test_transpose(self):
