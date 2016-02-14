@@ -1222,10 +1222,17 @@ class TestRange:
         Range('A1').value = d
         assert_equal(d, Range('A1:B2').options(dict).value)
 
-    def write_to_multicell_range(self):
+    def test_write_to_multicell_range(self):
         Range('A1:B2').value = 5
         assert_equal(Range('A1:B2').value, [[5., 5.],[5., 5.]])
 
+    def test_range_clipping(self):
+        Range('A1').options(list, expand=False).value = [[1., 2.], [3., 4.]]
+        assert_equal(Range('A1:B2').value, [[1., None], [None, None]])
+
+    def test_transpose(self):
+        Range('A1').options(transpose=True).value = [[1., 2.], [3., 4.]]
+        assert_equal(Range('A1:B2').value, [[1., 3.], [2., 4.]])
 
 class TestPicture:
     def setUp(self):
