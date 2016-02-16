@@ -10,7 +10,7 @@ from . import pandas_conv
 def read(rng, value, options):
     as_ = options.get('as_', None)
     pipeline = accessors.get(as_, as_).reader(options)
-    ctx = ConversionContext(rng=rng, value=None)
+    ctx = ConversionContext(rng=rng, value=value)
     pipeline(ctx)
     return ctx.value
 
