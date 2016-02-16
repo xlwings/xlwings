@@ -1,3 +1,4 @@
+from datetime import datetime
 import xlwings as xw
 try:
     import numpy as np
@@ -11,21 +12,65 @@ try:
 except ImportError:
     pd = None
 
+# Default
+@xw.func
+def test_read_float(x):
+    return x == 2.
 
 @xw.func
-def test_simple(x):
-    return x * 2
+def test_write_float():
+    return 2.
+
+@xw.func
+def test_read_string(x):
+    return x == 'xlwings'
+
+@xw.func
+def test_write_string():
+    return 'xlwings'
+
+@xw.func
+def test_read_empty(x):
+    return x is None
+
+@xw.func
+def test_write_empty():
+    return None
+
+@xw.func
+def test_read_date(x):
+    return x == datetime(2015, 1, 15)
+
+@xw.func
+def test_write_date():
+    return datetime(1969, 12, 31)
+
+@xw.func
+def test_read_horizontal_list(x):
+    return x == [1., 2.]
+
+@xw.func
+def test_write_horizontal_list():
+    return [1., 2.]
+
+@xw.func
+def test_read_vertical_list(x):
+    return x == [1., 2.]
+
+@xw.func
+def test_write_vertical_list():
+    return [[1.], [2.]]
 
 
 @xw.func
 @xw.arg('x', ndim=1)
-def test_ndim1(x):
+def test_read_ndim1(x):
     return x == [2.]
 
 
 @xw.func
 @xw.arg('x', ndim=2)
-def test_ndim2(x):
+def test_read_ndim2(x):
     return x == [[2.]]
 
 
