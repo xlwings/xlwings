@@ -130,7 +130,7 @@ class Ensure2DStage(object):
 class TransposeStage(object):
 
     def __call__(self, c):
-        return [[e[i] for e in c.value] for i in range(len(c.value[0]) if c.value else 0)]
+        c.value = [[e[i] for e in c.value] for i in range(len(c.value[0]) if c.value else 0)]
 
 
 class RangeAccessor(Accessor):
