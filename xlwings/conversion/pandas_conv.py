@@ -103,7 +103,9 @@ if pd:
 
             if index:
                 rv = value.reset_index().values.tolist()
-                header_row = [[value.index.name, value.name]]
+                ix_name = '' if value.index.name is None else value.index.name
+
+                header_row = [[ix_name, value.name]]
             else:
                 rv = value.values[:, np.newaxis].tolist()
                 header_row = [[value.name]]
