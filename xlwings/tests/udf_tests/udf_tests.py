@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 import xlwings as xw
 try:
     import numpy as np
@@ -34,10 +34,6 @@ def test_read_empty(x):
     return x is None
 
 @xw.func
-def test_write_empty():
-    return None
-
-@xw.func
 def test_read_date(x):
     return x == datetime(2015, 1, 15)
 
@@ -61,28 +57,49 @@ def test_read_vertical_list(x):
 def test_write_vertical_list():
     return [[1.], [2.]]
 
+@xw.func
+def test_read_2dlist(x):
+    return x == [[1., 2.], [3., 4.]]
+
+@xw.func
+def test_write_2dlist():
+    return [[1., 2.], [3., 4.]]
 
 @xw.func
 @xw.arg('x', ndim=1)
 def test_read_ndim1(x):
     return x == [2.]
 
-
 @xw.func
 @xw.arg('x', ndim=2)
 def test_read_ndim2(x):
     return x == [[2.]]
 
-
 @xw.func
-def test_2dlist(x):
-    return [[cell + 1 for cell in row] for row in x] 
-
+@xw.arg('x', transpose=True)
+def test_read_transpose(x):
+    return x == [[1., 3.], [2., 4.]]
 
 @xw.func
 @xw.ret(transpose=True)
-def test_transpose(x):
-    return x
+def test_write_transpose():
+    return [[1., 2.], [3., 4.]]
+
+@xw.func
+@xw.arg('x', dates_as=date)
+def test_read_as_date(x):
+    return x == [[1., date(2015, 1, 13)], [date(2000, 12, 1), 4.]]
+
+@xw.func
+@xw.arg('x', dates_as=datetime)
+def test_read_as_datetime(x):
+    return x == [[1., datetime(2015, 1, 13)], [datetime(2000, 12, 1), 4.]]
+
+@xw.func
+@xw.arg('x', empty_as='empty')
+def test_read_empty_as(x):
+    return x == [[1., 'empty'], ['empty', 4.]]
+
 
 
 # Numpy Array
