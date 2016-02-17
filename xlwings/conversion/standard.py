@@ -190,7 +190,6 @@ class DictConverter(ConverterAccessor):
             super(DictConverter, cls).base_reader(
                 Options(options)
                 .override(ndim=2)
-                .defaults(expand='table')
             )
         )
 
