@@ -1,4 +1,5 @@
 from datetime import datetime, date
+from nose.tools import assert_dict_equal
 import xlwings as xw
 try:
     import numpy as np
@@ -35,6 +36,13 @@ try:
 except ImportError:
     pd = None
 
+
+def dict_equal(a, b):
+    try:
+        assert_dict_equal(a, b)
+    except AssertionError:
+        return False
+    return True
 
 # Defaults
 @xw.func
@@ -139,7 +147,16 @@ def read_dates_as3(x):
 def read_empty_as(x):
     return x == [[1., 'empty'], ['empty', 4.]]
 
+# Dicts
+@xw.func
+@xw.arg('x', as_=dict)
+def read_dict(x):
+    return dict_equal(x, {'a': 1., 'b': 'c'})
 
+@xw.func
+@xw.arg('x', as_=dict, transpose=True)
+def read_dict_transpose(x):
+    return dict_equal(x, {1.0: 'c', 'a': 'b'})
 
 # Numpy Array
 @xw.func
@@ -252,9 +269,14 @@ def write_series_header_nameless_index():
     return pd.Series([1., 2.], name='name', index=[10., 20.])
 
 @xw.func
-@xw.arg('x', as_=pd.Series, header=True, index=True)
+@xw.arg('x', as_=pd.Series)
 def read_timeseries(x):
-    return series_equal(x, pd.Series([1.5, 1.5], name='ts', index=[datetime(2000, 12, 20), datetime(2000, 12, 21)]))
+    return series_equal(x, pd.Series([1.5, 2.5], name='ts', index=[datetime(2000, 12, 20), datetime(2000, 12, 21)]))
+
+@xw.func
+@xw.ret(as_=pd.Series)
+def write_timeseries():
+    return pd.Series([1.5, 2.5], name='ts', index=[datetime(2000, 12, 20), datetime(2000, 12, 21)])
 
 
 
