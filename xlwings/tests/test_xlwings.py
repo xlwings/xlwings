@@ -726,12 +726,11 @@ class TestRange:
                              [2, 4, 5, 6]]
 
         df1 = pd.DataFrame([[1., 2., 3.], [4., 5., 6.]],
-                           index=pd.Index([1, 2], names=['ix1']),
+                           index=[1., 2.],
                            columns=['c', 'd', 'c'])
+        df1.index.name = 'ix1'
 
         df2 = Range('A1:D3').options(pd.DataFrame).value
-        df2.index = pd.Int64Index(df2.index)
-
         assert_frame_equal(df1, df2)
 
     def test_read_df_1header_1unnamedindex(self):
