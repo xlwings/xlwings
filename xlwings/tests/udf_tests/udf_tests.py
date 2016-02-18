@@ -158,6 +158,10 @@ def read_dict(x):
 def read_dict_transpose(x):
     return dict_equal(x, {1.0: 'c', 'a': 'b'})
 
+@xw.func
+def write_dict():
+    return {'a': 1., 'b': 'c'}
+
 # Numpy Array
 @xw.func
 @xw.arg('x', as_=np.array)
@@ -278,6 +282,74 @@ def read_timeseries(x):
 def write_timeseries():
     return pd.Series([1.5, 2.5], name='ts', index=[datetime(2000, 12, 20), datetime(2000, 12, 21)])
 
+@xw.func
+@xw.arg('x', as_=pd.DataFrame, index=False, header=False)
+def read_df_0header_0index(x):
+    return frame_equal(x, pd.DataFrame([[1., 2.], [3., 4.]]))
 
+@xw.func
+@xw.arg('x', as_=pd.DataFrame, index=1, header=1)
+def read_df_1header_1namedindex(x):
 
+    df = pd.DataFrame([[1., 2., 3.], [4., 5., 6.]],
+                      index=[1., 2.],
+                      columns=['c', 'd', 'c'])
+    df.index.name = 'ix1'
+    return frame_equal(x, df)
 
+@xw.func
+@xw.arg('x', as_=pd.DataFrame, index=1, header=1)
+def read_df_1header_1unnamedindex(x):
+    df = pd.DataFrame([[1., 2., 3.], [4., 5., 6.]],
+                      index=[1., 2.],
+                      columns=['c', 'd', 'c'])
+    return frame_equal(x, df)
+
+@xw.func
+@xw.arg('x', as_=pd.DataFrame, index=1, header=2)
+def read_df_2header_1namedindex(x):
+    df = pd.DataFrame([[1., 2., 3.], [4., 5., 6.]],
+                      index=[1., 2.],
+                      columns=pd.MultiIndex.from_arrays([['a', 'a', 'b'], ['c', 'd', 'c']]))
+    df.index.name = 'ix1'
+    return frame_equal(x, df)
+
+@xw.func
+@xw.arg('x', as_=pd.DataFrame, index=1, header=2)
+def read_df_2header_1unnamedindex(x):
+    df = pd.DataFrame([[1., 2., 3.], [4., 5., 6.]],
+                      index=[1., 2.],
+                      columns=pd.MultiIndex.from_arrays([['a', 'a', 'b'], ['c', 'd', 'c']]))
+    return frame_equal(x, df)
+
+@xw.func
+@xw.arg('x', as_=pd.DataFrame, index=2, header=2)
+def read_df_2header_2namedindex(x):
+    df = pd.DataFrame([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]],
+                      index=pd.MultiIndex.from_arrays([['a', 'a', 'b'], [1., 2., 1.]], names=['x1', 'x2']),
+                      columns=pd.MultiIndex.from_arrays([['a', 'a', 'b'], ['c', 'd', 'c']]))
+    return frame_equal(x, df)
+
+@xw.func
+@xw.arg('x', as_=pd.DataFrame, index=2, header=2)
+def read_df_2header_2unnamedindex(x):
+    df = pd.DataFrame([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]],
+                      index=pd.MultiIndex.from_arrays([['a', 'a', 'b'], [1., 2., 1.]]),
+                      columns=pd.MultiIndex.from_arrays([['a', 'a', 'b'], ['c', 'd', 'c']]))
+    return frame_equal(x, df)
+
+@xw.func
+@xw.arg('x', as_=pd.DataFrame, index=2, header=1)
+def read_df_1header_2namedindex(x):
+    df = pd.DataFrame([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]],
+                      index=pd.MultiIndex.from_arrays([['a', 'a', 'b'], [1., 2., 1.]], names=['x1', 'x2']),
+                      columns=['a', 'd', 'c'])
+    return frame_equal(x, df)
+
+@xw.func
+@xw.arg('x', as_=pd.DataFrame)
+def read_df_date_index(x):
+    df = pd.DataFrame([[1., 2., 3.], [4., 5., 6.]],
+                      index=[datetime(1999,12,13), datetime(1999,12,14)],
+                      columns=['c', 'd', 'c'])
+    return frame_equal(x, df)
