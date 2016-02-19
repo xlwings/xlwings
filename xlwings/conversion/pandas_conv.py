@@ -40,6 +40,8 @@ if pd:
             header = options.get('header', True)
 
             index_names = value.index.names
+            index_names = ['' if i is None else i for i in index_names]
+            index_levels = len(index_names)
 
             if index:
                 if value.index.name in value.columns:
@@ -53,12 +55,12 @@ if pd:
                     columns = [list(i) for i in columns]
                     # Move index names right above the index
                     if not all(v is None for v in index_names):
-                        index_levels = len(index_names)
                         for c in columns[:-1]:
                             c[:index_levels] = [''] * index_levels
                         columns[-1][:index_levels] = index_names
                 else:
                     columns = [value.columns.tolist()]
+                    columns[0][:index_levels] = index_names
                 value = columns + value.values.tolist()
             else:
                 value = value.values.tolist()
