@@ -30,14 +30,19 @@ if pd:
             value = np.array(value, dtype=object)  # object array to prevent str arrays
 
             columns = pd.MultiIndex.from_arrays(value[:header, index:]) if header > 0 else None
+            ix_names = value[header-1, :index] if (header and index) else None
             ix = pd.MultiIndex.from_arrays(value[header:, :index].T,
-                                           names=value[header-1, :index]) if index > 0 else None
+                                           names=ix_names) if index > 0 else None
             return pd.DataFrame(value[header:, index:].tolist(), index=ix, columns=columns)
 
         @classmethod
         def write_value(cls, value, options):
             index = options.get('index', True)
             header = options.get('header', True)
+
+            index_names = value.index.names
+            index_names = ['' if i is None else i for i in index_names]
+            index_levels = len(index_names)
 
             if index:
                 if value.index.name in value.columns:
@@ -48,8 +53,16 @@ if pd:
             if header:
                 if isinstance(value.columns, pd.MultiIndex):
                     columns = list(zip(*value.columns.tolist()))
+                    columns = [list(i) for i in columns]
+                    # Move index names right above the index
+                    if not all(v is None for v in index_names):
+                        for c in columns[:-1]:
+                            c[:index_levels] = [''] * index_levels
+                        columns[-1][:index_levels] = index_names
                 else:
                     columns = [value.columns.tolist()]
+                    if index:
+                        columns[0][:index_levels] = index_names
                 value = columns + value.values.tolist()
             else:
                 value = value.values.tolist()
@@ -103,7 +116,9 @@ if pd:
 
             if index:
                 rv = value.reset_index().values.tolist()
-                header_row = [[value.index.name, value.name]]
+                ix_name = '' if value.index.name is None else value.index.name
+
+                header_row = [[ix_name, value.name]]
             else:
                 rv = value.values[:, np.newaxis].tolist()
                 header_row = [[value.name]]
