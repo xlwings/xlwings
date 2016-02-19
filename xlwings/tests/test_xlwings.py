@@ -718,6 +718,22 @@ class TestRange:
         df2 = Range('A1:C3').options(pd.DataFrame, header=0, index=False).value
         assert_frame_equal(df1, df2)
 
+    def test_df_1header_0index(self):
+        _skip_if_no_pandas()
+
+        Range('A1').options(pd.DataFrame, index=False, header=True).value = pd.DataFrame([[1., 2.], [3., 4.]], columns=['a', 'b'])
+        df = Range('A1').options(pd.DataFrame, index=False, header=True,
+                                 expand='table').value
+        assert_frame_equal(df, pd.DataFrame([[1., 2.], [3., 4.]], columns=['a', 'b']))
+
+    def test_df_0header_1index(self):
+        _skip_if_no_pandas()
+
+        Range('A1').options(pd.DataFrame, index=True, header=False).value = pd.DataFrame([[1., 2.], [3., 4.]], index=[10., 20.])
+        df = Range('A1').options(pd.DataFrame, index=True, header=False,
+                                 expand='table').value
+        assert_frame_equal(df, pd.DataFrame([[1., 2.], [3., 4.]], index=[10., 20.]))
+
     def test_read_df_1header_1namedindex(self):
         _skip_if_no_pandas()
 

@@ -306,7 +306,6 @@ def write_df_1header_0index():
 @xw.func
 @xw.arg('x', as_=pd.DataFrame, index=True, header=False)
 def read_df_0header_1index(x):
-    # return str(x)
     return frame_equal(x, pd.DataFrame([[1., 2.], [3., 4.]], index=[10., 20.]))
 
 @xw.func
