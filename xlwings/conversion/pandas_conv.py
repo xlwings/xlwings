@@ -30,8 +30,9 @@ if pd:
             value = np.array(value, dtype=object)  # object array to prevent str arrays
 
             columns = pd.MultiIndex.from_arrays(value[:header, index:]) if header > 0 else None
+            ix_names = value[header-1, :index] if (header and index) else None
             ix = pd.MultiIndex.from_arrays(value[header:, :index].T,
-                                           names=value[header-1, :index]) if index > 0 else None
+                                           names=ix_names) if index > 0 else None
             return pd.DataFrame(value[header:, index:].tolist(), index=ix, columns=columns)
 
         @classmethod
@@ -60,7 +61,8 @@ if pd:
                         columns[-1][:index_levels] = index_names
                 else:
                     columns = [value.columns.tolist()]
-                    columns[0][:index_levels] = index_names
+                    if index:
+                        columns[0][:index_levels] = index_names
                 value = columns + value.values.tolist()
             else:
                 value = value.values.tolist()
