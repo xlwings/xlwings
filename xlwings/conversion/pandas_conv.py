@@ -39,6 +39,8 @@ if pd:
             index = options.get('index', True)
             header = options.get('header', True)
 
+            index_names = value.index.names
+
             if index:
                 if value.index.name in value.columns:
                     # Prevents column name collision when resetting the index
@@ -48,6 +50,13 @@ if pd:
             if header:
                 if isinstance(value.columns, pd.MultiIndex):
                     columns = list(zip(*value.columns.tolist()))
+                    columns = [list(i) for i in columns]
+                    # Move index names right above the index
+                    if not all(v is None for v in index_names):
+                        index_levels = len(index_names)
+                        for c in columns[:-1]:
+                            c[:index_levels] = [''] * index_levels
+                        columns[-1][:index_levels] = index_names
                 else:
                     columns = [value.columns.tolist()]
                 value = columns + value.values.tolist()
