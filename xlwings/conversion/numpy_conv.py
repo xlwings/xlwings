@@ -31,8 +31,10 @@ if np:
         @classmethod
         def read_value(cls, value, options):
             dtype = options.get('dtype', None)
+            copy = options.get('copy', True)
+            order = options.get('order', None)
             ndim = options.get('ndim', None) or 0
-            return np.array(value, dtype=dtype, ndmin=ndim)
+            return np.array(value, dtype=dtype, copy=copy, order=order, ndmin=ndim)
 
         @classmethod
         def write_value(cls, value, options):
