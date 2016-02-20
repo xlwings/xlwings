@@ -2,6 +2,7 @@ import os
 import datetime as dt
 import subprocess
 import unicodedata
+import appscript
 from appscript import app, mactypes
 from appscript import k as kw
 from appscript.reference import CommandError
@@ -28,11 +29,23 @@ if np:
 _xl_app = None
 
 
+def is_app_instance(xl_app):
+    return type(xl_app) is appscript.reference.Application and '/Microsoft Excel.app' in str(xl_app)
+
+
 def set_xl_app(app_target=None):
     if app_target is None:
         app_target = 'Microsoft Excel'
     global _xl_app
     _xl_app = app(app_target, terms=mac_dict)
+
+
+def new_app(app_target='Microsoft Excel'):
+    return app(app_target, terms=mac_dict)
+
+
+def get_running_app():
+    return app('Microsoft Excel', terms=mac_dict)
 
 
 @atexit.register
@@ -122,6 +135,14 @@ def get_active_workbook(app_target=None):
     return _xl_app.active_workbook
 
 
+def application_get_active_sheet(xl_app):
+    return app.xl_app.active_sheet
+
+
+def sheet_get_range(xl_sheet, address):
+    return xl_sheet.cells[address]
+
+
 def get_workbook_name(xl_workbook):
     return xl_workbook.name.get()
 
@@ -193,7 +214,7 @@ def new_workbook(app_target=None):
 
 
 def is_range_instance(xl_range):
-    return False
+    return isinstance(xl_range, appscript.genericreference.GenericReference)
 
 
 def get_active_sheet(xl_workbook):

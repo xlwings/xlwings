@@ -141,14 +141,18 @@ class Application(object):
     _current = None
 
     @staticproperty
-    def current(self):
-        if self._current is None:
-            self._current = Application(xlplatform.get_running_app())
-        return self._current
+    def current():
+        if Application._current is None:
+            Application._current = Application(xlplatform.get_running_app())
+        return Application._current
 
     @current.setter
-    def current(self, value):
-        self._current = value
+    def current(value):
+        Application._current = value
+
+    @property
+    def active_sheet(self):
+        return Sheet(xl_sheet=xlplatform.application_get_active_sheet(self.xl_app))
 
 
 class Workbook(object):
@@ -208,16 +212,23 @@ class Workbook(object):
             self.xl_app = app.xl_app
             self.xl_workbook = wb.xl_workbook
 
-        self.name = xlplatform.get_workbook_name(self.xl_workbook)
-
         if fullname is None:
             self.fullname = xlplatform.get_fullname(self.xl_workbook)
 
-        # Make the most recently created Workbook the default when creating Range objects directly
-        xlplatform.set_xl_workbook_current(self.xl_workbook)
+        Workbook.current = self
 
         if app_visible is not None:
             xlplatform.set_visible(self.xl_app, app_visible)
+
+    _current = None
+
+    @staticproperty
+    def current(self):
+        return self._current
+
+    @current.setter
+    def current(self, value):
+        self._current = value
 
     @classmethod
     def active(cls, app_target=None):
@@ -229,6 +240,9 @@ class Workbook(object):
         """
         xl_workbook = xlplatform.get_active_workbook(app_target=app_target)
         return cls(xl_workbook=xl_workbook, app_target=app_target)
+
+    def sheet(self, name_or_index):
+        return Sheet(xlplatform.get_xl_sheet(self.xl_workbook, name_or_index))
 
     @classmethod
     def caller(cls):
@@ -296,27 +310,27 @@ class Workbook(object):
         """
         Workbook._mock_file = fullpath
 
-    @classmethod
-    def current(cls):
-        """
-        Returns the current Workbook object, i.e. the default Workbook used by ``Sheet``, ``Range`` and ``Chart`` if not
-        specified otherwise. On Windows, in case there are various instances of Excel running, opening an existing or
-        creating a new Workbook through ``Workbook()`` is acting on the same instance of Excel as this Workbook. Use
-        like this: ``Workbook.current()``.
-
-        .. versionadded:: 0.2.2
-        """
-        return cls(xl_workbook=xlplatform.get_xl_workbook_current(), app_visible=None)
-
-    def set_current(self):
-        """
-        This makes the Workbook the default that ``Sheet``, ``Range`` and ``Chart`` use if not specified
-        otherwise. On Windows, in case there are various instances of Excel running, opening an existing or creating a
-        new Workbook through ``Workbook()`` is acting on the same instance of Excel as this Workbook.
-
-        .. versionadded:: 0.2.2
-        """
-        xlplatform.set_xl_workbook_current(self.xl_workbook)
+    # @classmethod
+    # def current(cls):
+    #     """
+    #     Returns the current Workbook object, i.e. the default Workbook used by ``Sheet``, ``Range`` and ``Chart`` if not
+    #     specified otherwise. On Windows, in case there are various instances of Excel running, opening an existing or
+    #     creating a new Workbook through ``Workbook()`` is acting on the same instance of Excel as this Workbook. Use
+    #     like this: ``Workbook.current()``.
+    #
+    #     .. versionadded:: 0.2.2
+    #     """
+    #     return cls(xl_workbook=xlplatform.get_xl_workbook_current(), app_visible=None)
+    #
+    # def set_current(self):
+    #     """
+    #     This makes the Workbook the default that ``Sheet``, ``Range`` and ``Chart`` use if not specified
+    #     otherwise. On Windows, in case there are various instances of Excel running, opening an existing or creating a
+    #     new Workbook through ``Workbook()`` is acting on the same instance of Excel as this Workbook.
+    #
+    #     .. versionadded:: 0.2.2
+    #     """
+    #     xlplatform.set_xl_workbook_current(self.xl_workbook)
 
     def get_selection(self, asarray=False, atleast_2d=False):
         """
@@ -416,6 +430,10 @@ class Workbook(object):
         xlplatform.set_names(self.xl_workbook, names)
         return names
 
+    @property
+    def name(self):
+        return self.xl_workbook.Name
+
     def __repr__(self):
         return "<Workbook '{0}'>".format(self.name)
 
@@ -441,11 +459,11 @@ class Sheet(object):
     .. versionadded:: 0.2.3
     """
 
-    def __init__(self, sheet):
-        if xlplatform.is_sheet_instance(sheet):
-            self.xl_sheet = sheet
+    def __init__(self, sheet=None, xl_sheet=None):
+        if xl_sheet is not None:
+            self.xl_sheet = xl_sheet
         else:
-            self.xl_sheet = xlplatform.get_xl_sheet(Workbook.current().xl_sheet, self.sheet)
+            self.xl_sheet = xlplatform.get_xl_sheet(Workbook.current().xl_workbook, sheet)
 
     def activate(self):
         """Activates the sheet."""
@@ -500,10 +518,9 @@ class Sheet(object):
         return xlplatform.get_worksheet_index(self.xl_sheet)
 
     @classmethod
-    def active(cls, wkb=None):
-        """Returns the active Sheet. Use like so: ``Sheet.active()``"""
-        xl_workbook = Workbook.get_xl_workbook(wkb)
-        return cls(xlplatform.get_worksheet_name(xlplatform.get_active_sheet(xl_workbook)), wkb)
+    def active(cls):
+        """Returns the active Sheet in the current application. Use like so: ``Sheet.active()``"""
+        return Application.current.active_sheet
 
     @classmethod
     def add(cls, name=None, before=None, after=None, wkb=None):
@@ -618,7 +635,7 @@ class Sheet(object):
     def range(self, *args):
         if len(args) == 1:
             if isinstance(args[0], string_types):
-                return Range(xlplatform.get_sheet_range(self.xl_sheet, args[0]))
+                return Range(xlplatform.sheet_get_range(self.xl_sheet, args[0]))
         elif len(args) == 1 and isinstance(args[0], string_types):
             sheet_name_or_index = None
             range_address = args[0]

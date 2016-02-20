@@ -90,7 +90,7 @@ class VBAWriter(object):
 class staticproperty(object):
 
     def __init__(self, fget):
-        self.fget = staticmethod(fget)
+        self.fget = staticmethod(fget).__get__(object)
         self.fset = None
 
     def __get__(self, instance, owner):
