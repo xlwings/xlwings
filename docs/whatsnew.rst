@@ -1,6 +1,67 @@
 What's New
 ==========
 
+v0.7.0 (February ??, 2016)
+--------------------------
+
+This release marks an important first step in our descent towards v1.0. It introduces **converters**, a new and powerful
+concept that brings a consistent experience for how data should be treated both when **reading** and **writing** but
+also across **Range** objects and **User Defined Functions** (UDFs).
+
+As a result, a few highlights of this release include:
+
+* A consistent API and behaviour across the Range object and UDFs
+* Pandas DataFrames are now supported for reading and writing, both via Range object and from UDFs
+* New dictionary converter
+* A few new options: ``transpose``, ``dates_as``, ``empty_as``
+* Changed syntax of: ``ndim``, ``expand``
+
+Converters are accessed via the ``options`` method when dealing with ``Range`` objects or via the ``arg`` and ``ret``
+decorators when using UDFs. As an introductory sample, let's look at how to read and write Pandas DataFrames:
+
+a) Range object::
+
+    >>> import xlwings as xw
+    >>> import pandas as pd
+    >>> wb = xw.Workbook('sample.xlsm')
+    >>> df = xw.Range('A1:D5').options(pd.DataFrame, header=2).value
+    >>> df
+        a     b
+        c  d  e
+    ix
+    10  1  2  3
+    20  4  5  6
+    30  7  8  9
+
+  Writing back using the defaults::
+
+    >>> Range('A1').value = df
+
+
+  Writing back changing some of the options, e.g. getting rid of the index::
+
+    >>> Range('A1').options(pd.DataFrame, index=False).value = df
+
+
+b) UDFs:
+
+  This is the same sample as above. If we wish to return a DataFrame with the defaults, the ``xw.ret`` decorator can
+  be left away. ::
+
+    @xw.func
+    @xw.arg('x', as_=pd.DataFrame, header=2)
+    @xw.ret(as_=pd.DataFrame, index=False)
+    def times_two(x):
+       return x
+
+
+
+
+
+
+
+
+
 v0.6.4 (January 6, 2016)
 ------------------------
 
