@@ -12,7 +12,7 @@ As a result, a few highlights of this release include:
 
 * Pandas DataFrames and Series are now supported for reading and writing, both via Range object and from UDFs
 * New dictionary converter
-* A few new Range options: ``transpose``, ``dates_as``, ``empty_as``
+* New Range options: ``transpose``, ``dates_as``, ``empty_as``
 
 Converters are accessed via the new ``options`` method when dealing with ``Range`` objects or via the ``arg`` and ``ret``
 decorators when using UDFs. As an introductory sample, let's look at how to read and write Pandas DataFrames:
@@ -46,8 +46,8 @@ Writing back and changing some of the options, e.g. getting rid of the index::
 
 **UDFs**:
 
-This is the same sample as above (starting in ``Range('A13')`` on screenshot). If we wish to return a DataFrame with the defaults, the ``xw.ret`` decorator can
-be left away. ::
+This is the same sample as above (starting in ``Range('A13')`` on screenshot). If you want to return a DataFrame with
+the defaults, the ``xw.ret`` decorator can be left away. ::
 
     @xw.func
     @xw.arg('x', pd.DataFrame, header=2)
@@ -57,8 +57,8 @@ be left away. ::
        return x
 
 
-Note that the current implementation of the DataFrame converter does not expect or accept named Indices used as ``columns``
-in the DataFrame constructor.
+**Note**: The current implementation of the DataFrame converter will ignore names of either ``pd.Index`` or ``pd.MultiIndex``
+if they are used as ``columns`` of a DataFrame. Likewise, when reading in DataFrames, no labeling of column headers are expected.
 
 Enhancements
 ************
