@@ -58,7 +58,7 @@ if pd:
                     columns = list(zip(*value.columns.tolist()))
                     columns = [list(i) for i in columns]
                     # Move index names right above the index
-                    if index and not all(v is None for v in index_names):
+                    if index and not all(v is None for v in value.index.names):
                         for c in columns[:-1]:
                             c[:index_levels] = [''] * index_levels
                         columns[-1][:index_levels] = index_names
@@ -82,7 +82,7 @@ if pd:
 
         @classmethod
         def read_value(cls, value, options):
-            index = options.get('index', True)
+            index = options.get('index', 1)
             header = options.get('header', True)
             dtype = options.get('dtype', None)
             copy = options.get('copy', False)
@@ -99,7 +99,7 @@ if pd:
             df = pd.DataFrame(data, columns=columns, dtype=dtype, copy=copy)
 
             if index:
-                df = df.set_index(df.columns[0])
+                df = df.set_index(list(df)[0:index])
 
             series = df.squeeze()
 
@@ -111,7 +111,11 @@ if pd:
 
         @classmethod
         def write_value(cls, value, options):
-            if value.index.name is None and value.name is None:
+
+            index_names = value.index.names
+            index_names = ['' if i is None else i for i in index_names]
+
+            if all(v is None for v in value.index.names) and value.name is None:
                 default_header = False
             else:
                 default_header = True
@@ -121,9 +125,7 @@ if pd:
 
             if index:
                 rv = value.reset_index().values.tolist()
-                ix_name = '' if value.index.name is None else value.index.name
-
-                header_row = [[ix_name, value.name]]
+                header_row = [index_names + [value.name]]
             else:
                 rv = value.values[:, np.newaxis].tolist()
                 header_row = [[value.name]]
