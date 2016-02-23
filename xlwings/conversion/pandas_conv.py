@@ -27,13 +27,16 @@ if pd:
         def read_value(cls, value, options):
             index = options.get('index', 1)
             header = options.get('header', 1)
+            dtype = options.get('dtype', None)
+            copy = options.get('copy', False)
+
             value = np.array(value, dtype=object)  # object array to prevent str arrays
 
             columns = pd.MultiIndex.from_arrays(value[:header, index:]) if header > 0 else None
             ix_names = value[header-1, :index] if (header and index) else None
             ix = pd.MultiIndex.from_arrays(value[header:, :index].T,
                                            names=ix_names) if index > 0 else None
-            return pd.DataFrame(value[header:, index:].tolist(), index=ix, columns=columns)
+            return pd.DataFrame(value[header:, index:].tolist(), index=ix, columns=columns, dtype=dtype, copy=copy)
 
         @classmethod
         def write_value(cls, value, options):
@@ -81,6 +84,8 @@ if pd:
         def read_value(cls, value, options):
             index = options.get('index', True)
             header = options.get('header', True)
+            dtype = options.get('dtype', None)
+            copy = options.get('copy', False)
 
             if header:
                 columns = value[0]
@@ -91,7 +96,7 @@ if pd:
                 columns = None
                 data = value
 
-            df = pd.DataFrame(data, columns=columns)
+            df = pd.DataFrame(data, columns=columns, dtype=dtype, copy=copy)
 
             if index:
                 df = df.set_index(df.columns[0])
