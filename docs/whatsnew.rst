@@ -57,6 +57,9 @@ be left away. ::
        return x
 
 
+Note that the current implementation of the DataFrame converter does not expect or accept named Indices used as ``columns``
+in the DataFrame constructor.
+
 Enhancements
 ************
 
@@ -134,7 +137,9 @@ API changes
   changed using the same options as for DataFrames::
 
     import pandas as pd
-    Range('A1').value = pd.Series([1,2,3])  # unchanged behaviour
+
+    # unchanged behaviour
+    Range('A1').value = pd.Series([1,2,3])
 
     # Changed behaviour: This will print a header row in Excel
     s = pd.Series([1,2,3], name='myseries', index=pd.Index([0,1,2], name='myindex'))
@@ -146,7 +151,7 @@ API changes
 * NumPy scalar values
 
   Previously, NumPy scalar values were returned as ``np.atleast_1d``. To keep the same behaviour, this now has to be
-  set explicitly using ``ndim=1`` as otherwise they're returned as numpy scalar values.
+  set explicitly using ``ndim=1``. Otherwise they're returned as numpy scalar values.
 
   ===============================================                  =========================
   **New**                                                          **Old**
