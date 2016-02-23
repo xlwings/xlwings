@@ -5,7 +5,7 @@ v0.7.0 (February ??, 2016)
 --------------------------
 
 This version marks an important first step on our path towards a stable release. It introduces **converters**, a new and powerful
-concept that brings a consistent experience for how data should be treated both when **reading** and **writing** but
+concept that brings a consistent experience for how Ranges and/or values are treated both when **reading** and **writing** but
 also across **Range** objects and **User Defined Functions** (UDFs).
 
 As a result, a few highlights of this release include:
@@ -18,7 +18,7 @@ Converters are accessed via the new ``options`` method when dealing with ``Range
 decorators when using UDFs. As an introductory sample, let's look at how to read and write Pandas DataFrames:
 
 .. figure:: images/df_accessors.png
-  :scale: 80%
+  :scale: 55%
 
 **Range object**::
 
@@ -122,16 +122,16 @@ API changes
 
 * Samples of how the new options method replaces the old Range keyword arguments and properties:
 
-  =====================================================       ===========================
-  **New**                                                     **Old**
-  =====================================================       ===========================
-  ``Range('A1').options(expand='table').value``               ``Range('A1').table.value``
-  ``Range('A1').options(expand='vertical').value``            ``Range('A1').vertical.value``
-  ``Range('A1').options(expand='horizontal').value``          ``Range('A1').horizontal.value``
-  ``Range('A1:A2').options(ndim=2).value``                    ``Range('A1:A2', atleast_2d=True).value``
-  ``Range('A1:B2').options(np.array).value``                  ``Range('A1:B2', asarray=True).value``
-  ``Range('A1', index=False, header=False).value = df``       ``Range('A1').options(index=False, header=False).value = df``
-  =====================================================       ===========================
+  =============================================================   ===========================
+  **New**                                                         **Old**
+  =============================================================   ===========================
+  ``Range('A1').options(expand='table')``                         ``Range('A1').table``
+  ``Range('A1').options(expand='vertical')``                      ``Range('A1').vertical``
+  ``Range('A1').options(expand='horizontal')``                    ``Range('A1').horizontal``
+  ``Range('A1:A2').options(ndim=2)``                              ``Range('A1:A2', atleast_2d=True)``
+  ``Range('A1:B2').options(np.array)``                            ``Range('A1:B2', asarray=True)``
+  ``Range('A1').options(index=False, header=False).value = df``   ``Range('A1', index=False, header=False).value = df``
+  =============================================================   ===========================
 
 * Upon writing, Pandas Series are now shown by default with their name and index name, if they exist. This can be
   changed using the same options as for DataFrames::
