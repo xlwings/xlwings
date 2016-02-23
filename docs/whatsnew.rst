@@ -4,22 +4,23 @@ What's New
 v0.7.0 (February ??, 2016)
 --------------------------
 
-This release marks an important first step in our descent towards v1.0. It introduces **converters**, a new and powerful
+This version marks an important first step on our path towards a stable release. It introduces **converters**, a new and powerful
 concept that brings a consistent experience for how data should be treated both when **reading** and **writing** but
 also across **Range** objects and **User Defined Functions** (UDFs).
 
 As a result, a few highlights of this release include:
 
-* A consistent API and behaviour across the Range object and UDFs
-* Pandas DataFrames are now supported for reading and writing, both via Range object and from UDFs
+* Pandas DataFrames and Series are now supported for reading and writing, both via Range object and from UDFs
 * New dictionary converter
-* A few new options: ``transpose``, ``dates_as``, ``empty_as``
-* Changed syntax of: ``ndim``, ``expand``
+* A few new Range options: ``transpose``, ``dates_as``, ``empty_as``
 
-Converters are accessed via the ``options`` method when dealing with ``Range`` objects or via the ``arg`` and ``ret``
+Converters are accessed via the new ``options`` method when dealing with ``Range`` objects or via the ``arg`` and ``ret``
 decorators when using UDFs. As an introductory sample, let's look at how to read and write Pandas DataFrames:
 
-a) Range object::
+.. figure:: images/df_accessors.png
+  :scale: 80%
+
+**Range object**::
 
     >>> import xlwings as xw
     >>> import pandas as pd
@@ -33,34 +34,125 @@ a) Range object::
     20  4  5  6
     30  7  8  9
 
-  Writing back using the defaults::
+Writing back using the defaults::
 
     >>> Range('A1').value = df
 
 
-  Writing back changing some of the options, e.g. getting rid of the index::
+Writing back and changing some of the options, e.g. getting rid of the index::
 
-    >>> Range('A1').options(pd.DataFrame, index=False).value = df
+    >>> Range('B7').options(index=False).value = df
 
 
-b) UDFs:
+**UDFs**:
 
-  This is the same sample as above. If we wish to return a DataFrame with the defaults, the ``xw.ret`` decorator can
-  be left away. ::
+This is the same sample as above (starting in ``Range('A13')`` on screenshot). If we wish to return a DataFrame with the defaults, the ``xw.ret`` decorator can
+be left away. ::
 
     @xw.func
-    @xw.arg('x', as_=pd.DataFrame, header=2)
-    @xw.ret(as_=pd.DataFrame, index=False)
-    def times_two(x):
+    @xw.arg('x', pd.DataFrame, header=2)
+    @xw.ret(index=False)
+    def myfunction(x):
+       # do something with DataFrame x
        return x
 
 
+Enhancements
+************
+
+* Dictionary (``dict``) converter:
+
+  .. figure:: images/dict_accessor.png
+    :scale: 80%
+
+  ::
+
+    >>> Range('A1:B2').options(dict).value
+    {'a': 1.0, 'b': 2.0}
+    >>> Range('A4:B5').options(dict, transpose=True).value
+    {'a': 1.0, 'b': 2.0}
+
+* ``transpose``: This works in both directions and finally allows us to e.g. write a list in column
+  orientation to Excel::
+
+    Range('A1').options(transpose=True).value = [1, 2, 3]
+
+* ``dates_as``: This allows us to read Excel date-formatted cells in specific formats (works on single cells and
+  cell ranges):
+
+    >>> import datetime as dt
+    >>> Range('A1').value
+    datetime.datetime(2015, 1, 13, 0, 0)
+    >>> Range('A1').options(dates_as=dt.date).value
+    datetime.date(2015, 1, 13)
+
+* ``empty_as``: This allows us to override the default behavior for empty cells:
+
+   >>> Range('A1:B1').value
+   [None, None]
+   >>> Range('A1:B1').options(empty_as='NA')
+   ['NA', 'NA']
+
+All these options work the same with decorators for UDFs, e.g. for transpose::
+
+  @xw.arg('x', transpose=True)
+  @xw.ret(transpose=True)
+  def myfunction(x):
+      # x will be returned unchanged as transposed both when reading and writing
+      return x
 
 
+API changes
+***********
 
+* UDF decorator changes (it is assumed that xlwings is imported as ``xw`` and numpy as ``np``):
 
+  ==============================  =========================
+  **New**                         **Old**
+  ==============================  =========================
+  ``@xw.func``                    ``@xw.xlfunc``
+  ``@xw.arg``                     ``@xw.xlarg``
+  ``@xw.ret``                     ``@xw.xlret``
+  ``@xw.sub``                     ``@xw.xlsub``
+  ``@xw.arg('x', np.array)``      ``@xw.xlarg('x', 'nparray')``
+  ==============================  =========================
 
+* Samples of how the new options method replaces the old Range keyword arguments and properties:
 
+  =====================================================       ===========================
+  **New**                                                     **Old**
+  =====================================================       ===========================
+  ``Range('A1').options(expand='table').value``               ``Range('A1').table.value``
+  ``Range('A1').options(expand='vertical').value``            ``Range('A1').vertical.value``
+  ``Range('A1').options(expand='horizontal').value``          ``Range('A1').horizontal.value``
+  ``Range('A1:A2').options(ndim=2).value``                    ``Range('A1:A2', atleast_2d=True).value``
+  ``Range('A1:B2').options(np.array).value``                  ``Range('A1:B2', asarray=True).value``
+  ``Range('A1', index=False, header=False).value = df``       ``Range('A1').options(index=False, header=False).value = df``
+  =====================================================       ===========================
+
+* Upon writing, Pandas Series are now shown by default with their name and index name, if they exist. This can be
+  changed using the same options as for DataFrames::
+
+    import pandas as pd
+    Range('A1').value = pd.Series([1,2,3])  # unchanged behaviour
+
+    # Changed behaviour: This will print a header row in Excel
+    s = pd.Series([1,2,3], name='myseries', index=pd.Index([0,1,2], name='myindex'))
+    Range('A1').value = s
+
+    # Control this behaviour like so (as with DataFrames):
+    Range('A1').options(header=False, index=True).value = s
+
+* NumPy scalar values
+
+  Previously, NumPy scalar values were returned as ``np.atleast_1d``. To keep the same behaviour, this now has to be
+  set explicitly using ``ndim=1`` as otherwise they're returned as numpy scalar values.
+
+  ===============================================                  =========================
+  **New**                                                          **Old**
+  ===============================================                  =========================
+  ``Range('A1').options(np.array, ndim=1).value``                  ``Range('A1', asarray=True).value``
+  ===============================================                  =========================
 
 v0.6.4 (January 6, 2016)
 ------------------------

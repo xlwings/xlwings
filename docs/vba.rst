@@ -71,9 +71,7 @@ LOG_FILE default locations
 
 .. note:: ``OPTIMIZED_CONNECTION = True`` works currently on **Windows only** and is still experimental! This will
   use a COM server that will keep the connection to Python alive between different calls and is therefore much more
-  efficient. However, changes in the Python code are not being picked up until the ``pythonw.exe`` process is restarted
-  by killing it manually in the Windows Task Manager. The suggested workflow is hence to set
-  ``OPTIMIZED_CONNECTION = False`` for development and to only set it to ``True`` for production.
+  efficient.
 
 
 Subtle difference between the Windows and Mac Version
