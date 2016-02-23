@@ -10,7 +10,7 @@ also across **Range** objects and **User Defined Functions** (UDFs).
 
 As a result, a few highlights of this release include:
 
-* Pandas DataFrames and Series are now supported for reading and writing, both via Range object and from UDFs
+* Pandas DataFrames and Series are now supported for reading and writing, both via Range object and UDFs
 * New dictionary converter
 * New Range options: ``transpose``, ``dates_as``, ``empty_as``
 
