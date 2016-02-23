@@ -58,7 +58,7 @@ if pd:
                     columns = list(zip(*value.columns.tolist()))
                     columns = [list(i) for i in columns]
                     # Move index names right above the index
-                    if index and not all(v is None for v in value.index.names):
+                    if index:
                         for c in columns[:-1]:
                             c[:index_levels] = [''] * index_levels
                         columns[-1][:index_levels] = index_names
