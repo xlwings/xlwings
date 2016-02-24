@@ -32,11 +32,24 @@ from .main import Application, Workbook, Range, Chart, Sheet, Picture, Shape, Pl
 from .constants import *
 
 # UDFs
-from .udfs import xlfunc, xlsub, xlret, xlarg, udf_script, import_udfs
-func = xlfunc
-sub = xlsub
-ret = xlret
-arg = xlarg
+from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, udf_script, import_udfs
+
+
+def xlfunc(*args, **kwargs):
+    raise Exception("Deprecation: 'xlfunc' has been renamed to 'func' - use 'import xlwings as xw' and decorate your function with '@xw.func'.")
+
+
+def xlsub(*args, **kwargs):
+    raise Exception("Deprecation: 'xlsub' has been renamed to 'sub' - use 'import xlwings as xw' and decorate your function with '@xw.sub'.")
+
+
+def xlret(*args, **kwargs):
+    raise Exception("Deprecation: 'xlret' has been renamed to 'ret' - use 'import xlwings as xw' and decorate your function with '@xw.ret'.")
+
+
+def xlarg(*args, **kwargs):
+    raise Exception("Deprecation: 'xlarg' has been renamed to 'arg' - use 'import xlwings as xw' and decorate your function with '@xw.arg'.")
+
 
 # Server
 if sys.platform.startswith('win'):
