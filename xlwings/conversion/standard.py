@@ -133,13 +133,27 @@ class TransposeStage(object):
         c.value = [[e[i] for e in c.value] for i in range(len(c.value[0]) if c.value else 0)]
 
 
-class RangeAccessor(Accessor):
+class BaseAccessor(Accessor):
 
     @classmethod
     def reader(cls, options):
         return (
             Pipeline()
             .append_stage(ExpandRangeStage(options), only_if=options.get('expand', None))
+        )
+
+
+class RangeAccessor(Accessor):
+
+    @staticmethod
+    def copy_range_to_value(c):
+        c.value = c.range
+
+    @classmethod
+    def reader(cls, options):
+        return (
+            BaseAccessor.reader(options)
+            .append_stage(RangeAccessor.copy_range_to_value)
         )
 
 
@@ -151,7 +165,7 @@ class ValueAccessor(Accessor):
     @staticmethod
     def reader(options):
         return (
-            RangeAccessor.reader(options)
+            BaseAccessor.reader(options)
             .append_stage(ReadValueFromRangeStage())
             .append_stage(Ensure2DStage())
             .append_stage(CleanDataFromReadStage(options))
