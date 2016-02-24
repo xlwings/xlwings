@@ -13,6 +13,7 @@ As a result, a few highlights of this release include:
 * Pandas DataFrames and Series are now supported for reading and writing, both via Range object and UDFs
 * New dictionary converter
 * New Range options: ``transpose``, ``dates_as``, ``empty_as``
+* UDF debugger
 
 Converters are accessed via the new ``options`` method when dealing with ``Range`` objects or via the ``arg`` and ``ret``
 decorators when using UDFs. As an introductory sample, let's look at how to read and write Pandas DataFrames:
@@ -104,6 +105,17 @@ All these options work the same with decorators for UDFs, e.g. for transpose::
       # x will be returned unchanged as transposed both when reading and writing
       return x
 
+
+* UDF debugger
+
+  For proper debugging of your UDFs in Python, just set ``UDF_DEBUG_SERVER = True`` in the VBA Settings,
+  at the top of the xlwings VBA module. Then add the following lines to your python source file and run it::
+
+
+    if __name__ == '__main__':
+        xw.serve()
+
+  When you recalculate the Sheet, the code will stop at breakpoints or print any print statements that you may have.
 
 API changes
 ***********
