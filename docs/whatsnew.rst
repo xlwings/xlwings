@@ -117,6 +117,10 @@ All these options work the same with decorators for UDFs, e.g. for transpose::
 
   When you recalculate the Sheet, the code will stop at breakpoints or print any print statements that you may have.
 
+* pyc files: The creation of pyc files has been disabled, leaving things in a tidier state when having the Python source file
+  next to the Excel workbook.
+
+
 API changes
 ***********
 
