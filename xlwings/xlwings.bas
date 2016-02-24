@@ -135,7 +135,7 @@ Sub ExcecuteMac2011(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As S
 
     ' Build the command (ignore warnings to be in line with Windows where we only show the popup if the ExitCode <> 0
     ' -u is needed because on PY3 stderr is buffered by default and so wouldn't be available on time for the pop-up to show
-    RunCommand = PythonInterpreter & " -u -W ignore -c ""import sys; sys.path.extend(r'" & PYTHONPATH & "'.split(';')); " & PythonCommand & """ "
+    RunCommand = PythonInterpreter & " -u -B -W ignore -c ""import sys; sys.path.extend(r'" & PYTHONPATH & "'.split(';')); " & PythonCommand & """ "
 
     ' Send the command to the shell. Courtesy of Robert Knight (http://stackoverflow.com/a/12320294/918626)
     ' Since Excel blocks AppleScript as long as a VBA macro is running, we have to excecute the call as background call
@@ -240,7 +240,7 @@ Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As S
     WORKBOOK_FULLNAME = ThisWorkbook.FullName
 
     If IsFrozen = False Then
-        RunCommand = "python -c ""import sys; sys.path.extend(r'" & PYTHONPATH & "'.split(';')); " & PythonCommand & """ "
+        RunCommand = "python -B -c ""import sys; sys.path.extend(r'" & PYTHONPATH & "'.split(';')); " & PythonCommand & """ "
     ElseIf IsFrozen = True Then
         RunCommand = PythonCommand & " "
     End If
@@ -463,7 +463,7 @@ Function XLPyCommand()
     If UDF_DEBUG_SERVER = True Then
         XLPyCommand = "{506e67c3-55b5-48c3-a035-eed5deea7d6d}"
     Else
-        Tail = " -c ""import sys;sys.path.extend(r'" & PYTHONPATH & "'.split(';'));import xlwings.server; xlwings.server.serve('$(CLSID)')"""
+        Tail = " -B -c ""import sys;sys.path.extend(r'" & PYTHONPATH & "'.split(';'));import xlwings.server; xlwings.server.serve('$(CLSID)')"""
         If PYTHON_WIN = "" Then
             XLPyCommand = "pythonw.exe" + Tail
         ElseIf LCase$(Right$(PYTHON_WIN, 4)) = ".exe" Then
