@@ -274,7 +274,7 @@ class XLPython(object):
         exec (stmt, globals, locals)
 
 
-def serve(clsid):
+def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
     """Launch the COM server, clsid is the XLPython object class id """
     clsid = pywintypes.IID(clsid)
 
@@ -300,7 +300,10 @@ def serve(clsid):
     pythoncom.EnableQuitMessage(win32api.GetCurrentThreadId())
     pythoncom.CoResumeClassObjects()
 
+    print('xlwings debug server running...')
+
     pythoncom.PumpMessages()
 
     pythoncom.CoRevokeClassObject(revokeId)
     pythoncom.CoUninitialize()
+
