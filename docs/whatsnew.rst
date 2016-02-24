@@ -53,7 +53,7 @@ the defaults, the ``xw.ret`` decorator can be left away. ::
     @xw.arg('x', pd.DataFrame, header=2)
     @xw.ret(index=False)
     def myfunction(x):
-       # do something with DataFrame x
+       # x is a DataFrame, do something with it
        return x
 
 
@@ -120,14 +120,11 @@ API changes
   ``@xw.arg('x', np.array)``      ``@xw.xlarg('x', 'nparray')``
   ==============================  =========================
 
-* Samples of how the new options method replaces the old Range keyword arguments and properties:
+* Samples of how the new options method replaces the old Range keyword arguments:
 
   =============================================================   ===========================
   **New**                                                         **Old**
   =============================================================   ===========================
-  ``Range('A1').options(expand='table')``                         ``Range('A1').table``
-  ``Range('A1').options(expand='vertical')``                      ``Range('A1').vertical``
-  ``Range('A1').options(expand='horizontal')``                    ``Range('A1').horizontal``
   ``Range('A1:A2').options(ndim=2)``                              ``Range('A1:A2', atleast_2d=True)``
   ``Range('A1:B2').options(np.array)``                            ``Range('A1:B2', asarray=True)``
   ``Range('A1').options(index=False, header=False).value = df``   ``Range('A1', index=False, header=False).value = df``
