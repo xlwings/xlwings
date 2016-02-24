@@ -56,7 +56,9 @@ def xlsub(f=None, **kwargs):
         return inner(f)
 
 
-def xlret(**kwargs):
+def xlret(as_=None, **kwargs):
+    if as_ is not None:
+        kwargs['as_'] = as_
     def inner(f):
         xlf = xlfunc(f).__xlfunc__
         xlr = xlf["ret"]
@@ -65,7 +67,9 @@ def xlret(**kwargs):
     return inner
 
 
-def xlarg(arg, **kwargs):
+def xlarg(arg, as_=None, **kwargs):
+    if as_ is not None:
+        kwargs['as_'] = as_
     def inner(f):
         xlf = xlfunc(f).__xlfunc__
         if arg not in xlf["argmap"]:
