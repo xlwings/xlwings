@@ -24,7 +24,7 @@ if np:
             return (
                 super(NumpyArrayConverter, cls).base_reader(
                     Options(options)
-                    .defaults(empty_as=np.nan)
+                    .defaults(empty=np.nan)
                 )
             )
 

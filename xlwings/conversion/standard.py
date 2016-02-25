@@ -66,10 +66,10 @@ class ReadValueFromRangeStage(object):
 class CleanDataFromReadStage(object):
 
     def __init__(self, options):
-        dates_as = options.get('dates_as', datetime.datetime)
-        self.empty_as = options.get('empty_as', None)
+        dates_as = options.get('dates', datetime.datetime)
+        self.empty_as = options.get('empty', None)
         self.dates_handler = _date_handlers.get(dates_as, dates_as)
-        numbers_as = options.get('numbers_as', None)
+        numbers_as = options.get('numbers', None)
         self.numbers_handler = _number_handlers.get(numbers_as, numbers_as)
 
     def __call__(self, c):

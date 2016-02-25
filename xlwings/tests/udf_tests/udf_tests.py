@@ -128,22 +128,22 @@ def write_transpose():
     return [[1., 2.], [3., 4.]]
 
 @xw.func
-@xw.arg('x', dates_as=date)
+@xw.arg('x', dates=date)
 def read_dates_as1(x):
     return x == [[1., date(2015, 1, 13)], [date(2000, 12, 1), 4.]]
 
 @xw.func
-@xw.arg('x', dates_as=date)
+@xw.arg('x', dates=date)
 def read_dates_as2(x):
     return x == date(2005, 1, 15)
 
 @xw.func
-@xw.arg('x', dates_as=datetime)
+@xw.arg('x', dates=datetime)
 def read_dates_as3(x):
     return x == [[1., datetime(2015, 1, 13)], [datetime(2000, 12, 1), 4.]]
 
 @xw.func
-@xw.arg('x', empty_as='empty')
+@xw.arg('x', empty='empty')
 def read_empty_as(x):
     return x == [[1., 'empty'], ['empty', 4.]]
 
@@ -213,12 +213,12 @@ if np:
         return np.array([[1., 2.], [3., 4.]])
 
     @xw.func
-    @xw.arg('x', np.array, dates_as=date)
+    @xw.arg('x', np.array, dates=date)
     def read_dates_as_nparray(x):
         return nparray_equal(x, np.array(date(2000, 12, 20)))
 
     @xw.func
-    @xw.arg('x', np.array, empty_as='empty')
+    @xw.arg('x', np.array, empty='empty')
     def read_empty_as_nparray(x):
         return nparray_equal(x, np.array('empty'))
 
