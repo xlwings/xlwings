@@ -234,7 +234,7 @@ def get_value_from_range(xl_range):
     return xl_range.value.get()
 
 
-def _clean_value_data_element(value, datetime_builder, empty_as):
+def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
     if value == '':
         return empty_as
     if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:
@@ -248,11 +248,13 @@ def _clean_value_data_element(value, datetime_builder, empty_as):
             microsecond=value.microsecond,
             tzinfo=None
         )
+    elif number_builder is not None and type(value) == float:
+        value = number_builder(value)
     return value
 
 
-def clean_value_data(data, datetime_builder, empty_as):
-    return [[_clean_value_data_element(c, datetime_builder, empty_as) for c in row] for row in data]
+def clean_value_data(data, datetime_builder, empty_as, number_builder):
+    return [[_clean_value_data_element(c, datetime_builder, empty_as, number_builder) for c in row] for row in data]
 
 
 def get_value_from_index(xl_sheet, row_index, column_index):

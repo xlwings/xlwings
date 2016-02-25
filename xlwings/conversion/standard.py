@@ -18,6 +18,9 @@ _date_handlers = {
     datetime.date: lambda year, month, day, **kwargs: datetime.date(year, month, day)
 }
 
+_number_handlers = {
+}
+
 
 class ExpandRangeStage(object):
     def __init__(self, options):
@@ -66,9 +69,11 @@ class CleanDataFromReadStage(object):
         dates_as = options.get('dates_as', datetime.datetime)
         self.empty_as = options.get('empty_as', None)
         self.dates_handler = _date_handlers.get(dates_as, dates_as)
+        numbers_as = options.get('numbers_as', None)
+        self.numbers_handler = _number_handlers.get(numbers_as, numbers_as)
 
     def __call__(self, c):
-        c.value = xlplatform.clean_value_data(c.value, self.dates_handler, self.empty_as)
+        c.value = xlplatform.clean_value_data(c.value, self.dates_handler, self.empty_as, self.numbers_handler)
 
 
 class CleanDataForWriteStage(object):

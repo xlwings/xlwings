@@ -285,18 +285,33 @@ def get_value_from_range(xl_range):
     return xl_range.Value
 
 
-def clean_value_data(data, datetime_builder, empty_as):
-    return [
-        [
-            _com_time_to_datetime(c, datetime_builder)
-            if isinstance(c, time_types)
-            else empty_as
-            if c is None
-            else c
-            for c in row
+def clean_value_data(data, datetime_builder, empty_as, number_builder):
+    if number_builder is not None:
+        return [
+            [
+                _com_time_to_datetime(c, datetime_builder)
+                if isinstance(c, time_types) else
+                number_builder(c)
+                if type(c) == float else
+                empty_as
+                if c is None else
+                c
+                for c in row
+            ]
+            for row in data
         ]
-        for row in data
-    ]
+    else:
+        return [
+            [
+                _com_time_to_datetime(c, datetime_builder)
+                if isinstance(c, time_types)
+                else empty_as
+                if c is None
+                else c
+                for c in row
+            ]
+            for row in data
+        ]
 
 
 def get_value_from_index(xl_sheet, row_index, column_index):
