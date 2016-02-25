@@ -5,15 +5,16 @@ v0.7.0 (February ??, 2016)
 --------------------------
 
 This version marks an important first step on our path towards a stable release. It introduces **converters**, a new and powerful
-concept that brings a consistent experience for how Ranges and/or values are treated both when **reading** and **writing** but
+concept that brings a consistent experience for how Ranges and their values are treated both when **reading** and **writing** but
 also across **Range** objects and **User Defined Functions** (UDFs).
 
 As a result, a few highlights of this release include:
 
 * Pandas DataFrames and Series are now supported for reading and writing, both via Range object and UDFs
+* New Range converter options: ``transpose``, ``dates_as``, ``empty_as``, ``expand``
 * New dictionary converter
-* New Range options: ``transpose``, ``dates_as``, ``empty_as``
-* UDF debugger
+* New UDF debugging server
+* No more pyc files when running ``RunPython``
 
 Converters are accessed via the new ``options`` method when dealing with ``Range`` objects or via the ``arg`` and ``ret``
 decorators when using UDFs. As an introductory sample, let's look at how to read and write Pandas DataFrames:
@@ -58,9 +59,6 @@ the defaults, the ``xw.ret`` decorator can be left away. ::
        return x
 
 
-**Note**: The current implementation of the DataFrame converter will ignore names of either ``pd.Index`` or ``pd.MultiIndex``
-if they are used as ``columns`` of a DataFrame. Likewise, when reading in DataFrames, no labeling of column headers are expected.
-
 Enhancements
 ************
 
@@ -76,12 +74,12 @@ Enhancements
     >>> Range('A4:B5').options(dict, transpose=True).value
     {'a': 1.0, 'b': 2.0}
 
-* ``transpose``: This works in both directions and finally allows us to e.g. write a list in column
+* ``transpose`` option: This works in both directions and finally allows us to e.g. write a list in column
   orientation to Excel::
 
     Range('A1').options(transpose=True).value = [1, 2, 3]
 
-* ``dates_as``: This allows us to read Excel date-formatted cells in specific formats (works on single cells and
+* ``dates_as`` option: This allows us to read Excel date-formatted cells in specific formats (works on single cells and
   cell ranges):
 
     >>> import datetime as dt
@@ -90,12 +88,30 @@ Enhancements
     >>> Range('A1').options(dates_as=dt.date).value
     datetime.date(2015, 1, 13)
 
-* ``empty_as``: This allows us to override the default behavior for empty cells:
+* ``empty_as`` option: This allows us to override the default behavior for empty cells:
 
    >>> Range('A1:B1').value
    [None, None]
    >>> Range('A1:B1').options(empty_as='NA')
    ['NA', 'NA']
+
+* ``expand`` option: This works the same as the Range properties ``table``, ``vertical`` and ``horizontal`` but is
+  only evaluated when getting the values of a Range::
+
+    >>> import xlwings as xw
+    >>> wb = xw.Workbook()
+    >>> xw.Range('A1').value = [[1,2], [3,4]]
+    >>> rng1 = xw.Range('A1').table
+    >>> rng2 = xw.Range('A1').options(expand='table')
+    >>> rng1.value
+    [[1.0, 2.0], [3.0, 4.0]]
+    >>> rng2.value
+    [[1.0, 2.0], [3.0, 4.0]]
+    >>> xw.Range('A3').value = [5, 6]
+    >>> rng1.value
+    [[1.0, 2.0], [3.0, 4.0]]
+    >>> rng2.value
+    [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
 
 All these options work the same with decorators for UDFs, e.g. for transpose::
 
@@ -117,8 +133,8 @@ All these options work the same with decorators for UDFs, e.g. for transpose::
 
   When you recalculate the Sheet, the code will stop at breakpoints or print any print statements that you may have.
 
-* pyc files: The creation of pyc files has been disabled, leaving things in a tidier state when having the Python source file
-  next to the Excel workbook.
+* pyc files: The creation of pyc files has been disabled when using ``RunPython``, leaving things in a uncluttered state
+  when having the Python source file next to the Excel workbook.
 
 
 API changes
