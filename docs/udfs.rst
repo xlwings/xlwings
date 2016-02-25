@@ -112,6 +112,9 @@ To define a formula for matrix multiplication, you would define the following fu
 
 .. note:: If you are not on Python >= 3.5 with NumPy >= 1.10, use ``x.dot(y)`` instead of ``x @ y``.
 
+
+.. _decorator_macros:
+
 Macros
 ------
 

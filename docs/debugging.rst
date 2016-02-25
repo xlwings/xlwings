@@ -3,11 +3,14 @@
 Debugging
 =========
 
-Since xlwings runs in every Python environment, you can use your preferred way of debugging. When running xlwings
-through Excel, there are a few tricks that make it easier to switch back and forth between Excel (for testing) and
-Python (for development and debugging).
+Since xlwings runs in every Python environment, you can use your preferred way of debugging.
 
-To begin with, Excel will show any Python errors (but not warnings) in a Message Box:
+* **RunPython**: When calling Python through ``RunPython``, there are a few tricks that make it easier to switch back and forth between Excel (for testing) and
+  Python (for development and debugging).
+* **UDFs**: When debugging User Defined Functions (UDFs), xlwings offers a very convenient debugging server
+
+
+To begin with, Excel will show Python errors (but not warnings) in a Message Box:
 
 .. figure:: images/debugging_error.png
     :scale: 65%

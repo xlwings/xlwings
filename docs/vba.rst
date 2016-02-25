@@ -6,8 +6,19 @@ VBA: Calling Python from Excel
 Import the xlwings VBA module into Excel
 ----------------------------------------
 
-To get access to the ``RunPython`` function in VBA, you need to import the VBA module ``xlwings.bas`` into the VBA
-editor:
+To get access to the ``RunPython`` function and/or to be able to run User Defined Functions (UDFs), you need to have the
+``xlwings`` VBA module available in your Excel workbook.
+
+For new projects, by far the easiest way to get started is by using the command line client with the quickstart option,
+see :ref:`command_line` for details::
+
+    $ xlwings quickstart myproject
+
+
+This will create a new folder in your current directory with both, an Excel and Python file.
+
+Alternatively, you can also open a new spreadsheet from a template (``$ xlwings template open``) or manually insert
+the module in an existing workbook like so:
 
 * Open the VBA editor with ``Alt-F11``
 * Then go to ``File > Import File...`` and import the ``xlwings.bas`` file. It can be found in the directory of
@@ -18,11 +29,6 @@ If you don't know the location of your xlwings installation, you can find it as 
     $ python
     >>> import xlwings
     >>> xlwings.__path__
-
-An even easier way is to start from a template that already includes the xlwings VBA module and
-boilerplate code. Use the command line client like this (for details see: :ref:`command_line`)::
-
-    $ xlwings template open
 
 .. _vba_settings:
 
@@ -37,6 +43,7 @@ under ``Function Settings``::
     PYTHON_FROZEN = ThisWorkbook.Path & "\build\exe.win32-2.7"
     PYTHONPATH = ThisWorkbook.Path
     UDF_PATH = ""
+    UDF_DEBUG_SERVER = False
     LOG_FILE = ThisWorkbook.Path & "\xlwings_log.txt"
     SHOW_LOG = True
     OPTIMIZED_CONNECTION = False
@@ -53,6 +60,7 @@ under ``Function Settings``::
 * ``UDF_PATH`` [Optional, Windows only]: Full path to a Python file from which the User Defined Functions are being imported.
   Example: ``UDF_PATH = ThisWorkbook.Path & "\functions.py"``
   Default: ``UDF_PATH = ""`` defaults to a file in the same directory of the Excel spreadsheet with the same name but ending in ``.py``.
+* ``UDF_DEBUG_SERVER``: Set this to True if you want to run the xlwings COM server manually for debugging, see :ref:`debugging`.
 * ``LOG_FILE`` [Optional]: Leave empty for default location (see below) or provide directory including file name.
 * ``SHOW_LOG``: If False, no pop-up with the Log messages (usually errors) will be shown. Use with care.
 * ``OPTIMIZED_CONNECTION``: Currently only on Windows, use a COM Server for an efficient connection (experimental!)
@@ -63,32 +71,20 @@ LOG_FILE default locations
 **************************
 
 * Windows: ``%APPDATA%\xlwings_log.txt``
-* Mac 2011: ``/tmp/xlwings_log.txt``
-* Mac 2016: ``/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt``
+* Mac with Excel 2011: ``/tmp/xlwings_log.txt``
+* Mac with Excel 2016: ``/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt``
 
 .. note:: If the settings (especially ``PYTHONPATH`` and ``LOG_FILE``) need to work on Windows on Mac, use backslashes
     in relative file path, i.e. ``ThisWorkbook.Path & "\mydirectory"``.
-
-.. note:: ``OPTIMIZED_CONNECTION = True`` works currently on **Windows only** and is still experimental! This will
-  use a COM server that will keep the connection to Python alive between different calls and is therefore much more
-  efficient.
-
-
-Subtle difference between the Windows and Mac Version
------------------------------------------------------
-
-* **Windows**: After calling the Macro (e.g. by pressing a button), Excel waits until Python is done.
-
-* **Mac**: After calling the Macro, the call returns instantly but Excel's Status Bar turns into ``Running...`` during the
-  duration of the Python call.
 
 .. _run_python:
 
 Call Python with "RunPython"
 ----------------------------
 
-After you have imported the xlwings VBA module and potentially adjusted the Settings, go to ``Insert > Module`` (still
-in the VBA-Editor). This will create a new Excel module where you can write your Python call as follows:
+After your workbook contains the xlwings VBA module with potentially adjusted Settings, go to ``Insert > Module`` (still
+in the VBA-Editor). This will create a new Excel module where you can write your Python call as follows (note that the ``quickstart``
+or ``template`` commands already add an empty Module1, so you don't need to insert a new module manually):
 
 .. code-block:: vb.net
 
@@ -115,3 +111,10 @@ You can then attach ``MyMacro`` to a button or run it directly in the VBA Editor
 .. note:: Always place ``Workbook.caller()`` within the function that is being called from Excel and not outside as
     global variable. Otherwise it prevents Excel from shutting down properly upon exiting and
     leaves you with a zombie process when you use ``OPTIMIZED_CONNECTION = True``.
+
+Function Arguments and Return Values
+------------------------------------
+
+While it's technically possible to include arguments in the function call within ``RunPython``, it's not very convenient.
+To do that easily and to also be able to return values from Python, use :ref:`udfs` - however, this is currently limited
+to Windows only.
