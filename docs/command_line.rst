@@ -3,7 +3,7 @@
 Command Line Client
 ===================
 
-xlwings comes with a command line client that makes the handling of workbooks and add-in very easy.
+xlwings comes with a command line client that makes it easy to set up workbooks and install the developer add-in.
 On Windows, type the commands into a ``Command Prompt``, on Mac, type them into a ``Terminal``.
 
 Quickstart

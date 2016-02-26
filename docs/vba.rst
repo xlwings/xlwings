@@ -15,7 +15,7 @@ see :ref:`command_line` for details::
     $ xlwings quickstart myproject
 
 
-This will create a new folder in your current directory with both, an Excel and Python file.
+This will create a new folder in your current directory with a fully prepared Excel file and an empty Python file.
 
 Alternatively, you can also open a new spreadsheet from a template (``$ xlwings template open``) or manually insert
 the module in an existing workbook like so:
@@ -116,5 +116,5 @@ Function Arguments and Return Values
 ------------------------------------
 
 While it's technically possible to include arguments in the function call within ``RunPython``, it's not very convenient.
-To do that easily and to also be able to return values from Python, use :ref:`udfs` - however, this is currently limited
+To do that easily and to also be able to return values from Python, use UDFs, see :ref:`udfs` - however, this is currently limited
 to Windows only.

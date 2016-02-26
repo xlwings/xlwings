@@ -50,8 +50,8 @@ source code:
 **UDF debug server**
 
 Windows only: To debug UDFs, just set ``UDF_DEBUG_SERVER = True`` in the VBA Settings, at the top of the xlwings VBA module.
-Then add the following lines to your Python source file and run it. Depending on your IDE (e.g. in PyCharm) you
-may want to run things in "Debug" mode::
+Then add the following lines at the end of your Python source file and run it. Depending on which IDE you use, you
+might want to run things in "debug" mode (e.g. in case your using PyCharm)::
 
 
     if __name__ == '__main__':
@@ -64,3 +64,7 @@ The following screenshot shows the code stopped at a breakpoint in the community
 
 .. figure:: images/udf_debugging.png
     :scale: 65%
+
+.. note::
+  When running the debug server from a command prompt, there is currently no gracious way to terminate it, but closing
+  the command prompt will kill it.

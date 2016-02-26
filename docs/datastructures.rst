@@ -4,8 +4,7 @@ Working with Data Structures
 ============================
 
 This page gives you a quick introduction to the most common use cases and default behaviour of xlwings when reading and
-writing values. For an in-depth look at how to control the behaviour using the ``options`` method, have a look at the
-section about Converters (TODO).
+writing values. For an in-depth documentation of how to control things using the ``options`` method, have a look at Converters (TODO).
 
 Single Cells
 ------------
@@ -51,7 +50,7 @@ Lists
     [1.0]
 
   .. note::
-    To write a list in column orientation to Excel, use transpose: ``Range('A1').options(transpose=True).value = [1,2,3,4]``
+    To write a list in column orientation to Excel, use ``transpose``: ``Range('A1').options(transpose=True).value = [1,2,3,4]``
 
 * 2d lists: If the row or column orientation has to be preserved, set ``ndim`` in the Range options. This will return the
   Ranges as nested lists ("2d lists"):
@@ -83,7 +82,7 @@ Range expanding: "table", "vertical" and "horizontal"
 
 You can get the dimensions of Excel Ranges dynamically through either the Range
 properties ``table``, ``vertical`` and ``horizontal`` or through ``options(expand='table')``
-(works the same for vertical and horizontal). While properties give back a changed Range object,
+(same for ``'vertical'`` and ``'horizontal'``). While properties give back a changed Range object,
 options are only evaluated when accessing the values of a Range. The difference is best explained with an example:
 
 .. code-block:: python
@@ -116,13 +115,11 @@ NumPy arrays work similar to nested lists. However, empty cells are represented 
 
     >>> import numpy as np
     >>> wb = Workbook()
-    >>> Range('A1').value = np.eye(5)
+    >>> Range('A1').value = np.eye(3)
     >>> Range('A1').options(np.array, expand='table').value
-    array([[ 1.,  0.,  0.,  0.,  0.],
-           [ 0.,  1.,  0.,  0.,  0.],
-           [ 0.,  0.,  1.,  0.,  0.],
-           [ 0.,  0.,  0.,  1.,  0.],
-           [ 0.,  0.,  0.,  0.,  1.]])
+    array([[ 1.,  0.,  0.],
+           [ 0.,  1.,  0.],
+           [ 0.,  0.,  1.]])
 
 Pandas DataFrames and Series
 ----------------------------
@@ -144,7 +141,8 @@ Pandas DataFrames and Series are also easy to work with:
        one  two
     0  1.1  2.2
     1  3.3  NaN
-    >>> Range('A5').options(index=False).value = df  # options work for reading and writing
+    # options: work for reading and writing
+    >>> Range('A5').options(index=False).value = df
     >>> Range('A9').options(index=False, header=False).value = df
 
 * Series:
