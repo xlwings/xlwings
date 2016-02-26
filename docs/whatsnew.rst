@@ -11,7 +11,7 @@ also across **Range** objects and **User Defined Functions** (UDFs).
 As a result, a few highlights of this release include:
 
 * Pandas DataFrames and Series are now supported for reading and writing, both via Range object and UDFs
-* New Range converter options: ``transpose``, ``dates_as``, ``empty_as``, ``expand``
+* New Range converter options: ``transpose``, ``dates``, ``numbers``, ``empty``, ``expand``
 * New dictionary converter
 * New UDF debugging server
 * No more pyc files when running ``RunPython``
@@ -79,20 +79,20 @@ Enhancements
 
     Range('A1').options(transpose=True).value = [1, 2, 3]
 
-* ``dates_as`` option: This allows us to read Excel date-formatted cells in specific formats (works on single cells and
+* ``dates`` option: This allows us to read Excel date-formatted cells in specific formats (works on single cells and
   cell ranges):
 
     >>> import datetime as dt
     >>> Range('A1').value
     datetime.datetime(2015, 1, 13, 0, 0)
-    >>> Range('A1').options(dates_as=dt.date).value
+    >>> Range('A1').options(dates=dt.date).value
     datetime.date(2015, 1, 13)
 
-* ``empty_as`` option: This allows us to override the default behavior for empty cells:
+* ``empty`` option: This allows us to override the default behavior for empty cells:
 
    >>> Range('A1:B1').value
    [None, None]
-   >>> Range('A1:B1').options(empty_as='NA')
+   >>> Range('A1:B1').options(empty='NA')
    ['NA', 'NA']
 
 * ``expand`` option: This works the same as the Range properties ``table``, ``vertical`` and ``horizontal`` but is
@@ -124,14 +124,14 @@ All these options work the same with decorators for UDFs, e.g. for transpose::
 
 * UDF debugger
 
-  For proper debugging of your UDFs in Python, just set ``UDF_DEBUG_SERVER = True`` in the VBA Settings,
-  at the top of the xlwings VBA module. Then add the following lines to your python source file and run it::
+  The new UDF debug server allows you to easily debug UDFs: just set ``UDF_DEBUG_SERVER = True`` in the VBA Settings,
+  at the top of the xlwings VBA module. Then add the following lines to your Python source file and run it::
 
 
     if __name__ == '__main__':
         xw.serve()
 
-  When you recalculate the Sheet, the code will stop at breakpoints or print any print statements that you may have.
+  When you recalculate the Sheet, the code will stop at breakpoints or print any statements that you may have.
 
 * pyc files: The creation of pyc files has been disabled when using ``RunPython``, leaving things in a uncluttered state
   when having the Python source file next to the Excel workbook.
@@ -149,7 +149,14 @@ API changes
   ``@xw.arg``                     ``@xw.xlarg``
   ``@xw.ret``                     ``@xw.xlret``
   ``@xw.sub``                     ``@xw.xlsub``
-  ``@xw.arg('x', np.array)``      ``@xw.xlarg('x', 'nparray')``
+  ==============================  =========================
+
+  Pay attention to the following subtle change:
+
+  ==============================  =========================
+  **New**                         **Old**
+  ==============================  =========================
+  ``@xw.arg("x", np.array)``      ``@xw.xlarg("x", "nparray")``
   ==============================  =========================
 
 * Samples of how the new options method replaces the old Range keyword arguments:
