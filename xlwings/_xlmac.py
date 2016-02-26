@@ -29,6 +29,67 @@ if np:
 _xl_app = None
 
 
+class Application(object):
+    def __init__(self, target='Microsoft Excel'):
+        self.__appscript__ = app(target, terms=mac_dict)
+
+    def get_workbook(self, name):
+        return Workbook(self, name)
+
+    def get_active_workbook(self):
+        return Workbook(self, self.__appscript__.active_workbook.name.get())
+
+    def get_active_sheet(self):
+        return Sheet(
+            Workbook(self, self.__appscript__.active_workbook.name.get()),
+            self.__appscript__.active_sheet.name.get()
+        )
+
+
+class Workbook(object):
+    def __init__(self, application, name):
+        self.application = application
+        self.name = name
+
+    @property
+    def __appscript__(self):
+        return self.application.__appscript__.workbooks(self.name)
+
+    def get_sheet(self, name):
+        return Sheet(self, name)
+
+
+class Sheet(object):
+    def __init__(self, workbook, name):
+        self.workbook = workbook
+        self.name = name
+
+    @property
+    def __appscript__(self):
+        return self.workbook.__appscript__.sheets(self.name)
+
+    def get_range(self, address):
+        return Range(self, address)
+
+
+class Range(object):
+    def __init__(self, sheet, address):
+        self.sheet = sheet
+        self.address = address
+
+    @property
+    def __appscript__(self):
+        return self.sheet.__appscript__.cells(self.address)
+
+    @property
+    def value(self):
+        return self.__appscript__.value.get()
+
+    @value.setter
+    def value(self, value):
+        return self.__appscript__.value.set(value)
+
+
 def is_app_instance(xl_app):
     return type(xl_app) is appscript.reference.Application and '/Microsoft Excel.app' in str(xl_app)
 

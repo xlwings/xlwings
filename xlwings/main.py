@@ -52,7 +52,7 @@ class Application(object):
 
     def __init__(self, app=None, make_visible=True):
         if app is None:
-            self.xl_app = xlplatform.new_app()
+            self.xl_app = xlplatform.Application()
         elif xlplatform.is_app_instance(app):
             self.xl_app = app
         else:
@@ -152,7 +152,7 @@ class Application(object):
 
     @property
     def active_sheet(self):
-        return Sheet(xl_sheet=xlplatform.application_get_active_sheet(self.xl_app))
+        return Sheet(xl_sheet=self.xl_app.get_active_sheet(self.xl_app))
 
 
 class Workbook(object):
