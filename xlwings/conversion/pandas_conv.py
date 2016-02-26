@@ -43,7 +43,7 @@ if pd:
                 df.columns = pd.Index(range(len(df.columns)))
                 df.set_index(list(df.columns)[:index], inplace=True)
 
-                df.index.names = pd.Index(value[header - 1][:index] if header else [None])
+                df.index.names = pd.Index(value[header - 1][:index] if header else [None]*index)
 
                 if header:
                     df.columns = columns[index:] #pd.MultiIndex.from_arrays(np.array(value[:header])[:, index:])
