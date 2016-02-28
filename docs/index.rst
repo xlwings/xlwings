@@ -4,9 +4,9 @@ xlwings - Make Excel Fly!
 xlwings is a `BSD-licensed <http://opensource.org/licenses/BSD-3-Clause>`_ Python library that makes it easy to call
 Python from Excel and vice versa:
 
-* Interact with/automate Excel from Python using a syntax that is close to VBA yet Pythonic.
-* Replace your VBA macros with Python code.
-* Write User Defined Functions (UDFs) in Python (Windows only).
+* **Scripting**: Automate/Interact with Excel from Python using a syntax that is close to VBA.
+* **Macros**: Replace your VBA macros with Python code.
+* **UDFs**: Write User Defined Functions (UDFs) in Python (Windows only).
 
 NumPy arrays and Pandas DataFrames are fully supported. xlwings-powered workbooks are easy to distribute and work
 on Windows and Mac.
