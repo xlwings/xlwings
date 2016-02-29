@@ -27,6 +27,7 @@ on Windows and Mac.
     vba
     debugging
     udfs
+    converters
     command_line
     missing_features
     r_and_julia

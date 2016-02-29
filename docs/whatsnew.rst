@@ -19,7 +19,7 @@ As a result, a few highlights of this release include:
 Converters are accessed via the new ``options`` method when dealing with ``xlwings.Range`` objects or via the ``@xw.arg``
 and ``@xw.ret`` decorators when using UDFs. As an introductory sample, let's look at how to read and write Pandas DataFrames:
 
-.. figure:: images/df_accessors.png
+.. figure:: images/df_converter.png
   :scale: 55%
 
 **Range object**::
@@ -64,7 +64,7 @@ Enhancements
 
 * Dictionary (``dict``) converter:
 
-  .. figure:: images/dict_accessor.png
+  .. figure:: images/dict_converter.png
     :scale: 80%
 
   ::
