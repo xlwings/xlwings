@@ -470,3 +470,6 @@ if pd:
                           index=[datetime(1999,12,13), datetime(1999,12,14)],
                           columns=['c', 'd', 'c'])
         return df
+
+if __name__ == "__main__":
+    xw.serve()
