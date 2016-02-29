@@ -3,6 +3,7 @@ import re
 import os.path
 import tempfile
 
+from win32com.client import Dispatch
 
 from . import conversion
 from .utils import VBAWriter
@@ -110,7 +111,7 @@ def call_udf(script_name, func_name, args, this_workbook):
             args[i] = conversion.read(Range(arg), None, arg_info)
         else:
             args[i] = conversion.read(None, arg, arg_info)
-    xlplatform.xl_workbook_current = this_workbook
+    xlplatform.xl_workbook_current = Dispatch(this_workbook)
     ret = func(*args)
 
     return conversion.write(ret, None, ret_info)
