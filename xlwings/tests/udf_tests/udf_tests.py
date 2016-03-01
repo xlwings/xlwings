@@ -471,5 +471,11 @@ if pd:
                           columns=['c', 'd', 'c'])
         return df
 
+    @xw.func
+    def read_workbook_caller():
+        wb = xw.Workbook.caller()
+        return xw.Range('E275').value == 1.
+
+
 if __name__ == "__main__":
     xw.serve()
