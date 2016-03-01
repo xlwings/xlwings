@@ -32,7 +32,8 @@ from .main import Application, Workbook, Range, Chart, Sheet, Picture, Shape, Pl
 from .constants import *
 
 # UDFs
-from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, udf_script, import_udfs
+if sys.platform.startswith('win'):
+    from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, udf_script, import_udfs
 
 
 def xlfunc(*args, **kwargs):
