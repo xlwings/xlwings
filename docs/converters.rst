@@ -133,9 +133,11 @@ The following options can be set:
 Built-in converters
 -------------------
 
-There are built-in converters for **dictionaries**, **NumPy arrays**, **Pandas Series** and **DataFrames**. New,
-customized converters can also be added (docs will follow).
-Again, the samples below may be used with both ``xlwings.Range`` objects and UDFs, even if just one part is shown.
+xlwings offers several built-in converters that perform additional transformation on top of the base converters for
+**dictionaries**, **NumPy arrays**, **Pandas Series** and **DataFrames**. New, customized converters can also be
+added (docs will follow).
+Again, the samples below may be used with both ``xlwings.Range`` objects and UDFs, even there are not always examples
+for both versions.
 
 Dictionary converter
 ********************
