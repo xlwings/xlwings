@@ -1,4 +1,4 @@
-name: xw34
+name: xw34-pd-0.15.2
 dependencies:
 - python=3.4
 - appscript
