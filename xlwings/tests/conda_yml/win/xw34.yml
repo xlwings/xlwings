@@ -1,0 +1,11 @@
+name: xw34
+dependencies:
+- python=3.4
+- numpy
+- pandas
+- matplotlib
+- pillow
+- pip
+- nose
+- pywin32
+- comtypes
