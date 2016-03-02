@@ -35,11 +35,28 @@ When no options are specified, the following rules are applied:
 
 The following options can be set:
 
+* **ndim**
+
+  Number of dimensions: This may be set to 1 or 2:
+
+  >>> import xlwings as xw
+  >>> wb = Workbook()
+  >>> xw.Range('A1').value = [[1, 2], [3, 4]]
+  >>> xw.Range('A1').value
+  1.0
+  >>> xw.Range('A1').options(ndim=1).value
+  [1.0]
+  >>> xw.Range('A1').options(ndim=2).value
+  [[1.0]]
+  >>> xw.Range('A1:A2').value
+  [1.0 3.0]
+  >>> xw.Range('A1:A2').options(ndim=2).value
+  [[1.0], [3.0]]
+
 * **numbers**
 
   The base converter reads in numbers as ``float``, you can change that like so::
 
-    >>> import xlwings as xw
     >>> xw.Range('A1').value = 1
     >>> xw.Range('A1').value
     1.0
@@ -118,6 +135,7 @@ Built-in converters
 
 There are built-in converters for **dictionaries**, **NumPy arrays**, **Pandas Series** and **DataFrames**. New,
 customized converters can also be added (docs will follow).
+Again, the samples below may be used with both ``xlwings.Range`` objects and UDFs, even if just one part is shown.
 
 Dictionary converter
 ********************
@@ -133,3 +151,109 @@ The dictionary converter turns two Excel columns into a dictionary. If the data 
     {'a': 1.0, 'b': 2.0}
     >>> Range('A4:B5').options(dict, transpose=True).value
     {'a': 1.0, 'b': 2.0}
+
+Numpy array converter
+*********************
+
+**options:** ``dtype=None, copy=True, order=None, ndim=None``
+
+The first 3 options behave the same as when using ``np.array()`` directly. Also, ``ndim`` works the same as shown above
+for lists (under base converter) and hence returns either numpy scalars, 1d arrays or 2d arrays.
+
+**Example**::
+
+    >>> import numpy as np
+    >>> Range('A1', transpose=True).value = np.array([1, 2, 3])
+    >>> xw.Range('A1:A3').options(np.array, ndim=2).value
+    array([[ 1.],
+           [ 2.],
+           [ 3.]])
+
+Pandas series converter
+***********************
+
+**options:** ``dtype=None, copy=False, index=1, header=True``
+
+The first 2 options behave the same as when using ``pd.Series()`` directly. ``ndim`` doesn't have an effect on
+Pandas series as they are always expected and returned in column orientation.
+
+``index``: int or Boolean
+    | When reading, it expects the number of index columns shown in Excel.
+    | When writing, include or exclude the index by setting it to ``True`` or ``False``.
+
+``header``: Boolean
+    | When reading, set it to ``False`` if Excel doesn't show either index or series names.
+    | When writing, include or exclude the index and series names by setting it to ``True`` or ``False``.
+
+For ``index`` and ``header``, ``1`` and ``True`` may be used interchangeably.
+
+**Example:**
+
+.. figure:: images/series_conv.png
+    :scale: 80%
+
+::
+
+    >>> s = xw.Range('A1').options(pd.Series, expand='table').value
+    >>> s
+    date
+    2001-01-01    1
+    2001-01-02    2
+    2001-01-03    3
+    2001-01-04    4
+    2001-01-05    5
+    2001-01-06    6
+    Name: series name, dtype: float64
+    >>> xw.Range('D1', header=False).value = s
+
+Pandas DataFrame converter
+**************************
+
+**options:** ``dtype=None, copy=False, index=1, header=1``
+
+The first 2 options behave the same as when using ``pd.DataFrame()`` directly. ``ndim`` doesn't have an effect on
+Pandas DataFrames as they are automatically read in with ``ndim=2``.
+
+``index``: int or Boolean
+    | When reading, it expects the number of index columns shown in Excel.
+    | When writing, include or exclude the index by setting it to ``True`` or ``False``.
+
+``header``: int or Boolean
+    | When reading, it expects the number of column headers shown in Excel.
+    | When writing, include or exclude the index and series names by setting it to ``True`` or ``False``.
+
+For ``index`` and ``header``, ``1`` and ``True`` may be used interchangeably.
+
+**Example:**
+
+.. figure:: images/df_converter.png
+  :scale: 55%
+
+::
+
+    >>> df = xw.Range('A1:D5').options(pd.DataFrame, header=2).value
+    >>> df
+        a     b
+        c  d  e
+    ix
+    10  1  2  3
+    20  4  5  6
+    30  7  8  9
+
+Writing back using the defaults::
+
+    >>> Range('A1').value = df
+
+
+Writing back and changing some of the options, e.g. getting rid of the index::
+
+    >>> Range('B7').options(index=False).value = df
+
+The same sample as **UDF** (starting in ``Range('A13')`` on screenshot) looks like this::
+
+    @xw.func
+    @xw.arg('x', pd.DataFrame, header=2)
+    @xw.ret(index=False)
+    def myfunction(x):
+       # x is a DataFrame, do something with it
+       return x
