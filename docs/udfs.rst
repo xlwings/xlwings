@@ -6,7 +6,7 @@ UDF Tutorial
 .. note:: UDFs are currently only available on Windows.
 
 This tutorial gets you quickly started on how to write User Defined Functions. For details of how to control the behaviour
-of the arguments and return values, have a look at Converters (TODO).
+of the arguments and return values, have a look at :ref:`converters`.
 
 Initial Excel preparations
 --------------------------
@@ -65,8 +65,8 @@ Let's assume you have a Workbook ``myproject.xlsm``, then you would write the fo
     in Python.
 
 
-Array Formulas I: without NumPy
--------------------------------
+Array Formulas I: without NumPy/Pandas
+--------------------------------------
 
 Array formulas are much more efficient than many single-cell formulas, so it's generally a good idea to use them,
 especially if you hit performance problems.
@@ -108,10 +108,8 @@ column/row or a two-dimensional Range, you can extend the above formula like thi
     def add_one(data):
         return [[cell + 1 for cell in row] for row in data]
 
-Accordingly, you can use ``ndim=1`` to force a single cell to arrive as list.
-
-Array Formulas II: with NumPy
------------------------------
+Array Formulas II: with NumPy and Pandas DataFrames
+---------------------------------------------------
 
 Often, you'll want to use NumPy arrays or Pandas DataFrames as this unlocks the full power of Python's ecosystem
 for scientific computing.
@@ -129,10 +127,25 @@ To define a formula for matrix multiplication using numpy arrays, you would defi
 
 .. note:: If you are not on Python >= 3.5 with NumPy >= 1.10, use ``x.dot(y)`` instead of ``x @ y``.
 
+A great example of how you can put Pandas at work is the creation of an array-based ``CORREL`` formula. Excel's
+version of ``CORREL`` only works on 2 datasets and is cumbersome to use if you want to quickly get the correlation
+matrix of a few time-series, for example. Pandas makes the creation of an array-based ``CORREL2`` formula a one-liner::
+
+    import xlwings as xw
+    import pandas as pd
+
+    @xw.func
+    @xw.arg('x', pd.DataFrame, index=False, header=False)
+    @xw.ret(index=False, header=False)
+    def CORREL2(x):
+        """Like CORREL, but as array formula for more than 2 data sets"""
+        return x.corr()
+
+
 @xw.arg and @xw.ret decorators
 ------------------------------
 
-These decorators are to UDFs what the ``options`` method is to the Range object: They allow to apply converters and
+These decorators are to UDFs what the ``options`` method is to ``Range`` objects: They allow to apply converters and
 options to the arguments (``@xw.arg``) and return value (``@xw.ret``). For example, to convert the argument ``x`` into
 a pandas DataFrame and suppress the index when returning it, you would do the following::
 
@@ -146,10 +159,9 @@ a pandas DataFrame and suppress the index when returning it, you would do the fo
 The "vba" keyword
 -----------------
 
-Often, it's helpful to get the address of the calling cell, for example. Right now, one of the easiest ways to
-accomplish this is to use the ``vba`` keyword. This, in fact, allows you to access any VBA expression that is
-available like e.g. ``Application``. Note, however, that currently you're acting directly on the pywin32
-COM object::
+Often, it's helpful to get the address of the calling cell. Right now, one of the easiest ways to
+accomplish this is to use the ``vba`` keyword. ``vba``, in fact, allows you to access any available VBA expression
+e.g. ``Application``. Note, however, that currently you're acting directly on the pywin32 COM object::
 
     @xw.func
     @xw.arg('xl_app', vba='Application')
@@ -162,15 +174,16 @@ COM object::
 Macros
 ------
 
-On Windows, as alternative to calling macros via :ref:`RunPython <run_python>`, you can also use the ``@xw.sub``::
+On Windows, as alternative to calling macros via :ref:`RunPython <run_python>`, you can also use the ``@xw.sub``
+decorator::
 
     import xlwings as xw
 
     @xw.sub
     def my_macro():
         """Writes the name of the Workbook into Range("A1") of Sheet 1"""
-        wb = Workbook.caller()
-        Range(1, 'A1').value = wb.name
+        wb = xw.Workbook.caller()
+        xw.Range(1, 'A1').value = wb.name
 
 After clicking on ``Import Python UDFs``, you can then use this macro by executing it via ``Alt + F8`` or by
 binding it e.g. to a button. To to the latter, make sure you have the ``Developer`` tab selected under ``File >

@@ -7,7 +7,7 @@ Since xlwings runs in every Python environment, you can use your preferred way o
 
 * **RunPython**: When calling Python through ``RunPython``, you can use a ``mock_caller`` to make it easy to switch
   back and forth between calling things from Excel and Python.
-* **UDFs**: When debugging User Defined Functions , xlwings offers a convenient debugging server
+* **UDFs**: For debugging User Defined Functions, xlwings offers a convenient debugging server
 
 
 To begin with, Excel will show Python errors in a Message Box:

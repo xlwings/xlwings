@@ -1,13 +1,16 @@
+.. _converters:
+
 Converters
 ==========
 
-Introduced with v0.7.0, converters define how Excel Ranges and their values are being converted both when being
-**read** and **written**. They also provide a consistent experience across **xlwings.Range** objects and
+Introduced with v0.7.0, converters define how Excel Ranges and their values are being converted both when
+**reading** and **writing**. They also provide a consistent experience across **xlwings.Range** objects and
 **User Defined Functions** (UDFs).
 
 Converters are explicitely set with the ``as_`` argument in the ``options`` method when manipulating ``xlwings.Range`` objects
-or in the ``@xw.arg`` and ``@xw.ret`` decorators when using UDFs. If no converter is specified, only the base converter
-is applied.
+or in the ``@xw.arg`` and ``@xw.ret`` decorators when using UDFs. If no converter is specified, the base converter
+is applied when reading. When writing, xlwings tries to apply the correct converter (if available) according to the
+object's type that is being written to Excel.
 
 **Syntax:**
 
@@ -26,7 +29,8 @@ is applied.
 
 Base Converter
 --------------
-When no options are specified, the following rules are applied:
+
+With no options set, the following conversions are performed:
 
 * single cells are read in as ``floats`` in case the Excel cell holds a number, as ``unicode`` in case it holds text,
   as ``datetime`` if it contains a date and as ``None`` in case it is empty.
@@ -133,11 +137,11 @@ The following options can be set:
 Built-in converters
 -------------------
 
-xlwings offers several built-in converters that perform additional transformation on top of the base converters for
+xlwings offers several built-in converters that perform additional conversions on top of the base converters for
 **dictionaries**, **NumPy arrays**, **Pandas Series** and **DataFrames**. New, customized converters can also be
 added (docs will follow).
-Again, the samples below may be used with both ``xlwings.Range`` objects and UDFs, even there are not always examples
-for both versions.
+Again, the samples below may be used with both ``xlwings.Range`` objects and UDFs, but the samples may only show one
+version.
 
 Dictionary converter
 ********************
@@ -165,7 +169,7 @@ for lists (under base converter) and hence returns either numpy scalars, 1d arra
 **Example**::
 
     >>> import numpy as np
-    >>> Range('A1', transpose=True).value = np.array([1, 2, 3])
+    >>> Range('A1').options(transpose=True).value = np.array([1, 2, 3])
     >>> xw.Range('A1:A3').options(np.array, ndim=2).value
     array([[ 1.],
            [ 2.],
@@ -251,7 +255,7 @@ Writing back and changing some of the options, e.g. getting rid of the index::
 
     >>> Range('B7').options(index=False).value = df
 
-The same sample as **UDF** (starting in ``Range('A13')`` on screenshot) looks like this::
+The same sample for **UDF** (starting in ``Range('A13')`` on screenshot) looks like this::
 
     @xw.func
     @xw.arg('x', pd.DataFrame, header=2)

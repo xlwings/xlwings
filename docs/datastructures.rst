@@ -4,7 +4,7 @@ Working with Data Structures
 ============================
 
 This page gives you a quick introduction to the most common use cases and default behaviour of xlwings when reading and
-writing values. For an in-depth documentation of how to control things using the ``options`` method, have a look at Converters (TODO).
+writing values. For an in-depth documentation of how to control things using the ``options`` method, have a look at :ref:`converters`.
 
 Single Cells
 ------------
