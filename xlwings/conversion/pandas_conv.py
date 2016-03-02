@@ -37,8 +37,8 @@ if pd:
             # handle index by resetting the index to the index first columns
             # and renaming the index according to the name in the last row
             if index > 0:
-                # rename univoquely the index columns to some never used name for column
-                # we do not use the column name directly as it would cause issues if the several
+                # rename uniquely the index columns to some never used name for column
+                # we do not use the column name directly as it would cause issues if several
                 # columns have the same name
                 df.columns = pd.Index(range(len(df.columns)))
                 df.set_index(list(df.columns)[:index], inplace=True)
@@ -46,7 +46,7 @@ if pd:
                 df.index.names = pd.Index(value[header - 1][:index] if header else [None]*index)
 
                 if header:
-                    df.columns = columns[index:] #pd.MultiIndex.from_arrays(np.array(value[:header])[:, index:])
+                    df.columns = columns[index:]
                 else:
                     df.columns = pd.Index(range(len(df.columns)))
 
