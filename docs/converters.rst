@@ -5,8 +5,9 @@ Introduced with v0.7.0, converters define how Excel Ranges and their values are 
 **read** and **written**. They also provide a consistent experience across **xlwings.Range** objects and
 **User Defined Functions** (UDFs).
 
-Converters are set with the ``as_`` argument in the ``options`` method when manipulating ``xlwings.Range`` objects
-or in the ``@xw.arg`` and ``@xw.ret`` decorators when using UDFs.
+Converters are explicitely set with the ``as_`` argument in the ``options`` method when manipulating ``xlwings.Range`` objects
+or in the ``@xw.arg`` and ``@xw.ret`` decorators when using UDFs. If no converter is specified, only the base converter
+is applied.
 
 **Syntax:**
 
@@ -17,24 +18,26 @@ or in the ``@xw.arg`` and ``@xw.ret`` decorators when using UDFs.
 **writing**                     ``Range.options(as_=None, **kwargs).value = myvalue``        ``@ret(as_=None, **kwargs)``
 ==============================  ===========================================================  ===========
 
-**Note:** Converter-specific keyword arguments (``**kwargs``) may be mixed with standard converter keyword arguments.
-The following example mixes options from the Pandas DataFrame converter (``index``) with options from the standard
-converter (``dates``): ``Range('A1:C3').options(pd.DataFrame, index=False, dates=dt.date).value``.
+.. note:: Keyword arguments (``kwargs``) may refer to the specific converter or the base converter.
+  For example, to set the ``numbers`` option in the base converter and the ``index`` option in the DataFrame converter,
+  you would do::
 
-Standard Converter
-------------------
-When no options are specified, the following default conversions are applied:
+      Range('A1:C3').options(pd.DataFrame, index=False, numbers=int).value
 
-* single cells are read in as ``floats`` in case the Excel cell is a number, as ``unicode`` in case it is a cell with text,
+Base Converter
+--------------
+When no options are specified, the following rules are applied:
+
+* single cells are read in as ``floats`` in case the Excel cell holds a number, as ``unicode`` in case it holds text,
   as ``datetime`` if it contains a date and as ``None`` in case it is empty.
 * columns/rows are read in as lists, e.g. ``[None, 1.0, 'a string']``
-* multiple cells are read in as list of lists, e.g. ``[[None, 1.0, 'a string'], [None, 2.0, 'another string']]``
+* 2d cell ranges are read in as list of lists, e.g. ``[[None, 1.0, 'a string'], [None, 2.0, 'another string']]``
 
-``numbers``, ``dates`` and ``empty`` can be changed as follows:
+The following options can be set:
 
 * **numbers**
 
-  The standard converter for Excel cells with numbers is ``float``, you can change that with the ``numbers`` keyword::
+  The base converter reads in numbers as ``float``, you can change that like so::
 
     >>> import xlwings as xw
     >>> xw.Range('A1').value = 1
@@ -72,10 +75,9 @@ When no options are specified, the following default conversions are applied:
 
   - UDFs:  ``@xw.arg('x', empty='NA')``
 
-transpose and expand options
-----------------------------
+* **transpose**
 
-* ``transpose`` option: This works for reading and writing and allows us to e.g. write a list in column orientation to Excel:
+  This works for reading and writing and allows us to e.g. write a list in column orientation to Excel:
 
   - Range: ``Range('A1').options(transpose=True).value = [1, 2, 3]``
 
@@ -89,7 +91,9 @@ transpose and expand options
             # x will be returned unchanged as transposed both when reading and writing
             return x
 
-* ``expand`` option: This works the same as the Range properties ``table``, ``vertical`` and ``horizontal`` but is
+* **expand**
+
+  This works the same as the Range properties ``table``, ``vertical`` and ``horizontal`` but is
   only evaluated when getting the values of a Range::
 
     >>> import xlwings as xw
@@ -112,20 +116,18 @@ transpose and expand options
 Built-in converters
 -------------------
 
-There are built-in converters for **dictionaries**, **numpy arrays**, **pandas series** and **dataframes**. New,
-specialized converters can also be written, see [TODO].
-Converters are chosen via the first argument (``as_``) in ``Range.options`` or ``@xw.arg`` and ``@xw.ret``, respecitvely.
+There are built-in converters for **dictionaries**, **NumPy arrays**, **Pandas Series** and **DataFrames**. New,
+customized converters can also be added (docs will follow).
 
 Dictionary converter
---------------------
+********************
 
-The dictionary converter turns two Excel columns into dictionaries. If you want data laid out in rows to be read in
-as dictionary, use ``transpose``:
+The dictionary converter turns two Excel columns into a dictionary. If the data is in row orientation, use ``transpose``:
 
-  .. figure:: images/dict_converter.png
+.. figure:: images/dict_converter.png
     :scale: 80%
 
-  ::
+::
 
     >>> Range('A1:B2').options(dict).value
     {'a': 1.0, 'b': 2.0}
