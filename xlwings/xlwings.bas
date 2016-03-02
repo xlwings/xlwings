@@ -516,6 +516,11 @@ End Sub
 
 Sub ImportPythonUDFs()
     Dim scriptPath As String, tempPath As String
+    
+    ' set this constant to False to get full stacktrace in case of exception
+    ' set this constant to True to get only exception raised
+    Const SHORT_ERRORS As Boolean = True
+    
     scriptPath = PyScriptPath()
-    tempPath = Py.Str(Py.Call(Py.Module("xlwings"), "import_udfs", Py.Tuple(scriptPath, ThisWorkbook)))
+    tempPath = Py.Str(Py.Call(Py.Module("xlwings"), "import_udfs", Py.Tuple(scriptPath, ThisWorkbook, SHORT_ERRORS)))
 End Sub
