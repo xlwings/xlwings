@@ -34,7 +34,7 @@ try:
 except ImportError:
     np = None
 
-from xlwings import PY3
+from . import PY3
 
 # Time types: pywintypes.timetype doesn't work on Python 3
 time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
