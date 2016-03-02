@@ -34,7 +34,7 @@ envs_dir = os.path.abspath(os.path.join(os.path.dirname(conda_dir), os.pardir, '
 # Create missing envs
 for env in envs:
     if not os.path.isdir(os.path.join(envs_dir, env[0])):
-        print('{0}###  Creating conda envs ###{1}'.format(Colors.yellow, Colors.end))
+        print('{0}###  Creating conda env {1} ###{2}'.format(Colors.yellow, env[0], Colors.end))
         platform = 'mac' if sys.platform.startswith('darwin') else 'win'
         check_call(['conda', 'env', 'create', '-f',
                     os.path.join(this_dir, 'xlwings', 'tests', 'conda_yml', platform, env[0] + '.yml')])
@@ -51,9 +51,9 @@ for py in envs:
         test_runner = os.path.abspath(os.path.join(envs_dir, py[0], 'bin', 'nosetests'))
         test_dir = os.path.abspath(os.path.join(envs_dir, py[0], 'lib', 'python{}'.format(py[1]), 'site-packages', 'xlwings', 'tests'))
     else:
-        pip = os.path.abspath(os.path.join(envs_dir, py[0], 'Scripts/pip'))
-        test_runner = os.path.abspath(os.path.join(envs_dir, py[0], 'Scripts/nosetests'))
-        test_dir = os.path.abspath(os.path.join(envs_dir, py[0], 'Lib/site-packages/xlwings/tests'))
+        pip = os.path.abspath(os.path.join(envs_dir, py[0], 'Scripts', 'pip'))
+        test_runner = os.path.abspath(os.path.join(envs_dir, py[0], 'Scripts', 'nosetests'))
+        test_dir = os.path.abspath(os.path.join(envs_dir, py[0], 'Lib', 'site-packages', 'xlwings', 'tests'))
 
     if __version__.endswith('dev'):
         __version__ = __version__[:-3] + '.dev0'
@@ -68,3 +68,5 @@ for py in envs:
 
     # Run tests
     check_call([test_runner, test_dir])
+
+print('{0}### Done. ###{1}'.format(Colors.yellow, Colors.end))

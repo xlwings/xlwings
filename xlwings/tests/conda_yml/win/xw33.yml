@@ -8,4 +8,5 @@ dependencies:
 - pip
 - nose
 - pywin32
-- comtypes
+- pip:
+    - comtypes
