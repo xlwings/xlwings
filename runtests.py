@@ -10,12 +10,6 @@ import inspect
 from subprocess import check_call, check_output
 from xlwings import __version__
 
-class Colors:
-    yellow = '\033[93m'
-    end = '\033[0m'
-
-this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
-setup_file = os.path.abspath(os.path.join(this_dir, 'setup.py'))
 
 # Python versions - according yml files are under tests/conda_yml
 envs = [
@@ -26,6 +20,13 @@ envs = [
     ('xw35', '3.5'),
     ('xw35-no-opt-deps', '3.5')
 ]
+
+class Colors:
+    yellow = '\033[93m'
+    end = '\033[0m'
+
+this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
+setup_file = os.path.abspath(os.path.join(this_dir, 'setup.py'))
 
 # conda dirs
 cmd = 'which' if sys.platform.startswith('darwin') else 'where'
