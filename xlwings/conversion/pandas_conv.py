@@ -30,13 +30,27 @@ if pd:
             dtype = options.get('dtype', None)
             copy = options.get('copy', False)
 
-            value = np.array(value, dtype=object)  # object array to prevent str arrays
+            # build dataframe with only columns (no index) but correct header
+            columns = pd.MultiIndex.from_arrays(value[:header]) if header > 0 else None
+            df = pd.DataFrame(value[header:], columns=columns, dtype=dtype, copy=copy)
 
-            columns = pd.MultiIndex.from_arrays(value[:header, index:]) if header > 0 else None
-            ix_names = value[header-1, :index] if (header and index) else None
-            ix = pd.MultiIndex.from_arrays(value[header:, :index].T,
-                                           names=ix_names) if index > 0 else None
-            return pd.DataFrame(value[header:, index:].tolist(), index=ix, columns=columns, dtype=dtype, copy=copy)
+            # handle index by resetting the index to the index first columns
+            # and renaming the index according to the name in the last row
+            if index > 0:
+                # rename univoquely the index columns to some never used name for column
+                # we do not use the column name directly as it would cause issues if the several
+                # columns have the same name
+                df.columns = pd.Index(range(len(df.columns)))
+                df.set_index(list(df.columns)[:index], inplace=True)
+
+                df.index.names = pd.Index(value[header - 1][:index] if header else [None]*index)
+
+                if header:
+                    df.columns = columns[index:] #pd.MultiIndex.from_arrays(np.array(value[:header])[:, index:])
+                else:
+                    df.columns = pd.Index(range(len(df.columns)))
+
+            return df
 
         @classmethod
         def write_value(cls, value, options):
