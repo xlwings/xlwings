@@ -59,7 +59,7 @@ The following options can be set:
 
 * **numbers**
 
-  The base converter reads in numbers as ``float``, you can change that like so::
+  By default numbers are read as ``float``, but this can be overridden::
 
     >>> xw.Range('A1').value = 1
     >>> xw.Range('A1').value
