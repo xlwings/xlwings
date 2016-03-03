@@ -148,7 +148,7 @@ matrix of a few time-series, for example. Pandas makes the creation of an array-
 @xw.arg and @xw.ret decorators
 ------------------------------
 
-These decorators are to UDFs what the ``options`` method is to ``Range`` objects: They allow to apply converters and their
+These decorators are to UDFs what the ``options`` method is to ``Range`` objects: they allow you to apply converters and their
 options to function arguments (``@xw.arg``) and to the return value (``@xw.ret``). For example, to convert the argument ``x`` into
 a pandas DataFrame and suppress the index when returning it, you would do the following::
 
@@ -158,6 +158,8 @@ a pandas DataFrame and suppress the index when returning it, you would do the fo
     def myfunction(x):
        # x is a DataFrame, do something with it
        return x
+
+For further details see the :ref:`converters` documentation.
 
 The "vba" keyword
 -----------------
