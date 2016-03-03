@@ -41,7 +41,7 @@ The following options can be set:
 
 * **ndim**
 
-  Number of dimensions: This may be set to 1 or 2:
+  Force the value to have either 1 or 2 dimensions regardless of the shape of the range:
 
   >>> import xlwings as xw
   >>> wb = Workbook()
