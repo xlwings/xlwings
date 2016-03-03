@@ -4,7 +4,7 @@ xlwings - Make Excel fly with Python!
 Homepage and documentation: http://xlwings.org
 See also: http://zoomeranalytics.com
 
-Copyright (C) 2014-2015, Zoomer Analytics LLC.
+Copyright (C) 2014-2016, Zoomer Analytics LLC.
 All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
@@ -19,9 +19,8 @@ import collections
 import tempfile
 import shutil
 
-from . import xlplatform, string_types, time_types, xrange, map, ShapeAlreadyExists
+from . import xlplatform, string_types, xrange, map, ShapeAlreadyExists
 from .constants import ChartType
-from .utils import missing
 
 # Optional imports
 try:
@@ -263,7 +262,6 @@ class Workbook(object):
             if __name__ == '__main__':
                 # Mock the calling Excel file
                 Workbook.set_mock_caller(r'C:\\path\\to\\file.xlsx')
-
                 my_macro()
 
         .. versionadded:: 0.3.1
@@ -292,23 +290,27 @@ class Workbook(object):
         """
         xlplatform.set_xl_workbook_current(self.xl_workbook)
 
-    def get_selection(self, asarray=False, atleast_2d=False):
+    def get_selection(self):
         """
         Returns the currently selected cells from Excel as ``Range`` object.
 
-        Keyword Arguments
-        -----------------
-        asarray : boolean, default False
-            returns a NumPy array where empty cells are shown as nan
+        Example
+        -------
 
-        atleast_2d : boolean, default False
-            Returns 2d lists/arrays even if the Range is a Row or Column.
+        >>> import xlwings as xw
+        >>> wb = xw.Workbook.active()
+        >>> wb.get_selection()
+        <Range on Sheet 'Sheet1' of Workbook 'Workbook1'>
+        >>> wb.get_selection.value
+        [[1.0, 2.0], [3.0, 4.0]]
+        >>> wb.get_selection().options(transpose=True).value
+        [[1.0, 3.0], [2.0, 4.0]]
 
         Returns
         -------
         Range object
         """
-        return Range(xlplatform.get_selection_address(self.xl_app), wkb=self, asarray=asarray, atleast_2d=atleast_2d)
+        return Range(xlplatform.get_selection_address(self.xl_app), wkb=self)
 
     def close(self):
         """
@@ -591,6 +593,8 @@ class Sheet(object):
 
 class Range(object):
     """
+    Range(*args, wkb=None)
+
     A Range object can be instantiated with the following arguments::
 
         Range('A1')          Range('Sheet1', 'A1')          Range(1, 'A1')
@@ -606,7 +610,9 @@ class Range(object):
 
     If no worksheet name is provided as first argument, it will take the Range from the active sheet.
 
-    You usually want to go for ``Range(...).value`` to get the values (as list of lists).
+    You usually want to go for ``Range(...).value`` to get the values (as list of lists). You can
+    influence the reading/writing behavior by making use of :ref:`converters` and their options:
+    ``Range(...).options(...).value``
 
     Arguments
     ---------
@@ -615,15 +621,6 @@ class Range(object):
 
     Keyword Arguments
     -----------------
-    asarray : boolean, default False
-        Returns a NumPy array (atleast_1d) where empty cells are transformed into nan.
-
-    index : boolean, default True
-        Includes the index when setting a Pandas DataFrame or Series.
-
-    header : boolean, default True
-        Includes the column headers when setting a Pandas DataFrame.
-
     wkb : Workbook object, default Workbook.current()
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
     """
@@ -723,6 +720,45 @@ class Range(object):
                    itertools.product(xrange(self.row1, self.row2 + 1), xrange(self.col1, self.col2 + 1)))
 
     def options(self, as_=None, **options):
+        """
+        Allows you to set a converter and their options. Converters define how Excel Ranges and their values are
+        being converted both during reading and writing operations. If no explicit converter is specified, the
+        base converter is being applied, see :ref:`converters`.
+
+        Arguments
+        ---------
+        ``as_`` : converter, default None
+            A converter, e.g. ``dict``, ``np.array``, ``pd.DataFrame``, ``pd.Series``, defaults to base converter
+
+        Keyword Arguments
+        -----------------
+        ndim : int, default None
+            number of dimensions
+
+        numbers : type, default None
+            type of numbers, e.g. ``int``
+
+        dates : type, default None
+            e.g. ``datetime.date`` defaults to ``datetime.datetime``
+
+        empty : object, default None
+            transformation of empty cells
+
+        transpose : Boolean, default False
+            transpose values
+
+        expand : str, default None
+            One of ``'table'``, ``'vertical'``, ``'horizontal'``, see also ``Range.table`` etc
+
+         => For converter-specific options, see :ref:`converters`.
+
+        Returns
+        -------
+        Range object
+
+
+        .. versionadded:: 0.7.0
+        """
         options['as_'] = as_
         return Range(
             xlplatform.get_worksheet_name(self.xl_sheet),
