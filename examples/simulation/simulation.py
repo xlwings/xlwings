@@ -1,22 +1,21 @@
 """
-Copyright (C) 2014-2015, Zoomer Analytics LLC.
+Copyright (C) 2014-2016, Zoomer Analytics LLC.
 All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
 """
 from __future__ import division
-import os
 import sys
 import numpy as np
-from xlwings import Workbook, Range, Chart
+from xlwings import Application, Workbook, Range, Chart
 
 
 def main():
     wb = Workbook.caller()
     # User Inputs
-    num_simulations = int(Range('E3').value)
+    num_simulations = Range('E3').options(numbers=int).value
     time = Range('E4').value
-    num_timesteps = int(Range('E5').value)
+    num_timesteps = Range('E5').options(numbers=int).value
     dt = time/num_timesteps  # Length of time period
     vol = Range('E7').value
     mu = np.log(1 + Range('E6').value)  # Drift
@@ -44,24 +43,14 @@ def main():
     for t in range(1, num_timesteps + 1):
         rand_nums = np.random.randn(num_simulations)
         price[t,:] = price[t-1,:] * np.exp((mu - 0.5 * vol**2) * dt + vol * rand_nums * np.sqrt(dt))
-        percentiles[t,:] = np.percentile(price[t,:], perc_selection)
+        percentiles[t, :] = np.percentile(price[t, :], perc_selection)
         if animate:
-            Range((t+2,16)).value = percentiles[t,:]
-            Range((t+2,19)).value = price[t,0]  # Sample path
+            Range((t+2, 16)).value = percentiles[t, :]
+            Range((t+2, 19)).value = price[t, 0]  # Sample path
             if sys.platform.startswith('win'):
-                wb.application.screen_updating = True
+                Application(wb).screen_updating = True
 
     if not animate:
         Range('P2').value = percentiles
-        Range('S2').value = price[:,:1]  # Sample path
-
-if __name__ == '__main__':
-    if not hasattr(sys, 'frozen'):
-        # The next two lines are here to run the example from Python
-        # Ignore them when called in the frozen/standalone version
-        path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'simulation.xlsm'))
-        Workbook.set_mock_caller(path)
-    main()
-
-
+        Range('S2').value = price[:, :1]  # Sample path
 
