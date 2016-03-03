@@ -14,7 +14,7 @@ os.chdir(cwd)
 from warnings import warn
 import pywintypes
 import pythoncom
-from win32com.client import dynamic, Dispatch, CDispatch
+from win32com.client import dynamic, Dispatch, CDispatch, DispatchBaseClass
 import win32timezone
 import win32gui
 import datetime as dt
@@ -179,7 +179,11 @@ def get_worksheet_name(xl_sheet):
 
 
 def is_range_instance(xl_range):
-    return isinstance(xl_range, CDispatch) and xl_range._username_ == 'Range'
+    pyid = getattr(xl_range, '_oleobj_', None)
+    if pyid is None:
+        return False
+    return xl_range._oleobj_.GetTypeInfo().GetTypeAttr().iid == pywintypes.IID('{00020846-0000-0000-C000-000000000046}')
+    # return pyid.GetTypeInfo().GetDocumentation(-1)[0] == 'Range'
 
 
 def get_sheet_workbook(xl_sheet):
