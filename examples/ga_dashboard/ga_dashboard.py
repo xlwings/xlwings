@@ -53,7 +53,7 @@ def behavior(start_date, end_date, account_name, property_name, profile_name, ma
 
     # Write to Excel.
     # Time-only values are currently a bit of a pain on Windows, so we set index=False.
-    Range(sheet_dashboard, 'behavior', index=False).value = behavior
+    Range(sheet_dashboard, 'behavior').options(index=False).value = behavior
     Range(sheet_dashboard, 'effective').value = num_rows
 
 
