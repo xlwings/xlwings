@@ -14,7 +14,7 @@ As a result, a few highlights of this release include:
 * New Range converter options: ``transpose``, ``dates``, ``numbers``, ``empty``, ``expand``
 * New dictionary converter
 * New UDF debug server
-* No more pyc files when running ``RunPython``
+* No more pyc files when using ``RunPython``
 
 Converters are accessed via the new ``options`` method when dealing with ``xlwings.Range`` objects or via the ``@xw.arg``
 and ``@xw.ret`` decorators when using UDFs. As an introductory sample, let's look at how to read and write Pandas DataFrames:
@@ -36,19 +36,15 @@ and ``@xw.ret`` decorators when using UDFs. As an introductory sample, let's loo
     20  4  5  6
     30  7  8  9
 
-Writing back using the defaults::
-
+    # Writing back using the defaults:
     >>> Range('A1').value = df
 
-
-Writing back and changing some of the options, e.g. getting rid of the index::
-
+    # Writing back and changing some of the options, e.g. getting rid of the index:
     >>> Range('B7').options(index=False).value = df
-
 
 **UDFs**:
 
-This is the same sample as above (starting in ``Range('A13')`` on screenshot). If you want to return a DataFrame with
+This is the same sample as above (starting in ``Range('A13')`` on screenshot). If you wanted to return a DataFrame with
 the defaults, the ``@xw.ret`` decorator can be left away. ::
 
     @xw.func
@@ -135,7 +131,8 @@ applied to e.g. only certain columns.
 * UDF debug server
 
   The new UDF debug server allows you to easily debug UDFs: just set ``UDF_DEBUG_SERVER = True`` in the VBA Settings,
-  at the top of the xlwings VBA module. Then add the following lines to your Python source file and run it::
+  at the top of the xlwings VBA module (make sure to update it to the latest version!). Then add the following lines
+  to your Python source file and run it::
 
 
     if __name__ == '__main__':
@@ -144,8 +141,8 @@ applied to e.g. only certain columns.
   When you recalculate the Sheet, the code will stop at breakpoints or print any statements that you may have. For
   details, see: :ref:`debugging`.
 
-* pyc files: The creation of pyc files has been disabled when using ``RunPython``, leaving things in a uncluttered state
-  when having the Python source file next to the Excel workbook (:issue:`326`).
+* pyc files: The creation of pyc files has been disabled when using ``RunPython``, leaving your directory in an
+  uncluttered state when having the Python source file next to the Excel workbook (:issue:`326`).
 
 
 API changes

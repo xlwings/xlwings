@@ -3,11 +3,11 @@
 VBA: Calling Python from Excel
 ==============================
 
-Import the xlwings VBA module into Excel
-----------------------------------------
+xlwings VBA module
+------------------
 
 To get access to the ``RunPython`` function and/or to be able to run User Defined Functions (UDFs), you need to have the
-``xlwings`` VBA module available in your Excel workbook.
+xlwings VBA module available in your Excel workbook.
 
 For new projects, by far the easiest way to get started is by using the command line client with the quickstart option,
 see :ref:`command_line` for details::
@@ -72,7 +72,7 @@ LOG_FILE default locations
 
 * Windows: ``%APPDATA%\xlwings_log.txt``
 * Mac with Excel 2011: ``/tmp/xlwings_log.txt``
-* Mac with Excel 2016: ``/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt``
+* Mac with Excel 2016: ``~/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt``
 
 .. note:: If the settings (especially ``PYTHONPATH`` and ``LOG_FILE``) need to work on Windows on Mac, use backslashes
     in relative file path, i.e. ``ThisWorkbook.Path & "\mydirectory"``.

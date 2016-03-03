@@ -1,7 +1,7 @@
 .. _datastructures:
 
-Working with Data Structures
-============================
+Data Structures Tutorial
+========================
 
 This page gives you a quick introduction to the most common use cases and default behaviour of xlwings when reading and
 writing values. For an in-depth documentation of how to control things using the ``options`` method, have a look at :ref:`converters`.
@@ -105,7 +105,7 @@ options are only evaluated when accessing the values of a Range. The difference 
     Excel: You can move around the table and change it's size without having to adjust your code, e.g. by using
     something like ``Range('NamedRange').table.value``.
 
-NumPy Arrays
+NumPy arrays
 ------------
 
 NumPy arrays work similar to nested lists. However, empty cells are represented by ``nan`` instead of
@@ -121,14 +121,10 @@ NumPy arrays work similar to nested lists. However, empty cells are represented 
            [ 0.,  1.,  0.],
            [ 0.,  0.,  1.]])
 
-Pandas DataFrames and Series
-----------------------------
+Pandas DataFrames
+-----------------
 
-Pandas DataFrames and Series are also easy to work with:
-
-* DataFrame:
-
-  .. code-block:: python
+.. code-block:: python
 
     >>> wb = Workbook()
     >>> df = pd.DataFrame([[1.1, 2.2], [3.3, None]], columns=['one', 'two'])
@@ -145,9 +141,10 @@ Pandas DataFrames and Series are also easy to work with:
     >>> Range('A5').options(index=False).value = df
     >>> Range('A9').options(index=False, header=False).value = df
 
-* Series:
+Pandas Series
+-------------
 
-  .. code-block:: python
+.. code-block:: python
 
     >>> import pandas as pd
     >>> import numpy as np

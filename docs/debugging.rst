@@ -5,7 +5,7 @@ Debugging
 
 Since xlwings runs in every Python environment, you can use your preferred way of debugging.
 
-* **RunPython**: When calling Python through ``RunPython``, you can use a ``mock_caller`` to make it easy to switch
+* **RunPython**: When calling Python through ``RunPython``, you can set a ``mock_caller`` to make it easy to switch
   back and forth between calling things from Excel and Python.
 * **UDFs**: For debugging User Defined Functions, xlwings offers a convenient debugging server
 

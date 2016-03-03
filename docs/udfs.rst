@@ -8,13 +8,15 @@ UDF Tutorial
 This tutorial gets you quickly started on how to write User Defined Functions. For details of how to control the behaviour
 of the arguments and return values, have a look at :ref:`converters`.
 
-Initial Excel preparations
---------------------------
+Initial one-time Excel preparations
+-----------------------------------
 
-It is recommended (although not required) to work with the xlwings developer add-in to import the functions:
+**Required**: Enable ``Trust access to the VBA project object model`` under
+``File > Options > Trust Center > Trust Center Settings > Macro Settings``
 
-1) Install the add-in via command prompt: ``xlwings addin install`` (see :ref:`command_line`)
-2) Enable ``Trust access to the VBA project object model`` under ``File > Options > Trust Center > Trust Center Settings > Macro Settings``
+**Recommended**: Install the add-in via command prompt: ``xlwings addin install`` (see :ref:`command_line`) to be
+able to easily import the functions.
+
 
 Workbook preparation
 --------------------
@@ -57,19 +59,20 @@ Let's assume you have a Workbook ``myproject.xlsm``, then you would write the fo
 .. note::
   * You only need to re-import your functions if you change the function arguments or the function name.
   * Code changes in the actual functions are picked up automatically (i.e. at the next calculation of the formula,
-    e.g. triggered by ``Ctrl-Alt-F9``), but changes in imported modules are not. This is standard behaviour of Python
-    import statements. The easiest way to come around that is currently by killing the ``pythonw.exe`` process in the
-    Windows Tasks Manager or by working with the debug server that can easily be restarted, see: :ref:`debugging`.
+    e.g. triggered by ``Ctrl-Alt-F9``), but changes in imported modules are not. This is the very behaviour of how Python
+    imports work. The easiest way to come around this is by working with the debug server that can easily be restarted,
+    see: :ref:`debugging`. If not working with the debug server, the ``pythonw.exe`` process currently has to be killed
+    via Windows Task Manager.
   * The ``@xw.func`` decorator is only used by xlwings when the function is being imported into Excel. It tells xlwings
     for which functions it should create a VBA wrapper function, otherwise it has no effect on how the functions behave
     in Python.
 
 
-Array Formulas I: without NumPy/Pandas
---------------------------------------
+Get efficient: Array formulas
+-----------------------------
 
-Array formulas are much more efficient than many single-cell formulas, so it's generally a good idea to use them,
-especially if you hit performance problems.
+Calling one big array formula in Excel is much more efficient than calling many single-cell formulas, so it's generally
+a good idea to use them, especially if you hit performance problems.
 
 You can pass an Excel Range as a function argument, as opposed to a single cell and it will show up in Python as
 list of lists.
@@ -108,11 +111,11 @@ column/row or a two-dimensional Range, you can extend the above formula like thi
     def add_one(data):
         return [[cell + 1 for cell in row] for row in data]
 
-Array Formulas II: with NumPy and Pandas DataFrames
----------------------------------------------------
+Array formulas with NumPy and Pandas
+------------------------------------
 
-Often, you'll want to use NumPy arrays or Pandas DataFrames as this unlocks the full power of Python's ecosystem
-for scientific computing.
+Often, you'll want to use NumPy arrays or Pandas DataFrames in your UDF, as this unlocks the full power of Python's
+ecosystem for scientific computing.
 
 To define a formula for matrix multiplication using numpy arrays, you would define the following function::
 
@@ -145,8 +148,8 @@ matrix of a few time-series, for example. Pandas makes the creation of an array-
 @xw.arg and @xw.ret decorators
 ------------------------------
 
-These decorators are to UDFs what the ``options`` method is to ``Range`` objects: They allow to apply converters and
-options to the arguments (``@xw.arg``) and return value (``@xw.ret``). For example, to convert the argument ``x`` into
+These decorators are to UDFs what the ``options`` method is to ``Range`` objects: They allow to apply converters and their
+options to function arguments (``@xw.arg``) and to the return value (``@xw.ret``). For example, to convert the argument ``x`` into
 a pandas DataFrame and suppress the index when returning it, you would do the following::
 
     @xw.func
@@ -159,13 +162,13 @@ a pandas DataFrame and suppress the index when returning it, you would do the fo
 The "vba" keyword
 -----------------
 
-Often, it's helpful to get the address of the calling cell. Right now, one of the easiest ways to
+It's often helpful to get the address of the calling cell. Right now, one of the easiest ways to
 accomplish this is to use the ``vba`` keyword. ``vba``, in fact, allows you to access any available VBA expression
 e.g. ``Application``. Note, however, that currently you're acting directly on the pywin32 COM object::
 
     @xw.func
     @xw.arg('xl_app', vba='Application')
-    def get_caller_address()
+    def get_caller_address(xl_app)
         return xl_app.Caller.Address
 
 

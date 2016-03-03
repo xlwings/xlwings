@@ -3,14 +3,14 @@
 Converters
 ==========
 
-Introduced with v0.7.0, converters define how Excel Ranges and their values are being converted both when
-**reading** and **writing**. They also provide a consistent experience across **xlwings.Range** objects and
+Introduced with v0.7.0, converters define how Excel Ranges and their values are being converted both during
+**reading** and **writing** operations. They also provide a consistent experience across **xlwings.Range** objects and
 **User Defined Functions** (UDFs).
 
 Converters are explicitely set with the ``as_`` argument in the ``options`` method when manipulating ``xlwings.Range`` objects
 or in the ``@xw.arg`` and ``@xw.ret`` decorators when using UDFs. If no converter is specified, the base converter
-is applied when reading. When writing, xlwings tries to apply the correct converter (if available) according to the
-object's type that is being written to Excel.
+is applied when reading. When writing, xlwings will automatically apply the correct converter (if available) according to the
+object's type that is being written to Excel. If no converter is found for that type, it falls back to the base converter.
 
 **Syntax:**
 
@@ -23,14 +23,14 @@ object's type that is being written to Excel.
 
 .. note:: Keyword arguments (``kwargs``) may refer to the specific converter or the base converter.
   For example, to set the ``numbers`` option in the base converter and the ``index`` option in the DataFrame converter,
-  you would do::
+  you would write::
 
       Range('A1:C3').options(pd.DataFrame, index=False, numbers=int).value
 
 Base Converter
 --------------
 
-With no options set, the following conversions are performed:
+If no options are set, the following conversions are performed:
 
 * single cells are read in as ``floats`` in case the Excel cell holds a number, as ``unicode`` in case it holds text,
   as ``datetime`` if it contains a date and as ``None`` in case it is empty.
@@ -246,13 +246,10 @@ For ``index`` and ``header``, ``1`` and ``True`` may be used interchangeably.
     20  4  5  6
     30  7  8  9
 
-Writing back using the defaults::
-
+    # Writing back using the defaults:
     >>> Range('A1').value = df
 
-
-Writing back and changing some of the options, e.g. getting rid of the index::
-
+    # Writing back and changing some of the options, e.g. getting rid of the index:
     >>> Range('B7').options(index=False).value = df
 
 The same sample for **UDF** (starting in ``Range('A13')`` on screenshot) looks like this::

@@ -22,6 +22,27 @@ Excel workbook (including the xlwings VBA module) and a Python file, ready to be
 
 .. versionadded:: 0.6.4
 
+Add-in (Currently Windows-only)
+-------------------------------
+
+The add-in is currently in an early stage and only provides one button to import User Defined Functions (UDFs). As
+such, it is only a developer add-in and not necessary to run Workbooks with xlwings.
+
+.. note:: Excel needs to be closed before installing/updating the add-in. If you're still getting an error,
+  start the Task Manager and make sure there are no ``EXCEL.EXE`` processes left.
+
+* ``xlwings addin install``: Copies the xlwings add-in to the XLSTART folder
+
+* ``xlwings addin update``: Replaces the current add-in with the latest one
+
+* ``xlwings addin remove``: Removes the add-in from the XLSTART folder
+
+* ``xlwings addin status``: Shows if the add-in is installed together with the installation path
+
+After installing the add-in, it will be available as xlwings tab on the Excel Ribbon.
+
+.. versionadded:: 0.6.0
+
 Template
 --------
 
@@ -40,27 +61,5 @@ After installing, the templates are accessible via Excel's Menu:
 * Win (Excel 2007, 2010): ``File > New > My templates``
 * Win (Excel 2013, 2016): There's an additional step needed as explained `here <https://support.office.com/en-us/article/Where-are-my-custom-templates-88ed77ca-df34-49e9-9087-3f01ae296e6e/>`_
 * Mac (Excel 2011, 2016): ``File > New from template``
-
-.. versionadded:: 0.6.0
-
-Add-in (Currently Windows-only)
--------------------------------
-
-The add-in is currently in an early stage and only provides one button to import User Defined Functions (UDFs). As
-such, it is only a developer add-in and not necessary to run Workbooks with xlwings.
-
-.. note:: Excel needs to be closed before installing/updating the add-in. If you're still getting an error,
-  start the Task Manager and make sure there are no ``EXCEL.EXE`` processes left. Currently only available
-  on Windows!
-
-* ``xlwings addin install``: Copies the xlwings add-in to the XLSTART folder
-
-* ``xlwings addin update``: Replaces the current add-in with the latest one
-
-* ``xlwings addin remove``: Removes the add-in from the XLSTART folder
-
-* ``xlwings addin status``: Shows if the add-in is installed together with the installation path
-
-After installing the add-in, it will be available as xlwings tab on the Excel Ribbon.
 
 .. versionadded:: 0.6.0
