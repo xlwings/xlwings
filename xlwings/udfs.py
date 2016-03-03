@@ -181,7 +181,7 @@ def generate_vba_wrapper(script_vars, f):
                     args_vba = 'Array(' + ', '.join(arg['vba'] or arg['name'] for arg in xlfunc['args']) + ')'
 
                 if ftype == "Sub":
-                    vba.write('Py.CallMacro PyScriptPath, "{fname}", {args_vba}, ThisWorkbook\n',
+                    vba.write('Py.CallUDF PyScriptPath, "{fname}", {args_vba}, ThisWorkbook\n',
                         fname=fname,
                         args_vba=args_vba,
                     )
