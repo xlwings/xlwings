@@ -86,8 +86,8 @@ For example, you can write the following function to add 1 to every cell in a Ra
 To use this formula in Excel,
 
 * Click on ``Import Python UDFs`` again
-* Fill in the values in ``Range("A1:B2")``
-* Select ``Range("D1:E2")``
+* Fill in the values in the range ``A1:B2``
+* Select the range ``D1:E2``
 * Type in the formula ``=add_one("A1:B2")``
 * Press ``Ctrl+Shift+Enter`` to create an array formula. If you did everything correctly, you'll see the formula
   surrounded by curly braces as in this screenshot:
