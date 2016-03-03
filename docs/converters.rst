@@ -59,13 +59,15 @@ The following options can be set:
 
 * **numbers**
 
-  By default numbers are read as ``float``, but this can be overridden::
+  By default cells with numbers are read as ``float``, but you can change it to ``int``::
 
     >>> xw.Range('A1').value = 1
     >>> xw.Range('A1').value
     1.0
     >>> xw.Range('A1').options(numbers=int).value
     1
+
+  Alternatively, you can specify any other function or type which takes a single float argument.
 
   Using this on UDFs looks like this::
 
@@ -79,7 +81,7 @@ The following options can be set:
 
 * **dates**
 
-  Cells with dates are converted per default into ``datetime.datetime``, you can change it to ``datetime.date``:
+  By default cells with dates are read as ``datetime.datetime``, but you can change it to ``datetime.date``:
 
   - Range::
 
@@ -87,6 +89,14 @@ The following options can be set:
     >>> xw.Range('A1').options(dates=dt.date).value
 
   - UDFs: ``@xw.arg('x', dates=dt.date)``
+
+  Alternatively, you can specify any other function or type which takes the same keyword arguments
+  as ``datetime.datetime``, for example:
+
+    >>> my_date_handler = lambda year, month, day, **kwargs: "%04i-%02i-%02i" % (year, month, day)
+    >>> xw.Range('A1').options(dates=my_date_handler).value
+    '2017-02-20'
+
 
 * **empty**
 
