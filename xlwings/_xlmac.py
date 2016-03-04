@@ -130,6 +130,23 @@ def get_worksheet_name(xl_sheet):
     return xl_sheet.name.get()
 
 
+def get_sheet_workbook(xl_sheet):
+    return xl_sheet.parent.get()
+
+
+def get_range_sheet(xl_range):
+    return xl_range.worksheet.get()
+
+
+def get_range_coordinates(xl_range):
+    row1 = xl_range.first_row_index.get()
+    col1 = xl_range.first_column_index.get()
+    row2 = row1 + xl_range.count(each=kw.row) - 1
+    col2 = col1 + xl_range.count(each=kw.column) - 1
+    return (row1, col1, row2, col2)
+
+
+
 def get_xl_sheet(xl_workbook, sheet_name_or_index):
     return xl_workbook.sheets[sheet_name_or_index]
 
@@ -164,7 +181,7 @@ def new_workbook(app_target=None):
 
     set_xl_app(app_target)
 
-    if is_running:
+    if is_running or 0 == _xl_app.count(None, each=kw.workbook):
         # If Excel is being fired up, a "Workbook1" is automatically added
         # If its already running, we create an new one that Excel unfortunately calls "Sheet1".
         # It's a feature though: See p.14 on Excel 2004 AppleScript Reference
@@ -173,6 +190,10 @@ def new_workbook(app_target=None):
         xl_workbook = _xl_app.workbooks[1]
 
     return _xl_app, xl_workbook
+
+
+def is_range_instance(xl_range):
+    return False
 
 
 def get_active_sheet(xl_workbook):
@@ -213,36 +234,51 @@ def get_value_from_range(xl_range):
     return xl_range.value.get()
 
 
+def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
+    if value == '':
+        return empty_as
+    if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:
+        value = datetime_builder(
+            month=value.month,
+            day=value.day,
+            year=value.year,
+            hour=value.hour,
+            minute=value.minute,
+            second=value.second,
+            microsecond=value.microsecond,
+            tzinfo=None
+        )
+    elif number_builder is not None and type(value) == float:
+        value = number_builder(value)
+    return value
+
+
+def clean_value_data(data, datetime_builder, empty_as, number_builder):
+    return [[_clean_value_data_element(c, datetime_builder, empty_as, number_builder) for c in row] for row in data]
+
+
 def get_value_from_index(xl_sheet, row_index, column_index):
     return xl_sheet.columns[column_index].rows[row_index].value.get()
 
-
-def clean_xl_data(data):
-    """
-    Expects a 2d list.
-    """
-    # appscript returns empty cells as ''. So we replace those with None to be in line with pywin32
-    return [[None if c == '' else c for c in row] for row in data]
-
-
-def prepare_xl_data(data):
-    """
-    Expects a 2d list.
-    """
-    if np:
+def prepare_xl_data_element(x):
+    if np and isinstance(x, np.datetime64):
         # handle numpy.datetime64
-        data = [[np_datetime_to_datetime(c) if isinstance(c, np.datetime64) else c for c in row] for row in data]
-    if pd:
+        return np_datetime_to_datetime(x).replace(tzinfo=None)
+
+    if pd and isinstance(x, pd.tslib.Timestamp):
         # This transformation seems to be only needed on Python 2.6 (?)
-        data = [[c.to_datetime() if isinstance(c, pd.tslib.Timestamp) else c for c in row] for row in data]
+        return x.to_datetime().replace(tzinfo=None)
+
     # Make datetime timezone naive
-    data = [[c.replace(tzinfo=None) if isinstance(c, dt.datetime) else c for c in row] for row in data]
-    # appscript packs integers larger than SInt32 but smaller than SInt64 as typeSInt64, and integers
-    # larger than SInt64 as typeIEEE64BitFloatingPoint. Excel silently ignores typeSInt64. (GH 227)
-    data = [[float(c) if isinstance(c, int) else c for c in row] for row in data]
+    if isinstance(x, dt.datetime):
+        return x.replace(tzinfo=None)
 
-    return data
+    if isinstance(x, int):
+        # appscript packs integers larger than SInt32 but smaller than SInt64 as typeSInt64, and integers
+        # larger than SInt64 as typeIEEE64BitFloatingPoint. Excel silently ignores typeSInt64. (GH 227)
+        return float(x)
 
+    return x
 
 def set_value(xl_range, data):
     xl_range.value.set(data)

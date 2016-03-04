@@ -7,7 +7,6 @@ include xlwings/xlwings.xlam
 include xlwings32.dll
 include xlwings64.dll
 include xlwings/xlwings.applescript
-exclude xlwings/xlwings.xlam.bas
 
 recursive-include docs *
 prune docs/_build

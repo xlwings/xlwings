@@ -14,7 +14,7 @@ os.chdir(cwd)
 from warnings import warn
 import pywintypes
 import pythoncom
-from win32com.client import dynamic, Dispatch
+from win32com.client import dynamic, Dispatch, CDispatch, DispatchBaseClass
 import win32timezone
 import win32gui
 import datetime as dt
@@ -34,7 +34,7 @@ try:
 except ImportError:
     np = None
 
-from xlwings import PY3
+from . import PY3
 
 # Time types: pywintypes.timetype doesn't work on Python 3
 time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
@@ -178,6 +178,30 @@ def get_worksheet_name(xl_sheet):
     return xl_sheet.Name
 
 
+def is_range_instance(xl_range):
+    pyid = getattr(xl_range, '_oleobj_', None)
+    if pyid is None:
+        return False
+    return xl_range._oleobj_.GetTypeInfo().GetTypeAttr().iid == pywintypes.IID('{00020846-0000-0000-C000-000000000046}')
+    # return pyid.GetTypeInfo().GetDocumentation(-1)[0] == 'Range'
+
+
+def get_sheet_workbook(xl_sheet):
+    return xl_sheet.Parent
+
+
+def get_range_sheet(xl_range):
+    return xl_range.Worksheet
+
+
+def get_range_coordinates(xl_range):
+    row1 = xl_range.Row
+    col1 = xl_range.Column
+    row2 = row1 + xl_range.Rows.Count - 1
+    col2 = col1 + xl_range.Columns.Count - 1
+    return (row1, col1, row2, col2)
+
+
 def get_xl_sheet(xl_workbook, sheet_name_or_index):
     return xl_workbook.Sheets(sheet_name_or_index)
 
@@ -265,6 +289,35 @@ def get_value_from_range(xl_range):
     return xl_range.Value
 
 
+def clean_value_data(data, datetime_builder, empty_as, number_builder):
+    if number_builder is not None:
+        return [
+            [
+                _com_time_to_datetime(c, datetime_builder)
+                if isinstance(c, time_types) else
+                number_builder(c)
+                if type(c) == float else
+                empty_as
+                if c is None else
+                c
+                for c in row
+            ]
+            for row in data
+        ]
+    else:
+        return [
+            [
+                _com_time_to_datetime(c, datetime_builder)
+                if isinstance(c, time_types)
+                else empty_as
+                if c is None
+                else c
+                for c in row
+            ]
+            for row in data
+        ]
+
+
 def get_value_from_index(xl_sheet, row_index, column_index):
     return xl_sheet.Cells(row_index, column_index).Value
 
@@ -273,24 +326,7 @@ def set_value(xl_range, data):
     xl_range.Value = data
 
 
-def clean_xl_data(data):
-    """
-    Expects a 2d list.
-    """
-    # Turn into list of list (e.g. makes it easier to create Pandas DataFrame) and handle dates
-    data = [[_com_time_to_datetime(c) if isinstance(c, time_types) else c for c in row] for row in data]
-    return data
-
-
-def prepare_xl_data(data):
-    """
-    Expects a 2d list.
-    """
-    data = [[_datetime_to_com_time(c) if isinstance(c, time_types) else c for c in row] for row in data]
-    return data
-
-
-def _com_time_to_datetime(com_time):
+def _com_time_to_datetime(com_time, datetime_builder):
     """
     This function is a modified version from Pyvot (https://pypi.python.org/pypi/Pyvot)
     and subject to the following copyright:
@@ -311,12 +347,12 @@ def _com_time_to_datetime(com_time):
         # The py3 version of pywintypes has its time type inherit from datetime.
         # We copy to a new datetime so that the returned type is the same between 2/3
         # Changed: We make the datetime object timezone naive as Excel doesn't provide info
-        return dt.datetime(month=com_time.month, day=com_time.day, year=com_time.year,
+        return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
                            hour=com_time.hour, minute=com_time.minute, second=com_time.second,
                            microsecond=com_time.microsecond, tzinfo=None)
     else:
         assert com_time.msec == 0, "fractional seconds not yet handled"
-        return dt.datetime(month=com_time.month, day=com_time.day, year=com_time.year,
+        return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
                            hour=com_time.hour, minute=com_time.minute, second=com_time.second)
 
 
@@ -363,6 +399,13 @@ def _datetime_to_com_time(dt_time):
     else:
         assert dt_time.microsecond == 0, "fractional seconds not yet handled"
         return pywintypes.Time(dt_time.timetuple())
+
+
+def prepare_xl_data_element(x):
+    if isinstance(x, time_types):
+        return _datetime_to_com_time(x)
+    else:
+        return x
 
 
 def get_selection_address(xl_app):

@@ -1,0 +1,11 @@
+name: xw33
+dependencies:
+- python=3.3
+- appscript
+- numpy
+- pandas
+- matplotlib
+- pillow
+- pip
+- nose
+- psutil

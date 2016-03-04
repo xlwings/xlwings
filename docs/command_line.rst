@@ -3,7 +3,7 @@
 Command Line Client
 ===================
 
-xlwings comes with a command line client that makes the handling of workbooks and add-in very easy.
+xlwings comes with a command line client that makes it easy to set up workbooks and install the developer add-in.
 On Windows, type the commands into a ``Command Prompt``, on Mac, type them into a ``Terminal``.
 
 Quickstart
@@ -21,6 +21,27 @@ Excel workbook (including the xlwings VBA module) and a Python file, ready to be
     |--myproject.py
 
 .. versionadded:: 0.6.4
+
+Add-in (Currently Windows-only)
+-------------------------------
+
+The add-in is currently in an early stage and only provides one button to import User Defined Functions (UDFs). As
+such, it is only a developer add-in and not necessary to run Workbooks with xlwings.
+
+.. note:: Excel needs to be closed before installing/updating the add-in. If you're still getting an error,
+  start the Task Manager and make sure there are no ``EXCEL.EXE`` processes left.
+
+* ``xlwings addin install``: Copies the xlwings add-in to the XLSTART folder
+
+* ``xlwings addin update``: Replaces the current add-in with the latest one
+
+* ``xlwings addin remove``: Removes the add-in from the XLSTART folder
+
+* ``xlwings addin status``: Shows if the add-in is installed together with the installation path
+
+After installing the add-in, it will be available as xlwings tab on the Excel Ribbon.
+
+.. versionadded:: 0.6.0
 
 Template
 --------
@@ -43,24 +64,14 @@ After installing, the templates are accessible via Excel's Menu:
 
 .. versionadded:: 0.6.0
 
-Add-in (Currently Windows-only)
--------------------------------
+RunPython
+---------
 
-The add-in is currently in an early stage and only provides one button to import User Defined Functions (UDFs). As
-such, it is only a developer add-in and not necessary to run Workbooks with xlwings.
+Only required if you are on Mac, are using Excel 2016 and have xlwings installed via conda or as part of Anaconda.
+To enable the ``RunPython`` calls in VBA, run this one time:
 
-.. note:: Excel needs to be closed before installing/updating the add-in. If you're still getting an error,
-  start the Task Manager and make sure there are no ``EXCEL.EXE`` processes left. Currently only available
-  on Windows!
+``xlwings runpython install``
 
-* ``xlwings addin install``: Copies the xlwings add-in to the XLSTART folder
+Alternatively, install xlwings with ``pip``.
 
-* ``xlwings addin update``: Replaces the current add-in with the latest one
-
-* ``xlwings addin remove``: Removes the add-in from the XLSTART folder
-
-* ``xlwings addin status``: Shows if the add-in is installed together with the installation path
-
-After installing the add-in, it will be available as xlwings tab on the Excel Ribbon.
-
-.. versionadded:: 0.6.0
+.. versionadded:: 0.7.0

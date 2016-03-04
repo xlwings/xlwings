@@ -49,7 +49,7 @@ void AddEnvironmentVariables(Config::ValueMap& values)
 		std::string key = keyEqualsValue.substr(0, equalsPos);
 		std::string value = keyEqualsValue.substr(equalsPos + 1, keyEqualsValue.length() - equalsPos - 1);
 		
-		std::transform(key.begin(), key.end(), key.begin(), std::toupper);
+		strupper(key);
 		
 		values["Environment:" + key] = value;
 		
@@ -96,7 +96,10 @@ std::string Config::Preprocess(const std::string& raw)
 
 void Config::SetupAutoConfig(const std::string& commandLine)
 {
-	values["Command"] = Preprocess(commandLine);
+	if (commandLine[0] == '{')
+		values["CLSID"] = commandLine;
+	else
+		values["Command"] = Preprocess(commandLine);
 }
 
 void Config::ParseConfigFile(const std::string& filename)
@@ -328,6 +331,10 @@ void Config::ActivateRPCServer()
 	// if the server's not running, try to start it up
 	if(hr == REGDB_E_CLASSNOTREG)
 	{
+		// check if a command is specified in the config
+		if (!this->HasValue("Command"))
+			throw formatted_exception() << "No command specified in the configuration, cannot autostart server";
+
 		// build the command line with which to start the Python process
 		std::string workingDir = this->HasValue("WorkingDir") ? this->GetValue("WorkingDir") : "<unspecified>";
 		std::string pythonCmd = this->GetValue("Command");

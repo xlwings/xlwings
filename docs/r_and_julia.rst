@@ -43,7 +43,7 @@ Python wrapper code:
     # you might want to use some relative path or place the file in R's current working dir
     robjects.r.source(r"C:\path\to\r_file.R")
 
-    @xw.xlfunc
+    @xw.func
     def myfunction(x, y):
         myfunc = robjects.r['myfunction']
         return tuple(myfunc(x, y))
@@ -75,9 +75,9 @@ Python wrapper code:
     robjects.r.source(r"C:\path\to\r_file.R")
     numpy2ri.activate()
 
-    @xw.xlfunc
-    @xw.xlarg("x", "nparray", ndim=2)
-    @xw.xlarg("y", "nparray", ndim=2)
+    @xw.func
+    @xw.arg("x", np.array, ndim=2)
+    @xw.arg("y", np.array, ndim=2)
     def array_function(x, y):
         array_func = robjects.r['array_function']
         return np.array(array_func(x, y))

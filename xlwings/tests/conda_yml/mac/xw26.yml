@@ -1,0 +1,12 @@
+name: xw26
+dependencies:
+- python=2.6
+- appscript
+- numpy
+- pandas
+- matplotlib
+- pillow
+- pip
+- nose
+- argparse
+- psutil
