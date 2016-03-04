@@ -118,7 +118,7 @@ def call_udf(script_name, func_name, args, this_workbook):
     return conversion.write(ret, None, ret_info)
 
 
-def generate_vba_wrapper(script_vars, f):
+def generate_vba_wrapper(script_vars, f, short_errors):
 
     vba = VBAWriter(f)
 
@@ -195,18 +195,21 @@ def generate_vba_wrapper(script_vars, f):
                 if ftype == "Function":
                     vba.write("Exit " + ftype + "\n")
                     vba.write_label("failed")
-                    vba.write(fname + " = Err.Description\n")
+                    if short_errors:
+                        vba.write(fname + ' = Split(Err.Description, vbLf)(0)\n')
+                    else:
+                        vba.write(fname + ' = Err.Description\n')
 
             vba.write('End ' + ftype + "\n")
             vba.write("\n")
 
 
-def import_udfs(script_path, xl_workbook):
+def import_udfs(script_path, xl_workbook, short_errors):
 
     script_vars = udf_script(script_path)
 
     tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
-    generate_vba_wrapper(script_vars, tf.file)
+    generate_vba_wrapper(script_vars, tf.file, short_errors)
     tf.close()
 
     try:
