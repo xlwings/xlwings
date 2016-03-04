@@ -7,7 +7,7 @@ Introduced with v0.7.0, converters define how Excel ranges and their values are 
 **reading** and **writing** operations. They also provide a consistent experience across **xlwings.Range** objects and
 **User Defined Functions** (UDFs).
 
-Converters are explicitely set with the ``as_`` argument in the ``options`` method when manipulating ``xlwings.Range`` objects
+Converters are explicitely set in the ``options`` method when manipulating ``xlwings.Range`` objects
 or in the ``@xw.arg`` and ``@xw.ret`` decorators when using UDFs. If no converter is specified, the default converter
 is applied when reading. When writing, xlwings will automatically apply the correct converter (if available) according to the
 object's type that is being written to Excel. If no converter is found for that type, it falls back to the default converter.
@@ -17,8 +17,8 @@ object's type that is being written to Excel. If no converter is found for that 
 ==============================  ===========================================================  ===========
 ****                            **Range**                                                    **UDF**
 ==============================  ===========================================================  ===========
-**reading**                     ``Range.options(as_=None, **kwargs).value``                  ``@arg('x', as_=None, **kwargs)``
-**writing**                     ``Range.options(as_=None, **kwargs).value = myvalue``        ``@ret(as_=None, **kwargs)``
+**reading**                     ``Range.options(convert=None, **kwargs).value``              ``@arg('x', convert=None, **kwargs)``
+**writing**                     ``Range.options(convert=None, **kwargs).value = myvalue``    ``@ret(convert=None, **kwargs)``
 ==============================  ===========================================================  ===========
 
 .. note:: Keyword arguments (``kwargs``) may refer to the specific converter or the default converter.
@@ -27,8 +27,8 @@ object's type that is being written to Excel. If no converter is found for that 
 
       Range('A1:C3').options(pd.DataFrame, index=False, numbers=int).value
 
-Base Converter
---------------
+Default Converter
+-----------------
 
 If no options are set, the following conversions are performed:
 
@@ -77,7 +77,7 @@ The following options can be set:
         # all numbers in x arrive as int
         return x
 
-  Note that this option can only be used for reading, as Excel always stores numbers internally as floats.
+  **Note:** Excel always stores numbers internally as floats.
 
 * **dates**
 

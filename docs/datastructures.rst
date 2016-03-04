@@ -109,7 +109,7 @@ NumPy arrays
 ------------
 
 NumPy arrays work similar to nested lists. However, empty cells are represented by ``nan`` instead of
-``None``. If you want to read in a Range as array, set the ``as_`` argument in ``options`` to ``np.array``:
+``None``. If you want to read in a Range as array, set ``convert=np.array``:
 
 .. code-block:: python
 
