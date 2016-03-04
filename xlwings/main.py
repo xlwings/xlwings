@@ -139,15 +139,15 @@ class Application(object):
 
     _current = None
 
-    @staticproperty
-    def current():
-        if Application._current is None:
-            Application._current = Application(xlplatform.get_running_app())
-        return Application._current
+    @classmethod
+    def get_current(cls):
+        if cls._current is None:
+            cls._current = Application(xlplatform.get_running_app())
+        return cls._current
 
-    @current.setter
-    def current(value):
-        Application._current = value
+    @classmethod
+    def set_current(cls, value):
+        cls._current = value
 
     @property
     def active_sheet(self):
@@ -206,7 +206,7 @@ class Workbook(object):
                 self.xl_app, self.xl_workbook = xlplatform.open_workbook(self.fullname, app_target)
         else:
             # Open Excel if necessary and create a new workbook
-            app = Application.current
+            app = Application.get_current()
             wb = app.new_workbook()
             self.xl_app = app.xl_app
             self.xl_workbook = wb.xl_workbook

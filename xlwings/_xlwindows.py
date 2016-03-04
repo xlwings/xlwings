@@ -161,23 +161,6 @@ def get_open_workbook(fullname, app_target=None, hwnd=None):
                     return xl_app, xl_workbook
 
 
-def get_active_workbook(app_target=None):
-    if app_target is not None:
-        raise NotImplementedError('app_target is only available on Mac.')
-    # The active workbook is the first of all HWNDs
-    hwnd_active_workbook = get_excel_hwnds()[0]
-    xl_app = get_xl_app_from_hwnd(hwnd_active_workbook)
-    return xl_app.ActiveWorkbook
-
-
-def get_workbook_name(xl_workbook):
-    return xl_workbook.Name
-
-
-def get_worksheet_name(xl_sheet):
-    return xl_sheet.Name
-
-
 def is_range_instance(xl_range):
     pyid = getattr(xl_range, '_oleobj_', None)
     if pyid is None:
@@ -186,114 +169,326 @@ def is_range_instance(xl_range):
     # return pyid.GetTypeInfo().GetDocumentation(-1)[0] == 'Range'
 
 
-def get_sheet_workbook(xl_sheet):
-    return xl_sheet.Parent
+class Application(object):
+
+    def __init__(self, xl):
+        self.xl = xl
+
+    @classmethod
+    def get_new(cls):
+       return Application(DispatchEx('Excel.Application'))
+
+    @classmethod
+    def get_running(cls):
+        return Application(dynamic.Dispatch('Excel.Application'))
+
+    @property
+    def active_workbook(self):
+        return Workbook(self.xl.ActiveWorkbook)
+
+    def open_workbook(self, fullname):
+        return Workbook(self.xl.Workbooks.Open(fullname))
+
+    def new_workbook(self):
+        return Workbook(self.xl.Workbooks.Add())
+
+    @property
+    def selection(self):
+        return Range(self.Selection)
+
+    @property
+    def visible(self):
+        return self.xl.Visible
+
+    @visible.setter
+    def visible(self, visible):
+        self.xl.Visible = visible
+
+    def quit(self):
+        self.xl.DisplayAlerts = False
+        self.xl.Quit()
+        self.xl.DisplayAlerts = True
+
+    @property
+    def screen_updating(self):
+        return self.xl.ScreenUpdating
+
+    @screen_updating.setter
+    def screen_updating(self, value):
+        self.xl.ScreenUpdating = value
+
+    @property
+    def calculation(self):
+        return self.xl.Calculation
+
+    @calculation.setter
+    def calculation(self, value):
+        self.xl.Calculation = value
+
+    def calculate(self):
+        self.xl.Calculate()
+
+    def get_version_string(self):
+        return self.lx.Version
+
+    def get_major_version_number(self):
+        return int(self.get_version_string().split('.')[0])
 
 
-def get_range_sheet(xl_range):
-    return xl_range.Worksheet
+class Workbook(object):
 
-def get_sheet_range(xl_sheet, address):
-    return xl_sheet.Range(address)
+    def __init__(self, xl):
+        self.xl = xl
 
+    def get_name(self):
+        return self.xl.Name
 
-def get_range_coordinates(xl_range):
-    row1 = xl_range.Row
-    col1 = xl_range.Column
-    row2 = row1 + xl_range.Rows.Count - 1
-    col2 = col1 + xl_range.Columns.Count - 1
-    return (row1, col1, row2, col2)
+    def set_name(self, value):
+        self.xl.Name = value
 
+    def get_index(self):
+        return self.xl.Index
 
-def get_xl_sheet(xl_workbook, sheet_name_or_index):
-    return xl_workbook.Sheets(sheet_name_or_index)
+    def get_sheet(self, sheet_name_or_index):
+        return Sheet(self.xl.Sheets(sheet_name_or_index))
 
+    @property
+    def application(self):
+        return Application(self.xl.Application)
 
-def set_worksheet_name(xl_sheet, value):
-    xl_sheet.Name = value
+    def close(self):
+        self.xl.Close(SaveChanges=False)
 
+    @property
+    def active_sheet(self):
+        return Sheet(self.xl.ActiveSheet)
+    
+    def add_sheet(self, before, after):
+        if before:
+            return Sheet(self.xl.Worksheets.Add(Before=before.xl_sheet))
+        else:
+            # Hack, since "After" is broken in certain environments
+            # see: http://code.activestate.com/lists/python-win32/11554/
+            count = self.xl.Worksheets.Count
+            new_sheet_index = after.xl_sheet.Index + 1
+            if new_sheet_index > count:
+                xl_sheet = self.xl.Worksheets.Add(Before=self.xl.Sheets(after.xl_sheet.Index))
+                self.xl.Worksheets(self.xl.Worksheets.Count)\
+                    .Move(Before=self.xl.Sheets(self.xl.Worksheets.Count - 1))
+                self.xl.Worksheets(self.xl.Worksheets.Count).Activate()
+            else:
+                xl_sheet = self.xl.Worksheets.Add(Before=self.xl.Sheets(after.xl_sheet.Index + 1))
+            return Sheet(xl_sheet)
+    
+    def count_sheets(self):
+        return self.xl.Worksheets.Count
 
-def get_worksheet_index(xl_sheet):
-    return xl_sheet.Index
-
-
-def get_app(xl_workbook, app_target):
-    if app_target is not None:
-        raise NotImplementedError('app_target is only available on Mac.')
-    return xl_workbook.Application
-
-
-def new_app():
-   return DispatchEx('Excel.Application')
-
-
-def get_running_app():
-    return dynamic.Dispatch('Excel.Application')
-
-
-def _get_latest_app():
-    """
-    Only dispatch Excel if there isn't an existing application - this allows us to run open_workbook() and
-    new_workbook() in the correct Excel instance, i.e. in the one that was instantiated last. Otherwise it would pick
-    the application that appears first in the Running Object Table (ROT).
-    """
-    try:
-        return xl_workbook_current.Application
-    except (NameError, AttributeError, pywintypes.com_error):
-        return dynamic.Dispatch('Excel.Application')
-
-
-def open_workbook(fullname, app_target):
-    if app_target is not None:
-        raise NotImplementedError('app_target is only available on Mac.')
-    xl_app = _get_latest_app()
-    xl_workbook = xl_app.Workbooks.Open(fullname)
-    return xl_app, xl_workbook
-
-
-def close_workbook(xl_workbook):
-    xl_workbook.Close(SaveChanges=False)
-
-
-def new_workbook(xl_app):
-    return xl_app.Workbooks.Add()
-
-
-def get_active_sheet(xl_workbook):
-    return xl_workbook.ActiveSheet
-
-
-def activate_sheet(xl_sheet):
-    return xl_sheet.Activate()
-
-
-def get_worksheet(xl_workbook, sheet):
-    return xl_workbook.Sheets(sheet)
+    def save_workbook(self, path):
+        saved_path = self.xl.Path
+        if (saved_path != '') and (path is None):
+            # Previously saved: Save under existing name
+            self.xl.Save()
+        elif (saved_path == '') and (path is None):
+            # Previously unsaved: Save under current name in current working directory
+            path = os.path.join(os.getcwd(), self.xl.Name + '.xlsx')
+            self.xl.Application.DisplayAlerts = False
+            self.xl.SaveAs(path)
+            self.xl.Application.DisplayAlerts = True
+        elif path:
+            # Save under new name/location
+            self.xl.Application.DisplayAlerts = False
+            self.xl.SaveAs(path)
+            self.xl.Application.DisplayAlerts = True
+    
+    @property
+    def fullname(self):
+        return self.xl.FullName
+    
+    def set_names(self, names):
+        for i in self.xl.Names:
+            names[i.Name] = i
+    
+    def delete_name(self, name):
+        self.xl.Names(name).Delete()
 
 
-def get_first_row(xl_sheet, range_address):
-    return xl_sheet.Range(range_address).Row
+class Sheet(object):
+
+    def __init__(self, xl):
+        self.xl = xl
+
+    def get_name(self):
+        return self.xl.Name
+
+    def get_workbook(self):
+        return Workbook(self.Parent)
+
+    def get_range(self, address):
+        return Range(self.xl.Range(address))
+
+    def activate(self):
+        return self.xl.Activate()
+
+    def get_value_from_index(self, row_index, column_index):
+        return self.xl.Cells(row_index, column_index).Value
+
+    def clear_contents(self):
+        self.xl.Cells.ClearContents()
+
+    def clear(self):
+        self.xl.Cells.Clear()
+
+    def get_row_index_end_down(self, row_index, column_index):
+        return Range(self.xl.Cells(row_index, column_index).End(Direction.xlDown).Row)
+
+    def get_column_index_end_right(self, row_index, column_index):
+        return Range(self.xl.Cells(row_index, column_index).End(Direction.xlToRight).Column)
+
+    def get_current_region_address(self, row_index, column_index):
+        return str(self.xl.Cells(row_index, column_index).CurrentRegion.Address)
+
+    def autofit(self, axis):
+        if axis == 'rows' or axis == 'r':
+            self.xl.Rows.AutoFit()
+        elif axis == 'columns' or axis == 'c':
+            self.xl.Columns.AutoFit()
+        elif axis is None:
+            self.xl.Rows.AutoFit()
+            self.xl.Columns.AutoFit()
+
+    def get_range_from_indices(self, first_row, first_column, last_row, last_column):
+        return Range(self.xl.Range(self.xl.Cells(first_row, first_column), self.xl.Cells(last_row, last_column)))
+
+    def delete(self):
+        xl_app = self.xl.Parent.Application
+        xl_app.DisplayAlerts = False
+        self.xl.Delete()
+        xl_app.DisplayAlerts = True
 
 
-def get_first_column(xl_sheet, range_address):
-    return xl_sheet.Range(range_address).Column
+class Range(object):
 
+    def __init__(self, xl):
+        self.xl = xl
 
-def count_rows(xl_sheet, range_address):
-    return xl_sheet.Range(range_address).Rows.Count
+    def get_worksheet(self):
+        return self.xl.Worksheet
 
+    def get_coordinates(self):
+        row1 = self.xl.Row
+        col1 = self.xl.Column
+        row2 = row1 + self.xl.Rows.Count - 1
+        col2 = col1 + self.xl.Columns.Count - 1
+        return (row1, col1, row2, col2)
 
-def count_columns(xl_sheet, range_address):
-    return xl_sheet.Range(range_address).Columns.Count
+    def get_first_row(self):
+        return self.xl.Row
 
+    def get_first_column(self):
+        return self.xl.Column
 
-def get_range_from_indices(xl_sheet, first_row, first_column, last_row, last_column):
-    return xl_sheet.Range(xl_sheet.Cells(first_row, first_column),
-                          xl_sheet.Cells(last_row, last_column))
+    def count_rows(self):
+        return self.xl.Rows.Count
 
+    def count_columns(self):
+        return self.xl.Columns.Count
 
-def get_value_from_range(xl_range):
-    return xl_range.Value
+    def get_value_from_range(self):
+        return self.xl.Value
+
+    def set_value(self, data):
+        self.xl.Value = data
+
+    def clear_contents(self):
+        self.xl.ClearContents()
+
+    def clear(self):
+        self.xl.Clear()
+
+    def get_formula(self):
+        return self.xl.Formula
+
+    def set_formula(self, value):
+        self.xl.Formula = value
+
+    def get_column_width(self):
+        return self.xl.ColumnWidth
+
+    def set_column_width(self, value):
+        self.xl.ColumnWidth = value
+
+    def get_row_height(self):
+        return self.xl.RowHeight
+
+    def set_row_height(self, value):
+        self.xl.RowHeight = value
+
+    def get_width(self):
+        return self.xl.Width
+
+    def get_height(self):
+        return self.xl.Height
+
+    def get_left(self):
+        return self.xl.Left
+
+    def get_top(self):
+        return self.xl.Top
+
+    def get_number_format(self):
+        return self.xl.NumberFormat
+
+    def set_number_format(self, value):
+        self.xl.NumberFormat = value
+
+    def get_address(self, row_absolute, col_absolute, external):
+        return self.xl.GetAddress(row_absolute, col_absolute, 1, external)
+
+    def autofit(self, axis):
+        if axis == 'rows' or axis == 'r':
+            self.lx.Rows.AutoFit()
+        elif axis == 'columns' or axis == 'c':
+            self.lx.Columns.AutoFit()
+        elif axis is None:
+            self.lx.Columns.AutoFit()
+            self.lx.Rows.AutoFit()
+
+    def get_hyperlink_address(self):
+        try:
+            return self.xl.Hyperlinks(1).Address
+        except pywintypes.com_error:
+            raise Exception("The cell doesn't seem to contain a hyperlink!")
+
+    def set_hyperlink(self, address, text_to_display=None, screen_tip=None):
+        # Another one of these pywin32 bugs that only materialize under certain circumstances:
+        # http://stackoverflow.com/questions/6284227/hyperlink-will-not-show-display-proper-text
+        link = self.xl.Hyperlinks.Add(Anchor=self.xl, Address=address)
+        link.TextToDisplay = text_to_display
+        link.ScreenTip = screen_tip
+
+    def set_color(self, color_or_rgb):
+        if color_or_rgb is None:
+            self.xl.Interior.ColorIndex = ColorIndex.xlColorIndexNone
+        elif isinstance(color_or_rgb, int):
+            self.xl.Interior.Color = color_or_rgb
+        else:
+            self.xl.Interior.Color = rgb_to_int(color_or_rgb)
+
+    def get_color(self):
+        if self.xl.Interior.ColorIndex == ColorIndex.xlColorIndexNone:
+            return None
+        else:
+            return int_to_rgb(self.xl.Interior.Color)
+
+    def set_named_range(self, value):
+        self.xl.Name = value
+
+    def get_named_range(self):
+        try:
+            name = self.xl.Name.Name
+        except pywintypes.com_error:
+            name = None
+        return name
 
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
@@ -323,14 +518,6 @@ def clean_value_data(data, datetime_builder, empty_as, number_builder):
             ]
             for row in data
         ]
-
-
-def get_value_from_index(xl_sheet, row_index, column_index):
-    return xl_sheet.Cells(row_index, column_index).Value
-
-
-def set_value(xl_range, data):
-    xl_range.Value = data
 
 
 def _com_time_to_datetime(com_time, datetime_builder):
@@ -415,46 +602,6 @@ def prepare_xl_data_element(x):
         return x
 
 
-def get_selection_address(xl_app):
-    return str(xl_app.Selection.Address)
-
-
-def clear_contents_worksheet(xl_workbook, sheet_name_or_index):
-    xl_workbook.Sheets(sheet_name_or_index).Cells.ClearContents()
-
-
-def clear_worksheet(xl_workbook, sheet_name_or_index):
-    xl_workbook.Sheets(sheet_name_or_index).Cells.Clear()
-
-
-def clear_contents_range(xl_range):
-    xl_range.ClearContents()
-
-
-def clear_range(xl_range):
-    xl_range.Clear()
-
-
-def get_formula(xl_range):
-    return xl_range.Formula
-
-
-def set_formula(xl_range, value):
-    xl_range.Formula = value
-
-
-def get_row_index_end_down(xl_sheet, row_index, column_index):
-    return xl_sheet.Cells(row_index, column_index).End(Direction.xlDown).Row
-
-
-def get_column_index_end_right(xl_sheet, row_index, column_index):
-    return xl_sheet.Cells(row_index, column_index).End(Direction.xlToRight).Column
-
-
-def get_current_region_address(xl_sheet, row_index, column_index):
-    return str(xl_sheet.Cells(row_index, column_index).CurrentRegion.Address)
-
-
 def get_chart_object(xl_workbook, sheet_name_or_index, chart_name_or_index):
     return xl_workbook.Sheets(sheet_name_or_index).ChartObjects(chart_name_or_index)
 
@@ -491,217 +638,8 @@ def activate_chart(xl_chart):
     xl_chart.Activate()
 
 
-def get_column_width(xl_range):
-    return xl_range.ColumnWidth
-
-
-def set_column_width(xl_range, value):
-    xl_range.ColumnWidth = value
-
-
-def get_row_height(xl_range):
-    return xl_range.RowHeight
-
-
-def set_row_height(xl_range, value):
-    xl_range.RowHeight = value
-
-
-def get_width(xl_range):
-    return xl_range.Width
-
-
-def get_height(xl_range):
-    return xl_range.Height
-	
-
-def get_left(xl_range):
-    return xl_range.Left
-
-
-def get_top(xl_range):
-    return xl_range.Top
-
-	
-def autofit(range_, axis):
-    if axis == 'rows' or axis == 'r':
-        range_.xl_range.Rows.AutoFit()
-    elif axis == 'columns' or axis == 'c':
-        range_.xl_range.Columns.AutoFit()
-    elif axis is None:
-        range_.xl_range.Columns.AutoFit()
-        range_.xl_range.Rows.AutoFit()
-
-
-def autofit_sheet(sheet, axis):
-    if axis == 'rows' or axis == 'r':
-        sheet.xl_sheet.Rows.AutoFit()
-    elif axis == 'columns' or axis == 'c':
-        sheet.xl_sheet.Columns.AutoFit()
-    elif axis is None:
-        sheet.xl_sheet.Rows.AutoFit()
-        sheet.xl_sheet.Columns.AutoFit()
-
-
-xl_workbook_current = None
-
-
-def set_xl_workbook_current(xl_workbook):
-    global xl_workbook_current
-    xl_workbook_current = xl_workbook
-
-
-def get_xl_workbook_current():
-    try:
-        return xl_workbook_current
-    except NameError:
-        return None
-
-
-def get_number_format(range_):
-    return range_.xl_range.NumberFormat
-
-
-def set_number_format(range_, value):
-    range_.xl_range.NumberFormat = value
-
-
-def get_address(xl_range, row_absolute, col_absolute, external):
-    return xl_range.GetAddress(row_absolute, col_absolute, 1, external)
-
-
-def add_sheet(xl_workbook, before, after):
-    if before:
-        return xl_workbook.Worksheets.Add(Before=before.xl_sheet)
-    else:
-        # Hack, since "After" is broken in certain environments
-        # see: http://code.activestate.com/lists/python-win32/11554/
-        count = xl_workbook.Worksheets.Count
-        new_sheet_index = after.xl_sheet.Index + 1
-        if new_sheet_index > count:
-            xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index))
-            xl_workbook.Worksheets(xl_workbook.Worksheets.Count)\
-                .Move(Before=xl_workbook.Sheets(xl_workbook.Worksheets.Count - 1))
-            xl_workbook.Worksheets(xl_workbook.Worksheets.Count).Activate()
-        else:
-            xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index + 1))
-        return xl_sheet
-
-
-def count_worksheets(xl_workbook):
-    return xl_workbook.Worksheets.Count
-
-
-def get_hyperlink_address(xl_range):
-    try:
-        return xl_range.Hyperlinks(1).Address
-    except pywintypes.com_error:
-        raise Exception("The cell doesn't seem to contain a hyperlink!")
-
-
-def set_hyperlink(xl_range, address, text_to_display=None, screen_tip=None):
-    # Another one of these pywin32 bugs that only materialize under certain circumstances:
-    # http://stackoverflow.com/questions/6284227/hyperlink-will-not-show-display-proper-text
-    link = xl_range.Hyperlinks.Add(Anchor=xl_range, Address=address)
-    link.TextToDisplay = text_to_display
-    link.ScreenTip = screen_tip
-
-
-def set_color(xl_range, color_or_rgb):
-    if color_or_rgb is None:
-        xl_range.Interior.ColorIndex = ColorIndex.xlColorIndexNone
-    elif isinstance(color_or_rgb, int):
-        xl_range.Interior.Color = color_or_rgb
-    else:
-        xl_range.Interior.Color = rgb_to_int(color_or_rgb)
-
-
-def get_color(xl_range):
-    if xl_range.Interior.ColorIndex == ColorIndex.xlColorIndexNone:
-        return None
-    else:
-        return int_to_rgb(xl_range.Interior.Color)
-
-
-def save_workbook(xl_workbook, path):
-    saved_path = xl_workbook.Path
-    if (saved_path != '') and (path is None):
-        # Previously saved: Save under existing name
-        xl_workbook.Save()
-    elif (saved_path == '') and (path is None):
-        # Previously unsaved: Save under current name in current working directory
-        path = os.path.join(os.getcwd(), xl_workbook.Name + '.xlsx')
-        xl_workbook.Application.DisplayAlerts = False
-        xl_workbook.SaveAs(path)
-        xl_workbook.Application.DisplayAlerts = True
-    elif path:
-        # Save under new name/location
-        xl_workbook.Application.DisplayAlerts = False
-        xl_workbook.SaveAs(path)
-        xl_workbook.Application.DisplayAlerts = True
-
-
 def open_template(fullpath):
     os.startfile(fullpath)
-
-
-def set_visible(xl_app, visible):
-    xl_app.Visible = visible
-
-
-def get_visible(xl_app):
-    return xl_app.Visible
-
-
-def get_fullname(xl_workbook):
-    return xl_workbook.FullName
-
-
-def quit_app(xl_app):
-    xl_app.DisplayAlerts = False
-    xl_app.Quit()
-    xl_app.DisplayAlerts = True
-
-
-def get_screen_updating(xl_app):
-    return xl_app.ScreenUpdating
-
-
-def set_screen_updating(xl_app, value):
-    xl_app.ScreenUpdating = value
-
-
-def get_calculation(xl_app):
-    return xl_app.Calculation
-
-
-def set_calculation(xl_app, value):
-    xl_app.Calculation = value
-
-
-def calculate(xl_app):
-    xl_app.Calculate()
-
-
-def get_named_range(range_):
-    try:
-        name = range_.xl_range.Name.Name
-    except pywintypes.com_error:
-        name = None
-    return name
-
-
-def set_named_range(range_, value):
-    range_.xl_range.Name = value
-
-
-def set_names(xl_workbook, names):
-    for i in xl_workbook.Names:
-        names[i.Name] = i
-
-
-def delete_name(xl_workbook, name):
-    xl_workbook.Names(name).Delete()
 
 
 def get_picture(picture):
@@ -783,15 +721,3 @@ def add_picture(xl_workbook, sheet_name_or_index, filename, link_to_file, save_w
                                                                      Height=height)
 
 
-def get_app_version_string(xl_workbook):
-    return xl_workbook.Application.Version
-
-
-def get_major_app_version_number(xl_workbook):
-    return int(get_app_version_string(xl_workbook).split('.')[0])
-
-
-def delete_sheet(sheet):
-    sheet.xl_workbook.Application.DisplayAlerts = False
-    sheet.xl_workbook.Sheets(sheet.name).Delete()
-    sheet.xl_workbook.Application.DisplayAlerts = True
