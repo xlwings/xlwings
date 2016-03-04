@@ -8,8 +8,8 @@ UDF Tutorial
 This tutorial gets you quickly started on how to write User Defined Functions. For details of how to control the behaviour
 of the arguments and return values, have a look at :ref:`converters`.
 
-Initial one-time Excel preparations
------------------------------------
+One-time Excel preparations
+---------------------------
 
 **Required**: Enable ``Trust access to the VBA project object model`` under
 ``File > Options > Trust Center > Trust Center Settings > Macro Settings``
@@ -55,20 +55,21 @@ Let's assume you have a Workbook ``myproject.xlsm``, then you would write the fo
     :scale: 80%
 
 * This formula can be used in VBA, too.
+* The docstring (in triple-quotes) will be shown as function description in Excel.
 
 .. note::
   * You only need to re-import your functions if you change the function arguments or the function name.
   * Code changes in the actual functions are picked up automatically (i.e. at the next calculation of the formula,
     e.g. triggered by ``Ctrl-Alt-F9``), but changes in imported modules are not. This is the very behaviour of how Python
     imports work. The easiest way to come around this is by working with the debug server that can easily be restarted,
-    see: :ref:`debugging`. If not working with the debug server, the ``pythonw.exe`` process currently has to be killed
+    see: :ref:`debugging`. If you aren't working with the debug server, the ``pythonw.exe`` process currently has to be killed
     via Windows Task Manager.
   * The ``@xw.func`` decorator is only used by xlwings when the function is being imported into Excel. It tells xlwings
     for which functions it should create a VBA wrapper function, otherwise it has no effect on how the functions behave
     in Python.
 
 
-Get efficient: Array formulas
+Array formulas: Get efficient
 -----------------------------
 
 Calling one big array formula in Excel is much more efficient than calling many single-cell formulas, so it's generally
@@ -132,7 +133,8 @@ To define a formula for matrix multiplication using numpy arrays, you would defi
 
 A great example of how you can put Pandas at work is the creation of an array-based ``CORREL`` formula. Excel's
 version of ``CORREL`` only works on 2 datasets and is cumbersome to use if you want to quickly get the correlation
-matrix of a few time-series, for example. Pandas makes the creation of an array-based ``CORREL2`` formula a one-liner::
+matrix of a few time-series, for example. Pandas makes the creation of an array-based ``CORREL2`` formula basically
+a one-liner::
 
     import xlwings as xw
     import pandas as pd
@@ -160,6 +162,16 @@ a pandas DataFrame and suppress the index when returning it, you would do the fo
        return x
 
 For further details see the :ref:`converters` documentation.
+
+Get the argument as xlwings.Range
+---------------------------------
+
+If you need access to the ``xlwings.Range`` object directly, you can do::
+
+    @xw.func
+    @xw.arg('x', xw.Range)
+    def myfunction(x):
+       return x.formula
 
 The "vba" keyword
 -----------------

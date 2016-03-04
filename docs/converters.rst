@@ -189,7 +189,7 @@ for lists (under default converter) and hence returns either numpy scalars, 1d a
            [ 2.],
            [ 3.]])
 
-Pandas series converter
+Pandas Series converter
 ***********************
 
 **options:** ``dtype=None, copy=False, index=1, header=True``
