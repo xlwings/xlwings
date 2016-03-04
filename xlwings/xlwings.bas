@@ -239,7 +239,7 @@ Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As S
     WORKBOOK_FULLNAME = ThisWorkbook.FullName
 
     If IsFrozen = False Then
-        RunCommand = "python -c ""import sys; sys.path.extend(r'" & PYTHONPATH & "'.split(';')); " & PythonCommand & """ "
+        RunCommand = "python -c ""import sys,os;sys.path.extend(os.path.normcase(os.path.expandvars(r'" & PYTHONPATH & "')).split(';')); " & PythonCommand & """ "
     ElseIf IsFrozen = True Then
         RunCommand = PythonCommand & " "
     End If
@@ -291,9 +291,13 @@ Function ReadFile(ByVal FileName As String)
     Dim Content As String
     Dim Token As String
     Dim FileNum As Integer
+    Dim objShell as Object
 
     #If Mac Then
         FileName = ToMacPath(FileName)
+    #Else
+        Set objShell = CreateObject("WScript.Shell")
+        FileName = objShell.ExpandEnvironmentStrings(FileName)
     #End If
 
     FileNum = FreeFile
@@ -458,7 +462,7 @@ Function XLPyCommand()
     Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
 
     Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
-    Tail = " -c ""import sys;sys.path.extend(r'" & PYTHONPATH & "'.split(';'));import xlwings.server; xlwings.server.serve('$(CLSID)')"""
+    Tail = " -c ""import sys,os;sys.path.extend(os.path.normcase(os.path.expandvars(r'" & PYTHONPATH & "')).split(';'));import xlwings.server; xlwings.server.serve('$(CLSID)')"""
     If PYTHON_WIN = "" Then
         XLPyCommand = "pythonw.exe" + Tail
     ElseIf LCase$(Right$(PYTHON_WIN, 4)) = ".exe" Then
