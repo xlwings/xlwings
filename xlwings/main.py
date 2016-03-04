@@ -92,11 +92,11 @@ class Application(object):
 
         .. versionadded:: 0.3.3
         """
-        return self.xl_app.screen_updating
+        return self.xl_app.get_screen_updating()
 
     @screen_updating.setter
     def screen_updating(self, value):
-        self.xl_app.screen_updating = value
+        self.xl_app.set_screen_updating(value)
 
     @property
     def visible(self):
@@ -106,11 +106,11 @@ class Application(object):
 
         .. versionadded:: 0.3.3
         """
-        return self.xl_app.visible
+        return self.xl_app.get_visible()
 
     @visible.setter
     def visible(self, value):
-        self.xl_app.visible = value
+        self.xl_app.set_visible(value)
 
     @property
     def calculation(self):
@@ -126,11 +126,11 @@ class Application(object):
 
         .. versionadded:: 0.3.3
         """
-        return self.xl_app.calculation
+        return self.xl_app.get_calculation()
 
     @calculation.setter
     def calculation(self, value):
-        self.xl_app.calculation = value
+        self.xl_app.set_calculation(value)
 
     def calculate(self):
         """
@@ -389,24 +389,6 @@ class Workbook(object):
         """
         xlplatform.save_workbook(self.xl_workbook, path)
 
-    @staticmethod
-    def get_xl_workbook(wkb):
-        """
-        Returns the ``xl_workbook_current`` if ``wkb`` is ``None``, otherwise the ``xl_workbook`` of ``wkb``. On Windows,
-        ``xl_workbook`` is a pywin32 COM object, on Mac it's an appscript object.
-
-        Arguments
-        ---------
-        wkb : Workbook or None
-            Workbook object
-        """
-        if wkb is None and xlplatform.get_xl_workbook_current() is None:
-            raise NameError('You must first instantiate a Workbook object.')
-        elif wkb is None:
-            xl_workbook = xlplatform.get_xl_workbook_current()
-        else:
-            xl_workbook = wkb.xl_workbook
-        return xl_workbook
 
     @staticmethod
     def open_template():
@@ -947,13 +929,22 @@ class Range(object):
             Range('A1').table.clear_contents()
 
         """
-        row2 = Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row1, self.col1), wkb=self.workbook, **self._options).vertical.row2
-        col2 = Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row1, self.col1), wkb=self.workbook, **self._options).horizontal.col2
+        row2 = Range(
+            xl_range=self.xl_range.get_cell(1, 1),
+            **self._options
+        ).vertical.row2
 
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row1, self.col1), (row2, col2), wkb=self.workbook, **self._options)
+        col2 = Range(
+            xl_range=self.xl_range.get_cell(1, 1),
+            **self._options
+        ).horizontal.row2
+
+        return Range(
+            xl_range=self.xl_range.get_worksheet().get_range_from_indices(
+                self.row1, self.col1, row2, col2
+            ),
+            **self._options
+        )
 
     @property
     def vertical(self):
@@ -980,21 +971,25 @@ class Range(object):
 
         """
         # A single cell is a special case as End(xlDown) jumps over adjacent empty cells
-        if xlplatform.get_value_from_index(self.xl_sheet, self.row1 + 1, self.col1) in [None, ""]:
+        if self.xl_range.get_worksheet().get_value_from_index(self.row1 + 1, self.col1) in [None, ""]:
             row2 = self.row1
         else:
-            row2 = xlplatform.get_row_index_end_down(self.xl_sheet, self.row1, self.col1)
+            row2 = self.xl_range.get_worksheet().get_row_index_end_down(self.row1, self.col1)
 
         # Strict stops at cells that contain a formula but show an empty value
         if self.strict:
             row2 = self.row1
-            while xlplatform.get_value_from_index(self.xl_sheet, row2 + 1, self.col1) not in [None, ""]:
+            while self.xl_range.get_worksheet().get_value_from_index(row2 + 1, self.col1) not in [None, ""]:
                 row2 += 1
 
         col2 = self.col2
 
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row1, self.col1), (row2, col2), wkb=self.workbook, **self._options)
+        return Range(
+            xl_range=self.xl_range.get_worksheet().get_range_from_indices(
+                self.row1, self.col1, row2, col2
+            ),
+            **self._options
+        )
 
     @property
     def strict(self):
@@ -1024,21 +1019,26 @@ class Range(object):
 
         """
         # A single cell is a special case as End(xlToRight) jumps over adjacent empty cells
-        if xlplatform.get_value_from_index(self.xl_sheet, self.row1, self.col1 + 1) in [None, ""]:
+        if self.xl_range.get_worksheet().get_value_from_index(self.row1, self.col1 + 1) in [None, ""]:
             col2 = self.col1
         else:
-            col2 = xlplatform.get_column_index_end_right(self.xl_sheet, self.row1, self.col1)
+            col2 = self.xl_range.get_worksheet().get_column_index_end_right(self.row1, self.col1)
 
         # Strict: stops at cells that contain a formula but show an empty value
         if self.strict:
             col2 = self.col1
-            while xlplatform.get_value_from_index(self.xl_sheet, self.row1, col2 + 1) not in [None, ""]:
+            while self.xl_range.get_worksheet().get_value_from_index(self.row1, col2 + 1) not in [None, ""]:
                 col2 += 1
 
         row2 = self.row2
 
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row1, self.col1), (row2, col2), wkb=self.workbook, **self._options)
+        return Range(
+            xl_range=self.xl_range.get_worksheet().get_range_from_indices(
+                self.row1, self.col1, row2, col2
+            ),
+            **self._options
+        )
+
 
     def __getitem__(self, key):
         row, col = key
@@ -1056,8 +1056,12 @@ class Range(object):
             col2 = self.col2 if col.stop is None else self.col1 + col.stop - 1
         else:
             col1 = col2 = self.col1 + col
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (row1, col1), (row2, col2), wkb=self.workbook, **self._options)
+        return Range(
+            xl_range=self.xl_range.get_worksheet().get_range_from_indices(
+                row1, col1, row2, col2
+            ),
+            **self._options
+        )
 
 
     @property
@@ -1738,18 +1742,19 @@ class Chart(Shape):
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
         """
         wkb = kwargs.get('wkb', None)
-        xl_workbook = Workbook.get_xl_workbook(wkb)
 
         chart_type = kwargs.get('chart_type', ChartType.xlColumnClustered)
         name = kwargs.get('name')
         source_data = kwargs.get('source_data')
 
+        xl_workbook = Workbook.active.xl_workbook
+
         if isinstance(sheet, Sheet):
                 sheet = sheet.index
         if sheet is None:
-            sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
+            sheet = xl_workbook.get_active_sheet().get_index()
 
-        xl_chart = xlplatform.add_chart(xl_workbook, sheet, left, top, width, height)
+        xl_chart = xl_workbook.add_chart(sheet, left, top, width, height)
 
         if name:
             xlplatform.set_chart_name(xl_chart, name)

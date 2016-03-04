@@ -183,7 +183,8 @@ class Application(object):
         return Application(dynamic.Dispatch('Excel.Application'))
 
     def get_active_workbook(self):
-        return Workbook(self.xl.ActiveWorkbook)
+        xl_wb = self.xl.ActiveWorkbook
+        return Workbook(xl_wb) if xl_wb is not None else None
 
     def get_active_sheet(self):
         return Sheet(self.xl.ActiveSheet)
@@ -194,16 +195,13 @@ class Application(object):
     def new_workbook(self):
         return Workbook(self.xl.Workbooks.Add())
 
-    @property
-    def selection(self):
+    def get_selection(self):
         return Range(self.Selection)
 
-    @property
-    def visible(self):
+    def get_visible(self):
         return self.xl.Visible
 
-    @visible.setter
-    def visible(self, visible):
+    def set_visible(self, visible):
         self.xl.Visible = visible
 
     def quit(self):
@@ -211,20 +209,16 @@ class Application(object):
         self.xl.Quit()
         self.xl.DisplayAlerts = True
 
-    @property
-    def screen_updating(self):
+    def get_screen_updating(self):
         return self.xl.ScreenUpdating
 
-    @screen_updating.setter
-    def screen_updating(self, value):
+    def set_screen_updating(self, value):
         self.xl.ScreenUpdating = value
 
-    @property
-    def calculation(self):
+    def get_calculation(self):
         return self.xl.Calculation
 
-    @calculation.setter
-    def calculation(self, value):
+    def set_calculation(self, value):
         self.xl.Calculation = value
 
     def calculate(self):
@@ -248,9 +242,6 @@ class Workbook(object):
     def set_name(self, value):
         self.xl.Name = value
 
-    def get_index(self):
-        return self.xl.Index
-
     def get_sheet(self, sheet_name_or_index):
         return Sheet(self.xl.Sheets(sheet_name_or_index))
 
@@ -260,8 +251,7 @@ class Workbook(object):
     def close(self):
         self.xl.Close(SaveChanges=False)
 
-    @property
-    def active_sheet(self):
+    def get_active_sheet(self):
         return Sheet(self.xl.ActiveSheet)
     
     def add_sheet(self, before, after):
@@ -301,8 +291,7 @@ class Workbook(object):
             self.xl.SaveAs(path)
             self.xl.Application.DisplayAlerts = True
     
-    @property
-    def fullname(self):
+    def get_fullname(self):
         return self.xl.FullName
     
     def set_names(self, names):
@@ -315,6 +304,9 @@ class Workbook(object):
     def activate(self):
         self.xl.Activate()
 
+    def add_chart(self, sheet_name_or_index, left, top, width, height):
+        return self.xl.Sheets(sheet_name_or_index).ChartObjects().Add(left, top, width, height)
+
 
 class Sheet(object):
 
@@ -326,6 +318,9 @@ class Sheet(object):
 
     def get_workbook(self):
         return Workbook(self.Parent)
+
+    def get_index(self):
+        return self.xl.Index
 
     def get_range(self, address):
         return Range(self.xl.Range(address))
@@ -343,10 +338,10 @@ class Sheet(object):
         self.xl.Cells.Clear()
 
     def get_row_index_end_down(self, row_index, column_index):
-        return Range(self.xl.Cells(row_index, column_index).End(Direction.xlDown).Row)
+        return self.xl.Cells(row_index, column_index).End(Direction.xlDown).Row
 
     def get_column_index_end_right(self, row_index, column_index):
-        return Range(self.xl.Cells(row_index, column_index).End(Direction.xlToRight).Column)
+        return self.xl.Cells(row_index, column_index).End(Direction.xlToRight).Column
 
     def get_current_region_address(self, row_index, column_index):
         return str(self.xl.Cells(row_index, column_index).CurrentRegion.Address)
@@ -361,7 +356,10 @@ class Sheet(object):
             self.xl.Columns.AutoFit()
 
     def get_range_from_indices(self, first_row, first_column, last_row, last_column):
-        return Range(self.xl.Range(self.xl.Cells(first_row, first_column), self.xl.Cells(last_row, last_column)))
+        c1 = self.xl.Cells(first_row, first_column)
+        c2 = self.xl.Cells(last_row, last_column)
+        r = self.xl.Range(c1, c2)
+        return Range(r)
 
     def delete(self):
         xl_app = self.xl.Parent.Application
@@ -405,6 +403,9 @@ class Range(object):
 
     def clear_contents(self):
         self.xl.ClearContents()
+
+    def get_cell(self, row, col):
+        return Range(self.xl.Cells(row, col))
 
     def clear(self):
         self.xl.Clear()
@@ -616,10 +617,6 @@ def get_chart_index(xl_chart):
 
 def get_chart_name(xl_chart):
     return xl_chart.Name
-
-
-def add_chart(xl_workbook, sheet_name_or_index, left, top, width, height):
-    return xl_workbook.Sheets(sheet_name_or_index).ChartObjects().Add(left, top, width, height)
 
 
 def set_chart_name(xl_chart, name):
