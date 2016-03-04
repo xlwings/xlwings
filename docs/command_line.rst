@@ -63,3 +63,15 @@ After installing, the templates are accessible via Excel's Menu:
 * Mac (Excel 2011, 2016): ``File > New from template``
 
 .. versionadded:: 0.6.0
+
+RunPython
+---------
+
+Only required if you are on Mac, are using Excel 2016 and have xlwings installed via conda or as part of Anaconda.
+To enable the ``RunPython`` calls in VBA, run this one time:
+
+``xlwings runpython install``
+
+Alternatively, install xlwings with ``pip``.
+
+.. versionadded:: 0.7.0
