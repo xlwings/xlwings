@@ -104,14 +104,14 @@ Writing a UDF in Python is as easy as:
 
 .. code-block:: python
 
-    from xlwings import xlfunc
+    import xlwings as xw
 
-    @xlfunc
+    @xw.func
     def double_sum(x, y):
         """Returns twice the sum of the two arguments"""
         return 2 * (x + y)
 
-For further details, see :ref:`udfs`.
+This then needs to be imported into Excel: For further details, see :ref:`udfs`.
 
 Easy deployment
 ---------------

@@ -1,0 +1,11 @@
+name: xw34
+dependencies:
+- python=3.4
+- appscript
+- numpy
+- pandas
+- matplotlib
+- pillow
+- pip
+- nose
+- psutil

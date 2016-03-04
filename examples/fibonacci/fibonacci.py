@@ -1,11 +1,9 @@
 """
-Copyright (C) 2014-2015, Zoomer Analytics LLC.
+Copyright (C) 2014-2016, Zoomer Analytics LLC.
 All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
 """
-import os
-import sys
 from xlwings import Workbook, Range
 
 
@@ -30,7 +28,7 @@ def xl_fibonacci():
     wb = Workbook.caller()
 
     # Get the input from Excel and turn into integer
-    n = int(Range('B1').value)
+    n = Range('B1').options(numbers=int).value
 
     # Call the main function
     seq = fibonacci(n)
@@ -38,14 +36,9 @@ def xl_fibonacci():
     # Clear output
     Range('C1').vertical.clear_contents()
 
-    # Return the output to Excel
-    # zip() is used to push a list over in column orientation (list() needed on PY3)
-    Range('C1').value = list(zip(seq))
+    # Return the output to Excel in column orientation
+    Range('C1').options(transpose=True).value = seq
 
 if __name__ == "__main__":
-    if not hasattr(sys, 'frozen'):
-        # The next two lines are here to run the example from Python
-        # Ignore them when called in the frozen/standalone version
-        path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'fibonacci.xlsm'))
-        Workbook.set_mock_caller(path)
+    # Used for frozen executable
     xl_fibonacci()

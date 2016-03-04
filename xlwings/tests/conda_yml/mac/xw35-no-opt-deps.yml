@@ -1,0 +1,8 @@
+name: xw35-no-opt-deps
+dependencies:
+- python=3.5
+- appscript
+- pip
+- nose
+- psutil
+- pytz

@@ -4,7 +4,7 @@ xlwings - Make Excel fly with Python!
 Homepage and documentation: http://xlwings.org
 See also: http://zoomeranalytics.com
 
-Copyright (C) 2014-2015, Zoomer Analytics LLC.
+Copyright (C) 2014-2016, Zoomer Analytics LLC.
 All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
@@ -19,9 +19,8 @@ import collections
 import tempfile
 import shutil
 
-from . import xlplatform, string_types, time_types, xrange, map, ShapeAlreadyExists
+from . import xlplatform, string_types, xrange, map, ShapeAlreadyExists
 from .constants import ChartType
-
 
 # Optional imports
 try:
@@ -263,7 +262,6 @@ class Workbook(object):
             if __name__ == '__main__':
                 # Mock the calling Excel file
                 Workbook.set_mock_caller(r'C:\\path\\to\\file.xlsx')
-
                 my_macro()
 
         .. versionadded:: 0.3.1
@@ -292,23 +290,27 @@ class Workbook(object):
         """
         xlplatform.set_xl_workbook_current(self.xl_workbook)
 
-    def get_selection(self, asarray=False, atleast_2d=False):
+    def get_selection(self):
         """
         Returns the currently selected cells from Excel as ``Range`` object.
 
-        Keyword Arguments
-        -----------------
-        asarray : boolean, default False
-            returns a NumPy array where empty cells are shown as nan
+        Example
+        -------
 
-        atleast_2d : boolean, default False
-            Returns 2d lists/arrays even if the Range is a Row or Column.
+        >>> import xlwings as xw
+        >>> wb = xw.Workbook.active()
+        >>> wb.get_selection()
+        <Range on Sheet 'Sheet1' of Workbook 'Workbook1'>
+        >>> wb.get_selection.value
+        [[1.0, 2.0], [3.0, 4.0]]
+        >>> wb.get_selection().options(transpose=True).value
+        [[1.0, 3.0], [2.0, 4.0]]
 
         Returns
         -------
         Range object
         """
-        return Range(xlplatform.get_selection_address(self.xl_app), wkb=self, asarray=asarray, atleast_2d=atleast_2d)
+        return Range(xlplatform.get_selection_address(self.xl_app), wkb=self)
 
     def close(self):
         """
@@ -591,6 +593,8 @@ class Sheet(object):
 
 class Range(object):
     """
+    Range(*args, wkb=None)
+
     A Range object can be instantiated with the following arguments::
 
         Range('A1')          Range('Sheet1', 'A1')          Range(1, 'A1')
@@ -606,7 +610,9 @@ class Range(object):
 
     If no worksheet name is provided as first argument, it will take the Range from the active sheet.
 
-    You usually want to go for ``Range(...).value`` to get the values (as list of lists).
+    You usually want to go for ``Range(...).value`` to get the values (as list of lists). You can
+    influence the reading/writing behavior by making use of :ref:`converters` and their options:
+    ``Range(...).options(...).value``
 
     Arguments
     ---------
@@ -615,25 +621,23 @@ class Range(object):
 
     Keyword Arguments
     -----------------
-    asarray : boolean, default False
-        Returns a NumPy array (atleast_1d) where empty cells are transformed into nan.
-
-    index : boolean, default True
-        Includes the index when setting a Pandas DataFrame or Series.
-
-    header : boolean, default True
-        Includes the column headers when setting a Pandas DataFrame.
-
-    atleast_2d : boolean, default False
-        Returns 2d lists/arrays even if the Range is a Row or Column.
-
     wkb : Workbook object, default Workbook.current()
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **options):
+
+        self.workbook = options.pop('wkb', None)
+
         # Arguments
-        if len(args) == 1 and isinstance(args[0], string_types):
+        if xlplatform.is_range_instance(args[0]):
+            self.xl_range = args[0]
+            self.xl_sheet = xlplatform.get_range_sheet(self.xl_range)
+            self.xl_workbook = xlplatform.get_sheet_workbook(self.xl_sheet)
+            self.workbook = Workbook(xl_workbook=self.xl_workbook)
+            self.row1, self.col1, self.row2, self.col2 = xlplatform.get_range_coordinates(self.xl_range)
+            range_address = None
+        elif len(args) == 1 and isinstance(args[0], string_types):
             sheet_name_or_index = None
             range_address = args[0]
         elif len(args) == 1 and isinstance(args[0], tuple):
@@ -682,25 +686,20 @@ class Range(object):
             self.col2 = args[2][1]
 
         # Keyword Arguments
-        self.kwargs = kwargs
-        self.workbook = kwargs.get('wkb', None)
+        self._options = options
         if self.workbook is None and xlplatform.get_xl_workbook_current() is None:
             raise NameError('You must first instantiate a Workbook object.')
         elif self.workbook is None:
             self.xl_workbook = xlplatform.get_xl_workbook_current()
         else:
             self.xl_workbook = self.workbook.xl_workbook
-        self.index = kwargs.get('index', True)  # Set DataFrame with index
-        self.header = kwargs.get('header', True)  # Set DataFrame with header
-        self.asarray = kwargs.get('asarray', False)  # Return Data as NumPy Array
-        self.strict = kwargs.get('strict', False)  # Stop table/horizontal/vertical at empty cells that contain formulas
-        self.atleast_2d = kwargs.get('atleast_2d', False)  # Force data to be list of list or a 2d numpy array
 
         # Get sheet
-        if sheet_name_or_index:
-            self.xl_sheet = xlplatform.get_worksheet(self.xl_workbook, sheet_name_or_index)
-        else:
-            self.xl_sheet = xlplatform.get_active_sheet(self.xl_workbook)
+        if not hasattr(self, 'xl_sheet'):
+            if sheet_name_or_index:
+                self.xl_sheet = xlplatform.get_worksheet(self.xl_workbook, sheet_name_or_index)
+            else:
+                self.xl_sheet = xlplatform.get_active_sheet(self.xl_workbook)
 
         # Get xl_range object
         if range_address:
@@ -711,12 +710,62 @@ class Range(object):
 
         if 0 in (self.row1, self.col1, self.row2, self.col2):
             raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
-        self.xl_range = xlplatform.get_range_from_indices(self.xl_sheet, self.row1, self.col1, self.row2, self.col2)
+
+        if not hasattr(self, 'xl_range'):
+            self.xl_range = xlplatform.get_range_from_indices(self.xl_sheet, self.row1, self.col1, self.row2, self.col2)
 
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
-        return map(lambda cell: Range(xlplatform.get_worksheet_name(self.xl_sheet), cell, **self.kwargs),
+        return map(lambda cell: Range(xlplatform.get_worksheet_name(self.xl_sheet), cell, wkb=self.workbook, **self._options),
                    itertools.product(xrange(self.row1, self.row2 + 1), xrange(self.col1, self.col2 + 1)))
+
+    def options(self, convert=None, **options):
+        """
+        Allows you to set a converter and their options. Converters define how Excel Ranges and their values are
+        being converted both during reading and writing operations. If no explicit converter is specified, the
+        base converter is being applied, see :ref:`converters`.
+
+        Arguments
+        ---------
+        ``convert`` : object, default None
+            A converter, e.g. ``dict``, ``np.array``, ``pd.DataFrame``, ``pd.Series``, defaults to default converter
+
+        Keyword Arguments
+        -----------------
+        ndim : int, default None
+            number of dimensions
+
+        numbers : type, default None
+            type of numbers, e.g. ``int``
+
+        dates : type, default None
+            e.g. ``datetime.date`` defaults to ``datetime.datetime``
+
+        empty : object, default None
+            transformation of empty cells
+
+        transpose : Boolean, default False
+            transpose values
+
+        expand : str, default None
+            One of ``'table'``, ``'vertical'``, ``'horizontal'``, see also ``Range.table`` etc
+
+         => For converter-specific options, see :ref:`converters`.
+
+        Returns
+        -------
+        Range object
+
+
+        .. versionadded:: 0.7.0
+        """
+        options['convert'] = convert
+        return Range(
+            xlplatform.get_worksheet_name(self.xl_sheet),
+            (self.row1, self.col1),
+            (self.row2, self.col2),
+            **options
+        )
 
     def is_cell(self):
         """
@@ -790,115 +839,14 @@ class Range(object):
 
         Returns
         -------
-        list or numpy array
-            Empty cells are set to ``None``. If ``asarray=True``,
-            a numpy array is returned where empty cells are set to ``nan``.
+        object
+            Empty cells are set to ``None``.
         """
-        # TODO: refactor
-        if self.is_cell():
-            # Clean_xl_data requires and returns a list of list
-            data = xlplatform.clean_xl_data([[xlplatform.get_value_from_range(self.xl_range)]])
-            if not self.atleast_2d:
-                data = data[0][0]
-        elif self.is_row():
-            data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
-            if not self.atleast_2d:
-                data = data[0]
-        elif self.is_column():
-            data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
-            if not self.atleast_2d:
-                data = [item for sublist in data for item in sublist]
-        else:  # 2d Range, leave as list of list
-            data = xlplatform.clean_xl_data(xlplatform.get_value_from_range(self.xl_range))
-
-        # Return as NumPy Array
-        if self.asarray:
-            # replace None (empty cells) with nan as None produces arrays with dtype=object
-            # TODO: easier like this: np.array(my_list, dtype=np.float)
-            if data is None:
-                data = np.nan
-            if (self.is_column() or self.is_row()) and not self.atleast_2d:
-                data = [np.nan if x is None else x for x in data]
-            elif self.is_table() or self.atleast_2d:
-                data = [[np.nan if x is None else x for x in i] for i in data]
-            return np.atleast_1d(np.array(data))
-        return data
+        return conversion.read(self, None, self._options)
 
     @value.setter
     def value(self, data):
-        # Pandas DataFrame: Turn into NumPy object array with or without Index and Headers
-        if pd and isinstance(data, pd.DataFrame):
-            if self.index:
-                if data.index.name in data.columns:
-                    # Prevents column name collision when resetting the index
-                    data.index.rename(None, inplace=True)
-                data = data.reset_index()
-
-            if self.header:
-                if isinstance(data.columns, pd.MultiIndex):
-                    # Ensure dtype=object because otherwise it may get assigned a string type which sometimes makes
-                    # vstacking return a string array. This would cause values to be truncated and we can't easily
-                    # transform np.nan in string form. Python 3 requires zip wrapped in list.
-                    columns = np.array(list(zip(*data.columns.tolist())), dtype=object)
-                else:
-                    columns = np.empty((data.columns.shape[0],), dtype=object)
-                    columns[:] = np.array([data.columns.tolist()])
-                data = np.vstack((columns, data.values))
-            else:
-                data = data.values
-
-        # Pandas Series
-        if pd and isinstance(data, pd.Series):
-            if self.index:
-                data = data.reset_index().values
-            else:
-                data = data.values[:, np.newaxis]
-
-        # NumPy array: nan have to be transformed to None, otherwise Excel shows them as 65535.
-        # See: http://visualstudiomagazine.com/articles/2008/07/01/return-double-values-in-excel.aspx
-        # Also, turn into list (Python 3 can't handle arrays directly)
-        if np and isinstance(data, np.ndarray):
-            try:
-                data = np.where(np.isnan(data), None, data)
-                data = data.tolist()
-            except TypeError:
-                # isnan doesn't work on arrays of dtype=object
-                if pd:
-                    data[pd.isnull(data)] = None
-                    data = data.tolist()
-                else:
-                    # expensive way of replacing nan with None in object arrays in case Pandas is not available
-                    data = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in data]
-
-        # Simple Lists: Turn into list of lists (np.nan is part of numbers.Number)
-        if isinstance(data, list) and (isinstance(data[0], (numbers.Number, string_types, time_types))
-                                       or data[0] is None):
-            data = [data]
-
-        # Get dimensions and prepare data for Excel
-        # TODO: refactor
-        if isinstance(data, (numbers.Number, string_types, time_types)) or data is None:
-            # Single cells
-            row2 = self.row2
-            col2 = self.col2
-            data = xlplatform.prepare_xl_data([[data]])[0][0]
-            try:
-                # scalar np.nan need to be turned into None, otherwise Excel shows it as 65535 (same as for NumPy array)
-                if np and np.isnan(data):
-                    data = None
-            except (TypeError, NotImplementedError):
-                # raised if data is not a np.nan.
-                # NumPy < 1.7.0 raises NotImplementedError, >= 1.7.0 raises TypeError
-                pass
-
-        else:
-            # List of List
-            row2 = self.row1 + len(data) - 1
-            col2 = self.col1 + len(data[0]) - 1
-            data = xlplatform.prepare_xl_data(data)
-
-        xlplatform.set_value(xlplatform.get_range_from_indices(self.xl_sheet,
-                                                               self.row1, self.col1, row2, col2), data)
+        conversion.write(data, self, self._options)
 
     @property
     def formula(self):
@@ -936,12 +884,12 @@ class Range(object):
 
         """
         row2 = Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row1, self.col1), **self.kwargs).vertical.row2
+                     (self.row1, self.col1), wkb=self.workbook, **self._options).vertical.row2
         col2 = Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row1, self.col1), **self.kwargs).horizontal.col2
+                     (self.row1, self.col1), wkb=self.workbook, **self._options).horizontal.col2
 
         return Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row1, self.col1), (row2, col2), **self.kwargs)
+                     (self.row1, self.col1), (row2, col2), wkb=self.workbook, **self._options)
 
     @property
     def vertical(self):
@@ -982,7 +930,11 @@ class Range(object):
         col2 = self.col2
 
         return Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row1, self.col1), (row2, col2), **self.kwargs)
+                     (self.row1, self.col1), (row2, col2), wkb=self.workbook, **self._options)
+
+    @property
+    def strict(self):
+        return self._options.get('strict', False)
 
     @property
     def horizontal(self):
@@ -1022,7 +974,7 @@ class Range(object):
         row2 = self.row2
 
         return Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row1, self.col1), (row2, col2), **self.kwargs)
+                     (self.row1, self.col1), (row2, col2), wbk=self.workbook, **self._options)
 
     @property
     def current_region(self):
@@ -1037,7 +989,7 @@ class Range(object):
 
         """
         address = xlplatform.get_current_region_address(self.xl_sheet, self.row1, self.col1)
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet), address, **self.kwargs)
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet), address, wbk=self.workbook, **self._options)
 
     @property
     def number_format(self):
@@ -1380,7 +1332,7 @@ class Range(object):
         else:
             col2 = self.col2
 
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet), (self.row1, self.col1), (row2, col2), **self.kwargs)
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet), (self.row1, self.col1), (row2, col2), wkb=self.workbook, **self._options)
 
     def offset(self, row_offset=None, column_offset=None):
         """
@@ -1406,7 +1358,7 @@ class Range(object):
         else:
             col1, col2 = self.col1, self.col2
 
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet), (row1, col1), (row2, col2), **self.kwargs)
+        return Range(xlplatform.get_worksheet_name(self.xl_sheet), (row1, col1), (row2, col2), wkb=self.workbook, **self._options)
 
     @property
     def column(self):
@@ -1454,7 +1406,7 @@ class Range(object):
         .. versionadded:: 0.3.5
         """
         return Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row2, self.col2), **self.kwargs)
+                     (self.row2, self.col2), **self._options)
 
     @property
     def name(self):
@@ -1471,6 +1423,10 @@ class Range(object):
     @name.setter
     def name(self, value):
         xlplatform.set_named_range(self, value)
+
+
+# This has to be after definition of Range to resolve circular reference
+from . import conversion
 
 
 class Shape(object):

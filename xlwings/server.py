@@ -23,6 +23,7 @@ import win32com.server.util as serverutil
 import win32com.server.dispatcher
 import win32com.server.policy
 
+from .udfs import call_udf
 
 class XLPythonOption(object):
     """ The XLPython class itself """
@@ -85,7 +86,7 @@ def FromVariant(var):
     except:
         obj = var
     if type(obj) is PyIDispatch:
-        obj = win32com.client.Dispatch(obj)
+        obj = win32com.client.Dispatch(obj, userName=obj.GetTypeInfo().GetDocumentation(-1)[0])
     return obj
 
 
@@ -96,7 +97,8 @@ def ToVariant(obj):
 class XLPython(object):
     _public_methods_ = ['Module', 'Tuple', 'TupleFromArray', 'Dict', 'DictFromArray', 'List', 'ListFromArray', 'Obj',
                         'Str', 'Var', 'Call', 'GetItem', 'SetItem', 'DelItem', 'Contains', 'GetAttr', 'SetAttr',
-                        'DelAttr', 'HasAttr', 'Eval', 'Exec', 'ShowConsole', 'Builtin', 'Len', 'Bool']
+                        'DelAttr', 'HasAttr', 'Eval', 'Exec', 'ShowConsole', 'Builtin', 'Len', 'Bool',
+                        'CallUDF']
 
     def ShowConsole(self):
         import ctypes
@@ -179,6 +181,13 @@ class XLPython(object):
             return ToVariant(obj(*pargs, **kwargs))
         else:
             return ToVariant(getattr(obj, method)(*pargs, **kwargs))
+
+    def CallUDF(self, script, fname, args, this_workbook):
+        args = tuple(FromVariant(arg) for arg in args)
+        res = call_udf(script, fname, args, this_workbook)
+        if isinstance(res, (tuple, list)):
+            res = (res,)
+        return res
 
     def Len(self, obj):
         obj = FromVariant(obj)
@@ -265,8 +274,8 @@ class XLPython(object):
         exec (stmt, globals, locals)
 
 
-def serve(clsid):
-    """Launch the COM server, clsid is the XLPython object class id """
+def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
+    """Launch the COM server, clsid is the XLPython objectok class id """
     clsid = pywintypes.IID(clsid)
 
     # Ovveride CreateInstance in default policy to instantiate the XLPython object ---
@@ -291,7 +300,10 @@ def serve(clsid):
     pythoncom.EnableQuitMessage(win32api.GetCurrentThreadId())
     pythoncom.CoResumeClassObjects()
 
+    print('xlwings server running, clsid=%s' % clsid)
+
     pythoncom.PumpMessages()
 
     pythoncom.CoRevokeClassObject(revokeId)
     pythoncom.CoUninitialize()
+
