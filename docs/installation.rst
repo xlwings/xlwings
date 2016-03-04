@@ -49,4 +49,4 @@ These packages are not required but highly recommended as they play very nicely 
 Python version support
 ----------------------
 
-xlwings runs on Python 2.6-2.7 and 3.1+
+xlwings is tested on Python 2.6-2.7 and 3.3+
