@@ -232,7 +232,7 @@ Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As S
         DriveCommand = Left$(PYTHON_WIN, 2) & " & cd """ & PYTHON_WIN & """ & "
     ElseIf Left$(PYTHON_WIN, 2) = "\\" Then
         ' If Python is installed on a UNC path, temporarily mount and activate a drive letter with pushd
-        DriveCommand = "pushd " & PYTHON_WIN & " & "
+        DriveCommand = "pushd """ & PYTHON_WIN & """ & "
     End If
 
     ' Run Python with the "-c" command line switch: add the path of the python file and run the
