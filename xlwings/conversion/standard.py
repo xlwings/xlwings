@@ -18,6 +18,9 @@ _date_handlers = {
     datetime.date: lambda year, month, day, **kwargs: datetime.date(year, month, day)
 }
 
+_number_handlers = {
+}
+
 
 class ExpandRangeStage(object):
     def __init__(self, options):
@@ -98,12 +101,14 @@ class ReadValueFromRangeStage(object):
 class CleanDataFromReadStage(object):
 
     def __init__(self, options):
-        dates_as = options.get('dates_as', datetime.datetime)
-        self.empty_as = options.get('empty_as', None)
+        dates_as = options.get('dates', datetime.datetime)
+        self.empty_as = options.get('empty', None)
         self.dates_handler = _date_handlers.get(dates_as, dates_as)
+        numbers_as = options.get('numbers', None)
+        self.numbers_handler = _number_handlers.get(numbers_as, numbers_as)
 
     def __call__(self, c):
-        c.value = xlplatform.clean_value_data(c.value, self.dates_handler, self.empty_as)
+        c.value = xlplatform.clean_value_data(c.value, self.dates_handler, self.empty_as, self.numbers_handler)
 
 
 class CleanDataForWriteStage(object):
@@ -165,16 +170,30 @@ class Ensure2DStage(object):
 class TransposeStage(object):
 
     def __call__(self, c):
-        return [[e[i] for e in c.value] for i in range(len(c.value[0]) if c.value else 0)]
+        c.value = [[e[i] for e in c.value] for i in range(len(c.value[0]) if c.value else 0)]
 
 
-class RangeAccessor(Accessor):
+class BaseAccessor(Accessor):
 
     @classmethod
     def reader(cls, options):
         return (
             Pipeline()
             .append_stage(ExpandRangeStage(options), only_if=options.get('expand', None))
+        )
+
+
+class RangeAccessor(Accessor):
+
+    @staticmethod
+    def copy_range_to_value(c):
+        c.value = c.range
+
+    @classmethod
+    def reader(cls, options):
+        return (
+            BaseAccessor.reader(options)
+            .append_stage(RangeAccessor.copy_range_to_value)
         )
 
 
@@ -186,7 +205,7 @@ class ValueAccessor(Accessor):
     @staticmethod
     def reader(options):
         return (
-            RangeAccessor.reader(options)
+            BaseAccessor.reader(options)
             .append_stage(ReadValueFromRangeStage())
             .append_stage(Ensure2DStage())
             .append_stage(CleanDataFromReadStage(options))
@@ -226,7 +245,6 @@ class DictConverter(ConverterAccessor):
             super(DictConverter, cls).base_reader(
                 Options(options)
                 .override(ndim=2)
-                .defaults(expand='table')
             )
         )
 

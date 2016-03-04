@@ -86,7 +86,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'xlwings'
-copyright = u'2014, Zoomer Analytics LLC.'
+copyright = u'2014-2016, Zoomer Analytics LLC'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

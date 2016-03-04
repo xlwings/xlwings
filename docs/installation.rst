@@ -16,7 +16,10 @@ Alternatively, it can be installed from source. From within the ``xlwings`` dire
 
     python setup.py install
 
-
+.. note::
+  When you are using Mac Excel 2016 and are installing xlwings with ``conda`` (or use the version that comes with Anaconda),
+  you'll need to run ``$ xlwings runpython install`` once to enable the ``RunPython`` calls from VBA. Alternatively, you can simply
+  install xlwings with ``pip``.
 
 Dependencies
 ------------
@@ -49,4 +52,4 @@ These packages are not required but highly recommended as they play very nicely 
 Python version support
 ----------------------
 
-xlwings runs on Python 2.6-2.7 and 3.1+
+xlwings is tested on Python 2.6-2.7 and 3.3+

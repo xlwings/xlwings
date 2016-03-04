@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import sys
 
-__version__ = '0.7.0dev'
+__version__ = '0.7.0'
 
 # Python 2 vs 3
 PY3 = sys.version_info[0] == 3
@@ -32,11 +32,25 @@ from .main import Application, Workbook, Range, Chart, Sheet, Picture, Shape, Pl
 from .constants import *
 
 # UDFs
-from .udfs import xlfunc, xlsub, xlret, xlarg, udf_script, import_udfs
-func = xlfunc
-sub = xlsub
-ret = xlret
-arg = xlarg
+if sys.platform.startswith('win'):
+    from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, udf_script, import_udfs
+
+
+def xlfunc(*args, **kwargs):
+    raise Exception("Deprecation: 'xlfunc' has been renamed to 'func' - use 'import xlwings as xw' and decorate your function with '@xw.func'.")
+
+
+def xlsub(*args, **kwargs):
+    raise Exception("Deprecation: 'xlsub' has been renamed to 'sub' - use 'import xlwings as xw' and decorate your function with '@xw.sub'.")
+
+
+def xlret(*args, **kwargs):
+    raise Exception("Deprecation: 'xlret' has been renamed to 'ret' - use 'import xlwings as xw' and decorate your function with '@xw.ret'.")
+
+
+def xlarg(*args, **kwargs):
+    raise Exception("Deprecation: 'xlarg' has been renamed to 'arg' - use 'import xlwings as xw' and decorate your function with '@xw.arg'.")
+
 
 # Server
 if sys.platform.startswith('win'):

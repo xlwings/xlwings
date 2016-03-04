@@ -4,7 +4,7 @@ xlwings - Make Excel fly with Python!
 Homepage and documentation: http://xlwings.org
 See also: http://zoomeranalytics.com
 
-Copyright (C) 2014-2015, Zoomer Analytics LLC.
+Copyright (C) 2014-2016, Zoomer Analytics LLC.
 All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
@@ -19,9 +19,8 @@ import collections
 import tempfile
 import shutil
 
-from . import xlplatform, string_types, time_types, xrange, map, ShapeAlreadyExists
+from . import xlplatform, string_types, xrange, map, ShapeAlreadyExists
 from .constants import ChartType
-from .utils import missing, staticproperty
 
 # Optional imports
 try:
@@ -303,7 +302,6 @@ class Workbook(object):
             if __name__ == '__main__':
                 # Mock the calling Excel file
                 Workbook.set_mock_caller(r'C:\\path\\to\\file.xlsx')
-
                 my_macro()
 
         .. versionadded:: 0.3.1
@@ -332,23 +330,27 @@ class Workbook(object):
     #     """
     #     xlplatform.set_xl_workbook_current(self.xl_workbook)
 
-    def get_selection(self, asarray=False, atleast_2d=False):
+    def get_selection(self):
         """
         Returns the currently selected cells from Excel as ``Range`` object.
 
-        Keyword Arguments
-        -----------------
-        asarray : boolean, default False
-            returns a NumPy array where empty cells are shown as nan
+        Example
+        -------
 
-        atleast_2d : boolean, default False
-            Returns 2d lists/arrays even if the Range is a Row or Column.
+        >>> import xlwings as xw
+        >>> wb = xw.Workbook.active()
+        >>> wb.get_selection()
+        <Range on Sheet 'Sheet1' of Workbook 'Workbook1'>
+        >>> wb.get_selection.value
+        [[1.0, 2.0], [3.0, 4.0]]
+        >>> wb.get_selection().options(transpose=True).value
+        [[1.0, 3.0], [2.0, 4.0]]
 
         Returns
         -------
         Range object
         """
-        return Range(xlplatform.get_selection_address(self.xl_app), wkb=self, asarray=asarray, atleast_2d=atleast_2d)
+        return Range(xlplatform.get_selection_address(self.xl_app), wkb=self)
 
     def close(self):
         """
@@ -741,8 +743,47 @@ class Range(object):
         return map(lambda cell: Range(xlplatform.get_worksheet_name(self.xl_sheet), cell, wkb=self.workbook, **self._options),
                    itertools.product(xrange(self.row1, self.row2 + 1), xrange(self.col1, self.col2 + 1)))
 
-    def options(self, as_=None, **options):
-        options['as_'] = as_
+    def options(self, convert=None, **options):
+        """
+        Allows you to set a converter and their options. Converters define how Excel Ranges and their values are
+        being converted both during reading and writing operations. If no explicit converter is specified, the
+        base converter is being applied, see :ref:`converters`.
+
+        Arguments
+        ---------
+        ``convert`` : object, default None
+            A converter, e.g. ``dict``, ``np.array``, ``pd.DataFrame``, ``pd.Series``, defaults to default converter
+
+        Keyword Arguments
+        -----------------
+        ndim : int, default None
+            number of dimensions
+
+        numbers : type, default None
+            type of numbers, e.g. ``int``
+
+        dates : type, default None
+            e.g. ``datetime.date`` defaults to ``datetime.datetime``
+
+        empty : object, default None
+            transformation of empty cells
+
+        transpose : Boolean, default False
+            transpose values
+
+        expand : str, default None
+            One of ``'table'``, ``'vertical'``, ``'horizontal'``, see also ``Range.table`` etc
+
+         => For converter-specific options, see :ref:`converters`.
+
+        Returns
+        -------
+        Range object
+
+
+        .. versionadded:: 0.7.0
+        """
+        options['convert'] = convert
         return Range(
             xlplatform.get_worksheet_name(self.xl_sheet),
             (self.row1, self.col1),

@@ -1,0 +1,11 @@
+name: xw27
+dependencies:
+- python=2.7
+- numpy
+- pandas
+- matplotlib
+- pillow
+- pip
+- nose
+- pywin32
+- comtypes

@@ -34,7 +34,7 @@ try:
 except ImportError:
     np = None
 
-from xlwings import PY3
+from . import PY3
 
 # Time types: pywintypes.timetype doesn't work on Python 3
 time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
@@ -179,7 +179,11 @@ def get_worksheet_name(xl_sheet):
 
 
 def is_range_instance(xl_range):
-    return isinstance(xl_range, CDispatch) and xl_range._username_ == 'Range'
+    pyid = getattr(xl_range, '_oleobj_', None)
+    if pyid is None:
+        return False
+    return xl_range._oleobj_.GetTypeInfo().GetTypeAttr().iid == pywintypes.IID('{00020846-0000-0000-C000-000000000046}')
+    # return pyid.GetTypeInfo().GetDocumentation(-1)[0] == 'Range'
 
 
 def get_sheet_workbook(xl_sheet):
@@ -292,18 +296,33 @@ def get_value_from_range(xl_range):
     return xl_range.Value
 
 
-def clean_value_data(data, datetime_builder, empty_as):
-    return [
-        [
-            _com_time_to_datetime(c, datetime_builder)
-            if isinstance(c, time_types)
-            else empty_as
-            if c is None
-            else c
-            for c in row
+def clean_value_data(data, datetime_builder, empty_as, number_builder):
+    if number_builder is not None:
+        return [
+            [
+                _com_time_to_datetime(c, datetime_builder)
+                if isinstance(c, time_types) else
+                number_builder(c)
+                if type(c) == float else
+                empty_as
+                if c is None else
+                c
+                for c in row
+            ]
+            for row in data
         ]
-        for row in data
-    ]
+    else:
+        return [
+            [
+                _com_time_to_datetime(c, datetime_builder)
+                if isinstance(c, time_types)
+                else empty_as
+                if c is None
+                else c
+                for c in row
+            ]
+            for row in data
+        ]
 
 
 def get_value_from_index(xl_sheet, row_index, column_index):

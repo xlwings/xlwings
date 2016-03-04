@@ -168,6 +168,14 @@ def quickstart(args):
                     os.path.join(project_path, project_name + '.xlsm'))
 
 
+def runpython_install(args):
+    destination_dir = os.path.expanduser("~") + '/Library/Application Scripts/com.microsoft.Excel'
+    if not os.path.exists(destination_dir):
+        os.makedirs(destination_dir)
+    shutil.copy(os.path.join(this_dir, 'xlwings.applescript'), destination_dir)
+    print('Successfully installed RunPython for Mac Excel 2016!')
+
+
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='command')
@@ -223,6 +231,15 @@ def main():
     quickstart_parser = subparsers.add_parser('quickstart', help='xlwings quickstart')
     quickstart_parser.add_argument("project_name")
     quickstart_parser.set_defaults(func=quickstart)
+
+    # RunPython (only needed when installed with conda for Mac Excel 2016)
+    if sys.platform.startswith('darwin'):
+        runpython_parser = subparsers.add_parser('runpython', help='Run this if you installed xlwings via conda and are using Mac Excel 2016')
+        runpython_subparser = runpython_parser.add_subparsers(dest='subcommand')
+        runpython_subparser.required = True
+
+        runpython_install_parser = runpython_subparser.add_parser('install')
+        runpython_install_parser.set_defaults(func=runpython_install)
 
     args = parser.parse_args()
     args.func(args)

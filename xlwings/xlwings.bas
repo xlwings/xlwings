@@ -1,5 +1,5 @@
 Attribute VB_Name = "xlwings"
-' xlwings.org, version: 0.7.0dev
+' xlwings.org, version: 0.7.0
 '
 ' Copyright (C) 2014-2016, Zoomer Analytics LLC (www.zoomeranalytics.com)
 ' License: BSD 3-clause (see LICENSE.txt for details)
@@ -28,7 +28,7 @@ Option Explicit
     Declare Function XLPyDLLVersion Lib "xlwings32.dll" (tag As String, version As Double, arch As String) As Long
 #End If
 
-Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef PYTHON_FROZEN As String, ByRef PYTHONPATH As String, ByRef UDF_PATH As String, ByRef LOG_FILE As String, ByRef SHOW_LOG As Boolean, ByRef OPTIMIZED_CONNECTION As Boolean)
+Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef PYTHON_FROZEN As String, ByRef PYTHONPATH As String, ByRef UDF_PATH As String, ByRef UDF_DEBUG_SERVER As Boolean, ByRef LOG_FILE As String, ByRef SHOW_LOG As Boolean, ByRef OPTIMIZED_CONNECTION As Boolean)
     ' PYTHON_WIN: Directory of Python Interpreter on Windows, "" resolves to default on PATH
     ' PYTHON_MAC: Directory of Python Interpreter on Mac OSX, "" resolves to default path in ~/.bash_profile
     ' PYTHON_FROZEN [Optional]: Currently only on Windows, indicate directory of exe file
@@ -38,6 +38,7 @@ Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef 
     '                                    Example: UDF_PATH = ThisWorkbook.Path & "\functions.py"
     '                                    Default: UDF_PATH = "" defaults to a file in the same directory of the Excel spreadsheet with
     '                                    the same name but ending in ".py".
+    ' UDF_DEBUG_SERVER: Set this to True if you want to run the xlwings COM server manually for debugging
     ' LOG_FILE [Optional]: Leave empty for default location (see docs) or provide directory including file name.
     ' SHOW_LOG: If False, no pop-up with the Log messages (usually errors) will be shown
     ' OPTIMIZED_CONNECTION (EXPERIMENTAL!): Currently only on Windows, use a COM Server for an efficient connection
@@ -50,6 +51,7 @@ Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef 
     PYTHON_FROZEN = ThisWorkbook.Path & "\build\exe.win32-2.7"
     PYTHONPATH = ThisWorkbook.Path
     UDF_PATH = ""
+    UDF_DEBUG_SERVER = False
     LOG_FILE = ""
     SHOW_LOG = True
     OPTIMIZED_CONNECTION = False
@@ -61,10 +63,10 @@ Function PyScriptPath() As String
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
     Dim LOG_FILE As String, UDF_PATH As String
     Dim Res As Integer
-    Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
+    Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean, UDF_DEBUG_SERVER As Boolean
 
     ' Get the settings
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, UDF_DEBUG_SERVER, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
 
     If UDF_PATH = "" Then
         PyScriptPath = Left$(ThisWorkbook.Name, Len(ThisWorkbook.Name) - 5) ' assume that it ends in .xlsm
@@ -81,10 +83,10 @@ Public Function RunPython(PythonCommand As String)
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String, UDF_PATH As String
     Dim WORKBOOK_FULLNAME As String, LOG_FILE As String, DriveCommand As String, RunCommand As String
     Dim ExitCode As Integer, Res As Integer
-    Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
+    Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean, UDF_DEBUG_SERVER As Boolean
 
     ' Get the settings by using the ByRef trick
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, UDF_DEBUG_SERVER, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
 
     ' Call Python platform-dependent
     #If Mac Then
@@ -134,7 +136,7 @@ Sub ExcecuteMac2011(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As S
 
     ' Build the command (ignore warnings to be in line with Windows where we only show the popup if the ExitCode <> 0
     ' -u is needed because on PY3 stderr is buffered by default and so wouldn't be available on time for the pop-up to show
-    RunCommand = PythonInterpreter & " -u -W ignore -c ""import sys; sys.path.extend(r'" & PYTHONPATH & "'.split(';')); " & PythonCommand & """ "
+    RunCommand = PythonInterpreter & " -u -B -W ignore -c ""import sys; sys.path.extend(r'" & PYTHONPATH & "'.split(';')); " & PythonCommand & """ "
 
     ' Send the command to the shell. Courtesy of Robert Knight (http://stackoverflow.com/a/12320294/918626)
     ' Since Excel blocks AppleScript as long as a VBA macro is running, we have to excecute the call as background call
@@ -230,7 +232,7 @@ Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As S
         DriveCommand = Left$(PYTHON_WIN, 2) & " & cd """ & PYTHON_WIN & """ & "
     ElseIf Left$(PYTHON_WIN, 2) = "\\" Then
         ' If Python is installed on a UNC path, temporarily mount and activate a drive letter with pushd
-        DriveCommand = "pushd " & PYTHON_WIN & " & "
+        DriveCommand = "pushd """ & PYTHON_WIN & """ & "
     End If
 
     ' Run Python with the "-c" command line switch: add the path of the python file and run the
@@ -239,7 +241,7 @@ Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As S
     WORKBOOK_FULLNAME = ThisWorkbook.FullName
 
     If IsFrozen = False Then
-        RunCommand = "python -c ""import sys; sys.path.extend(r'" & PYTHONPATH & "'.split(';')); " & PythonCommand & """ "
+        RunCommand = "python -B -c ""import sys; sys.path.extend(r'" & PYTHONPATH & "'.split(';')); " & PythonCommand & """ "
     ElseIf IsFrozen = True Then
         RunCommand = PythonCommand & " "
     End If
@@ -270,11 +272,11 @@ Public Function RunFrozenPython(Executable As String)
     ' RunFrozenPython("frozen_executable.exe"). Currently not implemented for Mac.
 
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String, LOG_FILE As String, UDF_PATH As String
-    Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
+    Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean, UDF_DEBUG_SERVER As Boolean
     Dim Res As Integer
 
     ' Get the settings by using the ByRef trick
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, UDF_DEBUG_SERVER, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
 
     ' Call Python
     #If Mac Then
@@ -415,10 +417,10 @@ Private Sub CleanUp()
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String, UDF_PATH As String
     Dim WORKBOOK_FULLNAME As String, LOG_FILE As String
     Dim Res As Integer
-    Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
+    Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean, UDF_DEBUG_SERVER As Boolean
 
     'Get LOG_FILE
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, UDF_DEBUG_SERVER, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
 
     If LOG_FILE = "" Then
         #If MAC_OFFICE_VERSION >= 15 Then
@@ -455,16 +457,21 @@ Function XLPyCommand()
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
     Dim LOG_FILE As String, UDF_PATH As String, Tail As String
     Dim Res As Integer
-    Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
+    Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean, UDF_DEBUG_SERVER As Boolean
 
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
-    Tail = " -c ""import sys;sys.path.extend(r'" & PYTHONPATH & "'.split(';'));import xlwings.server; xlwings.server.serve('$(CLSID)')"""
-    If PYTHON_WIN = "" Then
-        XLPyCommand = "pythonw.exe" + Tail
-    ElseIf LCase$(Right$(PYTHON_WIN, 4)) = ".exe" Then
-        XLPyCommand = PYTHON_WIN + Tail
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, UDF_DEBUG_SERVER, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
+
+    If UDF_DEBUG_SERVER = True Then
+        XLPyCommand = "{506e67c3-55b5-48c3-a035-eed5deea7d6d}"
     Else
-        XLPyCommand = PYTHON_WIN + "\pythonw.exe" + Tail
+        Tail = " -B -c ""import sys;sys.path.extend(r'" & PYTHONPATH & "'.split(';'));import xlwings.server; xlwings.server.serve('$(CLSID)')"""
+        If PYTHON_WIN = "" Then
+            XLPyCommand = "pythonw.exe" + Tail
+        ElseIf LCase$(Right$(PYTHON_WIN, 4)) = ".exe" Then
+            XLPyCommand = PYTHON_WIN + Tail
+        Else
+            XLPyCommand = PYTHON_WIN + "\pythonw.exe" + Tail
+        End If
     End If
 End Function
 
@@ -472,9 +479,9 @@ Private Sub XLPyLoadDLL()
     Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
     Dim LOG_FILE As String, UDF_PATH As String, Tail As String
     Dim Res As Integer
-    Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean
+    Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean, UDF_DEBUG_SERVER As Boolean
 
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_PATH, UDF_DEBUG_SERVER, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
 
     If PYTHON_WIN <> "" Then
         If LoadLibrary(PYTHON_WIN + "\" + XLPyDLLName) = 0 Then  ' Standard installation

@@ -1,6 +1,208 @@
 What's New
 ==========
 
+v0.7.0 (February ??, 2016)
+--------------------------
+
+This version marks an important first step on our path towards a stable release. It introduces **converters**, a new and powerful
+concept that brings a consistent experience for how Excel Ranges and their values are treated both when **reading** and **writing** but
+also across **xlwings.Range** objects and **User Defined Functions** (UDFs).
+
+As a result, a few highlights of this release include:
+
+* Pandas DataFrames and Series are now supported for reading and writing, both via Range object and UDFs
+* New Range converter options: ``transpose``, ``dates``, ``numbers``, ``empty``, ``expand``
+* New dictionary converter
+* New UDF debug server
+* No more pyc files when using ``RunPython``
+
+Converters are accessed via the new ``options`` method when dealing with ``xlwings.Range`` objects or via the ``@xw.arg``
+and ``@xw.ret`` decorators when using UDFs. As an introductory sample, let's look at how to read and write Pandas DataFrames:
+
+.. figure:: images/df_converter.png
+  :scale: 55%
+
+**Range object**::
+
+    >>> import xlwings as xw
+    >>> import pandas as pd
+    >>> wb = xw.Workbook()
+    >>> df = xw.Range('A1:D5').options(pd.DataFrame, header=2).value
+    >>> df
+        a     b
+        c  d  e
+    ix
+    10  1  2  3
+    20  4  5  6
+    30  7  8  9
+
+    # Writing back using the defaults:
+    >>> Range('A1').value = df
+
+    # Writing back and changing some of the options, e.g. getting rid of the index:
+    >>> Range('B7').options(index=False).value = df
+
+**UDFs**:
+
+This is the same sample as above (starting in ``Range('A13')`` on screenshot). If you wanted to return a DataFrame with
+the defaults, the ``@xw.ret`` decorator can be left away. ::
+
+    @xw.func
+    @xw.arg('x', pd.DataFrame, header=2)
+    @xw.ret(index=False)
+    def myfunction(x):
+       # x is a DataFrame, do something with it
+       return x
+
+
+Enhancements
+************
+
+* Dictionary (``dict``) converter:
+
+  .. figure:: images/dict_converter.png
+    :scale: 80%
+
+  ::
+
+    >>> Range('A1:B2').options(dict).value
+    {'a': 1.0, 'b': 2.0}
+    >>> Range('A4:B5').options(dict, transpose=True).value
+    {'a': 1.0, 'b': 2.0}
+
+* ``transpose`` option: This works in both directions and finally allows us to e.g. write a list in column
+  orientation to Excel (:issue:`11`)::
+
+    Range('A1').options(transpose=True).value = [1, 2, 3]
+
+* ``dates`` option: This allows us to read Excel date-formatted cells in specific formats:
+
+    >>> import datetime as dt
+    >>> Range('A1').value
+    datetime.datetime(2015, 1, 13, 0, 0)
+    >>> Range('A1').options(dates=dt.date).value
+    datetime.date(2015, 1, 13)
+
+* ``empty`` option: This allows us to override the default behavior for empty cells:
+
+   >>> Range('A1:B1').value
+   [None, None]
+   >>> Range('A1:B1').options(empty='NA')
+   ['NA', 'NA']
+
+* ``numbers`` option: This transforms all numbers into the indicated type.
+
+    >>> xw.Range('A1').value = 1
+    >>> type(xw.Range('A1').value)  # Excel stores all numbers interally as floats
+    float
+    >>> type(xw.Range('A1').options(numbers=int).value)
+    int
+
+* ``expand`` option: This works the same as the Range properties ``table``, ``vertical`` and ``horizontal`` but is
+  only evaluated when getting the values of a Range::
+
+    >>> import xlwings as xw
+    >>> wb = xw.Workbook()
+    >>> xw.Range('A1').value = [[1,2], [3,4]]
+    >>> rng1 = xw.Range('A1').table
+    >>> rng2 = xw.Range('A1').options(expand='table')
+    >>> rng1.value
+    [[1.0, 2.0], [3.0, 4.0]]
+    >>> rng2.value
+    [[1.0, 2.0], [3.0, 4.0]]
+    >>> xw.Range('A3').value = [5, 6]
+    >>> rng1.value
+    [[1.0, 2.0], [3.0, 4.0]]
+    >>> rng2.value
+    [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
+
+All these options work the same with decorators for UDFs, e.g. for transpose::
+
+  @xw.arg('x', transpose=True)
+  @xw.ret(transpose=True)
+  def myfunction(x):
+      # x will be returned unchanged as transposed both when reading and writing
+      return x
+
+
+**Note**: These options (``dates``, ``empty``, ``numbers``) currently apply to the whole Range and can't be selectively
+applied to e.g. only certain columns.
+
+* UDF debug server
+
+  The new UDF debug server allows you to easily debug UDFs: just set ``UDF_DEBUG_SERVER = True`` in the VBA Settings,
+  at the top of the xlwings VBA module (make sure to update it to the latest version!). Then add the following lines
+  to your Python source file and run it::
+
+
+    if __name__ == '__main__':
+        xw.serve()
+
+  When you recalculate the Sheet, the code will stop at breakpoints or print any statements that you may have. For
+  details, see: :ref:`debugging`.
+
+* pyc files: The creation of pyc files has been disabled when using ``RunPython``, leaving your directory in an
+  uncluttered state when having the Python source file next to the Excel workbook (:issue:`326`).
+
+
+API changes
+***********
+
+* UDF decorator changes (it is assumed that xlwings is imported as ``xw`` and numpy as ``np``):
+
+  ==============================  =========================
+  **New**                         **Old**
+  ==============================  =========================
+  ``@xw.func``                    ``@xw.xlfunc``
+  ``@xw.arg``                     ``@xw.xlarg``
+  ``@xw.ret``                     ``@xw.xlret``
+  ``@xw.sub``                     ``@xw.xlsub``
+  ==============================  =========================
+
+  Pay attention to the following subtle change:
+
+  ==============================  =========================
+  **New**                         **Old**
+  ==============================  =========================
+  ``@xw.arg("x", np.array)``      ``@xw.xlarg("x", "nparray")``
+  ==============================  =========================
+
+* Samples of how the new options method replaces the old Range keyword arguments:
+
+  =============================================================   ===========================
+  **New**                                                         **Old**
+  =============================================================   ===========================
+  ``Range('A1:A2').options(ndim=2)``                              ``Range('A1:A2', atleast_2d=True)``
+  ``Range('A1:B2').options(np.array)``                            ``Range('A1:B2', asarray=True)``
+  ``Range('A1').options(index=False, header=False).value = df``   ``Range('A1', index=False, header=False).value = df``
+  =============================================================   ===========================
+
+* Upon writing, Pandas Series are now shown by default with their name and index name, if they exist. This can be
+  changed using the same options as for DataFrames (:issue:`276`)::
+
+    import pandas as pd
+
+    # unchanged behaviour
+    Range('A1').value = pd.Series([1,2,3])
+
+    # Changed behaviour: This will print a header row in Excel
+    s = pd.Series([1,2,3], name='myseries', index=pd.Index([0,1,2], name='myindex'))
+    Range('A1').value = s
+
+    # Control this behaviour like so (as with DataFrames):
+    Range('A1').options(header=False, index=True).value = s
+
+* NumPy scalar values
+
+  Previously, NumPy scalar values were returned as ``np.atleast_1d``. To keep the same behaviour, this now has to be
+  set explicitly using ``ndim=1``. Otherwise they're returned as numpy scalar values.
+
+  ===============================================                  =========================
+  **New**                                                          **Old**
+  ===============================================                  =========================
+  ``Range('A1').options(np.array, ndim=1).value``                  ``Range('A1', asarray=True).value``
+  ===============================================                  =========================
+
 v0.6.4 (January 6, 2016)
 ------------------------
 

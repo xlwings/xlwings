@@ -1,0 +1,11 @@
+name: xw35
+dependencies:
+- python=3.5
+- numpy
+- pandas
+- matplotlib
+- pillow
+- pip
+- nose
+- pywin32
+- comtypes
