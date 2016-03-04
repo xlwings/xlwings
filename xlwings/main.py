@@ -719,7 +719,7 @@ class Range(object):
         return map(lambda cell: Range(xlplatform.get_worksheet_name(self.xl_sheet), cell, wkb=self.workbook, **self._options),
                    itertools.product(xrange(self.row1, self.row2 + 1), xrange(self.col1, self.col2 + 1)))
 
-    def options(self, as_=None, **options):
+    def options(self, convert=None, **options):
         """
         Allows you to set a converter and their options. Converters define how Excel Ranges and their values are
         being converted both during reading and writing operations. If no explicit converter is specified, the
@@ -727,8 +727,8 @@ class Range(object):
 
         Arguments
         ---------
-        ``as_`` : converter, default None
-            A converter, e.g. ``dict``, ``np.array``, ``pd.DataFrame``, ``pd.Series``, defaults to base converter
+        ``convert`` : object, default None
+            A converter, e.g. ``dict``, ``np.array``, ``pd.DataFrame``, ``pd.Series``, defaults to default converter
 
         Keyword Arguments
         -----------------
@@ -759,7 +759,7 @@ class Range(object):
 
         .. versionadded:: 0.7.0
         """
-        options['as_'] = as_
+        options['convert'] = convert
         return Range(
             xlplatform.get_worksheet_name(self.xl_sheet),
             (self.row1, self.col1),
