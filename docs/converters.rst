@@ -8,9 +8,9 @@ Introduced with v0.7.0, converters define how Excel ranges and their values are 
 **User Defined Functions** (UDFs).
 
 Converters are explicitely set with the ``as_`` argument in the ``options`` method when manipulating ``xlwings.Range`` objects
-or in the ``@xw.arg`` and ``@xw.ret`` decorators when using UDFs. If no converter is specified, the base converter
+or in the ``@xw.arg`` and ``@xw.ret`` decorators when using UDFs. If no converter is specified, the default converter
 is applied when reading. When writing, xlwings will automatically apply the correct converter (if available) according to the
-object's type that is being written to Excel. If no converter is found for that type, it falls back to the base converter.
+object's type that is being written to Excel. If no converter is found for that type, it falls back to the default converter.
 
 **Syntax:**
 
@@ -21,8 +21,8 @@ object's type that is being written to Excel. If no converter is found for that 
 **writing**                     ``Range.options(as_=None, **kwargs).value = myvalue``        ``@ret(as_=None, **kwargs)``
 ==============================  ===========================================================  ===========
 
-.. note:: Keyword arguments (``kwargs``) may refer to the specific converter or the base converter.
-  For example, to set the ``numbers`` option in the base converter and the ``index`` option in the DataFrame converter,
+.. note:: Keyword arguments (``kwargs``) may refer to the specific converter or the default converter.
+  For example, to set the ``numbers`` option in the default converter and the ``index`` option in the DataFrame converter,
   you would write::
 
       Range('A1:C3').options(pd.DataFrame, index=False, numbers=int).value
@@ -147,11 +147,15 @@ The following options can be set:
 Built-in converters
 -------------------
 
-xlwings offers several built-in converters that perform additional conversions on top of the base converters for
-**dictionaries**, **NumPy arrays**, **Pandas Series** and **DataFrames**. New, customized converters can also be
-added (docs will follow).
-Again, the samples below may be used with both ``xlwings.Range`` objects and UDFs, but the samples may only show one
-version.
+xlwings offers several built-in converters that perform type conversion to **dictionaries**, **NumPy arrays**,
+**Pandas Series** and **DataFrames**. These build on top of the default converter, so in most case the options
+described above can be used in this context too (unless they are meaningless, for example the ``ndim`` in the case
+of a dictionary).
+
+It is also possible to write and register custom converter for additional types. The documentation for doing this will
+be provided in the near future. 
+
+The samples below may be used with both ``xlwings.Range`` objects and UDFs, but the samples may only show one version.
 
 Dictionary converter
 ********************
@@ -174,7 +178,7 @@ Numpy array converter
 **options:** ``dtype=None, copy=True, order=None, ndim=None``
 
 The first 3 options behave the same as when using ``np.array()`` directly. Also, ``ndim`` works the same as shown above
-for lists (under base converter) and hence returns either numpy scalars, 1d arrays or 2d arrays.
+for lists (under default converter) and hence returns either numpy scalars, 1d arrays or 2d arrays.
 
 **Example**::
 
