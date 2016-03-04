@@ -38,6 +38,7 @@ Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef 
     '                                    Example: UDF_PATH = ThisWorkbook.Path & "\functions.py"
     '                                    Default: UDF_PATH = "" defaults to a file in the same directory of the Excel spreadsheet with
     '                                    the same name but ending in ".py".
+    ' UDF_DEBUG_SERVER: Set this to True if you want to run the xlwings COM server manually for debugging
     ' LOG_FILE [Optional]: Leave empty for default location (see docs) or provide directory including file name.
     ' SHOW_LOG: If False, no pop-up with the Log messages (usually errors) will be shown
     ' OPTIMIZED_CONNECTION (EXPERIMENTAL!): Currently only on Windows, use a COM Server for an efficient connection
