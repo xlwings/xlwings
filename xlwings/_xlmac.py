@@ -188,7 +188,7 @@ def get_open_workbook(fullname, app_target=None):
     filename = os.path.basename(fullname)
     set_xl_app(app_target)
     xl_workbook = _xl_app.workbooks[filename]
-    return _xl_app, xl_workbook
+    return Workbook(xl_workbook)
 
 
 def get_active_workbook(app_target=None):

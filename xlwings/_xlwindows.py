@@ -154,11 +154,11 @@ def get_open_workbook(fullname, app_target=None, hwnd=None):
                 xl_workbook.Name.lower() == fullname.lower()
                ):
                 if (xl_workbook.FullName.lower() not in duplicate_fullnames) or (hwnd is not None):
-                    return xl_app, xl_workbook
+                    return Workbook(xl_workbook)
                 else:
                     warn('This Workbook is open in multiple instances.'
                          'The connection was made with the one that was last active.')
-                    return xl_app, xl_workbook
+                    return Workbook(xl_workbook)
 
 
 def is_range_instance(xl_range):
@@ -174,7 +174,7 @@ class Application(object):
     def __init__(self, xl=None):
         if xl is None:
             # new instance
-            self.xl = Application(DispatchEx('Excel.Application'))
+            self.xl = DispatchEx('Excel.Application')
         else:
             self.xl = xl
 
@@ -231,7 +231,7 @@ class Application(object):
         self.xl.Calculate()
 
     def get_version_string(self):
-        return self.lx.Version
+        return self.xl.Version
 
     def get_major_version_number(self):
         return int(self.get_version_string().split('.')[0])
@@ -254,8 +254,7 @@ class Workbook(object):
     def get_sheet(self, sheet_name_or_index):
         return Sheet(self.xl.Sheets(sheet_name_or_index))
 
-    @property
-    def application(self):
+    def get_application(self):
         return Application(self.xl.Application)
 
     def close(self):
@@ -312,6 +311,9 @@ class Workbook(object):
     
     def delete_name(self, name):
         self.xl.Names(name).Delete()
+
+    def activate(self):
+        self.xl.Activate()
 
 
 class Sheet(object):
@@ -395,7 +397,7 @@ class Range(object):
     def count_columns(self):
         return self.xl.Columns.Count
 
-    def get_value_from_range(self):
+    def get_value(self):
         return self.xl.Value
 
     def set_value(self, data):

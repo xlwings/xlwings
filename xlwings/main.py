@@ -57,6 +57,7 @@ class Application(object):
         if xl_app is None:
             self.xl_app = xlplatform.Application()
         else:
+            assert isinstance(xl_app, xlplatform.Application)
             self.xl_app = xl_app
 
         if make_visible:
@@ -152,8 +153,15 @@ class Application(object):
         cls._current = value
 
     @property
+    def active_workbook(self):
+        return Workbook(xl_workbook=self.xl_app.get_active_workbook())
+
+    @property
     def active_sheet(self):
         return Sheet(xl_sheet=self.xl_app.get_active_sheet())
+
+    def open_workbook(self, fullname):
+        return Workbook(xl_workbook=self.xl_app.open_workbook(fullname))
 
 
 class Workbook(object):
@@ -198,31 +206,39 @@ class Workbook(object):
         if xl_workbook:
             self.xl_workbook = xl_workbook
         elif fullname:
-            self.fullname = fullname
-            if not os.path.isfile(fullname) or xlplatform.is_file_open(self.fullname):
+            if not os.path.isfile(fullname) or xlplatform.is_file_open(fullname):
                 # Connect to unsaved Workbook (e.g. 'Workbook1') or to an opened Workbook
-                self.xl_workbook = xlplatform.get_open_workbook(self.fullname, app_target)
+                self.xl_workbook = xlplatform.get_open_workbook(fullname, app_target)
             else:
                 # Open Excel and the Workbook
-                self.xl_workbook = xlplatform.open_workbook(self.fullname, app_target)
+                self.xl_workbook = Application.current.open_workbook(fullname).xl_workbook
+
+            if app_visible is not None:
+                self.application.visible = app_visible
+
         else:
             # Open Excel if necessary and create a new workbook
             app = Application.current
             self.xl_workbook = app.new_workbook().xl_workbook
 
-        if app_visible is not None:
-            self.application.visible = app_visible
+            if app_visible is not None:
+                self.application.visible = app_visible
+
+        self.activate()
 
     @property
     def application(self):
-        return Application(xl_app=self.xl_workbook.application)
+        return Application(xl_app=self.xl_workbook.get_application())
 
     @property
     def fullname(self):
         return self.xl_workbook.get_fullname()
 
-    @classmethod
-    def active(cls, app_target=None):
+    def activate(self):
+        self.xl_workbook.activate()
+
+    @classproperty
+    def active(cls):
         """
         Returns the Workbook that is currently active or has been active last. On Windows,
         this works across all instances.
@@ -232,7 +248,7 @@ class Workbook(object):
         return Application.current.active_workbook
 
     def sheet(self, name_or_index):
-        return Sheet(self.xl_workbook.get_sheet(name_or_index))
+        return Sheet(xl_sheet=self.xl_workbook.get_sheet(name_or_index))
 
     @classmethod
     def caller(cls):
@@ -349,7 +365,7 @@ class Workbook(object):
 
         .. versionadded:: 0.1.1
         """
-        xlplatform.close_workbook(self.xl_workbook)
+        self.xl_workbook.close()
 
     def save(self, path=None):
         """
@@ -679,6 +695,7 @@ class Sheet(object):
             self.row2 = args[2][0]
             self.col2 = args[2][1]
 
+
 class Range(object):
     """
     A Range object can be instantiated with the following arguments::
@@ -755,8 +772,18 @@ class Range(object):
 
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
-        return map(lambda cell: Range(xlplatform.get_worksheet_name(self.xl_sheet), cell, wkb=self.workbook, **self._options),
-                   itertools.product(xrange(self.row1, self.row2 + 1), xrange(self.col1, self.col2 + 1)))
+        return map(
+            lambda cell: Range(
+                xlplatform.get_worksheet_name(self.xl_sheet),
+                cell,
+                wkb=self.workbook,
+                **self._options
+            ),
+            itertools.product(
+                xrange(self.row1, self.row2 + 1),
+                xrange(self.col1, self.col2 + 1)
+            )
+        )
 
     def options(self, convert=None, **options):
         """
@@ -890,11 +917,11 @@ class Range(object):
         """
         Gets or sets the formula for the given Range.
         """
-        return self.xl_range.formula
+        return self.xl_range.get_formula()
 
     @formula.setter
     def formula(self, value):
-        self.xl_range.formula = value
+        self.xl_range.set_formula(value)
 
     @property
     def table(self):

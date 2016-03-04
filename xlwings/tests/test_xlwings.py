@@ -123,60 +123,58 @@ def _skip_if_not_default_xl():
         raise nose.SkipTest('not Excel default')
 
 
-def class_teardown(wb):
-    wb.close()
-    if sys.platform.startswith('win'):
-        Application(wb).quit()
+class TestBase:
 
+    def setUp(self, xlsx):
+        self.app = Application(make_visible=False)
 
-class TestApplication:
-    def setUp(self):
         # Connect to test file and make Sheet1 the active sheet
-        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx')
-        self.wb = Workbook(xl_file1, app_visible=False, app_target=APP_TARGET)
+        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), xlsx)
+        self.wb = Workbook(xl_file1, app_visible=None, app_target=APP_TARGET)
         Sheet('Sheet1').activate()
 
+
     def tearDown(self):
-        class_teardown(self.wb)
+        self.wb.close()
+        if sys.platform.startswith('win'):
+            #Application(wb).quit()
+            self.app.quit()
+
+
+class TestApplication(TestBase):
+
+    def setUp(self):
+        super(TestApplication, self).setUp('test_workbook_1.xlsx')
 
     def test_screen_updating(self):
-        Application(wkb=self.wb).screen_updating = False
-        assert_equal(Application(wkb=self.wb).screen_updating, False)
+        self.app.screen_updating = False
+        assert_equal(self.app.screen_updating, False)
 
-        Application(wkb=self.wb).screen_updating = True
-        assert_equal(Application(wkb=self.wb).screen_updating, True)
+        self.app.screen_updating = True
+        assert_equal(self.app.screen_updating, True)
 
     def test_calculation(self):
         Range('A1').value = 2
         Range('B1').formula = '=A1 * 2'
 
-        app = Application(wkb=self.wb)
-
-        app.calculation = Calculation.xlCalculationManual
+        self.app.calculation = Calculation.xlCalculationManual
         Range('A1').value = 4
         assert_equal(Range('B1').value, 4)
 
-        app.calculation = Calculation.xlCalculationAutomatic
-        app.calculate()  # This is needed on Mac Excel 2016 but not on Mac Excel 2011 (changed behaviour)
+        self.app.calculation = Calculation.xlCalculationAutomatic
+        self.app.calculate()  # This is needed on Mac Excel 2016 but not on Mac Excel 2011 (changed behaviour)
         assert_equal(Range('B1').value, 8)
 
         Range('A1').value = 2
         assert_equal(Range('B1').value, 4)
 
     def test_version(self):
-        app = Application(wkb=self.wb)
-        assert_true(int(app.version.split('.')[0]) > 0)
+        assert_true(int(self.app.version.split('.')[0]) > 0)
 
 
-class TestWorkbook:
+class TestWorkbook(TestBase):
     def setUp(self):
-        # Connect to test file and make Sheet1 the active sheet
-        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx')
-        self.wb = Workbook(xl_file1, app_visible=False, app_target=APP_TARGET)
-        Sheet('Sheet1').activate()
-
-    def tearDown(self):
-        class_teardown(self.wb)
+        super(TestWorkbook, self).setUp('test_workbook_1.xlsx')
 
     def test_name(self):
         assert_equal(self.wb.name, 'test_workbook_1.xlsx')
@@ -313,15 +311,9 @@ class TestWorkbook:
         assert_equal(Range('A10', wkb=wb2).value, 'name-test')
 
 
-class TestSheet:
+class TestSheet(TestBase):
     def setUp(self):
-        # Connect to test file and make Sheet1 the active sheet
-        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_workbook_1.xlsx')
-        self.wb = Workbook(xl_file1, app_visible=False, app_target=APP_TARGET)
-        Sheet('Sheet1').activate()
-
-    def tearDown(self):
-        class_teardown(self.wb)
+        super(TestSheet, self).setUp('test_workbook_1.xlsx')
 
     def test_activate(self):
         Sheet('Sheet2').activate()
@@ -425,15 +417,9 @@ class TestSheet:
         assert_false('Sheet1' in [i.name for i in Sheet.all()])
 
 
-class TestRange:
+class TestRange(TestBase):
     def setUp(self):
-        # Connect to test file and make Sheet1 the active sheet
-        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_range_1.xlsx')
-        self.wb = Workbook(xl_file1, app_visible=False, app_target=APP_TARGET)
-        Sheet('Sheet1').activate()
-
-    def tearDown(self):
-        class_teardown(self.wb)
+        super(TestRange, self).setUp('test_range_1.xlsx')
 
     def test_cell(self):
         params = [('A1', 22),
@@ -1249,15 +1235,10 @@ class TestRange:
         Range('A1').options(transpose=True).value = [[1., 2.], [3., 4.]]
         assert_equal(Range('A1:B2').value, [[1., 3.], [2., 4.]])
 
-class TestPicture:
-    def setUp(self):
-        # Connect to test file and make Sheet1 the active sheet
-        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_chart_1.xlsx')
-        self.wb = Workbook(xl_file1, app_visible=False, app_target=APP_TARGET)
-        Sheet('Sheet1').activate()
 
-    def tearDown(self):
-        class_teardown(self.wb)
+class TestPicture(TestBase):
+    def setUp(self):
+        super(TestPicture, self).setUp('test_chart_1.xlsx')
 
     def test_two_wkb(self):
         wb2 = Workbook(app_visible=False, app_target=APP_TARGET)
@@ -1328,15 +1309,9 @@ class TestPicture:
         pic1.update(os.path.join(this_dir, 'sample_picture.png'))
 
 
-class TestPlot:
+class TestPlot(TestBase):
     def setUp(self):
-        # Connect to test file and make Sheet1 the active sheet
-        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_chart_1.xlsx')
-        self.wb = Workbook(xl_file1, app_visible=False, app_target=APP_TARGET)
-        Sheet('Sheet1').activate()
-
-    def tearDown(self):
-        class_teardown(self.wb)
+        super(TestPlot, self).setUp('test_chart_1.xlsx')
 
     def test_add_plot(self):
         _skip_if_no_matplotlib()
@@ -1354,15 +1329,10 @@ class TestPlot:
         assert_equal(pic2.name, 'Plot2')
 
 
-class TestChart:
-    def setUp(self):
-        # Connect to test file and make Sheet1 the active sheet
-        xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_chart_1.xlsx')
-        self.wb = Workbook(xl_file1, app_visible=False, app_target=APP_TARGET)
-        Sheet('Sheet1').activate()
+class TestChart(TestBase):
 
-    def tearDown(self):
-        class_teardown(self.wb)
+    def setUp(self):
+        super(TestChart, self).setUp('test_chart_1.xlsx')
 
     def test_add_keywords(self):
         name = 'My Chart'

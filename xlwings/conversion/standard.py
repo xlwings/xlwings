@@ -97,7 +97,7 @@ class ReadValueFromRangeStage(object):
 
     def __call__(self, c):
         if c.range:
-            c.value = xlplatform.get_value_from_range(c.range.xl_range)
+            c.value = c.range.xl_range.get_value()
 
 
 class CleanDataFromReadStage(object):
