@@ -22,6 +22,8 @@ import shutil
 from . import xlplatform, string_types, xrange, map, ShapeAlreadyExists
 from .constants import ChartType
 
+from .utils import ClassPropertyMetaClass, classproperty
+
 # Optional imports
 try:
     import numpy as np
@@ -49,13 +51,13 @@ class Application(object):
     Application is dependent on the Workbook since there might be different application instances on Windows.
     """
 
-    def __init__(self, app=None, make_visible=True):
-        if app is None:
+    __metaclass__ = ClassPropertyMetaClass   # this is needed for class properties to work
+
+    def __init__(self, xl_app=None, make_visible=True):
+        if xl_app is None:
             self.xl_app = xlplatform.Application()
-        elif xlplatform.is_app_instance(app):
-            self.xl_app = app
         else:
-            raise NotImplementedError()
+            self.xl_app = xl_app
 
         if make_visible:
             self.visible = True
@@ -63,7 +65,7 @@ class Application(object):
         Application.current = self
 
     def new_workbook(self):
-        return Workbook(xl_workbook=xlplatform.new_workbook(self.xl_app))
+        return Workbook(xl_workbook=self.xl_app.new_workbook())
 
     @property
     def version(self):
@@ -72,7 +74,7 @@ class Application(object):
 
         .. versionadded:: 0.5.0
         """
-        return xlplatform.get_app_version_string(self.wkb.xl_workbook)
+        return self.xl_app.get_version_string()
 
     def quit(self):
         """
@@ -80,7 +82,7 @@ class Application(object):
 
         .. versionadded:: 0.3.3
         """
-        xlplatform.quit_app(self.xl_app)
+        self.xl_app.quit()
 
     @property
     def screen_updating(self):
@@ -89,11 +91,11 @@ class Application(object):
 
         .. versionadded:: 0.3.3
         """
-        return xlplatform.get_screen_updating(self.xl_app)
+        return self.xl_app.screen_updating
 
     @screen_updating.setter
     def screen_updating(self, value):
-        xlplatform.set_screen_updating(self.xl_app, value)
+        self.xl_app.screen_updating = value
 
     @property
     def visible(self):
@@ -103,11 +105,11 @@ class Application(object):
 
         .. versionadded:: 0.3.3
         """
-        return xlplatform.get_visible(self.xl_app)
+        return self.xl_app.visible
 
     @visible.setter
     def visible(self, value):
-        xlplatform.set_visible(self.xl_app, value)
+        self.xl_app.visible = value
 
     @property
     def calculation(self):
@@ -123,11 +125,11 @@ class Application(object):
 
         .. versionadded:: 0.3.3
         """
-        return xlplatform.get_calculation(self.xl_app)
+        return self.xl_app.calculation
 
     @calculation.setter
     def calculation(self, value):
-        xlplatform.set_calculation(self.xl_app, value)
+        self.xl_app.calculation = value
 
     def calculate(self):
         """
@@ -135,23 +137,23 @@ class Application(object):
 
         .. versionadded:: 0.3.6
         """
-        xlplatform.calculate(self.xl_app)
+        self.xl_app.calculate()
 
     _current = None
 
-    @classmethod
-    def get_current(cls):
+    @classproperty
+    def current(cls):
         if cls._current is None:
-            cls._current = Application(xlplatform.get_running_app())
+            cls._current = Application(xl_app=xlplatform.Application.get_running())
         return cls._current
 
-    @classmethod
-    def set_current(cls, value):
+    @current.setter
+    def current(cls, value):
         cls._current = value
 
     @property
     def active_sheet(self):
-        return Sheet(xl_sheet=self.xl_app.get_active_sheet(self.xl_app))
+        return Sheet(xl_sheet=self.xl_app.get_active_sheet())
 
 
 class Workbook(object):
@@ -195,39 +197,29 @@ class Workbook(object):
     def __init__(self, fullname=None, xl_workbook=None, app_visible=True, app_target=None):
         if xl_workbook:
             self.xl_workbook = xl_workbook
-            self.xl_app = xlplatform.get_app(self.xl_workbook, app_target)
         elif fullname:
             self.fullname = fullname
             if not os.path.isfile(fullname) or xlplatform.is_file_open(self.fullname):
                 # Connect to unsaved Workbook (e.g. 'Workbook1') or to an opened Workbook
-                self.xl_app, self.xl_workbook = xlplatform.get_open_workbook(self.fullname, app_target)
+                self.xl_workbook = xlplatform.get_open_workbook(self.fullname, app_target)
             else:
                 # Open Excel and the Workbook
-                self.xl_app, self.xl_workbook = xlplatform.open_workbook(self.fullname, app_target)
+                self.xl_workbook = xlplatform.open_workbook(self.fullname, app_target)
         else:
             # Open Excel if necessary and create a new workbook
-            app = Application.get_current()
-            wb = app.new_workbook()
-            self.xl_app = app.xl_app
-            self.xl_workbook = wb.xl_workbook
-
-        if fullname is None:
-            self.fullname = xlplatform.get_fullname(self.xl_workbook)
-
-        Workbook.current = self
+            app = Application.current
+            self.xl_workbook = app.new_workbook().xl_workbook
 
         if app_visible is not None:
-            xlplatform.set_visible(self.xl_app, app_visible)
+            self.application.visible = app_visible
 
-    _current = None
+    @property
+    def application(self):
+        return Application(xl_app=self.xl_workbook.application)
 
-    @staticproperty
-    def current(self):
-        return self._current
-
-    @current.setter
-    def current(self, value):
-        self._current = value
+    @property
+    def fullname(self):
+        return self.xl_workbook.get_fullname()
 
     @classmethod
     def active(cls, app_target=None):
@@ -237,11 +229,10 @@ class Workbook(object):
 
         .. versionadded:: 0.4.1
         """
-        xl_workbook = xlplatform.get_active_workbook(app_target=app_target)
-        return cls(xl_workbook=xl_workbook, app_target=app_target)
+        return Application.current.active_workbook
 
     def sheet(self, name_or_index):
-        return Sheet(xlplatform.get_xl_sheet(self.xl_workbook, name_or_index))
+        return Sheet(self.xl_workbook.get_sheet(name_or_index))
 
     @classmethod
     def caller(cls):
@@ -461,15 +452,17 @@ class Sheet(object):
     .. versionadded:: 0.2.3
     """
 
+    __metaclass__ = ClassPropertyMetaClass  # needed for class properties to work
+
     def __init__(self, sheet=None, xl_sheet=None):
         if xl_sheet is not None:
             self.xl_sheet = xl_sheet
         else:
-            self.xl_sheet = xlplatform.get_xl_sheet(Workbook.current().xl_workbook, sheet)
+            self.xl_sheet = Workbook.active.sheet(sheet)
 
     def activate(self):
         """Activates the sheet."""
-        xlplatform.activate_sheet(self.xl_sheet)
+        self.xl_sheet.activate()
 
     def autofit(self, axis=None):
         """
@@ -495,31 +488,31 @@ class Sheet(object):
 
         .. versionadded:: 0.2.3
         """
-        xlplatform.autofit_sheet(self, axis)
+        self.xl_sheet.activate(axis)
 
     def clear_contents(self):
         """Clears the content of the whole sheet but leaves the formatting."""
-        xlplatform.clear_contents_worksheet(self.xl_workbook, self.sheet)
+        self.xl_sheet.clear_contents()
 
     def clear(self):
         """Clears the content and formatting of the whole sheet."""
-        xlplatform.clear_worksheet(self.xl_workbook, self.sheet)
+        self.xl_sheet.clear()
 
     @property
     def name(self):
         """Get or set the name of the Sheet."""
-        return xlplatform.get_worksheet_name(self.xl_sheet)
+        return self.xl_sheet.get_name()
 
     @name.setter
     def name(self, value):
-        xlplatform.set_worksheet_name(self.xl_sheet, value)
+        self.xl_sheet.set_name(value)
 
     @property
     def index(self):
         """Returns the index of the Sheet."""
-        return xlplatform.get_worksheet_index(self.xl_sheet)
+        self.xl_sheet.get_index()
 
-    @classmethod
+    @classproperty
     def active(cls):
         """Returns the active Sheet in the current application. Use like so: ``Sheet.active()``"""
         return Application.current.active_sheet
@@ -629,15 +622,15 @@ class Sheet(object):
 
         .. versionadded: 0.6.0
         """
-        xlplatform.delete_sheet(self)
+        self.xl_sheet.delete()
 
     def __repr__(self):
-        return "<Sheet '{0}' of Workbook '{1}'>".format(self.name, xlplatform.get_workbook_name(self.xl_workbook))
+        return "<Sheet '{0}' of Workbook '{1}'>".format(self.xl_sheet.name, self.xl_sheet.workbook.name)
 
     def range(self, *args):
         if len(args) == 1:
             if isinstance(args[0], string_types):
-                return Range(xlplatform.sheet_get_range(self.xl_sheet, args[0]))
+                return Range(xl_range=self.xl_sheet.get_range(args[0]))
         elif len(args) == 1 and isinstance(args[0], string_types):
             sheet_name_or_index = None
             range_address = args[0]
@@ -686,8 +679,6 @@ class Sheet(object):
             self.row2 = args[2][0]
             self.col2 = args[2][1]
 
-
-
 class Range(object):
     """
     A Range object can be instantiated with the following arguments::
@@ -727,16 +718,40 @@ class Range(object):
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
     """
 
-    def __init__(self, *args, **options):
+    def __init__(self, *args, xl_range=None, **options):
 
         # Arguments
-        if len(args) == 1 and xlplatform.is_range_instance(args[0]):
-            self.xl_range = args[0]
+        if xl_range is not None:
+            self.xl_range = xl_range
         else:
-            self.xl_range = Sheet.active().range(*args).options(**options).xl_range
+            self.xl_range = Sheet.active.range(*args).options(**options).xl_range
 
         # Keyword Arguments
         self._options = options
+
+        self._coords = None
+
+    @property
+    def coords(self):
+        if self._coords is None:
+            self._coords = self.xl_range.get_coordinates()
+        return self._coords
+
+    @property
+    def row1(self):
+        return self.coords[0]
+
+    @property
+    def row2(self):
+        return self.coords[2]
+
+    @property
+    def col1(self):
+        return self.coords[1]
+
+    @property
+    def col2(self):
+        return self.coords[3]
 
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
@@ -785,9 +800,7 @@ class Range(object):
         """
         options['convert'] = convert
         return Range(
-            xlplatform.get_worksheet_name(self.xl_sheet),
-            (self.row1, self.col1),
-            (self.row2, self.col2),
+            xl_range=self.xl_range,
             **options
         )
 
@@ -877,11 +890,11 @@ class Range(object):
         """
         Gets or sets the formula for the given Range.
         """
-        return xlplatform.get_formula(self.xl_range)
+        return self.xl_range.formula
 
     @formula.setter
     def formula(self, value):
-        xlplatform.set_formula(self.xl_range, value)
+        self.xl_range.formula = value
 
     @property
     def table(self):

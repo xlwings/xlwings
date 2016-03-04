@@ -87,20 +87,31 @@ class VBAWriter(object):
         self.write(template + '\n', **kwargs)
 
 
-class staticproperty(object):
+# class properties - see http://stackoverflow.com/questions/5189699/how-can-i-make-a-class-property-in-python
+
+
+class ClassPropertyMetaClass(type):
+    def __setattr__(self, key, value):
+        obj = self.__dict__.get(key, None)
+        if obj and type(obj) is classproperty:
+            return obj.__set__(None, value, self)
+        return type.__setattr__(self, key, value)
+
+
+class classproperty(object):
 
     def __init__(self, fget):
-        self.fget = staticmethod(fget).__get__(object)
+        self.fget = classmethod(fget) #.__get__(object)
         self.fset = None
 
-    def __get__(self, instance, owner):
-        return self.fget()
+    def __get__(self, instance, cls):
+        return self.fget.__get__(instance, cls)()
 
-    def __set__(self, instance, value):
+    def __set__(self, instance, value, cls=None):
         if not self.fset:
-            raise AttributeError("Static property is read-only")
-        return self.fset(value)
+            raise AttributeError("Class property is read-only")
+        return self.fset.__get__(instance, cls)(value)
 
     def setter(self, func):
-        self.fset = staticmethod(func)
+        self.fset = classmethod(func)
         return self

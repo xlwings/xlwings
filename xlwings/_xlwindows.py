@@ -171,20 +171,22 @@ def is_range_instance(xl_range):
 
 class Application(object):
 
-    def __init__(self, xl):
-        self.xl = xl
-
-    @classmethod
-    def get_new(cls):
-       return Application(DispatchEx('Excel.Application'))
+    def __init__(self, xl=None):
+        if xl is None:
+            # new instance
+            self.xl = Application(DispatchEx('Excel.Application'))
+        else:
+            self.xl = xl
 
     @classmethod
     def get_running(cls):
         return Application(dynamic.Dispatch('Excel.Application'))
 
-    @property
-    def active_workbook(self):
+    def get_active_workbook(self):
         return Workbook(self.xl.ActiveWorkbook)
+
+    def get_active_sheet(self):
+        return Sheet(self.xl.ActiveSheet)
 
     def open_workbook(self, fullname):
         return Workbook(self.xl.Workbooks.Open(fullname))
@@ -372,7 +374,7 @@ class Range(object):
         self.xl = xl
 
     def get_worksheet(self):
-        return self.xl.Worksheet
+        return Sheet(self.xl.Worksheet)
 
     def get_coordinates(self):
         row1 = self.xl.Row

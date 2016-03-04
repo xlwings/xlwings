@@ -66,13 +66,15 @@ class WriteValueToRangeStage(object):
             else:
                 row2 = rng.row1 + len(value) - 1
                 col2 = rng.col1 + len(value[0]) - 1
-            xlplatform.set_value(xlplatform.get_range_from_indices(
-                rng.xl_sheet,
+
+            rng.xl_range.get_worksheet().get_range_from_indices(
                 rng.row1,
                 rng.col1,
                 row2,
                 col2
-            ), value)
+            ).set_value(
+                value
+            )
 
     def __call__(self, ctx):
         if ctx.range and ctx.value:
