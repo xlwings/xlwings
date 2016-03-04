@@ -241,7 +241,7 @@ Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As S
     WORKBOOK_FULLNAME = ThisWorkbook.FullName
 
     If IsFrozen = False Then
-        RunCommand = "python -B -c ""import sys, os; sys.path.extend(os.path.normcase(os.path.expandvars(r'" & PYTHONPATH & "').split(';')); " & PythonCommand & """ "
+        RunCommand = "python -B -c ""import sys, os; sys.path.extend(os.path.normcase(os.path.expandvars(r'" & PYTHONPATH & "')).split(';')); " & PythonCommand & """ "
     ElseIf IsFrozen = True Then
         RunCommand = PythonCommand & " "
     End If
