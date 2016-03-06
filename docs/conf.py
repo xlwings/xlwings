@@ -239,7 +239,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual], toctree_only).
 latex_documents = [
-    ('index', 'xlwings.tex', u'xlwings - Make Excel Fly!',
+    ('index_latex', 'xlwings.tex', u'xlwings - Make Excel Fly!',
      u'Zoomer Analytics LLC', 'manual', True),
 ]
 
