@@ -2,6 +2,7 @@ import os
 import re
 import os.path
 import tempfile
+import inspect
 
 from win32com.client import Dispatch
 
@@ -101,6 +102,11 @@ def call_udf(script_name, func_name, args, this_workbook):
     script = udf_script(script_name)
     func = script[func_name]
 
+    py_argspec = inspect.getargspec(func)
+    py_n_args = len(py_argspec.args)
+    py_n_optional_args = len(py_argspec.defaults) if py_argspec.defaults else 0
+    py_n_required_args = py_n_args - py_n_optional_args
+
     func_info = func.__xlfunc__
     args_info = func_info['args']
     ret_info = func_info['ret']
@@ -108,6 +114,11 @@ def call_udf(script_name, func_name, args, this_workbook):
     args = list(args)
     for i, arg in enumerate(args):
         arg_info = args_info[i]
+        if type(arg) is int and arg == -2147352572:      # missing
+            if i < py_n_required_args:
+                raise ValueError("Argument %i is not optional" % i)
+            else:
+                arg = py_argspec.defaults[i - py_n_required_args]
         if xlplatform.is_range_instance(arg):
             args[i] = conversion.read(Range(arg), None, arg_info)
         else:
