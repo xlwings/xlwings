@@ -1741,25 +1741,20 @@ class Chart(Shape):
         wkb : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
         """
-        wkb = kwargs.get('wkb', None)
+
+        if sheet is None:
+            sheet = Application.current.active_sheet
+        elif not isinstance(sheet, Sheet):
+            sheet = Application.current.active_workbook.sheet(sheet)
+
+        xl_chart = sheet.add_chart(left, top, width, height)
 
         chart_type = kwargs.get('chart_type', ChartType.xlColumnClustered)
         name = kwargs.get('name')
         source_data = kwargs.get('source_data')
 
-        xl_workbook = Workbook.active.xl_workbook
-
-        if isinstance(sheet, Sheet):
-                sheet = sheet.index
-        if sheet is None:
-            sheet = xl_workbook.get_active_sheet().get_index()
-
-        xl_chart = xl_workbook.add_chart(sheet, left, top, width, height)
-
         if name:
-            xlplatform.set_chart_name(xl_chart, name)
-        else:
-            name = xlplatform.get_chart_name(xl_chart)
+            xl_chart.set_name(name)
 
         return cls(sheet, name, wkb=wkb, chart_type=chart_type, source_data=source_data)
 

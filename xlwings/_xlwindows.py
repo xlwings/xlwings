@@ -256,19 +256,19 @@ class Workbook(object):
     
     def add_sheet(self, before, after):
         if before:
-            return Sheet(self.xl.Worksheets.Add(Before=before.xl_sheet))
+            return Sheet(self.xl.Worksheets.Add(Before=before.xl))
         else:
             # Hack, since "After" is broken in certain environments
             # see: http://code.activestate.com/lists/python-win32/11554/
             count = self.xl.Worksheets.Count
             new_sheet_index = after.xl_sheet.Index + 1
             if new_sheet_index > count:
-                xl_sheet = self.xl.Worksheets.Add(Before=self.xl.Sheets(after.xl_sheet.Index))
+                xl_sheet = self.xl.Worksheets.Add(Before=after.xl)
                 self.xl.Worksheets(self.xl.Worksheets.Count)\
                     .Move(Before=self.xl.Sheets(self.xl.Worksheets.Count - 1))
                 self.xl.Worksheets(self.xl.Worksheets.Count).Activate()
             else:
-                xl_sheet = self.xl.Worksheets.Add(Before=self.xl.Sheets(after.xl_sheet.Index + 1))
+                xl_sheet = self.xl.Worksheets.Add(Before=self.xl.Sheets(after.xl.Index + 1))
             return Sheet(xl_sheet)
     
     def count_sheets(self):
@@ -303,9 +303,6 @@ class Workbook(object):
 
     def activate(self):
         self.xl.Activate()
-
-    def add_chart(self, sheet_name_or_index, left, top, width, height):
-        return self.xl.Sheets(sheet_name_or_index).ChartObjects().Add(left, top, width, height)
 
 
 class Sheet(object):
@@ -366,6 +363,30 @@ class Sheet(object):
         xl_app.DisplayAlerts = False
         self.xl.Delete()
         xl_app.DisplayAlerts = True
+
+    def add_picture(self, filename, link_to_file, save_with_document, left, top, width, height):
+        return Picture(self.xl.Shapes.AddPicture(
+            Filename=filename,
+            LinkToFile=link_to_file,
+            SaveWithDocument=save_with_document,
+            Left=left,
+            Top=top,
+            Width=width,
+            Height=height
+        ))
+
+    def get_chart_object(self, chart_name_or_index):
+        return Chart(self.xl.ChartObjects(chart_name_or_index))
+
+    def get_shapes_names(self):
+        shapes = self.xl.Shapes
+        if shapes is not None:
+            return [i.Name for i in shapes]
+        else:
+            return []
+
+    def add_chart(self, left, top, width, height):
+        return Chart(self.xl.ChartObjects().Add(left, top, width, height))
 
 
 class Range(object):
@@ -607,118 +628,88 @@ def prepare_xl_data_element(x):
         return x
 
 
-def get_chart_object(xl_workbook, sheet_name_or_index, chart_name_or_index):
-    return xl_workbook.Sheets(sheet_name_or_index).ChartObjects(chart_name_or_index)
+class Chart(object):
 
+    def __init__(self, xl):
+        self.xl = xl
 
-def get_chart_index(xl_chart):
-    return xl_chart.Index
+    def get_index(self):
+        return self.xl.Index
 
+    def get_name(self):
+        return self.xl.Name
 
-def get_chart_name(xl_chart):
-    return xl_chart.Name
+    def set_name(self, name):
+        self.xl.Name = name
 
+    def set_source_data(self, rng):
+        self.xl.Chart.SetSourceData(rng.xl)
 
-def set_chart_name(xl_chart, name):
-    xl_chart.Name = name
+    def get_type(self):
+        return self.xl.Chart.ChartType
 
+    def set_type(self, chart_type):
+        self.xl.Chart.ChartType = chart_type
 
-def set_source_data_chart(xl_chart, xl_range):
-    xl_chart.Chart.SetSourceData(xl_range)
-
-
-def get_chart_type(xl_chart):
-    return xl_chart.Chart.ChartType
-
-
-def set_chart_type(xl_chart, chart_type):
-    xl_chart.Chart.ChartType = chart_type
-
-
-def activate_chart(xl_chart):
-    xl_chart.Activate()
+    def activate(self):
+        self.xl.Activate()
 
 
 def open_template(fullpath):
     os.startfile(fullpath)
 
 
-def get_picture(picture):
-    return picture.xl_workbook.Sheets(picture.sheet_name_or_index).Pictures(picture.name_or_index)
+class Picture(object):
+
+    def __init__(self, xl):
+        self.xl = xl
+
+    def get_index(self):
+        return self.xl.Index
+
+    def get_name(self):
+        return self.xl.Name
 
 
-def get_picture_index(picture):
-    return picture.xl_picture.Index
+class Shape(object):
+
+    def __init__(self, xl):
+        self.xl = xl
+
+    def get_name(self):
+        return self.Name
+
+    def get_left(self):
+        return self.xl.Left
 
 
-def get_picture_name(xl_picture):
-    return xl_picture.Name
+    def set_left(self, value):
+        self.xl.Left = value
 
+    def get_top(self):
+        return self.xl.Top
 
-def get_shape(shape):
-    return shape.xl_workbook.Sheets(shape.sheet_name_or_index).Shapes(shape.name_or_index)
+    def set_top(self, value):
+        self.xl.Top = value
 
+    def get_width(self):
+        return self.xl.Width
 
-def get_shape_name(shape):
-    return shape.xl_shape.Name
+    def set_width(self, value):
+        self.xl.Width = value
 
+    def get_height(self):
+        return self.xl.Height
 
-def set_shape_name(xl_workbook, sheet_name_or_index, xl_shape, value):
-    xl_workbook.Sheets(sheet_name_or_index).Shapes(xl_shape.Name).Name = value
-    return xl_workbook.Sheets(sheet_name_or_index).Shapes(value)
+    def set_height(self, value):
+        self.xl.Height = value
 
+    def delete(self):
+        self.xl.Delete()
 
-def get_shapes_names(xl_workbook, sheet):
-    shapes = xl_workbook.Sheets(sheet).Shapes
-    if shapes is not None:
-        return [i.Name for i in shapes]
-    else:
-        return []
+    def set_name(self, value):
+        self.Name = value
+        #return xl_workbook.Sheets(sheet_name_or_index).Shapes(value)
 
-
-def get_shape_left(shape):
-    return shape.xl_shape.Left
-
-
-def set_shape_left(shape, value):
-    shape.xl_shape.Left = value
-
-
-def get_shape_top(shape):
-    return shape.xl_shape.Top
-
-
-def set_shape_top(shape, value):
-    shape.xl_shape.Top = value
-
-
-def get_shape_width(shape):
-    return shape.xl_shape.Width
-
-
-def set_shape_width(shape, value):
-    shape.xl_shape.Width = value
-
-
-def get_shape_height(shape):
-    return shape.xl_shape.Height
-
-
-def set_shape_height(shape, value):
-    shape.xl_shape.Height = value
-
-
-def delete_shape(shape):
-    shape.xl_shape.Delete()
-
-
-def add_picture(xl_workbook, sheet_name_or_index, filename, link_to_file, save_with_document, left, top, width, height):
-    return xl_workbook.Sheets(sheet_name_or_index).Shapes.AddPicture(Filename=filename,
-                                                                     LinkToFile=link_to_file,
-                                                                     SaveWithDocument=save_with_document,
-                                                                     Left=left,
-                                                                     Top=top,
-                                                                     Width=width,
-                                                                     Height=height)
 
 
