@@ -4,6 +4,8 @@ import os.path
 import tempfile
 import inspect
 
+from collections import OrderedDict
+
 from win32com.client import Dispatch
 
 from xlwings.constants import Calculation
@@ -11,6 +13,42 @@ from . import conversion
 from .utils import VBAWriter
 from . import xlplatform
 from . import Range
+
+from . import PY3
+
+if PY3:
+    def func_sig(f):
+        s = inspect.signature(f)
+        vararg = None
+        args = []
+        defaults = []
+        for p in s.parameters.values():
+            if p.kind is inspect.Parameter.POSITIONAL_OR_KEYWORD:
+                args.append(p.name)
+                if p.default is not inspect.Signature.empty:
+                    defaults.append(p.default)
+            elif p.kind is inspect.Parameter.VAR_POSITIONAL:
+                args.append(p.name)
+                vararg = p.name
+            else:
+                raise Exception("xlwings does not support UDFs with keyword arguments")
+        return {
+            'args': args,
+            'defaults': defaults,
+            'vararg': vararg
+        }
+
+else:
+    def func_sig(f):
+        s = inspect.getargspec(f)
+        if s.keywords:
+            raise Exception("xlwings does not support UDFs with keyword arguments")
+        return {
+            'args': (s.args + [s.varargs]) if s.varargs else s.args,
+            'defaults': s.defaults or [],
+            'vararg': s.varargs
+        }
+
 
 def xlfunc(f=None, **kwargs):
     def inner(f):
@@ -20,30 +58,28 @@ def xlfunc(f=None, **kwargs):
             xlf["sub"] = False
             xlargs = xlf["args"] = []
             xlargmap = xlf["argmap"] = {}
-            nArgs = f.__code__.co_argcount
-            nDefaults = len(f.__defaults__) if f.__defaults__ else 0
+            sig = func_sig(f)
+            nArgs = len(sig['args'])
+            nDefaults = len(sig['defaults'])
             nRequiredArgs = nArgs - nDefaults
-            if f.__code__.co_flags & 4:  # function has an '*args' argument
-                nArgs += 1
-            for vpos, vname in enumerate(f.__code__.co_varnames[:nArgs]):
-                xlargs.append({
+            if sig['vararg'] and nDefaults > 0:
+                raise Exception("xlwings does not support UDFs with both optional and variable length arguments")
+            for vpos, vname in enumerate(sig['args']):
+                arg_info = {
                     "name": vname,
                     "pos": vpos,
-                    "marshal": "var",
                     "vba": None,
-                    "range": False,
-                    "dtype": None,
-                    "ndim": None,
                     "doc": "Positional argument " + str(vpos+1),
-                    "vararg": True if vpos == f.__code__.co_argcount else False
-                })
+                    "vararg": vname == sig['vararg'],
+                    "options": {}
+                }
                 if vpos >= nRequiredArgs:
-                    xlargs[-1]["optional"] = f.__defaults__[vpos - nRequiredArgs]
+                    arg_info["optional"] = sig['defaults'][vpos - nRequiredArgs]
+                xlargs.append(arg_info)
                 xlargmap[vname] = xlargs[-1]
             xlf["ret"] = {
-                "marshal": "var",
-                "lax": True,
-                "doc": f.__doc__ if f.__doc__ is not None else "Python function '" + f.__name__ + "' defined in '" + str(f.__code__.co_filename) + "'."
+                "doc": f.__doc__ if f.__doc__ is not None else "Python function '" + f.__name__ + "' defined in '" + str(f.__code__.co_filename) + "'.",
+                "options": {}
             }
         return f
     if f is None:
@@ -69,7 +105,7 @@ def xlret(convert=None, **kwargs):
     def inner(f):
         xlf = xlfunc(f).__xlfunc__
         xlr = xlf["ret"]
-        xlr.update(kwargs)
+        xlr['options'].update(kwargs)
         return f
     return inner
 
@@ -82,7 +118,10 @@ def xlarg(arg, convert=None, **kwargs):
         if arg not in xlf["argmap"]:
             raise Exception("Invalid argument name '" + arg + "'.")
         xla = xlf["argmap"][arg]
-        xla.update(kwargs)
+        for special in ('vba', 'doc'):
+            if special in kwargs:
+                xla[special] = kwargs.pop(special)
+        xla['options'].update(kwargs)
         return f
     return inner
 
@@ -113,17 +152,18 @@ def call_udf(script_name, func_name, args, this_workbook):
 
     args = list(args)
     for i, arg in enumerate(args):
-        arg_info = args_info[i]
+        arg_info = args_info[min(i, len(args_info)-1)]
         if type(arg) is int and arg == -2147352572:      # missing
             args[i] = arg_info.get('optional', None)
         elif xlplatform.is_range_instance(arg):
-            args[i] = conversion.read(Range(arg), None, arg_info)
+            args[i] = conversion.read(Range(arg), None, arg_info['options'])
         else:
-            args[i] = conversion.read(None, arg, arg_info)
+            args[i] = conversion.read(None, arg, arg_info['options'])
+
     xlplatform.xl_workbook_current = Dispatch(this_workbook)
     ret = func(*args)
 
-    return conversion.write(ret, None, ret_info)
+    return conversion.write(ret, None, ret_info['options'])
 
 
 def generate_vba_wrapper(script_vars, f):
