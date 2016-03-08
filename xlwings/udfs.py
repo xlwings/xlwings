@@ -6,6 +6,7 @@ import inspect
 
 from win32com.client import Dispatch
 
+from xlwings.constants import Calculation
 from . import conversion
 from .utils import VBAWriter
 from . import xlplatform
@@ -20,6 +21,8 @@ def xlfunc(f=None, **kwargs):
             xlargs = xlf["args"] = []
             xlargmap = xlf["argmap"] = {}
             nArgs = f.__code__.co_argcount
+            nDefaults = len(f.__defaults__) if f.__defaults__ else 0
+            nRequiredArgs = nArgs - nDefaults
             if f.__code__.co_flags & 4:  # function has an '*args' argument
                 nArgs += 1
             for vpos, vname in enumerate(f.__code__.co_varnames[:nArgs]):
@@ -34,6 +37,8 @@ def xlfunc(f=None, **kwargs):
                     "doc": "Positional argument " + str(vpos+1),
                     "vararg": True if vpos == f.__code__.co_argcount else False
                 })
+                if vpos >= nRequiredArgs:
+                    xlargs[-1]["optional"] = f.__defaults__[vpos - nRequiredArgs]
                 xlargmap[vname] = xlargs[-1]
             xlf["ret"] = {
                 "marshal": "var",
@@ -102,11 +107,6 @@ def call_udf(script_name, func_name, args, this_workbook):
     script = udf_script(script_name)
     func = script[func_name]
 
-    py_argspec = inspect.getargspec(func)
-    py_n_args = len(py_argspec.args)
-    py_n_optional_args = len(py_argspec.defaults) if py_argspec.defaults else 0
-    py_n_required_args = py_n_args - py_n_optional_args
-
     func_info = func.__xlfunc__
     args_info = func_info['args']
     ret_info = func_info['ret']
@@ -115,11 +115,8 @@ def call_udf(script_name, func_name, args, this_workbook):
     for i, arg in enumerate(args):
         arg_info = args_info[i]
         if type(arg) is int and arg == -2147352572:      # missing
-            if i < py_n_required_args:
-                raise ValueError("Argument %i is not optional" % i)
-            else:
-                arg = py_argspec.defaults[i - py_n_required_args]
-        if xlplatform.is_range_instance(arg):
+            args[i] = arg_info.get('optional', None)
+        elif xlplatform.is_range_instance(arg):
             args[i] = conversion.read(Range(arg), None, arg_info)
         else:
             args[i] = conversion.read(None, arg, arg_info)
@@ -155,7 +152,9 @@ def generate_vba_wrapper(script_vars, f):
                     argname = arg['name']
                     if not first:
                         func_sig += ', '
-                    if arg['vararg']:
+                    if 'optional' in arg:
+                        func_sig += 'Optional '
+                    elif arg['vararg']:
                         func_sig += 'ParamArray '
                         vararg = argname
                     func_sig += argname
