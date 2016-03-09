@@ -3,7 +3,7 @@
 from . import Pipeline, ConverterAccessor, Options, Accessor
 
 from .. import xlplatform
-from ..main import Range
+from ..main import Range, Workbook
 
 import datetime
 
@@ -163,6 +163,23 @@ class RangeAccessor(Accessor):
 
 
 RangeAccessor.install_for(Range)
+
+
+class WorkbookAccessor(Accessor):
+
+    @staticmethod
+    def wrap_to_workbook(c):
+        c.value = Workbook(xl_workbook=c.value)
+
+    @classmethod
+    def reader(cls, options):
+        return (
+            BaseAccessor.reader(options)
+            .append_stage(WorkbookAccessor.wrap_to_workbook)
+        )
+
+
+WorkbookAccessor.install_for(Workbook)
 
 
 class ValueAccessor(Accessor):
