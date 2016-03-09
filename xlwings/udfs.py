@@ -4,11 +4,8 @@ import os.path
 import tempfile
 import inspect
 
-from collections import OrderedDict
-
 from win32com.client import Dispatch
 
-from xlwings.constants import Calculation
 from . import conversion
 from .utils import VBAWriter
 from . import xlplatform

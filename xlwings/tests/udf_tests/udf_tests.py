@@ -478,12 +478,20 @@ if pd:
 
 
 @xw.func
-def optional_args(x, y="hello", z=20):
+def default_args(x, y="hello", z=20):
     return 2 * x + 3 * len(y) + 7 * z
+
 
 @xw.func
 def variable_args(x, *z):
     return 2 * x + 3 * len(z) + 7 * z[0]
+
+
+@xw.func
+def optional_args(x, y=None):
+    if y is None:
+        y = 10
+    return x * y
 
 if __name__ == "__main__":
     xw.serve()
