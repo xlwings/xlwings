@@ -128,6 +128,7 @@ def generate_vba_wrapper(script_vars, f, options):
 
     options = options.split(",")
     TIMING = "timing" in options
+    SHORT_EXCEPTION_MESSAGE = "short_exception_message" in options
     
     for svar in script_vars.values():
         if hasattr(svar, '__xlfunc__'):
@@ -207,7 +208,11 @@ def generate_vba_wrapper(script_vars, f, options):
                 if ftype == "Function":
                     vba.write("Exit " + ftype + "\n")
                     vba.write_label("failed")
-                    vba.write(fname + " = Err.Description\n")
+                    
+                    if SHORT_EXCEPTION_MESSAGE:
+                        vba.write(fname + ' = Split(Err.Description, vbLf)(0)\n')
+                    else:
+                        vba.write(fname + ' = Err.Description\n')
 
             vba.write('End ' + ftype + "\n")
             vba.write("\n")
