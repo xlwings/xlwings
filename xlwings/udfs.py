@@ -162,7 +162,7 @@ def generate_vba_wrapper(script_vars, f, options):
                 if ftype == 'Function':
                     vba.write("If TypeOf Application.Caller Is Range Then On Error GoTo failed\n")
 
-                if timing:
+                if TIMING:
                     vba.write("time_start = Timer\n")
 
                 if vararg != '':
