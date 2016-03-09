@@ -524,7 +524,8 @@ Private Sub GetDLLVersion()
 End Sub
 
 Sub ImportPythonUDFs()
-    Dim scriptPath As String, tempPath As String
+    Dim scriptPath As String, tempPath As String, options as String
     scriptPath = PyScriptPath()
-    tempPath = Py.Str(Py.Call(Py.Module("xlwings"), "import_udfs", Py.Tuple(scriptPath, ThisWorkbook)))
+    options = "timing"
+    tempPath = Py.Str(Py.Call(Py.Module("xlwings"), "import_udfs", Py.Tuple(scriptPath, ThisWorkbook, options)))
 End Sub
