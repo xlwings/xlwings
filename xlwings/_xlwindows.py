@@ -1,5 +1,7 @@
 import os
 import sys
+import itertools
+
 
 # Hack to find pythoncom.dll - needed for some distribution/setups (includes seemingly unused import win32api)
 # E.g. if python is started with the full path outside of the python path, then it almost certainly fails
@@ -285,8 +287,31 @@ def get_range_from_indices(xl_sheet, first_row, first_column, last_row, last_col
                           xl_sheet.Cells(last_row, last_column))
 
 
+
+# empirical limit of # cells that can be read in one shot
+LIMIT_CELLS = 4000000
+
 def get_value_from_range(xl_range):
-    return xl_range.Value
+    if xl_range.Count > LIMIT_CELLS:
+        # if too many cells to get value from
+        # get the value per batch of maximum LIMIT_CELLS
+
+        sh = xl_range.Parent
+
+        nrow,ncolumn = xl_range.Rows.Count, xl_range.Columns.Count
+        batch_rows = int(LIMIT_CELLS / ncolumn)
+
+        steps = range(0, nrow, batch_rows) + [nrow]
+        def read_batch(s,e):
+            return sh.Range(sh.Cells(s+1,1),sh.Cells(e,ncolumn)).Value
+
+        return list(itertools.chain.from_iterable(read_batch(s,e) for s,e in zip(steps[:-1],steps[1:])))
+    else:
+        v = xl_range.Value
+        if isinstance(v, tuple):
+            return list(v)
+        else:
+            return v
 
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
