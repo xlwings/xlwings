@@ -41,7 +41,6 @@ time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
 if np:
     time_types = time_types + (np.datetime64,)
 
-
 # Constants
 OBJID_NATIVEOM = -16
 
@@ -150,9 +149,9 @@ def get_open_workbook(fullname, app_target=None, hwnd=None):
     for xl_app in xl_apps:
         for xl_workbook in get_all_open_xl_workbooks(xl_app):
             if (
-                xl_workbook.FullName.lower() == fullname.lower() or
-                xl_workbook.Name.lower() == fullname.lower()
-               ):
+                            xl_workbook.FullName.lower() == fullname.lower() or
+                            xl_workbook.Name.lower() == fullname.lower()
+            ):
                 if (xl_workbook.FullName.lower() not in duplicate_fullnames) or (hwnd is not None):
                     return xl_app, xl_workbook
                 else:
@@ -285,8 +284,33 @@ def get_range_from_indices(xl_sheet, first_row, first_column, last_row, last_col
                           xl_sheet.Cells(last_row, last_column))
 
 
+# empirical limit of # cells that can be read in one shot
+LIMIT_CELLS = 4000000
+
+
 def get_value_from_range(xl_range):
-    return xl_range.Value
+    if xl_range.Count > LIMIT_CELLS:
+        # if too many cells to get value from
+        # get the value per batch of maximum LIMIT_CELLS
+
+        sh = xl_range.Parent
+
+        nrow, ncolumn = xl_range.Rows.Count, xl_range.Columns.Count
+        batch_rows = int(LIMIT_CELLS / ncolumn)
+
+        steps = range(0, nrow, batch_rows) + [nrow]
+
+        v = []
+        for s, e in zip(steps[:-1], steps[1:]):
+            v.extend(sh.Range(sh.Cells(s + 1, 1), sh.Cells(e, ncolumn)).Value)
+
+        return v
+    else:
+        v = xl_range.Value
+        if isinstance(v, tuple):
+            return list(v)
+        else:
+            return v
 
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
@@ -301,9 +325,9 @@ def clean_value_data(data, datetime_builder, empty_as, number_builder):
                 if c is None else
                 c
                 for c in row
-            ]
+                ]
             for row in data
-        ]
+            ]
     else:
         return [
             [
@@ -313,9 +337,9 @@ def clean_value_data(data, datetime_builder, empty_as, number_builder):
                 if c is None
                 else c
                 for c in row
-            ]
+                ]
             for row in data
-        ]
+            ]
 
 
 def get_value_from_index(xl_sheet, row_index, column_index):
@@ -348,12 +372,12 @@ def _com_time_to_datetime(com_time, datetime_builder):
         # We copy to a new datetime so that the returned type is the same between 2/3
         # Changed: We make the datetime object timezone naive as Excel doesn't provide info
         return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
-                           hour=com_time.hour, minute=com_time.minute, second=com_time.second,
-                           microsecond=com_time.microsecond, tzinfo=None)
+                                hour=com_time.hour, minute=com_time.minute, second=com_time.second,
+                                microsecond=com_time.microsecond, tzinfo=None)
     else:
         assert com_time.msec == 0, "fractional seconds not yet handled"
         return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
-                           hour=com_time.hour, minute=com_time.minute, second=com_time.second)
+                                hour=com_time.hour, minute=com_time.minute, second=com_time.second)
 
 
 def _datetime_to_com_time(dt_time):
@@ -506,7 +530,7 @@ def get_width(xl_range):
 
 def get_height(xl_range):
     return xl_range.Height
-	
+
 
 def get_left(xl_range):
     return xl_range.Left
@@ -515,7 +539,7 @@ def get_left(xl_range):
 def get_top(xl_range):
     return xl_range.Top
 
-	
+
 def autofit(range_, axis):
     if axis == 'rows' or axis == 'r':
         range_.xl_range.Rows.AutoFit()
@@ -573,7 +597,7 @@ def add_sheet(xl_workbook, before, after):
         new_sheet_index = after.xl_sheet.Index + 1
         if new_sheet_index > count:
             xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index))
-            xl_workbook.Worksheets(xl_workbook.Worksheets.Count)\
+            xl_workbook.Worksheets(xl_workbook.Worksheets.Count) \
                 .Move(Before=xl_workbook.Sheets(xl_workbook.Worksheets.Count - 1))
             xl_workbook.Worksheets(xl_workbook.Worksheets.Count).Activate()
         else:
