@@ -188,13 +188,6 @@ class ValueAccessor(Accessor):
             .prepend_stage(Ensure2DStage())
         )
 
-    @classmethod
-    def router(cls, value, rng, options):
-        if isinstance(value, (int, float, list, tuple, str, bool)):
-            return cls
-        else:
-            return super(ValueAccessor, cls).router(value, rng, options)
-
 
 ValueAccessor.install_for(None)
 
