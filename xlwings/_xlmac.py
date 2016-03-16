@@ -41,8 +41,14 @@ class Application(object):
 
     def get_active_sheet(self):
         return Sheet(
-            Workbook(self, self.__appscript__.active_workbook.name.get()),
+            self.get_active_workbook(),
             self.__appscript__.active_sheet.name.get()
+        )
+
+    def get_selection(self):
+        return Range(
+            self.get_active_sheet(),
+            str(self.__appscript__.selection.get_address())
         )
 
 
@@ -58,6 +64,16 @@ class Workbook(object):
     def get_sheet(self, name):
         return Sheet(self, name)
 
+    def get_name(self):
+        return self.__appscript__.name.get()
+
+    def get_app(self):
+        return self.application
+
+    def get_active_sheet(self):
+        return Sheet(self, self.__appscript__.active_sheet.name.get())
+
+
 
 class Sheet(object):
     def __init__(self, workbook, name):
@@ -71,6 +87,38 @@ class Sheet(object):
     def get_range(self, address):
         return Range(self, address)
 
+    def get_name(self):
+        return self.__appscript__.name.get()
+
+    def set_name(self, value):
+        self.__appscript__.name.set(value)
+        self.name = self.__appscript__.name.get()
+
+    def get_index(self):
+        return self.__appscript__.entry_index.get()
+
+    def get_workbook(self):
+        return self.workbook
+
+    def activate(self):
+        self.__appscript__.activate_object()
+
+    def get_value_from_index(self, row_index, column_index):
+        return self.__appscript__.columns[column_index].rows[row_index].value.get()
+
+    def clear_contents(self):
+        self.__appscript__.used_range.clear_contents()
+
+    def clear(self):
+        self.__appscript__.used_range.clear_range()
+
+    def get_row_index_end_down(self, row_index, column_index):
+        ix = self.__appscript__.columns[column_index].rows[row_index].get_end(direction=kw.toward_the_bottom).first_row_index.get()
+        return ix
+
+    def get_column_index_end_right(self, row_index, column_index):
+        ix = self.__appscript__.columns[column_index].rows[row_index].get_end(direction=kw.toward_the_right).first_column_index.get()
+        return ix
 
 class Range(object):
     def __init__(self, sheet, address):
@@ -81,13 +129,44 @@ class Range(object):
     def __appscript__(self):
         return self.sheet.__appscript__.cells(self.address)
 
-    @property
-    def value(self):
+    def get_value(self):
         return self.__appscript__.value.get()
 
-    @value.setter
-    def value(self, value):
+    def set_value(self, value):
         return self.__appscript__.value.set(value)
+
+    def get_worksheet(self):
+        return self.sheet
+
+    def get_coordinates(self):
+        row1 = self.__appscript__.first_row_index.get()
+        col1 = self.__appscript__.first_column_index.get()
+        row2 = row1 + self.__appscript__.count(each=kw.row) - 1
+        col2 = col1 + self.__appscript__.count(each=kw.column) - 1
+        return (row1, col1, row2, col2)
+
+    def get_first_row(self):
+        return self.__appscript__.first_row_index.get()
+
+    def get_first_column(self):
+        return self.__appscript__.first_column_index.get()
+
+    def count_rows(self):
+        return self.__appscript__.count(each=kw.row)
+
+    def count_columns(self):
+        return self.__appscript__.count(each=kw.column)
+
+    def clear_contents(self):
+        self.sheet.workbook.application.screen_updating.set(False)
+        self.__appscript__.clear_range()
+        self.sheet.workbook.application.screen_updating.set(True)
+
+    def get_formula(self):
+        return self.__appscript__.formula.get()
+
+    def set_formula(self, value):
+        self.__appscript__.formula.set(value)
 
 
 def is_app_instance(xl_app):
@@ -191,61 +270,6 @@ def get_open_workbook(fullname, app_target=None):
     return Workbook(xl_workbook)
 
 
-def get_active_workbook(app_target=None):
-    set_xl_app(app_target)
-    return _xl_app.active_workbook
-
-
-def application_get_active_sheet(xl_app):
-    return app.xl_app.active_sheet
-
-
-def sheet_get_range(xl_sheet, address):
-    return xl_sheet.cells[address]
-
-
-def get_workbook_name(xl_workbook):
-    return xl_workbook.name.get()
-
-
-def get_worksheet_name(xl_sheet):
-    return xl_sheet.name.get()
-
-
-def get_sheet_workbook(xl_sheet):
-    return xl_sheet.parent.get()
-
-
-def get_range_sheet(xl_range):
-    return xl_range.worksheet.get()
-
-
-def get_range_coordinates(xl_range):
-    row1 = xl_range.first_row_index.get()
-    col1 = xl_range.first_column_index.get()
-    row2 = row1 + xl_range.count(each=kw.row) - 1
-    col2 = col1 + xl_range.count(each=kw.column) - 1
-    return (row1, col1, row2, col2)
-
-
-
-def get_xl_sheet(xl_workbook, sheet_name_or_index):
-    return xl_workbook.sheets[sheet_name_or_index]
-
-
-def set_worksheet_name(xl_sheet, value):
-    return xl_sheet.name.set(value)
-
-
-def get_worksheet_index(xl_sheet):
-    return xl_sheet.entry_index.get()
-
-
-def get_app(xl_workbook, app_target=None):
-    set_xl_app(app_target)
-    return _xl_app
-
-
 def open_workbook(fullname, app_target=None):
     filename = os.path.basename(fullname)
     set_xl_app(app_target)
@@ -278,42 +302,10 @@ def is_range_instance(xl_range):
     return isinstance(xl_range, appscript.genericreference.GenericReference)
 
 
-def get_active_sheet(xl_workbook):
-    return xl_workbook.active_sheet
-
-
-def activate_sheet(xl_workbook, sheet_name_or_index):
-    return xl_workbook.sheets[sheet_name_or_index].activate_object()
-
-
-def get_worksheet(xl_workbook, sheet_name_or_index):
-    return xl_workbook.sheets[sheet_name_or_index]
-
-
-def get_first_row(xl_sheet, range_address):
-    return xl_sheet.cells[range_address].first_row_index.get()
-
-
-def get_first_column(xl_sheet, range_address):
-    return xl_sheet.cells[range_address].first_column_index.get()
-
-
-def count_rows(xl_sheet, range_address):
-    return xl_sheet.cells[range_address].count(each=kw.row)
-
-
-def count_columns(xl_sheet, range_address):
-    return xl_sheet.cells[range_address].count(each=kw.column)
-
-
 def get_range_from_indices(xl_sheet, first_row, first_column, last_row, last_column):
     first_address = xl_sheet.columns[first_column].rows[first_row].get_address()
     last_address = xl_sheet.columns[last_column].rows[last_row].get_address()
     return xl_sheet.cells['{0}:{1}'.format(first_address, last_address)]
-
-
-def get_value_from_range(xl_range):
-    return xl_range.value.get()
 
 
 def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
@@ -339,9 +331,6 @@ def clean_value_data(data, datetime_builder, empty_as, number_builder):
     return [[_clean_value_data_element(c, datetime_builder, empty_as, number_builder) for c in row] for row in data]
 
 
-def get_value_from_index(xl_sheet, row_index, column_index):
-    return xl_sheet.columns[column_index].rows[row_index].value.get()
-
 def prepare_xl_data_element(x):
     if np and isinstance(x, np.datetime64):
         # handle numpy.datetime64
@@ -361,51 +350,6 @@ def prepare_xl_data_element(x):
         return float(x)
 
     return x
-
-def set_value(xl_range, data):
-    xl_range.value.set(data)
-
-
-def get_selection_address(xl_app):
-    return str(xl_app.selection.get_address())
-
-
-def clear_contents_worksheet(xl_workbook, sheets_name_or_index):
-    xl_workbook.sheets[sheets_name_or_index].used_range.clear_contents()
-
-
-def clear_worksheet(xl_workbook, sheet_name_or_index):
-    xl_workbook.sheets[sheet_name_or_index].used_range.clear_range()
-
-
-def clear_contents_range(xl_range):
-    _xl_app.screen_updating.set(False)
-    xl_range.clear_contents()
-    _xl_app.screen_updating.set(True)
-
-
-def clear_range(xl_range):
-    _xl_app.screen_updating.set(False)
-    xl_range.clear_range()
-    _xl_app.screen_updating.set(True)
-
-
-def get_formula(xl_range):
-    return xl_range.formula.get()
-
-
-def set_formula(xl_range, value):
-    xl_range.formula.set(value)
-
-
-def get_row_index_end_down(xl_sheet, row_index, column_index):
-    ix = xl_sheet.columns[column_index].rows[row_index].get_end(direction=kw.toward_the_bottom).first_row_index.get()
-    return ix
-
-
-def get_column_index_end_right(xl_sheet, row_index, column_index):
-    ix = xl_sheet.columns[column_index].rows[row_index].get_end(direction=kw.toward_the_right).first_column_index.get()
-    return ix
 
 
 def get_current_region_address(xl_sheet, row_index, column_index):
