@@ -168,7 +168,7 @@ class RangeAccessor(Accessor):
         )
 
 
-RangeAccessor.install_for(Range)
+RangeAccessor.set_default(Range)
 
 
 class RawValueAccessor(Accessor):
@@ -214,7 +214,7 @@ class ValueAccessor(Accessor):
         )
 
 
-ValueAccessor.install_for(None)
+ValueAccessor.set_default(None)
 
 
 class DictConverter(ConverterAccessor):
@@ -240,4 +240,4 @@ class DictConverter(ConverterAccessor):
         return list(value.items())
 
 
-DictConverter.install_for(dict)
+DictConverter.set_default(dict)

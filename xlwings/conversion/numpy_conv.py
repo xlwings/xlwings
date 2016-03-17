@@ -52,4 +52,4 @@ if np:
             return value
 
 
-    NumpyArrayConverter.install_for(np.array, np.ndarray)
+    NumpyArrayConverter.set_default(np.array, np.ndarray)

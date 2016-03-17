@@ -80,7 +80,7 @@ class Accessor(object):
         return Pipeline()
 
     @classmethod
-    def install_for(cls, *types):
+    def set_default(cls, *types):
         for type in types:
             accessors[type] = cls
 

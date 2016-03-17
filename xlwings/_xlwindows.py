@@ -618,6 +618,7 @@ def get_color(xl_range):
 
 def save_workbook(xl_workbook, path):
     saved_path = xl_workbook.Path
+    alerts_state = xl_workbook.Application.DisplayAlerts
     if (saved_path != '') and (path is None):
         # Previously saved: Save under existing name
         xl_workbook.Save()
@@ -626,12 +627,12 @@ def save_workbook(xl_workbook, path):
         path = os.path.join(os.getcwd(), xl_workbook.Name + '.xlsx')
         xl_workbook.Application.DisplayAlerts = False
         xl_workbook.SaveAs(path)
-        xl_workbook.Application.DisplayAlerts = True
+        xl_workbook.Application.DisplayAlerts = alerts_state
     elif path:
         # Save under new name/location
         xl_workbook.Application.DisplayAlerts = False
         xl_workbook.SaveAs(path)
-        xl_workbook.Application.DisplayAlerts = True
+        xl_workbook.Application.DisplayAlerts = alerts_state
 
 
 def open_template(fullpath):
@@ -651,9 +652,10 @@ def get_fullname(xl_workbook):
 
 
 def quit_app(xl_app):
+    alerts_state = xl_app.DisplayAlerts
     xl_app.DisplayAlerts = False
     xl_app.Quit()
-    xl_app.DisplayAlerts = True
+    xl_app.DisplayAlerts = alerts_state
 
 
 def get_screen_updating(xl_app):
@@ -785,6 +787,7 @@ def get_major_app_version_number(xl_workbook):
 
 
 def delete_sheet(sheet):
+    alerts_state = sheet.xl_workbook.Application.DisplayAlerts 
     sheet.xl_workbook.Application.DisplayAlerts = False
     sheet.xl_workbook.Sheets(sheet.name).Delete()
-    sheet.xl_workbook.Application.DisplayAlerts = True
+    sheet.xl_workbook.Application.DisplayAlerts = alerts_state
