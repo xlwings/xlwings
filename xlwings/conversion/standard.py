@@ -187,7 +187,7 @@ class RawValueAccessor(Accessor):
             .prepend_stage(WriteValueToRangeStage(raw=True))
         )
 
-RawValueAccessor.install_for('raw')
+RawValueAccessor.set_default('raw')
 
 
 class ValueAccessor(Accessor):
