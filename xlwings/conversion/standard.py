@@ -34,26 +34,32 @@ class ExpandRangeStage(object):
 
 
 class WriteValueToRangeStage(object):
+    def __init__(self, raw=False):
+        self.raw = raw
+
     def __call__(self, ctx):
         if ctx.range:
-            # it is assumed by this stage that value is a list of lists
-            if ctx.meta.get('scalar', False):
-                # transform scalars back from list of list so you can do:
-                # Range('A1:B2').value = scalar
-                ctx.value = ctx.value[0][0]
-                row2 = ctx.range.row2
-                col2 = ctx.range.col2
+            if self.raw:
+                xlplatform.set_value(ctx.range.xl_range, ctx.value)
             else:
-                row2 = ctx.range.row1 + len(ctx.value) - 1
-                col2 = ctx.range.col1 + len(ctx.value[0]) - 1
+                # it is assumed by this stage that value is a list of lists
+                if ctx.meta.get('scalar', False):
+                    # transform scalars back from list of list so you can do:
+                    # Range('A1:B2').value = scalar
+                    ctx.value = ctx.value[0][0]
+                    row2 = ctx.range.row2
+                    col2 = ctx.range.col2
+                else:
+                    row2 = ctx.range.row1 + len(ctx.value) - 1
+                    col2 = ctx.range.col1 + len(ctx.value[0]) - 1
 
-            xlplatform.set_value(xlplatform.get_range_from_indices(
-                ctx.range.xl_sheet,
-                ctx.range.row1,
-                ctx.range.col1,
-                row2,
-                col2
-            ), ctx.value)
+                xlplatform.set_value(xlplatform.get_range_from_indices(
+                    ctx.range.xl_sheet,
+                    ctx.range.row1,
+                    ctx.range.col1,
+                    row2,
+                    col2
+                ), ctx.value)
 
 
 class ReadValueFromRangeStage(object):
@@ -163,6 +169,25 @@ class RangeAccessor(Accessor):
 
 
 RangeAccessor.install_for(Range)
+
+
+class RawValueAccessor(Accessor):
+
+    @classmethod
+    def reader(cls, options):
+        return (
+            Accessor.reader(options)
+            .append_stage(ReadValueFromRangeStage())
+        )
+
+    @classmethod
+    def writer(cls, options):
+        return (
+            Accessor.writer(options)
+            .prepend_stage(WriteValueToRangeStage(raw=True))
+        )
+
+RawValueAccessor.install_for('raw')
 
 
 class ValueAccessor(Accessor):

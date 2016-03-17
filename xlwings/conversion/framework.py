@@ -72,6 +72,14 @@ accessors = {}
 class Accessor(object):
 
     @classmethod
+    def reader(cls, options):
+        return Pipeline()
+
+    @classmethod
+    def writer(cls, options):
+        return Pipeline()
+
+    @classmethod
     def install_for(cls, *types):
         for type in types:
             accessors[type] = cls
