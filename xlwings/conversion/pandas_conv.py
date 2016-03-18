@@ -87,7 +87,7 @@ if pd:
             return value
 
 
-    PandasDataFrameConverter.set_default(pd.DataFrame)
+    PandasDataFrameConverter.register(pd.DataFrame)
 
 
     class PandasSeriesConverter(ConverterAccessor):
@@ -149,4 +149,4 @@ if pd:
             return rv
 
 
-    PandasSeriesConverter.set_default(pd.Series)
+    PandasSeriesConverter.register(pd.Series)
