@@ -168,7 +168,7 @@ class RangeAccessor(Accessor):
         )
 
 
-RangeAccessor.set_default(Range)
+RangeAccessor.register(Range)
 
 
 class RawValueAccessor(Accessor):
@@ -187,7 +187,7 @@ class RawValueAccessor(Accessor):
             .prepend_stage(WriteValueToRangeStage(raw=True))
         )
 
-RawValueAccessor.set_default('raw')
+RawValueAccessor.register('raw')
 
 
 class ValueAccessor(Accessor):
@@ -214,7 +214,7 @@ class ValueAccessor(Accessor):
         )
 
 
-ValueAccessor.set_default(None)
+ValueAccessor.register(None)
 
 
 class DictConverter(ConverterAccessor):
@@ -240,4 +240,4 @@ class DictConverter(ConverterAccessor):
         return list(value.items())
 
 
-DictConverter.set_default(dict)
+DictConverter.register(dict)
