@@ -28,7 +28,7 @@ class ShapeAlreadyExists(Exception):
     pass
 
 # API
-from .main import Application, Workbook, Range, Chart, Sheet, Picture, Shape, Plot
+from .main import Application, Workbook, Range, Chart, Sheet, Picture, Shape, Plot, view
 from .constants import *
 
 # UDFs
