@@ -203,6 +203,42 @@ class Workbook(object):
         xl_workbook = xlplatform.get_active_workbook(app_target=app_target)
         return cls(xl_workbook=xl_workbook, app_target=app_target)
 
+    def _concrete_key(self, key):
+        if isinstance(key, int):
+            if key < 0:
+                key += len(self)
+            key += 1
+        return key
+
+    def __getitem__(self, key):
+        key = self._concrete_key(key)
+        return Sheet(key, wkb=self)
+
+    def __contains__(self, key):
+        if isinstance(key, int):
+            length = len(self)
+            return -length <= key < length
+        else:
+            return key in self.sheet_names()
+
+    def __setitem__(self, key, value):
+        if key in self:
+            key = self._concrete_key(key)
+            sheet = Sheet(key, wkb=self)
+            sheet.clear()
+        else:
+            sheet = Sheet.add(name=key, wkb=self)
+        sheet["A1"] = value
+
+    def sheet_names(self):
+        return [s.name for s in self]
+
+    def __iter__(self):
+        return iter(Sheet.all(self))
+
+    def __len__(self):
+        return Sheet.count(self)
+
     @classmethod
     def caller(cls):
         """
@@ -421,6 +457,48 @@ class Sheet(object):
         self.xl_workbook = Workbook.get_xl_workbook(wkb)
         self.sheet = sheet
         self.xl_sheet = xlplatform.get_xl_sheet(self.xl_workbook, self.sheet)
+
+    @staticmethod
+    def _concrete_key(key, shape):
+        if not isinstance(key, tuple):
+            key = (key,)
+
+        if len(key) < len(shape):
+            key = key + (slice(None),) * (len(shape) - len(key))
+
+        return [slice(*k.indices(length)) if isinstance(k, slice) else k
+                for k, length in zip(key, shape)]
+
+    def __getitem__(self, key):
+        if isinstance(key, string_types):
+            return Range(self, key)
+
+        row, col = self._concrete_key(key, self.shape)
+        if isinstance(row, slice) or isinstance(col, slice):
+            row1, row2 = (row.start, row.stop) \
+                if isinstance(row, slice) else (row, row + 1)
+            col1, col2 = (col.start, col.stop) \
+                if isinstance(col, slice) else (col, col + 1)
+            return Range(self, (row1 + 1, col1 + 1), (row2, col2))
+        else:
+            return Range(self, (row + 1, col + 1))
+
+    def __setitem__(self, key, value):
+        self.__getitem__(key).value = value
+
+    @property
+    def shape(self):
+        # include top-left empty rows/columns
+        used = self.xl_sheet.UsedRange
+        return (used.Row + used.Rows.Count - 1,
+                used.Column + used.Columns.Count - 1)
+
+    @property
+    def ndim(self):
+        return 2
+
+    def __array__(self):
+        return np.array(self[:].value)
 
     def activate(self):
         """Activates the sheet."""
@@ -713,6 +791,30 @@ class Range(object):
 
         if not hasattr(self, 'xl_range'):
             self.xl_range = xlplatform.get_range_from_indices(self.xl_sheet, self.row1, self.col1, self.row2, self.col2)
+
+    def _range_key_to_sheet_key(self, key):
+        # string keys does not make sense in this case
+        assert not isinstance(key, string_types)
+        row_offset, col_offset = self.row1 - 1, self.col1 - 1
+        row, col = Sheet._concrete_key(key, self.shape)
+        row = slice(row.start + row_offset, row.stop + row_offset) \
+            if isinstance(row, slice) else row + row_offset
+        col = slice(col.start + col_offset, col.stop + col_offset) \
+            if isinstance(col, slice) else col + col_offset
+        return row, col
+
+    def __getitem__(self, key):
+        sheet = Sheet(xlplatform.get_worksheet_index(self.xl_sheet),
+                      wkb=self.workbook)
+        return sheet[self._range_key_to_sheet_key(key)]
+
+    def __setitem__(self, key, value):
+        sheet = Sheet(xlplatform.get_worksheet_index(self.xl_sheet),
+                      wkb=self.workbook)
+        sheet[self._range_key_to_sheet_key(key)] = value
+
+    def __array__(self):
+        return np.array(self[:].value)
 
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
