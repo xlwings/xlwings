@@ -181,7 +181,6 @@ class Workbook(object):
             self.xl_app, self.xl_workbook = xlplatform.new_workbook(app_target)
 
         self.name = xlplatform.get_workbook_name(self.xl_workbook)
-        self.active_sheet = Sheet.active(wkb=self)
 
         if fullname is None:
             self.fullname = xlplatform.get_fullname(self.xl_workbook)
@@ -191,6 +190,10 @@ class Workbook(object):
 
         if app_visible is not None:
             xlplatform.set_visible(self.xl_app, app_visible)
+
+    @property
+    def active_sheet(self):
+        return Sheet.active(wkb=self)
 
     @classmethod
     def active(cls, app_target=None):
