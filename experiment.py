@@ -10,8 +10,6 @@ import pandas as pd
 
 class OneAccessor(Accessor):
 
-    writes_types = list
-
     class AddStage(object):
         def __init__(self, options):
             self.options = options
@@ -36,12 +34,6 @@ class OneAccessor(Accessor):
     def writer(cls, options):
         return ValueAccessor.writer(options).insert_stage(cls.SubtractStage(options=options), index=1)
 
-    @classmethod
-    def router(cls, value, rng, options):
-        if isinstance(value, cls.writes_types):
-            return cls
-        else:
-            return super(OneAccessor, cls).router(value, rng, options)
 
 OneAccessor.register(float)
 
