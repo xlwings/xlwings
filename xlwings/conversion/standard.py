@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from . import Pipeline, ConverterAccessor, Options, Accessor
+from . import Pipeline, ConverterAccessor, Options, Accessor, accessors
 
 from .. import xlplatform
 from ..main import Range
@@ -117,7 +117,7 @@ class AdjustDimensionsStage(object):
             if len(c.value) == 1:
                 c.value = c.value[0]
             elif len(c.value[0]) == 1:
-                c.value = [ x[0] for x in c.value ]
+                c.value = [x[0] for x in c.value]
             else:
                 raise Exception("Range must be 1-by-n or n-by-1 when ndim=1.")
 
@@ -212,6 +212,10 @@ class ValueAccessor(Accessor):
             .prepend_stage(TransposeStage(), only_if=options.get('transpose', False))
             .prepend_stage(Ensure2DStage())
         )
+
+    @classmethod
+    def router(cls, value, rng, options):
+        return accessors.get(type(value), cls)
 
 
 ValueAccessor.register(None)
