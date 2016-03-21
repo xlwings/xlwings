@@ -1,7 +1,5 @@
 import xlwings as xw
-from xlwings.conversion import Accessor, ConverterAccessor
-from xlwings.conversion.standard import ValueAccessor, CleanDataFromReadStage
-from xlwings.conversion.pandas_conv import PandasDataFrameConverter
+from xlwings.conversion import Accessor, ConverterAccessor, ValueAccessor, CleanDataFromReadStage, PandasDataFrameConverter
 import numbers
 
 import numpy as np
