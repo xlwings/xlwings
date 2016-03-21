@@ -1,30 +1,76 @@
 import xlwings as xw
-from time import time
+from xlwings.conversion import Accessor, ConverterAccessor
+from xlwings.conversion.standard import ValueAccessor, CleanDataFromReadStage
+from xlwings.conversion.pandas_conv import PandasDataFrameConverter
+import numbers
 
 import numpy as np
+import pandas as pd
+
+
+class OneAccessor(Accessor):
+
+    writes_types = list
+
+    class AddStage(object):
+        def __init__(self, options):
+            self.options = options
+
+        def __call__(self, ctx):
+            if self.options.get('add_one', False):
+                ctx.value = [[cell + 1 if isinstance(cell, numbers.Number) else cell for cell in row] for row in ctx.value]
+
+    class SubtractStage(object):
+        def __init__(self, options):
+            self.options = options
+
+        def __call__(self, ctx):
+            if self.options.get('subtract_one', False):
+                ctx.value = [[cell - 1 if isinstance(cell, numbers.Number) else cell for cell in row] for row in ctx.value]
+
+    @classmethod
+    def reader(cls, options):
+        return ValueAccessor.reader(options).insert_stage(cls.AddStage(options=options), after=CleanDataFromReadStage)
+
+    @classmethod
+    def writer(cls, options):
+        return ValueAccessor.writer(options).insert_stage(cls.SubtractStage(options=options), index=1)
+
+    @classmethod
+    def router(cls, value, rng, options):
+        if isinstance(value, cls.writes_types):
+            return cls
+        else:
+            return super(OneAccessor, cls).router(value, rng, options)
+
+OneAccessor.register(float)
 
 wb = xw.Workbook.active()
+xw.Range('A20').value = None
+xw.Range('A20').options(subtract_one=True).value = 1.0
 
-times = []
 
-print("---default---")
-for i in range(10):
-    start_time = time()
-    xw.Range('A1:Z20000').options().value
-    end_time = time()
-    print("%ims" % (1000 * (end_time - start_time)))
-    times.append(1000 * (end_time - start_time))
+class DataFrameDropna(ConverterAccessor):
 
-print("avg %ims stdev %ims" % (np.mean(times), np.std(times)))
+    base = PandasDataFrameConverter
 
-times = []
+    @classmethod
+    def read_value(cls, df, options):
+        dropna = options.get('dropna', True)
+        if dropna:
+            return df.dropna()
+        else:
+            return df
 
-print("---raw---")
-for i in range(10):
-    start_time = time()
-    xw.Range('A1:Z20000').options('raw').value
-    end_time = time()
-    print("%ims" % (1000 * (end_time - start_time)))
-    times.append(1000 * (end_time - start_time))
+    @classmethod
+    def write_value(cls, df, options):
+        dropna = options.get('dropna', True)
+        if dropna:
+            df = df.dropna()
+        return df
 
-print("avg %ims stdev %ims" % (np.mean(times), np.std(times)))
+DataFrameDropna.register(pd.DataFrame)  # RecursionError
+
+wb = xw.Workbook.active()
+df = pd.DataFrame([[1,10],[2,np.nan], [3, 30]])
+xw.Range('H1').options(DataFrameDropna).value = df

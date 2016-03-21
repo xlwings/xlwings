@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from . import Pipeline, ConverterAccessor, Options, Accessor
+from . import Pipeline, ConverterAccessor, Options, Accessor, accessors
 
 from .. import xlplatform
 from ..main import Range
@@ -212,6 +212,10 @@ class ValueAccessor(Accessor):
             .prepend_stage(TransposeStage(), only_if=options.get('transpose', False))
             .prepend_stage(Ensure2DStage())
         )
+
+    @classmethod
+    def router(cls, value, rng, options):
+        return accessors.get(type(value), cls)
 
 
 ValueAccessor.register(None)
