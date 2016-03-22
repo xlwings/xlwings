@@ -1654,6 +1654,11 @@ class Chart(Shape):
 
         wkb : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
+        Returns
+        -------
+
+        xlwings Chart object
         """
         wkb = kwargs.get('wkb', None)
         xl_workbook = Workbook.get_xl_workbook(wkb)
@@ -1774,6 +1779,10 @@ class Picture(Shape):
 
         wkb : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
+        Returns
+        -------
+        xlwings Picture object
 
 
         .. versionadded:: 0.5.0
@@ -1930,6 +1939,9 @@ class Plot(object):
         wkb : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
 
+        Returns
+        -------
+        xlwings Picture object
 
         .. versionadded:: 0.5.0
         """
