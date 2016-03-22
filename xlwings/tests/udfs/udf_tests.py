@@ -222,6 +222,10 @@ if np:
     def read_empty_as_nparray(x):
         return nparray_equal(x, np.array('empty'))
 
+    @xw.func
+    def write_np_scalar():
+        return np.float64(2)
+
 # Pandas Series
 
 if pd:
@@ -474,7 +478,7 @@ if pd:
     @xw.func
     def read_workbook_caller():
         wb = xw.Workbook.caller()
-        return xw.Range('E275').value == 1.
+        return xw.Range('E277').value == 1.
 
 
 @xw.func
