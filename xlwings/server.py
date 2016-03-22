@@ -203,9 +203,9 @@ class XLPython(object):
             return False
 
     def Builtin(self):
-        import __builtin__
+        from . import builtins
 
-        return ToVariant(__builtin__)
+        return ToVariant(builtins)
 
     def GetItem(self, obj, key):
         obj = FromVariant(obj)
