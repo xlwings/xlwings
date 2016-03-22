@@ -497,5 +497,11 @@ def optional_args(x, y=None):
         y = 10
     return x * y
 
+
+@xw.func
+def write_none():
+    return None
+
+
 if __name__ == "__main__":
     xw.serve()

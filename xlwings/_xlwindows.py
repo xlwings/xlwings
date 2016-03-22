@@ -406,6 +406,8 @@ def prepare_xl_data_element(x):
         return _datetime_to_com_time(x)
     elif np and isinstance(x, np.generic):
         return float(x)
+    elif x is None:
+        return ""
     else:
         return x
 

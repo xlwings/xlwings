@@ -15,7 +15,7 @@ else:
     string_types = basestring
     xrange = xrange
     from future_builtins import map
-    import __builtins__ as builtins
+    builtins = __builtins__
 
 # Platform specifics
 if sys.platform.startswith('win'):
