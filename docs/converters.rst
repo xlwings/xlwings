@@ -1,7 +1,7 @@
 .. _converters:
 
-Converters
-==========
+Converters and Options
+======================
 
 Introduced with v0.7.0, converters define how Excel ranges and their values are converted both during
 **reading** and **writing** operations. They also provide a consistent experience across **xlwings.Range** objects and
