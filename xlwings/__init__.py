@@ -10,10 +10,12 @@ if PY3:
     string_types = str
     xrange = range
     from builtins import map
+    import builtins
 else:
     string_types = basestring
     xrange = xrange
     from future_builtins import map
+    builtins = __builtins__
 
 # Platform specifics
 if sys.platform.startswith('win'):
