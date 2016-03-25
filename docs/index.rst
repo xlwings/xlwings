@@ -26,6 +26,7 @@ on **Windows** and **Mac**.
     datastructures
     vba
     debugging
+    matplotlib
     udfs
     converters
     command_line
