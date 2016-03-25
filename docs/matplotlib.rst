@@ -51,6 +51,24 @@ updated when cell B1 changes:
 .. figure:: images/mpl_udf.png
   :scale: 80%
 
+Properties
+----------
+
+Size, position and other properties can either be set as arguments within ``show``, see :meth:`xlwings.Plot.show`, or
+by manipulating the picture object as returned by ``show``, see :meth:`xlwings.Picture`.
+
+For example::
+
+    >>> xw.Plot(fig).show('MyPlot', left=xw.Range('B5').left, top=xw.Range('B5').top)
+
+or::
+
+    >>> plot = xw.Plot(fig).show('MyPlot')
+    >>> plot.height /= 2
+    >>> plot.width /= 2
+
+.. note:: Once the picture is shown in Excel, you can only change it's properties via the picture object and not within
+    the ``show`` method.
 
 Getting a matplotlib figure
 ---------------------------
