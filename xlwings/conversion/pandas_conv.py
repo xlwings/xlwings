@@ -8,9 +8,9 @@ except ImportError:
 
 if pd:
     import numpy as np
-    from . import ConverterAccessor, Options
+    from . import Converter, Options
 
-    class PandasDataFrameConverter(ConverterAccessor):
+    class PandasDataFrameConverter(Converter):
 
         writes_types = pd.DataFrame
 
@@ -90,7 +90,7 @@ if pd:
     PandasDataFrameConverter.register(pd.DataFrame)
 
 
-    class PandasSeriesConverter(ConverterAccessor):
+    class PandasSeriesConverter(Converter):
 
         writes_types = pd.Series
 

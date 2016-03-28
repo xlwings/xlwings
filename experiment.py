@@ -1,5 +1,5 @@
 import xlwings as xw
-from xlwings.conversion import Accessor, ConverterAccessor, ValueAccessor, CleanDataFromReadStage, PandasDataFrameConverter
+from xlwings.conversion import Accessor, Converter, ValueAccessor, CleanDataFromReadStage, PandasDataFrameConverter
 import numbers
 
 import numpy as np
@@ -40,7 +40,7 @@ xw.Range('A20').value = None
 xw.Range('A20').options(subtract_one=True).value = 1.0
 
 
-class DataFrameDropna(ConverterAccessor):
+class DataFrameDropna(Converter):
 
     base = PandasDataFrameConverter
 
