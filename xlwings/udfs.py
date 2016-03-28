@@ -138,10 +138,12 @@ def udf_script(filename):
     return vars
 
 
-def call_udf(script_name, func_name, args, this_workbook):
-    source_module = __import__(script_name)
-    script_vars = udf_script(source_module.__file__)
-    func = script_vars[func_name]
+def call_udf(module_names, func_name, args, this_workbook):
+    module_vars = {}
+    for module in module_names.split(';'):
+        source_module = __import__(module)
+        module_vars.update(udf_script(source_module.__file__))
+    func = module_vars[func_name]
 
     func_info = func.__xlfunc__
     args_info = func_info['args']
@@ -229,12 +231,12 @@ def generate_vba_wrapper(script_vars, f):
                     args_vba = 'Array(' + ', '.join(arg['vba'] or arg['name'] for arg in xlfunc['args']) + ')'
 
                 if ftype == "Sub":
-                    vba.write('Py.CallUDF GetUdfModule, "{fname}", {args_vba}, ThisWorkbook\n',
+                    vba.write('Py.CallUDF GetUdfModules, "{fname}", {args_vba}, ThisWorkbook\n',
                         fname=fname,
                         args_vba=args_vba,
                     )
                 else:
-                    vba.write('{fname} = Py.CallUDF(GetUdfModule, "{fname}", {args_vba}, ThisWorkbook)\n',
+                    vba.write('{fname} = Py.CallUDF(GetUdfModules, "{fname}", {args_vba}, ThisWorkbook)\n',
                         fname=fname,
                         args_vba=args_vba,
                     )
@@ -248,12 +250,14 @@ def generate_vba_wrapper(script_vars, f):
             vba.write("\n")
 
 
-def import_udfs(script_name, xl_workbook):
-    source_module = __import__(script_name)
-    script_vars = udf_script(source_module.__file__)
+def import_udfs(module_names, xl_workbook):
+    module_vars = {}
+    for module in module_names.split(';'):
+        source_module = __import__(module)
+        module_vars.update(udf_script(source_module.__file__))
 
     tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
-    generate_vba_wrapper(script_vars, tf.file)
+    generate_vba_wrapper(module_vars, tf.file)
     tf.close()
 
     try:
@@ -262,9 +266,9 @@ def import_udfs(script_name, xl_workbook):
         pass
     xl_workbook.VBProject.VBComponents.Import(tf.name)
 
-    for svar in script_vars.values():
-        if hasattr(svar, '__xlfunc__'):
-            xlfunc = svar.__xlfunc__
+    for mvar in module_vars.values():
+        if hasattr(mvar, '__xlfunc__'):
+            xlfunc = mvar.__xlfunc__
             xlret = xlfunc['ret']
             xlargs = xlfunc['args']
             fname = xlfunc['name']
