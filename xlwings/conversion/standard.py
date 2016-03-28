@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from . import Pipeline, ConverterAccessor, Options, Accessor, accessors
+from . import Pipeline, Converter, Options, Accessor, accessors
 
 from .. import xlplatform
 from ..main import Range
@@ -221,7 +221,7 @@ class ValueAccessor(Accessor):
 ValueAccessor.register(None)
 
 
-class DictConverter(ConverterAccessor):
+class DictConverter(Converter):
 
     writes_types = dict
 

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from .framework import ConversionContext, Options, Pipeline, ConverterAccessor, accessors, Accessor
+from .framework import ConversionContext, Options, Pipeline, Converter, accessors, Accessor
 
-from .standard import (DictConverter, ConverterAccessor, Accessor, RangeAccessor, RawValueAccessor, ValueAccessor,
+from .standard import (DictConverter, Accessor, RangeAccessor, RawValueAccessor, ValueAccessor,
                        AdjustDimensionsStage, CleanDataForWriteStage, CleanDataFromReadStage, Ensure2DStage,
                        ExpandRangeStage, ReadValueFromRangeStage, TransposeStage, WriteValueToRangeStage,
                        Options, Pipeline)
