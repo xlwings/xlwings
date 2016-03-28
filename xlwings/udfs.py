@@ -125,8 +125,7 @@ def xlarg(arg, convert=None, **kwargs):
 
 udf_scripts = {}
 def udf_script(filename):
-    filename = os.path.expandvars(filename.lower())
-    filename = os.path.normcase(filename)
+    filename = os.path.normcase(filename.lower())
     mtime = os.path.getmtime(filename)
     if filename in udf_scripts:
         mtime2, vars = udf_scripts[filename]
@@ -140,8 +139,9 @@ def udf_script(filename):
 
 
 def call_udf(script_name, func_name, args, this_workbook):
-    script = udf_script(script_name)
-    func = script[func_name]
+    source_module = __import__(script_name)
+    script_vars = udf_script(source_module.__file__)
+    func = script_vars[func_name]
 
     func_info = func.__xlfunc__
     args_info = func_info['args']
@@ -229,12 +229,12 @@ def generate_vba_wrapper(script_vars, f):
                     args_vba = 'Array(' + ', '.join(arg['vba'] or arg['name'] for arg in xlfunc['args']) + ')'
 
                 if ftype == "Sub":
-                    vba.write('Py.CallUDF PyScriptPath, "{fname}", {args_vba}, ThisWorkbook\n',
+                    vba.write('Py.CallUDF GetUdfModule, "{fname}", {args_vba}, ThisWorkbook\n',
                         fname=fname,
                         args_vba=args_vba,
                     )
                 else:
-                    vba.write('{fname} = Py.CallUDF(PyScriptPath, "{fname}", {args_vba}, ThisWorkbook)\n',
+                    vba.write('{fname} = Py.CallUDF(GetUdfModule, "{fname}", {args_vba}, ThisWorkbook)\n',
                         fname=fname,
                         args_vba=args_vba,
                     )
@@ -248,9 +248,9 @@ def generate_vba_wrapper(script_vars, f):
             vba.write("\n")
 
 
-def import_udfs(script_path, xl_workbook):
-
-    script_vars = udf_script(script_path)
+def import_udfs(script_name, xl_workbook):
+    source_module = __import__(script_name)
+    script_vars = udf_script(source_module.__file__)
 
     tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
     generate_vba_wrapper(script_vars, tf.file)

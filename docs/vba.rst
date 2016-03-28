@@ -42,7 +42,7 @@ under ``Function Settings``::
     PYTHON_MAC = ""
     PYTHON_FROZEN = ThisWorkbook.Path & "\build\exe.win32-2.7"
     PYTHONPATH = ThisWorkbook.Path
-    UDF_PATH = ""
+    UDF_MODULE = ""
     UDF_DEBUG_SERVER = False
     LOG_FILE = ThisWorkbook.Path & "\xlwings_log.txt"
     SHOW_LOG = True
@@ -57,8 +57,8 @@ under ``Function Settings``::
 * ``PYTHON_FROZEN`` [Optional]: Currently only on Windows, indicates the directory of the exe file that has been frozen
   by either using ``cx_Freeze`` or ``py2exe``. Can be set to ``""`` if unused.
 * ``PYTHONPATH`` [Optional]: If the source file of your code is not found, add the path here. Otherwise set it to ``""``.
-* ``UDF_PATH`` [Optional, Windows only]: Full path to a Python file from which the User Defined Functions are being imported.
-  Example: ``UDF_PATH = ThisWorkbook.Path & "\functions.py"``
+* ``UDF_MODULE`` [Optional, Windows only]: Name of Python module (without .py extension) from which the UDFs are being imported.
+  Example: ``UDF_PATH = "functions"``
   Default: ``UDF_PATH = ""`` defaults to a file in the same directory of the Excel spreadsheet with the same name but ending in ``.py``.
 * ``UDF_DEBUG_SERVER``: Set this to True if you want to run the xlwings COM server manually for debugging, see :ref:`debugging`.
 * ``LOG_FILE`` [Optional]: Leave empty for default location (see below) or provide directory including file name.
