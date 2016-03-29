@@ -279,7 +279,7 @@ Custom Converter
 
 Here are the steps to implement your own converter:
 
-* Inherit from ``xlwings.conversion.ConverterAccessor``
+* Inherit from ``xlwings.conversion.Converter``
 * Implement both a ``read_value`` and ``write_value`` method as static- or classmethod: Both methods have the same
   signature and return value: they expect and return the values in the format of the base converter (hence, if no
   ``base`` has been specified, ``value`` is a list of list as delivered by the default converter). On the other hand,
@@ -302,9 +302,9 @@ Here are the steps to implement your own converter:
 
 The following class defines a DataFrame converter that adds support for dropping nan's::
 
-    from xlwings.conversion import ConverterAccessor, PandasDataFrameConverter
+    from xlwings.conversion import Converter, PandasDataFrameConverter
 
-    class DataFrameDropna(ConverterAccessor):
+    class DataFrameDropna(Converter):
 
         base = PandasDataFrameConverter
 
@@ -386,5 +386,5 @@ These samples all work the same with UDFs, e.g.::
     ``PandasDataFrameConverter`` defines how a list of list (as delivered by the default Accessor) should be turned
     into a Pandas DataFrame.
 
-    The ``ConverterAccessor`` class provides basic scaffolding to make the task of writing a new Converter easier. If
+    The ``Converter`` class provides basic scaffolding to make the task of writing a new Converter easier. If
     you need more control you can subclass ``Accessor`` directly, but this part is currently undocumented and requires more work.
