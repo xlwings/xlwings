@@ -144,18 +144,17 @@ The following options can be set:
 
   .. note:: The ``expand`` option is only available on ``Range`` objects as UDFs only allow to manipulate the calling cells.
 
-Built-in converters
+Built-in Converters
 -------------------
 
 xlwings offers several built-in converters that perform type conversion to **dictionaries**, **NumPy arrays**,
-**Pandas Series** and **DataFrames**. These build on top of the default converter, so in most case the options
-described above can be used in this context too (unless they are meaningless, for example the ``ndim`` in the case
+**Pandas Series** and **DataFrames**. These build on top of the default converter, so in most cases the options
+described above can be used in this context, too (unless they are meaningless, for example the ``ndim`` in the case
 of a dictionary).
 
-It is also possible to write and register custom converter for additional types. The documentation for doing this will
-be provided in the near future. 
+It is also possible to write and register custom converter for additional types, see below.
 
-The samples below may be used with both ``xlwings.Range`` objects and UDFs, but the samples may only show one version.
+The samples below can be used with both ``xlwings.Range`` objects and UDFs even though only one version may be shown.
 
 Dictionary converter
 ********************
@@ -274,3 +273,118 @@ The same sample for **UDF** (starting in ``Range('A13')`` on screenshot) looks l
     def myfunction(x):
        # x is a DataFrame, do something with it
        return x
+
+Custom Converter
+----------------
+
+Here are the steps to implement your own converter:
+
+* Inherit from ``xlwings.conversion.Converter``
+* Implement both a ``read_value`` and ``write_value`` method as static- or classmethod: Both methods have the same
+  signature and return value: they expect and return the values in the format of the base converter (hence, if no
+  ``base`` has been specified, ``value`` is a list of list as delivered by the default converter). On the other hand,
+  the ``options`` dictionary will contain all keyword arguments specified in
+  the ``Range.options`` method, e.g. when calling ``Range('A1').options(myoption='some value')`` or as specified in
+  the ``@arg`` and ``@ret`` decorator when using UDFs. Here is the structure of ``read_value`` method (same for
+  ``write_value``)::
+
+    @staticmethod
+    def read_value(value, options):
+        myoption = options.get('myoption', default_value)
+        # Implement your conversion here
+        return value
+
+* Optional: set a ``base`` converter (``base`` expects a class name) to build on top of an existing converter, e.g.
+  for the built-in ones: ``DictCoverter``, ``NumpyArrayConverter``, ``PandasDataFrameConverter``, ``PandasSeriesConverter``
+* Optional: register the converter: you can **(a)** register a type so that your converter becomes the default for
+  this type during write operations and/or **(b)** you can register an alias that will allow you to explicitly call
+  your converter by name instead of just by class name
+
+The following class defines a DataFrame converter that adds support for dropping nan's::
+
+    from xlwings.conversion import Converter, PandasDataFrameConverter
+
+    class DataFrameDropna(Converter):
+
+        base = PandasDataFrameConverter
+
+        @staticmethod
+        def read_value(df, options):
+            dropna = options.get('dropna', False)
+            if dropna:
+                return df.dropna()
+            else:
+                return df
+
+        @staticmethod
+        def write_value(df, options):
+            dropna = options.get('dropna', False)
+            if dropna:
+                df = df.dropna()
+            return df
+
+
+Now let's see how the different converters can be applied::
+
+    # Fire up a Workbook and create a sample DataFrame
+    wb = Workbook()
+    df = pd.DataFrame([[1.,10.],[2.,np.nan], [3., 30.]])
+
+* Default converter for DataFrames::
+
+    # Write
+    Range('A1').value = df
+
+    # Read
+    Range('A1:C4').options(pd.DataFrame).value
+
+* DataFrameDropna converter::
+
+    # Write
+    Range('A7').options(DataFrameDropna, dropna=True).value = df
+
+    # Read
+    Range('A1:C4').options(DataFrameDropna, dropna=True).value
+
+* Register an alias (optional)::
+
+    DataFrameDropna.register('df_dropna')
+
+    # Write
+    Range('A12').options('df_dropna', dropna=True).value = df
+
+    # Read
+    Range('A1:C4').options('df_dropna', dropna=True).value
+
+
+* Register DataFrameDropna as default converter for DataFrames (optional)::
+
+    DataFrameDropna.register(pd.DataFrame)
+
+    # Write
+    Range('A13').options(dropna=True).value = df
+
+    # Read
+    Range('A1:C4').options(pd.DataFrame, dropna=True).value
+
+These samples all work the same with UDFs, e.g.::
+
+    @xw.func
+    @arg('x', DataFrameDropna, dropna=True)
+    @ret(DataFrameDropna, dropna=True)
+    def myfunction(x):
+        # ...
+        return x
+
+
+.. note::
+    Python objects run through multiple stages of a transformation pipeline when they are being written to Excel. The
+    same holds true in the other direction, when Excel/COM objects are being read into Python.
+
+    Pipelines are internally defined by ``Accessor`` classes. A Converter is just a special Accessor which
+    converts to/from a particular type by adding an extra stage to the pipeline of the default Accessor. For example, the
+    ``PandasDataFrameConverter`` defines how a list of list (as delivered by the default Accessor) should be turned
+    into a Pandas DataFrame.
+
+    The ``Converter`` class provides basic scaffolding to make the task of writing a new Converter easier. If
+    you need more control you can subclass ``Accessor`` directly, but this part is currently undocumented and requires more work.
