@@ -35,7 +35,7 @@ from .constants import *
 
 # UDFs
 if sys.platform.startswith('win'):
-    from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, udf_script, import_udfs
+    from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, get_udf_module, import_udfs
 
 
 def xlfunc(*args, **kwargs):
