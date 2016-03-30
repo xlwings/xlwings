@@ -247,7 +247,8 @@ def generate_vba_wrapper(module_name, module, f):
                     args_vba = 'Array(' + ', '.join(arg['vba'] or arg['name'] for arg in xlfunc['args']) + ')'
 
                 if ftype == "Sub":
-                    vba.write('Py.CallUDF GetUdfModules, "{fname}", {args_vba}, ThisWorkbook\n',
+                    vba.write('Py.CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook\n',
+                        module_name=module_name,
                         fname=fname,
                         args_vba=args_vba,
                     )
