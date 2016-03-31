@@ -395,7 +395,7 @@ class Workbook(object):
         xlplatform.set_names(self.xl_workbook, names)
         return names
 
-    def run(self, command, **kwargs):
+    def run(self, command, args=None):
         """
         Runs an Excel Macro.
 
@@ -404,10 +404,9 @@ class Workbook(object):
         command : str
             Name of macro with or without module name, e.g. 'Module1.MyMacro' or 'Mymacro'
 
-        Keyword Arguments:
-        ------------------
-        **kwargs : obj
-            Argument names as used in the macro.
+        args : tuple of tuples, optional
+            tuple containing (argument, value) tuples in the same order as the Excel Function or Sub,
+            e.g. (('arg1', 1), ('arg2', 2))
 
         Returns:
         --------
@@ -418,7 +417,7 @@ class Workbook(object):
 
         """
         app = Application(self)
-        return xlplatform.run(self, command, app, **kwargs)
+        return xlplatform.run(self, command, app, args)
 
     def __repr__(self):
         return "<Workbook '{0}'>".format(self.name)
