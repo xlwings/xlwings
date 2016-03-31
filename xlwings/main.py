@@ -863,6 +863,19 @@ class Range(object):
         xlplatform.set_formula(self.xl_range, value)
 
     @property
+    def formula_array(self):
+        """
+        Gets or sets an  array formula for the given Range.
+
+        .. versionadded:: 0.7.1
+        """
+        return xlplatform.get_formula_array(self.xl_range)
+
+    @formula_array.setter
+    def formula_array(self, value):
+        xlplatform.set_formula_array(self.xl_range, value)
+
+    @property
     def table(self):
         """
         Returns a contiguous Range starting with the indicated cell as top-left corner and going down and right as
