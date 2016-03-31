@@ -29,8 +29,8 @@ Option Explicit
 #End If
 
 Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef PYTHON_FROZEN As String, ByRef PYTHONPATH As String, ByRef UDF_MODULES As String, ByRef UDF_DEBUG_SERVER As Boolean, ByRef LOG_FILE As String, ByRef SHOW_LOG As Boolean, ByRef OPTIMIZED_CONNECTION As Boolean)
-    ' PYTHON_WIN: Directory of Python Interpreter on Windows, "" resolves to default on PATH
-    ' PYTHON_MAC: Directory of Python Interpreter on Mac OSX, "" resolves to default path in ~/.bash_profile
+    ' PYTHON_WIN: Full path of Python Interpreter on Windows, "" resolves to default on PATH
+    ' PYTHON_MAC: Full path of Python Interpreter on Mac OSX, "" resolves to default path in ~/.bash_profile
     ' PYTHON_FROZEN [Optional]: Currently only on Windows, indicate directory of exe file
     ' PYTHONPATH [Optional]: If the source file of your code is not found, add the path here.
     '                        Separate multiple directories by ";". Otherwise set to "".
@@ -128,7 +128,7 @@ Sub ExcecuteMac2011(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As S
     ' Transform from MacOS Classic path style (":") and Windows style ("\") to Bash friendly style ("/")
     PYTHONPATH = ToPosixPath(PYTHONPATH)
     If PYTHON_MAC <> "" Then
-        PythonInterpreter = ToPosixPath(PYTHON_MAC & "/python")
+        PythonInterpreter = ToPosixPath(PYTHON_MAC)
     Else
         PythonInterpreter = "python"
     End If
@@ -169,7 +169,13 @@ Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String
 
     ' Transform paths
     PYTHONPATH = ToPosixPath(PYTHONPATH)
-    PythonInterpreter = ToPosixPath(PYTHON_MAC)
+
+    If PYTHON_MAC <> "" Then
+        PythonInterpreter = ToPosixPath(PYTHON_MAC)
+    Else
+        PythonInterpreter = "python"
+    End If
+
     WORKBOOK_FULLNAME = ToPosixPath(ThisWorkbook.FullName)
     If LOG_FILE = "" Then
         ' Sandbox location that requires no file access confirmation
@@ -185,11 +191,7 @@ Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String
 
     ' ParameterSting with all paramters (AppleScriptTask only accepts a single parameter)
     ParameterString = PYTHONPATH + ";"
-    If PYTHON_MAC <> "" Then
-        ParameterString = ParameterString + "," + PythonInterpreter + "/"
-    Else
-        ParameterString = ParameterString + "," + PythonInterpreter
-    End If
+    ParameterString = ParameterString + "," + PythonInterpreter
     ParameterString = ParameterString + "," + PythonCommand
     ParameterString = ParameterString + "," + ThisWorkbook.FullName
     ParameterString = ParameterString + "," + Left(Application.Path, Len(Application.Path) - 4)
@@ -208,6 +210,7 @@ Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String
             ShowError (LOG_FILE)
             Application.StatusBar = False
         End If
+        Exit Sub
     On Error GoTo 0
 
 AppleScriptErrorHandler:

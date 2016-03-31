@@ -48,9 +48,9 @@ under ``Function Settings``::
     SHOW_LOG = True
     OPTIMIZED_CONNECTION = False
 
-* ``PYTHON_WIN``: This is the directory of the Python interpreter on Windows. ``""`` resolves to your default Python
+* ``PYTHON_WIN``: This is the full path of the Python interpreter on Windows. ``""`` resolves to your default Python
   installation on the PATH, i.e. the one you can start by just typing ``python`` at a command prompt.
-* ``PYTHON_MAC``: This is the directory of the Python interpreter on Mac OSX. ``""`` resolves to your default
+* ``PYTHON_MAC``: This is the full path of the Python interpreter on Mac OSX. ``""`` resolves to your default
   installation as per PATH on .bash_profile. To get special folders
   on Mac, type ``GetMacDir("Name")`` where ``Name`` is one of the following: ``Home``, ``Desktop``, ``Applications``,
   ``Documents``.
@@ -69,7 +69,7 @@ under ``Function Settings``::
 .. _log:
 
 LOG_FILE default locations
-**************************
+--------------------------
 
 * Windows: ``%APPDATA%\xlwings_log.txt``
 * Mac with Excel 2011: ``/tmp/xlwings_log.txt``
