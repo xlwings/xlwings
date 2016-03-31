@@ -407,6 +407,7 @@ class Workbook(object):
         args : tuple of tuples, optional
             tuple containing (argument, value) tuples in the same order as the Excel Function or Sub,
             e.g. (('arg1', 1), ('arg2', 2))
+            Note that the unusual notation is required for cross-platform compatibility.
 
         Returns:
         --------

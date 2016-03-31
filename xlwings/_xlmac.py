@@ -704,5 +704,8 @@ def delete_sheet(sheet):
     _xl_app.display_alerts.set(True)
 
 
-def run(wb, command, app_, **kwargs):
-    return app_.xl_app.run_VB_macro("'{}'!{}".format(wb.name, command), **kwargs)
+def run(wb, command, app_, args):
+    if args is not None:
+        return app_.xl_app.run_VB_macro("'{}'!{}".format(wb.name, command), **dict(args))
+    else:
+        return app_.xl_app.run_VB_macro("'{}'!{}".format(wb.name, command))
