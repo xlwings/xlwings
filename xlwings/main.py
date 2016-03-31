@@ -181,7 +181,6 @@ class Workbook(object):
             self.xl_app, self.xl_workbook = xlplatform.new_workbook(app_target)
 
         self.name = xlplatform.get_workbook_name(self.xl_workbook)
-        self.active_sheet = Sheet.active(wkb=self)
 
         if fullname is None:
             self.fullname = xlplatform.get_fullname(self.xl_workbook)
@@ -191,6 +190,10 @@ class Workbook(object):
 
         if app_visible is not None:
             xlplatform.set_visible(self.xl_app, app_visible)
+
+    @property
+    def active_sheet(self):
+        return Sheet.active(wkb=self)
 
     @classmethod
     def active(cls, app_target=None):
@@ -858,6 +861,19 @@ class Range(object):
     @formula.setter
     def formula(self, value):
         xlplatform.set_formula(self.xl_range, value)
+
+    @property
+    def formula_array(self):
+        """
+        Gets or sets an  array formula for the given Range.
+
+        .. versionadded:: 0.7.1
+        """
+        return xlplatform.get_formula_array(self.xl_range)
+
+    @formula_array.setter
+    def formula_array(self, value):
+        xlplatform.set_formula_array(self.xl_range, value)
 
     @property
     def table(self):
@@ -1651,6 +1667,11 @@ class Chart(Shape):
 
         wkb : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
+        Returns
+        -------
+
+        xlwings Chart object
         """
         wkb = kwargs.get('wkb', None)
         xl_workbook = Workbook.get_xl_workbook(wkb)
@@ -1771,6 +1792,10 @@ class Picture(Shape):
 
         wkb : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
+        Returns
+        -------
+        xlwings Picture object
 
 
         .. versionadded:: 0.5.0
@@ -1927,6 +1952,9 @@ class Plot(object):
         wkb : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
 
+        Returns
+        -------
+        xlwings Picture object
 
         .. versionadded:: 0.5.0
         """
@@ -1992,3 +2020,21 @@ class NamesDict(collections.MutableMapping):
 
     def __keytransform__(self, key):
         return key
+
+
+def view(obj):
+    """
+    Opens a new workbook and display an object on its first sheet.
+
+    Parameters
+    ----------
+    obj : any type with built-in converter
+        the object to display
+
+    >>> import xlwings as xw
+    >>> import pandas as pd
+    >>> import numpy as np
+    >>> df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
+    >>> xw.view(df)
+    """
+    Range(Workbook().active_sheet, 'A1').value = obj

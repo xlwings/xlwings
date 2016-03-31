@@ -638,6 +638,11 @@ class TestRange:
         Range('A1').formula = '=SUM(A2:A10)'
         assert_equal(Range('A1').formula, '=SUM(A2:A10)')
 
+    def test_formula_array(self):
+        Range('A1').value = [[1, 4], [2, 5], [3, 6]]
+        Range('D1').formula_array = '=SUM(A1:A3*B1:B3)'
+        assert_equal(Range('D1').value, 32.)
+
     def test_current_region(self):
         values = [[1., 2.], [3., 4.]]
         Range('A20').value = values

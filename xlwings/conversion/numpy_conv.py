@@ -13,9 +13,9 @@ if np:
     except ImportError:
         pd = None
 
-    from . import ConverterAccessor, Options
+    from . import Converter, Options
 
-    class NumpyArrayConverter(ConverterAccessor):
+    class NumpyArrayConverter(Converter):
 
         writes_types = np.ndarray
 
@@ -52,4 +52,4 @@ if np:
             return value
 
 
-    NumpyArrayConverter.install_for(np.array, np.ndarray)
+    NumpyArrayConverter.register(np.array, np.ndarray)

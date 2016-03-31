@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import sys
 
-__version__ = '0.7.0'
+__version__ = '0.7.1.dev0'
 
 # Python 2 vs 3
 PY3 = sys.version_info[0] == 3
@@ -10,10 +10,12 @@ if PY3:
     string_types = str
     xrange = range
     from builtins import map
+    import builtins
 else:
     string_types = basestring
     xrange = xrange
     from future_builtins import map
+    builtins = __builtins__
 
 # Platform specifics
 if sys.platform.startswith('win'):
@@ -28,12 +30,12 @@ class ShapeAlreadyExists(Exception):
     pass
 
 # API
-from .main import Application, Workbook, Range, Chart, Sheet, Picture, Shape, Plot
+from .main import Application, Workbook, Range, Chart, Sheet, Picture, Shape, Plot, view
 from .constants import *
 
 # UDFs
 if sys.platform.startswith('win'):
-    from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, udf_script, import_udfs
+    from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, get_udf_module, import_udfs
 
 
 def xlfunc(*args, **kwargs):
