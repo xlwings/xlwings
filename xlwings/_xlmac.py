@@ -316,6 +316,14 @@ def set_formula(xl_range, value):
     xl_range.formula.set(value)
 
 
+def get_formula_array(xl_range):
+    return xl_range.formula_array.get()
+
+
+def set_formula_array(xl_range, value):
+    xl_range.formula_array.set(value)
+
+
 def get_row_index_end_down(xl_sheet, row_index, column_index):
     ix = xl_sheet.columns[column_index].rows[row_index].get_end(direction=kw.toward_the_bottom).first_row_index.get()
     return ix
