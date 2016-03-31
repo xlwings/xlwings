@@ -395,6 +395,31 @@ class Workbook(object):
         xlplatform.set_names(self.xl_workbook, names)
         return names
 
+    def run(self, command, **kwargs):
+        """
+        Runs an Excel Macro.
+
+        Arguments:
+        ----------
+        command : str
+            Name of macro with or without module name, e.g. 'Module1.MyMacro' or 'Mymacro'
+
+        Keyword Arguments:
+        ------------------
+        **kwargs : obj
+            Argument names as used in the macro.
+
+        Returns:
+        --------
+        rv : object
+            Returns the return value from the called macro.
+
+        .. versionadded:: 0.7.1
+
+        """
+        app = Application(self)
+        return xlplatform.run(self, command, app, **kwargs)
+
     def __repr__(self):
         return "<Workbook '{0}'>".format(self.name)
 

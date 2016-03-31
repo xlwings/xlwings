@@ -703,3 +703,6 @@ def delete_sheet(sheet):
     sheet.xl_sheet.delete()
     _xl_app.display_alerts.set(True)
 
+
+def run(wb, command, app_, **kwargs):
+    return app_.xl_app.run_VB_macro("'{}'!{}".format(wb.name, command), **kwargs)
