@@ -195,7 +195,9 @@ Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String
     ParameterString = ParameterString + "," + Left(Application.Path, Len(Application.Path) - 4)
     ParameterString = ParameterString + "," + LOG_FILE
 
-    ExitCode = AppleScriptTask("xlwings.applescript", "VbaHandler", ParameterString)
+    On Error GoTo AppleScriptErrorHandler
+        ExitCode = AppleScriptTask("xlwings.applescript", "VbaHandler", ParameterString)
+    On Error GoTo 0
 
     ' If there's a log at this point (normally that will be from the Shell only, not Python) show it and reset the StatusBar
     On Error Resume Next
@@ -207,6 +209,9 @@ Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String
             Application.StatusBar = False
         End If
     On Error GoTo 0
+
+AppleScriptErrorHandler:
+    MsgBox "To enable RunPython, please run 'xlwings runpython install' in a terminal once and try again.", vbCritical
 
 End Sub
 
