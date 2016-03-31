@@ -29,8 +29,8 @@ Option Explicit
 #End If
 
 Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef PYTHON_FROZEN As String, ByRef PYTHONPATH As String, ByRef UDF_MODULES As String, ByRef UDF_DEBUG_SERVER As Boolean, ByRef LOG_FILE As String, ByRef SHOW_LOG As Boolean, ByRef OPTIMIZED_CONNECTION As Boolean)
-    ' PYTHON_WIN: Full path of Python Interpreter on Windows, "" resolves to default on PATH
-    ' PYTHON_MAC: Full path of Python Interpreter on Mac OSX, "" resolves to default path in ~/.bash_profile
+    ' PYTHON_WIN: Full path of Python Interpreter on Windows, e.g. "C:\Python35\pythonw.exe". "" resolves to default on PATH
+    ' PYTHON_MAC: Full path of Python Interpreter on Mac OSX, e.g. "/usr/local/bin/python3.5". "" resolves to default path in ~/.bash_profile
     ' PYTHON_FROZEN [Optional]: Currently only on Windows, indicate directory of exe file
     ' PYTHONPATH [Optional]: If the source file of your code is not found, add the path here.
     '                        Separate multiple directories by ";". Otherwise set to "".
@@ -59,22 +59,6 @@ Function Settings(ByRef PYTHON_WIN As String, ByRef PYTHON_MAC As String, ByRef 
 
 End Function
 ' DO NOT EDIT BELOW THIS LINE
-
-Function GetUdfModules() As String
-    Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
-    Dim LOG_FILE As String, UDF_MODULES As String
-    Dim Res As Integer
-    Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean, UDF_DEBUG_SERVER As Boolean
-
-    ' Get the settings
-    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_MODULES, UDF_DEBUG_SERVER, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
-
-    If UDF_MODULES = "" Then
-        GetUdfModules = Left$(ThisWorkbook.Name, Len(ThisWorkbook.Name) - 5) ' assume that it ends in .xlsm
-    Else
-        GetUdfModules = UDF_MODULES
-    End If
-End Function
 
 Public Function RunPython(PythonCommand As String)
     ' Public API: Runs the Python command, e.g.: to run the function foo() in module bar, call the function like this:
@@ -218,7 +202,6 @@ AppleScriptErrorHandler:
 
 End Sub
 
-
 Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As String, LOG_FILE As String, SHOW_LOG As Boolean, Optional PYTHONPATH As String)
     ' Call a command window and change to the directory of the Python installation or frozen executable
     ' Note: If Python is called from a different directory with the fully qualified path, pywintypesXX.dll won't be found.
@@ -228,7 +211,7 @@ Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As S
     Dim WaitOnReturn As Boolean: WaitOnReturn = True
     Dim WindowStyle As Integer: WindowStyle = 0
     Set Wsh = CreateObject("WScript.Shell")
-    Dim DriveCommand As String, RunCommand As String, WORKBOOK_FULLNAME As String
+    Dim DriveCommand As String, RunCommand As String, WORKBOOK_FULLNAME As String, PythonInterpreter As String
     Dim ExitCode As Integer
 
     If LOG_FILE = "" Then
@@ -237,10 +220,10 @@ Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As S
 
     If Left$(PYTHON_WIN, 2) Like "[A-Za-z]:" Then
         ' If Python is installed on a mapped or local drive, change to drive, then cd to path
-        DriveCommand = Left$(PYTHON_WIN, 2) & " & cd """ & PYTHON_WIN & """ & "
+        DriveCommand = Left$(PYTHON_WIN, 2) & " & cd """ & ParentFolder(PYTHON_WIN) & """ & "
     ElseIf Left$(PYTHON_WIN, 2) = "\\" Then
         ' If Python is installed on a UNC path, temporarily mount and activate a drive letter with pushd
-        DriveCommand = "pushd """ & PYTHON_WIN & """ & "
+        DriveCommand = "pushd """ & ParentFolder(PYTHON_WIN) & """ & "
     End If
 
     ' Run Python with the "-c" command line switch: add the path of the python file and run the
@@ -248,8 +231,14 @@ Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As S
     ' Then redirect stderr to the LOG_FILE and wait for the call to return.
     WORKBOOK_FULLNAME = ThisWorkbook.FullName
 
+    If PYTHON_WIN <> "" Then
+        PythonInterpreter = PYTHON_WIN
+    Else
+        PythonInterpreter = "python"
+    End If
+
     If IsFrozen = False Then
-        RunCommand = "python -B -c ""import sys, os; sys.path.extend(os.path.normcase(os.path.expandvars(r'" & PYTHONPATH & "')).split(';')); " & PythonCommand & """ "
+        RunCommand = PythonInterpreter & " -B -c ""import sys, os; sys.path.extend(os.path.normcase(os.path.expandvars(r'" & PYTHONPATH & "')).split(';')); " & PythonCommand & """ "
     ElseIf IsFrozen = True Then
         RunCommand = PythonCommand & " "
     End If
@@ -293,6 +282,22 @@ Public Function RunFrozenPython(Executable As String)
     #Else
         ExecuteWindows True, Executable, PYTHON_FROZEN, LOG_FILE, SHOW_LOG
     #End If
+End Function
+
+Function GetUdfModules() As String
+    Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
+    Dim LOG_FILE As String, UDF_MODULES As String
+    Dim Res As Integer
+    Dim SHOW_LOG As Boolean, OPTIMIZED_CONNECTION As Boolean, UDF_DEBUG_SERVER As Boolean
+
+    ' Get the settings
+    Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_MODULES, UDF_DEBUG_SERVER, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
+
+    If UDF_MODULES = "" Then
+        GetUdfModules = Left$(ThisWorkbook.Name, Len(ThisWorkbook.Name) - 5) ' assume that it ends in .xlsm
+    Else
+        GetUdfModules = UDF_MODULES
+    End If
 End Function
 
 Function ReadFile(ByVal FileName As String)
@@ -483,10 +488,8 @@ Function XLPyCommand()
         Tail = " -B -c ""import sys, os;sys.path.extend(os.path.normcase(os.path.expandvars(r'" & PYTHONPATH & "')).split(';'));import xlwings.server; xlwings.server.serve('$(CLSID)')"""
         If PYTHON_WIN = "" Then
             XLPyCommand = "pythonw.exe" + Tail
-        ElseIf LCase$(Right$(PYTHON_WIN, 4)) = ".exe" Then
-            XLPyCommand = PYTHON_WIN + Tail
         Else
-            XLPyCommand = PYTHON_WIN + "\pythonw.exe" + Tail
+            XLPyCommand = PYTHON_WIN + Tail
         End If
     End If
 End Function
@@ -500,12 +503,12 @@ Private Sub XLPyLoadDLL()
     Res = Settings(PYTHON_WIN, PYTHON_MAC, PYTHON_FROZEN, PYTHONPATH, UDF_MODULES, UDF_DEBUG_SERVER, LOG_FILE, SHOW_LOG, OPTIMIZED_CONNECTION)
 
     If PYTHON_WIN <> "" Then
-        If LoadLibrary(PYTHON_WIN + "\" + XLPyDLLName) = 0 Then  ' Standard installation
-            If LoadLibrary(ParentFolder(PYTHON_WIN) + "\" + XLPyDLLName) = 0 Then  ' Virtualenv
+        If LoadLibrary(ParentFolder(PYTHON_WIN) + "\" + XLPyDLLName) = 0 Then  ' Standard installation
+            If LoadLibrary(ParentFolder(ParentFolder(PYTHON_WIN)) + "\" + XLPyDLLName) = 0 Then  ' Virtualenv
                 Err.Raise 1, Description:= _
                     "Could not load " + XLPyDLLName + " from either of the following folders: " _
-                    + vbCrLf + PYTHON_WIN _
-                    + vbCrLf + ", " + ParentFolder(PYTHON_WIN)
+                    + vbCrLf + ParentFolder(PYTHON_WIN) _
+                    + vbCrLf + ", " + ParentFolder(ParentFolder(PYTHON_WIN))
             End If
         End If
     End If
