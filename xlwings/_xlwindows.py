@@ -808,4 +808,6 @@ def delete_sheet(sheet):
 def run(wb, command, app_, args):
     if args is not None:
         args = [arg[1] for arg in args]
-    return app_.xl_app.Run("'{}'!{}".format(wb.name, command), *args)
+        return app_.xl_app.Run("'{}'!{}".format(wb.name, command), *args)
+    else:
+        return app_.xl_app.Run("'{}'!{}".format(wb.name, command))
