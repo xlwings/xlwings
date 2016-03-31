@@ -312,6 +312,27 @@ class TestWorkbook:
         wb2 = Workbook('test_workbook_1.xlsx', app_visible=False, app_target=APP_TARGET)
         assert_equal(Range('A10', wkb=wb2).value, 'name-test')
 
+    def test_run(self):
+        src = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'macro book.xlsm')
+        wb1 = Workbook(src, app_visible=False, app_target=APP_TARGET)
+
+        test1 = wb1.run('Module1.Test1', (('arg1', 'Test1a'), ('arg2', 'Test1b')))
+        test2 = wb1.run('Module1.Test2')
+        test3 = wb1.run('Module1.Test3', (('arg1', 'Test3a'), ('arg2', 'Test3b')))
+        test4 = wb1.run('Test4')
+
+        assert_equal(test1, 1)
+        assert_equal(test2, 2)
+        assert_equal(test3, None)
+        assert_equal(test4, None)
+        assert_equal(Range('A1').value, 'Test1a')
+        assert_equal(Range('A2').value, 'Test1b')
+        assert_equal(Range('A3').value, 'Test2')
+        assert_equal(Range('A4').value, 'Test3a')
+        assert_equal(Range('A5').value, 'Test3b')
+        assert_equal(Range('A6').value, 'Test4')
+
+        wb1.close()
 
 class TestSheet:
     def setUp(self):
