@@ -323,8 +323,8 @@ class TestWorkbook:
 
         assert_equal(test1, 1)
         assert_equal(test2, 2)
-        assert_equal(test3, None)
-        assert_equal(test4, None)
+        assert_equal(test3, None or '')  # Win / Mac
+        assert_equal(test4, None or '')
         assert_equal(Range('A1').value, 'Test1a')
         assert_equal(Range('A2').value, 'Test1b')
         assert_equal(Range('A3').value, 'Test2')
