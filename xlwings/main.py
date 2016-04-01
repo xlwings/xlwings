@@ -2059,3 +2059,4 @@ class Macro(object):
     def run(self, *args, **kwargs):
         return xlplatform.run(self.wb, self.name, self.app or Application(self.wb), args, kwargs, self._args, self._argmap)
 
+    __call__ = run
