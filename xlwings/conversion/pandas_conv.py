@@ -113,7 +113,14 @@ if pd:
             df = pd.DataFrame(data, columns=columns, dtype=dtype, copy=copy)
 
             if index:
-                df = df.set_index(list(df)[0:index])
+                df.columns = pd.Index(range(len(df.columns)))
+                df.set_index(list(df.columns)[:index], inplace=True)
+                df.index.names = pd.Index(value[header - 1][:index] if header else [None] * index)
+
+            if header:
+                df.columns = columns[index:]
+            else:
+                df.columns = pd.Index(range(len(df.columns)))
 
             series = df.squeeze()
 
