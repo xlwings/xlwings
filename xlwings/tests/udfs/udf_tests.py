@@ -256,6 +256,24 @@ if pd:
         return series_equal(x, pd.Series([1., 2.], name='name', index=[10., 20.]))
 
     @xw.func
+    @xw.arg('x', pd.Series, header=True, index=2)
+    def read_series_header_nameless_2index(x):
+        ix = pd.MultiIndex.from_arrays([['a', 'a'], [10., 20.]])
+        return series_equal(x, pd.Series([1., 2.], name='name', index=ix))
+
+    @xw.func
+    @xw.arg('x', pd.Series, header=True, index=2)
+    def read_series_header_named_2index(x):
+        ix = pd.MultiIndex.from_arrays([['a', 'a'], [10., 20.]], names=['ix1', 'ix2'])
+        return series_equal(x, pd.Series([1., 2.], name='name', index=ix))
+
+    @xw.func
+    @xw.arg('x', pd.Series, header=False, index=2)
+    def read_series_noheader_2index(x):
+        ix = pd.MultiIndex.from_arrays([['a', 'a'], [10., 20.]])
+        return series_equal(x, pd.Series([1., 2.], index=ix))
+
+    @xw.func
     @xw.ret(pd.Series, index=False)
     def write_series_noheader_noindex():
         return pd.Series([1., 2.])
@@ -278,6 +296,24 @@ if pd:
     @xw.ret(pd.Series, index=True, header=True)
     def write_series_header_nameless_index():
         return pd.Series([1., 2.], name='name', index=[10., 20.])
+
+    @xw.func
+    @xw.ret(pd.Series, header=True, index=2)
+    def write_series_header_nameless_2index():
+        ix = pd.MultiIndex.from_arrays([['a', 'a'], [10., 20.]])
+        return pd.Series([1., 2.], name='name', index=ix)
+
+    @xw.func
+    @xw.ret(pd.Series, header=True, index=2)
+    def write_series_header_named_2index():
+        ix = pd.MultiIndex.from_arrays([['a', 'a'], [10., 20.]], names=['ix1', 'ix2'])
+        return pd.Series([1., 2.], name='name', index=ix)
+
+    @xw.func
+    @xw.ret(pd.Series, header=False, index=2)
+    def write_series_noheader_2index():
+        ix = pd.MultiIndex.from_arrays([['a', 'a'], [10., 20.]])
+        return pd.Series([1., 2.], index=ix)
 
     @xw.func
     @xw.arg('x', pd.Series)
