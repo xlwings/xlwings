@@ -709,3 +709,21 @@ def run(wb, command, app_, args):
         return app_.xl_app.run_VB_macro("'{}'!{}".format(wb.name, command), **dict(args))
     else:
         return app_.xl_app.run_VB_macro("'{}'!{}".format(wb.name, command))
+
+
+def run(wb, command, app_, args, kwargs, arglist, argmap):
+    kw = dict(kwargs)
+    if args:
+        if arglist is None:
+            raise Exception("Must specify argument list for positional args to work on Mac")
+        else:
+            for i, a in enumerate(args):
+                if i >= len(arglist):
+                    raise Exception("Must specify argument list for positional args to work on Mac - position %i not specified" % i)
+                    break
+                k = arglist[i]
+                if k in kw:
+                    raise Exception("Argument '%s' (position %i) specified twice." % (k, i))
+                kw[k] = a
+
+    return app_.xl_app.run_VB_macro("'{}'!{}".format(wb.name, command), **kw)

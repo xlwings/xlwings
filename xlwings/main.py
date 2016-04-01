@@ -395,30 +395,8 @@ class Workbook(object):
         xlplatform.set_names(self.xl_workbook, names)
         return names
 
-    def run(self, command, args=None):
-        """
-        Runs an Excel Macro.
-
-        Arguments:
-        ----------
-        command : str
-            Name of macro with or without module name, e.g. 'Module1.MyMacro' or 'Mymacro'
-
-        args : tuple of tuples, optional
-            tuple containing (argument, value) tuples in the same order as the Excel Function or Sub,
-            e.g. (('arg1', 1), ('arg2', 2))
-            Note that the unusual notation is required for cross-platform compatibility.
-
-        Returns:
-        --------
-        rv : object
-            Returns the return value from the called macro.
-
-        .. versionadded:: 0.7.1
-
-        """
-        app = Application(self)
-        return xlplatform.run(self, command, app, args)
+    def macro(self, name):
+        return Macro(name, self)
 
     def __repr__(self):
         return "<Workbook '{0}'>".format(self.name)
@@ -2063,3 +2041,21 @@ def view(obj):
     >>> xw.view(df)
     """
     Range(Workbook().active_sheet, 'A1').value = obj
+
+
+class Macro(object):
+    def __init__(self, name, wb=None, app=None):
+        self.name = name
+        self.wb = wb
+        self.app = app
+        self._args = None
+        self._argmap = None
+
+    def args(self, *names):
+        self._args = names
+        self._argmap = {n: i for i, n in enumerate(names)}
+        return self
+
+    def run(self, *args, **kwargs):
+        return xlplatform.run(self.wb, self.name, self.app or Application(self.wb), args, kwargs, self._args, self._argmap)
+
