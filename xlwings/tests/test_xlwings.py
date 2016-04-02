@@ -323,8 +323,14 @@ class TestWorkbook:
 
         assert_equal(test1('Test1a', 'Test1b'), 1)
         assert_equal(test2(), 2)
-        assert_equal(test3('Test3a', 'Test3b'), None or '')  # Win / Mac
-        assert_equal(test4(), None or '')
+        if sys.platform.startswith('win'):
+            assert_equal(test3('Test3a', 'Test3b'), None)
+        else:
+            assert_equal(test3('Test3a', 'Test3b'), '')
+        if sys.platform.startswith('win'):
+            assert_equal(test4(), None)
+        else:
+            assert_equal(test4(), '')
         assert_equal(Range('A1').value, 'Test1a')
         assert_equal(Range('A2').value, 'Test1b')
         assert_equal(Range('A3').value, 'Test2')
