@@ -395,6 +395,36 @@ class Workbook(object):
         xlplatform.set_names(self.xl_workbook, names)
         return names
 
+    def macro(self, name):
+        """
+        Runs a Sub or Function in Excel VBA.
+
+        Arguments:
+        ----------
+        name : Name of Sub or Function with or without module name, e.g. ``'Module1.MyMacro'`` or ``'MyMacro'``
+
+        Examples:
+        ---------
+        This VBA function:
+
+        .. code-block:: vb
+
+            Function MySum(x, y)
+                MySum = x + y
+            End Function
+
+        can be accessed like this:
+
+        >>> wb = xw.Workbook.active()
+        >>> my_sum = wb.macro('MySum')
+        >>> my_sum(1, 2)
+        3
+
+
+        .. versionadded:: 0.7.1
+        """
+        return Macro(name, self)
+
     def __repr__(self):
         return "<Workbook '{0}'>".format(self.name)
 
@@ -2038,3 +2068,15 @@ def view(obj):
     >>> xw.view(df)
     """
     Range(Workbook().active_sheet, 'A1').value = obj
+
+
+class Macro(object):
+    def __init__(self, name, wb=None, app=None):
+        self.name = name
+        self.wb = wb
+        self.app = app
+
+    def run(self, *args):
+        return xlplatform.run(self.wb, self.name, self.app or Application(self.wb), args)
+
+    __call__ = run

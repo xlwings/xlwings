@@ -803,3 +803,7 @@ def delete_sheet(sheet):
     sheet.xl_workbook.Application.DisplayAlerts = False
     sheet.xl_workbook.Sheets(sheet.name).Delete()
     sheet.xl_workbook.Application.DisplayAlerts = alerts_state
+
+
+def run(wb, command, app_, args):
+    return app_.xl_app.Run("'{}'!{}".format(wb.name, command), *args)
