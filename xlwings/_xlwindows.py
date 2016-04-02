@@ -805,19 +805,5 @@ def delete_sheet(sheet):
     sheet.xl_workbook.Application.DisplayAlerts = alerts_state
 
 
-def run(wb, command, app_, args, kwargs, arglist, argmap):
-    pos = list(args)
-    if kwargs:
-        if argmap is None:
-            raise Exception("Must specify argument list for keyword args to work on Windows")
-        else:
-            pos.extend((None for i in range(len(argmap) - len(args))))
-            for k, v in kwargs.items():
-                if k not in argmap:
-                    raise Exception("Must specify argument list for keyword args to work on Windows - name '%s' not specified" % k)
-                j = argmap[k]
-                if j < len(args):
-                    raise Exception("Argument '%s' (position %i) specified twice." % (k, j))
-                pos[j] = v
-
-    return app_.xl_app.Run("'{}'!{}".format(wb.name, command), *pos)
+def run(wb, command, app_, args):
+    return app_.xl_app.Run("'{}'!{}".format(wb.name, command), *args)

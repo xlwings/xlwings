@@ -396,6 +396,33 @@ class Workbook(object):
         return names
 
     def macro(self, name):
+        """
+        Runs a Sub or Function in Excel VBA.
+
+        Arguments:
+        ----------
+        name : Name of Sub or Function with or without module name, e.g. ``'Module1.MyMacro'`` or ``'MyMacro'``
+
+        Examples:
+        ---------
+        This VBA function:
+
+        .. code-block:: vb
+
+            Function MySum(x, y)
+                MySum = x + y
+            End Function
+
+        can be accessed like this:
+
+        >>> wb = xw.Workbook.active()
+        >>> my_sum = wb.macro('MySum')
+        >>> my_sum(1, 2)
+        3
+
+
+        .. versionadded:: 0.7.1
+        """
         return Macro(name, self)
 
     def __repr__(self):
@@ -2048,15 +2075,8 @@ class Macro(object):
         self.name = name
         self.wb = wb
         self.app = app
-        self._args = None
-        self._argmap = None
 
-    def args(self, *names):
-        self._args = names
-        self._argmap = {n: i for i, n in enumerate(names)}
-        return self
-
-    def run(self, *args, **kwargs):
-        return xlplatform.run(self.wb, self.name, self.app or Application(self.wb), args, kwargs, self._args, self._argmap)
+    def run(self, *args):
+        return xlplatform.run(self.wb, self.name, self.app or Application(self.wb), args)
 
     __call__ = run
