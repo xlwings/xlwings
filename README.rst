@@ -17,7 +17,7 @@ Links
 -----
 
 * Homepage: http://xlwings.org
-* Quickstart: http://docs.xlwings.org/quickstart.html
+* Quickstart: http://docs.xlwings.org/en/stable/quickstart.html
 * Documentation: http://docs.xlwings.org
 * Source Code: http://github.com/zoomeranalytics/xlwings
 
