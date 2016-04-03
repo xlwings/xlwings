@@ -9,7 +9,7 @@ Enhancements
 * [Win]: User Defined Functions (UDFs) support now optional/default arguments (:issue:`363`)
 * [Win]: User Defined Functions (UDFs) support now multiple source files, see also under API changes below. For example
   (VBA settings): ``UDF_MODULES="common;myproject"``
-* VBA Macros/Functions are now callable from Python:
+* VBA Subs & Functions are now callable from Python:
 
     As an example, this VBA function:
 
@@ -25,7 +25,7 @@ Enhancements
     >>> wb = xw.Workbook.active()
     >>> my_sum = wb.macro('MySum')
     >>> my_sum(1, 2)
-    3
+    3.0
 * New ``xw.view`` method: This opens a new workbook and displays an object on its first sheet. E.g.:
 
     >>> import xlwings as xw
