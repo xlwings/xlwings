@@ -2067,7 +2067,9 @@ def view(obj):
     >>> df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
     >>> xw.view(df)
     """
-    Range(Workbook().active_sheet, 'A1').value = obj
+    sht = Workbook().active_sheet
+    Range(sht, 'A1').value = obj
+    sht.autofit()
 
 
 class Macro(object):
