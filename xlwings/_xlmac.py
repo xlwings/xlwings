@@ -707,4 +707,4 @@ def delete_sheet(sheet):
 def run(wb, command, app_, args):
     # kwargs = {'arg{0}'.format(i): n for i, n in enumerate(args, 1)}  # only for > PY 2.6
     kwargs = dict(('arg{0}'.format(i), n) for i, n in enumerate(args, 1))
-    return app_.xl_app.run_VB_macro("'{}'!{}".format(wb.name, command), **kwargs)
+    return app_.xl_app.run_VB_macro("'{0}'!{1}".format(wb.name, command), **kwargs)

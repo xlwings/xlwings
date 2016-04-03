@@ -806,4 +806,4 @@ def delete_sheet(sheet):
 
 
 def run(wb, command, app_, args):
-    return app_.xl_app.Run("'{}'!{}".format(wb.name, command), *args)
+    return app_.xl_app.Run("'{0}'!{1}".format(wb.name, command), *args)
