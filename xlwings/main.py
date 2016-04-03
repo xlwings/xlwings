@@ -2061,11 +2061,14 @@ def view(obj):
     obj : any type with built-in converter
         the object to display
 
-    >>> import xlwings as xw
-    >>> import pandas as pd
-    >>> import numpy as np
-    >>> df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
-    >>> xw.view(df)
+        >>> import xlwings as xw
+        >>> import pandas as pd
+        >>> import numpy as np
+        >>> df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
+        >>> xw.view(df)
+
+
+    .. versionadded:: 0.7.1
     """
     sht = Workbook().active_sheet
     Range(sht, 'A1').value = obj
