@@ -1,6 +1,77 @@
 What's New
 ==========
 
+v0.7.1 (April 3, 2016)
+----------------------
+
+Enhancements
+************
+* [Win]: User Defined Functions (UDFs) support now optional/default arguments (:issue:`363`)
+* [Win]: User Defined Functions (UDFs) support now multiple source files, see also under API changes below. For example
+  (VBA settings): ``UDF_MODULES="common;myproject"``
+* VBA Macros/Functions are now callable from Python:
+
+    As an example, this VBA function:
+
+    .. code-block:: vb
+
+        Function MySum(x, y)
+            MySum = x + y
+        End Function
+
+    can be accessed like this:
+
+    >>> import xlwings as xw
+    >>> wb = xw.Workbook.active()
+    >>> my_sum = wb.macro('MySum')
+    >>> my_sum(1, 2)
+    3
+* New ``xw.view`` method: This opens a new workbook and displays an object on its first sheet. E.g.:
+
+    >>> import xlwings as xw
+    >>> import pandas as pd
+    >>> import numpy as np
+    >>> df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
+    >>> xw.view(df)
+
+* New docs about :ref:`matplotlib` and :ref:`custom_converter`
+* New method: :meth:`xlwings.Range.formula_array` (:issue:`411`)
+
+API changes
+***********
+
+* VBA settings: ``PYTHON_WIN`` and ``PYTHON_MAC`` must now include the interpreter if you are not using the default
+  (``PYTHON_WIN = ""``) (:issue:`289`). E.g.::
+
+    PYTHON_WIN: "C:\Python35\pythonw.exe"
+    PYTHON_MAC: "/usr/local/bin/python3.5"
+
+* [Win]: VBA settings: ``UDF_MODULES`` has been replaced with ``UDF_PATH``. The default behaviour doesn't change though
+  (i.e. if ``UDF_MODULES = ""``, then a Python source file with the same name as the Excel file, but with ``.py`` ending
+  will be imported from the same directory as the Excel file).
+
+  **New**:
+
+  .. code-block:: vb
+
+    UDF_MODULES: "mymodule"
+    PYTHONPATH: "C:\path\to"
+
+  **Old**:
+
+  .. code-block:: vb
+
+    UDF_PATH: "C:\path\to\mymodule.py"
+
+
+Bug Fixes
+*********
+* Numpy scalars issues were resolved (:issue:`415`)
+* [Win]: xlwings was failing with freezers like cx_Freeze (:issue:`413`)
+* [Win]: UDFs were failing if they were returning ``None`` or ``np.nan`` (:issue:`390`)
+* Multiindex Pandas Series have been fixed (:issue:`383`)
+* [Mac]: ``xlwings runpython install`` was failing (:issue:`424`)
+
 v0.7.0 (March 4, 2016)
 ----------------------
 

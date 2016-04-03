@@ -274,6 +274,34 @@ The same sample for **UDF** (starting in ``Range('A13')`` on screenshot) looks l
        # x is a DataFrame, do something with it
        return x
 
+
+xw.Range and 'raw' converters
+*****************************
+
+Technically speaking, these are "no-converters".
+
+* If you need access to the ``xlwings.Range`` object directly, you can do::
+
+    @xw.func
+    @xw.arg('x', xw.Range)
+    def myfunction(x):
+       return x.formula
+
+  This returns x as ``xlwings.Range`` object, i.e. without applying any converters or options.
+
+* The ``raw`` converter delivers the values unchanged from the underlying libraries (``pywin32`` on Windows and
+  ``appscript`` on Mac), i.e. no sanitizing/cross-platform harmonizing of values are being made. This might be useful
+  in a few cases for efficiency reasons. E.g::
+
+    >>> Range('A1:B2').value
+    [[1.0, 'text'], [datetime.datetime(2016, 2, 1, 0, 0), None]]
+
+    >>> Range('A1:B2').options('raw').value
+    ((1.0, 'text'), (pywintypes.datetime(2016, 2, 1, 0, 0, tzinfo=TimeZoneInfo('GMT Standard Time', True)), None))
+
+
+.. _custom_converter:
+
 Custom Converter
 ----------------
 

@@ -2054,7 +2054,7 @@ class NamesDict(collections.MutableMapping):
 
 def view(obj):
     """
-    Opens a new workbook and display an object on its first sheet.
+    Opens a new workbook and displays an object on its first sheet.
 
     Parameters
     ----------
