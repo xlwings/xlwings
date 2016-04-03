@@ -44,7 +44,7 @@ setup(
     long_description=readme,
     data_files=data_files,
     packages=['xlwings', 'xlwings.tests', 'xlwings.conversion'],
-    package_data={'xlwings': ['xlwings.bas', 'tests/*.xlsx', 'tests/*.png', 'xlwings_template.xltm',
+    package_data={'xlwings': ['xlwings.bas', 'tests/*.xlsx', 'tests/*.xlsm', 'tests/*.png', 'xlwings_template.xltm',
                               'quickstart.xlsm', 'xlwings.xlam', 'xlwings.applescript']},
     keywords=['xls', 'excel', 'spreadsheet', 'workbook', 'vba', 'macro'],
     install_requires=install_requires,

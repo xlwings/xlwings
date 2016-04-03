@@ -313,8 +313,8 @@ class TestWorkbook:
         assert_equal(Range('A10', wkb=wb2).value, 'name-test')
 
     def test_macro(self):
-        src = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'macro book.xlsm')
-        wb1 = Workbook(src, app_visible=False, app_target=APP_TARGET)
+        src = os.path.realpath(os.path.join(this_dir, 'macro book.xlsm'))
+        wb1 = Workbook(src, app_target=APP_TARGET)
 
         test1 = wb1.macro('Module1.Test1')
         test2 = wb1.macro('Module1.Test2')
