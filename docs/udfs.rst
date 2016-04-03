@@ -163,16 +163,6 @@ a pandas DataFrame and suppress the index when returning it, you would do the fo
 
 For further details see the :ref:`converters` documentation.
 
-Get the argument as xlwings.Range
----------------------------------
-
-If you need access to the ``xlwings.Range`` object directly, you can do::
-
-    @xw.func
-    @xw.arg('x', xw.Range)
-    def myfunction(x):
-       return x.formula
-
 The "vba" keyword
 -----------------
 

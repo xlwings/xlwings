@@ -316,6 +316,14 @@ def set_formula(xl_range, value):
     xl_range.formula.set(value)
 
 
+def get_formula_array(xl_range):
+    return xl_range.formula_array.get()
+
+
+def set_formula_array(xl_range, value):
+    xl_range.formula_array.set(value)
+
+
 def get_row_index_end_down(xl_sheet, row_index, column_index):
     ix = xl_sheet.columns[column_index].rows[row_index].get_end(direction=kw.toward_the_bottom).first_row_index.get()
     return ix
@@ -695,3 +703,8 @@ def delete_sheet(sheet):
     sheet.xl_sheet.delete()
     _xl_app.display_alerts.set(True)
 
+
+def run(wb, command, app_, args):
+    # kwargs = {'arg{0}'.format(i): n for i, n in enumerate(args, 1)}  # only for > PY 2.6
+    kwargs = dict(('arg{0}'.format(i), n) for i, n in enumerate(args, 1))
+    return app_.xl_app.run_VB_macro("'{0}'!{1}".format(wb.name, command), **kwargs)

@@ -16,7 +16,7 @@ workbook_paths = [template_path]
 root = os.path.abspath(os.path.join(this_dir, os.pardir))
 for root, dirs, files in os.walk(root):
     for f in files:
-        if f.endswith(".xlsm"):
+        if f.endswith(".xlsm") and not f == 'macro book.xlsm':
             workbook_paths.append((os.path.join(root, f)))
 
 for path in workbook_paths:

@@ -181,7 +181,6 @@ class Workbook(object):
             self.xl_app, self.xl_workbook = xlplatform.new_workbook(app_target)
 
         self.name = xlplatform.get_workbook_name(self.xl_workbook)
-        self.active_sheet = Sheet.active(wkb=self)
 
         if fullname is None:
             self.fullname = xlplatform.get_fullname(self.xl_workbook)
@@ -191,6 +190,10 @@ class Workbook(object):
 
         if app_visible is not None:
             xlplatform.set_visible(self.xl_app, app_visible)
+
+    @property
+    def active_sheet(self):
+        return Sheet.active(wkb=self)
 
     @classmethod
     def active(cls, app_target=None):
@@ -391,6 +394,36 @@ class Workbook(object):
         names = NamesDict(self.xl_workbook)
         xlplatform.set_names(self.xl_workbook, names)
         return names
+
+    def macro(self, name):
+        """
+        Runs a Sub or Function in Excel VBA.
+
+        Arguments:
+        ----------
+        name : Name of Sub or Function with or without module name, e.g. ``'Module1.MyMacro'`` or ``'MyMacro'``
+
+        Examples:
+        ---------
+        This VBA function:
+
+        .. code-block:: vb
+
+            Function MySum(x, y)
+                MySum = x + y
+            End Function
+
+        can be accessed like this:
+
+        >>> wb = xw.Workbook.active()
+        >>> my_sum = wb.macro('MySum')
+        >>> my_sum(1, 2)
+        3
+
+
+        .. versionadded:: 0.7.1
+        """
+        return Macro(name, self)
 
     def __repr__(self):
         return "<Workbook '{0}'>".format(self.name)
@@ -858,6 +891,19 @@ class Range(object):
     @formula.setter
     def formula(self, value):
         xlplatform.set_formula(self.xl_range, value)
+
+    @property
+    def formula_array(self):
+        """
+        Gets or sets an  array formula for the given Range.
+
+        .. versionadded:: 0.7.1
+        """
+        return xlplatform.get_formula_array(self.xl_range)
+
+    @formula_array.setter
+    def formula_array(self, value):
+        xlplatform.set_formula_array(self.xl_range, value)
 
     @property
     def table(self):
@@ -1651,6 +1697,11 @@ class Chart(Shape):
 
         wkb : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
+        Returns
+        -------
+
+        xlwings Chart object
         """
         wkb = kwargs.get('wkb', None)
         xl_workbook = Workbook.get_xl_workbook(wkb)
@@ -1771,6 +1822,10 @@ class Picture(Shape):
 
         wkb : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
+        Returns
+        -------
+        xlwings Picture object
 
 
         .. versionadded:: 0.5.0
@@ -1927,6 +1982,9 @@ class Plot(object):
         wkb : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
 
+        Returns
+        -------
+        xlwings Picture object
 
         .. versionadded:: 0.5.0
         """
@@ -1992,3 +2050,38 @@ class NamesDict(collections.MutableMapping):
 
     def __keytransform__(self, key):
         return key
+
+
+def view(obj):
+    """
+    Opens a new workbook and displays an object on its first sheet.
+
+    Parameters
+    ----------
+    obj : any type with built-in converter
+        the object to display
+
+        >>> import xlwings as xw
+        >>> import pandas as pd
+        >>> import numpy as np
+        >>> df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
+        >>> xw.view(df)
+
+
+    .. versionadded:: 0.7.1
+    """
+    sht = Workbook().active_sheet
+    Range(sht, 'A1').value = obj
+    sht.autofit()
+
+
+class Macro(object):
+    def __init__(self, name, wb=None, app=None):
+        self.name = name
+        self.wb = wb
+        self.app = app
+
+    def run(self, *args):
+        return xlplatform.run(self.wb, self.name, self.app or Application(self.wb), args)
+
+    __call__ = run

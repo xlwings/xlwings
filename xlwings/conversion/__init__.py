@@ -1,10 +1,23 @@
 # -*- coding: utf-8 -*-
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
+try:
+    import numpy as np
+except ImportError:
+    np = None
 
-from .framework import ConversionContext, Options, Pipeline, ConverterAccessor, accessors, Accessor
+from .framework import ConversionContext, Options, Pipeline, Converter, accessors, Accessor
 
-from . import standard
-from . import numpy_conv
-from . import pandas_conv
+from .standard import (DictConverter, Accessor, RangeAccessor, RawValueAccessor, ValueAccessor,
+                       AdjustDimensionsStage, CleanDataForWriteStage, CleanDataFromReadStage, Ensure2DStage,
+                       ExpandRangeStage, ReadValueFromRangeStage, TransposeStage, WriteValueToRangeStage,
+                       Options, Pipeline)
+if np:
+    from .numpy_conv import NumpyArrayConverter
+if pd:
+    from .pandas_conv import PandasDataFrameConverter, PandasSeriesConverter
 
 
 def read(rng, value, options):

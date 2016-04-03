@@ -8,9 +8,9 @@ except ImportError:
 
 if pd:
     import numpy as np
-    from . import ConverterAccessor, Options
+    from . import Converter, Options
 
-    class PandasDataFrameConverter(ConverterAccessor):
+    class PandasDataFrameConverter(Converter):
 
         writes_types = pd.DataFrame
 
@@ -87,10 +87,10 @@ if pd:
             return value
 
 
-    PandasDataFrameConverter.install_for(pd.DataFrame)
+    PandasDataFrameConverter.register(pd.DataFrame)
 
 
-    class PandasSeriesConverter(ConverterAccessor):
+    class PandasSeriesConverter(Converter):
 
         writes_types = pd.Series
 
@@ -113,7 +113,14 @@ if pd:
             df = pd.DataFrame(data, columns=columns, dtype=dtype, copy=copy)
 
             if index:
-                df = df.set_index(list(df)[0:index])
+                df.columns = pd.Index(range(len(df.columns)))
+                df.set_index(list(df.columns)[:index], inplace=True)
+                df.index.names = pd.Index(value[header - 1][:index] if header else [None] * index)
+
+            if header:
+                df.columns = columns[index:]
+            else:
+                df.columns = pd.Index(range(len(df.columns)))
 
             series = df.squeeze()
 
@@ -149,4 +156,4 @@ if pd:
             return rv
 
 
-    PandasSeriesConverter.install_for(pd.Series)
+    PandasSeriesConverter.register(pd.Series)

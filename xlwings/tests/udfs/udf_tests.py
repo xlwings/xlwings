@@ -1,5 +1,7 @@
 from datetime import datetime, date
-from nose.tools import assert_dict_equal
+import sys
+if sys.version_info >= (2, 7):
+    from nose.tools import assert_dict_equal
 import xlwings as xw
 try:
     import numpy as np
@@ -147,16 +149,18 @@ def read_dates_as3(x):
 def read_empty_as(x):
     return x == [[1., 'empty'], ['empty', 4.]]
 
-# Dicts
-@xw.func
-@xw.arg('x', dict)
-def read_dict(x):
-    return dict_equal(x, {'a': 1., 'b': 'c'})
+if sys.version_info >= (2, 7):
 
-@xw.func
-@xw.arg('x', dict, transpose=True)
-def read_dict_transpose(x):
-    return dict_equal(x, {1.0: 'c', 'a': 'b'})
+    # Dicts
+    @xw.func
+    @xw.arg('x', dict)
+    def read_dict(x):
+        return dict_equal(x, {'a': 1., 'b': 'c'})
+
+    @xw.func
+    @xw.arg('x', dict, transpose=True)
+    def read_dict_transpose(x):
+        return dict_equal(x, {1.0: 'c', 'a': 'b'})
 
 @xw.func
 def write_dict():
@@ -222,6 +226,10 @@ if np:
     def read_empty_as_nparray(x):
         return nparray_equal(x, np.array('empty'))
 
+    @xw.func
+    def write_np_scalar():
+        return np.float64(2)
+
 # Pandas Series
 
 if pd:
@@ -252,6 +260,24 @@ if pd:
         return series_equal(x, pd.Series([1., 2.], name='name', index=[10., 20.]))
 
     @xw.func
+    @xw.arg('x', pd.Series, header=True, index=2)
+    def read_series_header_nameless_2index(x):
+        ix = pd.MultiIndex.from_arrays([['a', 'a'], [10., 20.]])
+        return series_equal(x, pd.Series([1., 2.], name='name', index=ix))
+
+    @xw.func
+    @xw.arg('x', pd.Series, header=True, index=2)
+    def read_series_header_named_2index(x):
+        ix = pd.MultiIndex.from_arrays([['a', 'a'], [10., 20.]], names=['ix1', 'ix2'])
+        return series_equal(x, pd.Series([1., 2.], name='name', index=ix))
+
+    @xw.func
+    @xw.arg('x', pd.Series, header=False, index=2)
+    def read_series_noheader_2index(x):
+        ix = pd.MultiIndex.from_arrays([['a', 'a'], [10., 20.]])
+        return series_equal(x, pd.Series([1., 2.], index=ix))
+
+    @xw.func
     @xw.ret(pd.Series, index=False)
     def write_series_noheader_noindex():
         return pd.Series([1., 2.])
@@ -274,6 +300,24 @@ if pd:
     @xw.ret(pd.Series, index=True, header=True)
     def write_series_header_nameless_index():
         return pd.Series([1., 2.], name='name', index=[10., 20.])
+
+    @xw.func
+    @xw.ret(pd.Series, header=True, index=2)
+    def write_series_header_nameless_2index():
+        ix = pd.MultiIndex.from_arrays([['a', 'a'], [10., 20.]])
+        return pd.Series([1., 2.], name='name', index=ix)
+
+    @xw.func
+    @xw.ret(pd.Series, header=True, index=2)
+    def write_series_header_named_2index():
+        ix = pd.MultiIndex.from_arrays([['a', 'a'], [10., 20.]], names=['ix1', 'ix2'])
+        return pd.Series([1., 2.], name='name', index=ix)
+
+    @xw.func
+    @xw.ret(pd.Series, header=False, index=2)
+    def write_series_noheader_2index():
+        ix = pd.MultiIndex.from_arrays([['a', 'a'], [10., 20.]])
+        return pd.Series([1., 2.], index=ix)
 
     @xw.func
     @xw.arg('x', pd.Series)
@@ -474,7 +518,29 @@ if pd:
     @xw.func
     def read_workbook_caller():
         wb = xw.Workbook.caller()
-        return xw.Range('E275').value == 1.
+        return xw.Range('E277').value == 1.
+
+
+@xw.func
+def default_args(x, y="hello", z=20):
+    return 2 * x + 3 * len(y) + 7 * z
+
+
+@xw.func
+def variable_args(x, *z):
+    return 2 * x + 3 * len(z) + 7 * z[0]
+
+
+@xw.func
+def optional_args(x, y=None):
+    if y is None:
+        y = 10
+    return x * y
+
+
+@xw.func
+def write_none():
+    return None
 
 
 if __name__ == "__main__":
