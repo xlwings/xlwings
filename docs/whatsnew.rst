@@ -46,7 +46,7 @@ API changes
     PYTHON_WIN: "C:\Python35\pythonw.exe"
     PYTHON_MAC: "/usr/local/bin/python3.5"
 
-* [Win]: VBA settings: ``UDF_MODULES`` has been replaced with ``UDF_PATH``. The default behaviour doesn't change though
+* [Win]: VBA settings: ``UDF_PATH`` has been replaced with ``UDF_MODULES``. The default behaviour doesn't change though
   (i.e. if ``UDF_MODULES = ""``, then a Python source file with the same name as the Excel file, but with ``.py`` ending
   will be imported from the same directory as the Excel file).
 
