@@ -365,7 +365,7 @@ class Sheet(object):
         xl_app.DisplayAlerts = True
 
     def add_picture(self, filename, link_to_file, save_with_document, left, top, width, height):
-        return Picture(self.xl.Shapes.AddPicture(
+        return Shape(self.xl.Shapes.AddPicture(
             Filename=filename,
             LinkToFile=link_to_file,
             SaveWithDocument=save_with_document,
@@ -374,6 +374,9 @@ class Sheet(object):
             Width=width,
             Height=height
         ))
+
+    def get_shape_object(self, shape_name_or_index):
+        return Shape(self.xl.Shapes(shape_name_or_index))
 
     def get_chart_object(self, chart_name_or_index):
         return Chart(self.xl.ChartObjects(chart_name_or_index))
@@ -628,47 +631,8 @@ def prepare_xl_data_element(x):
         return x
 
 
-class Chart(object):
-
-    def __init__(self, xl):
-        self.xl = xl
-
-    def get_index(self):
-        return self.xl.Index
-
-    def get_name(self):
-        return self.xl.Name
-
-    def set_name(self, name):
-        self.xl.Name = name
-
-    def set_source_data(self, rng):
-        self.xl.Chart.SetSourceData(rng.xl)
-
-    def get_type(self):
-        return self.xl.Chart.ChartType
-
-    def set_type(self, chart_type):
-        self.xl.Chart.ChartType = chart_type
-
-    def activate(self):
-        self.xl.Activate()
-
-
 def open_template(fullpath):
     os.startfile(fullpath)
-
-
-class Picture(object):
-
-    def __init__(self, xl):
-        self.xl = xl
-
-    def get_index(self):
-        return self.xl.Index
-
-    def get_name(self):
-        return self.xl.Name
 
 
 class Shape(object):
@@ -677,11 +641,10 @@ class Shape(object):
         self.xl = xl
 
     def get_name(self):
-        return self.Name
+        return self.xl.Name
 
     def get_left(self):
         return self.xl.Left
-
 
     def set_left(self, value):
         self.xl.Left = value
@@ -708,8 +671,23 @@ class Shape(object):
         self.xl.Delete()
 
     def set_name(self, value):
-        self.Name = value
+        self.xl.Name = value
         #return xl_workbook.Sheets(sheet_name_or_index).Shapes(value)
 
+    def get_index(self):
+        return self.xl.Index
+
+    def activate(self):
+        self.xl.Activate()
 
 
+class Chart(Shape):
+
+    def set_source_data(self, rng):
+        self.xl.Chart.SetSourceData(rng.xl)
+
+    def get_type(self):
+        return self.xl.Chart.ChartType
+
+    def set_type(self, chart_type):
+        self.xl.Chart.ChartType = chart_type

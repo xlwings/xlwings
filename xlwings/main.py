@@ -77,6 +77,10 @@ class Application(object):
         """
         return self.xl_app.get_version_string()
 
+    @property
+    def major_version(self):
+        return int(self.version.split('.')[0])
+
     def quit(self):
         """
         Quits the application without saving any workbooks.
@@ -456,7 +460,7 @@ class Sheet(object):
         if xl_sheet is not None:
             self.xl_sheet = xl_sheet
         else:
-            self.xl_sheet = Workbook.active.sheet(sheet)
+            self.xl_sheet = Workbook.active.sheet(sheet).xl_sheet
 
     def activate(self):
         """Activates the sheet."""
@@ -629,53 +633,12 @@ class Sheet(object):
         if len(args) == 1:
             if isinstance(args[0], string_types):
                 return Range(xl_range=self.xl_sheet.get_range(args[0]))
-        elif len(args) == 1 and isinstance(args[0], string_types):
-            sheet_name_or_index = None
-            range_address = args[0]
-        elif len(args) == 1 and isinstance(args[0], tuple):
-            sheet_name_or_index = None
-            range_address = None
-            self.row1 = args[0][0]
-            self.col1 = args[0][1]
-            self.row2 = self.row1
-            self.col2 = self.col1
-        elif (len(args) == 2
-              and isinstance(args[0], (numbers.Number, string_types, Sheet))
-              and isinstance(args[1], string_types)):
-            if isinstance(args[0], Sheet):
-                sheet_name_or_index = args[0].index
-            else:
-                sheet_name_or_index = args[0]
-            range_address = args[1]
-        elif (len(args) == 2
-              and isinstance(args[0], (numbers.Number, string_types, Sheet))
-              and isinstance(args[1], tuple)):
-            if isinstance(args[0], Sheet):
-                sheet_name_or_index = args[0].index
-            else:
-                sheet_name_or_index = args[0]
-            range_address = None
-            self.row1 = args[1][0]
-            self.col1 = args[1][1]
-            self.row2 = self.row1
-            self.col2 = self.col1
-        elif len(args) == 2 and isinstance(args[0], tuple):
-            sheet_name_or_index = None
-            range_address = None
-            self.row1 = args[0][0]
-            self.col1 = args[0][1]
-            self.row2 = args[1][0]
-            self.col2 = args[1][1]
-        elif len(args) == 3:
-            if isinstance(args[0], Sheet):
-                sheet_name_or_index = args[0].index
-            else:
-                sheet_name_or_index = args[0]
-            range_address = None
-            self.row1 = args[1][0]
-            self.col1 = args[1][1]
-            self.row2 = args[2][0]
-            self.col2 = args[2][1]
+            elif isinstance(args[0], tuple):
+                return Range(xl_range=self.xl_sheet.get_range_from_indices(args[0][0], args[0][1], args[0][0], args[0][1]))
+        elif len(args) == 2:
+            if isinstance(args[0], tuple) and isinstance(args[1], tuple):
+                return Range(xl_range=self.xl_sheet.get_range_from_indices(args[0][0], args[0][1], args[1][0], args[1][1]))
+        raise ValueError("Invalid arguments")
 
 
 class Range(object):
@@ -722,8 +685,27 @@ class Range(object):
         # Arguments
         if xl_range is not None:
             self.xl_range = xl_range
+        elif 0 < len(args) <= 3:
+            if isinstance(args[-1], tuple):
+                if len(args) > 1 and isinstance(args[-2], tuple):
+                    spec = (args[-2], args[-1])
+                else:
+                    spec = (args[-1],)
+            elif isinstance(args[-1], string_types):
+                spec = (args[-1],)
+            residual_args = args[:-len(spec)]
+            if residual_args:
+                if len(residual_args) > 1:
+                    raise ValueError("Invalid arguments")
+                else:
+                    sheet = residual_args[0]
+                    if not isinstance(sheet, Sheet):
+                        sheet = Sheet(sheet)
+            else:
+                sheet = Sheet.active
+            self.xl_range = sheet.range(*spec).xl_range
         else:
-            self.xl_range = Sheet.active.range(*args).options(**options).xl_range
+            raise ValueError("Invalid arguments")
 
         # Keyword Arguments
         self._options = options
@@ -1095,24 +1077,23 @@ class Range(object):
 
         .. versionadded:: 0.2.3
         """
-        return xlplatform.get_number_format(self)
+        return self.xl_range.get_number_format()
 
     @number_format.setter
     def number_format(self, value):
-        xlplatform.set_number_format(self, value)
+        self.xl_range.set_number_format(value)
 
     def clear(self):
         """
         Clears the content and the formatting of a Range.
         """
-        if self.xl_range:
-            xlplatform.clear_range(self.xl_range)
+        self.xl_range.clear()
 
     def clear_contents(self):
         """
         Clears the content of a Range but leaves the formatting.
         """
-        xlplatform.clear_contents_range(self.xl_range)
+        self.xl_range.clear_contents()
 
     @property
     def column_width(self):
@@ -1494,8 +1475,7 @@ class Range(object):
 
         .. versionadded:: 0.3.5
         """
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet),
-                     (self.row2, self.col2), **self._options)
+        return self.sheet.range((self.row2, self.col2)).options(**self._options)
 
     @property
     def name(self):
@@ -1507,11 +1487,11 @@ class Range(object):
 
         .. versionadded:: 0.4.0
         """
-        return xlplatform.get_named_range(self)
+        return self.xl_range.get_named_range()
 
     @name.setter
     def name(self, value):
-        xlplatform.set_named_range(self, value)
+        self.xl_range.set_named_range(value)
 
 
 # This has to be after definition of Range to resolve circular reference
@@ -1545,24 +1525,23 @@ class Shape(object):
 
     .. versionadded:: 0.5.0
     """
-    def __init__(self, *args, **kwargs):
-        # Use current Workbook if none provided
-        self.wkb = kwargs.get('wkb', None)
-        self.xl_workbook = Workbook.get_xl_workbook(self.wkb)
+    def __init__(self, *args, xl_shape=None, **kwargs):
 
-        # Arguments
-        if len(args) == 1:
-            self.sheet_name_or_index = xlplatform.get_worksheet_name(xlplatform.get_active_sheet(self.xl_workbook))
-            self.name_or_index = args[0]
+        if xl_shape is not None:
+            self.xl_shape = xl_shape
+
+        elif len(args) == 1:
+            self.xl_shape = Sheet.active.xl_sheet.get_shape_object(args[0])
+
         elif len(args) == 2:
-            if isinstance(args[0], Sheet):
-                self.sheet_name_or_index = args[0].index
-            else:
-                self.sheet_name_or_index = args[0]
-            self.name_or_index = args[1]
+            sheet = args[0]
+            if not isinstance(sheet, Sheet):
+                sheet = Sheet(sheet)
+            self.xl_shape = sheet.xl_sheet.get_shape_object(args[1])
 
-        self.xl_shape = xlplatform.get_shape(self)
-        self.name = xlplatform.get_shape_name(self)
+        else:
+            raise ValueError("Invalid arguments")
+
 
     @property
     def name(self):
@@ -1571,11 +1550,11 @@ class Shape(object):
 
         .. versionadded:: 0.5.0
         """
-        return xlplatform.get_shape_name(self)
+        return self.xl_shape.get_name()
 
     @name.setter
     def name(self, value):
-        self.xl_shape = xlplatform.set_shape_name(self.xl_workbook, self.sheet_name_or_index, self.xl_shape, value)
+        self.xl_shape.set_name(value)
 
     @property
     def left(self):
@@ -1585,11 +1564,11 @@ class Shape(object):
 
         .. versionadded:: 0.5.0
         """
-        return xlplatform.get_shape_left(self)
+        return self.xl_shape.get_left()
 
     @left.setter
     def left(self, value):
-        xlplatform.set_shape_left(self, value)
+        return self.xl_shape.set_left(value)
 
     @property
     def top(self):
@@ -1599,11 +1578,11 @@ class Shape(object):
 
         .. versionadded:: 0.5.0
         """
-        return xlplatform.get_shape_top(self)
+        return self.xl_shape.get_top()
 
     @top.setter
     def top(self, value):
-        xlplatform.set_shape_top(self, value)
+        self.xl_shape.set_top(value)
 
     @property
     def width(self):
@@ -1612,11 +1591,11 @@ class Shape(object):
 
         .. versionadded:: 0.5.0
         """
-        return xlplatform.get_shape_width(self)
+        return self.xl_shape.get_width()
 
     @width.setter
     def width(self, value):
-        xlplatform.set_shape_width(self, value)
+        self.xl_shape.set_width(value)
 
     @property
     def height(self):
@@ -1625,11 +1604,11 @@ class Shape(object):
 
         .. versionadded:: 0.5.0
         """
-        return xlplatform.get_shape_height(self)
+        return self.xl_shape.get_height()
 
     @height.setter
     def height(self, value):
-        xlplatform.set_shape_height(self, value)
+        self.xl_shape.set_height(value)
 
     def delete(self):
         """
@@ -1637,7 +1616,7 @@ class Shape(object):
 
         .. versionadded:: 0.5.0
         """
-        xlplatform.delete_shape(self)
+        self.xl_shape.delete()
 
     def activate(self):
         """
@@ -1645,7 +1624,7 @@ class Shape(object):
 
         .. versionadded:: 0.5.0
         """
-        xlplatform.activate_shape(self.xl_shape)
+        self.xl_shape.activate()
 
 
 class Chart(Shape):
@@ -1688,12 +1667,19 @@ class Chart(Shape):
 
     """
 
-    def __init__(self, *args, **kwargs):
-        super(Chart, self).__init__(*args, **kwargs)
+    def __init__(self, *args, xl_chart=None, **kwargs):
+        if xl_chart is not None:
+            self.xl_chart = xl_chart
+        elif len(args) == 1:
+            # Get xl_chart object
+            self.xl_chart = Sheet.active.xl_sheet.get_chart_object(args[0])
+        elif len(args) == 2:
+            sheet = args[0]
+            if not isinstance(sheet, Sheet):
+                sheet = Sheet(sheet)
+            self.xl_chart = sheet.xl_sheet.get_chart_object(args[1])
 
-        # Get xl_chart object
-        self.xl_chart = xlplatform.get_chart_object(self.xl_workbook, self.sheet_name_or_index, self.name_or_index)
-        self.index = xlplatform.get_chart_index(self.xl_chart)
+        super(Chart, self).__init__(*args, xl_shape=self.xl_chart, **kwargs)
 
         # Chart Type
         chart_type = kwargs.get('chart_type')
@@ -1752,7 +1738,7 @@ class Chart(Shape):
         elif not isinstance(sheet, Sheet):
             sheet = Application.current.active_workbook.sheet(sheet)
 
-        xl_chart = sheet.add_chart(left, top, width, height)
+        xl_chart = sheet.xl_sheet.add_chart(left, top, width, height)
 
         chart_type = kwargs.get('chart_type', ChartType.xlColumnClustered)
         name = kwargs.get('name')
@@ -1761,7 +1747,7 @@ class Chart(Shape):
         if name:
             xl_chart.set_name(name)
 
-        return cls(sheet, name, wkb=wkb, chart_type=chart_type, source_data=source_data)
+        return cls(xl_chart=xl_chart, chart_type=chart_type, source_data=source_data)
 
     @property
     def chart_type(self):
@@ -1770,11 +1756,11 @@ class Chart(Shape):
 
         .. versionadded:: 0.1.1
         """
-        return xlplatform.get_chart_type(self.xl_chart)
+        return self.xl_chart.get_type()
 
     @chart_type.setter
     def chart_type(self, value):
-        xlplatform.set_chart_type(self.xl_chart, value)
+        self.xl_chart.set_type(value)
 
     def set_source_data(self, source):
         """
@@ -1785,7 +1771,7 @@ class Chart(Shape):
         source : Range
             Range object, e.g. ``Range('A1')``
         """
-        xlplatform.set_source_data_chart(self.xl_chart, source.xl_range)
+        self.xl_chart.set_source_data(source.xl_range)
 
     def __repr__(self):
         return "<Chart '{0}' on Sheet '{1}' of Workbook '{2}'>".format(self.name,
@@ -1803,7 +1789,7 @@ class Picture(Shape):
     The Sheet can also be provided as Sheet object::
 
         sh = Sheet(1)
-        Shape(sh, 'Picture 1')
+        Picture(sh, 'Picture 1')
 
     If no Worksheet is provided as first argument, it will take the Picture from the active Sheet.
 
@@ -1820,14 +1806,12 @@ class Picture(Shape):
 
     .. versionadded:: 0.5.0
     """
-    def __init__(self, *args, **kwargs):
-        super(Picture, self).__init__(*args, **kwargs)
-        self.xl_picture = xlplatform.get_picture(self)
-        self.index = xlplatform.get_picture_index(self)
+    def __init__(self, *args, xl_shape=None, **kwargs):
+        super(Picture, self).__init__(*args, xl_shape=xl_shape, **kwargs)
 
     @classmethod
     def add(cls, filename, sheet=None, name=None, link_to_file=False, save_with_document=True,
-            left=0, top=0, width=None, height=None, wkb=None):
+            left=0, top=0, width=None, height=None):
         """
         Inserts a picture into Excel.
 
@@ -1870,18 +1854,16 @@ class Picture(Shape):
         .. versionadded:: 0.5.0
         """
 
-        xl_workbook = Workbook.get_xl_workbook(wkb)
-
-        if isinstance(sheet, Sheet):
-                sheet = sheet.index
         if sheet is None:
-            sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
+            sheet = Application.current.active_sheet
+        elif not isinstance(sheet, Sheet):
+            sheet = Application.current.active_workbook.sheet(sheet)
 
         if name:
-            if name in xlplatform.get_shapes_names(xl_workbook, sheet):
+            if name in sheet.xl_sheet.get_shapes_names():
                 raise ShapeAlreadyExists('A shape with this name already exists.')
 
-        if sys.platform.startswith('darwin') and xlplatform.get_major_app_version_number(xl_workbook) >= 15:
+        if sys.platform.startswith('darwin') and sheet.workbook.application.major_version >= 15:
             # Office 2016 for Mac is sandboxed. This path seems to work without the need of granting access explicitly
             xlwings_picture = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/xlwings_picture.png'
             shutil.copy2(filename, xlwings_picture)
@@ -1906,18 +1888,18 @@ class Picture(Shape):
             else:
                 height = 100
 
-        xl_picture = xlplatform.add_picture(xl_workbook, sheet, filename, link_to_file, save_with_document,
-                                            left, top, width, height)
-
-        if sys.platform.startswith('darwin') and xlplatform.get_major_app_version_number(xl_workbook) >= 15:
+        if sys.platform.startswith('darwin') and sheet.workbook.application.major_version >= 15:
             os.remove(xlwings_picture)
 
-        if name is None:
-            name = xlplatform.get_picture_name(xl_picture)
-        else:
-            xlplatform.set_shape_name(xl_workbook, sheet, xl_picture, name)
+        xl_shape = sheet.xl_sheet.add_picture(
+            filename, link_to_file, save_with_document,
+            left, top, width, height
+        )
 
-        return cls(sheet, name, wkb=wkb)
+        if name:
+            xl_shape.set_name(name)
+
+        return cls(xl_shape=xl_shape)
 
     def update(self, filename):
         """
@@ -1932,14 +1914,11 @@ class Picture(Shape):
 
         .. versionadded:: 0.5.0
         """
-        wkb = self.wkb
-        name = self.name
         left, top, width, height = self.left, self.top, self.width, self.height
-        sheet_name_or_index = self.sheet_name_or_index
-        xlplatform.delete_shape(self)
+        name = self.name
+        self.xl_shape.delete()
         # TODO: link_to_file, save_with_document
-        Picture.add(filename, sheet=sheet_name_or_index, left=left, top=top, width=width, height=height,
-                    name=name, wkb=wkb)
+        self.xl_shape = Picture.add(filename, left=left, top=top, width=width, height=height, name=name).xl_shape
 
 
 class Plot(object):
