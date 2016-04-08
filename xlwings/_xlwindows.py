@@ -475,12 +475,12 @@ class Range(object):
 
     def autofit(self, axis):
         if axis == 'rows' or axis == 'r':
-            self.lx.Rows.AutoFit()
+            self.xl.Rows.AutoFit()
         elif axis == 'columns' or axis == 'c':
-            self.lx.Columns.AutoFit()
+            self.xl.Columns.AutoFit()
         elif axis is None:
-            self.lx.Columns.AutoFit()
-            self.lx.Rows.AutoFit()
+            self.xl.Columns.AutoFit()
+            self.xl.Rows.AutoFit()
 
     def get_hyperlink_address(self):
         try:

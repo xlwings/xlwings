@@ -1243,7 +1243,7 @@ class TestPicture(TestBase):
     def test_two_wkb(self):
         wb2 = Workbook(app_visible=False, app_target=APP_TARGET)
         pic1 = Picture.add(sheet=1, name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
-        pic2 = Picture.add(sheet=1, name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'), wkb=self.wb)
+        pic2 = Picture.add(sheet=self.wb.sheet(1), name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
         assert_equal(pic1.name, 'pic1')
         assert_equal(pic2.name, 'pic1')
         wb2.close()

@@ -919,7 +919,7 @@ class Range(object):
         col2 = Range(
             xl_range=self.xl_range.get_cell(1, 1),
             **self._options
-        ).horizontal.row2
+        ).horizontal.col2
 
         return Range(
             xl_range=self.xl_range.get_worksheet().get_range_from_indices(
@@ -1118,11 +1118,11 @@ class Range(object):
 
         .. versionadded:: 0.4.0
         """
-        return xlplatform.get_column_width(self.xl_range)
+        return self.xl_range.get_column_width()
 
     @column_width.setter
     def column_width(self, value):
-        xlplatform.set_column_width(self.xl_range, value)
+        self.xl_range.set_column_width(value)
 
     @property
     def row_height(self):
@@ -1144,11 +1144,11 @@ class Range(object):
 
         .. versionadded:: 0.4.0
         """
-        return xlplatform.get_row_height(self.xl_range)
+        return self.xl_range.get_row_height()
 
     @row_height.setter
     def row_height(self, value):
-        xlplatform.set_row_height(self.xl_range, value)
+        self.xl_range.set_row_height(value)
 
     @property
     def width(self):
@@ -1162,7 +1162,7 @@ class Range(object):
 
         .. versionadded:: 0.4.0
         """
-        return xlplatform.get_width(self.xl_range)
+        return self.xl_range.get_width()
 
     @property
     def height(self):
@@ -1176,7 +1176,7 @@ class Range(object):
 
         .. versionadded:: 0.4.0
         """
-        return xlplatform.get_height(self.xl_range)
+        return self.xl_range.get_height()
 
     @property
     def left(self):
@@ -1190,7 +1190,7 @@ class Range(object):
 
         .. versionadded:: 0.6.0
         """
-        return xlplatform.get_left(self.xl_range)
+        return self.xl_range.get_left()
 
     @property
     def top(self):
@@ -1204,7 +1204,7 @@ class Range(object):
 
         .. versionadded:: 0.6.0
         """
-        return xlplatform.get_top(self.xl_range)
+        return self.xl_range.get_top()
 
     def autofit(self, axis=None):
         """
@@ -1232,7 +1232,7 @@ class Range(object):
 
         .. versionadded:: 0.2.2
         """
-        xlplatform.autofit(self, axis)
+        self.xl_range.autofit(axis)
 
     def get_address(self, row_absolute=True, column_absolute=True, include_sheetname=False, external=False):
         """
@@ -1289,8 +1289,10 @@ class Range(object):
             return xlplatform.get_address(self.xl_range, row_absolute, column_absolute, external)
 
     def __repr__(self):
-        return "<Range on Sheet '{0}' of Workbook '{1}'>".format(xlplatform.get_worksheet_name(self.xl_sheet),
-                                                                 xlplatform.get_workbook_name(self.xl_workbook))
+        return "<Range on Sheet '{0}' of Workbook '{1}'>".format(
+            self.sheet.name,
+            self.sheet.workbook.name
+        )
 
     @property
     def hyperlink(self):
@@ -1367,11 +1369,11 @@ class Range(object):
 
         .. versionadded:: 0.3.0
         """
-        return xlplatform.get_color(self.xl_range)
+        return self.xl_range.get_color()
 
     @color.setter
     def color(self, color_or_rgb):
-        xlplatform.set_color(self.xl_range, color_or_rgb)
+        self.xl_range.set_color(color_or_rgb)
 
     def resize(self, row_size=None, column_size=None):
         """
