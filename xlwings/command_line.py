@@ -160,8 +160,8 @@ def quickstart(args):
         sys.exit('Error: Directory already exists.')
 
     # Python file
-    with open(os.path.join(project_path, project_name + '.py'), 'w'):
-        pass
+    with open(os.path.join(project_path, project_name + '.py'), 'w') as writer:
+        writer.write('import xlwings as xw\n\n')
 
     # Excel file
     shutil.copyfile(os.path.join(this_dir, 'quickstart.xlsm'),

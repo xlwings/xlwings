@@ -32,4 +32,5 @@ the need to constantly change between ``Workbook.caller()`` and one of the metho
 User Defined Functions (UDFs)
 -----------------------------
 
-UDFs work differently and don't need the explicit instantiation of a ``Workbook``, see :ref:`udfs`
+UDFs work differently and don't need the explicit instantiation of a ``Workbook``, see :ref:`udfs`.
+However, ``xw.Workbook.caller()`` can be used in UDFs although just read-only.

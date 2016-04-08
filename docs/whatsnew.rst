@@ -1,8 +1,8 @@
 What's New
 ==========
 
-v0.7.0 (February ??, 2016)
---------------------------
+v0.7.0 (March 4, 2016)
+----------------------
 
 This version marks an important first step on our path towards a stable release. It introduces **converters**, a new and powerful
 concept that brings a consistent experience for how Excel Ranges and their values are treated both when **reading** and **writing** but
@@ -202,6 +202,12 @@ API changes
   ===============================================                  =========================
   ``Range('A1').options(np.array, ndim=1).value``                  ``Range('A1', asarray=True).value``
   ===============================================                  =========================
+
+Bug Fixes
+*********
+
+A few bugfixes were made: :issue:`352`, :issue:`359`.
+
 
 v0.6.4 (January 6, 2016)
 ------------------------

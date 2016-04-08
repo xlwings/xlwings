@@ -1740,6 +1740,11 @@ class Chart(Shape):
 
         wkb : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
+        Returns
+        -------
+
+        xlwings Chart object
         """
 
         if sheet is None:
@@ -1856,6 +1861,10 @@ class Picture(Shape):
 
         wkb : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
+        Returns
+        -------
+        xlwings Picture object
 
 
         .. versionadded:: 0.5.0
@@ -2012,6 +2021,9 @@ class Plot(object):
         wkb : Workbook object, default Workbook.current()
             Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
 
+        Returns
+        -------
+        xlwings Picture object
 
         .. versionadded:: 0.5.0
         """
@@ -2077,3 +2089,21 @@ class NamesDict(collections.MutableMapping):
 
     def __keytransform__(self, key):
         return key
+
+
+def view(obj):
+    """
+    Opens a new workbook and display an object on its first sheet.
+
+    Parameters
+    ----------
+    obj : any type with built-in converter
+        the object to display
+
+    >>> import xlwings as xw
+    >>> import pandas as pd
+    >>> import numpy as np
+    >>> df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
+    >>> xw.view(df)
+    """
+    Range(Workbook().active_sheet, 'A1').value = obj

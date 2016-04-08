@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from . import Pipeline, ConverterAccessor, Options, Accessor
+from . import Pipeline, Converter, Options, Accessor, accessors
 
 from .. import xlplatform
 from ..main import Range
@@ -53,8 +53,9 @@ class ClearExpandedRangeStage(object):
 
 
 class WriteValueToRangeStage(object):
-    def __init__(self, options):
+    def __init__(self, options, raw=False):
         self.skip = options.get('_skip_tl_cells', None)
+        self.raw = raw
 
     def _write_value(self, rng, value, scalar):
         if rng.xl_range and value:
@@ -78,6 +79,10 @@ class WriteValueToRangeStage(object):
 
     def __call__(self, ctx):
         if ctx.range and ctx.value:
+            if self.raw:
+                xlplatform.set_value(ctx.range.xl_range, ctx.value)
+                return
+
             scalar = ctx.meta.get('scalar', False)
             if not scalar:
                 ctx.range = ctx.range[:len(ctx.value), :len(ctx.value[0])]
@@ -148,7 +153,7 @@ class AdjustDimensionsStage(object):
             if len(c.value) == 1:
                 c.value = c.value[0]
             elif len(c.value[0]) == 1:
-                c.value = [ x[0] for x in c.value ]
+                c.value = [x[0] for x in c.value]
             else:
                 raise Exception("Range must be 1-by-n or n-by-1 when ndim=1.")
 
@@ -199,7 +204,26 @@ class RangeAccessor(Accessor):
         )
 
 
-RangeAccessor.install_for(Range)
+RangeAccessor.register(Range)
+
+
+class RawValueAccessor(Accessor):
+
+    @classmethod
+    def reader(cls, options):
+        return (
+            Accessor.reader(options)
+            .append_stage(ReadValueFromRangeStage())
+        )
+
+    @classmethod
+    def writer(cls, options):
+        return (
+            Accessor.writer(options)
+            .prepend_stage(WriteValueToRangeStage(raw=True))
+        )
+
+RawValueAccessor.register('raw')
 
 
 class ValueAccessor(Accessor):
@@ -228,16 +252,13 @@ class ValueAccessor(Accessor):
 
     @classmethod
     def router(cls, value, rng, options):
-        if isinstance(value, (int, float, list, tuple, str, bool)):
-            return cls
-        else:
-            return super(ValueAccessor, cls).router(value, rng, options)
+        return accessors.get(type(value), cls)
 
 
-ValueAccessor.install_for(None)
+ValueAccessor.register(None)
 
 
-class DictConverter(ConverterAccessor):
+class DictConverter(Converter):
 
     writes_types = dict
 
@@ -260,4 +281,4 @@ class DictConverter(ConverterAccessor):
         return list(value.items())
 
 
-DictConverter.install_for(dict)
+DictConverter.register(dict)

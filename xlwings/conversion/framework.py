@@ -72,16 +72,24 @@ accessors = {}
 class Accessor(object):
 
     @classmethod
-    def install_for(cls, *types):
+    def reader(cls, options):
+        return Pipeline()
+
+    @classmethod
+    def writer(cls, options):
+        return Pipeline()
+
+    @classmethod
+    def register(cls, *types):
         for type in types:
             accessors[type] = cls
 
     @classmethod
     def router(cls, value, rng, options):
-        return accessors.get(type(value), accessors[None])
+        return cls
 
 
-class ConverterAccessor(Accessor):
+class Converter(Accessor):
 
     class ToValueStage(object):
 
@@ -102,33 +110,32 @@ class ConverterAccessor(Accessor):
             c.value = self.read_value(c.value, self.options)
 
     base_type = None
+    base = None
 
     @classmethod
     def base_reader(cls, options, base_type=None):
-        return accessors[base_type or cls.base_type].reader(options)
+        if cls.base is not None:
+            return cls.base.reader(options)
+        else:
+            return accessors[base_type or cls.base_type].reader(options)
 
     @classmethod
     def base_writer(cls, options, base_type=None):
-        return accessors[base_type or cls.base_type].writer(options)
+        if cls.base is not None:
+            return cls.base.writer(options)
+        else:
+            return accessors[base_type or cls.base_type].writer(options)
 
     @classmethod
     def reader(cls, options):
         return (
             cls.base_reader(options)
-            .append_stage(ConverterAccessor.FromValueStage(cls.read_value, options))
+            .append_stage(Converter.FromValueStage(cls.read_value, options))
         )
 
     @classmethod
     def writer(cls, options):
         return (
             cls.base_writer(options)
-            .prepend_stage(ConverterAccessor.ToValueStage(cls.write_value, options))
+            .prepend_stage(Converter.ToValueStage(cls.write_value, options))
         )
-
-    @classmethod
-    def router(cls, value, rng, options):
-        if isinstance(value, cls.writes_types):
-            return cls
-        else:
-            return super(ConverterAccessor, cls).router(value, rng, options)
-
