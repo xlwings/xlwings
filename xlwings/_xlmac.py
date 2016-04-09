@@ -33,6 +33,11 @@ class Application(object):
     def __init__(self, target='Microsoft Excel'):
         self.__appscript__ = app(target, terms=mac_dict)
 
+    def open_workbook(self, fullname):
+        filename = os.path.basename(fullname)
+        self.__appscript__.open(fullname)
+        return Workbook(self, filename)
+
     def get_workbook(self, name):
         return Workbook(self, name)
 
@@ -265,9 +270,8 @@ def get_open_workbook(fullname, app_target=None):
     On Mac, there's only ever one instance of Excel.
     """
     filename = os.path.basename(fullname)
-    set_xl_app(app_target)
-    xl_workbook = _xl_app.workbooks[filename]
-    return Workbook(xl_workbook)
+    app = Application()
+    return Workbook(app, filename)
 
 
 def open_workbook(fullname, app_target=None):
@@ -350,6 +354,51 @@ def prepare_xl_data_element(x):
         return float(x)
 
     return x
+
+def set_value(xl_range, data):
+    xl_range.value.set(data)
+
+
+def get_selection_address(xl_app):
+    return str(xl_app.selection.get_address())
+
+
+def clear_contents_worksheet(xl_workbook, sheets_name_or_index):
+    xl_workbook.sheets[sheets_name_or_index].used_range.clear_contents()
+
+
+def clear_worksheet(xl_workbook, sheet_name_or_index):
+    xl_workbook.sheets[sheet_name_or_index].used_range.clear_range()
+
+
+def clear_contents_range(xl_range):
+    _xl_app.screen_updating.set(False)
+    xl_range.clear_contents()
+    _xl_app.screen_updating.set(True)
+
+
+def clear_range(xl_range):
+    _xl_app.screen_updating.set(False)
+    xl_range.clear_range()
+    _xl_app.screen_updating.set(True)
+
+
+def get_formula(xl_range):
+    return xl_range.formula.get()
+
+
+def set_formula(xl_range, value):
+    xl_range.formula.set(value)
+
+
+def get_row_index_end_down(xl_sheet, row_index, column_index):
+    ix = xl_sheet.columns[column_index].rows[row_index].get_end(direction=kw.toward_the_bottom).first_row_index.get()
+    return ix
+
+
+def get_column_index_end_right(xl_sheet, row_index, column_index):
+    ix = xl_sheet.columns[column_index].rows[row_index].get_end(direction=kw.toward_the_right).first_column_index.get()
+    return ix
 
 
 def get_current_region_address(xl_sheet, row_index, column_index):
@@ -721,3 +770,8 @@ def delete_sheet(sheet):
     sheet.xl_sheet.delete()
     _xl_app.display_alerts.set(True)
 
+
+def run(wb, command, app_, args):
+    # kwargs = {'arg{0}'.format(i): n for i, n in enumerate(args, 1)}  # only for > PY 2.6
+    kwargs = dict(('arg{0}'.format(i), n) for i, n in enumerate(args, 1))
+    return app_.xl_app.run_VB_macro("'{0}'!{1}".format(wb.name, command), **kwargs)

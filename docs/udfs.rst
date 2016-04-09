@@ -89,7 +89,7 @@ To use this formula in Excel,
 * Click on ``Import Python UDFs`` again
 * Fill in the values in the range ``A1:B2``
 * Select the range ``D1:E2``
-* Type in the formula ``=add_one("A1:B2")``
+* Type in the formula ``=add_one(A1:B2)``
 * Press ``Ctrl+Shift+Enter`` to create an array formula. If you did everything correctly, you'll see the formula
   surrounded by curly braces as in this screenshot:
 
@@ -162,16 +162,6 @@ a pandas DataFrame and suppress the index when returning it, you would do the fo
        return x
 
 For further details see the :ref:`converters` documentation.
-
-Get the argument as xlwings.Range
----------------------------------
-
-If you need access to the ``xlwings.Range`` object directly, you can do::
-
-    @xw.func
-    @xw.arg('x', xw.Range)
-    def myfunction(x):
-       return x.formula
 
 The "vba" keyword
 -----------------

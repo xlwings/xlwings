@@ -3,15 +3,24 @@ API Documentation
 
 The xlwings object model is very similar to the one used by Excel VBA but the hierarchy is flattened. An example:
 
-| **VBA:**
-| ``Workbooks("Book1").Sheets("Sheet1").Range("A1").Value = "Some Text"``
+**VBA:**
 
-| **xlwings:**
-| ``wb = Workbook("Book1")``
-| ``Range("Sheet1", "A1").value = "Some Text"``
+.. code-block:: python
 
+    Workbooks("Book1").Sheets("Sheet1").Range("A1").Value = "Some Text"
 
-.. module:: xlwings
+**xlwings:**
+
+.. code-block:: python
+
+    wb = Workbook("Book1")
+    Range("Sheet1", "A1").value = "Some Text"
+
+Top-level functions
+-------------------
+
+.. automodule:: xlwings
+    :members: view
 
 Application
 -----------

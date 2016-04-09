@@ -429,6 +429,36 @@ class Workbook(object):
     def name(self):
         return self.xl_workbook.Name
 
+    def macro(self, name):
+        """
+        Runs a Sub or Function in Excel VBA.
+
+        Arguments:
+        ----------
+        name : Name of Sub or Function with or without module name, e.g. ``'Module1.MyMacro'`` or ``'MyMacro'``
+
+        Examples:
+        ---------
+        This VBA function:
+
+        .. code-block:: vb
+
+            Function MySum(x, y)
+                MySum = x + y
+            End Function
+
+        can be accessed like this:
+
+        >>> wb = xw.Workbook.active()
+        >>> my_sum = wb.macro('MySum')
+        >>> my_sum(1, 2)
+        3
+
+
+        .. versionadded:: 0.7.1
+        """
+        return Macro(name, self)
+
     def __repr__(self):
         return "<Workbook '{0}'>".format(self.name)
 
@@ -886,6 +916,19 @@ class Range(object):
     @formula.setter
     def formula(self, value):
         self.xl_range.set_formula(value)
+
+    @property
+    def formula_array(self):
+        """
+        Gets or sets an  array formula for the given Range.
+
+        .. versionadded:: 0.7.1
+        """
+        return xlplatform.get_formula_array(self.xl_range)
+
+    @formula_array.setter
+    def formula_array(self, value):
+        xlplatform.set_formula_array(self.xl_range, value)
 
     @property
     def table(self):
@@ -2074,17 +2117,34 @@ class NamesDict(collections.MutableMapping):
 
 def view(obj):
     """
-    Opens a new workbook and display an object on its first sheet.
+    Opens a new workbook and displays an object on its first sheet.
 
     Parameters
     ----------
     obj : any type with built-in converter
         the object to display
 
-    >>> import xlwings as xw
-    >>> import pandas as pd
-    >>> import numpy as np
-    >>> df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
-    >>> xw.view(df)
+        >>> import xlwings as xw
+        >>> import pandas as pd
+        >>> import numpy as np
+        >>> df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
+        >>> xw.view(df)
+
+
+    .. versionadded:: 0.7.1
     """
-    Range(Workbook().active_sheet, 'A1').value = obj
+    sht = Workbook().active_sheet
+    Range(sht, 'A1').value = obj
+    sht.autofit()
+
+
+class Macro(object):
+    def __init__(self, name, wb=None, app=None):
+        self.name = name
+        self.wb = wb
+        self.app = app
+
+    def run(self, *args):
+        return xlplatform.run(self.wb, self.name, self.app or Application(self.wb), args)
+
+    __call__ = run

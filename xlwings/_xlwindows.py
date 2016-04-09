@@ -630,6 +630,232 @@ def prepare_xl_data_element(x):
     else:
         return x
 
+def get_selection_address(xl_app):
+    return str(xl_app.Selection.Address)
+
+
+def clear_contents_worksheet(xl_workbook, sheet_name_or_index):
+    xl_workbook.Sheets(sheet_name_or_index).Cells.ClearContents()
+
+
+def clear_worksheet(xl_workbook, sheet_name_or_index):
+    xl_workbook.Sheets(sheet_name_or_index).Cells.Clear()
+
+
+def clear_contents_range(xl_range):
+    xl_range.ClearContents()
+
+
+def clear_range(xl_range):
+    xl_range.Clear()
+
+
+def get_formula(xl_range):
+    return xl_range.Formula
+
+
+def set_formula(xl_range, value):
+    xl_range.Formula = value
+
+
+def get_row_index_end_down(xl_sheet, row_index, column_index):
+    return xl_sheet.Cells(row_index, column_index).End(Direction.xlDown).Row
+
+
+def get_column_index_end_right(xl_sheet, row_index, column_index):
+    return xl_sheet.Cells(row_index, column_index).End(Direction.xlToRight).Column
+
+
+def get_current_region_address(xl_sheet, row_index, column_index):
+    return str(xl_sheet.Cells(row_index, column_index).CurrentRegion.Address)
+
+
+def get_chart_object(xl_workbook, sheet_name_or_index, chart_name_or_index):
+    return xl_workbook.Sheets(sheet_name_or_index).ChartObjects(chart_name_or_index)
+
+
+def get_chart_index(xl_chart):
+    return xl_chart.Index
+
+
+def get_chart_name(xl_chart):
+    return xl_chart.Name
+
+
+def add_chart(xl_workbook, sheet_name_or_index, left, top, width, height):
+    return xl_workbook.Sheets(sheet_name_or_index).ChartObjects().Add(left, top, width, height)
+
+
+def set_chart_name(xl_chart, name):
+    xl_chart.Name = name
+
+
+def set_source_data_chart(xl_chart, xl_range):
+    xl_chart.Chart.SetSourceData(xl_range)
+
+
+def get_chart_type(xl_chart):
+    return xl_chart.Chart.ChartType
+
+
+def set_chart_type(xl_chart, chart_type):
+    xl_chart.Chart.ChartType = chart_type
+
+
+def activate_chart(xl_chart):
+    xl_chart.Activate()
+
+
+def get_column_width(xl_range):
+    return xl_range.ColumnWidth
+
+
+def set_column_width(xl_range, value):
+    xl_range.ColumnWidth = value
+
+
+def get_row_height(xl_range):
+    return xl_range.RowHeight
+
+
+def set_row_height(xl_range, value):
+    xl_range.RowHeight = value
+
+
+def get_width(xl_range):
+    return xl_range.Width
+
+
+def get_height(xl_range):
+    return xl_range.Height
+	
+
+def get_left(xl_range):
+    return xl_range.Left
+
+
+def get_top(xl_range):
+    return xl_range.Top
+
+	
+def autofit(range_, axis):
+    if axis == 'rows' or axis == 'r':
+        range_.xl_range.Rows.AutoFit()
+    elif axis == 'columns' or axis == 'c':
+        range_.xl_range.Columns.AutoFit()
+    elif axis is None:
+        range_.xl_range.Columns.AutoFit()
+        range_.xl_range.Rows.AutoFit()
+
+
+def autofit_sheet(sheet, axis):
+    if axis == 'rows' or axis == 'r':
+        sheet.xl_sheet.Rows.AutoFit()
+    elif axis == 'columns' or axis == 'c':
+        sheet.xl_sheet.Columns.AutoFit()
+    elif axis is None:
+        sheet.xl_sheet.Rows.AutoFit()
+        sheet.xl_sheet.Columns.AutoFit()
+
+
+xl_workbook_current = None
+
+
+def set_xl_workbook_current(xl_workbook):
+    global xl_workbook_current
+    xl_workbook_current = xl_workbook
+
+
+def get_xl_workbook_current():
+    try:
+        return xl_workbook_current
+    except NameError:
+        return None
+
+
+def get_number_format(range_):
+    return range_.xl_range.NumberFormat
+
+
+def set_number_format(range_, value):
+    range_.xl_range.NumberFormat = value
+
+
+def get_address(xl_range, row_absolute, col_absolute, external):
+    return xl_range.GetAddress(row_absolute, col_absolute, 1, external)
+
+
+def add_sheet(xl_workbook, before, after):
+    if before:
+        return xl_workbook.Worksheets.Add(Before=before.xl_sheet)
+    else:
+        # Hack, since "After" is broken in certain environments
+        # see: http://code.activestate.com/lists/python-win32/11554/
+        count = xl_workbook.Worksheets.Count
+        new_sheet_index = after.xl_sheet.Index + 1
+        if new_sheet_index > count:
+            xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index))
+            xl_workbook.Worksheets(xl_workbook.Worksheets.Count)\
+                .Move(Before=xl_workbook.Sheets(xl_workbook.Worksheets.Count - 1))
+            xl_workbook.Worksheets(xl_workbook.Worksheets.Count).Activate()
+        else:
+            xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index + 1))
+        return xl_sheet
+
+
+def count_worksheets(xl_workbook):
+    return xl_workbook.Worksheets.Count
+
+
+def get_hyperlink_address(xl_range):
+    try:
+        return xl_range.Hyperlinks(1).Address
+    except pywintypes.com_error:
+        raise Exception("The cell doesn't seem to contain a hyperlink!")
+
+
+def set_hyperlink(xl_range, address, text_to_display=None, screen_tip=None):
+    # Another one of these pywin32 bugs that only materialize under certain circumstances:
+    # http://stackoverflow.com/questions/6284227/hyperlink-will-not-show-display-proper-text
+    link = xl_range.Hyperlinks.Add(Anchor=xl_range, Address=address)
+    link.TextToDisplay = text_to_display
+    link.ScreenTip = screen_tip
+
+
+def set_color(xl_range, color_or_rgb):
+    if color_or_rgb is None:
+        xl_range.Interior.ColorIndex = ColorIndex.xlColorIndexNone
+    elif isinstance(color_or_rgb, int):
+        xl_range.Interior.Color = color_or_rgb
+    else:
+        xl_range.Interior.Color = rgb_to_int(color_or_rgb)
+
+
+def get_color(xl_range):
+    if xl_range.Interior.ColorIndex == ColorIndex.xlColorIndexNone:
+        return None
+    else:
+        return int_to_rgb(xl_range.Interior.Color)
+
+
+def save_workbook(xl_workbook, path):
+    saved_path = xl_workbook.Path
+    alerts_state = xl_workbook.Application.DisplayAlerts
+    if (saved_path != '') and (path is None):
+        # Previously saved: Save under existing name
+        xl_workbook.Save()
+    elif (saved_path == '') and (path is None):
+        # Previously unsaved: Save under current name in current working directory
+        path = os.path.join(os.getcwd(), xl_workbook.Name + '.xlsx')
+        xl_workbook.Application.DisplayAlerts = False
+        xl_workbook.SaveAs(path)
+        xl_workbook.Application.DisplayAlerts = alerts_state
+    elif path:
+        # Save under new name/location
+        xl_workbook.Application.DisplayAlerts = False
+        xl_workbook.SaveAs(path)
+        xl_workbook.Application.DisplayAlerts = alerts_state
+
 
 def open_template(fullpath):
     os.startfile(fullpath)
@@ -689,5 +915,109 @@ class Chart(Shape):
     def get_type(self):
         return self.xl.Chart.ChartType
 
-    def set_type(self, chart_type):
-        self.xl.Chart.ChartType = chart_type
+
+def set_named_range(range_, value):
+    range_.xl_range.Name = value
+
+
+def set_names(xl_workbook, names):
+    for i in xl_workbook.Names:
+        names[i.Name] = i
+
+
+def delete_name(xl_workbook, name):
+    xl_workbook.Names(name).Delete()
+
+
+def get_picture(picture):
+    return picture.xl_workbook.Sheets(picture.sheet_name_or_index).Pictures(picture.name_or_index)
+
+
+def get_picture_index(picture):
+    return picture.xl_picture.Index
+
+
+def get_picture_name(xl_picture):
+    return xl_picture.Name
+
+
+def get_shape(shape):
+    return shape.xl_workbook.Sheets(shape.sheet_name_or_index).Shapes(shape.name_or_index)
+
+
+def get_shape_name(shape):
+    return shape.xl_shape.Name
+
+
+def set_shape_name(xl_workbook, sheet_name_or_index, xl_shape, value):
+    xl_workbook.Sheets(sheet_name_or_index).Shapes(xl_shape.Name).Name = value
+    return xl_workbook.Sheets(sheet_name_or_index).Shapes(value)
+
+
+def get_shapes_names(xl_workbook, sheet):
+    shapes = xl_workbook.Sheets(sheet).Shapes
+    if shapes is not None:
+        return [i.Name for i in shapes]
+    else:
+        return []
+
+
+def get_shape_left(shape):
+    return shape.xl_shape.Left
+
+
+def set_shape_left(shape, value):
+    shape.xl_shape.Left = value
+
+
+def get_shape_top(shape):
+    return shape.xl_shape.Top
+
+
+def set_shape_top(shape, value):
+    shape.xl_shape.Top = value
+
+
+def get_shape_width(shape):
+    return shape.xl_shape.Width
+
+
+def set_shape_width(shape, value):
+    shape.xl_shape.Width = value
+
+
+def get_shape_height(shape):
+    return shape.xl_shape.Height
+
+
+def set_shape_height(shape, value):
+    shape.xl_shape.Height = value
+
+
+def delete_shape(shape):
+    shape.xl_shape.Delete()
+
+
+def add_picture(xl_workbook, sheet_name_or_index, filename, link_to_file, save_with_document, left, top, width, height):
+    return xl_workbook.Sheets(sheet_name_or_index).Shapes.AddPicture(Filename=filename,
+                                                                     LinkToFile=link_to_file,
+                                                                     SaveWithDocument=save_with_document,
+                                                                     Left=left,
+                                                                     Top=top,
+                                                                     Width=width,
+                                                                     Height=height)
+
+
+def get_app_version_string(xl_workbook):
+    return xl_workbook.Application.Version
+
+
+def get_major_app_version_number(xl_workbook):
+    return int(get_app_version_string(xl_workbook).split('.')[0])
+
+
+def delete_sheet(sheet):
+    alerts_state = sheet.xl_workbook.Application.DisplayAlerts 
+    sheet.xl_workbook.Application.DisplayAlerts = False
+    sheet.xl_workbook.Sheets(sheet.name).Delete()
+    sheet.xl_workbook.Application.DisplayAlerts = alerts_state

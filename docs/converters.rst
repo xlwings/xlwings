@@ -274,25 +274,67 @@ The same sample for **UDF** (starting in ``Range('A13')`` on screenshot) looks l
        # x is a DataFrame, do something with it
        return x
 
+
+xw.Range and 'raw' converters
+*****************************
+
+Technically speaking, these are "no-converters".
+
+* If you need access to the ``xlwings.Range`` object directly, you can do::
+
+    @xw.func
+    @xw.arg('x', xw.Range)
+    def myfunction(x):
+       return x.formula
+
+  This returns x as ``xlwings.Range`` object, i.e. without applying any converters or options.
+
+* The ``raw`` converter delivers the values unchanged from the underlying libraries (``pywin32`` on Windows and
+  ``appscript`` on Mac), i.e. no sanitizing/cross-platform harmonizing of values are being made. This might be useful
+  in a few cases for efficiency reasons. E.g::
+
+    >>> Range('A1:B2').value
+    [[1.0, 'text'], [datetime.datetime(2016, 2, 1, 0, 0), None]]
+
+    >>> Range('A1:B2').options('raw').value
+    ((1.0, 'text'), (pywintypes.datetime(2016, 2, 1, 0, 0, tzinfo=TimeZoneInfo('GMT Standard Time', True)), None))
+
+
+.. _custom_converter:
+
 Custom Converter
 ----------------
 
 Here are the steps to implement your own converter:
 
 * Inherit from ``xlwings.conversion.Converter``
-* Implement both a ``read_value`` and ``write_value`` method as static- or classmethod: Both methods have the same
-  signature and return value: they expect and return the values in the format of the base converter (hence, if no
-  ``base`` has been specified, ``value`` is a list of list as delivered by the default converter). On the other hand,
-  the ``options`` dictionary will contain all keyword arguments specified in
-  the ``Range.options`` method, e.g. when calling ``Range('A1').options(myoption='some value')`` or as specified in
-  the ``@arg`` and ``@ret`` decorator when using UDFs. Here is the structure of ``read_value`` method (same for
-  ``write_value``)::
+* Implement both a ``read_value`` and ``write_value`` method as static- or classmethod:
 
-    @staticmethod
-    def read_value(value, options):
-        myoption = options.get('myoption', default_value)
-        # Implement your conversion here
-        return value
+  *  In ``read_value``, ``value`` is what the base converter returns: hence, if no
+     ``base`` has been specified it arrives in the format of the default converter.
+  *  In ``write_value``, ``value`` is the original object being written to Excel. It must be returned
+     in the format that the base converter expects. Again, if no ``base`` has been specified, this is the default
+     converter.
+
+  The ``options`` dictionary will contain all keyword arguments specified in
+  the ``Range.options`` method, e.g. when calling ``Range('A1').options(myoption='some value')`` or as specified in
+  the ``@arg`` and ``@ret`` decorator when using UDFs. Here is the basic structure::
+
+    from xlwings.conversion import Converter
+
+    class MyConverter(Converter):
+
+        @staticmethod
+        def read_value(value, options):
+            myoption = options.get('myoption', default_value)
+            return_value = value  # Implement your conversion here
+            return return_value
+
+        @staticmethod
+        def write_value(value, options):
+            myoption = options.get('myoption', default_value)
+            return_value = value  # Implement your conversion here
+            return return_value
 
 * Optional: set a ``base`` converter (``base`` expects a class name) to build on top of an existing converter, e.g.
   for the built-in ones: ``DictCoverter``, ``NumpyArrayConverter``, ``PandasDataFrameConverter``, ``PandasSeriesConverter``
@@ -300,7 +342,8 @@ Here are the steps to implement your own converter:
   this type during write operations and/or **(b)** you can register an alias that will allow you to explicitly call
   your converter by name instead of just by class name
 
-The following class defines a DataFrame converter that adds support for dropping nan's::
+The following examples should make it much easier to follow - it defines a DataFrame converter that extends the
+built-in DataFrame converter to add support for dropping nan's::
 
     from xlwings.conversion import Converter, PandasDataFrameConverter
 
@@ -309,19 +352,24 @@ The following class defines a DataFrame converter that adds support for dropping
         base = PandasDataFrameConverter
 
         @staticmethod
-        def read_value(df, options):
-            dropna = options.get('dropna', False)
+        def read_value(builtin_df, options):
+            dropna = options.get('dropna', False)  # set default to False
             if dropna:
-                return df.dropna()
+                converted_df = builtin_df.dropna()
             else:
-                return df
+                converted_df = builtin_df
+            # This will arrive in Python when using the DataFrameDropna converter for reading
+            return converted_df
 
         @staticmethod
         def write_value(df, options):
             dropna = options.get('dropna', False)
             if dropna:
-                df = df.dropna()
-            return df
+                converted_df = df.dropna()
+            else:
+                converted_df = df
+            # This will be passed to the built-in PandasDataFrameConverter when writing
+            return converted_df
 
 
 Now let's see how the different converters can be applied::
@@ -387,4 +435,5 @@ These samples all work the same with UDFs, e.g.::
     into a Pandas DataFrame.
 
     The ``Converter`` class provides basic scaffolding to make the task of writing a new Converter easier. If
-    you need more control you can subclass ``Accessor`` directly, but this part is currently undocumented and requires more work.
+    you need more control you can subclass ``Accessor`` directly, but this part requires more work and is currently
+    undocumented.

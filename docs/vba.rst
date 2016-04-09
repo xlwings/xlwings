@@ -42,23 +42,25 @@ under ``Function Settings``::
     PYTHON_MAC = ""
     PYTHON_FROZEN = ThisWorkbook.Path & "\build\exe.win32-2.7"
     PYTHONPATH = ThisWorkbook.Path
-    UDF_PATH = ""
+    UDF_MODULES = ""
     UDF_DEBUG_SERVER = False
     LOG_FILE = ThisWorkbook.Path & "\xlwings_log.txt"
     SHOW_LOG = True
     OPTIMIZED_CONNECTION = False
 
-* ``PYTHON_WIN``: This is the directory of the Python interpreter on Windows. ``""`` resolves to your default Python
+* ``PYTHON_WIN``: This is the full path of the Python interpreter on Windows, , e.g. ``"C:\Python35\pythonw.exe"``.
+  ``""`` resolves to your default Python
   installation on the PATH, i.e. the one you can start by just typing ``python`` at a command prompt.
-* ``PYTHON_MAC``: This is the directory of the Python interpreter on Mac OSX. ``""`` resolves to your default
-  installation as per PATH on .bash_profile. To get special folders
+* ``PYTHON_MAC``: This is the full path of the Python interpreter on Mac OSX, e.g. ``"/usr/local/bin/python3.5"``.
+  ``""`` resolves to your default installation as per PATH on .bash_profile. To get special folders
   on Mac, type ``GetMacDir("Name")`` where ``Name`` is one of the following: ``Home``, ``Desktop``, ``Applications``,
   ``Documents``.
 * ``PYTHON_FROZEN`` [Optional]: Currently only on Windows, indicates the directory of the exe file that has been frozen
   by either using ``cx_Freeze`` or ``py2exe``. Can be set to ``""`` if unused.
 * ``PYTHONPATH`` [Optional]: If the source file of your code is not found, add the path here. Otherwise set it to ``""``.
-* ``UDF_PATH`` [Optional, Windows only]: Full path to a Python file from which the User Defined Functions are being imported.
-  Example: ``UDF_PATH = ThisWorkbook.Path & "\functions.py"``
+* ``UDF_MODULES`` [Optional, Windows only]: Names of Python modules (without .py extension) from which the UDFs are being imported.
+  Separate multiple modules by ";".
+  Example: ``UDF_PATH = "common_udfs;myproject"``
   Default: ``UDF_PATH = ""`` defaults to a file in the same directory of the Excel spreadsheet with the same name but ending in ``.py``.
 * ``UDF_DEBUG_SERVER``: Set this to True if you want to run the xlwings COM server manually for debugging, see :ref:`debugging`.
 * ``LOG_FILE`` [Optional]: Leave empty for default location (see below) or provide directory including file name.
@@ -68,7 +70,7 @@ under ``Function Settings``::
 .. _log:
 
 LOG_FILE default locations
-**************************
+--------------------------
 
 * Windows: ``%APPDATA%\xlwings_log.txt``
 * Mac with Excel 2011: ``/tmp/xlwings_log.txt``

@@ -310,6 +310,33 @@ class TestWorkbook(TestBase):
         wb2 = Workbook('test_workbook_1.xlsx', app_visible=False, app_target=APP_TARGET)
         assert_equal(Range('A10', wkb=wb2).value, 'name-test')
 
+    def test_macro(self):
+        src = os.path.realpath(os.path.join(this_dir, 'macro book.xlsm'))
+        wb1 = Workbook(src, app_target=APP_TARGET)
+
+        test1 = wb1.macro('Module1.Test1')
+        test2 = wb1.macro('Module1.Test2')
+        test3 = wb1.macro('Module1.Test3')
+        test4 = wb1.macro('Test4')
+
+        assert_equal(test1('Test1a', 'Test1b'), 1)
+        assert_equal(test2(), 2)
+        if sys.platform.startswith('win'):
+            assert_equal(test3('Test3a', 'Test3b'), None)
+        else:
+            assert_equal(test3('Test3a', 'Test3b'), '')
+        if sys.platform.startswith('win'):
+            assert_equal(test4(), None)
+        else:
+            assert_equal(test4(), '')
+        assert_equal(Range('A1').value, 'Test1a')
+        assert_equal(Range('A2').value, 'Test1b')
+        assert_equal(Range('A3').value, 'Test2')
+        assert_equal(Range('A4').value, 'Test3a')
+        assert_equal(Range('A5').value, 'Test3b')
+        assert_equal(Range('A6').value, 'Test4')
+
+        wb1.close()
 
 class TestSheet(TestBase):
     def setUp(self):
@@ -623,6 +650,11 @@ class TestRange(TestBase):
     def test_formula(self):
         Range('A1').formula = '=SUM(A2:A10)'
         assert_equal(Range('A1').formula, '=SUM(A2:A10)')
+
+    def test_formula_array(self):
+        Range('A1').value = [[1, 4], [2, 5], [3, 6]]
+        Range('D1').formula_array = '=SUM(A1:A3*B1:B3)'
+        assert_equal(Range('D1').value, 32.)
 
     def test_current_region(self):
         values = [[1., 2.], [3., 4.]]

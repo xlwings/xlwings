@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import sys
 
-__version__ = '0.7.1.dev0'
+__version__ = '0.7.1'
 
 # Python 2 vs 3
 PY3 = sys.version_info[0] == 3
@@ -35,7 +35,7 @@ from .constants import *
 
 # UDFs
 if sys.platform.startswith('win'):
-    from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, udf_script, import_udfs
+    from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, get_udf_module, import_udfs
 
 
 def xlfunc(*args, **kwargs):
