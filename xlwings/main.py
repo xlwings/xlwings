@@ -581,25 +581,26 @@ class Sheet(object):
 
         .. versionadded:: 0.2.3
         """
-        xl_workbook = Workbook.get_xl_workbook(wkb)
+        if wkb is None:
+            wkb = Workbook.active
 
         if before is None and after is None:
-            after = Sheet(Sheet.count(wkb=wkb), wkb=wkb)
-        elif before:
-            before = Sheet(before, wkb=wkb)
+            after = wkb.sheet(Sheet.count(wkb=wkb))
+        elif before and not isinstance(before, Sheet):
+            before = wkb.sheet(before)
         elif after:
-            after = Sheet(after, wkb=wkb)
+            after = wkb.sheet(after)
 
         if name:
             if name.lower() in [i.name.lower() for i in Sheet.all(wkb=wkb)]:
                 raise Exception('That sheet name is already taken.')
             else:
-                xl_sheet = xlplatform.add_sheet(xl_workbook, before, after)
-                xlplatform.set_worksheet_name(xl_sheet, name)
-                return cls(name, wkb)
+                xl_sheet = wkb.xl_workbook.add_sheet(before, after)
+                xl_sheet.set_name(name)
+                return cls(xl_sheet=xl_sheet)
         else:
-            xl_sheet = xlplatform.add_sheet(xl_workbook, before, after)
-            return cls(xlplatform.get_worksheet_name(xl_sheet), wkb)
+            xl_sheet = wkb.xl_workbook.add_sheet(before, after)
+            return cls(xl_sheet=xl_sheet)
 
     @staticmethod
     def count(wkb=None):
@@ -618,8 +619,9 @@ class Sheet(object):
 
         .. versionadded:: 0.2.3
         """
-        xl_workbook = Workbook.get_xl_workbook(wkb)
-        return xlplatform.count_worksheets(xl_workbook)
+        if wkb is None:
+            wkb = Workbook.active
+        return wkb.xl_workbook.count_sheets()
 
     @staticmethod
     def all(wkb=None):
@@ -743,6 +745,10 @@ class Range(object):
         self._coords = None
 
     @property
+    def sheet(self):
+        return Sheet(xl_sheet=self.xl_range.get_worksheet())
+
+    @property
     def coords(self):
         if self._coords is None:
             self._coords = self.xl_range.get_coordinates()
@@ -767,10 +773,9 @@ class Range(object):
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
         return map(
-            lambda cell: Range(
-                xlplatform.get_worksheet_name(self.xl_sheet),
+            lambda cell: self.sheet.range(
                 cell,
-                wkb=self.workbook,
+            ).options(
                 **self._options
             ),
             itertools.product(
@@ -1317,7 +1322,7 @@ class Range(object):
         if include_sheetname and not external:
             # TODO: when the Workbook name contains spaces but not the Worksheet name, it will still be surrounded
             # by '' when include_sheetname=True. Also, should probably changed to regex
-            temp_str = xlplatform.get_address(self.xl_range, row_absolute, column_absolute, True)
+            temp_str = self.xl_range.get_address(row_absolute, column_absolute, True)
 
             if temp_str.find("[") > -1:
                 results_address = temp_str[temp_str.rfind("]") + 1:]
@@ -1359,7 +1364,7 @@ class Range(object):
                 raise Exception("The cell doesn't seem to contain a hyperlink!")
         else:
             # If it has been set pragmatically
-            return xlplatform.get_hyperlink_address(self.xl_range)
+            return self.xl_range.get_hyperlink_address()
 
     def add_hyperlink(self, address, text_to_display=None, screen_tip=None):
         """
@@ -1384,7 +1389,7 @@ class Range(object):
             address = 'http://' + address
         if screen_tip is None:
             screen_tip = address + ' - Click once to follow. Click and hold to select this cell.'
-        xlplatform.set_hyperlink(self.xl_range, address, text_to_display, screen_tip)
+        self.xl_range.set_hyperlink(address, text_to_display, screen_tip)
 
     @property
     def color(self):
@@ -1446,7 +1451,7 @@ class Range(object):
         else:
             col2 = self.col2
 
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet), (self.row1, self.col1), (row2, col2), wkb=self.workbook, **self._options)
+        return self.sheet.range((self.row1, self.col1), (row2, col2)).options(**self._options)
 
     def offset(self, row_offset=None, column_offset=None):
         """
@@ -1472,7 +1477,7 @@ class Range(object):
         else:
             col1, col2 = self.col1, self.col2
 
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet), (row1, col1), (row2, col2), wkb=self.workbook, **self._options)
+        return self.sheet.range((row1, col1), (row2, col2)).options(**self._options)
 
     @property
     def column(self):

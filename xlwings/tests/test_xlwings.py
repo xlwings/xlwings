@@ -344,9 +344,9 @@ class TestSheet(TestBase):
 
     def test_activate(self):
         Sheet('Sheet2').activate()
-        assert_equal(Sheet.active().name, 'Sheet2')
+        assert_equal(Sheet.active.name, 'Sheet2')
         Sheet(3).activate()
-        assert_equal(Sheet.active().index, 3)
+        assert_equal(Sheet.active.index, 3)
 
     def test_name(self):
         Sheet(1).name = 'NewName'
@@ -393,10 +393,10 @@ class TestSheet(TestBase):
 
     def test_add_after(self):
         Sheet.add(after=Sheet.count())
-        assert_equal(Sheet(Sheet.count()).name, Sheet.active().name)
+        assert_equal(Sheet(Sheet.count()).name, Sheet.active.name)
 
         Sheet.add(after=1)
-        assert_equal(Sheet(2).name, Sheet.active().name)
+        assert_equal(Sheet(2).name, Sheet.active.name)
 
     def test_add_default(self):
         # TODO: test call without args properly
@@ -586,7 +586,7 @@ class TestRange(TestBase):
 
     def test_vertical(self):
         Range('Sheet4', 'A10').value = data
-        if sys.platform.startswith('win') and self.wb.xl_app.Version == '14.0':
+        if sys.platform.startswith('win') and self.wb.application.version == '14.0':
             Range('Sheet4', 'A12:B12').xl_range.NumberFormat = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
         cells = Range('Sheet4', 'A10').vertical.value
         assert_equal(cells, [row[0] for row in data])
@@ -598,7 +598,7 @@ class TestRange(TestBase):
 
     def test_table(self):
         Range('Sheet4', 'A1').value = data
-        if sys.platform.startswith('win') and self.wb.xl_app.Version == '14.0':
+        if sys.platform.startswith('win') and self.wb.application.version == '14.0':
             Range('Sheet4', 'A3:B3').xl_range.NumberFormat = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
         cells = Range('Sheet4', 'A1').table.value
         assert_equal(cells, data)
@@ -868,7 +868,7 @@ class TestRange(TestBase):
 
         series_expected = timeseries_1
         Range('Sheet5', 'A40').options(header=False).value = series_expected
-        if sys.platform.startswith('win') and self.wb.xl_app.Version == '14.0':
+        if sys.platform.startswith('win') and self.wb.application.version == '14.0':
             Range('Sheet5', 'A40').vertical.xl_range.NumberFormat = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
         series_result = Range('Sheet5', 'A40:B49').options(pd.Series, header=False).value
         assert_series_equal(series_expected, series_result)

@@ -351,6 +351,8 @@ class Sheet(object):
 
     def get_range_from_indices(self, first_row, first_column, last_row, last_column):
         c1 = self.xl.Cells(first_row, first_column)
+        if first_row == last_row and first_column == last_column:
+            return c1
         c2 = self.xl.Cells(last_row, last_column)
         r = self.xl.Range(c1, c2)
         return Range(r)
