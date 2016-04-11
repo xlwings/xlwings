@@ -924,11 +924,11 @@ class Range(object):
 
         .. versionadded:: 0.7.1
         """
-        return xlplatform.get_formula_array(self.xl_range)
+        return self.xl_range.get_formula_array()
 
     @formula_array.setter
     def formula_array(self, value):
-        xlplatform.set_formula_array(self.xl_range, value)
+        self.xl_range.set_formula_array(value)
 
     @property
     def table(self):
@@ -1101,8 +1101,7 @@ class Range(object):
         Range object
 
         """
-        address = xlplatform.get_current_region_address(self.xl_sheet, self.row1, self.col1)
-        return Range(xlplatform.get_worksheet_name(self.xl_sheet), address, wbk=self.workbook, **self._options)
+        return Range(xl_range=self.xl_range.get_current_region(), **self._options)
 
     @property
     def number_format(self):
@@ -1329,7 +1328,7 @@ class Range(object):
                 return temp_str
 
         else:
-            return xlplatform.get_address(self.xl_range, row_absolute, column_absolute, external)
+            return self.xl_range.get_address(row_absolute, column_absolute, external)
 
     def __repr__(self):
         return "<Range on Sheet '{0}' of Workbook '{1}'>".format(

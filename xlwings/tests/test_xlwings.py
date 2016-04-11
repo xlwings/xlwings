@@ -717,8 +717,8 @@ class TestRange(TestBase):
 
         df_expected = df_dateindex
         Range('Sheet5', 'A100').value = df_expected
-        if sys.platform.startswith('win') and self.wb.xl_app.Version == '14.0':
-            Range('Sheet5', 'A100').vertical.xl_range.NumberFormat = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
+        if sys.platform.startswith('win') and self.wb.application.version == '14.0':
+            Range('Sheet5', 'A100').vertical.number_format = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
         cells = Range('Sheet5', 'B100').table.value
         index = Range('Sheet5', 'A101').vertical.value
         df_result = DataFrame(cells[1:], index=index, columns=cells[0])

@@ -340,9 +340,6 @@ class Sheet(object):
     def get_column_index_end_right(self, row_index, column_index):
         return self.xl.Cells(row_index, column_index).End(Direction.xlToRight).Column
 
-    def get_current_region_address(self, row_index, column_index):
-        return str(self.xl.Cells(row_index, column_index).CurrentRegion.Address)
-
     def autofit(self, axis):
         if axis == 'rows' or axis == 'r':
             self.xl.Rows.AutoFit()
@@ -440,6 +437,12 @@ class Range(object):
     def set_formula(self, value):
         self.xl.Formula = value
 
+    def get_formula_array(self):
+        return self.xl.FormulaArray
+
+    def set_formula_array(self, value):
+        self.xl.FormulaArray = value
+
     def get_column_width(self):
         return self.xl.ColumnWidth
 
@@ -472,6 +475,9 @@ class Range(object):
 
     def get_address(self, row_absolute, col_absolute, external):
         return self.xl.GetAddress(row_absolute, col_absolute, 1, external)
+
+    def get_current_region(self):
+        return Range(self.xl.CurrentRegion)
 
     def autofit(self, axis):
         if axis == 'rows' or axis == 'r':
@@ -629,233 +635,6 @@ def prepare_xl_data_element(x):
         return _datetime_to_com_time(x)
     else:
         return x
-
-def get_selection_address(xl_app):
-    return str(xl_app.Selection.Address)
-
-
-def clear_contents_worksheet(xl_workbook, sheet_name_or_index):
-    xl_workbook.Sheets(sheet_name_or_index).Cells.ClearContents()
-
-
-def clear_worksheet(xl_workbook, sheet_name_or_index):
-    xl_workbook.Sheets(sheet_name_or_index).Cells.Clear()
-
-
-def clear_contents_range(xl_range):
-    xl_range.ClearContents()
-
-
-def clear_range(xl_range):
-    xl_range.Clear()
-
-
-def get_formula(xl_range):
-    return xl_range.Formula
-
-
-def set_formula(xl_range, value):
-    xl_range.Formula = value
-
-
-def get_row_index_end_down(xl_sheet, row_index, column_index):
-    return xl_sheet.Cells(row_index, column_index).End(Direction.xlDown).Row
-
-
-def get_column_index_end_right(xl_sheet, row_index, column_index):
-    return xl_sheet.Cells(row_index, column_index).End(Direction.xlToRight).Column
-
-
-def get_current_region_address(xl_sheet, row_index, column_index):
-    return str(xl_sheet.Cells(row_index, column_index).CurrentRegion.Address)
-
-
-def get_chart_object(xl_workbook, sheet_name_or_index, chart_name_or_index):
-    return xl_workbook.Sheets(sheet_name_or_index).ChartObjects(chart_name_or_index)
-
-
-def get_chart_index(xl_chart):
-    return xl_chart.Index
-
-
-def get_chart_name(xl_chart):
-    return xl_chart.Name
-
-
-def add_chart(xl_workbook, sheet_name_or_index, left, top, width, height):
-    return xl_workbook.Sheets(sheet_name_or_index).ChartObjects().Add(left, top, width, height)
-
-
-def set_chart_name(xl_chart, name):
-    xl_chart.Name = name
-
-
-def set_source_data_chart(xl_chart, xl_range):
-    xl_chart.Chart.SetSourceData(xl_range)
-
-
-def get_chart_type(xl_chart):
-    return xl_chart.Chart.ChartType
-
-
-def set_chart_type(xl_chart, chart_type):
-    xl_chart.Chart.ChartType = chart_type
-
-
-def activate_chart(xl_chart):
-    xl_chart.Activate()
-
-
-def get_column_width(xl_range):
-    return xl_range.ColumnWidth
-
-
-def set_column_width(xl_range, value):
-    xl_range.ColumnWidth = value
-
-
-def get_row_height(xl_range):
-    return xl_range.RowHeight
-
-
-def set_row_height(xl_range, value):
-    xl_range.RowHeight = value
-
-
-def get_width(xl_range):
-    return xl_range.Width
-
-
-def get_height(xl_range):
-    return xl_range.Height
-	
-
-def get_left(xl_range):
-    return xl_range.Left
-
-
-def get_top(xl_range):
-    return xl_range.Top
-
-	
-def autofit(range_, axis):
-    if axis == 'rows' or axis == 'r':
-        range_.xl_range.Rows.AutoFit()
-    elif axis == 'columns' or axis == 'c':
-        range_.xl_range.Columns.AutoFit()
-    elif axis is None:
-        range_.xl_range.Columns.AutoFit()
-        range_.xl_range.Rows.AutoFit()
-
-
-def autofit_sheet(sheet, axis):
-    if axis == 'rows' or axis == 'r':
-        sheet.xl_sheet.Rows.AutoFit()
-    elif axis == 'columns' or axis == 'c':
-        sheet.xl_sheet.Columns.AutoFit()
-    elif axis is None:
-        sheet.xl_sheet.Rows.AutoFit()
-        sheet.xl_sheet.Columns.AutoFit()
-
-
-xl_workbook_current = None
-
-
-def set_xl_workbook_current(xl_workbook):
-    global xl_workbook_current
-    xl_workbook_current = xl_workbook
-
-
-def get_xl_workbook_current():
-    try:
-        return xl_workbook_current
-    except NameError:
-        return None
-
-
-def get_number_format(range_):
-    return range_.xl_range.NumberFormat
-
-
-def set_number_format(range_, value):
-    range_.xl_range.NumberFormat = value
-
-
-def get_address(xl_range, row_absolute, col_absolute, external):
-    return xl_range.GetAddress(row_absolute, col_absolute, 1, external)
-
-
-def add_sheet(xl_workbook, before, after):
-    if before:
-        return xl_workbook.Worksheets.Add(Before=before.xl_sheet)
-    else:
-        # Hack, since "After" is broken in certain environments
-        # see: http://code.activestate.com/lists/python-win32/11554/
-        count = xl_workbook.Worksheets.Count
-        new_sheet_index = after.xl_sheet.Index + 1
-        if new_sheet_index > count:
-            xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index))
-            xl_workbook.Worksheets(xl_workbook.Worksheets.Count)\
-                .Move(Before=xl_workbook.Sheets(xl_workbook.Worksheets.Count - 1))
-            xl_workbook.Worksheets(xl_workbook.Worksheets.Count).Activate()
-        else:
-            xl_sheet = xl_workbook.Worksheets.Add(Before=xl_workbook.Sheets(after.xl_sheet.Index + 1))
-        return xl_sheet
-
-
-def count_worksheets(xl_workbook):
-    return xl_workbook.Worksheets.Count
-
-
-def get_hyperlink_address(xl_range):
-    try:
-        return xl_range.Hyperlinks(1).Address
-    except pywintypes.com_error:
-        raise Exception("The cell doesn't seem to contain a hyperlink!")
-
-
-def set_hyperlink(xl_range, address, text_to_display=None, screen_tip=None):
-    # Another one of these pywin32 bugs that only materialize under certain circumstances:
-    # http://stackoverflow.com/questions/6284227/hyperlink-will-not-show-display-proper-text
-    link = xl_range.Hyperlinks.Add(Anchor=xl_range, Address=address)
-    link.TextToDisplay = text_to_display
-    link.ScreenTip = screen_tip
-
-
-def set_color(xl_range, color_or_rgb):
-    if color_or_rgb is None:
-        xl_range.Interior.ColorIndex = ColorIndex.xlColorIndexNone
-    elif isinstance(color_or_rgb, int):
-        xl_range.Interior.Color = color_or_rgb
-    else:
-        xl_range.Interior.Color = rgb_to_int(color_or_rgb)
-
-
-def get_color(xl_range):
-    if xl_range.Interior.ColorIndex == ColorIndex.xlColorIndexNone:
-        return None
-    else:
-        return int_to_rgb(xl_range.Interior.Color)
-
-
-def save_workbook(xl_workbook, path):
-    saved_path = xl_workbook.Path
-    alerts_state = xl_workbook.Application.DisplayAlerts
-    if (saved_path != '') and (path is None):
-        # Previously saved: Save under existing name
-        xl_workbook.Save()
-    elif (saved_path == '') and (path is None):
-        # Previously unsaved: Save under current name in current working directory
-        path = os.path.join(os.getcwd(), xl_workbook.Name + '.xlsx')
-        xl_workbook.Application.DisplayAlerts = False
-        xl_workbook.SaveAs(path)
-        xl_workbook.Application.DisplayAlerts = alerts_state
-    elif path:
-        # Save under new name/location
-        xl_workbook.Application.DisplayAlerts = False
-        xl_workbook.SaveAs(path)
-        xl_workbook.Application.DisplayAlerts = alerts_state
-
 
 def open_template(fullpath):
     os.startfile(fullpath)
