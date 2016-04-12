@@ -196,7 +196,7 @@ class Application(object):
         return Workbook(self.xl.Workbooks.Add())
 
     def get_selection(self):
-        return Range(self.Selection)
+        return Range(self.xl.Selection)
 
     def get_visible(self):
         return self.xl.Visible
@@ -303,6 +303,9 @@ class Workbook(object):
 
     def activate(self):
         self.xl.Activate()
+
+    def get_selection(self):
+        return Range(self.xl.ActiveSheet.Selection)
 
 
 class Sheet(object):

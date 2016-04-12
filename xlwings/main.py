@@ -361,7 +361,7 @@ class Workbook(object):
         -------
         Range object
         """
-        return Range(xlplatform.get_selection_address(self.xl_app), wkb=self)
+        return Range(self.xl_workbook.get_selection().get_selection_address(self.xl_app), wkb=self)
 
     def close(self):
         """
@@ -422,7 +422,7 @@ class Workbook(object):
         .. versionadded:: 0.4.0
         """
         names = NamesDict(self.xl_workbook)
-        xlplatform.set_names(self.xl_workbook, names)
+        self.xl_workbook.set_names(names)
         return names
 
     @property
@@ -645,8 +645,8 @@ class Sheet(object):
         """
         xl_workbook = Workbook.get_xl_workbook(wkb)
         sheet_list = []
-        for i in range(1, xlplatform.count_worksheets(xl_workbook) + 1):
-            sheet_list.append(Sheet(i, wkb=wkb))
+        for i in range(1, xl_workbook.count_worksheets() + 1):
+            sheet_list.append(wkb.sheet(i))
 
         return sheet_list
 
