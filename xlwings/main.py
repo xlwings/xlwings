@@ -46,129 +46,39 @@ except ImportError:
     Image = None
 
 
-class Application(object):
+class Application(xlplatform.Application):
     """
     Application is dependent on the Workbook since there might be different application instances on Windows.
     """
 
     __metaclass__ = ClassPropertyMetaClass   # this is needed for class properties to work
 
-    def __init__(self, xl_app=None, make_visible=True):
-        if xl_app is None:
-            self.xl_app = xlplatform.Application()
-        else:
-            assert isinstance(xl_app, xlplatform.Application)
-            self.xl_app = xl_app
+    def __init__(self, xl=None, make_visible=True):
+        super(Application, self).__init__(xl=xl)
 
         if make_visible:
             self.visible = True
 
         Application.current = self
 
-    def new_workbook(self):
-        return Workbook(xl_workbook=self.xl_app.new_workbook())
-
-    @property
-    def version(self):
-        """
-        Returns Excel's version string.
-
-        .. versionadded:: 0.5.0
-        """
-        return self.xl_app.get_version_string()
-
     @property
     def major_version(self):
         return int(self.version.split('.')[0])
-
-    def quit(self):
-        """
-        Quits the application without saving any workbooks.
-
-        .. versionadded:: 0.3.3
-        """
-        self.xl_app.quit()
-
-    @property
-    def screen_updating(self):
-        """
-        True if screen updating is turned on. Read/write Boolean.
-
-        .. versionadded:: 0.3.3
-        """
-        return self.xl_app.get_screen_updating()
-
-    @screen_updating.setter
-    def screen_updating(self, value):
-        self.xl_app.set_screen_updating(value)
-
-    @property
-    def visible(self):
-        """
-        Gets or sets the visibility of Excel to ``True`` or  ``False``. This property can also be
-        conveniently set during instantiation of a new Workbook: ``Workbook(app_visible=False)``
-
-        .. versionadded:: 0.3.3
-        """
-        return self.xl_app.get_visible()
-
-    @visible.setter
-    def visible(self, value):
-        self.xl_app.set_visible(value)
-
-    @property
-    def calculation(self):
-        """
-        Returns or sets a Calculation value that represents the calculation mode.
-
-        Example
-        -------
-        >>> from xlwings import Workbook, Application
-        >>> from xlwings.constants import Calculation
-        >>> wb = Workbook()
-        >>> Application(wkb=wb).calculation = Calculation.xlCalculationManual
-
-        .. versionadded:: 0.3.3
-        """
-        return self.xl_app.get_calculation()
-
-    @calculation.setter
-    def calculation(self, value):
-        self.xl_app.set_calculation(value)
-
-    def calculate(self):
-        """
-        Calculates all open Workbooks
-
-        .. versionadded:: 0.3.6
-        """
-        self.xl_app.calculate()
 
     _current = None
 
     @classproperty
     def current(cls):
         if cls._current is None:
-            cls._current = Application(xl_app=xlplatform.Application.get_running())
+            cls._current = Application(xl=xlplatform.Application.get_running())
         return cls._current
 
     @current.setter
     def current(cls, value):
         cls._current = value
 
-    @property
-    def active_workbook(self):
-        return Workbook(xl_workbook=self.xl_app.get_active_workbook())
 
-    @property
-    def active_sheet(self):
-        return Sheet(xl_sheet=self.xl_app.get_active_sheet())
-
-    def open_workbook(self, fullname):
-        return Workbook(xl_workbook=self.xl_app.open_workbook(fullname))
-
-
-class Workbook(object):
+class Workbook(xlplatform.Workbook):
     """
     ``Workbook`` connects an Excel Workbook with Python. You can create a new connection from Python with
 
@@ -206,40 +116,29 @@ class Workbook(object):
 
     """
 
-    def __init__(self, fullname=None, xl_workbook=None, app_visible=True, app_target=None):
-        if xl_workbook:
-            self.xl_workbook = xl_workbook
-        elif fullname:
-            if not os.path.isfile(fullname) or xlplatform.is_file_open(fullname):
-                # Connect to unsaved Workbook (e.g. 'Workbook1') or to an opened Workbook
-                self.xl_workbook = xlplatform.get_open_workbook(fullname, app_target)
-            else:
-                # Open Excel and the Workbook
-                self.xl_workbook = Application.current.open_workbook(fullname).xl_workbook
-
-            if app_visible is not None:
-                self.application.visible = app_visible
-
+    def __init__(self, fullname=None, xl=None, app_visible=True, app_target=None):
+        if xl:
+            super(Workbook, self).__init__(xl=xl)
         else:
-            # Open Excel if necessary and create a new workbook
-            app = Application.current
-            self.xl_workbook = app.new_workbook().xl_workbook
+            if fullname:
+                if not os.path.isfile(fullname) or xlplatform.is_file_open(fullname):
+                    # Connect to unsaved Workbook (e.g. 'Workbook1') or to an opened Workbook
+                    xl = Application.getxlplatform.get_open_workbook(fullname, app_target)
+                else:
+                    # Open Excel and the Workbook
+                    xl = Application.current.open_workbook(fullname).xl
+
+            else:
+                # Open Excel if necessary and create a new workbook
+                app = Application.current
+                xl = app.new_workbook().xl
+
+            super(Workbook, self).__init__(xl=xl)
 
             if app_visible is not None:
                 self.application.visible = app_visible
 
-        self.activate()
-
-    @property
-    def application(self):
-        return Application(xl_app=self.xl_workbook.get_application())
-
-    @property
-    def fullname(self):
-        return self.xl_workbook.get_fullname()
-
-    def activate(self):
-        self.xl_workbook.activate()
+            self.activate()
 
     @classproperty
     def active(cls):
@@ -250,9 +149,6 @@ class Workbook(object):
         .. versionadded:: 0.4.1
         """
         return Application.current.active_workbook
-
-    def sheet(self, name_or_index):
-        return Sheet(xl_sheet=self.xl_workbook.get_sheet(name_or_index))
 
     @classmethod
     def caller(cls):
@@ -319,81 +215,6 @@ class Workbook(object):
         """
         Workbook._mock_file = fullpath
 
-    # @classmethod
-    # def current(cls):
-    #     """
-    #     Returns the current Workbook object, i.e. the default Workbook used by ``Sheet``, ``Range`` and ``Chart`` if not
-    #     specified otherwise. On Windows, in case there are various instances of Excel running, opening an existing or
-    #     creating a new Workbook through ``Workbook()`` is acting on the same instance of Excel as this Workbook. Use
-    #     like this: ``Workbook.current()``.
-    #
-    #     .. versionadded:: 0.2.2
-    #     """
-    #     return cls(xl_workbook=xlplatform.get_xl_workbook_current(), app_visible=None)
-    #
-    # def set_current(self):
-    #     """
-    #     This makes the Workbook the default that ``Sheet``, ``Range`` and ``Chart`` use if not specified
-    #     otherwise. On Windows, in case there are various instances of Excel running, opening an existing or creating a
-    #     new Workbook through ``Workbook()`` is acting on the same instance of Excel as this Workbook.
-    #
-    #     .. versionadded:: 0.2.2
-    #     """
-    #     xlplatform.set_xl_workbook_current(self.xl_workbook)
-
-    def get_selection(self):
-        """
-        Returns the currently selected cells from Excel as ``Range`` object.
-
-        Example
-        -------
-
-        >>> import xlwings as xw
-        >>> wb = xw.Workbook.active()
-        >>> wb.get_selection()
-        <Range on Sheet 'Sheet1' of Workbook 'Workbook1'>
-        >>> wb.get_selection.value
-        [[1.0, 2.0], [3.0, 4.0]]
-        >>> wb.get_selection().options(transpose=True).value
-        [[1.0, 3.0], [2.0, 4.0]]
-
-        Returns
-        -------
-        Range object
-        """
-        return Range(self.xl_workbook.get_selection().get_selection_address(self.xl_app), wkb=self)
-
-    def close(self):
-        """
-        Closes the Workbook without saving it.
-
-        .. versionadded:: 0.1.1
-        """
-        self.xl_workbook.close()
-
-    def save(self, path=None):
-        """
-        Saves the Workbook. If a path is being provided, this works like SaveAs() in Excel. If no path is specified and
-        if the file hasn't been saved previously, it's being saved in the current working directory with the current
-        filename. Existing files are overwritten without prompting.
-
-        Arguments
-        ---------
-        path : str, default None
-            Full path to the workbook
-
-        Example
-        -------
-        >>> from xlwings import Workbook
-        >>> wb = Workbook()
-        >>> wb.save()
-        >>> wb.save(r'C:\\path\\to\\new_file_name.xlsx')
-
-        .. versionadded:: 0.3.1
-        """
-        xlplatform.save_workbook(self.xl_workbook, path)
-
-
     @staticmethod
     def open_template():
         """
@@ -424,10 +245,6 @@ class Workbook(object):
         names = NamesDict(self.xl_workbook)
         self.xl_workbook.set_names(names)
         return names
-
-    @property
-    def name(self):
-        return self.xl_workbook.Name
 
     def macro(self, name):
         """
@@ -463,7 +280,7 @@ class Workbook(object):
         return "<Workbook '{0}'>".format(self.name)
 
 
-class Sheet(object):
+class Sheet(xlplatform.Sheet):
     """
     Represents a Sheet of the current Workbook. Either call it with the Sheet name or index::
 
@@ -486,15 +303,10 @@ class Sheet(object):
 
     __metaclass__ = ClassPropertyMetaClass  # needed for class properties to work
 
-    def __init__(self, sheet=None, xl_sheet=None):
-        if xl_sheet is not None:
-            self.xl_sheet = xl_sheet
-        else:
-            self.xl_sheet = Workbook.active.sheet(sheet).xl_sheet
-
-    def activate(self):
-        """Activates the sheet."""
-        self.xl_sheet.activate()
+    def __init__(self, sheet=None, xl=None):
+        if xl is None:
+            xl = Workbook.active.sheet(sheet).xl
+        super(Sheet, self).__init__(xl=xl)
 
     def autofit(self, axis=None):
         """
@@ -521,28 +333,6 @@ class Sheet(object):
         .. versionadded:: 0.2.3
         """
         self.xl_sheet.activate(axis)
-
-    def clear_contents(self):
-        """Clears the content of the whole sheet but leaves the formatting."""
-        self.xl_sheet.clear_contents()
-
-    def clear(self):
-        """Clears the content and formatting of the whole sheet."""
-        self.xl_sheet.clear()
-
-    @property
-    def name(self):
-        """Get or set the name of the Sheet."""
-        return self.xl_sheet.get_name()
-
-    @name.setter
-    def name(self, value):
-        self.xl_sheet.set_name(value)
-
-    @property
-    def index(self):
-        """Returns the index of the Sheet."""
-        self.xl_sheet.get_index()
 
     @classproperty
     def active(cls):
@@ -650,26 +440,19 @@ class Sheet(object):
 
         return sheet_list
 
-    def delete(self):
-        """
-        Deletes the Sheet.
-
-        .. versionadded: 0.6.0
-        """
-        self.xl_sheet.delete()
-
     def __repr__(self):
         return "<Sheet '{0}' of Workbook '{1}'>".format(self.xl_sheet.name, self.xl_sheet.workbook.name)
 
     def range(self, *args):
         if len(args) == 1:
             if isinstance(args[0], string_types):
-                return Range(xl_range=self.xl_sheet.get_range(args[0]))
+                return super(Sheet, self).range(args[0])
             elif isinstance(args[0], tuple):
-                return Range(xl_range=self.xl_sheet.get_range_from_indices(args[0][0], args[0][1], args[0][0], args[0][1]))
+                #return super(Sheet, self).range(args[0])
+                return self._cls.Range(xl=self.xl.get_range_from_indices(args[0][0], args[0][1], args[0][0], args[0][1]))
         elif len(args) == 2:
             if isinstance(args[0], tuple) and isinstance(args[1], tuple):
-                return Range(xl_range=self.xl_sheet.get_range_from_indices(args[0][0], args[0][1], args[1][0], args[1][1]))
+                return self._cls.Range(xl=self.xl.get_range_from_indices(args[0][0], args[0][1], args[1][0], args[1][1]))
         raise ValueError("Invalid arguments")
 
 
@@ -712,32 +495,33 @@ class Range(object):
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
     """
 
-    def __init__(self, *args, xl_range=None, **options):
+    def __init__(self, *args, xl=None, **options):
 
         # Arguments
-        if xl_range is not None:
-            self.xl_range = xl_range
-        elif 0 < len(args) <= 3:
-            if isinstance(args[-1], tuple):
-                if len(args) > 1 and isinstance(args[-2], tuple):
-                    spec = (args[-2], args[-1])
-                else:
+        if xl is None:
+            if 0 < len(args) <= 3:
+                if isinstance(args[-1], tuple):
+                    if len(args) > 1 and isinstance(args[-2], tuple):
+                        spec = (args[-2], args[-1])
+                    else:
+                        spec = (args[-1],)
+                elif isinstance(args[-1], string_types):
                     spec = (args[-1],)
-            elif isinstance(args[-1], string_types):
-                spec = (args[-1],)
-            residual_args = args[:-len(spec)]
-            if residual_args:
-                if len(residual_args) > 1:
-                    raise ValueError("Invalid arguments")
+                residual_args = args[:-len(spec)]
+                if residual_args:
+                    if len(residual_args) > 1:
+                        raise ValueError("Invalid arguments")
+                    else:
+                        sheet = residual_args[0]
+                        if not isinstance(sheet, Sheet):
+                            sheet = Sheet(sheet)
                 else:
-                    sheet = residual_args[0]
-                    if not isinstance(sheet, Sheet):
-                        sheet = Sheet(sheet)
+                    sheet = Sheet.active
+                xl = sheet.range(*spec).xl
             else:
-                sheet = Sheet.active
-            self.xl_range = sheet.range(*spec).xl_range
-        else:
-            raise ValueError("Invalid arguments")
+                raise ValueError("Invalid arguments")
+
+        super(Range, self).__init__(xl=xl)
 
         # Keyword Arguments
         self._options = options
@@ -745,13 +529,9 @@ class Range(object):
         self._coords = None
 
     @property
-    def sheet(self):
-        return Sheet(xl_sheet=self.xl_range.get_worksheet())
-
-    @property
     def coords(self):
         if self._coords is None:
-            self._coords = self.xl_range.get_coordinates()
+            self._coords = super(Range, self).coordinates
         return self._coords
 
     @property
@@ -912,30 +692,6 @@ class Range(object):
         conversion.write(data, self, self._options)
 
     @property
-    def formula(self):
-        """
-        Gets or sets the formula for the given Range.
-        """
-        return self.xl_range.get_formula()
-
-    @formula.setter
-    def formula(self, value):
-        self.xl_range.set_formula(value)
-
-    @property
-    def formula_array(self):
-        """
-        Gets or sets an  array formula for the given Range.
-
-        .. versionadded:: 0.7.1
-        """
-        return self.xl_range.get_formula_array()
-
-    @formula_array.setter
-    def formula_array(self, value):
-        self.xl_range.set_formula_array(value)
-
-    @property
     def table(self):
         """
         Returns a contiguous Range starting with the indicated cell as top-left corner and going down and right as
@@ -1069,7 +825,6 @@ class Range(object):
             **self._options
         )
 
-
     def __getitem__(self, key):
         row, col = key
         if isinstance(row, slice):
@@ -1092,166 +847,6 @@ class Range(object):
             ),
             **self._options
         )
-
-
-    @property
-    def current_region(self):
-        """
-        This property returns a Range object representing a range bounded by (but not including) any
-        combination of blank rows and blank columns or the edges of the worksheet. It corresponds to ``Ctrl-*`` on
-        Windows and ``Shift-Ctrl-Space`` on Mac.
-
-        Returns
-        -------
-        Range object
-
-        """
-        return Range(xl_range=self.xl_range.get_current_region(), **self._options)
-
-    @property
-    def number_format(self):
-        """
-        Gets and sets the number_format of a Range.
-
-        Examples
-        --------
-
-        >>> Range('A1').number_format
-        'General'
-        >>> Range('A1:C3').number_format = '0.00%'
-        >>> Range('A1:C3').number_format
-        '0.00%'
-
-        .. versionadded:: 0.2.3
-        """
-        return self.xl_range.get_number_format()
-
-    @number_format.setter
-    def number_format(self, value):
-        self.xl_range.set_number_format(value)
-
-    def clear(self):
-        """
-        Clears the content and the formatting of a Range.
-        """
-        self.xl_range.clear()
-
-    def clear_contents(self):
-        """
-        Clears the content of a Range but leaves the formatting.
-        """
-        self.xl_range.clear_contents()
-
-    @property
-    def column_width(self):
-        """
-        Gets or sets the width, in characters, of a Range.
-        One unit of column width is equal to the width of one character in the Normal style.
-        For proportional fonts, the width of the character 0 (zero) is used.
-
-        If all columns in the Range have the same width, returns the width.
-        If columns in the Range have different widths, returns None.
-
-        column_width must be in the range:
-        0 <= column_width <= 255
-
-        Note: If the Range is outside the used range of the Worksheet, and columns in the Range have different widths,
-        returns the width of the first column.
-
-        Returns
-        -------
-        float
-
-
-        .. versionadded:: 0.4.0
-        """
-        return self.xl_range.get_column_width()
-
-    @column_width.setter
-    def column_width(self, value):
-        self.xl_range.set_column_width(value)
-
-    @property
-    def row_height(self):
-        """
-        Gets or sets the height, in points, of a Range.
-        If all rows in the Range have the same height, returns the height.
-        If rows in the Range have different heights, returns None.
-
-        row_height must be in the range:
-        0 <= row_height <= 409.5
-
-        Note: If the Range is outside the used range of the Worksheet, and rows in the Range have different heights,
-        returns the height of the first row.
-
-        Returns
-        -------
-        float
-
-
-        .. versionadded:: 0.4.0
-        """
-        return self.xl_range.get_row_height()
-
-    @row_height.setter
-    def row_height(self, value):
-        self.xl_range.set_row_height(value)
-
-    @property
-    def width(self):
-        """
-        Returns the width, in points, of a Range. Read-only.
-
-        Returns
-        -------
-        float
-
-
-        .. versionadded:: 0.4.0
-        """
-        return self.xl_range.get_width()
-
-    @property
-    def height(self):
-        """
-        Returns the height, in points, of a Range. Read-only.
-
-        Returns
-        -------
-        float
-
-
-        .. versionadded:: 0.4.0
-        """
-        return self.xl_range.get_height()
-
-    @property
-    def left(self):
-        """
-        Returns the distance, in points, from the left edge of column A to the left edge of the range. Read-only.
-
-        Returns
-        -------
-        float
-
-
-        .. versionadded:: 0.6.0
-        """
-        return self.xl_range.get_left()
-
-    @property
-    def top(self):
-        """
-        Returns the distance, in points, from the top edge of row 1 to the top edge of the range. Read-only.
-
-        Returns
-        -------
-        float
-
-
-        .. versionadded:: 0.6.0
-        """
-        return self.xl_range.get_top()
 
     def autofit(self, axis=None):
         """
@@ -1390,37 +985,6 @@ class Range(object):
         if screen_tip is None:
             screen_tip = address + ' - Click once to follow. Click and hold to select this cell.'
         self.xl_range.set_hyperlink(address, text_to_display, screen_tip)
-
-    @property
-    def color(self):
-        """
-        Gets and sets the background color of the specified Range.
-
-        To set the color, either use an RGB tuple ``(0, 0, 0)`` or a color constant.
-        To remove the background, set the color to ``None``, see Examples.
-
-        Returns
-        -------
-        RGB : tuple
-
-        Examples
-        --------
-        >>> Range('A1').color = (255,255,255)
-        >>> from xlwings import RgbColor
-        >>> Range('A2').color = RgbColor.rgbAqua
-        >>> Range('A2').color
-        (0, 255, 255)
-        >>> Range('A2').color = None
-        >>> Range('A2').color is None
-        True
-
-        .. versionadded:: 0.3.0
-        """
-        return self.xl_range.get_color()
-
-    @color.setter
-    def color(self, color_or_rgb):
-        self.xl_range.set_color(color_or_rgb)
 
     def resize(self, row_size=None, column_size=None):
         """
@@ -1574,106 +1138,22 @@ class Shape(object):
 
     .. versionadded:: 0.5.0
     """
-    def __init__(self, *args, xl_shape=None, **kwargs):
+    def __init__(self, *args, xl=None, **kwargs):
 
-        if xl_shape is not None:
-            self.xl_shape = xl_shape
+        if xl is None:
+            if len(args) == 1:
+                xl = Sheet.active.get_shape_object(args[0])
 
-        elif len(args) == 1:
-            self.xl_shape = Sheet.active.xl_sheet.get_shape_object(args[0])
+            elif len(args) == 2:
+                sheet = args[0]
+                if not isinstance(sheet, Sheet):
+                    sheet = Sheet(sheet)
+                xl = sheet.get_shape_object(args[1])
 
-        elif len(args) == 2:
-            sheet = args[0]
-            if not isinstance(sheet, Sheet):
-                sheet = Sheet(sheet)
-            self.xl_shape = sheet.xl_sheet.get_shape_object(args[1])
+            else:
+                raise ValueError("Invalid arguments")
 
-        else:
-            raise ValueError("Invalid arguments")
-
-
-    @property
-    def name(self):
-        """
-        Returns or sets a String value representing the name of the object.
-
-        .. versionadded:: 0.5.0
-        """
-        return self.xl_shape.get_name()
-
-    @name.setter
-    def name(self, value):
-        self.xl_shape.set_name(value)
-
-    @property
-    def left(self):
-        """
-        Returns or sets a value that represents the distance, in points, from the left edge of the object to the
-        left edge of column A.
-
-        .. versionadded:: 0.5.0
-        """
-        return self.xl_shape.get_left()
-
-    @left.setter
-    def left(self, value):
-        return self.xl_shape.set_left(value)
-
-    @property
-    def top(self):
-        """
-        Returns or sets a value that represents the distance, in points, from the top edge of the topmost shape
-        in the shape range to the top edge of the worksheet.
-
-        .. versionadded:: 0.5.0
-        """
-        return self.xl_shape.get_top()
-
-    @top.setter
-    def top(self, value):
-        self.xl_shape.set_top(value)
-
-    @property
-    def width(self):
-        """
-        Returns or sets a value that represents the width, in points, of the object.
-
-        .. versionadded:: 0.5.0
-        """
-        return self.xl_shape.get_width()
-
-    @width.setter
-    def width(self, value):
-        self.xl_shape.set_width(value)
-
-    @property
-    def height(self):
-        """
-        Returns or sets a value that represents the height, in points, of the object.
-
-        .. versionadded:: 0.5.0
-        """
-        return self.xl_shape.get_height()
-
-    @height.setter
-    def height(self, value):
-        self.xl_shape.set_height(value)
-
-    def delete(self):
-        """
-        Deletes the object.
-
-        .. versionadded:: 0.5.0
-        """
-        self.xl_shape.delete()
-
-    def activate(self):
-        """
-        Activates the object.
-
-        .. versionadded:: 0.5.0
-        """
-        self.xl_shape.activate()
+        super(Shape, self).__init__(xl=xl)
 
 
 class Chart(Shape):

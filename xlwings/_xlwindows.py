@@ -3,6 +3,8 @@ import sys
 
 # Hack to find pythoncom.dll - needed for some distribution/setups (includes seemingly unused import win32api)
 # E.g. if python is started with the full path outside of the python path, then it almost certainly fails
+from pandas.core.indexing import _AtIndexer
+
 cwd = os.getcwd()
 if not hasattr(sys, 'frozen'):
     # cx_Freeze etc. will fail here otherwise
@@ -179,29 +181,39 @@ class Application(object):
             self.xl = xl
 
     @classmethod
+    def all(cls):
+        return [cls._cls.Application(xl=xl) for xl in get_xl_apps()]
+
+    @classmethod
     def get_running(cls):
-        return Application(dynamic.Dispatch('Excel.Application'))
+        return cls._cls.Application(xl=dynamic.Dispatch('Excel.Application'))
 
-    def get_active_workbook(self):
-        xl_wb = self.xl.ActiveWorkbook
-        return Workbook(xl_wb) if xl_wb is not None else None
+    @property
+    def active_workbook(self):
+        xl = self.xl.ActiveWorkbook
+        return xl and self._cls.Workbook(xl=xl)
 
-    def get_active_sheet(self):
-        return Sheet(self.xl.ActiveSheet)
+    @property
+    def active_sheet(self):
+        return self._cls.Worksheet(xl=self.xl.ActiveSheet)
 
     def open_workbook(self, fullname):
-        return Workbook(self.xl.Workbooks.Open(fullname))
+        return self._cls.Workbook(xl=self.xl.Workbooks.Open(fullname))
 
     def new_workbook(self):
-        return Workbook(self.xl.Workbooks.Add())
+        return self._cls.Workbook(xl=self.xl.Workbooks.Add())
 
-    def get_selection(self):
-        return Range(self.xl.Selection)
+    @property
+    def selection(self):
+        # TODO: selection isn't always a range
+        return self._cls.Range(xl=self.xl.Selection)
 
-    def get_visible(self):
+    @property
+    def visible(self):
         return self.xl.Visible
 
-    def set_visible(self, visible):
+    @visible.setter
+    def visible(self, visible):
         self.xl.Visible = visible
 
     def quit(self):
@@ -209,26 +221,31 @@ class Application(object):
         self.xl.Quit()
         self.xl.DisplayAlerts = True
 
-    def get_screen_updating(self):
+    @property
+    def screen_updating(self):
         return self.xl.ScreenUpdating
 
-    def set_screen_updating(self, value):
+    @screen_updating.setter
+    def screen_updating(self, value):
         self.xl.ScreenUpdating = value
 
-    def get_calculation(self):
+    @property
+    def calculation(self):
         return self.xl.Calculation
 
-    def set_calculation(self, value):
+    @calculation.setter
+    def calculation(self, value):
         self.xl.Calculation = value
 
     def calculate(self):
         self.xl.Calculate()
 
-    def get_version_string(self):
+    @property
+    def version(self):
         return self.xl.Version
 
     def get_major_version_number(self):
-        return int(self.get_version_string().split('.')[0])
+        return int(self.version.split('.')[0])
 
 
 class Workbook(object):
@@ -236,27 +253,30 @@ class Workbook(object):
     def __init__(self, xl):
         self.xl = xl
 
-    def get_name(self):
+    @property
+    def name(self):
         return self.xl.Name
 
-    def set_name(self, value):
+    @name.setter
+    def name(self, value):
         self.xl.Name = value
 
-    def get_sheet(self, sheet_name_or_index):
-        return Sheet(self.xl.Sheets(sheet_name_or_index))
+    def sheet(self, sheet_name_or_index):
+        return self._cls.Sheet(xl=self.xl.Sheets(sheet_name_or_index))
 
-    def get_application(self):
-        return Application(self.xl.Application)
+    def application(self):
+        return self._cls.Application(xl=self.xl.Application)
 
     def close(self):
         self.xl.Close(SaveChanges=False)
 
-    def get_active_sheet(self):
-        return Sheet(self.xl.ActiveSheet)
+    @property
+    def active_sheet(self):
+        return self._cls.Sheet(xl=self.xl.ActiveSheet)
     
     def add_sheet(self, before, after):
         if before:
-            return Sheet(self.xl.Worksheets.Add(Before=before.xl))
+            return self._cls.Sheet(xl=self.xl.Worksheets.Add(Before=before.xl))
         else:
             # Hack, since "After" is broken in certain environments
             # see: http://code.activestate.com/lists/python-win32/11554/
@@ -269,12 +289,12 @@ class Workbook(object):
                 self.xl.Worksheets(self.xl.Worksheets.Count).Activate()
             else:
                 xl_sheet = self.xl.Worksheets.Add(Before=self.xl.Sheets(after.xl.Index + 1))
-            return Sheet(xl_sheet)
+            return self._cls.Sheet(xl=xl_sheet)
     
     def count_sheets(self):
         return self.xl.Worksheets.Count
 
-    def save_workbook(self, path):
+    def save_workbook(self, path=None):
         saved_path = self.xl.Path
         if (saved_path != '') and (path is None):
             # Previously saved: Save under existing name
@@ -290,8 +310,9 @@ class Workbook(object):
             self.xl.Application.DisplayAlerts = False
             self.xl.SaveAs(path)
             self.xl.Application.DisplayAlerts = True
-    
-    def get_fullname(self):
+
+    @property
+    def fullname(self):
         return self.xl.FullName
     
     def set_names(self, names):
@@ -304,8 +325,9 @@ class Workbook(object):
     def activate(self):
         self.xl.Activate()
 
-    def get_selection(self):
-        return Range(self.xl.ActiveSheet.Selection)
+    @property
+    def selection(self):
+        return self._cls.Range(xl=self.xl.ActiveSheet.Selection)
 
 
 class Sheet(object):
@@ -313,17 +335,20 @@ class Sheet(object):
     def __init__(self, xl):
         self.xl = xl
 
-    def get_name(self):
+    @property
+    def name(self):
         return self.xl.Name
 
-    def get_workbook(self):
-        return Workbook(self.Parent)
+    @property
+    def workbook(self):
+        return self._cls.Workbook(self.Parent)
 
-    def get_index(self):
+    @property
+    def index(self):
         return self.xl.Index
 
-    def get_range(self, address):
-        return Range(self.xl.Range(address))
+    def range(self, address):
+        return self._cls.Range(xl=self.xl.Range(address))
 
     def activate(self):
         return self.xl.Activate()
@@ -358,7 +383,7 @@ class Sheet(object):
             return c1
         c2 = self.xl.Cells(last_row, last_column)
         r = self.xl.Range(c1, c2)
-        return Range(r)
+        return self._cls.Range(xl=r)
 
     def delete(self):
         xl_app = self.xl.Parent.Application
@@ -367,7 +392,7 @@ class Sheet(object):
         xl_app.DisplayAlerts = True
 
     def add_picture(self, filename, link_to_file, save_with_document, left, top, width, height):
-        return Shape(self.xl.Shapes.AddPicture(
+        return self._cls.Shape(xl=self.xl.Shapes.AddPicture(
             Filename=filename,
             LinkToFile=link_to_file,
             SaveWithDocument=save_with_document,
@@ -378,10 +403,10 @@ class Sheet(object):
         ))
 
     def get_shape_object(self, shape_name_or_index):
-        return Shape(self.xl.Shapes(shape_name_or_index))
+        return self._cls.Shape(xl=self.xl.Shapes(shape_name_or_index))
 
     def get_chart_object(self, chart_name_or_index):
-        return Chart(self.xl.ChartObjects(chart_name_or_index))
+        return self._cls.Chart(xl=self.xl.ChartObjects(chart_name_or_index))
 
     def get_shapes_names(self):
         shapes = self.xl.Shapes
@@ -391,7 +416,7 @@ class Sheet(object):
             return []
 
     def add_chart(self, left, top, width, height):
-        return Chart(self.xl.ChartObjects().Add(left, top, width, height))
+        return self._cls.Chart(xl=self.xl.ChartObjects().Add(left, top, width, height))
 
 
 class Range(object):
@@ -399,10 +424,12 @@ class Range(object):
     def __init__(self, xl):
         self.xl = xl
 
-    def get_worksheet(self):
-        return Sheet(self.xl.Worksheet)
+    @property
+    def worksheet(self):
+        return self._cls.Sheet(xl=self.xl.Worksheet)
 
-    def get_coordinates(self):
+    @property
+    def coordinates(self):
         row1 = self.xl.Row
         col1 = self.xl.Column
         row2 = row1 + self.xl.Rows.Count - 1
@@ -421,68 +448,84 @@ class Range(object):
     def count_columns(self):
         return self.xl.Columns.Count
 
-    def get_value(self):
+    @property
+    def value(self):
         return self.xl.Value
 
-    def set_value(self, data):
+    @value.setter
+    def value(self, data):
         self.xl.Value = data
 
     def clear_contents(self):
         self.xl.ClearContents()
 
     def get_cell(self, row, col):
-        return Range(self.xl.Cells(row, col))
+        return self._cls.Range(xl=self.xl.Cells(row, col))
 
     def clear(self):
         self.xl.Clear()
 
-    def get_formula(self):
+    @property
+    def formula(self):
         return self.xl.Formula
 
-    def set_formula(self, value):
+    @formula.setter
+    def formula(self, value):
         self.xl.Formula = value
 
-    def get_formula_array(self):
+    @property
+    def formula_array(self):
         return self.xl.FormulaArray
 
-    def set_formula_array(self, value):
+    @formula_array.setter
+    def formula_array(self, value):
         self.xl.FormulaArray = value
 
-    def get_column_width(self):
+    @property
+    def column_width(self):
         return self.xl.ColumnWidth
 
-    def set_column_width(self, value):
+    @column_width.setter
+    def column_width(self, value):
         self.xl.ColumnWidth = value
 
-    def get_row_height(self):
+    @property
+    def row_height(self):
         return self.xl.RowHeight
 
-    def set_row_height(self, value):
+    @row_height.setter
+    def row_height(self, value):
         self.xl.RowHeight = value
 
-    def get_width(self):
+    @property
+    def width(self):
         return self.xl.Width
 
-    def get_height(self):
+    @property
+    def height(self):
         return self.xl.Height
 
-    def get_left(self):
+    @property
+    def left(self):
         return self.xl.Left
 
-    def get_top(self):
+    @property
+    def top(self):
         return self.xl.Top
 
-    def get_number_format(self):
+    @property
+    def number_format(self):
         return self.xl.NumberFormat
 
-    def set_number_format(self, value):
+    @number_format.setter
+    def number_format(self, value):
         self.xl.NumberFormat = value
 
     def get_address(self, row_absolute, col_absolute, external):
         return self.xl.GetAddress(row_absolute, col_absolute, 1, external)
 
     def get_current_region(self):
-        return Range(self.xl.CurrentRegion)
+        return self._cls.Range(xl=self.xl.CurrentRegion)
 
     def autofit(self, axis):
         if axis == 'rows' or axis == 'r':
@@ -641,6 +684,7 @@ def prepare_xl_data_element(x):
     else:
         return x
 
+
 def open_template(fullpath):
     os.startfile(fullpath)
 
@@ -650,41 +694,52 @@ class Shape(object):
     def __init__(self, xl):
         self.xl = xl
 
-    def get_name(self):
+    @property
+    def name(self):
         return self.xl.Name
 
-    def get_left(self):
+    @property
+    def left(self):
         return self.xl.Left
 
-    def set_left(self, value):
+    @property
+    def left(self, value):
         self.xl.Left = value
 
-    def get_top(self):
+    @property
+    def top(self):
         return self.xl.Top
 
-    def set_top(self, value):
+    @property
+    def top(self, value):
         self.xl.Top = value
 
-    def get_width(self):
+    @property
+    def width(self):
         return self.xl.Width
 
-    def set_width(self, value):
+    @property
+    def width(self, value):
         self.xl.Width = value
 
-    def get_height(self):
+    @property
+    def height(self):
         return self.xl.Height
 
-    def set_height(self, value):
+    @property
+    def height(self, value):
         self.xl.Height = value
 
     def delete(self):
         self.xl.Delete()
 
-    def set_name(self, value):
+    @name.setter
+    def name(self, value):
         self.xl.Name = value
         #return xl_workbook.Sheets(sheet_name_or_index).Shapes(value)
 
-    def get_index(self):
+    @property
+    def index(self):
         return self.xl.Index
 
     def activate(self):
