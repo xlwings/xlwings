@@ -87,9 +87,7 @@ class CleanDataForWriteStage(object):
     def __call__(self, c):
         c.value = [
             [
-                None
-                if np and isinstance(x, float) and np.isnan(x)
-                else xlplatform.prepare_xl_data_element(x)
+                xlplatform.prepare_xl_data_element(x)
                 for x in y
             ]
             for y in c.value
