@@ -218,12 +218,16 @@ Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As S
         LOG_FILE = Environ("APPDATA") + "\xlwings_log.txt"
     End If
 
+    If Not IsFrozen Then
+        PYTHON_WIN = ParentFolder(PYTHON_WIN)
+    End If
+
     If Left$(PYTHON_WIN, 2) Like "[A-Za-z]:" Then
         ' If Python is installed on a mapped or local drive, change to drive, then cd to path
-        DriveCommand = Left$(PYTHON_WIN, 2) & " & cd """ & ParentFolder(PYTHON_WIN) & """ & "
+        DriveCommand = Left$(PYTHON_WIN, 2) & " & cd """ & PYTHON_WIN & """ & "
     ElseIf Left$(PYTHON_WIN, 2) = "\\" Then
         ' If Python is installed on a UNC path, temporarily mount and activate a drive letter with pushd
-        DriveCommand = "pushd """ & ParentFolder(PYTHON_WIN) & """ & "
+        DriveCommand = "pushd """ & PYTHON_WIN & """ & "
     End If
 
     ' Run Python with the "-c" command line switch: add the path of the python file and run the
