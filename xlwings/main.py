@@ -46,12 +46,19 @@ except ImportError:
     Image = None
 
 
+class Applications(xlplatform.Applications):
+
+    def __repr__(self):
+        return repr(list(self))
+
+
+applications = Applications()
+
+
 class Application(xlplatform.Application):
     """
     Application is dependent on the Workbook since there might be different application instances on Windows.
     """
-
-    __metaclass__ = ClassPropertyMetaClass   # this is needed for class properties to work
 
     def __init__(self, xl=None, make_visible=None):
         super(Application, self).__init__(xl=xl)
@@ -67,20 +74,14 @@ class Application(xlplatform.Application):
     def major_version(self):
         return int(self.version.split('.')[0])
 
-    _current = None
-
-    @classproperty
-    def current(cls):
-        if cls._current is None:
-            cls._current = Application(xl=xlplatform.Application.get_running())
-        return cls._current
-
-    @current.setter
-    def current(cls, value):
-        cls._current = value
-
     def __repr__(self):
         return "<Excel App %s>" % self.pid
+
+    def __getitem__(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            return self(name_or_index + 1)
+        else:
+            return self(name_or_index)
 
 
 class Workbook(xlplatform.Workbook):
@@ -128,14 +129,14 @@ class Workbook(xlplatform.Workbook):
             if fullname:
                 if not os.path.isfile(fullname) or xlplatform.is_file_open(fullname):
                     # Connect to unsaved Workbook (e.g. 'Workbook1') or to an opened Workbook
-                    xl = Application.getxlplatform.get_open_workbook(fullname, app_target)
+                    xl = applications.getxlplatform.get_open_workbook(fullname, app_target)
                 else:
                     # Open Excel and the Workbook
-                    xl = Application.current.open_workbook(fullname).xl
+                    xl = applications.current.open_workbook(fullname).xl
 
             else:
                 # Open Excel if necessary and create a new workbook
-                app = Application.current
+                app = applications.current
                 xl = app.new_workbook().xl
 
             super(Workbook, self).__init__(xl=xl)
@@ -283,6 +284,12 @@ class Workbook(xlplatform.Workbook):
 
     def __repr__(self):
         return "<Workbook '{0}'>".format(self.name)
+
+    def __getitem__(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            return self(name_or_index + 1)
+        else:
+            return self(name_or_index)
 
 
 class Sheet(xlplatform.Sheet):
@@ -446,7 +453,7 @@ class Sheet(xlplatform.Sheet):
         return sheet_list
 
     def __repr__(self):
-        return "<Sheet '{0}' of Workbook '{1}'>".format(self.xl_sheet.name, self.xl_sheet.workbook.name)
+        return "<Sheet '{0}' of Workbook '{1}'>".format(self.name, self.workbook.name)
 
     def range(self, *args):
         if len(args) == 1:
@@ -1639,11 +1646,34 @@ class Macro(object):
     __call__ = run
 
 
-Workbooks = xlplatform.Workbooks
+class Workbooks(xlplatform.Workbooks):
 
-Sheets = xlplatform.Sheets
+    def __repr__(self):
+        r = []
+        for i, wb in enumerate(self):
+            if i == 3:
+                r.append("...")
+                break
+            else:
+                r.append(repr(wb))
+        return "["+", ".join(r)+"]"
+
+
+class Sheets(xlplatform.Sheets):
+
+    def __repr__(self):
+        r = []
+        for i, sht in enumerate(self):
+            if i == 3:
+                r.append("...")
+                break
+            else:
+                r.append(repr(sht))
+        return "["+", ".join(r)+"]"
+
 
 class Classes:
+    Applications = Applications
     Application = Application
     Workbook = Workbook
     Workbooks = Workbooks
@@ -1652,7 +1682,8 @@ class Classes:
     Sheets = Sheets
     Range = Range
 
-Application._cls \
+Applications._cls \
+    = Application._cls \
     = Workbooks._cls \
     = Workbook._cls \
     = Sheets._cls \

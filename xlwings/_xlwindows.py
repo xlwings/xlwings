@@ -173,6 +173,32 @@ def is_range_instance(xl_range):
     # return pyid.GetTypeInfo().GetDocumentation(-1)[0] == 'Range'
 
 
+class Applications(object):
+
+    def __init__(self):
+        self._current = None
+
+    def __iter__(self):
+        for xl in get_xl_apps():
+            yield self._cls.Application(xl=xl)
+
+    def __len__(self):
+        return len(get_xl_apps())
+
+    def __getitem__(self, index):
+        return self._cls.Application(xl=get_xl_apps()[index])
+
+    @property
+    def current(self):
+        if self._current is None:
+            self._current = self._cls.Application(xl=dynamic.Dispatch('Excel.Application'), make_visible=True)
+        return self._current
+
+    @current.setter
+    def current(self, value):
+        self._current = value
+
+
 class Application(object):
 
     def __init__(self, xl=None):
@@ -181,14 +207,6 @@ class Application(object):
             self.xl = DispatchEx('Excel.Application')
         else:
             self.xl = xl
-
-    @classmethod
-    def all(cls):
-        return [cls._cls.Application(xl=xl) for xl in get_xl_apps()]
-
-    @classmethod
-    def get_running(cls):
-        return cls._cls.Application(xl=dynamic.Dispatch('Excel.Application'))
 
     @property
     def active_workbook(self):
@@ -257,6 +275,16 @@ class Application(object):
     def pid(self):
         return win32process.GetWindowThreadProcessId(self.xl.Hwnd)[1]
 
+    def __iter__(self):
+        for i in range(self.xl.Workbooks.Count):
+            yield self._cls.Workbook(xl=self.xl.Workbooks(i + 1))
+
+    def __call__(self, name_or_index):
+        return self._cls.Workbook(xl=self.xl.Workbooks(name_or_index + 1))
+
+    def __len__(self):
+        return self.xl.Workbooks.Count
+
 
 class Workbooks(object):
 
@@ -300,6 +328,7 @@ class Workbook(object):
     def sheet(self, sheet_name_or_index):
         return self._cls.Sheet(xl=self.xl.Sheets(sheet_name_or_index))
 
+    @property
     def application(self):
         return self._cls.Application(xl=self.xl.Application)
 
@@ -365,6 +394,16 @@ class Workbook(object):
     def selection(self):
         return self._cls.Range(xl=self.xl.ActiveSheet.Selection)
 
+    def __iter__(self):
+        for i in range(self.xl.Sheets.Count):
+            yield self._cls.Sheet(xl=self.xl.Sheets(i + 1))
+
+    def __call__(self, name_or_index):
+        return self._cls.Sheet(xl=self.xl.Sheets(name_or_index))
+
+    def __len__(self):
+        return self.xl.Sheets.Count
+
 
 class Sheets(object):
     def __init__(self, xl):
@@ -387,7 +426,6 @@ class Sheets(object):
         return self.xl.Count
 
 
-
 class Sheet(object):
 
     def __init__(self, xl):
@@ -399,7 +437,7 @@ class Sheet(object):
 
     @property
     def workbook(self):
-        return self._cls.Workbook(self.Parent)
+        return self._cls.Workbook(xl=self.xl.Parent)
 
     @property
     def index(self):
