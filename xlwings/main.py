@@ -53,10 +53,12 @@ class Application(xlplatform.Application):
 
     __metaclass__ = ClassPropertyMetaClass   # this is needed for class properties to work
 
-    def __init__(self, xl=None, make_visible=True):
+    def __init__(self, xl=None, make_visible=None):
         super(Application, self).__init__(xl=xl)
 
-        if make_visible:
+        if xl is None and make_visible is None:
+            self.visible = True
+        elif make_visible:
             self.visible = True
 
         Application.current = self
@@ -76,6 +78,9 @@ class Application(xlplatform.Application):
     @current.setter
     def current(cls, value):
         cls._current = value
+
+    def __repr__(self):
+        return "<Excel App %s>" % self.pid
 
 
 class Workbook(xlplatform.Workbook):
@@ -1632,3 +1637,25 @@ class Macro(object):
         return xlplatform.run(self.wb, self.name, self.app or Application(self.wb), args)
 
     __call__ = run
+
+
+Workbooks = xlplatform.Workbooks
+
+Sheets = xlplatform.Sheets
+
+class Classes:
+    Application = Application
+    Workbook = Workbook
+    Workbooks = Workbooks
+    Worksheet = Sheet
+    Sheet = Sheet
+    Sheets = Sheets
+    Range = Range
+
+Application._cls \
+    = Workbooks._cls \
+    = Workbook._cls \
+    = Sheets._cls \
+    = Sheet._cls \
+    = Range._cls \
+    = Classes

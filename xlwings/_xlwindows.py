@@ -19,12 +19,14 @@ import pythoncom
 from win32com.client import dynamic, Dispatch, CDispatch, DispatchEx
 import win32timezone
 import win32gui
+import win32process
 import datetime as dt
 from .constants import Direction, ColorIndex
 from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime
 from ctypes import oledll, PyDLL, py_object, byref, POINTER
 from comtypes import IUnknown
 from comtypes.automation import IDispatch
+import numbers
 
 # Optional imports
 try:
@@ -247,6 +249,36 @@ class Application(object):
     def get_major_version_number(self):
         return int(self.version.split('.')[0])
 
+    @property
+    def workbooks(self):
+        return self._cls.Workbooks(xl=self.xl.Workbooks)
+
+    @property
+    def pid(self):
+        return win32process.GetWindowThreadProcessId(self.xl.Hwnd)[1]
+
+
+class Workbooks(object):
+
+    def __init__(self, xl):
+        self.xl = xl
+
+    def __getitem__(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            return self._cls.Workbook(xl=self.xl(name_or_index + 1))
+        else:
+            return self._cls.Workbook(xl=self.xl(name_or_index))
+
+    def __iter__(self):
+        for i in range(self.xl.Count):
+            yield self._cls.Workbook(xl=self.xl(i+1))
+
+    def __call__(self, name_or_index):
+        return self._cls.Workbook(xl=self.xl(name_or_index + 1))
+
+    def __len__(self):
+        return self.xl.Count
+
 
 class Workbook(object):
 
@@ -260,6 +292,10 @@ class Workbook(object):
     @name.setter
     def name(self, value):
         self.xl.Name = value
+
+    @property
+    def sheets(self):
+        return self._cls.Sheets(xl=self.xl.Sheets)
 
     def sheet(self, sheet_name_or_index):
         return self._cls.Sheet(xl=self.xl.Sheets(sheet_name_or_index))
@@ -328,6 +364,28 @@ class Workbook(object):
     @property
     def selection(self):
         return self._cls.Range(xl=self.xl.ActiveSheet.Selection)
+
+
+class Sheets(object):
+    def __init__(self, xl):
+        self.xl = xl
+
+    def __getitem__(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            return self._cls.Sheet(xl=self.xl(name_or_index + 1))
+        else:
+            return self._cls.Sheet(xl=self.xl(name_or_index))
+
+    def __iter__(self):
+        for i in range(self.xl.Count):
+            yield self._cls.Sheet(xl=self.xl(i + 1))
+
+    def __call__(self, name_or_index):
+        return self._cls.Sheet(xl=self.xl(name_or_index))
+
+    def __len__(self):
+        return self.xl.Count
+
 
 
 class Sheet(object):
