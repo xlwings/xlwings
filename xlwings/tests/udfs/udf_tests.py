@@ -330,6 +330,7 @@ if pd:
         return pd.Series([1.5, 2.5], name='ts', index=[datetime(2000, 12, 20), datetime(2000, 12, 21)])
 
     @xw.func
+    @xw.ret(pd.Series, index=False)
     def write_series_nan():
         return pd.Series([1, np.nan, 3])
 
