@@ -58,7 +58,7 @@ class WriteValueToRangeStage(object):
         self.raw = raw
 
     def _write_value(self, rng, value, scalar):
-        if rng.xl_range and value:
+        if rng.xl and value:
             # it is assumed by this stage that value is a list of lists
             if scalar:
                 row2 = rng.row2
@@ -68,19 +68,17 @@ class WriteValueToRangeStage(object):
                 row2 = rng.row1 + len(value) - 1
                 col2 = rng.col1 + len(value[0]) - 1
 
-            rng.xl_range.get_worksheet().get_range_from_indices(
+            rng.worksheet.get_range_from_indices(
                 rng.row1,
                 rng.col1,
                 row2,
                 col2
-            ).set_value(
-                value
-            )
+            ).value = value
 
     def __call__(self, ctx):
         if ctx.range and ctx.value:
             if self.raw:
-                xlplatform.set_value(ctx.range.xl_range, ctx.value)
+                super(Range, ctx.range).value = ctx.value
                 return
 
             scalar = ctx.meta.get('scalar', False)
@@ -102,7 +100,7 @@ class ReadValueFromRangeStage(object):
 
     def __call__(self, c):
         if c.range:
-            c.value = c.range.xl_range.get_value()
+            c.value = super(Range, c.range).value
 
 
 class CleanDataFromReadStage(object):

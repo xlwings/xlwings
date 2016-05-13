@@ -31,6 +31,7 @@ class ShapeAlreadyExists(Exception):
 
 # API
 from .main import Application, Workbook, Range, Chart, Sheet, Picture, Shape, Plot, view, applications
+from .main import current_app, active_workbook, active_sheet
 from .constants import *
 apps = applications
 App = Application

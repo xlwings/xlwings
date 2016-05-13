@@ -19,10 +19,10 @@ import collections
 import tempfile
 import shutil
 
-from . import xlplatform, string_types, xrange, map, ShapeAlreadyExists
+from . import xlplatform, string_types, xrange, map, ShapeAlreadyExists, PY3
 from .constants import ChartType
 
-from .utils import ClassPropertyMetaClass, classproperty
+from .utils import ObjectProxy
 
 # Optional imports
 try:
@@ -48,12 +48,26 @@ except ImportError:
 
 class Applications(xlplatform.Applications):
 
+    def __init__(self):
+        self._current = None
+
+    @property
+    def current(self):
+        if self._current is None:
+            self._current = self.default
+        return self._current
+
+    @current.setter
+    def current(self, value):
+        self._current = value
+
     def __repr__(self):
         return repr(list(self))
 
 
 applications = Applications()
 
+current_app = ObjectProxy(lambda: applications.current)
 
 class Application(xlplatform.Application):
     """
@@ -68,7 +82,7 @@ class Application(xlplatform.Application):
         elif make_visible:
             self.visible = True
 
-        Application.current = self
+        applications.current = self
 
     @property
     def major_version(self):
@@ -82,6 +96,15 @@ class Application(xlplatform.Application):
             return self(name_or_index + 1)
         else:
             return self(name_or_index)
+
+    def make_current(self):
+        applications.current = self
+
+    def __eq__(self, other):
+        return type(other) is Application and other.pid == self.pid
+
+    def __hash__(self):
+        return hash(self.pid)
 
 
 class Workbook(xlplatform.Workbook):
@@ -127,13 +150,25 @@ class Workbook(xlplatform.Workbook):
             super(Workbook, self).__init__(xl=xl)
         else:
             if fullname:
-                if not os.path.isfile(fullname) or xlplatform.is_file_open(fullname):
-                    # Connect to unsaved Workbook (e.g. 'Workbook1') or to an opened Workbook
-                    xl = applications.getxlplatform.get_open_workbook(fullname, app_target)
-                else:
-                    # Open Excel and the Workbook
-                    xl = applications.current.open_workbook(fullname).xl
+                if not PY3 and isinstance(fullname, str):
+                    fullname = unicode(fullname, 'mbcs')  # noqa
+                fullname = fullname.lower()
 
+                candidates = []
+                for app in applications:
+                    for wb in app.workbooks:
+                        if wb.fullname.lower() == fullname or wb.name.lower() == fullname:
+                            candidates.append((app, wb))
+
+                if len(candidates) == 0:
+                    if os.path.isfile(fullname):
+                        xl = applications.current.open_workbook(fullname).xl
+                    else:
+                        raise Exception("Could not connect to workbook '%s'" % fullname)
+                elif len(candidates) > 1:
+                    raise Exception("Workbook '%s' is open in more than one Excel instance." % fullname)
+                else:
+                    xl = candidates[0][1].xl
             else:
                 # Open Excel if necessary and create a new workbook
                 app = applications.current
@@ -146,7 +181,7 @@ class Workbook(xlplatform.Workbook):
 
             self.activate()
 
-    @classproperty
+    @classmethod
     def active(cls):
         """
         Returns the Workbook that is currently active or has been active last. On Windows,
@@ -154,7 +189,7 @@ class Workbook(xlplatform.Workbook):
 
         .. versionadded:: 0.4.1
         """
-        return Application.current.active_workbook
+        return applications.current.active_workbook
 
     @classmethod
     def caller(cls):
@@ -292,6 +327,9 @@ class Workbook(xlplatform.Workbook):
             return self(name_or_index)
 
 
+active_workbook = ObjectProxy(Workbook.active)
+
+
 class Sheet(xlplatform.Sheet):
     """
     Represents a Sheet of the current Workbook. Either call it with the Sheet name or index::
@@ -313,11 +351,9 @@ class Sheet(xlplatform.Sheet):
     .. versionadded:: 0.2.3
     """
 
-    __metaclass__ = ClassPropertyMetaClass  # needed for class properties to work
-
     def __init__(self, sheet=None, xl=None):
         if xl is None:
-            xl = Workbook.active.sheet(sheet).xl
+            xl = Workbook.active().sheet(sheet).xl
         super(Sheet, self).__init__(xl=xl)
 
     def autofit(self, axis=None):
@@ -346,10 +382,10 @@ class Sheet(xlplatform.Sheet):
         """
         self.xl_sheet.activate(axis)
 
-    @classproperty
+    @classmethod
     def active(cls):
         """Returns the active Sheet in the current application. Use like so: ``Sheet.active()``"""
-        return Application.current.active_sheet
+        return applications.current.active_sheet
 
     @classmethod
     def add(cls, name=None, before=None, after=None, wkb=None):
@@ -384,7 +420,7 @@ class Sheet(xlplatform.Sheet):
         .. versionadded:: 0.2.3
         """
         if wkb is None:
-            wkb = Workbook.active
+            wkb = Workbook.active()
 
         if before is None and after is None:
             after = wkb.sheet(Sheet.count(wkb=wkb))
@@ -422,7 +458,7 @@ class Sheet(xlplatform.Sheet):
         .. versionadded:: 0.2.3
         """
         if wkb is None:
-            wkb = Workbook.active
+            wkb = Workbook.active()
         return wkb.xl_workbook.count_sheets()
 
     @staticmethod
@@ -468,7 +504,10 @@ class Sheet(xlplatform.Sheet):
         raise ValueError("Invalid arguments")
 
 
-class Range(object):
+active_sheet = ObjectProxy(Sheet.active)
+
+
+class Range(xlplatform.Range):
     """
     A Range object can be instantiated with the following arguments::
 
@@ -528,7 +567,7 @@ class Range(object):
                         if not isinstance(sheet, Sheet):
                             sheet = Sheet(sheet)
                 else:
-                    sheet = Sheet.active
+                    sheet = Sheet.active()
                 xl = sheet.range(*spec).xl
             else:
                 raise ValueError("Invalid arguments")
@@ -1154,7 +1193,7 @@ class Shape(object):
 
         if xl is None:
             if len(args) == 1:
-                xl = Sheet.active.get_shape_object(args[0])
+                xl = Sheet.active().get_shape_object(args[0])
 
             elif len(args) == 2:
                 sheet = args[0]
@@ -1213,7 +1252,7 @@ class Chart(Shape):
             self.xl_chart = xl_chart
         elif len(args) == 1:
             # Get xl_chart object
-            self.xl_chart = Sheet.active.xl_sheet.get_chart_object(args[0])
+            self.xl_chart = Sheet.active().xl_sheet.get_chart_object(args[0])
         elif len(args) == 2:
             sheet = args[0]
             if not isinstance(sheet, Sheet):
@@ -1275,9 +1314,9 @@ class Chart(Shape):
         """
 
         if sheet is None:
-            sheet = Application.current.active_sheet
+            sheet = applications.current.active_sheet
         elif not isinstance(sheet, Sheet):
-            sheet = Application.current.active_workbook.sheet(sheet)
+            sheet = applications.current.active_workbook.sheet(sheet)
 
         xl_chart = sheet.xl_sheet.add_chart(left, top, width, height)
 
@@ -1396,9 +1435,9 @@ class Picture(Shape):
         """
 
         if sheet is None:
-            sheet = Application.current.active_sheet
+            sheet = applications.current.active_sheet
         elif not isinstance(sheet, Sheet):
-            sheet = Application.current.active_workbook.sheet(sheet)
+            sheet = applications.current.active_workbook.sheet(sheet)
 
         if name:
             if name in sheet.xl_sheet.get_shapes_names():

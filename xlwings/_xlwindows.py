@@ -27,6 +27,7 @@ from ctypes import oledll, PyDLL, py_object, byref, POINTER
 from comtypes import IUnknown
 from comtypes.automation import IDispatch
 import numbers
+import types
 
 # Optional imports
 try:
@@ -44,6 +45,149 @@ from . import PY3
 time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
 if np:
     time_types = time_types + (np.datetime64,)
+
+
+N_COM_RETRIES = 10
+
+
+class COMRetryMethodWrapper(object):
+
+    def __init__(self, method):
+        self.__method = method
+
+    def __call__(self, *args, **kwargs):
+        for i in range(N_COM_RETRIES + 1):
+            try:
+                v = self.__method(*args, **kwargs)
+                t = type(v)
+                if t is CDispatch:
+                    return COMRetryObjectWrapper(v)
+                elif t is types.MethodType:
+                    return COMRetryMethodWrapper(v)
+                else:
+                    return v
+            except pywintypes.com_error as e:
+                if i < N_COM_RETRIES and e.hresult == -2147418111:
+                    continue
+                else:
+                    raise
+            except AttributeError as e:
+                if i < N_COM_RETRIES:
+                    continue
+                else:
+                    raise
+
+
+class COMRetryObjectWrapper(object):
+    def __init__(self, inner):
+        object.__setattr__(self, '_inner', inner)
+
+    def __setattr__(self, key, value):
+        for i in range(N_COM_RETRIES + 1):
+            try:
+                setattr(self._inner, key, value)
+            except pywintypes.com_error as e:
+                if i < N_COM_RETRIES and e.hresult == -2147418111:
+                    continue
+                else:
+                    raise
+            except AttributeError as e:
+                if i < N_COM_RETRIES:
+                    continue
+                else:
+                    raise
+
+    def __getattr__(self, item):
+        for i in range(N_COM_RETRIES + 1):
+            try:
+                v = getattr(self._inner, item)
+                t = type(v)
+                if t is CDispatch:
+                    return COMRetryObjectWrapper(v)
+                elif t is types.MethodType:
+                    return COMRetryMethodWrapper(v)
+                else:
+                    return v
+            except pywintypes.com_error as e:
+                if i < N_COM_RETRIES and e.hresult == -2147418111:
+                    continue
+                else:
+                    raise
+            except AttributeError as e:
+                if i < N_COM_RETRIES:
+                    continue
+                else:
+                    raise
+
+    def __call__(self, *args, **kwargs):
+        for i in range(N_COM_RETRIES + 1):
+            try:
+                v = self._inner(*args, **kwargs)
+                t = type(v)
+                if t is CDispatch:
+                    return COMRetryObjectWrapper(v)
+                elif t is types.MethodType:
+                    return COMRetryMethodWrapper(v)
+                else:
+                    return v
+            except pywintypes.com_error as e:
+                if i < N_COM_RETRIES and e.hresult == -2147418111:
+                    continue
+                else:
+                    raise
+            except AttributeError as e:
+                if i < N_COM_RETRIES:
+                    continue
+                else:
+                    raise
+
+
+def com_setattr(obj, attr, val):
+    for i in range(N_COM_RETRIES+1):
+        try:
+            setattr(obj, attr, val)
+        except pywintypes.com_error as e:
+            if i < N_COM_RETRIES and e.hresult == -2147418111:
+                continue
+            else:
+                raise
+        except AttributeError as e:
+            if i < N_COM_RETRIES:
+                continue
+            else:
+                raise
+
+
+def com_getattr(obj, attr):
+    for i in range(N_COM_RETRIES+1):
+        try:
+            return getattr(obj, attr)
+        except pywintypes.com_error as e:
+            if i < N_COM_RETRIES and e.hresult == -2147418111:
+                continue
+            else:
+                raise
+        except AttributeError as e:
+            if i < N_COM_RETRIES:
+                continue
+            else:
+                raise
+
+
+def com_call(obj, meth, *args, **kwargs):
+    for i in range(N_COM_RETRIES+1):
+        try:
+            return getattr(obj, meth)(*args, **kwargs)
+        except pywintypes.com_error as e:
+            if i < N_COM_RETRIES and e.hresult == -2147418111:
+                continue
+            else:
+                raise
+        except AttributeError as e:
+            if i < N_COM_RETRIES:
+                continue
+            else:
+                raise
 
 
 # Constants
@@ -74,6 +218,7 @@ def get_xl_app_from_hwnd(hwnd):
     ptr = accessible_object_from_window(child_hwnd)
     p = comtypes_to_pywin(ptr, interface=IDispatch)
     disp = Dispatch(p)
+    disp = COMRetryObjectWrapper(disp)
     return disp.Application
 
 
@@ -175,9 +320,6 @@ def is_range_instance(xl_range):
 
 class Applications(object):
 
-    def __init__(self):
-        self._current = None
-
     def __iter__(self):
         for xl in get_xl_apps():
             yield self._cls.Application(xl=xl)
@@ -189,14 +331,8 @@ class Applications(object):
         return self._cls.Application(xl=get_xl_apps()[index])
 
     @property
-    def current(self):
-        if self._current is None:
-            self._current = self._cls.Application(xl=dynamic.Dispatch('Excel.Application'), make_visible=True)
-        return self._current
-
-    @current.setter
-    def current(self, value):
-        self._current = value
+    def default(self):
+        return self._cls.Application(xl=dynamic.Dispatch('Excel.Application'), make_visible=True)
 
 
 class Application(object):
@@ -523,6 +659,10 @@ class Range(object):
     @property
     def worksheet(self):
         return self._cls.Sheet(xl=self.xl.Worksheet)
+
+    @property
+    def parent(self):
+        return self._cls.Sheet(xl=self.xl.Parent)
 
     @property
     def coordinates(self):
