@@ -23,7 +23,7 @@ import win32process
 import datetime as dt
 from .constants import Direction, ColorIndex
 from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime
-from ctypes import oledll, PyDLL, py_object, byref, POINTER
+from ctypes import oledll, PyDLL, py_object, byref, POINTER, windll
 from comtypes import IUnknown
 from comtypes.automation import IDispatch
 import numbers
@@ -217,38 +217,32 @@ def get_xl_app_from_hwnd(hwnd):
 
     ptr = accessible_object_from_window(child_hwnd)
     p = comtypes_to_pywin(ptr, interface=IDispatch)
-    disp = Dispatch(p)
-    disp = COMRetryObjectWrapper(disp)
+    disp = COMRetryObjectWrapper(Dispatch(p))
     return disp.Application
 
 
 def get_excel_hwnds():
-    hwnds = []
-    win32gui.EnumWindows(lambda hwnd, result_list: result_list.append(hwnd), hwnds)
-
-    excel_hwnds = []
-    for hwnd in hwnds:
+    #win32gui.EnumWindows(lambda hwnd, result_list: result_list.append(hwnd), hwnds)
+    hwnd = windll.user32.GetTopWindow(None)
+    while hwnd:
         try:
             # Apparently, this fails on some systems when Excel is closed
             if win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None):
-                excel_hwnds.append(hwnd)
+                yield hwnd
         except pywintypes.error:
             pass
-    return excel_hwnds
+
+        hwnd = windll.user32.GetWindow(hwnd, 2)   # 2 = next window according to Z-order
 
 
 def get_xl_apps():
-    xl_apps = []
-    hwnds = get_excel_hwnds()
-    for hwnd in hwnds:
+    for hwnd in get_excel_hwnds():
         try:
-            xl_app = get_xl_app_from_hwnd(hwnd)
-            xl_apps.append(xl_app)
+            yield get_xl_app_from_hwnd(hwnd)
         except WindowsError:
             # This happens if the bare Excel Application is open without Workbook
             # i.e. there is no 'EXCEL7' child hwnd that would be necessary to make a connection
             pass
-    return xl_apps
 
 
 def get_all_open_xl_workbooks(xl_app):
@@ -291,7 +285,7 @@ def get_open_workbook(fullname, app_target=None, hwnd=None):
     duplicate_fullnames = get_duplicate_fullnames()
 
     if hwnd is None:
-        xl_apps = get_xl_apps()
+        xl_apps = list(get_xl_apps())
     else:
         hwnd = int(hwnd)  # should it need to be long in PY2?
         xl_apps = [get_xl_app_from_hwnd(hwnd)]
@@ -328,11 +322,12 @@ class Applications(object):
         return len(get_xl_apps())
 
     def __getitem__(self, index):
-        return self._cls.Application(xl=get_xl_apps()[index])
+        xl_apps = list(get_xl_apps())
+        return self._cls.Application(xl=xl_apps[index])
 
     @property
     def default(self):
-        return self._cls.Application(xl=dynamic.Dispatch('Excel.Application'), make_visible=True)
+        return self._cls.Application(xl=COMRetryObjectWrapper(Dispatch('Excel.Application')), make_visible=True)
 
 
 class Application(object):
@@ -340,7 +335,7 @@ class Application(object):
     def __init__(self, xl=None):
         if xl is None:
             # new instance
-            self.xl = DispatchEx('Excel.Application')
+            self.xl = COMRetryObjectWrapper(DispatchEx('Excel.Application'))
         else:
             self.xl = xl
 
@@ -363,6 +358,16 @@ class Application(object):
     def selection(self):
         # TODO: selection isn't always a range
         return self._cls.Range(xl=self.xl.Selection)
+
+    def activate(self):
+        # hdwp = windll.user32.BeginDeferWindowPos(2)
+        # hwnd = self.xl.Hwnd
+        # for xl in get_xl_apps():
+        #     if xl == self.xl:
+        #         break
+        #     windll.user32.DeferWindowPos(hdwp, xl.Hwnd, hwnd, 0, 0, 0, 0, 0x1 | 0x2 | 0x10)
+        # windll.user32.EndDeferWindowPos(hdwp)
+        windll.user32.SetForegroundWindow(self.xl.Hwnd)
 
     @property
     def visible(self):

@@ -52,14 +52,10 @@ class Applications(xlplatform.Applications):
         self._current = None
 
     @property
-    def current(self):
-        if self._current is None:
-            self._current = self.default
-        return self._current
-
-    @current.setter
-    def current(self, value):
-        self._current = value
+    def active(self):
+        for app in self:
+            return app
+        return Application(make_visible=True)
 
     def __repr__(self):
         return repr(list(self))
@@ -82,7 +78,9 @@ class Application(xlplatform.Application):
         elif make_visible:
             self.visible = True
 
-        applications.current = self
+        #self.make_current()
+
+        #applications.current = self
 
     @property
     def major_version(self):
@@ -96,9 +94,6 @@ class Application(xlplatform.Application):
             return self(name_or_index + 1)
         else:
             return self(name_or_index)
-
-    def make_current(self):
-        applications.current = self
 
     def __eq__(self, other):
         return type(other) is Application and other.pid == self.pid
