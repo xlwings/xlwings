@@ -503,7 +503,7 @@ class Workbook(object):
     @property
     def active_sheet(self):
         return self._cls.Sheet(xl=self.xl.ActiveSheet)
-    
+
     def add_sheet(self, before, after):
         if before:
             return self._cls.Sheet(xl=self.xl.Worksheets.Add(Before=before.xl))
@@ -520,7 +520,7 @@ class Workbook(object):
             else:
                 xl_sheet = self.xl.Worksheets.Add(Before=self.xl.Sheets(after.xl.Index + 1))
             return self._cls.Sheet(xl=xl_sheet)
-    
+
     def count_sheets(self):
         return self.xl.Worksheets.Count
 
@@ -544,11 +544,11 @@ class Workbook(object):
     @property
     def fullname(self):
         return self.xl.FullName
-    
+
     def set_names(self, names):
         for i in self.xl.Names:
             names[i.Name] = i
-    
+
     def delete_name(self, name):
         self.xl.Names(name).Delete()
 
@@ -979,6 +979,12 @@ def _datetime_to_com_time(dt_time):
 def prepare_xl_data_element(x):
     if isinstance(x, time_types):
         return _datetime_to_com_time(x)
+    elif np and isinstance(x, np.generic):
+        return float(x)
+    elif x is None:
+        return ""
+    elif np and isinstance(x, float) and np.isnan(x):
+        return ""
     else:
         return x
 

@@ -641,19 +641,20 @@ def clean_value_data(data, datetime_builder, empty_as, number_builder):
 
 
 def prepare_xl_data_element(x):
-    if np and isinstance(x, np.datetime64):
+    if x is None:
+        return ""
+    elif np and isinstance(x, float) and np.isnan(x):
+        return ""
+    elif np and isinstance(x, np.datetime64):
         # handle numpy.datetime64
         return np_datetime_to_datetime(x).replace(tzinfo=None)
-
-    if pd and isinstance(x, pd.tslib.Timestamp):
+    elif pd and isinstance(x, pd.tslib.Timestamp):
         # This transformation seems to be only needed on Python 2.6 (?)
         return x.to_datetime().replace(tzinfo=None)
-
-    # Make datetime timezone naive
-    if isinstance(x, dt.datetime):
+    elif isinstance(x, dt.datetime):
+        # Make datetime timezone naive
         return x.replace(tzinfo=None)
-
-    if isinstance(x, int):
+    elif isinstance(x, int):
         # appscript packs integers larger than SInt32 but smaller than SInt64 as typeSInt64, and integers
         # larger than SInt64 as typeIEEE64BitFloatingPoint. Excel silently ignores typeSInt64. (GH 227)
         return float(x)
