@@ -50,6 +50,18 @@ if np:
 N_COM_RETRIES = 10
 
 
+DIRECTIONS = {
+    'd': Direction.xlDown,
+    'down': Direction.xlDown,
+    'l': Direction.xlToLeft,
+    'left': Direction.xlToLeft,
+    'r': Direction.xlToRight,
+    'right': Direction.xlToRight,
+    'u': Direction.xlUp,
+    'up': Direction.xlUp
+}
+
+
 class COMRetryMethodWrapper(object):
 
     def __init__(self, method):
@@ -211,6 +223,18 @@ def comtypes_to_pywin(ptr, interface=None):
     return _PyCom_PyObjectFromIUnknown(ptr, byref(interface._iid_), True)
 
 
+def is_hwnd_xl_app(hwnd):
+    try:
+        child_hwnd = win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None)
+        child_hwnd = win32gui.FindWindowEx(child_hwnd, 0, 'EXCEL7', None)
+        ptr = accessible_object_from_window(child_hwnd)
+        return True
+    except WindowsError:
+        return False
+    except pywintypes.error:
+        return False
+
+
 def get_xl_app_from_hwnd(hwnd):
     child_hwnd = win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None)
     child_hwnd = win32gui.FindWindowEx(child_hwnd, 0, 'EXCEL7', None)
@@ -359,15 +383,15 @@ class Application(object):
         # TODO: selection isn't always a range
         return self._cls.Range(xl=self.xl.Selection)
 
-    def activate(self):
-        # hdwp = windll.user32.BeginDeferWindowPos(2)
-        # hwnd = self.xl.Hwnd
-        # for xl in get_xl_apps():
-        #     if xl == self.xl:
-        #         break
-        #     windll.user32.DeferWindowPos(hdwp, xl.Hwnd, hwnd, 0, 0, 0, 0, 0x1 | 0x2 | 0x10)
-        # windll.user32.EndDeferWindowPos(hdwp)
-        windll.user32.SetForegroundWindow(self.xl.Hwnd)
+    def activate(self, steal_focus=False):
+        # makes the Excel instance the foreground Excel instance,
+        # but not the foreground desktop app if the current foreground
+        # app isn't already an Excel instance
+        hwnd = windll.user32.GetForegroundWindow()
+        if steal_focus or is_hwnd_xl_app(hwnd):
+            windll.user32.SetForegroundWindow(self.xl.Hwnd)
+        else:
+            windll.user32.SetWindowPos(self.xl.Hwnd, hwnd, 0, 0, 0, 0, 0x1 | 0x2 | 0x10)
 
     @property
     def visible(self):
@@ -584,8 +608,29 @@ class Sheet(object):
     def index(self):
         return self.xl.Index
 
-    def range(self, address):
-        return self._cls.Range(xl=self.xl.Range(address))
+    def range(self, arg1, arg2=None):
+        if isinstance(arg1, Range):
+            xl1 = arg1.xl
+        elif isinstance(arg1, tuple):
+            xl1 = self.xl.Cells(arg1[0], arg1[1])
+        else:
+            xl1 = self.xl.Range(arg1)
+
+        if arg2 is None:
+            return self._cls.Range(xl=xl1)
+
+        if isinstance(arg2, Range):
+            xl2 = arg2.xl
+        elif isinstance(arg2, tuple):
+            xl2 = self.xl.Cells(arg2[0], arg2[1])
+        else:
+            xl2 = self.xl.Range(arg2)
+
+        return self._cls.Range(xl=self.xl.Range(xl1, xl2))
+
+    @property
+    def cells(self):
+        return self._cls.Range(xl=self.xl.Cells)
 
     def activate(self):
         return self.xl.Activate()
@@ -690,11 +735,11 @@ class Range(object):
         return self.xl.Columns.Count
 
     @property
-    def value(self):
+    def raw_value(self):
         return self.xl.Value
 
-    @value.setter
-    def value(self, data):
+    @raw_value.setter
+    def raw_value(self, data):
         self.xl.Value = data
 
     def clear_contents(self):
@@ -709,6 +754,10 @@ class Range(object):
     @property
     def formula(self):
         return self.xl.Formula
+
+    def end(self, direction):
+        direction = DIRECTIONS.get(direction, direction)
+        return self._cls.Range(xl=self.xl.End(direction))
 
     @formula.setter
     def formula(self, value):
@@ -765,7 +814,8 @@ class Range(object):
     def get_address(self, row_absolute, col_absolute, external):
         return self.xl.GetAddress(row_absolute, col_absolute, 1, external)
 
-    def get_current_region(self):
+    @property
+    def current_region(self):
         return self._cls.Range(xl=self.xl.CurrentRegion)
 
     def autofit(self, axis):
@@ -790,7 +840,15 @@ class Range(object):
         link.TextToDisplay = text_to_display
         link.ScreenTip = screen_tip
 
-    def set_color(self, color_or_rgb):
+    @property
+    def color(self):
+        if self.xl.Interior.ColorIndex == ColorIndex.xlColorIndexNone:
+            return None
+        else:
+            return int_to_rgb(self.xl.Interior.Color)
+
+    @color.setter
+    def color(self, color_or_rgb):
         if color_or_rgb is None:
             self.xl.Interior.ColorIndex = ColorIndex.xlColorIndexNone
         elif isinstance(color_or_rgb, int):
@@ -798,21 +856,20 @@ class Range(object):
         else:
             self.xl.Interior.Color = rgb_to_int(color_or_rgb)
 
-    def get_color(self):
-        if self.xl.Interior.ColorIndex == ColorIndex.xlColorIndexNone:
-            return None
-        else:
-            return int_to_rgb(self.xl.Interior.Color)
-
-    def set_named_range(self, value):
-        self.xl.Name = value
-
-    def get_named_range(self):
+    @property
+    def name(self):
         try:
             name = self.xl.Name.Name
         except pywintypes.com_error:
             name = None
         return name
+
+    @name.setter
+    def name(self, value):
+        self.xl.Name = value
+
+    def __call__(self, row, col):
+        return self._cls.Range(xl=self.xl(row, col))
 
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):

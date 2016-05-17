@@ -78,7 +78,7 @@ class WriteValueToRangeStage(object):
     def __call__(self, ctx):
         if ctx.range and ctx.value:
             if self.raw:
-                super(Range, ctx.range).value = ctx.value
+                ctx.range.raw_value = ctx.value
                 return
 
             scalar = ctx.meta.get('scalar', False)
@@ -100,7 +100,7 @@ class ReadValueFromRangeStage(object):
 
     def __call__(self, c):
         if c.range:
-            c.value = super(Range, c.range).value
+            c.value = c.range.raw_value
 
 
 class CleanDataFromReadStage(object):

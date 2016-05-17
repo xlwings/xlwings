@@ -22,8 +22,6 @@ import shutil
 from . import xlplatform, string_types, xrange, map, ShapeAlreadyExists, PY3
 from .constants import ChartType
 
-from .utils import ObjectProxy
-
 # Optional imports
 try:
     import numpy as np
@@ -63,8 +61,6 @@ class Applications(xlplatform.Applications):
 
 applications = Applications()
 
-current_app = ObjectProxy(lambda: applications.current)
-
 class Application(xlplatform.Application):
     """
     Application is dependent on the Workbook since there might be different application instances on Windows.
@@ -78,9 +74,9 @@ class Application(xlplatform.Application):
         elif make_visible:
             self.visible = True
 
-        #self.make_current()
-
-        #applications.current = self
+    @classmethod
+    def active(cls):
+        return applications.active
 
     @property
     def major_version(self):
@@ -140,7 +136,7 @@ class Workbook(xlplatform.Workbook):
 
     """
 
-    def __init__(self, fullname=None, xl=None, app_visible=True, app_target=None):
+    def __init__(self, fullname=None, xl=None):
         if xl:
             super(Workbook, self).__init__(xl=xl)
         else:
@@ -157,7 +153,7 @@ class Workbook(xlplatform.Workbook):
 
                 if len(candidates) == 0:
                     if os.path.isfile(fullname):
-                        xl = applications.current.open_workbook(fullname).xl
+                        xl = applications.active.open_workbook(fullname).xl
                     else:
                         raise Exception("Could not connect to workbook '%s'" % fullname)
                 elif len(candidates) > 1:
@@ -166,15 +162,11 @@ class Workbook(xlplatform.Workbook):
                     xl = candidates[0][1].xl
             else:
                 # Open Excel if necessary and create a new workbook
-                app = applications.current
+                app = applications.active
                 xl = app.new_workbook().xl
 
             super(Workbook, self).__init__(xl=xl)
 
-            if app_visible is not None:
-                self.application.visible = app_visible
-
-            self.activate()
 
     @classmethod
     def active(cls):
@@ -184,7 +176,11 @@ class Workbook(xlplatform.Workbook):
 
         .. versionadded:: 0.4.1
         """
-        return applications.current.active_workbook
+        return applications.active.active_workbook
+
+    def activate(self):
+        self.application.activate()
+        super(Workbook, self).activate()
 
     @classmethod
     def caller(cls):
@@ -322,9 +318,6 @@ class Workbook(xlplatform.Workbook):
             return self(name_or_index)
 
 
-active_workbook = ObjectProxy(Workbook.active)
-
-
 class Sheet(xlplatform.Sheet):
     """
     Represents a Sheet of the current Workbook. Either call it with the Sheet name or index::
@@ -351,36 +344,10 @@ class Sheet(xlplatform.Sheet):
             xl = Workbook.active().sheet(sheet).xl
         super(Sheet, self).__init__(xl=xl)
 
-    def autofit(self, axis=None):
-        """
-        Autofits the width of either columns, rows or both on a whole Sheet.
-
-        Arguments
-        ---------
-        axis : string, default None
-            - To autofit rows, use one of the following: ``rows`` or ``r``
-            - To autofit columns, use one of the following: ``columns`` or ``c``
-            - To autofit rows and columns, provide no arguments
-
-        Examples
-        --------
-        ::
-
-            # Autofit columns
-            Sheet('Sheet1').autofit('c')
-            # Autofit rows
-            Sheet('Sheet1').autofit('r')
-            # Autofit columns and rows
-            Range('Sheet1').autofit()
-
-        .. versionadded:: 0.2.3
-        """
-        self.xl_sheet.activate(axis)
-
     @classmethod
     def active(cls):
         """Returns the active Sheet in the current application. Use like so: ``Sheet.active()``"""
-        return applications.current.active_sheet
+        return applications.active.active_sheet
 
     @classmethod
     def add(cls, name=None, before=None, after=None, wkb=None):
@@ -435,71 +402,8 @@ class Sheet(xlplatform.Sheet):
             xl_sheet = wkb.xl_workbook.add_sheet(before, after)
             return cls(xl_sheet=xl_sheet)
 
-    @staticmethod
-    def count(wkb=None):
-        """
-        Counts the number of Sheets.
-
-        Keyword Arguments
-        -----------------
-        wkb : Workbook object, default Workbook.current()
-            Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
-
-        Examples
-        --------
-        >>> Sheet.count()
-        3
-
-        .. versionadded:: 0.2.3
-        """
-        if wkb is None:
-            wkb = Workbook.active()
-        return wkb.xl_workbook.count_sheets()
-
-    @staticmethod
-    def all(wkb=None):
-        """
-        Returns a list with all Sheet objects.
-
-        Keyword Arguments
-        -----------------
-        wkb : Workbook object, default Workbook.current()
-            Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
-
-        Examples
-        --------
-        >>> Sheet.all()
-        [<Sheet 'Sheet1' of Workbook 'Book1'>, <Sheet 'Sheet2' of Workbook 'Book1'>]
-        >>> [i.name.lower() for i in Sheet.all()]
-        ['sheet1', 'sheet2']
-        >>> [i.autofit() for i in Sheet.all()]
-
-        .. versionadded:: 0.2.3
-        """
-        xl_workbook = Workbook.get_xl_workbook(wkb)
-        sheet_list = []
-        for i in range(1, xl_workbook.count_worksheets() + 1):
-            sheet_list.append(wkb.sheet(i))
-
-        return sheet_list
-
     def __repr__(self):
         return "<Sheet '{0}' of Workbook '{1}'>".format(self.name, self.workbook.name)
-
-    def range(self, *args):
-        if len(args) == 1:
-            if isinstance(args[0], string_types):
-                return super(Sheet, self).range(args[0])
-            elif isinstance(args[0], tuple):
-                #return super(Sheet, self).range(args[0])
-                return self._cls.Range(xl=self.xl.get_range_from_indices(args[0][0], args[0][1], args[0][0], args[0][1]))
-        elif len(args) == 2:
-            if isinstance(args[0], tuple) and isinstance(args[1], tuple):
-                return self._cls.Range(xl=self.xl.get_range_from_indices(args[0][0], args[0][1], args[1][0], args[1][1]))
-        raise ValueError("Invalid arguments")
-
-
-active_sheet = ObjectProxy(Sheet.active)
 
 
 class Range(xlplatform.Range):
@@ -599,7 +503,7 @@ class Range(xlplatform.Range):
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
         return map(
-            lambda cell: self.sheet.range(
+            lambda cell: self.worksheet.range(
                 cell,
             ).options(
                 **self._options
@@ -802,30 +706,13 @@ class Range(xlplatform.Range):
             Range('A1').vertical.clear_contents()
 
         """
-        # A single cell is a special case as End(xlDown) jumps over adjacent empty cells
-        if self.xl_range.get_worksheet().get_value_from_index(self.row1 + 1, self.col1) in [None, ""]:
-            row2 = self.row1
+        if self(2, 1).raw_value in [None, ""]:
+            return self
         else:
-            row2 = self.xl_range.get_worksheet().get_row_index_end_down(self.row1, self.col1)
-
-        # Strict stops at cells that contain a formula but show an empty value
-        if self.strict:
-            row2 = self.row1
-            while self.xl_range.get_worksheet().get_value_from_index(row2 + 1, self.col1) not in [None, ""]:
-                row2 += 1
-
-        col2 = self.col2
-
-        return Range(
-            xl_range=self.xl_range.get_worksheet().get_range_from_indices(
-                self.row1, self.col1, row2, col2
-            ),
-            **self._options
-        )
-
-    @property
-    def strict(self):
-        return self._options.get('strict', False)
+            return self.worksheet.range(
+                self,
+                self.end('down')
+            )
 
     @property
     def horizontal(self):
@@ -850,77 +737,37 @@ class Range(xlplatform.Range):
             Range('A1').horizontal.clear_contents()
 
         """
-        # A single cell is a special case as End(xlToRight) jumps over adjacent empty cells
-        if self.xl_range.get_worksheet().get_value_from_index(self.row1, self.col1 + 1) in [None, ""]:
-            col2 = self.col1
+        if self(1, 2).raw_value in [None, ""]:
+            return self
         else:
-            col2 = self.xl_range.get_worksheet().get_column_index_end_right(self.row1, self.col1)
-
-        # Strict: stops at cells that contain a formula but show an empty value
-        if self.strict:
-            col2 = self.col1
-            while self.xl_range.get_worksheet().get_value_from_index(self.row1, col2 + 1) not in [None, ""]:
-                col2 += 1
-
-        row2 = self.row2
-
-        return Range(
-            xl_range=self.xl_range.get_worksheet().get_range_from_indices(
-                self.row1, self.col1, row2, col2
-            ),
-            **self._options
-        )
+            return self.worksheet.range(
+                self,
+                self.end('right')
+            )
 
     def __getitem__(self, key):
         row, col = key
         if isinstance(row, slice):
             if row.step is not None:
                 raise ValueError("Slice steps not supported.")
-            row1 = self.row1 if row.start is None else self.row1 + row.start
-            row2 = self.row2 if row.stop is None else self.row1 + row.stop - 1
+            row1 = 0 if row.start is None else row.start
+            row2 = self.count_rows() - 1 if row.stop is None else row.stop - 1
         else:
-            row1 = row2 = self.row1 + row
+            row1 = row2 = row
         if isinstance(col, slice):
             if col.step is not None:
                 raise ValueError("Slice steps not supported.")
-            col1 = self.col1 if col.start is None else self.col1 + col.start
-            col2 = self.col2 if col.stop is None else self.col1 + col.stop - 1
+            col1 = 0 if col.start is None else col.start
+            col2 = self.count_columns() - 1 if col.stop is None else col.stop - 1
         else:
-            col1 = col2 = self.col1 + col
-        return Range(
-            xl_range=self.xl_range.get_worksheet().get_range_from_indices(
-                row1, col1, row2, col2
-            ),
-            **self._options
-        )
-
-    def autofit(self, axis=None):
-        """
-        Autofits the width of either columns, rows or both.
-
-        Arguments
-        ---------
-        axis : string or integer, default None
-            - To autofit rows, use one of the following: ``rows`` or ``r``
-            - To autofit columns, use one of the following: ``columns`` or ``c``
-            - To autofit rows and columns, provide no arguments
-
-        Examples
-        --------
-        ::
-
-            # Autofit column A
-            Range('A:A').autofit('c')
-            # Autofit row 1
-            Range('1:1').autofit('r')
-            # Autofit columns and rows, taking into account Range('A1:E4')
-            Range('A1:E4').autofit()
-            # AutoFit rows, taking into account Range('A1:E4')
-            Range('A1:E4').autofit('rows')
-
-        .. versionadded:: 0.2.2
-        """
-        self.xl_range.autofit(axis)
+            col1 = col2 = col
+        if col1 == col2 and row1 == row2:
+            return self(row1 + 1, col1 + 1)
+        else:
+            return self.worksheet.range(
+                self(row1 + 1, col1 + 1),
+                self(row2 + 1, col2 + 1)
+            )
 
     def get_address(self, row_absolute=True, column_absolute=True, include_sheetname=False, external=False):
         """
@@ -978,8 +825,8 @@ class Range(xlplatform.Range):
 
     def __repr__(self):
         return "<Range on Sheet '{0}' of Workbook '{1}'>".format(
-            self.sheet.name,
-            self.sheet.workbook.name
+            self.worksheet.name,
+            self.worksheet.workbook.name
         )
 
     @property
@@ -1061,7 +908,7 @@ class Range(xlplatform.Range):
         else:
             col2 = self.col2
 
-        return self.sheet.range((self.row1, self.col1), (row2, col2)).options(**self._options)
+        return self.worksheet.range((self.row1, self.col1), (row2, col2)).options(**self._options)
 
     def offset(self, row_offset=None, column_offset=None):
         """
@@ -1087,7 +934,7 @@ class Range(xlplatform.Range):
         else:
             col1, col2 = self.col1, self.col2
 
-        return self.sheet.range((row1, col1), (row2, col2)).options(**self._options)
+        return self.worksheet.range((row1, col1), (row2, col2)).options(**self._options)
 
     @property
     def column(self):
@@ -1134,23 +981,7 @@ class Range(xlplatform.Range):
 
         .. versionadded:: 0.3.5
         """
-        return self.sheet.range((self.row2, self.col2)).options(**self._options)
-
-    @property
-    def name(self):
-        """
-        Sets or gets the name of a Range.
-
-        To delete a named Range, use ``del wb.names['NamedRange']`` if ``wb`` is
-        your Workbook object.
-
-        .. versionadded:: 0.4.0
-        """
-        return self.xl_range.get_named_range()
-
-    @name.setter
-    def name(self, value):
-        self.xl_range.set_named_range(value)
+        return self.worksheet.range((self.row2, self.col2)).options(**self._options)
 
 
 # This has to be after definition of Range to resolve circular reference
@@ -1309,9 +1140,9 @@ class Chart(Shape):
         """
 
         if sheet is None:
-            sheet = applications.current.active_sheet
+            sheet = applications.active.active_sheet
         elif not isinstance(sheet, Sheet):
-            sheet = applications.current.active_workbook.sheet(sheet)
+            sheet = applications.active.active_workbook.sheet(sheet)
 
         xl_chart = sheet.xl_sheet.add_chart(left, top, width, height)
 
@@ -1430,9 +1261,9 @@ class Picture(Shape):
         """
 
         if sheet is None:
-            sheet = applications.current.active_sheet
+            sheet = applications.active.active_sheet
         elif not isinstance(sheet, Sheet):
-            sheet = applications.current.active_workbook.sheet(sheet)
+            sheet = applications.active.active_workbook.sheet(sheet)
 
         if name:
             if name in sheet.xl_sheet.get_shapes_names():
@@ -1704,6 +1535,30 @@ class Sheets(xlplatform.Sheets):
             else:
                 r.append(repr(sht))
         return "["+", ".join(r)+"]"
+
+
+class ActiveObjects(object):
+
+    @property
+    def application(self):
+        return Application.active()
+
+    app = application
+
+    @property
+    def workbook(self):
+        return Workbook.active()
+
+    book = workbook
+
+    @property
+    def sheet(self):
+        return Sheet.active()
+
+    worksheet = sheet
+
+
+active = ActiveObjects()
 
 
 class Classes:
