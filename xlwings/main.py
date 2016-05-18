@@ -476,43 +476,21 @@ class Range(xlplatform.Range):
         # Keyword Arguments
         self._options = options
 
-        self._coords = None
-
-    @property
-    def coords(self):
-        if self._coords is None:
-            self._coords = super(Range, self).coordinates
-        return self._coords
-
-    @property
-    def row1(self):
-        return self.coords[0]
-
-    @property
-    def row2(self):
-        return self.coords[2]
-
-    @property
-    def col1(self):
-        return self.coords[1]
-
-    @property
-    def col2(self):
-        return self.coords[3]
-
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
-        return map(
-            lambda cell: self.worksheet.range(
-                cell,
-            ).options(
-                **self._options
-            ),
-            itertools.product(
-                xrange(self.row1, self.row2 + 1),
-                xrange(self.col1, self.col2 + 1)
-            )
-        )
+        # return map(
+        #     lambda cell: self.worksheet.range(
+        #         cell,
+        #     ).options(
+        #         **self._options
+        #     ),
+        #     itertools.product(
+        #         xrange(self.row1, self.row2 + 1),
+        #         xrange(self.col1, self.col2 + 1)
+        #     )
+        # )
+        for i in range(len(self)):
+            yield self(i+1)
 
     def options(self, convert=None, **options):
         """
@@ -560,50 +538,6 @@ class Range(xlplatform.Range):
             **options
         )
 
-    def is_cell(self):
-        """
-        Returns ``True`` if the Range consists of a single Cell otherwise ``False``.
-
-        .. versionadded:: 0.1.1
-        """
-        if self.row1 == self.row2 and self.col1 == self.col2:
-            return True
-        else:
-            return False
-
-    def is_row(self):
-        """
-        Returns ``True`` if the Range consists of a single Row otherwise ``False``.
-
-        .. versionadded:: 0.1.1
-        """
-        if self.row1 == self.row2 and self.col1 != self.col2:
-            return True
-        else:
-            return False
-
-    def is_column(self):
-        """
-        Returns ``True`` if the Range consists of a single Column otherwise ``False``.
-
-        .. versionadded:: 0.1.1
-        """
-        if self.row1 != self.row2 and self.col1 == self.col2:
-            return True
-        else:
-            return False
-
-    def is_table(self):
-        """
-        Returns ``True`` if the Range consists of a 2d array otherwise ``False``.
-
-        .. versionadded:: 0.1.1
-        """
-        if self.row1 != self.row2 and self.col1 != self.col2:
-            return True
-        else:
-            return False
-
     @property
     def shape(self):
         """
@@ -611,7 +545,7 @@ class Range(xlplatform.Range):
 
         .. versionadded:: 0.3.0
         """
-        return self.row2 - self.row1 + 1, self.col2 - self.col1 + 1
+        return self.row_count, self.column_count
 
     @property
     def size(self):
@@ -620,10 +554,8 @@ class Range(xlplatform.Range):
 
         .. versionadded:: 0.3.0
         """
-        return self.shape[0] * self.shape[1]
-
-    def __len__(self):
-        return self.row2 - self.row1 + 1
+        a, b = self.shape
+        return a * b
 
     @property
     def value(self):
@@ -746,28 +678,31 @@ class Range(xlplatform.Range):
             )
 
     def __getitem__(self, key):
-        row, col = key
-        if isinstance(row, slice):
-            if row.step is not None:
-                raise ValueError("Slice steps not supported.")
-            row1 = 0 if row.start is None else row.start
-            row2 = self.count_rows() - 1 if row.stop is None else row.stop - 1
+        if type(key) is tuple:
+            row, col = key
+            if isinstance(row, slice):
+                if row.step is not None:
+                    raise ValueError("Slice steps not supported.")
+                row1 = 0 if row.start is None else row.start
+                row2 = self.count_rows() - 1 if row.stop is None else row.stop - 1
+            else:
+                row1 = row2 = row
+            if isinstance(col, slice):
+                if col.step is not None:
+                    raise ValueError("Slice steps not supported.")
+                col1 = 0 if col.start is None else col.start
+                col2 = self.count_columns() - 1 if col.stop is None else col.stop - 1
+            else:
+                col1 = col2 = col
+            if col1 == col2 and row1 == row2:
+                return self(row1 + 1, col1 + 1)
+            else:
+                return self.worksheet.range(
+                    self(row1 + 1, col1 + 1),
+                    self(row2 + 1, col2 + 1)
+                )
         else:
-            row1 = row2 = row
-        if isinstance(col, slice):
-            if col.step is not None:
-                raise ValueError("Slice steps not supported.")
-            col1 = 0 if col.start is None else col.start
-            col2 = self.count_columns() - 1 if col.stop is None else col.stop - 1
-        else:
-            col1 = col2 = col
-        if col1 == col2 and row1 == row2:
-            return self(row1 + 1, col1 + 1)
-        else:
-            return self.worksheet.range(
-                self(row1 + 1, col1 + 1),
-                self(row2 + 1, col2 + 1)
-            )
+            return self(key)
 
     def get_address(self, row_absolute=True, column_absolute=True, include_sheetname=False, external=False):
         """

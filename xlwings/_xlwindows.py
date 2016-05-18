@@ -714,24 +714,23 @@ class Range(object):
     def parent(self):
         return self._cls.Sheet(xl=self.xl.Parent)
 
-    @property
-    def coordinates(self):
-        row1 = self.xl.Row
-        col1 = self.xl.Column
-        row2 = row1 + self.xl.Rows.Count - 1
-        col2 = col1 + self.xl.Columns.Count - 1
-        return (row1, col1, row2, col2)
+    def __len__(self):
+        return self.xl.Count
 
-    def get_first_row(self):
+    @property
+    def row(self):
         return self.xl.Row
 
-    def get_first_column(self):
+    @property
+    def column(self):
         return self.xl.Column
 
-    def count_rows(self):
+    @property
+    def row_count(self):
         return self.xl.Rows.Count
 
-    def count_columns(self):
+    @property
+    def column_count(self):
         return self.xl.Columns.Count
 
     @property
@@ -815,6 +814,10 @@ class Range(object):
         return self.xl.GetAddress(row_absolute, col_absolute, 1, external)
 
     @property
+    def address(self):
+        return self.xl.Address
+
+    @property
     def current_region(self):
         return self._cls.Range(xl=self.xl.CurrentRegion)
 
@@ -868,8 +871,17 @@ class Range(object):
     def name(self, value):
         self.xl.Name = value
 
-    def __call__(self, row, col):
-        return self._cls.Range(xl=self.xl(row, col))
+    def __call__(self, *args):
+        return self._cls.Range(xl=self.xl(*args))
+
+    @property
+    def rows(self):
+        return self._cls.Range(xl=self.xl.Rows)
+
+
+    @property
+    def columns(self):
+        return self._cls.Range(xl=self.xl.Columns)
 
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
