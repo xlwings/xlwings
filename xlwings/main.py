@@ -601,22 +601,22 @@ class Range(xlplatform.Range):
             Range('A1').table.clear_contents()
 
         """
-        row2 = Range(
-            xl_range=self.xl_range.get_cell(1, 1),
-            **self._options
-        ).vertical.row2
+        origin = self(1, 1)
+        if origin(2, 1).raw_value in [None, ""]:
+            bottom_left = origin
+        elif origin(3, 1).raw_value in [None, ""]:
+            bottom_left = origin(2, 1)
+        else:
+            bottom_left = origin(2, 1).end('down')
 
-        col2 = Range(
-            xl_range=self.xl_range.get_cell(1, 1),
-            **self._options
-        ).horizontal.col2
+        if origin(1, 2).raw_value in [None, ""]:
+            top_right = origin
+        elif origin(1, 3).raw_value in [None, ""]:
+            top_right = origin(1, 2)
+        else:
+            top_right = origin(1, 2).end('right')
 
-        return Range(
-            xl_range=self.xl_range.get_worksheet().get_range_from_indices(
-                self.row1, self.col1, row2, col2
-            ),
-            **self._options
-        )
+        return Range(top_right, bottom_left)
 
     @property
     def vertical(self):
@@ -643,12 +643,12 @@ class Range(xlplatform.Range):
 
         """
         if self(2, 1).raw_value in [None, ""]:
-            return self
+            return Range(self(1, 1), self(1, self.column_count))
+        elif self(3, 1).raw_value in [None, ""]:
+            return Range(self(1, 1), self(2, self.column_count))
         else:
-            return self.worksheet.range(
-                self,
-                self.end('down')
-            )
+            end_row = self(2, 1).end('down').row - self.row + 1
+            return Range(self(1, 1), self(end_row, self.column_count))
 
     @property
     def horizontal(self):
@@ -674,12 +674,12 @@ class Range(xlplatform.Range):
 
         """
         if self(1, 2).raw_value in [None, ""]:
-            return self
+            return Range(self(1, 1), self(self.row_count, 1))
+        elif self(1, 3).raw_value in [None, ""]:
+            return Range(self(1, 1), self(self.row_count, 2))
         else:
-            return self.worksheet.range(
-                self,
-                self.end('right')
-            )
+            end_column = self(1, 2).end('right').column - self.column + 1
+            return Range(self(1, 1), self(self.row_count, end_column))
 
     def __getitem__(self, key):
         if type(key) is tuple:
@@ -908,34 +908,6 @@ class Range(xlplatform.Range):
             col1, col2 = self.col1, self.col2
 
         return self.worksheet.range((row1, col1), (row2, col2)).options(**self._options)
-
-    @property
-    def column(self):
-        """
-        Returns the number of the first column in the in the specified range. Read-only.
-
-        Returns
-        -------
-        Integer
-
-
-        .. versionadded:: 0.3.5
-        """
-        return self.col1
-
-    @property
-    def row(self):
-        """
-        Returns the number of the first row in the in the specified range. Read-only.
-
-        Returns
-        -------
-        Integer
-
-
-        .. versionadded:: 0.3.5
-        """
-        return self.row1
 
     @property
     def last_cell(self):
