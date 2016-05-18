@@ -309,7 +309,7 @@ class Workbook(xlplatform.Workbook):
         return Macro(name, self)
 
     def __repr__(self):
-        return "<Workbook '{0}'>".format(self.name)
+        return "<Workbook [{0}]>".format(self.name)
 
     def __getitem__(self, name_or_index):
         if isinstance(name_or_index, numbers.Number):
@@ -403,7 +403,7 @@ class Sheet(xlplatform.Sheet):
             return cls(xl_sheet=xl_sheet)
 
     def __repr__(self):
-        return "<Sheet '{0}' of Workbook '{1}'>".format(self.name, self.workbook.name)
+        return "<Sheet [{1}]{0}>".format(self.name, self.workbook.name)
 
 
 class Range(xlplatform.Range):
@@ -482,17 +482,6 @@ class Range(xlplatform.Range):
 
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
-        # return map(
-        #     lambda cell: self.worksheet.range(
-        #         cell,
-        #     ).options(
-        #         **self._options
-        #     ),
-        #     itertools.product(
-        #         xrange(self.row1, self.row2 + 1),
-        #         xrange(self.col1, self.col2 + 1)
-        #     )
-        # )
         for i in range(len(self)):
             yield self(i+1)
 
@@ -538,7 +527,7 @@ class Range(xlplatform.Range):
         """
         options['convert'] = convert
         return Range(
-            xl_range=self.xl_range,
+            xl=self.xl,
             **options
         )
 
@@ -797,9 +786,10 @@ class Range(xlplatform.Range):
             return self.xl_range.get_address(row_absolute, column_absolute, external)
 
     def __repr__(self):
-        return "<Range on Sheet '{0}' of Workbook '{1}'>".format(
+        return "<Range [{1}]{0}!{2}>".format(
             self.worksheet.name,
-            self.worksheet.workbook.name
+            self.worksheet.workbook.name,
+            self.address
         )
 
     @property
@@ -870,20 +860,19 @@ class Range(xlplatform.Range):
 
         .. versionadded:: 0.3.0
         """
+
         if row_size is not None:
             assert row_size > 0
-            row2 = self.row1 + row_size - 1
         else:
-            row2 = self.row2
+            row_size = self.row_count
         if column_size is not None:
             assert column_size > 0
-            col2 = self.col1 + column_size - 1
         else:
-            col2 = self.col2
+            column_size = self.column_count
 
-        return self.worksheet.range((self.row1, self.col1), (row2, col2)).options(**self._options)
+        return Range(self(1, 1), self(row_size, column_size)).options(**self._options)
 
-    def offset(self, row_offset=None, column_offset=None):
+    def offset(self, row_offset=0, column_offset=0):
         """
         Returns a Range object that represents a Range that's offset from the specified range.
 
@@ -894,20 +883,16 @@ class Range(xlplatform.Range):
 
         .. versionadded:: 0.3.0
         """
-
-        if row_offset:
-            row1 = self.row1 + row_offset
-            row2 = self.row2 + row_offset
-        else:
-            row1, row2 = self.row1, self.row2
-
-        if column_offset:
-            col1 = self.col1 + column_offset
-            col2 = self.col2 + column_offset
-        else:
-            col1, col2 = self.col1, self.col2
-
-        return self.worksheet.range((row1, col1), (row2, col2)).options(**self._options)
+        return Range(
+            self(
+                row_offset + 1,
+                column_offset + 1
+            ),
+            self(
+                row_offset + self.row_count,
+                column_offset + self.column_count
+            )
+        ).options(**self._options)
 
     @property
     def last_cell(self):
@@ -926,7 +911,7 @@ class Range(xlplatform.Range):
 
         .. versionadded:: 0.3.5
         """
-        return self.worksheet.range((self.row2, self.col2)).options(**self._options)
+        return self(self.row_count, self.column_count).options(**self._options)
 
 
 # This has to be after definition of Range to resolve circular reference
