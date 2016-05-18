@@ -408,6 +408,8 @@ def prepare_xl_data_element(x):
         return float(x)
     elif x is None:
         return ""
+    elif np and isinstance(x, float) and np.isnan(x):
+        return ""
     else:
         return x
 

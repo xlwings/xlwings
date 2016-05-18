@@ -150,6 +150,7 @@ def read_empty_as(x):
     return x == [[1., 'empty'], ['empty', 4.]]
 
 if sys.version_info >= (2, 7):
+    # assert_dict_equal isn't available on nose for PY 2.6
 
     # Dicts
     @xw.func
@@ -328,6 +329,11 @@ if pd:
     @xw.ret(pd.Series)
     def write_timeseries():
         return pd.Series([1.5, 2.5], name='ts', index=[datetime(2000, 12, 20), datetime(2000, 12, 21)])
+
+    @xw.func
+    @xw.ret(pd.Series, index=False)
+    def write_series_nan():
+        return pd.Series([1, np.nan, 3])
 
 # Pandas DataFrame
 

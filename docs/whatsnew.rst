@@ -1,6 +1,16 @@
 What's New
 ==========
 
+v0.7.2 (May 18, 2016)
+---------------------
+
+Bug Fixes
+*********
+* [Win] UDFs returning Pandas DataFrames/Series containing ``nan`` were failing (:issue:`446`).
+* [Win] ``RunFrozenPython`` was not finding the executable (:issue:`452`).
+* The xlwings VBA module was not finding the Python interpreter if ``PYTHON_WIN`` or ``PYTHON_MAC`` contained spaces (:issue:`461`).
+
+
 v0.7.1 (April 3, 2016)
 ----------------------
 

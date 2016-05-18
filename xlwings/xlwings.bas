@@ -1,5 +1,5 @@
 Attribute VB_Name = "xlwings"
-' xlwings.org, version: 0.7.1
+' xlwings.org, version: 0.7.2
 '
 ' Copyright (C) 2014-2016, Zoomer Analytics LLC (www.zoomeranalytics.com)
 ' License: BSD 3-clause (see LICENSE.txt for details)
@@ -211,19 +211,25 @@ Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As S
     Dim WaitOnReturn As Boolean: WaitOnReturn = True
     Dim WindowStyle As Integer: WindowStyle = 0
     Set Wsh = CreateObject("WScript.Shell")
-    Dim DriveCommand As String, RunCommand As String, WORKBOOK_FULLNAME As String, PythonInterpreter As String
+    Dim DriveCommand As String, RunCommand As String, WORKBOOK_FULLNAME As String, PythonInterpreter As String, PythonDir As String
     Dim ExitCode As Integer
 
     If LOG_FILE = "" Then
         LOG_FILE = Environ("APPDATA") + "\xlwings_log.txt"
     End If
 
+    If Not IsFrozen And PYTHON_WIN <> "" Then
+        PythonDir = ParentFolder(PYTHON_WIN)
+    Else
+        PythonDir = PYTHON_WIN
+    End If
+
     If Left$(PYTHON_WIN, 2) Like "[A-Za-z]:" Then
         ' If Python is installed on a mapped or local drive, change to drive, then cd to path
-        DriveCommand = Left$(PYTHON_WIN, 2) & " & cd """ & ParentFolder(PYTHON_WIN) & """ & "
+        DriveCommand = Left$(PYTHON_WIN, 2) & " & cd """ & PythonDir & """ & "
     ElseIf Left$(PYTHON_WIN, 2) = "\\" Then
         ' If Python is installed on a UNC path, temporarily mount and activate a drive letter with pushd
-        DriveCommand = "pushd """ & ParentFolder(PYTHON_WIN) & """ & "
+        DriveCommand = "pushd """ & PythonDir & """ & "
     End If
 
     ' Run Python with the "-c" command line switch: add the path of the python file and run the
@@ -232,7 +238,7 @@ Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As S
     WORKBOOK_FULLNAME = ThisWorkbook.FullName
 
     If PYTHON_WIN <> "" Then
-        PythonInterpreter = PYTHON_WIN
+        PythonInterpreter = Chr(34) & PYTHON_WIN & Chr(34)
     Else
         PythonInterpreter = "python"
     End If
