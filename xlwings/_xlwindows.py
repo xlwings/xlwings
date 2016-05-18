@@ -878,7 +878,6 @@ class Range(object):
     def rows(self):
         return self._cls.Range(xl=self.xl.Rows)
 
-
     @property
     def columns(self):
         return self._cls.Range(xl=self.xl.Columns)

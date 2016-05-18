@@ -688,14 +688,14 @@ class Range(xlplatform.Range):
                 if row.step is not None:
                     raise ValueError("Slice steps not supported.")
                 row1 = 0 if row.start is None else row.start
-                row2 = self.count_rows() - 1 if row.stop is None else row.stop - 1
+                row2 = self.row_count - 1 if row.stop is None else row.stop - 1
             else:
                 row1 = row2 = row
             if isinstance(col, slice):
                 if col.step is not None:
                     raise ValueError("Slice steps not supported.")
                 col1 = 0 if col.start is None else col.start
-                col2 = self.count_columns() - 1 if col.stop is None else col.stop - 1
+                col2 = self.column_count - 1 if col.stop is None else col.stop - 1
             else:
                 col1 = col2 = col
             if col1 == col2 and row1 == row2:
@@ -710,7 +710,9 @@ class Range(xlplatform.Range):
                 raise ValueError("Slice steps not supported.")
             l = len(self)
             start = key.start
-            if start >= l:
+            if start is None:
+                start = 0
+            elif start >= l:
                 raise IndexError("Start index %s out of range (%s elements)." % (start, l))
             elif start < 0:
                 if start < -l:
@@ -718,14 +720,16 @@ class Range(xlplatform.Range):
                 else:
                     start = l + start
             stop = key.stop
-            if stop >= l:
+            if stop is None:
+                stop = l
+            elif stop > l:
                 raise IndexError("Stop index %s out of range (%s elements)." % (stop, l))
             elif stop < 0:
-                if stop < -l:
+                if stop <= -l:
                     raise IndexError("Stop index %s out of range (%s elements)." % (stop, l))
                 else:
                     stop = l + stop
-            return self._cls.Range(self(start + 1), self(stop + 1))
+            return self._cls.Range(self(start + 1), self(stop))
         else:
             l = len(self)
             if key >= l:
