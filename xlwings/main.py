@@ -449,7 +449,11 @@ class Range(xlplatform.Range):
 
         # Arguments
         if xl is None:
-            if 0 < len(args) <= 3:
+            if len(args) == 2 and isinstance(args[0], Range) and isinstance(args[1], Range):
+                #if args[0].worksheet.xl != args[1].worksheet.xl:
+                #    raise ValueError("Ranges are not on the same sheet")
+                xl = args[0].worksheet.range(args[0], args[1]).xl
+            elif 0 < len(args) <= 3:
                 if isinstance(args[-1], tuple):
                     if len(args) > 1 and isinstance(args[-2], tuple):
                         spec = (args[-2], args[-1])
@@ -701,8 +705,38 @@ class Range(xlplatform.Range):
                     self(row1 + 1, col1 + 1),
                     self(row2 + 1, col2 + 1)
                 )
+        elif isinstance(key, slice):
+            if key.step is not None:
+                raise ValueError("Slice steps not supported.")
+            l = len(self)
+            start = key.start
+            if start >= l:
+                raise IndexError("Start index %s out of range (%s elements)." % (start, l))
+            elif start < 0:
+                if start < -l:
+                    raise IndexError("Start index %s out of range (%s elements)." % (start, l))
+                else:
+                    start = l + start
+            stop = key.stop
+            if stop >= l:
+                raise IndexError("Stop index %s out of range (%s elements)." % (stop, l))
+            elif stop < 0:
+                if stop < -l:
+                    raise IndexError("Stop index %s out of range (%s elements)." % (stop, l))
+                else:
+                    stop = l + stop
+            return self._cls.Range(self(start + 1), self(stop + 1))
         else:
-            return self(key)
+            l = len(self)
+            if key >= l:
+                raise IndexError("Index %s out of range (%s elements)." % (key, l))
+            elif key < 0:
+                if key < -l:
+                    raise IndexError("Index %s out of range (%s elements)." % (key, l))
+                else:
+                    return self(l + key + 1)
+            else:
+                return self(key + 1)
 
     def get_address(self, row_absolute=True, column_absolute=True, include_sheetname=False, external=False):
         """
