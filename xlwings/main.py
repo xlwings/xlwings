@@ -312,10 +312,16 @@ class Workbook(xlplatform.Workbook):
         return "<Workbook [{0}]>".format(self.name)
 
     def __getitem__(self, name_or_index):
-        if isinstance(name_or_index, numbers.Number):
-            return self(name_or_index + 1)
-        else:
-            return self(name_or_index)
+        return self.sheets[name_or_index]
+
+    def __call__(self, name_or_index):
+        return self.sheets(name_or_index)
+
+    def __len__(self):
+        return len(self.sheets)
+
+    def __iter__(self):
+        return iter(self.sheets)
 
 
 class Sheet(xlplatform.Sheet):
@@ -350,7 +356,7 @@ class Sheet(xlplatform.Sheet):
         return applications.active.active_sheet
 
     @classmethod
-    def add(cls, name=None, before=None, after=None, wkb=None):
+    def add(cls, name=None, before=None, after=None):
         """
         Creates a new worksheet: the new worksheet becomes the active sheet. If neither ``before`` nor
         ``after`` is specified, the new Sheet will be placed at the end.
@@ -381,26 +387,7 @@ class Sheet(xlplatform.Sheet):
 
         .. versionadded:: 0.2.3
         """
-        if wkb is None:
-            wkb = Workbook.active()
-
-        if before is None and after is None:
-            after = wkb.sheet(Sheet.count(wkb=wkb))
-        elif before and not isinstance(before, Sheet):
-            before = wkb.sheet(before)
-        elif after:
-            after = wkb.sheet(after)
-
-        if name:
-            if name.lower() in [i.name.lower() for i in Sheet.all(wkb=wkb)]:
-                raise Exception('That sheet name is already taken.')
-            else:
-                xl_sheet = wkb.xl_workbook.add_sheet(before, after)
-                xl_sheet.set_name(name)
-                return cls(xl_sheet=xl_sheet)
-        else:
-            xl_sheet = wkb.xl_workbook.add_sheet(before, after)
-            return cls(xl_sheet=xl_sheet)
+        return active.book.sheets.add(name, before, after)
 
     def __repr__(self):
         return "<Sheet [{1}]{0}>".format(self.name, self.workbook.name)
@@ -1465,6 +1452,31 @@ class Sheets(xlplatform.Sheets):
             else:
                 r.append(repr(sht))
         return "["+", ".join(r)+"]"
+
+    def __getitem__(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            l = len(self)
+            if name_or_index >= l:
+                raise IndexError("Sheet index %s out of range (%s sheets)" % (name_or_index, l))
+            if name_or_index < 0:
+                if name_or_index < -l:
+                    raise IndexError("Sheet index %s out of range (%s sheets)" % (name_or_index, l))
+                name_or_index += l
+            return self(name_or_index + 1)
+        else:
+            return self(name_or_index)
+
+    def add(self, name=None, before=None, after=None):
+        if name is not None:
+            if name.lower() in (s.name.lower() for s in self):
+                raise ValueError("Sheet named '%s' already present in workbook" % name)
+        if before is not None and not isinstance(before, Sheet):
+            before = self(before)
+        if after is not None and not isinstance(after, Sheet):
+            after = self(after)
+        s = super(Sheets, self).add(before, after)
+        s.name = name
+        return s
 
 
 class ActiveObjects(object):

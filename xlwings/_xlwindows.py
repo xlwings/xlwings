@@ -504,27 +504,7 @@ class Workbook(object):
     def active_sheet(self):
         return self._cls.Sheet(xl=self.xl.ActiveSheet)
 
-    def add_sheet(self, before, after):
-        if before:
-            return self._cls.Sheet(xl=self.xl.Worksheets.Add(Before=before.xl))
-        else:
-            # Hack, since "After" is broken in certain environments
-            # see: http://code.activestate.com/lists/python-win32/11554/
-            count = self.xl.Worksheets.Count
-            new_sheet_index = after.xl_sheet.Index + 1
-            if new_sheet_index > count:
-                xl_sheet = self.xl.Worksheets.Add(Before=after.xl)
-                self.xl.Worksheets(self.xl.Worksheets.Count)\
-                    .Move(Before=self.xl.Sheets(self.xl.Worksheets.Count - 1))
-                self.xl.Worksheets(self.xl.Worksheets.Count).Activate()
-            else:
-                xl_sheet = self.xl.Worksheets.Add(Before=self.xl.Sheets(after.xl.Index + 1))
-            return self._cls.Sheet(xl=xl_sheet)
-
-    def count_sheets(self):
-        return self.xl.Worksheets.Count
-
-    def save_workbook(self, path=None):
+    def save(self, path=None):
         saved_path = self.xl.Path
         if (saved_path != '') and (path is None):
             # Previously saved: Save under existing name
@@ -559,26 +539,10 @@ class Workbook(object):
     def selection(self):
         return self._cls.Range(xl=self.xl.ActiveSheet.Selection)
 
-    def __iter__(self):
-        for i in range(self.xl.Sheets.Count):
-            yield self._cls.Sheet(xl=self.xl.Sheets(i + 1))
-
-    def __call__(self, name_or_index):
-        return self._cls.Sheet(xl=self.xl.Sheets(name_or_index))
-
-    def __len__(self):
-        return self.xl.Sheets.Count
-
 
 class Sheets(object):
     def __init__(self, xl):
         self.xl = xl
-
-    def __getitem__(self, name_or_index):
-        if isinstance(name_or_index, numbers.Number):
-            return self._cls.Sheet(xl=self.xl(name_or_index + 1))
-        else:
-            return self._cls.Sheet(xl=self.xl(name_or_index))
 
     def __iter__(self):
         for i in range(self.xl.Count):
@@ -590,6 +554,24 @@ class Sheets(object):
     def __len__(self):
         return self.xl.Count
 
+    def add(self, before=None, after=None):
+        if before:
+            return self._cls.Sheet(xl=self.xl.Add(Before=before.xl))
+        elif after:
+            # Hack, since "After" is broken in certain environments
+            # see: http://code.activestate.com/lists/python-win32/11554/
+            count = self.xl.Count
+            new_sheet_index = after.xl.Index + 1
+            if new_sheet_index > count:
+                xl_sheet = self.xl.Add(Before=after.xl)
+                self.xl(self.xl.Count).Move(Before=self.xl(self.xl.Count - 1))
+                self.xl(self.xl.Count).Activate()
+            else:
+                xl_sheet = self.xl.Add(Before=self.xl(after.xl.Index + 1))
+            return self._cls.Sheet(xl=xl_sheet)
+        else:
+            return self._cls.Sheet(xl=self.xl.Add())
+
 
 class Sheet(object):
 
@@ -599,6 +581,10 @@ class Sheet(object):
     @property
     def name(self):
         return self.xl.Name
+
+    @name.setter
+    def name(self, value):
+        self.xl.Name = value
 
     @property
     def workbook(self):
