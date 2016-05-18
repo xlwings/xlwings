@@ -150,6 +150,7 @@ def read_empty_as(x):
     return x == [[1., 'empty'], ['empty', 4.]]
 
 if sys.version_info >= (2, 7):
+    # assert_dict_equal isn't available on nose for PY 2.6
 
     # Dicts
     @xw.func
