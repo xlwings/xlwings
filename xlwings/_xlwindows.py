@@ -456,34 +456,14 @@ class Application(object):
 
         return self._cls.Range(xl=self.xl.Range(xl1, xl2))
 
-    def __iter__(self):
-        for i in range(self.xl.Workbooks.Count):
-            yield self._cls.Workbook(xl=self.xl.Workbooks(i + 1))
-
-    def __call__(self, name_or_index):
-        return self._cls.Workbook(xl=self.xl.Workbooks(name_or_index + 1))
-
-    def __len__(self):
-        return self.xl.Workbooks.Count
-
 
 class Workbooks(object):
 
     def __init__(self, xl):
         self.xl = xl
 
-    def __getitem__(self, name_or_index):
-        if isinstance(name_or_index, numbers.Number):
-            return self._cls.Workbook(xl=self.xl(name_or_index + 1))
-        else:
-            return self._cls.Workbook(xl=self.xl(name_or_index))
-
-    def __iter__(self):
-        for i in range(self.xl.Count):
-            yield self._cls.Workbook(xl=self.xl(i+1))
-
     def __call__(self, name_or_index):
-        return self._cls.Workbook(xl=self.xl(name_or_index + 1))
+        return self._cls.Workbook(xl=self.xl(name_or_index))
 
     def __len__(self):
         return self.xl.Count
@@ -557,10 +537,6 @@ class Sheets(object):
     def __init__(self, xl):
         self.xl = xl
 
-    def __iter__(self):
-        for i in range(self.xl.Count):
-            yield self._cls.Sheet(xl=self.xl(i + 1))
-
     def __call__(self, name_or_index):
         return self._cls.Sheet(xl=self.xl(name_or_index))
 
@@ -598,6 +574,10 @@ class Sheet(object):
     @name.setter
     def name(self, value):
         self.xl.Name = value
+
+    @property
+    def names(self):
+        return self._cls.Names(xl=self.xl.Names)
 
     @property
     def workbook(self):

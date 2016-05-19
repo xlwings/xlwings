@@ -85,17 +85,23 @@ class Application(xlplatform.Application):
     def __repr__(self):
         return "<Excel App %s>" % self.pid
 
-    def __getitem__(self, name_or_index):
-        if isinstance(name_or_index, numbers.Number):
-            return self(name_or_index + 1)
-        else:
-            return self(name_or_index)
-
     def __eq__(self, other):
         return type(other) is Application and other.pid == self.pid
 
     def __hash__(self):
         return hash(self.pid)
+
+    def __getitem__(self, name_or_index):
+        return self.workbooks[name_or_index]
+
+    def __call__(self, *args, **kwargs):
+        return self.workbooks(*args, **kwargs)
+
+    def __len__(self):
+        return len(self.workbooks)
+
+    def __iter__(self):
+        return iter(self.workbooks)
 
 
 class Workbook(xlplatform.Workbook):
@@ -301,6 +307,9 @@ class Workbook(xlplatform.Workbook):
 
     def __getitem__(self, name_or_index):
         return self.sheets[name_or_index]
+
+    def __delitem__(self, name_or_index):
+        del self.sheets[name_or_index]
 
     def __call__(self, name_or_index):
         return self.sheets(name_or_index)
@@ -1381,43 +1390,26 @@ class Names(xlplatform.Names):
         else:
             raise KeyError(key)
 
+    def __iter__(self):
+        for i in range(len(self)):
+            yield self(i+1)
+
+    def __repr__(self):
+        r = []
+        for i, n in enumerate(self):
+            if i == 3:
+                r.append("...")
+                break
+            else:
+                r.append(repr(n))
+        return "[" + ", ".join(r) + "]"
+
 
 class Name(xlplatform.Name):
 
     def __repr__(self):
         return "<Name '%s': %s>" % (self.name, self.refers_to)
     
-
-
-class NamesDict(collections.MutableMapping):
-    """
-    Implements the Workbook.Names collection.
-    Currently only used to be able to do ``del wb.names['NamedRange']``
-    """
-
-    def __init__(self, xl_workbook, *args, **kwargs):
-        self.xl_workbook = xl_workbook
-        self.store = dict()
-        self.update(dict(*args, **kwargs))
-
-    def __getitem__(self, key):
-        return self.store[self.__keytransform__(key)]
-
-    def __setitem__(self, key, value):
-        self.store[self.__keytransform__(key)] = value
-
-    def __delitem__(self, key):
-        xlplatform.delete_name(self.xl_workbook, key)
-
-    def __iter__(self):
-        return iter(self.store)
-
-    def __len__(self):
-        return len(self.store)
-
-    def __keytransform__(self, key):
-        return key
-
 
 def view(obj):
     """
@@ -1456,6 +1448,19 @@ class Macro(object):
 
 class Workbooks(xlplatform.Workbooks):
 
+    def __getitem__(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            l = len(self)
+            if name_or_index >= l:
+                raise IndexError("Workbook index %s out of range (%s workbooks)" % (name_or_index, l))
+            if name_or_index < 0:
+                if name_or_index < -l:
+                    raise IndexError("Workbook index %s out of range (%s workbooks)" % (name_or_index, l))
+                name_or_index += l
+            return self(name_or_index + 1)
+        else:
+            return self(name_or_index)
+
     def __repr__(self):
         r = []
         for i, wb in enumerate(self):
@@ -1465,6 +1470,10 @@ class Workbooks(xlplatform.Workbooks):
             else:
                 r.append(repr(wb))
         return "["+", ".join(r)+"]"
+
+    def __iter__(self):
+        for i in range(len(self)):
+            yield self(i + 1)
 
 
 class Sheets(xlplatform.Sheets):
@@ -1491,6 +1500,13 @@ class Sheets(xlplatform.Sheets):
             return self(name_or_index + 1)
         else:
             return self(name_or_index)
+
+    def __delitem__(self, name_or_index):
+        self[name_or_index].delete()
+
+    def __iter__(self):
+        for i in range(len(self)):
+            yield self(i+1)
 
     def add(self, name=None, before=None, after=None):
         if name is not None:
