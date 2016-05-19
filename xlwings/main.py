@@ -266,18 +266,6 @@ class Workbook(xlplatform.Workbook):
 
         xlplatform.open_template(os.path.realpath(os.path.join(this_dir, template_file)))
 
-    @property
-    def names(self):
-        """
-        A collection of all the (platform-specific) name objects in the application or workbook.
-        Each name object represents a defined name for a range of cells (built-in or custom ones).
-
-        .. versionadded:: 0.4.0
-        """
-        names = NamesDict(self.xl_workbook)
-        self.xl_workbook.set_names(names)
-        return names
-
     def macro(self, name):
         """
         Runs a Sub or Function in Excel VBA.
@@ -440,6 +428,8 @@ class Range(xlplatform.Range):
                 #if args[0].worksheet.xl != args[1].worksheet.xl:
                 #    raise ValueError("Ranges are not on the same sheet")
                 xl = args[0].worksheet.range(args[0], args[1]).xl
+            elif len(args) == 1 and isinstance(args[0], string_types):
+                xl = active.app.range(args[0]).xl
             elif 0 < len(args) <= 3:
                 if isinstance(args[-1], tuple):
                     if len(args) > 1 and isinstance(args[-2], tuple):
@@ -1363,6 +1353,42 @@ class Plot(object):
             os.remove(filename)
 
 
+class Names(xlplatform.Names):
+
+    def __getitem__(self, item):
+        if isinstance(item, numbers.Number):
+            return self(item + 1)
+        else:
+            return self(item)
+
+    def __setitem__(self, key, value):
+        if isinstance(value, Range):
+            value.name = key
+        elif key in self:
+            self[key].refers_to = value
+        else:
+            self.add(key, value)
+
+    def __contains__(self, item):
+        if isinstance(item, numbers.Number):
+            return 0 <= item < len(self)
+        else:
+            return self.contains(item)
+
+    def __delitem__(self, key):
+        if key in self:
+            self[key].delete()
+        else:
+            raise KeyError(key)
+
+
+class Name(xlplatform.Name):
+
+    def __repr__(self):
+        return "<Name '%s': %s>" % (self.name, self.refers_to)
+    
+
+
 class NamesDict(collections.MutableMapping):
     """
     Implements the Workbook.Names collection.
@@ -1512,6 +1538,8 @@ class Classes:
     Sheet = Sheet
     Sheets = Sheets
     Range = Range
+    Names = Names
+    Name = Name
 
 Applications._cls \
     = Application._cls \
@@ -1520,4 +1548,6 @@ Applications._cls \
     = Sheets._cls \
     = Sheet._cls \
     = Range._cls \
+    = Names._cls \
+    = Name._cls \
     = Classes

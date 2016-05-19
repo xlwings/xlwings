@@ -440,6 +440,22 @@ class Application(object):
     def pid(self):
         return win32process.GetWindowThreadProcessId(self.xl.Hwnd)[1]
 
+    def range(self, arg1, arg2=None):
+        if isinstance(arg1, Range):
+            xl1 = arg1.xl
+        else:
+            xl1 = self.xl.Range(arg1)
+
+        if arg2 is None:
+            return self._cls.Range(xl=xl1)
+
+        if isinstance(arg2, Range):
+            xl2 = arg2.xl
+        else:
+            xl2 = self.xl.Range(arg2)
+
+        return self._cls.Range(xl=self.xl.Range(xl1, xl2))
+
     def __iter__(self):
         for i in range(self.xl.Workbooks.Count):
             yield self._cls.Workbook(xl=self.xl.Workbooks(i + 1))
@@ -525,12 +541,9 @@ class Workbook(object):
     def fullname(self):
         return self.xl.FullName
 
-    def set_names(self, names):
-        for i in self.xl.Names:
-            names[i.Name] = i
-
-    def delete_name(self, name):
-        self.xl.Names(name).Delete()
+    @property
+    def names(self):
+        return self._cls.Names(xl=self.xl.Names)
 
     def activate(self):
         self.xl.Activate()
@@ -848,7 +861,7 @@ class Range(object):
     @property
     def name(self):
         try:
-            name = self.xl.Name.Name
+            name = self._cls.Name(xl=self.xl.Name)
         except pywintypes.com_error:
             name = None
         return name
@@ -1057,3 +1070,57 @@ class Chart(Shape):
 
     def set_type(self, chart_type):
         self.xl.Chart.ChartType = chart_type
+
+
+class Names(object):
+    def __init__(self, xl):
+        self.xl = xl
+
+    def __call__(self, name_or_index):
+        return self._cls.Name(xl=self.xl(name_or_index))
+
+    def contains(self, name_or_index):
+        try:
+            self.xl(name_or_index)
+        except pywintypes.com_error as e:
+            if e.hresult == -2147352567:
+                return False
+            else:
+                raise
+        return True
+
+    def __len__(self):
+        return self.xl.Count
+
+    def add(self, name, refers_to):
+        return self._cls.Name(xl=self.xl.Add(name, refers_to))
+
+
+class Name(object):
+    def __init__(self, xl):
+        self.xl = xl
+
+    def delete(self):
+        self.xl.Delete()
+
+    @property
+    def name(self):
+        return self.xl.Name
+
+    @name.setter
+    def name(self, value):
+        self.xl.Name = value
+
+    @property
+    def refers_to(self):
+        return self.xl.RefersTo
+
+    @refers_to.setter
+    def refers_to(self, value):
+        self.xl.RefersTo = value
+
+    @property
+    def refers_to_range(self):
+        return self._cls.Range(xl=self.xl.RefersToRange)
+
+
