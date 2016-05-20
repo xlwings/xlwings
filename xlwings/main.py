@@ -1552,7 +1552,8 @@ class Sheets(xlplatform.Sheets):
         if after is not None and not isinstance(after, Sheet):
             after = self(after)
         s = super(Sheets, self).add(before, after)
-        s.name = name
+        if name is not None:
+            s.name = name
         return s
 
 
