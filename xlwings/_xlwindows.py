@@ -533,9 +533,6 @@ class Workbook(object):
     def sheets(self):
         return self._cls.Sheets(xl=self.xl.Sheets)
 
-    def sheet(self, sheet_name_or_index):
-        return self._cls.Sheet(xl=self.xl.Sheets(sheet_name_or_index))
-
     @property
     def application(self):
         return self._cls.Application(xl=self.xl.Application)
@@ -635,10 +632,14 @@ class Sheet(object):
         return self.xl.Index
 
     def range(self, arg1, arg2=None):
+
         if isinstance(arg1, Range):
             xl1 = arg1.xl
         elif isinstance(arg1, tuple):
             xl1 = self.xl.Cells(arg1[0], arg1[1])
+        elif isinstance(arg1, numbers.Number) and isinstance(arg2, numbers.Number):
+            xl1 = self.xl.Cells(arg1, arg2)
+            arg2 = None
         else:
             xl1 = self.xl.Range(arg1)
 

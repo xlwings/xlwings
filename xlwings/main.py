@@ -388,6 +388,15 @@ class Sheet(xlplatform.Sheet):
     def __repr__(self):
         return "<Sheet [{1}]{0}>".format(self.name, self.workbook.name)
 
+    def __getitem__(self, item):
+        if isinstance(item, string_types):
+            return self.range(item)
+        else:
+            return self.cells[item]
+
+    def __call__(self, *args):
+        return self.range(*args)
+
 
 class Range(xlplatform.Range):
     """
