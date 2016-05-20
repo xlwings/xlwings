@@ -413,12 +413,6 @@ class Application(object):
     def active_sheet(self):
         return self._cls.Worksheet(xl=self.xl.ActiveSheet)
 
-    def open_workbook(self, fullname):
-        return self._cls.Workbook(xl=self.xl.Workbooks.Open(fullname))
-
-    def new_workbook(self):
-        return self._cls.Workbook(xl=self.xl.Workbooks.Add())
-
     @property
     def selection(self):
         # TODO: selection isn't always a range
@@ -514,6 +508,12 @@ class Workbooks(object):
 
     def __len__(self):
         return self.xl.Count
+
+    def add(self):
+        return self._cls.Workbook(xl=self.xl.Add())
+
+    def open(self, fullname):
+        return self._cls.Workbook(xl=self.xl.Open(fullname))
 
 
 class Workbook(object):

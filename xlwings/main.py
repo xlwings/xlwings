@@ -61,6 +61,7 @@ class Applications(xlplatform.Applications):
 
 applications = Applications()
 
+
 class Application(xlplatform.Application):
     """
     Application is dependent on the Workbook since there might be different application instances on Windows.
@@ -101,6 +102,27 @@ class Application(xlplatform.Application):
 
     def __iter__(self):
         return iter(self.workbooks)
+
+    def workbook(self, fullname=None):
+        wbs = self.workbooks
+
+        if fullname:
+            if not PY3 and isinstance(fullname, str):
+                fullname = unicode(fullname, 'mbcs')  # noqa
+            fullname = fullname.lower()
+
+            for wb in wbs:
+                if wb.fullname.lower() == fullname or wb.name.lower() == fullname:
+                    return wb
+
+            if os.path.isfile(fullname):
+                return wbs.open(fullname)
+            else:
+                raise Exception("Could not connect to workbook '%s'" % fullname)
+
+        else:
+            # create a new workbook
+            return wbs.add()
 
 
 class Workbook(xlplatform.Workbook):
@@ -158,7 +180,7 @@ class Workbook(xlplatform.Workbook):
 
                 if len(candidates) == 0:
                     if os.path.isfile(fullname):
-                        xl = applications.active.open_workbook(fullname).xl
+                        xl = active.app.workbooks.open(fullname).xl
                     else:
                         raise Exception("Could not connect to workbook '%s'" % fullname)
                 elif len(candidates) > 1:
@@ -167,8 +189,7 @@ class Workbook(xlplatform.Workbook):
                     xl = candidates[0][1].xl
             else:
                 # Open Excel if necessary and create a new workbook
-                app = applications.active
-                xl = app.new_workbook().xl
+                xl = active.app.workbooks.new()
 
             super(Workbook, self).__init__(xl=xl)
 
@@ -300,6 +321,12 @@ class Workbook(xlplatform.Workbook):
         .. versionadded:: 0.7.1
         """
         return Macro(name, self)
+
+    def sheet(self, name_or_index=None):
+        if name_or_index is None:
+            return self.sheets.add()
+        else:
+            return self.sheets(name_or_index)
 
     def __repr__(self):
         return "<Workbook [{0}]>".format(self.name)
@@ -1064,9 +1091,9 @@ class Chart(Shape):
         """
 
         if sheet is None:
-            sheet = applications.active.active_sheet
+            sheet = active.sheet
         elif not isinstance(sheet, Sheet):
-            sheet = applications.active.active_workbook.sheet(sheet)
+            sheet = active.workbook.sheet(sheet)
 
         xl_chart = sheet.xl_sheet.add_chart(left, top, width, height)
 
@@ -1185,9 +1212,9 @@ class Picture(Shape):
         """
 
         if sheet is None:
-            sheet = applications.active.active_sheet
+            sheet = active.sheet
         elif not isinstance(sheet, Sheet):
-            sheet = applications.active.active_workbook.sheet(sheet)
+            sheet = active.workbook.sheet(sheet)
 
         if name:
             if name in sheet.xl_sheet.get_shapes_names():
