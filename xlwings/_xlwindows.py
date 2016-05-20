@@ -90,6 +90,11 @@ class COMRetryMethodWrapper(object):
                     raise
 
 
+class ExcelBusyError(Exception):
+    def __init__(self):
+        super(ExcelBusyError, self).__init__("Excel application is not responding")
+
+
 class COMRetryObjectWrapper(object):
     def __init__(self, inner):
         object.__setattr__(self, '_inner', inner)
@@ -121,15 +126,28 @@ class COMRetryObjectWrapper(object):
                 else:
                     return v
             except pywintypes.com_error as e:
-                if i < N_COM_RETRIES and e.hresult == -2147418111:
-                    continue
+                if e.hresult == -2147418111:  # RPC_E_CALL_REJECTED
+                    if i < N_COM_RETRIES:
+                        continue
+                    else:
+                        raise ExcelBusyError()
                 else:
                     raise
             except AttributeError as e:
+                # Pywin32 reacts incorrectly to RPC_E_CALL_REJECTED (i.e. assumes attribute doesn't
+                # exist, thus not allowing to destinguish between cases where attribute really doesn't
+                # exist or error is only being thrown because the COM RPC server is busy). Here
+                # we try to test to see what's going on really
+                try:
+                    self._oleobj_.GetIDsOfNames(0, item)
+                except pythoncom.ole_error as e:
+                    if e.hresult != -2147418111:   # RPC_E_CALL_REJECTED
+                        # attribute probably really doesn't exist
+                        raise
                 if i < N_COM_RETRIES:
                     continue
                 else:
-                    raise
+                    raise ExcelBusyError()
 
     def __call__(self, *args, **kwargs):
         for i in range(N_COM_RETRIES + 1):
@@ -251,8 +269,13 @@ def get_excel_hwnds():
     while hwnd:
         try:
             # Apparently, this fails on some systems when Excel is closed
-            if win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None):
+            child_hwnd = win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None)
+            if child_hwnd:
+                child_hwnd = win32gui.FindWindowEx(child_hwnd, 0, 'EXCEL7', None)
+            if child_hwnd:
                 yield hwnd
+            #if win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None):
+            #    yield hwnd
         except pywintypes.error:
             pass
 
@@ -263,6 +286,8 @@ def get_xl_apps():
     for hwnd in get_excel_hwnds():
         try:
             yield get_xl_app_from_hwnd(hwnd)
+        except ExcelBusyError:
+            pass
         except WindowsError:
             # This happens if the bare Excel Application is open without Workbook
             # i.e. there is no 'EXCEL7' child hwnd that would be necessary to make a connection
@@ -339,15 +364,20 @@ def is_range_instance(xl_range):
 class Applications(object):
 
     def __iter__(self):
-        for xl in get_xl_apps():
-            yield self._cls.Application(xl=xl)
+        #for xl in get_xl_apps():
+        #    yield self._cls.Application(xl=xl)
+        for hwnd in get_excel_hwnds():
+            yield self._cls.Application(xl=hwnd)
 
     def __len__(self):
-        return len(get_xl_apps())
+        #return len(get_xl_apps())
+        return len(get_excel_hwnds())
 
     def __getitem__(self, index):
-        xl_apps = list(get_xl_apps())
-        return self._cls.Application(xl=xl_apps[index])
+        #xl_apps = list(get_xl_apps())
+        #return self._cls.Application(xl=xl_apps[index])
+        hwnds = list(get_excel_hwnds())
+        return self._cls.Application(xl=hwnds[index])
 
     @property
     def default(self):
@@ -359,9 +389,20 @@ class Application(object):
     def __init__(self, xl=None):
         if xl is None:
             # new instance
-            self.xl = COMRetryObjectWrapper(DispatchEx('Excel.Application'))
+            self._xl = COMRetryObjectWrapper(DispatchEx('Excel.Application'))
+            self._hwnd = None
+        elif isinstance(xl, int):
+            self._xl = None
+            self._hwnd = xl
         else:
-            self.xl = xl
+            self._xl = xl
+            self._hwnd = None
+
+    @property
+    def xl(self):
+        if self._xl is None:
+            self._xl = get_xl_app_from_hwnd(self._hwnd)
+        return self._xl
 
     @property
     def active_workbook(self):
@@ -437,8 +478,14 @@ class Application(object):
         return self._cls.Workbooks(xl=self.xl.Workbooks)
 
     @property
+    def hwnd(self):
+        if self._hwnd is None:
+            self._hwnd = self._xl.Hwnd
+        return self._hwnd
+
+    @property
     def pid(self):
-        return win32process.GetWindowThreadProcessId(self.xl.Hwnd)[1]
+        return win32process.GetWindowThreadProcessId(self.hwnd)[1]
 
     def range(self, arg1, arg2=None):
         if isinstance(arg1, Range):

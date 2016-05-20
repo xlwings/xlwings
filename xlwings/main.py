@@ -68,7 +68,6 @@ class Application(xlplatform.Application):
 
     def __init__(self, xl=None, make_visible=None):
         super(Application, self).__init__(xl=xl)
-
         if xl is None and make_visible is None:
             self.visible = True
         elif make_visible:

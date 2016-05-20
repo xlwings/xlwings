@@ -1,7 +1,4 @@
 import xlwings as xw
 
-wb = xw.Workbook()
+a = list(xw.apps)
 
-xw.Range("A1").value = 3
-
-print(xw.Range("A1").value)
