@@ -29,31 +29,43 @@ if np:
 _xl_app = None
 
 
+def _make_xl_workbook(xl_app, name_or_index):
+    xl = xl_app.workbooks[name_or_index]
+    xl._parent = xl_app
+    return xl
+
+
+def _make_xl_worksheet(xl_workbook, name_or_index):
+    xl = xl_workbook.sheets[name_or_index]
+    xl._parent = xl_workbook
+    return xl
+
+
 class Application(object):
     def __init__(self, target='Microsoft Excel'):
-        self.__appscript__ = app(target, terms=mac_dict)
+        self.xl = app(target, terms=mac_dict)
 
     def open_workbook(self, fullname):
         filename = os.path.basename(fullname)
-        self.__appscript__.open(fullname)
+        self.xl.open(fullname)
         return Workbook(self, filename)
 
     def get_workbook(self, name):
         return Workbook(self, name)
 
     def get_active_workbook(self):
-        return Workbook(self, self.__appscript__.active_workbook.name.get())
+        return Workbook(self, self.xl.active_workbook.name.get())
 
     def get_active_sheet(self):
         return Sheet(
             self.get_active_workbook(),
-            self.__appscript__.active_sheet.name.get()
+            self.xl.active_sheet.name.get()
         )
 
     def get_selection(self):
         return Range(
             self.get_active_sheet(),
-            str(self.__appscript__.selection.get_address())
+            str(self.xl.selection.get_address())
         )
 
     def add_sheet(xl_workbook, before, after):
@@ -108,29 +120,31 @@ class Application(object):
         xl_app.calculate()
 
     def get_version_string(self):
-        return self.__appscript__.version.get()
+        return self.xl.version.get()
 
 
 class Workbook(object):
-    def __init__(self, application, name):
-        self.application = application
-        self.name = name
+    def __init__(self, xl):
+        self.xl = xl
 
     @property
-    def __appscript__(self):
-        return self.application.__appscript__.workbooks(self.name)
+    def xl(self):
+        return self.application.xl.workbooks(self.name)
 
-    def get_sheet(self, name):
-        return Sheet(self, name)
+    def sheet(self, name_or_index):
+        return self._classes.Worksheet(xl=_make_xl_worksheet(self.xl, name_or_index))
 
-    def get_name(self):
-        return self.__appscript__.name.get()
+    @property
+    def name(self):
+        return self.xl.name.get()
 
-    def get_app(self):
-        return self.application
+    @property
+    def application(self):
+        return self._classes.Application(xl=self.xl._parent)
 
-    def get_active_sheet(self):
-        return Sheet(self, self.__appscript__.active_sheet.name.get())
+    @property
+    def active_sheet(self):
+        return self._classes.Worksheet(xl=_make_xl_worksheet(self.xl, self.xl.active_sheet.name.get()))
 
     def save_workbook(xl_workbook, path):
         saved_path = xl_workbook.properties().get(kw.path)
@@ -147,12 +161,12 @@ class Workbook(object):
             hfs_path = posix_to_hfs_path(path)
             xl_workbook.save_workbook_as(filename=hfs_path, overwrite=True)
 
-    def get_fullname(xl_workbook):
-        hfs_path = xl_workbook.properties().get(kw.full_name)
-        if hfs_path == xl_workbook.properties().get(kw.name):
+    @property
+    def fullname(self):
+        hfs_path = self.xl.properties().get(kw.full_name)
+        if hfs_path == self.xl.properties().get(kw.name):
             return hfs_path
         return hfs_to_posix_path(hfs_path)
-
 
     def set_names(xl_workbook, names):
         try:
@@ -167,15 +181,19 @@ class Workbook(object):
 
     def add_picture(xl_workbook, sheet_name_or_index, filename, link_to_file, save_with_document, left, top, width, height):
         sheet_index = xl_workbook.sheets[sheet_name_or_index].entry_index.get()
-        return xl_workbook.make(at=xl_workbook.sheets[sheet_index],
-                                new=kw.picture,
-                                with_properties={kw.file_name: posix_to_hfs_path(filename),
-                                                 kw.link_to_file: link_to_file,
-                                                 kw.save_with_document: save_with_document,
-                                                 kw.top: top,
-                                                 kw.left_position: left,
-                                                 kw.width: width,
-                                                 kw.height: height})
+        return xl_workbook.make(
+            at=xl_workbook.sheets[sheet_index],
+            new=kw.picture,
+            with_properties={
+                kw.file_name: posix_to_hfs_path(filename),
+                 kw.link_to_file: link_to_file,
+                 kw.save_with_document: save_with_document,
+                 kw.top: top,
+                 kw.left_position: left,
+                 kw.width: width,
+                 kw.height: height
+            }
+        )
 
 
 def delete_sheet(sheet):
@@ -185,66 +203,62 @@ def delete_sheet(sheet):
 
 
 class Sheet(object):
-    def __init__(self, workbook, name):
-        self.workbook = workbook
-        self.name = name
+    def __init__(self, xl):
+        self.xl = xl
+
+    def range(self, address):
+        return Range(self, xl=_make_xl_range(self.xl, address))
 
     @property
-    def __appscript__(self):
-        return self.workbook.__appscript__.sheets(self.name)
-
-    def get_range(self, address):
-        return Range(self, address)
-
     def get_name(self):
-        return self.__appscript__.name.get()
+        return self.xl.name.get()
 
     def set_name(self, value):
-        self.__appscript__.name.set(value)
-        self.name = self.__appscript__.name.get()
+        self.xl.name.set(value)
+        self.name = self.xl.name.get()
 
     def get_index(self):
-        return self.__appscript__.entry_index.get()
+        return self.xl.entry_index.get()
 
     def get_workbook(self):
         return self.workbook
 
     def activate(self):
-        self.__appscript__.activate_object()
+        self.xl.activate_object()
 
     def get_value_from_index(self, row_index, column_index):
-        return self.__appscript__.columns[column_index].rows[row_index].value.get()
+        return self.xl.columns[column_index].rows[row_index].value.get()
 
     def clear_contents(self):
-        self.__appscript__.used_range.clear_contents()
+        self.xl.used_range.clear_contents()
 
     def clear(self):
-        self.__appscript__.used_range.clear_range()
+        self.xl.used_range.clear_range()
 
     def get_row_index_end_down(self, row_index, column_index):
-        ix = self.__appscript__.columns[column_index].rows[row_index].get_end(direction=kw.toward_the_bottom).first_row_index.get()
+        ix = self.xl.columns[column_index].rows[row_index].get_end(direction=kw.toward_the_bottom).first_row_index.get()
         return ix
 
     def get_column_index_end_right(self, row_index, column_index):
-        ix = self.__appscript__.columns[column_index].rows[row_index].get_end(direction=kw.toward_the_right).first_column_index.get()
+        ix = self.xl.columns[column_index].rows[row_index].get_end(direction=kw.toward_the_right).first_column_index.get()
         return ix
 
     def get_range_from_indices(self, first_row, first_column, last_row, last_column):
-        first_address = self.__appscript__.columns[first_column].rows[first_row].get_address()
-        last_address = self.__appscript__.columns[last_column].rows[last_row].get_address()
+        first_address = self.xl.columns[first_column].rows[first_row].get_address()
+        last_address = self.xl.columns[last_column].rows[last_row].get_address()
         return Range(self, '{0}:{1}'.format(first_address, last_address))
 
     def get_current_region_address(self, row_index, column_index):
-        return str(self.__appscript__.columns[column_index].rows[row_index].current_region.get_address())
+        return str(self.xl.columns[column_index].rows[row_index].current_region.get_address())
 
     def get_chart_object(self, chart_name_or_index):
         return Chart(self, chart_name_or_index)
 
     def add_chart(self, left, top, width, height):
         # With the sheet name it won't find the chart later, so we go with the index (no idea why)
-        sheet_index = self.__appscript__.entry_index.get()
-        return self.workbook.__appscript__.make(
-            at=self.__appscript__,
+        sheet_index = self.xl.entry_index.get()
+        return self.workbook.xl.make(
+            at=self.xl,
             new=kw.chart_object,
             with_properties={
                 kw.width: width,
@@ -256,22 +270,22 @@ class Sheet(object):
 
     def autofit_sheet(self, axis):
         #TODO: combine with autofit that works on Range objects
-        num_columns = self.__appscript__.count(each=kw.column)
-        num_rows = self.__appscript__.count(each=kw.row)
+        num_columns = self.xl.count(each=kw.column)
+        num_rows = self.xl.count(each=kw.row)
         xl_range = self.get_range_from_indices(1, 1, num_rows, num_columns)
         address = xl_range.get_address()
         _xl_app.screen_updating.set(False)
         if axis == 'rows' or axis == 'r':
-            self.__appscript__.rows[address].autofit()
+            self.xl.rows[address].autofit()
         elif axis == 'columns' or axis == 'c':
-            self.__appscript__.columns[address].autofit()
+            self.xl.columns[address].autofit()
         elif axis is None:
-            self.__appscript__.rows[address].autofit()
-            self.__appscript__.columns[address].autofit()
+            self.xl.rows[address].autofit()
+            self.xl.columns[address].autofit()
         _xl_app.screen_updating.set(True)
 
     def get_shapes_names(self):
-        shapes = self.__appscript__.shapes.get()
+        shapes = self.xl.shapes.get()
         if shapes != kw.missing_value:
             return [i.name.get() for i in shapes]
         else:
@@ -284,47 +298,47 @@ class Range(object):
         self.address = address
 
     @property
-    def __appscript__(self):
-        return self.sheet.__appscript__.cells(self.address)
+    def xl(self):
+        return self.sheet.xl.cells(self.address)
 
     def get_value(self):
-        return self.__appscript__.value.get()
+        return self.xl.value.get()
 
     def set_value(self, value):
-        return self.__appscript__.value.set(value)
+        return self.xl.value.set(value)
 
     def get_worksheet(self):
         return self.sheet
 
     def get_coordinates(self):
-        row1 = self.__appscript__.first_row_index.get()
-        col1 = self.__appscript__.first_column_index.get()
-        row2 = row1 + self.__appscript__.count(each=kw.row) - 1
-        col2 = col1 + self.__appscript__.count(each=kw.column) - 1
+        row1 = self.xl.first_row_index.get()
+        col1 = self.xl.first_column_index.get()
+        row2 = row1 + self.xl.count(each=kw.row) - 1
+        col2 = col1 + self.xl.count(each=kw.column) - 1
         return (row1, col1, row2, col2)
 
     def get_first_row(self):
-        return self.__appscript__.first_row_index.get()
+        return self.xl.first_row_index.get()
 
     def get_first_column(self):
-        return self.__appscript__.first_column_index.get()
+        return self.xl.first_column_index.get()
 
     def count_rows(self):
-        return self.__appscript__.count(each=kw.row)
+        return self.xl.count(each=kw.row)
 
     def count_columns(self):
-        return self.__appscript__.count(each=kw.column)
+        return self.xl.count(each=kw.column)
 
     def clear_contents(self):
         self.sheet.workbook.application.screen_updating.set(False)
-        self.__appscript__.clear_range()
+        self.xl.clear_range()
         self.sheet.workbook.application.screen_updating.set(True)
 
     def get_formula(self):
-        return self.__appscript__.formula.get()
+        return self.xl.formula.get()
 
     def set_formula(self, value):
-        self.__appscript__.formula.set(value)
+        self.xl.formula.set(value)
 
     def get_column_width(xl_range):
         return xl_range.column_width.get()
@@ -416,23 +430,23 @@ class Shape(object):
         self.name_or_index = name_or_index
 
     @property
-    def __appscript__(self):
-        return self.sheet.__appscript__.shapes[self.name_or_index]
+    def xl(self):
+        return self.sheet.xl.shapes[self.name_or_index]
         #return self.sheet.__appscript__.chart_objects[self.name_or_index]
 
     def set_name(self, name):
-        self.__appscript__.set(name)
+        self.xl.set(name)
         self.name_or_index = name
 
     def get_index(self):
-        return self.__appscript__.entry_index.get()
+        return self.xl.entry_index.get()
 
     def get_name(self):
-        return self.__appscript__.name.get()
+        return self.xl.name.get()
 
     def activate(self):
         # xl_shape.activate_object() doesn't work
-        self.__appscript__.select()
+        self.xl.select()
 
 
     def get_shape_left(shape):
@@ -474,13 +488,13 @@ class Shape(object):
 class Chart(Shape):
 
     def set_source_data_chart(xl_chart, xl_range):
-        self.__appscript__.chart.set_source_data(source=xl_range)
+        self.xl.chart.set_source_data(source=xl_range)
 
     def get_type(self):
-        return self.__appscript__.chart.chart_type.get()
+        return self.xl.chart.chart_type.get()
 
     def set_type(self, chart_type):
-        self.__appscript__.chart.chart_type.set(chart_type)
+        self.xl.chart.chart_type.set(chart_type)
 
 
 
