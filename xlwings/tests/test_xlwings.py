@@ -12,8 +12,9 @@ import inspect
 import nose
 from nose.tools import assert_equal, raises, assert_raises, assert_true, assert_false, assert_not_equal
 
-from xlwings import (Application, Workbook, Sheet, Range, Chart, ChartType,
-                     RgbColor, Calculation, Shape, Picture, Plot, ShapeAlreadyExists)
+from xlwings import Application, Workbook, Sheet, Range, Chart, Picture, Plot, ShapeAlreadyExists
+from xlwings.constants import ChartType, RgbColor
+from .test_data import data, test_date_1, test_date_2, list_row_1d, list_row_2d, list_col, chart_data
 
 
 this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
@@ -31,12 +32,14 @@ else:
 try:
     import numpy as np
     from numpy.testing import assert_array_equal
+    from .test_data import array_1d, array_2d
 except ImportError:
     np = None
 try:
     import pandas as pd
     from pandas import DataFrame, Series
     from pandas.util.testing import assert_frame_equal, assert_series_equal
+    from .test_data import series_1, timeseries_1, df_1, df_2, df_dateindex, df_multiheader, df_multiindex
 except ImportError:
     pd = None
 try:
@@ -50,59 +53,6 @@ except ImportError:
     PIL = None
 
 
-# Test data
-data = [[1, 2.222, 3.333],
-        ['Test1', None, 'éöà'],
-        [datetime(1962, 11, 3), datetime(2020, 12, 31, 12, 12, 20), 9.999]]
-
-test_date_1 = datetime(1962, 11, 3)
-test_date_2 = datetime(2020, 12, 31, 12, 12, 20)
-
-list_row_1d = [1.1, None, 3.3]
-list_row_2d = [[1.1, None, 3.3]]
-list_col = [[1.1], [None], [3.3]]
-chart_data = [['one', 'two'], [1.1, 2.2]]
-
-if np:
-    array_1d = np.array([1.1, 2.2, np.nan, -4.4])
-    array_2d = np.array([[1.1, 2.2, 3.3], [-4.4, 5.5, np.nan]])
-
-if pd:
-    series_1 = pd.Series([1.1, 3.3, 5., np.nan, 6., 8.])
-
-    rng = pd.date_range('1/1/2012', periods=10, freq='D')
-    timeseries_1 = pd.Series(np.arange(len(rng)) + 0.1, rng)
-    timeseries_1[1] = np.nan
-
-    df_1 = pd.DataFrame([[1, 'test1'],
-                         [2, 'test2'],
-                         [np.nan, None],
-                         [3.3, 'test3']], columns=['a', 'b'])
-
-    df_2 = pd.DataFrame([1, 3, 5, np.nan, 6, 8], columns=['col1'])
-
-    df_dateindex = pd.DataFrame(np.arange(50).reshape(10, 5) + 0.1, index=rng,
-                                columns=['one', 'two', 'three', 'four', 'five'])
-
-    # MultiIndex (Index)
-    tuples = list(zip(*[['bar', 'bar', 'baz', 'baz', 'foo', 'foo', 'qux', 'qux'],
-                        ['one', 'two', 'one', 'two', 'one', 'two', 'one', 'two'],
-                        ['x', 'x', 'x', 'x', 'y', 'y', 'y', 'y']]))
-    index = pd.MultiIndex.from_tuples(tuples, names=['first', 'second', 'third'])
-    df_multiindex = pd.DataFrame([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6], [7.7, 8.8], [9.9, 10.10],
-                                  [11.11, 12.12], [13.13, 14.14], [15.15, 16.16]], index=index, columns=['one', 'two'])
-
-    # MultiIndex (Header)
-    header = [['Foo', 'Foo', 'Bar', 'Bar', 'Baz'], ['A', 'B', 'C', 'D', 'E']]
-
-    df_multiheader = pd.DataFrame([[0.0, 1.0, 2.0, 3.0, 4.0],
-                                   [0.0, 1.0, 2.0, 3.0, 4.0],
-                                   [0.0, 1.0, 2.0, 3.0, 4.0],
-                                   [0.0, 1.0, 2.0, 3.0, 4.0],
-                                   [0.0, 1.0, 2.0, 3.0, 4.0],
-                                   [0.0, 1.0, 2.0, 3.0, 4.0]], columns=pd.MultiIndex.from_arrays(header))
-
-
 # Test skips and fixtures
 def _skip_if_no_numpy():
     if np is None:
@@ -112,6 +62,7 @@ def _skip_if_no_numpy():
 def _skip_if_no_pandas():
     if pd is None:
         raise nose.SkipTest('pandas missing')
+
 
 def _skip_if_no_matplotlib():
     if matplotlib is None:
@@ -126,7 +77,7 @@ def _skip_if_not_default_xl():
 class TestBase:
 
     def setUp(self, xlsx):
-        self.app = Application(make_visible=False)
+        self.app = Application(visible=False)
 
         # Connect to test file and make Sheet1 the active sheet
         xl_file1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), xlsx)
@@ -139,37 +90,6 @@ class TestBase:
         if sys.platform.startswith('win'):
             #Application(wb).quit()
             self.app.quit()
-
-
-class TestApplication(TestBase):
-
-    def setUp(self):
-        super(TestApplication, self).setUp('test_workbook_1.xlsx')
-
-    def test_screen_updating(self):
-        self.app.screen_updating = False
-        assert_equal(self.app.screen_updating, False)
-
-        self.app.screen_updating = True
-        assert_equal(self.app.screen_updating, True)
-
-    def test_calculation(self):
-        Range('A1').value = 2
-        Range('B1').formula = '=A1 * 2'
-
-        self.app.calculation = Calculation.xlCalculationManual
-        Range('A1').value = 4
-        assert_equal(Range('B1').value, 4)
-
-        self.app.calculation = Calculation.xlCalculationAutomatic
-        self.app.calculate()  # This is needed on Mac Excel 2016 but not on Mac Excel 2011 (changed behaviour)
-        assert_equal(Range('B1').value, 8)
-
-        Range('A1').value = 2
-        assert_equal(Range('B1').value, 4)
-
-    def test_version(self):
-        assert_true(int(self.app.version.split('.')[0]) > 0)
 
 
 class TestWorkbook(TestBase):
