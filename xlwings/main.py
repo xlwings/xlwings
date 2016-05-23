@@ -53,7 +53,7 @@ class Applications(xlplatform.Applications):
     def active(self):
         for app in self:
             return app
-        return Application(make_visible=True)
+        return Application(visible=True)
 
     def __repr__(self):
         return repr(list(self))
@@ -67,11 +67,11 @@ class Application(xlplatform.Application):
     Application is dependent on the Workbook since there might be different application instances on Windows.
     """
 
-    def __init__(self, xl=None, make_visible=None):
+    def __init__(self, xl=None, visible=None):
         super(Application, self).__init__(xl=xl)
-        if xl is None and make_visible is None:
+        if xl is None and visible is None:
             self.visible = True
-        elif make_visible:
+        elif visible:
             self.visible = True
 
     @classmethod
