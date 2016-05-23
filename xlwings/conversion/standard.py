@@ -61,19 +61,11 @@ class WriteValueToRangeStage(object):
         if rng.xl and value:
             # it is assumed by this stage that value is a list of lists
             if scalar:
-                row2 = rng.row2
-                col2 = rng.col2
                 value = value[0][0]
             else:
-                row2 = rng.row1 + len(value) - 1
-                col2 = rng.col1 + len(value[0]) - 1
+                rng = rng.resize(len(value), len(value[0]))
 
-            rng.worksheet.get_range_from_indices(
-                rng.row1,
-                rng.col1,
-                row2,
-                col2
-            ).value = value
+            rng.raw_value = value
 
     def __call__(self, ctx):
         if ctx.range and ctx.value:

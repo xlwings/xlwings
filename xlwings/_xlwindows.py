@@ -3,7 +3,6 @@ import sys
 
 # Hack to find pythoncom.dll - needed for some distribution/setups (includes seemingly unused import win32api)
 # E.g. if python is started with the full path outside of the python path, then it almost certainly fails
-from pandas.core.indexing import _AtIndexer
 
 cwd = os.getcwd()
 if not hasattr(sys, 'frozen'):
@@ -899,6 +898,8 @@ class Range(object):
         self.xl.Name = value
 
     def __call__(self, *args):
+        if len(args) == 0:
+            raise ValueError("Invalid arguments")
         return self._cls.Range(xl=self.xl(*args))
 
     @property
