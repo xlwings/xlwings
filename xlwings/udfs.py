@@ -3,6 +3,7 @@ import re
 import os.path
 import tempfile
 import inspect
+from importlib import import_module
 
 from win32com.client import Dispatch
 
@@ -144,7 +145,7 @@ def get_udf_module(module_name):
             module_info['module'] = module
             return module
     else:
-        module = __import__(module_name)
+        module = import_module(module_name)
         filename = os.path.normcase(module.__file__.lower())
         mtime = os.path.getmtime(filename)
         udf_modules[module_name] = {
