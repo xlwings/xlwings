@@ -47,7 +47,7 @@ def _skip_if_no_matplotlib():
 
 class TestBase:
     def setUp(self, xlsx=None):
-        self.app = xw.Application(visible=True)
+        self.app = xw.Application(visible=False)
         self.wb = self.app.workbook()
 
     def tearDown(self):
