@@ -2,26 +2,18 @@
 
 from __future__ import unicode_literals
 import os
-import sys
-import shutil
-from datetime import datetime, date
-
-import pytz
 import inspect
+
 import nose
 from nose.tools import assert_equal, raises, assert_raises, assert_true, assert_false, assert_not_equal
 
 import xlwings as xw
 from xlwings.constants import Calculation
-
-from .test_data import data, test_date_1, test_date_2, list_row_1d, list_row_2d, list_col, chart_data
+from .common import TestBase
 
 
 this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
 
-# Mac imports
-if sys.platform.startswith('darwin'):
-    from appscript import k as kw
 
 # Optional dependencies
 try:
@@ -48,33 +40,6 @@ except ImportError:
     PIL = None
 
 
-# Test skips and fixtures
-def _skip_if_no_numpy():
-    if np is None:
-        raise nose.SkipTest('numpy missing')
-
-
-def _skip_if_no_pandas():
-    if pd is None:
-        raise nose.SkipTest('pandas missing')
-
-
-def _skip_if_no_matplotlib():
-    if matplotlib is None:
-        raise nose.SkipTest('matplotlib missing')
-
-
-class TestBase:
-    def setUp(self, xlsx=None):
-        self.app = xw.Application(visible=False)
-        self.wb = self.app.workbook()
-
-    def tearDown(self):
-        self.wb.close()
-        if sys.platform.startswith('win'):
-            self.app.quit()
-
-
 class TestApplication(TestBase):
     def setUp(self):
         super(TestApplication, self).setUp()
@@ -93,7 +58,7 @@ class TestApplication(TestBase):
 
         self.app.calculation = Calculation.xlCalculationManual
         sht.range('A1').value = 4
-        assert_equal(self.wb[0].range('B1').value, 4)
+        assert_equal(sht.range('B1').value, 4)
 
         self.app.calculation = Calculation.xlCalculationAutomatic
         self.app.calculate()  # This is needed on Mac Excel 2016 but not on Mac Excel 2011 (changed behaviour)
@@ -106,10 +71,10 @@ class TestApplication(TestBase):
         assert_true(int(self.app.version.split('.')[0]) > 0)
 
     def test_apps(self):
-        n_original = len(list(xw.apps))
+        n_original = len(xw.apps)
         app2 = xw.Application()
         wb2 = app2.workbook()
-        assert_equal(n_original + 1, len(list(xw.apps)))
+        assert_equal(n_original + 1, len(xw.apps))
         assert_equal(xw.apps[0], app2)
         wb2.close()
         app2.quit()

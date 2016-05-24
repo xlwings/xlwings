@@ -369,8 +369,7 @@ class Applications(object):
             yield self._cls.Application(xl=hwnd)
 
     def __len__(self):
-        #return len(get_xl_apps())
-        return len(get_excel_hwnds())
+        return len(list(get_excel_hwnds()))
 
     def __getitem__(self, index):
         #xl_apps = list(get_xl_apps())
