@@ -8,6 +8,7 @@ import nose
 
 import xlwings as xw
 
+this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
 
 # Optional dependencies
 try:
@@ -46,7 +47,7 @@ def _skip_if_no_matplotlib():
 
 class TestBase:
     def setUp(self, xlsx=None):
-        self.app = xw.Application(visible=False)
+        self.app = xw.Application(visible=True)
         self.wb = self.app.workbook()
 
     def tearDown(self):

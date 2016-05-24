@@ -1,19 +1,11 @@
 # -*- coding: utf-8 -*-
-
 from __future__ import unicode_literals
-import os
-import inspect
 
-import nose
 from nose.tools import assert_equal, raises, assert_raises, assert_true, assert_false, assert_not_equal
 
 import xlwings as xw
 from xlwings.constants import Calculation
 from .common import TestBase
-
-
-this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
-
 
 # Optional dependencies
 try:
@@ -41,9 +33,6 @@ except ImportError:
 
 
 class TestApplication(TestBase):
-    def setUp(self):
-        super(TestApplication, self).setUp()
-
     def test_screen_updating(self):
         self.app.screen_updating = False
         assert_equal(self.app.screen_updating, False)
@@ -96,15 +85,18 @@ class TestApplication(TestBase):
 
         app2.quit()
 
-    # def test_close_all_wbs(self):
-    #     app2 = xw.Application()
-    #     wb1 = app2.workbook()
-    #     wb2 = app2.workbook()
-    #
-    #     for wb in app2:
-    #         wb.close()
-    #
-    #     app2.quit()
+    def test_selection(self):
+        assert_equal(self.app.selection.address, '$A$1')
+
+    def test_close_all_wbs(self):
+        app2 = xw.Application()
+        wb1 = app2.workbook()
+        wb2 = app2.workbook()
+
+        for wb in app2:
+            wb.close()
+
+        app2.quit()
 
 
 
