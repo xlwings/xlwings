@@ -675,7 +675,7 @@ class Sheet(object):
     def get_column_index_end_right(self, row_index, column_index):
         return self.xl.Cells(row_index, column_index).End(Direction.xlToRight).Column
 
-    def autofit(self, axis):
+    def autofit(self, axis=None):
         if axis == 'rows' or axis == 'r':
             self.xl.Rows.AutoFit()
         elif axis == 'columns' or axis == 'c':
@@ -846,7 +846,7 @@ class Range(object):
     def current_region(self):
         return self._cls.Range(xl=self.xl.CurrentRegion)
 
-    def autofit(self, axis):
+    def autofit(self, axis=None):
         if axis == 'rows' or axis == 'r':
             self.xl.Rows.AutoFit()
         elif axis == 'columns' or axis == 'c':
