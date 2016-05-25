@@ -49,6 +49,9 @@ class TestBase:
     def setUp(self, xlsx=None):
         self.app = xw.Application(visible=False)
         self.wb = self.app.workbook()
+        if len(self.wb.sheets) == 1:
+            self.wb.sheets.add(after=1)
+            self.wb.sheets.add(after=2)
 
     def tearDown(self):
         self.wb.close()
