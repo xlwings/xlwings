@@ -480,6 +480,8 @@ class Range(xlplatform.Range):
                         spec = (args[-2], args[-1])
                     else:
                         spec = (args[-1],)
+                    if any(0 in s for s in spec):
+                        raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
                 elif isinstance(args[-1], string_types):
                     spec = (args[-1],)
                 residual_args = args[:-len(spec)]

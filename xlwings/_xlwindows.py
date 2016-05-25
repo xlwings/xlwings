@@ -634,6 +634,8 @@ class Sheet(object):
         if isinstance(arg1, Range):
             xl1 = arg1.xl
         elif isinstance(arg1, tuple):
+            if 0 in arg1:
+                raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
             xl1 = self.xl.Cells(arg1[0], arg1[1])
         elif isinstance(arg1, numbers.Number) and isinstance(arg2, numbers.Number):
             xl1 = self.xl.Cells(arg1, arg2)
@@ -647,6 +649,8 @@ class Sheet(object):
         if isinstance(arg2, Range):
             xl2 = arg2.xl
         elif isinstance(arg2, tuple):
+            if 0 in arg2:
+                raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
             xl2 = self.xl.Cells(arg2[0], arg2[1])
         else:
             xl2 = self.xl.Range(arg2)
