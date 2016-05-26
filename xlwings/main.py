@@ -190,8 +190,11 @@ class Workbook(xlplatform.Workbook):
                     xl = candidates[0][1].xl
             else:
                 # Open Excel if necessary and create a new workbook
-                app = active.app or Application()
-                xl = app.workbooks.add().xl
+                if active.app:
+                    xl = active.app.workbooks.add().xl
+                else:
+                    app = Application()
+                    xl = app[0].xl
 
             super(Workbook, self).__init__(xl=xl)
 
