@@ -670,7 +670,7 @@ class TestRange(TestBase):
         res = wb1[0].range((1, 1), (3, 3)).get_address(include_sheetname=True)
         assert_equal(res, 'Sheet1!$A$1:$C$3')
 
-        res = wb1[0].range('Sheet2', (1, 1), (3, 3)).get_address(include_sheetname=True)
+        res = wb1[1].range((1, 1), (3, 3)).get_address(include_sheetname=True)
         assert_equal(res, 'Sheet2!$A$1:$C$3')
 
         res = wb1[0].range((1, 1), (3, 3)).get_address(external=True)

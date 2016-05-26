@@ -70,13 +70,17 @@ class TestApplication(TestBase):
 
     def test_wb_across_instances(self):
         app2 = xw.Application()
+
+        app1_wb_count = len(self.app)
+        app2_wb_count = len(app2)
+
         wb2 = self.app.workbook()
         wb3 = app2.workbook()
         wb4 = app2.workbook()
         wb5 = app2.workbook()
 
-        assert_equal(len(self.app), 2)
-        assert_equal(len(app2), 3)
+        assert_equal(len(self.app), app1_wb_count + 1)
+        assert_equal(len(app2), app2_wb_count + 3)
 
         wb2.close()
         wb3.close()

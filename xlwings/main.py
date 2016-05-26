@@ -800,7 +800,7 @@ class Range(xlplatform.Range):
         if include_sheetname and not external:
             # TODO: when the Workbook name contains spaces but not the Worksheet name, it will still be surrounded
             # by '' when include_sheetname=True. Also, should probably changed to regex
-            temp_str = self.xl_range.get_address(row_absolute, column_absolute, True)
+            temp_str = super(Range, self).get_address(row_absolute, column_absolute, True)
 
             if temp_str.find("[") > -1:
                 results_address = temp_str[temp_str.rfind("]") + 1:]
@@ -811,7 +811,7 @@ class Range(xlplatform.Range):
                 return temp_str
 
         else:
-            return self.xl_range.get_address(row_absolute, column_absolute, external)
+            return super(Range, self).get_address(row_absolute, column_absolute, external)
 
     def __repr__(self):
         return "<Range [{1}]{0}!{2}>".format(

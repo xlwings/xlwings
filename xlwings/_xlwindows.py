@@ -440,6 +440,13 @@ class Application(object):
         self.xl.Quit()
         self.xl.DisplayAlerts = True
 
+    def kill(self):
+        import win32api
+        PROCESS_TERMINATE = 1
+        handle = win32api.OpenProcess(PROCESS_TERMINATE, False, self.pid)
+        win32api.TerminateProcess(handle, -1)
+        win32api.CloseHandle(handle)
+
     @property
     def screen_updating(self):
         return self.xl.ScreenUpdating
