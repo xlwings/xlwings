@@ -265,6 +265,7 @@ def get_xl_app_from_hwnd(hwnd):
 def get_excel_hwnds():
     #win32gui.EnumWindows(lambda hwnd, result_list: result_list.append(hwnd), hwnds)
     hwnd = windll.user32.GetTopWindow(None)
+    pids = set()
     while hwnd:
         try:
             # Apparently, this fails on some systems when Excel is closed
@@ -272,7 +273,10 @@ def get_excel_hwnds():
             if child_hwnd:
                 child_hwnd = win32gui.FindWindowEx(child_hwnd, 0, 'EXCEL7', None)
             if child_hwnd:
-                yield hwnd
+                pid = win32process.GetWindowThreadProcessId(hwnd)[1]
+                if pid not in pids:
+                    pids.add(pid)
+                    yield hwnd
             #if win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None):
             #    yield hwnd
         except pywintypes.error:
@@ -295,18 +299,6 @@ def get_xl_apps():
 
 def get_all_open_xl_workbooks(xl_app):
     return [xl_workbook for xl_workbook in xl_app.Workbooks]
-
-
-def is_file_open(fullname):
-    if not PY3:
-        if isinstance(fullname, str):
-            fullname = unicode(fullname, 'mbcs')
-    open_workbooks = []
-    for xl_app in get_xl_apps():
-        open_fullnames = [i.FullName.lower() for i in get_all_open_xl_workbooks(xl_app)]
-        for fn in open_fullnames:
-            open_workbooks.append(fn)
-    return fullname.lower() in open_workbooks
 
 
 def get_duplicate_fullnames():
