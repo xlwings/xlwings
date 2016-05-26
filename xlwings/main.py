@@ -53,7 +53,8 @@ class Applications(xlplatform.Applications):
     def active(self):
         for app in self:
             return app
-        return Application(visible=True)
+        return None
+
 
     def __repr__(self):
         return repr(list(self))
@@ -71,7 +72,7 @@ class Application(xlplatform.Application):
         super(Application, self).__init__(xl=xl)
         if xl is None and visible is None:
             self.visible = True
-        elif visible:
+        elif visible == True:
             self.visible = True
 
     @classmethod
@@ -189,7 +190,8 @@ class Workbook(xlplatform.Workbook):
                     xl = candidates[0][1].xl
             else:
                 # Open Excel if necessary and create a new workbook
-                xl = active.app.workbooks.add().xl
+                app = active.app or Application()
+                xl = app.workbooks.add().xl
 
             super(Workbook, self).__init__(xl=xl)
 
@@ -1507,10 +1509,6 @@ class Workbooks(xlplatform.Workbooks):
             else:
                 r.append(repr(wb))
         return "["+", ".join(r)+"]"
-
-    def __iter__(self):
-        for i in range(len(self)):
-            yield self(i + 1)
 
 
 class Sheets(xlplatform.Sheets):

@@ -170,6 +170,14 @@ class COMRetryObjectWrapper(object):
                 else:
                     raise
 
+    def __iter__(self):
+        for v in self._inner:
+            t = type(v)
+            if t is CDispatch:
+                yield COMRetryObjectWrapper(v)
+            else:
+                return v
+
 
 def com_setattr(obj, attr, val):
     for i in range(N_COM_RETRIES+1):
@@ -380,6 +388,7 @@ class Application(object):
         if xl is None:
             # new instance
             self._xl = COMRetryObjectWrapper(DispatchEx('Excel.Application'))
+            self._xl.Workbooks.Add()
             self._hwnd = None
         elif isinstance(xl, int):
             self._xl = None
@@ -504,6 +513,10 @@ class Workbooks(object):
 
     def open(self, fullname):
         return self._cls.Workbook(xl=self.xl.Open(fullname))
+
+    def __iter__(self):
+        for xl in self.xl:
+            yield self._cls.Workbook(xl=xl)
 
 
 class Workbook(object):
