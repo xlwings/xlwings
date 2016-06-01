@@ -41,9 +41,61 @@ def _make_xl_worksheet(xl_workbook, name_or_index):
     return xl
 
 
+class Applications(object):
+
+    def _iter_excel_instances(self):
+        for proc in psutil.process_iter():
+            try:
+                if proc.name() == 'Microsoft Excel':
+                    yield proc.exe()[0:proc.exe().find(".app/")+4], proc.pid
+            except psutil.NoSuchProcess:
+                pass
+
+    def __iter__(self):
+        for name, pid in self._iter_excel_instances():
+            yield self._cls.Application(xl=(name, pid))
+
+    def __len__(self):
+        return len(list(self._iter_excel_instances()))
+
+    def __getitem__(self, index):
+        pids = list(self._iter_excel_instances())
+        return self._cls.Application(xl=pids[index])
+
+
 class Application(object):
-    def __init__(self, target='Microsoft Excel'):
-        self.xl = app(target, terms=mac_dict)
+
+    def __init__(self, target='Microsoft Excel', xl=None):
+        if xl is None:
+            self.xl = app(target, terms=mac_dict)
+        elif isinstance(xl, tuple):
+            target, self._pid = xl
+            self.xl = app(target, terms=mac_dict)
+        else:
+            self.xl = xl
+
+    @property
+    def pid(self):
+        for proc in psutil.process_iter():
+            try:
+                if proc.name() == 'Microsoft Excel':
+                    return proc.pid
+            except psutil.NoSuchProcess:
+                pass
+        return None
+
+    @property
+    def active_workbook(self):
+        return self._cls.Workbook(xl=_make_xl_workbook(self.xl, self.xl.active_workbook.name.get()))
+
+    @property
+    def active_sheet(self):
+        return self._cls.Sheet(
+            xl=_make_xl_workbook(
+                self.active_workbook.xl,
+                self.xl.active_sheet.name.get()
+            )
+        )
 
     def open_workbook(self, fullname):
         filename = os.path.basename(fullname)
@@ -53,17 +105,9 @@ class Application(object):
     def get_workbook(self, name):
         return Workbook(self, name)
 
-    def get_active_workbook(self):
-        return Workbook(self, self.xl.active_workbook.name.get())
-
-    def get_active_sheet(self):
-        return Sheet(
-            self.get_active_workbook(),
-            self.xl.active_sheet.name.get()
-        )
-
-    def get_selection(self):
-        return Range(
+    @property
+    def selection(self):
+        return self._cls.Range(
             self.get_active_sheet(),
             str(self.xl.selection.get_address())
         )
@@ -75,10 +119,8 @@ class Application(object):
             position = after.xl_sheet.after
         return xl_workbook.make(new=kw.worksheet, at=position)
 
-
     def count_worksheets(xl_workbook):
         return xl_workbook.count(each=kw.worksheet)
-
 
     def set_visible(xl_app, visible):
         if visible:
@@ -86,15 +128,11 @@ class Application(object):
         else:
             app('System Events').processes['Microsoft Excel'].visible.set(visible)
 
-
     def get_visible(xl_app):
         return app('System Events').processes['Microsoft Excel'].visible.get()
 
-
     def quit_app(xl_app):
         xl_app.quit(saving=kw.no)
-
-
 
     def get_screen_updating(xl_app):
         return xl_app.screen_updating.get()
@@ -122,17 +160,43 @@ class Application(object):
     def get_version_string(self):
         return self.xl.version.get()
 
+    @property
+    def workbooks(self):
+        return self._cls.Workbooks(xl=self.xl)
+
+
+class Workbooks(object):
+
+    def __init__(self, xl):
+        self.xl = xl
+
+    def __call__(self, name_or_index):
+        return self._cls.Workbook(xl=_make_xl_workbook(self.xl, name_or_index))
+
+    def __len__(self):
+        return self.xl.count(each=kw.workbook)
+
+    def add(self):
+        return self._cls.Workbook(xl=self.xl.Add())
+
+    def open(self, fullname):
+        return self._cls.Workbook(xl=self.xl.Open(fullname))
+
 
 class Workbook(object):
     def __init__(self, xl):
         self.xl = xl
 
-    @property
-    def xl(self):
-        return self.application.xl.workbooks(self.name)
+    #@property
+    #def xl(self):
+    #    return self.application.xl.workbooks(self.name)
 
     def sheet(self, name_or_index):
         return self._classes.Worksheet(xl=_make_xl_worksheet(self.xl, name_or_index))
+
+    @property
+    def sheets(self):
+        return self._cls.Sheets(xl=self.xl)
 
     @property
     def name(self):
@@ -202,6 +266,41 @@ def delete_sheet(sheet):
     _xl_app.display_alerts.set(True)
 
 
+class Sheets(object):
+    def __init__(self, xl):
+        self.xl = xl
+
+    def __call__(self, name_or_index):
+        return self._cls.Sheet(
+            xl=_make_xl_worksheet(
+                self.xl,
+                name_or_index
+            )
+        )
+
+    def __len__(self):
+        return self.xl.count(each=kw.worksheet)
+
+    def add(self, before=None, after=None):
+        if before:
+            return self._cls.Sheet(xl=self.xl.Add(Before=before.xl))
+        elif after:
+            # Hack, since "After" is broken in certain environments
+            # see: http://code.activestate.com/lists/python-win32/11554/
+            count = self.xl.Count
+            new_sheet_index = after.xl.Index + 1
+            if new_sheet_index > count:
+                xl_sheet = self.xl.Add(Before=after.xl)
+                self.xl(self.xl.Count).Move(Before=self.xl(self.xl.Count - 1))
+                self.xl(self.xl.Count).Activate()
+            else:
+                xl_sheet = self.xl.Add(Before=self.xl(after.xl.Index + 1))
+            return self._cls.Sheet(xl=xl_sheet)
+        else:
+            return self._cls.Sheet(xl=self.xl.Add())
+
+
+
 class Sheet(object):
     def __init__(self, xl):
         self.xl = xl
@@ -210,7 +309,11 @@ class Sheet(object):
         return Range(self, xl=_make_xl_range(self.xl, address))
 
     @property
-    def get_name(self):
+    def workbook(self):
+        return self._cls.Workbook(xl=self.xl._parent)
+
+    @property
+    def name(self):
         return self.xl.name.get()
 
     def set_name(self, value):
@@ -496,6 +599,57 @@ class Chart(Shape):
     def set_type(self, chart_type):
         self.xl.chart.chart_type.set(chart_type)
 
+
+class Names(object):
+    def __init__(self, xl):
+        self.xl = xl
+
+    def __call__(self, name_or_index):
+        return self._cls.Name(xl=self.xl(name_or_index))
+
+    def contains(self, name_or_index):
+        try:
+            self.xl(name_or_index)
+        except pywintypes.com_error as e:
+            if e.hresult == -2147352567:
+                return False
+            else:
+                raise
+        return True
+
+    def __len__(self):
+        return self.xl.Count
+
+    def add(self, name, refers_to):
+        return self._cls.Name(xl=self.xl.Add(name, refers_to))
+
+
+class Name(object):
+    def __init__(self, xl):
+        self.xl = xl
+
+    def delete(self):
+        self.xl.Delete()
+
+    @property
+    def name(self):
+        return self.xl.Name
+
+    @name.setter
+    def name(self, value):
+        self.xl.Name = value
+
+    @property
+    def refers_to(self):
+        return self.xl.RefersTo
+
+    @refers_to.setter
+    def refers_to(self, value):
+        self.xl.RefersTo = value
+
+    @property
+    def refers_to_range(self):
+        return self._cls.Range(xl=self.xl.RefersToRange)
 
 
 def is_app_instance(xl_app):
