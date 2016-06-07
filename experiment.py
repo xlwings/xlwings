@@ -1,4 +1,3 @@
 import xlwings as xw
 
-a = list(xw.apps)
-
+a = xw.Application()
