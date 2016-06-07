@@ -41,6 +41,12 @@ def _make_xl_worksheet(xl_workbook, name_or_index):
     return xl
 
 
+def _make_xl_range(xl_sheet, address):
+    xl = xl_sheet.cells[address]
+    xl._parent = xl_sheet
+    return xl
+
+
 class Applications(object):
 
     def _iter_excel_instances(self):
@@ -68,6 +74,8 @@ class Application(object):
     def __init__(self, target='Microsoft Excel', xl=None):
         if xl is None:
             self.xl = app(target, terms=mac_dict)
+            # need to do *something* with the app otherwise it doesn't start up
+            b = self.xl.visible
         elif isinstance(xl, tuple):
             target, self._pid = xl
             self.xl = app(target, terms=mac_dict)
@@ -91,7 +99,7 @@ class Application(object):
     @property
     def active_sheet(self):
         return self._cls.Sheet(
-            xl=_make_xl_workbook(
+            xl=_make_xl_worksheet(
                 self.active_workbook.xl,
                 self.xl.active_sheet.name.get()
             )
@@ -306,7 +314,7 @@ class Sheet(object):
         self.xl = xl
 
     def range(self, address):
-        return Range(self, xl=_make_xl_range(self.xl, address))
+        return self._cls.Range(xl=_make_xl_range(self.xl, address))
 
     @property
     def workbook(self):
@@ -396,19 +404,16 @@ class Sheet(object):
 
 
 class Range(object):
-    def __init__(self, sheet, address):
-        self.sheet = sheet
-        self.address = address
+    def __init__(self, xl):
+        self.xl = xl
 
     @property
-    def xl(self):
-        return self.sheet.xl.cells(self.address)
-
-    def get_value(self):
+    def raw_value(self):
         return self.xl.value.get()
 
-    def set_value(self, value):
-        return self.xl.value.set(value)
+    @raw_value.setter
+    def raw_value(self, value):
+        self.xl.value.set(value)
 
     def get_worksheet(self):
         return self.sheet
