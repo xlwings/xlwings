@@ -807,5 +807,5 @@ def delete_sheet(sheet):
     sheet.xl_workbook.Application.DisplayAlerts = alerts_state
 
 
-def run(wb, command, app_, args):
-    return app_.xl_app.Run("'{0}'!{1}".format(wb.name, command), *args)
+def run(command, app_, args):
+    return app_.xl_app.Run(command, *args)

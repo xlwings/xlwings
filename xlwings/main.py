@@ -395,7 +395,7 @@ class Workbook(object):
         xlplatform.set_names(self.xl_workbook, names)
         return names
 
-    def macro(self, name):
+    def vba_macro(self, name):
         """
         Runs a Sub or Function in Excel VBA.
 
@@ -416,10 +416,30 @@ class Workbook(object):
         can be accessed like this:
 
         >>> wb = xw.Workbook.active()
-        >>> my_sum = wb.macro('MySum')
+        >>> my_sum = wb.vba_macro('MySum')
         >>> my_sum(1, 2)
         3
 
+        .. versionadded:: 0.7.2
+        """
+        return VBAMacro(name, self)
+
+    def macro(self, name):
+        """
+        Runs a Sub or Function in Excel.
+
+        Arguments:
+        ----------
+        name : Name of Sub or Function with or without module name, e.g. ``'Module1.MyMacro'`` or ``'MyMacro'``
+
+        Examples:
+        ---------
+        An addin function or macro named ``'addin_function_or_macro'`` can be accessed like this:
+
+        >>> wb = xw.Workbook.active()
+        >>> addin_function_or_macro = wb.macro('addin_function_or_macro')
+        >>> addin_function_or_macro()
+        'Hello world!'
 
         .. versionadded:: 0.7.1
         """
@@ -2082,6 +2102,16 @@ class Macro(object):
         self.app = app
 
     def run(self, *args):
-        return xlplatform.run(self.wb, self.name, self.app or Application(self.wb), args)
+        return xlplatform.run(self.name, self.app or Application(self.wb), args)
+
+    __call__ = run
+
+
+class VBAMacro(Macro):
+    def __init__(self, name, wb=None, app=None):
+        super(VBAMacro, self).__init__(name, wb=wb, app=app)
+
+    def run(self, *args):
+        return xlplatform.run("'{0}'!{1}".format(self.wb.name, self.name), self.app or Application(self.wb), args)
 
     __call__ = run
