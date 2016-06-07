@@ -73,7 +73,7 @@ class Application(object):
 
     def __init__(self, target='Microsoft Excel', xl=None):
         if xl is None:
-            self.xl = app(target, terms=mac_dict)
+            self.xl = app(name=target, newinstance=True, terms=mac_dict)
             # need to do *something* with the app otherwise it doesn't start up
             b = self.xl.visible
         elif isinstance(xl, tuple):
@@ -185,10 +185,14 @@ class Workbooks(object):
         return self.xl.count(each=kw.workbook)
 
     def add(self):
-        return Workbook(xl=self.xl.Add())
+        xl = self.xl.make(new=kw.workbook)
+        xl._parent = self.xl
+        return Workbook(xl=xl)
 
     def open(self, fullname):
-        return Workbook(xl=self.xl.Open(fullname))
+        filename = os.path.basename(fullname)
+        self.xl.open(fullname)
+        return Workbook(xl=_make_xl_workbook(self.xl, self.xl.workbooks[filename]))
 
 
 class Workbook(object):
@@ -291,21 +295,13 @@ class Sheets(object):
 
     def add(self, before=None, after=None):
         if before:
-            return Sheet(xl=self.xl.Add(Before=before.xl))
-        elif after:
-            # Hack, since "After" is broken in certain environments
-            # see: http://code.activestate.com/lists/python-win32/11554/
-            count = self.xl.Count
-            new_sheet_index = after.xl.Index + 1
-            if new_sheet_index > count:
-                xl_sheet = self.xl.Add(Before=after.xl)
-                self.xl(self.xl.Count).Move(Before=self.xl(self.xl.Count - 1))
-                self.xl(self.xl.Count).Activate()
-            else:
-                xl_sheet = self.xl.Add(Before=self.xl(after.xl.Index + 1))
-            return Sheet(xl=xl_sheet)
+            position = before.xl.before
         else:
-            return Sheet(xl=self.xl.Add())
+            position = after.xl.after
+        xl = self.xl.make(new=kw.worksheet, at=position)
+        xl._parent = self.xl
+        return Sheet(xl=xl)
+
 
 
 

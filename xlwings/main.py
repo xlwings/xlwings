@@ -278,8 +278,7 @@ class Workbook(object):
                     app = Application()
                     impl = app[0].impl
 
-            super(Workbook, self).__init__(impl=impl)
-
+        self.impl = impl
 
     @classmethod
     def active(cls):
@@ -1148,7 +1147,7 @@ class Range(object):
         if include_sheetname and not external:
             # TODO: when the Workbook name contains spaces but not the Worksheet name, it will still be surrounded
             # by '' when include_sheetname=True. Also, should probably changed to regex
-            temp_str = super(Range, self).get_address(row_absolute, column_absolute, True)
+            temp_str = self.impl.get_address(row_absolute, column_absolute, True)
 
             if temp_str.find("[") > -1:
                 results_address = temp_str[temp_str.rfind("]") + 1:]
@@ -1159,7 +1158,7 @@ class Range(object):
                 return temp_str
 
         else:
-            return super(Range, self).get_address(row_absolute, column_absolute, external)
+            return self.impl.get_address(row_absolute, column_absolute, external)
 
     def __repr__(self):
         return "<Range [{1}]{0}!{2}>".format(
@@ -1841,6 +1840,22 @@ class Workbooks(object):
     def __init__(self, impl):
         self.impl = impl
 
+    def __call__(self, name_or_index):
+        return Sheet(impl=self.impl(name_or_index))
+
+    def __len__(self):
+        return len(self.impl)
+
+    def add(self):
+        return Workbook(impl=self.impl.add())
+
+    def open(self, fullname):
+        return Workbook(impl=self.impl.open(fullname))
+
+    def __iter__(self):
+        for impl in self.impl:
+            yield Workbook(impl=impl)
+
     def __getitem__(self, name_or_index):
         if isinstance(name_or_index, numbers.Number):
             l = len(self)
@@ -1871,13 +1886,13 @@ class Sheets(object):
         self.impl = impl
 
     def __call__(self, name_or_index):
-        return self.impl(name_or_index)
+        return Sheet(impl=self.impl(name_or_index))
 
     def __len__(self):
         return len(self.impl)
 
     def add(self, before=None, after=None):
-        return self.impl.add(before, after)
+        return Sheet(impl=self.impl.add(before, after))
 
     def __repr__(self):
         r = []
@@ -1917,7 +1932,7 @@ class Sheets(object):
             before = self(before)
         if after is not None and not isinstance(after, Sheet):
             after = self(after)
-        s = super(Sheets, self).add(before, after)
+        s = self.impl.add(before and before.impl, after and after.impl)
         if name is not None:
             s.name = name
         return s
