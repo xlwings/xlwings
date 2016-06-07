@@ -44,33 +44,42 @@ except ImportError:
     Image = None
 
 
-class Applications(xlplatform.Applications):
+class Applications(object):
 
-    def __init__(self):
-        self._current = None
+    def __init__(self, impl):
+        self.impl = impl
 
     @property
     def active(self):
-        for app in self:
-            return app
+        for app in self.impl:
+            return Application(impl=app)
         return None
-
 
     def __repr__(self):
         return repr(list(self))
 
+    def __getitem__(self, item):
+        return Application(impl=self.impl[item])
 
-applications = Applications()
+    def __len__(self):
+        return len(self.impl)
+
+    def __iter__(self):
+        for app in self.impl:
+            yield Application(impl=app)
 
 
-class Application(xlplatform.Application):
+applications = Applications(impl=xlplatform.Applications())
+
+
+class Application(object):
     """
     Application is dependent on the Workbook since there might be different application instances on Windows.
     """
 
-    def __init__(self, xl=None, visible=None):
-        super(Application, self).__init__(xl=xl)
-        if xl is None and visible is None:
+    def __init__(self, impl=None, visible=None):
+        if impl is None and visible is None:
+            self.impl = xlplatform.Application()
             self.visible = True
         elif visible == True:
             self.visible = True
@@ -78,6 +87,78 @@ class Application(xlplatform.Application):
     @classmethod
     def active(cls):
         return applications.active
+
+    @property
+    def version(self):
+        return self.impl.version
+
+    @property
+    def active_workbook(self):
+        impl = self.impl.active_workbook
+        return impl and Workbook(impl=impl)
+
+    @property
+    def active_sheet(self):
+        return Sheet(impl=self.impl.active_sheet)
+
+    @property
+    def selection(self):
+        return Range(impl=self.impl.selection)
+
+    def activate(self, steal_focus=False):
+        return self.impl.activate(steal_focus)
+
+    @property
+    def visible(self):
+        return self.impl.visible
+
+    @visible.setter
+    def visible(self, value):
+        self.impl.visible = value
+
+    def quit(self):
+        return self.impl.quit()
+
+    def kill(self):
+        return self.impl.kill()
+
+    @property
+    def screen_updating(self):
+        return self.impl.screen_updating
+
+    @screen_updating.setter
+    def screen_updating(self, value):
+        self.impl.screen_updating = value
+
+    @property
+    def calculation(self):
+        return self.impl.calculation
+
+    @calculation.setter
+    def calculation(self, value):
+        self.impl.calculation = value
+
+    def calculate(self):
+        self.impl.calculate()
+
+    @property
+    def version(self):
+        return self.impl.version
+
+    @property
+    def workbooks(self):
+        return Workbooks(impl=self.impl.workbooks)
+
+    @property
+    def hwnd(self):
+        return self.impl.hwnd
+
+    @property
+    def pid(self):
+        return self.impl.pid
+
+    def range(self, arg1, arg2=None):
+        return Range(impl=self.impl.range(arg1, arg2))
 
     @property
     def major_version(self):
@@ -126,7 +207,7 @@ class Application(xlplatform.Application):
             return wbs.add()
 
 
-class Workbook(xlplatform.Workbook):
+class Workbook(object):
     """
     ``Workbook`` connects an Excel Workbook with Python. You can create a new connection from Python with
 
@@ -164,9 +245,9 @@ class Workbook(xlplatform.Workbook):
 
     """
 
-    def __init__(self, fullname=None, xl=None):
-        if xl:
-            super(Workbook, self).__init__(xl=xl)
+    def __init__(self, fullname=None, impl=None):
+        if impl:
+            super(Workbook, self).__init__(impl=impl)
         else:
             if fullname:
                 if not PY3 and isinstance(fullname, str):
@@ -181,22 +262,22 @@ class Workbook(xlplatform.Workbook):
 
                 if len(candidates) == 0:
                     if os.path.isfile(fullname):
-                        xl = active.app.workbooks.open(fullname).xl
+                        impl = active.app.workbooks.open(fullname).impl
                     else:
                         raise Exception("Could not connect to workbook '%s'" % fullname)
                 elif len(candidates) > 1:
                     raise Exception("Workbook '%s' is open in more than one Excel instance." % fullname)
                 else:
-                    xl = candidates[0][1].xl
+                    impl = candidates[0][1].impl
             else:
                 # Open Excel if necessary and create a new workbook
                 if active.app:
-                    xl = active.app.workbooks.add().xl
+                    impl = active.app.workbooks.add().impl
                 else:
                     app = Application()
-                    xl = app[0].xl
+                    impl = app[0].impl
 
-            super(Workbook, self).__init__(xl=xl)
+            super(Workbook, self).__init__(impl=impl)
 
 
     @classmethod
@@ -352,7 +433,7 @@ class Workbook(xlplatform.Workbook):
         return iter(self.sheets)
 
 
-class Sheet(xlplatform.Sheet):
+class Sheet(object):
     """
     Represents a Sheet of the current Workbook. Either call it with the Sheet name or index::
 
@@ -373,10 +454,10 @@ class Sheet(xlplatform.Sheet):
     .. versionadded:: 0.2.3
     """
 
-    def __init__(self, sheet=None, xl=None):
-        if xl is None:
-            xl = Workbook.active().sheet(sheet).xl
-        super(Sheet, self).__init__(xl=xl)
+    def __init__(self, sheet=None, impl=None):
+        if impl is None:
+            impl = Workbook.active().sheet(sheet).impl
+        super(Sheet, self).__init__(impl=impl)
 
     @classmethod
     def active(cls):
@@ -430,7 +511,7 @@ class Sheet(xlplatform.Sheet):
         return self.range(*args)
 
 
-class Range(xlplatform.Range):
+class Range(object):
     """
     A Range object can be instantiated with the following arguments::
 
@@ -469,16 +550,16 @@ class Range(xlplatform.Range):
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
     """
 
-    def __init__(self, *args, xl=None, **options):
+    def __init__(self, *args, impl=None, **options):
 
         # Arguments
-        if xl is None:
+        if impl is None:
             if len(args) == 2 and isinstance(args[0], Range) and isinstance(args[1], Range):
-                #if args[0].worksheet.xl != args[1].worksheet.xl:
+                #if args[0].worksheet.impl != args[1].worksheet.impl:
                 #    raise ValueError("Ranges are not on the same sheet")
-                xl = args[0].worksheet.range(args[0], args[1]).xl
+                impl = args[0].worksheet.range(args[0], args[1]).impl
             elif len(args) == 1 and isinstance(args[0], string_types):
-                xl = active.app.range(args[0]).xl
+                impl = active.app.range(args[0]).impl
             elif 0 < len(args) <= 3:
                 if isinstance(args[-1], tuple):
                     if len(args) > 1 and isinstance(args[-2], tuple):
@@ -499,11 +580,11 @@ class Range(xlplatform.Range):
                             sheet = Sheet(sheet)
                 else:
                     sheet = Sheet.active()
-                xl = sheet.range(*spec).xl
+                impl = sheet.range(*spec).impl
             else:
                 raise ValueError("Invalid arguments")
 
-        super(Range, self).__init__(xl=xl)
+        super(Range, self).__init__(impl=impl)
 
         # Keyword Arguments
         self._options = options
@@ -555,7 +636,7 @@ class Range(xlplatform.Range):
         """
         options['convert'] = convert
         return Range(
-            xl=self.xl,
+            impl=self.impl,
             **options
         )
 
@@ -973,22 +1054,22 @@ class Shape(object):
 
     .. versionadded:: 0.5.0
     """
-    def __init__(self, *args, xl=None, **kwargs):
+    def __init__(self, *args, impl=None, **kwargs):
 
-        if xl is None:
+        if impl is None:
             if len(args) == 1:
-                xl = Sheet.active().get_shape_object(args[0])
+                impl = Sheet.active().get_shape_object(args[0])
 
             elif len(args) == 2:
                 sheet = args[0]
                 if not isinstance(sheet, Sheet):
                     sheet = Sheet(sheet)
-                xl = sheet.get_shape_object(args[1])
+                impl = sheet.get_shape_object(args[1])
 
             else:
                 raise ValueError("Invalid arguments")
 
-        super(Shape, self).__init__(xl=xl)
+        super(Shape, self).__init__(impl=impl)
 
 
 class Chart(Shape):
@@ -1404,7 +1485,7 @@ class Plot(object):
             os.remove(filename)
 
 
-class Names(xlplatform.Names):
+class Names(object):
 
     def __getitem__(self, item):
         if isinstance(item, numbers.Number):
@@ -1447,7 +1528,7 @@ class Names(xlplatform.Names):
         return "[" + ", ".join(r) + "]"
 
 
-class Name(xlplatform.Name):
+class Name(object):
 
     def __repr__(self):
         return "<Name '%s': %s>" % (self.name, self.refers_to)
@@ -1488,7 +1569,7 @@ class Macro(object):
     __call__ = run
 
 
-class Workbooks(xlplatform.Workbooks):
+class Workbooks(object):
 
     def __getitem__(self, name_or_index):
         if isinstance(name_or_index, numbers.Number):
@@ -1514,7 +1595,7 @@ class Workbooks(xlplatform.Workbooks):
         return "["+", ".join(r)+"]"
 
 
-class Sheets(xlplatform.Sheets):
+class Sheets(object):
 
     def __repr__(self):
         r = []
