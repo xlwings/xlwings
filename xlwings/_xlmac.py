@@ -59,14 +59,14 @@ class Applications(object):
 
     def __iter__(self):
         for name, pid in self._iter_excel_instances():
-            yield self._cls.Application(xl=(name, pid))
+            yield Application(xl=(name, pid))
 
     def __len__(self):
         return len(list(self._iter_excel_instances()))
 
     def __getitem__(self, index):
         pids = list(self._iter_excel_instances())
-        return self._cls.Application(xl=pids[index])
+        return Application(xl=pids[index])
 
 
 class Application(object):
@@ -94,11 +94,11 @@ class Application(object):
 
     @property
     def active_workbook(self):
-        return self._cls.Workbook(xl=_make_xl_workbook(self.xl, self.xl.active_workbook.name.get()))
+        return Workbook(xl=_make_xl_workbook(self.xl, self.xl.active_workbook.name.get()))
 
     @property
     def active_sheet(self):
-        return self._cls.Sheet(
+        return Sheet(
             xl=_make_xl_worksheet(
                 self.active_workbook.xl,
                 self.xl.active_sheet.name.get()
@@ -115,7 +115,7 @@ class Application(object):
 
     @property
     def selection(self):
-        return self._cls.Range(
+        return Range(
             self.get_active_sheet(),
             str(self.xl.selection.get_address())
         )
@@ -170,7 +170,7 @@ class Application(object):
 
     @property
     def workbooks(self):
-        return self._cls.Workbooks(xl=self.xl)
+        return Workbooks(xl=self.xl)
 
 
 class Workbooks(object):
@@ -179,16 +179,16 @@ class Workbooks(object):
         self.xl = xl
 
     def __call__(self, name_or_index):
-        return self._cls.Workbook(xl=_make_xl_workbook(self.xl, name_or_index))
+        return Workbook(xl=_make_xl_workbook(self.xl, name_or_index))
 
     def __len__(self):
         return self.xl.count(each=kw.workbook)
 
     def add(self):
-        return self._cls.Workbook(xl=self.xl.Add())
+        return Workbook(xl=self.xl.Add())
 
     def open(self, fullname):
-        return self._cls.Workbook(xl=self.xl.Open(fullname))
+        return Workbook(xl=self.xl.Open(fullname))
 
 
 class Workbook(object):
@@ -204,7 +204,7 @@ class Workbook(object):
 
     @property
     def sheets(self):
-        return self._cls.Sheets(xl=self.xl)
+        return Sheets(xl=self.xl)
 
     @property
     def name(self):
@@ -279,7 +279,7 @@ class Sheets(object):
         self.xl = xl
 
     def __call__(self, name_or_index):
-        return self._cls.Sheet(
+        return Sheet(
             xl=_make_xl_worksheet(
                 self.xl,
                 name_or_index
@@ -291,7 +291,7 @@ class Sheets(object):
 
     def add(self, before=None, after=None):
         if before:
-            return self._cls.Sheet(xl=self.xl.Add(Before=before.xl))
+            return Sheet(xl=self.xl.Add(Before=before.xl))
         elif after:
             # Hack, since "After" is broken in certain environments
             # see: http://code.activestate.com/lists/python-win32/11554/
@@ -303,9 +303,9 @@ class Sheets(object):
                 self.xl(self.xl.Count).Activate()
             else:
                 xl_sheet = self.xl.Add(Before=self.xl(after.xl.Index + 1))
-            return self._cls.Sheet(xl=xl_sheet)
+            return Sheet(xl=xl_sheet)
         else:
-            return self._cls.Sheet(xl=self.xl.Add())
+            return Sheet(xl=self.xl.Add())
 
 
 
@@ -314,11 +314,11 @@ class Sheet(object):
         self.xl = xl
 
     def range(self, address):
-        return self._cls.Range(xl=_make_xl_range(self.xl, address))
+        return Range(xl=_make_xl_range(self.xl, address))
 
     @property
     def workbook(self):
-        return self._cls.Workbook(xl=self.xl._parent)
+        return Workbook(xl=self.xl._parent)
 
     @property
     def name(self):
@@ -610,7 +610,7 @@ class Names(object):
         self.xl = xl
 
     def __call__(self, name_or_index):
-        return self._cls.Name(xl=self.xl(name_or_index))
+        return Name(xl=self.xl(name_or_index))
 
     def contains(self, name_or_index):
         try:
@@ -626,7 +626,7 @@ class Names(object):
         return self.xl.Count
 
     def add(self, name, refers_to):
-        return self._cls.Name(xl=self.xl.Add(name, refers_to))
+        return Name(xl=self.xl.Add(name, refers_to))
 
 
 class Name(object):
@@ -654,7 +654,7 @@ class Name(object):
 
     @property
     def refers_to_range(self):
-        return self._cls.Range(xl=self.xl.RefersToRange)
+        return Range(xl=self.xl.RefersToRange)
 
 
 def is_app_instance(xl_app):

@@ -78,11 +78,14 @@ class Application(object):
     """
 
     def __init__(self, impl=None, visible=None):
-        if impl is None and visible is None:
+        if impl is None:
             self.impl = xlplatform.Application()
-            self.visible = True
-        elif visible == True:
-            self.visible = True
+            if visible or visible is None:
+                self.visible = True
+        else:
+            self.impl = impl
+            if visible == True:
+                self.visible = True
 
     @classmethod
     def active(cls):
@@ -246,9 +249,7 @@ class Workbook(object):
     """
 
     def __init__(self, fullname=None, impl=None):
-        if impl:
-            super(Workbook, self).__init__(impl=impl)
-        else:
+        if not impl:
             if fullname:
                 if not PY3 and isinstance(fullname, str):
                     fullname = unicode(fullname, 'mbcs')  # noqa
@@ -292,7 +293,7 @@ class Workbook(object):
 
     def activate(self):
         self.application.activate()
-        super(Workbook, self).activate()
+        self.impl.activate()
 
     @classmethod
     def caller(cls):
@@ -408,6 +409,47 @@ class Workbook(object):
         """
         return Macro(name, self)
 
+    @property
+    def name(self):
+        return self.impl.name
+
+    @name.setter
+    def name(self, value):
+        self.impl.name = value
+
+    @property
+    def sheets(self):
+        return Sheets(impl=self.impl.sheets)
+
+    @property
+    def application(self):
+        return Application(impl=self.impl.application)
+
+    def close(self):
+        self.impl.close()
+
+    @property
+    def active_sheet(self):
+        return Sheet(impl=self.impl.active_sheet)
+
+    def save(self, path=None):
+        return self.impl.save(path)
+
+    @property
+    def fullname(self):
+        return self.impl.fullname
+
+    @property
+    def names(self):
+        return Names(impl=self.impl.names)
+
+    def activate(self):
+        return self.impl.activate()
+
+    @property
+    def selection(self):
+        return Range(impl=self.impl.active_sheet.selection)
+
     def sheet(self, name_or_index=None):
         if name_or_index is None:
             return self.sheets.add()
@@ -456,8 +498,9 @@ class Sheet(object):
 
     def __init__(self, sheet=None, impl=None):
         if impl is None:
-            impl = Workbook.active().sheet(sheet).impl
-        super(Sheet, self).__init__(impl=impl)
+            self.impl = Workbook.active().sheet(sheet).impl
+        else:
+            self.impl = impl
 
     @classmethod
     def active(cls):
@@ -497,6 +540,79 @@ class Sheet(object):
         .. versionadded:: 0.2.3
         """
         return active.book.sheets.add(name, before, after)
+
+    @property
+    def name(self):
+        return self.impl.name
+
+    @name.setter
+    def name(self, value):
+        self.impl.name = value
+
+    @property
+    def names(self):
+        return Names(impl=self.impl.names)
+
+    @property
+    def workbook(self):
+        return Workbook(impl=self.impl.parent)
+
+    @property
+    def index(self):
+        return self.impl.index
+
+    def range(self, arg1, arg2=None):
+        return Range(impl=self.impl.rante(arg1, arg2))
+
+    @property
+    def cells(self):
+        return Range(impl=self.impl.cells)
+
+    def activate(self):
+        return self.impl.activate()
+
+    def get_value_from_index(self, row_index, column_index):
+        return self.impl.get_value_from_index(row_index, column_index)
+
+    def clear_contents(self):
+        return self.impl.clear_contents()
+
+    def clear(self):
+        return self.impl.clear()
+
+    def get_row_index_end_down(self, row_index, column_index):
+        return self.impl.get_row_index_end_down(row_index, column_index)
+
+    def get_column_index_end_right(self, row_index, column_index):
+        return self.impl.get_column_index_end_right(row_index, column_index)
+
+    def autofit(self, axis=None):
+        return self.impl.autofit(axis)
+
+    def get_range_from_indices(self, first_row, first_column, last_row, last_column):
+        return Range(impl=self.impl.get_range_from_indices(first_row, first_column, last_row, last_column))
+
+    def delete(self):
+        return self.impl.delete()
+
+    def add_picture(self, filename, link_to_file, save_with_document, left, top, width, height):
+        return Shape(impl=self.impl.add_picture(filename, link_to_file, save_with_document, left, top, width, height))
+
+    def get_shape_object(self, shape_name_or_index):
+        return Shape(impl=self.impl.get_shape_object(shape_name_or_index))
+
+    def get_chart_object(self, chart_name_or_index):
+        return Chart(impl=self.impl.get_chart_object(chart_name_or_index))
+
+    def get_shapes_names(self):
+        shapes = self.xl.Shapes
+        if shapes is not None:
+            return [i.Name for i in shapes]
+        else:
+            return []
+
+    def add_chart(self, left, top, width, height):
+        return Chart(xl=self.xl.ChartObjects().Add(left, top, width, height))
 
     def __repr__(self):
         return "<Sheet [{1}]{0}>".format(self.name, self.workbook.name)
@@ -584,7 +700,7 @@ class Range(object):
             else:
                 raise ValueError("Invalid arguments")
 
-        super(Range, self).__init__(impl=impl)
+        self.impl = impl
 
         # Keyword Arguments
         self._options = options
@@ -639,6 +755,157 @@ class Range(object):
             impl=self.impl,
             **options
         )
+
+    @property
+    def worksheet(self):
+        return Sheet(impl=self.impl.worksheet)
+
+    @property
+    def parent(self):
+        return Sheet(impl=self.impl.parent)
+
+    def __len__(self):
+        return len(self.impl)
+
+    @property
+    def row(self):
+        return self.impl.row
+
+    @property
+    def column(self):
+        return self.impl.column
+
+    @property
+    def row_count(self):
+        return self.impl.row_count
+
+    @property
+    def column_count(self):
+        return self.impl.columns_count
+
+    @property
+    def raw_value(self):
+        return self.impl.raw_value
+
+    @raw_value.setter
+    def raw_value(self, data):
+        self.impl.raw_value = data
+
+    def clear_contents(self):
+        return self.impl.clear_contents()
+
+    def get_cell(self, row, col):
+        return Range(impl=self.impl.get_cell(row, col))
+
+    def clear(self):
+        return self.impl.clear()
+
+    def end(self, direction):
+        return Range(impl=self.impl.end(direction))
+
+    @property
+    def formula(self):
+        return self.impl.formula
+
+    @formula.setter
+    def formula(self, value):
+        self.impl.formula = value
+
+    @property
+    def formula_array(self):
+        return self.impl.formula_array
+
+    @formula_array.setter
+    def formula_array(self, value):
+        self.impl.formula_array = value
+
+    @property
+    def column_width(self):
+        return self.impl.column_width
+
+    @column_width.setter
+    def column_width(self, value):
+        self.impl.column_width = value
+
+    @property
+    def row_height(self):
+        return self.impl.row_height
+
+    @row_height.setter
+    def row_height(self, value):
+        self.impl.row_height = value
+
+    @property
+    def width(self):
+        return self.impl.width
+
+    @property
+    def height(self):
+        return self.impl.height
+
+    @property
+    def left(self):
+        return self.impl.left
+
+    @property
+    def top(self):
+        return self.impl.top
+
+    @property
+    def number_format(self):
+        return self.impl.number_format
+
+    @number_format.setter
+    def number_format(self, value):
+        self.impl.number_format = value
+
+    def get_address(self, row_absolute, col_absolute, external):
+        return self.impl.get_address(row_absolute, col_absolute, external)
+
+    @property
+    def address(self):
+        return self.impl.address
+
+    @property
+    def current_region(self):
+        return Range(impl=self.impl.current_region)
+
+    def autofit(self, axis=None):
+        return self.impl.autofit(axis)
+
+    def get_hyperlink_address(self):
+        return self.impl.get_hyperlink_address()
+
+    def set_hyperlink(self, address, text_to_display=None, screen_tip=None):
+        return self.impl.set_hyperlink(address, text_to_display, screen_tip)
+
+    @property
+    def color(self):
+        return self.impl.color
+
+    @color.setter
+    def color(self, color_or_rgb):
+        self.impl.color = color_or_rgb
+
+    @property
+    def name(self):
+        impl = self.impl.name
+        return impl and Name(impl=impl)
+
+    @name.setter
+    def name(self, value):
+        self.impl.name = value
+
+    def __call__(self, *args):
+        return Range(impl=self.impl(*args))
+
+    @property
+    def rows(self):
+        return Range(impl=self.impl.rows)
+
+    @property
+    def columns(self):
+        return Range(impl=self.impl.columns)
 
     @property
     def shape(self):
@@ -1571,6 +1838,9 @@ class Macro(object):
 
 class Workbooks(object):
 
+    def __init__(self, impl):
+        self.impl = impl
+
     def __getitem__(self, name_or_index):
         if isinstance(name_or_index, numbers.Number):
             l = len(self)
@@ -1596,6 +1866,18 @@ class Workbooks(object):
 
 
 class Sheets(object):
+
+    def __init__(self, impl):
+        self.impl = impl
+
+    def __call__(self, name_or_index):
+        return self.impl(name_or_index)
+
+    def __len__(self):
+        return len(self.impl)
+
+    def add(self, before=None, after=None):
+        return self.impl.add(before, after)
 
     def __repr__(self):
         r = []
