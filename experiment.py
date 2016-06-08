@@ -1,3 +1,7 @@
 import xlwings as xw
 
-a = xw.Application()
+print(xw.apps)
+
+#a = xw.App()
+
+#print(xw.apps[0].workbooks[0].sheets)

@@ -29,24 +29,6 @@ if np:
 _xl_app = None
 
 
-def _make_xl_workbook(xl_app, name_or_index):
-    xl = xl_app.workbooks[name_or_index]
-    xl._parent = xl_app
-    return xl
-
-
-def _make_xl_worksheet(xl_workbook, name_or_index):
-    xl = xl_workbook.sheets[name_or_index]
-    xl._parent = xl_workbook
-    return xl
-
-
-def _make_xl_range(xl_sheet, address):
-    xl = xl_sheet.cells[address]
-    xl._parent = xl_sheet
-    return xl
-
-
 class Applications(object):
 
     def _iter_excel_instances(self):
@@ -78,32 +60,33 @@ class Application(object):
             b = self.xl.visible
         elif isinstance(xl, tuple):
             target, self._pid = xl
-            self.xl = app(target, terms=mac_dict)
+            self.xl = app(pid=self._pid, terms=mac_dict)
         else:
             self.xl = xl
 
     @property
     def pid(self):
-        for proc in psutil.process_iter():
-            try:
-                if proc.name() == 'Microsoft Excel':
-                    return proc.pid
-            except psutil.NoSuchProcess:
-                pass
-        return None
+        addr = self.xl.AS_appdata.target()._address
+        if addr.type == b'kpid':
+            import struct
+            pid, = struct.unpack('i', addr.data)
+            return pid
+        elif addr.type == b'psn ':
+            import struct
+            _, psn = struct.unpack('ii', addr.data)
+            return app(u'System Events').application_processes.ID(psn).unix_id.get()
+        else:
+            raise Exception("Unknown AppScript address type")
+
 
     @property
     def active_workbook(self):
-        return Workbook(xl=_make_xl_workbook(self.xl, self.xl.active_workbook.name.get()))
+        return Workbook(self, self.xl.active_workbook.name.get())
 
     @property
     def active_sheet(self):
-        return Sheet(
-            xl=_make_xl_worksheet(
-                self.active_workbook.xl,
-                self.xl.active_sheet.name.get()
-            )
-        )
+        book = self.active_workbook
+        return Sheet(book, book.xl.active_sheet.name.get())
 
     def open_workbook(self, fullname):
         filename = os.path.basename(fullname)
@@ -115,10 +98,8 @@ class Application(object):
 
     @property
     def selection(self):
-        return Range(
-            self.get_active_sheet(),
-            str(self.xl.selection.get_address())
-        )
+        sheet = self.active_sheet
+        return Range(sheet, sheet.xl.selection)
 
     def add_sheet(xl_workbook, before, after):
         if before:
@@ -170,45 +151,50 @@ class Application(object):
 
     @property
     def workbooks(self):
-        return Workbooks(xl=self.xl)
+        return Workbooks(self)
 
 
 class Workbooks(object):
 
-    def __init__(self, xl):
-        self.xl = xl
+    def __init__(self, app):
+        self.app = app
 
     def __call__(self, name_or_index):
-        return Workbook(xl=_make_xl_workbook(self.xl, name_or_index))
+        return Workbook(self.app, name_or_index)
 
     def __len__(self):
-        return self.xl.count(each=kw.workbook)
+        return self.app.xl.count(each=kw.workbook)
 
     def add(self):
-        xl = self.xl.make(new=kw.workbook)
-        xl._parent = self.xl
-        return Workbook(xl=xl)
+        xl = self.app.xl.make(new=kw.workbook)
+        return Workbook(self.app, xl.name.get())
 
     def open(self, fullname):
         filename = os.path.basename(fullname)
-        self.xl.open(fullname)
-        return Workbook(xl=_make_xl_workbook(self.xl, self.xl.workbooks[filename]))
+        self.app.xl.open(filename)
+        return Workbook(self.app, filename)
+
+    def __iter__(self):
+        n = len(self)
+        for i in range(n):
+            yield Workbook(self.app, i+1)
 
 
 class Workbook(object):
-    def __init__(self, xl):
-        self.xl = xl
+    def __init__(self, app, name_or_index):
+        self.app = app
+        self.xl = app.xl.workbooks[name_or_index]
 
     #@property
     #def xl(self):
     #    return self.application.xl.workbooks(self.name)
 
     def sheet(self, name_or_index):
-        return self._classes.Worksheet(xl=_make_xl_worksheet(self.xl, name_or_index))
+        return Sheet(self, self.xl.name_or_index)
 
     @property
     def sheets(self):
-        return Sheets(xl=self.xl)
+        return Sheets(self)
 
     @property
     def name(self):
@@ -216,11 +202,11 @@ class Workbook(object):
 
     @property
     def application(self):
-        return self._classes.Application(xl=self.xl._parent)
+        return Application(xl=self.app)
 
     @property
     def active_sheet(self):
-        return self._classes.Worksheet(xl=_make_xl_worksheet(self.xl, self.xl.active_sheet.name.get()))
+        return Sheet(self, self.xl.active_sheet.name.get())
 
     def save_workbook(xl_workbook, path):
         saved_path = xl_workbook.properties().get(kw.path)
@@ -279,42 +265,37 @@ def delete_sheet(sheet):
 
 
 class Sheets(object):
-    def __init__(self, xl):
-        self.xl = xl
+    def __init__(self, workbook):
+        self.workbook = workbook
 
     def __call__(self, name_or_index):
-        return Sheet(
-            xl=_make_xl_worksheet(
-                self.xl,
-                name_or_index
-            )
-        )
+        return Sheet(self.workbook, name_or_index)
 
     def __len__(self):
-        return self.xl.count(each=kw.worksheet)
+        return self.workbook.xl.count(each=kw.worksheet)
 
     def add(self, before=None, after=None):
         if before:
             position = before.xl.before
         else:
             position = after.xl.after
-        xl = self.xl.make(new=kw.worksheet, at=position)
-        xl._parent = self.xl
-        return Sheet(xl=xl)
+        xl = self.workbook.xl.make(new=kw.worksheet, at=position)
+        return Sheet(self.workbook, xl.name)
 
 
 
 
 class Sheet(object):
-    def __init__(self, xl):
-        self.xl = xl
+    def __init__(self, workbook, name_or_index):
+        self.workbook = workbook
+        self.xl = workbook.xl.sheets[name_or_index]
 
     def range(self, address):
-        return Range(xl=_make_xl_range(self.xl, address))
+        return Range(xl=(self.xl, address))
 
     @property
-    def workbook(self):
-        return Workbook(xl=self.xl._parent)
+    def parent(self):
+        return self.workbook
 
     @property
     def name(self):
@@ -400,8 +381,9 @@ class Sheet(object):
 
 
 class Range(object):
-    def __init__(self, xl):
-        self.xl = xl
+    def __init__(self, sheet, address):
+        self.sheet = sheet
+        self.xl = sheet.cells[address]
 
     @property
     def raw_value(self):
@@ -650,7 +632,7 @@ class Name(object):
 
     @property
     def refers_to_range(self):
-        return Range(xl=self.xl.RefersToRange)
+        return Range(sheet=self, xl=self.xl.RefersToRange)
 
 
 def is_app_instance(xl_app):

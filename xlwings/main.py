@@ -1841,7 +1841,7 @@ class Workbooks(object):
         self.impl = impl
 
     def __call__(self, name_or_index):
-        return Sheet(impl=self.impl(name_or_index))
+        return Workbook(impl=self.impl(name_or_index))
 
     def __len__(self):
         return len(self.impl)
