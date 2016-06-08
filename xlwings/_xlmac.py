@@ -78,7 +78,6 @@ class Application(object):
         else:
             raise Exception("Unknown AppScript address type")
 
-
     @property
     def active_workbook(self):
         return Workbook(self, self.xl.active_workbook.name.get())
@@ -120,16 +119,17 @@ class Application(object):
     def get_visible(xl_app):
         return app('System Events').processes['Microsoft Excel'].visible.get()
 
-    def quit_app(xl_app):
-        xl_app.quit(saving=kw.no)
+    def quit(self):
+        self.xl.quit(saving=kw.no)
+
+    def kill(self):
+        psutil.Process(self.pid).kill()
 
     def get_screen_updating(xl_app):
         return xl_app.screen_updating.get()
 
-
     def set_screen_updating(xl_app, value):
         xl_app.screen_updating.set(value)
-
 
     # TODO: Hack for Excel 2016, to be refactored
     calculation = {kw.calculation_automatic: Calculation.xlCalculationAutomatic,
@@ -237,7 +237,6 @@ class Workbook(object):
         except TypeError:
             pass
 
-
     def delete_name(xl_workbook, name):
         xl_workbook.named_items[name].delete()
 
@@ -257,6 +256,8 @@ class Workbook(object):
             }
         )
 
+    def close(self):
+        self.xl.close(saving=kw.no)
 
 def delete_sheet(sheet):
     _xl_app.display_alerts.set(False)
@@ -280,7 +281,7 @@ class Sheets(object):
         else:
             position = after.xl.after
         xl = self.workbook.xl.make(new=kw.worksheet, at=position)
-        return Sheet(self.workbook, xl.name)
+        return Sheet(self.workbook, xl.name.get())
 
 
 

@@ -55,5 +55,5 @@ class TestBase:
 
     def tearDown(self):
         self.wb.close()
-        if sys.platform.startswith('win'):
-            self.app.kill()
+        #if sys.platform.startswith('win'):
+        self.app.kill()
