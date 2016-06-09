@@ -87,6 +87,10 @@ class Application(object):
             if visible == True:
                 self.visible = True
 
+    @property
+    def api(self):
+        return self.impl.api
+
     @classmethod
     def active(cls):
         return applications.active
@@ -279,6 +283,10 @@ class Workbook(object):
                     impl = app[0].impl
 
         self.impl = impl
+
+    @property
+    def api(self):
+        return self.impl.api
 
     @classmethod
     def active(cls):
@@ -501,6 +509,10 @@ class Sheet(object):
         else:
             self.impl = impl
 
+    @property
+    def api(self):
+        return self.impl.api
+
     @classmethod
     def active(cls):
         """Returns the active Sheet in the current application. Use like so: ``Sheet.active()``"""
@@ -561,7 +573,7 @@ class Sheet(object):
         return self.impl.index
 
     def range(self, arg1, arg2=None):
-        return Range(impl=self.impl.rante(arg1, arg2))
+        return Range(impl=self.impl.range(arg1, arg2))
 
     @property
     def cells(self):
@@ -703,6 +715,10 @@ class Range(object):
 
         # Keyword Arguments
         self._options = options
+
+    @property
+    def api(self):
+        return self.impl.api
 
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
@@ -1796,6 +1812,32 @@ class Names(object):
 
 class Name(object):
 
+    def __init__(self, impl):
+        self.impl = impl
+
+    def delete(self):
+        self.impl.delete()
+
+    @property
+    def name(self):
+        return self.impl.name
+
+    @name.setter
+    def name(self, value):
+        self.impl.name = value
+
+    @property
+    def refers_to(self):
+        return self.impl.refers_to
+
+    @refers_to.setter
+    def refers_to(self, value):
+        self.impl.refers_to = value
+
+    @property
+    def refers_to_range(self):
+        return Range(impl=self.impl.refers_to_range)
+
     def __repr__(self):
         return "<Name '%s': %s>" % (self.name, self.refers_to)
     
@@ -1839,6 +1881,10 @@ class Workbooks(object):
 
     def __init__(self, impl):
         self.impl = impl
+
+    @property
+    def api(self):
+        return self.impl.api
 
     def __call__(self, name_or_index):
         return Workbook(impl=self.impl(name_or_index))
@@ -1884,6 +1930,10 @@ class Sheets(object):
 
     def __init__(self, impl):
         self.impl = impl
+
+    @property
+    def api(self):
+        return self.impl.api
 
     def __call__(self, name_or_index):
         return Sheet(impl=self.impl(name_or_index))

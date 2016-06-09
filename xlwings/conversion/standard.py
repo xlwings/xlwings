@@ -58,7 +58,7 @@ class WriteValueToRangeStage(object):
         self.raw = raw
 
     def _write_value(self, rng, value, scalar):
-        if rng.xl and value:
+        if rng.api and value:
             # it is assumed by this stage that value is a list of lists
             if scalar:
                 value = value[0][0]

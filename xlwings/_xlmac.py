@@ -65,6 +65,10 @@ class Application(object):
             self.xl = xl
 
     @property
+    def api(self):
+        return self.xl
+
+    @property
     def pid(self):
         addr = self.xl.AS_appdata.target()._address
         if addr.type == b'kpid':
@@ -159,6 +163,10 @@ class Workbooks(object):
     def __init__(self, app):
         self.app = app
 
+    @property
+    def api(self):
+        return None
+
     def __call__(self, name_or_index):
         return Workbook(self.app, name_or_index)
 
@@ -184,6 +192,10 @@ class Workbook(object):
     def __init__(self, app, name_or_index):
         self.app = app
         self.xl = app.xl.workbooks[name_or_index]
+
+    @property
+    def api(self):
+        return self.xl
 
     #@property
     #def xl(self):
@@ -269,6 +281,10 @@ class Sheets(object):
     def __init__(self, workbook):
         self.workbook = workbook
 
+    @property
+    def api(self):
+        return None
+
     def __call__(self, name_or_index):
         return Sheet(self.workbook, name_or_index)
 
@@ -293,6 +309,10 @@ class Sheet(object):
 
     def range(self, address):
         return Range(xl=(self.xl, address))
+
+    @property
+    def api(self):
+        return self.xl
 
     @property
     def parent(self):
@@ -385,6 +405,10 @@ class Range(object):
     def __init__(self, sheet, address):
         self.sheet = sheet
         self.xl = sheet.cells[address]
+
+    @property
+    def api(self):
+        return self.xl
 
     @property
     def raw_value(self):

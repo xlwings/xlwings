@@ -399,6 +399,8 @@ class Application(object):
             self._xl = get_xl_app_from_hwnd(self._hwnd)
         return self._xl
 
+    api = xl
+
     @property
     def active_workbook(self):
         xl = self.xl.ActiveWorkbook
@@ -505,6 +507,10 @@ class Workbooks(object):
     def __init__(self, xl):
         self.xl = xl
 
+    @property
+    def api(self):
+        return self.xl
+
     def __call__(self, name_or_index):
         return Workbook(xl=self.xl(name_or_index))
 
@@ -526,6 +532,10 @@ class Workbook(object):
 
     def __init__(self, xl):
         self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
 
     @property
     def name(self):
@@ -587,6 +597,10 @@ class Sheets(object):
     def __init__(self, xl):
         self.xl = xl
 
+    @property
+    def api(self):
+        return self.xl
+
     def __call__(self, name_or_index):
         return Sheet(xl=self.xl(name_or_index))
 
@@ -618,6 +632,10 @@ class Sheet(object):
         self.xl = xl
 
     @property
+    def api(self):
+        return self.xl
+
+    @property
     def name(self):
         return self.xl.Name
 
@@ -632,6 +650,8 @@ class Sheet(object):
     @property
     def workbook(self):
         return Workbook(xl=self.xl.Parent)
+
+    parent = workbook
 
     @property
     def index(self):
@@ -742,6 +762,10 @@ class Range(object):
 
     def __init__(self, xl):
         self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
 
     @property
     def worksheet(self):
@@ -1140,6 +1164,10 @@ class Name(object):
     def __init__(self, xl):
         self.xl = xl
 
+    @property
+    def api(self):
+        return self.xl
+
     def delete(self):
         self.xl.Delete()
 
@@ -1161,6 +1189,6 @@ class Name(object):
 
     @property
     def refers_to_range(self):
-        return fRange(xl=self.xl.RefersToRange)
+        return Range(xl=self.xl.RefersToRange)
 
 
