@@ -421,7 +421,7 @@ class Sheet(object):
 class Range(object):
     def __init__(self, sheet, address):
         self.sheet = sheet
-        self.xl = sheet.cells[address]
+        self.xl = sheet.xl.cells[address]
 
     @property
     def api(self):
@@ -543,13 +543,11 @@ class Range(object):
     def get_named_range(range_):
         return range_.xl_range.name.get()
 
-
     def set_named_range(range_, value):
         range_.xl_range.name.set(value)
 
-
-
-
+    def __len__(self):
+        return self.xl.count(each=kw.cell)
 
 
 class Shape(object):
