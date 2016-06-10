@@ -573,6 +573,10 @@ class Sheet(object):
         return self.impl.index
 
     def range(self, arg1, arg2=None):
+        if isinstance(arg1, Range):
+            arg1 = arg1.impl
+        if isinstance(arg2, Range):
+            arg2 = arg2.impl
         return Range(impl=self.impl.range(arg1, arg2))
 
     @property
@@ -796,7 +800,7 @@ class Range(object):
 
     @property
     def column_count(self):
-        return self.impl.columns_count
+        return self.impl.column_count
 
     @property
     def raw_value(self):

@@ -300,15 +300,32 @@ class Sheets(object):
         return Sheet(self.workbook, xl.name.get())
 
 
-
-
 class Sheet(object):
     def __init__(self, workbook, name_or_index):
         self.workbook = workbook
         self.xl = workbook.xl.sheets[name_or_index]
 
-    def range(self, address):
-        return Range(xl=(self.xl, address))
+    def range(self, arg1, arg2):
+        if isinstance(arg1, Range):
+            if isinstance(arg2, Range):
+                row1 = min(arg1.top, arg2.top)
+                col1 = min(arg1.left, arg2.left)
+                row2 = max(arg1.bottom, arg2.bottom)
+                col2 = max(arg1.right, arg2.right)
+                return Range(
+                    self,
+                    "{0}:{1}".format(
+                        self.xl.rows[row1].columns[col1].address.get(),
+                        self.xl.rows[row2].columns[col2].address.get(),
+                    )
+                )
+            else:
+                return Range(self, arg1.address)
+        else:
+            if arg2 is None:
+                return Range(self, arg1)
+            else:
+                raise ValueError("Invalid parameters")
 
     @property
     def api(self):
