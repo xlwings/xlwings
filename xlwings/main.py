@@ -298,10 +298,6 @@ class Workbook(object):
         """
         return applications.active.active_workbook
 
-    def activate(self):
-        self.application.activate()
-        self.impl.activate()
-
     @classmethod
     def caller(cls):
         """
@@ -451,7 +447,8 @@ class Workbook(object):
         return Names(impl=self.impl.names)
 
     def activate(self):
-        return self.impl.activate()
+        self.application.activate()
+        self.impl.activate()
 
     @property
     def selection(self):
@@ -878,9 +875,6 @@ class Range(object):
     def number_format(self, value):
         self.impl.number_format = value
 
-    def get_address(self, row_absolute, col_absolute, external):
-        return self.impl.get_address(row_absolute, col_absolute, external)
-
     @property
     def address(self):
         return self.impl.address
@@ -891,9 +885,6 @@ class Range(object):
 
     def autofit(self, axis=None):
         return self.impl.autofit(axis)
-
-    def get_hyperlink_address(self):
-        return self.impl.get_hyperlink_address()
 
     def set_hyperlink(self, address, text_to_display=None, screen_tip=None):
         return self.impl.set_hyperlink(address, text_to_display, screen_tip)
@@ -1210,7 +1201,7 @@ class Range(object):
                 raise Exception("The cell doesn't seem to contain a hyperlink!")
         else:
             # If it has been set pragmatically
-            return self.xl_range.get_hyperlink_address()
+            return self.impl.get_hyperlink_address()
 
     def add_hyperlink(self, address, text_to_display=None, screen_tip=None):
         """
@@ -1235,7 +1226,7 @@ class Range(object):
             address = 'http://' + address
         if screen_tip is None:
             screen_tip = address + ' - Click once to follow. Click and hold to select this cell.'
-        self.xl_range.set_hyperlink(address, text_to_display, screen_tip)
+        self.impl.set_hyperlink(address, text_to_display, screen_tip)
 
     def resize(self, row_size=None, column_size=None):
         """
@@ -1773,6 +1764,25 @@ class Plot(object):
 
 class Names(object):
 
+    def __init__(self, impl):
+        self.impl = impl
+
+    @property
+    def api(self):
+        return self.impl.api
+
+    def __call__(self, name_or_index):
+        return Name(impl=self.impl(name_or_index))
+
+    def contains(self, name_or_index):
+        return self.impl.contains(name_or_index)
+
+    def __len__(self):
+        return len(self.impl)
+
+    def add(self, name, refers_to):
+        return Name(impl=self.impl.add(name, refers_to))
+
     def __getitem__(self, item):
         if isinstance(item, numbers.Number):
             return self(item + 1)
@@ -1818,6 +1828,10 @@ class Name(object):
 
     def __init__(self, impl):
         self.impl = impl
+
+    @property
+    def api(self):
+        return self.impl.api
 
     def delete(self):
         self.impl.delete()
@@ -1940,13 +1954,13 @@ class Sheets(object):
         return self.impl.api
 
     def __call__(self, name_or_index):
-        return Sheet(impl=self.impl(name_or_index))
+        if isinstance(name_or_index, Sheet):
+            return name_or_index
+        else:
+            return Sheet(impl=self.impl(name_or_index))
 
     def __len__(self):
         return len(self.impl)
-
-    def add(self, before=None, after=None):
-        return Sheet(impl=self.impl.add(before, after))
 
     def __repr__(self):
         r = []

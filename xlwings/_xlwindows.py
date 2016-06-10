@@ -588,10 +588,6 @@ class Workbook(object):
     def activate(self):
         self.xl.Activate()
 
-    @property
-    def selection(self):
-        return Range(xl=self.xl.ActiveSheet.Selection)
-
 
 class Sheets(object):
     def __init__(self, xl):
@@ -897,7 +893,7 @@ class Range(object):
         except pywintypes.com_error:
             raise Exception("The cell doesn't seem to contain a hyperlink!")
 
-    def set_hyperlink(self, address, text_to_display=None, screen_tip=None):
+    def set_hyperlink(self, address, text_to_display, screen_tip):
         # Another one of these pywin32 bugs that only materialize under certain circumstances:
         # http://stackoverflow.com/questions/6284227/hyperlink-will-not-show-display-proper-text
         link = self.xl.Hyperlinks.Add(Anchor=self.xl, Address=address)
@@ -1139,6 +1135,10 @@ class Chart(Shape):
 class Names(object):
     def __init__(self, xl):
         self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
 
     def __call__(self, name_or_index):
         return Name(xl=self.xl(name_or_index))
