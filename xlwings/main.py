@@ -77,9 +77,9 @@ class Application(object):
     Application is dependent on the Workbook since there might be different application instances on Windows.
     """
 
-    def __init__(self, impl=None, visible=None):
+    def __init__(self, spec=None, impl=None, visible=None):
         if impl is None:
-            self.impl = xlplatform.Application()
+            self.impl = xlplatform.Application(spec=spec)
             if visible or visible is None:
                 self.visible = True
         else:

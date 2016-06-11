@@ -3,6 +3,8 @@ import datetime as dt
 import subprocess
 import unicodedata
 import appscript
+import struct
+import aem
 from appscript import app, mactypes
 from appscript import k as kw
 from appscript.reference import CommandError
@@ -35,13 +37,13 @@ class Applications(object):
         for proc in psutil.process_iter():
             try:
                 if proc.name() == 'Microsoft Excel':
-                    yield proc.exe()[0:proc.exe().find(".app/")+4], proc.pid
+                    yield proc.pid
             except psutil.NoSuchProcess:
                 pass
 
     def __iter__(self):
-        for name, pid in self._iter_excel_instances():
-            yield Application(xl=(name, pid))
+        for pid in self._iter_excel_instances():
+            yield Application(xl=pid)
 
     def __len__(self):
         return len(list(self._iter_excel_instances()))
@@ -53,14 +55,13 @@ class Applications(object):
 
 class Application(object):
 
-    def __init__(self, target='Microsoft Excel', xl=None):
+    def __init__(self, spec=None, xl=None):
         if xl is None:
-            self.xl = app(name=target, newinstance=True, terms=mac_dict)
+            self.xl = app(name=spec or 'Microsoft Excel', newinstance=True, terms=mac_dict)
             # need to do *something* with the app otherwise it doesn't start up
             b = self.xl.visible
-        elif isinstance(xl, tuple):
-            target, self._pid = xl
-            self.xl = app(pid=self._pid, terms=mac_dict)
+        elif isinstance(xl, int):
+            self.xl = app(pid=xl, terms=mac_dict)
         else:
             self.xl = xl
 
@@ -70,17 +71,9 @@ class Application(object):
 
     @property
     def pid(self):
-        addr = self.xl.AS_appdata.target()._address
-        if addr.type == b'kpid':
-            import struct
-            pid, = struct.unpack('i', addr.data)
-            return pid
-        elif addr.type == b'psn ':
-            import struct
-            _, psn = struct.unpack('ii', addr.data)
-            return app(u'System Events').application_processes.ID(psn).unix_id.get()
-        else:
-            raise Exception("Unknown AppScript address type")
+        data = self.xl.AS_appdata.target().addressdesc.coerce(aem.kae.typeKernelProcessID).data
+        pid, = struct.unpack('i', data)
+        return pid
 
     @property
     def active_workbook(self):
