@@ -76,45 +76,33 @@ class Application(object):
         return pid
 
     @property
+    def version(self):
+        return self.xl.version.get()
+
+    @property
     def active_workbook(self):
         return Workbook(self, self.xl.active_workbook.name.get())
 
     @property
     def active_sheet(self):
         book = self.active_workbook
-        return Sheet(book, book.xl.active_sheet.name.get())
-
-    def open_workbook(self, fullname):
-        filename = os.path.basename(fullname)
-        self.xl.open(fullname)
-        return Workbook(self, filename)
-
-    def get_workbook(self, name):
-        return Workbook(self, name)
+        return Sheet(book, self.xl.active_sheet.name.get())
 
     @property
     def selection(self):
         sheet = self.active_sheet
-        return Range(sheet, sheet.xl.selection)
+        return Range(sheet, self.xl.selection.address.get())
 
-    def add_sheet(xl_workbook, before, after):
-        if before:
-            position = before.xl_sheet.before
-        else:
-            position = after.xl_sheet.after
-        return xl_workbook.make(new=kw.worksheet, at=position)
+    @property
+    def visible(self):
+        return app('System Events').processes['Microsoft Excel'].visible.get()
 
-    def count_worksheets(xl_workbook):
-        return xl_workbook.count(each=kw.worksheet)
-
-    def set_visible(xl_app, visible):
+    @visible.setter
+    def visible(self, visible):
         if visible:
-            xl_app.activate()
+            self.activate()
         else:
             app('System Events').processes['Microsoft Excel'].visible.set(visible)
-
-    def get_visible(xl_app):
-        return app('System Events').processes['Microsoft Excel'].visible.get()
 
     def quit(self):
         self.xl.quit(saving=kw.no)
@@ -122,33 +110,46 @@ class Application(object):
     def kill(self):
         psutil.Process(self.pid).kill()
 
-    def get_screen_updating(xl_app):
-        return xl_app.screen_updating.get()
+    @property
+    def screen_updating(self):
+        return self.xl.screen_updating.get()
 
-    def set_screen_updating(xl_app, value):
-        xl_app.screen_updating.set(value)
+    @screen_updating.setter
+    def screen_updating(self, value):
+        self.xl.screen_updating.set(value)
 
     # TODO: Hack for Excel 2016, to be refactored
-    calculation = {kw.calculation_automatic: Calculation.xlCalculationAutomatic,
-                   kw.calculation_manual: Calculation.xlCalculationManual,
-                   kw.calculation_semiautomatic: Calculation.xlCalculationSemiautomatic}
+    _CALCULATION = {
+        kw.calculation_automatic: Calculation.xlCalculationAutomatic,
+        kw.calculation_manual: Calculation.xlCalculationManual,
+        kw.calculation_semiautomatic: Calculation.xlCalculationSemiautomatic
+    }
 
-    def get_calculation(xl_app):
-        return calculation[xl_app.calculation.get()]
+    _CALCULATION_REVERSE = {
+        v: k for k, v in _CALCULATION.items()
+    }
 
-    def set_calculation(xl_app, value):
-        calculation_reverse = dict(zip(calculation.values(), calculation.keys()))
-        xl_app.calculation.set(calculation_reverse[value])
+    @property
+    def calculation(self):
+        return Application._CALCULATION[self.calculation.get()]
 
-    def calculate(xl_app):
-        xl_app.calculate()
+    @calculation.setter
+    def calculation(self, value):
+        self.xl.calculation.set(Application._CALCULATION_REVERSE[value])
 
-    def get_version_string(self):
-        return self.xl.version.get()
+    def calculate(self):
+        self.xl.calculate()
 
     @property
     def workbooks(self):
         return Workbooks(self)
+
+    def range(self, arg1, arg2):
+        return self.active_sheet.range(arg1, arg2)
+
+    @property
+    def hwnd(self):
+        return None
 
 
 class Workbooks(object):
@@ -179,6 +180,24 @@ class Workbooks(object):
         n = len(self)
         for i in range(n):
             yield Workbook(self.app, i+1)
+
+    def open_workbook(self, fullname):
+        filename = os.path.basename(fullname)
+        self.xl.open(fullname)
+        return Workbook(self, filename)
+
+    def get_workbook(self, name):
+        return Workbook(self, name)
+
+    def add_sheet(xl_workbook, before, after):
+        if before:
+            position = before.xl_sheet.before
+        else:
+            position = after.xl_sheet.after
+        return xl_workbook.make(new=kw.worksheet, at=position)
+
+    def count_worksheets(xl_workbook):
+        return xl_workbook.count(each=kw.worksheet)
 
 
 class Workbook(object):

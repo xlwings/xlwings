@@ -149,10 +149,6 @@ class Application(object):
         self.impl.calculate()
 
     @property
-    def version(self):
-        return self.impl.version
-
-    @property
     def workbooks(self):
         return Workbooks(impl=self.impl.workbooks)
 
