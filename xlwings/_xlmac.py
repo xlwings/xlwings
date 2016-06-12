@@ -173,7 +173,7 @@ class Workbooks(object):
 
     def open(self, fullname):
         filename = os.path.basename(fullname)
-        self.app.xl.open(filename)
+        self.app.xl.open(fullname)
         return Workbook(self.app, filename)
 
     def __iter__(self):
