@@ -250,7 +250,8 @@ class Workbook(object):
     @property
     def fullname(self):
         hfs_path = self.xl.properties().get(kw.full_name)
-        if hfs_path == self.xl.properties().get(kw.name):
+        # Excel 2011 returns HFS path, Excel 2016 returns POSIX path
+        if hfs_path == self.xl.properties().get(kw.name) or int(self.app.version.split('.')[0]) >= 15:
             return hfs_path
         return hfs_to_posix_path(hfs_path)
 
