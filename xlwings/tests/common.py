@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import os
-import sys
 import inspect
 
 import nose
@@ -46,14 +45,28 @@ def _skip_if_no_matplotlib():
 
 
 class TestBase:
+    @classmethod
+    def setUpClass(cls):
+        cls.existing_apps = list(xw.apps)
+        cls.app = xw.Application(visible=False)
+
     def setUp(self, xlsx=None):
-        self.app = xw.Application(visible=False)
-        self.wb = self.app.workbook()
+        if len(self.app.workbooks) == 0:
+            self.wb = self.app.workbook()
+        else:
+            self.wb = self.app.workbooks[0]
         if len(self.wb.sheets) == 1:
             self.wb.sheets.add(after=1)
             self.wb.sheets.add(after=2)
 
     def tearDown(self):
-        self.wb.close()
-        #if sys.platform.startswith('win'):
-        self.app.kill()
+        for app in xw.applications:
+            if app.pid not in [i.pid for i in self.existing_apps]:
+                for wb in app:
+                    wb.close()
+
+    @classmethod
+    def tearDownClass(cls):
+        for app in xw.applications:
+            if app.pid not in [i.pid for i in cls.existing_apps]:
+                app.kill()
