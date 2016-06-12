@@ -232,20 +232,20 @@ class Workbook(object):
     def active_sheet(self):
         return Sheet(self, self.xl.active_sheet.name.get())
 
-    def save_workbook(xl_workbook, path):
-        saved_path = xl_workbook.properties().get(kw.path)
+    def save(self, path):
+        saved_path = self.xl.properties().get(kw.path)
         if (saved_path != '') and (path is None):
             # Previously saved: Save under existing name
-            xl_workbook.save()
+            self.xl.save()
         elif (saved_path == '') and (path is None):
             # Previously unsaved: Save under current name in current working directory
-            path = os.path.join(os.getcwd(), xl_workbook.name.get() + '.xlsx')
+            path = os.path.join(os.getcwd(), self.xl.name.get() + '.xlsx')
             hfs_path = posix_to_hfs_path(path)
-            xl_workbook.save_workbook_as(filename=hfs_path, overwrite=True)
+            self.xl.save_workbook_as(filename=hfs_path, overwrite=True)
         elif path:
             # Save under new name/location
             hfs_path = posix_to_hfs_path(path)
-            xl_workbook.save_workbook_as(filename=hfs_path, overwrite=True)
+            self.xl.save_workbook_as(filename=hfs_path, overwrite=True)
 
     @property
     def fullname(self):
@@ -272,12 +272,12 @@ class Workbook(object):
             new=kw.picture,
             with_properties={
                 kw.file_name: posix_to_hfs_path(filename),
-                 kw.link_to_file: link_to_file,
-                 kw.save_with_document: save_with_document,
-                 kw.top: top,
-                 kw.left_position: left,
-                 kw.width: width,
-                 kw.height: height
+                kw.link_to_file: link_to_file,
+                kw.save_with_document: save_with_document,
+                kw.top: top,
+                kw.left_position: left,
+                kw.width: width,
+                kw.height: height
             }
         )
 
