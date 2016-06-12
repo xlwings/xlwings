@@ -100,7 +100,7 @@ class Application(object):
     @visible.setter
     def visible(self, visible):
         if visible:
-            self.activate()
+            self.xl.activate()
         else:
             app('System Events').processes['Microsoft Excel'].visible.set(visible)
 

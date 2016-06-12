@@ -380,7 +380,9 @@ class Applications(object):
 
 class Application(object):
 
-    def __init__(self, xl=None):
+    def __init__(self, spec=None, xl=None):
+        if spec is not None:
+            warn('spec is ignored on Windows.')
         if xl is None:
             # new instance
             self._xl = COMRetryObjectWrapper(DispatchEx('Excel.Application'))
