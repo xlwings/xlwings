@@ -149,8 +149,8 @@ class Application(object):
         self.impl.calculate()
 
     @property
-    def workbooks(self):
-        return Workbooks(impl=self.impl.workbooks)
+    def books(self):
+        return Books(impl=self.impl.books)
 
     @property
     def hwnd(self):
@@ -177,7 +177,7 @@ class Application(object):
         return hash(self.pid)
 
     def workbook(self, fullname=None):
-        wbs = self.workbooks
+        wbs = self.books
 
         if fullname:
             if not PY3 and isinstance(fullname, str):
@@ -245,13 +245,13 @@ class Book(object):
 
                 candidates = []
                 for app in applications:
-                    for wb in app.workbooks:
+                    for wb in app.books:
                         if wb.fullname.lower() == fullname or wb.name.lower() == fullname:
                             candidates.append((app, wb))
 
                 if len(candidates) == 0:
                     if os.path.isfile(fullname):
-                        impl = active.app.workbooks.open(fullname).impl
+                        impl = active.app.books.open(fullname).impl
                     else:
                         raise Exception("Could not connect to workbook '%s'" % fullname)
                 elif len(candidates) > 1:
@@ -261,7 +261,7 @@ class Book(object):
             else:
                 # Open Excel if necessary and create a new workbook
                 if active.app:
-                    impl = active.app.workbooks.add().impl
+                    impl = active.app.books.add().impl
                 else:
                     app = Application()
                     impl = app[0].impl
@@ -1855,7 +1855,7 @@ class Macro(object):
     __call__ = run
 
 
-class Workbooks(object):
+class Books(object):
 
     def __init__(self, impl):
         self.impl = impl
@@ -1994,7 +1994,7 @@ class Classes:
     Applications = Applications
     Application = Application
     Workbook = Book
-    Workbooks = Workbooks
+    Workbooks = Books
     Worksheet = Sheet
     Sheet = Sheet
     Sheets = Sheets
@@ -2004,7 +2004,7 @@ class Classes:
 
 Applications._cls \
     = Application._cls \
-    = Workbooks._cls \
+    = Books._cls \
     = Book._cls \
     = Sheets._cls \
     = Sheet._cls \

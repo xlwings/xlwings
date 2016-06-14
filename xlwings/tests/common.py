@@ -57,12 +57,12 @@ class TestBase(unittest.TestCase):
         cls.app2 = xw.Application(visible=False, spec=SPEC)
 
     def setUp(self, xlsx=None):
-        if len(self.app1.workbooks) == 0:
+        if len(self.app1.books) == 0:
             self.wb1 = self.app1.workbook()
             self.wb2 = self.app2.workbook()
         else:
-            self.wb1 = self.app1.workbooks[0]
-            self.wb2 = self.app2.workbooks[0]
+            self.wb1 = self.app1.books[0]
+            self.wb2 = self.app2.books[0]
         for wb in [self.wb1, self.wb2]:
             if len(wb.sheets) == 1:
                 wb.sheets.add(after=1)
@@ -72,8 +72,8 @@ class TestBase(unittest.TestCase):
     def tearDown(self):
         for app in xw.apps:
             if app.pid not in [i.pid for i in self.existing_apps]:
-                while len(app.workbooks) > 0:
-                    app.workbooks[0].close()
+                while len(app.books) > 0:
+                    app.books[0].close()
 
     @classmethod
     def tearDownClass(cls):

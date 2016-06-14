@@ -203,7 +203,7 @@ class Workbooks(object):
 class Workbook(object):
     def __init__(self, app, name_or_index):
         self.app = app
-        self.xl = app.xl.workbooks[name_or_index]
+        self.xl = app.xl.books[name_or_index]
 
     @property
     def api(self):
