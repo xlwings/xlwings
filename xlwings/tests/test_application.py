@@ -41,7 +41,7 @@ class TestApplication(TestBase):
         assert_equal(self.app.screen_updating, True)
 
     def test_calculation(self):
-        sht = self.wb[0]
+        sht = self.wb.sheets[0]
         sht.range('A1').value = 2
         sht.range('B1').formula = '=A1 * 2'
 

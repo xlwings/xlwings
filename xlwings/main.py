@@ -176,18 +176,6 @@ class Application(object):
     def __hash__(self):
         return hash(self.pid)
 
-    def __getitem__(self, name_or_index):
-        return self.workbooks[name_or_index]
-
-    def __call__(self, *args, **kwargs):
-        return self.workbooks(*args, **kwargs)
-
-    def __len__(self):
-        return len(self.workbooks)
-
-    def __iter__(self):
-        return iter(self.workbooks)
-
     def workbook(self, fullname=None):
         wbs = self.workbooks
 
@@ -459,21 +447,6 @@ class Workbook(object):
     def __repr__(self):
         return "<Workbook [{0}]>".format(self.name)
 
-    def __getitem__(self, name_or_index):
-        return self.sheets[name_or_index]
-
-    def __delitem__(self, name_or_index):
-        del self.sheets[name_or_index]
-
-    def __call__(self, name_or_index):
-        return self.sheets(name_or_index)
-
-    def __len__(self):
-        return len(self.sheets)
-
-    def __iter__(self):
-        return iter(self.sheets)
-
 
 class Sheet(object):
     """
@@ -624,15 +597,6 @@ class Sheet(object):
 
     def __repr__(self):
         return "<Sheet [{1}]{0}>".format(self.name, self.workbook.name)
-
-    def __getitem__(self, item):
-        if isinstance(item, string_types):
-            return self.range(item)
-        else:
-            return self.cells[item]
-
-    def __call__(self, *args):
-        return self.range(*args)
 
 
 class Range(object):

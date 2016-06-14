@@ -43,11 +43,11 @@ class TestWorkbook(TestBase):
         wb1 = self.wb1
         wb2 = self.app1.workbook()
 
-        wb2[0].range('A1').value = 2.
-        wb1[0].range('A1').value = 1.
+        wb2.sheets[0].range('A1').value = 2.
+        wb1.sheets[0].range('A1').value = 1.
 
-        assert_equal(wb2[0].range('A1').value, 2.)
-        assert_equal(wb1[0].range('A1').value, 1.)
+        assert_equal(wb2.sheets[0].range('A1').value, 2.)
+        assert_equal(wb1.sheets[0].range('A1').value, 1.)
 
     def test_save_naked(self):
         if sys.platform.startswith('darwin') and self.app1.major_version >= 15:
@@ -109,20 +109,20 @@ class TestWorkbook(TestBase):
             os.remove(dst)
         wb.save(dst)
         wb2 = self.app1.workbook(dst)
-        wb2[0].range('A1').value = 1
+        wb2.sheets[0].range('A1').value = 1
         wb2.close()
         os.remove(dst)
 
     def test_unsaved_workbook_reference(self):
-        self.wb1[0].range('B2').value = 123
+        self.wb1.sheets[0].range('B2').value = 123
         wb2 = self.app1.workbook(self.wb1.name)
-        assert_equal(wb2[0].range('B2').value, 123)
+        assert_equal(wb2.sheets[0].range('B2').value, 123)
 
     def test_active_workbook(self):
-        self.wb2[0].range('A1').value = 'active_workbook'  # 2nd instance
+        self.wb2.sheets[0].range('A1').value = 'active_workbook'  # 2nd instance
         self.wb2.activate()
         wb_active = xw.Workbook.active()
-        assert_equal(wb_active[0].range('A1').value, 'active_workbook')
+        assert_equal(wb_active.sheets[0].range('A1').value, 'active_workbook')
 
     def test_macro(self):
         # NOTE: Uncheck Macro security check in Excel
