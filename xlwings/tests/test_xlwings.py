@@ -12,7 +12,7 @@ import inspect
 import nose
 from nose.tools import assert_equal, raises, assert_raises, assert_true, assert_false, assert_not_equal
 
-from xlwings import Application, Workbook, Sheet, Range, Chart, Picture, Plot, ShapeAlreadyExists
+from xlwings import Application, Book, Sheet, Range, Chart, Picture, Plot, ShapeAlreadyExists
 from xlwings.constants import ChartType, RgbColor
 from .test_data import data, test_date_1, test_date_2, list_row_1d, list_row_2d, list_col, chart_data
 from .common import TestBase, _skip_if_no_matplotlib, _skip_if_no_numpy, _skip_if_no_pandas
@@ -59,7 +59,7 @@ class TestPicture(TestBase):
         super(TestPicture, self).setUp('test_chart_1.xlsx')
 
     def test_two_wkb(self):
-        wb2 = Workbook(app_visible=False, app_target=APP_TARGET)
+        wb2 = Book(app_visible=False, app_target=APP_TARGET)
         pic1 = Picture.add(sheet=1, name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
         pic2 = Picture.add(sheet=self.wb.sheet(1), name='pic1', filename=os.path.join(this_dir, 'sample_picture.png'))
         assert_equal(pic1.name, 'pic1')

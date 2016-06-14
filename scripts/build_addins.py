@@ -1,5 +1,5 @@
 import os
-from xlwings import Workbook, FileFormat
+from xlwings import Book, FileFormat
 
 """
 TODO: might make sense to refactor VBA module like this instead of replacing ThisWorkbook with ActiveWorkbook:
@@ -21,7 +21,7 @@ def build_addins():
         vba_addin.write(content)
 
     # create addin workbook
-    wb = Workbook()
+    wb = Book()
 
     # remove unneeded sheets
     for sh in list(wb.xl_workbook.Sheets)[1:]:

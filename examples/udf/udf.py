@@ -11,7 +11,7 @@ import xlwings as xw
 @xw.sub
 def get_workbook_name():
     """Writes the name of the Workbook into Range("D3") of Sheet 1"""
-    wb = xw.Workbook.caller()
+    wb = xw.Book.caller()
     xw.Range(1, 'D3').value = wb.name
 
 

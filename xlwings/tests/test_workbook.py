@@ -121,7 +121,7 @@ class TestWorkbook(TestBase):
     def test_active_workbook(self):
         self.wb2.sheets[0].range('A1').value = 'active_workbook'  # 2nd instance
         self.wb2.activate()
-        wb_active = xw.Workbook.active()
+        wb_active = xw.Book.active()
         assert_equal(wb_active.sheets[0].range('A1').value, 'active_workbook')
 
     def test_macro(self):

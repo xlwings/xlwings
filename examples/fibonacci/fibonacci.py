@@ -4,7 +4,7 @@ All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
 """
-from xlwings import Workbook, Range
+from xlwings import Book, Range
 
 
 def fibonacci(n):
@@ -25,7 +25,7 @@ def xl_fibonacci():
     This is a wrapper around fibonacci() to handle all the Excel stuff
     """
     # Create a reference to the calling Excel Workbook
-    wb = Workbook.caller()
+    wb = Book.caller()
 
     # Get the input from Excel and turn into integer
     n = Range('B1').options(numbers=int).value

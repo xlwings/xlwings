@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import pandas.io.ga as ga
 from datetime import datetime
-from xlwings import Workbook, Range
+from xlwings import Book, Range
 
 # Worksheets
 sheet_dashboard = 'Sheet1'
@@ -62,7 +62,7 @@ def refresh():
     Refreshes the tables in Excel given the input parameters.
     """
     # Connect to the Workbook
-    wb = Workbook.caller()
+    wb = Book.caller()
 
     # Read input
     start_date = Range(sheet_dashboard, 'start_date').value
@@ -83,5 +83,5 @@ def refresh():
 if __name__ == '__main__':
     # To run from Python. Not needed when called from Excel.
     path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'ga_dashboard.xlsm'))
-    Workbook.set_mock_caller(path)
+    Book.set_mock_caller(path)
     refresh()

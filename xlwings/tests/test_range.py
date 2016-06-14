@@ -653,7 +653,7 @@ class TestRange(TestBase):
         assert_equal(format_string, result)
 
     def test_get_address(self):
-        wb1 = xw.Workbook(os.path.join(this_dir, 'test_workbook_1.xlsx'))
+        wb1 = xw.Book(os.path.join(this_dir, 'test_workbook_1.xlsx'))
 
         res = wb1[0].range((1, 1), (3, 3)).get_address()
         assert_equal(res, '$A$1:$C$3')

@@ -7,11 +7,11 @@ License: BSD 3-clause (see LICENSE.txt for details)
 from __future__ import division
 import sys
 import numpy as np
-from xlwings import Application, Workbook, Range, Chart
+from xlwings import Application, Book, Range, Chart
 
 
 def main():
-    wb = Workbook.caller()
+    wb = Book.caller()
     # User Inputs
     num_simulations = Range('E3').options(numbers=int).value
     time = Range('E4').value

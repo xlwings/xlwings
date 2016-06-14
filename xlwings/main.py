@@ -102,7 +102,7 @@ class Application(object):
     @property
     def active_workbook(self):
         impl = self.impl.active_workbook
-        return impl and Workbook(impl=impl)
+        return impl and Book(impl=impl)
 
     @property
     def active_sheet(self):
@@ -198,7 +198,7 @@ class Application(object):
             return wbs.add()
 
 
-class Workbook(object):
+class Book(object):
     """
     ``Workbook`` connects an Excel Workbook with Python. You can create a new connection from Python with
 
@@ -301,9 +301,9 @@ class Workbook(object):
 
         .. versionadded:: 0.3.0
         """
-        if hasattr(Workbook, '_mock_file'):
+        if hasattr(Book, '_mock_file'):
             # Use mocking Workbook, see Workbook.set_mock_caller()
-            _, xl_workbook = xlplatform.get_open_workbook(Workbook._mock_file)
+            _, xl_workbook = xlplatform.get_open_workbook(Book._mock_file)
             return cls(xl_workbook=xl_workbook)
         elif len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
             # Connect to the workbook from which this code has been invoked
@@ -345,7 +345,7 @@ class Workbook(object):
 
         .. versionadded:: 0.3.1
         """
-        Workbook._mock_file = fullpath
+        Book._mock_file = fullpath
 
     @staticmethod
     def open_template():
@@ -353,7 +353,7 @@ class Workbook(object):
         Creates a new Excel file with the xlwings VBA module already included. This method must be called from an
         interactive Python shell::
 
-        >>> Workbook.open_template()
+        >>> Book.open_template()
 
         .. versionadded:: 0.3.3
         """
@@ -471,7 +471,7 @@ class Sheet(object):
 
     def __init__(self, sheet=None, impl=None):
         if impl is None:
-            self.impl = Workbook.active().sheet(sheet).impl
+            self.impl = Book.active().sheet(sheet).impl
         else:
             self.impl = impl
 
@@ -532,7 +532,7 @@ class Sheet(object):
 
     @property
     def workbook(self):
-        return Workbook(impl=self.impl.parent)
+        return Book(impl=self.impl.parent)
 
     @property
     def index(self):
@@ -1339,8 +1339,8 @@ class Chart(Shape):
 
     Example
     -------
-    >>> from xlwings import Workbook, Range, Chart, ChartType
-    >>> wb = Workbook()
+    >>> from xlwings import Book, Range, Chart, ChartType
+    >>> wb = Book()
     >>> Range('A1').value = [['Foo1', 'Foo2'], [1, 2]]
     >>> chart = Chart.add(source_data=Range('A1').table, chart_type=ChartType.xlLine)
     >>> chart.name
@@ -1688,7 +1688,7 @@ class Plot(object):
 
         .. versionadded:: 0.5.0
         """
-        xl_workbook = Workbook.get_xl_workbook(wkb)
+        xl_workbook = Book.get_xl_workbook(wkb)
 
         if isinstance(sheet, Sheet):
                 sheet = sheet.index
@@ -1838,7 +1838,7 @@ def view(obj):
 
     .. versionadded:: 0.7.1
     """
-    sht = Workbook().active_sheet
+    sht = Book().active_sheet
     Range(sht, 'A1').value = obj
     sht.autofit()
 
@@ -1865,20 +1865,20 @@ class Workbooks(object):
         return self.impl.api
 
     def __call__(self, name_or_index):
-        return Workbook(impl=self.impl(name_or_index))
+        return Book(impl=self.impl(name_or_index))
 
     def __len__(self):
         return len(self.impl)
 
     def add(self):
-        return Workbook(impl=self.impl.add())
+        return Book(impl=self.impl.add())
 
     def open(self, fullname):
-        return Workbook(impl=self.impl.open(fullname))
+        return Book(impl=self.impl.open(fullname))
 
     def __iter__(self):
         for impl in self.impl:
-            yield Workbook(impl=impl)
+            yield Book(impl=impl)
 
     def __getitem__(self, name_or_index):
         if isinstance(name_or_index, numbers.Number):
@@ -1976,7 +1976,7 @@ class ActiveObjects(object):
 
     @property
     def workbook(self):
-        return Workbook.active()
+        return Book.active()
 
     book = workbook
 
@@ -1993,7 +1993,7 @@ active = ActiveObjects()
 class Classes:
     Applications = Applications
     Application = Application
-    Workbook = Workbook
+    Workbook = Book
     Workbooks = Workbooks
     Worksheet = Sheet
     Sheet = Sheet
@@ -2005,7 +2005,7 @@ class Classes:
 Applications._cls \
     = Application._cls \
     = Workbooks._cls \
-    = Workbook._cls \
+    = Book._cls \
     = Sheets._cls \
     = Sheet._cls \
     = Range._cls \

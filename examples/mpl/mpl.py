@@ -27,7 +27,7 @@ def get_figure(const):
 
 def main():
     # Create a reference to the calling Excel Workbook
-    wb = xw.Workbook.caller()
+    wb = xw.Book.caller()
 
     # Get the constant from Excel
     const = xw.Range('B1').value

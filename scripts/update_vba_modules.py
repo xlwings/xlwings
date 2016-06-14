@@ -4,7 +4,7 @@
 # under Options > Trust Center > Trust Center Settings > Macro Settings (in the case of Excel 2010)
 
 import os
-from xlwings import Workbook, FileFormat
+from xlwings import Book, FileFormat
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -20,7 +20,7 @@ for root, dirs, files in os.walk(root):
             workbook_paths.append((os.path.join(root, f)))
 
 for path in workbook_paths:
-    wb = Workbook(path)
+    wb = Book(path)
     wb.xl_workbook.VBProject.VBComponents.Remove(wb.xl_workbook.VBProject.VBComponents("xlwings"))
     wb.xl_workbook.VBProject.VBComponents.Import(os.path.abspath(os.path.join(this_dir, os.pardir, 'xlwings', 'xlwings.bas')))
     if 'xlwings_template' in wb.fullname:
