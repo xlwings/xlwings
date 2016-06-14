@@ -53,8 +53,8 @@ class TestBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.existing_apps = list(xw.apps)
-        cls.app1 = xw.Application(visible=False, spec=SPEC)
-        cls.app2 = xw.Application(visible=False, spec=SPEC)
+        cls.app1 = xw.App(visible=False, spec=SPEC)
+        cls.app2 = xw.App(visible=False, spec=SPEC)
 
     def setUp(self, xlsx=None):
         if len(self.app1.books) == 0:
@@ -77,6 +77,6 @@ class TestBase(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        for app in xw.applications:
+        for app in xw.apps:
             if app.pid not in [i.pid for i in cls.existing_apps]:
                 app.quit()

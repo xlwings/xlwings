@@ -12,7 +12,7 @@ import inspect
 import nose
 from nose.tools import assert_equal, raises, assert_raises, assert_true, assert_false, assert_not_equal
 
-from xlwings import Application, Book, Sheet, Range, Chart, Picture, Plot, ShapeAlreadyExists
+from xlwings import App, Book, Sheet, Range, Chart, Picture, Plot, ShapeAlreadyExists
 from xlwings.constants import ChartType, RgbColor
 from .test_data import data, test_date_1, test_date_2, list_row_1d, list_row_2d, list_col, chart_data
 from .common import TestBase, _skip_if_no_matplotlib, _skip_if_no_numpy, _skip_if_no_pandas

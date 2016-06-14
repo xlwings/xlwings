@@ -345,11 +345,11 @@ def get_open_workbook(fullname, app_target=None, hwnd=None):
                 xl_workbook.Name.lower() == fullname.lower()
                ):
                 if (xl_workbook.FullName.lower() not in duplicate_fullnames) or (hwnd is not None):
-                    return Workbook(xl_workbook)
+                    return Book(xl_workbook)
                 else:
                     warn('This Workbook is open in multiple instances.'
                          'The connection was made with the one that was last active.')
-                    return Workbook(xl_workbook)
+                    return Book(xl_workbook)
 
 
 def is_range_instance(xl_range):
@@ -360,13 +360,13 @@ def is_range_instance(xl_range):
     # return pyid.GetTypeInfo().GetDocumentation(-1)[0] == 'Range'
 
 
-class Applications(object):
+class Apps(object):
 
     def __iter__(self):
         #for xl in get_xl_apps():
         #    yield Application(xl=xl)
         for hwnd in get_excel_hwnds():
-            yield Application(xl=hwnd)
+            yield App(xl=hwnd)
 
     def __len__(self):
         return len(list(get_excel_hwnds()))
@@ -375,10 +375,10 @@ class Applications(object):
         #xl_apps = list(get_xl_apps())
         #return Application(xl=xl_apps[index])
         hwnds = list(get_excel_hwnds())
-        return Application(xl=hwnds[index])
+        return App(xl=hwnds[index])
 
 
-class Application(object):
+class App(object):
 
     def __init__(self, spec=None, xl=None):
         if spec is not None:
@@ -406,7 +406,7 @@ class Application(object):
     @property
     def active_workbook(self):
         xl = self.xl.ActiveWorkbook
-        return xl and Workbook(xl=xl)
+        return xl and Book(xl=xl)
 
     @property
     def active_sheet(self):
@@ -514,23 +514,23 @@ class Books(object):
         return self.xl
 
     def __call__(self, name_or_index):
-        return Workbook(xl=self.xl(name_or_index))
+        return Book(xl=self.xl(name_or_index))
 
     def __len__(self):
         return self.xl.Count
 
     def add(self):
-        return Workbook(xl=self.xl.Add())
+        return Book(xl=self.xl.Add())
 
     def open(self, fullname):
-        return Workbook(xl=self.xl.Open(fullname))
+        return Book(xl=self.xl.Open(fullname))
 
     def __iter__(self):
         for xl in self.xl:
-            yield Workbook(xl=xl)
+            yield Book(xl=xl)
 
 
-class Workbook(object):
+class Book(object):
 
     def __init__(self, xl):
         self.xl = xl
@@ -552,8 +552,8 @@ class Workbook(object):
         return Sheets(xl=self.xl.Sheets)
 
     @property
-    def application(self):
-        return Application(xl=self.xl.Application)
+    def app(self):
+        return App(xl=self.xl.Application)
 
     def close(self):
         self.xl.Close(SaveChanges=False)
@@ -647,7 +647,7 @@ class Sheet(object):
 
     @property
     def workbook(self):
-        return Workbook(xl=self.xl.Parent)
+        return Book(xl=self.xl.Parent)
 
     parent = workbook
 

@@ -61,7 +61,7 @@ class TestApplication(TestBase):
 
     def test_apps(self):
         n_original = len(xw.apps)
-        app2 = xw.Application()
+        app2 = xw.App()
         wb2 = app2.workbook()
         assert_equal(n_original + 1, len(xw.apps))
         assert_equal(xw.apps[0], app2)
@@ -69,7 +69,7 @@ class TestApplication(TestBase):
         app2.quit()
 
     def test_wb_across_instances(self):
-        app2 = xw.Application()
+        app2 = xw.App()
 
         app1_wb_count = len(self.app)
         app2_wb_count = len(app2)
@@ -93,7 +93,7 @@ class TestApplication(TestBase):
         assert_equal(self.app.selection.address, '$A$1')
 
     def test_close_all_wbs(self):
-        app2 = xw.Application()
+        app2 = xw.App()
         wb1 = app2.workbook()
         wb2 = app2.workbook()
 

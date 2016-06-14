@@ -44,7 +44,7 @@ except ImportError:
     Image = None
 
 
-class Applications(object):
+class Apps(object):
 
     def __init__(self, impl):
         self.impl = impl
@@ -52,34 +52,34 @@ class Applications(object):
     @property
     def active(self):
         for app in self.impl:
-            return Application(impl=app)
+            return App(impl=app)
         return None
 
     def __repr__(self):
         return repr(list(self))
 
     def __getitem__(self, item):
-        return Application(impl=self.impl[item])
+        return App(impl=self.impl[item])
 
     def __len__(self):
         return len(self.impl)
 
     def __iter__(self):
         for app in self.impl:
-            yield Application(impl=app)
+            yield App(impl=app)
 
 
-applications = Applications(impl=xlplatform.Applications())
+apps = Apps(impl=xlplatform.Apps())
 
 
-class Application(object):
+class App(object):
     """
     Application is dependent on the Workbook since there might be different application instances on Windows.
     """
 
     def __init__(self, spec=None, impl=None, visible=None):
         if impl is None:
-            self.impl = xlplatform.Application(spec=spec)
+            self.impl = xlplatform.App(spec=spec)
             if visible or visible is None:
                 self.visible = True
         else:
@@ -93,7 +93,7 @@ class Application(object):
 
     @classmethod
     def active(cls):
-        return applications.active
+        return apps.active
 
     @property
     def version(self):
@@ -171,7 +171,7 @@ class Application(object):
         return "<Excel App %s>" % self.pid
 
     def __eq__(self, other):
-        return type(other) is Application and other.pid == self.pid
+        return type(other) is App and other.pid == self.pid
 
     def __hash__(self):
         return hash(self.pid)
@@ -244,7 +244,7 @@ class Book(object):
                 fullname = fullname.lower()
 
                 candidates = []
-                for app in applications:
+                for app in apps:
                     for wb in app.books:
                         if wb.fullname.lower() == fullname or wb.name.lower() == fullname:
                             candidates.append((app, wb))
@@ -263,7 +263,7 @@ class Book(object):
                 if active.app:
                     impl = active.app.books.add().impl
                 else:
-                    app = Application()
+                    app = App()
                     impl = app[0].impl
 
         self.impl = impl
@@ -280,7 +280,7 @@ class Book(object):
 
         .. versionadded:: 0.4.1
         """
-        return applications.active.active_workbook
+        return apps.active.active_workbook
 
     @classmethod
     def caller(cls):
@@ -409,8 +409,8 @@ class Book(object):
         return Sheets(impl=self.impl.sheets)
 
     @property
-    def application(self):
-        return Application(impl=self.impl.application)
+    def app(self):
+        return App(impl=self.impl.app)
 
     def close(self):
         self.impl.close()
@@ -431,7 +431,7 @@ class Book(object):
         return Names(impl=self.impl.names)
 
     def activate(self):
-        self.application.activate()
+        self.app.activate()
         self.impl.activate()
 
     @property
@@ -482,7 +482,7 @@ class Sheet(object):
     @classmethod
     def active(cls):
         """Returns the active Sheet in the current application. Use like so: ``Sheet.active()``"""
-        return applications.active.active_sheet
+        return apps.active.active_sheet
 
     @classmethod
     def add(cls, name=None, before=None, after=None):
@@ -1545,7 +1545,7 @@ class Picture(Shape):
             if name in sheet.xl_sheet.get_shapes_names():
                 raise ShapeAlreadyExists('A shape with this name already exists.')
 
-        if sys.platform.startswith('darwin') and sheet.workbook.application.major_version >= 15:
+        if sys.platform.startswith('darwin') and sheet.workbook.app.major_version >= 15:
             # Office 2016 for Mac is sandboxed. This path seems to work without the need of granting access explicitly
             xlwings_picture = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/xlwings_picture.png'
             shutil.copy2(filename, xlwings_picture)
@@ -1570,7 +1570,7 @@ class Picture(Shape):
             else:
                 height = 100
 
-        if sys.platform.startswith('darwin') and sheet.workbook.application.major_version >= 15:
+        if sys.platform.startswith('darwin') and sheet.workbook.app.major_version >= 15:
             os.remove(xlwings_picture)
 
         xl_shape = sheet.xl_sheet.add_picture(
@@ -1850,7 +1850,7 @@ class Macro(object):
         self.app = app
 
     def run(self, *args):
-        return xlplatform.run(self.wb, self.name, self.app or Application(self.wb), args)
+        return xlplatform.run(self.wb, self.name, self.app or App(self.wb), args)
 
     __call__ = run
 
@@ -1970,7 +1970,7 @@ class ActiveObjects(object):
 
     @property
     def application(self):
-        return Application.active()
+        return App.active()
 
     app = application
 

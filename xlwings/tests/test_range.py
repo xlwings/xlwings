@@ -173,7 +173,7 @@ class TestRange(TestBase):
 
     def test_vertical(self):
         self.wb[0].range('A10').value = data
-        if sys.platform.startswith('win') and self.wb.application.version == '14.0':
+        if sys.platform.startswith('win') and self.wb.app.version == '14.0':
             self.wb[0].range('A12:B12').number_format = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
         cells = self.wb[0].range('A10').vertical.value
         assert_equal(cells, [row[0] for row in data])
@@ -185,7 +185,7 @@ class TestRange(TestBase):
 
     def test_table(self):
         self.wb[0].range('A1').value = data
-        if sys.platform.startswith('win') and self.wb.application.version == '14.0':
+        if sys.platform.startswith('win') and self.wb.app.version == '14.0':
             self.wb[0].range('A3:B3').number_format = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
         cells = self.wb[0].range('A1').table.value
         assert_equal(cells, data)
@@ -279,7 +279,7 @@ class TestRange(TestBase):
 
         df_expected = df_dateindex
         self.wb[0].range('A100').value = df_expected
-        if sys.platform.startswith('win') and self.wb.application.version == '14.0':
+        if sys.platform.startswith('win') and self.wb.app.version == '14.0':
             self.wb[0].range('A100').vertical.number_format = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
         cells = self.wb[0].range('B100').table.value
         index = self.wb[0].range('A101').vertical.value
@@ -430,7 +430,7 @@ class TestRange(TestBase):
 
         series_expected = timeseries_1
         self.wb[0].range('A40').options(header=False).value = series_expected
-        if sys.platform.startswith('win') and self.wb.application.version == '14.0':
+        if sys.platform.startswith('win') and self.wb.app.version == '14.0':
             self.wb[0].range('A40').vertical.number_format = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
         series_result = self.wb[0].range('A40:B49').options(pd.Series, header=False).value
         assert_series_equal(series_expected, series_result)

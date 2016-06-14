@@ -31,7 +31,7 @@ if np:
 _xl_app = None
 
 
-class Applications(object):
+class Apps(object):
 
     def _iter_excel_instances(self):
         for proc in psutil.process_iter():
@@ -43,17 +43,17 @@ class Applications(object):
 
     def __iter__(self):
         for pid in self._iter_excel_instances():
-            yield Application(xl=pid)
+            yield App(xl=pid)
 
     def __len__(self):
         return len(list(self._iter_excel_instances()))
 
     def __getitem__(self, index):
         pids = list(self._iter_excel_instances())
-        return Application(xl=pids[index])
+        return App(xl=pids[index])
 
 
-class Application(object):
+class App(object):
 
     def __init__(self, spec=None, xl=None):
         if xl is None:
@@ -81,7 +81,7 @@ class Application(object):
 
     @property
     def active_workbook(self):
-        return Workbook(self, self.xl.active_workbook.name.get())
+        return Book(self, self.xl.active_workbook.name.get())
 
     @property
     def active_sheet(self):
@@ -131,11 +131,11 @@ class Application(object):
 
     @property
     def calculation(self):
-        return Application._CALCULATION[self.calculation.get()]
+        return App._CALCULATION[self.calculation.get()]
 
     @calculation.setter
     def calculation(self, value):
-        self.xl.calculation.set(Application._CALCULATION_REVERSE[value])
+        self.xl.calculation.set(App._CALCULATION_REVERSE[value])
 
     def calculate(self):
         self.xl.calculate()
@@ -162,32 +162,32 @@ class Books(object):
         return None
 
     def __call__(self, name_or_index):
-        return Workbook(self.app, name_or_index)
+        return Book(self.app, name_or_index)
 
     def __len__(self):
         return self.app.xl.count(each=kw.workbook)
 
     def add(self):
         xl = self.app.xl.make(new=kw.workbook)
-        return Workbook(self.app, xl.name.get())
+        return Book(self.app, xl.name.get())
 
     def open(self, fullname):
         filename = os.path.basename(fullname)
         self.app.xl.open(fullname)
-        return Workbook(self.app, filename)
+        return Book(self.app, filename)
 
     def __iter__(self):
         n = len(self)
         for i in range(n):
-            yield Workbook(self.app, i+1)
+            yield Book(self.app, i + 1)
 
     def open_workbook(self, fullname):
         filename = os.path.basename(fullname)
         self.xl.open(fullname)
-        return Workbook(self, filename)
+        return Book(self, filename)
 
     def get_workbook(self, name):
-        return Workbook(self, name)
+        return Book(self, name)
 
     def add_sheet(xl_workbook, before, after):
         if before:
@@ -200,7 +200,7 @@ class Books(object):
         return xl_workbook.count(each=kw.worksheet)
 
 
-class Workbook(object):
+class Book(object):
     def __init__(self, app, name_or_index):
         self.app = app
         self.xl = app.xl.books[name_or_index]
@@ -208,10 +208,6 @@ class Workbook(object):
     @property
     def api(self):
         return self.xl
-
-    #@property
-    #def xl(self):
-    #    return self.application.xl.workbooks(self.name)
 
     def sheet(self, name_or_index):
         return Sheet(self, self.xl.name_or_index)
@@ -225,8 +221,8 @@ class Workbook(object):
         return self.xl.name.get()
 
     @property
-    def application(self):
-        return Application(xl=self.app)
+    def app(self):
+        return App(xl=self.app)
 
     @property
     def active_sheet(self):
@@ -471,9 +467,9 @@ class Range(object):
         return self.xl.count(each=kw.column)
 
     def clear_contents(self):
-        self.sheet.workbook.application.screen_updating.set(False)
+        self.sheet.workbook.app.screen_updating.set(False)
         self.xl.clear_range()
-        self.sheet.workbook.application.screen_updating.set(True)
+        self.sheet.workbook.app.screen_updating.set(True)
 
     def get_formula(self):
         return self.xl.formula.get()
@@ -784,8 +780,8 @@ def get_open_workbook(fullname, app_target=None):
     On Mac, there's only ever one instance of Excel.
     """
     filename = os.path.basename(fullname)
-    app = Application()
-    return Workbook(app, filename)
+    app = App()
+    return Book(app, filename)
 
 
 def open_workbook(fullname, app_target=None):

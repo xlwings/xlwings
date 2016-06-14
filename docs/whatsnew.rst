@@ -26,29 +26,8 @@ Enhancements
         >>> my_sum = wb.macro('MySum')
         >>> my_sum(1, 2)
         3.0
-    * New         Function MySum(x, y)
-                MySum = x + y
-            End Function
 
-        can be accessed like this:
-
-        >>> import xlwings as xw
-        >>> wb = xw.Book.active()
-        >>> my_sum = wb.macro('MySum')
-        >>> my_sum(1, 2)
-        3.0
-    * New         Function MySum(x, y)
-            MySum = x + y
-        End Function
-
-    can be accessed like this:
-
-    >>> import xlwings as xw
-    >>> wb = xw.Workbook.active()
-    >>> my_sum = wb.macro('MySum')
-    >>> my_sum(1, 2)
-    3.0
-* New ``xw.view`` method: This opens a new workbook and displays an object on its first sheet. E.g.:
+    * New ``xw.view`` method: This opens a new workbook and displays an object on its first sheet. E.g.:
 
     >>> import xlwings as xw
     >>> import pandas as pd
