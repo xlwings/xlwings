@@ -445,7 +445,7 @@ class Book(object):
             return self.sheets(name_or_index)
 
     def __repr__(self):
-        return "<Workbook [{0}]>".format(self.name)
+        return "<Book [{0}]>".format(self.name)
 
 
 class Sheet(object):
@@ -1988,27 +1988,3 @@ class ActiveObjects(object):
 
 
 active = ActiveObjects()
-
-
-class Classes:
-    Applications = Applications
-    Application = Application
-    Workbook = Book
-    Workbooks = Books
-    Worksheet = Sheet
-    Sheet = Sheet
-    Sheets = Sheets
-    Range = Range
-    Names = Names
-    Name = Name
-
-Applications._cls \
-    = Application._cls \
-    = Books._cls \
-    = Book._cls \
-    = Sheets._cls \
-    = Sheet._cls \
-    = Range._cls \
-    = Names._cls \
-    = Name._cls \
-    = Classes

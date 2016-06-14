@@ -141,8 +141,8 @@ class Application(object):
         self.xl.calculate()
 
     @property
-    def workbooks(self):
-        return Workbooks(self)
+    def books(self):
+        return Books(self)
 
     def range(self, arg1, arg2):
         return self.active_sheet.range(arg1, arg2)
@@ -152,7 +152,7 @@ class Application(object):
         return None
 
 
-class Workbooks(object):
+class Books(object):
 
     def __init__(self, app):
         self.app = app

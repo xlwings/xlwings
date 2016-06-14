@@ -474,8 +474,8 @@ class Application(object):
         return int(self.version.split('.')[0])
 
     @property
-    def workbooks(self):
-        return Workbooks(xl=self.xl.Workbooks)
+    def books(self):
+        return Books(xl=self.xl.Workbooks)
 
     @property
     def hwnd(self):
@@ -504,7 +504,7 @@ class Application(object):
         return Range(xl=self.xl.Range(xl1, xl2))
 
 
-class Workbooks(object):
+class Books(object):
 
     def __init__(self, xl):
         self.xl = xl
