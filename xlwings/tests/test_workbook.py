@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 import os
 import sys
-import shutil
 
 from nose.tools import assert_equal, raises, assert_raises, assert_true, assert_false, assert_not_equal
 
@@ -36,68 +35,55 @@ except ImportError:
 
 class TestWorkbook(TestBase):
     def test_name(self):
-        wb = self.app.workbook(os.path.join(this_dir, 'test_workbook_1.xlsx'))
-        assert_equal(wb.name, 'test_workbook_1.xlsx')
-        wb.close()
+        wb = self.app1.workbook(os.path.join(this_dir, 'test book.xlsx'))
+        assert_equal(wb.name, 'test book.xlsx')
 
     def test_reference_two_unsaved_wb(self):
         """Covers GH Issue #63"""
-        wb1 = self.app.workbook()
-        wb2 = self.app.workbook()
+        wb1 = self.wb1
+        wb2 = self.app1.workbook()
 
-        sht1 = wb1[0]
-        sht2 = wb2[0]
+        wb2[0].range('A1').value = 2.
+        wb1[0].range('A1').value = 1.
 
-        sht2.range('A1').value = 2.  # wb2
-        sht1.range('A1').value = 1.  # wb1
-
-        assert_equal(sht2.range('A1').value, 2.)
-        assert_equal(sht1.range('A1').value, 1.)
-
-        wb1.close()
-        wb2.close()
+        assert_equal(wb2[0].range('A1').value, 2.)
+        assert_equal(wb1[0].range('A1').value, 1.)
 
     def test_save_naked(self):
-        if sys.platform.startswith('darwin'):
+        if sys.platform.startswith('darwin') and self.app1.major_version >= 15:
             folder = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/'
             if os.path.isdir(folder):
                 os.chdir(folder)
 
         cwd = os.getcwd()
-        wb1 = self.app.workbook()
-        target_file_path = os.path.join(cwd, wb1.name + '.xlsx')
+        target_file_path = os.path.join(cwd, self.wb1.name + '.xlsx')
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
 
-        wb1.save()
+        self.wb1.save()
 
         assert_true(os.path.isfile(target_file_path))
 
-        wb2 = self.app.workbook(target_file_path)
-        wb2.close()
-
+        self.app1.workbook(target_file_path).close()
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
 
     def test_save_path(self):
-        if sys.platform.startswith('darwin'):
+        if sys.platform.startswith('darwin') and self.app1.major_version >= 15:
             folder = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/'
             if os.path.isdir(folder):
                 os.chdir(folder)
 
         cwd = os.getcwd()
-        wb1 = self.app.workbook()
         target_file_path = os.path.join(cwd, 'TestFile.xlsx')
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
 
-        wb1.save(target_file_path)
+        self.wb1.save(target_file_path)
 
         assert_true(os.path.isfile(target_file_path))
 
-        wb2 = self.app.workbook(target_file_path)
-        wb2.close()
-
+        self.app1.workbook(target_file_path).close()
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
 
@@ -113,59 +99,53 @@ class TestWorkbook(TestBase):
     #     wb[0].range('A1').value = 333
     #     assert_equal(wb[0].range('A1').value, 333)
 
-    # def test_unicode_path(self):
-    #     # pip3 seems to struggle with unicode filenames
-    #     src = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'unicode_path.xlsx')
-    #     if sys.platform.startswith('darwin') and os.path.isdir(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/'):
-    #         dst = os.path.join(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/',
-    #                        'ünicödé_päth.xlsx')
-    #     else:
-    #         dst = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicödé_päth.xlsx')
-    #     shutil.copy(src, dst)
-    #     wb = xw.Workbook(dst)
-    #     wb[0].range('A1').value = 1
-    #     wb.close()
-    #     os.remove(dst)
+    def test_unicode_name(self):
+        wb = self.app1.workbook()
+        if sys.platform.startswith('darwin') and self.app1.major_version >= 15:
+            dst = os.path.join(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/', 'ünicöde.xlsx')
+        else:
+            dst = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ünicöde.xlsx')
+        if os.path.isfile(dst):
+            os.remove(dst)
+        wb.save(dst)
+        wb2 = self.app1.workbook(dst)
+        wb2[0].range('A1').value = 1
+        wb2.close()
+        os.remove(dst)
 
     def test_unsaved_workbook_reference(self):
-        self.wb[0].range('B2').value = 123
-        wb2 = self.app.workbook(self.wb.name)
+        self.wb1[0].range('B2').value = 123
+        wb2 = self.app1.workbook(self.wb1.name)
         assert_equal(wb2[0].range('B2').value, 123)
 
     def test_active_workbook(self):
-        app2 = xw.Application()
-        wb2 = app2.workbooks[0]
-        wb2[0].range('A1').value = 'active_workbook'
+        self.wb2[0].range('A1').value = 'active_workbook'  # 2nd instance
+        self.wb2.activate()
         wb_active = xw.Workbook.active()
         assert_equal(wb_active[0].range('A1').value, 'active_workbook')
 
+    def test_macro(self):
+        # NOTE: Uncheck Macro security check in Excel
+        _none = None if sys.platform.startswith('win') else ''
 
-    # def test_macro(self):
-    #     src = os.path.realpath(os.path.join(this_dir, 'macro book.xlsm'))
-    #     wb1 = self.app.workbook(src)
-    #
-    #     test1 = wb1.macro('Module1.Test1')
-    #     test2 = wb1.macro('Module1.Test2')
-    #     test3 = wb1.macro('Module1.Test3')
-    #     test4 = wb1.macro('Test4')
-    #
-    #     res1 = test1('Test1a', 'Test1b')
-    #
-    #     assert_equal(res1, 1)
-    #     assert_equal(test2(), 2)
-    #     if sys.platform.startswith('win'):
-    #         assert_equal(test3('Test3a', 'Test3b'), None)
-    #     else:
-    #         assert_equal(test3('Test3a', 'Test3b'), '')
-    #     if sys.platform.startswith('win'):
-    #         assert_equal(test4(), None)
-    #     else:
-    #         assert_equal(test4(), '')
-    #     assert_equal(wb1[0].range('A1').value, 'Test1a')
-    #     assert_equal(wb1[0].range('A2').value, 'Test1b')
-    #     assert_equal(wb1[0].range('A3').value, 'Test2')
-    #     assert_equal(wb1[0].range('A4').value, 'Test3a')
-    #     assert_equal(wb1[0].range('A5').value, 'Test3b')
-    #     assert_equal(wb1[0].range('A6').value, 'Test4')
-    #
-    #     wb1.close()
+        src = os.path.abspath(os.path.join(this_dir, 'macro book.xlsm'))
+        wb = self.app1.workbook(src)
+
+        test1 = wb.macro('Module1.Test1')
+        test2 = wb.macro('Module1.Test2')
+        test3 = wb.macro('Module1.Test3')
+        test4 = wb.macro('Test4')
+
+        res1 = test1('Test1a', 'Test1b')
+
+        assert_equal(res1, 1)
+        assert_equal(test2(), 2)
+        assert_equal(test3('Test3a', 'Test3b'), _none)
+        assert_equal(test4(), _none)
+        assert_equal(wb[0].range('A1').value, 'Test1a')
+        assert_equal(wb[0].range('A2').value, 'Test1b')
+        assert_equal(wb[0].range('A3').value, 'Test2')
+        assert_equal(wb[0].range('A4').value, 'Test3a')
+        assert_equal(wb[0].range('A5').value, 'Test3b')
+        assert_equal(wb[0].range('A6').value, 'Test4')
+

@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 import os
 import inspect
+import unittest
 
 import nose
 
@@ -43,30 +44,39 @@ def _skip_if_no_matplotlib():
     if matplotlib is None:
         raise nose.SkipTest('matplotlib missing')
 
+# Uncomment to run tests in Mac Excel 2011
+SPEC = None
+# SPEC = '/Applications/Microsoft Office 2011/Microsoft Excel'
 
-class TestBase:
+
+class TestBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.existing_apps = list(xw.apps)
-        cls.app = xw.Application(visible=False)
+        cls.app1 = xw.Application(visible=False, spec=SPEC)
+        cls.app2 = xw.Application(visible=False, spec=SPEC)
 
     def setUp(self, xlsx=None):
-        if len(self.app.workbooks) == 0:
-            self.wb = self.app.workbook()
+        if len(self.app1.workbooks) == 0:
+            self.wb1 = self.app1.workbook()
+            self.wb2 = self.app2.workbook()
         else:
-            self.wb = self.app.workbooks[0]
-        if len(self.wb.sheets) == 1:
-            self.wb.sheets.add(after=1)
-            self.wb.sheets.add(after=2)
+            self.wb1 = self.app1.workbooks[0]
+            self.wb2 = self.app2.workbooks[0]
+        for wb in [self.wb1, self.wb2]:
+            if len(wb.sheets) == 1:
+                wb.sheets.add(after=1)
+                wb.sheets.add(after=2)
+                wb.sheets[0].active()
 
     def tearDown(self):
-        for app in xw.applications:
+        for app in xw.apps:
             if app.pid not in [i.pid for i in self.existing_apps]:
-                for wb in app:
-                    wb.close()
+                while len(app.workbooks) > 0:
+                    app.workbooks[0].close()
 
     @classmethod
     def tearDownClass(cls):
         for app in xw.applications:
             if app.pid not in [i.pid for i in cls.existing_apps]:
-                app.kill()
+                app.quit()
