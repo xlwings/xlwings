@@ -100,8 +100,8 @@ class App(object):
         return self.impl.version
 
     @property
-    def active_workbook(self):
-        impl = self.impl.active_workbook
+    def active_book(self):
+        impl = self.impl.active_book
         return impl and Book(impl=impl)
 
     @property
@@ -176,7 +176,7 @@ class App(object):
     def __hash__(self):
         return hash(self.pid)
 
-    def workbook(self, fullname=None):
+    def book(self, fullname=None):
         wbs = self.books
 
         if fullname:
@@ -280,7 +280,7 @@ class Book(object):
 
         .. versionadded:: 0.4.1
         """
-        return apps.active.active_workbook
+        return apps.active.active_book
 
     @classmethod
     def caller(cls):
@@ -531,8 +531,8 @@ class Sheet(object):
         return Names(impl=self.impl.names)
 
     @property
-    def workbook(self):
-        return Book(impl=self.impl.parent)
+    def book(self):
+        return Book(impl=self.impl.book)
 
     @property
     def index(self):
@@ -596,7 +596,7 @@ class Sheet(object):
         return Chart(xl=self.xl.ChartObjects().Add(left, top, width, height))
 
     def __repr__(self):
-        return "<Sheet [{1}]{0}>".format(self.name, self.workbook.name)
+        return "<Sheet [{1}]{0}>".format(self.name, self.book.name)
 
 
 class Range(object):
@@ -733,12 +733,8 @@ class Range(object):
         )
 
     @property
-    def worksheet(self):
-        return Sheet(impl=self.impl.worksheet)
-
-    @property
-    def parent(self):
-        return Sheet(impl=self.impl.parent)
+    def sheet(self):
+        return Sheet(impl=self.impl.sheet)
 
     def __len__(self):
         return len(self.impl)
@@ -1133,8 +1129,8 @@ class Range(object):
 
     def __repr__(self):
         return "<Range [{1}]{0}!{2}>".format(
-            self.worksheet.name,
-            self.worksheet.workbook.name,
+            self.sheet.name,
+            self.sheet.book.name,
             self.address
         )
 
@@ -1418,7 +1414,7 @@ class Chart(Shape):
         if sheet is None:
             sheet = active.sheet
         elif not isinstance(sheet, Sheet):
-            sheet = active.workbook.sheet(sheet)
+            sheet = active.book.sheet(sheet)
 
         xl_chart = sheet.xl_sheet.add_chart(left, top, width, height)
 
@@ -1539,13 +1535,13 @@ class Picture(Shape):
         if sheet is None:
             sheet = active.sheet
         elif not isinstance(sheet, Sheet):
-            sheet = active.workbook.sheet(sheet)
+            sheet = active.book.sheet(sheet)
 
         if name:
             if name in sheet.xl_sheet.get_shapes_names():
                 raise ShapeAlreadyExists('A shape with this name already exists.')
 
-        if sys.platform.startswith('darwin') and sheet.workbook.app.major_version >= 15:
+        if sys.platform.startswith('darwin') and sheet.book.app.major_version >= 15:
             # Office 2016 for Mac is sandboxed. This path seems to work without the need of granting access explicitly
             xlwings_picture = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/xlwings_picture.png'
             shutil.copy2(filename, xlwings_picture)
@@ -1570,7 +1566,7 @@ class Picture(Shape):
             else:
                 height = 100
 
-        if sys.platform.startswith('darwin') and sheet.workbook.app.major_version >= 15:
+        if sys.platform.startswith('darwin') and sheet.book.app.major_version >= 15:
             os.remove(xlwings_picture)
 
         xl_shape = sheet.xl_sheet.add_picture(
@@ -1969,22 +1965,16 @@ class Sheets(object):
 class ActiveObjects(object):
 
     @property
-    def application(self):
+    def app(self):
         return App.active()
 
-    app = application
-
     @property
-    def workbook(self):
+    def book(self):
         return Book.active()
-
-    book = workbook
 
     @property
     def sheet(self):
         return Sheet.active()
-
-    worksheet = sheet
 
 
 active = ActiveObjects()

@@ -32,8 +32,6 @@ class ShapeAlreadyExists(Exception):
 # API
 from .main import App, Book, Range, Chart, Sheet, Picture, Shape, Plot, view, apps
 from .main import active
-apps = apps
-App = App
 
 # UDFs
 if sys.platform.startswith('win'):

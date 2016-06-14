@@ -404,7 +404,7 @@ class App(object):
     api = xl
 
     @property
-    def active_workbook(self):
+    def active_book(self):
         xl = self.xl.ActiveWorkbook
         return xl and Book(xl=xl)
 
@@ -646,10 +646,8 @@ class Sheet(object):
         return Names(xl=self.xl.Names)
 
     @property
-    def workbook(self):
+    def book(self):
         return Book(xl=self.xl.Parent)
-
-    parent = workbook
 
     @property
     def index(self):
@@ -766,12 +764,8 @@ class Range(object):
         return self.xl
 
     @property
-    def worksheet(self):
+    def sheet(self):
         return Sheet(xl=self.xl.Worksheet)
-
-    @property
-    def parent(self):
-        return Sheet(xl=self.xl.Parent)
 
     def __len__(self):
         return self.xl.Count

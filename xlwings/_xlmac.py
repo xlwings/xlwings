@@ -341,7 +341,7 @@ class Sheet(object):
         return self.xl
 
     @property
-    def parent(self):
+    def book(self):
         return self.workbook
 
     @property
