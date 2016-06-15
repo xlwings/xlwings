@@ -56,7 +56,8 @@ class Apps(object):
         return None
 
     def __repr__(self):
-        return repr(list(self))
+        return '{}.{}({})'.format(self.__module__, self.__class__.__name__,
+                                  repr(list(self)))
 
     def __getitem__(self, item):
         return App(impl=self.impl[item])
