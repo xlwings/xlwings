@@ -265,7 +265,7 @@ class Book(object):
                     impl = active.app.books.add().impl
                 else:
                     app = App()
-                    impl = app[0].impl
+                    impl = app.impl
 
         self.impl = impl
 
