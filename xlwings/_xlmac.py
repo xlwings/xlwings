@@ -202,8 +202,8 @@ class Books(object):
 
 class Book(object):
     def __init__(self, app, name_or_index):
-        self.app = app
-        self.xl = app.xl.books[name_or_index]
+        self._app = app
+        self.xl = app.xl.workbooks[name_or_index]
 
     @property
     def api(self):
@@ -222,7 +222,7 @@ class Book(object):
 
     @property
     def app(self):
-        return App(xl=self.app)
+        return App(xl=self._app)
 
     @property
     def active_sheet(self):
@@ -247,7 +247,7 @@ class Book(object):
     def fullname(self):
         hfs_path = self.xl.properties().get(kw.full_name)
         # Excel 2011 returns HFS path, Excel 2016 returns POSIX path
-        if hfs_path == self.xl.properties().get(kw.name) or int(self.app.version.split('.')[0]) >= 15:
+        if hfs_path == self.xl.properties().get(kw.name) or int(self.app.xl.version.split('.')[0]) >= 15:
             return hfs_path
         return hfs_to_posix_path(hfs_path)
 
