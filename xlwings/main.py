@@ -643,9 +643,9 @@ class Range(object):
         # Arguments
         if impl is None:
             if len(args) == 2 and isinstance(args[0], Range) and isinstance(args[1], Range):
-                #if args[0].worksheet.impl != args[1].worksheet.impl:
+                #if args[0].sheet.impl != args[1].sheet.impl:
                 #    raise ValueError("Ranges are not on the same sheet")
-                impl = args[0].worksheet.range(args[0], args[1]).impl
+                impl = args[0].sheet.range(args[0], args[1]).impl
             elif len(args) == 1 and isinstance(args[0], string_types):
                 impl = active.app.range(args[0]).impl
             elif 0 < len(args) <= 3:
@@ -1032,7 +1032,7 @@ class Range(object):
             if col1 == col2 and row1 == row2:
                 return self(row1 + 1, col1 + 1)
             else:
-                return self.worksheet.range(
+                return self.sheet.range(
                     self(row1 + 1, col1 + 1),
                     self(row2 + 1, col2 + 1)
                 )
