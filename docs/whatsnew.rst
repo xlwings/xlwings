@@ -15,19 +15,18 @@ Enhancements
 
     .. code-block:: vb
 
-            Function MySum(x, y)
-                MySum = x + y
-            End Function
+        Function MySum(x, y)
+            MySum = x + y
+        End Function
 
-        can be accessed like this:
+    can be accessed like this:
 
-        >>> import xlwings as xw
-        >>> wb = xw.Book.active()
-        >>> my_sum = wb.macro('MySum')
-        >>> my_sum(1, 2)
-        3.0
-
-    * New ``xw.view`` method: This opens a new workbook and displays an object on its first sheet. E.g.:
+    >>> import xlwings as xw
+    >>> wb = xw.Workbook.active()
+    >>> my_sum = wb.macro('MySum')
+    >>> my_sum(1, 2)
+    3.0
+* New ``xw.view`` method: This opens a new workbook and displays an object on its first sheet. E.g.:
 
     >>> import xlwings as xw
     >>> import pandas as pd
@@ -647,22 +646,6 @@ Enhancements
   :issue:`158`, :issue:`159`). It can be
   conveniently accessed from within a Workbook (on Windows, ``Application`` is instance dependent). A few examples:
 
-    >>> from xlwings import Book, Calculation
-    >>> wb = Workbook()
-    >>> wb.application.screen_updating = False
-    >>> wb.application.calculation = Calculation.xlCalculationManual
-    >>> wb.application.quit()
-
-  * New headless mode: The Excel application can be hidden either during
-
-    >>> from xlwings import Book, Calculation
-    >>> wb = Workbook()
-    >>> wb.application.screen_updating = False
-    >>> wb.application.calculation = Calculation.xlCalculationManual
-    >>> wb.application.quit()
-
-  * New headless mode: The Excel application can be hidden either during
-
   >>> from xlwings import Workbook, Calculation
   >>> wb = Workbook()
   >>> wb.application.screen_updating = False
@@ -671,58 +654,6 @@ Enhancements
 
 * New headless mode: The Excel application can be hidden either during ``Workbook`` instantiation or through the
   ``application`` object:
-
-    >>> wb = Book(app_visible=False)
-    >>> wb.application.visible
-    False
-    >>> wb.application.visible = True
-
-  * Newly included Excel template which includes the xlwings VBA module and boilerplate code. This is currently
-    accessible from an interactive interpreter session only:
-
-    >>> from xlwings import Workbook
-    >>> Workbook.open_template()
-
-
-
-    >>> wb = Book(app_visible=False)
-    >>> wb.application.visible
-    False
-    >>> wb.application.visible = True
-
-  * Newly included Excel template which includes the xlwings VBA module and boilerplate code. This is currently
-    accessible from an interactive interpreter session only:
-
-    >>> from xlwings import Workbook
-    >>> Workbook.open_template()
-
-
-
-    >>> wb = Workbook(app_visible=False)
-    >>> wb.application.visible
-    False
-    >>> wb.application.visible = True
-
-  * Newly included Excel template which includes the xlwings VBA module and boilerplate code. This is currently
-    accessible from an interactive interpreter session only:
-
-    >>> from xlwings import Book
-    >>> Workbook.open_template()
-
-
-
-    >>> wb = Workbook(app_visible=False)
-    >>> wb.application.visible
-    False
-    >>> wb.application.visible = True
-
-  * Newly included Excel template which includes the xlwings VBA module and boilerplate code. This is currently
-    accessible from an interactive interpreter session only:
-
-    >>> from xlwings import Book
-    >>> Workbook.open_template()
-
-
 
   >>> wb = Workbook(app_visible=False)
   >>> wb.application.visible
