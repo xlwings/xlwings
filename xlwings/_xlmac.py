@@ -5,8 +5,7 @@ import unicodedata
 import appscript
 import struct
 import aem
-from appscript import app, mactypes
-from appscript import k as kw
+from appscript import k as kw, mactypes
 from appscript.reference import CommandError
 import psutil
 import atexit
@@ -57,11 +56,11 @@ class App(object):
 
     def __init__(self, spec=None, xl=None):
         if xl is None:
-            self.xl = app(name=spec or 'Microsoft Excel', newinstance=True, terms=mac_dict)
+            self.xl = appscript.app(name=spec or 'Microsoft Excel', newinstance=True, terms=mac_dict)
             # need to do *something* with the app otherwise it doesn't start up
             b = self.xl.visible
         elif isinstance(xl, int):
-            self.xl = app(pid=xl, terms=mac_dict)
+            self.xl = appscript.app(pid=xl, terms=mac_dict)
         else:
             self.xl = xl
 
@@ -95,14 +94,14 @@ class App(object):
 
     @property
     def visible(self):
-        return app('System Events').processes['Microsoft Excel'].visible.get()
+        return appscript.app('System Events').processes['Microsoft Excel'].visible.get()
 
     @visible.setter
     def visible(self, visible):
         if visible:
             self.xl.activate()
         else:
-            app('System Events').processes['Microsoft Excel'].visible.set(visible)
+            appscript.app('System Events').processes['Microsoft Excel'].visible.set(visible)
 
     def quit(self):
         self.xl.quit(saving=kw.no)
@@ -202,7 +201,7 @@ class Books(object):
 
 class Book(object):
     def __init__(self, app, name_or_index):
-        self._app = app
+        self.app = app
         self.xl = app.xl.workbooks[name_or_index]
 
     @property
@@ -219,10 +218,6 @@ class Book(object):
     @property
     def name(self):
         return self.xl.name.get()
-
-    @property
-    def app(self):
-        return App(xl=self._app)
 
     @property
     def active_sheet(self):
@@ -247,7 +242,7 @@ class Book(object):
     def fullname(self):
         hfs_path = self.xl.properties().get(kw.full_name)
         # Excel 2011 returns HFS path, Excel 2016 returns POSIX path
-        if hfs_path == self.xl.properties().get(kw.name) or int(self.app.xl.version.split('.')[0]) >= 15:
+        if hfs_path == self.xl.properties().get(kw.name) or int(self.app.version.split('.')[0]) >= 15:
             return hfs_path
         return hfs_to_posix_path(hfs_path)
 
