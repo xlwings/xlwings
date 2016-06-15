@@ -35,13 +35,13 @@ except ImportError:
 
 class TestWorkbook(TestBase):
     def test_name(self):
-        wb = self.app1.workbook(os.path.join(this_dir, 'test book.xlsx'))
+        wb = self.app1.book(os.path.join(this_dir, 'test book.xlsx'))
         assert_equal(wb.name, 'test book.xlsx')
 
     def test_reference_two_unsaved_wb(self):
         """Covers GH Issue #63"""
         wb1 = self.wb1
-        wb2 = self.app1.workbook()
+        wb2 = self.app1.book()
 
         wb2.sheets[0].range('A1').value = 2.
         wb1.sheets[0].range('A1').value = 1.
@@ -64,7 +64,7 @@ class TestWorkbook(TestBase):
 
         assert_true(os.path.isfile(target_file_path))
 
-        self.app1.workbook(target_file_path).close()
+        self.app1.book(target_file_path).close()
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
 
@@ -83,7 +83,7 @@ class TestWorkbook(TestBase):
 
         assert_true(os.path.isfile(target_file_path))
 
-        self.app1.workbook(target_file_path).close()
+        self.app1.book(target_file_path).close()
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
 
@@ -100,7 +100,7 @@ class TestWorkbook(TestBase):
     #     assert_equal(wb[0].range('A1').value, 333)
 
     def test_unicode_name(self):
-        wb = self.app1.workbook()
+        wb = self.app1.book()
         if sys.platform.startswith('darwin') and self.app1.major_version >= 15:
             dst = os.path.join(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/', 'ünicöde.xlsx')
         else:
@@ -108,28 +108,28 @@ class TestWorkbook(TestBase):
         if os.path.isfile(dst):
             os.remove(dst)
         wb.save(dst)
-        wb2 = self.app1.workbook(dst)
+        wb2 = self.app1.book(dst)
         wb2.sheets[0].range('A1').value = 1
         wb2.close()
         os.remove(dst)
 
     def test_unsaved_workbook_reference(self):
         self.wb1.sheets[0].range('B2').value = 123
-        wb2 = self.app1.workbook(self.wb1.name)
+        wb2 = self.app1.book(self.wb1.name)
         assert_equal(wb2.sheets[0].range('B2').value, 123)
 
     def test_active_workbook(self):
-        self.wb2.sheets[0].range('A1').value = 'active_workbook'  # 2nd instance
+        self.wb2.sheets[0].range('A1').value = 'active_book'  # 2nd instance
         self.wb2.activate()
         wb_active = xw.Book.active()
-        assert_equal(wb_active.sheets[0].range('A1').value, 'active_workbook')
+        assert_equal(wb_active.sheets[0].range('A1').value, 'active_book')
 
     def test_macro(self):
         # NOTE: Uncheck Macro security check in Excel
         _none = None if sys.platform.startswith('win') else ''
 
         src = os.path.abspath(os.path.join(this_dir, 'macro book.xlsm'))
-        wb = self.app1.workbook(src)
+        wb = self.app1.book(src)
 
         test1 = wb.macro('Module1.Test1')
         test2 = wb.macro('Module1.Test2')

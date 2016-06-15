@@ -56,10 +56,10 @@ class TestBase(unittest.TestCase):
         cls.app1 = xw.App(visible=False, spec=SPEC)
         cls.app2 = xw.App(visible=False, spec=SPEC)
 
-    def setUp(self, xlsx=None):
+    def setUp(self):
         if len(self.app1.books) == 0:
-            self.wb1 = self.app1.workbook()
-            self.wb2 = self.app2.workbook()
+            self.wb1 = self.app1.book()
+            self.wb2 = self.app2.book()
         else:
             self.wb1 = self.app1.books[0]
             self.wb2 = self.app2.books[0]
