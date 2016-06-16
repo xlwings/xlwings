@@ -198,6 +198,9 @@ class App(object):
             # create a new workbook
             return wbs.add()
 
+    def macro(self, macro):
+        return Macro(self, macro)
+
 
 class Book(object):
     """
@@ -395,7 +398,7 @@ class Book(object):
 
         .. versionadded:: 0.7.1
         """
-        return Macro(self, name)
+        return self.app.macro("'{0}'!{1}".format(self.name, name))
 
     @property
     def name(self):
@@ -1841,12 +1844,12 @@ def view(obj):
 
 
 class Macro(object):
-    def __init__(self, book, name):
-        self.book = book
-        self.name = name
+    def __init__(self, app, macro):
+        self.app = app
+        self.macro = macro
 
     def run(self, *args):
-        return self.book.app.impl.run("'{0}'!{1}".format(self.book.name, self.name), args)
+        return self.app.impl.run(self.macro, args)
 
     __call__ = run
 
