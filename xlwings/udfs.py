@@ -1,4 +1,5 @@
 import os
+import sys
 import re
 import os.path
 import tempfile
@@ -145,7 +146,11 @@ def get_udf_module(module_name):
             module_info['module'] = module
             return module
     else:
-        module = import_module(module_name)
+        if sys.version_info[:2] < (2, 7):
+            # For Python 2.6. we don't handle modules in subpackages
+            module = __import__(module_name)
+        else:
+            module = import_module(module_name)
         filename = os.path.normcase(module.__file__.lower())
         mtime = os.path.getmtime(filename)
         udf_modules[module_name] = {
