@@ -150,6 +150,11 @@ class App(object):
     def hwnd(self):
         return None
 
+    def run(self, macro, args):
+        # kwargs = {'arg{0}'.format(i): n for i, n in enumerate(args, 1)}  # only for > PY 2.6
+        kwargs = dict(('arg{0}'.format(i), n) for i, n in enumerate(args, 1))
+        return self.xl.run_VB_macro(macro, **kwargs)
+
 
 class Books(object):
 

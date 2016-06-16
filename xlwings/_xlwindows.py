@@ -503,6 +503,9 @@ class App(object):
 
         return Range(xl=self.xl.Range(xl1, xl2))
 
+    def run(self, macro, args):
+        return self.xl.Run(macro, *args)
+
 
 class Books(object):
 

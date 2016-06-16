@@ -395,7 +395,7 @@ class Book(object):
 
         .. versionadded:: 0.7.1
         """
-        return Macro(name, self)
+        return Macro(self, name)
 
     @property
     def name(self):
@@ -1841,13 +1841,12 @@ def view(obj):
 
 
 class Macro(object):
-    def __init__(self, name, wb=None, app=None):
+    def __init__(self, book, name):
+        self.book = book
         self.name = name
-        self.wb = wb
-        self.app = app
 
     def run(self, *args):
-        return xlplatform.run(self.wb, self.name, self.app or App(self.wb), args)
+        return self.book.app.impl.run("'{0}'!{1}".format(self.book.name, self.name), args)
 
     __call__ = run
 
