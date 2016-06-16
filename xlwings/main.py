@@ -268,7 +268,7 @@ class Book(object):
                     impl = active.app.books.add().impl
                 else:
                     app = App()
-                    impl = app.impl
+                    impl = app.books[0].impl
 
         self.impl = impl
 
@@ -565,17 +565,8 @@ class Sheet(object):
     def clear(self):
         return self.impl.clear()
 
-    def get_row_index_end_down(self, row_index, column_index):
-        return self.impl.get_row_index_end_down(row_index, column_index)
-
-    def get_column_index_end_right(self, row_index, column_index):
-        return self.impl.get_column_index_end_right(row_index, column_index)
-
     def autofit(self, axis=None):
         return self.impl.autofit(axis)
-
-    def get_range_from_indices(self, first_row, first_column, last_row, last_column):
-        return Range(impl=self.impl.get_range_from_indices(first_row, first_column, last_row, last_column))
 
     def delete(self):
         return self.impl.delete()

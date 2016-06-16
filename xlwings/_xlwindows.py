@@ -691,20 +691,11 @@ class Sheet(object):
     def activate(self):
         return self.xl.Activate()
 
-    def get_value_from_index(self, row_index, column_index):
-        return self.xl.Cells(row_index, column_index).Value
-
     def clear_contents(self):
         self.xl.Cells.ClearContents()
 
     def clear(self):
         self.xl.Cells.Clear()
-
-    def get_row_index_end_down(self, row_index, column_index):
-        return self.xl.Cells(row_index, column_index).End(Direction.xlDown).Row
-
-    def get_column_index_end_right(self, row_index, column_index):
-        return self.xl.Cells(row_index, column_index).End(Direction.xlToRight).Column
 
     def autofit(self, axis=None):
         if axis == 'rows' or axis == 'r':
@@ -715,46 +706,11 @@ class Sheet(object):
             self.xl.Rows.AutoFit()
             self.xl.Columns.AutoFit()
 
-    def get_range_from_indices(self, first_row, first_column, last_row, last_column):
-        c1 = self.xl.Cells(first_row, first_column)
-        if first_row == last_row and first_column == last_column:
-            return c1
-        c2 = self.xl.Cells(last_row, last_column)
-        r = self.xl.Range(c1, c2)
-        return Range(xl=r)
-
     def delete(self):
         xl_app = self.xl.Parent.Application
         xl_app.DisplayAlerts = False
         self.xl.Delete()
         xl_app.DisplayAlerts = True
-
-    def add_picture(self, filename, link_to_file, save_with_document, left, top, width, height):
-        return Shape(xl=self.xl.Shapes.AddPicture(
-            Filename=filename,
-            LinkToFile=link_to_file,
-            SaveWithDocument=save_with_document,
-            Left=left,
-            Top=top,
-            Width=width,
-            Height=height
-        ))
-
-    def get_shape_object(self, shape_name_or_index):
-        return Shape(xl=self.xl.Shapes(shape_name_or_index))
-
-    def get_chart_object(self, chart_name_or_index):
-        return Chart(xl=self.xl.ChartObjects(chart_name_or_index))
-
-    def get_shapes_names(self):
-        shapes = self.xl.Shapes
-        if shapes is not None:
-            return [i.Name for i in shapes]
-        else:
-            return []
-
-    def add_chart(self, left, top, width, height):
-        return Chart(xl=self.xl.ChartObjects().Add(left, top, width, height))
 
 
 class Range(object):
@@ -810,13 +766,13 @@ class Range(object):
     def formula(self):
         return self.xl.Formula
 
-    def end(self, direction):
-        direction = DIRECTIONS.get(direction, direction)
-        return Range(xl=self.xl.End(direction))
-
     @formula.setter
     def formula(self, value):
         self.xl.Formula = value
+
+    def end(self, direction):
+        direction = DIRECTIONS.get(direction, direction)
+        return Range(xl=self.xl.End(direction))
 
     @property
     def formula_array(self):
