@@ -716,6 +716,14 @@ class Sheet(object):
     def charts(self):
         return Charts(xl=self.xl.ChartObjects())
 
+    @property
+    def shapes(self):
+        return Shapes(xl=self.xl.Shapes)
+
+    @property
+    def pictures(self):
+        return Pictures(xl=self.xl.Pictures())
+
 
 class Range(object):
 
@@ -1072,7 +1080,7 @@ class Shape(object):
     def contents(self):
         t = self.type
         if t == ShapeType.Chart:
-            return Chart(xl=self.xl.Chart)
+            return Chart(xl=self.xl.DrawingObject)
         elif t == ShapeType.Picture:
             return Picture(xl=self.xl.DrawingObject)
         else:
@@ -1129,6 +1137,43 @@ class Shape(object):
         self.xl.Activate()
 
 
+
+class Collection(object):
+
+    def __init__(self, xl):
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    def __call__(self, key):
+        return self._wrap(xl=self.xl(key))
+
+    def __len__(self):
+        return self.xl.Count
+
+    def __iter__(self):
+        for xl in self.xl:
+            yield self._wrap(xl=xl)
+
+
+class Shapes(Collection):
+
+    _wrap = Shape
+
+    def add_picture(self, filename, link_to_file, save_with_document, left, top, width, height):
+        return Shape(xl=self.xl.AddPicture(
+            Filename=filename,
+            LinkToFile=link_to_file,
+            SaveWithDocument=save_with_document,
+            Left=left,
+            Top=top,
+            Width=width,
+            Height=height
+        ))
+
+
 class Chart(object):
 
     def __init__(self, xl):
@@ -1144,7 +1189,7 @@ class Chart(object):
 
     @property
     def container(self):
-        return Shape(xl=self.xl.ShapeRange(1))
+        return Shape(xl=self.xl.Parent.ShapeRange(1))
 
     def set_source_data(self, rng):
         self.xl.SetSourceData(rng.xl)
@@ -1158,30 +1203,16 @@ class Chart(object):
         self.xl.ChartType = chart_type
 
 
-class Charts(object):
+class Charts(Collection):
 
-    def __init__(self, xl):
-        self.xl = xl
-
-    @property
-    def api(self):
-        return self.xl
-
-    def __len__(self):
-        return self.xl.Count
-
-    def __call__(self, key):
-        return Chart(xl=self.xl(key))
+    def _wrap(self, xl):
+        return Chart(xl=xl.Chart)
 
 
-class Picture(object):
+class Pictures(Collection):
 
-    def __init__(self, xl):
-        self.xl = xl
-
-    @property
-    def api(self):
-        return self.xl
+    def _wrap(self, xl):
+        return Shape(xl=xl.ShapeRange(1))
 
 
 class Names(object):

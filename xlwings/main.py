@@ -56,8 +56,10 @@ class Apps(object):
         return None
 
     def __repr__(self):
-        return '{}.{}({})'.format(self.__module__, self.__class__.__name__,
-                                  repr(list(self)))
+        return '{}({})'.format(
+            self.__class__.__name__,
+            repr(list(self))
+        )
 
     def __getitem__(self, item):
         return App(impl=self.impl[item])
@@ -596,6 +598,14 @@ class Sheet(object):
     @property
     def charts(self):
         return Charts(impl=self.impl.charts)
+
+    @property
+    def shapes(self):
+        return Shapes(impl=self.impl.shapes)
+
+    @property
+    def pictures(self):
+        return Shapes(impl=self.impl.pictures)
 
 
 class Range(object):
@@ -1328,6 +1338,60 @@ class Shape(object):
         )
 
 
+class Collection(object):
+
+    def __init__(self, impl):
+        self.impl = impl
+
+    @property
+    def api(self):
+        return self.impl.api
+
+    def __call__(self, name_or_index):
+        return self._wrap(impl=self.impl(name_or_index))
+
+    def __len__(self):
+        return len(self.impl)
+
+    def __iter__(self):
+        for impl in self.impl:
+            yield self._wrap(impl=impl)
+
+    def __getitem__(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            l = len(self)
+            if name_or_index >= l:
+                raise IndexError("Workbook index %s out of range (%s workbooks)" % (name_or_index, l))
+            if name_or_index < 0:
+                if name_or_index < -l:
+                    raise IndexError("Workbook index %s out of range (%s workbooks)" % (name_or_index, l))
+                name_or_index += l
+            return self(name_or_index + 1)
+        else:
+            return self(name_or_index)
+
+    def __repr__(self):
+        r = []
+        for i, x in enumerate(self):
+            if i == 3:
+                r.append("...")
+                break
+            else:
+                r.append(repr(x))
+
+        return '{}({})'.format(
+            self.__class__.__name__,
+            "[" + ", ".join(r) + "]"
+        )
+
+
+class Shapes(Collection):
+    _wrap = Shape
+
+    def add_picture(self, filename, link_to_file, save_with_document, left, top, width, height):
+        return Shape(impl=self.impl.add_picture(filename, link_to_file, save_with_document, left, top, width, height))
+
+
 class Chart(object):
     """
     A Chart object represents an existing Excel chart and can be instantiated with the following arguments::
@@ -1495,16 +1559,8 @@ class Chart(object):
         )
 
 
-class Charts(object):
-
-    def __init__(self, impl):
-        self.impl = impl
-
-    def __len__(self):
-        return len(self.impl)
-
-    def __call__(self, key):
-        return Chart(impl=self.impl(key))
+class Charts(Collection):
+    _wrap = Chart
 
 
 class Picture(object):
@@ -1534,8 +1590,20 @@ class Picture(object):
 
     .. versionadded:: 0.5.0
     """
-    def __init__(self, *args, xl_shape=None, **kwargs):
-        super(Picture, self).__init__(*args, xl_shape=xl_shape, **kwargs)
+    def __init__(self, *args, impl=None, **kwargs):
+        self.impl = impl
+
+    @property
+    def api(self):
+        return self.impl.api
+
+    @property
+    def name(self):
+        return self.impl.name
+
+    @property
+    def container(self):
+        return Shape(impl=self.impl.container)
 
     @classmethod
     def add(cls, filename, sheet=None, name=None, link_to_file=False, save_with_document=True,
