@@ -1,7 +1,9 @@
 import xlwings as xw
 
-#print(xw.apps)
+s = xw.active.sheet
 
-a = xw.App()
+cs = xw.active.sheet.charts
 
-#print(xw.apps[0].workbooks[0].sheets)
+print(len(cs))
+
+print(cs(1))

@@ -593,6 +593,10 @@ class Sheet(object):
     def __repr__(self):
         return "<Sheet [{1}]{0}>".format(self.name, self.book.name)
 
+    @property
+    def charts(self):
+        return Charts(impl=self.impl.charts)
+
 
 class Range(object):
     """
@@ -1297,10 +1301,34 @@ class Shape(object):
             else:
                 raise ValueError("Invalid arguments")
 
-        super(Shape, self).__init__(impl=impl)
+        self.impl = impl
+
+    @property
+    def name(self):
+        return self.impl.name
+
+    @property
+    def contents(self):
+        impl = self.impl.contents
+        if isinstance(impl, xlplatform.Chart):
+            return Chart(impl=impl)
+        elif isinstance(impl, xlplatform.Picture):
+            return Picture(impl=impl)
+        else:
+            raise Exception("Unsupported shape content type")
+
+    @property
+    def parent(self):
+        return Sheet(impl=self.impl.parent)
+
+    def __repr__(self):
+        return "<Shape '{0}' in {1}>".format(
+            self.name,
+            self.parent
+        )
 
 
-class Chart(Shape):
+class Chart(object):
     """
     A Chart object represents an existing Excel chart and can be instantiated with the following arguments::
 
@@ -1340,19 +1368,17 @@ class Chart(Shape):
 
     """
 
-    def __init__(self, *args, xl_chart=None, **kwargs):
-        if xl_chart is not None:
-            self.xl_chart = xl_chart
+    def __init__(self, *args, impl=None, **kwargs):
+        if impl is not None:
+            self.impl = impl
         elif len(args) == 1:
             # Get xl_chart object
-            self.xl_chart = Sheet.active().xl_sheet.get_chart_object(args[0])
+            self.impl = Sheet.active().charts(args[0]).impl
         elif len(args) == 2:
             sheet = args[0]
             if not isinstance(sheet, Sheet):
                 sheet = Sheet(sheet)
-            self.xl_chart = sheet.xl_sheet.get_chart_object(args[1])
-
-        super(Chart, self).__init__(*args, xl_shape=self.xl_chart, **kwargs)
+            self.impl = sheet.charts(args[1]).impl
 
         # Chart Type
         chart_type = kwargs.get('chart_type')
@@ -1363,6 +1389,22 @@ class Chart(Shape):
         source_data = kwargs.get('source_data')
         if source_data:
             self.set_source_data(source_data)
+
+    @property
+    def api(self):
+        return self.impl.api
+
+    @property
+    def name(self):
+        return self.impl.name
+
+    @property
+    def container(self):
+        impl = self.impl.container
+        if isinstance(impl, xlplatform.Shape):
+            return Shape(impl=impl)
+        else:
+            raise Exception("Container type not supported")
 
     @classmethod
     def add(cls, sheet=None, left=0, top=0, width=355, height=211, **kwargs):
@@ -1429,11 +1471,11 @@ class Chart(Shape):
 
         .. versionadded:: 0.1.1
         """
-        return self.xl_chart.get_type()
+        return self.impl.chart_type
 
     @chart_type.setter
     def chart_type(self, value):
-        self.xl_chart.set_type(value)
+        self.impl.chart_type = value
 
     def set_source_data(self, source):
         """
@@ -1444,15 +1486,28 @@ class Chart(Shape):
         source : Range
             Range object, e.g. ``Range('A1')``
         """
-        self.xl_chart.set_source_data(source.xl_range)
+        self.impl.set_source_data(source.impl)
 
     def __repr__(self):
-        return "<Chart '{0}' on Sheet '{1}' of Workbook '{2}'>".format(self.name,
-                                                                       Sheet(self.sheet_name_or_index).name,
-                                                                       xlplatform.get_workbook_name(self.xl_workbook))
+        return "<Chart '{0}' in {1}>".format(
+            self.name,
+            self.container
+        )
 
 
-class Picture(Shape):
+class Charts(object):
+
+    def __init__(self, impl):
+        self.impl = impl
+
+    def __len__(self):
+        return len(self.impl)
+
+    def __call__(self, key):
+        return Chart(impl=self.impl(key))
+
+
+class Picture(object):
     """
     A Picture object represents an existing Excel Picture and can be instantiated with the following arguments::
 

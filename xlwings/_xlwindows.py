@@ -712,6 +712,10 @@ class Sheet(object):
         self.xl.Delete()
         xl_app.DisplayAlerts = True
 
+    @property
+    def charts(self):
+        return Charts(xl=self.xl.ChartObjects())
+
 
 class Range(object):
 
@@ -1018,14 +1022,65 @@ def open_template(fullpath):
     os.startfile(fullpath)
 
 
+class ShapeType:
+    AutoShape = 1
+    Callout = 2
+    Canvas = 20
+    Chart = 3
+    Comment = 4
+    ContentApp = 27
+    Diagram = 21
+    EmbeddedOLEObject = 7
+    Freeform = 8
+    Group = 6
+    IgxGraphic = 24
+    Ink = 22
+    InkComment = 23
+    Line = 9
+    LinkedOLEObject = 10
+    LinkedPicture = 11
+    Media = 16
+    OLEControlObject = 12
+    Picture = 13
+    Placeholder = 14
+    ScriptAnchor = 18
+    ShapeTypeMixed = -2
+    Table = 19
+    TextBox = 17
+    TextEffect = 15
+    WebVideo = 26
+
+
 class Shape(object):
 
     def __init__(self, xl):
         self.xl = xl
 
     @property
+    def api(self):
+        return self.xl
+
+    @property
     def name(self):
         return self.xl.Name
+
+    @property
+    def parent(self):
+        return Sheet(xl=self.xl.Parent)
+
+    @property
+    def contents(self):
+        t = self.type
+        if t == ShapeType.Chart:
+            return Chart(xl=self.xl.Chart)
+        elif t == ShapeType.Picture:
+            return Picture(xl=self.xl.DrawingObject)
+        else:
+            raise Exception("This shape's content is not supported by xlwings, please use the native API.")
+
+    @property
+    def type(self):
+        return self.xl.Type
 
     @property
     def left(self):
@@ -1065,7 +1120,6 @@ class Shape(object):
     @name.setter
     def name(self, value):
         self.xl.Name = value
-        #return xl_workbook.Sheets(sheet_name_or_index).Shapes(value)
 
     @property
     def index(self):
@@ -1075,16 +1129,59 @@ class Shape(object):
         self.xl.Activate()
 
 
-class Chart(Shape):
+class Chart(object):
+
+    def __init__(self, xl):
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def name(self):
+        return self.xl.Name
+
+    @property
+    def container(self):
+        return Shape(xl=self.xl.ShapeRange(1))
 
     def set_source_data(self, rng):
-        self.xl.Chart.SetSourceData(rng.xl)
+        self.xl.SetSourceData(rng.xl)
 
-    def get_type(self):
-        return self.xl.Chart.ChartType
+    @property
+    def chart_type(self):
+        return self.xl.ChartType
 
-    def set_type(self, chart_type):
-        self.xl.Chart.ChartType = chart_type
+    @chart_type.setter
+    def chart_type(self, chart_type):
+        self.xl.ChartType = chart_type
+
+
+class Charts(object):
+
+    def __init__(self, xl):
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    def __len__(self):
+        return self.xl.Count
+
+    def __call__(self, key):
+        return Chart(xl=self.xl(key))
+
+
+class Picture(object):
+
+    def __init__(self, xl):
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
 
 
 class Names(object):
