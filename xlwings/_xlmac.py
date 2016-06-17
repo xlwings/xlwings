@@ -2,10 +2,11 @@ import os
 import datetime as dt
 import subprocess
 import unicodedata
-import appscript
+from warnings import warn
 import struct
 import aem
-from appscript import k as kw, mactypes
+import appscript
+from appscript import k as kw, mactypes, its
 from appscript.reference import CommandError
 import psutil
 import atexit
@@ -91,6 +92,10 @@ class App(object):
     def selection(self):
         sheet = self.active_sheet
         return Range(sheet, self.xl.selection.address.get())
+
+    def activate(self, steal_focus=None):
+        # Activating an app without making it the frontmost window is not supported on Mac
+        appscript.app('System Events').processes[its.unix_id == self.pid].processes[1].frontmost.set(True)
 
     @property
     def visible(self):
