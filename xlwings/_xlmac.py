@@ -2,7 +2,6 @@ import os
 import datetime as dt
 import subprocess
 import unicodedata
-from warnings import warn
 import struct
 import aem
 import appscript
@@ -99,11 +98,11 @@ class App(object):
 
     @property
     def visible(self):
-        return appscript.app('System Events').processes['Microsoft Excel'].visible.get()
+        return appscript.app('System Events').processes[its.unix_id == self.pid].visible.get()
 
     @visible.setter
     def visible(self, visible):
-        appscript.app('System Events').processes['Microsoft Excel'].visible.set(visible)
+        appscript.app('System Events').processes[its.unix_id == self.pid].visible.set(visible)
 
     def quit(self):
         self.xl.quit(saving=kw.no)
