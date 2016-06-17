@@ -79,12 +79,12 @@ class App(object):
         return self.xl.version.get()
 
     @property
-    def active_workbook(self):
+    def active_book(self):
         return Book(self, self.xl.active_workbook.name.get())
 
     @property
     def active_sheet(self):
-        book = self.active_workbook
+        book = self.active_book
         return Sheet(book, self.xl.active_sheet.name.get())
 
     @property
