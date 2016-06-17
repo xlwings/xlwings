@@ -98,10 +98,7 @@ class App(object):
 
     @visible.setter
     def visible(self, visible):
-        if visible:
-            self.xl.activate()
-        else:
-            appscript.app('System Events').processes['Microsoft Excel'].visible.set(visible)
+        appscript.app('System Events').processes['Microsoft Excel'].visible.set(visible)
 
     def quit(self):
         self.xl.quit(saving=kw.no)
