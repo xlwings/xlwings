@@ -67,7 +67,7 @@ class TestBase(unittest.TestCase):
             if len(wb.sheets) == 1:
                 wb.sheets.add(after=1)
                 wb.sheets.add(after=2)
-                wb.sheets[0].active()
+                wb.sheets[0].activate()
 
     def tearDown(self):
         for app in xw.apps:

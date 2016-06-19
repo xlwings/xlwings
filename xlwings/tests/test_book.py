@@ -33,7 +33,7 @@ except ImportError:
     PIL = None
 
 
-class TestWorkbook(TestBase):
+class TestBook(TestBase):
     def test_name(self):
         wb = self.app1.book(os.path.join(this_dir, 'test book.xlsx'))
         assert_equal(wb.name, 'test book.xlsx')
