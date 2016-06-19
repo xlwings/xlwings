@@ -33,12 +33,11 @@ _xl_app = None
 class Apps(object):
 
     def _iter_excel_instances(self):
-        for proc in psutil.process_iter():
-            try:
-                if proc.name() == 'Microsoft Excel':
-                    yield proc.pid
-            except psutil.NoSuchProcess:
-                pass
+        asn = subprocess.check_output(['lsappinfo', 'visibleprocesslist', '-includehidden']).decode('utf-8')
+        for asn in asn.split(' '):
+            if "Microsoft_Excel" in asn:
+                pid_info = subprocess.check_output(['lsappinfo', 'info', '-only', 'pid', asn]).decode('utf-8')
+                yield int(pid_info.split('=')[1])
 
     def __iter__(self):
         for pid in self._iter_excel_instances():
@@ -57,6 +56,7 @@ class App(object):
     def __init__(self, spec=None, xl=None):
         if xl is None:
             self.xl = appscript.app(name=spec or 'Microsoft Excel', newinstance=True, terms=mac_dict)
+            self.activate()
             # need to do *something* with the app otherwise it doesn't start up
             b = self.xl.visible
         elif isinstance(xl, int):
@@ -90,11 +90,17 @@ class App(object):
     @property
     def selection(self):
         sheet = self.active_sheet
-        return Range(sheet, self.xl.selection.address.get())
+        return Range(sheet, self.xl.selection.get_address())
 
     def activate(self, steal_focus=None):
-        # Activating an app without making it the frontmost window is not supported on Mac
+        asn = subprocess.check_output(['lsappinfo', 'visibleprocesslist', '-includehidden']).decode('utf-8')
+        frontmost_asn = asn.split(' ')[0]
+        pid_info_frontmost = subprocess.check_output(['lsappinfo', 'info', '-only', 'pid', frontmost_asn]).decode('utf-8')
+        pid_frontmost = int(pid_info_frontmost.split('=')[1])
+
         appscript.app('System Events').processes[its.unix_id == self.pid].processes[1].frontmost.set(True)
+        if not steal_focus:
+            appscript.app('System Events').processes[its.unix_id == pid_frontmost].processes[1].frontmost.set(True)
 
     @property
     def visible(self):
