@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from nose.tools import assert_equal, assert_true, assert_is_none
+from nose.tools import assert_equal, assert_true, assert_is_none, assert_false
 
 import xlwings as xw
 from .common import TestBase
 
 
 class TestNames(TestBase):
+    def get_inexisting_name(self):
+        assert_is_none(self.wb1.sheets[0].range('A1').name)
+
     def test_get_set_named_range(self):
         self.wb1.sheets[0].range('A100').name = 'test1'
         assert_equal(self.wb1.sheets[0].range('A100').name.name, 'test1')
@@ -56,3 +59,12 @@ class TestNames(TestBase):
         self.wb1.sheets[0].range('A1').name = 'test1'
         self.wb1.sheets[0].range('test1').value = 123.
         assert_equal(self.wb1.names['test1'].refers_to_range.value, 123.)
+
+    def test_contains_name(self):
+        self.wb1.sheets[0].range('A1').name = 'test1'
+        assert_true(self.wb1.names.contains('test1'))
+        assert_false(self.wb1.names.contains('test2'))
+
+    def test_names_add(self):
+        self.wb1.names.add('test1', '=Sheet1!$A$1:$B$3')
+        assert_equal(self.wb1.sheets[0].range('A1:B3').name.name, 'test1')

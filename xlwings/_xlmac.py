@@ -247,7 +247,7 @@ class Book(object):
 
     @property
     def names(self):
-        return Names(self)
+        return Names(xl=self.xl.named_items)
 
     def activate(self):
         self.xl.activate_object()
@@ -483,8 +483,8 @@ class Range(object):
 
     def set_hyperlink(self, address, text_to_display=None, screen_tip=None):
         self.xl.make(at=self.xl, new=kw.hyperlink, with_properties={kw.address: address,
-                                                                      kw.text_to_display: text_to_display,
-                                                                      kw.screen_tip: screen_tip})
+                                                                    kw.text_to_display: text_to_display,
+                                                                    kw.screen_tip: screen_tip})
 
     @property
     def color(self):
@@ -504,7 +504,11 @@ class Range(object):
 
     @property
     def name(self):
-        return self.xl.name.get()
+        xl = self.xl.name
+        if xl.get() == kw.missing_value:
+            return None
+        else:
+            return Name(xl=self.xl.name)
 
     @name.setter
     def name(self, value):
@@ -589,22 +593,21 @@ class Names(object):
         self.xl = xl
 
     def __call__(self, name_or_index):
-        return Name(xl=self.xl(name_or_index))
+        return Name(xl=self.xl[name_or_index])
 
     def contains(self, name_or_index):
         try:
-            self.xl(name_or_index)
-        except pywintypes.com_error as e:
-            if e.hresult == -2147352567:
-                return False
-            else:
-                raise
+            self.xl[name_or_index].get()
+        except appscript.reference.CommandError as e:
+            # TODO: make more specific
+            return False
         return True
 
     def __len__(self):
-        return self.xl.Count
+        return len(self.xl.get())
 
     def add(self, name, refers_to):
+        # TODO
         return Name(xl=self.xl.Add(name, refers_to))
 
 
@@ -613,27 +616,28 @@ class Name(object):
         self.xl = xl
 
     def delete(self):
+        # TODO
         self.xl.Delete()
 
     @property
     def name(self):
-        return self.xl.Name
+        return self.xl.name.get()
 
     @name.setter
     def name(self, value):
-        self.xl.Name = value
+        self.xl.name.set(value)
 
     @property
     def refers_to(self):
-        return self.xl.RefersTo
+        return self.xl.properties().get(kw.references)
 
     @refers_to.setter
     def refers_to(self, value):
-        self.xl.RefersTo = value
+        self.xl.properties(kw.references).set(value)
 
     @property
     def refers_to_range(self):
-        return Range(sheet=self, xl=self.xl.RefersToRange)
+        return Range(sheet=self, xl=self.xl.properties().get(kw.reference_range))
 
 
 def is_app_instance(xl_app):
