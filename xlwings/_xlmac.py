@@ -247,7 +247,7 @@ class Book(object):
 
     @property
     def names(self):
-        return Names(xl=self.xl.named_items)
+        return Names(book=self, xl=self.xl.named_items)
 
     def activate(self):
         self.xl.activate_object()
@@ -508,7 +508,7 @@ class Range(object):
         if xl.get() == kw.missing_value:
             return None
         else:
-            return Name(xl=self.xl.name)
+            return Name(xl=xl)
 
     @name.setter
     def name(self, value):
@@ -589,7 +589,8 @@ class Chart(Shape):
 
 
 class Names(object):
-    def __init__(self, xl):
+    def __init__(self, book, xl):
+        self.book = book
         self.xl = xl
 
     def __call__(self, name_or_index):
@@ -607,8 +608,12 @@ class Names(object):
         return len(self.xl.get())
 
     def add(self, name, refers_to):
-        # TODO
-        return Name(xl=self.xl.Add(name, refers_to))
+        return Name(self.book.xl.make(at=self.book.xl,
+                                      new=kw.named_item,
+                                      with_properties={
+                                          kw.references: refers_to,
+                                          kw.name: name
+                                      }))
 
 
 class Name(object):
@@ -616,8 +621,7 @@ class Name(object):
         self.xl = xl
 
     def delete(self):
-        # TODO
-        self.xl.Delete()
+        self.xl.delete()
 
     @property
     def name(self):
