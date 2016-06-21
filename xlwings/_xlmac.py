@@ -11,7 +11,7 @@ import psutil
 import atexit
 from .constants import ColorIndex, Calculation
 from .utils import int_to_rgb, np_datetime_to_datetime
-from . import mac_dict, PY3
+from . import mac_dict, PY3, string_types
 try:
     import pandas as pd
 except ImportError:
@@ -307,27 +307,36 @@ class Sheet(object):
     def index(self):
         return self.xl.entry_index.get()
 
-    def range(self, arg1, arg2):
-        if isinstance(arg1, Range):
-            if isinstance(arg2, Range):
-                row1 = min(arg1.top, arg2.top)
-                col1 = min(arg1.left, arg2.left)
-                row2 = max(arg1.bottom, arg2.bottom)
-                col2 = max(arg1.right, arg2.right)
-                return Range(
-                    self,
-                    "{0}:{1}".format(
-                        self.xl.rows[row1].columns[col1].address.get(),
-                        self.xl.rows[row2].columns[col2].address.get(),
-                    )
-                )
-            else:
-                return Range(self, arg1.address)
+    def range(self, arg1, arg2=None):
+        if isinstance(arg1, tuple):
+            row1 = arg1[0]
+            col1 = arg1[1]
+            address1 = self.xl.rows[row1].columns[col1].get_address()
+        elif isinstance(arg1, Range):
+            row1 = min(arg1.top, arg2.top)
+            col1 = min(arg1.left, arg2.left)
+            address1 = self.xl.rows[row1].columns[col1].get_address()
+        elif isinstance(arg1, string_types):
+            address1 = arg1
         else:
-            if arg2 is None:
-                return Range(self, arg1)
-            else:
-                raise ValueError("Invalid parameters")
+            raise ValueError("Invalid parameters")
+
+        if isinstance(arg2, tuple):
+            row2 = arg2[0]
+            col2 = arg2[1]
+            address2 = self.xl.rows[row2].columns[col2].get_address()
+        elif isinstance(arg2, Range):
+            row2 = max(arg1.bottom, arg2.bottom)
+            col2 = max(arg1.right, arg2.right)
+            address2 = self.xl.rows[row2].columns[col2].get_address()
+        elif isinstance(arg2, string_types):
+            address2 = arg2
+        elif arg2 is None:
+            address2 = address1
+        else:
+            raise ValueError("Invalid parameters")
+
+        return Range(self, "{0}:{1}".format(address1, address2))
 
     @property
     def cells(self):
@@ -343,7 +352,6 @@ class Sheet(object):
         self.xl.used_range.clear_range()
 
     def autofit(self, axis):
-        #TODO: combine with autofit that works on Range objects
         num_columns = self.xl.count(each=kw.column)
         num_rows = self.xl.count(each=kw.row)
         xl_range = self.get_range_from_indices(1, 1, num_rows, num_columns)
@@ -402,9 +410,20 @@ class Range(object):
         self.xl.value.set(value)
 
     def clear_contents(self):
+        alerts_state = self.sheet.book.app.screen_updating
         self.sheet.book.app.screen_updating = False
         self.xl.clear_range()
-        self.sheet.book.app.screen_updating = True
+        self.sheet.book.app.screen_updating = alerts_state
+
+    def get_cell(self, row, col):
+        # TODO
+        return Range(xl=self.xl.Cells(row, col))
+
+    def clear(self):
+        alerts_state = self.sheet.book.app.screen_updating
+        self.sheet.book.app.screen_updating = False
+        self.xl.clear()
+        self.sheet.book.app.screen_updating = alerts_state
 
     @property
     def formula(self):
@@ -413,6 +432,21 @@ class Range(object):
     @formula.setter
     def formula(self, value):
         self.xl.formula.set(value)
+
+    def end(self, direction):
+        # TODO
+        direction = DIRECTIONS.get(direction, direction)
+        return Range(xl=self.xl.End(direction))
+
+    @property
+    def formula_array(self):
+        # TODO
+        return self.xl.FormulaArray
+
+    @formula_array.setter
+    def formula_array(self, value):
+        # TODO
+        self.xl.FormulaArray = value
 
     @property
     def column_width(self):
@@ -440,11 +474,19 @@ class Range(object):
 
     @property
     def left(self):
-        return self.properties().get(kw.left_position)
+        return self.xl.properties().get(kw.left_position)
 
     @property
     def top(self):
-        return self.properties().get(kw.top)
+        return self.xl.properties().get(kw.top)
+
+    @property
+    def right(self):
+        return self.xl.properties().get(kw.right)
+
+    @property
+    def bottom(self):
+        return self.xl.properties().get(kw.bottom)
 
     @property
     def number_format(self):
@@ -462,6 +504,11 @@ class Range(object):
     @property
     def address(self):
         return self.xl.get_address()
+
+    @property
+    def current_region(self):
+        # TODO
+        return Range(xl=self.xl.CurrentRegion)
 
     def autofit(self, axis):
         address = self.address
@@ -513,6 +560,22 @@ class Range(object):
     @name.setter
     def name(self, value):
         self.xl.name.set(value)
+
+    def __call__(self, *args):
+        # TODO
+        if len(args) == 0:
+            raise ValueError("Invalid arguments")
+        return Range(xl=self.xl(*args))
+
+    @property
+    def rows(self):
+        # TODO
+        return Range(self.sheet, xl=self.xl.Rows)
+
+    @property
+    def columns(self):
+        # TODO
+        return Range(self.sheet, xl=self.xl.Columns)
 
 
 class Shape(object):
