@@ -326,11 +326,11 @@ class Sheet(object):
             col1 = arg1[1]
             address1 = self.xl.rows[row1].columns[col1].get_address()
         elif isinstance(arg1, Range):
-            row1 = min(arg1.top, arg2.top)
-            col1 = min(arg1.left, arg2.left)
+            row1 = min(arg1.row, arg2.row)
+            col1 = min(arg1.column, arg2.column)
             address1 = self.xl.rows[row1].columns[col1].get_address()
         elif isinstance(arg1, string_types):
-            address1 = arg1
+            address1 = arg1.split(':')[0]
         else:
             raise ValueError("Invalid parameters")
 
@@ -339,13 +339,16 @@ class Sheet(object):
             col2 = arg2[1]
             address2 = self.xl.rows[row2].columns[col2].get_address()
         elif isinstance(arg2, Range):
-            row2 = max(arg1.bottom, arg2.bottom)
-            col2 = max(arg1.right, arg2.right)
+            row2 = max(arg1.row + arg1.row_count - 1, arg2.row + arg2.row_count - 1)
+            col2 = max(arg1.column + arg1.column_count - 1, arg2.column + arg2.column_count - 1)
             address2 = self.xl.rows[row2].columns[col2].get_address()
         elif isinstance(arg2, string_types):
             address2 = arg2
         elif arg2 is None:
-            address2 = address1
+            if isinstance(arg1, string_types) and len(arg1.split(':')) == 2:
+                address2 = arg1.split(':')[1]
+            else:
+                address2 = address1
         else:
             raise ValueError("Invalid parameters")
 
@@ -491,14 +494,6 @@ class Range(object):
         return self.xl.properties().get(kw.top)
 
     @property
-    def right(self):
-        return self.xl.properties().get(kw.right)
-
-    @property
-    def bottom(self):
-        return self.xl.properties().get(kw.bottom)
-
-    @property
     def number_format(self):
         return self.xl.number_format.get()
 
@@ -578,7 +573,7 @@ class Range(object):
             row = (arg1 - 1 - col) / self.column_count
             return self(1 + row, 1 + col)
         else:
-            return self(self.sheet, self.sheet.xl.rows[arg1].columns[arg2].get_address())
+            return Range(self.sheet, self.sheet.xl.rows[arg1].columns[arg2].get_address())
 
     @property
     def rows(self):
