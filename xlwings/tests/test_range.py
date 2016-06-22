@@ -117,6 +117,10 @@ class TestRange(TestBase):
         self.wb1.sheets[0].range('A1', (2,2)).value = [[1., 2.], [3., 4.]]
         assert_equal(self.wb1.sheets[0].range((1, 1), 'B2').value, [[1., 2.], [3., 4.]])
 
+    def test_range_from_ranges(self):
+        self.wb1.sheets[0].range(xw.Range('A1'), xw.Range('B2')).value = [[1., 2.], [3., 4.]]
+        assert_equal(self.wb1.sheets[0].range(xw.Range('A1'), xw.Range('B2')).value, [[1., 2.], [3., 4.]])
+
     def test_named_range_value(self):
         value = 22.222
         # Active Sheet
