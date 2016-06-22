@@ -356,8 +356,7 @@ class Sheet(object):
 
     @property
     def cells(self):
-        # TODO
-        return Range(self, self.xl.used_range.get_address())
+        return self.range((1, 1), (self.xl.count(each=kw.row), self.xl.count(each=kw.column)))
 
     def activate(self):
         self.xl.activate_object()
