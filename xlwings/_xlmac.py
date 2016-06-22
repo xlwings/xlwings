@@ -29,6 +29,17 @@ if np:
 # We're only dealing with one instance of Excel on Mac
 _xl_app = None
 
+DIRECTIONS = {
+    'd': kw.toward_the_bottom,
+    'down': kw.toward_the_bottom,
+    'l': kw.toward_the_left,
+    'left': kw.toward_the_left,
+    'r': kw.toward_the_right,
+    'right': kw.toward_the_right,
+    'u': kw.toward_the_top,
+    'up': kw.toward_the_top
+}
+
 
 class Apps(object):
 
@@ -268,6 +279,8 @@ class Sheets(object):
         return self.workbook.xl.count(each=kw.worksheet)
 
     def add(self, before=None, after=None):
+        if before is None and after is None:
+            before = self.workbook.app.active_sheet
         if before:
             position = before.xl.before
         else:
@@ -354,9 +367,9 @@ class Sheet(object):
     def autofit(self, axis):
         num_columns = self.xl.count(each=kw.column)
         num_rows = self.xl.count(each=kw.row)
-        xl_range = self.get_range_from_indices(1, 1, num_rows, num_columns)
-        address = xl_range.get_address()
-        _xl_app.screen_updating.set(False)
+        address = self.range((1, 1), (num_rows, num_columns)).address
+        alerts_state = self.book.app.screen_updating
+        self.book.app.screen_updating = False
         if axis == 'rows' or axis == 'r':
             self.xl.rows[address].autofit()
         elif axis == 'columns' or axis == 'c':
@@ -364,12 +377,13 @@ class Sheet(object):
         elif axis is None:
             self.xl.rows[address].autofit()
             self.xl.columns[address].autofit()
-        _xl_app.screen_updating.set(True)
+        self.book.app.screen_updating = alerts_state
 
     def delete(self):
-        self.book.app.xl.display_alerts.set(False)
+        alerts_state = self.book.app.screen_updating
+        self.book.app.screen_updating = False
         self.xl.delete()
-        self.book.app.xl.display_alerts.set(True)
+        self.book.app.screen_updating = alerts_state
 
 
 class Range(object):
@@ -416,13 +430,12 @@ class Range(object):
         self.sheet.book.app.screen_updating = alerts_state
 
     def get_cell(self, row, col):
-        # TODO
-        return Range(xl=self.xl.Cells(row, col))
+        return Range(self.sheet, self.xl.rows[row].columns[col].get_address())
 
     def clear(self):
         alerts_state = self.sheet.book.app.screen_updating
         self.sheet.book.app.screen_updating = False
-        self.xl.clear()
+        self.xl.clear_range()
         self.sheet.book.app.screen_updating = alerts_state
 
     @property
@@ -434,19 +447,16 @@ class Range(object):
         self.xl.formula.set(value)
 
     def end(self, direction):
-        # TODO
         direction = DIRECTIONS.get(direction, direction)
-        return Range(xl=self.xl.End(direction))
+        return Range(self.sheet, self.xl.get_end(direction=direction).get_address())
 
     @property
     def formula_array(self):
-        # TODO
-        return self.xl.FormulaArray
+        return self.xl.formula_array.get()
 
     @formula_array.setter
     def formula_array(self, value):
-        # TODO
-        self.xl.FormulaArray = value
+        self.xl.formula_array.set(value)
 
     @property
     def column_width(self):
@@ -494,9 +504,10 @@ class Range(object):
 
     @number_format.setter
     def number_format(self, value):
+        alerts_state = self.sheet.book.app.screen_updating
         self.sheet.book.app.screen_updating = False
         self.xl.number_format.set(value)
-        self.sheet.book.app.screen_updating = True
+        self.sheet.book.app.screen_updating = alerts_state
 
     def get_address(self, row_absolute, col_absolute, external):
         return self.xl.get_address(row_absolute=row_absolute, column_absolute=col_absolute, external=external)
@@ -507,11 +518,11 @@ class Range(object):
 
     @property
     def current_region(self):
-        # TODO
-        return Range(xl=self.xl.CurrentRegion)
+        return Range(self.sheet, self.xl.current_region.get_address())
 
     def autofit(self, axis):
         address = self.address
+        alerts_state = self.sheet.book.app.screen_updating
         self.sheet.book.app.screen_updating = False
         if axis == 'rows' or axis == 'r':
             self.sheet.xl.rows[address].autofit()
@@ -520,7 +531,7 @@ class Range(object):
         elif axis is None:
             self.sheet.xl.rows[address].autofit()
             self.sheet.xl.columns[address].autofit()
-        self.sheet.book.app.screen_updating = True
+        self.sheet.book.app.screen_updating = alerts_state
 
     def get_hyperlink_address(self):
         try:
@@ -561,21 +572,23 @@ class Range(object):
     def name(self, value):
         self.xl.name.set(value)
 
-    def __call__(self, *args):
-        # TODO
-        if len(args) == 0:
-            raise ValueError("Invalid arguments")
-        return Range(xl=self.xl(*args))
+    def __call__(self, arg1, arg2=None):
+        if arg2 is None:
+            col = (arg1 - 1) % self.column_count
+            row = (arg1 - 1 - col) / self.column_count
+            return self(1 + row, 1 + col)
+        else:
+            return self(self.sheet, self.sheet.xl.rows[arg1].columns[arg2].get_address())
 
     @property
     def rows(self):
         # TODO
-        return Range(self.sheet, xl=self.xl.Rows)
+        return Range(self.sheet, self.xl.rows.get())
 
     @property
     def columns(self):
         # TODO
-        return Range(self.sheet, xl=self.xl.Columns)
+        return Range(self.sheet, self.xl.columns.get())
 
 
 class Shape(object):
