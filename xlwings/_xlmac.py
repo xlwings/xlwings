@@ -356,7 +356,8 @@ class Sheet(object):
 
     @property
     def cells(self):
-        return Range(self, "$A$1")
+        # TODO
+        return Range(self, self.xl.used_range.get_address())
 
     def activate(self):
         self.xl.activate_object()
@@ -570,10 +571,11 @@ class Range(object):
     def __call__(self, arg1, arg2=None):
         if arg2 is None:
             col = (arg1 - 1) % self.column_count
-            row = (arg1 - 1 - col) / self.column_count
+            row = int((arg1 - 1 - col) / self.column_count)
             return self(1 + row, 1 + col)
         else:
-            return Range(self.sheet, self.sheet.xl.rows[arg1].columns[arg2].get_address())
+            return Range(self.sheet,
+                         self.sheet.xl.rows[self.row + arg1 - 1].columns[self.column + arg2 - 1].get_address())
 
     @property
     def rows(self):
