@@ -11,7 +11,7 @@ import psutil
 import atexit
 from .constants import ColorIndex, Calculation
 from .utils import int_to_rgb, np_datetime_to_datetime
-from . import mac_dict, PY3
+from . import mac_dict, PY3, string_types
 try:
     import pandas as pd
 except ImportError:
@@ -28,6 +28,17 @@ if np:
 
 # We're only dealing with one instance of Excel on Mac
 _xl_app = None
+
+DIRECTIONS = {
+    'd': kw.toward_the_bottom,
+    'down': kw.toward_the_bottom,
+    'l': kw.toward_the_left,
+    'left': kw.toward_the_left,
+    'r': kw.toward_the_right,
+    'right': kw.toward_the_right,
+    'u': kw.toward_the_top,
+    'up': kw.toward_the_top
+}
 
 
 class Apps(object):
@@ -268,6 +279,8 @@ class Sheets(object):
         return self.workbook.xl.count(each=kw.worksheet)
 
     def add(self, before=None, after=None):
+        if before is None and after is None:
+            before = self.workbook.app.active_sheet
         if before:
             position = before.xl.before
         else:
@@ -307,31 +320,44 @@ class Sheet(object):
     def index(self):
         return self.xl.entry_index.get()
 
-    def range(self, arg1, arg2):
-        if isinstance(arg1, Range):
-            if isinstance(arg2, Range):
-                row1 = min(arg1.top, arg2.top)
-                col1 = min(arg1.left, arg2.left)
-                row2 = max(arg1.bottom, arg2.bottom)
-                col2 = max(arg1.right, arg2.right)
-                return Range(
-                    self,
-                    "{0}:{1}".format(
-                        self.xl.rows[row1].columns[col1].address.get(),
-                        self.xl.rows[row2].columns[col2].address.get(),
-                    )
-                )
-            else:
-                return Range(self, arg1.address)
+    def range(self, arg1, arg2=None):
+        if isinstance(arg1, tuple):
+            row1 = arg1[0]
+            col1 = arg1[1]
+            address1 = self.xl.rows[row1].columns[col1].get_address()
+        elif isinstance(arg1, Range):
+            row1 = min(arg1.row, arg2.row)
+            col1 = min(arg1.column, arg2.column)
+            address1 = self.xl.rows[row1].columns[col1].get_address()
+        elif isinstance(arg1, string_types):
+            address1 = arg1.split(':')[0]
         else:
-            if arg2 is None:
-                return Range(self, arg1)
+            raise ValueError("Invalid parameters")
+
+        if isinstance(arg2, tuple):
+            row2 = arg2[0]
+            col2 = arg2[1]
+            address2 = self.xl.rows[row2].columns[col2].get_address()
+        elif isinstance(arg2, Range):
+            row2 = max(arg1.row + arg1.row_count - 1, arg2.row + arg2.row_count - 1)
+            col2 = max(arg1.column + arg1.column_count - 1, arg2.column + arg2.column_count - 1)
+            address2 = self.xl.rows[row2].columns[col2].get_address()
+        elif isinstance(arg2, string_types):
+            address2 = arg2
+        elif arg2 is None:
+            if isinstance(arg1, string_types) and len(arg1.split(':')) == 2:
+                address2 = arg1.split(':')[1]
             else:
-                raise ValueError("Invalid parameters")
+                address2 = address1
+        else:
+            raise ValueError("Invalid parameters")
+
+        return Range(self, "{0}:{1}".format(address1, address2))
 
     @property
     def cells(self):
-        return Range(self, "$A$1")
+        # TODO
+        return Range(self, self.xl.used_range.get_address())
 
     def activate(self):
         self.xl.activate_object()
@@ -343,12 +369,11 @@ class Sheet(object):
         self.xl.used_range.clear_range()
 
     def autofit(self, axis):
-        #TODO: combine with autofit that works on Range objects
         num_columns = self.xl.count(each=kw.column)
         num_rows = self.xl.count(each=kw.row)
-        xl_range = self.get_range_from_indices(1, 1, num_rows, num_columns)
-        address = xl_range.get_address()
-        _xl_app.screen_updating.set(False)
+        address = self.range((1, 1), (num_rows, num_columns)).address
+        alerts_state = self.book.app.screen_updating
+        self.book.app.screen_updating = False
         if axis == 'rows' or axis == 'r':
             self.xl.rows[address].autofit()
         elif axis == 'columns' or axis == 'c':
@@ -356,12 +381,13 @@ class Sheet(object):
         elif axis is None:
             self.xl.rows[address].autofit()
             self.xl.columns[address].autofit()
-        _xl_app.screen_updating.set(True)
+        self.book.app.screen_updating = alerts_state
 
     def delete(self):
-        self.book.app.xl.display_alerts.set(False)
+        alerts_state = self.book.app.screen_updating
+        self.book.app.screen_updating = False
         self.xl.delete()
-        self.book.app.xl.display_alerts.set(True)
+        self.book.app.screen_updating = alerts_state
 
 
 class Range(object):
@@ -402,9 +428,19 @@ class Range(object):
         self.xl.value.set(value)
 
     def clear_contents(self):
+        alerts_state = self.sheet.book.app.screen_updating
         self.sheet.book.app.screen_updating = False
         self.xl.clear_range()
-        self.sheet.book.app.screen_updating = True
+        self.sheet.book.app.screen_updating = alerts_state
+
+    def get_cell(self, row, col):
+        return Range(self.sheet, self.xl.rows[row].columns[col].get_address())
+
+    def clear(self):
+        alerts_state = self.sheet.book.app.screen_updating
+        self.sheet.book.app.screen_updating = False
+        self.xl.clear_range()
+        self.sheet.book.app.screen_updating = alerts_state
 
     @property
     def formula(self):
@@ -413,6 +449,18 @@ class Range(object):
     @formula.setter
     def formula(self, value):
         self.xl.formula.set(value)
+
+    def end(self, direction):
+        direction = DIRECTIONS.get(direction, direction)
+        return Range(self.sheet, self.xl.get_end(direction=direction).get_address())
+
+    @property
+    def formula_array(self):
+        return self.xl.formula_array.get()
+
+    @formula_array.setter
+    def formula_array(self, value):
+        self.xl.formula_array.set(value)
 
     @property
     def column_width(self):
@@ -440,11 +488,11 @@ class Range(object):
 
     @property
     def left(self):
-        return self.properties().get(kw.left_position)
+        return self.xl.properties().get(kw.left_position)
 
     @property
     def top(self):
-        return self.properties().get(kw.top)
+        return self.xl.properties().get(kw.top)
 
     @property
     def number_format(self):
@@ -452,9 +500,10 @@ class Range(object):
 
     @number_format.setter
     def number_format(self, value):
+        alerts_state = self.sheet.book.app.screen_updating
         self.sheet.book.app.screen_updating = False
         self.xl.number_format.set(value)
-        self.sheet.book.app.screen_updating = True
+        self.sheet.book.app.screen_updating = alerts_state
 
     def get_address(self, row_absolute, col_absolute, external):
         return self.xl.get_address(row_absolute=row_absolute, column_absolute=col_absolute, external=external)
@@ -463,8 +512,13 @@ class Range(object):
     def address(self):
         return self.xl.get_address()
 
+    @property
+    def current_region(self):
+        return Range(self.sheet, self.xl.current_region.get_address())
+
     def autofit(self, axis):
         address = self.address
+        alerts_state = self.sheet.book.app.screen_updating
         self.sheet.book.app.screen_updating = False
         if axis == 'rows' or axis == 'r':
             self.sheet.xl.rows[address].autofit()
@@ -473,7 +527,7 @@ class Range(object):
         elif axis is None:
             self.sheet.xl.rows[address].autofit()
             self.sheet.xl.columns[address].autofit()
-        self.sheet.book.app.screen_updating = True
+        self.sheet.book.app.screen_updating = alerts_state
 
     def get_hyperlink_address(self):
         try:
@@ -513,6 +567,25 @@ class Range(object):
     @name.setter
     def name(self, value):
         self.xl.name.set(value)
+
+    def __call__(self, arg1, arg2=None):
+        if arg2 is None:
+            col = (arg1 - 1) % self.column_count
+            row = int((arg1 - 1 - col) / self.column_count)
+            return self(1 + row, 1 + col)
+        else:
+            return Range(self.sheet,
+                         self.sheet.xl.rows[self.row + arg1 - 1].columns[self.column + arg2 - 1].get_address())
+
+    @property
+    def rows(self):
+        # TODO
+        return Range(self.sheet, self.xl.rows.get())
+
+    @property
+    def columns(self):
+        # TODO
+        return Range(self.sheet, self.xl.columns.get())
 
 
 class Shape(object):
