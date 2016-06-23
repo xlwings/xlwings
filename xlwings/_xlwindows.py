@@ -1209,10 +1209,31 @@ class Charts(Collection):
         return Chart(xl=xl.Chart)
 
 
+class Picture(object):
+
+    def __init__(self, xl):
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def name(self):
+        return self.xl.Name
+
+    @property
+    def container(self):
+        return Shape(xl=self.xl.Parent.ShapeRange(1))
+
+
 class Pictures(Collection):
 
-    def _wrap(self, xl):
-        return Shape(xl=xl.ShapeRange(1))
+    _wrap = Picture
+
+    @property
+    def parent(self):
+        return Sheet(xl=self.xl.Parent)
 
 
 class Names(object):

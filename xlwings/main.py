@@ -573,9 +573,6 @@ class Sheet(object):
     def delete(self):
         return self.impl.delete()
 
-    def add_picture(self, filename, link_to_file, save_with_document, left, top, width, height):
-        return Shape(impl=self.impl.add_picture(filename, link_to_file, save_with_document, left, top, width, height))
-
     def get_shape_object(self, shape_name_or_index):
         return Shape(impl=self.impl.get_shape_object(shape_name_or_index))
 
@@ -599,13 +596,31 @@ class Sheet(object):
     def charts(self):
         return Charts(impl=self.impl.charts)
 
+    def chart(self, name_or_index=None):
+        if name_or_index is None:
+            return self.charts.add()
+        else:
+            return self.charts(name_or_index)
+
     @property
     def shapes(self):
         return Shapes(impl=self.impl.shapes)
 
+    def shape(self, name_or_index=None):
+        if name_or_index is None:
+            return self.charts.add()
+        else:
+            return self.charts(name_or_index)
+
     @property
     def pictures(self):
-        return Shapes(impl=self.impl.pictures)
+        return Pictures(impl=self.impl.pictures)
+
+    def picture(self, name_or_index=None):
+        if name_or_index is None:
+            return self.charts.add()
+        else:
+            return self.charts(name_or_index)
 
 
 class Range(object):
@@ -1317,6 +1332,48 @@ class Shape(object):
     def name(self):
         return self.impl.name
 
+    @name.setter
+    def name(self, value):
+        self.impl.name = value
+
+    @property
+    def left(self):
+        return self.impl.left
+
+    @left.setter
+    def left(self, value):
+        self.impl.left = value
+
+    @property
+    def top(self):
+        return self.impl.top
+
+    @top.setter
+    def top(self, value):
+        self.impl.top = value
+
+    @property
+    def width(self):
+        return self.impl.width
+
+    @width.setter
+    def width(self, value):
+        self.impl.width = value
+
+    @property
+    def height(self):
+        return self.impl.height
+
+    @height.setter
+    def height(self, value):
+        self.impl.height = value
+
+    def delete(self):
+        self.impl.delete()
+
+    def activate(self):
+        self.impl.activate()
+
     @property
     def contents(self):
         impl = self.impl.contents
@@ -1388,7 +1445,9 @@ class Collection(object):
 class Shapes(Collection):
     _wrap = Shape
 
-    def add_picture(self, filename, link_to_file, save_with_document, left, top, width, height):
+    def add_picture(self, filename, link_to_file=False, save_with_document=True, left=0, top=0, width=-1, height=-1):
+        if not (link_to_file or save_with_document):
+            raise Exception("Arguments link_to_file and save_with_document cannot both be false")
         return Shape(impl=self.impl.add_picture(filename, link_to_file, save_with_document, left, top, width, height))
 
 
@@ -1432,27 +1491,13 @@ class Chart(object):
 
     """
 
-    def __init__(self, *args, impl=None, **kwargs):
+    def __init__(self, name_or_index=None, impl=None):
         if impl is not None:
             self.impl = impl
-        elif len(args) == 1:
-            # Get xl_chart object
-            self.impl = Sheet.active().charts(args[0]).impl
-        elif len(args) == 2:
-            sheet = args[0]
-            if not isinstance(sheet, Sheet):
-                sheet = Sheet(sheet)
-            self.impl = sheet.charts(args[1]).impl
-
-        # Chart Type
-        chart_type = kwargs.get('chart_type')
-        if chart_type:
-            self.chart_type = chart_type
-
-        # Source Data
-        source_data = kwargs.get('source_data')
-        if source_data:
-            self.set_source_data(source_data)
+        elif name_or_index is not None:
+            self.impl = Sheet.active().chart(name_or_index).impl
+        else:
+            self.impl = Sheet.active().charts.add().impl
 
     @property
     def api(self):
@@ -1561,6 +1606,67 @@ class Chart(object):
 
 class Charts(Collection):
     _wrap = Chart
+
+    def add(self, left=0, top=0, width=355, height=211, **kwargs):
+        """
+        Inserts a new Chart into Excel.
+
+        Arguments
+        ---------
+        sheet : str or int or xlwings.Sheet, default None
+            Name or index of the Sheet or Sheet object, defaults to the active Sheet
+
+        left : float, default 0
+            left position in points
+
+        top : float, default 0
+            top position in points
+
+        width : float, default 375
+            width in points
+
+        height : float, default 225
+            height in points
+
+        Keyword Arguments
+        -----------------
+        chart_type : xlwings.ChartType member, default xlColumnClustered
+            Excel chart type. E.g. xlwings.ChartType.xlLine
+
+        name : str, default None
+            Excel chart name. Defaults to Excel standard name if not provided, e.g. 'Chart 1'
+
+        source_data : Range
+            e.g. Range('A1').table
+
+        wkb : Workbook object, default Workbook.current()
+            Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+
+        Returns
+        -------
+
+        xlwings Chart object
+        """
+
+        sheet = active.sheet
+
+        self.add(
+            left,
+            top,
+            width,
+            height
+        )
+
+        xl_chart = sheet.xl_sheet.add_chart(left, top, width, height)
+
+        chart_type = kwargs.get('chart_type', ChartType.xlColumnClustered)
+        name = kwargs.get('name')
+        source_data = kwargs.get('source_data')
+
+        if name:
+            xl_chart.set_name(name)
+
+        return cls(xl_chart=xl_chart, chart_type=chart_type, source_data=source_data)
 
 
 class Picture(object):
@@ -1715,6 +1821,20 @@ class Picture(object):
         self.xl_shape.delete()
         # TODO: link_to_file, save_with_document
         self.xl_shape = Picture.add(filename, left=left, top=top, width=width, height=height, name=name).xl_shape
+
+
+class Pictures(Collection):
+    _wrap = Picture
+
+    @property
+    def parent(self):
+        return Sheet(impl=self.impl.parent)
+
+    def add(self, filename, link_to_file=False, save_with_document=True, left=0, top=0, width=-1, height=-1):
+        shape = self.parent.shapes.add_picture(
+            filename, link_to_file, save_with_document, left, top, width, height
+        )
+        return shape.contents
 
 
 class Plot(object):
@@ -2073,10 +2193,10 @@ class Sheets(object):
             before = self(before)
         if after is not None and not isinstance(after, Sheet):
             after = self(after)
-        s = self.impl.add(before and before.impl, after and after.impl)
+        impl = self.impl.add(before and before.impl, after and after.impl)
         if name is not None:
-            s.name = name
-        return s
+            impl.name = name
+        return Sheet(impl=impl)
 
 
 class ActiveObjects(object):
