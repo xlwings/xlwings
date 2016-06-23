@@ -67,9 +67,7 @@ class App(object):
     def __init__(self, spec=None, xl=None):
         if xl is None:
             self.xl = appscript.app(name=spec or 'Microsoft Excel', newinstance=True, terms=mac_dict)
-            self.activate()
-            # need to do *something* with the app otherwise it doesn't start up
-            b = self.xl.visible
+            self.activate()  # Makes it behave like on Windows
         elif isinstance(xl, int):
             self.xl = appscript.app(pid=xl, terms=mac_dict)
         else:

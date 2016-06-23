@@ -94,10 +94,6 @@ class App(object):
     def api(self):
         return self.impl.api
 
-    @classmethod
-    def active(cls):
-        return apps.active
-
     @property
     def version(self):
         return self.impl.version
