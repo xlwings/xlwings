@@ -103,7 +103,7 @@ class App(object):
         sheet = self.active_sheet
         return Range(sheet, self.xl.selection.get_address())
 
-    def activate(self, steal_focus=None):
+    def activate(self, steal_focus=False):
         asn = subprocess.check_output(['lsappinfo', 'visibleprocesslist', '-includehidden']).decode('utf-8')
         frontmost_asn = asn.split(' ')[0]
         pid_info_frontmost = subprocess.check_output(['lsappinfo', 'info', '-only', 'pid', frontmost_asn]).decode('utf-8')
@@ -115,7 +115,7 @@ class App(object):
 
     @property
     def visible(self):
-        return appscript.app('System Events').processes[its.unix_id == self.pid].visible.get()
+        return appscript.app('System Events').processes[its.unix_id == self.pid].visible.get()[0]
 
     @visible.setter
     def visible(self, visible):
