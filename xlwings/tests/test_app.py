@@ -19,6 +19,7 @@ class TestApps(TestBase):
         wb = app.book()
         assert_equal(n_original + 1, len(xw.apps))
         assert_equal(xw.apps[0], app)
+        app.quit()
 
     def test_app_iter(self):
         for app in xw.apps:
