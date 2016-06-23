@@ -3,12 +3,35 @@ from __future__ import unicode_literals
 
 from nose.tools import assert_equal, assert_true, assert_is_none, assert_false
 
-import xlwings as xw
 from .common import TestBase
 
 
 class TestNames(TestBase):
-    def get_inexisting_name(self):
+    def test_get_names_index(self):
+        self.wb1.sheets[0].range('B2:D10').name = 'test1'
+        self.wb1.sheets[0].range('A1').name = 'test2'
+        assert_equal(self.wb1.names(1).name, 'test1')
+        assert_equal(self.wb1.names[1].name, 'test2')
+
+    def test_names_contain(self):
+        self.wb1.sheets[0].range('B2:D10').name = 'test1'
+        assert_true('test1' in self.wb1.names)
+
+    def test_len(self):
+        self.wb1.sheets[0].range('B2:D10').name = 'test1'
+        self.wb1.sheets[0].range('A1').name = 'test2'
+        assert_equal(len(self.wb1.names), 2)
+
+    def test_names_iter(self):
+        self.wb1.sheets[0].range('B2:D10').name = 'test1'
+        self.wb1.sheets[0].range('A1').name = 'test2'
+        for ix, n in enumerate(self.wb1.names):
+            if ix == 0:
+                assert_equal(n.name, 'test1')
+            if ix == 1:
+                assert_equal(n.name, 'test2')
+
+    def test_get_inexisting_name(self):
         assert_is_none(self.wb1.sheets[0].range('A1').name)
 
     def test_get_set_named_range(self):
@@ -68,3 +91,8 @@ class TestNames(TestBase):
     def test_names_add(self):
         self.wb1.names.add('test1', '=Sheet1!$A$1:$B$3')
         assert_equal(self.wb1.sheets[0].range('A1:B3').name.name, 'test1')
+
+    def test_refers_to_range(self):
+        self.wb1.sheets[0].range('B2:D10').name = 'test1'
+        assert_equal(self.wb1.sheets[0].range('B2:D10').address, self.wb1.sheets[0].range('B2:D10').name.refers_to_range.address)
+

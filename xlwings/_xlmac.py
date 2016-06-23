@@ -557,11 +557,11 @@ class Range(object):
 
     @property
     def name(self):
-        xl = self.xl.name
+        xl = self.xl.named_item
         if xl.get() == kw.missing_value:
             return None
         else:
-            return Name(xl=xl)
+            return Name(self.sheet.book, xl=xl)
 
     @name.setter
     def name(self, value):
@@ -666,7 +666,7 @@ class Names(object):
         self.xl = xl
 
     def __call__(self, name_or_index):
-        return Name(xl=self.xl[name_or_index])
+        return Name(self.book, xl=self.xl[name_or_index])
 
     def contains(self, name_or_index):
         try:
@@ -680,16 +680,17 @@ class Names(object):
         return len(self.xl.get())
 
     def add(self, name, refers_to):
-        return Name(self.book.xl.make(at=self.book.xl,
-                                      new=kw.named_item,
-                                      with_properties={
-                                          kw.references: refers_to,
-                                          kw.name: name
-                                      }))
+        return Name(self.book, self.book.xl.make(at=self.book.xl,
+                                                 new=kw.named_item,
+                                                 with_properties={
+                                                     kw.references: refers_to,
+                                                     kw.name: name
+                                                 }))
 
 
 class Name(object):
-    def __init__(self, xl):
+    def __init__(self, book, xl):
+        self.book = book
         self.xl = xl
 
     def delete(self):
@@ -713,7 +714,8 @@ class Name(object):
 
     @property
     def refers_to_range(self):
-        return Range(sheet=self, xl=self.xl.properties().get(kw.reference_range))
+        ref = self.refers_to[1:].split('!')
+        return Range(Sheet(self.book, ref[0]), ref[1])
 
 
 def is_app_instance(xl_app):
