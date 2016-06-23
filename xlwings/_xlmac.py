@@ -548,7 +548,7 @@ class Range(object):
         if self.xl.interior_object.color_index.get() == kw.color_index_none:
             return None
         else:
-            return tuple(self.xl.interior_object.color.get())
+            return tuple(self.xl.interior_object.color.get  ())
 
     @color.setter
     def color(self, color_or_rgb):
@@ -582,13 +582,87 @@ class Range(object):
 
     @property
     def rows(self):
-        # TODO
-        return Range(self.sheet, self.xl.rows.get())
+        row = self.row
+        col1 = self.column
+        col2 = col1 + self.column_count - 1
+        sht = self.sheet
+        return [
+            self.sheet.range((row+i, col1), (row+i, col2))
+            for i in range(self.row_count)
+        ]
 
     @property
     def columns(self):
-        # TODO
-        return Range(self.sheet, self.xl.columns.get())
+        col = self.column
+        row1 = self.row
+        row2 = row1 + self.row_count - 1
+        sht = self.sheet
+        return [
+            sht.range((row1, col + i), (row2, col + i))
+            for i in range(self.row_count)
+        ]
+
+class RangeRows(object):
+
+    def __init__(self, rng, step=1):
+        self.rng = rng
+        self.step = step
+
+    def __call__(self, index):
+        row = self.rng.row + index * self.step - 1
+        col1 = self.rng.column
+        col2 = self.rng.column_count
+        return self.rng.sheet.range((row, col1), (row, col2))
+
+    def slice(self, start, stop, step):
+        row1 = self.rng.row + start * self.step
+        row2 = row1 + (stop - start - 1) * self.step
+        col1 = self.rng.column
+        col2 = self.rng.column_count
+        rng = self.rng.sheet.range((row1, col1), (row2, col2))
+        return RangeRows(rng, self.step * step)
+
+    def __len__(self):
+        return len(range(0, self.rng.row_count, self.step))
+
+    def __iter__(self):
+        row = self.rng.row
+        col1 = self.rng.column
+        col2 = self.rng.column_count
+        for i in range(0, self.rng.row_count, self.step):
+            yield self.rng.sheet.range((row+i, col1), (row+i, col2))
+
+
+class RangeRows(object):
+
+    def __init__(self, rng, step=1):
+        self.rng = rng
+        self.step = step
+
+    def __call__(self, index):
+        row = self.rng.row + index * self.step - 1
+        col1 = self.rng.column
+        col2 = self.rng.column_count
+        return self.rng.sheet.range((row, col1), (row, col2))
+
+    def slice(self, start, stop, step):
+        row1 = self.rng.row + start * self.step
+        row2 = row1 + (stop - start - 1) * self.step
+        col1 = self.rng.column
+        col2 = self.rng.column_count
+        rng = self.rng.sheet.range((row1, col1), (row2, col2))
+        return RangeRows(rng, self.step * step)
+
+    def __len__(self):
+        return len(range(0, self.rng.row_count, self.step))
+
+    def __iter__(self):
+        row = self.rng.row
+        col1 = self.rng.column
+        col2 = self.rng.column_count
+        for i in range(0, self.rng.row_count, self.step):
+            yield self.rng.sheet.range((row+i, col1), (row+i, col2))
+
 
 
 class Shape(object):

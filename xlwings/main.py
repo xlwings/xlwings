@@ -204,6 +204,88 @@ class App(object):
         return Macro(self, macro)
 
 
+class Collection(object):
+
+    def __init__(self, impl):
+        self.impl = impl
+
+    @classmethod
+    def _wrap_slice(cls, impl):
+        raise NotImplementedError(cls.__name__ + " object does not support slicing")
+
+    @property
+    def api(self):
+        return self.impl.api
+
+    def __call__(self, name_or_index):
+        return self._wrap(impl=self.impl(name_or_index))
+
+    def __len__(self):
+        return len(self.impl)
+
+    def __iter__(self):
+        for impl in self.impl:
+            yield self._wrap(impl=impl)
+
+    def __getitem__(self, key):
+        if isinstance(key, numbers.Number):
+            l = len(self)
+            if key >= l:
+                raise IndexError("Workbook index %s out of range (%s workbooks)" % (key, l))
+            if key < 0:
+                if key < -l:
+                    raise IndexError("Workbook index %s out of range (%s workbooks)" % (key, l))
+                key += l
+            return self(key + 1)
+        elif isinstance(key, slice):
+            method = getattr(self.impl, 'slice', None)
+            if method is None:
+                raise ValueError(self.impl.__class__.__name__ + " object does not support slicing")
+            else:
+                l = len(self)
+                start = key.start
+                if start is None:
+                    start = 0
+                elif start > l:
+                    raise IndexError("Start index %s out of range (%s elements)." % (start, l))
+                elif start < 0:
+                    if start <= -l:
+                        raise IndexError("Start index %s out of range (%s elements)." % (start, l))
+                    else:
+                        start += l
+                stop = key.stop
+                if stop is None:
+                    stop = l
+                elif stop > l:
+                    raise IndexError("Stop index %s out of range (%s elements)." % (stop, l))
+                elif stop < 0:
+                    if stop <= -l:
+                        raise IndexError("Stop index %s out of range (%s elements)." % (stop, l))
+                    else:
+                        stop += l
+                step = key.step
+                if step is None:
+                    step = 1
+                return self._wrap_slice(impl=method(start, stop, step))
+        else:
+            return self(key)
+
+    def __repr__(self):
+        r = []
+        for i, x in enumerate(self):
+            if i == 3:
+                r.append("...")
+                break
+            else:
+                r.append(repr(x))
+
+        return '{}({})'.format(
+            self.__class__.__name__,
+            "[" + ", ".join(r) + "]"
+        )
+
+
+
 class Book(object):
     """
     ``Workbook`` connects an Excel Workbook with Python. You can create a new connection from Python with
@@ -891,11 +973,11 @@ class Range(object):
 
     @property
     def rows(self):
-        return Range(impl=self.impl.rows)
+        return [Range(impl=impl) for impl in self.impl.rows]
 
     @property
     def columns(self):
-        return Range(impl=self.impl.columns)
+        return [Range(impl=impl) for impl in self.impl.columns]
 
     @property
     def shape(self):
@@ -1073,7 +1155,7 @@ class Range(object):
                 if start < -l:
                     raise IndexError("Start index %s out of range (%s elements)." % (start, l))
                 else:
-                    start = l + start
+                    start += l
             stop = key.stop
             if stop is None:
                 stop = l
@@ -1083,8 +1165,8 @@ class Range(object):
                 if stop <= -l:
                     raise IndexError("Stop index %s out of range (%s elements)." % (stop, l))
                 else:
-                    stop = l + stop
-            return self._cls.Range(self(start + 1), self(stop))
+                    stop += l
+            return Range(self(start + 1), self(stop))
         else:
             l = len(self)
             if key >= l:
@@ -1284,6 +1366,13 @@ class Range(object):
 from . import conversion
 
 
+class Ranges(Collection):
+
+    _wrap = Range
+
+Ranges._wrap_slice = Ranges
+
+
 class Shape(object):
     """
     A Shape object represents an existing Excel shape and can be instantiated with the following arguments::
@@ -1392,53 +1481,6 @@ class Shape(object):
         return "<Shape '{0}' in {1}>".format(
             self.name,
             self.parent
-        )
-
-
-class Collection(object):
-
-    def __init__(self, impl):
-        self.impl = impl
-
-    @property
-    def api(self):
-        return self.impl.api
-
-    def __call__(self, name_or_index):
-        return self._wrap(impl=self.impl(name_or_index))
-
-    def __len__(self):
-        return len(self.impl)
-
-    def __iter__(self):
-        for impl in self.impl:
-            yield self._wrap(impl=impl)
-
-    def __getitem__(self, name_or_index):
-        if isinstance(name_or_index, numbers.Number):
-            l = len(self)
-            if name_or_index >= l:
-                raise IndexError("Workbook index %s out of range (%s workbooks)" % (name_or_index, l))
-            if name_or_index < 0:
-                if name_or_index < -l:
-                    raise IndexError("Workbook index %s out of range (%s workbooks)" % (name_or_index, l))
-                name_or_index += l
-            return self(name_or_index + 1)
-        else:
-            return self(name_or_index)
-
-    def __repr__(self):
-        r = []
-        for i, x in enumerate(self):
-            if i == 3:
-                r.append("...")
-                break
-            else:
-                r.append(repr(x))
-
-        return '{}({})'.format(
-            self.__class__.__name__,
-            "[" + ", ".join(r) + "]"
         )
 
 
