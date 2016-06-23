@@ -580,7 +580,7 @@ class Book(object):
             alerts_state = self.xl.Application.DisplayAlerts
             self.xl.Application.DisplayAlerts = False
             self.xl.SaveAs(path)
-            self.xl.Application.DisplayAlerts = True
+            self.xl.Application.DisplayAlerts = alerts_state
 
     @property
     def fullname(self):

@@ -87,7 +87,7 @@ class App(object):
                 self.visible = True
         else:
             self.impl = impl
-            if visible == True:
+            if visible:
                 self.visible = True
 
     @property
@@ -304,24 +304,17 @@ class Book(object):
         .. versionadded:: 0.3.0
         """
         if hasattr(Book, '_mock_file'):
-            # Use mocking Workbook, see Workbook.set_mock_caller()
-            _, xl_workbook = xlplatform.get_open_workbook(Book._mock_file)
-            return cls(xl_workbook=xl_workbook)
+            # Use mocking Book, see Book.set_mock_caller()
+            impl = active.app.book(Book._mock_file).impl
+            return cls(impl=impl)
         elif len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
-            # Connect to the workbook from which this code has been invoked
-            fullname = sys.argv[1].lower()
-            if sys.platform.startswith('win'):
-                xl_app, xl_workbook = xlplatform.get_open_workbook(fullname, hwnd=sys.argv[4])
-                return cls(xl_workbook=xl_workbook)
-            else:
-                xl_app, xl_workbook = xlplatform.get_open_workbook(fullname, app_target=sys.argv[3])
-                return cls(xl_workbook=xl_workbook, app_target=sys.argv[3])
-        elif xlplatform.get_xl_workbook_current():
-            # Called through ExcelPython connection
-            return cls(xl_workbook=xlplatform.get_xl_workbook_current())
+            return cls(impl=active.book.impl)
         else:
-            raise Exception('Workbook.caller() must not be called directly. Call through Excel or set a mock caller '
-                            'first with Workbook.set_mock_caller().')
+            # Called via OPTIMIZED_CONNECTION = True
+            return cls(impl=active.book.impl)
+        # TODO
+        # raise Exception('Workbook.caller() must not be called directly. Call through Excel or set a mock caller '
+        #                 'first with Book.set_mock_caller().')
 
     @staticmethod
     def set_mock_caller(fullpath):
@@ -2079,7 +2072,7 @@ class ActiveObjects(object):
 
     @property
     def app(self):
-        return App.active()
+        return apps.active
 
     @property
     def book(self):
