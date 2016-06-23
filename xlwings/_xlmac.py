@@ -322,6 +322,8 @@ class Sheet(object):
 
     def range(self, arg1, arg2=None):
         if isinstance(arg1, tuple):
+            if 0 in arg1:
+                raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
             row1 = arg1[0]
             col1 = arg1[1]
             address1 = self.xl.rows[row1].columns[col1].get_address()
@@ -335,6 +337,8 @@ class Sheet(object):
             raise ValueError("Invalid parameters")
 
         if isinstance(arg2, tuple):
+            if 0 in arg2:
+                raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
             row2 = arg2[0]
             col2 = arg2[1]
             address2 = self.xl.rows[row2].columns[col2].get_address()
