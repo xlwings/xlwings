@@ -472,7 +472,11 @@ Private Sub CleanUp()
     Application.StatusBar = False
     Application.ScreenUpdating = True
     On Error Resume Next
-        KillFileOnMac ToMacPath(ToPosixPath(LOG_FILE))
+        #If MAC_OFFICE_VERSION >= 15 Then
+            Kill LOG_FILE
+        #Else
+            KillFileOnMac ToMacPath(ToPosixPath(LOG_FILE))
+        #End If
     On Error GoTo 0
 End Sub
 

@@ -305,7 +305,7 @@ class Book(object):
         """
         if hasattr(Book, '_mock_file'):
             # Use mocking Book, see Book.set_mock_caller()
-            impl = active.app.book(Book._mock_file).impl
+            impl = Book(Book._mock_file).impl
             return cls(impl=impl)
         elif len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
             fullname = sys.argv[1].lower()
@@ -313,8 +313,7 @@ class Book(object):
                 app = App(impl=xlplatform.App(xl=int(sys.argv[4])))  # hwnd
                 return cls(impl=app.book(fullname).impl)
             else:
-                app = Book(fullname).app
-                return cls(impl=app.book(fullname).impl)
+                return cls(impl=Book(fullname).impl)  # This raises an exception if the same file is open in 2 instances
         else:
             # TODO
             # Called via OPTIMIZED_CONNECTION = True

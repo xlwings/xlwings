@@ -27,10 +27,6 @@ def xl_fibonacci():
     # Create a reference to the calling Excel Workbook
     wb = Book.caller()
 
-    # TODO: remove
-    import time
-    time.sleep(2)
-
     # Get the input from Excel and turn into integer
     n = wb.sheets[0].range('B1').options(numbers=int).value
 
