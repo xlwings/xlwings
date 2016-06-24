@@ -27,6 +27,7 @@ def xl_fibonacci():
     # Create a reference to the calling Excel Workbook
     wb = Book.caller()
 
+    # TODO: remove
     import time
     time.sleep(2)
 
