@@ -310,7 +310,7 @@ class Book(object):
         elif len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
             fullname = sys.argv[1].lower()
             if sys.platform.startswith('win'):
-                app = App(xlplatform.App(xl=sys.argv[4]))  # hwnd
+                app = App(impl=xlplatform.App(xl=int(sys.argv[4])))  # hwnd
                 return cls(impl=app.book(fullname).impl)
             else:
                 app = Book(fullname).app
