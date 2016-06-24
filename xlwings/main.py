@@ -308,11 +308,17 @@ class Book(object):
             impl = active.app.book(Book._mock_file).impl
             return cls(impl=impl)
         elif len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
-            return cls(impl=active.book.impl)
+            fullname = sys.argv[1].lower()
+            if sys.platform.startswith('win'):
+                app = App(xlplatform.App(xl=sys.argv[4]))  # hwnd
+                return cls(impl=app.book(fullname).impl)
+            else:
+                app = Book(fullname).app
+                return cls(impl=app.book(fullname).impl)
         else:
+            # TODO
             # Called via OPTIMIZED_CONNECTION = True
             return cls(impl=active.book.impl)
-        # TODO
         # raise Exception('Workbook.caller() must not be called directly. Call through Excel or set a mock caller '
         #                 'first with Book.set_mock_caller().')
 

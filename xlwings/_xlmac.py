@@ -750,11 +750,12 @@ def clean_up():
     """
     if is_excel_running():
         # Prevents Excel from reopening if it has been closed manually or never been opened
-        try:
-            _xl_app.run_VB_macro('CleanUp')
-        except (CommandError, AttributeError):
-            # Excel files initiated from Python don't have the xlwings VBA module
-            pass
+        for app in Apps():
+            try:
+                app.xl.run_VB_macro('CleanUp')
+            except (CommandError, AttributeError):
+                # Excel files initiated from Python don't have the xlwings VBA module
+                pass
 
 
 def posix_to_hfs_path(posix_path):
