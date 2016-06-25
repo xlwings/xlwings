@@ -59,6 +59,17 @@ class TestBook(TestBase):
         wb2 = self.app1.book(self.wb1.name)
         assert_equal(wb2.sheets[0].range('B2').value, 123)
 
+    def test_instantiate_two_unsaved(self):
+        """Covers GH Issue #63"""
+        wb1 = self.wb1
+        wb2 = self.app1.book()
+
+        wb2.sheets[0].range('A1').value = 2.
+        wb1.sheets[0].range('A1').value = 1.
+
+        assert_equal(wb2.sheets[0].range('A1').value, 2.)
+        assert_equal(wb1.sheets[0].range('A1').value, 1.)
+
     def test_instantiate_saved_by_name(self):
         wb1 = self.app1.book(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test book.xlsx'))
         wb1.sheets[0].range('A1').value = 'xx'
@@ -84,7 +95,7 @@ class TestBook(TestBase):
         wb3.close()
         os.remove(dst)
 
-    def test_active_workbook(self):
+    def test_active_book(self):
         self.wb2.sheets[0].range('A1').value = 'active_book'  # 2nd instance
         self.wb2.activate()
         wb_active = xw.Book.active()
@@ -99,20 +110,47 @@ class TestBook(TestBase):
         wb2.sheets[0].range('A1').value = 333
         assert_equal(wb2.sheets[0].range('A1').value, 333)
 
+    def test_macro(self):
+        # NOTE: Uncheck Macro security check in Excel
+        _none = None if sys.platform.startswith('win') else ''
+
+        src = os.path.abspath(os.path.join(this_dir, 'macro book.xlsm'))
+        wb = self.app1.book(src)
+
+        test1 = wb.macro('Module1.Test1')
+        test2 = wb.macro('Module1.Test2')
+        test3 = wb.macro('Module1.Test3')
+        test4 = wb.macro('Test4')
+
+        res1 = test1('Test1a', 'Test1b')
+
+        assert_equal(res1, 1)
+        assert_equal(test2(), 2)
+        assert_equal(test3('Test3a', 'Test3b'), _none)
+        assert_equal(test4(), _none)
+        assert_equal(wb.sheets[0].range('A1').value, 'Test1a')
+        assert_equal(wb.sheets[0].range('A2').value, 'Test1b')
+        assert_equal(wb.sheets[0].range('A3').value, 'Test2')
+        assert_equal(wb.sheets[0].range('A4').value, 'Test3a')
+        assert_equal(wb.sheets[0].range('A5').value, 'Test3b')
+        assert_equal(wb.sheets[0].range('A6').value, 'Test4')
+
     def test_name(self):
         wb = self.app1.book(os.path.join(this_dir, 'test book.xlsx'))
         assert_equal(wb.name, 'test book.xlsx')
 
-    def test_reference_two_unsaved_wb(self):
-        """Covers GH Issue #63"""
-        wb1 = self.wb1
-        wb2 = self.app1.book()
+    def test_sheets(self):
+        assert_equal(len(self.wb1.sheets), 3)
 
-        wb2.sheets[0].range('A1').value = 2.
-        wb1.sheets[0].range('A1').value = 1.
+    def test_app(self):
+        assert_equal(self.app1, self.wb1.app)
 
-        assert_equal(wb2.sheets[0].range('A1').value, 2.)
-        assert_equal(wb1.sheets[0].range('A1').value, 1.)
+    def test_close(self):
+        self.wb1.close()
+        assert_equal(len(self.app1.books), 0)
+
+    def test_active_sheet(self):
+        assert_equal(self.wb1.active_sheet.name, self.wb1.sheets[0].name)
 
     def test_save_naked(self):
         if sys.platform.startswith('darwin') and self.app1.major_version >= 15:
@@ -152,28 +190,4 @@ class TestBook(TestBase):
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
 
-    def test_macro(self):
-        # NOTE: Uncheck Macro security check in Excel
-        _none = None if sys.platform.startswith('win') else ''
-
-        src = os.path.abspath(os.path.join(this_dir, 'macro book.xlsm'))
-        wb = self.app1.book(src)
-
-        test1 = wb.macro('Module1.Test1')
-        test2 = wb.macro('Module1.Test2')
-        test3 = wb.macro('Module1.Test3')
-        test4 = wb.macro('Test4')
-
-        res1 = test1('Test1a', 'Test1b')
-
-        assert_equal(res1, 1)
-        assert_equal(test2(), 2)
-        assert_equal(test3('Test3a', 'Test3b'), _none)
-        assert_equal(test4(), _none)
-        assert_equal(wb.sheets[0].range('A1').value, 'Test1a')
-        assert_equal(wb.sheets[0].range('A2').value, 'Test1b')
-        assert_equal(wb.sheets[0].range('A3').value, 'Test2')
-        assert_equal(wb.sheets[0].range('A4').value, 'Test3a')
-        assert_equal(wb.sheets[0].range('A5').value, 'Test3b')
-        assert_equal(wb.sheets[0].range('A6').value, 'Test4')
 
