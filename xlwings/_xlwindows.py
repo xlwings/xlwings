@@ -60,6 +60,7 @@ DIRECTIONS = {
     'up': Direction.xlUp
 }
 
+BOOK_CALLER = None
 
 class COMRetryMethodWrapper(object):
 

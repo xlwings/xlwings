@@ -303,26 +303,25 @@ class Book(object):
 
         .. versionadded:: 0.3.0
         """
-        if hasattr(Book, '_mock_file'):
+        if hasattr(Book, '_mock_caller'):
             # Use mocking Book, see Book.set_mock_caller()
-            impl = Book(Book._mock_file).impl
-            return cls(impl=impl)
+            return cls(impl=Book._mock_caller.impl)
         elif len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
             fullname = sys.argv[1].lower()
             if sys.platform.startswith('win'):
                 app = App(impl=xlplatform.App(xl=int(sys.argv[4])))  # hwnd
                 return cls(impl=app.book(fullname).impl)
             else:
-                return cls(impl=Book(fullname).impl)  # This raises an exception if the same file is open in 2 instances
-        else:
-            # TODO
+                # On Mac, the same file open in two instances is not supported
+                return cls(impl=Book(fullname).impl)
+        elif xlplatform.BOOK_CALLER:
             # Called via OPTIMIZED_CONNECTION = True
-            return cls(impl=active.book.impl)
-        # raise Exception('Workbook.caller() must not be called directly. Call through Excel or set a mock caller '
-        #                 'first with Book.set_mock_caller().')
+            return cls(impl=xlplatform.Book(xlplatform.BOOK_CALLER))
+        else:
+            raise Exception('Workbook.caller() must not be called directly. Call through Excel or set a mock caller '
+                            'first with Book.set_mock_caller().')
 
-    @staticmethod
-    def set_mock_caller(fullpath):
+    def set_mock_caller(self):
         """
         Sets the Excel file which is used to mock ``Workbook.caller()`` when the code is called from within Python.
 
@@ -339,13 +338,12 @@ class Book(object):
                 Range('A1').value = 'Hello xlwings!'
 
             if __name__ == '__main__':
-                # Mock the calling Excel file
-                Workbook.set_mock_caller(r'C:\\path\\to\\file.xlsx')
+                xw.Book(r'C:\\path\\to\\file.xlsx').set_mock_caller()
                 my_macro()
 
         .. versionadded:: 0.3.1
         """
-        Book._mock_file = fullpath
+        Book._mock_caller = self
 
     @staticmethod
     def open_template():

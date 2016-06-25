@@ -91,16 +91,13 @@ class TestBook(TestBase):
         assert_equal(wb_active.sheets[0].range('A1').value, 'active_book')
 
     def test_mock_caller(self):
-        # Can't really run this one with app_visible=False
-        # _skip_if_not_default_xl()
-
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test book.xlsx')
 
-        self.app1.book(path)  # open the wb
-        xw.Book.set_mock_caller(path)
-        wb = xw.Book.caller()
-        wb.sheets[0].range('A1').value = 333
-        assert_equal(wb.sheets[0].range('A1').value, 333)
+        wb = self.app1.book(path)
+        wb.set_mock_caller()
+        wb2 = xw.Book.caller()
+        wb2.sheets[0].range('A1').value = 333
+        assert_equal(wb2.sheets[0].range('A1').value, 333)
 
     def test_name(self):
         wb = self.app1.book(os.path.join(this_dir, 'test book.xlsx'))

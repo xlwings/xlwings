@@ -226,7 +226,7 @@ def call_udf(module_name, func_name, args, this_workbook, caller):
         else:
             args[i] = conversion.read(None, arg, arg_info['options'])
 
-    xlplatform.xl_workbook_current = Dispatch(this_workbook)
+    xlplatform.BOOK_CALLER = Dispatch(this_workbook)
     ret = func(*args)
 
     for i, arg in enumerate(args):

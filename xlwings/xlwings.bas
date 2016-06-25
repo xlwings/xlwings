@@ -82,7 +82,7 @@ Public Function RunPython(PythonCommand As String)
         #End If
     #Else
         If OPTIMIZED_CONNECTION = True Then
-            Py.SetAttr Py.Module("xlwings._xlwindows"), "xl_workbook_current", ThisWorkbook
+            Py.SetAttr Py.Module("xlwings._xlwindows"), "BOOK_CALLER", ThisWorkbook
             Py.Exec "" & PythonCommand & ""
         Else
             ExecuteWindows False, PythonCommand, PYTHON_WIN, LOG_FILE, SHOW_LOG, PYTHONPATH
