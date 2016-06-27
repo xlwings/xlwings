@@ -1153,42 +1153,23 @@ class Range(object):
 
         elif isinstance(key, slice):
             if self.row_count > 1 and self.column_count > 1:
-                raise ValueError("One-dimensional slicing is not allowed on two-dimensional ranges")
-            if key.step is not None:
-                raise ValueError("Slice steps not supported.")
-            l = len(self)
-            start = key.start
-            if start is None:
-                start = 0
-            elif start >= l:
-                raise IndexError("Start index %s out of range (%s elements)." % (start, l))
-            elif start < 0:
-                if start < -l:
-                    raise IndexError("Start index %s out of range (%s elements)." % (start, l))
-                else:
-                    start += l
-            stop = key.stop
-            if stop is None:
-                stop = l
-            elif stop > l:
-                raise IndexError("Stop index %s out of range (%s elements)." % (stop, l))
-            elif stop < 0:
-                if stop <= -l:
-                    raise IndexError("Stop index %s out of range (%s elements)." % (stop, l))
-                else:
-                    stop += l
-            return Range(self(start + 1), self(stop))
-        else:
-            l = len(self)
-            if key >= l:
-                raise IndexError("Index %s out of range (%s elements)." % (key, l))
-            elif key < 0:
-                if key < -l:
-                    raise IndexError("Index %s out of range (%s elements)." % (key, l))
-                else:
-                    return self(l + key + 1)
+                raise IndexError("One-dimensional slicing is not allowed on two-dimensional ranges")
+
+            if self.row_count > 1:
+                return self[key, :]
             else:
-                return self(key + 1)
+                return self[:, key]
+
+        elif isinstance(key, int):
+            n = len(self)
+            k = key + n if key < 0 else key
+            if k < 0 or k >= n:
+                raise IndexError("Index %s out of range (%s elements)." % (key, n))
+            else:
+                return self(k + 1)
+
+        else:
+            raise TypeError("Cell indices must be integers or slices, not %s" % type(key).__name__)
 
     def get_address(self, row_absolute=True, column_absolute=True, include_sheetname=False, external=False):
         """
