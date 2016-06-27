@@ -169,7 +169,7 @@ class TestBook(TestBase):
     def test_fullname(self):
         fullname = os.path.join(this_dir, 'test book.xlsx')
         wb = self.app1.book(fullname)
-        assert_equal(wb.fullname, fullname)
+        assert_equal(wb.fullname.lower(), fullname.lower())
 
     def test_names(self):
         names = self.wb1.names
