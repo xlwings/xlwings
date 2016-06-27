@@ -67,9 +67,7 @@ class App(object):
     def __init__(self, spec=None, xl=None):
         if xl is None:
             self.xl = appscript.app(name=spec or 'Microsoft Excel', newinstance=True, terms=mac_dict)
-            self.activate()
-            # need to do *something* with the app otherwise it doesn't start up
-            b = self.xl.visible
+            self.activate()  # Makes it behave like on Windows
         elif isinstance(xl, int):
             self.xl = appscript.app(pid=xl, terms=mac_dict)
         else:
@@ -664,6 +662,11 @@ class RangeRows(object):
             yield self.rng.sheet.range((row+i, col1), (row+i, col2))
 
 
+    def select(self):
+        # seems to only work reliably in this combination
+        self.xl.activate()
+        self.xl.select()
+
 
 class Shape(object):
     def __init__(self, sheet, name_or_index):
@@ -755,7 +758,11 @@ class Names(object):
         return True
 
     def __len__(self):
-        return len(self.xl.get())
+        named_items = self.xl.get()
+        if named_items == kw.missing_value:
+            return 0
+        else:
+            return len(named_items)
 
     def add(self, name, refers_to):
         return Name(self.book, self.book.xl.make(at=self.book.xl,
@@ -826,11 +833,12 @@ def clean_up():
     """
     if is_excel_running():
         # Prevents Excel from reopening if it has been closed manually or never been opened
-        try:
-            _xl_app.run_VB_macro('CleanUp')
-        except (CommandError, AttributeError):
-            # Excel files initiated from Python don't have the xlwings VBA module
-            pass
+        for app in Apps():
+            try:
+                app.xl.run_VB_macro('CleanUp')
+            except (CommandError, AttributeError, aem.aemsend.EventError):
+                # Excel files initiated from Python don't have the xlwings VBA module
+                pass
 
 
 def posix_to_hfs_path(posix_path):

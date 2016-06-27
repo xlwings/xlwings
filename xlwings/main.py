@@ -87,16 +87,12 @@ class App(object):
                 self.visible = True
         else:
             self.impl = impl
-            if visible == True:
+            if visible:
                 self.visible = True
 
     @property
     def api(self):
         return self.impl.api
-
-    @classmethod
-    def active(cls):
-        return apps.active
 
     @property
     def version(self):
@@ -389,28 +385,25 @@ class Book(object):
 
         .. versionadded:: 0.3.0
         """
-        if hasattr(Book, '_mock_file'):
-            # Use mocking Workbook, see Workbook.set_mock_caller()
-            _, xl_workbook = xlplatform.get_open_workbook(Book._mock_file)
-            return cls(xl_workbook=xl_workbook)
+        if hasattr(Book, '_mock_caller'):
+            # Use mocking Book, see Book.set_mock_caller()
+            return cls(impl=Book._mock_caller.impl)
         elif len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
-            # Connect to the workbook from which this code has been invoked
             fullname = sys.argv[1].lower()
             if sys.platform.startswith('win'):
-                xl_app, xl_workbook = xlplatform.get_open_workbook(fullname, hwnd=sys.argv[4])
-                return cls(xl_workbook=xl_workbook)
+                app = App(impl=xlplatform.App(xl=int(sys.argv[4])))  # hwnd
+                return cls(impl=app.book(fullname).impl)
             else:
-                xl_app, xl_workbook = xlplatform.get_open_workbook(fullname, app_target=sys.argv[3])
-                return cls(xl_workbook=xl_workbook, app_target=sys.argv[3])
-        elif xlplatform.get_xl_workbook_current():
-            # Called through ExcelPython connection
-            return cls(xl_workbook=xlplatform.get_xl_workbook_current())
+                # On Mac, the same file open in two instances is not supported
+                return cls(impl=Book(fullname).impl)
+        elif xlplatform.BOOK_CALLER:
+            # Called via OPTIMIZED_CONNECTION = True
+            return cls(impl=xlplatform.Book(xlplatform.BOOK_CALLER))
         else:
             raise Exception('Workbook.caller() must not be called directly. Call through Excel or set a mock caller '
-                            'first with Workbook.set_mock_caller().')
+                            'first with Book.set_mock_caller().')
 
-    @staticmethod
-    def set_mock_caller(fullpath):
+    def set_mock_caller(self):
         """
         Sets the Excel file which is used to mock ``Workbook.caller()`` when the code is called from within Python.
 
@@ -427,13 +420,12 @@ class Book(object):
                 Range('A1').value = 'Hello xlwings!'
 
             if __name__ == '__main__':
-                # Mock the calling Excel file
-                Workbook.set_mock_caller(r'C:\\path\\to\\file.xlsx')
+                xw.Book(r'C:\\path\\to\\file.xlsx').set_mock_caller()
                 my_macro()
 
         .. versionadded:: 0.3.1
         """
-        Book._mock_file = fullpath
+        Book._mock_caller = self
 
     @staticmethod
     def open_template():
@@ -518,13 +510,13 @@ class Book(object):
     def names(self):
         return Names(impl=self.impl.names)
 
-    def activate(self):
-        self.app.activate()
+    def activate(self, steal_focus=False):
+        self.app.activate(steal_focus=steal_focus)
         self.impl.activate()
 
     @property
     def selection(self):
-        return Range(impl=self.impl.active_sheet.selection)
+        return Range(impl=self.app.selection.impl)
 
     def sheet(self, name_or_index=None):
         if name_or_index is None:
@@ -1360,6 +1352,12 @@ class Range(object):
         .. versionadded:: 0.3.5
         """
         return self(self.row_count, self.column_count).options(**self._options)
+
+    def select(self):
+        """
+        TODO
+        """
+        self.impl.select()
 
 
 # This has to be after definition of Range to resolve circular reference
@@ -2245,7 +2243,7 @@ class ActiveObjects(object):
 
     @property
     def app(self):
-        return App.active()
+        return apps.active
 
     @property
     def book(self):

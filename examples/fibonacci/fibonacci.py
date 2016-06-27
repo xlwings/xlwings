@@ -28,16 +28,16 @@ def xl_fibonacci():
     wb = Book.caller()
 
     # Get the input from Excel and turn into integer
-    n = Range('B1').options(numbers=int).value
+    n = wb.sheets[0].range('B1').options(numbers=int).value
 
     # Call the main function
     seq = fibonacci(n)
 
     # Clear output
-    Range('C1').vertical.clear_contents()
+    wb.sheets[0].range('C1').vertical.clear_contents()
 
     # Return the output to Excel in column orientation
-    Range('C1').options(transpose=True).value = seq
+    wb.sheets[0].range('C1').options(transpose=True).value = seq
 
 if __name__ == "__main__":
     # Used for frozen executable

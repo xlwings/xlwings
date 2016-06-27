@@ -60,6 +60,7 @@ DIRECTIONS = {
     'up': Direction.xlUp
 }
 
+BOOK_CALLER = None
 
 class COMRetryMethodWrapper(object):
 
@@ -438,7 +439,6 @@ class App(object):
     def quit(self):
         self.xl.DisplayAlerts = False
         self.xl.Quit()
-        self.xl.DisplayAlerts = True
 
     def kill(self):
         import win32api
@@ -469,9 +469,6 @@ class App(object):
     @property
     def version(self):
         return self.xl.Version
-
-    def get_major_version_number(self):
-        return int(self.version.split('.')[0])
 
     @property
     def books(self):
@@ -573,14 +570,16 @@ class Book(object):
         elif (saved_path == '') and (path is None):
             # Previously unsaved: Save under current name in current working directory
             path = os.path.join(os.getcwd(), self.xl.Name + '.xlsx')
+            alerts_state = self.xl.Application.DisplayAlerts
             self.xl.Application.DisplayAlerts = False
             self.xl.SaveAs(path)
-            self.xl.Application.DisplayAlerts = True
+            self.xl.Application.DisplayAlerts = alerts_state
         elif path:
             # Save under new name/location
+            alerts_state = self.xl.Application.DisplayAlerts
             self.xl.Application.DisplayAlerts = False
             self.xl.SaveAs(path)
-            self.xl.Application.DisplayAlerts = True
+            self.xl.Application.DisplayAlerts = alerts_state
 
     @property
     def fullname(self):
@@ -707,10 +706,11 @@ class Sheet(object):
             self.xl.Columns.AutoFit()
 
     def delete(self):
-        xl_app = self.xl.Parent.Application
-        xl_app.DisplayAlerts = False
+        app = self.xl.Parent.Application
+        alerts_state = app.DisplayAlerts
+        app.DisplayAlerts = False
         self.xl.Delete()
-        xl_app.DisplayAlerts = True
+        app.DisplayAlerts = alerts_state
 
     @property
     def charts(self):
@@ -907,6 +907,9 @@ class Range(object):
     @property
     def columns(self):
         return Range(xl=self.xl.Columns)
+
+    def select(self):
+        return self.xl.Select()
 
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
