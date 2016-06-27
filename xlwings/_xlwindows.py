@@ -910,6 +910,9 @@ class Range(object):
     def columns(self):
         return Range(xl=self.xl.Columns)
 
+    def select(self):
+        return self.xl.Select()
+
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
     if number_builder is not None:

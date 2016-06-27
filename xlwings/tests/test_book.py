@@ -3,34 +3,10 @@ from __future__ import unicode_literals
 import os
 import sys
 
-from nose.tools import assert_equal, raises, assert_raises, assert_true, assert_false, assert_not_equal
+from nose.tools import assert_equal, assert_true
 
 import xlwings as xw
 from .common import TestBase, this_dir
-
-# Optional dependencies
-try:
-    import numpy as np
-    from numpy.testing import assert_array_equal
-    from .test_data import array_1d, array_2d
-except ImportError:
-    np = None
-try:
-    import pandas as pd
-    from pandas import DataFrame, Series
-    from pandas.util.testing import assert_frame_equal, assert_series_equal
-    from .test_data import series_1, timeseries_1, df_1, df_2, df_dateindex, df_multiheader, df_multiindex
-except ImportError:
-    pd = None
-try:
-    import matplotlib
-    from matplotlib.figure import Figure
-except ImportError:
-    matplotlib = None
-try:
-    import PIL
-except ImportError:
-    PIL = None
 
 
 class TestBooks(TestBase):
@@ -190,4 +166,30 @@ class TestBook(TestBase):
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
 
+    def test_fullname(self):
+        fullname = os.path.join(this_dir, 'test book.xlsx')
+        wb = self.app1.book(fullname)
+        assert_equal(wb.fullname, fullname)
 
+    def test_names(self):
+        names = self.wb1.names
+        assert_equal(len(names), 0)
+
+    def test_activate(self):
+        wb1 = self.app1.book()
+        wb2 = self.app2.book()
+        wb1.activate()
+        assert_equal(xw.active.book.name, wb1.name)
+
+        wb2.activate()
+        assert_equal(xw.active.book.name, wb2.name)
+
+    def test_selection(self):
+        self.wb1.sheets[0].range('B10').select()
+        assert_equal(self.wb1.selection.address, '$B$10')
+        self.wb2.sheets[0].range('A2:C3').select()
+        assert_equal(self.wb2.selection.address, '$A$2:$C$3')
+
+    def test_sheet(self):
+        self.wb1.sheet()
+        assert_equal(len(self.wb1.sheets), 4)

@@ -434,7 +434,7 @@ class Book(object):
 
     @property
     def selection(self):
-        return Range(impl=self.impl.active_sheet.selection)
+        return Range(impl=self.app.selection.impl)
 
     def sheet(self, name_or_index=None):
         if name_or_index is None:
@@ -1255,6 +1255,12 @@ class Range(object):
         .. versionadded:: 0.3.5
         """
         return self(self.row_count, self.column_count).options(**self._options)
+
+    def select(self):
+        """
+        TODO
+        """
+        self.impl.select()
 
 
 # This has to be after definition of Range to resolve circular reference

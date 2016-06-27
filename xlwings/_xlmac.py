@@ -588,6 +588,11 @@ class Range(object):
         # TODO
         return Range(self.sheet, self.xl.columns.get())
 
+    def select(self):
+        # seems to only work reliably in this combination
+        self.xl.activate()
+        self.xl.select()
+
 
 class Shape(object):
     def __init__(self, sheet, name_or_index):
@@ -679,7 +684,11 @@ class Names(object):
         return True
 
     def __len__(self):
-        return len(self.xl.get())
+        named_items = self.xl.get()
+        if named_items == kw.missing_value:
+            return 0
+        else:
+            return len(named_items)
 
     def add(self, name, refers_to):
         return Name(self.book, self.book.xl.make(at=self.book.xl,
@@ -753,7 +762,7 @@ def clean_up():
         for app in Apps():
             try:
                 app.xl.run_VB_macro('CleanUp')
-            except (CommandError, AttributeError):
+            except (CommandError, AttributeError, aem.aemsend.EventError):
                 # Excel files initiated from Python don't have the xlwings VBA module
                 pass
 
