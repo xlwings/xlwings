@@ -1113,28 +1113,47 @@ class Range(object):
     def __getitem__(self, key):
         if type(key) is tuple:
             row, col = key
+
+            n = self.row_count
             if isinstance(row, slice):
-                if row.step is not None:
+                row1, row2, step = row.indices(n)
+                if step != 1:
                     raise ValueError("Slice steps not supported.")
-                row1 = 0 if row.start is None else row.start
-                row2 = self.row_count - 1 if row.stop is None else row.stop - 1
-            else:
+                row2 -= 1
+            elif isinstance(row, int):
+                if row < 0:
+                    row += n
+                if row < 0 or row >= n:
+                    raise IndexError("Row index %s out of range (%s rows)." % (row, n))
                 row1 = row2 = row
+            else:
+                raise TypeError("Row indices must be integers or slices, not %s" % type(row).__name__)
+
+            n = self.column_count
             if isinstance(col, slice):
-                if col.step is not None:
+                col1, col2, step = col.indices(n)
+                if step != 1:
                     raise ValueError("Slice steps not supported.")
-                col1 = 0 if col.start is None else col.start
-                col2 = self.column_count - 1 if col.stop is None else col.stop - 1
-            else:
+                col2 -= 1
+            elif isinstance(col, int):
+                if col < 0:
+                    col += n
+                if col < 0 or col >= n:
+                    raise IndexError("Column index %s out of range (%s columns)." % (col, n))
                 col1 = col2 = col
-            if col1 == col2 and row1 == row2:
-                return self(row1 + 1, col1 + 1)
             else:
-                return self.sheet.range(
-                    self(row1 + 1, col1 + 1),
-                    self(row2 + 1, col2 + 1)
-                )
+                raise TypeError("Column indices must be integers or slices, not %s" % type(col).__name__)
+
+            return self.sheet.range((
+                self.row + row1,
+                self.column + col1,
+                max(0, row2 - row1 + 1),
+                max(0, col2 - col1 + 1)
+            ))
+
         elif isinstance(key, slice):
+            if self.row_count > 1 and self.column_count > 1:
+                raise ValueError("One-dimensional slicing is not allowed on two-dimensional ranges")
             if key.step is not None:
                 raise ValueError("Slice steps not supported.")
             l = len(self)

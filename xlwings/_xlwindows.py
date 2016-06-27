@@ -62,6 +62,28 @@ DIRECTIONS = {
 
 BOOK_CALLER = None
 
+missing = object()
+
+
+alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+
+def col_name(i):
+    i -= 1
+    if i < 0:
+        raise IndexError(i)
+    elif i < 26:
+        return alphabet[i]
+    elif i < 702:
+        i -= 26
+        return alphabet[i//26] + alphabet[i%26]
+    elif i < 16384:
+        i -= 702
+        return alphabet[i//676] + alphabet[i//26%26] + alphabet[i%26]
+    else:
+        raise IndexError(i)
+
+
 class COMRetryMethodWrapper(object):
 
     def __init__(self, method):
@@ -660,6 +682,9 @@ class Sheet(object):
         if isinstance(arg1, Range):
             xl1 = arg1.xl
         elif isinstance(arg1, tuple):
+            if len(arg1) == 4:
+                row, col, nrows, ncols = arg1
+                return Range(xl=(self.xl, row, col, nrows, ncols))
             if 0 in arg1:
                 raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
             xl1 = self.xl.Cells(arg1[0], arg1[1])
@@ -728,7 +753,34 @@ class Sheet(object):
 class Range(object):
 
     def __init__(self, xl):
-        self.xl = xl
+        if isinstance(xl, tuple):
+            self._coords = xl
+            self._xl = missing
+        else:
+            self._coords = missing
+            self._xl = xl
+
+    @property
+    def xl(self):
+        if self._xl is missing:
+            xl_sheet, row, col, nrows, ncols = self._coords
+            if nrows and ncols:
+                self._xl = xl_sheet.Range(xl_sheet.Cells(row, col), xl_sheet.Cells(row+nrows-1, col+ncols-1))
+            else:
+                self._xl = None
+        return self._xl
+
+    @property
+    def coords(self):
+        if self._coords is missing:
+            self._coords = (
+                self.xl.Worksheet,
+                self.xl.Row,
+                self.xl.Column,
+                self.xl.Rows.Count,
+                self.xl.Columns.Count
+            )
+        return self._coords
 
     @property
     def api(self):
@@ -736,51 +788,61 @@ class Range(object):
 
     @property
     def sheet(self):
-        return Sheet(xl=self.xl.Worksheet)
+        return Sheet(xl=self.coords[0])
 
     def __len__(self):
-        return self.xl.Count
+        return (self.xl and self.xl.Count) or 0
 
     @property
     def row(self):
-        return self.xl.Row
+        return self.coords[1]
 
     @property
     def column(self):
-        return self.xl.Column
+        return self.coords[2]
 
     @property
     def row_count(self):
-        return self.xl.Rows.Count
+        return self.coords[3]
 
     @property
     def column_count(self):
-        return self.xl.Columns.Count
+        return self.coords[4]
 
     @property
     def raw_value(self):
-        return self.xl.Value
+        if self.xl:
+            return self.xl.Value
+        else:
+            return None
 
     @raw_value.setter
     def raw_value(self, data):
-        self.xl.Value = data
+        if self.xl:
+            self.xl.Value = data
 
     def clear_contents(self):
-        self.xl.ClearContents()
+        if self.xl:
+            self.xl.ClearContents()
 
     def get_cell(self, row, col):
         return Range(xl=self.xl.Cells(row, col))
 
     def clear(self):
-        self.xl.Clear()
+        if self.xl:
+            self.xl.Clear()
 
     @property
     def formula(self):
-        return self.xl.Formula
+        if self.xl:
+            return self.xl.Formula
+        else:
+            return None
 
     @formula.setter
     def formula(self, value):
-        self.xl.Formula = value
+        if self.xl:
+            self.xl.Formula = value
 
     def end(self, direction):
         direction = DIRECTIONS.get(direction, direction)
@@ -788,117 +850,171 @@ class Range(object):
 
     @property
     def formula_array(self):
-        return self.xl.FormulaArray
+        if self.xl:
+            return self.xl.FormulaArray
+        else:
+            return None
 
     @formula_array.setter
     def formula_array(self, value):
-        self.xl.FormulaArray = value
+        if self.xl:
+            self.xl.FormulaArray = value
 
     @property
     def column_width(self):
-        return self.xl.ColumnWidth
+        if self.xl:
+            return self.xl.ColumnWidth
+        else:
+            return 0
 
     @column_width.setter
     def column_width(self, value):
-        self.xl.ColumnWidth = value
+        if self.xl:
+            self.xl.ColumnWidth = value
 
     @property
     def row_height(self):
-        return self.xl.RowHeight
+        if self.xl:
+            return self.xl.RowHeight
+        else:
+            return 0
 
     @row_height.setter
     def row_height(self, value):
-        self.xl.RowHeight = value
+        if self.xl:
+            self.xl.RowHeight = value
 
     @property
     def width(self):
-        return self.xl.Width
+        if self.xl:
+            return self.xl.Width
+        else:
+            return 0
 
     @property
     def height(self):
-        return self.xl.Height
+        if self.xl:
+            return self.xl.Height
+        else:
+            return 0
 
     @property
     def left(self):
-        return self.xl.Left
+        if self.xl:
+            return self.xl.Left
+        else:
+            return 0
 
     @property
     def top(self):
-        return self.xl.Top
+        if self.xl:
+            return self.xl.Top
+        else:
+            return 0
 
     @property
     def number_format(self):
-        return self.xl.NumberFormat
+        if self.xl:
+            return self.xl.NumberFormat
+        else:
+            return ''
 
     @number_format.setter
     def number_format(self, value):
-        self.xl.NumberFormat = value
+        if self.xl:
+            self.xl.NumberFormat = value
 
     def get_address(self, row_absolute, col_absolute, external):
-        return self.xl.GetAddress(row_absolute, col_absolute, 1, external)
+        if self.xl:
+            return self.xl.GetAddress(row_absolute, col_absolute, 1, external)
+        else:
+            raise NotImplemented()
 
     @property
     def address(self):
-        return self.xl.Address
+        if self.xl:
+            return self.xl.Address
+        else:
+            _, row, col, nrows, ncols = self.coords
+            return "$%s$%s{%sx%s}" % (col_name(col), str(row), nrows, ncols)
 
     @property
     def current_region(self):
-        return Range(xl=self.xl.CurrentRegion)
+        if self.xl:
+            return Range(xl=self.xl.CurrentRegion)
+        else:
+            return self
 
     def autofit(self, axis=None):
-        if axis == 'rows' or axis == 'r':
-            self.xl.Rows.AutoFit()
-        elif axis == 'columns' or axis == 'c':
-            self.xl.Columns.AutoFit()
-        elif axis is None:
-            self.xl.Columns.AutoFit()
-            self.xl.Rows.AutoFit()
+        if self.xl:
+            if axis == 'rows' or axis == 'r':
+                self.xl.Rows.AutoFit()
+            elif axis == 'columns' or axis == 'c':
+                self.xl.Columns.AutoFit()
+            elif axis is None:
+                self.xl.Columns.AutoFit()
+                self.xl.Rows.AutoFit()
 
     def get_hyperlink_address(self):
-        try:
-            return self.xl.Hyperlinks(1).Address
-        except pywintypes.com_error:
-            raise Exception("The cell doesn't seem to contain a hyperlink!")
+        if self.xl:
+            try:
+                return self.xl.Hyperlinks(1).Address
+            except pywintypes.com_error:
+                raise Exception("The cell doesn't seem to contain a hyperlink!")
+        else:
+            return ''
 
     def set_hyperlink(self, address, text_to_display, screen_tip):
-        # Another one of these pywin32 bugs that only materialize under certain circumstances:
-        # http://stackoverflow.com/questions/6284227/hyperlink-will-not-show-display-proper-text
-        link = self.xl.Hyperlinks.Add(Anchor=self.xl, Address=address)
-        link.TextToDisplay = text_to_display
-        link.ScreenTip = screen_tip
+        if self.xl:
+            # Another one of these pywin32 bugs that only materialize under certain circumstances:
+            # http://stackoverflow.com/questions/6284227/hyperlink-will-not-show-display-proper-text
+            link = self.xl.Hyperlinks.Add(Anchor=self.xl, Address=address)
+            link.TextToDisplay = text_to_display
+            link.ScreenTip = screen_tip
 
     @property
     def color(self):
-        if self.xl.Interior.ColorIndex == ColorIndex.xlColorIndexNone:
-            return None
+        if self.xl:
+            if self.xl.Interior.ColorIndex == ColorIndex.xlColorIndexNone:
+                return None
+            else:
+                return int_to_rgb(self.xl.Interior.Color)
         else:
-            return int_to_rgb(self.xl.Interior.Color)
+            return None
 
     @color.setter
     def color(self, color_or_rgb):
-        if color_or_rgb is None:
-            self.xl.Interior.ColorIndex = ColorIndex.xlColorIndexNone
-        elif isinstance(color_or_rgb, int):
-            self.xl.Interior.Color = color_or_rgb
-        else:
-            self.xl.Interior.Color = rgb_to_int(color_or_rgb)
+        if self.xl:
+            if color_or_rgb is None:
+                self.xl.Interior.ColorIndex = ColorIndex.xlColorIndexNone
+            elif isinstance(color_or_rgb, int):
+                self.xl.Interior.Color = color_or_rgb
+            else:
+                self.xl.Interior.Color = rgb_to_int(color_or_rgb)
 
     @property
     def name(self):
-        try:
-            name = Name(xl=self.xl.Name)
-        except pywintypes.com_error:
-            name = None
-        return name
+        if self.xl:
+            try:
+                name = Name(xl=self.xl.Name)
+            except pywintypes.com_error:
+                name = None
+            return name
+        else:
+            return None
 
     @name.setter
     def name(self, value):
-        self.xl.Name = value
+        if self.xl:
+            self.xl.Name = value
 
     def __call__(self, *args):
-        if len(args) == 0:
-            raise ValueError("Invalid arguments")
-        return Range(xl=self.xl(*args))
+        if self.xl:
+            if len(args) == 0:
+                raise ValueError("Invalid arguments")
+            return Range(xl=self.xl(*args))
+        else:
+            raise NotImplemented()
 
     @property
     def rows(self):
