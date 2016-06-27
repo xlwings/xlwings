@@ -437,10 +437,8 @@ class App(object):
         self.xl.Visible = visible
 
     def quit(self):
-        alerts_state = self.screen_updating
         self.xl.DisplayAlerts = False
         self.xl.Quit()
-        self.xl.DisplayAlerts = alerts_state
 
     def kill(self):
         import win32api
