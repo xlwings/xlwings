@@ -902,11 +902,11 @@ class Range(object):
 
     @property
     def rows(self):
-        return [Range(impl=impl) for impl in self.impl.rows]
+        return RangeRows(self)
 
     @property
     def columns(self):
-        return [Range(impl=impl) for impl in self.impl.columns]
+        return RangeColumns(self)
 
     @property
     def shape(self):
@@ -1299,6 +1299,70 @@ class Range(object):
 
 # This has to be after definition of Range to resolve circular reference
 from . import conversion
+
+
+class Ranges(object):
+    pass
+
+
+class RangeRows(Ranges):
+
+    def __init__(self, rng):
+        self.rng = rng
+
+    def __len__(self):
+        return self.rng.row_count
+
+    def __iter__(self):
+        for i in range(0, self.rng.row_count):
+            yield self.rng[i, :]
+
+    def __call__(self, key):
+        return self.rng[key-1, :]
+
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            return RangeRows(rng=self.rng[key, :])
+        elif isinstance(key, int):
+            return self.rng[key, :]
+        else:
+            raise TypeError("Indices must be integers or slices, not %s" % type(key).__name__)
+
+    def __repr__(self):
+        return '{}({})'.format(
+            self.__class__.__name__,
+            repr(self.rng)
+        )
+
+
+class RangeColumns(Ranges):
+
+    def __init__(self, rng):
+        self.rng = rng
+
+    def __len__(self):
+        return self.rng.column_count
+
+    def __iter__(self):
+        for j in range(0, self.rng.column_count):
+            yield self.rng[:, j]
+
+    def __call__(self, key):
+        return self.rng[:, key-1]
+
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            return RangeRows(rng=self.rng[:, key])
+        elif isinstance(key, int):
+            return self.rng[:, key]
+        else:
+            raise TypeError("Indices must be integers or slices, not %s" % type(key).__name__)
+
+    def __repr__(self):
+        return '{}({})'.format(
+            self.__class__.__name__,
+            repr(self.rng)
+        )
 
 
 class Ranges(Collection):
