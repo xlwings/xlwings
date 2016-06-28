@@ -335,6 +335,8 @@ class Book(object):
 
                 if len(candidates) == 0:
                     if os.path.isfile(fullname):
+                        if not active.app:
+                            app = App()
                         impl = active.app.books.open(fullname).impl
                     else:
                         raise Exception("Could not connect to workbook '%s'" % fullname)
