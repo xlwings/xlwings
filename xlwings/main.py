@@ -538,40 +538,6 @@ class Sheet(object):
     def api(self):
         return self.impl.api
 
-    @classmethod
-    def add(cls, name=None, before=None, after=None):
-        """
-        Creates a new worksheet: the new worksheet becomes the active sheet. If neither ``before`` nor
-        ``after`` is specified, the new Sheet will be placed at the end.
-
-        Arguments
-        ---------
-        name : str, default None
-            Sheet name, defaults to Excel standard name
-
-        before : str or int, default None
-            Sheet name or index
-
-        after : str or int, default None
-            Sheet name or index
-
-        Returns
-        -------
-        Sheet object
-
-        Examples
-        --------
-
-        >>> Sheet.add()  # Place at end with default name
-        >>> Sheet.add('NewSheet', before='Sheet1')  # Include name and position
-        >>> new_sheet = Sheet.add(after=3)
-        >>> new_sheet.index
-        4
-
-        .. versionadded:: 0.2.3
-        """
-        return active.book.sheets.add(name, before, after)
-
     @property
     def name(self):
         return self.impl.name
@@ -605,9 +571,6 @@ class Sheet(object):
 
     def activate(self):
         return self.impl.activate()
-
-    def get_value_from_index(self, row_index, column_index):
-        return self.impl.get_value_from_index(row_index, column_index)
 
     def clear_contents(self):
         return self.impl.clear_contents()

@@ -303,7 +303,7 @@ class Sheet(object):
 
     @property
     def names(self):
-        return Names(self)
+        return Names(book=self.workbook, xl=self.workbook.xl.named_items)
 
     @property
     def book(self):
