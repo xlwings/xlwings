@@ -99,15 +99,6 @@ class App(object):
         return self.impl.version
 
     @property
-    def active_book(self):
-        impl = self.impl.active_book
-        return impl and Book(impl=impl)
-
-    @property
-    def active_sheet(self):
-        return Sheet(impl=self.impl.active_sheet)
-
-    @property
     def selection(self):
         return Range(impl=self.impl.selection)
 
@@ -359,16 +350,6 @@ class Book(object):
         return self.impl.api
 
     @classmethod
-    def active(cls):
-        """
-        Returns the Workbook that is currently active or has been active last. On Windows,
-        this works across all instances.
-
-        .. versionadded:: 0.4.1
-        """
-        return apps.active.active_book
-
-    @classmethod
     def caller(cls):
         """
         Creates a connection when the Python function is called from Excel:
@@ -497,10 +478,6 @@ class Book(object):
     def close(self):
         self.impl.close()
 
-    @property
-    def active_sheet(self):
-        return Sheet(impl=self.impl.active_sheet)
-
     def save(self, path=None):
         return self.impl.save(path)
 
@@ -560,11 +537,6 @@ class Sheet(object):
     @property
     def api(self):
         return self.impl.api
-
-    @classmethod
-    def active(cls):
-        """Returns the active Sheet in the current application. Use like so: ``Sheet.active()``"""
-        return apps.active.active_sheet
 
     @classmethod
     def add(cls, name=None, before=None, after=None):
@@ -2114,7 +2086,7 @@ def view(obj):
 
     .. versionadded:: 0.7.1
     """
-    sht = Book().active_sheet
+    sht = Book().sheets.active
     Range(sht, 'A1').value = obj
     sht.autofit()
 
@@ -2138,6 +2110,10 @@ class Books(object):
     @property
     def api(self):
         return self.impl.api
+
+    @property
+    def active(self):
+        return Book(impl=self.impl.active)
 
     def __call__(self, name_or_index):
         return Book(impl=self.impl(name_or_index))
@@ -2187,6 +2163,10 @@ class Sheets(object):
     @property
     def api(self):
         return self.impl.api
+
+    @property
+    def active(self):
+        return Sheet(impl=self.impl.active)
 
     def __call__(self, name_or_index):
         if isinstance(name_or_index, Sheet):
@@ -2249,11 +2229,11 @@ class ActiveObjects(object):
 
     @property
     def book(self):
-        return Book.active()
+        return apps.active.books.active
 
     @property
     def sheet(self):
-        return Sheet.active()
+        return apps.active.books.active.sheets.active
 
 
 active = ActiveObjects()

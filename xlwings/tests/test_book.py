@@ -22,7 +22,7 @@ class TestBooks(TestBase):
 
     def test_open(self):
         self.app1.books.open(os.path.join(this_dir, 'test book.xlsx'))
-        assert_equal(self.app1.active_book.name, 'test book.xlsx')
+        assert_equal(self.app1.books.active.name, 'test book.xlsx')
 
     def test_iter(self):
         for ix, wb in enumerate(self.app1.books):
@@ -74,7 +74,7 @@ class TestBook(TestBase):
     def test_active_book(self):
         self.wb2.sheets[0].range('A1').value = 'active_book'  # 2nd instance
         self.wb2.activate()
-        wb_active = xw.Book.active()
+        wb_active = self.app2.books.active
         assert_equal(wb_active.sheets[0].range('A1').value, 'active_book')
 
     def test_mock_caller(self):
@@ -124,9 +124,6 @@ class TestBook(TestBase):
     def test_close(self):
         self.wb1.close()
         assert_equal(len(self.app1.books), 0)
-
-    def test_active_sheet(self):
-        assert_equal(self.wb1.active_sheet.name, self.wb1.sheets[0].name)
 
     def test_save_naked(self):
         if sys.platform.startswith('darwin') and self.app1.major_version >= 15:

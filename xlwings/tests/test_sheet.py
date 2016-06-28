@@ -7,14 +7,40 @@ import xlwings as xw
 from .common import TestBase
 
 
+class TestSheets(TestBase):
+    def test_active(self):
+        self.wb1.sheets[2].activate()
+        assert_equal(self.wb1.sheets.active.name, self.wb1.sheets[2].name)
+
+    def test_index(self):
+        assert_equal(self.wb1.sheets[0].name, self.wb1.sheets(1).name)
+
+    def test_len(self):
+        assert_equal(len(self.wb1.sheets), 3)
+
+    def del_sheet(self):
+        name = self.wb1.sheets[0].name
+        del self.wb1.sheets[0]
+        assert_equal(len(self.wb1.sheets), 2)
+        assert_false(self.wb1.sheets[0].name, name)
+
+    def test_iter(self):
+        for ix, sht in enumerate(self.wb1.sheets):
+            assert_equal(self.wb1.sheets[ix].name, sht.name)
+
+    def test_add(self):
+        self.wb1.sheets.add()
+        assert_equal(len(self.wb1.sheets), 4)
+
+
 class TestSheet(TestBase):
     def test_activate(self):
         self.wb1.sheets['Sheet2'].activate()
-        assert_equal(self.wb1.active_sheet.name, 'Sheet2')
+        assert_equal(self.wb1.sheets.active.name, 'Sheet2')
         self.wb1.sheets[2].activate()
-        assert_equal(self.wb1.active_sheet.index, 3)
+        assert_equal(self.wb1.sheets.active.index, 3)
         self.wb1.sheets(1).activate()
-        assert_equal(self.wb1.active_sheet.index, 1)
+        assert_equal(self.wb1.sheets.active.index, 1)
 
     def test_name(self):
         self.wb1.sheets[0].name = 'NewName'
@@ -25,12 +51,12 @@ class TestSheet(TestBase):
 
     def test_clear_content_active_sheet(self):
         self.wb1.sheets[0].range('G10').value = 22
-        self.wb1.active_sheet.clear_contents()
+        self.wb1.sheets.active.clear_contents()
         assert_equal(self.wb1.sheets[0].range('G10').value, None)
 
     def test_clear_active_sheet(self):
         self.wb1.sheets[0].range('G10').value = 22
-        self.wb1.active_sheet.clear()
+        self.wb1.sheets.active.clear()
         assert_equal(self.wb1.sheets[0].range('G10').value, None)
 
     def test_clear_content(self):
@@ -66,15 +92,15 @@ class TestSheet(TestBase):
 
     def test_add_after(self):
         self.wb1.sheets.add(after=len(self.wb1.sheets))
-        assert_equal(self.wb1.sheets[(len(self.wb1.sheets) - 1)].name, self.wb1.active_sheet.name)
+        assert_equal(self.wb1.sheets[(len(self.wb1.sheets) - 1)].name, self.wb1.sheets.active.name)
 
         self.wb1.sheets.add(after=1)
-        assert_equal(self.wb1.sheets[1].name, self.wb1.active_sheet.name)
+        assert_equal(self.wb1.sheets[1].name, self.wb1.sheets.active.name)
 
     def test_add_default(self):
-        current_index = self.wb1.active_sheet.index
+        current_index = self.wb1.sheets.active.index
         self.wb1.sheets.add()
-        assert_equal(self.wb1.active_sheet.index, current_index)
+        assert_equal(self.wb1.sheets.active.index, current_index)
 
     def test_add_named(self):
         self.wb1.sheets.add('test', before=1)

@@ -27,12 +27,6 @@ class TestApps(TestBase):
 
 
 class TestApp(TestBase):
-    def test_active_book(self):
-        assert_equal(xw.apps[0].active_book.name, xw.apps[0].books[0].name)
-
-    def test_active_sheet(self):
-        assert_equal(xw.apps[0].active_sheet.name, xw.apps[0].books[0].sheets[0].name)
-
     def test_activate(self):
         assert_equal(self.app2, xw.apps.active)
         self.app1.activate()
@@ -45,6 +39,8 @@ class TestApp(TestBase):
 
     def test_quit(self):
         n_apps = len(xw.apps)
+        while len(self.app2.books) > 0:
+            self.app2.books[0].close()
         self.app2.quit()
         assert_equal(n_apps - 1, len(xw.apps))
 
