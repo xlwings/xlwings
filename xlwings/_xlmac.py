@@ -441,14 +441,15 @@ class Range(object):
         self.xl.clear_range()
         self.sheet.book.app.screen_updating = alerts_state
 
-    def get_cell(self, row, col):
-        return Range(self.sheet, self.xl.rows[row].columns[col].get_address())
-
     def clear(self):
         alerts_state = self.sheet.book.app.screen_updating
         self.sheet.book.app.screen_updating = False
         self.xl.clear_range()
         self.sheet.book.app.screen_updating = alerts_state
+
+    def end(self, direction):
+        direction = DIRECTIONS.get(direction, direction)
+        return Range(self.sheet, self.xl.get_end(direction=direction).get_address())
 
     @property
     def formula(self):
@@ -457,10 +458,6 @@ class Range(object):
     @formula.setter
     def formula(self, value):
         self.xl.formula.set(value)
-
-    def end(self, direction):
-        direction = DIRECTIONS.get(direction, direction)
-        return Range(self.sheet, self.xl.get_end(direction=direction).get_address())
 
     @property
     def formula_array(self):
@@ -611,67 +608,6 @@ class Range(object):
         # seems to only work reliably in this combination
         self.xl.activate()
         self.xl.select()
-
-class RangeRows(object):
-
-    def __init__(self, rng, step=1):
-        self.rng = rng
-        self.step = step
-
-    def __call__(self, index):
-        row = self.rng.row + index * self.step - 1
-        col1 = self.rng.column
-        col2 = self.rng.column_count
-        return self.rng.sheet.range((row, col1), (row, col2))
-
-    def slice(self, start, stop, step):
-        row1 = self.rng.row + start * self.step
-        row2 = row1 + (stop - start - 1) * self.step
-        col1 = self.rng.column
-        col2 = self.rng.column_count
-        rng = self.rng.sheet.range((row1, col1), (row2, col2))
-        return RangeRows(rng, self.step * step)
-
-    def __len__(self):
-        return len(range(0, self.rng.row_count, self.step))
-
-    def __iter__(self):
-        row = self.rng.row
-        col1 = self.rng.column
-        col2 = self.rng.column_count
-        for i in range(0, self.rng.row_count, self.step):
-            yield self.rng.sheet.range((row+i, col1), (row+i, col2))
-
-
-class RangeRows(object):
-
-    def __init__(self, rng, step=1):
-        self.rng = rng
-        self.step = step
-
-    def __call__(self, index):
-        row = self.rng.row + index * self.step - 1
-        col1 = self.rng.column
-        col2 = self.rng.column_count
-        return self.rng.sheet.range((row, col1), (row, col2))
-
-    def slice(self, start, stop, step):
-        row1 = self.rng.row + start * self.step
-        row2 = row1 + (stop - start - 1) * self.step
-        col1 = self.rng.column
-        col2 = self.rng.column_count
-        rng = self.rng.sheet.range((row1, col1), (row2, col2))
-        return RangeRows(rng, self.step * step)
-
-    def __len__(self):
-        return len(range(0, self.rng.row_count, self.step))
-
-    def __iter__(self):
-        row = self.rng.row
-        col1 = self.rng.column
-        col2 = self.rng.column_count
-        for i in range(0, self.rng.row_count, self.step):
-            yield self.rng.sheet.range((row+i, col1), (row+i, col2))
 
 
 class Shape(object):

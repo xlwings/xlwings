@@ -820,9 +820,6 @@ class Range(object):
         if self.xl:
             self.xl.ClearContents()
 
-    def get_cell(self, row, col):
-        return Range(xl=self.xl.Cells(row, col))
-
     def clear(self):
         if self.xl:
             self.xl.Clear()

@@ -801,9 +801,6 @@ class Range(object):
     def clear_contents(self):
         return self.impl.clear_contents()
 
-    def get_cell(self, row, col):
-        return Range(impl=self.impl.get_cell(row, col))
-
     def clear(self):
         return self.impl.clear()
 
@@ -865,6 +862,60 @@ class Range(object):
     @number_format.setter
     def number_format(self, value):
         self.impl.number_format = value
+
+    def get_address(self, row_absolute=True, column_absolute=True, include_sheetname=False, external=False):
+        """
+        Returns the address of the range in the specified format.
+
+        Arguments
+        ---------
+        row_absolute : bool, default True
+            Set to True to return the row part of the reference as an absolute reference.
+
+        column_absolute : bool, default True
+            Set to True to return the column part of the reference as an absolute reference.
+
+        include_sheetname : bool, default False
+            Set to True to include the Sheet name in the address. Ignored if external=True.
+
+        external : bool, default False
+            Set to True to return an external reference with workbook and worksheet name.
+
+        Returns
+        -------
+        str
+
+        Examples
+        --------
+        ::
+
+            >>> Range((1,1)).get_address()
+            '$A$1'
+            >>> Range((1,1)).get_address(False, False)
+            'A1'
+            >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, True)
+            'Sheet1!A$1:C$3'
+            >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, external=True)
+            '[Workbook1]Sheet1!A$1:C$3'
+
+        .. versionadded:: 0.2.3
+        """
+
+        if include_sheetname and not external:
+            # TODO: when the Workbook name contains spaces but not the Worksheet name, it will still be surrounded
+            # by '' when include_sheetname=True. Also, should probably changed to regex
+            temp_str = self.impl.get_address(row_absolute, column_absolute, True)
+
+            if temp_str.find("[") > -1:
+                results_address = temp_str[temp_str.rfind("]") + 1:]
+                if results_address.find("'") > -1:
+                    results_address = "'" + results_address
+                return results_address
+            else:
+                return temp_str
+
+        else:
+            return self.impl.get_address(row_absolute, column_absolute, external)
 
     @property
     def address(self):
@@ -1107,60 +1158,6 @@ class Range(object):
 
         else:
             raise TypeError("Cell indices must be integers or slices, not %s" % type(key).__name__)
-
-    def get_address(self, row_absolute=True, column_absolute=True, include_sheetname=False, external=False):
-        """
-        Returns the address of the range in the specified format.
-
-        Arguments
-        ---------
-        row_absolute : bool, default True
-            Set to True to return the row part of the reference as an absolute reference.
-
-        column_absolute : bool, default True
-            Set to True to return the column part of the reference as an absolute reference.
-
-        include_sheetname : bool, default False
-            Set to True to include the Sheet name in the address. Ignored if external=True.
-
-        external : bool, default False
-            Set to True to return an external reference with workbook and worksheet name.
-
-        Returns
-        -------
-        str
-
-        Examples
-        --------
-        ::
-
-            >>> Range((1,1)).get_address()
-            '$A$1'
-            >>> Range((1,1)).get_address(False, False)
-            'A1'
-            >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, True)
-            'Sheet1!A$1:C$3'
-            >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, external=True)
-            '[Workbook1]Sheet1!A$1:C$3'
-
-        .. versionadded:: 0.2.3
-        """
-
-        if include_sheetname and not external:
-            # TODO: when the Workbook name contains spaces but not the Worksheet name, it will still be surrounded
-            # by '' when include_sheetname=True. Also, should probably changed to regex
-            temp_str = self.impl.get_address(row_absolute, column_absolute, True)
-
-            if temp_str.find("[") > -1:
-                results_address = temp_str[temp_str.rfind("]") + 1:]
-                if results_address.find("'") > -1:
-                    results_address = "'" + results_address
-                return results_address
-            else:
-                return temp_str
-
-        else:
-            return self.impl.get_address(row_absolute, column_absolute, external)
 
     def __repr__(self):
         return "<Range [{1}]{0}!{2}>".format(
