@@ -928,9 +928,6 @@ class Range(object):
     def autofit(self, axis=None):
         return self.impl.autofit(axis)
 
-    def set_hyperlink(self, address, text_to_display=None, screen_tip=None):
-        return self.impl.set_hyperlink(address, text_to_display, screen_tip)
-
     @property
     def color(self):
         return self.impl.color
@@ -1215,6 +1212,9 @@ class Range(object):
         if screen_tip is None:
             screen_tip = address + ' - Click once to follow. Click and hold to select this cell.'
         self.impl.set_hyperlink(address, text_to_display, screen_tip)
+
+    def set_hyperlink(self, address, text_to_display=None, screen_tip=None):
+        return self.impl.set_hyperlink(address, text_to_display, screen_tip)
 
     def resize(self, row_size=None, column_size=None):
         """
