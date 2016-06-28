@@ -64,6 +64,8 @@ class TestSheet(TestBase):
 
     def test_names(self):
         self.wb1.sheets[0].range('A1').name = 'test1'
+        assert_equal(len(self.wb1.sheets[0].names), 0)
+        self.wb1.sheets[0].names.add('Sheet1!test2', 'Sheet1!B2')
         assert_equal(len(self.wb1.sheets[0].names), 1)
 
     def test_book(self):
