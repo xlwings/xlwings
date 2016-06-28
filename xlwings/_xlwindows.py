@@ -427,15 +427,6 @@ class App(object):
     api = xl
 
     @property
-    def active_book(self):
-        xl = self.xl.ActiveWorkbook
-        return xl and Book(xl=xl)
-
-    @property
-    def active_sheet(self):
-        return Sheet(xl=self.xl.ActiveSheet)
-
-    @property
     def selection(self):
         # TODO: selection isn't always a range
         return Range(xl=self.xl.Selection)
@@ -535,6 +526,10 @@ class Books(object):
     def api(self):
         return self.xl
 
+    @property
+    def active(self):
+        return self.xl.ActiveWorkbook
+
     def __call__(self, name_or_index):
         return Book(xl=self.xl(name_or_index))
 
@@ -580,10 +575,6 @@ class Book(object):
     def close(self):
         self.xl.Close(SaveChanges=False)
 
-    @property
-    def active_sheet(self):
-        return Sheet(xl=self.xl.ActiveSheet)
-
     def save(self, path=None):
         saved_path = self.xl.Path
         if (saved_path != '') and (path is None):
@@ -622,6 +613,10 @@ class Sheets(object):
     @property
     def api(self):
         return self.xl
+
+    @property
+    def active(self):
+        return self.xl.ActiveSheet
 
     def __call__(self, name_or_index):
         return Sheet(xl=self.xl(name_or_index))
