@@ -39,6 +39,8 @@ class TestApp(TestBase):
 
     def test_quit(self):
         n_apps = len(xw.apps)
+        while len(self.app2.books) > 0:
+            self.app2.books[0].close()
         self.app2.quit()
         assert_equal(n_apps - 1, len(xw.apps))
 

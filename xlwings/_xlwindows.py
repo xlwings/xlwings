@@ -528,7 +528,7 @@ class Books(object):
 
     @property
     def active(self):
-        return self.xl.ActiveWorkbook
+        return Book(self.xl.Application.ActiveWorkbook)
 
     def __call__(self, name_or_index):
         return Book(xl=self.xl(name_or_index))
@@ -616,7 +616,7 @@ class Sheets(object):
 
     @property
     def active(self):
-        return self.xl.ActiveSheet
+        return Sheet(self.xl.Parent.ActiveSheet)
 
     def __call__(self, name_or_index):
         return Sheet(xl=self.xl(name_or_index))
