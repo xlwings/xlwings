@@ -128,12 +128,12 @@ class TestNumpy(TestBase):
         cells = self.wb1.sheets[0].range('A4').options(np.array, expand='table').value
         assert_array_equal(cells, array_2d)
 
-        # 1d array (atleast_2d)
+        # 1d array (ndim=2)
         self.wb1.sheets[0].range('A10').value = array_1d
         cells = self.wb1.sheets[0].range('A10:D10').options(np.array, ndim=2).value
         assert_array_equal(cells, np.atleast_2d(array_1d))
 
-        # 2d array (atleast_2d)
+        # 2d array (ndim=2)
         self.wb1.sheets[0].range('A12').value = array_2d
         cells = self.wb1.sheets[0].range('A12').options(np.array, ndim=2, expand='table').value
         assert_array_equal(cells, array_2d)
@@ -158,6 +158,14 @@ class TestNumpy(TestBase):
         self.wb1.sheets[0].range('A50').value = 23
         result = self.wb1.sheets[0].range('A50').options(np.array, ndim=2).value
         assert_equal(np.array([[23]]), result)
+
+    def test_float64(self):
+        self.wb1.sheets[0].range('A1').value = np.float64(2)
+        assert_equal(self.wb1.sheets[0].range('A1').value, 2.)
+
+    def test_int64(self):
+        self.wb1.sheets[0].range('A1').value = np.int64(2)
+        assert_equal(self.wb1.sheets[0].range('A1').value, 2.)
 
 
 class TestPandas(TestBase):
