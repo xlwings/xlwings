@@ -52,6 +52,22 @@ class TestRangeInstantiation(TestBase):
         r = self.wb1.sheets[0].range(xw.Range('A1'), xw.Range('B2'))
         assert_equal(r.address, '$A$1:$B$2')
 
+    @raises(IndexError)
+    def test_zero_based_index1(self):
+        self.wb1.sheets[0].range((0, 1)).value = 123
+
+    @raises(IndexError)
+    def test_zero_based_index2(self):
+        a = self.wb1.sheets[0].range((1, 1), (1, 0)).value
+
+    @raises(IndexError)
+    def test_zero_based_index3(self):
+        xw.Range((1, 0)).value = 123
+
+    @raises(IndexError)
+    def test_zero_based_index4(self):
+        a = xw.Range((1, 0), (1, 0)).value
+
 
 class TestRangeAttributes(TestBase):
     def test_iterator(self):
@@ -369,21 +385,116 @@ class TestRangeAttributes(TestBase):
 
 
 class TestRangeIndexing(TestBase):
-    @raises(IndexError)
-    def test_zero_based_index1(self):
-        self.wb1.sheets[0].range((0, 1)).value = 123
+    # 2d Range
+    def test_index1(self):
+        r = self.wb1.sheets[0].range('A1:B2')
+
+        assert_equal(r[0].address, '$A$1')
+        assert_equal(r(1).address, '$A$1')
+
+        assert_equal(r[0, 0].address, '$A$1')
+        assert_equal(r(1, 1).address, '$A$1')
+
+    def test_index2(self):
+        r = self.wb1.sheets[0].range('A1:B2')
+
+        assert_equal(r[1].address, '$B$1')
+        assert_equal(r(2).address, '$B$1')
+
+        assert_equal(r[0, 1].address, '$B$1')
+        assert_equal(r(1, 2).address, '$B$1')
 
     @raises(IndexError)
-    def test_zero_based_index2(self):
-        a = self.wb1.sheets[0].range((1, 1), (1, 0)).value
+    def test_index3(self):
+        r = self.wb1.sheets[0].range('A1:B2')
+        a = r[4].address
+
+    def test_index4(self):
+        r = self.wb1.sheets[0].range('A1:B2')
+        assert_equal(r(5).address, '$A$3')
 
     @raises(IndexError)
-    def test_zero_based_index3(self):
-        xw.Range((1, 0)).value = 123
+    def test_index5(self):
+        r = self.wb1.sheets[0].range('A1:B2')
+        a = r[0, 4].address
+
+    def test_index6(self):
+        r = self.wb1.sheets[0].range('A1:B2')
+        assert_equal(r(1, 5).address, '$E$1')
+
+    # Row
+    def test_index1row(self):
+        r = self.wb1.sheets[0].range('A1:D1')
+
+        assert_equal(r[0].address, '$A$1')
+        assert_equal(r(1).address, '$A$1')
+
+        assert_equal(r[0, 0].address, '$A$1')
+        assert_equal(r(1, 1).address, '$A$1')
+
+    def test_index2row(self):
+        r = self.wb1.sheets[0].range('A1:D1')
+
+        assert_equal(r[1].address, '$B$1')
+        assert_equal(r(2).address, '$B$1')
+
+        assert_equal(r[0, 1].address, '$B$1')
+        assert_equal(r(1, 2).address, '$B$1')
 
     @raises(IndexError)
-    def test_zero_based_index4(self):
-        a = xw.Range((1, 0), (1, 0)).value
+    def test_index3row(self):
+        r = self.wb1.sheets[0].range('A1:D1')
+        a = r[4].address
+
+    def test_index4row(self):
+        r = self.wb1.sheets[0].range('A1:D1')
+        assert_equal(r(5).address, '$A$2')
+
+    @raises(IndexError)
+    def test_index5row(self):
+        r = self.wb1.sheets[0].range('A1:D1')
+        a = r[0, 4].address
+
+    def test_index6row(self):
+        r = self.wb1.sheets[0].range('A1:D1')
+        assert_equal(r(1, 5).address, '$E$1')
+
+    # Column
+    def test_index1col(self):
+        r = self.wb1.sheets[0].range('A1:A4')
+
+        assert_equal(r[0].address, '$A$1')
+        assert_equal(r(1).address, '$A$1')
+
+        assert_equal(r[0, 0].address, '$A$1')
+        assert_equal(r(1, 1).address, '$A$1')
+
+    def test_index2col(self):
+        r = self.wb1.sheets[0].range('A1:A4')
+
+        assert_equal(r[1].address, '$A$2')
+        assert_equal(r(2).address, '$A$2')
+
+        assert_equal(r[1, 0].address, '$A$2')
+        assert_equal(r(2, 1).address, '$A$2')
+
+    @raises(IndexError)
+    def test_index3row(self):
+        r = self.wb1.sheets[0].range('A1:A4')
+        a = r[4].address
+
+    def test_index4col(self):
+        r = self.wb1.sheets[0].range('A1:A4')
+        assert_equal(r(5).address, '$A$5')
+
+    @raises(IndexError)
+    def test_index5col(self):
+        r = self.wb1.sheets[0].range('A1:A4')
+        a = r[4, 0].address
+
+    def test_index6col(self):
+        r = self.wb1.sheets[0].range('A1:A4')
+        assert_equal(r(5, 1).address, '$A$5')
 
 
 class TestRangeSlicing(TestBase):
