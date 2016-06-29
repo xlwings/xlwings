@@ -37,6 +37,25 @@ def np_datetime_to_datetime(np_datetime):
     return dt_datetime
 
 
+ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+
+def col_name(i):
+    i -= 1
+    if i < 0:
+        raise IndexError(i)
+    elif i < 26:
+        return ALPHABET[i]
+    elif i < 702:
+        i -= 26
+        return ALPHABET[i//26] + ALPHABET[i%26]
+    elif i < 16384:
+        i -= 702
+        return ALPHABET[i//676] + ALPHABET[i//26%26] + ALPHABET[i%26]
+    else:
+        raise IndexError(i)
+
+
 class VBAWriter(object):
 
     class Block(object):
