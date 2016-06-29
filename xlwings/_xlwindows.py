@@ -1133,6 +1133,8 @@ def prepare_xl_data_element(x):
         return ""
     elif np and isinstance(x, float) and np.isnan(x):
         return ""
+    elif pd and isinstance(x, pd.tslib.NaTType):
+        return None
     else:
         return x
 

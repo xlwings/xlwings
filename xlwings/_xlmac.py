@@ -915,6 +915,8 @@ def prepare_xl_data_element(x):
     elif pd and isinstance(x, pd.tslib.Timestamp):
         # This transformation seems to be only needed on Python 2.6 (?)
         return x.to_datetime().replace(tzinfo=None)
+    elif pd and isinstance(x, pd.tslib.NaTType):
+        return None
     elif isinstance(x, dt.datetime):
         # Make datetime timezone naive
         return x.replace(tzinfo=None)
