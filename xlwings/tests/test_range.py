@@ -7,32 +7,8 @@ from nose.tools import assert_equal, raises, assert_raises, assert_true, assert_
 
 import xlwings as xw
 from xlwings.constants import RgbColor
-from .common import TestBase, this_dir, _skip_if_no_numpy, _skip_if_no_pandas
-from .test_data import data, list_col, list_row_1d, list_row_2d, test_date_1, test_date_2
-
-# Optional dependencies
-try:
-    import numpy as np
-    from numpy.testing import assert_array_equal
-    from .test_data import array_1d, array_2d
-except ImportError:
-    np = None
-try:
-    import pandas as pd
-    from pandas import DataFrame, Series
-    from pandas.util.testing import assert_frame_equal, assert_series_equal
-    from .test_data import series_1, timeseries_1, df_1, df_2, df_dateindex, df_multiheader, df_multiindex
-except ImportError:
-    pd = None
-try:
-    import matplotlib
-    from matplotlib.figure import Figure
-except ImportError:
-    matplotlib = None
-try:
-    import PIL
-except ImportError:
-    PIL = None
+from .common import TestBase, this_dir
+from .test_data import data
 
 # Mac imports
 if sys.platform.startswith('darwin'):
@@ -40,47 +16,41 @@ if sys.platform.startswith('darwin'):
 
 
 class TestRangeInstantiation(TestBase):
-    def test_range_index_a1_mix(self):
-        self.wb1.sheets[0].range('A1', (2, 2)).value = [[1., 2.], [3., 4.]]
-        assert_equal(self.wb1.sheets[0].range((1, 1), 'B2').value, [[1., 2.], [3., 4.]])
+    def test_range1(self):
+        r = self.wb1.sheets[0].range('A1')
+        assert_equal(r.address, '$A$1')
 
-    def test_range_from_ranges(self):
-        self.wb1.sheets[0].range(self.wb1.sheets[0].range('A1'),
-                                 self.wb1.sheets[0].range('B2')).value = [[1., 2.], [3., 4.]]
-        assert_equal(self.wb1.sheets[0].range(self.wb1.sheets[0].range('A1'),
-                                              self.wb1.sheets[0].range('B2')).value, [[1., 2.], [3., 4.]])
+    def test_range2(self):
+        r = self.wb1.sheets[0].range('A1:A1')
+        assert_equal(r.address, '$A$1')
 
-    def test_cell(self):
-        params = [('A1', 22),
-                  ((1, 1), 22),
-                  ('A1', 22.2222),
-                  ((1, 1), 22.2222),
-                  ('A1', 'Test String'),
-                  ((1, 1), 'Test String'),
-                  ('A1', 'éöà'),
-                  ((1, 1), 'éöà'),
-                  ('A2', test_date_1),
-                  ((2, 1), test_date_1),
-                  ('A3', test_date_2),
-                  ((3, 1), test_date_2)]
-        for param in params:
-            yield self.check_cell, param[0], param[1]
+    def test_range3(self):
+        r = self.wb1.sheets[0].range('B2:D5')
+        assert_equal(r.address, '$B$2:$D$5')
 
-    def check_cell(self, address, value):
-        # Active Sheet
-        self.wb1.sheets[0].range(address).value = value
-        cell = self.wb1.sheets[0].range(address).value
-        assert_equal(cell, value)
+    def test_range4(self):
+        r = self.wb1.sheets[0].range((1, 1))
+        assert_equal(r.address, '$A$1')
 
-        # SheetName
-        self.wb1.sheets['Sheet2'].range(address).value = value
-        cell = self.wb1.sheets['Sheet2'].range(address).value
-        assert_equal(cell, value)
+    def test_range5(self):
+        r = self.wb1.sheets[0].range((1, 1), (1, 1))
+        assert_equal(r.address, '$A$1')
 
-        # SheetIndex
-        self.wb1.sheets[2].range(address).value = value
-        cell = self.wb1.sheets[2].range(address).value
-        assert_equal(cell, value)
+    def test_range6(self):
+        r = self.wb1.sheets[0].range((2, 2), (5, 4))
+        assert_equal(r.address, '$B$2:$D$5')
+
+    def test_range7(self):
+        r = self.wb1.sheets[0].range('A1', (2, 2))
+        assert_equal(r.address, '$A$1:$B$2')
+
+    def test_range8(self):
+        r = self.wb1.sheets[0].range((1, 1), 'B2')
+        assert_equal(r.address, '$A$1:$B$2')
+
+    def test_range9(self):
+        r = self.wb1.sheets[0].range(xw.Range('A1'), xw.Range('B2'))
+        assert_equal(r.address, '$A$1:$B$2')
 
 
 class TestRangeAttributes(TestBase):
@@ -359,19 +329,22 @@ class TestRangeAttributes(TestBase):
 
     def test_resize(self):
         r = self.wb1.sheets[0].range('A1').resize(4, 5)
-        assert_equal(r.shape, (4, 5))
+        assert_equal(r.address, '$A$1:$E$4')
 
         r = self.wb1.sheets[0].range('A1').resize(row_size=4)
-        assert_equal(r.shape, (4, 1))
+        assert_equal(r.address, '$A$1:$A$4')
 
         r = self.wb1.sheets[0].range('A1:B4').resize(column_size=5)
-        assert_equal(r.shape, (4, 5))
+        assert_equal(r.address, '$A$1:$E$4')
 
         r = self.wb1.sheets[0].range('A1:B4').resize(row_size=5)
-        assert_equal(r.shape, (5, 2))
+        assert_equal(r.address, '$A$1:$B$5')
 
         r = self.wb1.sheets[0].range('A1:B4').resize()
-        assert_equal(r.shape, (4, 2))
+        assert_equal(r.address, '$A$1:$B$4')
+
+        r = self.wb1.sheets[0].range('A1:C5').resize(row_size=1)
+        assert_equal(r.address, '$A$1:$C$1')
 
         assert_raises(AssertionError, self.wb1.sheets[0].range('A1:B4').resize, row_size=0)
         assert_raises(AssertionError, self.wb1.sheets[0].range('A1:B4').resize, column_size=0)
