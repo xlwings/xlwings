@@ -910,6 +910,8 @@ def prepare_xl_data_element(x):
     elif np and isinstance(x, np.datetime64):
         # handle numpy.datetime64
         return np_datetime_to_datetime(x).replace(tzinfo=None)
+    elif np and isinstance(x, np.generic):
+        return float(x)
     elif pd and isinstance(x, pd.tslib.Timestamp):
         # This transformation seems to be only needed on Python 2.6 (?)
         return x.to_datetime().replace(tzinfo=None)
