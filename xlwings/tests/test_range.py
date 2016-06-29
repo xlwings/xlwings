@@ -49,7 +49,12 @@ class TestRangeInstantiation(TestBase):
         assert_equal(r.address, '$A$1:$B$2')
 
     def test_range9(self):
-        r = self.wb1.sheets[0].range(xw.Range('A1'), xw.Range('B2'))
+        r = self.wb1.sheets[0].range(self.wb1.sheets[0].range('A1'), self.wb1.sheets[0].range('B2'))
+        assert_equal(r.address, '$A$1:$B$2')
+
+    @raises(Exception)
+    def test_range10(self):
+        r = self.wb1.sheets[0].range(self.wb2.sheets[0].range('A1'), self.wb1.sheets[0].range('B2'))
         assert_equal(r.address, '$A$1:$B$2')
 
     @raises(IndexError)
