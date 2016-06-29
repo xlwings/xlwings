@@ -503,6 +503,53 @@ class TestRangeIndexing(TestBase):
 
 
 class TestRangeSlicing(TestBase):
-    pass
+    # 2d Range
+    def test_slice1(self):
+        r = self.wb1.sheets[0].range('B2:D4')
+        assert_equal(r[0:, 1:].address, '$C$2:$D$4')
 
+    def test_slice2(self):
+        r = self.wb1.sheets[0].range('B2:D4')
+        assert_equal(r[1:2, 1:2].address, '$C$3')
 
+    def test_slice3(self):
+        r = self.wb1.sheets[0].range('B2:D4')
+        assert_equal(r[:1, :2].address, '$B$2:$C$2')
+
+    def test_slice4(self):
+        r = self.wb1.sheets[0].range('B2:D4')
+        assert_equal(r[:, :].address, '$B$2:$D$4')
+
+    # Row
+    def test_slice1row(self):
+        r = self.wb1.sheets[0].range('B2:D2')
+        assert_equal(r[1:].address, '$C$2:$D$2')
+
+    def test_slice2row(self):
+        r = self.wb1.sheets[0].range('B2:D2')
+        assert_equal(r[1:2].address, '$C$2')
+
+    def test_slice3row(self):
+        r = self.wb1.sheets[0].range('B2:D2')
+        assert_equal(r[:2].address, '$B$2:$C$2')
+
+    def test_slice4row(self):
+        r = self.wb1.sheets[0].range('B2:D2')
+        assert_equal(r[:].address, '$B$2:$D$2')
+
+    # Column
+    def test_slice1col(self):
+        r = self.wb1.sheets[0].range('B2:B4')
+        assert_equal(r[1:].address, '$B$3:$B$4')
+
+    def test_slice2col(self):
+        r = self.wb1.sheets[0].range('B2:B4')
+        assert_equal(r[1:2].address, '$B$3')
+
+    def test_slice3col(self):
+        r = self.wb1.sheets[0].range('B2:B4')
+        assert_equal(r[:2].address, '$B$2:$B$3')
+
+    def test_slice4col(self):
+        r = self.wb1.sheets[0].range('B2:B4')
+        assert_equal(r[:].address, '$B$2:$B$4')
