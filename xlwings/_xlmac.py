@@ -184,12 +184,16 @@ class Books(object):
 
     def add(self):
         xl = self.app.xl.make(new=kw.workbook)
-        return Book(self.app, xl.name.get())
+        wb = Book(self.app, xl.name.get())
+        wb.activate()
+        return wb
 
     def open(self, fullname):
         filename = os.path.basename(fullname)
         self.app.xl.open(fullname)
-        return Book(self.app, filename)
+        wb = Book(self.app, filename)
+        wb.activate()
+        return wb
 
     def __iter__(self):
         n = len(self)
