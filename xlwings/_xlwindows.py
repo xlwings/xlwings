@@ -65,23 +65,7 @@ BOOK_CALLER = None
 missing = object()
 
 
-alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-
-def col_name(i):
-    i -= 1
-    if i < 0:
-        raise IndexError(i)
-    elif i < 26:
-        return alphabet[i]
-    elif i < 702:
-        i -= 26
-        return alphabet[i//26] + alphabet[i%26]
-    elif i < 16384:
-        i -= 702
-        return alphabet[i//676] + alphabet[i//26%26] + alphabet[i%26]
-    else:
-        raise IndexError(i)
+from .utils import col_name
 
 
 class COMRetryMethodWrapper(object):

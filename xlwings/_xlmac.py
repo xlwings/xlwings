@@ -10,7 +10,7 @@ from appscript.reference import CommandError
 import psutil
 import atexit
 from .constants import ColorIndex, Calculation
-from .utils import int_to_rgb, np_datetime_to_datetime
+from .utils import int_to_rgb, np_datetime_to_datetime, col_name
 from . import mac_dict, PY3, string_types
 try:
     import pandas as pd
@@ -315,11 +315,16 @@ class Sheet(object):
 
     def range(self, arg1, arg2=None):
         if isinstance(arg1, tuple):
-            if 0 in arg1:
-                raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
-            row1 = arg1[0]
-            col1 = arg1[1]
-            address1 = self.xl.rows[row1].columns[col1].get_address()
+            if len(arg1) == 2:
+                if 0 in arg1:
+                    raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
+                row1 = arg1[0]
+                col1 = arg1[1]
+                address1 = self.xl.rows[row1].columns[col1].get_address()
+            elif len(arg1) == 4:
+                return Range(self, arg1)
+            else:
+                raise ValueError("Invalid parameters")
         elif isinstance(arg1, Range):
             row1 = min(arg1.row, arg2.row)
             col1 = min(arg1.column, arg2.column)
@@ -402,50 +407,77 @@ class Range(object):
 
     def __init__(self, sheet, address):
         self.sheet = sheet
-        self.xl = sheet.xl.cells[address]
+        if isinstance(address, tuple):
+            self._coords = address
+            row, col, nrows, ncols = address
+            if nrows and ncols:
+                self.xl = sheet.xl.cells["%s:%s" % (
+                    sheet.xl.rows[row].columns[col].get_address(),
+                    sheet.xl.rows[row+nrows-1].columns[col+ncols-1].get_address(),
+                )]
+            else:
+                self.xl = None
+        else:
+            self.xl = sheet.xl.cells[address]
+            self._coords = None
+
+    @property
+    def coords(self):
+        if self._coords is None:
+            self._coords = (
+                self.xl.first_row_index.get(),
+                self.xl.first_column_index.get(),
+                self.xl.count(each=kw.row),
+                self.xl.count(each=kw.column)
+            )
+        return self._coords
 
     @property
     def api(self):
         return self.xl
 
     def __len__(self):
-        return self.xl.count(each=kw.cell)
+        return self.coords[2] * self.coords[3]
 
     @property
     def row(self):
-        return self.xl.first_row_index.get()
+        return self.coords[0]
 
     @property
     def column(self):
-        return self.xl.first_column_index.get()
+        return self.coords[1]
 
     @property
     def row_count(self):
-        return self.xl.count(each=kw.row)
+        return self.coords[2]
 
     @property
     def column_count(self):
-        return self.xl.count(each=kw.column)
+        return self.coords[3]
 
     @property
     def raw_value(self):
-        return self.xl.value.get()
+        if self.xl:
+            return self.xl.value.get()
 
     @raw_value.setter
     def raw_value(self, value):
-        self.xl.value.set(value)
+        if self.xl:
+            self.xl.value.set(value)
 
     def clear_contents(self):
-        alerts_state = self.sheet.book.app.screen_updating
-        self.sheet.book.app.screen_updating = False
-        self.xl.clear_range()
-        self.sheet.book.app.screen_updating = alerts_state
+        if self.xl:
+            alerts_state = self.sheet.book.app.screen_updating
+            self.sheet.book.app.screen_updating = False
+            self.xl.clear_range()
+            self.sheet.book.app.screen_updating = alerts_state
 
     def clear(self):
-        alerts_state = self.sheet.book.app.screen_updating
-        self.sheet.book.app.screen_updating = False
-        self.xl.clear_range()
-        self.sheet.book.app.screen_updating = alerts_state
+        if self.xl:
+            alerts_state = self.sheet.book.app.screen_updating
+            self.sheet.book.app.screen_updating = False
+            self.xl.clear_range()
+            self.sheet.book.app.screen_updating = alerts_state
 
     def end(self, direction):
         direction = DIRECTIONS.get(direction, direction)
@@ -453,43 +485,61 @@ class Range(object):
 
     @property
     def formula(self):
-        return self.xl.formula.get()
+        if self.xl:
+            return self.xl.formula.get()
 
     @formula.setter
     def formula(self, value):
-        self.xl.formula.set(value)
+        if self.xl:
+            self.xl.formula.set(value)
 
     @property
     def formula_array(self):
-        return self.xl.formula_array.get()
+        if self.xl:
+            return self.xl.formula_array.get()
 
     @formula_array.setter
     def formula_array(self, value):
-        self.xl.formula_array.set(value)
+        if self.xl:
+            self.xl.formula_array.set(value)
 
     @property
     def column_width(self):
-        return self.xl.column_width.get()
+        if self.xl:
+            return self.xl.column_width.get()
+        else:
+            return 0
 
     @column_width.setter
     def column_width(self, value):
-        self.xl.column_width.set(value)
+        if self.xl:
+            self.xl.column_width.set(value)
 
     @property
     def row_height(self):
-        return self.xl.row_height.get()
+        if self.xl:
+            return self.xl.row_height.get()
+        else:
+            return 0
 
     @row_height.setter
     def row_height(self, value):
-        self.xl.row_height.set(value)
+        if self.xl:
+            self.xl.row_height.set(value)
 
     @property
     def width(self):
-        return self.xl.width.get()
+        if self.xl:
+            return self.xl.width.get()
+        else:
+            return 0
 
     @property
     def height(self):
-        return self.xl.height.get()
+        if self.xl:
+            return self.xl.height.get()
+        else:
+            return 0
 
     @property
     def left(self):
@@ -501,38 +551,46 @@ class Range(object):
 
     @property
     def number_format(self):
-        return self.xl.number_format.get()
+        if self.xl:
+            return self.xl.number_format.get()
 
     @number_format.setter
     def number_format(self, value):
-        alerts_state = self.sheet.book.app.screen_updating
-        self.sheet.book.app.screen_updating = False
-        self.xl.number_format.set(value)
-        self.sheet.book.app.screen_updating = alerts_state
+        if self.xl:
+            alerts_state = self.sheet.book.app.screen_updating
+            self.sheet.book.app.screen_updating = False
+            self.xl.number_format.set(value)
+            self.sheet.book.app.screen_updating = alerts_state
 
     def get_address(self, row_absolute, col_absolute, external):
-        return self.xl.get_address(row_absolute=row_absolute, column_absolute=col_absolute, external=external)
+        if self.xl:
+            return self.xl.get_address(row_absolute=row_absolute, column_absolute=col_absolute, external=external)
 
     @property
     def address(self):
-        return self.xl.get_address()
+        if self.xl:
+            return self.xl.get_address()
+        else:
+            row, col, nrows, ncols = self.coords
+            return "$%s$%s{%sx%s}" % (col_name(col), row, nrows, ncols)
 
     @property
     def current_region(self):
         return Range(self.sheet, self.xl.current_region.get_address())
 
     def autofit(self, axis):
-        address = self.address
-        alerts_state = self.sheet.book.app.screen_updating
-        self.sheet.book.app.screen_updating = False
-        if axis == 'rows' or axis == 'r':
-            self.sheet.xl.rows[address].autofit()
-        elif axis == 'columns' or axis == 'c':
-            self.sheet.xl.columns[address].autofit()
-        elif axis is None:
-            self.sheet.xl.rows[address].autofit()
-            self.sheet.xl.columns[address].autofit()
-        self.sheet.book.app.screen_updating = alerts_state
+        if self.xl:
+            address = self.address
+            alerts_state = self.sheet.book.app.screen_updating
+            self.sheet.book.app.screen_updating = False
+            if axis == 'rows' or axis == 'r':
+                self.sheet.xl.rows[address].autofit()
+            elif axis == 'columns' or axis == 'c':
+                self.sheet.xl.columns[address].autofit()
+            elif axis is None:
+                self.sheet.xl.rows[address].autofit()
+                self.sheet.xl.columns[address].autofit()
+            self.sheet.book.app.screen_updating = alerts_state
 
     def get_hyperlink_address(self):
         try:
@@ -541,28 +599,32 @@ class Range(object):
             raise Exception("The cell doesn't seem to contain a hyperlink!")
 
     def set_hyperlink(self, address, text_to_display=None, screen_tip=None):
-        self.xl.make(at=self.xl, new=kw.hyperlink, with_properties={kw.address: address,
-                                                                    kw.text_to_display: text_to_display,
-                                                                    kw.screen_tip: screen_tip})
+        if self.xl:
+            self.xl.make(at=self.xl, new=kw.hyperlink, with_properties={kw.address: address,
+                                                                        kw.text_to_display: text_to_display,
+                                                                        kw.screen_tip: screen_tip})
 
     @property
     def color(self):
-        if self.xl.interior_object.color_index.get() == kw.color_index_none:
+        if not self.xl or self.xl.interior_object.color_index.get() == kw.color_index_none:
             return None
         else:
-            return tuple(self.xl.interior_object.color.get  ())
+            return tuple(self.xl.interior_object.color.get())
 
     @color.setter
     def color(self, color_or_rgb):
-        if color_or_rgb is None:
-            self.xl.interior_object.color_index.set(ColorIndex.xlColorIndexNone)
-        elif isinstance(color_or_rgb, int):
-            self.xl.interior_object.color.set(int_to_rgb(color_or_rgb))
-        else:
-            self.xl.interior_object.color.set(color_or_rgb)
+        if self.xl:
+            if color_or_rgb is None:
+                self.xl.interior_object.color_index.set(ColorIndex.xlColorIndexNone)
+            elif isinstance(color_or_rgb, int):
+                self.xl.interior_object.color.set(int_to_rgb(color_or_rgb))
+            else:
+                self.xl.interior_object.color.set(color_or_rgb)
 
     @property
     def name(self):
+        if not self.xl:
+            return None
         xl = self.xl.named_item
         if xl.get() == kw.missing_value:
             return None
@@ -571,7 +633,8 @@ class Range(object):
 
     @name.setter
     def name(self, value):
-        self.xl.name.set(value)
+        if self.xl:
+            self.xl.name.set(value)
 
     def __call__(self, arg1, arg2=None):
         if arg2 is None:
@@ -605,9 +668,10 @@ class Range(object):
         ]
 
     def select(self):
-        # seems to only work reliably in this combination
-        self.xl.activate()
-        self.xl.select()
+        if self.xl:
+            # seems to only work reliably in this combination
+            self.xl.activate()
+            self.xl.select()
 
 
 class Shape(object):
