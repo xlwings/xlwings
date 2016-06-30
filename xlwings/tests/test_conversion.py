@@ -460,3 +460,8 @@ class TestPandas(TestBase):
         df = pd.DataFrame(data=[1], index=ix, columns=['A'])
         self.wb1.sheets[0].range('A1').value = df
         assert_equal(self.wb1.sheets[0].range('A2').value, dt.datetime(2015, 6, 12, 22, 58, 7))
+
+    def test_NaT(self):
+        df = pd.DataFrame([pd.Timestamp('20120102'), np.nan], index=[0., 1.], columns=['one'])
+        self.wb1.sheets[0].range('A1').value = df
+        assert_frame_equal(df, self.wb1.sheets[0].range('A1').options(pd.DataFrame, expand='table').value)
