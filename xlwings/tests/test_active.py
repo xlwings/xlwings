@@ -40,6 +40,7 @@ class TestActive(TestBase):
 
     def test_active_range(self):
         self.wb2.sheets[2].range('B2:C3').value = 123.
+        self.wb2.activate()
         self.wb2.sheets[2].activate()
         assert_equal(xw.Range('B2:C3').value, [[123., 123.], [123., 123.]])
 
