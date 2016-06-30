@@ -23,7 +23,8 @@ class TestApps(TestBase):
 
     def test_app_iter(self):
         for app in xw.apps:
-            assert_equal(len(app.books), 1)
+            if app == (self.app1 or self.app2):
+                assert_equal(len(app.books), 1)
 
 
 class TestApp(TestBase):
@@ -110,6 +111,10 @@ class TestApp(TestBase):
         assert_equal(len(self.app1.books), n_books + 1)
 
     def test_macro(self):
+        # TODO: On Mac, only this works:
+        # wb = xw.Book(os.path.join(this_dir, 'macro book.xlsm'))
+        # test1 = self.app2.macro('Module1.Test1')
+
         self.app1.book(os.path.join(this_dir, 'macro book.xlsm'))
 
         test1 = self.app1.macro('Module1.Test1')
