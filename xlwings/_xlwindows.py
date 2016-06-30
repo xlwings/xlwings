@@ -1096,6 +1096,8 @@ def _datetime_to_com_time(dt_time):
 
     """
     # Convert date to datetime
+    if pd and isinstance(dt_time, pd.tslib.NaTType):
+        return None
     if np:
         if type(dt_time) is np.datetime64:
             dt_time = np_datetime_to_datetime(dt_time)
@@ -1133,8 +1135,6 @@ def prepare_xl_data_element(x):
         return ""
     elif np and isinstance(x, float) and np.isnan(x):
         return ""
-    elif pd and isinstance(x, pd.tslib.NaTType):
-        return None
     else:
         return x
 
