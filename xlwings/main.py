@@ -80,6 +80,9 @@ class Collection(object):
         else:
             return self(key)
 
+    def __contains__(self, key):
+        return key in self.impl
+
     # used by repr - by default the name of the collection class, but can be overridden
     @property
     def _name(self):
@@ -2139,7 +2142,24 @@ class Books(Collection):
         return Book(impl=self.impl.add())
 
     def open(self, fullname):
-        return Book(impl=self.impl.open(fullname))
+        if not os.path.exists(fullname):
+            raise FileNotFoundError("No such file: '%s'" % fullname)
+        fullname = os.path.realpath(fullname)
+        _, name = os.path.split(fullname)
+        try:
+            impl = self.impl(name)
+            # on windows, samefile only available on Py>=3.2
+            if hasattr(os.path, 'samefile'):
+                throw = not os.path.samefile(impl.fullname, fullname)
+            else:
+                throw = (os.path.normpath(os.path.realpath(impl.fullname)) != os.path.normpath(fullname))
+            if throw:
+                raise ValueError(
+                    "Cannot open two workbooks named '%s', even if they are saved in different locations." % name
+                )
+        except KeyError:
+            impl = self.impl.open(fullname)
+        return Book(impl=impl)
 
 
 class Sheets(Collection):

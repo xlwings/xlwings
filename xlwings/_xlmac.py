@@ -177,7 +177,13 @@ class Books(object):
         return Book(self.app, self.app.xl.active_workbook.name.get())
 
     def __call__(self, name_or_index):
-        return Book(self.app, name_or_index)
+        b = Book(self.app, name_or_index)
+        if b.name == kw.missing_value:
+            raise KeyError(name_or_index)
+        return b
+
+    def __contains__(self, key):
+        return Book(self.app, key).name != kw.missing_value
 
     def __len__(self):
         return self.app.xl.count(each=kw.workbook)
@@ -944,7 +950,6 @@ def new_workbook(app_target=None):
 
 def is_range_instance(xl_range):
     return isinstance(xl_range, appscript.genericreference.GenericReference)
-
 
 
 def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
