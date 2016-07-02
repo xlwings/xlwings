@@ -853,8 +853,8 @@ class Range(object):
     def current_region(self):
         return Range(impl=self.impl.current_region)
 
-    def autofit(self, axis=None):
-        return self.impl.autofit(axis)
+    def autofit(self):
+        return self.impl.autofit()
 
     @property
     def color(self):
@@ -1240,6 +1240,9 @@ class RangeRows(Ranges):
 
     count = property(__len__)
 
+    def autofit(self):
+        self.rng.impl.autofit(axis='r')
+
     def __iter__(self):
         for i in range(0, self.rng.shape[0]):
             yield self.rng[i, :]
@@ -1271,6 +1274,9 @@ class RangeColumns(Ranges):
         return self.rng.shape[1]
 
     count = property(__len__)
+
+    def autofit(self):
+        self.rng.impl.autofit(axis='c')
 
     def __iter__(self):
         for j in range(0, self.rng.shape[1]):
