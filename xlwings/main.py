@@ -2175,7 +2175,12 @@ class Books(Collection):
         _, name = os.path.split(fullname)
         try:
             impl = self.impl(name)
-            if not os.path.samefile(impl.fullname, fullname):
+            # on windows, samefile only available on Py>=3.2
+            if hasattr(os.path, 'samefile'):
+                throw = not os.path.samefile(impl.fullname, fullname)
+            else:
+                throw = (os.path.normpath(os.path.realpath(impl.fullname)) != os.path.normpath(fullname))
+            if throw:
                 raise ValueError(
                     "Cannot open two workbooks named '%s', even if they are saved in different locations." % name
                 )
