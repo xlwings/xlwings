@@ -32,7 +32,7 @@ class TestBooks(TestBase):
 class TestBook(TestBase):
     def test_instantiate_unsaved(self):
         self.wb1.sheets[0].range('B2').value = 123
-        wb2 = self.app1.books.open(self.wb1.name)
+        wb2 = self.app1.books[self.wb1.name]
         assert_equal(wb2.sheets[0].range('B2').value, 123)
 
     def test_instantiate_two_unsaved(self):
@@ -140,7 +140,7 @@ class TestBook(TestBase):
 
         assert_true(os.path.isfile(target_file_path))
 
-        self.app1.books[target_file_path].close()
+        self.app1.books[os.path.basename(target_file_path)].close()
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
 
@@ -159,7 +159,7 @@ class TestBook(TestBase):
 
         assert_true(os.path.isfile(target_file_path))
 
-        self.app1.books[target_file_path].close()
+        self.app1.books[os.path.basename(target_file_path)].close()
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
 
