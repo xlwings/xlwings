@@ -570,6 +570,7 @@ class Sheet(object):
         return Range(impl=self.impl.cells)
 
     def activate(self):
+        self.book.activate()
         return self.impl.activate()
 
     def clear_contents(self):

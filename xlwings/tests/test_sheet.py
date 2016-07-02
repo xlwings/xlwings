@@ -82,8 +82,10 @@ class TestSheet(TestBase):
         pass  # TODO
 
     def test_activate(self):
+        self.wb2.activate()
         self.wb1.sheets['Sheet2'].activate()
         assert_equal(self.wb1.sheets.active.name, 'Sheet2')
+        assert_equal(xw.apps[0], self.app1)
         self.wb1.sheets[2].activate()
         assert_equal(self.wb1.sheets.active.index, 3)
         self.wb1.sheets(1).activate()
