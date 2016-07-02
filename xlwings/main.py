@@ -308,6 +308,12 @@ class Book(object):
     def api(self):
         return self.impl.api
 
+    def __eq__(self, other):
+        return isinstance(other, Book) and self.app == other.app and self.name == other.name
+
+    def __hash__(self):
+        return hash((self.app, self.name))
+
     @classmethod
     def caller(cls):
         """
@@ -491,6 +497,12 @@ class Sheet(object):
     def api(self):
         return self.impl.api
 
+    def __eq__(self, other):
+        return isinstance(other, Sheet) and self.book == other.book and self.name == other.name
+
+    def __hash__(self):
+        return hash((self.book, self.name))
+
     @property
     def name(self):
         return self.impl.name
@@ -614,8 +626,8 @@ class Range(object):
         # Arguments
         if impl is None:
             if len(args) == 2 and isinstance(args[0], Range) and isinstance(args[1], Range):
-                #if args[0].sheet.impl != args[1].sheet.impl:
-                #    raise ValueError("Ranges are not on the same sheet")
+                if args[0].sheet != args[1].sheet:
+                    raise ValueError("Ranges are not on the same sheet")
                 impl = args[0].sheet.range(args[0], args[1]).impl
             elif len(args) == 1 and isinstance(args[0], string_types):
                 impl = apps.active.range(args[0]).impl
@@ -651,6 +663,18 @@ class Range(object):
     @property
     def api(self):
         return self.impl.api
+
+    def __eq__(self, other):
+        return (
+           isinstance(other, Range)
+           and self.sheet == other.sheet
+           and self.row == other.row
+           and self.column == other.column
+           and self.shape == other.shape
+        )
+
+    def __hash__(self):
+        return hash((self.sheet, self.row, self.column, self.shape))
 
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
@@ -853,8 +877,8 @@ class Range(object):
     def current_region(self):
         return Range(impl=self.impl.current_region)
 
-    def autofit(self, axis=None):
-        return self.impl.autofit(axis)
+    def autofit(self):
+        return self.impl.autofit()
 
     @property
     def color(self):
@@ -1240,6 +1264,9 @@ class RangeRows(Ranges):
 
     count = property(__len__)
 
+    def autofit(self):
+        self.rng.impl.autofit(axis='r')
+
     def __iter__(self):
         for i in range(0, self.rng.shape[0]):
             yield self.rng[i, :]
@@ -1271,6 +1298,9 @@ class RangeColumns(Ranges):
         return self.rng.shape[1]
 
     count = property(__len__)
+
+    def autofit(self):
+        self.rng.impl.autofit(axis='c')
 
     def __iter__(self):
         for j in range(0, self.rng.shape[1]):

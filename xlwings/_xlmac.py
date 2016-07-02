@@ -588,7 +588,7 @@ class Range(object):
     def current_region(self):
         return Range(self.sheet, self.xl.current_region.get_address())
 
-    def autofit(self, axis):
+    def autofit(self, axis=None):
         if self.xl is not None:
             address = self.address
             alerts_state = self.sheet.book.app.screen_updating

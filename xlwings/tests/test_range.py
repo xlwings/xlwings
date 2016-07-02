@@ -243,16 +243,16 @@ class TestRangeAttributes(TestBase):
 
         self.wb1.sheets[0].range('A1:D4').row_height = 40
         assert_equal(40, self.wb1.sheets[0].range('A1:D4').row_height)
-        self.wb1.sheets[0].range('A1:D4').autofit('r')
+        self.wb1.sheets[0].range('A1:D4').rows.autofit()
         assert_true(40 != self.wb1.sheets[0].range('A1:D4').row_height)
 
         self.wb1.sheets[0].range('A1:D4').column_width = 40
         assert_equal(40, self.wb1.sheets[0].range('A1:D4').column_width)
-        self.wb1.sheets[0].range('A1:D4').autofit('c')
+        self.wb1.sheets[0].range('A1:D4').columns.autofit()
         assert_true(40 != self.wb1.sheets[0].range('A1:D4').column_width)
 
-        self.wb1.sheets[0].range('A1:D4').autofit('rows')
-        self.wb1.sheets[0].range('A1:D4').autofit('columns')
+        self.wb1.sheets[0].range('A1:D4').rows.autofit()
+        self.wb1.sheets[0].range('A1:D4').columns.autofit()
 
     def test_autofit_col(self):
         self.wb1.sheets[0].range('A1:D4').value = 'test_string'
@@ -262,10 +262,8 @@ class TestRangeAttributes(TestBase):
         assert_true(40 != self.wb1.sheets[0].range('A:D').column_width)
 
         # Just checking if they don't throw an error
-        self.wb1.sheets[0].range('A:D').autofit('r')
-        self.wb1.sheets[0].range('A:D').autofit('c')
-        self.wb1.sheets[0].range('A:D').autofit('rows')
-        self.wb1.sheets[0].range('A:D').autofit('columns')
+        self.wb1.sheets[0].range('A:D').rows.autofit()
+        self.wb1.sheets[0].range('A:D').columns.autofit()
 
     def test_autofit_row(self):
         self.wb1.sheets[0].range('A1:D4').value = 'test_string'
@@ -275,10 +273,8 @@ class TestRangeAttributes(TestBase):
         assert_true(40 != self.wb1.sheets[0].range('1:10').row_height)
 
         # Just checking if they don't throw an error
-        self.wb1.sheets[0].range('1:1000000').autofit('r')
-        self.wb1.sheets[0].range('1:1000000').autofit('c')
-        self.wb1.sheets[0].range('1:1000000').autofit('rows')
-        self.wb1.sheets[0].range('1:1000000').autofit('columns')
+        self.wb1.sheets[0].range('1:1000000').rows.autofit()
+        self.wb1.sheets[0].range('1:1000000').columns.autofit()
 
     def test_color(self):
         rgb = (30, 100, 200)
