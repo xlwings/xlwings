@@ -101,7 +101,7 @@ class TestConverter(TestBase):
         assert_equal(None, self.wb1.sheets[0].range('A7').value)
         # List
         self.wb1.sheets[0].range('A7').value = [None, None]
-        assert_equal(None, self.wb1.sheets[0].range('A7').horizontal.value)
+        assert_equal(None, self.wb1.sheets[0].range('A7').expand('horizontal').value)
 
     def test_ndim2_scalar(self):
         """test_atleast_2d_scalar: Covers GH Issue #53a"""
@@ -193,7 +193,7 @@ class TestPandas(TestBase):
 
         df_expected = df_multiindex
         self.wb1.sheets[0].range('A20').value = df_expected
-        cells = self.wb1.sheets[0].range('D20').table.value
+        cells = self.wb1.sheets[0].range('D20').expand('table').value
         multiindex = self.wb1.sheets[0].range('A20:C28').value
         ix = pd.MultiIndex.from_tuples(multiindex[1:], names=multiindex[0])
         df_result = DataFrame(cells[1:], columns=cells[0], index=ix)
@@ -204,7 +204,7 @@ class TestPandas(TestBase):
 
         df_expected = df_multiheader
         self.wb1.sheets[0].range('A52').value = df_expected
-        cells = self.wb1.sheets[0].range('B52').table.value
+        cells = self.wb1.sheets[0].range('B52').expand('table').value
         df_result = DataFrame(cells[2:], columns=pd.MultiIndex.from_arrays(cells[:2]))
         assert_frame_equal(df_expected, df_result)
 
@@ -215,9 +215,9 @@ class TestPandas(TestBase):
         self.wb1.sheets[0].range('A100').value = df_expected
         if sys.platform.startswith('win') and self.wb1.app.version == '14.0':
             self.wb1.sheets[0].range(
-                'A100').vertical.number_format = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
-        cells = self.wb1.sheets[0].range('B100').table.value
-        index = self.wb1.sheets[0].range('A101').vertical.value
+                'A100').expand('vertical').number_format = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
+        cells = self.wb1.sheets[0].range('B100').expand('table').value
+        index = self.wb1.sheets[0].range('A101').expand('vertical').value
         df_result = DataFrame(cells[1:], index=index, columns=cells[0])
         assert_frame_equal(df_expected, df_result)
 
@@ -368,7 +368,7 @@ class TestPandas(TestBase):
         series_expected = timeseries_1
         self.wb1.sheets[0].range('A40').options(header=False).value = series_expected
         if sys.platform.startswith('win') and self.wb1.app.version == '14.0':
-            self.wb1.sheets[0].range('A40').vertical.number_format = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
+            self.wb1.sheets[0].range('A40').expand('vertical').number_format = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
         series_result = self.wb1.sheets[0].range('A40:B49').options(pd.Series, header=False).value
         assert_series_equal(series_expected, series_result)
 

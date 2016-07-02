@@ -30,7 +30,7 @@ class ExpandRangeStage(object):
         if c.range:
             # auto-expand the range
             if self.expand:
-                c.range = getattr(c.range, self.expand)
+                c.range = c.range.expand(self.expand)
 
 
 class ClearExpandedRangeStage(object):
@@ -40,7 +40,7 @@ class ClearExpandedRangeStage(object):
 
     def __call__(self, c):
         if c.range and self.expand:
-            rng = getattr(c.range, self.expand)
+            rng = c.range.expand(self.expand)
 
             r = len(c.value)
             c = r and len(c.value[0])

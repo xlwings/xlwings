@@ -943,109 +943,43 @@ class Range(object):
     def value(self, data):
         conversion.write(data, self, self._options)
 
-    @property
-    def table(self):
-        """
-        Returns a contiguous Range starting with the indicated cell as top-left corner and going down and right as
-        long as no empty cell is hit.
+    def expand(self, mode):
+        if mode == 'table':
+            origin = self(1, 1)
+            if origin(2, 1).raw_value in [None, ""]:
+                bottom_left = origin
+            elif origin(3, 1).raw_value in [None, ""]:
+                bottom_left = origin(2, 1)
+            else:
+                bottom_left = origin(2, 1).end('down')
 
-        Keyword Arguments
-        -----------------
-        strict : boolean, default False
-            ``True`` stops the table at empty cells even if they contain a formula. Less efficient than if set to
-            ``False``.
+            if origin(1, 2).raw_value in [None, ""]:
+                top_right = origin
+            elif origin(1, 3).raw_value in [None, ""]:
+                top_right = origin(1, 2)
+            else:
+                top_right = origin(1, 2).end('right')
 
-        Returns
-        -------
-        Range object
+            return Range(top_right, bottom_left)
 
-        Examples
-        --------
-        To get the values of a contiguous range or clear its contents use::
+        elif mode == 'vertical':
+            if self(2, 1).raw_value in [None, ""]:
+                return Range(self(1, 1), self(1, self.shape[1]))
+            elif self(3, 1).raw_value in [None, ""]:
+                return Range(self(1, 1), self(2, self.shape[1]))
+            else:
+                end_row = self(2, 1).end('down').row - self.row + 1
+                return Range(self(1, 1), self(end_row, self.shape[1]))
 
-            Range('A1').table.value
-            Range('A1').table.clear_contents()
+        elif mode == 'horizontal':
+            if self(1, 2).raw_value in [None, ""]:
+                return Range(self(1, 1), self(self.shape[0], 1))
+            elif self(1, 3).raw_value in [None, ""]:
+                return Range(self(1, 1), self(self.shape[0], 2))
+            else:
+                end_column = self(1, 2).end('right').column - self.column + 1
+                return Range(self(1, 1), self(self.shape[0], end_column))
 
-        """
-        origin = self(1, 1)
-        if origin(2, 1).raw_value in [None, ""]:
-            bottom_left = origin
-        elif origin(3, 1).raw_value in [None, ""]:
-            bottom_left = origin(2, 1)
-        else:
-            bottom_left = origin(2, 1).end('down')
-
-        if origin(1, 2).raw_value in [None, ""]:
-            top_right = origin
-        elif origin(1, 3).raw_value in [None, ""]:
-            top_right = origin(1, 2)
-        else:
-            top_right = origin(1, 2).end('right')
-
-        return Range(top_right, bottom_left)
-
-    @property
-    def vertical(self):
-        """
-        Returns a contiguous Range starting with the indicated cell and going down as long as no empty cell is hit.
-        This corresponds to ``Ctrl-Shift-DownArrow`` in Excel.
-
-        Arguments
-        ---------
-        strict : bool, default False
-            ``True`` stops the table at empty cells even if they contain a formula. Less efficient than if set to
-            ``False``.
-
-        Returns
-        -------
-        Range object
-
-        Examples
-        --------
-        To get the values of a contiguous range or clear its contents use::
-
-            Range('A1').vertical.value
-            Range('A1').vertical.clear_contents()
-
-        """
-        if self(2, 1).raw_value in [None, ""]:
-            return Range(self(1, 1), self(1, self.shape[1]))
-        elif self(3, 1).raw_value in [None, ""]:
-            return Range(self(1, 1), self(2, self.shape[1]))
-        else:
-            end_row = self(2, 1).end('down').row - self.row + 1
-            return Range(self(1, 1), self(end_row, self.shape[1]))
-
-    @property
-    def horizontal(self):
-        """
-        Returns a contiguous Range starting with the indicated cell and going right as long as no empty cell is hit.
-
-        Keyword Arguments
-        -----------------
-        strict : bool, default False
-            ``True`` stops the table at empty cells even if they contain a formula. Less efficient than if set to
-            ``False``.
-
-        Returns
-        -------
-        Range object
-
-        Examples
-        --------
-        To get the values of a contiguous Range or clear its contents use::
-
-            Range('A1').horizontal.value
-            Range('A1').horizontal.clear_contents()
-
-        """
-        if self(1, 2).raw_value in [None, ""]:
-            return Range(self(1, 1), self(self.shape[0], 1))
-        elif self(1, 3).raw_value in [None, ""]:
-            return Range(self(1, 1), self(self.shape[0], 2))
-        else:
-            end_column = self(1, 2).end('right').column - self.column + 1
-            return Range(self(1, 1), self(self.shape[0], end_column))
 
     def __getitem__(self, key):
         if type(key) is tuple:
