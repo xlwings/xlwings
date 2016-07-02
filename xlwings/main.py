@@ -44,6 +44,62 @@ except ImportError:
     Image = None
 
 
+class Collection(object):
+
+    def __init__(self, impl):
+        self.impl = impl
+
+    @property
+    def api(self):
+        return self.impl.api
+
+    def __call__(self, name_or_index):
+        return self._wrap(impl=self.impl(name_or_index))
+
+    def __len__(self):
+        return len(self.impl)
+
+    count = property(__len__)
+
+    def __iter__(self):
+        for impl in self.impl:
+            yield self._wrap(impl=impl)
+
+    def __getitem__(self, key):
+        if isinstance(key, numbers.Number):
+            l = len(self)
+            if key >= l:
+                raise IndexError("Index %s out of range (%s elements)" % (key, l))
+            if key < 0:
+                if key < -l:
+                    raise IndexError("Index %s out of range (%s elements)" % (key, l))
+                key += l
+            return self(key + 1)
+        elif isinstance(key, slice):
+            raise ValueError(self.impl.__class__.__name__ + " object does not support slicing")
+        else:
+            return self(key)
+
+    # used by repr - by default the name of the collection class, but can be overridden
+    @property
+    def _name(self):
+        return self.__class__.__name__
+
+    def __repr__(self):
+        r = []
+        for i, x in enumerate(self):
+            if i == 3:
+                r.append("...")
+                break
+            else:
+                r.append(repr(x))
+
+        return '{}({})'.format(
+            self._name,
+            "[" + ", ".join(r) + "]"
+        )
+
+
 class Apps(object):
 
     def __init__(self, impl):
@@ -189,88 +245,6 @@ class App(object):
 
     def macro(self, macro):
         return Macro(self, macro)
-
-
-class Collection(object):
-
-    def __init__(self, impl):
-        self.impl = impl
-
-    @classmethod
-    def _wrap_slice(cls, impl):
-        raise NotImplementedError(cls.__name__ + " object does not support slicing")
-
-    @property
-    def api(self):
-        return self.impl.api
-
-    def __call__(self, name_or_index):
-        return self._wrap(impl=self.impl(name_or_index))
-
-    def __len__(self):
-        return len(self.impl)
-
-    def __iter__(self):
-        for impl in self.impl:
-            yield self._wrap(impl=impl)
-
-    def __getitem__(self, key):
-        if isinstance(key, numbers.Number):
-            l = len(self)
-            if key >= l:
-                raise IndexError("Workbook index %s out of range (%s workbooks)" % (key, l))
-            if key < 0:
-                if key < -l:
-                    raise IndexError("Workbook index %s out of range (%s workbooks)" % (key, l))
-                key += l
-            return self(key + 1)
-        elif isinstance(key, slice):
-            method = getattr(self.impl, 'slice', None)
-            if method is None:
-                raise ValueError(self.impl.__class__.__name__ + " object does not support slicing")
-            else:
-                l = len(self)
-                start = key.start
-                if start is None:
-                    start = 0
-                elif start > l:
-                    raise IndexError("Start index %s out of range (%s elements)." % (start, l))
-                elif start < 0:
-                    if start <= -l:
-                        raise IndexError("Start index %s out of range (%s elements)." % (start, l))
-                    else:
-                        start += l
-                stop = key.stop
-                if stop is None:
-                    stop = l
-                elif stop > l:
-                    raise IndexError("Stop index %s out of range (%s elements)." % (stop, l))
-                elif stop < 0:
-                    if stop <= -l:
-                        raise IndexError("Stop index %s out of range (%s elements)." % (stop, l))
-                    else:
-                        stop += l
-                step = key.step
-                if step is None:
-                    step = 1
-                return self._wrap_slice(impl=method(start, stop, step))
-        else:
-            return self(key)
-
-    def __repr__(self):
-        r = []
-        for i, x in enumerate(self):
-            if i == 3:
-                r.append("...")
-                break
-            else:
-                r.append(repr(x))
-
-        return '{}({})'.format(
-            self.__class__.__name__,
-            "[" + ", ".join(r) + "]"
-        )
-
 
 
 class Book(object):
@@ -784,14 +758,6 @@ class Range(object):
         return self.impl.column
 
     @property
-    def row_count(self):
-        return self.impl.row_count
-
-    @property
-    def column_count(self):
-        return self.impl.column_count
-
-    @property
     def raw_value(self):
         return self.impl.raw_value
 
@@ -964,7 +930,7 @@ class Range(object):
 
         .. versionadded:: 0.3.0
         """
-        return self.row_count, self.column_count
+        return self.impl.shape
 
     @property
     def size(self):
@@ -1058,12 +1024,12 @@ class Range(object):
 
         """
         if self(2, 1).raw_value in [None, ""]:
-            return Range(self(1, 1), self(1, self.column_count))
+            return Range(self(1, 1), self(1, self.shape[1]))
         elif self(3, 1).raw_value in [None, ""]:
-            return Range(self(1, 1), self(2, self.column_count))
+            return Range(self(1, 1), self(2, self.shape[1]))
         else:
             end_row = self(2, 1).end('down').row - self.row + 1
-            return Range(self(1, 1), self(end_row, self.column_count))
+            return Range(self(1, 1), self(end_row, self.shape[1]))
 
     @property
     def horizontal(self):
@@ -1089,18 +1055,18 @@ class Range(object):
 
         """
         if self(1, 2).raw_value in [None, ""]:
-            return Range(self(1, 1), self(self.row_count, 1))
+            return Range(self(1, 1), self(self.shape[0], 1))
         elif self(1, 3).raw_value in [None, ""]:
-            return Range(self(1, 1), self(self.row_count, 2))
+            return Range(self(1, 1), self(self.shape[0], 2))
         else:
             end_column = self(1, 2).end('right').column - self.column + 1
-            return Range(self(1, 1), self(self.row_count, end_column))
+            return Range(self(1, 1), self(self.shape[0], end_column))
 
     def __getitem__(self, key):
         if type(key) is tuple:
             row, col = key
 
-            n = self.row_count
+            n = self.shape[0]
             if isinstance(row, slice):
                 row1, row2, step = row.indices(n)
                 if step != 1:
@@ -1115,7 +1081,7 @@ class Range(object):
             else:
                 raise TypeError("Row indices must be integers or slices, not %s" % type(row).__name__)
 
-            n = self.column_count
+            n = self.shape[1]
             if isinstance(col, slice):
                 col1, col2, step = col.indices(n)
                 if step != 1:
@@ -1138,10 +1104,10 @@ class Range(object):
             ))
 
         elif isinstance(key, slice):
-            if self.row_count > 1 and self.column_count > 1:
+            if self.shape[0] > 1 and self.shape[1] > 1:
                 raise IndexError("One-dimensional slicing is not allowed on two-dimensional ranges")
 
-            if self.row_count > 1:
+            if self.shape[0] > 1:
                 return self[key, :]
             else:
                 return self[:, key]
@@ -1239,11 +1205,11 @@ class Range(object):
         if row_size is not None:
             assert row_size > 0
         else:
-            row_size = self.row_count
+            row_size = self.shape[0]
         if column_size is not None:
             assert column_size > 0
         else:
-            column_size = self.column_count
+            column_size = self.shape[1]
 
         return Range(self(1, 1), self(row_size, column_size)).options(**self._options)
 
@@ -1264,8 +1230,8 @@ class Range(object):
                 column_offset + 1
             ),
             self(
-                row_offset + self.row_count,
-                column_offset + self.column_count
+                row_offset + self.shape[0],
+                column_offset + self.shape[1]
             )
         ).options(**self._options)
 
@@ -1286,7 +1252,7 @@ class Range(object):
 
         .. versionadded:: 0.3.5
         """
-        return self(self.row_count, self.column_count).options(**self._options)
+        return self(self.shape[0], self.shape[1]).options(**self._options)
 
     def select(self):
         """
@@ -1309,10 +1275,12 @@ class RangeRows(Ranges):
         self.rng = rng
 
     def __len__(self):
-        return self.rng.row_count
+        return self.rng.shape[0]
+
+    count = property(__len__)
 
     def __iter__(self):
-        for i in range(0, self.rng.row_count):
+        for i in range(0, self.rng.shape[0]):
             yield self.rng[i, :]
 
     def __call__(self, key):
@@ -1339,10 +1307,12 @@ class RangeColumns(Ranges):
         self.rng = rng
 
     def __len__(self):
-        return self.rng.column_count
+        return self.rng.shape[1]
+
+    count = property(__len__)
 
     def __iter__(self):
-        for j in range(0, self.rng.column_count):
+        for j in range(0, self.rng.shape[1]):
             yield self.rng[:, j]
 
     def __call__(self, key):
@@ -1361,13 +1331,6 @@ class RangeColumns(Ranges):
             self.__class__.__name__,
             repr(self.rng)
         )
-
-
-class Ranges(Collection):
-
-    _wrap = Range
-
-Ranges._wrap_slice = Ranges
 
 
 class Shape(object):
@@ -2191,24 +2154,13 @@ class Macro(object):
     __call__ = run
 
 
-class Books(object):
+class Books(Collection):
 
-    def __init__(self, impl):
-        self.impl = impl
-
-    @property
-    def api(self):
-        return self.impl.api
+    _wrap = Book
 
     @property
     def active(self):
         return Book(impl=self.impl.active)
-
-    def __call__(self, name_or_index):
-        return Book(impl=self.impl(name_or_index))
-
-    def __len__(self):
-        return len(self.impl)
 
     def add(self):
         return Book(impl=self.impl.add())
@@ -2216,42 +2168,10 @@ class Books(object):
     def open(self, fullname):
         return Book(impl=self.impl.open(fullname))
 
-    def __iter__(self):
-        for impl in self.impl:
-            yield Book(impl=impl)
 
-    def __getitem__(self, name_or_index):
-        if isinstance(name_or_index, numbers.Number):
-            l = len(self)
-            if name_or_index >= l:
-                raise IndexError("Workbook index %s out of range (%s workbooks)" % (name_or_index, l))
-            if name_or_index < 0:
-                if name_or_index < -l:
-                    raise IndexError("Workbook index %s out of range (%s workbooks)" % (name_or_index, l))
-                name_or_index += l
-            return self(name_or_index + 1)
-        else:
-            return self(name_or_index)
+class Sheets(Collection):
 
-    def __repr__(self):
-        r = []
-        for i, wb in enumerate(self):
-            if i == 3:
-                r.append("...")
-                break
-            else:
-                r.append(repr(wb))
-        return "["+", ".join(r)+"]"
-
-
-class Sheets(object):
-
-    def __init__(self, impl):
-        self.impl = impl
-
-    @property
-    def api(self):
-        return self.impl.api
+    _wrap = Sheet
 
     @property
     def active(self):
@@ -2263,38 +2183,8 @@ class Sheets(object):
         else:
             return Sheet(impl=self.impl(name_or_index))
 
-    def __len__(self):
-        return len(self.impl)
-
-    def __repr__(self):
-        r = []
-        for i, sht in enumerate(self):
-            if i == 3:
-                r.append("...")
-                break
-            else:
-                r.append(repr(sht))
-        return "["+", ".join(r)+"]"
-
-    def __getitem__(self, name_or_index):
-        if isinstance(name_or_index, numbers.Number):
-            l = len(self)
-            if name_or_index >= l:
-                raise IndexError("Sheet index %s out of range (%s sheets)" % (name_or_index, l))
-            if name_or_index < 0:
-                if name_or_index < -l:
-                    raise IndexError("Sheet index %s out of range (%s sheets)" % (name_or_index, l))
-                name_or_index += l
-            return self(name_or_index + 1)
-        else:
-            return self(name_or_index)
-
     def __delitem__(self, name_or_index):
         self[name_or_index].delete()
-
-    def __iter__(self):
-        for i in range(len(self)):
-            yield self(i+1)
 
     def add(self, name=None, before=None, after=None):
         if name is not None:
@@ -2315,6 +2205,9 @@ class ActiveAppBooks(Books):
     def __init__(self):
         pass
 
+    # override class name which appears in repr
+    _name = 'Books'
+
     @property
     def impl(self):
         return apps.active.books.impl
@@ -2324,6 +2217,9 @@ class ActiveBookSheets(Sheets):
 
     def __init__(self):
         pass
+
+    # override class name which appears in repr
+    _name = 'Sheets'
 
     @property
     def impl(self):

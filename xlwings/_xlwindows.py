@@ -608,6 +608,10 @@ class Sheets(object):
     def __len__(self):
         return self.xl.Count
 
+    def __iter__(self):
+        for xl in self.xl:
+            yield Sheet(xl=xl)
+
     def add(self, before=None, after=None):
         if before:
             return Sheet(xl=self.xl.Add(Before=before.xl))
@@ -781,12 +785,8 @@ class Range(object):
         return self.coords[2]
 
     @property
-    def row_count(self):
-        return self.coords[3]
-
-    @property
-    def column_count(self):
-        return self.coords[4]
+    def shape(self):
+        return self.coords[3], self.coords[4]
 
     @property
     def raw_value(self):

@@ -275,6 +275,10 @@ class Sheets(object):
     def __len__(self):
         return self.workbook.xl.count(each=kw.worksheet)
 
+    def __iter__(self):
+        for i in range(len(self)):
+            yield self(i+1)
+
     def add(self, before=None, after=None):
         if before is None and after is None:
             before = self.workbook.app.books.active.sheets.active
@@ -345,8 +349,8 @@ class Sheet(object):
             col2 = arg2[1]
             address2 = self.xl.rows[row2].columns[col2].get_address()
         elif isinstance(arg2, Range):
-            row2 = max(arg1.row + arg1.row_count - 1, arg2.row + arg2.row_count - 1)
-            col2 = max(arg1.column + arg1.column_count - 1, arg2.column + arg2.column_count - 1)
+            row2 = max(arg1.row + arg1.shape[0] - 1, arg2.row + arg2.shape[0] - 1)
+            col2 = max(arg1.column + arg1.shape[1] - 1, arg2.column + arg2.shape[1] - 1)
             address2 = self.xl.rows[row2].columns[col2].get_address()
         elif isinstance(arg2, string_types):
             address2 = arg2
@@ -452,12 +456,8 @@ class Range(object):
         return self.coords[1]
 
     @property
-    def row_count(self):
-        return self.coords[2]
-
-    @property
-    def column_count(self):
-        return self.coords[3]
+    def shape(self):
+        return self.coords[2], self.coords[3]
 
     @property
     def raw_value(self):
@@ -642,8 +642,8 @@ class Range(object):
 
     def __call__(self, arg1, arg2=None):
         if arg2 is None:
-            col = (arg1 - 1) % self.column_count
-            row = int((arg1 - 1 - col) / self.column_count)
+            col = (arg1 - 1) % self.shape[1]
+            row = int((arg1 - 1 - col) / self.shape[1])
             return self(1 + row, 1 + col)
         else:
             return Range(self.sheet,
@@ -653,22 +653,22 @@ class Range(object):
     def rows(self):
         row = self.row
         col1 = self.column
-        col2 = col1 + self.column_count - 1
+        col2 = col1 + self.shape[1] - 1
         sht = self.sheet
         return [
             self.sheet.range((row+i, col1), (row+i, col2))
-            for i in range(self.row_count)
+            for i in range(self.shape[0])
         ]
 
     @property
     def columns(self):
         col = self.column
         row1 = self.row
-        row2 = row1 + self.row_count - 1
+        row2 = row1 + self.shape[0] - 1
         sht = self.sheet
         return [
             sht.range((row1, col + i), (row2, col + i))
-            for i in range(self.row_count)
+            for i in range(self.shape[0])
         ]
 
     def select(self):

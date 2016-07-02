@@ -97,10 +97,10 @@ class TestRangeAttributes(TestBase):
         assert_equal(self.wb1.sheets[0].range('B3:F5').column, 2)
 
     def test_row_count(self):
-        assert_equal(self.wb1.sheets[0].range('B3:F5').row_count, 3)
+        assert_equal(self.wb1.sheets[0].range('B3:F5').rows.count, 3)
 
     def test_column_count(self):
-        assert_equal(self.wb1.sheets[0].range('B3:F5').column_count, 5)
+        assert_equal(self.wb1.sheets[0].range('B3:F5').columns.count, 5)
 
     def raw_value(self):
         pass  # TODO
