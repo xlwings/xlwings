@@ -114,6 +114,9 @@ class Apps(object):
             return App(impl=app)
         return None
 
+    def __call__(self, i):
+        return self[i-1]
+
     def __repr__(self):
         return '{}({})'.format(
             self.__class__.__name__,
@@ -558,31 +561,13 @@ class Sheet(object):
     def charts(self):
         return Charts(impl=self.impl.charts)
 
-    def chart(self, name_or_index=None):
-        if name_or_index is None:
-            return self.charts.add()
-        else:
-            return self.charts(name_or_index)
-
     @property
     def shapes(self):
         return Shapes(impl=self.impl.shapes)
 
-    def shape(self, name_or_index=None):
-        if name_or_index is None:
-            return self.charts.add()
-        else:
-            return self.charts(name_or_index)
-
     @property
     def pictures(self):
         return Pictures(impl=self.impl.pictures)
-
-    def picture(self, name_or_index=None):
-        if name_or_index is None:
-            return self.charts.add()
-        else:
-            return self.charts(name_or_index)
 
 
 class Range(object):
