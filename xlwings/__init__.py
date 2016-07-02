@@ -30,8 +30,8 @@ class ShapeAlreadyExists(Exception):
     pass
 
 # API
-from .main import App, Book, Range, Chart, Sheet, Picture, Shape, Plot, view, apps
-from .main import active
+from .main import App, Book, Range, Chart, Sheet, Picture, Shape, Plot, view
+from .main import apps, books, sheets
 
 # UDFs
 if sys.platform.startswith('win'):

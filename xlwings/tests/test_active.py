@@ -10,7 +10,7 @@ from .common import TestBase
 class TestActive(TestBase):
     def test_active_app(self):
         self.wb1.activate()
-        assert_equal(xw.active.app, self.app1)
+        assert_equal(xw.apps.active, self.app1)
 
     def test_apps_active(self):
         self.wb1.activate()
@@ -19,7 +19,7 @@ class TestActive(TestBase):
     def test_active_book(self):
         wb = xw.Book()
         wb.activate()
-        assert_equal(xw.active.book.name, wb.name)
+        assert_equal(xw.books.active.name, wb.name)
 
     def test_books_active(self):
         wb = xw.Book()
@@ -30,7 +30,7 @@ class TestActive(TestBase):
         self.wb2.activate()
         self.wb2.sheets[2].name = 'active sheet test'
         self.wb2.sheets[2].activate()
-        assert_equal(xw.active.sheet.name, 'active sheet test')
+        assert_equal(xw.sheets.active.name, 'active sheet test')
 
     def test_sheets_active(self):
         self.wb2.activate()

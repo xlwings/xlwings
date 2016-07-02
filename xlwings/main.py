@@ -326,9 +326,9 @@ class Book(object):
 
                 if len(candidates) == 0:
                     if os.path.isfile(fullname):
-                        if not active.app:
+                        if not apps.active:
                             app = App()
-                        impl = active.app.books.open(fullname).impl
+                        impl = apps.active.books.open(fullname).impl
                     else:
                         raise Exception("Could not connect to workbook '%s'" % fullname)
                 elif len(candidates) > 1:
@@ -337,8 +337,8 @@ class Book(object):
                     impl = candidates[0][1].impl
             else:
                 # Open Excel if necessary and create a new workbook
-                if active.app:
-                    impl = active.app.books.add().impl
+                if apps.active:
+                    impl = apps.active.books.add().impl
                 else:
                     app = App()
                     impl = app.books[0].impl
@@ -683,7 +683,7 @@ class Range(object):
                 #    raise ValueError("Ranges are not on the same sheet")
                 impl = args[0].sheet.range(args[0], args[1]).impl
             elif len(args) == 1 and isinstance(args[0], string_types):
-                impl = active.app.range(args[0]).impl
+                impl = apps.active.range(args[0]).impl
             elif 0 < len(args) <= 3:
                 if isinstance(args[-1], tuple):
                     if len(args) > 1 and isinstance(args[-2], tuple):
@@ -1661,9 +1661,9 @@ class Chart(ShapeContent):
         """
 
         if sheet is None:
-            sheet = active.sheet
+            sheet = sheets.active
         elif not isinstance(sheet, Sheet):
-            sheet = active.book.sheet(sheet)
+            sheet = books.active.sheets(sheet)
 
         xl_chart = sheet.xl_sheet.add_chart(left, top, width, height)
 
@@ -1751,7 +1751,7 @@ class Charts(Collection):
         xlwings Chart object
         """
 
-        sheet = active.sheet
+        sheet = sheets.active
 
         self.add(
             left,
@@ -1860,9 +1860,9 @@ class Picture(ShapeContent):
         """
 
         if sheet is None:
-            sheet = active.sheet
+            sheet = sheets.active
         elif not isinstance(sheet, Sheet):
-            sheet = active.book.sheet(sheet)
+            sheet = books.active.sheets(sheet)
 
         if name:
             if name in sheet.xl_sheet.get_shapes_names():
@@ -2310,19 +2310,26 @@ class Sheets(object):
         return Sheet(impl=impl)
 
 
-class ActiveObjects(object):
+class ActiveAppBooks(Books):
+
+    def __init__(self):
+        pass
 
     @property
-    def app(self):
-        return apps.active
+    def impl(self):
+        return apps.active.books.impl
+
+
+class ActiveBookSheets(Sheets):
+
+    def __init__(self):
+        pass
 
     @property
-    def book(self):
-        return apps.active.books.active
-
-    @property
-    def sheet(self):
-        return apps.active.books.active.sheets.active
+    def impl(self):
+        return books.active.sheets.impl
 
 
-active = ActiveObjects()
+books = ActiveAppBooks()
+
+sheets = ActiveBookSheets()

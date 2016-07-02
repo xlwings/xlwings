@@ -176,10 +176,10 @@ class TestBook(TestBase):
         wb1 = self.app1.book()
         wb2 = self.app2.book()
         wb1.activate()
-        assert_equal(xw.active.book.name, wb1.name)
+        assert_equal(xw.books.active.name, wb1.name)
 
         wb2.activate()
-        assert_equal(xw.active.book.name, wb2.name)
+        assert_equal(xw.books.active.name, wb2.name)
 
     def test_selection(self):
         self.wb1.sheets[0].range('B10').select()
