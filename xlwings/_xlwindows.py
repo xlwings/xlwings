@@ -515,7 +515,10 @@ class Books(object):
         return Book(self.xl.Application.ActiveWorkbook)
 
     def __call__(self, name_or_index):
-        return Book(xl=self.xl(name_or_index))
+        try:
+            return Book(xl=self.xl(name_or_index))
+        except pywintypes.com_error:
+            raise KeyError(name_or_index)
 
     def __len__(self):
         return self.xl.Count
