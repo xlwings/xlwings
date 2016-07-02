@@ -1489,7 +1489,61 @@ class Shapes(Collection):
         return Shape(impl=self.impl.add_picture(filename, link_to_file, save_with_document, left, top, width, height))
 
 
-class Chart(object):
+class ShapeContent(object):
+
+    @property
+    def left(self):
+        if not self.container:
+            raise Exception("This object is not contained in a shape.")
+        return self.container.left
+
+    @left.setter
+    def left(self, value):
+        if not self.container:
+            raise Exception("This object is not contained in a shape.")
+        self.container.left = value
+
+    @property
+    def top(self):
+        if not self.container:
+            raise Exception("This object is not contained in a shape.")
+        return self.container.top
+
+    @top.setter
+    def top(self, value):
+        if not self.container:
+            raise Exception("This object is not contained in a shape.")
+        self.container.top = value
+
+    @property
+    def width(self):
+        if not self.container:
+            raise Exception("This object is not contained in a shape.")
+        return self.container.width
+    
+    @width.setter
+    def width(self, value):
+        if not self.container:
+            raise Exception("This object is not contained in a shape.")
+        self.container.width = value
+    
+    @property
+    def height(self):
+        if not self.container:
+            raise Exception("This object is not contained in a shape.")
+        return self.container.height
+
+    @height.setter
+    def height(self, value):
+        if not self.container:
+            raise Exception("This object is not contained in a shape.")
+        self.container.height = value
+
+    def delete(self):
+        self.container.delete()
+        
+
+class Chart(ShapeContent):
     """
     A Chart object represents an existing Excel chart and can be instantiated with the following arguments::
 
@@ -1548,10 +1602,20 @@ class Chart(object):
     @property
     def container(self):
         impl = self.impl.container
-        if isinstance(impl, xlplatform.Shape):
+        if impl is None:
+            return None
+        elif isinstance(impl, xlplatform.Shape):
             return Shape(impl=impl)
         else:
             raise Exception("Container type not supported")
+
+    @property
+    def parent(self):
+        impl = self.impl.parent
+        if isinstance(impl, xlplatform.Book):
+            return Book(impl=self.impl.parent)
+        else:
+            return Sheet(impl=self.impl.parent)
 
     @classmethod
     def add(cls, sheet=None, left=0, top=0, width=355, height=211, **kwargs):
@@ -1638,7 +1702,7 @@ class Chart(object):
     def __repr__(self):
         return "<Chart '{0}' in {1}>".format(
             self.name,
-            self.container
+            self.parent
         )
 
 
@@ -1707,7 +1771,7 @@ class Charts(Collection):
         return cls(xl_chart=xl_chart, chart_type=chart_type, source_data=source_data)
 
 
-class Picture(object):
+class Picture(ShapeContent):
     """
     A Picture object represents an existing Excel Picture and can be instantiated with the following arguments::
 

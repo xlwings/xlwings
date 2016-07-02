@@ -1191,7 +1191,7 @@ class Shape(object):
     def left(self):
         return self.xl.Left
 
-    @property
+    @left.setter
     def left(self, value):
         self.xl.Left = value
 
@@ -1199,7 +1199,7 @@ class Shape(object):
     def top(self):
         return self.xl.Top
 
-    @property
+    @top.setter
     def top(self, value):
         self.xl.Top = value
 
@@ -1207,7 +1207,7 @@ class Shape(object):
     def width(self):
         return self.xl.Width
 
-    @property
+    @width.setter
     def width(self, value):
         self.xl.Width = value
 
@@ -1215,7 +1215,7 @@ class Shape(object):
     def height(self):
         return self.xl.Height
 
-    @property
+    @height.setter
     def height(self, value):
         self.xl.Height = value
 
@@ -1232,7 +1232,6 @@ class Shape(object):
 
     def activate(self):
         self.xl.Activate()
-
 
 
 class Collection(object):
@@ -1285,6 +1284,10 @@ class Chart(object):
         return self.xl.Name
 
     @property
+    def parent(self):
+        return Sheet(xl=self.xl.Parent.Parent)
+
+    @property
     def container(self):
         return Shape(xl=self.xl.Parent.ShapeRange(1))
 
@@ -1321,7 +1324,7 @@ class Picture(object):
 
     @property
     def container(self):
-        return Shape(xl=self.xl.Parent.ShapeRange(1))
+        return Shape(xl=self.xl.ShapeRange(1))
 
 
 class Pictures(Collection):
