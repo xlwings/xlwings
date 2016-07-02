@@ -308,6 +308,12 @@ class Book(object):
     def api(self):
         return self.impl.api
 
+    def __eq__(self, other):
+        return isinstance(other, Book) and self.app == other.app and self.name == other.name
+
+    def __hash__(self):
+        return hash((self.app, self.name))
+
     @classmethod
     def caller(cls):
         """
@@ -491,6 +497,12 @@ class Sheet(object):
     def api(self):
         return self.impl.api
 
+    def __eq__(self, other):
+        return isinstance(other, Sheet) and self.book == other.book and self.name == other.name
+
+    def __hash__(self):
+        return hash((self.book, self.name))
+
     @property
     def name(self):
         return self.impl.name
@@ -614,8 +626,8 @@ class Range(object):
         # Arguments
         if impl is None:
             if len(args) == 2 and isinstance(args[0], Range) and isinstance(args[1], Range):
-                #if args[0].sheet.impl != args[1].sheet.impl:
-                #    raise ValueError("Ranges are not on the same sheet")
+                if args[0].sheet != args[1].sheet:
+                    raise ValueError("Ranges are not on the same sheet")
                 impl = args[0].sheet.range(args[0], args[1]).impl
             elif len(args) == 1 and isinstance(args[0], string_types):
                 impl = apps.active.range(args[0]).impl
@@ -651,6 +663,18 @@ class Range(object):
     @property
     def api(self):
         return self.impl.api
+
+    def __eq__(self, other):
+        return (
+           isinstance(other, Range)
+           and self.sheet == other.sheet
+           and self.row == other.row
+           and self.column == other.column
+           and self.shape == other.shape
+        )
+
+    def __hash__(self):
+        return hash((self.sheet, self.row, self.column, self.shape))
 
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
