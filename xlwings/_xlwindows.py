@@ -793,34 +793,34 @@ class Range(object):
 
     @property
     def raw_value(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.Value
         else:
             return None
 
     @raw_value.setter
     def raw_value(self, data):
-        if self.xl:
+        if self.xl is not None:
             self.xl.Value = data
 
     def clear_contents(self):
-        if self.xl:
+        if self.xl is not None:
             self.xl.ClearContents()
 
     def clear(self):
-        if self.xl:
+        if self.xl is not None:
             self.xl.Clear()
 
     @property
     def formula(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.Formula
         else:
             return None
 
     @formula.setter
     def formula(self, value):
-        if self.xl:
+        if self.xl is not None:
             self.xl.Formula = value
 
     def end(self, direction):
@@ -829,89 +829,89 @@ class Range(object):
 
     @property
     def formula_array(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.FormulaArray
         else:
             return None
 
     @formula_array.setter
     def formula_array(self, value):
-        if self.xl:
+        if self.xl is not None:
             self.xl.FormulaArray = value
 
     @property
     def column_width(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.ColumnWidth
         else:
             return 0
 
     @column_width.setter
     def column_width(self, value):
-        if self.xl:
+        if self.xl is not None:
             self.xl.ColumnWidth = value
 
     @property
     def row_height(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.RowHeight
         else:
             return 0
 
     @row_height.setter
     def row_height(self, value):
-        if self.xl:
+        if self.xl is not None:
             self.xl.RowHeight = value
 
     @property
     def width(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.Width
         else:
             return 0
 
     @property
     def height(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.Height
         else:
             return 0
 
     @property
     def left(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.Left
         else:
             return 0
 
     @property
     def top(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.Top
         else:
             return 0
 
     @property
     def number_format(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.NumberFormat
         else:
             return ''
 
     @number_format.setter
     def number_format(self, value):
-        if self.xl:
+        if self.xl is not None:
             self.xl.NumberFormat = value
 
     def get_address(self, row_absolute, col_absolute, external):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.GetAddress(row_absolute, col_absolute, 1, external)
         else:
             raise NotImplemented()
 
     @property
     def address(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.Address
         else:
             _, row, col, nrows, ncols = self.coords
@@ -919,13 +919,13 @@ class Range(object):
 
     @property
     def current_region(self):
-        if self.xl:
+        if self.xl is not None:
             return Range(xl=self.xl.CurrentRegion)
         else:
             return self
 
     def autofit(self, axis=None):
-        if self.xl:
+        if self.xl is not None:
             if axis == 'rows' or axis == 'r':
                 self.xl.Rows.AutoFit()
             elif axis == 'columns' or axis == 'c':
@@ -935,7 +935,7 @@ class Range(object):
                 self.xl.Rows.AutoFit()
 
     def get_hyperlink_address(self):
-        if self.xl:
+        if self.xl is not None:
             try:
                 return self.xl.Hyperlinks(1).Address
             except pywintypes.com_error:
@@ -944,7 +944,7 @@ class Range(object):
             return ''
 
     def set_hyperlink(self, address, text_to_display, screen_tip):
-        if self.xl:
+        if self.xl is not None:
             # Another one of these pywin32 bugs that only materialize under certain circumstances:
             # http://stackoverflow.com/questions/6284227/hyperlink-will-not-show-display-proper-text
             link = self.xl.Hyperlinks.Add(Anchor=self.xl, Address=address)
@@ -953,7 +953,7 @@ class Range(object):
 
     @property
     def color(self):
-        if self.xl:
+        if self.xl is not None:
             if self.xl.Interior.ColorIndex == ColorIndex.xlColorIndexNone:
                 return None
             else:
@@ -963,7 +963,7 @@ class Range(object):
 
     @color.setter
     def color(self, color_or_rgb):
-        if self.xl:
+        if self.xl is not None:
             if color_or_rgb is None:
                 self.xl.Interior.ColorIndex = ColorIndex.xlColorIndexNone
             elif isinstance(color_or_rgb, int):
@@ -973,7 +973,7 @@ class Range(object):
 
     @property
     def name(self):
-        if self.xl:
+        if self.xl is not None:
             try:
                 name = Name(xl=self.xl.Name)
             except pywintypes.com_error:
@@ -984,11 +984,11 @@ class Range(object):
 
     @name.setter
     def name(self, value):
-        if self.xl:
+        if self.xl is not None:
             self.xl.Name = value
 
     def __call__(self, *args):
-        if self.xl:
+        if self.xl is not None:
             if len(args) == 0:
                 raise ValueError("Invalid arguments")
             return Range(xl=self.xl(*args))

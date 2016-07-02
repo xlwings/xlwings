@@ -467,23 +467,23 @@ class Range(object):
 
     @property
     def raw_value(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.value.get()
 
     @raw_value.setter
     def raw_value(self, value):
-        if self.xl:
+        if self.xl is not None:
             self.xl.value.set(value)
 
     def clear_contents(self):
-        if self.xl:
+        if self.xl is not None:
             alerts_state = self.sheet.book.app.screen_updating
             self.sheet.book.app.screen_updating = False
             self.xl.clear_range()
             self.sheet.book.app.screen_updating = alerts_state
 
     def clear(self):
-        if self.xl:
+        if self.xl is not None:
             alerts_state = self.sheet.book.app.screen_updating
             self.sheet.book.app.screen_updating = False
             self.xl.clear_range()
@@ -495,58 +495,58 @@ class Range(object):
 
     @property
     def formula(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.formula.get()
 
     @formula.setter
     def formula(self, value):
-        if self.xl:
+        if self.xl is not None:
             self.xl.formula.set(value)
 
     @property
     def formula_array(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.formula_array.get()
 
     @formula_array.setter
     def formula_array(self, value):
-        if self.xl:
+        if self.xl is not None:
             self.xl.formula_array.set(value)
 
     @property
     def column_width(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.column_width.get()
         else:
             return 0
 
     @column_width.setter
     def column_width(self, value):
-        if self.xl:
+        if self.xl is not None:
             self.xl.column_width.set(value)
 
     @property
     def row_height(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.row_height.get()
         else:
             return 0
 
     @row_height.setter
     def row_height(self, value):
-        if self.xl:
+        if self.xl is not None:
             self.xl.row_height.set(value)
 
     @property
     def width(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.width.get()
         else:
             return 0
 
     @property
     def height(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.height.get()
         else:
             return 0
@@ -561,24 +561,24 @@ class Range(object):
 
     @property
     def number_format(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.number_format.get()
 
     @number_format.setter
     def number_format(self, value):
-        if self.xl:
+        if self.xl is not None:
             alerts_state = self.sheet.book.app.screen_updating
             self.sheet.book.app.screen_updating = False
             self.xl.number_format.set(value)
             self.sheet.book.app.screen_updating = alerts_state
 
     def get_address(self, row_absolute, col_absolute, external):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.get_address(row_absolute=row_absolute, column_absolute=col_absolute, external=external)
 
     @property
     def address(self):
-        if self.xl:
+        if self.xl is not None:
             return self.xl.get_address()
         else:
             row, col, nrows, ncols = self.coords
@@ -589,7 +589,7 @@ class Range(object):
         return Range(self.sheet, self.xl.current_region.get_address())
 
     def autofit(self, axis):
-        if self.xl:
+        if self.xl is not None:
             address = self.address
             alerts_state = self.sheet.book.app.screen_updating
             self.sheet.book.app.screen_updating = False
@@ -609,7 +609,7 @@ class Range(object):
             raise Exception("The cell doesn't seem to contain a hyperlink!")
 
     def set_hyperlink(self, address, text_to_display=None, screen_tip=None):
-        if self.xl:
+        if self.xl is not None:
             self.xl.make(at=self.xl, new=kw.hyperlink, with_properties={kw.address: address,
                                                                         kw.text_to_display: text_to_display,
                                                                         kw.screen_tip: screen_tip})
@@ -623,7 +623,7 @@ class Range(object):
 
     @color.setter
     def color(self, color_or_rgb):
-        if self.xl:
+        if self.xl is not None:
             if color_or_rgb is None:
                 self.xl.interior_object.color_index.set(ColorIndex.xlColorIndexNone)
             elif isinstance(color_or_rgb, int):
@@ -643,7 +643,7 @@ class Range(object):
 
     @name.setter
     def name(self, value):
-        if self.xl:
+        if self.xl is not None:
             self.xl.name.set(value)
 
     def __call__(self, arg1, arg2=None):
@@ -678,7 +678,7 @@ class Range(object):
         ]
 
     def select(self):
-        if self.xl:
+        if self.xl is not None:
             # seems to only work reliably in this combination
             self.xl.activate()
             self.xl.select()
