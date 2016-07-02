@@ -550,7 +550,7 @@ class Book(object):
 
     @property
     def sheets(self):
-        return Sheets(xl=self.xl.Sheets)
+        return Sheets(xl=self.xl.Worksheets)
 
     @property
     def app(self):

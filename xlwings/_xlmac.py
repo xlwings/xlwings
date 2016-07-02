@@ -290,7 +290,7 @@ class Sheet(object):
 
     def __init__(self, workbook, name_or_index):
         self.workbook = workbook
-        self.xl = workbook.xl.sheets[name_or_index]
+        self.xl = workbook.xl.worksheets[name_or_index]
 
     @property
     def api(self):
@@ -303,7 +303,7 @@ class Sheet(object):
     @name.setter
     def name(self, value):
         self.xl.name.set(value)
-        self.xl = self.workbook.xl.sheets[value]
+        self.xl = self.workbook.xl.worksheets[value]
 
     @property
     def names(self):
