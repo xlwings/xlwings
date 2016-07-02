@@ -222,27 +222,6 @@ class App(object):
     def __hash__(self):
         return hash(self.pid)
 
-    def book(self, fullname=None):
-        wbs = self.books
-
-        if fullname:
-            if not PY3 and isinstance(fullname, str):
-                fullname = unicode(fullname, 'mbcs')  # noqa
-            fullname = fullname.lower()
-
-            for wb in wbs:
-                if wb.fullname.lower() == fullname or wb.name.lower() == fullname:
-                    return wb
-
-            if os.path.isfile(fullname):
-                return wbs.open(fullname)
-            else:
-                raise Exception("Could not connect to workbook '%s'" % fullname)
-
-        else:
-            # create a new workbook
-            return wbs.add()
-
     def macro(self, macro):
         return Macro(self, macro)
 
@@ -470,12 +449,6 @@ class Book(object):
     @property
     def selection(self):
         return Range(impl=self.app.selection.impl)
-
-    def sheet(self, name_or_index=None):
-        if name_or_index is None:
-            return self.sheets.add()
-        else:
-            return self.sheets(name_or_index)
 
     def __repr__(self):
         return "<Book [{0}]>".format(self.name)

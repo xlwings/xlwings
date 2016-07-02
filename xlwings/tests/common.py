@@ -58,8 +58,8 @@ class TestBase(unittest.TestCase):
 
     def setUp(self):
         if len(self.app1.books) == 0:
-            self.wb1 = self.app1.book()
-            self.wb2 = self.app2.book()
+            self.wb1 = self.app1.books.add()
+            self.wb2 = self.app2.books.add()
         else:
             self.wb1 = self.app1.books[0]
             self.wb2 = self.app2.books[0]

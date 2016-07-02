@@ -16,7 +16,7 @@ class TestApps(TestBase):
     def test_len_apps(self):
         n_original = len(xw.apps)
         app = xw.App()
-        wb = app.book()
+        wb = app.books.add()
         assert_equal(n_original + 1, len(xw.apps))
         assert_equal(xw.apps[0], app)
         app.quit()
@@ -81,10 +81,10 @@ class TestApp(TestBase):
         app1_wb_count = len(self.app1.books)
         app2_wb_count = len(self.app2.books)
 
-        wb2 = self.app1.book()
-        wb3 = self.app2.book()
-        wb4 = self.app2.book()
-        wb5 = self.app2.book()
+        wb2 = self.app1.books.add()
+        wb3 = self.app2.books.add()
+        wb4 = self.app2.books.add()
+        wb5 = self.app2.books.add()
 
         assert_equal(len(self.app1.books), app1_wb_count + 1)
         assert_equal(len(self.app2.books), app2_wb_count + 3)
@@ -107,16 +107,11 @@ class TestApp(TestBase):
 
     def test_range(self):
         n_books = len(self.app1.books)
-        self.app1.book()
+        self.app1.books.add()
         assert_equal(len(self.app1.books), n_books + 1)
 
     def test_macro(self):
-        # TODO: On Mac, only this works:
-        # wb = xw.Book(os.path.join(this_dir, 'macro book.xlsm'))
-        # test1 = self.app2.macro('Module1.Test1')
-
-        self.app1.book(os.path.join(this_dir, 'macro book.xlsm'))
-
+        wb = self.app1.books.open(os.path.join(this_dir, 'macro book.xlsm'))
         test1 = self.app1.macro('Module1.Test1')
         res1 = test1('Test1a', 'Test1b')
         assert_equal(res1, 1)

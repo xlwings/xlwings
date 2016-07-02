@@ -32,13 +32,13 @@ class TestBooks(TestBase):
 class TestBook(TestBase):
     def test_instantiate_unsaved(self):
         self.wb1.sheets[0].range('B2').value = 123
-        wb2 = self.app1.book(self.wb1.name)
+        wb2 = self.app1.books.open(self.wb1.name)
         assert_equal(wb2.sheets[0].range('B2').value, 123)
 
     def test_instantiate_two_unsaved(self):
         """Covers GH Issue #63"""
         wb1 = self.wb1
-        wb2 = self.app1.book()
+        wb2 = self.app1.books.add()
 
         wb2.sheets[0].range('A1').value = 2.
         wb1.sheets[0].range('A1').value = 1.
@@ -47,14 +47,14 @@ class TestBook(TestBase):
         assert_equal(wb1.sheets[0].range('A1').value, 1.)
 
     def test_instantiate_saved_by_name(self):
-        wb1 = self.app1.book(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test book.xlsx'))
+        wb1 = self.app1.books.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test book.xlsx'))
         wb1.sheets[0].range('A1').value = 'xx'
-        wb2 = self.app1.book('test book.xlsx')
+        wb2 = self.app1.books['test book.xlsx']
         assert_equal(wb2.sheets[0].range('A1').value, 'xx')
 
     def test_instantiate_saved_by_fullpath(self):
         # unicode name of book, but not unicode path
-        wb = self.app1.book()
+        wb = self.app1.books.add()
         if sys.platform.startswith('darwin') and self.app1.major_version >= 15:
             dst = os.path.join(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/', 'üni cöde.xlsx')
         else:
@@ -62,11 +62,11 @@ class TestBook(TestBase):
         if os.path.isfile(dst):
             os.remove(dst)
         wb.save(dst)
-        wb2 = self.app1.book(dst)  # Book is open
+        wb2 = self.app1.books.open(dst)  # Book is open
         wb2.sheets[0].range('A1').value = 1
         wb2.save()
         wb2.close()
-        wb3 = self.app1.book(dst)  # Book is closed
+        wb3 = self.app1.books.open(dst)  # Book is closed
         assert_equal(wb3.sheets[0].range('A1').value, 1.)
         wb3.close()
         os.remove(dst)
@@ -80,7 +80,7 @@ class TestBook(TestBase):
     def test_mock_caller(self):
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test book.xlsx')
 
-        wb = self.app1.book(path)
+        wb = self.app1.books.open(path)
         wb.set_mock_caller()
         wb2 = xw.Book.caller()
         wb2.sheets[0].range('A1').value = 333
@@ -91,7 +91,7 @@ class TestBook(TestBase):
         _none = None if sys.platform.startswith('win') else ''
 
         src = os.path.abspath(os.path.join(this_dir, 'macro book.xlsm'))
-        wb = self.app1.book(src)
+        wb = self.app1.books.open(src)
 
         test1 = wb.macro('Module1.Test1')
         test2 = wb.macro('Module1.Test2')
@@ -112,7 +112,7 @@ class TestBook(TestBase):
         assert_equal(wb.sheets[0].range('A6').value, 'Test4')
 
     def test_name(self):
-        wb = self.app1.book(os.path.join(this_dir, 'test book.xlsx'))
+        wb = self.app1.books.open(os.path.join(this_dir, 'test book.xlsx'))
         assert_equal(wb.name, 'test book.xlsx')
 
     def test_sheets(self):
@@ -140,7 +140,7 @@ class TestBook(TestBase):
 
         assert_true(os.path.isfile(target_file_path))
 
-        self.app1.book(target_file_path).close()
+        self.app1.books[target_file_path].close()
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
 
@@ -159,13 +159,13 @@ class TestBook(TestBase):
 
         assert_true(os.path.isfile(target_file_path))
 
-        self.app1.book(target_file_path).close()
+        self.app1.books[target_file_path].close()
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
 
     def test_fullname(self):
         fullname = os.path.join(this_dir, 'test book.xlsx')
-        wb = self.app1.book(fullname)
+        wb = self.app1.books.open(fullname)
         assert_equal(wb.fullname.lower(), fullname.lower())
 
     def test_names(self):
@@ -173,8 +173,8 @@ class TestBook(TestBase):
         assert_equal(len(names), 0)
 
     def test_activate(self):
-        wb1 = self.app1.book()
-        wb2 = self.app2.book()
+        wb1 = self.app1.books.add()
+        wb2 = self.app2.books.add()
         wb1.activate()
         assert_equal(xw.books.active.name, wb1.name)
 
@@ -188,5 +188,5 @@ class TestBook(TestBase):
         assert_equal(self.wb2.selection.address, '$A$2:$C$3')
 
     def test_sheet(self):
-        self.wb1.sheet()
+        self.wb1.sheets.add()
         assert_equal(len(self.wb1.sheets), 4)
