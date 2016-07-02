@@ -178,12 +178,12 @@ class Books(object):
 
     def __call__(self, name_or_index):
         b = Book(self.app, name_or_index)
-        if b.name == kw.missing_value:
+        if not b.xl.exists():
             raise KeyError(name_or_index)
         return b
 
     def __contains__(self, key):
-        return Book(self.app, key).name != kw.missing_value
+        return Book(self.app, key).xl.exists()
 
     def __len__(self):
         return self.app.xl.count(each=kw.workbook)
