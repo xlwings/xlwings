@@ -1358,7 +1358,7 @@ class Chart(object):
 
     def delete(self):
         # todo: what about chart sheets?
-        self.xl_obj.delete()
+        self.xl_obj.Delete()
 
 
 class Charts(Collection):
