@@ -1240,7 +1240,10 @@ class Collection(object):
         return self.xl
 
     def __call__(self, key):
-        return self._wrap(xl=self.xl(key))
+        try:
+            return self._wrap(xl=self.xl(key))
+        except pywintypes.com_error:
+            raise KeyError(key)
 
     def __len__(self):
         return self.xl.Count
@@ -1249,21 +1252,17 @@ class Collection(object):
         for xl in self.xl:
             yield self._wrap(xl=xl)
 
+    def __contains__(self, key):
+        try:
+            self.xl(key)
+            return True
+        except pywintypes.com_error:
+            return False
+
 
 class Shapes(Collection):
 
     _wrap = Shape
-
-    def add_picture(self, filename, link_to_file, save_with_document, left, top, width, height):
-        return Shape(xl=self.xl.AddPicture(
-            Filename=filename,
-            LinkToFile=link_to_file,
-            SaveWithDocument=save_with_document,
-            Left=left,
-            Top=top,
-            Width=width,
-            Height=height
-        ))
 
 
 class Chart(object):
@@ -1436,6 +1435,17 @@ class Pictures(Collection):
     @property
     def parent(self):
         return Sheet(xl=self.xl.Parent)
+
+    def add(self, filename, link_to_file, save_with_document, left, top, width, height):
+        return Picture(xl=self.xl.Parent.Shapes.AddPicture(
+            Filename=filename,
+            LinkToFile=link_to_file,
+            SaveWithDocument=save_with_document,
+            Left=left,
+            Top=top,
+            Width=width,
+            Height=height
+        ).DrawingObject)
 
 
 class Names(object):
