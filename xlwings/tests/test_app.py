@@ -105,7 +105,7 @@ class TestApp(TestBase):
     def test_pid(self):
         assert_true(self.app1.pid > 0)
 
-    def test_range(self):
+    def test_len(self):
         n_books = len(self.app1.books)
         self.app1.books.add()
         assert_equal(len(self.app1.books), n_books + 1)

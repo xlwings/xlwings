@@ -98,9 +98,9 @@ class App(object):
         pid_info_frontmost = subprocess.check_output(['lsappinfo', 'info', '-only', 'pid', frontmost_asn]).decode('utf-8')
         pid_frontmost = int(pid_info_frontmost.split('=')[1])
 
-        appscript.app('System Events').processes[its.unix_id == self.pid].processes[1].frontmost.set(True)
+        appscript.app('System Events').processes[its.unix_id == self.pid].frontmost.set(True)
         if not steal_focus:
-            appscript.app('System Events').processes[its.unix_id == pid_frontmost].processes[1].frontmost.set(True)
+            appscript.app('System Events').processes[its.unix_id == pid_frontmost].frontmost.set(True)
 
     @property
     def visible(self):
@@ -189,11 +189,13 @@ class Books(object):
         return self.app.xl.count(each=kw.workbook)
 
     def add(self):
+        self.app.activate()
         xl = self.app.xl.make(new=kw.workbook)
         wb = Book(self.app, xl.name.get())
         return wb
 
     def open(self, fullname):
+        self.app.activate()
         filename = os.path.basename(fullname)
         self.app.xl.open(fullname)
         wb = Book(self.app, filename)
@@ -258,7 +260,7 @@ class Book(object):
         return Names(book=self, xl=self.xl.named_items)
 
     def activate(self):
-        self.xl.activate()
+        self.xl.activate_object()
 
 
 class Sheets(object):
