@@ -81,7 +81,7 @@ class TestApp(TestBase):
         assert_equal(sht.range('B1').value, 4)
 
     def test_version(self):
-        assert_true(int(self.app1.version.split('.')[0]) > 0)
+        assert_true(self.app1.version.major > 0)
 
     def test_wb_across_instances(self):
         app1_wb_count = len(self.app1.books)

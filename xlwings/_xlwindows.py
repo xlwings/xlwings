@@ -1241,7 +1241,7 @@ class Collection(object):
 
     def __call__(self, key):
         try:
-            return self._wrap(xl=self.xl(key))
+            return self._wrap(xl=self.xl.Item(key))
         except pywintypes.com_error:
             raise KeyError(key)
 
@@ -1254,7 +1254,7 @@ class Collection(object):
 
     def __contains__(self, key):
         try:
-            self.xl(key)
+            self.xl.Item(key)
             return True
         except pywintypes.com_error:
             return False
