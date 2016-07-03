@@ -128,14 +128,14 @@ class TestRangeAttributes(TestBase):
 
     def test_end(self):
         self.wb1.sheets[0].range('A1:C5').value = 1.
-        assert_equal(self.wb1.sheets[0].range('A1').end('d').address, self.wb1.sheets[0].range('A5').address)
-        assert_equal(self.wb1.sheets[0].range('A1').end('down').address, self.wb1.sheets[0].range('A5').address)
-        assert_equal(self.wb1.sheets[0].range('C5').end('u').address, self.wb1.sheets[0].range('C1').address)
-        assert_equal(self.wb1.sheets[0].range('C5').end('up').address, self.wb1.sheets[0].range('C1').address)
-        assert_equal(self.wb1.sheets[0].range('A1').end('right').address, self.wb1.sheets[0].range('C1').address)
-        assert_equal(self.wb1.sheets[0].range('A1').end('r').address, self.wb1.sheets[0].range('C1').address)
-        assert_equal(self.wb1.sheets[0].range('C5').end('left').address, self.wb1.sheets[0].range('A5').address)
-        assert_equal(self.wb1.sheets[0].range('C5').end('l').address, self.wb1.sheets[0].range('A5').address)
+        assert_equal(self.wb1.sheets[0].range('A1').end('d'), self.wb1.sheets[0].range('A5'))
+        assert_equal(self.wb1.sheets[0].range('A1').end('down'), self.wb1.sheets[0].range('A5'))
+        assert_equal(self.wb1.sheets[0].range('C5').end('u'), self.wb1.sheets[0].range('C1'))
+        assert_equal(self.wb1.sheets[0].range('C5').end('up'), self.wb1.sheets[0].range('C1'))
+        assert_equal(self.wb1.sheets[0].range('A1').end('right'), self.wb1.sheets[0].range('C1'))
+        assert_equal(self.wb1.sheets[0].range('A1').end('r'), self.wb1.sheets[0].range('C1'))
+        assert_equal(self.wb1.sheets[0].range('C5').end('left'), self.wb1.sheets[0].range('A5'))
+        assert_equal(self.wb1.sheets[0].range('C5').end('l'), self.wb1.sheets[0].range('A5'))
 
     def test_formula(self):
         self.wb1.sheets[0].range('A1').formula = '=SUM(A2:A10)'

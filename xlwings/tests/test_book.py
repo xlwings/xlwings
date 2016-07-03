@@ -11,7 +11,7 @@ from .common import TestBase, this_dir
 
 class TestBooks(TestBase):
     def test_indexing(self):
-        assert_equal(self.app1.books[0].name, self.app1.books(1).name)
+        assert_equal(self.app1.books[0], self.app1.books(1))
 
     def test_len(self):
         assert_equal(len(self.app1.books), 1)
@@ -21,12 +21,16 @@ class TestBooks(TestBase):
         assert_equal(len(self.app1.books), 2)
 
     def test_open(self):
-        self.app1.books.open(os.path.join(this_dir, 'test book.xlsx'))
-        assert_equal(self.app1.books.active.name, 'test book.xlsx')
+        fullname = os.path.join(this_dir, 'test book.xlsx')
+        wb = self.app1.books.open(fullname)
+        assert_equal(self.app1.books.active, wb)
+
+        wb2 = self.app1.books.open(fullname)  # Should not reopen
+        assert_equal(wb, wb2)
 
     def test_iter(self):
         for ix, wb in enumerate(self.app1.books):
-            assert_equal(self.app1.books[ix].name, wb.name)
+            assert_equal(self.app1.books[ix], wb)
 
 
 class TestBook(TestBase):
@@ -176,10 +180,10 @@ class TestBook(TestBase):
         wb1 = self.app1.books.add()
         wb2 = self.app2.books.add()
         wb1.activate()
-        assert_equal(xw.books.active.name, wb1.name)
+        assert_equal(xw.books.active, wb1)
 
         wb2.activate()
-        assert_equal(xw.books.active.name, wb2.name)
+        assert_equal(xw.books.active, wb2)
 
     def test_selection(self):
         self.wb1.sheets[0].range('B10').select()

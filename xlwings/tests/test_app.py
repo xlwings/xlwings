@@ -26,6 +26,9 @@ class TestApps(TestBase):
             if app == (self.app1 or self.app2):
                 assert_equal(len(app.books), 1)
 
+    def test_app_indexing(self):
+        assert_equal(xw.apps[0], xw.apps(1))
+
 
 class TestApp(TestBase):
     def test_activate(self):
