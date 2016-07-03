@@ -1180,16 +1180,6 @@ class Shape(object):
         return Sheet(xl=self.xl.Parent)
 
     @property
-    def contents(self):
-        t = self.type
-        if t == ShapeType.Chart:
-            return Chart(xl=self.xl.DrawingObject)
-        elif t == ShapeType.Picture:
-            return Picture(xl=self.xl.DrawingObject)
-        else:
-            raise Exception("This shape's content is not supported by xlwings, please use the native API.")
-
-    @property
     def type(self):
         return self.xl.Type
 
@@ -1278,24 +1268,34 @@ class Shapes(Collection):
 
 class Chart(object):
 
-    def __init__(self, xl):
-        self.xl = xl
+    def __init__(self, xl_obj=None, xl=None):
+        self.xl = xl_obj.Chart if xl is None else xl
+        self.xl_obj = xl_obj
 
     @property
     def api(self):
-        return self.xl
+        return self.xl_obj, self.xl
 
     @property
     def name(self):
-        return self.xl.Name
+        if self.xl_obj is None:
+            return self.xl.Name
+        else:
+            return self.xl_obj.Name
+
+    @name.setter
+    def name(self, value):
+        if self.xl_obj is None:
+            self.xl.Name = value
+        else:
+            self.xl_obj.Name = value
 
     @property
     def parent(self):
-        return Sheet(xl=self.xl.Parent.Parent)
-
-    @property
-    def container(self):
-        return Shape(xl=self.xl.Parent.ShapeRange(1))
+        if self.xl_obj is None:
+            return Book(xl=self.xl.Parent)
+        else:
+            return Sheet(xl=self.xl_obj.Parent)
 
     def set_source_data(self, rng):
         self.xl.SetSourceData(rng.xl)
@@ -1308,16 +1308,68 @@ class Chart(object):
     def chart_type(self, chart_type):
         self.xl.ChartType = chart_types_s2i[chart_type]
 
+    @property
+    def left(self):
+        if self.xl_obj is None:
+            raise Exception("This chart is not embedded.")
+        return self.xl_obj.Left
+
+    @left.setter
+    def left(self, value):
+        if self.xl_obj is None:
+            raise Exception("This chart is not embedded.")
+        self.xl_obj.Left = value
+
+    @property
+    def top(self):
+        if self.xl_obj is None:
+            raise Exception("This chart is not embedded.")
+        return self.xl_obj.Top
+
+    @top.setter
+    def top(self, value):
+        if self.xl_obj is None:
+            raise Exception("This chart is not embedded.")
+        self.xl_obj.Top = value
+
+    @property
+    def width(self):
+        if self.xl_obj is None:
+            raise Exception("This chart is not embedded.")
+        return self.xl_obj.Width
+
+    @width.setter
+    def width(self, value):
+        if self.xl_obj is None:
+            raise Exception("This chart is not embedded.")
+        self.xl_obj.Width = value
+
+    @property
+    def height(self):
+        if self.xl_obj is None:
+            raise Exception("This chart is not embedded.")
+        return self.xl_obj.Height
+
+    @height.setter
+    def height(self, value):
+        if self.xl_obj is None:
+            raise Exception("This chart is not embedded.")
+        self.xl_obj.Height = value
+
+    def delete(self):
+        # todo: what about chart sheets?
+        self.xl_obj.delete()
+
 
 class Charts(Collection):
 
     def _wrap(self, xl):
-        return Chart(xl=xl.Chart)
+        return Chart(xl_obj=xl)
 
     def add(self, left, top, width, height):
-        return Chart(xl=self.xl.Add(
+        return Chart(xl_obj=self.xl.Add(
             left, top, width, height
-        ).Chart)
+        ))
 
 
 class Picture(object):

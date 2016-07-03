@@ -1494,6 +1494,10 @@ class Chart(object):
     def name(self):
         return self.impl.name
 
+    @name.setter
+    def name(self, value):
+        self.impl.name = value
+
     @property
     def parent(self):
         impl = self.impl.parent
@@ -1525,6 +1529,8 @@ class Chart(object):
             Range object, e.g. ``Range('A1')``
         """
         self.impl.set_source_data(source.impl)
+
+    source_data = property(None, set_source_data)
 
     @property
     def left(self):

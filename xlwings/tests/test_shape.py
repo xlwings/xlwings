@@ -112,28 +112,29 @@ class TestPlot(TestBase):
 
 
 class TestChart(TestBase):
-    def test_add_keywords(self):
-        self.wb1.sheets[0].range('A1').value = [['one', 'two'], [1.1, 2.2]]
-        chart = self.wb1.sheets[0].charts.add()
-        chart.chart_type = 'line'
-        chart.name = 'My Chart'
-        chart.source_data = self.wb1.sheets[0].range('A1').expand('table')
-
-        assert_equal('My Chart', chart.name)
-        if sys.platform.startswith('win'):
-            assert_equal(self.wb1.sheets[0].charts[0].chart_type, 'line')
-        else:
-            assert_equal(self.wb1.sheets[0].charts[0].chart_type, kw.line_chart)
-
     def test_add_properties(self):
-        self.wb1.sheets[1].range('A1').value = [['one', 'two'], [1.1, 2.2]]
-        chart = self.wb1.sheets[1].charts.add()
-        chart.chart_type = ChartType.xlLine
-        chart.name = 'My Chart'
-        chart.set_source_data(self.wb1.sheets[1].range('A1').expand('table'))
+        sht = self.wb1.sheets[0]
+        sht.range('A1').value = [['one', 'two'], [1.1, 2.2]]
 
-        assert_equal('My Chart', chart.name)
-        if sys.platform.startswith('win'):
-            assert_equal(self.wb1.sheets[0].charts[0].chart_type, ChartType.xlLine)
-        else:
-            assert_equal(self.wb1.sheets[0].charts[0].chart_type, kw.line_chart)
+        self.assertEqual(len(sht.charts), 0)
+        chart = sht.charts.add()
+        self.assertEqual(len(sht.charts), 1)
+
+        chart.name = 'My Chart'
+        chart.source_data = sht.range('A1').expand('table')
+        chart.chart_type = 'line'
+
+        self.assertEqual('My Chart', chart.name)
+        self.assertEqual(sht.charts[0].chart_type, 'line')
+
+        chart.chart_type = 'pie'
+        self.assertEqual(sht.charts[0].chart_type, 'pie')
+
+        for a in ('left', 'top', 'width', 'height'):
+            setattr(chart, a, 400)
+            self.assertEqual(getattr(sht.charts[0], a), 400)
+            setattr(sht.charts[0], a, 500)
+            self.assertEqual(getattr(chart, a), 500)
+
+        chart.delete()
+        self.assertEqual(sht.charts.count, 0)
