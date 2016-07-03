@@ -1,6 +1,9 @@
 from __future__ import division
 import datetime as dt
 
+from functools import total_ordering
+
+from . import string_types
 
 missing = object()
 
@@ -104,3 +107,55 @@ class VBAWriter(object):
 
     def writeln(self, template, **kwargs):
         self.write(template + '\n', **kwargs)
+
+
+def try_parse_int(x):
+    try:
+        return int(x)
+    except ValueError:
+        return x
+
+
+@total_ordering
+class VersionNumber(object):
+
+    def __init__(self, s):
+        self.value = tuple(map(try_parse_int, s.split(".")))
+
+    @property
+    def major(self):
+        return self.value[0]
+
+    @property
+    def minor(self):
+        return self.value[1] if len(self.value) > 1 else None
+
+    def __str__(self):
+        return ".".join(map(str, self.value))
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__class__.__name__, repr(str(self)))
+
+    def __eq__(self, other):
+        if isinstance(other, VersionNumber):
+            return self.value == other.value
+        elif isinstance(other, string_types):
+            return self.value == VersionNumber(other).value
+        elif isinstance(other, tuple):
+            return self.value[:len(other)] == other
+        elif isinstance(other, int):
+            return self.major == other
+        else:
+            return False
+
+    def __lt__(self, other):
+        if isinstance(other, VersionNumber):
+            return self.value < other.value
+        elif isinstance(other, string_types):
+            return self.value < VersionNumber(other).value
+        elif isinstance(other, tuple):
+            return self.value[:len(other)] < other
+        elif isinstance(other, int):
+            return self.major < other
+        else:
+            raise TypeError("Cannot compare other object with version number")

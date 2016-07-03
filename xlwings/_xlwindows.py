@@ -1385,9 +1385,48 @@ class Picture(object):
     def name(self):
         return self.xl.Name
 
+    @name.setter
+    def name(self, value):
+        self.xl.Name = value
+
     @property
-    def container(self):
-        return Shape(xl=self.xl.ShapeRange(1))
+    def parent(self):
+        return Sheet(xl=self.xl.Parent)
+
+    @property
+    def left(self):
+        return self.xl.Left
+
+    @left.setter
+    def left(self, value):
+        self.xl.Left = value
+
+    @property
+    def top(self):
+        return self.xl.Top
+
+    @top.setter
+    def top(self, value):
+        self.xl.Top = value
+
+    @property
+    def width(self):
+        return self.xl.Width
+
+    @width.setter
+    def width(self, value):
+        self.xl.Width = value
+
+    @property
+    def height(self):
+        return self.xl.Height
+
+    @height.setter
+    def height(self, value):
+        self.xl.Height = value
+
+    def delete(self):
+        self.xl.Delete()
 
 
 class Pictures(Collection):

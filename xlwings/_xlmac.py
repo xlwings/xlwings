@@ -5,13 +5,15 @@ import unicodedata
 import struct
 import aem
 import appscript
+import shutil
 from appscript import k as kw, mactypes, its
 from appscript.reference import CommandError
 import psutil
 import atexit
 from .constants import ColorIndex, Calculation
-from .utils import int_to_rgb, np_datetime_to_datetime, col_name
+from .utils import int_to_rgb, np_datetime_to_datetime, col_name, VersionNumber
 from . import mac_dict, PY3, string_types
+
 try:
     import pandas as pd
 except ImportError:
@@ -48,7 +50,8 @@ class Apps(object):
         for asn in asn.split(' '):
             if "Microsoft_Excel" in asn:
                 pid_info = subprocess.check_output(['lsappinfo', 'info', '-only', 'pid', asn]).decode('utf-8')
-                yield int(pid_info.split('=')[1])
+                if pid_info != '"pid"=[ NULL ] \n':
+                    yield int(pid_info.split('=')[1])
 
     def __iter__(self):
         for pid in self._iter_excel_instances():
@@ -417,7 +420,7 @@ class Sheet(object):
 
     @property
     def pictures(self):
-        pass  # TODO
+        return Pictures(self)
 
 
 class Range(object):
@@ -750,12 +753,15 @@ class Collection(object):
 
     def __init__(self, parent):
         self.parent = parent
+        self.xl = getattr(self.parent.xl, self._attr)
 
     @property
     def api(self):
         return self.xl
 
     def __call__(self, key):
+        if not self.xl[key].exists():
+            raise KeyError(key)
         return self._wrap(self.parent, key)
 
     def __len__(self):
@@ -764,6 +770,9 @@ class Collection(object):
     def __iter__(self):
         for i in range(len(self)):
             yield self(i+1)
+
+    def __contains__(self, key):
+        return self.xl[key].exists()
 
 
 class Chart(object):
@@ -858,6 +867,7 @@ class Chart(object):
         # todo: what about chart sheets?
         self.xl_obj.delete()
 
+
 class Charts(Collection):
 
     _kw = kw.chart_object
@@ -877,6 +887,101 @@ class Charts(Collection):
                 }
             ).name.get()
         )
+
+
+class Picture(object):
+
+    def __init__(self, parent, key):
+        self.parent = parent
+        self.xl = parent.xl.pictures[key]
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def name(self):
+        return self.xl.name.get()
+
+    @name.setter
+    def name(self, value):
+        return self.xl.name.set(value)
+
+    @property
+    def left(self):
+        return self.xl.left_position.get()
+
+    @left.setter
+    def left(self, value):
+        self.xl.left_position.set(value)
+
+    @property
+    def top(self):
+        return self.xl.top.get()
+
+    @top.setter
+    def top(self, value):
+         self.xl.top.set(value)
+
+    @property
+    def width(self):
+        return self.xl.width.get()
+
+    @width.setter
+    def width(self, value):
+        self.xl.width.set(value)
+
+    @property
+    def height(self):
+        return self.xl.height.get()
+
+    @height.setter
+    def height(self, value):
+        self.xl.height.set(value)
+
+    def delete(self):
+        self.xl.delete()
+
+
+class Pictures(Collection):
+
+    _attr = 'pictures'
+    _kw = kw.picture
+    _wrap = Picture
+
+    def add(self, filename, link_to_file, save_with_document, left, top, width, height):
+
+        version = VersionNumber(self.parent.book.app.version)
+
+        if not link_to_file and version >= 15:
+            # Office 2016 for Mac is sandboxed. This path seems to work without the need of granting access explicitly
+            xlwings_picture = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/xlwings_picture.png'
+            shutil.copy2(filename, xlwings_picture)
+            filename = xlwings_picture
+
+        sheet_index = self.parent.xl.entry_index.get()
+        picture = Picture(
+            self.parent,
+            self.parent.xl.make(
+                at=self.parent.book.xl.sheets[sheet_index],
+                new=kw.picture,
+                with_properties={
+                    kw.file_name: posix_to_hfs_path(filename),
+                    kw.link_to_file: link_to_file,
+                    kw.save_with_document: save_with_document,
+                    kw.top: top,
+                    kw.left_position: left,
+                    kw.width: width,
+                    kw.height: height
+                }
+            ).name.get()
+        )
+
+        if not link_to_file and version >= 15:
+            os.remove(filename)
+
+        return picture
+
 
 
 class Names(object):

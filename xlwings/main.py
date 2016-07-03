@@ -21,6 +21,7 @@ import shutil
 
 from . import xlplatform, string_types, xrange, map, ShapeAlreadyExists, PY3
 from .constants import ChartType
+from .utils import VersionNumber
 
 # Optional imports
 try:
@@ -158,7 +159,7 @@ class App(object):
 
     @property
     def version(self):
-        return self.impl.version
+        return VersionNumber(self.impl.version)
 
     @property
     def selection(self):
@@ -214,10 +215,6 @@ class App(object):
 
     def range(self, arg1, arg2=None):
         return Range(impl=self.impl.range(arg1, arg2))
-
-    @property
-    def major_version(self):
-        return int(self.version.split('.')[0])
 
     def __repr__(self):
         return "<Excel App %s>" % self.pid
@@ -1627,7 +1624,8 @@ class Charts(Collection):
 
         return Chart(impl=impl)
 
-class Picture(ShapeContent):
+
+class Picture(object):
     """
     A Picture object represents an existing Excel Picture and can be instantiated with the following arguments::
 
@@ -1662,104 +1660,63 @@ class Picture(ShapeContent):
         return self.impl.api
 
     @property
+    def parent(self):
+        return Sheet(impl=self.impl.parent)
+
+    @property
     def name(self):
         return self.impl.name
 
+    @name.setter
+    def name(self, value):
+        if value in self.parent.pictures:
+            if value == self.name:
+                return
+            else:
+                raise ShapeAlreadyExists()
+
+        self.impl.name = value
+
     @property
-    def container(self):
-        return Shape(impl=self.impl.container)
+    def left(self):
+        return self.impl.left
 
-    @classmethod
-    def add(cls, filename, sheet=None, name=None, link_to_file=False, save_with_document=True,
-            left=0, top=0, width=None, height=None):
-        """
-        Inserts a picture into Excel.
+    @left.setter
+    def left(self, value):
+        self.impl.left = value
 
-        Arguments
-        ---------
+    @property
+    def top(self):
+        return self.impl.top
 
-        filename : str
-            The full path to the file.
+    @top.setter
+    def top(self, value):
+        self.impl.top = value
 
-        Keyword Arguments
-        -----------------
-        sheet : str or int or xlwings.Sheet, default None
-            Name or index of the Sheet or ``xlwings.Sheet`` object, defaults to the active Sheet
+    @property
+    def width(self):
+        return self.impl.width
 
-        name : str, default None
-            Excel picture name. Defaults to Excel standard name if not provided, e.g. 'Picture 1'
+    @width.setter
+    def width(self, value):
+        self.impl.width = value
 
-        left : float, default 0
-            Left position in points.
+    @property
+    def height(self):
+        return self.impl.height
 
-        top : float, default 0
-            Top position in points.
+    @height.setter
+    def height(self, value):
+        self.impl.height = value
 
-        width : float, default None
-            Width in points. If PIL/Pillow is installed, it defaults to the width of the picture.
-            Otherwise it defaults to 100 points.
+    def delete(self):
+        self.impl.delete()
 
-        height : float, default None
-            Height in points. If PIL/Pillow is installed, it defaults to the height of the picture.
-            Otherwise it defaults to 100 points.
-
-        wkb : Workbook object, default Workbook.current()
-            Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
-
-        Returns
-        -------
-        xlwings Picture object
-
-
-        .. versionadded:: 0.5.0
-        """
-
-        if sheet is None:
-            sheet = sheets.active
-        elif not isinstance(sheet, Sheet):
-            sheet = books.active.sheets(sheet)
-
-        if name:
-            if name in sheet.xl_sheet.get_shapes_names():
-                raise ShapeAlreadyExists('A shape with this name already exists.')
-
-        if sys.platform.startswith('darwin') and sheet.book.app.major_version >= 15:
-            # Office 2016 for Mac is sandboxed. This path seems to work without the need of granting access explicitly
-            xlwings_picture = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/xlwings_picture.png'
-            shutil.copy2(filename, xlwings_picture)
-            filename = xlwings_picture
-
-        # Image dimensions
-        im_width, im_height = None, None
-        if width is None or height is None:
-            if Image:
-                im = Image.open(filename)
-                im_width, im_height = im.size
-
-        if width is None:
-            if im_width is not None:
-                width = im_width
-            else:
-                width = 100
-
-        if height is None:
-            if im_height is not None:
-                height = im_height
-            else:
-                height = 100
-
-        if sys.platform.startswith('darwin') and sheet.book.app.major_version >= 15:
-            os.remove(xlwings_picture)
-
-        xl_shape = sheet.xl_sheet.add_picture(
-            filename, link_to_file, save_with_document,
-            left, top, width, height
+    def __repr__(self):
+        return "<Picture '{0}' in {1}>".format(
+            self.name,
+            self.parent
         )
-
-        if name:
-            xl_shape.set_name(name)
-
-        return cls(xl_shape=xl_shape)
 
     def update(self, filename):
         """
@@ -1776,9 +1733,14 @@ class Picture(ShapeContent):
         """
         left, top, width, height = self.left, self.top, self.width, self.height
         name = self.name
-        self.xl_shape.delete()
-        # TODO: link_to_file, save_with_document
-        self.xl_shape = Picture.add(filename, left=left, top=top, width=width, height=height, name=name).xl_shape
+
+        # todo: link_to_file, save_with_document
+        picture = self.parent.pictures.add(filename, left=left, top=top, width=width, height=height)
+        self.delete()
+
+        picture.name = name
+
+        return picture
 
 
 class Pictures(Collection):
@@ -1788,12 +1750,13 @@ class Pictures(Collection):
     def parent(self):
         return Sheet(impl=self.impl.parent)
 
-    def add(self, filename, link_to_file=False, save_with_document=True, left=0, top=0, width=-1, height=-1):
-        shape = self.parent.shapes.add_picture(
+    def add(self, filename, link_to_file=False, save_with_document=True, left=0, top=0, width=-1, height=-1, name=None):
+        picture = Picture(impl=self.impl.add(
             filename, link_to_file, save_with_document, left, top, width, height
-        )
-        return shape.contents
-
+        ))
+        if name is not None:
+            picture.name = name
+        return picture
 
 class Plot(object):
     """

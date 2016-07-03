@@ -6,7 +6,6 @@ import sys
 from nose.tools import assert_equal, assert_not_equal, assert_true, raises, assert_false
 
 import xlwings as xw
-from xlwings.constants import ChartType
 from .common import TestBase, this_dir, _skip_if_no_matplotlib
 
 
@@ -64,7 +63,7 @@ class TestPicture(TestBase):
     def test_picture_object(self):
         filename = os.path.join(this_dir, 'sample_picture.png')
         pic = self.wb1.sheets[0].pictures.add(name='pic1', filename=filename)
-        assert_equal(pic.name, self.wb1.pictures['pic1'].name)
+        assert_equal(pic.name, self.wb1.sheets[0].pictures['pic1'].name)
 
     def test_height(self):
         filename = os.path.join(this_dir, 'sample_picture.png')
@@ -74,13 +73,12 @@ class TestPicture(TestBase):
         pic.height = 50
         assert_equal(pic.height, 50)
 
-    @raises(Exception)
     def test_delete(self):
         filename = os.path.join(this_dir, 'sample_picture.png')
         pic = self.wb1.sheets[0].pictures.add(name='pic1', filename=filename)
-        assert_true('pic1' in [i.name for i in self.wb1.sheets[0].pictures])
+        assert_true('pic1' in self.wb1.sheets[0].pictures)
         pic.delete()
-        assert_false('pic1' in [i.name for i in self.wb1.sheets[0].pictures])
+        assert_false('pic1' in self.wb1.sheets[0].pictures)
 
     @raises(xw.ShapeAlreadyExists)
     def test_duplicate(self):
