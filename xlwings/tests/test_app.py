@@ -13,7 +13,7 @@ class TestApps(TestBase):
     def test_active(self):
         assert_equal(xw.apps[0], xw.apps.active)
 
-    def test_len_apps(self):
+    def test_len(self):
         n_original = len(xw.apps)
         app = xw.App()
         wb = app.books.add()
@@ -21,12 +21,15 @@ class TestApps(TestBase):
         assert_equal(xw.apps[0], app)
         app.quit()
 
-    def test_app_iter(self):
+    def test_count(self):
+        assert_equal(xw.apps.count, len(xw.apps))
+
+    def test_iter(self):
         for app in xw.apps:
             if app == (self.app1 or self.app2):
                 assert_equal(len(app.books), 1)
 
-    def test_app_indexing(self):
+    def test_indexing(self):
         assert_equal(xw.apps[0], xw.apps(1))
 
 

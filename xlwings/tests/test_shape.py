@@ -109,7 +109,7 @@ class TestPlot(TestBase):
         assert_equal(pic2.name, 'Plot2')
 
 
-class TestChart(TestBase):
+class TestCharts(TestBase):
     def test_add_properties(self):
         sht = self.wb1.sheets[0]
         sht.range('A1').value = [['one', 'two'], [1.1, 2.2]]
@@ -136,3 +136,13 @@ class TestChart(TestBase):
 
         chart.delete()
         self.assertEqual(sht.charts.count, 0)
+
+
+class TestChart(TestBase):
+    def test_len(self):
+        chart = self.wb1.sheets[0].charts.add()
+        assert_equal(len(self.wb1.sheets[0].charts), 1)
+
+    def test_count(self):
+        chart = self.wb1.sheets[0].charts.add()
+        assert_equal(len(self.wb1.sheets[0].charts), self.wb1.sheets[0].charts.count)

@@ -28,15 +28,36 @@ class TestActive(TestBase):
         self.wb2.sheets[2].activate()
         assert_equal(xw.Range('B2:C3').value, [[123., 123.], [123., 123.]])
 
-    def test_book_fullname(self):
+    def test_book_fullname_closed(self):
         self.app1.activate()
         wb = xw.Book(os.path.join(this_dir, 'test book.xlsx'))
         assert_equal(wb, self.app1.books['test book.xlsx'])
+
+    def test_book_fullname_open(self):
+        wb1 = self.app1.books.open(os.path.join(this_dir, 'test book.xlsx'))
+        wb2 = xw.Book(os.path.join(this_dir, 'test book.xlsx'))
+        assert_equal(wb1, wb2)
+
+    def test_book_name_closed(self):
+        os.chdir(this_dir)
+        self.app2.activate()
+        wb = xw.Book('test book.xlsx')
+        assert_equal(wb, self.app2.books['test book.xlsx'])
+
+    def test_book_name_open(self):
+        wb1 = self.app1.books.open(os.path.join(this_dir, 'test book.xlsx'))
+        wb2 = xw.Book('test book.xlsx')
+        assert_equal(wb1, wb2)
 
     def test_book(self):
         self.app1.activate()
         wb = xw.Book()
         assert_equal(wb, self.app1.books.active)
+
+    def test_book_name_unsaved(self):
+        self.app1.activate()
+        wb = xw.Book()
+        assert_equal(wb, xw.Book(wb.name))
 
     def test_books(self):
         self.app1.activate()

@@ -22,6 +22,9 @@ class TestNames(TestBase):
         self.wb1.sheets[0].range('A1').name = 'test2'
         assert_equal(len(self.wb1.names), 2)
 
+    def test_count(self):
+        assert_equal(len(self.wb1.names), self.wb1.names.count)
+
     def test_names_iter(self):
         self.wb1.sheets[0].range('B2:D10').name = 'test1'
         self.wb1.sheets[0].range('A1').name = 'test2'

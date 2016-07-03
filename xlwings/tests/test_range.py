@@ -101,6 +101,9 @@ class TestRangeAttributes(TestBase):
     def test_len(self):
         assert_equal(len(self.wb1.sheets[0].range('A1:C4')), 12)
 
+    def test_count(self):
+        assert_equal(len(self.wb1.sheets[0].range('A1:C4')), self.wb1.sheets[0].range('A1:C4').count)
+
     def test_row(self):
         assert_equal(self.wb1.sheets[0].range('B3:F5').row, 3)
 
@@ -303,8 +306,14 @@ class TestRangeAttributes(TestBase):
     def test_len_rows(self):
         assert_equal(len(self.wb1.sheets[0].range('A1:C4').rows), 4)
 
+    def test_count_rows(self):
+        assert_equal(len(self.wb1.sheets[0].range('A1:C4').rows), self.wb1.sheets[0].range('A1:C4').rows.count)
+
     def test_len_cols(self):
         assert_equal(len(self.wb1.sheets[0].range('A1:C4').columns), 3)
+
+    def test_count_cols(self):
+        assert_equal(len(self.wb1.sheets[0].range('A1:C4').columns), self.wb1.sheets[0].range('A1:C4').columns.count)
 
     def test_shape(self):
         assert_equal(self.wb1.sheets[0].range('A1:C4').shape, (4, 3))

@@ -16,6 +16,9 @@ class TestBooks(TestBase):
     def test_len(self):
         assert_equal(len(self.app1.books), 1)
 
+    def test_count(self):
+        assert_equal(len(self.app1.books), self.app1.books.count)
+
     def test_add(self):
         self.app1.books.add()
         assert_equal(len(self.app1.books), 2)

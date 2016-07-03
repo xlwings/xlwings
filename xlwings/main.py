@@ -130,6 +130,8 @@ class Apps(object):
     def __len__(self):
         return len(self.impl)
 
+    count = property(__len__)
+
     def __iter__(self):
         for app in self.impl:
             yield App(impl=app)
@@ -738,6 +740,8 @@ class Range(object):
 
     def __len__(self):
         return len(self.impl)
+
+    count = property(__len__)
 
     @property
     def row(self):
@@ -1894,6 +1898,8 @@ class Names(object):
 
     def __len__(self):
         return len(self.impl)
+
+    count = property(__len__)
 
     def add(self, name, refers_to):
         return Name(impl=self.impl.add(name, refers_to))
