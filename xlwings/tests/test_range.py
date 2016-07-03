@@ -52,10 +52,21 @@ class TestRangeInstantiation(TestBase):
         r = self.wb1.sheets[0].range(self.wb1.sheets[0].range('A1'), self.wb1.sheets[0].range('B2'))
         assert_equal(r.address, '$A$1:$B$2')
 
-    @raises(Exception)
+    @raises(ValueError)
     def test_range10(self):
         r = self.wb1.sheets[0].range(self.wb2.sheets[0].range('A1'), self.wb1.sheets[0].range('B2'))
-        assert_equal(r.address, '$A$1:$B$2')
+
+    @raises(ValueError)
+    def test_range11(self):
+        r = self.wb1.sheets[1].range(self.wb1.sheets[0].range('A1'), self.wb1.sheets[0].range('B2'))
+
+    @raises(ValueError)
+    def test_range12(self):
+        r = self.wb1.sheets[0].range(self.wb1.sheets[1].range('A1'), self.wb1.sheets[0].range('B2'))
+
+    @raises(ValueError)
+    def test_range12(self):
+        r = self.wb1.sheets[0].range(self.wb1.sheets[0].range('A1'), self.wb1.sheets[1].range('B2'))
 
     @raises(IndexError)
     def test_zero_based_index1(self):

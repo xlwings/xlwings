@@ -525,8 +525,12 @@ class Sheet(object):
 
     def range(self, arg1, arg2=None):
         if isinstance(arg1, Range):
+            if arg1.sheet != self:
+                raise ValueError("First range is not on this sheet")
             arg1 = arg1.impl
         if isinstance(arg2, Range):
+            if arg2.sheet != self:
+                raise ValueError("Second range is not on this sheet")
             arg2 = arg2.impl
         return Range(impl=self.impl.range(arg1, arg2))
 
