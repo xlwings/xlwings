@@ -114,13 +114,14 @@ class TestPlot(TestBase):
 class TestChart(TestBase):
     def test_add_keywords(self):
         self.wb1.sheets[0].range('A1').value = [['one', 'two'], [1.1, 2.2]]
-        chart = self.wb1.sheets[0].charts.add(chart_type=ChartType.xlLine,
-                                              name='My Chart',
-                                              source_data=self.wb1.sheets[0].range('A1').expand('table'))
+        chart = self.wb1.sheets[0].charts.add()
+        chart.chart_type = 'line'
+        chart.name = 'My Chart'
+        chart.source_data = self.wb1.sheets[0].range('A1').expand('table')
 
         assert_equal('My Chart', chart.name)
         if sys.platform.startswith('win'):
-            assert_equal(self.wb1.sheets[0].charts[0].chart_type, ChartType.xlLine)
+            assert_equal(self.wb1.sheets[0].charts[0].chart_type, 'line')
         else:
             assert_equal(self.wb1.sheets[0].charts[0].chart_type, kw.line_chart)
 

@@ -1302,17 +1302,22 @@ class Chart(object):
 
     @property
     def chart_type(self):
-        return self.xl.ChartType
+        return chart_types_i2s[self.xl.ChartType]
 
     @chart_type.setter
     def chart_type(self, chart_type):
-        self.xl.ChartType = chart_type
+        self.xl.ChartType = chart_types_s2i[chart_type]
 
 
 class Charts(Collection):
 
     def _wrap(self, xl):
         return Chart(xl=xl.Chart)
+
+    def add(self, left, top, width, height):
+        return Chart(xl=self.xl.Add(
+            left, top, width, height
+        ).Chart)
 
 
 class Picture(object):
@@ -1401,4 +1406,84 @@ class Name(object):
     def refers_to_range(self):
         return Range(xl=self.xl.RefersToRange)
 
+
+# --- constants ---
+
+chart_types_s2i = {
+    '3d_area': -4098,
+    '3d_area_stacked': 78,
+    '3d_area_stacked_100': 79,
+    '3d_bar_clustered': 60,
+    '3d_bar_stacked': 61,
+    '3d_bar_stacked_100': 62,
+    '3d_column': -4100,
+    '3d_column_clustered': 54,
+    '3d_column_stacked': 55,
+    '3d_column_stacked_100': 56,
+    '3d_line': -4101,
+    '3d_pie': -4102,
+    '3d_pie_exploded': 70,
+    'area': 1,
+    'area_stacked': 76,
+    'area_stacked_100': 77,
+    'bar_clustered': 57,
+    'bar_of_pie': 71,
+    'bar_stacked': 58,
+    'bar_stacked_100': 59,
+    'bubble': 15,
+    'bubble_3d_effect': 87,
+    'column_clustered': 51,
+    'column_stacked': 52,
+    'column_stacked_100': 53,
+    'cone_bar_clustered': 102,
+    'cone_bar_stacked': 103,
+    'cone_bar_stacked_100': 104,
+    'cone_col': 105,
+    'cone_col_clustered': 99,
+    'cone_col_stacked': 100,
+    'cone_col_stacked_100': 101,
+    'cylinder_bar_clustered': 95,
+    'cylinder_bar_stacked': 96,
+    'cylinder_bar_stacked_100': 97,
+    'cylinder_col': 98,
+    'cylinder_col_clustered': 92,
+    'cylinder_col_stacked': 93,
+    'cylinder_col_stacked_100': 94,
+    'doughnut': -4120,
+    'doughnut_exploded': 80,
+    'line': 4,
+    'line_markers': 65,
+    'line_markers_stacked': 66,
+    'line_markers_stacked_100': 67,
+    'line_stacked': 63,
+    'line_stacked_100': 64,
+    'pie': 5,
+    'pie_exploded': 69,
+    'pie_of_pie': 68,
+    'pyramid_bar_clustered': 109,
+    'pyramid_bar_stacked': 110,
+    'pyramid_bar_stacked_100': 111,
+    'pyramid_col': 112,
+    'pyramid_col_clustered': 106,
+    'pyramid_col_stacked': 107,
+    'pyramid_col_stacked_100': 108,
+    'radar': -4151,
+    'radar_filled': 82,
+    'radar_markers': 81,
+    'stock_hlc': 88,
+    'stock_ohlc': 89,
+    'stock_vhlc': 90,
+    'stock_vohlc': 91,
+    'surface': 83,
+    'surface_top_view': 85,
+    'surface_top_view_wireframe': 86,
+    'surface_wireframe': 84,
+    'xy_scatter': -4169,
+    'xy_scatter_lines': 74,
+    'xy_scatter_lines_no_markers': 75,
+    'xy_scatter_smooth': 72,
+    'xy_scatter_smooth_no_markers': 73
+}
+
+chart_types_i2s = {v: k for k, v in chart_types_s2i.items()}
 

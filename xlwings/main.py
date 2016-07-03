@@ -1600,7 +1600,7 @@ class Chart(ShapeContent):
 class Charts(Collection):
     _wrap = Chart
 
-    def add(self, left=0, top=0, width=355, height=211, **kwargs):
+    def add(self, left=0, top=0, width=355, height=211):
         """
         Inserts a new Chart into Excel.
 
@@ -1641,26 +1641,14 @@ class Charts(Collection):
         xlwings Chart object
         """
 
-        sheet = sheets.active
-
-        self.add(
+        impl = self.impl.add(
             left,
             top,
             width,
             height
         )
 
-        xl_chart = sheet.xl_sheet.add_chart(left, top, width, height)
-
-        chart_type = kwargs.get('chart_type', ChartType.xlColumnClustered)
-        name = kwargs.get('name')
-        source_data = kwargs.get('source_data')
-
-        if name:
-            xl_chart.set_name(name)
-
-        return cls(xl_chart=xl_chart, chart_type=chart_type, source_data=source_data)
-
+        return Chart(impl=impl)
 
 class Picture(ShapeContent):
     """

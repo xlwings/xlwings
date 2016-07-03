@@ -1,9 +1,7 @@
 import xlwings as xw
 
-s = xw.active.sheet
+s = xw.sheets.active
 
-cs = xw.active.sheet.charts
+c = s.charts.add()
 
-print(len(cs))
-
-print(cs(1))
+print(c.chart_type)
