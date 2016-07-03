@@ -918,6 +918,7 @@ chart_types = (
     'column_clustered',
     'column_stacked',
     'column_stacked_100',
+    'combination',
     'cone_bar_clustered',
     'cone_bar_stacked',
     'cone_bar_stacked_100',

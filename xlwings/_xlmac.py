@@ -407,7 +407,7 @@ class Sheet(object):
 
     @property
     def charts(self):
-        pass  # TODO
+        return Charts(self)
 
     @property
     def shapes(self):
@@ -744,16 +744,60 @@ class Shape(object):
         shape.xl_shape.delete()
 
 
-class Chart(Shape):
+class Collection(object):
 
-    def set_source_data_chart(xl_chart, xl_range):
+    def __init__(self, parent):
+        self.parent = parent
+
+    @property
+    def api(self):
+        return self.xl
+
+    def __call__(self, key):
+        return self._wrap(self.parent, key)
+
+    def __len__(self):
+        return self.parent.xl.count(each=self._kw)
+
+    def __iter__(self):
+        for i in range(len(self)):
+            yield self(i+1)
+
+
+class Chart(object):
+
+    def __init__(self, sheet, key):
+        self.sheet = sheet
+        self.xl = sheet.xl.chart_objects[key]
+
+    def set_source_data_chart(self, xl_range):
         self.xl.chart.set_source_data(source=xl_range)
 
-    def get_type(self):
-        return self.xl.chart.chart_type.get()
+    @property
+    def parent(self):
+        return self.sheet
 
-    def set_type(self, chart_type):
-        self.xl.chart.chart_type.set(chart_type)
+    @property
+    def name(self):
+        return self.xl.chart.name.get()
+
+    @name.setter
+    def name(self, value):
+        return self.xl.chart.name.set(value)
+
+    @property
+    def chart_type(self):
+        return chart_types_k2s[self.xl.chart.chart_type.get()]
+
+    @chart_type.setter
+    def chart_type(self, value):
+        self.xl.chart.chart_type.set(chart_types_s2k[value])
+
+
+class Charts(Collection):
+
+    _kw = kw.chart_object
+    _wrap = Chart
 
 
 class Names(object):
@@ -1031,3 +1075,85 @@ def run(wb, command, app_, args):
     # kwargs = {'arg{0}'.format(i): n for i, n in enumerate(args, 1)}  # only for > PY 2.6
     kwargs = dict(('arg{0}'.format(i), n) for i, n in enumerate(args, 1))
     return app_.xl_app.run_VB_macro("'{0}'!{1}".format(wb.name, command), **kwargs)
+
+
+# --- constants ---
+
+chart_types_k2s = {
+    kw.ThreeD_area: '3d_area',
+    kw.ThreeD_area_stacked: '3d_area_stacked',
+    kw.ThreeD_area_stacked_100: '3d_area_stacked_100',
+    kw.ThreeD_bar_clustered: '3d_bar_clustered',
+    kw.ThreeD_bar_stacked: '3d_bar_stacked',
+    kw.ThreeD_bar_stacked_100: '3d_bar_stacked_100',
+    kw.ThreeD_column: '3d_column',
+    kw.ThreeD_column_clustered: '3d_column_clustered',
+    kw.ThreeD_column_stacked: '3d_column_stacked',
+    kw.ThreeD_column_stacked_100: '3d_column_stacked_100',
+    kw.ThreeD_line: '3d_line',
+    kw.ThreeD_pie: '3d_pie',
+    kw.ThreeD_pie_exploded: '3d_pie_exploded',
+    kw.area_chart: 'area',
+    kw.area_stacked: 'area_stacked',
+    kw.area_stacked_100: 'area_stacked_100',
+    kw.bar_clustered: 'bar_clustered',
+    kw.bar_of_pie: 'bar_of_pie',
+    kw.bar_stacked: 'bar_stacked',
+    kw.bar_stacked_100: 'bar_stacked_100',
+    kw.bubble: 'bubble',
+    kw.bubble_ThreeD_effect: 'bubble_3d_effect',
+    kw.column_clustered: 'column_clustered',
+    kw.column_stacked: 'column_stacked',
+    kw.column_stacked_100: 'column_stacked_100',
+    kw.combination_chart: 'combination',
+    kw.cone_bar_clustered: 'cone_bar_clustered',
+    kw.cone_bar_stacked: 'cone_bar_stacked',
+    kw.cone_bar_stacked_100: 'cone_bar_stacked_100',
+    kw.cone_col: 'cone_col',
+    kw.cone_column_clustered: 'cone_col_clustered',
+    kw.cone_column_stacked: 'cone_col_stacked',
+    kw.cone_column_stacked_100: 'cone_col_stacked_100',
+    kw.cylinder_bar_clustered: 'cylinder_bar_clustered',
+    kw.cylinder_bar_stacked: 'cylinder_bar_stacked',
+    kw.cylinder_bar_stacked_100: 'cylinder_bar_stacked_100',
+    kw.cylinder_column: 'cylinder_col',
+    kw.cylinder_column_clustered: 'cylinder_col_clustered',
+    kw.cylinder_column_stacked: 'cylinder_col_stacked',
+    kw.cylinder_column_stacked_100: 'cylinder_col_stacked_100',
+    kw.doughnut: 'doughnut',
+    kw.doughnut_exploded: 'doughnut_exploded',
+    kw.line_chart: 'line',
+    kw.line_markers: 'line_markers',
+    kw.line_markers_stacked: 'line_markers_stacked',
+    kw.line_markers_stacked_100: 'line_markers_stacked_100',
+    kw.line_stacked: 'line_stacked',
+    kw.line_stacked_100: 'line_stacked_100',
+    kw.pie_chart: 'pie',
+    kw.pie_exploded: 'pie_exploded',
+    kw.pie_of_pie: 'pie_of_pie',
+    kw.pyramid_bar_clustered: 'pyramid_bar_clustered',
+    kw.pyramid_bar_stacked: 'pyramid_bar_stacked',
+    kw.pyramid_bar_stacked_100: 'pyramid_bar_stacked_100',
+    kw.pyramid_column: 'pyramid_col',
+    kw.pyramid_column_clustered: 'pyramid_col_clustered',
+    kw.pyramid_column_stacked: 'pyramid_col_stacked',
+    kw.pyramid_column_stacked_100: 'pyramid_col_stacked_100',
+    kw.radar: 'radar',
+    kw.radar_filled: 'radar_filled',
+    kw.radar_markers: 'radar_markers',
+    kw.stock_HLC: 'stock_hlc',
+    kw.stock_OHLC: 'stock_ohlc',
+    kw.stock_VHLC: 'stock_vhlc',
+    kw.stock_VOHLC: 'stock_vohlc',
+    kw.surface: 'surface',
+    kw.surface_top_view: 'surface_top_view',
+    kw.surface_top_view_wireframe: 'surface_top_view_wireframe',
+    kw.surface_wireframe: 'surface_wireframe',
+    kw.xy_scatter_lines: 'xy_scatter_lines',
+    kw.xy_scatter_lines_no_markers: 'xy_scatter_lines_no_markers',
+    kw.xy_scatter_smooth: 'xy_scatter_smooth',
+    kw.xy_scatter_smooth_no_markers: 'xy_scatter_smooth_no_markers',
+    kw.xyscatter: 'xy_scatter',
+}
+
+chart_types_s2k = {v: k for k, v in chart_types_k2s.items()}
