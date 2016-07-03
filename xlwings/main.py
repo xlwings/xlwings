@@ -1434,7 +1434,7 @@ class ShapeContent(object):
         self.container.delete()
         
 
-class Chart(ShapeContent):
+class Chart(object):
     """
     A Chart object represents an existing Excel chart and can be instantiated with the following arguments::
 
@@ -1491,80 +1491,12 @@ class Chart(ShapeContent):
         return self.impl.name
 
     @property
-    def container(self):
-        impl = self.impl.container
-        if impl is None:
-            return None
-        elif isinstance(impl, xlplatform.Shape):
-            return Shape(impl=impl)
-        else:
-            raise Exception("Container type not supported")
-
-    @property
     def parent(self):
         impl = self.impl.parent
         if isinstance(impl, xlplatform.Book):
             return Book(impl=self.impl.parent)
         else:
             return Sheet(impl=self.impl.parent)
-
-    @classmethod
-    def add(cls, sheet=None, left=0, top=0, width=355, height=211, **kwargs):
-        """
-        Inserts a new Chart into Excel.
-
-        Arguments
-        ---------
-        sheet : str or int or xlwings.Sheet, default None
-            Name or index of the Sheet or Sheet object, defaults to the active Sheet
-
-        left : float, default 0
-            left position in points
-
-        top : float, default 0
-            top position in points
-
-        width : float, default 375
-            width in points
-
-        height : float, default 225
-            height in points
-
-        Keyword Arguments
-        -----------------
-        chart_type : xlwings.ChartType member, default xlColumnClustered
-            Excel chart type. E.g. xlwings.ChartType.xlLine
-
-        name : str, default None
-            Excel chart name. Defaults to Excel standard name if not provided, e.g. 'Chart 1'
-
-        source_data : Range
-            e.g. Range('A1').table
-
-        wkb : Workbook object, default Workbook.current()
-            Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
-
-        Returns
-        -------
-
-        xlwings Chart object
-        """
-
-        if sheet is None:
-            sheet = sheets.active
-        elif not isinstance(sheet, Sheet):
-            sheet = books.active.sheets(sheet)
-
-        xl_chart = sheet.xl_sheet.add_chart(left, top, width, height)
-
-        chart_type = kwargs.get('chart_type', ChartType.xlColumnClustered)
-        name = kwargs.get('name')
-        source_data = kwargs.get('source_data')
-
-        if name:
-            xl_chart.set_name(name)
-
-        return cls(xl_chart=xl_chart, chart_type=chart_type, source_data=source_data)
 
     @property
     def chart_type(self):
@@ -1589,6 +1521,41 @@ class Chart(ShapeContent):
             Range object, e.g. ``Range('A1')``
         """
         self.impl.set_source_data(source.impl)
+
+    @property
+    def left(self):
+        return self.impl.left
+
+    @left.setter
+    def left(self, value):
+        self.impl.left = value
+
+    @property
+    def top(self):
+        return self.impl.top
+
+    @top.setter
+    def top(self, value):
+        self.impl.top = value
+
+    @property
+    def width(self):
+        return self.impl.width
+
+    @width.setter
+    def width(self, value):
+        self.impl.width = value
+
+    @property
+    def height(self):
+        return self.impl.height
+
+    @height.setter
+    def height(self, value):
+        self.impl.height = value
+
+    def delete(self):
+        self.impl.delete()
 
     def __repr__(self):
         return "<Chart '{0}' in {1}>".format(

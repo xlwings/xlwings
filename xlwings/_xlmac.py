@@ -768,38 +768,115 @@ class Collection(object):
 
 class Chart(object):
 
-    def __init__(self, sheet, key):
-        self.sheet = sheet
-        self.xl = sheet.xl.chart_objects[key]
-
-    def set_source_data_chart(self, xl_range):
-        self.xl.chart.set_source_data(source=xl_range)
+    def __init__(self, parent, key):
+        self.parent = parent
+        if isinstance(parent, Sheet):
+            self.xl_obj = parent.xl.chart_objects[key]
+            self.xl = self.xl_obj.chart
+        else:
+            self.xl_obj = None
+            self.xl = self.charts[key]
 
     @property
-    def parent(self):
-        return self.sheet
+    def api(self):
+        return self.xl_obj, self.xl
+
+    def set_source_data(self, rng):
+        self.xl.set_source_data(source=rng.xl)
 
     @property
     def name(self):
-        return self.xl.chart.name.get()
+        if self.xl_obj is not None:
+            return self.xl_obj.name.get()
+        else:
+            return self.xl.name.get()
 
     @name.setter
     def name(self, value):
-        return self.xl.chart.name.set(value)
+        if self.xl_obj is not None:
+            return self.xl_obj.name.set(value)
+        else:
+            return self.xl.name.get(value)
 
     @property
     def chart_type(self):
-        return chart_types_k2s[self.xl.chart.chart_type.get()]
+        return chart_types_k2s[self.xl.chart_type.get()]
 
     @chart_type.setter
     def chart_type(self, value):
-        self.xl.chart.chart_type.set(chart_types_s2k[value])
+        self.xl.chart_type.set(chart_types_s2k[value])
 
+    @property
+    def left(self):
+        if self.xl_obj is None:
+            raise Exception("This chart is not embedded.")
+        return self.xl_obj.left_position.get()
+
+    @left.setter
+    def left(self, value):
+        if self.xl_obj is None:
+            raise Exception("This chart is not embedded.")
+        self.xl_obj.left_position.set(value)
+
+    @property
+    def top(self):
+        if self.xl_obj is None:
+            raise Exception("This chart is not embedded.")
+        return self.xl_obj.top.get()
+
+    @top.setter
+    def top(self, value):
+        if self.xl_obj is None:
+            raise Exception("This chart is not embedded.")
+        self.xl_obj.top.set(value)
+
+    @property
+    def width(self):
+        if self.xl_obj is None:
+            raise Exception("This chart is not embedded.")
+        return self.xl_obj.width.get()
+
+    @width.setter
+    def width(self, value):
+        if self.xl_obj is None:
+            raise Exception("This chart is not embedded.")
+        self.xl_obj.width.set(value)
+
+    @property
+    def height(self):
+        if self.xl_obj is None:
+            raise Exception("This chart is not embedded.")
+        return self.xl_obj.height.get()
+
+    @height.setter
+    def height(self, value):
+        if self.xl_obj is None:
+            raise Exception("This chart is not embedded.")
+        self.xl_obj.height.set(value)
+
+    def delete(self):
+        # todo: what about chart sheets?
+        self.xl_obj.delete()
 
 class Charts(Collection):
 
     _kw = kw.chart_object
     _wrap = Chart
+
+    def add(self, left, top, width, height):
+        sheet_index = self.parent.xl.entry_index.get()
+        return Chart(
+            self.parent, self.parent.xl.make(
+                at=self.parent.book.xl.sheets[sheet_index],
+                new=kw.chart_object,
+                with_properties={
+                    kw.width: width,
+                    kw.top: top,
+                    kw.left_position: left,
+                    kw.height: height
+                }
+            ).name.get()
+        )
 
 
 class Names(object):
