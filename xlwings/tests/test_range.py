@@ -197,7 +197,7 @@ class TestRangeAttributes(TestBase):
         assert_equal(format_string, result)
 
     def test_get_address(self):
-        wb1 = xw.Book(os.path.join(this_dir, 'test book.xlsx'))
+        wb1 = self.app1.books.open(os.path.join(this_dir, 'test book.xlsx'))
 
         res = wb1.sheets[0].range((1, 1), (3, 3)).get_address()
         assert_equal(res, '$A$1:$C$3')
@@ -219,8 +219,6 @@ class TestRangeAttributes(TestBase):
 
         res = wb1.sheets[0].range((1, 1), (3, 3)).get_address(external=True)
         assert_equal(res, "'[test book.xlsx]Sheet1'!$A$1:$C$3")
-
-        wb1.close()
 
     def test_address(self):
         assert_equal(self.wb1.sheets[0].range('A1:B2').address, '$A$1:$B$2')
@@ -381,8 +379,8 @@ class TestRangeAttributes(TestBase):
         assert_equal(self.wb1.sheets[0].range('B3:F5').last_cell.column, 6)
 
     def test_select(self):
-        self.wb1.sheets[0].range('C10').select()
-        assert_equal(self.app1.selection.address, self.wb1.sheets[0].range('C10').address)
+        self.wb2.sheets[0].range('C10').select()
+        assert_equal(self.app2.selection.address, self.wb2.sheets[0].range('C10').address)
 
 
 class TestRangeIndexing(TestBase):

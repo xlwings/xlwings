@@ -701,6 +701,9 @@ class Sheet(object):
     def activate(self):
         return self.xl.Activate()
 
+    def select(self):
+        return self.xl.Select()
+
     def clear_contents(self):
         self.xl.Cells.ClearContents()
 

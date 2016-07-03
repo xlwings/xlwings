@@ -91,6 +91,10 @@ class TestSheet(TestBase):
         self.wb1.sheets(1).activate()
         assert_equal(self.wb1.sheets.active.index, 1)
 
+    def test_select(self):
+        self.wb2.sheets[1].select()
+        assert_equal(self.wb2.sheets.active, self.wb2.sheets[1])
+
     def test_clear_content(self):
         self.wb1.sheets['Sheet2'].range('G10').value = 22
         self.wb1.sheets['Sheet2'].clear_contents()

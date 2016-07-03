@@ -538,6 +538,10 @@ class Sheet(object):
         self.book.activate()
         return self.impl.activate()
 
+    def select(self):
+        # Select only works on the active book
+        return self.impl.select()
+
     def clear_contents(self):
         return self.impl.clear_contents()
 
@@ -1240,9 +1244,7 @@ class Range(object):
         return self(self.shape[0], self.shape[1]).options(**self._options)
 
     def select(self):
-        """
-        TODO
-        """
+        # Select only works on the active sheet
         self.impl.select()
 
 

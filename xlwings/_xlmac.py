@@ -191,14 +191,12 @@ class Books(object):
     def add(self):
         xl = self.app.xl.make(new=kw.workbook)
         wb = Book(self.app, xl.name.get())
-        wb.activate()
         return wb
 
     def open(self, fullname):
         filename = os.path.basename(fullname)
         self.app.xl.open(fullname)
         wb = Book(self.app, filename)
-        wb.activate()
         return wb
 
     def __iter__(self):
@@ -260,7 +258,7 @@ class Book(object):
         return Names(book=self, xl=self.xl.named_items)
 
     def activate(self):
-        self.xl.activate_object()
+        self.xl.activate()
 
 
 class Sheets(object):
@@ -376,6 +374,9 @@ class Sheet(object):
 
     def activate(self):
         self.xl.activate_object()
+
+    def select(self):
+        self.xl.select()
 
     def clear_contents(self):
         self.xl.used_range.clear_contents()
@@ -679,9 +680,7 @@ class Range(object):
 
     def select(self):
         if self.xl is not None:
-            # seems to only work reliably in this combination
-            self.xl.activate()
-            self.xl.select()
+            return self.xl.select()
 
 
 class Shape(object):

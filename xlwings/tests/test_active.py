@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+import os
 
 from nose.tools import assert_equal
 
 import xlwings as xw
-from .common import TestBase
+from .common import TestBase, this_dir
 
 
 class TestActive(TestBase):
@@ -16,6 +17,10 @@ class TestActive(TestBase):
         wb = xw.Book()
         wb.activate()
         assert_equal(xw.books.active.name, wb.name)
+
+    def test_book_fullname(self):
+        fullname = os.path.join(this_dir, 'test book.xlsx')
+        wb = xw.Book(fullname)
 
     def test_sheets_active(self):
         self.wb2.activate()
