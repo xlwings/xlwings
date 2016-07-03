@@ -305,19 +305,19 @@ class TestRangeAttributes(TestBase):
         self.wb1.sheets[0].range('A1').value = data
         if sys.platform.startswith('win') and self.wb1.app.version == '14.0':
             self.wb1.sheets[0].range('A3:B3').number_format = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
-        cells = self.wb1.sheets[0].range('A1').table.value
+        cells = self.wb1.sheets[0].range('A1').expand('table').value
         assert_equal(cells, data)
 
     def test_vertical(self):
         self.wb1.sheets[0].range('A10').value = data
         if sys.platform.startswith('win') and self.wb1.app.version == '14.0':
             self.wb1.sheets[0].range('A12:B12').number_format = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
-        cells = self.wb1.sheets[0].range('A10').vertical.value
+        cells = self.wb1.sheets[0].range('A10').expand('vertical').value
         assert_equal(cells, [row[0] for row in data])
 
     def test_horizontal(self):
         self.wb1.sheets[0].range('A20').value = data
-        cells = self.wb1.sheets[0].range('A20').horizontal.value
+        cells = self.wb1.sheets[0].range('A20').expand('horizontal').value
         assert_equal(cells, data[0])
 
     def test_hyperlink(self):

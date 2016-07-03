@@ -34,7 +34,7 @@ def xl_fibonacci():
     seq = fibonacci(n)
 
     # Clear output
-    wb.sheets[0].range('C1').vertical.clear_contents()
+    wb.sheets[0].range('C1').expand('vertical').clear_contents()
 
     # Return the output to Excel in column orientation
     wb.sheets[0].range('C1').options(transpose=True).value = seq

@@ -116,7 +116,7 @@ class TestChart(TestBase):
         self.wb1.sheets[0].range('A1').value = [['one', 'two'], [1.1, 2.2]]
         chart = self.wb1.sheets[0].charts.add(chart_type=ChartType.xlLine,
                                               name='My Chart',
-                                              source_data=self.wb1.sheets[0].range('A1').table)
+                                              source_data=self.wb1.sheets[0].range('A1').expand('table'))
 
         assert_equal('My Chart', chart.name)
         if sys.platform.startswith('win'):
@@ -129,7 +129,7 @@ class TestChart(TestBase):
         chart = self.wb1.sheets[1].charts.add()
         chart.chart_type = ChartType.xlLine
         chart.name = 'My Chart'
-        chart.set_source_data(self.wb1.sheets[1].range('A1').table)
+        chart.set_source_data(self.wb1.sheets[1].range('A1').expand('table'))
 
         assert_equal('My Chart', chart.name)
         if sys.platform.startswith('win'):
