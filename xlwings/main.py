@@ -13,27 +13,13 @@ import os
 import sys
 import re
 import numbers
-import itertools
 import inspect
-import collections
 import tempfile
-import shutil
 
-from . import xlplatform, string_types, xrange, map, ShapeAlreadyExists, PY3
-from .constants import ChartType
+from . import xlplatform, string_types, ShapeAlreadyExists, PY3
 from .utils import VersionNumber
 
 # Optional imports
-try:
-    import numpy as np
-except ImportError:
-    np = None
-
-try:
-    import pandas as pd
-except ImportError:
-    pd = None
-
 try:
     from matplotlib.backends.backend_agg import FigureCanvas
 except ImportError:
@@ -556,22 +542,6 @@ class Sheet(object):
 
     def delete(self):
         return self.impl.delete()
-
-    def get_shape_object(self, shape_name_or_index):
-        return Shape(impl=self.impl.get_shape_object(shape_name_or_index))
-
-    def get_chart_object(self, chart_name_or_index):
-        return Chart(impl=self.impl.get_chart_object(chart_name_or_index))
-
-    def get_shapes_names(self):
-        shapes = self.xl.Shapes
-        if shapes is not None:
-            return [i.Name for i in shapes]
-        else:
-            return []
-
-    def add_chart(self, left, top, width, height):
-        return Chart(xl=self.xl.ChartObjects().Add(left, top, width, height))
 
     def __repr__(self):
         return "<Sheet [{1}]{0}>".format(self.name, self.book.name)
@@ -1656,7 +1626,7 @@ class Picture(object):
 
     .. versionadded:: 0.5.0
     """
-    def __init__(self, *args, impl=None, **kwargs):
+    def __init__(self, impl=None):
         self.impl = impl
 
     @property

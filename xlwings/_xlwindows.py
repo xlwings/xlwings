@@ -3,30 +3,30 @@ import sys
 
 # Hack to find pythoncom.dll - needed for some distribution/setups (includes seemingly unused import win32api)
 # E.g. if python is started with the full path outside of the python path, then it almost certainly fails
-
 cwd = os.getcwd()
 if not hasattr(sys, 'frozen'):
     # cx_Freeze etc. will fail here otherwise
     os.chdir(sys.exec_prefix)
 import win32api
-
 os.chdir(cwd)
 
 from warnings import warn
+import datetime as dt
+import numbers
+import types
+from ctypes import oledll, PyDLL, py_object, byref, POINTER, windll
+
 import pywintypes
 import pythoncom
-from win32com.client import dynamic, Dispatch, CDispatch, DispatchEx
+from win32com.client import  Dispatch, CDispatch, DispatchEx
 import win32timezone
 import win32gui
 import win32process
-import datetime as dt
-from .constants import Direction, ColorIndex
-from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime
-from ctypes import oledll, PyDLL, py_object, byref, POINTER, windll
 from comtypes import IUnknown
 from comtypes.automation import IDispatch
-import numbers
-import types
+
+from .constants import Direction, ColorIndex
+from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime, col_name
 
 # Optional imports
 try:
@@ -63,9 +63,6 @@ DIRECTIONS = {
 BOOK_CALLER = None
 
 missing = object()
-
-
-from .utils import col_name
 
 
 class COMRetryMethodWrapper(object):
@@ -370,8 +367,6 @@ def is_range_instance(xl_range):
 class Apps(object):
 
     def __iter__(self):
-        #for xl in get_xl_apps():
-        #    yield Application(xl=xl)
         for hwnd in get_excel_hwnds():
             yield App(xl=hwnd)
 
@@ -379,8 +374,6 @@ class Apps(object):
         return len(list(get_excel_hwnds()))
 
     def __getitem__(self, index):
-        #xl_apps = list(get_xl_apps())
-        #return Application(xl=xl_apps[index])
         hwnds = list(get_excel_hwnds())
         return App(xl=hwnds[index])
 
