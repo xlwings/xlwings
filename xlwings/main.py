@@ -1754,13 +1754,34 @@ class Pictures(Collection):
     def parent(self):
         return Sheet(impl=self.impl.parent)
 
-    def add(self, filename, link_to_file=False, save_with_document=True, left=0, top=0, width=-1, height=-1, name=None):
+    def add(self, filename, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None, name=None):
+
+        # Image dimensions
+        im_width, im_height = None, None
+        if width is None or height is None:
+            if Image:
+                with Image.open(filename) as im:
+                    im_width, im_height = im.size
+
+        if width is None:
+            if im_width is not None:
+                width = im_width
+            else:
+                width = 100
+
+        if height is None:
+            if im_height is not None:
+                height = im_height
+            else:
+                height = 100
+
         picture = Picture(impl=self.impl.add(
             filename, link_to_file, save_with_document, left, top, width, height
         ))
         if name is not None:
             picture.name = name
         return picture
+
 
 class Plot(object):
     """
