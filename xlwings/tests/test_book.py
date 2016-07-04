@@ -20,8 +20,9 @@ class TestBooks(TestBase):
         assert_equal(len(self.app1.books), self.app1.books.count)
 
     def test_add(self):
+        current_count = self.app1.books.count
         self.app1.books.add()
-        assert_equal(len(self.app1.books), 2)
+        assert_equal(len(self.app1.books), current_count + 1)
 
     def test_open(self):
         fullname = os.path.join(this_dir, 'test book.xlsx')
