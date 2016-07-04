@@ -870,6 +870,7 @@ class Chart(object):
 
 class Charts(Collection):
 
+    _attr = 'chart_objects'
     _kw = kw.chart_object
     _wrap = Chart
 

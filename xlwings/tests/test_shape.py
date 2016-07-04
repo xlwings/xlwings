@@ -92,21 +92,21 @@ class TestPicture(TestBase):
         pic1.update(filename)
 
 
-class TestPlot(TestBase):
-    def test_add_plot(self):
-        _skip_if_no_matplotlib()
-
-        fig = Figure(figsize=(8, 6))
-        ax = fig.add_subplot(111)
-        ax.plot([1, 2, 3, 4, 5])
-
-        plot = Plot(fig)
-        pic = plot.show('Plot1')
-        assert_equal(pic.name, 'Plot1')
-
-        plot.show('Plot2', sheet=2)
-        pic2 = self.wb1.sheets[1].pictures['Plot2']
-        assert_equal(pic2.name, 'Plot2')
+# class TestPlot(TestBase):
+#     def test_add_plot(self):
+#         _skip_if_no_matplotlib()
+#
+#         fig = Figure(figsize=(8, 6))
+#         ax = fig.add_subplot(111)
+#         ax.plot([1, 2, 3, 4, 5])
+#
+#         plot = Plot(fig)
+#         pic = plot.show('Plot1')
+#         assert_equal(pic.name, 'Plot1')
+#
+#         plot.show('Plot2', sheet=2)
+#         pic2 = self.wb1.sheets[1].pictures['Plot2']
+#         assert_equal(pic2.name, 'Plot2')
 
 
 class TestCharts(TestBase):

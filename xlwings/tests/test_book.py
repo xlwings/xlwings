@@ -62,7 +62,7 @@ class TestBook(TestBase):
     def test_instantiate_saved_by_fullpath(self):
         # unicode name of book, but not unicode path
         wb = self.app1.books.add()
-        if sys.platform.startswith('darwin') and self.app1.major_version >= 15:
+        if sys.platform.startswith('darwin') and self.app1.version.major >= 15:
             dst = os.path.join(os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/', 'üni cöde.xlsx')
         else:
             dst = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'üni cöde.xlsx')
@@ -133,7 +133,7 @@ class TestBook(TestBase):
         assert_equal(len(self.app1.books), 0)
 
     def test_save_naked(self):
-        if sys.platform.startswith('darwin') and self.app1.major_version >= 15:
+        if sys.platform.startswith('darwin') and self.app1.version.major >= 15:
             folder = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/'
             if os.path.isdir(folder):
                 os.chdir(folder)
@@ -152,7 +152,7 @@ class TestBook(TestBase):
             os.remove(target_file_path)
 
     def test_save_path(self):
-        if sys.platform.startswith('darwin') and self.app1.major_version >= 15:
+        if sys.platform.startswith('darwin') and self.app1.version.major >= 15:
             folder = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/'
             if os.path.isdir(folder):
                 os.chdir(folder)
