@@ -3,13 +3,15 @@ import datetime as dt
 import subprocess
 import unicodedata
 import struct
+import shutil
+import atexit
+
+import psutil
 import aem
 import appscript
-import shutil
 from appscript import k as kw, mactypes, its
 from appscript.reference import CommandError
-import psutil
-import atexit
+
 from .constants import ColorIndex, Calculation
 from .utils import int_to_rgb, np_datetime_to_datetime, col_name, VersionNumber
 from . import mac_dict, PY3, string_types
@@ -28,8 +30,6 @@ time_types = (dt.date, dt.datetime)
 if np:
     time_types = time_types + (np.datetime64,)
 
-# We're only dealing with one instance of Excel on Mac
-_xl_app = None
 
 DIRECTIONS = {
     'd': kw.toward_the_bottom,
@@ -906,7 +906,7 @@ class Picture(object):
 
     @name.setter
     def name(self, value):
-        return self.xl.name.set(value)
+        self.xl.name.set(value)
 
     @property
     def left(self):
@@ -984,7 +984,6 @@ class Pictures(Collection):
         return picture
 
 
-
 class Names(object):
     def __init__(self, book, xl):
         self.book = book
@@ -1045,25 +1044,6 @@ class Name(object):
     def refers_to_range(self):
         ref = self.refers_to[1:].split('!')
         return Range(Sheet(self.book, ref[0]), ref[1])
-
-
-def is_app_instance(xl_app):
-    return type(xl_app) is appscript.reference.Application and '/Microsoft Excel.app' in str(xl_app)
-
-
-def set_xl_app(app_target=None):
-    if app_target is None:
-        app_target = 'Microsoft Excel'
-    global _xl_app
-    _xl_app = app(app_target, terms=mac_dict)
-
-
-def new_app(app_target='Microsoft Excel'):
-    return app(app_target, terms=mac_dict)
-
-
-def get_running_app():
-    return app('Microsoft Excel', terms=mac_dict)
 
 
 @atexit.register
@@ -1138,44 +1118,6 @@ def is_excel_running():
     return False
 
 
-def get_open_workbook(fullname, app_target=None):
-    """
-    Get the appscript Workbook object.
-    On Mac, there's only ever one instance of Excel.
-    """
-    filename = os.path.basename(fullname)
-    app = App()
-    return Book(app, filename)
-
-
-def open_workbook(fullname, app_target=None):
-    filename = os.path.basename(fullname)
-    set_xl_app(app_target)
-    _xl_app.open(fullname)
-    xl_workbook = _xl_app.workbooks[filename]
-    return _xl_app, xl_workbook
-
-
-def close_workbook(xl_workbook):
-    xl_workbook.close(saving=kw.no)
-
-
-def new_workbook(app_target=None):
-    is_running = is_excel_running()
-
-    set_xl_app(app_target)
-
-    if is_running or 0 == _xl_app.count(None, each=kw.workbook):
-        # If Excel is being fired up, a "Workbook1" is automatically added
-        # If its already running, we create an new one that Excel unfortunately calls "Sheet1".
-        # It's a feature though: See p.14 on Excel 2004 AppleScript Reference
-        xl_workbook = _xl_app.make(new=kw.workbook)
-    else:
-        xl_workbook = _xl_app.workbooks[1]
-
-    return _xl_app, xl_workbook
-
-
 def is_range_instance(xl_range):
     return isinstance(xl_range, appscript.genericreference.GenericReference)
 
@@ -1229,37 +1171,8 @@ def prepare_xl_data_element(x):
     return x
 
 
-
 def open_template(fullpath):
     subprocess.call(['open', fullpath])
-
-
-def get_picture(picture):
-    return picture.xl_workbook.sheets[picture.sheet_name_or_index].pictures[picture.name_or_index]
-
-
-def get_picture_index(picture):
-    # Workaround since picture.xl_picture.entry_index.get() is broken in AppleScript, returns k.missing_value
-    # Also, count(each=kw.picture) returns count of shape nevertheless
-    num_shapes = picture.xl_workbook.sheets[picture.sheet_name_or_index].count(each=kw.shape)
-    picture_index = 0
-    for i in range(1, num_shapes + 1):
-        if picture.xl_workbook.sheets[picture.sheet_name_or_index].shapes[i].shape_type.get() == kw.shape_type_picture:
-            picture_index += 1
-        if picture.xl_workbook.sheets[picture.sheet_name_or_index].shapes[i].name.get() == picture.name:
-            return picture_index
-
-
-def get_picture_name(xl_picture):
-    return xl_picture.name.get()
-
-
-
-
-def run(wb, command, app_, args):
-    # kwargs = {'arg{0}'.format(i): n for i, n in enumerate(args, 1)}  # only for > PY 2.6
-    kwargs = dict(('arg{0}'.format(i), n) for i, n in enumerate(args, 1))
-    return app_.xl_app.run_VB_macro("'{0}'!{1}".format(wb.name, command), **kwargs)
 
 
 # --- constants ---
