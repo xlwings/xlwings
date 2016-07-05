@@ -47,19 +47,6 @@ if np:
 
 
 N_COM_RETRIES = 10
-
-
-DIRECTIONS = {
-    'd': Direction.xlDown,
-    'down': Direction.xlDown,
-    'l': Direction.xlToLeft,
-    'left': Direction.xlToLeft,
-    'r': Direction.xlToRight,
-    'right': Direction.xlToRight,
-    'u': Direction.xlUp,
-    'up': Direction.xlUp
-}
-
 BOOK_CALLER = None
 
 missing = object()
@@ -447,11 +434,11 @@ class App(object):
 
     @property
     def calculation(self):
-        return self.xl.Calculation
+        return chart_types_i2s[self.xl.Calculation]
 
     @calculation.setter
     def calculation(self, value):
-        self.xl.Calculation = value
+        self.xl.Calculation = chart_types_s2i[value]
 
     def calculate(self):
         self.xl.Calculate()
@@ -820,7 +807,7 @@ class Range(object):
             self.xl.Formula = value
 
     def end(self, direction):
-        direction = DIRECTIONS.get(direction, direction)
+        direction = directions_s2i.get(direction, direction)
         return Range(xl=self.xl.End(direction))
 
     @property
@@ -1581,3 +1568,28 @@ chart_types_s2i = {
 
 chart_types_i2s = {v: k for k, v in chart_types_s2i.items()}
 
+directions_s2i = {
+    'd': -4121,
+    'down': -4121,
+    'l': -4159,
+    'left': -4159,
+    'r': -4161,
+    'right': -4161,
+    'u': -4162,
+    'up': -4162
+}
+
+directions_i2s = {
+    -4121: 'down',
+    -4159: 'left',
+    -4161: 'right',
+    -4162: 'up'
+}
+
+calculation_s2i = {
+    "calculation_automatic": -4105,
+    "calculation_manual": -4135,
+    "calculation_semiautomatic": 2
+}
+
+calculation_s2i = {v: k for k, v in calculation_s2i.items()}

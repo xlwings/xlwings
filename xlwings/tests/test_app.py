@@ -69,16 +69,26 @@ class TestApp(TestBase):
         sht.range('A1').value = 2
         sht.range('B1').formula = '=A1 * 2'
 
-        self.app1.calculation = Calculation.xlCalculationManual
+        self.app1.calculation = 'calculation_manual'
         sht.range('A1').value = 4
         assert_equal(sht.range('B1').value, 4)
 
-        self.app1.calculation = Calculation.xlCalculationAutomatic
+        self.app1.calculation = 'calculation_automatic'
         self.app1.calculate()  # This is needed on Mac Excel 2016 but not on Mac Excel 2011 (changed behaviour)
         assert_equal(sht.range('B1').value, 8)
 
         sht.range('A1').value = 2
         assert_equal(sht.range('B1').value, 4)
+
+    def test_calculation(self):
+        self.app1.calculation = 'calculation_automatic'
+        assert_equal(self.app1.calculation, 'calculation_automatic')
+
+        self.app1.calculation = 'calculation_manual'
+        assert_equal(self.app1.calculation, 'calculation_manual')
+
+        self.app1.calculation = 'calculation_semiautomatic'
+        assert_equal(self.app1.calculation, 'calculation_semiautomatic')
 
     def test_version(self):
         assert_true(self.app1.version.major > 0)
