@@ -585,13 +585,14 @@ class Range(object):
                 self.sheet.xl.columns[address].autofit()
             self.sheet.book.app.screen_updating = alerts_state
 
-    def get_hyperlink_address(self):
+    @property
+    def hyperlink(self):
         try:
             return self.xl.hyperlinks[1].address.get()
         except CommandError:
             raise Exception("The cell doesn't seem to contain a hyperlink!")
 
-    def set_hyperlink(self, address, text_to_display=None, screen_tip=None):
+    def add_hyperlink(self, address, text_to_display=None, screen_tip=None):
         if self.xl is not None:
             self.xl.make(at=self.xl, new=kw.hyperlink, with_properties={kw.address: address,
                                                                         kw.text_to_display: text_to_display,

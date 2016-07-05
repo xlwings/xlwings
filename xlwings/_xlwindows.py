@@ -917,7 +917,8 @@ class Range(object):
                 self.xl.Columns.AutoFit()
                 self.xl.Rows.AutoFit()
 
-    def get_hyperlink_address(self):
+    @property
+    def hyperlink(self):
         if self.xl is not None:
             try:
                 return self.xl.Hyperlinks(1).Address
@@ -926,7 +927,7 @@ class Range(object):
         else:
             return ''
 
-    def set_hyperlink(self, address, text_to_display, screen_tip):
+    def add_hyperlink(self, address, text_to_display, screen_tip):
         if self.xl is not None:
             # Another one of these pywin32 bugs that only materialize under certain circumstances:
             # http://stackoverflow.com/questions/6284227/hyperlink-will-not-show-display-proper-text
