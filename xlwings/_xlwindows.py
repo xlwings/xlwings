@@ -434,11 +434,11 @@ class App(object):
 
     @property
     def calculation(self):
-        return chart_types_i2s[self.xl.Calculation]
+        return calculation_i2s[self.xl.Calculation]
 
     @calculation.setter
     def calculation(self, value):
-        self.xl.Calculation = chart_types_s2i[value]
+        self.xl.Calculation = calculation_s2i[value]
 
     def calculate(self):
         self.xl.Calculate()
@@ -1592,4 +1592,4 @@ calculation_s2i = {
     "calculation_semiautomatic": 2
 }
 
-calculation_s2i = {v: k for k, v in calculation_s2i.items()}
+calculation_i2s = {v: k for k, v in calculation_s2i.items()}

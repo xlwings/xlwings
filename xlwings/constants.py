@@ -696,6 +696,12 @@ class Calculation:
     xlCalculationSemiautomatic = 2  # from enum XlCalculation
 
 
+calculations = (
+    'calculation_automatic',
+    'calculation_manual',
+    'calculation_semiautomatic'
+)
+
 class CalculationInterruptKey:
     xlAnyKey = 2  # from enum XlCalculationInterruptKey
     xlEscKey = 1  # from enum XlCalculationInterruptKey
@@ -1222,6 +1228,14 @@ class Direction:
     xlToLeft = -4159  # from enum XlDirection
     xlToRight = -4161  # from enum XlDirection
     xlUp = -4162  # from enum XlDirection
+
+
+directions = (
+    'down',
+    'left',
+    'right'
+    'up'
+)
 
 
 class DisplayBlanksAs:
