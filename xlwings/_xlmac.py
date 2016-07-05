@@ -31,18 +31,6 @@ if np:
     time_types = time_types + (np.datetime64,)
 
 
-DIRECTIONS = {
-    'd': kw.toward_the_bottom,
-    'down': kw.toward_the_bottom,
-    'l': kw.toward_the_left,
-    'left': kw.toward_the_left,
-    'r': kw.toward_the_right,
-    'right': kw.toward_the_right,
-    'u': kw.toward_the_top,
-    'up': kw.toward_the_top
-}
-
-
 class Apps(object):
 
     def _iter_excel_instances(self):
@@ -127,24 +115,13 @@ class App(object):
     def screen_updating(self, value):
         self.xl.screen_updating.set(value)
 
-    # TODO: Hack for Excel 2016, to be refactored
-    _CALCULATION = {
-        kw.calculation_automatic: Calculation.xlCalculationAutomatic,
-        kw.calculation_manual: Calculation.xlCalculationManual,
-        kw.calculation_semiautomatic: Calculation.xlCalculationSemiautomatic
-    }
-
-    _CALCULATION_REVERSE = {
-        v: k for k, v in _CALCULATION.items()
-    }
-
     @property
     def calculation(self):
-        return App._CALCULATION[self.calculation.get()]
+        return calculation_k2s[self.xl.calculation.get()]
 
     @calculation.setter
     def calculation(self, value):
-        self.xl.calculation.set(App._CALCULATION_REVERSE[value])
+        self.xl.calculation.set(calculation_s2k[value])
 
     def calculate(self):
         self.xl.calculate()
@@ -496,7 +473,7 @@ class Range(object):
             self.sheet.book.app.screen_updating = alerts_state
 
     def end(self, direction):
-        direction = DIRECTIONS.get(direction, direction)
+        direction = directions_s2k.get(direction, direction)
         return Range(self.sheet, self.xl.get_end(direction=direction).get_address())
 
     @property
@@ -1255,3 +1232,29 @@ chart_types_k2s = {
 }
 
 chart_types_s2k = {v: k for k, v in chart_types_k2s.items()}
+
+directions_s2k = {
+    'd': kw.toward_the_bottom,
+    'down': kw.toward_the_bottom,
+    'l': kw.toward_the_left,
+    'left': kw.toward_the_left,
+    'r': kw.toward_the_right,
+    'right': kw.toward_the_right,
+    'u': kw.toward_the_top,
+    'up': kw.toward_the_top
+}
+
+directions_k2s = {
+    kw.toward_the_bottom: 'down',
+    kw.toward_the_left: 'left',
+    kw.toward_the_right: 'right',
+    kw.toward_the_top: 'up',
+}
+
+calculation_k2s = {
+    kw.calculation_automatic: 'automatic',
+    kw.calculation_manual: 'manual',
+    kw.calculation_semiautomatic: 'semiautomatic'
+}
+
+calculation_s2k = {v: k for k, v in calculation_k2s.items()}

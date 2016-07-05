@@ -1,6 +1,4 @@
 # Excel constants: We can't use 'from win32com.client import constants' as we're dynamically dispatching
-
-from . import string_types
 import re
 
 RE_WORD = re.compile('^[A-Z0-9]([A-Z0-9](?![a-z]))*[a-z]*')
@@ -35,8 +33,8 @@ def _dump_enum(cls):
         json.dump({
             'i2s': i2s,
             's2i': s2i,
-            'l': s2i.keys()
-        }, f)
+            'l': list(s2i.keys())
+        }, f, indent=4)
 
 
 class AboveBelow:
@@ -698,6 +696,12 @@ class Calculation:
     xlCalculationSemiautomatic = 2  # from enum XlCalculation
 
 
+calculations = (
+    'calculation_automatic',
+    'calculation_manual',
+    'calculation_semiautomatic'
+)
+
 class CalculationInterruptKey:
     xlAnyKey = 2  # from enum XlCalculationInterruptKey
     xlEscKey = 1  # from enum XlCalculationInterruptKey
@@ -1224,6 +1228,14 @@ class Direction:
     xlToLeft = -4159  # from enum XlDirection
     xlToRight = -4161  # from enum XlDirection
     xlUp = -4162  # from enum XlDirection
+
+
+directions = (
+    'down',
+    'left',
+    'right'
+    'up'
+)
 
 
 class DisplayBlanksAs:
