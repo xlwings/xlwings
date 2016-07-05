@@ -697,9 +697,9 @@ class Calculation:
 
 
 calculations = (
-    'calculation_automatic',
-    'calculation_manual',
-    'calculation_semiautomatic'
+    'automatic',
+    'manual',
+    'semiautomatic'
 )
 
 class CalculationInterruptKey:
