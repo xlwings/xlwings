@@ -1252,9 +1252,9 @@ directions_k2s = {
 }
 
 calculation_k2s = {
-    kw.calculation_automatic: 'calculation_automatic',
-    kw.calculation_manual: 'calculation_manual',
-    kw.calculation_semiautomatic: 'calculation_semiautomatic'
+    kw.calculation_automatic: 'automatic',
+    kw.calculation_manual: 'manual',
+    kw.calculation_semiautomatic: 'semiautomatic'
 }
 
 calculation_s2k = {v: k for k, v in calculation_k2s.items()}

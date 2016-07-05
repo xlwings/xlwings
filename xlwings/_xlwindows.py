@@ -1587,9 +1587,9 @@ directions_i2s = {
 }
 
 calculation_s2i = {
-    "calculation_automatic": -4105,
-    "calculation_manual": -4135,
-    "calculation_semiautomatic": 2
+    "automatic": -4105,
+    "manual": -4135,
+    "semiautomatic": 2
 }
 
 calculation_i2s = {v: k for k, v in calculation_s2i.items()}
