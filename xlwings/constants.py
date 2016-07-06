@@ -3060,3 +3060,33 @@ class YesNoGuess:
     xlGuess = 0  # from enum XlYesNoGuess
     xlNo = 2  # from enum XlYesNoGuess
     xlYes = 1  # from enum XlYesNoGuess
+
+
+shape_types = [
+    "auto_shape",
+    "callout",
+    "canvas",
+    "chart",
+    "comment",
+    "content_app",
+    "diagram",
+    "embedded_ole_object",
+    "freeform",
+    "group",
+    "igx_graphic",
+    "ink",
+    "ink_comment",
+    "line",
+    "linked_ole_object",
+    "linked_picture",
+    "media",
+    "ole_control_object",
+    "picture",
+    "placeholder",
+    "script_anchor",
+    "shape_type_mixed",
+    "table",
+    "text_box",
+    "text_effect",
+    "web_video"
+]

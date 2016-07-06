@@ -1263,13 +1263,7 @@ class Shape(object):
 
         if impl is None:
             if len(args) == 1:
-                impl = Sheet.active().get_shape_object(args[0])
-
-            elif len(args) == 2:
-                sheet = args[0]
-                if not isinstance(sheet, Sheet):
-                    sheet = Sheet(sheet)
-                impl = sheet.get_shape_object(args[1])
+                impl = sheets.active.shapes(args[0]).impl
 
             else:
                 raise ValueError("Invalid arguments")
@@ -1283,6 +1277,10 @@ class Shape(object):
     @name.setter
     def name(self, value):
         self.impl.name = value
+
+    @property
+    def type(self):
+        return self.impl.type
 
     @property
     def left(self):
@@ -1323,18 +1321,15 @@ class Shape(object):
         self.impl.activate()
 
     @property
-    def contents(self):
-        impl = self.impl.contents
-        if isinstance(impl, xlplatform.Chart):
-            return Chart(impl=impl)
-        elif isinstance(impl, xlplatform.Picture):
-            return Picture(impl=impl)
-        else:
-            raise Exception("Unsupported shape content type")
-
-    @property
     def parent(self):
         return Sheet(impl=self.impl.parent)
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, Shape) and
+            other.parent == self.parent and
+            other.name == self.name
+        )
 
     def __repr__(self):
         return "<Shape '{0}' in {1}>".format(
@@ -1346,65 +1341,6 @@ class Shape(object):
 class Shapes(Collection):
     _wrap = Shape
 
-    def add_picture(self, filename, link_to_file=False, save_with_document=True, left=0, top=0, width=-1, height=-1):
-        if not (link_to_file or save_with_document):
-            raise Exception("Arguments link_to_file and save_with_document cannot both be false")
-        return Shape(impl=self.impl.add_picture(filename, link_to_file, save_with_document, left, top, width, height))
-
-
-class ShapeContent(object):
-
-    @property
-    def left(self):
-        if not self.container:
-            raise Exception("This object is not contained in a shape.")
-        return self.container.left
-
-    @left.setter
-    def left(self, value):
-        if not self.container:
-            raise Exception("This object is not contained in a shape.")
-        self.container.left = value
-
-    @property
-    def top(self):
-        if not self.container:
-            raise Exception("This object is not contained in a shape.")
-        return self.container.top
-
-    @top.setter
-    def top(self, value):
-        if not self.container:
-            raise Exception("This object is not contained in a shape.")
-        self.container.top = value
-
-    @property
-    def width(self):
-        if not self.container:
-            raise Exception("This object is not contained in a shape.")
-        return self.container.width
-    
-    @width.setter
-    def width(self, value):
-        if not self.container:
-            raise Exception("This object is not contained in a shape.")
-        self.container.width = value
-    
-    @property
-    def height(self):
-        if not self.container:
-            raise Exception("This object is not contained in a shape.")
-        return self.container.height
-
-    @height.setter
-    def height(self, value):
-        if not self.container:
-            raise Exception("This object is not contained in a shape.")
-        self.container.height = value
-
-    def delete(self):
-        self.container.delete()
-        
 
 class Chart(object):
     """
@@ -1722,6 +1658,9 @@ class Pictures(Collection):
         return Sheet(impl=self.impl.parent)
 
     def add(self, filename, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None, name=None):
+
+        if not (link_to_file or save_with_document):
+            raise Exception("Arguments link_to_file and save_with_document cannot both be false")
 
         # Image dimensions
         im_width, im_height = None, None

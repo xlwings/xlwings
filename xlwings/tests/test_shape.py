@@ -20,6 +20,40 @@ if sys.platform.startswith('darwin'):
     from appscript import k as kw
 
 
+class TestShape(TestBase):
+    def test_name(self):
+        filename = os.path.join(this_dir, 'sample_picture.png')
+        self.wb1.sheets[0].pictures.add(name='pic1', filename=filename)
+
+        sh = self.wb1.sheets[0].shapes[0]
+        assert_equal(sh.name, 'pic1')
+        sh.name = "yoyoyo"
+        assert_equal(sh.name, 'yoyoyo')
+
+    def test_coordinates(self):
+        filename = os.path.join(this_dir, 'sample_picture.png')
+        self.wb1.sheets[0].pictures.add(name='pic1', filename=filename, left=0, top=0, width=200, height=100)
+
+        sh = self.wb1.sheets[0].shapes[0]
+        for a, init, neu in (('left', 0, 50), ('top', 0, 50), ('width', 200, 150), ('height', 100, 160)):
+            assert_equal(getattr(sh, a), init)
+            setattr(sh, a, neu)
+            assert_equal(getattr(sh, a), neu)
+
+    def test_picture_object(self):
+        filename = os.path.join(this_dir, 'sample_picture.png')
+        self.wb1.sheets[0].pictures.add(name='pic1', filename=filename)
+
+        assert_equal(self.wb1.sheets[0].shapes[0], self.wb1.sheets[0].shapes['pic1'])
+
+    def test_delete(self):
+        filename = os.path.join(this_dir, 'sample_picture.png')
+        self.wb1.sheets[0].pictures.add(name='pic1', filename=filename)
+        assert_true('pic1' in self.wb1.sheets[0].shapes)
+        self.wb1.sheets[0].shapes[0].delete()
+        assert_false('pic1' in self.wb1.sheets[0].shapes)
+
+
 class TestPicture(TestBase):
     def test_two_books(self):
         filename = os.path.join(this_dir, 'sample_picture.png')

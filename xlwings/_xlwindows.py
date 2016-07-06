@@ -1109,35 +1109,6 @@ def open_template(fullpath):
     os.startfile(fullpath)
 
 
-class ShapeType:
-    AutoShape = 1
-    Callout = 2
-    Canvas = 20
-    Chart = 3
-    Comment = 4
-    ContentApp = 27
-    Diagram = 21
-    EmbeddedOLEObject = 7
-    Freeform = 8
-    Group = 6
-    IgxGraphic = 24
-    Ink = 22
-    InkComment = 23
-    Line = 9
-    LinkedOLEObject = 10
-    LinkedPicture = 11
-    Media = 16
-    OLEControlObject = 12
-    Picture = 13
-    Placeholder = 14
-    ScriptAnchor = 18
-    ShapeTypeMixed = -2
-    Table = 19
-    TextBox = 17
-    TextEffect = 15
-    WebVideo = 26
-
-
 class Shape(object):
 
     def __init__(self, xl):
@@ -1157,7 +1128,7 @@ class Shape(object):
 
     @property
     def type(self):
-        return self.xl.Type
+        return shape_types_i2s[self.xl.Type]
 
     @property
     def left(self):
@@ -1589,3 +1560,34 @@ calculation_s2i = {
 }
 
 calculation_i2s = {v: k for k, v in calculation_s2i.items()}
+
+shape_types_s2i = {
+    "auto_shape": 1,
+    "callout": 2,
+    "canvas": 20,
+    "chart": 3,
+    "comment": 4,
+    "content_app": 27,
+    "diagram": 21,
+    "embedded_ole_object": 7,
+    "freeform": 8,
+    "group": 6,
+    "igx_graphic": 24,
+    "ink": 22,
+    "ink_comment": 23,
+    "line": 9,
+    "linked_ole_object": 10,
+    "linked_picture": 11,
+    "media": 16,
+    "ole_control_object": 12,
+    "picture": 13,
+    "placeholder": 14,
+    "script_anchor": 18,
+    "shape_type_mixed": -2,
+    "table": 19,
+    "text_box": 17,
+    "text_effect": 15,
+    "web_video": 26
+}
+
+shape_types_i2s = {v: k for k, v in shape_types_s2i.items()}
