@@ -153,9 +153,8 @@ class App(object):
     def selection(self):
         return Range(impl=self.impl.selection)
 
-    def activate(self, steal_focus=False):
-        self.visible = True
-        return self.impl.activate(steal_focus)
+    def activate(self):
+        return self.impl.activate()
 
     @property
     def visible(self):
@@ -440,8 +439,8 @@ class Book(object):
     def names(self):
         return Names(impl=self.impl.names)
 
-    def activate(self, steal_focus=False):
-        self.app.activate(steal_focus=steal_focus)
+    def activate(self):
+        self.app.activate()
         self.impl.activate()
 
     @property
