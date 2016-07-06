@@ -83,13 +83,15 @@ class App(object):
         sheet = self.books.active.sheets.active
         return Range(sheet, self.xl.selection.get_address())
 
-    def activate(self):
+    def activate(self, steal_focus=False):
         asn = subprocess.check_output(['lsappinfo', 'visibleprocesslist', '-includehidden']).decode('utf-8')
         frontmost_asn = asn.split(' ')[0]
         pid_info_frontmost = subprocess.check_output(['lsappinfo', 'info', '-only', 'pid', frontmost_asn]).decode('utf-8')
         pid_frontmost = int(pid_info_frontmost.split('=')[1])
 
         appscript.app('System Events').processes[its.unix_id == self.pid].frontmost.set(True)
+        if not steal_focus:
+            appscript.app('System Events').processes[its.unix_id == pid_frontmost].frontmost.set(True)
 
     @property
     def visible(self):

@@ -395,10 +395,15 @@ class App(object):
         # TODO: selection isn't always a range
         return Range(xl=self.xl.Selection)
 
-    def activate(self):
-        # makes the Excel instance the foreground application
-        if not windll.user32.SetForegroundWindow(self.xl.Hwnd):
-            raise Exception("Could not bring Excel instance to foreground")
+    def activate(self, steal_focus=False):
+        # makes the Excel instance the foreground Excel instance,
+        # but not the foreground desktop app if the current foreground
+        # app isn't already an Excel instance
+        hwnd = windll.user32.GetForegroundWindow()
+        if steal_focus or is_hwnd_xl_app(hwnd):
+            windll.user32.SetForegroundWindow(self.xl.Hwnd)
+        else:
+            windll.user32.SetWindowPos(self.xl.Hwnd, hwnd, 0, 0, 0, 0, 0x1 | 0x2 | 0x10)
 
     @property
     def visible(self):

@@ -439,8 +439,8 @@ class Book(object):
     def names(self):
         return Names(impl=self.impl.names)
 
-    def activate(self):
-        self.app.activate()
+    def activate(self, steal_focus=False):
+        self.app.activate(steal_focus=steal_focus)
         self.impl.activate()
 
     @property
