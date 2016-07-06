@@ -154,7 +154,10 @@ class App(object):
         return Range(impl=self.impl.selection)
 
     def activate(self, steal_focus=False):
-        return self.impl.activate(steal_focus)
+        # Win Excel >= 2013 fails probably coz each Book is in an own window and we might not be using the correct HWND
+        self.impl.activate(steal_focus)
+        if self != apps.active:
+            raise Exception('Could not activate App! Try to instantiate the App with visible=True.')
 
     @property
     def visible(self):
