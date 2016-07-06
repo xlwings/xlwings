@@ -153,8 +153,8 @@ class App(object):
     def selection(self):
         return Range(impl=self.impl.selection)
 
-    def activate(self):
-        return self.impl.activate()
+    def activate(self, steal_focus=False):
+        return self.impl.activate(steal_focus)
 
     @property
     def visible(self):
