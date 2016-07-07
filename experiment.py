@@ -1,7 +1,10 @@
 import xlwings as xw
 
-s = xw.sheets.active
+import matplotlib.pyplot as plt
+fig = plt.figure()
 
-c = s.charts.add()
+plt.plot([1,2,3,1,4,23])
+xw.show(fig)
 
-print(c.chart_type)
+plt.plot([-1,1,-2,2,-3,3])
+xw.show(fig)

@@ -18,6 +18,7 @@ import tempfile
 
 from . import xlplatform, string_types, ShapeAlreadyExists, PY3
 from .utils import VersionNumber
+from . import utils
 
 # Optional imports
 try:
@@ -1628,7 +1629,7 @@ class Picture(object):
             self.parent
         )
 
-    def update(self, filename):
+    def show(self, image):
         """
         Replaces an existing picture with a new one, taking over the attributes of the existing picture.
 
@@ -1641,8 +1642,10 @@ class Picture(object):
 
         .. versionadded:: 0.5.0
         """
-        left, top, width, height = self.left, self.top, self.width, self.height
-        name = self.name
+
+        filename, name, width, height = utils.process_image(image, self.name, self.width, self.height)
+
+        left, top = self.left, self.top
 
         # todo: link_to_file, save_with_document
         picture = self.parent.pictures.add(filename, left=left, top=top, width=width, height=height)
@@ -1660,7 +1663,9 @@ class Pictures(Collection):
     def parent(self):
         return Sheet(impl=self.impl.parent)
 
-    def add(self, filename, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None, name=None):
+    def add(self, image, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None, name=None):
+
+        filename, name, width, height = utils.process_image(image, name, width, height)
 
         if not (link_to_file or save_with_document):
             raise Exception("Arguments link_to_file and save_with_document cannot both be false")
@@ -1691,124 +1696,22 @@ class Pictures(Collection):
             picture.name = name
         return picture
 
+    def show(self, image, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None, name=None):
 
-class Plot(object):
-    """
-    Plot allows to easily display Matplotlib figures as pictures in Excel.
+        filename, name, width, height = utils.process_image(image, name, width, height)
 
-    Arguments
-    ---------
-    figure : matplotlib.figure.Figure
-        Matplotlib figure
-
-    Example
-    -------
-    Get a matplotlib ``figure`` object:
-
-    * via PyPlot interface::
-
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-        plt.plot([1, 2, 3, 4, 5])
-
-    * via object oriented interface::
-
-        from matplotlib.figure import Figure
-        fig = Figure(figsize=(8, 6))
-        ax = fig.add_subplot(111)
-        ax.plot([1, 2, 3, 4, 5])
-
-    * via Pandas::
-
-        import pandas as pd
-        import numpy as np
-
-        df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
-        ax = df.plot(kind='bar')
-        fig = ax.get_figure()
-
-    Then show it in Excel as picture::
-
-        plot = Plot(fig)
-        plot.show('Plot1')
-
-
-    .. versionadded:: 0.5.0
-    """
-    def __init__(self, figure):
-        self.figure = figure
-
-    def show(self, name, sheet=None, left=0, top=0, width=None, height=None, wkb=None):
-        """
-        Inserts the matplotlib figure as picture into Excel if a picture with that name doesn't exist yet.
-        Otherwise it replaces the picture, taking over its position and size.
-
-        Arguments
-        ---------
-
-        name : str
-            Name of the picture in Excel
-
-        Keyword Arguments
-        -----------------
-        sheet : str or int or xlwings.Sheet, default None
-            Name or index of the Sheet or ``xlwings.Sheet`` object, defaults to the active Sheet
-
-        left : float, default 0
-            Left position in points. Only has an effect if the picture doesn't exist yet in Excel.
-
-        top : float, default 0
-            Top position in points. Only has an effect if the picture doesn't exist yet in Excel.
-
-        width : float, default None
-            Width in points, defaults to the width of the matplotlib figure.
-            Only has an effect if the picture doesn't exist yet in Excel.
-
-        height : float, default None
-            Height in points, defaults to the height of the matplotlib figure.
-            Only has an effect if the picture doesn't exist yet in Excel.
-
-        wkb : Workbook object, default Workbook.current()
-            Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
-
-        Returns
-        -------
-        xlwings Picture object
-
-        .. versionadded:: 0.5.0
-        """
-        xl_workbook = Book.get_xl_workbook(wkb)
-
-        if isinstance(sheet, Sheet):
-                sheet = sheet.index
-        if sheet is None:
-            sheet = xlplatform.get_worksheet_index(xlplatform.get_active_sheet(xl_workbook))
-
-        if sys.platform.startswith('darwin') and xlplatform.get_major_app_version_number(xl_workbook) >= 15:
-            # Office 2016 for Mac is sandboxed. This path seems to work without the need of granting access explicitly
-            filename = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/xlwings_plot.png'
+        if name is None or name not in self:
+            return self.add(filename, link_to_file, save_with_document, left, top, width, height, name)
         else:
-            temp_dir = os.path.realpath(tempfile.gettempdir())
-            filename = os.path.join(temp_dir, 'xlwings_plot.png')
-        canvas = FigureCanvas(self.figure)
-        canvas.draw()
-        self.figure.savefig(filename, format='png', bbox_inches='tight')
-
-        if width is None:
-            width = self.figure.bbox.bounds[2:][0]
-
-        if height is None:
-            height = self.figure.bbox.bounds[2:][1]
-
-        try:
-            return Picture.add(sheet=sheet, filename=filename, left=left, top=top, width=width,
-                               height=height, name=name, wkb=wkb)
-        except ShapeAlreadyExists:
-            pic = Picture(sheet, name, wkb=wkb)
-            pic.update(filename)
+            pic = self[name]
+            pic.show(filename)
             return pic
-        finally:
-            os.remove(filename)
+
+
+def show(image, name=None, sheet=None):
+    if sheet is None:
+        sheet = sheets.active
+    sheet.pictures.show(image, name=name)
 
 
 class Names(object):

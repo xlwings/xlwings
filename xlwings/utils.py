@@ -4,6 +4,7 @@ import datetime as dt
 from functools import total_ordering
 
 from . import string_types
+import os, tempfile
 
 missing = object()
 
@@ -12,6 +13,11 @@ try:
     import numpy as np
 except ImportError:
     np = None
+
+try:
+    import matplotlib as mpl
+except ImportError:
+    mpl = None
 
 
 def int_to_rgb(number):
@@ -159,3 +165,29 @@ class VersionNumber(object):
             return self.major < other
         else:
             raise TypeError("Cannot compare other object with version number")
+
+
+def process_image(image, name, width, height):
+
+    if isinstance(image, string_types):
+        return image, name, width, height
+    elif mpl and isinstance(image, mpl.figure.Figure):
+        temp_dir = os.path.realpath(tempfile.gettempdir())
+        filename = os.path.join(temp_dir, 'xlwings_plot.png')
+
+        canvas = mpl.backends.backend_agg.FigureCanvas(image)
+        canvas.draw()
+        image.savefig(filename, format='png', bbox_inches='tight')
+
+        if width is None:
+            width = image.bbox.bounds[2:][0]
+
+        if height is None:
+            height = image.bbox.bounds[2:][1]
+
+        if name is None:
+            name = 'MplFigure%s' % id(image)
+
+        return filename, name, width, height
+    else:
+        raise TypeError("Don't know what to do with that image object")
