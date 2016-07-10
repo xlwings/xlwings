@@ -630,7 +630,7 @@ class Range(object):
                         if not isinstance(sheet, Sheet):
                             sheet = Sheet(sheet)
                 else:
-                    sheet = Sheet.active()
+                    sheet = sheets.active
                 impl = sheet.range(*spec).impl
             else:
                 raise ValueError("Invalid arguments")
