@@ -1665,7 +1665,7 @@ class Pictures(Collection):
 
     def add(self, image, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None, name=None):
 
-        filename, name, width, height = utils.process_image(image, name, width, height)
+        filename, width, height = utils.process_image(image, width, height)
 
         if not (link_to_file or save_with_document):
             raise Exception("Arguments link_to_file and save_with_document cannot both be false")
@@ -1692,13 +1692,14 @@ class Pictures(Collection):
         picture = Picture(impl=self.impl.add(
             filename, link_to_file, save_with_document, left, top, width, height
         ))
+
         if name is not None:
             picture.name = name
         return picture
 
     def show(self, image, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None, name=None):
 
-        filename, name, width, height = utils.process_image(image, name, width, height)
+        filename, width, height = utils.process_image(image, width, height)
 
         if name is None or name not in self:
             return self.add(filename, link_to_file, save_with_document, left, top, width, height, name)

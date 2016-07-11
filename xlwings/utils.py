@@ -167,10 +167,10 @@ class VersionNumber(object):
             raise TypeError("Cannot compare other object with version number")
 
 
-def process_image(image, name, width, height):
+def process_image(image, width, height):
 
     if isinstance(image, string_types):
-        return image, name, width, height
+        return image, width, height
     elif mpl and isinstance(image, mpl.figure.Figure):
         temp_dir = os.path.realpath(tempfile.gettempdir())
         filename = os.path.join(temp_dir, 'xlwings_plot.png')
@@ -185,9 +185,6 @@ def process_image(image, name, width, height):
         if height is None:
             height = image.bbox.bounds[2:][1]
 
-        if name is None:
-            name = 'MplFigure%s' % id(image)
-
-        return filename, name, width, height
+        return filename, width, height
     else:
         raise TypeError("Don't know what to do with that image object")
