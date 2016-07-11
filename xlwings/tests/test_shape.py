@@ -53,6 +53,11 @@ class TestShape(TestBase):
         self.wb1.sheets[0].shapes[0].delete()
         assert_false('pic1' in self.wb1.sheets[0].shapes)
 
+    def test_type(self):
+        filename = os.path.join(this_dir, 'sample_picture.png')
+        pic = self.wb1.sheets[0].pictures.add(name='pic1', filename=filename)
+        assert_equal(self.wb1.sheets[0].shapes[0].type, 'picture')
+
 
 class TestPicture(TestBase):
     def test_two_books(self):
@@ -124,23 +129,6 @@ class TestPicture(TestBase):
         filename = os.path.join(this_dir, 'sample_picture.png')
         pic1 = self.wb1.sheets[0].pictures.add(name='pic1', filename=filename)
         pic1.update(filename)
-
-
-# class TestPlot(TestBase):
-#     def test_add_plot(self):
-#         _skip_if_no_matplotlib()
-#
-#         fig = Figure(figsize=(8, 6))
-#         ax = fig.add_subplot(111)
-#         ax.plot([1, 2, 3, 4, 5])
-#
-#         plot = Plot(fig)
-#         pic = plot.show('Plot1')
-#         assert_equal(pic.name, 'Plot1')
-#
-#         plot.show('Plot2', sheet=2)
-#         pic2 = self.wb1.sheets[1].pictures['Plot2']
-#         assert_equal(pic2.name, 'Plot2')
 
 
 class TestCharts(TestBase):

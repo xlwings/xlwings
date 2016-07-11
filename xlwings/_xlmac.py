@@ -393,7 +393,7 @@ class Sheet(object):
 
     @property
     def shapes(self):
-        pass  # TODO
+        return Shapes(self)
 
     @property
     def pictures(self):
@@ -667,64 +667,68 @@ class Range(object):
 
 
 class Shape(object):
-    def __init__(self, sheet, name_or_index):
-        self.sheet = sheet
-        self.name_or_index = name_or_index
+    def __init__(self, parent, key):
+        self.parent = parent
+        self.xl = parent.xl.shapes[key]
 
     @property
-    def xl(self):
-        return self.sheet.xl.shapes[self.name_or_index]
-        #return self.sheet.__appscript__.chart_objects[self.name_or_index]
+    def api(self):
+        return self.xl
 
-    def set_name(self, name):
-        self.xl.set(name)
-        self.name_or_index = name
-
-    def get_index(self):
-        return self.xl.entry_index.get()
-
-    def get_name(self):
+    @property
+    def name(self):
         return self.xl.name.get()
 
+    @name.setter
+    def name(self, value):
+        self.xl.name.set(value)
+
+    @property
+    def type(self):
+        return shape_types_k2s[self.xl.shape_type.get()]
+
+    @property
+    def left(self):
+        return self.xl.left_position.get()
+
+    @left.setter
+    def left(self, value):
+        self.xl.left_position.set(value)
+
+    @property
+    def top(self):
+        return self.xl.top.get()
+
+    @top.setter
+    def top(self, value):
+        self.xl.top.set(value)
+
+    @property
+    def width(self):
+        return self.xl.width.get()
+
+    @width.setter
+    def width(self, value):
+        self.xl.width.set(value)
+
+    @property
+    def height(self):
+        return self.xl.height.get()
+
+    @height.setter
+    def height(self, value):
+        self.xl.height.set(value)
+
+    def delete(self):
+        self.xl.delete()
+
+    @property
+    def index(self):
+        return self.xl.entry_index.get()
+
     def activate(self):
-        # xl_shape.activate_object() doesn't work
+        # self.xl.activate_object()  # doesn't work?
         self.xl.select()
-
-
-    def get_shape_left(shape):
-        return shape.xl_shape.left_position.get()
-
-
-    def set_shape_left(shape, value):
-        shape.xl_shape.left_position.set(value)
-
-
-    def get_shape_top(shape):
-        return shape.xl_shape.top.get()
-
-
-    def set_shape_top(shape, value):
-        shape.xl_shape.top.set(value)
-
-
-    def get_shape_width(shape):
-        return shape.xl_shape.width.get()
-
-
-    def set_shape_width(shape, value):
-        shape.xl_shape.width.set(value)
-
-
-    def get_shape_height(shape):
-        return shape.xl_shape.height.get()
-
-
-    def set_shape_height(shape, value):
-        shape.xl_shape.height.set(value)
-
-
-    def delete_shape(shape):
-        shape.xl_shape.delete()
 
 
 class Collection(object):
@@ -1024,6 +1028,13 @@ class Name(object):
         return Range(Sheet(self.book, ref[0]), ref[1])
 
 
+class Shapes(Collection):
+
+    _attr = 'shapes'
+    _kw = kw.shape
+    _wrap = Shape
+
+
 @atexit.register
 def clean_up():
     """
@@ -1259,3 +1270,31 @@ calculation_k2s = {
 }
 
 calculation_s2k = {v: k for k, v in calculation_k2s.items()}
+
+shape_types_k2s = {
+    kw.shape_type_auto: 'auto_shape',
+    kw.shape_type_callout: 'callout',
+    kw.shape_type_canvas: 'canvas',
+    kw.shape_type_chart:  'chart',
+    kw.shape_type_comment: 'comment',
+    kw.shape_type_content_application: 'content_app',
+    kw.shape_type_diagram: 'diagram',
+    kw.shape_type_free_form: 'free_form',
+    kw.shape_type_group: 'group',
+    kw.shape_type_embedded_OLE_control: 'embedded_ole_object',
+    kw.shape_type_form_control:  'form_control',
+    kw.shape_type_line: 'line',
+    kw.shape_type_linked_OLE_object: 'linked_ole_object',
+    kw.shape_type_linked_picture: 'linked_picture',
+    kw.shape_type_OLE_control: 'ole_control_object',
+    kw.shape_type_picture: 'picture',
+    kw.shape_type_place_holder: 'placeholder',
+    kw.shape_type_web_video: 'web_video',
+    kw.shape_type_media: 'media',
+    kw.shape_type_text_box: 'text_box',
+    kw.shape_type_table: 'table',
+    kw.shape_type_ink: 'ink',
+    kw.shape_type_ink_comment: 'ink_comment',
+}
+
+shape_types_s2k = {v: k for k, v in shape_types_k2s.items()}

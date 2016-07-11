@@ -1262,7 +1262,7 @@ class Shape(object):
 
     .. versionadded:: 0.5.0
     """
-    def __init__(self, *args, impl=None, **kwargs):
+    def __init__(self, *args, impl=None):
 
         if impl is None:
             if len(args) == 1:
