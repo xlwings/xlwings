@@ -79,11 +79,9 @@ class TestBook(TestBase):
         wb3.close()
         os.remove(dst)
 
-    def test_active_book(self):
+    def test_active(self):
         self.wb2.sheets[0].range('A1').value = 'active_book'  # 2nd instance
-        self.wb2.activate()
-        wb_active = self.app2.books.active
-        assert_equal(wb_active.sheets[0].range('A1').value, 'active_book')
+        assert_equal(self.app2.books.active.sheets[0].range('A1').value, 'active_book')
 
     def test_mock_caller(self):
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test book.xlsx')
@@ -181,13 +179,18 @@ class TestBook(TestBase):
         assert_equal(len(names), 0)
 
     def test_activate(self):
-        wb1 = self.app1.books.add()
-        wb2 = self.app2.books.add()
-        wb1.activate()
-        assert_equal(xw.books.active, wb1)
-
-        wb2.activate()
-        assert_equal(xw.books.active, wb2)
+        if sys.platform.startswith('win') and self.app1.version.major > 14:
+            with self.assertRaises(Exception):
+                wb1 = self.app1.books.add()
+                wb2 = self.app2.books.add()
+                wb1.activate()
+        else:
+            wb1 = self.app1.books.add()
+            wb2 = self.app2.books.add()
+            wb1.activate()
+            assert_equal(xw.books.active, wb1)
+            wb2.activate()
+            assert_equal(xw.books.active, wb2)
 
     def test_selection(self):
         self.wb1.sheets[0].range('B10').select()

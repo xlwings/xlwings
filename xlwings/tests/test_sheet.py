@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+import sys
 
 from nose.tools import assert_equal, assert_not_equal, assert_true, raises, assert_false
 
@@ -9,8 +10,7 @@ from .common import TestBase
 
 class TestSheets(TestBase):
     def test_active(self):
-        self.wb1.sheets[2].activate()
-        assert_equal(self.wb1.sheets.active.name, self.wb1.sheets[2].name)
+        assert_equal(self.wb2.sheets.active.name, self.wb2.sheets[0].name)
 
     def test_index(self):
         assert_equal(self.wb1.sheets[0].name, self.wb1.sheets(1).name)
@@ -82,14 +82,20 @@ class TestSheet(TestBase):
         pass  # TODO
 
     def test_activate(self):
-        self.wb2.activate()
-        self.wb1.sheets['Sheet2'].activate()
-        assert_equal(self.wb1.sheets.active.name, 'Sheet2')
-        assert_equal(xw.apps[0], self.app1)
-        self.wb1.sheets[2].activate()
-        assert_equal(self.wb1.sheets.active.index, 3)
-        self.wb1.sheets(1).activate()
-        assert_equal(self.wb1.sheets.active.index, 1)
+        if sys.platform.startswith('win') and self.app1.version.major > 14:
+            # Excel >= 2013 on Win has issues with activating hidden apps correctly
+            # over two instances
+            with self.assertRaises(Exception):
+                self.app1.activate()
+        else:
+            self.wb2.activate()
+            self.wb1.sheets['Sheet2'].activate()
+            assert_equal(self.wb1.sheets.active.name, 'Sheet2')
+            assert_equal(xw.apps[0], self.app1)
+            self.wb1.sheets[2].activate()
+            assert_equal(self.wb1.sheets.active.index, 3)
+            self.wb1.sheets(1).activate()
+            assert_equal(self.wb1.sheets.active.index, 1)
 
     def test_select(self):
         self.wb2.sheets[1].select()

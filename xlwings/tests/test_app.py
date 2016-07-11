@@ -19,7 +19,6 @@ class TestApps(TestBase):
         app = xw.App()
         wb = app.books.add()
         assert_equal(n_original + 1, len(xw.apps))
-        assert_equal(xw.apps[0], app)
         app.quit()
 
     def test_count(self):
@@ -39,7 +38,8 @@ class TestApp(TestBase):
         if sys.platform.startswith('win') and self.app1.version.major > 14:
             # Excel >= 2013 on Win has issues with activating hidden apps correctly
             # over two instances
-            self.assertRaises(Exception)
+            with self.assertRaises(Exception):
+                self.app1.activate()
         else:
             assert_equal(self.app2, xw.apps.active)
             self.app1.activate()

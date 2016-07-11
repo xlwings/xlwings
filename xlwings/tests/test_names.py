@@ -75,11 +75,11 @@ class TestNames(TestBase):
                     'name3' in self.wb1.names)
 
     def test_sheet_scope(self):
-        self.wb1.sheets[0].range('B2:C3').name = 'Sheet1!sheet_scope1'
-        self.wb1.sheets[0].range('sheet_scope1').value = [[1., 2.], [3., 4.]]
-        assert_equal(self.wb1.sheets[0].range('B2:C3').value, [[1., 2.], [3., 4.]])
-        self.wb1.sheets[1].activate()
-        assert_equal(self.wb1.sheets[0].range('sheet_scope1').value, [[1., 2.], [3., 4.]])
+        self.wb2.sheets[0].range('B2:C3').name = 'Sheet1!sheet_scope1'
+        self.wb2.sheets[0].range('sheet_scope1').value = [[1., 2.], [3., 4.]]
+        assert_equal(self.wb2.sheets[0].range('B2:C3').value, [[1., 2.], [3., 4.]])
+        with self.assertRaises(Exception):
+            self.wb2.sheets[1].range('sheet_scope1').value
 
     def test_workbook_scope(self):
         self.wb1.sheets[0].range('A1').name = 'test1'
@@ -98,4 +98,3 @@ class TestNames(TestBase):
     def test_refers_to_range(self):
         self.wb1.sheets[0].range('B2:D10').name = 'test1'
         assert_equal(self.wb1.sheets[0].range('B2:D10').address, self.wb1.sheets[0].range('B2:D10').name.refers_to_range.address)
-
