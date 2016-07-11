@@ -53,8 +53,8 @@ class TestBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.existing_apps = list(xw.apps)
-        cls.app1 = xw.App(visible=True, spec=SPEC)
-        cls.app2 = xw.App(visible=True, spec=SPEC)
+        cls.app1 = xw.App(visible=False, spec=SPEC)
+        cls.app2 = xw.App(visible=False, spec=SPEC)
 
     def setUp(self):
         self.wb1 = self.app1.books.add()
@@ -66,13 +66,13 @@ class TestBase(unittest.TestCase):
                 wb.sheets[0].select()
 
     def tearDown(self):
-        for app in [self.app1, self.app2]:
-            while len(app.books) > 0:
-                app.books[0].close()
+        for app in xw.apps:
+            if app.pid not in [i.pid for i in self.existing_apps]:
+                while len(app.books) > 0:
+                    app.books[0].close()
 
     @classmethod
     def tearDownClass(cls):
-        cls.app1.books.add()
-        cls.app2.books.add()
-        for app in [cls.app1, cls.app2]:
-            app.quit()
+        for app in xw.apps:
+            if app.pid not in [i.pid for i in cls.existing_apps]:
+                app.quit()
