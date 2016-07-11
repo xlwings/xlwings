@@ -1831,15 +1831,15 @@ def view(obj, name=None, sheet=None):
 
     .. versionadded:: 0.7.1
     """
+    if sheet is None:
+        sheet = Book().sheets.active
+    else:
+        sheet.clear()
 
     if mpl and isinstance(obj, mpl.figure.Figure):
-        if sheet is None:
-            sheet = sheets.active
         return sheet.pictures.add(obj, name=name, update=name is not None)
     else:
-        if sheet is None:
-            sheet = Book().sheets.active
-        Range(sheet, 'A1').value = obj
+        sheet.range('A1').value = obj
         sheet.autofit()
 
 
