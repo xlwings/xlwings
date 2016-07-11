@@ -1,7 +1,6 @@
 import xlwings as xw
+import matplotlib.pyplot as plt
 
-s = xw.sheets.active
+fig = plt.figure()
+plt.plot([1,2,3,1,4,23])
 
-c = s.charts.add()
-
-print(c.chart_type)
