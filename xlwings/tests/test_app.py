@@ -6,7 +6,6 @@ import sys
 from nose.tools import assert_equal, assert_true
 
 import xlwings as xw
-from xlwings.constants import Calculation
 from .common import TestBase, this_dir
 
 

@@ -79,7 +79,7 @@ class TestNames(TestBase):
         self.wb2.sheets[0].range('sheet_scope1').value = [[1., 2.], [3., 4.]]
         assert_equal(self.wb2.sheets[0].range('B2:C3').value, [[1., 2.], [3., 4.]])
         with self.assertRaises(Exception):
-            self.wb2.sheets[1].range('sheet_scope1').value
+            values = self.wb2.sheets[1].range('sheet_scope1').value
 
     def test_workbook_scope(self):
         self.wb1.sheets[0].range('A1').name = 'test1'

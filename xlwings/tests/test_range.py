@@ -2,13 +2,13 @@
 from __future__ import unicode_literals
 import sys
 import os
+from datetime import datetime
 
-from nose.tools import assert_equal, raises, assert_raises, assert_true, assert_false, assert_not_equal
+from nose.tools import assert_equal, raises, assert_raises, assert_true
 
 import xlwings as xw
 from xlwings.constants import RgbColor
 from .common import TestBase, this_dir
-from .test_data import data
 
 # Mac imports
 if sys.platform.startswith('darwin'):
@@ -322,6 +322,9 @@ class TestRangeAttributes(TestBase):
         assert_equal(self.wb1.sheets[0].range('A1:C4').size, 12)
 
     def test_table(self):
+        data = [[1, 2.222, 3.333],
+                ['Test1', None, 'éöà'],
+                [datetime(1962, 11, 3), datetime(2020, 12, 31, 12, 12, 20), 9.999]]
         self.wb1.sheets[0].range('A1').value = data
         if sys.platform.startswith('win') and self.wb1.app.version == '14.0':
             self.wb1.sheets[0].range('A3:B3').number_format = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
@@ -329,6 +332,9 @@ class TestRangeAttributes(TestBase):
         assert_equal(cells, data)
 
     def test_vertical(self):
+        data = [[1, 2.222, 3.333],
+                ['Test1', None, 'éöà'],
+                [datetime(1962, 11, 3), datetime(2020, 12, 31, 12, 12, 20), 9.999]]
         self.wb1.sheets[0].range('A10').value = data
         if sys.platform.startswith('win') and self.wb1.app.version == '14.0':
             self.wb1.sheets[0].range('A12:B12').number_format = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
@@ -336,6 +342,9 @@ class TestRangeAttributes(TestBase):
         assert_equal(cells, [row[0] for row in data])
 
     def test_horizontal(self):
+        data = [[1, 2.222, 3.333],
+                ['Test1', None, 'éöà'],
+                [datetime(1962, 11, 3), datetime(2020, 12, 31, 12, 12, 20), 9.999]]
         self.wb1.sheets[0].range('A20').value = data
         cells = self.wb1.sheets[0].range('A20').expand('horizontal').value
         assert_equal(cells, data[0])

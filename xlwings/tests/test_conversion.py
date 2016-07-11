@@ -1,44 +1,26 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import sys
-import os
 import datetime as dt
+import unittest
 
 import pytz
-from nose.tools import assert_equal, raises, assert_raises, assert_true, assert_false, assert_not_equal
+from nose.tools import assert_equal
 
-import xlwings as xw
-from xlwings.constants import RgbColor
-from .common import TestBase, this_dir, _skip_if_no_numpy, _skip_if_no_pandas
-from .test_data import data, list_col, list_row_1d, list_row_2d, test_date_1, test_date_2
+from .common import TestBase
 
 # Optional dependencies
 try:
     import numpy as np
     from numpy.testing import assert_array_equal
-    from .test_data import array_1d, array_2d
 except ImportError:
     np = None
 try:
     import pandas as pd
     from pandas import DataFrame, Series
     from pandas.util.testing import assert_frame_equal, assert_series_equal
-    from .test_data import series_1, timeseries_1, df_1, df_2, df_dateindex, df_multiheader, df_multiindex
 except ImportError:
     pd = None
-try:
-    import matplotlib
-    from matplotlib.figure import Figure
-except ImportError:
-    matplotlib = None
-try:
-    import PIL
-except ImportError:
-    PIL = None
-
-# Mac imports
-if sys.platform.startswith('darwin'):
-    from appscript import k as kw
 
 
 class TestConverter(TestBase):
@@ -77,16 +59,19 @@ class TestConverter(TestBase):
 
     def test_list(self):
         # 1d List Row
+        list_row_1d = [1.1, None, 3.3]
         self.wb1.sheets[0].range('A27').value = list_row_1d
         cells = self.wb1.sheets[0].range('A27:C27').value
         assert_equal(list_row_1d, cells)
 
         # 2d List Row
+        list_row_2d = [[1.1, None, 3.3]]
         self.wb1.sheets[0].range('A29').value = list_row_2d
         cells = self.wb1.sheets[0].range('A29:C29').options(ndim=2).value
         assert_equal(list_row_2d, cells)
 
         # 1d List Col
+        list_col = [[1.1], [None], [3.3]]
         self.wb1.sheets[0].range('A31').value = list_col
         cells = self.wb1.sheets[0].range('A31:A33').value
         assert_equal([i[0] for i in list_col], cells)
@@ -114,16 +99,17 @@ class TestConverter(TestBase):
         assert_equal(self.wb1.sheets[0].range('A1:B2').value, [[5., 5.], [5., 5.]])
 
 
+@unittest.skipIf(np is None, 'numpy missing')
 class TestNumpy(TestBase):
     def test_array(self):
-        _skip_if_no_numpy()
-
         # 1d array
+        array_1d = np.array([1.1, 2.2, np.nan, -4.4])
         self.wb1.sheets[0].range('A1').value = array_1d
         cells = self.wb1.sheets[0].range('A1:D1').options(np.array).value
         assert_array_equal(cells, array_1d)
 
         # 2d array
+        array_2d = np.array([[1.1, 2.2, 3.3], [-4.4, 5.5, np.nan]])
         self.wb1.sheets[0].range('A4').value = array_2d
         cells = self.wb1.sheets[0].range('A4').options(np.array, expand='table').value
         assert_array_equal(cells, array_2d)
@@ -139,22 +125,16 @@ class TestNumpy(TestBase):
         assert_array_equal(cells, array_2d)
 
     def test_numpy_datetime(self):
-        _skip_if_no_numpy()
-
         self.wb1.sheets[0].range('A55').value = np.datetime64('2005-02-25T03:30Z')
         assert_equal(self.wb1.sheets[0].range('A55').value, dt.datetime(2005, 2, 25, 3, 30))
 
     def test_scalar_nan(self):
         """test_scalar_nan: Covers GH Issue #15"""
-        _skip_if_no_numpy()
-
         self.wb1.sheets[0].range('A20').value = np.nan
         assert_equal(None, self.wb1.sheets[0].range('A20').value)
 
     def test_ndim2_scalar_as_array(self):
         """test_atleast_2d_scalar_as_array: Covers GH Issue #53b"""
-        _skip_if_no_numpy()
-
         self.wb1.sheets[0].range('A50').value = 23
         result = self.wb1.sheets[0].range('A50').options(np.array, ndim=2).value
         assert_equal(np.array([[23]]), result)
@@ -168,11 +148,13 @@ class TestNumpy(TestBase):
         assert_equal(self.wb1.sheets[0].range('A1').value, 2.)
 
 
+@unittest.skipIf(pd is None, 'pandas missing')
 class TestPandas(TestBase):
     def test_dataframe_1(self):
-        _skip_if_no_pandas()
-
-        df_expected = df_1
+        df_expected = pd.DataFrame([[1, 'test1'],
+                                    [2, 'test2'],
+                                    [np.nan, None],
+                                    [3.3, 'test3']], columns=['a', 'b'])
         self.wb1.sheets[0].range('A1').value = df_expected
         df_result = self.wb1.sheets[0].range('A1:C5').options(pd.DataFrame).value
         df_result.index = pd.Int64Index(df_result.index)
@@ -180,18 +162,20 @@ class TestPandas(TestBase):
 
     def test_dataframe_2(self):
         """ test_dataframe_2: Covers GH Issue #31"""
-        _skip_if_no_pandas()
-
-        df_expected = df_2
+        df_expected = pd.DataFrame([1, 3, 5, np.nan, 6, 8], columns=['col1'])
         self.wb1.sheets[0].range('A9').value = df_expected
         cells = self.wb1.sheets[0].range('B9:B15').value
         df_result = DataFrame(cells[1:], columns=[cells[0]])
         assert_frame_equal(df_expected, df_result)
 
     def test_dataframe_multiindex(self):
-        _skip_if_no_pandas()
+        tuples = list(zip(*[['bar', 'bar', 'baz', 'baz', 'foo', 'foo', 'qux', 'qux'],
+                            ['one', 'two', 'one', 'two', 'one', 'two', 'one', 'two'],
+                            ['x', 'x', 'x', 'x', 'y', 'y', 'y', 'y']]))
 
-        df_expected = df_multiindex
+        index = pd.MultiIndex.from_tuples(tuples, names=['first', 'second', 'third'])
+        df_expected = pd.DataFrame([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6], [7.7, 8.8], [9.9, 10.10],
+                                    [11.11, 12.12], [13.13, 14.14], [15.15, 16.16]], index=index, columns=['one', 'two'])
         self.wb1.sheets[0].range('A20').value = df_expected
         cells = self.wb1.sheets[0].range('D20').expand('table').value
         multiindex = self.wb1.sheets[0].range('A20:C28').value
@@ -200,18 +184,22 @@ class TestPandas(TestBase):
         assert_frame_equal(df_expected, df_result)
 
     def test_dataframe_multiheader(self):
-        _skip_if_no_pandas()
-
-        df_expected = df_multiheader
+        header = [['Foo', 'Foo', 'Bar', 'Bar', 'Baz'], ['A', 'B', 'C', 'D', 'E']]
+        df_expected = pd.DataFrame([[0.0, 1.0, 2.0, 3.0, 4.0],
+                                    [0.0, 1.0, 2.0, 3.0, 4.0],
+                                    [0.0, 1.0, 2.0, 3.0, 4.0],
+                                    [0.0, 1.0, 2.0, 3.0, 4.0],
+                                    [0.0, 1.0, 2.0, 3.0, 4.0],
+                                    [0.0, 1.0, 2.0, 3.0, 4.0]], columns=pd.MultiIndex.from_arrays(header))
         self.wb1.sheets[0].range('A52').value = df_expected
         cells = self.wb1.sheets[0].range('B52').expand('table').value
         df_result = DataFrame(cells[2:], columns=pd.MultiIndex.from_arrays(cells[:2]))
         assert_frame_equal(df_expected, df_result)
 
     def test_dataframe_dateindex(self):
-        _skip_if_no_pandas()
-
-        df_expected = df_dateindex
+        rng = pd.date_range('1/1/2012', periods=10, freq='D')
+        df_expected = pd.DataFrame(np.arange(50).reshape(10, 5) + 0.1, index=rng,
+                                   columns=['one', 'two', 'three', 'four', 'five'])
         self.wb1.sheets[0].range('A100').value = df_expected
         if sys.platform.startswith('win') and self.wb1.app.version == '14.0':
             self.wb1.sheets[0].range(
@@ -222,8 +210,6 @@ class TestPandas(TestBase):
         assert_frame_equal(df_expected, df_result)
 
     def test_read_df_0header_0index(self):
-        _skip_if_no_pandas()
-
         self.wb1.sheets[0].range('A1').value = [[1, 2, 3],
                                                 [4, 5, 6],
                                                 [7, 8, 9]]
@@ -234,8 +220,6 @@ class TestPandas(TestBase):
         assert_frame_equal(df1, df2)
 
     def test_df_1header_0index(self):
-        _skip_if_no_pandas()
-
         self.wb1.sheets[0].range('A1').options(pd.DataFrame, index=False, header=True).value = pd.DataFrame(
             [[1., 2.], [3., 4.]], columns=['a', 'b'])
         df = self.wb1.sheets[0].range('A1').options(pd.DataFrame, index=False, header=True,
@@ -243,8 +227,6 @@ class TestPandas(TestBase):
         assert_frame_equal(df, pd.DataFrame([[1., 2.], [3., 4.]], columns=['a', 'b']))
 
     def test_df_0header_1index(self):
-        _skip_if_no_pandas()
-
         self.wb1.sheets[0].range('A1').options(pd.DataFrame, index=True, header=False).value = pd.DataFrame(
             [[1., 2.], [3., 4.]], index=[10., 20.])
         df = self.wb1.sheets[0].range('A1').options(pd.DataFrame, index=True, header=False,
@@ -252,8 +234,6 @@ class TestPandas(TestBase):
         assert_frame_equal(df, pd.DataFrame([[1., 2.], [3., 4.]], index=[10., 20.]))
 
     def test_read_df_1header_1namedindex(self):
-        _skip_if_no_pandas()
-
         self.wb1.sheets[0].range('A1').value = [['ix1', 'c', 'd', 'c'],
                                                 [1, 1, 2, 3],
                                                 [2, 4, 5, 6]]
@@ -267,8 +247,6 @@ class TestPandas(TestBase):
         assert_frame_equal(df1, df2)
 
     def test_read_df_1header_1unnamedindex(self):
-        _skip_if_no_pandas()
-
         self.wb1.sheets[0].range('A1').value = [[None, 'c', 'd', 'c'],
                                                 [1, 1, 2, 3],
                                                 [2, 4, 5, 6]]
@@ -282,8 +260,6 @@ class TestPandas(TestBase):
         assert_frame_equal(df1, df2)
 
     def test_read_df_2header_1namedindex(self):
-        _skip_if_no_pandas()
-
         self.wb1.sheets[0].range('A1').value = [[None, 'a', 'a', 'b'],
                                                 ['ix1', 'c', 'd', 'c'],
                                                 [1, 1, 2, 3],
@@ -299,8 +275,6 @@ class TestPandas(TestBase):
         assert_frame_equal(df1, df2)
 
     def test_read_df_2header_1unnamedindex(self):
-        _skip_if_no_pandas()
-
         self.wb1.sheets[0].range('A1').value = [[None, 'a', 'a', 'b'],
                                                 [None, 'c', 'd', 'c'],
                                                 [1, 1, 2, 3],
@@ -316,8 +290,6 @@ class TestPandas(TestBase):
         assert_frame_equal(df1, df2)
 
     def test_read_df_2header_2namedindex(self):
-        _skip_if_no_pandas()
-
         self.wb1.sheets[0].range('A1').value = [[None, None, 'a', 'a', 'b'],
                                                 ['x1', 'x2', 'c', 'd', 'c'],
                                                 ['a', 1, 1, 2, 3],
@@ -332,8 +304,6 @@ class TestPandas(TestBase):
         assert_frame_equal(df1, df2)
 
     def test_read_df_2header_2unnamedindex(self):
-        _skip_if_no_pandas()
-
         self.wb1.sheets[0].range('A1').value = [[None, None, 'a', 'a', 'b'],
                                                 [None, None, 'c', 'd', 'c'],
                                                 ['a', 1, 1, 2, 3],
@@ -348,8 +318,6 @@ class TestPandas(TestBase):
         assert_frame_equal(df1, df2)
 
     def test_read_df_1header_2namedindex(self):
-        _skip_if_no_pandas()
-
         self.wb1.sheets[0].range('A1').value = [['x1', 'x2', 'a', 'd', 'c'],
                                                 ['a', 1, 1, 2, 3],
                                                 ['a', 2, 4, 5, 6],
@@ -363,9 +331,8 @@ class TestPandas(TestBase):
         assert_frame_equal(df1, df2)
 
     def test_timeseries_1(self):
-        _skip_if_no_pandas()
-
-        series_expected = timeseries_1
+        rng = pd.date_range('1/1/2012', periods=10, freq='D')
+        series_expected = pd.Series(np.arange(len(rng)) + 0.1, rng)
         self.wb1.sheets[0].range('A40').options(header=False).value = series_expected
         if sys.platform.startswith('win') and self.wb1.app.version == '14.0':
             self.wb1.sheets[0].range('A40').expand('vertical').number_format = 'dd/mm/yyyy'  # Hack for Excel 2010 bug, see GH #43
@@ -373,8 +340,6 @@ class TestPandas(TestBase):
         assert_series_equal(series_expected, series_result)
 
     def test_read_series_noheader_noindex(self):
-        _skip_if_no_pandas()
-
         self.wb1.sheets[0].range('A1').value = [[1.],
                                                 [2.],
                                                 [3.]]
@@ -382,8 +347,6 @@ class TestPandas(TestBase):
         assert_series_equal(s, pd.Series([1., 2., 3.]))
 
     def test_read_series_noheader_index(self):
-        _skip_if_no_pandas()
-
         self.wb1.sheets[0].range('A1').value = [[10., 1.],
                                                 [20., 2.],
                                                 [30., 3.]]
@@ -391,8 +354,6 @@ class TestPandas(TestBase):
         assert_series_equal(s, pd.Series([1., 2., 3.], index=[10., 20., 30.]))
 
     def test_read_series_header_noindex(self):
-        _skip_if_no_pandas()
-
         self.wb1.sheets[0].range('A1').value = [['name'],
                                                 [1.],
                                                 [2.],
@@ -401,8 +362,6 @@ class TestPandas(TestBase):
         assert_series_equal(s, pd.Series([1., 2., 3.], name='name'))
 
     def test_read_series_header_index(self):
-        _skip_if_no_pandas()
-
         # Named index
         self.wb1.sheets[0].range('A1').value = [['ix', 'name'],
                                                 [10., 1.],
@@ -420,27 +379,19 @@ class TestPandas(TestBase):
         assert_series_equal(s, pd.Series([1., 2., 3.], name='name', index=[10., 20., 30.]))
 
     def test_write_series_noheader_noindex(self):
-        _skip_if_no_pandas()
-
         self.wb1.sheets[0].range('A1').options(index=False).value = pd.Series([1., 2., 3.])
         assert_equal([[1.], [2.], [3.]], self.wb1.sheets[0].range('A1').options(ndim=2, expand='table').value)
 
     def test_write_series_noheader_index(self):
-        _skip_if_no_pandas()
-
         self.wb1.sheets[0].range('A1').options(index=True).value = pd.Series([1., 2., 3.], index=[10., 20., 30.])
         assert_equal([[10., 1.], [20., 2.], [30., 3.]],
                      self.wb1.sheets[0].range('A1').options(ndim=2, expand='table').value)
 
     def test_write_series_header_noindex(self):
-        _skip_if_no_pandas()
-
         self.wb1.sheets[0].range('A1').options(index=False).value = pd.Series([1., 2., 3.], name='name')
         assert_equal([['name'], [1.], [2.], [3.]], self.wb1.sheets[0].range('A1').options(ndim=2, expand='table').value)
 
     def test_write_series_header_index(self):
-        _skip_if_no_pandas()
-
         # Named index
         self.wb1.sheets[0].range('A1').value = pd.Series([1., 2., 3.], name='name',
                                                          index=pd.Index([10., 20., 30.], name='ix'))
@@ -453,8 +404,6 @@ class TestPandas(TestBase):
                      self.wb1.sheets[0].range('A1:B4').options(ndim=2).value)
 
     def test_dataframe_timezone(self):
-        _skip_if_no_pandas()
-
         np_dt = np.datetime64(1434149887000, 'ms')
         ix = pd.DatetimeIndex(data=[np_dt], tz='GMT')
         df = pd.DataFrame(data=[1], index=ix, columns=['A'])
