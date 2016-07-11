@@ -22,8 +22,10 @@ from . import utils
 
 # Optional imports
 try:
+    import matplotlib as mpl
     from matplotlib.backends.backend_agg import FigureCanvas
 except ImportError:
+    mpl = None
     FigureCanvas = None
 
 try:
@@ -1629,7 +1631,7 @@ class Picture(object):
             self.parent
         )
 
-    def show(self, image):
+    def update(self, image):
         """
         Replaces an existing picture with a new one, taking over the attributes of the existing picture.
 
@@ -1643,15 +1645,17 @@ class Picture(object):
         .. versionadded:: 0.5.0
         """
 
-        filename, name, width, height = utils.process_image(image, self.name, self.width, self.height)
+        filename, width, height = utils.process_image(image, self.width, self.height)
 
         left, top = self.left, self.top
+        name = self.name
 
         # todo: link_to_file, save_with_document
         picture = self.parent.pictures.add(filename, left=left, top=top, width=width, height=height)
         self.delete()
 
         picture.name = name
+        self.impl = picture.impl
 
         return picture
 
@@ -1663,7 +1667,18 @@ class Pictures(Collection):
     def parent(self):
         return Sheet(impl=self.impl.parent)
 
-    def add(self, image, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None, name=None):
+    def add(self, image, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None, name=None, update=False):
+
+        if update:
+            if name is None:
+                raise ValueError("If update is true then name must be specified")
+            else:
+                try:
+                    pic = self[name]
+                    pic.update(image)
+                    return pic
+                except KeyError:
+                    pass
 
         filename, width, height = utils.process_image(image, width, height)
 
@@ -1696,23 +1711,6 @@ class Pictures(Collection):
         if name is not None:
             picture.name = name
         return picture
-
-    def show(self, image, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None, name=None):
-
-        filename, width, height = utils.process_image(image, width, height)
-
-        if name is None or name not in self:
-            return self.add(filename, link_to_file, save_with_document, left, top, width, height, name)
-        else:
-            pic = self[name]
-            pic.show(filename)
-            return pic
-
-
-def show(image, name=None, sheet=None):
-    if sheet is None:
-        sheet = sheets.active
-    sheet.pictures.show(image, name=name)
 
 
 class Names(object):
@@ -1815,7 +1813,7 @@ class Name(object):
         return "<Name '%s': %s>" % (self.name, self.refers_to)
     
 
-def view(obj):
+def view(obj, name=None, sheet=None):
     """
     Opens a new workbook and displays an object on its first sheet.
 
@@ -1833,9 +1831,16 @@ def view(obj):
 
     .. versionadded:: 0.7.1
     """
-    sht = Book().sheets.active
-    Range(sht, 'A1').value = obj
-    sht.autofit()
+
+    if mpl and isinstance(obj, mpl.figure.Figure):
+        if sheet is None:
+            sheet = sheets.active
+        return sheet.pictures.add(obj, name=name, update=name is not None)
+    else:
+        if sheet is None:
+            sheet = Book().sheets.active
+        Range(sheet, 'A1').value = obj
+        sheet.autofit()
 
 
 class Macro(object):
