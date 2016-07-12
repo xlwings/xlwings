@@ -2,11 +2,12 @@
 from __future__ import unicode_literals
 import os
 import sys
+import time
 
 from nose.tools import assert_equal, assert_true
 
 import xlwings as xw
-from .common import TestBase, this_dir
+from .common import TestBase, this_dir, SPEC
 
 
 class TestApps(TestBase):
@@ -15,7 +16,7 @@ class TestApps(TestBase):
 
     def test_len(self):
         n_original = len(xw.apps)
-        app = xw.App()
+        app = xw.App(spec=SPEC)
         wb = app.books.add()
         assert_equal(n_original + 1, len(xw.apps))
         app.quit()
@@ -54,10 +55,11 @@ class TestApp(TestBase):
         while len(self.app2.books) > 0:
             self.app2.books[0].close()
         self.app2.quit()
+        time.sleep(1)  # needed for Mac Excel 2011
         assert_equal(n_apps - 1, len(xw.apps))
 
     def test_kill(self):
-        app = xw.App()
+        app = xw.App(spec=SPEC)
         n_apps = len(xw.apps)
         app.kill()
         assert_equal(n_apps - 1, len(xw.apps))
@@ -114,8 +116,6 @@ class TestApp(TestBase):
         wb3.close()
         wb4.close()
         wb5.close()
-
-        self.app2.quit()
 
     def test_selection(self):
         assert_equal(self.app1.selection.address, '$A$1')
