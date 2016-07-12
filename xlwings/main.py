@@ -942,7 +942,7 @@ class Range(object):
 
             return Range(top_right, bottom_left)
 
-        elif mode == 'vertical' or 'd' or 'down':
+        elif mode in ['vertical', 'd', 'down']:
             if self(2, 1).raw_value in [None, ""]:
                 return Range(self(1, 1), self(1, self.shape[1]))
             elif self(3, 1).raw_value in [None, ""]:
@@ -951,7 +951,7 @@ class Range(object):
                 end_row = self(2, 1).end('down').row - self.row + 1
                 return Range(self(1, 1), self(end_row, self.shape[1]))
 
-        elif mode == 'horizontal' or 'r' or 'right':
+        elif mode in ['horizontal', 'r', 'right']:
             if self(1, 2).raw_value in [None, ""]:
                 return Range(self(1, 1), self(self.shape[0], 1))
             elif self(1, 3).raw_value in [None, ""]:

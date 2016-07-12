@@ -340,12 +340,24 @@ class TestRangeAttributes(TestBase):
         cells = self.wb1.sheets[0].range('A10').expand('vertical').value
         self.assertEqual(cells, [row[0] for row in data])
 
+        cells = self.wb1.sheets[0].range('A10').expand('d').value
+        self.assertEqual(cells, [row[0] for row in data])
+
+        cells = self.wb1.sheets[0].range('A10').expand('down').value
+        self.assertEqual(cells, [row[0] for row in data])
+
     def test_horizontal(self):
         data = [[1, 2.222, 3.333],
                 ['Test1', None, 'éöà'],
                 [datetime(1962, 11, 3), datetime(2020, 12, 31, 12, 12, 20), 9.999]]
         self.wb1.sheets[0].range('A20').value = data
         cells = self.wb1.sheets[0].range('A20').expand('horizontal').value
+        self.assertEqual(cells, data[0])
+
+        cells = self.wb1.sheets[0].range('A20').expand('r').value
+        self.assertEqual(cells, data[0])
+
+        cells = self.wb1.sheets[0].range('A20').expand('right').value
         self.assertEqual(cells, data[0])
 
     def test_hyperlink(self):
