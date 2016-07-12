@@ -614,27 +614,10 @@ class Range(object):
                 impl = args[0].sheet.range(args[0], args[1]).impl
             elif len(args) == 1 and isinstance(args[0], string_types):
                 impl = apps.active.range(args[0]).impl
-            elif 0 < len(args) <= 3:
-                if isinstance(args[-1], tuple):
-                    if len(args) > 1 and isinstance(args[-2], tuple):
-                        spec = (args[-2], args[-1])
-                    else:
-                        spec = (args[-1],)
-                    if any(0 in s for s in spec):
-                        raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
-                elif isinstance(args[-1], string_types):
-                    spec = (args[-1],)
-                residual_args = args[:-len(spec)]
-                if residual_args:
-                    if len(residual_args) > 1:
-                        raise ValueError("Invalid arguments")
-                    else:
-                        sheet = residual_args[0]
-                        if not isinstance(sheet, Sheet):
-                            sheet = Sheet(sheet)
-                else:
-                    sheet = sheets.active
-                impl = sheet.range(*spec).impl
+            elif len(args) == 1 and isinstance(args[0], tuple):
+                impl = sheets.active.range(*args).impl
+            elif len(args) == 2 and isinstance(args[0], tuple) and isinstance(args[1], tuple):
+                impl = sheets.active.range(*args).impl
             else:
                 raise ValueError("Invalid arguments")
 

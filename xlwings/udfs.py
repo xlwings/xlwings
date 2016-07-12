@@ -213,6 +213,8 @@ def call_udf(module_name, func_name, args, this_workbook, caller):
     if writing and writing == caller.Address:
         return func_info['rval']
 
+    output_param_indices = []
+
     args = list(args)
     for i, arg in enumerate(args):
         arg_info = args_info[min(i, len(args_info)-1)]
@@ -220,20 +222,19 @@ def call_udf(module_name, func_name, args, this_workbook, caller):
             args[i] = arg_info.get('optional', None)
         elif xlplatform.is_range_instance(arg):
             if arg_info.get('output', False):
-                args[i] = OutputParameter(Range(arg), arg_info['options'], func, caller)
+                output_param_indices.append(i)
+                args[i] = OutputParameter(Range(impl=xlplatform.Range(xl=arg)), arg_info['options'], func, caller)
             else:
-                args[i] = conversion.read(Range(arg), None, arg_info['options'])
+                args[i] = conversion.read(Range(impl=xlplatform.Range(xl=arg)), None, arg_info['options'])
         else:
             args[i] = conversion.read(None, arg, arg_info['options'])
 
     xlplatform.BOOK_CALLER = Dispatch(this_workbook)
     ret = func(*args)
 
-    for i, arg in enumerate(args):
-        arg_info = args_info[i]
-        if arg_info.get('output', False):
-            from .server import idle_queue
-            idle_queue.append(args[i])
+    for i in output_param_indices:
+        from .server import idle_queue
+        idle_queue.append(args[i])
 
     if ret_info.get('expand', None):
         from .server import idle_queue
@@ -314,7 +315,8 @@ def generate_vba_wrapper(module_name, module, f):
                         args_vba=args_vba,
                     )
                 else:
-                    vba.write('{fname} = Py.CallUDF(PyScriptPath, "{fname}", {args_vba}, ThisWorkbook, Application.Caller)\n',
+                    vba.write('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)\n',
+                        module_name=module_name,
                         fname=fname,
                         args_vba=args_vba,
                     )
