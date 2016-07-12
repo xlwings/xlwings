@@ -12,7 +12,7 @@ import appscript
 from appscript import k as kw, mactypes, its
 from appscript.reference import CommandError
 
-from .constants import ColorIndex, Calculation
+from .constants import ColorIndex
 from .utils import int_to_rgb, np_datetime_to_datetime, col_name, VersionNumber
 from . import mac_dict, PY3, string_types
 
@@ -382,10 +382,10 @@ class Sheet(object):
         self.book.app.screen_updating = alerts_state
 
     def delete(self):
-        alerts_state = self.book.app.screen_updating
-        self.book.app.screen_updating = False
+        alerts_state = self.book.app.xl.display_alerts.get()
+        self.book.app.xl.display_alerts.set(False)
         self.xl.delete()
-        self.book.app.screen_updating = alerts_state
+        self.book.app.xl.display_alerts.set(alerts_state)
 
     @property
     def charts(self):
@@ -644,7 +644,6 @@ class Range(object):
         row = self.row
         col1 = self.column
         col2 = col1 + self.shape[1] - 1
-        sht = self.sheet
         return [
             self.sheet.range((row+i, col1), (row+i, col2))
             for i in range(self.shape[0])
@@ -785,9 +784,9 @@ class Chart(object):
     @name.setter
     def name(self, value):
         if self.xl_obj is not None:
-            return self.xl_obj.name.set(value)
+            self.xl_obj.name.set(value)
         else:
-            return self.xl.name.get(value)
+            self.xl.name.get(value)
 
     @property
     def chart_type(self):
@@ -904,7 +903,7 @@ class Picture(object):
 
     @top.setter
     def top(self, value):
-         self.xl.top.set(value)
+        self.xl.top.set(value)
 
     @property
     def width(self):
