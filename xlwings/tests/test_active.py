@@ -6,6 +6,11 @@ import unittest
 import xlwings as xw
 from xlwings.tests.common import TestBase, this_dir
 
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
+
 
 class TestActive(TestBase):
     def test_apps_active(self):
@@ -53,6 +58,36 @@ class TestActive(TestBase):
     def test_books(self):
         wb = xw.Book()
         self.assertEqual(xw.books[-1], wb)
+
+
+class TestView(TestBase):
+    def test_list_new_book(self):
+        n_books = xw.books.count
+        xw.view([1, 2, 3])
+        self.assertEqual(xw.books.count, n_books + 1)
+
+    def test_list_sheet(self):
+        n_books = xw.books.count
+        xw.view([1, 2, 3], sheet=xw.books[0].sheets[0])
+        self.assertEqual(xw.books.count, n_books)
+        self.assertEqual(xw.books[0].sheets[0].range('A1:C1').value, [1., 2., 3.])
+
+    @unittest.skipIf(plt is None, 'no matplotlib')
+    def test_fig_new_book(self):
+        n_books = xw.books.count
+        fig = plt.figure()
+        plt.plot([-1, 1, -2, 2, -3, 3, 2])
+        xw.view(fig)
+        self.assertEqual(xw.books.count, n_books + 1)
+
+    @unittest.skipIf(plt is None, 'no matplotlib')
+    def test_fig_sheet(self):
+        n_books = xw.books.count
+        fig = plt.figure()
+        plt.plot([-1, 1, -2, 2, -3, 3, 2])
+        xw.view(fig, sheet=xw.books[0].sheets[0])
+        self.assertEqual(xw.books.count, n_books)
+        self.assertEqual(xw.books[0].sheets[0].shapes.count, 1)
 
 if __name__ == '__main__':
     unittest.main()

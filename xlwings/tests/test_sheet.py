@@ -136,23 +136,6 @@ class TestSheet(TestBase):
         self.wb1.sheets['Sheet1'].delete()
         self.assertFalse('Sheet1' in [i.name for i in self.wb1.sheets])
 
-    def test_charts(self):
-        pass  # TODO
-
-    def test_chart(self):
-        pass  # TODO
-
-    def test_shapes(self):
-        pass  # TODO
-
-    def test_shape(self):
-        pass  # TODO
-
-    def test_pictures(self):
-        pass  # TODO
-
-    def test_picture(self):
-        pass  # TODO
 
 if __name__ == '__main__':
     unittest.main()

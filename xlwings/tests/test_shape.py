@@ -12,6 +12,11 @@ try:
 except ImportError:
     mpl = None
 
+try:
+    import PIL
+except ImportError:
+    PIL = None
+
 
 class TestShape(TestBase):
     def test_name(self):
@@ -87,7 +92,10 @@ class TestPicture(TestBase):
     def test_width(self):
         filename = os.path.join(this_dir, 'sample_picture.png')
         pic = self.wb1.sheets[0].pictures.add(filename, name='pic1')
-        self.assertEqual(pic.width, 60)
+        if PIL:
+            self.assertEqual(pic.width, 60)
+        else:
+            self.assertEqual(pic.width, 100)
 
         pic.width = 50
         self.assertEqual(pic.width, 50)
@@ -100,7 +108,10 @@ class TestPicture(TestBase):
     def test_height(self):
         filename = os.path.join(this_dir, 'sample_picture.png')
         pic = self.wb1.sheets[0].pictures.add(filename, name='pic1')
-        self.assertEqual(pic.height, 60)
+        if PIL:
+            self.assertEqual(pic.height, 60)
+        else:
+            self.assertEqual(pic.height, 100)
 
         pic.height = 50
         self.assertEqual(pic.height, 50)
