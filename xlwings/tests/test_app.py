@@ -3,34 +3,33 @@ from __future__ import unicode_literals
 import os
 import sys
 import time
-
-from nose.tools import assert_equal, assert_true
+import unittest
 
 import xlwings as xw
-from .common import TestBase, this_dir, SPEC
+from xlwings.tests.common import TestBase, this_dir, SPEC
 
 
 class TestApps(TestBase):
     def test_active(self):
-        assert_equal(xw.apps[0], xw.apps.active)
+        self.assertEqual(xw.apps[0], xw.apps.active)
 
     def test_len(self):
         n_original = len(xw.apps)
         app = xw.App(spec=SPEC)
         wb = app.books.add()
-        assert_equal(n_original + 1, len(xw.apps))
+        self.assertEqual(n_original + 1, len(xw.apps))
         app.quit()
 
     def test_count(self):
-        assert_equal(xw.apps.count, len(xw.apps))
+        self.assertEqual(xw.apps.count, len(xw.apps))
 
     def test_iter(self):
         for app in xw.apps:
             if app == (self.app1 or self.app2):
-                assert_equal(len(app.books), 1)
+                self.assertEqual(len(app.books), 1)
 
     def test_indexing(self):
-        assert_equal(xw.apps[0], xw.apps(1))
+        self.assertEqual(xw.apps[0], xw.apps(1))
 
 
 class TestApp(TestBase):
@@ -41,14 +40,14 @@ class TestApp(TestBase):
             with self.assertRaises(Exception):
                 self.app1.activate()
         else:
-            assert_equal(self.app2, xw.apps.active)
+            self.assertEqual(self.app2, xw.apps.active)
             self.app1.activate()
-            assert_equal(self.app1, xw.apps.active)
+            self.assertEqual(self.app1, xw.apps.active)
 
     def test_visible(self):
         # Can't successfully test for False on Mac...?
         self.app1.visible = True
-        assert_true(self.app1.visible)
+        self.assertTrue(self.app1.visible)
 
     def test_quit(self):
         n_apps = len(xw.apps)
@@ -56,20 +55,20 @@ class TestApp(TestBase):
             self.app2.books[0].close()
         self.app2.quit()
         time.sleep(1)  # needed for Mac Excel 2011
-        assert_equal(n_apps - 1, len(xw.apps))
+        self.assertEqual(n_apps - 1, len(xw.apps))
 
     def test_kill(self):
         app = xw.App(spec=SPEC)
         n_apps = len(xw.apps)
         app.kill()
-        assert_equal(n_apps - 1, len(xw.apps))
+        self.assertEqual(n_apps - 1, len(xw.apps))
 
     def test_screen_updating(self):
         self.app1.screen_updating = False
-        assert_equal(self.app1.screen_updating, False)
+        self.assertEqual(self.app1.screen_updating, False)
 
         self.app1.screen_updating = True
-        assert_true(self.app1.screen_updating)
+        self.assertTrue(self.app1.screen_updating)
 
     def test_calculation_calculate(self):
         sht = self.wb1.sheets[0]
@@ -78,27 +77,27 @@ class TestApp(TestBase):
 
         self.app1.calculation = 'manual'
         sht.range('A1').value = 4
-        assert_equal(sht.range('B1').value, 4)
+        self.assertEqual(sht.range('B1').value, 4)
 
         self.app1.calculation = 'automatic'
         self.app1.calculate()  # This is needed on Mac Excel 2016 but not on Mac Excel 2011 (changed behaviour)
-        assert_equal(sht.range('B1').value, 8)
+        self.assertEqual(sht.range('B1').value, 8)
 
         sht.range('A1').value = 2
-        assert_equal(sht.range('B1').value, 4)
+        self.assertEqual(sht.range('B1').value, 4)
 
     def test_calculation(self):
         self.app1.calculation = 'automatic'
-        assert_equal(self.app1.calculation, 'automatic')
+        self.assertEqual(self.app1.calculation, 'automatic')
 
         self.app1.calculation = 'manual'
-        assert_equal(self.app1.calculation, 'manual')
+        self.assertEqual(self.app1.calculation, 'manual')
 
         self.app1.calculation = 'semiautomatic'
-        assert_equal(self.app1.calculation, 'semiautomatic')
+        self.assertEqual(self.app1.calculation, 'semiautomatic')
 
     def test_version(self):
-        assert_true(self.app1.version.major > 0)
+        self.assertTrue(self.app1.version.major > 0)
 
     def test_wb_across_instances(self):
         app1_wb_count = len(self.app1.books)
@@ -109,8 +108,8 @@ class TestApp(TestBase):
         wb4 = self.app2.books.add()
         wb5 = self.app2.books.add()
 
-        assert_equal(len(self.app1.books), app1_wb_count + 1)
-        assert_equal(len(self.app2.books), app2_wb_count + 3)
+        self.assertEqual(len(self.app1.books), app1_wb_count + 1)
+        self.assertEqual(len(self.app2.books), app2_wb_count + 3)
 
         wb2.close()
         wb3.close()
@@ -118,21 +117,24 @@ class TestApp(TestBase):
         wb5.close()
 
     def test_selection(self):
-        assert_equal(self.app1.selection.address, '$A$1')
+        self.assertEqual(self.app1.selection.address, '$A$1')
 
     def test_books(self):
-        assert_equal(len(self.app2.books), 1)
+        self.assertEqual(len(self.app2.books), 1)
 
     def test_pid(self):
-        assert_true(self.app1.pid > 0)
+        self.assertTrue(self.app1.pid > 0)
 
     def test_len(self):
         n_books = len(self.app1.books)
         self.app1.books.add()
-        assert_equal(len(self.app1.books), n_books + 1)
+        self.assertEqual(len(self.app1.books), n_books + 1)
 
     def test_macro(self):
         wb = self.app1.books.open(os.path.join(this_dir, 'macro book.xlsm'))
         test1 = self.app1.macro('Module1.Test1')
         res1 = test1('Test1a', 'Test1b')
-        assert_equal(res1, 1)
+        self.assertEqual(res1, 1)
+
+if __name__ == '__main__':
+    unittest.main()

@@ -5,9 +5,8 @@ import datetime as dt
 import unittest
 
 import pytz
-from nose.tools import assert_equal
 
-from .common import TestBase
+from xlwings.tests.common import TestBase
 
 # Optional dependencies
 try:
@@ -26,77 +25,77 @@ except ImportError:
 class TestConverter(TestBase):
     def test_transpose(self):
         self.wb1.sheets[0].range('A1').options(transpose=True).value = [[1., 2.], [3., 4.]]
-        assert_equal(self.wb1.sheets[0].range('A1:B2').value, [[1., 3.], [2., 4.]])
+        self.assertEqual(self.wb1.sheets[0].range('A1:B2').value, [[1., 3.], [2., 4.]])
 
     def test_dictionary(self):
         d = {'a': 1., 'b': 2.}
         self.wb1.sheets[0].range('A1').value = d
-        assert_equal(d, self.wb1.sheets[0].range('A1:B2').options(dict).value)
+        self.assertEqual(d, self.wb1.sheets[0].range('A1:B2').options(dict).value)
 
     def test_integers(self):
         """test_integers: Covers GH 227"""
         self.wb1.sheets[0].range('A99').value = 2147483647  # max SInt32
-        assert_equal(self.wb1.sheets[0].range('A99').value, 2147483647)
+        self.assertEqual(self.wb1.sheets[0].range('A99').value, 2147483647)
 
         self.wb1.sheets[0].range('A100').value = 2147483648  # SInt32 < x < SInt64
-        assert_equal(self.wb1.sheets[0].range('A100').value, 2147483648)
+        self.assertEqual(self.wb1.sheets[0].range('A100').value, 2147483648)
 
         self.wb1.sheets[0].range('A101').value = 10000000000000000000  # long
-        assert_equal(self.wb1.sheets[0].range('A101').value, 10000000000000000000)
+        self.assertEqual(self.wb1.sheets[0].range('A101').value, 10000000000000000000)
 
     def test_datetime_timezone(self):
         eastern = pytz.timezone('US/Eastern')
         dt_naive = dt.datetime(2002, 10, 27, 6, 0, 0)
         dt_tz = eastern.localize(dt_naive)
         self.wb1.sheets[0].range('F34').value = dt_tz
-        assert_equal(self.wb1.sheets[0].range('F34').value, dt_naive)
+        self.assertEqual(self.wb1.sheets[0].range('F34').value, dt_naive)
 
     def test_date(self):
         date_1 = dt.date(2000, 12, 3)
         self.wb1.sheets[0].range('X1').value = date_1
         date_2 = self.wb1.sheets[0].range('X1').value
-        assert_equal(date_1, dt.date(date_2.year, date_2.month, date_2.day))
+        self.assertEqual(date_1, dt.date(date_2.year, date_2.month, date_2.day))
 
     def test_list(self):
         # 1d List Row
         list_row_1d = [1.1, None, 3.3]
         self.wb1.sheets[0].range('A27').value = list_row_1d
         cells = self.wb1.sheets[0].range('A27:C27').value
-        assert_equal(list_row_1d, cells)
+        self.assertEqual(list_row_1d, cells)
 
         # 2d List Row
         list_row_2d = [[1.1, None, 3.3]]
         self.wb1.sheets[0].range('A29').value = list_row_2d
         cells = self.wb1.sheets[0].range('A29:C29').options(ndim=2).value
-        assert_equal(list_row_2d, cells)
+        self.assertEqual(list_row_2d, cells)
 
         # 1d List Col
         list_col = [[1.1], [None], [3.3]]
         self.wb1.sheets[0].range('A31').value = list_col
         cells = self.wb1.sheets[0].range('A31:A33').value
-        assert_equal([i[0] for i in list_col], cells)
+        self.assertEqual([i[0] for i in list_col], cells)
         # 2d List Col
         cells = self.wb1.sheets[0].range('A31:A33').options(ndim=2).value
-        assert_equal(list_col, cells)
+        self.assertEqual(list_col, cells)
 
     def test_none(self):
         """ test_none: Covers GH Issue #16"""
         # None
         self.wb1.sheets[0].range('A7').value = None
-        assert_equal(None, self.wb1.sheets[0].range('A7').value)
+        self.assertEqual(None, self.wb1.sheets[0].range('A7').value)
         # List
         self.wb1.sheets[0].range('A7').value = [None, None]
-        assert_equal(None, self.wb1.sheets[0].range('A7').expand('horizontal').value)
+        self.assertEqual(None, self.wb1.sheets[0].range('A7').expand('horizontal').value)
 
     def test_ndim2_scalar(self):
         """test_atleast_2d_scalar: Covers GH Issue #53a"""
         self.wb1.sheets[0].range('A50').value = 23
         result = self.wb1.sheets[0].range('A50').options(ndim=2).value
-        assert_equal([[23]], result)
+        self.assertEqual([[23]], result)
 
     def test_write_single_value_to_multicell_range(self):
         self.wb1.sheets[0].range('A1:B2').value = 5
-        assert_equal(self.wb1.sheets[0].range('A1:B2').value, [[5., 5.], [5., 5.]])
+        self.assertEqual(self.wb1.sheets[0].range('A1:B2').value, [[5., 5.], [5., 5.]])
 
 
 @unittest.skipIf(np is None, 'numpy missing')
@@ -126,26 +125,26 @@ class TestNumpy(TestBase):
 
     def test_numpy_datetime(self):
         self.wb1.sheets[0].range('A55').value = np.datetime64('2005-02-25T03:30Z')
-        assert_equal(self.wb1.sheets[0].range('A55').value, dt.datetime(2005, 2, 25, 3, 30))
+        self.assertEqual(self.wb1.sheets[0].range('A55').value, dt.datetime(2005, 2, 25, 3, 30))
 
     def test_scalar_nan(self):
         """test_scalar_nan: Covers GH Issue #15"""
         self.wb1.sheets[0].range('A20').value = np.nan
-        assert_equal(None, self.wb1.sheets[0].range('A20').value)
+        self.assertEqual(None, self.wb1.sheets[0].range('A20').value)
 
     def test_ndim2_scalar_as_array(self):
         """test_atleast_2d_scalar_as_array: Covers GH Issue #53b"""
         self.wb1.sheets[0].range('A50').value = 23
         result = self.wb1.sheets[0].range('A50').options(np.array, ndim=2).value
-        assert_equal(np.array([[23]]), result)
+        self.assertEqual(np.array([[23]]), result)
 
     def test_float64(self):
         self.wb1.sheets[0].range('A1').value = np.float64(2)
-        assert_equal(self.wb1.sheets[0].range('A1').value, 2.)
+        self.assertEqual(self.wb1.sheets[0].range('A1').value, 2.)
 
     def test_int64(self):
         self.wb1.sheets[0].range('A1').value = np.int64(2)
-        assert_equal(self.wb1.sheets[0].range('A1').value, 2.)
+        self.assertEqual(self.wb1.sheets[0].range('A1').value, 2.)
 
 
 @unittest.skipIf(pd is None, 'pandas missing')
@@ -380,27 +379,27 @@ class TestPandas(TestBase):
 
     def test_write_series_noheader_noindex(self):
         self.wb1.sheets[0].range('A1').options(index=False).value = pd.Series([1., 2., 3.])
-        assert_equal([[1.], [2.], [3.]], self.wb1.sheets[0].range('A1').options(ndim=2, expand='table').value)
+        self.assertEqual([[1.], [2.], [3.]], self.wb1.sheets[0].range('A1').options(ndim=2, expand='table').value)
 
     def test_write_series_noheader_index(self):
         self.wb1.sheets[0].range('A1').options(index=True).value = pd.Series([1., 2., 3.], index=[10., 20., 30.])
-        assert_equal([[10., 1.], [20., 2.], [30., 3.]],
+        self.assertEqual([[10., 1.], [20., 2.], [30., 3.]],
                      self.wb1.sheets[0].range('A1').options(ndim=2, expand='table').value)
 
     def test_write_series_header_noindex(self):
         self.wb1.sheets[0].range('A1').options(index=False).value = pd.Series([1., 2., 3.], name='name')
-        assert_equal([['name'], [1.], [2.], [3.]], self.wb1.sheets[0].range('A1').options(ndim=2, expand='table').value)
+        self.assertEqual([['name'], [1.], [2.], [3.]], self.wb1.sheets[0].range('A1').options(ndim=2, expand='table').value)
 
     def test_write_series_header_index(self):
         # Named index
         self.wb1.sheets[0].range('A1').value = pd.Series([1., 2., 3.], name='name',
                                                          index=pd.Index([10., 20., 30.], name='ix'))
-        assert_equal([['ix', 'name'], [10., 1.], [20., 2.], [30., 3.]],
+        self.assertEqual([['ix', 'name'], [10., 1.], [20., 2.], [30., 3.]],
                      self.wb1.sheets[0].range('A1').options(ndim=2, expand='table').value)
 
         # Nameless index
         self.wb1.sheets[0].range('A1').value = pd.Series([1., 2., 3.], name='name', index=[10., 20., 30.])
-        assert_equal([[None, 'name'], [10., 1.], [20., 2.], [30., 3.]],
+        self.assertEqual([[None, 'name'], [10., 1.], [20., 2.], [30., 3.]],
                      self.wb1.sheets[0].range('A1:B4').options(ndim=2).value)
 
     def test_dataframe_timezone(self):
@@ -408,9 +407,12 @@ class TestPandas(TestBase):
         ix = pd.DatetimeIndex(data=[np_dt], tz='GMT')
         df = pd.DataFrame(data=[1], index=ix, columns=['A'])
         self.wb1.sheets[0].range('A1').value = df
-        assert_equal(self.wb1.sheets[0].range('A2').value, dt.datetime(2015, 6, 12, 22, 58, 7))
+        self.assertEqual(self.wb1.sheets[0].range('A2').value, dt.datetime(2015, 6, 12, 22, 58, 7))
 
     def test_NaT(self):
         df = pd.DataFrame([pd.Timestamp('20120102'), np.nan], index=[0., 1.], columns=['one'])
         self.wb1.sheets[0].range('A1').value = df
         assert_frame_equal(df, self.wb1.sheets[0].range('A1').options(pd.DataFrame, expand='table').value)
+
+if __name__ == '__main__':
+    unittest.main()
