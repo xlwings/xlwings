@@ -14,7 +14,6 @@ import sys
 import re
 import numbers
 import inspect
-import tempfile
 
 from . import xlplatform, string_types, ShapeAlreadyExists, PY3
 from .utils import VersionNumber
@@ -337,7 +336,7 @@ class Book(object):
             fullname = sys.argv[1].lower()
             if sys.platform.startswith('win'):
                 app = App(impl=xlplatform.App(xl=int(sys.argv[4])))  # hwnd
-                return cls(impl=app.book(fullname).impl)
+                return cls(impl=app.books.open(fullname).impl)
             else:
                 # On Mac, the same file open in two instances is not supported
                 return cls(impl=Book(fullname).impl)
@@ -486,7 +485,7 @@ class Sheet(object):
 
     def __init__(self, sheet=None, impl=None):
         if impl is None:
-            self.impl = Book.active().sheet(sheet).impl
+            self.impl = books.active.sheets(sheet).impl
         else:
             self.impl = impl
 
@@ -961,7 +960,6 @@ class Range(object):
                 end_column = self(1, 2).end('right').column - self.column + 1
                 return Range(self(1, 1), self(self.shape[0], end_column))
 
-
     def __getitem__(self, key):
         if type(key) is tuple:
             row, col = key
@@ -1391,9 +1389,9 @@ class Chart(object):
         if impl is not None:
             self.impl = impl
         elif name_or_index is not None:
-            self.impl = Sheet.active().chart(name_or_index).impl
+            self.impl = sheets.active.charts(name_or_index).impl
         else:
-            self.impl = Sheet.active().charts.add().impl
+            self.impl = sheets.active.charts.add().impl
 
     @property
     def api(self):

@@ -18,14 +18,14 @@ from ctypes import oledll, PyDLL, py_object, byref, POINTER, windll
 
 import pywintypes
 import pythoncom
-from win32com.client import  Dispatch, CDispatch, DispatchEx
+from win32com.client import Dispatch, CDispatch, DispatchEx
 import win32timezone
 import win32gui
 import win32process
 from comtypes import IUnknown
 from comtypes.automation import IDispatch
 
-from .constants import Direction, ColorIndex
+from .constants import ColorIndex
 from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime, col_name
 
 # Optional imports
@@ -1042,12 +1042,12 @@ def _com_time_to_datetime(com_time, datetime_builder):
         # We copy to a new datetime so that the returned type is the same between 2/3
         # Changed: We make the datetime object timezone naive as Excel doesn't provide info
         return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
-                           hour=com_time.hour, minute=com_time.minute, second=com_time.second,
-                           microsecond=com_time.microsecond, tzinfo=None)
+                                hour=com_time.hour, minute=com_time.minute, second=com_time.second,
+                                microsecond=com_time.microsecond, tzinfo=None)
     else:
         assert com_time.msec == 0, "fractional seconds not yet handled"
         return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
-                           hour=com_time.hour, minute=com_time.minute, second=com_time.second)
+                                hour=com_time.hour, minute=com_time.minute, second=com_time.second)
 
 
 def _datetime_to_com_time(dt_time):
