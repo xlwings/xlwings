@@ -13,7 +13,6 @@ from xlwings import __version__
 
 # Python versions - according yml files are under tests/conda_yml
 envs = [
-    ('xw26', '2.6'),
     ('xw27', '2.7'),
     ('xw33', '3.3'),
     ('xw34', '3.4'),

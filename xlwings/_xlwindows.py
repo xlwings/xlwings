@@ -167,7 +167,7 @@ class COMRetryObjectWrapper(object):
             if t is CDispatch:
                 yield COMRetryObjectWrapper(v)
             else:
-                return v
+                yield v
 
 
 def com_setattr(obj, attr, val):

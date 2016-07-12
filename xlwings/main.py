@@ -216,6 +216,9 @@ class App(object):
     def __eq__(self, other):
         return type(other) is App and other.pid == self.pid
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __hash__(self):
         return hash(self.pid)
 
@@ -301,6 +304,9 @@ class Book(object):
 
     def __eq__(self, other):
         return isinstance(other, Book) and self.app == other.app and self.name == other.name
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __hash__(self):
         return hash((self.app, self.name))
@@ -491,6 +497,9 @@ class Sheet(object):
     def __eq__(self, other):
         return isinstance(other, Sheet) and self.book == other.book and self.name == other.name
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __hash__(self):
         return hash((self.book, self.name))
 
@@ -604,9 +613,10 @@ class Range(object):
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
     """
 
-    def __init__(self, *args, impl=None, **options):
+    def __init__(self, *args, **options):
 
         # Arguments
+        impl = options.pop('impl', None)
         if impl is None:
             if len(args) == 2 and isinstance(args[0], Range) and isinstance(args[1], Range):
                 if args[0].sheet != args[1].sheet:
@@ -638,6 +648,9 @@ class Range(object):
            and self.column == other.column
            and self.shape == other.shape
         )
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __hash__(self):
         return hash((self.sheet, self.row, self.column, self.shape))
@@ -1248,8 +1261,8 @@ class Shape(object):
 
     .. versionadded:: 0.5.0
     """
-    def __init__(self, *args, impl=None):
-
+    def __init__(self, *args, **options):
+        impl = options.pop('impl', None)
         if impl is None:
             if len(args) == 1:
                 impl = sheets.active.shapes(args[0]).impl
@@ -1319,6 +1332,9 @@ class Shape(object):
             other.parent == self.parent and
             other.name == self.name
         )
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __repr__(self):
         return "<Shape '{0}' in {1}>".format(
@@ -1614,6 +1630,9 @@ class Picture(object):
             other.parent == self.parent and
             other.name == self.name
         )
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __repr__(self):
         return "<Picture '{0}' in {1}>".format(
