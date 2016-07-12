@@ -280,7 +280,7 @@ idle_queue = []
 
 
 def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
-    """Launch the COM server, clsid is the XLPython objectok class id """
+    """Launch the COM server, clsid is the XLPython object class id """
     clsid = pywintypes.IID(clsid)
 
     # Ovveride CreateInstance in default policy to instantiate the XLPython object ---
@@ -307,7 +307,21 @@ def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
 
     print('xlwings server running, clsid=%s' % clsid)
 
-    pythoncom.PumpMessages()
+    # pythoncom.PumpMessages()
+    while True:
+        pythoncom.PumpWaitingMessages()
+
+        # when idle, see if there's any tasks to do, if so do one
+        if idle_queue:
+            task = idle_queue.pop(0)
+            try:
+                res = task()
+            except:
+                import traceback
+                print("TaskQueue '%s' threw an exeception: %s", task, traceback.format_exc())
+            else:
+                if res:
+                    idle_queue.append(task)
 
     pythoncom.CoRevokeClassObject(revokeId)
     pythoncom.CoUninitialize()
