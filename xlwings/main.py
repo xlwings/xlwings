@@ -1608,6 +1608,13 @@ class Picture(object):
     def delete(self):
         self.impl.delete()
 
+    def __eq__(self, other):
+        return (
+            isinstance(other, Picture) and
+            other.parent == self.parent and
+            other.name == self.name
+        )
+
     def __repr__(self):
         return "<Picture '{0}' in {1}>".format(
             self.name,
