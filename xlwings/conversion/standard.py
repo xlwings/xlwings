@@ -75,7 +75,7 @@ class WriteValueToRangeStage(object):
 
             scalar = ctx.meta.get('scalar', False)
             if not scalar:
-                ctx.range = ctx.range[:len(ctx.value), :len(ctx.value[0])]
+                ctx.range = ctx.range.resize(len(ctx.value), len(ctx.value[0]))
             if self.skip:
                 r, c = self.skip
                 if scalar:
