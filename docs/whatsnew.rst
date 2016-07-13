@@ -1,6 +1,70 @@
 What's New
 ==========
 
+.. _v0.9_release_notes:
+
+v0.9.0 (Jul xx, 2016)
+---------------------
+
+Exciting times! v0.9.0 is a complete rewrite of xlwings with loads of syntax changes (hence the version jump). But more
+importantly, this release adds a ton of new features and bug fixes that would have otherwise been impossible. Some of the
+highlights are listed below, but make sure to check out the full :ref:`migration guide <migrate_to_0.9>` for all the syntax changes.
+At this point, the API is fairly stable and we're expecting only smaller changes until we reach v1.0.
+
+* **Active** book instead of **current** book: ``xw.Range('A1')`` goes against the active sheet of the active book of the active app
+  like you're used to from VBA. Instantiating an explicit connection to a Book is not necessary anymore:
+
+    >>> import xlwings as xw
+    >>> xw.Range('A1').value = 11
+    >>> xw.Range('A1').value
+    11.0
+
+* Full support of multiple Excel instances (even on Mac, where it's not easy to work with multiple instances otherwise!)
+
+    >>> app1 = xw.App()
+    >>> app2 = xw.App()
+    >>> xw.apps
+    Apps([<Excel App 1668>, <Excel App 1644>])
+
+* New powerful object model close to Excel's original:
+  ``xw.apps[0].books['MyBook.xlsx'].sheets[0].range('A1:B2').value``
+
+* Support for both Python indexing (square brackets) and Excel indexing (round brackets):
+
+  ``xw.books[0].sheets[0]`` is the same as ``xw.books(1).sheets(1)``
+
+* Collections for apps, books, sheets, pictures etc., allowing you to do things like:
+
+    >>> wb = xw.books.active
+    >>> [sheet.name for sheet in wb.sheets]
+    ['Sheet1', 'Sheet2', 'Sheet3']
+
+* Index and slicing support for ranges:
+
+    >>> rng = xw.Range('A1:E10')
+    >>> rng[1].address
+    '$B$1'
+    >>> rng[:2, :2].address
+    '$A$1:$B$2'
+
+* Named Ranges: They now properly support sheet and workbook scope
+
+* Excel doesn't become the active window anymore so the focus stays on your Python environment
+
+* When writing to ranges while Excel is busy, xlwings is now retrying until Excel is idle again
+
+* ``xw.view()`` has been extended to accept an existing sheet object
+
+* Objects like books, sheets etc. can now be compared (e.g. ``wb1 == wb2``) and are properly hashable
+
+* Note that support for Python 2.6 has been dropped
+
+Bug Fixes
+*********
+
+* For details on which bugs have been fixed, please check the `GitHub Issue Tracker <https://github.com/ZoomerAnalytics/xlwings/issues?q=is%3Aclosed+is%3Aissue+milestone%3Av0.9.0+label%3Abug>`_.
+
+
 v0.7.2 (May 18, 2016)
 ---------------------
 

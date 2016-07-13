@@ -20,6 +20,7 @@ on **Windows** and **Mac**.
     :hidden:
 
     whatsnew
+    migrate_to_0.9
     installation
     quickstart
     connect_to_workbook
