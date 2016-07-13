@@ -46,7 +46,7 @@ if np:
     time_types = time_types + (np.datetime64,)
 
 
-N_COM_RETRIES = 10
+N_COM_ATTEMPTS = 0      # 0 means try indefinitely
 BOOK_CALLER = None
 
 missing = object()
@@ -58,7 +58,8 @@ class COMRetryMethodWrapper(object):
         self.__method = method
 
     def __call__(self, *args, **kwargs):
-        for i in range(N_COM_RETRIES + 1):
+        n_attempt = 1
+        while True:
             try:
                 v = self.__method(*args, **kwargs)
                 t = type(v)
@@ -69,12 +70,14 @@ class COMRetryMethodWrapper(object):
                 else:
                     return v
             except pywintypes.com_error as e:
-                if i < N_COM_RETRIES and e.hresult == -2147418111:
+                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult == -2147418111:
+                    n_attempt += 1
                     continue
                 else:
                     raise
             except AttributeError as e:
-                if i < N_COM_RETRIES:
+                if not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS:
+                    n_attempt += 1
                     continue
                 else:
                     raise
@@ -90,22 +93,26 @@ class COMRetryObjectWrapper(object):
         object.__setattr__(self, '_inner', inner)
 
     def __setattr__(self, key, value):
-        for i in range(N_COM_RETRIES + 1):
+        n_attempt = 1
+        while True:
             try:
-                setattr(self._inner, key, value)
+                return setattr(self._inner, key, value)
             except pywintypes.com_error as e:
-                if i < N_COM_RETRIES and e.hresult == -2147418111:
+                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult == -2147418111:
+                    n_attempt += 1
                     continue
                 else:
                     raise
             except AttributeError as e:
-                if i < N_COM_RETRIES:
+                if not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS:
+                    n_attempt += 1
                     continue
                 else:
                     raise
 
     def __getattr__(self, item):
-        for i in range(N_COM_RETRIES + 1):
+        n_attempt = 1
+        while True:
             try:
                 v = getattr(self._inner, item)
                 t = type(v)
@@ -116,11 +123,9 @@ class COMRetryObjectWrapper(object):
                 else:
                     return v
             except pywintypes.com_error as e:
-                if e.hresult == -2147418111:  # RPC_E_CALL_REJECTED
-                    if i < N_COM_RETRIES:
-                        continue
-                    else:
-                        raise ExcelBusyError()
+                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult == -2147418111:
+                    n_attempt += 1
+                    continue
                 else:
                     raise
             except AttributeError as e:
@@ -134,13 +139,15 @@ class COMRetryObjectWrapper(object):
                     if e.hresult != -2147418111:   # RPC_E_CALL_REJECTED
                         # attribute probably really doesn't exist
                         raise
-                if i < N_COM_RETRIES:
+                if not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS:
+                    n_attempt += 1
                     continue
                 else:
                     raise ExcelBusyError()
 
     def __call__(self, *args, **kwargs):
-        for i in range(N_COM_RETRIES + 1):
+        n_attempt = 1
+        for i in range(N_COM_ATTEMPTS + 1):
             try:
                 v = self._inner(*args, **kwargs)
                 t = type(v)
@@ -151,12 +158,14 @@ class COMRetryObjectWrapper(object):
                 else:
                     return v
             except pywintypes.com_error as e:
-                if i < N_COM_RETRIES and e.hresult == -2147418111:
-                    continue
-                else:
-                    raise
+                    if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult == -2147418111:
+                        n_attempt += 1
+                        continue
+                    else:
+                        raise
             except AttributeError as e:
-                if i < N_COM_RETRIES:
+                if not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS:
+                    n_attempt += 1
                     continue
                 else:
                     raise
@@ -168,54 +177,6 @@ class COMRetryObjectWrapper(object):
                 yield COMRetryObjectWrapper(v)
             else:
                 yield v
-
-
-def com_setattr(obj, attr, val):
-    for i in range(N_COM_RETRIES+1):
-        try:
-            setattr(obj, attr, val)
-        except pywintypes.com_error as e:
-            if i < N_COM_RETRIES and e.hresult == -2147418111:
-                continue
-            else:
-                raise
-        except AttributeError as e:
-            if i < N_COM_RETRIES:
-                continue
-            else:
-                raise
-
-
-def com_getattr(obj, attr):
-    for i in range(N_COM_RETRIES+1):
-        try:
-            return getattr(obj, attr)
-        except pywintypes.com_error as e:
-            if i < N_COM_RETRIES and e.hresult == -2147418111:
-                continue
-            else:
-                raise
-        except AttributeError as e:
-            if i < N_COM_RETRIES:
-                continue
-            else:
-                raise
-
-
-def com_call(obj, meth, *args, **kwargs):
-    for i in range(N_COM_RETRIES+1):
-        try:
-            return getattr(obj, meth)(*args, **kwargs)
-        except pywintypes.com_error as e:
-            if i < N_COM_RETRIES and e.hresult == -2147418111:
-                continue
-            else:
-                raise
-        except AttributeError as e:
-            if i < N_COM_RETRIES:
-                continue
-            else:
-                raise
 
 
 # Constants
