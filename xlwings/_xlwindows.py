@@ -257,53 +257,6 @@ def get_xl_apps():
             pass
 
 
-def get_all_open_xl_workbooks(xl_app):
-    return [xl_workbook for xl_workbook in xl_app.Workbooks]
-
-
-def get_duplicate_fullnames():
-    """Returns a list of fullnames that are opened in multiple instances"""
-    open_xl_workbooks = []
-    for xl_app in get_xl_apps():
-        for xl_workbook in get_all_open_xl_workbooks(xl_app):
-            open_xl_workbooks.append(xl_workbook)
-    return get_duplicates([i.FullName.lower() for i in open_xl_workbooks])
-
-
-def get_open_workbook(fullname, app_target=None, hwnd=None):
-    """
-    Returns the COM Application and Workbook objects of an open Workbook.
-    While GetObject() would return the correct Excel instance if there are > 1,
-    it cannot cope with Workbooks that don't appear in the ROT (happens with
-    untrusted locations).
-    """
-    if app_target is not None:
-        raise NotImplementedError('app_target is only available on Mac.')
-    if not PY3:
-        if isinstance(fullname, str):
-            fullname = unicode(fullname, 'mbcs')
-    duplicate_fullnames = get_duplicate_fullnames()
-
-    if hwnd is None:
-        xl_apps = list(get_xl_apps())
-    else:
-        hwnd = int(hwnd)  # should it need to be long in PY2?
-        xl_apps = [get_xl_app_from_hwnd(hwnd)]
-
-    for xl_app in xl_apps:
-        for xl_workbook in get_all_open_xl_workbooks(xl_app):
-            if (
-                xl_workbook.FullName.lower() == fullname.lower() or
-                xl_workbook.Name.lower() == fullname.lower()
-               ):
-                if (xl_workbook.FullName.lower() not in duplicate_fullnames) or (hwnd is not None):
-                    return Book(xl_workbook)
-                else:
-                    warn('This Workbook is open in multiple instances.'
-                         'The connection was made with the one that was last active.')
-                    return Book(xl_workbook)
-
-
 def is_range_instance(xl_range):
     pyid = getattr(xl_range, '_oleobj_', None)
     if pyid is None:
@@ -1071,6 +1024,7 @@ def prepare_xl_data_element(x):
         return x
 
 
+# TODO: move somewhere better, same on mac
 def open_template(fullpath):
     os.startfile(fullpath)
 

@@ -244,6 +244,7 @@ class Book(object):
 
 
 class Sheets(object):
+
     def __init__(self, workbook):
         self.workbook = workbook
 
@@ -1070,32 +1071,6 @@ def hfs_to_posix_path(hfs_path):
     return mactypes.converturltopath(url, 0)  # kCFURLPOSIXPathStyle = 0
 
 
-def is_file_open(fullname):
-    """
-    Checks if the file is already open
-    """
-    for proc in psutil.process_iter():
-        try:
-            if proc.name() == 'Microsoft Excel':
-                for i in proc.open_files():
-                    path = i.path
-                    if PY3:
-                        if path.lower() == fullname.lower():
-                            return True
-                    else:
-                        if isinstance(path, str):
-                            path = unicode(path, 'utf-8')
-                            # Mac saves unicode data in decomposed form, e.g. an e with accent is stored as 2 code points
-                            path = unicodedata.normalize('NFKC', path)
-                        if isinstance(fullname, str):
-                            fullname = unicode(fullname, 'utf-8')
-                        if path.lower() == fullname.lower():
-                            return True
-        except psutil.NoSuchProcess:
-            pass
-    return False
-
-
 def is_excel_running():
     for proc in psutil.process_iter():
         try:
@@ -1104,10 +1079,6 @@ def is_excel_running():
         except psutil.NoSuchProcess:
             pass
     return False
-
-
-def is_range_instance(xl_range):
-    return isinstance(xl_range, appscript.genericreference.GenericReference)
 
 
 def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
