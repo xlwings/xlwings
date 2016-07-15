@@ -19,25 +19,19 @@ At this point, the API is fairly stable and we're expecting only smaller changes
     >>> xw.Range('A1').value
     11.0
 
-* Full support of multiple Excel instances (even on Mac, where it's not easy to work with multiple instances otherwise!)
+* Excel Instances: Full support of multiple Excel instances (even on Mac, where it's not easy to work with multiple instances otherwise!)
 
     >>> app1 = xw.App()
     >>> app2 = xw.App()
     >>> xw.apps
     Apps([<Excel App 1668>, <Excel App 1644>])
 
-* New powerful object model close to Excel's original:
+* New powerful object model based on collections and close to Excel's original:
   ``xw.apps[0].books['MyBook.xlsx'].sheets[0].range('A1:B2').value``
 
 * Support for both Python indexing (square brackets) and Excel indexing (round brackets):
 
   ``xw.books[0].sheets[0]`` is the same as ``xw.books(1).sheets(1)``
-
-* Collections for apps, books, sheets, pictures etc., allowing you to do things like:
-
-    >>> wb = xw.books.active
-    >>> [sheet.name for sheet in wb.sheets]
-    ['Sheet1', 'Sheet2', 'Sheet3']
 
 * Index and slicing support for ranges:
 
@@ -53,7 +47,7 @@ At this point, the API is fairly stable and we're expecting only smaller changes
 
 * When writing to ranges while Excel is busy, xlwings is now retrying until Excel is idle again
 
-* ``xw.view()`` has been extended to accept an existing sheet object
+* ``xw.view()`` has been extended to accept an optional sheet object
 
 * Objects like books, sheets etc. can now be compared (e.g. ``wb1 == wb2``) and are properly hashable
 
