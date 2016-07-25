@@ -130,7 +130,29 @@ apps = Apps(impl=xlplatform.Apps())
 
 class App(object):
     """
-    Application is dependent on the Workbook since there might be different application instances on Windows.
+    Excel application instance.
+
+    Parameters
+    ----------
+
+    spec : str, default None
+        Mac-only, use the full path to the Excel application,
+        e.g. ``/Applications/Microsoft Office 2011/Microsoft Excel`` or ``/Applications/Microsoft Excel``
+
+        On Windows, if you want to change the version of Excel that xlwings talks to, go to ``Control Panel >
+        Programs and Features`` and ``Repair`` the Office version that you want as default.
+
+    visible : bool, default None
+        Returns or sets a boolean value that determines whether the app is visible.
+
+    Examples
+    --------
+
+    >>> app1 = xw.App()
+    >>> app2 = xw.App()
+    >>> xw.apps
+    Apps([<Excel App 1668>, <Excel App 1644>])
+
     """
 
     def __init__(self, spec=None, impl=None, visible=None):
@@ -145,24 +167,67 @@ class App(object):
 
     @property
     def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.api
 
     @property
     def version(self):
+        """
+        Returns the Excel version number object.
+
+        Examples
+        --------
+
+        >>> app.version
+        VersionNumber('15.24')
+        >>> app.version.major
+        15
+
+
+        .. versionchanged:: 0.9.0
+        """
         return VersionNumber(self.impl.version)
 
     @property
     def selection(self):
+        """
+        Returns the selected cells as Range.
+
+
+        .. versionadded:: 0.9.0
+        """
         return Range(impl=self.impl.selection)
 
     def activate(self, steal_focus=False):
-        # Win Excel >= 2013 fails probably coz each Book is in an own window and we might not be using the correct HWND
+        """
+        Activates the Excel app.
+
+        Parameters
+        ----------
+        steal_focus : bool, default False
+            If True, make frontmost application and hand over focus from Python to Excel.
+
+
+        .. versionadded:: 0.9.0
+        """
+        # Win Excel >= 2013 fails if visible=False...we may somehow not be using the correct HWND
         self.impl.activate(steal_focus)
         if self != apps.active:
             raise Exception('Could not activate App! Try to instantiate the App with visible=True.')
 
     @property
     def visible(self):
+        """
+        Gets or sets the visibility of Excel to ``True`` or  ``False``.
+
+
+        .. versionadded:: 0.3.3
+        """
         return self.impl.visible
 
     @visible.setter
@@ -170,6 +235,13 @@ class App(object):
         self.impl.visible = value
 
     def quit(self):
+        """
+        Quits the application without saving any workbooks.
+
+
+        .. versionadded:: 0.3.3
+
+        """
         return self.impl.quit()
 
     def kill(self):
@@ -177,6 +249,12 @@ class App(object):
 
     @property
     def screen_updating(self):
+        """
+        Gets or sets screen updating to ``True`` or ``False``.
+
+
+        .. versionadded:: 0.3.3
+        """
         return self.impl.screen_updating
 
     @screen_updating.setter
@@ -185,6 +263,18 @@ class App(object):
 
     @property
     def calculation(self):
+        """
+        Returns or sets a calculation value that represents the calculation mode.
+        Modes: ``'manual'``, ``'automatic'``, ``'semiautomatic'``
+
+        Examples
+        --------
+        >>> wb = xw.Book()
+        >>> wb.app.calculation = 'manual'
+
+
+        .. versionchanged:: 0.9.0
+        """
         return self.impl.calculation
 
     @calculation.setter
@@ -192,21 +282,56 @@ class App(object):
         self.impl.calculation = value
 
     def calculate(self):
+        """
+        Calculates all open books.
+
+
+        .. versionadded:: 0.3.6
+
+        """
         self.impl.calculate()
 
     @property
     def books(self):
+        """
+        A collection of all Book objects that are currently open.
+
+
+        .. versionadded:: 0.9.0
+        """
         return Books(impl=self.impl.books)
 
     @property
     def hwnd(self):
+        """
+        Returns the Window handle (Windows-only).
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.hwnd
 
     @property
     def pid(self):
+        """
+        Returns the PID of the app.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.pid
 
     def range(self, arg1, arg2=None):
+        """
+        Returns a Range object from the active sheet of the active book.
+
+        See Also
+        --------
+        Range
+
+
+        .. versionadded:: 0.9.0
+        """
         return Range(impl=self.impl.range(arg1, arg2))
 
     def __repr__(self):
@@ -222,6 +347,38 @@ class App(object):
         return hash(self.pid)
 
     def macro(self, macro):
+        """
+        Runs a Sub or Function in Excel VBA that are not part of a specific workbook but e.g. are part of an add-in.
+
+        Arguments
+        ---------
+        macro : Name of Sub or Function with or without module name, e.g. ``'Module1.MyMacro'`` or ``'MyMacro'``
+
+        Examples
+        --------
+        This VBA function:
+
+        .. code-block:: vb.net
+
+            Function MySum(x, y)
+                MySum = x + y
+            End Function
+
+        can be accessed like this:
+
+        >>> app = xw.apps[0]
+        >>> my_sum = app.macro('MySum')
+        >>> my_sum(1, 2)
+        3
+
+        See Also
+        --------
+
+        Book.macro
+
+
+        .. versionadded:: 0.9.0
+        """
         return Macro(self, macro)
 
 
@@ -402,7 +559,7 @@ class Book(object):
         ---------
         This VBA function:
 
-        .. code-block:: vb
+        .. code-block:: vb.net
 
             Function MySum(x, y)
                 MySum = x + y

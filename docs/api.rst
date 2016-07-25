@@ -22,19 +22,19 @@ Top-level functions
 .. automodule:: xlwings
     :members: view
 
-Application
------------
+App
+---
 
-.. autoclass:: Application
+.. autoclass:: App
     :members:
 
-Workbook
---------
+Book
+----
 
 In order to use xlwings, instantiating a workbook object is always the first thing to do:
 
 
-.. autoclass:: Workbook
+.. autoclass:: Book
     :members:
 
 
@@ -73,21 +73,10 @@ Chart
 
 .. autoclass:: Chart
     :members:
-    :inherited-members:
-    :show-inheritance:
-    :exclude-members: __delattr__, __format__, __getattribute__, __hash__, __reduce__, __reduce_ex__, __setattr__, __sizeof__, __str__
+
 
 Picture
 -------
 
 .. autoclass:: Picture
-    :members:
-    :inherited-members:
-    :show-inheritance:
-    :exclude-members: __delattr__, __format__, __getattribute__, __hash__, __reduce__, __reduce_ex__, __setattr__, __sizeof__, __str__, __repr__
-
-Plot
-----
-
-.. autoclass:: Plot
     :members:
