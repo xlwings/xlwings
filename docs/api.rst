@@ -42,3 +42,9 @@ Sheet
 
 .. autoclass:: Sheet
     :members:
+
+Range
+-----
+
+.. autoclass:: Range
+    :members:

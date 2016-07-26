@@ -872,41 +872,25 @@ class Sheet(object):
 
 class Range(object):
     """
-    A Range object can be instantiated with the following arguments::
-
-        Range('A1')          Range('Sheet1', 'A1')          Range(1, 'A1')
-        Range('A1:C3')       Range('Sheet1', 'A1:C3')       Range(1, 'A1:C3')
-        Range((1,2))         Range('Sheet1, (1,2))          Range(1, (1,2))
-        Range((1,1), (3,3))  Range('Sheet1', (1,1), (3,3))  Range(1, (1,1), (3,3))
-        Range('NamedRange')  Range('Sheet1', 'NamedRange')  Range(1, 'NamedRange')
-
-    The Sheet can also be provided as Sheet object::
-
-        sh = Sheet(1)
-        Range(sh, 'A1')
-
-    If no worksheet name is provided as first argument, it will take the Range from the active sheet.
-
-    You usually want to go for ``Range(...).value`` to get the values (as list of lists).
+    Returns a Range object that represents a cell or a range of cells of the active Sheet.
 
     Arguments
     ---------
-    *args :
-        Definition of sheet (optional) and Range in the above described combinations.
+    *args : One or two cells in A1 notation or as index-tuple or as name or as xw.Range objects.
 
-    Keyword Arguments
-    -----------------
-    asarray : boolean, default False
-        Returns a NumPy array (atleast_1d) where empty cells are transformed into nan.
 
-    index : boolean, default True
-        Includes the index when setting a Pandas DataFrame or Series.
+    Examples
+    --------
 
-    header : boolean, default True
-        Includes the column headers when setting a Pandas DataFrame.
+    .. code-block:: python
 
-    wkb : Workbook object, default Workbook.current()
-        Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
+        xw.Range('A1')
+        xw.Range('A1:C3')
+        xw.Range((1,1))
+        xw.Range((1,1), (3,3))
+        xw.Range('NamedRange')
+        xw.Range(xw.Range('A1'), xw.Range('B2'))
+
     """
 
     def __init__(self, *args, **options):
@@ -991,7 +975,7 @@ class Range(object):
             transpose values
 
         expand : str, default None
-            One of ``'table'``, ``'vertical'``, ``'horizontal'``, see also ``Range.table`` etc
+            One of ``'table'``, ``'down'``, ``'right'``
 
          => For converter-specific options, see :ref:`converters`.
 
@@ -1010,23 +994,60 @@ class Range(object):
 
     @property
     def sheet(self):
+        """
+        Returns the Sheet object to which the Range belongs.
+
+
+        .. versionadded:: 0.9.0
+        """
         return Sheet(impl=self.impl.sheet)
 
     def __len__(self):
         return len(self.impl)
 
-    count = property(__len__)
+    @property
+    def count(self):
+        """
+        Returns the number of cells.
+
+        """
+        return len(self)
 
     @property
     def row(self):
+        """
+        Returns the number of the first row in the specified range. Read-only.
+
+        Returns
+        -------
+        Integer
+
+
+        .. versionadded:: 0.3.5
+        """
         return self.impl.row
 
     @property
     def column(self):
+        """
+        Returns the number of the first column in the in the specified range. Read-only.
+
+        Returns
+        -------
+        Integer
+
+
+        .. versionadded:: 0.3.5
+        """
         return self.impl.column
 
     @property
     def raw_value(self):
+        """
+        Gets and sets the values directly as delivered from/accepted by the engine that is being used (``pywin32`` or ``appscript``)
+        without going through any of xlwings' data cleaning/converting. This can be helpful if speed is an issue but naturally
+        will be engine specific, i.e. might remove the cross-platform compatibility.
+        """
         return self.impl.raw_value
 
     @raw_value.setter
@@ -1034,16 +1055,38 @@ class Range(object):
         self.impl.raw_value = data
 
     def clear_contents(self):
+        """Clears the content of a Range but leaves the formatting."""
         return self.impl.clear_contents()
 
     def clear(self):
+        """Clears the content and the formatting of a Range."""
         return self.impl.clear()
 
     def end(self, direction):
+        """
+        Returns a Range object that represents the cell at the end of the region that contains the source range.
+        Equivalent to pressing Ctrl+Up, Ctrl+down, Ctrl+left, or Ctrl+right.
+
+        Parameters
+        ----------
+        direction : One of 'up', 'down', 'right', 'left'
+
+        Examples
+        --------
+        >>> xw.Range('A1:B2').value = 1
+        >>> xw.Range('A1').end('down').address
+        '$A$2'
+        >>> xw.Range('B2').end('right').address
+        '$B$2'
+
+
+        .. versionadded:: 0.9.0
+        """
         return Range(impl=self.impl.end(direction))
 
     @property
     def formula(self):
+        """Gets or sets the formula for the given Range."""
         return self.impl.formula
 
     @formula.setter
@@ -1052,6 +1095,12 @@ class Range(object):
 
     @property
     def formula_array(self):
+        """
+        Gets or sets an  array formula for the given Range.
+
+
+        .. versionadded:: 0.7.1
+        """
         return self.impl.formula_array
 
     @formula_array.setter
@@ -1060,6 +1109,27 @@ class Range(object):
 
     @property
     def column_width(self):
+        """
+        Gets or sets the width, in characters, of a Range.
+        One unit of column width is equal to the width of one character in the Normal style.
+        For proportional fonts, the width of the character 0 (zero) is used.
+
+        If all columns in the Range have the same width, returns the width.
+        If columns in the Range have different widths, returns None.
+
+        column_width must be in the range:
+        0 <= column_width <= 255
+
+        Note: If the Range is outside the used range of the Worksheet, and columns in the Range have different widths,
+        returns the width of the first column.
+
+        Returns
+        -------
+        float
+
+
+        .. versionadded:: 0.4.0
+        """
         return self.impl.column_width
 
     @column_width.setter
@@ -1068,6 +1138,24 @@ class Range(object):
 
     @property
     def row_height(self):
+        """
+        Gets or sets the height, in points, of a Range.
+        If all rows in the Range have the same height, returns the height.
+        If rows in the Range have different heights, returns None.
+
+        row_height must be in the range:
+        0 <= row_height <= 409.5
+
+        Note: If the Range is outside the used range of the Worksheet, and rows in the Range have different heights,
+        returns the height of the first row.
+
+        Returns
+        -------
+        float
+
+
+        .. versionadded:: 0.4.0
+        """
         return self.impl.row_height
 
     @row_height.setter
@@ -1076,22 +1164,76 @@ class Range(object):
 
     @property
     def width(self):
+        """
+        Returns the width, in points, of a Range. Read-only.
+
+        Returns
+        -------
+        float
+
+
+        .. versionadded:: 0.4.0
+        """
         return self.impl.width
 
     @property
     def height(self):
+        """
+        Returns the height, in points, of a Range. Read-only.
+
+        Returns
+        -------
+        float
+
+
+        .. versionadded:: 0.4.0
+        """
         return self.impl.height
 
     @property
     def left(self):
+        """
+        Returns the distance, in points, from the left edge of column A to the left edge of the range. Read-only.
+
+        Returns
+        -------
+        float
+
+
+        .. versionadded:: 0.6.0
+        """
         return self.impl.left
 
     @property
     def top(self):
+        """
+        Returns the distance, in points, from the top edge of row 1 to the top edge of the range. Read-only.
+
+        Returns
+        -------
+        float
+
+
+        .. versionadded:: 0.6.0
+        """
         return self.impl.top
 
     @property
     def number_format(self):
+        """
+        Gets and sets the number_format of a Range.
+
+        Examples
+        --------
+        >>> Range('A1').number_format
+        'General'
+        >>> Range('A1:C3').number_format = '0.00%'
+        >>> Range('A1:C3').number_format
+        '0.00%'
+
+
+        .. versionadded:: 0.2.3
+        """
         return self.impl.number_format
 
     @number_format.setter
@@ -1100,7 +1242,8 @@ class Range(object):
 
     def get_address(self, row_absolute=True, column_absolute=True, include_sheetname=False, external=False):
         """
-        Returns the address of the range in the specified format.
+        Returns the address of the range in the specified format. ``address`` can be used instead if none of the
+        defaults need to be changed.
 
         Arguments
         ---------
@@ -1124,13 +1267,13 @@ class Range(object):
         --------
         ::
 
-            >>> Range((1,1)).get_address()
+            >>> xw.Range((1,1)).get_address()
             '$A$1'
-            >>> Range((1,1)).get_address(False, False)
+            >>> xw.Range((1,1)).get_address(False, False)
             'A1'
-            >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, True)
+            >>> xw.Range((1,1), (3,3)).get_address(True, False, True)
             'Sheet1!A$1:C$3'
-            >>> Range('Sheet1', (1,1), (3,3)).get_address(True, False, external=True)
+            >>> xw.Range((1,1), (3,3)).get_address(True, False, external=True)
             '[Workbook1]Sheet1!A$1:C$3'
 
         .. versionadded:: 0.2.3
@@ -1154,17 +1297,66 @@ class Range(object):
 
     @property
     def address(self):
+        """
+        Returns a string value that represents the range reference. Use ``get_address()`` to be able to provide
+        paramaters.
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.address
 
     @property
     def current_region(self):
+        """
+        This property returns a Range object representing a range bounded by (but not including) any
+        combination of blank rows and blank columns or the edges of the worksheet. It corresponds to ``Ctrl-*`` on
+        Windows and ``Shift-Ctrl-Space`` on Mac.
+
+        Returns
+        -------
+        Range object
+        """
+
         return Range(impl=self.impl.current_region)
 
     def autofit(self):
+        """
+        Autofits the width and height of all cells in the range.
+
+        * To autofit only the width of the columns use ``xw.Range('A1:B2').columns.autofit()``
+        * To autofit only the height of the rows use ``xw.Range('A1:B2').rows.autofit()``
+
+
+        .. versionchanged:: 0.9.0
+        """
         return self.impl.autofit()
 
     @property
     def color(self):
+        """
+        Gets and sets the background color of the specified Range.
+
+        To set the color, either use an RGB tuple ``(0, 0, 0)`` or a color constant.
+        To remove the background, set the color to ``None``, see Examples.
+
+        Returns
+        -------
+        RGB : tuple
+
+        Examples
+        --------
+        >>> Range('A1').color = (255,255,255)
+        >>> from xlwings.constants import RgbColor
+        >>> Range('A2').color = RgbColor.rgbAqua
+        >>> Range('A2').color
+        (0, 255, 255)
+        >>> Range('A2').color = None
+        >>> Range('A2').color is None
+        True
+
+
+        .. versionadded:: 0.3.0
+        """
         return self.impl.color
 
     @color.setter
@@ -1173,6 +1365,11 @@ class Range(object):
 
     @property
     def name(self):
+        """
+        Sets or gets the name of a Range.
+
+        .. versionadded:: 0.4.0
+        """
         impl = self.impl.name
         return impl and Name(impl=impl)
 
@@ -1185,10 +1382,22 @@ class Range(object):
 
     @property
     def rows(self):
+        """
+        Returns a RangeRows object that represents the rows in the specified range.
+
+
+        .. versionadded:: 0.9.0
+        """
         return RangeRows(self)
 
     @property
     def columns(self):
+        """
+        Returns a RangeColumns object that represents the columns in the specified range.
+
+
+        .. versionadded:: 0.9.0
+        """
         return RangeColumns(self)
 
     @property
@@ -1217,8 +1426,7 @@ class Range(object):
 
         Returns
         -------
-        object
-            Empty cells are set to ``None``.
+        object : returned object depends on the converter being used, see :meth:`xlwings.Range.options`
         """
         return conversion.read(self, None, self._options)
 
@@ -1226,7 +1434,30 @@ class Range(object):
     def value(self, data):
         conversion.write(data, self, self._options)
 
-    def expand(self, mode):
+    def expand(self, mode='table'):
+        """
+        Expands the range according to the mode provided. Ignores empty top-left cells (unlike ``Range.end()``).
+
+        Parameters
+        ----------
+        mode : str, default 'table'
+            One of ``'table'`` (=down and right), ``'down'``, ``'right'``.
+
+        Returns
+        -------
+        Range
+
+        Examples
+        --------
+
+        >>> xw.Range('A1').value = [[None, 1], [2, 3]]
+        >>> xw.Range('A1').expand().address
+        $A$1:$B$2
+        >>> xw.Range('A1').expand('right').address
+        $A$1:$B$1
+
+        .. versionadded:: 0.9.0
+        """
         if mode == 'table':
             origin = self(1, 1)
             if origin(2, 1).raw_value in [None, ""]:
@@ -1338,9 +1569,9 @@ class Range(object):
 
         Examples
         --------
-        >>> Range('A1').value
+        >>> xw.Range('A1').value
         'www.xlwings.org'
-        >>> Range('A1').hyperlink
+        >>> xw.Range('A1').hyperlink
         'http://www.xlwings.org'
 
         .. versionadded:: 0.3.0
@@ -1394,7 +1625,7 @@ class Range(object):
 
         Returns
         -------
-        Range : Range object
+        Range object: Range
 
 
         .. versionadded:: 0.3.0
@@ -1417,7 +1648,7 @@ class Range(object):
 
         Returns
         -------
-        Range : Range object
+        Range object : Range
 
 
         .. versionadded:: 0.3.0
@@ -1440,11 +1671,11 @@ class Range(object):
 
         Returns
         -------
-        Range object
+        Range
 
         Example
         -------
-        >>> rng = Range('A1').table
+        >>> rng = xw.Range('A1:E4')
         >>> rng.last_cell.row, rng.last_cell.column
         (4, 5)
 
@@ -1453,7 +1684,12 @@ class Range(object):
         return self(self.shape[0], self.shape[1]).options(**self._options)
 
     def select(self):
-        # Select only works on the active sheet
+        """
+        Selects the range. Select only works on the active book.
+
+
+        .. versionadded:: 0.9.0
+        """
         self.impl.select()
 
 
