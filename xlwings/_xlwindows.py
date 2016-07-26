@@ -18,14 +18,14 @@ from ctypes import oledll, PyDLL, py_object, byref, POINTER, windll
 
 import pywintypes
 import pythoncom
-from win32com.client import  Dispatch, CDispatch, DispatchEx
+from win32com.client import Dispatch, CDispatch, DispatchEx
 import win32timezone
 import win32gui
 import win32process
 from comtypes import IUnknown
 from comtypes.automation import IDispatch
 
-from .constants import Direction, ColorIndex
+from .constants import ColorIndex
 from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime, col_name
 
 # Optional imports
@@ -46,7 +46,7 @@ if np:
     time_types = time_types + (np.datetime64,)
 
 
-N_COM_RETRIES = 10
+N_COM_ATTEMPTS = 0      # 0 means try indefinitely
 BOOK_CALLER = None
 
 missing = object()
@@ -58,7 +58,8 @@ class COMRetryMethodWrapper(object):
         self.__method = method
 
     def __call__(self, *args, **kwargs):
-        for i in range(N_COM_RETRIES + 1):
+        n_attempt = 1
+        while True:
             try:
                 v = self.__method(*args, **kwargs)
                 t = type(v)
@@ -69,12 +70,14 @@ class COMRetryMethodWrapper(object):
                 else:
                     return v
             except pywintypes.com_error as e:
-                if i < N_COM_RETRIES and e.hresult == -2147418111:
+                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult == -2147418111:
+                    n_attempt += 1
                     continue
                 else:
                     raise
             except AttributeError as e:
-                if i < N_COM_RETRIES:
+                if not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS:
+                    n_attempt += 1
                     continue
                 else:
                     raise
@@ -90,22 +93,26 @@ class COMRetryObjectWrapper(object):
         object.__setattr__(self, '_inner', inner)
 
     def __setattr__(self, key, value):
-        for i in range(N_COM_RETRIES + 1):
+        n_attempt = 1
+        while True:
             try:
-                setattr(self._inner, key, value)
+                return setattr(self._inner, key, value)
             except pywintypes.com_error as e:
-                if i < N_COM_RETRIES and e.hresult == -2147418111:
+                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult == -2147418111:
+                    n_attempt += 1
                     continue
                 else:
                     raise
             except AttributeError as e:
-                if i < N_COM_RETRIES:
+                if not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS:
+                    n_attempt += 1
                     continue
                 else:
                     raise
 
     def __getattr__(self, item):
-        for i in range(N_COM_RETRIES + 1):
+        n_attempt = 1
+        while True:
             try:
                 v = getattr(self._inner, item)
                 t = type(v)
@@ -116,11 +123,9 @@ class COMRetryObjectWrapper(object):
                 else:
                     return v
             except pywintypes.com_error as e:
-                if e.hresult == -2147418111:  # RPC_E_CALL_REJECTED
-                    if i < N_COM_RETRIES:
-                        continue
-                    else:
-                        raise ExcelBusyError()
+                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult == -2147418111:
+                    n_attempt += 1
+                    continue
                 else:
                     raise
             except AttributeError as e:
@@ -134,13 +139,15 @@ class COMRetryObjectWrapper(object):
                     if e.hresult != -2147418111:   # RPC_E_CALL_REJECTED
                         # attribute probably really doesn't exist
                         raise
-                if i < N_COM_RETRIES:
+                if not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS:
+                    n_attempt += 1
                     continue
                 else:
                     raise ExcelBusyError()
 
     def __call__(self, *args, **kwargs):
-        for i in range(N_COM_RETRIES + 1):
+        n_attempt = 1
+        for i in range(N_COM_ATTEMPTS + 1):
             try:
                 v = self._inner(*args, **kwargs)
                 t = type(v)
@@ -151,12 +158,14 @@ class COMRetryObjectWrapper(object):
                 else:
                     return v
             except pywintypes.com_error as e:
-                if i < N_COM_RETRIES and e.hresult == -2147418111:
-                    continue
-                else:
-                    raise
+                    if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult == -2147418111:
+                        n_attempt += 1
+                        continue
+                    else:
+                        raise
             except AttributeError as e:
-                if i < N_COM_RETRIES:
+                if not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS:
+                    n_attempt += 1
                     continue
                 else:
                     raise
@@ -167,55 +176,7 @@ class COMRetryObjectWrapper(object):
             if t is CDispatch:
                 yield COMRetryObjectWrapper(v)
             else:
-                return v
-
-
-def com_setattr(obj, attr, val):
-    for i in range(N_COM_RETRIES+1):
-        try:
-            setattr(obj, attr, val)
-        except pywintypes.com_error as e:
-            if i < N_COM_RETRIES and e.hresult == -2147418111:
-                continue
-            else:
-                raise
-        except AttributeError as e:
-            if i < N_COM_RETRIES:
-                continue
-            else:
-                raise
-
-
-def com_getattr(obj, attr):
-    for i in range(N_COM_RETRIES+1):
-        try:
-            return getattr(obj, attr)
-        except pywintypes.com_error as e:
-            if i < N_COM_RETRIES and e.hresult == -2147418111:
-                continue
-            else:
-                raise
-        except AttributeError as e:
-            if i < N_COM_RETRIES:
-                continue
-            else:
-                raise
-
-
-def com_call(obj, meth, *args, **kwargs):
-    for i in range(N_COM_RETRIES+1):
-        try:
-            return getattr(obj, meth)(*args, **kwargs)
-        except pywintypes.com_error as e:
-            if i < N_COM_RETRIES and e.hresult == -2147418111:
-                continue
-            else:
-                raise
-        except AttributeError as e:
-            if i < N_COM_RETRIES:
-                continue
-            else:
-                raise
+                yield v
 
 
 # Constants
@@ -294,53 +255,6 @@ def get_xl_apps():
             # This happens if the bare Excel Application is open without Workbook
             # i.e. there is no 'EXCEL7' child hwnd that would be necessary to make a connection
             pass
-
-
-def get_all_open_xl_workbooks(xl_app):
-    return [xl_workbook for xl_workbook in xl_app.Workbooks]
-
-
-def get_duplicate_fullnames():
-    """Returns a list of fullnames that are opened in multiple instances"""
-    open_xl_workbooks = []
-    for xl_app in get_xl_apps():
-        for xl_workbook in get_all_open_xl_workbooks(xl_app):
-            open_xl_workbooks.append(xl_workbook)
-    return get_duplicates([i.FullName.lower() for i in open_xl_workbooks])
-
-
-def get_open_workbook(fullname, app_target=None, hwnd=None):
-    """
-    Returns the COM Application and Workbook objects of an open Workbook.
-    While GetObject() would return the correct Excel instance if there are > 1,
-    it cannot cope with Workbooks that don't appear in the ROT (happens with
-    untrusted locations).
-    """
-    if app_target is not None:
-        raise NotImplementedError('app_target is only available on Mac.')
-    if not PY3:
-        if isinstance(fullname, str):
-            fullname = unicode(fullname, 'mbcs')
-    duplicate_fullnames = get_duplicate_fullnames()
-
-    if hwnd is None:
-        xl_apps = list(get_xl_apps())
-    else:
-        hwnd = int(hwnd)  # should it need to be long in PY2?
-        xl_apps = [get_xl_app_from_hwnd(hwnd)]
-
-    for xl_app in xl_apps:
-        for xl_workbook in get_all_open_xl_workbooks(xl_app):
-            if (
-                xl_workbook.FullName.lower() == fullname.lower() or
-                xl_workbook.Name.lower() == fullname.lower()
-               ):
-                if (xl_workbook.FullName.lower() not in duplicate_fullnames) or (hwnd is not None):
-                    return Book(xl_workbook)
-                else:
-                    warn('This Workbook is open in multiple instances.'
-                         'The connection was made with the one that was last active.')
-                    return Book(xl_workbook)
 
 
 def is_range_instance(xl_range):
@@ -1042,12 +956,12 @@ def _com_time_to_datetime(com_time, datetime_builder):
         # We copy to a new datetime so that the returned type is the same between 2/3
         # Changed: We make the datetime object timezone naive as Excel doesn't provide info
         return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
-                           hour=com_time.hour, minute=com_time.minute, second=com_time.second,
-                           microsecond=com_time.microsecond, tzinfo=None)
+                                hour=com_time.hour, minute=com_time.minute, second=com_time.second,
+                                microsecond=com_time.microsecond, tzinfo=None)
     else:
         assert com_time.msec == 0, "fractional seconds not yet handled"
         return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
-                           hour=com_time.hour, minute=com_time.minute, second=com_time.second)
+                                hour=com_time.hour, minute=com_time.minute, second=com_time.second)
 
 
 def _datetime_to_com_time(dt_time):
@@ -1110,6 +1024,7 @@ def prepare_xl_data_element(x):
         return x
 
 
+# TODO: move somewhere better, same on mac
 def open_template(fullpath):
     os.startfile(fullpath)
 

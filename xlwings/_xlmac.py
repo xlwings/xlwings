@@ -12,7 +12,7 @@ import appscript
 from appscript import k as kw, mactypes, its
 from appscript.reference import CommandError
 
-from .constants import ColorIndex, Calculation
+from .constants import ColorIndex
 from .utils import int_to_rgb, np_datetime_to_datetime, col_name, VersionNumber
 from . import mac_dict, PY3, string_types
 
@@ -244,6 +244,7 @@ class Book(object):
 
 
 class Sheets(object):
+
     def __init__(self, workbook):
         self.workbook = workbook
 
@@ -382,10 +383,10 @@ class Sheet(object):
         self.book.app.screen_updating = alerts_state
 
     def delete(self):
-        alerts_state = self.book.app.screen_updating
-        self.book.app.screen_updating = False
+        alerts_state = self.book.app.xl.display_alerts.get()
+        self.book.app.xl.display_alerts.set(False)
         self.xl.delete()
-        self.book.app.screen_updating = alerts_state
+        self.book.app.xl.display_alerts.set(alerts_state)
 
     @property
     def charts(self):
@@ -644,7 +645,6 @@ class Range(object):
         row = self.row
         col1 = self.column
         col2 = col1 + self.shape[1] - 1
-        sht = self.sheet
         return [
             self.sheet.range((row+i, col1), (row+i, col2))
             for i in range(self.shape[0])
@@ -785,9 +785,9 @@ class Chart(object):
     @name.setter
     def name(self, value):
         if self.xl_obj is not None:
-            return self.xl_obj.name.set(value)
+            self.xl_obj.name.set(value)
         else:
-            return self.xl.name.get(value)
+            self.xl.name.get(value)
 
     @property
     def chart_type(self):
@@ -904,7 +904,7 @@ class Picture(object):
 
     @top.setter
     def top(self, value):
-         self.xl.top.set(value)
+        self.xl.top.set(value)
 
     @property
     def width(self):
@@ -1071,32 +1071,6 @@ def hfs_to_posix_path(hfs_path):
     return mactypes.converturltopath(url, 0)  # kCFURLPOSIXPathStyle = 0
 
 
-def is_file_open(fullname):
-    """
-    Checks if the file is already open
-    """
-    for proc in psutil.process_iter():
-        try:
-            if proc.name() == 'Microsoft Excel':
-                for i in proc.open_files():
-                    path = i.path
-                    if PY3:
-                        if path.lower() == fullname.lower():
-                            return True
-                    else:
-                        if isinstance(path, str):
-                            path = unicode(path, 'utf-8')
-                            # Mac saves unicode data in decomposed form, e.g. an e with accent is stored as 2 code points
-                            path = unicodedata.normalize('NFKC', path)
-                        if isinstance(fullname, str):
-                            fullname = unicode(fullname, 'utf-8')
-                        if path.lower() == fullname.lower():
-                            return True
-        except psutil.NoSuchProcess:
-            pass
-    return False
-
-
 def is_excel_running():
     for proc in psutil.process_iter():
         try:
@@ -1105,10 +1079,6 @@ def is_excel_running():
         except psutil.NoSuchProcess:
             pass
     return False
-
-
-def is_range_instance(xl_range):
-    return isinstance(xl_range, appscript.genericreference.GenericReference)
 
 
 def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):

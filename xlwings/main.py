@@ -14,7 +14,6 @@ import sys
 import re
 import numbers
 import inspect
-import tempfile
 
 from . import xlplatform, string_types, ShapeAlreadyExists, PY3
 from .utils import VersionNumber
@@ -216,6 +215,9 @@ class App(object):
     def __eq__(self, other):
         return type(other) is App and other.pid == self.pid
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __hash__(self):
         return hash(self.pid)
 
@@ -302,6 +304,9 @@ class Book(object):
     def __eq__(self, other):
         return isinstance(other, Book) and self.app == other.app and self.name == other.name
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __hash__(self):
         return hash((self.app, self.name))
 
@@ -331,7 +336,7 @@ class Book(object):
             fullname = sys.argv[1].lower()
             if sys.platform.startswith('win'):
                 app = App(impl=xlplatform.App(xl=int(sys.argv[4])))  # hwnd
-                return cls(impl=app.book(fullname).impl)
+                return cls(impl=app.books.open(fullname).impl)
             else:
                 # On Mac, the same file open in two instances is not supported
                 return cls(impl=Book(fullname).impl)
@@ -480,7 +485,7 @@ class Sheet(object):
 
     def __init__(self, sheet=None, impl=None):
         if impl is None:
-            self.impl = Book.active().sheet(sheet).impl
+            self.impl = books.active.sheets(sheet).impl
         else:
             self.impl = impl
 
@@ -490,6 +495,9 @@ class Sheet(object):
 
     def __eq__(self, other):
         return isinstance(other, Sheet) and self.book == other.book and self.name == other.name
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __hash__(self):
         return hash((self.book, self.name))
@@ -604,9 +612,10 @@ class Range(object):
         Defaults to the Workbook that was instantiated last or set via `Workbook.set_current()``.
     """
 
-    def __init__(self, *args, impl=None, **options):
+    def __init__(self, *args, **options):
 
         # Arguments
+        impl = options.pop('impl', None)
         if impl is None:
             if len(args) == 2 and isinstance(args[0], Range) and isinstance(args[1], Range):
                 if args[0].sheet != args[1].sheet:
@@ -638,6 +647,9 @@ class Range(object):
            and self.column == other.column
            and self.shape == other.shape
         )
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __hash__(self):
         return hash((self.sheet, self.row, self.column, self.shape))
@@ -930,7 +942,7 @@ class Range(object):
 
             return Range(top_right, bottom_left)
 
-        elif mode == 'vertical':
+        elif mode in ['vertical', 'd', 'down']:
             if self(2, 1).raw_value in [None, ""]:
                 return Range(self(1, 1), self(1, self.shape[1]))
             elif self(3, 1).raw_value in [None, ""]:
@@ -939,7 +951,7 @@ class Range(object):
                 end_row = self(2, 1).end('down').row - self.row + 1
                 return Range(self(1, 1), self(end_row, self.shape[1]))
 
-        elif mode == 'horizontal':
+        elif mode in ['horizontal', 'r', 'right']:
             if self(1, 2).raw_value in [None, ""]:
                 return Range(self(1, 1), self(self.shape[0], 1))
             elif self(1, 3).raw_value in [None, ""]:
@@ -947,7 +959,6 @@ class Range(object):
             else:
                 end_column = self(1, 2).end('right').column - self.column + 1
                 return Range(self(1, 1), self(self.shape[0], end_column))
-
 
     def __getitem__(self, key):
         if type(key) is tuple:
@@ -1248,8 +1259,8 @@ class Shape(object):
 
     .. versionadded:: 0.5.0
     """
-    def __init__(self, *args, impl=None):
-
+    def __init__(self, *args, **options):
+        impl = options.pop('impl', None)
         if impl is None:
             if len(args) == 1:
                 impl = sheets.active.shapes(args[0]).impl
@@ -1320,6 +1331,9 @@ class Shape(object):
             other.name == self.name
         )
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __repr__(self):
         return "<Shape '{0}' in {1}>".format(
             self.name,
@@ -1375,9 +1389,9 @@ class Chart(object):
         if impl is not None:
             self.impl = impl
         elif name_or_index is not None:
-            self.impl = Sheet.active().chart(name_or_index).impl
+            self.impl = sheets.active.charts(name_or_index).impl
         else:
-            self.impl = Sheet.active().charts.add().impl
+            self.impl = sheets.active.charts.add().impl
 
     @property
     def api(self):
@@ -1607,6 +1621,16 @@ class Picture(object):
 
     def delete(self):
         self.impl.delete()
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, Picture) and
+            other.parent == self.parent and
+            other.name == self.name
+        )
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __repr__(self):
         return "<Picture '{0}' in {1}>".format(

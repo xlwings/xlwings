@@ -4,45 +4,9 @@ import os
 import inspect
 import unittest
 
-import nose
-
 import xlwings as xw
 
 this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
-
-# Optional dependencies
-try:
-    import numpy as np
-except ImportError:
-    np = None
-try:
-    import pandas as pd
-except ImportError:
-    pd = None
-try:
-    import matplotlib
-except ImportError:
-    matplotlib = None
-try:
-    import PIL
-except ImportError:
-    PIL = None
-
-
-# Test skips and fixtures
-def _skip_if_no_numpy():
-    if np is None:
-        raise nose.SkipTest('numpy missing')
-
-
-def _skip_if_no_pandas():
-    if pd is None:
-        raise nose.SkipTest('pandas missing')
-
-
-def _skip_if_no_matplotlib():
-    if matplotlib is None:
-        raise nose.SkipTest('matplotlib missing')
 
 # Uncomment to run tests in Mac Excel 2011
 SPEC = None
