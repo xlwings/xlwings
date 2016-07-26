@@ -93,12 +93,29 @@ class Collection(object):
 
 
 class Apps(object):
+    """
+    Use ``xw.apps`` to get access to the :class:`App` objects that are contained in the apps collection.
+
+    Examples
+    --------
+
+    >>> xw.apps
+    Apps([<Excel App 1668>, <Excel App 1644>])
+    >>> xw.apps[0]
+    <Excel App 1668>
+    >>> xw.apps.active
+    <Excel App 1668>
+
+    """
 
     def __init__(self, impl):
         self.impl = impl
 
     @property
     def active(self):
+        """
+        Returns the active app.
+        """
         for app in self.impl:
             return App(impl=app)
         return None
@@ -118,7 +135,13 @@ class Apps(object):
     def __len__(self):
         return len(self.impl)
 
-    count = property(__len__)
+    @property
+    def count(self):
+        """
+        Returns the number of apps.
+
+        """
+        return len(self)
 
     def __iter__(self):
         for app in self.impl:
@@ -346,13 +369,13 @@ class App(object):
     def __hash__(self):
         return hash(self.pid)
 
-    def macro(self, macro):
+    def macro(self, name):
         """
         Runs a Sub or Function in Excel VBA that are not part of a specific workbook but e.g. are part of an add-in.
 
         Arguments
         ---------
-        macro : Name of Sub or Function with or without module name, e.g. ``'Module1.MyMacro'`` or ``'MyMacro'``
+        name : Name of Sub or Function with or without module name, e.g. ``'Module1.MyMacro'`` or ``'MyMacro'``
 
         Examples
         --------
@@ -379,44 +402,29 @@ class App(object):
 
         .. versionadded:: 0.9.0
         """
-        return Macro(self, macro)
+        return Macro(self, name)
 
 
 class Book(object):
     """
-    ``Workbook`` connects an Excel Workbook with Python. You can create a new connection from Python with
+    Represents an Excel Workbook in Python. The following syntax is an alternative for using
+    the ``books`` collection to instantiate Book objects in the active app:
 
-    * a new workbook: ``wb = Workbook()``
-    * the active workbook: ``wb = Workbook.active()``
-    * an unsaved workbook: ``wb = Workbook('Book1')``
-    * a saved (open) workbook by name (incl. xlsx etc): ``wb = Workbook('MyWorkbook.xlsx')``
-    * a saved (open or closed) workbook by path: ``wb = Workbook(r'C:\\path\\to\\file.xlsx')``
+    +--------------------+--------------------------------------+--------------------------------------------+
+    |                    | xw.Book                              | xw.books                                   |
+    +====================+======================================+============================================+
+    | New book           | ``xw.Book()``                        | ``xw.books.add()``                         |
+    +--------------------+--------------------------------------+--------------------------------------------+
+    | Unsaved book       | ``xw.Book('Book1')``                 | ``xw.books['Book1']``                      |
+    +--------------------+--------------------------------------+--------------------------------------------+
+    | Book by (full)name | ``xw.Book(r'C:/path/to/file.xlsx')`` | ``xw.books.open(r'C:/path/to/file.xlsx')`` |
+    +--------------------+--------------------------------------+--------------------------------------------+
 
-    Keyword Arguments
-    -----------------
+    Parameters
+    ----------
     fullname : str, default None
-        Full path or name (incl. xlsx, xlsm etc.) of existing workbook or name of an unsaved workbook.
-
-    xl_workbook : pywin32 or appscript Workbook object, default None
-        This enables to turn existing Workbook objects of the underlying libraries into xlwings objects
-
-    app_visible : boolean, default True
-        The resulting Workbook will be visible by default. To open it without showing a window,
-        set ``app_visible=False``. Or, to not alter the visibility (e.g., if Excel is already running),
-        set ``app_visible=None``. Note that this property acts on the whole Excel instance, not just the
-        specific Workbook.
-
-    app_target : str, default None
-        Mac-only, use the full path to the Excel application,
-        e.g. ``/Applications/Microsoft Office 2011/Microsoft Excel`` or ``/Applications/Microsoft Excel``
-
-        On Windows, if you want to change the version of Excel that xlwings talks to, go to ``Control Panel >
-        Programs and Features`` and ``Repair`` the Office version that you want as default.
-
-
-    To create a connection when the Python function is called from Excel, use:
-
-    ``wb = Workbook.caller()``
+        Full path or name (incl. xlsx, xlsm etc.) of existing workbook or name of an unsaved workbook. Without a full
+        path, it looks for the file in the current working directory.
 
     """
 
@@ -456,6 +464,12 @@ class Book(object):
 
     @property
     def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.api
 
     def __eq__(self, other):
@@ -470,19 +484,16 @@ class Book(object):
     @classmethod
     def caller(cls):
         """
-        Creates a connection when the Python function is called from Excel:
-
-        ``wb = Workbook.caller()``
-
-        Always pack the ``Workbook`` call into the function being called from Excel, e.g.:
+        References the calling book when the Python function is called from Excel via ``RunPython``.
+        Pack it into the function being called from Excel, e.g.:
 
         .. code-block:: python
 
              def my_macro():
-                wb = Workbook.caller()
-                Range('A1').value = 1
+                wb = xw.Book.caller()
+                wb.sheets[0].range('A1').value = 1
 
-        To be able to easily invoke such code from Python for debugging, use ``Workbook.set_mock_caller()``.
+        To be able to easily invoke such code from Python for debugging, use ``xw.Book.set_mock_caller()``.
 
         .. versionadded:: 0.3.0
         """
@@ -506,19 +517,20 @@ class Book(object):
 
     def set_mock_caller(self):
         """
-        Sets the Excel file which is used to mock ``Workbook.caller()`` when the code is called from within Python.
+        Sets the Excel file which is used to mock ``xw.Book.caller()`` when the code is called from Python and not from
+        Excel via ``RunPython``.
 
         Examples
         --------
         ::
 
-            # This code runs unchanged from Excel and Python directly
+            # This code runs unchanged from Excel via RunPython and from Python directly
             import os
-            from xlwings import Workbook, Range
+            import xlwings as xw
 
             def my_macro():
-                wb = Workbook.caller()
-                Range('A1').value = 'Hello xlwings!'
+                wb = xw.Book.caller()
+                wb.sheets[0].range('A1').value = 'Hello xlwings!'
 
             if __name__ == '__main__':
                 xw.Book(r'C:\\path\\to\\file.xlsx').set_mock_caller()
@@ -536,6 +548,12 @@ class Book(object):
 
         >>> Book.open_template()
 
+        See Also
+        --------
+
+        :ref:`command_line`
+
+
         .. versionadded:: 0.3.3
         """
         this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
@@ -551,12 +569,12 @@ class Book(object):
         """
         Runs a Sub or Function in Excel VBA.
 
-        Arguments:
-        ----------
+        Arguments
+        ---------
         name : Name of Sub or Function with or without module name, e.g. ``'Module1.MyMacro'`` or ``'MyMacro'``
 
-        Examples:
-        ---------
+        Examples
+        --------
         This VBA function:
 
         .. code-block:: vb.net
@@ -567,10 +585,15 @@ class Book(object):
 
         can be accessed like this:
 
-        >>> wb = xw.Workbook.active()
+        >>> wb = xw.books.active
         >>> my_sum = wb.macro('MySum')
         >>> my_sum(1, 2)
         3
+
+        See Also
+        --------
+
+        App.macro
 
 
         .. versionadded:: 0.7.1
@@ -579,21 +602,38 @@ class Book(object):
 
     @property
     def name(self):
+        """
+        Returns the name of the book as str.
+        """
         return self.impl.name
-
-    @name.setter
-    def name(self, value):
-        self.impl.name = value
 
     @property
     def sheets(self):
+        """
+        Returns a sheets collection that represents all the sheets in the book.
+
+
+        .. versionadded:: 0.9.0
+        """
         return Sheets(impl=self.impl.sheets)
 
     @property
     def app(self):
+        """
+        Returns an app object that represents the creator of the book.
+
+
+        .. versionadded:: 0.9.0
+        """
         return App(impl=self.impl.app)
 
     def close(self):
+        """
+        Closes the book without saving it.
+
+
+        .. versionadded:: 0.1.1
+        """
         self.impl.close()
 
     def save(self, path=None):
@@ -605,14 +645,35 @@ class Book(object):
 
     @property
     def names(self):
+        """
+        Returns a names collection that represents all the names in the specified book (including all sheet-specific names).
+
+        .. versionchanged:: 0.9.0
+
+        """
         return Names(impl=self.impl.names)
 
     def activate(self, steal_focus=False):
+        """
+        Activates the book.
+
+        Parameters
+        ----------
+        steal_focus : bool, default False
+            If True, make frontmost window and hand over focus from Python to Excel.
+
+        """
         self.app.activate(steal_focus=steal_focus)
         self.impl.activate()
 
     @property
     def selection(self):
+        """
+        Returns the selected cells as Range.
+
+
+        .. versionadded:: 0.9.0
+        """
         return Range(impl=self.app.selection.impl)
 
     def __repr__(self):
@@ -620,26 +681,6 @@ class Book(object):
 
 
 class Sheet(object):
-    """
-    Represents a Sheet of the current Workbook. Either call it with the Sheet name or index::
-
-        Sheet('Sheet1')
-        Sheet(1)
-
-    Arguments
-    ---------
-    sheet : str or int
-        Sheet name or index
-
-    Keyword Arguments
-    -----------------
-    wkb : Workbook object, default Workbook.current()
-        Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
-
-
-    .. versionadded:: 0.2.3
-    """
-
     def __init__(self, sheet=None, impl=None):
         if impl is None:
             self.impl = books.active.sheets(sheet).impl
@@ -648,6 +689,12 @@ class Sheet(object):
 
     @property
     def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.api
 
     def __eq__(self, other):
@@ -661,6 +708,7 @@ class Sheet(object):
 
     @property
     def name(self):
+        """Gets or sets the name of the Sheet."""
         return self.impl.name
 
     @name.setter
@@ -669,17 +717,36 @@ class Sheet(object):
 
     @property
     def names(self):
+        """
+        Returns a names collection that represents all the sheet-specific names
+        (names defined with the "SheetName!" prefix).
+
+        .. versionadded:: 0.9.0
+
+        """
         return Names(impl=self.impl.names)
 
     @property
     def book(self):
+        """Returns the Book of the specified Sheet. Read-only."""
         return Book(impl=self.impl.book)
 
     @property
     def index(self):
+        """Returns the index of the Sheet (1-based as in Excel)."""
         return self.impl.index
 
     def range(self, arg1, arg2=None):
+        """
+        Gets or sets a Range object from the active sheet of the active book.
+
+        See Also
+        --------
+        Range
+
+
+        .. versionadded:: 0.9.0
+        """
         if isinstance(arg1, Range):
             if arg1.sheet != self:
                 raise ValueError("First range is not on this sheet")
@@ -692,26 +759,66 @@ class Sheet(object):
 
     @property
     def cells(self):
+        """
+        Returns a Range object that represents all the cells on the Sheet
+        (not just the cells that are currently in use).
+
+
+        .. versionadded:: 0.9.0
+        """
         return Range(impl=self.impl.cells)
 
     def activate(self):
+        """Activates the Sheet and returns it."""
         self.book.activate()
         return self.impl.activate()
 
     def select(self):
-        # Select only works on the active book
+        """
+        Selects the Sheet. Select only works on the active book.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.select()
 
     def clear_contents(self):
+        """Clears the content of the whole sheet but leaves the formatting."""
         return self.impl.clear_contents()
 
     def clear(self):
+        """Clears the content and formatting of the whole sheet."""
         return self.impl.clear()
 
     def autofit(self, axis=None):
+        """
+        Autofits the width of either columns, rows or both on a whole Sheet.
+
+        Arguments
+        ---------
+        axis : string, default None
+            - To autofit rows, use one of the following: ``rows`` or ``r``
+            - To autofit columns, use one of the following: ``columns`` or ``c``
+            - To autofit rows and columns, provide no arguments
+
+        Examples
+        --------
+        >>> Sheet('Sheet1').autofit('c')
+        >>> Sheet('Sheet1').autofit('r')
+        >>> Range('Sheet1').autofit()
+
+
+        .. versionadded:: 0.2.3
+        """
         return self.impl.autofit(axis)
 
     def delete(self):
+        """
+        Deletes the Sheet.
+
+
+        .. versionadded: 0.6.0
+        """
         return self.impl.delete()
 
     def __repr__(self):
@@ -719,14 +826,47 @@ class Sheet(object):
 
     @property
     def charts(self):
+        """
+        Returns a collection of all the charts on the Sheet.
+
+        See Also
+        --------
+
+        Charts
+
+
+        .. versionadded:: 0.9.0
+        """
         return Charts(impl=self.impl.charts)
 
     @property
     def shapes(self):
+        """
+        Returns a collection of all the shapes on the Sheet.
+
+        See Also
+        --------
+
+        Shapes
+
+
+        .. versionadded:: 0.9.0
+        """
         return Shapes(impl=self.impl.shapes)
 
     @property
     def pictures(self):
+        """
+        Returns a collection of all the pictures on the Sheet.
+
+        See Also
+        --------
+
+        Pictures
+
+
+        .. versionadded:: 0.9.0
+        """
         return Pictures(impl=self.impl.pictures)
 
 
@@ -794,6 +934,12 @@ class Range(object):
 
     @property
     def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.api
 
     def __eq__(self, other):
@@ -1552,6 +1698,12 @@ class Chart(object):
 
     @property
     def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.api
 
     @property
@@ -1724,6 +1876,12 @@ class Picture(object):
 
     @property
     def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.api
 
     @property
@@ -1884,6 +2042,12 @@ class Names(object):
 
     @property
     def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.api
 
     def __call__(self, name_or_index):
@@ -1948,6 +2112,12 @@ class Name(object):
 
     @property
     def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.api
 
     def delete(self):
@@ -2019,17 +2189,40 @@ class Macro(object):
 
 
 class Books(Collection):
-
+    """
+    ``xw.books`` returns all books in the active app. Use ``app.books`` to return all books of a specific app.
+    """
     _wrap = Book
 
     @property
     def active(self):
+        """
+        Returns the active Book.
+        """
         return Book(impl=self.impl.active)
 
     def add(self):
+        """
+        Creates a new Book. The new Book becomes the active Book. Returns a Book object.
+        """
         return Book(impl=self.impl.add())
 
     def open(self, fullname):
+        """
+        Opens a Book if it is not open yet and returns it. If it is already open, it doesn't raise an exception but
+        simply returns the Book object.
+
+        Parameters
+        ----------
+        fullname : str
+            filename or fully qualified filename, e.g. ``r'C:\\path\\to\\file.xlsx'`` or ``'file.xlsm'``. Without a full
+            path, it looks for the file in the current working directory.
+
+        Returns
+        -------
+        Book : Book that has been opened.
+
+        """
         if not os.path.exists(fullname):
             raise FileNotFoundError("No such file: '%s'" % fullname)
         fullname = os.path.realpath(fullname)
@@ -2056,6 +2249,9 @@ class Sheets(Collection):
 
     @property
     def active(self):
+        """
+        Returns the active Sheet.
+        """
         return Sheet(impl=self.impl.active)
 
     def __call__(self, name_or_index):
@@ -2068,6 +2264,22 @@ class Sheets(Collection):
         self[name_or_index].delete()
 
     def add(self, name=None, before=None, after=None):
+        """
+        Creates a new Sheet and makes it the active sheet.
+
+        Parameters
+        ----------
+        name : str, default None
+            Name of the new sheet. If None, will default to Excel's default name.
+        before : Sheet, default None
+            An object that specifies the sheet before which the new sheet is added.
+        after : Sheet, default None
+            An object that specifies the sheet after which the new sheet is added.
+
+        Returns
+        -------
+
+        """
         if name is not None:
             if name.lower() in (s.name.lower() for s in self):
                 raise ValueError("Sheet named '%s' already present in workbook" % name)

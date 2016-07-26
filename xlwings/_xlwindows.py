@@ -527,10 +527,6 @@ class Book(object):
     def name(self):
         return self.xl.Name
 
-    @name.setter
-    def name(self, value):
-        self.xl.Name = value
-
     @property
     def sheets(self):
         return Sheets(xl=self.xl.Worksheets)
