@@ -1799,7 +1799,7 @@ class Shape(object):
         Returns or sets the name of the shape.
 
 
-        .. versionadded:: 0.9.0
+        .. versionadded:: 0.5.0
         """
         return self.impl.name
 
@@ -1822,7 +1822,7 @@ class Shape(object):
         """
         Returns or sets the number of points that represent the horizontal position of the shape.
 
-        .. versionadded:: 0.9.0
+        .. versionadded:: 0.5.0
         """
         return self.impl.left
 
@@ -1836,7 +1836,7 @@ class Shape(object):
         Returns or sets the number of points that represent the vertical position of the shape.
 
 
-        .. versionadded:: 0.9.0
+        .. versionadded:: 0.5.0
         """
         return self.impl.top
 
@@ -1849,7 +1849,7 @@ class Shape(object):
         """
         Returns or sets the number of points that represent the width of the shape.
 
-        .. versionadded:: 0.9.0
+        .. versionadded:: 0.5.0
         """
         return self.impl.width
 
@@ -1863,7 +1863,7 @@ class Shape(object):
         Returns or sets the number of points that represent the height of the shape.
 
 
-        .. versionadded:: 0.9.0
+        .. versionadded:: 0.5.0
         """
         return self.impl.height
 
@@ -1876,7 +1876,7 @@ class Shape(object):
         Deletes the shape.
 
 
-        .. versionadded:: 0.9.0
+        .. versionadded:: 0.5.0
         """
         self.impl.delete()
 
@@ -1885,7 +1885,7 @@ class Shape(object):
         Activates the shape.
 
 
-        .. versionadded:: 0.9.0
+        .. versionadded:: 0.5.0
         """
         self.impl.activate()
 
@@ -2157,7 +2157,7 @@ class Picture(object):
         Returns or sets the name of the picture.
 
 
-        .. versionadded:: 0.9.0
+        .. versionadded:: 0.5.0
         """
         return self.impl.name
 
@@ -2176,7 +2176,7 @@ class Picture(object):
         """
         Returns or sets the number of points that represent the horizontal position of the picture.
 
-        .. versionadded:: 0.9.0
+        .. versionadded:: 0.5.0
         """
         return self.impl.left
 
@@ -2190,7 +2190,7 @@ class Picture(object):
         Returns or sets the number of points that represent the vertical position of the picture.
 
 
-        .. versionadded:: 0.9.0
+        .. versionadded:: 0.5.0
         """
         return self.impl.top
 
@@ -2203,7 +2203,7 @@ class Picture(object):
         """
         Returns or sets the number of points that represent the width of the picture.
 
-        .. versionadded:: 0.9.0
+        .. versionadded:: 0.5.0
         """
         return self.impl.width
 
@@ -2217,7 +2217,7 @@ class Picture(object):
         Returns or sets the number of points that represent the height of the picture.
 
 
-        .. versionadded:: 0.9.0
+        .. versionadded:: 0.5.0
         """
         return self.impl.height
 
@@ -2230,7 +2230,7 @@ class Picture(object):
         Deletes the picture.
 
 
-        .. versionadded:: 0.9.0
+        .. versionadded:: 0.5.0
         """
         self.impl.delete()
 
