@@ -40,6 +40,9 @@ class Collection(object):
 
     @property
     def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        """
         return self.impl.api
 
     def __call__(self, name_or_index):
@@ -48,7 +51,12 @@ class Collection(object):
     def __len__(self):
         return len(self.impl)
 
-    count = property(__len__)
+    @property
+    def count(self):
+        """
+        Returns the number of objects in the collection.
+        """
+        return len(self)
 
     def __iter__(self):
         for impl in self.impl:
@@ -94,18 +102,12 @@ class Collection(object):
 
 class Apps(object):
     """
-    Use ``xw.apps`` to get access to the :class:`App` objects that are contained in the apps collection.
-
-    Examples
-    --------
+    A collection of all :meth:`app <App>` objects:
 
     >>> xw.apps
     Apps([<Excel App 1668>, <Excel App 1644>])
-    >>> xw.apps[0]
-    <Excel App 1668>
-    >>> xw.apps.active
-    <Excel App 1668>
 
+    .. versionadded:: 0.9.0
     """
 
     def __init__(self, impl):
@@ -153,7 +155,19 @@ apps = Apps(impl=xlplatform.Apps())
 
 class App(object):
     """
-    Excel application instance.
+    An app corresponds to an Excel instance. New Excel instances can be created like so:
+
+    >>> app1 = xw.App()
+    >>> app2 = xw.App()
+
+    An app object is a member of the :meth:`apps <xlwings.main.Apps>` collection:
+
+    >>> xw.apps
+    Apps([<Excel App 1668>, <Excel App 1644>])
+    >>> xw.apps[0]
+    <Excel App 1668>
+    >>> xw.apps.active
+    <Excel App 1668>
 
     Parameters
     ----------
@@ -168,14 +182,8 @@ class App(object):
     visible : bool, default None
         Returns or sets a boolean value that determines whether the app is visible.
 
-    Examples
-    --------
 
-    >>> app1 = xw.App()
-    >>> app2 = xw.App()
-    >>> xw.apps
-    Apps([<Excel App 1668>, <Excel App 1644>])
-
+    .. versionadded:: 0.9.0
     """
 
     def __init__(self, spec=None, impl=None, visible=None):
@@ -346,11 +354,7 @@ class App(object):
 
     def range(self, arg1, arg2=None):
         """
-        Returns a Range object from the active sheet of the active book.
-
-        See Also
-        --------
-        Range
+        Range object from the active sheet of the active book, see :meth:`Range`.
 
 
         .. versionadded:: 0.9.0
@@ -394,10 +398,7 @@ class App(object):
         >>> my_sum(1, 2)
         3
 
-        See Also
-        --------
-
-        Book.macro
+        See also: :meth:`Book.macro`
 
 
         .. versionadded:: 0.9.0
@@ -407,8 +408,14 @@ class App(object):
 
 class Book(object):
     """
-    Represents an Excel Workbook in Python. The following syntax is an alternative for using
-    the ``books`` collection to instantiate Book objects in the active app:
+    A book object is a member of the :meth:`books <xlwings.main.Books>` collection:
+
+    >>> xw.books[0]
+    <Book [Workbook1]>
+
+
+    The following table gives an overview of how book objects can be instantiated in the active app as
+    alternative for using the ``books`` collection:
 
     +--------------------+--------------------------------------+--------------------------------------------+
     |                    | xw.Book                              | xw.books                                   |
@@ -548,10 +555,7 @@ class Book(object):
 
         >>> Book.open_template()
 
-        See Also
-        --------
-
-        :ref:`command_line`
+        See also: :ref:`command_line`
 
 
         .. versionadded:: 0.3.3
@@ -590,10 +594,7 @@ class Book(object):
         >>> my_sum(1, 2)
         3
 
-        See Also
-        --------
-
-        App.macro
+        See also: :meth:`App.macro`
 
 
         .. versionadded:: 0.7.1
@@ -681,6 +682,16 @@ class Book(object):
 
 
 class Sheet(object):
+    """
+    A sheet object is a member of the :meth:`sheets <xlwings.main.Sheets>` collection:
+
+    >>> xw.sheets[0]
+    <Sheet [Workbook1]Sheet1>
+    >>> xw.sheets.add()
+    <Sheet [Workbook1]Sheet2>
+
+    .. versionchanged:: 0.9.0
+    """
     def __init__(self, sheet=None, impl=None):
         if impl is None:
             self.impl = books.active.sheets(sheet).impl
@@ -738,11 +749,7 @@ class Sheet(object):
 
     def range(self, arg1, arg2=None):
         """
-        Gets or sets a Range object from the active sheet of the active book.
-
-        See Also
-        --------
-        Range
+        Returns a Range object from the active sheet of the active book, see :meth:`Range`.
 
 
         .. versionadded:: 0.9.0
@@ -827,12 +834,7 @@ class Sheet(object):
     @property
     def charts(self):
         """
-        Returns a collection of all the charts on the Sheet.
-
-        See Also
-        --------
-
-        Charts
+        See :meth:`Charts <xlwings.main.Charts>`
 
 
         .. versionadded:: 0.9.0
@@ -842,12 +844,7 @@ class Sheet(object):
     @property
     def shapes(self):
         """
-        Returns a collection of all the shapes on the Sheet.
-
-        See Also
-        --------
-
-        Shapes
+        See :meth:`Shapes <xlwings.main.Shapes>`
 
 
         .. versionadded:: 0.9.0
@@ -857,12 +854,7 @@ class Sheet(object):
     @property
     def pictures(self):
         """
-        Returns a collection of all the pictures on the Sheet.
-
-        See Also
-        --------
-
-        Pictures
+        See :meth:`Pictures <xlwings.main.Pictures>`
 
 
         .. versionadded:: 0.9.0
@@ -872,7 +864,7 @@ class Sheet(object):
 
 class Range(object):
     """
-    Returns a Range object that represents a cell or a range of cells of the active Sheet.
+    Returns a Range object that represents a cell or a range of cells.
 
     Arguments
     ---------
@@ -882,6 +874,8 @@ class Range(object):
     Examples
     --------
 
+    Active Sheet:
+
     .. code-block:: python
 
         xw.Range('A1')
@@ -890,6 +884,12 @@ class Range(object):
         xw.Range((1,1), (3,3))
         xw.Range('NamedRange')
         xw.Range(xw.Range('A1'), xw.Range('B2'))
+
+    Specific Sheet:
+
+    .. code-block:: python
+
+        xw.apps[0].books[0].sheets[0].range('A1')
 
     """
 
@@ -1773,30 +1773,14 @@ class RangeColumns(Ranges):
 
 class Shape(object):
     """
-    A Shape object represents an existing Excel shape and can be instantiated with the following arguments::
+    The shape object is a member of the :meth:`shapes <xlwings.main.Shapes>` collection:
 
-        Shape(1)            Shape('Sheet1', 1)              Shape(1, 1)
-        Shape('Shape 1')    Shape('Sheet1', 'Shape 1')      Shape(1, 'Shape 1')
-
-    The Sheet can also be provided as Sheet object::
-
-        sh = Sheet(1)
-        Shape(sh, 'Shape 1')
-
-    If no Worksheet is provided as first argument, it will take the Shape from the active Sheet.
-
-    Arguments
-    ---------
-    *args
-        Definition of Sheet (optional) and shape in the above described combinations.
-
-    Keyword Arguments
-    -----------------
-    wkb : Workbook object, default Workbook.current()
-        Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+    >>> sht = xw.books[0].sheets[0]
+    >>> sht.shapes[0]  # or sht.shapes['ShapeName']
+    <Shape 'Rectangle 1' in <Sheet [Workbook1]Sheet1>>
 
 
-    .. versionadded:: 0.5.0
+    .. versionchanged:: 0.9.0
     """
     def __init__(self, *args, **options):
         impl = options.pop('impl', None)
@@ -1811,6 +1795,12 @@ class Shape(object):
 
     @property
     def name(self):
+        """
+        Returns or sets the name of the shape.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.name
 
     @name.setter
@@ -1819,10 +1809,21 @@ class Shape(object):
 
     @property
     def type(self):
+        """
+        Returns the type of the shape.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.type
 
     @property
     def left(self):
+        """
+        Returns or sets the number of points that represent the horizontal position of the shape.
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.left
 
     @left.setter
@@ -1831,6 +1832,12 @@ class Shape(object):
 
     @property
     def top(self):
+        """
+        Returns or sets the number of points that represent the vertical position of the shape.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.top
 
     @top.setter
@@ -1839,6 +1846,11 @@ class Shape(object):
 
     @property
     def width(self):
+        """
+        Returns or sets the number of points that represent the width of the shape.
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.width
 
     @width.setter
@@ -1847,6 +1859,12 @@ class Shape(object):
 
     @property
     def height(self):
+        """
+        Returns or sets the number of points that represent the height of the shape.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.height
 
     @height.setter
@@ -1854,13 +1872,31 @@ class Shape(object):
         self.impl.height = value
 
     def delete(self):
+        """
+        Deletes the shape.
+
+
+        .. versionadded:: 0.9.0
+        """
         self.impl.delete()
 
     def activate(self):
+        """
+        Activates the shape.
+
+
+        .. versionadded:: 0.9.0
+        """
         self.impl.activate()
 
     @property
     def parent(self):
+        """
+        Returns the parent of the shape.
+
+
+        .. versionadded:: 0.9.0
+        """
         return Sheet(impl=self.impl.parent)
 
     def __eq__(self, other):
@@ -1881,47 +1917,24 @@ class Shape(object):
 
 
 class Shapes(Collection):
+    """
+    A collection of all :meth:`shape <Shape>` objects on the specified sheet:
+
+    >>> xw.books[0].sheets[0].shapes
+    Shapes([<Shape 'Oval 1' in <Sheet [Workbook1]Sheet1>>, <Shape 'Rectangle 1' in <Sheet [Workbook1]Sheet1>>])
+
+    .. versionadded:: 0.9.0
+    """
     _wrap = Shape
 
 
 class Chart(object):
     """
-    A Chart object represents an existing Excel chart and can be instantiated with the following arguments::
+    The chart object is a member of the :meth:`charts <xlwings.main.Charts>` collection:
 
-        Chart(1)            Chart('Sheet1', 1)              Chart(1, 1)
-        Chart('Chart 1')    Chart('Sheet1', 'Chart 1')      Chart(1, 'Chart 1')
-
-    The Sheet can also be provided as Sheet object::
-
-        sh = Sheet(1)
-        Chart(sh, 'Chart 1')
-
-    If no Worksheet is provided as first argument, it will take the Chart from the active Sheet.
-
-    To insert a new Chart into Excel, create it as follows::
-
-        Chart.add()
-
-    Arguments
-    ---------
-    *args
-        Definition of Sheet (optional) and chart in the above described combinations.
-
-    Keyword Arguments
-    -----------------
-    wkb : Workbook object, default Workbook.current()
-        Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
-
-    Example
-    -------
-    >>> from xlwings import Book, Range, Chart, ChartType
-    >>> wb = Book()
-    >>> Range('A1').value = [['Foo1', 'Foo2'], [1, 2]]
-    >>> chart = Chart.add(source_data=Range('A1').table, chart_type=ChartType.xlLine)
-    >>> chart.name
-    'Chart1'
-    >>> chart.chart_type = ChartType.xl3DArea
-
+    >>> sht = xw.books[0].sheets[0]
+    >>> sht.charts[0]  # or sht.charts['ChartName']
+    <Chart 'Chart 1' in <Sheet [Workbook1]Sheet1>>
     """
 
     def __init__(self, name_or_index=None, impl=None):
@@ -1944,6 +1957,9 @@ class Chart(object):
 
     @property
     def name(self):
+        """
+        Returns or sets the name of the chart.
+        """
         return self.impl.name
 
     @name.setter
@@ -1952,6 +1968,12 @@ class Chart(object):
 
     @property
     def parent(self):
+        """
+        Returns the parent of the chart.
+
+
+        .. versionadded:: 0.9.0
+        """
         impl = self.impl.parent
         if isinstance(impl, xlplatform.Book):
             return Book(impl=self.impl.parent)
@@ -1961,7 +1983,7 @@ class Chart(object):
     @property
     def chart_type(self):
         """
-        Gets and sets the chart type of a chart.
+        Returns and sets the chart type of the chart.
 
         .. versionadded:: 0.1.1
         """
@@ -1973,19 +1995,20 @@ class Chart(object):
 
     def set_source_data(self, source):
         """
-        Sets the source for the chart.
+        Sets the source data range for the chart.
 
         Arguments
         ---------
         source : Range
-            Range object, e.g. ``Range('A1')``
+            Range object, e.g. ``xw.books[0].sheets[0].range('A1')``
         """
         self.impl.set_source_data(source.impl)
 
-    source_data = property(None, set_source_data)
-
     @property
     def left(self):
+        """
+        Returns or sets the number of points that represent the horizontal position of the chart.
+        """
         return self.impl.left
 
     @left.setter
@@ -1994,6 +2017,9 @@ class Chart(object):
 
     @property
     def top(self):
+        """
+        Returns or sets the number of points that represent the vertical position of the chart.
+        """
         return self.impl.top
 
     @top.setter
@@ -2002,6 +2028,9 @@ class Chart(object):
 
     @property
     def width(self):
+        """
+        Returns or sets the number of points that represent the width of the chart.
+        """
         return self.impl.width
 
     @width.setter
@@ -2010,6 +2039,9 @@ class Chart(object):
 
     @property
     def height(self):
+        """
+        Returns or sets the number of points that represent the height of the chart.
+        """
         return self.impl.height
 
     @height.setter
@@ -2017,6 +2049,9 @@ class Chart(object):
         self.impl.height = value
 
     def delete(self):
+        """
+        Deletes the chart.
+        """
         self.impl.delete()
 
     def __repr__(self):
@@ -2027,16 +2062,22 @@ class Chart(object):
 
 
 class Charts(Collection):
+    """
+    A collection of all :meth:`chart <Chart>` objects on the specified sheet:
+
+    >>> xw.books[0].sheets[0].charts
+    Charts([<Chart 'Chart 1' in <Sheet [Workbook1]Sheet1>>, <Chart 'Chart 1' in <Sheet [Workbook1]Sheet1>>])
+
+    .. versionadded:: 0.9.0
+    """
     _wrap = Chart
 
     def add(self, left=0, top=0, width=355, height=211):
         """
-        Inserts a new Chart into Excel.
+        Creates a new chart on the specified sheet.
 
         Arguments
         ---------
-        sheet : str or int or xlwings.Sheet, default None
-            Name or index of the Sheet or Sheet object, defaults to the active Sheet
 
         left : float, default 0
             left position in points
@@ -2044,30 +2085,26 @@ class Charts(Collection):
         top : float, default 0
             top position in points
 
-        width : float, default 375
+        width : float, default 355
             width in points
 
-        height : float, default 225
+        height : float, default 211
             height in points
-
-        Keyword Arguments
-        -----------------
-        chart_type : xlwings.ChartType member, default xlColumnClustered
-            Excel chart type. E.g. xlwings.ChartType.xlLine
-
-        name : str, default None
-            Excel chart name. Defaults to Excel standard name if not provided, e.g. 'Chart 1'
-
-        source_data : Range
-            e.g. Range('A1').table
-
-        wkb : Workbook object, default Workbook.current()
-            Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
 
         Returns
         -------
+        Chart
 
-        xlwings Chart object
+        Examples
+        --------
+
+        >>> sht = xw.books[0].sheets[0]
+        >>> sht.range('A1').value = [['Foo1', 'Foo2'], [1, 2]]
+        >>> chart = sht.charts.add()
+        >>> chart.source_data = sht.range('A1').expand()
+        >>> chart.chart_type = 'line'
+        >>> chart.name
+        'Chart1'
         """
 
         impl = self.impl.add(
@@ -2082,30 +2119,14 @@ class Charts(Collection):
 
 class Picture(object):
     """
-    A Picture object represents an existing Excel Picture and can be instantiated with the following arguments::
+    The picture object is a member of the :meth:`pictures <xlwings.main.Pictures>` collection:
 
-        Picture(1)              Picture('Sheet1', 1)                Picture(1, 1)
-        Picture('Picture 1')    Picture('Sheet1', 'Picture 1')      Picture(1, 'Picture 1')
-
-    The Sheet can also be provided as Sheet object::
-
-        sh = Sheet(1)
-        Picture(sh, 'Picture 1')
-
-    If no Worksheet is provided as first argument, it will take the Picture from the active Sheet.
-
-    Arguments
-    ---------
-    *args
-        Definition of Sheet (optional) and picture in the above described combinations.
-
-    Keyword Arguments
-    -----------------
-    wkb : Workbook object, default Workbook.current()
-        Defaults to the Workbook that was instantiated last or set via ``Workbook.set_current()``.
+    >>> sht = xw.books[0].sheets[0]
+    >>> sht.pictures[0]  # or sht.charts['PictureName']
+    <Picture 'Picture 1' in <Sheet [Workbook1]Sheet1>>
 
 
-    .. versionadded:: 0.5.0
+    .. versionchanged:: 0.9.0
     """
     def __init__(self, impl=None):
         self.impl = impl
@@ -2122,10 +2143,22 @@ class Picture(object):
 
     @property
     def parent(self):
+        """
+        Returns the parent of the picture.
+
+
+        .. versionadded:: 0.9.0
+        """
         return Sheet(impl=self.impl.parent)
 
     @property
     def name(self):
+        """
+        Returns or sets the name of the picture.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.name
 
     @name.setter
@@ -2140,6 +2173,11 @@ class Picture(object):
 
     @property
     def left(self):
+        """
+        Returns or sets the number of points that represent the horizontal position of the picture.
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.left
 
     @left.setter
@@ -2148,6 +2186,12 @@ class Picture(object):
 
     @property
     def top(self):
+        """
+        Returns or sets the number of points that represent the vertical position of the picture.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.top
 
     @top.setter
@@ -2156,6 +2200,11 @@ class Picture(object):
 
     @property
     def width(self):
+        """
+        Returns or sets the number of points that represent the width of the picture.
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.width
 
     @width.setter
@@ -2164,6 +2213,12 @@ class Picture(object):
 
     @property
     def height(self):
+        """
+        Returns or sets the number of points that represent the height of the picture.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.height
 
     @height.setter
@@ -2171,6 +2226,12 @@ class Picture(object):
         self.impl.height = value
 
     def delete(self):
+        """
+        Deletes the picture.
+
+
+        .. versionadded:: 0.9.0
+        """
         self.impl.delete()
 
     def __eq__(self, other):
@@ -2196,8 +2257,8 @@ class Picture(object):
         Arguments
         ---------
 
-        filename : str
-            Path to the picture.
+        image : str or matplotlib.figure.Figure
+            Either a filepath or a Matplotlib figure object.
 
 
         .. versionadded:: 0.5.0
@@ -2219,6 +2280,14 @@ class Picture(object):
 
 
 class Pictures(Collection):
+    """
+    A collection of all :meth:`picture <Picture>` objects on the specified sheet:
+
+    >>> xw.books[0].sheets[0].pictures
+    Pictures([<Picture 'Picture 1' in <Sheet [Workbook1]Sheet1>>, <Picture 'Picture 2' in <Sheet [Workbook1]Sheet1>>])
+
+    .. versionadded:: 0.9.0
+    """
     _wrap = Picture
 
     @property
@@ -2226,7 +2295,56 @@ class Pictures(Collection):
         return Sheet(impl=self.impl.parent)
 
     def add(self, image, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None, name=None, update=False):
+        """
+        Adds a picture to the specified sheet.
 
+        Arguments
+        ---------
+
+        image : str or matplotlib.figure.Figure
+            Either a filepath or a Matplotlib figure object.
+
+        left : float, default 0
+            Left position in points.
+
+        top : float, default 0
+            Top position in points.
+
+        width : float, default None
+            Width in points. If PIL/Pillow is installed, it defaults to the width of the picture.
+            Otherwise it defaults to 100 points.
+
+        height : float, default None
+            Height in points. If PIL/Pillow is installed, it defaults to the height of the picture.
+            Otherwise it defaults to 100 points.
+
+        name : str, default None
+            Excel picture name. Defaults to Excel standard name if not provided, e.g. 'Picture 1'.
+
+        update : bool, default False
+            Replace an existing picture with the same name. Requires ``name`` to be set.
+
+        Returns
+        -------
+        Picture
+
+        Examples
+        --------
+
+        1. Picture
+
+        >>> sht = xw.books[0].sheets[0]
+        >>> sht.pictures.add(r'C:\\path\\to\\file.jpg')
+        <Picture 'Picture 1' in <Sheet [Workbook1]Sheet1>>
+
+        2. Matplotlib
+
+        >>> import matplotlib.pyplot as plt
+        >>> fig = plt.figure()
+        >>> plt.plot([1, 2, 3, 4, 5])
+        >>> sht.pictures.add(fig, name='MyPlot', update=True)
+        <Picture 'MyPlot' in <Sheet [Workbook1]Sheet1>>
+        """
         if update:
             if name is None:
                 raise ValueError("If update is true then name must be specified")
@@ -2272,6 +2390,15 @@ class Pictures(Collection):
 
 
 class Names(object):
+    """
+    A collection of all :meth:`name <Name>` objects in the workbook:
+
+    >>> sht = xw.books[0].sheets[0]
+    >>> sht.names
+    [<Name 'MyName': =Sheet1!$A$3>]
+
+    .. versionadded:: 0.9.0
+    """
 
     def __init__(self, impl):
         self.impl = impl
@@ -2295,9 +2422,32 @@ class Names(object):
     def __len__(self):
         return len(self.impl)
 
-    count = property(__len__)
+    @property
+    def count(self):
+        """
+        Returns the number of objects in the collection.
+        """
+        return len(self)
 
     def add(self, name, refers_to):
+        """
+        Defines a new name for a range of cells.
+
+        Parameters
+        ----------
+        name : str
+            Specifies the text to use as the name. Names cannot include spaces and cannot be formatted as cell references.
+
+        refers_to : str
+            Describes what the name refers to, in English, using A1-style notation.
+
+        Returns
+        -------
+        Name
+
+
+        .. versionadded:: 0.9.0
+        """
         return Name(impl=self.impl.add(name, refers_to))
 
     def __getitem__(self, item):
@@ -2342,6 +2492,16 @@ class Names(object):
 
 
 class Name(object):
+    """
+    The name object is a member of the :meth:`names <xlwings.main.Names>` collection:
+
+    >>> sht = xw.books[0].sheets[0]
+    >>> sht.names[0]  # or sht.names['MyName']
+    <Name 'MyName': =Sheet1!$A$3>
+
+
+    .. versionadded:: 0.9.0
+    """
 
     def __init__(self, impl):
         self.impl = impl
@@ -2357,10 +2517,22 @@ class Name(object):
         return self.impl.api
 
     def delete(self):
+        """
+         Deletes the name.
+
+
+         .. versionadded:: 0.9.0
+         """
         self.impl.delete()
 
     @property
     def name(self):
+        """
+        Returns or sets the name of the name object.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.name
 
     @name.setter
@@ -2369,6 +2541,13 @@ class Name(object):
 
     @property
     def refers_to(self):
+        """
+        Returns or sets the formula that the name is defined to refer to, in A1-style notation,
+        beginning with an equal sign.
+
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.refers_to
 
     @refers_to.setter
@@ -2377,27 +2556,38 @@ class Name(object):
 
     @property
     def refers_to_range(self):
+        """
+        Returns the Range object referred to by a Name object.
+
+        .. versionadded:: 0.9.0
+        """
         return Range(impl=self.impl.refers_to_range)
 
     def __repr__(self):
         return "<Name '%s': %s>" % (self.name, self.refers_to)
     
 
-def view(obj, name=None, sheet=None):
+def view(obj, sheet=None, name=None):
     """
-    Opens a new workbook and displays an object on its first sheet.
+    Opens a new workbook and displays an object on its first sheet by default. If you provide a
+    sheet object, it will clear the sheet before displaying the object on it.
 
     Parameters
     ----------
     obj : any type with built-in converter
-        the object to display
+        the object to display, e.g. numbers, strings, lists, numpy arrays, pandas dataframes
 
-        >>> import xlwings as xw
-        >>> import pandas as pd
-        >>> import numpy as np
-        >>> df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
-        >>> xw.view(df)
+    sheet : Sheet, default None
+        Sheet object. If none provided, the first sheet of a new workbook is used.
 
+    Examples
+    --------
+
+    >>> import xlwings as xw
+    >>> import pandas as pd
+    >>> import numpy as np
+    >>> df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
+    >>> xw.view(df)
 
     .. versionadded:: 0.7.1
     """
@@ -2406,11 +2596,8 @@ def view(obj, name=None, sheet=None):
     else:
         sheet.clear()
 
-    if mpl and isinstance(obj, mpl.figure.Figure):
-        return sheet.pictures.add(obj, name=name, update=name is not None)
-    else:
-        sheet.range('A1').value = obj
-        sheet.autofit()
+    sheet.range('A1').value = obj
+    sheet.autofit()
 
 
 class Macro(object):
@@ -2426,7 +2613,14 @@ class Macro(object):
 
 class Books(Collection):
     """
-    ``xw.books`` returns all books in the active app. Use ``app.books`` to return all books of a specific app.
+    A collection of all :meth:`book <Book>` objects:
+
+    >>> xw.books  # active app
+    Books([<Book [Workbook1]>, <Book [Workbook2]>])
+    >>> xw.apps[0].books  # specific app
+    Books([<Book [Workbook1]>, <Book [Workbook2]>])
+
+    .. versionadded:: 0.9.0
     """
     _wrap = Book
 
@@ -2480,7 +2674,16 @@ class Books(Collection):
 
 
 class Sheets(Collection):
+    """
+    A collection of all :meth:`sheet <Sheet>` objects:
 
+    >>> xw.sheets  # active book
+    Sheets([<Sheet [Workbook1]Sheet1>, <Sheet [Workbook1]Sheet2>])
+    >>> xw.apps[0].books[0].sheets  # specific book
+    Sheets([<Sheet [Workbook1]Sheet1>, <Sheet [Workbook1]Sheet2>])
+
+    .. versionadded:: 0.9.0
+    """
     _wrap = Sheet
 
     @property

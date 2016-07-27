@@ -48,3 +48,55 @@ Range
 
 .. autoclass:: Range
     :members:
+
+
+Shapes
+------
+
+.. autoclass:: xlwings.main.Shapes
+    :members:
+    :inherited-members:
+
+Shape
+-----
+
+.. autoclass:: Shape
+    :members:
+
+Charts
+------
+
+.. autoclass:: xlwings.main.Charts
+    :members:
+    :inherited-members:
+
+Chart
+-----
+
+.. autoclass:: Chart
+    :members:
+
+Pictures
+--------
+
+.. autoclass:: xlwings.main.Pictures
+    :members:
+    :inherited-members:
+
+Picture
+-------
+
+.. autoclass:: Picture
+    :members:
+
+Names
+-----
+
+.. autoclass:: xlwings.main.Names
+    :members:
+
+Name
+----
+
+.. autoclass:: Name
+    :members:
