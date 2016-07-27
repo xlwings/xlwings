@@ -572,6 +572,12 @@ class Sheet(object):
     def pictures(self):
         return Pictures(impl=self.impl.pictures)
 
+    def __getitem__(self, item):
+        if isinstance(item, string_types):
+            return self.range(item)
+        else:
+            return self.cells[item]
+
 
 class Range(object):
     """
