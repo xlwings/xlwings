@@ -14,7 +14,7 @@ New object model
 
   old: ``xw.Range('Sheet1', 'A1', wkb=wb)`` (no possibility to specify the Excel application instance)
 
-  new: ``xw.apps[0].books[0].sheets[Sheet1].range('A1')``
+  new: ``xw.apps[0].books[0].sheets['Sheet1'].range('A1')``
 
   => Usually, you can keep things much simpler, see below under Connecting to Books.
 
@@ -119,5 +119,5 @@ Cheat sheet
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
 | Set name of range          | ``sht.range('A1').name = 'name'``                | ``xw.Range(sht, 'A1', wkb=wb).name = 'name'``                      |
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
-| Get name of range          | ``sht.range('A1').name.name``                    | ``xw.Range(sht, 'A1', wkb=wb).name``                               |
+| Get name of range          | ``sht.range('A1').name``                         | ``xw.Range(sht, 'A1', wkb=wb).name``                               |
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
