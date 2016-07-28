@@ -113,6 +113,12 @@ class Apps(object):
     def __init__(self, impl):
         self.impl = impl
 
+    def add(self):
+        """
+        Creates a new App. The new App becomes the active one. Returns an App object.
+        """
+        return App()
+
     @property
     def active(self):
         """
@@ -171,6 +177,8 @@ class App(object):
 
     Parameters
     ----------
+    visible : bool, default True
+        Returns or sets a boolean value that determines whether the app is visible.
 
     spec : str, default None
         Mac-only, use the full path to the Excel application,
@@ -179,14 +187,11 @@ class App(object):
         On Windows, if you want to change the version of Excel that xlwings talks to, go to ``Control Panel >
         Programs and Features`` and ``Repair`` the Office version that you want as default.
 
-    visible : bool, default None
-        Returns or sets a boolean value that determines whether the app is visible.
-
 
     .. versionadded:: 0.9.0
     """
 
-    def __init__(self, spec=None, impl=None, visible=None):
+    def __init__(self, visible=True, spec=None, impl=None):
         if impl is None:
             self.impl = xlplatform.App(spec=spec)
             if visible or visible is None:
