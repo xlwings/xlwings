@@ -298,6 +298,20 @@ class App(object):
         self.impl.screen_updating = value
 
     @property
+    def display_alerts(self):
+        """
+        Gets or sets display alerts to ``True`` or ``False``.
+
+
+        .. versionadded:: 0.9.0
+        """
+        return self.impl.display_alerts
+
+    @display_alerts.setter
+    def display_alerts(self, value):
+        self.impl.display_alerts = value
+
+    @property
     def calculation(self):
         """
         Returns or sets a calculation value that represents the calculation mode.
