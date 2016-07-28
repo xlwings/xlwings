@@ -16,7 +16,11 @@ New object model
 
   new: ``xw.apps[0].books[0].sheets['Sheet1'].range('A1')``
 
-  => Usually, you can keep things much simpler, see below under Connecting to Books.
+  Usually, you don't need to qualify up to the app but would use something like:
+
+  >>> import xlwings as xw
+  >>> sht = xw.Book('Book1').sheets['Sheet1']
+  >>> sht.range('A1').value = 'some text'
 
 * **Hierarchy**
 
@@ -37,13 +41,56 @@ New object model
 Connecting to Books
 -------------------
 
-TODO
+The easiest way to connect to a book is offered by ``xw.Book``: it looks for the book over all app instances and
+returns an error, should the book be open multiple times.
+``xw.books`` only looks in the active app, but the app can additionally be qualified with an app object:
+
+>>> app = xw.apps[0]
+>>> app.books['Book1']
+
++--------------------+--------------------------------------+--------------------------------------------+
+|                    | xw.Book                              | xw.books                                   |
++====================+======================================+============================================+
+| New book           | ``xw.Book()``                        | ``xw.books.add()``                         |
++--------------------+--------------------------------------+--------------------------------------------+
+| Unsaved book       | ``xw.Book('Book1')``                 | ``xw.books['Book1']``                      |
++--------------------+--------------------------------------+--------------------------------------------+
+| Book by (full)name | ``xw.Book(r'C:/path/to/file.xlsx')`` | ``xw.books.open(r'C:/path/to/file.xlsx')`` |
++--------------------+--------------------------------------+--------------------------------------------+
 
 Active Objects
 --------------
 
-TODO
+* Active app
 
+  >>> app = xw.apps.active
+
+* Active book
+
+  >>> wb = xw.books.active  # in active app
+  >>> wb = app.books.active  # in specific app
+
+* Active sheet
+
+  >>> sht = xw.sheets.active  # in active book of active app
+  >>> sht = wb.sheets.active  # in specific book
+
+* Range on active sheet
+
+  >>> xw.Range('A1')  # on active sheet of active book of active app
+  >>> app.range('A1') # on active sheet of active book of specific app
+
+Round vs. Square Brackets
+-------------------------
+
+Round brackets use Excel's 1-based indexing, while square brackets use Python's 0-based indexing.
+
+As an example, the following all reference the same range::
+
+    xw.apps[0].books[0].sheets[0].range('A1')
+    xw.apps(1).books(1).sheets(1).range('A1')
+    xw.apps[0].books['Book1'].sheets['Sheet1'].range('A1')
+    xw.apps(1).books('Book1').sheets('Sheet1').range('A1')
 
 Cheat sheet
 -----------
@@ -85,7 +132,7 @@ Cheat sheet
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
 | First sheet of book wb     | ``wb.sheets[0]``                                 | ``xw.Sheet(1, wkb=wb)``                                            |
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
-| Active sheet               | ``wb.sheets.active``                             | ``xw.Sheet.active(wkb=wb)``                                        |
+| Active sheet               | ``wb.sheets.active``                             | ``xw.Sheet.active(wkb=wb)`` or ``wb.active_sheet``                 |
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
 | Add sheet                  | ``wb.sheets.add()``                              | ``xw.Sheet.add(wkb=wb)``                                           |
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
