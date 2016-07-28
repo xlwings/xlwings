@@ -414,8 +414,12 @@ class Book(object):
     <Book [Workbook1]>
 
 
-    The following table gives an overview of how book objects can be instantiated in the active app as
-    alternative for using the ``books`` collection:
+    The easiest way to connect to a book is offered by ``xw.Book``: it looks for the book over all app instances and
+    returns an error, should the book be open multiple times.
+    ``xw.books`` only looks in the active app, but the app can additionally be qualified with an app object:
+
+    >>> app = xw.apps[0]
+    >>> app.books['Book1']
 
     +--------------------+--------------------------------------+--------------------------------------------+
     |                    | xw.Book                              | xw.books                                   |
@@ -2567,7 +2571,7 @@ class Name(object):
         return "<Name '%s': %s>" % (self.name, self.refers_to)
     
 
-def view(obj, sheet=None, name=None):
+def view(obj, sheet=None):
     """
     Opens a new workbook and displays an object on its first sheet by default. If you provide a
     sheet object, it will clear the sheet before displaying the object on it.
