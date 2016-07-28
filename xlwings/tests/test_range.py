@@ -591,5 +591,32 @@ class TestRangeSlicing(TestBase):
         r = self.wb1.sheets[0].range('B2:B4')
         self.assertEqual(r[:].address, '$B$2:$B$4')
 
+
+class TestRangeShortcut(TestBase):
+    def test_shortcut1(self):
+        self.assertEqual(self.wb1.sheets[0]['A1'], self.wb1.sheets[0].range('A1'))
+
+    def test_shortcut2(self):
+        self.assertEqual(self.wb1.sheets[0]['A1:B5'], self.wb1.sheets[0].range('A1:B5'))
+
+    def test_shortcut3(self):
+        self.assertEqual(self.wb1.sheets[0][0, 1], self.wb1.sheets[0].range('B1'))
+
+    def test_shortcut4(self):
+        self.assertEqual(self.wb1.sheets[0][:5, :5], self.wb1.sheets[0].range('A1:E5'))
+
+    def test_shortcut5(self):
+        with self.assertRaises(TypeError):
+            r = self.wb1.sheets[0]['A1', 'B5']
+
+    def test_shortcut6(self):
+        with self.assertRaises(TypeError):
+            r = self.wb1.sheets[0][self.wb1.sheets[0]['A1'], 'B5']
+
+    def test_shortcut7(self):
+        with self.assertRaises(TypeError):
+            r = self.wb1.sheets[0]['A1', self.wb1.sheets[0]['B5']]
+
+
 if __name__ == '__main__':
     unittest.main()
