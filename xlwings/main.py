@@ -371,14 +371,14 @@ class App(object):
         """
         return self.impl.pid
 
-    def range(self, arg1, arg2=None):
+    def range(self, cell1, cell2=None):
         """
         Range object from the active sheet of the active book, see :meth:`Range`.
 
 
         .. versionadded:: 0.9.0
         """
-        return Range(impl=self.impl.range(arg1, arg2))
+        return Range(impl=self.impl.range(cell1, cell2))
 
     def __repr__(self):
         return "<Excel App %s>" % self.pid
@@ -770,22 +770,22 @@ class Sheet(object):
         """Returns the index of the Sheet (1-based as in Excel)."""
         return self.impl.index
 
-    def range(self, arg1, arg2=None):
+    def range(self, cell1, cell2=None):
         """
         Returns a Range object from the active sheet of the active book, see :meth:`Range`.
 
 
         .. versionadded:: 0.9.0
         """
-        if isinstance(arg1, Range):
-            if arg1.sheet != self:
+        if isinstance(cell1, Range):
+            if cell1.sheet != self:
                 raise ValueError("First range is not on this sheet")
-            arg1 = arg1.impl
-        if isinstance(arg2, Range):
-            if arg2.sheet != self:
+            cell1 = cell1.impl
+        if isinstance(cell2, Range):
+            if cell2.sheet != self:
                 raise ValueError("Second range is not on this sheet")
-            arg2 = arg2.impl
-        return Range(impl=self.impl.range(arg1, arg2))
+            cell2 = cell2.impl
+        return Range(impl=self.impl.range(cell1, cell2))
 
     @property
     def cells(self):
@@ -897,8 +897,11 @@ class Range(object):
 
     Arguments
     ---------
-    *args : One or two cells in A1 notation or as index-tuple or as name or as xw.Range objects.
+    cell1 : str or tuple or Range
+        Name of the range in the upper-left corner in A1 notation or as index-tuple or as name or as xw.Range object.
 
+    cell2 : str or tuple or Range, default None
+        Name of the range in the lower-right corner in A1 notation or as index-tuple or as name or as xw.Range object.
 
     Examples
     --------
@@ -922,21 +925,21 @@ class Range(object):
 
     """
 
-    def __init__(self, *args, **options):
+    def __init__(self, cell1=None, cell2=None, **options):
 
         # Arguments
         impl = options.pop('impl', None)
         if impl is None:
-            if len(args) == 2 and isinstance(args[0], Range) and isinstance(args[1], Range):
-                if args[0].sheet != args[1].sheet:
+            if cell2 is not None and isinstance(cell1, Range) and isinstance(cell2, Range):
+                if cell1.sheet != cell2.sheet:
                     raise ValueError("Ranges are not on the same sheet")
-                impl = args[0].sheet.range(args[0], args[1]).impl
-            elif len(args) == 1 and isinstance(args[0], string_types):
-                impl = apps.active.range(args[0]).impl
-            elif len(args) == 1 and isinstance(args[0], tuple):
-                impl = sheets.active.range(*args).impl
-            elif len(args) == 2 and isinstance(args[0], tuple) and isinstance(args[1], tuple):
-                impl = sheets.active.range(*args).impl
+                impl = cell1.sheet.range(cell1, cell2).impl
+            elif cell2 is None and isinstance(cell1, string_types):
+                impl = apps.active.range(cell1).impl
+            elif cell2 is None and isinstance(cell1, tuple):
+                impl = sheets.active.range(cell1, cell2).impl
+            elif cell2 is not None and isinstance(cell1, tuple) and isinstance(cell2, tuple):
+                impl = sheets.active.range(cell1, cell2).impl
             else:
                 raise ValueError("Invalid arguments")
 
