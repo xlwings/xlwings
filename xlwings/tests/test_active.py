@@ -72,22 +72,6 @@ class TestView(TestBase):
         self.assertEqual(xw.books.count, n_books)
         self.assertEqual(xw.books[0].sheets[0].range('A1:C1').value, [1., 2., 3.])
 
-    @unittest.skipIf(plt is None, 'no matplotlib')
-    def test_fig_new_book(self):
-        n_books = xw.books.count
-        fig = plt.figure()
-        plt.plot([-1, 1, -2, 2, -3, 3, 2])
-        xw.view(fig)
-        self.assertEqual(xw.books.count, n_books + 1)
-
-    @unittest.skipIf(plt is None, 'no matplotlib')
-    def test_fig_sheet(self):
-        n_books = xw.books.count
-        fig = plt.figure()
-        plt.plot([-1, 1, -2, 2, -3, 3, 2])
-        xw.view(fig, sheet=xw.books[0].sheets[0])
-        self.assertEqual(xw.books.count, n_books)
-        self.assertEqual(xw.books[0].sheets[0].shapes.count, 1)
 
 if __name__ == '__main__':
     unittest.main()
