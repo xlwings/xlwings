@@ -200,11 +200,6 @@ class Book(object):
     def name(self):
         return self.xl.name.get()
 
-    @name.setter
-    def name(self, value):
-        self.xl.name.set(value)
-        self.xl = self.app.xl.workbooks[value]
-
     @property
     def sheets(self):
         return Sheets(self)
