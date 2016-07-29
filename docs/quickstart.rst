@@ -98,7 +98,7 @@ Writing a UDF in Python is as easy as:
     def hello(name):
         return 'Hello {0}'.format(name)
 
-Converters can be used for UDFs, too. Again a Pandas DataFrame example:
+Converters can be used with UDFs, too. Again a Pandas DataFrame example:
 
 
 .. code-block:: python
