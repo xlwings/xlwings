@@ -22,7 +22,7 @@ If you're missing a feature in xlwings, do the following:
         <COMObject <unknown>>  # Windows/pywin32
         app(pid=2319).workbooks['Workbook1']  # Mac/appscript
 
-   This works accordingly for the other objects like ``xw.Range.api`` etc.
+   This works accordingly for the other objects like ``xw.Range('A1').api`` etc.
 
    The underlying objects will offer you pretty much everything you can do with VBA, using the syntax of pywin32 (which
    pretty much feels like VBA) and appscript (which doesn't feel like VBA).
