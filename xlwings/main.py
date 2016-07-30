@@ -415,7 +415,7 @@ class Book(object):
 
 
     The easiest way to connect to a book is offered by ``xw.Book``: it looks for the book over all app instances and
-    returns an error, should the book be open multiple times.
+    returns an error, should the same book be open in multiple instances.
     ``xw.books`` only looks in the active app, but the app can additionally be qualified with an app object:
 
     >>> app = xw.apps[0]

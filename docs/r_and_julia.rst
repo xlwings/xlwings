@@ -100,19 +100,13 @@ automatic type conversion):
     julia> using PyCall
     julia> @pyimport xlwings as xw
 
-    julia> xw.Workbook()
-    PyObject <Workbook 'Workbook1'>
+    julia> xw.Book()
+    PyObject <Book [Workbook1]>
 
     julia> xw.Range("A1")[:value] = "Hello World"
     julia> xw.Range("A1")[:value]
     "Hello World"
 
-
-    julia> xw.Range("A1")[:value] = [1 2; 3 4]
-    julia> xw.Range("A1")[:table][:value]
-    2x2 Array{Int64,2}:
-    1  2
-    3  4
 
 
 

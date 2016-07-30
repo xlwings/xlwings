@@ -7,25 +7,25 @@ Introduced with v0.7.0, converters define how Excel ranges and their values are 
 **reading** and **writing** operations. They also provide a consistent experience across **xlwings.Range** objects and
 **User Defined Functions** (UDFs).
 
-Converters are explicitely set in the ``options`` method when manipulating ``xlwings.Range`` objects
+Converters are explicitely set in the ``options`` method when manipulating ``Range`` objects
 or in the ``@xw.arg`` and ``@xw.ret`` decorators when using UDFs. If no converter is specified, the default converter
 is applied when reading. When writing, xlwings will automatically apply the correct converter (if available) according to the
 object's type that is being written to Excel. If no converter is found for that type, it falls back to the default converter.
 
 **Syntax:**
 
-==============================  ===========================================================  ===========
-****                            **Range**                                                    **UDF**
-==============================  ===========================================================  ===========
-**reading**                     ``Range.options(convert=None, **kwargs).value``              ``@arg('x', convert=None, **kwargs)``
-**writing**                     ``Range.options(convert=None, **kwargs).value = myvalue``    ``@ret(convert=None, **kwargs)``
-==============================  ===========================================================  ===========
+==============================  ============================================================ ===========
+****                            **xw.Range**                                                 **UDF**
+==============================  ============================================================ ===========
+**reading**                     ``xw.Range.options(convert=None, **kwargs).value``           ``@arg('x', convert=None, **kwargs)``
+**writing**                     ``xw.Range.options(convert=None, **kwargs).value = myvalue`` ``@ret(convert=None, **kwargs)``
+==============================  ============================================================ ===========
 
 .. note:: Keyword arguments (``kwargs``) may refer to the specific converter or the default converter.
   For example, to set the ``numbers`` option in the default converter and the ``index`` option in the DataFrame converter,
   you would write::
 
-      Range('A1:C3').options(pd.DataFrame, index=False, numbers=int).value
+      xw.Range('A1:C3').options(pd.DataFrame, index=False, numbers=int).value
 
 Default Converter
 -----------------
@@ -44,27 +44,27 @@ The following options can be set:
   Force the value to have either 1 or 2 dimensions regardless of the shape of the range:
 
   >>> import xlwings as xw
-  >>> wb = Workbook()
-  >>> xw.Range('A1').value = [[1, 2], [3, 4]]
-  >>> xw.Range('A1').value
+  >>> sht = xw.Book().sheets[0]
+  >>> sht.range('A1').value = [[1, 2], [3, 4]]
+  >>> sht.range('A1').value
   1.0
-  >>> xw.Range('A1').options(ndim=1).value
+  >>> sht.range('A1').options(ndim=1).value
   [1.0]
-  >>> xw.Range('A1').options(ndim=2).value
+  >>> sht.range('A1').options(ndim=2).value
   [[1.0]]
-  >>> xw.Range('A1:A2').value
+  >>> sht.range('A1:A2').value
   [1.0 3.0]
-  >>> xw.Range('A1:A2').options(ndim=2).value
+  >>> sht.range('A1:A2').options(ndim=2).value
   [[1.0], [3.0]]
 
 * **numbers**
 
   By default cells with numbers are read as ``float``, but you can change it to ``int``::
 
-    >>> xw.Range('A1').value = 1
-    >>> xw.Range('A1').value
+    >>> sht.range('A1').value = 1
+    >>> sht.range('A1').value
     1.0
-    >>> xw.Range('A1').options(numbers=int).value
+    >>> sht.range('A1').options(numbers=int).value
     1
 
   Alternatively, you can specify any other function or type which takes a single float argument.
@@ -86,7 +86,7 @@ The following options can be set:
   - Range::
 
     >>> import datetime as dt
-    >>> xw.Range('A1').options(dates=dt.date).value
+    >>> sht.range('A1').options(dates=dt.date).value
 
   - UDFs: ``@xw.arg('x', dates=dt.date)``
 
@@ -94,7 +94,7 @@ The following options can be set:
   as ``datetime.datetime``, for example:
 
     >>> my_date_handler = lambda year, month, day, **kwargs: "%04i-%02i-%02i" % (year, month, day)
-    >>> xw.Range('A1').options(dates=my_date_handler).value
+    >>> sht.range('A1').options(dates=my_date_handler).value
     '2017-02-20'
 
 
@@ -102,7 +102,7 @@ The following options can be set:
 
   Empty cells are converted per default into ``None``, you can change this as follows:
 
-  - Range: ``>>> xw.Range('A1').options(empty='NA').value``
+  - Range: ``>>> sht.range('A1').options(empty='NA').value``
 
   - UDFs:  ``@xw.arg('x', empty='NA')``
 
@@ -110,7 +110,7 @@ The following options can be set:
 
   This works for reading and writing and allows us to e.g. write a list in column orientation to Excel:
 
-  - Range: ``Range('A1').options(transpose=True).value = [1, 2, 3]``
+  - Range: ``sht.range('A1').options(transpose=True).value = [1, 2, 3]``
 
   - UDFs:
 
@@ -128,15 +128,15 @@ The following options can be set:
   only evaluated when getting the values of a Range::
 
     >>> import xlwings as xw
-    >>> wb = xw.Workbook()
-    >>> xw.Range('A1').value = [[1,2], [3,4]]
-    >>> rng1 = xw.Range('A1').table
-    >>> rng2 = xw.Range('A1').options(expand='table')
+    >>> wb = xw.Book().sheets[0]
+    >>> sht.range('A1').value = [[1,2], [3,4]]
+    >>> rng1 = sht.range('A1').expand()
+    >>> rng2 = sht.range('A1').options(expand='table')
     >>> rng1.value
     [[1.0, 2.0], [3.0, 4.0]]
     >>> rng2.value
     [[1.0, 2.0], [3.0, 4.0]]
-    >>> xw.Range('A3').value = [5, 6]
+    >>> sht.range('A3').value = [5, 6]
     >>> rng1.value
     [[1.0, 2.0], [3.0, 4.0]]
     >>> rng2.value
@@ -166,9 +166,9 @@ The dictionary converter turns two Excel columns into a dictionary. If the data 
 
 ::
 
-    >>> Range('A1:B2').options(dict).value
+    >>> sht.range('A1:B2').options(dict).value
     {'a': 1.0, 'b': 2.0}
-    >>> Range('A4:B5').options(dict, transpose=True).value
+    >>> sht.range('A4:B5').options(dict, transpose=True).value
     {'a': 1.0, 'b': 2.0}
 
 Numpy array converter
@@ -182,8 +182,8 @@ for lists (under default converter) and hence returns either numpy scalars, 1d a
 **Example**::
 
     >>> import numpy as np
-    >>> Range('A1').options(transpose=True).value = np.array([1, 2, 3])
-    >>> xw.Range('A1:A3').options(np.array, ndim=2).value
+    >>> sht.range('A1').options(transpose=True).value = np.array([1, 2, 3])
+    >>> sht.range('A1:A3').options(np.array, ndim=2).value
     array([[ 1.],
            [ 2.],
            [ 3.]])
@@ -213,7 +213,7 @@ For ``index`` and ``header``, ``1`` and ``True`` may be used interchangeably.
 
 ::
 
-    >>> s = xw.Range('A1').options(pd.Series, expand='table').value
+    >>> s = sht.range('A1').options(pd.Series, expand='table').value
     >>> s
     date
     2001-01-01    1
@@ -223,7 +223,7 @@ For ``index`` and ``header``, ``1`` and ``True`` may be used interchangeably.
     2001-01-05    5
     2001-01-06    6
     Name: series name, dtype: float64
-    >>> xw.Range('D1', header=False).value = s
+    >>> sht.range('D1', header=False).value = s
 
 Pandas DataFrame converter
 **************************
@@ -250,7 +250,7 @@ For ``index`` and ``header``, ``1`` and ``True`` may be used interchangeably.
 
 ::
 
-    >>> df = xw.Range('A1:D5').options(pd.DataFrame, header=2).value
+    >>> df = sht.range('A1:D5').options(pd.DataFrame, header=2).value
     >>> df
         a     b
         c  d  e
@@ -260,10 +260,10 @@ For ``index`` and ``header``, ``1`` and ``True`` may be used interchangeably.
     30  7  8  9
 
     # Writing back using the defaults:
-    >>> Range('A1').value = df
+    >>> sht.range('A1').value = df
 
     # Writing back and changing some of the options, e.g. getting rid of the index:
-    >>> Range('B7').options(index=False).value = df
+    >>> sht.range('B7').options(index=False).value = df
 
 The same sample for **UDF** (starting in ``Range('A13')`` on screenshot) looks like this::
 
@@ -293,10 +293,10 @@ Technically speaking, these are "no-converters".
   ``appscript`` on Mac), i.e. no sanitizing/cross-platform harmonizing of values are being made. This might be useful
   in a few cases for efficiency reasons. E.g::
 
-    >>> Range('A1:B2').value
+    >>> sht.range('A1:B2').value
     [[1.0, 'text'], [datetime.datetime(2016, 2, 1, 0, 0), None]]
 
-    >>> Range('A1:B2').options('raw').value
+    >>> sht.range('A1:B2').options('raw').value
     ((1.0, 'text'), (pywintypes.datetime(2016, 2, 1, 0, 0, tzinfo=TimeZoneInfo('GMT Standard Time', True)), None))
 
 
@@ -375,34 +375,34 @@ built-in DataFrame converter to add support for dropping nan's::
 Now let's see how the different converters can be applied::
 
     # Fire up a Workbook and create a sample DataFrame
-    wb = Workbook()
+    wb = xw.Book()
     df = pd.DataFrame([[1.,10.],[2.,np.nan], [3., 30.]])
 
 * Default converter for DataFrames::
 
     # Write
-    Range('A1').value = df
+    sht.range('A1').value = df
 
     # Read
-    Range('A1:C4').options(pd.DataFrame).value
+    sht.range('A1:C4').options(pd.DataFrame).value
 
 * DataFrameDropna converter::
 
     # Write
-    Range('A7').options(DataFrameDropna, dropna=True).value = df
+    sht.range('A7').options(DataFrameDropna, dropna=True).value = df
 
     # Read
-    Range('A1:C4').options(DataFrameDropna, dropna=True).value
+    sht.range('A1:C4').options(DataFrameDropna, dropna=True).value
 
 * Register an alias (optional)::
 
     DataFrameDropna.register('df_dropna')
 
     # Write
-    Range('A12').options('df_dropna', dropna=True).value = df
+    sht.range('A12').options('df_dropna', dropna=True).value = df
 
     # Read
-    Range('A1:C4').options('df_dropna', dropna=True).value
+    sht.range('A1:C4').options('df_dropna', dropna=True).value
 
 
 * Register DataFrameDropna as default converter for DataFrames (optional)::
@@ -410,10 +410,10 @@ Now let's see how the different converters can be applied::
     DataFrameDropna.register(pd.DataFrame)
 
     # Write
-    Range('A13').options(dropna=True).value = df
+    sht.range('A13').options(dropna=True).value = df
 
     # Read
-    Range('A1:C4').options(pd.DataFrame, dropna=True).value
+    sht.range('A1:C4').options(pd.DataFrame, dropna=True).value
 
 These samples all work the same with UDFs, e.g.::
 
