@@ -183,6 +183,12 @@ class App(object):
         Returns or sets a boolean value that determines whether the app is visible.
 
 
+    .. note::
+        On Mac, while xlwings allows you to run multiple instances of Excel, it's a feature that is not officially
+        supported by Excel for Mac. This means e.g. that unlike on Windows, Excel will not ask you to open a read-only
+        version of a file if it is already open in another instance, so you'd need to take care yourself to not
+        overwrite the same file from different instances.
+
     .. versionadded:: 0.9.0
     """
 
@@ -814,9 +820,9 @@ class Sheet(object):
 
         Examples
         --------
-        >>> Sheet('Sheet1').autofit('c')
-        >>> Sheet('Sheet1').autofit('r')
-        >>> Range('Sheet1').autofit()
+        >>> xw.sheets['Sheet1'].autofit('c')
+        >>> xw.sheets['Sheet1'].autofit('r')
+        >>> xw.sheets['Sheet1'].autofit()
 
 
         .. versionadded:: 0.2.3

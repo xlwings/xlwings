@@ -61,7 +61,7 @@ returns an error, should the same book be open in multiple instances.
 Active Objects
 --------------
 
-* Active app
+* Active app (i.e. Excel instance)
 
   >>> app = xw.apps.active
 
@@ -72,18 +72,17 @@ Active Objects
 
 * Active sheet
 
-  >>> sht = xw.sheets.active  # in active book of active app
+  >>> sht = xw.sheets.active  # in active book
   >>> sht = wb.sheets.active  # in specific book
 
 * Range on active sheet
 
   >>> xw.Range('A1')  # on active sheet of active book of active app
-  >>> app.range('A1') # on active sheet of active book of specific app
 
 Round vs. Square Brackets
 -------------------------
 
-Round brackets use Excel's 1-based indexing, while square brackets use Python's 0-based indexing.
+Round brackets follow Excel's behavior (i.e. 1-based indexing), while square brackets use Python's 0-based indexing/slicing.
 
 As an example, the following all reference the same range::
 

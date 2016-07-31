@@ -21,6 +21,7 @@ on **Windows** and **Mac**.
     installation
     quickstart
     connect_to_workbook
+    syntax_overview
     datastructures
     vba
     debugging
