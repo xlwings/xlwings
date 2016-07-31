@@ -11,9 +11,9 @@ When reading/writing data to the active sheet, you don't need a book object:
 Python to Excel
 ---------------
 
-The easiest way to connect to a book is offered by ``xw.Book``: it looks for the book over all app instances and
+The easiest way to connect to a book is offered by ``xw.Book``: it looks for the book in all app instances and
 returns an error, should the same book be open in multiple instances.
-To refer to the active app instance, you can use ``xw.books`` and to use a specific app, you can qualify it like so:
+To connect to a book in the active app instance, use ``xw.books`` and to refer to a specific app, use:
 
 >>> app = xw.apps[0]
 >>> app.books['Book1']
