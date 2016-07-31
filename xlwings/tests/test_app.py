@@ -70,6 +70,13 @@ class TestApp(TestBase):
         self.app1.screen_updating = True
         self.assertTrue(self.app1.screen_updating)
 
+    def test_display_alerts(self):
+        self.app1.display_alerts = False
+        self.assertEqual(self.app1.display_alerts, False)
+
+        self.app1.display_alerts = True
+        self.assertTrue(self.app1.display_alerts)
+
     def test_calculation_calculate(self):
         sht = self.wb1.sheets[0]
         sht.range('A1').value = 2

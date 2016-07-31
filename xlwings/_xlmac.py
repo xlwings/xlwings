@@ -116,6 +116,14 @@ class App(object):
         self.xl.screen_updating.set(value)
 
     @property
+    def display_alerts(self):
+        return self.xl.display_alerts.get()
+
+    @display_alerts.setter
+    def display_alerts(self, value):
+        self.xl.display_alerts.set(value)
+
+    @property
     def calculation(self):
         return calculation_k2s[self.xl.calculation.get()]
 
