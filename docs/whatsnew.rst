@@ -8,8 +8,8 @@ v0.9.0 (Jul xx, 2016)
 
 Exciting times! v0.9.0 is a complete rewrite of xlwings with loads of syntax changes (hence the version jump). But more
 importantly, this release adds a ton of new features and bug fixes that would have otherwise been impossible. Some of the
-highlights are listed below, but make sure to check out the full :ref:`migration guide <migrate_to_0.9>` for all the syntax changes.
-At this point, the API is fairly stable and we're expecting only smaller changes until we reach v1.0.
+highlights are listed below, but make sure to check out the full :ref:`migration guide <migrate_to_0.9>` for the syntax changes in details.
+At this point, the API is fairly stable and we're expecting only smaller changes on the road towards a stable v1.0 release.
 
 * **Active** book instead of **current** book: ``xw.Range('A1')`` goes against the active sheet of the active book of the active app
   like you're used to from VBA. Instantiating an explicit connection to a Book is not necessary anymore:
@@ -52,6 +52,11 @@ At this point, the API is fairly stable and we're expecting only smaller changes
 * Objects like books, sheets etc. can now be compared (e.g. ``wb1 == wb2``) and are properly hashable
 
 * Note that support for Python 2.6 has been dropped
+
+New methods:
+
+* :meth:`xlwings.App.range`
+* :meth:`xlwings.App.selection`
 
 Bug Fixes
 *********

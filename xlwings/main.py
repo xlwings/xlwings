@@ -106,8 +106,6 @@ class Apps(object):
 
     >>> xw.apps
     Apps([<Excel App 1668>, <Excel App 1644>])
-
-    .. versionadded:: 0.9.0
     """
 
     def __init__(self, impl):
@@ -117,6 +115,9 @@ class Apps(object):
     def active(self):
         """
         Returns the active app.
+
+
+        .. versionadded:: 0.9.0
         """
         for app in self.impl:
             return App(impl=app)
@@ -142,6 +143,8 @@ class Apps(object):
         """
         Returns the number of apps.
 
+
+        .. versionadded:: 0.9.0
         """
         return len(self)
 
@@ -188,8 +191,6 @@ class App(object):
         supported by Excel for Mac. This means e.g. that unlike on Windows, Excel will not ask you to open a read-only
         version of a file if it is already open in another instance, so you'd need to take care yourself to not
         overwrite the same file from different instances.
-
-    .. versionadded:: 0.9.0
     """
 
     def __init__(self, spec=None, impl=None, visible=None):
