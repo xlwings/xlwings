@@ -106,8 +106,6 @@ class Apps(object):
 
     >>> xw.apps
     Apps([<Excel App 1668>, <Excel App 1644>])
-
-    .. versionadded:: 0.9.0
     """
 
     def __init__(self, impl):
@@ -123,6 +121,9 @@ class Apps(object):
     def active(self):
         """
         Returns the active app.
+
+
+        .. versionadded:: 0.9.0
         """
         for app in self.impl:
             return App(impl=app)
@@ -148,6 +149,8 @@ class Apps(object):
         """
         Returns the number of apps.
 
+
+        .. versionadded:: 0.9.0
         """
         return len(self)
 
@@ -188,7 +191,11 @@ class App(object):
         Programs and Features`` and ``Repair`` the Office version that you want as default.
 
 
-    .. versionadded:: 0.9.0
+    .. note::
+        On Mac, while xlwings allows you to run multiple instances of Excel, it's a feature that is not officially
+        supported by Excel for Mac: Unlike on Windows, Excel will not ask you to open a read-only version of a file
+        if it is already open in another instance. This means that you need to watch out yourself so that the same
+        file is not being overwritten from different instances.
     """
 
     def __init__(self, visible=True, spec=None, impl=None):
@@ -281,12 +288,18 @@ class App(object):
         return self.impl.quit()
 
     def kill(self):
+        """
+        Forces the Excel app to quit by killing its process.
+
+        .. versionadded:: 0.9.0
+        """
         return self.impl.kill()
 
     @property
     def screen_updating(self):
         """
-        Gets or sets screen updating to ``True`` or ``False``.
+        Turn screen updating off to speed up your script. You won't be able to see what the script is doing, but it
+        will run faster. Remember to set the screen_updating property back to True when your script ends.
 
 
         .. versionadded:: 0.3.3
@@ -300,7 +313,8 @@ class App(object):
     @property
     def display_alerts(self):
         """
-        Gets or sets display alerts to ``True`` or ``False``.
+        The default value is True. Set this property to False to suppress prompts and alert messages while code is
+        running; when a message requires a response, Excel chooses the default response.
 
 
         .. versionadded:: 0.9.0
@@ -433,9 +447,9 @@ class Book(object):
     <Book [Workbook1]>
 
 
-    The easiest way to connect to a book is offered by ``xw.Book``: it looks for the book over all app instances and
-    returns an error, should the book be open multiple times.
-    ``xw.books`` only looks in the active app, but the app can additionally be qualified with an app object:
+    The easiest way to connect to a book is offered by ``xw.Book``: it looks for the book in all app instances and
+    returns an error, should the same book be open in multiple instances.
+    To connect to a book in the active app instance, use ``xw.books`` and to refer to a specific app, use:
 
     >>> app = xw.apps[0]
     >>> app.books['Book1']
@@ -833,9 +847,9 @@ class Sheet(object):
 
         Examples
         --------
-        >>> Sheet('Sheet1').autofit('c')
-        >>> Sheet('Sheet1').autofit('r')
-        >>> Range('Sheet1').autofit()
+        >>> xw.sheets['Sheet1'].autofit('c')
+        >>> xw.sheets['Sheet1'].autofit('r')
+        >>> xw.sheets['Sheet1'].autofit()
 
 
         .. versionadded:: 0.2.3

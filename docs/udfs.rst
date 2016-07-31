@@ -189,8 +189,8 @@ decorator::
     @xw.sub
     def my_macro():
         """Writes the name of the Workbook into Range("A1") of Sheet 1"""
-        wb = xw.Workbook.caller()
-        xw.Range(1, 'A1').value = wb.name
+        wb = xw.Book.caller()
+        wb.sheets[0].range('A1').value = wb.name
 
 After clicking on ``Import Python UDFs``, you can then use this macro by executing it via ``Alt + F8`` or by
 binding it e.g. to a button. To to the latter, make sure you have the ``Developer`` tab selected under ``File >

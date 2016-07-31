@@ -3,13 +3,14 @@ What's New
 
 .. _v0.9_release_notes:
 
-v0.9.0 (Jul xx, 2016)
+v0.9.0 (Aug xx, 2016)
 ---------------------
 
 Exciting times! v0.9.0 is a complete rewrite of xlwings with loads of syntax changes (hence the version jump). But more
 importantly, this release adds a ton of new features and bug fixes that would have otherwise been impossible. Some of the
-highlights are listed below, but make sure to check out the full :ref:`migration guide <migrate_to_0.9>` for all the syntax changes.
-At this point, the API is fairly stable and we're expecting only smaller changes until we reach v1.0.
+highlights are listed below, but make sure to check out the full :ref:`migration guide <migrate_to_0.9>` for the syntax changes in details.
+Note, howere, that the syntax for user defined functions (UDFs) is not affected.
+At this point, the API is fairly stable and we're expecting only smaller changes on our way towards a stable v1.0 release.
 
 * **Active** book instead of **current** book: ``xw.Range('A1')`` goes against the active sheet of the active book of the active app
   like you're used to from VBA. Instantiating an explicit connection to a Book is not necessary anymore:
@@ -41,17 +42,33 @@ At this point, the API is fairly stable and we're expecting only smaller changes
     >>> rng[:2, :2].address
     '$A$1:$B$2'
 
-* Named Ranges: They now properly support sheet and workbook scope
+* UDFs can now also be imported from packages, not just modules (:issue:`437`)
 
-* Excel doesn't become the active window anymore so the focus stays on your Python environment
+* Named Ranges: Introduction of full object model and proper support for sheet and workbook scope (:issue:`256`)
 
-* When writing to ranges while Excel is busy, xlwings is now retrying until Excel is idle again
+* Excel doesn't become the active window anymore so the focus stays on your Python environment (:issue:`414`)
 
-* ``xw.view()`` has been extended to accept an optional sheet object
+* When writing to ranges while Excel is busy, xlwings is now retrying until Excel is idle again (:issue:`468`)
+
+* ``xw.view()`` has been extended to accept an optional sheet object (:issue:`469`)
 
 * Objects like books, sheets etc. can now be compared (e.g. ``wb1 == wb2``) and are properly hashable
 
 * Note that support for Python 2.6 has been dropped
+
+Some of the new methods worth mentioning are:
+
+* :meth:`xlwings.App.display_alerts`
+* :meth:`xlwings.App.macro` in addition to :meth:`xlwings.Book.macro`
+* :meth:`xlwings.App.kill`
+* :meth:`xlwings.Book.cells`
+* :meth:`xlwings.Range.rows`
+* :meth:`xlwings.Range.columns`
+* :meth:`xlwings.Range.end`
+* :meth:`xlwings.Range.raw_value`
+* :meth:`xlwings.Shape.type`
+* :meth:`xlwings.Shape.parent`
+
 
 Bug Fixes
 *********

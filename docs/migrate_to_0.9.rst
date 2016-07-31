@@ -41,9 +41,9 @@ New object model
 Connecting to Books
 -------------------
 
-The easiest way to connect to a book is offered by ``xw.Book``: it looks for the book over all app instances and
-returns an error, should the book be open multiple times.
-``xw.books`` only looks in the active app, but the app can additionally be qualified with an app object:
+The easiest way to connect to a book is offered by ``xw.Book``: it looks for the book in all app instances and
+returns an error, should the same book be open in multiple instances.
+To connect to a book in the active app instance, use ``xw.books`` and to refer to a specific app, use:
 
 >>> app = xw.apps[0]
 >>> app.books['Book1']
@@ -61,7 +61,7 @@ returns an error, should the book be open multiple times.
 Active Objects
 --------------
 
-* Active app
+* Active app (i.e. Excel instance)
 
   >>> app = xw.apps.active
 
@@ -72,18 +72,17 @@ Active Objects
 
 * Active sheet
 
-  >>> sht = xw.sheets.active  # in active book of active app
+  >>> sht = xw.sheets.active  # in active book
   >>> sht = wb.sheets.active  # in specific book
 
 * Range on active sheet
 
   >>> xw.Range('A1')  # on active sheet of active book of active app
-  >>> app.range('A1') # on active sheet of active book of specific app
 
 Round vs. Square Brackets
 -------------------------
 
-Round brackets use Excel's 1-based indexing, while square brackets use Python's 0-based indexing.
+Round brackets follow Excel's behavior (i.e. 1-based indexing), while square brackets use Python's 0-based indexing/slicing.
 
 As an example, the following all reference the same range::
 
