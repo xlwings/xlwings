@@ -1,21 +1,32 @@
 .. _connect_to_workbook:
 
-Connect to Workbooks
-====================
+Connect to a Book
+=================
 
-First things first: to be able to talk to Excel from Python or call ``RunPython`` in VBA, you need to establish a connection with
-an Excel Workbook.
+When reading/writing data to the active sheet, you don't need a book object:
+
+  >>> import xlwings as xw
+  >>> xw.Range('A1').value = 'something'
 
 Python to Excel
 ---------------
 
-There are various ways to connect to an Excel workbook from Python:
+The easiest way to connect to a book is offered by ``xw.Book``: it looks for the book in all app instances and
+returns an error, should the same book be open in multiple instances.
+To connect to a book in the active app instance, use ``xw.books`` and to refer to a specific app, use:
 
-* ``wb = Workbook()`` connects to a a new workbook
-* ``wb = Workbook.active()`` connects to the active workbook (supports multiple Excel instances)
-* ``wb = Workbook('Book1')`` connects to an unsaved workbook
-* ``wb = Workbook('MyWorkbook.xlsx')`` connects to a saved (open) workbook by name (incl. xlsx etc.)
-* ``wb = Workbook(r'C:\path\to\file.xlsx')`` connects to a saved (open or closed) workbook by path
+>>> app = xw.apps[0]
+>>> app.books['Book1']
+
++--------------------+--------------------------------------+--------------------------------------------+
+|                    | xw.Book                              | xw.books                                   |
++====================+======================================+============================================+
+| New book           | ``xw.Book()``                        | ``xw.books.add()``                         |
++--------------------+--------------------------------------+--------------------------------------------+
+| Unsaved book       | ``xw.Book('Book1')``                 | ``xw.books['Book1']``                      |
++--------------------+--------------------------------------+--------------------------------------------+
+| Book by (full)name | ``xw.Book(r'C:/path/to/file.xlsx')`` | ``xw.books.open(r'C:/path/to/file.xlsx')`` |
++--------------------+--------------------------------------+--------------------------------------------+
 
 .. note::
   When specifying file paths on Windows, you should either use raw strings by putting
@@ -24,13 +35,13 @@ There are various ways to connect to an Excel workbook from Python:
 Excel to Python (RunPython)
 ---------------------------
 
-To make a connection from Excel, i.e. when calling a Python script with ``RunPython``, use ``Workbook.caller()``, see
+To reference the calling book when using ``RunPython`` in VBA, use ``xw.Book.caller()``, see
 :ref:`run_python`.
 Check out the section about :ref:`debugging` to see how you can call a script from both sides, Python and Excel, without
-the need to constantly change between ``Workbook.caller()`` and one of the methods explained above.
+the need to constantly change between ``xw.Book.caller()`` and one of the methods explained above.
 
 User Defined Functions (UDFs)
 -----------------------------
 
-UDFs work differently and don't need the explicit instantiation of a ``Workbook``, see :ref:`udfs`.
-However, ``xw.Workbook.caller()`` can be used in UDFs although just read-only.
+Unlike ``RunPython``, UDFs don't need a call to ``xw.Book.caller()``, see :ref:`udfs`.
+However, it's available (restricted to read-only though), which sometimes proofs to be useful.

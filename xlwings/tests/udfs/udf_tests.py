@@ -523,7 +523,7 @@ if pd:
 
     @xw.func
     def read_workbook_caller():
-        wb = xw.Workbook.caller()
+        wb = xw.Book.caller()
         return xw.Range('E277').value == 1.
 
 

@@ -7,11 +7,11 @@ License: BSD 3-clause (see LICENSE.txt for details)
 from __future__ import division
 import sys
 import numpy as np
-from xlwings import Application, Workbook, Range, Chart
+from xlwings import App, Book, Range, Chart
 
 
 def main():
-    wb = Workbook.caller()
+    wb = Book.caller()
     # User Inputs
     num_simulations = Range('E3').options(numbers=int).value
     time = Range('E4').value
@@ -48,7 +48,7 @@ def main():
             Range((t+2, 16)).value = percentiles[t, :]
             Range((t+2, 19)).value = price[t, 0]  # Sample path
             if sys.platform.startswith('win'):
-                Application(wb).screen_updating = True
+                App(wb).screen_updating = True
 
     if not animate:
         Range('P2').value = percentiles

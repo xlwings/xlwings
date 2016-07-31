@@ -38,18 +38,7 @@ if np:
 
         @classmethod
         def write_value(cls, value, options):
-            try:
-                value = np.where(np.isnan(value), None, value)
-                value = value.tolist()
-            except TypeError:
-                # isnan doesn't work on arrays of dtype=object
-                if pd:
-                    value[pd.isnull(value)] = None
-                    value = value.tolist()
-                else:
-                    # expensive way of replacing nan with None in object arrays in case Pandas is not available
-                    value = [[None if isinstance(c, float) and np.isnan(c) else c for c in row] for row in value]
-            return value
+            return value.tolist()
 
 
     NumpyArrayConverter.register(np.array, np.ndarray)

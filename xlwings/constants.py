@@ -1,4 +1,41 @@
 # Excel constants: We can't use 'from win32com.client import constants' as we're dynamically dispatching
+import re
+
+RE_WORD = re.compile('^[A-Z0-9]([A-Z0-9](?![a-z]))*[a-z]*')
+
+
+def _dump_enum(cls):
+    constants = [c for c in dir(cls) if c.startswith("xl")]
+    s2i = {}
+    for c in constants:
+        i = getattr(cls, c)
+        c = c[2:]
+        words = []
+        while c:
+            m = RE_WORD.match(c)
+            words.append(m.group(0).lower())
+            c = c[m.end():]
+        s = "_".join(words)
+        s2i[s] = i
+
+    from collections import OrderedDict
+    s2i = OrderedDict((
+        (s, s2i[s])
+        for s in sorted(s2i.keys())
+    ))
+    i2s = OrderedDict((
+        (v, k)
+        for k, v in s2i.items()
+    ))
+
+    import json
+    with open("out.txt", "w") as f:
+        json.dump({
+            'i2s': i2s,
+            's2i': s2i,
+            'l': list(s2i.keys())
+        }, f, indent=4)
+
 
 class AboveBelow:
     xlAboveAverage = 0  # from enum XlAboveBelow
@@ -659,6 +696,12 @@ class Calculation:
     xlCalculationSemiautomatic = 2  # from enum XlCalculation
 
 
+calculations = (
+    'automatic',
+    'manual',
+    'semiautomatic'
+)
+
 class CalculationInterruptKey:
     xlAnyKey = 2  # from enum XlCalculationInterruptKey
     xlEscKey = 1  # from enum XlCalculationInterruptKey
@@ -851,6 +894,84 @@ class ChartType:
     xlXYScatterLinesNoMarkers = 75  # from enum XlChartType
     xlXYScatterSmooth = 72  # from enum XlChartType
     xlXYScatterSmoothNoMarkers = 73  # from enum XlChartType
+
+
+chart_types = (
+    '3d_area',
+    '3d_area_stacked',
+    '3d_area_stacked_100',
+    '3d_bar_clustered',
+    '3d_bar_stacked',
+    '3d_bar_stacked_100',
+    '3d_column',
+    '3d_column_clustered',
+    '3d_column_stacked',
+    '3d_column_stacked_100',
+    '3d_line',
+    '3d_pie',
+    '3d_pie_exploded',
+    'area',
+    'area_stacked',
+    'area_stacked_100',
+    'bar_clustered',
+    'bar_of_pie',
+    'bar_stacked',
+    'bar_stacked_100',
+    'bubble',
+    'bubble_3d_effect',
+    'column_clustered',
+    'column_stacked',
+    'column_stacked_100',
+    'combination',
+    'cone_bar_clustered',
+    'cone_bar_stacked',
+    'cone_bar_stacked_100',
+    'cone_col',
+    'cone_col_clustered',
+    'cone_col_stacked',
+    'cone_col_stacked_100',
+    'cylinder_bar_clustered',
+    'cylinder_bar_stacked',
+    'cylinder_bar_stacked_100',
+    'cylinder_col',
+    'cylinder_col_clustered',
+    'cylinder_col_stacked',
+    'cylinder_col_stacked_100',
+    'doughnut',
+    'doughnut_exploded',
+    'line',
+    'line_markers',
+    'line_markers_stacked',
+    'line_markers_stacked_100',
+    'line_stacked',
+    'line_stacked_100',
+    'pie',
+    'pie_exploded',
+    'pie_of_pie',
+    'pyramid_bar_clustered',
+    'pyramid_bar_stacked',
+    'pyramid_bar_stacked_100',
+    'pyramid_col',
+    'pyramid_col_clustered',
+    'pyramid_col_stacked',
+    'pyramid_col_stacked_100',
+    'radar',
+    'radar_filled',
+    'radar_markers',
+    'stock_hlc',
+    'stock_ohlc',
+    'stock_vhlc',
+    'stock_vohlc',
+    'surface',
+    'surface_top_view',
+    'surface_top_view_wireframe',
+    'surface_wireframe',
+    'xy_scatter',
+    'xy_scatter_lines',
+    'xy_scatter_lines_no_markers',
+    'xy_scatter_smooth',
+    'xy_scatter_smooth_no_markers'
+)
 
 
 class CheckInVersionType:
@@ -1107,6 +1228,14 @@ class Direction:
     xlToLeft = -4159  # from enum XlDirection
     xlToRight = -4161  # from enum XlDirection
     xlUp = -4162  # from enum XlDirection
+
+
+directions = (
+    'down',
+    'left',
+    'right'
+    'up'
+)
 
 
 class DisplayBlanksAs:
@@ -2931,3 +3060,34 @@ class YesNoGuess:
     xlGuess = 0  # from enum XlYesNoGuess
     xlNo = 2  # from enum XlYesNoGuess
     xlYes = 1  # from enum XlYesNoGuess
+
+
+shape_types = [
+    "auto_shape",
+    "callout",
+    "canvas",
+    "chart",
+    "comment",
+    "content_app",
+    "diagram",
+    "embedded_ole_object",
+    "form_control",
+    "free_form",
+    "group",
+    "igx_graphic",
+    "ink",
+    "ink_comment",
+    "line",
+    "linked_ole_object",
+    "linked_picture",
+    "media",
+    "ole_control_object",
+    "picture",
+    "placeholder",
+    "script_anchor",
+    "shape_type_mixed",
+    "table",
+    "text_box",
+    "text_effect",
+    "web_video"
+]

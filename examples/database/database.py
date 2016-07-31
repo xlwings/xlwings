@@ -6,7 +6,7 @@ License: BSD 3-clause (see LICENSE.txt for details)
 """
 import sqlite3
 import os
-from xlwings import Workbook, Range
+from xlwings import Book, Range
 
 
 def playlist():
@@ -14,7 +14,7 @@ def playlist():
     Get the playlist content based on the ID from the Dropdown
     """
     # Make a connection to the calling Excel file
-    wb = Workbook.caller()
+    wb = Book.caller()
 
     # Place the database next to the Excel file
     db_file = os.path.join(os.path.dirname(wb.fullname), 'chinook.sqlite')
@@ -61,7 +61,7 @@ def combobox():
     """
 
     # Make a connection to the calling Excel file
-    wb = Workbook.caller()
+    wb = Book.caller()
 
     # Place the database next to the Excel file
     db_file = os.path.join(os.path.dirname(wb.fullname), 'chinook.sqlite')

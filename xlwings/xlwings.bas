@@ -1,5 +1,5 @@
 Attribute VB_Name = "xlwings"
-' xlwings.org, version: 0.7.3.dev0
+' xlwings.org, version: 0.9.0.dev0
 '
 ' Copyright (C) 2014-2016, Zoomer Analytics LLC (www.zoomeranalytics.com)
 ' License: BSD 3-clause (see LICENSE.txt for details)
@@ -82,7 +82,7 @@ Public Function RunPython(PythonCommand As String)
         #End If
     #Else
         If OPTIMIZED_CONNECTION = True Then
-            Py.SetAttr Py.Module("xlwings._xlwindows"), "xl_workbook_current", ThisWorkbook
+            Py.SetAttr Py.Module("xlwings._xlwindows"), "BOOK_CALLER", ThisWorkbook
             Py.Exec "" & PythonCommand & ""
         Else
             ExecuteWindows False, PythonCommand, PYTHON_WIN, LOG_FILE, SHOW_LOG, PYTHONPATH
@@ -472,7 +472,11 @@ Private Sub CleanUp()
     Application.StatusBar = False
     Application.ScreenUpdating = True
     On Error Resume Next
-        KillFileOnMac ToMacPath(ToPosixPath(LOG_FILE))
+        #If MAC_OFFICE_VERSION >= 15 Then
+            Kill LOG_FILE
+        #Else
+            KillFileOnMac ToMacPath(ToPosixPath(LOG_FILE))
+        #End If
     On Error GoTo 0
 End Sub
 

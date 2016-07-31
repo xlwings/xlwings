@@ -11,18 +11,17 @@ Python from Excel and vice versa:
 **Numpy arrays** and **Pandas Series/DataFrames** are fully supported. xlwings-powered workbooks are easy to distribute and work
 on **Windows** and **Mac**.
 
-.. note:: xlwings is currently in an early stage.
-   The API might change in backward incompatible ways.
-
 
 .. toctree::
     :maxdepth: 2
     :hidden:
 
     whatsnew
+    migrate_to_0.9
     installation
     quickstart
     connect_to_workbook
+    syntax_overview
     datastructures
     vba
     debugging

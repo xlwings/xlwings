@@ -26,16 +26,16 @@ Consider the following code structure of your Python source code:
 .. code-block:: python
 
     import os
-    from xlwings import Workbook, Range
+    import xlwings as xw
 
     def my_macro():
-        wb = Workbook.caller()
-        Range('A1').value = 1
+        wb = xw.Book.caller()
+        wb.sheets[0].range('A1').value = 1
 
     if __name__ == '__main__':
         # Expects the Excel file next to this source file, adjust accordingly.
         path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'myfile.xlsm'))
-        Workbook.set_mock_caller(path)
+        xw.Book.set_mock_caller(path)
         my_macro()
 
 
