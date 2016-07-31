@@ -42,13 +42,15 @@ At this point, the API is fairly stable and we're expecting only smaller changes
     >>> rng[:2, :2].address
     '$A$1:$B$2'
 
-* Named Ranges: Introduction of full object model and proper support for sheet and workbook scope
+* UDFs can now also be imported from packages, not just modules (:issue:`437`)
 
-* Excel doesn't become the active window anymore so the focus stays on your Python environment
+* Named Ranges: Introduction of full object model and proper support for sheet and workbook scope (:issue:`256`)
 
-* When writing to ranges while Excel is busy, xlwings is now retrying until Excel is idle again
+* Excel doesn't become the active window anymore so the focus stays on your Python environment (:issue:`414`)
 
-* ``xw.view()`` has been extended to accept an optional sheet object
+* When writing to ranges while Excel is busy, xlwings is now retrying until Excel is idle again (:issue:`468`)
+
+* ``xw.view()`` has been extended to accept an optional sheet object (:issue:`469`)
 
 * Objects like books, sheets etc. can now be compared (e.g. ``wb1 == wb2``) and are properly hashable
 
