@@ -196,7 +196,7 @@ class TestCharts(TestBase):
         self.assertEqual(len(sht.charts), 1)
 
         chart.name = 'My Chart'
-        chart.source_data = sht.range('A1').expand('table')
+        chart.set_source_data(sht.range('A1').expand('table'))
         chart.chart_type = 'line'
 
         self.assertEqual('My Chart', chart.name)
