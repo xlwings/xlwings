@@ -13,7 +13,9 @@ class TestBooks(TestBase):
         self.assertEqual(self.app1.books[0], self.app1.books(1))
 
     def test_len(self):
-        self.assertEqual(len(self.app1.books), 1)
+        count = self.app1.books.count
+        wb = self.app1.books.add()
+        self.assertEqual(len(self.app1.books), count + 1)
 
     def test_count(self):
         self.assertEqual(len(self.app1.books), self.app1.books.count)
@@ -127,8 +129,10 @@ class TestBook(TestBase):
         self.assertEqual(self.app1, self.wb1.app)
 
     def test_close(self):
-        self.wb1.close()
-        self.assertEqual(len(self.app1.books), 0)
+        wb = self.app1.books.add()
+        count = self.app1.books.count
+        wb.close()
+        self.assertEqual(len(self.app1.books), count - 1)
 
     def test_save_naked(self):
         if sys.platform.startswith('darwin') and self.app1.version.major >= 15:

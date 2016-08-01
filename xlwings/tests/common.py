@@ -16,7 +16,6 @@ SPEC = None
 class TestBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.existing_apps = list(xw.apps)
         cls.app1 = xw.App(visible=False, spec=SPEC)
         cls.app2 = xw.App(visible=False, spec=SPEC)
 
@@ -30,13 +29,10 @@ class TestBase(unittest.TestCase):
                 wb.sheets[0].select()
 
     def tearDown(self):
-        for app in xw.apps:
-            if app.pid not in [i.pid for i in self.existing_apps]:
-                while len(app.books) > 0:
-                    app.books[0].close()
+        for app in [self.app1, self.app2]:
+            app.books[-1].close()
 
     @classmethod
     def tearDownClass(cls):
-        for app in xw.apps:
-            if app.pid not in [i.pid for i in cls.existing_apps]:
-                app.quit()
+        cls.app1.kill()
+        cls.app2.kill()

@@ -26,7 +26,7 @@ class TestApps(TestBase):
     def test_iter(self):
         for app in xw.apps:
             if app == (self.app1 or self.app2):
-                self.assertEqual(len(app.books), 1)
+                self.assertEqual(len(app.books), 2)
 
     def test_indexing(self):
         self.assertEqual(xw.apps[0], xw.apps(1))
@@ -50,10 +50,9 @@ class TestApp(TestBase):
         self.assertTrue(self.app1.visible)
 
     def test_quit(self):
+        app = xw.App()
         n_apps = len(xw.apps)
-        while len(self.app2.books) > 0:
-            self.app2.books[0].close()
-        self.app2.quit()
+        app.quit()
         time.sleep(1)  # needed for Mac Excel 2011
         self.assertEqual(n_apps - 1, len(xw.apps))
 
@@ -61,6 +60,8 @@ class TestApp(TestBase):
         app = xw.App(spec=SPEC)
         n_apps = len(xw.apps)
         app.kill()
+        import time
+        time.sleep(0.5)
         self.assertEqual(n_apps - 1, len(xw.apps))
 
     def test_screen_updating(self):
@@ -127,7 +128,7 @@ class TestApp(TestBase):
         self.assertEqual(self.app1.selection.address, '$A$1')
 
     def test_books(self):
-        self.assertEqual(len(self.app2.books), 1)
+        self.assertEqual(len(self.app2.books), 2)
 
     def test_pid(self):
         self.assertTrue(self.app1.pid > 0)
