@@ -30,7 +30,7 @@ class TestActive(TestBase):
 
     def test_book_fullname_closed(self):
         wb = xw.Book(os.path.join(this_dir, 'test book.xlsx'))
-        self.assertEqual(wb, self.app2.books['test book.xlsx'])
+        self.assertEqual(wb, xw.apps.active.books['test book.xlsx'])
 
     def test_book_fullname_open(self):
         wb1 = self.app1.books.open(os.path.join(this_dir, 'test book.xlsx'))
@@ -49,7 +49,7 @@ class TestActive(TestBase):
 
     def test_book(self):
         wb = xw.Book()
-        self.assertEqual(wb, self.app2.books.active)
+        self.assertEqual(wb, xw.apps.active.books.active)
 
     def test_book_name_unsaved(self):
         wb = xw.Book()

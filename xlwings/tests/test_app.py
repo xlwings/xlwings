@@ -11,7 +11,7 @@ from xlwings.tests.common import TestBase, this_dir, SPEC
 
 class TestApps(TestBase):
     def test_active(self):
-        self.assertEqual(xw.apps[0], xw.apps.active)
+        self.assertTrue(xw.apps.active in [self.app1, self.app2])
 
     def test_len(self):
         n_original = len(xw.apps)
