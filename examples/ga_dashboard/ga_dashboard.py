@@ -5,10 +5,7 @@ import numpy as np
 import pandas as pd
 import pandas.io.ga as ga
 from datetime import datetime
-from xlwings import Book, Range
-
-# Worksheets
-sheet_dashboard = 'Sheet1'
+import xlwings as xw
 
 # Client Secrets file: same dir as this file
 client_secrets = os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -16,10 +13,6 @@ client_secrets = os.path.abspath(os.path.join(os.path.dirname(__file__),
 
 
 def behavior(start_date, end_date, account_name, property_name, profile_name, max_results):
-    """
-    Writes a DataFrame with the number of pageviews per half-hours x weekdays
-    to the Range "behavior"
-    """
     # Let pandas fetch the data from Google Analytics, returns a generator object
     df_chunks = ga.read_ga(secrets=client_secrets,
                            account_name=account_name,
@@ -51,10 +44,7 @@ def behavior(start_date, end_date, account_name, property_name, profile_name, ma
                                 columns=range(7))
     behavior.columns = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU']
 
-    # Write to Excel.
-    # Time-only values are currently a bit of a pain on Windows, so we set index=False.
-    Range(sheet_dashboard, 'behavior').options(index=False).value = behavior
-    Range(sheet_dashboard, 'effective').value = num_rows
+    return behavior, num_rows
 
 
 def refresh():
@@ -62,26 +52,30 @@ def refresh():
     Refreshes the tables in Excel given the input parameters.
     """
     # Connect to the Workbook
-    wb = Book.caller()
+    sht = xw.Book.caller().sheets['Sheet1']
 
     # Read input
-    start_date = Range(sheet_dashboard, 'start_date').value
-    end_date = Range(sheet_dashboard, 'end_date').value
-    account_name = Range(sheet_dashboard, 'account').value
-    property_name = Range(sheet_dashboard, 'property').value
-    profile_name = Range(sheet_dashboard, 'view').value
-    max_results = Range(sheet_dashboard, 'max_rows').value
+    start_date = sht.range('start_date').value
+    end_date = sht.range('end_date').value
+    account_name = sht.range('account').value
+    property_name = sht.range('property').value
+    profile_name = sht.range('view').value
+    max_results = sht.range('max_rows').value
 
     # Clear Content
-    Range(sheet_dashboard, 'behavior').clear_contents()
-    Range(sheet_dashboard, 'effective').clear_contents()
+    sht.range('behavior').clear_contents()
+    sht.range('effective').clear_contents()
 
     # Behavior table
-    behavior(start_date, end_date, account_name, property_name, profile_name, max_results)
+    df_behavior, num_rows = behavior(start_date, end_date, account_name, property_name, profile_name, max_results)
 
+    # Write to Excel.
+    # Time-only values are currently a bit of a pain on Windows, so we set index=False.
+    sht.range('behavior').options(index=False).value = df_behavior
+    sht.range('effective').value = num_rows
 
 if __name__ == '__main__':
     # To run from Python. Not needed when called from Excel.
     path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'ga_dashboard.xlsm'))
-    Book.set_mock_caller(path)
+    xw.Book.set_mock_caller(path)
     refresh()
