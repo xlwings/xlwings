@@ -3,16 +3,16 @@ What's New
 
 .. _v0.9_release_notes:
 
-v0.9.0 (Aug xx, 2016)
----------------------
+v0.9.0 (Aug 2, 2016)
+--------------------
 
 Exciting times! v0.9.0 is a complete rewrite of xlwings with loads of syntax changes (hence the version jump). But more
 importantly, this release adds a ton of new features and bug fixes that would have otherwise been impossible. Some of the
 highlights are listed below, but make sure to check out the full :ref:`migration guide <migrate_to_0.9>` for the syntax changes in details.
-Note, howere, that the syntax for user defined functions (UDFs) is not affected.
+Note, however, that the syntax for user defined functions (UDFs) did not change.
 At this point, the API is fairly stable and we're expecting only smaller changes on our way towards a stable v1.0 release.
 
-* **Active** book instead of **current** book: ``xw.Range('A1')`` goes against the active sheet of the active book of the active app
+* **Active** book instead of **current** book: ``xw.Range('A1')`` goes against the active sheet of the active book
   like you're used to from VBA. Instantiating an explicit connection to a Book is not necessary anymore:
 
     >>> import xlwings as xw
@@ -20,27 +20,29 @@ At this point, the API is fairly stable and we're expecting only smaller changes
     >>> xw.Range('A1').value
     11.0
 
-* Excel Instances: Full support of multiple Excel instances (even on Mac, where it's not easy to work with multiple instances otherwise!)
+* Excel Instances: Full support of multiple Excel instances (even on Mac!)
 
     >>> app1 = xw.App()
     >>> app2 = xw.App()
     >>> xw.apps
     Apps([<Excel App 1668>, <Excel App 1644>])
 
-* New powerful object model based on collections and close to Excel's original:
+* New powerful object model based on collections and close to Excel's original, allowing to fully qualify objects:
   ``xw.apps[0].books['MyBook.xlsx'].sheets[0].range('A1:B2').value``
 
-* Support for both Python indexing (square brackets) and Excel indexing (round brackets):
+  It supports both Python indexing (square brackets) and Excel indexing (round brackets):
 
   ``xw.books[0].sheets[0]`` is the same as ``xw.books(1).sheets(1)``
 
-* Index and slicing support for ranges:
+  It also supports indexing and slicing of range objects:
 
     >>> rng = xw.Range('A1:E10')
-    >>> rng[1].address
-    '$B$1'
-    >>> rng[:2, :2].address
-    '$A$1:$B$2'
+    >>> rng[1]
+    <Range [Workbook1]Sheet1!$B$1>
+    >>> rng[:2, :2]
+    <Range [Workbook1]Sheet1!$A$1:$B$2>
+
+  For more details, see :ref:`syntax_overview`.
 
 * UDFs can now also be imported from packages, not just modules (:issue:`437`)
 
@@ -50,30 +52,28 @@ At this point, the API is fairly stable and we're expecting only smaller changes
 
 * When writing to ranges while Excel is busy, xlwings is now retrying until Excel is idle again (:issue:`468`)
 
-* ``xw.view()`` has been extended to accept an optional sheet object (:issue:`469`)
+* :meth:`xlwings.view()` has been enhanced to accept an optional sheet object (:issue:`469`)
 
 * Objects like books, sheets etc. can now be compared (e.g. ``wb1 == wb2``) and are properly hashable
 
 * Note that support for Python 2.6 has been dropped
 
-Some of the new methods worth mentioning are:
+Some of the new methods/properties worth mentioning are:
 
-* :meth:`xlwings.App.display_alerts`
+* :any:`xlwings.App.display_alerts`
 * :meth:`xlwings.App.macro` in addition to :meth:`xlwings.Book.macro`
 * :meth:`xlwings.App.kill`
-* :meth:`xlwings.Book.cells`
-* :meth:`xlwings.Range.rows`
-* :meth:`xlwings.Range.columns`
+* :any:`xlwings.Sheet.cells`
+* :any:`xlwings.Range.rows`
+* :any:`xlwings.Range.columns`
 * :meth:`xlwings.Range.end`
-* :meth:`xlwings.Range.raw_value`
-* :meth:`xlwings.Shape.type`
-* :meth:`xlwings.Shape.parent`
-
+* :any:`xlwings.Range.raw_value`
 
 Bug Fixes
 *********
 
-* For details on which bugs have been fixed, please check the `GitHub Issue Tracker <https://github.com/ZoomerAnalytics/xlwings/issues?q=is%3Aclosed+is%3Aissue+milestone%3Av0.9.0+label%3Abug>`_.
+* See `here <https://github.com/ZoomerAnalytics/xlwings/issues?q=is%3Aclosed+is%3Aissue+milestone%3Av0.9.0+label%3Abug>`_
+  for details about which bugs have been fixed.
 
 
 v0.7.2 (May 18, 2016)

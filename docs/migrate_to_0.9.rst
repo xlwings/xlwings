@@ -4,80 +4,46 @@ Migrate to v0.9
 ===============
 
 The purpose of this document is to enable you a smooth experience when upgrading to xlwings v0.9.0 and above by laying out
-the concept changes and syntax changes in detail. If you want to get a more high level overview, have a look at the
+the concept and syntax changes in detail. If you want to get an overview of the new features and bug fixes, have a look at the
 :ref:`release notes <v0.9_release_notes>`. Note that the syntax for User Defined Functions (UDFs) didn't change.
 
-New object model
-----------------
+Full qualification: Using collections
+-------------------------------------
 
-* **Full qualification: Using collections**
+The new object model allows to specify the Excel application instance if needed:
 
-  old: ``xw.Range('Sheet1', 'A1', wkb=wb)`` (no possibility to specify the Excel application instance)
+* **old**: ``xw.Range('Sheet1', 'A1', wkb=xw.Workbook('Book1'))``
 
-  new: ``xw.apps[0].books[0].sheets['Sheet1'].range('A1')``
+* **new**: ``xw.apps[0].books['Book1'].sheets['Sheet1'].range('A1')``
 
-  Usually, you don't need to qualify up to the app but would use something like:
-
-  >>> import xlwings as xw
-  >>> sht = xw.Book('Book1').sheets['Sheet1']
-  >>> sht.range('A1').value = 'some text'
-
-* **Hierarchy**
-
-  e.g. to get from a range back to the app object at the top:
-
-    >>> sht = xw.books.active.sheets[0]
-    >>> sht.range('A1').sheet.book.app
-    <Excel App 1644>
-
-* **Access the underlying Library/Engine**
-
-  old: ``xw.Range('A1').xl_range`` and ``xl_sheet`` etc.
-
-  new: ``xw.Range('A1').api``, same for all other objects
-
-  This returns a ``pywin32`` COM object on Windows and an ``appscript`` object on Mac.
+See :ref:`syntax_overview` for the details of the new object model.
 
 Connecting to Books
 -------------------
 
-The easiest way to connect to a book is offered by ``xw.Book``: it looks for the book in all app instances and
-returns an error, should the same book be open in multiple instances.
-To connect to a book in the active app instance, use ``xw.books`` and to refer to a specific app, use:
+* **old**: ``xw.Workbook()``
+* **new**: ``xw.Book()`` or via ``xw.books`` if you need to control the app instance.
 
->>> app = xw.apps[0]
->>> app.books['Book1']
-
-+--------------------+--------------------------------------+--------------------------------------------+
-|                    | xw.Book                              | xw.books                                   |
-+====================+======================================+============================================+
-| New book           | ``xw.Book()``                        | ``xw.books.add()``                         |
-+--------------------+--------------------------------------+--------------------------------------------+
-| Unsaved book       | ``xw.Book('Book1')``                 | ``xw.books['Book1']``                      |
-+--------------------+--------------------------------------+--------------------------------------------+
-| Book by (full)name | ``xw.Book(r'C:/path/to/file.xlsx')`` | ``xw.books.open(r'C:/path/to/file.xlsx')`` |
-+--------------------+--------------------------------------+--------------------------------------------+
+See :ref:`connect_to_workbook` for the details.
 
 Active Objects
 --------------
 
-* Active app (i.e. Excel instance)
+::
 
-  >>> app = xw.apps.active
+    # Active app (i.e. Excel instance)
+    >>> app = xw.apps.active
 
-* Active book
+    # Active book
+    >>> wb = xw.books.active  # in active app
+    >>> wb = app.books.active  # in specific app
 
-  >>> wb = xw.books.active  # in active app
-  >>> wb = app.books.active  # in specific app
+    # Active sheet
+    >>> sht = xw.sheets.active  # in active book
+    >>> sht = wb.sheets.active  # in specific book
 
-* Active sheet
-
-  >>> sht = xw.sheets.active  # in active book
-  >>> sht = wb.sheets.active  # in specific book
-
-* Range on active sheet
-
-  >>> xw.Range('A1')  # on active sheet of active book of active app
+    # Range on active sheet
+    >>> xw.Range('A1')  # on active sheet of active book of active app
 
 Round vs. Square Brackets
 -------------------------
@@ -91,8 +57,20 @@ As an example, the following all reference the same range::
     xw.apps[0].books['Book1'].sheets['Sheet1'].range('A1')
     xw.apps(1).books('Book1').sheets('Sheet1').range('A1')
 
+Access the underlying Library/Engine
+------------------------------------
+
+* **old**: ``xw.Range('A1').xl_range`` and ``xl_sheet`` etc.
+
+* **new**: ``xw.Range('A1').api``, same for all other objects
+
+This returns a ``pywin32`` COM object on Windows and an ``appscript`` object on Mac.
+
+
 Cheat sheet
 -----------
+
+Note that ``sht`` stands for a sheet object, like e.g. (in 0.9.0 syntax): ``sht = xw.books['Book1'].sheets[0]``
 
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
 |                            | v0.9.0                                           | v0.7.2                                                             |
@@ -141,7 +119,7 @@ Cheat sheet
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
 | Add chart to sheet         | ``chart = wb.sheets[0].charts.add()``            | ``chart = xw.Chart.add(sheet=1, wkb=wb)``                          |
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
-| Existing chart             | ``wb.sheets['Sheet 1'].charts[0]``               | ``xw.Chart('Sheet 1', 1)``                                         |
+| Existing chart             | ``wb.sheets['Sheet1'].charts[0]``                | ``xw.Chart('Sheet1', 1)``                                          |
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
 | Chart Type                 | ``chart.chart_type = '3d_area'``                 | ``chart.chart_type = xw.constants.ChartType.xl3DArea``             |
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
@@ -149,7 +127,7 @@ Cheat sheet
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
 | Add picture to sheet       | ``wb.sheets[0].pictures.add('path/to/pic')``     | ``xw.Picture.add('path/to/pic', sheet=1, wkb=wb)``                 |
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
-| Existing picture           | ``wb.sheets['Sheet 1'].pictures[0]``             | ``xw.Picture('Sheet 1', 1)``                                       |
+| Existing picture           | ``wb.sheets['Sheet1'].pictures[0]``              | ``xw.Picture('Sheet1', 1)``                                        |
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
 | Matplotlib                 | ``sht.pictures.add(fig, name='x', update=True)`` | ``xw.Plot(fig).show('MyPlot', sheet=sht, wkb=wb)``                 |
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+

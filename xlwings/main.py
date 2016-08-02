@@ -2,7 +2,7 @@
 xlwings - Make Excel fly with Python!
 
 Homepage and documentation: http://xlwings.org
-See also: http://zoomeranalytics.com
+See also: http://www.zoomeranalytics.com
 
 Copyright (C) 2014-2016, Zoomer Analytics LLC.
 All rights reserved.
@@ -104,6 +104,7 @@ class Apps(object):
     """
     A collection of all :meth:`app <App>` objects:
 
+    >>> import xlwings as xw
     >>> xw.apps
     Apps([<Excel App 1668>, <Excel App 1644>])
     """
@@ -121,7 +122,6 @@ class Apps(object):
     def active(self):
         """
         Returns the active app.
-
 
         .. versionadded:: 0.9.0
         """
@@ -149,7 +149,6 @@ class Apps(object):
         """
         Returns the number of apps.
 
-
         .. versionadded:: 0.9.0
         """
         return len(self)
@@ -164,8 +163,9 @@ apps = Apps(impl=xlplatform.Apps())
 
 class App(object):
     """
-    An app corresponds to an Excel instance. New Excel instances can be created like so:
+    An app corresponds to an Excel instance. New Excel instances can be fired up like so:
 
+    >>> import xlwings as xw
     >>> app1 = xw.App()
     >>> app2 = xw.App()
 
@@ -213,7 +213,6 @@ class App(object):
         """
         Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
 
-
         .. versionadded:: 0.9.0
         """
         return self.impl.api
@@ -225,12 +224,11 @@ class App(object):
 
         Examples
         --------
-
-        >>> app.version
+        >>> import xlwings as xw
+        >>> xw.App().version
         VersionNumber('15.24')
-        >>> app.version.major
+        >>> xw.apps[0].version.major
         15
-
 
         .. versionchanged:: 0.9.0
         """
@@ -240,7 +238,6 @@ class App(object):
     def selection(self):
         """
         Returns the selected cells as Range.
-
 
         .. versionadded:: 0.9.0
         """
@@ -268,7 +265,6 @@ class App(object):
         """
         Gets or sets the visibility of Excel to ``True`` or  ``False``.
 
-
         .. versionadded:: 0.3.3
         """
         return self.impl.visible
@@ -280,7 +276,6 @@ class App(object):
     def quit(self):
         """
         Quits the application without saving any workbooks.
-
 
         .. versionadded:: 0.3.3
 
@@ -301,7 +296,6 @@ class App(object):
         Turn screen updating off to speed up your script. You won't be able to see what the script is doing, but it
         will run faster. Remember to set the screen_updating property back to True when your script ends.
 
-
         .. versionadded:: 0.3.3
         """
         return self.impl.screen_updating
@@ -315,7 +309,6 @@ class App(object):
         """
         The default value is True. Set this property to False to suppress prompts and alert messages while code is
         running; when a message requires a response, Excel chooses the default response.
-
 
         .. versionadded:: 0.9.0
         """
@@ -333,9 +326,9 @@ class App(object):
 
         Examples
         --------
+        >>> import xlwings as xw
         >>> wb = xw.Book()
         >>> wb.app.calculation = 'manual'
-
 
         .. versionchanged:: 0.9.0
         """
@@ -349,7 +342,6 @@ class App(object):
         """
         Calculates all open books.
 
-
         .. versionadded:: 0.3.6
 
         """
@@ -360,7 +352,6 @@ class App(object):
         """
         A collection of all Book objects that are currently open.
 
-
         .. versionadded:: 0.9.0
         """
         return Books(impl=self.impl.books)
@@ -369,7 +360,6 @@ class App(object):
     def hwnd(self):
         """
         Returns the Window handle (Windows-only).
-
 
         .. versionadded:: 0.9.0
         """
@@ -380,7 +370,6 @@ class App(object):
         """
         Returns the PID of the app.
 
-
         .. versionadded:: 0.9.0
         """
         return self.impl.pid
@@ -388,7 +377,6 @@ class App(object):
     def range(self, cell1, cell2=None):
         """
         Range object from the active sheet of the active book, see :meth:`Range`.
-
 
         .. versionadded:: 0.9.0
         """
@@ -426,13 +414,13 @@ class App(object):
 
         can be accessed like this:
 
-        >>> app = xw.apps[0]
+        >>> import xlwings as xw
+        >>> app = xw.App()
         >>> my_sum = app.macro('MySum')
         >>> my_sum(1, 2)
         3
 
         See also: :meth:`Book.macro`
-
 
         .. versionadded:: 0.9.0
         """
@@ -443,15 +431,16 @@ class Book(object):
     """
     A book object is a member of the :meth:`books <xlwings.main.Books>` collection:
 
+    >>> import xlwings as xw
     >>> xw.books[0]
-    <Book [Workbook1]>
+    <Book [Book1]>
 
 
     The easiest way to connect to a book is offered by ``xw.Book``: it looks for the book in all app instances and
     returns an error, should the same book be open in multiple instances.
     To connect to a book in the active app instance, use ``xw.books`` and to refer to a specific app, use:
 
-    >>> app = xw.apps[0]
+    >>> app = xw.App()  # or something like xw.apps[0] for existing apps
     >>> app.books['Book1']
 
     +--------------------+--------------------------------------+--------------------------------------------+
@@ -476,7 +465,7 @@ class Book(object):
         if not impl:
             if fullname:
                 if not PY3 and isinstance(fullname, str):
-                    fullname = unicode(fullname, 'mbcs')  # noqa
+                    fullname = unicode(fullname, 'mbcs')
                 fullname = fullname.lower()
 
                 candidates = []
@@ -511,7 +500,6 @@ class Book(object):
         """
         Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
 
-
         .. versionadded:: 0.9.0
         """
         return self.impl.api
@@ -532,6 +520,7 @@ class Book(object):
         Pack it into the function being called from Excel, e.g.:
 
         .. code-block:: python
+            import xlwings as xw
 
              def my_macro():
                 wb = xw.Book.caller()
@@ -573,8 +562,8 @@ class Book(object):
             import xlwings as xw
 
             def my_macro():
-                wb = xw.Book.caller()
-                wb.sheets[0].range('A1').value = 'Hello xlwings!'
+                sht = xw.Book.caller().sheets[0]
+                sht.range('A1').value = 'Hello xlwings!'
 
             if __name__ == '__main__':
                 xw.Book(r'C:\\path\\to\\file.xlsx').set_mock_caller()
@@ -590,10 +579,9 @@ class Book(object):
         Creates a new Excel file with the xlwings VBA module already included. This method must be called from an
         interactive Python shell::
 
-        >>> Book.open_template()
+        >>> xw.Book.open_template()
 
         See also: :ref:`command_line`
-
 
         .. versionadded:: 0.3.3
         """
@@ -626,13 +614,13 @@ class Book(object):
 
         can be accessed like this:
 
+        >>> import xlwings as xw
         >>> wb = xw.books.active
         >>> my_sum = wb.macro('MySum')
         >>> my_sum(1, 2)
         3
 
         See also: :meth:`App.macro`
-
 
         .. versionadded:: 0.7.1
         """
@@ -650,7 +638,6 @@ class Book(object):
         """
         Returns a sheets collection that represents all the sheets in the book.
 
-
         .. versionadded:: 0.9.0
         """
         return Sheets(impl=self.impl.sheets)
@@ -660,7 +647,6 @@ class Book(object):
         """
         Returns an app object that represents the creator of the book.
 
-
         .. versionadded:: 0.9.0
         """
         return App(impl=self.impl.app)
@@ -668,7 +654,6 @@ class Book(object):
     def close(self):
         """
         Closes the book without saving it.
-
 
         .. versionadded:: 0.1.1
         """
@@ -709,7 +694,6 @@ class Book(object):
         """
         Returns the selected cells as Range.
 
-
         .. versionadded:: 0.9.0
         """
         return Range(impl=self.app.selection.impl)
@@ -722,10 +706,14 @@ class Sheet(object):
     """
     A sheet object is a member of the :meth:`sheets <xlwings.main.Sheets>` collection:
 
-    >>> xw.sheets[0]
-    <Sheet [Workbook1]Sheet1>
-    >>> xw.sheets.add()
-    <Sheet [Workbook1]Sheet2>
+    >>> import xlwings as xw
+    >>> wb = xw.Book()
+    >>> wb.sheets[0]
+    <Sheet [Book1]Sheet1>
+    >>> wb.sheets['Sheet1']
+    <Sheet [Book1]Sheet1>
+    >>> wb.sheets.add()
+    <Sheet [Book1]Sheet2>
 
     .. versionchanged:: 0.9.0
     """
@@ -739,7 +727,6 @@ class Sheet(object):
     def api(self):
         """
         Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
-
 
         .. versionadded:: 0.9.0
         """
@@ -788,7 +775,6 @@ class Sheet(object):
         """
         Returns a Range object from the active sheet of the active book, see :meth:`Range`.
 
-
         .. versionadded:: 0.9.0
         """
         if isinstance(cell1, Range):
@@ -807,7 +793,6 @@ class Sheet(object):
         Returns a Range object that represents all the cells on the Sheet
         (not just the cells that are currently in use).
 
-
         .. versionadded:: 0.9.0
         """
         return Range(impl=self.impl.cells)
@@ -820,7 +805,6 @@ class Sheet(object):
     def select(self):
         """
         Selects the Sheet. Select only works on the active book.
-
 
         .. versionadded:: 0.9.0
         """
@@ -847,10 +831,11 @@ class Sheet(object):
 
         Examples
         --------
-        >>> xw.sheets['Sheet1'].autofit('c')
-        >>> xw.sheets['Sheet1'].autofit('r')
-        >>> xw.sheets['Sheet1'].autofit()
-
+        >>> import xlwings as xw
+        >>> wb = xw.Book()
+        >>> wb.sheets['Sheet1'].autofit('c')
+        >>> wb.sheets['Sheet1'].autofit('r')
+        >>> wb.sheets['Sheet1'].autofit()
 
         .. versionadded:: 0.2.3
         """
@@ -859,7 +844,6 @@ class Sheet(object):
     def delete(self):
         """
         Deletes the Sheet.
-
 
         .. versionadded: 0.6.0
         """
@@ -873,7 +857,6 @@ class Sheet(object):
         """
         See :meth:`Charts <xlwings.main.Charts>`
 
-
         .. versionadded:: 0.9.0
         """
         return Charts(impl=self.impl.charts)
@@ -883,7 +866,6 @@ class Sheet(object):
         """
         See :meth:`Shapes <xlwings.main.Shapes>`
 
-
         .. versionadded:: 0.9.0
         """
         return Shapes(impl=self.impl.shapes)
@@ -892,7 +874,6 @@ class Sheet(object):
     def pictures(self):
         """
         See :meth:`Pictures <xlwings.main.Pictures>`
-
 
         .. versionadded:: 0.9.0
         """
@@ -912,7 +893,8 @@ class Range(object):
     Arguments
     ---------
     cell1 : str or tuple or Range
-        Name of the range in the upper-left corner in A1 notation or as index-tuple or as name or as xw.Range object.
+        Name of the range in the upper-left corner in A1 notation or as index-tuple or as name or as xw.Range object. It
+        can also specify a range using the range operator (a colon), .e.g. 'A1:B2'
 
     cell2 : str or tuple or Range, default None
         Name of the range in the lower-right corner in A1 notation or as index-tuple or as name or as xw.Range object.
@@ -924,6 +906,7 @@ class Range(object):
 
     .. code-block:: python
 
+        import xlwings as xw
         xw.Range('A1')
         xw.Range('A1:C3')
         xw.Range((1,1))
@@ -935,8 +918,7 @@ class Range(object):
 
     .. code-block:: python
 
-        xw.apps[0].books[0].sheets[0].range('A1')
-
+        xw.books['MyBook.xlsx'].sheets[0].range('A1')
     """
 
     def __init__(self, cell1=None, cell2=None, **options):
@@ -966,7 +948,6 @@ class Range(object):
     def api(self):
         """
         Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
-
 
         .. versionadded:: 0.9.0
         """
@@ -1043,7 +1024,6 @@ class Range(object):
         """
         Returns the Sheet object to which the Range belongs.
 
-
         .. versionadded:: 0.9.0
         """
         return Sheet(impl=self.impl.sheet)
@@ -1119,12 +1099,13 @@ class Range(object):
 
         Examples
         --------
+        >>> import xlwings as xw
+        >>> wb = xw.Book()
         >>> xw.Range('A1:B2').value = 1
-        >>> xw.Range('A1').end('down').address
-        '$A$2'
-        >>> xw.Range('B2').end('right').address
-        '$B$2'
-
+        >>> xw.Range('A1').end('down')
+        <Range [Book1]Sheet1!$A$2>
+        >>> xw.Range('B2').end('right')
+        <Range [Book1]Sheet1!$B$2>
 
         .. versionadded:: 0.9.0
         """
@@ -1143,7 +1124,6 @@ class Range(object):
     def formula_array(self):
         """
         Gets or sets an  array formula for the given Range.
-
 
         .. versionadded:: 0.7.1
         """
@@ -1271,12 +1251,13 @@ class Range(object):
 
         Examples
         --------
-        >>> Range('A1').number_format
+        >>> import xlwings as xw
+        >>> wb = xw.Book()
+        >>> xw.Range('A1').number_format
         'General'
-        >>> Range('A1:C3').number_format = '0.00%'
-        >>> Range('A1:C3').number_format
+        >>> xw.Range('A1:C3').number_format = '0.00%'
+        >>> xw.Range('A1:C3').number_format
         '0.00%'
-
 
         .. versionadded:: 0.2.3
         """
@@ -1313,6 +1294,8 @@ class Range(object):
         --------
         ::
 
+            >>> import xlwings as xw
+            >>> wb = xw.Book()
             >>> xw.Range((1,1)).get_address()
             '$A$1'
             >>> xw.Range((1,1)).get_address(False, False)
@@ -1320,7 +1303,7 @@ class Range(object):
             >>> xw.Range((1,1), (3,3)).get_address(True, False, True)
             'Sheet1!A$1:C$3'
             >>> xw.Range((1,1), (3,3)).get_address(True, False, external=True)
-            '[Workbook1]Sheet1!A$1:C$3'
+            '[Book1]Sheet1!A$1:C$3'
 
         .. versionadded:: 0.2.3
         """
@@ -1372,7 +1355,6 @@ class Range(object):
         * To autofit only the width of the columns use ``xw.Range('A1:B2').columns.autofit()``
         * To autofit only the height of the rows use ``xw.Range('A1:B2').rows.autofit()``
 
-
         .. versionchanged:: 0.9.0
         """
         return self.impl.autofit()
@@ -1391,15 +1373,14 @@ class Range(object):
 
         Examples
         --------
-        >>> Range('A1').color = (255,255,255)
-        >>> from xlwings.constants import RgbColor
-        >>> Range('A2').color = RgbColor.rgbAqua
-        >>> Range('A2').color
-        (0, 255, 255)
-        >>> Range('A2').color = None
-        >>> Range('A2').color is None
+        >>> import xlwings as xw
+        >>> wb = xw.Book()
+        >>> xw.Range('A1').color = (255,255,255)
+        >>> xw.Range('A2').color
+        (255, 255, 255)
+        >>> xw.Range('A2').color = None
+        >>> xw.Range('A2').color is None
         True
-
 
         .. versionadded:: 0.3.0
         """
@@ -1431,7 +1412,6 @@ class Range(object):
         """
         Returns a RangeRows object that represents the rows in the specified range.
 
-
         .. versionadded:: 0.9.0
         """
         return RangeRows(self)
@@ -1440,7 +1420,6 @@ class Range(object):
     def columns(self):
         """
         Returns a RangeColumns object that represents the columns in the specified range.
-
 
         .. versionadded:: 0.9.0
         """
@@ -1496,6 +1475,8 @@ class Range(object):
         Examples
         --------
 
+        >>> import xlwings as xw
+        >>> wb = xw.Book()
         >>> xw.Range('A1').value = [[None, 1], [2, 3]]
         >>> xw.Range('A1').expand().address
         $A$1:$B$2
@@ -1615,6 +1596,8 @@ class Range(object):
 
         Examples
         --------
+        >>> import xlwings as xw
+        >>> wb = xw.Book()
         >>> xw.Range('A1').value
         'www.xlwings.org'
         >>> xw.Range('A1').hyperlink
@@ -1721,6 +1704,8 @@ class Range(object):
 
         Example
         -------
+        >>> import xlwings as xw
+        >>> wb = xw.Book()
         >>> rng = xw.Range('A1:E4')
         >>> rng.last_cell.row, rng.last_cell.column
         (4, 5)
@@ -1732,7 +1717,6 @@ class Range(object):
     def select(self):
         """
         Selects the range. Select only works on the active book.
-
 
         .. versionadded:: 0.9.0
         """
@@ -1821,10 +1805,10 @@ class Shape(object):
     """
     The shape object is a member of the :meth:`shapes <xlwings.main.Shapes>` collection:
 
-    >>> sht = xw.books[0].sheets[0]
+    >>> import xlwings as xw
+    >>> sht = xw.books['Book1'].sheets[0]
     >>> sht.shapes[0]  # or sht.shapes['ShapeName']
-    <Shape 'Rectangle 1' in <Sheet [Workbook1]Sheet1>>
-
+    <Shape 'Rectangle 1' in <Sheet [Book1]Sheet1>>
 
     .. versionchanged:: 0.9.0
     """
@@ -1844,7 +1828,6 @@ class Shape(object):
         """
         Returns or sets the name of the shape.
 
-
         .. versionadded:: 0.5.0
         """
         return self.impl.name
@@ -1857,7 +1840,6 @@ class Shape(object):
     def type(self):
         """
         Returns the type of the shape.
-
 
         .. versionadded:: 0.9.0
         """
@@ -1880,7 +1862,6 @@ class Shape(object):
     def top(self):
         """
         Returns or sets the number of points that represent the vertical position of the shape.
-
 
         .. versionadded:: 0.5.0
         """
@@ -1908,7 +1889,6 @@ class Shape(object):
         """
         Returns or sets the number of points that represent the height of the shape.
 
-
         .. versionadded:: 0.5.0
         """
         return self.impl.height
@@ -1921,7 +1901,6 @@ class Shape(object):
         """
         Deletes the shape.
 
-
         .. versionadded:: 0.5.0
         """
         self.impl.delete()
@@ -1929,7 +1908,6 @@ class Shape(object):
     def activate(self):
         """
         Activates the shape.
-
 
         .. versionadded:: 0.5.0
         """
@@ -1939,7 +1917,6 @@ class Shape(object):
     def parent(self):
         """
         Returns the parent of the shape.
-
 
         .. versionadded:: 0.9.0
         """
@@ -1966,8 +1943,9 @@ class Shapes(Collection):
     """
     A collection of all :meth:`shape <Shape>` objects on the specified sheet:
 
-    >>> xw.books[0].sheets[0].shapes
-    Shapes([<Shape 'Oval 1' in <Sheet [Workbook1]Sheet1>>, <Shape 'Rectangle 1' in <Sheet [Workbook1]Sheet1>>])
+    >>> import xlwings as xw
+    >>> xw.books['Book1'].sheets[0].shapes
+    Shapes([<Shape 'Oval 1' in <Sheet [Book1]Sheet1>>, <Shape 'Rectangle 1' in <Sheet [Book1]Sheet1>>])
 
     .. versionadded:: 0.9.0
     """
@@ -1978,9 +1956,10 @@ class Chart(object):
     """
     The chart object is a member of the :meth:`charts <xlwings.main.Charts>` collection:
 
-    >>> sht = xw.books[0].sheets[0]
+    >>> import xlwings as xw
+    >>> sht = xw.books['Book1'].sheets[0]
     >>> sht.charts[0]  # or sht.charts['ChartName']
-    <Chart 'Chart 1' in <Sheet [Workbook1]Sheet1>>
+    <Chart 'Chart 1' in <Sheet [Book1]Sheet1>>
     """
 
     def __init__(self, name_or_index=None, impl=None):
@@ -1995,7 +1974,6 @@ class Chart(object):
     def api(self):
         """
         Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
-
 
         .. versionadded:: 0.9.0
         """
@@ -2016,7 +1994,6 @@ class Chart(object):
     def parent(self):
         """
         Returns the parent of the chart.
-
 
         .. versionadded:: 0.9.0
         """
@@ -2046,7 +2023,7 @@ class Chart(object):
         Arguments
         ---------
         source : Range
-            Range object, e.g. ``xw.books[0].sheets[0].range('A1')``
+            Range object, e.g. ``xw.books['Book1'].sheets[0].range('A1')``
         """
         self.impl.set_source_data(source.impl)
 
@@ -2111,8 +2088,9 @@ class Charts(Collection):
     """
     A collection of all :meth:`chart <Chart>` objects on the specified sheet:
 
-    >>> xw.books[0].sheets[0].charts
-    Charts([<Chart 'Chart 1' in <Sheet [Workbook1]Sheet1>>, <Chart 'Chart 1' in <Sheet [Workbook1]Sheet1>>])
+    >>> import xlwings as xw
+    >>> xw.books['Book1'].sheets[0].charts
+    Charts([<Chart 'Chart 1' in <Sheet [Book1]Sheet1>>, <Chart 'Chart 1' in <Sheet [Book1]Sheet1>>])
 
     .. versionadded:: 0.9.0
     """
@@ -2144,7 +2122,8 @@ class Charts(Collection):
         Examples
         --------
 
-        >>> sht = xw.books[0].sheets[0]
+        >>> import xlwings as xw
+        >>> sht = xw.Book().sheets[0]
         >>> sht.range('A1').value = [['Foo1', 'Foo2'], [1, 2]]
         >>> chart = sht.charts.add()
         >>> chart.source_data = sht.range('A1').expand()
@@ -2167,10 +2146,10 @@ class Picture(object):
     """
     The picture object is a member of the :meth:`pictures <xlwings.main.Pictures>` collection:
 
-    >>> sht = xw.books[0].sheets[0]
+    >>> import xlwings as xw
+    >>> sht = xw.books['Book1'].sheets[0]
     >>> sht.pictures[0]  # or sht.charts['PictureName']
-    <Picture 'Picture 1' in <Sheet [Workbook1]Sheet1>>
-
+    <Picture 'Picture 1' in <Sheet [Book1]Sheet1>>
 
     .. versionchanged:: 0.9.0
     """
@@ -2182,7 +2161,6 @@ class Picture(object):
         """
         Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
 
-
         .. versionadded:: 0.9.0
         """
         return self.impl.api
@@ -2192,7 +2170,6 @@ class Picture(object):
         """
         Returns the parent of the picture.
 
-
         .. versionadded:: 0.9.0
         """
         return Sheet(impl=self.impl.parent)
@@ -2201,7 +2178,6 @@ class Picture(object):
     def name(self):
         """
         Returns or sets the name of the picture.
-
 
         .. versionadded:: 0.5.0
         """
@@ -2235,7 +2211,6 @@ class Picture(object):
         """
         Returns or sets the number of points that represent the vertical position of the picture.
 
-
         .. versionadded:: 0.5.0
         """
         return self.impl.top
@@ -2262,7 +2237,6 @@ class Picture(object):
         """
         Returns or sets the number of points that represent the height of the picture.
 
-
         .. versionadded:: 0.5.0
         """
         return self.impl.height
@@ -2274,7 +2248,6 @@ class Picture(object):
     def delete(self):
         """
         Deletes the picture.
-
 
         .. versionadded:: 0.5.0
         """
@@ -2329,8 +2302,9 @@ class Pictures(Collection):
     """
     A collection of all :meth:`picture <Picture>` objects on the specified sheet:
 
-    >>> xw.books[0].sheets[0].pictures
-    Pictures([<Picture 'Picture 1' in <Sheet [Workbook1]Sheet1>>, <Picture 'Picture 2' in <Sheet [Workbook1]Sheet1>>])
+    >>> import xlwings as xw
+    >>> xw.books['Book1'].sheets[0].pictures
+    Pictures([<Picture 'Picture 1' in <Sheet [Book1]Sheet1>>, <Picture 'Picture 2' in <Sheet [Book1]Sheet1>>])
 
     .. versionadded:: 0.9.0
     """
@@ -2379,9 +2353,10 @@ class Pictures(Collection):
 
         1. Picture
 
-        >>> sht = xw.books[0].sheets[0]
+        >>> import xlwings as xw
+        >>> sht = xw.Book().sheets[0]
         >>> sht.pictures.add(r'C:\\path\\to\\file.jpg')
-        <Picture 'Picture 1' in <Sheet [Workbook1]Sheet1>>
+        <Picture 'Picture 1' in <Sheet [Book1]Sheet1>>
 
         2. Matplotlib
 
@@ -2389,7 +2364,7 @@ class Pictures(Collection):
         >>> fig = plt.figure()
         >>> plt.plot([1, 2, 3, 4, 5])
         >>> sht.pictures.add(fig, name='MyPlot', update=True)
-        <Picture 'MyPlot' in <Sheet [Workbook1]Sheet1>>
+        <Picture 'MyPlot' in <Sheet [Book1]Sheet1>>
         """
         if update:
             if name is None:
@@ -2439,7 +2414,8 @@ class Names(object):
     """
     A collection of all :meth:`name <Name>` objects in the workbook:
 
-    >>> sht = xw.books[0].sheets[0]
+    >>> import xlwings as xw
+    >>> sht = xw.books['Book1'].sheets[0]
     >>> sht.names
     [<Name 'MyName': =Sheet1!$A$3>]
 
@@ -2453,7 +2429,6 @@ class Names(object):
     def api(self):
         """
         Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
-
 
         .. versionadded:: 0.9.0
         """
@@ -2541,10 +2516,10 @@ class Name(object):
     """
     The name object is a member of the :meth:`names <xlwings.main.Names>` collection:
 
-    >>> sht = xw.books[0].sheets[0]
+    >>> import xlwings as xw
+    >>> sht = xw.books['Book1'].sheets[0]
     >>> sht.names[0]  # or sht.names['MyName']
     <Name 'MyName': =Sheet1!$A$3>
-
 
     .. versionadded:: 0.9.0
     """
@@ -2557,7 +2532,6 @@ class Name(object):
         """
         Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
 
-
         .. versionadded:: 0.9.0
         """
         return self.impl.api
@@ -2565,7 +2539,6 @@ class Name(object):
     def delete(self):
         """
          Deletes the name.
-
 
          .. versionadded:: 0.9.0
          """
@@ -2575,7 +2548,6 @@ class Name(object):
     def name(self):
         """
         Returns or sets the name of the name object.
-
 
         .. versionadded:: 0.9.0
         """
@@ -2590,7 +2562,6 @@ class Name(object):
         """
         Returns or sets the formula that the name is defined to refer to, in A1-style notation,
         beginning with an equal sign.
-
 
         .. versionadded:: 0.9.0
         """
@@ -2616,7 +2587,7 @@ class Name(object):
 def view(obj, sheet=None):
     """
     Opens a new workbook and displays an object on its first sheet by default. If you provide a
-    sheet object, it will clear the sheet before displaying the object on it.
+    sheet object, it will clear the sheet before displaying the object on the existing sheet.
 
     Parameters
     ----------
@@ -2661,10 +2632,11 @@ class Books(Collection):
     """
     A collection of all :meth:`book <Book>` objects:
 
+    >>> import xlwings as xw
     >>> xw.books  # active app
-    Books([<Book [Workbook1]>, <Book [Workbook2]>])
+    Books([<Book [Book1]>, <Book [Book2]>])
     >>> xw.apps[0].books  # specific app
-    Books([<Book [Workbook1]>, <Book [Workbook2]>])
+    Books([<Book [Book1]>, <Book [Book2]>])
 
     .. versionadded:: 0.9.0
     """
@@ -2723,10 +2695,11 @@ class Sheets(Collection):
     """
     A collection of all :meth:`sheet <Sheet>` objects:
 
+    >>> import xlwings as xw
     >>> xw.sheets  # active book
-    Sheets([<Sheet [Workbook1]Sheet1>, <Sheet [Workbook1]Sheet2>])
-    >>> xw.apps[0].books[0].sheets  # specific book
-    Sheets([<Sheet [Workbook1]Sheet1>, <Sheet [Workbook1]Sheet2>])
+    Sheets([<Sheet [Book1]Sheet1>, <Sheet [Book1]Sheet2>])
+    >>> xw.apps[0].books['Book1'].sheets  # specific book
+    Sheets([<Sheet [Book1]Sheet1>, <Sheet [Book1]Sheet2>])
 
     .. versionadded:: 0.9.0
     """

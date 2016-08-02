@@ -3,8 +3,13 @@
 Data Structures Tutorial
 ========================
 
-This tutorial gives you a quick introduction to the most common use cases and default behaviour of xlwings when reading and
-writing values. For an in-depth documentation of how to control things using the ``options`` method, have a look at :ref:`converters`.
+This tutorial gives you a quick introduction to the most common use cases and default behaviour of xlwings when reading
+and writing values. For an in-depth documentation of how to control the behavior using the ``options`` method, have a
+look at :ref:`converters`.
+
+All code samples below depend on the following import:
+
+    >>> import xlwings as xw
 
 Single Cells
 ------------
@@ -13,10 +18,8 @@ whether the cell contains a number, a string, is empty or represents a date:
 
 .. code-block:: python
 
-    >>> import xlwings as xw
     >>> import datetime as dt
-    >>> wb = xw.Book()
-    >>> sht = wb.sheets[0]
+    >>> sht = xw.Book().sheets[0]
     >>> sht.range('A1').value = 1
     >>> sht.range('A1').value
     1.0
@@ -37,8 +40,7 @@ Lists
 
   .. code-block:: python
 
-    >>> wb = xw.Book()
-    >>> sht = wb.sheets[0]
+    >>> sht = xw.Book().sheets[0]
     >>> sht.range('A1').value = [[1],[2],[3],[4],[5]]  # Column orientation (nested list)
     >>> sht.range('A1:A5').value
     [1.0, 2.0, 3.0, 4.0, 5.0]
@@ -77,19 +79,18 @@ Lists
 
 
 .. note:: Try to minimize the number of interactions with Excel. It is always more efficient to do
-    ``xw.Range('A1').value = [[1,2],[3,4]]`` than ``xw.Range('A1').value = [1, 2]`` and ``xw.Range('A2').value = [3, 4]``.
+    ``sht.range('A1').value = [[1,2],[3,4]]`` than ``sht.range('A1').value = [1, 2]`` and ``sht.range('A2').value = [3, 4]``.
 
 Range expanding
 ---------------
 
 You can get the dimensions of Excel Ranges dynamically through either the method ``expand`` or through the ``expand``
-keyword in the ``options`` method. While ``expand`` gives back a changed Range object, options are only evaluated when
+keyword in the ``options`` method. While ``expand`` gives back an expanded Range object, options are only evaluated when
 accessing the values of a Range. The difference is best explained with an example:
 
 .. code-block:: python
 
-    >>> wb = xw.Book()
-    >>> sht = wb.sheets[0]
+    >>> sht = xw.Book().sheets[0]
     >>> sht.range('A1').value = [[1,2], [3,4]]
     >>> rng1 = sht.range('A1').expand('table')  # or just .expand()
     >>> rng2 = sht.range('A1').options(expand='table')
@@ -119,8 +120,7 @@ NumPy arrays work similar to nested lists. However, empty cells are represented 
 .. code-block:: python
 
     >>> import numpy as np
-    >>> wb = xw.Book()
-    >>> sht = wb.sheets[0]
+    >>> sht = xw.Book().sheets[0]
     >>> sht.range('A1').value = np.eye(3)
     >>> sht.range('A1').options(np.array, expand='table').value
     array([[ 1.,  0.,  0.],
@@ -132,8 +132,7 @@ Pandas DataFrames
 
 .. code-block:: python
 
-    >>> wb = xw.Book()
-    >>> sht = wb.books[0]
+    >>> sht = xw.Book().sheets[0]
     >>> df = pd.DataFrame([[1.1, 2.2], [3.3, None]], columns=['one', 'two'])
     >>> df
        one  two
@@ -155,8 +154,7 @@ Pandas Series
 
     >>> import pandas as pd
     >>> import numpy as np
-    >>> wb = xw.Book()
-    >>> sht = wb.sheets[0]
+    >>> sht = xw.Book().sheets[0]
     >>> s = pd.Series([1.1, 3.3, 5., np.nan, 6., 8.], name='myseries')
     >>> s
     0    1.1
@@ -176,5 +174,5 @@ Pandas Series
     5    8.0
     Name: myseries, dtype: float64
 
-.. note:: You only need to specify the top left cell when writing a list, an NumPy array or a Pandas
-    DataFrame to Excel, e.g.: ``xw.Range('A1').value = np.eye(10)``
+.. note:: You only need to specify the top left cell when writing a list, a NumPy array or a Pandas
+    DataFrame to Excel, e.g.: ``sht.range('A1').value = np.eye(10)``

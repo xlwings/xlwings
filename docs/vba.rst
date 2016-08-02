@@ -85,8 +85,8 @@ LOG_FILE default locations
 Call Python with "RunPython"
 ----------------------------
 
-After your workbook contains the xlwings VBA module with potentially adjusted Settings, go to ``Insert > Module`` (still
-in the VBA-Editor). This will create a new Excel module where you can write your Python call as follows (note that the ``quickstart``
+After adding the xlwings VBA module to your Excel file, go to ``Insert > Module`` (still in the VBA-Editor).
+This will create a new Excel module where you can write your Python call as follows (note that the ``quickstart``
 or ``template`` commands already add an empty Module1, so you don't need to insert a new module manually):
 
 .. code-block:: vb.net
@@ -95,7 +95,7 @@ or ``template`` commands already add an empty Module1, so you don't need to inse
         RunPython ("import hello; hello.world()")
     End Sub
 
-This essentially hands over control to ``mymodule.py``:
+This calls the following code in ``mymodule.py``:
 
 .. code-block:: python
 

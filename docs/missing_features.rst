@@ -17,12 +17,12 @@ If you're missing a feature in xlwings, do the following:
 
    .. code-block:: python
 
-        >>> wb = xw.Book('Book1')
-        >>> wb.api
+        >>> sht = xw.Book().sheets[0]
+        >>> sht.api
         <COMObject <unknown>>  # Windows/pywin32
-        app(pid=2319).workbooks['Workbook1']  # Mac/appscript
+        app(pid=2319).workbooks['Workbook1'].worksheets[1]  # Mac/appscript
 
-   This works accordingly for the other objects like ``xw.Range('A1').api`` etc.
+   This works accordingly for the other objects like ``sht.range('A1').api`` etc.
 
    The underlying objects will offer you pretty much everything you can do with VBA, using the syntax of pywin32 (which
    pretty much feels like VBA) and appscript (which doesn't feel like VBA).
@@ -35,7 +35,7 @@ Example: Workaround to use VBA's ``Range.WrapText``
 ::
 
     # Windows
-    xw.Range('A1').api.WrapText = True
+    sht.range('A1').api.WrapText = True
 
     # Mac
-    xw.Range('A1').api.wrap_text.set(True)
+    sht.range('A1').api.wrap_text.set(True)

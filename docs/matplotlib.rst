@@ -16,8 +16,8 @@ The easiest sample boils down to::
     >>> fig = plt.figure()
     >>> plt.plot([1, 2, 3])
 
-    >>> wb = xw.Book()
-    >>> wb.sheets[0].pictures.add(fig, name='MyPlot', update=True)
+    >>> sht = xw.Book().sheets[0]
+    >>> sht.pictures.add(fig, name='MyPlot', update=True)
 
 .. figure:: images/mpl_basic.png
   :scale: 80%
@@ -38,10 +38,10 @@ However, on Windows you can make things feel even more integrated by setting up 
 
     @xw.func
     def myplot(n):
-        wb = xw.Book.caller()
+        sht = xw.Book.caller().sheets.active
         fig = plt.figure()
         plt.plot(range(int(n)))
-        wb.sheets.active.pictures.add(fig, name='MyPlot', update=True)
+        sht.pictures.add(fig, name='MyPlot', update=True)
         return 'Plotted with n={}'.format(n)
 
 If you import this function and call it from cell B2, then the plot gets automatically
@@ -100,7 +100,3 @@ Here are a few examples of how you get a matplotlib ``figure`` object:
     df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
     ax = df.plot(kind='bar')
     fig = ax.get_figure()
-
-Then show it in Excel as picture as seen above::
-
-    plot = sht.pictures.add(fig, name='Plot1', update=True)

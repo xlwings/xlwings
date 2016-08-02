@@ -12,10 +12,14 @@ or in the ``@xw.arg`` and ``@xw.ret`` decorators when using UDFs. If no converte
 is applied when reading. When writing, xlwings will automatically apply the correct converter (if available) according to the
 object's type that is being written to Excel. If no converter is found for that type, it falls back to the default converter.
 
+All code samples below depend on the following import:
+
+    >>> import xlwings as xw
+
 **Syntax:**
 
 ==============================  ============================================================ ===========
-****                            **xw.Range**                                                 **UDF**
+****                            **xw.Range**                                                 **UDFs**
 ==============================  ============================================================ ===========
 **reading**                     ``xw.Range.options(convert=None, **kwargs).value``           ``@arg('x', convert=None, **kwargs)``
 **writing**                     ``xw.Range.options(convert=None, **kwargs).value = myvalue`` ``@ret(convert=None, **kwargs)``
@@ -128,7 +132,7 @@ The following options can be set:
   only evaluated when getting the values of a Range::
 
     >>> import xlwings as xw
-    >>> wb = xw.Book().sheets[0]
+    >>> sht = xw.Book().sheets[0]
     >>> sht.range('A1').value = [[1,2], [3,4]]
     >>> rng1 = sht.range('A1').expand()
     >>> rng2 = sht.range('A1').options(expand='table')
@@ -142,7 +146,7 @@ The following options can be set:
     >>> rng2.value
     [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
 
-  .. note:: The ``expand`` option is only available on ``Range`` objects as UDFs only allow to manipulate the calling cells.
+  .. note:: The ``expand`` method is only available on ``Range`` objects as UDFs only allow to manipulate the calling cells.
 
 Built-in Converters
 -------------------
@@ -166,6 +170,7 @@ The dictionary converter turns two Excel columns into a dictionary. If the data 
 
 ::
 
+    >>> sht = xw.sheets.active
     >>> sht.range('A1:B2').options(dict).value
     {'a': 1.0, 'b': 2.0}
     >>> sht.range('A4:B5').options(dict, transpose=True).value
@@ -182,6 +187,7 @@ for lists (under default converter) and hence returns either numpy scalars, 1d a
 **Example**::
 
     >>> import numpy as np
+    >>> sht = xw.Book().sheets[0]
     >>> sht.range('A1').options(transpose=True).value = np.array([1, 2, 3])
     >>> sht.range('A1:A3').options(np.array, ndim=2).value
     array([[ 1.],
@@ -213,6 +219,7 @@ For ``index`` and ``header``, ``1`` and ``True`` may be used interchangeably.
 
 ::
 
+    >>> sht = xw.Book().sheets[0]
     >>> s = sht.range('A1').options(pd.Series, expand='table').value
     >>> s
     date
@@ -250,6 +257,7 @@ For ``index`` and ``header``, ``1`` and ``True`` may be used interchangeably.
 
 ::
 
+    >>> sht = xw.Book().sheets[0]
     >>> df = sht.range('A1:D5').options(pd.DataFrame, header=2).value
     >>> df
         a     b
@@ -296,7 +304,7 @@ Technically speaking, these are "no-converters".
     >>> sht.range('A1:B2').value
     [[1.0, 'text'], [datetime.datetime(2016, 2, 1, 0, 0), None]]
 
-    >>> sht.range('A1:B2').options('raw').value
+    >>> sht.range('A1:B2').options('raw').value  # or sht.range('A1:B2').raw_value
     ((1.0, 'text'), (pywintypes.datetime(2016, 2, 1, 0, 0, tzinfo=TimeZoneInfo('GMT Standard Time', True)), None))
 
 
@@ -317,7 +325,7 @@ Here are the steps to implement your own converter:
      converter.
 
   The ``options`` dictionary will contain all keyword arguments specified in
-  the ``Range.options`` method, e.g. when calling ``Range('A1').options(myoption='some value')`` or as specified in
+  the ``xw.Range.options`` method, e.g. when calling ``xw.Range('A1').options(myoption='some value')`` or as specified in
   the ``@arg`` and ``@ret`` decorator when using UDFs. Here is the basic structure::
 
     from xlwings.conversion import Converter
@@ -375,7 +383,7 @@ built-in DataFrame converter to add support for dropping nan's::
 Now let's see how the different converters can be applied::
 
     # Fire up a Workbook and create a sample DataFrame
-    wb = xw.Book()
+    sht = xw.Book().sheets[0]
     df = pd.DataFrame([[1.,10.],[2.,np.nan], [3., 30.]])
 
 * Default converter for DataFrames::

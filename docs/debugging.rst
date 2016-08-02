@@ -6,7 +6,7 @@ Debugging
 Since xlwings runs in every Python environment, you can use your preferred way of debugging.
 
 * **RunPython**: When calling Python through ``RunPython``, you can set a ``mock_caller`` to make it easy to switch
-  back and forth between calling things from Excel and Python.
+  back and forth between calling the function from Excel and Python.
 * **UDFs**: For debugging User Defined Functions, xlwings offers a convenient debugging server
 
 
@@ -21,10 +21,11 @@ To begin with, Excel will show Python errors in a Message Box:
 RunPython
 ---------
 
-Consider the following code structure of your Python source code:
+Consider the following sample code of your Python source code ``my_module.py``:
 
 .. code-block:: python
 
+    # my_module.py
     import os
     import xlwings as xw
 
@@ -51,9 +52,9 @@ source code:
 UDF debug server
 ----------------
 
-Windows only: To debug UDFs, just set ``UDF_DEBUG_SERVER = True`` in the VBA Settings, at the top of the xlwings VBA module.
+Windows only: To debug UDFs, just set ``UDF_DEBUG_SERVER = True`` in the :ref:`VBA Settings <vba_settings>`, at the top of the xlwings VBA module.
 Then add the following lines at the end of your Python source file and run it. Depending on which IDE you use, you
-might want to run things in "debug" mode (e.g. in case your using PyCharm or PyDev)::
+might need to run the code in "debug" mode (e.g. in case you're using PyCharm or PyDev)::
 
 
     if __name__ == '__main__':

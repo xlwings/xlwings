@@ -3,8 +3,8 @@ Quickstart
 
 This guide assumes you have xlwings already installed. If that's not the case, head over to :ref:`installation`.
 
-Scripting: Automate/interact with Excel from Python
----------------------------------------------------
+1. Scripting: Automate/interact with Excel from Python
+------------------------------------------------------
 
 Reading/writing values to/from the **active sheet** is as easy as:
 
@@ -55,8 +55,8 @@ If you need more control (e.g. you have the same file open in two Excel instance
     >>> wb.sheets[0].pictures.add(fig, name='MyPlot', update=True)
     <Picture 'MyPlot' in <Sheet [Workbook4]Sheet1>>
 
-Macros: Call Python from Excel
-------------------------------
+2. Macros: Call Python from Excel
+---------------------------------
 
 You can call Python functions from VBA using the ``RunPython`` function:
 
@@ -85,8 +85,8 @@ up is to use the xlwings command line client from either a command prompt on Win
 
 To import the xlwings VBA module differently, and for more details, see :ref:`vba`.
 
-UDFs: User Defined Functions (Windows only)
--------------------------------------------
+3. UDFs: User Defined Functions (Windows only)
+----------------------------------------------
 
 Writing a UDF in Python is as easy as:
 
@@ -108,7 +108,7 @@ Converters can be used with UDFs, too. Again a Pandas DataFrame example:
 
     @xw.func
     @xw.arg('x', pd.DataFrame)
-    def CORREL2(x):
+    def correl2(x):
         # x arrives as DataFrame
         return x.corr()
 
