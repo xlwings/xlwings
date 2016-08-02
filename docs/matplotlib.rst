@@ -3,8 +3,7 @@
 Matplotlib
 ==========
 
-:meth:`xlwings.Plot` allows for an easy integration of Matplotlib with Excel. The plot
-is pasted into Excel as picture.
+Using :meth:`pictures.add() <xlwings.main.Pictures.add>`, it is easy to paste a Matplotlib plot as picture in Excel.
 
 Getting started
 ---------------
@@ -17,14 +16,14 @@ The easiest sample boils down to::
     >>> fig = plt.figure()
     >>> plt.plot([1, 2, 3])
 
-    >>> wb = xw.Workbook()
-    >>> xw.Plot(fig).show('MyPlot')
+    >>> sht = xw.Book().sheets[0]
+    >>> sht.pictures.add(fig, name='MyPlot', update=True)
 
 .. figure:: images/mpl_basic.png
   :scale: 80%
 
 .. note::
-    You can now resize and position the plot on Excel: subsequent calls to ``show``
+    If you set ``update=True``, you can resize and position the plot on Excel: subsequent calls to ``pictures.add()``
     with the same name (``'MyPlot'``) will update the picture without changing its position or size.
 
 
@@ -39,10 +38,10 @@ However, on Windows you can make things feel even more integrated by setting up 
 
     @xw.func
     def myplot(n):
-        wb = xw.Workbook.caller()
+        sht = xw.Book.caller().sheets.active
         fig = plt.figure()
         plt.plot(range(int(n)))
-        xw.Plot(fig).show('MyPlot')
+        sht.pictures.add(fig, name='MyPlot', update=True)
         return 'Plotted with n={}'.format(n)
 
 If you import this function and call it from cell B2, then the plot gets automatically
@@ -54,23 +53,22 @@ updated when cell B1 changes:
 Properties
 ----------
 
-Size, position and other properties can either be set as arguments within ``show``, see :meth:`xlwings.Plot.show`, or
-by manipulating the picture object as returned by ``show``, see :meth:`xlwings.Picture`.
+Size, position and other properties can either be set as arguments within :meth:`pictures.add() <xlwings.main.Pictures.add>`, or
+by manipulating the picture object that is returned, see :meth:`xlwings.Picture`.
 
 For example::
 
-    >>> xw.Plot(fig).show('MyPlot', left=xw.Range('B5').left, top=xw.Range('B5').top)
+    >>> sht = xw.Book().sheets[0]
+    >>> sht.pictures.add(fig, name='MyPlot', update=True,
+                         left=sht.range('B5').left, top=sht.range('B5').top)
 
 or::
 
-    >>> plot = xw.Plot(fig).show('MyPlot')
+    >>> plot = sht.pictures.add(fig, name='MyPlot', update=True)
     >>> plot.height /= 2
     >>> plot.width /= 2
 
-.. note:: Once the picture is shown in Excel, you can only change it's properties via the picture object and not within
-    the ``show`` method.
-
-Getting a matplotlib figure
+Getting a Matplotlib figure
 ---------------------------
 Here are a few examples of how you get a matplotlib ``figure`` object:
 
@@ -102,8 +100,3 @@ Here are a few examples of how you get a matplotlib ``figure`` object:
     df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
     ax = df.plot(kind='bar')
     fig = ax.get_figure()
-
-Then show it in Excel as picture as seen above::
-
-    plot = Plot(fig)
-    plot.show('Plot1')

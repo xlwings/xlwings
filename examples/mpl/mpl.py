@@ -27,12 +27,11 @@ def get_figure(const):
 
 def main():
     # Create a reference to the calling Excel Workbook
-    wb = xw.Workbook.caller()
+    sht = xw.Book.caller().sheets[0]
 
     # Get the constant from Excel
-    const = xw.Range('B1').value
+    const = sht.range('B1').value
 
     # Get the figure and show it in Excel
     fig = get_figure(const)
-    plot = xw.Plot(fig)
-    plot.show('MyStreamplot', sheet=1)
+    pic = sht.pictures.add(fig, name='MyStreamplot', update=True)

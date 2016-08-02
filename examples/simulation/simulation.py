@@ -7,29 +7,29 @@ License: BSD 3-clause (see LICENSE.txt for details)
 from __future__ import division
 import sys
 import numpy as np
-from xlwings import Application, Workbook, Range, Chart
+import xlwings as xw
 
 
 def main():
-    wb = Workbook.caller()
+    sht = xw.Book.caller().sheets[0]
     # User Inputs
-    num_simulations = Range('E3').options(numbers=int).value
-    time = Range('E4').value
-    num_timesteps = Range('E5').options(numbers=int).value
+    num_simulations = sht.range('E3').options(numbers=int).value
+    time = sht.range('E4').value
+    num_timesteps = sht.range('E5').options(numbers=int).value
     dt = time/num_timesteps  # Length of time period
-    vol = Range('E7').value
-    mu = np.log(1 + Range('E6').value)  # Drift
-    starting_price = Range('E8').value
+    vol = sht.range('E7').value
+    mu = np.log(1 + sht.range('E6').value)  # Drift
+    starting_price = sht.range('E8').value
     perc_selection = [5, 50, 95]  # percentiles (hardcoded for now)
     # Animation
-    animate = Range('E9').value.lower() == 'yes'
+    animate = sht.range('E9').value.lower() == 'yes'
 
     # Excel: clear output, write out initial values of percentiles/sample path and set chart source
     # and x-axis values
-    Range('O2').table.clear_contents()
-    Range('P2').value = [starting_price, starting_price, starting_price, starting_price]
-    Chart('Chart 5').set_source_data(Range((1, 15),(num_timesteps + 2, 19)))
-    Range('O2').value = np.round(np.linspace(0, time, num_timesteps + 1).reshape(-1,1), 2)
+    sht.range('O2').expand().clear_contents()
+    sht.range('P2').value = [starting_price, starting_price, starting_price, starting_price]
+    sht.charts['Chart 5'].set_source_data(sht.range((1, 15), (num_timesteps + 2, 19)))
+    sht.range('O2').value = np.round(np.linspace(0, time, num_timesteps + 1).reshape(-1, 1), 2)
 
     # Preallocation
     price = np.zeros((num_timesteps + 1, num_simulations))
@@ -45,12 +45,12 @@ def main():
         price[t,:] = price[t-1,:] * np.exp((mu - 0.5 * vol**2) * dt + vol * rand_nums * np.sqrt(dt))
         percentiles[t, :] = np.percentile(price[t, :], perc_selection)
         if animate:
-            Range((t+2, 16)).value = percentiles[t, :]
-            Range((t+2, 19)).value = price[t, 0]  # Sample path
+            sht.range((t+2, 16)).value = percentiles[t, :]
+            sht.range((t+2, 19)).value = price[t, 0]  # Sample path
             if sys.platform.startswith('win'):
-                Application(wb).screen_updating = True
+                sht.book.app.screen_updating = True
 
     if not animate:
-        Range('P2').value = percentiles
-        Range('S2').value = price[:, :1]  # Sample path
+        sht.range('P2').value = percentiles
+        sht.range('S2').value = price[:, :1]  # Sample path
 

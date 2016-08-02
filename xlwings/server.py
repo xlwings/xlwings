@@ -184,9 +184,9 @@ class XLPython(object):
         else:
             return ToVariant(getattr(obj, method)(*pargs, **kwargs))
 
-    def CallUDF(self, script, fname, args, this_workbook):
+    def CallUDF(self, script, fname, args, this_workbook, caller):
         args = tuple(FromVariant(arg) for arg in args)
-        res = call_udf(script, fname, args, this_workbook)
+        res = call_udf(script, fname, args, this_workbook, FromVariant(caller))
         if isinstance(res, (tuple, list)):
             res = (res,)
         return res
@@ -274,6 +274,9 @@ class XLPython(object):
             else:
                 pass
         exec (stmt, globals, locals)
+
+
+idle_queue = []
 
 
 def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):

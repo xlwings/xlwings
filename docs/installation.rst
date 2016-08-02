@@ -30,12 +30,12 @@ Dependencies
   `Anaconda <https://store.continuum.io/cshop/anaconda/>`_,
   `WinPython <https://winpython.github.io/>`_ or
   `Canopy <https://www.enthought.com/products/canopy/>`_ as they already include pywin32. Otherwise it needs to be
-  installed from `here <http://sourceforge.net/projects/pywin32/files/pywin32/>`_.
+  installed from `here <http://sourceforge.net/projects/pywin32/files/pywin32/>`_ which can be a hassle.
 
 * **Mac**: ``psutil``, ``appscript``
 
-  On Mac, the dependencies are automatically being handled if xlwings is installed with ``pip``. However,
-  the Xcode command line tools need to be available. Mac OS X 10.4 (*Tiger*) or later is required.
+  On Mac, the dependencies are automatically being handled if xlwings is installed with ``conda`` or ``pip``. However,
+  with pip, the Xcode command line tools need to be available. Mac OS X 10.4 (*Tiger*) or later is required.
   The recommended Python distribution for Mac is `Anaconda <https://store.continuum.io/cshop/anaconda/>`_.
 
 Optional Dependencies
@@ -52,4 +52,4 @@ These packages are not required but highly recommended as they play very nicely 
 Python version support
 ----------------------
 
-xlwings is tested on Python 2.6-2.7 and 3.3+
+xlwings is tested on Python 2.7 and 3.3+

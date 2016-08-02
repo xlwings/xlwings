@@ -6,7 +6,7 @@ License: BSD 3-clause (see LICENSE.txt for details)
 """
 import sqlite3
 import os
-from xlwings import Workbook, Range
+import xlwings as xw
 
 
 def playlist():
@@ -14,7 +14,8 @@ def playlist():
     Get the playlist content based on the ID from the Dropdown
     """
     # Make a connection to the calling Excel file
-    wb = Workbook.caller()
+    wb = xw.Book.caller()
+    sht = wb.sheets.active
 
     # Place the database next to the Excel file
     db_file = os.path.join(os.path.dirname(wb.fullname), 'chinook.sqlite')
@@ -24,7 +25,7 @@ def playlist():
     cursor = con.cursor()
 
     # Get PlaylistId from ComboBox
-    playlist_id = wb.xl_workbook.ActiveSheet.OLEObjects("ComboBox1").Object.Value
+    playlist_id = wb.api.ActiveSheet.OLEObjects("ComboBox1").Object.Value
 
     # Database query
     cursor.execute(
@@ -43,12 +44,12 @@ def playlist():
     rows = cursor.fetchall()
 
     # Clear the sheet and write the column names and result to Excel
-    Range('A9').table.clear_contents()
-    Range('A9').value = col_names
+    sht.range('A9').expand().clear_contents()
+    sht.range('A9').value = col_names
     if len(rows):
-        Range('A10').value = rows
+        sht.range('A10').value = rows
     else:
-        Range('A10').value = 'Empty Playlist!'
+        sht.range('A10').value = 'Empty Playlist!'
 
     # Close cursor and connection
     cursor.close()
@@ -61,7 +62,8 @@ def combobox():
     """
 
     # Make a connection to the calling Excel file
-    wb = Workbook.caller()
+    wb = xw.Book.caller()
+    source = wb.sheets['Source']
 
     # Place the database next to the Excel file
     db_file = os.path.join(os.path.dirname(wb.fullname), 'chinook.sqlite')
@@ -74,17 +76,17 @@ def combobox():
     cursor.execute("SELECT PlaylistId, Name FROM Playlist")
 
     # Write IDs and Names to hidden sheet
-    Range('Source', 'A1').table.clear_contents()
-    Range('Source', 'A1').value = cursor.fetchall()
+    source.range('A1').expand().clear_contents()
+    source.range('A1').value = cursor.fetchall()
 
     # Format and fill the ComboBox to show Names (Text) and give back IDs (Values)
     # TODO: implement natively in xlwings
     combo = "ComboBox1"
-    wb.xl_workbook.ActiveSheet.OLEObjects(combo).Object.ListFillRange = \
-        'Source!{}'.format(str(Range('Source', 'A1').table.xl_range.Address))
-    wb.xl_workbook.ActiveSheet.OLEObjects(combo).Object.BoundColumn = 1
-    wb.xl_workbook.ActiveSheet.OLEObjects(combo).Object.ColumnCount = 2
-    wb.xl_workbook.ActiveSheet.OLEObjects(combo).Object.ColumnWidths = 0
+    wb.api.ActiveSheet.OLEObjects(combo).Object.ListFillRange = \
+        'Source!{}'.format(str(source.range('A1').expand().address))
+    wb.api.ActiveSheet.OLEObjects(combo).Object.BoundColumn = 1
+    wb.api.ActiveSheet.OLEObjects(combo).Object.ColumnCount = 2
+    wb.api.ActiveSheet.OLEObjects(combo).Object.ColumnWidths = 0
 
     # Close cursor and connection
     cursor.close()

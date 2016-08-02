@@ -4,7 +4,8 @@
 # under Options > Trust Center > Trust Center Settings > Macro Settings (in the case of Excel 2010)
 
 import os
-from xlwings import Workbook, FileFormat
+import xlwings as xw
+from xlwings.constants import FileFormat
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -20,14 +21,14 @@ for root, dirs, files in os.walk(root):
             workbook_paths.append((os.path.join(root, f)))
 
 for path in workbook_paths:
-    wb = Workbook(path)
-    wb.xl_workbook.VBProject.VBComponents.Remove(wb.xl_workbook.VBProject.VBComponents("xlwings"))
-    wb.xl_workbook.VBProject.VBComponents.Import(os.path.abspath(os.path.join(this_dir, os.pardir, 'xlwings', 'xlwings.bas')))
+    wb = xw.Book(path)
+    wb.api.VBProject.VBComponents.Remove(wb.api.VBProject.VBComponents("xlwings"))
+    wb.api.VBProject.VBComponents.Import(os.path.abspath(os.path.join(this_dir, os.pardir, 'xlwings', 'xlwings.bas')))
     if 'xlwings_template' in wb.fullname:
         # TODO: implement FileFormat in xlwings
-        wb.xl_workbook.Application.DisplayAlerts = False
-        wb.xl_workbook.SaveAs(template_path, FileFormat=FileFormat.xlOpenXMLTemplateMacroEnabled)
-        wb.xl_workbook.Application.DisplayAlerts = True
+        wb.api.Application.DisplayAlerts = False
+        wb.api.SaveAs(template_path, FileFormat=FileFormat.xlOpenXMLTemplateMacroEnabled)
+        wb.api.Application.DisplayAlerts = True
     else:
         wb.save()
     wb.close()

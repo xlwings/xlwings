@@ -7,7 +7,7 @@ xlwings VBA module
 ------------------
 
 To get access to the ``RunPython`` function and/or to be able to run User Defined Functions (UDFs), you need to have the
-xlwings VBA module available in your Excel workbook.
+xlwings VBA module available in your Excel book.
 
 For new projects, by far the easiest way to get started is by using the command line client with the quickstart option,
 see :ref:`command_line` for details::
@@ -44,7 +44,7 @@ under ``Function Settings``::
     PYTHONPATH = ThisWorkbook.Path
     UDF_MODULES = ""
     UDF_DEBUG_SERVER = False
-    LOG_FILE = ThisWorkbook.Path & "\xlwings_log.txt"
+    LOG_FILE = ""
     SHOW_LOG = True
     OPTIMIZED_CONNECTION = False
 
@@ -65,7 +65,8 @@ under ``Function Settings``::
 * ``UDF_DEBUG_SERVER``: Set this to True if you want to run the xlwings COM server manually for debugging, see :ref:`debugging`.
 * ``LOG_FILE`` [Optional]: Leave empty for default location (see below) or provide directory including file name.
 * ``SHOW_LOG``: If False, no pop-up with the Log messages (usually errors) will be shown. Use with care.
-* ``OPTIMIZED_CONNECTION``: Currently only on Windows, use a COM Server for an efficient connection (experimental!)
+* ``OPTIMIZED_CONNECTION``: Currently only on Windows: uses a COM Server. This will be faster, as the interpreter doesn't shut down
+  after each call
 
 .. _log:
 
@@ -84,33 +85,31 @@ LOG_FILE default locations
 Call Python with "RunPython"
 ----------------------------
 
-After your workbook contains the xlwings VBA module with potentially adjusted Settings, go to ``Insert > Module`` (still
-in the VBA-Editor). This will create a new Excel module where you can write your Python call as follows (note that the ``quickstart``
+After adding the xlwings VBA module to your Excel file, go to ``Insert > Module`` (still in the VBA-Editor).
+This will create a new Excel module where you can write your Python call as follows (note that the ``quickstart``
 or ``template`` commands already add an empty Module1, so you don't need to insert a new module manually):
 
 .. code-block:: vb.net
 
-    Sub MyMacro()
-        RunPython ("import mymodule; mymodule.rand_numbers()")
+    Sub HelloWorld()
+        RunPython ("import hello; hello.world()")
     End Sub
 
-This essentially hands over control to ``mymodule.py``:
+This calls the following code in ``mymodule.py``:
 
 .. code-block:: python
 
+    # hello.py
     import numpy as np
-    from xlwings import Workbook, Range
+    import xlwings as xw
 
-    def rand_numbers():
-        """ produces std. normally distributed random numbers with shape (n,n)"""
-        wb = Workbook.caller()  # Creates a reference to the calling Excel file
-        n = int(Range('Sheet1', 'B1').value)  # Write desired dimensions into Cell B1
-        rand_num = np.random.randn(n, n)
-        Range('Sheet1', 'C3').value = rand_num
+    def world():
+        wb = xw.Book.caller()
+        wb.sheets[0].range('A1').value = 'Hello World!'
 
-You can then attach ``MyMacro`` to a button or run it directly in the VBA Editor by hitting ``F5``.
+You can then attach ``HelloWorld`` to a button or run it directly in the VBA Editor by hitting ``F5``.
 
-.. note:: Always place ``Workbook.caller()`` within the function that is being called from Excel and not outside as
+.. note:: Place ``xw.Book.caller()`` within the function that is being called from Excel and not outside as
     global variable. Otherwise it prevents Excel from shutting down properly upon exiting and
     leaves you with a zombie process when you use ``OPTIMIZED_CONNECTION = True``.
 

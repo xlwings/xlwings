@@ -30,43 +30,69 @@ class ExpandRangeStage(object):
         if c.range:
             # auto-expand the range
             if self.expand:
-                c.range = getattr(c.range, self.expand)
+                c.range = c.range.expand(self.expand)
+
+
+class ClearExpandedRangeStage(object):
+    def __init__(self, options):
+        self.expand = options.get('expand', None)
+        self.skip = options.get('_skip_tl_cells', None)
+
+    def __call__(self, c):
+        if c.range and self.expand:
+            rng = c.range.expand(self.expand)
+
+            r = len(c.value)
+            c = r and len(c.value[0])
+            if self.skip:
+                r = max(r, self.skip[0])
+                c = max(c, self.skip[1])
+
+            rng[:r, c:].clear()
+            rng[r:, :].clear()
 
 
 class WriteValueToRangeStage(object):
-    def __init__(self, raw=False):
+    def __init__(self, options, raw=False):
+        self.skip = options.get('_skip_tl_cells', None)
         self.raw = raw
 
-    def __call__(self, ctx):
-        if ctx.range:
-            if self.raw:
-                xlplatform.set_value(ctx.range.xl_range, ctx.value)
+    def _write_value(self, rng, value, scalar):
+        if rng.api and value:
+            # it is assumed by this stage that value is a list of lists
+            if scalar:
+                value = value[0][0]
             else:
-                # it is assumed by this stage that value is a list of lists
-                if ctx.meta.get('scalar', False):
-                    # transform scalars back from list of list so you can do:
-                    # Range('A1:B2').value = scalar
-                    ctx.value = ctx.value[0][0]
-                    row2 = ctx.range.row2
-                    col2 = ctx.range.col2
-                else:
-                    row2 = ctx.range.row1 + len(ctx.value) - 1
-                    col2 = ctx.range.col1 + len(ctx.value[0]) - 1
+                rng = rng.resize(len(value), len(value[0]))
 
-                xlplatform.set_value(xlplatform.get_range_from_indices(
-                    ctx.range.xl_sheet,
-                    ctx.range.row1,
-                    ctx.range.col1,
-                    row2,
-                    col2
-                ), ctx.value)
+            rng.raw_value = value
+
+    def __call__(self, ctx):
+        if ctx.range and ctx.value:
+            if self.raw:
+                ctx.range.raw_value = ctx.value
+                return
+
+            scalar = ctx.meta.get('scalar', False)
+            if not scalar:
+                ctx.range = ctx.range.resize(len(ctx.value), len(ctx.value[0]))
+            if self.skip:
+                r, c = self.skip
+                if scalar:
+                    self._write_value(ctx.range[:r, c:], ctx.value, True)
+                    self._write_value(ctx.range[r:, :], ctx.value, True)
+                else:
+                    self._write_value(ctx.range[:r, c:], [x[c:] for x in ctx.value[:r]], False)
+                    self._write_value(ctx.range[r:, :], ctx.value[r:], False)
+            else:
+                self._write_value(ctx.range, ctx.value, scalar)
 
 
 class ReadValueFromRangeStage(object):
 
     def __call__(self, c):
         if c.range:
-            c.value = xlplatform.get_value_from_range(c.range.xl_range)
+            c.value = c.range.raw_value
 
 
 class CleanDataFromReadStage(object):
@@ -205,7 +231,8 @@ class ValueAccessor(Accessor):
     def writer(options):
         return (
             Pipeline()
-            .prepend_stage(WriteValueToRangeStage())
+            .prepend_stage(WriteValueToRangeStage(options))
+            .prepend_stage(ClearExpandedRangeStage(options), only_if=options.get('expand', None))
             .prepend_stage(CleanDataForWriteStage())
             .prepend_stage(TransposeStage(), only_if=options.get('transpose', False))
             .prepend_stage(Ensure2DStage())

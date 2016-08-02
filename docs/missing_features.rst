@@ -12,16 +12,17 @@ If you're missing a feature in xlwings, do the following:
    we also appreciate pull requests!
 
 2) Workaround: in essence, xlwings is just a smart wrapper around `pywin32 <http://sourceforge.net/projects/pywin32/>`_ on
-   Windows and `appscript <http://appscript.sourceforge.net/>`_ on Mac. You can access the underlying objects by doing:
+   Windows and `appscript <http://appscript.sourceforge.net/>`_ on Mac. You can access the underlying objects by calling
+   the ``api`` property:
 
    .. code-block:: python
 
-        >>> wb = Workbook('Book1')
-        >>> wb.xl_workbook
+        >>> sht = xw.Book().sheets[0]
+        >>> sht.api
         <COMObject <unknown>>  # Windows/pywin32
-        app('/Applications/Microsoft Excel.app').workbooks['Book1']  # Mac/appscript
+        app(pid=2319).workbooks['Workbook1'].worksheets[1]  # Mac/appscript
 
-   This works accordingly for ``Range.xl_range``, ``Sheet.xl_sheet``, ``Chart.xl_chart`` etc.
+   This works accordingly for the other objects like ``sht.range('A1').api`` etc.
 
    The underlying objects will offer you pretty much everything you can do with VBA, using the syntax of pywin32 (which
    pretty much feels like VBA) and appscript (which doesn't feel like VBA).
@@ -34,7 +35,7 @@ Example: Workaround to use VBA's ``Range.WrapText``
 ::
 
     # Windows
-    Range('A1').xl_range.WrapText = True
+    sht.range('A1').api.WrapText = True
 
     # Mac
-    Range('A1').xl_range.wrap_text.set(True)
+    sht.range('A1').api.wrap_text.set(True)

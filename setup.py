@@ -16,7 +16,7 @@ with open(os.path.join(os.path.dirname(__file__), 'xlwings', '__init__.py')) as 
 
 # Dependencies
 if sys.platform.startswith('win'):
-    install_requires = ['comtypes']  # TODO: add pypiwin32 (?)
+    install_requires = ['comtypes']
     # This places dlls next to python.exe for standard setup and in the parent folder for virtualenv
     data_files = [('', ['xlwings32.dll', 'xlwings64.dll'])]
 elif sys.platform.startswith('darwin'):
@@ -30,6 +30,7 @@ else:
     else:
         raise OSError("currently only Windows and OSX are supported.")
 
+# This shouldn't be necessary anymore as we dropped official support for < 2.7 and < 3.3
 if (sys.version_info[0] == 2 and sys.version_info[:2] < (2, 7)) or (sys.version_info[0] == 3 and sys.version_info[:2] < (3, 2)):
     install_requires = install_requires + ['argparse']
 
@@ -55,11 +56,8 @@ setup(
         'Operating System :: MacOS :: MacOS X',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.1',
-        'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
