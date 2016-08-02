@@ -11,8 +11,6 @@ Python from Excel and vice versa:
 **Numpy arrays** and **Pandas Series/DataFrames** are fully supported. xlwings-powered workbooks are easy to distribute and work
 on **Windows** and **Mac**.
 
-**Note**: xlwings is currently in an early stage. The API might change in backward incompatible ways.
-
 Links
 -----
 
