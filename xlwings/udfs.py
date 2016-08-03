@@ -3,13 +3,11 @@ import sys
 import re
 import os.path
 import tempfile
-from _ctypes_test import func
 import inspect
 from importlib import import_module
 
 from win32com.client import Dispatch
 
-from xlwings.constants import AboveBelow
 from . import conversion
 from .utils import VBAWriter
 from . import xlplatform
