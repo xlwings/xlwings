@@ -2126,7 +2126,7 @@ class Charts(Collection):
         >>> sht = xw.Book().sheets[0]
         >>> sht.range('A1').value = [['Foo1', 'Foo2'], [1, 2]]
         >>> chart = sht.charts.add()
-        >>> chart.source_data = sht.range('A1').expand()
+        >>> chart.set_source_data(sht.range('A1').expand())
         >>> chart.chart_type = 'line'
         >>> chart.name
         'Chart1'
