@@ -198,9 +198,9 @@ class App(object):
         file is not being overwritten from different instances.
     """
 
-    def __init__(self, visible=True, spec=None, impl=None):
+    def __init__(self, visible=True, spec=None, add_book=True, impl=None):
         if impl is None:
-            self.impl = xlplatform.App(spec=spec)
+            self.impl = xlplatform.App(spec=spec, add_book=add_book)
             if visible or visible is None:
                 self.visible = True
         else:
@@ -474,11 +474,12 @@ class Book(object):
                         if wb.fullname.lower() == fullname or wb.name.lower() == fullname:
                             candidates.append((app, wb))
 
+                app = apps.active
                 if len(candidates) == 0:
                     if os.path.isfile(fullname):
-                        if not apps.active:
-                            app = App()
-                        impl = apps.active.books.open(fullname).impl
+                        if not app:
+                            app = App(add_book=False)
+                        impl = app.books.open(fullname).impl
                     else:
                         raise Exception("Could not connect to workbook '%s'" % fullname)
                 elif len(candidates) > 1:
@@ -2672,7 +2673,10 @@ class Books(Collection):
 
         """
         if not os.path.exists(fullname):
-            raise FileNotFoundError("No such file: '%s'" % fullname)
+            if PY3:
+                raise FileNotFoundError("No such file: '%s'" % fullname)
+            else:
+                raise IOError("No such file: '%s'" % fullname)
         fullname = os.path.realpath(fullname)
         _, name = os.path.split(fullname)
         try:
@@ -2681,7 +2685,7 @@ class Books(Collection):
             if hasattr(os.path, 'samefile'):
                 throw = not os.path.samefile(impl.fullname, fullname)
             else:
-                throw = (os.path.normpath(os.path.realpath(impl.fullname)) != os.path.normpath(fullname))
+                throw = (os.path.normpath(os.path.realpath(impl.fullname.lower())) != os.path.normpath(fullname.lower()))
             if throw:
                 raise ValueError(
                     "Cannot open two workbooks named '%s', even if they are saved in different locations." % name

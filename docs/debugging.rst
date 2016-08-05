@@ -36,7 +36,7 @@ Consider the following sample code of your Python source code ``my_module.py``:
     if __name__ == '__main__':
         # Expects the Excel file next to this source file, adjust accordingly.
         path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'myfile.xlsm'))
-        xw.Book.set_mock_caller(path)
+        xw.Book(path).set_mock_caller()
         my_macro()
 
 

@@ -281,13 +281,14 @@ class Apps(object):
 
 class App(object):
 
-    def __init__(self, spec=None, xl=None):
+    def __init__(self, spec=None, add_book=True, xl=None):
         if spec is not None:
             warn('spec is ignored on Windows.')
         if xl is None:
             # new instance
             self._xl = COMRetryObjectWrapper(DispatchEx('Excel.Application'))
-            self._xl.Workbooks.Add()
+            if add_book:
+                self._xl.Workbooks.Add()
             self._hwnd = None
         elif isinstance(xl, int):
             self._xl = None

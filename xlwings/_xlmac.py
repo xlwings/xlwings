@@ -55,7 +55,7 @@ class Apps(object):
 
 class App(object):
 
-    def __init__(self, spec=None, xl=None):
+    def __init__(self, spec=None, add_book=None, xl=None):
         if xl is None:
             self.xl = appscript.app(name=spec or 'Microsoft Excel', newinstance=True, terms=mac_dict)
             self.activate()  # Makes it behave like on Windows

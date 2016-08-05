@@ -1,6 +1,17 @@
 What's New
 ==========
 
+v0.9.1 (Aug 5, 2016)
+--------------------
+
+This is a bug fix release: As to be expected after a rewrite, there were some rough edges that have now been taken care of:
+
+* [Win] Opening a file via ``xw.Book()`` was causing an additional ``Book1`` to be opened in case Excel was not running yet (:issue:`531`)
+* [Win] Some users were getting an ImportError (:issue:`533`)
+* [PY 2.7] ``RunPython`` was broken with Python 2.7 (:issue:`537`)
+* Some corrections in the docs (:issue:`538` and :issue:`536`)
+
+
 .. _v0.9_release_notes:
 
 v0.9.0 (Aug 2, 2016)
