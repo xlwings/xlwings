@@ -474,17 +474,16 @@ class Book(object):
                         if wb.fullname.lower() == fullname or wb.name.lower() == fullname:
                             candidates.append((app, wb))
 
+                is_new_app = False
                 if len(candidates) == 0:
                     if os.path.isfile(fullname):
                         if not apps.active:
-                            new_app = App()
+                            app = App()
+                            is_new_app = True
                         impl = apps.active.books.open(fullname).impl
-                        try:
-                            # Remove 'Book1' again if a specific book is opened in a new instance
-                            if new_app.books.count > 1:
-                                new_app.books[0].close()
-                        except UnboundLocalError:
-                            pass
+                        if is_new_app and app.books.count > 1:
+                            # Close 'Book1' again if a specific book is opened in a new instance
+                            app.books[0].close()
                     else:
                         raise Exception("Could not connect to workbook '%s'" % fullname)
                 elif len(candidates) > 1:
