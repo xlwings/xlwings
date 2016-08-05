@@ -2678,7 +2678,10 @@ class Books(Collection):
 
         """
         if not os.path.exists(fullname):
-            raise FileNotFoundError("No such file: '%s'" % fullname)
+            if PY3:
+                raise FileNotFoundError("No such file: '%s'" % fullname)
+            else:
+                raise IOError("No such file: '%s'" % fullname)
         fullname = os.path.realpath(fullname)
         _, name = os.path.split(fullname)
         try:
