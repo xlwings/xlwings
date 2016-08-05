@@ -198,9 +198,9 @@ class App(object):
         file is not being overwritten from different instances.
     """
 
-    def __init__(self, visible=True, spec=None, impl=None):
+    def __init__(self, visible=True, spec=None, add_book=True, impl=None):
         if impl is None:
-            self.impl = xlplatform.App(spec=spec)
+            self.impl = xlplatform.App(spec=spec, add_book=add_book)
             if visible or visible is None:
                 self.visible = True
         else:
@@ -474,16 +474,12 @@ class Book(object):
                         if wb.fullname.lower() == fullname or wb.name.lower() == fullname:
                             candidates.append((app, wb))
 
-                is_new_app = False
+                app = apps.active
                 if len(candidates) == 0:
                     if os.path.isfile(fullname):
-                        if not apps.active:
-                            app = App()
-                            is_new_app = True
-                        impl = apps.active.books.open(fullname).impl
-                        if is_new_app and app.books.count > 1:
-                            # Close 'Book1' again if a specific book is opened in a new instance
-                            app.books[0].close()
+                        if not app:
+                            app = App(add_book=False)
+                        impl = app.books.open(fullname).impl
                     else:
                         raise Exception("Could not connect to workbook '%s'" % fullname)
                 elif len(candidates) > 1:
