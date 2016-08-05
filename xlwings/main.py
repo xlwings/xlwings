@@ -2687,7 +2687,7 @@ class Books(Collection):
             if hasattr(os.path, 'samefile'):
                 throw = not os.path.samefile(impl.fullname, fullname)
             else:
-                throw = (os.path.normpath(os.path.realpath(impl.fullname)) != os.path.normpath(fullname))
+                throw = (os.path.normpath(os.path.realpath(impl.fullname.lower())) != os.path.normpath(fullname.lower()))
             if throw:
                 raise ValueError(
                     "Cannot open two workbooks named '%s', even if they are saved in different locations." % name
