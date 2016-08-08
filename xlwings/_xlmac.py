@@ -348,7 +348,7 @@ class Sheet(object):
             if isinstance(arg1, string_types) and len(arg1.split(':')) == 2:
                 address2 = arg1.split(':')[1]
             else:
-                address2 = address1
+                return Range(self, "{0}".format(address1))
         else:
             raise ValueError("Invalid parameters")
 

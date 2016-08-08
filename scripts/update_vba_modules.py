@@ -31,7 +31,9 @@ for path in workbook_paths:
         wb.api.Application.DisplayAlerts = True
     else:
         wb.save()
-    wb.close()
+
+for path in workbook_paths:
+    xw.Book(path).close()
 
 
 
