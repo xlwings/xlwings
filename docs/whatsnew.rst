@@ -1,6 +1,15 @@
 What's New
 ==========
 
+v0.9.2 (Aug 8, 2016)
+--------------------
+
+Another round of bug fixes:
+
+* [Mac]: Sometimes, a column was referenced instead of a named range (:issue:`545`)
+* [Mac]: Python 2.7 was raising a ``LookupError: unknown encoding: mbcs`` (:issue:`544`)
+* Fixed docs regarding set_mock_caller (:issue:`543`)
+
 v0.9.1 (Aug 5, 2016)
 --------------------
 
