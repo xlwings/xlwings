@@ -567,7 +567,7 @@ class Book(object):
                 sht.range('A1').value = 'Hello xlwings!'
 
             if __name__ == '__main__':
-                xw.Book(r'C:\\path\\to\\file.xlsx').set_mock_caller()
+                xw.Book('file.xlsm').set_mock_caller()
                 my_macro()
 
         .. versionadded:: 0.3.1
