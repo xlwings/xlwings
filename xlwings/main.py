@@ -465,7 +465,11 @@ class Book(object):
         if not impl:
             if fullname:
                 if not PY3 and isinstance(fullname, str):
-                    fullname = unicode(fullname, 'mbcs')
+                    if sys.platform.startswith('win'):
+                        fullname = unicode(fullname, 'mbcs')
+                    elif sys.platform.startswith('darwin'):
+                        fullname = unicode(fullname, 'utf-8')
+                        # fullname = unicodedata.normalize('NFKC', fullname)  # necessary?
                 fullname = fullname.lower()
 
                 candidates = []
