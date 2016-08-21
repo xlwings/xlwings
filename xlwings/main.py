@@ -180,8 +180,9 @@ class App(object):
 
     Parameters
     ----------
-    visible : bool, default True
-        Returns or sets a boolean value that determines whether the app is visible.
+    visible : bool, default None
+        Returns or sets a boolean value that determines whether the app is visible. The default
+        leaves the state unchanged or sets visible=True if the object doesn't exist yet.
 
     spec : str, default None
         Mac-only, use the full path to the Excel application,
@@ -198,7 +199,7 @@ class App(object):
         file is not being overwritten from different instances.
     """
 
-    def __init__(self, visible=True, spec=None, add_book=True, impl=None):
+    def __init__(self, visible=None, spec=None, add_book=True, impl=None):
         if impl is None:
             self.impl = xlplatform.App(spec=spec, add_book=add_book)
             if visible or visible is None:
