@@ -469,8 +469,7 @@ class Book(object):
                     if sys.platform.startswith('win'):
                         fullname = unicode(fullname, 'mbcs')
                     elif sys.platform.startswith('darwin'):
-                        fullname = unicode(fullname, 'utf-8')
-                        # fullname = unicodedata.normalize('NFKC', fullname)  # necessary?
+                        fullname = fullname.decode('mac_latin2')
                 fullname = fullname.lower()
 
                 candidates = []
