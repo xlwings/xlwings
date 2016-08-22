@@ -1,6 +1,16 @@
 What's New
 ==========
 
+v0.9.3 (Aug 22, 2016)
+---------------------
+
+* [Win] ``App.visible`` wasn't behaving correctly (:issue:`551`).
+* [Mac] Added support for the new 64bit version of Excel 2016 on Mac (:issue:`549`).
+* Unicode book names are again supported (:issue:`546`).
+* :meth:`xlwings.Book.save()` now supports relative paths. Also, when saving an existing book under a new name
+  without specifying the full path, it'll be saved in Python's current working directory instead of in Excel's default
+  directory (:issue:`185`).
+
 v0.9.2 (Aug 8, 2016)
 --------------------
 

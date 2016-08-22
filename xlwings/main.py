@@ -180,8 +180,9 @@ class App(object):
 
     Parameters
     ----------
-    visible : bool, default True
-        Returns or sets a boolean value that determines whether the app is visible.
+    visible : bool, default None
+        Returns or sets a boolean value that determines whether the app is visible. The default
+        leaves the state unchanged or sets visible=True if the object doesn't exist yet.
 
     spec : str, default None
         Mac-only, use the full path to the Excel application,
@@ -198,7 +199,7 @@ class App(object):
         file is not being overwritten from different instances.
     """
 
-    def __init__(self, visible=True, spec=None, add_book=True, impl=None):
+    def __init__(self, visible=None, spec=None, add_book=True, impl=None):
         if impl is None:
             self.impl = xlplatform.App(spec=spec, add_book=add_book)
             if visible or visible is None:
@@ -464,12 +465,6 @@ class Book(object):
     def __init__(self, fullname=None, impl=None):
         if not impl:
             if fullname:
-                if not PY3 and isinstance(fullname, str):
-                    if sys.platform.startswith('win'):
-                        fullname = unicode(fullname, 'mbcs')
-                    elif sys.platform.startswith('darwin'):
-                        fullname = unicode(fullname, 'utf-8')
-                        # fullname = unicodedata.normalize('NFKC', fullname)  # necessary?
                 fullname = fullname.lower()
 
                 candidates = []
@@ -542,9 +537,18 @@ class Book(object):
             fullname = sys.argv[1].lower()
             if sys.platform.startswith('win'):
                 app = App(impl=xlplatform.App(xl=int(sys.argv[4])))  # hwnd
+                if not PY3 and isinstance(fullname, str):
+                    fullname = fullname.decode('mbcs')
                 return cls(impl=app.books.open(fullname).impl)
             else:
                 # On Mac, the same file open in two instances is not supported
+                if PY3 and apps.active.version < 15:
+                    fullname = fullname.encode('utf-8', 'surrogateescape').decode('mac_latin2')
+                elif not PY3 and isinstance(fullname, str):
+                    if apps.active.version < 15:
+                        fullname = fullname.decode('mac_latin2')
+                    else:
+                        fullname = fullname.decode('utf-8')
                 return cls(impl=Book(fullname).impl)
         elif xlplatform.BOOK_CALLER:
             # Called via OPTIMIZED_CONNECTION = True
@@ -665,10 +669,33 @@ class Book(object):
         self.impl.close()
 
     def save(self, path=None):
+        """
+        Saves the Workbook. If a path is being provided, this works like SaveAs() in Excel. If no path is specified and
+        if the file hasn't been saved previously, it's being saved in the current working directory with the current
+        filename. Existing files are overwritten without prompting.
+
+        Arguments
+        ---------
+        path : str, default None
+            Full path to the workbook
+        Example
+        -------
+        >>> import xlwings as xw
+        >>> wb = xw.Book()
+        >>> wb.save()
+        >>> wb.save(r'C:\\path\\to\\new_file_name.xlsx')
+
+
+        .. versionadded:: 0.3.1
+        """
         return self.impl.save(path)
 
     @property
     def fullname(self):
+        """
+        Returns the name of the object, including its path on disk, as a string. Read-only String.
+
+        """
         return self.impl.fullname
 
     @property
@@ -704,7 +731,10 @@ class Book(object):
         return Range(impl=self.app.selection.impl)
 
     def __repr__(self):
-        return "<Book [{0}]>".format(self.name)
+        if not PY3:
+            return u"<Book [{0}]>".format(self.name).encode('utf-8')
+        else:
+            return "<Book [{0}]>".format(self.name)
 
 
 class Sheet(object):
@@ -855,7 +885,10 @@ class Sheet(object):
         return self.impl.delete()
 
     def __repr__(self):
-        return "<Sheet [{1}]{0}>".format(self.name, self.book.name)
+        if not PY3:
+            return u"<Sheet [{1}]{0}>".format(self.name, self.book.name).encode('utf-8')
+        else:
+            return "<Sheet [{1}]{0}>".format(self.name, self.book.name)
 
     @property
     def charts(self):
@@ -1588,11 +1621,10 @@ class Range(object):
             raise TypeError("Cell indices must be integers or slices, not %s" % type(key).__name__)
 
     def __repr__(self):
-        return "<Range [{1}]{0}!{2}>".format(
-            self.sheet.name,
-            self.sheet.book.name,
-            self.address
-        )
+        if not PY3:
+            return u"<Range [{1}]{0}!{2}>".format(self.sheet.name, self.sheet.book.name, self.address).encode('utf-8')
+        else:
+            return "<Range [{1}]{0}!{2}>".format(self.sheet.name, self.sheet.book.name, self.address)
 
     @property
     def hyperlink(self):

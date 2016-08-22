@@ -1,13 +1,13 @@
 Attribute VB_Name = "xlwings"
-' xlwings.org, version: 0.9.2
+' xlwings.org, version: 0.9.3
 '
 ' Copyright (C) 2014-2016, Zoomer Analytics LLC (www.zoomeranalytics.com)
 ' License: BSD 3-clause (see LICENSE.txt for details)
 Option Explicit
-#If Mac Then
-    Private Declare Function system Lib "libc.dylib" (ByVal Command As String) As Long
-#End If
 #If VBA7 Then
+    #If Mac Then
+        Private Declare PtrSafe Function system Lib "libc.dylib" (ByVal Command As String) As Long
+    #End If
     #If Win64 Then
         Const XLPyDLLName As String = "xlwings64.dll"
         Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlwings64.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
@@ -21,6 +21,9 @@ Option Explicit
     #End If
     Private Declare PtrSafe Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
 #Else
+    #If Mac Then
+        Private Declare Function system Lib "libc.dylib" (ByVal Command As String) As Long
+    #End If
     Private Const XLPyDLLName As String = "xlwings32.dll"
     Private Declare Function XLPyDLLActivateAuto Lib "xlwings32.dll" (ByRef result As Variant, Optional ByVal config As String = "") As Long
     Private Declare Function XLPyDLLNDims Lib "xlwings32.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long

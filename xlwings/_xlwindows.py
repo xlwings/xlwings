@@ -466,18 +466,22 @@ class Book(object):
         if (saved_path != '') and (path is None):
             # Previously saved: Save under existing name
             self.xl.Save()
+        elif (saved_path != '') and (path is not None) and (os.path.split(path)[0] == ''):
+            # Save existing book under new name in cwd if no path has been provided
+            path = os.path.join(os.getcwd(), path)
+            self.xl.SaveAs(os.path.realpath(path))
         elif (saved_path == '') and (path is None):
             # Previously unsaved: Save under current name in current working directory
             path = os.path.join(os.getcwd(), self.xl.Name + '.xlsx')
             alerts_state = self.xl.Application.DisplayAlerts
             self.xl.Application.DisplayAlerts = False
-            self.xl.SaveAs(path)
+            self.xl.SaveAs(os.path.realpath(path))
             self.xl.Application.DisplayAlerts = alerts_state
         elif path:
             # Save under new name/location
             alerts_state = self.xl.Application.DisplayAlerts
             self.xl.Application.DisplayAlerts = False
-            self.xl.SaveAs(path)
+            self.xl.SaveAs(os.path.realpath(path))
             self.xl.Application.DisplayAlerts = alerts_state
 
     @property
