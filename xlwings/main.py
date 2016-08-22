@@ -669,10 +669,33 @@ class Book(object):
         self.impl.close()
 
     def save(self, path=None):
+        """
+        Saves the Workbook. If a path is being provided, this works like SaveAs() in Excel. If no path is specified and
+        if the file hasn't been saved previously, it's being saved in the current working directory with the current
+        filename. Existing files are overwritten without prompting.
+
+        Arguments
+        ---------
+        path : str, default None
+            Full path to the workbook
+        Example
+        -------
+        >>> import xlwings as xw
+        >>> wb = xw.Book()
+        >>> wb.save()
+        >>> wb.save(r'C:\\path\\to\\new_file_name.xlsx')
+
+
+        .. versionadded:: 0.3.1
+        """
         return self.impl.save(path)
 
     @property
     def fullname(self):
+        """
+        Returns the name of the object, including its path on disk, as a string. Read-only String.
+
+        """
         return self.impl.fullname
 
     @property
