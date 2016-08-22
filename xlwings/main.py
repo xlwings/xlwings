@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 xlwings - Make Excel fly with Python!
 
@@ -542,9 +543,13 @@ class Book(object):
             fullname = sys.argv[1].lower()
             if sys.platform.startswith('win'):
                 app = App(impl=xlplatform.App(xl=int(sys.argv[4])))  # hwnd
+                if not PY3 and isinstance(fullname, str):
+                    fullname = fullname.decode('mbcs')
                 return cls(impl=app.books.open(fullname).impl)
             else:
                 # On Mac, the same file open in two instances is not supported
+                if not PY3 and isinstance(fullname, str):
+                    fullname = fullname.decode('mac_latin2')
                 return cls(impl=Book(fullname).impl)
         elif xlplatform.BOOK_CALLER:
             # Called via OPTIMIZED_CONNECTION = True
