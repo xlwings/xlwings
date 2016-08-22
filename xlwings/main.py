@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 xlwings - Make Excel fly with Python!
 
@@ -548,8 +547,6 @@ class Book(object):
                 return cls(impl=app.books.open(fullname).impl)
             else:
                 # On Mac, the same file open in two instances is not supported
-                if not PY3 and isinstance(fullname, str):
-                    fullname = fullname.decode('mac_latin2')
                 return cls(impl=Book(fullname).impl)
         elif xlplatform.BOOK_CALLER:
             # Called via OPTIMIZED_CONNECTION = True
@@ -709,7 +706,10 @@ class Book(object):
         return Range(impl=self.app.selection.impl)
 
     def __repr__(self):
-        return "<Book [{0}]>".format(self.name)
+        if not PY3:
+            return u"<Book [{0}]>".format(self.name).encode('utf-8')
+        else:
+            return "<Book [{0}]>".format(self.name)
 
 
 class Sheet(object):
