@@ -465,11 +465,6 @@ class Book(object):
     def __init__(self, fullname=None, impl=None):
         if not impl:
             if fullname:
-                if not PY3 and isinstance(fullname, str):
-                    if sys.platform.startswith('win'):
-                        fullname = unicode(fullname, 'mbcs')
-                    elif sys.platform.startswith('darwin'):
-                        fullname = fullname.decode('mac_latin2')
                 fullname = fullname.lower()
 
                 candidates = []
@@ -547,6 +542,13 @@ class Book(object):
                 return cls(impl=app.books.open(fullname).impl)
             else:
                 # On Mac, the same file open in two instances is not supported
+                if PY3 and apps.active.version < 15:
+                    fullname = fullname.encode('utf-8', 'surrogateescape').decode('mac_latin2')
+                elif not PY3 and isinstance(fullname, str):
+                    if apps.active.version < 15:
+                        fullname = fullname.decode('mac_latin2')
+                    else:
+                        fullname = fullname.decode('utf-8')
                 return cls(impl=Book(fullname).impl)
         elif xlplatform.BOOK_CALLER:
             # Called via OPTIMIZED_CONNECTION = True
@@ -860,7 +862,10 @@ class Sheet(object):
         return self.impl.delete()
 
     def __repr__(self):
-        return "<Sheet [{1}]{0}>".format(self.name, self.book.name)
+        if not PY3:
+            return u"<Sheet [{1}]{0}>".format(self.name, self.book.name).encode('utf-8')
+        else:
+            return "<Sheet [{1}]{0}>".format(self.name, self.book.name)
 
     @property
     def charts(self):
@@ -1593,11 +1598,10 @@ class Range(object):
             raise TypeError("Cell indices must be integers or slices, not %s" % type(key).__name__)
 
     def __repr__(self):
-        return "<Range [{1}]{0}!{2}>".format(
-            self.sheet.name,
-            self.sheet.book.name,
-            self.address
-        )
+        if not PY3:
+            return u"<Range [{1}]{0}!{2}>".format(self.sheet.name, self.sheet.book.name, self.address).encode('utf-8')
+        else:
+            return "<Range [{1}]{0}!{2}>".format(self.sheet.name, self.sheet.book.name, self.address)
 
     @property
     def hyperlink(self):
