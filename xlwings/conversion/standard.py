@@ -19,6 +19,8 @@ _date_handlers = {
 }
 
 _number_handlers = {
+    int: lambda x: int(round(x)),
+    'raw int': int,
 }
 
 
