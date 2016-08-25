@@ -141,7 +141,7 @@ class DelayWrite(object):
         self.skip = (caller.Rows.Count, caller.Columns.Count)
 
     def __call__(self, *args, **kwargs):
-        conversion.write_to_range(
+        conversion.write(
             self.value,
             self.range,
             conversion.Options(self.options)
@@ -162,7 +162,7 @@ class OutputParameter(object):
         try:
             self.func.__xlfunc__['writing'] = self.caller.Address
             self.func.__xlfunc__['rval'] = self.caller.Value
-            conversion.write_to_range(self.value, self.range, self.options)
+            conversion.write(self.value, self.range, self.options)
             self.caller.Calculate()
         finally:
             self.func.__xlfunc__.pop('writing')
@@ -234,9 +234,9 @@ def call_udf(module_name, func_name, args, this_workbook, caller):
         from .server import idle_queue
         idle_queue.append(args[i])
 
-    if ret_info.get('expand', None):
+    if ret_info['options'].get('expand', None):
         from .server import idle_queue
-        idle_queue.append(DelayWrite(Range(caller), ret_info, ret, caller))
+        idle_queue.append(DelayWrite(Range(impl=xlplatform.Range(xl=caller)), ret_info, ret, caller))
 
     return conversion.write(ret, None, ret_info['options'])
 
