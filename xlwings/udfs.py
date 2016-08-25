@@ -149,7 +149,6 @@ class DelayWrite(object):
         )
 
 
-
 class OutputParameter(object):
     def __init__(self, rng, options, func, caller):
         self.range = rng
@@ -236,7 +235,7 @@ def call_udf(module_name, func_name, args, this_workbook, caller):
 
     if ret_info['options'].get('expand', None):
         from .server import idle_queue
-        idle_queue.append(DelayWrite(Range(impl=xlplatform.Range(xl=caller)), ret_info, ret, caller))
+        idle_queue.append(DelayWrite(Range(impl=xlplatform.Range(xl=caller)), ret_info['options'], ret, caller))
 
     return conversion.write(ret, None, ret_info['options'])
 
