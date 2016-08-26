@@ -229,13 +229,9 @@ def call_udf(module_name, func_name, args, this_workbook, caller):
     xlplatform.BOOK_CALLER = Dispatch(this_workbook)
     ret = func(*args)
 
-    for i in output_param_indices:
-        from .server import idle_queue
-        idle_queue.append(args[i])
-
     if ret_info['options'].get('expand', None):
-        from .server import idle_queue
-        idle_queue.append(DelayWrite(Range(impl=xlplatform.Range(xl=caller)), ret_info['options'], ret, caller))
+        from .server import add_idle_task
+        add_idle_task(DelayWrite(Range(impl=xlplatform.Range(xl=caller)), ret_info['options'], ret, caller))
 
     return conversion.write(ret, None, ret_info['options'])
 

@@ -4,11 +4,11 @@ import random
 
 
 @xw.func
+@xw.arg("n", numbers=int)
+@xw.arg("m", numbers=int)
 @xw.ret(expand='table')
-def test_bdh():
-    n = random.randint(1, 10)
-    m = random.randint(1, 10)
+def test_bdh(n, m):
     return [
-        [random.random() for j in range(m)]
+        [ "%s x %s : %s, %s" % (n, m, i, j) for j in range(m)]
         for i in range(n)
     ]
