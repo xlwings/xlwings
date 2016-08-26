@@ -42,43 +42,15 @@ class ClearExpandedRangeStage(object):
 
     def __call__(self, ctx):
         if ctx.range and self.expand:
-
-            expand_rows = self.expand in ('table', 'vertical')
-            expand_cols = self.expand in ('table', 'horizontal')
-
-            if self.skip:
-                start_row, start_col = self.skip
-                start_row += 1
-                start_col += 1
-            else:
-                start_row = start_col = 1
-
-            if expand_rows:
-                end_row = len(ctx.value) + 1
-                end_row = max(end_row, start_row + len(ctx.range(start_row, 1).expand('vertical').rows) - 1)
-            else:
-                end_row = len(ctx.range.rows)
-            end_row = max(end_row, start_row-1)
-
-            if expand_cols:
-                end_col = (len(ctx.value) and len(ctx.value[0])) + 1
-                end_col = max(end_col, start_col + len(ctx.range(start_col, 1).expand('horizontal').columns) - 1)
-            else:
-                end_col = len(ctx.range.columns)
-            end_col = max(end_col, start_col - 1)
-
-            start_row = max(start_row, len(ctx.value) + 1)
-            start_col = max(start_col, (len(ctx.value) and len(ctx.value[0])) + 1)
-
-            if start_col <= end_col:
-                # clear .X
-                #       .X
-                Range(ctx.range(1, start_col), ctx.range(end_row, end_col)).clear_contents()
-
-            if start_col > 1 and start_row <= end_row:
-                # clear ..
-                #       X.
-                Range(ctx.range(start_row, 1), ctx.range(end_row, end_col)).clear_contents()
+            from ..expansion import expanders
+            expander = expanders.get(self.expand, self.expand)
+            vrows = len(ctx.value)
+            vcols = vrows and len(ctx.value[0])
+            expander.clear(
+                ctx.range,
+                skip=self.skip,
+                vshape=(vrows, vcols),
+            )
 
 
 class WriteValueToRangeStage(object):

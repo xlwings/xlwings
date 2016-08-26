@@ -11,6 +11,37 @@ class Expander(object):
         for alias in aliases:
             expanders[alias] = self
 
+    def expand(self, rng):
+        """
+        Expands a range
+
+        Arguments
+        ---------
+        rng: Range
+            The reference range
+
+        Returns
+        -------
+        Range object: The expanded range
+
+        """
+        raise NotImplemented()
+
+    def clear(self, rng, skip, vshape):
+        """
+        Clears out existing data corresponding to the expansion, in preparation for writing a value
+
+        Arguments
+        ---------
+        rng: Range
+            The reference range
+        skip: tuple
+            The number of rows, cols to skip when clearing (UDF formula caller range)
+        vshape: tuple
+            The number of rows, cols of the value which will be written subsequently
+        """
+        raise NotImplemented()
+
 
 class TableExpander(Expander):
 
@@ -32,6 +63,49 @@ class TableExpander(Expander):
 
         return Range(top_right, bottom_left)
 
+    def clear(self, rng, skip, vshape):
+
+        # calculate how many rows of existing data are present
+        xdata_origin = rng(1+skip[0], 1)
+        if xdata_origin.raw_value in _empty:
+            xdata_rows = 0
+        elif xdata_origin(2, 1).raw_value in _empty:
+            xdata_rows = 1
+        else:
+            xdata_rows = xdata_origin.end('down').row - xdata_origin.row + 1
+
+        # calculate row to clear till
+        clear_to_row = max(
+            skip[0] + xdata_rows,  # clear out existing data
+            1 + vshape[0]  # clear one space after last element
+        )
+
+        # calculate how many columns of existing data are present
+        xdata_origin = rng(1, 1 + skip[1])
+        if xdata_origin.raw_value in _empty:
+            xdata_cols = 0
+        elif xdata_origin(1, 2).raw_value in _empty:
+            xdata_cols = 1
+        else:
+            xdata_cols = xdata_origin.end('right').column - xdata_origin.column + 1
+
+        # calculate column to clear till
+        clear_to_col = max(
+            skip[1] + xdata_cols,  # clear out existing data
+            1 + vshape[1]  # clear one space after last element
+        )
+
+        if skip[1] > 0 and skip[0] < clear_to_row:
+            # clear ..
+            #       X.
+            Range(rng(1+skip[0], 1), rng(clear_to_row, 1+skip[1])).clear_contents()
+
+        if skip[1] < clear_to_col:
+            # clear .X
+            #       .X
+            Range(rng(1, 1+skip[1]), rng(clear_to_row, clear_to_col)).clear_contents()
+
+
 TableExpander().register('table')
 
 
@@ -46,6 +120,34 @@ class VerticalExpander(Expander):
             end_row = rng(2, 1).end('down').row - rng.row + 1
             return Range(rng(1, 1), rng(end_row, rng.shape[1]))
 
+    def clear(self, rng, skip, vshape):
+
+        # calculate how many rows of existing data are present
+        xdata_origin = rng(1+skip[0], 1)
+        if xdata_origin.raw_value in _empty:
+            xdata_rows = 0
+        elif xdata_origin(2, 1).raw_value in _empty:
+            xdata_rows = 1
+        else:
+            xdata_rows = xdata_origin.end('down').row - xdata_origin.row + 1
+
+        # calculate row to clear till
+        clear_to_row = max(
+            skip[0] + xdata_rows,       # clear out existing data
+            1 + vshape[0]               # clear one space after last element
+        )
+
+        # calculate row to start clearing from
+        clear_from_row = max(
+            1 + skip[0],                # cannot clear before skip region
+            1 + vshape[0]               # no point clearing rows where data will be written
+        )
+
+        if clear_from_row <= clear_to_row:
+            ncols = len(rng.columns)
+            Range(rng(clear_from_row, 1), rng(clear_to_row, ncols)).clear_contents()
+
+
 VerticalExpander().register('vertical', 'down', 'd')
 
 
@@ -59,5 +161,33 @@ class HorizontalExpander(Expander):
         else:
             end_column = rng(1, 2).end('right').column - rng.column + 1
         return Range(rng(1, 1), rng(rng.shape[0], end_column))
+
+    def clear(self, rng, skip, vshape):
+
+        # calculate how many columns of existing data are present
+        xdata_origin = rng(1, 1 + skip[1])
+        if xdata_origin.raw_value in _empty:
+            xdata_cols = 0
+        elif xdata_origin(1, 2).raw_value in _empty:
+            xdata_cols = 1
+        else:
+            xdata_cols = xdata_origin.end('right').column - xdata_origin.column + 1
+
+        # calculate column to clear till
+        clear_to_col = max(
+            skip[1] + xdata_cols,   # clear out existing data
+            1 + vshape[1]           # clear one space after last element
+        )
+
+        # calculate column to start clearing from
+        clear_from_col = max(
+            1 + skip[1],    # cannot clear before skip region
+            1 + vshape[1]   # no point clearing columns where data will be written
+        )
+
+        if clear_from_col <= clear_to_col:
+            nrows = len(rng.rows)
+            Range(rng(1, clear_from_col), rng(nrows, clear_to_col)).clear_contents()
+
 
 HorizontalExpander().register('horizontal', 'right', 'r')

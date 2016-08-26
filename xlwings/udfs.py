@@ -149,25 +149,6 @@ class DelayWrite(object):
         )
 
 
-class OutputParameter(object):
-    def __init__(self, rng, options, func, caller):
-        self.range = rng
-        self.value = None
-        self.options = options
-        self.func = func
-        self.caller = caller
-
-    def __call__(self, *args, **kwargs):
-        try:
-            self.func.__xlfunc__['writing'] = self.caller.Address
-            self.func.__xlfunc__['rval'] = self.caller.Value
-            conversion.write(self.value, self.range, self.options)
-            self.caller.Calculate()
-        finally:
-            self.func.__xlfunc__.pop('writing')
-            self.func.__xlfunc__.pop('rval')
-
-
 def get_udf_module(module_name):
     module_info = udf_modules.get(module_name, None)
     if module_info is not None:
