@@ -50,6 +50,20 @@ Range
     :members:
 
 
+RangeRows
+---------
+
+.. autoclass:: RangeRows
+    :members:
+
+
+RangeColumns
+------------
+
+.. autoclass:: RangeColumns
+    :members:
+
+
 Shapes
 ------
 

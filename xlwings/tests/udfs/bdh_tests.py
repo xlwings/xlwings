@@ -24,3 +24,11 @@ def test_af(n, m):
     ]
 
 
+@xw.func
+@xw.arg("n", numbers=int)
+@xw.ret(expand='down')
+def write_list(n):
+    return [
+        [i, random.random()]
+        for i in range(n)
+    ]

@@ -1448,7 +1448,7 @@ class Range(object):
     @property
     def rows(self):
         """
-        Returns a RangeRows object that represents the rows in the specified range.
+        Returns a :class:`RangeRows` object that represents the rows in the specified range.
 
         .. versionadded:: 0.9.0
         """
@@ -1457,7 +1457,7 @@ class Range(object):
     @property
     def columns(self):
         """
-        Returns a RangeColumns object that represents the columns in the specified range.
+        Returns a :class:`RangeColumns` object that represents the columns in the specified range.
 
         .. versionadded:: 0.9.0
         """
@@ -1736,16 +1736,46 @@ class Ranges(object):
 
 
 class RangeRows(Ranges):
+    """
+    Represents the rows of a range. Do not construct this class directly, use :attr:`Range.rows` instead.
+
+    Example
+    -------
+
+    .. code-block:: python
+
+        import xlwings as xw
+
+        rng = xw.Range('A1:C4')
+
+        assert len(rng.rows) == 4  # or rng.rows.count
+
+        rng.rows[0].value = 'a'
+
+        assert rng.rows[2] == xw.Range('A3:C3')
+        assert rng.rows(2) == xw.Range('A2:C2')
+
+        for r in rng.rows:
+            print(r.address)
+    """
 
     def __init__(self, rng):
         self.rng = rng
 
     def __len__(self):
+        """
+        Returns the number of rows.
+
+        .. versionadded:: 0.9.0
+        """
         return self.rng.shape[0]
 
     count = property(__len__)
 
     def autofit(self):
+        """
+        Autofits the height of the rows.
+        """
         self.rng.impl.autofit(axis='r')
 
     def __iter__(self):
@@ -1771,16 +1801,46 @@ class RangeRows(Ranges):
 
 
 class RangeColumns(Ranges):
+    """
+    Represents the columns of a range. Do not construct this class directly, use :attr:`Range.columns` instead.
+
+    Example
+    -------
+
+    .. code-block:: python
+
+        import xlwings as xw
+
+        rng = xw.Range('A1:C4')
+
+        assert len(rng.columns) == 3  # or rng.columns.count
+
+        rng.columns[0].value = 'a'
+
+        assert rng.columns[2] == xw.Range('C1:C4')
+        assert rng.columns(2) == xw.Range('B1:B4')
+
+        for c in rng.columns:
+            print(c.address)
+    """
 
     def __init__(self, rng):
         self.rng = rng
 
     def __len__(self):
+        """
+        Returns the number of columns.
+
+        .. versionadded:: 0.9.0
+        """
         return self.rng.shape[1]
 
     count = property(__len__)
 
     def autofit(self):
+        """
+        Autofits the width of the columns.
+        """
         self.rng.impl.autofit(axis='c')
 
     def __iter__(self):
