@@ -1523,41 +1523,7 @@ class Range(object):
 
         .. versionadded:: 0.9.0
         """
-        if mode == 'table':
-            origin = self(1, 1)
-            if origin(2, 1).raw_value in [None, ""]:
-                bottom_left = origin
-            elif origin(3, 1).raw_value in [None, ""]:
-                bottom_left = origin(2, 1)
-            else:
-                bottom_left = origin(2, 1).end('down')
-
-            if origin(1, 2).raw_value in [None, ""]:
-                top_right = origin
-            elif origin(1, 3).raw_value in [None, ""]:
-                top_right = origin(1, 2)
-            else:
-                top_right = origin(1, 2).end('right')
-
-            return Range(top_right, bottom_left)
-
-        elif mode in ['vertical', 'd', 'down']:
-            if self(2, 1).raw_value in [None, ""]:
-                return Range(self(1, 1), self(1, self.shape[1]))
-            elif self(3, 1).raw_value in [None, ""]:
-                return Range(self(1, 1), self(2, self.shape[1]))
-            else:
-                end_row = self(2, 1).end('down').row - self.row + 1
-                return Range(self(1, 1), self(end_row, self.shape[1]))
-
-        elif mode in ['horizontal', 'r', 'right']:
-            if self(1, 2).raw_value in [None, ""]:
-                return Range(self(1, 1), self(self.shape[0], 1))
-            elif self(1, 3).raw_value in [None, ""]:
-                return Range(self(1, 1), self(self.shape[0], 2))
-            else:
-                end_column = self(1, 2).end('right').column - self.column + 1
-                return Range(self(1, 1), self(self.shape[0], end_column))
+        return expansion.expanders.get(mode, mode).expand(self)
 
     def __getitem__(self, key):
         if type(key) is tuple:
@@ -1760,8 +1726,9 @@ class Range(object):
         self.impl.select()
 
 
-# This has to be after definition of Range to resolve circular reference
+# These have to be after definition of Range to resolve circular reference
 from . import conversion
+from . import expansion
 
 
 class Ranges(object):

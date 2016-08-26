@@ -58,12 +58,14 @@ class ClearExpandedRangeStage(object):
                 end_row = max(end_row, start_row + len(ctx.range(start_row, 1).expand('vertical').rows) - 1)
             else:
                 end_row = len(ctx.range.rows)
+            end_row = max(end_row, start_row-1)
 
             if expand_cols:
                 end_col = (len(ctx.value) and len(ctx.value[0])) + 1
                 end_col = max(end_col, start_col + len(ctx.range(start_col, 1).expand('horizontal').columns) - 1)
             else:
                 end_col = len(ctx.range.columns)
+            end_col = max(end_col, start_col - 1)
 
             start_row = max(start_row, len(ctx.value) + 1)
             start_col = max(start_col, (len(ctx.value) and len(ctx.value[0])) + 1)
