@@ -117,7 +117,7 @@ class TableExpander(Expander):
                 shapes.pop(i)
 
         # add dummy corner at bottom-left of clear region, if needed
-        if shapes[-1][0] < clear_to_row:
+        if not shapes or shapes[-1][0] < clear_to_row:
             shapes.append((clear_to_row, 0))
 
         # clear the relevant cells, one row-block at a time, starting from the appropriate column

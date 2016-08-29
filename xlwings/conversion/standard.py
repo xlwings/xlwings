@@ -39,6 +39,8 @@ class ClearExpandedRangeStage(object):
     def __init__(self, options):
         self.expand = options.get('expand', None)
         self.skip = options.get('_skip_tl_cells', None)
+        if self.skip is None:
+            self.skip = (0, 0)
 
     def __call__(self, ctx):
         if ctx.range and self.expand:
