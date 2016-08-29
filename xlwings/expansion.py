@@ -95,16 +95,42 @@ class TableExpander(Expander):
             1 + vshape[1]  # clear one space after last element
         )
 
-        if skip[1] > 0 and skip[0] < clear_to_row:
-            # clear ..
-            #       X.
-            Range(rng(1+skip[0], 1), rng(clear_to_row, 1+skip[1])).clear_contents()
+        # We have now determined the shape of the rectangle to clear out, but there are
+        # two top-left rectangular regions which require special treatment:
+        # - skip: in the case of a UDF this is the shape occupied by the formula (or array formula)
+        # - vshape: this is the shape of the value which will be written subsequently
+        # In the first case we cannot clear the cells since that would cause the formula to be deleted,
+        # in the second case there is no need to clear out those cells since their values will be overwritten.
+        # The second case is not as indispensable like the first, however if we ignore it we get a flicker effect
+        # as the value is written out.
 
-        if skip[1] < clear_to_col:
-            # clear .X
-            #       .X
-            Range(rng(1, 1+skip[1]), rng(clear_to_row, clear_to_col)).clear_contents()
+        shapes = [skip, vshape]
+        shapes.sort()
 
+        # check if shape 0 is contained within shape 1
+        if shapes[0][1] <= shapes[1][1]:
+            shapes.pop(0)
+
+        # check if either shape is degenerate (i.e. if at least one dimension is zero)
+        for i in range(len(shapes)-1, -1, -1):
+            if shapes[i][0] == 0 or shapes[i][1] == 0:
+                shapes.pop(i)
+
+        # add dummy corner at bottom-left of clear region, if needed
+        if shapes[-1][0] < clear_to_row:
+            shapes.append((clear_to_row, 0))
+
+        # clear the relevant cells, one row-block at a time, starting from the appropriate column
+        #
+        #    .....X
+        #    ...XXX
+        #    XXXXXX
+        #
+        prev_row = 1
+        for s in shapes:
+            if s[0] <= clear_to_row and s[1] < clear_to_col:
+                Range(rng(prev_row, s[1] + 1), rng(s[0], clear_to_col)).clear_contents()
+            prev_row = s[0] + 1
 
 TableExpander().register('table')
 
