@@ -66,6 +66,7 @@ for py in envs:
     print('{0}### Running nosetests on {1} ###{2}'.format(Colors.yellow, py[0], Colors.end))
 
     # Install
+    check_call([pip, 'install', 'pip', '--upgrade'])
     check_call([pip, 'uninstall', '-y', 'xlwings'])
     check_call([pip, 'install', xlwings_package, '--upgrade', '--force-reinstall', '--no-deps', '--no-cache-dir'])
 
