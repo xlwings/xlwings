@@ -81,7 +81,12 @@ The following options can be set:
         # all numbers in x arrive as int
         return x
 
-  **Note:** Excel always stores numbers internally as floats.
+  **Note:** Excel always stores numbers internally as floats, which is the reason why the `int` converter
+  rounds numbers first before turning them into integers. Otherwise it could happen that e.g. 5 might be
+  returned as 4 in case it is represented as a floating point number that is slightly smaller than 5.
+  Should you require Python's original `int` in your converter, use `raw int` instead.
+
+
 
 * **dates**
 
