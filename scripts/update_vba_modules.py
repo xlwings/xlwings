@@ -8,6 +8,7 @@ import xlwings as xw
 from xlwings.constants import FileFormat
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
+exclude_dirs = ['build', 'dist']
 
 # Template
 template_path = os.path.abspath(os.path.join(this_dir, os.pardir, 'xlwings', 'xlwings_template.xltm'))
@@ -15,8 +16,9 @@ workbook_paths = [template_path]
 
 # Examples
 root = os.path.abspath(os.path.join(this_dir, os.pardir))
-for root, dirs, files in os.walk(root):
+for root, dirs, files in os.walk(root, topdown=True):
     for f in files:
+        dirs[:] = [d for d in dirs if d not in exclude_dirs]
         if f.endswith(".xlsm") and not f == 'macro book.xlsm':
             workbook_paths.append((os.path.join(root, f)))
 

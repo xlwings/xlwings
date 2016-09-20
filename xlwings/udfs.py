@@ -141,32 +141,12 @@ class DelayWrite(object):
         self.skip = (caller.Rows.Count, caller.Columns.Count)
 
     def __call__(self, *args, **kwargs):
-        conversion.write_to_range(
+        conversion.write(
             self.value,
             self.range,
             conversion.Options(self.options)
             .override(_skip_tl_cells=self.skip)
         )
-
-
-
-class OutputParameter(object):
-    def __init__(self, rng, options, func, caller):
-        self.range = rng
-        self.value = None
-        self.options = options
-        self.func = func
-        self.caller = caller
-
-    def __call__(self, *args, **kwargs):
-        try:
-            self.func.__xlfunc__['writing'] = self.caller.Address
-            self.func.__xlfunc__['rval'] = self.caller.Value
-            conversion.write_to_range(self.value, self.range, self.options)
-            self.caller.Calculate()
-        finally:
-            self.func.__xlfunc__.pop('writing')
-            self.func.__xlfunc__.pop('rval')
 
 
 def get_udf_module(module_name):
@@ -230,13 +210,9 @@ def call_udf(module_name, func_name, args, this_workbook, caller):
     xlplatform.BOOK_CALLER = Dispatch(this_workbook)
     ret = func(*args)
 
-    for i in output_param_indices:
-        from .server import idle_queue
-        idle_queue.append(args[i])
-
-    if ret_info.get('expand', None):
-        from .server import idle_queue
-        idle_queue.append(DelayWrite(Range(caller), ret_info, ret, caller))
+    if ret_info['options'].get('expand', None):
+        from .server import add_idle_task
+        add_idle_task(DelayWrite(Range(impl=xlplatform.Range(xl=caller)), ret_info['options'], ret, caller))
 
     return conversion.write(ret, None, ret_info['options'])
 

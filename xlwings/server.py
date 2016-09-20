@@ -15,6 +15,7 @@ if not hasattr(sys, 'frozen'):
     # cx_Freeze etc. will fail here otherwise
     os.chdir(sys.exec_prefix)
 import win32api
+import win32event
 os.chdir(cwd)
 
 import types
@@ -277,10 +278,16 @@ class XLPython(object):
 
 
 idle_queue = []
+idle_queue_event = win32event.CreateEvent(None, 0, 0, None)
+
+
+def add_idle_task(task):
+    idle_queue.append(task)
+    win32event.SetEvent(idle_queue_event)
 
 
 def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
-    """Launch the COM server, clsid is the XLPython objectok class id """
+    """Launch the COM server, clsid is the XLPython object class id """
     clsid = pywintypes.IID(clsid)
 
     # Ovveride CreateInstance in default policy to instantiate the XLPython object ---
@@ -307,7 +314,26 @@ def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
 
     print('xlwings server running, clsid=%s' % clsid)
 
-    pythoncom.PumpMessages()
+    while True:
+        rc = win32event.MsgWaitForMultipleObjects(
+            [idle_queue_event],
+            0,
+            win32event.INFINITE,
+            win32event.QS_ALLEVENTS
+        )
+
+        while True:
+            pythoncom.PumpWaitingMessages()
+
+            if not idle_queue:
+                break
+
+            task = idle_queue.pop(0)
+            try:
+                task()
+            except:
+                import traceback
+                print("TaskQueue '%s' threw an exeception: %s", task, traceback.format_exc())
 
     pythoncom.CoRevokeClassObject(revokeId)
     pythoncom.CoUninitialize()

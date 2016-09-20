@@ -41,14 +41,20 @@ class Mock(object):
         if name in ('__file__', '__path__'):
             return '/dev/null'
         elif name[0] == name[0].upper():
-            mockType = type(name, (), {})
+            mockType = Mock()  # type(name, (), {})
             mockType.__module__ = __name__
             return mockType
         else:
             return Mock()
+            
+    @classmethod
+    def __getitem__(cls, key):
+        return Mock()
+    
 
 MOCK_MODULES = ['win32com', 'win32com.client', 'pywintypes', 'pythoncom', 'win32timezone', 'appscript',
-                'appscript.reference', 'psutil', 'xlplatform', 'atexit', 'aem']
+                'appscript.reference', 'psutil', 'xlplatform', 'atexit', 'aem', 'win32com.server', 'win32com.server.util',
+                'win32com.server.dispatcher', 'win32com.server.policy']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 

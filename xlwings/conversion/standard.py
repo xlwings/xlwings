@@ -19,6 +19,8 @@ _date_handlers = {
 }
 
 _number_handlers = {
+    int: lambda x: int(round(x)),
+    'raw int': int,
 }
 
 
@@ -37,19 +39,20 @@ class ClearExpandedRangeStage(object):
     def __init__(self, options):
         self.expand = options.get('expand', None)
         self.skip = options.get('_skip_tl_cells', None)
+        if self.skip is None:
+            self.skip = (0, 0)
 
-    def __call__(self, c):
-        if c.range and self.expand:
-            rng = c.range.expand(self.expand)
-
-            r = len(c.value)
-            c = r and len(c.value[0])
-            if self.skip:
-                r = max(r, self.skip[0])
-                c = max(c, self.skip[1])
-
-            rng[:r, c:].clear()
-            rng[r:, :].clear()
+    def __call__(self, ctx):
+        if ctx.range and self.expand:
+            from ..expansion import expanders
+            expander = expanders.get(self.expand, self.expand)
+            vrows = len(ctx.value)
+            vcols = vrows and len(ctx.value[0])
+            expander.clear(
+                ctx.range,
+                skip=self.skip,
+                vshape=(vrows, vcols),
+            )
 
 
 class WriteValueToRangeStage(object):
