@@ -1,6 +1,44 @@
 What's New
 ==========
 
+v0.10.0 (Sep 20, 2016)
+----------------------
+
+Dynamic Array Formulas
+**********************
+
+This release adds an often requested & powerful new feature to User Defined Functions (UDFs): Dynamic expansion for
+array formulas. While Excel offers array formulas, you need to specify their dimensions up front by selecting the
+result array first, then entering the formula and finally hitting ``Ctrl-Shift-Enter``. While this makes sense from
+a data integrity point of view, in practice, it often turns out to be a cumbersome limitation, especially when working
+with dynamic arrays such as time series data.
+
+This is a simple example that demonstrates the syntax and effect of UDF expansion:
+
+.. code-block:: python
+
+    import numpy as np
+
+    @xw.func
+    @xw.ret(expand='table')
+    def dynamic_array(r, c):
+        return np.random.randn(int(r), int(c))
+
+.. figure:: images/dynamic_array1.png
+  :scale: 40%
+
+.. figure:: images/dynamic_array2.png
+  :scale: 40%
+
+**Note**: Expanding array formulas will overwrite cells without prompting and leave an empty border around them, i.e.
+they will clear the row to the bottom and the column to the right of the array.
+
+Bug Fixes
+*********
+
+* The ``int`` converter works now always as you would expect (e.g.: ``xw.Range('A1').options(numbers=int).value``). Before,
+  it could happen that the number was off by 1 due to floating point issues (:issue:`554`).
+
 v0.9.3 (Aug 22, 2016)
 ---------------------
 

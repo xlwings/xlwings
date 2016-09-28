@@ -163,6 +163,34 @@ a pandas DataFrame and suppress the index when returning it, you would do the fo
 
 For further details see the :ref:`converters` documentation.
 
+Dynamic Array Formulas
+----------------------
+
+As seen above, to use Excel's array formulas, you need to specify their dimensions up front by selecting the
+result array first, then entering the formula and finally hitting ``Ctrl-Shift-Enter``. While this makes sense from
+a data integrity point of view, in practice, it often turns out to be a cumbersome limitation, especially when working
+with dynamic arrays such as time series data. Since v0.10, xlwings offers dynamic UDF expansion:
+
+This is a simple example that demonstrates the syntax and effect of UDF expansion:
+
+.. code-block:: python
+
+    import numpy as np
+
+    @xw.func
+    @xw.ret(expand='table')
+    def dynamic_array(r, c):
+        return np.random.randn(int(r), int(c))
+
+.. figure:: images/dynamic_array1.png
+  :scale: 40%
+
+.. figure:: images/dynamic_array2.png
+  :scale: 40%
+
+**Note**: Expanding array formulas will overwrite cells without prompting and leave an empty border around them, i.e.
+they will clear the row to the bottom and the column to the right of the array.
+
 The "vba" keyword
 -----------------
 
