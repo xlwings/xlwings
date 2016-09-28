@@ -54,6 +54,13 @@ def xlarg(*args, **kwargs):
     raise Exception("Deprecation: 'xlarg' has been renamed to 'arg' - use 'import xlwings as xw' and decorate your function with '@xw.arg'.")
 
 
+from . import _openpyxl as openpyxl
+if openpyxl.openpyxl:
+    openpyxl = App(impl=openpyxl.App())
+else:
+    openpyxl = None
+
+
 # Server
 if sys.platform.startswith('win'):
     from .server import serve
