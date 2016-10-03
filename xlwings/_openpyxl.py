@@ -101,3 +101,6 @@ class Range(object):
     @property
     def address(self):
         return self.api.coordinate
+
+    def __len__(self):
+        return 1
