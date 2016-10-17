@@ -27,6 +27,7 @@ class TestBooks(TestBase):
 
     def test_open(self):
         fullname = os.path.join(this_dir, 'test book.xlsx')
+        #test open
         wb = self.app1.books.open(fullname)
         self.assertEqual(self.app1.books.active, wb)
 
