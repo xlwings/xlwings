@@ -6,6 +6,7 @@ import unittest
 
 import xlwings as xw
 from xlwings.tests.common import TestBase, this_dir
+from xlwings import PY3
 
 
 class TestBooks(TestBase):
@@ -33,6 +34,15 @@ class TestBooks(TestBase):
         wb2 = self.app1.books.open(fullname)  # Should not reopen
         self.assertEqual(wb, wb2)
 
+    def test_open_bad_name(self):
+        fullname = os.path.join(this_dir, 'no book.xlsx')
+        if PY3:
+            with self.assertRaises(FileNotFoundError):
+                self.app1.books.open(fullname)
+        else:
+            with self.assertRaises(IOError):
+                self.app1.books.open(fullname)
+                
     def test_iter(self):
         for ix, wb in enumerate(self.app1.books):
             self.assertEqual(self.app1.books[ix], wb)
