@@ -479,8 +479,11 @@ class Book(object):
                         if not app:
                             app = App(add_book=False)
                         impl = app.books.open(fullname).impl
-                    else:
-                        raise Exception("Could not connect to workbook '%s'" % fullname)
+                    else:                        
+                        if PY3:
+                            raise FileNotFoundError("No such file: '%s'" % fullname)
+                        else:
+                            raise IOError("No such file: '%s'" % fullname)                        
                 elif len(candidates) > 1:
                     raise Exception("Workbook '%s' is open in more than one Excel instance." % fullname)
                 else:
@@ -2734,12 +2737,7 @@ class Books(Collection):
         -------
         Book : Book that has been opened.
 
-        """
-        if not os.path.exists(fullname):
-            if PY3:
-                raise FileNotFoundError("No such file: '%s'" % fullname)
-            else:
-                raise IOError("No such file: '%s'" % fullname)
+        """       
         fullname = os.path.realpath(fullname)
         _, name = os.path.split(fullname)
         try:
