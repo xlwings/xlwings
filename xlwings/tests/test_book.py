@@ -35,7 +35,7 @@ class TestBooks(TestBase):
         self.assertEqual(wb, wb2)
 
     def test_open_bad_name(self):
-        fullname = os.path.join(this_dir, 'no book.xlsx')
+        fullname = os.path.join(this_dir, 'no book.xlsx')  
         if PY3:
             with self.assertRaises(FileNotFoundError):
                 self.app1.books.open(fullname)

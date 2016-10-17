@@ -477,7 +477,7 @@ class Book(object):
                 if len(candidates) == 0:                    
                     if not app:
                         app = App(add_book=False)
-                    impl = app.books.open(fullname).impl                                      
+                    impl = app.books.open(fullname).impl                                     
                 elif len(candidates) > 1:
                     raise Exception("Workbook '%s' is open in more than one Excel instance." % fullname)
                 else:
