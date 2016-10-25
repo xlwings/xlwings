@@ -137,5 +137,5 @@ class Converter(Accessor):
     def writer(cls, options):
         return (
             cls.base_writer(options)
-            .prepend_stage(Converter.ToValueStage(cls.write_value, options))
+            .prepend_stage(cls.ToValueStage(cls.write_value, options))
         )
