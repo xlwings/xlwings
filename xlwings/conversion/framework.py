@@ -130,7 +130,7 @@ class Converter(Accessor):
     def reader(cls, options):
         return (
             cls.base_reader(options)
-            .append_stage(Converter.FromValueStage(cls.read_value, options))
+            .append_stage(cls.FromValueStage(cls.read_value, options))
         )
 
     @classmethod
