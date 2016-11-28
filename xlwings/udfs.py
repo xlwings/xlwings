@@ -330,18 +330,21 @@ def import_udfs(module_names, xl_workbook):
                 xlargs = xlfunc['args']
                 fname = xlfunc['name']
                 fdoc = xlret['doc'][:255]
-                n_args = 0
-                for arg in xlargs:
-                    if not arg['vba']:
-                        n_args += 1
 
                 excel_version = [int(x) for x in re.split("[,\\.]", xl_workbook.Application.Version)]
-                if n_args > 0 and excel_version[0] >= 14:
-                    argdocs = []
-                    for arg in xlargs:
-                        if not arg['vba']:
-                            argdocs.append(arg['doc'][:255])
-                    xl_workbook.Application.MacroOptions("'" + xl_workbook.Name + "'!" + fname, Description=fdoc, ArgumentDescriptions=argdocs)
+                if excel_version[0] >= 14:
+                    argdocs = [arg['doc'][:255] for arg in xlargs if not arg['vba']]
+                    xl_workbook.Application.MacroOptions("'" + xl_workbook.Name + "'!" + fname,
+                                                         Description=fdoc,
+                                                         HasMenu=False,
+                                                         MenuText=None,
+                                                         HasShortcutKey=False,
+                                                         ShortcutKey=None,
+                                                         Category=None,
+                                                         StatusBar=None,
+                                                         HelpContextID=None,
+                                                         HelpFile=None,
+                                                         ArgumentDescriptions=argdocs if argdocs else None)
                 else:
                     xl_workbook.Application.MacroOptions("'" + xl_workbook.Name + "'!" + fname, Description=fdoc)
 
