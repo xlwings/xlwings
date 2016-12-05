@@ -471,7 +471,7 @@ class Range(object):
         if self.xl is not None:
             alerts_state = self.sheet.book.app.screen_updating
             self.sheet.book.app.screen_updating = False
-            self.xl.clear_range()
+            self.xl.clear_contents()
             self.sheet.book.app.screen_updating = alerts_state
 
     def clear(self):
