@@ -191,6 +191,24 @@ This is a simple example that demonstrates the syntax and effect of UDF expansio
 **Note**: Expanding array formulas will overwrite cells without prompting and leave an empty border around them, i.e.
 they will clear the row to the bottom and the column to the right of the array.
 
+Docstrings
+----------
+
+The following sample shows how to include docstrings both for the function and for the arguments x and y that then
+show up in the function wizard in Excel:
+
+.. code-block:: python
+
+    import xlwings as xw
+
+    @xw.func
+    @xw.arg('x', doc='This is x.')
+    @xw.arg('y', doc='This is y.')
+    def double_sum(x, y):
+        """Returns twice the sum of the two arguments"""
+        return 2 * (x + y)
+
+
 The "vba" keyword
 -----------------
 

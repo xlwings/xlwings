@@ -69,3 +69,8 @@ x64/
 # binaries
 *.dll
 
+#eclipse IDE
+*.project
+*.pydevproject
+
+

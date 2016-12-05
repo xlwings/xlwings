@@ -1,6 +1,14 @@
 What's New
 ==========
 
+v0.10.1 (Dec 5, 2016)
+---------------------
+
+* Writing a Pandas Series with a MultiIndex header was not writing out the header (:issue:`572`)
+* [Win] Docstrings for UDF arguments are now working (:issue:`367`)
+* [Mac] ``Range.clear_contents()`` has been fixed (it was doing ``clear()`` instead) (:issue:`576`)
+* ``xw.Book(...)`` and ``xw.books.open(...)`` raise now the same error in case the file doesn't exist (:issue:`540`)
+
 v0.10.0 (Sep 20, 2016)
 ----------------------
 
