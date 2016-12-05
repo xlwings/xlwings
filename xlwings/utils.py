@@ -67,6 +67,10 @@ def col_name(i):
 
 class VBAWriter(object):
 
+    MAX_VBA_LINE_LENGTH = 1024
+    VBA_LINE_SPLIT = ' _\n'
+    MAX_VBA_SPLITTED_LINE_LENGTH = MAX_VBA_LINE_LENGTH - len(VBA_LINE_SPLIT)
+
     class Block(object):
         def __init__(self, writer, start):
             self.writer = writer
@@ -97,12 +101,12 @@ class VBAWriter(object):
         self._indent -= 1
 
     def write(self, template, **kwargs):
-        if self._freshline:
-            self.f.write('\t' * self._indent)
-            self._freshline = False
         if kwargs:
             template = template.format(**kwargs)
-        self.f.write(template)
+        if self._freshline:
+            template += ('\t' * self._indent)
+            self._freshline = False
+        self.write_vba_line(template)
         if template[-1] == '\n':
             self._freshline = True
 
@@ -113,6 +117,21 @@ class VBAWriter(object):
 
     def writeln(self, template, **kwargs):
         self.write(template + '\n', **kwargs)
+
+    def write_vba_line(self, vba_line):
+        if len(vba_line) > VBAWriter.MAX_VBA_LINE_LENGTH:
+            separator_index = VBAWriter.get_separator_index(vba_line)
+            self.f.write(vba_line[:separator_index] + VBAWriter.VBA_LINE_SPLIT)
+            self.write_vba_line(vba_line[separator_index:])
+        else:
+            self.f.write(vba_line)
+
+    @classmethod
+    def get_separator_index(cls, vba_line):
+        for index in range(cls.MAX_VBA_SPLITTED_LINE_LENGTH, 0, -1):
+            if ' ' == vba_line[index]:
+                return index
+        return cls.MAX_VBA_SPLITTED_LINE_LENGTH  # Best effort: split string at the maximum possible length
 
 
 def try_parse_int(x):
