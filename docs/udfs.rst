@@ -203,7 +203,7 @@ show up in the function wizard in Excel:
 
     @xw.func
     @xw.arg('x', doc='This is x.')
-    @xw.arg('x', doc='This is y.')
+    @xw.arg('y', doc='This is y.')
     def double_sum(x, y):
         """Returns twice the sum of the two arguments"""
         return 2 * (x + y)
