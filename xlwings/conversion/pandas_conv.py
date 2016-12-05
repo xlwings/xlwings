@@ -143,13 +143,15 @@ if pd:
 
             index = options.get('index', True)
             header = options.get('header', default_header)
+            # Transform tuples to str to take care of handling multi-index headers
+            value_name = '(' + ', '.join(value.name) + ')' if isinstance(value.name, tuple) else value.name
 
             if index:
                 rv = value.reset_index().values.tolist()
-                header_row = [index_names + [value.name]]
+                header_row = [index_names + [value_name]]
             else:
                 rv = value.values[:, np.newaxis].tolist()
-                header_row = [[value.name]]
+                header_row = [[value_name]]
             if header:
                     rv = header_row + rv
 
