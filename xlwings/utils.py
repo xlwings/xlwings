@@ -104,7 +104,7 @@ class VBAWriter(object):
         if kwargs:
             template = template.format(**kwargs)
         if self._freshline:
-            template += ('\t' * self._indent)
+            template = ('\t' * self._indent) + template
             self._freshline = False
         self.write_vba_line(template)
         if template[-1] == '\n':
