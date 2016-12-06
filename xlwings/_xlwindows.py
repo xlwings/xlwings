@@ -40,8 +40,7 @@ except ImportError:
 
 from . import PY3
 
-# Time types: pywintypes.timetype doesn't work on Python 3
-time_types = (dt.date, dt.datetime, type(pywintypes.Time(0)))
+time_types = (dt.date, dt.datetime, pywintypes.TimeType)
 if np:
     time_types = time_types + (np.datetime64,)
 
