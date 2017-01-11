@@ -549,5 +549,108 @@ def write_none():
     return None
 
 
+@xw.func(category=1)
+def category_1():
+    return 'category 1'
+
+
+@xw.func(category=2)
+def category_2():
+    return 'category 2'
+
+
+@xw.func(category=3)
+def category_3():
+    return 'category 3'
+
+
+@xw.func(category=4)
+def category_4():
+    return 'category 4'
+
+
+@xw.func(category=5)
+def category_5():
+    return 'category 5'
+
+
+@xw.func(category=6)
+def category_6():
+    return 'category 6'
+
+
+@xw.func(category=7)
+def category_7():
+    return 'category 7'
+
+
+@xw.func(category=8)
+def category_8():
+    return 'category 8'
+
+
+@xw.func(category=9)
+def category_9():
+    return 'category 9'
+
+
+@xw.func(category=10)
+def category_10():
+    return 'category 10'
+
+
+@xw.func(category=11)
+def category_11():
+    return 'category 11'
+
+
+@xw.func(category=12)
+def category_12():
+    return 'category 12'
+
+
+@xw.func(category=13)
+def category_13():
+    return 'category 13'
+
+
+@xw.func(category=14)
+def category_14():
+    return 'category 14'
+
+try:
+    @xw.func(category=15)
+    def category_15():
+        return 'category 15'
+except Exception as e:
+    assert e.args[0] == 'There is only 14 build-in categories available in Excel. Please use a string value to specify a custom category.'
+else:
+    assert False
+
+try:
+    @xw.func(category=0)
+    def category_0():
+        return 'category 0'
+except Exception as e:
+    assert e.args[0] == 'There is only 14 build-in categories available in Excel. Please use a string value to specify a custom category.'
+else:
+    assert False
+
+
+@xw.func(category='custom category')
+def custom_category():
+    return 'custom category'
+
+
+try:
+    @xw.func(category=1.1)
+    def object_category():
+        return 'object category'
+except Exception as e:
+    assert e.args[0] == 'Category 1.1 should either be a predefined Excel category (int value) or a custom one (str value).'
+else:
+    assert False
+
+
 if __name__ == "__main__":
     xw.serve()
