@@ -549,5 +549,69 @@ def write_none():
     return None
 
 
+@xw.func
+def method_signature_with_less_than_1024_characters(
+        very_long_parameter_name_1=None,
+        very_long_parameter_name_2=None,
+        very_long_parameter_name_3=None,
+        very_long_parameter_name_4=None,
+        very_long_parameter_name_5=None,
+        very_long_parameter_name_6=None,
+        very_long_parameter_name_7=None,
+        very_long_parameter_name_8=None,
+        very_long_parameter_name_9=None,
+        very_long_parameter_name_10=None,
+        very_long_parameter_name_11=None,
+        very_long_parameter_name_12=None,
+        very_long_parameter_name_13=None,
+        very_long_parameter_name_14=None,
+        very_long_parameter_name_15=None,
+        very_long_parameter_name_16=None,
+        very_long_parameter_name_17=None,
+        very_long_parameter_name_18=None,
+        very_long_parameter_name_19=None,
+        very_long_parameter_name_20=None,
+        very_long_parameter_name_21=None,
+        very_long_parameter_name_22=None,
+        very_long_parameter_name_23=None,
+        very_long_parameter_name_24=None,
+        very_long_parameter_name_25=None,
+        paramet_name_26=None
+):
+    return 'non splitted signature'
+
+
+@xw.func
+def method_signature_with_more_than_1024_characters(
+        very_long_parameter_name_1=None,
+        very_long_parameter_name_2=None,
+        very_long_parameter_name_3=None,
+        very_long_parameter_name_4=None,
+        very_long_parameter_name_5=None,
+        very_long_parameter_name_6=None,
+        very_long_parameter_name_7=None,
+        very_long_parameter_name_8=None,
+        very_long_parameter_name_9=None,
+        very_long_parameter_name_10=None,
+        very_long_parameter_name_11=None,
+        very_long_parameter_name_12=None,
+        very_long_parameter_name_13=None,
+        very_long_parameter_name_14=None,
+        very_long_parameter_name_15=None,
+        very_long_parameter_name_16=None,
+        very_long_parameter_name_17=None,
+        very_long_parameter_name_18=None,
+        very_long_parameter_name_19=None,
+        very_long_parameter_name_20=None,
+        very_long_parameter_name_21=None,
+        very_long_parameter_name_22=None,
+        very_long_parameter_name_23=None,
+        very_long_parameter_name_24=None,
+        very_long_parameter_name_25=None,
+        very_long_parameter_name_26=None
+):
+    return 'splitted signature'
+
+
 if __name__ == "__main__":
     xw.serve()
