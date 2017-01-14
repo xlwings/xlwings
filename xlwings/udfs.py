@@ -70,12 +70,12 @@ def get_category(**func_kwargs):
     return 14  # Default category is "User Defined"
 
 
-def should_call_while_in_wizard(**func_kwargs):
-    if 'call_while_in_wizard' in func_kwargs:
-        call_while_in_wizard = func_kwargs.pop('call_while_in_wizard')
-        if isinstance(call_while_in_wizard, bool):
-            return call_while_in_wizard
-        raise Exception('call_while_in_wizard only takes boolean values ("{0}" provided).'.format(call_while_in_wizard))
+def should_call_in_wizard(**func_kwargs):
+    if 'call_in_wizard' in func_kwargs:
+        call_in_wizard = func_kwargs.pop('call_in_wizard')
+        if isinstance(call_in_wizard, bool):
+            return call_in_wizard
+        raise Exception('call_in_wizard only takes boolean values ("{0}" provided).'.format(call_in_wizard))
     return True
 
 
@@ -98,7 +98,7 @@ def xlfunc(f=None, **kwargs):
                     "name": vname,
                     "pos": vpos,
                     "vba": None,
-                    "doc": "Positional argument " + str(vpos+1),
+                    "doc": "Positional argument " + str(vpos + 1),
                     "vararg": vname == sig['vararg'],
                     "options": {}
                 }
@@ -111,7 +111,7 @@ def xlfunc(f=None, **kwargs):
                 "options": {}
             }
         f.__xlfunc__["category"] = get_category(**kwargs)
-        f.__xlfunc__['call_while_in_wizard'] = should_call_while_in_wizard(**kwargs)
+        f.__xlfunc__['call_in_wizard'] = should_call_in_wizard(**kwargs)
         return f
     if f is None:
         return inner
@@ -257,7 +257,7 @@ def generate_vba_wrapper(module_name, module, f):
             xlfunc = svar.__xlfunc__
             xlret = xlfunc['ret']
             fname = xlfunc['name']
-            call_while_in_wizard = xlfunc['call_while_in_wizard']
+            call_in_wizard = xlfunc['call_in_wizard']
 
             ftype = 'Sub' if xlfunc['sub'] else 'Function'
 
@@ -285,7 +285,7 @@ def generate_vba_wrapper(module_name, module, f):
             with vba.block(func_sig):
 
                 if ftype == 'Function':
-                    if not call_while_in_wizard:
+                    if not call_in_wizard:
                         vba.writeln('If (Not Application.CommandBars("Standard").Controls(1).Enabled) Then Exit Function')
                     vba.writeln("If TypeOf Application.Caller Is Range Then On Error GoTo failed")
 
