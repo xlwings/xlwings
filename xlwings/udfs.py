@@ -54,20 +54,24 @@ else:
         }
 
 
+def get_category(**func_kwargs):
+    if 'category' in func_kwargs:
+        category = func_kwargs.pop('category')
+        if isinstance(category, int):
+            if 1 <= category <= 14:
+                return category
+            raise Exception(
+                'There is only 14 build-in categories available in Excel. Please use a string value to specify a custom category.')
+        if isinstance(category, str):
+            return category[:255]
+        raise Exception(
+            'Category {0} should either be a predefined Excel category (int value) or a custom one (str value).'.format(
+                category))
+    return 14  # Default category is "User Defined"
+
+
 def xlfunc(f=None, **kwargs):
     def inner(f):
-        def get_category(**func_kwargs):
-            if 'category' in func_kwargs:
-                category = func_kwargs.pop('category')
-                if isinstance(category, int):
-                    if 1 <= category <= 14:
-                        return category
-                    raise Exception('There is only 14 build-in categories available in Excel. Please use a string value to specify a custom category.')
-                if isinstance(category, str):
-                    return category[:255]
-                raise Exception('Category {0} should either be a predefined Excel category (int value) or a custom one (str value).'.format(category))
-            return 14  # Default category is "User Defined"
-
         if not hasattr(f, "__xlfunc__"):
             xlf = f.__xlfunc__ = {}
             xlf["name"] = f.__name__
