@@ -72,6 +72,15 @@ def get_category(**func_kwargs):
 
 def xlfunc(f=None, **kwargs):
     def inner(f):
+        def should_call_while_in_wizard(**func_kwargs):
+            if 'call_while_in_wizard' in func_kwargs:
+                call_while_in_wizard = func_kwargs.pop('call_while_in_wizard')
+                if isinstance(call_while_in_wizard, bool):
+                    return call_while_in_wizard
+                raise Exception('call_while_in_wizard only takes boolean values ("{0}" provided).'.format(call_while_in_wizard))
+            return True
+
+
         if not hasattr(f, "__xlfunc__"):
             xlf = f.__xlfunc__ = {}
             xlf["name"] = f.__name__
@@ -102,6 +111,8 @@ def xlfunc(f=None, **kwargs):
                 "options": {}
             }
         f.__xlfunc__["category"] = get_category(**kwargs)
+        xlfunc = f.__xlfunc__
+        xlfunc['call_while_in_wizard'] = should_call_while_in_wizard(**kwargs)
         return f
     if f is None:
         return inner
@@ -247,6 +258,7 @@ def generate_vba_wrapper(module_name, module, f):
             xlfunc = svar.__xlfunc__
             xlret = xlfunc['ret']
             fname = xlfunc['name']
+            call_while_in_wizard = xlfunc['call_while_in_wizard']
 
             ftype = 'Sub' if xlfunc['sub'] else 'Function'
 
@@ -274,24 +286,26 @@ def generate_vba_wrapper(module_name, module, f):
             with vba.block(func_sig):
 
                 if ftype == 'Function':
-                    vba.write("If TypeOf Application.Caller Is Range Then On Error GoTo failed\n")
+                    if not call_while_in_wizard:
+                        vba.writeln('If (Not Application.CommandBars("Standard").Controls(1).Enabled) Then Exit Function')
+                    vba.writeln("If TypeOf Application.Caller Is Range Then On Error GoTo failed")
 
                 if vararg != '':
-                    vba.write("ReDim argsArray(1 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + str(n_args) + ")\n")
+                    vba.writeln("ReDim argsArray(1 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + str(n_args) + ")")
 
                 j = 1
                 for arg in xlfunc['args']:
                     argname = arg['name']
                     if arg['vararg']:
-                        vba.write("For k = LBound(" + vararg + ") To UBound(" + vararg + ")\n")
+                        vba.writeln("For k = LBound(" + vararg + ") To UBound(" + vararg + ")")
                         argname = vararg + "(k)"
 
                     if arg['vararg']:
-                        vba.write("argsArray(" + str(j) + " + k - LBound(" + vararg + ")) = " + argname + "\n")
-                        vba.write("Next k\n")
+                        vba.writeln("argsArray(" + str(j) + " + k - LBound(" + vararg + ")) = " + argname)
+                        vba.writeln("Next k")
                     else:
                         if vararg != "":
-                            vba.write("argsArray(" + str(j) + ") = " + argname + "\n")
+                            vba.writeln("argsArray(" + str(j) + ") = " + argname)
                             j += 1
 
                 if vararg != '':
@@ -300,25 +314,25 @@ def generate_vba_wrapper(module_name, module, f):
                     args_vba = 'Array(' + ', '.join(arg['vba'] or arg['name'] for arg in xlfunc['args']) + ')'
 
                 if ftype == "Sub":
-                    vba.write('Py.CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller\n',
+                    vba.writeln('Py.CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller',
                         module_name=module_name,
                         fname=fname,
                         args_vba=args_vba,
                     )
                 else:
-                    vba.write('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)\n',
+                    vba.writeln('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)',
                         module_name=module_name,
                         fname=fname,
                         args_vba=args_vba,
                     )
 
                 if ftype == "Function":
-                    vba.write("Exit " + ftype + "\n")
+                    vba.writeln("Exit " + ftype)
                     vba.write_label("failed")
-                    vba.write(fname + " = Err.Description\n")
+                    vba.writeln(fname + " = Err.Description")
 
-            vba.write('End ' + ftype + "\n")
-            vba.write("\n")
+            vba.writeln('End ' + ftype)
+            vba.writeln('')
 
 
 def import_udfs(module_names, xl_workbook):
