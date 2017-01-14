@@ -70,17 +70,17 @@ def get_category(**func_kwargs):
     return 14  # Default category is "User Defined"
 
 
+def should_call_while_in_wizard(**func_kwargs):
+    if 'call_while_in_wizard' in func_kwargs:
+        call_while_in_wizard = func_kwargs.pop('call_while_in_wizard')
+        if isinstance(call_while_in_wizard, bool):
+            return call_while_in_wizard
+        raise Exception('call_while_in_wizard only takes boolean values ("{0}" provided).'.format(call_while_in_wizard))
+    return True
+
+
 def xlfunc(f=None, **kwargs):
     def inner(f):
-        def should_call_while_in_wizard(**func_kwargs):
-            if 'call_while_in_wizard' in func_kwargs:
-                call_while_in_wizard = func_kwargs.pop('call_while_in_wizard')
-                if isinstance(call_while_in_wizard, bool):
-                    return call_while_in_wizard
-                raise Exception('call_while_in_wizard only takes boolean values ("{0}" provided).'.format(call_while_in_wizard))
-            return True
-
-
         if not hasattr(f, "__xlfunc__"):
             xlf = f.__xlfunc__ = {}
             xlf["name"] = f.__name__
@@ -111,8 +111,7 @@ def xlfunc(f=None, **kwargs):
                 "options": {}
             }
         f.__xlfunc__["category"] = get_category(**kwargs)
-        xlfunc = f.__xlfunc__
-        xlfunc['call_while_in_wizard'] = should_call_while_in_wizard(**kwargs)
+        f.__xlfunc__['call_while_in_wizard'] = should_call_while_in_wizard(**kwargs)
         return f
     if f is None:
         return inner
