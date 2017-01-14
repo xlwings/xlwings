@@ -333,7 +333,7 @@ def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
                 task()
             except:
                 import traceback
-                print("TaskQueue '%s' threw an exeception: %s", task, traceback.format_exc())
+                print("TaskQueue '%s' threw an exception: %s" % task, traceback.format_exc())
 
     pythoncom.CoRevokeClassObject(revokeId)
     pythoncom.CoUninitialize()
