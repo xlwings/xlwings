@@ -56,6 +56,18 @@ else:
 
 def xlfunc(f=None, **kwargs):
     def inner(f):
+        def get_category(**func_kwargs):
+            if 'category' in func_kwargs:
+                category = func_kwargs.pop('category')
+                if isinstance(category, int):
+                    if 1 <= category <= 14:
+                        return category
+                    raise Exception('There is only 14 build-in categories available in Excel. Please use a string value to specify a custom category.')
+                if isinstance(category, str):
+                    return category[:255]
+                raise Exception('Category {0} should either be a predefined Excel category (int value) or a custom one (str value).'.format(category))
+            return 14  # Default category is "User Defined"
+
         if not hasattr(f, "__xlfunc__"):
             xlf = f.__xlfunc__ = {}
             xlf["name"] = f.__name__
@@ -85,6 +97,7 @@ def xlfunc(f=None, **kwargs):
                 "doc": f.__doc__ if f.__doc__ is not None else "Python function '" + f.__name__ + "' defined in '" + str(f.__code__.co_filename) + "'.",
                 "options": {}
             }
+        f.__xlfunc__["category"] = get_category(**kwargs)
         return f
     if f is None:
         return inner
@@ -330,6 +343,7 @@ def import_udfs(module_names, xl_workbook):
                 xlargs = xlfunc['args']
                 fname = xlfunc['name']
                 fdoc = xlret['doc'][:255]
+                fcategory = xlfunc['category']
 
                 excel_version = [int(x) for x in re.split("[,\\.]", xl_workbook.Application.Version)]
                 if excel_version[0] >= 14:
@@ -340,7 +354,7 @@ def import_udfs(module_names, xl_workbook):
                                                          MenuText=None,
                                                          HasShortcutKey=False,
                                                          ShortcutKey=None,
-                                                         Category=None,
+                                                         Category=fcategory,
                                                          StatusBar=None,
                                                          HelpContextID=None,
                                                          HelpFile=None,
