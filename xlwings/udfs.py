@@ -166,8 +166,10 @@ class DelayWrite(object):
         self.options = options
         self.value = value
         self.skip = (caller.Rows.Count, caller.Columns.Count)
+        self.nb_remaining_call = 10
 
     def __call__(self, *args, **kwargs):
+        self.nb_remaining_call -= 1
         conversion.write(
             self.value,
             self.range,
