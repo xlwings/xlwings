@@ -180,28 +180,28 @@ def get_udf_module(module_name):
     module_info = udf_modules.get(module_name, None)
     if module_info is not None:
         mtime = os.path.getmtime(module_info['filename'])
-        module = module_info['module']
         if mtime == module_info['filetime']:
-            return module
-        else:
-            module = reload(module)
-            module_info['filetime'] = mtime
-            module_info['module'] = module
-            return module
+            return module_info['module']
+    return reload_udf_module(module_name)
+
+
+def reload_udf_module(module_name):
+    if sys.version_info[:2] < (2, 7):
+        # For Python 2.6. we don't handle modules in subpackages
+        module = __import__(module_name)
     else:
-        if sys.version_info[:2] < (2, 7):
-            # For Python 2.6. we don't handle modules in subpackages
-            module = __import__(module_name)
-        else:
-            module = import_module(module_name)
-        filename = os.path.normcase(module.__file__.lower())
-        mtime = os.path.getmtime(filename)
-        udf_modules[module_name] = {
-            'filename': filename,
-            'filetime': mtime,
-            'module': module
-        }
-        return module
+        module = import_module(module_name)
+    if module_name in udf_modules:
+        # Force reload as import might no reload it
+        module = reload(module)
+    filename = os.path.normcase(module.__file__.lower())
+    mtime = os.path.getmtime(filename)
+    udf_modules[module_name] = {
+        'filename': filename,
+        'filetime': mtime,
+        'module': module
+    }
+    return module
 
 
 def call_udf(module_name, func_name, args, this_workbook, caller):
@@ -340,7 +340,7 @@ def import_udfs(module_names, xl_workbook):
     tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
 
     for module_name in module_names:
-        module = get_udf_module(module_name)
+        module = reload_udf_module(module_name)
         generate_vba_wrapper(module_name, module, tf.file)
 
     tf.close()
