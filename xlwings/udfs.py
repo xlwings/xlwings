@@ -79,6 +79,15 @@ def should_call_in_wizard(**func_kwargs):
     return True
 
 
+def check_volatile(**func_kwargs):
+    if 'volatile' in func_kwargs:
+        volatile = func_kwargs.pop('volatile')
+        if isinstance(volatile, bool):
+            return volatile
+        raise Exception('volatile only takes boolean values ("{0}" provided).'.format(volatile))
+    return True
+
+
 def xlfunc(f=None, **kwargs):
     def inner(f):
         if not hasattr(f, "__xlfunc__"):
@@ -112,6 +121,7 @@ def xlfunc(f=None, **kwargs):
             }
         f.__xlfunc__["category"] = get_category(**kwargs)
         f.__xlfunc__['call_in_wizard'] = should_call_in_wizard(**kwargs)
+        f.__xlfunc__['volatile'] = check_volatile(**kwargs)
         return f
     if f is None:
         return inner
@@ -258,6 +268,7 @@ def generate_vba_wrapper(module_name, module, f):
             xlret = xlfunc['ret']
             fname = xlfunc['name']
             call_in_wizard = xlfunc['call_in_wizard']
+            volatile = xlfunc['volatile']
 
             ftype = 'Sub' if xlfunc['sub'] else 'Function'
 
@@ -287,6 +298,8 @@ def generate_vba_wrapper(module_name, module, f):
                 if ftype == 'Function':
                     if not call_in_wizard:
                         vba.writeln('If (Not Application.CommandBars("Standard").Controls(1).Enabled) Then Exit Function')
+                    if volatile:
+                        vba.writeln('Application.Volatile')
                     vba.writeln("If TypeOf Application.Caller Is Range Then On Error GoTo failed")
 
                 if vararg != '':
