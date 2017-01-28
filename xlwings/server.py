@@ -329,12 +329,29 @@ def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
                 break
 
             task = idle_queue.pop(0)
-            try:
-                task()
-            except:
-                import traceback
-                print("TaskQueue '%s' threw an exeception: %s", task, traceback.format_exc())
+            _execute_task(task)
 
     pythoncom.CoRevokeClassObject(revokeId)
     pythoncom.CoUninitialize()
 
+
+def _execute_task(task):
+    try:
+        task()
+    except Exception as e:
+        if _ask_for_retry(e) and _can_retry(task):
+            print("Retrying TaskQueue '%s'." % task)
+            _execute_task(task)
+        else:
+            import traceback
+            print("TaskQueue '%s' threw an exception: %s" % task, traceback.format_exc())
+
+
+def _can_retry(task):
+    return hasattr(task, 'nb_remaining_call') and task.nb_remaining_call > 0
+
+RPC_E_SERVERCALL_RETRYLATER = -2147418111
+
+
+def _ask_for_retry(exception):
+    return hasattr(exception, 'hresult') and exception.hresult == RPC_E_SERVERCALL_RETRYLATER
