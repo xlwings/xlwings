@@ -1,6 +1,26 @@
 What's New
 ==========
 
+v0.10.3 (Jan 28, 2017)
+----------------------
+
+This release adds new features to User Defined Functions (UDFs):
+
+* categories
+* volatile option
+* suppress calculation in function wizard
+
+Syntax:
+
+.. code-block:: python
+
+    import xlwings as xw
+    @xw.func(category="xlwings", volatile=False, call_in_wizard=True)
+    def myfunction():
+        return ...
+
+For details, check out the (also new) and comprehensive API docs about the decorators: :ref:`udf_api`
+
 v0.10.2 (Dec 31, 2016)
 ----------------------
 
