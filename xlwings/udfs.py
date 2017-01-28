@@ -67,7 +67,7 @@ def get_category(**func_kwargs):
         raise Exception(
             'Category {0} should either be a predefined Excel category (int value) or a custom one (str value).'.format(
                 category))
-    return 14  # Default category is "User Defined"
+    return "xlwings"  # Default category
 
 
 def should_call_in_wizard(**func_kwargs):
