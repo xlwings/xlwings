@@ -3,10 +3,12 @@
 UDF Tutorial
 ============
 
-.. note:: UDFs are currently only available on Windows.
+This tutorial gets you quickly started on how to write User Defined Functions.
 
-This tutorial gets you quickly started on how to write User Defined Functions. For details of how to control the behaviour
-of the arguments and return values, have a look at :ref:`converters`.
+.. note::
+    * UDFs are currently only available on Windows.
+    * For details of how to control the behaviour of the arguments and return values, have a look at :ref:`converters`.
+    * For a comprehensive overview of the available decorators and their options, check out the corresponding API docs: :ref:`udf_api`.
 
 One-time Excel preparations
 ---------------------------
@@ -188,8 +190,11 @@ This is a simple example that demonstrates the syntax and effect of UDF expansio
 .. figure:: images/dynamic_array2.png
   :scale: 40%
 
-**Note**: Expanding array formulas will overwrite cells without prompting and leave an empty border around them, i.e.
-they will clear the row to the bottom and the column to the right of the array.
+.. note::
+    * Expanding array formulas will overwrite cells without prompting and leave an empty border around them, i.e.
+      they will clear the row to the bottom and the column to the right of the array.
+    * The way that dynamic array formulas are currently implemented doesn't allow them to have volatile functions
+      as arguments, e.g. you cannot use functions like ``=TODAY()`` as arguments.
 
 Docstrings
 ----------
