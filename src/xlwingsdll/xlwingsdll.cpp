@@ -196,10 +196,10 @@ HRESULT __stdcall XLPyDLLActivate(VARIANT* xlResult, const char* xlConfigFileNam
 
 				return S_OK;
 			}
-		}
 
 		default:
 			throw formatted_exception() << "Invalid value " << xlActivationMode << " for xlActivationMode, must be -1, 0 or 1";
+		}
 	}
 	catch(const std::exception& e)
 	{
@@ -226,47 +226,48 @@ HRESULT __stdcall XLPyDLLActivateAuto(VARIANT* xlResult, const char* xlCommand, 
 
 		// if interface object isn't already available try to create it
 
-		switch(xlActivationMode)
+		switch (xlActivationMode)
 		{
-			case -1:
-				{
-					pConfig->KillRPCServer();
-					return S_OK;
-				}
+		case -1:
+		{
+			pConfig->KillRPCServer();
+			return S_OK;
+		}
 
-			case 0:
-				{
-					if(pConfig->pInterface != NULL && pConfig->CheckRPCServer())
-					{
-						// pass it back to VBA
-						xlResult->vt = VT_DISPATCH;
-						xlResult->pdispVal = pConfig->pInterface;
-						xlResult->pdispVal->AddRef();
-						return S_OK;
-					}
-					else
-					{
-						xlResult->vt = VT_DISPATCH;
-						xlResult->pdispVal = NULL;
-						return S_OK;
-					}
-				}
-
-		case 1:
+		case 0:
+		{
+			if (pConfig->pInterface != NULL && pConfig->CheckRPCServer())
 			{
-				if(pConfig->pInterface == NULL || !pConfig->CheckRPCServer())
-					pConfig->ActivateRPCServer();
-
 				// pass it back to VBA
 				xlResult->vt = VT_DISPATCH;
 				xlResult->pdispVal = pConfig->pInterface;
 				xlResult->pdispVal->AddRef();
-
 				return S_OK;
 			}
+			else
+			{
+				xlResult->vt = VT_DISPATCH;
+				xlResult->pdispVal = NULL;
+				return S_OK;
+			}
+		}
+
+		case 1:
+		{
+			if (pConfig->pInterface == NULL || !pConfig->CheckRPCServer())
+				pConfig->ActivateRPCServer();
+
+			// pass it back to VBA
+			xlResult->vt = VT_DISPATCH;
+			xlResult->pdispVal = pConfig->pInterface;
+			xlResult->pdispVal->AddRef();
+
+			return S_OK;
+		}
 
 		default:
 			throw formatted_exception() << "Invalid value " << xlActivationMode << " for xlActivationMode, must be -1, 0 or 1";
+		}
 	}
 	catch(const std::exception& e)
 	{
