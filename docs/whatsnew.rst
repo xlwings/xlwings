@@ -1,6 +1,40 @@
 What's New
 ==========
 
+v0.10.3 (Jan 28, 2017)
+----------------------
+
+This release adds new features to User Defined Functions (UDFs):
+
+* categories
+* volatile option
+* suppress calculation in function wizard
+
+Syntax:
+
+.. code-block:: python
+
+    import xlwings as xw
+    @xw.func(category="xlwings", volatile=False, call_in_wizard=True)
+    def myfunction():
+        return ...
+
+For details, check out the (also new) and comprehensive API docs about the decorators: :ref:`udf_api`
+
+v0.10.2 (Dec 31, 2016)
+----------------------
+
+* [Win] Python 3.6 is now supported (:issue:`592`)
+
+
+v0.10.1 (Dec 5, 2016)
+---------------------
+
+* Writing a Pandas Series with a MultiIndex header was not writing out the header (:issue:`572`)
+* [Win] Docstrings for UDF arguments are now working (:issue:`367`)
+* [Mac] ``Range.clear_contents()`` has been fixed (it was doing ``clear()`` instead) (:issue:`576`)
+* ``xw.Book(...)`` and ``xw.books.open(...)`` raise now the same error in case the file doesn't exist (:issue:`540`)
+
 v0.10.0 (Sep 20, 2016)
 ----------------------
 

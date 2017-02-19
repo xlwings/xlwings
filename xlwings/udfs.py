@@ -54,6 +54,40 @@ else:
         }
 
 
+def get_category(**func_kwargs):
+    if 'category' in func_kwargs:
+        category = func_kwargs.pop('category')
+        if isinstance(category, int):
+            if 1 <= category <= 14:
+                return category
+            raise Exception(
+                'There is only 14 build-in categories available in Excel. Please use a string value to specify a custom category.')
+        if isinstance(category, str):
+            return category[:255]
+        raise Exception(
+            'Category {0} should either be a predefined Excel category (int value) or a custom one (str value).'.format(
+                category))
+    return "xlwings"  # Default category
+
+
+def should_call_in_wizard(**func_kwargs):
+    if 'call_in_wizard' in func_kwargs:
+        call_in_wizard = func_kwargs.pop('call_in_wizard')
+        if isinstance(call_in_wizard, bool):
+            return call_in_wizard
+        raise Exception('call_in_wizard only takes boolean values ("{0}" provided).'.format(call_in_wizard))
+    return True
+
+
+def check_volatile(**func_kwargs):
+    if 'volatile' in func_kwargs:
+        volatile = func_kwargs.pop('volatile')
+        if isinstance(volatile, bool):
+            return volatile
+        raise Exception('volatile only takes boolean values ("{0}" provided).'.format(volatile))
+    return True
+
+
 def xlfunc(f=None, **kwargs):
     def inner(f):
         if not hasattr(f, "__xlfunc__"):
@@ -73,7 +107,7 @@ def xlfunc(f=None, **kwargs):
                     "name": vname,
                     "pos": vpos,
                     "vba": None,
-                    "doc": "Positional argument " + str(vpos+1),
+                    "doc": "Positional argument " + str(vpos + 1),
                     "vararg": vname == sig['vararg'],
                     "options": {}
                 }
@@ -85,6 +119,9 @@ def xlfunc(f=None, **kwargs):
                 "doc": f.__doc__ if f.__doc__ is not None else "Python function '" + f.__name__ + "' defined in '" + str(f.__code__.co_filename) + "'.",
                 "options": {}
             }
+        f.__xlfunc__["category"] = get_category(**kwargs)
+        f.__xlfunc__['call_in_wizard'] = should_call_in_wizard(**kwargs)
+        f.__xlfunc__['volatile'] = check_volatile(**kwargs)
         return f
     if f is None:
         return inner
@@ -139,8 +176,10 @@ class DelayWrite(object):
         self.options = options
         self.value = value
         self.skip = (caller.Rows.Count, caller.Columns.Count)
+        self.nb_remaining_call = 10
 
     def __call__(self, *args, **kwargs):
+        self.nb_remaining_call -= 1
         conversion.write(
             self.value,
             self.range,
@@ -230,6 +269,8 @@ def generate_vba_wrapper(module_name, module, f):
             xlfunc = svar.__xlfunc__
             xlret = xlfunc['ret']
             fname = xlfunc['name']
+            call_in_wizard = xlfunc['call_in_wizard']
+            volatile = xlfunc['volatile']
 
             ftype = 'Sub' if xlfunc['sub'] else 'Function'
 
@@ -257,24 +298,28 @@ def generate_vba_wrapper(module_name, module, f):
             with vba.block(func_sig):
 
                 if ftype == 'Function':
-                    vba.write("If TypeOf Application.Caller Is Range Then On Error GoTo failed\n")
+                    if not call_in_wizard:
+                        vba.writeln('If (Not Application.CommandBars("Standard").Controls(1).Enabled) Then Exit Function')
+                    if volatile:
+                        vba.writeln('Application.Volatile')
+                    vba.writeln("If TypeOf Application.Caller Is Range Then On Error GoTo failed")
 
                 if vararg != '':
-                    vba.write("ReDim argsArray(1 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + str(n_args) + ")\n")
+                    vba.writeln("ReDim argsArray(1 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + str(n_args) + ")")
 
                 j = 1
                 for arg in xlfunc['args']:
                     argname = arg['name']
                     if arg['vararg']:
-                        vba.write("For k = LBound(" + vararg + ") To UBound(" + vararg + ")\n")
+                        vba.writeln("For k = LBound(" + vararg + ") To UBound(" + vararg + ")")
                         argname = vararg + "(k)"
 
                     if arg['vararg']:
-                        vba.write("argsArray(" + str(j) + " + k - LBound(" + vararg + ")) = " + argname + "\n")
-                        vba.write("Next k\n")
+                        vba.writeln("argsArray(" + str(j) + " + k - LBound(" + vararg + ")) = " + argname)
+                        vba.writeln("Next k")
                     else:
                         if vararg != "":
-                            vba.write("argsArray(" + str(j) + ") = " + argname + "\n")
+                            vba.writeln("argsArray(" + str(j) + ") = " + argname)
                             j += 1
 
                 if vararg != '':
@@ -283,25 +328,25 @@ def generate_vba_wrapper(module_name, module, f):
                     args_vba = 'Array(' + ', '.join(arg['vba'] or arg['name'] for arg in xlfunc['args']) + ')'
 
                 if ftype == "Sub":
-                    vba.write('Py.CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller\n',
+                    vba.writeln('Py.CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller',
                         module_name=module_name,
                         fname=fname,
                         args_vba=args_vba,
                     )
                 else:
-                    vba.write('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)\n',
+                    vba.writeln('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)',
                         module_name=module_name,
                         fname=fname,
                         args_vba=args_vba,
                     )
 
                 if ftype == "Function":
-                    vba.write("Exit " + ftype + "\n")
+                    vba.writeln("Exit " + ftype)
                     vba.write_label("failed")
-                    vba.write(fname + " = Err.Description\n")
+                    vba.writeln(fname + " = Err.Description")
 
-            vba.write('End ' + ftype + "\n")
-            vba.write("\n")
+            vba.writeln('End ' + ftype)
+            vba.writeln('')
 
 
 def import_udfs(module_names, xl_workbook):
@@ -330,18 +375,22 @@ def import_udfs(module_names, xl_workbook):
                 xlargs = xlfunc['args']
                 fname = xlfunc['name']
                 fdoc = xlret['doc'][:255]
-                n_args = 0
-                for arg in xlargs:
-                    if not arg['vba']:
-                        n_args += 1
+                fcategory = xlfunc['category']
 
                 excel_version = [int(x) for x in re.split("[,\\.]", xl_workbook.Application.Version)]
-                if n_args > 0 and excel_version[0] >= 14:
-                    argdocs = []
-                    for arg in xlargs:
-                        if not arg['vba']:
-                            argdocs.append(arg['doc'][:255])
-                    xl_workbook.Application.MacroOptions("'" + xl_workbook.Name + "'!" + fname, Description=fdoc, ArgumentDescriptions=argdocs)
+                if excel_version[0] >= 14:
+                    argdocs = [arg['doc'][:255] for arg in xlargs if not arg['vba']]
+                    xl_workbook.Application.MacroOptions("'" + xl_workbook.Name + "'!" + fname,
+                                                         Description=fdoc,
+                                                         HasMenu=False,
+                                                         MenuText=None,
+                                                         HasShortcutKey=False,
+                                                         ShortcutKey=None,
+                                                         Category=fcategory,
+                                                         StatusBar=None,
+                                                         HelpContextID=None,
+                                                         HelpFile=None,
+                                                         ArgumentDescriptions=argdocs if argdocs else None)
                 else:
                     xl_workbook.Application.MacroOptions("'" + xl_workbook.Name + "'!" + fname, Description=fdoc)
 

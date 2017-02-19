@@ -95,7 +95,7 @@ or ``template`` commands already add an empty Module1, so you don't need to inse
         RunPython ("import hello; hello.world()")
     End Sub
 
-This calls the following code in ``mymodule.py``:
+This calls the following code in ``hello.py``:
 
 .. code-block:: python
 

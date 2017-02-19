@@ -35,7 +35,7 @@ Consider the following sample code of your Python source code ``my_module.py``:
 
     if __name__ == '__main__':
         # Expects the Excel file next to this source file, adjust accordingly.
-        xw.Book('myfile.xlsxm').set_mock_caller()
+        xw.Book('myfile.xlsm').set_mock_caller()
         my_macro()
 
 

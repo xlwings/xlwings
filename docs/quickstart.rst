@@ -6,44 +6,42 @@ This guide assumes you have xlwings already installed. If that's not the case, h
 1. Scripting: Automate/interact with Excel from Python
 ------------------------------------------------------
 
-Reading/writing values to/from the **active sheet** is as easy as:
+Establish a connection to a workbook:
 
     >>> import xlwings as xw
-    >>> xw.Range('A1').value = 'Foo 1'
-    >>> xw.Range('A1').value
+    >>> wb = xw.Book()  # this will create a new workbook
+    >>> wb = xw.Book('FileName.xlsx')  # connect to an existing file in the current working directory
+    >>> wb = xw.Book(r'C:\path\to\file.xlsx')  # on Windows: use raw strings to escape backslashes
+
+If you have the same file open in two instances of Excel, you need to fully qualify it and include the app instance:
+
+    >>> xw.apps[0].books['FileName.xlsx']
+
+Instantiate a sheet object:
+
+    >>> sht = wb.sheets['Sheet1']
+
+Reading/writing values to/from ranges is as easy as:
+
+    >>> sht.range('A1').value = 'Foo 1'
+    >>> sht.range('A1').value
     'Foo 1'
 
 There are many **convenience features** available, e.g. Range expanding:
 
-    >>> xw.Range('A1').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
-    >>> xw.Range('A1').expand().value
+    >>> sht.range('A1').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
+    >>> sht.range('A1').expand().value
     [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
 
 **Powerful converters** handle most data types of interest, including Numpy arrays and Pandas DataFrames in both directions:
 
     >>> import pandas as pd
     >>> df = pd.DataFrame([[1,2], [3,4]], columns=['a', 'b'])
-    >>> xw.Range('A1').value = df
-    >>> xw.Range('A1').options(pd.DataFrame, expand='table').value
+    >>> sht.range('A1').value = df
+    >>> sht.range('A1').options(pd.DataFrame, expand='table').value
            a    b
     0.0  1.0  2.0
     1.0  3.0  4.0
-
-**Full qualification**: Instantiate a new book, add a new sheet and write a value to a specific sheet:
-
-    >>> wb = xw.Book()
-    >>> wb.sheets.add()
-    <Sheet [Workbook1]Sheet2>
-    >>> wb.sheets['Sheet1'].range('A1').value = 'Foo1'
-
-Usually, you can just use ``xw.Book`` and it finds your workbook over all instances of Excel:
-
-    >>> xw.Book('FileName.xlsx')
-
-If you need more control (e.g. you have the same file open in two Excel instance), you'll need to fully qualify it like so:
-
-    >>> xw.apps[0].books['FileName.xlsx']
-
 
 **Matplotlib** figures can be shown as pictures in Excel:
 
@@ -51,9 +49,21 @@ If you need more control (e.g. you have the same file open in two Excel instance
     >>> fig = plt.figure()
     >>> plt.plot([1, 2, 3, 4, 5])
     [<matplotlib.lines.Line2D at 0x1071706a0>]
-    >>> wb = xw.Book()
-    >>> wb.sheets[0].pictures.add(fig, name='MyPlot', update=True)
+    >>> sht.pictures.add(fig, name='MyPlot', update=True)
     <Picture 'MyPlot' in <Sheet [Workbook4]Sheet1>>
+
+**Shortcut** for the active sheet: ``xw.Range``
+
+If you want to quickly talk to the active sheet in the active workbook, you don't need instantiate a workbook
+and sheet object, but can simply do:
+
+    >>> import xlwings xw
+    >>> xw.Range('A1').value = 'Foo'
+    >>> xw.Range('A1').value
+    'Foo'
+
+**Note:** You should only use ``xw.Range`` when interacting with Excel. In scripts, you should always
+go via book and sheet objects as shown above.
 
 2. Macros: Call Python from Excel
 ---------------------------------
