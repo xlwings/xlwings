@@ -7,10 +7,40 @@ import os
 import numbers
 
 
+class Engine(object):
+
+    @property
+    def apps(self):
+        return Apps()
+
+    @property
+    def name(self):
+        return "Openpyxl"
+
+engine = Engine()
+
+
+class Apps(object):
+
+    def __iter__(self):
+        yield the_app
+
+    def __len__(self):
+        return 1
+
+    def __getitem__(self, index):
+        return the_app
+
+
 class App(object):
 
     def __init__(self):
         self._books = Books()
+
+
+    @property
+    def engine(self):
+        return engine
 
     @property
     def books(self):

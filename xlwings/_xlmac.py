@@ -31,6 +31,21 @@ if np:
     time_types = time_types + (np.datetime64,)
 
 
+
+class Engine(object):
+
+    @property
+    def apps(self):
+        return Apps()
+
+    @property
+    def name(self):
+        return "Excel"
+
+
+engine = Engine()
+
+
 class Apps(object):
 
     def _iter_excel_instances(self):
@@ -67,6 +82,10 @@ class App(object):
     @property
     def api(self):
         return self.xl
+
+    @property
+    def engine(self):
+        return engine
 
     @property
     def pid(self):

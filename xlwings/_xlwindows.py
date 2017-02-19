@@ -263,6 +263,15 @@ def is_range_instance(xl_range):
     return xl_range._oleobj_.GetTypeInfo().GetTypeAttr().iid == pywintypes.IID('{00020846-0000-0000-C000-000000000046}')
     # return pyid.GetTypeInfo().GetDocumentation(-1)[0] == 'Range'
 
+class Engine(object):
+
+    @property
+    def apps(self):
+        return Apps()
+
+    @property
+    def name(self):
+        return "Excel"
 
 class Apps(object):
 

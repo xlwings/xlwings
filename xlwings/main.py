@@ -100,6 +100,65 @@ class Collection(object):
         )
 
 
+class Engines(object):
+
+    def __init__(self):
+        self.active = None
+        self.engines = []
+
+    def add(self, engine):
+        self.engines.append(engine)
+
+    def __call__(self, i):
+        return self[i-1]
+
+    def __repr__(self):
+        return '{}({})'.format(
+            self.__class__.__name__,
+            repr(list(self))
+        )
+
+    def __getitem__(self, item):
+        return self.engines[item]
+
+    def __len__(self):
+        return len(self.engines)
+
+    @property
+    def count(self):
+        """
+        Returns the number of apps.
+
+        .. versionadded:: 0.9.0
+        """
+        return len(self)
+
+    def __iter__(self):
+        for engine in self.engines:
+            yield engine
+
+
+
+class Engine(object):
+
+    def __init__(self, impl):
+        self.impl = impl
+
+    @property
+    def apps(self):
+        return Apps(impl=self.impl.apps)
+
+    @property
+    def name(self):
+        return self.impl.name
+
+    def __repr__(self):
+        return "<%s Engine>" % self.name
+
+    def activate(self):
+        engines.active = self
+
+
 class Apps(object):
     """
     A collection of all :meth:`app <App>` objects:
@@ -134,7 +193,7 @@ class Apps(object):
 
     def __repr__(self):
         return '{}({})'.format(
-            self.__class__.__name__,
+            getattr(self.__class__, '_name', self.__class__.__name__),
             repr(list(self))
         )
 
@@ -158,8 +217,11 @@ class Apps(object):
             yield App(impl=app)
 
 
-apps = Apps(impl=xlplatform.Apps())
-
+engines = Engines()
+engines.add(Engine(impl=xlplatform.engine))
+from . import _openpyxl
+engines.add(Engine(impl=_openpyxl.engine))
+engines.active = engines.engines[0]
 
 class App(object):
     """
@@ -208,6 +270,10 @@ class App(object):
             self.impl = impl
             if visible:
                 self.visible = True
+
+    @property
+    def engine(self):
+        return Engine(impl=self.impl.engine)
 
     @property
     def api(self):
@@ -384,7 +450,7 @@ class App(object):
         return Range(impl=self.impl.range(cell1, cell2))
 
     def __repr__(self):
-        return "<Excel App %s>" % self.pid
+        return "<%s App %s>" % (self.engine.name, self.pid)
 
     def __eq__(self, other):
         return type(other) is App and other.pid == self.pid
@@ -2815,6 +2881,18 @@ class Sheets(Collection):
         return Sheet(impl=impl)
 
 
+class ActiveEngineApps(Apps):
+
+    def __init__(self):
+        pass
+
+    _name = 'Apps'
+
+    @property
+    def impl(self):
+        return engines.active.apps.impl
+
+
 class ActiveAppBooks(Books):
 
     def __init__(self):
@@ -2840,6 +2918,8 @@ class ActiveBookSheets(Sheets):
     def impl(self):
         return books.active.sheets.impl
 
+
+apps = ActiveEngineApps()
 
 books = ActiveAppBooks()
 

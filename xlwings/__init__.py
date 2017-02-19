@@ -31,7 +31,7 @@ class ShapeAlreadyExists(Exception):
 
 # API
 from .main import App, Book, Range, Chart, Sheet, Picture, Shape, Name, view, RangeRows, RangeColumns
-from .main import apps, books, sheets
+from .main import apps, books, sheets, engines
 
 # UDFs
 if sys.platform.startswith('win'):
