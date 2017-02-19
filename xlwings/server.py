@@ -344,7 +344,7 @@ def _execute_task(task):
             _execute_task(task)
         else:
             import traceback
-            print("TaskQueue '%s' threw an exception: %s" % task, traceback.format_exc())
+            print("TaskQueue '%s' threw an exception: %s" % (task, traceback.format_exc()))
 
 
 def _can_retry(task):
