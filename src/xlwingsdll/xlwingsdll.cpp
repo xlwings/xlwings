@@ -103,8 +103,8 @@ HRESULT __stdcall XLPyDLLNDims(VARIANT* xlSource, int* xlDimension, bool *xlTran
 		bounds[1].lLbound = 1;
 		bounds[1].cElements = (ULONG) nDestDims == 2 ? nDestRows : nDestCols;
 		AutoSafeArrayCreate asac(VT_VARIANT, nDestDims, bounds);
-	
-		// copy the data -- note that if NULL is passed to AutoSafeArrayAccessData then it does nothing 
+
+		// copy the data -- note that if NULL is passed to AutoSafeArrayAccessData then it does nothing
 		{
 			VARIANT* pSrcData = xlSource;
 			AutoSafeArrayAccessData(pSrcSA, (void**) &pSrcData);
@@ -194,11 +194,12 @@ HRESULT __stdcall XLPyDLLActivate(VARIANT* xlResult, const char* xlConfigFileNam
 				xlResult->pdispVal = pConfig->pInterface;
 				xlResult->pdispVal->AddRef();
 
-				break;
+				return S_OK;
 			}
 		}
 
-		return S_OK;
+		default:
+			throw formatted_exception() << "Invalid value " << xlActivationMode << " for xlActivationMode, must be -1, 0 or 1";
 	}
 	catch(const std::exception& e)
 	{
@@ -211,7 +212,7 @@ HRESULT __stdcall XLPyDLLActivate(VARIANT* xlResult, const char* xlConfigFileNam
 // special configuration-less entry point for used by xlwings
 // just pass the command to launch the COM server, all other settings normally contained in the config file are default
 // returns existing interface if already available, otherwise tries to activate it
-HRESULT __stdcall XLPyDLLActivateAuto(VARIANT* xlResult, const char* xlCommand)
+HRESULT __stdcall XLPyDLLActivateAuto(VARIANT* xlResult, const char* xlCommand, int xlActivationMode)
 {
 	try
 	{
@@ -224,15 +225,48 @@ HRESULT __stdcall XLPyDLLActivateAuto(VARIANT* xlResult, const char* xlCommand)
 		Config* pConfig = Config::GetAutoConfig(command);
 
 		// if interface object isn't already available try to create it
-		if(pConfig->pInterface == NULL || !pConfig->CheckRPCServer())
-			pConfig->ActivateRPCServer();
 
-		// pass it back to VBA
-		xlResult->vt = VT_DISPATCH;
-		xlResult->pdispVal = pConfig->pInterface;
-		xlResult->pdispVal->AddRef();
+		switch(xlActivationMode)
+		{
+			case -1:
+				{
+					pConfig->KillRPCServer();
+					return S_OK;
+				}
 
-		return S_OK;
+			case 0:
+				{
+					if(pConfig->pInterface != NULL && pConfig->CheckRPCServer())
+					{
+						// pass it back to VBA
+						xlResult->vt = VT_DISPATCH;
+						xlResult->pdispVal = pConfig->pInterface;
+						xlResult->pdispVal->AddRef();
+						return S_OK;
+					}
+					else
+					{
+						xlResult->vt = VT_DISPATCH;
+						xlResult->pdispVal = NULL;
+						return S_OK;
+					}
+				}
+
+		case 1:
+			{
+				if(pConfig->pInterface == NULL || !pConfig->CheckRPCServer())
+					pConfig->ActivateRPCServer();
+
+				// pass it back to VBA
+				xlResult->vt = VT_DISPATCH;
+				xlResult->pdispVal = pConfig->pInterface;
+				xlResult->pdispVal->AddRef();
+
+				return S_OK;
+			}
+
+		default:
+			throw formatted_exception() << "Invalid value " << xlActivationMode << " for xlActivationMode, must be -1, 0 or 1";
 	}
 	catch(const std::exception& e)
 	{
