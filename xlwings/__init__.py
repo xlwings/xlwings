@@ -56,7 +56,7 @@ def xlarg(*args, **kwargs):
 
 from . import _openpyxl as openpyxl
 if openpyxl.openpyxl:
-    openpyxl = App(impl=openpyxl.App())
+    openpyxl = App(impl=openpyxl.the_app)
 else:
     openpyxl = None
 

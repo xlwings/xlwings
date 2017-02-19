@@ -4,44 +4,66 @@ except ImportError:
     openpyxl = None
 
 import os
+import numbers
 
 
 class App(object):
 
     def __init__(self):
-        pass
+        self._books = Books()
 
     @property
     def books(self):
-        return Books()
+        return self._books
+
+    @property
+    def pid(self):
+        return 0
 
 
 class Books(object):
 
     def __init__(self):
-        self.books = {}
+        self.books = []
+        self.books_by_filename = {}
+        self.active = self.add()
 
     def open(self, filename):
-        book = self.books.get(filename, None)
+        book = self.books_by_filename.get(filename, None)
         if book is None:
-            self.books[filename] = book = Book(filename)
+            self.books_by_filename[filename] = book = Book(openpyxl.load_workbook(filename), filename)
+            self.books.append(book)
+        return book
+
+    @property
+    def api(self):
+        return None
+
+    def add(self):
+        name = "Book" + str(len(self.books) + 1)
+        self.books_by_filename[name] = book = Book(openpyxl.Workbook(), name)
+        self.books.append(book)
+        self.active = book
         return book
 
     def __call__(self, name_or_index):
-        return self.books[name_or_index]
+        if isinstance(name_or_index, numbers.Number):
+            return self.books[name_or_index - 1]
+        else:
+            return self.books_by_filename[name_or_index]
 
     def __len__(self):
         return len(self.books)
 
     def __iter__(self):
-        for book in self.books.values():
+        for book in self.books:
             yield book
 
 
 class Book(object):
 
-    def __init__(self, filename):
-        self.api = openpyxl.load_workbook(filename)
+    def __init__(self, api, filename):
+        self.api = api
         self.filename = filename
 
     @property
@@ -52,6 +74,25 @@ class Book(object):
     @property
     def sheets(self):
         return Sheets(book=self)
+
+    @property
+    def app(self):
+        return the_app
+
+    @property
+    def index(self):
+        return self.app.books.index(self)
+
+    def close(self):
+        self.app.books.books.remove(self)
+        del self.app.books.books_by_filename[self.filename]
+
+    def save(self, path=None):
+        if self.path:
+            del self.app.books[self.filename]
+            self.filename = path
+            self.app.books[self.filename] = self
+        self.api.save(self.filename)
 
 
 class Sheets(object):
@@ -104,3 +145,6 @@ class Range(object):
 
     def __len__(self):
         return 1
+
+
+the_app = App()
