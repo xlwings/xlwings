@@ -1130,6 +1130,8 @@ def _clean_value_data_element(value, datetime_builder, empty_as, number_builder)
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
     return [[_clean_value_data_element(c, datetime_builder, empty_as, number_builder) for c in row] for row in data]
 
+Engine.clean_value_data = staticmethod(clean_value_data)
+
 
 def prepare_xl_data_element(x):
     if x is None:
@@ -1155,6 +1157,8 @@ def prepare_xl_data_element(x):
         return float(x)
 
     return x
+
+Engine.prepare_xl_data_element = staticmethod(prepare_xl_data_element)
 
 
 def open_template(fullpath):

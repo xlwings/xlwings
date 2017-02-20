@@ -2,7 +2,7 @@
 
 from . import Pipeline, Converter, Options, Accessor, accessors
 
-from .. import xlplatform
+#from .. import xlplatform
 from ..main import Range
 
 import datetime
@@ -108,7 +108,7 @@ class CleanDataFromReadStage(object):
         self.numbers_handler = _number_handlers.get(numbers_as, numbers_as)
 
     def __call__(self, c):
-        c.value = xlplatform.clean_value_data(c.value, self.dates_handler, self.empty_as, self.numbers_handler)
+        c.value = c.engine.impl.clean_value_data(c.value, self.dates_handler, self.empty_as, self.numbers_handler)
 
 
 class CleanDataForWriteStage(object):
@@ -116,7 +116,7 @@ class CleanDataForWriteStage(object):
     def __call__(self, c):
         c.value = [
             [
-                xlplatform.prepare_xl_data_element(x)
+                c.engine.impl.prepare_xl_data_element(x)
                 for x in y
             ]
             for y in c.value

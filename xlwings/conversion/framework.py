@@ -2,10 +2,11 @@
 
 
 class ConversionContext(object):
-    __slots__ = ['range', 'value', 'meta']
+    __slots__ = ['range', 'value', 'meta', 'engine']
 
     def __init__(self, rng=None, value=None):
         self.range = rng
+        self.engine = rng.sheet.book.app.engine
         self.value = value
         self.meta = {}
 

@@ -16,6 +16,7 @@ import numbers
 import inspect
 
 from . import xlplatform, string_types, ShapeAlreadyExists, PY3
+from . import _openpyxl
 from .utils import VersionNumber
 from . import utils
 
@@ -105,12 +106,17 @@ class Engines(object):
     def __init__(self):
         self.active = None
         self.engines = []
+        self.engines_by_name = {}
 
     def add(self, engine):
         self.engines.append(engine)
+        self.engines_by_name[engine.name] = engine
 
-    def __call__(self, i):
-        return self[i-1]
+    def __call__(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            return self.engines[name_or_index-1]
+        else:
+            return self.engines_by_name[name_or_index]
 
     def __repr__(self):
         return '{}({})'.format(
@@ -118,8 +124,11 @@ class Engines(object):
             repr(list(self))
         )
 
-    def __getitem__(self, item):
-        return self.engines[item]
+    def __getitem__(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            return self.engines[name_or_index]
+        else:
+            return self.engines_by_name[name_or_index]
 
     def __len__(self):
         return len(self.engines)
@@ -136,7 +145,6 @@ class Engines(object):
     def __iter__(self):
         for engine in self.engines:
             yield engine
-
 
 
 class Engine(object):
@@ -218,10 +226,13 @@ class Apps(object):
 
 
 engines = Engines()
+
 engines.add(Engine(impl=xlplatform.engine))
-from . import _openpyxl
-engines.add(Engine(impl=_openpyxl.engine))
-engines.active = engines.engines[0]
+engines.active = engines[0]
+
+if _openpyxl.openpyxl:
+    engines.add(Engine(impl=_openpyxl.engine))
+
 
 class App(object):
     """

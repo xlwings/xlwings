@@ -5,6 +5,7 @@ except ImportError:
 
 import os
 import numbers
+import datetime as dt
 
 
 class Engine(object):
@@ -17,7 +18,39 @@ class Engine(object):
     def name(self):
         return "Openpyxl"
 
+
 engine = Engine()
+
+
+def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
+    if value == '':
+        return empty_as
+    if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:
+        value = datetime_builder(
+            month=value.month,
+            day=value.day,
+            year=value.year,
+            hour=value.hour,
+            minute=value.minute,
+            second=value.second,
+            microsecond=value.microsecond,
+            tzinfo=None
+        )
+    elif number_builder is not None and type(value) == float:
+        value = number_builder(value)
+    return value
+
+
+def clean_value_data(data, datetime_builder, empty_as, number_builder):
+    return [[_clean_value_data_element(c, datetime_builder, empty_as, number_builder) for c in row] for row in data]
+
+Engine.clean_value_data = staticmethod(clean_value_data)
+
+
+def prepare_xl_data_element(x):
+    return x
+
+Engine.prepare_xl_data_element = staticmethod(prepare_xl_data_element)
 
 
 class Apps(object):
