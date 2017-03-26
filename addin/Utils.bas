@@ -1,4 +1,12 @@
-Attribute VB_Name = "settings"
+Attribute VB_Name = "utils"
+Function ModuleIsPresent(ByVal wb As Workbook, moduleName As String) As Boolean
+    On Error GoTo not_present
+    Set x = wb.VBProject.VBComponents.Item(moduleName)
+    ModuleIsPresent = True
+    Exit Function
+not_present:
+    ModuleIsPresent = False
+End Function
 
 'Adopted from http://peltiertech.com/save-retrieve-information-text-files/
 Function SaveSetting(sFileName As String, sName As String, Optional sValue As String) As Boolean
@@ -93,3 +101,4 @@ Function FileExists(ByVal FileSpec As String) As Boolean
       FileExists = Not ((Attr And vbDirectory) = vbDirectory)
    End If
 End Function
+
