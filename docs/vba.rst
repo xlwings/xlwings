@@ -60,8 +60,8 @@ under ``Function Settings``::
 * ``PYTHONPATH`` [Optional]: If the source file of your code is not found, add the path here. Otherwise set it to ``""``.
 * ``UDF_MODULES`` [Optional, Windows only]: Names of Python modules (without .py extension) from which the UDFs are being imported.
   Separate multiple modules by ";".
-  Example: ``UDF_PATH = "common_udfs;myproject"``
-  Default: ``UDF_PATH = ""`` defaults to a file in the same directory of the Excel spreadsheet with the same name but ending in ``.py``.
+  Example: ``UDF_MODULES = "common_udfs;myproject"``
+  Default: ``UDF_MODULES = ""`` defaults to a file in the same directory of the Excel spreadsheet with the same name but ending in ``.py``.
 * ``UDF_DEBUG_SERVER``: Set this to True if you want to run the xlwings COM server manually for debugging, see :ref:`debugging`.
 * ``LOG_FILE`` [Optional]: Leave empty for default location (see below) or provide directory including file name.
 * ``SHOW_LOG``: If False, no pop-up with the Log messages (usually errors) will be shown. Use with care.

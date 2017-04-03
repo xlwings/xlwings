@@ -36,7 +36,7 @@ by ``quickstart``:
 * in the same directory as the Excel file
 * with the same name as the Excel file, but with a ``.py`` ending instead of ``.xlsm``.
 
-Alternatively, you can point to a specific source file by setting the ``UDF_PATH`` in the VBA settings.
+Alternatively, you can point to a specific module by setting ``UDF_MODULES`` in the VBA settings.
 
 Let's assume you have a Workbook ``myproject.xlsm``, then you would write the following code in ``myproject.py``::
 
