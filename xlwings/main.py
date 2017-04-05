@@ -1005,8 +1005,9 @@ class Range(object):
 
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
-        for i in range(len(self)):
-            yield self(i+1)
+        sheet = self.sheet
+        for i in self.api.cells:
+            yield sheet.range(i.address)
 
     def options(self, convert=None, **options):
         """
