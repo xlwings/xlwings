@@ -1124,7 +1124,7 @@ def prepare_xl_data_element(x):
         return float(x)
     elif pd and isinstance(x, pd.tslib.Timestamp):
         # This transformation seems to be only needed on Python 2.6 (?)
-        return x.to_datetime().replace(tzinfo=None)
+        return x.to_pydatetime().replace(tzinfo=None)
     elif pd and isinstance(x, pd.tslib.NaTType):
         return None
     elif isinstance(x, dt.datetime):

@@ -1006,7 +1006,7 @@ def _datetime_to_com_time(dt_time):
         # We replace no timezone -> UTC to allow round-trips in the naive case
         if pd and isinstance(dt_time, pd.tslib.Timestamp):
             # Otherwise pandas prints ignored exceptions on Python 3
-            dt_time = dt_time.to_datetime()
+            dt_time = dt_time.to_pydatetime()
         # We don't use pytz.utc to get rid of additional dependency
         # Don't do any timezone transformation: simply cutoff the tz info
         # If we don't reset it first, it gets transformed into UTC before transferred to Excel
