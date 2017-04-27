@@ -1,5 +1,5 @@
 Attribute VB_Name = "xlwings"
-' xlwings.org, version: 0.10.4
+' xlwings.org, version: 0.10.5dev
 '
 ' Copyright (C) 2014-2016, Zoomer Analytics LLC (www.zoomeranalytics.com)
 ' License: BSD 3-clause (see LICENSE.txt for details)
@@ -348,15 +348,15 @@ Sub ShowError(FileName As String)
     Const AUTO_DISMISS = 0
 
     Content = ReadFile(FileName)
-    #If Win32 Or Win64 Then
+    #If Mac Then
+        MsgBox Content, vbCritical, "Error"
+    #Else
         Content = Content & vbCrLf
         Content = Content & "Press Ctrl+C to copy this message to the clipboard."
 
         Set objShell = CreateObject("Wscript.Shell")
         objShell.Popup Content, AUTO_DISMISS, "Error", OK_BUTTON_ERROR
-    #Else
-        MsgBox Content, vbCritical, "Error"
-    #End If
+     #End If
 
 End Sub
 
