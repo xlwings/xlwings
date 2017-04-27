@@ -134,7 +134,7 @@ Sub ExcecuteMac2011(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As S
     If Res = 0 Then
         Res = system("source ~/.bash_profile;" & RunCommand & """" & WORKBOOK_FULLNAME & """ ""from_xl""" & " " & Chr(34) & ToPosixPath(Application.Path) & "/" & Application.Name & Chr(34) & ">" & Chr(34) & LOG_FILE & Chr(34) & " 2>&1 &")
     Else
-        Res = system(RunCommand & """" & WORKBOOK_FULLNAME & """ ""from_xl""" & " " & Chr(34) & ToPosixPath(Application.Path) & "/" & Application.Name & Chr(34) & ">" & Chr(34) & LOG_FILE & Chr(34) & " 2>&1 &")
+        Res = system(RunCommand & """" & WORKBOOK_FULLNAME & """ ""from_xl""" & " " & Chr(34) & ToPosixPath(Application.Path) & "/" & Application.Name & Chr(34) & "> /dev/null 2>" & Chr(34) & LOG_FILE & Chr(34) & " &")
     End If
 
     ' If there's a log at this point (normally that will be from the Shell only, not Python) show it and reset the StatusBar
