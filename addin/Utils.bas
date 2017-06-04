@@ -1,4 +1,4 @@
-Attribute VB_Name = "utils"
+Attribute VB_Name = "Utils"
 Function ModuleIsPresent(ByVal wb As Workbook, moduleName As String) As Boolean
     On Error GoTo not_present
     Set x = wb.VBProject.VBComponents.Item(moduleName)
@@ -6,81 +6,6 @@ Function ModuleIsPresent(ByVal wb As Workbook, moduleName As String) As Boolean
     Exit Function
 not_present:
     ModuleIsPresent = False
-End Function
-
-'Adopted from http://peltiertech.com/save-retrieve-information-text-files/
-Function SaveSetting(sFileName As String, sName As String, Optional sValue As String) As Boolean
-
-  Dim iFileNumA As Long
-  Dim iFileNumB As Long
-  Dim sFile As String
-  Dim sXFile As String
-  Dim sVarName As String
-  Dim sVarValue As String
-  Dim lErrLast As Long
-
-  ' assume false unless variable is successfully saved
-  SaveSetting = False
-
-  ' temporary file
-  sFile = sFileName
-  sXFile = sFileName & "_temp"
-
-  ' open text file to read settings
-  If FileExists(sFile) Then
-    'replace existing settings file
-    iFileNumA = FreeFile
-    Open sFile For Input As iFileNumA
-    iFileNumB = FreeFile
-    Open sXFile For Output As iFileNumB
-      Do While Not EOF(iFileNumA)
-        Input #iFileNumA, sVarName, sVarValue
-        If sVarName <> sName Then
-          Write #iFileNumB, sVarName, sVarValue
-        End If
-      Loop
-      Write #iFileNumB, sName, sValue
-      SaveSetting = True
-    Close #iFileNumA
-    Close #iFileNumB
-    FileCopy sXFile, sFile
-    Kill sXFile
-  Else
-    ' make new file
-    iFileNumB = FreeFile
-    Open sFile For Output As iFileNumB
-      Write #iFileNumB, sName, sValue
-      SaveSetting = True
-    Close #iFileNumB
-  End If
-
-End Function
-
-Function GetSetting(sFile As String, sName As String, Optional sValue As String) As Boolean
-
-  Dim iFileNum As Long
-  Dim sVarName As String
-  Dim sVarValue As String
-  Dim lErrLast As Long
-
-  ' assume false unless variable is found
-  GetSetting = False
-
-  ' open text file to read settings
-  If FileExists(sFile) Then
-    iFileNum = FreeFile
-    Open sFile For Input As iFileNum
-      Do While Not EOF(iFileNum)
-        Input #iFileNum, sVarName, sVarValue
-        If sVarName = sName Then
-          sValue = sVarValue
-          GetSetting = True
-          Exit Do
-        End If
-      Loop
-    Close #iFileNum
-  End If
-
 End Function
 
 Function IsFullName(sFile As String) As Boolean
@@ -101,4 +26,3 @@ Function FileExists(ByVal FileSpec As String) As Boolean
       FileExists = Not ((Attr And vbDirectory) = vbDirectory)
    End If
 End Function
-

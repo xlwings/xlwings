@@ -1,4 +1,4 @@
-Attribute VB_Name = "main"
+Attribute VB_Name = "Main"
 'Option Explicit
 #If VBA7 Then
     #If Mac Then
@@ -31,45 +31,43 @@ Public Function RunPython(PythonCommand As String)
     ' Public API: Runs the Python command, e.g.: to run the function foo() in module bar, call the function like this:
     ' RunPython ("import bar; bar.foo()")
 
-    Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
-    Dim WORKBOOK_FULLNAME As String, LOG_FILE As String, DriveCommand As String, RunCommand As String
-    Dim ExitCode As Integer, Res As Integer
-    Dim UDF_DEBUG_SERVER As Boolean
+    Dim INTERPRETER As String, PYTHONPATH As String, LOG_FILE As String, OPTIMIZED_CONNECTION As String
 
-    PYTHONPATH = ActiveWorkbook.Path & ";" & settings.GetPythonpath
-    LOG_FILE = settings.GetLogfile
-    
+    INTERPRETER = GetConfig("INTERPRETER", "")
+    PYTHONPATH = ActiveWorkbook.Path & ";" & GetConfig("PYTHONPATH", "")
+    LOG_FILE = GetConfig("LOG_FILE", "")
+    OPTIMIZED_CONNECTION = GetConfig("UDF_SERVER", "False")
 
     ' Call Python platform-dependent
     #If Mac Then
             Application.StatusBar = "Running..."  ' Non-blocking way of giving feedback that something is happening
         #If MAC_OFFICE_VERSION >= 15 Then
-            ExecuteMac PythonCommand, settings.GetInterpreter, LOG_FILE, PYTHONPATH
+            ExecuteMac PythonCommand, INTERPRETER, LOG_FILE, PYTHONPATH
         #Else
-            ExcecuteMac2011 PythonCommand, settings.GetInterpreter, LOG_FILE, PYTHONPATH
+            ExcecuteMac2011 PythonCommand, INTERPRETER, LOG_FILE, PYTHONPATH
         #End If
     #Else
-        If settings.GetComServer = True Then
+        If OPTIMIZED_CONNECTION = "True" Then
             Py.SetAttr Py.Module("xlwings._xlwindows"), "BOOK_CALLER", ActiveWorkbook
             Py.Exec "" & PythonCommand & ""
         Else
-            ExecuteWindows False, PythonCommand, settings.GetInterpreter, LOG_FILE, PYTHONPATH
+            ExecuteWindows False, PythonCommand, INTERPRETER, LOG_FILE, PYTHONPATH
         End If
     #End If
 End Function
 
 Sub ExcecuteMac2011(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String, Optional PYTHONPATH As String)
+    #If Mac Then
     ' Run Python with the "-c" command line switch: add the path of the python file and run the
     ' Command as first argument, then provide the WORKBOOK_FULLNAME and "from_xl" as 2nd and 3rd arguments.
     ' Finally, redirect stderr to the LOG_FILE and run as background process.
 
     Dim PythonInterpreter As String, RunCommand As String, WORKBOOK_FULLNAME As String, Log As String
-    Dim Res As Integer
 
     If LOG_FILE = "" Then
         LOG_FILE = "/tmp/xlwings_log.txt"
     Else
-        LOG_FILE = ToPosixPath(settings.GetLogfile)
+        LOG_FILE = ToPosixPath(LOG_FILE)
     End If
 
     ' Delete Log file just to make sure we don't show an old error
@@ -112,10 +110,11 @@ Sub ExcecuteMac2011(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As S
             Application.StatusBar = False
         End If
     On Error GoTo 0
+    #End If
 End Sub
 
 Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String, Optional PYTHONPATH As String)
-
+    #If Mac Then
     Dim PythonInterpreter As String, RunCommand As String, WORKBOOK_FULLNAME As String, Log As String, ParameterString As String, ExitCode As String
     Dim Res As Integer
 
@@ -167,7 +166,7 @@ Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String
 
 AppleScriptErrorHandler:
     MsgBox "To enable RunPython, please run 'xlwings runpython install' in a terminal once and try again.", vbCritical
-
+    #End If
 End Sub
 
 Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As String, LOG_FILE As String, Optional PYTHONPATH As String)
@@ -242,9 +241,10 @@ Public Function RunFrozenPython(Executable As String)
     ' Runs a Python executable that has been frozen by cx_Freeze or py2exe. Call the function like this:
     ' RunFrozenPython("frozen_executable.exe"). Currently not implemented for Mac.
 
-    Dim PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String, LOG_FILE As String
-    Dim UDF_DEBUG_SERVER As Boolean
-    Dim Res As Integer
+    Dim PYTHON_FROZEN As String, LOG_FILE As String
+
+    PYTHON_FROZEN = GetConfig("PYTHON_FROZEN", ThisWorkbook.Path & "build\exe.win32-2.7")
+    LOG_FILE = GetConfig("LOG_FILE", "")
 
     ' Call Python
     #If Mac Then
@@ -256,15 +256,14 @@ Public Function RunFrozenPython(Executable As String)
 End Function
 
 Function GetUdfmodules() As String
-    Dim PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
-    Dim LOG_FILE As String
-    Dim Res As Integer
-    Dim UDF_DEBUG_SERVER As Boolean
+    Dim UDF_MODULES As String
 
-    If settings.GetUdfmodules = "" Then
+    UDF_MODULES = GetConfig("UDF_MODULES", "")
+
+    If UDF_MODULES = "" Then
         GetUdfmodules = Left$(ActiveWorkbook.Name, Len(ActiveWorkbook.Name) - 5) ' assume that it ends in .xlsm
     Else
-        GetUdfmodules = settings.GetUdfmodules
+        GetUdfmodules = UDF_MODULES
     End If
 End Function
 
@@ -354,23 +353,23 @@ Function ToPosixPath(ByVal MacPath As String) As String
     End If
 End Function
 
-Function GetMacDir(Name As String) As String
+Function GetMacDir(dirName As String) As String
     ' Get Mac special folders. Protetcted so they don't exectue on Windows.
 
     Dim Path As String
 
     #If Mac Then
-        Select Case Name
+        Select Case dirName
             Case "Home"
-                Path = MacScript("return (path to home folder) as string")
+                Path = MacScript("return POSIX path of (path to home folder) as string")
              Case "Desktop"
-                Path = MacScript("return (path to desktop folder) as string")
+                Path = MacScript("return POSIX path of (path to desktop folder) as string")
             Case "Applications"
-                Path = MacScript("return (path to applications folder) as string")
+                Path = MacScript("return POSIX path of (path to applications folder) as string")
             Case "Documents"
-                Path = MacScript("return (path to documents folder) as string")
+                Path = MacScript("return POSIX path of (path to documents folder) as string")
         End Select
-            GetMacDir = Left$(Path, Len(Path) - 1) ' get rid of trailing ":"
+            GetMacDir = Left$(Path, Len(Path) - 1) ' get rid of trailing "/"
     #Else
         GetMacDir = ""
     #End If
@@ -442,32 +441,24 @@ Function ParentFolder(ByVal Folder)
 End Function
 
 Function XLPyCommand()
-    Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
-    Dim LOG_FILE As String, Tail As String
-    Dim Res As Integer
-    
-    PYTHONPATH = ActiveWorkbook.Path & ";" & settings.GetPythonpath
-    PYTHON_WIN = settings.GetInterpreter
+    Dim PYTHON_WIN As String, PYTHONPATH As String, LOG_FILE As String, tail As String
 
-    If settings.GetUdfDebug = True Then
+    PYTHONPATH = ActiveWorkbook.Path & ";" & GetConfig("PYTHONPATH", "")
+    PYTHON_WIN = GetConfig("INTERPRETER", "pythonw")
+    UDF_DEBUG = GetConfig("UDF_DEBUG", "False")
+
+    If UDF_DEBUG = "True" Then
         XLPyCommand = "{506e67c3-55b5-48c3-a035-eed5deea7d6d}"
     Else
-        Tail = " -B -c ""import sys, os;sys.path.extend(os.path.normcase(os.path.expandvars(r'" & PYTHONPATH & "')).split(';'));import xlwings.server; xlwings.server.serve('$(CLSID)')"""
-        If PYTHON_WIN <> "python" And PYTHON_WIN <> "pythonw" Then
-            XLPyCommand = PYTHON_WIN + Tail
-        Else
-            XLPyCommand = "pythonw.exe" + Tail
-        End If
+        tail = " -B -c ""import sys, os;sys.path.extend(os.path.normcase(os.path.expandvars(r'" & PYTHONPATH & "')).split(';'));import xlwings.server; xlwings.server.serve('$(CLSID)')"""
+            XLPyCommand = PYTHON_WIN + tail
     End If
 End Function
 
 Private Sub XLPyLoadDLL()
-    Dim PYTHON_WIN As String, PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
-    Dim LOG_FILE As String, Tail As String
-    Dim Res As Integer
-    Dim UDF_DEBUG_SERVER As Boolean
-    
-    PYTHON_WIN = settings.GetInterpreter
+    Dim PYTHON_WIN As String
+
+    PYTHON_WIN = GetConfig("INTERPRETER", "pythonw")
 
     If PYTHON_WIN <> "python" And PYTHON_WIN <> "pythonw" Then
         If LoadLibrary(ParentFolder(PYTHON_WIN) + "\" + XLPyDLLName) = 0 Then  ' Standard installation
