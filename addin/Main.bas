@@ -1,4 +1,3 @@
-Attribute VB_Name = "Main"
 'Option Explicit
 #If VBA7 Then
     #If Mac Then
@@ -255,15 +254,15 @@ Public Function RunFrozenPython(Executable As String)
     #End If
 End Function
 
-Function GetUdfmodules() As String
+Function GetUdfModules() As String
     Dim UDF_MODULES As String
 
     UDF_MODULES = GetConfig("UDF_MODULES", "")
 
     If UDF_MODULES = "" Then
-        GetUdfmodules = Left$(ActiveWorkbook.Name, Len(ActiveWorkbook.Name) - 5) ' assume that it ends in .xlsm
+        GetUdfModules = Left$(ActiveWorkbook.Name, Len(ActiveWorkbook.Name) - 5) ' assume that it ends in .xlsm
     Else
-        GetUdfmodules = UDF_MODULES
+        GetUdfModules = UDF_MODULES
     End If
 End Function
 
@@ -500,6 +499,6 @@ End Sub
 
 Sub ImportPythonUDFs()
     Dim tempPath As String
-    tempPath = Py.Str(Py.Call(Py.Module("xlwings"), "import_udfs", Py.Tuple(GetUdfmodules, ActiveWorkbook)))
+    tempPath = Py.Str(Py.Call(Py.Module("xlwings"), "import_udfs", Py.Tuple(GetUdfModules, ActiveWorkbook)))
 End Sub
 
