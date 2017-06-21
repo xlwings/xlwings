@@ -8,6 +8,7 @@ except:
     raise Exception("Cannot import PyWin32. Are you sure it's installed?")
 import sys
 import os
+import logging
 # Hack to find pythoncom.dll - needed for some distribution/setups
 # E.g. if python is started with the full path outside of the python path, then it almost certainly fails
 cwd = os.getcwd()
@@ -338,13 +339,13 @@ def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
 def _execute_task(task):
     try:
         task()
+        logging.debug("Task '{0}' was properly sent to Microsoft Excel.".format(task))
     except Exception as e:
         if _ask_for_retry(e) and _can_retry(task):
-            print("Retrying TaskQueue '%s'." % task)
+            logging.warning("Call was rejected by Microsoft Excel. Retrying task '{0}'.".format(task))
             _execute_task(task)
         else:
-            import traceback
-            print("TaskQueue '%s' threw an exception: %s" % (task, traceback.format_exc()))
+            logging.exception("An error occurred while executing task '{0}'.".format(task))
 
 
 def _can_retry(task):
