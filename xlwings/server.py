@@ -25,6 +25,7 @@ import win32com.client
 import win32com.server.util as serverutil
 import win32com.server.dispatcher
 import win32com.server.policy
+import logging
 
 from .udfs import call_udf
 
