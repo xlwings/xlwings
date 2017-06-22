@@ -338,17 +338,33 @@ def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
 def _execute_task(task):
     try:
         task()
+        logging.debug("Task '{0}' was properly sent to Microsoft Excel.".format(task))
+        for retry_task in retry_queue:
+            # If a retry failed it means that there is still call to be performed
+            # (It should really never occurs as the task triggering those retry was not rejected).
+            if not _retry_task(retry_task):
+                return
+        retry_queue[:] = []
     except Exception as e:
-        if _ask_for_retry(e) and _can_retry(task):
-            print("Retrying TaskQueue '%s'." % task)
-            _execute_task(task)
+        if _ask_for_retry(e):
+            # At least one more call is still to be performed so wait for this new call.
+            logging.debug("Task '{0}' should be retried and was added to the queue.".format(task))
+            retry_queue.append(task)
         else:
-            import traceback
-            print("TaskQueue '%s' threw an exception: %s" % (task, traceback.format_exc()))
+            logging.exception("An error occurred while executing task '{0}'.".format(task))
 
 
-def _can_retry(task):
-    return hasattr(task, 'nb_remaining_call') and task.nb_remaining_call > 0
+def _retry_task(task):
+    try:
+        task()
+        logging.debug("Task '{0}' was properly sent to Microsoft Excel (after retry).".format(task))
+    except Exception as e:
+        if _ask_for_retry(e):
+            logging.warning("Task '{0}' retry failed. Waiting for next successful call to retry.".format(task))
+            return False
+        else:
+            logging.exception("An error occurred while executing task '{0}'.".format(task))
+    return True
 
 RPC_E_SERVERCALL_RETRYLATER = -2147418111
 
