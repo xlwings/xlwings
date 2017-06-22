@@ -277,6 +277,7 @@ class XLPython(object):
         exec (stmt, globals, locals)
 
 
+retry_queue = []
 idle_queue = []
 idle_queue_event = win32event.CreateEvent(None, 0, 0, None)
 
