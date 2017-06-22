@@ -171,17 +171,13 @@ udf_modules = {}
 
 
 class DelayWrite(object):
-    MAX_NUMBER_RETRY = 10
-    
     def __init__(self, rng, options, value, caller):
         self.range = rng
         self.options = options
         self.value = value
         self.skip = (caller.Rows.Count, caller.Columns.Count)
-        self.nb_remaining_call = DelayWrite.MAX_NUMBER_RETRY
 
     def __call__(self, *args, **kwargs):
-        self.nb_remaining_call -= 1
         conversion.write(
             self.value,
             self.range,
