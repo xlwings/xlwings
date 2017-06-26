@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import sys
 
+
 __version__ = '0.10.4'
 
 # Python 2 vs 3
