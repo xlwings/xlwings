@@ -20,8 +20,9 @@ End Sub
 
 Sub GetInterpreter(control As IRibbonControl, ByRef returnedVal)
     Dim setting As String
-    returnedVal = GetConfigFromFile(GetConfigFilePath, "INTERPRETER", setting)
-    If returnedVal = False Then
+    If GetConfigFromFile(GetConfigFilePath(), "INTERPRETER", setting) Then
+        returnedVal = setting
+    Else
         returnedVal = ""
     End If
 End Sub
@@ -32,8 +33,9 @@ End Sub
 
 Sub GetPythonpath(control As IRibbonControl, ByRef returnedVal)
     Dim setting As String
-    returnedVal = GetConfigFromFile(GetConfigFilePath, "PYTHONPATH", setting)
-    If returnedVal = False Then
+    If GetConfigFromFile(GetConfigFilePath, "PYTHONPATH", setting) Then
+        returnedVal = setting
+    Else
         returnedVal = ""
     End If
 End Sub
@@ -44,8 +46,9 @@ End Sub
 
 Sub GetLogfile(control As IRibbonControl, ByRef returnedVal)
     Dim setting As String
-    returnedVal = GetConfigFromFile(GetConfigFilePath, "LOG FILE", setting)
-    If returnedVal = False Then
+    If GetConfigFromFile(GetConfigFilePath, "LOG FILE", setting) Then
+        returnedVal = setting
+    Else
         returnedVal = ""
     End If
 End Sub
@@ -56,8 +59,9 @@ End Sub
 
 Sub GetUdfModules(control As IRibbonControl, ByRef returnedVal)
     Dim setting As String
-    returnedVal = GetConfigFromFile(GetConfigFilePath, "UDF MODULES", setting)
-    If returnedVal = False Then
+    If GetConfigFromFile(GetConfigFilePath, "UDF MODULES", setting) Then
+        returnedVal = setting
+    Else
         returnedVal = ""
     End If
 End Sub
@@ -68,9 +72,10 @@ End Sub
 
 Sub GetPressedUdfDebug(control As IRibbonControl, ByRef pressed)
     Dim setting As String
-    returnedVal = GetConfigFromFile(GetConfigFilePath, "DEBUG UDFS", setting)
-    If returnedVal = False Then
-        returnedVal = ""
+    If GetConfigFromFile(GetConfigFilePath, "DEBUG UDFS", setting) Then
+        pressed = setting
+    Else
+        pressed = False
     End If
 End Sub
 
@@ -80,9 +85,10 @@ End Sub
 
 Sub GetPressedUdfServer(control As IRibbonControl, ByRef pressed)
     Dim setting As String
-    returnedVal = GetConfigFromFile(GetConfigFilePath, "USE UDF SERVER", setting)
-    If returnedVal = False Then
-        returnedVal = ""
+    If GetConfigFromFile(GetConfigFilePath, "USE UDF SERVER", setting) Then
+        pressed = setting
+    Else
+        pressed = ""
     End If
 End Sub
 

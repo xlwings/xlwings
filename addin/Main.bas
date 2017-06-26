@@ -1,3 +1,4 @@
+Attribute VB_Name = "Main"
 'Option Explicit
 #If VBA7 Then
     #If Mac Then
