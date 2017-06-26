@@ -1,6 +1,12 @@
 What's New
 ==========
 
+v0.10.4 (Feb 19, 2017)
+----------------------
+
+* [Win] Bug Fix: v0.10.3 introduced a bug that imported UDFs by default with `volatile=True`, this has now been fixed.
+  You will need to reimport your functions after upgrading the xlwings package.
+
 v0.10.3 (Jan 28, 2017)
 ----------------------
 

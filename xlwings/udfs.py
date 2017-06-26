@@ -85,7 +85,7 @@ def check_volatile(**func_kwargs):
         if isinstance(volatile, bool):
             return volatile
         raise Exception('volatile only takes boolean values ("{0}" provided).'.format(volatile))
-    return True
+    return False
 
 
 def xlfunc(f=None, **kwargs):

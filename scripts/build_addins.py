@@ -1,5 +1,6 @@
 import os
-from xlwings import Book, FileFormat
+from xlwings import Book
+from xlwings.constants import FileFormat
 
 """
 TODO: might make sense to refactor VBA module like this instead of replacing ThisWorkbook with ActiveWorkbook:
@@ -24,21 +25,21 @@ def build_addins():
     wb = Book()
 
     # remove unneeded sheets
-    for sh in list(wb.xl_workbook.Sheets)[1:]:
+    for sh in list(wb.sheets.api)[1:]:
         sh.Delete()
 
     # rename vbproject
-    wb.xl_workbook.VBProject.Name = "xlwings"
+    wb.api.VBProject.Name = "xlwings"
     
     # import modules
-    wb.xl_workbook.VBProject.VBComponents.Import(os.path.join(this_dir, "xlwings_addin.bas"))
+    wb.api.VBProject.VBComponents.Import(os.path.join(this_dir, "xlwings_addin.bas"))
     
     # save to xla and xlam
-    wb.xl_workbook.IsAddin = True
-    wb.xl_workbook.Application.DisplayAlerts = False
-    # wb.xl_workbook.SaveAs(os.path.join(this_dir, "xlwings.xla"), FileFormat.xlAddIn)
-    wb.xl_workbook.SaveAs(os.path.join(this_dir, "xlwings.xlam"), FileFormat.xlOpenXMLAddIn)
-    wb.xl_workbook.Application.DisplayAlerts = True
+    wb.api.IsAddin = True
+    wb.app.display_alerts = False
+    # wb.api.SaveAs(os.path.join(this_dir, "xlwings.xla"), FileFormat.xlAddIn)
+    wb.api.SaveAs(os.path.join(this_dir, "xlwings.xlam"), FileFormat.xlOpenXMLAddIn)
+    wb.app.display_alerts = True
 
     # clean up
     wb.close()
