@@ -23,13 +23,11 @@ Err:
 End Function
 
 Function GetConfigFilePath() As String
-    Dim tail As String
-
-    tail = "\.xlwings\xlwings.conf"
     #If Mac Then
-        GetConfigFilePath = GetMacDir("Home") & tail
+        ' /Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings.conf
+        GetConfigFilePath = GetMacDir("Home") & "/xlwings.conf"
     #Else
-        GetConfigFilePath = Environ("USERPROFILE") & tail
+        GetConfigFilePath = Environ("USERPROFILE") & "\.xlwings\xlwings.conf"
     #End If
 End Function
 

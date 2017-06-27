@@ -437,7 +437,11 @@ Private Sub CleanUp()
 End Sub
 
 Function ParentFolder(ByVal Folder)
-  ParentFolder = Left$(Folder, InStrRev(Folder, "\") - 1)
+  #If Mac Then
+      ParentFolder = Left$(Folder, InStrRev(Folder, "/") - 1)
+  #Else
+      ParentFolder = Left$(Folder, InStrRev(Folder, "\") - 1)
+  #End If
 End Function
 
 Function XLPyCommand()
@@ -502,4 +506,3 @@ Sub ImportPythonUDFs()
     Dim tempPath As String
     tempPath = Py.Str(Py.Call(Py.Module("xlwings"), "import_udfs", Py.Tuple(GetUdfModules, ActiveWorkbook)))
 End Sub
-
