@@ -3,6 +3,8 @@ Attribute VB_Name = "Ribbon"
 ' Custom UI Editor: http://openxmldeveloper.org/blog/b/openxmldeveloper/archive/2006/05/26/customuieditor.aspx
 
 Sub ImportFunctions(control As IRibbonControl)
+    #If Mac Then
+    #Else
     Set wb = ActiveWorkbook
 
     If LCase$(Right$(wb.Name, 5)) <> ".xlsm" And LCase$(Right$(wb.Name, 5)) <> ".xlsb" Then
@@ -12,6 +14,7 @@ Sub ImportFunctions(control As IRibbonControl)
 
     ImportPythonUDFs
     Set wb = Nothing
+    #End If
 End Sub
 
 Sub SetInterpreter(control As IRibbonControl, text As String)
@@ -54,44 +57,65 @@ Sub GetLogfile(control As IRibbonControl, ByRef returnedVal)
 End Sub
 
 Sub SetUdfModules(control As IRibbonControl, text As String)
-    tf = SaveConfigToFile(GetConfigFilePath, "UDF MODULES", text)
+    #If Mac Then
+    #Else
+        tf = SaveConfigToFile(GetConfigFilePath, "UDF MODULES", text)
+    #End If
 End Sub
 
 Sub GetUdfModules(control As IRibbonControl, ByRef returnedVal)
-    Dim setting As String
-    If GetConfigFromFile(GetConfigFilePath, "UDF MODULES", setting) Then
-        returnedVal = setting
-    Else
-        returnedVal = ""
-    End If
+    #If Mac Then
+    #Else
+        Dim setting As String
+        If GetConfigFromFile(GetConfigFilePath, "UDF MODULES", setting) Then
+            returnedVal = setting
+        Else
+            returnedVal = ""
+        End If
+    #End If
 End Sub
 
 Sub ChangeUdfDebug(control As IRibbonControl, pressed As Boolean)
+    #If Mac Then
+    #Else
     tf = SaveConfigToFile(GetConfigFilePath, "DEBUG UDFS", CStr(pressed))
+    #End If
 End Sub
 
 Sub GetPressedUdfDebug(control As IRibbonControl, ByRef pressed)
+    #If Mac Then
+    #Else
     Dim setting As String
     If GetConfigFromFile(GetConfigFilePath, "DEBUG UDFS", setting) Then
         pressed = setting
     Else
         pressed = False
     End If
+    #End If
 End Sub
 
 Sub ChangeUdfServer(control As IRibbonControl, pressed As Boolean)
+    #If Mac Then
+    #Else
     tf = SaveConfigToFile(GetConfigFilePath, "USE UDF SERVER", CStr(pressed))
+    #End If
 End Sub
 
 Sub GetPressedUdfServer(control As IRibbonControl, ByRef pressed)
+    #If Mac Then
+    #Else
     Dim setting As String
     If GetConfigFromFile(GetConfigFilePath, "USE UDF SERVER", setting) Then
         pressed = setting
     Else
         pressed = ""
     End If
+    #End If
 End Sub
 
 Sub RestartPython(control As IRibbonControl)
+    #If Mac Then
+    #Else
     KillPy
+    #End If
 End Sub
