@@ -36,6 +36,18 @@ from .main import apps, books, sheets
 # UDFs
 if sys.platform.startswith('win'):
     from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, get_udf_module, import_udfs
+else:
+    def func(f):
+        return f
+
+    def sub(f):
+        return f
+
+    def ret(f):
+        return f
+
+    def arg(f):
+        return f
 
 
 def xlfunc(*args, **kwargs):
