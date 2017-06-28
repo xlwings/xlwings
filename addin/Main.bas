@@ -95,9 +95,9 @@ Sub ExcecuteMac2011(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As S
     'Check if .bash_profile is existing and source it
     Res = system("source ~/.bash_profile")
     If Res = 0 Then
-        Res = system("source ~/.bash_profile;" & RunCommand & """" & WORKBOOK_FULLNAME & """ ""from_xl""" & " " & Chr(34) & ToPosixPath(Application.Path) & "/" & Application.Name & Chr(34) & ">" & Chr(34) & LOG_FILE & Chr(34) & " 2>&1 &")
+        Res = system("source ~/.bash_profile;" & RunCommand & """" & WORKBOOK_FULLNAME & """ ""from_xl""" & " " & Chr(34) & ToPosixPath(Application.Path) & "/" & Application.Name & Chr(34) & "> /dev/null 2>" & Chr(34) & LOG_FILE & Chr(34) & " &")
     Else
-        Res = system(RunCommand & """" & WORKBOOK_FULLNAME & """ ""from_xl""" & " " & Chr(34) & ToPosixPath(Application.Path) & "/" & Application.Name & Chr(34) & ">" & Chr(34) & LOG_FILE & Chr(34) & " 2>&1 &")
+        Res = system(RunCommand & """" & WORKBOOK_FULLNAME & """ ""from_xl""" & " " & Chr(34) & ToPosixPath(Application.Path) & "/" & Application.Name & Chr(34) & "> /dev/null 2>" & Chr(34) & LOG_FILE & Chr(34) & " &")
     End If
 
     ' If there's a log at this point (normally that will be from the Shell only, not Python) show it and reset the StatusBar
@@ -306,14 +306,14 @@ Sub ShowError(FileName As String)
     Const AUTO_DISMISS = 0
 
     Content = ReadFile(FileName)
-    #If Win32 Or Win64 Then
+    #If Mac Then
+        MsgBox Content, vbCritical, "Error"
+    #Else
         Content = Content & vbCrLf
         Content = Content & "Press Ctrl+C to copy this message to the clipboard."
 
         Set objShell = CreateObject("Wscript.Shell")
         objShell.Popup Content, AUTO_DISMISS, "Error", OK_BUTTON_ERROR
-    #Else
-        MsgBox Content, vbCritical, "Error"
     #End If
 
 End Sub
