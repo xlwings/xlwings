@@ -1,41 +1,20 @@
 Attribute VB_Name = "Config"
-Public Const CONFIG_SHEET = "xlwings.conf"
-
-Function ConfigSheetExists() As Boolean
-    Dim sht As Worksheet
-    On Error Resume Next
-        Set sht = ActiveWorkbook.Sheets(CONFIG_SHEET)
-    On Error GoTo 0
-    ConfigSheetExists = Not sht Is Nothing
-End Function
-
-Function ConfigFileExists() As Boolean
-    On Error GoTo Err 'Fails on Mac if it doesn't exist
-    If Dir(GetConfigFilePath) <> "" Then
-    On Error GoTo 0
-        ConfigFileExists = True
-    Else
-        ConfigFileExists = False
-    End If
-    Exit Function
-Err:
-    ConfigFileExists = False
-End Function
+Const CONFIG_NAME As String = "xlwings.conf"
 
 Function GetConfigFilePath() As String
     #If Mac Then
-        ' /Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings.conf
-        GetConfigFilePath = GetMacDir("Home") & "/xlwings.conf"
+        ' ~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf
+        GetConfigFilePath = GetMacDir("Home") & "/" & CONFIG_NAME
     #Else
-        GetConfigFilePath = Environ("USERPROFILE") & "\.xlwings\xlwings.conf"
+        GetConfigFilePath = Environ("USERPROFILE") & "\.xlwings\" & CONFIG_NAME
     #End If
 End Function
 
-Function GetSheetConfig() As Dictionary
+Function GetConfigFromSheet() As Dictionary
     Dim d As Dictionary
     Dim lastCell As Range
     Set d = New Dictionary
-    Set sht = ActiveWorkbook.Sheets(CONFIG_SHEET)
+    Set sht = ActiveWorkbook.Sheets(CONFIG_NAME)
 
     If sht.Range("A2") = "" Then
         Set lastCell = sht.Range("A1")
@@ -46,21 +25,18 @@ Function GetSheetConfig() As Dictionary
     For Each cell In Range(sht.Range("A1"), lastCell)
         d.Add UCase(cell.Value), cell.Offset(0, 1).Value
     Next cell
-    Set GetSheetConfig = d
+    Set GetConfigFromSheet = d
 End Function
 
-Function GetConfig(configKey As String, Optional default As String) As Variant
+Function GetConfig(configKey As String, Optional default As String = "") As Variant
+    ' An entry in xlwings.conf sheet overrides the config file/ribbon
     Dim configValue As String
-    ' A entry in xlwings.conf sheet overrides the config file/ribbon
-    If IsMissing(default) Then
-        default = ""
+
+    If SheetExists(CONFIG_NAME) = True Then
+        GetConfig = GetConfigFromSheet.Item(configKey)
     End If
 
-    If ConfigSheetExists = True Then
-        GetConfig = GetSheetConfig.Item(configKey)
-    End If
-
-    If GetConfig = "" And ConfigFileExists = True Then
+    If GetConfig = "" And FileExists(GetConfigFilePath()) = True Then
         If GetConfigFromFile(GetConfigFilePath(), configKey, configValue) Then
             GetConfig = configValue
         End If

@@ -6,12 +6,12 @@ Attribute VB_Name = "Main"
     #End If
     #If Win64 Then
         Const XLPyDLLName As String = "xlwings64.dll"
-        Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlwings64.dll" (ByRef result As Variant, Optional ByVal config As String = "", Optional ByVal mode As Long = 1) As Long
+        Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlwings64.dll" (ByRef result As Variant, Optional ByVal Config As String = "", Optional ByVal mode As Long = 1) As Long
         Declare PtrSafe Function XLPyDLLNDims Lib "xlwings64.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
         Declare PtrSafe Function XLPyDLLVersion Lib "xlwings64.dll" (tag As String, version As Double, arch As String) As Long
     #Else
         Private Const XLPyDLLName As String = "xlwings32.dll"
-        Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlwings32.dll" (ByRef result As Variant, Optional ByVal config As String = "", Optional ByVal mode As Long = 1) As Long
+        Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlwings32.dll" (ByRef result As Variant, Optional ByVal Config As String = "", Optional ByVal mode As Long = 1) As Long
         Private Declare PtrSafe Function XLPyDLLNDims Lib "xlwings32.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
         Private Declare PtrSafe Function XLPyDLLVersion Lib "xlwings32.dll" (tag As String, version As Double, arch As String) As Long
     #End If
@@ -21,7 +21,7 @@ Attribute VB_Name = "Main"
         Private Declare Function system Lib "libc.dylib" (ByVal Command As String) As Long
     #End If
     Private Const XLPyDLLName As String = "xlwings32.dll"
-    Private Declare Function XLPyDLLActivateAuto Lib "xlwings32.dll" (ByRef result As Variant, Optional ByVal config As String = "", Optional ByVal mode As Long = 1) As Long
+    Private Declare Function XLPyDLLActivateAuto Lib "xlwings32.dll" (ByRef result As Variant, Optional ByVal Config As String = "", Optional ByVal mode As Long = 1) As Long
     Private Declare Function XLPyDLLNDims Lib "xlwings32.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
     Private Declare Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
     Declare Function XLPyDLLVersion Lib "xlwings32.dll" (tag As String, version As Double, arch As String) As Long
@@ -31,12 +31,13 @@ Public Function RunPython(PythonCommand As String)
     ' Public API: Runs the Python command, e.g.: to run the function foo() in module bar, call the function like this:
     ' RunPython ("import bar; bar.foo()")
 
-    Dim INTERPRETER As String, PYTHONPATH As String, LOG_FILE As String, OPTIMIZED_CONNECTION As String
+    Dim INTERPRETER As String, PYTHONPATH As String, LOG_FILE As String
+    Dim OPTIMIZED_CONNECTION As Boolean
 
-    INTERPRETER = GetConfig("INTERPRETER", "")
-    PYTHONPATH = ActiveWorkbook.Path & ";" & GetConfig("PYTHONPATH", "")
-    LOG_FILE = GetConfig("LOG_FILE", "")
-    OPTIMIZED_CONNECTION = GetConfig("UDF_SERVER", "False")
+    INTERPRETER = GetConfig("INTERPRETER", "python")
+    PYTHONPATH = ActiveWorkbook.Path & ";" & GetConfig("PYTHONPATH")
+    LOG_FILE = GetConfig("LOG FILE")
+    OPTIMIZED_CONNECTION = GetConfig("USE UDF SERVER", False)
 
     ' Call Python platform-dependent
     #If Mac Then
@@ -47,7 +48,7 @@ Public Function RunPython(PythonCommand As String)
             ExcecuteMac2011 PythonCommand, INTERPRETER, LOG_FILE, PYTHONPATH
         #End If
     #Else
-        If OPTIMIZED_CONNECTION = "True" Then
+        If OPTIMIZED_CONNECTION = True Then
             Py.SetAttr Py.Module("xlwings._xlwindows"), "BOOK_CALLER", ActiveWorkbook
             Py.Exec "" & PythonCommand & ""
         Else
@@ -65,7 +66,7 @@ Sub ExcecuteMac2011(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As S
     Dim PythonInterpreter As String, RunCommand As String, WORKBOOK_FULLNAME As String, Log As String
 
     If LOG_FILE = "" Then
-        LOG_FILE = "/tmp/xlwings_log.txt"
+        LOG_FILE = "/tmp/xlwings.log"
     Else
         LOG_FILE = ToPosixPath(LOG_FILE)
     End If
@@ -100,7 +101,7 @@ Sub ExcecuteMac2011(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As S
         Res = system(RunCommand & """" & WORKBOOK_FULLNAME & """ ""from_xl""" & " " & Chr(34) & ToPosixPath(Application.Path) & "/" & Application.Name & Chr(34) & "> /dev/null 2>" & Chr(34) & LOG_FILE & Chr(34) & " &")
     End If
 
-    ' If there's a log at this point (normally that will be from the Shell only, not Python) show it and reset the StatusBar
+    ' If there's a log at this point (normally that will be from the shell only, not Python) show it and reset the StatusBar
     On Error Resume Next
         Log = ReadFile(LOG_FILE)
         If Log = "" Then
@@ -116,7 +117,6 @@ End Sub
 Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String, Optional PYTHONPATH As String)
     #If Mac Then
     Dim PythonInterpreter As String, RunCommand As String, WORKBOOK_FULLNAME As String, Log As String, ParameterString As String, ExitCode As String
-    Dim Res As Integer
 
     ' Transform paths
     PYTHONPATH = ToPosixPath(PYTHONPATH)
@@ -130,7 +130,7 @@ Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String
     WORKBOOK_FULLNAME = ToPosixPath(ActiveWorkbook.FullName)
     If LOG_FILE = "" Then
         ' Sandbox location that requires no file access confirmation
-        LOG_FILE = Environ("HOME") + "/xlwings_log.txt" '/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt
+        LOG_FILE = Environ("HOME") + "/xlwings.log" '/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt
     Else
         LOG_FILE = ToPosixPath(LOG_FILE)
     End If
@@ -152,7 +152,7 @@ Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String
         ExitCode = AppleScriptTask("xlwings.applescript", "VbaHandler", ParameterString)
     On Error GoTo 0
 
-    ' If there's a log at this point (normally that will be from the Shell only, not Python) show it and reset the StatusBar
+    ' If there's a log at this point (normally that will be from the shell only, not Python) show it and reset the StatusBar
     On Error Resume Next
         Log = ReadFile(LOG_FILE)
         If Log = "" Then
@@ -182,7 +182,7 @@ Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As S
     Dim ExitCode As Integer
 
     If LOG_FILE = "" Then
-        LOG_FILE = Environ("APPDATA") + "\xlwings_log.txt"
+        LOG_FILE = Environ("APPDATA") + "\xlwings.log"
     End If
 
     If Not IsFrozen And (PYTHON_WIN <> "python" And PYTHON_WIN <> "pythonw") Then
@@ -230,7 +230,7 @@ Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As S
 
     ' Delete file after the error message has been shown
     On Error Resume Next
-        Kill LOG_FILE
+        'Kill LOG_FILE
     On Error GoTo 0
 
     ' Clean up
@@ -239,26 +239,25 @@ End Sub
 
 Public Function RunFrozenPython(Executable As String)
     ' Runs a Python executable that has been frozen by cx_Freeze or py2exe. Call the function like this:
-    ' RunFrozenPython("frozen_executable.exe"). Currently not implemented for Mac.
+    ' RunFrozenPython("C:\path\to\frozen_executable.exe"). Currently not implemented for Mac.
 
-    Dim PYTHON_FROZEN As String, LOG_FILE As String
+    Dim LOG_FILE As String
 
-    PYTHON_FROZEN = GetConfig("PYTHON_FROZEN", ThisWorkbook.Path & "build\exe.win32-2.7")
-    LOG_FILE = GetConfig("LOG_FILE", "")
+    LOG_FILE = GetConfig("LOG FILE")
 
     ' Call Python
     #If Mac Then
         MsgBox "This functionality is not yet supported on Mac." & vbNewLine & _
                "Please run your scripts directly in Python!", vbCritical + vbOKOnly, "Unsupported Feature"
     #Else
-        ExecuteWindows True, Executable, PYTHON_FROZEN, LOG_FILE
+        ExecuteWindows True, Executable, ParentFolder(Executable), LOG_FILE
     #End If
 End Function
 
 Function GetUdfModules() As String
     Dim UDF_MODULES As String
 
-    UDF_MODULES = GetConfig("UDF_MODULES", "")
+    UDF_MODULES = GetConfig("UDF MODULES")
 
     If UDF_MODULES = "" Then
         GetUdfModules = Left$(ActiveWorkbook.Name, Len(ActiveWorkbook.Name) - 5) ' assume that it ends in .xlsm
@@ -267,151 +266,17 @@ Function GetUdfModules() As String
     End If
 End Function
 
-Function ReadFile(ByVal FileName As String)
-    ' Read a text file
-
-    Dim Content As String
-    Dim Token As String
-    Dim FileNum As Integer
-    Dim objShell As Object
-
-    #If Mac Then
-        FileName = ToMacPath(FileName)
-    #Else
-        Set objShell = CreateObject("WScript.Shell")
-        FileName = objShell.ExpandEnvironmentStrings(FileName)
-    #End If
-
-    FileNum = FreeFile
-    Content = ""
-
-    ' Read Text File
-    Open FileName For Input As #FileNum
-        Do While Not EOF(FileNum)
-            Line Input #FileNum, Token
-            Content = Content & Token & vbCrLf
-        Loop
-    Close #FileNum
-
-    ReadFile = Content
-End Function
-
-Sub ShowError(FileName As String)
-    ' Shows a MsgBox with the content of a text file
-
-    Dim Content As String
-    Dim objShell
-
-    Const OK_BUTTON_ERROR = 16
-    Const AUTO_DISMISS = 0
-
-    Content = ReadFile(FileName)
-    #If Mac Then
-        MsgBox Content, vbCritical, "Error"
-    #Else
-        Content = Content & vbCrLf
-        Content = Content & "Press Ctrl+C to copy this message to the clipboard."
-
-        Set objShell = CreateObject("Wscript.Shell")
-        objShell.Popup Content, AUTO_DISMISS, "Error", OK_BUTTON_ERROR
-    #End If
-
-End Sub
-
-Function ToPosixPath(ByVal MacPath As String) As String
-    'This function accepts relative paths with backward and forward slashes: ActiveWorkbook & "\test"
-    ' E.g. "MacintoshHD:Users:<User>" --> "/Users/<User>"
-
-    Dim s As String
-    Dim LeadingSlash As Boolean
-
-    If MacPath = "" Then
-        ToPosixPath = ""
-    Else
-        #If MAC_OFFICE_VERSION < 15 Then
-            If Left$(MacPath, 1) = "/" Then
-                LeadingSlash = True
-            End If
-            MacPath = Replace(MacPath, "\", ":")
-            MacPath = Replace(MacPath, "/", ":")
-            s = "tell application " & Chr(34) & "Finder" & Chr(34) & Chr(13)
-            s = s & "POSIX path of " & Chr(34) & MacPath & Chr(34) & Chr(13)
-            s = s & "end tell" & Chr(13)
-            If LeadingSlash = True Then
-                ToPosixPath = "/" + MacScript(s)
-            Else
-                ToPosixPath = MacScript(s)
-            End If
-            If Left$(ToPosixPath, 2) = "/$" Then
-                ' If it starts with an env variables, it's otherwise not correctly returned
-                ToPosixPath = Right$(ToPosixPath, Len(ToPosixPath) - 1)
-            End If
-
-        #Else
-            ToPosixPath = Replace(MacPath, "\", "/")
-        #End If
-    End If
-End Function
-
-Function GetMacDir(dirName As String) As String
-    ' Get Mac special folders. Protetcted so they don't exectue on Windows.
-
-    Dim Path As String
-
-    #If Mac Then
-        Select Case dirName
-            Case "Home"
-                Path = MacScript("return POSIX path of (path to home folder) as string")
-             Case "Desktop"
-                Path = MacScript("return POSIX path of (path to desktop folder) as string")
-            Case "Applications"
-                Path = MacScript("return POSIX path of (path to applications folder) as string")
-            Case "Documents"
-                Path = MacScript("return POSIX path of (path to documents folder) as string")
-        End Select
-            GetMacDir = Left$(Path, Len(Path) - 1) ' get rid of trailing "/"
-    #Else
-        GetMacDir = ""
-    #End If
-End Function
-
-Function ToMacPath(PosixPath As String) As String
-    ' This function transforms a Posix Path into a MacOS Path
-    ' E.g. "/Users/<User>" --> "MacintoshHD:Users:<User>"
-
-    ToMacPath = MacScript("set mac_path to POSIX file " & Chr(34) & PosixPath & Chr(34) & " as string")
-End Function
-
-Function KillFileOnMac(Filestr As String)
-    'Ron de Bruin
-    '30-July-2012
-    'Delete files from a Mac.
-    'Uses AppleScript to avoid the problem with long file names (on 2011 only)
-
-    Dim ScriptToKillFile As String
-
-    ScriptToKillFile = "tell application " & Chr(34) & "Finder" & Chr(34) & Chr(13)
-    ScriptToKillFile = ScriptToKillFile & "do shell script ""rm "" & quoted form of posix path of " & Chr(34) & Filestr & Chr(34) & Chr(13)
-    ScriptToKillFile = ScriptToKillFile & "end tell"
-
-    On Error Resume Next
-        MacScript (ScriptToKillFile)
-    On Error GoTo 0
-End Function
-
 Private Sub CleanUp()
     'On Mac only, this function is being called after Python is done (using Python's atexit handler)
+    Dim LOG_FILE As String
 
-    Dim PYTHON_MAC As String, PYTHON_FROZEN As String, PYTHONPATH As String
-    Dim WORKBOOK_FULLNAME As String, LOG_FILE As String
-    Dim Res As Integer
-    Dim UDF_DEBUG_SERVER As Boolean
+    LOG_FILE = GetConfig("LOG FILE")
 
     If LOG_FILE = "" Then
         #If MAC_OFFICE_VERSION >= 15 Then
-            LOG_FILE = Environ("HOME") + "/xlwings_log.txt" '/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt
+            LOG_FILE = Environ("HOME") + "/xlwings.log" '~/Library/Containers/com.microsoft.Excel/Data/xlwings_log.txt
         #Else
-            LOG_FILE = "/tmp/xlwings_log.txt"
+            LOG_FILE = "/tmp/xlwings.log"
         #End If
     Else
         LOG_FILE = ToPosixPath(LOG_FILE)
@@ -436,22 +301,14 @@ Private Sub CleanUp()
     On Error GoTo 0
 End Sub
 
-Function ParentFolder(ByVal Folder)
-  #If Mac Then
-      ParentFolder = Left$(Folder, InStrRev(Folder, "/") - 1)
-  #Else
-      ParentFolder = Left$(Folder, InStrRev(Folder, "\") - 1)
-  #End If
-End Function
-
 Function XLPyCommand()
     Dim PYTHON_WIN As String, PYTHONPATH As String, LOG_FILE As String, tail As String
 
-    PYTHONPATH = ActiveWorkbook.Path & ";" & GetConfig("PYTHONPATH", "")
+    PYTHONPATH = ActiveWorkbook.Path & ";" & GetConfig("PYTHONPATH")
     PYTHON_WIN = GetConfig("INTERPRETER", "pythonw")
-    UDF_DEBUG = GetConfig("UDF_DEBUG", "False")
+    DEBUG_UDFS = GetConfig("DEBUG UDFS", False)
 
-    If UDF_DEBUG = "True" Then
+    If DEBUG_UDFS = True Then
         XLPyCommand = "{506e67c3-55b5-48c3-a035-eed5deea7d6d}"
     Else
         tail = " -B -c ""import sys, os;sys.path.extend(os.path.normcase(os.path.expandvars(r'" & PYTHONPATH & "')).split(';'));import xlwings.server; xlwings.server.serve('$(CLSID)')"""
@@ -490,16 +347,6 @@ Sub KillPy()
     XLPyLoadDLL
     Dim unused
     If 0 <> XLPyDLLActivateAuto(unused, XLPyCommand, -1) Then Err.Raise 1000, Description:=unused
-End Sub
-
-Private Sub GetDLLVersion()
-    ' Currently only for testing
-    Dim tag As String, arch As String
-    Dim ver As Double
-    XLPyDLLVersion tag, ver, arch
-    Debug.Print tag
-    Debug.Print ver
-    Debug.Print arch
 End Sub
 
 Sub ImportPythonUDFs()
