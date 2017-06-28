@@ -58,6 +58,10 @@ Function SaveConfigToFile(sFileName As String, sName As String, Optional sValue 
   Dim sVarValue As String
   Dim lErrLast As Long
 
+  If Len(Dir(ParentFolder(sFileName), vbDirectory)) = 0 Then
+     MkDir ParentFolder(sFileName)
+  End If
+
   ' assume false unless variable is successfully saved
   SaveConfigToFile = False
 
