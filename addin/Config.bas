@@ -49,9 +49,12 @@ Function GetSheetConfig() As Dictionary
     Set GetSheetConfig = d
 End Function
 
-Function GetConfig(configKey As String, default As String) As Variant
+Function GetConfig(configKey As String, Optional default As String) As Variant
     Dim configValue As String
     ' A entry in xlwings.conf sheet overrides the config file/ribbon
+    If IsMissing(default) Then
+        default = ""
+    End If
 
     If ConfigSheetExists = True Then
         GetConfig = GetSheetConfig.Item(configKey)
