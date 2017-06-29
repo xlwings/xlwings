@@ -1,20 +1,23 @@
 Attribute VB_Name = "Config"
-Const CONFIG_NAME As String = "xlwings.conf"
 
 Function GetConfigFilePath() As String
     #If Mac Then
         ' ~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf
-        GetConfigFilePath = GetMacDir("Home") & "/" & CONFIG_NAME
+        GetConfigFilePath = GetMacDir("Home") & "/" & "xlwings.conf"
     #Else
-        GetConfigFilePath = Environ("USERPROFILE") & "\.xlwings\" & CONFIG_NAME
+        GetConfigFilePath = Environ("USERPROFILE") & "\.xlwings\" & "xlwings.conf"
     #End If
 End Function
 
-Function GetConfigFromSheet() As Dictionary
-    Dim d As Dictionary
+Function GetConfigFromSheet()
     Dim lastCell As Range
+    #If Mac Then
+    Dim d As Dictionary
     Set d = New Dictionary
-    Set sht = ActiveWorkbook.Sheets(CONFIG_NAME)
+    #Else
+    Set d = CreateObject("Scripting.Dictionary")
+    #End If
+    Set sht = ThisWorkbook.Sheets("xlwings.conf")
 
     If sht.Range("A2") = "" Then
         Set lastCell = sht.Range("A1")
@@ -32,7 +35,7 @@ Function GetConfig(configKey As String, Optional default As String = "") As Vari
     ' An entry in xlwings.conf sheet overrides the config file/ribbon
     Dim configValue As String
 
-    If SheetExists(CONFIG_NAME) = True Then
+    If SheetExists("xlwings.conf") = True Then
         GetConfig = GetConfigFromSheet.Item(configKey)
     End If
 
