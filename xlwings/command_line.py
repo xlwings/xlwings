@@ -160,8 +160,15 @@ def quickstart(args):
         sys.exit('Error: Directory already exists.')
 
     # Python file
-    with open(os.path.join(project_path, project_name + '.py'), 'w') as writer:
-        writer.write('import xlwings as xw\n\n')
+    with open(os.path.join(project_path, project_name + '.py'), 'w') as python_module:
+        python_module.write('import xlwings as xw\n\n\n')
+        python_module.write('def myfunction():\n')
+        python_module.write('    wb = xw.Book.caller()\n')
+        python_module.write('    wb.sheets[0].range("A1").value = "Hello xlwings!"\n\n\n')
+        if sys.platform.startswith('win'):
+            python_module.write('@xw.func\n')
+            python_module.write('def double_sum(x, y):\n')
+            python_module.write('    return 2 * (x + y)\n')
 
     # Excel file
     shutil.copyfile(os.path.join(this_dir, 'quickstart.xlsm'),
