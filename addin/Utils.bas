@@ -27,16 +27,6 @@ Function FileExists(ByVal FileSpec As String) As Boolean
    End If
 End Function
 
-Private Sub GetDLLVersion()
-    ' Currently only for testing
-    Dim tag As String, arch As String
-    Dim ver As Double
-    XLPyDLLVersion tag, ver, arch
-    Debug.Print tag
-    Debug.Print ver
-    Debug.Print arch
-End Sub
-
 Function ParentFolder(ByVal Folder)
   #If Mac Then
       ParentFolder = Left$(Folder, InStrRev(Folder, "/") - 1)

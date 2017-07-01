@@ -353,3 +353,13 @@ Sub ImportPythonUDFs()
     Dim tempPath As String
     tempPath = Py.Str(Py.Call(Py.Module("xlwings"), "import_udfs", Py.Tuple(GetUdfModules, ActiveWorkbook)))
 End Sub
+
+Private Sub GetDLLVersion()
+    ' Currently only for testing
+    Dim tag As String, arch As String
+    Dim ver As Double
+    XLPyDLLVersion tag, ver, arch
+    Debug.Print tag
+    Debug.Print ver
+    Debug.Print arch
+End Sub
