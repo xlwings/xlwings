@@ -14,10 +14,10 @@ if sys.platform.startswith('win'):
 
 def addin_install(args):
     if not sys.platform.startswith('win'):
-        print('Error: This command is only available on Windows right now.')
+        print('Error: This command is not available on Mac. Please install the addin manually.')
     else:
         try:
-            shutil.copyfile(os.path.join(this_dir, 'xlwings.xlam'), addin_path)
+            shutil.copyfile(os.path.join(this_dir, 'addin', 'xlwings.xlam'), addin_path)
             print('Successfully installed the xlwings add-in! Please restart Excel.')
         except IOError as e:
             if e.args[0] == 13:
@@ -30,7 +30,7 @@ def addin_install(args):
 
 def addin_remove(args):
     if not sys.platform.startswith('win'):
-        print('Error: This command is not available on Mac. Please install the addin manually.')
+        print('Error: This command is not available on Mac. Please remove the addin manually.')
     else:
         try:
             os.remove(addin_path)
