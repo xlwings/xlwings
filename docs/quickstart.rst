@@ -90,10 +90,10 @@ book by using ``xw.Book.caller``:
         wb.sheets[0].range('A1').value = 'Hello World!'
 
 
-To make this run, you'll need to have the xlwings VBA module in your Excel book. The easiest way to get everything set
+To make this run, you'll need to have the xlwings add-in installed. The easiest way to get everything set
 up is to use the xlwings command line client from either a command prompt on Windows or a terminal on Mac: ``xlwings quickstart myproject``.
 
-To import the xlwings VBA module differently, and for more details, see :ref:`vba`.
+For details about the addin, see :ref:`xlwings_addin`.
 
 3. UDFs: User Defined Functions (Windows only)
 ----------------------------------------------

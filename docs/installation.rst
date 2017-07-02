@@ -48,6 +48,10 @@ Optional Dependencies
 
 These packages are not required but highly recommended as they play very nicely with xlwings.
 
+Add-in
+------
+
+Please see :ref:`xlwings_addin` on how to install the xlwings add-in.
 
 Python version support
 ----------------------

@@ -23,14 +23,16 @@ on **Windows** and **Mac**.
     connect_to_workbook
     syntax_overview
     datastructures
+    addin
     vba
+    udfs
     debugging
     matplotlib
-    udfs
     converters
     command_line
     missing_features
     r_and_julia
+    extensions
     api
 
 

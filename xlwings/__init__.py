@@ -1,7 +1,8 @@
 from __future__ import absolute_import
 import sys
 
-__version__ = '0.10.4'
+
+__version__ = '0.11.0'
 
 # Python 2 vs 3
 PY3 = sys.version_info[0] == 3
@@ -36,6 +37,18 @@ from .main import apps, books, sheets
 # UDFs
 if sys.platform.startswith('win'):
     from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, get_udf_module, import_udfs
+else:
+    def func(f):
+        return f
+
+    def sub(f):
+        return f
+
+    def ret(f):
+        return f
+
+    def arg(f):
+        return f
 
 
 def xlfunc(*args, **kwargs):

@@ -1,9 +1,8 @@
 include LICENSE.txt
 include README.rst
 include xlwings/tests/*.xlsx
-include xlwings/xlwings_template.xltm
-include xlwings/quickstart.xlsm
-include xlwings/xlwings.xlam
+include xlwings/*.xlsm
+include xlwings/addin/xlwings.xlam
 include xlwings32.dll
 include xlwings64.dll
 include xlwings/xlwings.applescript
