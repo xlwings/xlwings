@@ -1,7 +1,7 @@
 .. _udfs:
 
-UDF Tutorial
-============
+VBA: User Defined Functions (UDFs)
+==================================
 
 This tutorial gets you quickly started on how to write User Defined Functions.
 
@@ -13,30 +13,27 @@ This tutorial gets you quickly started on how to write User Defined Functions.
 One-time Excel preparations
 ---------------------------
 
-**Required**: Enable ``Trust access to the VBA project object model`` under
+1) Enable ``Trust access to the VBA project object model`` under
 ``File > Options > Trust Center > Trust Center Settings > Macro Settings``
 
-**Recommended**: Install the add-in via command prompt: ``xlwings addin install`` (see :ref:`command_line`) to be
-able to easily import the functions.
+2) Install the add-in via command prompt: ``xlwings addin install`` (see :ref:`xlwings_addin`).
 
 
 Workbook preparation
 --------------------
 
 The easiest way to start a new project is to run ``xlwings quickstart myproject`` on a command prompt (see :ref:`command_line`).
-Alternative ways of getting the xlwings VBA module into your workbook are described under :ref:`vba`
-
+This automatically adds the xlwings reference to the generated workbook.
 
 A simple UDF
 ------------
 
-The default settings (see :ref:`VBA settings <vba_settings>`) expect a Python source file in the way it is created
-by ``quickstart``:
+The default addin settings expect a Python source file in the way it is created by ``quickstart``:
 
 * in the same directory as the Excel file
 * with the same name as the Excel file, but with a ``.py`` ending instead of ``.xlsm``.
 
-Alternatively, you can point to a specific module by setting ``UDF_MODULES`` in the VBA settings.
+Alternatively, you can point to a specific module via ``UDF Modules`` in the xlwings ribbon.
 
 Let's assume you have a Workbook ``myproject.xlsm``, then you would write the following code in ``myproject.py``::
 
@@ -48,24 +45,19 @@ Let's assume you have a Workbook ``myproject.xlsm``, then you would write the fo
         return 2 * (x + y)
 
 
-* Now click on ``Import Python UDFs`` in the xlwings tab to pick up the changes made to ``myproject.py``. If you don't
-  want to install/use the add-in, you could also run the ``ImportPythonUDFs`` macro directly (one possibility to do that
-  is to hit ``Alt + F8`` and select the macro from the pop-up menu).
+* Now click on ``Import Python UDFs`` in the xlwings tab to pick up the changes made to ``myproject.py``.
 * Enter the formula ``=double_sum(1, 2)`` into a cell and you will see the correct result:
 
   .. figure:: images/double_sum.png
     :scale: 80%
 
-* This formula can be used in VBA, too.
 * The docstring (in triple-quotes) will be shown as function description in Excel.
 
 .. note::
   * You only need to re-import your functions if you change the function arguments or the function name.
   * Code changes in the actual functions are picked up automatically (i.e. at the next calculation of the formula,
     e.g. triggered by ``Ctrl-Alt-F9``), but changes in imported modules are not. This is the very behaviour of how Python
-    imports work. The easiest way to come around this is by working with the debug server that can easily be restarted,
-    see: :ref:`debugging`. If you aren't working with the debug server, the ``pythonw.exe`` process currently has to be killed
-    via Windows Task Manager.
+    imports work. If you want to make sure everything is in a fresh state, click ``Restart UDF Server``.
   * The ``@xw.func`` decorator is only used by xlwings when the function is being imported into Excel. It tells xlwings
     for which functions it should create a VBA wrapper function, otherwise it has no effect on how the functions behave
     in Python.

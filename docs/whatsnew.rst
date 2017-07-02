@@ -1,6 +1,46 @@
 What's New
 ==========
 
+v0.11.0 (Jul 2, 2017)
+---------------------
+
+Big news! This release adds a full blown **add-in**! We also throw in a great **In-Excel SQL Extension** and a few **bug fixes**:
+
+Add-in
+******
+
+.. figure:: images/ribbon.png
+    :scale: 80%
+
+A few highlights:
+
+* Settings don't have to be manipulated in VBA code anymore, but can be either set globally via Ribbon/config file or
+  for the workbook via a special worksheet
+* UDF server can be restarted directly from the add-in
+* You can still use a VBA module instead of the add-in, but the recommended way is the add-in
+* Get all the details here: :ref:`xlwings_addin`
+
+In-Excel SQL Extension
+**********************
+
+The add-in can be extended with own code. We throw in an ``sql`` function, that allows you to perform SQL queries
+on data in your spreadsheets. It's pretty awesome, get the details here: :ref:`extensions`.
+
+Bug Fixes
+*********
+
+* [Win]: Running ``Debug > Compile`` is not throwing errors anymore (:issue:`678`)
+* Pandas deprecation warnings have been fixed (:issue:`675` and :issue:`664`)
+* [Mac]: Errors are again shown correctly in a pop up (:issue:`660`)
+* [Mac]: Like Windows, Mac now also only shows errors in a popup. Before it was including stdout, too (:issue:`666`) 
+
+Breaking Changes
+****************
+
+* ``RunFrozenPython`` now requires the full path to the executable.
+* The xlwings CLI ``xlwings template`` functionality has been removed. Use ``quickstart`` instead.
+
+
 v0.10.4 (Feb 19, 2017)
 ----------------------
 
@@ -206,7 +246,7 @@ Enhancements
 
     As an example, this VBA function:
 
-    .. code-block:: vb
+    .. code-block:: basic
 
         Function MySum(x, y)
             MySum = x + y
@@ -245,14 +285,14 @@ API changes
 
   **New**:
 
-  .. code-block:: vb
+  .. code-block:: basic
 
     UDF_MODULES: "mymodule"
     PYTHONPATH: "C:\path\to"
 
   **Old**:
 
-  .. code-block:: vb
+  .. code-block:: basic
 
     UDF_PATH: "C:\path\to\mymodule.py"
 
