@@ -1,5 +1,4 @@
 import os
-import os.path as op
 import sys
 import shutil
 import argparse
@@ -72,7 +71,7 @@ def quickstart(args):
     # Python file
     with open(os.path.join(project_path, project_name + '.py'), 'w') as python_module:
         python_module.write('import xlwings as xw\n\n\n')
-        python_module.write('def myfunction():\n')
+        python_module.write('def hello_xlwings():\n')
         python_module.write('    wb = xw.Book.caller()\n')
         python_module.write('    wb.sheets[0].range("A1").value = "Hello xlwings!"\n\n\n')
         if sys.platform.startswith('win'):
