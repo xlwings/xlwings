@@ -13,7 +13,10 @@ if sys.platform.startswith('win'):
 
 def addin_install(args):
     if not sys.platform.startswith('win'):
-        print('Error: This command is not available on Mac. Please install the addin manually.')
+        import xlwings
+        path = xlwings.__path__[0] + '/addin/xlwings.xlam'
+        print("Cannot install the addin automatically on Mac. Install it via Tools > Excel Add-ins...")
+        print("You find the addin here: {0}".format(path))
     else:
         try:
             shutil.copyfile(os.path.join(this_dir, 'addin', 'xlwings.xlam'), addin_path)
@@ -77,7 +80,7 @@ def quickstart(args):
         if sys.platform.startswith('win'):
             python_module.write('@xw.func\n')
             python_module.write('def hello(name):\n')
-            python_module.write('    return "hello {}".format(name)\n')
+            python_module.write('    return "hello {0}".format(name)\n')
 
     # Excel file
     if not args.standalone:
