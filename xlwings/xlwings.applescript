@@ -4,7 +4,7 @@ VbaHandler("TestString")
 on VbaHandler(ParameterString)
 	set {PYTHONPATH, PythonInterpreter, PythonCommand, WORKBOOK_FULLNAME, ApplicationFullName, LOG_FILE} to SplitString(ParameterString, ",")
 	set ShellCommand to PythonInterpreter & " -B -u -W ignore -c \"import sys, os;sys.path.extend(os.path.normcase(os.path.expandvars('" & PYTHONPATH & "')).split(';'));" & ¬
-		PythonCommand & " \" \"" & WORKBOOK_FULLNAME & "\" \"from_xl\" \"" & ApplicationFullName & "\" >\"" & LOG_FILE & "\" 2>&1 & "
+		PythonCommand & " \" \"" & WORKBOOK_FULLNAME & "\" \"from_xl\" \"" & ApplicationFullName & "\" > /dev/null 2>\"" & LOG_FILE & "\" & "
 	try
 		do shell script "source ~/.bash_profile"
 		return do shell script "source ~/.bash_profile;" & ShellCommand

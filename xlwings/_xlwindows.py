@@ -989,7 +989,7 @@ def _datetime_to_com_time(dt_time):
 
     """
     # Convert date to datetime
-    if pd and isinstance(dt_time, pd.tslib.NaTType):
+    if pd and isinstance(dt_time, type(pd.NaT)):
         return None
     if np:
         if type(dt_time) is np.datetime64:
@@ -1004,9 +1004,9 @@ def _datetime_to_com_time(dt_time):
         # For some reason, though it accepts plain datetimes, they must have a timezone set.
         # See http://docs.activestate.com/activepython/2.7/pywin32/html/win32/help/py3k.html
         # We replace no timezone -> UTC to allow round-trips in the naive case
-        if pd and isinstance(dt_time, pd.tslib.Timestamp):
+        if pd and isinstance(dt_time, pd.Timestamp):
             # Otherwise pandas prints ignored exceptions on Python 3
-            dt_time = dt_time.to_datetime()
+            dt_time = dt_time.to_pydatetime()
         # We don't use pytz.utc to get rid of additional dependency
         # Don't do any timezone transformation: simply cutoff the tz info
         # If we don't reset it first, it gets transformed into UTC before transferred to Excel

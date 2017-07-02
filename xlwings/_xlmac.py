@@ -1122,10 +1122,10 @@ def prepare_xl_data_element(x):
         return np_datetime_to_datetime(x).replace(tzinfo=None)
     elif np and isinstance(x, np.generic):
         return float(x)
-    elif pd and isinstance(x, pd.tslib.Timestamp):
+    elif pd and isinstance(x, pd.Timestamp):
         # This transformation seems to be only needed on Python 2.6 (?)
-        return x.to_datetime().replace(tzinfo=None)
-    elif pd and isinstance(x, pd.tslib.NaTType):
+        return x.to_pydatetime().replace(tzinfo=None)
+    elif pd and isinstance(x, type(pd.NaT)):
         return None
     elif isinstance(x, dt.datetime):
         # Make datetime timezone naive
