@@ -1,12 +1,5 @@
 Attribute VB_Name = "Utils"
-Function ModuleIsPresent(ByVal wb As Workbook, moduleName As String) As Boolean
-    On Error GoTo not_present
-    Set x = wb.VBProject.VBComponents.Item(moduleName)
-    ModuleIsPresent = True
-    Exit Function
-not_present:
-    ModuleIsPresent = False
-End Function
+Option Explicit
 
 Function IsFullName(sFile As String) As Boolean
   ' if sFile includes path, it contains path separator "\" or "/"

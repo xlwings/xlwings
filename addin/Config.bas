@@ -1,4 +1,5 @@
 Attribute VB_Name = "Config"
+Option Explicit
 
 Function GetConfigFilePath() As String
     #If Mac Then
@@ -10,13 +11,15 @@ Function GetConfigFilePath() As String
 End Function
 
 Function GetConfigFromSheet()
-    Dim lastCell As Range
+    Dim lastCell As Range, cell As Range
     #If Mac Then
     Dim d As Dictionary
     Set d = New Dictionary
     #Else
+    Dim d As Object
     Set d = CreateObject("Scripting.Dictionary")
     #End If
+    Dim sht As Worksheet
     Set sht = ThisWorkbook.Sheets("xlwings.conf")
 
     If sht.Range("A2") = "" Then

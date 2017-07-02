@@ -1,5 +1,5 @@
 Attribute VB_Name = "Main"
-'Option Explicit
+Option Explicit
 #If VBA7 Then
     #If Mac Then
         Private Declare PtrSafe Function system Lib "libc.dylib" (ByVal Command As String) As Long
@@ -303,6 +303,7 @@ End Sub
 
 Function XLPyCommand()
     Dim PYTHON_WIN As String, PYTHONPATH As String, LOG_FILE As String, tail As String
+    Dim DEBUG_UDFS As Boolean
 
     PYTHONPATH = ActiveWorkbook.Path & ";" & GetConfig("PYTHONPATH")
     PYTHON_WIN = GetConfig("INTERPRETER", "pythonw")
