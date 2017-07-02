@@ -351,8 +351,14 @@ Sub KillPy()
 End Sub
 
 Sub ImportPythonUDFs()
-    Dim tempPath As String
-    tempPath = Py.Str(Py.Call(Py.Module("xlwings"), "import_udfs", Py.Tuple(GetUdfModules, ActiveWorkbook)))
+    Dim tempPath As String, errorMsg As String
+    On Error GoTo ImportError
+        tempPath = Py.Str(Py.Call(Py.Module("xlwings"), "import_udfs", Py.Tuple(GetUdfModules, ActiveWorkbook)))
+    Exit Sub
+ImportError:
+    errorMsg = Err.Description & " " & Err.Number
+    errorMsg = errorMsg & ". Make sure you are trusting access to the VBA project object module (Excel Options)."
+    MsgBox errorMsg, vbCritical, "Error"
 End Sub
 
 Private Sub GetDLLVersion()

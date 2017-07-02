@@ -13,7 +13,7 @@ addin_files = ['License.bas', 'Main.bas', 'Config.bas', 'Extensions.bas', 'Utils
 
 with open("temp.bas", "w") as combined:
     for f in addin_files:
-        with open(os.path.join(par_dir, "addin", f), "r") as component:
+        with open(os.path.join(par_dir, "xlwings", "addin", f), "r") as component:
             combined.write(component.read())
 
 with open("temp.bas", "r") as temp, open("xlwings.bas", "w") as xw_module:
