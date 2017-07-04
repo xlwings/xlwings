@@ -1,10 +1,7 @@
 import os
 import sys
 import re
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup, find_packages
 
 # long_description: Take from README file
 with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as f:
@@ -44,7 +41,7 @@ setup(
     description='Make Excel fly: Interact with Excel from Python and vice versa.',
     long_description=readme,
     data_files=data_files,
-    packages=['xlwings', 'xlwings.tests', 'xlwings.conversion'],
+    packages=find_packages(),
     package_data={'xlwings': ['tests/*.xlsx', 'tests/*.xlsm', 'tests/*.png',
                               '*.xlsm', 'xlwings.applescript',
                               'addin/xlwings.xlam']},
