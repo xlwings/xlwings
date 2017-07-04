@@ -13,6 +13,8 @@ if you just want to manipulate Excel from Python via xlwings.
   use the add-in with earlier versions but you would need to change the settings directly in the config file, see below.
   On Mac, all UDF related functionality doesn't do anything, although the respecitve button and fields are currently visible.
 
+.. _addin_installation:
+
 Installation
 ------------
 
@@ -58,6 +60,8 @@ The format is as follows (keys are uppercase):
 
     "INTERPRETER","pythonw"
     "PYTHONPATH",""
+
+.. _addin_wb_settings:
 
 Workbook Settings
 -----------------

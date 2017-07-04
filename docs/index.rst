@@ -17,6 +17,7 @@ on **Windows** and **Mac**.
     :hidden:
 
     whatsnew
+    migrate_to_0.11
     migrate_to_0.9
     installation
     quickstart
