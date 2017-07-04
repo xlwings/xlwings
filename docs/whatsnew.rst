@@ -1,6 +1,12 @@
 What's New
 ==========
 
+v0.11.1 (Jul 5, 2017)
+---------------------
+
+* Bug Fix: The sql extension installs now correctly (:issue:`695`)
+* Added migration guide for v0.11, see :ref:`migrate_to_0.11`
+
 v0.11.0 (Jul 2, 2017)
 ---------------------
 
