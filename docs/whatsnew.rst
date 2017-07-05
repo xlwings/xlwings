@@ -1,6 +1,13 @@
 What's New
 ==========
 
+v0.11.2 (Jul 6, 2017)
+---------------------
+
+* Bug Fix: The sql extension was sometimes not correctly assigning the table aliases (:issue:`699`)
+* Bug Fix: Permission errors during pip installation should be resolved now (:issue:`693`)
+
+
 v0.11.1 (Jul 5, 2017)
 ---------------------
 
