@@ -25,8 +25,8 @@ def sql(query, *tables):
         cols = table[0]
         rows = table[1:]
         types = [
-            any(type(row[i]) is str for row in rows)
-            for i in range(len(cols))
+            any(type(row[j]) is str for row in rows)
+            for j in range(len(cols))
         ]
         name = chr(65 + i)
 
