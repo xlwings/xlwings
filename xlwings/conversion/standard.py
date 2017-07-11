@@ -58,6 +58,7 @@ class ClearExpandedRangeStage(object):
 class WriteValueToRangeStage(object):
     def __init__(self, options, raw=False):
         self.skip = options.get('_skip_tl_cells', None)
+        self.array_formula = options.get('_array_formula', None)
         self.raw = raw
 
     def _write_value(self, rng, value, scalar):
@@ -81,7 +82,11 @@ class WriteValueToRangeStage(object):
                 ctx.range = ctx.range.resize(len(ctx.value), len(ctx.value[0]))
             if self.skip:
                 r, c = self.skip
-                if scalar:
+                if self.array_formula:
+                    if len(ctx.value) != self.skip[0] or (len(ctx.value) > 0 and len(ctx.value[0]) != self.skip[1]):
+                        ctx.range[:r, :c].clear_contents()
+                        ctx.range.formula_array = self.array_formula
+                elif scalar:
                     self._write_value(ctx.range[:r, c:], ctx.value, True)
                     self._write_value(ctx.range[r:, :], ctx.value, True)
                 else:

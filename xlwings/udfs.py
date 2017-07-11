@@ -175,6 +175,7 @@ class DelayWrite(object):
         self.range = rng
         self.options = options
         self.value = value
+        self.array_formula = caller.Formula
         self.skip = (caller.Rows.Count, caller.Columns.Count)
         self.nb_remaining_call = 10
 
@@ -185,6 +186,7 @@ class DelayWrite(object):
             self.range,
             conversion.Options(self.options)
             .override(_skip_tl_cells=self.skip)
+            .override(_array_formula=self.array_formula)
         )
 
 
