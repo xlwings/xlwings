@@ -14,7 +14,7 @@ Upgrade the xlwings Python package
     >>> import xlwings
     >>> xlwings.__path__
     
-2. If you installed xlwings with pip, for once, you should first uninstall xlwings: ``pip xlwings uninstall``
+2. If you installed xlwings with pip, for once, you should first uninstall xlwings: ``pip uninstall xlwings``
 3. Check the directory that you got under 1): if there are any files left over, delete the ``xlwings`` folder and the
    remaining files manually
 4. Install the latest xlwings version: ``pip install xlwings``
