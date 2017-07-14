@@ -20,7 +20,7 @@ Function GetConfigFromSheet()
     Set d = CreateObject("Scripting.Dictionary")
     #End If
     Dim sht As Worksheet
-    Set sht = ThisWorkbook.Sheets("xlwings.conf")
+    Set sht = ActiveWorkbook.Sheets("xlwings.conf")
 
     If sht.Range("A2") = "" Then
         Set lastCell = sht.Range("A1")
