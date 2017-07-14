@@ -13,6 +13,9 @@ if you just want to manipulate Excel from Python via xlwings.
   use the add-in with earlier versions but you would need to change the settings directly in the config file, see below.
   On Mac, all UDF related functionality doesn't do anything, although the respecitve button and fields are currently visible.
 
+.. note:: The add-in is password protected with the password `xlwings`. For debugging or to add new extensions, you need
+  to unprotect it.
+
 .. _addin_installation:
 
 Installation

@@ -1,6 +1,13 @@
 What's New
 ==========
 
+v0.11.3 (Jul 14, 2017)
+----------------------
+
+* Bug Fix: When using the `xlwings.conf` sheet, there was a subscript out of range error (:issue:`708`)
+* Enhancement: The add-in is now password protected (pw: `xlwings`) to declutter the VBA editor (:issue:`710`)
+
+
 v0.11.2 (Jul 6, 2017)
 ---------------------
 
