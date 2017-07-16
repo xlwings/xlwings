@@ -3,8 +3,13 @@ Option Explicit
 
 Function GetConfigFilePath() As String
     #If Mac Then
-        ' ~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf
-        GetConfigFilePath = GetMacDir("Home") & "/" & "xlwings.conf"
+        #If MAC_OFFICE_VERSION >= 15 Then
+            ' ~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf
+            GetConfigFilePath = GetMacDir("Home") & "/" & "xlwings.conf"
+        #Else
+            ' True home dir
+            GetConfigFilePath = GetMacDir("Home") & "/" & ".xlwings/xlwings.conf"
+        #End If
     #Else
         GetConfigFilePath = Environ("USERPROFILE") & "\.xlwings\" & "xlwings.conf"
     #End If
@@ -56,15 +61,19 @@ End Function
 Function SaveConfigToFile(sFileName As String, sName As String, Optional sValue As String) As Boolean
 'Adopted from http://peltiertech.com/save-retrieve-information-text-files/
 
-  Dim iFileNumA As Long
-  Dim iFileNumB As Long
-  Dim sFile As String
-  Dim sXFile As String
-  Dim sVarName As String
-  Dim sVarValue As String
-  Dim lErrLast As Long
+  Dim iFileNumA As Long, iFileNumB As Long, lErrLast As Long
+  Dim sFile As String, sXFile As String, sVarName As String, sVarValue As String
 
-  If Len(Dir(ParentFolder(sFileName), vbDirectory)) = 0 Then
+  #If MAC_OFFICE_VERSION < 15 Then
+    sFileName = ToMacPath(sFileName)
+  #End If
+
+
+  #If Mac Then
+    If FileOrFolderExistsOnMac(ParentFolder(sFileName)) Then
+  #Else
+    If Len(Dir(ParentFolder(sFileName), vbDirectory)) = 0 Then
+  #End If
      MkDir ParentFolder(sFileName)
   End If
 
@@ -108,10 +117,13 @@ End Function
 Function GetConfigFromFile(sFile As String, sName As String, Optional sValue As String) As Boolean
 'Adopted from http://peltiertech.com/save-retrieve-information-text-files/
 
-  Dim iFileNum As Long
-  Dim sVarName As String
-  Dim sVarValue As String
-  Dim lErrLast As Long
+  Dim iFileNum As Long, lErrLast As Long
+  Dim sVarName As String, sVarValue As String
+
+
+  #If MAC_OFFICE_VERSION < 15 Then
+    sFile = ToMacPath(sFile)
+  #End If
 
   ' assume false unless variable is found
   GetConfigFromFile = False

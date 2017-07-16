@@ -1,5 +1,6 @@
 Attribute VB_Name = "Main"
 Option Explicit
+
 #If VBA7 Then
     #If Mac Then
         Private Declare PtrSafe Function system Lib "libc.dylib" (ByVal Command As String) As Long
@@ -64,6 +65,7 @@ Sub ExcecuteMac2011(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As S
     ' Finally, redirect stderr to the LOG_FILE and run as background process.
 
     Dim PythonInterpreter As String, RunCommand As String, WORKBOOK_FULLNAME As String, Log As String
+    Dim Res As Integer
 
     If LOG_FILE = "" Then
         LOG_FILE = "/tmp/xlwings.log"
@@ -79,7 +81,11 @@ Sub ExcecuteMac2011(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As S
     ' Transform from MacOS Classic path style (":") and Windows style ("\") to Bash friendly style ("/")
     PYTHONPATH = ToPosixPath(PYTHONPATH)
     If PYTHON_MAC <> "" Then
-        PythonInterpreter = ToPosixPath(PYTHON_MAC)
+        If PYTHON_MAC <> "python" And PYTHON_MAC <> "pythonw" Then
+            PythonInterpreter = ToPosixPath(PYTHON_MAC)
+        Else
+            PythonInterpreter = PYTHON_MAC
+        End If
     Else
         PythonInterpreter = "python"
     End If
@@ -122,7 +128,11 @@ Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, LOG_FILE As String
     PYTHONPATH = ToPosixPath(PYTHONPATH)
 
     If PYTHON_MAC <> "" Then
-        PythonInterpreter = ToPosixPath(PYTHON_MAC)
+        If PYTHON_MAC <> "python" And PYTHON_MAC <> "pythonw" Then
+            PythonInterpreter = ToPosixPath(PYTHON_MAC)
+        Else
+            PythonInterpreter = PYTHON_MAC
+        End If
     Else
         PythonInterpreter = "python"
     End If
@@ -370,3 +380,5 @@ Private Sub GetDLLVersion()
     Debug.Print ver
     Debug.Print arch
 End Sub
+
+
