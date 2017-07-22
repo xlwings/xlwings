@@ -6,7 +6,7 @@ Function IsFullName(sFile As String) As Boolean
   IsFullName = InStr(sFile, "\") + InStr(sFile, "/") > 0
 End Function
 
-Function FileExists(FileSpec As String) As Boolean
+Function FileExists(ByVal FileSpec As String) As Boolean
     #If Mac Then
         FileExists = FileOrFolderExistsOnMac(FileSpec)
     #Else
@@ -24,7 +24,7 @@ Function FileExistsOnWindows(ByVal FileSpec As String) As Boolean
    If Err.Number = 0 Then
       ' No error, so something was found.
       ' If Directory attribute set, then not a file.
-      FileExists = Not ((Attr And vbDirectory) = vbDirectory)
+      FileExistsOnWindows = Not ((Attr And vbDirectory) = vbDirectory)
    End If
 End Function
 
@@ -67,6 +67,7 @@ Function KillFileOnMac(Filestr As String)
 
     Dim ScriptToKillFile As String
 
+    #If Mac Then
     ScriptToKillFile = "tell application " & Chr(34) & "Finder" & Chr(34) & Chr(13)
     ScriptToKillFile = ScriptToKillFile & "do shell script ""rm "" & quoted form of posix path of " & Chr(34) & Filestr & Chr(34) & Chr(13)
     ScriptToKillFile = ScriptToKillFile & "end tell"
@@ -74,13 +75,15 @@ Function KillFileOnMac(Filestr As String)
     On Error Resume Next
         MacScript (ScriptToKillFile)
     On Error GoTo 0
+    #End If
 End Function
 
 Function ToMacPath(PosixPath As String) As String
     ' This function transforms a Posix Path into a MacOS Path
     ' E.g. "/Users/<User>" --> "MacintoshHD:Users:<User>"
-
+    #If Mac Then
     ToMacPath = MacScript("set mac_path to POSIX file " & Chr(34) & PosixPath & Chr(34) & " as string")
+    #End If
 End Function
 
 Function GetMacDir(dirName As String) As String
@@ -113,6 +116,7 @@ Function ToPosixPath(ByVal MacPath As String) As String
     Dim s As String
     Dim LeadingSlash As Boolean
 
+    #If Mac Then
     If MacPath = "" Then
         ToPosixPath = ""
     Else
@@ -140,6 +144,7 @@ Function ToPosixPath(ByVal MacPath As String) As String
             ToPosixPath = MacScript("return POSIX path of (" & Chr(34) & MacPath & Chr(34) & ") as string")
         #End If
     End If
+    #End If
 End Function
 
 Sub ShowError(FileName As String)
