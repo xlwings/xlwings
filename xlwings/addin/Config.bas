@@ -64,8 +64,10 @@ Function SaveConfigToFile(sFileName As String, sName As String, Optional sValue 
   Dim iFileNumA As Long, iFileNumB As Long, lErrLast As Long
   Dim sFile As String, sXFile As String, sVarName As String, sVarValue As String
 
-  #If MAC_OFFICE_VERSION < 15 Then
-    sFileName = ToMacPath(sFileName)
+  #If Mac Then
+    #If MAC_OFFICE_VERSION < 15 Then
+      sFileName = ToMacPath(sFileName)
+    #End If
   #End If
 
 
