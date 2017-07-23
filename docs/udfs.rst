@@ -239,3 +239,27 @@ After clicking on ``Import Python UDFs``, you can then use this macro by executi
 binding it e.g. to a button. To to the latter, make sure you have the ``Developer`` tab selected under ``File >
 Options > Customize Ribbon``. Then, under the ``Developer`` tab, you can insert a button via ``Insert > Form Controls``.
 After drawing the button, you will be prompted to assign a macro to it and you can select ``my_macro``.
+
+.. _call_udfs_from_vba:
+
+Call UDFs from VBA
+------------------
+
+Imported functions can also be used from VBA. They return a 2d array:
+
+.. code-block:: vb.net
+
+    Sub MySub()
+    
+    Dim arr() As Variant
+    Dim i As Long, j As Long
+    
+        arr = my_imported_function(...)
+        
+        For j = LBound(arr, 2) To UBound(arr, 2)
+            For lRow = LBound(arr, 1) To UBound(arr, 1)
+                Debug.Print "(" & i & "," & j & ")", arr(i, j)
+            Next i
+        Next j
+    
+    End Sub

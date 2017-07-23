@@ -7,6 +7,14 @@ Function IsFullName(sFile As String) As Boolean
 End Function
 
 Function FileExists(ByVal FileSpec As String) As Boolean
+    #If Mac Then
+        FileExists = FileOrFolderExistsOnMac(FileSpec)
+    #Else
+        FileExists = FileExistsOnWindows(FileSpec)
+    #End If
+End Function
+
+Function FileExistsOnWindows(ByVal FileSpec As String) As Boolean
    ' by Karl Peterson MS MVP VB
    Dim Attr As Long
    ' Guard against bad FileSpec by ignoring errors
@@ -16,8 +24,31 @@ Function FileExists(ByVal FileSpec As String) As Boolean
    If Err.Number = 0 Then
       ' No error, so something was found.
       ' If Directory attribute set, then not a file.
-      FileExists = Not ((Attr And vbDirectory) = vbDirectory)
+      FileExistsOnWindows = Not ((Attr And vbDirectory) = vbDirectory)
    End If
+End Function
+
+
+Function FileOrFolderExistsOnMac(FileOrFolderstr As String) As Boolean
+'Ron de Bruin : 26-June-2015
+'Function to test whether a file or folder exist on a Mac in office 2011 and up
+'Uses AppleScript to avoid the problem with long names in Office 2011,
+'limit is max 32 characters including the extension in 2011.
+    Dim ScriptToCheckFileFolder As String
+    Dim TestStr As String
+
+    #If Mac Then
+    If Val(Application.version) < 15 Then
+        ScriptToCheckFileFolder = "tell application " & Chr(34) & "System Events" & Chr(34) & _
+         "to return exists disk item (" & Chr(34) & FileOrFolderstr & Chr(34) & " as string)"
+        FileOrFolderExistsOnMac = MacScript(ScriptToCheckFileFolder)
+    Else
+        On Error Resume Next
+        TestStr = Dir(FileOrFolderstr, vbDirectory)
+        On Error GoTo 0
+        If Not TestStr = vbNullString Then FileOrFolderExistsOnMac = True
+    End If
+    #End If
 End Function
 
 Function ParentFolder(ByVal Folder)
@@ -36,6 +67,7 @@ Function KillFileOnMac(Filestr As String)
 
     Dim ScriptToKillFile As String
 
+    #If Mac Then
     ScriptToKillFile = "tell application " & Chr(34) & "Finder" & Chr(34) & Chr(13)
     ScriptToKillFile = ScriptToKillFile & "do shell script ""rm "" & quoted form of posix path of " & Chr(34) & Filestr & Chr(34) & Chr(13)
     ScriptToKillFile = ScriptToKillFile & "end tell"
@@ -43,13 +75,15 @@ Function KillFileOnMac(Filestr As String)
     On Error Resume Next
         MacScript (ScriptToKillFile)
     On Error GoTo 0
+    #End If
 End Function
 
 Function ToMacPath(PosixPath As String) As String
     ' This function transforms a Posix Path into a MacOS Path
     ' E.g. "/Users/<User>" --> "MacintoshHD:Users:<User>"
-
+    #If Mac Then
     ToMacPath = MacScript("set mac_path to POSIX file " & Chr(34) & PosixPath & Chr(34) & " as string")
+    #End If
 End Function
 
 Function GetMacDir(dirName As String) As String
@@ -60,15 +94,16 @@ Function GetMacDir(dirName As String) As String
     #If Mac Then
         Select Case dirName
             Case "Home"
-                Path = MacScript("return POSIX path of (path to home folder) as string")
+                Path = MacScript("return (path to home folder) as string")
              Case "Desktop"
-                Path = MacScript("return POSIX path of (path to desktop folder) as string")
+                Path = MacScript("return (path to desktop folder) as string")
             Case "Applications"
-                Path = MacScript("return POSIX path of (path to applications folder) as string")
+                Path = MacScript("return (path to applications folder) as string")
             Case "Documents"
-                Path = MacScript("return POSIX path of (path to documents folder) as string")
+                Path = MacScript("return (path to documents folder) as string")
         End Select
             GetMacDir = Left$(Path, Len(Path) - 1) ' get rid of trailing "/"
+            GetMacDir = ToPosixPath(GetMacDir)
     #Else
         GetMacDir = ""
     #End If
@@ -81,6 +116,7 @@ Function ToPosixPath(ByVal MacPath As String) As String
     Dim s As String
     Dim LeadingSlash As Boolean
 
+    #If Mac Then
     If MacPath = "" Then
         ToPosixPath = ""
     Else
@@ -105,8 +141,10 @@ Function ToPosixPath(ByVal MacPath As String) As String
 
         #Else
             ToPosixPath = Replace(MacPath, "\", "/")
+            ToPosixPath = MacScript("return POSIX path of (" & Chr(34) & MacPath & Chr(34) & ") as string")
         #End If
     End If
+    #End If
 End Function
 
 Sub ShowError(FileName As String)
