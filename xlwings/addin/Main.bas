@@ -196,7 +196,12 @@ Sub ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN As S
     End If
 
     If Not IsFrozen And (PYTHON_WIN <> "python" And PYTHON_WIN <> "pythonw") Then
-        PythonDir = ParentFolder(PYTHON_WIN)
+        If FileExists(PYTHON_WIN) Then
+            PythonDir = ParentFolder(PYTHON_WIN)
+        Else
+            MsgBox "Could not find Interpreter!", vbCritical
+            Exit Sub
+        End If
     Else
         PythonDir = ""  ' TODO: hack
     End If

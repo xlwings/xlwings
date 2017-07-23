@@ -122,9 +122,10 @@ Function GetConfigFromFile(sFile As String, sName As String, Optional sValue As 
   Dim iFileNum As Long, lErrLast As Long
   Dim sVarName As String, sVarValue As String
 
-
-  #If MAC_OFFICE_VERSION < 15 Then
-    sFile = ToMacPath(sFile)
+  #If Mac Then
+    #If MAC_OFFICE_VERSION < 15 Then
+      sFile = ToMacPath(sFile)
+    #End If
   #End If
 
   ' assume false unless variable is found
