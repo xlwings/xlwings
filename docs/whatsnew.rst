@@ -23,6 +23,7 @@ Also, some new docs:
 
 * [Win] How to use imported functions in VBA, see :ref:`call_udfs_from_vba`.
 * For more up-to-date installations via conda, use the ``conda-forge`` channel, see :ref:`installation`.
+* A troubleshooting section: :ref:`troubleshooting`.
 
 v0.11.3 (Jul 14, 2017)
 ----------------------
