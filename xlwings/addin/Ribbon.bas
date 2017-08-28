@@ -19,6 +19,18 @@ Sub ImportFunctions(control As IRibbonControl)
     #End If
 End Sub
 
+Sub GetVisible(control As IRibbonControl, ByRef returnedVal)
+    #If Mac Then
+        returnedVal = False
+    #Else
+        returnedVal = True
+    #End If
+End Sub
+
+Sub GetVersion(control As IRibbonControl, ByRef returnedVal)
+    returnedVal = "Version: 0.11.4"
+End Sub
+
 Sub SetInterpreter(control As IRibbonControl, text As String)
     Dim tf As Boolean
     tf = SaveConfigToFile(GetConfigFilePath, "INTERPRETER", text)

@@ -11,7 +11,10 @@ if you just want to manipulate Excel from Python via xlwings.
 
 .. note:: The ribbon of the add-in is compatible with Excel >= 2007 on Windows and >= 2016 on Mac. You could, however,
   use the add-in with earlier versions but you would need to change the settings directly in the config file, see below.
-  On Mac, all UDF related functionality doesn't do anything, although the respecitve button and fields are currently visible.
+  On Mac, all UDF related functionality is not available.
+
+.. note:: The add-in is password protected with the password ``xlwings``. For debugging or to add new extensions, you need
+  to unprotect it.
 
 .. _addin_installation:
 
@@ -46,13 +49,16 @@ While the defaults will often work out-of-the box, you can change the global set
   interpreter doesn't shut down after each call.
 * ``Restart UDF Server``: This shuts down the UDF Server/Python interpreter. It'll be restarted upon the next function call.
 
+.. _config_file:
+
 Config File
 -----------
 
 The settings in the xlwings Ribbon are stored in a config file that can also be manipulated externally. The location is
 
 * Windows: ``.xlwings\xlwings.conf`` in your user folder  
-* Mac: ``~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf``
+* Mac Excel 2016: ``~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf``
+# Mac Excel 2011: ``~/.xlwings/xlwings.conf``
 
 The format is as follows (keys are uppercase):
 
@@ -60,6 +66,9 @@ The format is as follows (keys are uppercase):
 
     "INTERPRETER","pythonw"
     "PYTHONPATH",""
+
+.. note:: Mac Excel 2011 users have to create and edit the config file manually under ``~/.xlwings/xlwings.conf`` as the
+    ribbon is not supported.
 
 .. _addin_wb_settings:
 

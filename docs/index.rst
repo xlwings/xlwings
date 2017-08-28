@@ -34,6 +34,7 @@ on **Windows** and **Mac**.
     missing_features
     r_and_julia
     extensions
+    troubleshooting
     api
 
 

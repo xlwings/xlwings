@@ -1,6 +1,39 @@
 What's New
 ==========
 
+v0.11.4 (Jul 23, 2017)
+----------------------
+
+This release brings further improvements with regards to the add-in:
+
+* The add-in now shows the version on the ribbon. This makes it easy to check if you are using the correct version (:issue:`724`):
+
+    .. figure:: images/addin_version.png
+        :scale: 80%
+
+* [Mac] On Mac Excel 2016, the ribbon now only shows the available functionality (:issue:`723`):
+
+    .. figure:: images/mac_ribbon.png
+        :scale: 80%
+
+* [Mac] Mac Excel 2011 is now supported again with the new add-in. However, since Excel 2011 doesn't support the ribbon, 
+  the config file has be created/edited manually, see :ref:`config_file` (:issue:`714`).
+
+Also, some new docs:
+
+* [Win] How to use imported functions in VBA, see :ref:`call_udfs_from_vba`.
+* For more up-to-date installations via conda, use the ``conda-forge`` channel, see :ref:`installation`.
+* A troubleshooting section: :ref:`troubleshooting`.
+
+v0.11.3 (Jul 14, 2017)
+----------------------
+
+* Bug Fix: When using the ``xlwings.conf`` sheet, there was a subscript out of range error (:issue:`708`)
+* Enhancement: The add-in is now password protected (pw: ``xlwings``) to declutter the VBA editor (:issue:`710`)
+
+You need to update your xlwings add-in to be get the fixes!
+
+
 v0.11.2 (Jul 6, 2017)
 ---------------------
 

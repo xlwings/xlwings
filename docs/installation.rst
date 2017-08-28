@@ -11,6 +11,11 @@ or conda::
 
     conda install xlwings
 
+Note that the official ``conda`` package might be few releases behind. You can, however, 
+use the ``conda-forge`` channel (see: https://anaconda.org/conda-forge/xlwings) which should be reasonably up to date (but might still be a few days behind the pip release)::
+
+  conda install -c conda-forge xlwings
+
 
 Alternatively, it can be installed from source. From within the ``xlwings`` directory, execute::
 
