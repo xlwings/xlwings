@@ -176,6 +176,8 @@ class DelayWrite(object):
         self.options = options
         self.value = value
         self.array_formula = caller.Formula
+        if isinstance(self.array_formula, tuple):
+            self.array_formula = self.array_formula[0][0]
         self.skip = (caller.Rows.Count, caller.Columns.Count)
         self.nb_remaining_call = 10
 

@@ -84,7 +84,8 @@ class WriteValueToRangeStage(object):
                 r, c = self.skip
                 if self.array_formula:
                     if len(ctx.value) != self.skip[0] or (len(ctx.value) > 0 and len(ctx.value[0]) != self.skip[1]):
-                        ctx.range[:r, :c].clear_contents()
+                        # ctx.range[:r, :c].clear_contents()
+                        ctx.range.resize(r, c).clear_contents()
                         ctx.range.formula_array = self.array_formula
                 elif scalar:
                     self._write_value(ctx.range[:r, c:], ctx.value, True)
