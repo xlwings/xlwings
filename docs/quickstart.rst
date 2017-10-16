@@ -57,7 +57,7 @@ There are many **convenience features** available, e.g. Range expanding:
 If you want to quickly talk to the active sheet in the active workbook, you don't need instantiate a workbook
 and sheet object, but can simply do:
 
-    >>> import xlwings xw
+    >>> import xlwings as xw
     >>> xw.Range('A1').value = 'Foo'
     >>> xw.Range('A1').value
     'Foo'
