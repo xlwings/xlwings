@@ -215,7 +215,7 @@ e.g. ``Application``. Note, however, that currently you're acting directly on th
 
     @xw.func
     @xw.arg('xl_app', vba='Application')
-    def get_caller_address(xl_app)
+    def get_caller_address(xl_app):
         return xl_app.Caller.Address
 
 
