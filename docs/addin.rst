@@ -70,14 +70,20 @@ The format is as follows (keys are uppercase):
 .. note:: Mac Excel 2011 users have to create and edit the config file manually under ``~/.xlwings/xlwings.conf`` as the
     ribbon is not supported.
 
+Workbook Directory Config File
+------------------------------
+
+The global settings of the Ribbon/Config file can be overridden for one or more workbooks by creating a ``xlwings.conf`` file
+in the workbook's directory.
+
 .. _addin_wb_settings:
 
 Workbook Settings
 -----------------
 
-The global settings of the Ribbon/Config file can be overridden for each workbook by adding a sheet with the 
-name ``xlwings.conf``. When you create a new project with ``xlwings quickstart``, it'll already have such a sheet
-but you need to rename it to ``xlwings.conf`` to make it active.
+The global settings of the Ribbon/Config file (and the optional workbook directory config file) can be overridden for each 
+workbook by adding a sheet with the name ``xlwings.conf``. When you create a new project with ``xlwings quickstart``, it'll 
+already have such a sheet but you need to rename it to ``xlwings.conf`` to make it active.
 
 
 .. figure:: images/workbook_config.png

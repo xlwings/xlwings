@@ -15,6 +15,18 @@ Function GetConfigFilePath() As String
     #End If
 End Function
 
+Function GetWorkbookDirectoryConfigFilePath() As String
+    GetWorkbookDirectoryConfigFilePath = GetDirectory(ActiveWorkbook.FullName) & "xlwings.conf"
+End Function
+
+Function GetDirectory(path)
+    #If Mac Then
+    GetDirectory = Left(path, InStrRev(path, "/"))
+    #Else
+    GetDirectory = Left(path, InStrRev(path, "\"))
+    #End If
+End Function
+
 Function GetConfigFromSheet()
     Dim lastCell As Range, cell As Range
     #If Mac Then
@@ -45,6 +57,13 @@ Function GetConfig(configKey As String, Optional default As String = "") As Vari
 
     If SheetExists("xlwings.conf") = True Then
         GetConfig = GetConfigFromSheet.Item(configKey)
+    End If
+    
+    ' An entry in the workbook directory's optional xlwings.conf file overrides the config file/ribbon
+    If GetConfig = "" And FileExists(GetWorkbookDirectoryConfigFilePath()) = True Then
+        If GetConfigFromFile(GetWorkbookDirectoryConfigFilePath(), configKey, configValue) Then
+            GetConfig = configValue
+        End If
     End If
 
     If GetConfig = "" And FileExists(GetConfigFilePath()) = True Then
