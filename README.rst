@@ -23,5 +23,5 @@ Links
 xltrail
 -------
 
-The Excel add-in is version controlled with [xltrail](https://www.xltrail.com). You can see the diffs on
-https://demo.xltrail.com by logging in with `demo` both for username and password.
+The Excel add-in is version controlled with `xltrail <https://www.xltrail.com>`_. You can see the diffs on
+https://demo.xltrail.com by logging in with ``demo`` both for username and password.
