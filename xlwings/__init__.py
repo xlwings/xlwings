@@ -47,8 +47,10 @@ else:
     def ret(f):
         return f
 
-    def arg(f):
-        return f
+    def arg(*args, **kwargs):
+        def real_decorator(f):
+            return f
+        return real_decorator
 
 
 def xlfunc(*args, **kwargs):
