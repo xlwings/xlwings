@@ -44,8 +44,10 @@ else:
     def sub(f):
         return f
 
-    def ret(f):
-        return f
+    def ret(*args, **kwargs):
+        def real_decorator(f):
+            return f
+        return real_decorator
 
     def arg(*args, **kwargs):
         def real_decorator(f):
