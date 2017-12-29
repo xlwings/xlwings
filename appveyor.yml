@@ -1,0 +1,25 @@
+image: Visual Studio 2015
+
+init:
+  # Set "build version number" to "short-commit-hash" or when tagged to "tag name" (Travis style)
+  - ps: >-
+      if ($env:APPVEYOR_REPO_TAG -eq "true")
+      {
+        Update-AppveyorBuild -Version "$env:APPVEYOR_REPO_TAG_NAME"
+      }
+      else
+      {
+        Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_COMMIT.substring(0,7))"
+      }
+
+build_script:
+- cmd: msbuild src/xlwings.sln /p:Configuration=Release
+- cmd: msbuild src/xlwings.sln /p:Configuration=Release /p:Platform=x64
+- cmd: cd %APPVEYOR_BUILD_FOLDER% && rename xlwings32.dll xlwings32-%APPVEYOR_BUILD_VERSION%.dll
+- cmd: cd %APPVEYOR_BUILD_FOLDER% && rename xlwings64.dll xlwings64-%APPVEYOR_BUILD_VERSION%.dll
+- cmd: cd %APPVEYOR_BUILD_FOLDER% && dir
+- ps: (Get-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py) | ForEach-Object { $_ -replace "dev-version", "$env:APPVEYOR_BUILD_VERSION" } | Set-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py
+- cmd: C:\Python36-x64\python setup.py sdist
+
+artifacts:
+  - path: dist\*
