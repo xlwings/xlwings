@@ -15,8 +15,8 @@ init:
 build_script:
 - cmd: msbuild src/xlwings.sln /p:Configuration=Release
 - cmd: msbuild src/xlwings.sln /p:Configuration=Release /p:Platform=x64
-- cmd: rename "%APPVEYOR_BUILD_FOLDER%\xlwings32.dll" "%APPVEYOR_BUILD_FOLDER%\xlwings32-%APPVEYOR_BUILD_VERSION%.dll"
-- cmd: rename "%APPVEYOR_BUILD_FOLDER%\xlwings64.dll" "%APPVEYOR_BUILD_FOLDER%\xlwings64-%APPVEYOR_BUILD_VERSION%.dll"
+- cmd: cd %APPVEYOR_BUILD_FOLDER% && rename xlwings32.dll xlwings32-%APPVEYOR_BUILD_VERSION%.dll
+- cmd: cd %APPVEYOR_BUILD_FOLDER% && rename xlwings64.dll xlwings64-%APPVEYOR_BUILD_VERSION%.dll
 - cmd: cd %APPVEYOR_BUILD_FOLDER% && dir
 - ps: (Get-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py) | ForEach-Object { $_ -replace "dev-version", "$env:APPVEYOR_BUILD_VERSION" } | Set-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py
 - cmd: C:\Python36-x64\python setup.py sdist
