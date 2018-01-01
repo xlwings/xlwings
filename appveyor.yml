@@ -1,7 +1,17 @@
 image: Visual Studio 2015
 
+environment:
+  PYPI_TEST_PASSWORD:
+    secure: sMLDomAF/3FaXYX5vBEv/6fQhCBmk5lachMyOlXxZuE=
+  PYPI_PASSWORD:
+    secure: gIAFKNN/WiFvjf63yX25Ikm7/uu89SQ7qldFMtDybgo=
+
+  matrix:
+    - PYTHON: "C:\\Miniconda36-x64"
+
 init:
   # Set "build version number" to "short-commit-hash" or when tagged to "tag name" (Travis style)
+  - ps: $env:path = "$env:PYTHON;$env:PYTHON\Scripts;$env:path"
   - ps: >-
       if ($env:APPVEYOR_REPO_TAG -eq "true")
       {
@@ -19,7 +29,32 @@ build_script:
 - cmd: cd %APPVEYOR_BUILD_FOLDER% && rename xlwings64.dll xlwings64-%APPVEYOR_BUILD_VERSION%.dll
 - cmd: cd %APPVEYOR_BUILD_FOLDER% && dir
 - ps: (Get-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py) | ForEach-Object { $_ -replace "dev-version", "$env:APPVEYOR_BUILD_VERSION" } | Set-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py
-- cmd: C:\Python36-x64\python setup.py sdist
+- cmd: python setup.py sdist
 
 artifacts:
   - path: dist\*
+  
+# Just attempt to install since the full test suite cannot be run
+test_script:
+  - cmd: pip install dist\xlwings-%APPVEYOR_BUILD_VERSION%.tar.gz
+  - cmd: python -c "import xlwings"
+
+# Deploy to PyPI if a tagged release
+on_success:
+  - echo [distutils]                                  > %USERPROFILE%\\.pypirc
+  - echo index-servers =                             >> %USERPROFILE%\\.pypirc
+  - echo     pypi                                    >> %USERPROFILE%\\.pypirc
+  - echo     pypitest                                >> %USERPROFILE%\\.pypirc
+  - echo [pypi]                                      >> %USERPROFILE%\\.pypirc
+  - echo repository=https://pypi.python.org/pypi     >> %USERPROFILE%\\.pypirc
+  - echo username=zoomeranalytics                    >> %USERPROFILE%\\.pypirc
+  - echo password=%PYPI_PASSWORD%                    >> %USERPROFILE%\\.pypirc
+  - echo [pypitest]                                  >> %USERPROFILE%\\.pypirc
+  - echo repository=https://test.pypi.org/legacy/    >> %USERPROFILE%\\.pypirc
+  - echo username=zoomeranalytics                    >> %USERPROFILE%\\.pypirc
+  - echo password=%PYPI_TEST_PASSWORD%               >> %USERPROFILE%\\.pypirc  
+
+  # Required to ensure setup.py finds the .pypirc under Windows
+  - set HOME=%USERPROFILE%
+  - pip install twine
+  - if "%APPVEYOR_REPO_TAG%"=="true" ( twine upload -r pypitest dist\\xlwings-%APPVEYOR_BUILD_VERSION%.tar.gz) else ( echo "Not deploying because not a tagged commit." )
