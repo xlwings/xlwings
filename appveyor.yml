@@ -23,6 +23,7 @@ init:
       }
 
 build_script:
+- cmd: dotnet add package Aspose.Cells --version 17.12.0
 - cmd: msbuild src/xlwings.sln /p:Configuration=Release
 - cmd: msbuild src/xlwings.sln /p:Configuration=Release /p:Platform=x64
 - cmd: cd %APPVEYOR_BUILD_FOLDER% && rename xlwings32.dll xlwings32-%APPVEYOR_BUILD_VERSION%.dll
