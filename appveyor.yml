@@ -4,7 +4,7 @@ environment:
   PYPI_TEST_PASSWORD:
     secure: sMLDomAF/3FaXYX5vBEv/6fQhCBmk5lachMyOlXxZuE=
   PYPI_PASSWORD:
-    secure: gIAFKNN/WiFvjf63yX25Ikm7/uu89SQ7qldFMtDybgo=
+    secure: oSCJsPDE2f8NMJox4JeOs4MzM9KfH4vYbmwUS5FRCzY=
 
   matrix:
     - PYTHON: "C:\\Miniconda36-x64"
