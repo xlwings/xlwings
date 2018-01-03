@@ -23,8 +23,9 @@ init:
       }
 install:
   - pip install twine
+  - pip install pythonnet
   - ps:  wget https://www.nuget.org/api/v2/package/Aspose.Cells/17.12.0 -OutFile $env:APPVEYOR_BUILD_FOLDER\aspose.cells.nupkg
-  - 7z x %APPVEYOR_BUILD_FOLDER%\\aspose.cells.nupkg -o%APPVEYOR_BUILD_FOLDER%\\aspose_cells
+  - 7z x %APPVEYOR_BUILD_FOLDER%\\aspose.cells.nupkg -o%APPVEYOR_BUILD_FOLDER%\\aspose.cells
 
 build_script:
 - cmd: msbuild src/xlwings.sln /p:Configuration=Release
