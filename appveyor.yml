@@ -34,6 +34,7 @@ build_script:
 - cmd: cd %APPVEYOR_BUILD_FOLDER% && rename xlwings64.dll xlwings64-%APPVEYOR_BUILD_VERSION%.dll
 - cmd: cd %APPVEYOR_BUILD_FOLDER% && dir
 - ps: (Get-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py) | ForEach-Object { $_ -replace "dev-version", "$env:APPVEYOR_BUILD_VERSION" } | Set-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py
+- cmd: python scripts/build_test.py
 - cmd: python setup.py sdist
 
 artifacts:
