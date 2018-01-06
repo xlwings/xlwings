@@ -5,6 +5,8 @@ environment:
     secure: sMLDomAF/3FaXYX5vBEv/6fQhCBmk5lachMyOlXxZuE=
   PYPI_PASSWORD:
     secure: oSCJsPDE2f8NMJox4JeOs4MzM9KfH4vYbmwUS5FRCzY=
+  ASPOSE_LICENSE:
+    secure: je1oFjicBTA/L3vv55btbjk101JF7M0IQeGMbMcO3N8=
 
   matrix:
     - PYTHON: "C:\\Miniconda36-x64"
@@ -22,28 +24,31 @@ init:
         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_COMMIT.substring(0,7))"
       }
 install:
+  # Python packages
   - pip install twine
   - pip install pythonnet
+  # Download Aspose and decrypt license file
   - ps:  wget https://www.nuget.org/api/v2/package/Aspose.Cells/17.12.0 -OutFile $env:APPVEYOR_BUILD_FOLDER\aspose.cells.nupkg
   - 7z x %APPVEYOR_BUILD_FOLDER%\\aspose.cells.nupkg -o%APPVEYOR_BUILD_FOLDER%\\aspose.cells
+  - nuget install secure-file -ExcludeVersion
+  - secure-file\tools\secure-file -decrypt scripts\Aspose.Cells.lic.enc -secret %ASPOSE_LICENSE%
 
 build_script:
-- cmd: msbuild src/xlwings.sln /p:Configuration=Release
-- cmd: msbuild src/xlwings.sln /p:Configuration=Release /p:Platform=x64
-- cmd: cd %APPVEYOR_BUILD_FOLDER% && rename xlwings32.dll xlwings32-%APPVEYOR_BUILD_VERSION%.dll
-- cmd: cd %APPVEYOR_BUILD_FOLDER% && rename xlwings64.dll xlwings64-%APPVEYOR_BUILD_VERSION%.dll
-- cmd: cd %APPVEYOR_BUILD_FOLDER% && dir
+- msbuild src/xlwings.sln /p:Configuration=Release
+- msbuild src/xlwings.sln /p:Configuration=Release /p:Platform=x64
+- cd %APPVEYOR_BUILD_FOLDER% && rename xlwings32.dll xlwings32-%APPVEYOR_BUILD_VERSION%.dll
+- cd %APPVEYOR_BUILD_FOLDER% && rename xlwings64.dll xlwings64-%APPVEYOR_BUILD_VERSION%.dll
 - ps: (Get-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py) | ForEach-Object { $_ -replace "dev-version", "$env:APPVEYOR_BUILD_VERSION" } | Set-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py
-- cmd: python scripts/build_excel_files.py
-- cmd: python setup.py sdist
+- python scripts/build_excel_files.py
+- python setup.py sdist
 
 artifacts:
   - path: dist\*
-  
-# Just attempt to install since the full test suite cannot be run
+
 test_script:
-  - cmd: pip install dist\xlwings-%APPVEYOR_BUILD_VERSION%.tar.gz
-  - cmd: python -c "import xlwings"
+  # Just attempt to install since the full test suite cannot be run
+  - pip install dist\xlwings-%APPVEYOR_BUILD_VERSION%.tar.gz
+  - python -c "import xlwings"
 
 # Deploy to PyPI if a tagged release
 on_success:

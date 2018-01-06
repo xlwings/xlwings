@@ -68,7 +68,7 @@ x64/
 
 # binaries
 *.dll
-aspose*
+aspose.cells
 
 #eclipse IDE
 *.project
