@@ -1,6 +1,7 @@
 import os
 import re
 
+# pythonnet
 import clr
 dll = os.path.abspath(os.path.join(os.getenv('APPVEYOR_BUILD_FOLDER', '..'), "aspose.cells", "lib", "net40", "Aspose.Cells.dll"))
 clr.AddReference(dll)

@@ -38,7 +38,7 @@ build_script:
 - msbuild src/xlwings.sln /p:Configuration=Release /p:Platform=x64
 - cd %APPVEYOR_BUILD_FOLDER% && rename xlwings32.dll xlwings32-%APPVEYOR_BUILD_VERSION%.dll
 - cd %APPVEYOR_BUILD_FOLDER% && rename xlwings64.dll xlwings64-%APPVEYOR_BUILD_VERSION%.dll
-- ps: (Get-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py) | ForEach-Object { $_ -replace "dev-version", "$env:APPVEYOR_BUILD_VERSION" } | Set-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py
+- ps: (Get-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py) | ForEach-Object { $_ -replace "__version__ = 'dev'", "__version__ = '$env:APPVEYOR_BUILD_VERSION'" } | Set-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py
 - python scripts/build_excel_files.py
 - python setup.py sdist
 
