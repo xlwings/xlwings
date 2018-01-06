@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.11.5
+-------
+
+* Workbook directory configuration file
+
 v0.11.4 (Jul 23, 2017)
 ----------------------
 
