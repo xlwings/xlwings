@@ -50,8 +50,8 @@ test_script:
   - pip install dist\xlwings-%APPVEYOR_BUILD_VERSION%.tar.gz
   - python -c "import xlwings"
 
-# Deploy to PyPI if a tagged release
 on_success:
+  # Deploy to PyPI if a tagged release
   - echo [distutils]                                  > %USERPROFILE%\\.pypirc
   - echo index-servers =                             >> %USERPROFILE%\\.pypirc
   - echo     pypi                                    >> %USERPROFILE%\\.pypirc
@@ -67,4 +67,5 @@ on_success:
 
   # Required to ensure setup.py finds the .pypirc under Windows
   - set HOME=%USERPROFILE%
+  # TODO: remove "-r pypitest"
   - if "%APPVEYOR_REPO_TAG%"=="true" ( twine upload -r pypitest dist\\xlwings-%APPVEYOR_BUILD_VERSION%.tar.gz) else ( echo "Not deploying because not a tagged commit." )
