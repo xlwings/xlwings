@@ -14,9 +14,9 @@ standalone_win_path = os.path.join(par_dir, 'xlwings', 'quickstart_standalone_wi
 standalone_mac_path = os.path.join(par_dir, 'xlwings', 'quickstart_standalone_mac.xlsm')
 version = os.getenv('APPVEYOR_BUILD_VERSION', 'dev')
 
-if os.getenv('ASPOSE_LICENSE_FILE'):
+if os.getenv('ASPOSE_LICENSE'):
     license = License()
-    license.SetLicense(os.getenv('ASPOSE_LICENSE_FILE'))
+    license.SetLicense(os.path.abspath(os.path.join(this_dir, 'Aspose.Cells.lic')))
 
 
 def set_version_strings(code):
