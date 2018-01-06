@@ -1,0 +1,71 @@
+image: Visual Studio 2015
+
+environment:
+  PYPI_TEST_PASSWORD:
+    secure: sMLDomAF/3FaXYX5vBEv/6fQhCBmk5lachMyOlXxZuE=
+  PYPI_PASSWORD:
+    secure: oSCJsPDE2f8NMJox4JeOs4MzM9KfH4vYbmwUS5FRCzY=
+  ASPOSE_LICENSE:
+    secure: je1oFjicBTA/L3vv55btbjk101JF7M0IQeGMbMcO3N8=
+
+  matrix:
+    - PYTHON: "C:\\Miniconda36-x64"
+
+init:
+  # Set "build version number" to "short-commit-hash" or when tagged to "tag name" (Travis style)
+  - ps: $env:path = "$env:PYTHON;$env:PYTHON\Scripts;$env:path"
+  - ps: >-
+      if ($env:APPVEYOR_REPO_TAG -eq "true")
+      {
+        Update-AppveyorBuild -Version "$env:APPVEYOR_REPO_TAG_NAME"
+      }
+      else
+      {
+        Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_COMMIT.substring(0,7))"
+      }
+install:
+  # Python packages
+  - pip install twine
+  - pip install pythonnet
+  # Download Aspose and decrypt license file
+  - ps:  wget https://www.nuget.org/api/v2/package/Aspose.Cells/17.12.0 -OutFile $env:APPVEYOR_BUILD_FOLDER\aspose.cells.nupkg
+  - 7z x %APPVEYOR_BUILD_FOLDER%\\aspose.cells.nupkg -o%APPVEYOR_BUILD_FOLDER%\\aspose.cells
+  - nuget install secure-file -ExcludeVersion
+  - secure-file\tools\secure-file -decrypt scripts\Aspose.Cells.lic.enc -secret %ASPOSE_LICENSE%
+
+build_script:
+- msbuild src/xlwings.sln /p:Configuration=Release
+- msbuild src/xlwings.sln /p:Configuration=Release /p:Platform=x64
+- cd %APPVEYOR_BUILD_FOLDER% && rename xlwings32.dll xlwings32-%APPVEYOR_BUILD_VERSION%.dll
+- cd %APPVEYOR_BUILD_FOLDER% && rename xlwings64.dll xlwings64-%APPVEYOR_BUILD_VERSION%.dll
+- ps: (Get-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py) | ForEach-Object { $_ -replace "__version__ = 'dev'", "__version__ = '$env:APPVEYOR_BUILD_VERSION'" } | Set-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py
+- python scripts/build_excel_files.py
+- python setup.py sdist
+
+artifacts:
+  - path: dist\*
+
+test_script:
+  # Just attempt to install since the full test suite cannot be run
+  - pip install dist\xlwings-%APPVEYOR_BUILD_VERSION%.tar.gz
+  - python -c "import xlwings"
+
+on_success:
+  # Deploy to PyPI if a tagged release
+  - echo [distutils]                                  > %USERPROFILE%\\.pypirc
+  - echo index-servers =                             >> %USERPROFILE%\\.pypirc
+  - echo     pypi                                    >> %USERPROFILE%\\.pypirc
+  - echo     pypitest                                >> %USERPROFILE%\\.pypirc
+  - echo [pypi]                                      >> %USERPROFILE%\\.pypirc
+  - echo repository=https://pypi.python.org/pypi     >> %USERPROFILE%\\.pypirc
+  - echo username=zoomeranalytics                    >> %USERPROFILE%\\.pypirc
+  - echo password=%PYPI_PASSWORD%                    >> %USERPROFILE%\\.pypirc
+  - echo [pypitest]                                  >> %USERPROFILE%\\.pypirc
+  - echo repository=https://test.pypi.org/legacy/    >> %USERPROFILE%\\.pypirc
+  - echo username=zoomeranalytics                    >> %USERPROFILE%\\.pypirc
+  - echo password=%PYPI_TEST_PASSWORD%               >> %USERPROFILE%\\.pypirc  
+
+  # Required to ensure setup.py finds the .pypirc under Windows
+  - set HOME=%USERPROFILE%
+  # TODO: remove "-r pypitest"
+  - if "%APPVEYOR_REPO_TAG%"=="true" ( twine upload -r pypitest dist\\xlwings-%APPVEYOR_BUILD_VERSION%.tar.gz) else ( echo "Not deploying because not a tagged commit." )
