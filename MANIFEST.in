@@ -7,5 +7,5 @@ include xlwings*.dll
 include xlwings/xlwings.applescript
 
 recursive-include docs *
-prune docs/_build
+prune docs
 
