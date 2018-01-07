@@ -1,10 +1,16 @@
 What's New
 ==========
 
-v0.11.5
--------
+v0.11.5 (Jan 7, 2018)
+---------------------
 
-* Workbook directory configuration file
+This is a bug fix release:
+
+* [Mac] Sheet.names.add() was always adding the names on workbook level (:issue:`771`)
+* Reading Pandas DataFrames with a simple index was creating a MultiIndex with Pandas > 0.20 (:issue:`786`)
+* Config files can now additionally be saved in the directory of the workbooks, overriding the global Ribbon config(:issue:`772`)
+* [Win] The xlwings dlls are now properly versioned, allowing to use pre 0.11 releases in parallel with >0.11 releases (:issue:`743`)
+* [Mac] UDF decorators now don't cause errors on Mac anymore (:issue:`780`)
 
 v0.11.4 (Jul 23, 2017)
 ----------------------
