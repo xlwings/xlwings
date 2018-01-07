@@ -33,8 +33,11 @@ if pd:
             # build dataframe with only columns (no index) but correct header
             if header == 1:
                 columns = pd.Index(value[0])
+            elif header > 1:
+                columns = pd.MultiIndex.from_arrays(value[:header])
             else:
-                columns = pd.MultiIndex.from_arrays(value[:header]) if header > 0 else None
+                columns = None
+
             df = pd.DataFrame(value[header:], columns=columns, dtype=dtype, copy=copy)
 
             # handle index by resetting the index to the index first columns
