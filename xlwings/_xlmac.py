@@ -606,16 +606,43 @@ class Range(object):
             self.xl.make(at=self.xl, new=kw.hyperlink, with_properties={kw.address: address,
                                                                         kw.text_to_display: text_to_display,
                                                                         kw.screen_tip: screen_tip})
+    @property
+    def font(self):
+        if not self.xl:
+            return None
+        else:
+            props = self.xl.font_object.properties.get()
+            return dict((k.name, v) for (k, v) in props.items())
+
+    @font.setter
+    def font(self, props):
+        if self.xl is not None:
+            keywords = dict((appscript.Keyword(k), v) for (k, v) in props.items())
+            self.xl.font_object.properties.set(keywords)
 
     @property
-    def color(self):
+    def interior(self):
+        if not self.xl:
+            return None
+        else:
+            props = self.xl.interior_object.properties.get()
+            return dict((k.name, v) for (k, v) in props.items())
+
+    @interior.setter
+    def interior(self, props):
+        if self.xl is not None:
+            keywords = dict((appscript.Keyword(k), v) for (k, v) in props.items())
+            self.xl.interior_object.properties.set(keywords)
+
+    @property
+    def background_color(self):
         if not self.xl or self.xl.interior_object.color_index.get() == kw.color_index_none:
             return None
         else:
             return tuple(self.xl.interior_object.color.get())
 
-    @color.setter
-    def color(self, color_or_rgb):
+    @background_color.setter
+    def background_color(self, color_or_rgb):
         if self.xl is not None:
             if color_or_rgb is None:
                 self.xl.interior_object.color_index.set(ColorIndex.xlColorIndexNone)
@@ -623,6 +650,23 @@ class Range(object):
                 self.xl.interior_object.color.set(int_to_rgb(color_or_rgb))
             else:
                 self.xl.interior_object.color.set(color_or_rgb)
+
+    @property
+    def color(self):
+        if not self.xl or self.xl.font_object.color_index.get() == kw.color_index_none:
+            return None
+        else:
+            return tuple(self.xl.font_object.color.get())
+
+    @color.setter
+    def color(self, color_or_rgb):
+        if self.xl is not None:
+            if color_or_rgb is None:
+                self.xl.font_object.color_index.set(ColorIndex.xlColorIndexNone)
+            elif isinstance(color_or_rgb, int):
+                self.xl.font_object.color.set(int_to_rgb(color_or_rgb))
+            else:
+                self.xl.font_object.color.set(color_or_rgb)
 
     @property
     def name(self):

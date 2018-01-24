@@ -1395,9 +1395,62 @@ class Range(object):
         return self.impl.autofit()
 
     @property
-    def color(self):
+    def font(self):
+        """
+        TODO: ADD DOCS
+        """
+        return self.impl.font
+
+    @font.setter
+    def font(self, props):
+        self.impl.font = props
+
+    @property
+    def interior(self):
+        """
+        TODO: ADD DOCS
+        """
+        return self.impl.interior
+
+    @interior.setter
+    def interior(self, props):
+        self.impl.interior = props
+
+    @property
+    def background_color(self):
         """
         Gets and sets the background color of the specified Range.
+
+        To set the color, either use an RGB tuple ``(0, 0, 0)`` or a color constant.
+        To remove the background, set the color to ``None``, see Examples.
+
+        Returns
+        -------
+        RGB : tuple
+
+        Examples
+        --------
+        >>> import xlwings as xw
+        >>> wb = xw.Book()
+        >>> xw.Range('A1').background_color = (255,255,255)
+        >>> xw.Range('A2').background_color
+        (255, 255, 255)
+        >>> xw.Range('A2').background_color = None
+        >>> xw.Range('A2').background_color is None
+        True
+
+        .. versionadded:: 0.3.0
+        """
+        return self.impl.background_color
+
+    @background_color.setter
+    def background_color(self, color_or_rgb):
+        self.impl.background_color = color_or_rgb
+
+    @property
+    def color(self):
+        """
+        Gets and sets the font color of the specified Range.
 
         To set the color, either use an RGB tuple ``(0, 0, 0)`` or a color constant.
         To remove the background, set the color to ``None``, see Examples.
