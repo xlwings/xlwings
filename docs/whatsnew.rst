@@ -4,6 +4,15 @@ What's New
 v0.11.5 (Jan 7, 2018)
 ---------------------
 
+Bug Fixes:
+
+* [Win] When constantly writing to a spreadsheet, xlwings now correctly resumes after clicking into cells, previously it was crashing. (:issue:`587`)
+* Options are now correctly applied when writing to a sheet (:issue:`798`)
+
+
+v0.11.5 (Jan 7, 2018)
+---------------------
+
 This is mostly a bug fix release:
 
 * Config files can now additionally be saved in the directory of the workbooks, overriding the global Ribbon config, see :ref:`config_file` (:issue:`772`)
