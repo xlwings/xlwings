@@ -97,7 +97,7 @@ class COMRetryObjectWrapper(object):
             try:
                 return setattr(self._inner, key, value)
             except pywintypes.com_error as e:
-                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult == -2147418111:
+                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult in [-2147418111, -2147352567]:
                     n_attempt += 1
                     continue
                 else:
@@ -122,7 +122,7 @@ class COMRetryObjectWrapper(object):
                 else:
                     return v
             except pywintypes.com_error as e:
-                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult == -2147418111:
+                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult in [-2147418111, -2147352567]:
                     n_attempt += 1
                     continue
                 else:
@@ -157,7 +157,7 @@ class COMRetryObjectWrapper(object):
                 else:
                     return v
             except pywintypes.com_error as e:
-                    if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult == -2147418111:
+                    if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult in [-2147418111, -2147352567]:
                         n_attempt += 1
                         continue
                     else:
