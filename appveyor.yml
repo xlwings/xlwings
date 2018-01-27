@@ -67,4 +67,4 @@ on_success:
 
   # Required to ensure setup.py finds the .pypirc under Windows
   - set HOME=%USERPROFILE%
-  - if "%APPVEYOR_REPO_TAG%"=="true" ( twine upload dist\\xlwings-%APPVEYOR_BUILD_VERSION%.tar.gz) else ( echo "Not deploying because not a tagged commit." )
+  - if "%APPVEYOR_REPO_TAG%"=="true" ( twine upload dist\xlwings-%APPVEYOR_BUILD_VERSION%.tar.gz) else ( echo "Not deploying because not a tagged commit." )
