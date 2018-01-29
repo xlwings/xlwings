@@ -19,14 +19,26 @@ import win32event
 os.chdir(cwd)
 
 import types
+import logging
 import pythoncom
 import pywintypes
+import traceback
+import win32con
 import win32com.client
 import win32com.server.util as serverutil
 import win32com.server.dispatcher
 import win32com.server.policy
+from .event_dispatcher import EventDispatcher
+from .udfs import call_udf, get_udf_module
+from . import xlplatform
 
-from .udfs import call_udf
+
+# Global variables
+main_thread_id = win32api.GetCurrentThreadId()
+
+
+_logger = logging.getLogger(__name__)
+
 
 class XLPythonOption(object):
     """ The XLPython class itself """
@@ -100,7 +112,7 @@ def ToVariant(obj):
 class XLPython(object):
     _public_methods_ = ['Module', 'Tuple', 'TupleFromArray', 'Dict', 'DictFromArray', 'List', 'ListFromArray', 'Obj',
                         'Str', 'Var', 'Call', 'GetItem', 'SetItem', 'DelItem', 'Contains', 'GetAttr', 'SetAttr',
-                        'DelAttr', 'HasAttr', 'Eval', 'Exec', 'ShowConsole', 'Builtin', 'Len', 'Bool',
+                        'DelAttr', 'HasAttr', 'Eval', 'Exec', 'ShowConsole', 'Builtin', 'Len', 'Bool', 'Event',
                         'CallUDF']
 
     def ShowConsole(self):
@@ -187,10 +199,27 @@ class XLPython(object):
 
     def CallUDF(self, script, fname, args, this_workbook, caller):
         args = tuple(FromVariant(arg) for arg in args)
-        res = call_udf(script, fname, args, this_workbook, FromVariant(caller))
-        if isinstance(res, (tuple, list)):
-            res = (res,)
-        return res
+        # this_workbook can be None
+        xlplatform.BOOK_CALLER = this_workbook and win32com.client.Dispatch(this_workbook)
+        xl_app = xlplatform.BOOK_CALLER and xlplatform.BOOK_CALLER.Application
+        prev_enable_events = xl_app and xl_app.EnableEvents
+        if prev_enable_events:
+            xl_app.EnableEvents = False
+        try:
+            res = call_udf(script, fname, args, this_workbook, FromVariant(caller))
+            if isinstance(res, (tuple, list)):
+                res = (res, )
+            return res
+        except Exception as exc:
+            udf_module = get_udf_module(script)
+            func = getattr(udf_module, fname)
+            is_xlfunc = not func.__xlfunc__['sub']
+            self._TraceExc(exc, xl_app=None if is_xlfunc else xl_app)
+            if is_xlfunc:
+                raise  # Reraise if obj is a xlfunc (handled correctly by upper layers)
+        finally:
+            if prev_enable_events is not None:
+                xl_app.EnableEvents = prev_enable_events
 
     def Len(self, obj):
         obj = FromVariant(obj)
@@ -276,6 +305,38 @@ class XLPython(object):
                 pass
         exec (stmt, globals, locals)
 
+    def Event(self, event_name, args, this_workbook, caller):
+        pargs = tuple(FromVariant(arg) for arg in args)
+        # this_workbook can be None
+        xlplatform.BOOK_CALLER = this_workbook and win32com.client.Dispatch(this_workbook)
+        xl_app = xlplatform.BOOK_CALLER and xlplatform.BOOK_CALLER.Application
+        prev_enable_events = xl_app and xl_app.EnableEvents
+        if prev_enable_events:
+            xl_app.EnableEvents = False
+        try:
+            EventDispatcher.dispatch(event_name, *pargs)
+        finally:
+            if prev_enable_events is not None:
+                xl_app.EnableEvents = prev_enable_events
+        if event_name == 'AddinBeforeQuit':
+            win32api.PostThreadMessage(main_thread_id, win32con.WM_QUIT, 0, 0)
+
+    def _TraceExc(self, exc, xl_app=None):
+        for exc_line in traceback.format_exc().splitlines():
+            _logger.error(exc_line)
+        if xl_app:
+            exc_type = type(exc)
+            title = exc_type.__name__
+            if exc_type is pywintypes.com_error:
+                if isinstance(exc[2], tuple):
+                    com_error_info = exc[2]
+                    title = com_error_info[1]
+                    msg = com_error_info[2]
+                else:
+                    msg = exc[1]
+            else:
+                msg = str(exc)
+            win32api.MessageBox(xl_app.Hwnd, msg, title, win32con.MB_ICONERROR)
 
 idle_queue = []
 idle_queue_event = win32event.CreateEvent(None, 0, 0, None)
@@ -343,7 +404,6 @@ def _execute_task(task):
             print("Retrying TaskQueue '%s'." % task)
             _execute_task(task)
         else:
-            import traceback
             print("TaskQueue '%s' threw an exception: %s" % (task, traceback.format_exc()))
 
 

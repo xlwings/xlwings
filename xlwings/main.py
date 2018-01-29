@@ -956,6 +956,14 @@ class Range(object):
         xw.books['MyBook.xlsx'].sheets[0].range('A1')
     """
 
+    @staticmethod
+    def caller_address():
+        return Book.caller().app.api.Caller.GetAddress(False, False, 1, False)
+
+    @classmethod
+    def caller(cls):
+        return cls(cls.caller_address())
+
     def __init__(self, cell1=None, cell2=None, **options):
 
         # Arguments

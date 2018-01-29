@@ -10,6 +10,7 @@ from win32com.client import Dispatch
 
 from . import conversion
 from .utils import VBAWriter
+from .event_dispatcher import EventDispatcher
 from . import xlplatform
 from . import Range
 
@@ -167,6 +168,18 @@ def xlarg(arg, convert=None, **kwargs):
     return inner
 
 
+def xlevent(event_name):
+    def inner(f):
+        EventDispatcher.register_callback(event_name, f)
+        return f
+    return inner
+
+
+def xleventexc(f):
+    EventDispatcher.register_exception_callback(f)
+    return f
+
+
 udf_modules = {}
 
 
@@ -246,7 +259,6 @@ def call_udf(module_name, func_name, args, this_workbook, caller):
         else:
             args[i] = conversion.read(None, arg, arg_info['options'])
 
-    xlplatform.BOOK_CALLER = Dispatch(this_workbook)
     ret = func(*args)
 
     if ret_info['options'].get('expand', None):

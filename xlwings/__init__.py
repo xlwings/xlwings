@@ -36,7 +36,7 @@ from .main import apps, books, sheets
 
 # UDFs
 if sys.platform.startswith('win'):
-    from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, get_udf_module, import_udfs
+    from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, xlevent as event, xleventexc as eventexc, get_udf_module, import_udfs
 else:
     def func(*args, **kwargs):
         def real_decorator(f):
@@ -58,6 +58,16 @@ else:
             return f
         return real_decorator
 
+    def event(*args, **kwargs):
+        def real_decorator(f):
+            return f
+        return real_decorator
+
+    def eventexc(*args, **kwargs):
+        def real_decorator(f):
+            return f
+        return real_decorator
+
 
 def xlfunc(*args, **kwargs):
     raise Exception("Deprecation: 'xlfunc' has been renamed to 'func' - use 'import xlwings as xw' and decorate your function with '@xw.func'.")
@@ -74,6 +84,8 @@ def xlret(*args, **kwargs):
 def xlarg(*args, **kwargs):
     raise Exception("Deprecation: 'xlarg' has been renamed to 'arg' - use 'import xlwings as xw' and decorate your function with '@xw.arg'.")
 
+# Events
+from .event_dispatcher import EventDispatcher, EventHandler
 
 # Server
 if sys.platform.startswith('win'):
