@@ -84,6 +84,7 @@ def xlret(*args, **kwargs):
 def xlarg(*args, **kwargs):
     raise Exception("Deprecation: 'xlarg' has been renamed to 'arg' - use 'import xlwings as xw' and decorate your function with '@xw.arg'.")
 
+
 # Events
 from .event_dispatcher import EventDispatcher, EventHandler
 
