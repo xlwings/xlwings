@@ -88,6 +88,9 @@ def xlarg(*args, **kwargs):
 # Events
 from .event_dispatcher import EventDispatcher, EventHandler
 
+# Object cache
+from .object_cache import return_cached_object, use_cached_object, use_cached_object_list
+
 # Server
 if sys.platform.startswith('win'):
     from .server import serve
