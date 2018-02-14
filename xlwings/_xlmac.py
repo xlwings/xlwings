@@ -635,40 +635,6 @@ class Range(object):
             self.xl.interior_object.properties.set(keywords)
 
     @property
-    def background_color(self):
-        if not self.xl or self.xl.interior_object.color_index.get() == kw.color_index_none:
-            return None
-        else:
-            return tuple(self.xl.interior_object.color.get())
-
-    @background_color.setter
-    def background_color(self, color_or_rgb):
-        if self.xl is not None:
-            if color_or_rgb is None:
-                self.xl.interior_object.color_index.set(ColorIndex.xlColorIndexNone)
-            elif isinstance(color_or_rgb, int):
-                self.xl.interior_object.color.set(int_to_rgb(color_or_rgb))
-            else:
-                self.xl.interior_object.color.set(color_or_rgb)
-
-    @property
-    def color(self):
-        if not self.xl or self.xl.font_object.color_index.get() == kw.color_index_none:
-            return None
-        else:
-            return tuple(self.xl.font_object.color.get())
-
-    @color.setter
-    def color(self, color_or_rgb):
-        if self.xl is not None:
-            if color_or_rgb is None:
-                self.xl.font_object.color_index.set(ColorIndex.xlColorIndexNone)
-            elif isinstance(color_or_rgb, int):
-                self.xl.font_object.color.set(int_to_rgb(color_or_rgb))
-            else:
-                self.xl.font_object.color.set(color_or_rgb)
-
-    @property
     def name(self):
         if not self.xl:
             return None
