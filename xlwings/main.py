@@ -1417,6 +1417,17 @@ class Range(object):
         self.impl.interior = props
 
     @property
+    def style(self):
+        """
+        TODO: ADD DOCS
+        """
+        return self.impl.style
+
+    @style.setter
+    def style(self, props):
+        self.impl.style = props
+
+    @property
     def name(self):
         """
         Sets or gets the name of a Range.

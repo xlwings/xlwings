@@ -635,6 +635,20 @@ class Range(object):
             self.xl.interior_object.properties.set(keywords)
 
     @property
+    def style(self):
+        if not self.xl:
+            return None
+        else:
+            props = self.xl.style_object.properties.get()
+            return dict((k.name, v) for (k, v) in props.items())
+
+    @style.setter
+    def style(self, props):
+        if self.xl is not None:
+            keywords = dict((appscript.Keyword(k), v) for (k, v) in props.items())
+            self.xl.style_object.properties.set(keywords)
+
+    @property
     def name(self):
         if not self.xl:
             return None
