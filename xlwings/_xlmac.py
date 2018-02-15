@@ -615,9 +615,9 @@ class Range(object):
             return dict((k.name, v) for (k, v) in props.items())
 
     @font.setter
-    def font(self, props):
+    def font(self, properties):
         if self.xl is not None:
-            keywords = dict((appscript.Keyword(k), v) for (k, v) in props.items())
+            keywords = dict((appscript.Keyword(k), v) for (k, v) in properties.items())
             self.xl.font_object.properties.set(keywords)
 
     @property
@@ -625,28 +625,114 @@ class Range(object):
         if not self.xl:
             return None
         else:
-            props = self.xl.interior_object.properties.get()
-            return dict((k.name, v) for (k, v) in props.items())
+            properties = self.xl.interior_object.properties.get()
+            return dict((k.name, v) for (k, v) in properties.items())
 
     @interior.setter
-    def interior(self, props):
+    def interior(self, properties):
         if self.xl is not None:
-            keywords = dict((appscript.Keyword(k), v) for (k, v) in props.items())
+            keywords = dict((appscript.Keyword(k), v) for (k, v) in properties.items())
             self.xl.interior_object.properties.set(keywords)
 
+    ### UNTESTED
     @property
     def style(self):
         if not self.xl:
             return None
         else:
-            props = self.xl.style_object.properties.get()
-            return dict((k.name, v) for (k, v) in props.items())
+            properties = self.xl.style_object.properties.get()
+            return dict((k.name, v) for (k, v) in properties.items())
 
     @style.setter
-    def style(self, props):
+    def style(self, properties):
         if self.xl is not None:
-            keywords = dict((appscript.Keyword(k), v) for (k, v) in props.items())
+            keywords = dict((appscript.Keyword(k), v) for (k, v) in properties.items())
             self.xl.style_object.properties.set(keywords)
+
+    def _border_get_properties(self, target):
+        if not self.xl:
+            return None
+        else:
+            properties = self.xl.get_border(which_border=appscript.Keyword(target)).properties.get()
+            return dict((k.name, v) for (k, v) in properties.items())
+
+    def _border_apply_properties(self, target, properties):
+        if self.xl is not None:
+            keywords = dict((appscript.Keyword(k), appscript.Keyword(v) if type(v) is str else v)
+                            for (k, v) in properties.items())
+            self.xl.get_border(which_border=appscript.Keyword(target)).properties.set(keywords)
+
+    @property
+    def border_top(self):
+        return self.rows[0]._border_get_properties("border_top")
+
+    @border_top.setter
+    def border_top(self, properties):
+        self.rows[0]._border_apply_properties("border_top", properties)
+
+    @property
+    def border_right(self):
+        return self.columns[-1]._border_get_properties("border_right")
+
+    @border_right.setter
+    def border_right(self, properties):
+        self.columns[-1]._border_apply_properties("border_right", properties)
+
+    @property
+    def border_bottom(self):
+        return self.rows[-1]._border_get_properties("border_bottom")
+
+    @border_bottom.setter
+    def border_bottom(self, properties):
+        self.rows[-1]._border_apply_properties("border_bottom", properties)
+
+    @property
+    def border_left(self):
+        return self.columns[0]._border_get_properties("border_left")
+
+    @border_left.setter
+    def border_left(self, properties):
+        self.columns[0]._border_apply_properties("border_left", properties)
+
+    @property
+    def borders(self):
+        return {
+            "top": self.border_top,
+            "right": self.border_right,
+            "bottom": self.border_bottom,
+            "left": self.border_left
+        }
+
+    @borders.setter
+    def borders(self, properties):
+        self.border_top = properties
+        self.border_right = properties
+        self.border_bottom = properties
+        self.border_left = properties
+
+    @property
+    def borders_horizontal(self):
+        return {
+            "top": self.border_top,
+            "bottom": self.border_bottom,
+        }
+
+    @borders_horizontal.setter
+    def borders_horizontal(self, properties):
+        self.border_top = properties
+        self.border_bottom = properties
+
+    @property
+    def borders_vertical(self):
+        return {
+            "right": self.border_right,
+            "left": self.border_left
+        }
+
+    @borders_vertical.setter
+    def borders_vertical(self, properties):
+        self.border_right = properties
+        self.border_left = properties
 
     @property
     def name(self):
@@ -690,7 +776,7 @@ class Range(object):
         sht = self.sheet
         return [
             sht.range((row1, col + i), (row2, col + i))
-            for i in range(self.shape[0])
+            for i in range(self.shape[1])
         ]
 
     def select(self):

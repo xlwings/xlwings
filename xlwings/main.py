@@ -1402,8 +1402,8 @@ class Range(object):
         return self.impl.font
 
     @font.setter
-    def font(self, props):
-        self.impl.font = props
+    def font(self, properties):
+        self.impl.font = properties
 
     @property
     def interior(self):
@@ -1413,8 +1413,8 @@ class Range(object):
         return self.impl.interior
 
     @interior.setter
-    def interior(self, props):
-        self.impl.interior = props
+    def interior(self, properties):
+        self.impl.interior = properties
 
     @property
     def style(self):
@@ -1424,8 +1424,65 @@ class Range(object):
         return self.impl.style
 
     @style.setter
-    def style(self, props):
-        self.impl.style = props
+    def style(self, properties):
+        self.impl.style = properties
+
+    @property
+    def border_top(self):
+        return self.impl.border_top
+
+    @border_top.setter
+    def border_top(self, properties):
+        self.impl.border_top = properties
+
+    @property
+    def border_right(self):
+        return self.impl.border_right
+
+    @border_right.setter
+    def border_right(self, properties):
+        self.impl.border_right = properties
+
+    @property
+    def border_bottom(self):
+        return self.impl.border_bottom
+
+    @border_bottom.setter
+    def border_bottom(self, properties):
+        self.impl.border_bottom = properties
+
+    @property
+    def border_left(self):
+        return self.impl.border_left
+
+    @border_left.setter
+    def border_left(self, properties):
+        self.impl.border_left = properties
+
+    @property
+    def borders(self):
+        return self.impl.borders
+
+    @borders.setter
+    def borders(self, properties):
+        self.impl.borders = properties
+
+    @property
+    def borders_horizontal(self):
+        return self.impl.borders_horizontal
+
+
+    @borders_horizontal.setter
+    def borders_horizontal(self, properties):
+        self.impl.borders_horizontal = properties
+
+    @property
+    def borders_vertical(self):
+        return self.impl.borders_vertical
+
+    @borders_vertical.setter
+    def borders_vertical(self, properties):
+        self.impl.borders_vertical = properties
 
     @property
     def name(self):
