@@ -68,9 +68,12 @@ x64/
 
 # binaries
 *.dll
+aspose.cells
 
 #eclipse IDE
 *.project
 *.pydevproject
+
+venv
 
 

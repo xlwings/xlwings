@@ -1,6 +1,31 @@
 What's New
 ==========
 
+v0.11.7 (Feb 5, 2018)
+----------------------
+
+* [Win] This release fixes a bug introduced with v0.11.6 that would't allow to open workbooks by name (:issue:`804`)
+
+v0.11.6 (Jan 27, 2018)
+----------------------
+
+Bug Fixes:
+
+* [Win] When constantly writing to a spreadsheet, xlwings now correctly resumes after clicking into cells, previously it was crashing. (:issue:`587`)
+* Options are now correctly applied when writing to a sheet (:issue:`798`)
+
+
+v0.11.5 (Jan 7, 2018)
+---------------------
+
+This is mostly a bug fix release:
+
+* Config files can now additionally be saved in the directory of the workbooks, overriding the global Ribbon config, see :ref:`config_file` (:issue:`772`)
+* Reading Pandas DataFrames with a simple index was creating a MultiIndex with Pandas > 0.20 (:issue:`786`)
+* [Win] The xlwings dlls are now properly versioned, allowing to use pre 0.11 releases in parallel with >0.11 releases (:issue:`743`)
+* [Mac] Sheet.names.add() was always adding the names on workbook level (:issue:`771`)
+* [Mac] UDF decorators now don't cause errors on Mac anymore (:issue:`780`)
+
 v0.11.4 (Jul 23, 2017)
 ----------------------
 

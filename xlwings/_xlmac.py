@@ -245,7 +245,7 @@ class Book(object):
 
     @property
     def names(self):
-        return Names(book=self, xl=self.xl.named_items)
+        return Names(parent=self, xl=self.xl.named_items)
 
     def activate(self):
         self.xl.activate_object()
@@ -306,7 +306,7 @@ class Sheet(object):
 
     @property
     def names(self):
-        return Names(book=self.workbook, xl=self.xl.named_items)
+        return Names(parent=self, xl=self.xl.named_items)
 
     @property
     def book(self):
@@ -1085,12 +1085,12 @@ class Pictures(Collection):
 
 
 class Names(object):
-    def __init__(self, book, xl):
-        self.book = book
+    def __init__(self, parent, xl):
+        self.parent = parent
         self.xl = xl
 
     def __call__(self, name_or_index):
-        return Name(self.book, xl=self.xl[name_or_index])
+        return Name(self.parent, xl=self.xl[name_or_index])
 
     def contains(self, name_or_index):
         try:
@@ -1108,17 +1108,17 @@ class Names(object):
             return len(named_items)
 
     def add(self, name, refers_to):
-        return Name(self.book, self.book.xl.make(at=self.book.xl,
-                                                 new=kw.named_item,
-                                                 with_properties={
-                                                     kw.references: refers_to,
-                                                     kw.name: name
-                                                 }))
+        return Name(self.parent, self.parent.xl.make(at=self.parent.xl,
+                                                     new=kw.named_item,
+                                                     with_properties={
+                                                         kw.references: refers_to,
+                                                         kw.name: name
+                                                     }))
 
 
 class Name(object):
-    def __init__(self, book, xl):
-        self.book = book
+    def __init__(self, parent, xl):
+        self.parent = parent
         self.xl = xl
 
     def delete(self):
@@ -1143,7 +1143,8 @@ class Name(object):
     @property
     def refers_to_range(self):
         ref = self.refers_to[1:].split('!')
-        return Range(Sheet(self.book, ref[0]), ref[1])
+        book = self.parent if isinstance(self.parent, Book) else self.parent.book
+        return Range(Sheet(book, ref[0]), ref[1])
 
 
 class Shapes(Collection):
@@ -1230,7 +1231,7 @@ def prepare_xl_data_element(x):
     elif np and isinstance(x, np.datetime64):
         # handle numpy.datetime64
         return np_datetime_to_datetime(x).replace(tzinfo=None)
-    elif np and isinstance(x, np.generic):
+    elif np and isinstance(x, np.number):
         return float(x)
     elif pd and isinstance(x, pd.Timestamp):
         # This transformation seems to be only needed on Python 2.6 (?)

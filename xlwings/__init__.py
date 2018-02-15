@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import sys
 
 
-__version__ = '0.11.4'
+__version__ = 'dev'
 
 # Python 2 vs 3
 PY3 = sys.version_info[0] == 3
@@ -38,17 +38,25 @@ from .main import apps, books, sheets
 if sys.platform.startswith('win'):
     from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, get_udf_module, import_udfs
 else:
-    def func(f):
-        return f
+    def func(*args, **kwargs):
+        def real_decorator(f):
+            return f
+        return real_decorator
 
-    def sub(f):
-        return f
+    def sub(*args, **kwargs):
+        def real_decorator(f):
+            return f
+        return real_decorator
 
-    def ret(f):
-        return f
+    def ret(*args, **kwargs):
+        def real_decorator(f):
+            return f
+        return real_decorator
 
-    def arg(f):
-        return f
+    def arg(*args, **kwargs):
+        def real_decorator(f):
+            return f
+        return real_decorator
 
 
 def xlfunc(*args, **kwargs):

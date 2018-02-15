@@ -97,7 +97,8 @@ class COMRetryObjectWrapper(object):
             try:
                 return setattr(self._inner, key, value)
             except pywintypes.com_error as e:
-                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult == -2147418111:
+                # -2147352567 is the error you get when clicking into cells
+                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult in [-2147418111, -2147352567]:
                     n_attempt += 1
                     continue
                 else:
@@ -1022,7 +1023,7 @@ def _datetime_to_com_time(dt_time):
 def prepare_xl_data_element(x):
     if isinstance(x, time_types):
         return _datetime_to_com_time(x)
-    elif np and isinstance(x, np.generic):
+    elif np and isinstance(x, np.number):
         return float(x)
     elif x is None:
         return ""

@@ -20,3 +20,8 @@ Links
 * Source Code: http://github.com/zoomeranalytics/xlwings
 
 
+xltrail
+-------
+
+The Excel add-in is version controlled with `xltrail <https://www.xltrail.com>`_. You can see the diffs on
+https://demo.xltrail.com.
