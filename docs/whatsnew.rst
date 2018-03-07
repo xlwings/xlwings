@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.11.7 (Feb 5, 2018)
+----------------------
+
+* [Win] This release fixes a bug introduced with v0.11.6 that would't allow to open workbooks by name (:issue:`804`)
+
 v0.11.6 (Jan 27, 2018)
 ----------------------
 
