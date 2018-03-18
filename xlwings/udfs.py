@@ -256,7 +256,7 @@ def call_udf(module_name, func_name, args, this_workbook, caller):
     return conversion.write(ret, None, ret_info['options'])
 
 
-def generate_vba_wrapper(module_name, module, f):
+def generate_vba_wrapper(module_name, module, config_file_path, f):
 
     vba = VBAWriter(f)
 
@@ -328,13 +328,15 @@ def generate_vba_wrapper(module_name, module, f):
                     args_vba = 'Array(' + ', '.join(arg['vba'] or arg['name'] for arg in xlfunc['args']) + ')'
 
                 if ftype == "Sub":
-                    vba.writeln('Py.CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller',
+                    vba.writeln('Py("{config_file_path}").CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller',
+                        config_file_path=config_file_path,
                         module_name=module_name,
                         fname=fname,
                         args_vba=args_vba,
                     )
                 else:
-                    vba.writeln('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)',
+                    vba.writeln('{fname} = Py("{config_file_path}").CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)',
+                        config_file_path=config_file_path,
                         module_name=module_name,
                         fname=fname,
                         args_vba=args_vba,
@@ -349,14 +351,14 @@ def generate_vba_wrapper(module_name, module, f):
             vba.writeln('')
 
 
-def import_udfs(module_names, xl_workbook):
+def import_udfs(module_names, xl_workbook, config_file_path):
     module_names = module_names.split(';')
 
     tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
 
     for module_name in module_names:
         module = get_udf_module(module_name)
-        generate_vba_wrapper(module_name, module, tf.file)
+        generate_vba_wrapper(module_name, module, config_file_path, tf.file)
 
     tf.close()
 
