@@ -75,6 +75,8 @@ Workbook Directory Config: Config file
 
 The global settings of the Ribbon/Config file can be overridden for one or more workbooks by creating a ``xlwings.conf`` file
 in the workbook's directory.
+When you create a new project with ``xlwings quickstart``, it'll already have such a file pointing to the interpreter
+you used to run ``xlwings quickstart``.
 
 .. _addin_wb_settings:
 
@@ -84,7 +86,7 @@ Workbook Config: xlwings.conf Sheet
 Workbook specific settings will override global (Ribbon) and workbook directory config files: 
 Workbook specific settings are set by listing the config key/value pairs in a sheet with the name ``xlwings.conf``.
 When you create a new project with ``xlwings quickstart``, it'll already have such a sheet but you need to rename
-it to ``xlwings.conf`` to make it active.
+it to ``xlwings.conf`` to make it active. Otherwise, it will use the ``xlwings.conf`` file already created.
 
 
 .. figure:: images/workbook_config.png
