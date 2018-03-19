@@ -82,6 +82,10 @@ def quickstart(args):
             python_module.write('def hello(name):\n')
             python_module.write('    return "hello {0}".format(name)\n')
 
+    # xlwings.conf file
+    with open(os.path.join(project_path, 'xlwings.conf'), 'w') as xlwings_conf:
+        xlwings_conf.write('"INTERPRETER","{}"\n'.format(sys.executable))
+
     # Excel file
     if not args.standalone:
         source_file = os.path.join(this_dir, 'quickstart.xlsm')
