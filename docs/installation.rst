@@ -31,11 +31,7 @@ Dependencies
 
 * **Windows**: ``pywin32``, ``comtypes``
 
-  On Windows, it is recommended to use one of the scientific Python distributions like
-  `Anaconda <https://store.continuum.io/cshop/anaconda/>`_,
-  `WinPython <https://winpython.github.io/>`_ or
-  `Canopy <https://www.enthought.com/products/canopy/>`_ as they already include pywin32. Otherwise it needs to be
-  installed from `here <http://sourceforge.net/projects/pywin32/files/pywin32/>`_ which can be a hassle.
+  On Windows, the dependencies are automatically being handled if xlwings is installed with ``conda`` or ``pip``.
 
 * **Mac**: ``psutil``, ``appscript``
 
