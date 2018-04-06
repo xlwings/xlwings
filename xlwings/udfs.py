@@ -216,7 +216,7 @@ def get_udf_module(module_name):
         return module
 
 
-def call_udf(module_name, func_name, args, this_workbook, caller):
+def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
 
     module = get_udf_module(module_name)
 
@@ -245,8 +245,8 @@ def call_udf(module_name, func_name, args, this_workbook, caller):
                 args[i] = conversion.read(Range(impl=xlplatform.Range(xl=arg)), None, arg_info['options'])
         else:
             args[i] = conversion.read(None, arg, arg_info['options'])
-
-    xlplatform.BOOK_CALLER = Dispatch(this_workbook)
+    if this_workbook:
+        xlplatform.BOOK_CALLER = Dispatch(this_workbook)
     ret = func(*args)
 
     if ret_info['options'].get('expand', None):
@@ -256,7 +256,7 @@ def call_udf(module_name, func_name, args, this_workbook, caller):
     return conversion.write(ret, None, ret_info['options'])
 
 
-def generate_vba_wrapper(module_name, module, f):
+def generate_vba_wrapper(module_name, module, f, vba_only=False):
 
     vba = VBAWriter(f)
 
@@ -302,7 +302,8 @@ def generate_vba_wrapper(module_name, module, f):
                         vba.writeln('If (Not Application.CommandBars("Standard").Controls(1).Enabled) Then Exit Function')
                     if volatile:
                         vba.writeln('Application.Volatile')
-                    vba.writeln("If TypeOf Application.Caller Is Range Then On Error GoTo failed")
+                    if not vba_only:
+                        vba.writeln("If TypeOf Application.Caller Is Range Then On Error GoTo failed")
 
                 if vararg != '':
                     vba.writeln("ReDim argsArray(1 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + str(n_args) + ")")
@@ -328,19 +329,33 @@ def generate_vba_wrapper(module_name, module, f):
                     args_vba = 'Array(' + ', '.join(arg['vba'] or arg['name'] for arg in xlfunc['args']) + ')'
 
                 if ftype == "Sub":
-                    vba.writeln('Py.CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller',
-                        module_name=module_name,
-                        fname=fname,
-                        args_vba=args_vba,
-                    )
+                    if not vba_only:
+                        vba.writeln('Py.CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller',
+                            module_name=module_name,
+                            fname=fname,
+                            args_vba=args_vba,
+                        )
+                    else:
+                        vba.writeln('Py.CallVBAUDF "{module_name}", "{fname}", {args_vba}',
+                            module_name=module_name,
+                            fname=fname,
+                            args_vba=args_vba,
+                        )
                 else:
-                    vba.writeln('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)',
-                        module_name=module_name,
-                        fname=fname,
-                        args_vba=args_vba,
-                    )
+                    if not vba_only:
+                        vba.writeln('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)',
+                            module_name=module_name,
+                            fname=fname,
+                            args_vba=args_vba,
+                        )
+                    else:
+                        vba.writeln('{fname} = Py.CallVBAUDF("{module_name}", "{fname}", {args_vba})',
+                            module_name=module_name,
+                            fname=fname,
+                            args_vba=args_vba,
+                        )
 
-                if ftype == "Function":
+                if ftype == "Function" and not vba_only:
                     vba.writeln("Exit " + ftype)
                     vba.write_label("failed")
                     vba.writeln(fname + " = Err.Description")
