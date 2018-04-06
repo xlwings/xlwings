@@ -364,14 +364,14 @@ def generate_vba_wrapper(module_name, module, f, vba_only=False):
             vba.writeln('')
 
 
-def import_udfs(module_names, xl_workbook):
+def import_udfs(module_names, xl_workbook, vba_only=False):
     module_names = module_names.split(';')
 
     tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
 
     for module_name in module_names:
         module = get_udf_module(module_name)
-        generate_vba_wrapper(module_name, module, tf.file)
+        generate_vba_wrapper(module_name, module, tf.file, vba_only)
 
     tf.close()
 
