@@ -257,7 +257,7 @@ Imported functions can also be used from VBA. They return a 2d array:
         arr = my_imported_function(...)
         
         For j = LBound(arr, 2) To UBound(arr, 2)
-            For lRow = LBound(arr, 1) To UBound(arr, 1)
+            For i = LBound(arr, 1) To UBound(arr, 1)
                 Debug.Print "(" & i & "," & j & ")", arr(i, j)
             Next i
         Next j
