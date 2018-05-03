@@ -2,6 +2,9 @@ import logging
 import sys
 import traceback
 
+from main import Book, Sheet, Range
+from . import xlplatform
+
 
 _logger = logging.getLogger(__name__)
 
@@ -16,6 +19,31 @@ class EventDispatcher(object):
         'SheetActivate', 'SheetSelectionChange', 'SheetBeforeRightClick', 'SheetBeforeDoubleClick', 'SheetChange',
         # Internal events
         'AddinAfterLoad', 'AddinBeforeQuit')
+
+    _ident_converter = lambda x: x
+    _xl_workbook_converter = lambda xl_workbook: Book(impl=xlplatform.Book(xl_workbook))
+    _xl_sheet_converter = lambda xl_sheet: Sheet(impl=xlplatform.Sheet(xl_sheet))
+    _xl_range_converter = lambda xl_range: Range(impl=xlplatform.Range(xl_range))
+
+    _PARGS_CONVERTERS = {
+        # Workbook events
+        'NewWorkbook': (_xl_workbook_converter, ),
+        'WorkbookOpen': (_xl_workbook_converter, ),
+        'WorkbookActivate': (_xl_workbook_converter, ),
+        'WorkbookNewSheet': (_xl_workbook_converter, _xl_sheet_converter),
+        'WorkbookBeforeClose': (_xl_workbook_converter, ),
+        'WorkbookBeforeSave': (_xl_workbook_converter, _ident_converter),
+        'WorkbookAfterSave': (_xl_workbook_converter, _ident_converter),
+        # Sheet events
+        'SheetActivate': (_xl_sheet_converter, ),
+        'SheetSelectionChange': (_xl_sheet_converter, _xl_range_converter),
+        'SheetBeforeRightClick': (_xl_sheet_converter, _xl_range_converter),
+        'SheetBeforeDoubleClick': (_xl_sheet_converter, _xl_range_converter),
+        'SheetChange': (_xl_sheet_converter, _xl_range_converter),
+        # Internal events
+        'AddinAfterLoad': (_ident_converter, ),
+        'AddinBeforeQuit': (),
+    }
 
     _event_callbacks = dict()
 
@@ -70,7 +98,15 @@ class EventDispatcher(object):
         cls._exception_callback = staticmethod(callback)
 
     @classmethod
-    def dispatch(cls, event_name, *args):
+    def dispatch(cls, event_name, *pargs):
+        parg_converters = cls._PARGS_CONVERTERS.get(event_name)
+        if parg_converters is None:
+            _logger.error('No conversors available to convert pargs for event {}'.format(event_name))
+            return
+        if len(parg_converters) != len(pargs):
+            _logger.error('Conversors length differs from pargs length for event {}'.format(event_name))
+            return
+        args = [parg_converter(parg) for parg_converter, parg in zip(parg_converters, pargs)]
         for callback in cls._event_callbacks.get(event_name, set()):
             try:
                 callback(*args)
