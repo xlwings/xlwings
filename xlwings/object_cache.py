@@ -105,17 +105,19 @@ class ObjectCacheEventHandler(object):
     __metaclass__ = xlwings.EventHandler
 
     @classmethod
-    def WorkbookOpen(cls, xl_workbook):
+    def WorkbookOpen(cls, book_):
         book = xlwings.Book.caller()
         workbook_name = book.name
         ObjectCache.delete_all(workbook_name)
 
     @classmethod
-    def WorkbookNewSheet(cls, xl_workbook, xl_sheet):
+    def WorkbookNewSheet(cls, book_, sheet_):
         book = xlwings.Book.caller()
         workbook_name = book.name
         sheet_name = book.api.ActiveSheet
         ObjectCache.delete_all(workbook_name, sheet_name)
+
+    # Review https://www.pyxll.com/docs/examples/objectcache.html for more events.
 
 
 def return_cached_object(func):
@@ -170,3 +172,4 @@ def use_cached_object_list(method=None, object_class=None):
         return use_cached_object_list_decorator
     else:
         return use_cached_object_list_decorator(method)
+

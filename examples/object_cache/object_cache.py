@@ -46,3 +46,4 @@ def MyClass_get_double(my_obj):
 @xw.func
 def MyClass_aggregate(my_objs):
     return MyClass(sum(my_obj.value for my_obj in my_objs))
+
