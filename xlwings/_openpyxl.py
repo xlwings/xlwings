@@ -95,6 +95,10 @@ class App(object):
         self.apps._apps.remove(self)
         self.apps = None
 
+    def range(self, arg1, arg2=None):
+        # TODO: better implementation
+        return self.books.active.sheets.active.range(arg1)
+
 
 
 class Books(object):
@@ -266,23 +270,44 @@ class Sheet(object):
 class Range(object):
 
     def __init__(self, api, sheet):
-        self.api = api
+        if isinstance(api, tuple):
+            self.api = api
+        else:
+            self.api = ((api,),)
         self.sheet = sheet
 
     @property
     def raw_value(self):
-        return self.api.value
+        if len(self.api) == 1 and len(self.api[0]) == 1:
+            return self.api[0][0].value
+        else:
+            return tuple(
+                tuple(
+                    cell.value for cell in row
+                )
+                for row in self.api
+            )
 
     @raw_value.setter
     def raw_value(self, value):
-        self.api.value = value
+        if isinstance(value, tuple) or isinstance(value, list):
+            assert False, "Not implemented"
+        else:
+            for row in self.api:
+                for cell in row:
+                    cell.value = value
 
     @property
     def address(self):
-        return self.api.coordinate
+        return self.api[0][0].coordinate
 
     def __len__(self):
-        return 1
+        return len(self.api) * len(self.api[0])
 
+    def __call__(self, row, col):
+        return Range(
+            api=self.api[0][0].offset(row-1, col-1),
+            sheet=self.sheet
+        )
 
 engine = Engine()
