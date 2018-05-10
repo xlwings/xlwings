@@ -3,23 +3,19 @@ try:
 except ImportError:
     openpyxl = None
 
-import os
+import os, os.path
 import numbers
 import datetime as dt
 
 
 class Engine(object):
 
-    @property
-    def apps(self):
-        return Apps()
+    def __init__(self):
+        self.apps = Apps()
 
     @property
     def name(self):
         return "Openpyxl"
-
-
-engine = Engine()
 
 
 def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
@@ -55,21 +51,33 @@ Engine.prepare_xl_data_element = staticmethod(prepare_xl_data_element)
 
 class Apps(object):
 
+    def __init__(self):
+        self._apps = [App(self)]
+
     def __iter__(self):
-        yield the_app
+        return iter(self._apps)
 
     def __len__(self):
-        return 1
+        return len(self._apps)
 
     def __getitem__(self, index):
-        return the_app
+        return self._apps[index]
 
+    def add(self, **kwargs):
+        self._apps.insert(0, App(self, **kwargs))
+        return self._apps[0]
 
 class App(object):
 
-    def __init__(self):
-        self._books = Books()
+    _next_pid = -1
 
+    def __init__(self, apps, add_book=True, **kwargs):
+        self.apps = apps
+        self._pid = App._next_pid
+        App._next_pid -= 1
+        self._books = Books(self)
+        if add_book:
+            self._books.add()
 
     @property
     def engine(self):
@@ -81,21 +89,32 @@ class App(object):
 
     @property
     def pid(self):
-        return 0
+        return self._pid
+
+    def kill(self):
+        self.apps._apps.remove(self)
+        self.apps = None
+
 
 
 class Books(object):
 
-    def __init__(self):
+    def __init__(self, app):
+        self.app = app
         self.books = []
-        self.books_by_filename = {}
-        self.active = self.add()
+        self.active = None
 
     def open(self, filename):
-        book = self.books_by_filename.get(filename, None)
+        filename = os.path.abspath(filename)
+        book = self._try_find_book_by_name(filename)
         if book is None:
-            self.books_by_filename[filename] = book = Book(openpyxl.load_workbook(filename), filename)
+            book = Book(
+                api=openpyxl.load_workbook(filename), 
+                books=self,
+                path=filename
+            )
             self.books.append(book)
+        self.active = book
         return book
 
     @property
@@ -104,16 +123,31 @@ class Books(object):
 
     def add(self):
         name = "Book" + str(len(self.books) + 1)
-        self.books_by_filename[name] = book = Book(openpyxl.Workbook(), name)
+        book = Book(
+            api=openpyxl.Workbook(),
+            books=self,
+            path=name
+        )
         self.books.append(book)
         self.active = book
         return book
+
+    def _try_find_book_by_name(self, name):
+        for book in self.books:
+            if (book.name == name
+                or book.fullname == name):
+                return book
+        return None
 
     def __call__(self, name_or_index):
         if isinstance(name_or_index, numbers.Number):
             return self.books[name_or_index - 1]
         else:
-            return self.books_by_filename[name_or_index]
+            book = self._try_find_book_by_name(name_or_index)
+            if book is None:
+                raise KeyError(name_or_index)
+            return book
+
 
     def __len__(self):
         return len(self.books)
@@ -125,14 +159,20 @@ class Books(object):
 
 class Book(object):
 
-    def __init__(self, api, filename):
+    def __init__(self, api, books, path):
         self.api = api
-        self.filename = filename
+        self.path = path
+        self.books = books
 
     @property
     def name(self):
-        _, n = os.path.split(self.filename)
+        _, n = os.path.split(self.path)
         return n
+
+    @property
+    def fullname(self):
+        # TODO: implement correctly
+        return self.path
 
     @property
     def sheets(self):
@@ -140,19 +180,22 @@ class Book(object):
 
     @property
     def app(self):
-        return the_app
+        return self.books.app
 
     @property
     def index(self):
         return self.app.books.index(self)
 
     def close(self):
-        self.app.books.books.remove(self)
-        del self.app.books.books_by_filename[self.filename]
+        assert self.api is not None, "Seems this book was already closed."
+        self.books.books.remove(self)
+        self.books = None
+        self.api = None
+        self.filename = None
 
     def save(self, path=None):
         if self.path:
-            del self.app.books[self.filename]
+            del self.app.books[self.fullname]
             self.filename = path
             self.app.books[self.filename] = self
         self.api.save(self.filename)
@@ -163,33 +206,61 @@ class Sheets(object):
     def __init__(self, book):
         self.book = book
 
+    @property
+    def api(self):
+        return None
+
+    @property
+    def active(self):
+        return Sheet(
+            api=self.book.api.active,
+            sheets=self
+        )
+
     def __call__(self, name_or_index):
         if isinstance(name_or_index, int):
             api = self.book.api.worksheets[name_or_index - 1]
         else:
             api = self.book.api[name_or_index]
-        return Sheet(api=api, book=self.book)
+        return Sheet(api=api, sheets=self)
 
     def __len__(self):
         return len(self.book.api.worksheets)
 
     def __iter__(self):
         for sheet in self.book.api.worksheets:
-            yield Sheet(api=sheet, book=self.book)
+            yield Sheet(api=sheet, sheets=self)
+
+    def add(self, before=None, after=None):
+        return Sheet(
+            api=self.book.api.create_sheet(),
+            sheets=self
+        )
 
 
 class Sheet(object):
 
-    def __init__(self, api, book):
+    def __init__(self, api, sheets):
         self.api = api
-        self.book = book
+        self.sheets = sheets
 
     @property
     def name(self):
         return self.api.title
 
+    @name.setter
+    def name(self, value):
+        self.api.title = value
+
+    @property
+    def book(self):
+        return self.sheets.book
+
     def range(self, arg1, arg2=None):
         return Range(api=self.api[arg1], sheet=self)
+
+    def select(self):
+        self.sheets.book.api.active_sheet = self.sheets.book.api.get_index(self.api)
 
 
 class Range(object):
@@ -202,6 +273,10 @@ class Range(object):
     def raw_value(self):
         return self.api.value
 
+    @raw_value.setter
+    def raw_value(self, value):
+        self.api.value = value
+
     @property
     def address(self):
         return self.api.coordinate
@@ -210,4 +285,4 @@ class Range(object):
         return 1
 
 
-the_app = App()
+engine = Engine()

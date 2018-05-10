@@ -15,8 +15,7 @@ import re
 import numbers
 import inspect
 
-from . import xlplatform, string_types, ShapeAlreadyExists, PY3
-from . import _openpyxl
+from . import string_types, ShapeAlreadyExists, PY3
 from .utils import VersionNumber
 from . import utils
 
@@ -179,11 +178,11 @@ class Apps(object):
     def __init__(self, impl):
         self.impl = impl
 
-    def add(self):
+    def add(self, **kwargs):
         """
         Creates a new App. The new App becomes the active one. Returns an App object.
         """
-        return App()
+        return App(impl=self.impl.add(**kwargs))
 
     @property
     def active(self):
@@ -227,12 +226,17 @@ class Apps(object):
 
 engines = Engines()
 
-engines.add(Engine(impl=xlplatform.engine))
-engines.active = engines[0]
-
+# Populate engines list
+if sys.platform.startswith('win'):
+    from . import _xlwindows
+    engines.add(Engine(impl=_xlwindows.engine))
+if sys.platform.startswith('darwin'):
+    from . import _xlmac
+    engines.add(Engine(impl=_xlmac.engine))
+from . import _openpyxl
 if _openpyxl.openpyxl:
     engines.add(Engine(impl=_openpyxl.engine))
-
+engines.active = engines[0]
 
 class App(object):
     """
@@ -274,7 +278,7 @@ class App(object):
 
     def __init__(self, visible=None, spec=None, add_book=True, impl=None):
         if impl is None:
-            self.impl = xlplatform.App(spec=spec, add_book=add_book)
+            self.impl = engines.active.apps.add(spec=spec, add_book=add_book).impl
             if visible or visible is None:
                 self.visible = True
         else:

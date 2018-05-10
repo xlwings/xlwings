@@ -18,13 +18,6 @@ else:
     from future_builtins import map
     builtins = __builtins__
 
-# Platform specifics
-if sys.platform.startswith('win'):
-    from . import _xlwindows as xlplatform
-else:
-    from . import _xlmac as xlplatform
-
-time_types = xlplatform.time_types
 
 # Errors
 class ShapeAlreadyExists(Exception):
@@ -73,13 +66,6 @@ def xlret(*args, **kwargs):
 
 def xlarg(*args, **kwargs):
     raise Exception("Deprecation: 'xlarg' has been renamed to 'arg' - use 'import xlwings as xw' and decorate your function with '@xw.arg'.")
-
-
-from . import _openpyxl as openpyxl
-if openpyxl.openpyxl:
-    openpyxl = App(impl=openpyxl.the_app)
-else:
-    openpyxl = None
 
 
 # Server
