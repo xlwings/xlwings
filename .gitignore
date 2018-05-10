@@ -68,9 +68,16 @@ x64/
 
 # binaries
 *.dll
+aspose.cells
 
 #eclipse IDE
 *.project
 *.pydevproject
 
+<<<<<<< HEAD
 scratch.py
+=======
+venv
+
+
+>>>>>>> master

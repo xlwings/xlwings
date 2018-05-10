@@ -1,10 +1,8 @@
 import os
 import sys
 import re
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+import glob
+from setuptools import setup, find_packages
 
 # long_description: Take from README file
 with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as f:
@@ -16,9 +14,9 @@ with open(os.path.join(os.path.dirname(__file__), 'xlwings', '__init__.py')) as 
 
 # Dependencies
 if sys.platform.startswith('win'):
-    install_requires = ['comtypes']
+    install_requires = ['comtypes', 'pywin32']
     # This places dlls next to python.exe for standard setup and in the parent folder for virtualenv
-    data_files = [('', ['xlwings32.dll', 'xlwings64.dll'])]
+    data_files = [('', glob.glob('xlwings*.dll'))]
 elif sys.platform.startswith('darwin'):
     install_requires = ['psutil >= 2.0.0', 'appscript >= 1.0.1']
     data_files = [(os.path.expanduser("~") + '/Library/Application Scripts/com.microsoft.Excel', ['xlwings/xlwings.applescript'])]
@@ -44,9 +42,10 @@ setup(
     description='Make Excel fly: Interact with Excel from Python and vice versa.',
     long_description=readme,
     data_files=data_files,
-    packages=['xlwings', 'xlwings.tests', 'xlwings.conversion'],
-    package_data={'xlwings': ['xlwings.bas', 'tests/*.xlsx', 'tests/*.xlsm', 'tests/*.png', 'xlwings_template.xltm',
-                              'quickstart.xlsm', 'xlwings.xlam', 'xlwings.applescript']},
+    packages=find_packages(),
+    package_data={'xlwings': ['tests/*.xlsx', 'tests/*.xlsm', 'tests/*.png',
+                              '*.xlsm', 'xlwings.applescript',
+                              'addin/xlwings.xlam']},
     keywords=['xls', 'excel', 'spreadsheet', 'workbook', 'vba', 'macro'],
     install_requires=install_requires,
     entry_points={'console_scripts': ['xlwings=xlwings.command_line:main'],},
@@ -55,12 +54,8 @@ setup(
         'Operating System :: Microsoft :: Windows',
         'Operating System :: MacOS :: MacOS X',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Topic :: Office/Business :: Financial :: Spreadsheet',
         'License :: OSI Approved :: BSD License'],
     platforms=['Windows', 'Mac OS X'],

@@ -51,7 +51,7 @@ source code:
 UDF debug server
 ----------------
 
-Windows only: To debug UDFs, just set ``UDF_DEBUG_SERVER = True`` in the :ref:`VBA Settings <vba_settings>`, at the top of the xlwings VBA module.
+Windows only: To debug UDFs, just check the ``Debug UDFs`` in the :ref:`xlwings_addin`, at the top of the xlwings VBA module.
 Then add the following lines at the end of your Python source file and run it. Depending on which IDE you use, you
 might need to run the code in "debug" mode (e.g. in case you're using PyCharm or PyDev)::
 

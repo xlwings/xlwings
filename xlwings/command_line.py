@@ -1,25 +1,11 @@
 import os
-import os.path as op
 import sys
 import shutil
 import argparse
-import subprocess
 
 
 # Directories/paths
 this_dir = os.path.dirname(os.path.realpath(__file__))
-template_origin_path = os.path.join(this_dir, 'xlwings_template.xltm')
-
-if sys.platform.startswith('win'):
-    win_template_path = op.join(os.getenv('APPDATA'), 'Microsoft', 'Templates', 'xlwings_template.xltm')
-else:
-    # Mac 2011 and 2016 use different directories
-    from appscript import k, app
-    from xlwings._xlmac import hfs_to_posix_path
-
-    mac_template_dirs = set((op.realpath(op.join(op.expanduser("~"), 'Library', 'Application Support', 'Microsoft',
-                                                 'Office', 'User Templates', 'My Templates')),
-                             hfs_to_posix_path(app('Microsoft Excel').properties().get(k.templates_path))))
 
 if sys.platform.startswith('win'):
     addin_path = os.path.join(os.getenv('APPDATA'), 'Microsoft', 'Excel', 'XLSTART', 'xlwings.xlam')
@@ -27,10 +13,13 @@ if sys.platform.startswith('win'):
 
 def addin_install(args):
     if not sys.platform.startswith('win'):
-        print('Error: This command is only available on Windows right now.')
+        import xlwings
+        path = xlwings.__path__[0] + '/addin/xlwings.xlam'
+        print("Cannot install the addin automatically on Mac. Install it via Tools > Excel Add-ins...")
+        print("You find the addin here: {0}".format(path))
     else:
         try:
-            shutil.copyfile(os.path.join(this_dir, 'xlwings.xlam'), addin_path)
+            shutil.copyfile(os.path.join(this_dir, 'addin', 'xlwings.xlam'), addin_path)
             print('Successfully installed the xlwings add-in! Please restart Excel.')
         except IOError as e:
             if e.args[0] == 13:
@@ -43,7 +32,7 @@ def addin_install(args):
 
 def addin_remove(args):
     if not sys.platform.startswith('win'):
-        print('Error: This command is only available on Windows right now.')
+        print('Error: This command is not available on Mac. Please remove the addin manually.')
     else:
         try:
             os.remove(addin_path)
@@ -71,83 +60,6 @@ def addin_status(args):
             print('"xlwings addin install" will install it at: {}'.format(addin_path))
 
 
-def template_open(args):
-    if sys.platform.startswith('win'):
-        subprocess.Popen('start {0}'.format(template_origin_path), shell=True)
-    else:
-        subprocess.Popen('open {0}'.format(template_origin_path), shell=True)
-
-
-def template_install(args):
-    if sys.platform.startswith('win'):
-        try:
-            shutil.copyfile(template_origin_path, win_template_path)
-            print('Successfully installed the xlwings template')
-        except Exception as e:
-            print(str(e))
-    else:
-        for dir in mac_template_dirs:
-            try:
-                if os.path.isdir(dir):
-                    path = op.realpath(op.join(dir, 'xlwings_template.xltm'))
-                    shutil.copyfile(template_origin_path, path)
-                    print('Successfully installed the xlwings template to {}'.format(path))
-            except Exception as e:
-                print('Error installing template to {}. {}'.format(path, str(e)))
-
-
-def template_remove(args):
-    if sys.platform.startswith('win'):
-        try:
-            os.remove(win_template_path)
-            print('Successfully removed the xlwings template!')
-        except WindowsError as e:
-            print("Error: Could not remove the xlwings template. The template doesn't seem to be installed.")
-        except Exception as e:
-            print(str(e))
-    else:
-        for dir in mac_template_dirs:
-            try:
-                if os.path.isdir(dir):
-                    path = op.realpath(op.join(dir, 'xlwings_template.xltm'))
-                    os.remove(path)
-                    print('Successfully removed the xlwings template from {}'.format(path))
-            except OSError as e:
-                print("Error: Could not remove the xlwings template. "
-                      "The template doesn't seem to be installed at {}.".format(path))
-
-            except Exception as e:
-                print('Error removing template from {}. {}'.format(path, str(e)))
-
-
-def template_status(args):
-    if sys.platform.startswith('win'):
-        if os.path.isfile(win_template_path):
-            print('The template is installed at: {}'.format(win_template_path))
-            print ('Use "xlwings template remove" to uninstall it.')
-        else:
-            print('The template can be installed at {}'.format(win_template_path))
-            print('Use "xlwings template install" to install it or '
-                  '"xlwings template open" to open it without installing.')
-    else:
-        is_installed = False
-        can_be_installed = False
-        for dir in mac_template_dirs:
-            path = op.realpath(op.join(dir, 'xlwings_template.xltm'))
-            if os.path.isfile(path):
-                is_installed = True
-                print('The template is installed at: {}'.format(path))
-            else:
-                if os.path.isdir(dir):
-                    can_be_installed = True
-                    print('The template can be installed at: {}'.format(dir))
-        if can_be_installed:
-            print('Use "xlwings template install" to install it or '
-                  '"xlwings template open" to open it without installing.')
-        if is_installed:
-            print('Use "xlwings template remove" to uninstall it from all locations.')
-
-
 def quickstart(args):
     project_name = args.project_name
     cwd = os.getcwd()
@@ -160,12 +72,24 @@ def quickstart(args):
         sys.exit('Error: Directory already exists.')
 
     # Python file
-    with open(os.path.join(project_path, project_name + '.py'), 'w') as writer:
-        writer.write('import xlwings as xw\n\n')
+    with open(os.path.join(project_path, project_name + '.py'), 'w') as python_module:
+        python_module.write('import xlwings as xw\n\n\n')
+        python_module.write('def hello_xlwings():\n')
+        python_module.write('    wb = xw.Book.caller()\n')
+        python_module.write('    wb.sheets[0].range("A1").value = "Hello xlwings!"\n\n\n')
+        if sys.platform.startswith('win'):
+            python_module.write('@xw.func\n')
+            python_module.write('def hello(name):\n')
+            python_module.write('    return "hello {0}".format(name)\n')
 
     # Excel file
-    shutil.copyfile(os.path.join(this_dir, 'quickstart.xlsm'),
-                    os.path.join(project_path, project_name + '.xlsm'))
+    if not args.standalone:
+        source_file = os.path.join(this_dir, 'quickstart.xlsm')
+    elif sys.platform.startswith('win'):
+        source_file = os.path.join(this_dir, 'quickstart_standalone_win.xlsm')
+    else:
+        source_file = os.path.join(this_dir, 'quickstart_standalone_mac.xlsm')
+    shutil.copyfile(source_file, os.path.join(project_path, project_name + '.xlsm'))
 
 
 def runpython_install(args):
@@ -204,32 +128,10 @@ def main():
     addin_status_parser = addin_subparsers.add_parser('status')
     addin_status_parser.set_defaults(func=addin_status)
 
-    # Template
-    template_parser = subparsers.add_parser('template', help='xlwings Excel template')
-    template_subparsers = template_parser.add_subparsers(dest='subcommand')
-    template_subparsers.required = True
-
-    template_open_parser = template_subparsers.add_parser('open')
-    template_open_parser.set_defaults(func=template_open)
-
-    template_install_parser = template_subparsers.add_parser('install')
-    template_install_parser.set_defaults(func=template_install)
-
-    template_update_parser = template_subparsers.add_parser('update')
-    template_update_parser.set_defaults(func=template_install)
-
-    template_remove_parser = template_subparsers.add_parser('remove')
-    template_remove_parser.set_defaults(func=template_remove)
-
-    template_uninstall_parser = template_subparsers.add_parser('uninstall')
-    template_uninstall_parser.set_defaults(func=template_remove)
-
-    template_status_parser = template_subparsers.add_parser('status')
-    template_status_parser.set_defaults(func=template_status)
-
     # Quickstart
     quickstart_parser = subparsers.add_parser('quickstart', help='xlwings quickstart')
     quickstart_parser.add_argument("project_name")
+    quickstart_parser.add_argument("-s", "--standalone", action='store_true', help='Include xlwings as VBA module.')
     quickstart_parser.set_defaults(func=quickstart)
 
     # RunPython (only needed when installed with conda for Mac Excel 2016)

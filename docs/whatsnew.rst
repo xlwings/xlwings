@@ -1,6 +1,123 @@
 What's New
 ==========
 
+v0.11.7 (Feb 5, 2018)
+----------------------
+
+* [Win] This release fixes a bug introduced with v0.11.6 that would't allow to open workbooks by name (:issue:`804`)
+
+v0.11.6 (Jan 27, 2018)
+----------------------
+
+Bug Fixes:
+
+* [Win] When constantly writing to a spreadsheet, xlwings now correctly resumes after clicking into cells, previously it was crashing. (:issue:`587`)
+* Options are now correctly applied when writing to a sheet (:issue:`798`)
+
+
+v0.11.5 (Jan 7, 2018)
+---------------------
+
+This is mostly a bug fix release:
+
+* Config files can now additionally be saved in the directory of the workbooks, overriding the global Ribbon config, see :ref:`config_file` (:issue:`772`)
+* Reading Pandas DataFrames with a simple index was creating a MultiIndex with Pandas > 0.20 (:issue:`786`)
+* [Win] The xlwings dlls are now properly versioned, allowing to use pre 0.11 releases in parallel with >0.11 releases (:issue:`743`)
+* [Mac] Sheet.names.add() was always adding the names on workbook level (:issue:`771`)
+* [Mac] UDF decorators now don't cause errors on Mac anymore (:issue:`780`)
+
+v0.11.4 (Jul 23, 2017)
+----------------------
+
+This release brings further improvements with regards to the add-in:
+
+* The add-in now shows the version on the ribbon. This makes it easy to check if you are using the correct version (:issue:`724`):
+
+    .. figure:: images/addin_version.png
+        :scale: 80%
+
+* [Mac] On Mac Excel 2016, the ribbon now only shows the available functionality (:issue:`723`):
+
+    .. figure:: images/mac_ribbon.png
+        :scale: 80%
+
+* [Mac] Mac Excel 2011 is now supported again with the new add-in. However, since Excel 2011 doesn't support the ribbon, 
+  the config file has be created/edited manually, see :ref:`config_file` (:issue:`714`).
+
+Also, some new docs:
+
+* [Win] How to use imported functions in VBA, see :ref:`call_udfs_from_vba`.
+* For more up-to-date installations via conda, use the ``conda-forge`` channel, see :ref:`installation`.
+* A troubleshooting section: :ref:`troubleshooting`.
+
+v0.11.3 (Jul 14, 2017)
+----------------------
+
+* Bug Fix: When using the ``xlwings.conf`` sheet, there was a subscript out of range error (:issue:`708`)
+* Enhancement: The add-in is now password protected (pw: ``xlwings``) to declutter the VBA editor (:issue:`710`)
+
+You need to update your xlwings add-in to be get the fixes!
+
+
+v0.11.2 (Jul 6, 2017)
+---------------------
+
+* Bug Fix: The sql extension was sometimes not correctly assigning the table aliases (:issue:`699`)
+* Bug Fix: Permission errors during pip installation should be resolved now (:issue:`693`)
+
+
+v0.11.1 (Jul 5, 2017)
+---------------------
+
+* Bug Fix: The sql extension installs now correctly (:issue:`695`)
+* Added migration guide for v0.11, see :ref:`migrate_to_0.11`
+
+v0.11.0 (Jul 2, 2017)
+---------------------
+
+Big news! This release adds a full blown **add-in**! We also throw in a great **In-Excel SQL Extension** and a few **bug fixes**:
+
+Add-in
+******
+
+.. figure:: images/ribbon.png
+    :scale: 80%
+
+A few highlights:
+
+* Settings don't have to be manipulated in VBA code anymore, but can be either set globally via Ribbon/config file or
+  for the workbook via a special worksheet
+* UDF server can be restarted directly from the add-in
+* You can still use a VBA module instead of the add-in, but the recommended way is the add-in
+* Get all the details here: :ref:`xlwings_addin`
+
+In-Excel SQL Extension
+**********************
+
+The add-in can be extended with own code. We throw in an ``sql`` function, that allows you to perform SQL queries
+on data in your spreadsheets. It's pretty awesome, get the details here: :ref:`extensions`.
+
+Bug Fixes
+*********
+
+* [Win]: Running ``Debug > Compile`` is not throwing errors anymore (:issue:`678`)
+* Pandas deprecation warnings have been fixed (:issue:`675` and :issue:`664`)
+* [Mac]: Errors are again shown correctly in a pop up (:issue:`660`)
+* [Mac]: Like Windows, Mac now also only shows errors in a popup. Before it was including stdout, too (:issue:`666`) 
+
+Breaking Changes
+****************
+
+* ``RunFrozenPython`` now requires the full path to the executable.
+* The xlwings CLI ``xlwings template`` functionality has been removed. Use ``quickstart`` instead.
+
+
+v0.10.4 (Feb 19, 2017)
+----------------------
+
+* [Win] Bug Fix: v0.10.3 introduced a bug that imported UDFs by default with `volatile=True`, this has now been fixed.
+  You will need to reimport your functions after upgrading the xlwings package.
+
 v0.10.3 (Jan 28, 2017)
 ----------------------
 
@@ -200,7 +317,7 @@ Enhancements
 
     As an example, this VBA function:
 
-    .. code-block:: vb
+    .. code-block:: basic
 
         Function MySum(x, y)
             MySum = x + y
@@ -239,14 +356,14 @@ API changes
 
   **New**:
 
-  .. code-block:: vb
+  .. code-block:: basic
 
     UDF_MODULES: "mymodule"
     PYTHONPATH: "C:\path\to"
 
   **Old**:
 
-  .. code-block:: vb
+  .. code-block:: basic
 
     UDF_PATH: "C:\path\to\mymodule.py"
 

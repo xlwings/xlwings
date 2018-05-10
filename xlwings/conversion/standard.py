@@ -211,7 +211,7 @@ class RawValueAccessor(Accessor):
     def writer(cls, options):
         return (
             Accessor.writer(options)
-            .prepend_stage(WriteValueToRangeStage(raw=True))
+            .prepend_stage(WriteValueToRangeStage(options, raw=True))
         )
 
 RawValueAccessor.register('raw')

@@ -97,7 +97,8 @@ class COMRetryObjectWrapper(object):
             try:
                 return setattr(self._inner, key, value)
             except pywintypes.com_error as e:
-                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult == -2147418111:
+                # -2147352567 is the error you get when clicking into cells
+                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult in [-2147418111, -2147352567]:
                     n_attempt += 1
                     continue
                 else:
@@ -998,7 +999,7 @@ def _datetime_to_com_time(dt_time):
 
     """
     # Convert date to datetime
-    if pd and isinstance(dt_time, pd.tslib.NaTType):
+    if pd and isinstance(dt_time, type(pd.NaT)):
         return None
     if np:
         if type(dt_time) is np.datetime64:
@@ -1013,9 +1014,9 @@ def _datetime_to_com_time(dt_time):
         # For some reason, though it accepts plain datetimes, they must have a timezone set.
         # See http://docs.activestate.com/activepython/2.7/pywin32/html/win32/help/py3k.html
         # We replace no timezone -> UTC to allow round-trips in the naive case
-        if pd and isinstance(dt_time, pd.tslib.Timestamp):
+        if pd and isinstance(dt_time, pd.Timestamp):
             # Otherwise pandas prints ignored exceptions on Python 3
-            dt_time = dt_time.to_datetime()
+            dt_time = dt_time.to_pydatetime()
         # We don't use pytz.utc to get rid of additional dependency
         # Don't do any timezone transformation: simply cutoff the tz info
         # If we don't reset it first, it gets transformed into UTC before transferred to Excel
@@ -1031,7 +1032,7 @@ def _datetime_to_com_time(dt_time):
 def prepare_xl_data_element(x):
     if isinstance(x, time_types):
         return _datetime_to_com_time(x)
-    elif np and isinstance(x, np.generic):
+    elif np and isinstance(x, np.number):
         return float(x)
     elif x is None:
         return ""
