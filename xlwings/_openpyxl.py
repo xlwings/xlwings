@@ -276,6 +276,9 @@ class Range(object):
             self.api = ((api,),)
         self.sheet = sheet
 
+    def __len__(self):
+        return len(self.api) * len(self.api[0])
+
     @property
     def raw_value(self):
         if len(self.api) == 1 and len(self.api[0]) == 1:
@@ -301,10 +304,8 @@ class Range(object):
     def address(self):
         return self.api[0][0].coordinate
 
-    def __len__(self):
-        return len(self.api) * len(self.api[0])
-
     def __call__(self, row, col):
+        # TODO: better implementation
         return Range(
             api=self.api[0][0].offset(row-1, col-1),
             sheet=self.sheet
