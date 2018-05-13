@@ -13,6 +13,7 @@ par_dir = os.path.join(this_dir, os.path.pardir)
 addin_path = os.path.join(par_dir, 'xlwings', 'addin', 'xlwings.xlam')
 standalone_win_path = os.path.join(par_dir, 'xlwings', 'quickstart_standalone_win.xlsm')
 standalone_mac_path = os.path.join(par_dir, 'xlwings', 'quickstart_standalone_mac.xlsm')
+xlwings_bas_path = os.path.join(par_dir, 'xlwings', 'xlwings.bas')
 version = os.getenv('APPVEYOR_BUILD_VERSION', 'dev')
 
 if os.getenv('ASPOSE_LICENSE'):
@@ -55,3 +56,8 @@ for path in [standalone_mac_path, standalone_win_path]:
     wb = Workbook(path)
     wb.VbaProject.get_Modules()['xlwings'].set_Codes(standalone_code)
     wb.Save(path)
+
+# Save standalone as xlwings.bas to be included in python package
+with open(xlwings_bas_path, 'w') as f:
+    f.write('Attribute VB_Name = "xlwings"\n' + '\n'.join(standalone_code.splitlines()))
+
