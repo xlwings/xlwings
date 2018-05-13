@@ -666,7 +666,7 @@ class Range(object):
         sht = self.sheet
         return [
             sht.range((row1, col + i), (row2, col + i))
-            for i in range(self.shape[0])
+            for i in range(self.shape[1])
         ]
 
     def select(self):
