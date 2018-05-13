@@ -6,6 +6,8 @@ except ImportError:
 import os, os.path
 import numbers
 import datetime as dt
+import logging
+logger = logging.getLogger(__name__)
 
 
 class Engine(object):
@@ -82,6 +84,9 @@ class App(object):
     @property
     def engine(self):
         return engine
+
+    def activate(self, steal_focus=False):
+        raise NotImplementedError()
 
     @property
     def books(self):
@@ -260,11 +265,32 @@ class Sheet(object):
     def book(self):
         return self.sheets.book
 
+    @property
+    def index(self):
+        return self.sheets.book.index(self.api)
+
     def range(self, arg1, arg2=None):
-        return Range(api=self.api[arg1], sheet=self)
+        if isinstance(arg1, Range):
+            arg1 = arg1.api[0][0].coordinate
+        if isinstance(arg2, Range):
+            arg2 = arg2.api[-1][-1].coordinate
+        if arg2 is None:
+            api = self.api[arg1]
+        else:
+            api = self.api["%s:%s" % (arg1, arg2)]
+        return Range(api=api, sheet=self)
+
+    def activate(self):
+        self.sheets.book.api.active_sheet = self.sheets.book.api.index(self.api)
 
     def select(self):
-        self.sheets.book.api.active_sheet = self.sheets.book.api.get_index(self.api)
+        self.sheets.book.api.active_sheet = self.sheets.book.api.index(self.api)
+
+    def clear(self):
+        return NotImplementedError()
+
+    def autofit(self, axis=None):
+        logger.warning("Autofit doesn't do anything in openpyxl engine.")
 
 
 class Range(object):
@@ -276,8 +302,29 @@ class Range(object):
             self.api = ((api,),)
         self.sheet = sheet
 
+    def coords(self):
+        return (
+            self.sheet.name,
+            self.row,
+            self.column,
+            len(self.api),
+            len(self.api[0])
+        )
+
     def __len__(self):
         return len(self.api) * len(self.api[0])
+
+    @property
+    def row(self):
+        return self.api[0][0].row_idx
+
+    @property
+    def column(self):
+        return self.api[0][0].col_idx
+
+    @property
+    def shape(self):
+        return len(self.api), len(self.api[0])
 
     @property
     def raw_value(self):
@@ -294,7 +341,11 @@ class Range(object):
     @raw_value.setter
     def raw_value(self, value):
         if isinstance(value, tuple) or isinstance(value, list):
-            assert False, "Not implemented"
+            if (len(value), len(value[0])) != self.shape:
+                assert False, "Not implemented"
+            for i in range(len(value)):
+                for j in range(len(value[0])):
+                    self.api[i][j].value = value[i][j]
         else:
             for row in self.api:
                 for cell in row:
