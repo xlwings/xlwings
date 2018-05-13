@@ -3,12 +3,12 @@
 Troubleshooting
 ===============
 
-Issue: xlwingsXX.dll not found
-------------------------------
+Issue: dll not found
+--------------------
 
 Solution:
 
-1) ``xlwings32.dll`` and ``xlwings64.dll`` are both in the same directory as your ``python.exe``. If not, something went wrong
+1) ``xlwings32-<version>.dll`` and ``xlwings64-<version>.dll`` are both in the same directory as your ``python.exe``. If not, something went wrong
    with your installation. Reinstall it with ``pip`` or ``conda``, see :ref:`installation`.
 2) Check your ``Interpreter`` in the add-in or config sheet. If it is empty, then you need to be able to open a windows command prompt and type
    ``python`` to start an interactive Python session. If you get the error ``'python' is not recognized as an internal or external command,
