@@ -1,6 +1,12 @@
 What's New
 ==========
 
+v0.11.8 (May 13, 2018)
+----------------------
+
+* [Win] pywin32 is now automatically installed when using pip (:issue:`827`)
+* `xlwings.bas` has been readded to the python package. This facilitates e.g. the use of xlwings within other addins (:issue:`857`)
+
 v0.11.7 (Feb 5, 2018)
 ----------------------
 
