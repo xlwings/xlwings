@@ -158,11 +158,16 @@ def xlarg(arg, convert=None, **kwargs):
         xlf = xlfunc(f).__xlfunc__
         if arg not in xlf["argmap"]:
             raise Exception("Invalid argument name '" + arg + "'.")
-        xla = xlf["argmap"][arg]
-        for special in ('vba', 'doc'):
-            if special in kwargs:
-                xla[special] = kwargs.pop(special)
-        xla['options'].update(kwargs)
+        if kwargs.pop('is_excel_caller', False):
+            arg_info = xlf["argmap"].pop(arg)
+            xlf["args"].remove(arg_info)
+            xlf.setdefault('excel_callers', []).append(arg_info)
+        else:
+            xla = xlf["argmap"][arg]
+            for special in ('vba', 'doc'):
+                if special in kwargs:
+                    xla[special] = kwargs.pop(special)
+            xla['options'].update(kwargs)
         return f
     return inner
 
@@ -247,6 +252,9 @@ def call_udf(module_name, func_name, args, this_workbook, caller):
             args[i] = conversion.read(None, arg, arg_info['options'])
 
     xlplatform.BOOK_CALLER = Dispatch(this_workbook)
+    if 'excel_callers' in func_info:
+        for excel_caller in func_info['excel_callers']:
+            args.insert(excel_caller['pos'], caller)
     ret = func(*args)
 
     if ret_info['options'].get('expand', None):
