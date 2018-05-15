@@ -1,6 +1,11 @@
 What's New
 ==========
 
+development
+-----------
+
+* support expansion of environment variables in config values for windows (:issue:`615`)
+
 v0.11.8 (May 13, 2018)
 ----------------------
 
