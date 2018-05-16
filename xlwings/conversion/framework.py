@@ -66,7 +66,30 @@ class Pipeline(list):
             stage(*args, **kwargs)
 
 
-accessors = {}
+class Registry(object):
+    def __init__(self, dict_=None):
+        self._dict = dict_ or {}
+
+    def __getitem__(self, cls):
+        for type_ in cls.mro():
+            try:
+                return self._dict[type_]
+            except KeyError:
+                continue
+        else:
+            raise KeyError()
+
+    def register(self, cls, accessor):
+        self._dict[cls] = accessor
+
+    def get(self, cls, default):
+        try:
+            return self[cls]
+        except KeyError:
+            return default
+
+
+accessors = Registry()
 
 
 class Accessor(object):
@@ -81,8 +104,8 @@ class Accessor(object):
 
     @classmethod
     def register(cls, *types):
-        for type in types:
-            accessors[type] = cls
+        for type_ in types:
+            accessors.register(type_, cls)
 
     @classmethod
     def router(cls, value, rng, options):
