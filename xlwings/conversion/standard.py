@@ -123,6 +123,40 @@ class CleanDataForWriteStage(object):
         ]
 
 
+class ConvertDataFromReadStage(object):
+    def __init__(self, options):
+        self.options = options
+
+    def __call__(self, c):
+        value = []
+        for i, y in enumerate(c.value):
+            value.append([])
+            for x in y:
+                converter = accessors.get(self.options.get('type', None), None)
+                if converter and issubclass(converter, Converter):
+                    value[i].append(converter.read_value(x, self.options))
+                else:
+                    value[i].append(x)
+        c.value = value
+
+
+class ConvertDataForWriteStage(object):
+    def __init__(self, options):
+        self.options = options
+
+    def __call__(self, c):
+        value = []
+        for i, y in enumerate(c.value):
+            value.append([])
+            for x in y:
+                converter = accessors.get(self.options.get('type', None) or type(x), None)
+                if converter and issubclass(converter, Converter):
+                   value[i].append(converter.write_value(x, self.options))
+                else:
+                    value[i].append(x)
+        c.value = value
+
+
 class AdjustDimensionsStage(object):
 
     def __init__(self, options):
@@ -220,24 +254,26 @@ RawValueAccessor.register('raw')
 
 class ValueAccessor(Accessor):
 
-    @staticmethod
-    def reader(options):
+    @classmethod
+    def reader(cls, options):
         return (
             BaseAccessor.reader(options)
             .append_stage(ReadValueFromRangeStage())
             .append_stage(Ensure2DStage())
             .append_stage(CleanDataFromReadStage(options))
+            .append_stage(ConvertDataFromReadStage(options))
             .append_stage(TransposeStage(), only_if=options.get('transpose', False))
             .append_stage(AdjustDimensionsStage(options))
         )
 
-    @staticmethod
-    def writer(options):
+    @classmethod
+    def writer(cls, options):
         return (
             Pipeline()
             .prepend_stage(WriteValueToRangeStage(options))
             .prepend_stage(ClearExpandedRangeStage(options), only_if=options.get('expand', None))
             .prepend_stage(CleanDataForWriteStage())
+            .prepend_stage(ConvertDataForWriteStage(options))
             .prepend_stage(TransposeStage(), only_if=options.get('transpose', False))
             .prepend_stage(Ensure2DStage())
         )
@@ -255,7 +291,7 @@ class DictConverter(Converter):
     writes_types = dict
 
     @classmethod
-    def base_reader(cls, options):
+    def base_reader(cls, options, base_type=None):
         return (
             super(DictConverter, cls).base_reader(
                 Options(options)
