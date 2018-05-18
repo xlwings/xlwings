@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
+from enum import Enum
 import sys
 import datetime as dt
 import unittest
 
 import pytz
 
+from xlwings.conversion import accessors, Converter
 from xlwings.tests.common import TestBase
 
 # Optional dependencies
@@ -31,6 +34,14 @@ class TestConverter(TestBase):
         d = {'a': 1., 'b': 2.}
         self.wb1.sheets[0].range('A1').value = d
         self.assertEqual(d, self.wb1.sheets[0].range('A1:B2').options(dict).value)
+
+    def test_subclassing(self):
+        class MyDict(dict):
+            pass
+
+        d = MyDict([('a', 1), ('b', 2.)])
+        self.wb1.sheets[0].range('A1').value = d
+        self.assertEqual(d, self.wb1.sheets[0].range('A1:B2').options(MyDict).value)
 
     def test_integers(self):
         """test_integers: Covers GH 227"""
@@ -96,6 +107,35 @@ class TestConverter(TestBase):
     def test_write_single_value_to_multicell_range(self):
         self.wb1.sheets[0].range('A1:B2').value = 5
         self.assertEqual(self.wb1.sheets[0].range('A1:B2').value, [[5., 5.], [5., 5.]])
+
+
+class TestConversionStage(TestBase):
+
+    class MyEnum(Enum):
+        A = 'A'
+        B = 'B'
+
+    class EnumConverter(Converter):
+        @classmethod
+        def read_value(cls, value, options):
+            type_ = options['of_type']
+            return type_(value)
+
+        @classmethod
+        def write_value(cls, value, options):
+            return value._value_
+
+    accessors.register(Enum, EnumConverter)
+
+    def test_enum(self):
+        e = TestConversionStage.MyEnum.A
+        self.wb1.sheets[0].range('A1').value = e
+        self.assertEqual(e, self.wb1.sheets[0].range('A1').options(of_type=TestConversionStage.MyEnum).value)
+
+    def test_list_of_enum(self):
+        e = [TestConversionStage.MyEnum.A, TestConversionStage.MyEnum.B]
+        self.wb1.sheets[0].range('A27:B27').value = e
+        self.assertEqual(e, self.wb1.sheets[0].range('A27:B27').options(of_type=TestConversionStage.MyEnum).value)
 
 
 @unittest.skipIf(np is None, 'numpy missing')
@@ -413,6 +453,7 @@ class TestPandas(TestBase):
         df = pd.DataFrame([pd.Timestamp('20120102'), np.nan], index=[0., 1.], columns=['one'])
         self.wb1.sheets[0].range('A1').value = df
         assert_frame_equal(df, self.wb1.sheets[0].range('A1').options(pd.DataFrame, expand='table').value)
+
 
 if __name__ == '__main__':
     unittest.main()
