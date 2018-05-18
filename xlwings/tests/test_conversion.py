@@ -118,7 +118,7 @@ class TestConversionStage(TestBase):
     class EnumConverter(Converter):
         @classmethod
         def read_value(cls, value, options):
-            type_ = options['of_type']
+            type_ = options['type']
             return type_(value)
 
         @classmethod
@@ -130,12 +130,12 @@ class TestConversionStage(TestBase):
     def test_enum(self):
         e = TestConversionStage.MyEnum.A
         self.wb1.sheets[0].range('A1').value = e
-        self.assertEqual(e, self.wb1.sheets[0].range('A1').options(of_type=TestConversionStage.MyEnum).value)
+        self.assertEqual(e, self.wb1.sheets[0].range('A1').options(type=TestConversionStage.MyEnum).value)
 
     def test_list_of_enum(self):
         e = [TestConversionStage.MyEnum.A, TestConversionStage.MyEnum.B]
         self.wb1.sheets[0].range('A27:B27').value = e
-        self.assertEqual(e, self.wb1.sheets[0].range('A27:B27').options(of_type=TestConversionStage.MyEnum).value)
+        self.assertEqual(e, self.wb1.sheets[0].range('A27:B27').options(type=TestConversionStage.MyEnum).value)
 
 
 @unittest.skipIf(np is None, 'numpy missing')
