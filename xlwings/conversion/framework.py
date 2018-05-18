@@ -71,7 +71,8 @@ class Registry(object):
         self._dict = dict_ or {}
 
     def __getitem__(self, cls):
-        for type_ in cls.mro():
+        types = cls.mro() if hasattr(cls, 'mro') else [cls]
+        for type_ in types:
             try:
                 return self._dict[type_]
             except KeyError:
