@@ -169,11 +169,16 @@ class ConvertDataFromReadStage(ConvertDataStage):
             return []
 
         # convert to list of types
-        if not isinstance(types, (list, tuple)):
+        if types == 'all':
+            types = self._sort_types_by_inheritance(accessors.keys())
+        elif not isinstance(types, (list, tuple)):
             types = [types]
 
         # get converters
         return (accessors[cls] for cls in types if cls in accessors and issubclass(accessors[cls], Converter))
+
+    def _sort_types_by_inheritance(self, types):
+        return sorted(types, key=lambda x: len(x.mro()), reverse=True)
 
 
 class ConvertDataForWriteStage(ConvertDataStage):
