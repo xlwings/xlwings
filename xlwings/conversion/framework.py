@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from collections import OrderedDict
 
 
 class ConversionContext(object):
@@ -66,28 +67,23 @@ class Pipeline(list):
             stage(*args, **kwargs)
 
 
-class Registry(object):
-    def __init__(self, dict_=None):
-        self._dict = dict_ or {}
+class Registry(OrderedDict):
 
     def __getitem__(self, cls):
         types = cls.mro() if hasattr(cls, 'mro') else [cls]
         for type_ in types:
             try:
-                return self._dict[type_]
+                return super(Registry, self).__getitem__(type_)
             except KeyError:
                 continue
         else:
             raise KeyError()
 
-    def register(self, cls, accessor):
-        self._dict[cls] = accessor
+    def __setitem__(self, key, value):
+        super(Registry, self).__setitem__(key, value)
 
-    def get(self, cls, default):
-        try:
-            return self[cls]
-        except KeyError:
-            return default
+    def register(self, cls, accessor):
+        self[cls] = accessor
 
 
 accessors = Registry()

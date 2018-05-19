@@ -134,15 +134,12 @@ class ConvertDataStage(with_metaclass(ABCMeta, object)):
         for i, y in enumerate(c.value):
             value.append([])
             for x in y:
-                types = self._resolve_types(c.value)
-                for cls in types:
-                    converter = accessors[cls]
-                    if issubclass(converter, Converter):
-                        try:
-                            value[i].append(self._convert(converter, x))
-                            break
-                        except:
-                            continue
+                for converter in self._resolve_converters(value):
+                    try:
+                        value[i].append(self._convert(converter, x))
+                        break
+                    except:
+                        continue
                 else:
                     value[i].append(x)
         c.value = value
@@ -151,11 +148,9 @@ class ConvertDataStage(with_metaclass(ABCMeta, object)):
     def _convert(self, converter, value):
         return value
 
-    def _resolve_types(self, value):
-        try:
-            return self.options['type']
-        except KeyError:
-            return []
+    @abstractmethod
+    def _resolve_converters(self, value):
+        return accessors.get(type(value), [])
 
 
 class ConvertDataFromReadStage(ConvertDataStage):
@@ -165,6 +160,21 @@ class ConvertDataFromReadStage(ConvertDataStage):
     def _convert(self, converter, value):
         return converter.read_value(value, self.options)
 
+    @abstractmethod
+    def _resolve_converters(self, value):
+        # get options
+        try:
+            types = self.options['types']
+        except KeyError:
+            return []
+
+        # convert to list of types
+        if not isinstance(types, (list, tuple)):
+            types = [types]
+
+        # get converters
+        return (accessors[cls] for cls in types if cls in accessors and issubclass(accessors[cls], Converter))
+
 
 class ConvertDataForWriteStage(ConvertDataStage):
     def __init__(self, options):
@@ -173,8 +183,11 @@ class ConvertDataForWriteStage(ConvertDataStage):
     def _convert(self, converter, value):
         return converter.write_value(value, self.options)
 
-    def _resolve_types(self, value):
-        return super(ConvertDataForWriteStage, self)._resolve_types(value) or [type(value)]
+    def _resolve_converters(self, value):
+        # NOTE: there is an asymmetry between the read and write stages because we know the type at write stage, so
+        # we know what to convert to.
+        converter = accessors.get(type(value), None)
+        return [converter] if issubclass(converter, Converter) else []
 
 
 class AdjustDimensionsStage(object):
