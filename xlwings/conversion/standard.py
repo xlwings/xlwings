@@ -5,7 +5,9 @@ from . import Pipeline, Converter, Options, Accessor, accessors
 from .. import xlplatform
 from ..main import Range
 
+from abc import ABCMeta, abstractmethod
 import datetime
+from six import with_metaclass
 
 try:
     import numpy as np
@@ -123,7 +125,7 @@ class CleanDataForWriteStage(object):
         ]
 
 
-class ConvertDataFromReadStage(object):
+class ConvertDataStage(with_metaclass(ABCMeta, object)):
     def __init__(self, options):
         self.options = options
 
@@ -132,29 +134,47 @@ class ConvertDataFromReadStage(object):
         for i, y in enumerate(c.value):
             value.append([])
             for x in y:
-                converter = accessors.get(self.options.get('type', None), None)
-                if converter and issubclass(converter, Converter):
-                    value[i].append(converter.read_value(x, self.options))
+                types = self._resolve_types(c.value)
+                for cls in types:
+                    converter = accessors[cls]
+                    if issubclass(converter, Converter):
+                        try:
+                            value[i].append(self._convert(converter, x))
+                            break
+                        except:
+                            continue
                 else:
                     value[i].append(x)
         c.value = value
 
+    @abstractmethod
+    def _convert(self, converter, value):
+        return value
 
-class ConvertDataForWriteStage(object):
+    def _resolve_types(self, value):
+        try:
+            return self.options['type']
+        except KeyError:
+            return []
+
+
+class ConvertDataFromReadStage(ConvertDataStage):
     def __init__(self, options):
-        self.options = options
+        super(ConvertDataFromReadStage, self).__init__(options)
 
-    def __call__(self, c):
-        value = []
-        for i, y in enumerate(c.value):
-            value.append([])
-            for x in y:
-                converter = accessors.get(self.options.get('type', None) or type(x), None)
-                if converter and issubclass(converter, Converter):
-                   value[i].append(converter.write_value(x, self.options))
-                else:
-                    value[i].append(x)
-        c.value = value
+    def _convert(self, converter, value):
+        return converter.read_value(value, self.options)
+
+
+class ConvertDataForWriteStage(ConvertDataStage):
+    def __init__(self, options):
+        super(ConvertDataForWriteStage, self).__init__(options)
+
+    def _convert(self, converter, value):
+        return converter.write_value(value, self.options)
+
+    def _resolve_types(self, value):
+        return super(ConvertDataForWriteStage, self)._resolve_types(value) or [type(value)]
 
 
 class AdjustDimensionsStage(object):
