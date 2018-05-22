@@ -69,6 +69,13 @@ class Pipeline(list):
 
 class Registry(OrderedDict):
 
+    def __contains__(self, cls):
+        try:
+            self.__getitem__(cls)
+            return True
+        except KeyError:
+            return False
+
     def __getitem__(self, cls):
         types = cls.mro() if hasattr(cls, 'mro') else [cls]
         for type_ in types:
@@ -81,6 +88,12 @@ class Registry(OrderedDict):
 
     def __setitem__(self, key, value):
         super(Registry, self).__setitem__(key, value)
+
+    def get(self, cls, default=None):
+        try:
+            return self.__getitem__(cls)
+        except KeyError:
+            return default
 
     def register(self, cls, accessor):
         self[cls] = accessor
