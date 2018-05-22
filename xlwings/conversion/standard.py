@@ -160,7 +160,6 @@ class ConvertDataFromReadStage(ConvertDataStage):
     def _convert(self, converter, value):
         return converter.read_value(value, self.options)
 
-    @abstractmethod
     def _resolve_converters(self, value):
         # get options
         try:
@@ -192,7 +191,7 @@ class ConvertDataForWriteStage(ConvertDataStage):
         # NOTE: there is an asymmetry between the read and write stages because we know the type at write stage, so
         # we know what to convert to.
         converter = accessors.get(type(value), None)
-        return [converter] if issubclass(converter, Converter) else []
+        return [converter] if converter and issubclass(converter, Converter) else []
 
 
 class AdjustDimensionsStage(object):
