@@ -176,3 +176,11 @@ class Converter(Accessor):
             cls.base_writer(options)
             .prepend_stage(cls.ToValueStage(cls.write_value, options))
         )
+
+    @classmethod
+    def read_value(cls, value, options):
+        return value
+
+    @classmethod
+    def write_value(cls, value, options):
+        return value
