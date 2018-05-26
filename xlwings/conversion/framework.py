@@ -89,6 +89,10 @@ class Registry(OrderedDict):
     def __setitem__(self, key, value):
         super(Registry, self).__setitem__(key, value)
 
+    def all(self):
+        # return all types sorted by inheritance
+        return sorted(self.keys(), key=lambda x: len(x.mro()), reverse=True)
+
     def get(self, cls, default=None):
         try:
             return self.__getitem__(cls)

@@ -125,73 +125,77 @@ class CleanDataForWriteStage(object):
         ]
 
 
+class ValueConverter(object):
+    def __init__(self, registry, options):
+        # set up the registry
+        self.registry = registry
+        self.types = self._resolve_types(options.get('types', ()))
+
+    def read_value(self, value, options):
+        for type_ in self._resolve_types(self.types):
+            try:
+                converter = self.registry[type_]
+                if converter and issubclass(converter, Converter):
+                    # NOTE: type_ provides additional information that can be used in reading process -> we pass it
+                    conv_options = dict(options)
+                    conv_options['convert'] = type_
+                    return converter.read_value(value, conv_options)
+            except:
+                continue
+        else:
+            raise ValueError("No converter for types supplied could read the value '{}' supplied.".format(value))
+
+    def write_value(self, value, options):
+        converter = self.registry.get(type(value), None)
+        if converter and issubclass(converter, Converter):
+            return converter.write_value(value, options)
+        else:
+            raise KeyError(type(value))
+
+    def _resolve_types(self, types):
+        if types == 'all':
+            return self.registry.all()
+        elif not isinstance(types, (list, tuple)):
+            return [types]
+        else:
+            return types
+
+
 class ConvertDataStage(with_metaclass(ABCMeta, object)):
     def __init__(self, options):
         self.options = options
+        self.converter = ValueConverter(accessors, options)
 
     def __call__(self, c):
         value = []
         for i, y in enumerate(c.value):
             value.append([])
             for x in y:
-                for converter in self._resolve_converters(value):
-                    try:
-                        value[i].append(self._convert(converter, x))
-                        break
-                    except:
-                        continue
-                else:
+                try:
+                    value[i].append(self._convert(x))
+                except:
                     value[i].append(x)
         c.value = value
 
     @abstractmethod
-    def _convert(self, converter, value):
+    def _convert(self, value):
         return value
-
-    @abstractmethod
-    def _resolve_converters(self, value):
-        return accessors.get(type(value), [])
 
 
 class ConvertDataFromReadStage(ConvertDataStage):
     def __init__(self, options):
         super(ConvertDataFromReadStage, self).__init__(options)
 
-    def _convert(self, converter, value):
-        return converter.read_value(value, self.options)
-
-    def _resolve_converters(self, value):
-        # get options
-        try:
-            types = self.options['types']
-        except KeyError:
-            return []
-
-        # convert to list of types
-        if types == 'all':
-            types = self._sort_types_by_inheritance(accessors.keys())
-        elif not isinstance(types, (list, tuple)):
-            types = [types]
-
-        # get converters
-        return (accessors[cls] for cls in types if cls in accessors and issubclass(accessors[cls], Converter))
-
-    def _sort_types_by_inheritance(self, types):
-        return sorted(types, key=lambda x: len(x.mro()), reverse=True)
+    def _convert(self, value):
+        return self.converter.read_value(value, self.options)
 
 
 class ConvertDataForWriteStage(ConvertDataStage):
     def __init__(self, options):
         super(ConvertDataForWriteStage, self).__init__(options)
 
-    def _convert(self, converter, value):
-        return converter.write_value(value, self.options)
-
-    def _resolve_converters(self, value):
-        # NOTE: there is an asymmetry between the read and write stages because we know the type at write stage, so
-        # we know what to convert to.
-        converter = accessors.get(type(value), None)
-        return [converter] if converter and issubclass(converter, Converter) else []
+    def _convert(self, value):
+        return self.converter.write_value(value, self.options)
 
 
 class AdjustDimensionsStage(object):
@@ -298,7 +302,7 @@ class ValueAccessor(Accessor):
             .append_stage(ReadValueFromRangeStage())
             .append_stage(Ensure2DStage())
             .append_stage(CleanDataFromReadStage(options))
-            .append_stage(ConvertDataFromReadStage(options))
+            .append_stage(ConvertDataFromReadStage(options), only_if=options.get('types', None))
             .append_stage(TransposeStage(), only_if=options.get('transpose', False))
             .append_stage(AdjustDimensionsStage(options))
         )
