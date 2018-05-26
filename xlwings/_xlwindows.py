@@ -26,23 +26,17 @@ from comtypes import IUnknown
 from comtypes.automation import IDispatch
 
 from .constants import ColorIndex
-from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime, col_name
+from .utils import rgb_to_int, int_to_rgb, get_duplicates, col_name
 
 # Optional imports
 try:
     import pandas as pd
 except ImportError:
     pd = None
-try:
-    import numpy as np
-except ImportError:
-    np = None
 
 from . import PY3
 
 time_types = (dt.date, dt.datetime, pywintypes.TimeType)
-if np:
-    time_types = time_types + (np.datetime64,)
 
 
 N_COM_ATTEMPTS = 0      # 0 means try indefinitely
@@ -992,9 +986,6 @@ def _datetime_to_com_time(dt_time):
     # Convert date to datetime
     if pd and isinstance(dt_time, type(pd.NaT)):
         return None
-    if np:
-        if type(dt_time) is np.datetime64:
-            dt_time = np_datetime_to_datetime(dt_time)
 
     if type(dt_time) is dt.date:
         dt_time = dt.datetime(dt_time.year, dt_time.month, dt_time.day,
@@ -1023,11 +1014,7 @@ def _datetime_to_com_time(dt_time):
 def prepare_xl_data_element(x):
     if isinstance(x, time_types):
         return _datetime_to_com_time(x)
-    elif np and isinstance(x, np.number):
-        return float(x)
     elif x is None:
-        return ""
-    elif np and isinstance(x, float) and np.isnan(x):
         return ""
     else:
         return x

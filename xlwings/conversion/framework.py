@@ -179,8 +179,16 @@ class Converter(Accessor):
 
     @classmethod
     def read_value(cls, value, options):
-        return value
+        base_reader = cls.base_reader(options)
+        if isinstance(base_reader, Converter):
+            return cls.base_reader(options).read_value(value, options)
+        else:
+            return value
 
     @classmethod
     def write_value(cls, value, options):
-        return value
+        base_writer = cls.base_writer(options)
+        if isinstance(base_writer, Converter):
+            return cls.base_writer(options).write_value(value, options)
+        else:
+            return value

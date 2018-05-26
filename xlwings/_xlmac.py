@@ -13,22 +13,17 @@ from appscript import k as kw, mactypes, its
 from appscript.reference import CommandError
 
 from .constants import ColorIndex
-from .utils import int_to_rgb, np_datetime_to_datetime, col_name, VersionNumber
+from .utils import int_to_rgb, col_name, VersionNumber
 from . import mac_dict, PY3, string_types
 
 try:
     import pandas as pd
 except ImportError:
     pd = None
-try:
-    import numpy as np
-except ImportError:
-    np = None
+
 
 # Time types
 time_types = (dt.date, dt.datetime)
-if np:
-    time_types = time_types + (np.datetime64,)
 
 
 class Apps(object):
@@ -1116,13 +1111,6 @@ def clean_value_data(data, datetime_builder, empty_as, number_builder):
 def prepare_xl_data_element(x):
     if x is None:
         return ""
-    elif np and isinstance(x, float) and np.isnan(x):
-        return ""
-    elif np and isinstance(x, np.datetime64):
-        # handle numpy.datetime64
-        return np_datetime_to_datetime(x).replace(tzinfo=None)
-    elif np and isinstance(x, np.number):
-        return float(x)
     elif pd and isinstance(x, pd.Timestamp):
         # This transformation seems to be only needed on Python 2.6 (?)
         return x.to_pydatetime().replace(tzinfo=None)
