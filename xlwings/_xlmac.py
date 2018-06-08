@@ -16,6 +16,7 @@ from .constants import ColorIndex
 from .utils import int_to_rgb, np_datetime_to_datetime, col_name, VersionNumber
 from . import mac_dict, PY3, string_types
 
+
 try:
     import pandas as pd
 except ImportError:
@@ -301,7 +302,7 @@ class Sheet(object):
 
     @name.setter
     def name(self, value):
-        self.xl.name.set(value)
+        self.xl.name.set(value, waitreply=False)
         self.xl = self.workbook.xl.worksheets[value]
 
     @property
@@ -396,9 +397,15 @@ class Sheet(object):
 
     def delete(self):
         alerts_state = self.book.app.xl.display_alerts.get()
-        self.book.app.xl.display_alerts.set(False)
+        self.book.app.xl.display_alerts.set(False, waitreply=False)
         self.xl.delete()
-        self.book.app.xl.display_alerts.set(alerts_state)
+        self.book.app.xl.display_alerts.set(alerts_state, waitreply=False)
+
+    def unhide(self):
+        self.xl.visible.set(kw.sheet_visible, waitreply=False)
+
+    def hide(self):
+        self.xl.visible.set(kw.sheet_hidden, waitreply=False)
 
     @property
     def charts(self):
@@ -497,7 +504,7 @@ class Range(object):
     @formula.setter
     def formula(self, value):
         if self.xl is not None:
-            self.xl.formula.set(value)
+            self.xl.formula.set(value, waitreply=False)
 
     @property
     def formula_array(self):
@@ -507,7 +514,7 @@ class Range(object):
     @formula_array.setter
     def formula_array(self, value):
         if self.xl is not None:
-            self.xl.formula_array.set(value)
+            self.xl.formula_array.set(value, waitreply=False)
 
     @property
     def column_width(self):
@@ -519,7 +526,7 @@ class Range(object):
     @column_width.setter
     def column_width(self, value):
         if self.xl is not None:
-            self.xl.column_width.set(value)
+            self.xl.column_width.set(value, waitreply=False)
 
     @property
     def row_height(self):
@@ -531,7 +538,7 @@ class Range(object):
     @row_height.setter
     def row_height(self, value):
         if self.xl is not None:
-            self.xl.row_height.set(value)
+            self.xl.row_height.set(value, waitreply=False)
 
     @property
     def width(self):
@@ -565,7 +572,7 @@ class Range(object):
         if self.xl is not None:
             alerts_state = self.sheet.book.app.screen_updating
             self.sheet.book.app.screen_updating = False
-            self.xl.number_format.set(value)
+            self.xl.number_format.set(value, waitreply=False)
             self.sheet.book.app.screen_updating = alerts_state
 
     def get_address(self, row_absolute, col_absolute, external):
@@ -622,7 +629,7 @@ class Range(object):
     def font(self, properties):
         if self.xl is not None:
             keywords = dict((appscript.Keyword(k), v) for (k, v) in properties.items())
-            self.xl.font_object.properties.set(keywords)
+            self.xl.font_object.properties.set(keywords, waitreply=False)
 
     @property
     def interior(self):
@@ -636,7 +643,7 @@ class Range(object):
     def interior(self, properties):
         if self.xl is not None:
             keywords = dict((appscript.Keyword(k), v) for (k, v) in properties.items())
-            self.xl.interior_object.properties.set(keywords)
+            self.xl.interior_object.properties.set(keywords, waitreply=False)
 
     ### UNTESTED
     @property
@@ -651,7 +658,7 @@ class Range(object):
     def style(self, properties):
         if self.xl is not None:
             keywords = dict((appscript.Keyword(k), v) for (k, v) in properties.items())
-            self.xl.style_object.properties.set(keywords)
+            self.xl.style_object.properties.set(keywords, waitreply=False)
 
     def _border_get_properties(self, target):
         if not self.xl:
@@ -664,7 +671,7 @@ class Range(object):
         if self.xl is not None:
             keywords = dict((appscript.Keyword(k), appscript.Keyword(v) if type(v) is str else v)
                             for (k, v) in properties.items())
-            self.xl.get_border(which_border=appscript.Keyword(target)).properties.set(keywords)
+            self.xl.get_border(which_border=appscript.Keyword(target)).properties.set(keywords, waitreply=False)
 
     @property
     def border_top(self):
@@ -751,7 +758,7 @@ class Range(object):
     @name.setter
     def name(self, value):
         if self.xl is not None:
-            self.xl.name.set(value)
+            self.xl.name.set(value, waitreply=False)
 
     def __call__(self, arg1, arg2=None):
         if arg2 is None:
