@@ -16,6 +16,7 @@ from .constants import ColorIndex
 from .utils import int_to_rgb, np_datetime_to_datetime, col_name, VersionNumber
 from . import mac_dict, PY3, string_types
 
+from openpyxl.utils.cell import range_boundaries, get_column_letter
 
 try:
     import pandas as pd
@@ -30,7 +31,6 @@ except ImportError:
 time_types = (dt.date, dt.datetime)
 if np:
     time_types = time_types + (np.datetime64,)
-
 
 class Apps(object):
 
@@ -324,7 +324,7 @@ class Sheet(object):
                     raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
                 row1 = arg1[0]
                 col1 = arg1[1]
-                address1 = self.xl.rows[row1].columns[col1].get_address()
+                address1 = "{}{}".format(get_column_letter(col1), row1)
             elif len(arg1) == 4:
                 return Range(self, arg1)
             else:
@@ -332,7 +332,7 @@ class Sheet(object):
         elif isinstance(arg1, Range):
             row1 = min(arg1.row, arg2.row)
             col1 = min(arg1.column, arg2.column)
-            address1 = self.xl.rows[row1].columns[col1].get_address()
+            address1 = "{}{}".format(get_column_letter(col1), row1)
         elif isinstance(arg1, string_types):
             address1 = arg1.split(':')[0]
         else:
@@ -343,11 +343,11 @@ class Sheet(object):
                 raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
             row2 = arg2[0]
             col2 = arg2[1]
-            address2 = self.xl.rows[row2].columns[col2].get_address()
+            address2 = "{}{}".format(get_column_letter(col2), row2)
         elif isinstance(arg2, Range):
             row2 = max(arg1.row + arg1.shape[0] - 1, arg2.row + arg2.shape[0] - 1)
             col2 = max(arg1.column + arg1.shape[1] - 1, arg2.column + arg2.shape[1] - 1)
-            address2 = self.xl.rows[row2].columns[col2].get_address()
+            address2 = "{}{}".format(get_column_letter(col2), row2)
         elif isinstance(arg2, string_types):
             address2 = arg2
         elif arg2 is None:
@@ -436,17 +436,11 @@ class Range(object):
                 self.xl = None
         else:
             self.xl = sheet.xl.cells[address]
-            self._coords = None
+            bounds = range_boundaries(address)
+            self._coords = (bounds[1], bounds[0], bounds[3] - bounds[1] + 1, bounds[2] - bounds[0] + 1)
 
     @property
     def coords(self):
-        if self._coords is None:
-            self._coords = (
-                self.xl.first_row_index.get(),
-                self.xl.first_column_index.get(),
-                self.xl.count(each=kw.row),
-                self.xl.count(each=kw.column)
-            )
         return self._coords
 
     @property

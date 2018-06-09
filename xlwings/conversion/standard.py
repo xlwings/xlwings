@@ -71,7 +71,7 @@ class WriteValueToRangeStage(object):
             rng.raw_value = value
 
     def __call__(self, ctx):
-        if ctx.range and ctx.value:
+        if ctx.range is not None and ctx.value is not None:
             if self.raw:
                 ctx.range.raw_value = ctx.value
                 return

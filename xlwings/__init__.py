@@ -7,6 +7,9 @@ __version__ = 'dev'
 # Python 2 vs 3
 PY3 = sys.version_info[0] == 3
 
+enable_caching = True
+cache_timeout = 5
+
 if PY3:
     string_types = str
     xrange = range
