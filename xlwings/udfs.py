@@ -304,8 +304,8 @@ def generate_vba_wrapper(module_name, module, f):
                     if volatile:
                         vba.writeln('Application.Volatile')
 
-                    if vararg != '':
-                        vba.writeln("ReDim argsArray(1 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + str(n_args) + ")")
+                if vararg != '':
+                    vba.writeln("ReDim argsArray(1 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + str(n_args) + ")")
 
                 j = 1
                 for arg in xlfunc['args']:
@@ -327,9 +327,7 @@ def generate_vba_wrapper(module_name, module, f):
                 else:
                     args_vba = 'Array(' + ', '.join(arg['vba'] or arg['name'] for arg in xlfunc['args']) + ')'
 
-                if ftype == 'Function':
-                    vba.writeln('#If ExcelApp = True Then')
-                    vba.writeln("    If TypeOf Application.Caller Is Range Then On Error GoTo failed")
+                vba.writeln('#If ExcelApp = True Then')
 
                 if ftype == "Sub":
                     vba.writeln('    Py.CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller',
@@ -337,7 +335,15 @@ def generate_vba_wrapper(module_name, module, f):
                                 fname=fname,
                                 args_vba=args_vba,
                                 )
+                    vba.writeln("#Else")
+                    vba.writeln('    Py.CallUDF "{module_name}", "{fname}", {args_vba}',
+                                module_name=module_name,
+                                fname=fname,
+                                args_vba=args_vba,
+                                )
+                    vba.writeln("#End If")
                 else:
+                    vba.writeln("    If TypeOf Application.Caller Is Range Then On Error GoTo failed")
                     vba.writeln('    {fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)',
                                 module_name=module_name,
                                 fname=fname,
