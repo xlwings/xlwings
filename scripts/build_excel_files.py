@@ -13,6 +13,7 @@ par_dir = os.path.join(this_dir, os.path.pardir)
 addin_path = os.path.join(par_dir, 'xlwings', 'addin', 'xlwings.xlam')
 standalone_win_path = os.path.join(par_dir, 'xlwings', 'quickstart_standalone_win.xlsm')
 standalone_mac_path = os.path.join(par_dir, 'xlwings', 'quickstart_standalone_mac.xlsm')
+xlwings_bas_path = os.path.join(par_dir, 'xlwings', 'xlwings.bas')
 version = os.getenv('APPVEYOR_BUILD_VERSION', 'dev')
 
 if os.getenv('ASPOSE_LICENSE'):
@@ -47,11 +48,19 @@ for m in ['License', 'Main', 'Config', 'Extensions', 'Utils']:
 standalone_code = set_version_strings(standalone_code)
 standalone_code = "'Version: {}\n".format(version) + standalone_code
 standalone_code = standalone_code.replace("ActiveWorkbook", "ThisWorkbook")
+standalone_code = standalone_code.replace("ActiveDocument", "ThisDocument")
 standalone_code = standalone_code.replace('Attribute VB_Name = "License"', "")
 standalone_code = standalone_code.replace("Attribute VB_Name", "\n'Attribute VB_Name")
 standalone_code = standalone_code.replace("Option Explicit", "")
+standalone_code = standalone_code.replace("""#Const App = "Microsoft Excel" 'Adjust when using outside of Excel""", "")
 
 for path in [standalone_mac_path, standalone_win_path]:
     wb = Workbook(path)
     wb.VbaProject.get_Modules()['xlwings'].set_Codes(standalone_code)
     wb.Save(path)
+
+# Save standalone as xlwings.bas to be included in python package
+with open(xlwings_bas_path, 'w') as f:
+    f.write('Attribute VB_Name = "xlwings"\n' +
+            """#Const App = "Microsoft Excel" 'Adjust when using outside of Excel\n""" +
+            '\n'.join(standalone_code.splitlines()))
