@@ -43,7 +43,7 @@ setup(
     long_description=readme,
     data_files=data_files,
     packages=find_packages(),
-    package_data={'xlwings': ['tests/*.xlsx', 'tests/*.xlsm', 'tests/*.png',
+    package_data={'xlwings': ['xlwings.bas', 'tests/*.xlsx', 'tests/*.xlsm', 'tests/*.png',
                               '*.xlsm', 'xlwings.applescript',
                               'addin/xlwings.xlam']},
     keywords=['xls', 'excel', 'spreadsheet', 'workbook', 'vba', 'macro'],

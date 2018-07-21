@@ -36,6 +36,7 @@ on **Windows** and **Mac**.
     extensions
     troubleshooting
     api
+    license
 
 
 

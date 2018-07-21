@@ -1,9 +1,8 @@
 image: Visual Studio 2015
 
 environment:
-  PYPI_TEST_PASSWORD:
-    secure: sMLDomAF/3FaXYX5vBEv/6fQhCBmk5lachMyOlXxZuE=
-  PYPI_PASSWORD:
+  TWINE_USERNAME: zoomeranalytics
+  TWINE_PASSWORD:
     secure: oSCJsPDE2f8NMJox4JeOs4MzM9KfH4vYbmwUS5FRCzY=
   ASPOSE_LICENSE:
     secure: je1oFjicBTA/L3vv55btbjk101JF7M0IQeGMbMcO3N8=
@@ -44,6 +43,7 @@ build_script:
 
 artifacts:
   - path: dist\*
+  - path: xlwings\addin\xlwings.xlam
 
 test_script:
   # Just attempt to install since the full test suite cannot be run
@@ -51,20 +51,17 @@ test_script:
   - python -c "import xlwings"
 
 on_success:
-  # Deploy to PyPI if a tagged release
-  - echo [distutils]                                  > %USERPROFILE%\\.pypirc
-  - echo index-servers =                             >> %USERPROFILE%\\.pypirc
-  - echo     pypi                                    >> %USERPROFILE%\\.pypirc
-  - echo     pypitest                                >> %USERPROFILE%\\.pypirc
-  - echo [pypi]                                      >> %USERPROFILE%\\.pypirc
-  - echo repository=https://pypi.python.org/pypi     >> %USERPROFILE%\\.pypirc
-  - echo username=zoomeranalytics                    >> %USERPROFILE%\\.pypirc
-  - echo password=%PYPI_PASSWORD%                    >> %USERPROFILE%\\.pypirc
-  - echo [pypitest]                                  >> %USERPROFILE%\\.pypirc
-  - echo repository=https://test.pypi.org/legacy/    >> %USERPROFILE%\\.pypirc
-  - echo username=zoomeranalytics                    >> %USERPROFILE%\\.pypirc
-  - echo password=%PYPI_TEST_PASSWORD%               >> %USERPROFILE%\\.pypirc  
+  - ps: if ($env:APPVEYOR_REPO_TAG -eq $TRUE) { twine upload dist/* }
 
-  # Required to ensure setup.py finds the .pypirc under Windows
-  - set HOME=%USERPROFILE%
-  - if "%APPVEYOR_REPO_TAG%"=="true" ( twine upload dist\xlwings-%APPVEYOR_BUILD_VERSION%.tar.gz) else ( echo "Not deploying because not a tagged commit." )
+
+deploy:
+- provider: GitHub
+  release: $(APPVEYOR_REPO_TAG_NAME)
+  description: 'v$(APPVEYOR_REPO_TAG_NAME)'
+  auth_token:
+    secure: Zz8c3qkAY2QM49eQ+iqNryTJV/w2/Bv3BWnCiSj1s5FNGNT+hKMU40y8OS0QUdKr
+  artifact: /.*\.xlam/
+  draft: false
+  prerelease: false
+  on:
+    appveyor_repo_tag: true

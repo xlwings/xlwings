@@ -21,6 +21,7 @@
     extensions
     troubleshooting
     api
+    license
 
 
 

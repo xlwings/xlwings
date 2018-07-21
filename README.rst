@@ -18,10 +18,11 @@ Links
 * Quickstart: http://docs.xlwings.org/en/stable/quickstart.html
 * Documentation: http://docs.xlwings.org
 * Source Code: http://github.com/zoomeranalytics/xlwings
+* On-demand Course: https://training.zoomeranalytics.com/p/xlwings
 
 
 xltrail
 -------
 
 The Excel add-in is version controlled with `xltrail <https://www.xltrail.com>`_. You can see the diffs on
-https://public.xltrail.com.
+https://cloud.xltrail.com.
