@@ -327,36 +327,36 @@ def generate_vba_wrapper(module_name, module, f):
                 else:
                     args_vba = 'Array(' + ', '.join(arg['vba'] or arg['name'] for arg in xlfunc['args']) + ')'
 
-                vba.writeln('#If App = "Microsoft Excel" Then')
-
                 if ftype == "Sub":
-                    vba.writeln('    Py.CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller',
-                                module_name=module_name,
-                                fname=fname,
-                                args_vba=args_vba,
-                                )
-                    vba.writeln("#Else")
-                    vba.writeln('    Py.CallUDF "{module_name}", "{fname}", {args_vba}',
-                                module_name=module_name,
-                                fname=fname,
-                                args_vba=args_vba,
-                                )
+                    with vba.block('#If App = "Microsoft Excel" Then'):
+                        vba.writeln('Py.CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller',
+                                    module_name=module_name,
+                                    fname=fname,
+                                    args_vba=args_vba,
+                                    )
+                    with vba.block("#Else"):
+                        vba.writeln('Py.CallUDF "{module_name}", "{fname}", {args_vba}',
+                                    module_name=module_name,
+                                    fname=fname,
+                                    args_vba=args_vba,
+                                    )
                     vba.writeln("#End If")
                 else:
-                    vba.writeln("    If TypeOf Application.Caller Is Range Then On Error GoTo failed")
-                    vba.writeln('    {fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)',
+                    with vba.block('#If App = "Microsoft Excel" Then'):
+                        vba.writeln("If TypeOf Application.Caller Is Range Then On Error GoTo failed")
+                        vba.writeln('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)',
+                                    module_name=module_name,
+                                    fname=fname,
+                                    args_vba=args_vba,
+                                    )
+                        vba.writeln("Exit " + ftype)
+                    with vba.block("#Else"):
+                        vba.writeln('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba})',
                                 module_name=module_name,
                                 fname=fname,
                                 args_vba=args_vba,
                                 )
-                    vba.writeln("    Exit " + ftype)
-                    vba.writeln("#Else")
-                    vba.writeln('    {fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba})',
-                                module_name=module_name,
-                                fname=fname,
-                                args_vba=args_vba,
-                                )
-                    vba.writeln("    Exit " + ftype)
+                        vba.writeln("Exit " + ftype)
                     vba.writeln("#End If")
 
                     vba.write_label("failed")
