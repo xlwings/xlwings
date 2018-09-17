@@ -1034,7 +1034,8 @@ class Name(object):
     def refers_to_range(self):
         ref = self.refers_to[1:].split('!')
         book = self.parent if isinstance(self.parent, Book) else self.parent.book
-        return Range(Sheet(book, ref[0]), ref[1])
+        # appscript doesn't like nested quotes resulting from spaces in sheet names (e.g. "'foo bar'")
+        return Range(Sheet(book, ref[0].replace("'", "")), ref[1])
 
 
 class Shapes(Collection):
