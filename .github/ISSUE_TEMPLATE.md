@@ -1,21 +1,17 @@
-Please check the boxes and answer all questions before submitting your issue - thank you!
-Please put code samples into [fenced code blocks](https://github.github.com/gfm/#fenced-code-blocks).
+#### OS (e.g. Windows 10 or macOS Sierra)
 
-# OS
+#### Versions of xlwings, Excel and Python (e.g. 0.11.8, Office 365, Python 3.7)
 
-- [] Windows
-- [] Mac
+#### Describe your issue (incl. Traceback!)
 
-# xlwings version
+```python
+# Your traceback here
 
+```
 
-# Excel version
+#### Include a minimal code sample to reproduce the issue (and attach a sample workbook if required!)
 
+```python
+# Your code here
 
-# Python version
-
-
-# Describe your issue (incl. Traceback!)
-
-
-# Include a minimal code sample to reproduce the issue (and attach a sample workbook if required!)
+```
