@@ -25,8 +25,8 @@ def set_version_strings(code):
     code = re.sub(r'XLWINGS_VERSION As String = ".*"',
                   'XLWINGS_VERSION As String = "{}"'.format(version),
                   code)
-    code = code.replace("xlwings32.dll", "xlwings32-{}.dll".format(version))
-    code = code.replace("xlwings64.dll", "xlwings64-{}.dll".format(version))
+    code = code.replace("xlwings32-dev.dll", "xlwings32-{}.dll".format(version))
+    code = code.replace("xlwings64-dev.dll", "xlwings64-{}.dll".format(version))
     return code
 
 
