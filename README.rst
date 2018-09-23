@@ -14,10 +14,10 @@ on **Windows** and **Mac**.
 Links
 -----
 
-* Homepage: http://xlwings.org
-* Quickstart: http://docs.xlwings.org/en/stable/quickstart.html
-* Documentation: http://docs.xlwings.org
-* Source Code: http://github.com/zoomeranalytics/xlwings
+* Homepage: https://www.xlwings.org
+* Quickstart: https://docs.xlwings.org/en/stable/quickstart.html
+* Documentation: https://docs.xlwings.org
+* Source Code: https://github.com/zoomeranalytics/xlwings
 * On-demand Course: https://training.zoomeranalytics.com/p/xlwings
 
 
