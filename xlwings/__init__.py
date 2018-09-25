@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from functools import wraps
 import sys
 
 
@@ -38,7 +39,8 @@ from .main import apps, books, sheets
 if sys.platform.startswith('win'):
     from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, get_udf_module, import_udfs
 else:
-    def func(*args, **kwargs):
+    def func(f=None, *args, **kwargs):
+        @wraps(f)
         def real_decorator(f):
             return f
         return real_decorator
