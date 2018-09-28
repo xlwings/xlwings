@@ -272,7 +272,7 @@ class Sheets(object):
 
     def __iter__(self):
         for i in range(len(self)):
-            yield self(i+1)
+            yield self(i + 1)
 
     def add(self, before=None, after=None):
         if before is None and after is None:
@@ -419,7 +419,7 @@ class Range(object):
             if nrows and ncols:
                 self.xl = sheet.xl.cells["%s:%s" % (
                     sheet.xl.rows[row].columns[col].get_address(),
-                    sheet.xl.rows[row+nrows-1].columns[col+ncols-1].get_address(),
+                    sheet.xl.rows[row + nrows - 1].columns[col + ncols - 1].get_address(),
                 )]
             else:
                 self.xl = None
@@ -654,7 +654,7 @@ class Range(object):
         col1 = self.column
         col2 = col1 + self.shape[1] - 1
         return [
-            self.sheet.range((row+i, col1), (row+i, col2))
+            self.sheet.range((row + i, col1), (row + i, col2))
             for i in range(self.shape[0])
         ]
 
@@ -759,7 +759,7 @@ class Collection(object):
 
     def __iter__(self):
         for i in range(len(self)):
-            yield self(i+1)
+            yield self(i + 1)
 
     def __contains__(self, key):
         return self.xl[key].exists()
@@ -1034,6 +1034,10 @@ class Name(object):
     def refers_to_range(self):
         ref = self.refers_to[1:].split('!')
         book = self.parent if isinstance(self.parent, Book) else self.parent.book
+        # appscript has issues when there are blanks or ' in sheet names (e.g. "foo' bar")
+        sheetname = ref[0]
+        if sheetname.startswith("'") and sheetname.endswith("'"):
+            ref[0] = sheetname[1:-1].replace("''", "'")
         return Range(Sheet(book, ref[0]), ref[1])
 
 
@@ -1254,14 +1258,14 @@ shape_types_k2s = {
     kw.shape_type_auto: 'auto_shape',
     kw.shape_type_callout: 'callout',
     kw.shape_type_canvas: 'canvas',
-    kw.shape_type_chart:  'chart',
+    kw.shape_type_chart: 'chart',
     kw.shape_type_comment: 'comment',
     kw.shape_type_content_application: 'content_app',
     kw.shape_type_diagram: 'diagram',
     kw.shape_type_free_form: 'free_form',
     kw.shape_type_group: 'group',
     kw.shape_type_embedded_OLE_control: 'embedded_ole_object',
-    kw.shape_type_form_control:  'form_control',
+    kw.shape_type_form_control: 'form_control',
     kw.shape_type_line: 'line',
     kw.shape_type_linked_OLE_object: 'linked_ole_object',
     kw.shape_type_linked_picture: 'linked_picture',
