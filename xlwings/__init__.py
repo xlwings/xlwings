@@ -41,24 +41,31 @@ if sys.platform.startswith('win'):
 else:
     def func(f=None, *args, **kwargs):
         @wraps(f)
-        def real_decorator(f):
+        def inner(f):
             return f
-        return real_decorator
+        if f is None:
+            return inner
+        else:
+            return inner(f)
 
-    def sub(*args, **kwargs):
-        def real_decorator(f):
+    def sub(f=None, *args, **kwargs):
+        @wraps(f)
+        def inner(f):
             return f
-        return real_decorator
+        if f is None:
+            return inner
+        else:
+            return inner(f)
 
     def ret(*args, **kwargs):
-        def real_decorator(f):
+        def inner(f):
             return f
-        return real_decorator
+        return inner
 
     def arg(*args, **kwargs):
-        def real_decorator(f):
+        def inner(f):
             return f
-        return real_decorator
+        return inner
 
 
 def xlfunc(*args, **kwargs):
