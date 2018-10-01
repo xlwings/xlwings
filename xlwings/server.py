@@ -6,6 +6,7 @@ try:
     import _win32sysloader
 except:
     raise Exception("Cannot import PyWin32. Are you sure it's installed?")
+import logging
 import sys
 import os
 # Hack to find pythoncom.dll - needed for some distribution/setups
@@ -27,6 +28,9 @@ import win32com.server.dispatcher
 import win32com.server.policy
 
 from .udfs import call_udf
+
+logger = logging.getlogger(__name__)
+
 
 class XLPythonOption(object):
     """ The XLPython class itself """
@@ -312,7 +316,7 @@ def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
     pythoncom.EnableQuitMessage(win32api.GetCurrentThreadId())
     pythoncom.CoResumeClassObjects()
 
-    print('xlwings server running, clsid=%s' % clsid)
+    logger.info('xlwings server running, clsid=%s', clsid)
 
     while True:
         rc = win32event.MsgWaitForMultipleObjects(
@@ -340,11 +344,11 @@ def _execute_task(task):
         task()
     except Exception as e:
         if _ask_for_retry(e) and _can_retry(task):
-            print("Retrying TaskQueue '%s'." % task)
+            logger.warning("Retrying TaskQueue '%s'.", task)
             _execute_task(task)
         else:
             import traceback
-            print("TaskQueue '%s' threw an exception: %s" % (task, traceback.format_exc()))
+            logger.error("TaskQueue '%s' threw an exception: %s", task, traceback.format_exc())
 
 
 def _can_retry(task):
