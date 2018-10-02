@@ -32,6 +32,7 @@ on **Windows** and **Mac**.
     converters
     command_line
     missing_features
+    other_office_apps
     r_and_julia
     extensions
     troubleshooting

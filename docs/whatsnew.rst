@@ -1,10 +1,25 @@
 What's New
 ==========
 
-development
------------
+v0.12.0 (Oct xx, 2018)
+----------------------
 
-* support expansion of environment variables in config values for windows (:issue:`615`)
+**Features**:
+
+This release adds support to call Python functions from VBA in all office apps (e.g. Access, Outlook etc.), not just Excel.
+Feel free to provide feedback via the following GitHub issue: :issue:`xxx`.
+See the docs: :ref:`other_office_apps` or the intro video: 
+
+
+**Breaking changes**:
+
+Previously, Python functions were always returning 2d arrays when called rom VBA, no matter whether it was actually a 2d array or not.
+Now you get the proper dimensionality which makes it a lot easier when the return value is e.g. a string or scalar as you don't have to
+unpack them anymore.
+
+**Bug Fixes**:
+
+* [Win] Support expansion of environment variables in config values (:issue:`615`)
 
 v0.11.8 (May 13, 2018)
 ----------------------
@@ -67,7 +82,7 @@ v0.11.3 (Jul 14, 2017)
 * Bug Fix: When using the ``xlwings.conf`` sheet, there was a subscript out of range error (:issue:`708`)
 * Enhancement: The add-in is now password protected (pw: ``xlwings``) to declutter the VBA editor (:issue:`710`)
 
-You need to update your xlwings add-in to be get the fixes!
+You need to update your xlwings add-in to get the fixes!
 
 
 v0.11.2 (Jul 6, 2017)
