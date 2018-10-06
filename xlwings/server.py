@@ -1,6 +1,3 @@
-# Modified version from ExcelPython
-# Copyright (C) 2014, ericremoreynolds.
-
 # First of all see if we can load PyWin32
 try:
     import _win32sysloader
@@ -19,7 +16,6 @@ import win32api
 import win32event
 os.chdir(cwd)
 
-import types
 import pythoncom
 import pywintypes
 import win32com.client
@@ -29,7 +25,9 @@ import win32com.server.policy
 
 from .udfs import call_udf
 
-logger = logging.getlogger(__name__)
+# If no handler is configured, print is used to make the statements show up in the console that opens when using
+# 'python' instead of 'pythonw' as the interpreter
+logger = logging.getLogger(__name__)
 
 
 class XLPythonOption(object):
@@ -117,7 +115,7 @@ class XLPython(object):
 
     def Module(self, module, reload=False):
         vars = {}
-        exec ("import " + module + " as the_module", vars)
+        exec("import " + module + " as the_module", vars)
         m = vars["the_module"]
         if reload:
             m = __builtins__.reload(m)
@@ -316,7 +314,8 @@ def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
     pythoncom.EnableQuitMessage(win32api.GetCurrentThreadId())
     pythoncom.CoResumeClassObjects()
 
-    logger.info('xlwings server running, clsid=%s', clsid)
+    msg = 'xlwings server running, clsid=%s'
+    logger.info(msg, clsid) if logger.hasHandlers() else print(msg % clsid)
 
     while True:
         rc = win32event.MsgWaitForMultipleObjects(
@@ -344,11 +343,13 @@ def _execute_task(task):
         task()
     except Exception as e:
         if _ask_for_retry(e) and _can_retry(task):
-            logger.warning("Retrying TaskQueue '%s'.", task)
+            msg = "Retrying TaskQueue '%s'."
+            logger.info(msg, task) if logger.hasHandlers() else print(msg % task)
             _execute_task(task)
         else:
             import traceback
-            logger.error("TaskQueue '%s' threw an exception: %s", task, traceback.format_exc())
+            msg = "TaskQueue '%s' threw an exception: %s"
+            logger.error(msg, task, traceback.format_exc()) if logger.hasHandlers() else print(msg % (task, traceback.format_exc()))
 
 
 def _can_retry(task):
