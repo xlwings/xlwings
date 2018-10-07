@@ -15,7 +15,8 @@ on **Windows** and **Mac**.
 .. toctree::
     :maxdepth: 2
     :hidden:
-
+    
+    course
     whatsnew
     migrate_to_0.11
     migrate_to_0.9
@@ -32,6 +33,7 @@ on **Windows** and **Mac**.
     converters
     command_line
     missing_features
+    other_office_apps
     r_and_julia
     extensions
     troubleshooting

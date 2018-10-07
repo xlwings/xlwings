@@ -187,11 +187,13 @@ class XLPython(object):
         else:
             return ToVariant(getattr(obj, method)(*pargs, **kwargs))
 
-    def CallUDF(self, script, fname, args, this_workbook, caller):
+    def CallUDF(self, script, fname, args, this_workbook=None, caller=None):
         args = tuple(FromVariant(arg) for arg in args)
         res = call_udf(script, fname, args, this_workbook, FromVariant(caller))
-        if isinstance(res, (tuple, list)):
-            res = (res,)
+        if len(res) == 1 and len(res[0]) == 1:
+            res = res[0][0]
+        elif len(res) == 1 and len(res[0]) > 1:
+            res = res[0]
         return res
 
     def Len(self, obj):

@@ -21,7 +21,13 @@ if you just want to manipulate Excel from Python via xlwings.
 Installation
 ------------
 
-To install the add-in, it's easiest to use the command line client: ``xlwings addin install``.
+To install the add-in, it's easiest to use the command line client: ``xlwings addin install``. Technically, this copies the add-in
+from Python's installation directory to Excel's ``XLSTART`` folder. If you encounter issues, then you can also download the 
+add-in (``xlwings.xlam``) from the `GitHub Release page <https://github.com/ZoomerAnalytics/xlwings/releases>`_
+(make sure you download the same version as the version of the Python package). Once downloaded, you can install the add-in
+by going to ``Developer > Excel Add-in > Browse``. If you don't see ``Developer`` as tab in your ribbon, make sure to
+activate the tab first under ``File > Options > Customize Ribbon`` (Mac: ``Cmd + , > Ribbon & Toolbar``).
+
 
 Then, to use ``RunPython`` or ``UDFs`` in a workbook, you need to set a reference to ``xlwings`` in the VBA editor, see
 screenshot (Windows: ``Tools > References...``, Mac: it's on the lower left corner of the VBA editor). Note that when

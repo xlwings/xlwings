@@ -25,8 +25,8 @@ def set_version_strings(code):
     code = re.sub(r'XLWINGS_VERSION As String = ".*"',
                   'XLWINGS_VERSION As String = "{}"'.format(version),
                   code)
-    code = code.replace("xlwings32.dll", "xlwings32-{}.dll".format(version))
-    code = code.replace("xlwings64.dll", "xlwings64-{}.dll".format(version))
+    code = code.replace("xlwings32-dev.dll", "xlwings32-{}.dll".format(version))
+    code = code.replace("xlwings64-dev.dll", "xlwings64-{}.dll".format(version))
     return code
 
 
@@ -48,9 +48,11 @@ for m in ['License', 'Main', 'Config', 'Extensions', 'Utils']:
 standalone_code = set_version_strings(standalone_code)
 standalone_code = "'Version: {}\n".format(version) + standalone_code
 standalone_code = standalone_code.replace("ActiveWorkbook", "ThisWorkbook")
+standalone_code = standalone_code.replace("ActiveDocument", "ThisDocument")
 standalone_code = standalone_code.replace('Attribute VB_Name = "License"', "")
 standalone_code = standalone_code.replace("Attribute VB_Name", "\n'Attribute VB_Name")
 standalone_code = standalone_code.replace("Option Explicit", "")
+standalone_code = standalone_code.replace("""#Const App = "Microsoft Excel" 'Adjust when using outside of Excel""", "")
 
 for path in [standalone_mac_path, standalone_win_path]:
     wb = Workbook(path)
@@ -59,5 +61,6 @@ for path in [standalone_mac_path, standalone_win_path]:
 
 # Save standalone as xlwings.bas to be included in python package
 with open(xlwings_bas_path, 'w') as f:
-    f.write('Attribute VB_Name = "xlwings"\n' + '\n'.join(standalone_code.splitlines()))
-
+    f.write('Attribute VB_Name = "xlwings"\n' +
+            """#Const App = "Microsoft Excel" 'Adjust when using outside of Excel\n""" +
+            '\n'.join(standalone_code.splitlines()))
