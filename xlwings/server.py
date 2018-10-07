@@ -1,3 +1,4 @@
+from __future__ import print_function
 # First of all see if we can load PyWin32
 try:
     import _win32sysloader
