@@ -25,9 +25,13 @@ import win32com.server.dispatcher
 import win32com.server.policy
 
 from .udfs import call_udf
+from . import PY3
+
 
 # If no handler is configured, print is used to make the statements show up in the console that opens when using
 # 'python' instead of 'pythonw' as the interpreter
+if not PY3:
+    from . import Logger
 logger = logging.getLogger(__name__)
 
 
@@ -279,7 +283,7 @@ class XLPython(object):
                     raise Exception("Exec can be called with at most 2 dictionary arguments")
             else:
                 pass
-        exec (stmt, globals, locals)
+        exec(stmt, globals, locals)
 
 
 idle_queue = []

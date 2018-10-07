@@ -19,6 +19,24 @@ else:
     from future_builtins import map
     builtins = __builtins__
 
+    from logging import Logger
+    def hasHandlers(self):
+        """
+        logging backport from Python 3.2
+        """
+        c = self
+        rv = False
+        while c:
+            if c.handlers:
+                rv = True
+                break
+            if not c.propagate:
+                break
+            else:
+                c = c.parent
+        return rv
+    Logger.hasHandlers = hasHandlers
+
 # Platform specifics
 if sys.platform.startswith('win'):
     from . import _xlwindows as xlplatform
