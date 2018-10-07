@@ -1,25 +1,26 @@
 What's New
 ==========
 
-v0.12.0 (Oct xx, 2018)
+v0.12.0 (Oct 7, 2018)
 ----------------------
 
 **Features**:
 
-This release adds support to call Python functions from VBA in all office apps (e.g. Access, Outlook etc.), not just Excel.
-Feel free to provide feedback via the following GitHub issue: :issue:`xxx`.
-See the docs: :ref:`other_office_apps` or the intro video: 
+This release adds support to call Python functions from VBA in all office apps (e.g. Access, Outlook etc.), not just Excel. As
+this uses UDFs, it is only available on Windows.
+See the docs: :ref:`other_office_apps`. 
 
 
 **Breaking changes**:
 
-Previously, Python functions were always returning 2d arrays when called rom VBA, no matter whether it was actually a 2d array or not.
-Now you get the proper dimensionality which makes it a lot easier when the return value is e.g. a string or scalar as you don't have to
-unpack them anymore.
+Previously, Python functions were always returning 2d arrays when called from VBA, no matter whether it was actually a 2d array or not.
+Now you get the proper dimensionality which makes it easier if the return value is e.g. a string or scalar as you don't have to
+unpack it anymore.
 
 **Bug Fixes**:
 
 * [Win] Support expansion of environment variables in config values (:issue:`615`)
+* Other bug fixes: :issue:`889`, :issue:`939`, :issue:`940`, :issue:`943`.
 
 v0.11.8 (May 13, 2018)
 ----------------------
