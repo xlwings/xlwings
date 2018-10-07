@@ -35,5 +35,7 @@ Config
 The other Office apps will use the same global config file as you are editing via the Excel ribbon add-in. When it makes sense,
 you'll be able to use the directory config file (e.g. you can put it next to your Access or Word file) or you can hardcode
 the path to the config file in the VBA standalone module, e.g. in the function ``GetDirectoryConfigFilePath``
-(e.g. suggested when using Outlook that doesn't really have the same concept of files like the other Office apps). For details
-on the different config options, see :ref:`Config <config_file>`.
+(e.g. suggested when using Outlook that doesn't really have the same concept of files like the other Office apps).
+NOTE: For Office apps without file concept, you need to make sure that the ``PYTHONPATH`` points to the directory with the
+Python source file.
+For details on the different config options, see :ref:`Config <config_file>`.
