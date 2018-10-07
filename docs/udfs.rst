@@ -245,7 +245,7 @@ After drawing the button, you will be prompted to assign a macro to it and you c
 Call UDFs from VBA
 ------------------
 
-Imported functions can also be used from VBA. They return a 2d array:
+Imported functions can also be used from VBA. For example, for a function returning a 2d array:
 
 .. code-block:: vb.net
 

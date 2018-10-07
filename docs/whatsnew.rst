@@ -6,7 +6,7 @@ v0.12.0 (Oct 7, 2018)
 
 **Features**:
 
-This release adds support to call Python functions from VBA in all office apps (e.g. Access, Outlook etc.), not just Excel. As
+This release adds support to call Python functions from VBA in all Office apps (e.g. Access, Outlook etc.), not just Excel. As
 this uses UDFs, it is only available on Windows.
 See the docs: :ref:`other_office_apps`. 
 
@@ -16,6 +16,23 @@ See the docs: :ref:`other_office_apps`.
 Previously, Python functions were always returning 2d arrays when called from VBA, no matter whether it was actually a 2d array or not.
 Now you get the proper dimensionality which makes it easier if the return value is e.g. a string or scalar as you don't have to
 unpack it anymore.
+
+Consider the following example using the VBA Editor's Immediate Window after importing UDFs from a project created
+using by ``xlwings quickstart``:
+
+**Old behaviour** ::
+
+    ?TypeName(hello("xlwings"))
+    Variant()
+    ?hello("xlwings")(0,0)
+    hello xlwings
+
+**New behaviour** ::
+
+    ?TypeName(hello("xlwings"))
+    String
+    ?hello("xlwings")
+    hello xlwings
 
 **Bug Fixes**:
 
