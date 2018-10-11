@@ -213,6 +213,7 @@ def is_hwnd_xl_app(hwnd):
 
 
 def get_xl_app_from_hwnd(hwnd):
+    pythoncom.CoInitialize()
     child_hwnd = win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None)
     child_hwnd = win32gui.FindWindowEx(child_hwnd, 0, 'EXCEL7', None)
 
@@ -223,7 +224,7 @@ def get_xl_app_from_hwnd(hwnd):
 
 
 def get_excel_hwnds():
-    #win32gui.EnumWindows(lambda hwnd, result_list: result_list.append(hwnd), hwnds)
+    pythoncom.CoInitialize()
     hwnd = windll.user32.GetTopWindow(None)
     pids = set()
     while hwnd:
@@ -237,8 +238,6 @@ def get_excel_hwnds():
                 if pid not in pids:
                     pids.add(pid)
                     yield hwnd
-            #if win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None):
-            #    yield hwnd
         except pywintypes.error:
             pass
 

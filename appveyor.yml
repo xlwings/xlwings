@@ -6,6 +6,8 @@ environment:
     secure: oSCJsPDE2f8NMJox4JeOs4MzM9KfH4vYbmwUS5FRCzY=
   ASPOSE_LICENSE:
     secure: je1oFjicBTA/L3vv55btbjk101JF7M0IQeGMbMcO3N8=
+  NETLIFY_BUILD_HOOK:
+    secure: wD7nlrlVmbFHGkuDI0k5dbxUNh/fpqd1h1DC/Aq0e+U=
 
   matrix:
     - PYTHON: "C:\\Miniconda36-x64"
@@ -52,7 +54,7 @@ test_script:
 
 on_success:
   - ps: if ($env:APPVEYOR_REPO_TAG -eq $TRUE) { twine upload dist/* }
-
+  - ps: if ($env:APPVEYOR_REPO_TAG -eq $TRUE) { Invoke-RestMethod -Uri https://api.netlify.com/build_hooks/$env:NETLIFY_BUILD_HOOK -Method 'POST' -Body '' }
 
 deploy:
 - provider: GitHub
