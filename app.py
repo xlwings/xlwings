@@ -1,6 +1,4 @@
 import logging
-import json
-import pythoncom
 import xlwings as xw
 
 from flask import Flask, jsonify
@@ -28,7 +26,6 @@ def get_sheet(workbook, name_or_id):
 @app.route('/<path:path>/workbook/worksheets', methods=['GET'])
 def worksheets(path):
     # TODO: POST (create)
-    pythoncom.CoInitialize()
     workbook = xw.Book(path)
     return jsonify(value=[serialize_worksheet(worksheet) 
         for worksheet in workbook.sheets])
@@ -39,7 +36,6 @@ def worksheets(path):
 @app.route('/<path:path>/workbook/worksheets/<string:name_or_id>', methods=['GET'])
 def worksheet(path, name_or_id):
     # TODO: DELETE (delete)
-    pythoncom.CoInitialize()
     workbook = xw.Book(path)
     if name_or_id.isdigit():
         name_or_id = int(name_or_id) - 1 
@@ -51,7 +47,6 @@ def worksheet(path, name_or_id):
 # GET https://graph.microsoft.com/v1.0/me/drive/items/{id}/workbook/names
 @app.route('/<path:path>/workbook/names', methods=['GET'])
 def names(path):
-    pythoncom.CoInitialize()
     workbook = xw.Book(path)
     return jsonify(value=[
         {
@@ -70,7 +65,6 @@ def names(path):
 @app.route('/<path:path>/workbook/worksheets/<string:name_or_id>/range(address=<string:address>)', methods=['GET'])
 @app.route('/<path:path>/workbook/worksheets/<string:name_or_id>/range', defaults={'address': None}, methods=['GET'])
 def rng(path, name_or_id, address=None):
-    pythoncom.CoInitialize()
     workbook = xw.Book(path)
     sheet = get_sheet(workbook, name_or_id)
     if not address:
@@ -103,7 +97,6 @@ def rng(path, name_or_id, address=None):
 # GET /workbook/worksheets/{id|name}/cell(row={row},column={column})
 @app.route('/<path:path>/workbook/worksheets/<string:name_or_id>/cell(row=<int:row>,column=<int:column>)', methods=['GET'])
 def cell(path, name_or_id, row, column):
-    pythoncom.CoInitialize()
     workbook = xw.Book(path)
     sheet = get_sheet(workbook, name_or_id)
     rng = sheet.cells[row, column]
@@ -115,3 +108,7 @@ def cell(path, name_or_id, row, column):
         "columnIndex": rng.columns[0].column,
         "valueTypes": None
     })
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
