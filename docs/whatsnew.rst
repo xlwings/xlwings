@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.X.X (X X, 2018)
+------------------
+
+[Enhancement] xlwings can now be used with threading, see the docs: :ref:`threading` (:issue:`759`).
+
 v0.12.1 (Oct 7, 2018)
 ---------------------
 
