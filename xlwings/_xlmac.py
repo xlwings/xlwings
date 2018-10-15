@@ -41,6 +41,9 @@ class Apps(object):
                 if pid_info != '"pid"=[ NULL ] \n':
                     yield int(pid_info.split('=')[1])
 
+    def keys(self):
+        return list(self._iter_excel_instances())
+
     def __iter__(self):
         for pid in self._iter_excel_instances():
             yield App(xl=pid)
@@ -48,9 +51,10 @@ class Apps(object):
     def __len__(self):
         return len(list(self._iter_excel_instances()))
 
-    def __getitem__(self, index):
-        pids = list(self._iter_excel_instances())
-        return App(xl=pids[index])
+    def __getitem__(self, pid):
+        if pid not in self.keys():
+            raise Exception('Could not find an Excel instance with this PID.')
+        return App(xl=pid)
 
 
 class App(object):
@@ -407,6 +411,10 @@ class Sheet(object):
     @property
     def pictures(self):
         return Pictures(self)
+
+    @property
+    def used_range(self):
+        return Range(self, self.xl.used_range.get_address())
 
 
 class Range(object):

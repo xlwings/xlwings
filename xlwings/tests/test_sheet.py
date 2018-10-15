@@ -136,6 +136,10 @@ class TestSheet(TestBase):
         self.wb1.sheets['Sheet1'].delete()
         self.assertFalse('Sheet1' in [i.name for i in self.wb1.sheets])
 
+    def test_used_range(self):
+        self.wb1.sheets[0].range('A1:C7').value = 1
+        self.assertEqual(self.wb1.sheets[0].used_range, self.wb1.sheets[0].range("A1:C7"))
+
 
 if __name__ == '__main__':
     unittest.main()
