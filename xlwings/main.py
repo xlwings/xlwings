@@ -914,6 +914,19 @@ class Sheet(object):
         """
         return Pictures(impl=self.impl.pictures)
 
+    @property
+    def used_range(self):
+        """
+        Used Range of Sheet.
+
+        Returns
+        -------
+        xw.Range
+
+        .. versionadded:: 0.13.0
+        """
+        return Range(impl=self.impl.used_range)
+
     def __getitem__(self, item):
         if isinstance(item, string_types):
             return self.range(item)

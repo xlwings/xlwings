@@ -408,6 +408,10 @@ class Sheet(object):
     def pictures(self):
         return Pictures(self)
 
+    @property
+    def used_range(self):
+        return Range(self, self.xl.used_range.get_address())
+
 
 class Range(object):
 
