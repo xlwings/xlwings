@@ -16,6 +16,7 @@
     debugging
     matplotlib
     converters
+    threading
     command_line
     missing_features
     other_office_apps
