@@ -640,6 +640,10 @@ class Sheet(object):
     def pictures(self):
         return Pictures(xl=self.xl.Pictures())
 
+    @property
+    def used_range(self):
+        return Range(xl=self.xl.UsedRange)
+
 
 class Range(object):
 
