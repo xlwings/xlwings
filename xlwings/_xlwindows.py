@@ -265,6 +265,11 @@ def is_range_instance(xl_range):
 
 
 class Apps(object):
+    def keys(self):
+        k = []
+        for hwnd in get_excel_hwnds():
+            k.append(App(xl=hwnd).pid)
+        return k
 
     def __iter__(self):
         for hwnd in get_excel_hwnds():
@@ -273,9 +278,12 @@ class Apps(object):
     def __len__(self):
         return len(list(get_excel_hwnds()))
 
-    def __getitem__(self, index):
-        hwnds = list(get_excel_hwnds())
-        return App(xl=hwnds[index])
+    def __getitem__(self, pid):
+        for hwnd in get_excel_hwnds():
+            app = App(xl=hwnd)
+            if app.pid == pid:
+                return app
+        raise Exception('Could not find an Excel instance with this PID.')
 
 
 class App(object):

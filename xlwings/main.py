@@ -112,6 +112,14 @@ class Apps(object):
     def __init__(self, impl):
         self.impl = impl
 
+    def keys(self):
+        """
+        Provides the PIDs of the Excel instances that act as keys in the Apps collection.
+
+        .. versionadded:: 0.13.0
+        """
+        return self.impl.keys()
+
     def add(self):
         """
         Creates a new App. The new App becomes the active one. Returns an App object.
@@ -130,7 +138,7 @@ class Apps(object):
         return None
 
     def __call__(self, i):
-        return self[i-1]
+        return self[i]
 
     def __repr__(self):
         return '{}({})'.format(

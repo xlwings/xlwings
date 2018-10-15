@@ -28,8 +28,9 @@ class TestApps(TestBase):
             if app == (self.app1 or self.app2):
                 self.assertEqual(len(app.books), 2)
 
-    def test_indexing(self):
-        self.assertEqual(xw.apps[0], xw.apps(1))
+    def test_keys(self):
+        k = xw.apps.keys()[0]
+        self.assertEqual(xw.apps[k], xw.apps(k))
 
 
 class TestApp(TestBase):
@@ -143,6 +144,7 @@ class TestApp(TestBase):
         test1 = self.app1.macro('Module1.Test1')
         res1 = test1('Test1a', 'Test1b')
         self.assertEqual(res1, 1)
+
 
 if __name__ == '__main__':
     unittest.main()
