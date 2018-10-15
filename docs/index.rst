@@ -39,6 +39,7 @@ on **Windows** and **Mac**.
     extensions
     troubleshooting
     api
+    rest_api
     license
 
 

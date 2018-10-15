@@ -24,6 +24,7 @@
     extensions
     troubleshooting
     api
+    rest_api
     license
 
 

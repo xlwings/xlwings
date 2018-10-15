@@ -1,1 +1,2 @@
 sphinxcontrib-napoleon
+sphinxcontrib-httpdomain

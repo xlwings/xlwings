@@ -1,12 +1,17 @@
 # See also: https://developer.microsoft.com/en-us/graph/docs/api-reference/v1.0/resources/excel
+# TODO: proper exception handling in xlwings base package so it can be used here
 import sys
 import logging
+
 from werkzeug.routing import PathConverter
+
 import xlwings as xw
+from xlwings.rest.serializers import (serialize_book, serialize_sheet, serialize_app, serialize_chart, serialize_name,
+                                      serialize_picture, serialize_range, serialize_shape)
 
 try:
     import flask
-    from flask import Flask, jsonify, request
+    from flask import Flask, jsonify, request, abort
 except ImportError:
     raise Exception("To use the xlwings REST API server, you need Flask>=1.0.0 installed.")
 
@@ -24,95 +29,26 @@ if sys.platform.startswith('darwin'):
     api.url_map.converters['path'] = EverythingConverter
 
 
-def serialize_app(app):
-    return {
-        'version': str(app.version),
-        'visible': app.visible,
-        'screen_updating': app.screen_updating,
-        'display_alerts': app.display_alerts,
-        'calculation': app.calculation,
-        'selection': app.selection.address,
-        'books': [book.name for book in app.books],
-        'hwnd': app.hwnd,
-        'pid': app.pid
-    }
-
-
-def serialize_book(book):
-    return {
-        'name': book.name,
-        'sheets': [sheet.name for sheet in book.sheets],
-        'fullname': book.fullname,
-        'names': [name for name in book.names],
-        'selection': book.selection.address
-    }
-
-
-def serialize_sheet(sheet):
-    return {
-        'name': sheet.name,
-        'names': [name.name for name in sheet.names],
-        'index': sheet.index,
-        'charts': [chart.name for chart in sheet.charts],
-        'shapes': [shape.name for shape in sheet.shapes],
-        'pictures': [picture.name for picture in sheet.pictures]
-    }
-
-
-def serialize_chart(chart):
-    return {
-        'name': chart.name
-    }
-
-
-def serialize_picture(picture):
-    return {
-        'name': picture.name
-    }
-
-
-def serialize_shapes(shape):
-    return {
-        'name': shape.name
-    }
-
-
-def serialize_names(name):
-    return {
-        'name': name.name
-    }
-
-
-def serialize_range(rng):
-    return {
-        'value': rng.value,
-        'count': rng.count,
-        'row': rng.row,
-        'column': rng.column,
-        'formula': rng.formula,
-        'formula_array': rng.formula_array,
-        'column_width': rng.column_width,
-        'row_height': rng.row_height,
-        'address': rng.address,
-        'color': rng.color,
-        'current_region': rng.current_region.address,
-        'height': rng.height,
-        'last_cell': rng.last_cell.address,
-        'left': rng.left,
-        'name': rng.name,
-        'number_format': rng.number_format,
-        'shape': rng.shape,
-        'size': rng.size,
-        'top': rng.top,
-        'width': rng.width
-    }
-
-
-def get_book(fullname_or_ix, app_ix=None):
-    if fullname_or_ix.isdigit():
-        fullname_or_ix = int(fullname_or_ix)
-    app = xw.apps[int(app_ix)] if app_ix else xw.apps.active
-    return app.books[fullname_or_ix]
+def get_book(fullname=None, name_or_ix=None, app_ix=None):
+    assert fullname is None or name_or_ix is None
+    if fullname:
+        try:
+            return xw.Book(fullname)
+        except Exception as e:
+            logger.exception(str(e))
+            abort(500, str(e))
+    elif name_or_ix:
+        if name_or_ix.isdigit():
+            name_or_ix = int(name_or_ix)
+        app = xw.apps[int(app_ix)] if app_ix else xw.apps.active
+        try:
+            return app.books[name_or_ix]
+        except KeyError as e:
+            logger.exception(str(e))
+            abort(500, "Couldn't find Book: " + str(e))
+        except Exception as e:
+            logger.exception(str(e))
+            abort(500, str(e))
 
 
 def get_sheet(book, name_or_id):
@@ -142,130 +78,149 @@ def books_(pid=None):
 
 @api.route('/apps/<pid>/books/<book_name_or_ix>', methods=['GET'])
 @api.route('/books/<book_name_or_ix>', methods=['GET'])
-def book_(book_name_or_ix, pid=None):
-    book = get_book(book_name_or_ix, pid)
+@api.route('/book/<path:fullname>', methods=['GET'])
+def book_(book_name_or_ix=None, fullname=None, pid=None):
+    book = get_book(fullname, book_name_or_ix, pid)
     return jsonify(serialize_book(book))
 
 
 @api.route('/apps/<pid>/books/<book_name_or_ix>/sheets', methods=['GET'])
 @api.route('/books/<book_name_or_ix>/sheets', methods=['GET'])
-def sheets(book_name_or_ix, pid=None):
-    book = get_book(book_name_or_ix, pid)
+@api.route('/book/<path:fullname>/sheets', methods=['GET'])
+def sheets(book_name_or_ix=None, fullname=None, pid=None):
+    book = get_book(fullname, book_name_or_ix, pid)
     return jsonify(sheets=[serialize_sheet(sheet)
                            for sheet in book.sheets])
 
 
-@api.route('/apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_index>', methods=['GET'])
-@api.route('/books/<book_name_or_ix>/sheets/<sheet_name_or_index>', methods=['GET'])
-def sheet_(sheet_name_or_index, book_name_or_ix, pid=None):
-    book = get_book(book_name_or_ix, pid)
-    sheet = get_sheet(book, sheet_name_or_index)
-    return jsonify(value=serialize_sheet(sheet))
+@api.route('/apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>', methods=['GET'])
+@api.route('/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>', methods=['GET'])
+@api.route('/book/<path:fullname>/sheets', methods=['GET'])
+def sheet_(sheet_name_or_ix, book_name_or_ix=None, fullname=None, pid=None):
+    book = get_book(fullname, book_name_or_ix, pid)
+    sheet = get_sheet(book, sheet_name_or_ix)
+    return jsonify(serialize_sheet(sheet))
 
 
-@api.route('/apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_index>/range', methods=['GET'])
-@api.route('/books/<book_name_or_ix>/sheets/<sheet_name_or_index>/range', methods=['GET'])
-def range_(sheet_name_or_index, book_name_or_ix, pid=None):
-    book = get_book(book_name_or_ix, pid)
-    sheet = get_sheet(book, sheet_name_or_index)
+@api.route('/apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/range', methods=['GET'])
+@api.route('/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/range', methods=['GET'])
+@api.route('/book/<path:fullname>/sheets/<sheet_name_or_ix>/range', methods=['GET'])
+def used_range(sheet_name_or_ix, book_name_or_ix=None, fullname=None, pid=None):
+    book = get_book(fullname, book_name_or_ix, pid)
+    sheet = get_sheet(book, sheet_name_or_ix)
     return jsonify(serialize_range(sheet.used_range))
 
 
-@api.route('/apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_index>/range/<rng>', methods=['GET'])
-@api.route('/books/<book_name_or_ix>/sheets/<sheet_name_or_index>/range/<rng>', methods=['GET'])
-def range_(rng, sheet_name_or_index, book_name_or_ix, pid=None):
-    book = get_book(book_name_or_ix, pid)
-    sheet = get_sheet(book, sheet_name_or_index)
-    return jsonify(serialize_range(sheet.range(rng)))
+@api.route('/apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/range/<address>', methods=['GET'])
+@api.route('/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/range/<address>', methods=['GET'])
+@api.route('/book/<path:fullname>/sheets/<sheet_name_or_ix>/range/<address>', methods=['GET'])
+def range_(address, sheet_name_or_ix, book_name_or_ix=None, fullname=None, pid=None):
+    book = get_book(fullname, book_name_or_ix, pid)
+    sheet = get_sheet(book, sheet_name_or_ix)
+    return jsonify(serialize_range(sheet.range(address)))
 
 
+@api.route('/apps/<pid>/books/<book_name_or_ix>/names', methods=['GET'])
+@api.route('/books/<book_name_or_ix>/names', methods=['GET'])
+@api.route('/book/<path:fullname>/names', methods=['GET'])
+def book_names(book_name_or_ix=None, fullname=None, pid=None):
+    book = get_book(fullname, book_name_or_ix, pid)
+    return jsonify(names=[serialize_name(name) for name in book.names])
 
 
-
-@api.route('/book/<path:path>/names', methods=['GET'])
-def names(path):
-    wb = xw.Book(path)
-    return jsonify(value=[
-        {
-            'name': name.name,
-            'type': "Range",
-            'value': name.refers_to[1:],
-            'visible': True
-
-        }
-        for name in wb.names
-    ])
-
-# @api.route('/book/<path:fullname>/sheets', methods=['GET'])
-# def sheets(fullname):
-#     wb = xw.Book(fullname)
-#     return jsonify(value=[serialize_sheet(sheet)
-#                           for sheet in wb.sheets])
+@api.route('/apps/<pid>/books/<book_name_or_ix>/names/<book_scope_name>', methods=['GET'])
+@api.route('/books/<book_name_or_ix>/names/<book_scope_name>', methods=['GET'])
+@api.route('/book/<path:fullname>/names/<book_scope_name>', methods=['GET'])
+def book_name(book_scope_name, book_name_or_ix=None, fullname=None, pid=None):
+    book = get_book(fullname, book_name_or_ix, pid)
+    return jsonify(serialize_name(book.names[book_scope_name]))
 
 
-# @api.route('/book/<path:path>/sheets/<string:name_or_id>', methods=['GET'])
-# def sheet_(path, name_or_id):
-#     wb = xw.Book(path)
-#     if name_or_id.isdigit():
-#         name_or_id = int(name_or_id) - 1
-#     sheet = wb.sheets[name_or_id]
-#     return jsonify(serialize_sheet(sheet))
-# 
-# @api.route('/<path:path>/sheets/<string:name_or_id>/range(address=<string:address>)', methods=['GET'])
-# @api.route('/<path:path>/sheets/<string:name_or_id>/range', defaults={'address': None}, methods=['GET'])
-# def rng(path, name_or_id, address=None):
-#     wb = xw.Book(path)
-#     sheet = get_sheet(wb, name_or_id)
-#     if not address:
-#         address = sheet.api.UsedRange.Address
-#     rng = sheet[address]
-#     rows_count = rng.rows.count
-#     columns_count = rng.columns.count
-#     return jsonify({
-#         "address": sheet.name + '!' + rng.address,
-#         "addressLocal": sheet.name + '!' + rng.address,
-#         "cellCount": rng.count,
-#         "columnCount": columns_count,
-#         "columnHidden": False,
-#         "columnIndex": rng.columns[0].column,
-#         "formulas": rng.formula,
-#         "formulasLocal": rng.formula,  # TODO!
-#         "formulasR1C1": rng.formula,  # TODO!
-#         "hidden": False,
-#         "numberFormat": [[None for i in range(columns_count)] for i in range(rows_count)], #[[cell.number_format for cell in row] for row in rng.rows],  # TODO: is this fast enough for big ranges?
-#         "rowCount": rows_count,
-#         "rowHidden": False,
-#         "rowIndex": rng.rows[0].row,
-#         "text": rng.value,  # TODO!
-#         "values": rng.value,
-#         "valueTypes": [[None for i in range(columns_count)] for i in range(rows_count)] # TODO: just prints None at the moment + is this fast enough for big ranges?
-#     })
+@api.route('/apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/names', methods=['GET'])
+@api.route('/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/names', methods=['GET'])
+@api.route('/book/<path:fullname>/sheets/<sheet_name_or_ix>/names', methods=['GET'])
+def sheet_names(sheet_name_or_ix, book_name_or_ix=None, fullname=None, pid=None):
+    book = get_book(fullname, book_name_or_ix, pid)
+    sheet = get_sheet(book, sheet_name_or_ix)
+    return jsonify(names=[serialize_name(name) for name in sheet.names])
 
 
-# @api.route('/<path:path>/sheets/<string:name_or_id>/cell(row=<int:row>,column=<int:column>)', methods=['GET'])
-# def cell(path, name_or_id, row, column):
-#     wb = xw.Book(path)
-#     sheet = get_sheet(wb, name_or_id)
-#     rng = sheet.cells[row, column]
-#     return jsonify({
-#         "address": rng.address,
-#         "addressLocal": rng.address,
-#         "cellCount": rng.count,
-#         "columnCount": rng.columns.count,
-#         "columnIndex": rng.columns[0].column,
-#         "valueTypes": None
-#     })
+@api.route('/apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/names/<sheet_scope_name>', methods=['GET'])
+@api.route('/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/names/<sheet_scope_name>', methods=['GET'])
+@api.route('/book/<path:fullname>/sheets/<sheet_name_or_ix>/names/<sheet_scope_name>', methods=['GET'])
+def sheet_name(sheet_name_or_ix, sheet_scope_name, book_name_or_ix=None, fullname=None, pid=None):
+    book = get_book(fullname, book_name_or_ix, pid)
+    sheet = get_sheet(book, sheet_name_or_ix)
+    return jsonify(serialize_name(sheet.names[sheet_scope_name]))
 
 
-def run_server(port=5000,
-               debug=False,
-               **flask_run_options):
+@api.route('/apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/charts', methods=['GET'])
+@api.route('/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/charts', methods=['GET'])
+@api.route('/book/<path:fullname>/sheets/<sheet_name_or_ix>/charts', methods=['GET'])
+def charts(sheet_name_or_ix, book_name_or_ix=None, fullname=None, pid=None):
+    book = get_book(fullname, book_name_or_ix, pid)
+    sheet = get_sheet(book, sheet_name_or_ix)
+    return jsonify(charts=[serialize_chart(chart) for chart in sheet.charts])
+
+
+@api.route('/apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/charts/<chart_name_or_ix>', methods=['GET'])
+@api.route('/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/charts/<chart_name_or_ix>', methods=['GET'])
+@api.route('/book/<path:fullname>/sheets/<sheet_name_or_ix>/charts/<chart_name_or_ix>', methods=['GET'])
+def chart_(sheet_name_or_ix, chart_name_or_ix, book_name_or_ix=None, fullname=None, pid=None):
+    book = get_book(fullname, book_name_or_ix, pid)
+    sheet = get_sheet(book, sheet_name_or_ix)
+    chart = int(chart_name_or_ix) if chart_name_or_ix.isdigit() else chart_name_or_ix
+    return jsonify(serialize_chart(sheet.charts[chart]))
+
+
+@api.route('/apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/shapes', methods=['GET'])
+@api.route('/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/shapes', methods=['GET'])
+@api.route('/book/<path:fullname>/sheets/<sheet_name_or_ix>/shapes', methods=['GET'])
+def shapes(sheet_name_or_ix, book_name_or_ix=None, fullname=None, pid=None):
+    book = get_book(fullname, book_name_or_ix, pid)
+    sheet = get_sheet(book, sheet_name_or_ix)
+    return jsonify(shapes=[serialize_shape(shp) for shp in sheet.shapes])
+
+
+@api.route('/apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/shapes/<shape_name_or_ix>', methods=['GET'])
+@api.route('/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/shapes/<shape_name_or_ix>', methods=['GET'])
+@api.route('/book/<path:fullname>/sheets/<sheet_name_or_ix>/shapes/<shape_name_or_ix>', methods=['GET'])
+def shape_(sheet_name_or_ix, shape_name_or_ix, book_name_or_ix=None, fullname=None, pid=None):
+    book = get_book(fullname, book_name_or_ix, pid)
+    sheet = get_sheet(book, sheet_name_or_ix)
+    shape = int(shape_name_or_ix) if shape_name_or_ix.isdigit() else shape_name_or_ix
+    return jsonify(serialize_shape(sheet.shapes[shape]))
+
+
+@api.route('/apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/pictures', methods=['GET'])
+@api.route('/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/pictures', methods=['GET'])
+@api.route('/book/<path:fullname>/sheets/<sheet_name_or_ix>/pictures', methods=['GET'])
+def pictures(sheet_name_or_ix, book_name_or_ix=None, fullname=None, pid=None):
+    book = get_book(fullname, book_name_or_ix, pid)
+    sheet = get_sheet(book, sheet_name_or_ix)
+    return jsonify(pictures=[serialize_picture(pic) for pic in sheet.pictures])
+
+
+@api.route('/apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/pictures/<picture_name_or_ix>', methods=['GET'])
+@api.route('/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/pictures/<picture_name_or_ix>', methods=['GET'])
+@api.route('/book/<path:fullname>/sheets/<sheet_name_or_ix>/pictures/<picture_name_or_ix>', methods=['GET'])
+def picture_(sheet_name_or_ix, picture_name_or_ix, book_name_or_ix=None, fullname=None, pid=None):
+    book = get_book(fullname, book_name_or_ix, pid)
+    sheet = get_sheet(book, sheet_name_or_ix)
+    pic = int(picture_name_or_ix) if picture_name_or_ix.isdigit() else picture_name_or_ix
+    return jsonify(serialize_picture(sheet.pictures[pic]))
+
+
+def run(host=None,
+        port=None,
+        debug=None,
+        **options):
     """
     Run Flask development server
     """
-    api.run(port=port, debug=debug,
-            **flask_run_options)
+    api.run(host=host, port=port, debug=debug,
+            **options)
 
 
 if __name__ == '__main__':
-    run_server(debug=True)
+    run(debug=True)

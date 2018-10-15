@@ -74,7 +74,9 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 extensions = ['sphinx.ext.autodoc',
               'sphinxcontrib.napoleon',
               'sphinx.ext.mathjax',
-              'sphinx.ext.extlinks']
+              'sphinx.ext.extlinks',
+              'sphinxcontrib.httpdomain',
+              ]
 
 # autodoc_member_order = 'bysource'
 

@@ -506,7 +506,8 @@ class Range(object):
     @property
     def formula_array(self):
         if self.xl is not None:
-            return self.xl.formula_array.get()
+            rv = self.xl.formula_array.get()
+            return None if rv == kw.missing_value else rv
 
     @formula_array.setter
     def formula_array(self, value):
@@ -562,7 +563,8 @@ class Range(object):
     @property
     def number_format(self):
         if self.xl is not None:
-            return self.xl.number_format.get()
+            rv = self.xl.number_format.get()
+            return None if rv == kw.missing_value else rv
 
     @number_format.setter
     def number_format(self, value):
