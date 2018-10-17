@@ -10,7 +10,7 @@ server from a command prompt or terminal as follows::
     xlwings restapi run
 
 This will run a default Flask development server on http://127.0.0.1:5000. You can provide ``--host`` and ``--port`` as
-command line args and it also respects the Flask environment variables like ``FLASK_ENVIRONMENT``. Press ``Ctrl-C`` to terminate
+command line args and it also respects the Flask environment variables like ``FLASK_ENV=development``. Press ``Ctrl-C`` to terminate
 the server again.
 
 If you want to have more control, you can just run the server directly with Flask, see the
@@ -76,7 +76,7 @@ Endpoint details
           ], 
           "calculation": "automatic", 
           "display_alerts": true, 
-          "pid": 6448, 
+          "pid": 6456, 
           "screen_updating": true, 
           "selection": "[Book1.xlsx]Sheet2!$A$1", 
           "version": "16.0", 
@@ -89,7 +89,7 @@ Endpoint details
           ], 
           "calculation": "automatic", 
           "display_alerts": true, 
-          "pid": 5764, 
+          "pid": 8924, 
           "screen_updating": true, 
           "selection": "[Book5]Sheet2!$A$1", 
           "version": "16.0", 
@@ -112,7 +112,7 @@ Endpoint details
       ], 
       "calculation": "automatic", 
       "display_alerts": true, 
-      "pid": 6448, 
+      "pid": 6456, 
       "screen_updating": true, 
       "selection": "[Book1.xlsx]Sheet2!$A$1", 
       "version": "16.0", 
@@ -128,7 +128,7 @@ Endpoint details
     {
       "books": [
         {
-          "app": 6448, 
+          "app": 6456, 
           "fullname": "Book1", 
           "name": "Book1", 
           "names": [], 
@@ -138,7 +138,7 @@ Endpoint details
           ]
         }, 
         {
-          "app": 6448, 
+          "app": 6456, 
           "fullname": "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
           "name": "Book1.xlsx", 
           "names": [
@@ -152,7 +152,7 @@ Endpoint details
           ]
         }, 
         {
-          "app": 6448, 
+          "app": 6456, 
           "fullname": "Book4", 
           "name": "Book4", 
           "names": [], 
@@ -171,7 +171,7 @@ Endpoint details
 .. sourcecode:: json
 
     {
-      "app": 6448, 
+      "app": 6456, 
       "fullname": "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
       "name": "Book1.xlsx", 
       "names": [
@@ -213,6 +213,38 @@ Endpoint details
     {
       "name": "myname2", 
       "refers_to": "=Sheet1!$A$1"
+    }
+
+.. http:get:: /apps/<pid>/books/<book_name_or_ix>/names/<book_scope_name>/range
+
+**Example response**:
+
+.. sourcecode:: json
+
+    {
+      "address": "$A$1", 
+      "color": null, 
+      "column": 1, 
+      "column_width": 8.47, 
+      "count": 1, 
+      "current_region": "$A$1:$B$2", 
+      "formula": "=1+1.1", 
+      "formula_array": "=1+1,1", 
+      "height": 14.25, 
+      "last_cell": "$A$1", 
+      "left": 0.0, 
+      "name": "myname2", 
+      "number_format": "General", 
+      "row": 1, 
+      "row_height": 14.3, 
+      "shape": [
+        1, 
+        1
+      ], 
+      "size": 1, 
+      "top": 0.0, 
+      "value": 2.1, 
+      "width": 51.0
     }
 
 .. http:get:: /apps/<pid>/books/<book_name_or_ix>/sheets
@@ -335,6 +367,56 @@ Endpoint details
       "refers_to": "=Sheet1!$B$2:$C$3"
     }
 
+.. http:get:: /apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/names/<sheet_scope_name>/range
+
+**Example response**:
+
+.. sourcecode:: json
+
+    {
+      "address": "$B$2:$C$3", 
+      "color": null, 
+      "column": 2, 
+      "column_width": 8.47, 
+      "count": 4, 
+      "current_region": "$A$1:$B$2", 
+      "formula": [
+        [
+          "", 
+          ""
+        ], 
+        [
+          "", 
+          ""
+        ]
+      ], 
+      "formula_array": "", 
+      "height": 28.5, 
+      "last_cell": "$C$3", 
+      "left": 51.0, 
+      "name": "Sheet1!myname1", 
+      "number_format": "General", 
+      "row": 2, 
+      "row_height": 14.3, 
+      "shape": [
+        2, 
+        2
+      ], 
+      "size": 4, 
+      "top": 14.25, 
+      "value": [
+        [
+          null, 
+          null
+        ], 
+        [
+          null, 
+          null
+        ]
+      ], 
+      "width": 102.0
+    }
+
 .. http:get:: /apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/pictures
 
 **Example response**:
@@ -386,7 +468,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "43390.6519675926", 
+          "43391.0057060185", 
           ""
         ]
       ], 
@@ -410,7 +492,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "Wed, 17 Oct 2018 15:38:50 GMT", 
+          "Thu, 18 Oct 2018 00:08:13 GMT", 
           null
         ]
       ], 
@@ -436,7 +518,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "43390.6519675926", 
+          "43391.0057060185", 
           ""
         ]
       ], 
@@ -460,7 +542,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "Wed, 17 Oct 2018 15:38:50 GMT", 
+          "Thu, 18 Oct 2018 00:08:13 GMT", 
           null
         ]
       ], 
@@ -516,7 +598,7 @@ Endpoint details
 .. sourcecode:: json
 
     {
-      "app": 6448, 
+      "app": 6456, 
       "fullname": "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
       "name": "Book1.xlsx", 
       "names": [
@@ -560,40 +642,36 @@ Endpoint details
       "refers_to": "=Sheet1!$A$1"
     }
 
-.. http:get:: /book/<fullname>/sheets
+.. http:get:: /book/<fullname>/names/<book_scope_name>/range
 
 **Example response**:
 
 .. sourcecode:: json
 
     {
-      "sheets": [
-        {
-          "charts": [
-            "Chart 1"
-          ], 
-          "name": "Sheet1", 
-          "names": [
-            "Sheet1!myname1"
-          ], 
-          "pictures": [
-            "Picture 3"
-          ], 
-          "shapes": [
-            "Chart 1", 
-            "Picture 3"
-          ], 
-          "used_range": "$A$1:$B$2"
-        }, 
-        {
-          "charts": [], 
-          "name": "Sheet2", 
-          "names": [], 
-          "pictures": [], 
-          "shapes": [], 
-          "used_range": "$A$1"
-        }
-      ]
+      "address": "$A$1", 
+      "color": null, 
+      "column": 1, 
+      "column_width": 8.47, 
+      "count": 1, 
+      "current_region": "$A$1:$B$2", 
+      "formula": "=1+1.1", 
+      "formula_array": "=1+1,1", 
+      "height": 14.25, 
+      "last_cell": "$A$1", 
+      "left": 0.0, 
+      "name": "myname2", 
+      "number_format": "General", 
+      "row": 1, 
+      "row_height": 14.3, 
+      "shape": [
+        1, 
+        1
+      ], 
+      "size": 1, 
+      "top": 0.0, 
+      "value": 2.1, 
+      "width": 51.0
     }
 
 .. http:get:: /book/<fullname>/sheets
@@ -630,6 +708,30 @@ Endpoint details
           "used_range": "$A$1"
         }
       ]
+    }
+
+.. http:get:: /book/<fullname>/sheets/<sheet_name_or_ix>
+
+**Example response**:
+
+.. sourcecode:: json
+
+    {
+      "charts": [
+        "Chart 1"
+      ], 
+      "name": "Sheet1", 
+      "names": [
+        "Sheet1!myname1"
+      ], 
+      "pictures": [
+        "Picture 3"
+      ], 
+      "shapes": [
+        "Chart 1", 
+        "Picture 3"
+      ], 
+      "used_range": "$A$1:$B$2"
     }
 
 .. http:get:: /book/<fullname>/sheets/<sheet_name_or_ix>/charts
@@ -692,6 +794,56 @@ Endpoint details
       "refers_to": "=Sheet1!$B$2:$C$3"
     }
 
+.. http:get:: /book/<fullname>/sheets/<sheet_name_or_ix>/names/<sheet_scope_name>/range
+
+**Example response**:
+
+.. sourcecode:: json
+
+    {
+      "address": "$B$2:$C$3", 
+      "color": null, 
+      "column": 2, 
+      "column_width": 8.47, 
+      "count": 4, 
+      "current_region": "$A$1:$B$2", 
+      "formula": [
+        [
+          "", 
+          ""
+        ], 
+        [
+          "", 
+          ""
+        ]
+      ], 
+      "formula_array": "", 
+      "height": 28.5, 
+      "last_cell": "$C$3", 
+      "left": 51.0, 
+      "name": "Sheet1!myname1", 
+      "number_format": "General", 
+      "row": 2, 
+      "row_height": 14.3, 
+      "shape": [
+        2, 
+        2
+      ], 
+      "size": 4, 
+      "top": 14.25, 
+      "value": [
+        [
+          null, 
+          null
+        ], 
+        [
+          null, 
+          null
+        ]
+      ], 
+      "width": 102.0
+    }
+
 .. http:get:: /book/<fullname>/sheets/<sheet_name_or_ix>/pictures
 
 **Example response**:
@@ -743,7 +895,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "43390.6519675926", 
+          "43391.0057060185", 
           ""
         ]
       ], 
@@ -767,7 +919,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "Wed, 17 Oct 2018 15:38:50 GMT", 
+          "Thu, 18 Oct 2018 00:08:13 GMT", 
           null
         ]
       ], 
@@ -793,7 +945,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "43390.6519675926", 
+          "43391.0057060185", 
           ""
         ]
       ], 
@@ -817,7 +969,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "Wed, 17 Oct 2018 15:38:50 GMT", 
+          "Thu, 18 Oct 2018 00:08:13 GMT", 
           null
         ]
       ], 
@@ -875,7 +1027,7 @@ Endpoint details
     {
       "books": [
         {
-          "app": 6448, 
+          "app": 6456, 
           "fullname": "Book1", 
           "name": "Book1", 
           "names": [], 
@@ -885,7 +1037,7 @@ Endpoint details
           ]
         }, 
         {
-          "app": 6448, 
+          "app": 6456, 
           "fullname": "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
           "name": "Book1.xlsx", 
           "names": [
@@ -899,7 +1051,7 @@ Endpoint details
           ]
         }, 
         {
-          "app": 6448, 
+          "app": 6456, 
           "fullname": "Book4", 
           "name": "Book4", 
           "names": [], 
@@ -918,7 +1070,7 @@ Endpoint details
 .. sourcecode:: json
 
     {
-      "app": 6448, 
+      "app": 6456, 
       "fullname": "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
       "name": "Book1.xlsx", 
       "names": [
@@ -960,6 +1112,38 @@ Endpoint details
     {
       "name": "myname2", 
       "refers_to": "=Sheet1!$A$1"
+    }
+
+.. http:get:: /books/<book_name_or_ix>/names/<book_scope_name>/range
+
+**Example response**:
+
+.. sourcecode:: json
+
+    {
+      "address": "$A$1", 
+      "color": null, 
+      "column": 1, 
+      "column_width": 8.47, 
+      "count": 1, 
+      "current_region": "$A$1:$B$2", 
+      "formula": "=1+1.1", 
+      "formula_array": "=1+1,1", 
+      "height": 14.25, 
+      "last_cell": "$A$1", 
+      "left": 0.0, 
+      "name": "myname2", 
+      "number_format": "General", 
+      "row": 1, 
+      "row_height": 14.3, 
+      "shape": [
+        1, 
+        1
+      ], 
+      "size": 1, 
+      "top": 0.0, 
+      "value": 2.1, 
+      "width": 51.0
     }
 
 .. http:get:: /books/<book_name_or_ix>/sheets
@@ -1082,6 +1266,56 @@ Endpoint details
       "refers_to": "=Sheet1!$B$2:$C$3"
     }
 
+.. http:get:: /books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/names/<sheet_scope_name>/range
+
+**Example response**:
+
+.. sourcecode:: json
+
+    {
+      "address": "$B$2:$C$3", 
+      "color": null, 
+      "column": 2, 
+      "column_width": 8.47, 
+      "count": 4, 
+      "current_region": "$A$1:$B$2", 
+      "formula": [
+        [
+          "", 
+          ""
+        ], 
+        [
+          "", 
+          ""
+        ]
+      ], 
+      "formula_array": "", 
+      "height": 28.5, 
+      "last_cell": "$C$3", 
+      "left": 51.0, 
+      "name": "Sheet1!myname1", 
+      "number_format": "General", 
+      "row": 2, 
+      "row_height": 14.3, 
+      "shape": [
+        2, 
+        2
+      ], 
+      "size": 4, 
+      "top": 14.25, 
+      "value": [
+        [
+          null, 
+          null
+        ], 
+        [
+          null, 
+          null
+        ]
+      ], 
+      "width": 102.0
+    }
+
 .. http:get:: /books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/pictures
 
 **Example response**:
@@ -1133,7 +1367,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "43390.6519675926", 
+          "43391.0057060185", 
           ""
         ]
       ], 
@@ -1157,7 +1391,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "Wed, 17 Oct 2018 15:38:50 GMT", 
+          "Thu, 18 Oct 2018 00:08:13 GMT", 
           null
         ]
       ], 
@@ -1183,7 +1417,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "43390.6519675926", 
+          "43391.0057060185", 
           ""
         ]
       ], 
@@ -1207,7 +1441,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "Wed, 17 Oct 2018 15:38:50 GMT", 
+          "Thu, 18 Oct 2018 00:08:13 GMT", 
           null
         ]
       ], 

@@ -89,7 +89,7 @@ def serialize_range(rng):
         'height': rng.height,
         'last_cell': rng.last_cell.address,
         'left': rng.left,
-        'name': rng.name.name,
+        'name': rng.name.name if rng.name else None,
         'number_format': rng.number_format,
         'shape': rng.shape,
         'size': rng.size,
