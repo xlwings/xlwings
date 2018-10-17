@@ -2,6 +2,7 @@ from xlwings.tests.restapi import TestCase
 import unittest
 import json
 
+# TODO: this is WIP but the script to generate the apidocs does quite a good job already in the meantime
 
 class TestApps(TestCase):
 

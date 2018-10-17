@@ -160,7 +160,7 @@ def main():
     restapi_subparser.required = True
 
     restapi_run_parser = restapi_subparser.add_parser('run')
-    restapi_run_parser.add_argument("-host", "--host", default='127.0.1', help='The interface to bind to.')
+    restapi_run_parser.add_argument("-host", "--host", default='127.0.0.1', help='The interface to bind to.')
     restapi_run_parser.add_argument("-p", "--port", default='5000', help='The port to bind to.')
     restapi_run_parser.set_defaults(func=restapi_run)
 
