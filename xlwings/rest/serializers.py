@@ -5,7 +5,7 @@ def serialize_app(app):
         'screen_updating': app.screen_updating,
         'display_alerts': app.display_alerts,
         'calculation': app.calculation,
-        'selection': app.selection.address,
+        'selection': app.selection.get_address(external=True) if app.selection else None,
         'books': [book.name for book in app.books],
         'pid': app.pid
     }
@@ -13,11 +13,12 @@ def serialize_app(app):
 
 def serialize_book(book):
     return {
+        'app': book.app.pid,
         'name': book.name,
         'sheets': [sheet.name for sheet in book.sheets],
         'fullname': book.fullname,
         'names': [name.name for name in book.names],
-        'selection': book.selection.address
+        'selection': book.selection.get_address(include_sheetname=True) if book.selection else None
     }
 
 

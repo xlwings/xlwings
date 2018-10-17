@@ -85,7 +85,11 @@ class App(object):
     @property
     def selection(self):
         sheet = self.books.active.sheets.active
-        return Range(sheet, self.xl.selection.get_address())
+        try:
+            # fails if e.g. chart is selected
+            return Range(sheet, self.xl.selection.get_address())
+        except CommandError:
+            return None
 
     def activate(self, steal_focus=False):
         asn = subprocess.check_output(['lsappinfo', 'visibleprocesslist', '-includehidden']).decode('utf-8')

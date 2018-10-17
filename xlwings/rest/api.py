@@ -63,7 +63,7 @@ def apps():
                          for app in xw.apps])
 
 
-@api.route('/apps/<pid>/', methods=['GET'])
+@api.route('/apps/<pid>', methods=['GET'])
 def app_(pid):
     return jsonify(serialize_app(xw.apps[int(pid)]))
 

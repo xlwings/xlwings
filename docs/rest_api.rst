@@ -2,12 +2,13 @@ REST API
 ========
 
 
-xlwings offers an easy way to expose an Excel workbook via REST API. You can run the REST API server like this from a command prompt or terminal::
+xlwings offers an easy way to expose an Excel workbook via REST API both on macOS and Windows. You can run the REST API server from a command prompt or terminal::
 
     xlwings restapi run
 
-This will run a Flask development server with the default args on http://localhost:5000. You can provide ``--host`` and ``--port`` as
-command line args and it also accepts the Flask environment variables like ``FLASK_ENVIRONMENT``.
+This will run a Flask development server with the default args on http://127.0.0.1:5000. You can provide ``--host`` and ``--port`` as
+command line args and it also accepts the Flask environment variables like ``FLASK_ENVIRONMENT``. Press ``Ctrl-C`` to terminate
+the server again.
 
 If you want to have more control, you can just run it directly with Flask, see http://flask.pocoo.org/docs/1.0/quickstart/
 for more details::
@@ -60,7 +61,7 @@ http://localhost:5000/apps will give you back all open Excel instances and which
       ]
     }
 
-.. http:get:: /apps/<pid>/
+.. http:get:: /apps/<pid>
 
 **Example response**:
 
