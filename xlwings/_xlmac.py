@@ -521,7 +521,8 @@ class Range(object):
     @property
     def column_width(self):
         if self.xl is not None:
-            return self.xl.column_width.get()
+            rv = self.xl.column_width.get()
+            return None if rv == kw.missing_value else rv
         else:
             return 0
 
@@ -533,7 +534,8 @@ class Range(object):
     @property
     def row_height(self):
         if self.xl is not None:
-            return self.xl.row_height.get()
+            rv = self.xl.row_height.get()
+            return None if rv == kw.missing_value else rv
         else:
             return 0
 

@@ -95,7 +95,7 @@ def sheets(book_name_or_ix=None, fullname=None, pid=None):
 
 @api.route('/apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>', methods=['GET'])
 @api.route('/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>', methods=['GET'])
-@api.route('/book/<path:fullname>/sheets', methods=['GET'])
+@api.route('/book/<path:fullname>/sheets/<sheet_name_or_ix>', methods=['GET'])
 def sheet_(sheet_name_or_ix, book_name_or_ix=None, fullname=None, pid=None):
     book = get_book(fullname, book_name_or_ix, pid)
     sheet = get_sheet(book, sheet_name_or_ix)

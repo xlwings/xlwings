@@ -56,7 +56,7 @@ server from a command prompt or terminal as follows::
     xlwings restapi run
 
 This will run a default Flask development server on http://127.0.0.1:5000. You can provide ``--host`` and ``--port`` as
-command line args and it also respects the Flask environment variables like ``FLASK_ENVIRONMENT``. Press ``Ctrl-C`` to terminate
+command line args and it also respects the Flask environment variables like ``FLASK_ENV=development``. Press ``Ctrl-C`` to terminate
 the server again.
 
 If you want to have more control, you can just run the server directly with Flask, see the
