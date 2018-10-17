@@ -27,15 +27,21 @@ If you are on Mac, use ``export FLASK_APP=xlwings.rest.api`` instead of ``set FL
 
 For production, you can use any WSGI HTTP Server like `gunicorn <https://gunicorn.org/>`_ (on Mac) or `waitress
 <https://docs.pylonsproject.org/projects/waitress/en/latest/>`_ (on Mac/Windows) to serve the API. For example,
-with gunicorn you would do: ``gunicorn xlwings.rest.api:api``.
+with gunicorn you would do: ``gunicorn xlwings.rest.api:api``. Or with waitress::
+
+    from xlwings.rest.api import api
+    from waitress import serve
+    serve(api, listen='127.0.0.1:5000')
 
 The xlwings REST API is a thin wrapper around the :ref:`xlwings Object API <api>` which makes it very easy if
 you have worked previously with xlwings. It also means that the REST API does require the Excel application to be up and
 running which makes it a great choice if the data in your Excel workbook is constantly changing.
 
 To try things out, run ``xlwings restapi run`` from the command line and then paste the base url together with an endpoint
-from below into your web browser or something more convenient like Postman or Insomnia. As an example, going to
-http://localhost:5000/apps will give you back all open Excel instances and which workbooks they contain.
+from below into your web browser or something more convenient like `Postman <https://www.getpostman.com/>`_ or
+`Insomnia <https://insomnia.rest/>`_ (Curl works equally fine).
+As an example, going to http://localhost:5000/apps will give you back all open Excel instances with the workbooks they
+contain.
 
 Endpoint overview
 -----------------
@@ -64,27 +70,29 @@ Endpoint details
       "apps": [
         {
           "books": [
-            "/Users/Felix/DEV/xlwings/scripts/Book1.xlsx", 
-            "Book2"
+            "Book1", 
+            "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
+            "Book4"
           ], 
           "calculation": "automatic", 
           "display_alerts": true, 
-          "pid": 16731, 
+          "pid": 6448, 
           "screen_updating": true, 
-          "selection": "[Book2]Sheet1!$A$1", 
-          "version": "16.19", 
+          "selection": "[Book1.xlsx]Sheet2!$A$1", 
+          "version": "16.0", 
           "visible": true
         }, 
         {
           "books": [
-            "Book3"
+            "Book2", 
+            "Book5"
           ], 
           "calculation": "automatic", 
           "display_alerts": true, 
-          "pid": 16734, 
+          "pid": 5764, 
           "screen_updating": true, 
-          "selection": "[Book3]Sheet2!$A$1", 
-          "version": "16.19", 
+          "selection": "[Book5]Sheet2!$A$1", 
+          "version": "16.0", 
           "visible": true
         }
       ]
@@ -98,15 +106,16 @@ Endpoint details
 
     {
       "books": [
-        "/Users/Felix/DEV/xlwings/scripts/Book1.xlsx", 
-        "Book2"
+        "Book1", 
+        "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
+        "Book4"
       ], 
       "calculation": "automatic", 
       "display_alerts": true, 
-      "pid": 16731, 
+      "pid": 6448, 
       "screen_updating": true, 
-      "selection": "[Book2]Sheet1!$A$1", 
-      "version": "16.19", 
+      "selection": "[Book1.xlsx]Sheet2!$A$1", 
+      "version": "16.0", 
       "visible": true
     }
 
@@ -119,25 +128,35 @@ Endpoint details
     {
       "books": [
         {
-          "app": 16731, 
-          "fullname": "/Users/Felix/DEV/xlwings/scripts/Book1.xlsx", 
+          "app": 6448, 
+          "fullname": "Book1", 
+          "name": "Book1", 
+          "names": [], 
+          "selection": "Sheet2!$A$1", 
+          "sheets": [
+            "Sheet1"
+          ]
+        }, 
+        {
+          "app": 6448, 
+          "fullname": "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
           "name": "Book1.xlsx", 
           "names": [
             "Sheet1!myname1", 
             "myname2"
           ], 
-          "selection": "Sheet1!$A$1", 
+          "selection": "Sheet2!$A$1", 
           "sheets": [
             "Sheet1", 
             "Sheet2"
           ]
         }, 
         {
-          "app": 16731, 
-          "fullname": "Book2", 
-          "name": "Book2", 
+          "app": 6448, 
+          "fullname": "Book4", 
+          "name": "Book4", 
           "names": [], 
-          "selection": "Sheet1!$A$1", 
+          "selection": "Sheet2!$A$1", 
           "sheets": [
             "Sheet1"
           ]
@@ -152,14 +171,14 @@ Endpoint details
 .. sourcecode:: json
 
     {
-      "app": 16731, 
-      "fullname": "/Users/Felix/DEV/xlwings/scripts/Book1.xlsx", 
+      "app": 6448, 
+      "fullname": "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
       "name": "Book1.xlsx", 
       "names": [
         "Sheet1!myname1", 
         "myname2"
       ], 
-      "selection": "Sheet1!$A$1", 
+      "selection": "Sheet2!$A$1", 
       "sheets": [
         "Sheet1", 
         "Sheet2"
@@ -208,13 +227,11 @@ Endpoint details
           "charts": [
             "Chart 1"
           ], 
-          "index": 1, 
           "name": "Sheet1", 
           "names": [
             "Sheet1!myname1"
           ], 
           "pictures": [
-            "Chart 1", 
             "Picture 3"
           ], 
           "shapes": [
@@ -225,7 +242,6 @@ Endpoint details
         }, 
         {
           "charts": [], 
-          "index": 2, 
           "name": "Sheet2", 
           "names": [], 
           "pictures": [], 
@@ -245,13 +261,11 @@ Endpoint details
       "charts": [
         "Chart 1"
       ], 
-      "index": 1, 
       "name": "Sheet1", 
       "names": [
         "Sheet1!myname1"
       ], 
       "pictures": [
-        "Chart 1", 
         "Picture 3"
       ], 
       "shapes": [
@@ -330,18 +344,11 @@ Endpoint details
     {
       "pictures": [
         {
-          "height": 211.0, 
-          "left": 0.0, 
-          "name": "Chart 1", 
-          "top": 0.0, 
-          "width": 355.0
-        }, 
-        {
-          "height": 60.0, 
+          "height": 100.0, 
           "left": 0.0, 
           "name": "Picture 3", 
           "top": 0.0, 
-          "width": 60.0
+          "width": 100.0
         }
       ]
     }
@@ -353,11 +360,11 @@ Endpoint details
 .. sourcecode:: json
 
     {
-      "height": 211.0, 
+      "height": 100.0, 
       "left": 0.0, 
-      "name": "Chart 1", 
+      "name": "Picture 3", 
       "top": 0.0, 
-      "width": 355.0
+      "width": 100.0
     }
 
 .. http:get:: /apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/range
@@ -370,27 +377,27 @@ Endpoint details
       "address": "$A$1:$B$2", 
       "color": null, 
       "column": 1, 
-      "column_width": 10.0, 
+      "column_width": 8.47, 
       "count": 4, 
       "current_region": "$A$1:$B$2", 
       "formula": [
         [
-          "1.1", 
+          "=1+1.1", 
           "a string"
         ], 
         [
-          "43390", 
+          "43390.6519675926", 
           ""
         ]
       ], 
       "formula_array": null, 
-      "height": 32.0, 
+      "height": 28.5, 
       "last_cell": "$B$2", 
       "left": 0.0, 
       "name": null, 
       "number_format": null, 
       "row": 1, 
-      "row_height": 16.0, 
+      "row_height": 14.3, 
       "shape": [
         2, 
         2
@@ -399,15 +406,15 @@ Endpoint details
       "top": 0.0, 
       "value": [
         [
-          1.1, 
+          2.1, 
           "a string"
         ], 
         [
-          "Wed, 17 Oct 2018 00:00:00 GMT", 
+          "Wed, 17 Oct 2018 15:38:50 GMT", 
           null
         ]
       ], 
-      "width": 130.0
+      "width": 102.0
     }
 
 .. http:get:: /apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/range/<address>
@@ -420,27 +427,27 @@ Endpoint details
       "address": "$A$1:$B$2", 
       "color": null, 
       "column": 1, 
-      "column_width": 10.0, 
+      "column_width": 8.47, 
       "count": 4, 
       "current_region": "$A$1:$B$2", 
       "formula": [
         [
-          "1.1", 
+          "=1+1.1", 
           "a string"
         ], 
         [
-          "43390", 
+          "43390.6519675926", 
           ""
         ]
       ], 
       "formula_array": null, 
-      "height": 32.0, 
+      "height": 28.5, 
       "last_cell": "$B$2", 
       "left": 0.0, 
       "name": null, 
       "number_format": null, 
       "row": 1, 
-      "row_height": 16.0, 
+      "row_height": 14.3, 
       "shape": [
         2, 
         2
@@ -449,15 +456,15 @@ Endpoint details
       "top": 0.0, 
       "value": [
         [
-          1.1, 
+          2.1, 
           "a string"
         ], 
         [
-          "Wed, 17 Oct 2018 00:00:00 GMT", 
+          "Wed, 17 Oct 2018 15:38:50 GMT", 
           null
         ]
       ], 
-      "width": 130.0
+      "width": 102.0
     }
 
 .. http:get:: /apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/shapes
@@ -477,12 +484,12 @@ Endpoint details
           "width": 355.0
         }, 
         {
-          "height": 60.0, 
+          "height": 100.0, 
           "left": 0.0, 
           "name": "Picture 3", 
           "top": 0.0, 
           "type": "picture", 
-          "width": 60.0
+          "width": 100.0
         }
       ]
     }
@@ -509,14 +516,14 @@ Endpoint details
 .. sourcecode:: json
 
     {
-      "app": 16731, 
-      "fullname": "/Users/Felix/DEV/xlwings/scripts/Book1.xlsx", 
+      "app": 6448, 
+      "fullname": "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
       "name": "Book1.xlsx", 
       "names": [
         "Sheet1!myname1", 
         "myname2"
       ], 
-      "selection": "Sheet1!$A$1", 
+      "selection": "Sheet2!$A$1", 
       "sheets": [
         "Sheet1", 
         "Sheet2"
@@ -565,13 +572,11 @@ Endpoint details
           "charts": [
             "Chart 1"
           ], 
-          "index": 1, 
           "name": "Sheet1", 
           "names": [
             "Sheet1!myname1"
           ], 
           "pictures": [
-            "Chart 1", 
             "Picture 3"
           ], 
           "shapes": [
@@ -582,7 +587,6 @@ Endpoint details
         }, 
         {
           "charts": [], 
-          "index": 2, 
           "name": "Sheet2", 
           "names": [], 
           "pictures": [], 
@@ -604,13 +608,11 @@ Endpoint details
           "charts": [
             "Chart 1"
           ], 
-          "index": 1, 
           "name": "Sheet1", 
           "names": [
             "Sheet1!myname1"
           ], 
           "pictures": [
-            "Chart 1", 
             "Picture 3"
           ], 
           "shapes": [
@@ -621,7 +623,6 @@ Endpoint details
         }, 
         {
           "charts": [], 
-          "index": 2, 
           "name": "Sheet2", 
           "names": [], 
           "pictures": [], 
@@ -700,18 +701,11 @@ Endpoint details
     {
       "pictures": [
         {
-          "height": 211.0, 
-          "left": 0.0, 
-          "name": "Chart 1", 
-          "top": 0.0, 
-          "width": 355.0
-        }, 
-        {
-          "height": 60.0, 
+          "height": 100.0, 
           "left": 0.0, 
           "name": "Picture 3", 
           "top": 0.0, 
-          "width": 60.0
+          "width": 100.0
         }
       ]
     }
@@ -723,11 +717,11 @@ Endpoint details
 .. sourcecode:: json
 
     {
-      "height": 211.0, 
+      "height": 100.0, 
       "left": 0.0, 
-      "name": "Chart 1", 
+      "name": "Picture 3", 
       "top": 0.0, 
-      "width": 355.0
+      "width": 100.0
     }
 
 .. http:get:: /book/<fullname>/sheets/<sheet_name_or_ix>/range
@@ -740,27 +734,27 @@ Endpoint details
       "address": "$A$1:$B$2", 
       "color": null, 
       "column": 1, 
-      "column_width": 10.0, 
+      "column_width": 8.47, 
       "count": 4, 
       "current_region": "$A$1:$B$2", 
       "formula": [
         [
-          "1.1", 
+          "=1+1.1", 
           "a string"
         ], 
         [
-          "43390", 
+          "43390.6519675926", 
           ""
         ]
       ], 
       "formula_array": null, 
-      "height": 32.0, 
+      "height": 28.5, 
       "last_cell": "$B$2", 
       "left": 0.0, 
       "name": null, 
       "number_format": null, 
       "row": 1, 
-      "row_height": 16.0, 
+      "row_height": 14.3, 
       "shape": [
         2, 
         2
@@ -769,15 +763,15 @@ Endpoint details
       "top": 0.0, 
       "value": [
         [
-          1.1, 
+          2.1, 
           "a string"
         ], 
         [
-          "Wed, 17 Oct 2018 00:00:00 GMT", 
+          "Wed, 17 Oct 2018 15:38:50 GMT", 
           null
         ]
       ], 
-      "width": 130.0
+      "width": 102.0
     }
 
 .. http:get:: /book/<fullname>/sheets/<sheet_name_or_ix>/range/<address>
@@ -790,27 +784,27 @@ Endpoint details
       "address": "$A$1:$B$2", 
       "color": null, 
       "column": 1, 
-      "column_width": 10.0, 
+      "column_width": 8.47, 
       "count": 4, 
       "current_region": "$A$1:$B$2", 
       "formula": [
         [
-          "1.1", 
+          "=1+1.1", 
           "a string"
         ], 
         [
-          "43390", 
+          "43390.6519675926", 
           ""
         ]
       ], 
       "formula_array": null, 
-      "height": 32.0, 
+      "height": 28.5, 
       "last_cell": "$B$2", 
       "left": 0.0, 
       "name": null, 
       "number_format": null, 
       "row": 1, 
-      "row_height": 16.0, 
+      "row_height": 14.3, 
       "shape": [
         2, 
         2
@@ -819,15 +813,15 @@ Endpoint details
       "top": 0.0, 
       "value": [
         [
-          1.1, 
+          2.1, 
           "a string"
         ], 
         [
-          "Wed, 17 Oct 2018 00:00:00 GMT", 
+          "Wed, 17 Oct 2018 15:38:50 GMT", 
           null
         ]
       ], 
-      "width": 130.0
+      "width": 102.0
     }
 
 .. http:get:: /book/<fullname>/sheets/<sheet_name_or_ix>/shapes
@@ -847,12 +841,12 @@ Endpoint details
           "width": 355.0
         }, 
         {
-          "height": 60.0, 
+          "height": 100.0, 
           "left": 0.0, 
           "name": "Picture 3", 
           "top": 0.0, 
           "type": "picture", 
-          "width": 60.0
+          "width": 100.0
         }
       ]
     }
@@ -881,25 +875,35 @@ Endpoint details
     {
       "books": [
         {
-          "app": 16731, 
-          "fullname": "/Users/Felix/DEV/xlwings/scripts/Book1.xlsx", 
+          "app": 6448, 
+          "fullname": "Book1", 
+          "name": "Book1", 
+          "names": [], 
+          "selection": "Sheet2!$A$1", 
+          "sheets": [
+            "Sheet1"
+          ]
+        }, 
+        {
+          "app": 6448, 
+          "fullname": "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
           "name": "Book1.xlsx", 
           "names": [
             "Sheet1!myname1", 
             "myname2"
           ], 
-          "selection": "Sheet1!$A$1", 
+          "selection": "Sheet2!$A$1", 
           "sheets": [
             "Sheet1", 
             "Sheet2"
           ]
         }, 
         {
-          "app": 16731, 
-          "fullname": "Book2", 
-          "name": "Book2", 
+          "app": 6448, 
+          "fullname": "Book4", 
+          "name": "Book4", 
           "names": [], 
-          "selection": "Sheet1!$A$1", 
+          "selection": "Sheet2!$A$1", 
           "sheets": [
             "Sheet1"
           ]
@@ -914,14 +918,14 @@ Endpoint details
 .. sourcecode:: json
 
     {
-      "app": 16731, 
-      "fullname": "/Users/Felix/DEV/xlwings/scripts/Book1.xlsx", 
+      "app": 6448, 
+      "fullname": "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
       "name": "Book1.xlsx", 
       "names": [
         "Sheet1!myname1", 
         "myname2"
       ], 
-      "selection": "Sheet1!$A$1", 
+      "selection": "Sheet2!$A$1", 
       "sheets": [
         "Sheet1", 
         "Sheet2"
@@ -970,13 +974,11 @@ Endpoint details
           "charts": [
             "Chart 1"
           ], 
-          "index": 1, 
           "name": "Sheet1", 
           "names": [
             "Sheet1!myname1"
           ], 
           "pictures": [
-            "Chart 1", 
             "Picture 3"
           ], 
           "shapes": [
@@ -987,7 +989,6 @@ Endpoint details
         }, 
         {
           "charts": [], 
-          "index": 2, 
           "name": "Sheet2", 
           "names": [], 
           "pictures": [], 
@@ -1007,13 +1008,11 @@ Endpoint details
       "charts": [
         "Chart 1"
       ], 
-      "index": 1, 
       "name": "Sheet1", 
       "names": [
         "Sheet1!myname1"
       ], 
       "pictures": [
-        "Chart 1", 
         "Picture 3"
       ], 
       "shapes": [
@@ -1092,18 +1091,11 @@ Endpoint details
     {
       "pictures": [
         {
-          "height": 211.0, 
-          "left": 0.0, 
-          "name": "Chart 1", 
-          "top": 0.0, 
-          "width": 355.0
-        }, 
-        {
-          "height": 60.0, 
+          "height": 100.0, 
           "left": 0.0, 
           "name": "Picture 3", 
           "top": 0.0, 
-          "width": 60.0
+          "width": 100.0
         }
       ]
     }
@@ -1115,11 +1107,11 @@ Endpoint details
 .. sourcecode:: json
 
     {
-      "height": 211.0, 
+      "height": 100.0, 
       "left": 0.0, 
-      "name": "Chart 1", 
+      "name": "Picture 3", 
       "top": 0.0, 
-      "width": 355.0
+      "width": 100.0
     }
 
 .. http:get:: /books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/range
@@ -1132,27 +1124,27 @@ Endpoint details
       "address": "$A$1:$B$2", 
       "color": null, 
       "column": 1, 
-      "column_width": 10.0, 
+      "column_width": 8.47, 
       "count": 4, 
       "current_region": "$A$1:$B$2", 
       "formula": [
         [
-          "1.1", 
+          "=1+1.1", 
           "a string"
         ], 
         [
-          "43390", 
+          "43390.6519675926", 
           ""
         ]
       ], 
       "formula_array": null, 
-      "height": 32.0, 
+      "height": 28.5, 
       "last_cell": "$B$2", 
       "left": 0.0, 
       "name": null, 
       "number_format": null, 
       "row": 1, 
-      "row_height": 16.0, 
+      "row_height": 14.3, 
       "shape": [
         2, 
         2
@@ -1161,15 +1153,15 @@ Endpoint details
       "top": 0.0, 
       "value": [
         [
-          1.1, 
+          2.1, 
           "a string"
         ], 
         [
-          "Wed, 17 Oct 2018 00:00:00 GMT", 
+          "Wed, 17 Oct 2018 15:38:50 GMT", 
           null
         ]
       ], 
-      "width": 130.0
+      "width": 102.0
     }
 
 .. http:get:: /books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/range/<address>
@@ -1182,27 +1174,27 @@ Endpoint details
       "address": "$A$1:$B$2", 
       "color": null, 
       "column": 1, 
-      "column_width": 10.0, 
+      "column_width": 8.47, 
       "count": 4, 
       "current_region": "$A$1:$B$2", 
       "formula": [
         [
-          "1.1", 
+          "=1+1.1", 
           "a string"
         ], 
         [
-          "43390", 
+          "43390.6519675926", 
           ""
         ]
       ], 
       "formula_array": null, 
-      "height": 32.0, 
+      "height": 28.5, 
       "last_cell": "$B$2", 
       "left": 0.0, 
       "name": null, 
       "number_format": null, 
       "row": 1, 
-      "row_height": 16.0, 
+      "row_height": 14.3, 
       "shape": [
         2, 
         2
@@ -1211,15 +1203,15 @@ Endpoint details
       "top": 0.0, 
       "value": [
         [
-          1.1, 
+          2.1, 
           "a string"
         ], 
         [
-          "Wed, 17 Oct 2018 00:00:00 GMT", 
+          "Wed, 17 Oct 2018 15:38:50 GMT", 
           null
         ]
       ], 
-      "width": 130.0
+      "width": 102.0
     }
 
 .. http:get:: /books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/shapes
@@ -1239,12 +1231,12 @@ Endpoint details
           "width": 355.0
         }, 
         {
-          "height": 60.0, 
+          "height": 100.0, 
           "left": 0.0, 
           "name": "Picture 3", 
           "top": 0.0, 
           "type": "picture", 
-          "width": 60.0
+          "width": 100.0
         }
       ]
     }
