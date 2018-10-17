@@ -2,16 +2,19 @@ REST API
 ========
 
 
-xlwings offers an easy way to expose an Excel workbook via REST API both on macOS and Windows. You can run the REST API server from a command prompt or terminal::
+New in v0.13.0
+
+xlwings offers an easy way to expose an Excel workbook via REST API both on Windows and macOS. You can run the REST API
+server from a command prompt or terminal as follows::
 
     xlwings restapi run
 
-This will run a Flask development server with the default args on http://127.0.0.1:5000. You can provide ``--host`` and ``--port`` as
-command line args and it also accepts the Flask environment variables like ``FLASK_ENVIRONMENT``. Press ``Ctrl-C`` to terminate
+This will run a default Flask development server on http://127.0.0.1:5000. You can provide ``--host`` and ``--port`` as
+command line args and it also respects the Flask environment variables like ``FLASK_ENVIRONMENT``. Press ``Ctrl-C`` to terminate
 the server again.
 
-If you want to have more control, you can just run it directly with Flask, see http://flask.pocoo.org/docs/1.0/quickstart/
-for more details::
+If you want to have more control, you can just run the server directly with Flask, see the
+`Flask docs <http://flask.pocoo.org/docs/1.0/quickstart/>`_ for more details::
 
     set FLASK_APP=xlwings.rest.api
     flask run
@@ -22,20 +25,33 @@ If you are on Mac, use ``export FLASK_APP=xlwings.rest.api`` instead of ``set FL
     Currently, we only provide the GET methods to read the workbook. If you are also interested in the POST methods
     to edit the workbook, let us know via GitHub issues.
 
-For production, you can use a WSGI HTTP Server like gunicorn (on Mac) or waitress (on Mac/Windows) to
-serve the API. For example, with gunicorn you would do: ``gunicorn xlwings.rest.api:api``.
+For production, you can use any WSGI HTTP Server like `gunicorn <https://gunicorn.org/>`_ (on Mac) or `waitress
+<https://docs.pylonsproject.org/projects/waitress/en/latest/>`_ (on Mac/Windows) to serve the API. For example,
+with gunicorn you would do: ``gunicorn xlwings.rest.api:api``.
 
-The xlwings REST API is a thin wrapper around the :ref:`xlwings object API <api>` which makes it easy to learn as it
-translates one-to-one. It also means that the REST API still requires the Excel application to be up and running which
-makes sense if the data in your Excel workbook is constantly changing.
+The xlwings REST API is a thin wrapper around the :ref:`xlwings Object API <api>` which makes it very easy if
+you have worked previously with xlwings. It also means that the REST API does require the Excel application to be up and
+running which makes it a great choice if the data in your Excel workbook is constantly changing.
 
-As a little recap, if you want xlwings to find your workbook across all open instances of Excel (called ``apps``
-in xlwings), then use the ``/book/...`` endpoint. ``/books/...`` goes against the active app and if you need to specify
-the app (usually when you have the same book open in 2 instances), then you have to use the ``/apps/...`` endpoint.
-
-To try things out, run ``xlwings restapi run`` from the command line and then paste the base url toghether with an endpoint
+To try things out, run ``xlwings restapi run`` from the command line and then paste the base url together with an endpoint
 from below into your web browser or something more convenient like Postman or Insomnia. As an example, going to
 http://localhost:5000/apps will give you back all open Excel instances and which workbooks they contain.
+
+Endpoint overview
+-----------------
+
++----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Endpoint | Description                                                                                                                                                     |
++==========+=================================================================================================================================================================+
+| /book    | Finds your workbook across all open instances of Excel and will open it if it can't find it. It will not work if you have the same workbook open in 2 instances |
++----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| /books   | Goes against the active instance of Excel                                                                                                                       |
++----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| /apps    | This allows you to specify the Excel instance you want to work with                                                                                             |
++----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+Endpoint details
+----------------
 
 
 .. http:get:: /apps
@@ -48,13 +64,26 @@ http://localhost:5000/apps will give you back all open Excel instances and which
       "apps": [
         {
           "books": [
-            "Book1"
+            "/Users/Felix/DEV/xlwings/scripts/Book1.xlsx", 
+            "Book2"
           ], 
           "calculation": "automatic", 
           "display_alerts": true, 
-          "pid": 97508, 
+          "pid": 16731, 
           "screen_updating": true, 
-          "selection": "$R$24", 
+          "selection": "[Book2]Sheet1!$A$1", 
+          "version": "16.19", 
+          "visible": true
+        }, 
+        {
+          "books": [
+            "Book3"
+          ], 
+          "calculation": "automatic", 
+          "display_alerts": true, 
+          "pid": 16734, 
+          "screen_updating": true, 
+          "selection": "[Book3]Sheet2!$A$1", 
           "version": "16.19", 
           "visible": true
         }
@@ -69,13 +98,14 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 
     {
       "books": [
-        "Book1"
+        "/Users/Felix/DEV/xlwings/scripts/Book1.xlsx", 
+        "Book2"
       ], 
       "calculation": "automatic", 
       "display_alerts": true, 
-      "pid": 97508, 
+      "pid": 16731, 
       "screen_updating": true, 
-      "selection": "$R$24", 
+      "selection": "[Book2]Sheet1!$A$1", 
       "version": "16.19", 
       "visible": true
     }
@@ -89,13 +119,25 @@ http://localhost:5000/apps will give you back all open Excel instances and which
     {
       "books": [
         {
-          "fullname": "Book1", 
-          "name": "Book1", 
+          "app": 16731, 
+          "fullname": "/Users/Felix/DEV/xlwings/scripts/Book1.xlsx", 
+          "name": "Book1.xlsx", 
           "names": [
-            "myname", 
-            "Sheet1!myname2"
+            "Sheet1!myname1", 
+            "myname2"
           ], 
-          "selection": "$R$24", 
+          "selection": "Sheet1!$A$1", 
+          "sheets": [
+            "Sheet1", 
+            "Sheet2"
+          ]
+        }, 
+        {
+          "app": 16731, 
+          "fullname": "Book2", 
+          "name": "Book2", 
+          "names": [], 
+          "selection": "Sheet1!$A$1", 
           "sheets": [
             "Sheet1"
           ]
@@ -110,15 +152,17 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "fullname": "Book1", 
-      "name": "Book1", 
+      "app": 16731, 
+      "fullname": "/Users/Felix/DEV/xlwings/scripts/Book1.xlsx", 
+      "name": "Book1.xlsx", 
       "names": [
-        "myname", 
-        "Sheet1!myname2"
+        "Sheet1!myname1", 
+        "myname2"
       ], 
-      "selection": "$R$24", 
+      "selection": "Sheet1!$A$1", 
       "sheets": [
-        "Sheet1"
+        "Sheet1", 
+        "Sheet2"
       ]
     }
 
@@ -131,12 +175,12 @@ http://localhost:5000/apps will give you back all open Excel instances and which
     {
       "names": [
         {
-          "name": "myname", 
-          "refers_to": "=Sheet1!$D$18"
+          "name": "Sheet1!myname1", 
+          "refers_to": "=Sheet1!$B$2:$C$3"
         }, 
         {
-          "name": "Sheet1!myname2", 
-          "refers_to": "=Sheet1!$C$12"
+          "name": "myname2", 
+          "refers_to": "=Sheet1!$A$1"
         }
       ]
     }
@@ -148,8 +192,8 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "name": "myname", 
-      "refers_to": "=Sheet1!$D$18"
+      "name": "myname2", 
+      "refers_to": "=Sheet1!$A$1"
     }
 
 .. http:get:: /apps/<pid>/books/<book_name_or_ix>/sheets
@@ -167,16 +211,26 @@ http://localhost:5000/apps will give you back all open Excel instances and which
           "index": 1, 
           "name": "Sheet1", 
           "names": [
-            "Sheet1!myname2"
+            "Sheet1!myname1"
           ], 
           "pictures": [
             "Chart 1", 
-            "Picture 2"
+            "Picture 3"
           ], 
           "shapes": [
             "Chart 1", 
-            "Picture 2"
-          ]
+            "Picture 3"
+          ], 
+          "used_range": "$A$1:$B$2"
+        }, 
+        {
+          "charts": [], 
+          "index": 2, 
+          "name": "Sheet2", 
+          "names": [], 
+          "pictures": [], 
+          "shapes": [], 
+          "used_range": "$A$1"
         }
       ]
     }
@@ -194,16 +248,17 @@ http://localhost:5000/apps will give you back all open Excel instances and which
       "index": 1, 
       "name": "Sheet1", 
       "names": [
-        "Sheet1!myname2"
+        "Sheet1!myname1"
       ], 
       "pictures": [
         "Chart 1", 
-        "Picture 2"
+        "Picture 3"
       ], 
       "shapes": [
         "Chart 1", 
-        "Picture 2"
-      ]
+        "Picture 3"
+      ], 
+      "used_range": "$A$1:$B$2"
     }
 
 .. http:get:: /apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/charts
@@ -215,12 +270,12 @@ http://localhost:5000/apps will give you back all open Excel instances and which
     {
       "charts": [
         {
-          "chart_type": "column_clustered", 
-          "height": 216.0, 
-          "left": 502.5, 
+          "chart_type": "line", 
+          "height": 211.0, 
+          "left": 0.0, 
           "name": "Chart 1", 
-          "top": 199.0, 
-          "width": 360.0
+          "top": 0.0, 
+          "width": 355.0
         }
       ]
     }
@@ -232,12 +287,12 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "chart_type": "column_clustered", 
-      "height": 216.0, 
-      "left": 502.5, 
+      "chart_type": "line", 
+      "height": 211.0, 
+      "left": 0.0, 
       "name": "Chart 1", 
-      "top": 199.0, 
-      "width": 360.0
+      "top": 0.0, 
+      "width": 355.0
     }
 
 .. http:get:: /apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/names
@@ -249,8 +304,8 @@ http://localhost:5000/apps will give you back all open Excel instances and which
     {
       "names": [
         {
-          "name": "Sheet1!myname2", 
-          "refers_to": "=Sheet1!$C$12"
+          "name": "Sheet1!myname1", 
+          "refers_to": "=Sheet1!$B$2:$C$3"
         }
       ]
     }
@@ -262,8 +317,8 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "name": "Sheet1!myname2", 
-      "refers_to": "=Sheet1!$C$12"
+      "name": "Sheet1!myname1", 
+      "refers_to": "=Sheet1!$B$2:$C$3"
     }
 
 .. http:get:: /apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/pictures
@@ -275,18 +330,18 @@ http://localhost:5000/apps will give you back all open Excel instances and which
     {
       "pictures": [
         {
-          "height": 216.0, 
-          "left": 502.5, 
+          "height": 211.0, 
+          "left": 0.0, 
           "name": "Chart 1", 
-          "top": 199.0, 
-          "width": 360.0
+          "top": 0.0, 
+          "width": 355.0
         }, 
         {
-          "height": 612.0, 
-          "left": 200.0, 
-          "name": "Picture 2", 
-          "top": 240.0, 
-          "width": 625.4505004882812
+          "height": 60.0, 
+          "left": 0.0, 
+          "name": "Picture 3", 
+          "top": 0.0, 
+          "width": 60.0
         }
       ]
     }
@@ -298,11 +353,11 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "height": 216.0, 
-      "left": 502.5, 
+      "height": 211.0, 
+      "left": 0.0, 
       "name": "Chart 1", 
-      "top": 199.0, 
-      "width": 360.0
+      "top": 0.0, 
+      "width": 355.0
     }
 
 .. http:get:: /apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/range
@@ -312,39 +367,47 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "address": "$C$7:$C$8", 
+      "address": "$A$1:$B$2", 
       "color": null, 
-      "column": 3, 
+      "column": 1, 
       "column_width": 10.0, 
-      "count": 2, 
-      "current_region": "$C$7:$C$8", 
+      "count": 4, 
+      "current_region": "$A$1:$B$2", 
       "formula": [
         [
-          "1"
+          "1.1", 
+          "a string"
         ], 
         [
-          "1"
+          "43390", 
+          ""
         ]
       ], 
-      "formula_array": "1", 
+      "formula_array": null, 
       "height": 32.0, 
-      "last_cell": "$C$8", 
-      "left": 130.0, 
+      "last_cell": "$B$2", 
+      "left": 0.0, 
       "name": null, 
-      "number_format": "General", 
-      "row": 7, 
+      "number_format": null, 
+      "row": 1, 
       "row_height": 16.0, 
       "shape": [
         2, 
-        1
+        2
       ], 
-      "size": 2, 
-      "top": 96.0, 
+      "size": 4, 
+      "top": 0.0, 
       "value": [
-        1.0, 
-        1.0
+        [
+          1.1, 
+          "a string"
+        ], 
+        [
+          "Wed, 17 Oct 2018 00:00:00 GMT", 
+          null
+        ]
       ], 
-      "width": 65.0
+      "width": 130.0
     }
 
 .. http:get:: /apps/<pid>/books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/range/<address>
@@ -359,23 +422,23 @@ http://localhost:5000/apps will give you back all open Excel instances and which
       "column": 1, 
       "column_width": 10.0, 
       "count": 4, 
-      "current_region": "$A$1", 
+      "current_region": "$A$1:$B$2", 
       "formula": [
         [
-          "", 
-          ""
+          "1.1", 
+          "a string"
         ], 
         [
-          "", 
+          "43390", 
           ""
         ]
       ], 
-      "formula_array": "", 
+      "formula_array": null, 
       "height": 32.0, 
       "last_cell": "$B$2", 
       "left": 0.0, 
       "name": null, 
-      "number_format": "General", 
+      "number_format": null, 
       "row": 1, 
       "row_height": 16.0, 
       "shape": [
@@ -386,11 +449,11 @@ http://localhost:5000/apps will give you back all open Excel instances and which
       "top": 0.0, 
       "value": [
         [
-          null, 
-          null
+          1.1, 
+          "a string"
         ], 
         [
-          null, 
+          "Wed, 17 Oct 2018 00:00:00 GMT", 
           null
         ]
       ], 
@@ -406,20 +469,20 @@ http://localhost:5000/apps will give you back all open Excel instances and which
     {
       "shapes": [
         {
-          "height": 216.0, 
-          "left": 502.5, 
+          "height": 211.0, 
+          "left": 0.0, 
           "name": "Chart 1", 
-          "top": 199.0, 
+          "top": 0.0, 
           "type": "chart", 
-          "width": 360.0
+          "width": 355.0
         }, 
         {
-          "height": 612.0, 
-          "left": 200.0, 
-          "name": "Picture 2", 
-          "top": 240.0, 
+          "height": 60.0, 
+          "left": 0.0, 
+          "name": "Picture 3", 
+          "top": 0.0, 
           "type": "picture", 
-          "width": 625.4505004882812
+          "width": 60.0
         }
       ]
     }
@@ -431,12 +494,12 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "height": 216.0, 
-      "left": 502.5, 
+      "height": 211.0, 
+      "left": 0.0, 
       "name": "Chart 1", 
-      "top": 199.0, 
+      "top": 0.0, 
       "type": "chart", 
-      "width": 360.0
+      "width": 355.0
     }
 
 .. http:get:: /book/<fullname>
@@ -446,15 +509,17 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "fullname": "Book1", 
-      "name": "Book1", 
+      "app": 16731, 
+      "fullname": "/Users/Felix/DEV/xlwings/scripts/Book1.xlsx", 
+      "name": "Book1.xlsx", 
       "names": [
-        "myname", 
-        "Sheet1!myname2"
+        "Sheet1!myname1", 
+        "myname2"
       ], 
-      "selection": "$R$24", 
+      "selection": "Sheet1!$A$1", 
       "sheets": [
-        "Sheet1"
+        "Sheet1", 
+        "Sheet2"
       ]
     }
 
@@ -467,12 +532,12 @@ http://localhost:5000/apps will give you back all open Excel instances and which
     {
       "names": [
         {
-          "name": "myname", 
-          "refers_to": "=Sheet1!$D$18"
+          "name": "Sheet1!myname1", 
+          "refers_to": "=Sheet1!$B$2:$C$3"
         }, 
         {
-          "name": "Sheet1!myname2", 
-          "refers_to": "=Sheet1!$C$12"
+          "name": "myname2", 
+          "refers_to": "=Sheet1!$A$1"
         }
       ]
     }
@@ -484,8 +549,8 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "name": "myname", 
-      "refers_to": "=Sheet1!$D$18"
+      "name": "myname2", 
+      "refers_to": "=Sheet1!$A$1"
     }
 
 .. http:get:: /book/<fullname>/sheets
@@ -503,16 +568,26 @@ http://localhost:5000/apps will give you back all open Excel instances and which
           "index": 1, 
           "name": "Sheet1", 
           "names": [
-            "Sheet1!myname2"
+            "Sheet1!myname1"
           ], 
           "pictures": [
             "Chart 1", 
-            "Picture 2"
+            "Picture 3"
           ], 
           "shapes": [
             "Chart 1", 
-            "Picture 2"
-          ]
+            "Picture 3"
+          ], 
+          "used_range": "$A$1:$B$2"
+        }, 
+        {
+          "charts": [], 
+          "index": 2, 
+          "name": "Sheet2", 
+          "names": [], 
+          "pictures": [], 
+          "shapes": [], 
+          "used_range": "$A$1"
         }
       ]
     }
@@ -532,16 +607,26 @@ http://localhost:5000/apps will give you back all open Excel instances and which
           "index": 1, 
           "name": "Sheet1", 
           "names": [
-            "Sheet1!myname2"
+            "Sheet1!myname1"
           ], 
           "pictures": [
             "Chart 1", 
-            "Picture 2"
+            "Picture 3"
           ], 
           "shapes": [
             "Chart 1", 
-            "Picture 2"
-          ]
+            "Picture 3"
+          ], 
+          "used_range": "$A$1:$B$2"
+        }, 
+        {
+          "charts": [], 
+          "index": 2, 
+          "name": "Sheet2", 
+          "names": [], 
+          "pictures": [], 
+          "shapes": [], 
+          "used_range": "$A$1"
         }
       ]
     }
@@ -555,12 +640,12 @@ http://localhost:5000/apps will give you back all open Excel instances and which
     {
       "charts": [
         {
-          "chart_type": "column_clustered", 
-          "height": 216.0, 
-          "left": 502.5, 
+          "chart_type": "line", 
+          "height": 211.0, 
+          "left": 0.0, 
           "name": "Chart 1", 
-          "top": 199.0, 
-          "width": 360.0
+          "top": 0.0, 
+          "width": 355.0
         }
       ]
     }
@@ -572,12 +657,12 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "chart_type": "column_clustered", 
-      "height": 216.0, 
-      "left": 502.5, 
+      "chart_type": "line", 
+      "height": 211.0, 
+      "left": 0.0, 
       "name": "Chart 1", 
-      "top": 199.0, 
-      "width": 360.0
+      "top": 0.0, 
+      "width": 355.0
     }
 
 .. http:get:: /book/<fullname>/sheets/<sheet_name_or_ix>/names
@@ -589,8 +674,8 @@ http://localhost:5000/apps will give you back all open Excel instances and which
     {
       "names": [
         {
-          "name": "Sheet1!myname2", 
-          "refers_to": "=Sheet1!$C$12"
+          "name": "Sheet1!myname1", 
+          "refers_to": "=Sheet1!$B$2:$C$3"
         }
       ]
     }
@@ -602,8 +687,8 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "name": "Sheet1!myname2", 
-      "refers_to": "=Sheet1!$C$12"
+      "name": "Sheet1!myname1", 
+      "refers_to": "=Sheet1!$B$2:$C$3"
     }
 
 .. http:get:: /book/<fullname>/sheets/<sheet_name_or_ix>/pictures
@@ -615,18 +700,18 @@ http://localhost:5000/apps will give you back all open Excel instances and which
     {
       "pictures": [
         {
-          "height": 216.0, 
-          "left": 502.5, 
+          "height": 211.0, 
+          "left": 0.0, 
           "name": "Chart 1", 
-          "top": 199.0, 
-          "width": 360.0
+          "top": 0.0, 
+          "width": 355.0
         }, 
         {
-          "height": 612.0, 
-          "left": 200.0, 
-          "name": "Picture 2", 
-          "top": 240.0, 
-          "width": 625.4505004882812
+          "height": 60.0, 
+          "left": 0.0, 
+          "name": "Picture 3", 
+          "top": 0.0, 
+          "width": 60.0
         }
       ]
     }
@@ -638,11 +723,11 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "height": 216.0, 
-      "left": 502.5, 
+      "height": 211.0, 
+      "left": 0.0, 
       "name": "Chart 1", 
-      "top": 199.0, 
-      "width": 360.0
+      "top": 0.0, 
+      "width": 355.0
     }
 
 .. http:get:: /book/<fullname>/sheets/<sheet_name_or_ix>/range
@@ -652,39 +737,47 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "address": "$C$7:$C$8", 
+      "address": "$A$1:$B$2", 
       "color": null, 
-      "column": 3, 
+      "column": 1, 
       "column_width": 10.0, 
-      "count": 2, 
-      "current_region": "$C$7:$C$8", 
+      "count": 4, 
+      "current_region": "$A$1:$B$2", 
       "formula": [
         [
-          "1"
+          "1.1", 
+          "a string"
         ], 
         [
-          "1"
+          "43390", 
+          ""
         ]
       ], 
-      "formula_array": "1", 
+      "formula_array": null, 
       "height": 32.0, 
-      "last_cell": "$C$8", 
-      "left": 130.0, 
+      "last_cell": "$B$2", 
+      "left": 0.0, 
       "name": null, 
-      "number_format": "General", 
-      "row": 7, 
+      "number_format": null, 
+      "row": 1, 
       "row_height": 16.0, 
       "shape": [
         2, 
-        1
+        2
       ], 
-      "size": 2, 
-      "top": 96.0, 
+      "size": 4, 
+      "top": 0.0, 
       "value": [
-        1.0, 
-        1.0
+        [
+          1.1, 
+          "a string"
+        ], 
+        [
+          "Wed, 17 Oct 2018 00:00:00 GMT", 
+          null
+        ]
       ], 
-      "width": 65.0
+      "width": 130.0
     }
 
 .. http:get:: /book/<fullname>/sheets/<sheet_name_or_ix>/range/<address>
@@ -699,23 +792,23 @@ http://localhost:5000/apps will give you back all open Excel instances and which
       "column": 1, 
       "column_width": 10.0, 
       "count": 4, 
-      "current_region": "$A$1", 
+      "current_region": "$A$1:$B$2", 
       "formula": [
         [
-          "", 
-          ""
+          "1.1", 
+          "a string"
         ], 
         [
-          "", 
+          "43390", 
           ""
         ]
       ], 
-      "formula_array": "", 
+      "formula_array": null, 
       "height": 32.0, 
       "last_cell": "$B$2", 
       "left": 0.0, 
       "name": null, 
-      "number_format": "General", 
+      "number_format": null, 
       "row": 1, 
       "row_height": 16.0, 
       "shape": [
@@ -726,11 +819,11 @@ http://localhost:5000/apps will give you back all open Excel instances and which
       "top": 0.0, 
       "value": [
         [
-          null, 
-          null
+          1.1, 
+          "a string"
         ], 
         [
-          null, 
+          "Wed, 17 Oct 2018 00:00:00 GMT", 
           null
         ]
       ], 
@@ -746,20 +839,20 @@ http://localhost:5000/apps will give you back all open Excel instances and which
     {
       "shapes": [
         {
-          "height": 216.0, 
-          "left": 502.5, 
+          "height": 211.0, 
+          "left": 0.0, 
           "name": "Chart 1", 
-          "top": 199.0, 
+          "top": 0.0, 
           "type": "chart", 
-          "width": 360.0
+          "width": 355.0
         }, 
         {
-          "height": 612.0, 
-          "left": 200.0, 
-          "name": "Picture 2", 
-          "top": 240.0, 
+          "height": 60.0, 
+          "left": 0.0, 
+          "name": "Picture 3", 
+          "top": 0.0, 
           "type": "picture", 
-          "width": 625.4505004882812
+          "width": 60.0
         }
       ]
     }
@@ -771,12 +864,12 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "height": 216.0, 
-      "left": 502.5, 
+      "height": 211.0, 
+      "left": 0.0, 
       "name": "Chart 1", 
-      "top": 199.0, 
+      "top": 0.0, 
       "type": "chart", 
-      "width": 360.0
+      "width": 355.0
     }
 
 .. http:get:: /books
@@ -788,13 +881,25 @@ http://localhost:5000/apps will give you back all open Excel instances and which
     {
       "books": [
         {
-          "fullname": "Book1", 
-          "name": "Book1", 
+          "app": 16731, 
+          "fullname": "/Users/Felix/DEV/xlwings/scripts/Book1.xlsx", 
+          "name": "Book1.xlsx", 
           "names": [
-            "myname", 
-            "Sheet1!myname2"
+            "Sheet1!myname1", 
+            "myname2"
           ], 
-          "selection": "$R$24", 
+          "selection": "Sheet1!$A$1", 
+          "sheets": [
+            "Sheet1", 
+            "Sheet2"
+          ]
+        }, 
+        {
+          "app": 16731, 
+          "fullname": "Book2", 
+          "name": "Book2", 
+          "names": [], 
+          "selection": "Sheet1!$A$1", 
           "sheets": [
             "Sheet1"
           ]
@@ -809,15 +914,17 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "fullname": "Book1", 
-      "name": "Book1", 
+      "app": 16731, 
+      "fullname": "/Users/Felix/DEV/xlwings/scripts/Book1.xlsx", 
+      "name": "Book1.xlsx", 
       "names": [
-        "myname", 
-        "Sheet1!myname2"
+        "Sheet1!myname1", 
+        "myname2"
       ], 
-      "selection": "$R$24", 
+      "selection": "Sheet1!$A$1", 
       "sheets": [
-        "Sheet1"
+        "Sheet1", 
+        "Sheet2"
       ]
     }
 
@@ -830,12 +937,12 @@ http://localhost:5000/apps will give you back all open Excel instances and which
     {
       "names": [
         {
-          "name": "myname", 
-          "refers_to": "=Sheet1!$D$18"
+          "name": "Sheet1!myname1", 
+          "refers_to": "=Sheet1!$B$2:$C$3"
         }, 
         {
-          "name": "Sheet1!myname2", 
-          "refers_to": "=Sheet1!$C$12"
+          "name": "myname2", 
+          "refers_to": "=Sheet1!$A$1"
         }
       ]
     }
@@ -847,8 +954,8 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "name": "myname", 
-      "refers_to": "=Sheet1!$D$18"
+      "name": "myname2", 
+      "refers_to": "=Sheet1!$A$1"
     }
 
 .. http:get:: /books/<book_name_or_ix>/sheets
@@ -866,16 +973,26 @@ http://localhost:5000/apps will give you back all open Excel instances and which
           "index": 1, 
           "name": "Sheet1", 
           "names": [
-            "Sheet1!myname2"
+            "Sheet1!myname1"
           ], 
           "pictures": [
             "Chart 1", 
-            "Picture 2"
+            "Picture 3"
           ], 
           "shapes": [
             "Chart 1", 
-            "Picture 2"
-          ]
+            "Picture 3"
+          ], 
+          "used_range": "$A$1:$B$2"
+        }, 
+        {
+          "charts": [], 
+          "index": 2, 
+          "name": "Sheet2", 
+          "names": [], 
+          "pictures": [], 
+          "shapes": [], 
+          "used_range": "$A$1"
         }
       ]
     }
@@ -893,16 +1010,17 @@ http://localhost:5000/apps will give you back all open Excel instances and which
       "index": 1, 
       "name": "Sheet1", 
       "names": [
-        "Sheet1!myname2"
+        "Sheet1!myname1"
       ], 
       "pictures": [
         "Chart 1", 
-        "Picture 2"
+        "Picture 3"
       ], 
       "shapes": [
         "Chart 1", 
-        "Picture 2"
-      ]
+        "Picture 3"
+      ], 
+      "used_range": "$A$1:$B$2"
     }
 
 .. http:get:: /books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/charts
@@ -914,12 +1032,12 @@ http://localhost:5000/apps will give you back all open Excel instances and which
     {
       "charts": [
         {
-          "chart_type": "column_clustered", 
-          "height": 216.0, 
-          "left": 502.5, 
+          "chart_type": "line", 
+          "height": 211.0, 
+          "left": 0.0, 
           "name": "Chart 1", 
-          "top": 199.0, 
-          "width": 360.0
+          "top": 0.0, 
+          "width": 355.0
         }
       ]
     }
@@ -931,12 +1049,12 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "chart_type": "column_clustered", 
-      "height": 216.0, 
-      "left": 502.5, 
+      "chart_type": "line", 
+      "height": 211.0, 
+      "left": 0.0, 
       "name": "Chart 1", 
-      "top": 199.0, 
-      "width": 360.0
+      "top": 0.0, 
+      "width": 355.0
     }
 
 .. http:get:: /books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/names
@@ -948,8 +1066,8 @@ http://localhost:5000/apps will give you back all open Excel instances and which
     {
       "names": [
         {
-          "name": "Sheet1!myname2", 
-          "refers_to": "=Sheet1!$C$12"
+          "name": "Sheet1!myname1", 
+          "refers_to": "=Sheet1!$B$2:$C$3"
         }
       ]
     }
@@ -961,8 +1079,8 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "name": "Sheet1!myname2", 
-      "refers_to": "=Sheet1!$C$12"
+      "name": "Sheet1!myname1", 
+      "refers_to": "=Sheet1!$B$2:$C$3"
     }
 
 .. http:get:: /books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/pictures
@@ -974,18 +1092,18 @@ http://localhost:5000/apps will give you back all open Excel instances and which
     {
       "pictures": [
         {
-          "height": 216.0, 
-          "left": 502.5, 
+          "height": 211.0, 
+          "left": 0.0, 
           "name": "Chart 1", 
-          "top": 199.0, 
-          "width": 360.0
+          "top": 0.0, 
+          "width": 355.0
         }, 
         {
-          "height": 612.0, 
-          "left": 200.0, 
-          "name": "Picture 2", 
-          "top": 240.0, 
-          "width": 625.4505004882812
+          "height": 60.0, 
+          "left": 0.0, 
+          "name": "Picture 3", 
+          "top": 0.0, 
+          "width": 60.0
         }
       ]
     }
@@ -997,11 +1115,11 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "height": 216.0, 
-      "left": 502.5, 
+      "height": 211.0, 
+      "left": 0.0, 
       "name": "Chart 1", 
-      "top": 199.0, 
-      "width": 360.0
+      "top": 0.0, 
+      "width": 355.0
     }
 
 .. http:get:: /books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/range
@@ -1011,39 +1129,47 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "address": "$C$7:$C$8", 
+      "address": "$A$1:$B$2", 
       "color": null, 
-      "column": 3, 
+      "column": 1, 
       "column_width": 10.0, 
-      "count": 2, 
-      "current_region": "$C$7:$C$8", 
+      "count": 4, 
+      "current_region": "$A$1:$B$2", 
       "formula": [
         [
-          "1"
+          "1.1", 
+          "a string"
         ], 
         [
-          "1"
+          "43390", 
+          ""
         ]
       ], 
-      "formula_array": "1", 
+      "formula_array": null, 
       "height": 32.0, 
-      "last_cell": "$C$8", 
-      "left": 130.0, 
+      "last_cell": "$B$2", 
+      "left": 0.0, 
       "name": null, 
-      "number_format": "General", 
-      "row": 7, 
+      "number_format": null, 
+      "row": 1, 
       "row_height": 16.0, 
       "shape": [
         2, 
-        1
+        2
       ], 
-      "size": 2, 
-      "top": 96.0, 
+      "size": 4, 
+      "top": 0.0, 
       "value": [
-        1.0, 
-        1.0
+        [
+          1.1, 
+          "a string"
+        ], 
+        [
+          "Wed, 17 Oct 2018 00:00:00 GMT", 
+          null
+        ]
       ], 
-      "width": 65.0
+      "width": 130.0
     }
 
 .. http:get:: /books/<book_name_or_ix>/sheets/<sheet_name_or_ix>/range/<address>
@@ -1058,23 +1184,23 @@ http://localhost:5000/apps will give you back all open Excel instances and which
       "column": 1, 
       "column_width": 10.0, 
       "count": 4, 
-      "current_region": "$A$1", 
+      "current_region": "$A$1:$B$2", 
       "formula": [
         [
-          "", 
-          ""
+          "1.1", 
+          "a string"
         ], 
         [
-          "", 
+          "43390", 
           ""
         ]
       ], 
-      "formula_array": "", 
+      "formula_array": null, 
       "height": 32.0, 
       "last_cell": "$B$2", 
       "left": 0.0, 
       "name": null, 
-      "number_format": "General", 
+      "number_format": null, 
       "row": 1, 
       "row_height": 16.0, 
       "shape": [
@@ -1085,11 +1211,11 @@ http://localhost:5000/apps will give you back all open Excel instances and which
       "top": 0.0, 
       "value": [
         [
-          null, 
-          null
+          1.1, 
+          "a string"
         ], 
         [
-          null, 
+          "Wed, 17 Oct 2018 00:00:00 GMT", 
           null
         ]
       ], 
@@ -1105,20 +1231,20 @@ http://localhost:5000/apps will give you back all open Excel instances and which
     {
       "shapes": [
         {
-          "height": 216.0, 
-          "left": 502.5, 
+          "height": 211.0, 
+          "left": 0.0, 
           "name": "Chart 1", 
-          "top": 199.0, 
+          "top": 0.0, 
           "type": "chart", 
-          "width": 360.0
+          "width": 355.0
         }, 
         {
-          "height": 612.0, 
-          "left": 200.0, 
-          "name": "Picture 2", 
-          "top": 240.0, 
+          "height": 60.0, 
+          "left": 0.0, 
+          "name": "Picture 3", 
+          "top": 0.0, 
           "type": "picture", 
-          "width": 625.4505004882812
+          "width": 60.0
         }
       ]
     }
@@ -1130,11 +1256,11 @@ http://localhost:5000/apps will give you back all open Excel instances and which
 .. sourcecode:: json
 
     {
-      "height": 216.0, 
-      "left": 502.5, 
+      "height": 211.0, 
+      "left": 0.0, 
       "name": "Chart 1", 
-      "top": 199.0, 
+      "top": 0.0, 
       "type": "chart", 
-      "width": 360.0
+      "width": 355.0
     }
 

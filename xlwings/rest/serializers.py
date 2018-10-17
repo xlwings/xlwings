@@ -6,7 +6,7 @@ def serialize_app(app):
         'display_alerts': app.display_alerts,
         'calculation': app.calculation,
         'selection': app.selection.get_address(external=True) if app.selection else None,
-        'books': [book.name for book in app.books],
+        'books': [book.fullname for book in app.books],
         'pid': app.pid
     }
 
@@ -24,12 +24,13 @@ def serialize_book(book):
 
 def serialize_sheet(sheet):
     return {
+        # omitting index as it is currently 1-based in the Python API but everything in the REST API is 0-based
         'name': sheet.name,
         'names': [name.name for name in sheet.names],
-        'index': sheet.index,
         'charts': [chart.name for chart in sheet.charts],
         'shapes': [shape.name for shape in sheet.shapes],
-        'pictures': [picture.name for picture in sheet.pictures]
+        'pictures': [picture.name for picture in sheet.pictures],
+        'used_range': sheet.used_range.address
     }
 
 

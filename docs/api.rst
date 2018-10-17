@@ -1,7 +1,7 @@
 .. _api:
 
-API Documentation
-=================
+Object API
+==========
 
 Top-level functions
 -------------------

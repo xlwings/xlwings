@@ -23,8 +23,8 @@
     r_and_julia
     extensions
     troubleshooting
-    api
     rest_api
+    api
     license
 
 
