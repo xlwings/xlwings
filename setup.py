@@ -14,7 +14,11 @@ with open(os.path.join(os.path.dirname(__file__), 'xlwings', '__init__.py')) as 
 
 # Dependencies
 if sys.platform.startswith('win'):
-    install_requires = ['comtypes', 'pywin32']
+    if sys.version_info[:2] >= (3, 7):
+        pywin32 = 'pywin32 >= 224'
+    else:
+        pywin32 = 'pywin32'
+    install_requires = ['comtypes', pywin32]
     # This places dlls next to python.exe for standard setup and in the parent folder for virtualenv
     data_files = [('', glob.glob('xlwings*.dll'))]
 elif sys.platform.startswith('darwin'):
