@@ -54,6 +54,11 @@ standalone_code = standalone_code.replace("Attribute VB_Name", "\n'Attribute VB_
 standalone_code = standalone_code.replace("Option Explicit", "")
 standalone_code = standalone_code.replace("""#Const App = "Microsoft Excel" 'Adjust when using outside of Excel""", "")
 
+# Re-add the Compiler Constant
+standalone_code = ('Attribute VB_Name = "xlwings"\n' +
+                   """#Const App = "Microsoft Excel" 'Adjust when using outside of Excel\n""" +
+                   '\n'.join(standalone_code.splitlines()))
+
 for path in [standalone_mac_path, standalone_win_path]:
     wb = Workbook(path)
     wb.VbaProject.get_Modules()['xlwings'].set_Codes(standalone_code)
@@ -61,6 +66,4 @@ for path in [standalone_mac_path, standalone_win_path]:
 
 # Save standalone as xlwings.bas to be included in python package
 with open(xlwings_bas_path, 'w') as f:
-    f.write('Attribute VB_Name = "xlwings"\n' +
-            """#Const App = "Microsoft Excel" 'Adjust when using outside of Excel\n""" +
-            '\n'.join(standalone_code.splitlines()))
+    f.write(standalone_code)
