@@ -1,7 +1,7 @@
 import os
+import re
 import datetime as dt
 import subprocess
-import unicodedata
 import struct
 import shutil
 import atexit
@@ -1048,13 +1048,10 @@ class Name(object):
 
     @property
     def refers_to_range(self):
-        ref = self.refers_to[1:].split('!')
         book = self.parent if isinstance(self.parent, Book) else self.parent.book
-        # appscript has issues when there are blanks or ' in sheet names (e.g. "foo' bar")
-        sheetname = ref[0]
-        if sheetname.startswith("'") and sheetname.endswith("'"):
-            ref[0] = sheetname[1:-1].replace("''", "'")
-        return Range(Sheet(book, ref[0]), ref[1])
+        external_address = self.xl.reference_range.get_address(external=True)
+        match = re.search(r"\](.*)!(.*)", external_address)
+        return Range(Sheet(book, match.group(1)), match.group(2))
 
 
 class Shapes(Collection):
