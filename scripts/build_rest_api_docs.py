@@ -101,28 +101,37 @@ Then perform a GET request e.g. via PowerShell on Windows or Terminal on Mac (wh
 that you need to run the server and the GET request from two separate terminals (or you can use something
 more convenient like `Postman <https://www.getpostman.com/>`_ or `Insomnia <https://insomnia.rest/>`_)::
 
-    $ curl "http://127.0.0.1:5000/book/book1/sheets/0/range/A1?expand=table"
+    $ curl "http://127.0.0.1:5000/book/book1/sheets/0/range/A1:B2"
     {
-      "address": "$A$1",
+      "address": "$A$1:$B$2",
       "color": null,
       "column": 1,
       "column_width": 10.0,
-      "count": 1,
+      "count": 4,
       "current_region": "$A$1:$B$2",
-      "formula": "1",
-      "formula_array": "1",
-      "height": 16.0,
-      "last_cell": "$A$1",
+      "formula": [
+        [
+          "1",
+          "2"
+        ],
+        [
+          "3",
+          "4"
+        ]
+      ],
+      "formula_array": null,
+      "height": 32.0,
+      "last_cell": "$B$2",
       "left": 0.0,
       "name": null,
       "number_format": "General",
       "row": 1,
       "row_height": 16.0,
       "shape": [
-        1,
-        1
+        2,
+        2
       ],
-      "size": 1,
+      "size": 4,
       "top": 0.0,
       "value": [
         [
@@ -134,7 +143,7 @@ more convenient like `Postman <https://www.getpostman.com/>`_ or `Insomnia <http
           4.0
         ]
       ],
-      "width": 65.0
+      "width": 130.0
     }
 
 In the command prompt where your server is running, press ``Ctrl-C`` to shut it down again.
