@@ -1,6 +1,6 @@
 .. _api:
 
-Object API
+Python API
 ==========
 
 Top-level functions
@@ -11,6 +11,8 @@ Top-level functions
 
 Object model
 ------------
+
+.. _python_apps:
 
 Apps
 ****
@@ -24,11 +26,15 @@ App
 .. autoclass:: App
     :members:
 
+.. _python_books:
+
 Books
 *****
 
 .. autoclass:: xlwings.main.Books
     :members:
+
+.. _python_book:
 
 Book
 ****

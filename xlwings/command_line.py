@@ -154,7 +154,7 @@ def main():
         runpython_install_parser.set_defaults(func=runpython_install)
 
     # restapi run
-    restapi_parser = subparsers.add_parser('restapi',
+    restapi_parser = subparsers.add_parser('api',
                                            help='Runs the xlwings REST API via Flask dev server.')
     restapi_subparser = restapi_parser.add_subparsers(dest='subcommand')
     restapi_subparser.required = True

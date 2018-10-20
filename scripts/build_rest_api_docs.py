@@ -35,29 +35,123 @@ wb1.save('Book1.xlsx')
 wb1 = xw.Book('Book1.xlsx')  # hack as save doesn't return the wb properly
 app1.activate()
 
-# Get all routes
-get_urls = []
-for rule in api.url_map.iter_rules():
-    if 'GET' in rule.methods and 'static' not in rule.rule:
-        get_urls.append(rule.rule)
 
-get_urls = sorted(get_urls)
+def generate_get_endpoint(endpoint):
+    docs = []
+    docs.append('.. http:get:: ' + endpoint.replace('path:', ''))
+    docs.append('')
+    rv = requests.get(BASE_URL +
+                      endpoint.replace('<pid>', str(wb1.app.pid))
+                      .replace('<book_name_or_ix>', wb1.name)
+                      .replace('<chart_name_or_ix>', '0')
+                      .replace('<name>', 'myname2')
+                      .replace('<sheet_scope_name>', 'myname1')
+                      .replace('<sheet_name_or_ix>', 'sheet1')
+                      .replace('<shape_name_or_ix>', '0')
+                      .replace('<path:fullname_or_name>', wb1.name)
+                      .replace('<picture_name_or_ix>', '0')
+                      .replace('<address>', 'A1:B2')
+                      )
+    docs.append('**Example response**:')
+    docs.append('')
+    docs.append('.. sourcecode:: json')
+    docs.append('')
+    for i in rv.text.splitlines():
+        docs.append('    ' + i)
+    docs.append('')
+    return docs
+
+
+# Get all routes
+get_apps_urls = []
+get_books_urls = []
+get_book_urls = []
+for rule in api.url_map.iter_rules():
+    if 'GET' in rule.methods:
+        if rule.rule.startswith('/book/'):
+            get_book_urls.append(rule.rule)
+        elif rule.rule.startswith('/books/'):
+            get_books_urls.append(rule.rule)
+        elif rule.rule.startswith('/apps/'):
+            get_apps_urls.append(rule.rule)
+
+get_apps_urls = sorted(get_apps_urls)
+get_books_urls = sorted(get_books_urls)
+get_book_urls = sorted(get_book_urls)
 
 text = []
-text.append('REST API')
-text.append('========')
-text.append('')
-intro = """
+intro = """REST API
+========
+
 New in v0.13.0
 
-xlwings offers an easy way to expose an Excel workbook via REST API both on Windows and macOS. You can run the REST API
-server from a command prompt or terminal as follows::
+Quickstart
+----------
 
-    xlwings restapi run
+xlwings offers an easy way to expose an Excel workbook via REST API both on Windows and macOS. This can be useful
+when you have a workbook running on a single computer and want to access it from another computer. Or you can
+build a Linux based web application that can interact with a legacy Excel application while you are in the progress
+of migrating the Excel functionality into your web app (if you need help with that, `give us a shout <https://www.zoomeranalytics.com/contact>`_).
 
-This will run a default Flask development server on http://127.0.0.1:5000. You can provide ``--host`` and ``--port`` as
-command line args and it also respects the Flask environment variables like ``FLASK_ENV=development``. Press ``Ctrl-C`` to terminate
-the server again.
+You can run the REST API server from a command prompt or terminal as follows (this requires Flask>=1.0, so make sure to ``pip install flask``)::
+
+    xlwings api run
+
+Then perform a GET request e.g. via PowerShell on Windows or Terminal on Mac (while having a "Book1" open). Note
+that you need to run the server and the GET request from two separate terminals (or you can use something
+more convenient like `Postman <https://www.getpostman.com/>`_ or `Insomnia <https://insomnia.rest/>`_)::
+
+    $ curl "http://127.0.0.1:5000/book/book1/sheets/0/range/A1?expand=table"
+    {
+      "address": "$A$1",
+      "color": null,
+      "column": 1,
+      "column_width": 10.0,
+      "count": 1,
+      "current_region": "$A$1:$B$2",
+      "formula": "1",
+      "formula_array": "1",
+      "height": 16.0,
+      "last_cell": "$A$1",
+      "left": 0.0,
+      "name": null,
+      "number_format": "General",
+      "row": 1,
+      "row_height": 16.0,
+      "shape": [
+        1,
+        1
+      ],
+      "size": 1,
+      "top": 0.0,
+      "value": [
+        [
+          1.0,
+          2.0
+        ],
+        [
+          3.0,
+          4.0
+        ]
+      ],
+      "width": 65.0
+    }
+
+In the command prompt where your server is running, press ``Ctrl-C`` to shut it down again.
+
+The xlwings REST API is a thin wrapper around the :ref:`Python API <api>` which makes it very easy if
+you have worked previously with xlwings. It also means that the REST API does require the Excel application to be up and
+running which makes it a great choice if the data in your Excel workbook is constantly changing.
+
+.. note::
+    Currently, we only provide the GET methods to read the workbook. If you are also interested in the POST methods
+    to edit the workbook, let us know via GitHub issues.
+
+Run the server
+--------------
+
+``xlwings api run`` will run a Flask development server on http://127.0.0.1:5000. You can provide ``--host`` and ``--port`` as
+command line args and it also respects the Flask environment variables like ``FLASK_ENV=development``.
 
 If you want to have more control, you can just run the server directly with Flask, see the
 `Flask docs <http://flask.pocoo.org/docs/1.0/quickstart/>`_ for more details::
@@ -67,75 +161,78 @@ If you want to have more control, you can just run the server directly with Flas
 
 If you are on Mac, use ``export FLASK_APP=xlwings.rest.api`` instead of ``set FLASK_APP=xlwings.rest.api``.
 
-.. note::
-    Currently, we only provide the GET methods to read the workbook. If you are also interested in the POST methods
-    to edit the workbook, let us know via GitHub issues.
-
 For production, you can use any WSGI HTTP Server like `gunicorn <https://gunicorn.org/>`_ (on Mac) or `waitress
 <https://docs.pylonsproject.org/projects/waitress/en/latest/>`_ (on Mac/Windows) to serve the API. For example,
 with gunicorn you would do: ``gunicorn xlwings.rest.api:api``. Or with waitress::
 
     from xlwings.rest.api import api
     from waitress import serve
-    serve(api, listen='127.0.0.1:5000')
+    serve(wsgiapp, host='0.0.0.0', port=5000)
 
-The xlwings REST API is a thin wrapper around the :ref:`xlwings Object API <api>` which makes it very easy if
-you have worked previously with xlwings. It also means that the REST API does require the Excel application to be up and
-running which makes it a great choice if the data in your Excel workbook is constantly changing.
+Indexing
+--------
 
-To try things out, run ``xlwings restapi run`` from the command line and then paste the base url together with an endpoint
-from below into your web browser or something more convenient like `Postman <https://www.getpostman.com/>`_ or
-`Insomnia <https://insomnia.rest/>`_ (Curl works equally fine).
-As an example, going to http://localhost:5000/apps will give you back all open Excel instances with the workbooks they
-contain.
+While the Python API offers Python's 0-based indexing (e.g. ``xw.books[0]``) as well as Excel's 1-based indexing (e.g. ``xw.books(1)``),
+the REST API only offers 0-based indexing, e.g. ``/books/0``.
+
+Range Options
+-------------
+
+The REST API accepts Range options as query parameters, see :meth:`xlwings.Range.options` e.g.
+
+``/book/book1/sheets/0/range/A1?expand=table&transpose=true``
+
+Remember that ``options`` only affect the ``value`` property.
 
 Endpoint overview
 -----------------
 
-+----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Endpoint | Description                                                                                                                                                     |
-+==========+=================================================================================================================================================================+
-| /book    | Finds your workbook across all open instances of Excel and will open it if it can't find it. It will not work if you have the same workbook open in 2 instances |
-+----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| /books   | Goes against the active instance of Excel                                                                                                                       |
-+----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| /apps    | This allows you to specify the Excel instance you want to work with                                                                                             |
-+----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
++----------------+---------------------+----------------------------------------------------------------------------------------------+
+| Endpoint       | Corresponds to      | Short Description                                                                            |
++================+=====================+==============================================================================================+
+| :ref:`book`    | :ref:`python_book`  | Finds your workbook across all open instances of Excel and will open it if it can't find it  |
++----------------+---------------------+----------------------------------------------------------------------------------------------+
+| :ref:`books`   | :ref:`python_books` | Goes against the active instance of Excel                                                    |
++----------------+---------------------+----------------------------------------------------------------------------------------------+
+| :ref:`apps`    | :ref:`python_apps`  | This allows you to specify the Excel instance you want to work with                          |
++----------------+---------------------+----------------------------------------------------------------------------------------------+
 
 Endpoint details
 ----------------
 
 """
 text.append(intro)
+text.append('')
 
-for url in get_urls:
-    text.append('.. http:get:: ' + url.replace('path:', ''))
-    text.append('')
-    rv = requests.get(BASE_URL +
-                      url.replace('<pid>', str(wb1.app.pid))
-                         .replace('<book_name_or_ix>', wb1.name)
-                         .replace('<chart_name_or_ix>', '0')
-                         .replace('<book_scope_name>', 'myname2')
-                         .replace('<sheet_scope_name>', 'myname1')
-                         .replace('<sheet_name_or_ix>', 'sheet1')
-                         .replace('<shape_name_or_ix>', '0')
-                         .replace('<path:fullname>', wb1.name)
-                         .replace('<picture_name_or_ix>', '0')
-                         .replace('<address>', 'A1:B2')
-                      )
-    text.append('**Example response**:')
-    text.append('')
-    text.append('.. sourcecode:: json')
-    text.append('')
-    for i in rv.text.splitlines():
-        text.append('    ' + i)
-    text.append('')
+text.append('.. _book:')
+text.append('')
+text.append('/book')
+text.append('*****')
+text.append('')
+for url in get_book_urls:
+    text.extend(generate_get_endpoint(url))
 
+text.append('.. _books:')
+text.append('')
+text.append('/books')
+text.append('******')
+text.append('')
+for url in get_books_urls:
+    text.extend(generate_get_endpoint(url))
+
+text.append('.. _apps:')
+text.append('')
+text.append('/apps')
+text.append('*****')
+text.append('')
+for url in get_apps_urls:
+    text.extend(generate_get_endpoint(url))
 
 with open('../docs/rest_api.rst', 'w') as f:
     for line in text:
         f.write(f'{line}\n')
 
-
+wb_path = wb1.fullname
 app1.kill()
 app2.kill()
+os.remove(wb_path)
