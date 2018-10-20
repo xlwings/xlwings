@@ -117,7 +117,8 @@ def get_range(sheet_name_or_ix, book_name_or_ix=None, fullname=None, pid=None):
 def get_range_address(address, sheet_name_or_ix, book_name_or_ix=None, fullname=None, pid=None):
     book = get_book_object(fullname, book_name_or_ix, pid)
     sheet = get_sheet_object(book, sheet_name_or_ix)
-    return jsonify(serialize_range(sheet.range(address)))
+    options = {k: v for k, v in request.args.items()}
+    return jsonify(serialize_range(sheet.range(address).options(**options)))
 
 
 @api.route('/apps/<pid>/books/<book_name_or_ix>/names', methods=['GET'])
