@@ -1,7 +1,7 @@
 import os
+import re
 import datetime as dt
 import subprocess
-import unicodedata
 import struct
 import shutil
 import atexit
@@ -85,7 +85,11 @@ class App(object):
     @property
     def selection(self):
         sheet = self.books.active.sheets.active
-        return Range(sheet, self.xl.selection.get_address())
+        try:
+            # fails if e.g. chart is selected
+            return Range(sheet, self.xl.selection.get_address())
+        except CommandError:
+            return None
 
     def activate(self, steal_focus=False):
         asn = subprocess.check_output(['lsappinfo', 'visibleprocesslist', '-includehidden']).decode('utf-8')
@@ -506,7 +510,8 @@ class Range(object):
     @property
     def formula_array(self):
         if self.xl is not None:
-            return self.xl.formula_array.get()
+            rv = self.xl.formula_array.get()
+            return None if rv == kw.missing_value else rv
 
     @formula_array.setter
     def formula_array(self, value):
@@ -516,7 +521,8 @@ class Range(object):
     @property
     def column_width(self):
         if self.xl is not None:
-            return self.xl.column_width.get()
+            rv = self.xl.column_width.get()
+            return None if rv == kw.missing_value else rv
         else:
             return 0
 
@@ -528,7 +534,8 @@ class Range(object):
     @property
     def row_height(self):
         if self.xl is not None:
-            return self.xl.row_height.get()
+            rv = self.xl.row_height.get()
+            return None if rv == kw.missing_value else rv
         else:
             return 0
 
@@ -562,7 +569,8 @@ class Range(object):
     @property
     def number_format(self):
         if self.xl is not None:
-            return self.xl.number_format.get()
+            rv = self.xl.number_format.get()
+            return None if rv == kw.missing_value else rv
 
     @number_format.setter
     def number_format(self, value):
@@ -1040,13 +1048,10 @@ class Name(object):
 
     @property
     def refers_to_range(self):
-        ref = self.refers_to[1:].split('!')
         book = self.parent if isinstance(self.parent, Book) else self.parent.book
-        # appscript has issues when there are blanks or ' in sheet names (e.g. "foo' bar")
-        sheetname = ref[0]
-        if sheetname.startswith("'") and sheetname.endswith("'"):
-            ref[0] = sheetname[1:-1].replace("''", "'")
-        return Range(Sheet(book, ref[0]), ref[1])
+        external_address = self.xl.reference_range.get_address(external=True)
+        match = re.search(r"\](.*)!(.*)", external_address)
+        return Range(Sheet(book, match.group(1)), match.group(2))
 
 
 class Shapes(Collection):

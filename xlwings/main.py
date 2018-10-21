@@ -250,7 +250,7 @@ class App(object):
 
         .. versionadded:: 0.9.0
         """
-        return Range(impl=self.impl.selection)
+        return Range(impl=self.impl.selection) if self.impl.selection else None
 
     def activate(self, steal_focus=False):
         """
@@ -733,7 +733,7 @@ class Book(object):
 
         .. versionadded:: 0.9.0
         """
-        return Range(impl=self.app.selection.impl)
+        return Range(impl=self.app.selection.impl) if self.app.selection else None
 
     def __repr__(self):
         if not PY3:

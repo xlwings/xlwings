@@ -38,6 +38,7 @@ on **Windows** and **Mac**.
     r_and_julia
     extensions
     troubleshooting
+    rest_api
     api
     license
 

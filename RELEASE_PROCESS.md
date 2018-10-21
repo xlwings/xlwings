@@ -1,13 +1,14 @@
 # Release process
 
+1. If the REST API docs changed: Run `/scripts/build_rest_api_docs.py` and commit the result.
 1. Add release notes to `docs/whatsnew.rst`
 2. [Create a new release](https://github.com/ZoomerAnalytics/xlwings/releases/new) with tag and name (no leading `v`): `x.x.x`
 
    This kicks off the appveyor pipeline that will:
    
-   * Build the dlls, the `xlwings.xlam` and `xlwings.bas` (they depend on the version number) and the Python package
+   * Build the dlls, the `xlwings.xlam`, the standalone files and `xlwings.bas` (they depend on the version number) and the Python package
    * Upload the Python package to pypi and `xlwings.xlam` to the GitHub release page
-   * Trigger a rebuild of xlwings.org so it is updated with latest version/date
+   * Trigger a rebuild of https://www.xlwings.org so it is updated with latest version/date
 
 3. readthedocs.org is triggering a rebuild of the `latest` (i.e. `master`) docs with every commit, but sadly it seems to fail to do so
    for the `stable` version i.e. tagged/released version, so for now login to readthedocs (using GH account) and build

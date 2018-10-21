@@ -314,8 +314,11 @@ class App(object):
 
     @property
     def selection(self):
-        # TODO: selection isn't always a range
-        return Range(xl=self.xl.Selection)
+        try:
+            _ = self.xl.Selection.Address  # Force an exception outside of the retry wrapper if e.g. a chart is selected
+            return Range(xl=self.xl.Selection)
+        except pywintypes.com_error:
+            return None
 
     def activate(self, steal_focus=False):
         # makes the Excel instance the foreground Excel instance,
