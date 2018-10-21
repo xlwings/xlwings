@@ -20,12 +20,12 @@ see :ref:`rest_api` for all the details!
 **Bug Fixes**:
 
 * The current directory is now inserted in front of everything else on the PYTHONPATH (:issue:`958`)
-* Standalone file VBA module was fixed (:issue:`960`)
+* The standalone files had an issue in the VBA module (:issue:`960`)
 
 **Breaking changes**:
 
 * Members of the ``xw.apps`` collection are now accessed by key (=PID) instead of index, e.g.:
-  ``xw.apps[12345]`` instead of ``xw.apps[0]``. The apps collection now also has a new ``xw.apps.keys()`` method. (:issue:`951`)
+  ``xw.apps[12345]`` instead of ``xw.apps[0]``. The apps collection also has a new ``xw.apps.keys()`` method. (:issue:`951`)
 
 v0.12.1 (Oct 7, 2018)
 ---------------------
