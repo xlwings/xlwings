@@ -99,6 +99,7 @@ class TestRangeInstantiation(TestBase):
         self.wb1.sheets[0].range('A1').value = [[1, 2], [1, 2]]
         self.wb1.sheets[0].range('A1').value = [1, 2, 3]
         self.wb1.sheets[0].range('A1').value = [[1, 2, 3]]
+        self.wb1.sheets[0].range('A1').value = []
 
 
 

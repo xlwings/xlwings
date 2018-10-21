@@ -32,7 +32,7 @@ def write(value, rng, options):
     # Don't allow to write lists and tuples as jagged arrays as appscript and pywin32 don't handle that properly
     # This should really be handled in Ensure2DStage, but we'd have to set the original format in the conversion
     # ctx meta as the check should only run for list and tuples
-    if isinstance(value, (list, tuple)) and isinstance(value[0], (list, tuple)) and len(value) > 0:
+    if isinstance(value, (list, tuple)) and len(value) > 0 and isinstance(value[0], (list, tuple)):
         first_row = value[0]
         for row in value:
             if len(first_row) != len(row):
