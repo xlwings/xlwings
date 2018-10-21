@@ -931,6 +931,7 @@ class Sheet(object):
         -------
         xw.Range
 
+
         .. versionadded:: 0.13.0
         """
         return Range(impl=self.impl.used_range)
