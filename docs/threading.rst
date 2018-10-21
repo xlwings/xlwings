@@ -3,7 +3,7 @@
 Threading
 =========
 
-.. versionadded:: 0.12.2
+.. versionadded:: 0.13.0
 
 While xlwings is not technically thread safe, it's still easy to use it in threads as long as you have at least v0.12.2
 and stick to a simple rule: Do not pass xlwings objects to threads. This rule isn't a requirement on macOS, but it's 

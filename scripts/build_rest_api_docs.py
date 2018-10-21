@@ -81,7 +81,9 @@ get_books_urls = sorted(get_books_urls)
 get_book_urls = sorted(get_book_urls)
 
 text = []
-intro = """REST API
+intro = """.. _rest_api:
+
+REST API
 ========
 
 New in v0.13.0

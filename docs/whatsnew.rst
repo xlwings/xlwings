@@ -1,10 +1,31 @@
 What's New
 ==========
 
-v0.X.X (X X, 2018)
-------------------
+v0.13.0 (Oct 22, 2018)
+----------------------
 
-[Enhancement] xlwings can now be used with threading, see the docs: :ref:`threading` (:issue:`759`).
+**Features**:
+
+This release adds a REST API server to xlwings, allowing you to easily expose your workbook over the internet,
+see :ref:`rest_api` for all the details!
+
+**Enhancements**:
+
+* Dynamic arrays are now more robust. Before, they often didn't manage to write everything when there was a lot going on in the workbook (:issue:`880`)
+* Jagged arrays (lists of lists where not all rows are of equal length) now raise an error (:issue:`942`)
+* xlwings can now be used with threading, see the docs: :ref:`threading` (:issue:`759`).
+* [Win] xlwings now enforces pywin32 224 when installing xlwings on Python 3.7 (:issue:`959`)
+* New :any:`xlwings.Sheet.used_range` property (:issue:`112`)
+
+**Bug Fixes**:
+
+* The current directory is now inserted in front of everything else on the PYTHONPATH (:issue:`958`)
+* Standalone file VBA module was fixed (:issue:`960`)
+
+**Breaking changes**:
+
+* Members of the ``xw.apps`` collection are now accessed by key (=PID) instead of index, e.g.:
+  ``xw.apps[12345]`` instead of ``xw.apps[0]``. The apps collection now also has a new ``xw.apps.keys()`` method. (:issue:`951`)
 
 v0.12.1 (Oct 7, 2018)
 ---------------------
