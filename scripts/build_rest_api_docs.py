@@ -94,7 +94,7 @@ when you have a workbook running on a single computer and want to access it from
 build a Linux based web app that can interact with a legacy Excel application while you are in the progress
 of migrating the Excel functionality into your web app (if you need help with that, `give us a shout <https://www.zoomeranalytics.com/contact>`_).
 
-You can run the REST API server from a command prompt or terminal as follows (this requires Flask>=1.0, so make sure to ``pip install flask``)::
+You can run the REST API server from a command prompt or terminal as follows (this requires Flask>=1.0, so make sure to ``pip install Flask``)::
 
     xlwings restapi run
 
@@ -205,7 +205,7 @@ Endpoint overview
 +================+=====================+==============================================================================================+
 | :ref:`book`    | :ref:`python_book`  | Finds your workbook across all open instances of Excel and will open it if it can't find it  |
 +----------------+---------------------+----------------------------------------------------------------------------------------------+
-| :ref:`books`   | :ref:`python_books` | Books collection of the active Excel instance of                                             |
+| :ref:`books`   | :ref:`python_books` | Books collection of the active Excel instance                                                |
 +----------------+---------------------+----------------------------------------------------------------------------------------------+
 | :ref:`apps`    | :ref:`python_apps`  | This allows you to specify the Excel instance you want to work with                          |
 +----------------+---------------------+----------------------------------------------------------------------------------------------+

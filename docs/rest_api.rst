@@ -8,16 +8,16 @@ Quickstart
 
 xlwings offers an easy way to expose an Excel workbook via REST API both on Windows and macOS. This can be useful
 when you have a workbook running on a single computer and want to access it from another computer. Or you can
-build a Linux based web application that can interact with a legacy Excel application while you are in the progress
+build a Linux based web app that can interact with a legacy Excel application while you are in the progress
 of migrating the Excel functionality into your web app (if you need help with that, `give us a shout <https://www.zoomeranalytics.com/contact>`_).
 
-You can run the REST API server from a command prompt or terminal as follows (this requires Flask>=1.0, so make sure to ``pip install flask``)::
+You can run the REST API server from a command prompt or terminal as follows (this requires Flask>=1.0, so make sure to ``pip install Flask``)::
 
-    xlwings api run
+    xlwings restapi run
 
-Then perform a GET request e.g. via PowerShell on Windows or Terminal on Mac (while having a "Book1" open). Note
+Then perform a GET request e.g. via PowerShell on Windows or Terminal on Mac (while having an unsaved "Book1" open). Note
 that you need to run the server and the GET request from two separate terminals (or you can use something
-more convenient like `Postman <https://www.getpostman.com/>`_ or `Insomnia <https://insomnia.rest/>`_)::
+more convenient like `Postman <https://www.getpostman.com/>`_ or `Insomnia <https://insomnia.rest/>`_ for testing the API)::
 
     $ curl "http://127.0.0.1:5000/book/book1/sheets/0/range/A1:B2"
     {
@@ -68,19 +68,21 @@ In the command prompt where your server is running, press ``Ctrl-C`` to shut it 
 
 The xlwings REST API is a thin wrapper around the :ref:`Python API <api>` which makes it very easy if
 you have worked previously with xlwings. It also means that the REST API does require the Excel application to be up and
-running which makes it a great choice if the data in your Excel workbook is constantly changing.
+running which makes it a great choice if the data in your Excel workbook is constantly changing as the REST API will
+always deliver the current state of the workbook without the need of saving it first.
 
 .. note::
     Currently, we only provide the GET methods to read the workbook. If you are also interested in the POST methods
-    to edit the workbook, let us know via GitHub issues.
+    to edit the workbook, let us know via GitHub issues. Some other things will also need improvement, most notably
+    exception handling.
 
 Run the server
 --------------
 
-``xlwings api run`` will run a Flask development server on http://127.0.0.1:5000. You can provide ``--host`` and ``--port`` as
+``xlwings restapi run`` will run a Flask development server on http://127.0.0.1:5000. You can provide ``--host`` and ``--port`` as
 command line args and it also respects the Flask environment variables like ``FLASK_ENV=development``.
 
-If you want to have more control, you can just run the server directly with Flask, see the
+If you want to have more control, you can run the server directly with Flask, see the
 `Flask docs <http://flask.pocoo.org/docs/1.0/quickstart/>`_ for more details::
 
     set FLASK_APP=xlwings.rest.api
@@ -90,11 +92,12 @@ If you are on Mac, use ``export FLASK_APP=xlwings.rest.api`` instead of ``set FL
 
 For production, you can use any WSGI HTTP Server like `gunicorn <https://gunicorn.org/>`_ (on Mac) or `waitress
 <https://docs.pylonsproject.org/projects/waitress/en/latest/>`_ (on Mac/Windows) to serve the API. For example,
-with gunicorn you would do: ``gunicorn xlwings.rest.api:api``. Or with waitress::
+with gunicorn you would do: ``gunicorn xlwings.rest.api:api``. Or with waitress (adjust the host accordingly if
+you want to make the api accessible from outside of localhost)::
 
     from xlwings.rest.api import api
     from waitress import serve
-    serve(wsgiapp, host='0.0.0.0', port=5000)
+    serve(wsgiapp, host='127.0.0.1', port=5000)
 
 Indexing
 --------
@@ -119,7 +122,7 @@ Endpoint overview
 +================+=====================+==============================================================================================+
 | :ref:`book`    | :ref:`python_book`  | Finds your workbook across all open instances of Excel and will open it if it can't find it  |
 +----------------+---------------------+----------------------------------------------------------------------------------------------+
-| :ref:`books`   | :ref:`python_books` | Goes against the active instance of Excel                                                    |
+| :ref:`books`   | :ref:`python_books` | Books collection of the active Excel instance                                                |
 +----------------+---------------------+----------------------------------------------------------------------------------------------+
 | :ref:`apps`    | :ref:`python_apps`  | This allows you to specify the Excel instance you want to work with                          |
 +----------------+---------------------+----------------------------------------------------------------------------------------------+
@@ -141,7 +144,7 @@ Endpoint details
 .. sourcecode:: json
 
     {
-      "app": 9112, 
+      "app": 1104, 
       "fullname": "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
       "name": "Book1.xlsx", 
       "names": [
@@ -438,7 +441,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "43393.7006597222", 
+          "43395.0064583333", 
           ""
         ]
       ], 
@@ -462,7 +465,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "Sat, 20 Oct 2018 16:48:57 GMT", 
+          "Mon, 22 Oct 2018 00:09:18 GMT", 
           null
         ]
       ], 
@@ -488,7 +491,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "43393.7006597222", 
+          "43395.0064583333", 
           ""
         ]
       ], 
@@ -512,7 +515,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "Sat, 20 Oct 2018 16:48:57 GMT", 
+          "Mon, 22 Oct 2018 00:09:18 GMT", 
           null
         ]
       ], 
@@ -566,6 +569,51 @@ Endpoint details
 /books
 ******
 
+.. http:get:: /books
+
+**Example response**:
+
+.. sourcecode:: json
+
+    {
+      "books": [
+        {
+          "app": 1104, 
+          "fullname": "Book1", 
+          "name": "Book1", 
+          "names": [], 
+          "selection": "Sheet2!$A$1", 
+          "sheets": [
+            "Sheet1"
+          ]
+        }, 
+        {
+          "app": 1104, 
+          "fullname": "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
+          "name": "Book1.xlsx", 
+          "names": [
+            "Sheet1!myname1", 
+            "myname2"
+          ], 
+          "selection": "Sheet2!$A$1", 
+          "sheets": [
+            "Sheet1", 
+            "Sheet2"
+          ]
+        }, 
+        {
+          "app": 1104, 
+          "fullname": "Book4", 
+          "name": "Book4", 
+          "names": [], 
+          "selection": "Sheet2!$A$1", 
+          "sheets": [
+            "Sheet1"
+          ]
+        }
+      ]
+    }
+
 .. http:get:: /books/<book_name_or_ix>
 
 **Example response**:
@@ -573,7 +621,7 @@ Endpoint details
 .. sourcecode:: json
 
     {
-      "app": 9112, 
+      "app": 1104, 
       "fullname": "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
       "name": "Book1.xlsx", 
       "names": [
@@ -870,7 +918,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "43393.7006597222", 
+          "43395.0064583333", 
           ""
         ]
       ], 
@@ -894,7 +942,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "Sat, 20 Oct 2018 16:48:57 GMT", 
+          "Mon, 22 Oct 2018 00:09:18 GMT", 
           null
         ]
       ], 
@@ -920,7 +968,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "43393.7006597222", 
+          "43395.0064583333", 
           ""
         ]
       ], 
@@ -944,7 +992,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "Sat, 20 Oct 2018 16:48:57 GMT", 
+          "Mon, 22 Oct 2018 00:09:18 GMT", 
           null
         ]
       ], 
@@ -998,6 +1046,44 @@ Endpoint details
 /apps
 *****
 
+.. http:get:: /apps
+
+**Example response**:
+
+.. sourcecode:: json
+
+    {
+      "apps": [
+        {
+          "books": [
+            "Book1", 
+            "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
+            "Book4"
+          ], 
+          "calculation": "automatic", 
+          "display_alerts": true, 
+          "pid": 1104, 
+          "screen_updating": true, 
+          "selection": "[Book1.xlsx]Sheet2!$A$1", 
+          "version": "16.0", 
+          "visible": true
+        }, 
+        {
+          "books": [
+            "Book2", 
+            "Book5"
+          ], 
+          "calculation": "automatic", 
+          "display_alerts": true, 
+          "pid": 7920, 
+          "screen_updating": true, 
+          "selection": "[Book5]Sheet2!$A$1", 
+          "version": "16.0", 
+          "visible": true
+        }
+      ]
+    }
+
 .. http:get:: /apps/<pid>
 
 **Example response**:
@@ -1012,7 +1098,7 @@ Endpoint details
       ], 
       "calculation": "automatic", 
       "display_alerts": true, 
-      "pid": 9112, 
+      "pid": 1104, 
       "screen_updating": true, 
       "selection": "[Book1.xlsx]Sheet2!$A$1", 
       "version": "16.0", 
@@ -1028,7 +1114,7 @@ Endpoint details
     {
       "books": [
         {
-          "app": 9112, 
+          "app": 1104, 
           "fullname": "Book1", 
           "name": "Book1", 
           "names": [], 
@@ -1038,7 +1124,7 @@ Endpoint details
           ]
         }, 
         {
-          "app": 9112, 
+          "app": 1104, 
           "fullname": "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
           "name": "Book1.xlsx", 
           "names": [
@@ -1052,7 +1138,7 @@ Endpoint details
           ]
         }, 
         {
-          "app": 9112, 
+          "app": 1104, 
           "fullname": "Book4", 
           "name": "Book4", 
           "names": [], 
@@ -1071,7 +1157,7 @@ Endpoint details
 .. sourcecode:: json
 
     {
-      "app": 9112, 
+      "app": 1104, 
       "fullname": "C:\\Users\\felix\\DEV\\xlwings\\scripts\\Book1.xlsx", 
       "name": "Book1.xlsx", 
       "names": [
@@ -1368,7 +1454,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "43393.7006597222", 
+          "43395.0064583333", 
           ""
         ]
       ], 
@@ -1392,7 +1478,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "Sat, 20 Oct 2018 16:48:57 GMT", 
+          "Mon, 22 Oct 2018 00:09:18 GMT", 
           null
         ]
       ], 
@@ -1418,7 +1504,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "43393.7006597222", 
+          "43395.0064583333", 
           ""
         ]
       ], 
@@ -1442,7 +1528,7 @@ Endpoint details
           "a string"
         ], 
         [
-          "Sat, 20 Oct 2018 16:48:57 GMT", 
+          "Mon, 22 Oct 2018 00:09:18 GMT", 
           null
         ]
       ], 
