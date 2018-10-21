@@ -95,7 +95,7 @@ of migrating the Excel functionality into your web app (if you need help with th
 
 You can run the REST API server from a command prompt or terminal as follows (this requires Flask>=1.0, so make sure to ``pip install flask``)::
 
-    xlwings api run
+    xlwings restapi run
 
 Then perform a GET request e.g. via PowerShell on Windows or Terminal on Mac (while having a "Book1" open). Note
 that you need to run the server and the GET request from two separate terminals (or you can use something
@@ -159,7 +159,7 @@ running which makes it a great choice if the data in your Excel workbook is cons
 Run the server
 --------------
 
-``xlwings api run`` will run a Flask development server on http://127.0.0.1:5000. You can provide ``--host`` and ``--port`` as
+``xlwings restapi run`` will run a Flask development server on http://127.0.0.1:5000. You can provide ``--host`` and ``--port`` as
 command line args and it also respects the Flask environment variables like ``FLASK_ENV=development``.
 
 If you want to have more control, you can just run the server directly with Flask, see the

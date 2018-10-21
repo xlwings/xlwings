@@ -102,7 +102,10 @@ def runpython_install(args):
 
 def restapi_run(args):
     import subprocess
-
+    try:
+        import flask
+    except ImportError:
+        sys.exit("To use the xlwings REST API server, you need Flask>=1.0.0 installed.")
     host = args.host
     port = args.port
 
@@ -154,7 +157,7 @@ def main():
         runpython_install_parser.set_defaults(func=runpython_install)
 
     # restapi run
-    restapi_parser = subparsers.add_parser('api',
+    restapi_parser = subparsers.add_parser('restapi',
                                            help='Runs the xlwings REST API via Flask dev server.')
     restapi_subparser = restapi_parser.add_subparsers(dest='subcommand')
     restapi_subparser.required = True
