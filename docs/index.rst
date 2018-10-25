@@ -7,6 +7,7 @@ Python from Excel and vice versa:
 * **Scripting**: Automate/interact with Excel from Python using a syntax close to VBA.
 * **Macros**: Replace VBA macros with clean and powerful Python code.
 * **UDFs**: Write User Defined Functions (UDFs) in Python (Windows only).
+* **REST API**: Expose your Excel workbooks via REST API.
 
 **Numpy arrays** and **Pandas Series/DataFrames** are fully supported. xlwings-powered workbooks are easy to distribute and work
 on **Windows** and **Mac**.
