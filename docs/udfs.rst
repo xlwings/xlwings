@@ -263,3 +263,37 @@ Imported functions can also be used from VBA. For example, for a function return
         Next j
     
     End Sub
+
+
+.. _async_functions:
+
+Asynchronous UDFs
+-----------------
+
+.. versionadded:: v0.14.0
+
+xlwings offers an easy way to write asynchronous functions in Excel. Asynchronous functions return immediately with
+``#N/A waiting...``. While the function is waiting for its return value, you can use Excel to do other stuff and whenever
+the return value is available, the cell value will be updated.
+
+The only available mode is currently ``async='threading'``, meaning that it's useful for I/O-bound tasks, for example when
+you fetch data from an API over the web.
+
+You make a function asynchronous simply by giving it the respective argument in the function decorator. In this example,
+the time consuming I/O-bound task is simulated by using ``time.sleep``::
+
+    import xlwings as xw
+    import time
+
+    @xw.func(async='threading')
+    def myfunction(a):
+        time.sleep(5)  # long running tasks
+        return a
+
+
+
+You can use this function like any other xlwings function, simply by putting ``=myfunction("abcd")`` into a cell
+(after you have imported the function, off course).
+
+Note that xlwings doesn't use the native asynchronous functions that were introduced with Excel 2010, so xlwings
+asynchronous functions are supported with any version of Excel.
