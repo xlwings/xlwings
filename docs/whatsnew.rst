@@ -1,7 +1,7 @@
 What's New
 ==========
 
-v0.14.0 (Nov 4, 2018)
+v0.14.0 (Nov 5, 2018)
 ---------------------
 
 **Features**:
@@ -18,6 +18,10 @@ Making a function asynchronous is as easy as::
         return a
 
 See :ref:`async_functions` for the full docs.
+
+**Bug Fixes**:
+
+* See :issue:`970` and :issue:`973`.
 
 
 v0.13.0 (Oct 22, 2018)
