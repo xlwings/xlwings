@@ -1,6 +1,25 @@
 What's New
 ==========
 
+v0.14.0 (Nov 4, 2018)
+---------------------
+
+**Features**:
+
+This release adds support for asynchronous functions (like all UDF related functionality, this is only available on Windows).
+Making a function asynchronous is as easy as::
+
+    import xlwings as xw
+    import time
+
+    @xw.func(async='threading')
+    def myfunction(a):
+        time.sleep(5)  # long running tasks
+        return a
+
+See :ref:`async_functions` for the full docs.
+
+
 v0.13.0 (Oct 22, 2018)
 ----------------------
 

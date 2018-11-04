@@ -1,19 +1,38 @@
 import os
+import os.path
 import sys
 import re
-import os.path
 import tempfile
 import inspect
 from importlib import import_module
+from threading import Thread
 
 from win32com.client import Dispatch
 
-from . import conversion
+from . import conversion, xlplatform, Range, apps, PY3
 from .utils import VBAWriter
-from . import xlplatform
-from . import Range
 
-from . import PY3
+
+cache = {}
+
+
+class AsyncThread(Thread):
+    def __init__(self, pid, book_name, sheet_name, address, func, args, cache_key):
+        Thread.__init__(self)
+        self.pid = pid
+        self.book = book_name
+        self.sheet = sheet_name
+        self.address = address
+        self.func = func
+        self.args = args
+        self.cache_key = cache_key
+
+    def run(self):
+        cache[self.cache_key] = self.func(*self.args)
+
+        apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula = \
+            apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula
+
 
 if PY3:
     try:
@@ -70,21 +89,22 @@ def get_category(**func_kwargs):
     return "xlwings"  # Default category
 
 
-def should_call_in_wizard(**func_kwargs):
-    if 'call_in_wizard' in func_kwargs:
-        call_in_wizard = func_kwargs.pop('call_in_wizard')
-        if isinstance(call_in_wizard, bool):
-            return call_in_wizard
-        raise Exception('call_in_wizard only takes boolean values ("{0}" provided).'.format(call_in_wizard))
-    return True
+def get_async(**func_kwargs):
+    if 'async' in func_kwargs:
+        async = func_kwargs.pop('async')
+        if async in ['threading']:
+            return async
+        raise Exception('The only supported async mode is currently "threading".')
+    else:
+        return None
 
 
-def check_volatile(**func_kwargs):
-    if 'volatile' in func_kwargs:
-        volatile = func_kwargs.pop('volatile')
-        if isinstance(volatile, bool):
-            return volatile
-        raise Exception('volatile only takes boolean values ("{0}" provided).'.format(volatile))
+def check_bool(kw, **func_kwargs):
+    if kw in func_kwargs:
+        check = func_kwargs.pop(kw)
+        if isinstance(check, bool):
+            return check
+        raise Exception('{0} only takes boolean values. ("{1}" provided).'.format(kw, check))
     return False
 
 
@@ -120,8 +140,9 @@ def xlfunc(f=None, **kwargs):
                 "options": {}
             }
         f.__xlfunc__["category"] = get_category(**kwargs)
-        f.__xlfunc__['call_in_wizard'] = should_call_in_wizard(**kwargs)
-        f.__xlfunc__['volatile'] = check_volatile(**kwargs)
+        f.__xlfunc__['call_in_wizard'] = check_bool('call_in_wizard', **kwargs)
+        f.__xlfunc__['volatile'] = check_bool('volatile', **kwargs)
+        f.__xlfunc__['async'] = get_async(**kwargs)
         return f
     if f is None:
         return inner
@@ -245,7 +266,28 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
             args[i] = conversion.read(None, arg, arg_info['options'])
     if this_workbook:
         xlplatform.BOOK_CALLER = Dispatch(this_workbook)
-    ret = func(*args)
+
+    if func_info['async'] and func_info['async'] == 'threading':
+        xw_caller = Range(impl=xlplatform.Range(xl=caller))
+        key = (func.__name__ + str(args) + str(xw_caller.sheet.book.app.pid) +
+               xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address)
+        cached_value = cache.get(key)
+        if cached_value:
+            del cache[key]
+            ret = cached_value
+        else:
+            # You can't pass pywin32 objects directly to threads
+            thread = AsyncThread(xw_caller.sheet.book.app.pid,
+                                 xw_caller.sheet.book.name,
+                                 xw_caller.sheet.name,
+                                 xw_caller.address,
+                                 func,
+                                 args,
+                                 key)
+            thread.start()
+            return '#N/A waiting...'
+    else:
+        ret = func(*args)
 
     if ret_info['options'].get('expand', None):
         from .server import add_idle_task
