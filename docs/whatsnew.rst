@@ -12,7 +12,7 @@ Making a function asynchronous is as easy as::
     import xlwings as xw
     import time
 
-    @xw.func(async='threading')
+    @xw.func(async_mode='threading')
     def myfunction(a):
         time.sleep(5)  # long running tasks
         return a

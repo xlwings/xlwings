@@ -276,7 +276,7 @@ xlwings offers an easy way to write asynchronous functions in Excel. Asynchronou
 ``#N/A waiting...``. While the function is waiting for its return value, you can use Excel to do other stuff and whenever
 the return value is available, the cell value will be updated.
 
-The only available mode is currently ``async='threading'``, meaning that it's useful for I/O-bound tasks, for example when
+The only available mode is currently ``async_mode='threading'``, meaning that it's useful for I/O-bound tasks, for example when
 you fetch data from an API over the web.
 
 You make a function asynchronous simply by giving it the respective argument in the function decorator. In this example,
@@ -285,7 +285,7 @@ the time consuming I/O-bound task is simulated by using ``time.sleep``::
     import xlwings as xw
     import time
 
-    @xw.func(async='threading')
+    @xw.func(async_mode='threading')
     def myfunction(a):
         time.sleep(5)  # long running tasks
         return a
