@@ -91,9 +91,9 @@ def get_category(**func_kwargs):
 
 def get_async(**func_kwargs):
     if 'async' in func_kwargs:
-        async = func_kwargs.pop('async')
-        if async in ['threading']:
-            return async
+        value = func_kwargs.pop('async')
+        if value in ['threading']:
+            return value
         raise Exception('The only supported async mode is currently "threading".')
     else:
         return None
