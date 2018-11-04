@@ -89,12 +89,12 @@ def get_category(**func_kwargs):
     return "xlwings"  # Default category
 
 
-def get_async(**func_kwargs):
-    if 'async' in func_kwargs:
-        value = func_kwargs.pop('async')
+def get_async_mode(**func_kwargs):
+    if 'async_mode' in func_kwargs:
+        value = func_kwargs.pop('async_mode')
         if value in ['threading']:
             return value
-        raise Exception('The only supported async mode is currently "threading".')
+        raise Exception('The only supported async_mode mode is currently "threading".')
     else:
         return None
 
@@ -142,7 +142,7 @@ def xlfunc(f=None, **kwargs):
         f.__xlfunc__["category"] = get_category(**kwargs)
         f.__xlfunc__['call_in_wizard'] = check_bool('call_in_wizard', **kwargs)
         f.__xlfunc__['volatile'] = check_bool('volatile', **kwargs)
-        f.__xlfunc__['async'] = get_async(**kwargs)
+        f.__xlfunc__['async_mode'] = get_async_mode(**kwargs)
         return f
     if f is None:
         return inner
@@ -267,7 +267,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     if this_workbook:
         xlplatform.BOOK_CALLER = Dispatch(this_workbook)
 
-    if func_info['async'] and func_info['async'] == 'threading':
+    if func_info['async_mode'] and func_info['async_mode'] == 'threading':
         xw_caller = Range(impl=xlplatform.Range(xl=caller))
         key = (func.__name__ + str(args) + str(xw_caller.sheet.book.app.pid) +
                xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address)
