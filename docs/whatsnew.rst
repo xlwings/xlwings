@@ -1,6 +1,15 @@
 What's New
 ==========
 
+v0.14.1 (Nov 8, 2018)
+---------------------
+
+This is a bug fix release:
+
+* [Win] Fixed an issue when the new ``async_mode`` was used together with numpy arrays (:issue:`984`)
+* [Mac] Fixed an issue with multiple arguments in ``RunPython`` (:issue:`905`)
+* [Mac] Fixed an issue with the config file (:issue:`982`)
+
 v0.14.0 (Nov 5, 2018)
 ---------------------
 
