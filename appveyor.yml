@@ -24,7 +24,8 @@ init:
       {
         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_COMMIT.substring(0,7))"
       }
-  - ps: if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
+
+      if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode)  }
 install:
   # Python packages
   - pip install twine
