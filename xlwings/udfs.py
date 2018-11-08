@@ -272,7 +272,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
         key = (func.__name__ + str(args) + str(xw_caller.sheet.book.app.pid) +
                xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address)
         cached_value = cache.get(key)
-        if cached_value:
+        if cached_value is not None:  # test against None as np arrays don't have a truth value
             del cache[key]
             ret = cached_value
         else:
