@@ -1,7 +1,7 @@
 What's New
 ==========
 
-v0.14.2 (Nov 8, 2018)
+v0.14.1 (Nov 9, 2018)
 ---------------------
 
 This is a bug fix release:
