@@ -100,6 +100,19 @@ def runpython_install(args):
     print('Successfully installed RunPython for Mac Excel 2016!')
 
 
+def restapi_run(args):
+    import subprocess
+    try:
+        import flask
+    except ImportError:
+        sys.exit("To use the xlwings REST API server, you need Flask>=1.0.0 installed.")
+    host = args.host
+    port = args.port
+
+    os.environ['FLASK_APP'] = 'xlwings.rest.api'
+    subprocess.check_call(["flask", "run", "--host", host, "--port", port])
+
+
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='command')
@@ -109,7 +122,7 @@ def main():
     addin_parser = subparsers.add_parser('addin', help='xlwings Excel Add-in')
     addin_subparsers = addin_parser.add_subparsers(dest='subcommand')
     addin_subparsers.required = True
-    
+
     addin_install_parser = addin_subparsers.add_parser('install')
     addin_install_parser.set_defaults(func=addin_install)
 
@@ -120,7 +133,7 @@ def main():
     addin_upgrade_parser.set_defaults(func=addin_install)
 
     addin_remove_parser = addin_subparsers.add_parser('remove')
-    addin_remove_parser.set_defaults(func=addin_remove)    
+    addin_remove_parser.set_defaults(func=addin_remove)
 
     addin_uninstall_parser = addin_subparsers.add_parser('uninstall')
     addin_uninstall_parser.set_defaults(func=addin_remove)
@@ -143,8 +156,20 @@ def main():
         runpython_install_parser = runpython_subparser.add_parser('install')
         runpython_install_parser.set_defaults(func=runpython_install)
 
+    # restapi run
+    restapi_parser = subparsers.add_parser('restapi',
+                                           help='Runs the xlwings REST API via Flask dev server.')
+    restapi_subparser = restapi_parser.add_subparsers(dest='subcommand')
+    restapi_subparser.required = True
+
+    restapi_run_parser = restapi_subparser.add_parser('run')
+    restapi_run_parser.add_argument("-host", "--host", default='127.0.0.1', help='The interface to bind to.')
+    restapi_run_parser.add_argument("-p", "--port", default='5000', help='The port to bind to.')
+    restapi_run_parser.set_defaults(func=restapi_run)
+
     args = parser.parse_args()
     args.func(args)
+
 
 if __name__ == '__main__':
     main()

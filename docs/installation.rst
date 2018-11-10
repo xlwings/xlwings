@@ -12,14 +12,9 @@ or conda::
     conda install xlwings
 
 Note that the official ``conda`` package might be few releases behind. You can, however, 
-use the ``conda-forge`` channel (see: https://anaconda.org/conda-forge/xlwings) which should be reasonably up to date (but might still be a few days behind the pip release)::
+use the ``conda-forge`` channel (see: https://anaconda.org/conda-forge/xlwings) which should usually be up to date (but might still be a day or so behind the pip release)::
 
   conda install -c conda-forge xlwings
-
-
-Alternatively, it can be installed from source. From within the ``xlwings`` directory, execute::
-
-    python setup.py install
 
 .. note::
   When you are using Mac Excel 2016 and are installing xlwings with ``conda`` (or use the version that comes with Anaconda),
@@ -31,11 +26,7 @@ Dependencies
 
 * **Windows**: ``pywin32``, ``comtypes``
 
-  On Windows, it is recommended to use one of the scientific Python distributions like
-  `Anaconda <https://store.continuum.io/cshop/anaconda/>`_,
-  `WinPython <https://winpython.github.io/>`_ or
-  `Canopy <https://www.enthought.com/products/canopy/>`_ as they already include pywin32. Otherwise it needs to be
-  installed from `here <http://sourceforge.net/projects/pywin32/files/pywin32/>`_ which can be a hassle.
+  On Windows, the dependencies are automatically being handled if xlwings is installed with ``conda`` or ``pip``.
 
 * **Mac**: ``psutil``, ``appscript``
 

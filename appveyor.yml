@@ -1,0 +1,69 @@
+image: Visual Studio 2015
+
+environment:
+  TWINE_USERNAME: zoomeranalytics
+  TWINE_PASSWORD:
+    secure: oSCJsPDE2f8NMJox4JeOs4MzM9KfH4vYbmwUS5FRCzY=
+  ASPOSE_LICENSE:
+    secure: je1oFjicBTA/L3vv55btbjk101JF7M0IQeGMbMcO3N8=
+  NETLIFY_BUILD_HOOK:
+    secure: wD7nlrlVmbFHGkuDI0k5dbxUNh/fpqd1h1DC/Aq0e+U=
+
+  matrix:
+    - PYTHON: "C:\\Miniconda36-x64"
+
+init:
+  # Set "build version number" to "short-commit-hash" or when tagged to "tag name" (Travis style)
+  - ps: $env:path = "$env:PYTHON;$env:PYTHON\Scripts;$env:path"
+  - ps: >-
+      if ($env:APPVEYOR_REPO_TAG -eq "true")
+      {
+        Update-AppveyorBuild -Version "$env:APPVEYOR_REPO_TAG_NAME"
+      }
+      else
+      {
+        Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_COMMIT.substring(0,7))"
+      }
+install:
+  # Python packages
+  - pip install twine
+  - conda install -c pythonnet pythonnet -y
+  # Download Aspose and decrypt license file
+  - ps:  wget https://www.nuget.org/api/v2/package/Aspose.Cells/17.12.0 -OutFile $env:APPVEYOR_BUILD_FOLDER\aspose.cells.nupkg
+  - 7z x %APPVEYOR_BUILD_FOLDER%\\aspose.cells.nupkg -o%APPVEYOR_BUILD_FOLDER%\\aspose.cells
+  - nuget install secure-file -ExcludeVersion
+  - secure-file\tools\secure-file -decrypt scripts\Aspose.Cells.lic.enc -secret %ASPOSE_LICENSE%
+
+build_script:
+- msbuild src/xlwings.sln /p:Configuration=Release
+- msbuild src/xlwings.sln /p:Configuration=Release /p:Platform=x64
+- cd %APPVEYOR_BUILD_FOLDER% && rename xlwings32.dll xlwings32-%APPVEYOR_BUILD_VERSION%.dll
+- cd %APPVEYOR_BUILD_FOLDER% && rename xlwings64.dll xlwings64-%APPVEYOR_BUILD_VERSION%.dll
+- ps: (Get-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py) | ForEach-Object { $_ -replace "__version__ = 'dev'", "__version__ = '$env:APPVEYOR_BUILD_VERSION'" } | Set-Content $env:APPVEYOR_BUILD_FOLDER\xlwings\__init__.py
+- python scripts/build_excel_files.py
+- python setup.py sdist
+
+artifacts:
+  - path: dist\*
+  - path: xlwings\addin\xlwings.xlam
+
+test_script:
+  # Just attempt to install since the full test suite cannot be run
+  - pip install dist\xlwings-%APPVEYOR_BUILD_VERSION%.tar.gz
+  - python -c "import xlwings"
+
+on_success:
+  - ps: if ($env:APPVEYOR_REPO_TAG -eq $TRUE) { twine upload dist/* }
+  - ps: if ($env:APPVEYOR_REPO_TAG -eq $TRUE) { Invoke-RestMethod -Uri https://api.netlify.com/build_hooks/$env:NETLIFY_BUILD_HOOK -Method 'POST' -Body '' }
+
+deploy:
+- provider: GitHub
+  release: $(APPVEYOR_REPO_TAG_NAME)
+  description: 'v$(APPVEYOR_REPO_TAG_NAME)'
+  auth_token:
+    secure: Zz8c3qkAY2QM49eQ+iqNryTJV/w2/Bv3BWnCiSj1s5FNGNT+hKMU40y8OS0QUdKr
+  artifact: /.*\.xlam/
+  draft: false
+  prerelease: false
+  on:
+    appveyor_repo_tag: true

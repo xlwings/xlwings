@@ -1,4 +1,4 @@
-from .. import func, arg, ret, serve
+from .. import func, arg, ret
 import sqlite3
 
 
@@ -56,6 +56,3 @@ def sql(query, *tables):
         res.append(list(row))
 
     return res
-
-if __name__ == "__main__":
-    serve()

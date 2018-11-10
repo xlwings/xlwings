@@ -1,13 +1,13 @@
-# Modified version from ExcelPython
-# Copyright (C) 2014, ericremoreynolds.
-
+from __future__ import print_function
 # First of all see if we can load PyWin32
 try:
     import _win32sysloader
 except:
     raise Exception("Cannot import PyWin32. Are you sure it's installed?")
+import logging
 import sys
 import os
+import collections
 # Hack to find pythoncom.dll - needed for some distribution/setups
 # E.g. if python is started with the full path outside of the python path, then it almost certainly fails
 cwd = os.getcwd()
@@ -18,7 +18,6 @@ import win32api
 import win32event
 os.chdir(cwd)
 
-import types
 import pythoncom
 import pywintypes
 import win32com.client
@@ -27,6 +26,15 @@ import win32com.server.dispatcher
 import win32com.server.policy
 
 from .udfs import call_udf
+from . import PY3
+
+
+# If no handler is configured, print is used to make the statements show up in the console that opens when using
+# 'python' instead of 'pythonw' as the interpreter
+if not PY3:
+    from . import Logger
+logger = logging.getLogger(__name__)
+
 
 class XLPythonOption(object):
     """ The XLPython class itself """
@@ -113,7 +121,7 @@ class XLPython(object):
 
     def Module(self, module, reload=False):
         vars = {}
-        exec ("import " + module + " as the_module", vars)
+        exec("import " + module + " as the_module", vars)
         m = vars["the_module"]
         if reload:
             m = __builtins__.reload(m)
@@ -185,11 +193,13 @@ class XLPython(object):
         else:
             return ToVariant(getattr(obj, method)(*pargs, **kwargs))
 
-    def CallUDF(self, script, fname, args, this_workbook, caller):
+    def CallUDF(self, script, fname, args, this_workbook=None, caller=None):
         args = tuple(FromVariant(arg) for arg in args)
         res = call_udf(script, fname, args, this_workbook, FromVariant(caller))
-        if isinstance(res, (tuple, list)):
-            res = (res,)
+        if len(res) == 1 and len(res[0]) == 1:
+            res = res[0][0]
+        elif len(res) == 1 and len(res[0]) > 1:
+            res = res[0]
         return res
 
     def Len(self, obj):
@@ -274,10 +284,10 @@ class XLPython(object):
                     raise Exception("Exec can be called with at most 2 dictionary arguments")
             else:
                 pass
-        exec (stmt, globals, locals)
+        exec(stmt, globals, locals)
 
 
-idle_queue = []
+idle_queue = collections.deque()
 idle_queue_event = win32event.CreateEvent(None, 0, 0, None)
 
 
@@ -312,45 +322,51 @@ def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
     pythoncom.EnableQuitMessage(win32api.GetCurrentThreadId())
     pythoncom.CoResumeClassObjects()
 
-    print('xlwings server running, clsid=%s' % clsid)
+    msg = 'xlwings server running, clsid=%s'
+    logger.info(msg, clsid) if logger.hasHandlers() else print(msg % clsid)
 
+    waitables = [idle_queue_event]
     while True:
+        timeout = TIMEOUT if idle_queue else win32event.INFINITE
         rc = win32event.MsgWaitForMultipleObjects(
-            [idle_queue_event],
+            waitables,
             0,
-            win32event.INFINITE,
+            timeout,
             win32event.QS_ALLEVENTS
         )
+        if rc == win32event.WAIT_OBJECT_0 or rc == win32event.WAIT_TIMEOUT:
+            while idle_queue:
+                task = idle_queue.popleft()
+                if not _execute_task(task):
+                    break
 
-        while True:
-            pythoncom.PumpWaitingMessages()
-
-            if not idle_queue:
-                break
-
-            task = idle_queue.pop(0)
-            _execute_task(task)
+        elif rc == win32event.WAIT_OBJECT_0 + len(waitables):
+            if pythoncom.PumpWaitingMessages():
+                break  # wm_quit
 
     pythoncom.CoRevokeClassObject(revokeId)
     pythoncom.CoUninitialize()
 
 
 def _execute_task(task):
+    """ Execute task. Returns False if task must be retried later. """
     try:
         task()
     except Exception as e:
-        if _ask_for_retry(e) and _can_retry(task):
-            print("Retrying TaskQueue '%s'." % task)
-            _execute_task(task)
+        if _ask_for_retry(e):
+            msg = "Retrying TaskQueue '%s'."
+            logger.info(msg, task) if logger.hasHandlers() else print(msg % task)
+            idle_queue.appendleft(task)
+            return False
         else:
             import traceback
-            print("TaskQueue '%s' threw an exception: %s" % (task, traceback.format_exc()))
+            msg = "TaskQueue '%s' threw an exception: %s"
+            logger.error(msg, task, traceback.format_exc()) if logger.hasHandlers() else print(msg % (task, traceback.format_exc()))
+    return True
 
-
-def _can_retry(task):
-    return hasattr(task, 'nb_remaining_call') and task.nb_remaining_call > 0
 
 RPC_E_SERVERCALL_RETRYLATER = -2147418111
+TIMEOUT = 100  # ms
 
 
 def _ask_for_retry(exception):

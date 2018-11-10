@@ -1,8 +1,9 @@
 from __future__ import absolute_import
+from functools import wraps
 import sys
 
 
-__version__ = '0.11.4'
+__version__ = 'dev'
 
 # Python 2 vs 3
 PY3 = sys.version_info[0] == 3
@@ -17,6 +18,24 @@ else:
     xrange = xrange
     from future_builtins import map
     builtins = __builtins__
+
+    from logging import Logger
+    def hasHandlers(self):
+        """
+        logging backport from Python 3.2
+        """
+        c = self
+        rv = False
+        while c:
+            if c.handlers:
+                rv = True
+                break
+            if not c.propagate:
+                break
+            else:
+                c = c.parent
+        return rv
+    Logger.hasHandlers = hasHandlers
 
 # Platform specifics
 if sys.platform.startswith('win'):
@@ -38,17 +57,33 @@ from .main import apps, books, sheets
 if sys.platform.startswith('win'):
     from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, get_udf_module, import_udfs
 else:
-    def func(f):
-        return f
+    def func(f=None, *args, **kwargs):
+        @wraps(f)
+        def inner(f):
+            return f
+        if f is None:
+            return inner
+        else:
+            return inner(f)
 
-    def sub(f):
-        return f
+    def sub(f=None, *args, **kwargs):
+        @wraps(f)
+        def inner(f):
+            return f
+        if f is None:
+            return inner
+        else:
+            return inner(f)
 
-    def ret(f):
-        return f
+    def ret(*args, **kwargs):
+        def inner(f):
+            return f
+        return inner
 
-    def arg(f):
-        return f
+    def arg(*args, **kwargs):
+        def inner(f):
+            return f
+        return inner
 
 
 def xlfunc(*args, **kwargs):

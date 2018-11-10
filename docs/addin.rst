@@ -21,7 +21,13 @@ if you just want to manipulate Excel from Python via xlwings.
 Installation
 ------------
 
-To install the add-in, it's easiest to use the command line client: ``xlwings addin install``.
+To install the add-in, it's easiest to use the command line client: ``xlwings addin install``. Technically, this copies the add-in
+from Python's installation directory to Excel's ``XLSTART`` folder. If you encounter issues, then you can also download the 
+add-in (``xlwings.xlam``) from the `GitHub Release page <https://github.com/ZoomerAnalytics/xlwings/releases>`_
+(make sure you download the same version as the version of the Python package). Once downloaded, you can install the add-in
+by going to ``Developer > Excel Add-in > Browse``. If you don't see ``Developer`` as tab in your ribbon, make sure to
+activate the tab first under ``File > Options > Customize Ribbon`` (Mac: ``Cmd + , > Ribbon & Toolbar``).
+
 
 Then, to use ``RunPython`` or ``UDFs`` in a workbook, you need to set a reference to ``xlwings`` in the VBA editor, see
 screenshot (Windows: ``Tools > References...``, Mac: it's on the lower left corner of the VBA editor). Note that when
@@ -51,8 +57,8 @@ While the defaults will often work out-of-the box, you can change the global set
 
 .. _config_file:
 
-Config File
------------
+Global Config: Ribbon/Config File
+---------------------------------
 
 The settings in the xlwings Ribbon are stored in a config file that can also be manipulated externally. The location is
 
@@ -70,14 +76,21 @@ The format is as follows (keys are uppercase):
 .. note:: Mac Excel 2011 users have to create and edit the config file manually under ``~/.xlwings/xlwings.conf`` as the
     ribbon is not supported.
 
+Workbook Directory Config: Config file
+--------------------------------------
+
+The global settings of the Ribbon/Config file can be overridden for one or more workbooks by creating a ``xlwings.conf`` file
+in the workbook's directory.
+
 .. _addin_wb_settings:
 
-Workbook Settings
------------------
+Workbook Config: xlwings.conf Sheet
+-----------------------------------
 
-The global settings of the Ribbon/Config file can be overridden for each workbook by adding a sheet with the 
-name ``xlwings.conf``. When you create a new project with ``xlwings quickstart``, it'll already have such a sheet
-but you need to rename it to ``xlwings.conf`` to make it active.
+Workbook specific settings will override global (Ribbon) and workbook directory config files: 
+Workbook specific settings are set by listing the config key/value pairs in a sheet with the name ``xlwings.conf``.
+When you create a new project with ``xlwings quickstart``, it'll already have such a sheet but you need to rename
+it to ``xlwings.conf`` to make it active.
 
 
 .. figure:: images/workbook_config.png

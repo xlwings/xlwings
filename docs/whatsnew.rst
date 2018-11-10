@@ -1,6 +1,138 @@
 What's New
 ==========
 
+v0.14.1 (Nov 9, 2018)
+---------------------
+
+This is a bug fix release:
+
+* [Win] Fixed an issue when the new ``async_mode`` was used together with numpy arrays (:issue:`984`)
+* [Mac] Fixed an issue with multiple arguments in ``RunPython`` (:issue:`905`)
+* [Mac] Fixed an issue with the config file (:issue:`982`)
+
+v0.14.0 (Nov 5, 2018)
+---------------------
+
+**Features**:
+
+This release adds support for asynchronous functions (like all UDF related functionality, this is only available on Windows).
+Making a function asynchronous is as easy as::
+
+    import xlwings as xw
+    import time
+
+    @xw.func(async_mode='threading')
+    def myfunction(a):
+        time.sleep(5)  # long running tasks
+        return a
+
+See :ref:`async_functions` for the full docs.
+
+**Bug Fixes**:
+
+* See :issue:`970` and :issue:`973`.
+
+
+v0.13.0 (Oct 22, 2018)
+----------------------
+
+**Features**:
+
+This release adds a REST API server to xlwings, allowing you to easily expose your workbook over the internet,
+see :ref:`rest_api` for all the details!
+
+**Enhancements**:
+
+* Dynamic arrays are now more robust. Before, they often didn't manage to write everything when there was a lot going on in the workbook (:issue:`880`)
+* Jagged arrays (lists of lists where not all rows are of equal length) now raise an error (:issue:`942`)
+* xlwings can now be used with threading, see the docs: :ref:`threading` (:issue:`759`).
+* [Win] xlwings now enforces pywin32 224 when installing xlwings on Python 3.7 (:issue:`959`)
+* New :any:`xlwings.Sheet.used_range` property (:issue:`112`)
+
+**Bug Fixes**:
+
+* The current directory is now inserted in front of everything else on the PYTHONPATH (:issue:`958`)
+* The standalone files had an issue in the VBA module (:issue:`960`)
+
+**Breaking changes**:
+
+* Members of the ``xw.apps`` collection are now accessed by key (=PID) instead of index, e.g.:
+  ``xw.apps[12345]`` instead of ``xw.apps[0]``. The apps collection also has a new ``xw.apps.keys()`` method. (:issue:`951`)
+
+v0.12.1 (Oct 7, 2018)
+---------------------
+
+[Py27] Bug Fix for a Python 2.7 glitch. 
+
+v0.12.0 (Oct 7, 2018)
+---------------------
+
+**Features**:
+
+This release adds support to call Python functions from VBA in all Office apps (e.g. Access, Outlook etc.), not just Excel. As
+this uses UDFs, it is only available on Windows.
+See the docs: :ref:`other_office_apps`. 
+
+
+**Breaking changes**:
+
+Previously, Python functions were always returning 2d arrays when called from VBA, no matter whether it was actually a 2d array or not.
+Now you get the proper dimensionality which makes it easier if the return value is e.g. a string or scalar as you don't have to
+unpack it anymore.
+
+Consider the following example using the VBA Editor's Immediate Window after importing UDFs from a project created
+using by ``xlwings quickstart``:
+
+**Old behaviour** ::
+
+    ?TypeName(hello("xlwings"))
+    Variant()
+    ?hello("xlwings")(0,0)
+    hello xlwings
+
+**New behaviour** ::
+
+    ?TypeName(hello("xlwings"))
+    String
+    ?hello("xlwings")
+    hello xlwings
+
+**Bug Fixes**:
+
+* [Win] Support expansion of environment variables in config values (:issue:`615`)
+* Other bug fixes: :issue:`889`, :issue:`939`, :issue:`940`, :issue:`943`.
+
+v0.11.8 (May 13, 2018)
+----------------------
+
+* [Win] pywin32 is now automatically installed when using pip (:issue:`827`)
+* `xlwings.bas` has been readded to the python package. This facilitates e.g. the use of xlwings within other addins (:issue:`857`)
+
+v0.11.7 (Feb 5, 2018)
+----------------------
+
+* [Win] This release fixes a bug introduced with v0.11.6 that would't allow to open workbooks by name (:issue:`804`)
+
+v0.11.6 (Jan 27, 2018)
+----------------------
+
+Bug Fixes:
+
+* [Win] When constantly writing to a spreadsheet, xlwings now correctly resumes after clicking into cells, previously it was crashing. (:issue:`587`)
+* Options are now correctly applied when writing to a sheet (:issue:`798`)
+
+
+v0.11.5 (Jan 7, 2018)
+---------------------
+
+This is mostly a bug fix release:
+
+* Config files can now additionally be saved in the directory of the workbooks, overriding the global Ribbon config, see :ref:`config_file` (:issue:`772`)
+* Reading Pandas DataFrames with a simple index was creating a MultiIndex with Pandas > 0.20 (:issue:`786`)
+* [Win] The xlwings dlls are now properly versioned, allowing to use pre 0.11 releases in parallel with >0.11 releases (:issue:`743`)
+* [Mac] Sheet.names.add() was always adding the names on workbook level (:issue:`771`)
+* [Mac] UDF decorators now don't cause errors on Mac anymore (:issue:`780`)
+
 v0.11.4 (Jul 23, 2017)
 ----------------------
 
@@ -31,7 +163,7 @@ v0.11.3 (Jul 14, 2017)
 * Bug Fix: When using the ``xlwings.conf`` sheet, there was a subscript out of range error (:issue:`708`)
 * Enhancement: The add-in is now password protected (pw: ``xlwings``) to declutter the VBA editor (:issue:`710`)
 
-You need to update your xlwings add-in to be get the fixes!
+You need to update your xlwings add-in to get the fixes!
 
 
 v0.11.2 (Jul 6, 2017)

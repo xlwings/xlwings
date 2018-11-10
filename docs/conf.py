@@ -74,7 +74,9 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 extensions = ['sphinx.ext.autodoc',
               'sphinxcontrib.napoleon',
               'sphinx.ext.mathjax',
-              'sphinx.ext.extlinks']
+              'sphinx.ext.extlinks',
+              'sphinxcontrib.httpdomain',
+              ]
 
 # autodoc_member_order = 'bysource'
 
@@ -92,7 +94,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'xlwings'
-copyright = u'2014-2016, Zoomer Analytics LLC'
+copyright = u'Zoomer Analytics LLC'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

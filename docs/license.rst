@@ -1,6 +1,9 @@
+License
+=======
+
 xlwings is distributed under a BSD 3-clause license.
 
-Copyright (C) 2014-2018, Zoomer Analytics LLC.
+Copyright (C) Zoomer Analytics LLC.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,

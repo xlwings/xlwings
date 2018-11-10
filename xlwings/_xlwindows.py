@@ -97,7 +97,8 @@ class COMRetryObjectWrapper(object):
             try:
                 return setattr(self._inner, key, value)
             except pywintypes.com_error as e:
-                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult == -2147418111:
+                # -2147352567 is the error you get when clicking into cells
+                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult in [-2147418111, -2147352567]:
                     n_attempt += 1
                     continue
                 else:
@@ -212,6 +213,7 @@ def is_hwnd_xl_app(hwnd):
 
 
 def get_xl_app_from_hwnd(hwnd):
+    pythoncom.CoInitialize()
     child_hwnd = win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None)
     child_hwnd = win32gui.FindWindowEx(child_hwnd, 0, 'EXCEL7', None)
 
@@ -222,7 +224,7 @@ def get_xl_app_from_hwnd(hwnd):
 
 
 def get_excel_hwnds():
-    #win32gui.EnumWindows(lambda hwnd, result_list: result_list.append(hwnd), hwnds)
+    pythoncom.CoInitialize()
     hwnd = windll.user32.GetTopWindow(None)
     pids = set()
     while hwnd:
@@ -236,8 +238,6 @@ def get_excel_hwnds():
                 if pid not in pids:
                     pids.add(pid)
                     yield hwnd
-            #if win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None):
-            #    yield hwnd
         except pywintypes.error:
             pass
 
@@ -265,6 +265,11 @@ def is_range_instance(xl_range):
 
 
 class Apps(object):
+    def keys(self):
+        k = []
+        for hwnd in get_excel_hwnds():
+            k.append(App(xl=hwnd).pid)
+        return k
 
     def __iter__(self):
         for hwnd in get_excel_hwnds():
@@ -273,9 +278,12 @@ class Apps(object):
     def __len__(self):
         return len(list(get_excel_hwnds()))
 
-    def __getitem__(self, index):
-        hwnds = list(get_excel_hwnds())
-        return App(xl=hwnds[index])
+    def __getitem__(self, pid):
+        for hwnd in get_excel_hwnds():
+            app = App(xl=hwnd)
+            if app.pid == pid:
+                return app
+        raise Exception('Could not find an Excel instance with this PID.')
 
 
 class App(object):
@@ -306,8 +314,11 @@ class App(object):
 
     @property
     def selection(self):
-        # TODO: selection isn't always a range
-        return Range(xl=self.xl.Selection)
+        try:
+            _ = self.xl.Selection.Address  # Force an exception outside of the retry wrapper if e.g. a chart is selected
+            return Range(xl=self.xl.Selection)
+        except pywintypes.com_error:
+            return None
 
     def activate(self, steal_focus=False):
         # makes the Excel instance the foreground Excel instance,
@@ -639,6 +650,10 @@ class Sheet(object):
     @property
     def pictures(self):
         return Pictures(xl=self.xl.Pictures())
+
+    @property
+    def used_range(self):
+        return Range(xl=self.xl.UsedRange)
 
 
 class Range(object):
@@ -1022,7 +1037,7 @@ def _datetime_to_com_time(dt_time):
 def prepare_xl_data_element(x):
     if isinstance(x, time_types):
         return _datetime_to_com_time(x)
-    elif np and isinstance(x, np.generic):
+    elif np and isinstance(x, np.number):
         return float(x)
     elif x is None:
         return ""

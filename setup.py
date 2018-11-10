@@ -1,6 +1,7 @@
 import os
 import sys
 import re
+import glob
 from setuptools import setup, find_packages
 
 # long_description: Take from README file
@@ -13,9 +14,13 @@ with open(os.path.join(os.path.dirname(__file__), 'xlwings', '__init__.py')) as 
 
 # Dependencies
 if sys.platform.startswith('win'):
-    install_requires = ['comtypes']
+    if sys.version_info[:2] >= (3, 7):
+        pywin32 = 'pywin32 >= 224'
+    else:
+        pywin32 = 'pywin32'
+    install_requires = ['comtypes', pywin32]
     # This places dlls next to python.exe for standard setup and in the parent folder for virtualenv
-    data_files = [('', ['xlwings32.dll', 'xlwings64.dll'])]
+    data_files = [('', glob.glob('xlwings*.dll'))]
 elif sys.platform.startswith('darwin'):
     install_requires = ['psutil >= 2.0.0', 'appscript >= 1.0.1']
     data_files = [(os.path.expanduser("~") + '/Library/Application Scripts/com.microsoft.Excel', ['xlwings/xlwings.applescript'])]
@@ -42,7 +47,7 @@ setup(
     long_description=readme,
     data_files=data_files,
     packages=find_packages(),
-    package_data={'xlwings': ['tests/*.xlsx', 'tests/*.xlsm', 'tests/*.png',
+    package_data={'xlwings': ['xlwings.bas', 'tests/*.xlsx', 'tests/*.xlsm', 'tests/*.png',
                               '*.xlsm', 'xlwings.applescript',
                               'addin/xlwings.xlam']},
     keywords=['xls', 'excel', 'spreadsheet', 'workbook', 'vba', 'macro'],

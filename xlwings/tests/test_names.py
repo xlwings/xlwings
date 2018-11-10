@@ -90,13 +90,18 @@ class TestNames(TestBase):
         self.assertTrue(self.wb1.names.contains('test1'))
         self.assertFalse(self.wb1.names.contains('test2'))
 
-    def test_names_add(self):
+    def test_wb_names_add(self):
         self.wb1.names.add('test1', '=Sheet1!$A$1:$B$3')
         self.assertEqual(self.wb1.sheets[0].range('A1:B3').name.name, 'test1')
+
+    def test_sht_names_add(self):
+        self.wb1.sheets[0].names.add('test1', '=Sheet1!$A$1:$B$3')
+        self.assertEqual(self.wb1.sheets[0].range('A1:B3').name.name, 'Sheet1!test1')
 
     def test_refers_to_range(self):
         self.wb1.sheets[0].range('B2:D10').name = 'test1'
         self.assertEqual(self.wb1.sheets[0].range('B2:D10').address, self.wb1.sheets[0].range('B2:D10').name.refers_to_range.address)
+
 
 if __name__ == '__main__':
     unittest.main()

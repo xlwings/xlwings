@@ -1,7 +1,7 @@
 import os
+import re
 import datetime as dt
 import subprocess
-import unicodedata
 import struct
 import shutil
 import atexit
@@ -41,6 +41,9 @@ class Apps(object):
                 if pid_info != '"pid"=[ NULL ] \n':
                     yield int(pid_info.split('=')[1])
 
+    def keys(self):
+        return list(self._iter_excel_instances())
+
     def __iter__(self):
         for pid in self._iter_excel_instances():
             yield App(xl=pid)
@@ -48,9 +51,10 @@ class Apps(object):
     def __len__(self):
         return len(list(self._iter_excel_instances()))
 
-    def __getitem__(self, index):
-        pids = list(self._iter_excel_instances())
-        return App(xl=pids[index])
+    def __getitem__(self, pid):
+        if pid not in self.keys():
+            raise Exception('Could not find an Excel instance with this PID.')
+        return App(xl=pid)
 
 
 class App(object):
@@ -81,7 +85,11 @@ class App(object):
     @property
     def selection(self):
         sheet = self.books.active.sheets.active
-        return Range(sheet, self.xl.selection.get_address())
+        try:
+            # fails if e.g. chart is selected
+            return Range(sheet, self.xl.selection.get_address())
+        except CommandError:
+            return None
 
     def activate(self, steal_focus=False):
         asn = subprocess.check_output(['lsappinfo', 'visibleprocesslist', '-includehidden']).decode('utf-8')
@@ -245,7 +253,7 @@ class Book(object):
 
     @property
     def names(self):
-        return Names(book=self, xl=self.xl.named_items)
+        return Names(parent=self, xl=self.xl.named_items)
 
     def activate(self):
         self.xl.activate_object()
@@ -272,7 +280,7 @@ class Sheets(object):
 
     def __iter__(self):
         for i in range(len(self)):
-            yield self(i+1)
+            yield self(i + 1)
 
     def add(self, before=None, after=None):
         if before is None and after is None:
@@ -306,7 +314,7 @@ class Sheet(object):
 
     @property
     def names(self):
-        return Names(book=self.workbook, xl=self.xl.named_items)
+        return Names(parent=self, xl=self.xl.named_items)
 
     @property
     def book(self):
@@ -408,6 +416,10 @@ class Sheet(object):
     def pictures(self):
         return Pictures(self)
 
+    @property
+    def used_range(self):
+        return Range(self, self.xl.used_range.get_address())
+
 
 class Range(object):
 
@@ -419,7 +431,7 @@ class Range(object):
             if nrows and ncols:
                 self.xl = sheet.xl.cells["%s:%s" % (
                     sheet.xl.rows[row].columns[col].get_address(),
-                    sheet.xl.rows[row+nrows-1].columns[col+ncols-1].get_address(),
+                    sheet.xl.rows[row + nrows - 1].columns[col + ncols - 1].get_address(),
                 )]
             else:
                 self.xl = None
@@ -498,7 +510,8 @@ class Range(object):
     @property
     def formula_array(self):
         if self.xl is not None:
-            return self.xl.formula_array.get()
+            rv = self.xl.formula_array.get()
+            return None if rv == kw.missing_value else rv
 
     @formula_array.setter
     def formula_array(self, value):
@@ -508,7 +521,8 @@ class Range(object):
     @property
     def column_width(self):
         if self.xl is not None:
-            return self.xl.column_width.get()
+            rv = self.xl.column_width.get()
+            return None if rv == kw.missing_value else rv
         else:
             return 0
 
@@ -520,7 +534,8 @@ class Range(object):
     @property
     def row_height(self):
         if self.xl is not None:
-            return self.xl.row_height.get()
+            rv = self.xl.row_height.get()
+            return None if rv == kw.missing_value else rv
         else:
             return 0
 
@@ -554,7 +569,8 @@ class Range(object):
     @property
     def number_format(self):
         if self.xl is not None:
-            return self.xl.number_format.get()
+            rv = self.xl.number_format.get()
+            return None if rv == kw.missing_value else rv
 
     @number_format.setter
     def number_format(self, value):
@@ -654,7 +670,7 @@ class Range(object):
         col1 = self.column
         col2 = col1 + self.shape[1] - 1
         return [
-            self.sheet.range((row+i, col1), (row+i, col2))
+            self.sheet.range((row + i, col1), (row + i, col2))
             for i in range(self.shape[0])
         ]
 
@@ -666,7 +682,7 @@ class Range(object):
         sht = self.sheet
         return [
             sht.range((row1, col + i), (row2, col + i))
-            for i in range(self.shape[0])
+            for i in range(self.shape[1])
         ]
 
     def select(self):
@@ -759,7 +775,7 @@ class Collection(object):
 
     def __iter__(self):
         for i in range(len(self)):
-            yield self(i+1)
+            yield self(i + 1)
 
     def __contains__(self, key):
         return self.xl[key].exists()
@@ -975,12 +991,12 @@ class Pictures(Collection):
 
 
 class Names(object):
-    def __init__(self, book, xl):
-        self.book = book
+    def __init__(self, parent, xl):
+        self.parent = parent
         self.xl = xl
 
     def __call__(self, name_or_index):
-        return Name(self.book, xl=self.xl[name_or_index])
+        return Name(self.parent, xl=self.xl[name_or_index])
 
     def contains(self, name_or_index):
         try:
@@ -998,17 +1014,17 @@ class Names(object):
             return len(named_items)
 
     def add(self, name, refers_to):
-        return Name(self.book, self.book.xl.make(at=self.book.xl,
-                                                 new=kw.named_item,
-                                                 with_properties={
-                                                     kw.references: refers_to,
-                                                     kw.name: name
-                                                 }))
+        return Name(self.parent, self.parent.xl.make(at=self.parent.xl,
+                                                     new=kw.named_item,
+                                                     with_properties={
+                                                         kw.references: refers_to,
+                                                         kw.name: name
+                                                     }))
 
 
 class Name(object):
-    def __init__(self, book, xl):
-        self.book = book
+    def __init__(self, parent, xl):
+        self.parent = parent
         self.xl = xl
 
     def delete(self):
@@ -1032,8 +1048,10 @@ class Name(object):
 
     @property
     def refers_to_range(self):
-        ref = self.refers_to[1:].split('!')
-        return Range(Sheet(self.book, ref[0]), ref[1])
+        book = self.parent if isinstance(self.parent, Book) else self.parent.book
+        external_address = self.xl.reference_range.get_address(external=True)
+        match = re.search(r"\](.*)!(.*)", external_address)
+        return Range(Sheet(book, match.group(1)), match.group(2))
 
 
 class Shapes(Collection):
@@ -1120,7 +1138,7 @@ def prepare_xl_data_element(x):
     elif np and isinstance(x, np.datetime64):
         # handle numpy.datetime64
         return np_datetime_to_datetime(x).replace(tzinfo=None)
-    elif np and isinstance(x, np.generic):
+    elif np and isinstance(x, np.number):
         return float(x)
     elif pd and isinstance(x, pd.Timestamp):
         # This transformation seems to be only needed on Python 2.6 (?)
@@ -1253,14 +1271,14 @@ shape_types_k2s = {
     kw.shape_type_auto: 'auto_shape',
     kw.shape_type_callout: 'callout',
     kw.shape_type_canvas: 'canvas',
-    kw.shape_type_chart:  'chart',
+    kw.shape_type_chart: 'chart',
     kw.shape_type_comment: 'comment',
     kw.shape_type_content_application: 'content_app',
     kw.shape_type_diagram: 'diagram',
     kw.shape_type_free_form: 'free_form',
     kw.shape_type_group: 'group',
     kw.shape_type_embedded_OLE_control: 'embedded_ole_object',
-    kw.shape_type_form_control:  'form_control',
+    kw.shape_type_form_control: 'form_control',
     kw.shape_type_line: 'line',
     kw.shape_type_linked_OLE_object: 'linked_ole_object',
     kw.shape_type_linked_picture: 'linked_picture',

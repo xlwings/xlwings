@@ -215,7 +215,7 @@ e.g. ``Application``. Note, however, that currently you're acting directly on th
 
     @xw.func
     @xw.arg('xl_app', vba='Application')
-    def get_caller_address(xl_app)
+    def get_caller_address(xl_app):
         return xl_app.Caller.Address
 
 
@@ -245,7 +245,7 @@ After drawing the button, you will be prompted to assign a macro to it and you c
 Call UDFs from VBA
 ------------------
 
-Imported functions can also be used from VBA. They return a 2d array:
+Imported functions can also be used from VBA. For example, for a function returning a 2d array:
 
 .. code-block:: vb.net
 
@@ -257,9 +257,43 @@ Imported functions can also be used from VBA. They return a 2d array:
         arr = my_imported_function(...)
         
         For j = LBound(arr, 2) To UBound(arr, 2)
-            For lRow = LBound(arr, 1) To UBound(arr, 1)
+            For i = LBound(arr, 1) To UBound(arr, 1)
                 Debug.Print "(" & i & "," & j & ")", arr(i, j)
             Next i
         Next j
     
     End Sub
+
+
+.. _async_functions:
+
+Asynchronous UDFs
+-----------------
+
+.. versionadded:: v0.14.0
+
+xlwings offers an easy way to write asynchronous functions in Excel. Asynchronous functions return immediately with
+``#N/A waiting...``. While the function is waiting for its return value, you can use Excel to do other stuff and whenever
+the return value is available, the cell value will be updated.
+
+The only available mode is currently ``async_mode='threading'``, meaning that it's useful for I/O-bound tasks, for example when
+you fetch data from an API over the web.
+
+You make a function asynchronous simply by giving it the respective argument in the function decorator. In this example,
+the time consuming I/O-bound task is simulated by using ``time.sleep``::
+
+    import xlwings as xw
+    import time
+
+    @xw.func(async_mode='threading')
+    def myfunction(a):
+        time.sleep(5)  # long running tasks
+        return a
+
+
+
+You can use this function like any other xlwings function, simply by putting ``=myfunction("abcd")`` into a cell
+(after you have imported the function, off course).
+
+Note that xlwings doesn't use the native asynchronous functions that were introduced with Excel 2010, so xlwings
+asynchronous functions are supported with any version of Excel.
