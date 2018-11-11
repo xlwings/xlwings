@@ -17,7 +17,7 @@ cache = {}
 
 
 class AsyncThread(Thread):
-    def __init__(self, pid, book_name, sheet_name, address, func, args, cache_key):
+    def __init__(self, pid, book_name, sheet_name, address, func, args, cache_key, expand):
         Thread.__init__(self)
         self.pid = pid
         self.book = book_name
@@ -26,12 +26,17 @@ class AsyncThread(Thread):
         self.func = func
         self.args = args
         self.cache_key = cache_key
+        self.expand = expand
 
     def run(self):
         cache[self.cache_key] = self.func(*self.args)
 
-        apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula = \
-            apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula
+        if self.expand:
+            apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula_array = \
+                apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula_array
+        else:
+            apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula = \
+                apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula
 
 
 if PY3:
@@ -267,10 +272,11 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     if func_info['async_mode'] and func_info['async_mode'] == 'threading':
         xw_caller = Range(impl=xlplatform.Range(xl=caller))
         key = (func.__name__ + str(args) + str(xw_caller.sheet.book.app.pid) +
-               xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address)
+               xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address.split(':')[0])
         cached_value = cache.get(key)
         if cached_value is not None:  # test against None as np arrays don't have a truth value
-            del cache[key]
+            if not ret_info['options'].get('expand'):  # for dynamic arrays, the cache is cleared below
+                del cache[key]
             ret = cached_value
         else:
             # You can't pass pywin32 objects directly to threads
@@ -280,11 +286,26 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
                                  xw_caller.address,
                                  func,
                                  args,
-                                 key)
+                                 key,
+                                 ret_info['options'].get('expand'))
             thread.start()
-            return '#N/A waiting...'
+            return [
+                ["#N/A waiting..." for j in range(xw_caller.columns.count)]
+                for i in range(xw_caller.rows.count)
+            ]
     else:
-        ret = func(*args)
+        if ret_info['options'].get('expand'):
+            xw_caller = Range(impl=xlplatform.Range(xl=caller))
+            key = (func.__name__ + str(args) + str(xw_caller.sheet.book.app.pid) +
+                   xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address.split(':')[0])
+            cached_value = cache.get(key)
+            if cached_value is not None:
+                ret = cached_value
+            else:
+                ret = func(*args)
+                cache[key] = ret
+        else:
+            ret = func(*args)
 
     xl_result = conversion.write(ret, None, ret_info['options'])
 
@@ -302,6 +323,8 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
                 caller,
                 current_size[0] > result_size[0] or current_size[1] > result_size[1]
             ))
+        else:
+            del cache[key]
 
     return xl_result
 
