@@ -240,12 +240,15 @@ def get_udf_module(module_name):
 def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
 
     module = get_udf_module(module_name)
-
     func = getattr(module, func_name)
+    xw_caller = Range(impl=xlplatform.Range(xl=caller))
+    cache_key = (func.__name__ + str(args) + str(xw_caller.sheet.book.app.pid) +
+                 xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address.split(':')[0])
 
     func_info = func.__xlfunc__
     args_info = func_info['args']
     ret_info = func_info['ret']
+    is_dynamic_array = ret_info['options'].get('expand')
 
     writing = func_info.get('writing', None)
     if writing and writing == caller.Address:
@@ -270,13 +273,10 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
         xlplatform.BOOK_CALLER = Dispatch(this_workbook)
 
     if func_info['async_mode'] and func_info['async_mode'] == 'threading':
-        xw_caller = Range(impl=xlplatform.Range(xl=caller))
-        key = (func.__name__ + str(args) + str(xw_caller.sheet.book.app.pid) +
-               xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address.split(':')[0])
-        cached_value = cache.get(key)
+        cached_value = cache.get(cache_key)
         if cached_value is not None:  # test against None as np arrays don't have a truth value
-            if not ret_info['options'].get('expand'):  # for dynamic arrays, the cache is cleared below
-                del cache[key]
+            if not is_dynamic_array:  # for dynamic arrays, the cache is cleared below
+                del cache[cache_key]
             ret = cached_value
         else:
             # You can't pass pywin32 objects directly to threads
@@ -286,30 +286,27 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
                                  xw_caller.address,
                                  func,
                                  args,
-                                 key,
-                                 ret_info['options'].get('expand'))
+                                 cache_key,
+                                 is_dynamic_array)
             thread.start()
             return [
                 ["#N/A waiting..." for j in range(xw_caller.columns.count)]
                 for i in range(xw_caller.rows.count)
             ]
     else:
-        if ret_info['options'].get('expand'):
-            xw_caller = Range(impl=xlplatform.Range(xl=caller))
-            key = (func.__name__ + str(args) + str(xw_caller.sheet.book.app.pid) +
-                   xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address.split(':')[0])
-            cached_value = cache.get(key)
+        if is_dynamic_array:
+            cached_value = cache.get(cache_key)
             if cached_value is not None:
                 ret = cached_value
             else:
                 ret = func(*args)
-                cache[key] = ret
+                cache[cache_key] = ret
         else:
             ret = func(*args)
 
     xl_result = conversion.write(ret, None, ret_info['options'])
 
-    if ret_info['options'].get('expand', None):
+    if is_dynamic_array:
         current_size = (caller.Rows.Count, caller.Columns.Count)
         result_size = (1, 1)
         if type(xl_result) is list:
@@ -324,7 +321,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
                 current_size[0] > result_size[0] or current_size[1] > result_size[1]
             ))
         else:
-            del cache[key]
+            del cache[cache_key]
 
     return xl_result
 
