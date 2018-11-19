@@ -1,6 +1,28 @@
 What's New
 ==========
 
+v0.15.0 (Nov 20, 2018)
+----------------------
+
+**Dynamic Array Refactor**
+
+While we're all waiting for the new native dynamic arrays, it's still going to take another while until the
+majority can use them (they are not yet part of Office 2019).
+
+In the meantime, this refactor improves the current xlwings dynamic arrays in the following way:
+
+* Use of native ("legacy") array formulas instead of having a normal formula in the top left cell and writing around it
+* It's up to 2x faster
+* There's no empty row/col required outside of the dynamic array anymore
+* It continues to overwrite existing cells (no change there)
+* There's a small breaking change in the unlikely case that you were assigning values with the expand option:
+  ``myrange.options(expand='table').value = [['b'] * 3] * 3``. This was previously clearing contiguous cells to
+  the right and bottom (or one of them depending on the option), now you have to do that explicitly.
+
+**Bug Fixes**:
+
+* Importing multiple UDF modules has been fixed (:issue:`991`).
+
 v0.14.1 (Nov 9, 2018)
 ---------------------
 

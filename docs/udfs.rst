@@ -160,6 +160,12 @@ For further details see the :ref:`converters` documentation.
 Dynamic Array Formulas
 ----------------------
 
+.. note::
+    If your version of Excel supports the new native dynamic arrays, then you don't have to do anything special, 
+    and you shouldn't use the ``expand`` decorator! To check if your version of Excel supports it, see if you
+    have the ``=UNIQUE()`` formula available. Native dynamic arrays were introduced in Office 365 Insider Fast
+    at the end of September 2018.
+
 As seen above, to use Excel's array formulas, you need to specify their dimensions up front by selecting the
 result array first, then entering the formula and finally hitting ``Ctrl-Shift-Enter``. While this makes sense from
 a data integrity point of view, in practice, it often turns out to be a cumbersome limitation, especially when working
