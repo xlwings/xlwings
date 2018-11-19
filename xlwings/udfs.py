@@ -17,7 +17,7 @@ cache = {}
 
 
 class AsyncThread(Thread):
-    def __init__(self, pid, book_name, sheet_name, address, func, args, cache_key):
+    def __init__(self, pid, book_name, sheet_name, address, func, args, cache_key, expand):
         Thread.__init__(self)
         self.pid = pid
         self.book = book_name
@@ -26,12 +26,17 @@ class AsyncThread(Thread):
         self.func = func
         self.args = args
         self.cache_key = cache_key
+        self.expand = expand
 
     def run(self):
         cache[self.cache_key] = self.func(*self.args)
 
-        apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula = \
-            apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula
+        if self.expand:
+            apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula_array = \
+                apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula_array
+        else:
+            apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula = \
+                apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula
 
 
 if PY3:
@@ -191,20 +196,17 @@ def xlarg(arg, convert=None, **kwargs):
 udf_modules = {}
 
 
-class DelayWrite(object):
-    def __init__(self, rng, options, value, caller):
-        self.range = rng
-        self.options = options
-        self.value = value
-        self.skip = (caller.Rows.Count, caller.Columns.Count)
+class DelayedResizeDynamicArrayFormula(object):
+    def __init__(self, target_range, caller, needs_clearing):
+        self.target_range = target_range
+        self.caller = caller
+        self.needs_clearing = needs_clearing
 
     def __call__(self, *args, **kwargs):
-        conversion.write(
-            self.value,
-            self.range,
-            conversion.Options(self.options)
-            .override(_skip_tl_cells=self.skip)
-        )
+        formula = self.caller.FormulaArray
+        if self.needs_clearing:
+            self.caller.ClearContents()
+        self.target_range.api.FormulaArray = formula
 
 
 def get_udf_module(module_name):
@@ -238,12 +240,15 @@ def get_udf_module(module_name):
 def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
 
     module = get_udf_module(module_name)
-
     func = getattr(module, func_name)
+    xw_caller = Range(impl=xlplatform.Range(xl=caller))
+    cache_key = (func.__name__ + str(args) + str(xw_caller.sheet.book.app.pid) +
+                 xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address.split(':')[0])
 
     func_info = func.__xlfunc__
     args_info = func_info['args']
     ret_info = func_info['ret']
+    is_dynamic_array = ret_info['options'].get('expand')
 
     writing = func_info.get('writing', None)
     if writing and writing == caller.Address:
@@ -268,12 +273,10 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
         xlplatform.BOOK_CALLER = Dispatch(this_workbook)
 
     if func_info['async_mode'] and func_info['async_mode'] == 'threading':
-        xw_caller = Range(impl=xlplatform.Range(xl=caller))
-        key = (func.__name__ + str(args) + str(xw_caller.sheet.book.app.pid) +
-               xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address)
-        cached_value = cache.get(key)
+        cached_value = cache.get(cache_key)
         if cached_value is not None:  # test against None as np arrays don't have a truth value
-            del cache[key]
+            if not is_dynamic_array:  # for dynamic arrays, the cache is cleared below
+                del cache[cache_key]
             ret = cached_value
         else:
             # You can't pass pywin32 objects directly to threads
@@ -283,17 +286,41 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
                                  xw_caller.address,
                                  func,
                                  args,
-                                 key)
+                                 cache_key,
+                                 is_dynamic_array)
             thread.start()
-            return '#N/A waiting...'
+            return [["#N/A waiting..." * xw_caller.columns.count] * xw_caller.rows.count]
     else:
-        ret = func(*args)
+        if is_dynamic_array:
+            cached_value = cache.get(cache_key)
+            if cached_value is not None:
+                ret = cached_value
+            else:
+                ret = func(*args)
+                cache[cache_key] = ret
+        else:
+            ret = func(*args)
 
-    if ret_info['options'].get('expand', None):
-        from .server import add_idle_task
-        add_idle_task(DelayWrite(Range(impl=xlplatform.Range(xl=caller)), ret_info['options'], ret, caller))
+    xl_result = conversion.write(ret, None, ret_info['options'])
 
-    return conversion.write(ret, None, ret_info['options'])
+    if is_dynamic_array:
+        current_size = (caller.Rows.Count, caller.Columns.Count)
+        result_size = (1, 1)
+        if type(xl_result) is list:
+            result_height = len(xl_result)
+            result_width = result_height and len(xl_result[0])
+            result_size = (max(1, result_height), max(1, result_width))
+        if current_size != result_size:
+            from .server import add_idle_task
+            add_idle_task(DelayedResizeDynamicArrayFormula(
+                Range(impl=xlplatform.Range(xl=caller)).resize(*result_size),
+                caller,
+                current_size[0] > result_size[0] or current_size[1] > result_size[1]
+            ))
+        else:
+            del cache[cache_key]
+
+    return xl_result
 
 
 def generate_vba_wrapper(module_name, module, f):

@@ -35,29 +35,8 @@ class ExpandRangeStage(object):
                 c.range = c.range.expand(self.expand)
 
 
-class ClearExpandedRangeStage(object):
-    def __init__(self, options):
-        self.expand = options.get('expand', None)
-        self.skip = options.get('_skip_tl_cells', None)
-        if self.skip is None:
-            self.skip = (0, 0)
-
-    def __call__(self, ctx):
-        if ctx.range and self.expand:
-            from ..expansion import expanders
-            expander = expanders.get(self.expand, self.expand)
-            vrows = len(ctx.value)
-            vcols = vrows and len(ctx.value[0])
-            expander.clear(
-                ctx.range,
-                skip=self.skip,
-                vshape=(vrows, vcols),
-            )
-
-
 class WriteValueToRangeStage(object):
     def __init__(self, options, raw=False):
-        self.skip = options.get('_skip_tl_cells', None)
         self.raw = raw
 
     def _write_value(self, rng, value, scalar):
@@ -79,16 +58,8 @@ class WriteValueToRangeStage(object):
             scalar = ctx.meta.get('scalar', False)
             if not scalar:
                 ctx.range = ctx.range.resize(len(ctx.value), len(ctx.value[0]))
-            if self.skip:
-                r, c = self.skip
-                if scalar:
-                    self._write_value(ctx.range[:r, c:], ctx.value, True)
-                    self._write_value(ctx.range[r:, :], ctx.value, True)
-                else:
-                    self._write_value(ctx.range[:r, c:], [x[c:] for x in ctx.value[:r]], False)
-                    self._write_value(ctx.range[r:, :], ctx.value[r:], False)
-            else:
-                self._write_value(ctx.range, ctx.value, scalar)
+
+            self._write_value(ctx.range, ctx.value, scalar)
 
 
 class ReadValueFromRangeStage(object):
@@ -235,7 +206,6 @@ class ValueAccessor(Accessor):
         return (
             Pipeline()
             .prepend_stage(WriteValueToRangeStage(options))
-            .prepend_stage(ClearExpandedRangeStage(options), only_if=options.get('expand', None))
             .prepend_stage(CleanDataForWriteStage())
             .prepend_stage(TransposeStage(), only_if=options.get('transpose', False))
             .prepend_stage(Ensure2DStage())
