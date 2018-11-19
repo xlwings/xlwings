@@ -647,67 +647,7 @@ class TestRangeExpansion(TestBase):
 
         rng.value = [['a'] * 5] * 5
 
-        rng.options(expand='table').value = [['b'] * 3] * 3
-
-        self.assertEqual(sht[0:5, 0:5].value, [
-            ['b', 'b', 'b', None, None],
-            ['b', 'b', 'b', None, None],
-            ['b', 'b', 'b', None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-        ])
-
-        rng.value = [['a'] * 5] * 5
-
-        rng.options(expand='table', _skip_tl_cells=(4, 2)).value = [['b'] * 4] * 2
-
-        self.assertEqual(sht[0:5, 0:5].value, [
-            ['a', 'a', 'b', 'b', None],
-            ['a', 'a', 'b', 'b', None],
-            ['a', 'a', None, None, None],
-            ['a', 'a', None, None, None],
-            [None, None, None, None, None],
-        ])
-
-        rng.options(expand='table').value = [['c']]
-
-        self.assertEqual(sht[0:5, 0:5].value, [
-            ['c', None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-        ])
-
-        rng.options(expand='table').value = []
-
-        self.assertEqual(sht[0:5, 0:5].value, [
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-        ])
-
-        rng.options(expand='table').value = []
-
-        self.assertEqual(sht[0:5, 0:5].value, [
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-        ])
-
-        rng.options(expand='table', _skip_tl_cells=(1, 1)).value = [['a'] * 2] * 3
-
-        self.assertEqual(sht[0:5, 0:5].value, [
-            [None, 'a', None, None, None],
-            ['a', 'a', None, None, None],
-            ['a', 'a', None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-        ])
+        self.assertEqual(rng.options(expand='table').value, [['a'] * 5] * 5)
 
     def test_vertical(self):
 
@@ -716,135 +656,16 @@ class TestRangeExpansion(TestBase):
 
         sht[0, 0].value = [['a'] * 3] * 5
 
-        rng.options(expand='down').value = [['b'] * 3] * 3
+        self.assertEqual(rng.options(expand='down').value, [['a'] * 3] * 5)
 
-        self.assertEqual(sht[0:5, 0:5].value, [
-            ['b', 'b', 'b', None, None],
-            ['b', 'b', 'b', None, None],
-            ['b', 'b', 'b', None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-        ])
+    def test_horizontal(self):
+
+        sht = self.wb1.sheets[0]
+        rng = sht[0:5, 0]
 
         sht[0, 0].value = [['a'] * 3] * 5
 
-        rng.options(expand='down', _skip_tl_cells=(2, 3)).value = [['b'] * 3] * 3
-
-        self.assertEqual(sht[0:5, 0:5].value, [
-            ['a', 'a', 'a', None, None],
-            ['a', 'a', 'a', None, None],
-            ['b', 'b', 'b', None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-        ])
-
-        rng.options(expand='down').value = [['c'] * 3]
-
-        self.assertEqual(sht[0:5, 0:5].value, [
-            ['c', 'c', 'c', None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-        ])
-
-        rng.options(expand='table').value = []
-
-        self.assertEqual(sht[0:5, 0:5].value, [
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-        ])
-
-        rng.options(expand='table').value = []
-
-        self.assertEqual(sht[0:5, 0:5].value, [
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-        ])
-
-        rng.options(expand='down', _skip_tl_cells=(1, 1)).value = [['a'] * 2] * 3
-
-        self.assertEqual(sht[0:5, 0:5].value, [
-            [None, 'a', None, None, None],
-            ['a', 'a', None, None, None],
-            ['a', 'a', None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-        ])
-
-    def test_horizontal(self):
-        sht = self.wb1.sheets[0]
-        rng = sht[0:3, 0]
-
-        sht[0, 0].value = [['a'] * 5] * 3
-
-        rng.options(expand='right').value = [['b'] * 3] * 3
-
-        self.assertEqual(sht[0:5, 0:5].value, [
-            ['b', 'b', 'b', None, None],
-            ['b', 'b', 'b', None, None],
-            ['b', 'b', 'b', None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-        ])
-
-        sht[0, 0].value = [['a'] * 5] * 3
-
-        rng.options(expand='right', _skip_tl_cells=(3, 2)).value = [['b'] * 3] * 3
-
-        self.assertEqual(sht[0:5, 0:5].value, [
-            ['a', 'a', 'b', None, None],
-            ['a', 'a', 'b', None, None],
-            ['a', 'a', 'b', None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-        ])
-
-        rng.options(expand='right').value = [['c']] * 3
-
-        self.assertEqual(sht[0:5, 0:5].value, [
-            ['c', None, None, None, None],
-            ['c', None, None, None, None],
-            ['c', None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-        ])
-
-        rng.options(expand='table').value = []
-
-        self.assertEqual(sht[0:5, 0:5].value, [
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-        ])
-
-        rng.options(expand='table').value = []
-
-        self.assertEqual(sht[0:5, 0:5].value, [
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-        ])
-
-        rng.options(expand='right', _skip_tl_cells=(1, 1)).value = [['a'] * 3] * 2
-
-        self.assertEqual(sht[0:5, 0:5].value, [
-            [None, 'a', 'a', None, None],
-            ['a', 'a', 'a', None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-            [None, None, None, None, None],
-        ])
+        self.assertEqual(rng.options(expand='right').value, [['a'] * 3] * 5)
 
 
 if __name__ == '__main__':

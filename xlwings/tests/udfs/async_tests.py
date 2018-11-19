@@ -9,7 +9,7 @@ import pandas as pd
 @xw.arg("m", numbers=int)
 @xw.ret(expand='table')
 def threading(n, m):
-    print('CALLED THREADING FUNCTION')
+    print('1 - CALLED THREADING FUNCTION')
     time.sleep(1)
     return [
         ["%s x %s : %s, %s" % (n, m, i, j) for j in range(m)]
@@ -21,7 +21,7 @@ def threading(n, m):
 @xw.arg("m", numbers=int)
 @xw.ret(expand='table')
 def nothreading(n, m):
-    print('CALLED NOTHREADING FUNCTION')
+    print('2 - CALLED NOTHREADING FUNCTION')
     return [
         ["%s x %s : %s, %s" % (n, m, i, j) for j in range(m)]
         for i in range(n)
@@ -30,13 +30,13 @@ def nothreading(n, m):
 
 @xw.func
 def simple(x):
-    print('CALLED SIMPLE FUNCTION')
+    print('3 - CALLED SIMPLE FUNCTION')
     return x
 
 
 @xw.func(async_mode='threading')
 def simple_threading(x):
-    print('CALLED SIMPLE THREADING FUNCTION')
+    print('4 - CALLED SIMPLE THREADING FUNCTION')
     time.sleep(1)
     return x
 
@@ -46,7 +46,7 @@ def simple_threading(x):
 @xw.arg("j", numbers=int)
 @xw.ret(expand='table')
 def numpy_async(i, j):
-    print('CALLED NUMPY ASYNC FUNCTION')
+    print('5 - CALLED NUMPY ASYNC FUNCTION')
     time.sleep(1)
     return np.arange(i * j).reshape((i, j))
 

@@ -289,10 +289,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
                                  cache_key,
                                  is_dynamic_array)
             thread.start()
-            return [
-                ["#N/A waiting..." for j in range(xw_caller.columns.count)]
-                for i in range(xw_caller.rows.count)
-            ]
+            return [["#N/A waiting..." * xw_caller.columns.count] * xw_caller.rows.count]
     else:
         if is_dynamic_array:
             cached_value = cache.get(cache_key)
