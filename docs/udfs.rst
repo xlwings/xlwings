@@ -167,9 +167,9 @@ Dynamic Array Formulas
     at the end of September 2018.
 
 As seen above, to use Excel's array formulas, you need to specify their dimensions up front by selecting the
-result array first, then entering the formula and finally hitting ``Ctrl-Shift-Enter``. While this makes sense from
-a data integrity point of view, in practice, it often turns out to be a cumbersome limitation, especially when working
-with dynamic arrays such as time series data. Since v0.10, xlwings offers dynamic UDF expansion:
+result array first, then entering the formula and finally hitting ``Ctrl-Shift-Enter``. In practice, it often turns
+out to be a cumbersome process, especially when working with dynamic arrays such as time series data.
+Since v0.10, xlwings offers dynamic UDF expansion:
 
 This is a simple example that demonstrates the syntax and effect of UDF expansion:
 
@@ -189,10 +189,12 @@ This is a simple example that demonstrates the syntax and effect of UDF expansio
   :scale: 40%
 
 .. note::
-    * Expanding array formulas will overwrite cells without prompting and leave an empty border around them, i.e.
-      they will clear the row to the bottom and the column to the right of the array.
-    * The way that dynamic array formulas are currently implemented doesn't allow them to have volatile functions
-      as arguments, e.g. you cannot use functions like ``=TODAY()`` as arguments.
+    * Expanding array formulas will overwrite cells without prompting
+    * Pre v0.15.0 doesn't allow to have volatile functions as arguments, e.g. you cannot use functions like ``=TODAY()`` as arguments.
+      Starting with v0.15.0, you can use volatile functions as input, but the UDF will be called more than 1x.
+    * Dynamic Arrays have been refactored with v0.15.0 to be proper legacy arrays: To edit a dynamic array
+      with xlwings >= v0.15.0, you need to hit ``Ctrl-Shift-Enter`` while in the top left cell. Note that you don't
+      have to do that when you enter the formula for the first time.
 
 Docstrings
 ----------
