@@ -716,5 +716,10 @@ def method_signature_with_more_than_1024_characters(
     return 'splitted signature'
 
 
+@xw.sub
+def mysub(x):
+    wb = xw.Book.caller()
+    wb.sheets['Sub'].range('A3').value = x
+
 if __name__ == "__main__":
     xw.serve()
