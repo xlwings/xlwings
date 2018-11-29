@@ -1,6 +1,13 @@
 What's New
 ==========
 
+v0.15.1 (Nov 29, 2018)
+----------------------
+
+Bug Fix release:
+
+* [Win] Calling Subs or UDFs from VBA was causing an error (:issue:`998`).
+
 v0.15.0 (Nov 20, 2018)
 ----------------------
 
