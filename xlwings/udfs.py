@@ -7,7 +7,7 @@ import inspect
 from importlib import import_module
 from threading import Thread
 
-from win32com.client import Dispatch
+from win32com.client import Dispatch, CDispatch
 
 from . import conversion, xlplatform, Range, apps, PY3
 from .utils import VBAWriter
@@ -241,7 +241,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
 
     module = get_udf_module(module_name)
     func = getattr(module, func_name)
-    if caller:
+    if caller and isinstance(caller, CDispatch):  # currently, cache is only used if caller is Range
         xw_caller = Range(impl=xlplatform.Range(xl=caller))
         cache_key = (func.__name__ + str(args) + str(xw_caller.sheet.book.app.pid) +
                      xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address.split(':')[0])
