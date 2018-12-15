@@ -56,7 +56,7 @@ To make it work, you simply have to fully qualify the cell reference in the thre
         while True:
             cell_ = q.get()
             xw.Book('Book1.xlsx').sheets[0].range(cell_).value = cell_
-            print(address)
+            print(cell_)
             q.task_done()
     
     
