@@ -1,9 +1,12 @@
 .. _threading:
 
-Threading
-=========
+Threading and Multiprocessing
+=============================
 
 .. versionadded:: 0.13.0
+
+Threading
+---------
 
 While xlwings is not technically thread safe, it's still easy to use it in threads as long as you have at least v0.13.0
 and stick to a simple rule: Do not pass xlwings objects to threads. This rule isn't a requirement on macOS, but it's 
@@ -71,3 +74,27 @@ To make it work, you simply have to fully qualify the cell reference in the thre
         q.put(cell)
     
     q.join()
+
+
+Multiprocessing
+---------------
+
+.. note::
+    Multiprocessing is only support on Windows!
+
+The same rules apply to multiprocessing as for threading, here's a working example::
+
+
+    from multiprocessing import Pool
+    import xlwings as xw
+    
+    
+    def write_to_workbook(cell):
+        xw.Book('Book1.xlsx').sheets[0].range(cell).value = cell
+        print(cell)
+    
+    
+    if __name__ == '__main__':
+        with Pool(4) as p:
+            p.map(write_to_workbook,
+                  ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10'])

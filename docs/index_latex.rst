@@ -16,7 +16,7 @@
     debugging
     matplotlib
     converters
-    threading
+    threading_and_multiprocessing
     command_line
     missing_features
     other_office_apps
