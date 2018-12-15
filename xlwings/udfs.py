@@ -237,15 +237,17 @@ def get_udf_module(module_name):
         return module
 
 
+def get_cache_key(func, args, caller):
+    """only use this if function is called from cells, not VBA"""
+    xw_caller = Range(impl=xlplatform.Range(xl=caller))
+    return (func.__name__ + str(args) + str(xw_caller.sheet.book.app.pid) +
+            xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address.split(':')[0])
+
+
 def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
 
     module = get_udf_module(module_name)
     func = getattr(module, func_name)
-    if caller and isinstance(caller, CDispatch):  # currently, cache is only used if caller is Range
-        xw_caller = Range(impl=xlplatform.Range(xl=caller))
-        cache_key = (func.__name__ + str(args) + str(xw_caller.sheet.book.app.pid) +
-                     xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address.split(':')[0])
-
     func_info = func.__xlfunc__
     args_info = func_info['args']
     ret_info = func_info['ret']
@@ -274,6 +276,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
         xlplatform.BOOK_CALLER = Dispatch(this_workbook)
 
     if func_info['async_mode'] and func_info['async_mode'] == 'threading':
+        cache_key = get_cache_key(func, args, caller)
         cached_value = cache.get(cache_key)
         if cached_value is not None:  # test against None as np arrays don't have a truth value
             if not is_dynamic_array:  # for dynamic arrays, the cache is cleared below
@@ -281,6 +284,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
             ret = cached_value
         else:
             # You can't pass pywin32 objects directly to threads
+            xw_caller = Range(impl=xlplatform.Range(xl=caller))
             thread = AsyncThread(xw_caller.sheet.book.app.pid,
                                  xw_caller.sheet.book.name,
                                  xw_caller.sheet.name,
@@ -293,6 +297,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
             return [["#N/A waiting..." * xw_caller.columns.count] * xw_caller.rows.count]
     else:
         if is_dynamic_array:
+            cache_key = get_cache_key(func, args, caller)
             cached_value = cache.get(cache_key)
             if cached_value is not None:
                 ret = cached_value
