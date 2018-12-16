@@ -181,7 +181,7 @@ class App(object):
 
     >>> xw.apps
     Apps([<Excel App 1668>, <Excel App 1644>])
-    >>> xw.apps[0]
+    >>> xw.apps[1668]  # get the available PIDs via xw.apps.keys()
     <Excel App 1668>
     >>> xw.apps.active
     <Excel App 1668>
@@ -236,7 +236,7 @@ class App(object):
         >>> import xlwings as xw
         >>> xw.App().version
         VersionNumber('15.24')
-        >>> xw.apps[0].version.major
+        >>> xw.apps[10559].version.major
         15
 
         .. versionchanged:: 0.9.0
@@ -449,7 +449,7 @@ class Book(object):
     returns an error, should the same book be open in multiple instances.
     To connect to a book in the active app instance, use ``xw.books`` and to refer to a specific app, use:
 
-    >>> app = xw.App()  # or something like xw.apps[0] for existing apps
+    >>> app = xw.App()  # or something like xw.apps[10559] for existing apps, get the PIDs via xw.apps.keys()
     >>> app.books['Book1']
 
     +--------------------+--------------------------------------+--------------------------------------------+
@@ -2718,7 +2718,7 @@ class Books(Collection):
     >>> import xlwings as xw
     >>> xw.books  # active app
     Books([<Book [Book1]>, <Book [Book2]>])
-    >>> xw.apps[0].books  # specific app
+    >>> xw.apps[10559].books  # specific app, get the PIDs via xw.apps.keys()
     Books([<Book [Book1]>, <Book [Book2]>])
 
     .. versionadded:: 0.9.0
@@ -2784,7 +2784,7 @@ class Sheets(Collection):
     >>> import xlwings as xw
     >>> xw.sheets  # active book
     Sheets([<Sheet [Book1]Sheet1>, <Sheet [Book1]Sheet2>])
-    >>> xw.apps[0].books['Book1'].sheets  # specific book
+    >>> xw.Book('Book1').sheets  # specific book
     Sheets([<Sheet [Book1]Sheet1>, <Sheet [Book1]Sheet2>])
 
     .. versionadded:: 0.9.0

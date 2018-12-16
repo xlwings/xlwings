@@ -90,7 +90,7 @@ class TestSheet(TestBase):
             self.wb2.activate()
             self.wb1.sheets['Sheet2'].activate()
             self.assertEqual(self.wb1.sheets.active.name, 'Sheet2')
-            self.assertEqual(xw.apps[0], self.app1)
+            self.assertEqual(xw.apps.keys()[0], self.app1)
             self.wb1.sheets[2].activate()
             self.assertEqual(self.wb1.sheets.active.index, 3)
             self.wb1.sheets(1).activate()

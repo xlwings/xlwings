@@ -44,10 +44,13 @@ Full qualification
 Round brackets follow Excel's behavior (i.e. 1-based indexing), while square brackets use Python's 0-based indexing/slicing.
 As an example, the following expressions all reference the same range::
 
-    xw.apps[0].books[0].sheets[0].range('A1')
-    xw.apps(1).books(1).sheets(1).range('A1')
-    xw.apps[0].books['Book1'].sheets['Sheet1'].range('A1')
-    xw.apps(1).books('Book1').sheets('Sheet1').range('A1')
+    xw.apps[763].books[0].sheets[0].range('A1')
+    xw.apps(10559).books(1).sheets(1).range('A1')
+    xw.apps[763].books['Book1'].sheets['Sheet1'].range('A1')
+    xw.apps(10559).books('Book1').sheets('Sheet1').range('A1')
+
+Note that the apps keys are different for you as they are the process IDs (PID). You can get the list of your PIDs via
+``xw.apps.keys()``.
 
 Range indexing/slicing
 ----------------------
@@ -86,6 +89,6 @@ Object Hierarchy
 The following shows an example of the object hierarchy, i.e. how to get from an app to a range object
 and all the way back:
 
->>> rng = xw.apps[0].books[0].sheets[0].range('A1')
+>>> rng = xw.apps[10559].books[0].sheets[0].range('A1')
 >>> rng.sheet.book.app
-<Excel App 1644>
+<Excel App 10559>
