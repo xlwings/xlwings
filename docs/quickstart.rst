@@ -13,9 +13,10 @@ Establish a connection to a workbook:
     >>> wb = xw.Book('FileName.xlsx')  # connect to an existing file in the current working directory
     >>> wb = xw.Book(r'C:\path\to\file.xlsx')  # on Windows: use raw strings to escape backslashes
 
-If you have the same file open in two instances of Excel, you need to fully qualify it and include the app instance:
+If you have the same file open in two instances of Excel, you need to fully qualify it and include the app instance.
+You will find your app instance key (the PID) via ``xw.apps.keys()``:
 
-    >>> xw.apps[0].books['FileName.xlsx']
+    >>> xw.apps[10559].books['FileName.xlsx']
 
 Instantiate a sheet object:
 
