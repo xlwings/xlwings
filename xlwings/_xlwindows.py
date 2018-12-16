@@ -283,7 +283,7 @@ class Apps(object):
             app = App(xl=hwnd)
             if app.pid == pid:
                 return app
-        raise Exception('Could not find an Excel instance with this PID.')
+        raise KeyError('Could not find an Excel instance with this PID.')
 
 
 class App(object):

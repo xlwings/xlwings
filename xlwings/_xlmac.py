@@ -53,7 +53,7 @@ class Apps(object):
 
     def __getitem__(self, pid):
         if pid not in self.keys():
-            raise Exception('Could not find an Excel instance with this PID.')
+            raise KeyError('Could not find an Excel instance with this PID.')
         return App(xl=pid)
 
 
