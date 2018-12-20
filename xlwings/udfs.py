@@ -212,29 +212,35 @@ class DelayedResizeDynamicArrayFormula(object):
 def get_udf_module(module_name):
     module_info = udf_modules.get(module_name, None)
     if module_info is not None:
-        mtime = os.path.getmtime(module_info['filename'])
         module = module_info['module']
-        if mtime == module_info['filetime']:
-            return module
-        else:
-            module = reload(module)
-            module_info['filetime'] = mtime
-            module_info['module'] = module
-            return module
+        # If filetime is None, it's not reloadable
+        if module_info['filetime'] is not None:
+            mtime = os.path.getmtime(module_info['filename'])
+            if mtime != module_info['filetime']:
+                module = reload(module)
+                module_info['filetime'] = mtime
+                module_info['module'] = module
     else:
         if sys.version_info[:2] < (2, 7):
             # For Python 2.6. we don't handle modules in subpackages
             module = __import__(module_name)
         else:
             module = import_module(module_name)
+
         filename = os.path.normcase(module.__file__.lower())
-        mtime = os.path.getmtime(filename)
+
+        try:  # getmtime fails for zip imports and frozen modules
+            mtime = os.path.getmtime(filename)
+        except OSError:
+            mtime = None
+
         udf_modules[module_name] = {
             'filename': filename,
             'filetime': mtime,
             'module': module
         }
-        return module
+
+    return module
 
 
 def get_cache_key(func, args, caller):
