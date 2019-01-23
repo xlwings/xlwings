@@ -25,5 +25,5 @@ Links
 xltrail
 -------
 
-The Excel add-in is version controlled with `xltrail <https://www.xltrail.com>`_. You can see the diffs on
-https://app.xltrail.com/#/?path=github.com%2FZoomerAnalytics%2Fxlwings.git&branch=master&public=true.
+The Excel add-in is version controlled with `xltrail <https://www.xltrail.com>`_. You can see the diffs
+`here <https://app.xltrail.com/#/?path=github.com%2FZoomerAnalytics%2Fxlwings.git&branch=master&public=true>`_.
