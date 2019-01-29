@@ -104,7 +104,9 @@ class AdjustDimensionsStage(object):
         # the assumption is that value is 2-dimensional at this stage
 
         if self.ndim is None:
-            if len(c.value) == 1:
+            if len(c.value) == 0:
+                c.value = ""
+            elif len(c.value) == 1:
                 c.value = c.value[0][0] if len(c.value[0]) == 1 else c.value[0]
             elif len(c.value[0]) == 1:
                 c.value = [x[0] for x in c.value]
@@ -112,7 +114,9 @@ class AdjustDimensionsStage(object):
                 c.value = c.value
 
         elif self.ndim == 1:
-            if len(c.value) == 1:
+            if len(c.value) == 0:
+                c.value = ""
+            elif len(c.value) == 1:
                 c.value = c.value[0]
             elif len(c.value[0]) == 1:
                 c.value = [x[0] for x in c.value]
