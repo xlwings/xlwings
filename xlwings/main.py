@@ -535,13 +535,22 @@ class Book(object):
 
         .. versionadded:: 0.3.0
         """
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument('args', nargs='*')  # used with RunFrozenPython
+        parser.add_argument('--wb')
+        parser.add_argument('--from_xl')
+        parser.add_argument('--app')
+        parser.add_argument('--hwnd')
+        args = parser.parse_args()
+
         if hasattr(Book, '_mock_caller'):
             # Use mocking Book, see Book.set_mock_caller()
             return cls(impl=Book._mock_caller.impl)
-        elif len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
-            fullname = sys.argv[1].lower()
+        elif args.from_xl== '1':
+            fullname = args.wb.lower()
             if sys.platform.startswith('win'):
-                app = App(impl=xlplatform.App(xl=int(sys.argv[4])))  # hwnd
+                app = App(impl=xlplatform.App(xl=int(args.hwnd)))  # hwnd
                 if not PY3 and isinstance(fullname, str):
                     fullname = fullname.decode('mbcs')
                 return cls(impl=app.books.open(fullname).impl)
