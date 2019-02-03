@@ -4,7 +4,7 @@ What's New
 v0.15.2 (Feb 3, 2019)
 ---------------------
 
-Better support and docs for deployment, See :ref:`deployment`:
+Better support and docs for deployment, see :ref:`deployment`:
 
 * You can now package your python modules into a zip file for easier distribution (:issue:`1016`).
 * ``RunFrozenPython`` now allows to includes arguments, e.g. ``RunFrozenPython C:\path\to\my.exe arg1 arg2`` (:issue:`588`).
