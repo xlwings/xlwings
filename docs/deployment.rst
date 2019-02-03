@@ -39,7 +39,7 @@ Excel workbook, xlwings will automatically find it (similar to how it works with
 
 If you want to use a different directory, make sure to add it to the ``PYTHONPATH`` in your config (Ribbon or config file):
 
-.. code-block:: basic
+.. code-block:: bash
 
-    PYTHONPATH: C:\path\to\myproject.zip
+    PYTHONPATH, "C:\path\to\myproject.zip"
 
