@@ -36,8 +36,9 @@ on **Windows** and **Mac**.
     command_line
     missing_features
     other_office_apps
-    r_and_julia
+    deployment
     extensions
+    r_and_julia
     troubleshooting
     rest_api
     api
