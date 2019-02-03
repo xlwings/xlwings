@@ -535,13 +535,22 @@ class Book(object):
 
         .. versionadded:: 0.3.0
         """
+        wb, from_xl, hwnd = None, None, None
+        for arg in sys.argv:
+            if arg.startswith('--wb='):
+                wb = arg.split('=')[1]
+            elif arg.startswith('--from_xl'):
+                from_xl = arg.split('=')[1]
+            elif arg.startswith('--hwnd'):
+                hwnd = arg.split('=')[1]
+
         if hasattr(Book, '_mock_caller'):
             # Use mocking Book, see Book.set_mock_caller()
             return cls(impl=Book._mock_caller.impl)
-        elif len(sys.argv) > 2 and sys.argv[2] == 'from_xl':
-            fullname = sys.argv[1].lower()
+        elif from_xl== '1':
+            fullname = wb.lower()
             if sys.platform.startswith('win'):
-                app = App(impl=xlplatform.App(xl=int(sys.argv[4])))  # hwnd
+                app = App(impl=xlplatform.App(xl=int(hwnd)))
                 if not PY3 and isinstance(fullname, str):
                     fullname = fullname.decode('mbcs')
                 return cls(impl=app.books.open(fullname).impl)
