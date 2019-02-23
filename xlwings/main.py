@@ -538,16 +538,15 @@ class Book(object):
         wb, from_xl, hwnd = None, None, None
         for arg in sys.argv:
             if arg.startswith('--wb='):
-                wb = arg.split('=')[1]
+                wb = arg.split('=')[1].strip()
             elif arg.startswith('--from_xl'):
-                from_xl = arg.split('=')[1]
+                from_xl = arg.split('=')[1].strip()
             elif arg.startswith('--hwnd'):
-                hwnd = arg.split('=')[1]
-
+                hwnd = arg.split('=')[1].strip()
         if hasattr(Book, '_mock_caller'):
             # Use mocking Book, see Book.set_mock_caller()
             return cls(impl=Book._mock_caller.impl)
-        elif from_xl== '1':
+        elif from_xl == '1':
             fullname = wb.lower()
             if sys.platform.startswith('win'):
                 app = App(impl=xlplatform.App(xl=int(hwnd)))
