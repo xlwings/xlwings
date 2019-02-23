@@ -10,8 +10,7 @@
    * Upload the Python package to pypi and `xlwings.xlam` to the GitHub release page
    * Trigger a rebuild of https://www.xlwings.org so it is updated with latest version/date
 
-3. readthedocs.org is triggering a rebuild of the `latest` (i.e. `master`) docs with every commit, but sadly it seems to fail to do so
-   for the `stable` version i.e. tagged/released version, so for now login to readthedocs (using GH account) and build
+3. readthedocs.org should also trigger a new build automatically (login with GH account)
    the stable version manually.
 4. The [conda-forge](https://github.com/conda-forge/xlwings-feedstock) package seems to automatically
    create a PR these days shortly after uploading the package to pypi, so the only tasks left here is to check back after
