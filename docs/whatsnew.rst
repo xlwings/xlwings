@@ -1,6 +1,14 @@
 What's New
 ==========
 
+v0.15.3 (Feb 23, 2019)
+----------------------
+
+Bug Fix release:
+
+* [Mac] `RunPython` was broken by the previous release (:issue:`1035`)
+* [Win] Sometimes, the ribbon was throwing errors (:issue:`1041`)
+
 v0.15.2 (Feb 3, 2019)
 ---------------------
 
