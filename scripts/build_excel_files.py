@@ -1,5 +1,7 @@
 import os
 import re
+import zipfile
+import tempfile
 
 # pythonnet
 import clr
@@ -67,3 +69,29 @@ for path in [standalone_mac_path, standalone_win_path]:
 # Save standalone as xlwings.bas to be included in python package
 with open(xlwings_bas_path, 'w') as f:
     f.write(standalone_code)
+
+
+# Hack to fix the _rels/.rels file in the built add-in so the ribbon also shows up in Excel 2007
+def update_zip(zipname, filename, data):
+    # generate a temp file
+    tmpfd, tmpname = tempfile.mkstemp(dir=os.path.dirname(zipname))
+    os.close(tmpfd)
+
+    # create a temp copy of the archive without filename
+    with zipfile.ZipFile(zipname, 'r') as zin:
+        with zipfile.ZipFile(tmpname, 'w') as zout:
+            for item in zin.infolist():
+                if item.filename != filename:
+                    zout.writestr(item, zin.read(item.filename))
+
+    # replace with the temp archive
+    os.remove(zipname)
+    os.rename(tmpname, zipname)
+
+    # now add filename with its new data
+    with zipfile.ZipFile(zipname, mode='a', compression=zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr(filename, data)
+
+content = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="R09696ac1de4341b9" Type="http://schemas.microsoft.com/office/2006/relationships/ui/extensibility" Target="customUI/customUI.xml"/></Relationships>'
+update_zip(addin_path, '_rels/.rels', content)
+
