@@ -25,12 +25,11 @@ elif sys.platform.startswith('darwin'):
     install_requires = ['psutil >= 2.0.0', 'appscript >= 1.0.1']
     data_files = [(os.path.expanduser("~") + '/Library/Application Scripts/com.microsoft.Excel', ['xlwings/xlwings.applescript'])]
 else:
-    on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-    if on_rtd:
+    if os.environ.get('READTHEDOCS', None) == 'True' or os.environ.get('INSTALL_ON_LINUX') == '1':
         data_files = []
         install_requires = []
     else:
-        raise OSError("currently only Windows and OSX are supported.")
+        raise OSError("xlwings requires an installation of Excel and therefore only works on Windows and macOS. To enable the installation on Linux nevertheless, do: export INSTALL_ON_LINUX=1; pip install xlwings")
 
 # This shouldn't be necessary anymore as we dropped official support for < 2.7 and < 3.3
 if (sys.version_info[0] == 2 and sys.version_info[:2] < (2, 7)) or (sys.version_info[0] == 3 and sys.version_info[:2] < (3, 2)):
