@@ -1,6 +1,13 @@
 What's New
 ==========
 
+v0.15.4 (Mar 17, 2019)
+----------------------
+
+* [Win] BugFix: The ribbon was not showing up in Excel 2007. (:issue:`1039`)
+* Enhancement: Allow to install xlwings on Linux even though it's not a supported platform: ``export INSTALL_ON_LINUX=1; pip install xlwings`` (:issue:`1052`)
+
+
 v0.15.3 (Feb 23, 2019)
 ----------------------
 
