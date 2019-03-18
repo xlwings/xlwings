@@ -22,7 +22,7 @@ Installation
 ------------
 
 To install the add-in, it's easiest to use the command line client: ``xlwings addin install``. Technically, this copies the add-in
-from Python's installation directory to Excel's ``XLSTART`` folder. If you encounter issues, then you can also download the 
+from Python's installation directory to Excel's ``XLSTART`` folder. If you encounter issues, then you can also download the
 add-in (``xlwings.xlam``) from the `GitHub Release page <https://github.com/ZoomerAnalytics/xlwings/releases>`_
 (make sure you download the same version as the version of the Python package). Once downloaded, you can install the add-in
 by going to ``Developer > Excel Add-in > Browse``. If you don't see ``Developer`` as tab in your ribbon, make sure to
@@ -54,6 +54,9 @@ While the defaults will often work out-of-the box, you can change the global set
 * ``RunPython: Use UDF Server``:  Uses the same COM Server for RunPython as for UDFs. This will be faster, as the
   interpreter doesn't shut down after each call.
 * ``Restart UDF Server``: This shuts down the UDF Server/Python interpreter. It'll be restarted upon the next function call.
+* ``Use Anaconda``: Check this if you are using a named Anaconda environment. see :ref:`anaconda`.
+* ``Activate File``: This is the directory of the activate.bat file within the condabin of your Anaconda.
+* ``Environment Name``: The name of the Anaconda environment you want to activate.
 
 .. _config_file:
 
@@ -62,7 +65,7 @@ Global Config: Ribbon/Config File
 
 The settings in the xlwings Ribbon are stored in a config file that can also be manipulated externally. The location is
 
-* Windows: ``.xlwings\xlwings.conf`` in your user folder  
+* Windows: ``.xlwings\xlwings.conf`` in your user folder
 * Mac Excel 2016: ``~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf``
 # Mac Excel 2011: ``~/.xlwings/xlwings.conf``
 
@@ -87,7 +90,7 @@ in the workbook's directory.
 Workbook Config: xlwings.conf Sheet
 -----------------------------------
 
-Workbook specific settings will override global (Ribbon) and workbook directory config files: 
+Workbook specific settings will override global (Ribbon) and workbook directory config files:
 Workbook specific settings are set by listing the config key/value pairs in a sheet with the name ``xlwings.conf``.
 When you create a new project with ``xlwings quickstart``, it'll already have such a sheet but you need to rename
 it to ``xlwings.conf`` to make it active.
