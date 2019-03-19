@@ -567,7 +567,7 @@ class Book(object):
             # Called via OPTIMIZED_CONNECTION = True
             return cls(impl=xlplatform.Book(xlplatform.BOOK_CALLER))
         else:
-            raise Exception('Workbook.caller() must not be called directly. Call through Excel or set a mock caller '
+            raise Exception('Book.caller() must not be called directly. Call through Excel or set a mock caller '
                             'first with Book.set_mock_caller().')
 
     def set_mock_caller(self):
