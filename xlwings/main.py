@@ -2714,7 +2714,9 @@ class Macro(object):
         self.macro = macro
 
     def run(self, *args):
-        args = [i.api if isinstance(i, Range) else i for i in args]
+        args = [i.api
+                if isinstance(i, (App, Book, Sheet, Range, Shape, Chart, Picture, Name))
+                else i for i in args]
         return self.app.impl.run(self.macro, args)
 
     __call__ = run
