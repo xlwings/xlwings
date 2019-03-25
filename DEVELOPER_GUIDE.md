@@ -11,7 +11,6 @@ The source for the Python package is in the `xlwings` directory.
    but runs from your cloned source code, i.e. you can edit/debug the xlwings code.
 5. Install the optional dependencies according to your platform with: `pip install -r requirements/devwin.txt` or `.../devmac.txt`
 
-
 ## Addin
 
 Install the addin in Excel by going to `Developer` > `Excel Add-in` > `Browse` and pointing to the addin in the source code,
@@ -35,3 +34,10 @@ installation and not to the Python installation!
 If you ever need to change the C++ source, then download Visual Studio Community 2015 to open and compile the 
 project there.
 
+## Tests
+
+Run `nosetests` from the `xlwings` dir, see also `runtests.py`, but this is also outdated and might be replaced
+by something like `tox` again now that numpy/pandas are available as wheels via pypi.
+The tests are currently very slow. They were OK with older versions of Excel but they have to be rewritten
+to run reasonably fast (i.e. not always open/close the whole workbook).
+Also, the tests are standard unittests, so `nose` is not really required to run them.

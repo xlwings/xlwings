@@ -5,3 +5,4 @@ appscript
 psutil
 flask
 pillow
+nose

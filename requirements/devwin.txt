@@ -5,3 +5,4 @@ pywin32
 comtypes
 flask
 pillow
+nose
