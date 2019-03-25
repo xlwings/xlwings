@@ -668,5 +668,15 @@ class TestRangeExpansion(TestBase):
         self.assertEqual(rng.options(expand='right').value, [['a'] * 3] * 5)
 
 
+class TestCellErrors(TestBase):
+    def test_cell_erros(self):
+        wb = xw.Book('cell_errors.xlsx')
+        sheet = wb.sheets[0]
+
+        for i in range(1, 8):
+            self.assertIsNone(sheet.range((i, 1)).value)
+        wb.close()
+
+
 if __name__ == '__main__':
     unittest.main()

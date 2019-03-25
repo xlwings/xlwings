@@ -1108,7 +1108,7 @@ def is_excel_running():
 
 
 def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
-    if value == '':
+    if value == '' or value == kw.missing_value:
         return empty_as
     if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:
         value = datetime_builder(
