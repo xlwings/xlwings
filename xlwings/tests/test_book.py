@@ -114,8 +114,11 @@ class TestBook(TestBase):
         test2 = wb.macro('Module1.Test2')
         test3 = wb.macro('Module1.Test3')
         test4 = wb.macro('Test4')
+        test5 = wb.macro('Test5')
 
         res1 = test1('Test1a', 'Test1b')
+
+        self.wb1.sheets[0].range('A7').value = 'range test'
 
         self.assertEqual(res1, 1)
         self.assertEqual(test2(), 2)
@@ -127,6 +130,10 @@ class TestBook(TestBase):
         self.assertEqual(wb.sheets[0].range('A4').value, 'Test3a')
         self.assertEqual(wb.sheets[0].range('A5').value, 'Test3b')
         self.assertEqual(wb.sheets[0].range('A6').value, 'Test4')
+        test5(self.wb1.sheets[0].range('A7'))
+        self.assertEqual(wb.sheets[0].range('A8').value, 'range test')
+        test5(self.wb1.sheets[0].range('A7').api)
+        self.assertEqual(wb.sheets[0].range('A8').value, 'range test')
 
     def test_name(self):
         wb = self.app1.books.open(os.path.join(this_dir, 'test book.xlsx'))
