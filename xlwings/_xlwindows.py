@@ -933,12 +933,14 @@ def clean_value_data(data, datetime_builder, empty_as, number_builder):
         return [
             [
                 _com_time_to_datetime(c, datetime_builder)
-                if isinstance(c, time_types) else
-                number_builder(c)
-                if type(c) == float else
-                empty_as
-                if c is None else
-                c
+                if isinstance(c, time_types)
+                else number_builder(c)
+                if type(c) == float
+                else empty_as
+                # #DIV/0!, #N/A, #NAME?, #NULL!, #NUM!, #REF!, #VALUE!
+                if c is None or (isinstance(c, int) and c in [-2146826281, -2146826246, -2146826259,
+                                                              -2146826288, -2146826252, -2146826265, -2146826273])
+                else c
                 for c in row
             ]
             for row in data
@@ -949,7 +951,8 @@ def clean_value_data(data, datetime_builder, empty_as, number_builder):
                 _com_time_to_datetime(c, datetime_builder)
                 if isinstance(c, time_types)
                 else empty_as
-                if c is None
+                if c is None or (isinstance(c, int) and c in [-2146826281, -2146826246, -2146826259,
+                                                              -2146826288, -2146826252, -2146826265, -2146826273])
                 else c
                 for c in row
             ]
