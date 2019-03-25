@@ -1,6 +1,17 @@
 What's New
 ==========
 
+v0.15.5 (Mar 25, 2019)
+----------------------
+
+* [Enhancement] ``wb.macro()`` now accepts xlwings objects as arguments such as ``range``, ``sheet`` etc. when the VBA macro expects the corresponding Excel object (e.g. ``Range``, ``Worksheet`` etc.) (:issue:`784` and :issue:`1084`)
+
+**Breaking Change:**
+
+* Cells that contain a cell error such as ``#DIV/0!``, ``#N/A``, ``#NAME?``, ``#NULL!``, ``#NUM!``, ``#REF!``, ``#VALUE!`` return now 
+  ``None`` as value in Python. Previously they were returned as constant on Windows (e.g. ``-2146826246``) or ``k.missing_value`` on Mac.
+
+
 v0.15.4 (Mar 17, 2019)
 ----------------------
 
