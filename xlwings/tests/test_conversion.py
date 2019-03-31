@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import sys
 import datetime as dt
 import unittest
+from collections import OrderedDict
 
 import pytz
 
@@ -31,6 +32,11 @@ class TestConverter(TestBase):
         d = {'a': 1., 'b': 2.}
         self.wb1.sheets[0].range('A1').value = d
         self.assertEqual(d, self.wb1.sheets[0].range('A1:B2').options(dict).value)
+
+    def test_ordereddictionary(self):
+        d = OrderedDict({'a': 1., 'b': 2.})
+        self.wb1.sheets[0].range('A1').value = d
+        self.assertEqual(d, self.wb1.sheets[0].range('A1:B2').options(OrderedDict).value)
 
     def test_integers(self):
         """test_integers: Covers GH 227"""

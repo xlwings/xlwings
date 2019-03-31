@@ -6,6 +6,7 @@ from .. import xlplatform
 from ..main import Range
 
 import datetime
+from collections import OrderedDict
 
 try:
     import numpy as np
@@ -243,3 +244,29 @@ class DictConverter(Converter):
 
 
 DictConverter.register(dict)
+
+
+class OrderedDictConverter(Converter):
+
+    writes_types = OrderedDict
+
+    @classmethod
+    def base_reader(cls, options):
+        return (
+            super(OrderedDictConverter, cls).base_reader(
+                Options(options)
+                .override(ndim=2)
+            )
+        )
+
+    @classmethod
+    def read_value(cls, value, options):
+        assert not value or len(value[0]) == 2
+        return OrderedDict(value)
+
+    @classmethod
+    def write_value(cls, value, options):
+        return list(value.items())
+
+
+OrderedDictConverter.register(OrderedDict)
