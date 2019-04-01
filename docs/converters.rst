@@ -181,6 +181,8 @@ The dictionary converter turns two Excel columns into a dictionary. If the data 
     >>> sht.range('A4:B5').options(dict, transpose=True).value
     {'a': 1.0, 'b': 2.0}
 
+Note: instead of ``dict``, you can also use ``OrderedDict`` from ``collections``.
+
 Numpy array converter
 *********************
 
