@@ -1,0 +1,36 @@
+import xlwings as xw
+import os
+import pandas as pd
+
+# exports a range to a csv file
+@xw.func
+@xw.arg('x',pd.DataFrame,index=False)
+def export_to_csv(x,types=None):
+    
+    if types is not None:
+        for col,typ in zip(x.columns.values,types):
+            if typ == "strint":
+                x[col] = x[col].apply(lambda vl: str(int(vl)))
+            elif typ == "str":
+                x[col] = x[col].apply(str)
+            elif typ == "int":
+                x[col] = x[col].apply(int)
+            
+        
+    path_book = xw.books.active.fullname 
+    folder,name_book = os.path.split(path_book)
+    exports_folder = os.path.join(folder,'exports') 
+    
+    if not os.path.exists(exports_folder):
+        os.makedirs(exports_folder)
+    
+    file_name = name_book[:name_book.rfind('.')]
+    
+    sheet = xw.books.active.sheets.active.name 
+    out_name = file_name + '_' + sheet +'.csv'
+    
+    path_out = os.path.join(exports_folder,out_name)
+    
+    x.to_csv(path_out,index=False)
+    
+    return exports_folder
