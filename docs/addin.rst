@@ -41,10 +41,15 @@ Global Settings
 
 While the defaults will often work out-of-the box, you can change the global settings directly in the add-in:
 
-* ``Interpreter``: This is the path to the Python interpreter (works also with virtual or conda envs),
-  e.g. ``"C:\Python35\pythonw.exe"`` or ``"/usr/local/bin/python3.5"``. An empty field defaults to ``pythonw`` that
+* ``Interpreter``: This is the path to the Python interpreter. This works also with virtual or conda envs on Mac.
+  If you use conda envs on Windows, then use ``Conda Base`` and ``Conda Env`` below instead. Examples:
+  ``"C:\Python35\pythonw.exe"`` or ``"/usr/local/bin/python3.5"``. An empty field defaults to ``pythonw`` that
   expects the interpreter to be set in the ``PATH`` on Windows or ``.bash_profile`` on Mac.
 * ``PYTHONPATH``: If the source file of your code is not found, add the path here.
+* ``Conda Base``: If you are on Windows and use a conda env, then type here the base name of your Anaconda or Miniconda
+  installation, e.g. ``C:\Users\Username\Miniconda3``. NOTE that you need at least conda 4.6!
+* ``Conda Env``: If you are on Windows and use a conda env, then type here the name of your conda env, e.g. ``myenv``. Note
+  that this requires you to either leave the ``Interpreter`` blank or set it to ``python`` or ``pythonw``.
 * ``UDF_MODULES``: Names of Python modules (without .py extension) from which the UDFs are being imported.
   Separate multiple modules by ";".
   Example: ``UDF_MODULES = "common_udfs;myproject"``
