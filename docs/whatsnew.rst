@@ -1,7 +1,7 @@
 What's New
 ==========
 
-v0.15.6 (Apr 28, 2019)
+v0.15.6 (Apr 29, 2019)
 ----------------------
 
 * [Feature] New default converter for ``OrderedDict`` (:issue:`1068`).
