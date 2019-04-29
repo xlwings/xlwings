@@ -1,6 +1,21 @@
 What's New
 ==========
 
+v0.15.6 (Apr 28, 2019)
+----------------------
+
+* [Feature] New default converter for ``OrderedDict`` (:issue:`1068`).
+* [Enhancement] ``Import Functions`` now restarts the UDF server to guarantee a clean state after importing. (:issue:`1092`)
+* [Enhancement] The ribbon now shows tooltips on Windows (:issue:`1093`)
+* [Bug Fix] RunPython now properly supports conda environments on Windows (they started to require proper activation
+  with packages like numpy etc). Conda >=4.6. required. A fix for UDFs is still pending (:issue:`954`).
+
+**Breaking Change:**
+
+* [Bug Fix] ``RunFronzenPython`` now accepts spaces in the path of the executable, but in turn requires to be called
+  with command line arguments as a separate VBA argument.
+  Example: ``RunFrozenPython "C:\path\to\frozen_executable.exe", "arg1 arg2"`` (:issue:`1063`).
+
 v0.15.5 (Mar 25, 2019)
 ----------------------
 
