@@ -18,8 +18,8 @@ Links
 * Homepage: https://www.xlwings.org
 * Quickstart: https://docs.xlwings.org/en/stable/quickstart.html
 * Documentation: https://docs.xlwings.org
-* Video Course: https://training.zoomeranalytics.com/p/xlwings
-* Source Code: https://github.com/zoomeranalytics/xlwings
+* Video Course: https://training.xlwings.org/p/xlwings
+* Source Code: https://github.com/xlwings/xlwings
 
 
 xltrail
