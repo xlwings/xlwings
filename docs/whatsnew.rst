@@ -1,6 +1,15 @@
 What's New
 ==========
 
+v0.15.7 (May 5, 2019)
+----------------------
+
+* [Bug Fix] ``Conda Base`` and ``Conda Env`` weren't stored correctly in the config file from the ribbon (:issue:`1090`).
+* [Bug Fix] UDFs now work correctly with ``Conda Base`` and ``Conda Env``. Note, however, that currently there is no
+  way to hide the command prompt in that configuration (:issue:`1090`).
+* [Enhancement] ``Restart UDF Server`` now actually does what it says: it stops and restarts the server. Previously
+  it was only stopping the server and only when the first call to Python was made, it was started again (:issue:`1096`).
+
 v0.15.6 (Apr 29, 2019)
 ----------------------
 
