@@ -10,7 +10,7 @@
    * Upload the Python package to pypi and `xlwings.xlam` to the GitHub release page
    * Trigger a rebuild of https://www.xlwings.org so it is updated with latest version/date
 
-3. readthedocs.org should also trigger a new build automatically (login with GH account)
-4. The [conda-forge](https://github.com/conda-forge/xlwings-feedstock) package seems to automatically
-   create a PR these days shortly after uploading the package to pypi, so the only tasks left here is to check back after
-   a few hours and merge it if all build pipelines built successfully.
+3. readthedocs.org triggers a new build automatically (login with GH account)
+4. The [conda-forge](https://github.com/conda-forge/xlwings-feedstock) package automatically
+   creates a PR shortly after uploading the package to pypi, so the only tasks left here is to check back after
+   a few hours and merge it if all pipelines built successfully.
