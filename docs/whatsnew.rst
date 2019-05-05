@@ -1,8 +1,14 @@
 What's New
 ==========
 
+v0.15.8 (May 5, 2019)
+---------------------
+
+* [Bug Fix] Fixed an issue introduced with the previous release that always showed the command prompt when running UDFs,
+  not just when using conda envs (:issue:`1098`).
+
 v0.15.7 (May 5, 2019)
-----------------------
+---------------------
 
 * [Bug Fix] ``Conda Base`` and ``Conda Env`` weren't stored correctly in the config file from the ribbon (:issue:`1090`).
 * [Bug Fix] UDFs now work correctly with ``Conda Base`` and ``Conda Env``. Note, however, that currently there is no

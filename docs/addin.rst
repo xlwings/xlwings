@@ -50,7 +50,7 @@ While the defaults will often work out-of-the box, you can change the global set
   installation, e.g. ``C:\Users\Username\Miniconda3`` or ``%USERPROFILE%\Anaconda``. NOTE that you need at least conda 4.6!
 * ``Conda Env``: If you are on Windows and use a conda env, then type here the name of your conda env, e.g. ``myenv``. Note
   that this requires you to either leave the ``Interpreter`` blank or set it to ``python`` or ``pythonw``.
-* ``UDF_MODULES``: Names of Python modules (without .py extension) from which the UDFs are being imported.
+* ``UDF Modules``: Names of Python modules (without .py extension) from which the UDFs are being imported.
   Separate multiple modules by ";".
   Example: ``UDF_MODULES = "common_udfs;myproject"``
   The default imports a file in the same directory as the Excel spreadsheet with the same name but ending in ``.py``.
