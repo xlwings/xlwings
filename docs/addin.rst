@@ -47,7 +47,7 @@ While the defaults will often work out-of-the box, you can change the global set
   expects the interpreter to be set in the ``PATH`` on Windows or ``.bash_profile`` on Mac.
 * ``PYTHONPATH``: If the source file of your code is not found, add the path here.
 * ``Conda Base``: If you are on Windows and use a conda env, then type here the base name of your Anaconda or Miniconda
-  installation, e.g. ``C:\Users\Username\Miniconda3``. NOTE that you need at least conda 4.6!
+  installation, e.g. ``C:\Users\Username\Miniconda3`` or ``%USERPROFILE%\Anaconda``. NOTE that you need at least conda 4.6!
 * ``Conda Env``: If you are on Windows and use a conda env, then type here the name of your conda env, e.g. ``myenv``. Note
   that this requires you to either leave the ``Interpreter`` blank or set it to ``python`` or ``pythonw``.
 * ``UDF_MODULES``: Names of Python modules (without .py extension) from which the UDFs are being imported.
@@ -59,6 +59,10 @@ While the defaults will often work out-of-the box, you can change the global set
 * ``RunPython: Use UDF Server``:  Uses the same COM Server for RunPython as for UDFs. This will be faster, as the
   interpreter doesn't shut down after each call.
 * ``Restart UDF Server``: This shuts down the UDF Server/Python interpreter. It'll be restarted upon the next function call.
+
+.. note:: If you use ``Conda Base`` and ``Conda Env`` with UDFs, you currently can't hide the command prompt that pops up.
+    You can still control if the output is printed to the command prompt or not though by setting the ``Interpreter`` to 
+    ``python`` or ``pythonw``, respectively.
 
 .. _config_file:
 
