@@ -32,14 +32,14 @@ the recipient doesn't have to install a full Python distribution.
 .. note::
     * This does not work with UDFs.
     * Currently only available on Windows, but support for Mac should be easy to add.
-    * You need at least 0.15.2 to support arguments
+    * You need at least 0.15.2 to support arguments whereas the syntax changed in 0.15.6
 
 Use it as follows:
 
 .. code-block:: basic
 
     Sub MySample()
-        RunFrozenPython "C:\path\to\dist\myproject\myproject.exe arg1 arg2"
+        RunFrozenPython "C:\path\to\dist\myproject\myproject.exe", "arg1 arg2"
     End Sub
 
 
