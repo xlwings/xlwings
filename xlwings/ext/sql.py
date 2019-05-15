@@ -47,6 +47,7 @@ def sql(query, *tables):
                     for row in rows
                 )
             )
+            stmt = stmt.replace("\\'", "''")
             c.execute(stmt)
 
     res = []
