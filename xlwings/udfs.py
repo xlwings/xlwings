@@ -379,24 +379,15 @@ def generate_vba_wrapper(module_name, module, f):
                         vba.writeln('Application.Volatile')
 
                 if vararg != '':
-                    vba.writeln("ReDim argsArray(1 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + str(n_args) + ")")
+                    vba.writeln("Dim argsArray() As Variant")
+                    non_varargs = [arg['vba'] or arg['name'] for arg in xlfunc['args'] if not arg['vararg']]
+                    vba.writeln(f"argsArray = Array({', '.join(non_varargs)})")
 
-                j = 1
-                for arg in xlfunc['args']:
-                    argname = arg['name']
-                    if arg['vararg']:
-                        vba.writeln("For k = LBound(" + vararg + ") To UBound(" + vararg + ")")
-                        argname = vararg + "(k)"
+                    vba.writeln("ReDim Preserve argsArray(0 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + str(len(non_varargs)) + ")")
+                    vba.writeln("For k = LBound(" + vararg + ") To UBound(" + vararg + ")")
+                    vba.writeln("argsArray(" + str(len(non_varargs)) + " + k - LBound(" + vararg + ")) = " + argname + "(k)")
+                    vba.writeln("Next k")
 
-                    if arg['vararg']:
-                        vba.writeln("argsArray(" + str(j) + " + k - LBound(" + vararg + ")) = " + argname)
-                        vba.writeln("Next k")
-                    else:
-                        if vararg != "":
-                            vba.writeln("argsArray(" + str(j) + ") = " + argname)
-                            j += 1
-
-                if vararg != '':
                     args_vba = 'argsArray'
                 else:
                     args_vba = 'Array(' + ', '.join(arg['vba'] or arg['name'] for arg in xlfunc['args']) + ')'
