@@ -3,7 +3,7 @@ from functools import wraps
 import sys
 
 
-__version__ = 'dev'
+__version__ = '0.15.8'
 
 # Python 2 vs 3
 PY3 = sys.version_info[0] == 3
