@@ -45,10 +45,6 @@ else:
 
 time_types = xlplatform.time_types
 
-# Errors
-class ShapeAlreadyExists(Exception):
-    pass
-
 # API
 from .main import App, Book, Range, Chart, Sheet, Picture, Shape, Name, view, RangeRows, RangeColumns
 from .main import apps, books, sheets

@@ -15,9 +15,8 @@ import re
 import numbers
 import inspect
 
-from . import xlplatform, string_types, ShapeAlreadyExists, PY3
+from . import exceptions, PY3, string_types, utils, xlplatform
 from .utils import VersionNumber
-from . import utils
 
 # Optional imports
 try:
@@ -267,7 +266,9 @@ class App(object):
         # Win Excel >= 2013 fails if visible=False...we may somehow not be using the correct HWND
         self.impl.activate(steal_focus)
         if self != apps.active:
-            raise Exception('Could not activate App! Try to instantiate the App with visible=True.')
+            raise exceptions.ExcelCallError(
+                'Could not activate App! Try to instantiate the App with visible=True.'
+            )
 
     @property
     def visible(self):
@@ -567,8 +568,10 @@ class Book(object):
             # Called via OPTIMIZED_CONNECTION = True
             return cls(impl=xlplatform.Book(xlplatform.BOOK_CALLER))
         else:
-            raise Exception('Book.caller() must not be called directly. Call through Excel or set a mock caller '
-                            'first with Book.set_mock_caller().')
+            raise exceptions.PythonCallError(
+                'Book.caller() must not be called directly. Call through Excel or set a mock '
+                'caller first with Book.set_mock_caller().'
+            )
 
     def set_mock_caller(self):
         """
@@ -2280,7 +2283,7 @@ class Picture(object):
             if value == self.name:
                 return
             else:
-                raise ShapeAlreadyExists()
+                raise exceptions.ShapeAlreadyExists
 
         self.impl.name = value
 

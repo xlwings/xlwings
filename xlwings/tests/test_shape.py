@@ -124,7 +124,7 @@ class TestPicture(TestBase):
         self.assertFalse('pic1' in self.wb1.sheets[0].pictures)
 
     def test_duplicate(self):
-        with self.assertRaises(xw.ShapeAlreadyExists):
+        with self.assertRaises(xw.exceptions.ShapeAlreadyExists):
             filename = os.path.join(this_dir, 'sample_picture.png')
             pic1 = self.wb1.sheets[0].pictures.add(filename, name='pic1')
             pic2 = self.wb1.sheets[0].pictures.add(filename, name='pic1')
