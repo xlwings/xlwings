@@ -155,7 +155,6 @@ class TestPicture(TestBase):
         pic1 = self.wb1.sheets[0].pictures.add(filename, name='pic1')
         pic1.update(filename)
 
-
     def test_picture_auto_update(self):
         filename = os.path.join(this_dir, 'sample_picture.png')
         pic1 = self.wb1.sheets[0].pictures.add(filename, name='pic1', update=True)
