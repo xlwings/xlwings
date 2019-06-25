@@ -8,6 +8,10 @@ import xlwings as xw
 from xlwings.tests.common import TestBase, this_dir
 from xlwings import PY3
 
+if sys.version_info[0] >= 3 and sys.version_info[1] >= 6:
+    import pathlib
+else:
+    pathlib = None
 
 class TestBooks(TestBase):
     def test_indexing(self):
@@ -28,6 +32,15 @@ class TestBooks(TestBase):
 
     def test_open(self):
         fullname = os.path.join(this_dir, 'test book.xlsx')
+        wb = self.app1.books.open(fullname)
+        self.assertEqual(self.app1.books.active, wb)
+
+        wb2 = self.app1.books.open(fullname)  # Should not reopen
+        self.assertEqual(wb, wb2)
+
+    @unittest.skipIf(pathlib is None, 'pathlib unavailable')
+    def test_open_pathlib(self):
+        fullname = pathlib.Path(this_dir) / 'test book.xlsx'
         wb = self.app1.books.open(fullname)
         self.assertEqual(self.app1.books.active, wb)
 
@@ -139,6 +152,11 @@ class TestBook(TestBase):
         wb = self.app1.books.open(os.path.join(this_dir, 'test book.xlsx'))
         self.assertEqual(wb.name, 'test book.xlsx')
 
+    @unittest.skipIf(pathlib is None, 'pathlib unavailable')
+    def test_name_pathlib(self):
+        wb = self.app1.books.open(pathlib.Path(this_dir) / 'test book.xlsx')
+        self.assertEqual(wb.name, 'test book.xlsx')
+
     def test_sheets(self):
         self.assertEqual(len(self.wb1.sheets), 3)
 
@@ -190,10 +208,36 @@ class TestBook(TestBase):
         if os.path.isfile(target_file_path):
             os.remove(target_file_path)
 
+    @unittest.skipIf(pathlib is None, 'pathlib unavailable')
+    def test_save_path_pathlib(self):
+        if sys.platform.startswith('darwin') and self.app1.version.major >= 15:
+            folder = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/'
+            if os.path.isdir(folder):
+                os.chdir(folder)
+
+        cwd = os.getcwd()
+        target_file_path = pathlib.Path(cwd) / 'TestFile.xlsx'
+        if os.path.isfile(target_file_path):
+            os.remove(target_file_path)
+
+        self.wb1.save(target_file_path)
+
+        self.assertTrue(os.path.isfile(target_file_path))
+
+        self.app1.books[os.path.basename(target_file_path)].close()
+        if os.path.isfile(target_file_path):
+            os.remove(target_file_path)
+
     def test_fullname(self):
         fullname = os.path.join(this_dir, 'test book.xlsx')
         wb = self.app1.books.open(fullname)
         self.assertEqual(wb.fullname.lower(), fullname.lower())
+
+    @unittest.skipIf(pathlib is None, 'pathlib unavailable')
+    def test_fullname_pathlib(self):
+        fullname = pathlib.Path(this_dir) / 'test book.xlsx'
+        wb = self.app1.books.open(fullname)
+        self.assertEqual(wb.fullname.lower(), os.fspath(fullname).lower())
 
     def test_names(self):
         names = self.wb1.names
