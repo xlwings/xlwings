@@ -495,7 +495,7 @@ Some of the new methods/properties worth mentioning are:
 Bug Fixes
 *********
 
-* See `here <https://github.com/ZoomerAnalytics/xlwings/issues?q=is%3Aclosed+is%3Aissue+milestone%3Av0.9.0+label%3Abug>`_
+* See `here <https://github.com/xlwings/xlwings/issues?q=is%3Aclosed+is%3Aissue+milestone%3Av0.9.0+label%3Abug>`_
   for details about which bugs have been fixed.
 
 
@@ -944,8 +944,8 @@ This version adds support for Matplotlib! Matplotlib figures can be shown in Exc
     plot.show('Plot1')
 
 See the full API: :meth:`xlwings.Plot`. There's also a new example available both on
-`GitHub <https://github.com/ZoomerAnalytics/xlwings/tree/master/examples/matplotlib/>`_ and as download on the
-`homepage <http://xlwings.org/examples//>`_.
+`GitHub <https://github.com/xlwings/xlwings/tree/master/examples/matplotlib/>`_ and as download on the
+`homepage <http://www.xlwings.org/examples>`_.
 
 **Other enhancements**:
 
@@ -1270,7 +1270,7 @@ API changes
 Enhancements
 ************
 This version adds two exciting but still **experimental** features from
-`ExcelPython <http://ericremoreynolds.github.io/excelpython//>`_ (**Windows only!**):
+`ExcelPython` (**Windows only!**):
 
 * Optimized connection: Set the ``OPTIMIZED_CONNECTION = True`` in the VBA settings. This will use a COM server that
   will keep the connection to Python alive between different calls and is therefore much more efficient. However,
