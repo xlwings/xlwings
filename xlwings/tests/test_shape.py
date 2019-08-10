@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import os
+import sys
 import unittest
 
 import xlwings as xw
@@ -17,10 +18,24 @@ try:
 except ImportError:
     PIL = None
 
+if sys.version_info[0] >= 3 and sys.version_info[1] >= 6:
+    import pathlib
+else:
+    pathlib = None
 
 class TestShape(TestBase):
     def test_name(self):
         filename = os.path.join(this_dir, 'sample_picture.png')
+        self.wb1.sheets[0].pictures.add(filename, name='pic1')
+
+        sh = self.wb1.sheets[0].shapes[0]
+        self.assertEqual(sh.name, 'pic1')
+        sh.name = "yoyoyo"
+        self.assertEqual(sh.name, 'yoyoyo')
+
+    @unittest.skipIf(pathlib is None, 'pathlib unavailable')
+    def test_name_pathlib(self):
+        filename = pathlib.Path(this_dir) / 'sample_picture.png'
         self.wb1.sheets[0].pictures.add(filename, name='pic1')
 
         sh = self.wb1.sheets[0].shapes[0]
@@ -131,6 +146,12 @@ class TestPicture(TestBase):
 
     def test_picture_update(self):
         filename = os.path.join(this_dir, 'sample_picture.png')
+        pic1 = self.wb1.sheets[0].pictures.add(filename, name='pic1')
+        pic1.update(filename)
+
+    @unittest.skipIf(pathlib is None, 'pathlib unavailable')
+    def test_picture_update_pathlib(self):
+        filename = pathlib.Path(this_dir) / 'sample_picture.png'
         pic1 = self.wb1.sheets[0].pictures.add(filename, name='pic1')
         pic1.update(filename)
 

@@ -188,6 +188,7 @@ class VersionNumber(object):
 
 def process_image(image, width, height):
 
+    image = fspath(image)
     if isinstance(image, string_types):
         return image, width, height
     elif mpl and isinstance(image, mpl.figure.Figure):
@@ -207,3 +208,16 @@ def process_image(image, width, height):
         return filename, width, height
     else:
         raise TypeError("Don't know what to do with that image object")
+
+
+def fspath(path):
+    """Convert path-like object to string.
+
+    On python <= 3.5 the input argument is always returned unchanged (no support for path-like
+    objects available).
+
+    """
+    if hasattr(os, 'PathLike') and isinstance(path, os.PathLike):
+        return os.fspath(path)
+    else:
+        return path

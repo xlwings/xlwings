@@ -464,7 +464,7 @@ class Book(object):
 
     Parameters
     ----------
-    fullname : str, default None
+    fullname : str or path-like object, default None
         Full path or name (incl. xlsx, xlsm etc.) of existing workbook or name of an unsaved workbook. Without a full
         path, it looks for the file in the current working directory.
 
@@ -473,6 +473,7 @@ class Book(object):
     def __init__(self, fullname=None, impl=None):
         if not impl:
             if fullname:
+                fullname = utils.fspath(fullname)
                 fullname = fullname.lower()
 
                 candidates = []
@@ -689,7 +690,7 @@ class Book(object):
 
         Arguments
         ---------
-        path : str, default None
+        path : str or path-like object, default None
             Full path to the workbook
         Example
         -------
@@ -701,6 +702,8 @@ class Book(object):
 
         .. versionadded:: 0.3.1
         """
+        if path:
+            path = utils.fspath(path)
         return self.impl.save(path)
 
     @property
@@ -2367,7 +2370,7 @@ class Picture(object):
         Arguments
         ---------
 
-        image : str or matplotlib.figure.Figure
+        image : str or path-like object or matplotlib.figure.Figure
             Either a filepath or a Matplotlib figure object.
 
 
@@ -2412,7 +2415,7 @@ class Pictures(Collection):
         Arguments
         ---------
 
-        image : str or matplotlib.figure.Figure
+        image : str or path-like object or matplotlib.figure.Figure
             Either a filepath or a Matplotlib figure object.
 
         left : float, default 0
@@ -2756,7 +2759,7 @@ class Books(Collection):
 
         Parameters
         ----------
-        fullname : str
+        fullname : str or path-like object
             filename or fully qualified filename, e.g. ``r'C:\\path\\to\\file.xlsx'`` or ``'file.xlsm'``. Without a full
             path, it looks for the file in the current working directory.
 
@@ -2764,7 +2767,8 @@ class Books(Collection):
         -------
         Book : Book that has been opened.
 
-        """       
+        """
+        fullname = utils.fspath(fullname)
         if not os.path.exists(fullname):
             if PY3:
                 raise FileNotFoundError("No such file: '%s'" % fullname)
