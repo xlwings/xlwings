@@ -47,6 +47,7 @@ def sql(query, *tables):
                     for row in rows
                 )
             )
+            # Fixes values like these: sql('SELECT a FROM a', [['a', 'b'], ["""X"Y'Z""", 'd']])
             stmt = stmt.replace("\\'", "''")
             c.execute(stmt)
 
