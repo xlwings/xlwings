@@ -21,8 +21,8 @@ ASTranslate fails on the latest versions of macOS. A workaround is to run it on 
 
 Links:
 
-[appscript homepage](http://appscript.sourceforge.net/)
-[ASTranslate & ASDictionary download](https://sourceforge.net/projects/appscript/files/)
+[appscript homepage](http://appscript.sourceforge.net/)  
+[ASTranslate & ASDictionary download](https://sourceforge.net/projects/appscript/files/)  
 [appscript source code](https://sourceforge.net/p/appscript/code/HEAD/tree/)
 
 ## Addin
