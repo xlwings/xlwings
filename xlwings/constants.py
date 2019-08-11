@@ -1233,7 +1233,7 @@ class Direction:
 directions = (
     'down',
     'left',
-    'right'
+    'right',
     'up'
 )
 
