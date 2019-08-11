@@ -533,7 +533,9 @@ def default_args(x, y="hello", z=20):
 
 
 @xw.func
-def variable_args(x, *z):
+@xw.arg('xl', vba='Application')
+def variable_args(xl, x, *z):
+    print(xl.Caller.Address)  # see GH PR #1118
     return 2 * x + 3 * len(z) + 7 * z[0]
 
 
