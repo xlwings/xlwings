@@ -381,7 +381,7 @@ def generate_vba_wrapper(module_name, module, f):
                 if vararg != '':
                     vba.writeln("Dim argsArray() As Variant")
                     non_varargs = [arg['vba'] or arg['name'] for arg in xlfunc['args'] if not arg['vararg']]
-                    vba.writeln(f"argsArray = Array({', '.join(non_varargs)})")
+                    vba.writeln("argsArray = Array(%s)" % tuple({', '.join(non_varargs)}))
 
                     vba.writeln("ReDim Preserve argsArray(0 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + str(len(non_varargs)) + ")")
                     vba.writeln("For k = LBound(" + vararg + ") To UBound(" + vararg + ")")
