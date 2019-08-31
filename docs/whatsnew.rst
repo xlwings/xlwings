@@ -1,6 +1,13 @@
 What's New
 ==========
 
+v0.15.9 (Aug 31, 2019)
+----------------------
+
+* [Enhancement] The ``sql`` extension now uses the native dynamic arrays if available (:issue:`1138`).
+* [Enhancement] xlwings now support ``Path`` objects from ``pathlib`` for all file paths (:issue:`1126`).
+* [Bug Fix] Various bug fixes: (:issue:`1118`), (:issue:`1131`), (:issue:`1102`).
+
 v0.15.8 (May 5, 2019)
 ---------------------
 
