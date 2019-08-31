@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.15.10 (Aug 31, 2019)
+-----------------------
+
+* [Bug Fix] Fixed a Python 2.7 incompatibility introduced with 0.15.9.
+
 v0.15.9 (Aug 31, 2019)
 ----------------------
 
