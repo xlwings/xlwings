@@ -34,6 +34,7 @@ Dependencies
   with pip, the Xcode command line tools need to be available. Mac OS X 10.4 (*Tiger*) or later is required.
   The recommended Python distribution for Mac is `Anaconda <https://www.anaconda.com/distribution>`_.
 
+
 Optional Dependencies
 ---------------------
 
