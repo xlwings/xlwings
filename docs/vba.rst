@@ -6,7 +6,7 @@ VBA: RunPython
 xlwings add-in
 --------------
 
-To get access to the ``RunPython`` function, you'll need the xlwings addin (or VBA module), see :ref:`xlwings_addin`.
+To get access to ``Run main`` (new in v0.16) button or the ``RunPython`` VBA function, you'll need the xlwings addin (or VBA module), see :ref:`xlwings_addin`.
 
 For new projects, the easiest way to get started is by using the command line client with the quickstart command,
 see :ref:`command_line` for details::

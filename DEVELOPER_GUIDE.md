@@ -55,3 +55,22 @@ by something like `tox` again now that numpy/pandas are available as wheels via 
 The tests are currently very slow. They were OK with older versions of Excel but they have to be rewritten
 to run reasonably fast (i.e. not always open/close the whole workbook).
 Also, the tests are standard unittests, so `nose` is not really required to run them.
+
+
+## Build docs locally
+
+```
+cd docs
+make html
+```
+
+### Build doc translations locally
+
+See https://docs.readthedocs.io/en/stable/guides/manage-translations.html#manage-translations
+
+### Add a translation to readthedocs
+
+* `.po` files must live under `docs/locales/<language>/LC_MESSAGES`
+* Create a new project (`xlwings-<language>`) via generic Git integration as you can only import a project 1x via the GitHub integration.
+* Set the language of that project to the language of the translation
+* Add this project as `Translation` in the settings of the main `xlwings` project

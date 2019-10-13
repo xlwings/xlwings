@@ -4,10 +4,10 @@ Add-in
 ======
 
 .. figure:: images/ribbon.png
-    :scale: 80%
+    :scale: 40%
 
-The xlwings add-in is the preferred way to be able to use ``RunPython`` or ``UDFs``. Note that you don't need an add-in
-if you just want to manipulate Excel from Python via xlwings.
+The xlwings add-in is the preferred way to be able to use the ``Run main`` button, ``RunPython`` or ``UDFs``.
+Note that you don't need an add-in if you just want to manipulate Excel from Python via xlwings.
 
 .. note:: The ribbon of the add-in is compatible with Excel >= 2007 on Windows and >= 2016 on Mac. You could, however,
   use the add-in with earlier versions but you would need to change the settings directly in the config file, see below.
@@ -15,6 +15,15 @@ if you just want to manipulate Excel from Python via xlwings.
 
 .. note:: The add-in is password protected with the password ``xlwings``. For debugging or to add new extensions, you need
   to unprotect it.
+
+Run main
+--------
+
+.. versionadded:: 0.16.0
+
+The ``Run main`` button is the easiest to run your Python code: It runs a function called ``main`` in a Python
+module that has the same name as your workbook. This allows you to save your workbook as ``xlsx`` without enabling macros.
+The ``xlwings quickstart`` command will create a workbook that will automatically work with the ``Run`` button.
 
 .. _addin_installation:
 
