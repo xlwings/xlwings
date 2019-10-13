@@ -74,13 +74,18 @@ def quickstart(args):
     # Python file
     with open(os.path.join(project_path, project_name + '.py'), 'w') as python_module:
         python_module.write('import xlwings as xw\n\n\n')
-        python_module.write('def hello_xlwings():\n')
+        if sys.platform.startswith('win'):
+            python_module.write('@xw.sub  # only required if you want to import it or run it via UDF Server\n')
+        python_module.write('def main():\n')
         python_module.write('    wb = xw.Book.caller()\n')
         python_module.write('    wb.sheets[0].range("A1").value = "Hello xlwings!"\n\n\n')
         if sys.platform.startswith('win'):
             python_module.write('@xw.func\n')
             python_module.write('def hello(name):\n')
-            python_module.write('    return "hello {0}".format(name)\n')
+            python_module.write('    return "hello {0}".format(name)\n\n\n')
+        python_module.write('if __name__ == "__main__":\n')
+        python_module.write('    xw.books.active.set_mock_caller()\n')
+        python_module.write('    main()\n')
 
     # Excel file
     if not args.standalone:
