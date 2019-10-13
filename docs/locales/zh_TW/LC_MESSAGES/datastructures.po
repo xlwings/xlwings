@@ -1,0 +1,145 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-04 15:42+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Eugene Chang yuyueugene84@gmail.com\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../datastructures.rst:4
+msgid "Data Structures Tutorial"
+msgstr "資料結構教學"
+
+#: ../../datastructures.rst:6
+msgid ""
+"This tutorial gives you a quick introduction to the most common use cases"
+" and default behaviour of xlwings when reading and writing values. For an"
+" in-depth documentation of how to control the behavior using the "
+"``options`` method, have a look at :ref:`converters`."
+msgstr "這篇教學將會介紹 xlwings 在讀取與寫入資料時預設的行爲，以及一些常見的應用。若想深入理解内容提到的 ``options`` 的使用方法，可以參考 :ref:`converters` 。"
+
+#: ../../datastructures.rst:10
+msgid "All code samples below depend on the following import:"
+msgstr "在執行以下範例程式碼之前，先確保有匯入 xlwings 套件："
+
+#: ../../datastructures.rst:15
+msgid "Single Cells"
+msgstr "單一儲存格"
+
+#: ../../datastructures.rst:16
+msgid ""
+"Single cells are by default returned either as ``float``, ``unicode``, "
+"``None`` or ``datetime`` objects, depending on whether the cell contains "
+"a number, a string, is empty or represents a date:"
+msgstr "單一儲存格被讀取時，儲存格内的數字、文字、空值、或是日期這幾種資料，在預設上會被 xlwings 讀取時，會相對應的被轉換成 ``float``, ``unicode``, ``None`` 或是 ``datetime`` 等資料型別。"
+
+#: ../../datastructures.rst:36
+msgid "Lists"
+msgstr "串列"
+
+#: ../../datastructures.rst:37
+msgid ""
+"1d lists: Ranges that represent rows or columns in Excel are returned as "
+"simple lists, which means that once they are in Python, you've lost the "
+"information about the orientation. If that is an issue, the next point "
+"shows you how to preserve this info:"
+msgstr "一維串列：通常試算表上橫向與縱向的儲存格範圍（n x 1 或是 1 x n 大小的範圍），像是行與列，會以一個 Python 的一維串列表示，這樣也意味著該範圍資料方向的維度也會隨之消失。若想保留維度的訊息，請繼續閲讀下面的章節："
+
+#: ../../datastructures.rst:51
+msgid "To force a single cell to arrive as list, use::"
+msgstr "要强制將單一儲存格以串列的形式回傳，可以將 ``ndim`` 參數設定成 1："
+
+#: ../../datastructures.rst:57
+msgid ""
+"To write a list in column orientation to Excel, use ``transpose``: "
+"``sht.range('A1').options(transpose=True).value = [1,2,3,4]``"
+msgstr "要將一個一維串列的值寫入一個縱向的儲存格範圍，可以使用 ``transpose`` : ``sht.range('A1').options(transpose=True).value = [1,2,3,4]`` "
+
+#: ../../datastructures.rst:59
+msgid ""
+"2d lists: If the row or column orientation has to be preserved, set "
+"``ndim`` in the Range options. This will return the Ranges as nested "
+"lists (\"2d lists\"):"
+msgstr "二維串列：若想保留單一行或列（n x 1 或是 1 x n 大小儲存格範圍）的維度資訊時，請將 range 方法的 ``ndim`` 參數設定成 2，這樣可以確保回傳的值會被封裝在一個巢狀串列内，保留了資料原本在工作表上的維度與方向資訊。"
+
+#: ../../datastructures.rst:70
+msgid ""
+"2 dimensional Ranges are automatically returned as nested lists. When "
+"assigning (nested) lists to a Range in Excel, it's enough to just specify"
+" the top left cell as target address. This sample also makes use of index"
+" notation to read the values back into Python:"
+msgstr "二維的儲存格範圍都會以巢狀串列的形式回傳。當你將一個巢狀串列賦值/指定給一個儲存格範圍時。只需要指定被寫入儲存格範圍的左上角。另外，你也可以使用指定範圍起點與結束點的索引值來將將二維的資料讀取出來。"
+
+#: ../../datastructures.rst:81
+msgid ""
+"Try to minimize the number of interactions with Excel. It is always more "
+"efficient to do ``sht.range('A1').value = [[1,2],[3,4]]`` than "
+"``sht.range('A1').value = [1, 2]`` and ``sht.range('A2').value = [3, "
+"4]``."
+msgstr "在撰寫跟 Excel 有關的程式時，若考量到效能，都會盡量減少 Excel 工作表的讀寫次數，因此 ``sht.range('A1').value = [[1,2],[3,4]]`` 在效能上會勝過執行 ``sht.range('A1').value = [1, 2]`` 和 ``sht.range('A2').value = [3, "
+"4]`` ，兩者雖然執行的結果相同，但是前者會比後者少做一次寫入的動作，因此會減少執行花費的時間。"
+
+#: ../../datastructures.rst:85
+msgid "Range expanding"
+msgstr "範圍擴展"
+
+#: ../../datastructures.rst:87
+msgid ""
+"You can get the dimensions of Excel Ranges dynamically through either the"
+" method ``expand`` or through the ``expand`` keyword in the ``options`` "
+"method. While ``expand`` gives back an expanded Range object, options are"
+" only evaluated when accessing the values of a Range. The difference is "
+"best explained with an example:"
+msgstr "你可以透過 ``expand()`` 方法，或是 ``options`` 方法的 ``expand`` 參數動態偵測並且讀取一個連續、有值的儲存格範圍的資料。這邊需要注意的是，``expand()`` 方法會回傳一個 range() 物件，而 ``options(expand='table')`` 則會在選定一個範圍之後才會被執行，以下範例會解釋兩者的差異："
+
+#: ../../datastructures.rst:107
+msgid ""
+"``'table'`` expands to ``'down'`` and ``'right'``, the other available "
+"options which can be used for column or row only expansion, respectively."
+msgstr "``'table'`` 會同時從起點開始，往下並且往右擴展，簡單來説，就是搜尋一個二維範圍的右下角。其他選項，像是 ``down``，則會從指定的起點開始往下擴展，將所有連續的、有值的儲存格資料讀取出來。"
+
+#: ../../datastructures.rst:110
+msgid ""
+"Using ``expand()`` together with a named Range as top left cell gives you"
+" a flexible setup in Excel: You can move around the table and change it's"
+" size without having to adjust your code, e.g. by using something like "
+"``sht.range('NamedRange').expand().value``."
+msgstr "使用 ``expand()`` 與已命名範圍能夠給予你很大的彈性：你能夠任意改變已命名範圍在工作表的位置與大小，而卻不需要修改原本的程式碼，舉例來説：``sht.range('NamedRange').expand().value``。"
+
+#: ../../datastructures.rst:115
+msgid "NumPy arrays"
+msgstr ""
+
+#: ../../datastructures.rst:117
+msgid ""
+"NumPy arrays work similar to nested lists. However, empty cells are "
+"represented by ``nan`` instead of ``None``. If you want to read in a "
+"Range as array, set ``convert=np.array`` in the ``options`` method:"
+msgstr "NumPy 陣列的運作方式與巢狀串列類似，不同的地方在於空的儲存格是用 ``nan`` 而非 ``None`` 表示。若你希望將一個範圍的值以 Numpy 陣列的形式回傳，請在 options 方法内設定 ``convert=np.array`` 。"
+
+#: ../../datastructures.rst:131
+msgid "Pandas DataFrames"
+msgstr ""
+
+#: ../../datastructures.rst:151
+msgid "Pandas Series"
+msgstr ""
+
+#: ../../datastructures.rst:177
+msgid ""
+"You only need to specify the top left cell when writing a list, a NumPy "
+"array or a Pandas DataFrame to Excel, e.g.: ``sht.range('A1').value = "
+"np.eye(10)``"
+msgstr "當你要將一個串列、Numpy Array、或是 Pandas DataFrame 内的大量資料寫入 Excel 時，只需要指定被寫入範圍的左上角即可。"
+
