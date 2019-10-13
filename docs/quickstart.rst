@@ -69,7 +69,12 @@ go via book and sheet objects as shown above.
 2. Macros: Call Python from Excel
 ---------------------------------
 
-You can call Python functions from VBA using the ``RunPython`` function:
+You can call Python functions either by clicking the ``Run`` button (new in v0.16) in  the add-in or from VBA using the ``RunPython`` function:
+
+The ``Run`` button expects a function called ``main`` in a Python module with the same name as your workbook. The 
+great thing about that approach is that you don't need your workbooks to be macro-enabled, you can save it as ``xlsx``.
+
+If you want to call any Python function no matter in what module it lives or what name it has, use ``RunPython``:
 
 .. code-block:: vb.net
 
@@ -77,8 +82,8 @@ You can call Python functions from VBA using the ``RunPython`` function:
         RunPython ("import hello; hello.world()")
     End Sub
 
-Per default, ``RunPython`` expects ``hello.py`` in the same directory as the Excel file. Refer to the calling Excel
-book by using ``xw.Book.caller``:
+Per default, ``RunPython`` expects ``hello.py`` in the same directory as the Excel file but you can change that via 
+config. Refer to the calling Excel book by using ``xw.Book.caller``:
 
 .. code-block:: python
 

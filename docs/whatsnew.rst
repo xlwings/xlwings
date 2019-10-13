@@ -1,6 +1,24 @@
 What's New
 ==========
 
+v0.16.0 (Oct 13, 2019)
+----------------------
+
+This release adds a small but very powerful feature: There's a new ``Run main`` button in the add-in.
+With that, you can run your Python scripts from standard ``xlsx`` files - no need to save your workbook
+as macro-enabled anymore! 
+
+The only condition to make that work is that your Python script has the same name as your workbook and that it contains
+a function called ``main``, which will be called when you click the ``Run`` button. All settings from your config file or
+config sheet are still respected, so this will work even if you have the source file in a different directory
+than your workbook (as long as that directory is added to the ``PYTHONPATH`` in your config).
+
+The ``xlwings quickstart myproject`` has been updated accordingly. It still produces an ``xlsm`` file at the moment
+but you can save it as ``xlsx`` file if you intend to run it via the new ``Run`` button.
+
+    .. figure:: images/ribbon.png
+        :scale: 40%
+
 v0.15.10 (Aug 31, 2019)
 -----------------------
 
