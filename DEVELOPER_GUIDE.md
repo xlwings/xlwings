@@ -50,8 +50,8 @@ project there.
 
 If you need to debug the dll, in Visual Studio do the following:
 
-* Build the project in Debug mode (select `Win32` if your Excel is 32 bit `x64` if your Excel is 64 bit)
-* Make sure that Excel calls that dll that was build in debug mode (in the xlwings addin (password: `xlwings`) you could e.g. override the path in `XLPyLoadDLL`)
+* Build the project in Debug mode (select `Win32` if your Excel is 32 bit and `x64` if your Excel is 64 bit). Note that the Python bitness does not matter!
+* Make sure that Excel calls that dll that was built in debug mode. In the xlwings addin (password: `xlwings`) you could e.g. override the path in `XLPyLoadDLL`.
 * In Visual Studio, go to `Debug` > `Attach to process...` and select Excel
 
 Now you can set breakpoints in the C++ code in VS where code execution will stop when called from Excel via running a UDF.
