@@ -48,6 +48,14 @@ installation and not to the Python installation!
 If you ever need to change the C++ source, then download Visual Studio Community 2015 to open and compile the 
 project there.
 
+If you need to debug the dll, in Visual Studio do the following:
+
+* Build the project in Debug mode (select `Win32` if your Excel is 32 bit `x64` if your Excel is 64 bit)
+* Make sure that Excel calls that dll that was build in debug mode (in the xlwings addin (password: `xlwings`) you could e.g. override the path in `XLPyLoadDLL`)
+* In Visual Studio, go to `Debug` > `Attach to process...` and select Excel
+
+Now you can set breakpoints in the C++ code in VS where code execution will stop when called from Excel via running a UDF.
+
 ## Tests
 
 Run `nosetests` from the `xlwings` dir, see also `runtests.py`, but this is also outdated and might be replaced
