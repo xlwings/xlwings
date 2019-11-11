@@ -206,22 +206,14 @@ class DelayedResizeDynamicArrayFormula(object):
         self.caller = caller
         self.needs_clearing = needs_clearing
         self.formula_cache_key = formula_cache_key
-        self.uuid = uuid.uuid4()
-        print(f'Creating task {self.uuid}')
 
     def __call__(self, *args, **kwargs):
-        print(f'Calling task {self.uuid}')
         formula = self.caller.FormulaArray
         if formula is None:
             # Could not read formula properly, get from cache
-            print('Getting formula from cache')
             formula = cache.get(self.formula_cache_key)
-        else:
-            print('Got formula from caller')
         if self.needs_clearing:
-            print(f'Clearing formula {formula}')
             self.caller.ClearContents()
-        print(f'Setting formula to {formula}')
         self.target_range.api.FormulaArray = formula
 
 
@@ -325,7 +317,9 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
                 formula_array = caller.FormulaArray
                 cache[formula_cache_key] = formula_array
             except pywintypes.com_error:
-                print('could not cache formula array')
+                # Expected to hit here during dynamic array resizing, but if cache was never set then will be an issue
+                if formula_cache_key not in cache:
+                    raise Exception(f'not able to get formula for {func_name} from caller or cache')
             cache_key = get_cache_key(func, args, caller)
             cached_value = cache.get(cache_key)
             if cached_value is not None:
