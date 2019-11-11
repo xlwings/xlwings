@@ -262,6 +262,54 @@ def get_cache_key(func, args, caller):
             xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address.split(':')[0])
 
 
+def safe_delete_from_cache(cache, key, task_key_attr='formula_cache_key'):
+    """
+    Deleting formula cache immediately or as a regular idle task causes it to be deleted before
+    dynamic array resizing is fully finished. Check whether there are any existing tasks referencing
+    this same formula cache, and only if not, then delete it.
+
+    Arguments
+    ---------
+    cache: dict
+        The cache dict
+
+    key: dict
+        The key to delete from cache
+
+    task_key_attr: dict
+        The attribute to look up from tasks on the idle queue containing the cache key. Use to check
+        whether cache is still in use. Currently only 'formula_cache_key', though the result cache key
+        may later be added to DelayedResizeDynamicArrayFormula to support deleting that as well
+
+    Returns
+    -------
+    None
+    """
+    from .server import idle_queue, add_idle_task
+    tasks = list(idle_queue)
+    this_formula_in_progress = False
+    for task in tasks:
+        try:
+            task_cache_key = getattr(task, task_key_attr)
+            if task_cache_key == key:
+                this_formula_in_progress = True
+        except AttributeError:
+            # idle_task is not a DelayedResizeDynamicArrayFormula, skip it
+            pass
+
+    if this_formula_in_progress:
+        # The forumula is still in use, so delete it later by adding this task again to the end of the queue
+        del_cache = partial(safe_delete_from_cache, cache, key, task_key_attr)
+        add_idle_task(del_cache)
+        return
+
+    # Formula not in progress, go ahead with deletion
+    try:
+        del cache[key]
+    except KeyError:
+        pass
+
+
 def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
 
     module = get_udf_module(module_name)
@@ -354,37 +402,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
         else:
             del cache[cache_key]
 
-        def delete_from_cache(cache, key):
-            """
-            Deleting formula cache immediately or as a regular idle task causes it to be deleted before
-            dynamic array resizing is fully finished. Check whether there are any existing tasks referencing
-            this same formula cache, and only if not, then delete it.
-            """
-            from .server import idle_queue
-            tasks = list(idle_queue)
-            this_formula_in_progress = False
-            for task in tasks:
-                try:
-                    f_cache_key = task.formula_cache_key
-                    if f_cache_key == key:
-                        this_formula_in_progress = True
-                except AttributeError:
-                    # idle_task is not a DelayedResizeDynamicArrayFormula, skip it
-                    pass
-
-            if this_formula_in_progress:
-                # The forumula is still in use, so delete it later by adding this task again to the end of the queue
-                del_cache = partial(delete_from_cache, cache, key)
-                add_idle_task(del_cache)
-                return
-
-            # Formula not in progress
-            try:
-                del cache[key]
-            except KeyError:
-                pass
-
-        del_formula_cache = partial(delete_from_cache, cache, formula_cache_key)
+        del_formula_cache = partial(safe_delete_from_cache, cache, formula_cache_key, 'formula_cache_key')
         add_idle_task(del_formula_cache)
 
     ### TEMP
