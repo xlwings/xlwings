@@ -216,9 +216,6 @@ class DelayedResizeDynamicArrayFormula(object):
         if self.needs_clearing:
             self.caller.ClearContents()
         self.target_range.api.FormulaArray = formula
-        ### TEMP
-        print(f'current cache at end of DelayedResizeDynamicArrayFormula is {cache}')
-        ### END TEMP
 
 
 def get_udf_module(module_name):
@@ -404,10 +401,6 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
 
         del_formula_cache = partial(safe_delete_from_cache, cache, formula_cache_key, 'formula_cache_key')
         add_idle_task(del_formula_cache)
-
-    ### TEMP
-    print(f'current cache at end of call_udf is {cache}')
-    ### END TEMP
 
     return xl_result
 
