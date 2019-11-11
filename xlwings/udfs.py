@@ -4,14 +4,18 @@ import sys
 import re
 import tempfile
 import inspect
+import logging
 from importlib import import_module
 from threading import Thread
+import uuid
 
 from win32com.client import Dispatch, CDispatch
+import pywintypes
 
 from . import conversion, xlplatform, Range, apps, PY3
 from .utils import VBAWriter
 
+logger = logging.getLogger(__name__)
 
 cache = {}
 
@@ -197,15 +201,27 @@ udf_modules = {}
 
 
 class DelayedResizeDynamicArrayFormula(object):
-    def __init__(self, target_range, caller, needs_clearing):
+    def __init__(self, target_range, caller, needs_clearing, formula_cache_key):
         self.target_range = target_range
         self.caller = caller
         self.needs_clearing = needs_clearing
+        self.formula_cache_key = formula_cache_key
+        self.uuid = uuid.uuid4()
+        print(f'Creating task {self.uuid}')
 
     def __call__(self, *args, **kwargs):
+        print(f'Calling task {self.uuid}')
         formula = self.caller.FormulaArray
+        if formula is None:
+            # Could not read formula properly, get from cache
+            print('Getting formula from cache')
+            formula = cache.get(self.formula_cache_key)
+        else:
+            print('Got formula from caller')
         if self.needs_clearing:
+            print(f'Clearing formula {formula}')
             self.caller.ClearContents()
+        print(f'Setting formula to {formula}')
         self.target_range.api.FormulaArray = formula
 
 
@@ -303,6 +319,13 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
             return [["#N/A waiting..." * xw_caller.columns.count] * xw_caller.rows.count]
     else:
         if is_dynamic_array:
+            formula_cache_key = 'formula_array' + get_cache_key(func, args, caller)
+            try:
+                # Can't get array_formula during dynamic array resizing
+                formula_array = caller.FormulaArray
+                cache[formula_cache_key] = formula_array
+            except pywintypes.com_error:
+                print('could not cache formula array')
             cache_key = get_cache_key(func, args, caller)
             cached_value = cache.get(cache_key)
             if cached_value is not None:
@@ -327,7 +350,8 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
             add_idle_task(DelayedResizeDynamicArrayFormula(
                 Range(impl=xlplatform.Range(xl=caller)).resize(*result_size),
                 caller,
-                current_size[0] > result_size[0] or current_size[1] > result_size[1]
+                current_size[0] > result_size[0] or current_size[1] > result_size[1],
+                formula_cache_key
             ))
         else:
             del cache[cache_key]
