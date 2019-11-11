@@ -256,6 +256,14 @@ def get_cache_key(func, args, caller):
             xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address.split(':')[0])
 
 
+def get_formula_cache_key(func, caller):
+    """only use this if function is called from cells, not VBA, and only if is a dynamic function"""
+    xw_caller = Range(impl=xlplatform.Range(xl=caller))
+    # arguments are not needed for function cache
+    return ('formula_array' + func.__name__ + str(xw_caller.sheet.book.app.pid) +
+            xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address.split(':')[0])
+
+
 def safe_delete_from_cache(cache, key, task_key_attr='formula_cache_key'):
     """
     Deleting formula cache immediately or as a regular idle task causes it to be deleted before
@@ -357,7 +365,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
             return [["#N/A waiting..." * xw_caller.columns.count] * xw_caller.rows.count]
     else:
         if is_dynamic_array:
-            formula_cache_key = 'formula_array' + get_cache_key(func, args, caller)
+            formula_cache_key = get_formula_cache_key(func, caller)
             try:
                 # Can't get array_formula during dynamic array resizing
                 formula_array = caller.FormulaArray
