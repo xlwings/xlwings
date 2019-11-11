@@ -373,7 +373,13 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
             except pywintypes.com_error:
                 # Expected to hit here during dynamic array resizing, but if cache was never set then will be an issue
                 if formula_cache_key not in cache:
-                    raise Exception(f'not able to get formula for {func_name} from caller or cache')
+                    # Sometimes still hitting here due to FormulaArray not being available, yet .formula is still available
+                    # .formula has repeated formulas in a tuple of tuples, one for each output cell. Extract the top left
+                    try:
+                        formula_array = caller.formula[0][0]
+                        cache[formula_cache_key] = formula_array
+                    except pywintypes.com_error:
+                        raise Exception(f'not able to get formula for {func_name} from caller or cache')
             cache_key = get_cache_key(func, args, caller)
             cached_value = cache.get(cache_key)
             if cached_value is not None:
@@ -404,8 +410,8 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
         else:
             del cache[cache_key]
 
-        del_formula_cache = partial(safe_delete_from_cache, cache, formula_cache_key, 'formula_cache_key')
-        add_idle_task(del_formula_cache)
+            del_formula_cache = partial(safe_delete_from_cache, cache, formula_cache_key, 'formula_cache_key')
+            add_idle_task(del_formula_cache)
 
     return xl_result
 
