@@ -4,11 +4,9 @@ import sys
 import re
 import tempfile
 import inspect
-import logging
 from functools import partial
 from importlib import import_module
 from threading import Thread
-import uuid
 
 from win32com.client import Dispatch, CDispatch
 import pywintypes
@@ -16,7 +14,6 @@ import pywintypes
 from . import conversion, xlplatform, Range, apps, PY3
 from .utils import VBAWriter
 
-logger = logging.getLogger(__name__)
 
 cache = {}
 
