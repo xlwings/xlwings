@@ -312,6 +312,21 @@ def safe_delete_from_cache(cache, key, task_key_attr='formula_cache_key'):
         pass
 
 
+def get_array_formula_from_formula(caller):
+    """
+    Extract array for formula from caller.formula or caller.Formula. Used when caller.FormulaArray is giving com_error
+    """
+    try:
+        # e.g. caller: <COMObject Range>
+        formula_tup = caller.formula
+    except AttributeError:
+        # e.g. caller: <win32com.gen_py.Microsoft Excel 16.0 Object Library.Range instance at 0x695150436648>
+        formula_tup = caller.Formula
+
+    # formula is a tuple of tuples for the number of cells, but all formulas are the same so take the top left.
+    return formula_tup[0][0]
+
+
 def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
 
     module = get_udf_module(module_name)
@@ -376,7 +391,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
                     # Sometimes still hitting here due to FormulaArray not being available, yet .formula is still available
                     # .formula has repeated formulas in a tuple of tuples, one for each output cell. Extract the top left
                     try:
-                        formula_array = caller.formula[0][0]
+                        formula_array = get_array_formula_from_formula(caller)
                         cache[formula_cache_key] = formula_array
                     except pywintypes.com_error:
                         raise Exception(f'not able to get formula for {func_name} from caller or cache')
