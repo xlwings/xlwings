@@ -112,7 +112,7 @@ Writing a UDF in Python is as easy as:
 
     @xw.func
     def hello(name):
-        return 'Hello {0}'.format(name)
+        return f'Hello {name}'
 
 Converters can be used with UDFs, too. Again a Pandas DataFrame example:
 
