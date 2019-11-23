@@ -358,6 +358,24 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     if this_workbook:
         xlplatform.BOOK_CALLER = Dispatch(this_workbook)
 
+    # Put dynamic array formula in cache as sometimes it cannot be retrieved from Excel during the calculation
+    if is_dynamic_array:
+        formula_cache_key = get_formula_cache_key(func, caller)
+        try:
+            # Can't get array_formula during dynamic array resizing
+            formula_array = caller.FormulaArray
+            cache[formula_cache_key] = formula_array
+        except pywintypes.com_error:
+            # Expected to hit here during dynamic array resizing, but if cache was never set then will be an issue
+            if formula_cache_key not in cache:
+                # Sometimes still hitting here due to FormulaArray not being available, yet .formula is still available
+                # .formula has repeated formulas in a tuple of tuples, one for each output cell. Extract the top left
+                try:
+                    formula_array = get_array_formula_from_formula(caller)
+                    cache[formula_cache_key] = formula_array
+                except pywintypes.com_error:
+                    raise Exception(f'not able to get formula for {func_name} from caller or cache')
+
     if func_info['async_mode'] and func_info['async_mode'] == 'threading':
         cache_key = get_cache_key(func, args, caller)
         cached_value = cache.get(cache_key)
@@ -380,21 +398,6 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
             return [["#N/A waiting..." * xw_caller.columns.count] * xw_caller.rows.count]
     else:
         if is_dynamic_array:
-            formula_cache_key = get_formula_cache_key(func, caller)
-            try:
-                # Can't get array_formula during dynamic array resizing
-                formula_array = caller.FormulaArray
-                cache[formula_cache_key] = formula_array
-            except pywintypes.com_error:
-                # Expected to hit here during dynamic array resizing, but if cache was never set then will be an issue
-                if formula_cache_key not in cache:
-                    # Sometimes still hitting here due to FormulaArray not being available, yet .formula is still available
-                    # .formula has repeated formulas in a tuple of tuples, one for each output cell. Extract the top left
-                    try:
-                        formula_array = get_array_formula_from_formula(caller)
-                        cache[formula_cache_key] = formula_array
-                    except pywintypes.com_error:
-                        raise Exception(f'not able to get formula for {func_name} from caller or cache')
             cache_key = get_cache_key(func, args, caller)
             cached_value = cache.get(cache_key)
             if cached_value is not None:
