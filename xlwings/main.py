@@ -468,9 +468,14 @@ class Book(object):
         Full path or name (incl. xlsx, xlsm etc.) of existing workbook or name of an unsaved workbook. Without a full
         path, it looks for the file in the current working directory.
 
+    All other parameters : bool, str
+        see https://docs.microsoft.com/en-us/office/vba/api/excel.workbooks.open
+
     """
 
-    def __init__(self, fullname=None, impl=None):
+    def __init__(self, fullname=None, update_links=None, read_only=None, format=None, password=None, write_res_password=None,
+                 ignore_read_only_recommended=None, origin=None, delimiter=None, editable=None, notify=None, converter=None,
+                 add_to_mru=None, local=None, corrupt_load=None, impl=None):
         if not impl:
             if fullname:
                 fullname = utils.fspath(fullname)
@@ -486,7 +491,9 @@ class Book(object):
                 if len(candidates) == 0:                    
                     if not app:
                         app = App(add_book=False)
-                    impl = app.books.open(fullname).impl                                     
+                    impl = app.books.open(fullname, update_links, read_only, format, password, write_res_password,
+                                          ignore_read_only_recommended, origin, delimiter, editable, notify, converter,
+                                          add_to_mru, local, corrupt_load).impl
                 elif len(candidates) > 1:
                     raise Exception("Workbook '%s' is open in more than one Excel instance." % fullname)
                 else:
@@ -2752,7 +2759,9 @@ class Books(Collection):
         """
         return Book(impl=self.impl.add())
 
-    def open(self, fullname):
+    def open(self, fullname, update_links=None, read_only=None, format=None, password=None, write_res_password=None,
+             ignore_read_only_recommended=None, origin=None, delimiter=None, editable=None, notify=None, converter=None,
+             add_to_mru=None, local=None, corrupt_load=None):
         """
         Opens a Book if it is not open yet and returns it. If it is already open, it doesn't raise an exception but
         simply returns the Book object.
@@ -2762,6 +2771,9 @@ class Books(Collection):
         fullname : str or path-like object
             filename or fully qualified filename, e.g. ``r'C:\\path\\to\\file.xlsx'`` or ``'file.xlsm'``. Without a full
             path, it looks for the file in the current working directory.
+
+        All other parameters : bool, str
+            see https://docs.microsoft.com/en-us/office/vba/api/excel.workbooks.open
 
         Returns
         -------
@@ -2788,7 +2800,9 @@ class Books(Collection):
                     "Cannot open two workbooks named '%s', even if they are saved in different locations." % name
                 )
         except KeyError:
-            impl = self.impl.open(fullname)
+            impl = self.impl.open(fullname, update_links, read_only, format, password, write_res_password,
+                                  ignore_read_only_recommended, origin, delimiter, editable, notify, converter,
+                                  add_to_mru, local, corrupt_load)
         return Book(impl=impl)
 
 
