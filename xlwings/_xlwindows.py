@@ -25,7 +25,7 @@ import win32process
 from comtypes import IUnknown
 from comtypes.automation import IDispatch
 
-from .constants import ColorIndex
+from .constants import ColorIndex, UpdateLinks
 from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime, col_name
 
 # Optional imports
@@ -442,7 +442,11 @@ class Books(object):
     def open(self, fullname, update_links=None, read_only=None, format=None, password=None, write_res_password=None,
              ignore_read_only_recommended=None, origin=None, delimiter=None, editable=None, notify=None, converter=None,
              add_to_mru=None, local=None, corrupt_load=None):
-        # Book params are position only on pywin32
+
+        # update_links: According to VBA docs, only constants 0 and 3 are supported in this context
+        if update_links:
+            update_links = UpdateLinks.xlUpdateLinksAlways
+        # Workbooks.Open params are position only on pywin32
         return Book(xl=self.xl.Open(fullname, update_links, read_only, format, password, write_res_password,
                                     ignore_read_only_recommended, origin, delimiter, editable, notify, converter,
                                     add_to_mru, local, corrupt_load))

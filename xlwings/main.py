@@ -467,9 +467,34 @@ class Book(object):
     fullname : str or path-like object, default None
         Full path or name (incl. xlsx, xlsm etc.) of existing workbook or name of an unsaved workbook. Without a full
         path, it looks for the file in the current working directory.
-
-    All other parameters : bool, str
-        see https://docs.microsoft.com/en-us/office/vba/api/excel.workbooks.open
+    update_links : bool, default None
+        If this argument is omitted, the user is prompted to specify how links will be updated
+    read_only : bool, default False
+        True to open workbook in read-only mode
+    format : str
+        If opening a text file, this specifies the delimiter character
+    password : str
+        Password to open a protected workbook
+    write_res_password : str
+        Password to write to a write-reserved workbook
+    ignore_read_only_recommended : bool, default False
+        Set to ``True`` to mute the read-only recommended message
+    origin : int
+        For text files only. Specifies where it originated. Use XlPlatform constants.
+    delimiter : str
+        If format argument is 6, this specifies the delimiter.
+    editable : bool, default False
+        This option is only for legacy Microsoft Excel 4.0 addins.
+    notify : bool, default False
+        Notify the user when a file becomes available If the file cannot be opened in read/write mode.
+    converter : int
+        The index of the first file converter to try when opening the file.
+    add_to_mru : bool, default False
+        Add this workbook to the list of recently added workbooks.
+    local : bool, default False
+        Not supported on macOS
+    corrupt_load : int
+        Not supported on macOS
 
     """
 
@@ -488,7 +513,7 @@ class Book(object):
                             candidates.append((app, wb))
 
                 app = apps.active
-                if len(candidates) == 0:                    
+                if len(candidates) == 0:
                     if not app:
                         app = App(add_book=False)
                     impl = app.books.open(fullname, update_links, read_only, format, password, write_res_password,
@@ -2772,8 +2797,7 @@ class Books(Collection):
             filename or fully qualified filename, e.g. ``r'C:\\path\\to\\file.xlsx'`` or ``'file.xlsm'``. Without a full
             path, it looks for the file in the current working directory.
 
-        All other parameters : bool, str
-            see https://docs.microsoft.com/en-us/office/vba/api/excel.workbooks.open
+        Other Parameters, see: :meth:`Book`
 
         Returns
         -------

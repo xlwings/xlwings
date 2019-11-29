@@ -190,10 +190,28 @@ class Books(object):
         wb = Book(self.app, xl.name.get())
         return wb
 
-    def open(self, fullname):
+    def open(self, fullname, update_links=None, read_only=None, format=None, password=None, write_res_password=None,
+             ignore_read_only_recommended=None, origin=None, delimiter=None, editable=None, notify=None, converter=None,
+             add_to_mru=None, local=None, corrupt_load=None):
+        # TODO: format and origin currently require a native appscript keyword, read_only doesn't seem to work
+        # Unsupported params
+        if local is not None:
+            raise Exception('local is not supported on macOS')
+        if corrupt_load is not None:
+            raise Exception('corrupt_load is not supported on macOS')
+        # update_links: on Windows only constants 0 and 3 seem to be supported in this context
+        if update_links:
+            update_links = kw.update_remote_and_external_links
+        else:
+            update_links = kw.do_not_update_links
+
         self.app.activate()
         filename = os.path.basename(fullname)
-        self.app.xl.open(fullname)
+        self.app.xl.open_workbook(workbook_file_name=fullname, update_links=update_links, read_only=read_only,
+                                  format=format, password=password, write_reserved_password=write_res_password,
+                                  ignore_read_only_recommended=ignore_read_only_recommended,
+                                  origin=origin, delimiter=delimiter, editable=editable, notify=notify,
+                                  converter=converter, add_to_mru=add_to_mru)
         wb = Book(self.app, filename)
         return wb
 
