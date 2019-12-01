@@ -45,6 +45,12 @@ you create a workbook via ``xlwings quickstart``, the reference is already set.
 .. figure:: images/vba_reference.png
     :scale: 40%
 
+Anaconda/Miniconda
+------------------
+
+If you use Anaconda or Miniconda, you will need to set your ``Conda Base`` and ``Conda Env`` settings, as you will
+otherwise get errors when using ``NumPy`` etc. See next section.
+
 Global Settings
 ---------------
 
@@ -55,10 +61,12 @@ While the defaults will often work out-of-the box, you can change the global set
   ``"C:\Python35\pythonw.exe"`` or ``"/usr/local/bin/python3.5"``. An empty field defaults to ``pythonw`` that
   expects the interpreter to be set in the ``PATH`` on Windows or ``.bash_profile`` on Mac.
 * ``PYTHONPATH``: If the source file of your code is not found, add the path here.
-* ``Conda Base``: If you are on Windows and use a conda env, then type here the base name of your Anaconda or Miniconda
+* ``Conda Base``: If you are on Windows and use Anaconda or Miniconda, then type here the path to your
   installation, e.g. ``C:\Users\Username\Miniconda3`` or ``%USERPROFILE%\Anaconda``. NOTE that you need at least conda 4.6!
-* ``Conda Env``: If you are on Windows and use a conda env, then type here the name of your conda env, e.g. ``myenv``. Note
-  that this requires you to either leave the ``Interpreter`` blank or set it to ``python`` or ``pythonw``.
+  You also need to set ``Conda Env``, see next point.
+* ``Conda Env``: If you are on Windows and use Anaconda or Miniconda, type here the name of your conda env, e.g. ``base``
+  for the base installation or ``myenv`` for a conda env with the name ``myenv``. Note
+  that this requires you to either leave the ``Interpreter`` blank or set it to one of ``python`` or ``pythonw``.
 * ``UDF Modules``: Names of Python modules (without .py extension) from which the UDFs are being imported.
   Separate multiple modules by ";".
   Example: ``UDF_MODULES = "common_udfs;myproject"``

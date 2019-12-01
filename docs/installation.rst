@@ -32,7 +32,8 @@ Dependencies
 
   On Mac, the dependencies are automatically being handled if xlwings is installed with ``conda`` or ``pip``. However,
   with pip, the Xcode command line tools need to be available. Mac OS X 10.4 (*Tiger*) or later is required.
-  The recommended Python distribution for Mac is `Anaconda <https://www.anaconda.com/distribution>`_.
+  The recommended Python distribution for Mac is `Anaconda <https://www.anaconda.com/distribution>`_. With ``conda``
+  on the other hand, you'll need to manually run the command ``xlwings runpython install``.
 
 Optional Dependencies
 ---------------------
@@ -41,6 +42,7 @@ Optional Dependencies
 * Pandas
 * Matplotlib
 * Pillow/PIL
+* Flask (for REST API only)
 
 These packages are not required but highly recommended as they play very nicely with xlwings.
 

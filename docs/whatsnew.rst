@@ -1,6 +1,16 @@
 What's New
 ==========
 
+v0.16.1 (Dec 1, 2019)
+---------------------
+
+* [Enhancement] :meth:`xlwings.Book()` and `myapp.books.open()` now accept parameters like 
+  ``update_links``, ``password`` etc. (:issue:`1189`).
+* [Bug Fix] ``Conda Env`` now works correctly with ``base`` for UDFs, too (:issue:`1110`).
+* [Bug Fix] ``Conda Base`` now allows spaces in the path (:issue:`1176`).
+* [Enhacement] The UDF server timeout has been increased to 2 minutes (:issue:`1168`).
+
+
 v0.16.0 (Oct 13, 2019)
 ----------------------
 

@@ -492,9 +492,10 @@ class Book(object):
     add_to_mru : bool, default False
         Add this workbook to the list of recently added workbooks.
     local : bool, default False
-        Not supported on macOS
-    corrupt_load : int
-        Not supported on macOS
+        If ``True``, saves files against the language of Excel, otherwise against the language of VBA.
+        Not supported on macOS.
+    corrupt_load : int, default xlNormalLoad
+        Can be one of xlNormalLoad, xlRepairFile or xlExtractData. Not supported on macOS.
 
     """
 
@@ -2797,7 +2798,8 @@ class Books(Collection):
             filename or fully qualified filename, e.g. ``r'C:\\path\\to\\file.xlsx'`` or ``'file.xlsm'``. Without a full
             path, it looks for the file in the current working directory.
 
-        Other Parameters, see: :meth:`Book`
+        Other Parameters
+            see: :meth:`xlwings.Book()`
 
         Returns
         -------
