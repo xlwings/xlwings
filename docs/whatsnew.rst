@@ -1484,8 +1484,8 @@ Enhancements
   .. figure:: images/mac_error.png
     :scale: 75%
 
-* New ``Sheet`` class: The new class handles everything directly related to a Sheet. See the section about
-  :ref:`api_sheet` for details (:issue:`62`). A few examples::
+* New ``Sheet`` class: The new class handles everything directly related to a Sheet. See the Python API section about
+  ``Sheet`` for details (:issue:`62`). A few examples::
 
     >>> Sheet(1).name
     'Sheet1'
