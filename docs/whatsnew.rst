@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.16.2 (Dec 5, 2019)
+---------------------
+
+* [Bug Fix] ``RunPython`` can now be called in parallel from different Excel instances (:issue:`1196`).
+
 v0.16.1 (Dec 1, 2019)
 ---------------------
 
