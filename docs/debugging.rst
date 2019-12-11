@@ -15,8 +15,8 @@ To begin with, Excel will show Python errors in a Message Box:
 .. figure:: images/debugging_error.png
     :scale: 65%
 
-.. note:: On Mac, if the ``import`` of a module/package fails before xlwings is imported, the popup will not be shown and the StatusBar
-    will not be reset. However, the error will still be logged in the log file. For the location of the logfile, see :ref:`log`.
+.. note:: On Mac, if the ``import`` of a module/package fails before ``xlwings`` is imported, the popup will not be shown and the StatusBar
+    will not be reset. However, the error will still be logged in the log file (``/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings.log``).
 
 RunPython
 ---------
