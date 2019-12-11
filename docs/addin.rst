@@ -72,7 +72,6 @@ While the defaults will often work out-of-the box, you can change the global set
   Example: ``UDF_MODULES = "common_udfs;myproject"``
   The default imports a file in the same directory as the Excel spreadsheet with the same name but ending in ``.py``.
 * ``Debug UDFs``: Check this box if you want to run the xlwings COM server manually for debugging, see :ref:`debugging`.
-* ``Log File``: Leave empty for default location (see below) or provide the full path, e.g. .
 * ``RunPython: Use UDF Server``:  Uses the same COM Server for RunPython as for UDFs. This will be faster, as the
   interpreter doesn't shut down after each call.
 * ``Restart UDF Server``: This shuts down the UDF Server/Python interpreter. It'll be restarted upon the next function call.
@@ -89,8 +88,7 @@ Global Config: Ribbon/Config File
 The settings in the xlwings Ribbon are stored in a config file that can also be manipulated externally. The location is
 
 * Windows: ``.xlwings\xlwings.conf`` in your user folder  
-* Mac Excel 2016: ``~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf``
-# Mac Excel 2011: ``~/.xlwings/xlwings.conf``
+* macOS: ``~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf``
 
 The format is as follows (keys are uppercase):
 
@@ -98,9 +96,6 @@ The format is as follows (keys are uppercase):
 
     "INTERPRETER","pythonw"
     "PYTHONPATH",""
-
-.. note:: Mac Excel 2011 users have to create and edit the config file manually under ``~/.xlwings/xlwings.conf`` as the
-    ribbon is not supported.
 
 Workbook Directory Config: Config file
 --------------------------------------
@@ -131,15 +126,3 @@ need to use the ``standalone`` option when creating a new project: ``xlwings qui
 
 This will add the content of the add-in as a single VBA module so you don't need to set a reference to the add-in anymore.
 It will still read in the settings from your ``xlwings.conf`` if you don't override them by using a sheet with the name ``xlwings.conf``.
-
-
-.. _log:
-
-Log File default locations
---------------------------
-
-These log files are used for the error pop-up windows:
-
-* Windows: ``%APPDATA%\xlwings.log``
-* Mac with Excel 2011: ``/tmp/xlwings.log``
-* Mac with Excel 2016: ``~/Library/Containers/com.microsoft.Excel/Data/xlwings.log``
