@@ -1,6 +1,17 @@
 What's New
 ==========
 
+v0.16.3 (Dec 12, 2019)
+----------------------
+
+* [Bug Fix] Sometimes, xlwings would show an error of a previous run. Moreover, 0.16.2 introduced an issue that would
+  not show errors at all on non-conda setups (:issue:`1158` and :issue:`1206`)
+* [Enhancement] The xlwings CLI now prints the version number (:issue:`1200`)
+
+**Breaking Change**:
+
+* ``LOG FILE`` has been retired and removed from the configuration/add-in.
+
 v0.16.2 (Dec 5, 2019)
 ---------------------
 
