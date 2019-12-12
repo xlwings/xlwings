@@ -84,6 +84,13 @@ msgid ""
 "hand, you'll need to manually run the command ``xlwings runpython "
 "install``."
 msgstr ""
+"Macでは、xlwingsを ``conda`` か ``pip`` でインストールすれば、依存関係は自動的に解決されます。"
+"しかしながら、pipでは、Xcode command line toolsが利用可能でなければなりません。"
+"Mac OS X 10.4 (*Tiger*)もしくはそれ以降が必要になります。 "
+"Macで推奨されるPythonディストリビューションは `Anaconda "
+"<https://www.anaconda.com/distribution>`_ です。"
+" ``conda`` を使用する場合には、"
+"手動で ``xlwings runpython install`` コマンドを実行する必要があります。"
 
 #: ../../installation.rst:39
 msgid "Optional Dependencies"
