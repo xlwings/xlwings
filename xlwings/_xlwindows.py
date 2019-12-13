@@ -25,7 +25,7 @@ import win32process
 from comtypes import IUnknown
 from comtypes.automation import IDispatch
 
-from .constants import ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin
+from .constants import ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin, DeleteShiftDirection
 from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime, col_name
 
 # Optional imports
@@ -870,6 +870,10 @@ class Range(object):
         copy_origins = {'format_from_left_or_above': InsertFormatOrigin.xlFormatFromLeftOrAbove,
                         'format_from_right_or_below': InsertFormatOrigin.xlFormatFromRightOrBelow}
         self.xl.Insert(Shift=shifts[shift], CopyOrigin=copy_origins[copy_origin])
+
+    def delete(self, shift=None):
+        shifts = {'up': DeleteShiftDirection.xlShiftUp, 'left': DeleteShiftDirection.xlShiftToLeft, None: None}
+        self.xl.Delete(Shift=shifts[shift])
 
     @property
     def hyperlink(self):
