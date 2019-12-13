@@ -25,7 +25,7 @@ import win32process
 from comtypes import IUnknown
 from comtypes.automation import IDispatch
 
-from .constants import ColorIndex, UpdateLinks
+from .constants import ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin
 from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime, col_name
 
 # Optional imports
@@ -862,6 +862,14 @@ class Range(object):
             elif axis is None:
                 self.xl.Columns.AutoFit()
                 self.xl.Rows.AutoFit()
+
+    def insert(self, shift=None, copy_origin=None):
+        shifts = {'down': InsertShiftDirection.xlShiftDown,
+                  'right': InsertShiftDirection.xlShiftToRight,
+                  None: None}
+        copy_origins = {'format_from_left_or_above': InsertFormatOrigin.xlFormatFromLeftOrAbove,
+                        'format_from_right_or_below': InsertFormatOrigin.xlFormatFromRightOrBelow}
+        self.xl.Insert(Shift=shifts[shift], CopyOrigin=copy_origins[copy_origin])
 
     @property
     def hyperlink(self):

@@ -630,8 +630,8 @@ class Range(object):
 
     def insert(self, shift=None, copy_origin=None):
         # copy_origin is not supported on mac
-        shift_direction = {'down': kw.shift_down, 'right': kw.shift_to_right, None: None}
-        self.xl.insert_into_range(shift=shift_direction[shift])
+        shifts = {'down': kw.shift_down, 'right': kw.shift_to_right, None: None}
+        self.xl.insert_into_range(shift=shifts[shift])
 
     @property
     def hyperlink(self):
