@@ -432,6 +432,39 @@ class TestRangeAttributes(TestBase):
         self.assertIsNone(self.wb1.sheets[0].range('A1').value)
         self.assertEqual(self.wb1.sheets[0].range('B1:D1').value, ['test', 'test', 'test'])
 
+    def test_delete_cell(self):
+        self.wb1.sheets[0].range('A1').value = ['one', 'two', 'three']
+        self.wb1.sheets[0].range('A1').delete()
+        self.assertIsNone(self.wb1.sheets[0].range('C1').value)
+        self.assertEqual(self.wb1.sheets[0].range('A1').value, 'two')
+
+    def test_delete_row(self):
+        self.wb1.sheets[0].range('A1:C1').value = 'one'
+        self.wb1.sheets[0].range('A2:C2').value = 'two'
+        self.wb1.sheets[0].range('1:1').delete()
+        self.assertEqual(self.wb1.sheets[0].range('A1:C1').value, ['two', 'two', 'two'])
+        self.assertEqual(self.wb1.sheets[0].range('A2:C2').value, [None, None, None])
+
+    def test_delete_column(self):
+        self.wb1.sheets[0].range('A1:A1').value = 'one'
+        self.wb1.sheets[0].range('B1:B2').value = 'two'
+        self.wb1.sheets[0].range('C1:C2').value = 'two'
+        self.wb1.sheets[0].range('A:A').delete()
+        self.assertEqual(self.wb1.sheets[0].range('C1:C2').value, [None, None])
+        self.assertEqual(self.wb1.sheets[0].range('A1:A2').value, ['two', 'two'])
+
+    def test_delete_cell_shift_up(self):
+        self.wb1.sheets[0].range('A1').value = ['one', 'two', 'three']
+        self.wb1.sheets[0].range('A1').delete('up')
+        self.assertIsNone(self.wb1.sheets[0].range('A1').value)
+        self.assertEqual(self.wb1.sheets[0].range('B1:C1').value, ['two', 'three'])
+
+    def test_delete_cell_shift_left(self):
+        self.wb1.sheets[0].range('A1').value = ['one', 'two', 'three']
+        self.wb1.sheets[0].range('A1').delete('left')
+        self.assertIsNone(self.wb1.sheets[0].range('C1').value)
+        self.assertEqual(self.wb1.sheets[0].range('A1').value, 'two')
+
     def test_resize(self):
         r = self.wb1.sheets[0].range('A1').resize(4, 5)
         self.assertEqual(r.address, '$A$1:$E$4')

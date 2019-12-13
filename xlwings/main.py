@@ -1673,6 +1673,22 @@ class Range(object):
         """
         self.impl.insert(shift, copy_origin)
 
+    def delete(self, shift=None):
+        """
+        Deletes a cell or range of cells.
+
+        Parameters
+        ----------
+        shift : str, default None
+            Use ``left`` or ``up``. If omitted, Excel decides based on the shape of the range.
+
+        Returns
+        -------
+        None
+
+        """
+        self.impl.delete(shift)
+
     @property
     def hyperlink(self):
         """
