@@ -633,6 +633,10 @@ class Range(object):
         shifts = {'down': kw.shift_down, 'right': kw.shift_to_right, None: None}
         self.xl.insert_into_range(shift=shifts[shift])
 
+    def delete(self, shift=None):
+        shifts = {'up': kw.shift_up, 'left': kw.shift_to_left, None: None}
+        self.xl.delete_range(shift=shifts[shift])
+
     @property
     def hyperlink(self):
         try:
