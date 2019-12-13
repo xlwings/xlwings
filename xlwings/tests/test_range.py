@@ -402,6 +402,36 @@ class TestRangeAttributes(TestBase):
         self.wb1.sheets[0].range('B10').formula = '=HYPERLINK("http://xlwings.org", "xlwings")'
         self.assertEqual(self.wb1.sheets[0].range('B10').hyperlink, 'http://xlwings.org')
 
+    def test_insert_cell(self):
+        self.wb1.sheets[0].range('A1:C1').value = 'test'
+        self.wb1.sheets[0].range('A1').insert()
+        self.assertIsNone(self.wb1.sheets[0].range('A1').value)
+        self.assertEqual(self.wb1.sheets[0].range('A2').value, 'test')
+
+    def test_insert_row(self):
+        self.wb1.sheets[0].range('A1:C1').value = 'test'
+        self.wb1.sheets[0].range('1:1').insert()
+        self.assertEqual(self.wb1.sheets[0].range('A1:C1').value, [None, None, None])
+        self.assertEqual(self.wb1.sheets[0].range('A2:C2').value, ['test', 'test', 'test'])
+
+    def test_insert_column(self):
+        self.wb1.sheets[0].range('A1:A3').value = 'test'
+        self.wb1.sheets[0].range('A:A').insert()
+        self.assertEqual(self.wb1.sheets[0].range('A1:A3').value, [None, None, None])
+        self.assertEqual(self.wb1.sheets[0].range('B1:B3').value, ['test', 'test', 'test'])
+
+    def test_insert_cell_shift_down(self):
+        self.wb1.sheets[0].range('A1:C1').value = 'test'
+        self.wb1.sheets[0].range('A1').insert(shift='down')
+        self.assertIsNone(self.wb1.sheets[0].range('A1').value)
+        self.assertEqual(self.wb1.sheets[0].range('A2').value, 'test')
+
+    def test_insert_cell_shift_right(self):
+        self.wb1.sheets[0].range('A1:C1').value = 'test'
+        self.wb1.sheets[0].range('A1').insert(shift='right')
+        self.assertIsNone(self.wb1.sheets[0].range('A1').value)
+        self.assertEqual(self.wb1.sheets[0].range('B1:D1').value, ['test', 'test', 'test'])
+
     def test_resize(self):
         r = self.wb1.sheets[0].range('A1').resize(4, 5)
         self.assertEqual(r.address, '$A$1:$E$4')

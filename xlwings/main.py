@@ -1655,6 +1655,24 @@ class Range(object):
         else:
             return "<Range [{1}]{0}!{2}>".format(self.sheet.name, self.sheet.book.name, self.address)
 
+    def insert(self, shift=None, copy_origin='format_from_left_or_above'):
+        """
+        Insert a cell or range of cells into the sheet.
+
+        Parameters
+        ----------
+        shift : str, default None
+            Use ``right`` or ``down``. If omitted, Excel decides based on the shape of the range.
+        copy_origin : str, default format_from_left_or_above
+            Use ``format_from_left_or_above`` or ``format_from_right_or_below``. Note that this is not supported on macOS.
+
+        Returns
+        -------
+        None
+
+        """
+        self.impl.insert(shift, copy_origin)
+
     @property
     def hyperlink(self):
         """
