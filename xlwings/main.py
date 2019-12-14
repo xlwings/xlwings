@@ -1689,6 +1689,22 @@ class Range(object):
         """
         self.impl.delete(shift)
 
+    def copy(self, destination=None):
+        """
+        Copy a range to a destination range or clipboard.
+
+        Parameters
+        ----------
+        destination : xlwings.Range
+            xlwings Range to which the specified range will be copied. If omitted, the range is copied to the Clipboard.
+
+        Returns
+        -------
+        None
+
+        """
+        self.impl.copy(destination)
+
     @property
     def hyperlink(self):
         """

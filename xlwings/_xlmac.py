@@ -637,6 +637,9 @@ class Range(object):
         shifts = {'up': kw.shift_up, 'left': kw.shift_to_left, None: None}
         self.xl.delete_range(shift=shifts[shift])
 
+    def copy(self, destination=None):
+        self.xl.copy_range(destination=destination.api if destination else None)
+
     @property
     def hyperlink(self):
         try:
