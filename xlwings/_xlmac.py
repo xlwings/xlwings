@@ -665,7 +665,7 @@ class Range(object):
             None: None
         }
 
-        self.xl.paste(what=pastes[paste], operation=operations[operation], skip_blanks=skip_blanks, transpose=transpose)
+        self.xl.paste_special(what=pastes[paste], operation=operations[operation], skip_blanks=skip_blanks, transpose=transpose)
 
     @property
     def hyperlink(self):
