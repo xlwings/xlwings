@@ -875,6 +875,9 @@ class Range(object):
         shifts = {'up': DeleteShiftDirection.xlShiftUp, 'left': DeleteShiftDirection.xlShiftToLeft, None: None}
         self.xl.Delete(Shift=shifts[shift])
 
+    def copy(self, destination=None):
+        self.xl.Copy(Destination=destination.api if destination else None)
+
     @property
     def hyperlink(self):
         if self.xl is not None:
