@@ -878,6 +878,33 @@ class Range(object):
     def copy(self, destination=None):
         self.xl.Copy(Destination=destination.api if destination else None)
 
+    def paste(self, paste=None, operation=None, skip_blanks=False, transpose=False):
+        pastes = {
+            "all": -4104,
+            None: -4104,
+            "all_except_borders": 7,
+            "all_merging_conditional_formats": 14,
+            "all_using_source_theme": 13,
+            "column_widths": 8,
+            "comments": -4144,
+            "formats": -4122,
+            "formulas": -4123,
+            "formulas_and_number_formats": 11,
+            "validation": 6,
+            "values": -4163,
+            "values_and_number_formats": 12,
+        }
+
+        operations = {
+            "add": 2,
+            "divide": 5,
+            "multiply": 4,
+            None: -4142,
+            "subtract": 3,
+        }
+
+        self.xl.PasteSpecial(Paste=pastes[paste], Operation=operations[operation], SkipBlanks=skip_blanks, Transpose=transpose)
+
     @property
     def hyperlink(self):
         if self.xl is not None:

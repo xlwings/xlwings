@@ -1705,7 +1705,7 @@ class Range(object):
         """
         self.impl.copy(destination)
 
-    def paste_special(self, paste=None, operation=None, skip_blanks=False, transpose=False):
+    def paste(self, paste=None, operation=None, skip_blanks=False, transpose=False):
         """
         Pastes a range from the clipboard into the specified range.
 
@@ -1727,7 +1727,7 @@ class Range(object):
         None
 
         """
-        self.impl.paste_special(paste=paste, operation=operation, skip_blanks=skip_blanks, transpose=transpose)
+        self.impl.paste(paste=paste, operation=operation, skip_blanks=skip_blanks, transpose=transpose)
 
     @property
     def hyperlink(self):
