@@ -1,0 +1,61 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-12-12 21:27+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../index.rst:2
+msgid "xlwings - Make Excel Fly!"
+msgstr "xlwings - 翔べ！Excel"
+
+#: ../../index.rst:4
+msgid ""
+"xlwings is a `BSD-licensed "
+"<http://opensource.org/licenses/BSD-3-Clause>`_ Python library that makes"
+" it easy to call Python from Excel and vice versa:"
+msgstr ""
+"xlwingsは `BSDライセンス "
+"<http://opensource.org/licenses/BSD-3-Clause>`_ のPythonライブラリーで、"
+" ExcelとPythonとの相互呼び出しを容易にするものです。:"
+
+#: ../../index.rst:7
+msgid ""
+"**Scripting**: Automate/interact with Excel from Python using a syntax "
+"close to VBA."
+msgstr ""
+"**Scripting**: VBAに近いシンタックスを用いて、PythonからExcelを自動化/相互作用しましょう。"
+
+#: ../../index.rst:8
+msgid "**Macros**: Replace VBA macros with clean and powerful Python code."
+msgstr "**Macros**: 簡潔で強力なPythonのコードで、VBAマクロを置き換えましょう。"
+
+#: ../../index.rst:9
+msgid "**UDFs**: Write User Defined Functions (UDFs) in Python (Windows only)."
+msgstr "**UDFs**: Pythonでユーザー定義関数(User Defined Functions, UDFs)を書きましょう Windowsのみ)."
+
+#: ../../index.rst:10
+msgid "**REST API**: Expose your Excel workbooks via REST API."
+msgstr "**REST API**: REST APIでExcelワークブックを使いましょう。"
+
+#: ../../index.rst:12
+msgid ""
+"**Numpy arrays** and **Pandas Series/DataFrames** are fully supported. "
+"xlwings-powered workbooks are easy to distribute and work on **Windows** "
+"and **Mac**."
+msgstr ""
+"**Numpy arrays** と **Pandas Series/DataFrames** を完全にサポートしています。 "
+"**Windows** と **Mac** の両環境とも、xlwingsで強化されたワークブックの配布/動作を簡単に行えます。"
+
