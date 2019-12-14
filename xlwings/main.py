@@ -1705,6 +1705,30 @@ class Range(object):
         """
         self.impl.copy(destination)
 
+    def paste(self, paste=None, operation=None, skip_blanks=False, transpose=False):
+        """
+        Pastes a range from the clipboard into the specified range.
+
+        Parameters
+        ----------
+        paste : str, default None
+            One of ``all_merging_conditional_formats``, ``all``, ``all_except_borders``, ``all_using_source_theme``,
+            ``column_widths``, ``comments``, ``formats``, ``formulas``, ``formulas_and_number_formats``, ``validation``,
+            ``values``, ``values_and_number_formats``.
+        operation : str, default None
+            One of "add", "divide", "multiply", "subtract".
+        skip_blanks : bool, default False
+            Set to ``True`` to skip over blank cells
+        transpose : bool, default False
+            Set to ``True`` to transpose rows and columns.
+
+        Returns
+        -------
+        None
+
+        """
+        self.impl.paste(paste=paste, operation=operation, skip_blanks=skip_blanks, transpose=transpose)
+
     @property
     def hyperlink(self):
         """

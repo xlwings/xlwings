@@ -476,6 +476,24 @@ class TestRangeAttributes(TestBase):
         sheet.range('A1:B1').value = 'test'
         sheet.range('A1:B1').copy()
 
+    def test_paste(self):
+        sheet = self.wb1.sheets[0]
+        sheet.range('A1:B1').value = 'test'
+        sheet.range('A1:B1').color = (34, 34, 34)
+        sheet.range('A1:B1').copy()
+        sheet.range('A2').paste()
+        self.assertEqual(sheet['A1:B1'].value, sheet['A2:B2'].value)
+        self.assertEqual(sheet['A1:B1'].color, sheet['A2:B2'].color)
+
+    def test_paste_values(self):
+        sheet = self.wb1.sheets[0]
+        sheet.range('A1:B1').value = 'test'
+        sheet.range('A1:B1').color = (34, 34, 34)
+        sheet.range('A1:B1').copy()
+        sheet.range('A2').paste(paste='values')
+        self.assertEqual(sheet['A1:B1'].value, sheet['A2:B2'].value)
+        self.assertNotEqual(sheet['A1:B1'].color, sheet['A2:B2'].color)
+
     def test_resize(self):
         r = self.wb1.sheets[0].range('A1').resize(4, 5)
         self.assertEqual(r.address, '$A$1:$E$4')
