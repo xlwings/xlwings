@@ -640,6 +640,33 @@ class Range(object):
     def copy(self, destination=None):
         self.xl.copy_range(destination=destination.api if destination else None)
 
+    def paste_special(self, paste=None, operation=None, skip_blanks=False, transpose=False):
+        pastes = {
+            # all_merging_conditional_formats unsupported on mac
+            "all": kw.paste_all,
+            "all_except_borders": kw.paste_all_except_borders,
+            "all_using_source_theme": kw.paste_all_using_source_theme,
+            "column_widths": kw.paste_column_widths,
+            "comments": kw.paste_comments,
+            "formats": kw.paste_formats,
+            "formulas": kw.paste_formulas,
+            "formulas_and_number_formats": kw.paste_formulas_and_number_formats,
+            "validation": kw.paste_validation,
+            "values": kw.paste_values,
+            "values_and_number_formats": kw.paste_values_and_number_formats,
+            None: None
+        }
+
+        operations = {
+            "add": kw.paste_special_operation_add,
+            "divide": kw.paste_special_operation_divide,
+            "multiply": kw.paste_special_operation_multiply,
+            "subtract": kw.paste_special_operation_subtract,
+            None: None
+        }
+
+        self.xl.paste_special(what=pastes[paste], operation=operations[operation], skip_blanks=skip_blanks, transpose=transpose)
+
     @property
     def hyperlink(self):
         try:
