@@ -465,6 +465,17 @@ class TestRangeAttributes(TestBase):
         self.assertIsNone(self.wb1.sheets[0].range('C1').value)
         self.assertEqual(self.wb1.sheets[0].range('A1').value, 'two')
 
+    def test_copy_destination(self):
+        sheet = self.wb1.sheets[0]
+        sheet.range('A1:B1').value = 'test'
+        sheet.range('A1:B1').copy(destination=sheet.range('A2'))
+        self.assertEqual(sheet.range('A1:B1').value, sheet.range('A2:B2').value)
+
+    def test_copy_clipboard(self):
+        sheet = self.wb1.sheets[0]
+        sheet.range('A1:B1').value = 'test'
+        sheet.range('A1:B1').copy()
+
     def test_resize(self):
         r = self.wb1.sheets[0].range('A1').resize(4, 5)
         self.assertEqual(r.address, '$A$1:$E$4')
