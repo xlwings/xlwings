@@ -25,7 +25,7 @@ import win32process
 from comtypes import IUnknown
 from comtypes.automation import IDispatch
 
-from .constants import ColorIndex, UpdateLinks
+from .constants import ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin, DeleteShiftDirection
 from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime, col_name
 
 # Optional imports
@@ -862,6 +862,48 @@ class Range(object):
             elif axis is None:
                 self.xl.Columns.AutoFit()
                 self.xl.Rows.AutoFit()
+
+    def insert(self, shift=None, copy_origin=None):
+        shifts = {'down': InsertShiftDirection.xlShiftDown,
+                  'right': InsertShiftDirection.xlShiftToRight,
+                  None: None}
+        copy_origins = {'format_from_left_or_above': InsertFormatOrigin.xlFormatFromLeftOrAbove,
+                        'format_from_right_or_below': InsertFormatOrigin.xlFormatFromRightOrBelow}
+        self.xl.Insert(Shift=shifts[shift], CopyOrigin=copy_origins[copy_origin])
+
+    def delete(self, shift=None):
+        shifts = {'up': DeleteShiftDirection.xlShiftUp, 'left': DeleteShiftDirection.xlShiftToLeft, None: None}
+        self.xl.Delete(Shift=shifts[shift])
+
+    def copy(self, destination=None):
+        self.xl.Copy(Destination=destination.api if destination else None)
+
+    def paste(self, paste=None, operation=None, skip_blanks=False, transpose=False):
+        pastes = {
+            "all": -4104,
+            None: -4104,
+            "all_except_borders": 7,
+            "all_merging_conditional_formats": 14,
+            "all_using_source_theme": 13,
+            "column_widths": 8,
+            "comments": -4144,
+            "formats": -4122,
+            "formulas": -4123,
+            "formulas_and_number_formats": 11,
+            "validation": 6,
+            "values": -4163,
+            "values_and_number_formats": 12,
+        }
+
+        operations = {
+            "add": 2,
+            "divide": 5,
+            "multiply": 4,
+            None: -4142,
+            "subtract": 3,
+        }
+
+        self.xl.PasteSpecial(Paste=pastes[paste], Operation=operations[operation], SkipBlanks=skip_blanks, Transpose=transpose)
 
     @property
     def hyperlink(self):

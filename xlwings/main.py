@@ -1655,6 +1655,80 @@ class Range(object):
         else:
             return "<Range [{1}]{0}!{2}>".format(self.sheet.name, self.sheet.book.name, self.address)
 
+    def insert(self, shift=None, copy_origin='format_from_left_or_above'):
+        """
+        Insert a cell or range of cells into the sheet.
+
+        Parameters
+        ----------
+        shift : str, default None
+            Use ``right`` or ``down``. If omitted, Excel decides based on the shape of the range.
+        copy_origin : str, default format_from_left_or_above
+            Use ``format_from_left_or_above`` or ``format_from_right_or_below``. Note that this is not supported on macOS.
+
+        Returns
+        -------
+        None
+
+        """
+        self.impl.insert(shift, copy_origin)
+
+    def delete(self, shift=None):
+        """
+        Deletes a cell or range of cells.
+
+        Parameters
+        ----------
+        shift : str, default None
+            Use ``left`` or ``up``. If omitted, Excel decides based on the shape of the range.
+
+        Returns
+        -------
+        None
+
+        """
+        self.impl.delete(shift)
+
+    def copy(self, destination=None):
+        """
+        Copy a range to a destination range or clipboard.
+
+        Parameters
+        ----------
+        destination : xlwings.Range
+            xlwings Range to which the specified range will be copied. If omitted, the range is copied to the Clipboard.
+
+        Returns
+        -------
+        None
+
+        """
+        self.impl.copy(destination)
+
+    def paste(self, paste=None, operation=None, skip_blanks=False, transpose=False):
+        """
+        Pastes a range from the clipboard into the specified range.
+
+        Parameters
+        ----------
+        paste : str, default None
+            One of ``all_merging_conditional_formats``, ``all``, ``all_except_borders``, ``all_using_source_theme``,
+            ``column_widths``, ``comments``, ``formats``, ``formulas``, ``formulas_and_number_formats``, ``validation``,
+            ``values``, ``values_and_number_formats``.
+        operation : str, default None
+            One of "add", "divide", "multiply", "subtract".
+        skip_blanks : bool, default False
+            Set to ``True`` to skip over blank cells
+        transpose : bool, default False
+            Set to ``True`` to transpose rows and columns.
+
+        Returns
+        -------
+        None
+
+        """
+        self.impl.paste(paste=paste, operation=operation, skip_blanks=skip_blanks, transpose=transpose)
+
     @property
     def hyperlink(self):
         """

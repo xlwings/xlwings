@@ -402,6 +402,98 @@ class TestRangeAttributes(TestBase):
         self.wb1.sheets[0].range('B10').formula = '=HYPERLINK("http://xlwings.org", "xlwings")'
         self.assertEqual(self.wb1.sheets[0].range('B10').hyperlink, 'http://xlwings.org')
 
+    def test_insert_cell(self):
+        self.wb1.sheets[0].range('A1:C1').value = 'test'
+        self.wb1.sheets[0].range('A1').insert()
+        self.assertIsNone(self.wb1.sheets[0].range('A1').value)
+        self.assertEqual(self.wb1.sheets[0].range('A2').value, 'test')
+
+    def test_insert_row(self):
+        self.wb1.sheets[0].range('A1:C1').value = 'test'
+        self.wb1.sheets[0].range('1:1').insert()
+        self.assertEqual(self.wb1.sheets[0].range('A1:C1').value, [None, None, None])
+        self.assertEqual(self.wb1.sheets[0].range('A2:C2').value, ['test', 'test', 'test'])
+
+    def test_insert_column(self):
+        self.wb1.sheets[0].range('A1:A3').value = 'test'
+        self.wb1.sheets[0].range('A:A').insert()
+        self.assertEqual(self.wb1.sheets[0].range('A1:A3').value, [None, None, None])
+        self.assertEqual(self.wb1.sheets[0].range('B1:B3').value, ['test', 'test', 'test'])
+
+    def test_insert_cell_shift_down(self):
+        self.wb1.sheets[0].range('A1:C1').value = 'test'
+        self.wb1.sheets[0].range('A1').insert(shift='down')
+        self.assertIsNone(self.wb1.sheets[0].range('A1').value)
+        self.assertEqual(self.wb1.sheets[0].range('A2').value, 'test')
+
+    def test_insert_cell_shift_right(self):
+        self.wb1.sheets[0].range('A1:C1').value = 'test'
+        self.wb1.sheets[0].range('A1').insert(shift='right')
+        self.assertIsNone(self.wb1.sheets[0].range('A1').value)
+        self.assertEqual(self.wb1.sheets[0].range('B1:D1').value, ['test', 'test', 'test'])
+
+    def test_delete_cell(self):
+        self.wb1.sheets[0].range('A1').value = ['one', 'two', 'three']
+        self.wb1.sheets[0].range('A1').delete()
+        self.assertIsNone(self.wb1.sheets[0].range('C1').value)
+        self.assertEqual(self.wb1.sheets[0].range('A1').value, 'two')
+
+    def test_delete_row(self):
+        self.wb1.sheets[0].range('A1:C1').value = 'one'
+        self.wb1.sheets[0].range('A2:C2').value = 'two'
+        self.wb1.sheets[0].range('1:1').delete()
+        self.assertEqual(self.wb1.sheets[0].range('A1:C1').value, ['two', 'two', 'two'])
+        self.assertEqual(self.wb1.sheets[0].range('A2:C2').value, [None, None, None])
+
+    def test_delete_column(self):
+        self.wb1.sheets[0].range('A1:A1').value = 'one'
+        self.wb1.sheets[0].range('B1:B2').value = 'two'
+        self.wb1.sheets[0].range('C1:C2').value = 'two'
+        self.wb1.sheets[0].range('A:A').delete()
+        self.assertEqual(self.wb1.sheets[0].range('C1:C2').value, [None, None])
+        self.assertEqual(self.wb1.sheets[0].range('A1:A2').value, ['two', 'two'])
+
+    def test_delete_cell_shift_up(self):
+        self.wb1.sheets[0].range('A1').value = ['one', 'two', 'three']
+        self.wb1.sheets[0].range('A1').delete('up')
+        self.assertIsNone(self.wb1.sheets[0].range('A1').value)
+        self.assertEqual(self.wb1.sheets[0].range('B1:C1').value, ['two', 'three'])
+
+    def test_delete_cell_shift_left(self):
+        self.wb1.sheets[0].range('A1').value = ['one', 'two', 'three']
+        self.wb1.sheets[0].range('A1').delete('left')
+        self.assertIsNone(self.wb1.sheets[0].range('C1').value)
+        self.assertEqual(self.wb1.sheets[0].range('A1').value, 'two')
+
+    def test_copy_destination(self):
+        sheet = self.wb1.sheets[0]
+        sheet.range('A1:B1').value = 'test'
+        sheet.range('A1:B1').copy(destination=sheet.range('A2'))
+        self.assertEqual(sheet.range('A1:B1').value, sheet.range('A2:B2').value)
+
+    def test_copy_clipboard(self):
+        sheet = self.wb1.sheets[0]
+        sheet.range('A1:B1').value = 'test'
+        sheet.range('A1:B1').copy()
+
+    def test_paste(self):
+        sheet = self.wb1.sheets[0]
+        sheet.range('A1:B1').value = 'test'
+        sheet.range('A1:B1').color = (34, 34, 34)
+        sheet.range('A1:B1').copy()
+        sheet.range('A2').paste()
+        self.assertEqual(sheet['A1:B1'].value, sheet['A2:B2'].value)
+        self.assertEqual(sheet['A1:B1'].color, sheet['A2:B2'].color)
+
+    def test_paste_values(self):
+        sheet = self.wb1.sheets[0]
+        sheet.range('A1:B1').value = 'test'
+        sheet.range('A1:B1').color = (34, 34, 34)
+        sheet.range('A1:B1').copy()
+        sheet.range('A2').paste(paste='values')
+        self.assertEqual(sheet['A1:B1'].value, sheet['A2:B2'].value)
+        self.assertNotEqual(sheet['A1:B1'].color, sheet['A2:B2'].color)
+
     def test_resize(self):
         r = self.wb1.sheets[0].range('A1').resize(4, 5)
         self.assertEqual(r.address, '$A$1:$E$4')
