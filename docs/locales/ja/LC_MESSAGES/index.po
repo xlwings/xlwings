@@ -36,19 +36,19 @@ msgid ""
 "**Scripting**: Automate/interact with Excel from Python using a syntax "
 "close to VBA."
 msgstr ""
-"**Scripting**: VBAに近いシンタックスを用いて、PythonからExcelを自動化/相互作用しましょう。"
+"**Scripting**: VBAに近いシンタックスを用いて、PythonからExcelを自動化/相互操作します。"
 
 #: ../../index.rst:8
 msgid "**Macros**: Replace VBA macros with clean and powerful Python code."
-msgstr "**Macros**: 簡潔で強力なPythonのコードで、VBAマクロを置き換えましょう。"
+msgstr "**Macros**: 簡潔で強力なPythonのコードで、VBAマクロを置き換えます。"
 
 #: ../../index.rst:9
 msgid "**UDFs**: Write User Defined Functions (UDFs) in Python (Windows only)."
-msgstr "**UDFs**: Pythonでユーザー定義関数(User Defined Functions, UDFs)を書きましょう Windowsのみ)."
+msgstr "**UDFs**: Pythonでユーザー定義関数(User Defined Functions, UDFs)を書きます(Windowsのみ)。"
 
 #: ../../index.rst:10
 msgid "**REST API**: Expose your Excel workbooks via REST API."
-msgstr "**REST API**: REST APIでExcelワークブックを使いましょう。"
+msgstr "**REST API**: REST APIでExcelワークブックを使います。"
 
 #: ../../index.rst:12
 msgid ""
