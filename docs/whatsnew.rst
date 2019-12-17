@@ -1,6 +1,14 @@
 What's New
 ==========
 
+v0.16.4 (Dec 17, 2019)
+----------------------
+
+* [Enhancement] Added support for :meth:`xlwings.Range.copy` (:issue:`1214`).
+* [Enhancement] Added support for :meth:`xlwings.Range.paste` (:issue:`1215`). 
+* [Enhancement] Added support for :meth:`xlwings.Range.insert` (:issue:`80`).
+* [Enhancement] Added support for :meth:`xlwings.Range.delete` (:issue:`862`).
+
 v0.16.3 (Dec 12, 2019)
 ----------------------
 
@@ -20,7 +28,7 @@ v0.16.2 (Dec 5, 2019)
 v0.16.1 (Dec 1, 2019)
 ---------------------
 
-* [Enhancement] :meth:`xlwings.Book()` and `myapp.books.open()` now accept parameters like 
+* [Enhancement] :meth:`xlwings.Book()` and ``myapp.books.open()`` now accept parameters like 
   ``update_links``, ``password`` etc. (:issue:`1189`).
 * [Bug Fix] ``Conda Env`` now works correctly with ``base`` for UDFs, too (:issue:`1110`).
 * [Bug Fix] ``Conda Base`` now allows spaces in the path (:issue:`1176`).
