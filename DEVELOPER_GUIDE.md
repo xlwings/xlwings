@@ -67,7 +67,9 @@ to run reasonably fast (i.e. not always open/close the whole workbook).
 Also, the tests are standard unittests, so `nose` is not really required to run them.
 
 
-## Build docs locally
+## Docs
+
+### Build locally
 
 ```
 cd docs
@@ -78,7 +80,7 @@ make html
 
 See https://docs.readthedocs.io/en/stable/guides/manage-translations.html#manage-translations
 
-### Add a translation to readthedocs
+### Add a translation to the published docs on readthedocs.org
 
 * `.po` files must live under `docs/locales/<language>/LC_MESSAGES`
 * Create a new project (`xlwings-<language>`) via generic Git integration as you can only import a project 1x via the GitHub integration.
