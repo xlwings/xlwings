@@ -1,0 +1,37 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-04 15:42+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Eugene Chang <yuyueugene84@gmail.com>\n"
+"Language-Team: zh_TW <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../course.rst:2
+msgid "Video course"
+msgstr "影音課程"
+
+#: ../../course.rst:4
+msgid ""
+"Those who prefer a didactically structured video course over this "
+"documentation should have a look at our video course:"
+msgstr "若覺得文件寫的不夠詳細，需要更為系統化的教學，可以考慮一下我們的影音課程："
+
+#: ../../course.rst:7
+msgid "https://training.zoomeranalytics.com/p/xlwings"
+msgstr ""
+
+#: ../../course.rst:9
+msgid "It's also a great way to support the ongoing development of xlwings :)"
+msgstr "購買這個課程也是支持我們持續開發 xlwings 的最好方式之一 :)"
+

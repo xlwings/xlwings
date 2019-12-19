@@ -1,0 +1,129 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-04 15:42+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Eugene Chang yuyueugene84@gmail.com\n"
+"Language-Team: zh_TW <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../quickstart.rst:2
+msgid "Quickstart"
+msgstr "快速入門"
+
+#: ../../quickstart.rst:4
+msgid ""
+"This guide assumes you have xlwings already installed. If that's not the "
+"case, head over to :ref:`installation`."
+msgstr "本教學假設你的電腦已經安裝好了 xlwings，若沒有，請參考 :ref:`installation`"
+
+#: ../../quickstart.rst:7
+msgid "1. Scripting: Automate/interact with Excel from Python"
+msgstr "1. 脚本： 透過 Python 自動化或是 Excel 互動"
+
+#: ../../quickstart.rst:9
+msgid "Establish a connection to a workbook:"
+msgstr "與工作簿建立聯繫"
+
+#: ../../quickstart.rst:16
+msgid ""
+"If you have the same file open in two instances of Excel, you need to "
+"fully qualify it and include the app instance. You will find your app "
+"instance key (the PID) via ``xw.apps.keys()``:"
+msgstr "若你有兩個 Excel 的實例開啓同一個檔案，你需要該實例的 PID，而取得 PID 的方法是透過 ``xw.apps.keys()``："
+
+#: ../../quickstart.rst:21
+msgid "Instantiate a sheet object:"
+msgstr "實例化一個試算表物件："
+
+#: ../../quickstart.rst:25
+msgid "Reading/writing values to/from ranges is as easy as:"
+msgstr "從儲存格範圍讀取出來或將資料寫入儲存格範圍十分簡單："
+
+#: ../../quickstart.rst:31
+msgid "There are many **convenience features** available, e.g. Range expanding:"
+msgstr "本套件有提供許多 **方便的功能**, 像是 Range expanding（自動偵測範圍大小）:"
+
+#: ../../quickstart.rst:37
+msgid ""
+"**Powerful converters** handle most data types of interest, including "
+"Numpy arrays and Pandas DataFrames in both directions:"
+msgstr "**强大的資料轉換器** 可以將試算表的資料轉換成許多不同的資料型別、像是 Numpy Array 或是 Pandas DataFrame："
+
+#: ../../quickstart.rst:47
+msgid "**Matplotlib** figures can be shown as pictures in Excel:"
+msgstr "**Matplotlib** 圖表可以以圖片的形式呈現在試算表内"
+
+#: ../../quickstart.rst:56
+msgid "**Shortcut** for the active sheet: ``xw.Range``"
+msgstr "指定使用中工作表（最上層工作表）的捷徑：``xw.Range`` "
+
+#: ../../quickstart.rst:58
+msgid ""
+"If you want to quickly talk to the active sheet in the active workbook, "
+"you don't need instantiate a workbook and sheet object, but can simply "
+"do:"
+msgstr "若你希望能夠快速的操作目前被開啓的工作表（最上層工作表），你其實不需要實例化一個工作簿與工作表，可以直接寫："
+
+#: ../../quickstart.rst:66
+msgid ""
+"**Note:** You should only use ``xw.Range`` when interacting with Excel. "
+"In scripts, you should always go via book and sheet objects as shown "
+"above."
+msgstr "**備注：** ``xw.Range`` 只適用於你在與 Excel 互動的場景。若今天你是在寫脚本，還是建議使用 book 與 sheet 物件指定你要操作的工作簿與工作表"
+
+#: ../../quickstart.rst:70
+msgid "2. Macros: Call Python from Excel"
+msgstr "2. 巨集：從 Excel 呼叫 Python"
+
+#: ../../quickstart.rst:72
+msgid "You can call Python functions from VBA using the ``RunPython`` function:"
+msgstr "你可以透過 VBA 語言的 ``RunPython`` 函數呼叫 Python 函式"
+
+#: ../../quickstart.rst:80
+msgid ""
+"Per default, ``RunPython`` expects ``hello.py`` in the same directory as "
+"the Excel file. Refer to the calling Excel book by using "
+"``xw.Book.caller``:"
+msgstr "``RunPython`` 會假設 ``hello.py`` 檔案與 Excel 檔案實在同一個資料夾下。也可以透過``xw.Book.caller``參考到呼叫該函式的 Excel 工作簿："
+
+#: ../../quickstart.rst:94
+msgid ""
+"To make this run, you'll need to have the xlwings add-in installed. The "
+"easiest way to get everything set up is to use the xlwings command line "
+"client from either a command prompt on Windows or a terminal on Mac: "
+"``xlwings quickstart myproject``."
+msgstr "若想執行以上程式，你需要安裝 xlwings 提供的增益集。要把所有的設定都做好，最簡單的方式是透過 xlwings 的指令列界面：``xlwings quickstart myproject``。"
+
+#: ../../quickstart.rst:97
+msgid "For details about the addin, see :ref:`xlwings_addin`."
+msgstr "若想了解更多關於增益集的細節，可以參考：:ref:`xlwings_addin`。"
+
+#: ../../quickstart.rst:100
+msgid "3. UDFs: User Defined Functions (Windows only)"
+msgstr "3. UDFs: 使用者自定函數（僅限 Windows）"
+
+#: ../../quickstart.rst:102
+msgid "Writing a UDF in Python is as easy as:"
+msgstr "用 Python 定義 Excel 函數十分簡單："
+
+#: ../../quickstart.rst:112
+msgid "Converters can be used with UDFs, too. Again a Pandas DataFrame example:"
+msgstr "資料轉換器可以被用於使用者自定函數，以 Pandas DataFrame 爲例："
+
+#: ../../quickstart.rst:126
+msgid ""
+"Import this function into Excel by clicking the import button of the "
+"xlwings add-in: For further details, see :ref:`udfs`."
+msgstr "按下在 xlwings 增益集的 import 按鈕便可引用此函數至 Excel，想深入了解，可以參考：:ref:`udfs`。"
+

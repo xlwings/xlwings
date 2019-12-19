@@ -35,6 +35,7 @@ Dependencies
   The recommended Python distribution for Mac is `Anaconda <https://www.anaconda.com/distribution>`_. With ``conda``
   on the other hand, you'll need to manually run the command ``xlwings runpython install``.
 
+
 Optional Dependencies
 ---------------------
 
