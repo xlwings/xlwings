@@ -117,6 +117,56 @@ def restapi_run(args):
     subprocess.check_call(["flask", "run", "--host", host, "--port", port])
 
 
+def license_update(args):
+    """license handler for xlwings PRO and xlwings REPORTS"""
+    key = args.key
+    if sys.platform.startswith('darwin'):
+        config_file = os.path.join(os.path.expanduser("~"), 'Library', 'Containers', 'com.microsoft.Excel', 'Data', 'xlwings.conf')
+    else:
+        config_file = os.path.join(os.path.expanduser("~"), '.xlwings', 'xlwings.conf')
+    license_kv = '"LICENSE_KEY","{0}"\n'.format(key)
+    if key:
+        # Update xlwings.conf
+        new_config = []
+        if os.path.exists(config_file):
+            with open(config_file, 'r') as f:
+                config = f.readlines()
+            for line in config:
+                # Remove existing license key and empty lines
+                if line.split(',')[0] == '"LICENSE_KEY"' or line in ('\r\n', '\n'):
+                    pass
+                else:
+                    new_config.append(line)
+            new_config.append(license_kv)
+        else:
+            new_config = [license_kv]
+        if not os.path.exists(os.path.dirname(config_file)):
+            os.makedirs(os.path.dirname(config_file))
+        with open(config_file, 'w') as f:
+            f.writelines(new_config)
+
+    # Read existing key from config file
+    if not os.path.exists(config_file):
+        sys.exit('Error: Could not find xlwings.conf. Create it by using the -k/--key option.')
+    with open(config_file, 'r') as f:
+        config = f.readlines()
+    found_key = False
+    for line in config:
+        if line.split(',')[0] == '"LICENSE_KEY"':
+            key = line.split(',')[1].strip()[1:-1]
+            found_key = True
+    if not found_key:
+        sys.exit('Error: Could not find a LICENSE_KEY in xlwings.conf. Add one first by using the -k/--key option.')
+
+    # Update license.lic in licensed packages
+    if os.path.exists(os.path.join(os.path.dirname(xw.__file__) + '_reports', 'pytransform', 'license.lic')):
+        with open(os.path.join(os.path.dirname(xw.__file__) + '_reports', 'pytransform', 'license.lic'), 'w') as f:
+            f.write(key)
+            print("License key successfully updated for xlwings_reports!")
+    else:
+        sys.exit("Error: Didn't find an installed product that requires a license key.")
+
+
 def main():
     print('xlwings ' + xw.__version__)
     parser = argparse.ArgumentParser()
@@ -172,6 +222,16 @@ def main():
     restapi_run_parser.add_argument("-p", "--port", default='5000', help='The port to bind to.')
     restapi_run_parser.set_defaults(func=restapi_run)
 
+    # License
+    license_parser = subparsers.add_parser('license', help='License key functionality')
+    license_subparsers = license_parser.add_subparsers(dest='subcommand')
+    license_subparsers.required = True
+
+    license_update_parser = license_subparsers.add_parser('update')
+    license_update_parser.add_argument("-k", "--key", help='Provide a new key, otherwise it will take it from the xlwings.conf file.')
+    license_update_parser.set_defaults(func=license_update)
+
+    # boilerplate
     args = parser.parse_args()
     args.func(args)
 
