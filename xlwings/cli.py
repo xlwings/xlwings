@@ -159,8 +159,9 @@ def license_update(args):
         sys.exit('Error: Could not find a LICENSE_KEY in xlwings.conf. Add one first by using the -k/--key option.')
 
     # Update license.lic in licensed packages
-    if os.path.exists(os.path.join(os.path.dirname(xw.__file__) + '_reports', 'pytransform', 'license.lic')):
-        with open(os.path.join(os.path.dirname(xw.__file__) + '_reports', 'pytransform', 'license.lic'), 'w') as f:
+    xlwings_reports_lic = os.path.join(os.path.dirname(xw.__file__) + '_reports', 'pytransform', 'license.lic')
+    if os.path.exists(xlwings_reports_lic):
+        with open(xlwings_reports_lic, 'w') as f:
             f.write(key)
             print("License key successfully updated for xlwings_reports!")
     else:
