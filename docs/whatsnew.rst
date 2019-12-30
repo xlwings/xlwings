@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.16.5 (Dec 30, 2019)
+----------------------
+
+* [Enhancement] Improvements with regards to the ``Run main`` ribbon button (:issue:`1207` and :issue:`1222`).
+
 v0.16.4 (Dec 17, 2019)
 ----------------------
 
