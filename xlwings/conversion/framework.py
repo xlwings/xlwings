@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 class ConversionContext(object):
     __slots__ = ['range', 'value', 'meta']
 

@@ -38,7 +38,6 @@ try:
 except ImportError:
     np = None
 
-from . import PY3
 
 time_types = (dt.date, dt.datetime, pywintypes.TimeType)
 if np:
@@ -1028,17 +1027,11 @@ def _com_time_to_datetime(com_time, datetime_builder):
 
     """
 
-    if PY3:
-        # The py3 version of pywintypes has its time type inherit from datetime.
-        # We copy to a new datetime so that the returned type is the same between 2/3
-        # Changed: We make the datetime object timezone naive as Excel doesn't provide info
-        return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
-                                hour=com_time.hour, minute=com_time.minute, second=com_time.second,
-                                microsecond=com_time.microsecond, tzinfo=None)
-    else:
-        assert com_time.msec == 0, "fractional seconds not yet handled"
-        return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
-                                hour=com_time.hour, minute=com_time.minute, second=com_time.second)
+    # Pywintypes has its time type inherit from datetime.
+    # Changed: We make the datetime object timezone naive as Excel doesn't provide info
+    return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
+                            hour=com_time.hour, minute=com_time.minute, second=com_time.second,
+                            microsecond=com_time.microsecond, tzinfo=None)
 
 
 def _datetime_to_com_time(dt_time):
@@ -1068,24 +1061,20 @@ def _datetime_to_com_time(dt_time):
         dt_time = dt.datetime(dt_time.year, dt_time.month, dt_time.day,
                               tzinfo=win32timezone.TimeZoneInfo.utc())
 
-    if PY3:
-        # The py3 version of pywintypes has its time type inherit from datetime.
-        # For some reason, though it accepts plain datetimes, they must have a timezone set.
-        # See http://docs.activestate.com/activepython/2.7/pywin32/html/win32/help/py3k.html
-        # We replace no timezone -> UTC to allow round-trips in the naive case
-        if pd and isinstance(dt_time, pd.Timestamp):
-            # Otherwise pandas prints ignored exceptions on Python 3
-            dt_time = dt_time.to_pydatetime()
-        # We don't use pytz.utc to get rid of additional dependency
-        # Don't do any timezone transformation: simply cutoff the tz info
-        # If we don't reset it first, it gets transformed into UTC before transferred to Excel
-        dt_time = dt_time.replace(tzinfo=None)
-        dt_time = dt_time.replace(tzinfo=win32timezone.TimeZoneInfo.utc())
+    # pywintypes has its time type inherit from datetime.
+    # For some reason, though it accepts plain datetimes, they must have a timezone set.
+    # See http://docs.activestate.com/activepython/2.7/pywin32/html/win32/help/py3k.html
+    # We replace no timezone -> UTC to allow round-trips in the naive case
+    if pd and isinstance(dt_time, pd.Timestamp):
+        # Otherwise pandas prints ignored exceptions on Python 3
+        dt_time = dt_time.to_pydatetime()
+    # We don't use pytz.utc to get rid of additional dependency
+    # Don't do any timezone transformation: simply cutoff the tz info
+    # If we don't reset it first, it gets transformed into UTC before transferred to Excel
+    dt_time = dt_time.replace(tzinfo=None)
+    dt_time = dt_time.replace(tzinfo=win32timezone.TimeZoneInfo.utc())
 
-        return dt_time
-    else:
-        assert dt_time.microsecond == 0, "fractional seconds not yet handled"
-        return pywintypes.Time(dt_time.timetuple())
+    return dt_time
 
 
 def prepare_xl_data_element(x):

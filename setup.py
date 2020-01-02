@@ -31,10 +31,6 @@ else:
     else:
         raise OSError("xlwings requires an installation of Excel and therefore only works on Windows and macOS. To enable the installation on Linux nevertheless, do: export INSTALL_ON_LINUX=1; pip install xlwings")
 
-# This shouldn't be necessary anymore as we dropped official support for < 2.7 and < 3.3
-if (sys.version_info[0] == 2 and sys.version_info[:2] < (2, 7)) or (sys.version_info[0] == 3 and sys.version_info[:2] < (3, 2)):
-    install_requires = install_requires + ['argparse']
-
 setup(
     name='xlwings',
     version=version,
@@ -57,8 +53,11 @@ setup(
         'Operating System :: Microsoft :: Windows',
         'Operating System :: MacOS :: MacOS X',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Office/Business :: Financial :: Spreadsheet',
         'License :: OSI Approved :: BSD License'],
     platforms=['Windows', 'Mac OS X'],

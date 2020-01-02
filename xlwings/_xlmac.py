@@ -14,7 +14,7 @@ from appscript.reference import CommandError
 
 from .constants import ColorIndex
 from .utils import int_to_rgb, np_datetime_to_datetime, col_name, VersionNumber
-from . import mac_dict, PY3, string_types
+from . import mac_dict
 
 try:
     import pandas as pd
@@ -154,8 +154,7 @@ class App(object):
         return None
 
     def run(self, macro, args):
-        # kwargs = {'arg{0}'.format(i): n for i, n in enumerate(args, 1)}  # only for > PY 2.6
-        kwargs = dict(('arg{0}'.format(i), n) for i, n in enumerate(args, 1))
+        kwargs = {'arg{0}'.format(i): n for i, n in enumerate(args, 1)}
         return self.xl.run_VB_macro(macro, **kwargs)
 
 
@@ -358,7 +357,7 @@ class Sheet(object):
             row1 = min(arg1.row, arg2.row)
             col1 = min(arg1.column, arg2.column)
             address1 = self.xl.rows[row1].columns[col1].get_address()
-        elif isinstance(arg1, string_types):
+        elif isinstance(arg1, str):
             address1 = arg1.split(':')[0]
         else:
             raise ValueError("Invalid parameters")
@@ -373,10 +372,10 @@ class Sheet(object):
             row2 = max(arg1.row + arg1.shape[0] - 1, arg2.row + arg2.shape[0] - 1)
             col2 = max(arg1.column + arg1.shape[1] - 1, arg2.column + arg2.shape[1] - 1)
             address2 = self.xl.rows[row2].columns[col2].get_address()
-        elif isinstance(arg2, string_types):
+        elif isinstance(arg2, str):
             address2 = arg2
         elif arg2 is None:
-            if isinstance(arg1, string_types) and len(arg1.split(':')) == 2:
+            if isinstance(arg1, str) and len(arg1.split(':')) == 2:
                 address2 = arg1.split(':')[1]
             else:
                 return Range(self, "{0}".format(address1))

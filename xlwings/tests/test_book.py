@@ -1,17 +1,15 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 import os
 import sys
 import unittest
 
 import xlwings as xw
 from xlwings.tests.common import TestBase, this_dir
-from xlwings import PY3
 
 if sys.version_info[0] >= 3 and sys.version_info[1] >= 6:
     import pathlib
 else:
     pathlib = None
+
 
 class TestBooks(TestBase):
     def test_indexing(self):
@@ -49,13 +47,9 @@ class TestBooks(TestBase):
 
     def test_open_bad_name(self):
         fullname = os.path.join(this_dir, 'no book.xlsx')  
-        if PY3:
-            with self.assertRaises(FileNotFoundError):
-                self.app1.books.open(fullname)
-        else:
-            with self.assertRaises(IOError):
-                self.app1.books.open(fullname)
-                
+        with self.assertRaises(FileNotFoundError):
+            self.app1.books.open(fullname)
+
     def test_iter(self):
         for ix, wb in enumerate(self.app1.books):
             self.assertEqual(self.app1.books[ix], wb)

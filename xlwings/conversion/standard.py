@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from . import Pipeline, Converter, Options, Accessor, accessors
 
 from .. import xlplatform
