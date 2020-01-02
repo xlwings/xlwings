@@ -9,8 +9,7 @@ Add-in
 The xlwings add-in is the preferred way to be able to use the ``Run main`` button, ``RunPython`` or ``UDFs``.
 Note that you don't need an add-in if you just want to manipulate Excel from Python via xlwings.
 
-.. note:: The ribbon of the add-in is compatible with Excel >= 2007 on Windows and >= 2016 on Mac. You could, however,
-  use the add-in with earlier versions but you would need to change the settings directly in the config file, see below.
+.. note:: The ribbon of the add-in is compatible with Excel >= 2007 on Windows and >= 2016 on Mac.
   On Mac, all UDF related functionality is not available.
 
 .. note:: The add-in is password protected with the password ``xlwings``. For debugging or to add new extensions, you need
