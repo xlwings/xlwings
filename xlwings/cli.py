@@ -120,52 +120,32 @@ def restapi_run(args):
 def license_update(args):
     """license handler for xlwings PRO and xlwings REPORTS"""
     key = args.key
+    if not key:
+        sys.exit('Please provide a license key via the -k/--key option. For example: xlwings license update -k MY_KEY')
     if sys.platform.startswith('darwin'):
         config_file = os.path.join(os.path.expanduser("~"), 'Library', 'Containers', 'com.microsoft.Excel', 'Data', 'xlwings.conf')
     else:
         config_file = os.path.join(os.path.expanduser("~"), '.xlwings', 'xlwings.conf')
     license_kv = '"LICENSE_KEY","{0}"\n'.format(key)
-    if key:
-        # Update xlwings.conf
-        new_config = []
-        if os.path.exists(config_file):
-            with open(config_file, 'r') as f:
-                config = f.readlines()
-            for line in config:
-                # Remove existing license key and empty lines
-                if line.split(',')[0] == '"LICENSE_KEY"' or line in ('\r\n', '\n'):
-                    pass
-                else:
-                    new_config.append(line)
-            new_config.append(license_kv)
-        else:
-            new_config = [license_kv]
-        if not os.path.exists(os.path.dirname(config_file)):
-            os.makedirs(os.path.dirname(config_file))
-        with open(config_file, 'w') as f:
-            f.writelines(new_config)
-
-    # Read existing key from config file
-    if not os.path.exists(config_file):
-        sys.exit('Error: Could not find xlwings.conf. Create it by using the -k/--key option.')
-    with open(config_file, 'r') as f:
-        config = f.readlines()
-    found_key = False
-    for line in config:
-        if line.split(',')[0] == '"LICENSE_KEY"':
-            key = line.split(',')[1].strip()[1:-1]
-            found_key = True
-    if not found_key:
-        sys.exit('Error: Could not find a LICENSE_KEY in xlwings.conf. Add one first by using the -k/--key option.')
-
-    # Update license.lic in licensed packages
-    xlwings_reports_lic = os.path.join(os.path.dirname(xw.__file__) + '_reports', 'pytransform', 'license.lic')
-    if os.path.exists(xlwings_reports_lic):
-        with open(xlwings_reports_lic, 'w') as f:
-            f.write(key)
-            print("License key successfully updated for xlwings_reports!")
+    # Update xlwings.conf
+    new_config = []
+    if os.path.exists(config_file):
+        with open(config_file, 'r') as f:
+            config = f.readlines()
+        for line in config:
+            # Remove existing license key and empty lines
+            if line.split(',')[0] == '"LICENSE_KEY"' or line in ('\r\n', '\n'):
+                pass
+            else:
+                new_config.append(line)
+        new_config.append(license_kv)
     else:
-        sys.exit("Error: Didn't find an installed product that requires a license key.")
+        new_config = [license_kv]
+    if not os.path.exists(os.path.dirname(config_file)):
+        os.makedirs(os.path.dirname(config_file))
+    with open(config_file, 'w') as f:
+        f.writelines(new_config)
+    print('Successfully updated license key.')
 
 
 def main():
