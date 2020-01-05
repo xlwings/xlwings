@@ -1,0 +1,92 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../syntax_overview.rst:4
+msgid "Syntax Overview"
+msgstr "语法综述"
+
+#: ../../syntax_overview.rst:6
+msgid "The xlwings object model is very similar to the one used by VBA."
+msgstr "xlwings的对象模型和VBA的非常相似。"
+
+#: ../../syntax_overview.rst:8
+msgid "All code samples below depend on the following import:"
+msgstr "后面所有的示例代码都依赖下面的模块导入语句："
+
+#: ../../syntax_overview.rst:13
+msgid "Active Objects"
+msgstr "活动对象"
+
+#: ../../syntax_overview.rst:30
+msgid ""
+"A Range can be instantiated with A1 notation, a tuple of Excel's 1-based "
+"indices, a named range or two Range objects:"
+msgstr "实例化一个区域，可以使用A1引用样式、一对从1开始的下标元组、一个命名区域，也可以使用2个区域对象："
+
+#: ../../syntax_overview.rst:42
+msgid "Full qualification"
+msgstr "对象的完全限定"
+
+#: ../../syntax_overview.rst:44
+msgid ""
+"Round brackets follow Excel's behavior (i.e. 1-based indexing), while "
+"square brackets use Python's 0-based indexing/slicing. As an example, the"
+" following expressions all reference the same range::"
+msgstr ""
+"使用圆括号时里面用Excel惯用的的引用方式（如从1开始的下标），"
+"使用方括号时里面用Python惯用的从0开始的下标或切片。 例如，下列表达式都引用了同一个区域::"
+
+#: ../../syntax_overview.rst:52
+msgid ""
+"Note that the apps keys are different for you as they are the process IDs"
+" (PID). You can get the list of your PIDs via ``xw.apps.keys()``."
+msgstr "注意app的值是他们的进程ID（PID），这的确有点与众不同。可以通过 ``xw.apps.keys()`` 得到PID列表。"
+
+#: ../../syntax_overview.rst:56
+msgid "Range indexing/slicing"
+msgstr "区域索引/切片"
+
+#: ../../syntax_overview.rst:58
+msgid "Range objects support indexing and slicing, a few examples:"
+msgstr "区域对象支持索引和切片，下面是一些例子："
+
+#: ../../syntax_overview.rst:71
+msgid "Range Shortcuts"
+msgstr "区域快捷方式"
+
+#: ../../syntax_overview.rst:73
+msgid ""
+"Sheet objects offer a shortcut for range objects by using index/slice "
+"notation on the sheet object. This evaluates to either ``sheet.range`` or"
+" ``sheet.cells`` depending on whether you pass a string or "
+"indices/slices:"
+msgstr ""
+"通过在工作表对象上使用索引和切片标注，提供了引用区域对象的一种快捷方式。 "
+"根据传入的是字符串还是索引/切片，分别赋值给 ``sheet.range`` 或 ``sheet.cells`` 对象："
+
+#: ../../syntax_overview.rst:87
+msgid "Object Hierarchy"
+msgstr "对象层次结构"
+
+#: ../../syntax_overview.rst:89
+msgid ""
+"The following shows an example of the object hierarchy, i.e. how to get "
+"from an app to a range object and all the way back:"
+msgstr "下面用一个例子来说明xlwings中从app到range的层次顺序和反过来从range到app的层次顺序："
+

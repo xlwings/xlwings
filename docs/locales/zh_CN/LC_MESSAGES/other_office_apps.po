@@ -1,0 +1,110 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../other_office_apps.rst:4
+msgid "xlwings with other Office Apps"
+msgstr "xlwings与其他Office应用"
+
+#: ../../other_office_apps.rst:6
+msgid ""
+"xlwings can also be used to call Python functions from VBA within Office "
+"apps other than Excel (like Outlook, Access etc.)."
+msgstr "除了Excel，从Office的其他应用(如Outlook， Access等)中，也可以在VBA中通过xlwings调用Python函数。"
+
+#: ../../other_office_apps.rst:9
+msgid ""
+"New in v0.12.0 and still in a somewhat early stage that involves a bit of"
+" manual work. Currently, this functionality is only available on Windows "
+"for UDFs. The ``RunPython`` functionality is currently not supported."
+msgstr ""
+"本功能从v0.12.0开始新增，现在还处于早期阶段，会包含一些手动工作。"
+"目前，这个功能仅在Windows系统下的UDF中可以用。 ``RunPython`` 功能目前尚不支持。"
+
+#: ../../other_office_apps.rst:15
+msgid "How To"
+msgstr "如何使用"
+
+#: ../../other_office_apps.rst:17
+msgid ""
+"As usual, write your Python function and import it into Excel (see "
+":ref:`udfs`)."
+msgstr "通常，先写好Python函数并导入到Excel中(参考 :ref:`udfs`)。"
+
+#: ../../other_office_apps.rst:18
+msgid ""
+"Press ``Alt-F11`` to get into the VBA editor, then right-click on the "
+"``xlwings_udfs`` VBA module and select ``Export File...``. Save the "
+"``xlwings_udfs.bas`` file somewhere."
+msgstr ""
+"按 ``Alt-F11`` 组合键进入VBA编辑器，在VBA模块 ``xlwings_udfs`` 上点击右键，并选择 ``Export File(导出文件)...`` 。"
+"把 ``xlwings_udfs.bas`` 文件存到某个位置。"
+
+#: ../../other_office_apps.rst:20
+msgid ""
+"Switch into the other Office app, e.g. Microsoft Access and click again "
+"``Alt-F11`` to get into the VBA editor. Right-click on the VBA Project "
+"and ``Import File...``, then select the file that you exported in the "
+"previous step. Once imported, replace the app name in the first line to "
+"the one that you are using, i.e. ``Microsoft Access`` or ``Microsoft "
+"Outlook`` etc. so that the first line then reads: ``#Const App = "
+"\"Microsoft Access\"``"
+msgstr ""
+"切换到其他的Office应用，比如微软的Access，并再通过 ``Alt-F11`` 组合键进入VBA编辑器。 "
+"在VBA Project区域点击右键、选择 ``Import File(导入文件)...``, 然后选择上面步骤中导出的文件。 "
+"导入之后，在代码的第一行中把原代码的 ``Microsoft Excel`` 替换成现在的应用名称，如 ``Microsoft Access`` 或 ``Microsoft Outlook`` 。"
+"替换好之后，代码的第一行显示为: ``#Const App = \"Microsoft Access\"``"
+
+#: ../../other_office_apps.rst:24
+msgid ""
+"Now import the standalone xlwings VBA module (``xlwings.bas``). You can "
+"find it in your xlwings installation folder. To know where that is, do::"
+msgstr "现在导入独立的xlwings VBA模块(``xlwings.bas``)。这个模块中xlwings安装目录下。可以通过下列命令找出这个目录::"
+
+#: ../../other_office_apps.rst:29
+msgid ""
+"And finally do the same as in the previous step and replace the App name "
+"in the first line with the name of the corresponding app that you are "
+"using. You are now able to call the Python function from VBA."
+msgstr ""
+"最后和上面步骤一样，把代码第一行的应用名称修改为正在使用的应用名称。 "
+"现在就可以从VBA中调用(导入的)Python函数了。"
+
+#: ../../other_office_apps.rst:33
+msgid "Config"
+msgstr "配置"
+
+#: ../../other_office_apps.rst:35
+msgid ""
+"The other Office apps will use the same global config file as you are "
+"editing via the Excel ribbon add-in. When it makes sense, you'll be able "
+"to use the directory config file (e.g. you can put it next to your Access"
+" or Word file) or you can hardcode the path to the config file in the VBA"
+" standalone module, e.g. in the function ``GetDirectoryConfigFilePath`` "
+"(e.g. suggested when using Outlook that doesn't really have the same "
+"concept of files like the other Office apps). NOTE: For Office apps "
+"without file concept, you need to make sure that the ``PYTHONPATH`` "
+"points to the directory with the Python source file. For details on the "
+"different config options, see :ref:`Config <config_file>`."
+msgstr ""
+"其他Office应用同样使用Excel功能区加载项设置过的全局配置。"
+"如果需要，你可以用目录级的配置文件(例如，可以放在Access或Word文件的相同目录里)，"
+"也可以把路径直接写入VBA独立模块的配置文件中(例如，建议在使用Outlook这样做，因为它不像其他office应用，它的文件概念和其他应用不一样)。"
+"注意: 对于没有文件概念的Office应用，需要确认 ``PYTHONPATH`` 指向包含Pyhon源文件的目录。"
+"关于不同配置的细节，参考 :ref:`Config <config_file>` 。"
+

@@ -1,0 +1,119 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../r_and_julia.rst:4
+msgid "xlwings with R and Julia"
+msgstr "xlwings与R语言和Julia语言"
+
+#: ../../r_and_julia.rst:6
+msgid ""
+"While xlwings is a pure Python package, there are cross-language packages"
+" that allow for a relative straightforward use from/with other languages."
+" This means, however, that you'll always need to have Python with xlwings"
+" installed in addition to R or Julia. We recommend the `Anaconda "
+"<https://store.continuum.io/cshop/anaconda/>`_ distribution, see also "
+":ref:`installation`."
+msgstr ""
+"尽管xlwings是一个纯Python软件包，但是有一些跨语言的包可以允许从其他语言执行一些相对直接的应用。"
+"当然，这样也意味着在R语言和Julia语言之外，还必须安装Python和xlwings。"
+"建议使用 `Anaconda <https://store.continuum.io/cshop/anaconda/>`_ 发行版本，参见 :ref:`installation`."
+
+#: ../../r_and_julia.rst:12
+msgid "R"
+msgstr ""
+
+#: ../../r_and_julia.rst:13
+msgid ""
+"The R instructions are for Windows, but things work accordingly on Mac "
+"except that calling the R functions as User Defined Functions is not "
+"supported at the moment (but ``RunPython`` works, see :ref:`run_python`)."
+msgstr ""
+"R语言指令适用于Windows平台，不过在Mac平台上现在除了不支持把R函数当作用户定义函数(UDF)调用之外，"
+"也都可以用( ``RunPython`` 正常工作, 参见 :ref:`run_python`)。"
+
+#: ../../r_and_julia.rst:17 ../../r_and_julia.rst:90
+msgid "Setup:"
+msgstr "设置:"
+
+#: ../../r_and_julia.rst:19
+msgid "Install R and Python"
+msgstr "安装R和Python"
+
+#: ../../r_and_julia.rst:20
+msgid ""
+"Add ``R_HOME`` environment variable to base directory of installation, "
+".e.g ``C:\\Program Files\\R\\R-x.x.x``"
+msgstr "为安装目录的根目录增加一个环境变量 ``R_HOME`` ，取值如 ``C:\\Program Files\\R\\R-x.x.x``"
+
+#: ../../r_and_julia.rst:21
+msgid ""
+"Add ``R_USER`` environment variable to user folder, e.g. "
+"``C:\\Users\\<user>``"
+msgstr "为用户文件夹增加一个环境变量 ``R_USER`` ，取值如 ``C:\\Users\\<user>``"
+
+#: ../../r_and_julia.rst:22
+msgid "Add ``C:\\Program Files\\R\\R-x.x.x\\bin`` to ``PATH``"
+msgstr "把 ``C:\\Program Files\\R\\R-x.x.x\\bin`` 加到 ``PATH`` 中"
+
+#: ../../r_and_julia.rst:23
+msgid "Restart Windows because of the environment variables (!)"
+msgstr "为了环境变量生效，需要重启windows(!)"
+
+#: ../../r_and_julia.rst:26
+msgid "Simple functions with R"
+msgstr "R语言的简单函数"
+
+#: ../../r_and_julia.rst:28 ../../r_and_julia.rst:56
+msgid ""
+"Original R function that we want to access from Excel (saved in "
+"``r_file.R``):"
+msgstr "需要从Excel访问的原始R函数文件(保存为 ``r_file.R``):"
+
+#: ../../r_and_julia.rst:37 ../../r_and_julia.rst:66
+msgid "Python wrapper code:"
+msgstr "Python包装器代码:"
+
+#: ../../r_and_julia.rst:51 ../../r_and_julia.rst:85
+msgid ""
+"After importing this function (see: :ref:`udfs`), it will be available as"
+" UDF from Excel."
+msgstr "在导入这个函数之后(参考: :ref:`udfs`), 就是一个Excel中可以使用的UDF了。"
+
+#: ../../r_and_julia.rst:54
+msgid "Array functions with R"
+msgstr "R语言的数组函数"
+
+#: ../../r_and_julia.rst:88
+msgid "Julia"
+msgstr ""
+
+#: ../../r_and_julia.rst:92
+msgid "Install Julia and Python"
+msgstr "安装Julia和Python"
+
+#: ../../r_and_julia.rst:93
+msgid "Run ``Pkg.add(\"PyCall\")`` from an interactive Julia interpreter"
+msgstr "从交互式的Julia解释器中运行 ``Pkg.add(\"PyCall\")`` 。"
+
+#: ../../r_and_julia.rst:95
+msgid ""
+"xlwings can then be called from Julia with the following syntax (the "
+"colons take care of automatic type conversion):"
+msgstr "可以从Julia中通过下面的语法调用xlwings(冒号处理自动类型转换):"
+

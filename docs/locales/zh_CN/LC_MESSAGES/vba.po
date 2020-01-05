@@ -1,0 +1,90 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../vba.rst:4
+msgid "VBA: RunPython"
+msgstr ""
+
+#: ../../vba.rst:7
+msgid "xlwings add-in"
+msgstr "xlwings加载项"
+
+#: ../../vba.rst:9
+msgid ""
+"To get access to ``Run main`` (new in v0.16) button or the ``RunPython`` "
+"VBA function, you'll need the xlwings addin (or VBA module), see "
+":ref:`xlwings_addin`."
+msgstr "要用 ``Run main`` 按钮(v0.16的新功能)或者 ``RunPython`` VBA函数，需要xlwings加载项(或VBA模块)，参见 :ref:`xlwings_addin`."
+
+#: ../../vba.rst:11
+msgid ""
+"For new projects, the easiest way to get started is by using the command "
+"line client with the quickstart command, see :ref:`command_line` for "
+"details::"
+msgstr "对新项目，最简单的办法是通过命令行客户端的的quickstart命令，详见 :ref:`command_line` ::"
+
+#: ../../vba.rst:19
+msgid "Call Python with \"RunPython\""
+msgstr "用\"RunPython\"调用Python"
+
+#: ../../vba.rst:21
+msgid ""
+"In the VBA Editor (``Alt-F11``), write the code below into a VBA module. "
+"``xlwings quickstart`` automatically adds a new module with a sample "
+"call. If you rather want to start from scratch, you can add new module "
+"via ``Insert > Module``."
+msgstr ""
+"在VBA编辑器中(Excel快捷键 ``Alt-F11`` )，在一个VBA模块中输入下列代码。"
+" ``xlwings quickstart`` 自动加了一个包含同样调用的模块，"
+"不过如果你想从头做一下，可以通过(VBA编辑器的)  ``插入 > 模块`` 新增一个模块。"
+
+#: ../../vba.rst:30
+msgid "This calls the following code in ``hello.py``:"
+msgstr "上面代码会调用 ``hello.py`` 中的内容："
+
+#: ../../vba.rst:42
+msgid ""
+"You can then attach ``HelloWorld`` to a button or run it directly in the "
+"VBA Editor by hitting ``F5``."
+msgstr "你可以把 ``HelloWorld`` 绑定到一个按钮上，或者直接在VBA编辑器中通过点击 ``F5`` 运行。"
+
+#: ../../vba.rst:44
+msgid ""
+"Place ``xw.Book.caller()`` within the function that is being called from "
+"Excel and not outside as global variable. Otherwise it prevents Excel "
+"from shutting down properly upon exiting and leaves you with a zombie "
+"process when you use ``OPTIMIZED_CONNECTION = True``."
+msgstr ""
+"要把 ``xw.Book.caller()`` 放在从Excel调用的函数中，不要当成全局变量放在外面。"
+"否则会阻碍Excel退出时的关闭程序，并且如果 ``OPTIMIZED_CONNECTION = True`` ，会在系统里面留下一个僵尸进程。"
+
+#: ../../vba.rst:49
+msgid "Function Arguments and Return Values"
+msgstr "函数的参数和返回值"
+
+#: ../../vba.rst:51
+msgid ""
+"While it's technically possible to include arguments in the function call"
+" within ``RunPython``, it's not very convenient. Also, ``RunPython`` does"
+" not allow you to return values. To overcome these issue, use UDFs, see "
+":ref:`udfs` - however, this is currently limited to Windows only."
+msgstr ""
+"尽管技术上可以让 ``RunPython`` 调用的函数用上参数，但是很不方便。"
+"而且 ``RunPython`` 不允许有返回值。为了解决这些问题，可以使用UDF，"
+"参考 :ref:`udfs`  - 不过目前UDF只能在Windows系统中用。"
