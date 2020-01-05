@@ -1,0 +1,99 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-12-28 15:43+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../syntax_overview.rst:4
+msgid "Syntax Overview"
+msgstr "シンタックス概要"
+
+#: ../../syntax_overview.rst:6
+msgid "The xlwings object model is very similar to the one used by VBA."
+msgstr "xlwingsのオブジェクト モデルは、VBAにかなり似ています。"
+
+#: ../../syntax_overview.rst:8
+msgid "All code samples below depend on the following import:"
+msgstr "これ以降のすべてのコード サンプルは次のインポートを前提としています:"
+
+#: ../../syntax_overview.rst:13
+msgid "Active Objects"
+msgstr "アクティブなオブジェクト"
+
+#: ../../syntax_overview.rst:30
+msgid ""
+"A Range can be instantiated with A1 notation, a tuple of Excel's 1-based "
+"indices, a named range or two Range objects:"
+msgstr ""
+"A1参照形式、Excelの1から始まるインデックスのタプル、名前の定義、2つのRangeオブジェクト"
+"のいずれの方法でも、Rangeのインスタンスを取得できます:"
+
+#: ../../syntax_overview.rst:42
+msgid "Full qualification"
+msgstr "完全修飾"
+
+#: ../../syntax_overview.rst:44
+msgid ""
+"Round brackets follow Excel's behavior (i.e. 1-based indexing), while "
+"square brackets use Python's 0-based indexing/slicing. As an example, the"
+" following expressions all reference the same range::"
+msgstr ""
+"インデックスの開始番号は、丸括弧()ならExcelと同じく1から、"
+"角括弧[]ならPythonと同じく0から（こちらはスライスも可）となります。"
+"次の例はいずれも同じRangeを参照しています:"
+
+#: ../../syntax_overview.rst:52
+msgid ""
+"Note that the apps keys are different for you as they are the process IDs"
+" (PID). You can get the list of your PIDs via ``xw.apps.keys()``."
+msgstr ""
+"appsのキーはプロセスID(PID)であるため、人によって異なることに留意してください。"
+"PIDの一覧は、``xw.apps.keys()`` を実行すれば取得できます。"
+
+#: ../../syntax_overview.rst:56
+msgid "Range indexing/slicing"
+msgstr "Rangeのインデックス/スライス"
+
+#: ../../syntax_overview.rst:58
+msgid "Range objects support indexing and slicing, a few examples:"
+msgstr "Rangeオブジェクトはインデックスとスライスをサポートしています。例を見てみましょう:"
+
+#: ../../syntax_overview.rst:71
+msgid "Range Shortcuts"
+msgstr "Rangeのショートカット"
+
+#: ../../syntax_overview.rst:73
+msgid ""
+"Sheet objects offer a shortcut for range objects by using index/slice "
+"notation on the sheet object. This evaluates to either ``sheet.range`` or"
+" ``sheet.cells`` depending on whether you pass a string or "
+"indices/slices:"
+msgstr ""
+"インデックスやスライスを使って、SheetオブジェクトからRangeオブジェクトを"
+"参照することができます。評価結果は、指定する方法が文字列かインデックス/スライスか"
+"により、 ``sheet.range`` か ``sheet.cells`` のいずれかになります:"
+
+#: ../../syntax_overview.rst:87
+msgid "Object Hierarchy"
+msgstr "オブジェクトの階層構造"
+
+#: ../../syntax_overview.rst:89
+msgid ""
+"The following shows an example of the object hierarchy, i.e. how to get "
+"from an app to a range object and all the way back:"
+msgstr ""
+"次の例でオブジェクトの階層構造を見てみましょう。appオブジェクトから"
+"rangeオブジェクトを取得する方法およびその反対方向がわかります:"

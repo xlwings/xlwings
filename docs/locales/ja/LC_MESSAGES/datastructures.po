@@ -1,0 +1,179 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-12-28 15:43+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../datastructures.rst:4
+msgid "Data Structures Tutorial"
+msgstr "データ構造概要"
+
+#: ../../datastructures.rst:6
+msgid ""
+"This tutorial gives you a quick introduction to the most common use cases"
+" and default behaviour of xlwings when reading and writing values. For an"
+" in-depth documentation of how to control the behavior using the "
+"``options`` method, have a look at :ref:`converters`."
+msgstr ""
+"このチュートリアルでは、値の読み込み・書き込み時における一般的な事例や"
+"xlwingsのデフォルトの動作を簡単に紹介します。"
+"``options`` メソッドの使い方についてのより詳しい"
+"説明は :ref:`converters` をご覧ください。"
+
+#: ../../datastructures.rst:10
+msgid "All code samples below depend on the following import:"
+msgstr "これ以降のすべてのコード サンプルは次のインポートを前提としています:"
+
+#: ../../datastructures.rst:15
+msgid "Single Cells"
+msgstr "単独セル"
+
+#: ../../datastructures.rst:16
+msgid ""
+"Single cells are by default returned either as ``float``, ``unicode``, "
+"``None`` or ``datetime`` objects, depending on whether the cell contains "
+"a number, a string, is empty or represents a date:"
+msgstr ""
+"デフォルトでは単独セルは、セルの値が数字であれば ``float``、文字列であれば"
+" ``unicode`` 、空（empty）であれば ``None`` 、日付であれば ``datetime`` として読み込まれます。"
+
+
+#: ../../datastructures.rst:36
+msgid "Lists"
+msgstr "リスト"
+
+#: ../../datastructures.rst:37
+msgid ""
+"1d lists: Ranges that represent rows or columns in Excel are returned as "
+"simple lists, which means that once they are in Python, you've lost the "
+"information about the orientation. If that is an issue, the next point "
+"shows you how to preserve this info:"
+msgstr ""
+"1次元リスト: Excel上で行または列形式のRangeは、単純なリスト形式で読み込まれます。"
+"したがって、一度Pythonに読み込まれると元の形状（行であるか列であるか）がわからなくなります。"
+"このことが問題となるようなら、次の・で紹介するの方法をとりましょう:"
+
+#: ../../datastructures.rst:51
+msgid "To force a single cell to arrive as list, use::"
+msgstr "単独セルを強制的にリストとして読み込む方法は次のとおりです:"
+
+#: ../../datastructures.rst:57
+msgid ""
+"To write a list in column orientation to Excel, use ``transpose``: "
+"``sht.range('A1').options(transpose=True).value = [1,2,3,4]``"
+msgstr ""
+"``transpose`` を使えば、リストをExcelの列方向に書き込めます: "
+"``sht.range('A1').options(transpose=True).value = [1,2,3,4]``"
+
+#: ../../datastructures.rst:59
+msgid ""
+"2d lists: If the row or column orientation has to be preserved, set "
+"``ndim`` in the Range options. This will return the Ranges as nested "
+"lists (\"2d lists\"):"
+msgstr ""
+"2次元リスト: 行や列の方向を保持するには、Rangeのオプションで ``ndim`` を"
+"使います。こうすれば、Rangeは入れ子のリスト（\"2次元リスト\"）として"
+"読み込まれます:"
+
+#: ../../datastructures.rst:70
+msgid ""
+"2 dimensional Ranges are automatically returned as nested lists. When "
+"assigning (nested) lists to a Range in Excel, it's enough to just specify"
+" the top left cell as target address. This sample also makes use of index"
+" notation to read the values back into Python:"
+msgstr ""
+"2次元のRangeは自動的に入れ子のリストとして読み込まれます。"
+"逆に（入れ子の）リストをExcelのRangeに代入するには、左上のセルを指定します。"
+"次の例では、値をPythonに読み込む時のインデックスの使い方も示しています:"
+
+#: ../../datastructures.rst:81
+msgid ""
+"Try to minimize the number of interactions with Excel. It is always more "
+"efficient to do ``sht.range('A1').value = [[1,2],[3,4]]`` than "
+"``sht.range('A1').value = [1, 2]`` and ``sht.range('A2').value = [3, "
+"4]``."
+msgstr ""
+"Excelとの相互作用は最低限に留めてください。 ``sht.range('A1').value = [1, 2]`` "
+"と ``sht.range('A2').value = [3, 4]`` を行うよりも、 ``sht.range('A1').value = [[1,2],[3,4]]`` "
+"とする方が、常に効率的です。"
+
+#: ../../datastructures.rst:85
+msgid "Range expanding"
+msgstr "Rangeの拡張"
+
+#: ../../datastructures.rst:87
+msgid ""
+"You can get the dimensions of Excel Ranges dynamically through either the"
+" method ``expand`` or through the ``expand`` keyword in the ``options`` "
+"method. While ``expand`` gives back an expanded Range object, options are"
+" only evaluated when accessing the values of a Range. The difference is "
+"best explained with an example:"
+msgstr ""
+"``expand`` メソッドか ``options`` メソッドの ``expand`` キーワードを使えば、"
+"ExcelのRangeをサイズに応じて動的に取得ができます。 ``expand`` メソッドは"
+"拡張されたRangeオブジェクトを返すのに対し、 ``options`` メソッドはRangeの値を"
+"取得する時のみ評価されます。次の例を見ればその違いがわかるでしょう:"
+
+#: ../../datastructures.rst:107
+msgid ""
+"``'table'`` expands to ``'down'`` and ``'right'``, the other available "
+"options which can be used for column or row only expansion, respectively."
+msgstr ""
+"``'table'`` は行および列方向、``'down'`` は行方向、 ``'right'`` は列方向に"
+"拡張します。"
+
+#: ../../datastructures.rst:110
+msgid ""
+"Using ``expand()`` together with a named Range as top left cell gives you"
+" a flexible setup in Excel: You can move around the table and change it's"
+" size without having to adjust your code, e.g. by using something like "
+"``sht.range('NamedRange').expand().value``."
+msgstr ""
+"左上セルの代わりに名前付きRangeで ``expand()`` メソッドを使用すれば、Excelでの"
+"柔軟なセットアップが可能になります。つまり、 ``sht.range('NamedRange').expand().value`` "
+"のような書き方をすることで、コードを変更することなく、Excel上でテーブルの"
+"位置やサイズの変更が可能になります。"
+
+#: ../../datastructures.rst:115
+msgid "NumPy arrays"
+msgstr ""
+
+#: ../../datastructures.rst:117
+msgid ""
+"NumPy arrays work similar to nested lists. However, empty cells are "
+"represented by ``nan`` instead of ``None``. If you want to read in a "
+"Range as array, set ``convert=np.array`` in the ``options`` method:"
+msgstr ""
+"Numpy arrayは、入れ子のリストと同様に機能します。ただし、空のセルは"
+" ``None`` ではなく ``nan`` となります。RangeをNumpy arrayとして読み込むには、"
+"``options`` メソッドで ``convert=np.array`` を指定します:"
+
+#: ../../datastructures.rst:131
+msgid "Pandas DataFrames"
+msgstr ""
+
+#: ../../datastructures.rst:151
+msgid "Pandas Series"
+msgstr ""
+
+#: ../../datastructures.rst:177
+msgid ""
+"You only need to specify the top left cell when writing a list, a NumPy "
+"array or a Pandas DataFrame to Excel, e.g.: ``sht.range('A1').value = "
+"np.eye(10)``"
+msgstr ""
+"リストやNumPy arrayやPandas DataFrameをExcelに書き込むには、左上セルを指定する"
+"だけで済みます。例: ``sht.range('A1').value = np.eye(10)``"
