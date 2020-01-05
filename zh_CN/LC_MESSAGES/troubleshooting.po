@@ -1,0 +1,59 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../troubleshooting.rst:4
+msgid "Troubleshooting"
+msgstr "故障排查"
+
+#: ../../troubleshooting.rst:7
+msgid "Issue: dll not found"
+msgstr "问题: 未找到dll文件"
+
+#: ../../troubleshooting.rst:9
+msgid "Solution:"
+msgstr "解决方案:"
+
+#: ../../troubleshooting.rst:11
+msgid ""
+"``xlwings32-<version>.dll`` and ``xlwings64-<version>.dll`` are both in "
+"the same directory as your ``python.exe``. If not, something went wrong "
+"with your installation. Reinstall it with ``pip`` or ``conda``, see "
+":ref:`installation`."
+msgstr ""
+"``xlwings32-<version>.dll`` 和 ``xlwings64-<version>.dll`` 都和 ``python.exe`` 在同一个目录。"
+"如果不是这样的话，那就是在安装的时候出了问题。用 ``pip`` 或 ``conda`` 重新安装, 参见 :ref:`installation`."
+
+#: ../../troubleshooting.rst:13
+msgid ""
+"Check your ``Interpreter`` in the add-in or config sheet. If it is empty,"
+" then you need to be able to open a windows command prompt and type "
+"``python`` to start an interactive Python session. If you get the error "
+"``'python' is not recognized as an internal or external command, operable"
+" program or batch file.``, then you have two options: Either add the path"
+" of where your ``python.exe`` lives to your Windows path (see "
+"https://www.computerhope.com/issues/ch000549.htm) or set the full path to"
+" your interpreter in the add-in or your config sheet, e.g. "
+"``C:\\Users\\MyUser\\anaconda\\pythonw.exe``"
+msgstr ""
+"在加载项或配置表中检查 ``Interpreter`` 条目。如果是空的，"
+"看看在命令行提示符下输入 ``python`` 时是否能够启动一个交互式的Python会话。 "
+"如果得到了错误信息 ``'python' is not recognized as an internal or external command, operable program or batch file.``, "
+"这时有两个选择：把 ``python.exe`` 所在的目录加到windows路径中(参见 https://www.computerhope.com/issues/ch000549.htm) "
+"或者在加载项/配置表的配置中把解释器全路径添加进去。例如 ``C:\\Users\\MyUser\\anaconda\\pythonw.exe``"
+

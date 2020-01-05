@@ -1,0 +1,76 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../missing_features.rst:4
+msgid "Missing Features"
+msgstr "缺失功能"
+
+#: ../../missing_features.rst:6
+msgid "If you're missing a feature in xlwings, do the following:"
+msgstr "如果你希望xlwings中有一个新功能，可以这么做:"
+
+#: ../../missing_features.rst:8
+msgid ""
+"Most importantly, open an issue on `GitHub "
+"<https://github.com/ZoomerAnalytics/xlwings/issues>`_. If it's something "
+"bigger or if you want support from other users, consider opening a "
+"`feature request <https://zoomeranalytics.uservoice.com/>`_. Adding "
+"functionality should be user driven, so only if you tell us about what "
+"you're missing, it's eventually going to find its way into the library. "
+"By the way, we also appreciate pull requests!"
+msgstr ""
+"最重要的是在 `GitHub <https://github.com/ZoomerAnalytics/xlwings/issues>`_ 上提出一个问题。"
+"如果很重要或者需要其他用户的帮助，可以考虑在提出一个 `feature request(功能需求) <https://zoomeranalytics.uservoice.com/>`_ 。"
+"新增功能基于客户需求，所以只有用户提出了功能需求，这些功能才会出现在新的库里。 顺便说一下，我们非常欢迎大家提交代码(pull requests)! "
+
+#: ../../missing_features.rst:14
+msgid ""
+"Workaround: in essence, xlwings is just a smart wrapper around `pywin32 "
+"<http://sourceforge.net/projects/pywin32/>`_ on Windows and `appscript "
+"<http://appscript.sourceforge.net/>`_ on Mac. You can access the "
+"underlying objects by calling the ``api`` property:"
+msgstr ""
+"变通方法: 实质上，xlwings就是基于Windows系统 `pywin32 <http://sourceforge.net/projects/pywin32/>`_ "
+"和Mac系统 `appscript <http://appscript.sourceforge.net/>`_ 的一个智能封装。可以通过调用 ``api`` 属性接触底层对象:"
+
+#: ../../missing_features.rst:25
+msgid ""
+"This works accordingly for the other objects like ``sht.range('A1').api``"
+" etc."
+msgstr "对于其他对象如 ``sht.range('A1').api`` 等，上面的方法同样有效。"
+
+#: ../../missing_features.rst:27
+msgid ""
+"The underlying objects will offer you pretty much everything you can do "
+"with VBA, using the syntax of pywin32 (which pretty much feels like VBA) "
+"and appscript (which doesn't feel like VBA). But apart from looking ugly,"
+" keep in mind that **it makes your code platform specific (!)**, i.e. "
+"even if you go for option 2), you should still follow option 1) and open "
+"an issue so the feature finds it's way into the library (cross-platform "
+"and with a Pythonic syntax)."
+msgstr ""
+"底层对象几乎提供了所有可以用VBA处理的东西，使用pywin32语法(和VBA很类似)或者appscript语法(不像VBA)可以处理。 "
+"不过这种变通方法，除了不好看，而且一定要记住 **这会让你的代码依赖于平台(!)** "
+"也就是说，即便选择了方案2)，你还是应该根据方案1)的建议，到Github上提出一个问题，"
+"以便你需要的功能能够出现在新的xlwings库里面(那可是跨平台的，而且是用Python的哦)。"
+
+#: ../../missing_features.rst:34
+msgid "Example: Workaround to use VBA's ``Range.WrapText``"
+msgstr "举例：使用VBA ``Range.WrapText`` 的变通办法"
+

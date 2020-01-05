@@ -1,0 +1,1552 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../api.rst:4
+msgid "Python API"
+msgstr ""
+
+#: ../../api.rst:7
+msgid "Top-level functions"
+msgstr "顶层函数"
+
+#: of xlwings.view:1
+msgid ""
+"Opens a new workbook and displays an object on its first sheet by "
+"default. If you provide a sheet object, it will clear the sheet before "
+"displaying the object on the existing sheet."
+msgstr ""
+"缺省情况下会创建一个新的工作簿并在第一个工作表上显示一个对象。如果提供了一个工作表对象，在显示对象之前会清除工作表里面的内容。"
+
+#: of xlwings.App xlwings.App.activate xlwings.App.macro xlwings.Book
+#: xlwings.Book.activate xlwings.Book.macro xlwings.Book.save
+#: xlwings.Chart.set_source_data xlwings.Picture.update xlwings.Range
+#: xlwings.Range.add_hyperlink xlwings.Range.copy xlwings.Range.delete
+#: xlwings.Range.end xlwings.Range.expand xlwings.Range.get_address
+#: xlwings.Range.insert xlwings.Range.options xlwings.Range.paste
+#: xlwings.Range.resize xlwings.Sheet.autofit xlwings.main.Books.open
+#: xlwings.main.Charts.add xlwings.main.Names.add xlwings.main.Pictures.add
+#: xlwings.main.Sheets.add xlwings.view
+msgid "Parameters"
+msgstr "参数"
+
+#: of xlwings.view:4
+msgid ""
+"the object to display, e.g. numbers, strings, lists, numpy arrays, pandas"
+" dataframes"
+msgstr "要显示的对象，比如：数字、字符串、numpy arrays、 pandas dataframes"
+
+#: of xlwings.view:6
+msgid "Sheet object. If none provided, the first sheet of a new workbook is used."
+msgstr "工作表对象。如果没有提供这个参数，会使用一个新建工作簿的第一个工作表。"
+
+#: of xlwings.App.calculation:5 xlwings.App.macro:7 xlwings.App.version:4
+#: xlwings.Book.macro:7 xlwings.Book.set_mock_caller:5 xlwings.Range:10
+#: xlwings.Range.color:10 xlwings.Range.end:8 xlwings.Range.expand:10
+#: xlwings.Range.get_address:17 xlwings.Range.hyperlink:4
+#: xlwings.Range.number_format:4 xlwings.Sheet.autofit:10
+#: xlwings.main.Charts.add:16 xlwings.main.Pictures.add:24 xlwings.view:10
+msgid "Examples"
+msgstr "示例"
+
+#: ../../api.rst:13
+msgid "Object model"
+msgstr "对象模型"
+
+#: ../../api.rst:18
+msgid "Apps"
+msgstr ""
+
+#: of xlwings.main.Apps:1
+msgid "A collection of all :meth:`app <App>` objects:"
+msgstr "是所有 :meth:`app <App>` 对象的集合:"
+
+#: of xlwings.main.Apps.active:1
+msgid "Returns the active app."
+msgstr "返回活动的app。"
+
+#: of xlwings.main.Apps.add:1
+msgid ""
+"Creates a new App. The new App becomes the active one. Returns an App "
+"object."
+msgstr "创建一个新的App。这个新的App会变成活动app。返回这个App对象。"
+
+#: of xlwings.main.Apps.count:1
+msgid "Returns the number of apps."
+msgstr "返回app的总数。"
+
+#: of xlwings.main.Apps.keys:1
+msgid ""
+"Provides the PIDs of the Excel instances that act as keys in the Apps "
+"collection."
+msgstr "提供一组PID，它们是App集合中各个Excel实例的键名。"
+
+#: ../../api.rst:24
+msgid "App"
+msgstr ""
+
+#: of xlwings.App:1
+msgid ""
+"An app corresponds to an Excel instance. New Excel instances can be fired"
+" up like so:"
+msgstr "一个app与一个Excel实例对应。新的Excel实例可以通过下面的命令创建:"
+
+#: of xlwings.App:7
+msgid ""
+"An app object is a member of the :meth:`apps <xlwings.main.Apps>` "
+"collection:"
+msgstr "一个app对象是apps集合中的一员:"
+
+#: of xlwings.App:16
+msgid ""
+"Returns or sets a boolean value that determines whether the app is "
+"visible. The default leaves the state unchanged or sets visible=True if "
+"the object doesn't exist yet."
+msgstr "返回或设置一个决定app是否可见的布尔值。缺省情况下保持状态不变，或者对象还不存在的情况下设置visible=True。"
+
+#: of xlwings.App:19
+msgid ""
+"Mac-only, use the full path to the Excel application, e.g. "
+"``/Applications/Microsoft Office 2011/Microsoft Excel`` or "
+"``/Applications/Microsoft Excel``  On Windows, if you want to change the "
+"version of Excel that xlwings talks to, go to ``Control Panel > Programs "
+"and Features`` and ``Repair`` the Office version that you want as "
+"default."
+msgstr ""
+
+#: of xlwings.App:19
+msgid ""
+"Mac-only, use the full path to the Excel application, e.g. "
+"``/Applications/Microsoft Office 2011/Microsoft Excel`` or "
+"``/Applications/Microsoft Excel``"
+msgstr ""
+
+#: of xlwings.App:22
+msgid ""
+"On Windows, if you want to change the version of Excel that xlwings talks"
+" to, go to ``Control Panel > Programs and Features`` and ``Repair`` the "
+"Office version that you want as default."
+msgstr ""
+
+#: of xlwings.App:27
+msgid ""
+"On Mac, while xlwings allows you to run multiple instances of Excel, it's"
+" a feature that is not officially supported by Excel for Mac: Unlike on "
+"Windows, Excel will not ask you to open a read-only version of a file if "
+"it is already open in another instance. This means that you need to watch"
+" out yourself so that the same file is not being overwritten from "
+"different instances."
+msgstr ""
+
+#: of xlwings.App.activate:1
+msgid "Activates the Excel app."
+msgstr ""
+
+#: of xlwings.App.activate:3
+msgid ""
+"If True, make frontmost application and hand over focus from Python to "
+"Excel."
+msgstr ""
+
+#: of xlwings.App.api:1 xlwings.Book.api:1 xlwings.Chart.api:1
+#: xlwings.Name.api:1 xlwings.Picture.api:1 xlwings.Range.api:1
+#: xlwings.Sheet.api:1 xlwings.main.Charts.api:1 xlwings.main.Names.api:1
+#: xlwings.main.Pictures.api:1 xlwings.main.Shapes.api:1
+msgid ""
+"Returns the native object (``pywin32`` or ``appscript`` obj) of the "
+"engine being used."
+msgstr ""
+
+#: of xlwings.App.books:1
+msgid "A collection of all Book objects that are currently open."
+msgstr ""
+
+#: of xlwings.App.calculate:1
+msgid "Calculates all open books."
+msgstr ""
+
+#: of xlwings.App.calculation:1
+msgid ""
+"Returns or sets a calculation value that represents the calculation mode."
+" Modes: ``'manual'``, ``'automatic'``, ``'semiautomatic'``"
+msgstr ""
+
+#: of xlwings.App.display_alerts:1
+msgid ""
+"The default value is True. Set this property to False to suppress prompts"
+" and alert messages while code is running; when a message requires a "
+"response, Excel chooses the default response."
+msgstr ""
+
+#: of xlwings.App.hwnd:1
+msgid "Returns the Window handle (Windows-only)."
+msgstr ""
+
+#: of xlwings.App.kill:1
+msgid "Forces the Excel app to quit by killing its process."
+msgstr ""
+
+#: of xlwings.App.macro:1
+msgid ""
+"Runs a Sub or Function in Excel VBA that are not part of a specific "
+"workbook but e.g. are part of an add-in."
+msgstr ""
+
+#: of xlwings.App.macro:8 xlwings.Book.macro:8
+msgid "This VBA function:"
+msgstr ""
+
+#: of xlwings.App.macro:16 xlwings.Book.macro:16
+msgid "can be accessed like this:"
+msgstr ""
+
+#: of xlwings.App.macro:24
+msgid "See also: :meth:`Book.macro`"
+msgstr ""
+
+#: of xlwings.App.pid:1
+msgid "Returns the PID of the app."
+msgstr ""
+
+#: of xlwings.App.quit:1
+msgid "Quits the application without saving any workbooks."
+msgstr ""
+
+#: of xlwings.App.range:1
+msgid "Range object from the active sheet of the active book, see :meth:`Range`."
+msgstr ""
+
+#: of xlwings.App.screen_updating:1
+msgid ""
+"Turn screen updating off to speed up your script. You won't be able to "
+"see what the script is doing, but it will run faster. Remember to set the"
+" screen_updating property back to True when your script ends."
+msgstr ""
+
+#: of xlwings.App.selection:1 xlwings.Book.selection:1
+msgid "Returns the selected cells as Range."
+msgstr ""
+
+#: of xlwings.App.version:1
+msgid "Returns the Excel version number object."
+msgstr ""
+
+#: of xlwings.App.visible:1
+msgid "Gets or sets the visibility of Excel to ``True`` or  ``False``."
+msgstr ""
+
+#: ../../api.rst:32
+msgid "Books"
+msgstr ""
+
+#: of xlwings.main.Books:1
+msgid "A collection of all :meth:`book <Book>` objects:"
+msgstr ""
+
+#: of xlwings.main.Books.active:1
+msgid "Returns the active Book."
+msgstr ""
+
+#: of xlwings.main.Books.add:1
+msgid ""
+"Creates a new Book. The new Book becomes the active Book. Returns a Book "
+"object."
+msgstr ""
+
+#: of xlwings.main.Books.open:1
+msgid ""
+"Opens a Book if it is not open yet and returns it. If it is already open,"
+" it doesn't raise an exception but simply returns the Book object."
+msgstr ""
+
+#: of xlwings.main.Books.open:4
+msgid ""
+"filename or fully qualified filename, e.g. ``r'C:\\path\\to\\file.xlsx'``"
+" or ``'file.xlsm'``. Without a full path, it looks for the file in the "
+"current working directory."
+msgstr ""
+
+#: of xlwings.main.Books.open:7
+msgid "see: :meth:`xlwings.Book()`"
+msgstr ""
+
+#: of xlwings.Range.color xlwings.Range.column xlwings.Range.column_width
+#: xlwings.Range.copy xlwings.Range.current_region xlwings.Range.delete
+#: xlwings.Range.expand xlwings.Range.get_address xlwings.Range.height
+#: xlwings.Range.insert xlwings.Range.last_cell xlwings.Range.left
+#: xlwings.Range.offset xlwings.Range.options xlwings.Range.paste
+#: xlwings.Range.resize xlwings.Range.row xlwings.Range.row_height
+#: xlwings.Range.top xlwings.Range.value xlwings.Range.width
+#: xlwings.Sheet.used_range xlwings.main.Books.open xlwings.main.Charts.add
+#: xlwings.main.Names.add xlwings.main.Pictures.add
+msgid "Returns"
+msgstr ""
+
+#: of xlwings.main.Books.open:9
+msgid "**Book**"
+msgstr ""
+
+#: of xlwings.Range.color xlwings.Range.column xlwings.Range.column_width
+#: xlwings.Range.copy xlwings.Range.current_region xlwings.Range.delete
+#: xlwings.Range.expand xlwings.Range.get_address xlwings.Range.height
+#: xlwings.Range.insert xlwings.Range.last_cell xlwings.Range.left
+#: xlwings.Range.offset xlwings.Range.options xlwings.Range.paste
+#: xlwings.Range.resize xlwings.Range.row xlwings.Range.row_height
+#: xlwings.Range.top xlwings.Range.value xlwings.Range.width
+#: xlwings.Sheet.used_range xlwings.main.Books.open xlwings.main.Charts.add
+#: xlwings.main.Names.add xlwings.main.Pictures.add
+msgid "Return type"
+msgstr ""
+
+#: ../../api.rst:40
+msgid "Book"
+msgstr ""
+
+#: of xlwings.Book:1
+msgid ""
+"A book object is a member of the :meth:`books <xlwings.main.Books>` "
+"collection:"
+msgstr ""
+
+#: of xlwings.Book:8
+msgid ""
+"The easiest way to connect to a book is offered by ``xw.Book``: it looks "
+"for the book in all app instances and returns an error, should the same "
+"book be open in multiple instances. To connect to a book in the active "
+"app instance, use ``xw.books`` and to refer to a specific app, use:"
+msgstr ""
+
+#: of xlwings.Book:16
+msgid "xw.Book"
+msgstr ""
+
+#: of xlwings.Book:16
+msgid "xw.books"
+msgstr ""
+
+#: of xlwings.Book:18
+msgid "New book"
+msgstr ""
+
+#: of xlwings.Book:18
+msgid "``xw.Book()``"
+msgstr ""
+
+#: of xlwings.Book:18
+msgid "``xw.books.add()``"
+msgstr ""
+
+#: of xlwings.Book:20
+msgid "Unsaved book"
+msgstr ""
+
+#: of xlwings.Book:20
+msgid "``xw.Book('Book1')``"
+msgstr ""
+
+#: of xlwings.Book:20
+msgid "``xw.books['Book1']``"
+msgstr ""
+
+#: of xlwings.Book:22
+msgid "Book by (full)name"
+msgstr ""
+
+#: of xlwings.Book:22
+msgid "``xw.Book(r'C:/path/to/file.xlsx')``"
+msgstr ""
+
+#: of xlwings.Book:22
+msgid "``xw.books.open(r'C:/path/to/file.xlsx')``"
+msgstr ""
+
+#: of xlwings.Book:25
+msgid ""
+"Full path or name (incl. xlsx, xlsm etc.) of existing workbook or name of"
+" an unsaved workbook. Without a full path, it looks for the file in the "
+"current working directory."
+msgstr ""
+
+#: of xlwings.Book:28
+msgid ""
+"If this argument is omitted, the user is prompted to specify how links "
+"will be updated"
+msgstr ""
+
+#: of xlwings.Book:30
+msgid "True to open workbook in read-only mode"
+msgstr ""
+
+#: of xlwings.Book:32
+msgid "If opening a text file, this specifies the delimiter character"
+msgstr ""
+
+#: of xlwings.Book:34
+msgid "Password to open a protected workbook"
+msgstr ""
+
+#: of xlwings.Book:36
+msgid "Password to write to a write-reserved workbook"
+msgstr ""
+
+#: of xlwings.Book:38
+msgid "Set to ``True`` to mute the read-only recommended message"
+msgstr ""
+
+#: of xlwings.Book:40
+msgid ""
+"For text files only. Specifies where it originated. Use XlPlatform "
+"constants."
+msgstr ""
+
+#: of xlwings.Book:42
+msgid "If format argument is 6, this specifies the delimiter."
+msgstr ""
+
+#: of xlwings.Book:44
+msgid "This option is only for legacy Microsoft Excel 4.0 addins."
+msgstr ""
+
+#: of xlwings.Book:46
+msgid ""
+"Notify the user when a file becomes available If the file cannot be "
+"opened in read/write mode."
+msgstr ""
+
+#: of xlwings.Book:48
+msgid "The index of the first file converter to try when opening the file."
+msgstr ""
+
+#: of xlwings.Book:50
+msgid "Add this workbook to the list of recently added workbooks."
+msgstr ""
+
+#: of xlwings.Book:52
+msgid ""
+"If ``True``, saves files against the language of Excel, otherwise against"
+" the language of VBA. Not supported on macOS."
+msgstr ""
+
+#: of xlwings.Book:55
+msgid ""
+"Can be one of xlNormalLoad, xlRepairFile or xlExtractData. Not supported "
+"on macOS."
+msgstr ""
+
+#: of xlwings.Book.activate:1
+msgid "Activates the book."
+msgstr ""
+
+#: of xlwings.Book.activate:3
+msgid "If True, make frontmost window and hand over focus from Python to Excel."
+msgstr ""
+
+#: of xlwings.Book.app:1
+msgid "Returns an app object that represents the creator of the book."
+msgstr ""
+
+#: of xlwings.Book.caller:1
+msgid ""
+"References the calling book when the Python function is called from Excel"
+" via ``RunPython``. Pack it into the function being called from Excel, "
+"e.g.:"
+msgstr ""
+
+#: of xlwings.Book.caller:11
+msgid ""
+"To be able to easily invoke such code from Python for debugging, use "
+"``xw.Book.set_mock_caller()``."
+msgstr ""
+
+#: of xlwings.Book.close:1
+msgid "Closes the book without saving it."
+msgstr ""
+
+#: of xlwings.Book.fullname:1
+msgid ""
+"Returns the name of the object, including its path on disk, as a string. "
+"Read-only String."
+msgstr ""
+
+#: of xlwings.Book.macro:1
+msgid "Runs a Sub or Function in Excel VBA."
+msgstr ""
+
+#: of xlwings.Book.macro:24
+msgid "See also: :meth:`App.macro`"
+msgstr ""
+
+#: of xlwings.Book.name:1
+msgid "Returns the name of the book as str."
+msgstr ""
+
+#: of xlwings.Book.names:1
+msgid ""
+"Returns a names collection that represents all the names in the specified"
+" book (including all sheet-specific names)."
+msgstr ""
+
+#: of xlwings.Book.open_template:1
+msgid ""
+"Creates a new Excel file with the xlwings VBA module already included. "
+"This method must be called from an interactive Python shell::"
+msgstr ""
+
+#: of xlwings.Book.open_template:6
+msgid "See also: :ref:`command_line`"
+msgstr ""
+
+#: of xlwings.Book.save:1
+msgid ""
+"Saves the Workbook. If a path is being provided, this works like SaveAs()"
+" in Excel. If no path is specified and if the file hasn't been saved "
+"previously, it's being saved in the current working directory with the "
+"current filename. Existing files are overwritten without prompting."
+msgstr ""
+
+#: of xlwings.Book.save:5
+msgid "Full path to the workbook"
+msgstr ""
+
+#: of xlwings.Book.save:9 xlwings.Range.last_cell:7 xlwings.RangeColumns:4
+#: xlwings.RangeRows:4
+msgid "Example"
+msgstr ""
+
+#: of xlwings.Book.set_mock_caller:1
+msgid ""
+"Sets the Excel file which is used to mock ``xw.Book.caller()`` when the "
+"code is called from Python and not from Excel via ``RunPython``."
+msgstr ""
+
+#: of xlwings.Book.sheets:1
+msgid "Returns a sheets collection that represents all the sheets in the book."
+msgstr ""
+
+#: ../../api.rst:46
+msgid "Sheets"
+msgstr ""
+
+#: of xlwings.main.Sheets:1
+msgid "A collection of all :meth:`sheet <Sheet>` objects:"
+msgstr ""
+
+#: of xlwings.main.Sheets.active:1
+msgid "Returns the active Sheet."
+msgstr ""
+
+#: of xlwings.main.Sheets.add:1
+msgid "Creates a new Sheet and makes it the active sheet."
+msgstr ""
+
+#: of xlwings.main.Sheets.add:3
+msgid "Name of the new sheet. If None, will default to Excel's default name."
+msgstr ""
+
+#: of xlwings.main.Sheets.add:5
+msgid "An object that specifies the sheet before which the new sheet is added."
+msgstr ""
+
+#: of xlwings.main.Sheets.add:7
+msgid "An object that specifies the sheet after which the new sheet is added."
+msgstr ""
+
+#: ../../api.rst:52
+msgid "Sheet"
+msgstr ""
+
+#: of xlwings.Sheet:1
+msgid ""
+"A sheet object is a member of the :meth:`sheets <xlwings.main.Sheets>` "
+"collection:"
+msgstr ""
+
+#: of xlwings.Sheet.activate:1
+msgid "Activates the Sheet and returns it."
+msgstr ""
+
+#: of xlwings.Sheet.autofit:1
+msgid "Autofits the width of either columns, rows or both on a whole Sheet."
+msgstr ""
+
+#: of xlwings.Sheet.autofit:3
+msgid ""
+"- To autofit rows, use one of the following: ``rows`` or ``r`` - To "
+"autofit columns, use one of the following: ``columns`` or ``c`` - To "
+"autofit rows and columns, provide no arguments"
+msgstr ""
+
+#: of xlwings.Sheet.autofit:4
+msgid "To autofit rows, use one of the following: ``rows`` or ``r``"
+msgstr ""
+
+#: of xlwings.Sheet.autofit:5
+msgid "To autofit columns, use one of the following: ``columns`` or ``c``"
+msgstr ""
+
+#: of xlwings.Sheet.autofit:6
+msgid "To autofit rows and columns, provide no arguments"
+msgstr ""
+
+#: of xlwings.Sheet.book:1
+msgid "Returns the Book of the specified Sheet. Read-only."
+msgstr ""
+
+#: of xlwings.Sheet.cells:1
+msgid ""
+"Returns a Range object that represents all the cells on the Sheet (not "
+"just the cells that are currently in use)."
+msgstr ""
+
+#: of xlwings.Sheet.charts:1
+msgid "See :meth:`Charts <xlwings.main.Charts>`"
+msgstr ""
+
+#: of xlwings.Sheet.clear:1
+msgid "Clears the content and formatting of the whole sheet."
+msgstr ""
+
+#: of xlwings.Sheet.clear_contents:1
+msgid "Clears the content of the whole sheet but leaves the formatting."
+msgstr ""
+
+#: of xlwings.Sheet.delete:1
+msgid "Deletes the Sheet."
+msgstr ""
+
+#: of xlwings.Sheet.index:1
+msgid "Returns the index of the Sheet (1-based as in Excel)."
+msgstr ""
+
+#: of xlwings.Sheet.name:1
+msgid "Gets or sets the name of the Sheet."
+msgstr ""
+
+#: of xlwings.Sheet.names:1
+msgid ""
+"Returns a names collection that represents all the sheet-specific names "
+"(names defined with the \"SheetName!\" prefix)."
+msgstr ""
+
+#: of xlwings.Sheet.pictures:1
+msgid "See :meth:`Pictures <xlwings.main.Pictures>`"
+msgstr ""
+
+#: of xlwings.Sheet.range:1
+msgid ""
+"Returns a Range object from the active sheet of the active book, see "
+":meth:`Range`."
+msgstr ""
+
+#: of xlwings.Sheet.select:1
+msgid "Selects the Sheet. Select only works on the active book."
+msgstr ""
+
+#: of xlwings.Sheet.shapes:1
+msgid "See :meth:`Shapes <xlwings.main.Shapes>`"
+msgstr ""
+
+#: of xlwings.Sheet.used_range:1
+msgid "Used Range of Sheet."
+msgstr ""
+
+#: ../../api.rst:58
+msgid "Range"
+msgstr ""
+
+#: of xlwings.Range:1
+msgid "Returns a Range object that represents a cell or a range of cells."
+msgstr ""
+
+#: of xlwings.Range:3
+msgid ""
+"Name of the range in the upper-left corner in A1 notation or as index-"
+"tuple or as name or as xw.Range object. It can also specify a range using"
+" the range operator (a colon), .e.g. 'A1:B2'"
+msgstr ""
+
+#: of xlwings.Range:6
+msgid ""
+"Name of the range in the lower-right corner in A1 notation or as index-"
+"tuple or as name or as xw.Range object."
+msgstr ""
+
+#: of xlwings.Range:11
+msgid "Active Sheet:"
+msgstr ""
+
+#: of xlwings.Range:23
+msgid "Specific Sheet:"
+msgstr ""
+
+#: of xlwings.Range.add_hyperlink:1
+msgid "Adds a hyperlink to the specified Range (single Cell)"
+msgstr ""
+
+#: of xlwings.Range.add_hyperlink:3
+msgid "The address of the hyperlink."
+msgstr ""
+
+#: of xlwings.Range.add_hyperlink:5
+msgid ""
+"The text to be displayed for the hyperlink. Defaults to the hyperlink "
+"address."
+msgstr ""
+
+#: of xlwings.Range.add_hyperlink:7
+msgid ""
+"The screen tip to be displayed when the mouse pointer is paused over the "
+"hyperlink. Default is set to '<address> - Click once to follow. Click and"
+" hold to select this cell.'"
+msgstr ""
+
+#: of xlwings.Range.address:1
+msgid ""
+"Returns a string value that represents the range reference. Use "
+"``get_address()`` to be able to provide paramaters."
+msgstr ""
+
+#: of xlwings.Range.autofit:1
+msgid "Autofits the width and height of all cells in the range."
+msgstr ""
+
+#: of xlwings.Range.autofit:3
+msgid ""
+"To autofit only the width of the columns use "
+"``xw.Range('A1:B2').columns.autofit()``"
+msgstr ""
+
+#: of xlwings.Range.autofit:4
+msgid ""
+"To autofit only the height of the rows use "
+"``xw.Range('A1:B2').rows.autofit()``"
+msgstr ""
+
+#: of xlwings.Range.clear:1
+msgid "Clears the content and the formatting of a Range."
+msgstr ""
+
+#: of xlwings.Range.clear_contents:1
+msgid "Clears the content of a Range but leaves the formatting."
+msgstr ""
+
+#: of xlwings.Range.color:1
+msgid "Gets and sets the background color of the specified Range."
+msgstr ""
+
+#: of xlwings.Range.color:3
+msgid ""
+"To set the color, either use an RGB tuple ``(0, 0, 0)`` or a color "
+"constant. To remove the background, set the color to ``None``, see "
+"Examples."
+msgstr ""
+
+#: of xlwings.Range.color:6
+msgid "**RGB**"
+msgstr ""
+
+#: of xlwings.Range.column:1
+msgid ""
+"Returns the number of the first column in the in the specified range. "
+"Read-only."
+msgstr ""
+
+#: of xlwings.Range.column_width:1
+msgid ""
+"Gets or sets the width, in characters, of a Range. One unit of column "
+"width is equal to the width of one character in the Normal style. For "
+"proportional fonts, the width of the character 0 (zero) is used."
+msgstr ""
+
+#: of xlwings.Range.column_width:5
+msgid ""
+"If all columns in the Range have the same width, returns the width. If "
+"columns in the Range have different widths, returns None."
+msgstr ""
+
+#: of xlwings.Range.column_width:8
+msgid "column_width must be in the range: 0 <= column_width <= 255"
+msgstr ""
+
+#: of xlwings.Range.column_width:11
+msgid ""
+"Note: If the Range is outside the used range of the Worksheet, and "
+"columns in the Range have different widths, returns the width of the "
+"first column."
+msgstr ""
+
+#: of xlwings.Range.columns:1
+msgid ""
+"Returns a :class:`RangeColumns` object that represents the columns in the"
+" specified range."
+msgstr ""
+
+#: of xlwings.Range.copy:1
+msgid "Copy a range to a destination range or clipboard."
+msgstr ""
+
+#: of xlwings.Range.copy:3
+msgid ""
+"xlwings Range to which the specified range will be copied. If omitted, "
+"the range is copied to the Clipboard."
+msgstr ""
+
+#: of xlwings.Range.count:1
+msgid "Returns the number of cells."
+msgstr ""
+
+#: of xlwings.Range.current_region:1
+msgid ""
+"This property returns a Range object representing a range bounded by (but"
+" not including) any combination of blank rows and blank columns or the "
+"edges of the worksheet. It corresponds to ``Ctrl-*`` on Windows and "
+"``Shift-Ctrl-Space`` on Mac."
+msgstr ""
+
+#: of xlwings.Range.delete:1
+msgid "Deletes a cell or range of cells."
+msgstr ""
+
+#: of xlwings.Range.delete:3
+msgid ""
+"Use ``left`` or ``up``. If omitted, Excel decides based on the shape of "
+"the range."
+msgstr ""
+
+#: of xlwings.Range.end:1
+msgid ""
+"Returns a Range object that represents the cell at the end of the region "
+"that contains the source range. Equivalent to pressing Ctrl+Up, "
+"Ctrl+down, Ctrl+left, or Ctrl+right."
+msgstr ""
+
+#: of xlwings.Range.expand:1
+msgid ""
+"Expands the range according to the mode provided. Ignores empty top-left "
+"cells (unlike ``Range.end()``)."
+msgstr ""
+
+#: of xlwings.Range.expand:3
+msgid "One of ``'table'`` (=down and right), ``'down'``, ``'right'``."
+msgstr ""
+
+#: of xlwings.Range.formula:1
+msgid "Gets or sets the formula for the given Range."
+msgstr ""
+
+#: of xlwings.Range.formula_array:1
+msgid "Gets or sets an  array formula for the given Range."
+msgstr ""
+
+#: of xlwings.Range.get_address:1
+msgid ""
+"Returns the address of the range in the specified format. ``address`` can"
+" be used instead if none of the defaults need to be changed."
+msgstr ""
+
+#: of xlwings.Range.get_address:4
+msgid ""
+"Set to True to return the row part of the reference as an absolute "
+"reference."
+msgstr ""
+
+#: of xlwings.Range.get_address:6
+msgid ""
+"Set to True to return the column part of the reference as an absolute "
+"reference."
+msgstr ""
+
+#: of xlwings.Range.get_address:8
+msgid ""
+"Set to True to include the Sheet name in the address. Ignored if "
+"external=True."
+msgstr ""
+
+#: of xlwings.Range.get_address:10
+msgid ""
+"Set to True to return an external reference with workbook and worksheet "
+"name."
+msgstr ""
+
+#: of xlwings.Range.height:1
+msgid "Returns the height, in points, of a Range. Read-only."
+msgstr ""
+
+#: of xlwings.Range.hyperlink:1
+msgid "Returns the hyperlink address of the specified Range (single Cell only)"
+msgstr ""
+
+#: of xlwings.Range.insert:1
+msgid "Insert a cell or range of cells into the sheet."
+msgstr ""
+
+#: of xlwings.Range.insert:3
+msgid ""
+"Use ``right`` or ``down``. If omitted, Excel decides based on the shape "
+"of the range."
+msgstr ""
+
+#: of xlwings.Range.insert:5
+msgid ""
+"Use ``format_from_left_or_above`` or ``format_from_right_or_below``. Note"
+" that this is not supported on macOS."
+msgstr ""
+
+#: of xlwings.Range.last_cell:1
+msgid "Returns the bottom right cell of the specified range. Read-only."
+msgstr ""
+
+#: of xlwings.Range.left:1
+msgid ""
+"Returns the distance, in points, from the left edge of column A to the "
+"left edge of the range. Read-only."
+msgstr ""
+
+#: of xlwings.Range.name:1
+msgid "Sets or gets the name of a Range."
+msgstr ""
+
+#: of xlwings.Range.number_format:1
+msgid "Gets and sets the number_format of a Range."
+msgstr ""
+
+#: of xlwings.Range.offset:1
+msgid ""
+"Returns a Range object that represents a Range that's offset from the "
+"specified range."
+msgstr ""
+
+#: of xlwings.Range.offset:3 xlwings.Range.resize:8
+msgid "**Range object**"
+msgstr ""
+
+#: of xlwings.Range.options:1
+msgid ""
+"Allows you to set a converter and their options. Converters define how "
+"Excel Ranges and their values are being converted both during reading and"
+" writing operations. If no explicit converter is specified, the base "
+"converter is being applied, see :ref:`converters`."
+msgstr ""
+
+#: of xlwings.Range.options:5
+msgid ""
+"A converter, e.g. ``dict``, ``np.array``, ``pd.DataFrame``, "
+"``pd.Series``, defaults to default converter"
+msgstr ""
+
+#: of xlwings.Range.options
+msgid "Keyword Arguments"
+msgstr ""
+
+#: of xlwings.Range.options:8
+msgid "number of dimensions"
+msgstr ""
+
+#: of xlwings.Range.options:10
+msgid "type of numbers, e.g. ``int``"
+msgstr ""
+
+#: of xlwings.Range.options:12
+msgid "e.g. ``datetime.date`` defaults to ``datetime.datetime``"
+msgstr ""
+
+#: of xlwings.Range.options:14
+msgid "transformation of empty cells"
+msgstr ""
+
+#: of xlwings.Range.options:16
+msgid "transpose values"
+msgstr ""
+
+#: of xlwings.Range.options:18
+msgid ""
+"One of ``'table'``, ``'down'``, ``'right'``  => For converter-specific "
+"options, see :ref:`converters`."
+msgstr ""
+
+#: of xlwings.Range.options:18
+msgid "One of ``'table'``, ``'down'``, ``'right'``"
+msgstr ""
+
+#: of xlwings.Range.options:20
+msgid "=> For converter-specific options, see :ref:`converters`."
+msgstr ""
+
+#: of xlwings.Range.paste:1
+msgid "Pastes a range from the clipboard into the specified range."
+msgstr ""
+
+#: of xlwings.Range.paste:3
+msgid ""
+"One of ``all_merging_conditional_formats``, ``all``, "
+"``all_except_borders``, ``all_using_source_theme``, ``column_widths``, "
+"``comments``, ``formats``, ``formulas``, ``formulas_and_number_formats``,"
+" ``validation``, ``values``, ``values_and_number_formats``."
+msgstr ""
+
+#: of xlwings.Range.paste:7
+msgid "One of \"add\", \"divide\", \"multiply\", \"subtract\"."
+msgstr ""
+
+#: of xlwings.Range.paste:9
+msgid "Set to ``True`` to skip over blank cells"
+msgstr ""
+
+#: of xlwings.Range.paste:11
+msgid "Set to ``True`` to transpose rows and columns."
+msgstr ""
+
+#: of xlwings.Range.raw_value:1
+msgid ""
+"Gets and sets the values directly as delivered from/accepted by the "
+"engine that is being used (``pywin32`` or ``appscript``) without going "
+"through any of xlwings' data cleaning/converting. This can be helpful if "
+"speed is an issue but naturally will be engine specific, i.e. might "
+"remove the cross-platform compatibility."
+msgstr ""
+
+#: of xlwings.Range.resize:1
+msgid "Resizes the specified Range"
+msgstr ""
+
+#: of xlwings.Range.resize:3
+msgid ""
+"The number of rows in the new range (if None, the number of rows in the "
+"range is unchanged)."
+msgstr ""
+
+#: of xlwings.Range.resize:5
+msgid ""
+"The number of columns in the new range (if None, the number of columns in"
+" the range is unchanged)."
+msgstr ""
+
+#: of xlwings.Range.row:1
+msgid "Returns the number of the first row in the specified range. Read-only."
+msgstr ""
+
+#: of xlwings.Range.row_height:1
+msgid ""
+"Gets or sets the height, in points, of a Range. If all rows in the Range "
+"have the same height, returns the height. If rows in the Range have "
+"different heights, returns None."
+msgstr ""
+
+#: of xlwings.Range.row_height:5
+msgid "row_height must be in the range: 0 <= row_height <= 409.5"
+msgstr ""
+
+#: of xlwings.Range.row_height:8
+msgid ""
+"Note: If the Range is outside the used range of the Worksheet, and rows "
+"in the Range have different heights, returns the height of the first row."
+msgstr ""
+
+#: of xlwings.Range.rows:1
+msgid ""
+"Returns a :class:`RangeRows` object that represents the rows in the "
+"specified range."
+msgstr ""
+
+#: of xlwings.Range.select:1
+msgid "Selects the range. Select only works on the active book."
+msgstr ""
+
+#: of xlwings.Range.shape:1
+msgid "Tuple of Range dimensions."
+msgstr ""
+
+#: of xlwings.Range.sheet:1
+msgid "Returns the Sheet object to which the Range belongs."
+msgstr ""
+
+#: of xlwings.Range.size:1
+msgid "Number of elements in the Range."
+msgstr ""
+
+#: of xlwings.Range.top:1
+msgid ""
+"Returns the distance, in points, from the top edge of row 1 to the top "
+"edge of the range. Read-only."
+msgstr ""
+
+#: of xlwings.Range.value:1
+msgid "Gets and sets the values for the given Range."
+msgstr ""
+
+#: of xlwings.Range.value:3
+msgid "**object**"
+msgstr ""
+
+#: of xlwings.Range.value:4
+msgid ""
+"returned object depends on the converter being used, see "
+":meth:`xlwings.Range.options`"
+msgstr ""
+
+#: of xlwings.Range.width:1
+msgid "Returns the width, in points, of a Range. Read-only."
+msgstr ""
+
+#: ../../api.rst:65
+msgid "RangeRows"
+msgstr ""
+
+#: of xlwings.RangeRows:1
+msgid ""
+"Represents the rows of a range. Do not construct this class directly, use"
+" :attr:`Range.rows` instead."
+msgstr ""
+
+#: of xlwings.RangeRows.autofit:1
+msgid "Autofits the height of the rows."
+msgstr ""
+
+#: of xlwings.RangeRows.count:1
+msgid "Returns the number of rows."
+msgstr ""
+
+#: ../../api.rst:72
+msgid "RangeColumns"
+msgstr ""
+
+#: of xlwings.RangeColumns:1
+msgid ""
+"Represents the columns of a range. Do not construct this class directly, "
+"use :attr:`Range.columns` instead."
+msgstr ""
+
+#: of xlwings.RangeColumns.autofit:1
+msgid "Autofits the width of the columns."
+msgstr ""
+
+#: of xlwings.RangeColumns.count:1
+msgid "Returns the number of columns."
+msgstr ""
+
+#: ../../api.rst:79
+msgid "Shapes"
+msgstr ""
+
+#: of xlwings.main.Shapes:1
+msgid "A collection of all :meth:`shape <Shape>` objects on the specified sheet:"
+msgstr ""
+
+#: of xlwings.main.Charts.count:1 xlwings.main.Names.count:1
+#: xlwings.main.Pictures.count:1 xlwings.main.Shapes.count:1
+msgid "Returns the number of objects in the collection."
+msgstr ""
+
+#: ../../api.rst:86
+msgid "Shape"
+msgstr ""
+
+#: of xlwings.Shape:1
+msgid ""
+"The shape object is a member of the :meth:`shapes <xlwings.main.Shapes>` "
+"collection:"
+msgstr ""
+
+#: of xlwings.Shape.activate:1
+msgid "Activates the shape."
+msgstr ""
+
+#: of xlwings.Shape.delete:1
+msgid "Deletes the shape."
+msgstr ""
+
+#: of xlwings.Shape.height:1
+msgid ""
+"Returns or sets the number of points that represent the height of the "
+"shape."
+msgstr ""
+
+#: of xlwings.Shape.left:1
+msgid ""
+"Returns or sets the number of points that represent the horizontal "
+"position of the shape."
+msgstr ""
+
+#: of xlwings.Shape.name:1
+msgid "Returns or sets the name of the shape."
+msgstr ""
+
+#: of xlwings.Shape.parent:1
+msgid "Returns the parent of the shape."
+msgstr ""
+
+#: of xlwings.Shape.top:1
+msgid ""
+"Returns or sets the number of points that represent the vertical position"
+" of the shape."
+msgstr ""
+
+#: of xlwings.Shape.type:1
+msgid "Returns the type of the shape."
+msgstr ""
+
+#: of xlwings.Shape.width:1
+msgid ""
+"Returns or sets the number of points that represent the width of the "
+"shape."
+msgstr ""
+
+#: ../../api.rst:92
+msgid "Charts"
+msgstr ""
+
+#: of xlwings.main.Charts:1
+msgid "A collection of all :meth:`chart <Chart>` objects on the specified sheet:"
+msgstr ""
+
+#: of xlwings.main.Charts.add:1
+msgid "Creates a new chart on the specified sheet."
+msgstr ""
+
+#: of xlwings.main.Charts.add:3
+msgid "left position in points"
+msgstr ""
+
+#: of xlwings.main.Charts.add:5
+msgid "top position in points"
+msgstr ""
+
+#: of xlwings.main.Charts.add:7
+msgid "width in points"
+msgstr ""
+
+#: of xlwings.main.Charts.add:9
+msgid "height in points"
+msgstr ""
+
+#: ../../api.rst:99
+msgid "Chart"
+msgstr ""
+
+#: of xlwings.Chart:1
+msgid ""
+"The chart object is a member of the :meth:`charts <xlwings.main.Charts>` "
+"collection:"
+msgstr ""
+
+#: of xlwings.Chart.chart_type:1
+msgid "Returns and sets the chart type of the chart."
+msgstr ""
+
+#: of xlwings.Chart.delete:1
+msgid "Deletes the chart."
+msgstr ""
+
+#: of xlwings.Chart.height:1
+msgid ""
+"Returns or sets the number of points that represent the height of the "
+"chart."
+msgstr ""
+
+#: of xlwings.Chart.left:1
+msgid ""
+"Returns or sets the number of points that represent the horizontal "
+"position of the chart."
+msgstr ""
+
+#: of xlwings.Chart.name:1
+msgid "Returns or sets the name of the chart."
+msgstr ""
+
+#: of xlwings.Chart.parent:1
+msgid "Returns the parent of the chart."
+msgstr ""
+
+#: of xlwings.Chart.set_source_data:1
+msgid "Sets the source data range for the chart."
+msgstr ""
+
+#: of xlwings.Chart.set_source_data:3
+msgid "Range object, e.g. ``xw.books['Book1'].sheets[0].range('A1')``"
+msgstr ""
+
+#: of xlwings.Chart.top:1
+msgid ""
+"Returns or sets the number of points that represent the vertical position"
+" of the chart."
+msgstr ""
+
+#: of xlwings.Chart.width:1
+msgid ""
+"Returns or sets the number of points that represent the width of the "
+"chart."
+msgstr ""
+
+#: ../../api.rst:105
+msgid "Pictures"
+msgstr ""
+
+#: of xlwings.main.Pictures:1
+msgid ""
+"A collection of all :meth:`picture <Picture>` objects on the specified "
+"sheet:"
+msgstr ""
+
+#: of xlwings.main.Pictures.add:1
+msgid "Adds a picture to the specified sheet."
+msgstr ""
+
+#: of xlwings.Picture.update:3 xlwings.main.Pictures.add:3
+msgid "Either a filepath or a Matplotlib figure object."
+msgstr ""
+
+#: of xlwings.main.Pictures.add:5
+msgid "Left position in points."
+msgstr ""
+
+#: of xlwings.main.Pictures.add:7
+msgid "Top position in points."
+msgstr ""
+
+#: of xlwings.main.Pictures.add:9
+msgid ""
+"Width in points. If PIL/Pillow is installed, it defaults to the width of "
+"the picture. Otherwise it defaults to 100 points."
+msgstr ""
+
+#: of xlwings.main.Pictures.add:12
+msgid ""
+"Height in points. If PIL/Pillow is installed, it defaults to the height "
+"of the picture. Otherwise it defaults to 100 points."
+msgstr ""
+
+#: of xlwings.main.Pictures.add:15
+msgid ""
+"Excel picture name. Defaults to Excel standard name if not provided, e.g."
+" 'Picture 1'."
+msgstr ""
+
+#: of xlwings.main.Pictures.add:17
+msgid ""
+"Replace an existing picture with the same name. Requires ``name`` to be "
+"set."
+msgstr ""
+
+#: ../../api.rst:112 of xlwings.main.Pictures.add:25
+msgid "Picture"
+msgstr ""
+
+#: of xlwings.main.Pictures.add:32
+msgid "Matplotlib"
+msgstr ""
+
+#: of xlwings.Picture:1
+msgid ""
+"The picture object is a member of the :meth:`pictures "
+"<xlwings.main.Pictures>` collection:"
+msgstr ""
+
+#: of xlwings.Picture.delete:1
+msgid "Deletes the picture."
+msgstr ""
+
+#: of xlwings.Picture.height:1
+msgid ""
+"Returns or sets the number of points that represent the height of the "
+"picture."
+msgstr ""
+
+#: of xlwings.Picture.left:1
+msgid ""
+"Returns or sets the number of points that represent the horizontal "
+"position of the picture."
+msgstr ""
+
+#: of xlwings.Picture.name:1
+msgid "Returns or sets the name of the picture."
+msgstr ""
+
+#: of xlwings.Picture.parent:1
+msgid "Returns the parent of the picture."
+msgstr ""
+
+#: of xlwings.Picture.top:1
+msgid ""
+"Returns or sets the number of points that represent the vertical position"
+" of the picture."
+msgstr ""
+
+#: of xlwings.Picture.update:1
+msgid ""
+"Replaces an existing picture with a new one, taking over the attributes "
+"of the existing picture."
+msgstr ""
+
+#: of xlwings.Picture.width:1
+msgid ""
+"Returns or sets the number of points that represent the width of the "
+"picture."
+msgstr ""
+
+#: ../../api.rst:118
+msgid "Names"
+msgstr ""
+
+#: of xlwings.main.Names:1
+msgid "A collection of all :meth:`name <Name>` objects in the workbook:"
+msgstr ""
+
+#: of xlwings.main.Names.add:1
+msgid "Defines a new name for a range of cells."
+msgstr ""
+
+#: of xlwings.main.Names.add:3
+msgid ""
+"Specifies the text to use as the name. Names cannot include spaces and "
+"cannot be formatted as cell references."
+msgstr ""
+
+#: of xlwings.main.Names.add:5
+msgid "Describes what the name refers to, in English, using A1-style notation."
+msgstr ""
+
+#: ../../api.rst:124
+msgid "Name"
+msgstr ""
+
+#: of xlwings.Name:1
+msgid ""
+"The name object is a member of the :meth:`names <xlwings.main.Names>` "
+"collection:"
+msgstr ""
+
+#: of xlwings.Name.delete:1
+msgid "Deletes the name."
+msgstr ""
+
+#: of xlwings.Name.name:1
+msgid "Returns or sets the name of the name object."
+msgstr ""
+
+#: of xlwings.Name.refers_to:1
+msgid ""
+"Returns or sets the formula that the name is defined to refer to, in "
+"A1-style notation, beginning with an equal sign."
+msgstr ""
+
+#: of xlwings.Name.refers_to_range:1
+msgid "Returns the Range object referred to by a Name object."
+msgstr ""
+
+#: ../../api.rst:132
+msgid "UDF decorators"
+msgstr ""
+
+#: ../../api.rst:137
+msgid ""
+"Functions decorated with ``xlwings.func`` will be imported as "
+"``Function`` to Excel when running \"Import Python UDFs\"."
+msgstr ""
+
+#: ../../api.rst:146
+msgid "category"
+msgstr ""
+
+msgid "int or str, default \"xlwings\""
+msgstr ""
+
+#: ../../api.rst:144
+msgid ""
+"1-14 represent built-in categories, for user-defined categories use "
+"strings"
+msgstr ""
+
+#: ../../api.rst:154
+msgid "volatile"
+msgstr ""
+
+msgid "bool, default False"
+msgstr ""
+
+#: ../../api.rst:149
+msgid ""
+"Marks a user-defined function as volatile. A volatile function must be "
+"recalculated whenever calculation occurs in any cells on the worksheet. A"
+" nonvolatile function is recalculated only when the input variables "
+"change. This method has no effect if it's not inside a user-defined "
+"function used to calculate a worksheet cell."
+msgstr ""
+
+#: ../../api.rst:158
+msgid "call_in_wizard"
+msgstr ""
+
+msgid "bool, default True"
+msgstr ""
+
+#: ../../api.rst:157
+msgid "Set to False to suppress the function call in the function wizard."
+msgstr ""
+
+#: ../../api.rst:163
+msgid ""
+"Functions decorated with ``xlwings.sub`` will be imported as ``Sub`` "
+"(i.e. macro) to Excel when running \"Import Python UDFs\"."
+msgstr ""
+
+#: ../../api.rst:168
+msgid "Apply converters and options to arguments, see also :meth:`Range.options`."
+msgstr ""
+
+#: ../../api.rst:171
+msgid "**Examples:**"
+msgstr ""
+
+#: ../../api.rst:173
+msgid "Convert ``x`` into a 2-dimensional numpy array:"
+msgstr ""
+
+#: ../../api.rst:188
+msgid ""
+"Apply converters and options to return values, see also "
+":meth:`Range.options`."
+msgstr ""
+
+#: ../../api.rst:190
+msgid "**Examples**"
+msgstr ""
+
+#: ../../api.rst:192
+msgid "Suppress the index and header of a returned DataFrame:"
+msgstr ""
+
+#: ../../api.rst:204
+msgid "Dynamic array:"
+msgstr ""
+
+#: ../../api.rst:206
+msgid ""
+"``expand='table'`` turns the UDF into a dynamic array. Currently you must"
+" not use volatile functions as arguments of a dynamic array, e.g. you "
+"cannot use ``=TODAY()`` as part of a dynamic array. Also note that a "
+"dynamic array needs an empty row and column at the bottom and to the "
+"right and will overwrite existing data without warning."
+msgstr ""
+
+#: ../../api.rst:211
+msgid ""
+"Unlike standard Excel arrays, dynamic arrays are being used from a single"
+" cell like a standard function and auto-expand depending on the "
+"dimensions of the returned array:"
+msgstr ""
+

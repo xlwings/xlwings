@@ -1,0 +1,257 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../rest_api.rst:4
+msgid "REST API"
+msgstr ""
+
+#: ../../rest_api.rst:9
+msgid "Quickstart"
+msgstr "快速入门"
+
+#: ../../rest_api.rst:11
+msgid ""
+"xlwings offers an easy way to expose an Excel workbook via REST API both "
+"on Windows and macOS. This can be useful when you have a workbook running"
+" on a single computer and want to access it from another computer. Or you"
+" can build a Linux based web app that can interact with a legacy Excel "
+"application while you are in the progress of migrating the Excel "
+"functionality into your web app (if you need help with that, `give us a "
+"shout <https://www.zoomeranalytics.com/contact>`_)."
+msgstr ""
+"在Windows和macOS上，xlwings通过REST API提供了一种简单的方法把Excel工作薄开放出来。"
+"当在一个计算机上运行一个Excel工作簿，同时想从另外一台电脑上访问这个工作簿的时候，这个方法特别有用。 "
+"或者当你正在把Excel功能向网页app上迁移的时候，可以先弄一个基于Linux的网页app和原有的Excel应用交互。"
+"(如果在这方面需要帮助， `请到我们网站上喊一嗓子 <https://www.zoomeranalytics.com/contact>`_)。"
+"[译者注：对于REST(表述性状态传递)这个术语的解释，有一篇很风趣的文章可以参考:"
+" `REST，以及RESTful的讲解 <https://blog.csdn.net/qq_21383435/article/details/80032375>`_ ]"
+
+#: ../../rest_api.rst:16
+msgid ""
+"You can run the REST API server from a command prompt or terminal as "
+"follows (this requires Flask>=1.0, so make sure to ``pip install "
+"Flask``)::"
+msgstr "可以通过命令行提示符界面启动REST API服务器，或者向后面说的那样停止服务器(需要Flask>=1.0, 所以先确保 ``pip install Flask``)::"
+
+#: ../../rest_api.rst:20
+msgid ""
+"Then perform a GET request e.g. via PowerShell on Windows or Terminal on "
+"Mac (while having an unsaved \"Book1\" open). Note that you need to run "
+"the server and the GET request from two separate terminals (or you can "
+"use something more convenient like `Postman "
+"<https://www.getpostman.com/>`_ or `Insomnia <https://insomnia.rest/>`_ "
+"for testing the API)::"
+msgstr ""
+"然后在Windows的PowerShell或者Mac的终端上执行一个GET请求(下面例子基于有一个未保存的 "Book1" 对外开放接口)。 "
+"注意运行服务器和执行GET请求要分别用两个不同的终端(或者有时候你可以用一些方便的网页调试工具如"
+" `Postman <https://www.getpostman.com/>`_ 或 `Insomnia <https://insomnia.rest/>`_ 来测试REST API)::"
+
+#: ../../rest_api.rst:69
+msgid ""
+"In the command prompt where your server is running, press ``Ctrl-C`` to "
+"shut it down again."
+msgstr "在运行服务器的命令行提示符界面中，按 ``Ctrl-C`` 关闭服务器。"
+
+#: ../../rest_api.rst:71
+msgid ""
+"The xlwings REST API is a thin wrapper around the :ref:`Python API <api>`"
+" which makes it very easy if you have worked previously with xlwings. It "
+"also means that the REST API does require the Excel application to be up "
+"and running which makes it a great choice if the data in your Excel "
+"workbook is constantly changing as the REST API will always deliver the "
+"current state of the workbook without the need of saving it first."
+msgstr ""
+"如果有用过xlwings的经验，xlwings REST API是一个非常易用的 :ref:`Python API <api>` 轻包装器。"
+"这样意味着使用REST API的时候Excel应用也要是在运行的。"
+"在这种情况下，如果Excel工作簿的数据是一直在变化的，那么用REST API是一个非常好的选择，因为不用先存储作簿中的内容，它总是去取工作簿的最新数据。"
+
+#: ../../rest_api.rst:77
+msgid ""
+"Currently, we only provide the GET methods to read the workbook. If you "
+"are also interested in the POST methods to edit the workbook, let us know"
+" via GitHub issues. Some other things will also need improvement, most "
+"notably exception handling."
+msgstr "目前只提供GET方法读取工作簿。如果对用POST方法编辑工作簿感兴趣，请通过到GitHub提问来通知我们。还有其他一些事情也需要改进，特别是异常的处理。"
+
+#: ../../rest_api.rst:82
+msgid "Run the server"
+msgstr "运行服务器"
+
+#: ../../rest_api.rst:84
+msgid ""
+"``xlwings restapi run`` will run a Flask development server on "
+"http://127.0.0.1:5000. You can provide ``--host`` and ``--port`` as "
+"command line args and it also respects the Flask environment variables "
+"like ``FLASK_ENV=development``."
+msgstr ""
+"``xlwings restapi run`` 命令会启动Flask开发服务器，可以通过http://127.0.0.1:5000访问。"
+"可以在命令行中使用 ``--host`` 和 ``--port`` 作为参数，Flask的环境变量如 ``FLASK_ENV=development`` 也是有效的。"
+
+#: ../../rest_api.rst:87
+msgid ""
+"If you want to have more control, you can run the server directly with "
+"Flask, see the `Flask docs "
+"<http://flask.pocoo.org/docs/1.0/quickstart/>`_ for more details::"
+msgstr "需要控制更多细节的话，可以直接用Flask作为服务器，更多细节请参考 `Flask docs <http://flask.pocoo.org/docs/1.0/quickstart/>`_ ::"
+
+#: ../../rest_api.rst:93
+msgid ""
+"If you are on Mac, use ``export FLASK_APP=xlwings.rest.api`` instead of "
+"``set FLASK_APP=xlwings.rest.api``."
+msgstr "在Mac系统上, 用 ``export FLASK_APP=xlwings.rest.api`` 代替 ``set FLASK_APP=xlwings.rest.api`` 。"
+
+#: ../../rest_api.rst:95
+msgid ""
+"For production, you can use any WSGI HTTP Server like `gunicorn "
+"<https://gunicorn.org/>`_ (on Mac) or `waitress "
+"<https://docs.pylonsproject.org/projects/waitress/en/latest/>`_ (on "
+"Mac/Windows) to serve the API. For example, with gunicorn you would do: "
+"``gunicorn xlwings.rest.api:api``. Or with waitress (adjust the host "
+"accordingly if you want to make the api accessible from outside of "
+"localhost)::"
+msgstr ""
+"在正式产品中, 可以用任何WSGI HTTP服务器，如 `gunicorn <https://gunicorn.org/>`_ (Mac系统) "
+"或 `waitress <https://docs.pylonsproject.org/projects/waitress/en/latest/>`_ (Mac/Windows通用) 来提供API服务。"
+"例如,用gunicorn的话要用: ``gunicorn xlwings.rest.api:api`` 。"
+"用waitress时要按照下面的做(如果需要从外部访问API服务器，请相应用具体的主机地址替换本地服务器地址)::"
+
+#: ../../rest_api.rst:105
+msgid "Indexing"
+msgstr "索引"
+
+#: ../../rest_api.rst:107
+msgid ""
+"While the Python API offers Python's 0-based indexing (e.g. "
+"``xw.books[0]``) as well as Excel's 1-based indexing (e.g. "
+"``xw.books(1)``), the REST API only offers 0-based indexing, e.g. "
+"``/books/0``."
+msgstr ""
+"不像Python API既提供的是Python的从0开头的索引(例如 ``xw.books[0]``)又提供Excel的从1开头索引(例如 ``xw.books(1)``),"
+"REST API只提供从0开头的索引, 例如 ``/books/0``."
+
+#: ../../rest_api.rst:111
+msgid "Range Options"
+msgstr "区域选项"
+
+#: ../../rest_api.rst:113
+msgid ""
+"The REST API accepts Range options as query parameters, see "
+":meth:`xlwings.Range.options` e.g."
+msgstr "REST API接受区域选项作为查询的参数，参考 :meth:`xlwings.Range.options` ，例如 "
+
+#: ../../rest_api.rst:115
+msgid "``/book/book1/sheets/0/range/A1?expand=table&transpose=true``"
+msgstr ""
+
+#: ../../rest_api.rst:117
+msgid "Remember that ``options`` only affect the ``value`` property."
+msgstr "记住 ``options`` 只影响 ``value`` 属性。"
+
+#: ../../rest_api.rst:120
+msgid "Endpoint overview"
+msgstr "Endpoint概览"
+
+#: ../../rest_api.rst:123
+msgid "Endpoint"
+msgstr ""
+
+#: ../../rest_api.rst:123
+msgid "Corresponds to"
+msgstr "对应"
+
+#: ../../rest_api.rst:123
+msgid "Short Description"
+msgstr "简单说明"
+
+#: ../../rest_api.rst:125
+msgid ":ref:`book`"
+msgstr ""
+
+#: ../../rest_api.rst:125
+msgid ":ref:`python_book`"
+msgstr ""
+
+#: ../../rest_api.rst:125
+msgid ""
+"Finds your workbook across all open instances of Excel and will open it "
+"if it can't find it"
+msgstr "在全部打开的Excel实例中寻找workbook(工作薄)，如果找到了就打开该workbook  "
+
+#: ../../rest_api.rst:127
+msgid ":ref:`books`"
+msgstr ""
+
+#: ../../rest_api.rst:127
+msgid ":ref:`python_books`"
+msgstr ""
+
+#: ../../rest_api.rst:127
+msgid "Books collection of the active Excel instance"
+msgstr "活动Excel实例的工作簿的集合 "
+
+#: ../../rest_api.rst:129
+msgid ":ref:`apps`"
+msgstr ""
+
+#: ../../rest_api.rst:129
+msgid ":ref:`python_apps`"
+msgstr ""
+
+#: ../../rest_api.rst:129
+msgid "This allows you to specify the Excel instance you want to work with"
+msgstr "允许指定需要处理的特定Excel实例"
+
+#: ../../rest_api.rst:133
+msgid "Endpoint details"
+msgstr "Endpoint细节"
+
+#: ../../rest_api.rst:140
+msgid "/book"
+msgstr ""
+
+#: ../../rest_api.rst:144 ../../rest_api.rst:165 ../../rest_api.rst:184
+#: ../../rest_api.rst:195 ../../rest_api.rst:227 ../../rest_api.rst:263
+#: ../../rest_api.rst:287 ../../rest_api.rst:306 ../../rest_api.rst:321
+#: ../../rest_api.rst:336 ../../rest_api.rst:347 ../../rest_api.rst:397
+#: ../../rest_api.rst:415 ../../rest_api.rst:429 ../../rest_api.rst:479
+#: ../../rest_api.rst:529 ../../rest_api.rst:556 ../../rest_api.rst:576
+#: ../../rest_api.rst:621 ../../rest_api.rst:642 ../../rest_api.rst:661
+#: ../../rest_api.rst:672 ../../rest_api.rst:704 ../../rest_api.rst:740
+#: ../../rest_api.rst:764 ../../rest_api.rst:783 ../../rest_api.rst:798
+#: ../../rest_api.rst:813 ../../rest_api.rst:824 ../../rest_api.rst:874
+#: ../../rest_api.rst:892 ../../rest_api.rst:906 ../../rest_api.rst:956
+#: ../../rest_api.rst:1006 ../../rest_api.rst:1033 ../../rest_api.rst:1053
+#: ../../rest_api.rst:1091 ../../rest_api.rst:1112 ../../rest_api.rst:1157
+#: ../../rest_api.rst:1178 ../../rest_api.rst:1197 ../../rest_api.rst:1208
+#: ../../rest_api.rst:1240 ../../rest_api.rst:1276 ../../rest_api.rst:1300
+#: ../../rest_api.rst:1319 ../../rest_api.rst:1334 ../../rest_api.rst:1349
+#: ../../rest_api.rst:1360 ../../rest_api.rst:1410 ../../rest_api.rst:1428
+#: ../../rest_api.rst:1442 ../../rest_api.rst:1492 ../../rest_api.rst:1542
+#: ../../rest_api.rst:1569
+msgid "**Example response**:"
+msgstr "**返回举例**:"
+
+#: ../../rest_api.rst:572
+msgid "/books"
+msgstr ""
+
+#: ../../rest_api.rst:1049
+msgid "/apps"
+msgstr ""
+

@@ -1,0 +1,317 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../license.rst:2
+msgid "License"
+msgstr ""
+
+#: ../../license.rst:5
+msgid "xlwings"
+msgstr ""
+
+#: ../../license.rst:7
+msgid "xlwings is distributed under a BSD 3-clause license."
+msgstr ""
+
+#: ../../license.rst:9
+msgid "Copyright (C) 2014 - present, Zoomer Analytics GmbH. All rights reserved."
+msgstr ""
+
+#: ../../license.rst:12 ../../license.rst:51 ../../license.rst:84
+#: ../../license.rst:117 ../../license.rst:180
+msgid ""
+"Redistribution and use in source and binary forms, with or without "
+"modification, are permitted provided that the following conditions are "
+"met:"
+msgstr ""
+
+#: ../../license.rst:15 ../../license.rst:55 ../../license.rst:88
+#: ../../license.rst:121 ../../license.rst:183
+msgid ""
+"Redistributions of source code must retain the above copyright notice, "
+"this list of conditions and the following disclaimer."
+msgstr ""
+
+#: ../../license.rst:18 ../../license.rst:58 ../../license.rst:91
+#: ../../license.rst:124 ../../license.rst:186
+msgid ""
+"Redistributions in binary form must reproduce the above copyright notice,"
+" this list of conditions and the following disclaimer in the "
+"documentation and/or other materials provided with the distribution."
+msgstr ""
+
+#: ../../license.rst:22
+msgid ""
+"Neither the name of the copyright holder nor the names of its "
+"contributors may be used to endorse or promote products derived from this"
+" software without specific prior written permission."
+msgstr ""
+
+#: ../../license.rst:26
+msgid ""
+"THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS "
+"IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED "
+"TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A "
+"PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER"
+" OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,"
+" EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, "
+"PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR "
+"PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF "
+"LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING "
+"NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS "
+"SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+msgstr ""
+
+#: ../../license.rst:38
+msgid "Dependencies"
+msgstr ""
+
+#: ../../license.rst:40
+msgid ""
+"xlwings is built on top of a few open-source dependencies. Their licenses"
+" are listed here:"
+msgstr ""
+
+#: ../../license.rst:43
+msgid "pywin32 (Windows only)"
+msgstr ""
+
+#: ../../license.rst:45
+msgid "**com subpackage**"
+msgstr ""
+
+#: ../../license.rst:47
+msgid ""
+"Unless stated in the specfic source file, this work is Copyright (c) "
+"1996-2008, Greg Stein and Mark Hammond. All rights reserved."
+msgstr ""
+
+#: ../../license.rst:62
+msgid ""
+"Neither names of Greg Stein, Mark Hammond nor the name of contributors "
+"may be used to endorse or promote products derived from this software "
+"without specific prior written permission."
+msgstr ""
+
+#: ../../license.rst:66 ../../license.rst:99 ../../license.rst:132
+msgid ""
+"THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ''AS "
+"IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED "
+"TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A "
+"PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR "
+"CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, "
+"EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, "
+"PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR "
+"PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF "
+"LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING "
+"NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS "
+"SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+msgstr ""
+
+#: ../../license.rst:78
+msgid "**win32 subpackage**"
+msgstr ""
+
+#: ../../license.rst:80 ../../license.rst:113
+msgid ""
+"Unless stated in the specfic source file, this work is Copyright (c) "
+"1994-2008, Mark Hammond All rights reserved."
+msgstr ""
+
+#: ../../license.rst:95 ../../license.rst:128
+msgid ""
+"Neither name of Mark Hammond nor the name of contributors may be used to "
+"endorse or promote products derived from this software without specific "
+"prior written permission."
+msgstr ""
+
+#: ../../license.rst:111
+msgid "**Pythonwin subpackage**"
+msgstr ""
+
+#: ../../license.rst:145
+msgid "comtypes (Windows only)"
+msgstr ""
+
+#: ../../license.rst:147
+msgid ""
+"This software is OSI Certified Open Source Software. OSI Certified is a "
+"certification mark of the Open Source Initiative."
+msgstr ""
+
+#: ../../license.rst:150
+msgid ""
+"Copyright (c) 2006-2013, Thomas Heller. Copyright (c) 2014, Comtypes "
+"Developers. All rights reserved."
+msgstr ""
+
+#: ../../license.rst:154
+msgid ""
+"Permission is hereby granted, free of charge, to any person obtaining a "
+"copy of this software and associated documentation files (the "
+"\"Software\"), to deal in the Software without restriction, including "
+"without limitation the rights to use, copy, modify, merge, publish, "
+"distribute, sublicense, and/or sell copies of the Software, and to permit"
+" persons to whom the Software is furnished to do so, subject to the "
+"following conditions:"
+msgstr ""
+
+#: ../../license.rst:161
+msgid ""
+"The above copyright notice and this permission notice shall be included "
+"in all copies or substantial portions of the Software."
+msgstr ""
+
+#: ../../license.rst:164
+msgid ""
+"THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS"
+" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF "
+"MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN"
+" NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,"
+" DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR "
+"OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE"
+" USE OR OTHER DEALINGS IN THE SOFTWARE."
+msgstr ""
+
+#: ../../license.rst:173
+msgid "psutil (macOS only)"
+msgstr ""
+
+#: ../../license.rst:175
+msgid "BSD 3-Clause License"
+msgstr ""
+
+#: ../../license.rst:177
+msgid ""
+"Copyright (c) 2009, Jay Loden, Dave Daeschler, Giampaolo Rodola' All "
+"rights reserved."
+msgstr ""
+
+#: ../../license.rst:190
+msgid ""
+"Neither the name of the psutil authors nor the names of its contributors "
+"may be used to endorse or promote products derived from this software "
+"without specific prior written permission."
+msgstr ""
+
+#: ../../license.rst:194
+msgid ""
+"THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS "
+"IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED "
+"TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A "
+"PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER "
+"OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, "
+"EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, "
+"PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR "
+"PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF "
+"LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING "
+"NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS "
+"SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+msgstr ""
+
+#: ../../license.rst:206
+msgid "Appscript (macOS only)"
+msgstr ""
+
+#: ../../license.rst:208
+msgid ""
+"Appscript is released into the public domain, except for the following "
+"code:"
+msgstr ""
+
+#: ../../license.rst
+msgid "portions of ae.c, which are Copyright (C) the original authors:"
+msgstr ""
+
+#: ../../license.rst
+msgid "Original code taken from _AEmodule.c, _CFmodule.c, _Launchmodule.c"
+msgstr ""
+
+#: ../../license.rst
+msgid "Copyright (C) 2001-2008 Python Software Foundation."
+msgstr ""
+
+#: ../../license.rst
+msgid "License: https://docs.python.org/3/license.html."
+msgstr ""
+
+#: ../../license.rst
+msgid "SendThreadSafe.h/SendThreadSafe.m, which are modified versions of Apple"
+msgstr ""
+
+#: ../../license.rst
+msgid ""
+"code "
+"(https://developer.apple.com/library/archive/samplecode/AESendThreadSafe):"
+msgstr ""
+
+#: ../../license.rst
+msgid "Written by: DTS"
+msgstr ""
+
+#: ../../license.rst
+msgid "Copyright:  Copyright (c) 2007 Apple Inc. All Rights Reserved."
+msgstr ""
+
+#: ../../license.rst
+msgid ""
+"Disclaimer: IMPORTANT: This Apple software is supplied to you by Apple "
+"Inc."
+msgstr ""
+
+#: ../../license.rst:221
+msgid ""
+"(\"Apple\") in consideration of your agreement to the following terms, "
+"and your use, installation, modification or redistribution of this Apple "
+"software constitutes acceptance of these terms.  If you do not agree with"
+" these terms, please do not use, install, modify or redistribute this "
+"Apple software. In consideration of your agreement to abide by the "
+"following terms, and subject to these terms, Apple grants you a personal,"
+" non-exclusive license, under Apple's copyrights in this original Apple "
+"software (the \"Apple Software\"), to use, reproduce, modify and "
+"redistribute the Apple Software, with or without modifications, in source"
+" and/or binary forms; provided that if you redistribute the Apple "
+"Software in its entirety and without modifications, you must retain this "
+"notice and the following text and disclaimers in all such redistributions"
+" of the Apple Software. Neither the name, trademarks, service marks or "
+"logos of Apple Inc. may be used to endorse or promote products derived "
+"from the Apple Software without specific prior written permission from "
+"Apple.  Except as expressly stated in this notice, no other rights or "
+"licenses, express or implied, are granted by Apple herein, including but "
+"not limited to any patent rights that may be infringed by your derivative"
+" works or by other works in which the Apple Software may be incorporated."
+" The Apple Software is provided by Apple on an \"AS IS\" basis."
+msgstr ""
+
+#: ../../license.rst:245
+msgid ""
+"APPLE MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT "
+"LIMITATION THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY "
+"AND FITNESS FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS"
+" USE AND OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS. IN NO "
+"EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL OR "
+"CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF "
+"SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS "
+"INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION, "
+"MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED "
+"AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT"
+" LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE "
+"POSSIBILITY OF SUCH DAMAGE."
+msgstr ""
+

@@ -1,0 +1,165 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../datastructures.rst:4
+msgid "Data Structures Tutorial"
+msgstr "数据结构教程"
+
+#: ../../datastructures.rst:6
+msgid ""
+"This tutorial gives you a quick introduction to the most common use cases"
+" and default behaviour of xlwings when reading and writing values. For an"
+" in-depth documentation of how to control the behavior using the "
+"``options`` method, have a look at :ref:`converters`."
+msgstr ""
+"本教程会简单过一遍xlwings读写数据的最常用的场景和默认的方式。"
+"如果需要深入了解如何通过 ``options`` 方法控制更多的细节，请查阅 :ref:`converters` 。"
+
+#: ../../datastructures.rst:10
+msgid "All code samples below depend on the following import:"
+msgstr "后面所有的示例代码都依赖下面的模块导入语句："
+
+#: ../../datastructures.rst:15
+msgid "Single Cells"
+msgstr "单个单元格"
+
+#: ../../datastructures.rst:16
+msgid ""
+"Single cells are by default returned either as ``float``, ``unicode``, "
+"``None`` or ``datetime`` objects, depending on whether the cell contains "
+"a number, a string, is empty or represents a date:"
+msgstr ""
+"根据单元格里面存储的是数字、字符串、空白还是日期，"
+"返回的python对象类型分别是 ``float``, ``unicode``, ``None`` 或 ``datetime`` :"
+
+#: ../../datastructures.rst:36
+msgid "Lists"
+msgstr "列表"
+
+#: ../../datastructures.rst:37
+msgid ""
+"1d lists: Ranges that represent rows or columns in Excel are returned as "
+"simple lists, which means that once they are in Python, you've lost the "
+"information about the orientation. If that is an issue, the next point "
+"shows you how to preserve this info:"
+msgstr ""
+"一维列表：在Excel中代表行或者列的区域，在Python中返回的都是一个列表。 "
+"所以一旦把他们读入Python中，就是丢失行、列的方向信息。 "
+"如果这个的确是个问题的话，下面一个知识点会说明如何保留这些信息："
+
+#: ../../datastructures.rst:51
+msgid "To force a single cell to arrive as list, use::"
+msgstr "要把单个的单元格强制转换为列表，可以这样::"
+
+#: ../../datastructures.rst:57
+msgid ""
+"To write a list in column orientation to Excel, use ``transpose``: "
+"``sht.range('A1').options(transpose=True).value = [1,2,3,4]``"
+msgstr "要把列表中Excel中写成一列，可以用 ``transpose``: ``sht.range('A1').options(transpose=True).value = [1,2,3,4]``"
+
+#: ../../datastructures.rst:59
+msgid ""
+"2d lists: If the row or column orientation has to be preserved, set "
+"``ndim`` in the Range options. This will return the Ranges as nested "
+"lists (\"2d lists\"):"
+msgstr "二维列表：如果必须保留行列的方向信息，可以在区域操作中设置ndim 。这样会把区域信息返回为一个嵌套的列表（二维列表）："
+
+#: ../../datastructures.rst:70
+msgid ""
+"2 dimensional Ranges are automatically returned as nested lists. When "
+"assigning (nested) lists to a Range in Excel, it's enough to just specify"
+" the top left cell as target address. This sample also makes use of index"
+" notation to read the values back into Python:"
+msgstr ""
+"二维区域会自动返回为嵌套列表。当把一个嵌套列表赋值给Excel区域的时候，"
+"只要明确目标区域的左上角单元格地址就行了。下面的例子也使用了索引方式把区域的值读会Python："
+
+#: ../../datastructures.rst:81
+msgid ""
+"Try to minimize the number of interactions with Excel. It is always more "
+"efficient to do ``sht.range('A1').value = [[1,2],[3,4]]`` than "
+"``sht.range('A1').value = [1, 2]`` and ``sht.range('A2').value = [3, "
+"4]``."
+msgstr ""
+"为了使得和Excel的交互最小化，使用 ``sht.range('A1').value = [[1,2],[3,4]]`` "
+"总是比用 ``sht.range('A1').value = [1, 2]`` 和 ``sht.range('A2').value = [3, 4]`` 效率高得多。"
+
+#: ../../datastructures.rst:85
+msgid "Range expanding"
+msgstr "区域扩展"
+
+#: ../../datastructures.rst:87
+msgid ""
+"You can get the dimensions of Excel Ranges dynamically through either the"
+" method ``expand`` or through the ``expand`` keyword in the ``options`` "
+"method. While ``expand`` gives back an expanded Range object, options are"
+" only evaluated when accessing the values of a Range. The difference is "
+"best explained with an example:"
+msgstr ""
+"通过 ``expand`` 或者  ``options`` 方法中的 ``expand`` 关键词可以动态地获得区域范围。"
+" ``expand`` 会直接给出扩展后的区域对象,而 ``options`` 方法在调用区域的是才计算区域扩展。"
+"下面例子说明了两种方法的不同之处："
+
+#: ../../datastructures.rst:107
+msgid ""
+"``'table'`` expands to ``'down'`` and ``'right'``, the other available "
+"options which can be used for column or row only expansion, respectively."
+msgstr ""
+"上面例子中的 ``'table'`` 是向 ``'down'`` (下方)和 ``'right'`` (右边)扩展，"
+"其他可用选项可以分别只在行或者列方向上扩展。"
+
+#: ../../datastructures.rst:110
+msgid ""
+"Using ``expand()`` together with a named Range as top left cell gives you"
+" a flexible setup in Excel: You can move around the table and change it's"
+" size without having to adjust your code, e.g. by using something like "
+"``sht.range('NamedRange').expand().value``."
+msgstr ""
+"使用 ``expand()`` 的同时，使用一个命名区域作为左上角单元格，有很大的灵活性。"
+"通过使用类似 ``sht.range('NamedRange').expand().value`` 的语法，你可以调整表的位置和大小，而不用更改代码。"
+
+#: ../../datastructures.rst:115
+msgid "NumPy arrays"
+msgstr "NumPy数组"
+
+#: ../../datastructures.rst:117
+msgid ""
+"NumPy arrays work similar to nested lists. However, empty cells are "
+"represented by ``nan`` instead of ``None``. If you want to read in a "
+"Range as array, set ``convert=np.array`` in the ``options`` method:"
+msgstr ""
+"NumPy数组和嵌套列表类似，只是表示空元素时用 ``nan`` 而不是 ``None`` 。"
+"如果要把一个区域读到数组中，需要在 ``options`` 中设置 ``convert=np.array`` ："
+
+#: ../../datastructures.rst:131
+msgid "Pandas DataFrames"
+msgstr "Pandas数据表(DataFrame)"
+
+#: ../../datastructures.rst:151
+msgid "Pandas Series"
+msgstr "Pandas的序列(Serie)"
+
+#: ../../datastructures.rst:177
+msgid ""
+"You only need to specify the top left cell when writing a list, a NumPy "
+"array or a Pandas DataFrame to Excel, e.g.: ``sht.range('A1').value = "
+"np.eye(10)``"
+msgstr ""
+"向Excel中写入列表、NumPy的数组或者是Pandas的数据表的时候，只需要指定需要写入区域的左上角单元格。"
+"例如： ``sht.range('A1').value = np.eye(10)`` 。"

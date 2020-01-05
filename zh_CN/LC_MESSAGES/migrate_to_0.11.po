@@ -1,0 +1,120 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../migrate_to_0.11.rst:4
+msgid "Migrate to v0.11 (Add-in)"
+msgstr "迁移到v0.11(加载项)"
+
+#: ../../migrate_to_0.11.rst:6
+msgid ""
+"This migration guide shows you how you can start using the new xlwings "
+"add-in as opposed to the old xlwings VBA module (and the old add-in that "
+"consisted of just a single import button)."
+msgstr "本迁移指南展示如何开始使用新的xlwings加载项而不是老的xlwings VBA模块(老的加载项只包含了一个简单的导入按钮)。"
+
+#: ../../migrate_to_0.11.rst:10
+msgid "Upgrade the xlwings Python package"
+msgstr "升级xlwings的Python包"
+
+#: ../../migrate_to_0.11.rst:12
+msgid "Check where xlwings is currently installed"
+msgstr "检查xlwings的当前安装目录"
+
+#: ../../migrate_to_0.11.rst:17
+msgid ""
+"If you installed xlwings with pip, for once, you should first uninstall "
+"xlwings: ``pip uninstall xlwings``"
+msgstr "如果xlwings以前是用pip安装过的，先卸载xlwings: ``pip uninstall xlwings`` "
+
+#: ../../migrate_to_0.11.rst:18
+msgid ""
+"Check the directory that you got under 1): if there are any files left "
+"over, delete the ``xlwings`` folder and the remaining files manually"
+msgstr "检查第1)步中查到的目录: 如果里面有任何文件残留，就手动删除 ``xlwings`` 文件夹和残留的文件"
+
+#: ../../migrate_to_0.11.rst:20
+msgid "Install the latest xlwings version: ``pip install xlwings``"
+msgstr "安装最新的xlwings: ``pip install xlwings`` "
+
+#: ../../migrate_to_0.11.rst:21
+msgid "Verify that you have >= 0.11 by doing"
+msgstr "用下面命令确认版本>= 0.11"
+
+#: ../../migrate_to_0.11.rst:27
+msgid "Install the add-in"
+msgstr "安装加载项"
+
+#: ../../migrate_to_0.11.rst:29
+msgid ""
+"If you have the old xlwings addin installed, find the location and remove"
+" it or overwrite it with the new version (see next step). If you "
+"installed it via the xlwings command line client, you should be able to "
+"do: ``xlwings addin remove``."
+msgstr ""
+"如果安装了老的xlwings加载项，找到安装位置，并移除或用新版本覆盖(参考下一步)。"
+"如果是用xlwings命令行客户端安装的，请用: ``xlwings addin remove`` 来卸载。"
+
+#: ../../migrate_to_0.11.rst:31
+msgid ""
+"Close Excel. Run ``xlwings addin install`` from a command prompt. Reopen "
+"Excel and check if the xlwings Ribbon appears. If not, copy "
+"``xlwings.xlam`` (from your xlwings installation folder under "
+"``addin\\xlwings.xlam`` manually into the ``XLSTART`` folder. You can "
+"find the location of this folder under Options > Trust Center > Trust "
+"Center Settings... > Trusted Locations, under the description ``Excel "
+"default location: User StartUp``. Restart Excel and you should see the "
+"add-in."
+msgstr ""
+"关闭Excel。在命令行提示符下运行 ``xlwings addin install`` 。重新打开Excel，检查xlwings功能区是否出现。"
+"如果没有，手动拷贝 ``xlwings.xlam``  (在xlwings安装文件夹的 ``addin\\xlwings.xlam`` )到 ``XLSTART`` 文件夹。"
+"可以通过 ``选项 > 信任中心 > 信任中心设置... > 受信任的位置``, 在说明为 ``Excel默认位置: 用户启动`` 的条目"
+"中找到的 ``XLSTART`` 的具体路径。重启Excel后就能看到加载项了。"
+
+#: ../../migrate_to_0.11.rst:39
+msgid "Upgrade existing workbooks"
+msgstr "升级已有的工作簿"
+
+#: ../../migrate_to_0.11.rst:41
+msgid "Make a backup of your Excel file"
+msgstr "为Excel文件做个备份"
+
+#: ../../migrate_to_0.11.rst:42
+msgid "Open the file and go to the VBA Editor (``Alt-F11``)"
+msgstr "打开文件并启动VBA编辑器(``Alt-F11``)"
+
+#: ../../migrate_to_0.11.rst:43
+msgid "Remove the xlwings VBA module"
+msgstr "移除xlwings VBA模块"
+
+#: ../../migrate_to_0.11.rst:44
+msgid "Add a reference to the xlwings addin, see :ref:`addin_installation`"
+msgstr "增加一个xlwings加载项的引用, 参考 :ref:`addin_installation`"
+
+#: ../../migrate_to_0.11.rst:45
+msgid ""
+"If you want to use workbook specific settings, add a sheet "
+"``xlwings.conf``, see :ref:`addin_wb_settings`"
+msgstr "如果需要对工作簿做特殊设置, 增加一个 ``xlwings.conf`` 工作表, 参见 :ref:`addin_wb_settings`"
+
+#: ../../migrate_to_0.11.rst:48
+msgid ""
+"**Note**: To import UDFs, you need to have the reference to the xlwings "
+"add-in set!"
+msgstr "**Note**: 在导入UDF前，需要先设置好xlwings加载项的引用!"
+
