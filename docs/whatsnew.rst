@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.16.6 (Jan 5, 2020)
+---------------------
+
+* [Enhancement] CLI changes with respect to ``xlwings license`` (:issue:`1227`). 
+
 v0.16.5 (Dec 30, 2019)
 ----------------------
 
