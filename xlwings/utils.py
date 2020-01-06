@@ -64,13 +64,13 @@ def col_name(i):
         raise IndexError(i)
 
 
-class VBAWriter(object):
+class VBAWriter:
 
     MAX_VBA_LINE_LENGTH = 1024
     VBA_LINE_SPLIT = ' _\n'
     MAX_VBA_SPLITTED_LINE_LENGTH = MAX_VBA_LINE_LENGTH - len(VBA_LINE_SPLIT)
 
-    class Block(object):
+    class Block:
         def __init__(self, writer, start):
             self.writer = writer
             self.start = start
@@ -140,7 +140,7 @@ def try_parse_int(x):
 
 
 @total_ordering
-class VersionNumber(object):
+class VersionNumber:
 
     def __init__(self, s):
         self.value = tuple(map(try_parse_int, s.split(".")))

@@ -180,7 +180,7 @@ def xlarg(arg, convert=None, **kwargs):
 udf_modules = {}
 
 
-class DelayedResizeDynamicArrayFormula(object):
+class DelayedResizeDynamicArrayFormula:
     def __init__(self, target_range, caller, needs_clearing):
         self.target_range = target_range
         self.caller = caller

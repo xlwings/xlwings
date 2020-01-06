@@ -50,7 +50,7 @@ BOOK_CALLER = None
 missing = object()
 
 
-class COMRetryMethodWrapper(object):
+class COMRetryMethodWrapper:
 
     def __init__(self, method):
         self.__method = method
@@ -86,7 +86,7 @@ class ExcelBusyError(Exception):
         super(ExcelBusyError, self).__init__("Excel application is not responding")
 
 
-class COMRetryObjectWrapper(object):
+class COMRetryObjectWrapper:
     def __init__(self, inner):
         object.__setattr__(self, '_inner', inner)
 
@@ -263,7 +263,7 @@ def is_range_instance(xl_range):
     # return pyid.GetTypeInfo().GetDocumentation(-1)[0] == 'Range'
 
 
-class Apps(object):
+class Apps:
     def keys(self):
         k = []
         for hwnd in get_excel_hwnds():
@@ -285,7 +285,7 @@ class Apps(object):
         raise KeyError('Could not find an Excel instance with this PID.')
 
 
-class App(object):
+class App:
 
     def __init__(self, spec=None, add_book=True, xl=None):
         if spec is not None:
@@ -413,7 +413,7 @@ class App(object):
         return self.xl.Run(macro, *args)
 
 
-class Books(object):
+class Books:
 
     def __init__(self, xl):
         self.xl = xl
@@ -455,7 +455,7 @@ class Books(object):
             yield Book(xl=xl)
 
 
-class Book(object):
+class Book:
 
     def __init__(self, xl):
         self.xl = xl
@@ -514,7 +514,7 @@ class Book(object):
         self.xl.Activate()
 
 
-class Sheets(object):
+class Sheets:
     def __init__(self, xl):
         self.xl = xl
 
@@ -555,7 +555,7 @@ class Sheets(object):
             return Sheet(xl=self.xl.Add())
 
 
-class Sheet(object):
+class Sheet:
 
     def __init__(self, xl):
         self.xl = xl
@@ -664,7 +664,7 @@ class Sheet(object):
         return Range(xl=self.xl.UsedRange)
 
 
-class Range(object):
+class Range:
 
     def __init__(self, xl):
         if isinstance(xl, tuple):
@@ -1095,7 +1095,7 @@ def open_template(fullpath):
     os.startfile(fullpath)
 
 
-class Shape(object):
+class Shape:
 
     def __init__(self, xl):
         self.xl = xl
@@ -1163,7 +1163,7 @@ class Shape(object):
         self.xl.Activate()
 
 
-class Collection(object):
+class Collection:
 
     def __init__(self, xl):
         self.xl = xl
@@ -1198,7 +1198,7 @@ class Shapes(Collection):
     _wrap = Shape
 
 
-class Chart(object):
+class Chart:
 
     def __init__(self, xl_obj=None, xl=None):
         self.xl = xl_obj.Chart if xl is None else xl
@@ -1304,7 +1304,7 @@ class Charts(Collection):
         ))
 
 
-class Picture(object):
+class Picture:
 
     def __init__(self, xl):
         self.xl = xl
@@ -1381,7 +1381,7 @@ class Pictures(Collection):
         ).DrawingObject)
 
 
-class Names(object):
+class Names:
     def __init__(self, xl):
         self.xl = xl
 
@@ -1409,7 +1409,7 @@ class Names(object):
         return Name(xl=self.xl.Add(name, refers_to))
 
 
-class Name(object):
+class Name:
     def __init__(self, xl):
         self.xl = xl
 

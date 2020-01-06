@@ -5,7 +5,7 @@ expanders = {}
 _empty = (None, '')
 
 
-class Expander(object):
+class Expander:
 
     def register(self, *aliases):
         for alias in aliases:

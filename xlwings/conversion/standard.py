@@ -23,7 +23,7 @@ _number_handlers = {
 }
 
 
-class ExpandRangeStage(object):
+class ExpandRangeStage:
     def __init__(self, options):
         self.expand = options.get('expand', None)
 
@@ -34,7 +34,7 @@ class ExpandRangeStage(object):
                 c.range = c.range.expand(self.expand)
 
 
-class WriteValueToRangeStage(object):
+class WriteValueToRangeStage:
     def __init__(self, options, raw=False):
         self.raw = raw
 
@@ -61,14 +61,14 @@ class WriteValueToRangeStage(object):
             self._write_value(ctx.range, ctx.value, scalar)
 
 
-class ReadValueFromRangeStage(object):
+class ReadValueFromRangeStage:
 
     def __call__(self, c):
         if c.range:
             c.value = c.range.raw_value
 
 
-class CleanDataFromReadStage(object):
+class CleanDataFromReadStage:
 
     def __init__(self, options):
         dates_as = options.get('dates', datetime.datetime)
@@ -81,7 +81,7 @@ class CleanDataFromReadStage(object):
         c.value = xlplatform.clean_value_data(c.value, self.dates_handler, self.empty_as, self.numbers_handler)
 
 
-class CleanDataForWriteStage(object):
+class CleanDataForWriteStage:
 
     def __call__(self, c):
         c.value = [
@@ -93,7 +93,7 @@ class CleanDataForWriteStage(object):
         ]
 
 
-class AdjustDimensionsStage(object):
+class AdjustDimensionsStage:
 
     def __init__(self, options):
         self.ndim = options.get('ndim', None)
@@ -123,7 +123,7 @@ class AdjustDimensionsStage(object):
             raise ValueError('Invalid c.value ndim=%s' % self.ndim)
 
 
-class Ensure2DStage(object):
+class Ensure2DStage:
 
     def __call__(self, c):
         if isinstance(c.value, (list, tuple)):
@@ -135,7 +135,7 @@ class Ensure2DStage(object):
             c.value = [[c.value]]
 
 
-class TransposeStage(object):
+class TransposeStage:
 
     def __call__(self, c):
         c.value = [[e[i] for e in c.value] for i in range(len(c.value[0]) if c.value else 0)]
@@ -183,6 +183,7 @@ class RawValueAccessor(Accessor):
             Accessor.writer(options)
             .prepend_stage(WriteValueToRangeStage(options, raw=True))
         )
+
 
 RawValueAccessor.register('raw')
 

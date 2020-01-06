@@ -33,14 +33,14 @@ from .udfs import call_udf
 logger = logging.getLogger(__name__)
 
 
-class XLPythonOption(object):
+class XLPythonOption:
     """ The XLPython class itself """
     def __init__(self, option, value):
         self.option = option
         self.value = value
 
 
-class XLPythonObject(object):
+class XLPythonObject:
     _public_methods_ = ['Item', 'Count']
     _public_attrs_ = ['_NewEnum']
 
@@ -102,7 +102,7 @@ def ToVariant(obj):
     return win32com.server.util.wrap(XLPythonObject(obj))
 
 
-class XLPython(object):
+class XLPython:
     _public_methods_ = ['Module', 'Tuple', 'TupleFromArray', 'Dict', 'DictFromArray', 'List', 'ListFromArray', 'Obj',
                         'Str', 'Var', 'Call', 'GetItem', 'SetItem', 'DelItem', 'Contains', 'GetAttr', 'SetAttr',
                         'DelAttr', 'HasAttr', 'Eval', 'Exec', 'ShowConsole', 'Builtin', 'Len', 'Bool',

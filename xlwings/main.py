@@ -32,7 +32,7 @@ except ImportError:
     Image = None
 
 
-class Collection(object):
+class Collection:
 
     def __init__(self, impl):
         self.impl = impl
@@ -99,7 +99,7 @@ class Collection(object):
         )
 
 
-class Apps(object):
+class Apps:
     """
     A collection of all :meth:`app <App>` objects:
 
@@ -168,7 +168,7 @@ class Apps(object):
 apps = Apps(impl=xlplatform.Apps())
 
 
-class App(object):
+class App:
     """
     An app corresponds to an Excel instance. New Excel instances can be fired up like so:
 
@@ -435,7 +435,7 @@ class App(object):
         return Macro(self, name)
 
 
-class Book(object):
+class Book:
     """
     A book object is a member of the :meth:`books <xlwings.main.Books>` collection:
 
@@ -775,7 +775,7 @@ class Book(object):
         return "<Book [{0}]>".format(self.name)
 
 
-class Sheet(object):
+class Sheet:
     """
     A sheet object is a member of the :meth:`sheets <xlwings.main.Sheets>` collection:
 
@@ -973,7 +973,7 @@ class Sheet(object):
             return self.cells[item]
 
 
-class Range(object):
+class Range:
     """
     Returns a Range object that represents a cell or a range of cells.
 
@@ -1851,7 +1851,7 @@ from . import conversion
 from . import expansion
 
 
-class Ranges(object):
+class Ranges:
     pass
 
 
@@ -1985,7 +1985,7 @@ class RangeColumns(Ranges):
         )
 
 
-class Shape(object):
+class Shape:
     """
     The shape object is a member of the :meth:`shapes <xlwings.main.Shapes>` collection:
 
@@ -2136,7 +2136,7 @@ class Shapes(Collection):
     _wrap = Shape
 
 
-class Chart(object):
+class Chart:
     """
     The chart object is a member of the :meth:`charts <xlwings.main.Charts>` collection:
 
@@ -2326,7 +2326,7 @@ class Charts(Collection):
         return Chart(impl=impl)
 
 
-class Picture(object):
+class Picture:
     """
     The picture object is a member of the :meth:`pictures <xlwings.main.Pictures>` collection:
 
@@ -2594,7 +2594,7 @@ class Pictures(Collection):
         return picture
 
 
-class Names(object):
+class Names:
     """
     A collection of all :meth:`name <Name>` objects in the workbook:
 
@@ -2696,7 +2696,7 @@ class Names(object):
         return "[" + ", ".join(r) + "]"
 
 
-class Name(object):
+class Name:
     """
     The name object is a member of the :meth:`names <xlwings.main.Names>` collection:
 
@@ -2801,7 +2801,7 @@ def view(obj, sheet=None):
     sheet.autofit()
 
 
-class Macro(object):
+class Macro:
     def __init__(self, app, macro):
         self.app = app
         self.macro = macro
