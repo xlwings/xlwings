@@ -6,10 +6,11 @@ import tempfile
 import inspect
 from importlib import import_module
 from threading import Thread
+from importlib import reload  # requires >= py 3.4
 
 from win32com.client import Dispatch, CDispatch
 
-from . import conversion, xlplatform, Range, apps, PY3
+from . import conversion, xlplatform, Range, apps
 from .utils import VBAWriter
 
 
@@ -39,43 +40,26 @@ class AsyncThread(Thread):
                 apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula
 
 
-if PY3:
-    try:
-        from imp import reload
-    except:
-        from importlib import reload
-
-    def func_sig(f):
-        s = inspect.signature(f)
-        vararg = None
-        args = []
-        defaults = []
-        for p in s.parameters.values():
-            if p.kind is inspect.Parameter.POSITIONAL_OR_KEYWORD:
-                args.append(p.name)
-                if p.default is not inspect.Signature.empty:
-                    defaults.append(p.default)
-            elif p.kind is inspect.Parameter.VAR_POSITIONAL:
-                args.append(p.name)
-                vararg = p.name
-            else:
-                raise Exception("xlwings does not support UDFs with keyword arguments")
-        return {
-            'args': args,
-            'defaults': defaults,
-            'vararg': vararg
-        }
-
-else:
-    def func_sig(f):
-        s = inspect.getargspec(f)
-        if s.keywords:
+def func_sig(f):
+    s = inspect.signature(f)
+    vararg = None
+    args = []
+    defaults = []
+    for p in s.parameters.values():
+        if p.kind is inspect.Parameter.POSITIONAL_OR_KEYWORD:
+            args.append(p.name)
+            if p.default is not inspect.Signature.empty:
+                defaults.append(p.default)
+        elif p.kind is inspect.Parameter.VAR_POSITIONAL:
+            args.append(p.name)
+            vararg = p.name
+        else:
             raise Exception("xlwings does not support UDFs with keyword arguments")
-        return {
-            'args': (s.args + [s.varargs]) if s.varargs else s.args,
-            'defaults': s.defaults or [],
-            'vararg': s.varargs
-        }
+    return {
+        'args': args,
+        'defaults': defaults,
+        'vararg': vararg
+    }
 
 
 def get_category(**func_kwargs):
@@ -196,7 +180,7 @@ def xlarg(arg, convert=None, **kwargs):
 udf_modules = {}
 
 
-class DelayedResizeDynamicArrayFormula(object):
+class DelayedResizeDynamicArrayFormula:
     def __init__(self, target_range, caller, needs_clearing):
         self.target_range = target_range
         self.caller = caller

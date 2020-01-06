@@ -14,7 +14,7 @@ from appscript.reference import CommandError
 
 from .constants import ColorIndex
 from .utils import int_to_rgb, np_datetime_to_datetime, col_name, VersionNumber
-from . import mac_dict, PY3, string_types
+from . import mac_dict
 
 try:
     import pandas as pd
@@ -31,7 +31,7 @@ if np:
     time_types = time_types + (np.datetime64,)
 
 
-class Apps(object):
+class Apps:
 
     def _iter_excel_instances(self):
         asn = subprocess.check_output(['lsappinfo', 'visibleprocesslist', '-includehidden']).decode('utf-8')
@@ -57,7 +57,7 @@ class Apps(object):
         return App(xl=pid)
 
 
-class App(object):
+class App:
 
     def __init__(self, spec=None, add_book=None, xl=None):
         if xl is None:
@@ -154,12 +154,11 @@ class App(object):
         return None
 
     def run(self, macro, args):
-        # kwargs = {'arg{0}'.format(i): n for i, n in enumerate(args, 1)}  # only for > PY 2.6
-        kwargs = dict(('arg{0}'.format(i), n) for i, n in enumerate(args, 1))
+        kwargs = {'arg{0}'.format(i): n for i, n in enumerate(args, 1)}
         return self.xl.run_VB_macro(macro, **kwargs)
 
 
-class Books(object):
+class Books:
 
     def __init__(self, app):
         self.app = app
@@ -221,7 +220,7 @@ class Books(object):
             yield Book(self.app, i + 1)
 
 
-class Book(object):
+class Book:
     def __init__(self, app, name_or_index):
         self.app = app
         self.xl = app.xl.workbooks[name_or_index]
@@ -277,7 +276,7 @@ class Book(object):
         self.xl.activate_object()
 
 
-class Sheets(object):
+class Sheets:
 
     def __init__(self, workbook):
         self.workbook = workbook
@@ -311,7 +310,7 @@ class Sheets(object):
         return Sheet(self.workbook, xl.name.get())
 
 
-class Sheet(object):
+class Sheet:
 
     def __init__(self, workbook, name_or_index):
         self.workbook = workbook
@@ -358,7 +357,7 @@ class Sheet(object):
             row1 = min(arg1.row, arg2.row)
             col1 = min(arg1.column, arg2.column)
             address1 = self.xl.rows[row1].columns[col1].get_address()
-        elif isinstance(arg1, string_types):
+        elif isinstance(arg1, str):
             address1 = arg1.split(':')[0]
         else:
             raise ValueError("Invalid parameters")
@@ -373,10 +372,10 @@ class Sheet(object):
             row2 = max(arg1.row + arg1.shape[0] - 1, arg2.row + arg2.shape[0] - 1)
             col2 = max(arg1.column + arg1.shape[1] - 1, arg2.column + arg2.shape[1] - 1)
             address2 = self.xl.rows[row2].columns[col2].get_address()
-        elif isinstance(arg2, string_types):
+        elif isinstance(arg2, str):
             address2 = arg2
         elif arg2 is None:
-            if isinstance(arg1, string_types) and len(arg1.split(':')) == 2:
+            if isinstance(arg1, str) and len(arg1.split(':')) == 2:
                 address2 = arg1.split(':')[1]
             else:
                 return Range(self, "{0}".format(address1))
@@ -439,7 +438,7 @@ class Sheet(object):
         return Range(self, self.xl.used_range.get_address())
 
 
-class Range(object):
+class Range:
 
     def __init__(self, sheet, address):
         self.sheet = sheet
@@ -747,7 +746,7 @@ class Range(object):
             return self.xl.select()
 
 
-class Shape(object):
+class Shape:
     def __init__(self, parent, key):
         self.parent = parent
         self.xl = parent.xl.shapes[key]
@@ -812,7 +811,7 @@ class Shape(object):
         self.xl.select()
 
 
-class Collection(object):
+class Collection:
 
     def __init__(self, parent):
         self.parent = parent
@@ -838,7 +837,7 @@ class Collection(object):
         return self.xl[key].exists()
 
 
-class Chart(object):
+class Chart:
 
     def __init__(self, parent, key):
         self.parent = parent
@@ -953,7 +952,7 @@ class Charts(Collection):
         )
 
 
-class Picture(object):
+class Picture:
 
     def __init__(self, parent, key):
         self.parent = parent
@@ -1047,7 +1046,7 @@ class Pictures(Collection):
         return picture
 
 
-class Names(object):
+class Names:
     def __init__(self, parent, xl):
         self.parent = parent
         self.xl = xl
@@ -1079,7 +1078,7 @@ class Names(object):
                                                      }))
 
 
-class Name(object):
+class Name:
     def __init__(self, parent, xl):
         self.parent = parent
         self.xl = xl

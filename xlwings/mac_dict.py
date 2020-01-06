@@ -13,7 +13,7 @@ Usage:
 >>> app = app('Microsoft Excel', terms=myappglue)
 """
 version = 1.1
-#path = u'/Applications/Microsoft Office 2011/Microsoft Excel.app'
+#path = '/Applications/Microsoft Office 2011/Microsoft Excel.app'
 
 classes = \
 [('base_object', b'oItm'),

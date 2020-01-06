@@ -55,4 +55,5 @@ Please see :ref:`xlwings_addin` on how to install the xlwings add-in.
 Python version support
 ----------------------
 
-xlwings is tested on Python 2.7 and 3.3+
+xlwings CE requires at least Python 3.5.  
+Python 2.7 is only supported with `xlwings PRO <https://www.xlwings.org/pricing>`_. 

@@ -1,10 +1,9 @@
 """
 xlwings - Make Excel fly with Python!
 
-Homepage and documentation: http://xlwings.org
-See also: http://www.zoomeranalytics.com
+Homepage and documentation: https://www.xlwings.org
 
-Copyright (C) 2014-2016, Zoomer Analytics LLC.
+Copyright (C) 2014-present, Zoomer Analytics LLC.
 All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
@@ -15,7 +14,7 @@ import re
 import numbers
 import inspect
 
-from . import xlplatform, string_types, ShapeAlreadyExists, PY3
+from . import xlplatform, ShapeAlreadyExists
 from .utils import VersionNumber
 from . import utils
 
@@ -33,7 +32,7 @@ except ImportError:
     Image = None
 
 
-class Collection(object):
+class Collection:
 
     def __init__(self, impl):
         self.impl = impl
@@ -100,7 +99,7 @@ class Collection(object):
         )
 
 
-class Apps(object):
+class Apps:
     """
     A collection of all :meth:`app <App>` objects:
 
@@ -169,7 +168,7 @@ class Apps(object):
 apps = Apps(impl=xlplatform.Apps())
 
 
-class App(object):
+class App:
     """
     An app corresponds to an Excel instance. New Excel instances can be fired up like so:
 
@@ -436,7 +435,7 @@ class App(object):
         return Macro(self, name)
 
 
-class Book(object):
+class Book:
     """
     A book object is a member of the :meth:`books <xlwings.main.Books>` collection:
 
@@ -584,18 +583,11 @@ class Book(object):
             fullname = wb.lower()
             if sys.platform.startswith('win'):
                 app = App(impl=xlplatform.App(xl=int(hwnd)))
-                if not PY3 and isinstance(fullname, str):
-                    fullname = fullname.decode('mbcs')
                 return cls(impl=app.books.open(fullname).impl)
             else:
                 # On Mac, the same file open in two instances is not supported
-                if PY3 and apps.active.version < 15:
+                if apps.active.version < 15:
                     fullname = fullname.encode('utf-8', 'surrogateescape').decode('mac_latin2')
-                elif not PY3 and isinstance(fullname, str):
-                    if apps.active.version < 15:
-                        fullname = fullname.decode('mac_latin2')
-                    else:
-                        fullname = fullname.decode('utf-8')
                 return cls(impl=Book(fullname).impl)
         elif xlplatform.BOOK_CALLER:
             # Called via OPTIMIZED_CONNECTION = True
@@ -780,13 +772,10 @@ class Book(object):
         return Range(impl=self.app.selection.impl) if self.app.selection else None
 
     def __repr__(self):
-        if not PY3:
-            return u"<Book [{0}]>".format(self.name).encode('utf-8')
-        else:
-            return "<Book [{0}]>".format(self.name)
+        return "<Book [{0}]>".format(self.name)
 
 
-class Sheet(object):
+class Sheet:
     """
     A sheet object is a member of the :meth:`sheets <xlwings.main.Sheets>` collection:
 
@@ -934,10 +923,7 @@ class Sheet(object):
         return self.impl.delete()
 
     def __repr__(self):
-        if not PY3:
-            return u"<Sheet [{1}]{0}>".format(self.name, self.book.name).encode('utf-8')
-        else:
-            return "<Sheet [{1}]{0}>".format(self.name, self.book.name)
+        return "<Sheet [{1}]{0}>".format(self.name, self.book.name)
 
     @property
     def charts(self):
@@ -981,13 +967,13 @@ class Sheet(object):
         return Range(impl=self.impl.used_range)
 
     def __getitem__(self, item):
-        if isinstance(item, string_types):
+        if isinstance(item, str):
             return self.range(item)
         else:
             return self.cells[item]
 
 
-class Range(object):
+class Range:
     """
     Returns a Range object that represents a cell or a range of cells.
 
@@ -1031,7 +1017,7 @@ class Range(object):
                 if cell1.sheet != cell2.sheet:
                     raise ValueError("Ranges are not on the same sheet")
                 impl = cell1.sheet.range(cell1, cell2).impl
-            elif cell2 is None and isinstance(cell1, string_types):
+            elif cell2 is None and isinstance(cell1, str):
                 impl = apps.active.range(cell1).impl
             elif cell2 is None and isinstance(cell1, tuple):
                 impl = sheets.active.range(cell1, cell2).impl
@@ -1650,10 +1636,7 @@ class Range(object):
             raise TypeError("Cell indices must be integers or slices, not %s" % type(key).__name__)
 
     def __repr__(self):
-        if not PY3:
-            return u"<Range [{1}]{0}!{2}>".format(self.sheet.name, self.sheet.book.name, self.address).encode('utf-8')
-        else:
-            return "<Range [{1}]{0}!{2}>".format(self.sheet.name, self.sheet.book.name, self.address)
+        return "<Range [{1}]{0}!{2}>".format(self.sheet.name, self.sheet.book.name, self.address)
 
     def insert(self, shift=None, copy_origin='format_from_left_or_above'):
         """
@@ -1868,7 +1851,7 @@ from . import conversion
 from . import expansion
 
 
-class Ranges(object):
+class Ranges:
     pass
 
 
@@ -2002,7 +1985,7 @@ class RangeColumns(Ranges):
         )
 
 
-class Shape(object):
+class Shape:
     """
     The shape object is a member of the :meth:`shapes <xlwings.main.Shapes>` collection:
 
@@ -2153,7 +2136,7 @@ class Shapes(Collection):
     _wrap = Shape
 
 
-class Chart(object):
+class Chart:
     """
     The chart object is a member of the :meth:`charts <xlwings.main.Charts>` collection:
 
@@ -2343,7 +2326,7 @@ class Charts(Collection):
         return Chart(impl=impl)
 
 
-class Picture(object):
+class Picture:
     """
     The picture object is a member of the :meth:`pictures <xlwings.main.Pictures>` collection:
 
@@ -2611,7 +2594,7 @@ class Pictures(Collection):
         return picture
 
 
-class Names(object):
+class Names:
     """
     A collection of all :meth:`name <Name>` objects in the workbook:
 
@@ -2713,7 +2696,7 @@ class Names(object):
         return "[" + ", ".join(r) + "]"
 
 
-class Name(object):
+class Name:
     """
     The name object is a member of the :meth:`names <xlwings.main.Names>` collection:
 
@@ -2818,7 +2801,7 @@ def view(obj, sheet=None):
     sheet.autofit()
 
 
-class Macro(object):
+class Macro:
     def __init__(self, app, macro):
         self.app = app
         self.macro = macro
@@ -2882,20 +2865,12 @@ class Books(Collection):
         """
         fullname = utils.fspath(fullname)
         if not os.path.exists(fullname):
-            if PY3:
-                raise FileNotFoundError("No such file: '%s'" % fullname)
-            else:
-                raise IOError("No such file: '%s'" % fullname)
+            raise FileNotFoundError("No such file: '%s'" % fullname)
         fullname = os.path.realpath(fullname)
         _, name = os.path.split(fullname)
-        try:            
+        try:
             impl = self.impl(name)
-            # on windows, samefile only available on Py>=3.2
-            if hasattr(os.path, 'samefile'):
-                throw = not os.path.samefile(impl.fullname, fullname)
-            else:
-                throw = (os.path.normpath(os.path.realpath(impl.fullname.lower())) != os.path.normpath(fullname.lower()))
-            if throw:
+            if not os.path.samefile(impl.fullname, fullname):
                 raise ValueError(
                     "Cannot open two workbooks named '%s', even if they are saved in different locations." % name
                 )
