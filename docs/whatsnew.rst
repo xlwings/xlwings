@@ -1,6 +1,12 @@
 What's New
 ==========
 
+v0.17.0 (Jan 6, 2020)
+---------------------
+
+This release drops support for Python 2.7 in xlwings CE. If you still rely on Python 2.7, you will either
+need to stick to v0.16.6 or consider an `xlwings PRO <https://www.xlwings.org/pricing>`_ subscription.
+
 v0.16.6 (Jan 5, 2020)
 ---------------------
 
