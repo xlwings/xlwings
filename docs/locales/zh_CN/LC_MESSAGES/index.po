@@ -38,7 +38,7 @@ msgstr "**Scripting(脚本)**: 使用类似VBA的语法，在Python中自动处�
 
 #: ../../index.rst:8
 msgid "**Macros**: Replace VBA macros with clean and powerful Python code."
-msgstr "**Macros(宏)**: 用强大而干净的Pyhton代码替代VBA宏。"
+msgstr "**Macros(宏)**: 用强大而干净的Python代码替代VBA宏。"
 
 #: ../../index.rst:9
 msgid "**UDFs**: Write User Defined Functions (UDFs) in Python (Windows only)."
@@ -56,4 +56,3 @@ msgid ""
 msgstr ""
 "完全支持 **Numpy arrays(数组)** 和 **Pandas Series(序列)/DataFrames** 。 "
 "带有xlwings支持的工作簿可以在 **Windows** 和 **Mac** 系统中很容易地分发和使用。"
-

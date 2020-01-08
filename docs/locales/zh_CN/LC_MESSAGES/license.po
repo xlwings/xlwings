@@ -19,7 +19,7 @@ msgstr ""
 
 #: ../../license.rst:2
 msgid "License"
-msgstr ""
+msgstr "软件许可协议"
 
 #: ../../license.rst:5
 msgid "xlwings"
@@ -27,11 +27,11 @@ msgstr ""
 
 #: ../../license.rst:7
 msgid "xlwings is distributed under a BSD 3-clause license."
-msgstr ""
+msgstr "xlwings是基于伯克利软件发行版三条款许可协议发行的。"
 
 #: ../../license.rst:9
 msgid "Copyright (C) 2014 - present, Zoomer Analytics GmbH. All rights reserved."
-msgstr ""
+msgstr "Copyright (C) 2014-至今，Zoomer Analytics GmbH 版权所有。"
 
 #: ../../license.rst:12 ../../license.rst:51 ../../license.rst:84
 #: ../../license.rst:117 ../../license.rst:180
@@ -40,6 +40,7 @@ msgid ""
 "modification, are permitted provided that the following conditions are "
 "met:"
 msgstr ""
+"在符合以下三种条件的情况下，授权使用和重新传播本软件的源代码和二进制码(无论它们是否经过改编)："
 
 #: ../../license.rst:15 ../../license.rst:55 ../../license.rst:88
 #: ../../license.rst:121 ../../license.rst:183
@@ -47,6 +48,7 @@ msgid ""
 "Redistributions of source code must retain the above copyright notice, "
 "this list of conditions and the following disclaimer."
 msgstr ""
+"对于本软件源代码的再传播，必须保留上述的版权声明、这份三种条件的清单，以及下述的免责声明。"
 
 #: ../../license.rst:18 ../../license.rst:58 ../../license.rst:91
 #: ../../license.rst:124 ../../license.rst:186
@@ -55,6 +57,7 @@ msgid ""
 " this list of conditions and the following disclaimer in the "
 "documentation and/or other materials provided with the distribution."
 msgstr ""
+"在以二进位代码形式再传播本软件时，必须复制上述版权声明、这份三种条件的清单以及下述免责声明。可以使用文件以及／或者其他媒介方式复制。"
 
 #: ../../license.rst:22
 msgid ""
@@ -62,6 +65,7 @@ msgid ""
 "contributors may be used to endorse or promote products derived from this"
 " software without specific prior written permission."
 msgstr ""
+"事先未取得书面许可时，不得以版权方或本软件贡献者的名义对本软件的衍生产品表示支持认可或进行推广促销。"
 
 #: ../../license.rst:26
 msgid ""
@@ -77,16 +81,23 @@ msgid ""
 "NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS "
 "SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 msgstr ""
+"免责声明：本软件是由版权方及本软件之贡献者以现状(\"as is\")提供， "
+"对于包括但不限于可销售性以及对特定目的的适用性均不承担任何明示或暗示的担保责任。"
+"本软件的版权方及本软件之贡献者对于任何因使用本软件所产生的损害不负任何责任；"
+"不论这些损害是直接的、间接的、偶发的、特殊的、惩罚性的或任何后继的损害"
+"(包括但不限于替代商品或劳务之购用、使用损失、资料损失、利益损失、业务中断等等)；"
+"也无论任何条件、无论成因或任何责任理论、无论此责任为因合约关系、无过失责任主义或因非违约之侵权（包括过失或其他原因等）而起；"
+"也不管事先是否已经告知有造成损害的可能性。"
 
 #: ../../license.rst:38
 msgid "Dependencies"
-msgstr ""
+msgstr "必备软件"
 
 #: ../../license.rst:40
 msgid ""
 "xlwings is built on top of a few open-source dependencies. Their licenses"
 " are listed here:"
-msgstr ""
+msgstr "xlwings是在一些开源软件基础之上开发的，这些软件的许可协议罗列如下："
 
 #: ../../license.rst:43
 msgid "pywin32 (Windows only)"
@@ -94,7 +105,7 @@ msgstr ""
 
 #: ../../license.rst:45
 msgid "**com subpackage**"
-msgstr ""
+msgstr "***COM组件子软件包*"
 
 #: ../../license.rst:47
 msgid ""
@@ -195,13 +206,13 @@ msgstr ""
 
 #: ../../license.rst:175
 msgid "BSD 3-Clause License"
-msgstr ""
+msgstr "伯克利软件发行版三条款许可协议"
 
 #: ../../license.rst:177
 msgid ""
 "Copyright (c) 2009, Jay Loden, Dave Daeschler, Giampaolo Rodola' All "
 "rights reserved."
-msgstr ""
+msgstr "Copyright (C) 2009, Jay Loden, Dave Daeschler, Giampaolo Rodola 版权所有"
 
 #: ../../license.rst:190
 msgid ""
