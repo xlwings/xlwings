@@ -51,8 +51,8 @@ msgid ""
 "reset. However, the error will still be logged in the log file "
 "(``/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings.log``)."
 msgstr ""
-"在Mac系统中，如果在xlwings被导入之前就发生模块/程序包的 ``import``  错误，消息框不会弹出、状态栏也不会重置。 "
-"但是，错误信息仍旧会写入日志文件。日志文件的存储位置，参考 :ref:`log`。"
+"在Mac系统中，如果在 ``xlwings`` 被导入之前就有模块或程序包导入失败，不会弹出提示框、状态栏也不会重置。 "
+"但是，错误信息仍旧会写入日志文件(``/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings.log``)。"
 
 #: ../../debugging.rst:22
 msgid "RunPython"

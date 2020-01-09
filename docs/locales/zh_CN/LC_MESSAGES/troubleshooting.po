@@ -37,7 +37,7 @@ msgid ""
 ":ref:`installation`."
 msgstr ""
 "``xlwings32-<version>.dll`` 和 ``xlwings64-<version>.dll`` 都和 ``python.exe`` 在同一个目录。"
-"如果不是这样的话，那就是在安装的时候出了问题。用 ``pip`` 或 ``conda`` 重新安装, 参见 :ref:`installation`."
+"如果不是这样的话，那就是在安装的时候出了问题。请用 ``pip`` 或 ``conda`` 重新安装, 参见 :ref:`installation`."
 
 #: ../../troubleshooting.rst:13
 msgid ""
@@ -54,6 +54,6 @@ msgstr ""
 "在加载项或配置表中检查 ``Interpreter`` 条目。如果是空的，"
 "看看在命令行提示符下输入 ``python`` 时是否能够启动一个交互式的Python会话。 "
 "如果得到了错误信息 ``'python' is not recognized as an internal or external command, operable program or batch file.``, "
-"这时有两个选择：把 ``python.exe`` 所在的目录加到windows路径中(参见 https://www.computerhope.com/issues/ch000549.htm) "
-"或者在加载项/配置表的配置中把解释器全路径添加进去。例如 ``C:\\Users\\MyUser\\anaconda\\pythonw.exe``"
+"这时有两个选择：把 ``python.exe`` 所在的目录加到windows路径中(参见 https://www.computerhope.com/issues/ch000549.htm)， "
+"或者在加载项/配置表的配置中把解释器的全路径(例如 ``C:\\Users\\MyUser\\anaconda\\pythonw.exe``)添加进去。"
 

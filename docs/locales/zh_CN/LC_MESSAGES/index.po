@@ -56,4 +56,3 @@ msgid ""
 msgstr ""
 "完全支持 **Numpy arrays(数组)** 和 **Pandas Series(序列)/DataFrames** 。 "
 "带有xlwings支持的工作簿可以在 **Windows** 和 **Mac** 系统中很容易地分发和使用。"
-
