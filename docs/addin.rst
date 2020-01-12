@@ -9,8 +9,7 @@ Add-in
 The xlwings add-in is the preferred way to be able to use the ``Run main`` button, ``RunPython`` or ``UDFs``.
 Note that you don't need an add-in if you just want to manipulate Excel from Python via xlwings.
 
-.. note:: The ribbon of the add-in is compatible with Excel >= 2007 on Windows and >= 2016 on Mac. You could, however,
-  use the add-in with earlier versions but you would need to change the settings directly in the config file, see below.
+.. note:: The ribbon of the add-in is compatible with Excel >= 2007 on Windows and >= 2016 on Mac.
   On Mac, all UDF related functionality is not available.
 
 .. note:: The add-in is password protected with the password ``xlwings``. For debugging or to add new extensions, you need
@@ -45,6 +44,12 @@ you create a workbook via ``xlwings quickstart``, the reference is already set.
 .. figure:: images/vba_reference.png
     :scale: 40%
 
+Anaconda/Miniconda
+------------------
+
+If you use Anaconda or Miniconda, you will need to set your ``Conda Base`` and ``Conda Env`` settings, as you will
+otherwise get errors when using ``NumPy`` etc. See next section.
+
 Global Settings
 ---------------
 
@@ -55,16 +60,17 @@ While the defaults will often work out-of-the box, you can change the global set
   ``"C:\Python35\pythonw.exe"`` or ``"/usr/local/bin/python3.5"``. An empty field defaults to ``pythonw`` that
   expects the interpreter to be set in the ``PATH`` on Windows or ``.bash_profile`` on Mac.
 * ``PYTHONPATH``: If the source file of your code is not found, add the path here.
-* ``Conda Base``: If you are on Windows and use a conda env, then type here the base name of your Anaconda or Miniconda
+* ``Conda Base``: If you are on Windows and use Anaconda or Miniconda, then type here the path to your
   installation, e.g. ``C:\Users\Username\Miniconda3`` or ``%USERPROFILE%\Anaconda``. NOTE that you need at least conda 4.6!
-* ``Conda Env``: If you are on Windows and use a conda env, then type here the name of your conda env, e.g. ``myenv``. Note
-  that this requires you to either leave the ``Interpreter`` blank or set it to ``python`` or ``pythonw``.
+  You also need to set ``Conda Env``, see next point.
+* ``Conda Env``: If you are on Windows and use Anaconda or Miniconda, type here the name of your conda env, e.g. ``base``
+  for the base installation or ``myenv`` for a conda env with the name ``myenv``. Note
+  that this requires you to either leave the ``Interpreter`` blank or set it to one of ``python`` or ``pythonw``.
 * ``UDF Modules``: Names of Python modules (without .py extension) from which the UDFs are being imported.
   Separate multiple modules by ";".
   Example: ``UDF_MODULES = "common_udfs;myproject"``
   The default imports a file in the same directory as the Excel spreadsheet with the same name but ending in ``.py``.
 * ``Debug UDFs``: Check this box if you want to run the xlwings COM server manually for debugging, see :ref:`debugging`.
-* ``Log File``: Leave empty for default location (see below) or provide the full path, e.g. .
 * ``RunPython: Use UDF Server``:  Uses the same COM Server for RunPython as for UDFs. This will be faster, as the
   interpreter doesn't shut down after each call.
 * ``Restart UDF Server``: This shuts down the UDF Server/Python interpreter. It'll be restarted upon the next function call.
@@ -81,8 +87,7 @@ Global Config: Ribbon/Config File
 The settings in the xlwings Ribbon are stored in a config file that can also be manipulated externally. The location is
 
 * Windows: ``.xlwings\xlwings.conf`` in your user folder  
-* Mac Excel 2016: ``~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf``
-# Mac Excel 2011: ``~/.xlwings/xlwings.conf``
+* macOS: ``~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf``
 
 The format is as follows (keys are uppercase):
 
@@ -90,9 +95,6 @@ The format is as follows (keys are uppercase):
 
     "INTERPRETER","pythonw"
     "PYTHONPATH",""
-
-.. note:: Mac Excel 2011 users have to create and edit the config file manually under ``~/.xlwings/xlwings.conf`` as the
-    ribbon is not supported.
 
 Workbook Directory Config: Config file
 --------------------------------------
@@ -123,15 +125,3 @@ need to use the ``standalone`` option when creating a new project: ``xlwings qui
 
 This will add the content of the add-in as a single VBA module so you don't need to set a reference to the add-in anymore.
 It will still read in the settings from your ``xlwings.conf`` if you don't override them by using a sheet with the name ``xlwings.conf``.
-
-
-.. _log:
-
-Log File default locations
---------------------------
-
-These log files are used for the error pop-up windows:
-
-* Windows: ``%APPDATA%\xlwings.log``
-* Mac with Excel 2011: ``/tmp/xlwings.log``
-* Mac with Excel 2016: ``~/Library/Containers/com.microsoft.Excel/Data/xlwings.log``

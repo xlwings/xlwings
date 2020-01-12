@@ -1,0 +1,135 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-12-28 15:43+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../connect_to_workbook.rst:4
+msgid "Connect to a Book"
+msgstr "ブック接続"
+
+#: ../../connect_to_workbook.rst:6
+msgid ""
+"When reading/writing data to the active sheet, you don't need a book "
+"object:"
+msgstr ""
+"アクティブシートであれば、bookオブジェクトを使わずにデータの読み込み/書き込みが"
+"できます:"
+
+#: ../../connect_to_workbook.rst:12
+msgid "Python to Excel"
+msgstr "PythonからExcel"
+
+#: ../../connect_to_workbook.rst:14
+msgid ""
+"The easiest way to connect to a book is offered by ``xw.Book``: it looks "
+"for the book in all app instances and returns an error, should the same "
+"book be open in multiple instances. To connect to a book in the active "
+"app instance, use ``xw.books`` and to refer to a specific app, use:"
+msgstr ""
+"``xw.Book`` を使えば、最も簡単にブックに接続できます: ``xw.Book`` は"
+"接続先のブックを開いているかどうかを全てのExcelインスタンスに対して"
+"確認し、もし複数のExcelインスタンスが接続先のブックを同時に開いていればエラーを返します。"
+"アクティブなExcelインスタンスのブックに接続するには、 ``xw.books`` を"
+"使います（コメント部分は特定のインスタンスを参照する方法）:"
+
+#: ../../connect_to_workbook.rst:22
+msgid "xw.Book"
+msgstr ""
+
+#: ../../connect_to_workbook.rst:22
+msgid "xw.books"
+msgstr ""
+
+#: ../../connect_to_workbook.rst:24
+msgid "New book"
+msgstr "新規ブック"
+
+#: ../../connect_to_workbook.rst:24
+msgid "``xw.Book()``"
+msgstr ""
+
+#: ../../connect_to_workbook.rst:24
+msgid "``xw.books.add()``"
+msgstr ""
+
+#: ../../connect_to_workbook.rst:26
+msgid "Unsaved book"
+msgstr "保存されていないブック"
+
+#: ../../connect_to_workbook.rst:26
+msgid "``xw.Book('Book1')``"
+msgstr ""
+
+#: ../../connect_to_workbook.rst:26
+msgid "``xw.books['Book1']``"
+msgstr ""
+
+#: ../../connect_to_workbook.rst:28
+msgid "Book by (full)name"
+msgstr "（完全な）名前でブックを指定"
+
+#: ../../connect_to_workbook.rst:28
+msgid "``xw.Book(r'C:/path/to/file.xlsx')``"
+msgstr ""
+
+#: ../../connect_to_workbook.rst:28
+msgid "``xw.books.open(r'C:/path/to/file.xlsx')``"
+msgstr ""
+
+#: ../../connect_to_workbook.rst:32
+msgid ""
+"When specifying file paths on Windows, you should either use raw strings "
+"by putting an ``r`` in front of the string or use double back-slashes "
+"like so: ``C:\\\\path\\\\to\\\\file.xlsx``."
+msgstr ""
+"Windowsでファイル パスを指定するには、文字列の先頭に ``r`` を付加した"
+"raw文字列か、二重バックスラッシュを使用"
+"（ ``C:\\\\path\\\\to\\\\file.xlsx``）するようにしてください。"
+
+#: ../../connect_to_workbook.rst:36
+msgid "Excel to Python (RunPython)"
+msgstr "ExcelからPython (RunPython)"
+
+#: ../../connect_to_workbook.rst:38
+msgid ""
+"To reference the calling book when using ``RunPython`` in VBA, use "
+"``xw.Book.caller()``, see :ref:`run_python`. Check out the section about "
+":ref:`debugging` to see how you can call a script from both sides, Python"
+" and Excel, without the need to constantly change between "
+"``xw.Book.caller()`` and one of the methods explained above."
+msgstr ""
+"VBA上で ``RunPython`` を使用する場合、呼び出し元のブックを参照するには"
+" ``xw.Book.caller()`` を使用します。詳細は :ref:`run_python` を"
+"ご覧ください。"
+" :ref:`debugging` のセクションを読めば、Pythonのスクリプトファイルと"
+"Excelファイルを都度変更せずに、PythonとExcelでスクリプトを相互に"
+"呼び出す方法を理解できます。"
+
+#: ../../connect_to_workbook.rst:44
+msgid "User Defined Functions (UDFs)"
+msgstr "ユーザー定義関数（User Defined Functions, UDFs）"
+
+#: ../../connect_to_workbook.rst:46
+msgid ""
+"Unlike ``RunPython``, UDFs don't need a call to ``xw.Book.caller()``, see"
+" :ref:`udfs`. However, it's available (restricted to read-only though), "
+"which sometimes proves to be useful."
+msgstr ""
+"``RunPython`` とは異なり、UDFの使用時に ``xw.Book.caller()`` は必要ではありません。"
+"詳細は :ref:`udfs` をご覧ください。"
+"ですが、（読み込み専用なものの） ``xw.Book.caller()`` は利用可能で、"
+"有用となることもあります。"

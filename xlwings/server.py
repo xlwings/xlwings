@@ -1,4 +1,3 @@
-from __future__ import print_function
 # First of all see if we can load PyWin32
 try:
     import _win32sysloader
@@ -8,6 +7,7 @@ import logging
 import sys
 import os
 import collections
+import importlib
 # Hack to find pythoncom.dll - needed for some distribution/setups
 # E.g. if python is started with the full path outside of the python path, then it almost certainly fails
 cwd = os.getcwd()
@@ -26,24 +26,21 @@ import win32com.server.dispatcher
 import win32com.server.policy
 
 from .udfs import call_udf
-from . import PY3
 
 
 # If no handler is configured, print is used to make the statements show up in the console that opens when using
 # 'python' instead of 'pythonw' as the interpreter
-if not PY3:
-    from . import Logger
 logger = logging.getLogger(__name__)
 
 
-class XLPythonOption(object):
+class XLPythonOption:
     """ The XLPython class itself """
     def __init__(self, option, value):
         self.option = option
         self.value = value
 
 
-class XLPythonObject(object):
+class XLPythonObject:
     _public_methods_ = ['Item', 'Count']
     _public_attrs_ = ['_NewEnum']
 
@@ -105,7 +102,7 @@ def ToVariant(obj):
     return win32com.server.util.wrap(XLPythonObject(obj))
 
 
-class XLPython(object):
+class XLPython:
     _public_methods_ = ['Module', 'Tuple', 'TupleFromArray', 'Dict', 'DictFromArray', 'List', 'ListFromArray', 'Obj',
                         'Str', 'Var', 'Call', 'GetItem', 'SetItem', 'DelItem', 'Contains', 'GetAttr', 'SetAttr',
                         'DelAttr', 'HasAttr', 'Eval', 'Exec', 'ShowConsole', 'Builtin', 'Len', 'Bool',
@@ -124,7 +121,7 @@ class XLPython(object):
         exec("import " + module + " as the_module", vars)
         m = vars["the_module"]
         if reload:
-            m = __builtins__.reload(m)
+            m = importlib.reload(m)
         return ToVariant(m)
 
     def TupleFromArray(self, elements):

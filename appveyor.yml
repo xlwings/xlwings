@@ -1,9 +1,9 @@
 image: Visual Studio 2015
 
 environment:
-  TWINE_USERNAME: zoomeranalytics
+  TWINE_USERNAME: __token__
   TWINE_PASSWORD:
-    secure: oSCJsPDE2f8NMJox4JeOs4MzM9KfH4vYbmwUS5FRCzY=
+    secure: 6BQclMp74EEDNfmCmPjU+RGb+BWaEPxd7prCKKsjkeEf3sa6DvcdbUkjGi8eqPUUd5O0VUbmxv2BhT7ANRgmHBVw4z0cdIB7Jx3twJEBCgmY4/lt8vvcK1EGuxA2clrJ9UAuMV64XNMa+xT1hZ03BaoKqhF1/Nrl2MWUmQQ5E8WoZXPd7nT1iqDjous1h4h/eToqYODsQvXybvaWpN7BbFFxsaRnhelOA3kWixXGupQ=
   ASPOSE_LICENSE:
     secure: je1oFjicBTA/L3vv55btbjk101JF7M0IQeGMbMcO3N8=
   NETLIFY_BUILD_HOOK:

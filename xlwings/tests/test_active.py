@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 import os
 import unittest
 
 import xlwings as xw
 from xlwings.tests.common import TestBase, this_dir
-from xlwings import PY3
 
 try:
     import matplotlib.pyplot as plt
@@ -47,14 +44,10 @@ class TestActive(TestBase):
         wb1 = self.app1.books.open(os.path.join(this_dir, 'test book.xlsx'))
         wb2 = xw.Book('test book.xlsx')
         self.assertEqual(wb1, wb2)
-    
-    def test_book_open_bad_name(self):        
-        if PY3:
-            with self.assertRaises(FileNotFoundError):
-                xw.Book('bad name.xlsx')
-        else:
-            with self.assertRaises(IOError):
-                xw.Book('bad name.xlsx')
+
+    def test_book_open_bad_name(self):
+        with self.assertRaises(FileNotFoundError):
+            xw.Book('bad name.xlsx')
 
     def test_book(self):
         wb = xw.Book()

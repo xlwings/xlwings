@@ -25,7 +25,7 @@ import win32process
 from comtypes import IUnknown
 from comtypes.automation import IDispatch
 
-from .constants import ColorIndex
+from .constants import ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin, DeleteShiftDirection
 from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime, col_name
 
 # Optional imports
@@ -38,7 +38,6 @@ try:
 except ImportError:
     np = None
 
-from . import PY3
 
 time_types = (dt.date, dt.datetime, pywintypes.TimeType)
 if np:
@@ -51,7 +50,7 @@ BOOK_CALLER = None
 missing = object()
 
 
-class COMRetryMethodWrapper(object):
+class COMRetryMethodWrapper:
 
     def __init__(self, method):
         self.__method = method
@@ -87,7 +86,7 @@ class ExcelBusyError(Exception):
         super(ExcelBusyError, self).__init__("Excel application is not responding")
 
 
-class COMRetryObjectWrapper(object):
+class COMRetryObjectWrapper:
     def __init__(self, inner):
         object.__setattr__(self, '_inner', inner)
 
@@ -264,7 +263,7 @@ def is_range_instance(xl_range):
     # return pyid.GetTypeInfo().GetDocumentation(-1)[0] == 'Range'
 
 
-class Apps(object):
+class Apps:
     def keys(self):
         k = []
         for hwnd in get_excel_hwnds():
@@ -286,7 +285,7 @@ class Apps(object):
         raise KeyError('Could not find an Excel instance with this PID.')
 
 
-class App(object):
+class App:
 
     def __init__(self, spec=None, add_book=True, xl=None):
         if spec is not None:
@@ -414,7 +413,7 @@ class App(object):
         return self.xl.Run(macro, *args)
 
 
-class Books(object):
+class Books:
 
     def __init__(self, xl):
         self.xl = xl
@@ -439,15 +438,24 @@ class Books(object):
     def add(self):
         return Book(xl=self.xl.Add())
 
-    def open(self, fullname):
-        return Book(xl=self.xl.Open(fullname))
+    def open(self, fullname, update_links=None, read_only=None, format=None, password=None, write_res_password=None,
+             ignore_read_only_recommended=None, origin=None, delimiter=None, editable=None, notify=None, converter=None,
+             add_to_mru=None, local=None, corrupt_load=None):
+
+        # update_links: According to VBA docs, only constants 0 and 3 are supported in this context
+        if update_links:
+            update_links = UpdateLinks.xlUpdateLinksAlways
+        # Workbooks.Open params are position only on pywin32
+        return Book(xl=self.xl.Open(fullname, update_links, read_only, format, password, write_res_password,
+                                    ignore_read_only_recommended, origin, delimiter, editable, notify, converter,
+                                    add_to_mru, local, corrupt_load))
 
     def __iter__(self):
         for xl in self.xl:
             yield Book(xl=xl)
 
 
-class Book(object):
+class Book:
 
     def __init__(self, xl):
         self.xl = xl
@@ -506,7 +514,7 @@ class Book(object):
         self.xl.Activate()
 
 
-class Sheets(object):
+class Sheets:
     def __init__(self, xl):
         self.xl = xl
 
@@ -547,7 +555,7 @@ class Sheets(object):
             return Sheet(xl=self.xl.Add())
 
 
-class Sheet(object):
+class Sheet:
 
     def __init__(self, xl):
         self.xl = xl
@@ -656,7 +664,7 @@ class Sheet(object):
         return Range(xl=self.xl.UsedRange)
 
 
-class Range(object):
+class Range:
 
     def __init__(self, xl):
         if isinstance(xl, tuple):
@@ -854,6 +862,48 @@ class Range(object):
                 self.xl.Columns.AutoFit()
                 self.xl.Rows.AutoFit()
 
+    def insert(self, shift=None, copy_origin=None):
+        shifts = {'down': InsertShiftDirection.xlShiftDown,
+                  'right': InsertShiftDirection.xlShiftToRight,
+                  None: None}
+        copy_origins = {'format_from_left_or_above': InsertFormatOrigin.xlFormatFromLeftOrAbove,
+                        'format_from_right_or_below': InsertFormatOrigin.xlFormatFromRightOrBelow}
+        self.xl.Insert(Shift=shifts[shift], CopyOrigin=copy_origins[copy_origin])
+
+    def delete(self, shift=None):
+        shifts = {'up': DeleteShiftDirection.xlShiftUp, 'left': DeleteShiftDirection.xlShiftToLeft, None: None}
+        self.xl.Delete(Shift=shifts[shift])
+
+    def copy(self, destination=None):
+        self.xl.Copy(Destination=destination.api if destination else None)
+
+    def paste(self, paste=None, operation=None, skip_blanks=False, transpose=False):
+        pastes = {
+            "all": -4104,
+            None: -4104,
+            "all_except_borders": 7,
+            "all_merging_conditional_formats": 14,
+            "all_using_source_theme": 13,
+            "column_widths": 8,
+            "comments": -4144,
+            "formats": -4122,
+            "formulas": -4123,
+            "formulas_and_number_formats": 11,
+            "validation": 6,
+            "values": -4163,
+            "values_and_number_formats": 12,
+        }
+
+        operations = {
+            "add": 2,
+            "divide": 5,
+            "multiply": 4,
+            None: -4142,
+            "subtract": 3,
+        }
+
+        self.xl.PasteSpecial(Paste=pastes[paste], Operation=operations[operation], SkipBlanks=skip_blanks, Transpose=transpose)
+
     @property
     def hyperlink(self):
         if self.xl is not None:
@@ -977,17 +1027,11 @@ def _com_time_to_datetime(com_time, datetime_builder):
 
     """
 
-    if PY3:
-        # The py3 version of pywintypes has its time type inherit from datetime.
-        # We copy to a new datetime so that the returned type is the same between 2/3
-        # Changed: We make the datetime object timezone naive as Excel doesn't provide info
-        return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
-                                hour=com_time.hour, minute=com_time.minute, second=com_time.second,
-                                microsecond=com_time.microsecond, tzinfo=None)
-    else:
-        assert com_time.msec == 0, "fractional seconds not yet handled"
-        return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
-                                hour=com_time.hour, minute=com_time.minute, second=com_time.second)
+    # Pywintypes has its time type inherit from datetime.
+    # Changed: We make the datetime object timezone naive as Excel doesn't provide info
+    return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
+                            hour=com_time.hour, minute=com_time.minute, second=com_time.second,
+                            microsecond=com_time.microsecond, tzinfo=None)
 
 
 def _datetime_to_com_time(dt_time):
@@ -1017,24 +1061,20 @@ def _datetime_to_com_time(dt_time):
         dt_time = dt.datetime(dt_time.year, dt_time.month, dt_time.day,
                               tzinfo=win32timezone.TimeZoneInfo.utc())
 
-    if PY3:
-        # The py3 version of pywintypes has its time type inherit from datetime.
-        # For some reason, though it accepts plain datetimes, they must have a timezone set.
-        # See http://docs.activestate.com/activepython/2.7/pywin32/html/win32/help/py3k.html
-        # We replace no timezone -> UTC to allow round-trips in the naive case
-        if pd and isinstance(dt_time, pd.Timestamp):
-            # Otherwise pandas prints ignored exceptions on Python 3
-            dt_time = dt_time.to_pydatetime()
-        # We don't use pytz.utc to get rid of additional dependency
-        # Don't do any timezone transformation: simply cutoff the tz info
-        # If we don't reset it first, it gets transformed into UTC before transferred to Excel
-        dt_time = dt_time.replace(tzinfo=None)
-        dt_time = dt_time.replace(tzinfo=win32timezone.TimeZoneInfo.utc())
+    # pywintypes has its time type inherit from datetime.
+    # For some reason, though it accepts plain datetimes, they must have a timezone set.
+    # See http://docs.activestate.com/activepython/2.7/pywin32/html/win32/help/py3k.html
+    # We replace no timezone -> UTC to allow round-trips in the naive case
+    if pd and isinstance(dt_time, pd.Timestamp):
+        # Otherwise pandas prints ignored exceptions on Python 3
+        dt_time = dt_time.to_pydatetime()
+    # We don't use pytz.utc to get rid of additional dependency
+    # Don't do any timezone transformation: simply cutoff the tz info
+    # If we don't reset it first, it gets transformed into UTC before transferred to Excel
+    dt_time = dt_time.replace(tzinfo=None)
+    dt_time = dt_time.replace(tzinfo=win32timezone.TimeZoneInfo.utc())
 
-        return dt_time
-    else:
-        assert dt_time.microsecond == 0, "fractional seconds not yet handled"
-        return pywintypes.Time(dt_time.timetuple())
+    return dt_time
 
 
 def prepare_xl_data_element(x):
@@ -1055,7 +1095,7 @@ def open_template(fullpath):
     os.startfile(fullpath)
 
 
-class Shape(object):
+class Shape:
 
     def __init__(self, xl):
         self.xl = xl
@@ -1123,7 +1163,7 @@ class Shape(object):
         self.xl.Activate()
 
 
-class Collection(object):
+class Collection:
 
     def __init__(self, xl):
         self.xl = xl
@@ -1158,7 +1198,7 @@ class Shapes(Collection):
     _wrap = Shape
 
 
-class Chart(object):
+class Chart:
 
     def __init__(self, xl_obj=None, xl=None):
         self.xl = xl_obj.Chart if xl is None else xl
@@ -1264,7 +1304,7 @@ class Charts(Collection):
         ))
 
 
-class Picture(object):
+class Picture:
 
     def __init__(self, xl):
         self.xl = xl
@@ -1341,7 +1381,7 @@ class Pictures(Collection):
         ).DrawingObject)
 
 
-class Names(object):
+class Names:
     def __init__(self, xl):
         self.xl = xl
 
@@ -1369,7 +1409,7 @@ class Names(object):
         return Name(xl=self.xl.Add(name, refers_to))
 
 
-class Name(object):
+class Name:
     def __init__(self, xl):
         self.xl = xl
 

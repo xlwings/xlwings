@@ -2,7 +2,7 @@ import os
 import sys
 import shutil
 import argparse
-
+import xlwings as xw
 
 # Directories/paths
 this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -13,8 +13,7 @@ if sys.platform.startswith('win'):
 
 def addin_install(args):
     if not sys.platform.startswith('win'):
-        import xlwings
-        path = xlwings.__path__[0] + '/addin/xlwings.xlam'
+        path = xw.__path__[0] + '/addin/xlwings.xlam'
         print("Cannot install the addin automatically on Mac. Install it via Tools > Excel Add-ins...")
         print("You find the addin here: {0}".format(path))
     else:
@@ -118,7 +117,39 @@ def restapi_run(args):
     subprocess.check_call(["flask", "run", "--host", host, "--port", port])
 
 
+def license_update(args):
+    """license handler for xlwings PRO and xlwings REPORTS"""
+    key = args.key
+    if not key:
+        sys.exit('Please provide a license key via the -k/--key option. For example: xlwings license update -k MY_KEY')
+    if sys.platform.startswith('darwin'):
+        config_file = os.path.join(os.path.expanduser("~"), 'Library', 'Containers', 'com.microsoft.Excel', 'Data', 'xlwings.conf')
+    else:
+        config_file = os.path.join(os.path.expanduser("~"), '.xlwings', 'xlwings.conf')
+    license_kv = '"LICENSE_KEY","{0}"\n'.format(key)
+    # Update xlwings.conf
+    new_config = []
+    if os.path.exists(config_file):
+        with open(config_file, 'r') as f:
+            config = f.readlines()
+        for line in config:
+            # Remove existing license key and empty lines
+            if line.split(',')[0] == '"LICENSE_KEY"' or line in ('\r\n', '\n'):
+                pass
+            else:
+                new_config.append(line)
+        new_config.append(license_kv)
+    else:
+        new_config = [license_kv]
+    if not os.path.exists(os.path.dirname(config_file)):
+        os.makedirs(os.path.dirname(config_file))
+    with open(config_file, 'w') as f:
+        f.writelines(new_config)
+    print('Successfully updated license key.')
+
+
 def main():
+    print('xlwings ' + xw.__version__)
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='command')
     subparsers.required = True
@@ -172,6 +203,16 @@ def main():
     restapi_run_parser.add_argument("-p", "--port", default='5000', help='The port to bind to.')
     restapi_run_parser.set_defaults(func=restapi_run)
 
+    # License
+    license_parser = subparsers.add_parser('license', help='License key functionality')
+    license_subparsers = license_parser.add_subparsers(dest='subcommand')
+    license_subparsers.required = True
+
+    license_update_parser = license_subparsers.add_parser('update')
+    license_update_parser.add_argument("-k", "--key", help='Provide a new key, otherwise it will take it from the xlwings.conf file.')
+    license_update_parser.set_defaults(func=license_update)
+
+    # boilerplate
     args = parser.parse_args()
     args.func(args)
 

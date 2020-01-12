@@ -1,10 +1,9 @@
-from __future__ import division
 import datetime as dt
 
 from functools import total_ordering
 
-from . import string_types
-import os, tempfile
+import os
+import tempfile
 
 missing = object()
 
@@ -65,13 +64,13 @@ def col_name(i):
         raise IndexError(i)
 
 
-class VBAWriter(object):
+class VBAWriter:
 
     MAX_VBA_LINE_LENGTH = 1024
     VBA_LINE_SPLIT = ' _\n'
     MAX_VBA_SPLITTED_LINE_LENGTH = MAX_VBA_LINE_LENGTH - len(VBA_LINE_SPLIT)
 
-    class Block(object):
+    class Block:
         def __init__(self, writer, start):
             self.writer = writer
             self.start = start
@@ -82,7 +81,6 @@ class VBAWriter(object):
 
         def __exit__(self, exc_type, exc_val, exc_tb):
             self.writer._indent -= 1
-            #self.writer.writeln(self.end)
 
     def __init__(self, f):
         self.f = f
@@ -142,7 +140,7 @@ def try_parse_int(x):
 
 
 @total_ordering
-class VersionNumber(object):
+class VersionNumber:
 
     def __init__(self, s):
         self.value = tuple(map(try_parse_int, s.split(".")))
@@ -164,7 +162,7 @@ class VersionNumber(object):
     def __eq__(self, other):
         if isinstance(other, VersionNumber):
             return self.value == other.value
-        elif isinstance(other, string_types):
+        elif isinstance(other, str):
             return self.value == VersionNumber(other).value
         elif isinstance(other, tuple):
             return self.value[:len(other)] == other
@@ -176,7 +174,7 @@ class VersionNumber(object):
     def __lt__(self, other):
         if isinstance(other, VersionNumber):
             return self.value < other.value
-        elif isinstance(other, string_types):
+        elif isinstance(other, str):
             return self.value < VersionNumber(other).value
         elif isinstance(other, tuple):
             return self.value[:len(other)] < other
@@ -189,7 +187,7 @@ class VersionNumber(object):
 def process_image(image, width, height):
 
     image = fspath(image)
-    if isinstance(image, string_types):
+    if isinstance(image, str):
         return image, width, height
     elif mpl and isinstance(image, mpl.figure.Figure):
         temp_dir = os.path.realpath(tempfile.gettempdir())

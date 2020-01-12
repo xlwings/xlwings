@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-09-04 11:55+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Last-Translator: Eugene Chang yuyueugene84@gmail.com\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
@@ -30,25 +30,21 @@ msgid "or conda::"
 msgstr "或是 conda::"
 
 #: ../../installation.rst:14
-msgid "Note that the official ``conda`` package might be few releases behind. You can, however, "
-msgstr "注意 conda 官方的 xlwings 版本可能不是最新版本。 但是，你可以"
-
-#: ../../installation.rst:15
-msgid "use the ``conda-forge`` channel (see: https://anaconda.org/conda-forge/xlwings) which should usually be up to date (but might still be a day or so behind the pip release)::"
-msgstr "使用 ``conda-forge`` 安裝 (請參考: https://anaconda.org/conda-forge/xlwings) 通常應該都是最新版本（但是仍然有可能比 pip 發佈的速度晚一兩天）::"
+msgid ""
+"Note that the official ``conda`` package might be few releases behind. "
+"You can, however, use the ``conda-forge`` channel (see: "
+"https://anaconda.org/conda-forge/xlwings) which should usually be up to "
+"date (but might still be a day or so behind the pip release)::"
+msgstr "注意 conda 官方的 xlwings 版本可能不是最新版本。 但是，你可以使用 ``conda-forge`` 安裝 (請參考: https://anaconda.org/conda-forge/xlwings) 通常應該都是最新版本（但是仍然有可能比 pip 發佈的速度晚一兩天））:"
 
 #: ../../installation.rst:20
-msgid "When you are using Mac Excel 2016 and are installing xlwings with ``conda`` (or use the version that comes with Anaconda), 
-msgstr "當你使用 Mac 版的 Excel 2016 並且使用 ``conda`` 安裝 xlwings 時（或者使用 Anaconda 提供的版本時），"
-
-#: ../../installation.rst:21
-msgid "you'll need to run ``$ xlwings runpython install`` once to enable the ``RunPython`` calls from VBA. "
-msgstr "你需要在終端機執行 ``$ xlwings runpython install`` 來開啓 VBA 的 ``RunPython`` 功能"
-
-
-#: ../../installation.rst:22
-msgid "Alternatively, you can simply install xlwings with``pip``."
-msgstr "或者，你可以直接利用``pip``安裝 xlwings。"
+msgid ""
+"When you are using Mac Excel 2016 and are installing xlwings with "
+"``conda`` (or use the version that comes with Anaconda), you'll need to "
+"run ``$ xlwings runpython install`` once to enable the ``RunPython`` "
+"calls from VBA. Alternatively, you can simply install xlwings with "
+"``pip``."
+msgstr "當你使用 Mac 版的 Excel 2016 並且使用 ``conda`` 安裝 xlwings 時（或者使用 Anaconda 提供的版本時），你需要在終端機執行 ``$ xlwings runpython install`` 來開啓 VBA 的 ``RunPython`` 功能。或者，你可以直接利用 ``pip`` 安裝 xlwings。"
 
 #: ../../installation.rst:25
 msgid "Dependencies"
@@ -67,18 +63,13 @@ msgid "**Mac**: ``psutil``, ``appscript``"
 msgstr ""
 
 #: ../../installation.rst:33
-msgid "On Mac, the dependencies are automatically being handled if xlwings is installed with ``conda`` or ``pip``." 
-msgstr "在 Mac 作業系統下，若是使用 ``conda`` 或 ``pip``， xlwings 的相依套件都會被自動安裝"
-
-
-#: ../../installation.rst:34
-msgid "However, with pip, the Xcode command line tools need to be available. Mac OS X 10.4 (*Tiger*) or later is required."
-msgstr "不過，使用 pip 安裝需要 Xcode command line tools. 以及確保你的 Mac OS X 是 10.4 版本或以上。"
-
-
-#: ../../installation.rst:35
-msgid "The recommended Python distribution for Mac is `Anaconda <https://store.continuum.io/cshop/anaconda/>`_."
-msgstr "建議給 Mac 使用的 Python 發行版本為 `Anaconda <https://store.continuum.io/cshop/anaconda/>`。"
+msgid ""
+"On Mac, the dependencies are automatically being handled if xlwings is "
+"installed with ``conda`` or ``pip``. However, with pip, the Xcode command"
+" line tools need to be available. Mac OS X 10.4 (*Tiger*) or later is "
+"required. The recommended Python distribution for Mac is `Anaconda "
+"<https://www.anaconda.com/distribution/>`_."
+msgstr "在 Mac 作業系統下，若是使用 ``conda`` 或 ``pip``， xlwings 的相依套件都會被自動安裝。不過，使用 pip 安裝需要 Xcode command line tools，以及確保你的 Mac OS X 是 10.4 版本或以上。建議給 Mac 使用的 Python 發行版本為 `Anaconda <https://www.anaconda.com/distribution/>`_。"
 
 #: ../../installation.rst:38
 msgid "Optional Dependencies"

@@ -1,6 +1,56 @@
 What's New
 ==========
 
+v0.17.0 (Jan 6, 2020)
+---------------------
+
+This release drops support for Python 2.7 in xlwings CE. If you still rely on Python 2.7, you will either
+need to stick to v0.16.6 or consider an `xlwings PRO <https://www.xlwings.org/pricing>`_ subscription.
+
+v0.16.6 (Jan 5, 2020)
+---------------------
+
+* [Enhancement] CLI changes with respect to ``xlwings license`` (:issue:`1227`). 
+
+v0.16.5 (Dec 30, 2019)
+----------------------
+
+* [Enhancement] Improvements with regards to the ``Run main`` ribbon button (:issue:`1207` and :issue:`1222`).
+
+v0.16.4 (Dec 17, 2019)
+----------------------
+
+* [Enhancement] Added support for :meth:`xlwings.Range.copy` (:issue:`1214`).
+* [Enhancement] Added support for :meth:`xlwings.Range.paste` (:issue:`1215`). 
+* [Enhancement] Added support for :meth:`xlwings.Range.insert` (:issue:`80`).
+* [Enhancement] Added support for :meth:`xlwings.Range.delete` (:issue:`862`).
+
+v0.16.3 (Dec 12, 2019)
+----------------------
+
+* [Bug Fix] Sometimes, xlwings would show an error of a previous run. Moreover, 0.16.2 introduced an issue that would
+  not show errors at all on non-conda setups (:issue:`1158` and :issue:`1206`)
+* [Enhancement] The xlwings CLI now prints the version number (:issue:`1200`)
+
+**Breaking Change**:
+
+* ``LOG FILE`` has been retired and removed from the configuration/add-in.
+
+v0.16.2 (Dec 5, 2019)
+---------------------
+
+* [Bug Fix] ``RunPython`` can now be called in parallel from different Excel instances (:issue:`1196`).
+
+v0.16.1 (Dec 1, 2019)
+---------------------
+
+* [Enhancement] :meth:`xlwings.Book()` and ``myapp.books.open()`` now accept parameters like 
+  ``update_links``, ``password`` etc. (:issue:`1189`).
+* [Bug Fix] ``Conda Env`` now works correctly with ``base`` for UDFs, too (:issue:`1110`).
+* [Bug Fix] ``Conda Base`` now allows spaces in the path (:issue:`1176`).
+* [Enhacement] The UDF server timeout has been increased to 2 minutes (:issue:`1168`).
+
+
 v0.16.0 (Oct 13, 2019)
 ----------------------
 
@@ -1474,8 +1524,8 @@ Enhancements
   .. figure:: images/mac_error.png
     :scale: 75%
 
-* New ``Sheet`` class: The new class handles everything directly related to a Sheet. See the section about
-  :ref:`api_sheet` for details (:issue:`62`). A few examples::
+* New ``Sheet`` class: The new class handles everything directly related to a Sheet. See the Python API section about
+  ``Sheet`` for details (:issue:`62`). A few examples::
 
     >>> Sheet(1).name
     'Sheet1'

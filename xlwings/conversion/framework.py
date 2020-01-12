@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-
-
-class ConversionContext(object):
+class ConversionContext:
     __slots__ = ['range', 'value', 'meta']
 
     def __init__(self, rng=None, value=None):
@@ -69,7 +66,7 @@ class Pipeline(list):
 accessors = {}
 
 
-class Accessor(object):
+class Accessor:
 
     @classmethod
     def reader(cls, options):
@@ -91,7 +88,7 @@ class Accessor(object):
 
 class Converter(Accessor):
 
-    class ToValueStage(object):
+    class ToValueStage:
 
         def __init__(self, write_value, options):
             self.write_value = write_value
@@ -100,7 +97,7 @@ class Converter(Accessor):
         def __call__(self, c):
             c.value = self.write_value(c.value, self.options)
 
-    class FromValueStage(object):
+    class FromValueStage:
 
         def __init__(self, read_value, options):
             self.read_value = read_value

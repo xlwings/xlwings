@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 import os
 import inspect
 import unittest
@@ -8,9 +6,7 @@ import xlwings as xw
 
 this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
 
-# Uncomment to run tests in Mac Excel 2011
-SPEC = None
-# SPEC = '/Applications/Microsoft Office 2011/Microsoft Excel'
+SPEC = None  # This was used to support Excel 2011: '/Applications/Microsoft Office 2011/Microsoft Excel'
 
 
 class TestBase(unittest.TestCase):
