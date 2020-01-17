@@ -136,6 +136,21 @@ class TestNumpy(TestBase):
         self.wb1.sheets[0].range('A20').value = np.nan
         self.assertEqual(None, self.wb1.sheets[0].range('A20').value)
 
+    def test_scalar_nan_float16(self):
+        """test_scalar_nan: Covers GH Issue #1116"""
+        self.wb1.sheets[0].range('A20').value = np.float16(np.nan)
+        self.assertEqual(None, self.wb1.sheets[0].range('A20').value)
+
+    def test_scalar_nan_float32(self):
+        """test_scalar_nan: Covers GH Issue #1116"""
+        self.wb1.sheets[0].range('A20').value = np.float32(np.nan)
+        self.assertEqual(None, self.wb1.sheets[0].range('A20').value)
+
+    def test_scalar_nan_float64(self):
+        """test_scalar_nan: Covers GH Issue #1116"""
+        self.wb1.sheets[0].range('A20').value = np.float64(np.nan)
+        self.assertEqual(None, self.wb1.sheets[0].range('A20').value)
+
     def test_ndim2_scalar_as_array(self):
         """test_atleast_2d_scalar_as_array: Covers GH Issue #53b"""
         self.wb1.sheets[0].range('A50').value = 23

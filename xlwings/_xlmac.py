@@ -1189,7 +1189,7 @@ def clean_value_data(data, datetime_builder, empty_as, number_builder):
 def prepare_xl_data_element(x):
     if x is None:
         return ""
-    elif np and isinstance(x, float) and np.isnan(x):
+    elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
         return ""
     elif np and isinstance(x, np.datetime64):
         # handle numpy.datetime64
