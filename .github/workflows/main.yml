@@ -23,7 +23,7 @@ jobs:
         python -m pip install pythonnet
     - name: Build with dotnet
       run: |
-        wget https://www.nuget.org/api/v2/package/Aspose.Cells/17.12.0 -OutFile .\aspose.cells.nupkg
+        Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Aspose.Cells/17.12.0 -OutFile .\aspose.cells.nupkg
         tar -xvzf .\aspose.cells.nupkg
         ls .
 #        python scripts/build_excel_files.py
