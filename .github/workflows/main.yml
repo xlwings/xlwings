@@ -32,6 +32,7 @@ jobs:
         cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
         .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release
         .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:Platform=x64
+        cd $Env:GITHUB_WORKSPACE
         python scripts/build_excel_files.py
         python setup.py sdist
     - name: Upload artifacts
