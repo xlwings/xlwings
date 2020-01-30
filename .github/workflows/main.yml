@@ -14,4 +14,5 @@ jobs:
         dotnet-version: 2.2.108
     - name: Build with dotnet
       run: |
-        "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" src/xlwings.sln /p:Configuration=Release
+        cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
+        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release
