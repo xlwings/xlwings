@@ -27,6 +27,6 @@ jobs:
         mkdir .\aspose
         tar -xvzf .\aspose.cells.nupkg -C .\aspose
         ls .
-#        python scripts/build_excel_files.py
+        python scripts/build_excel_files.py
 #        cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
 #        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release
