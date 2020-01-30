@@ -23,8 +23,9 @@ jobs:
         python -m pip install pythonnet
     - name: Build with dotnet
       run: |
-        Install-Package Aspose.Cells -Version 20.1.0
-        ls $Env:USERPROFILE\.dotnet
+        wget https://www.nuget.org/api/v2/package/Aspose.Cells/17.12.0 -OutFile .\aspose.cells.nupkg
+        tar -xvzf .\aspose.cells.nupkg
+        ls .
 #        python scripts/build_excel_files.py
 #        cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
 #        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release
