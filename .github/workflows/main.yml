@@ -19,6 +19,7 @@ jobs:
         dotnet-version: 3.1.100
     - name: Install dependencies
       run: |
+        python -m pip install --upgrade pip
         python -m pip install wheel twine pathlib pythonnet
     - name: Build with dotnet
       run: |
