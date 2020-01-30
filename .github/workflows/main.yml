@@ -5,7 +5,7 @@ on: [push]
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
@@ -14,5 +14,4 @@ jobs:
         dotnet-version: 2.2.108
     - name: Build with dotnet
       run: |
-        dotnet msbuild src/xlwings.sln /p:Configuration=Release
-        dotnet msbuild src/xlwings.sln /p:Configuration=Release /p:Platform=x64
+        "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" src/xlwings.sln /p:Configuration=Release
