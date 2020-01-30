@@ -8,11 +8,18 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: '3.8'
+        architecture: 'x64'
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 2.2.108
+        dotnet-version: 3.1.100
     - name: Build with dotnet
       run: |
-        cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
-        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release
+        dotnet add package Aspose.Cells --version 20.1.0
+        python scripts/build_excel_files.py
+#        cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
+#        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release
