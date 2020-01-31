@@ -30,7 +30,7 @@ jobs:
       run: |
         python -m pip install wheel twine pathlib
         python -m pip install pythonnet
-    - name: Intall Aspose and build dlls
+    - name: Install Aspose and build dlls
       run: |
         Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Aspose.Cells/17.12.0 -OutFile .\aspose.cells.nupkg
         mkdir .\aspose
