@@ -34,8 +34,7 @@ jobs:
         ASPOSE_LICENSE: ${{ secrets.ASPOSE_LICENSE }}
       run: |
         ls .
-        touch ./aspose/Aspose.Cells.lic
-        'echo "$secrets.ASPOSE_LICENSE" > ./aspose/Aspose.Cells.lic'
+        'echo "$secrets.ASPOSE_LICENSE" > ./aspose/asposelic'
         ls ./aspose
         python ./scripts/build_excel_files.py
 #        python setup.py sdist
