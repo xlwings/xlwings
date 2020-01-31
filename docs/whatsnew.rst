@@ -2,7 +2,7 @@ What's New
 ==========
 
 v0.17.1 (Jan 31, 2020)
----------------------
+----------------------
 
 * [Bug Fix] Handle ``np.float64('nan')`` correctly (:issue:`1116`).
 
