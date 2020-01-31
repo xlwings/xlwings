@@ -22,7 +22,7 @@ jobs:
         cat version
     - name: test env
       shell: bash
-      run: echo ${{ VERSION }}
+      run: echo $VERSION
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
