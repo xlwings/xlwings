@@ -8,5 +8,4 @@ else:
     version_string = os.environ['GITHUB_SHA'][:7]
 with open(version_file, 'w') as f:
     f.write(version_string)
-print(version_string)
 

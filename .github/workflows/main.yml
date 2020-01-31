@@ -12,17 +12,6 @@ jobs:
       with:
         python-version: '3.7'
         architecture: 'x64'
-    - name: Set version number
-      shell: bash
-      env:
-        VERSION: $(python scripts/set_version.py)
-      run: |
-        python scripts/set_version.py
-        ls .
-        cat version
-    - name: test env
-      shell: bash
-      run: echo $VERSION
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
@@ -44,9 +33,6 @@ jobs:
       env:
         ASPOSE_LICENSE: ${{ secrets.ASPOSE_LICENSE }}
       run: |
-        ls .
-        'echo "$secrets.ASPOSE_LICENSE" > ./aspose/asposelic'
-        ls ./aspose
         python ./scripts/build_excel_files.py
 #        python setup.py sdist
     - name: Upload artifacts

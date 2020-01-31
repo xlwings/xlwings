@@ -19,8 +19,11 @@ xlwings_bas_path = os.path.join(par_dir, 'xlwings', 'xlwings.bas')
 version = os.getenv('APPVEYOR_BUILD_VERSION', 'dev')
 
 if os.getenv('ASPOSE_LICENSE'):
+    lic_file = os.path.abspath(os.path.join(os.environ["GITHUB_WORKSPACE"], "aspose", 'Aspose.Cells.lic'))
+    with open(lic_file, 'w') as f:
+        f.write(os.environ['ASPOSE_LICENSE'])
     license = License()
-    license.SetLicense(os.path.abspath(os.path.join(os.environ["GITHUB_WORKSPACE"], "aspose", 'Aspose.Cells.lic')))
+    license.SetLicense(lic_file)
 
 
 def set_version_strings(code):
