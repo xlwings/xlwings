@@ -33,6 +33,8 @@ jobs:
       env:
         ASPOSE_LICENSE: ${{ secrets.ASPOSE_LICENSE }}
       run: |
+        ls .
+        touch ./aspose/Aspose.Cells.lic
         'echo "$secrets.ASPOSE_LICENSE" > ./aspose/Aspose.Cells.lic'
         ls ./aspose
         python ./scripts/build_excel_files.py
