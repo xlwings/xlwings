@@ -34,7 +34,7 @@ jobs:
         ASPOSE_LICENSE: ${{ secrets.ASPOSE_LICENSE }}
       run: |
         python ./scripts/build_excel_files.py
-#        python setup.py sdist
+        python setup.py sdist
     - name: Upload artifacts
       uses: actions/upload-artifact@v1
       with:

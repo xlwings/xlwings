@@ -2,6 +2,7 @@ import os
 import re
 import zipfile
 import tempfile
+import shutil
 
 # pythonnet
 import clr
@@ -18,6 +19,26 @@ standalone_mac_path = os.path.join(par_dir, 'xlwings', 'quickstart_standalone_ma
 xlwings_bas_path = os.path.join(par_dir, 'xlwings', 'xlwings.bas')
 version = os.getenv('APPVEYOR_BUILD_VERSION', 'dev')
 
+# Version string
+if os.environ['GITHUB_REF'].startswith('refs/tags'):
+    version_string = os.environ['GITHUB_REF'][10:]
+else:
+    version_string = os.environ['GITHUB_SHA'][:7]
+
+# Rename dlls
+for i in ['32', '64']:
+    os.rename(os.path.join(os.environ["GITHUB_WORKSPACE"], 'xlwings{0}.dll'.format(i)),
+              os.path.join(os.environ["GITHUB_WORKSPACE"], 'xlwings{0}-{1}.dll'.format(i, version_string)))
+
+# Stamp version
+version_file = os.path.join(os.environ["GITHUB_WORKSPACE"], 'xlwings', '__init__.py')
+with open(version_file, 'r') as f:
+    content = f.read()
+content = content.replace('dev', version_string)
+with open(version_file, 'w') as f:
+    f.write(content)
+
+# Aspose license
 if os.getenv('ASPOSE_LICENSE'):
     lic_file = os.path.abspath(os.path.join(os.environ["GITHUB_WORKSPACE"], "aspose", 'Aspose.Cells.lic'))
     with open(lic_file, 'w') as f:
