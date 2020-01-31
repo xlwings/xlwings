@@ -20,7 +20,12 @@ jobs:
       run: |
         python -m pip install wheel twine pathlib
         python -m pip install pythonnet
-    - name: Build with dotnet
+    - name: Build dlls
+      run: |
+        cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
+        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release
+        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:Platform=x64
+    - name: Build Excel files
       env:
         ASPOSE_LICENSE: ${{ secrets.ASPOSE_LICENSE }}
       run: |
@@ -29,12 +34,8 @@ jobs:
         tar -xvzf .\aspose.cells.nupkg -C .\aspose
         'echo "$secrets.ASPOSE_LICENSE" > .\aspose\Aspose.Cells.lic'
         ls .
-        cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
-        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release
-        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:Platform=x64
-        cd $Env:GITHUB_WORKSPACE
-#        python scripts\build_excel_files.py
-#        python setup.py sdist
+        python scripts\build_excel_files.py
+        python setup.py sdist
     - name: Upload artifacts
       uses: actions/upload-artifact@v1
       with:
