@@ -13,10 +13,16 @@ jobs:
         python-version: '3.7'
         architecture: 'x64'
     - name: Set version number
+      shell: bash
+      env:
+        VERSION: $(python scripts/set_version.py)
       run: |
-        python scripts\set_version.py
+        python scripts/set_version.py
         ls .
         cat version
+    - name: test env
+      shell: bash
+      run: echo ${{ VERSION }}
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
