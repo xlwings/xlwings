@@ -2,10 +2,11 @@ import os
 import re
 import zipfile
 import tempfile
+import shutil
 
 # pythonnet
 import clr
-dll = os.path.abspath(os.path.join(os.getenv('APPVEYOR_BUILD_FOLDER', '..'), "aspose.cells", "lib", "net40", "Aspose.Cells.dll"))
+dll = os.path.abspath(os.path.join(os.environ["GITHUB_WORKSPACE"], "aspose", "lib", "net40", "Aspose.Cells.dll"))
 clr.AddReference(dll)
 from Aspose.Cells import Workbook, License
 
@@ -16,19 +17,41 @@ addin_path = os.path.join(par_dir, 'xlwings', 'addin', 'xlwings.xlam')
 standalone_win_path = os.path.join(par_dir, 'xlwings', 'quickstart_standalone_win.xlsm')
 standalone_mac_path = os.path.join(par_dir, 'xlwings', 'quickstart_standalone_mac.xlsm')
 xlwings_bas_path = os.path.join(par_dir, 'xlwings', 'xlwings.bas')
-version = os.getenv('APPVEYOR_BUILD_VERSION', 'dev')
 
+# Version string
+if os.environ['GITHUB_REF'].startswith('refs/tags'):
+    version_string = os.environ['GITHUB_REF'][10:]
+else:
+    version_string = os.environ['GITHUB_SHA'][:7]
+
+# Rename dlls
+for i in ['32', '64']:
+    os.rename(os.path.join(os.environ["GITHUB_WORKSPACE"], 'xlwings{0}.dll'.format(i)),
+              os.path.join(os.environ["GITHUB_WORKSPACE"], 'xlwings{0}-{1}.dll'.format(i, version_string)))
+
+# Stamp version
+version_file = os.path.join(os.environ["GITHUB_WORKSPACE"], 'xlwings', '__init__.py')
+with open(version_file, 'r') as f:
+    content = f.read()
+content = content.replace('dev', version_string)
+with open(version_file, 'w') as f:
+    f.write(content)
+
+# Aspose license
 if os.getenv('ASPOSE_LICENSE'):
+    lic_file = os.path.abspath(os.path.join(os.environ["GITHUB_WORKSPACE"], "aspose", 'Aspose.Cells.lic'))
+    with open(lic_file, 'w') as f:
+        f.write(os.environ['ASPOSE_LICENSE'])
     license = License()
-    license.SetLicense(os.path.abspath(os.path.join(this_dir, 'Aspose.Cells.lic')))
+    license.SetLicense(lic_file)
 
 
 def set_version_strings(code):
     code = re.sub(r'XLWINGS_VERSION As String = ".*"',
-                  'XLWINGS_VERSION As String = "{}"'.format(version),
+                  'XLWINGS_VERSION As String = "{}"'.format(version_string),
                   code)
-    code = code.replace("xlwings32-dev.dll", "xlwings32-{}.dll".format(version))
-    code = code.replace("xlwings64-dev.dll", "xlwings64-{}.dll".format(version))
+    code = code.replace("xlwings32-dev.dll", "xlwings32-{}.dll".format(version_string))
+    code = code.replace("xlwings64-dev.dll", "xlwings64-{}.dll".format(version_string))
     return code
 
 
@@ -48,7 +71,7 @@ for m in ['License', 'Main', 'Config', 'Extensions', 'Utils']:
     standalone_code += addin_modules[m].get_Codes()
 
 standalone_code = set_version_strings(standalone_code)
-standalone_code = "'Version: {}\n".format(version) + standalone_code
+standalone_code = "'Version: {}\n".format(version_string) + standalone_code
 standalone_code = standalone_code.replace("ActiveWorkbook", "ThisWorkbook")
 standalone_code = standalone_code.replace("ActiveDocument", "ThisDocument")
 standalone_code = standalone_code.replace('Attribute VB_Name = "License"', "")
@@ -94,4 +117,8 @@ def update_zip(zipname, filename, data):
 
 content = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="R09696ac1de4341b9" Type="http://schemas.microsoft.com/office/2006/relationships/ui/extensibility" Target="customUI/customUI.xml"/></Relationships>'
 update_zip(addin_path, '_rels/.rels', content)
+
+# Copy add-in to dist folder so it gets uploaded to artifacts
+os.makedirs(os.path.join(os.environ['GITHUB_WORKSPACE'], 'dist'), exist_ok=True)
+shutil.copyfile(addin_path, os.path.join(os.environ['GITHUB_WORKSPACE'], 'dist', 'xlwings.xlam'))
 
