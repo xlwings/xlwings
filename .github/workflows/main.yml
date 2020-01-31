@@ -22,18 +22,19 @@ jobs:
         python -m pip install pythonnet
     - name: Build dlls
       run: |
-        cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
-        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release
-        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:Platform=x64
-    - name: Build Excel files
-      env:
-        ASPOSE_LICENSE: ${{ secrets.ASPOSE_LICENSE }}
-      run: |
         Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Aspose.Cells/17.12.0 -OutFile .\aspose.cells.nupkg
         mkdir .\aspose
         tar -xvzf .\aspose.cells.nupkg -C .\aspose
+        cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
+        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:WarningLevel=0
+        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:Platform=x64 /p:WarningLevel=0
+    - name: Build Excel files
+      shell: bash
+      env:
+        ASPOSE_LICENSE: ${{ secrets.ASPOSE_LICENSE }}
+      run: |
         'echo "$secrets.ASPOSE_LICENSE" > .\aspose\Aspose.Cells.lic'
-        ls .
+        ls ./aspose
         python scripts\build_excel_files.py
 #        python setup.py sdist
     - name: Upload artifacts
