@@ -20,7 +20,7 @@ version = os.getenv('APPVEYOR_BUILD_VERSION', 'dev')
 
 if os.getenv('ASPOSE_LICENSE'):
     license = License()
-    license.SetLicense(os.path.abspath(os.path.join(this_dir, 'Aspose.Cells.lic')))
+    license.SetLicense(os.path.abspath(os.path.join(os.environ["GITHUB_WORKSPACE"], "aspose", 'Aspose.Cells.lic')))
 
 
 def set_version_strings(code):
