@@ -26,16 +26,16 @@ jobs:
         mkdir .\aspose
         tar -xvzf .\aspose.cells.nupkg -C .\aspose
         cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
-        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:WarningLevel=0
-        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:Platform=x64 /p:WarningLevel=0
+        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /nowarn
+        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:Platform=x64 /nowarn
     - name: Build Excel files
       shell: bash
       env:
         ASPOSE_LICENSE: ${{ secrets.ASPOSE_LICENSE }}
       run: |
-        'echo "$secrets.ASPOSE_LICENSE" > .\aspose\Aspose.Cells.lic'
+        'echo "$secrets.ASPOSE_LICENSE" > ./aspose/Aspose.Cells.lic'
         ls ./aspose
-        python scripts\build_excel_files.py
+        python ./scripts/build_excel_files.py
 #        python setup.py sdist
     - name: Upload artifacts
       uses: actions/upload-artifact@v1
