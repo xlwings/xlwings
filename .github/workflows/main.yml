@@ -16,7 +16,7 @@ jobs:
       run: |
         python scripts\set_version.py
         ls .
-        cat set_version.py
+        cat version
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
