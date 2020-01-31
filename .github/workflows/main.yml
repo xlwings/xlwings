@@ -1,6 +1,16 @@
 name: Build Pipeline
 
-on: [push]
+on:
+  # Run on all pushed commits and when a new release is created
+  # Prevents duplicated pipeline runs as a release also pushes a tag
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
+  release:
+    types:
+      - created
 
 jobs:
   build:
@@ -16,11 +26,11 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.100
-    - name: Install dependencies
+    - name: Install Python dependencies
       run: |
         python -m pip install wheel twine pathlib
         python -m pip install pythonnet
-    - name: Build dlls
+    - name: Intall Aspose and build dlls
       run: |
         Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Aspose.Cells/17.12.0 -OutFile .\aspose.cells.nupkg
         mkdir .\aspose
@@ -28,7 +38,7 @@ jobs:
         cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
         .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release
         .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:Platform=x64
-    - name: Build Excel files
+    - name: Build Python Package
       shell: bash
       env:
         ASPOSE_LICENSE: ${{ secrets.ASPOSE_LICENSE }}
@@ -40,3 +50,23 @@ jobs:
       with:
         name: Package
         path: dist
+    - name: Publish package and update Homepage with release version
+      if: github.event_name == 'release'
+      run: |
+        twine upload dist/*.tar.gz
+        Invoke-RestMethod -Uri https://api.netlify.com/build_hooks/$env:NETLIFY_BUILD_HOOK -Method 'POST' -Body ''
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.pypi_password }}
+#          repository_url: https://test.pypi.org/legacy/
+    - name: Upload add-in to GH Release
+      if: github.event_name == 'release'
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./addin/xlwings.xlam
+        asset_name: xlwings.xlam
+        asset_content_type: application/zip
