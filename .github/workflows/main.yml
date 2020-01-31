@@ -51,13 +51,15 @@ jobs:
         name: Package
         path: dist
     - name: Publish package and update Homepage with release version
+      shell: bash
       if: github.event_name == 'release'
       run: |
         twine upload dist/*.tar.gz
-        Invoke-RestMethod -Uri https://api.netlify.com/build_hooks/$env:NETLIFY_BUILD_HOOK -Method 'POST' -Body ''
+        curl -X POST -d {} https://api.netlify.com/build_hooks/$NETLIFY_BUILD_HOOK
       env:
+        NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
         TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.pypi_password }}
+        TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
 #          repository_url: https://test.pypi.org/legacy/
     - name: Upload add-in to GH Release
       if: github.event_name == 'release'
