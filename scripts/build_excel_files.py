@@ -17,7 +17,6 @@ addin_path = os.path.join(par_dir, 'xlwings', 'addin', 'xlwings.xlam')
 standalone_win_path = os.path.join(par_dir, 'xlwings', 'quickstart_standalone_win.xlsm')
 standalone_mac_path = os.path.join(par_dir, 'xlwings', 'quickstart_standalone_mac.xlsm')
 xlwings_bas_path = os.path.join(par_dir, 'xlwings', 'xlwings.bas')
-version = os.getenv('APPVEYOR_BUILD_VERSION', 'dev')
 
 # Version string
 if os.environ['GITHUB_REF'].startswith('refs/tags'):
@@ -49,10 +48,10 @@ if os.getenv('ASPOSE_LICENSE'):
 
 def set_version_strings(code):
     code = re.sub(r'XLWINGS_VERSION As String = ".*"',
-                  'XLWINGS_VERSION As String = "{}"'.format(version),
+                  'XLWINGS_VERSION As String = "{}"'.format(version_string),
                   code)
-    code = code.replace("xlwings32-dev.dll", "xlwings32-{}.dll".format(version))
-    code = code.replace("xlwings64-dev.dll", "xlwings64-{}.dll".format(version))
+    code = code.replace("xlwings32-dev.dll", "xlwings32-{}.dll".format(version_string))
+    code = code.replace("xlwings64-dev.dll", "xlwings64-{}.dll".format(version_string))
     return code
 
 
@@ -72,7 +71,7 @@ for m in ['License', 'Main', 'Config', 'Extensions', 'Utils']:
     standalone_code += addin_modules[m].get_Codes()
 
 standalone_code = set_version_strings(standalone_code)
-standalone_code = "'Version: {}\n".format(version) + standalone_code
+standalone_code = "'Version: {}\n".format(version_string) + standalone_code
 standalone_code = standalone_code.replace("ActiveWorkbook", "ThisWorkbook")
 standalone_code = standalone_code.replace("ActiveDocument", "ThisDocument")
 standalone_code = standalone_code.replace('Attribute VB_Name = "License"', "")
