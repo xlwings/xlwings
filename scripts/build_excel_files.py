@@ -119,5 +119,6 @@ content = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships
 update_zip(addin_path, '_rels/.rels', content)
 
 # Copy add-in to dist folder so it gets uploaded to artifacts
+os.makedirs(os.path.join(os.environ['GITHUB_WORKSPACE'], 'dist'), exist_ok=True)
 shutil.copyfile(addin_path, os.path.join(os.environ['GITHUB_WORKSPACE'], 'dist', 'xlwings.xlam'))
 
