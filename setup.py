@@ -41,7 +41,7 @@ setup(
     description='Make Excel fly: Interact with Excel from Python and vice versa.',
     long_description=readme,
     data_files=data_files,
-    packages=find_packages(),
+    packages=find_packages(exclude=('tests', 'tests.*',)),
     package_data={'xlwings': ['xlwings.bas', '*.xlsm', 'xlwings.applescript', 'addin/xlwings.xlam']},
     keywords=['xls', 'excel', 'spreadsheet', 'workbook', 'vba', 'macro'],
     install_requires=install_requires,
