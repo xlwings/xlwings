@@ -2,7 +2,6 @@ import os
 import sys
 import shutil
 import argparse
-import xlwings as xw
 
 # Directories/paths
 this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -13,6 +12,7 @@ if sys.platform.startswith('win'):
 
 def addin_install(args):
     if not sys.platform.startswith('win'):
+        import xlwings as xw
         path = xw.__path__[0] + '/addin/xlwings.xlam'
         print("Cannot install the addin automatically on Mac. Install it via Tools > Excel Add-ins...")
         print("You find the addin here: {0}".format(path))
@@ -149,7 +149,7 @@ def license_update(args):
 
 
 def main():
-    print('xlwings ' + xw.__version__)
+    print('xlwings ' + 'dev')
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='command')
     subparsers.required = True

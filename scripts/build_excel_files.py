@@ -31,11 +31,13 @@ for i in ['32', '64']:
 
 # Stamp version
 version_file = os.path.join(os.environ["GITHUB_WORKSPACE"], 'xlwings', '__init__.py')
-with open(version_file, 'r') as f:
-    content = f.read()
-content = content.replace('dev', version_string)
-with open(version_file, 'w') as f:
-    f.write(content)
+cli_file = os.path.join(os.environ["GITHUB_WORKSPACE"], 'xlwings', 'cli.py')
+for source_file in [version_file, cli_file]:
+    with open(source_file, 'r') as f:
+        content = f.read()
+    content = content.replace('dev', version_string)
+    with open(source_file, 'w') as f:
+        f.write(content)
 
 # Aspose license
 if os.getenv('ASPOSE_LICENSE'):
