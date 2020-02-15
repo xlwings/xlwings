@@ -1106,7 +1106,7 @@ class Name:
     def refers_to_range(self):
         book = self.parent if isinstance(self.parent, Book) else self.parent.book
         external_address = self.xl.reference_range.get_address(external=True)
-        match = re.search(r"\](.*)!(.*)", external_address)
+        match = re.search(r"\](.*?)'?!(.*)", external_address)
         return Range(Sheet(book, match.group(1)), match.group(2))
 
 
