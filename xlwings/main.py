@@ -580,15 +580,15 @@ class Book:
             # Use mocking Book, see Book.set_mock_caller()
             return cls(impl=Book._mock_caller.impl)
         elif from_xl == '1':
-            fullname = wb.lower()
+            name = wb.lower()
             if sys.platform.startswith('win'):
                 app = App(impl=xlplatform.App(xl=int(hwnd)))
-                return cls(impl=app.books.open(fullname).impl)
+                return cls(impl=app.books[name].impl)
             else:
                 # On Mac, the same file open in two instances is not supported
                 if apps.active.version < 15:
-                    fullname = fullname.encode('utf-8', 'surrogateescape').decode('mac_latin2')
-                return cls(impl=Book(fullname).impl)
+                    name = name.encode('utf-8', 'surrogateescape').decode('mac_latin2')
+                return cls(impl=Book(name).impl)
         elif xlplatform.BOOK_CALLER:
             # Called via OPTIMIZED_CONNECTION = True
             return cls(impl=xlplatform.Book(xlplatform.BOOK_CALLER))
