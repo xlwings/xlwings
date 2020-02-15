@@ -621,27 +621,6 @@ class Book:
         """
         Book._mock_caller = self
 
-    @staticmethod
-    def open_template():
-        """
-        Creates a new Excel file with the xlwings VBA module already included. This method must be called from an
-        interactive Python shell::
-
-        >>> xw.Book.open_template()
-
-        See also: :ref:`command_line`
-
-        .. versionadded:: 0.3.3
-        """
-        this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
-        template_file = 'xlwings_template.xltm'
-        try:
-            os.remove(os.path.join(this_dir, '~$' + template_file))
-        except OSError:
-            pass
-
-        xlplatform.open_template(os.path.realpath(os.path.join(this_dir, template_file)))
-
     def macro(self, name):
         """
         Runs a Sub or Function in Excel VBA.

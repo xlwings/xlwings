@@ -1225,10 +1225,6 @@ def prepare_xl_data_element(x):
     return x
 
 
-def open_template(fullpath):
-    subprocess.call(['open', fullpath])
-
-
 # --- constants ---
 
 chart_types_k2s = {

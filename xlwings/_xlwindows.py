@@ -1104,11 +1104,6 @@ def prepare_xl_data_element(x):
         return x
 
 
-# TODO: move somewhere better, same on mac
-def open_template(fullpath):
-    os.startfile(fullpath)
-
-
 class Shape:
 
     def __init__(self, xl):
