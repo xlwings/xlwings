@@ -1,6 +1,6 @@
 import unittest
 
-from xlwings.tests.common import TestBase
+from .common import TestBase
 
 
 class TestNames(TestBase):
@@ -98,7 +98,13 @@ class TestNames(TestBase):
 
     def test_refers_to_range(self):
         self.wb1.sheets[0].range('B2:D10').name = 'test1'
-        self.assertEqual(self.wb1.sheets[0].range('B2:D10').address, self.wb1.sheets[0].range('B2:D10').name.refers_to_range.address)
+        self.assertEqual(self.wb1.sheets[0].range('B2:D10'), self.wb1.sheets[0].range('B2:D10').name.refers_to_range)
+
+    def test_refers_to_range_sheet_with_spaces(self):
+        # This will cause quotes around sheet reference which caused a bug on mac
+        self.wb1.sheets[0].name = 'She et1'
+        self.wb1.sheets[0].range('B2:D10').name = 'test1'
+        self.assertEqual(self.wb1.sheets['She et1'].range('B2:D10'), self.wb1.names['test1'].refers_to_range)
 
 
 if __name__ == '__main__':

@@ -5,7 +5,7 @@ import unittest
 
 import xlwings as xw
 from xlwings.constants import RgbColor
-from xlwings.tests.common import TestBase, this_dir
+from .common import TestBase, this_dir
 
 # Mac imports
 if sys.platform.startswith('darwin'):

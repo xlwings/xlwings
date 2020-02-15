@@ -3,7 +3,7 @@ import sys
 import unittest
 
 import xlwings as xw
-from xlwings.tests.common import TestBase, this_dir
+from .common import TestBase, this_dir
 
 try:
     import matplotlib as mpl
