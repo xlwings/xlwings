@@ -745,6 +745,19 @@ class Range:
         if self.xl is not None:
             return self.xl.select()
 
+    @property
+    def merge_area(self):
+        return Range(self.sheet, self.xl.merge_area.get_address())
+
+    @property
+    def merge_cells(self):
+        return self.xl.merge_cells.get()
+
+    def merge(self, across):
+        self.xl.merge(across=across)
+
+    def unmerge(self):
+        self.xl.unmerge()
 
 class Shape:
     def __init__(self, parent, key):

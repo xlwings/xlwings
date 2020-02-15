@@ -977,6 +977,20 @@ class Range:
     def select(self):
         return self.xl.Select()
 
+    @property
+    def merge_area(self):
+        return Range(xl=self.xl.MergeArea)
+
+    @property
+    def merge_cells(self):
+        return self.xl.MergeCells
+
+    def merge(self, across):
+        self.xl.Merge(across)
+
+    def unmerge(self):
+        self.xl.UnMerge()
+
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
     if number_builder is not None:
