@@ -1845,6 +1845,38 @@ class Range:
         """
         self.impl.select()
 
+    @property
+    def merge_area(self):
+        """
+        Returns a Range object that represents the merged Range containing the specified cell.
+        If the specified cell isn't in a merged range, this property returns the specified cell.
+
+        """
+        return Range(impl=self.impl.merge_area)
+
+    @property
+    def merge_cells(self):
+        """
+        Returns ``True`` if the Range contains merged cells, otherwise ``False``
+        """
+        return self.impl.merge_cells
+
+    def merge(self, across=False):
+        """
+        Creates a merged cell from the specified Range object.
+
+        Parameters
+        ----------
+        across : bool, default False
+            True to merge cells in each row of the specified Range as separate merged cells.
+        """
+        self.impl.merge(across)
+
+    def unmerge(self):
+        """
+        Separates a merged area into individual cells.
+        """
+        self.impl.unmerge()
 
 # These have to be after definition of Range to resolve circular reference
 from . import conversion

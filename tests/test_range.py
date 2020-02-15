@@ -768,5 +768,21 @@ class TestCellErrors(TestBase):
         wb.close()
 
 
+class TestMerging(TestBase):
+    def test_merge(self):
+        sheet = self.wb1.sheets[0]
+        self.assertEqual(sheet['A1'].merge_area, sheet['A1'])
+        self.assertEqual(sheet['A1'].merge_cells, False)
+        sheet["A1:A2"].merge()
+        self.assertEqual(sheet['A1'].merge_area, sheet['A1:A2'])
+        self.assertEqual(sheet['A1'].merge_cells, True)
+        sheet["A1:B2"].merge()
+        self.assertEqual(sheet['A1'].merge_area, sheet['A1:B2'])
+        sheet["A1:B2"].unmerge()
+        self.assertEqual(sheet['A1'].merge_area, sheet['A1'])
+        sheet["A1:B2"].merge(True)
+        self.assertEqual(sheet['A1'].merge_area, sheet['A1:B1'])
+
+
 if __name__ == '__main__':
     unittest.main()
