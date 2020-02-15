@@ -1,6 +1,15 @@
 What's New
 ==========
 
+v0.18.0 (Feb 15, 2020)
+----------------------
+
+* [Feature] Added support for merged cells: :attr:`xlwings.Range.merge_area`, :attr:`xlwings.Range.merge_cells`, :meth:`xlwings.Range.merge`
+  :meth:`xlwings.Range.unmerge` (:issue:`21`).
+* [Bug Fix] ``RunPython`` now works properly with files that have a URL as ``fullname``, i.e. OneDrive and SharePoint (:issue:`1253`).
+* [Bug Fix] Fixed a bug with ``wb.names['...'].refers_to_range`` on macOS (:issue:`1256`).
+
+
 v0.17.1 (Jan 31, 2020)
 ----------------------
 
