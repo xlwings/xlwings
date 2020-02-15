@@ -5,7 +5,7 @@ from collections import OrderedDict
 
 import pytz
 
-from xlwings.tests.common import TestBase
+from .common import TestBase
 
 # Optional dependencies
 try:
