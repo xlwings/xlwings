@@ -44,7 +44,7 @@ pywin32 (Windows only)
 
 **com subpackage**
 
-Unless stated in the specfic source file, this work is
+Unless stated in the specific source file, this work is
 Copyright (c) 1996-2008, Greg Stein and Mark Hammond.
 All rights reserved.
 
