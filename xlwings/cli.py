@@ -101,7 +101,7 @@ def runpython_install(args):
     if not os.path.exists(destination_dir):
         os.makedirs(destination_dir)
     shutil.copy(os.path.join(this_dir, 'xlwings.applescript'), destination_dir)
-    print('Successfully installed RunPython for Mac Excel 2016!')
+    print('Successfully enabled RunPython!')
 
 
 def restapi_run(args):
