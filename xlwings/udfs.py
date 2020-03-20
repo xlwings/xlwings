@@ -36,8 +36,12 @@ class AsyncThread(Thread):
             apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula_array = \
                 apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula_array
         else:
-            apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula = \
-                apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula
+            try:
+                apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula2 = \
+                    apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula2
+            except:
+                apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula = \
+                    apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula
 
 
 def func_sig(f):
