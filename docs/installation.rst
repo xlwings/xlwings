@@ -1,3 +1,9 @@
+Supported Platforms
+===================
+
+xlwings requires an installation of Excel and therefore only works on Windows and macOS. Note that macOS currently does not support UDFs.
+
+
 .. _installation:
 
 Installation
