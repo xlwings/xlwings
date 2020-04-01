@@ -292,7 +292,13 @@ class App:
             warn('spec is ignored on Windows.')
         if xl is None:
             # new instance
-            self._xl = COMRetryObjectWrapper(DispatchEx('Excel.Application'))
+
+            try:
+                self._xl = COMRetryObjectWrapper(DispatchEx('Excel.Application'))
+            except pywintypes.com_error:
+                # for system with WPS Office installed
+                self._xl = COMRetryObjectWrapper(DispatchEx('KET.Application'))
+
             if add_book:
                 self._xl.Workbooks.Add()
             self._hwnd = None
