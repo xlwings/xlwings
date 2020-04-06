@@ -1,0 +1,101 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-13 02:08+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../vba.rst:4
+msgid "VBA: RunPython"
+msgstr ""
+
+#: ../../vba.rst:7
+msgid "xlwings add-in"
+msgstr "xlwings アドイン"
+
+#: ../../vba.rst:9
+msgid ""
+"To get access to ``Run main`` (new in v0.16) button or the ``RunPython`` "
+"VBA function, you'll need the xlwings addin (or VBA module), see "
+":ref:`xlwings_addin`."
+msgstr ""
+"``Run main`` (new in v0.16) ボタンやVBA関数 ``RunPython`` を使うには、"
+"xlwings アドイン（もしくはVBAモジュール）が必要になります。"
+"詳細については :ref:`xlwings_addin` をご覧ください。"
+
+#: ../../vba.rst:11
+msgid ""
+"For new projects, the easiest way to get started is by using the command "
+"line client with the quickstart command, see :ref:`command_line` for "
+"details::"
+msgstr ""
+"コマンド ライン クライアントからquickstartコマンドを実行すれば、簡単に新しい"
+"プロジェクトを作成できます。詳細については :ref:`command_line` をご覧ください。"
+
+#: ../../vba.rst:19
+msgid "Call Python with \"RunPython\""
+msgstr "\"RunPython\" でPythonを呼び出す"
+
+#: ../../vba.rst:21
+msgid ""
+"In the VBA Editor (``Alt-F11``), write the code below into a VBA module. "
+"``xlwings quickstart`` automatically adds a new module with a sample "
+"call. If you rather want to start from scratch, you can add new module "
+"via ``Insert > Module``."
+msgstr ""
+"VBAエディタ (``Alt-F11``)で、以下のコードをVBAモジュールに書き込みます。"
+" ``xlwings quickstart`` コマンドを実行すれば、サンプル コール付きの新しい"
+"モジュールが自動的に追加されます。"
+"ゼロから作成したければ、 ``挿入 > 標準モジュール`` から新しいモジュールを追加しましょう。"
+
+#: ../../vba.rst:30
+msgid "This calls the following code in ``hello.py``:"
+msgstr "これは ``hello.py`` にある以下のコードを呼び出します:"
+
+#: ../../vba.rst:42
+msgid ""
+"You can then attach ``HelloWorld`` to a button or run it directly in the "
+"VBA Editor by hitting ``F5``."
+msgstr ""
+"``HelloWorld`` をボタンに設定することもできますし、VBAエディタ上で ``F5`` を押して実行することもできます。"
+
+#: ../../vba.rst:44
+msgid ""
+"Place ``xw.Book.caller()`` within the function that is being called from "
+"Excel and not outside as global variable. Otherwise it prevents Excel "
+"from shutting down properly upon exiting and leaves you with a zombie "
+"process when you use ``OPTIMIZED_CONNECTION = True``."
+msgstr ""
+"``xw.Book.caller()`` は、Excelから呼び出される関数内に配置してください。"
+"すなわち、関数の外側にグローバル変数として配置してはいけません。"
+"グローバル変数にすると、 ``OPTIMIZED_CONNECTION = True`` としている場合に、"
+"Excelを閉じても適切にシャットダウンできず、ゾンビプロセスが残ってしまいます。"
+
+#: ../../vba.rst:49
+msgid "Function Arguments and Return Values"
+msgstr "関数の引数および戻り値"
+
+#: ../../vba.rst:51
+msgid ""
+"While it's technically possible to include arguments in the function call"
+" within ``RunPython``, it's not very convenient. Also, ``RunPython`` does"
+" not allow you to return values. To overcome these issue, use UDFs, see "
+":ref:`udfs` - however, this is currently limited to Windows only."
+msgstr ""
+"技術的には、 ``RunPython`` が呼び出す関数に引数を含めることは可能ですが、"
+"使い勝手は悪いです。"
+"また、 ``RunPython`` には戻り値がありません。"
+"これらを解決するには、UDFを使いましょう。詳細については :ref:`udfs` をご覧ください。"
+"ただし、UDFを利用できるのは現在Windowsのみとなっています。"
