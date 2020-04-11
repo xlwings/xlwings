@@ -8,7 +8,8 @@ from importlib import import_module
 from threading import Thread
 from importlib import reload  # requires >= py 3.4
 
-from win32com.client import Dispatch, CDispatch
+from win32com.client import Dispatch
+import pywintypes
 
 from . import conversion, xlplatform, Range, apps
 from .utils import VBAWriter
@@ -36,10 +37,10 @@ class AsyncThread(Thread):
             apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula_array = \
                 apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula_array
         else:
-            try:
+            if has_dynamic_array(apps[self.pid]):
                 apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula2 = \
                     apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula2
-            except:
+            else:
                 apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula = \
                     apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula
 
@@ -476,3 +477,15 @@ def import_udfs(module_names, xl_workbook):
         os.unlink(tf.name)
     except:
         pass
+
+
+def has_dynamic_array(app):
+    """This check in this form doesn't work on macOS, that's why it's here and not in utils"""
+    try:
+        app.api.WorksheetFunction.Unique("dummy")
+        return True
+    except pywintypes.com_error as e:
+        if e.hresult == -2147352567:
+            return False
+        else:
+            raise e
