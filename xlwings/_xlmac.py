@@ -525,6 +525,16 @@ class Range:
             self.xl.formula.set(value)
 
     @property
+    def formula2(self):
+        if self.xl is not None:
+            return self.xl.formula2.get()
+
+    @formula2.setter
+    def formula2(self, value):
+        if self.xl is not None:
+            self.xl.formula2.set(value)
+
+    @property
     def formula_array(self):
         if self.xl is not None:
             rv = self.xl.formula_array.get()

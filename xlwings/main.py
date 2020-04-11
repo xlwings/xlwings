@@ -1187,6 +1187,15 @@ class Range:
         self.impl.formula = value
 
     @property
+    def formula2(self):
+        """Gets or sets the formula2 for the given Range."""
+        return self.impl.formula2
+
+    @formula2.setter
+    def formula2(self, value):
+        self.impl.formula2 = value
+
+    @property
     def formula_array(self):
         """
         Gets or sets an  array formula for the given Range.
