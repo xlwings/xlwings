@@ -751,6 +751,18 @@ class Range:
         if self.xl is not None:
             self.xl.Formula = value
 
+    @property
+    def formula2(self):
+        if self.xl is not None:
+            return self.xl.Formula2
+        else:
+            return None
+
+    @formula2.setter
+    def formula2(self, value):
+        if self.xl is not None:
+            self.xl.Formula2 = value
+
     def end(self, direction):
         direction = directions_s2i.get(direction, direction)
         return Range(xl=self.xl.End(direction))

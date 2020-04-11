@@ -161,6 +161,10 @@ class TestRangeAttributes(TestBase):
         self.wb1.sheets[0].range('A1').formula = '=SUM(A2:A10)'
         self.assertEqual(self.wb1.sheets[0].range('A1').formula, '=SUM(A2:A10)')
 
+    def test_formula2(self):
+        self.wb1.sheets[0].range('A1').formula2 = '=UNIQUE(A2:A10)'
+        self.assertEqual(self.wb1.sheets[0].range('A1').formula2, '=UNIQUE(A2:A10)')
+
     def test_formula_array(self):
         self.wb1.sheets[0].range('A1').value = [[1, 4], [2, 5], [3, 6]]
         self.wb1.sheets[0].range('D1').formula_array = '=SUM(A1:A3*B1:B3)'
