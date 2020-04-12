@@ -30,8 +30,8 @@ Links:
 Install the addin in Excel by going to `Developer` > `Excel Add-in` > `Browse` and pointing to the addin in the source code,
 i.e. under `xlwings/addin/xlwings.xlam`.
 
-To change the buttons, you need to download the CustomUIEditor (only runs on Windows) from 
-https://www.rondebruin.nl/win/winfiles/OfficeCustomUIEditorSetup.zip
+To change the buttons, you need to download the Office RibbonX Editor (only runs on Windows) from 
+https://github.com/fernandreu/office-ribbonx-editor/releases
 
 The code is pure VBA code.
 
