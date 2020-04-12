@@ -144,7 +144,7 @@ msgid ""
 msgstr "[问题修复] 现在在UDF中用 ``base`` 作为 ``Conda Env`` 的名字不会出问题了(:issue:`1110`)。"
 
 #: ../../whatsnew.rst:50
-msgid "[Bug Fix] ``Conda Base`` now allows spaces in the path (:issue:`1176`)."
+msgid "[Bug Fix] ``Conda Path`` now allows spaces in the path (:issue:`1176`)."
 msgstr "[问题修复] 现在在 ``Conda Env`` 中，允许路径中有空格了(:issue:`1176`)。"
 
 #: ../../whatsnew.rst:51
@@ -237,13 +237,13 @@ msgstr ""
 
 #: ../../whatsnew.rst:93
 msgid ""
-"[Bug Fix] ``Conda Base`` and ``Conda Env`` weren't stored correctly in "
+"[Bug Fix] ``Conda Path`` and ``Conda Env`` weren't stored correctly in "
 "the config file from the ribbon (:issue:`1090`)."
 msgstr ""
 
 #: ../../whatsnew.rst:94
 msgid ""
-"[Bug Fix] UDFs now work correctly with ``Conda Base`` and ``Conda Env``. "
+"[Bug Fix] UDFs now work correctly with ``Conda Path`` and ``Conda Env``. "
 "Note, however, that currently there is no way to hide the command prompt "
 "in that configuration (:issue:`1090`)."
 msgstr ""
