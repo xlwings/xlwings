@@ -109,7 +109,7 @@ msgid ""
 "Base`` and ``Conda Env`` settings, as you will otherwise get errors when "
 "using ``NumPy`` etc. See next section."
 msgstr ""
-"如果使用Anaconda或者Miniconda，需要对 ``Conda Base`` 和 ``Conda Env`` 进行设置。 否则，在使用 "
+"如果使用Anaconda或者Miniconda，需要对 ``Conda Path`` 和 ``Conda Env`` 进行设置。 否则，在使用 "
 "``NumPy`` 等时会报错，详细情况见下一节。"
 
 #: ../../addin.rst:54
@@ -126,13 +126,13 @@ msgstr "虽然缺省设置一般是即装即用的，但是也可以在加载项
 msgid ""
 "``Interpreter``: This is the path to the Python interpreter. This works "
 "also with virtual or conda envs on Mac. If you use conda envs on Windows,"
-" then use ``Conda Base`` and ``Conda Env`` below instead. Examples: "
+" then use ``Conda Path`` and ``Conda Env`` below instead. Examples: "
 "``\"C:\\Python35\\pythonw.exe\"`` or ``\"/usr/local/bin/python3.5\"``. An"
 " empty field defaults to ``pythonw`` that expects the interpreter to be "
 "set in the ``PATH`` on Windows or ``.bash_profile`` on Mac."
 msgstr ""
 "``Interpreter`` ：这是Python解释器的路径。在Mac系统上用Python虚拟环境或者conda环境也是用这个设置。 "
-"如果在Windows系统中用conda环境，那就用后面的 ``Conda Base`` 和 ``Conda Env`` 来设置。例如： "
+"如果在Windows系统中用conda环境，那就用后面的 ``Conda Path`` 和 ``Conda Env`` 来设置。例如： "
 "``\"C:\\Python35\\pythonw.exe\"`` 或 ``\"/usr/local/bin/python3.5\"`` "
 "。如果这里空着：在Windows系统中，缺省会到系统的 ``PATH`` 下查找 ``pythonw`` 文件；在Mac系统中，会到 "
 "``.bash_profile`` 中设置的目录下查找。"
@@ -145,13 +145,13 @@ msgstr "``PYTHONPATH``: 如果源文件找不到，就把源文件的路径放�
 
 #: ../../addin.rst:63
 msgid ""
-"``Conda Base``: If you are on Windows and use Anaconda or Miniconda, then"
+"``Conda Path``: If you are on Windows and use Anaconda or Miniconda, then"
 " type here the path to your installation, e.g. "
 "``C:\\Users\\Username\\Miniconda3`` or ``%USERPROFILE%\\Anaconda``. NOTE "
 "that you need at least conda 4.6! You also need to set ``Conda Env``, see"
 " next point."
 msgstr ""
-"``Conda Base``: 如果是在Windows系统使用conda环境，就在这里输入Anaconda或者Miniconda安装路径，比如： "
+"``Conda Path``: 如果是在Windows系统使用conda环境，就在这里输入Anaconda或者Miniconda安装路径，比如： "
 "``C:\\Users\\Username\\Miniconda3`` 或 ``%USERPROFILE%\\Anaconda`` "
 "。注意必须是conda 4.6以上！"
 
@@ -201,12 +201,12 @@ msgstr "``Restart UDF Server``: 关闭UDF服务器或Python解释器，下一次
 
 #: ../../addin.rst:78
 msgid ""
-"If you use ``Conda Base`` and ``Conda Env`` with UDFs, you currently "
+"If you use ``Conda Path`` and ``Conda Env`` with UDFs, you currently "
 "can't hide the command prompt that pops up. You can still control if the "
 "output is printed to the command prompt or not though by setting the "
 "``Interpreter`` to ``python`` or ``pythonw``, respectively."
 msgstr ""
-"如果用 ``Conda Base`` 和 ``Conda Env`` 处理UDF，现在还无法把命令行弹窗隐藏起来。 但是通过把 "
+"如果用 ``Conda Path`` 和 ``Conda Env`` 处理UDF，现在还无法把命令行弹窗隐藏起来。 但是通过把 "
 "``Interpreter`` 设置为  ``python`` 或者 ``pythonw`` 可以控制是否在命令行提示符界面输出信息。"
 
 #: ../../addin.rst:85

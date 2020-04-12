@@ -47,7 +47,7 @@ you create a workbook via ``xlwings quickstart``, the reference is already set.
 Anaconda/Miniconda
 ------------------
 
-If you use Anaconda or Miniconda, you will need to set your ``Conda Base`` and ``Conda Env`` settings, as you will
+If you use Anaconda or Miniconda on Windows, you will need to set your ``Conda Path`` and ``Conda Env`` settings, as you will
 otherwise get errors when using ``NumPy`` etc. See next section.
 
 Global Settings
@@ -56,11 +56,11 @@ Global Settings
 While the defaults will often work out-of-the box, you can change the global settings directly in the add-in:
 
 * ``Interpreter``: This is the path to the Python interpreter. This works also with virtual or conda envs on Mac.
-  If you use conda envs on Windows, then use ``Conda Base`` and ``Conda Env`` below instead. Examples:
+  If you use conda envs on Windows, then use ``Conda Path`` and ``Conda Env`` below instead. Examples:
   ``"C:\Python35\pythonw.exe"`` or ``"/usr/local/bin/python3.5"``. An empty field defaults to ``pythonw`` that
   expects the interpreter to be set in the ``PATH`` on Windows or ``.bash_profile`` on Mac.
 * ``PYTHONPATH``: If the source file of your code is not found, add the path here.
-* ``Conda Base``: If you are on Windows and use Anaconda or Miniconda, then type here the path to your
+* ``Conda Path``: If you are on Windows and use Anaconda or Miniconda, then type here the path to your
   installation, e.g. ``C:\Users\Username\Miniconda3`` or ``%USERPROFILE%\Anaconda``. NOTE that you need at least conda 4.6!
   You also need to set ``Conda Env``, see next point.
 * ``Conda Env``: If you are on Windows and use Anaconda or Miniconda, type here the name of your conda env, e.g. ``base``
@@ -75,7 +75,7 @@ While the defaults will often work out-of-the box, you can change the global set
   interpreter doesn't shut down after each call.
 * ``Restart UDF Server``: This shuts down the UDF Server/Python interpreter. It'll be restarted upon the next function call.
 
-.. note:: If you use ``Conda Base`` and ``Conda Env`` with UDFs, you currently can't hide the command prompt that pops up.
+.. note:: If you use ``Conda Path`` and ``Conda Env`` with UDFs, you currently can't hide the command prompt that pops up.
     You can still control if the output is printed to the command prompt or not though by setting the ``Interpreter`` to 
     ``python`` or ``pythonw``, respectively.
 
