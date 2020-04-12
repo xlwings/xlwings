@@ -31,7 +31,6 @@ Install the addin in Excel by going to `Developer` > `Excel Add-in` > `Browse` a
 i.e. under `xlwings/addin/xlwings.xlam`.
 
 To change the buttons, you need to download the CustomUIEditor (only runs on Windows) from 
-http://openxmldeveloper.org/blog/b/openxmldeveloper/archive/2006/05/26/customuieditor.aspx or
 https://www.rondebruin.nl/win/winfiles/OfficeCustomUIEditorSetup.zip
 
 The code is pure VBA code.
