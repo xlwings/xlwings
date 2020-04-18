@@ -2254,6 +2254,13 @@ class ListObject:
         self.impl = impl
 
     @property
+    def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        """
+        return self.impl.api
+
+    @property
     def name(self):
         """
         Returns or sets the name of the ListObject.
@@ -2262,7 +2269,7 @@ class ListObject:
 
     @property
     def data_body_range(self):
-        return self.impl.data_body_range
+        return Range(impl=self.impl.data_body_range)
 
     @property
     def display_name(self):
@@ -2270,7 +2277,7 @@ class ListObject:
 
     @property
     def header_row_range(self):
-        return self.impl.header_row_range
+        return Range(impl=self.impl.header_row_range)
 
     @property
     def parent(self):
@@ -2281,20 +2288,12 @@ class ListObject:
         return Range(impl=self.impl.range)
 
     @property
-    def show_auto_filter(self):
-        return self.impl.show_auto_filter
+    def show_autofilter(self):
+        return self.impl.show_autofilter
 
-    @show_auto_filter.setter
-    def show_auto_filter(self, value):
-        self.impl.show_auto_filter = value
-
-    @property
-    def show_auto_filter_drop_down(self):
-        return self.impl.show_auto_filter_drop_down
-
-    @show_auto_filter_drop_down.setter
-    def show_auto_filter_drop_down(self, value):
-        self.impl.show_auto_filter_drop_down = value
+    @show_autofilter.setter
+    def show_autofilter(self, value):
+        self.impl.show_autofilter = value
 
     @property
     def show_headers(self):

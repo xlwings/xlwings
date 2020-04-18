@@ -1280,6 +1280,10 @@ class ListObject:
         self.xl = xl
 
     @property
+    def api(self):
+        return self.xl
+
+    @property
     def name(self):
         return self.xl.Name
 
@@ -1304,20 +1308,12 @@ class ListObject:
         return Range(xl=self.xl.Range)
 
     @property
-    def show_auto_filter(self):
+    def show_autofilter(self):
         return self.xl.ShowAutoFilter
 
-    @show_auto_filter.setter
-    def show_auto_filter(self, value):
+    @show_autofilter.setter
+    def show_autofilter(self, value):
         self.xl.ShowAutoFilter = value
-
-    @property
-    def show_auto_filter_drop_down(self):
-        return self.xl.ShowAutoFilterDropDown
-
-    @show_auto_filter_drop_down.setter
-    def show_auto_filter_drop_down(self, value):
-        self.xl.ShowAutoFilterDropDown = value
 
     @property
     def show_headers(self):

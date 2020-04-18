@@ -452,6 +452,10 @@ class Sheet:
         return Shapes(self)
 
     @property
+    def list_objects(self):
+        return ListObjects(self)
+
+    @property
     def pictures(self):
         return Pictures(self)
 
@@ -894,6 +898,103 @@ class Collection:
 
     def __contains__(self, key):
         return self.xl[key].exists()
+
+
+class ListObject:
+    def __init__(self, parent, key):
+        self.parent = parent
+        self.xl = parent.xl.list_objects[key]
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def name(self):
+        return self.xl.name.get()
+
+    @property
+    def data_body_range(self):
+        return Range(self.parent, self.xl.cell_table.get_address())
+
+    @property
+    def display_name(self):
+        return self.xl.display_name.get()
+
+    @property
+    def header_row_range(self):
+        return Range(self.parent, self.xl.header_row.get_address())
+
+    @property
+    def range(self):
+        return Range(self.parent, self.xl.range_object.get_address())
+
+    @property
+    def show_autofilter(self):
+        return self.xl.show_autofilter.get()
+
+    @show_autofilter.setter
+    def show_autofilter(self, value):
+        self.xl.show_autofilter.set(value)
+
+    @property
+    def show_headers(self):
+        return self.xl.show_headers.get()
+
+    @show_headers.setter
+    def show_headers(self, value):
+        self.xl.show_headers.set(value)
+
+    @property
+    def show_table_style_column_stripes(self):
+        return self.xl.show_table_style_column_stripes.get()
+
+    @show_table_style_column_stripes.setter
+    def show_table_style_column_stripes(self, value):
+        self.xl.show_table_style_column_stripes.set(value)
+
+    @property
+    def show_table_style_first_column(self):
+        return self.xl.show_table_style_first_column.get()
+
+    @show_table_style_first_column.setter
+    def show_table_style_first_column(self, value):
+        self.xl.show_table_style_first_column.set(value)
+
+    @property
+    def show_table_style_last_column(self):
+        return self.xl.show_table_style_last_column.get()
+
+    @show_table_style_last_column.setter
+    def show_table_style_last_column(self, value):
+        self.xl.show_table_style_last_column.set(value)
+
+    @property
+    def show_table_style_row_stripes(self):
+        return self.xl.show_table_style_row_stripes.get()
+
+    @show_table_style_row_stripes.setter
+    def show_table_style_row_stripes(self, value):
+        self.xl.show_table_style_row_stripes.set(value)
+
+    @property
+    def show_totals(self):
+        return self.xl.total.get()
+
+    @show_totals.setter
+    def show_totals(self, value):
+        self.xl.total.set(value)
+
+    @property
+    def totals_row_range(self):
+        return Range(self.parent, self.xl.total_row.get_address())
+
+
+class ListObjects(Collection):
+
+    _attr = 'list_objects'
+    _kw = kw.list_object
+    _wrap = ListObject
 
 
 class Chart:
