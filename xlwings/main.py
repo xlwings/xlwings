@@ -947,6 +947,15 @@ class Sheet:
         return Shapes(impl=self.impl.shapes)
 
     @property
+    def list_objects(self):
+        """
+        See :meth:`ListObjets <xlwings.main.ListObjects>`
+
+        .. versionadded:: 0.9.0
+        """
+        return ListObjects(impl=self.impl.list_objects)
+
+    @property
     def pictures(self):
         """
         See :meth:`Pictures <xlwings.main.Pictures>`
@@ -2232,6 +2241,116 @@ class Shapes(Collection):
     .. versionadded:: 0.9.0
     """
     _wrap = Shape
+
+
+class ListObject:
+    def __init__(self, *args, **options):
+        impl = options.pop('impl', None)
+        if impl is None:
+            if len(args) == 1:
+                impl = sheets.active.list_objects(args[0]).impl
+            else:
+                raise ValueError("Invalid arguments")
+        self.impl = impl
+
+    @property
+    def name(self):
+        """
+        Returns or sets the name of the ListObject.
+        """
+        return self.impl.name
+
+    @property
+    def data_body_range(self):
+        return self.impl.data_body_range
+
+    @property
+    def display_name(self):
+        return self.impl.display_name
+
+    @property
+    def header_row_range(self):
+        return self.impl.header_row_range
+
+    @property
+    def parent(self):
+        return Sheet(impl=self.impl.parent)
+
+    @property
+    def range(self):
+        return Range(impl=self.impl.range)
+
+    @property
+    def show_auto_filter(self):
+        return self.impl.show_auto_filter
+
+    @show_auto_filter.setter
+    def show_auto_filter(self, value):
+        self.impl.show_auto_filter = value
+
+    @property
+    def show_auto_filter_drop_down(self):
+        return self.impl.show_auto_filter_drop_down
+
+    @show_auto_filter_drop_down.setter
+    def show_auto_filter_drop_down(self, value):
+        self.impl.show_auto_filter_drop_down = value
+
+    @property
+    def show_headers(self):
+        return self.impl.show_headers
+
+    @show_headers.setter
+    def show_headers(self, value):
+        self.impl.show_headers = value
+
+    @property
+    def show_table_style_column_stripes(self):
+        return self.impl.show_table_style_column_stripes
+
+    @show_table_style_column_stripes.setter
+    def show_table_style_column_stripes(self, value):
+        self.impl.show_table_style_column_stripes = value
+
+    @property
+    def show_table_style_first_column(self):
+        return self.impl.show_table_style_first_column
+
+    @show_table_style_first_column.setter
+    def show_table_style_first_column(self, value):
+        self.impl.show_table_style_first_column = value
+
+    @property
+    def show_table_style_last_column(self):
+        return self.impl.show_table_style_last_column
+
+    @show_table_style_last_column.setter
+    def show_table_style_last_column(self, value):
+        self.impl.show_table_style_last_column = value
+
+    @property
+    def show_table_style_row_stripes(self):
+        return self.impl.show_table_style_row_stripes
+
+    @show_table_style_row_stripes.setter
+    def show_table_style_row_stripes(self, value):
+        self.impl.show_table_style_row_stripes = value
+
+    @property
+    def show_totals(self):
+        return self.impl.show_totals
+
+    @show_totals.setter
+    def show_totals(self, value):
+        self.impl.show_totals = value
+
+    @property
+    def totals_row_range(self):
+        return Range(impl=self.impl.totals_row_range)
+
+
+class ListObjects(Collection):
+    _wrap = ListObject
 
 
 class Chart:

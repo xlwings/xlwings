@@ -690,6 +690,10 @@ class Sheet:
         return Shapes(xl=self.xl.Shapes)
 
     @property
+    def list_objects(self):
+        return ListObjects(xl=self.xl.ListObjects)
+
+    @property
     def pictures(self):
         return Pictures(xl=self.xl.Pictures())
 
@@ -1270,6 +1274,107 @@ class Shapes(Collection):
 
     _wrap = Shape
 
+
+class ListObject:
+    def __init__(self, xl):
+        self.xl = xl
+
+    @property
+    def name(self):
+        return self.xl.Name
+
+    @property
+    def data_body_range(self):
+        return Range(xl=self.xl.DataBodyRange)
+
+    @property
+    def display_name(self):
+        return self.xl.DisplayName
+
+    @property
+    def header_row_range(self):
+        return Range(xl=self.xl.HeaderRowRange)
+
+    @property
+    def parent(self):
+        return Sheet(xl=self.xl.Parent)
+
+    @property
+    def range(self):
+        return Range(xl=self.xl.Range)
+
+    @property
+    def show_auto_filter(self):
+        return self.xl.ShowAutoFilter
+
+    @show_auto_filter.setter
+    def show_auto_filter(self, value):
+        self.xl.ShowAutoFilter = value
+
+    @property
+    def show_auto_filter_drop_down(self):
+        return self.xl.ShowAutoFilterDropDown
+
+    @show_auto_filter_drop_down.setter
+    def show_auto_filter_drop_down(self, value):
+        self.xl.ShowAutoFilterDropDown = value
+
+    @property
+    def show_headers(self):
+        return self.xl.ShowHeaders
+
+    @show_headers.setter
+    def show_headers(self, value):
+        self.xl.ShowHeaders = value
+
+    @property
+    def show_table_style_column_stripes(self):
+        return self.xl.ShowTableStyleColumnStripes
+
+    @show_table_style_column_stripes.setter
+    def show_table_style_column_stripes(self, value):
+        self.xl.ShowTableStyleColumnStripes = value
+
+    @property
+    def show_table_style_first_column(self):
+        return self.xl.ShowTableStyleFirstColumn
+
+    @show_table_style_first_column.setter
+    def show_table_style_first_column(self, value):
+        self.xl.ShowTableStyleFirstColumn = value
+
+    @property
+    def show_table_style_last_column(self):
+        return self.xl.ShowTableStyleLastColumn
+
+    @show_table_style_last_column.setter
+    def show_table_style_last_column(self, value):
+        self.xl.ShowTableStyleLastColumn = value
+
+    @property
+    def show_table_style_row_stripes(self):
+        return self.xl.ShowTableStyleRowStripes
+
+    @show_table_style_row_stripes.setter
+    def show_table_style_row_stripes(self, value):
+        self.xl.ShowTableStyleRowStripes = value
+
+    @property
+    def show_totals(self):
+        return self.xl.ShowTotals
+
+    @show_totals.setter
+    def show_totals(self, value):
+        self.xl.ShowTotals = value
+
+    @property
+    def totals_row_range(self):
+        return Range(xl=self.xl.TotalsRowRange)
+
+
+class ListObjects(Collection):
+
+    _wrap = ListObject
 
 class Chart:
 
