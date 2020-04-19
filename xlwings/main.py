@@ -2280,6 +2280,10 @@ class ListObject:
         return Range(impl=self.impl.header_row_range)
 
     @property
+    def insert_row_range(self):
+        return Range(impl=self.impl.insert_row_range)
+
+    @property
     def parent(self):
         return Sheet(impl=self.impl.parent)
 

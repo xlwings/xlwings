@@ -915,7 +915,10 @@ class ListObject:
 
     @property
     def data_body_range(self):
-        return Range(self.parent, self.xl.cell_table.get_address())
+        if self.xl.cell_table.get() == kw.missing_value:
+            return
+        else:
+            return Range(self.parent, self.xl.cell_table.get_address())
 
     @property
     def display_name(self):
@@ -924,6 +927,10 @@ class ListObject:
     @property
     def header_row_range(self):
         return Range(self.parent, self.xl.header_row.get_address())
+
+    @property
+    def insert_row_range(self):
+        return Range(self.parent, self.xl.insert_row.get_address())
 
     @property
     def range(self):
