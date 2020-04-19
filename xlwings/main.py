@@ -2269,7 +2269,7 @@ class ListObject:
 
     @property
     def data_body_range(self):
-        return Range(impl=self.impl.data_body_range)
+        return Range(impl=self.impl.data_body_range) if self.impl.data_body_range else None
 
     @property
     def display_name(self):

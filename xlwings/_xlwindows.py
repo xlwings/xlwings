@@ -1289,7 +1289,7 @@ class ListObject:
 
     @property
     def data_body_range(self):
-        return Range(xl=self.xl.DataBodyRange)
+        return Range(xl=self.xl.DataBodyRange) if self.xl.DataBodyRange else None
 
     @property
     def display_name(self):
@@ -1298,6 +1298,10 @@ class ListObject:
     @property
     def header_row_range(self):
         return Range(xl=self.xl.HeaderRowRange)
+
+    @property
+    def insert_row_range(self):
+        return Range(xl=self.xl.InsertRowRange)
 
     @property
     def parent(self):
