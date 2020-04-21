@@ -1,0 +1,118 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-04-06 16:16+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../debugging.rst:4
+msgid "Debugging"
+msgstr "デバッグ"
+
+#: ../../debugging.rst:6
+msgid ""
+"Since xlwings runs in every Python environment, you can use your "
+"preferred way of debugging."
+msgstr "xlwingsを実行するPython環境に合わせて、デバッグ方法を選べます。"
+
+#: ../../debugging.rst:8
+msgid ""
+"**RunPython**: When calling Python through ``RunPython``, you can set a "
+"``mock_caller`` to make it easy to switch back and forth between calling "
+"the function from Excel and Python."
+msgstr ""
+"**RunPython**: ``RunPython`` でPythonを呼び出している場合、 ``mock_caller`` "
+"を設定することで、ExcelとPythonの間で関数の実行を簡単に行き来できるようになります。"
+
+#: ../../debugging.rst:10
+msgid ""
+"**UDFs**: For debugging User Defined Functions, xlwings offers a "
+"convenient debugging server"
+msgstr "**UDFs**: UDF関数のデバッグには、xlwingsのデバッグ サーバーを利用します。"
+
+#: ../../debugging.rst:13
+msgid "To begin with, Excel will show Python errors in a Message Box:"
+msgstr "実行時、Pythonのエラーは、Excelのメッセージボックスに表示されます:"
+
+#: ../../debugging.rst:18
+msgid ""
+"On Mac, if the ``import`` of a module/package fails before ``xlwings`` is"
+" imported, the popup will not be shown and the StatusBar will not be "
+"reset. However, the error will still be logged in the log file "
+"(``/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings.log``)."
+msgstr "Macの場合、 ``xlwings`` のインポートの前にモジュール/パッケージの ``import`` が"
+"失敗したら、メッセージボックスは表示されず、ステータス バーはリセットされません。"
+"ただし、エラーはログファイル(``/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings.log``)に"
+"記録されます。"
+
+#: ../../debugging.rst:22
+msgid "RunPython"
+msgstr "RunPython"
+
+#: ../../debugging.rst:24
+msgid ""
+"Consider the following sample code of your Python source code "
+"``my_module.py``:"
+msgstr ""
+"次のサンプルコード（Pythonのソース ファイル ``my_module.py``）を例にします:"
+
+#: ../../debugging.rst:42
+msgid ""
+"``my_macro()`` can now easily be run from Python for debugging and from "
+"Excel via ``RunPython`` without having to change the source code:"
+msgstr ""
+"``my_macro()`` は、デバッグはPythonから、実行はExcelの ``Runpython`` から、"
+"ソース コードを変更することなく簡単に実行できます。"
+
+#: ../../debugging.rst:52
+msgid "UDF debug server"
+msgstr "UDF デバッグ サーバー"
+
+#: ../../debugging.rst:54
+msgid ""
+"Windows only: To debug UDFs, just check the ``Debug UDFs`` in the "
+":ref:`xlwings_addin`, at the top of the xlwings VBA module. Then add the "
+"following lines at the end of your Python source file and run it. "
+"Depending on which IDE you use, you might need to run the code in "
+"\"debug\" mode (e.g. in case you're using PyCharm or PyDev)::"
+msgstr ""
+"UDFをデバッグするには、:ref:`xlwings_addin` で ``Debug UDFs`` をチェックします。 "
+"続いて、以下のコードをPythonソース ファイルの最後に追加して実行します。"
+"使用しているIDEによっては、コードを \"debug\" モードで実行する必要が"
+"あります（例:PyCharmやPyDev）"
+
+#: ../../debugging.rst:62
+msgid ""
+"When you recalculate the Sheet (``Ctrl-Alt-F9``), the code will stop at "
+"breakpoints or output any print calls that you may have."
+msgstr "シートの再計算(``Ctrl-Alt-F9``)時に、ブレークポイントによるコードの停止や"
+"print関数による出力を行えます。"
+
+#: ../../debugging.rst:65
+msgid ""
+"The following screenshot shows the code stopped at a breakpoint in the "
+"community version of PyCharm:"
+msgstr "以下のスクリーン ショットは、community バージョンのPyCharmで、"
+"コードをブレークポイントで止めたときのものです:"
+
+#: ../../debugging.rst:71
+msgid ""
+"When running the debug server from a command prompt, there is currently "
+"no gracious way to terminate it, but closing the command prompt will kill"
+" it."
+msgstr "コマンド プロンプトからデバッグ サーバーを実行している場合、"
+"現在のバージョンではデバッグ サーバーのみを終了することができないため、"
+"コマンド プロンプトを閉じて終了します。"
+
