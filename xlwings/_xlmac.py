@@ -913,6 +913,10 @@ class ListObject:
     def name(self):
         return self.xl.name.get()
 
+    @name.setter
+    def name(self, value):
+        self.xl.name.set(value)
+
     @property
     def data_body_range(self):
         if self.xl.cell_table.get() == kw.missing_value:
@@ -1002,6 +1006,20 @@ class ListObjects(Collection):
     _attr = 'list_objects'
     _kw = kw.list_object
     _wrap = ListObject
+
+    def add(self, source_type=None, source=None, link_source=None, has_headers=None, destination=None,
+            table_style_name=None):
+        sheet_index = self.parent.xl.entry_index.get()
+        return ListObject(
+            self.parent, self.parent.xl.make(
+                at=self.parent.book.xl.sheets[sheet_index],
+                new=kw.list_object,
+                with_properties={
+                    kw.source_type: kw.src_none,
+                    kw.range_object: source.api
+                }
+            ).name.get()
+        )
 
 
 class Chart:

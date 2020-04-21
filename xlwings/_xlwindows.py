@@ -1287,6 +1287,10 @@ class ListObject:
     def name(self):
         return self.xl.Name
 
+    @name.setter
+    def name(self, value):
+        self.xl.Name = value
+
     @property
     def data_body_range(self):
         return Range(xl=self.xl.DataBodyRange) if self.xl.DataBodyRange else None

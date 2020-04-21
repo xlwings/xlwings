@@ -2267,6 +2267,10 @@ class ListObject:
         """
         return self.impl.name
 
+    @name.setter
+    def name(self, value):
+        self.impl.name = value
+
     @property
     def data_body_range(self):
         return Range(impl=self.impl.data_body_range) if self.impl.data_body_range else None
@@ -2354,6 +2358,19 @@ class ListObject:
 
 class ListObjects(Collection):
     _wrap = ListObject
+
+    def add(self, source_type=None, source=None, link_source=None, has_headers=None, destination=None,
+            table_style_name=None):
+        """
+        Creates a new ListObject on the specified sheet.
+        """
+
+        impl = self.impl.add(
+            source_type=source_type, source=source, link_source=link_source, has_headers=has_headers,
+            destination=destination, table_style_name=table_style_name
+        )
+
+        return ListObject(impl=impl)
 
 
 class Chart:
