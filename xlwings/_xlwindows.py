@@ -28,7 +28,8 @@ import win32timezone
 import win32gui
 import win32process
 
-from .constants import ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin, DeleteShiftDirection
+from .constants import (ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin, DeleteShiftDirection,
+                        ListObjectSourceType)
 from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime, col_name
 
 # Optional imports
@@ -1379,6 +1380,18 @@ class ListObject:
 class ListObjects(Collection):
 
     _wrap = ListObject
+
+    def add(self, source_type=None, source=None, link_source=None, has_headers=None, destination=None,
+            table_style_name=None):
+        return ListObject(xl=self.xl.Add(
+            SourceType=ListObjectSourceType.xlSrcRange,
+            Source=source.api,
+            LinkSource=link_source,
+            XlListObjectHasHeaders=True,
+            Destination=destination
+            # TableStyleName='TableStyleLight1' #  TableStyleLight1-21, TableStyleMedium1-28, TableStyleDark1-11
+        ))
+
 
 class Chart:
 
