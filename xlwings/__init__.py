@@ -3,7 +3,6 @@ import sys
 
 
 __version__ = 'dev'
-__edition__ = 'ce'
 
 # Platform specifics
 if sys.platform.startswith('win'):

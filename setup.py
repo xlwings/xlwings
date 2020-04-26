@@ -18,11 +18,11 @@ if sys.platform.startswith('win'):
         pywin32 = 'pywin32 >= 224'
     else:
         pywin32 = 'pywin32'
-    install_requires = ['comtypes', pywin32]
+    install_requires = ['cryptography', 'comtypes', pywin32]
     # This places dlls next to python.exe for standard setup and in the parent folder for virtualenv
     data_files = [('', glob.glob('xlwings*.dll'))]
 elif sys.platform.startswith('darwin'):
-    install_requires = ['psutil >= 2.0.0', 'appscript >= 1.0.1']
+    install_requires = ['cryptography', 'psutil >= 2.0.0', 'appscript >= 1.0.1']
     data_files = [(os.path.expanduser("~") + '/Library/Application Scripts/com.microsoft.Excel', ['xlwings/xlwings.applescript'])]
 else:
     if os.environ.get('READTHEDOCS', None) == 'True' or os.environ.get('INSTALL_ON_LINUX') == '1':

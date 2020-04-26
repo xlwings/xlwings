@@ -1,0 +1,47 @@
+import binascii
+import sys
+import os
+import datetime as dt
+import json
+
+from cryptography.fernet import Fernet, InvalidToken
+
+
+class LicenseHandler:
+    @staticmethod
+    def get_license():
+        if sys.platform.startswith('darwin'):
+            config_file = os.path.join(os.path.expanduser("~"), 'Library', 'Containers',
+                                       'com.microsoft.Excel', 'Data', 'xlwings.conf')
+        else:
+            config_file = os.path.join(os.path.expanduser("~"), '.xlwings', 'xlwings.conf')
+        if not os.path.exists(config_file):
+            sys.exit('Could not find xlwings.conf. '
+                     'Run the following command first: xlwings license update -k MY_KEY')
+        with open(config_file, 'r') as f:
+            config = f.readlines()
+        key = None
+        for line in config:
+            if line.split(',')[0] == '"LICENSE_KEY"':
+                key = line.split(',')[1].strip()[1:-1]
+        if key:
+            return key
+        else:
+            sys.exit('Could not find a LICENSE_KEY in xlwings.conf. '
+                     'Run the following command first: xlwings license update -k MY_KEY')
+
+    @staticmethod
+    def validate_license():
+        cipher_suite = Fernet('JHkbsiw6th3h2zh1Q-XtPElB6WExxZRCmNZzNlUg8Mo=')
+        key = LicenseHandler.get_license()
+        try:
+            license_info = json.loads(cipher_suite.decrypt(key.encode()).decode())
+        except (binascii.Error, InvalidToken):
+            sys.exit('Invalid license key.')
+        if 'valid_until' not in license_info.keys() or 'products' not in license_info.keys():
+            sys.exit('Invalid license key format.')
+        license_valid_until = dt.datetime.strptime(license_info['valid_until'], '%Y-%m-%d').date()
+        if dt.date.today() > license_valid_until:
+            sys.exit('Your license expired on {}'.format(license_valid_until.strftime("%Y-%m-%d")))
+        if 'reports' not in license_info['products']:
+            sys.exit('Your license is not valid for xlwings REPORTS.')
