@@ -1,10 +1,9 @@
 .. toctree::
     :maxdepth: 2
     :hidden:
-    
+    :caption: Getting Started
+
     course
-    migrate_to_0.11
-    migrate_to_0.9
     installation
     quickstart
     connect_to_workbook
@@ -13,20 +12,32 @@
     addin
     vba
     udfs
-    debugging
     matplotlib
-    converters
-    threading_and_multiprocessing
     command_line
+    reports
+    deployment
+    troubleshooting
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :caption: Advanced Features
+
+    converters
+    debugging
+    extensions
+    threading_and_multiprocessing
     missing_features
     other_office_apps
-    deployment
-    extensions
     r_and_julia
-    troubleshooting
-    rest_api
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :caption: API Reference
+
     api
-    license
+    rest_api
 
 
 

@@ -1,7 +1,7 @@
 xlwings - Make Excel Fly!
 =========================
 
-xlwings is a `BSD-licensed <http://opensource.org/licenses/BSD-3-Clause>`_ Python library that makes it easy to call
+**xlwings CE** is a `BSD-licensed <http://opensource.org/licenses/BSD-3-Clause>`_ Python library that makes it easy to call
 Python from Excel and vice versa:
 
 * **Scripting**: Automate/interact with Excel from Python using a syntax close to VBA.
@@ -12,15 +12,15 @@ Python from Excel and vice versa:
 **Numpy arrays** and **Pandas Series/DataFrames** are fully supported. xlwings-powered workbooks are easy to distribute and work
 on **Windows** and **Mac**.
 
+**xlwings PRO** is a combination of the ``xlwings.pro`` subpackage and additional services like dedicated support. It is licensed under a commercial license and requires a license key.
+
 
 .. toctree::
     :maxdepth: 2
     :hidden:
-    
+    :caption: Getting Started
+
     course
-    whatsnew
-    migrate_to_0.11
-    migrate_to_0.9
     installation
     quickstart
     connect_to_workbook
@@ -29,20 +29,40 @@ on **Windows** and **Mac**.
     addin
     vba
     udfs
-    debugging
     matplotlib
-    converters
-    threading_and_multiprocessing
     command_line
+    reports
+    deployment
+    troubleshooting
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :caption: Advanced Features
+
+    converters
+    debugging
+    extensions
+    threading_and_multiprocessing
     missing_features
     other_office_apps
-    deployment
-    extensions
     r_and_julia
-    troubleshooting
-    rest_api
-    api
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :caption: About
+
+    whatsnew
     license
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :caption: API Reference
+
+    api
+    rest_api
 
 
 

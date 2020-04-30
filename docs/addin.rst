@@ -1,7 +1,7 @@
 .. _xlwings_addin:
 
-Add-in
-======
+Add-in & Settings
+=================
 
 .. figure:: images/ribbon.png
     :scale: 40%

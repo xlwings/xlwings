@@ -31,6 +31,8 @@ string_types = (str, )  # in case we need to reintroduce py27 compatibility
 
 def create_report(template, output, book_settings=None, app=None, **data):
     """
+    This feature requires xlwings :guilabel:`PRO`.
+
     Writes the values of all key word arguments to the ``output`` file according to the ``template`` and the variables
     contained in there (Jinja variable syntax).
     Following variable types are supported:
@@ -47,12 +49,12 @@ def create_report(template, output, book_settings=None, app=None, **data):
         Path to your Report, e.g. ``r'C:\\Path\\to\\my_report.xlsx'``
 
     book_settings: dict, default None
-        A dictionary of ``xlwings.Book`` parameters, for details see: `xlwings docs <http://docs.xlwings.org/en/stable/api.html#book>`_.
+        A dictionary of ``xlwings.Book`` parameters, for details see: :attr:`xlwings.Book`.
         For example: ``book_settings={'update_links': False}``.
 
     app: xlwings App, default None
         By passing in an xlwings App instance, you can control where your report runs and configure things like ``hidden=True``.
-        For details see: `xlwings docs <http://docs.xlwings.org/en/stable/api.html#app>`_. By default, it creates the
+        For details see :attr:`xlwings.App`. By default, it creates the
         report in the currently active instance of Excel.
 
     data: kwargs
