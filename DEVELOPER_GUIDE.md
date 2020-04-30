@@ -7,9 +7,8 @@ The source for the Python package is in the `xlwings` directory.
 1. Fork xlwings repository on GitHub into your own account
 2. Clone your forked repository: `git clone <your forked git url>`
 3. `cd xlwings`
-4. With the desired development environment activated: `pip install -e .`. This will install xlwings like a standard package
-   but runs from your cloned source code, i.e. you can edit/debug the xlwings code.
-5. Install the optional dependencies according to your platform with: `pip install -r requirements/devwin.txt` or `.../devmac.txt`
+4. With the desired development environment activated: `pip install -e ".[all]"`. This will install xlwings like a standard package
+   but runs from your cloned source code, i.e. you can edit/debug the xlwings code. If you don't want the dependencies to be taken care of, you could also use `python setup.py develop`.
 
 ## Mac implementation
 

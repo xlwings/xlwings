@@ -18,11 +18,11 @@ if sys.platform.startswith('win'):
         pywin32 = 'pywin32 >= 224'
     else:
         pywin32 = 'pywin32'
-    install_requires = ['cryptography', 'comtypes', pywin32]
+    install_requires = ['comtypes', pywin32]
     # This places dlls next to python.exe for standard setup and in the parent folder for virtualenv
     data_files = [('', glob.glob('xlwings*.dll'))]
 elif sys.platform.startswith('darwin'):
-    install_requires = ['cryptography', 'psutil >= 2.0.0', 'appscript >= 1.0.1']
+    install_requires = ['psutil >= 2.0.0', 'appscript >= 1.0.1']
     data_files = [(os.path.expanduser("~") + '/Library/Application Scripts/com.microsoft.Excel', ['xlwings/xlwings.applescript'])]
 else:
     if os.environ.get('READTHEDOCS', None) == 'True' or os.environ.get('INSTALL_ON_LINUX') == '1':
@@ -31,10 +31,15 @@ else:
     else:
         raise OSError("xlwings requires an installation of Excel and therefore only works on Windows and macOS. To enable the installation on Linux nevertheless, do: export INSTALL_ON_LINUX=1; pip install xlwings")
 
+extras_require = {
+    'pro': ['cryptography'],
+    'all': ['cryptography', 'pandas', 'matplotlib', 'flask', 'pillow']
+}
+
 setup(
     name='xlwings',
     version=version,
-    url='http://xlwings.org',
+    url='https://wwww.xlwings.org',
     license='BSD 3-clause',
     author='Zoomer Analytics LLC',
     author_email='felix.zumstein@zoomeranalytics.com',
@@ -45,6 +50,7 @@ setup(
     package_data={'xlwings': ['xlwings.bas', '*.xlsm', 'xlwings.applescript', 'addin/xlwings.xlam']},
     keywords=['xls', 'excel', 'spreadsheet', 'workbook', 'vba', 'macro'],
     install_requires=install_requires,
+    extras_require=extras_require,
     entry_points={'console_scripts': ['xlwings=xlwings.cli:main'],},
     classifiers=[
         'Development Status :: 4 - Beta',

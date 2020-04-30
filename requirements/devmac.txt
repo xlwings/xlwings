@@ -1,8 +1,0 @@
-pandas
-numpy
-matplotlib
-appscript
-psutil
-flask
-pillow
-nose
