@@ -54,7 +54,7 @@ class Mock(object):
 
 MOCK_MODULES = ['win32com', 'win32com.client', 'pywintypes', 'pythoncom', 'win32timezone', 'appscript',
                 'appscript.reference', 'psutil', 'xlplatform', 'atexit', 'aem', 'win32com.server', 'win32com.server.util',
-                'win32com.server.dispatcher', 'win32com.server.policy']
+                'win32com.server.dispatcher', 'win32com.server.policy', 'cryptography']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
