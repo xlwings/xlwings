@@ -4,9 +4,9 @@ import shutil
 
 from jinja2 import Environment
 
+from ..utils import LicenseHandler
 from ...main import Book
 from ...constants import FixedFormatType, FixedFormatQuality
-from ..utils import LicenseHandler
 
 try:
     import PIL

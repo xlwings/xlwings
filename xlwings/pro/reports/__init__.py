@@ -6,4 +6,4 @@ __all__ = ['create_report']
 LicenseHandler.validate_license('reports')
 
 # API
-from .main import create_pdf, create_report
+from .main import create_report
