@@ -1,10 +1,5 @@
 from functools import wraps
 import sys
-try:
-    import xlwings.pro
-    PRO = True
-except Exception as e:
-    PRO = False
 
 
 __version__ = 'dev'
@@ -23,9 +18,19 @@ class ShapeAlreadyExists(Exception):
     pass
 
 
+class LicenseError(Exception):
+    pass
+
+
 # API
 from .main import App, Book, Range, Chart, Sheet, Picture, Shape, Name, view, RangeRows, RangeColumns
 from .main import apps, books, sheets
+
+try:
+    from . import pro
+    PRO = True
+except LicenseError as e:
+    PRO = False
 
 # UDFs
 if sys.platform.startswith('win'):

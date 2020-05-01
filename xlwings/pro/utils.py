@@ -3,11 +3,12 @@ import sys
 import os
 import datetime as dt
 import json
+from .. import LicenseError
 
 try:
     from cryptography.fernet import Fernet, InvalidToken
 except ImportError as e:
-    raise Exception("Couldn't find 'cryptography', a dependency of xlwings PRO.")
+    raise ImportError("Couldn't find 'cryptography', a dependency of xlwings PRO.")
 
 
 class LicenseHandler:
@@ -31,28 +32,28 @@ class LicenseHandler:
         if key:
             return key
         else:
-            sys.exit("Couldn't find a valid license key.")
+            raise LicenseError("Couldn't find a valid license key.")
 
     @staticmethod
     def validate_license(product):
         try:
             cipher_suite = Fernet(os.getenv('XLWINGS_LICENSE_KEY_SECRET'))
         except ValueError:
-            sys.exit("Couldn't validate license key.")
+            raise LicenseError("Couldn't validate license key.")
         key = LicenseHandler.get_license()
         try:
             license_info = json.loads(cipher_suite.decrypt(key.encode()).decode())
         except (binascii.Error, InvalidToken):
-            sys.exit('Invalid license key.')
+            raise LicenseError('Invalid license key.')
         if 'valid_until' not in license_info.keys() or 'products' not in license_info.keys():
-            sys.exit('Invalid license key format.')
+            raise LicenseError('Invalid license key format.')
         if 'valid_until' not in license_info.keys() or 'products' not in license_info.keys():
-            sys.exit('Invalid license key format.')
+            raise LicenseError('Invalid license key format.')
         license_valid_until = dt.datetime.strptime(license_info['valid_until'], '%Y-%m-%d').date()
         if dt.date.today() > license_valid_until:
-            sys.exit('Your license expired on {}.'.format(license_valid_until.strftime("%Y-%m-%d")))
+            raise LicenseError('Your license expired on {}.'.format(license_valid_until.strftime("%Y-%m-%d")))
         if product not in license_info['products']:
             if product == 'pro':
-                sys.exit('Invalid license key for xlwings PRO.')
+                raise LicenseError('Invalid license key for xlwings PRO.')
             elif product == 'reports':
-                sys.exit('Your license is not valid for the xlwings reports add-on.')
+                raise LicenseError('Your license is not valid for the xlwings reports add-on.')
