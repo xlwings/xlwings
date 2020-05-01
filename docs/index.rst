@@ -12,7 +12,7 @@ Python from Excel and vice versa:
 **Numpy arrays** and **Pandas Series/DataFrames** are fully supported. xlwings-powered workbooks are easy to distribute and work
 on **Windows** and **Mac**.
 
-**xlwings PRO** is a combination of the ``xlwings.pro`` subpackage and additional services like dedicated support. It is licensed under a commercial license and requires a license key.
+**xlwings PRO** is a combination of the ``xlwings.pro`` subpackage and additional services like dedicated support. It is licensed under a commercial license and requires a valid license key.
 
 
 .. toctree::
