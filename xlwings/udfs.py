@@ -439,7 +439,7 @@ def import_udfs(module_names, xl_workbook):
     vba.writeln("""#Const App = "Microsoft Excel" 'Adjust when using outside of Excel""")
 
     for module_name in module_names:
-        module = get_udf_module(module_name)
+        module = get_udf_module(module_name, xl_workbook)
         generate_vba_wrapper(module_name, module, tf.file)
 
     tf.close()
