@@ -3,8 +3,10 @@ import sys
 import shutil
 
 from jinja2 import Environment
-import xlwings as xw
-from xlwings.constants import FixedFormatType, FixedFormatQuality
+
+from ...main import Book
+from ...constants import FixedFormatType, FixedFormatQuality
+from ..utils import LicenseHandler
 
 try:
     import PIL
@@ -26,6 +28,7 @@ try:
 except ImportError:
     pd = None
 
+LicenseHandler.validate_license('reports')
 string_types = (str, )  # in case we need to reintroduce py27 compatibility
 
 
@@ -103,9 +106,9 @@ def create_report(template, output, book_settings=None, app=None, **data):
     else:
         # Use existing Excel instance or create a new one if there is none
         if book_settings:
-            wb = xw.Book(output, **book_settings)
+            wb = Book(output, **book_settings)
         else:
-            wb = xw.Book(output)
+            wb = Book(output)
 
     # On Windows, Excel will not move objects correctly with screen_updating = False during row insert/delete operations
     # So we'll need to set it to True before any such operations. Getting origin state here to revert to.

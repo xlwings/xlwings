@@ -2,7 +2,10 @@ import os
 import sys
 import tempfile
 
+from .utils import LicenseHandler
 from ..main import Book
+
+LicenseHandler.validate_license('pro')
 
 
 def dump_embedded_code(book, target_dir):
