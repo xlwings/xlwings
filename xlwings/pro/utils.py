@@ -36,7 +36,10 @@ class LicenseHandler:
 
     @staticmethod
     def validate_license(product):
-        cipher_suite = Fernet(os.getenv('LICENSE_KEY_SECRET'))
+        try:
+            cipher_suite = Fernet(os.getenv('LICENSE_KEY_SECRET'))
+        except ValueError:
+            sys.exit("Couldn't validate license key.")
         key = LicenseHandler.get_license()
         try:
             license_info = json.loads(cipher_suite.decrypt(key.encode()).decode())
