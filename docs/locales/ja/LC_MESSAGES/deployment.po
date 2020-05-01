@@ -1,0 +1,96 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-04-06 16:16+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../deployment.rst:4
+msgid "Deployment"
+msgstr "デプロイ"
+
+#: ../../deployment.rst:7
+msgid "Zip files"
+msgstr "Zipファイル"
+
+#: ../../deployment.rst:11
+msgid ""
+"To make it easier to distribute, you can zip up your Python code into a "
+"zip file. If you use UDFs, this will disable the automatic code reload, "
+"so this is a feature meant for distribution, not development. In "
+"practice, this means that when your code is inside a zip file, you'll "
+"have to click on re-import to get any changes."
+msgstr ""
+"配布を容易にするために、Pythonのコードをzipファイルにまとめることができます。"
+"UDFを使っている場合、コードの自動再読み込みは停止します。"
+"つまり、この機能は配布のためのものであり、開発のためのものではありません。"
+"実際に、zipファイル内のコードの変更を反映するには、 ``Import Functions`` ボタンを"
+"を押す必要があります。"
+
+#: ../../deployment.rst:15
+msgid ""
+"If you name your zip file like your Excel file (but with ``.zip`` "
+"extension) and place it in the same folder as your Excel workbook, "
+"xlwings will automatically find it (similar to how it works with a single"
+" python file)."
+msgstr ""
+"zipファイルの名前をExcelファイルと同様に（ただし、拡張子は ``.zip`` ）しており、"
+"かつ、Excelワークブックと同じフォルダーに保存していれば、"
+"（単独のPythonファイルと同様に）xlwingsは自動的にそのファイルを見つけます。"
+
+#: ../../deployment.rst:18
+msgid ""
+"If you want to use a different directory, make sure to add it to the "
+"``PYTHONPATH`` in your config (Ribbon or config file):"
+msgstr ""
+"別のディレクトリーで使うには、コンフィグ（リボンかコンフィグ ファイル）内の "
+"``PYTHONPATH`` にパスを設定してください:"
+
+#: ../../deployment.rst:25
+msgid "RunFrozenPython"
+msgstr ""
+
+#: ../../deployment.rst:29
+msgid ""
+"You can use a freezer like PyInstaller, cx_Freeze, py2exe etc. to freeze "
+"your Python module into an executable so that the recipient doesn't have "
+"to install a full Python distribution."
+msgstr ""
+"PyInstaller、cx_Freeze、py2exeなどのフリーザーを使えます。"
+"フリーザーはPythonのモジュールを実行可能にし、受け取り側は"
+"Pythonのディストリビューションのインストールが不要になります。"
+
+#: ../../deployment.rst:33
+msgid "This does not work with UDFs."
+msgstr "UDFでは動作しません"
+
+#: ../../deployment.rst:34
+msgid ""
+"Currently only available on Windows, but support for Mac should be easy "
+"to add."
+msgstr ""
+"現在のところ、利用可能なのはWindowsのみですが、Macのサポートは容易に追加されるでしょう。"
+
+#: ../../deployment.rst:35
+msgid ""
+"You need at least 0.15.2 to support arguments whereas the syntax changed "
+"in 0.15.6"
+msgstr ""
+"引数を利用するには、少なくとも0.15.2以上にする必要がありますが、0.15.6でシンタックスが変更されました。"
+
+#: ../../deployment.rst:37
+msgid "Use it as follows:"
+msgstr "次のように使います:"
+
