@@ -36,7 +36,7 @@ class LicenseHandler:
 
     @staticmethod
     def validate_license(product):
-        cipher_suite = Fernet('JHkbsiw6th3h2zh1Q-XtPElB6WExxZRCmNZzNlUg8Mo=')
+        cipher_suite = Fernet('xxxx')
         key = LicenseHandler.get_license()
         try:
             license_info = json.loads(cipher_suite.decrypt(key.encode()).decode())
