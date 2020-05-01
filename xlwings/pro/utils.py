@@ -7,8 +7,7 @@ import json
 try:
     from cryptography.fernet import Fernet, InvalidToken
 except ImportError as e:
-    sys.exit("Couldn't find 'cryptography', a dependency of xlwings PRO. "
-             "Details: {0}.".format(repr(e)))
+    Exception("Couldn't find 'cryptography', a dependency of xlwings PRO.")
 
 
 class LicenseHandler:
