@@ -45,7 +45,7 @@ jobs:
       shell: bash
       env:
         ASPOSE_LICENSE: ${{ secrets.ASPOSE_LICENSE }}
-        LICENSE_KEY_SECRET: ${{ secrets.LICENSE_KEY_SECRET }}
+        XLWINGS_LICENSE_KEY_SECRET: ${{ secrets.XLWINGS_LICENSE_KEY_SECRET }}
       run: |
         python ./scripts/build_excel_files.py
         python setup.py sdist

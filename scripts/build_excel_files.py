@@ -43,7 +43,7 @@ for source_file in [version_file, cli_file]:
 lh = os.path.join(os.environ["GITHUB_WORKSPACE"], 'xlwings', 'pro', 'utils.py')
 with open(lh, 'r') as f:
     content = f.read()
-content = content.replace("os.getenv('LICENSE_KEY_SECRET')", "'" + os.environ['LICENSE_KEY_SECRET'] + "'")
+content = content.replace("os.getenv('XLWINGS_LICENSE_KEY_SECRET')", "'" + os.environ['XLWINGS_LICENSE_KEY_SECRET'] + "'")
 with open(lh, 'w') as f:
     f.write(content)
 

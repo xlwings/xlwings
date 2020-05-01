@@ -36,7 +36,7 @@ class LicenseHandler:
     @staticmethod
     def validate_license(product):
         try:
-            cipher_suite = Fernet(os.getenv('LICENSE_KEY_SECRET'))
+            cipher_suite = Fernet(os.getenv('XLWINGS_LICENSE_KEY_SECRET'))
         except ValueError:
             sys.exit("Couldn't validate license key.")
         key = LicenseHandler.get_license()
