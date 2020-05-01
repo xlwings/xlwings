@@ -1,4 +1,7 @@
 import os
+import glob
+import time
+import shutil
 import sys
 import tempfile
 
@@ -27,3 +30,18 @@ def runpython_embedded_code(command):
     with tempfile.TemporaryDirectory(prefix='xlwings-') as tempdir:
         dump_embedded_code(Book.caller(), tempdir)
         exec(command)
+
+
+def get_udf_temp_dir():
+    tmp_base_path = os.path.join(tempfile.gettempdir(), 'xlwingsudfs')
+    os.makedirs(tmp_base_path, exist_ok=True)
+    try:
+        # HACK: Clean up directories that are older than 30 days
+        # This should be done in the C++ part when the Python process is killed from there
+        for subdir in glob.glob(tmp_base_path + '/*/'):
+            if os.path.getmtime(subdir) < time.time() - 30 * 86400:
+                shutil.rmtree(subdir, ignore_errors=True)
+    except Exception:
+        pass  # we don't care if it fails
+    tempdir = tempfile.TemporaryDirectory(dir=tmp_base_path)
+    return tempdir

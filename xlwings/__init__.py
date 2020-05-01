@@ -1,5 +1,10 @@
 from functools import wraps
 import sys
+try:
+    import xlwings.pro
+    PRO = True
+except Exception as e:
+    PRO = False
 
 
 __version__ = 'dev'

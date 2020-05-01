@@ -1,6 +1,5 @@
 import os
 import os.path
-import sys
 import re
 import tempfile
 import inspect
@@ -11,8 +10,10 @@ from importlib import reload  # requires >= py 3.4
 from win32com.client import Dispatch
 import pywintypes
 
-from . import conversion, xlplatform, Range, apps
+from . import conversion, xlplatform, Range, apps, Book, PRO
 from .utils import VBAWriter
+if PRO:
+    from .pro.embedded_code import dump_embedded_code, get_udf_temp_dir
 
 
 cache = {}
@@ -198,7 +199,12 @@ class DelayedResizeDynamicArrayFormula:
         self.target_range.api.FormulaArray = formula
 
 
-def get_udf_module(module_name):
+# Setup temp dir for embedded code
+if PRO:
+    tempdir = get_udf_temp_dir()
+
+
+def get_udf_module(module_name, xl_workbook):
     module_info = udf_modules.get(module_name, None)
     if module_info is not None:
         module = module_info['module']
@@ -210,12 +216,12 @@ def get_udf_module(module_name):
                 module_info['filetime'] = mtime
                 module_info['module'] = module
     else:
-        if sys.version_info[:2] < (2, 7):
-            # For Python 2.6. we don't handle modules in subpackages
-            module = __import__(module_name)
-        else:
-            module = import_module(module_name)
+        # Handle embedded code
+        if PRO:
+            wb = Book(impl=xlplatform.Book(Dispatch(xl_workbook)))
+            dump_embedded_code(wb, tempdir.name)
 
+        module = import_module(module_name)
         filename = os.path.normcase(module.__file__.lower())
 
         try:  # getmtime fails for zip imports and frozen modules
@@ -241,7 +247,7 @@ def get_cache_key(func, args, caller):
 
 def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
 
-    module = get_udf_module(module_name)
+    module = get_udf_module(module_name, this_workbook)
     func = getattr(module, func_name)
     func_info = func.__xlfunc__
     args_info = func_info['args']
@@ -445,7 +451,7 @@ def import_udfs(module_names, xl_workbook):
     xl_workbook.VBProject.VBComponents.Import(tf.name)
 
     for module_name in module_names:
-        module = get_udf_module(module_name)
+        module = get_udf_module(module_name, xl_workbook)
         for mvar in map(lambda attr: getattr(module, attr), dir(module)):
             if hasattr(mvar, '__xlfunc__'):
                 xlfunc = mvar.__xlfunc__
