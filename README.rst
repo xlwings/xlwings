@@ -20,7 +20,7 @@ xlwings CE includes all files in the xlwings package except the ``pro`` folder, 
 xlwings PRO
 -----------
 
-The purpose of xlwings PRO is to finance the continued maintenance and enhancement of xlwings. This will allow you to rely on the package without being left with the dreaded `this library currently has no active maintainers <https://github.com/python-excel/xlrd>`_ message that happens to too many open-source packages after a couple of years.
+The purpose of xlwings PRO is to finance the continued maintenance and enhancement of xlwings. This will allow you to rely on the package without being left with the dreaded `"this library currently has no active maintainers" <https://github.com/python-excel/xlrd>`_ message that happens to too many open-source packages after a couple of years.
 
 xlwings PRO is a subscription that combines the ``xlwings.pro`` subpackage and additional services like dedicated support. It is licensed under a commercial license (see ``LICENSE_PRO.txt``) and must be used with a valid license key.
 
