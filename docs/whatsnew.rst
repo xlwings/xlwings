@@ -5,6 +5,7 @@ v0.19.0 (May 2, 2020)
 ----------------------
 
 * [Bug Fix] Native dynamic array formulas can now be used with async formulas (:issue:`1277`)
+* [Enhancement] Quickstart references the project's name when run from Python instead of the active book (:issue:`1307`)
 
 **Breaking Change**:
 
