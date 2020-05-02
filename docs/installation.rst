@@ -45,7 +45,7 @@ This will store the license key under your ``xlwings.conf`` file in your home fo
 
 xlwings PRO requires additionally the ``cryptography`` and ``Jinja2`` packages which come pre-installed with Anaconda. Otherwise, install them via pip or conda.
 
-With pip, you can also run ``pip install xlwings[pro]`` which will take care of the extra dependencies for xlwings PRO.
+With pip, you can also run ``pip install "xlwings[pro]"`` which will take care of the extra dependencies for xlwings PRO.
 
 Dependencies
 ------------
