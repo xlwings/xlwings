@@ -29,7 +29,7 @@ from .main import apps, books, sheets
 try:
     from . import pro
     PRO = True
-except LicenseError:
+except (ImportError, LicenseError):
     PRO = False
 
 # UDFs
