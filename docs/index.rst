@@ -18,7 +18,7 @@ on **Windows** and **Mac**.
 xlwings PRO
 -----------
 
-xlwings PRO offers access to additional functionality. Anything that is a PRO feature, is marked with xlwings :guilabel:`PRO` in the docs.
+xlwings PRO offers access to additional functionality. All PRO features are marked with xlwings :guilabel:`PRO` in the docs.
 
 See :ref:`pro` for more details.
 
