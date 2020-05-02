@@ -1,6 +1,15 @@
 What's New
 ==========
 
+v0.19.0 (May 2, 2020)
+----------------------
+
+* [Bug Fix] Native dynamic array formulas can now be used with async formulas (:issue:`1277`)
+
+**Breaking Change**:
+
+* `Conda Base` has been renamed into `Conda Path` to reduce the confusion with the `Conda Env` called `base`. Please adjust your settings accordingly! (:issue:`1194`)
+
 v0.18.0 (Feb 15, 2020)
 ----------------------
 

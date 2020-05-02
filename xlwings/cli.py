@@ -83,7 +83,7 @@ def quickstart(args):
             python_module.write('def hello(name):\n')
             python_module.write('    return "hello {0}".format(name)\n\n\n')
         python_module.write('if __name__ == "__main__":\n')
-        python_module.write('    xw.books.active.set_mock_caller()\n')
+        python_module.write('    xw.Book("{0}.xlsm").set_mock_caller()\n'.format(project_name))
         python_module.write('    main()\n')
 
     # Excel file
