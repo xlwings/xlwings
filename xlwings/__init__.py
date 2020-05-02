@@ -3,7 +3,6 @@ import sys
 
 
 __version__ = 'dev'
-__edition__ = 'ce'
 
 # Platform specifics
 if sys.platform.startswith('win'):
@@ -19,9 +18,19 @@ class ShapeAlreadyExists(Exception):
     pass
 
 
+class LicenseError(Exception):
+    pass
+
+
 # API
 from .main import App, Book, Range, Chart, Sheet, Picture, Shape, Name, view, RangeRows, RangeColumns
 from .main import apps, books, sheets
+
+try:
+    from . import pro
+    PRO = True
+except (ImportError, LicenseError):
+    PRO = False
 
 # UDFs
 if sys.platform.startswith('win'):

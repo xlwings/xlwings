@@ -42,4 +42,132 @@ Use it as follows:
         RunFrozenPython "C:\path\to\dist\myproject\myproject.exe", "arg1 arg2"
     End Sub
 
+.. _embedded_code:
 
+Embedded Code
+-------------
+
+This feature requires xlwings :guilabel:`PRO`.
+
+xlwings PRO allows you to store your Python code directly in Excel so you don't have to distribute separate
+Python files.
+
+All you have to do is:
+
+* Name a sheet with a ``.py`` ending (can also be a hidden or very hidden sheet)
+* Copy/paste your Python source code
+
+.. note::
+  Make sure to select ``Paste Special > Text`` as you might otherwise get errors with
+  indentation or unrecognized characters.
+
+Then, use the VBA function ``RunPython ("import mymodule;mymodule.myfunction()")`` as usual.
+
+Note that you can have multiple Excel sheets and import them like normal Python files. Consider this example:
+
+
+.. figure:: images/embedded_code1.png
+    :scale: 40%
+
+.. figure:: images/embedded_code2.png
+    :scale: 40%
+
+
+You can call this function from VBA like so::
+
+    Sub RandomNumbers()
+        RunPython ("import random_numbers;random_numbers.main()")
+    End Sub
+
+
+.. note::
+    UDFs modules don't have to be added to the ``UDF Modules`` explicitly when using embedded code. However,
+    in contrast to how it works with external files, you currently need to re-import the functions when you change them.
+
+.. note::
+    While you can hide your sheets with your code, they will be written to a temporary directory in clear text.
+
+.. _zero_config_installer:
+
+One-Click Zero-Config Installer
+-------------------------------
+
+This feature requires xlwings :guilabel:`PRO`.
+
+With xlwings PRO you get access to a private GitHub repository that will build your custom installer in the cloud --- no local installation required. Using a custom installer to deploy the Python runtime has the following advantages:
+
+* Zero Python knowledge required from end users
+* Zero configuration required by end users
+* No admin rights required
+* Works for both UDFs and RunPython
+* Works for external distribution
+* Easy to deploy updates
+
+End User Instructions
+*********************
+
+* **Installing**
+
+  Give the end user your Excel workbook and the installer. The user only has to double-click the installer and confirm a few prompts --- no configuation is required.
+
+* **Updating**
+
+  If you use the embedded code feature (see: :ref:`embedded_code`), you can deploy updates by simply giving the user a new Excel file. Only when you change a dependency, you will need to create a new installer.
+
+* **Uninstalling**
+
+  The application can be uninstalled again via Window Settings > Apps & Features.
+
+Build the Installer
+*******************
+
+Before you can build the installer, the project needs to be configured correctly, see below.
+
+In the GitHub repo, go to ``x releases`` > ``Draft/Create a new release``. Add a version like ``1.0.0`` to ``Tag version``, then hit ``Publish release``.
+
+Wait a few minutes and refresh the page: the installer will appear under the release from where you can download it. You can follow the progress under the ``Actions`` tab.
+
+Configuration
+*************
+
+**Excel file**
+
+You can add your Excel file to the repository if you like but it's not a requirement. Configure the Excel file as follows:
+
+* Add the standalone xlwings VBA module, e.g. via ``xlwings quickstart project --standalone``
+* Make sure that in the VBA editor (``Alt-F11``) under ``Tools`` > ``References`` xlwings is unchecked
+* Rename the ``_xlwings.conf`` sheet into ``xlwings.conf``
+* In the ``xlwings.conf`` sheet, as ``Interpreter``, set the following value: ``%LOCALAPPDATA%\project`` while replacing ``project`` with the name of your project
+* If you like, you can hide the ``xlwings.conf`` sheet
+
+**Source code**
+
+Source code can either be embedded in the Excel file (see :ref:`embedded_code`) or added to the ``src`` directory. The first option requires ``xlwings-pro`` in ``requirements.txt``, the second option will also work with ``xlwings``.
+
+**Dependencies**
+
+Add your dependencies to ``requirements.txt``. For example::
+
+    xlwings==0.18.0
+    numpy==1.18.2
+
+**Code signing (optional)**
+
+Using a code sign certificate will show a verified publisher in the installation prompt. Without it, it will show an unverified publisher.
+
+* Store your code sign certificate as ``sign_cert_file`` in the root of this repository (make sure your repo is private).
+* Go to ``Settings`` > ``Secrets`` and add the password as ``code_sign_password``.
+
+**Project details**
+
+Update the following under ``.github/main.yml``::
+
+    PROJECT:
+    APP_PUBLISHER:
+
+**Python version**
+
+Set your Python version under ``.github/main.yml``::
+
+    python-version: '3.7'
+    architecture: 'x64'

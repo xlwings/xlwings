@@ -1,8 +1,0 @@
-pandas
-numpy
-matplotlib
-pywin32
-comtypes
-flask
-pillow
-nose

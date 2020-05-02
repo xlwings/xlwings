@@ -3,7 +3,7 @@ xlwings - Make Excel fly with Python!
 
 Homepage and documentation: https://www.xlwings.org
 
-Copyright (C) 2014-present, Zoomer Analytics LLC.
+Copyright (C) 2014-present, Zoomer Analytics GmbH.
 All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
@@ -12,7 +12,6 @@ import os
 import sys
 import re
 import numbers
-import inspect
 
 from . import xlplatform, ShapeAlreadyExists
 from .utils import VersionNumber
@@ -555,9 +554,8 @@ class Book:
     def caller(cls):
         """
         References the calling book when the Python function is called from Excel via ``RunPython``.
-        Pack it into the function being called from Excel, e.g.:
+        Pack it into the function being called from Excel, e.g.::
 
-        .. code-block:: python
             import xlwings as xw
 
              def my_macro():

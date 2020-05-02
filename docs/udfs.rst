@@ -1,7 +1,7 @@
 .. _udfs:
 
-VBA: User Defined Functions (UDFs)
-==================================
+User Defined Functions (UDFs)
+=============================
 
 This tutorial gets you quickly started on how to write User Defined Functions.
 
