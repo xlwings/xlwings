@@ -36,7 +36,7 @@ xlwings PRO offers access to additional functionality. Anything that is a PRO fe
 This feature requires xlwings :guilabel:`PRO`.
 
 .. note::
-    To get access to the functionality of xlwings PRO, you need a license key. Everything under the ``xlwings.pro`` subpackage is distributed under a :ref:`commercial license <commercial_license>`. To get access to the xlwings PRO functionality, you must have at least xlwings 0.19.0. You can see available plans and pricing as well as request a trial license key via https://www.xlwings.org/trial.
+    To get access to the additional functionality of xlwings PRO, you need a license key and at least xlwings v0.19.0. Everything under the ``xlwings.pro`` subpackage is distributed under a :ref:`commercial license <commercial_license>`. See :ref:`pro` for more details.
 
 To activate the license key, run the following command::
 

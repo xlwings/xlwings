@@ -87,8 +87,10 @@ You can call this function from VBA like so::
 .. note::
     While you can hide your sheets with your code, they will be written to a temporary directory in clear text.
 
-Deployment via 1-Click Installer
---------------------------------
+.. _zero_config_installer:
+
+One-Click Zero-Config Installer
+-------------------------------
 
 This feature requires xlwings :guilabel:`PRO`.
 

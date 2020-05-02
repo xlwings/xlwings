@@ -23,6 +23,7 @@
     :hidden:
     :caption: Advanced Features
 
+    pro
     converters
     debugging
     extensions

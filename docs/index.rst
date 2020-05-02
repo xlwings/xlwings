@@ -18,12 +18,9 @@ on **Windows** and **Mac**.
 xlwings PRO
 -----------
 
-xlwings PRO offers access to additional functionality. Anything that is a PRO feature, is marked like this in the documentation:
-This feature requires xlwings :guilabel:`PRO`.
+xlwings PRO offers access to additional functionality. Anything that is a PRO feature, is marked with xlwings :guilabel:`PRO` in the docs.
 
-.. note::
-    To get access to the functionality of xlwings PRO, you need a license key. Everything under the ``xlwings.pro`` subpackage is distributed under a :ref:`commercial license <commercial_license>`. To get access to the xlwings PRO functionality, you must have at least xlwings 0.19.0. You can see available plans and pricing as well as request a trial license key via https://www.xlwings.org/trial.
-
+See :ref:`pro` for more details.
 
 .. toctree::
     :maxdepth: 2
@@ -50,6 +47,7 @@ This feature requires xlwings :guilabel:`PRO`.
     :hidden:
     :caption: Advanced Features
 
+    pro
     converters
     debugging
     extensions
