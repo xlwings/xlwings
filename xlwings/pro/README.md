@@ -1,6 +1,6 @@
 # xlwings PRO
 
-(c) 2020-present by Zoomer Analytics
+(c) 2020-present by Zoomer Analytics GmbH
 
 Note that the code in this directory is licensed under a commercial license and must be used with a valid license key.
 

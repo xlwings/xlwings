@@ -32,10 +32,11 @@ use the ``conda-forge`` channel, see: https://anaconda.org/conda-forge/xlwings::
 How to activate xlwings PRO
 ---------------------------
 
-.. note::
-    To get access to the functionality of xlwings PRO, you need a license key. Everything under the ``xlwings.pro`` subpackage is distributed under a :ref:`commercial license <commercial_license>`.
+xlwings PRO offers access to additional functionality. Anything that is a PRO feature, is marked like this in the documentation:
+This feature requires xlwings :guilabel:`PRO`.
 
-To get access to the xlwings PRO functionality, you must have at least xlwings 0.19.0. You can request a trial license key from here: https://www.xlwings.org/trial.
+.. note::
+    To get access to the functionality of xlwings PRO, you need a license key. Everything under the ``xlwings.pro`` subpackage is distributed under a :ref:`commercial license <commercial_license>`. To get access to the xlwings PRO functionality, you must have at least xlwings 0.19.0. You can see available plans and pricing as well as request a trial license key via https://www.xlwings.org/trial.
 
 To activate the license key, run the following command::
 
@@ -43,9 +44,9 @@ To activate the license key, run the following command::
 
 This will store the license key under your ``xlwings.conf`` file in your home folder. Alternatively, you can also store the license key under an environment variable with the name ``XLWINGS_LICENSE_KEY``.
 
-xlwings PRO requires additionally the ``cryptography`` package which comes pre-installed with Anaconda. Otherwise, install it via pip or conda.
+xlwings PRO requires additionally the ``cryptography`` and ``Jinja2`` packages which come pre-installed with Anaconda. Otherwise, install them via pip or conda.
 
-With pip, you can also run ``pip install xlwings[pro]`` which will take care of the extra dependency for xlwings PRO.
+With pip, you can also run ``pip install xlwings[pro]`` which will take care of the extra dependencies for xlwings PRO.
 
 Dependencies
 ------------
@@ -65,10 +66,9 @@ Optional Dependencies
 * Pillow/PIL
 * Flask (for REST API)
 * cryptography (for xlwings PRO)
+* Jinja2 (for xlwings PRO)
 
-These packages are not required but highly recommended as they play very nicely with xlwings.
-
-You can install xlwings with all optional dependencies as follows::
+These packages are not required but highly recommended as they play very nicely with xlwings. They are all pre-installed with Anaconda. With pip, you can install xlwings with all optional dependencies as follows::
 
     pip install xlwings[all]
 

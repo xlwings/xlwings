@@ -1,7 +1,10 @@
 xlwings - Make Excel Fly!
 =========================
 
-**xlwings CE** is a `BSD-licensed <http://opensource.org/licenses/BSD-3-Clause>`_ Python library that makes it easy to call
+xlwings CE
+----------
+
+xlwings CE is a `BSD-licensed <http://opensource.org/licenses/BSD-3-Clause>`_ Python library that makes it easy to call
 Python from Excel and vice versa:
 
 * **Scripting**: Automate/interact with Excel from Python using a syntax close to VBA.
@@ -12,7 +15,14 @@ Python from Excel and vice versa:
 **Numpy arrays** and **Pandas Series/DataFrames** are fully supported. xlwings-powered workbooks are easy to distribute and work
 on **Windows** and **Mac**.
 
-**xlwings PRO** is a combination of the ``xlwings.pro`` subpackage and additional services like dedicated support. It is licensed under a commercial license and requires a valid license key.
+xlwings PRO
+-----------
+
+xlwings PRO offers access to additional functionality. Anything that is a PRO feature, is marked like this in the documentation:
+This feature requires xlwings :guilabel:`PRO`.
+
+.. note::
+    To get access to the functionality of xlwings PRO, you need a license key. Everything under the ``xlwings.pro`` subpackage is distributed under a :ref:`commercial license <commercial_license>`. To get access to the xlwings PRO functionality, you must have at least xlwings 0.19.0. You can see available plans and pricing as well as request a trial license key via https://www.xlwings.org/trial.
 
 
 .. toctree::
