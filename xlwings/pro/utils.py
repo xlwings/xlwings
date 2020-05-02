@@ -8,7 +8,7 @@ from .. import LicenseError
 try:
     from cryptography.fernet import Fernet, InvalidToken
 except ImportError as e:
-    raise ImportError("Couldn't find 'cryptography', a dependency of xlwings PRO.")
+    raise ImportError("Couldn't find 'cryptography', a dependency of xlwings PRO.") from None
 
 
 class LicenseHandler:
@@ -32,28 +32,28 @@ class LicenseHandler:
         if key:
             return key
         else:
-            raise LicenseError("Couldn't find a valid license key.")
+            raise LicenseError("Couldn't find a valid license key.") from None
 
     @staticmethod
     def validate_license(product):
         try:
             cipher_suite = Fernet(os.getenv('XLWINGS_LICENSE_KEY_SECRET'))
         except ValueError:
-            raise LicenseError("Couldn't validate license key.")
+            raise LicenseError("Couldn't validate license key.") from None
         key = LicenseHandler.get_license()
         try:
             license_info = json.loads(cipher_suite.decrypt(key.encode()).decode())
         except (binascii.Error, InvalidToken):
-            raise LicenseError('Invalid license key.')
+            raise LicenseError('Invalid license key.') from None
         if 'valid_until' not in license_info.keys() or 'products' not in license_info.keys():
-            raise LicenseError('Invalid license key format.')
+            raise LicenseError('Invalid license key format.') from None
         if 'valid_until' not in license_info.keys() or 'products' not in license_info.keys():
-            raise LicenseError('Invalid license key format.')
+            raise LicenseError('Invalid license key format.') from None
         license_valid_until = dt.datetime.strptime(license_info['valid_until'], '%Y-%m-%d').date()
         if dt.date.today() > license_valid_until:
-            raise LicenseError('Your license expired on {}.'.format(license_valid_until.strftime("%Y-%m-%d")))
+            raise LicenseError('Your license expired on {}.'.format(license_valid_until.strftime("%Y-%m-%d"))) from None
         if product not in license_info['products']:
             if product == 'pro':
-                raise LicenseError('Invalid license key for xlwings PRO.')
+                raise LicenseError('Invalid license key for xlwings PRO.') from None
             elif product == 'reports':
-                raise LicenseError('Your license is not valid for the xlwings reports add-on.')
+                raise LicenseError('Your license is not valid for the xlwings reports add-on.') from None
