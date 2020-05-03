@@ -69,7 +69,7 @@ Optional Dependencies
 
 These packages are not required but highly recommended as they play very nicely with xlwings. They are all pre-installed with Anaconda. With pip, you can install xlwings with all optional dependencies as follows::
 
-    pip install xlwings[all]
+    pip install "xlwings[all]"
 
 Add-in
 ------
