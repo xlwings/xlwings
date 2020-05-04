@@ -1,8 +1,13 @@
 What's New
 ==========
 
+v0.19.1 (May 4, 2020)
+---------------------
+
+* [Bug Fix] Fixed an issue with the xlwings PRO license key when there was no `xlwings.conf` file (:issue:`1308`).
+
 v0.19.0 (May 2, 2020)
-----------------------
+---------------------
 
 * [Bug Fix] Native dynamic array formulas can now be used with async formulas (:issue:`1277`)
 * [Enhancement] Quickstart references the project's name when run from Python instead of the active book (:issue:`1307`)
