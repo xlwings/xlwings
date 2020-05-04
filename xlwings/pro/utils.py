@@ -22,7 +22,7 @@ class LicenseHandler:
         else:
             config_file = os.path.join(os.path.expanduser("~"), '.xlwings', 'xlwings.conf')
         if not os.path.exists(config_file):
-            sys.exit("Couldn't find a license key.")
+            raise LicenseError("Couldn't find a license key.")
         with open(config_file, 'r') as f:
             config = f.readlines()
         key = None
