@@ -39,7 +39,7 @@ extras_require = {
 setup(
     name='xlwings',
     version=version,
-    url='https://wwww.xlwings.org',
+    url='https://www.xlwings.org',
     license='BSD 3-clause',
     author='Zoomer Analytics LLC',
     author_email='felix.zumstein@zoomeranalytics.com',
