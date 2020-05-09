@@ -2026,6 +2026,15 @@ class Shape:
         self.impl = impl
 
     @property
+    def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+
+        .. versionadded:: 0.19.2
+        """
+        return self.impl.api
+
+    @property
     def name(self):
         """
         Returns or sets the name of the shape.
