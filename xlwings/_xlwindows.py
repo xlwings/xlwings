@@ -1183,6 +1183,14 @@ class Shape:
     def activate(self):
         self.xl.Activate()
 
+    def scale_height(self, factor, relative_to_original_size, scale):
+        self.xl.ScaleHeight(Scale=scaling[scale], RelativeToOriginalSize=relative_to_original_size,
+                            Factor=factor)
+
+    def scale_width(self, factor, relative_to_original_size, scale):
+        self.xl.ScaleWidth(Scale=scaling[scale], RelativeToOriginalSize=relative_to_original_size,
+                           Factor=factor)
+
 
 class Collection:
 
@@ -1596,6 +1604,12 @@ shape_types_s2i = {
     "text_box": 17,
     "text_effect": 15,
     "web_video": 26
+}
+
+scaling = {
+    "scale_from_top_left": 0,
+    "scale_from_bottom_right": 2,
+    "scale_from_middle": 1
 }
 
 shape_types_i2s = {v: k for k, v in shape_types_s2i.items()}

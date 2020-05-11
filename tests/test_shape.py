@@ -80,6 +80,15 @@ class TestShape(TestBase):
         pic = self.wb1.sheets[0].pictures.add(filename, name='pic1')
         self.assertEqual(self.wb1.sheets[0].shapes[0].type, 'picture')
 
+    def test_scale_width_height(self):
+        filename = os.path.join(this_dir, 'sample_picture.png')
+        pic = self.wb1.sheets[0].pictures.add(filename, name='pic1')
+        w, h = pic.width, pic.height
+        self.wb1.sheets[0].shapes['pic1'].scale_width(factor=2)
+        self.wb1.sheets[0].shapes['pic1'].scale_height(factor=2)
+        self.assertEqual(pic.width, w * 2)
+        self.assertEqual(pic.height, h * 2)
+
 
 class TestPicture(TestBase):
     def test_two_books(self):
@@ -215,6 +224,7 @@ class TestMatplotlib(TestBase):
         self.wb1.sheets[0].pictures.add(fig, name='Test1')
         self.assertEqual(self.wb1.sheets[0].pictures[0].name, 'Test1')
 
+
 @unittest.skipIf(plotly_go is None, 'plotly missing')
 class TestPlotly(TestBase):
     def get_plotly_fig(self):
@@ -284,6 +294,7 @@ class TestChart(TestBase):
     def test_count(self):
         chart = self.wb1.sheets[0].charts.add()
         self.assertEqual(len(self.wb1.sheets[0].charts), self.wb1.sheets[0].charts.count)
+
 
 if __name__ == '__main__':
     unittest.main()

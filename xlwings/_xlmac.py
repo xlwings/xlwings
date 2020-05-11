@@ -769,6 +769,7 @@ class Range:
     def unmerge(self):
         self.xl.unmerge()
 
+
 class Shape:
     def __init__(self, parent, key):
         self.parent = parent
@@ -832,6 +833,14 @@ class Shape:
     def activate(self):
         # self.xl.activate_object()  # doesn't work?
         self.xl.select()
+
+    def scale_height(self, factor, relative_to_original_size, scale):
+        self.xl.scale_height(scale=scaling[scale], relative_to_original_size=relative_to_original_size,
+                             factor=factor)
+
+    def scale_width(self, factor, relative_to_original_size, scale):
+        self.xl.scale_width(scale=scaling[scale], relative_to_original_size=relative_to_original_size,
+                            factor=factor)
 
 
 class Collection:
@@ -1366,6 +1375,12 @@ shape_types_k2s = {
     kw.shape_type_table: 'table',
     kw.shape_type_ink: 'ink',
     kw.shape_type_ink_comment: 'ink_comment',
+}
+
+scaling = {
+    "scale_from_top_left": kw.scale_from_top_left,
+    "scale_from_bottom_right": kw.scale_from_bottom_right,
+    "scale_from_middle": kw.scale_from_middle
 }
 
 shape_types_s2k = {v: k for k, v in shape_types_k2s.items()}

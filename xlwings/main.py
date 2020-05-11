@@ -2124,6 +2124,40 @@ class Shape:
         """
         self.impl.activate()
 
+    def scale_height(self, factor, relative_to_original_size=False, scale='scale_from_top_left'):
+        """
+        factor : float
+            For example 1.5 to scale it up to 150% of its current height
+
+        relative_to_original_size : bool, optional
+            If ``False``, it scales relative to current size (default).
+            For ``True`` must be a picture or OLE object.
+
+        scale : str, optional
+            One of ``scale_from_top_left`` (default), ``scale_from_bottom_right``, ``scale_from_middle``
+
+        .. versionadded:: 0.19.2
+        """
+        self.impl.scale_height(factor=factor, relative_to_original_size=relative_to_original_size,
+                               scale=scale)
+
+    def scale_width(self, factor, relative_to_original_size=False, scale='scale_from_top_left'):
+        """
+        factor : float
+            For example 1.5 to scale it up to 150% of its current width
+
+        relative_to_original_size : bool, optional
+            If ``False``, it scales relative to current size (default).
+            For ``True`` must be a picture or OLE object.
+
+        scale : str, optional
+            One of ``scale_from_top_left`` (default), ``scale_from_bottom_right``, ``scale_from_middle``
+
+        .. versionadded:: 0.19.2
+        """
+        self.impl.scale_width(factor=factor, relative_to_original_size=relative_to_original_size,
+                              scale=scale)
+
     @property
     def parent(self):
         """
