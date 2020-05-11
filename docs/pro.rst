@@ -16,8 +16,7 @@ PRO Features
 * :ref:`embedded_code`: Store your Python source code directly in Excel for easy deployment.
 * :ref:`zero_config_installer`: Guarantees that the end user does not need to know anything about Python.
 * :ref:`reports_quickstart`: A template based reporting mechanism, allows business users to change the layout of the report whithout having to change Python code.
-* Access to `video training <https://training.xlwings.org/p/xlwings>`_
-* Dedicated support
+* :ref:`plotly`: Support for Plotly static charts.
 
 More Infos
 ----------

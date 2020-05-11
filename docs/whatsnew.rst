@@ -1,10 +1,21 @@
 What's New
 ==========
 
+v0.19.2 (May 11, 2020)
+----------------------
+
+* [Feature] New methods :meth:`xlwings.Shape.scale_height` and :meth:`xlwings.Shape.scale_width` (:issue:`311`).
+* [Bug Fix] Using ``Pictures.add`` is not distorting the proportions anymore (:issue:`311`).
+
+* :guilabel:`PRO` [Feature]: Added support for :ref:`plotly` (:issue:`1309`).
+
+.. figure:: images/plotly.png
+    :scale: 40%
+
 v0.19.1 (May 4, 2020)
 ---------------------
 
-* [Bug Fix] Fixed an issue with the xlwings PRO license key when there was no `xlwings.conf` file (:issue:`1308`).
+* [Bug Fix] Fixed an issue with the xlwings PRO license key when there was no ``xlwings.conf`` file (:issue:`1308`).
 
 v0.19.0 (May 2, 2020)
 ---------------------
@@ -14,7 +25,7 @@ v0.19.0 (May 2, 2020)
 
 **Breaking Change**:
 
-* `Conda Base` has been renamed into `Conda Path` to reduce the confusion with the `Conda Env` called `base`. Please adjust your settings accordingly! (:issue:`1194`)
+* ``Conda Base`` has been renamed into ``Conda Path`` to reduce the confusion with the ``Conda Env`` called ``base``. Please adjust your settings accordingly! (:issue:`1194`)
 
 v0.18.0 (Feb 15, 2020)
 ----------------------
