@@ -2534,7 +2534,7 @@ class Picture:
         name = self.name
 
         # todo: link_to_file, save_with_document
-        picture = self.parent.pictures.add(filename, left=left, top=top, width=width, height=height)
+        picture = self.parent.pictures.add(filename, left=left, top=top, width=width, height=height, scale=False)
         self.delete()
 
         picture.name = name
@@ -2559,7 +2559,8 @@ class Pictures(Collection):
     def parent(self):
         return Sheet(impl=self.impl.parent)
 
-    def add(self, image, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None, name=None, update=False):
+    def add(self, image, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None,
+            name=None, update=False, scale=1):
         """
         Adds a picture to the specified sheet.
 
@@ -2649,6 +2650,11 @@ class Pictures(Collection):
         picture = Picture(impl=self.impl.add(
             filename, link_to_file, save_with_document, left, top, width, height
         ))
+
+        if scale:
+            # By default, Excel usually distorts the width/height. This corrects it.
+            self.parent.shapes[picture.name].scale_width(factor=scale, relative_to_original_size=True)
+            self.parent.shapes[picture.name].scale_height(factor=scale, relative_to_original_size=True)
 
         if name is not None:
             picture.name = name

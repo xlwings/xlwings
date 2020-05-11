@@ -215,7 +215,7 @@ def process_image(image, width, height):
         if height is None:
             height = image.bbox.bounds[2:][1]
     elif image_type == 'plotly':
-        image.write_image(filename, width=width, height=height)
+        image.write_image(filename, width=None, height=None)
     return filename, width, height
 
 
