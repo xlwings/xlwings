@@ -1,12 +1,15 @@
 .. _matplotlib:
 
+Matplotlib & Plotly Charts
+==========================
+
 Matplotlib
-==========
+----------
 
 Using :meth:`pictures.add() <xlwings.main.Pictures.add>`, it is easy to paste a Matplotlib plot as picture in Excel.
 
 Getting started
----------------
+***************
 
 The easiest sample boils down to::
 
@@ -28,7 +31,7 @@ The easiest sample boils down to::
 
 
 Full integration with Excel
----------------------------
+***************************
 
 Calling the above code with :ref:`RunPython <run_python>` and binding it e.g. to a button is
 straightforward and works cross-platform.
@@ -51,7 +54,7 @@ updated when cell B1 changes:
   :scale: 80%
 
 Properties
-----------
+**********
 
 Size, position and other properties can either be set as arguments within :meth:`pictures.add() <xlwings.main.Pictures.add>`, or
 by manipulating the picture object that is returned, see :meth:`xlwings.Picture`.
@@ -69,7 +72,8 @@ or::
     >>> plot.width /= 2
 
 Getting a Matplotlib figure
----------------------------
+***************************
+
 Here are a few examples of how you get a matplotlib ``figure`` object:
 
 * via PyPlot interface::
@@ -100,3 +104,41 @@ Here are a few examples of how you get a matplotlib ``figure`` object:
     df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
     ax = df.plot(kind='bar')
     fig = ax.get_figure()
+
+
+.. _plotly:
+
+Plotly static charts
+--------------------
+
+This feature requires xlwings :guilabel:`PRO`.
+
+Prerequisites
+*************
+
+In addition to ``plotly`` you will need ``orca``. The easiest way to get it is via conda::
+
+    $ conda install -c plotly plotly-orca psutil requests
+
+For alternative ways of installation, see: https://plotly.com/python/static-image-export/
+
+How to use
+**********
+
+It works the same as with Matplotlib, however, rendering a Plotly chart takes slightly longer. Here is a sample:
+
+.. code-block:: python
+
+    import xlwings as xw
+    import plotly.express as px
+
+    # Plotly chart
+    df = px.data.iris()
+    fig = px.scatter(df, x="sepal_width", y="sepal_length", color="species")
+
+    # Add it to Excel
+    wb = xw.Book()
+    wb.sheets[0].pictures.add(fig, name='IrisScatterPlot', update=True)
+
+.. figure:: images/plotly.png
+    :scale: 40%

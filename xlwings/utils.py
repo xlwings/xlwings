@@ -1,12 +1,9 @@
-import datetime as dt
-
-from functools import total_ordering
-
 import os
 import tempfile
+import datetime as dt
+from functools import total_ordering
 
-missing = object()
-
+import xlwings
 
 try:
     import numpy as np
@@ -15,8 +12,17 @@ except ImportError:
 
 try:
     import matplotlib as mpl
+    import matplotlib.figure
 except ImportError:
     mpl = None
+
+try:
+    import plotly.graph_objects as plotly_go
+except ImportError:
+    plotly_go = None
+
+
+missing = object()
 
 
 def int_to_rgb(number):
@@ -185,14 +191,20 @@ class VersionNumber:
 
 
 def process_image(image, width, height):
-
     image = fspath(image)
     if isinstance(image, str):
         return image, width, height
     elif mpl and isinstance(image, mpl.figure.Figure):
-        temp_dir = os.path.realpath(tempfile.gettempdir())
-        filename = os.path.join(temp_dir, 'xlwings_plot.png')
+        image_type = 'mpl'
+    elif plotly_go and isinstance(image, plotly_go.Figure) and xlwings.PRO:
+        image_type = 'plotly'
+    else:
+        raise TypeError("Don't know what to do with that image object")
 
+    temp_dir = os.path.realpath(tempfile.gettempdir())
+    filename = os.path.join(temp_dir, 'xlwings_plot.png')
+
+    if image_type == 'mpl':
         canvas = mpl.backends.backend_agg.FigureCanvas(image)
         canvas.draw()
         image.savefig(filename, format='png', bbox_inches='tight')
@@ -202,10 +214,9 @@ def process_image(image, width, height):
 
         if height is None:
             height = image.bbox.bounds[2:][1]
-
-        return filename, width, height
-    else:
-        raise TypeError("Don't know what to do with that image object")
+    elif image_type == 'plotly':
+        image.write_image(filename, width=None, height=None)
+    return filename, width, height
 
 
 def fspath(path):

@@ -6,6 +6,11 @@ import xlwings as xw
 from .common import TestBase, this_dir
 
 try:
+    import numpy as np
+except ImportError:
+    np = None
+
+try:
     import matplotlib as mpl
     import matplotlib.pyplot as plt
 except ImportError:
@@ -20,6 +25,12 @@ if sys.version_info[0] >= 3 and sys.version_info[1] >= 6:
     import pathlib
 else:
     pathlib = None
+
+try:
+    import plotly.graph_objects as plotly_go
+except ImportError:
+    plotly_go = None
+
 
 class TestShape(TestBase):
     def test_name(self):
@@ -68,6 +79,15 @@ class TestShape(TestBase):
         filename = os.path.join(this_dir, 'sample_picture.png')
         pic = self.wb1.sheets[0].pictures.add(filename, name='pic1')
         self.assertEqual(self.wb1.sheets[0].shapes[0].type, 'picture')
+
+    def test_scale_width_height(self):
+        filename = os.path.join(this_dir, 'sample_picture.png')
+        pic = self.wb1.sheets[0].pictures.add(filename, name='pic1')
+        w, h = pic.width, pic.height
+        self.wb1.sheets[0].shapes['pic1'].scale_width(factor=2)
+        self.wb1.sheets[0].shapes['pic1'].scale_height(factor=2)
+        self.assertEqual(pic.width, w * 2)
+        self.assertEqual(pic.height, h * 2)
 
 
 class TestPicture(TestBase):
@@ -205,6 +225,38 @@ class TestMatplotlib(TestBase):
         self.assertEqual(self.wb1.sheets[0].pictures[0].name, 'Test1')
 
 
+@unittest.skipIf(plotly_go is None, 'plotly missing')
+class TestPlotly(TestBase):
+    def get_plotly_fig(self):
+        N = 100
+        x = np.random.rand(N)
+        y = np.random.rand(N)
+        colors = np.random.rand(N)
+        sz = np.random.rand(N) * 30
+
+        fig = plotly_go.Figure()
+        fig.add_trace(plotly_go.Scatter(
+            x=x,
+            y=y,
+            mode="markers",
+            marker=plotly_go.scatter.Marker(
+                size=sz,
+                color=colors,
+                opacity=0.6,
+                colorscale="Viridis"
+            )
+        ))
+        return fig
+
+    def test_add_no_name(self):
+        self.wb1.sheets[0].pictures.add(self.get_plotly_fig())
+        self.assertEqual(len(self.wb1.sheets[0].pictures), 1)
+
+    def test_add_with_name(self):
+        self.wb1.sheets[0].pictures.add(self.get_plotly_fig(), name='Test1')
+        self.assertEqual(self.wb1.sheets[0].pictures[0].name, 'Test1')
+
+
 class TestCharts(TestBase):
     def test_add_properties(self):
         sht = self.wb1.sheets[0]
@@ -242,6 +294,7 @@ class TestChart(TestBase):
     def test_count(self):
         chart = self.wb1.sheets[0].charts.add()
         self.assertEqual(len(self.wb1.sheets[0].charts), self.wb1.sheets[0].charts.count)
+
 
 if __name__ == '__main__':
     unittest.main()
