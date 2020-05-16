@@ -16,7 +16,7 @@ except ImportError:
 try:
     import pandas as pd
     from pandas import DataFrame, Series
-    from pandas.util.testing import assert_frame_equal, assert_series_equal
+    from pandas.testing import assert_frame_equal, assert_series_equal
 except ImportError:
     pd = None
 

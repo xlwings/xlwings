@@ -1013,10 +1013,14 @@ class Range:
             else:
                 raise ValueError("Invalid arguments")
 
-        self.impl = impl
+        self._impl = impl
 
         # Keyword Arguments
         self._options = options
+
+    @property
+    def impl(self):
+        return self._impl
 
     @property
     def api(self):

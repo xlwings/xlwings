@@ -1,22 +1,30 @@
+import asyncio
+import concurrent
+import copy
+import functools
+import inspect
 import os
 import os.path
 import re
+import sys
 import tempfile
-import inspect
 from importlib import import_module
-from threading import Thread
 from importlib import reload  # requires >= py 3.4
+from threading import Thread
 
-from win32com.client import Dispatch
+import pythoncom
 import pywintypes
+from win32com.client import Dispatch
 
 from . import conversion, xlplatform, Range, apps, Book, PRO
 from .utils import VBAWriter
 if PRO:
     from .pro.embedded_code import dump_embedded_code, get_udf_temp_dir
 
-
 cache = {}
+
+com_executor = concurrent.futures.ThreadPoolExecutor(
+    initializer=pythoncom.CoInitialize)
 
 
 class AsyncThread(Thread):
@@ -186,17 +194,79 @@ def xlarg(arg, convert=None, **kwargs):
 udf_modules = {}
 
 
-class DelayedResizeDynamicArrayFormula:
-    def __init__(self, target_range, caller, needs_clearing):
-        self.target_range = target_range
-        self.caller = caller
-        self.needs_clearing = needs_clearing
+RPC_E_SERVERCALL_RETRYLATER = -2147418111
 
-    def __call__(self, *args, **kwargs):
-        formula = self.caller.FormulaArray
-        if self.needs_clearing:
-            self.caller.ClearContents()
-        self.target_range.api.FormulaArray = formula
+
+class ComRange(Range):
+    """
+    A Range subclass that stores the impl as
+    a serialized COM object so it can be passed between
+    threads easily
+    """
+
+    def __init__(self, rng):
+        super().__init__(impl=pythoncom.CoMarshalInterThreadInterfaceInStream(
+            pythoncom.IID_IDispatch,
+            rng.api))
+
+    @property
+    def impl(self):
+        if not isinstance(self._impl, xlplatform.Range):
+            dispatch = Dispatch(
+                pythoncom.CoGetInterfaceAndReleaseStream(
+                    self._impl,
+                    pythoncom.IID_IDispatch))
+            self._impl = xlplatform.Range(xl=dispatch)
+        return self._impl
+
+    def __copy__(self):
+        """
+        We need to re-serialize the COM object as they're
+        single-use
+        """
+        return ComRange(self.impl)
+
+    async def _com(self, fn, *args):
+        loop = asyncio.get_running_loop()
+        try:
+            await loop.run_in_executor(
+                com_executor,
+                functools.partial(
+                    fn,
+                    copy.copy(self),
+                    *args))
+        except Exception as e:
+            if getattr(e, 'hresult', 0) != RPC_E_SERVERCALL_RETRYLATER:
+                return
+
+            await asyncio.sleep(0.1)
+            await self._com(fn, *args)
+
+    async def clear_contents(self):
+        await self._com(lambda rng: rng.impl.clear_contents())
+
+    async def set_formula_array(self, f):
+        await self._com(setattr, 'formula_array', f)
+
+
+async def delayed_resize_dynamic_array_formula(
+        target_range,
+        caller):
+
+    await asyncio.sleep(0.1)
+
+    stashme = caller.formula_array or caller.formula
+
+    c_y, c_x = caller.shape
+    t_y, t_x = target_range.shape
+    if c_x > t_x or c_y > t_y:
+        await caller.clear_contents()
+
+    # this will call the UDF again (!), but you'll
+    # have the right size output this time (`caller`
+    # will be `target_range`). We'll have to be
+    # careful not to block the async loop!
+    await target_range.set_formula_array(stashme)
 
 
 # Setup temp dir for embedded code
@@ -246,6 +316,9 @@ def get_cache_key(func, args, caller):
 
 
 def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
+    """
+    This method executes the UDF synchronously from the COM server thread
+    """
 
     module = get_udf_module(module_name, this_workbook)
     func = getattr(module, func_name)
@@ -284,7 +357,8 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
                 del cache[cache_key]
             ret = cached_value
         else:
-            # You can't pass pywin32 objects directly to threads
+            # You can't pass pywin32 objects directly to threads,
+            # see `ComRange` for how to marshall
             xw_caller = Range(impl=xlplatform.Range(xl=caller))
             thread = AsyncThread(xw_caller.sheet.book.app.pid,
                                  xw_caller.sheet.book.name,
@@ -297,14 +371,23 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
             thread.start()
             return [["#N/A waiting..." * xw_caller.columns.count] * xw_caller.rows.count]
     else:
+        from .server import loop
+
         if is_dynamic_array:
             cache_key = get_cache_key(func, args, caller)
             cached_value = cache.get(cache_key)
             if cached_value is not None:
                 ret = cached_value
             else:
-                ret = func(*args)
+                if inspect.iscoroutinefunction(func):
+                    ret = asyncio.run_coroutine_threadsafe(
+                        func(*args), loop).result()
+                else:
+                    ret = func(*args)
                 cache[cache_key] = ret
+        elif inspect.iscoroutinefunction(func):
+            ret = asyncio.run_coroutine_threadsafe(
+                func(*args), loop).result()
         else:
             ret = func(*args)
 
@@ -318,13 +401,15 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
             result_width = result_height and len(xl_result[0])
             result_size = (max(1, result_height), max(1, result_width))
         if current_size != result_size:
-            from .server import add_idle_task
-            add_idle_task(DelayedResizeDynamicArrayFormula(
-                Range(impl=xlplatform.Range(xl=caller)).resize(*result_size),
-                caller,
-                current_size[0] > result_size[0] or current_size[1] > result_size[1]
-            ))
-        else:
+            caller = Range(impl=xlplatform.Range(xl=caller))
+            target_range = caller.resize(*result_size)
+
+            from .server import loop
+            asyncio.run_coroutine_threadsafe(
+                delayed_resize_dynamic_array_formula(
+                    target_range=ComRange(target_range),
+                    caller=ComRange(caller)),
+                loop)
             del cache[cache_key]
 
     return xl_result

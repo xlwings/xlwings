@@ -1,7 +1,8 @@
-import xlwings as xw
 import time
+
 import numpy as np
-import pandas as pd
+
+import xlwings as xw
 
 
 @xw.func(async_mode='threading')
@@ -28,15 +29,33 @@ def nothreading(n, m):
     ]
 
 
+@xw.arg("n", numbers=int)
+@xw.arg("m", numbers=int)
+@xw.ret(expand='table')
+async def coro(n, m):
+    print('3 - CALLED COROUTINE')
+    return [
+        ["%s x %s : %s, %s" % (n, m, i, j) for j in range(m)]
+        for i in range(n)
+    ]
+
+
 @xw.func
 def simple(x):
-    print('3 - CALLED SIMPLE FUNCTION')
+    print('4 - CALLED SIMPLE FUNCTION')
     return x
 
 
 @xw.func(async_mode='threading')
 def simple_threading(x):
-    print('4 - CALLED SIMPLE THREADING FUNCTION')
+    print('5 - CALLED SIMPLE THREADING FUNCTION')
+    time.sleep(1)
+    return x
+
+
+@xw.func
+async def simple_coro(x):
+    print('6 - CALLED SIMPLE COROUTINE')
     time.sleep(1)
     return x
 
@@ -46,7 +65,7 @@ def simple_threading(x):
 @xw.arg("j", numbers=int)
 @xw.ret(expand='table')
 def numpy_async(i, j):
-    print('5 - CALLED NUMPY ASYNC FUNCTION')
+    print('7 - CALLED NUMPY ASYNC FUNCTION')
     time.sleep(1)
     return np.arange(i * j).reshape((i, j))
 
