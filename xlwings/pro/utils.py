@@ -1,9 +1,11 @@
-import binascii
-import sys
 import os
-import datetime as dt
+import sys
 import json
-from .. import LicenseError
+import binascii
+import datetime as dt
+
+from ..utils import read_config_sheet
+from .. import LicenseError, Book
 
 try:
     from cryptography.fernet import Fernet, InvalidToken
@@ -14,25 +16,32 @@ except ImportError as e:
 class LicenseHandler:
     @staticmethod
     def get_license():
-        if os.getenv('XLWINGS_LICENSE_KEY'):
-            return os.environ['XLWINGS_LICENSE_KEY']
+        # Sheet config (only used by RunPython, UDFs use env var)
+        try:
+            sheet_license_key = read_config_sheet(Book.caller()).get('LICENSE_KEY')
+            if sheet_license_key:
+                return sheet_license_key
+        except:
+            pass
+        # User config file
         if sys.platform.startswith('darwin'):
             config_file = os.path.join(os.path.expanduser("~"), 'Library', 'Containers',
                                        'com.microsoft.Excel', 'Data', 'xlwings.conf')
         else:
             config_file = os.path.join(os.path.expanduser("~"), '.xlwings', 'xlwings.conf')
-        if not os.path.exists(config_file):
-            raise LicenseError("Couldn't find a license key.")
-        with open(config_file, 'r') as f:
-            config = f.readlines()
-        key = None
-        for line in config:
-            if line.split(',')[0] == '"LICENSE_KEY"':
-                key = line.split(',')[1].strip()[1:-1]
-        if key:
-            return key
-        else:
-            raise LicenseError("Couldn't find a valid license key.") from None
+        if os.path.exists(config_file):
+            with open(config_file, 'r') as f:
+                config = f.readlines()
+            key = None
+            for line in config:
+                if line.split(',')[0] == '"LICENSE_KEY"':
+                    key = line.split(',')[1].strip()[1:-1]
+            if key:
+                return key
+        # Env Var - also used if LICENSE_KEY is in config sheet and called via UDF
+        if os.getenv('XLWINGS_LICENSE_KEY'):
+            return os.environ['XLWINGS_LICENSE_KEY']
+        raise LicenseError("Couldn't find a license key.")
 
     @staticmethod
     def validate_license(product):
