@@ -77,7 +77,11 @@ def quickstart(args):
             python_module.write('@xw.sub  # only required if you want to import it or run it via UDF Server\n')
         python_module.write('def main():\n')
         python_module.write('    wb = xw.Book.caller()\n')
-        python_module.write('    wb.sheets[0].range("A1").value = "Hello xlwings!"\n\n\n')
+        python_module.write('    sheet = wb.sheets[0]\n')
+        python_module.write('    if sheet["A1"].value == "Hello xlwings!":\n')
+        python_module.write('        sheet["A1"].value = "Bye xlwings!"\n')
+        python_module.write('    else:\n')
+        python_module.write('        sheet["A1"].value = "Hello xlwings!"\n\n\n')
         if sys.platform.startswith('win'):
             python_module.write('@xw.func\n')
             python_module.write('def hello(name):\n')
