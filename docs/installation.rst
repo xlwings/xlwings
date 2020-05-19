@@ -29,6 +29,15 @@ use the ``conda-forge`` channel, see: https://anaconda.org/conda-forge/xlwings::
   When you are on macOS and are installing xlwings with ``conda`` (or use the version that comes with Anaconda),
   you'll need to run ``$ xlwings runpython install`` once to enable the ``RunPython`` calls from VBA.
 
+Dependencies
+------------
+
+* **Windows**: ``pywin32``, ``comtypes``
+
+* **Mac**: ``psutil``, ``appscript``
+
+The dependencies are automatically installed via ``conda`` or ``pip``.
+
 How to activate xlwings PRO
 ---------------------------
 
@@ -46,15 +55,6 @@ This will store the license key under your ``xlwings.conf`` file in your home fo
 xlwings PRO requires additionally the ``cryptography`` and ``Jinja2`` packages which come pre-installed with Anaconda. Otherwise, install them via pip or conda.
 
 With pip, you can also run ``pip install "xlwings[pro]"`` which will take care of the extra dependencies for xlwings PRO.
-
-Dependencies
-------------
-
-* **Windows**: ``pywin32``, ``comtypes``
-
-* **Mac**: ``psutil``, ``appscript``
-
-The dependencies are automatically installed via ``conda`` or ``pip``.
 
 Optional Dependencies
 ---------------------
@@ -94,6 +94,6 @@ Make sure to keep your version of the Excel add-in in sync with your Python pack
 
     xlwings addin install
 
-On **macOS only**, additionaly run::
+On **macOS only**, additionally run::
 
     xlwings runpython install

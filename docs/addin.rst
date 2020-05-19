@@ -44,14 +44,10 @@ you create a workbook via ``xlwings quickstart``, the reference is already set.
 .. figure:: images/vba_reference.png
     :scale: 40%
 
-Anaconda/Miniconda
-------------------
+.. _settings:
 
-If you use Anaconda or Miniconda on Windows, you will need to set your ``Conda Path`` and ``Conda Env`` settings, as you will
-otherwise get errors when using ``NumPy`` etc. See next section.
-
-Global Settings
----------------
+User Settings
+-------------
 
 While the defaults will often work out-of-the box, you can change the global settings directly in the add-in:
 
@@ -75,9 +71,13 @@ While the defaults will often work out-of-the box, you can change the global set
   interpreter doesn't shut down after each call.
 * ``Restart UDF Server``: This shuts down the UDF Server/Python interpreter. It'll be restarted upon the next function call.
 
+Anaconda/Miniconda
+******************
+
+If you use Anaconda or Miniconda on Windows, you will need to set your ``Conda Path`` and ``Conda Env`` settings, as you will
+otherwise get errors when using ``NumPy`` etc. In return, leave ``Interpreter`` empty or use either ``python`` (shows output in the terminal) or ``pythonw`` (doesn't show output in the terminal).
+
 .. note:: If you use ``Conda Path`` and ``Conda Env`` with UDFs, you currently can't hide the command prompt that pops up.
-    You can still control if the output is printed to the command prompt or not though by setting the ``Interpreter`` to 
-    ``python`` or ``pythonw``, respectively.
 
 .. _config_file:
 

@@ -25,6 +25,9 @@ try:
 except ImportError:
     np = None
 
+USER_CONFIG_FILE = os.path.join(os.path.expanduser("~"), 'Library', 'Containers',
+                                'com.microsoft.Excel', 'Data', 'xlwings.conf')
+
 # Time types
 time_types = (dt.date, dt.datetime)
 if np:

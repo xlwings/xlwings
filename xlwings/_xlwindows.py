@@ -46,7 +46,7 @@ if np:
 
 N_COM_ATTEMPTS = 0      # 0 means try indefinitely
 BOOK_CALLER = None
-
+USER_CONFIG_FILE = os.path.join(os.path.expanduser("~"), '.xlwings', 'xlwings.conf')
 missing = object()
 
 

@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.19.3 (May 19, 2020)
+----------------------
+
+* :guilabel:`PRO` [Feature]: Added possibility to create deployment keys, see :ref:`deployment_key`.
+
 v0.19.2 (May 11, 2020)
 ----------------------
 
