@@ -1,11 +1,10 @@
 import os
-import sys
 import json
 import binascii
 import datetime as dt
 
 from ..utils import read_config_sheet
-from .. import LicenseError, Book
+from .. import LicenseError, Book, __version__, xlplatform
 
 try:
     from cryptography.fernet import Fernet, InvalidToken
@@ -14,6 +13,13 @@ except ImportError as e:
 
 
 class LicenseHandler:
+    @staticmethod
+    def get_cipher():
+        try:
+            return Fernet(os.getenv('XLWINGS_LICENSE_KEY_SECRET'))
+        except ValueError:
+            raise LicenseError("Couldn't validate license key.") from None
+
     @staticmethod
     def get_license():
         # Sheet config (only used by RunPython, UDFs use env var)
@@ -24,11 +30,7 @@ class LicenseHandler:
         except:
             pass
         # User config file
-        if sys.platform.startswith('darwin'):
-            config_file = os.path.join(os.path.expanduser("~"), 'Library', 'Containers',
-                                       'com.microsoft.Excel', 'Data', 'xlwings.conf')
-        else:
-            config_file = os.path.join(os.path.expanduser("~"), '.xlwings', 'xlwings.conf')
+        config_file = xlplatform.USER_CONFIG_FILE
         if os.path.exists(config_file):
             with open(config_file, 'r') as f:
                 config = f.readlines()
@@ -44,18 +46,18 @@ class LicenseHandler:
         raise LicenseError("Couldn't find a license key.")
 
     @staticmethod
-    def validate_license(product):
-        try:
-            cipher_suite = Fernet(os.getenv('XLWINGS_LICENSE_KEY_SECRET'))
-        except ValueError:
-            raise LicenseError("Couldn't validate license key.") from None
+    def validate_license(product, license_type=None):
+        cipher_suite = LicenseHandler.get_cipher()
         key = LicenseHandler.get_license()
         try:
             license_info = json.loads(cipher_suite.decrypt(key.encode()).decode())
         except (binascii.Error, InvalidToken):
             raise LicenseError('Invalid license key.') from None
-        if 'valid_until' not in license_info.keys() or 'products' not in license_info.keys():
-            raise LicenseError('Invalid license key format.') from None
+        try:
+            if license_type == 'developer' and license_info['license_type'] != 'developer':
+                raise LicenseError('You need a developer license for this action.')
+        except KeyError:
+            raise LicenseError('You need a developer license for this action.') from None
         if 'valid_until' not in license_info.keys() or 'products' not in license_info.keys():
             raise LicenseError('Invalid license key format.') from None
         license_valid_until = dt.datetime.strptime(license_info['valid_until'], '%Y-%m-%d').date()
@@ -66,3 +68,15 @@ class LicenseHandler:
                 raise LicenseError('Invalid license key for xlwings PRO.') from None
             elif product == 'reports':
                 raise LicenseError('Your license is not valid for the xlwings reports add-on.') from None
+        if 'version' in license_info.keys() and license_info['version'] != __version__:
+            raise LicenseError('Your license key is only valid for xlwings v{0}'.format(license_info['version'])) from None
+
+    @staticmethod
+    def create_deploy_key():
+        LicenseHandler.validate_license('pro', license_type='developer')
+        cipher_suite = LicenseHandler.get_cipher()
+        license_dict = json.dumps({'version': __version__,
+                                   'products': ['pro', 'reports'],
+                                   'valid_until': '2999-12-31',
+                                   'license_type': 'deploy_key'}).encode()
+        return cipher_suite.encrypt(license_dict).decode()

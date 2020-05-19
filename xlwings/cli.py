@@ -122,7 +122,7 @@ def restapi_run(args):
 
 
 def license_update(args):
-    """license handler for xlwings PRO and xlwings REPORTS"""
+    """license handler for xlwings PRO"""
     key = args.key
     if not key:
         sys.exit('Please provide a license key via the -k/--key option. For example: xlwings license update -k MY_KEY')
@@ -150,6 +150,11 @@ def license_update(args):
     with open(config_file, 'w') as f:
         f.writelines(new_config)
     print('Successfully updated license key.')
+
+
+def license_deploy(args):
+    from .pro import LicenseHandler
+    print(LicenseHandler.create_deploy_key())
 
 
 def main():
@@ -215,6 +220,9 @@ def main():
     license_update_parser = license_subparsers.add_parser('update')
     license_update_parser.add_argument("-k", "--key", help='Provide a new key, otherwise it will take it from the xlwings.conf file.')
     license_update_parser.set_defaults(func=license_update)
+
+    license_update_parser = license_subparsers.add_parser('deploy')
+    license_update_parser.set_defaults(func=license_deploy)
 
     # boilerplate
     args = parser.parse_args()
