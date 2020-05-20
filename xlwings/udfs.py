@@ -6,11 +6,9 @@ import inspect
 import os
 import os.path
 import re
-import sys
 import tempfile
 from importlib import import_module
 from importlib import reload  # requires >= py 3.4
-from threading import Thread
 
 import pythoncom
 import pywintypes
@@ -27,31 +25,24 @@ com_executor = concurrent.futures.ThreadPoolExecutor(
     initializer=pythoncom.CoInitialize)
 
 
-class AsyncThread(Thread):
-    def __init__(self, pid, book_name, sheet_name, address, func, args, cache_key, expand):
-        Thread.__init__(self)
-        self.pid = pid
-        self.book = book_name
-        self.sheet = sheet_name
-        self.address = address
-        self.func = func
-        self.args = args
-        self.cache_key = cache_key
-        self.expand = expand
+def async_thread(caller, func, args, cache_key, expand):
+    pid = caller.sheet.book.app.pid
+    book = caller.sheet.book.name
+    sheet = caller.sheet.name
+    address = caller.address
 
-    def run(self):
-        cache[self.cache_key] = self.func(*self.args)
+    cache[cache_key] = func(*args)
 
-        if self.expand:
-            apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula_array = \
-                apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula_array
+    if expand:
+        apps[pid].books[book].sheets[sheet][address].formula_array = \
+            apps[pid].books[book].sheets[sheet][address].formula_array
+    else:
+        if has_dynamic_array(apps[pid]):
+            apps[pid].books[book].sheets[sheet][address].formula2 = \
+                apps[pid].books[book].sheets[sheet][address].formula2
         else:
-            if has_dynamic_array(apps[self.pid]):
-                apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula2 = \
-                    apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula2
-            else:
-                apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula = \
-                    apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula
+            apps[pid].books[book].sheets[sheet][address].formula = \
+                apps[pid].books[book].sheets[sheet][address].formula
 
 
 def func_sig(f):
@@ -205,6 +196,10 @@ class ComRange(Range):
     """
 
     def __init__(self, rng):
+        """
+        :param rng: This class takes ownership of rng; you
+            can't use it any more after we've serialized it
+        """
         super().__init__(impl=pythoncom.CoMarshalInterThreadInterfaceInStream(
             pythoncom.IID_IDispatch,
             rng.api))
@@ -357,19 +352,16 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
                 del cache[cache_key]
             ret = cached_value
         else:
-            # You can't pass pywin32 objects directly to threads,
-            # see `ComRange` for how to marshall
             xw_caller = Range(impl=xlplatform.Range(xl=caller))
-            thread = AsyncThread(xw_caller.sheet.book.app.pid,
-                                 xw_caller.sheet.book.name,
-                                 xw_caller.sheet.name,
-                                 xw_caller.address,
-                                 func,
-                                 args,
-                                 cache_key,
-                                 is_dynamic_array)
-            thread.start()
-            return [["#N/A waiting..." * xw_caller.columns.count] * xw_caller.rows.count]
+            ret = [["#N/A waiting..." * xw_caller.columns.count] * xw_caller.rows.count]
+            com_executor.submit(
+                async_thread,
+                ComRange(xw_caller),
+                func,
+                args,
+                cache_key,
+                is_dynamic_array)
+            return ret
     else:
         from .server import loop
 
