@@ -21,13 +21,25 @@ or conda::
     conda install xlwings
 
 Note that the official ``conda`` package might be few releases behind. You can, however, 
-use the ``conda-forge`` channel, see: https://anaconda.org/conda-forge/xlwings::
+use the ``conda-forge`` channel (replace ``install`` with ``upgrade`` if xlwings is already installed)::
 
   conda install -c conda-forge xlwings
 
 .. note::
   When you are on macOS and are installing xlwings with ``conda`` (or use the version that comes with Anaconda),
-  you'll need to run ``$ xlwings runpython install`` once to enable the ``RunPython`` calls from VBA.
+  you'll need to run ``$ xlwings runpython install`` once to enable the ``RunPython`` calls from VBA. This is done automatically if you install the addin via ``$ xlwings addin install``.
+
+Add-in
+------
+
+To install the add-in, run the following command::
+
+    xlwings addin install
+
+To call Excel from Python, you don't need an add-in. Also, you can use a single file VBA module instead of the add-in. For more details, see :ref:`xlwings_addin`.
+
+.. note::
+   The add-in needs to be the same version as the Python package. Make sure to re-install the add-in after upgrading the xlwings package.
 
 Dependencies
 ------------
@@ -41,7 +53,7 @@ The dependencies are automatically installed via ``conda`` or ``pip``.
 How to activate xlwings PRO
 ---------------------------
 
-xlwings PRO offers access to additional functionality. All PRO features are marked with xlwings :guilabel:`PRO` in the docs.
+xlwings PRO offers access to :ref:`additional functionality <pro>`. All PRO features are marked with xlwings :guilabel:`PRO` in the docs.
 
 .. note::
     To get access to the additional functionality of xlwings PRO, you need a license key and at least xlwings v0.19.0. Everything under the ``xlwings.pro`` subpackage is distributed under a :ref:`commercial license <commercial_license>`. See :ref:`pro` for more details.
@@ -71,14 +83,6 @@ These packages are not required but highly recommended as they play very nicely 
 
     pip install "xlwings[all]"
 
-Add-in
-------
-
-Please see :ref:`xlwings_addin` on how to install the xlwings add-in.
-
-.. note::
-   The add-in needs to be the same version as the Python package. Make sure to re-install the add-in after upgrading the xlwings package.
-
 Update
 ------
 
@@ -94,6 +98,21 @@ Make sure to keep your version of the Excel add-in in sync with your Python pack
 
     xlwings addin install
 
-On **macOS only**, additionally run::
+Uninstall
+---------
 
-    xlwings runpython install
+To uninstall xlwings completely, first uninstall the add-in, then uninstall the xlwings package using the same method (pip or conda) that you used for installing it::
+
+    xlwings addin remove
+
+Then ::
+
+    pip uninstall xlwings
+
+or::
+
+    conda remove xlwings
+
+
+
+

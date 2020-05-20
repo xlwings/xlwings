@@ -1,6 +1,12 @@
 What's New
 ==========
 
+v0.19.4 (May 20, 2020)
+----------------------
+
+* [Feature] ``xlwings addin install`` is now available on macOS. On Windows, it has been fixed so it should now work reliably (:issue:`704`).
+* [Bug Fix] Fixed a ``dll load failed`` issue with ``pywin32`` when installed via ``pip`` on Python 3.8 (:issue:`1315`).
+
 v0.19.3 (May 19, 2020)
 ----------------------
 
