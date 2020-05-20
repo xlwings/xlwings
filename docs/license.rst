@@ -3,7 +3,7 @@ License
 
 * **xlwings CE** is licensed under an open-source BSD 3-clause license. xlwings CE includes all files in the xlwings package except the ``pro`` folder, i.e. the ``xlwings.pro`` subpackage.
 
-* **xlwings PRO** is a subscription that combines the ``xlwings.pro`` subpackage and additional services like dedicated support. It is licensed under a commercial license and and must be used with a valid license key.
+* **xlwings PRO** is a subscription that combines the ``xlwings.pro`` subpackage and additional services as advertised on https://www.xlwings.org/pricing. It is licensed under a commercial license and must be used with a valid license key.
 
 Both licenses as well as the licenses of the open-source dependencies follow below.
 
