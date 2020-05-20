@@ -326,6 +326,10 @@ class App:
         self.impl.display_alerts = value
 
     @property
+    def startup_path(self):
+        return self.impl.startup_path
+
+    @property
     def calculation(self):
         """
         Returns or sets a calculation value that represents the calculation mode.
@@ -389,18 +393,6 @@ class App:
         """
         return Range(impl=self.impl.range(cell1, cell2))
 
-    def __repr__(self):
-        return "<Excel App %s>" % self.pid
-
-    def __eq__(self, other):
-        return type(other) is App and other.pid == self.pid
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __hash__(self):
-        return hash(self.pid)
-
     def macro(self, name):
         """
         Runs a Sub or Function in Excel VBA that are not part of a specific workbook but e.g. are part of an add-in.
@@ -432,6 +424,18 @@ class App:
         .. versionadded:: 0.9.0
         """
         return Macro(self, name)
+
+    def __repr__(self):
+        return "<Excel App %s>" % self.pid
+
+    def __eq__(self, other):
+        return type(other) is App and other.pid == self.pid
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(self.pid)
 
 
 class Book:

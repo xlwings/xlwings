@@ -6,57 +6,59 @@ import argparse
 # Directories/paths
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
-if sys.platform.startswith('win'):
-    addin_path = os.path.join(os.getenv('APPDATA'), 'Microsoft', 'Excel', 'XLSTART', 'xlwings.xlam')
+
+def get_addin_path():
+    import xlwings as xw
+    if xw.apps:
+        return os.path.join(xw.apps.active.startup_path, 'xlwings.xlam')
+    else:
+        app = xw.App(visible=False)
+        startup_path = app.startup_path
+        app.quit()
+        return os.path.join(startup_path, 'xlwings.xlam')
 
 
 def addin_install(args):
-    if not sys.platform.startswith('win'):
-        import xlwings as xw
-        path = xw.__path__[0] + '/addin/xlwings.xlam'
-        print("Cannot install the addin automatically on Mac. Install it via Tools > Excel Add-ins...")
-        print("You find the addin here: {0}".format(path))
-    else:
-        try:
-            shutil.copyfile(os.path.join(this_dir, 'addin', 'xlwings.xlam'), addin_path)
-            print('Successfully installed the xlwings add-in! Please restart Excel.')
-        except IOError as e:
-            if e.args[0] == 13:
-                print('Error: Failed to install the add-in: If Excel is running, quit Excel and try again.')
-            else:
-                print(str(e))
-        except Exception as e:
-            print(str(e))
+    try:
+        addin_path = get_addin_path()
+        shutil.copyfile(os.path.join(this_dir, 'addin', 'xlwings.xlam'), addin_path)
+        print('Successfully installed the xlwings add-in! Please restart Excel.')
+        if sys.platform.startswith('darwin'):
+            runpython_install(None)
+    except IOError as e:
+        if e.args[0] == 13:
+            print('Error: Failed to install the add-in: If Excel is running, quit Excel and try again.')
+        else:
+            print(repr(e))
+    except Exception as e:
+        print(repr(e))
 
 
 def addin_remove(args):
-    if not sys.platform.startswith('win'):
-        print('Error: This command is not available on Mac. Please remove the addin manually.')
-    else:
-        try:
-            os.remove(addin_path)
-            print('Successfully removed the xlwings add-in!')
-        except WindowsError as e:
-            if e.args[0] == 32:
-                print('Error: Failed to remove the add-in: If Excel is running, quit Excel and try again.')
-            elif e.args[0] == 2:
-                print("Error: Could not remove the xlwings add-in. The add-in doesn't seem to be installed.")
-            else:
-                print(str(e))
-        except Exception as e:
-            print(str(e))
+    try:
+        addin_path = get_addin_path()
+        os.remove(addin_path)
+        print('Successfully removed the xlwings add-in!')
+    except (WindowsError, PermissionError) as e:
+        if e.args[0] in (13, 32):
+            print('Error: Failed to remove the add-in: If Excel is running, quit Excel and try again. '
+                  'You can also delete it manually from {0}'.format(addin_path))
+        elif e.args[0] == 2:
+            print("Error: Could not remove the xlwings add-in. The add-in doesn't seem to be installed.")
+        else:
+            print(repr(e))
+    except Exception as e:
+        print(repr(e))
 
 
 def addin_status(args):
-    if not sys.platform.startswith('win'):
-        print('Error: This command is only available on Windows right now.')
+    addin_path = get_addin_path()
+    if os.path.isfile(addin_path):
+        print('The add-in is installed at {}'.format(addin_path))
+        print('Use "xlwings addin remove" to uninstall it.')
     else:
-        if os.path.isfile(addin_path):
-            print('The add-in is installed at {}'.format(addin_path))
-            print('Use "xlwings addin remove" to uninstall it.')
-        else:
-            print('The add-in is not installed.')
-            print('"xlwings addin install" will install it at: {}'.format(addin_path))
+        print('The add-in is not installed.')
+        print('"xlwings addin install" will install it at: {}'.format(addin_path))
 
 
 def quickstart(args):

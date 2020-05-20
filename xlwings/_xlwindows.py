@@ -369,6 +369,10 @@ class App:
         self.xl.DisplayAlerts = value
 
     @property
+    def startup_path(self):
+        return self.xl.StartupPath
+
+    @property
     def calculation(self):
         return calculation_i2s[self.xl.Calculation]
 

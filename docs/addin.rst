@@ -20,7 +20,7 @@ Run main
 
 .. versionadded:: 0.16.0
 
-The ``Run main`` button is the easiest to run your Python code: It runs a function called ``main`` in a Python
+The ``Run main`` button is the easiest way to run your Python code: It runs a function called ``main`` in a Python
 module that has the same name as your workbook. This allows you to save your workbook as ``xlsx`` without enabling macros.
 The ``xlwings quickstart`` command will create a workbook that will automatically work with the ``Run`` button.
 
@@ -39,7 +39,7 @@ activate the tab first under ``File > Options > Customize Ribbon`` (Mac: ``Cmd +
 
 Then, to use ``RunPython`` or ``UDFs`` in a workbook, you need to set a reference to ``xlwings`` in the VBA editor, see
 screenshot (Windows: ``Tools > References...``, Mac: it's on the lower left corner of the VBA editor). Note that when
-you create a workbook via ``xlwings quickstart``, the reference is already set.
+you create a workbook via ``xlwings quickstart``, the reference should already be set.
 
 .. figure:: images/vba_reference.png
     :scale: 40%
@@ -81,8 +81,8 @@ otherwise get errors when using ``NumPy`` etc. In return, leave ``Interpreter`` 
 
 .. _config_file:
 
-Global Config: Ribbon/Config File
----------------------------------
+User Config: Ribbon/Config File
+-------------------------------
 
 The settings in the xlwings Ribbon are stored in a config file that can also be manipulated externally. The location is
 

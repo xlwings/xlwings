@@ -135,6 +135,10 @@ class App:
         self.xl.display_alerts.set(value)
 
     @property
+    def startup_path(self):
+        return hfs_to_posix_path(self.xl.startup_path.get())
+
+    @property
     def calculation(self):
         return calculation_k2s[self.xl.calculation.get()]
 
