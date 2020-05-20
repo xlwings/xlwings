@@ -7,6 +7,11 @@ cwd = os.getcwd()
 if not hasattr(sys, 'frozen'):
     # cx_Freeze etc. will fail here otherwise
     os.chdir(sys.exec_prefix)
+# Since Python 3.8, pywintypes needs to be imported before win32api or you get
+# ImportError: DLL load failed while importing win32api: The specified module could not be found.
+# See: https://stackoverflow.com/questions/58805040/pywin32-226-and-virtual-environments
+# Seems to be required even with pywin32 227
+import pywintypes
 import win32api
 os.chdir(cwd)
 
@@ -16,7 +21,6 @@ import numbers
 import types
 from ctypes import oledll, PyDLL, py_object, byref, POINTER, windll
 
-import pywintypes
 import pythoncom
 from win32com.client import Dispatch, CDispatch, DispatchEx
 import win32timezone
