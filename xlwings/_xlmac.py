@@ -136,7 +136,7 @@ class App:
 
     @property
     def startup_path(self):
-        return self.xl.startup_path.get()
+        return hfs_to_posix_path(self.xl.startup_path.get())
 
     @property
     def calculation(self):
