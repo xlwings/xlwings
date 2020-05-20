@@ -8,6 +8,7 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
 def get_addin_path():
+    # The call to startup_path creates the XLSTART folder if it doesn't exist yet
     import xlwings as xw
     if xw.apps:
         return os.path.join(xw.apps.active.startup_path, 'xlwings.xlam')
