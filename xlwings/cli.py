@@ -23,6 +23,8 @@ def addin_install(args):
         addin_path = get_addin_path()
         shutil.copyfile(os.path.join(this_dir, 'addin', 'xlwings.xlam'), addin_path)
         print('Successfully installed the xlwings add-in! Please restart Excel.')
+        if sys.platform.startswith('darwin'):
+            runpython_install(None)
     except IOError as e:
         if e.args[0] == 13:
             print('Error: Failed to install the add-in: If Excel is running, quit Excel and try again.')
