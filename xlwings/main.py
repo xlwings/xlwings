@@ -327,6 +327,12 @@ class App:
 
     @property
     def startup_path(self):
+        """
+        Returns the path to ``XLSTART`` which is where the xlwings add-in gets
+        copied to by doing ``xlwings addin install``.
+
+        .. versionadded:: 0.19.4
+        """
         return self.impl.startup_path
 
     @property
