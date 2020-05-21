@@ -407,6 +407,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
                     target_range=ComRange(target_range),
                     caller=ComRange(caller)),
                 loop)
+        else:
             del cache[cache_key]
 
     return xl_result
