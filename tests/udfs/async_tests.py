@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 import numpy as np
@@ -56,7 +57,7 @@ def simple_threading(x):
 @xw.func
 async def simple_coro(x):
     print('6 - CALLED SIMPLE COROUTINE')
-    time.sleep(1)
+    await asyncio.sleep(1)
     return x
 
 
@@ -68,6 +69,25 @@ def numpy_async(i, j):
     print('7 - CALLED NUMPY ASYNC FUNCTION')
     time.sleep(1)
     return np.arange(i * j).reshape((i, j))
+
+
+@xw.func(async_mode='threading')
+@xw.arg('behavior', numbers=int)
+@xw.ret(expand='table')
+def formula_erased_2(behavior):
+    """
+    GH1010 Call 1 then as soon as you can call 2,
+    then 3 -- Formula will disappear as you will
+    call 3 before 2 even returned
+    """
+    print("formula_erased_2", behavior)
+    if behavior == 1:
+        return [['value'] * 20] * 300
+    if behavior == 2:
+        time.sleep(5)
+        print("2 returns")
+        return [['value'] * 20] * 250
+    return [['value'] * 20] * 200
 
 
 if __name__ == '__main__':

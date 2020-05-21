@@ -31,18 +31,23 @@ def async_thread(caller, func, args, cache_key, expand):
     sheet = caller.sheet.name
     address = caller.address
 
+    base = apps[pid].books[book].sheets[sheet][address]
+
+    if expand:
+        stashme = base.formula_array
+    elif has_dynamic_array(apps[pid]):
+        stashme = base.formula2
+    else:
+        stashme = base.formula
+
     cache[cache_key] = func(*args)
 
     if expand:
-        apps[pid].books[book].sheets[sheet][address].formula_array = \
-            apps[pid].books[book].sheets[sheet][address].formula_array
+        base.formula_array = stashme
+    elif has_dynamic_array(apps[pid]):
+        base.formula2 = stashme
     else:
-        if has_dynamic_array(apps[pid]):
-            apps[pid].books[book].sheets[sheet][address].formula2 = \
-                apps[pid].books[book].sheets[sheet][address].formula2
-        else:
-            apps[pid].books[book].sheets[sheet][address].formula = \
-                apps[pid].books[book].sheets[sheet][address].formula
+        base.formula = stashme
 
 
 def func_sig(f):
