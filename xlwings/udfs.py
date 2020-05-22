@@ -3,10 +3,13 @@ import concurrent
 import copy
 import functools
 import inspect
+import logging
 import os
 import os.path
 import re
 import tempfile
+import time
+import threading
 from importlib import import_module
 from importlib import reload  # requires >= py 3.4
 
@@ -15,10 +18,12 @@ import pywintypes
 from win32com.client import Dispatch
 
 from . import conversion, xlplatform, Range, apps, Book, PRO
-from .utils import VBAWriter
+from .utils import VBAWriter, exception
+
 if PRO:
     from .pro.embedded_code import dump_embedded_code, get_udf_temp_dir
 
+logger = logging.getLogger(__name__)
 cache = {}
 
 com_executor = concurrent.futures.ThreadPoolExecutor(
@@ -26,28 +31,31 @@ com_executor = concurrent.futures.ThreadPoolExecutor(
 
 
 def async_thread(caller, func, args, cache_key, expand):
-    pid = caller.sheet.book.app.pid
-    book = caller.sheet.book.name
-    sheet = caller.sheet.name
-    address = caller.address
+    try:
+        address = caller.address
+        sheet = caller.sheet.name
+        book = caller.sheet.book.name
+        pid = caller.sheet.book.app.pid
 
-    base = apps[pid].books[book].sheets[sheet][address]
+        base = apps[pid].books[book].sheets[sheet][address]
 
-    if expand:
-        stashme = base.formula_array
-    elif has_dynamic_array(apps[pid]):
-        stashme = base.formula2
-    else:
-        stashme = base.formula
+        if expand:
+            stashme = base.formula_array
+        elif has_dynamic_array(apps[pid]):
+            stashme = base.formula2
+        else:
+            stashme = base.formula
 
-    cache[cache_key] = func(*args)
+        cache[cache_key] = func(*args)
 
-    if expand:
-        base.formula_array = stashme
-    elif has_dynamic_array(apps[pid]):
-        base.formula2 = stashme
-    else:
-        base.formula = stashme
+        if expand:
+            base.formula_array = stashme
+        elif has_dynamic_array(apps[pid]):
+            base.formula2 = stashme
+        else:
+            base.formula = stashme
+    except:
+        exception(logger, 'async_thread failed')
 
 
 def func_sig(f):
@@ -135,7 +143,8 @@ def xlfunc(f=None, **kwargs):
                 xlargs.append(arg_info)
                 xlargmap[vname] = xlargs[-1]
             xlf["ret"] = {
-                "doc": f.__doc__ if f.__doc__ is not None else "Python function '" + f.__name__ + "' defined in '" + str(f.__code__.co_filename) + "'.",
+                "doc": f.__doc__ if f.__doc__ is not None else "Python function '" + f.__name__ + "' defined in '" + str(
+                    f.__code__.co_filename) + "'.",
                 "options": {}
             }
         f.__xlfunc__["category"] = get_category(**kwargs)
@@ -143,6 +152,7 @@ def xlfunc(f=None, **kwargs):
         f.__xlfunc__['volatile'] = check_bool('volatile', **kwargs)
         f.__xlfunc__['async_mode'] = get_async_mode(**kwargs)
         return f
+
     if f is None:
         return inner
     else:
@@ -154,6 +164,7 @@ def xlsub(f=None, **kwargs):
         f = xlfunc(**kwargs)(f)
         f.__xlfunc__["sub"] = True
         return f
+
     if f is None:
         return inner
     else:
@@ -163,17 +174,20 @@ def xlsub(f=None, **kwargs):
 def xlret(convert=None, **kwargs):
     if convert is not None:
         kwargs['convert'] = convert
+
     def inner(f):
         xlf = xlfunc(f).__xlfunc__
         xlr = xlf["ret"]
         xlr['options'].update(kwargs)
         return f
+
     return inner
 
 
 def xlarg(arg, convert=None, **kwargs):
     if convert is not None:
         kwargs['convert'] = convert
+
     def inner(f):
         xlf = xlfunc(f).__xlfunc__
         if arg not in xlf["argmap"]:
@@ -184,11 +198,11 @@ def xlarg(arg, convert=None, **kwargs):
                 xla[special] = kwargs.pop(special)
         xla['options'].update(kwargs)
         return f
+
     return inner
 
 
 udf_modules = {}
-
 
 RPC_E_SERVERCALL_RETRYLATER = -2147418111
 
@@ -198,33 +212,58 @@ class ComRange(Range):
     A Range subclass that stores the impl as
     a serialized COM object so it can be passed between
     threads easily
+
+    https://devblogs.microsoft.com/oldnewthing/20151021-00/?p=91311
     """
 
     def __init__(self, rng):
-        """
-        :param rng: This class takes ownership of rng; you
-            can't use it any more after we've serialized it
-        """
-        super().__init__(impl=pythoncom.CoMarshalInterThreadInterfaceInStream(
+        super().__init__(impl=rng.impl)
+
+        self._ser_thread = threading.get_ident()
+        self._ser = pythoncom.CoMarshalInterThreadInterfaceInStream(
             pythoncom.IID_IDispatch,
-            rng.api))
+            rng.api)
+
+        self._deser_thread = None
+        self._deser = None
 
     @property
     def impl(self):
-        if not isinstance(self._impl, xlplatform.Range):
-            dispatch = Dispatch(
-                pythoncom.CoGetInterfaceAndReleaseStream(
-                    self._impl,
-                    pythoncom.IID_IDispatch))
-            self._impl = xlplatform.Range(xl=dispatch)
-        return self._impl
+        if threading.get_ident() == self._ser_thread:
+            return self._impl
+        elif threading.get_ident() == self._deser_thread:
+            return self._deser
+
+        assert self._deser is None, \
+            f"already deserialized on {self._deser_thread}"
+        self._deser_thread = threading.get_ident()
+
+        deser = pythoncom.CoGetInterfaceAndReleaseStream(
+                self._ser,
+                pythoncom.IID_IDispatch)
+
+        while True:
+            dispatch = Dispatch(deser)
+            try:
+                dispatch.Address
+                break
+            except:
+                # excel is doing something, we can't get
+                # the COM type info. Try again in a bit
+                # as we need it!
+                time.sleep(0.1)
+
+        self._ser = None  # single-use
+        self._deser = xlplatform.Range(xl=dispatch)
+
+        return self._deser
 
     def __copy__(self):
         """
         We need to re-serialize the COM object as they're
         single-use
         """
-        return ComRange(self.impl)
+        return ComRange(self)
 
     async def _com(self, fn, *args):
         loop = asyncio.get_running_loop()
@@ -237,6 +276,7 @@ class ComRange(Range):
                     *args))
         except Exception as e:
             if getattr(e, 'hresult', 0) != RPC_E_SERVERCALL_RETRYLATER:
+                exception(logger, 'COM call %s failed', fn)
                 return
 
             await asyncio.sleep(0.1)
@@ -252,21 +292,24 @@ class ComRange(Range):
 async def delayed_resize_dynamic_array_formula(
         target_range,
         caller):
+    try:
+        await asyncio.sleep(0.1)
 
-    await asyncio.sleep(0.1)
+        stashme = caller.formula_array or caller.formula
 
-    stashme = caller.formula_array or caller.formula
+        c_y, c_x = caller.shape
+        t_y, t_x = target_range.shape
+        if c_x > t_x or c_y > t_y:
+            await caller.clear_contents()
 
-    c_y, c_x = caller.shape
-    t_y, t_x = target_range.shape
-    if c_x > t_x or c_y > t_y:
-        await caller.clear_contents()
+        # this will call the UDF again (hitting the cache),
+        # but you'll have the right size output this time
+        # (`caller` will be `target_range`). We'll have to
+        # be careful not to block the async loop!
+        await target_range.set_formula_array(stashme)
 
-    # this will call the UDF again (!), but you'll
-    # have the right size output this time (`caller`
-    # will be `target_range`). We'll have to be
-    # careful not to block the async loop!
-    await target_range.set_formula_array(stashme)
+    except:
+        exception(logger, "couldn't resize")
 
 
 # Setup temp dir for embedded code
@@ -326,17 +369,18 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     args_info = func_info['args']
     ret_info = func_info['ret']
     is_dynamic_array = ret_info['options'].get('expand')
+    xw_caller = Range(impl=xlplatform.Range(xl=caller))
 
     writing = func_info.get('writing', None)
-    if writing and writing == caller.Address:
+    if writing and writing == xw_caller.address:
         return func_info['rval']
 
     output_param_indices = []
 
     args = list(args)
     for i, arg in enumerate(args):
-        arg_info = args_info[min(i, len(args_info)-1)]
-        if type(arg) is int and arg == -2147352572:      # missing
+        arg_info = args_info[min(i, len(args_info) - 1)]
+        if type(arg) is int and arg == -2147352572:  # missing
             args[i] = arg_info.get('optional', None)
         elif xlplatform.is_range_instance(arg):
             if arg_info.get('output', False):
@@ -357,7 +401,6 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
                 del cache[cache_key]
             ret = cached_value
         else:
-            xw_caller = Range(impl=xlplatform.Range(xl=caller))
             ret = [["#N/A waiting..." * xw_caller.columns.count] * xw_caller.rows.count]
             com_executor.submit(
                 async_thread,
@@ -391,21 +434,20 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     xl_result = conversion.write(ret, None, ret_info['options'])
 
     if is_dynamic_array:
-        current_size = (caller.Rows.Count, caller.Columns.Count)
+        current_size = (len(xw_caller.rows), len(xw_caller.columns))
         result_size = (1, 1)
         if type(xl_result) is list:
             result_height = len(xl_result)
             result_width = result_height and len(xl_result[0])
             result_size = (max(1, result_height), max(1, result_width))
         if current_size != result_size:
-            caller = Range(impl=xlplatform.Range(xl=caller))
-            target_range = caller.resize(*result_size)
+            target_range = xw_caller.resize(*result_size)
 
             from .server import loop
             asyncio.run_coroutine_threadsafe(
                 delayed_resize_dynamic_array_formula(
                     target_range=ComRange(target_range),
-                    caller=ComRange(caller)),
+                    caller=ComRange(xw_caller)),
                 loop)
         else:
             del cache[cache_key]
@@ -414,7 +456,6 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
 
 
 def generate_vba_wrapper(module_name, module, f):
-
     vba = VBAWriter(f)
 
     for svar in map(lambda attr: getattr(module, attr), dir(module)):
@@ -452,7 +493,8 @@ def generate_vba_wrapper(module_name, module, f):
 
                 if ftype == 'Function':
                     if not call_in_wizard:
-                        vba.writeln('If (Not Application.CommandBars("Standard").Controls(1).Enabled) Then Exit Function')
+                        vba.writeln(
+                            'If (Not Application.CommandBars("Standard").Controls(1).Enabled) Then Exit Function')
                     if volatile:
                         vba.writeln('Application.Volatile')
 
@@ -461,9 +503,12 @@ def generate_vba_wrapper(module_name, module, f):
                     non_varargs = [arg['vba'] or arg['name'] for arg in xlfunc['args'] if not arg['vararg']]
                     vba.writeln("argsArray = Array(%s)" % tuple({', '.join(non_varargs)}))
 
-                    vba.writeln("ReDim Preserve argsArray(0 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + str(len(non_varargs)) + ")")
+                    vba.writeln(
+                        "ReDim Preserve argsArray(0 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + str(
+                            len(non_varargs)) + ")")
                     vba.writeln("For k = LBound(" + vararg + ") To UBound(" + vararg + ")")
-                    vba.writeln("argsArray(" + str(len(non_varargs)) + " + k - LBound(" + vararg + ")) = " + argname + "(k)")
+                    vba.writeln(
+                        "argsArray(" + str(len(non_varargs)) + " + k - LBound(" + vararg + ")) = " + argname + "(k)")
                     vba.writeln("Next k")
 
                     args_vba = 'argsArray'
@@ -472,11 +517,12 @@ def generate_vba_wrapper(module_name, module, f):
 
                 if ftype == "Sub":
                     with vba.block('#If App = "Microsoft Excel" Then'):
-                        vba.writeln('Py.CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller',
-                                    module_name=module_name,
-                                    fname=fname,
-                                    args_vba=args_vba,
-                                    )
+                        vba.writeln(
+                            'Py.CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller',
+                            module_name=module_name,
+                            fname=fname,
+                            args_vba=args_vba,
+                            )
                     with vba.block("#Else"):
                         vba.writeln('Py.CallUDF "{module_name}", "{fname}", {args_vba}',
                                     module_name=module_name,
@@ -487,18 +533,19 @@ def generate_vba_wrapper(module_name, module, f):
                 else:
                     with vba.block('#If App = "Microsoft Excel" Then'):
                         vba.writeln("If TypeOf Application.Caller Is Range Then On Error GoTo failed")
-                        vba.writeln('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)',
+                        vba.writeln(
+                            '{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)',
+                            module_name=module_name,
+                            fname=fname,
+                            args_vba=args_vba,
+                            )
+                        vba.writeln("Exit " + ftype)
+                    with vba.block("#Else"):
+                        vba.writeln('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba})',
                                     module_name=module_name,
                                     fname=fname,
                                     args_vba=args_vba,
                                     )
-                        vba.writeln("Exit " + ftype)
-                    with vba.block("#Else"):
-                        vba.writeln('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba})',
-                                module_name=module_name,
-                                fname=fname,
-                                args_vba=args_vba,
-                                )
                         vba.writeln("Exit " + ftype)
                     vba.writeln("#End If")
 
