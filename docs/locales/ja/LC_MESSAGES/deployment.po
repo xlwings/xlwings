@@ -8,14 +8,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xlwings dev\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-06 16:16+0900\n"
+"POT-Creation-Date: 2020-05-12 17:46+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Generated-By: Babel 2.8.0\n"
 
 #: ../../deployment.rst:4
 msgid "Deployment"
@@ -33,11 +33,8 @@ msgid ""
 "practice, this means that when your code is inside a zip file, you'll "
 "have to click on re-import to get any changes."
 msgstr ""
-"配布を容易にするために、Pythonのコードをzipファイルにまとめることができます。"
-"UDFを使っている場合、コードの自動再読み込みは停止します。"
-"つまり、この機能は配布のためのものであり、開発のためのものではありません。"
-"実際に、zipファイル内のコードの変更を反映するには、 ``Import Functions`` ボタンを"
-"を押す必要があります。"
+"配布を容易にするために、Pythonのコードをzipファイルにまとめることができます。UDFを使っている場合、コードの自動再読み込みは停止します。つまり、この機能は配布のためのものであり、開発のためのものではありません。実際に、zipファイル内のコードの変更を反映するには、"
+" ``Import Functions`` ボタンをを押す必要があります。"
 
 #: ../../deployment.rst:15
 msgid ""
@@ -46,17 +43,14 @@ msgid ""
 "xlwings will automatically find it (similar to how it works with a single"
 " python file)."
 msgstr ""
-"zipファイルの名前をExcelファイルと同様に（ただし、拡張子は ``.zip`` ）しており、"
-"かつ、Excelワークブックと同じフォルダーに保存していれば、"
-"（単独のPythonファイルと同様に）xlwingsは自動的にそのファイルを見つけます。"
+"zipファイルの名前をExcelファイルと同様に（ただし、拡張子は ``.zip`` "
+"）しており、かつ、Excelワークブックと同じフォルダーに保存していれば、（単独のPythonファイルと同様に）xlwingsは自動的にそのファイルを見つけます。"
 
 #: ../../deployment.rst:18
 msgid ""
 "If you want to use a different directory, make sure to add it to the "
 "``PYTHONPATH`` in your config (Ribbon or config file):"
-msgstr ""
-"別のディレクトリーで使うには、コンフィグ（リボンかコンフィグ ファイル）内の "
-"``PYTHONPATH`` にパスを設定してください:"
+msgstr "別のディレクトリーで使うには、コンフィグ（リボンかコンフィグ ファイル）内の ``PYTHONPATH`` にパスを設定してください:"
 
 #: ../../deployment.rst:25
 msgid "RunFrozenPython"
@@ -67,10 +61,7 @@ msgid ""
 "You can use a freezer like PyInstaller, cx_Freeze, py2exe etc. to freeze "
 "your Python module into an executable so that the recipient doesn't have "
 "to install a full Python distribution."
-msgstr ""
-"PyInstaller、cx_Freeze、py2exeなどのフリーザーを使えます。"
-"フリーザーはPythonのモジュールを実行可能にし、受け取り側は"
-"Pythonのディストリビューションのインストールが不要になります。"
+msgstr "PyInstaller、cx_Freeze、py2exeなどのフリーザーを使えます。フリーザーはPythonのモジュールを実行可能にし、受け取り側はPythonのディストリビューションのインストールが不要になります。"
 
 #: ../../deployment.rst:33
 msgid "This does not work with UDFs."
@@ -80,17 +71,274 @@ msgstr "UDFでは動作しません"
 msgid ""
 "Currently only available on Windows, but support for Mac should be easy "
 "to add."
-msgstr ""
-"現在のところ、利用可能なのはWindowsのみですが、Macのサポートは容易に追加されるでしょう。"
+msgstr "現在のところ、利用可能なのはWindowsのみですが、Macのサポートは容易に追加されるでしょう。"
 
 #: ../../deployment.rst:35
 msgid ""
 "You need at least 0.15.2 to support arguments whereas the syntax changed "
 "in 0.15.6"
-msgstr ""
-"引数を利用するには、少なくとも0.15.2以上にする必要がありますが、0.15.6でシンタックスが変更されました。"
+msgstr "引数を利用するには、少なくとも0.15.2以上にする必要がありますが、0.15.6でシンタックスが変更されました。"
 
 #: ../../deployment.rst:37
 msgid "Use it as follows:"
 msgstr "次のように使います:"
+
+#: ../../deployment.rst:48
+msgid "Embedded Code"
+msgstr ""
+
+#: ../../deployment.rst:50 ../../deployment.rst:95
+msgid "This feature requires xlwings :guilabel:`PRO`."
+msgstr ""
+
+#: ../../deployment.rst:52
+msgid ""
+"xlwings PRO allows you to store your Python code directly in Excel so you"
+" don't have to distribute separate Python files."
+msgstr ""
+
+#: ../../deployment.rst:55
+msgid "All you have to do is:"
+msgstr ""
+
+#: ../../deployment.rst:57
+msgid ""
+"Name a sheet with a ``.py`` ending (can also be a hidden or very hidden "
+"sheet)"
+msgstr ""
+
+#: ../../deployment.rst:58
+msgid "Copy/paste your Python source code"
+msgstr ""
+
+#: ../../deployment.rst:61
+msgid ""
+"Make sure to select ``Paste Special > Text`` as you might otherwise get "
+"errors with indentation or unrecognized characters."
+msgstr ""
+
+#: ../../deployment.rst:64
+msgid ""
+"Then, use the VBA function ``RunPython (\"import "
+"mymodule;mymodule.myfunction()\")`` as usual."
+msgstr ""
+
+#: ../../deployment.rst:66
+msgid ""
+"Note that you can have multiple Excel sheets and import them like normal "
+"Python files. Consider this example:"
+msgstr ""
+
+#: ../../deployment.rst:76
+msgid "You can call this function from VBA like so::"
+msgstr ""
+
+#: ../../deployment.rst:84
+msgid ""
+"UDFs modules don't have to be added to the ``UDF Modules`` explicitly "
+"when using embedded code. However, in contrast to how it works with "
+"external files, you currently need to re-import the functions when you "
+"change them."
+msgstr ""
+
+#: ../../deployment.rst:88
+msgid ""
+"While you can hide your sheets with your code, they will be written to a "
+"temporary directory in clear text."
+msgstr ""
+
+#: ../../deployment.rst:93
+msgid "One-Click Zero-Config Installer"
+msgstr ""
+
+#: ../../deployment.rst:97
+msgid ""
+"With xlwings PRO you get access to a private GitHub repository that will "
+"build your custom installer in the cloud --- no local installation "
+"required. Using a custom installer to deploy the Python runtime has the "
+"following advantages:"
+msgstr ""
+
+#: ../../deployment.rst:99
+msgid "Zero Python knowledge required from end users"
+msgstr ""
+
+#: ../../deployment.rst:100
+msgid "Zero configuration required by end users"
+msgstr ""
+
+#: ../../deployment.rst:101
+msgid "No admin rights required"
+msgstr ""
+
+#: ../../deployment.rst:102
+msgid "Works for both UDFs and RunPython"
+msgstr ""
+
+#: ../../deployment.rst:103
+msgid "Works for external distribution"
+msgstr ""
+
+#: ../../deployment.rst:104
+msgid "Easy to deploy updates"
+msgstr ""
+
+#: ../../deployment.rst:107
+msgid "End User Instructions"
+msgstr ""
+
+#: ../../deployment.rst:109
+msgid "**Installing**"
+msgstr ""
+
+#: ../../deployment.rst:111
+msgid ""
+"Give the end user your Excel workbook and the installer. The user only "
+"has to double-click the installer and confirm a few prompts --- no "
+"configuation is required."
+msgstr ""
+
+#: ../../deployment.rst:113
+msgid "**Updating**"
+msgstr ""
+
+#: ../../deployment.rst:115
+msgid ""
+"If you use the embedded code feature (see: :ref:`embedded_code`), you can"
+" deploy updates by simply giving the user a new Excel file. Only when you"
+" change a dependency, you will need to create a new installer."
+msgstr ""
+
+#: ../../deployment.rst:117
+msgid "**Uninstalling**"
+msgstr ""
+
+#: ../../deployment.rst:119
+msgid ""
+"The application can be uninstalled again via Window Settings > Apps & "
+"Features."
+msgstr ""
+
+#: ../../deployment.rst:122
+msgid "Build the Installer"
+msgstr ""
+
+#: ../../deployment.rst:124
+msgid ""
+"Before you can build the installer, the project needs to be configured "
+"correctly, see below."
+msgstr ""
+
+#: ../../deployment.rst:126
+msgid ""
+"In the GitHub repo, go to ``x releases`` > ``Draft/Create a new "
+"release``. Add a version like ``1.0.0`` to ``Tag version``, then hit "
+"``Publish release``."
+msgstr ""
+
+#: ../../deployment.rst:128
+msgid ""
+"Wait a few minutes and refresh the page: the installer will appear under "
+"the release from where you can download it. You can follow the progress "
+"under the ``Actions`` tab."
+msgstr ""
+
+#: ../../deployment.rst:131
+msgid "Configuration"
+msgstr ""
+
+#: ../../deployment.rst:133
+msgid "**Excel file**"
+msgstr ""
+
+#: ../../deployment.rst:135
+msgid ""
+"You can add your Excel file to the repository if you like but it's not a "
+"requirement. Configure the Excel file as follows:"
+msgstr ""
+
+#: ../../deployment.rst:137
+msgid ""
+"Add the standalone xlwings VBA module, e.g. via ``xlwings quickstart "
+"project --standalone``"
+msgstr ""
+
+#: ../../deployment.rst:138
+msgid ""
+"Make sure that in the VBA editor (``Alt-F11``) under ``Tools`` > "
+"``References`` xlwings is unchecked"
+msgstr ""
+
+#: ../../deployment.rst:139
+msgid "Rename the ``_xlwings.conf`` sheet into ``xlwings.conf``"
+msgstr ""
+
+#: ../../deployment.rst:140
+msgid ""
+"In the ``xlwings.conf`` sheet, as ``Interpreter``, set the following "
+"value: ``%LOCALAPPDATA%\\project`` while replacing ``project`` with the "
+"name of your project"
+msgstr ""
+
+#: ../../deployment.rst:141
+msgid "If you like, you can hide the ``xlwings.conf`` sheet"
+msgstr ""
+
+#: ../../deployment.rst:143
+msgid "**Source code**"
+msgstr ""
+
+#: ../../deployment.rst:145
+msgid ""
+"Source code can either be embedded in the Excel file (see "
+":ref:`embedded_code`) or added to the ``src`` directory. The first option"
+" requires ``xlwings-pro`` in ``requirements.txt``, the second option will"
+" also work with ``xlwings``."
+msgstr ""
+
+#: ../../deployment.rst:147
+msgid "**Dependencies**"
+msgstr ""
+
+#: ../../deployment.rst:149
+msgid "Add your dependencies to ``requirements.txt``. For example::"
+msgstr ""
+
+#: ../../deployment.rst:154
+msgid "**Code signing (optional)**"
+msgstr ""
+
+#: ../../deployment.rst:156
+msgid ""
+"Using a code sign certificate will show a verified publisher in the "
+"installation prompt. Without it, it will show an unverified publisher."
+msgstr ""
+
+#: ../../deployment.rst:158
+msgid ""
+"Store your code sign certificate as ``sign_cert_file`` in the root of "
+"this repository (make sure your repo is private)."
+msgstr ""
+
+#: ../../deployment.rst:159
+msgid ""
+"Go to ``Settings`` > ``Secrets`` and add the password as "
+"``code_sign_password``."
+msgstr ""
+
+#: ../../deployment.rst:161
+msgid "**Project details**"
+msgstr ""
+
+#: ../../deployment.rst:163
+msgid "Update the following under ``.github/main.yml``::"
+msgstr ""
+
+#: ../../deployment.rst:168
+msgid "**Python version**"
+msgstr ""
+
+#: ../../deployment.rst:170
+msgid "Set your Python version under ``.github/main.yml``::"
+msgstr ""
 
