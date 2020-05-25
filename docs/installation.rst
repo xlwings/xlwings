@@ -113,6 +113,4 @@ or::
 
     conda remove xlwings
 
-
-
-
+Finally, manually remove the `.xlwings` directory in your home folder if it exists.
