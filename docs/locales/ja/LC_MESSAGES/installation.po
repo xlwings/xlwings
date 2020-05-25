@@ -8,146 +8,272 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xlwings dev\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-06 16:16+0900\n"
+"POT-Creation-Date: 2020-05-12 17:46+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Generated-By: Babel 2.8.0\n"
 
-#: ../../installation.rst:2
-msgid "Supported Platforms"
-msgstr "対応プラットフォーム"
-
-#: ../../installation.rst:4
-msgid ""
-"xlwings requires an installation of Excel and therefore only works on "
-"Windows and macOS. Note that macOS currently does not support UDFs."
-msgstr ""
-"xlwingsはExcelのインストールを前提としているため、Windowsと"
-"macOSでしか動作しません。加えて、macOSは現在UDFをサポートしていません。"
-
-#: ../../installation.rst:10
+#: ../../installation.rst:4 ../../installation.rst:13
 msgid "Installation"
 msgstr "インストール"
 
-#: ../../installation.rst:12
-msgid "The easiest way to install xlwings is via pip::"
-msgstr "pipを使えば、簡単にxlwingsをインストールできます::"
+#: ../../installation.rst:7
+msgid "Prerequisites"
+msgstr "前提条件"
 
-#: ../../installation.rst:16
+#: ../../installation.rst:9
+msgid ""
+"xlwings requires an **installation of Excel** and therefore only works on"
+" **Windows** and **macOS**. Note that macOS currently does not support "
+"UDFs."
+msgstr "xlwingsはExcelのインストールを前提としているため、WindowsとmacOSでしか動作しません。"
+"また、macOSでは現在UDFをサポートしていません。"
+
+#: ../../installation.rst:10
+msgid "xlwings requires at least Python 3.5."
+msgstr "xlwingsはPython 3.5以上で動作します。"
+
+#: ../../installation.rst:15
+msgid ""
+"xlwings comes pre-installed with `Anaconda "
+"<https://www.anaconda.com/distribution>`_. If you are new to Python or "
+"have troubles installing xlwings, Anaconda is highly recommended. "
+"Otherwise you can also install it manually with pip::"
+msgstr ""
+"xlwingは `Anaconda <https://www.anaconda.com/distribution>`_ に含まれています。"
+"Pythonを初めて使う場合や、xlwingsのインストールでトラブルが起きている場合には、"
+"Anacondaの利用を強く推奨します。Anacondaを利用しない場合には、pipを使って手動でインストールできます:"
+
+#: ../../installation.rst:19
 msgid "or conda::"
-msgstr "もしくはconda::"
+msgstr "もしくはcondaで::"
 
-#: ../../installation.rst:20
+#: ../../installation.rst:23
 msgid ""
 "Note that the official ``conda`` package might be few releases behind. "
-"You can, however, use the ``conda-forge`` channel (see: "
-"https://anaconda.org/conda-forge/xlwings) which should usually be up to "
-"date (but might still be a day or so behind the pip release)::"
+"You can, however, use the ``conda-forge`` channel, see: "
+"https://anaconda.org/conda-forge/xlwings::"
 msgstr ""
-"公式の ``conda`` からインストールしたパッケージは少し前のリリースの"
-"場合があります。その場合、 ``conda-forge`` チャネル"
-"(参照: https://anaconda.org/conda-forge/xlwings) から最新版を使えます "
-"(それでもpipより少し前のリリースかもしれませんが)::"
+"公式の ``conda`` からインストールしたパッケージは少し前のリリースの場合があります。"
+"その場合、 ``conda-forge`` チャネル(参照: https://anaconda.org/conda-forge/xlwings) から"
+"最新版を使えます(それでもpipより少し前のリリースかもしれませんが)::"
 
-#: ../../installation.rst:26
+#: ../../installation.rst:29
 msgid ""
-"When you are using Mac Excel 2016 and are installing xlwings with "
-"``conda`` (or use the version that comes with Anaconda), you'll need to "
-"run ``$ xlwings runpython install`` once to enable the ``RunPython`` "
-"calls from VBA. Alternatively, you can simply install xlwings with "
-"``pip``."
+"When you are on macOS and are installing xlwings with ``conda`` (or use "
+"the version that comes with Anaconda), you'll need to run ``$ xlwings "
+"runpython install`` once to enable the ``RunPython`` calls from VBA."
 msgstr ""
-"MacのExcel 2016を使っていて ``conda`` でxlwingsをインストールしている "
-"runpython install`` を一度実行する必要があります。もしくは、より簡単にはxlwingsを ``pip`` "
-"でインストールします。"
-
-#: ../../installation.rst:31
-msgid "Dependencies"
-msgstr "依存関係"
+"macOS上で、 ``conda`` でxlwingsをインストールしている（または、Anacondaに含まれている"
+"xlwingを使用している）場合、一度 ``$ xlwings runpython install`` を実行し、"
+"VBAから ``RunPython`` を呼び出せるようにしてください。"
 
 #: ../../installation.rst:33
-msgid "**Windows**: ``pywin32``, ``comtypes``"
-msgstr "**Windows**: ``pywin32``, ``comtypes``"
+msgid "How to activate xlwings PRO"
+msgstr "xlwings PROを使うには"
 
 #: ../../installation.rst:35
 msgid ""
-"On Windows, the dependencies are automatically being handled if xlwings "
-"is installed with ``conda`` or ``pip``."
-msgstr "Windowsでは、``conda`` か ``pip`` でxlwingsをインストールすれば依存関係は自動的に解決されます。"
+"xlwings PRO offers access to additional functionality. All PRO features "
+"are marked with xlwings :guilabel:`PRO` in the docs."
+msgstr ""
+"xlwings PROは追加的な機能を提供します。全てのPRO機能は、ドキュメント上では"
+"xlwings :guilabel:`PRO` と記載されています。"
 
-#: ../../installation.rst:37
+#: ../../installation.rst:38
+msgid ""
+"To get access to the additional functionality of xlwings PRO, you need a "
+"license key and at least xlwings v0.19.0. Everything under the "
+"``xlwings.pro`` subpackage is distributed under a :ref:`commercial "
+"license <commercial_license>`. See :ref:`pro` for more details."
+msgstr ""
+"xlwings PROの追加的な機能を利用するには、ライセンスキーの取得と"
+"xlwings v0.19.0以上であることが必要になります。 ``xlwings.pro`` サブパッケージの"
+"全てのものは、 :ref:`commercial license <commercial_license>` となっています。"
+"詳細は :ref:`pro` をご覧ください。"
+
+
+#: ../../installation.rst:40
+msgid "To activate the license key, run the following command::"
+msgstr "ライセンス キーを有効化するには、以下のコマンドを実行してください::"
+
+#: ../../installation.rst:44
+msgid ""
+"This will store the license key under your ``xlwings.conf`` file in your "
+"home folder. Alternatively, you can also store the license key under an "
+"environment variable with the name ``XLWINGS_LICENSE_KEY``."
+msgstr ""
+"このコマンドで、ホームフォルダーの ``xlwings.conf`` ファイルに、ライセンス "
+"キーを保存します。もしくは、 ``XLWINGS_LICENSE_KEY`` という名前の環境変数に"
+"ライセンス キーを保存することもできます。"
+
+#: ../../installation.rst:46
+msgid ""
+"xlwings PRO requires additionally the ``cryptography`` and ``Jinja2`` "
+"packages which come pre-installed with Anaconda. Otherwise, install them "
+"via pip or conda."
+msgstr ""
+"xlwings PROの利用には、 ``cryptography`` パッケージと ``Jinja2`` パッケージも"
+"必要になりますが、Anacondaには初めからインストールされています。"
+"Anacondaを使っていなければ、pipまたはcondaでインストールします。"
+
+#: ../../installation.rst:48
+msgid ""
+"With pip, you can also run ``pip install \"xlwings[pro]\"`` which will "
+"take care of the extra dependencies for xlwings PRO."
+msgstr ""
+"pipを使う場合には、 ``pip install \"xlwings[pro]\"`` を実行することで、"
+"xlwings PRO向けの追加的な依存関係を解決できます。"
+
+#: ../../installation.rst:51
+msgid "Dependencies"
+msgstr "依存関係"
+
+#: ../../installation.rst:53
+msgid "**Windows**: ``pywin32``, ``comtypes``"
+msgstr "**Windows**: ``pywin32``, ``comtypes``"
+
+#: ../../installation.rst:55
 msgid "**Mac**: ``psutil``, ``appscript``"
 msgstr ""
 
-#: ../../installation.rst:39
-msgid ""
-"On Mac, the dependencies are automatically being handled if xlwings is "
-"installed with ``conda`` or ``pip``. However, with pip, the Xcode command"
-" line tools need to be available. Mac OS X 10.4 (*Tiger*) or later is "
-"required. The recommended Python distribution for Mac is `Anaconda "
-"<https://www.anaconda.com/distribution>`_. With ``conda`` on the other "
-"hand, you'll need to manually run the command ``xlwings runpython "
-"install``."
-msgstr ""
-"Macでは、xlwingsを ``conda`` か ``pip`` "
-"でインストールすれば、依存関係は自動的に解決されます。しかしながら、pipでは、Xcode command line "
-"toolsが利用可能でなければなりません。Mac OS X 10.4 (*Tiger*)もしくはそれ以降が必要になります。 "
-"Macで推奨されるPythonディストリビューションは `Anaconda "
-"<https://www.anaconda.com/distribution>`_ です。 ``conda`` を使用する場合には、手動で "
-"``xlwings runpython install`` コマンドを実行する必要があります。"
+#: ../../installation.rst:57
+msgid "The dependencies are automatically installed via ``conda`` or ``pip``."
+msgstr "Windowsでは、``conda`` か ``pip`` でxlwingsをインストールすれば依存関係は自動的に解決されます。"
 
-#: ../../installation.rst:46
+#: ../../installation.rst:60
 msgid "Optional Dependencies"
 msgstr "必須ではない依存関係"
 
-#: ../../installation.rst:48
+#: ../../installation.rst:62
 msgid "NumPy"
 msgstr ""
 
-#: ../../installation.rst:49
+#: ../../installation.rst:63
 msgid "Pandas"
 msgstr ""
 
-#: ../../installation.rst:50
+#: ../../installation.rst:64
 msgid "Matplotlib"
 msgstr ""
 
-#: ../../installation.rst:51
+#: ../../installation.rst:65
 msgid "Pillow/PIL"
 msgstr ""
 
-#: ../../installation.rst:52
-msgid "Flask (for REST API only)"
+#: ../../installation.rst:66
+msgid "Flask (for REST API)"
 msgstr ""
 
-#: ../../installation.rst:54
+#: ../../installation.rst:67
+msgid "cryptography (for xlwings PRO)"
+msgstr ""
+
+#: ../../installation.rst:68
+msgid "Jinja2 (for xlwings PRO)"
+msgstr ""
+
+#: ../../installation.rst:70
 msgid ""
 "These packages are not required but highly recommended as they play very "
-"nicely with xlwings."
+"nicely with xlwings. They are all pre-installed with Anaconda. With pip, "
+"you can install xlwings with all optional dependencies as follows::"
 msgstr "これらのパッケージは必須ではありませんが、xlwingsと強力に連携することから"
-"強く推奨されます。"
+"インストールを強く推奨します。これらは全てAnacondaに初めからインストールされています。"
+"pipの場合、必須以外の依存関係を含めてxlwingsをインストールするには、次のようにします::"
 
-#: ../../installation.rst:57
+#: ../../installation.rst:75
 msgid "Add-in"
 msgstr "アドイン"
 
-#: ../../installation.rst:59
+#: ../../installation.rst:77
 msgid "Please see :ref:`xlwings_addin` on how to install the xlwings add-in."
 msgstr "xlwingsのアドインのインストール方法は、 :ref:`xlwings_addin` を参照してください。"
 
-#: ../../installation.rst:62
-msgid "Python version support"
-msgstr "Pyshonバージョンのサポート"
-
-#: ../../installation.rst:64
+#: ../../installation.rst:80
 msgid ""
-"xlwings CE requires at least Python 3.5. Python 2.7 is only supported "
-"with `xlwings PRO <https://www.xlwings.org/pricing>`_."
+"The add-in needs to be the same version as the Python package. Make sure "
+"to re-install the add-in after upgrading the xlwings package."
 msgstr ""
-"xlwings CEはPython 3.5以上で動作します。Python 2.7は `xlwings PRO "
-"<https://www.xlwings.org/pricing>`_ でのみサポートされます。"
+"アドインはPythonのパッケージと同じバージョンでなければなりません。"
+"xlwingsのパッケージをアップデートした際は、アドインの再インストールも"
+"忘れないようにしてください。"
+
+#: ../../installation.rst:83
+msgid "Update"
+msgstr "アップデート"
+
+#: ../../installation.rst:85
+msgid ""
+"To update to the latest xlwings version, run the following in a command "
+"prompt::"
+msgstr ""
+"xlwingsを最新バージョンにアップデートするには、コマンド プロンプトで以下を"
+"実行します::"
+
+
+#: ../../installation.rst:89
+msgid "or::"
+msgstr "もしくは::"
+
+#: ../../installation.rst:93
+msgid ""
+"Make sure to keep your version of the Excel add-in in sync with your "
+"Python package by running the following (make sure to close Excel "
+"first)::"
+msgstr ""
+"ExcelアドインのバージョンはPythonパッケージのバージョンと同期させてください。"
+"同期するには、Excelを閉じた上で以下を実行します::"
+
+#: ../../installation.rst:97
+msgid "On **macOS only**, additionaly run::"
+msgstr "**macOS の場合だけ**、次も実行してください::"
+
+#~ msgid "Supported Platforms"
+#~ msgstr "対応プラットフォーム"
+
+#~ msgid "The easiest way to install xlwings is via pip::"
+#~ msgstr "pipを使えば、簡単にxlwingsをインストールできます::"
+
+#~ msgid ""
+#~ "On Mac, the dependencies are "
+#~ "automatically being handled if xlwings "
+#~ "is installed with ``conda`` or ``pip``."
+#~ " However, with pip, the Xcode command"
+#~ " line tools need to be available. "
+#~ "Mac OS X 10.4 (*Tiger*) or later"
+#~ " is required. The recommended Python "
+#~ "distribution for Mac is `Anaconda "
+#~ "<https://www.anaconda.com/distribution>`_. With ``conda``"
+#~ " on the other hand, you'll need "
+#~ "to manually run the command ``xlwings"
+#~ " runpython install``."
+#~ msgstr ""
+#~ "Macでは、xlwingsを ``conda`` か ``pip`` "
+#~ "でインストールすれば、依存関係は自動的に解決されます。しかしながら、pipでは、Xcode command line"
+#~ " toolsが利用可能でなければなりません。Mac OS X 10.4 "
+#~ "(*Tiger*)もしくはそれ以降が必要になります。 Macで推奨されるPythonディストリビューションは "
+#~ "`Anaconda <https://www.anaconda.com/distribution>`_ です。"
+#~ " ``conda`` を使用する場合には、手動で ``xlwings runpython "
+#~ "install`` コマンドを実行する必要があります。"
+
+#~ msgid "Flask (for REST API only)"
+#~ msgstr ""
+
+#~ msgid "Python version support"
+#~ msgstr "Pyshonバージョンのサポート"
+
+#~ msgid ""
+#~ "xlwings CE requires at least Python "
+#~ "3.5. Python 2.7 is only supported "
+#~ "with `xlwings PRO "
+#~ "<https://www.xlwings.org/pricing>`_."
+#~ msgstr ""
+#~ "xlwings CEはPython 3.5以上で動作します。Python 2.7は "
+#~ "`xlwings PRO <https://www.xlwings.org/pricing>`_ "
+#~ "でのみサポートされます。"
 
