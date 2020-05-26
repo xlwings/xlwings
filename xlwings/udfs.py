@@ -143,8 +143,7 @@ def xlfunc(f=None, **kwargs):
                 xlargs.append(arg_info)
                 xlargmap[vname] = xlargs[-1]
             xlf["ret"] = {
-                "doc": f.__doc__ if f.__doc__ is not None else "Python function '" + f.__name__ + "' defined in '" + str(
-                    f.__code__.co_filename) + "'.",
+                "doc": f.__doc__ if f.__doc__ is not None else "Python function '" + f.__name__ + "' defined in '" + str(f.__code__.co_filename) + "'.",
                 "options": {}
             }
         f.__xlfunc__["category"] = get_category(**kwargs)
@@ -152,7 +151,6 @@ def xlfunc(f=None, **kwargs):
         f.__xlfunc__['volatile'] = check_bool('volatile', **kwargs)
         f.__xlfunc__['async_mode'] = get_async_mode(**kwargs)
         return f
-
     if f is None:
         return inner
     else:
@@ -174,20 +172,17 @@ def xlsub(f=None, **kwargs):
 def xlret(convert=None, **kwargs):
     if convert is not None:
         kwargs['convert'] = convert
-
     def inner(f):
         xlf = xlfunc(f).__xlfunc__
         xlr = xlf["ret"]
         xlr['options'].update(kwargs)
         return f
-
     return inner
 
 
 def xlarg(arg, convert=None, **kwargs):
     if convert is not None:
         kwargs['convert'] = convert
-
     def inner(f):
         xlf = xlfunc(f).__xlfunc__
         if arg not in xlf["argmap"]:
@@ -198,7 +193,6 @@ def xlarg(arg, convert=None, **kwargs):
                 xla[special] = kwargs.pop(special)
         xla['options'].update(kwargs)
         return f
-
     return inner
 
 
@@ -456,6 +450,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
 
 
 def generate_vba_wrapper(module_name, module, f):
+
     vba = VBAWriter(f)
 
     for svar in map(lambda attr: getattr(module, attr), dir(module)):
@@ -493,8 +488,7 @@ def generate_vba_wrapper(module_name, module, f):
 
                 if ftype == 'Function':
                     if not call_in_wizard:
-                        vba.writeln(
-                            'If (Not Application.CommandBars("Standard").Controls(1).Enabled) Then Exit Function')
+                        vba.writeln('If (Not Application.CommandBars("Standard").Controls(1).Enabled) Then Exit Function')
                     if volatile:
                         vba.writeln('Application.Volatile')
 
@@ -503,12 +497,9 @@ def generate_vba_wrapper(module_name, module, f):
                     non_varargs = [arg['vba'] or arg['name'] for arg in xlfunc['args'] if not arg['vararg']]
                     vba.writeln("argsArray = Array(%s)" % tuple({', '.join(non_varargs)}))
 
-                    vba.writeln(
-                        "ReDim Preserve argsArray(0 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + str(
-                            len(non_varargs)) + ")")
+                    vba.writeln("ReDim Preserve argsArray(0 to UBound(" + vararg + ") - LBound(" + vararg + ") + " + str(len(non_varargs)) + ")")
                     vba.writeln("For k = LBound(" + vararg + ") To UBound(" + vararg + ")")
-                    vba.writeln(
-                        "argsArray(" + str(len(non_varargs)) + " + k - LBound(" + vararg + ")) = " + argname + "(k)")
+                    vba.writeln("argsArray(" + str(len(non_varargs)) + " + k - LBound(" + vararg + ")) = " + argname + "(k)")
                     vba.writeln("Next k")
 
                     args_vba = 'argsArray'
@@ -517,12 +508,11 @@ def generate_vba_wrapper(module_name, module, f):
 
                 if ftype == "Sub":
                     with vba.block('#If App = "Microsoft Excel" Then'):
-                        vba.writeln(
-                            'Py.CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller',
-                            module_name=module_name,
-                            fname=fname,
-                            args_vba=args_vba,
-                            )
+                        vba.writeln('Py.CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller',
+                                    module_name=module_name,
+                                    fname=fname,
+                                    args_vba=args_vba,
+                                    )
                     with vba.block("#Else"):
                         vba.writeln('Py.CallUDF "{module_name}", "{fname}", {args_vba}',
                                     module_name=module_name,
@@ -533,19 +523,18 @@ def generate_vba_wrapper(module_name, module, f):
                 else:
                     with vba.block('#If App = "Microsoft Excel" Then'):
                         vba.writeln("If TypeOf Application.Caller Is Range Then On Error GoTo failed")
-                        vba.writeln(
-                            '{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)',
-                            module_name=module_name,
-                            fname=fname,
-                            args_vba=args_vba,
-                            )
-                        vba.writeln("Exit " + ftype)
-                    with vba.block("#Else"):
-                        vba.writeln('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba})',
+                        vba.writeln('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)',
                                     module_name=module_name,
                                     fname=fname,
                                     args_vba=args_vba,
                                     )
+                        vba.writeln("Exit " + ftype)
+                    with vba.block("#Else"):
+                        vba.writeln('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba})',
+                                module_name=module_name,
+                                fname=fname,
+                                args_vba=args_vba,
+                                )
                         vba.writeln("Exit " + ftype)
                     vba.writeln("#End If")
 
