@@ -90,5 +90,12 @@ def formula_erased_2(behavior):
     return [['value'] * 20] * 200
 
 
+@xw.func
+@xw.arg('nb_rows', numbers=int)
+@xw.ret(expand='table')
+def hello(nb_rows):
+    return ['value'] * nb_rows
+
+
 if __name__ == '__main__':
     xw.serve()
