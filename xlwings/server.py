@@ -326,9 +326,12 @@ def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
             target=_start_background_loop,
             daemon=True)
         t.start()
+        tid = t.ident
+    else:
+        tid = None
 
-    msg = 'xlwings server running, clsid=%s'
-    logger.info(msg, clsid) if logger.hasHandlers() else print(msg % clsid)
+    msg = 'xlwings server running, clsid=%s, event loop on %s'
+    logger.info(msg, clsid, tid) if logger.hasHandlers() else print(msg % (clsid, tid))
 
     while True:
         rc = win32event.MsgWaitForMultipleObjects(

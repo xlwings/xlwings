@@ -15,7 +15,8 @@ from importlib import reload  # requires >= py 3.4
 
 import pythoncom
 import pywintypes
-from win32com.client import Dispatch
+from win32com.client.gencache import EnsureDispatch
+from async_property import async_property
 
 from . import conversion, xlplatform, Range, apps, Book, PRO
 from .utils import VBAWriter, exception
@@ -198,7 +199,7 @@ def xlarg(arg, convert=None, **kwargs):
 
 udf_modules = {}
 
-RPC_E_SERVERCALL_RETRYLATER = -2147418111
+RPC_E_SERVERCALL_RETRYLATER = {-2147418111, -2146777998}
 
 
 class ComRange(Range):
@@ -237,11 +238,10 @@ class ComRange(Range):
                 pythoncom.IID_IDispatch)
 
         while True:
-            dispatch = Dispatch(deser)
             try:
-                dispatch.Address
+                dispatch = EnsureDispatch(deser)
                 break
-            except:
+            except TypeError as e:
                 # excel is doing something, we can't get
                 # the COM type info. Try again in a bit
                 # as we need it!
@@ -262,25 +262,37 @@ class ComRange(Range):
     async def _com(self, fn, *args):
         loop = asyncio.get_running_loop()
         try:
-            await loop.run_in_executor(
+            return await loop.run_in_executor(
                 com_executor,
                 functools.partial(
                     fn,
                     copy.copy(self),
                     *args))
         except Exception as e:
-            if getattr(e, 'hresult', 0) != RPC_E_SERVERCALL_RETRYLATER:
-                exception(logger, 'COM call %s failed', fn)
-                return
+            if getattr(e, 'hresult', 0) not in RPC_E_SERVERCALL_RETRYLATER:
+                raise
 
             await asyncio.sleep(0.1)
-            await self._com(fn, *args)
+            return await self._com(fn, *args)
 
     async def clear_contents(self):
         await self._com(lambda rng: rng.impl.clear_contents())
 
     async def set_formula_array(self, f):
-        await self._com(setattr, 'formula_array', f)
+        await self._com(lambda rng: setattr(
+            rng.impl, 'formula_array', f))
+
+    @async_property
+    async def shape(self):
+        return await self._com(lambda rng: rng.impl.shape)
+
+    @async_property
+    async def formula_array(self):
+        return await self._com(lambda rng: rng.impl.formula_array)
+
+    @async_property
+    async def formula(self):
+        return await self._com(lambda rng: rng.impl.formula)
 
 
 async def delayed_resize_dynamic_array_formula(
@@ -289,10 +301,12 @@ async def delayed_resize_dynamic_array_formula(
     try:
         await asyncio.sleep(0.1)
 
-        stashme = caller.formula_array or caller.formula
+        stashme = await caller.formula_array
+        if not stashme:
+            stashme = await caller.formula
 
-        c_y, c_x = caller.shape
-        t_y, t_x = target_range.shape
+        c_y, c_x = await caller.shape
+        t_y, t_x = await target_range.shape
         if c_x > t_x or c_y > t_y:
             await caller.clear_contents()
 
@@ -325,7 +339,7 @@ def get_udf_module(module_name, xl_workbook):
     else:
         # Handle embedded code
         if PRO:
-            wb = Book(impl=xlplatform.Book(Dispatch(xl_workbook)))
+            wb = Book(impl=xlplatform.Book(EnsureDispatch(xl_workbook)))
             dump_embedded_code(wb, tempdir.name)
 
         module = import_module(module_name)
@@ -385,7 +399,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
         else:
             args[i] = conversion.read(None, arg, arg_info['options'])
     if this_workbook:
-        xlplatform.BOOK_CALLER = Dispatch(this_workbook)
+        xlplatform.BOOK_CALLER = EnsureDispatch(this_workbook)
 
     if func_info['async_mode'] and func_info['async_mode'] == 'threading':
         cache_key = get_cache_key(func, args, caller)
