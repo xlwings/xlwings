@@ -63,7 +63,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        python-version: [3.7, 3.8]
+        python-version: [3.7]
         architecture: ['x64']
     steps:
       - uses: actions/checkout@v2
@@ -79,11 +79,8 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: Package
-      - name: Test ls
-        shell: bash
-        run: |
-          cd Package
-          ls
+      - name: Test installation
+        run: python scripts/ci_test.py
 
 
 
