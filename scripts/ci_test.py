@@ -13,7 +13,7 @@ subprocess.check_call(split(f'python -m pip install Package/xlwings-{version_str
 
 # Changing the dir is required to prevent python from importing the package from the source code
 os.chdir(os.path.expanduser('~'))  # e.g. /Users/runners
-output = subprocess.check_output(split('python -c "import xlwings_reports;print(xlwings_reports.__version__)"'),
+output = subprocess.check_output(split('python -c "import xlwings;print(xlwings.__version__)"'),
                                  stderr=subprocess.STDOUT).decode()
 print('Version: ' + output)
 
