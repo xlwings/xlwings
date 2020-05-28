@@ -81,14 +81,11 @@ jobs:
           name: Package
       - name: Test installation
         run: python scripts/ci_test.py
-
-
-
       - name: Publish package and update Homepage with release version
         shell: bash
         if: github.event_name == 'release'
         run: |
-          twine upload dist/*.tar.gz
+          twine upload Package/*.tar.gz
           curl -X POST -d {} https://api.netlify.com/build_hooks/$NETLIFY_BUILD_HOOK
         env:
           NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
@@ -103,6 +100,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./xlwings/addin/xlwings.xlam
+          asset_path: $Env:GITHUB_WORKSPACE/xlwings/addin/xlwings.xlam
           asset_name: xlwings.xlam
           asset_content_type: application/zip
