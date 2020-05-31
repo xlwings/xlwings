@@ -15,7 +15,7 @@ from importlib import reload  # requires >= py 3.4
 
 import pythoncom
 import pywintypes
-from win32com.client.gencache import EnsureDispatch
+from win32com.client import Dispatch
 
 from . import conversion, xlplatform, Range, apps, Book, PRO
 from .utils import VBAWriter, exception
@@ -30,13 +30,11 @@ com_executor = concurrent.futures.ThreadPoolExecutor(
     initializer=pythoncom.CoInitialize)
 
 
-async def async_thread(base, func, args, cache_key, expand):
+async def async_thread(base, my_has_dynamic_array, func, args, cache_key, expand):
     try:
-        pid = base.sheet.book.app.pid
-
         if expand:
             stashme = await base.get_formula_array()
-        elif has_dynamic_array(pid):
+        elif my_has_dynamic_array:
             stashme = await base.get_formula2()
         else:
             stashme = await base.get_formula()
@@ -50,7 +48,7 @@ async def async_thread(base, func, args, cache_key, expand):
 
         if expand:
             await base.set_formula_array(stashme)
-        elif has_dynamic_array(pid):
+        elif my_has_dynamic_array:
             await base.set_formula2(stashme)
         else:
             await base.set_formula(stashme)
@@ -235,17 +233,7 @@ class ComRange(Range):
         deser = pythoncom.CoGetInterfaceAndReleaseStream(
                 self._ser,
                 pythoncom.IID_IDispatch)
-
-        while True:
-            try:
-                dispatch = EnsureDispatch(deser)
-                break
-            except TypeError as e:
-                # excel is doing something, we can't get
-                # the COM type info. Try again in a bit
-                # as we need it!
-                print('dispatch', e)
-                time.sleep(0.1)
+        dispatch = Dispatch(deser)
 
         self._ser = None  # single-use
         self._deser = xlplatform.Range(xl=dispatch)
@@ -268,6 +256,12 @@ class ComRange(Range):
                     fn,
                     copy.copy(self),
                     *args))
+        except AttributeError:
+            # the Dispatch object that the `com_executor` thread
+            # didn't deserialize properly, as Excel was too busy
+            # to handle the TypeInfo call when requested
+            await asyncio.sleep(0.1)
+            return await self._com(fn, *args)
         except Exception as e:
             if getattr(e, 'hresult', 0) not in RPC_E_SERVERCALL_RETRYLATER:
                 raise
@@ -350,7 +344,7 @@ def get_udf_module(module_name, xl_workbook):
     else:
         # Handle embedded code
         if PRO:
-            wb = Book(impl=xlplatform.Book(EnsureDispatch(xl_workbook)))
+            wb = Book(impl=xlplatform.Book(Dispatch(xl_workbook)))
             dump_embedded_code(wb, tempdir.name)
 
         module = import_module(module_name)
@@ -410,7 +404,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
         else:
             args[i] = conversion.read(None, arg, arg_info['options'])
     if this_workbook:
-        xlplatform.BOOK_CALLER = EnsureDispatch(this_workbook)
+        xlplatform.BOOK_CALLER = Dispatch(this_workbook)
 
     from .server import loop
     if func_info['async_mode'] and func_info['async_mode'] == 'threading':
@@ -422,9 +416,17 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
             ret = cached_value
         else:
             ret = [["#N/A waiting..." * xw_caller.columns.count] * xw_caller.rows.count]
+
+            # this does a lot of nested COM calls, so do this all
+            # synchronously on the COM thread until there is async
+            # support for Sheet, Book & App.
+            my_has_dynamic_array = has_dynamic_array(
+                xw_caller.sheet.book.app.pid)
+
             asyncio.run_coroutine_threadsafe(
                 async_thread(
                     ComRange(xw_caller),
+                    my_has_dynamic_array,
                     func,
                     args,
                     cache_key,
