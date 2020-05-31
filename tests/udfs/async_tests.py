@@ -94,6 +94,7 @@ def formula_erased_2(behavior):
 @xw.arg('nb_rows', numbers=int)
 @xw.ret(expand='table')
 def hello(nb_rows):
+    print("hello", nb_rows)
     return ['value'] * nb_rows
 
 

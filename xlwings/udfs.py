@@ -16,7 +16,6 @@ from importlib import reload  # requires >= py 3.4
 import pythoncom
 import pywintypes
 from win32com.client.gencache import EnsureDispatch
-from async_property import async_property
 
 from . import conversion, xlplatform, Range, apps, Book, PRO
 from .utils import VBAWriter, exception
@@ -31,30 +30,30 @@ com_executor = concurrent.futures.ThreadPoolExecutor(
     initializer=pythoncom.CoInitialize)
 
 
-def async_thread(caller, func, args, cache_key, expand):
+async def async_thread(base, func, args, cache_key, expand):
     try:
-        address = caller.address
-        sheet = caller.sheet.name
-        book = caller.sheet.book.name
-        pid = caller.sheet.book.app.pid
-
-        base = apps[pid].books[book].sheets[sheet][address]
+        pid = base.sheet.book.app.pid
 
         if expand:
-            stashme = base.formula_array
-        elif has_dynamic_array(apps[pid]):
-            stashme = base.formula2
+            stashme = await base.get_formula_array()
+        elif has_dynamic_array(pid):
+            stashme = await base.get_formula2()
         else:
-            stashme = base.formula
+            stashme = await base.get_formula()
 
-        cache[cache_key] = func(*args)
+        loop = asyncio.get_running_loop()
+        cache[cache_key] = await loop.run_in_executor(
+            com_executor,
+            functools.partial(
+                func,
+                *args))
 
         if expand:
-            base.formula_array = stashme
-        elif has_dynamic_array(apps[pid]):
-            base.formula2 = stashme
+            await base.set_formula_array(stashme)
+        elif has_dynamic_array(pid):
+            await base.set_formula2(stashme)
         else:
-            base.formula = stashme
+            await base.set_formula(stashme)
     except:
         exception(logger, 'async_thread failed')
 
@@ -245,6 +244,7 @@ class ComRange(Range):
                 # excel is doing something, we can't get
                 # the COM type info. Try again in a bit
                 # as we need it!
+                print('dispatch', e)
                 time.sleep(0.1)
 
         self._ser = None  # single-use
@@ -282,17 +282,28 @@ class ComRange(Range):
         await self._com(lambda rng: setattr(
             rng.impl, 'formula_array', f))
 
-    @async_property
-    async def shape(self):
+    async def set_formula(self, f):
+        await self._com(lambda rng: setattr(
+            rng.impl, 'formula', f))
+
+    async def set_formula2(self, f):
+        await self._com(lambda rng: setattr(
+            rng.impl, 'formula2', f))
+
+    async def get_shape(self):
         return await self._com(lambda rng: rng.impl.shape)
 
-    @async_property
-    async def formula_array(self):
+    async def get_formula_array(self):
         return await self._com(lambda rng: rng.impl.formula_array)
 
-    @async_property
-    async def formula(self):
+    async def get_formula(self):
         return await self._com(lambda rng: rng.impl.formula)
+
+    async def get_formula2(self):
+        return await self._com(lambda rng: rng.impl.formula2)
+
+    async def get_address(self):
+        return await self._com(lambda rng: rng.impl.address)
 
 
 async def delayed_resize_dynamic_array_formula(
@@ -301,12 +312,12 @@ async def delayed_resize_dynamic_array_formula(
     try:
         await asyncio.sleep(0.1)
 
-        stashme = await caller.formula_array
+        stashme = await caller.get_formula_array()
         if not stashme:
-            stashme = await caller.formula
+            stashme = await caller.get_formula()
 
-        c_y, c_x = await caller.shape
-        t_y, t_x = await target_range.shape
+        c_y, c_x = await caller.get_shape()
+        t_y, t_x = await target_range.get_shape()
         if c_x > t_x or c_y > t_y:
             await caller.clear_contents()
 
@@ -401,6 +412,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     if this_workbook:
         xlplatform.BOOK_CALLER = EnsureDispatch(this_workbook)
 
+    from .server import loop
     if func_info['async_mode'] and func_info['async_mode'] == 'threading':
         cache_key = get_cache_key(func, args, caller)
         cached_value = cache.get(cache_key)
@@ -410,16 +422,16 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
             ret = cached_value
         else:
             ret = [["#N/A waiting..." * xw_caller.columns.count] * xw_caller.rows.count]
-            com_executor.submit(
-                async_thread,
-                ComRange(xw_caller),
-                func,
-                args,
-                cache_key,
-                is_dynamic_array)
+            asyncio.run_coroutine_threadsafe(
+                async_thread(
+                    ComRange(xw_caller),
+                    func,
+                    args,
+                    cache_key,
+                    is_dynamic_array),
+                loop)
             return ret
     else:
-        from .server import loop
 
         if is_dynamic_array:
             cache_key = get_cache_key(func, args, caller)
@@ -451,7 +463,6 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
         if current_size != result_size:
             target_range = xw_caller.resize(*result_size)
 
-            from .server import loop
             asyncio.run_coroutine_threadsafe(
                 delayed_resize_dynamic_array_formula(
                     target_range=ComRange(target_range),
@@ -618,10 +629,11 @@ def import_udfs(module_names, xl_workbook):
         pass
 
 
-def has_dynamic_array(app):
+@functools.lru_cache(None)
+def has_dynamic_array(pid):
     """This check in this form doesn't work on macOS, that's why it's here and not in utils"""
     try:
-        app.api.WorksheetFunction.Unique("dummy")
+        apps[pid].api.WorksheetFunction.Unique("dummy")
         return True
     except pywintypes.com_error as e:
         if e.hresult == -2147352567:
