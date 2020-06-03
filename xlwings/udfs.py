@@ -8,10 +8,10 @@ import os
 import os.path
 import re
 import tempfile
-import time
 import threading
 from importlib import import_module
 from importlib import reload  # requires >= py 3.4
+from random import random
 
 import pythoncom
 import pywintypes
@@ -197,6 +197,7 @@ def xlarg(arg, convert=None, **kwargs):
 udf_modules = {}
 
 RPC_E_SERVERCALL_RETRYLATER = {-2147418111, -2146777998}
+MAX_BACKOFF_MS = 512
 
 
 class ComRange(Range):
@@ -215,6 +216,7 @@ class ComRange(Range):
         self._ser = pythoncom.CoMarshalInterThreadInterfaceInStream(
             pythoncom.IID_IDispatch,
             rng.api)
+        self._ser_resultCLSID = self._impl.api.CLSID
 
         self._deser_thread = None
         self._deser = None
@@ -233,7 +235,9 @@ class ComRange(Range):
         deser = pythoncom.CoGetInterfaceAndReleaseStream(
                 self._ser,
                 pythoncom.IID_IDispatch)
-        dispatch = Dispatch(deser)
+        dispatch = Dispatch(
+            deser,
+            resultCLSID=self._ser_resultCLSID)
 
         self._ser = None  # single-use
         self._deser = xlplatform.Range(xl=dispatch)
@@ -247,7 +251,13 @@ class ComRange(Range):
         """
         return ComRange(self)
 
-    async def _com(self, fn, *args):
+    async def _com(self, fn, *args, backoff=1):
+        """
+        :param backoff: if the call fails, time to wait in ms
+          before the next one. Random exponential backoff to
+          a cap.
+        """
+
         loop = asyncio.get_running_loop()
         try:
             return await loop.run_in_executor(
@@ -260,14 +270,16 @@ class ComRange(Range):
             # the Dispatch object that the `com_executor` thread
             # didn't deserialize properly, as Excel was too busy
             # to handle the TypeInfo call when requested
-            await asyncio.sleep(0.1)
-            return await self._com(fn, *args)
+            pass
         except Exception as e:
             if getattr(e, 'hresult', 0) not in RPC_E_SERVERCALL_RETRYLATER:
                 raise
 
-            await asyncio.sleep(0.1)
-            return await self._com(fn, *args)
+        await asyncio.sleep(backoff / 1e3)
+        return await self._com(
+            fn,
+            *args,
+            backoff=min(backoff * round(1 + random()), MAX_BACKOFF_MS))
 
     async def clear_contents(self):
         await self._com(lambda rng: rng.impl.clear_contents())
