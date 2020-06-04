@@ -98,5 +98,18 @@ def hello(nb_rows):
     return ['value'] * nb_rows
 
 
+@xw.func
+@xw.arg('data', expand='table')
+@xw.ret(expand='table', index=False)
+def print_table(data):
+    """
+    GH1164 Pointing this function at the top
+    left cell of a table, the output only
+    changes when the top left cell changes,
+    and not any other cell in the table
+    """
+    return data
+
+
 if __name__ == '__main__':
     xw.serve()
