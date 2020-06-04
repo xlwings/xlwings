@@ -1166,6 +1166,13 @@ class Range:
         """Clears the content and the formatting of a Range."""
         return self.impl.clear()
 
+    @property
+    def has_array(self):
+        """
+        Are we part of an Array formula?
+        """
+        return self.impl.has_array
+
     def end(self, direction):
         """
         Returns a Range object that represents the cell at the end of the region that contains the source range.

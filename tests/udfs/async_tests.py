@@ -108,6 +108,7 @@ def print_table(data):
     changes when the top left cell changes,
     and not any other cell in the table
     """
+    print('print_table', np.array(data).shape)
     return data
 
 
