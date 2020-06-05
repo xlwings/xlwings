@@ -603,7 +603,7 @@ class Range:
     @property
     def has_array(self):
         if self.xl is not None:
-            return self.xl.HasArray
+            return self.xl.has_array.get()
 
     @property
     def number_format(self):
