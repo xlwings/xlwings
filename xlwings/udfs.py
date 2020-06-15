@@ -7,6 +7,7 @@ import logging
 import os
 import os.path
 import re
+import sys
 import tempfile
 import threading
 from importlib import import_module
@@ -26,11 +27,27 @@ if PRO:
 logger = logging.getLogger(__name__)
 cache = {}
 
-com_executor = concurrent.futures.ThreadPoolExecutor(
-    initializer=pythoncom.CoInitialize)
+if sys.version_info >= (3, 7):
+    com_executor = concurrent.futures.ThreadPoolExecutor(
+        initializer=pythoncom.CoInitialize)
+
+    def backcompat_check_com_initialized():
+        pass
+else:
+    com_executor = concurrent.futures.ThreadPoolExecutor()
+    com_is_initialized = threading.local()
+
+    def backcompat_check_com_initialized():
+        try:
+            com_is_initialized.done
+        except AttributeError:
+            pythoncom.CoInitialize()
+            com_is_initialized.done = True
 
 
 async def async_thread(base, my_has_dynamic_array, func, args, cache_key, expand):
+    backcompat_check_com_initialized()
+
     try:
         if expand:
             stashme = await base.get_formula_array()
@@ -39,7 +56,7 @@ async def async_thread(base, my_has_dynamic_array, func, args, cache_key, expand
         else:
             stashme = await base.get_formula()
 
-        loop = asyncio.get_running_loop()
+        loop = asyncio.get_event_loop()
         cache[cache_key] = await loop.run_in_executor(
             com_executor,
             functools.partial(
@@ -216,7 +233,10 @@ class ComRange(Range):
         self._ser = pythoncom.CoMarshalInterThreadInterfaceInStream(
             pythoncom.IID_IDispatch,
             rng.api)
-        self._ser_resultCLSID = self._impl.api.CLSID
+        self._ser_resultCLSID = getattr(
+            self._impl.api,
+            'CLSID',
+            None)
 
         self._deser_thread = None
         self._deser = None
@@ -258,7 +278,15 @@ class ComRange(Range):
           a cap.
         """
 
-        loop = asyncio.get_running_loop()
+        loop = asyncio.get_event_loop()
+
+        if sys.version_info[:2] <= (3, 6):
+            def _fn(fn, *args):
+                backcompat_check_com_initialized()
+                return fn(*args)
+
+            fn = functools.partial(_fn, fn)
+
         try:
             return await loop.run_in_executor(
                 com_executor,
