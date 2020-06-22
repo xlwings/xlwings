@@ -70,6 +70,7 @@ While the defaults will often work out-of-the box, you can change the global set
 * ``RunPython: Use UDF Server``:  Uses the same COM Server for RunPython as for UDFs. This will be faster, as the
   interpreter doesn't shut down after each call.
 * ``Restart UDF Server``: This shuts down the UDF Server/Python interpreter. It'll be restarted upon the next function call.
+* ``Show Console``: Check the box in the ribbon or set the config to TRUE if you want the command prompt to pop up. This only has an effect on Windows and the combination UDF + Conda currently forces the console to be shown.
 
 Anaconda/Miniconda
 ******************
