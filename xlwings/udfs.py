@@ -1,4 +1,9 @@
+import sys
 import asyncio
+if sys.version_info >= (3, 7):
+    from asyncio import get_running_loop
+else:
+    from asyncio import get_event_loop as get_running_loop
 import concurrent
 import copy
 import functools
@@ -7,7 +12,6 @@ import logging
 import os
 import os.path
 import re
-import sys
 import tempfile
 import threading
 from importlib import import_module
@@ -56,7 +60,7 @@ async def async_thread(base, my_has_dynamic_array, func, args, cache_key, expand
         else:
             stashme = await base.get_formula()
 
-        loop = asyncio.get_event_loop()
+        loop = get_running_loop()
         cache[cache_key] = await loop.run_in_executor(
             com_executor,
             functools.partial(
@@ -233,10 +237,13 @@ class ComRange(Range):
         self._ser = pythoncom.CoMarshalInterThreadInterfaceInStream(
             pythoncom.IID_IDispatch,
             rng.api)
-        self._ser_resultCLSID = getattr(
-            self._impl.api,
-            'CLSID',
-            None)
+        if sys.version_info[:2] <= (3, 6):
+            self._ser_resultCLSID = getattr(
+                self._impl.api,
+                'CLSID',
+                None)
+        else:
+            self._ser_resultCLSID = self._impl.api.CLSID
 
         self._deser_thread = None
         self._deser = None
@@ -278,7 +285,7 @@ class ComRange(Range):
           a cap.
         """
 
-        loop = asyncio.get_event_loop()
+        loop = get_running_loop()
 
         if sys.version_info[:2] <= (3, 6):
             def _fn(fn, *args):
