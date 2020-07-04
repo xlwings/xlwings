@@ -490,8 +490,6 @@ def has_dynamic_array(app):
     try:
         app.api.WorksheetFunction.Unique("dummy")
         return True
-    except pywintypes.com_error as e:
-        if e.hresult == -2147352567:
-            return False
-        else:
-            raise e
+    except (AttributeError, pywintypes.com_error) as e:
+        return False
+
