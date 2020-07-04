@@ -27,8 +27,7 @@ If you want to use xlwings via VBA module instead of addin, use the ``--standalo
 Add-in
 ------
 
-The `addin` command makes it easy on Windows to install/remove the addin. On Mac, you need to install it manually, but
-``xlwings addin install`` will show you how to do it.
+The `addin` command makes it easy to install/remove the addin by copying it to the ``XLSTART`` folder.
 
 .. note:: Excel needs to be closed before installing/updating the add-in via command line. If you're still getting an error,
   start the Task Manager and make sure there are no ``EXCEL.EXE`` processes left.
@@ -41,6 +40,7 @@ The `addin` command makes it easy on Windows to install/remove the addin. On Mac
 
 * ``xlwings addin status``: Shows if the add-in is installed together with the installation path
 
+
 After installing the add-in, it will be available as xlwings tab on the Excel Ribbon.
 
 .. versionadded:: 0.6.0
@@ -49,11 +49,22 @@ After installing the add-in, it will be available as xlwings tab on the Excel Ri
 RunPython
 ---------
 
-Only required if you are on Mac, are using Excel 2016 and have xlwings installed via conda or as part of Anaconda.
-To enable the ``RunPython`` calls in VBA, run this one time:
+Only required if you are on Mac and haven't run ``xlwings addin install``:
 
 ``xlwings runpython install``
 
 Alternatively, install xlwings with ``pip``.
 
 .. versionadded:: 0.7.0
+
+Config
+------
+
+Creates the user config file with the correct settings for your Python installation from where you are running it.
+This is automatically run when you install the add-in via ``xlwings addin install``.
+
+``xlwings config create [--force]``
+
+``-f/--force`` will overwrite existing config files.
+
+.. versionadded:: 0.19.5
