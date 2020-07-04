@@ -82,6 +82,14 @@ otherwise get errors when using ``NumPy`` etc. In return, leave ``Interpreter`` 
 
 .. _config_file:
 
+Environment Variables
+---------------------
+
+With environment variables, you can set dynamic paths e.g. to your interpreter or ``PYTHONPATH``:
+
+* On Windows, you can use all environment variables like so: ``%USERPROFILE%\Anaconda``.
+* On macOS, the following special variables are supported: ``$HOME``, ``$APPLICATIONS``, ``$DOCUMENTS``, ``$DESKTOP``, ``$TMPDIR``.
+
 User Config: Ribbon/Config File
 -------------------------------
 
@@ -90,12 +98,19 @@ The settings in the xlwings Ribbon are stored in a config file that can also be 
 * Windows: ``.xlwings\xlwings.conf`` in your user folder  
 * macOS: ``~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf``
 
-The format is as follows (keys are uppercase):
+The format is as follows - note the OS specific Interpreter settings!
 
 .. code-block:: bash
 
-    "INTERPRETER","pythonw"
+    "Interpreter_Win","C:\path\to\python.exe"
+    "Interpreter_Mac","/path/to/python"
     "PYTHONPATH",""
+    "Conda Path",""
+    "Conda Env",""
+    "UDF Modules",""
+    "Debug UDFs",""
+    "Use UDF Server",""
+    "Show Console",""
 
 Workbook Directory Config: Config file
 --------------------------------------
