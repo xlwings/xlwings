@@ -3,13 +3,14 @@ import sys
 import shutil
 import argparse
 
+import xlwings as xw
+
 # Directories/paths
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
 def get_addin_path():
     # The call to startup_path creates the XLSTART folder if it doesn't exist yet
-    import xlwings as xw
     if xw.apps:
         return os.path.join(xw.apps.active.startup_path, 'xlwings.xlam')
     else:
@@ -26,6 +27,7 @@ def addin_install(args):
         print('Successfully installed the xlwings add-in! Please restart Excel.')
         if sys.platform.startswith('darwin'):
             runpython_install(None)
+        config_create(None)
     except IOError as e:
         if e.args[0] == 13:
             print('Error: Failed to install the add-in: If Excel is running, quit Excel and try again.')
@@ -129,15 +131,11 @@ def license_update(args):
     key = args.key
     if not key:
         sys.exit('Please provide a license key via the -k/--key option. For example: xlwings license update -k MY_KEY')
-    if sys.platform.startswith('darwin'):
-        config_file = os.path.join(os.path.expanduser("~"), 'Library', 'Containers', 'com.microsoft.Excel', 'Data', 'xlwings.conf')
-    else:
-        config_file = os.path.join(os.path.expanduser("~"), '.xlwings', 'xlwings.conf')
     license_kv = '"LICENSE_KEY","{0}"\n'.format(key)
     # Update xlwings.conf
     new_config = []
-    if os.path.exists(config_file):
-        with open(config_file, 'r') as f:
+    if os.path.exists(xw.USER_CONFIG_FILE):
+        with open(xw.USER_CONFIG_FILE, 'r') as f:
             config = f.readlines()
         for line in config:
             # Remove existing license key and empty lines
@@ -148,9 +146,9 @@ def license_update(args):
         new_config.append(license_kv)
     else:
         new_config = [license_kv]
-    if not os.path.exists(os.path.dirname(config_file)):
-        os.makedirs(os.path.dirname(config_file))
-    with open(config_file, 'w') as f:
+    if not os.path.exists(os.path.dirname(xw.USER_CONFIG_FILE)):
+        os.makedirs(os.path.dirname(xw.USER_CONFIG_FILE))
+    with open(xw.USER_CONFIG_FILE, 'w') as f:
         f.writelines(new_config)
     print('Successfully updated license key.')
 
@@ -158,6 +156,38 @@ def license_update(args):
 def license_deploy(args):
     from .pro import LicenseHandler
     print(LicenseHandler.create_deploy_key())
+
+
+def get_conda_settings():
+    conda_env = os.getenv('CONDA_DEFAULT_ENV')
+    conda_exe = os.getenv('CONDA_EXE')
+
+    if conda_env and conda_exe:
+        # xlwings currently expects the path without the trailing /bin/conda or \Scripts\conda.exe
+        conda_path = os.path.sep.join(conda_exe.split(os.path.sep)[:-2])
+        return conda_path, conda_env
+    else:
+        return None, None
+
+
+def config_create(args):
+    if args is None:
+        force = False
+    else:
+        force = args.force
+    settings = []
+    conda_path, conda_env = get_conda_settings()
+    if conda_path and sys.platform.startswith('win'):
+        settings.append('"CONDA PATH","{}"\n'.format(conda_path))
+        settings.append('"CONDA ENV","{}"\n'.format(conda_env))
+    else:
+        extension = 'MAC' if sys.platform.startswith('darwin') else 'WIN'
+        settings.append('"INTERPRETER_{}","{}"\n'.format(extension, sys.executable))
+    if os.path.exists(xw.USER_CONFIG_FILE) and not force:
+        print("There is already an existing config file. Run with --force if you want to overwrite.")
+    else:
+        with open(xw.USER_CONFIG_FILE, 'w') as f:
+            f.writelines(settings)
 
 
 def main():
@@ -226,6 +256,15 @@ def main():
 
     license_update_parser = license_subparsers.add_parser('deploy')
     license_update_parser.set_defaults(func=license_deploy)
+
+    # Config
+    config_parser = subparsers.add_parser('config', help='config file under ~/.xlwings/xlwings.conf')
+    config_subparsers = config_parser.add_subparsers(dest='subcommand')
+    config_subparsers.required = True
+
+    config_create_parser = config_subparsers.add_parser('create')
+    config_create_parser.add_argument("-f", "--force", action='store_true', help='Will overwrite the current config file.')
+    config_create_parser.set_defaults(func=config_create)
 
     # boilerplate
     args = parser.parse_args()

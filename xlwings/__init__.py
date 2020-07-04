@@ -11,6 +11,7 @@ else:
     from . import _xlmac as xlplatform
 
 time_types = xlplatform.time_types
+USER_CONFIG_FILE = xlplatform.USER_CONFIG_FILE
 
 
 # Errors
