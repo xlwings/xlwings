@@ -110,6 +110,7 @@ The format is as follows - note the OS specific Interpreter settings!
     "UDF Modules",""
     "Debug UDFs",""
     "Use UDF Server",""
+    "Show Console",""
 
 Workbook Directory Config: Config file
 --------------------------------------
