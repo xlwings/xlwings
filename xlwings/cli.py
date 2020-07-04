@@ -175,6 +175,7 @@ def config_create(args):
         force = False
     else:
         force = args.force
+    os.makedirs(os.path.dirname(xw.USER_CONFIG_FILE), exist_ok=True)
     settings = []
     conda_path, conda_env = get_conda_settings()
     if conda_path and sys.platform.startswith('win'):
