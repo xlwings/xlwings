@@ -100,6 +100,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: $Env:GITHUB_WORKSPACE/xlwings/addin/xlwings.xlam
+          asset_path: Package/xlwings.xlam
           asset_name: xlwings.xlam
           asset_content_type: application/zip
