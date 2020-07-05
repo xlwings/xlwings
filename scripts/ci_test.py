@@ -3,8 +3,10 @@ import subprocess
 from shlex import split
 import glob
 
+os.chdir('Package')
+
 # Version numbers get sometimes normalized from setuptools, so just check what package is in the directory
-for package in glob.glob(os.path.join('Package', '*.tar.gz')):
+for package in glob.glob('*.tar.gz'):
     # Installation
     subprocess.check_call(split(f'python -m pip install {package}'))
 
