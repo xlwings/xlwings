@@ -1,6 +1,16 @@
 What's New
 ==========
 
+v0.19.5 (Jul 5, 2020)
+----------------------
+
+* [Enhancement] When you install the add-in via ``xlwings addin install``, it autoconfigures the add-in if it can't find an existing user config file (:issue:`1322`).
+* [Feature] New ``xlwings config create [--force]`` command that autogenerates the user config file with the Python settings from which you run the command. Can be used to reset the add-in settings with the ``--force`` option (:issue:`1322`).
+* [Feature]: There is a new option to show/hide the console window. Note that with ``Conda Path`` and ``Conda Env`` set, the console always pops up when using the UDF server. Currently only available on Windows (:issue:`1182`).
+* [Enhancement] The ``Interpreter`` setting has been deprecated in favor of platform-specific settings: ``Interpreter_Win`` and ``Interpreter_Mac``, respectively. This allows you use the sheet config unchanged on both platforms (:issue:`1345`).
+* [Enhancement] On macOS, you can now use a few environment-like variables in your settings: ``$HOME``, ``$APPLICATIONS``, ``$DOCUMENTS``, ``$DESKTOP`` (:issue:`615`).
+* [Bug Fix]: Async functions sometimes caused an error on older Excel versions without dynamic arrays (:issue:`1341`).
+
 v0.19.4 (May 20, 2020)
 ----------------------
 

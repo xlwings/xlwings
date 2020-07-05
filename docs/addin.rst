@@ -54,7 +54,8 @@ While the defaults will often work out-of-the box, you can change the global set
 * ``Interpreter``: This is the path to the Python interpreter. This works also with virtual or conda envs on Mac.
   If you use conda envs on Windows, then use ``Conda Path`` and ``Conda Env`` below instead. Examples:
   ``"C:\Python35\pythonw.exe"`` or ``"/usr/local/bin/python3.5"``. An empty field defaults to ``pythonw`` that
-  expects the interpreter to be set in the ``PATH`` on Windows or ``.bash_profile`` on Mac.
+  expects the interpreter to be set in the ``PATH`` on Windows or ``.bash_profile`` on Mac. Note that in the settings,
+  this is stored as ``Interpreter_Win`` or ``Interpreter_Mac``, respectively, see below!
 * ``PYTHONPATH``: If the source file of your code is not found, add the path here.
 * ``Conda Path``: If you are on Windows and use Anaconda or Miniconda, then type here the path to your
   installation, e.g. ``C:\Users\Username\Miniconda3`` or ``%USERPROFILE%\Anaconda``. NOTE that you need at least conda 4.6!
@@ -88,7 +89,7 @@ Environment Variables
 With environment variables, you can set dynamic paths e.g. to your interpreter or ``PYTHONPATH``:
 
 * On Windows, you can use all environment variables like so: ``%USERPROFILE%\Anaconda``.
-* On macOS, the following special variables are supported: ``$HOME``, ``$APPLICATIONS``, ``$DOCUMENTS``, ``$DESKTOP``, ``$TMPDIR``.
+* On macOS, the following special variables are supported: ``$HOME``, ``$APPLICATIONS``, ``$DOCUMENTS``, ``$DESKTOP``.
 
 User Config: Ribbon/Config File
 -------------------------------
