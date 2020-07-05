@@ -1,15 +1,14 @@
 import os
 import subprocess
 from shlex import split
+import glob
 
-# Version string
-if os.environ['GITHUB_REF'].startswith('refs/tags'):
-    version_string = os.environ['GITHUB_REF'][10:]
-else:
-    version_string = os.environ['GITHUB_SHA'][:7]
+os.chdir('Package')
 
-# Installation
-subprocess.check_call(split(f'python -m pip install Package/xlwings-{version_string}.tar.gz'))
+# Version numbers get sometimes normalized from setuptools, so just check what package is in the directory
+for package in glob.glob('*.tar.gz'):
+    # Installation
+    subprocess.check_call(split(f'python -m pip install {package}'))
 
 # Changing the dir is required to prevent python from importing the package from the source code
 os.chdir(os.path.expanduser('~'))  # e.g. /Users/runners
