@@ -4,7 +4,7 @@ from shlex import split
 import glob
 
 # Version numbers get sometimes normalized from setuptools, so just check what package is in the directory
-for package in glob.glob('Package/*.tar.gz'):
+for package in glob.glob(os.path.join('Package', '*.tar.gz')):
     # Installation
     subprocess.check_call(split(f'python -m pip install {package}'))
 
