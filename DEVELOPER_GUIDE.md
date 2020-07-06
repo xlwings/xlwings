@@ -7,9 +7,8 @@ The source for the Python package is in the `xlwings` directory.
 1. Fork xlwings repository on GitHub into your own account
 2. Clone your forked repository: `git clone <your forked git url>`
 3. `cd xlwings`
-4. With the desired development environment activated: `pip install -e .`. This will install xlwings like a standard package
-   but runs from your cloned source code, i.e. you can edit/debug the xlwings code.
-5. Install the optional dependencies according to your platform with: `pip install -r requirements/devwin.txt` or `.../devmac.txt`
+4. With the desired development environment activated: `pip install -e ".[all]"`. This will install xlwings like a standard package
+   but runs from your cloned source code, i.e. you can edit/debug the xlwings code. If you don't want the dependencies to be taken care of, you could also use `python setup.py develop`.
 
 ## Mac implementation
 
@@ -30,9 +29,8 @@ Links:
 Install the addin in Excel by going to `Developer` > `Excel Add-in` > `Browse` and pointing to the addin in the source code,
 i.e. under `xlwings/addin/xlwings.xlam`.
 
-To change the buttons, you need to download the CustomUIEditor (only runs on Windows) from 
-http://openxmldeveloper.org/blog/b/openxmldeveloper/archive/2006/05/26/customuieditor.aspx or
-https://www.rondebruin.nl/win/winfiles/OfficeCustomUIEditorSetup.zip
+To change the buttons, you need to download the Office RibbonX Editor (only runs on Windows) from 
+https://github.com/fernandreu/office-ribbonx-editor/releases
 
 The code is pure VBA code.
 
@@ -45,13 +43,13 @@ download the latest version of xlwings from https://pypi.org, unpack it and plac
 then rename them into `xlwings32-dev.dll` and `xlwings64-dev.dll`. Note that the bitness refers to the Excel
 installation and not to the Python installation!
 
-If you ever need to change the C++ source, then download Visual Studio Community 2015 to open and compile the 
+If you ever need to change the C++ source, then download Visual Studio Community 2019 to open and compile the 
 project there. When installing, make sure to select `Custom Installation` so you can activate the checkbox for `Visual C++` under
 programming languages.
 
 If you need to debug the dll, in Visual Studio do the following:
 
-* Double-click `xlwings.sln` to open the project in Visual Studio 2015.
+* Double-click `xlwings.sln` to open the project in Visual Studio 2019.
 * Build the project in `Debug` mode (select `Win32` if your Excel is 32 bit and `x64` if your Excel is 64 bit). Note that the Python bitness does not matter!
 * Make sure that Excel calls that dll that was built in debug mode. In the xlwings addin (password: `xlwings`) you could e.g. override the path in `XLPyLoadDLL`.
 * In Visual Studio, go to `Debug` > `Attach to process...` and select Excel

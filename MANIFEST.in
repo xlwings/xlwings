@@ -1,6 +1,5 @@
 include LICENSE.txt
 include README.rst
-include xlwings/tests/*.xlsx
 include xlwings/*.xlsm
 include xlwings/addin/xlwings.xlam
 include xlwings*.dll

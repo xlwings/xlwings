@@ -1,5 +1,5 @@
-from functools import wraps
 import sys
+from functools import wraps
 
 
 __version__ = 'dev'
@@ -11,6 +11,7 @@ else:
     from . import _xlmac as xlplatform
 
 time_types = xlplatform.time_types
+USER_CONFIG_FILE = xlplatform.USER_CONFIG_FILE
 
 
 # Errors
@@ -18,9 +19,19 @@ class ShapeAlreadyExists(Exception):
     pass
 
 
+class LicenseError(Exception):
+    pass
+
+
 # API
 from .main import App, Book, Range, Chart, Sheet, Picture, Shape, Name, view, RangeRows, RangeColumns
 from .main import apps, books, sheets
+
+try:
+    from . import pro
+    PRO = True
+except (ImportError, LicenseError):
+    PRO = False
 
 # UDFs
 if sys.platform.startswith('win'):

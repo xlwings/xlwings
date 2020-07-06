@@ -142,7 +142,7 @@ pygments_style = 'sphinx'
 
 
 # extlinks alias
-extlinks = {'issue': ('https://github.com/ZoomerAnalytics/xlwings/issues/%s',
+extlinks = {'issue': ('https://github.com/xlwings/xlwings/issues/%s',
                       'GH')}
 
 # -- Options for HTML output ---------------------------------------------------

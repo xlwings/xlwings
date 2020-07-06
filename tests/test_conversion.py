@@ -5,7 +5,7 @@ from collections import OrderedDict
 
 import pytz
 
-from xlwings.tests.common import TestBase
+from .common import TestBase
 
 # Optional dependencies
 try:
@@ -134,6 +134,21 @@ class TestNumpy(TestBase):
     def test_scalar_nan(self):
         """test_scalar_nan: Covers GH Issue #15"""
         self.wb1.sheets[0].range('A20').value = np.nan
+        self.assertEqual(None, self.wb1.sheets[0].range('A20').value)
+
+    def test_scalar_nan_float16(self):
+        """test_scalar_nan: Covers GH Issue #1116"""
+        self.wb1.sheets[0].range('A20').value = np.float16(np.nan)
+        self.assertEqual(None, self.wb1.sheets[0].range('A20').value)
+
+    def test_scalar_nan_float32(self):
+        """test_scalar_nan: Covers GH Issue #1116"""
+        self.wb1.sheets[0].range('A20').value = np.float32(np.nan)
+        self.assertEqual(None, self.wb1.sheets[0].range('A20').value)
+
+    def test_scalar_nan_float64(self):
+        """test_scalar_nan: Covers GH Issue #1116"""
+        self.wb1.sheets[0].range('A20').value = np.float64(np.nan)
         self.assertEqual(None, self.wb1.sheets[0].range('A20').value)
 
     def test_ndim2_scalar_as_array(self):

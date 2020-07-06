@@ -2,61 +2,66 @@ import os
 import sys
 import shutil
 import argparse
+
 import xlwings as xw
 
 # Directories/paths
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
-if sys.platform.startswith('win'):
-    addin_path = os.path.join(os.getenv('APPDATA'), 'Microsoft', 'Excel', 'XLSTART', 'xlwings.xlam')
+
+def get_addin_path():
+    # The call to startup_path creates the XLSTART folder if it doesn't exist yet
+    if xw.apps:
+        return os.path.join(xw.apps.active.startup_path, 'xlwings.xlam')
+    else:
+        app = xw.App(visible=False)
+        startup_path = app.startup_path
+        app.quit()
+        return os.path.join(startup_path, 'xlwings.xlam')
 
 
 def addin_install(args):
-    if not sys.platform.startswith('win'):
-        path = xw.__path__[0] + '/addin/xlwings.xlam'
-        print("Cannot install the addin automatically on Mac. Install it via Tools > Excel Add-ins...")
-        print("You find the addin here: {0}".format(path))
-    else:
-        try:
-            shutil.copyfile(os.path.join(this_dir, 'addin', 'xlwings.xlam'), addin_path)
-            print('Successfully installed the xlwings add-in! Please restart Excel.')
-        except IOError as e:
-            if e.args[0] == 13:
-                print('Error: Failed to install the add-in: If Excel is running, quit Excel and try again.')
-            else:
-                print(str(e))
-        except Exception as e:
-            print(str(e))
+    try:
+        addin_path = get_addin_path()
+        shutil.copyfile(os.path.join(this_dir, 'addin', 'xlwings.xlam'), addin_path)
+        print('Successfully installed the xlwings add-in! Please restart Excel.')
+        if sys.platform.startswith('darwin'):
+            runpython_install(None)
+        config_create(None)
+    except IOError as e:
+        if e.args[0] == 13:
+            print('Error: Failed to install the add-in: If Excel is running, quit Excel and try again.')
+        else:
+            print(repr(e))
+    except Exception as e:
+        print(repr(e))
 
 
 def addin_remove(args):
-    if not sys.platform.startswith('win'):
-        print('Error: This command is not available on Mac. Please remove the addin manually.')
-    else:
-        try:
-            os.remove(addin_path)
-            print('Successfully removed the xlwings add-in!')
-        except WindowsError as e:
-            if e.args[0] == 32:
-                print('Error: Failed to remove the add-in: If Excel is running, quit Excel and try again.')
-            elif e.args[0] == 2:
-                print("Error: Could not remove the xlwings add-in. The add-in doesn't seem to be installed.")
-            else:
-                print(str(e))
-        except Exception as e:
-            print(str(e))
+    try:
+        addin_path = get_addin_path()
+        os.remove(addin_path)
+        print('Successfully removed the xlwings add-in!')
+    except (WindowsError, PermissionError) as e:
+        if e.args[0] in (13, 32):
+            print('Error: Failed to remove the add-in: If Excel is running, quit Excel and try again. '
+                  'You can also delete it manually from {0}'.format(addin_path))
+        elif e.args[0] == 2:
+            print("Error: Could not remove the xlwings add-in. The add-in doesn't seem to be installed.")
+        else:
+            print(repr(e))
+    except Exception as e:
+        print(repr(e))
 
 
 def addin_status(args):
-    if not sys.platform.startswith('win'):
-        print('Error: This command is only available on Windows right now.')
+    addin_path = get_addin_path()
+    if os.path.isfile(addin_path):
+        print('The add-in is installed at {}'.format(addin_path))
+        print('Use "xlwings addin remove" to uninstall it.')
     else:
-        if os.path.isfile(addin_path):
-            print('The add-in is installed at {}'.format(addin_path))
-            print('Use "xlwings addin remove" to uninstall it.')
-        else:
-            print('The add-in is not installed.')
-            print('"xlwings addin install" will install it at: {}'.format(addin_path))
+        print('The add-in is not installed.')
+        print('"xlwings addin install" will install it at: {}'.format(addin_path))
 
 
 def quickstart(args):
@@ -77,13 +82,17 @@ def quickstart(args):
             python_module.write('@xw.sub  # only required if you want to import it or run it via UDF Server\n')
         python_module.write('def main():\n')
         python_module.write('    wb = xw.Book.caller()\n')
-        python_module.write('    wb.sheets[0].range("A1").value = "Hello xlwings!"\n\n\n')
+        python_module.write('    sheet = wb.sheets[0]\n')
+        python_module.write('    if sheet["A1"].value == "Hello xlwings!":\n')
+        python_module.write('        sheet["A1"].value = "Bye xlwings!"\n')
+        python_module.write('    else:\n')
+        python_module.write('        sheet["A1"].value = "Hello xlwings!"\n\n\n')
         if sys.platform.startswith('win'):
             python_module.write('@xw.func\n')
             python_module.write('def hello(name):\n')
             python_module.write('    return "hello {0}".format(name)\n\n\n')
         python_module.write('if __name__ == "__main__":\n')
-        python_module.write('    xw.books.active.set_mock_caller()\n')
+        python_module.write('    xw.Book("{0}.xlsm").set_mock_caller()\n'.format(project_name))
         python_module.write('    main()\n')
 
     # Excel file
@@ -101,7 +110,7 @@ def runpython_install(args):
     if not os.path.exists(destination_dir):
         os.makedirs(destination_dir)
     shutil.copy(os.path.join(this_dir, 'xlwings.applescript'), destination_dir)
-    print('Successfully installed RunPython for Mac Excel 2016!')
+    print('Successfully enabled RunPython!')
 
 
 def restapi_run(args):
@@ -118,19 +127,15 @@ def restapi_run(args):
 
 
 def license_update(args):
-    """license handler for xlwings PRO and xlwings REPORTS"""
+    """license handler for xlwings PRO"""
     key = args.key
     if not key:
         sys.exit('Please provide a license key via the -k/--key option. For example: xlwings license update -k MY_KEY')
-    if sys.platform.startswith('darwin'):
-        config_file = os.path.join(os.path.expanduser("~"), 'Library', 'Containers', 'com.microsoft.Excel', 'Data', 'xlwings.conf')
-    else:
-        config_file = os.path.join(os.path.expanduser("~"), '.xlwings', 'xlwings.conf')
     license_kv = '"LICENSE_KEY","{0}"\n'.format(key)
     # Update xlwings.conf
     new_config = []
-    if os.path.exists(config_file):
-        with open(config_file, 'r') as f:
+    if os.path.exists(xw.USER_CONFIG_FILE):
+        with open(xw.USER_CONFIG_FILE, 'r') as f:
             config = f.readlines()
         for line in config:
             # Remove existing license key and empty lines
@@ -141,15 +146,53 @@ def license_update(args):
         new_config.append(license_kv)
     else:
         new_config = [license_kv]
-    if not os.path.exists(os.path.dirname(config_file)):
-        os.makedirs(os.path.dirname(config_file))
-    with open(config_file, 'w') as f:
+    if not os.path.exists(os.path.dirname(xw.USER_CONFIG_FILE)):
+        os.makedirs(os.path.dirname(xw.USER_CONFIG_FILE))
+    with open(xw.USER_CONFIG_FILE, 'w') as f:
         f.writelines(new_config)
     print('Successfully updated license key.')
 
 
+def license_deploy(args):
+    from .pro import LicenseHandler
+    print(LicenseHandler.create_deploy_key())
+
+
+def get_conda_settings():
+    conda_env = os.getenv('CONDA_DEFAULT_ENV')
+    conda_exe = os.getenv('CONDA_EXE')
+
+    if conda_env and conda_exe:
+        # xlwings currently expects the path without the trailing /bin/conda or \Scripts\conda.exe
+        conda_path = os.path.sep.join(conda_exe.split(os.path.sep)[:-2])
+        return conda_path, conda_env
+    else:
+        return None, None
+
+
+def config_create(args):
+    if args is None:
+        force = False
+    else:
+        force = args.force
+    os.makedirs(os.path.dirname(xw.USER_CONFIG_FILE), exist_ok=True)
+    settings = []
+    conda_path, conda_env = get_conda_settings()
+    if conda_path and sys.platform.startswith('win'):
+        settings.append('"CONDA PATH","{}"\n'.format(conda_path))
+        settings.append('"CONDA ENV","{}"\n'.format(conda_env))
+    else:
+        extension = 'MAC' if sys.platform.startswith('darwin') else 'WIN'
+        settings.append('"INTERPRETER_{}","{}"\n'.format(extension, sys.executable))
+    if os.path.exists(xw.USER_CONFIG_FILE) and not force:
+        print("There is already an existing config file. Run with --force if you want to overwrite.")
+    else:
+        with open(xw.USER_CONFIG_FILE, 'w') as f:
+            f.writelines(settings)
+
+
 def main():
-    print('xlwings ' + xw.__version__)
+    print('xlwings ' + 'dev')
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='command')
     subparsers.required = True
@@ -211,6 +254,18 @@ def main():
     license_update_parser = license_subparsers.add_parser('update')
     license_update_parser.add_argument("-k", "--key", help='Provide a new key, otherwise it will take it from the xlwings.conf file.')
     license_update_parser.set_defaults(func=license_update)
+
+    license_update_parser = license_subparsers.add_parser('deploy')
+    license_update_parser.set_defaults(func=license_deploy)
+
+    # Config
+    config_parser = subparsers.add_parser('config', help='config file under ~/.xlwings/xlwings.conf')
+    config_subparsers = config_parser.add_subparsers(dest='subcommand')
+    config_subparsers.required = True
+
+    config_create_parser = config_subparsers.add_parser('create')
+    config_create_parser.add_argument("-f", "--force", action='store_true', help='Will overwrite the current config file.')
+    config_create_parser.set_defaults(func=config_create)
 
     # boilerplate
     args = parser.parse_args()

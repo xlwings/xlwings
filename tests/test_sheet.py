@@ -2,7 +2,7 @@ import sys
 import unittest
 
 import xlwings as xw
-from xlwings.tests.common import TestBase
+from .common import TestBase
 
 
 class TestSheets(TestBase):

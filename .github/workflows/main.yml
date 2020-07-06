@@ -1,0 +1,105 @@
+name: Build Pipeline
+
+on:
+  # Run on all pushed commits and when a new release is created
+  # Prevents duplicated pipeline runs as a release also pushes a tag
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
+  release:
+    types:
+      - created
+
+jobs:
+  build:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.7'
+        architecture: 'x64'
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.100
+    - name: Install Python dependencies
+      run: |
+        python -m pip install pythonnet
+    - name: Install Aspose
+      shell: bash
+      run: |
+        mkdir ./aspose
+        curl -L https://www.nuget.org/api/v2/package/Aspose.Cells/17.12.0 -o ./aspose/aspose.cells.nupkg
+        unzip ./aspose/aspose.cells.nupkg -d ./aspose/
+    - name: Build dlls
+      run: |
+        cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
+        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release
+        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:Platform=x64
+    - name: Build Python Package
+      shell: bash
+      env:
+        ASPOSE_LICENSE: ${{ secrets.ASPOSE_LICENSE }}
+        XLWINGS_LICENSE_KEY_SECRET: ${{ secrets.XLWINGS_LICENSE_KEY_SECRET }}
+      run: |
+        python ./scripts/build_excel_files.py
+        python setup.py sdist
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: Package
+        path: dist
+
+  test_and_upload:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    name: Test and release
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+        python-version: [3.6, 3.7, 3.8]
+        architecture: ['x64']
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.architecture }}
+      - name: Install Python dependencies
+        run: |
+          python -m pip install wheel twine
+      - name: Download source package from previous job
+        uses: actions/download-artifact@v1
+        with:
+          name: Package
+      - name: Test installation
+        run: python scripts/ci_test.py
+      - name: Publish package and update Homepage with release version
+        shell: bash
+        if: github.event_name == 'release'
+        run: |
+          twine upload Package/*.tar.gz
+          curl -X POST -d {} https://api.netlify.com/build_hooks/$NETLIFY_BUILD_HOOK
+        env:
+          NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+  #          repository_url: https://test.pypi.org/legacy/
+      - name: Upload add-in to GH Release
+        if: github.event_name == 'release'
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: Package/xlwings.xlam
+          asset_name: xlwings.xlam
+          asset_content_type: application/zip

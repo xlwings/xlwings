@@ -1,7 +1,7 @@
 .. _vba:
 
-VBA: RunPython
-==============
+RunPython
+=========
 
 xlwings add-in
 --------------

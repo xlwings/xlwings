@@ -11,7 +11,7 @@ Quickstart
 xlwings offers an easy way to expose an Excel workbook via REST API both on Windows and macOS. This can be useful
 when you have a workbook running on a single computer and want to access it from another computer. Or you can
 build a Linux based web app that can interact with a legacy Excel application while you are in the progress
-of migrating the Excel functionality into your web app (if you need help with that, `give us a shout <https://www.zoomeranalytics.com/contact>`_).
+of migrating the Excel functionality into your web app (if you need help with that, `give us a shout <https://www.xlwings.org/contact>`_).
 
 You can run the REST API server from a command prompt or terminal as follows (this requires Flask>=1.0, so make sure to ``pip install Flask``)::
 

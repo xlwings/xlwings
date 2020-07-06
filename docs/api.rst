@@ -203,6 +203,12 @@ UDF decorators
 
     2) Dynamic array:
 
+    .. note::
+        If your version of Excel supports the new native dynamic arrays, then you don't have to do anything special,
+        and you shouldn't use the ``expand`` decorator! To check if your version of Excel supports it, see if you
+        have the ``=UNIQUE()`` formula available. Native dynamic arrays were introduced in Office 365 Insider Fast
+        at the end of September 2018.
+
     ``expand='table'`` turns the UDF into a dynamic array. Currently you must not use volatile functions
     as arguments of a dynamic array, e.g. you cannot use ``=TODAY()`` as part of a dynamic array. Also
     note that a dynamic array needs an empty row and column at the bottom and to the right and will overwrite
@@ -223,3 +229,11 @@ UDF decorators
 
 
     .. versionadded:: 0.10.0
+
+.. _reports_api:
+
+Reports
+-------
+
+.. automodule:: xlwings.pro.reports
+    :members:

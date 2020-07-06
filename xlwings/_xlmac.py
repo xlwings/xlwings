@@ -25,6 +25,9 @@ try:
 except ImportError:
     np = None
 
+USER_CONFIG_FILE = os.path.join(os.path.expanduser("~"), 'Library', 'Containers',
+                                'com.microsoft.Excel', 'Data', 'xlwings.conf')
+
 # Time types
 time_types = (dt.date, dt.datetime)
 if np:
@@ -130,6 +133,10 @@ class App:
     @display_alerts.setter
     def display_alerts(self, value):
         self.xl.display_alerts.set(value)
+
+    @property
+    def startup_path(self):
+        return hfs_to_posix_path(self.xl.startup_path.get())
 
     @property
     def calculation(self):
@@ -525,6 +532,16 @@ class Range:
             self.xl.formula.set(value)
 
     @property
+    def formula2(self):
+        if self.xl is not None:
+            return self.xl.formula2.get()
+
+    @formula2.setter
+    def formula2(self, value):
+        if self.xl is not None:
+            self.xl.formula2.set(value)
+
+    @property
     def formula_array(self):
         if self.xl is not None:
             rv = self.xl.formula_array.get()
@@ -745,6 +762,20 @@ class Range:
         if self.xl is not None:
             return self.xl.select()
 
+    @property
+    def merge_area(self):
+        return Range(self.sheet, self.xl.merge_area.get_address())
+
+    @property
+    def merge_cells(self):
+        return self.xl.merge_cells.get()
+
+    def merge(self, across):
+        self.xl.merge(across=across)
+
+    def unmerge(self):
+        self.xl.unmerge()
+
 
 class Shape:
     def __init__(self, parent, key):
@@ -809,6 +840,14 @@ class Shape:
     def activate(self):
         # self.xl.activate_object()  # doesn't work?
         self.xl.select()
+
+    def scale_height(self, factor, relative_to_original_size, scale):
+        self.xl.scale_height(scale=scaling[scale], relative_to_original_size=relative_to_original_size,
+                             factor=factor)
+
+    def scale_width(self, factor, relative_to_original_size, scale):
+        self.xl.scale_width(scale=scaling[scale], relative_to_original_size=relative_to_original_size,
+                            factor=factor)
 
 
 class Collection:
@@ -1106,7 +1145,7 @@ class Name:
     def refers_to_range(self):
         book = self.parent if isinstance(self.parent, Book) else self.parent.book
         external_address = self.xl.reference_range.get_address(external=True)
-        match = re.search(r"\](.*)!(.*)", external_address)
+        match = re.search(r"\](.*?)'?!(.*)", external_address)
         return Range(Sheet(book, match.group(1)), match.group(2))
 
 
@@ -1189,7 +1228,7 @@ def clean_value_data(data, datetime_builder, empty_as, number_builder):
 def prepare_xl_data_element(x):
     if x is None:
         return ""
-    elif np and isinstance(x, float) and np.isnan(x):
+    elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
         return ""
     elif np and isinstance(x, np.datetime64):
         # handle numpy.datetime64
@@ -1210,10 +1249,6 @@ def prepare_xl_data_element(x):
         return float(x)
 
     return x
-
-
-def open_template(fullpath):
-    subprocess.call(['open', fullpath])
 
 
 # --- constants ---
@@ -1347,6 +1382,12 @@ shape_types_k2s = {
     kw.shape_type_table: 'table',
     kw.shape_type_ink: 'ink',
     kw.shape_type_ink_comment: 'ink_comment',
+}
+
+scaling = {
+    "scale_from_top_left": kw.scale_from_top_left,
+    "scale_from_bottom_right": kw.scale_from_bottom_right,
+    "scale_from_middle": kw.scale_from_middle
 }
 
 shape_types_s2k = {v: k for k, v in shape_types_k2s.items()}

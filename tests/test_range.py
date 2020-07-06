@@ -5,7 +5,7 @@ import unittest
 
 import xlwings as xw
 from xlwings.constants import RgbColor
-from xlwings.tests.common import TestBase, this_dir
+from .common import TestBase, this_dir
 
 # Mac imports
 if sys.platform.startswith('darwin'):
@@ -160,6 +160,10 @@ class TestRangeAttributes(TestBase):
     def test_formula(self):
         self.wb1.sheets[0].range('A1').formula = '=SUM(A2:A10)'
         self.assertEqual(self.wb1.sheets[0].range('A1').formula, '=SUM(A2:A10)')
+
+    def test_formula2(self):
+        self.wb1.sheets[0].range('A1').formula2 = '=UNIQUE(A2:A10)'
+        self.assertEqual(self.wb1.sheets[0].range('A1').formula2, '=UNIQUE(A2:A10)')
 
     def test_formula_array(self):
         self.wb1.sheets[0].range('A1').value = [[1, 4], [2, 5], [3, 6]]
@@ -766,6 +770,22 @@ class TestCellErrors(TestBase):
         for i in range(1, 8):
             self.assertIsNone(sheet.range((i, 1)).value)
         wb.close()
+
+
+class TestMerging(TestBase):
+    def test_merge(self):
+        sheet = self.wb1.sheets[0]
+        self.assertEqual(sheet['A1'].merge_area, sheet['A1'])
+        self.assertEqual(sheet['A1'].merge_cells, False)
+        sheet["A1:A2"].merge()
+        self.assertEqual(sheet['A1'].merge_area, sheet['A1:A2'])
+        self.assertEqual(sheet['A1'].merge_cells, True)
+        sheet["A1:B2"].merge()
+        self.assertEqual(sheet['A1'].merge_area, sheet['A1:B2'])
+        sheet["A1:B2"].unmerge()
+        self.assertEqual(sheet['A1'].merge_area, sheet['A1'])
+        sheet["A1:B2"].merge(True)
+        self.assertEqual(sheet['A1'].merge_area, sheet['A1:B1'])
 
 
 if __name__ == '__main__':

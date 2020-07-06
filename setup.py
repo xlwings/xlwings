@@ -31,22 +31,26 @@ else:
     else:
         raise OSError("xlwings requires an installation of Excel and therefore only works on Windows and macOS. To enable the installation on Linux nevertheless, do: export INSTALL_ON_LINUX=1; pip install xlwings")
 
+extras_require = {
+    'pro': ['cryptography', 'Jinja2'],
+    'all': ['cryptography', 'pandas', 'matplotlib', 'flask', 'pillow']
+}
+
 setup(
     name='xlwings',
     version=version,
-    url='http://xlwings.org',
+    url='https://www.xlwings.org',
     license='BSD 3-clause',
     author='Zoomer Analytics LLC',
     author_email='felix.zumstein@zoomeranalytics.com',
     description='Make Excel fly: Interact with Excel from Python and vice versa.',
     long_description=readme,
     data_files=data_files,
-    packages=find_packages(),
-    package_data={'xlwings': ['xlwings.bas', 'tests/*.xlsx', 'tests/*.xlsm', 'tests/*.png',
-                              '*.xlsm', 'xlwings.applescript',
-                              'addin/xlwings.xlam']},
+    packages=find_packages(exclude=('tests', 'tests.*',)),
+    package_data={'xlwings': ['xlwings.bas', '*.xlsm', 'xlwings.applescript', 'addin/xlwings.xlam']},
     keywords=['xls', 'excel', 'spreadsheet', 'workbook', 'vba', 'macro'],
     install_requires=install_requires,
+    extras_require=extras_require,
     entry_points={'console_scripts': ['xlwings=xlwings.cli:main'],},
     classifiers=[
         'Development Status :: 4 - Beta',

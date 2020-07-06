@@ -7,6 +7,11 @@ cwd = os.getcwd()
 if not hasattr(sys, 'frozen'):
     # cx_Freeze etc. will fail here otherwise
     os.chdir(sys.exec_prefix)
+# Since Python 3.8, pywintypes needs to be imported before win32api or you get
+# ImportError: DLL load failed while importing win32api: The specified module could not be found.
+# See: https://stackoverflow.com/questions/58805040/pywin32-226-and-virtual-environments
+# Seems to be required even with pywin32 227
+import pywintypes
 import win32api
 os.chdir(cwd)
 
@@ -16,7 +21,6 @@ import numbers
 import types
 from ctypes import oledll, PyDLL, py_object, byref, POINTER, windll
 
-import pywintypes
 import pythoncom
 from win32com.client import Dispatch, CDispatch, DispatchEx
 import win32timezone
@@ -46,7 +50,7 @@ if np:
 
 N_COM_ATTEMPTS = 0      # 0 means try indefinitely
 BOOK_CALLER = None
-
+USER_CONFIG_FILE = os.path.join(os.path.expanduser("~"), '.xlwings', 'xlwings.conf')
 missing = object()
 
 
@@ -363,6 +367,10 @@ class App:
     @display_alerts.setter
     def display_alerts(self, value):
         self.xl.DisplayAlerts = value
+
+    @property
+    def startup_path(self):
+        return self.xl.StartupPath
 
     @property
     def calculation(self):
@@ -751,6 +759,18 @@ class Range:
         if self.xl is not None:
             self.xl.Formula = value
 
+    @property
+    def formula2(self):
+        if self.xl is not None:
+            return self.xl.Formula2
+        else:
+            return None
+
+    @formula2.setter
+    def formula2(self, value):
+        if self.xl is not None:
+            self.xl.Formula2 = value
+
     def end(self, direction):
         direction = directions_s2i.get(direction, direction)
         return Range(xl=self.xl.End(direction))
@@ -977,6 +997,20 @@ class Range:
     def select(self):
         return self.xl.Select()
 
+    @property
+    def merge_area(self):
+        return Range(xl=self.xl.MergeArea)
+
+    @property
+    def merge_cells(self):
+        return self.xl.MergeCells
+
+    def merge(self, across):
+        self.xl.Merge(across)
+
+    def unmerge(self):
+        self.xl.UnMerge()
+
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
     if number_builder is not None:
@@ -1080,19 +1114,14 @@ def _datetime_to_com_time(dt_time):
 def prepare_xl_data_element(x):
     if isinstance(x, time_types):
         return _datetime_to_com_time(x)
+    elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
+        return ""
     elif np and isinstance(x, np.number):
         return float(x)
     elif x is None:
         return ""
-    elif np and isinstance(x, float) and np.isnan(x):
-        return ""
     else:
         return x
-
-
-# TODO: move somewhere better, same on mac
-def open_template(fullpath):
-    os.startfile(fullpath)
 
 
 class Shape:
@@ -1161,6 +1190,14 @@ class Shape:
 
     def activate(self):
         self.xl.Activate()
+
+    def scale_height(self, factor, relative_to_original_size, scale):
+        self.xl.ScaleHeight(Scale=scaling[scale], RelativeToOriginalSize=relative_to_original_size,
+                            Factor=factor)
+
+    def scale_width(self, factor, relative_to_original_size, scale):
+        self.xl.ScaleWidth(Scale=scaling[scale], RelativeToOriginalSize=relative_to_original_size,
+                           Factor=factor)
 
 
 class Collection:
@@ -1575,6 +1612,12 @@ shape_types_s2i = {
     "text_box": 17,
     "text_effect": 15,
     "web_video": 26
+}
+
+scaling = {
+    "scale_from_top_left": 0,
+    "scale_from_bottom_right": 2,
+    "scale_from_middle": 1
 }
 
 shape_types_i2s = {v: k for k, v in shape_types_s2i.items()}

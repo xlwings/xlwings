@@ -3,7 +3,7 @@ xlwings - Make Excel fly with Python!
 
 Homepage and documentation: https://www.xlwings.org
 
-Copyright (C) 2014-present, Zoomer Analytics LLC.
+Copyright (C) 2014-present, Zoomer Analytics GmbH.
 All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
@@ -12,7 +12,6 @@ import os
 import sys
 import re
 import numbers
-import inspect
 
 from . import xlplatform, ShapeAlreadyExists
 from .utils import VersionNumber
@@ -327,6 +326,16 @@ class App:
         self.impl.display_alerts = value
 
     @property
+    def startup_path(self):
+        """
+        Returns the path to ``XLSTART`` which is where the xlwings add-in gets
+        copied to by doing ``xlwings addin install``.
+
+        .. versionadded:: 0.19.4
+        """
+        return self.impl.startup_path
+
+    @property
     def calculation(self):
         """
         Returns or sets a calculation value that represents the calculation mode.
@@ -390,18 +399,6 @@ class App:
         """
         return Range(impl=self.impl.range(cell1, cell2))
 
-    def __repr__(self):
-        return "<Excel App %s>" % self.pid
-
-    def __eq__(self, other):
-        return type(other) is App and other.pid == self.pid
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __hash__(self):
-        return hash(self.pid)
-
     def macro(self, name):
         """
         Runs a Sub or Function in Excel VBA that are not part of a specific workbook but e.g. are part of an add-in.
@@ -433,6 +430,18 @@ class App:
         .. versionadded:: 0.9.0
         """
         return Macro(self, name)
+
+    def __repr__(self):
+        return "<Excel App %s>" % self.pid
+
+    def __eq__(self, other):
+        return type(other) is App and other.pid == self.pid
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(self.pid)
 
 
 class Book:
@@ -555,9 +564,8 @@ class Book:
     def caller(cls):
         """
         References the calling book when the Python function is called from Excel via ``RunPython``.
-        Pack it into the function being called from Excel, e.g.:
+        Pack it into the function being called from Excel, e.g.::
 
-        .. code-block:: python
             import xlwings as xw
 
              def my_macro():
@@ -580,15 +588,15 @@ class Book:
             # Use mocking Book, see Book.set_mock_caller()
             return cls(impl=Book._mock_caller.impl)
         elif from_xl == '1':
-            fullname = wb.lower()
+            name = wb.lower()
             if sys.platform.startswith('win'):
                 app = App(impl=xlplatform.App(xl=int(hwnd)))
-                return cls(impl=app.books.open(fullname).impl)
+                return cls(impl=app.books[name].impl)
             else:
                 # On Mac, the same file open in two instances is not supported
                 if apps.active.version < 15:
-                    fullname = fullname.encode('utf-8', 'surrogateescape').decode('mac_latin2')
-                return cls(impl=Book(fullname).impl)
+                    name = name.encode('utf-8', 'surrogateescape').decode('mac_latin2')
+                return cls(impl=Book(name).impl)
         elif xlplatform.BOOK_CALLER:
             # Called via OPTIMIZED_CONNECTION = True
             return cls(impl=xlplatform.Book(xlplatform.BOOK_CALLER))
@@ -620,27 +628,6 @@ class Book:
         .. versionadded:: 0.3.1
         """
         Book._mock_caller = self
-
-    @staticmethod
-    def open_template():
-        """
-        Creates a new Excel file with the xlwings VBA module already included. This method must be called from an
-        interactive Python shell::
-
-        >>> xw.Book.open_template()
-
-        See also: :ref:`command_line`
-
-        .. versionadded:: 0.3.3
-        """
-        this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
-        template_file = 'xlwings_template.xltm'
-        try:
-            os.remove(os.path.join(this_dir, '~$' + template_file))
-        except OSError:
-            pass
-
-        xlplatform.open_template(os.path.realpath(os.path.join(this_dir, template_file)))
 
     def macro(self, name):
         """
@@ -1206,6 +1193,15 @@ class Range:
     @formula.setter
     def formula(self, value):
         self.impl.formula = value
+
+    @property
+    def formula2(self):
+        """Gets or sets the formula2 for the given Range."""
+        return self.impl.formula2
+
+    @formula2.setter
+    def formula2(self, value):
+        self.impl.formula2 = value
 
     @property
     def formula_array(self):
@@ -1845,6 +1841,38 @@ class Range:
         """
         self.impl.select()
 
+    @property
+    def merge_area(self):
+        """
+        Returns a Range object that represents the merged Range containing the specified cell.
+        If the specified cell isn't in a merged range, this property returns the specified cell.
+
+        """
+        return Range(impl=self.impl.merge_area)
+
+    @property
+    def merge_cells(self):
+        """
+        Returns ``True`` if the Range contains merged cells, otherwise ``False``
+        """
+        return self.impl.merge_cells
+
+    def merge(self, across=False):
+        """
+        Creates a merged cell from the specified Range object.
+
+        Parameters
+        ----------
+        across : bool, default False
+            True to merge cells in each row of the specified Range as separate merged cells.
+        """
+        self.impl.merge(across)
+
+    def unmerge(self):
+        """
+        Separates a merged area into individual cells.
+        """
+        self.impl.unmerge()
 
 # These have to be after definition of Range to resolve circular reference
 from . import conversion
@@ -2008,6 +2036,15 @@ class Shape:
         self.impl = impl
 
     @property
+    def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+
+        .. versionadded:: 0.19.2
+        """
+        return self.impl.api
+
+    @property
     def name(self):
         """
         Returns or sets the name of the shape.
@@ -2096,6 +2133,40 @@ class Shape:
         .. versionadded:: 0.5.0
         """
         self.impl.activate()
+
+    def scale_height(self, factor, relative_to_original_size=False, scale='scale_from_top_left'):
+        """
+        factor : float
+            For example 1.5 to scale it up to 150%
+
+        relative_to_original_size : bool, optional
+            If ``False``, it scales relative to current height (default).
+            For ``True`` must be a picture or OLE object.
+
+        scale : str, optional
+            One of ``scale_from_top_left`` (default), ``scale_from_bottom_right``, ``scale_from_middle``
+
+        .. versionadded:: 0.19.2
+        """
+        self.impl.scale_height(factor=factor, relative_to_original_size=relative_to_original_size,
+                               scale=scale)
+
+    def scale_width(self, factor, relative_to_original_size=False, scale='scale_from_top_left'):
+        """
+        factor : float
+            For example 1.5 to scale it up to 150%
+
+        relative_to_original_size : bool, optional
+            If ``False``, it scales relative to current width (default).
+            For ``True`` must be a picture or OLE object.
+
+        scale : str, optional
+            One of ``scale_from_top_left`` (default), ``scale_from_bottom_right``, ``scale_from_middle``
+
+        .. versionadded:: 0.19.2
+        """
+        self.impl.scale_width(factor=factor, relative_to_original_size=relative_to_original_size,
+                              scale=scale)
 
     @property
     def parent(self):
@@ -2473,7 +2544,7 @@ class Picture:
         name = self.name
 
         # todo: link_to_file, save_with_document
-        picture = self.parent.pictures.add(filename, left=left, top=top, width=width, height=height)
+        picture = self.parent.pictures.add(filename, left=left, top=top, width=width, height=height, scale=False)
         self.delete()
 
         picture.name = name
@@ -2498,7 +2569,8 @@ class Pictures(Collection):
     def parent(self):
         return Sheet(impl=self.impl.parent)
 
-    def add(self, image, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None, name=None, update=False):
+    def add(self, image, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None,
+            name=None, update=False, scale=1):
         """
         Adds a picture to the specified sheet.
 
@@ -2588,6 +2660,11 @@ class Pictures(Collection):
         picture = Picture(impl=self.impl.add(
             filename, link_to_file, save_with_document, left, top, width, height
         ))
+
+        if scale:
+            # By default, Excel usually distorts the width/height. This corrects it.
+            self.parent.shapes[picture.name].scale_width(factor=scale, relative_to_original_size=True)
+            self.parent.shapes[picture.name].scale_height(factor=scale, relative_to_original_size=True)
 
         if name is not None:
             picture.name = name

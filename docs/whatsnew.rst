@@ -1,11 +1,71 @@
 What's New
 ==========
 
+v0.19.5 (Jul 5, 2020)
+----------------------
+
+* [Enhancement] When you install the add-in via ``xlwings addin install``, it autoconfigures the add-in if it can't find an existing user config file (:issue:`1322`).
+* [Feature] New ``xlwings config create [--force]`` command that autogenerates the user config file with the Python settings from which you run the command. Can be used to reset the add-in settings with the ``--force`` option (:issue:`1322`).
+* [Feature]: There is a new option to show/hide the console window. Note that with ``Conda Path`` and ``Conda Env`` set, the console always pops up when using the UDF server. Currently only available on Windows (:issue:`1182`).
+* [Enhancement] The ``Interpreter`` setting has been deprecated in favor of platform-specific settings: ``Interpreter_Win`` and ``Interpreter_Mac``, respectively. This allows you use the sheet config unchanged on both platforms (:issue:`1345`).
+* [Enhancement] On macOS, you can now use a few environment-like variables in your settings: ``$HOME``, ``$APPLICATIONS``, ``$DOCUMENTS``, ``$DESKTOP`` (:issue:`615`).
+* [Bug Fix]: Async functions sometimes caused an error on older Excel versions without dynamic arrays (:issue:`1341`).
+
+v0.19.4 (May 20, 2020)
+----------------------
+
+* [Feature] ``xlwings addin install`` is now available on macOS. On Windows, it has been fixed so it should now work reliably (:issue:`704`).
+* [Bug Fix] Fixed a ``dll load failed`` issue with ``pywin32`` when installed via ``pip`` on Python 3.8 (:issue:`1315`).
+
+v0.19.3 (May 19, 2020)
+----------------------
+
+* :guilabel:`PRO` [Feature]: Added possibility to create deployment keys, see :ref:`deployment_key`.
+
+v0.19.2 (May 11, 2020)
+----------------------
+
+* [Feature] New methods :meth:`xlwings.Shape.scale_height` and :meth:`xlwings.Shape.scale_width` (:issue:`311`).
+* [Bug Fix] Using ``Pictures.add`` is not distorting the proportions anymore (:issue:`311`).
+
+* :guilabel:`PRO` [Feature]: Added support for :ref:`plotly` (:issue:`1309`).
+
+.. figure:: images/plotly.png
+    :scale: 40%
+
+v0.19.1 (May 4, 2020)
+---------------------
+
+* [Bug Fix] Fixed an issue with the xlwings PRO license key when there was no ``xlwings.conf`` file (:issue:`1308`).
+
+v0.19.0 (May 2, 2020)
+---------------------
+
+* [Bug Fix] Native dynamic array formulas can now be used with async formulas (:issue:`1277`)
+* [Enhancement] Quickstart references the project's name when run from Python instead of the active book (:issue:`1307`)
+
+**Breaking Change**:
+
+* ``Conda Base`` has been renamed into ``Conda Path`` to reduce the confusion with the ``Conda Env`` called ``base``. Please adjust your settings accordingly! (:issue:`1194`)
+
+v0.18.0 (Feb 15, 2020)
+----------------------
+
+* [Feature] Added support for merged cells: :attr:`xlwings.Range.merge_area`, :attr:`xlwings.Range.merge_cells`, :meth:`xlwings.Range.merge`
+  :meth:`xlwings.Range.unmerge` (:issue:`21`).
+* [Bug Fix] ``RunPython`` now works properly with files that have a URL as ``fullname``, i.e. OneDrive and SharePoint (:issue:`1253`).
+* [Bug Fix] Fixed a bug with ``wb.names['...'].refers_to_range`` on macOS (:issue:`1256`).
+
+
+v0.17.1 (Jan 31, 2020)
+----------------------
+
+* [Bug Fix] Handle ``np.float64('nan')`` correctly (:issue:`1116`).
+
 v0.17.0 (Jan 6, 2020)
 ---------------------
 
-This release drops support for Python 2.7 in xlwings CE. If you still rely on Python 2.7, you will either
-need to stick to v0.16.6 or consider an `xlwings PRO <https://www.xlwings.org/pricing>`_ subscription.
+This release drops support for Python 2.7 in xlwings CE. If you still rely on Python 2.7, you will need to stick to v0.16.6.
 
 v0.16.6 (Jan 5, 2020)
 ---------------------
@@ -396,6 +456,56 @@ Breaking Changes
 * The xlwings CLI ``xlwings template`` functionality has been removed. Use ``quickstart`` instead.
 
 
+.. _migrate_to_0.11:
+
+Migrate to v0.11 (Add-in)
+-------------------------
+
+This migration guide shows you how you can start using the new xlwings add-in as opposed to the old xlwings VBA module
+(and the old add-in that consisted of just a single import button).
+
+Upgrade the xlwings Python package
+**********************************
+
+1. Check where xlwings is currently installed
+
+    >>> import xlwings
+    >>> xlwings.__path__
+
+2. If you installed xlwings with pip, for once, you should first uninstall xlwings: ``pip uninstall xlwings``
+3. Check the directory that you got under 1): if there are any files left over, delete the ``xlwings`` folder and the
+   remaining files manually
+4. Install the latest xlwings version: ``pip install xlwings``
+5. Verify that you have >= 0.11 by doing
+
+    >>> import xlwings
+    >>> xlwings.__version__
+
+Install the add-in
+******************
+
+1. If you have the old xlwings addin installed, find the location and remove it or overwrite it with the new version (see next step).
+   If you installed it via the xlwings command line client, you should be able to do: ``xlwings addin remove``.
+2. Close Excel. Run ``xlwings addin install`` from a command prompt. Reopen Excel and check if the xlwings Ribbon
+   appears. If not, copy ``xlwings.xlam`` (from your xlwings installation folder under ``addin\xlwings.xlam`` manually
+   into the ``XLSTART`` folder.
+   You can find the location of this folder under Options > Trust Center > Trust Center Settings... > Trusted Locations,
+   under the description ``Excel default location: User StartUp``. Restart Excel and you should see the add-in.
+
+
+Upgrade existing workbooks
+**************************
+
+1. Make a backup of your Excel file
+2. Open the file and go to the VBA Editor (``Alt-F11``)
+3. Remove the xlwings VBA module
+4. Add a reference to the xlwings addin, see :ref:`addin_installation`
+5. If you want to use workbook specific settings, add a sheet ``xlwings.conf``, see :ref:`addin_wb_settings`
+
+
+**Note**: To import UDFs, you need to have the reference to the xlwings add-in set!
+
+
 v0.10.4 (Feb 19, 2017)
 ----------------------
 
@@ -578,6 +688,158 @@ Bug Fixes
 * See `here <https://github.com/xlwings/xlwings/issues?q=is%3Aclosed+is%3Aissue+milestone%3Av0.9.0+label%3Abug>`_
   for details about which bugs have been fixed.
 
+
+.. _migrate_to_0.9:
+
+Migrate to v0.9
+---------------
+
+The purpose of this document is to enable you a smooth experience when upgrading to xlwings v0.9.0 and above by laying out
+the concept and syntax changes in detail. If you want to get an overview of the new features and bug fixes, have a look at the
+:ref:`release notes <v0.9_release_notes>`. Note that the syntax for User Defined Functions (UDFs) didn't change.
+
+Full qualification: Using collections
+*************************************
+
+The new object model allows to specify the Excel application instance if needed:
+
+* **old**: ``xw.Range('Sheet1', 'A1', wkb=xw.Workbook('Book1'))``
+
+* **new**: ``xw.apps[0].books['Book1'].sheets['Sheet1'].range('A1')``
+
+See :ref:`syntax_overview` for the details of the new object model.
+
+Connecting to Books
+*******************
+
+* **old**: ``xw.Workbook()``
+* **new**: ``xw.Book()`` or via ``xw.books`` if you need to control the app instance.
+
+See :ref:`connect_to_workbook` for the details.
+
+Active Objects
+**************
+
+::
+
+    # Active app (i.e. Excel instance)
+    >>> app = xw.apps.active
+
+    # Active book
+    >>> wb = xw.books.active  # in active app
+    >>> wb = app.books.active  # in specific app
+
+    # Active sheet
+    >>> sht = xw.sheets.active  # in active book
+    >>> sht = wb.sheets.active  # in specific book
+
+    # Range on active sheet
+    >>> xw.Range('A1')  # on active sheet of active book of active app
+
+Round vs. Square Brackets
+*************************
+
+Round brackets follow Excel's behavior (i.e. 1-based indexing), while square brackets use Python's 0-based indexing/slicing.
+
+As an example, the following all reference the same range::
+
+    xw.apps[0].books[0].sheets[0].range('A1')
+    xw.apps(1).books(1).sheets(1).range('A1')
+    xw.apps[0].books['Book1'].sheets['Sheet1'].range('A1')
+    xw.apps(1).books('Book1').sheets('Sheet1').range('A1')
+
+Access the underlying Library/Engine
+************************************
+
+* **old**: ``xw.Range('A1').xl_range`` and ``xl_sheet`` etc.
+
+* **new**: ``xw.Range('A1').api``, same for all other objects
+
+This returns a ``pywin32`` COM object on Windows and an ``appscript`` object on Mac.
+
+
+Cheat sheet
+***********
+
+Note that ``sht`` stands for a sheet object, like e.g. (in 0.9.0 syntax): ``sht = xw.books['Book1'].sheets[0]``
+
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+|                            | v0.9.0                                           | v0.7.2                                                             |
++============================+==================================================+====================================================================+
+| Active Excel instance      | ``xw.apps.active``                               | unsupported                                                        |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| New Excel instance         | ``app = xw.App()``                               | unsupported                                                        |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Get app from book          | ``app = wb.app``                                 | ``app = xw.Application(wb)``                                       |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Target installation (Mac)  | ``app = xw.App(spec=...)``                       | ``wb = xw.Workbook(app_target=...)``                               |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Hide Excel Instance        | ``app = xw.App(visible=False)``                  | ``wb = xw.Workbook(app_visible=False)``                            |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Selected Range             | ``app.selection``                                | ``wb.get_selection()``                                             |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Calculation mode           | ``app.calculation = 'manual'``                   | ``app.calculation = xw.constants.Calculation.xlCalculationManual`` |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| All books in app           | ``app.books``                                    | unsupported                                                        |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+|                            |                                                  |                                                                    |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Fully qualified book       | ``app.books['Book1']``                           | unsupported                                                        |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Active book in active app  | ``xw.books.active``                              | ``xw.Workbook.active()``                                           |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| New book in active app     | ``wb = xw.Book()``                               | ``wb = xw.Workbook()``                                             |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| New book in specific app   | ``wb = app.books.add()``                         | unsupported                                                        |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| All sheets in book         | ``wb.sheets``                                    | ``xw.Sheet.all(wb)``                                               |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Call a macro in an addin   | ``app.macro('MacroName')``                       | unsupported                                                        |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+|                            |                                                  |                                                                    |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| First sheet of book wb     | ``wb.sheets[0]``                                 | ``xw.Sheet(1, wkb=wb)``                                            |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Active sheet               | ``wb.sheets.active``                             | ``xw.Sheet.active(wkb=wb)`` or ``wb.active_sheet``                 |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Add sheet                  | ``wb.sheets.add()``                              | ``xw.Sheet.add(wkb=wb)``                                           |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Sheet count                | ``wb.sheets.count`` or ``len(wb.sheets)``        | ``xw.Sheet.count(wb)``                                             |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+|                            |                                                  |                                                                    |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Add chart to sheet         | ``chart = wb.sheets[0].charts.add()``            | ``chart = xw.Chart.add(sheet=1, wkb=wb)``                          |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Existing chart             | ``wb.sheets['Sheet 1'].charts[0]``               | ``xw.Chart('Sheet 1', 1)``                                         |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Chart Type                 | ``chart.chart_type = '3d_area'``                 | ``chart.chart_type = xw.constants.ChartType.xl3DArea``             |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+|                            |                                                  |                                                                    |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Add picture to sheet       | ``wb.sheets[0].pictures.add('path/to/pic')``     | ``xw.Picture.add('path/to/pic', sheet=1, wkb=wb)``                 |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Existing picture           | ``wb.sheets['Sheet 1'].pictures[0]``             | ``xw.Picture('Sheet 1', 1)``                                       |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Matplotlib                 | ``sht.pictures.add(fig, name='x', update=True)`` | ``xw.Plot(fig).show('MyPlot', sheet=sht, wkb=wb)``                 |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+|                            |                                                  |                                                                    |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Table expansion            | ``sht.range('A1').expand('table')``              | ``xw.Range(sht, 'A1', wkb=wb).table``                              |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Vertical expansion         | ``sht.range('A1').expand('down')``               | ``xw.Range(sht, 'A1', wkb=wb).vertical``                           |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Horizontal expansion       | ``sht.range('A1').expand('right')``              | ``xw.Range(sht, 'A1', wkb=wb).horizontal``                         |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+|                            |                                                  |                                                                    |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Set name of range          | ``sht.range('A1').name = 'name'``                | ``xw.Range(sht, 'A1', wkb=wb).name = 'name'``                      |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| Get name of range          | ``sht.range('A1').name.name``                    | ``xw.Range(sht, 'A1', wkb=wb).name``                               |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+|                            |                                                  |                                                                    |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
+| mock caller                | ``xw.Book('file.xlsm').set_mock_caller()``       | ``xw.Workbook.set_mock_caller('file.xlsm')``                       |
++----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
 
 v0.7.2 (May 18, 2016)
 ---------------------
@@ -917,8 +1179,7 @@ API changes
 ***********
 
 * LOG_FILE: So far, the log file has been placed next to the Excel file per default (VBA settings). This has been changed as it was
-  causing issues for files on SharePoint/OneDrive and Mac Excel 2016: The place where ``LOG_FILE = ""`` refers to depends on the OS and the
-  Excel version, see :ref:`log`.
+  causing issues for files on SharePoint/OneDrive and Mac Excel 2016: The place where ``LOG_FILE = ""`` refers to depends on the OS and the Excel version.
 
 Enhancements
 ************

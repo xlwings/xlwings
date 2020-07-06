@@ -1,4 +1,4 @@
-from xlwings.tests.restapi import TestCase
+from tests.restapi import TestCase
 import unittest
 import json
 
