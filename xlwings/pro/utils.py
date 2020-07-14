@@ -17,7 +17,7 @@ class LicenseHandler:
     def get_cipher():
         try:
             return Fernet(os.getenv('XLWINGS_LICENSE_KEY_SECRET'))
-        except ValueError:
+        except (TypeError, ValueError):
             raise LicenseError("Couldn't validate license key.") from None
 
     @staticmethod
