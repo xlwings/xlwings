@@ -21,6 +21,7 @@ try:
 except ImportError:
     plotly_go = None
 
+import traceback
 
 missing = object()
 
@@ -238,3 +239,11 @@ def read_config_sheet(book):
     except:
         # A missing sheet currently produces different errors on mac and win
         return {}
+
+
+def exception(logger, msg, *args):
+    if logger.hasHandlers():
+        logger.exception(msg, *args)
+    else:
+        print(msg % args)
+        traceback.print_exc()

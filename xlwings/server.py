@@ -25,6 +25,9 @@ import win32com.server.util as serverutil
 import win32com.server.dispatcher
 import win32com.server.policy
 
+import asyncio
+import threading
+
 from .udfs import call_udf
 
 
@@ -211,8 +214,7 @@ class XLPython:
             return False
 
     def Builtin(self):
-        from . import builtins
-
+        import builtins
         return ToVariant(builtins)
 
     def GetItem(self, obj, key):
@@ -284,13 +286,13 @@ class XLPython:
         exec(stmt, globals, locals)
 
 
-idle_queue = collections.deque()
-idle_queue_event = win32event.CreateEvent(None, 0, 0, None)
+loop = asyncio.new_event_loop()
 
 
-def add_idle_task(task):
-    idle_queue.append(task)
-    win32event.SetEvent(idle_queue_event)
+def _start_background_loop():
+    pythoncom.CoInitialize()
+    asyncio.set_event_loop(loop)
+    loop.run_forever()
 
 
 def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
@@ -319,52 +321,28 @@ def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
     pythoncom.EnableQuitMessage(win32api.GetCurrentThreadId())
     pythoncom.CoResumeClassObjects()
 
-    msg = 'xlwings server running, clsid=%s'
-    logger.info(msg, clsid) if logger.hasHandlers() else print(msg % clsid)
+    if not loop.is_running():
+        t = threading.Thread(
+            target=_start_background_loop,
+            daemon=True)
+        t.start()
+        tid = t.ident
+    else:
+        tid = None
 
-    waitables = [idle_queue_event]
+    msg = 'xlwings server running, clsid=%s, event loop on %s'
+    logger.info(msg, clsid, tid) if logger.hasHandlers() else print(msg % (clsid, tid))
+
     while True:
-        timeout = TIMEOUT if idle_queue else win32event.INFINITE
         rc = win32event.MsgWaitForMultipleObjects(
-            waitables,
+            (),
             0,
-            timeout,
+            win32event.INFINITE,
             win32event.QS_ALLEVENTS
         )
-        if rc == win32event.WAIT_OBJECT_0 or rc == win32event.WAIT_TIMEOUT:
-            while idle_queue:
-                task = idle_queue.popleft()
-                if not _execute_task(task):
-                    break
-
-        elif rc == win32event.WAIT_OBJECT_0 + len(waitables):
+        if rc == win32event.WAIT_OBJECT_0:
             if pythoncom.PumpWaitingMessages():
                 break  # wm_quit
 
     pythoncom.CoRevokeClassObject(revokeId)
     pythoncom.CoUninitialize()
-
-
-def _execute_task(task):
-    """ Execute task. Returns False if task must be retried later. """
-    try:
-        task()
-    except Exception as e:
-        if _ask_for_retry(e):
-            msg = "Retrying TaskQueue '%s'."
-            logger.info(msg, task) if logger.hasHandlers() else print(msg % task)
-            idle_queue.appendleft(task)
-            return False
-        else:
-            import traceback
-            msg = "TaskQueue '%s' threw an exception: %s"
-            logger.error(msg, task, traceback.format_exc()) if logger.hasHandlers() else print(msg % (task, traceback.format_exc()))
-    return True
-
-
-RPC_E_SERVERCALL_RETRYLATER = -2147418111
-TIMEOUT = 100  # ms
-
-
-def _ask_for_retry(exception):
-    return hasattr(exception, 'hresult') and exception.hresult == RPC_E_SERVERCALL_RETRYLATER

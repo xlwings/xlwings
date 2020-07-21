@@ -601,6 +601,11 @@ class Range:
         return self.xl.properties().get(kw.top)
 
     @property
+    def has_array(self):
+        if self.xl is not None:
+            return self.xl.has_array.get()
+
+    @property
     def number_format(self):
         if self.xl is not None:
             rv = self.xl.number_format.get()

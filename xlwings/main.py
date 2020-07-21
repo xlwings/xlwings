@@ -1013,10 +1013,14 @@ class Range:
             else:
                 raise ValueError("Invalid arguments")
 
-        self.impl = impl
+        self._impl = impl
 
         # Keyword Arguments
         self._options = options
+
+    @property
+    def impl(self):
+        return self._impl
 
     @property
     def api(self):
@@ -1161,6 +1165,13 @@ class Range:
     def clear(self):
         """Clears the content and the formatting of a Range."""
         return self.impl.clear()
+
+    @property
+    def has_array(self):
+        """
+        Are we part of an Array formula?
+        """
+        return self.impl.has_array
 
     def end(self, direction):
         """

@@ -973,6 +973,16 @@ class Range:
         else:
             return None
 
+    @property
+    def has_array(self):
+        if self.xl is not None:
+            try:
+                return self.xl.HasArray
+            except pywintypes.com_error:
+                return False
+        else:
+            return False
+
     @name.setter
     def name(self, value):
         if self.xl is not None:

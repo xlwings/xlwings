@@ -65,6 +65,8 @@ client_secrets.json
 *.sdf
 Win32/
 x64/
+.vs
+*.vcxproj.user
 
 # binaries
 *.dll

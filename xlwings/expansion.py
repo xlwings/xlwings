@@ -32,14 +32,19 @@ class TableExpander(Expander):
 
     def expand(self, rng):
         origin = rng(1, 1)
-        if origin(2, 1).raw_value in _empty:
+
+        if origin.has_array:
+            bottom_left = origin.end('down')
+        elif origin(2, 1).raw_value in _empty:
             bottom_left = origin
         elif origin(3, 1).raw_value in _empty:
             bottom_left = origin(2, 1)
         else:
             bottom_left = origin(2, 1).end('down')
 
-        if origin(1, 2).raw_value in _empty:
+        if origin.has_array:
+            top_right = origin.end('right')
+        elif origin(1, 2).raw_value in _empty:
             top_right = origin
         elif origin(1, 3).raw_value in _empty:
             top_right = origin(1, 2)

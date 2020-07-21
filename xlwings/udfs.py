@@ -1,49 +1,80 @@
+import sys
+import asyncio
+if sys.version_info >= (3, 7):
+    from asyncio import get_running_loop
+else:
+    from asyncio import get_event_loop as get_running_loop
+import concurrent
+import copy
+import functools
+import inspect
+import logging
 import os
 import os.path
 import re
 import tempfile
-import inspect
+import threading
 from importlib import import_module
-from threading import Thread
 from importlib import reload  # requires >= py 3.4
+from random import random
 
-from win32com.client import Dispatch
+import pythoncom
 import pywintypes
+from win32com.client import Dispatch
 
 from . import conversion, xlplatform, Range, apps, Book, PRO
-from .utils import VBAWriter
+from .utils import VBAWriter, exception
+
 if PRO:
     from .pro.embedded_code import dump_embedded_code, get_udf_temp_dir
 
-
+logger = logging.getLogger(__name__)
 cache = {}
 
+if sys.version_info >= (3, 7):
+    com_executor = concurrent.futures.ThreadPoolExecutor(
+        initializer=pythoncom.CoInitialize)
 
-class AsyncThread(Thread):
-    def __init__(self, pid, book_name, sheet_name, address, func, args, cache_key, expand):
-        Thread.__init__(self)
-        self.pid = pid
-        self.book = book_name
-        self.sheet = sheet_name
-        self.address = address
-        self.func = func
-        self.args = args
-        self.cache_key = cache_key
-        self.expand = expand
+    def backcompat_check_com_initialized():
+        pass
+else:
+    com_executor = concurrent.futures.ThreadPoolExecutor()
+    com_is_initialized = threading.local()
 
-    def run(self):
-        cache[self.cache_key] = self.func(*self.args)
+    def backcompat_check_com_initialized():
+        try:
+            com_is_initialized.done
+        except AttributeError:
+            pythoncom.CoInitialize()
+            com_is_initialized.done = True
 
-        if self.expand:
-            apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula_array = \
-                apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula_array
+
+async def async_thread(base, my_has_dynamic_array, func, args, cache_key, expand):
+    backcompat_check_com_initialized()
+
+    try:
+        if expand:
+            stashme = await base.get_formula_array()
+        elif my_has_dynamic_array:
+            stashme = await base.get_formula2()
         else:
-            if has_dynamic_array(apps[self.pid]):
-                apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula2 = \
-                    apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula2
-            else:
-                apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula = \
-                    apps[self.pid].books[self.book].sheets[self.sheet][self.address].formula
+            stashme = await base.get_formula()
+
+        loop = get_running_loop()
+        cache[cache_key] = await loop.run_in_executor(
+            com_executor,
+            functools.partial(
+                func,
+                *args))
+
+        if expand:
+            await base.set_formula_array(stashme)
+        elif my_has_dynamic_array:
+            await base.set_formula2(stashme)
+        else:
+            await base.set_formula(stashme)
+    except:
+        exception(logger, 'async_thread failed')
 
 
 def func_sig(f):
@@ -150,6 +181,7 @@ def xlsub(f=None, **kwargs):
         f = xlfunc(**kwargs)(f)
         f.__xlfunc__["sub"] = True
         return f
+
     if f is None:
         return inner
     else:
@@ -185,18 +217,159 @@ def xlarg(arg, convert=None, **kwargs):
 
 udf_modules = {}
 
+RPC_E_SERVERCALL_RETRYLATER = {-2147418111, -2146777998}
+MAX_BACKOFF_MS = 512
 
-class DelayedResizeDynamicArrayFormula:
-    def __init__(self, target_range, caller, needs_clearing):
-        self.target_range = target_range
-        self.caller = caller
-        self.needs_clearing = needs_clearing
 
-    def __call__(self, *args, **kwargs):
-        formula = self.caller.FormulaArray
-        if self.needs_clearing:
-            self.caller.ClearContents()
-        self.target_range.api.FormulaArray = formula
+class ComRange(Range):
+    """
+    A Range subclass that stores the impl as
+    a serialized COM object so it can be passed between
+    threads easily
+
+    https://devblogs.microsoft.com/oldnewthing/20151021-00/?p=91311
+    """
+
+    def __init__(self, rng):
+        super().__init__(impl=rng.impl)
+
+        self._ser_thread = threading.get_ident()
+        self._ser = pythoncom.CoMarshalInterThreadInterfaceInStream(
+            pythoncom.IID_IDispatch,
+            rng.api)
+        if sys.version_info[:2] <= (3, 6):
+            self._ser_resultCLSID = getattr(
+                self._impl.api,
+                'CLSID',
+                None)
+        else:
+            self._ser_resultCLSID = self._impl.api.CLSID
+
+        self._deser_thread = None
+        self._deser = None
+
+    @property
+    def impl(self):
+        if threading.get_ident() == self._ser_thread:
+            return self._impl
+        elif threading.get_ident() == self._deser_thread:
+            return self._deser
+
+        assert self._deser is None, \
+            f"already deserialized on {self._deser_thread}"
+        self._deser_thread = threading.get_ident()
+
+        deser = pythoncom.CoGetInterfaceAndReleaseStream(
+                self._ser,
+                pythoncom.IID_IDispatch)
+        dispatch = Dispatch(
+            deser,
+            resultCLSID=self._ser_resultCLSID)
+
+        self._ser = None  # single-use
+        self._deser = xlplatform.Range(xl=dispatch)
+
+        return self._deser
+
+    def __copy__(self):
+        """
+        We need to re-serialize the COM object as they're
+        single-use
+        """
+        return ComRange(self)
+
+    async def _com(self, fn, *args, backoff=1):
+        """
+        :param backoff: if the call fails, time to wait in ms
+          before the next one. Random exponential backoff to
+          a cap.
+        """
+
+        loop = get_running_loop()
+
+        if sys.version_info[:2] <= (3, 6):
+            def _fn(fn, *args):
+                backcompat_check_com_initialized()
+                return fn(*args)
+
+            fn = functools.partial(_fn, fn)
+
+        try:
+            return await loop.run_in_executor(
+                com_executor,
+                functools.partial(
+                    fn,
+                    copy.copy(self),
+                    *args))
+        except AttributeError:
+            # the Dispatch object that the `com_executor` thread
+            # didn't deserialize properly, as Excel was too busy
+            # to handle the TypeInfo call when requested
+            pass
+        except Exception as e:
+            if getattr(e, 'hresult', 0) not in RPC_E_SERVERCALL_RETRYLATER:
+                raise
+
+        await asyncio.sleep(backoff / 1e3)
+        return await self._com(
+            fn,
+            *args,
+            backoff=min(backoff * round(1 + random()), MAX_BACKOFF_MS))
+
+    async def clear_contents(self):
+        await self._com(lambda rng: rng.impl.clear_contents())
+
+    async def set_formula_array(self, f):
+        await self._com(lambda rng: setattr(
+            rng.impl, 'formula_array', f))
+
+    async def set_formula(self, f):
+        await self._com(lambda rng: setattr(
+            rng.impl, 'formula', f))
+
+    async def set_formula2(self, f):
+        await self._com(lambda rng: setattr(
+            rng.impl, 'formula2', f))
+
+    async def get_shape(self):
+        return await self._com(lambda rng: rng.impl.shape)
+
+    async def get_formula_array(self):
+        return await self._com(lambda rng: rng.impl.formula_array)
+
+    async def get_formula(self):
+        return await self._com(lambda rng: rng.impl.formula)
+
+    async def get_formula2(self):
+        return await self._com(lambda rng: rng.impl.formula2)
+
+    async def get_address(self):
+        return await self._com(lambda rng: rng.impl.address)
+
+
+async def delayed_resize_dynamic_array_formula(
+        target_range,
+        caller):
+    try:
+        await asyncio.sleep(0.1)
+
+        stashme = await caller.get_formula_array()
+        if not stashme:
+            stashme = await caller.get_formula()
+
+        c_y, c_x = await caller.get_shape()
+        t_y, t_x = await target_range.get_shape()
+        if c_x > t_x or c_y > t_y:
+            await caller.clear_contents()
+
+        # this will call the UDF again (hitting the cache),
+        # but you'll have the right size output this time
+        # (`caller` will be `target_range`). We'll have to
+        # be careful not to block the async loop!
+        await target_range.set_formula_array(stashme)
+
+    except:
+        exception(logger, "couldn't resize")
 
 
 # Setup temp dir for embedded code
@@ -246,6 +419,9 @@ def get_cache_key(func, args, caller):
 
 
 def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
+    """
+    This method executes the UDF synchronously from the COM server thread
+    """
 
     module = get_udf_module(module_name, this_workbook)
     func = getattr(module, func_name)
@@ -253,17 +429,18 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     args_info = func_info['args']
     ret_info = func_info['ret']
     is_dynamic_array = ret_info['options'].get('expand')
+    xw_caller = Range(impl=xlplatform.Range(xl=caller))
 
     writing = func_info.get('writing', None)
-    if writing and writing == caller.Address:
+    if writing and writing == xw_caller.address:
         return func_info['rval']
 
     output_param_indices = []
 
     args = list(args)
     for i, arg in enumerate(args):
-        arg_info = args_info[min(i, len(args_info)-1)]
-        if type(arg) is int and arg == -2147352572:      # missing
+        arg_info = args_info[min(i, len(args_info) - 1)]
+        if type(arg) is int and arg == -2147352572:  # missing
             args[i] = arg_info.get('optional', None)
         elif xlplatform.is_range_instance(arg):
             if arg_info.get('output', False):
@@ -276,6 +453,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     if this_workbook:
         xlplatform.BOOK_CALLER = Dispatch(this_workbook)
 
+    from .server import loop
     if func_info['async_mode'] and func_info['async_mode'] == 'threading':
         cache_key = get_cache_key(func, args, caller)
         cached_value = cache.get(cache_key)
@@ -284,46 +462,61 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
                 del cache[cache_key]
             ret = cached_value
         else:
-            # You can't pass pywin32 objects directly to threads
-            xw_caller = Range(impl=xlplatform.Range(xl=caller))
-            thread = AsyncThread(xw_caller.sheet.book.app.pid,
-                                 xw_caller.sheet.book.name,
-                                 xw_caller.sheet.name,
-                                 xw_caller.address,
-                                 func,
-                                 args,
-                                 cache_key,
-                                 is_dynamic_array)
-            thread.start()
-            return [["#N/A waiting..." * xw_caller.columns.count] * xw_caller.rows.count]
+            ret = [["#N/A waiting..." * xw_caller.columns.count] * xw_caller.rows.count]
+
+            # this does a lot of nested COM calls, so do this all
+            # synchronously on the COM thread until there is async
+            # support for Sheet, Book & App.
+            my_has_dynamic_array = has_dynamic_array(
+                xw_caller.sheet.book.app.pid)
+
+            asyncio.run_coroutine_threadsafe(
+                async_thread(
+                    ComRange(xw_caller),
+                    my_has_dynamic_array,
+                    func,
+                    args,
+                    cache_key,
+                    is_dynamic_array),
+                loop)
+            return ret
     else:
+
         if is_dynamic_array:
             cache_key = get_cache_key(func, args, caller)
             cached_value = cache.get(cache_key)
             if cached_value is not None:
                 ret = cached_value
             else:
-                ret = func(*args)
+                if inspect.iscoroutinefunction(func):
+                    ret = asyncio.run_coroutine_threadsafe(
+                        func(*args), loop).result()
+                else:
+                    ret = func(*args)
                 cache[cache_key] = ret
+        elif inspect.iscoroutinefunction(func):
+            ret = asyncio.run_coroutine_threadsafe(
+                func(*args), loop).result()
         else:
             ret = func(*args)
 
     xl_result = conversion.write(ret, None, ret_info['options'])
 
     if is_dynamic_array:
-        current_size = (caller.Rows.Count, caller.Columns.Count)
+        current_size = (len(xw_caller.rows), len(xw_caller.columns))
         result_size = (1, 1)
         if type(xl_result) is list:
             result_height = len(xl_result)
             result_width = result_height and len(xl_result[0])
             result_size = (max(1, result_height), max(1, result_width))
         if current_size != result_size:
-            from .server import add_idle_task
-            add_idle_task(DelayedResizeDynamicArrayFormula(
-                Range(impl=xlplatform.Range(xl=caller)).resize(*result_size),
-                caller,
-                current_size[0] > result_size[0] or current_size[1] > result_size[1]
-            ))
+            target_range = xw_caller.resize(*result_size)
+
+            asyncio.run_coroutine_threadsafe(
+                delayed_resize_dynamic_array_formula(
+                    target_range=ComRange(target_range),
+                    caller=ComRange(xw_caller)),
+                loop)
         else:
             del cache[cache_key]
 
@@ -485,10 +678,11 @@ def import_udfs(module_names, xl_workbook):
         pass
 
 
-def has_dynamic_array(app):
+@functools.lru_cache(None)
+def has_dynamic_array(pid):
     """This check in this form doesn't work on macOS, that's why it's here and not in utils"""
     try:
-        app.api.WorksheetFunction.Unique("dummy")
+        apps[pid].api.WorksheetFunction.Unique("dummy")
         return True
     except (AttributeError, pywintypes.com_error) as e:
         return False
