@@ -235,7 +235,7 @@ def fspath(path):
 
 def read_config_sheet(book):
     try:
-        return book.sheets['xlwings.conf']['A1'].options(dict, expand='table').value
+        return book.sheets['xlwings.conf']['A1:B1'].options(dict, expand='down').value
     except:
         # A missing sheet currently produces different errors on mac and win
         return {}
