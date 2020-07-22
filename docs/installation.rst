@@ -7,7 +7,12 @@ Prerequisites
 -------------
 
 * xlwings requires an **installation of Excel** and therefore only works on **Windows** and **macOS**. Note that macOS currently does not support UDFs.
-* xlwings requires at least Python 3.5.
+* xlwings requires at least Python 3.6.
+
+Last version of xlwings to support
+
+* Python 3.5: 0.19.5
+* Python 2.7: 0.16.6
 
 Installation
 ------------

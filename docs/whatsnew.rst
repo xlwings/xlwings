@@ -4,9 +4,11 @@ What's New
 v0.20.0 (Jul 22, 2020)
 ----------------------
 
+**This version drops support for Python 3.5**
+
 * [Feature] New property :attr:`xlwings.App.status_bar` (:issue:`1362`).
 * [Enhancement] ``xlwings.view()`` now becomes the active window, making it easier to work with in interactive workflows (please speak up if you feel differently) (:issue:`1353`).
-* [Bug Fix] The UDF server has received a serious upgrade by `njwhite <https://github.com/njwhite>`_, getting rid of the many issues that were around with using a combination of async functions and legacy dynamic arrays (:issue:`1010` and :issue:`1164`). You can now also call functions defined via `async def`, although for the time being they are still called synchronously from Excel.
+* [Bug Fix] The UDF server has received a serious upgrade by `njwhite <https://github.com/njwhite>`_, getting rid of the many issues that were around with using a combination of async functions and legacy dynamic arrays. You can now also call functions defined via ``async def``, although for the time being they are still called synchronously from Excel (:issue:`1010` and :issue:`1164`).
 
 v0.19.5 (Jul 5, 2020)
 ----------------------
