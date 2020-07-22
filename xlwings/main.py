@@ -2887,6 +2887,7 @@ def view(obj, sheet=None):
 
     sheet.range('A1').value = obj
     sheet.autofit()
+    sheet.book.app.activate(steal_focus=True)
 
 
 class Macro:
