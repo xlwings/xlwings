@@ -43,7 +43,8 @@ You can then attach ``HelloWorld`` to a button or run it directly in the VBA Edi
 
 .. note:: Place ``xw.Book.caller()`` within the function that is being called from Excel and not outside as
     global variable. Otherwise it prevents Excel from shutting down properly upon exiting and
-    leaves you with a zombie process when you use ``OPTIMIZED_CONNECTION = True``.
+    leaves you with a zombie process when you use ``Use UDF Server = True``. Note that you need to decorate
+    the function with `@xw.sub` if you want to run it with ``Use UDF Server`` enabled.
 
 Function Arguments and Return Values
 ------------------------------------
