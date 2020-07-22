@@ -420,6 +420,14 @@ class App:
     def run(self, macro, args):
         return self.xl.Run(macro, *args)
 
+    @property
+    def status_bar(self):
+        return self.xl.StatusBar
+
+    @status_bar.setter
+    def status_bar(self, value):
+        self.xl.StatusBar = value
+
 
 class Books:
 

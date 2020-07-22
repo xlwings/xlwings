@@ -164,6 +164,14 @@ class App:
         kwargs = {'arg{0}'.format(i): n for i, n in enumerate(args, 1)}
         return self.xl.run_VB_macro(macro, **kwargs)
 
+    @property
+    def status_bar(self):
+        return self.xl.status_bar.get()
+
+    @status_bar.setter
+    def status_bar(self, value):
+        self.xl.status_bar.set(value)
+
 
 class Books:
 

@@ -431,6 +431,19 @@ class App:
         """
         return Macro(self, name)
 
+    @property
+    def status_bar(self):
+        """
+        Gets or sets the value of the status bar. Returns ``False`` if Excel has control of it.
+
+        .. versionadded:: 0.20.0
+        """
+        return self.impl.status_bar
+
+    @status_bar.setter
+    def status_bar(self, value):
+        self.impl.status_bar = value
+
     def __repr__(self):
         return "<Excel App %s>" % self.pid
 
