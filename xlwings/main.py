@@ -729,7 +729,10 @@ class Book:
         """
         if path:
             path = utils.fspath(path)
-        return self.impl.save(path)
+        display_alerts = self.app.display_alerts
+        self.app.display_alerts = False
+        self.impl.save(path)
+        self.app.display_alerts = display_alerts
 
     @property
     def fullname(self):
