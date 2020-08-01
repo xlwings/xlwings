@@ -262,18 +262,23 @@ class Book:
             self.xl.save()
         elif (saved_path != '') and (path is not None) and (os.path.split(path)[0] == ''):
             # Save existing book under new name in cwd if no path has been provided
+            save_as_name = path
             path = os.path.join(os.getcwd(), path)
             hfs_path = posix_to_hfs_path(os.path.realpath(path))
             self.xl.save_workbook_as(filename=hfs_path, overwrite=True)
+            self.xl = self.app.xl.workbooks[save_as_name]
         elif (saved_path == '') and (path is None):
             # Previously unsaved: Save under current name in current working directory
-            path = os.path.join(os.getcwd(), self.xl.name.get() + '.xlsx')
+            save_as_name = self.xl.name.get() + '.xlsx'
+            path = os.path.join(os.getcwd(), save_as_name)
             hfs_path = posix_to_hfs_path(os.path.realpath(path))
             self.xl.save_workbook_as(filename=hfs_path, overwrite=True)
+            self.xl = self.app.xl.workbooks[save_as_name]
         elif path:
             # Save under new name/location
             hfs_path = posix_to_hfs_path(os.path.realpath(path))
             self.xl.save_workbook_as(filename=hfs_path, overwrite=True)
+            self.xl = self.app.xl.workbooks[os.path.basename(path)]
 
     @property
     def fullname(self):
