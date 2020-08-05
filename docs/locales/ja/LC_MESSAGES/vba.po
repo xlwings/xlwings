@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the xlwings package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: xlwings dev\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-12 17:46+0900\n"
+"POT-Creation-Date: 2020-08-05 08:40+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -73,18 +72,22 @@ msgid ""
 "Place ``xw.Book.caller()`` within the function that is being called from "
 "Excel and not outside as global variable. Otherwise it prevents Excel "
 "from shutting down properly upon exiting and leaves you with a zombie "
-"process when you use ``OPTIMIZED_CONNECTION = True``."
+"process when you use ``Use UDF Server = True``. Note that you need to "
+"decorate the function with `@xw.sub` if you want to run it with ``Use UDF"
+" Server`` enabled."
 msgstr ""
-"``xw.Book.caller()`` "
-"は、Excelから呼び出される関数内に配置してください。すなわち、関数の外側にグローバル変数として配置してはいけません。グローバル変数にすると、 "
-"``OPTIMIZED_CONNECTION = True`` "
-"としている場合に、Excelを閉じても適切にシャットダウンできず、ゾンビプロセスが残ってしまいます。"
+"``xw.Book.caller()`` は、Excelから呼び出される関数内に配置してください。"
+"すなわち、関数の外側にグローバル変数として配置してはいけません。"
+"グローバル変数にすると、 ``OPTIMIZED_CONNECTION = True`` としている場合に、"
+"Excelを閉じても適切にシャットダウンできず、ゾンビプロセスが残ってしまいます。"
+"なお、 ''Use UDF Server'' を有効化して実行する際には、関数を `@xw.sub` で"
+"デコレートする必要があります。"
 
-#: ../../vba.rst:49
+#: ../../vba.rst:50
 msgid "Function Arguments and Return Values"
 msgstr "関数の引数および戻り値"
 
-#: ../../vba.rst:51
+#: ../../vba.rst:52
 msgid ""
 "While it's technically possible to include arguments in the function call"
 " within ``RunPython``, it's not very convenient. Also, ``RunPython`` does"
