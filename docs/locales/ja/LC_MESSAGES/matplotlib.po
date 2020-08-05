@@ -1,0 +1,164 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-08-05 11:31+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.8.0\n"
+
+#: ../../matplotlib.rst:4
+msgid "Matplotlib & Plotly Charts"
+msgstr ""
+
+#: ../../matplotlib.rst:7
+msgid "Matplotlib"
+msgstr ""
+
+#: ../../matplotlib.rst:9
+msgid ""
+"Using :meth:`pictures.add() <xlwings.main.Pictures.add>`, it is easy to "
+"paste a Matplotlib plot as picture in Excel."
+msgstr ""
+":meth:`pictures.add() <xlwings.main.Pictures.add>` を使えば、簡単に"
+"MatplotlibのplotをExcelの図として貼り付けることができます。"
+
+#: ../../matplotlib.rst:12
+msgid "Getting started"
+msgstr "はじめに"
+
+#: ../../matplotlib.rst:14
+msgid "The easiest sample boils down to::"
+msgstr "以下は一番簡単なサンプルです::"
+
+#: ../../matplotlib.rst:29
+msgid ""
+"If you set ``update=True``, you can resize and position the plot on "
+"Excel: subsequent calls to ``pictures.add()`` with the same name "
+"(``'MyPlot'``) will update the picture without changing its position or "
+"size."
+msgstr ""
+"``update=True`` を設定すれば、Excelでプロットのサイズや位置の変更が"
+"続けて、同じ名前(``'MyPlot'``)で ``pictures.add()`` を実行すれば、"
+"サイズや位置を変えずに図を更新できます。"
+
+#: ../../matplotlib.rst:34
+msgid "Full integration with Excel"
+msgstr "Excelとの完全統合"
+
+#: ../../matplotlib.rst:36
+msgid ""
+"Calling the above code with :ref:`RunPython <run_python>` and binding it "
+"e.g. to a button is straightforward and works cross-platform."
+msgstr ""
+"上記のコードを :ref:`RunPython <run_python>` で呼び出し、ボタン等に"
+"登録すれば、Excelと統合できますしクロスプラットフォームで動作します。"
+
+#: ../../matplotlib.rst:39
+msgid ""
+"However, on Windows you can make things feel even more integrated by "
+"setting up a :ref:`UDF <udfs>` along the following lines::"
+msgstr ""
+"しかしながら、Windowsでは :ref:`UDF <udfs>` を次のように設定することで"
+"さらに統合することができます。::"
+
+#: ../../matplotlib.rst:50
+msgid ""
+"If you import this function and call it from cell B2, then the plot gets "
+"automatically updated when cell B1 changes:"
+msgstr ""
+"この関数をインポートしB2セルから呼び出せば、B1の値が変わるたびに"
+"図は自動的にアップデートされます。:"
+
+#: ../../matplotlib.rst:57
+msgid "Properties"
+msgstr "プロパティ"
+
+#: ../../matplotlib.rst:59
+msgid ""
+"Size, position and other properties can either be set as arguments within"
+" :meth:`pictures.add() <xlwings.main.Pictures.add>`, or by manipulating "
+"the picture object that is returned, see :meth:`xlwings.Picture`."
+msgstr ""
+"サイズ、位置および他のプロパティは"
+" :meth:`pictures.add() <xlwings.main.Pictures.add>` 内の引数としてか、"
+"戻り値のpictureオブジェクトを操作することで設定できます。 :meth:`xlwings.Picture` を"
+"ご覧ください。"
+
+#: ../../matplotlib.rst:62
+msgid "For example::"
+msgstr "例::"
+
+#: ../../matplotlib.rst:68 ../../matplotlib.rst:85
+msgid "or::"
+msgstr "または::"
+
+#: ../../matplotlib.rst:75
+msgid "Getting a Matplotlib figure"
+msgstr "Matplotlib fitureの取得"
+
+#: ../../matplotlib.rst:77
+msgid "Here are a few examples of how you get a matplotlib ``figure`` object:"
+msgstr "matplotlib ``figure`` オブジェクトの取得方法をいくつか示します:"
+
+#: ../../matplotlib.rst:79
+msgid "via PyPlot interface::"
+msgstr "Pyplot インターフェースで::"
+
+#: ../../matplotlib.rst:92
+msgid "via object oriented interface::"
+msgstr "オブジェクト指向インターフェースで::"
+
+#: ../../matplotlib.rst:99
+msgid "via Pandas::"
+msgstr "Pandasで::"
+
+#: ../../matplotlib.rst:112
+msgid "Plotly static charts"
+msgstr ""
+
+#: ../../matplotlib.rst:114
+msgid "This feature requires xlwings :guilabel:`PRO`."
+msgstr "この機能は xlwings :guilabel:`PRO` のみ利用できます。"
+
+#: ../../matplotlib.rst:117
+msgid "Prerequisites"
+msgstr "前提条件"
+
+#: ../../matplotlib.rst:119
+msgid ""
+"In addition to ``plotly`` you will need ``orca``. The easiest way to get "
+"it is via conda::"
+msgstr ""
+"``plotly`` および ``orca`` が必要になります。"
+"condaなら簡単にインストールできます::"
+
+#: ../../matplotlib.rst:123
+msgid ""
+"For alternative ways of installation, see: https://plotly.com/python"
+"/static-image-export/"
+msgstr ""
+"他のインストール方法は、こちらをご覧ください: https://plotly.com/python"
+"/static-image-export/"
+
+#: ../../matplotlib.rst:126
+msgid "How to use"
+msgstr "使い方"
+
+#: ../../matplotlib.rst:128
+msgid ""
+"It works the same as with Matplotlib, however, rendering a Plotly chart "
+"takes slightly longer. Here is a sample:"
+msgstr ""
+"Matplotlibと同じように機能しますが、Plotlyチャートの描画は"
+"少しだけ時間がかかります。以下がサンプルです:"
+
