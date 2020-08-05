@@ -3,19 +3,18 @@
 # This file is distributed under the same license as the xlwings package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: xlwings dev\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-06 16:16+0900\n"
+"POT-Creation-Date: 2020-07-18 22:02+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Generated-By: Babel 2.8.0\n"
 
 #: ../../command_line.rst:4
 msgid "Command Line Client"
@@ -27,10 +26,9 @@ msgid ""
 "workbooks and install the add-in. On Windows, type the commands into a "
 "``Command Prompt``, on Mac, type them into a ``Terminal``."
 msgstr ""
-"xlwingsにはコマンド ライン クライアントが用意されており、コマンド ラインからワークブックの"
-"セットアップやアドインのインストールが簡単できます。"
-"Windowsなら ``Command Prompt`` に、Macなら ``Terminal`` にコマンドを入力します。"
-
+"xlwingsにはコマンド ライン クライアントが用意されており、コマンド "
+"ラインからワークブックのセットアップやアドインのインストールが簡単できます。Windowsなら ``Command Prompt`` "
+"に、Macなら ``Terminal`` にコマンドを入力します。"
 
 #: ../../command_line.rst:10
 msgid "Quickstart"
@@ -47,17 +45,14 @@ msgid ""
 "reference to the xlwings addin and a Python file, ready to be used right "
 "away:"
 msgstr ""
-"このコマンドで簡単に銀河へ向かって翔べます: 新しいフォルダー ``myproject``を"
-"作成します。フォルダーには参照設定済みのExcel ワークブックとPython ファイルが"
-"含まれ、すぐに使えるようになっています:"
+"このコマンドで簡単に銀河へ向かって翔べます: 新しいフォルダー ``myproject``を作成します。フォルダーには参照設定済みのExcel "
+"ワークブックとPython ファイルが含まれ、すぐに使えるようになっています:"
 
 #: ../../command_line.rst:23
 msgid ""
 "If you want to use xlwings via VBA module instead of addin, use the "
 "``--standalone`` or ``-s`` flag:"
-msgstr ""
-"xlwingsをアドインではなくVBAモジュールで使いたい場合には、"
-"``--standalone`` または ``-s`` フラグを使います:"
+msgstr "xlwingsをアドインではなくVBAモジュールで使いたい場合には、``--standalone`` または ``-s`` フラグを使います:"
 
 #: ../../command_line.rst:25
 msgid "``xlwings quickstart myproject --standalone``"
@@ -69,71 +64,105 @@ msgstr "アドイン"
 
 #: ../../command_line.rst:30
 msgid ""
-"The `addin` command makes it easy on Windows to install/remove the addin."
-" On Mac, you need to install it manually, but ``xlwings addin install`` "
-"will show you how to do it."
+"The `addin` command makes it easy to install/remove the addin by copying "
+"it to the ``XLSTART`` folder."
 msgstr ""
-"`addin` コマンドを使えば、Windowsでアドインのインストール/削除が簡単にできます。"
-"Macでは、手動でインストールしなければなりませんが、 その方法は ``xlwings addin install`` "
-"コマンドからわかります。"
+"`addin` コマンドを使えば、 ``XLSTART`` フォルダーへのコピーにより"
+"アドインインストール/削除が簡単にできます。"
 
-#: ../../command_line.rst:33
+#: ../../command_line.rst:32
 msgid ""
 "Excel needs to be closed before installing/updating the add-in via "
 "command line. If you're still getting an error, start the Task Manager "
 "and make sure there are no ``EXCEL.EXE`` processes left."
 msgstr ""
-"コマンド ラインでアドインをインストール/アップデートするまえに、"
-"Excelを閉じてください。それでもエラーが生じるようなら、タスク マネージャーを"
-"起動し、 ''EXCEL.EXE'' プロセスが残っていないかどうかを確かめてください。"
+"コマンド ラインでアドインをインストール/アップデートするまえに、Excelを閉じてください。それでもエラーが生じるようなら、タスク "
+"マネージャーを起動し、 ''EXCEL.EXE'' プロセスが残っていないかどうかを確かめてください。"
 
-#: ../../command_line.rst:36
+#: ../../command_line.rst:35
 msgid "``xlwings addin install``: Copies the xlwings add-in to the XLSTART folder"
 msgstr "``xlwings addin install``: アドインをXLSTARTフォルダーにコピーします"
 
-#: ../../command_line.rst:38
+#: ../../command_line.rst:37
 msgid "``xlwings addin update``: Replaces the current add-in with the latest one"
 msgstr "``xlwings addin update``: 現在のアドインを最新版に置き換えます"
 
-#: ../../command_line.rst:40
+#: ../../command_line.rst:39
 msgid "``xlwings addin remove``: Removes the add-in from the XLSTART folder"
 msgstr "``xlwings addin remove``: XLSTARTフォルダーからアドインを削除します"
 
-#: ../../command_line.rst:42
+#: ../../command_line.rst:41
 msgid ""
 "``xlwings addin status``: Shows if the add-in is installed together with "
 "the installation path"
-msgstr ""
-"``xlwings addin status``: アドインのインストールの有無およびインストール先の"
-"パスを表示します"
+msgstr "``xlwings addin status``: アドインのインストールの有無およびインストール先のパスを表示します"
 
 #: ../../command_line.rst:44
 msgid ""
 "After installing the add-in, it will be available as xlwings tab on the "
 "Excel Ribbon."
-msgstr ""
-"アドインがインストールされると、Excelのリボンにxlwingsタブが追加されます。"
+msgstr "アドインがインストールされると、Excelのリボンにxlwingsタブが追加されます。"
 
 #: ../../command_line.rst:50
 msgid "RunPython"
 msgstr ""
 
 #: ../../command_line.rst:52
-msgid ""
-"Only required if you are on Mac, are using Excel 2016 and have xlwings "
-"installed via conda or as part of Anaconda. To enable the ``RunPython`` "
-"calls in VBA, run this one time:"
-msgstr ""
-"Macかつ、Excel 2016かつ、condaでxlwingsをインストールもしくはAnacondaに含まれている"
-"xlwingsを使用している場合にのみ必要になります。 VBAからの ``RunPython`` 呼び出しを"
-"有効化するには、一度以下を実行してください:"
+msgid "Only required if you are on Mac and haven't run ``xlwings addin install``:"
+msgstr "Macで ``xlwings addin install`` を実行していない場合のみ必要になります。"
 
-#: ../../command_line.rst:55
+#: ../../command_line.rst:54
 msgid "``xlwings runpython install``"
 msgstr ""
 
-#: ../../command_line.rst:57
+#: ../../command_line.rst:56
 msgid "Alternatively, install xlwings with ``pip``."
 msgstr "もしくは、xlwingsを ``pip`` でインストールします。"
 
+#: ../../command_line.rst:61
+msgid "Config"
+msgstr ""
+
+#: ../../command_line.rst:63
+msgid ""
+"Creates the user config file with the correct settings for your Python "
+"installation from where you are running it. This is automatically run "
+"when you install the add-in via ``xlwings addin install``."
+msgstr ""
+"実行中のPythonのインストールに合わせたユーザー設定ファイルを作成します。"
+"このコマンドはアドインを ``xlwings addin install`` でインストールした場合には"
+"自動的に実行されます。"
+
+
+#: ../../command_line.rst:66
+msgid "``xlwings config create [--force]``"
+msgstr ""
+
+#: ../../command_line.rst:68
+msgid "``-f/--force`` will overwrite existing config files."
+msgstr "``-f/--force`` は既存の設定ファイルを上書きします。"
+
+#~ msgid ""
+#~ "The `addin` command makes it easy "
+#~ "on Windows to install/remove the addin."
+#~ " On Mac, you need to install it"
+#~ " manually, but ``xlwings addin install``"
+#~ " will show you how to do it."
+#~ msgstr ""
+#~ "`addin` "
+#~ "コマンドを使えば、Windowsでアドインのインストール/削除が簡単にできます。Macでは、手動でインストールしなければなりませんが、"
+#~ " その方法は ``xlwings addin install`` "
+#~ "コマンドからわかります。"
+
+#~ msgid ""
+#~ "Only required if you are on Mac,"
+#~ " are using Excel 2016 and have "
+#~ "xlwings installed via conda or as "
+#~ "part of Anaconda. To enable the "
+#~ "``RunPython`` calls in VBA, run this "
+#~ "one time:"
+#~ msgstr ""
+#~ "Macかつ、Excel "
+#~ "2016かつ、condaでxlwingsをインストールもしくはAnacondaに含まれているxlwingsを使用している場合にのみ必要になります。"
+#~ " VBAからの ``RunPython`` 呼び出しを有効化するには、一度以下を実行してください:"
 
