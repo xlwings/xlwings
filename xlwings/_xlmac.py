@@ -284,6 +284,7 @@ class Book:
     def fullname(self):
         display_alerts = self.app.display_alerts
         self.app.display_alerts = False
+        # This causes a pop-up if there's a pw protected sheet, see #1377
         hfs_path = self.xl.properties().get(kw.full_name)
         self.app.display_alerts = display_alerts
         return hfs_to_posix_path(hfs_path)
