@@ -282,10 +282,10 @@ class Book:
 
     @property
     def fullname(self):
+        display_alerts = self.app.display_alerts
+        self.app.display_alerts = False
         hfs_path = self.xl.properties().get(kw.full_name)
-        # Excel 2011 returns HFS path, Excel 2016 returns POSIX path
-        if hfs_path == self.xl.properties().get(kw.name) or int(self.app.version.split('.')[0]) >= 15:
-            return hfs_path
+        self.app.display_alerts = display_alerts
         return hfs_to_posix_path(hfs_path)
 
     @property
