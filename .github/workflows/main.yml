@@ -83,7 +83,7 @@ jobs:
         run: python scripts/ci_test.py
 
   publish:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    if: github.event_name == 'release'
     name: Publish
     needs: test
     runs-on: ubuntu-latest
@@ -102,7 +102,6 @@ jobs:
           name: Package
       - name: Publish package and update Homepage with release version
         shell: bash
-        if: github.event_name == 'release'
         run: |
           twine upload Package/*.tar.gz
           curl -X POST -d {} https://api.netlify.com/build_hooks/$NETLIFY_BUILD_HOOK
@@ -112,7 +111,6 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
   #          repository_url: https://test.pypi.org/legacy/
       - name: Upload add-in to GH Release
-        if: github.event_name == 'release'
         id: upload-release-asset
         uses: actions/upload-release-asset@v1.0.1
         env:
