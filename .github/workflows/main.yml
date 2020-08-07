@@ -21,7 +21,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.7'
+        python-version: '3.8'
         architecture: 'x64'
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
@@ -55,9 +55,9 @@ jobs:
         name: Package
         path: dist
 
-  test_and_upload:
+  test:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
-    name: Test and release
+    name: Test installation
     needs: build
     runs-on: ${{ matrix.os }}
     strategy:
@@ -74,13 +74,32 @@ jobs:
           architecture: ${{ matrix.architecture }}
       - name: Install Python dependencies
         run: |
-          python -m pip install wheel twine
-      - name: Download source package from previous job
+          python -m pip install wheel
+      - name: Download artifacts
         uses: actions/download-artifact@v1
         with:
           name: Package
       - name: Test installation
         run: python scripts/ci_test.py
+
+  publish:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    name: Publish
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+          architecture: 'x64'
+      - name: Install Python dependencies
+        run: |
+          python -m pip install wheel twine
+      - name: Download artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: Package
       - name: Publish package and update Homepage with release version
         shell: bash
         if: github.event_name == 'release'
