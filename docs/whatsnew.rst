@@ -1,6 +1,12 @@
 What's New
 ==========
 
+v0.20.1 (Aug 7, 2020)
+---------------------
+
+* [Bug Fix] macOS: password-protected sheets caused an alert when calling ``xw.Book`` (:issue:`1377`).
+* [Bug Fix] macOS: calling ``wb.save('newname.xlsx')`` wasn't updating the ``wb`` object properly and caused an alert (:issue:`1129` and :issue:`626` and :issue:`957`).
+
 v0.20.0 (Jul 22, 2020)
 ----------------------
 
