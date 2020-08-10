@@ -640,7 +640,7 @@ def import_udfs(module_names, xl_workbook):
     # This was previously done via the respective pywin32 commands but failed occasionally for some users:
     # While Excel showed "Automation error 440", Python showed:
     # pywintypes.com_error: (-2147352567, 'Exception occurred.', (0, None, None, None, 0, -2146827284), None)
-    xl_workbook.Application.Run('xlwings.xlam!ImportXlwingsUdfsModule', tf.name)
+    xl_workbook.Application.Run('ImportXlwingsUdfsModule', tf.name)
 
     for module_name in module_names:
         module = get_udf_module(module_name, xl_workbook)
