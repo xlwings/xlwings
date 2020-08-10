@@ -12,9 +12,6 @@ for package in glob.glob('*.tar.gz'):
 
 # Changing the dir is required to prevent python from importing the package from the source code
 os.chdir(os.path.expanduser('~'))  # e.g. /Users/runners
-output = subprocess.check_output(split('python -c "import xlwings;print(xlwings.__version__)"'),
-                                 stderr=subprocess.STDOUT).decode()
-print('Version: ' + output)
-
-print(subprocess.check_output(split('xlwings quickstart testproject'), stderr=subprocess.STDOUT).decode())
-print(subprocess.check_output(split('xlwings quickstart testproject --standalone'), stderr=subprocess.STDOUT).decode())
+print(subprocess.run(split('python -c "import xlwings;print(xlwings.__version__)"'), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8'))
+print(subprocess.run(split('xlwings quickstart testproject1'), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8'))
+print(subprocess.run(split('xlwings quickstart testproject2 --standalone'), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8'))
