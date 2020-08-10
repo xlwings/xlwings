@@ -98,10 +98,8 @@ def quickstart(args):
     # Excel file
     if not args.standalone:
         source_file = os.path.join(this_dir, 'quickstart.xlsm')
-    elif sys.platform.startswith('win'):
-        source_file = os.path.join(this_dir, 'quickstart_standalone_win.xlsm')
     else:
-        source_file = os.path.join(this_dir, 'quickstart_standalone_mac.xlsm')
+        source_file = os.path.join(this_dir, 'quickstart_standalone.xlsm')
     shutil.copyfile(source_file, os.path.join(project_path, project_name + '.xlsm'))
 
 
