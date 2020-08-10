@@ -16,4 +16,5 @@ output = subprocess.check_output(split('python -c "import xlwings;print(xlwings.
                                  stderr=subprocess.STDOUT).decode()
 print('Version: ' + output)
 
-
+subprocess.check_output(split('xlwings quickstart testproject'), stderr=subprocess.STDOUT).decode()
+subprocess.check_output(split('xlwings quickstart testproject --standalone'), stderr=subprocess.STDOUT).decode()
