@@ -639,9 +639,15 @@ def import_udfs(module_names, xl_workbook):
 
     try:
         xl_workbook.VBProject.VBComponents.Remove(xl_workbook.VBProject.VBComponents("xlwings_udfs"))
-    except:
+    except pywintypes.com_error:
         pass
-    xl_workbook.VBProject.VBComponents.Import(tf.name)
+
+    try:
+        xl_workbook.VBProject.VBComponents.Import(tf.name)
+    except pywintypes.com_error:
+        # Fallback. Some users get in Excel "Automation error 440" with this traceback in Python:
+        # pywintypes.com_error: (-2147352567, 'Exception occurred.', (0, None, None, None, 0, -2146827284), None)
+        xl_workbook.Application.Run('ImportXlwingsUdfsModule', tf.name)
 
     for module_name in module_names:
         module = get_udf_module(module_name, xl_workbook)
