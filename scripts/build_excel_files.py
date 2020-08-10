@@ -14,8 +14,7 @@ from Aspose.Cells import Workbook, License
 this_dir = os.path.dirname(os.path.abspath(__file__))
 par_dir = os.path.join(this_dir, os.path.pardir)
 addin_path = os.path.join(par_dir, 'xlwings', 'addin', 'xlwings.xlam')
-standalone_win_path = os.path.join(par_dir, 'xlwings', 'quickstart_standalone_win.xlsm')
-standalone_mac_path = os.path.join(par_dir, 'xlwings', 'quickstart_standalone_mac.xlsm')
+standalone_path = os.path.join(par_dir, 'xlwings', 'quickstart_standalone.xlsm')
 xlwings_bas_path = os.path.join(par_dir, 'xlwings', 'xlwings.bas')
 
 # Version string
@@ -94,10 +93,9 @@ standalone_code = ('Attribute VB_Name = "xlwings"\n' +
                    """#Const App = "Microsoft Excel" 'Adjust when using outside of Excel\n""" +
                    '\n'.join(standalone_code.splitlines()))
 
-for path in [standalone_mac_path, standalone_win_path]:
-    wb = Workbook(path)
-    wb.VbaProject.get_Modules()['xlwings'].set_Codes(standalone_code)
-    wb.Save(path)
+wb = Workbook(standalone_path)
+wb.VbaProject.get_Modules()['xlwings'].set_Codes(standalone_code)
+wb.Save(standalone_path)
 
 # Save standalone as xlwings.bas to be included in python package
 with open(xlwings_bas_path, 'w') as f:
