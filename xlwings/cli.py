@@ -2,6 +2,7 @@ import os
 import sys
 import shutil
 import argparse
+from pathlib import Path
 
 import xlwings as xw
 
@@ -191,6 +192,34 @@ def config_create(args):
             f.writelines(settings)
 
 
+def code_embed(args):
+    """Import all Python files of the current directory into the active Excel Book"""
+    wb = xw.books.active
+    screen_updating = wb.app.screen_updating
+    wb.app.screen_updating = False
+
+    for source_file in Path('.').glob('*.py'):
+        with open(source_file, 'r') as f:
+            content = []
+            for line in f.read().splitlines():
+                # Handle single-quote docstrings
+                line = line.replace("'''", '"""')
+                # Duplicate leading single quotes so Excel interprets them properly
+                # This is required even if the cell is in Text format
+                content.append(["'" + line if line.startswith("'") else line])
+
+        if source_file.name not in [sht.name for sht in wb.sheets]:
+            sheet = wb.sheets.add(source_file.name, after=wb.sheets[len(wb.sheets) - 1])
+        else:
+            sheet = wb.sheets[source_file.name]
+        sheet.cells.clear_contents()
+        sheet['A1'].resize(row_size=len(content)).number_format = '@'
+        sheet['A1'].value = content
+        sheet['A:A'].column_width = 65
+
+    wb.app.screen_updating = screen_updating
+
+
 def main():
     print('xlwings ' + 'dev')
     parser = argparse.ArgumentParser()
@@ -266,6 +295,14 @@ def main():
     config_create_parser = config_subparsers.add_parser('create')
     config_create_parser.add_argument("-f", "--force", action='store_true', help='Will overwrite the current config file.')
     config_create_parser.set_defaults(func=config_create)
+
+    # Embed code
+    code_parser = subparsers.add_parser('code', help='Run "code embed" to embed the Python modules of the current dir in your active Excel file.')
+    code_subparsers = code_parser.add_subparsers(dest='subcommand')
+    code_subparsers.required = True
+
+    code_create_parser = code_subparsers.add_parser('embed')
+    code_create_parser.set_defaults(func=code_embed)
 
     # boilerplate
     args = parser.parse_args()
