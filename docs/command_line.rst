@@ -38,7 +38,9 @@ xlwings comes with a command line client. On Windows, type the commands into a `
                         this with the "--force" flag which will overwrite your
                         current configuration.
                         (New in 0.19.5)
-    code                Run "xlwings code embed" to embed the Python modules
-                        of the current dir in your active Excel file. To run
-                        embedded code, you need an xlwings PRO license.
+    code                Run "xlwings code embed" to embed all Python modules
+                        of the current dir in your active Excel file. Use the
+                        "--file" flag to only import a single file by
+                        providing its path. To run embedded code, you need an
+                        xlwings PRO license.
                         (New in 0.20.2)

@@ -196,7 +196,12 @@ def code_embed(args):
     screen_updating = wb.app.screen_updating
     wb.app.screen_updating = False
 
-    for source_file in Path('.').glob('*.py'):
+    if args.file:
+        source_files = [Path(args.file)]
+    else:
+        source_files = Path('.').glob('*.py')
+
+    for source_file in source_files:
         with open(source_file, 'r') as f:
             content = []
             for line in f.read().splitlines():
@@ -313,13 +318,15 @@ def main():
     config_create_parser.set_defaults(func=config_create)
 
     # Embed code
-    code_parser = subparsers.add_parser('code', help='Run "xlwings code embed" to embed the Python modules of the '
-                                                     'current dir in your active Excel file. To run embedded code, '
-                                                     'you need an xlwings PRO license.')
+    code_parser = subparsers.add_parser('code', help='Run "xlwings code embed" to embed all Python modules of the '
+                                                     'current dir in your active Excel file. Use the "--file" flag to '
+                                                     'only import a single file by providing its path. To run embedded '
+                                                     'code, you need an xlwings PRO license.')
     code_subparsers = code_parser.add_subparsers(dest='subcommand')
     code_subparsers.required = True
 
     code_create_parser = code_subparsers.add_parser('embed')
+    code_create_parser.add_argument("-f", "--file", help='Optional parameter to only import a single file provided as file path.')
     code_create_parser.set_defaults(func=code_embed)
 
     # Show help when running without commands
