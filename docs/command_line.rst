@@ -8,13 +8,16 @@ xlwings comes with a command line client. On Windows, type the commands into a `
 .. code:: console
 
     addin               Run "xlwings addin install" to install the Excel add-
-                        in by copying it to the XLSTART folder. Instead of
+                        in (will be copied to the XLSTART folder). Instead of
                         "install" you can also use "update", "remove" or
                         "status". Note that this command may take a while.
                         (New in 0.6.0)
     quickstart          Run "xlwings quickstart myproject" to create a folder
                         called "myproject" in the current directory with an
-                        Excel file and a Python file, ready to be used.
+                        Excel file and a Python file, ready to be used. Use
+                        the "--standalone" flag to embed all VBA code in the
+                        Excel file and make it work without the xlwings add-
+                        in.
     runpython           macOS only: run "xlwings runpython install" if you
                         want to enable the RunPython calls without installing
                         the add-in. This will create the following file:

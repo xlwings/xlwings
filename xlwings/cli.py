@@ -230,8 +230,8 @@ def main():
     subparsers.required = True
 
     # Add-in
-    addin_parser = subparsers.add_parser('addin', help='Run "xlwings addin install" to install the Excel add-in by '
-                                                       'copying it to the XLSTART folder. Instead of "install" you can '
+    addin_parser = subparsers.add_parser('addin', help='Run "xlwings addin install" to install the Excel add-in '
+                                                       '(will be copied to the XLSTART folder). Instead of "install" you can '
                                                        'also use "update", "remove" or "status". Note that this command '
                                                        'may take a while.')
     addin_subparsers = addin_parser.add_subparsers(dest='subcommand')
@@ -258,7 +258,10 @@ def main():
     # Quickstart
     quickstart_parser = subparsers.add_parser('quickstart', help='Run "xlwings quickstart myproject" to create a '
                                                                  'folder called "myproject" in the current directory '
-                                                                 'with an Excel file and a Python file, ready to be used.')
+                                                                 'with an Excel file and a Python file, ready to be '
+                                                                 'used. Use the "--standalone" flag to embed all VBA '
+                                                                 'code in the Excel file and make it work without the '
+                                                                 'xlwings add-in.')
     quickstart_parser.add_argument("project_name")
     quickstart_parser.add_argument("-s", "--standalone", action='store_true', help='Include xlwings as VBA module.')
     quickstart_parser.set_defaults(func=quickstart)
