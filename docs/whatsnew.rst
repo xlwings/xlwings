@@ -1,6 +1,14 @@
 What's New
 ==========
 
+v0.20.2 (Aug 13, 2020)
+----------------------
+
+* :guilabel:`PRO` [Feature]: Code can now be embedded by calling the new ``xlwings code embed [--file]`` CLI command (:issue:`1380`).
+* [Bug Fix] Made the import UDFs functionality more robust to prevent an Automation 440 error that some users would see (:issue:`1381`).
+* [Enhancement] The standalone Excel file now includes all VBA dependencies to make it work on Windows and macOS (:issue:`1349`).
+* [Enhancement] xlwings now blocks the call if the Conda Path/Env settings are used with legacy Conda installations (:issue:`1384`).
+
 v0.20.1 (Aug 7, 2020)
 ---------------------
 
