@@ -52,14 +52,9 @@ This feature requires xlwings :guilabel:`PRO`.
 xlwings PRO allows you to store your Python code directly in Excel so you don't have to distribute separate
 Python files.
 
-All you have to do is:
+On a command line, run the following command which will import all Python files from the current directory and paste them into sheets with the same name of the currently active workbook::
 
-* Name a sheet with a ``.py`` ending (can also be a hidden or very hidden sheet)
-* Copy/paste your Python source code
-
-.. note::
-  Make sure to select ``Paste Special > Text`` as you might otherwise get errors with
-  indentation or unrecognized characters.
+    $ xlwings code embed
 
 Then, use the VBA function ``RunPython ("import mymodule;mymodule.myfunction()")`` as usual.
 

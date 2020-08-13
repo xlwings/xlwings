@@ -221,13 +221,16 @@ def code_embed(args):
 
 
 def main():
-    print('xlwings ' + 'dev')
+    print('xlwings version: ' + 'dev')
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='command')
     subparsers.required = True
 
     # Add-in
-    addin_parser = subparsers.add_parser('addin', help='xlwings Excel Add-in')
+    addin_parser = subparsers.add_parser('addin', help='Run "xlwings addin install" to install the Excel add-in by '
+                                                       'copying it to the XLSTART folder. Instead of "install" you can '
+                                                       'also use "update", "remove" or "status". Note that this command '
+                                                       'may take a while.')
     addin_subparsers = addin_parser.add_subparsers(dest='subcommand')
     addin_subparsers.required = True
 
@@ -250,14 +253,19 @@ def main():
     addin_status_parser.set_defaults(func=addin_status)
 
     # Quickstart
-    quickstart_parser = subparsers.add_parser('quickstart', help='xlwings quickstart')
+    quickstart_parser = subparsers.add_parser('quickstart', help='Run "xlwings quickstart myproject" to create a '
+                                                                 'folder called "myproject" in the current directory '
+                                                                 'with an Excel file and a Python file, ready to be used.')
     quickstart_parser.add_argument("project_name")
     quickstart_parser.add_argument("-s", "--standalone", action='store_true', help='Include xlwings as VBA module.')
     quickstart_parser.set_defaults(func=quickstart)
 
     # RunPython (only needed when installed with conda for Mac Excel 2016)
     if sys.platform.startswith('darwin'):
-        runpython_parser = subparsers.add_parser('runpython', help='Run this if you installed xlwings via conda and are using Mac Excel 2016')
+        runpython_parser = subparsers.add_parser('runpython', help='macOS only: run "xlwings runpython install" if you '
+                                                                   'want to enable the RunPython calls without installing '
+                                                                   'the add-in. This will create the following file: '
+                                                                   '~/Library/Application Scripts/com.microsoft.Excel/xlwings.applescript')
         runpython_subparser = runpython_parser.add_subparsers(dest='subcommand')
         runpython_subparser.required = True
 
@@ -266,7 +274,8 @@ def main():
 
     # restapi run
     restapi_parser = subparsers.add_parser('restapi',
-                                           help='Runs the xlwings REST API via Flask dev server.')
+                                           help='Use "xlwings restapi run" to run the xlwings REST API via Flask dev '
+                                                'server. Accepts "--host" and "--port" as optional arguments.')
     restapi_subparser = restapi_parser.add_subparsers(dest='subcommand')
     restapi_subparser.required = True
 
@@ -276,19 +285,28 @@ def main():
     restapi_run_parser.set_defaults(func=restapi_run)
 
     # License
-    license_parser = subparsers.add_parser('license', help='License key functionality')
+    license_parser = subparsers.add_parser('license', help='xlwings PRO: Use "xlwings license update -k KEY" where '
+                                                           '"KEY" is your personal (trial) license key. This will '
+                                                           'update ~/.xlwings/xlwings.conf with the LICENSE_KEY entry. '
+                                                           'If you have a paid license, you can run "xlwings license deploy" '
+                                                           'to create a deploy key. This is not availalbe for trial keys.')
     license_subparsers = license_parser.add_subparsers(dest='subcommand')
     license_subparsers.required = True
 
     license_update_parser = license_subparsers.add_parser('update')
-    license_update_parser.add_argument("-k", "--key", help='Provide a new key, otherwise it will take it from the xlwings.conf file.')
+    license_update_parser.add_argument("-k", "--key", help='Updates the LICENSE_KEY in ~/.xlwings/xlwings.conf.')
     license_update_parser.set_defaults(func=license_update)
 
     license_update_parser = license_subparsers.add_parser('deploy')
     license_update_parser.set_defaults(func=license_deploy)
 
     # Config
-    config_parser = subparsers.add_parser('config', help='config file under ~/.xlwings/xlwings.conf')
+    config_parser = subparsers.add_parser('config', help='Run "xlwings config create" to create the user config file '
+                                                         '(~/.xlwings/xlwings.conf) which is where the settings from '
+                                                         'the Ribbon add-in are stored. It will configure the Python '
+                                                         'interpreter that you are running this command with. To reset '
+                                                         'your configuration, run this with the "--force" flag which '
+                                                         'will overwrite your current configuration.')
     config_subparsers = config_parser.add_subparsers(dest='subcommand')
     config_subparsers.required = True
 
@@ -297,14 +315,21 @@ def main():
     config_create_parser.set_defaults(func=config_create)
 
     # Embed code
-    code_parser = subparsers.add_parser('code', help='Run "code embed" to embed the Python modules of the current dir in your active Excel file.')
+    code_parser = subparsers.add_parser('code', help='Run "xlwings code embed" to embed the Python modules of the '
+                                                     'current dir in your active Excel file. To run embedded code, '
+                                                     'you need an xlwings PRO license.')
     code_subparsers = code_parser.add_subparsers(dest='subcommand')
     code_subparsers.required = True
 
     code_create_parser = code_subparsers.add_parser('embed')
     code_create_parser.set_defaults(func=code_embed)
 
-    # boilerplate
+    # Show help when running without commands
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
+    # Boilerplate
     args = parser.parse_args()
     args.func(args)
 
