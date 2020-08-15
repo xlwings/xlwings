@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.20.3 (Aug 15, 2020)
+----------------------
+
+* [Bug Fix] The conda version check was erroneously triggered when importing UDFs and no-conda installations. (:issue:`1389`).
+
 v0.20.2 (Aug 13, 2020)
 ----------------------
 
