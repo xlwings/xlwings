@@ -56,7 +56,7 @@ def create_report(template, output, book_settings=None, app=None, **data):
         For example: ``book_settings={'update_links': False}``.
 
     app: xlwings App, default None
-        By passing in an xlwings App instance, you can control where your report runs and configure things like ``hidden=True``.
+        By passing in an xlwings App instance, you can control where your report runs and configure things like ``visible=False``.
         For details see :attr:`xlwings.App`. By default, it creates the
         report in the currently active instance of Excel.
 
@@ -93,7 +93,7 @@ def create_report(template, output, book_settings=None, app=None, **data):
 
     >>> import xlwings as xw
     >>> from xlwings.pro.reports import create_report
-    >>> app = xw.App(hidden=True)  # Separate and hidden Excel instance
+    >>> app = xw.App(visible=False)  # Separate and hidden Excel instance
     >>> wb = create_report('my_template.xlsx', 'my_report.xlsx', app=app, **data)
     >>> app.quit()  # Close the wb and quit the Excel instance
     """
