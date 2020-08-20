@@ -22,9 +22,14 @@ def get_addin_path():
 
 
 def addin_install(args):
+    if args is None:
+        unprotected = False
+    else:
+        unprotected = args.unprotected
     try:
         addin_path = get_addin_path()
-        shutil.copyfile(os.path.join(this_dir, 'addin', 'xlwings.xlam'), addin_path)
+        addin_name = 'xlwings_unprotected.xlam' if unprotected else 'xlwings.xlam'
+        shutil.copyfile(os.path.join(this_dir, 'addin', addin_name), addin_path)
         print('Successfully installed the xlwings add-in! Please restart Excel.')
         if sys.platform.startswith('darwin'):
             runpython_install(None)
@@ -233,11 +238,13 @@ def main():
     addin_parser = subparsers.add_parser('addin', help='Run "xlwings addin install" to install the Excel add-in '
                                                        '(will be copied to the XLSTART folder). Instead of "install" you can '
                                                        'also use "update", "remove" or "status". Note that this command '
-                                                       'may take a while.')
+                                                       'may take a while. Use the "--unprotected" flag to install the'
+                                                       'add-in without password protection.')
     addin_subparsers = addin_parser.add_subparsers(dest='subcommand')
     addin_subparsers.required = True
 
     addin_install_parser = addin_subparsers.add_parser('install')
+    addin_install_parser.add_argument("-u", "--unprotected", action='store_true', help='Install the add-in without the password protection.')
     addin_install_parser.set_defaults(func=addin_install)
 
     addin_update_parser = addin_subparsers.add_parser('update')
