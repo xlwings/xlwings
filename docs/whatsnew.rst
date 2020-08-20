@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.20.4 (Aug 20, 2020)
+----------------------
+
+* [Enhancement] The add-in can now optionally be installed without the password protection: ``xlwings addin install --unprotected`` (:issue:`1392`).
+
 v0.20.3 (Aug 15, 2020)
 ----------------------
 

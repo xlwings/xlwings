@@ -99,19 +99,19 @@ The settings in the xlwings Ribbon are stored in a config file that can also be 
 * Windows: ``.xlwings\xlwings.conf`` in your user folder  
 * macOS: ``~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf``
 
-The format is as follows - note the OS specific Interpreter settings!
+The format is as follows (currently the keys are required to be all caps) - note the OS specific Interpreter settings!
 
 .. code-block:: bash
 
-    "Interpreter_Win","C:\path\to\python.exe"
-    "Interpreter_Mac","/path/to/python"
+    "INTERPRETER_WIN","C:\path\to\python.exe"
+    "INTERPRETER_MAC","/path/to/python"
     "PYTHONPATH",""
-    "Conda Path",""
-    "Conda Env",""
-    "UDF Modules",""
-    "Debug UDFs",""
-    "Use UDF Server",""
-    "Show Console",""
+    "CONDA PATH",""
+    "CONDA ENV",""
+    "UDF MODULES",""
+    "DEBUG UDFS",""
+    "USE UDF SERVER",""
+    "SHOW CONSOLE",""
 
 Workbook Directory Config: Config file
 --------------------------------------

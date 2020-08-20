@@ -14,6 +14,7 @@ from Aspose.Cells import Workbook, License
 this_dir = os.path.dirname(os.path.abspath(__file__))
 par_dir = os.path.join(this_dir, os.path.pardir)
 addin_path = os.path.join(par_dir, 'xlwings', 'addin', 'xlwings.xlam')
+addin_unprotected_path = os.path.join(par_dir, 'xlwings', 'addin', 'xlwings_unprotected.xlam')
 standalone_path = os.path.join(par_dir, 'xlwings', 'quickstart_standalone.xlsm')
 xlwings_bas_path = os.path.join(par_dir, 'xlwings', 'xlwings.bas')
 
@@ -73,6 +74,11 @@ main_code = addin_modules['Main'].get_Codes()
 main_code = set_version_strings(main_code)
 addin_modules['Main'].set_Codes(main_code)
 addin_wb.Save(addin_path)
+
+# Create an unprotected copy of the addin without password
+addin_unprotected_wb = Workbook(addin_path)
+addin_unprotected_wb.VbaProject.Protect(False, None)
+addin_unprotected_wb.Save(addin_unprotected_path)
 
 # Update standalone files with a single vba module containing the concatenated addin modules
 standalone_code = ''

@@ -10,8 +10,10 @@ xlwings comes with a command line client. On Windows, type the commands into a `
     addin               Run "xlwings addin install" to install the Excel add-
                         in (will be copied to the XLSTART folder). Instead of
                         "install" you can also use "update", "remove" or
-                        "status". Note that this command may take a while.
-                        (New in 0.6.0)
+                        "status". Note that this command may take a while. Use
+                        the "--unprotected" flag to install the add-in without
+                        password protection.
+                        (New in 0.6.0, the unprotected flag was added in 0.20.4)
     quickstart          Run "xlwings quickstart myproject" to create a folder
                         called "myproject" in the current directory with an
                         Excel file and a Python file, ready to be used. Use
