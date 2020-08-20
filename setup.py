@@ -64,5 +64,5 @@ setup(
         'Topic :: Office/Business :: Financial :: Spreadsheet',
         'License :: OSI Approved :: BSD License'],
     platforms=['Windows', 'Mac OS X'],
-    python_requires='>=3.5',
+    python_requires='>=3.6',
 )
