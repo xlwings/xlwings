@@ -916,6 +916,7 @@ class ListObject:
     @name.setter
     def name(self, value):
         self.xl.name.set(value)
+        self.xl = self.parent.xl.list_objects[value]
 
     @property
     def data_body_range(self):
