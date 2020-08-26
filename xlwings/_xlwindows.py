@@ -313,6 +313,10 @@ class App:
             self._xl = get_xl_app_from_hwnd(self._hwnd)
         return self._xl
 
+    @xl.setter
+    def xl(self, value):
+        self._xl = value
+
     api = xl
 
     @property
@@ -344,6 +348,7 @@ class App:
     def quit(self):
         self.xl.DisplayAlerts = False
         self.xl.Quit()
+        self.xl = None
 
     def kill(self):
         import win32api
