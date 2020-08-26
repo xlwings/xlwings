@@ -17,6 +17,7 @@ os.chdir(cwd)
 
 from warnings import warn
 import datetime as dt
+import logging
 import numbers
 import types
 from ctypes import oledll, PyDLL, py_object, byref, POINTER, windll
@@ -42,6 +43,7 @@ try:
 except ImportError:
     np = None
 
+logger = logging.getLogger(__name__)
 
 time_types = (dt.date, dt.datetime, pywintypes.TimeType)
 if np:
@@ -285,6 +287,17 @@ class Apps:
         raise KeyError('Could not find an Excel instance with this PID.')
 
 
+def _ensure_com_wrapped(xl):
+    if isinstance(xl, COMRetryObjectWrapper):
+        return xl
+    else:
+        logger.debug(
+            'unexpectedly forced to wrap %r',
+            xl,
+            stack_info=True)
+        return COMRetryObjectWrapper(xl)
+
+
 class App:
 
     def __init__(self, spec=None, add_book=True, xl=None):
@@ -300,7 +313,7 @@ class App:
             self._xl = None
             self._hwnd = xl
         else:
-            self._xl = xl
+            self._xl = _ensure_com_wrapped(xl)
             self._hwnd = None
 
     @property
@@ -428,7 +441,7 @@ class App:
 class Books:
 
     def __init__(self, xl):
-        self.xl = xl
+        self.xl = _ensure_com_wrapped(xl)
 
     @property
     def api(self):
@@ -470,7 +483,7 @@ class Books:
 class Book:
 
     def __init__(self, xl):
-        self.xl = xl
+        self.xl = _ensure_com_wrapped(xl)
 
     @property
     def api(self):
@@ -528,7 +541,7 @@ class Book:
 
 class Sheets:
     def __init__(self, xl):
-        self.xl = xl
+        self.xl = _ensure_com_wrapped(xl)
 
     @property
     def api(self):
@@ -570,7 +583,7 @@ class Sheets:
 class Sheet:
 
     def __init__(self, xl):
-        self.xl = xl
+        self.xl = _ensure_com_wrapped(xl)
 
     @property
     def api(self):
@@ -684,14 +697,17 @@ class Range:
             self._xl = missing
         else:
             self._coords = missing
-            self._xl = xl
+            self._xl = _ensure_com_wrapped(xl)
 
     @property
     def xl(self):
         if self._xl is missing:
             xl_sheet, row, col, nrows, ncols = self._coords
             if nrows and ncols:
-                self._xl = xl_sheet.Range(xl_sheet.Cells(row, col), xl_sheet.Cells(row+nrows-1, col+ncols-1))
+                self._xl = _ensure_com_wrapped(
+                    xl_sheet.Range(
+                        xl_sheet.Cells(row, col),
+                        xl_sheet.Cells(row+nrows-1, col+ncols-1)))
             else:
                 self._xl = None
         return self._xl
@@ -1141,7 +1157,7 @@ def prepare_xl_data_element(x):
 class Shape:
 
     def __init__(self, xl):
-        self.xl = xl
+        self.xl = _ensure_com_wrapped(xl)
 
     @property
     def api(self):
@@ -1217,7 +1233,7 @@ class Shape:
 class Collection:
 
     def __init__(self, xl):
-        self.xl = xl
+        self.xl = _ensure_com_wrapped(xl)
 
     @property
     def api(self):
@@ -1245,14 +1261,16 @@ class Collection:
 
 
 class Shapes(Collection):
-
     _wrap = Shape
 
 
 class Chart:
 
     def __init__(self, xl_obj=None, xl=None):
-        self.xl = xl_obj.Chart if xl is None else xl
+        if xl is None:
+            self.xl = xl_obj.Chart
+        else:
+            self.xl = _ensure_com_wrapped(xl)
         self.xl_obj = xl_obj
 
     @property
@@ -1358,7 +1376,7 @@ class Charts(Collection):
 class Picture:
 
     def __init__(self, xl):
-        self.xl = xl
+        self.xl = _ensure_com_wrapped(xl)
 
     @property
     def api(self):
@@ -1434,7 +1452,7 @@ class Pictures(Collection):
 
 class Names:
     def __init__(self, xl):
-        self.xl = xl
+        self.xl = _ensure_com_wrapped(xl)
 
     @property
     def api(self):
@@ -1462,7 +1480,7 @@ class Names:
 
 class Name:
     def __init__(self, xl):
-        self.xl = xl
+        self.xl = _ensure_com_wrapped(xl)
 
     @property
     def api(self):
