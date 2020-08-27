@@ -5,7 +5,7 @@ v0.20.5 (Aug 27, 2020)
 ----------------------
 
 * [Bug Fix] The conda version check was failing with spaces in the installation path (:issue:`1396`).
-* [Bug Fix] Windows: when running ``app.quit``, the application is now properly closed without leaving a zombie process behind (:issue:`1396`).
+* [Bug Fix] Windows: when running ``app.quit()``, the application is now properly closed without leaving a zombie process behind (:issue:`1396`).
 
 v0.20.4 (Aug 20, 2020)
 ----------------------
