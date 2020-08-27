@@ -94,6 +94,9 @@ class COMRetryObjectWrapper:
     def __init__(self, inner):
         object.__setattr__(self, '_inner', inner)
 
+    def __repr__(self):
+        return repr(self._inner)
+
     def __setattr__(self, key, value):
         n_attempt = 1
         while True:
