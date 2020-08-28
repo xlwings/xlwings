@@ -22,7 +22,7 @@ import types
 from ctypes import oledll, PyDLL, py_object, byref, POINTER, windll
 
 import pythoncom
-from win32com.client import Dispatch, CoClassBaseClass, DispatchEx, DispatchBaseClass
+from win32com.client import Dispatch, CoClassBaseClass, CDispatch, DispatchEx, DispatchBaseClass
 import win32timezone
 import win32gui
 import win32process
@@ -64,7 +64,7 @@ class COMRetryMethodWrapper:
         while True:
             try:
                 v = self.__method(*args, **kwargs)
-                if isinstance(v, (CoClassBaseClass, DispatchBaseClass)):
+                if isinstance(v, (CDispatch, CoClassBaseClass, DispatchBaseClass)):
                     return COMRetryObjectWrapper(v)
                 elif type(v) is types.MethodType:
                     return COMRetryMethodWrapper(v)
@@ -117,7 +117,7 @@ class COMRetryObjectWrapper:
         while True:
             try:
                 v = getattr(self._inner, item)
-                if isinstance(v, (CoClassBaseClass, DispatchBaseClass)):
+                if isinstance(v, (CDispatch, CoClassBaseClass, DispatchBaseClass)):
                     return COMRetryObjectWrapper(v)
                 elif type(v) is types.MethodType:
                     return COMRetryMethodWrapper(v)
@@ -151,7 +151,7 @@ class COMRetryObjectWrapper:
         for i in range(N_COM_ATTEMPTS + 1):
             try:
                 v = self._inner(*args, **kwargs)
-                if isinstance(v, (CoClassBaseClass, DispatchBaseClass)):
+                if isinstance(v, (CDispatch, CoClassBaseClass, DispatchBaseClass)):
                     return COMRetryObjectWrapper(v)
                 elif type(v) is types.MethodType:
                     return COMRetryMethodWrapper(v)
@@ -172,7 +172,7 @@ class COMRetryObjectWrapper:
 
     def __iter__(self):
         for v in self._inner:
-            if isinstance(v, (CoClassBaseClass, DispatchBaseClass)):
+            if isinstance(v, (CDispatch, CoClassBaseClass, DispatchBaseClass)):
                 yield COMRetryObjectWrapper(v)
             else:
                 yield v
