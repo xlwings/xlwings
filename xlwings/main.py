@@ -207,7 +207,7 @@ class App:
 
     def __init__(self, visible=None, spec=None, add_book=True, impl=None):
         if impl is None:
-            self.impl = xlplatform.App(spec=spec, add_book=add_book)
+            self.impl = xlplatform.App(spec=spec, add_book=add_book, visible=visible)
             if visible or visible is None:
                 self.visible = True
         else:

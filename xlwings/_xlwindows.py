@@ -294,7 +294,8 @@ class Apps:
 
 class App:
 
-    def __init__(self, spec=None, add_book=True, xl=None):
+    def __init__(self, spec=None, add_book=True, xl=None, visible=None):
+        # visible is only required on mac
         if spec is not None:
             warn('spec is ignored on Windows.')
         if xl is None:
