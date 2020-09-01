@@ -208,7 +208,7 @@ def process_image(image, width, height):
     if image_type == 'mpl':
         canvas = mpl.backends.backend_agg.FigureCanvas(image)
         canvas.draw()
-        image.savefig(filename, format='png', bbox_inches='tight')
+        image.savefig(filename, format='png', bbox_inches='tight', dpi=300)
 
         if width is None:
             width = image.bbox.bounds[2:][0]
