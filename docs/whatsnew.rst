@@ -1,6 +1,13 @@
 What's New
 ==========
 
+v0.20.6 (Sep 1, 2020)
+----------------------
+
+* [Bug Fix] macOS: ``App(visible=False)`` has been fixed (:issue:`652`).
+* [Bug Fix] macOS: The regression with ``Book.fullname`` that was introduce with 0.20.1 has been fixed (:issue:`1390`).
+* [Bug Fix] Windows: The retry mechanism has been improved (:issue:`1398`).
+
 v0.20.5 (Aug 27, 2020)
 ----------------------
 
