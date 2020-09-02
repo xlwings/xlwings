@@ -36,6 +36,15 @@ except (ImportError, LicenseError):
 # UDFs
 if sys.platform.startswith('win'):
     from .udfs import xlfunc as func, xlsub as sub, xlret as ret, xlarg as arg, get_udf_module, import_udfs
+    # This generates the modules for early-binding under %TEMP%\gen_py\3.x
+    # generated via makepy.py -i, but using an old minor=2, as it still seems to generate the most recent version of it
+    # whereas it would fail if the minor is higher than what exists on the machine. Allowing it to fail silently, as
+    # this is only a hard requirement for ComRange in udf.py which is only used for async and legacy dynamic arrays
+    try:
+        from win32com.client import gencache
+        gencache.EnsureModule('{00020813-0000-0000-C000-000000000046}', lcid=0, major=1, minor=2)
+    except:
+        pass
 else:
     def func(f=None, *args, **kwargs):
         @wraps(f)
