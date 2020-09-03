@@ -1,8 +1,14 @@
 What's New
 ==========
 
+v0.20.7 (Sep 3, 2020)
+---------------------
+
+* [Bug Fix] Windows: Fix a regression introduced with 0.20.0 that would cause an ``AttributeError: Range.CLSID`` with async and legacy dynamic array UDFs (:issue:`1404`).
+* [Enhancement]: Matplotlib figures are now converted to 300 dpi pictures for better quality when using them with ``pictures.add`` (:issue:`1402`).
+
 v0.20.6 (Sep 1, 2020)
-----------------------
+---------------------
 
 * [Bug Fix] macOS: ``App(visible=False)`` has been fixed (:issue:`652`).
 * [Bug Fix] macOS: The regression with ``Book.fullname`` that was introduce with 0.20.1 has been fixed (:issue:`1390`).
