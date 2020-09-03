@@ -237,13 +237,7 @@ class ComRange(Range):
         self._ser = pythoncom.CoMarshalInterThreadInterfaceInStream(
             pythoncom.IID_IDispatch,
             rng.api)
-        if sys.version_info[:2] <= (3, 6):
-            self._ser_resultCLSID = getattr(
-                self._impl.api,
-                'CLSID',
-                None)
-        else:
-            self._ser_resultCLSID = self._impl.api.CLSID
+        self._ser_resultCLSID = self._impl.api.CLSID
 
         self._deser_thread = None
         self._deser = None
