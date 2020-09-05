@@ -517,7 +517,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     return xl_result
 
 
-def generate_vba_wrapper(module_name, module, f):
+def generate_vba_wrapper(module_name, module, f, xl_workbook):
 
     vba = VBAWriter(f)
 
@@ -574,12 +574,16 @@ def generate_vba_wrapper(module_name, module, f):
                 else:
                     args_vba = 'Array(' + ', '.join(arg['vba'] or arg['name'] for arg in xlfunc['args']) + ')'
 
+                # Add-ins work with ActiveWorkbook instead of ThisWorkbook
+                vba_workbook = 'ActiveWorkbook' if xl_workbook.Name.endswith('.xlam') else 'ThisWorkbook'
+
                 if ftype == "Sub":
                     with vba.block('#If App = "Microsoft Excel" Then'):
-                        vba.writeln('Py.CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller',
+                        vba.writeln('Py.CallUDF "{module_name}", "{fname}", {args_vba}, {vba_workbook}, Application.Caller',
                                     module_name=module_name,
                                     fname=fname,
                                     args_vba=args_vba,
+                                    vba_workbook=vba_workbook
                                     )
                     with vba.block("#Else"):
                         vba.writeln('Py.CallUDF "{module_name}", "{fname}", {args_vba}',
@@ -591,10 +595,11 @@ def generate_vba_wrapper(module_name, module, f):
                 else:
                     with vba.block('#If App = "Microsoft Excel" Then'):
                         vba.writeln("If TypeOf Application.Caller Is Range Then On Error GoTo failed")
-                        vba.writeln('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)',
+                        vba.writeln('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, {vba_workbook}, Application.Caller)',
                                     module_name=module_name,
                                     fname=fname,
                                     args_vba=args_vba,
+                                    vba_workbook=vba_workbook
                                     )
                         vba.writeln("Exit " + ftype)
                     with vba.block("#Else"):
@@ -627,7 +632,7 @@ def import_udfs(module_names, xl_workbook):
 
     for module_name in module_names:
         module = get_udf_module(module_name, xl_workbook)
-        generate_vba_wrapper(module_name, module, tf.file)
+        generate_vba_wrapper(module_name, module, tf.file, xl_workbook)
 
     tf.close()
 
