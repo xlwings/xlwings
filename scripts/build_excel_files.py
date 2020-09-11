@@ -16,6 +16,7 @@ par_dir = os.path.join(this_dir, os.path.pardir)
 addin_path = os.path.join(par_dir, 'xlwings', 'addin', 'xlwings.xlam')
 addin_unprotected_path = os.path.join(par_dir, 'xlwings', 'addin', 'xlwings_unprotected.xlam')
 standalone_path = os.path.join(par_dir, 'xlwings', 'quickstart_standalone.xlsm')
+mymaddin_path = os.path.join(par_dir, 'xlwings', 'quickstart_addin.xlam')
 xlwings_bas_path = os.path.join(par_dir, 'xlwings', 'xlwings.bas')
 
 # Version string
@@ -99,9 +100,10 @@ standalone_code = ('Attribute VB_Name = "xlwings"\n' +
                    """#Const App = "Microsoft Excel" 'Adjust when using outside of Excel\n""" +
                    '\n'.join(standalone_code.splitlines()))
 
-wb = Workbook(standalone_path)
-wb.VbaProject.get_Modules()['xlwings'].set_Codes(standalone_code)
-wb.Save(standalone_path)
+for path in [standalone_path, mymaddin_path]:
+    wb = Workbook(path)
+    wb.VbaProject.get_Modules()['xlwings'].set_Codes(standalone_code)
+    wb.Save(path)
 
 # Save standalone as xlwings.bas to be included in python package
 with open(xlwings_bas_path, 'w') as f:
