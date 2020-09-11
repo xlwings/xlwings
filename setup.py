@@ -47,7 +47,7 @@ setup(
     long_description=readme,
     data_files=data_files,
     packages=find_packages(exclude=('tests', 'tests.*',)),
-    package_data={'xlwings': ['xlwings.bas', '*.xlsm', 'xlwings.applescript', 'addin/xlwings.xlam', 'addin/xlwings_unprotected.xlam']},
+    package_data={'xlwings': ['xlwings.bas', '*.xlsm', '*.xlam', 'xlwings.applescript', 'addin/xlwings.xlam', 'addin/xlwings_unprotected.xlam']},
     keywords=['xls', 'excel', 'spreadsheet', 'workbook', 'vba', 'macro'],
     install_requires=install_requires,
     extras_require=extras_require,
