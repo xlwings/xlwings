@@ -187,7 +187,7 @@ def config_create(args):
         extension = 'MAC' if sys.platform.startswith('darwin') else 'WIN'
         settings.append('"INTERPRETER_{}","{}"\n'.format(extension, sys.executable))
     if os.path.exists(xw.USER_CONFIG_FILE) and not force:
-        print("There is already an existing ~/.xlwings/xlwigns.conf file. Run 'xlwings config create --force' if you want to reset your configuration.")
+        print("There is already an existing ~/.xlwings/xlwings.conf file. Run 'xlwings config create --force' if you want to reset your configuration.")
     else:
         with open(xw.USER_CONFIG_FILE, 'w') as f:
             f.writelines(settings)
