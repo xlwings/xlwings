@@ -84,7 +84,6 @@ def quickstart(args):
     # Python file
     with open(os.path.join(project_path, project_name + '.py'), 'w') as python_module:
         python_module.write('import xlwings as xw\n\n\n')
-        python_module.write('@xw.sub  # only required if you want to import it or run it via UDF Server\n')
         python_module.write('def main():\n')
         python_module.write('    wb = xw.Book.caller()\n')
         python_module.write('    sheet = wb.sheets[0]\n')
