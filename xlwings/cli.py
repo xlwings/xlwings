@@ -28,6 +28,7 @@ def addin_install(args):
         unprotected = args.unprotected
     try:
         addin_path = get_addin_path()
+        os.makedirs(os.path.dirname(addin_path), exist_ok=True)
         addin_name = 'xlwings_unprotected.xlam' if unprotected else 'xlwings.xlam'
         shutil.copyfile(os.path.join(this_dir, 'addin', addin_name), addin_path)
         print('Successfully installed the xlwings add-in! Please restart Excel.')
