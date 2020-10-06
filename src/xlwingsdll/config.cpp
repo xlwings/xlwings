@@ -454,7 +454,7 @@ void Config::ActivateRPCServer()
 			NULL, 
 			NULL, 
 			TRUE, 
-			NORMAL_PRIORITY_CLASS | CREATE_BREAKAWAY_FROM_JOB, 
+			NORMAL_PRIORITY_CLASS | CREATE_BREAKAWAY_FROM_JOB | CREATE_NO_WINDOW,
 			envStr.p, 
 			this->HasValue("WorkingDir") ? workingDir.c_str() : NULL, 
 			&si, 
