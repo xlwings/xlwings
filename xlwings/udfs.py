@@ -676,6 +676,8 @@ def import_udfs(module_names, xl_workbook):
         os.unlink(tf.name)
     except:
         pass
+    msg = f'Imported functions from the following modules: {", ".join(module_names)}'
+    logger.info(msg) if logger.hasHandlers() else print(msg)
 
 
 @functools.lru_cache(None)
