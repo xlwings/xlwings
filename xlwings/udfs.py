@@ -423,7 +423,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     args_info = func_info['args']
     ret_info = func_info['ret']
     is_dynamic_array = ret_info['options'].get('expand')
-    xw_caller = Range(impl=xlplatform.Range(xl=caller))
+    xw_caller = ComRange(Range(impl=xlplatform.Range(xl=caller)))
 
     # If there is the 'reserved' argument "caller", assign the caller object
     for info in args_info:
