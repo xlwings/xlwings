@@ -79,7 +79,7 @@ If you want to call any Python function no matter in what module it lives or wha
 .. code-block:: vb.net
 
     Sub HelloWorld()
-        RunPython ("import hello; hello.world()")
+        RunPython "import hello; hello.world()"
     End Sub
 
 Per default, ``RunPython`` expects ``hello.py`` in the same directory as the Excel file but you can change that via 

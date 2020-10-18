@@ -1,6 +1,20 @@
 What's New
 ==========
 
+v0.20.8 (Oct 18, 2020)
+----------------------
+
+* [Enhancement] Windows: With UDFs, you can now get easy access to the caller (an xlwings range object) by using ``caller`` as a function argument (:issue:`1434`). In that sense, ``caller`` is now a reserved argument by xlwings and if you have any existing arguments with this name, you'll need to rename them::
+
+    @xw.func
+    def get_caller_address(caller):
+        # caller will not be exposed in Excel, so use it like so:
+        # =get_caller_address()
+        return caller.address
+
+* [Bug Fix] Windows: The setting ``Show Console`` now also shows/hides the command prompt properly when using the UDF server with Conda. There is no more switching between ``python`` and ``pythonw`` required (:issue:`1435` and :issue:`1421`).
+* [Bug Fix] Windows: Functions called via ``RunPython`` with ``Use UDF Server`` activated don't require the ``xw.sub`` decorator anymore (:issue:`1418`).
+
 v0.20.7 (Sep 3, 2020)
 ---------------------
 

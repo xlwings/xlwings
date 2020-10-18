@@ -40,11 +40,10 @@ However, on Windows you can make things feel even more integrated by setting up 
 :ref:`UDF <udfs>` along the following lines::
 
     @xw.func
-    def myplot(n):
-        sht = xw.Book.caller().sheets.active
+    def myplot(n, caller):
         fig = plt.figure()
         plt.plot(range(int(n)))
-        sht.pictures.add(fig, name='MyPlot', update=True)
+        caller.sheet.pictures.add(fig, name='MyPlot', update=True)
         return 'Plotted with n={}'.format(n)
 
 If you import this function and call it from cell B2, then the plot gets automatically

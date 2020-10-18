@@ -44,4 +44,4 @@ User Defined Functions (UDFs)
 -----------------------------
 
 Unlike ``RunPython``, UDFs don't need a call to ``xw.Book.caller()``, see :ref:`udfs`.
-However, it's available (restricted to read-only though), which sometimes proves to be useful.
+You'll usually use the ``caller`` argument which returns the xlwings range object from where you call the function.

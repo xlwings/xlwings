@@ -214,18 +214,32 @@ show up in the function wizard in Excel:
         return 2 * (x + y)
 
 
+The "caller" argument
+---------------------
+
+You often need to know which cell called the UDF. For this, xlwings offers the reserved argument ``caller`` which returns the calling cell as xlwings range object::
+
+    @xw.func
+    def get_caller_address(caller):
+        # caller will not be exposed in Excel, so use it like so:
+        # =get_caller_address()
+        return caller.address
+
+Note that ``caller`` will not be exposed in Excel but will be provided by xlwings behind the scenes.
+
 The "vba" keyword
 -----------------
 
-It's often helpful to get the address of the calling cell. Right now, one of the easiest ways to
-accomplish this is to use the ``vba`` keyword. ``vba``, in fact, allows you to access any available VBA expression
-e.g. ``Application``. Note, however, that currently you're acting directly on the pywin32 COM object::
+By using the ``vba`` keyword, you can get access to any Excel VBA object in the form of a pywin32 object. For example, if you wanted to pass the sheet object in the form of its ``CodeName``, you can do it as follows::
 
     @xw.func
-    @xw.arg('xl_app', vba='Application')
-    def get_caller_address(xl_app):
-        return xl_app.Caller.Address
+    @xw.arg('sheet1', vba='Sheet1')
+    def get_name(sheet1):
+        # call this function in Excel with:
+        # =get_name()
+        return sheet1.Name
 
+Note that ``vba`` arguments are not exposed in the UDF but automatically provided by xlwings.
 
 .. _decorator_macros:
 
@@ -277,6 +291,9 @@ Imported functions can also be used from VBA. For example, for a function return
 
 Asynchronous UDFs
 -----------------
+
+.. note::
+    This is an experimental feature
 
 .. versionadded:: v0.14.0
 

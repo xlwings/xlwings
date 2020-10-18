@@ -29,17 +29,11 @@ The ``xlwings quickstart`` command will create a workbook that will automaticall
 Installation
 ------------
 
-To install the add-in, it's easiest to use the command line client: ``xlwings addin install``. Technically, this copies the add-in
-from Python's installation directory to Excel's ``XLSTART`` folder. If you encounter issues, then you can also download the 
-add-in (``xlwings.xlam``) from the `GitHub Release page <https://github.com/xlwings/xlwings/releases>`_
-(make sure you download the same version as the version of the Python package). Once downloaded, you can install the add-in
-by going to ``Developer > Excel Add-in > Browse``. If you don't see ``Developer`` as tab in your ribbon, make sure to
-activate the tab first under ``File > Options > Customize Ribbon`` (Mac: ``Cmd + , > Ribbon & Toolbar``).
+To install the add-in, use the command line client::
 
+    xlwings addin install
 
-Then, to use ``RunPython`` or ``UDFs`` in a workbook, you need to set a reference to ``xlwings`` in the VBA editor, see
-screenshot (Windows: ``Tools > References...``, Mac: it's on the lower left corner of the VBA editor). Note that when
-you create a workbook via ``xlwings quickstart``, the reference should already be set.
+Technically, this copies the add-in from Python's installation directory to Excel's ``XLSTART`` folder. Then, to use ``RunPython`` or ``UDFs`` in a workbook, you need to set a reference to ``xlwings`` in the VBA editor, see screenshot (Windows: ``Tools > References...``, Mac: it's on the lower left corner of the VBA editor). Note that when you create a workbook via ``xlwings quickstart``, the reference should already be set.
 
 .. figure:: images/vba_reference.png
     :scale: 40%
@@ -49,20 +43,18 @@ you create a workbook via ``xlwings quickstart``, the reference should already b
 User Settings
 -------------
 
-While the defaults will often work out-of-the box, you can change the global settings directly in the add-in:
+When you install the add-in for the first time, it will get auto-configured and therefore, a ``quickstart`` project should work out of the box. For fine-tuning, here are the available settings:
 
 * ``Interpreter``: This is the path to the Python interpreter. This works also with virtual or conda envs on Mac.
-  If you use conda envs on Windows, then use ``Conda Path`` and ``Conda Env`` below instead. Examples:
-  ``"C:\Python35\pythonw.exe"`` or ``"/usr/local/bin/python3.5"``. An empty field defaults to ``pythonw`` that
-  expects the interpreter to be set in the ``PATH`` on Windows or ``.bash_profile`` on Mac. Note that in the settings,
+  If you use conda envs on Windows, then leave this empty and use ``Conda Path`` and ``Conda Env`` below instead. Examples:
+  ``"C:\Python39\pythonw.exe"`` or ``"/usr/local/bin/python3.9"``. Note that in the settings,
   this is stored as ``Interpreter_Win`` or ``Interpreter_Mac``, respectively, see below!
-* ``PYTHONPATH``: If the source file of your code is not found, add the path here.
+* ``PYTHONPATH``: If the source file of your code is not found, add the path to its directory here.
 * ``Conda Path``: If you are on Windows and use Anaconda or Miniconda, then type here the path to your
   installation, e.g. ``C:\Users\Username\Miniconda3`` or ``%USERPROFILE%\Anaconda``. NOTE that you need at least conda 4.6!
   You also need to set ``Conda Env``, see next point.
 * ``Conda Env``: If you are on Windows and use Anaconda or Miniconda, type here the name of your conda env, e.g. ``base``
-  for the base installation or ``myenv`` for a conda env with the name ``myenv``. Note
-  that this requires you to either leave the ``Interpreter`` blank or set it to one of ``python`` or ``pythonw``.
+  for the base installation or ``myenv`` for a conda env with the name ``myenv``.
 * ``UDF Modules``: Names of Python modules (without .py extension) from which the UDFs are being imported.
   Separate multiple modules by ";".
   Example: ``UDF_MODULES = "common_udfs;myproject"``
@@ -70,16 +62,14 @@ While the defaults will often work out-of-the box, you can change the global set
 * ``Debug UDFs``: Check this box if you want to run the xlwings COM server manually for debugging, see :ref:`debugging`.
 * ``RunPython: Use UDF Server``:  Uses the same COM Server for RunPython as for UDFs. This will be faster, as the
   interpreter doesn't shut down after each call.
-* ``Restart UDF Server``: This shuts down the UDF Server/Python interpreter. It'll be restarted upon the next function call.
-* ``Show Console``: Check the box in the ribbon or set the config to TRUE if you want the command prompt to pop up. This only has an effect on Windows and the combination UDF + Conda currently forces the console to be shown.
+* ``Restart UDF Server``: This restarts the UDF Server/Python interpreter.
+* ``Show Console``: Check the box in the ribbon or set the config to ``TRUE`` if you want the command prompt to pop up. This currently only works on Windows.
 
 Anaconda/Miniconda
 ******************
 
 If you use Anaconda or Miniconda on Windows, you will need to set your ``Conda Path`` and ``Conda Env`` settings, as you will
-otherwise get errors when using ``NumPy`` etc. In return, leave ``Interpreter`` empty or use either ``python`` (shows output in the terminal) or ``pythonw`` (doesn't show output in the terminal).
-
-.. note:: If you use ``Conda Path`` and ``Conda Env`` with UDFs, you currently can't hide the command prompt that pops up.
+otherwise get errors when using ``NumPy`` etc. In return, leave ``Interpreter`` empty.
 
 .. _config_file:
 
@@ -137,7 +127,7 @@ it to ``xlwings.conf`` to make it active.
 Alternative: Standalone VBA module
 ----------------------------------
 
-Sometimes it might be useful to run xlwings code without having to install an add-in first. To do so, you
+Sometimes, it might be useful to run xlwings code without having to install an add-in first. To do so, you
 need to use the ``standalone`` option when creating a new project: ``xlwings quickstart myproject --standalone``.
 
 This will add the content of the add-in as a single VBA module so you don't need to set a reference to the add-in anymore.
