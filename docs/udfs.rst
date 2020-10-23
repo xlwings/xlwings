@@ -258,7 +258,7 @@ decorator::
         wb.sheets[0].range('A1').value = wb.name
 
 After clicking on ``Import Python UDFs``, you can then use this macro by executing it via ``Alt + F8`` or by
-binding it e.g. to a button. To to the latter, make sure you have the ``Developer`` tab selected under ``File >
+binding it e.g. to a button. To do the latter, make sure you have the ``Developer`` tab selected under ``File >
 Options > Customize Ribbon``. Then, under the ``Developer`` tab, you can insert a button via ``Insert > Form Controls``.
 After drawing the button, you will be prompted to assign a macro to it and you can select ``my_macro``.
 
