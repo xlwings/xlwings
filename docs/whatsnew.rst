@@ -452,7 +452,7 @@ This release brings further improvements with regards to the add-in:
         :scale: 80%
 
 * [Mac] Mac Excel 2011 is now supported again with the new add-in. However, since Excel 2011 doesn't support the ribbon, 
-  the config file has be created/edited manually, see :ref:`config_file` (:issue:`714`).
+  the config file has been created/edited manually, see :ref:`config_file` (:issue:`714`).
 
 Also, some new docs:
 
