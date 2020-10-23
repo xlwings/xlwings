@@ -103,7 +103,7 @@ End User Instructions
 
 * **Installing**
 
-  Give the end user your Excel workbook and the installer. The user only has to double-click the installer and confirm a few prompts --- no configuation is required.
+  Give the end user your Excel workbook and the installer. The user only has to double-click the installer and confirm a few prompts --- no configuration is required.
 
 * **Updating**
 
