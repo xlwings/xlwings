@@ -161,7 +161,7 @@ xlwings offers several built-in converters that perform type conversion to **dic
 described above can be used in this context, too (unless they are meaningless, for example the ``ndim`` in the case
 of a dictionary).
 
-It is also possible to write and register custom converter for additional types, see below.
+It is also possible to write and register a custom converter for additional types, see below.
 
 The samples below can be used with both ``xlwings.Range`` objects and UDFs even though only one version may be shown.
 
