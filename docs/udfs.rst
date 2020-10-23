@@ -246,7 +246,7 @@ Note that ``vba`` arguments are not exposed in the UDF but automatically provide
 Macros
 ------
 
-On Windows, as alternative to calling macros via :ref:`RunPython <run_python>`, you can also use the ``@xw.sub``
+On Windows, as an alternative to calling macros via :ref:`RunPython <run_python>`, you can also use the ``@xw.sub``
 decorator::
 
     import xlwings as xw
