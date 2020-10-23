@@ -318,7 +318,7 @@ the time consuming I/O-bound task is simulated by using ``time.sleep``::
 
 
 You can use this function like any other xlwings function, simply by putting ``=myfunction("abcd")`` into a cell
-(after you have imported the function, off course).
+(after you have imported the function, of course).
 
 Note that xlwings doesn't use the native asynchronous functions that were introduced with Excel 2010, so xlwings
 asynchronous functions are supported with any version of Excel.
