@@ -19,7 +19,7 @@ Call Python with "RunPython"
 ----------------------------
 
 In the VBA Editor (``Alt-F11``), write the code below into a VBA module. ``xlwings quickstart`` automatically
-adds a new module with a sample call. If you rather want to start from scratch, you can add new module via ``Insert > Module``.
+adds a new module with a sample call. If you rather want to start from scratch, you can add a new module via ``Insert > Module``.
 
 .. code-block:: vb.net
 
@@ -49,5 +49,5 @@ Function Arguments and Return Values
 ------------------------------------
 
 While it's technically possible to include arguments in the function call within ``RunPython``, it's not very convenient.
-Also, ``RunPython`` does not allow you to return values. To overcome these issue, use UDFs, see :ref:`udfs` - however,
+Also, ``RunPython`` does not allow you to return values. To overcome these issues, use UDFs, see :ref:`udfs` - however,
 this is currently limited to Windows only.

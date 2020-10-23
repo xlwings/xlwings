@@ -246,7 +246,7 @@ Note that ``vba`` arguments are not exposed in the UDF but automatically provide
 Macros
 ------
 
-On Windows, as alternative to calling macros via :ref:`RunPython <run_python>`, you can also use the ``@xw.sub``
+On Windows, as an alternative to calling macros via :ref:`RunPython <run_python>`, you can also use the ``@xw.sub``
 decorator::
 
     import xlwings as xw
@@ -258,7 +258,7 @@ decorator::
         wb.sheets[0].range('A1').value = wb.name
 
 After clicking on ``Import Python UDFs``, you can then use this macro by executing it via ``Alt + F8`` or by
-binding it e.g. to a button. To to the latter, make sure you have the ``Developer`` tab selected under ``File >
+binding it e.g. to a button. To do the latter, make sure you have the ``Developer`` tab selected under ``File >
 Options > Customize Ribbon``. Then, under the ``Developer`` tab, you can insert a button via ``Insert > Form Controls``.
 After drawing the button, you will be prompted to assign a macro to it and you can select ``my_macro``.
 
@@ -318,7 +318,7 @@ the time consuming I/O-bound task is simulated by using ``time.sleep``::
 
 
 You can use this function like any other xlwings function, simply by putting ``=myfunction("abcd")`` into a cell
-(after you have imported the function, off course).
+(after you have imported the function, of course).
 
 Note that xlwings doesn't use the native asynchronous functions that were introduced with Excel 2010, so xlwings
 asynchronous functions are supported with any version of Excel.

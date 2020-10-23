@@ -17,7 +17,7 @@ Here are the last versions of xlwings to support:
 Installation
 ------------
 
-xlwings comes pre-installed with `Anaconda <https://www.anaconda.com/products/individual>`_. If you are new to Python or have troubles installing xlwings, Anaconda is highly recommended. Otherwise you can also install it manually with pip::
+xlwings comes pre-installed with `Anaconda <https://www.anaconda.com/products/individual>`_. If you are new to Python or have trouble installing xlwings, Anaconda is highly recommended. Otherwise you can also install it manually with pip::
 
     pip install xlwings
 

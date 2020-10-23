@@ -108,7 +108,7 @@ accessing the values of a Range. The difference is best explained with an exampl
 expansion, respectively.
 
 .. note:: Using ``expand()`` together with a named Range as top left cell gives you a flexible setup in
-    Excel: You can move around the table and change it's size without having to adjust your code, e.g. by using
+    Excel: You can move around the table and change its size without having to adjust your code, e.g. by using
     something like ``sht.range('NamedRange').expand().value``.
 
 NumPy arrays

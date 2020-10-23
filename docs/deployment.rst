@@ -103,7 +103,7 @@ End User Instructions
 
 * **Installing**
 
-  Give the end user your Excel workbook and the installer. The user only has to double-click the installer and confirm a few prompts --- no configuation is required.
+  Give the end user your Excel workbook and the installer. The user only has to double-click the installer and confirm a few prompts --- no configuration is required.
 
 * **Updating**
 
@@ -111,7 +111,7 @@ End User Instructions
 
 * **Uninstalling**
 
-  The application can be uninstalled again via Window Settings > Apps & Features.
+  The application can be uninstalled again via Windows Settings > Apps & Features.
 
 Build the Installer
 *******************
@@ -186,4 +186,4 @@ To create a deployment key, run the following command::
 
     xlwings license deploy
 
-Then paste the generated key into the xlwings config as ``LICENSE_KEY``. For deployment purposes, usuaully the best place to do that is on a sheet called ``xlwings.conf``, but you can also use an ``xlwings.conf`` file in either the same folder or in the ``.xlwings`` folder within the user's home folder. To use an environment variable, use ``XLWINGS_LICENSE_KEY``. See also :ref:`settings`.
+Then paste the generated key into the xlwings config as ``LICENSE_KEY``. For deployment purposes, usually the best place to do that is on a sheet called ``xlwings.conf``, but you can also use an ``xlwings.conf`` file in either the same folder or in the ``.xlwings`` folder within the user's home folder. To use an environment variable, use ``XLWINGS_LICENSE_KEY``. See also :ref:`settings`.

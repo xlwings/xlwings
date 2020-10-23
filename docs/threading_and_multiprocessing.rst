@@ -80,7 +80,7 @@ Multiprocessing
 ---------------
 
 .. note::
-    Multiprocessing is only support on Windows!
+    Multiprocessing is only supported on Windows!
 
 The same rules apply to multiprocessing as for threading, here's a working example::
 

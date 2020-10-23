@@ -4,7 +4,7 @@ xlwings with R and Julia
 ========================
 
 While xlwings is a pure Python package, there are cross-language packages that allow
-for a relative straightforward use from/with other languages. This means, however, that you'll
+for a relatively straightforward use from/with other languages. This means, however, that you'll
 always need to have Python with xlwings installed in addition to R or Julia. We recommend the
 `Anaconda <https://store.continuum.io/cshop/anaconda/>`_ distribution, see also :ref:`installation`.
 
