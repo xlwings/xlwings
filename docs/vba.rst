@@ -19,7 +19,7 @@ Call Python with "RunPython"
 ----------------------------
 
 In the VBA Editor (``Alt-F11``), write the code below into a VBA module. ``xlwings quickstart`` automatically
-adds a new module with a sample call. If you rather want to start from scratch, you can add new module via ``Insert > Module``.
+adds a new module with a sample call. If you rather want to start from scratch, you can add a new module via ``Insert > Module``.
 
 .. code-block:: vb.net
 
