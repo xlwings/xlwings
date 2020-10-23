@@ -446,7 +446,7 @@ These samples all work the same with UDFs, e.g.::
 
     Pipelines are internally defined by ``Accessor`` classes. A Converter is just a special Accessor which
     converts to/from a particular type by adding an extra stage to the pipeline of the default Accessor. For example, the
-    ``PandasDataFrameConverter`` defines how a list of list (as delivered by the default Accessor) should be turned
+    ``PandasDataFrameConverter`` defines how a list of lists (as delivered by the default Accessor) should be turned
     into a Pandas DataFrame.
 
     The ``Converter`` class provides basic scaffolding to make the task of writing a new Converter easier. If
