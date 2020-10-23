@@ -1206,7 +1206,7 @@ None
 Enhancements
 ************
 
-* Quickstart: It's now easier than ever to start a new xlwings project, simply use the commmand line client (:issue:`306`):
+* Quickstart: It's now easier than ever to start a new xlwings project, simply use the command line client (:issue:`306`):
 
   ``xlwings quickstart myproject`` will produce a folder with the following files, ready to be used (see :ref:`command_line`)::
 
