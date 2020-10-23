@@ -7,7 +7,7 @@ Introduced with v0.7.0, converters define how Excel ranges and their values are 
 **reading** and **writing** operations. They also provide a consistent experience across **xlwings.Range** objects and
 **User Defined Functions** (UDFs).
 
-Converters are explicitely set in the ``options`` method when manipulating ``Range`` objects
+Converters are explicitly set in the ``options`` method when manipulating ``Range`` objects
 or in the ``@xw.arg`` and ``@xw.ret`` decorators when using UDFs. If no converter is specified, the default converter
 is applied when reading. When writing, xlwings will automatically apply the correct converter (if available) according to the
 object's type that is being written to Excel. If no converter is found for that type, it falls back to the default converter.
