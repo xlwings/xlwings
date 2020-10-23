@@ -111,7 +111,7 @@ End User Instructions
 
 * **Uninstalling**
 
-  The application can be uninstalled again via Window Settings > Apps & Features.
+  The application can be uninstalled again via Windows Settings > Apps & Features.
 
 Build the Installer
 *******************
