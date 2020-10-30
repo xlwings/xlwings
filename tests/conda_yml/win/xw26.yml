@@ -9,4 +9,3 @@ dependencies:
 - nose
 - argparse
 - pywin32
-- comtypes
