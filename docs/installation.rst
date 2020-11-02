@@ -49,7 +49,7 @@ To call Excel from Python, you don't need an add-in. Also, you can use a single 
 Dependencies
 ------------
 
-* **Windows**: ``pywin32``, ``comtypes``
+* **Windows**: ``pywin32``
 
 * **Mac**: ``psutil``, ``appscript``
 

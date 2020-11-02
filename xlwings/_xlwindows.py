@@ -19,15 +19,14 @@ from warnings import warn
 import datetime as dt
 import numbers
 import types
-from ctypes import oledll, PyDLL, py_object, byref, POINTER, windll
+import ctypes
+from ctypes import oledll, PyDLL, py_object, byref, windll
 
 import pythoncom
 from win32com.client import Dispatch, CoClassBaseClass, CDispatch, DispatchEx, DispatchBaseClass
 import win32timezone
 import win32gui
 import win32process
-from comtypes import IUnknown
-from comtypes.automation import IDispatch
 
 from .constants import ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin, DeleteShiftDirection
 from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime, col_name
@@ -185,21 +184,31 @@ class COMRetryObjectWrapper:
 OBJID_NATIVEOM = -16
 
 
+class _GUID(ctypes.Structure):
+    # https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/49e490b8-f972-45d6-a3a4-99f924998d97
+    _fields_ = [
+        ("Data1", ctypes.c_ulong),
+        ("Data2", ctypes.c_ushort),
+        ("Data3", ctypes.c_ushort),
+        ("Data4", ctypes.c_byte * 8)]
+
+
+_IDISPATCH_GUID = _GUID()
+oledll.ole32.CLSIDFromString(
+    "{00020400-0000-0000-C000-000000000046}", byref(_IDISPATCH_GUID))
+
+
 def accessible_object_from_window(hwnd):
-    ptr = POINTER(IDispatch)()
+    # ptr is a pointer to an IDispatch:
+    # https://docs.microsoft.com/en-us/windows/win32/api/oaidl/nn-oaidl-idispatch
+    # We don't bother using ctypes.POINTER(comtypes.automation.IDispatch)()
+    # because we won't dereference the pointer except through pywin32's
+    # pythoncom.PyCom_PyObjectFromIUnknown below in get_xl_app_from_hwnd().
+    ptr = ctypes.c_void_p()
     res = oledll.oleacc.AccessibleObjectFromWindow(
         hwnd, OBJID_NATIVEOM,
-        byref(IDispatch._iid_), byref(ptr))
+        byref(_IDISPATCH_GUID), byref(ptr))
     return ptr
-
-
-def comtypes_to_pywin(ptr, interface=None):
-    _PyCom_PyObjectFromIUnknown = PyDLL(pythoncom.__file__).PyCom_PyObjectFromIUnknown
-    _PyCom_PyObjectFromIUnknown.restype = py_object
-
-    if interface is None:
-        interface = IUnknown
-    return _PyCom_PyObjectFromIUnknown(ptr, byref(interface._iid_), True)
 
 
 def is_hwnd_xl_app(hwnd):
@@ -214,13 +223,17 @@ def is_hwnd_xl_app(hwnd):
         return False
 
 
+_PyCom_PyObjectFromIUnknown = PyDLL(pythoncom.__file__).PyCom_PyObjectFromIUnknown
+_PyCom_PyObjectFromIUnknown.restype = py_object
+
+
 def get_xl_app_from_hwnd(hwnd):
     pythoncom.CoInitialize()
     child_hwnd = win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None)
     child_hwnd = win32gui.FindWindowEx(child_hwnd, 0, 'EXCEL7', None)
 
     ptr = accessible_object_from_window(child_hwnd)
-    p = comtypes_to_pywin(ptr, interface=IDispatch)
+    p = _PyCom_PyObjectFromIUnknown(ptr, byref(_IDISPATCH_GUID), True)
     disp = COMRetryObjectWrapper(Dispatch(p))
     return disp.Application
 
