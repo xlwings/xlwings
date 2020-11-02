@@ -300,7 +300,7 @@ def main():
                                                            '"KEY" is your personal (trial) license key. This will '
                                                            'update ~/.xlwings/xlwings.conf with the LICENSE_KEY entry. '
                                                            'If you have a paid license, you can run "xlwings license deploy" '
-                                                           'to create a deploy key. This is not availalbe for trial keys.')
+                                                           'to create a deploy key. This is not available for trial keys.')
     license_subparsers = license_parser.add_subparsers(dest='subcommand')
     license_subparsers.required = True
 
