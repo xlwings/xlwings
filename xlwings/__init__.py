@@ -24,7 +24,7 @@ class LicenseError(Exception):
 
 
 # API
-from .main import App, Book, Range, Chart, Sheet, Picture, Shape, Name, view, RangeRows, RangeColumns, ListObjects
+from .main import App, Book, Range, Chart, Sheet, Picture, Shape, Name, view, RangeRows, RangeColumns, Tables
 from .main import apps, books, sheets
 
 try:

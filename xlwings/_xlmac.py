@@ -452,8 +452,8 @@ class Sheet:
         return Shapes(self)
 
     @property
-    def list_objects(self):
-        return ListObjects(self)
+    def tables(self):
+        return Tables(self)
 
     @property
     def pictures(self):
@@ -900,7 +900,7 @@ class Collection:
         return self.xl[key].exists()
 
 
-class ListObject:
+class Table:
     def __init__(self, parent, key):
         self.parent = parent
         self.xl = parent.xl.list_objects[key]
@@ -1002,16 +1002,16 @@ class ListObject:
         return Range(self.parent, self.xl.total_row.get_address())
 
 
-class ListObjects(Collection):
+class Tables(Collection):
 
     _attr = 'list_objects'
     _kw = kw.list_object
-    _wrap = ListObject
+    _wrap = Table
 
     def add(self, source_type=None, source=None, link_source=None, has_headers=None, destination=None,
             table_style_name=None):
         sheet_index = self.parent.xl.entry_index.get()
-        return ListObject(
+        return Table(
             self.parent, self.parent.xl.make(
                 at=self.parent.book.xl.sheets[sheet_index],
                 new=kw.list_object,

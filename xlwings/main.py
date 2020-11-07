@@ -947,13 +947,13 @@ class Sheet:
         return Shapes(impl=self.impl.shapes)
 
     @property
-    def list_objects(self):
+    def tables(self):
         """
         See :meth:`ListObjets <xlwings.main.ListObjects>`
 
         .. versionadded:: 0.9.0
         """
-        return ListObjects(impl=self.impl.list_objects)
+        return Tables(impl=self.impl.tables)
 
     @property
     def pictures(self):
@@ -2243,12 +2243,12 @@ class Shapes(Collection):
     _wrap = Shape
 
 
-class ListObject:
+class Table:
     def __init__(self, *args, **options):
         impl = options.pop('impl', None)
         if impl is None:
             if len(args) == 1:
-                impl = sheets.active.list_objects(args[0]).impl
+                impl = sheets.active.tables(args[0]).impl
             else:
                 raise ValueError("Invalid arguments")
         self.impl = impl
@@ -2356,13 +2356,13 @@ class ListObject:
         return Range(impl=self.impl.totals_row_range)
 
 
-class ListObjects(Collection):
-    _wrap = ListObject
+class Tables(Collection):
+    _wrap = Table
 
     def add(self, source_type=None, source=None, link_source=None, has_headers=None, destination=None,
             table_style_name=None):
         """
-        Creates a new ListObject on the specified sheet.
+        Creates a new Table on the specified sheet.
         """
 
         impl = self.impl.add(
@@ -2370,7 +2370,7 @@ class ListObjects(Collection):
             destination=destination, table_style_name=table_style_name
         )
 
-        return ListObject(impl=impl)
+        return Table(impl=impl)
 
 
 class Chart:

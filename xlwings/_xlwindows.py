@@ -691,8 +691,8 @@ class Sheet:
         return Shapes(xl=self.xl.Shapes)
 
     @property
-    def list_objects(self):
-        return ListObjects(xl=self.xl.ListObjects)
+    def tables(self):
+        return Tables(xl=self.xl.ListObjects)
 
     @property
     def pictures(self):
@@ -1276,7 +1276,7 @@ class Shapes(Collection):
     _wrap = Shape
 
 
-class ListObject:
+class Table:
     def __init__(self, xl):
         self.xl = xl
 
@@ -1377,13 +1377,13 @@ class ListObject:
         return Range(xl=self.xl.TotalsRowRange)
 
 
-class ListObjects(Collection):
+class Tables(Collection):
 
-    _wrap = ListObject
+    _wrap = Table
 
     def add(self, source_type=None, source=None, link_source=None, has_headers=None, destination=None,
             table_style_name=None):
-        return ListObject(xl=self.xl.Add(
+        return Table(xl=self.xl.Add(
             SourceType=ListObjectSourceType.xlSrcRange,
             Source=source.api,
             LinkSource=link_source,
