@@ -2261,6 +2261,13 @@ class Table:
         return self.impl.api
 
     @property
+    def parent(self):
+        """
+        Returns the parent of the table.
+        """
+        return Sheet(impl=self.impl.parent)
+
+    @property
     def name(self):
         """
         Returns or sets the name of the ListObject.
@@ -2355,14 +2362,77 @@ class Table:
     def totals_row_range(self):
         return Range(impl=self.impl.totals_row_range)
 
+    def __eq__(self, other):
+        return (
+            isinstance(other, Table) and
+            other.parent == self.parent and
+            other.name == self.name
+        )
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __repr__(self):
+        return "<Table '{0}' in {1}>".format(
+            self.name,
+            self.parent
+        )
+
 
 class Tables(Collection):
     _wrap = Table
+    """
+    A collection of all :meth:`table <Table>` objects on the specified sheet:
 
-    def add(self, source_type=None, source=None, link_source=None, has_headers=None, destination=None,
-            table_style_name=None):
+    >>> import xlwings as xw
+    >>> xw.books['Book1'].sheets[0].tables
+    Tables([<Table 'Table1' in <Sheet [Book11]Sheet1>>, <Table 'Table2' in <Sheet [Book11]Sheet1>>])
+
+    .. versionadded:: 0.21.0
+    """
+
+    def add(self, source=None, source_type=None, link_source=None, has_headers=True, destination=None,
+            table_style_name='TableStyleMedium2'):
         """
-        Creates a new Table on the specified sheet.
+        Creates a Table to the specified sheet.
+
+        Arguments
+        ---------
+
+        source_type : str, default None
+            This currently defaults to ``xlSrcRange``, i.e. expects an xlwings range object. No other
+            options are allowed at the moment.
+
+        source : xlwings range, default None
+            An xlwings range object, representing the data source.
+
+        link_source : bool, default None
+            Currently not implemented as this is only in case ``source_type`` is ``xlSrcExternal``.
+
+        has_headers : bool or str, default True
+            Indicates whether the data being imported has column labels. Defaults to ``True``. Possible
+            values: ``True``, ``FAlse``, ``'guess'``
+
+        destination : xlwings range, default None
+            Currently not implemented as this is used in case ``source_type`` is ``xlSrcExternal``.
+
+        table_style_name : str, default 'TableStyleMedium2'
+            Possible strings: ``'TableStyleLightN''`` (where N is 1-21), ``'TableStyleMediumN'`` (where N is 1-28),
+            ``'TableStyleDarkN'`` (where N is 1-11)
+
+        Returns
+        -------
+        Table
+
+        Examples
+        --------
+
+        >>> import xlwings as xw
+        >>> sheet = xw.Book().sheets[0]
+        >>> sheet['A1'].value = [['a', 'b'], [1, 2]]
+        >>> table = sheet.tables.add(source=sheet['A1'].expand())
+        >>> table
+        <Table 'Table1' in <Sheet [Book1]Sheet1>>
         """
 
         impl = self.impl.add(

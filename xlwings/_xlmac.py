@@ -1010,14 +1010,19 @@ class Tables(Collection):
 
     def add(self, source_type=None, source=None, link_source=None, has_headers=None, destination=None,
             table_style_name=None):
+        header_row = {True: kw.header_yes,
+                      False: kw.header_no,
+                      'guess': kw.header_guess}
         sheet_index = self.parent.xl.entry_index.get()
         return Table(
             self.parent, self.parent.xl.make(
                 at=self.parent.book.xl.sheets[sheet_index],
                 new=kw.list_object,
                 with_properties={
-                    kw.source_type: kw.src_none,
-                    kw.range_object: source.api
+                    kw.source_type: kw.src_range,
+                    kw.range_object: source.api,
+                    kw.header_row: header_row[has_headers],
+                    kw.table_style: table_style_name
                 }
             ).name.get()
         )
@@ -1112,7 +1117,6 @@ class Chart:
         self.xl_obj.height.set(value)
 
     def delete(self):
-        # todo: what about chart sheets?
         self.xl_obj.delete()
 
 

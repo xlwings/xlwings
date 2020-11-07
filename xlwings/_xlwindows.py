@@ -1388,8 +1388,8 @@ class Tables(Collection):
             Source=source.api,
             LinkSource=link_source,
             XlListObjectHasHeaders=True,
-            Destination=destination
-            # TableStyleName='TableStyleLight1' #  TableStyleLight1-21, TableStyleMedium1-28, TableStyleDark1-11
+            Destination=destination,
+            TableStyleName=table_style_name
         ))
 
 
