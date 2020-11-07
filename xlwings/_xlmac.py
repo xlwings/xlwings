@@ -998,6 +998,14 @@ class Table:
         self.xl.total.set(value)
 
     @property
+    def table_style(self):
+        return self.xl.table_style.properties().get(kw.name)
+
+    @table_style.setter
+    def table_style(self, value):
+        self.xl.table_style.set(value)
+
+    @property
     def totals_row_range(self):
         return Range(self.parent, self.xl.total_row.get_address())
 

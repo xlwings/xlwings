@@ -949,7 +949,7 @@ class Sheet:
     @property
     def tables(self):
         """
-        See :meth:`ListObjets <xlwings.main.ListObjects>`
+        See :meth:`Tables <xlwings.main.Tables>`
 
         .. versionadded:: 0.9.0
         """
@@ -2270,7 +2270,7 @@ class Table:
     @property
     def name(self):
         """
-        Returns or sets the name of the ListObject.
+        Returns or sets the name of the Table.
         """
         return self.impl.name
 
@@ -2280,30 +2280,32 @@ class Table:
 
     @property
     def data_body_range(self):
+        """Returns an xlwings range object that represents the range of values, excluding the header row"""
         return Range(impl=self.impl.data_body_range) if self.impl.data_body_range else None
 
     @property
     def display_name(self):
+        """Returns or sets the display name for the specified Table object"""
         return self.impl.display_name
 
     @property
     def header_row_range(self):
+        """Returns an xlwings range object that represents the range of the header row"""
         return Range(impl=self.impl.header_row_range)
 
     @property
     def insert_row_range(self):
+        """Returns an xlwings range object representing the row where data is going to be inserted."""
         return Range(impl=self.impl.insert_row_range)
 
     @property
-    def parent(self):
-        return Sheet(impl=self.impl.parent)
-
-    @property
     def range(self):
+        """Returns an xlwings range object of the table."""
         return Range(impl=self.impl.range)
 
     @property
     def show_autofilter(self):
+        """Turn the autofilter on or off by setting it to ``True`` or ``False`` (read/write boolean)"""
         return self.impl.show_autofilter
 
     @show_autofilter.setter
@@ -2312,6 +2314,7 @@ class Table:
 
     @property
     def show_headers(self):
+        """Show or hide the header (read/write)"""
         return self.impl.show_headers
 
     @show_headers.setter
@@ -2320,6 +2323,7 @@ class Table:
 
     @property
     def show_table_style_column_stripes(self):
+        """Returns or sets if the Column Stripes table style is used for (read/write boolean)"""
         return self.impl.show_table_style_column_stripes
 
     @show_table_style_column_stripes.setter
@@ -2328,6 +2332,7 @@ class Table:
 
     @property
     def show_table_style_first_column(self):
+        """Returns or sets if the first column is formatted (read/write boolean)"""
         return self.impl.show_table_style_first_column
 
     @show_table_style_first_column.setter
@@ -2336,6 +2341,7 @@ class Table:
 
     @property
     def show_table_style_last_column(self):
+        """Returns or sets if the last column is displayed (read/write boolean)"""
         return self.impl.show_table_style_last_column
 
     @show_table_style_last_column.setter
@@ -2344,6 +2350,7 @@ class Table:
 
     @property
     def show_table_style_row_stripes(self):
+        """Returns or sets if the Row Stripes table style is used (read/write boolean)"""
         return self.impl.show_table_style_row_stripes
 
     @show_table_style_row_stripes.setter
@@ -2352,6 +2359,7 @@ class Table:
 
     @property
     def show_totals(self):
+        """Gets or sets a boolean to show/hide the Total row."""
         return self.impl.show_totals
 
     @show_totals.setter
@@ -2359,7 +2367,18 @@ class Table:
         self.impl.show_totals = value
 
     @property
+    def table_style(self):
+        """Gets or sets the table style. See :meth:`Tables.add <xlwings.main.Tables.add>` for possible values."""
+        return self.impl.table_style
+
+    @table_style.setter
+    def table_style(self, value):
+        self.impl.table_style = value
+
+
+    @property
     def totals_row_range(self):
+        """Returns an xlwings range object representing the Total row"""
         return Range(impl=self.impl.totals_row_range)
 
     def __eq__(self, other):

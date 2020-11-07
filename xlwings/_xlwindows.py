@@ -1373,6 +1373,14 @@ class Table:
         self.xl.ShowTotals = value
 
     @property
+    def table_style(self):
+        return self.xl.TableStyle
+
+    @table_style.setter
+    def table_style(self, value):
+        self.xl.TableStyle = value
+
+    @property
     def totals_row_range(self):
         return Range(xl=self.xl.TotalsRowRange)
 
