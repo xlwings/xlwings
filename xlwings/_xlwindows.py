@@ -1374,7 +1374,7 @@ class Table:
 
     @property
     def table_style(self):
-        return self.xl.TableStyle
+        return self.xl.TableStyle.Name
 
     @table_style.setter
     def table_style(self, value):
