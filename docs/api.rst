@@ -126,6 +126,18 @@ Name
 .. autoclass:: Name
     :members:
 
+Tables
+******
+
+.. autoclass:: xlwings.main.Tables
+    :members:
+
+Table
+*****
+
+.. autoclass:: xlwings.main.Table
+    :members:
+
 .. _udf_api:
 
 UDF decorators
