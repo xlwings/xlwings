@@ -2,7 +2,7 @@ import os
 import sys
 import numpy as np
 import pandas as pd
-from pandas.util.testing import assert_frame_equal
+from pandas.testing import assert_frame_equal
 from numpy.testing import assert_array_equal
 from PIL import Image
 from matplotlib.figure import Figure
@@ -43,6 +43,12 @@ class TestCreateReport(unittest.TestCase):
     def test_df(self):
         assert_frame_equal(self.wb.sheets[0]['A2'].options(pd.DataFrame, expand='table').value,
                            data['df1'])
+
+    def test_df_table(self):
+        df = self.wb.sheets['Sheet4']['A1'].options(pd.DataFrame, expand='table', index=False).value
+        df.index = ['r0', 'r1']
+        assert_frame_equal(df, data['df1'])
+        self.assertIsNotNone(self.wb.sheets['Sheet4']['A1'].table)
 
     def test_var_operations(self):
         assert_array_equal(self.wb.sheets[1]['A1'].options(np.array, expand='table', ndim=2).value,
@@ -98,14 +104,23 @@ class TestFrames(unittest.TestCase):
                           columns=['c1', 'c2'],
                           index=['r1', 'r2'])
         wb = create_report('template_one_frame.xlsx', 'output.xlsx', df=df, title='MyTitle')
-        sheet = wb.sheets[0]
-        self.assertEqual(sheet['A1'].value, 'MyTitle')
-        self.assertEqual(sheet['A3'].value, 'PART ONE')
-        self.assertEqual(sheet['A8'].value, 'PART TWO')
-        assert_frame_equal(sheet['A4'].options(pd.DataFrame, expand='table').value, df)
-        assert_frame_equal(sheet['A9'].options(pd.DataFrame, expand='table').value, df)
-        self.assertEqual(sheet['A3'].color, (0, 176, 240))
-        self.assertEqual(sheet['A8'].color, (0, 176, 240))
+        for i in range(2):
+            sheet = wb.sheets[i]
+            self.assertEqual(sheet['A1'].value, 'MyTitle')
+            self.assertEqual(sheet['A3'].value, 'PART ONE')
+            self.assertEqual(sheet['A8'].value, 'PART TWO')
+            if i == 0:
+                assert_frame_equal(sheet['A4'].options(pd.DataFrame, expand='table').value, df)
+                assert_frame_equal(sheet['A9'].options(pd.DataFrame, expand='table').value, df)
+            elif i == 1:
+                df_table1 = sheet['A4'].options(pd.DataFrame, expand='table', index=False).value
+                df_table1.index = ['r1', 'r2']
+                df_table2 = sheet['A9'].options(pd.DataFrame, expand='table', index=False).value
+                df_table2.index = ['r1', 'r2']
+                assert_frame_equal(df_table1, df)
+                assert_frame_equal(df_table2, df)
+            self.assertEqual(sheet['A3'].color, (0, 176, 240))
+            self.assertEqual(sheet['A8'].color, (0, 176, 240))
 
     def test_two_frames(self):
         df1 = pd.DataFrame([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]],

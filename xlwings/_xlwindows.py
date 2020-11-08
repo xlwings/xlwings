@@ -1052,6 +1052,11 @@ class Range:
     def unmerge(self):
         self.xl.UnMerge()
 
+    @property
+    def table(self):
+        if self.xl.ListObject:
+            return Table(self.xl.ListObject)
+
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
     if number_builder is not None:

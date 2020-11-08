@@ -92,3 +92,32 @@ will generate this report:
 
 .. figure:: images/frame_report.png
     :scale: 60%
+
+Excel Tables
+------------
+
+Using Excel tables is the recommended way to format tables as the styling can be applied dynamically across columns and rows. You can also use themes and apply alternating colors to rows/columns. Go to ``Insert`` > ``Table`` and make sure that you activate ``My table has headers`` before clicking on ``OK``. Then add the placeholder as usual on the top-left in your template:
+
+.. figure:: images/excel_table_template.png
+    :scale: 60%
+
+Running the following script::
+
+    from xlwings.pro.reports import create_report
+    import pandas as pd
+
+    nrows, ncols = 3, 3
+    df = pd.DataFrame(data=nrows * [ncols * ['test']],
+                      columns=['col ' + str(i) for i in range(ncols)])
+
+    create_report('template.xlsx', 'output.xlsx', df=df)
+
+Will produce the following report:
+
+.. figure:: images/excel_table_report.png
+    :scale: 60%
+
+.. note::
+    * When using Excel tables, DataFrame indices are excluded by default. If you would like to include them, make sure to reset the index before providing the DataFrame to the ``create_report`` function: ``df.reset_index()``.
+    * At the moment, you can only assign pandas DataFrames to tables.
+    * For Excel table support, you need at least version 0.21.0

@@ -198,7 +198,10 @@ def create_report(template, output, book_settings=None, app=None, **data):
                                                 sheet.range((i + row_shift + 2, j + frame_indices[ix] + 1),
                                                             (i + row_shift + rows_to_be_inserted + 2, end_column)).paste(paste='formats')
                                                 wb.app.screen_updating = screen_updating_original_state
-                                        sheet[i + row_shift, j + frame_indices[ix]].value = result
+                                        if sheet[i + row_shift, j + frame_indices[ix]].table:
+                                            sheet[i + row_shift, j + frame_indices[ix]].table.update(result)
+                                        else:
+                                            sheet[i + row_shift, j + frame_indices[ix]].value = result
                                         row_shift += rows_to_be_inserted
                                 elif var is not None and token_type not in ('whitespace',):
                                     var += value
