@@ -28,7 +28,8 @@ import win32timezone
 import win32gui
 import win32process
 
-from .constants import ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin, DeleteShiftDirection
+from .constants import (ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin, DeleteShiftDirection,
+                        ListObjectSourceType)
 from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime, col_name
 
 # Optional imports
@@ -690,6 +691,10 @@ class Sheet:
         return Shapes(xl=self.xl.Shapes)
 
     @property
+    def tables(self):
+        return Tables(xl=self.xl.ListObjects)
+
+    @property
     def pictures(self):
         return Pictures(xl=self.xl.Pictures())
 
@@ -1269,6 +1274,135 @@ class Collection:
 class Shapes(Collection):
 
     _wrap = Shape
+
+
+class Table:
+    def __init__(self, xl):
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def name(self):
+        return self.xl.Name
+
+    @name.setter
+    def name(self, value):
+        self.xl.Name = value
+
+    @property
+    def data_body_range(self):
+        return Range(xl=self.xl.DataBodyRange) if self.xl.DataBodyRange else None
+
+    @property
+    def display_name(self):
+        return self.xl.DisplayName
+
+    @display_name.setter
+    def display_name(self, value):
+        self.xl.DisplayName = value
+
+    @property
+    def header_row_range(self):
+        return Range(xl=self.xl.HeaderRowRange)
+
+    @property
+    def insert_row_range(self):
+        return Range(xl=self.xl.InsertRowRange)
+
+    @property
+    def parent(self):
+        return Sheet(xl=self.xl.Parent)
+
+    @property
+    def range(self):
+        return Range(xl=self.xl.Range)
+
+    @property
+    def show_autofilter(self):
+        return self.xl.ShowAutoFilter
+
+    @show_autofilter.setter
+    def show_autofilter(self, value):
+        self.xl.ShowAutoFilter = value
+
+    @property
+    def show_headers(self):
+        return self.xl.ShowHeaders
+
+    @show_headers.setter
+    def show_headers(self, value):
+        self.xl.ShowHeaders = value
+
+    @property
+    def show_table_style_column_stripes(self):
+        return self.xl.ShowTableStyleColumnStripes
+
+    @show_table_style_column_stripes.setter
+    def show_table_style_column_stripes(self, value):
+        self.xl.ShowTableStyleColumnStripes = value
+
+    @property
+    def show_table_style_first_column(self):
+        return self.xl.ShowTableStyleFirstColumn
+
+    @show_table_style_first_column.setter
+    def show_table_style_first_column(self, value):
+        self.xl.ShowTableStyleFirstColumn = value
+
+    @property
+    def show_table_style_last_column(self):
+        return self.xl.ShowTableStyleLastColumn
+
+    @show_table_style_last_column.setter
+    def show_table_style_last_column(self, value):
+        self.xl.ShowTableStyleLastColumn = value
+
+    @property
+    def show_table_style_row_stripes(self):
+        return self.xl.ShowTableStyleRowStripes
+
+    @show_table_style_row_stripes.setter
+    def show_table_style_row_stripes(self, value):
+        self.xl.ShowTableStyleRowStripes = value
+
+    @property
+    def show_totals(self):
+        return self.xl.ShowTotals
+
+    @show_totals.setter
+    def show_totals(self, value):
+        self.xl.ShowTotals = value
+
+    @property
+    def table_style(self):
+        return self.xl.TableStyle.Name
+
+    @table_style.setter
+    def table_style(self, value):
+        self.xl.TableStyle = value
+
+    @property
+    def totals_row_range(self):
+        return Range(xl=self.xl.TotalsRowRange)
+
+
+class Tables(Collection):
+
+    _wrap = Table
+
+    def add(self, source_type=None, source=None, link_source=None, has_headers=None, destination=None,
+            table_style_name=None):
+        return Table(xl=self.xl.Add(
+            SourceType=ListObjectSourceType.xlSrcRange,
+            Source=source.api,
+            LinkSource=link_source,
+            XlListObjectHasHeaders=True,
+            Destination=destination,
+            TableStyleName=table_style_name
+        ))
 
 
 class Chart:

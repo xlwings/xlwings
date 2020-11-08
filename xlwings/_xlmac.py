@@ -452,6 +452,10 @@ class Sheet:
         return Shapes(self)
 
     @property
+    def tables(self):
+        return Tables(self)
+
+    @property
     def pictures(self):
         return Pictures(self)
 
@@ -896,6 +900,157 @@ class Collection:
         return self.xl[key].exists()
 
 
+class Table:
+    def __init__(self, parent, key):
+        self.parent = parent
+        self.xl = parent.xl.list_objects[key]
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def name(self):
+        return self.xl.name.get()
+
+    @name.setter
+    def name(self, value):
+        self.xl.name.set(value)
+        self.xl = self.parent.xl.list_objects[value]
+
+    @property
+    def data_body_range(self):
+        if self.xl.cell_table.get() == kw.missing_value:
+            return
+        else:
+            return Range(self.parent, self.xl.cell_table.get_address())
+
+    @property
+    def display_name(self):
+        return self.xl.display_name.get()
+
+    @display_name.setter
+    def display_name(self, value):
+        # Changing the display_name also changes the name
+        self.xl.display_name.set(value)
+        self.xl = self.parent.xl.list_objects[value]
+
+    @property
+    def header_row_range(self):
+        if self.xl.header_row.get() == kw.missing_value:
+            return
+        else:
+            return Range(self.parent, self.xl.header_row.get_address())
+
+    @property
+    def insert_row_range(self):
+        if self.xl.insert_row.get() == kw.missing_value:
+            return
+        else:
+            return Range(self.parent, self.xl.insert_row.get_address())
+
+    @property
+    def range(self):
+        return Range(self.parent, self.xl.range_object.get_address())
+
+    @property
+    def show_autofilter(self):
+        return self.xl.show_autofilter.get()
+
+    @show_autofilter.setter
+    def show_autofilter(self, value):
+        self.xl.show_autofilter.set(value)
+
+    @property
+    def show_headers(self):
+        return self.xl.show_headers.get()
+
+    @show_headers.setter
+    def show_headers(self, value):
+        self.xl.show_headers.set(value)
+
+    @property
+    def show_table_style_column_stripes(self):
+        return self.xl.show_table_style_column_stripes.get()
+
+    @show_table_style_column_stripes.setter
+    def show_table_style_column_stripes(self, value):
+        self.xl.show_table_style_column_stripes.set(value)
+
+    @property
+    def show_table_style_first_column(self):
+        return self.xl.show_table_style_first_column.get()
+
+    @show_table_style_first_column.setter
+    def show_table_style_first_column(self, value):
+        self.xl.show_table_style_first_column.set(value)
+
+    @property
+    def show_table_style_last_column(self):
+        return self.xl.show_table_style_last_column.get()
+
+    @show_table_style_last_column.setter
+    def show_table_style_last_column(self, value):
+        self.xl.show_table_style_last_column.set(value)
+
+    @property
+    def show_table_style_row_stripes(self):
+        return self.xl.show_table_style_row_stripes.get()
+
+    @show_table_style_row_stripes.setter
+    def show_table_style_row_stripes(self, value):
+        self.xl.show_table_style_row_stripes.set(value)
+
+    @property
+    def show_totals(self):
+        return self.xl.total.get()
+
+    @show_totals.setter
+    def show_totals(self, value):
+        self.xl.total.set(value)
+
+    @property
+    def table_style(self):
+        return self.xl.table_style.properties().get(kw.name)
+
+    @table_style.setter
+    def table_style(self, value):
+        self.xl.table_style.set(value)
+
+    @property
+    def totals_row_range(self):
+        if self.xl.total_row.get() == kw.missing_value:
+            return
+        else:
+            return Range(self.parent, self.xl.total_row.get_address())
+
+
+class Tables(Collection):
+
+    _attr = 'list_objects'
+    _kw = kw.list_object
+    _wrap = Table
+
+    def add(self, source_type=None, source=None, link_source=None, has_headers=None, destination=None,
+            table_style_name=None):
+        header_row = {True: kw.header_yes,
+                      False: kw.header_no,
+                      'guess': kw.header_guess}
+        sheet_index = self.parent.xl.entry_index.get()
+        return Table(
+            self.parent, self.parent.xl.make(
+                at=self.parent.book.xl.sheets[sheet_index],
+                new=kw.list_object,
+                with_properties={
+                    kw.source_type: kw.src_range,
+                    kw.range_object: source.api,
+                    kw.header_row: header_row[has_headers],
+                    kw.table_style: table_style_name
+                }
+            ).name.get()
+        )
+
+
 class Chart:
 
     def __init__(self, parent, key):
@@ -985,7 +1140,6 @@ class Chart:
         self.xl_obj.height.set(value)
 
     def delete(self):
-        # todo: what about chart sheets?
         self.xl_obj.delete()
 
 

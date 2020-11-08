@@ -947,6 +947,15 @@ class Sheet:
         return Shapes(impl=self.impl.shapes)
 
     @property
+    def tables(self):
+        """
+        See :meth:`Tables <xlwings.main.Tables>`
+
+        .. versionadded:: 0.21.0
+        """
+        return Tables(impl=self.impl.tables)
+
+    @property
     def pictures(self):
         """
         See :meth:`Pictures <xlwings.main.Pictures>`
@@ -2232,6 +2241,253 @@ class Shapes(Collection):
     .. versionadded:: 0.9.0
     """
     _wrap = Shape
+
+
+class Table:
+    """
+    The table object is a member of the :meth:`tables <xlwings.main.Tables>` collection:
+
+    >>> import xlwings as xw
+    >>> sht = xw.books['Book1'].sheets[0]
+    >>> sht.tables[0]  # or sht.shapes['TableName']
+    <Shape 'Table 1' in <Sheet [Book1]Sheet1>>
+
+    .. versionchanged:: 0.21.0
+    """
+    def __init__(self, *args, **options):
+        impl = options.pop('impl', None)
+        if impl is None:
+            if len(args) == 1:
+                impl = sheets.active.tables(args[0]).impl
+            else:
+                raise ValueError("Invalid arguments")
+        self.impl = impl
+
+    @property
+    def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        """
+        return self.impl.api
+
+    @property
+    def parent(self):
+        """
+        Returns the parent of the table.
+        """
+        return Sheet(impl=self.impl.parent)
+
+    @property
+    def name(self):
+        """
+        Returns or sets the name of the Table.
+        """
+        return self.impl.name
+
+    @name.setter
+    def name(self, value):
+        self.impl.name = value
+
+    @property
+    def data_body_range(self):
+        """Returns an xlwings range object that represents the range of values, excluding the header row"""
+        return Range(impl=self.impl.data_body_range) if self.impl.data_body_range else None
+
+    @property
+    def display_name(self):
+        """Returns or sets the display name for the specified Table object"""
+        return self.impl.display_name
+
+    @display_name.setter
+    def display_name(self, value):
+        self.impl.display_name = value
+
+    @property
+    def header_row_range(self):
+        """Returns an xlwings range object that represents the range of the header row"""
+        if self.impl.header_row_range:
+            return Range(impl=self.impl.header_row_range)
+        else:
+            return None
+
+    @property
+    def insert_row_range(self):
+        """Returns an xlwings range object representing the row where data is going to be inserted.
+           This is only available for empty tables, otherwise it'll return ``None``"""
+        if self.impl.insert_row_range:
+            return Range(impl=self.impl.insert_row_range)
+        else:
+            return None
+
+    @property
+    def range(self):
+        """Returns an xlwings range object of the table."""
+        return Range(impl=self.impl.range)
+
+    @property
+    def show_autofilter(self):
+        """Turn the autofilter on or off by setting it to ``True`` or ``False`` (read/write boolean)"""
+        return self.impl.show_autofilter
+
+    @show_autofilter.setter
+    def show_autofilter(self, value):
+        self.impl.show_autofilter = value
+
+    @property
+    def show_headers(self):
+        """Show or hide the header (read/write)"""
+        return self.impl.show_headers
+
+    @show_headers.setter
+    def show_headers(self, value):
+        self.impl.show_headers = value
+
+    @property
+    def show_table_style_column_stripes(self):
+        """Returns or sets if the Column Stripes table style is used for (read/write boolean)"""
+        return self.impl.show_table_style_column_stripes
+
+    @show_table_style_column_stripes.setter
+    def show_table_style_column_stripes(self, value):
+        self.impl.show_table_style_column_stripes = value
+
+    @property
+    def show_table_style_first_column(self):
+        """Returns or sets if the first column is formatted (read/write boolean)"""
+        return self.impl.show_table_style_first_column
+
+    @show_table_style_first_column.setter
+    def show_table_style_first_column(self, value):
+        self.impl.show_table_style_first_column = value
+
+    @property
+    def show_table_style_last_column(self):
+        """Returns or sets if the last column is displayed (read/write boolean)"""
+        return self.impl.show_table_style_last_column
+
+    @show_table_style_last_column.setter
+    def show_table_style_last_column(self, value):
+        self.impl.show_table_style_last_column = value
+
+    @property
+    def show_table_style_row_stripes(self):
+        """Returns or sets if the Row Stripes table style is used (read/write boolean)"""
+        return self.impl.show_table_style_row_stripes
+
+    @show_table_style_row_stripes.setter
+    def show_table_style_row_stripes(self, value):
+        self.impl.show_table_style_row_stripes = value
+
+    @property
+    def show_totals(self):
+        """Gets or sets a boolean to show/hide the Total row."""
+        return self.impl.show_totals
+
+    @show_totals.setter
+    def show_totals(self, value):
+        self.impl.show_totals = value
+
+    @property
+    def table_style(self):
+        """Gets or sets the table style. See :meth:`Tables.add <xlwings.main.Tables.add>` for possible values."""
+        return self.impl.table_style
+
+    @table_style.setter
+    def table_style(self, value):
+        self.impl.table_style = value
+
+    @property
+    def totals_row_range(self):
+        """Returns an xlwings range object representing the Total row"""
+        if self.impl.totals_row_range:
+            return Range(impl=self.impl.totals_row_range)
+        else:
+            return None
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, Table) and
+            other.parent == self.parent and
+            other.name == self.name
+        )
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __repr__(self):
+        return "<Table '{0}' in {1}>".format(
+            self.name,
+            self.parent
+        )
+
+
+class Tables(Collection):
+    """A collection of all :meth:`table <Table>` objects on the specified sheet:
+
+    >>> import xlwings as xw
+    >>> xw.books['Book1'].sheets[0].tables
+    Tables([<Table 'Table1' in <Sheet [Book11]Sheet1>>, <Table 'Table2' in <Sheet [Book11]Sheet1>>])
+
+    .. versionadded:: 0.21.0
+    """
+    _wrap = Table
+
+    def add(self, source=None, name=None, source_type=None, link_source=None, has_headers=True, destination=None,
+            table_style_name='TableStyleMedium2'):
+        """
+        Creates a Table to the specified sheet.
+
+        Arguments
+        ---------
+
+        source : xlwings range, default None
+            An xlwings range object, representing the data source.
+
+        name : str, default None
+            The name of the Table. By default, it uses the autogenerated name that is assigned by Excel.
+
+        source_type : str, default None
+            This currently defaults to ``xlSrcRange``, i.e. expects an xlwings range object. No other
+            options are allowed at the moment.
+
+        link_source : bool, default None
+            Currently not implemented as this is only in case ``source_type`` is ``xlSrcExternal``.
+
+        has_headers : bool or str, default True
+            Indicates whether the data being imported has column labels. Defaults to ``True``. Possible
+            values: ``True``, ``FAlse``, ``'guess'``
+
+        destination : xlwings range, default None
+            Currently not implemented as this is used in case ``source_type`` is ``xlSrcExternal``.
+
+        table_style_name : str, default 'TableStyleMedium2'
+            Possible strings: ``'TableStyleLightN''`` (where N is 1-21), ``'TableStyleMediumN'`` (where N is 1-28),
+            ``'TableStyleDarkN'`` (where N is 1-11)
+
+        Returns
+        -------
+        Table
+
+        Examples
+        --------
+
+        >>> import xlwings as xw
+        >>> sheet = xw.Book().sheets[0]
+        >>> sheet['A1'].value = [['a', 'b'], [1, 2]]
+        >>> table = sheet.tables.add(source=sheet['A1'].expand(), name='MyTable')
+        >>> table
+        <Table 'MyTable' in <Sheet [Book1]Sheet1>>
+        """
+
+        impl = self.impl.add(
+            source_type=source_type, source=source, link_source=link_source, has_headers=has_headers,
+            destination=destination, table_style_name=table_style_name
+        )
+
+        table = Table(impl=impl)
+        if name is not None:
+            table.name = name
+        return table
 
 
 class Chart:
