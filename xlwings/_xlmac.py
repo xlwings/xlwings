@@ -800,6 +800,13 @@ class Range:
     def unmerge(self):
         self.xl.unmerge()
 
+    @property
+    def table(self):
+        if self.xl.list_object.name.get() == kw.missing_value:
+            return None
+        else:
+            return Table(self.sheet, self.xl.list_object.name.get())
+
 
 class Shape:
     def __init__(self, parent, key):

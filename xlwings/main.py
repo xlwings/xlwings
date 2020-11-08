@@ -1910,6 +1910,18 @@ class Range:
         """
         self.impl.unmerge()
 
+    @property
+    def table(self):
+        """
+        Returns a Table object if the range is part of one, otherwise ``None``.
+
+        .. versionadded:: 0.21.0
+        """
+        if self.impl.table:
+            return Table(impl=self.impl.table)
+        else:
+            return None
+
 # These have to be after definition of Range to resolve circular reference
 from . import conversion
 from . import expansion
@@ -2403,6 +2415,49 @@ class Table:
             return Range(impl=self.impl.totals_row_range)
         else:
             return None
+
+    def update(self, data):
+        """
+        This method requires xlwings :guilabel:`PRO`
+
+        Updates the Excel table with the provided data. Currently restricted to DataFrames.
+
+        Arguments
+        ---------
+
+        data : pandas DataFrame
+            Currently restricted to pandas DataFrames. Note that the DataFrame index is not
+            sent to Excel. If you do want to include it, make sure to do ``df.reset_index()``.
+
+        Returns
+        -------
+        Table
+
+        Examples
+        --------
+
+        .. code-block:: python
+
+            import pandas as pd
+            import xlwings as xw
+
+            sheet = xw.Book('Book1.xlsx').sheets[0]
+            table_name = 'mytable'
+
+            # Sample DataFrame
+            nrows = 3
+            ncols = 3
+            df = pd.DataFrame(data=nrows * [ncols * ['test']],
+                              columns=['col ' + str(i) for i in range(ncols)])
+
+            # Insert a new table if it doesn't exist yet, otherwise update the existing one
+            if table_name in [table.name for table in sheet.tables]:
+                sheet.tables[table_name].update(df)
+            else:
+                mytable = sheet.tables.add(source=sheet['A1'], name=table_name).update(df)
+        """
+        from .pro.tables import update
+        return update(self, data)
 
     def __eq__(self, other):
         return (
