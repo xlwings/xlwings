@@ -929,13 +929,25 @@ class Table:
     def display_name(self):
         return self.xl.display_name.get()
 
+    @display_name.setter
+    def display_name(self, value):
+        # Changing the display_name also changes the name
+        self.xl.display_name.set(value)
+        self.xl = self.parent.xl.list_objects[value]
+
     @property
     def header_row_range(self):
-        return Range(self.parent, self.xl.header_row.get_address())
+        if self.xl.header_row.get() == kw.missing_value:
+            return
+        else:
+            return Range(self.parent, self.xl.header_row.get_address())
 
     @property
     def insert_row_range(self):
-        return Range(self.parent, self.xl.insert_row.get_address())
+        if self.xl.insert_row.get() == kw.missing_value:
+            return
+        else:
+            return Range(self.parent, self.xl.insert_row.get_address())
 
     @property
     def range(self):
@@ -1007,7 +1019,10 @@ class Table:
 
     @property
     def totals_row_range(self):
-        return Range(self.parent, self.xl.total_row.get_address())
+        if self.xl.total_row.get() == kw.missing_value:
+            return
+        else:
+            return Range(self.parent, self.xl.total_row.get_address())
 
 
 class Tables(Collection):

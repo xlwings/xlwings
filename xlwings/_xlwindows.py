@@ -1300,6 +1300,10 @@ class Table:
     def display_name(self):
         return self.xl.DisplayName
 
+    @display_name.setter
+    def display_name(self, value):
+        self.xl.DisplayName = value
+
     @property
     def header_row_range(self):
         return Range(xl=self.xl.HeaderRowRange)

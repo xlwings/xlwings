@@ -2298,15 +2298,26 @@ class Table:
         """Returns or sets the display name for the specified Table object"""
         return self.impl.display_name
 
+    @display_name.setter
+    def display_name(self, value):
+        self.impl.display_name = value
+
     @property
     def header_row_range(self):
         """Returns an xlwings range object that represents the range of the header row"""
-        return Range(impl=self.impl.header_row_range)
+        if self.impl.header_row_range:
+            return Range(impl=self.impl.header_row_range)
+        else:
+            return None
 
     @property
     def insert_row_range(self):
-        """Returns an xlwings range object representing the row where data is going to be inserted."""
-        return Range(impl=self.impl.insert_row_range)
+        """Returns an xlwings range object representing the row where data is going to be inserted.
+           This is only available for empty tables, otherwise it'll return ``None``"""
+        if self.impl.insert_row_range:
+            return Range(impl=self.impl.insert_row_range)
+        else:
+            return None
 
     @property
     def range(self):
@@ -2388,7 +2399,10 @@ class Table:
     @property
     def totals_row_range(self):
         """Returns an xlwings range object representing the Total row"""
-        return Range(impl=self.impl.totals_row_range)
+        if self.impl.totals_row_range:
+            return Range(impl=self.impl.totals_row_range)
+        else:
+            return None
 
     def __eq__(self, other):
         return (
