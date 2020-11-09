@@ -93,6 +93,8 @@ will generate this report:
 .. figure:: images/frame_report.png
     :scale: 60%
 
+.. _excel_tables_reports:
+
 Excel Tables
 ------------
 

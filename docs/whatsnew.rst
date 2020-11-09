@@ -1,6 +1,15 @@
 What's New
 ==========
 
+v0.21.0 (Nov 9, 2020)
+---------------------
+
+* [Enhancement] Added support for Excel tables, see: :meth:`Table <xlwings.main.Table>` and :meth:`Tables <xlwings.main.Tables>` and :meth:`range.table <xlwings.Range.table>` (:issue:`47` and :issue:`1364`)
+* [Enhancement]: When using UDFs, you can now use ``'range'`` for the ``convert`` argument where you would use before ``xw.Range``. The latter will be removed in a future version (:issue:`1455`).
+* [Enhancement] Windows: The ``comtypes`` requirement has been dropped (:issue:`1443`).
+* :guilabel:`PRO` [Feature]: :meth:`Table.update <xlwings.main.Table.update>` offers an easy way to keep your Excel tables in sync with your DataFrame source (:issue:`1454`).
+* :guilabel:`PRO` [Enhancement]: The reports package now supports Excel tables in the templates. This is e.g. helpful to style the tables with striped rows, see :ref:`excel_tables_reports`  (:issue:`1364`).
+
 v0.20.8 (Oct 18, 2020)
 ----------------------
 

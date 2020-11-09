@@ -298,7 +298,7 @@ Technically speaking, these are "no-converters".
 * If you need access to the ``xlwings.Range`` object directly, you can do::
 
     @xw.func
-    @xw.arg('x', xw.Range)
+    @xw.arg('x', 'range')
     def myfunction(x):
        return x.formula
 

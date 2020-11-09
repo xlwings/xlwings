@@ -2445,8 +2445,7 @@ class Table:
             table_name = 'mytable'
 
             # Sample DataFrame
-            nrows = 3
-            ncols = 3
+            nrows, ncols = 3, 3
             df = pd.DataFrame(data=nrows * [ncols * ['test']],
                               columns=['col ' + str(i) for i in range(ncols)])
 
