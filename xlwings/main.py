@@ -2261,8 +2261,8 @@ class Table:
 
     >>> import xlwings as xw
     >>> sht = xw.books['Book1'].sheets[0]
-    >>> sht.tables[0]  # or sht.shapes['TableName']
-    <Shape 'Table 1' in <Sheet [Book1]Sheet1>>
+    >>> sht.tables[0]  # or sht.tables['TableName']
+    <Table 'Table 1' in <Sheet [Book1]Sheet1>>
 
     .. versionchanged:: 0.21.0
     """
