@@ -165,7 +165,7 @@ class RangeAccessor(Accessor):
         )
 
 
-RangeAccessor.register(Range)
+RangeAccessor.register('range', Range)
 
 
 class RawValueAccessor(Accessor):
