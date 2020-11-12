@@ -774,15 +774,15 @@ class Book:
         """
         return Range(impl=self.app.selection.impl) if self.app.selection else None
 
-    def to_pdf(self, path):
+    def to_pdf(self, path=None):
         """
         Exports the Excel workbook as PDF file. Hide the sheets you don't want to export by hiding them using
         :attr:`xlwings.main.Sheet.visible`.
 
         Parameters
         ----------
-        path : str or path-like object
-            Path to the PDF file
+        path : str or path-like object, default None
+            Path to the PDF file, defaults to same name as workbook
 
         Examples
         --------
@@ -796,6 +796,9 @@ class Book:
 
         .. versionadded:: 0.21.1
         """
+        if path is None:
+            filename, extension = os.path.splitext(self.fullname)
+            path = filename + '.pdf'
         path = utils.fspath(path)
         self.impl.to_pdf(os.path.realpath(path))
 
