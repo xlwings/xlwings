@@ -797,7 +797,7 @@ class Book:
         .. versionadded:: 0.21.1
         """
         path = utils.fspath(path)
-        self.impl.to_pdf(path)
+        self.impl.to_pdf(os.path.realpath(path))
 
     def __repr__(self):
         return "<Book [{0}]>".format(self.name)

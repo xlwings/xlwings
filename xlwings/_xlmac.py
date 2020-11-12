@@ -298,7 +298,7 @@ class Book:
         self.xl.activate_object()
 
     def to_pdf(self, path):
-        hfs_path = posix_to_hfs_path(os.path.realpath(path))
+        hfs_path = posix_to_hfs_path(path)
         self.xl.save(in_=hfs_path, as_=kw.PDF_file_format)
 
 
