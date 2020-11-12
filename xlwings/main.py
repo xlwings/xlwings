@@ -774,6 +774,31 @@ class Book:
         """
         return Range(impl=self.app.selection.impl) if self.app.selection else None
 
+    def to_pdf(self, path):
+        """
+        Exports the Excel workbook as PDF file. Hide the sheets you don't want to export by hiding them using
+        :attr:`xlwings.main.Sheet.visible`.
+
+        Parameters
+        ----------
+        path : str or path-like object
+            Path to the PDF file
+
+        Examples
+        --------
+        >>> wb = xw.Book()
+        >>> wb.sheets[0]['A1'].value = 'Test'
+        >>> sheet2 = wb.sheets.add()
+        >>> sheet2['A1'].value = 'Test2'
+        >>> sheet2.visible = False
+        >>> wb.to_pdf('report.pdf')  # will only contain Sheet1
+        >>> sheet2.visible = True  # reset visibility
+
+        .. versionadded:: 0.21.1
+        """
+        path = utils.fspath(path)
+        self.impl.to_pdf(path)
+
     def __repr__(self):
         return "<Book [{0}]>".format(self.name)
 
@@ -977,6 +1002,18 @@ class Sheet:
         .. versionadded:: 0.13.0
         """
         return Range(impl=self.impl.used_range)
+
+    @property
+    def visible(self):
+        """Gets or sets the visibility of the Sheet (bool).
+
+        .. versionadded:: 0.21.1
+        """
+        return self.impl.visible
+
+    @visible.setter
+    def visible(self, value):
+        self.impl.visible = value
 
     def __getitem__(self, item):
         if isinstance(item, str):

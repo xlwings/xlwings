@@ -138,6 +138,11 @@ class TestSheet(TestBase):
         self.wb1.sheets[0].range('A1:C7').value = 1
         self.assertEqual(self.wb1.sheets[0].used_range, self.wb1.sheets[0].range("A1:C7"))
 
+    def test_visible(self):
+        self.assertTrue(self.wb1.sheets[0].visible)
+        self.wb1.sheets[0].visible = False
+        self.assertFalse(self.wb1.sheets[0].visible)
+
 
 if __name__ == '__main__':
     unittest.main()
