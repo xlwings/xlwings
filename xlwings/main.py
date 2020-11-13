@@ -782,8 +782,8 @@ class Book:
         Parameters
         ----------
         path : str or path-like object, default None
-            Path to the PDF file, defaults to same name as workbook, in the same directory. For unsaved workbooks, it
-            defaults to the current working directory instead.
+            Path to the PDF file, defaults to the same name as the workbook, in the same directory.
+            For unsaved workbooks, it defaults to the current working directory instead.
 
         include : int or str or list, default None
             Which sheets to include: provide a selection of sheets in the form of sheet indices (1-based like in Excel)
