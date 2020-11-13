@@ -29,7 +29,7 @@ import win32gui
 import win32process
 
 from .constants import (ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin, DeleteShiftDirection,
-                        ListObjectSourceType)
+                        ListObjectSourceType, FixedFormatType, FixedFormatQuality)
 from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime, col_name
 
 # Optional imports
@@ -548,6 +548,13 @@ class Book:
     def activate(self):
         self.xl.Activate()
 
+    def to_pdf(self, path):
+        self.xl.ExportAsFixedFormat(Type=FixedFormatType.xlTypePDF,
+                                    Filename=path,
+                                    Quality=FixedFormatQuality.xlQualityStandard,
+                                    IncludeDocProperties=True,
+                                    IgnorePrintAreas=False,
+                                    OpenAfterPublish=False)
 
 class Sheets:
     def __init__(self, xl):
@@ -701,6 +708,14 @@ class Sheet:
     @property
     def used_range(self):
         return Range(xl=self.xl.UsedRange)
+
+    @property
+    def visible(self):
+        return self.xl.Visible
+
+    @visible.setter
+    def visible(self, value):
+        self.xl.Visible = value
 
 
 class Range:

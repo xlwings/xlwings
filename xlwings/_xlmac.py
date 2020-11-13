@@ -297,6 +297,10 @@ class Book:
     def activate(self):
         self.xl.activate_object()
 
+    def to_pdf(self, path):
+        hfs_path = posix_to_hfs_path(path)
+        self.xl.save(in_=hfs_path, as_=kw.PDF_file_format)
+
 
 class Sheets:
 
@@ -463,6 +467,13 @@ class Sheet:
     def used_range(self):
         return Range(self, self.xl.used_range.get_address())
 
+    @property
+    def visible(self):
+        return True if self.xl.visible.get() == kw.sheet_visible else False
+
+    @visible.setter
+    def visible(self, value):
+        self.xl.visible.set(value)
 
 class Range:
 

@@ -774,6 +774,72 @@ class Book:
         """
         return Range(impl=self.app.selection.impl) if self.app.selection else None
 
+    def to_pdf(self, path=None, include=None, exclude=None):
+        """
+        Exports the whole Excel workbook or a subset of the sheets to a PDF file.
+        If you want to print hidden sheets, you will need to list them explicitely under ``include``.
+
+        Parameters
+        ----------
+        path : str or path-like object, default None
+            Path to the PDF file, defaults to same name as workbook, in the same directory. For unsaved workbooks, it
+            defaults to the current working directory instead.
+
+        include : int or str or list, default None
+            Which sheets to include: provide a selection of sheets in the form of sheet indices (1-based like in Excel)
+            or sheet names. Can be an int/str for a single sheet or a list of int/str for multiple sheets.
+
+        exclude : int or str or list, default None
+            Which sheets to exclude: provide a selection of sheets in the form of sheet indices (1-based like in Excel)
+            or sheet names. Can be an int/str for a single sheet or a list of int/str for multiple sheets.
+
+        Examples
+        --------
+        >>> wb = xw.Book()
+        >>> wb.sheets[0]['A1'].value = 'PDF'
+        >>> wb.to_pdf()
+
+        .. versionadded:: 0.21.1
+        """
+        path = utils.fspath(path)
+        if path is None:
+            filename, extension = os.path.splitext(self.fullname)
+            directory, _ = os.path.split(self.fullname)
+            if directory:
+                path = os.path.join(directory, filename + '.pdf')
+            else:
+                path = filename + '.pdf'
+        if (include is not None) and (exclude is not None):
+            raise ValueError("You can only use either 'include' or 'exclude'")
+        # Hide sheets to exclude them from printing
+        if isinstance(include, (str, int)):
+            include = [include]
+        if isinstance(exclude, (str, int)):
+            exclude = [exclude]
+        visibility = {}
+        if include or exclude:
+            for sheet in self.sheets:
+                visibility[sheet] = sheet.visible
+        try:
+            if include:
+                for sheet in self.sheets:
+                    if (sheet.name in include) or (sheet.index in include):
+                        sheet.visible = True
+                    else:
+                        sheet.visible = False
+            if exclude:
+                for sheet in self.sheets:
+                    if (sheet.name in exclude) or (sheet.index in exclude):
+                        sheet.visible = False
+            self.impl.to_pdf(os.path.realpath(path))
+        except Exception:
+            raise
+        finally:
+            # Reset visibility
+            if include or exclude:
+                for sheet, tf in visibility.items():
+                    sheet.visible = tf
+
     def __repr__(self):
         return "<Book [{0}]>".format(self.name)
 
@@ -977,6 +1043,18 @@ class Sheet:
         .. versionadded:: 0.13.0
         """
         return Range(impl=self.impl.used_range)
+
+    @property
+    def visible(self):
+        """Gets or sets the visibility of the Sheet (bool).
+
+        .. versionadded:: 0.21.1
+        """
+        return self.impl.visible
+
+    @visible.setter
+    def visible(self, value):
+        self.impl.visible = value
 
     def __getitem__(self, item):
         if isinstance(item, str):
