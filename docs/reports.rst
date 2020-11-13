@@ -23,6 +23,7 @@ Start by creating the following Python script ``my_template.py``::
 
     df = pd.DataFrame(data=[[1,2],[3,4]])
     wb = create_report('my_template.xlsx', 'my_report.xlsx', title='MyTitle', df=df)
+    wb.to_pdf()  # requires xlwings >=0.21.1
 
 Then create the following Excel file called ``my_template.xlsx``:
 
@@ -38,6 +39,8 @@ the value from the Python variable:
 
 .. figure:: images/myreport.png
     :scale: 60%
+
+The last line (``wb.to_pdf()``) will print the workbook as PDF, for more details on the options, see :meth:`Book.to_pdf() <xlwings.Book.to_pdf>`.
 
 Apart from Strings and Pandas DataFrames, you can also use numbers, lists, simple dicts, NumPy arrays,
 Matplotlib figures and PIL Image objects that have a filename.

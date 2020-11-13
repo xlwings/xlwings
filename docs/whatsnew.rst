@@ -1,6 +1,12 @@
 What's New
 ==========
 
+v0.21.1 (Nov 13, 2020)
+----------------------
+
+* [Enhancement] Added new method :meth:`Book.to_pdf() <xlwings.Book.to_pdf>` to easily export PDF reports. Needless to say, this integrates very nicely with :ref:`xlwings Reports<reports_quickstart>` (:issue:`1363`).
+* [Enhancement] Added support for :attr:`Sheet.visible <xlwings.Sheet.visible>` (:issue:`1459`).
+
 v0.21.0 (Nov 9, 2020)
 ---------------------
 
