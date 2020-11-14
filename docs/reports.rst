@@ -101,7 +101,9 @@ will generate this report:
 Excel Tables
 ------------
 
-Using Excel tables is the recommended way to format tables as the styling can be applied dynamically across columns and rows. You can also use themes and apply alternating colors to rows/columns. Go to ``Insert`` > ``Table`` and make sure that you activate ``My table has headers`` before clicking on ``OK``. Then add the placeholder as usual on the top-left in your template:
+Using Excel tables is the recommended way to format tables as the styling can be applied dynamically across columns and rows. You can also use themes and apply alternating colors to rows/columns. Go to ``Insert`` > ``Table`` and make sure that you activate ``My table has headers`` before clicking on ``OK``. Add the placeholder as usual on the top-left of your Excel table:
+
+.. note:: When you work with Excel tables, you are required to use frames, i.e. add ``<frame>>`` into cell A1.
 
 .. figure:: images/excel_table_template.png
     :scale: 60%
