@@ -1,6 +1,12 @@
 What's New
 ==========
 
+v0.21.2 (Nov 15, 2020)
+----------------------
+
+* [Bug Fix] The default ``quickstart`` setup now also works when you store your workbooks on OneDrive (:issue:`1275`)
+* [Bug Fix] Excel files that have single quotes in their paths are now working correctly (:issue:`1021`)
+
 v0.21.1 (Nov 13, 2020)
 ----------------------
 
