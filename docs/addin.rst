@@ -81,6 +81,8 @@ With environment variables, you can set dynamic paths e.g. to your interpreter o
 * On Windows, you can use all environment variables like so: ``%USERPROFILE%\Anaconda``.
 * On macOS, the following special variables are supported: ``$HOME``, ``$APPLICATIONS``, ``$DOCUMENTS``, ``$DESKTOP``.
 
+.. _user_file:
+
 User Config: Ribbon/Config File
 -------------------------------
 
@@ -102,6 +104,10 @@ The format is as follows (currently the keys are required to be all caps) - note
     "DEBUG UDFS",""
     "USE UDF SERVER",""
     "SHOW CONSOLE",""
+    "ONEDRIVE",""
+
+.. note::
+    The ``ONEDRIVE`` setting has to be edited directly in the file, there is currently no possibility to edit it via the ribbon. Usually, it is only required if you are either on macOS or if your environment vars on Windows are not correctly set or if you have a private and corporate location and don't want to go with the default one. ``ONEDRIVE`` has to point to the root folder of your local OneDrive folder.
 
 Workbook Directory Config: Config file
 --------------------------------------
