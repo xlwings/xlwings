@@ -15,3 +15,14 @@ Solution:
    operable program or batch file.``, then you have two options: Either add the path of where your ``python.exe`` lives to your Windows path
    (see https://www.computerhope.com/issues/ch000549.htm) or set the full path to your interpreter in the add-in or your config sheet, e.g.
    ``C:\Users\MyUser\anaconda\pythonw.exe``
+
+Issue: Couldn't find the local location of your OneDrive
+--------------------------------------------------------
+
+Solution:
+
+On either the ``xlwings.conf`` sheet or on the ``xlwings.conf`` file under your home folder (for location see :ref:`user_config`), add the following setting::
+
+    "ONEDRIVE", "C:\path\to\OneDrive"
+
+Note: Don't use quotes on the ``xlwings.conf`` sheet.
