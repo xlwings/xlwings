@@ -2342,7 +2342,7 @@ class Table:
     >>> sht.tables[0]  # or sht.tables['TableName']
     <Table 'Table 1' in <Sheet [Book1]Sheet1>>
 
-    .. versionchanged:: 0.21.0
+    .. versionadded:: 0.21.0
     """
     def __init__(self, *args, **options):
         impl = options.pop('impl', None)
@@ -2500,12 +2500,14 @@ class Table:
 
         Updates the Excel table with the provided data. Currently restricted to DataFrames.
 
+        .. versionchanged:: 0.21.3
+
         Arguments
         ---------
 
         data : pandas DataFrame
-            Currently restricted to pandas DataFrames. Note that the DataFrame index is not
-            sent to Excel. If you do want to include it, make sure to do ``df.reset_index()``.
+            Currently restricted to pandas DataFrames. If you want to hide the index,
+            set the first column as the index, e.g. ``df.set_index('column_name')``.
 
         Returns
         -------
@@ -2527,7 +2529,9 @@ class Table:
             df = pd.DataFrame(data=nrows * [ncols * ['test']],
                               columns=['col ' + str(i) for i in range(ncols)])
 
-            # Insert a new table if it doesn't exist yet, otherwise update the existing one
+            # Hide the index, then insert a new table if it doesn't exist yet,
+            # otherwise update the existing one
+            df = df.set_index('col 0')
             if table_name in [table.name for table in sheet.tables]:
                 sheet.tables[table_name].update(df)
             else:

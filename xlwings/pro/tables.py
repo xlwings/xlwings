@@ -14,8 +14,8 @@ def update(self, data):
             self.range[:, len(self.range.columns) - col_diff:].delete()
         if self.data_body_range:
             self.data_body_range.delete()
-        self.range[1:, :].options(index=False, header=False).value = data
-        self.header_row_range.value = list(data.columns)
+        self.header_row_range.value = list(data.index.names) + list(data.columns)
+        self.range[1:, :].options(index=True, header=False).value = data
         return self
     else:
         raise TypeError(type_error_msg)

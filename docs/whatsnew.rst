@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.21.3 (Nov 22, 2020)
+----------------------
+
+* :guilabel:`PRO` **Breaking Change**: The :meth:`Table.update <xlwings.main.Table.update>` method has been changed to treat the DataFrame's index consistently whether or not it's being written to an Excel table: by default, the index is now transferred to Excel in both cases.
+
 v0.21.2 (Nov 15, 2020)
 ----------------------
 
