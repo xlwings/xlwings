@@ -101,7 +101,7 @@ will generate this report:
 Excel Tables
 ------------
 
-Using Excel tables is the recommended way to format tables as the styling can be applied dynamically across columns and rows. You can also use themes and apply alternating colors to rows/columns. Go to ``Insert`` > ``Table`` and make sure that you activate ``My table has headers`` before clicking on ``OK``. Add the placeholder as usual on the top-left of your Excel table:
+Using Excel tables is the recommended way to format tables as the styling can be applied dynamically across columns and rows. You can also use themes and apply alternating colors to rows/columns. On top of that, they are the easiest way to make the source of a chart dynamic. Go to ``Insert`` > ``Table`` and make sure that you activate ``My table has headers`` before clicking on ``OK``. Add the placeholder as usual on the top-left of your Excel table:
 
 .. figure:: images/excel_table_template.png
     :scale: 60%
@@ -115,7 +115,7 @@ Running the following script::
     df = pd.DataFrame(data=nrows * [ncols * ['test']],
                       columns=['col ' + str(i) for i in range(ncols)])
 
-    create_report('template.xlsx', 'output.xlsx', df=df)
+    create_report('template.xlsx', 'output.xlsx', df=df.set_index('col 0'))
 
 Will produce the following report:
 
@@ -123,6 +123,6 @@ Will produce the following report:
     :scale: 60%
 
 .. note::
-    * When using Excel tables, DataFrame indices are excluded by default. If you would like to include them, make sure to reset the index before providing the DataFrame to the ``create_report`` function: ``df.reset_index()``.
+    * If you would like to exclude the DataFrame index, make sure to set the index to the first column e.g.: ``df.set_index('column_name')``.
     * At the moment, you can only assign pandas DataFrames to tables.
-    * For Excel table support, you need at least version 0.21.0
+    * For Excel table support, you need at least version 0.21.0 and the index behavior was changed in 0.21.3
