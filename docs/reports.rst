@@ -126,3 +126,24 @@ Will produce the following report:
     * If you would like to exclude the DataFrame index, make sure to set the index to the first column e.g.: ``df.set_index('column_name')``.
     * At the moment, you can only assign pandas DataFrames to tables.
     * For Excel table support, you need at least version 0.21.0 and the index behavior was changed in 0.21.3
+
+Shape Text
+----------
+
+.. versionadded:: 0.21.4
+
+You can also use Shapes like Text Boxes or Rectangles with template text::
+
+    from xlwings.pro.reports import create_report
+
+    create_report('template.xlsx', 'output.xlsx', temperature=12.3)
+
+This code turns this template:
+
+.. figure:: images/shape_text_template.png
+    :scale: 60%
+
+into this report:
+
+.. figure:: images/shape_text_report.png
+    :scale: 60%

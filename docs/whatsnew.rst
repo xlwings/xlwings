@@ -1,6 +1,12 @@
 What's New
 ==========
 
+v0.21.4 (Nov 23, 2020)
+----------------------
+
+* [Enhancement] New property :attr:`Shape.text <xlwings.Shape.text>` to read and write text to the text frame of shapes (:issue:`1456`).
+* :guilabel:`PRO` [Feature]: xlwings Reports now supports template text in shapes, see :ref:`xlwings Reports<reports_quickstart>`.
+
 v0.21.3 (Nov 22, 2020)
 ----------------------
 
