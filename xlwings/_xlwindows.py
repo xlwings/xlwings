@@ -1262,7 +1262,8 @@ class Shape:
 
     @property
     def text(self):
-        return self.xl.TextFrame2.TextRange.Text
+        if self.xl.TextFrame2.HasText:
+            return self.xl.TextFrame2.TextRange.Text
 
     @text.setter
     def text(self, value):

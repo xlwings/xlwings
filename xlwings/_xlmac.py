@@ -893,7 +893,8 @@ class Shape:
 
     @property
     def text(self):
-        return self.xl.shape_text_frame.text_range.content.get()
+        text = self.xl.shape_text_frame.text_range.content.get()
+        return text if text != kw.missing_value else None
 
     @text.setter
     def text(self, value):

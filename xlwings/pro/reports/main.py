@@ -1,4 +1,3 @@
-import os
 import sys
 import shutil
 
@@ -6,7 +5,6 @@ from jinja2 import Environment
 
 from ..utils import LicenseHandler
 from ...main import Book
-from ...constants import FixedFormatType, FixedFormatQuality
 
 try:
     import PIL
@@ -29,7 +27,6 @@ except ImportError:
     pd = None
 
 LicenseHandler.validate_license('reports')
-string_types = (str, )  # in case we need to reintroduce py27 compatibility
 
 
 def create_report(template, output, book_settings=None, app=None, **data):
@@ -144,7 +141,7 @@ def create_report(template, output, book_settings=None, app=None, **data):
             row_shift = 0
             for i, row in enumerate(values):
                 for j, value in enumerate(row):
-                    if isinstance(value, string_types):
+                    if isinstance(value, str):
                         tokens = list(env.lex(value))
                         if value.count('{{') == 1 and tokens[0][1] == 'variable_begin' and tokens[-1][1] == 'variable_end':
                             # Cell contains single Jinja variable
@@ -212,6 +209,13 @@ def create_report(template, output, book_settings=None, app=None, **data):
                         else:
                             # Don't do anything with cells that don't contain any templating so we don't lose the formatting
                             pass
+
+        # Loop through all shapes with a template text
+        for shape in sheet.shapes:
+            shapetext = shape.text
+            if shapetext and '{{' in shapetext:
+                template = env.from_string(shapetext)
+                shape.text = template.render(data)
     wb.save()
     return wb
 
