@@ -891,6 +891,15 @@ class Shape:
         self.xl.scale_width(scale=scaling[scale], relative_to_original_size=relative_to_original_size,
                             factor=factor)
 
+    @property
+    def text(self):
+        if self.xl.shape_text_frame.has_text.get():
+            return self.xl.shape_text_frame.text_range.content.get()
+
+    @text.setter
+    def text(self, value):
+        self.xl.shape_text_frame.text_range.content.set(value)
+
 
 class Collection:
 

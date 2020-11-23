@@ -45,8 +45,8 @@ class TestCreateReport(unittest.TestCase):
                            data['df1'])
 
     def test_df_table(self):
-        df = self.wb.sheets['Sheet4']['A1'].options(pd.DataFrame, expand='table', index=False).value
-        df.index = ['r0', 'r1']
+        df = self.wb.sheets['Sheet4']['A1'].options(pd.DataFrame, expand='table').value
+        df.index.name = None
         assert_frame_equal(df, data['df1'])
         self.assertIsNotNone(self.wb.sheets['Sheet4']['A1'].table)
 
@@ -59,8 +59,8 @@ class TestCreateReport(unittest.TestCase):
         self.assertEqual(self.wb.sheets[1].pictures[0].left, self.wb.sheets[1]['A17'].left)
 
     def test_matplotlib(self):
-        self.assertEqual(self.wb.sheets[1].pictures[1].top, self.wb.sheets[1]['B33'].top)
-        self.assertEqual(self.wb.sheets[1].pictures[1].left, self.wb.sheets[1]['B33'].left)
+        self.assertAlmostEqual(self.wb.sheets[1].pictures[1].top, self.wb.sheets[1]['B33'].top, places=2)
+        self.assertAlmostEqual(self.wb.sheets[1].pictures[1].left, self.wb.sheets[1]['B33'].left, places=2)
 
     def test_used_range(self):
         self.assertEqual(self.wb.sheets[2]['B11'].value, 'This is text with a substringtest.')
@@ -68,6 +68,13 @@ class TestCreateReport(unittest.TestCase):
 
     def test_different_vars_at_either_end(self):
         self.assertEqual(self.wb.sheets[0]['I1'].value, 'stringtest vs. stringtest')
+
+    def test_shape_text(self):
+        self.assertEqual(self.wb.sheets[4].shapes['TextBox 1'].text, 'This is no template. So the formatting should be left untouched.')
+        self.assertEqual(self.wb.sheets[4].shapes['Oval 2'].text, 'This shows stringtest.')
+        self.assertEqual(self.wb.sheets[4].shapes['TextBox 3'].text, 'This shows stringtest.')
+        self.assertEqual(self.wb.sheets[4].shapes['TextBox 4'].text, 'stringtest')
+        self.assertIsNone(self.wb.sheets[4].shapes['Oval 5'].text)
 
 
 class TestBookSettings(unittest.TestCase):
@@ -113,10 +120,10 @@ class TestFrames(unittest.TestCase):
                 assert_frame_equal(sheet['A4'].options(pd.DataFrame, expand='table').value, df)
                 assert_frame_equal(sheet['A9'].options(pd.DataFrame, expand='table').value, df)
             elif i == 1:
-                df_table1 = sheet['A4'].options(pd.DataFrame, expand='table', index=False).value
-                df_table1.index = ['r1', 'r2']
-                df_table2 = sheet['A9'].options(pd.DataFrame, expand='table', index=False).value
-                df_table2.index = ['r1', 'r2']
+                df_table1 = sheet['A4'].options(pd.DataFrame, expand='table').value
+                df_table1.index.name = None
+                df_table2 = sheet['A9'].options(pd.DataFrame, expand='table').value
+                df_table2.index.name = None
                 assert_frame_equal(df_table1, df)
                 assert_frame_equal(df_table2, df)
             self.assertEqual(sheet['A3'].color, (0, 176, 240))

@@ -2295,6 +2295,20 @@ class Shape:
                               scale=scale)
 
     @property
+    def text(self):
+        """
+        Returns or sets the text of a shape.
+
+        .. versionadded:: 0.21.4
+        """
+        return self.impl.text
+
+    @text.setter
+    def text(self, value):
+        self.impl.text = value
+
+
+    @property
     def parent(self):
         """
         Returns the parent of the shape.

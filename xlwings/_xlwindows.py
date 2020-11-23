@@ -1260,6 +1260,15 @@ class Shape:
         self.xl.ScaleWidth(Scale=scaling[scale], RelativeToOriginalSize=relative_to_original_size,
                            Factor=factor)
 
+    @property
+    def text(self):
+        if self.xl.TextFrame2.HasText:
+            return self.xl.TextFrame2.TextRange.Text
+
+    @text.setter
+    def text(self, value):
+        self.xl.TextFrame2.TextRange.Text = value
+
 
 class Collection:
 
