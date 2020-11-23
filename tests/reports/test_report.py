@@ -74,7 +74,7 @@ class TestCreateReport(unittest.TestCase):
         self.assertEqual(self.wb.sheets[4].shapes['Oval 2'].text, 'This shows stringtest.')
         self.assertEqual(self.wb.sheets[4].shapes['TextBox 3'].text, 'This shows stringtest.')
         self.assertEqual(self.wb.sheets[4].shapes['TextBox 4'].text, 'stringtest')
-        self.assertEqual(self.wb.sheets[4].shapes['Oval 5'].text, '')
+        self.assertIsNone(self.wb.sheets[4].shapes['Oval 5'].text)
 
 
 class TestBookSettings(unittest.TestCase):
