@@ -59,8 +59,8 @@ class TestCreateReport(unittest.TestCase):
         self.assertEqual(self.wb.sheets[1].pictures[0].left, self.wb.sheets[1]['A17'].left)
 
     def test_matplotlib(self):
-        self.assertEqual(self.wb.sheets[1].pictures[1].top, self.wb.sheets[1]['B33'].top)
-        self.assertEqual(self.wb.sheets[1].pictures[1].left, self.wb.sheets[1]['B33'].left)
+        self.assertAlmostEqual(self.wb.sheets[1].pictures[1].top, self.wb.sheets[1]['B33'].top, places=2)
+        self.assertAlmostEqual(self.wb.sheets[1].pictures[1].left, self.wb.sheets[1]['B33'].left, places=2)
 
     def test_used_range(self):
         self.assertEqual(self.wb.sheets[2]['B11'].value, 'This is text with a substringtest.')
