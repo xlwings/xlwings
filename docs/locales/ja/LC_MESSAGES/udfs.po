@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xlwings dev\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-12 17:46+0900\n"
+"POT-Creation-Date: 2020-12-04 08:45+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -84,8 +84,7 @@ msgstr "シンプルなUDF"
 msgid ""
 "The default addin settings expect a Python source file in the way it is "
 "created by ``quickstart``:"
-msgstr "``quickstart`` で作成した場合、デフォルトの設定では、Pythonのソース ファイルは"
-"次のようになっていなければなりません:"
+msgstr "``quickstart`` で作成した場合、デフォルトの設定では、Pythonのソース ファイルは次のようになっていなければなりません:"
 
 #: ../../udfs.rst:33
 msgid "in the same directory as the Excel file"
@@ -359,38 +358,62 @@ msgid ""
 msgstr "関数および引数x、yのdocstringを書いて、Excelの関数ウィザードに表示させる方法を以下の例で示します。"
 
 #: ../../udfs.rst:218
-msgid "The \"vba\" keyword"
-msgstr "\"vba\" キーワード"
+msgid "The \"caller\" argument"
+msgstr "\"caller\" 引数"
 
 #: ../../udfs.rst:220
 msgid ""
-"It's often helpful to get the address of the calling cell. Right now, one"
-" of the easiest ways to accomplish this is to use the ``vba`` keyword. "
-"``vba``, in fact, allows you to access any available VBA expression e.g. "
-"``Application``. Note, however, that currently you're acting directly on "
-"the pywin32 COM object::"
+"You often need to know which cell called the UDF. For this, xlwings "
+"offers the reserved argument ``caller`` which returns the calling cell as"
+" xlwings range object::"
 msgstr ""
-"呼び出し元セルのアドレスが必要なこともあるでしょう。 ``vba`` "
-"キーワードを使えば、簡単にアドレスを取得することができます。実は、``vba`` は ``Application`` "
-"のようなVBAで表現できるもの全てにアクセスできます。しかしながら、現時点ではpywin32 "
-"COMオブジェクトを直接実行している点には留意しておいてください::"
+"UDF呼び出し元セルが必要なこともあります。 xlwingsには予約済み引数 ``caller`` があり、"
+"UDFの呼び出し元セルを表すxlwingsのrangeオブジェクトとして利用できます::"
+
+#: ../../udfs.rst:228
+msgid ""
+"Note that ``caller`` will not be exposed in Excel but will be provided by"
+" xlwings behind the scenes."
+msgstr ""
+"注意: ``caller`` はExcelからは見えませんが、xlwingsが自動的に生成します。"
+
+#: ../../udfs.rst:231
+msgid "The \"vba\" keyword"
+msgstr "\"vba\" キーワード"
 
 #: ../../udfs.rst:233
+msgid ""
+"By using the ``vba`` keyword, you can get access to any Excel VBA object "
+"in the form of a pywin32 object. For example, if you wanted to pass the "
+"sheet object in the form of its ``CodeName``, you can do it as follows::"
+msgstr ""
+"``vba`` キーワードを使えば、pywin32オブジェクトの形のあらゆるExcel VBAオブジェクトに"
+"アクセスすることができます。例えば、シート オブジェクトを ``CodeName`` で"
+"参照するには次のようにします::"
+
+#: ../../udfs.rst:242
+msgid ""
+"Note that ``vba`` arguments are not exposed in the UDF but automatically "
+"provided by xlwings."
+msgstr ""
+"注意: ``vba`` 引数はExcelからは見えませんが、xlwingsが自動的に生成します。"
+
+#: ../../udfs.rst:247
 msgid "Macros"
 msgstr "マクロ"
 
-#: ../../udfs.rst:235
+#: ../../udfs.rst:249
 msgid ""
-"On Windows, as alternative to calling macros via :ref:`RunPython "
+"On Windows, as an alternative to calling macros via :ref:`RunPython "
 "<run_python>`, you can also use the ``@xw.sub`` decorator::"
 msgstr ""
 "Windowsでは、 :ref:`RunPython <run_python>` でマクロを呼び出す代わりに、 ``@xw.sub`` "
 "デコレーターを使うこともできます。"
 
-#: ../../udfs.rst:246
+#: ../../udfs.rst:260
 msgid ""
 "After clicking on ``Import Python UDFs``, you can then use this macro by "
-"executing it via ``Alt + F8`` or by binding it e.g. to a button. To to "
+"executing it via ``Alt + F8`` or by binding it e.g. to a button. To do "
 "the latter, make sure you have the ``Developer`` tab selected under "
 "``File > Options > Customize Ribbon``. Then, under the ``Developer`` tab,"
 " you can insert a button via ``Insert > Form Controls``. After drawing "
@@ -402,21 +425,25 @@ msgstr ""
 " ``開発`` タブが選択されている事を確認してください。 ``開発`` タブ内の ``挿入 > フォーム コントロール`` "
 "から、ボタンを挿入します。ボタン描画後、マクロを割り当てるプロンプトが表示されるので、 ``my_macro`` を選択してください。"
 
-#: ../../udfs.rst:254
+#: ../../udfs.rst:268
 msgid "Call UDFs from VBA"
 msgstr "VBAからUDFを呼び出す"
 
-#: ../../udfs.rst:256
+#: ../../udfs.rst:270
 msgid ""
 "Imported functions can also be used from VBA. For example, for a function"
 " returning a 2d array:"
 msgstr "インポートした関数はVBAからも利用できます。2次元配列を返す関数の例を以下に示します:"
 
-#: ../../udfs.rst:279
+#: ../../udfs.rst:293
 msgid "Asynchronous UDFs"
 msgstr "非同期UDF"
 
-#: ../../udfs.rst:283
+#: ../../udfs.rst:296
+msgid "This is an experimental feature"
+msgstr ""
+
+#: ../../udfs.rst:300
 msgid ""
 "xlwings offers an easy way to write asynchronous functions in Excel. "
 "Asynchronous functions return immediately with ``#N/A waiting...``. While"
@@ -427,7 +454,7 @@ msgstr ""
 "xlwingsには、Excelの非同期関数を簡単に書く方法もあります。 非期関数は、即時に　``#N/A waiting...`` "
 "を返します。関数が戻り値を待つ間、Excelを使って他のことができます。まが、戻り値が取得でき次第、セルの値はアップデートされます。"
 
-#: ../../udfs.rst:287
+#: ../../udfs.rst:304
 msgid ""
 "The only available mode is currently ``async_mode='threading'``, meaning "
 "that it's useful for I/O-bound tasks, for example when you fetch data "
@@ -436,7 +463,7 @@ msgstr ""
 "現在利用可能なモードは ``async_mode='threading'`` "
 "のみで、例えば、ウェブからAPIでデータを利用する場合のようなI/Oバウンドなタスクに有用です。"
 
-#: ../../udfs.rst:290
+#: ../../udfs.rst:307
 msgid ""
 "You make a function asynchronous simply by giving it the respective "
 "argument in the function decorator. In this example, the time consuming "
@@ -445,16 +472,16 @@ msgstr ""
 "関数のデコレーターに対応する引数を入れれば、簡単に非同期関数を作れます。次の例では、時間がかかるI/Oバウンドなタスクを、 "
 "``time.sleep`` でシミュレートしています::"
 
-#: ../../udfs.rst:303
+#: ../../udfs.rst:320
 msgid ""
 "You can use this function like any other xlwings function, simply by "
 "putting ``=myfunction(\"abcd\")`` into a cell (after you have imported "
-"the function, off course)."
+"the function, of course)."
 msgstr ""
 "他のxlwings関数と同様に、セルに ``=myfunction(\"abcd\")`` "
 "を入力すればこの関数を利用できます（もちろん、関数をインポートした後でですが）"
 
-#: ../../udfs.rst:306
+#: ../../udfs.rst:323
 msgid ""
 "Note that xlwings doesn't use the native asynchronous functions that were"
 " introduced with Excel 2010, so xlwings asynchronous functions are "
@@ -462,4 +489,20 @@ msgid ""
 msgstr ""
 "なお、xlwingsはExcel "
 "2010で導入されたネイティブな非同期関数を使用していないので、xlwingsの非同期関数は全バージョンのExcelで使えます。"
+
+#~ msgid ""
+#~ "It's often helpful to get the "
+#~ "address of the calling cell. Right "
+#~ "now, one of the easiest ways to"
+#~ " accomplish this is to use the "
+#~ "``vba`` keyword. ``vba``, in fact, "
+#~ "allows you to access any available "
+#~ "VBA expression e.g. ``Application``. Note, "
+#~ "however, that currently you're acting "
+#~ "directly on the pywin32 COM object::"
+#~ msgstr ""
+#~ "呼び出し元セルのアドレスが必要なこともあるでしょう。 ``vba`` "
+#~ "キーワードを使えば、簡単にアドレスを取得することができます。実は、``vba`` は ``Application``"
+#~ " のようなVBAで表現できるもの全てにアクセスできます。しかしながら、現時点ではpywin32 "
+#~ "COMオブジェクトを直接実行している点には留意しておいてください::"
 

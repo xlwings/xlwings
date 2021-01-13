@@ -425,6 +425,13 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     is_dynamic_array = ret_info['options'].get('expand')
     xw_caller = Range(impl=xlplatform.Range(xl=caller))
 
+    # If there is the 'reserved' argument "caller", assign the caller object
+    for info in args_info:
+        if info['name'] == 'caller':
+            args = list(args)
+            args[info['pos']] = ComRange(xw_caller)
+            args = tuple(args)
+
     writing = func_info.get('writing', None)
     if writing and writing == xw_caller.address:
         return func_info['rval']
@@ -537,6 +544,8 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
             vararg = ''
             n_args = len(xlfunc['args'])
             for arg in xlfunc['args']:
+                if arg['name'] == 'caller':
+                    arg['vba'] = 'Nothing'  # will be replaced with caller under call_udf
                 if not arg['vba']:
                     argname = arg['name']
                     if not first:
@@ -681,6 +690,8 @@ def import_udfs(module_names, xl_workbook):
         os.unlink(tf.name)
     except:
         pass
+    msg = f'Imported functions from the following modules: {", ".join(module_names)}'
+    logger.info(msg) if logger.hasHandlers() else print(msg)
 
 
 @functools.lru_cache(None)

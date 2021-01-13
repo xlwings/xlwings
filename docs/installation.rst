@@ -9,7 +9,7 @@ Prerequisites
 * xlwings requires an **installation of Excel** and therefore only works on **Windows** and **macOS**. Note that macOS currently does not support UDFs.
 * xlwings requires at least Python 3.6.
 
-Last version of xlwings to support
+Here are the last versions of xlwings to support:
 
 * Python 3.5: 0.19.5
 * Python 2.7: 0.16.6
@@ -17,7 +17,7 @@ Last version of xlwings to support
 Installation
 ------------
 
-xlwings comes pre-installed with `Anaconda <https://www.anaconda.com/distribution>`_. If you are new to Python or have troubles installing xlwings, Anaconda is highly recommended. Otherwise you can also install it manually with pip::
+xlwings comes pre-installed with `Anaconda <https://www.anaconda.com/products/individual>`_. If you are new to Python or have trouble installing xlwings, Anaconda is highly recommended. Otherwise you can also install it manually with pip::
 
     pip install xlwings
 
@@ -25,7 +25,7 @@ or conda::
 
     conda install xlwings
 
-Note that the official ``conda`` package might be few releases behind. You can, however, 
+Note that the official ``conda`` package might be a few releases behind. You can, however,
 use the ``conda-forge`` channel (replace ``install`` with ``upgrade`` if xlwings is already installed)::
 
   conda install -c conda-forge xlwings
@@ -49,7 +49,7 @@ To call Excel from Python, you don't need an add-in. Also, you can use a single 
 Dependencies
 ------------
 
-* **Windows**: ``pywin32``, ``comtypes``
+* **Windows**: ``pywin32``
 
 * **Mac**: ``psutil``, ``appscript``
 
@@ -67,7 +67,7 @@ To activate the license key, run the following command::
 
     xlwings license update -k LICENSE_KEY
 
-This will store the license key under your ``xlwings.conf`` file in your home folder. Alternatively, you can also store the license key under an environment variable with the name ``XLWINGS_LICENSE_KEY``.
+Make sure to replace ``LICENSE_KEY`` with your personal key. This will store the license key under your ``xlwings.conf`` file in your home folder. Alternatively, you can also store the license key under an environment variable with the name ``XLWINGS_LICENSE_KEY``.
 
 xlwings PRO requires additionally the ``cryptography`` and ``Jinja2`` packages which come pre-installed with Anaconda. Otherwise, install them via pip or conda.
 
@@ -81,8 +81,8 @@ Optional Dependencies
 * Matplotlib
 * Pillow/PIL
 * Flask (for REST API)
-* cryptography (for xlwings PRO)
-* Jinja2 (for xlwings PRO)
+* cryptography (for xlwings.pro)
+* Jinja2 (for xlwings.pro.reports)
 
 These packages are not required but highly recommended as they play very nicely with xlwings. They are all pre-installed with Anaconda. With pip, you can install xlwings with all optional dependencies as follows::
 

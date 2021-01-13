@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xlwings dev\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-08-05 08:40+0900\n"
+"POT-Creation-Date: 2020-12-04 08:45+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.8.0\n"
--
+
 #: ../../installation.rst:4 ../../installation.rst:18
 msgid "Installation"
 msgstr "インストール"
@@ -36,7 +36,7 @@ msgid "xlwings requires at least Python 3.6."
 msgstr "xlwingsはPython 3.6以上で動作します。"
 
 #: ../../installation.rst:12
-msgid "Last version of xlwings to support"
+msgid "Here are the last versions of xlwings to support:"
 msgstr "Pythonバージョンとそれに対応する最後のxlwingsのバージョンの関係は次のとおり"
 
 #: ../../installation.rst:14
@@ -50,9 +50,9 @@ msgstr ""
 #: ../../installation.rst:20
 msgid ""
 "xlwings comes pre-installed with `Anaconda "
-"<https://www.anaconda.com/distribution>`_. If you are new to Python or "
-"have troubles installing xlwings, Anaconda is highly recommended. "
-"Otherwise you can also install it manually with pip::"
+"<https://www.anaconda.com/products/individual>`_. If you are new to "
+"Python or have trouble installing xlwings, Anaconda is highly "
+"recommended. Otherwise you can also install it manually with pip::"
 msgstr ""
 "xlwingは `Anaconda <https://www.anaconda.com/distribution>`_ "
 "に含まれています。Pythonを初めて使う場合や、xlwingsのインストールでトラブルが起きている場合には、Anacondaの利用を強く推奨します。Anacondaを利用しない場合には、pipを使って手動でインストールできます:"
@@ -63,12 +63,13 @@ msgstr "もしくはcondaで::"
 
 #: ../../installation.rst:28
 msgid ""
-"Note that the official ``conda`` package might be few releases behind. "
+"Note that the official ``conda`` package might be a few releases behind. "
 "You can, however, use the ``conda-forge`` channel (replace ``install`` "
 "with ``upgrade`` if xlwings is already installed)::"
 msgstr ""
-"公式の ``conda`` からインストールしたパッケージは少し前のリリースの場合があります。その場合、 ``conda-forge`` "
-"チャネルを使ってください（xlwingsがインストール済みなら ``install`` を ``upgrade`` に置き換えて下さい）::"
+"公式の ``conda`` からインストールしたパッケージは少し前にリリースされたバージョンの"
+"場合があります。その場合、 ``conda-forge`` チャネルを使いましょう"
+"（xlwingsがインストール済みなら ``install`` を ``upgrade`` に置き換えて下さい）::"
 
 #: ../../installation.rst:34
 msgid ""
@@ -111,8 +112,8 @@ msgid "Dependencies"
 msgstr "依存関係"
 
 #: ../../installation.rst:52
-msgid "**Windows**: ``pywin32``, ``comtypes``"
-msgstr "**Windows**: ``pywin32``, ``comtypes``"
+msgid "**Windows**: ``pywin32``"
+msgstr "**Windows**: ``pywin32``"
 
 #: ../../installation.rst:54
 msgid "**Mac**: ``psutil``, ``appscript``"
@@ -132,7 +133,7 @@ msgid ""
 "PRO features are marked with xlwings :guilabel:`PRO` in the docs."
 msgstr ""
 "xlwings PROは :ref:`additional functionality <pro>` "
-"を提供します。全てのPRO機能は、ドキュメント上ではxlwings :guilabel:`PRO` と記載されています。"
+"を提供します。ドキュメントではPRO機能に xlwings :guilabel:`PRO` と記載しています。"
 
 #: ../../installation.rst:64
 msgid ""
@@ -151,12 +152,14 @@ msgstr "ライセンス キーを有効化するには、以下のコマンド�
 
 #: ../../installation.rst:70
 msgid ""
-"This will store the license key under your ``xlwings.conf`` file in your "
-"home folder. Alternatively, you can also store the license key under an "
+"Make sure to replace ``LICENSE_KEY`` with your personal key. This will "
+"store the license key under your ``xlwings.conf`` file in your home "
+"folder. Alternatively, you can also store the license key under an "
 "environment variable with the name ``XLWINGS_LICENSE_KEY``."
 msgstr ""
-"このコマンドで、ホームフォルダーの ``xlwings.conf`` ファイルに、ライセンス キーを保存します。もしくは、 "
-"``XLWINGS_LICENSE_KEY`` という名前の環境変数にライセンス キーを保存することもできます。"
+"``LICENSE_KEY`` をあなたが取得したキーに置き換えてください。"
+"このコマンドで、ホームフォルダーの ``xlwings.conf`` ファイルに、ライセンス キーを保存します。"
+"もしくは、 ``XLWINGS_LICENSE_KEY`` という名前の環境変数にライセンス キーを保存することもできます。"
 
 #: ../../installation.rst:72
 msgid ""
@@ -200,11 +203,11 @@ msgid "Flask (for REST API)"
 msgstr ""
 
 #: ../../installation.rst:84
-msgid "cryptography (for xlwings PRO)"
+msgid "cryptography (for xlwings.pro)"
 msgstr ""
 
 #: ../../installation.rst:85
-msgid "Jinja2 (for xlwings PRO)"
+msgid "Jinja2 (for xlwings.pro.reports)"
 msgstr ""
 
 #: ../../installation.rst:87
@@ -305,4 +308,10 @@ msgstr "最後に `.xlwings` ディレクトリーがホーム フォルダー�
 
 #~ msgid "On **macOS only**, additionaly run::"
 #~ msgstr "**macOS の場合だけ**、次も実行してください::"
+
+#~ msgid "cryptography (for xlwings PRO)"
+#~ msgstr ""
+
+#~ msgid "Jinja2 (for xlwings PRO)"
+#~ msgstr ""
 

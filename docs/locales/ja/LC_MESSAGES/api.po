@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xlwings dev\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-08-05 11:31+0900\n"
+"POT-Creation-Date: 2020-12-04 11:53+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,19 +29,18 @@ msgid ""
 "Opens a new workbook and displays an object on its first sheet by "
 "default. If you provide a sheet object, it will clear the sheet before "
 "displaying the object on the existing sheet."
-msgstr ""
-"デフォルトでは、新しいワークブックを開き、その最初のシートにオブジェクトを表示します。"
-"シートを指定すれば、シートをクリアした上でオブジェクトを表示します。"
+msgstr "デフォルトでは、新しいワークブックを開き、その最初のシートにオブジェクトを表示します。シートを指定すれば、シートをクリアした上でオブジェクトを表示します。"
 
 #: of xlwings.App xlwings.App.activate xlwings.App.macro xlwings.Book
 #: xlwings.Book.activate xlwings.Book.macro xlwings.Book.save
-#: xlwings.Chart.set_source_data xlwings.Picture.update xlwings.Range
-#: xlwings.Range.add_hyperlink xlwings.Range.copy xlwings.Range.delete
-#: xlwings.Range.end xlwings.Range.expand xlwings.Range.get_address
-#: xlwings.Range.insert xlwings.Range.merge xlwings.Range.options
-#: xlwings.Range.paste xlwings.Range.resize xlwings.Sheet.autofit
-#: xlwings.main.Books.open xlwings.main.Charts.add xlwings.main.Names.add
-#: xlwings.main.Pictures.add xlwings.main.Sheets.add xlwings.view
+#: xlwings.Book.to_pdf xlwings.Chart.set_source_data xlwings.Picture.update
+#: xlwings.Range xlwings.Range.add_hyperlink xlwings.Range.copy
+#: xlwings.Range.delete xlwings.Range.end xlwings.Range.expand
+#: xlwings.Range.get_address xlwings.Range.insert xlwings.Range.merge
+#: xlwings.Range.options xlwings.Range.paste xlwings.Range.resize
+#: xlwings.Sheet.autofit xlwings.main.Books.open xlwings.main.Charts.add
+#: xlwings.main.Names.add xlwings.main.Pictures.add xlwings.main.Sheets.add
+#: xlwings.main.Table.update xlwings.main.Tables.add xlwings.view
 msgid "パラメータ"
 msgstr ""
 
@@ -49,19 +48,20 @@ msgstr ""
 msgid ""
 "the object to display, e.g. numbers, strings, lists, numpy arrays, pandas"
 " dataframes"
-msgstr ""
-"表示するオブジェクト。例えば、数字、文字列、リスト、numpy arrays、pandas dataframes"
+msgstr "表示するオブジェクト。例えば、数字、文字列、リスト、numpy arrays、pandas dataframes"
 
 #: of xlwings.view:6
 msgid "Sheet object. If none provided, the first sheet of a new workbook is used."
 msgstr "Sheet オブジェクト。指定がなければ新しいワークブックの最初のシートになります。"
 
 #: of xlwings.App.calculation:5 xlwings.App.macro:7 xlwings.App.version:4
-#: xlwings.Book.macro:7 xlwings.Book.set_mock_caller:5 xlwings.Range:10
-#: xlwings.Range.color:10 xlwings.Range.end:8 xlwings.Range.expand:10
-#: xlwings.Range.get_address:17 xlwings.Range.hyperlink:4
-#: xlwings.Range.number_format:4 xlwings.Sheet.autofit:10
-#: xlwings.main.Charts.add:16 xlwings.main.Pictures.add:24 xlwings.view:10
+#: xlwings.Book.macro:7 xlwings.Book.set_mock_caller:5 xlwings.Book.to_pdf:15
+#: xlwings.Range:10 xlwings.Range.color:10 xlwings.Range.end:8
+#: xlwings.Range.expand:10 xlwings.Range.get_address:17
+#: xlwings.Range.hyperlink:4 xlwings.Range.number_format:4
+#: xlwings.Sheet.autofit:10 xlwings.main.Charts.add:16
+#: xlwings.main.Pictures.add:24 xlwings.main.Table.update:15
+#: xlwings.main.Tables.add:25 xlwings.view:10
 msgid "Examples"
 msgstr "例"
 
@@ -85,8 +85,7 @@ msgstr "戻り値はアクティブなappです。"
 msgid ""
 "Creates a new App. The new App becomes the active one. Returns an App "
 "object."
-msgstr ""
-"新規Appを作成し戻します。新しいAppはアクティブになります。"
+msgstr "新規Appを作成し戻します。新しいAppはアクティブになります。"
 
 #: of xlwings.main.Apps.count:1
 msgid "Returns the number of apps."
@@ -96,8 +95,7 @@ msgstr "戻り値はAppオブジェクトの数です。"
 msgid ""
 "Provides the PIDs of the Excel instances that act as keys in the Apps "
 "collection."
-msgstr ""
-"Appsコレクションのキーとなる、各ExcelインスタンスのPIDを返します。"
+msgstr "Appsコレクションのキーとなる、各ExcelインスタンスのPIDを返します。"
 
 #: ../../api.rst:24
 msgid "App"
@@ -107,27 +105,20 @@ msgstr ""
 msgid ""
 "An app corresponds to an Excel instance. New Excel instances can be fired"
 " up like so:"
-msgstr ""
-"appはExcelインスタンスに対応します。 New Excel instances can be fired"
-" up like so:"
+msgstr "appはExcelインスタンスに対応します。 New Excel instances can be fired up like so:"
 
 #: of xlwings.App:7
 msgid ""
 "An app object is a member of the :meth:`apps <xlwings.main.Apps>` "
 "collection:"
-msgstr ""
-"appオブジェクトは :meth:`apps <xlwings.main.Apps>` コレクションの"
-"メンバーです:"
+msgstr "appオブジェクトは :meth:`apps <xlwings.main.Apps>` コレクションのメンバーです:"
 
 #: of xlwings.App:16
 msgid ""
 "Returns or sets a boolean value that determines whether the app is "
 "visible. The default leaves the state unchanged or sets visible=True if "
 "the object doesn't exist yet."
-msgstr ""
-"表示するか否かのブール値を戻すもしくは設定します。"
-"デフォルトでは値は変更されないか、オブジェクトがまだ存在していない場合には"
-"visible=Trueが設定されます。"
+msgstr "表示するか否かのブール値を戻すもしくは設定します。デフォルトでは値は変更されないか、オブジェクトがまだ存在していない場合にはvisible=Trueが設定されます。"
 
 #: of xlwings.App:19
 msgid ""
@@ -145,9 +136,8 @@ msgid ""
 "``/Applications/Microsoft Office 2011/Microsoft Excel`` or "
 "``/Applications/Microsoft Excel``"
 msgstr ""
-"Macのみ、Excelアプリケーションへのフルパスを指定します。例えば、"
-"``/Applications/Microsoft Office 2011/Microsoft Excel`` や "
-"``/Applications/Microsoft Excel``  "
+"Macのみ、Excelアプリケーションへのフルパスを指定します。例えば、``/Applications/Microsoft Office "
+"2011/Microsoft Excel`` や ``/Applications/Microsoft Excel``  "
 
 #: of xlwings.App:22
 msgid ""
@@ -155,9 +145,8 @@ msgid ""
 " to, go to ``Control Panel > Programs and Features`` and ``Repair`` the "
 "Office version that you want as default."
 msgstr ""
-"Windowsでは、xlwingsと連携するExcelのバージョンを変更したい場合、"
-"``コントロールパネル > プログラムと機能`` からデフォルトで使いたい"
-"オフィスのバージョンに ``変更`` します。"
+"Windowsでは、xlwingsと連携するExcelのバージョンを変更したい場合、``コントロールパネル > プログラムと機能`` "
+"からデフォルトで使いたいオフィスのバージョンに ``変更`` します。"
 
 #: of xlwings.App:27
 msgid ""
@@ -168,12 +157,9 @@ msgid ""
 " out yourself so that the same file is not being overwritten from "
 "different instances."
 msgstr ""
-"Macでは、xlwingsを使えば複数のExcelインスタンスを実行できますが、"
-"複数のExcelインスタンスの実行はMac版Excelでは公式にはサポートされて"
-"いません: Windowsとは異なり、既に他のインスタンスで開かれているファイルを"
-"を開こうとする時に、Excelは読み取り専用で開くかどうかを聞きません。"
-"したがって、同じファイルが異なるインスタンスから上書きされていないか"
-"どうかを気を付ける必要があります。"
+"Macでは、xlwingsを使えば複数のExcelインスタンスを実行できますが、複数のExcelインスタンスの実行はMac版Excelでは公式にはサポートされていません:"
+" "
+"Windowsとは異なり、既に他のインスタンスで開かれているファイルをを開こうとする時に、Excelは読み取り専用で開くかどうかを聞きません。したがって、同じファイルが異なるインスタンスから上書きされていないかどうかを気を付ける必要があります。"
 
 #: of xlwings.App.activate:1
 msgid "Activates the Excel app."
@@ -183,21 +169,17 @@ msgstr "Exel appをアクティブにします。"
 msgid ""
 "If True, make frontmost application and hand over focus from Python to "
 "Excel."
-msgstr ""
-"Trueの場合、最も前面のアプリケーションにし、フォーカスをPythonからExcelに"
-"変更します。"
+msgstr "Trueの場合、最も前面のアプリケーションにし、フォーカスをPythonからExcelに変更します。"
 
 #: of xlwings.App.api:1 xlwings.Book.api:1 xlwings.Chart.api:1
 #: xlwings.Name.api:1 xlwings.Picture.api:1 xlwings.Range.api:1
 #: xlwings.Shape.api:1 xlwings.Sheet.api:1 xlwings.main.Charts.api:1
 #: xlwings.main.Names.api:1 xlwings.main.Pictures.api:1
-#: xlwings.main.Shapes.api:1
+#: xlwings.main.Shapes.api:1 xlwings.main.Table.api:1
 msgid ""
 "Returns the native object (``pywin32`` or ``appscript`` obj) of the "
 "engine being used."
-msgstr ""
-"使用しているエンジンのネイティブ オブジェクト(``pywin32`` オブジェクトまたは "
-"``appscript`` オブジェクト)を返します。"
+msgstr "使用しているエンジンのネイティブ オブジェクト(``pywin32`` オブジェクトまたは ``appscript`` オブジェクト)を返します。"
 
 #: of xlwings.App.books:1
 msgid "A collection of all Book objects that are currently open."
@@ -212,8 +194,8 @@ msgid ""
 "Returns or sets a calculation value that represents the calculation mode."
 " Modes: ``'manual'``, ``'automatic'``, ``'semiautomatic'``"
 msgstr ""
-"計算モードを表す値を返すまたは設定します。"
-" 計算モード: ``'manual'``、 ``'automatic'``、 ``'semiautomatic'``"
+"計算モードを表す値を返すまたは設定します。 計算モード: ``'manual'``、 ``'automatic'``、 "
+"``'semiautomatic'``"
 
 #: of xlwings.App.display_alerts:1
 msgid ""
@@ -221,9 +203,8 @@ msgid ""
 " and alert messages while code is running; when a message requires a "
 "response, Excel chooses the default response."
 msgstr ""
-"デフォルト値はTrueです。コード実行中のプロンプトやアラート メッセージを"
-"非表示にするには、Falseを設定します。Falseに設定した場合、メッセージが"
-"レスポンスを必要とするときにはExcelはデフォルト値で返します。"
+"デフォルト値はTrueです。コード実行中のプロンプトやアラート "
+"メッセージを非表示にするには、Falseを設定します。Falseに設定した場合、メッセージがレスポンスを必要とするときにはExcelはデフォルト値で返します。"
 
 #: of xlwings.App.hwnd:1
 msgid "Returns the Window handle (Windows-only)."
@@ -237,9 +218,7 @@ msgstr "プロセスをキルしてExcelアプリを強制的に終了します�
 msgid ""
 "Runs a Sub or Function in Excel VBA that are not part of a specific "
 "workbook but e.g. are part of an add-in."
-msgstr ""
-"特定のワークブックではない、アドイン等に含まれるExcel VBAのSubや"
-"Functionを実行します。"
+msgstr "特定のワークブックではない、アドイン等に含まれるExcel VBAのSubやFunctionを実行します。"
 
 #: of xlwings.App.macro:8 xlwings.Book.macro:8
 msgid "This VBA function:"
@@ -270,10 +249,7 @@ msgid ""
 "Turn screen updating off to speed up your script. You won't be able to "
 "see what the script is doing, but it will run faster. Remember to set the"
 " screen_updating property back to True when your script ends."
-msgstr ""
-"スクリプトの処理を速くするために、スクリーンの更新を止めます。"
-"スクリプトが何をしているのかが見えなくなる代わりに、速くなります。"
-"スクリプト終了時にTrueに戻すことを忘れないでください。"
+msgstr "スクリプトの処理を速くするために、スクリーンの更新を止めます。スクリプトが何をしているのかが見えなくなる代わりに、速くなります。スクリプト終了時にTrueに戻すことを忘れないでください。"
 
 #: of xlwings.App.selection:1 xlwings.Book.selection:1
 msgid "Returns the selected cells as Range."
@@ -284,16 +260,14 @@ msgid ""
 "Returns the path to ``XLSTART`` which is where the xlwings add-in gets "
 "copied to by doing ``xlwings addin install``."
 msgstr ""
-"``xlwings addin install`` コマンドでxlwingsアドインをコピーした先の"
-"``XLSTART`` フォルダーのパスを返します。"
+"``xlwings addin install`` コマンドでxlwingsアドインをコピーした先の``XLSTART`` "
+"フォルダーのパスを返します。"
 
 #: of xlwings.App.status_bar:1
 msgid ""
 "Gets or sets the value of the status bar. Returns ``False`` if Excel has "
 "control of it."
-msgstr ""
-"ステータスバーの値を取得または設定します。Excelがステータスバーを"
-"コントロールしている場合には ``False`` を返します。"
+msgstr "ステータスバーの値を取得または設定します。Excelがステータスバーをコントロールしている場合には ``False`` を返します。"
 
 #: of xlwings.App.version:1
 msgid "Returns the Excel version number object."
@@ -319,16 +293,13 @@ msgstr "アクティブなBookを返します。"
 msgid ""
 "Creates a new Book. The new Book becomes the active Book. Returns a Book "
 "object."
-msgstr ""
-"新しいBookを作成し、返します。新しいBookはアクティブになります。"
+msgstr "新しいBookを作成し、返します。新しいBookはアクティブになります。"
 
 #: of xlwings.main.Books.open:1
 msgid ""
 "Opens a Book if it is not open yet and returns it. If it is already open,"
 " it doesn't raise an exception but simply returns the Book object."
-msgstr ""
-"開いていなければ、ブックを開き返します。既に開いていれば、エラーは出さずに"
-"Bookオブジェクトを返します。"
+msgstr "開いていなければ、ブックを開き返します。既に開いていれば、エラーは出さずにBookオブジェクトを返します。"
 
 #: of xlwings.main.Books.open:4
 msgid ""
@@ -336,9 +307,8 @@ msgid ""
 " or ``'file.xlsm'``. Without a full path, it looks for the file in the "
 "current working directory."
 msgstr ""
-"ファイル名またはフルパス。例えば ``r'C:\\path\\to\\file.xlsx'``"
-" や ``'file.xlsm'``。フルパス以外の場合、カレント ワーキング ディレクトリー"
-"からファイルを探します。"
+"ファイル名またはフルパス。例えば ``r'C:\\path\\to\\file.xlsx'`` や "
+"``'file.xlsm'``。フルパス以外の場合、カレント ワーキング ディレクトリーからファイルを探します。"
 
 #: of xlwings.main.Books.open:7
 msgid "see: :meth:`xlwings.Book()`"
@@ -352,7 +322,8 @@ msgstr ":meth:`xlwings.Book()` を参考"
 #: xlwings.Range.resize xlwings.Range.row xlwings.Range.row_height
 #: xlwings.Range.top xlwings.Range.value xlwings.Range.width
 #: xlwings.Sheet.used_range xlwings.main.Books.open xlwings.main.Charts.add
-#: xlwings.main.Names.add xlwings.main.Pictures.add
+#: xlwings.main.Names.add xlwings.main.Pictures.add xlwings.main.Table.update
+#: xlwings.main.Tables.add
 msgid "戻り値"
 msgstr ""
 
@@ -368,7 +339,8 @@ msgstr ""
 #: xlwings.Range.resize xlwings.Range.row xlwings.Range.row_height
 #: xlwings.Range.top xlwings.Range.value xlwings.Range.width
 #: xlwings.Sheet.used_range xlwings.main.Books.open xlwings.main.Charts.add
-#: xlwings.main.Names.add xlwings.main.Pictures.add
+#: xlwings.main.Names.add xlwings.main.Pictures.add xlwings.main.Table.update
+#: xlwings.main.Tables.add
 msgid "戻り値の型"
 msgstr ""
 
@@ -380,9 +352,7 @@ msgstr ""
 msgid ""
 "A book object is a member of the :meth:`books <xlwings.main.Books>` "
 "collection:"
-msgstr ""
-"bookオブジェクトは :meth:`books <xlwings.main.Books>` コレクションの"
-"メンバーです:"
+msgstr "bookオブジェクトは :meth:`books <xlwings.main.Books>` コレクションのメンバーです:"
 
 #: of xlwings.Book:8
 msgid ""
@@ -391,12 +361,11 @@ msgid ""
 "book be open in multiple instances. To connect to a book in the active "
 "app instance, use ``xw.books`` and to refer to a specific app, use:"
 msgstr ""
-"``xw.Book`` を使えば、最も簡単にブックに接続できます: ``xw.Book`` は"
-"接続先のブックを開いているかどうかを全てのExcelインスタンスに対して確認し、"
-"もし複数のExcelインスタンスが接続先のブックを同時に開いていればエラーを返します。"
-"アクティブなExcelインスタンスのブックに接続するには、 ``xw.books`` を使います。"
-"また、特定のappを参照するには次のようにします:"
+"``xw.Book`` を使えば、最も簡単にブックに接続できます: ``xw.Book`` "
+"は接続先のブックを開いているかどうかを全てのExcelインスタンスに対して確認し、もし複数のExcelインスタンスが接続先のブックを同時に開いていればエラーを返します。アクティブなExcelインスタンスのブックに接続するには、"
+" ``xw.books`` を使います。また、特定のappを参照するには次のようにします:"
 
+#: of xlwings.Book:16
 msgid "xw.Book"
 msgstr ""
 
@@ -446,16 +415,14 @@ msgid ""
 " an unsaved workbook. Without a full path, it looks for the file in the "
 "current working directory."
 msgstr ""
-"既存のワークブックのフルパスまたは名前(xlsx、xlsm等を含む)、もしくは未保存の"
-"ワークブックの名前。フルパス以外の場合、カレント ワーキング ディレクトリーから"
-"ファイルを探します。"
+"既存のワークブックのフルパスまたは名前(xlsx、xlsm等を含む)、もしくは未保存のワークブックの名前。フルパス以外の場合、カレント ワーキング"
+" ディレクトリーからファイルを探します。"
 
 #: of xlwings.Book:28
 msgid ""
 "If this argument is omitted, the user is prompted to specify how links "
 "will be updated"
-msgstr ""
-"引数が省略された場合、リンクのアップデートについてのプロンプトが現れます。"
+msgstr "引数が省略された場合、リンクのアップデートについてのプロンプトが現れます。"
 
 #: of xlwings.Book:30
 msgid "True to open workbook in read-only mode"
@@ -481,9 +448,7 @@ msgstr "``True`` を設定すれば読み取り専用を推奨するメッセー
 msgid ""
 "For text files only. Specifies where it originated. Use XlPlatform "
 "constants."
-msgstr ""
-"テキストファイル専用。どこでテキストファイルが生成されたかを特定します。"
-"XlPlatform定数を使用します。"
+msgstr "テキストファイル専用。どこでテキストファイルが生成されたかを特定します。XlPlatform定数を使用します。"
 
 #: of xlwings.Book:42
 msgid "If format argument is 6, this specifies the delimiter."
@@ -497,9 +462,7 @@ msgstr "このオプションはレガシーなMicrosoft Excel 4.0アドイン�
 msgid ""
 "Notify the user when a file becomes available If the file cannot be "
 "opened in read/write mode."
-msgstr ""
-"読み込み/書き込みモードで開けなかったファイルが、使えるようになった時に"
-"ユーザーに通知します。"
+msgstr "読み込み/書き込みモードで開けなかったファイルが、使えるようになった時にユーザーに通知します。"
 
 #: of xlwings.Book:48
 msgid "The index of the first file converter to try when opening the file."
@@ -514,16 +477,14 @@ msgid ""
 "If ``True``, saves files against the language of Excel, otherwise against"
 " the language of VBA. Not supported on macOS."
 msgstr ""
-"``True`` の場合、Excelの言語に反してファイルを保存します。そうでなければ、"
-"VBAの言語に反して保存します。macOSではサポートされていません。"
+"``True`` "
+"の場合、Excelの言語に反してファイルを保存します。そうでなければ、VBAの言語に反して保存します。macOSではサポートされていません。"
 
 #: of xlwings.Book:55
 msgid ""
 "Can be one of xlNormalLoad, xlRepairFile or xlExtractData. Not supported "
 "on macOS."
-msgstr ""
-"xlNormalLoad、xlRepairFile、xlExtractDataから選択します。macOSでは"
-"サポートされていません。"
+msgstr "xlNormalLoad、xlRepairFile、xlExtractDataから選択します。macOSではサポートされていません。"
 
 #: of xlwings.Book.activate:1
 msgid "Activates the book."
@@ -543,17 +504,14 @@ msgid ""
 " via ``RunPython``. Pack it into the function being called from Excel, "
 "e.g.::"
 msgstr ""
-"Pythonの関数がExcelから ``RunPython`` で呼び出されている場合に、呼び出し元の"
-"ブックを参照します。Excelから呼び出されている関数の中に入れてください。"
-"例::"
+"Pythonの関数がExcelから ``RunPython`` "
+"で呼び出されている場合に、呼び出し元のブックを参照します。Excelから呼び出されている関数の中に入れてください。例::"
 
 #: of xlwings.Book.caller:10
 msgid ""
 "To be able to easily invoke such code from Python for debugging, use "
 "``xw.Book.set_mock_caller()``."
-msgstr ""
-"Pythonやデバッグ時にそのようなコードを簡単に実行するには、"
-"``xw.Book.set_mock_caller()`` を使用してください。"
+msgstr "Pythonやデバッグ時にそのようなコードを簡単に実行するには、``xw.Book.set_mock_caller()`` を使用してください。"
 
 #: of xlwings.Book.close:1
 msgid "Closes the book without saving it."
@@ -563,8 +521,7 @@ msgstr "保存せずにブックを閉じます。"
 msgid ""
 "Returns the name of the object, including its path on disk, as a string. "
 "Read-only String."
-msgstr ""
-"ディスク上のパスを含むオブジェクトの名前を文字列で返します。読み取り専用。"
+msgstr "ディスク上のパスを含むオブジェクトの名前を文字列で返します。読み取り専用。"
 
 #: of xlwings.Book.macro:1
 msgid "Runs a Sub or Function in Excel VBA."
@@ -582,9 +539,7 @@ msgstr "ブックの名前を文字列で返します。"
 msgid ""
 "Returns a names collection that represents all the names in the specified"
 " book (including all sheet-specific names)."
-msgstr ""
-"ブックに含まれる（シート固有のものを含む）すべての名前の定義を"
-"表すnamesコレクションを返します。"
+msgstr "ブックに含まれる（シート固有のものを含む）すべての名前の定義を表すnamesコレクションを返します。"
 
 #: of xlwings.Book.save:1
 msgid ""
@@ -593,10 +548,8 @@ msgid ""
 "previously, it's being saved in the current working directory with the "
 "current filename. Existing files are overwritten without prompting."
 msgstr ""
-"ワークブックを保存します。pathが指定されれば、ExcelのSaveAs()と同様に"
-"動作します。pathの指定がなく保存されていないファイルの場合は、カレント "
-"ワーキング ディレクトリーに現在のファイル名で保存されます。"
-"存在するファイルはプロンプトなしで上書きされます。"
+"ワークブックを保存します。pathが指定されれば、ExcelのSaveAs()と同様に動作します。pathの指定がなく保存されていないファイルの場合は、カレント"
+" ワーキング ディレクトリーに現在のファイル名で保存されます。存在するファイルはプロンプトなしで上書きされます。"
 
 #: of xlwings.Book.save:5
 msgid "Full path to the workbook"
@@ -612,13 +565,48 @@ msgid ""
 "Sets the Excel file which is used to mock ``xw.Book.caller()`` when the "
 "code is called from Python and not from Excel via ``RunPython``."
 msgstr ""
-"コードがExcelから ``RunPython``で呼び出されるのではなく、Pythonから"
-"呼び出されている場合に、Excelファイルを ``xw.Book.caller()`` として"
-"利用するために設定します。"
+"コードがExcelから ``RunPython`` で呼び出されるのではなく、Pythonから呼び出されている場合に、Excelファイルを "
+"``xw.Book.caller()`` として利用するために設定します。"
 
 #: of xlwings.Book.sheets:1
 msgid "Returns a sheets collection that represents all the sheets in the book."
 msgstr "ブック内のすべてのsheetを表すsheetsコレクションを返します。"
+
+#: of xlwings.Book.to_pdf:1
+msgid ""
+"Exports the whole Excel workbook or a subset of the sheets to a PDF file."
+" If you want to print hidden sheets, you will need to list them "
+"explicitely under ``include``."
+msgstr ""
+"Excelワークブック全体またはシートの一部をPDFファイルにエクスポートします。"
+"非表示のシートを印刷するには、明示的に ``include`` 引数に含める必要があります。"
+
+#: of xlwings.Book.to_pdf:4
+msgid ""
+"Path to the PDF file, defaults to the same name as the workbook, in the "
+"same directory. For unsaved workbooks, it defaults to the current working"
+" directory instead."
+msgstr ""
+"PDFファイルのパスで、デフォルトはワークブックと同じ名前、ディレクトリーになります。"
+"保存されていないワークブックの場合は、代わりにカレント ワーキング ディレトリーになります。"
+
+#: of xlwings.Book.to_pdf:7
+msgid ""
+"Which sheets to include: provide a selection of sheets in the form of "
+"sheet indices (1-based like in Excel) or sheet names. Can be an int/str "
+"for a single sheet or a list of int/str for multiple sheets."
+msgstr ""
+"どのシートを含めるか: シート番号（Excelのように1から始まるもの）またはシート名あるいは"
+"それらのリストで指定します。"
+
+#: of xlwings.Book.to_pdf:10
+msgid ""
+"Which sheets to exclude: provide a selection of sheets in the form of "
+"sheet indices (1-based like in Excel) or sheet names. Can be an int/str "
+"for a single sheet or a list of int/str for multiple sheets."
+msgstr ""
+"どのシートを除くか: シート番号（Excelのように1から始まるもの）またはシート名あるいは"
+"それらのリストで指定します。"
 
 #: ../../api.rst:46
 msgid "Sheets"
@@ -656,9 +644,7 @@ msgstr ""
 msgid ""
 "A sheet object is a member of the :meth:`sheets <xlwings.main.Sheets>` "
 "collection:"
-msgstr ""
-"sheetオブジェクトは :meth:`sheets <xlwings.main.Sheets>` コレクションの"
-"メンバーです:"
+msgstr "sheetオブジェクトは :meth:`sheets <xlwings.main.Sheets>` コレクションのメンバーです:"
 
 #: of xlwings.Sheet.activate:1
 msgid "Activates the Sheet and returns it."
@@ -695,9 +681,7 @@ msgstr "このシートを含むBookを返します。読み取り専用。"
 msgid ""
 "Returns a Range object that represents all the cells on the Sheet (not "
 "just the cells that are currently in use)."
-msgstr ""
-"Sheetオブジェクト上のすべてのセルを表すRangeオブジェクトを返します"
-"（現在使っているセルではありません）。"
+msgstr "Sheetオブジェクト上のすべてのセルを表すRangeオブジェクトを返します（現在使っているセルではありません）。"
 
 #: of xlwings.Sheet.charts:1
 msgid "See :meth:`Charts <xlwings.main.Charts>`"
@@ -727,9 +711,7 @@ msgstr "シート名を取得または設定します。"
 msgid ""
 "Returns a names collection that represents all the sheet-specific names "
 "(names defined with the \"SheetName!\" prefix)."
-msgstr ""
-"このシート内のすべての名前(\"SheetName!\" から始まるよう定義された名前)を"
-"表すnamesコレクションを返します。"
+msgstr "このシート内のすべての名前(\"SheetName!\" から始まるよう定義された名前)を表すnamesコレクションを返します。"
 
 #: of xlwings.Sheet.pictures:1
 msgid "See :meth:`Pictures <xlwings.main.Pictures>`"
@@ -739,9 +721,7 @@ msgstr ":meth:`Pictures <xlwings.main.Pictures>` を参照"
 msgid ""
 "Returns a Range object from the active sheet of the active book, see "
 ":meth:`Range`."
-msgstr ""
-"アクティブなブックのアクティブなシートからRangeオブジェクトを返します。"
-":meth:`Range` を参照。"
+msgstr "アクティブなブックのアクティブなシートからRangeオブジェクトを返します。:meth:`Range` を参照。"
 
 #: of xlwings.Sheet.select:1
 msgid "Selects the Sheet. Select only works on the active book."
@@ -751,9 +731,17 @@ msgstr "シートを選択します。このメソッドはブックがアクテ
 msgid "See :meth:`Shapes <xlwings.main.Shapes>`"
 msgstr ":meth:`Shapes <xlwings.main.Shapes>` を参照"
 
+#: of xlwings.Sheet.tables:1
+msgid "See :meth:`Tables <xlwings.main.Tables>`"
+msgstr ":meth:`Tables <xlwings.main.Tables>` を参照"
+
 #: of xlwings.Sheet.used_range:1
 msgid "Used Range of Sheet."
 msgstr "シートで使用しているRange。"
+
+#: of xlwings.Sheet.visible:1
+msgid "Gets or sets the visibility of the Sheet (bool)."
+msgstr "シートの表示/非表示（bool値）を取得または設定します。"
 
 #: ../../api.rst:58
 msgid "Range"
@@ -768,17 +756,13 @@ msgid ""
 "Name of the range in the upper-left corner in A1 notation or as index-"
 "tuple or as name or as xw.Range object. It can also specify a range using"
 " the range operator (a colon), .e.g. 'A1:B2'"
-msgstr ""
-"左上セルをA1表記、インデックスのタプル、xw.Rangeオブジェクトのいずれかで"
-"指定します。'A1:B2'のようにrangeオペレーター（コロンのこと）での指定も可。"
+msgstr "左上セルをA1表記、インデックスのタプル、xw.Rangeオブジェクトのいずれかで指定します。'A1:B2'のようにrangeオペレーター（コロンのこと）での指定も可。"
 
 #: of xlwings.Range:6
 msgid ""
 "Name of the range in the lower-right corner in A1 notation or as index-"
 "tuple or as name or as xw.Range object."
-msgstr ""
-"左下セルをA1表記、インデックスのタプル、xw.Rangeオブジェクトのいずれかで"
-"指定します。"
+msgstr "左下セルをA1表記、インデックスのタプル、xw.Rangeオブジェクトのいずれかで指定します。"
 
 #: of xlwings.Range:11
 msgid "Active Sheet:"
@@ -800,8 +784,7 @@ msgstr "ハイパーリンクのアドレス。"
 msgid ""
 "The text to be displayed for the hyperlink. Defaults to the hyperlink "
 "address."
-msgstr ""
-"ハイパーリンクに表示されるテキスト。デフォルトはハイパーリンクのアドレス。"
+msgstr "ハイパーリンクに表示されるテキスト。デフォルトはハイパーリンクのアドレス。"
 
 #: of xlwings.Range.add_hyperlink:7
 msgid ""
@@ -809,17 +792,14 @@ msgid ""
 "hyperlink. Default is set to '<address> - Click once to follow. Click and"
 " hold to select this cell.'"
 msgstr ""
-"マウスポインターをハイパーリンクに合わせたときに表示される文字。"
-"Default is set to '<address> - Click once to follow. Click and"
-" hold to select this cell.'"
+"マウスポインターをハイパーリンクに合わせたときに表示される文字。Default is set to '<address> - Click once"
+" to follow. Click and hold to select this cell.'"
 
 #: of xlwings.Range.address:1
 msgid ""
 "Returns a string value that represents the range reference. Use "
 "``get_address()`` to be able to provide paramaters."
-msgstr ""
-"参照先を表す文字列を返す。``get_address()`` を使えば細かいパラメーターを"
-"設定できます。"
+msgstr "参照先を表す文字列を返す。``get_address()`` を使えば細かいパラメーターを設定できます。"
 
 #: of xlwings.Range.autofit:1
 msgid "Autofits the width and height of all cells in the range."
@@ -829,17 +809,13 @@ msgstr "Rangeに含まれるすべてのセルの幅と高さを自動調整し�
 msgid ""
 "To autofit only the width of the columns use "
 "``xw.Range('A1:B2').columns.autofit()``"
-msgstr ""
-"列の幅のみを自動調整するには、 ``xw.Range('A1:B2').columns.autofit()`` "
-"とします。"
+msgstr "列の幅のみを自動調整するには、 ``xw.Range('A1:B2').columns.autofit()`` とします。"
 
 #: of xlwings.Range.autofit:4
 msgid ""
 "To autofit only the height of the rows use "
 "``xw.Range('A1:B2').rows.autofit()``"
-msgstr ""
-"行の高さのみを自動調整するには、 ``xw.Range('A1:B2').rows.autofit()`` "
-"とします。"
+msgstr "行の高さのみを自動調整するには、 ``xw.Range('A1:B2').rows.autofit()`` とします。"
 
 #: of xlwings.Range.clear:1
 msgid "Clears the content and the formatting of a Range."
@@ -859,9 +835,8 @@ msgid ""
 "constant. To remove the background, set the color to ``None``, see "
 "Examples."
 msgstr ""
-"背景色を設定するには、RGBタプル ``(0, 0, 0)`` または色の定数を使用します。"
-"背景色を削除するには、 ``None`` を設定します。以下の例をご覧ください。"
-"Examples."
+"背景色を設定するには、RGBタプル ``(0, 0, 0)`` または色の定数を使用します。背景色を削除するには、 ``None`` "
+"を設定します。以下の例をご覧ください。Examples."
 
 #: of xlwings.Range.color:6
 msgid "**RGB**"
@@ -871,46 +846,37 @@ msgstr ""
 msgid ""
 "Returns the number of the first column in the in the specified range. "
 "Read-only."
-msgstr ""
-"Rangeに含まれる最初の列の番号を返します。読み取り専用。"
+msgstr "Rangeに含まれる最初の列の番号を返します。読み取り専用。"
 
 #: of xlwings.Range.column_width:1
 msgid ""
 "Gets or sets the width, in characters, of a Range. One unit of column "
 "width is equal to the width of one character in the Normal style. For "
 "proportional fonts, the width of the character 0 (zero) is used."
-msgstr ""
-"Rangeの幅を文字数で取得または設定します。列幅の1単位は、標準スタイルの1文字の幅と同じです。"
-"プロポーショナルフォントの場合、文字の幅0（ゼロ）が使用されます。"
+msgstr "Rangeの幅を文字数で取得または設定します。列幅の1単位は、標準スタイルの1文字の幅と同じです。プロポーショナルフォントの場合、文字の幅0（ゼロ）が使用されます。"
 
 #: of xlwings.Range.column_width:5
 msgid ""
 "If all columns in the Range have the same width, returns the width. If "
 "columns in the Range have different widths, returns None."
-msgstr ""
-"Range内のすべての列幅が同じ場合は、幅を返します。 Rangeの列幅が異なる場合、"
-"Noneを返します。"
+msgstr "Range内のすべての列幅が同じ場合は、幅を返します。 Rangeの列幅が異なる場合、Noneを返します。"
 
 #: of xlwings.Range.column_width:8
 msgid "column_width must be in the range: 0 <= column_width <= 255"
 msgstr "column_widthは次の範囲内でなければなりません：0 <= column_width <= 255"
-
 
 #: of xlwings.Range.column_width:11
 msgid ""
 "Note: If the Range is outside the used range of the Worksheet, and "
 "columns in the Range have different widths, returns the width of the "
 "first column."
-msgstr ""
-"注：Rangeがワークシートの使用範囲外であり、Range内の列幅が異なる場合、"
-"最初の列幅を返します。"
+msgstr "注：Rangeがワークシートの使用範囲外であり、Range内の列幅が異なる場合、最初の列幅を返します。"
 
 #: of xlwings.Range.columns:1
 msgid ""
 "Returns a :class:`RangeColumns` object that represents the columns in the"
 " specified range."
-msgstr ""
-"指定したRange内の列の集合を表す :class:`RangeColumns` オブジェクトを返します。"
+msgstr "指定したRange内の列の集合を表す :class:`RangeColumns` オブジェクトを返します。"
 
 #: of xlwings.Range.copy:1
 msgid "Copy a range to a destination range or clipboard."
@@ -920,9 +886,7 @@ msgstr "貼り付け先のRangeまたはクリップボードにRangeをコピ�
 msgid ""
 "xlwings Range to which the specified range will be copied. If omitted, "
 "the range is copied to the Clipboard."
-msgstr ""
-"指定したRangeのコピー先となるxlwingsのRangeオブジェクト。"
-"省略した場合、Rangeはクリップボードにコピーされます。"
+msgstr "指定したRangeのコピー先となるxlwingsのRangeオブジェクト。省略した場合、Rangeはクリップボードにコピーされます。"
 
 #: of xlwings.Range.count:1
 msgid "Returns the number of cells."
@@ -935,10 +899,8 @@ msgid ""
 "edges of the worksheet. It corresponds to ``Ctrl-*`` on Windows and "
 "``Shift-Ctrl-Space`` on Mac."
 msgstr ""
-"このプロパティは、空白行、空白列またはワークシートの端のいずれかの組み合わせで"
-"囲まれた（空白行等を含まない）Rangeオブジェクトを返します。"
-"Windowsでは ``Ctrl-*`` （訳注: ``Ctrl-a`` の間違いか？）、Macでは"
-" ``Shift-Ctrl-Space`` に対応します。"
+"このプロパティは、空白行、空白列またはワークシートの端のいずれかの組み合わせで囲まれた（空白行等を含まない）Rangeオブジェクトを返します。Windowsでは"
+" ``Ctrl-*`` （訳注: ``Ctrl-a`` の間違いか？）、Macでは ``Shift-Ctrl-Space`` に対応します。"
 
 #: of xlwings.Range.delete:1
 msgid "Deletes a cell or range of cells."
@@ -948,9 +910,7 @@ msgstr "セルまたはセル範囲を削除します。"
 msgid ""
 "Use ``left`` or ``up``. If omitted, Excel decides based on the shape of "
 "the range."
-msgstr ""
-"`left`` または ``up`` を使用します。省略された場合、ExcelがRangeの形に基づき"
-"決定します。"
+msgstr "`left`` または ``up`` を使用します。省略された場合、ExcelがRangeの形に基づき決定します。"
 
 #: of xlwings.Range.end:1
 msgid ""
@@ -958,16 +918,14 @@ msgid ""
 "that contains the source range. Equivalent to pressing Ctrl+Up, "
 "Ctrl+down, Ctrl+left, or Ctrl+right."
 msgstr ""
-"データが入っている範囲の最後のセルを表すRangeオブジェクトを返します。"
-"Ctrl+Up、 Ctrl+down、 Ctrl+left または Ctrl+rightと同じものです。"
+"データが入っている範囲の最後のセルを表すRangeオブジェクトを返します。Ctrl+Up、 Ctrl+down、 Ctrl+left または "
+"Ctrl+rightと同じものです。"
 
 #: of xlwings.Range.expand:1
 msgid ""
 "Expands the range according to the mode provided. Ignores empty top-left "
 "cells (unlike ``Range.end()``)."
-msgstr ""
-"指定したmodeに応じてRangeを拡張します。左上セルが空白の場合は無視されます"
-" ( ``Range.end()`` とは異なる)。"
+msgstr "指定したmodeに応じてRangeを拡張します。左上セルが空白の場合は無視されます ( ``Range.end()`` とは異なる)。"
 
 #: of xlwings.Range.expand:3
 msgid "One of ``'table'`` (=down and right), ``'down'``, ``'right'``."
@@ -989,38 +947,31 @@ msgstr "指定したRangeのarray formulaプロパティを取得または設定
 msgid ""
 "Returns the address of the range in the specified format. ``address`` can"
 " be used instead if none of the defaults need to be changed."
-msgstr ""
-"指定したフォーマットでRangeのアドレスを返します。すべてデフォルトのままなら"
-"代わりに ``address`` を使えます。"
+msgstr "指定したフォーマットでRangeのアドレスを返します。すべてデフォルトのままなら代わりに ``address`` を使えます。"
 
 #: of xlwings.Range.get_address:4
 msgid ""
 "Set to True to return the row part of the reference as an absolute "
 "reference."
-msgstr ""
-"Trueを設定すれば、アドレスの行部分を絶対参照で取得します。"
+msgstr "Trueを設定すれば、アドレスの行部分を絶対参照で取得します。"
 
 #: of xlwings.Range.get_address:6
 msgid ""
 "Set to True to return the column part of the reference as an absolute "
 "reference."
-msgstr ""
-"Trueを設定すれば、アドレスの列部分を絶対参照で取得します。"
+msgstr "Trueを設定すれば、アドレスの列部分を絶対参照で取得します。"
 
 #: of xlwings.Range.get_address:8
 msgid ""
 "Set to True to include the Sheet name in the address. Ignored if "
 "external=True."
-msgstr ""
-"Trueを設定すれば、アドレスにシート名が含まれます。"
-"external=Trueの場合、無視されます。"
+msgstr "Trueを設定すれば、アドレスにシート名が含まれます。external=Trueの場合、無視されます。"
 
 #: of xlwings.Range.get_address:10
 msgid ""
 "Set to True to return an external reference with workbook and worksheet "
 "name."
-msgstr ""
-"Trueを設定すれば、アドレスにワークブック名とシート名が含まれます。"
+msgstr "Trueを設定すれば、アドレスにワークブック名とシート名が含まれます。"
 
 #: of xlwings.Range.has_array:1
 msgid "Are we part of an Array formula?"
@@ -1042,17 +993,15 @@ msgstr "シートにセルまたはセル範囲を挿入します。"
 msgid ""
 "Use ``right`` or ``down``. If omitted, Excel decides based on the shape "
 "of the range."
-msgstr ""
-"``right`` または ``down`` を使用します。省略された場合、rangeの形に基づき"
-"Excelが決定します。"
+msgstr "``right`` または ``down`` を使用します。省略された場合、rangeの形に基づきExcelが決定します。"
 
 #: of xlwings.Range.insert:5
 msgid ""
 "Use ``format_from_left_or_above`` or ``format_from_right_or_below``. Note"
 " that this is not supported on macOS."
 msgstr ""
-"``format_from_left_or_above`` または ``format_from_right_or_below`` を使用します。"
-"なお、macOSではサポートされていません。"
+"``format_from_left_or_above`` または ``format_from_right_or_below`` "
+"を使用します。なお、macOSではサポートされていません。"
 
 #: of xlwings.Range.last_cell:1
 msgid "Returns the bottom right cell of the specified range. Read-only."
@@ -1062,8 +1011,7 @@ msgstr "指定したRangeの右下セルを返します。読み取り専用。"
 msgid ""
 "Returns the distance, in points, from the left edge of column A to the "
 "left edge of the range. Read-only."
-msgstr ""
-"A列の左端からRangeの左端までの距離をポイント単位で返します。読み取り専用。"
+msgstr "A列の左端からRangeの左端までの距離をポイント単位で返します。読み取り専用。"
 
 #: of xlwings.Range.merge:1
 msgid "Creates a merged cell from the specified Range object."
@@ -1073,17 +1021,14 @@ msgstr "指定したRangeオブジェクトから結合セルを作ります。"
 msgid ""
 "True to merge cells in each row of the specified Range as separate merged"
 " cells."
-msgstr ""
-"Trueを設定すれば、指定したRangeの各行ごとにセルを結合します。"
+msgstr "Trueを設定すれば、指定したRangeの各行ごとにセルを結合します。"
 
 #: of xlwings.Range.merge_area:1
 msgid ""
 "Returns a Range object that represents the merged Range containing the "
 "specified cell. If the specified cell isn't in a merged range, this "
 "property returns the specified cell."
-msgstr ""
-"指定したRangeを含む結合セルを表すRangeオブジェクトを返します。"
-"指定したRangeが結合セルに含まれない場合、指定したRangeを返します。"
+msgstr "指定したRangeを含む結合セルを表すRangeオブジェクトを返します。指定したRangeが結合セルに含まれない場合、指定したRangeを返します。"
 
 #: of xlwings.Range.merge_cells:1
 msgid "Returns ``True`` if the Range contains merged cells, otherwise ``False``"
@@ -1101,8 +1046,7 @@ msgstr "Rangeの number_format を取得または設定します。"
 msgid ""
 "Returns a Range object that represents a Range that's offset from the "
 "specified range."
-msgstr ""
-"指定したRangeからオフセットしたRangeを表すRangeオブジェクトを返します。"
+msgstr "指定したRangeからオフセットしたRangeを表すRangeオブジェクトを返します。"
 
 #: of xlwings.Range.offset:3 xlwings.Range.resize:8
 msgid "**Range object**"
@@ -1115,10 +1059,8 @@ msgid ""
 " writing operations. If no explicit converter is specified, the base "
 "converter is being applied, see :ref:`converters`."
 msgstr ""
-"コンバーターおよびそのオプションの設定をします。コンバーターは、読み込み時と"
-"書き込み時の両方で、どのようにExcelのRangeまたはその値が変換されるかを定義します。"
-"コンバーターが明示的に指定されなければ、ベース コンバーターが適用されます。"
-" :ref:`converters` を参照。"
+"コンバーターおよびそのオプションの設定をします。コンバーターは、読み込み時と書き込み時の両方で、どのようにExcelのRangeまたはその値が変換されるかを定義します。コンバーターが明示的に指定されなければ、ベース"
+" コンバーターが適用されます。 :ref:`converters` を参照。"
 
 #: of xlwings.Range.options:5
 msgid ""
@@ -1157,9 +1099,8 @@ msgid ""
 "One of ``'table'``, ``'down'``, ``'right'``  => For converter-specific "
 "options, see :ref:`converters`."
 msgstr ""
-"``'table'`` 、 ``'down'`` 、 ``'right'`` のいずれか => コンバーター固有の"
-"オプションについては、 :ref:`converters` を参照。"
-
+"``'table'`` 、 ``'down'`` 、 ``'right'`` のいずれか => コンバーター固有のオプションについては、 "
+":ref:`converters` を参照。"
 
 #: of xlwings.Range.options:18
 msgid "One of ``'table'``, ``'down'``, ``'right'``"
@@ -1167,7 +1108,7 @@ msgstr "``'table'`` 、 ``'down'`` 、 ``'right'`` のいずれか"
 
 #: of xlwings.Range.options:20
 msgid "=> For converter-specific options, see :ref:`converters`."
-msgstr "=> コンバーター固有のオプションについては、 :ref:`converters` を参照。""
+msgstr "=> コンバーター固有のオプションについては、 :ref:`converters` を参照。\""
 
 #: of xlwings.Range.paste:1
 msgid "Pastes a range from the clipboard into the specified range."
@@ -1180,11 +1121,10 @@ msgid ""
 "``comments``, ``formats``, ``formulas``, ``formulas_and_number_formats``,"
 " ``validation``, ``values``, ``values_and_number_formats``."
 msgstr ""
-"``all_merging_conditional_formats`` 、 ``all`` 、 "
-"``all_except_borders`` 、 ``all_using_source_theme`` 、 "
-"``column_widths`` 、 ``comments`` 、 ``formats`` 、 ``formulas`` 、 "
-"``formulas_and_number_formats`` 、 ``validation`` 、 ``values`` 、 "
-"``values_and_number_formats`` のいずれか。"
+"``all_merging_conditional_formats`` 、 ``all`` 、 ``all_except_borders`` 、 "
+"``all_using_source_theme`` 、 ``column_widths`` 、 ``comments`` 、 "
+"``formats`` 、 ``formulas`` 、 ``formulas_and_number_formats`` 、 "
+"``validation`` 、 ``values`` 、 ``values_and_number_formats`` のいずれか。"
 
 #: of xlwings.Range.paste:7
 msgid "One of \"add\", \"divide\", \"multiply\", \"subtract\"."
@@ -1206,9 +1146,8 @@ msgid ""
 "speed is an issue but naturally will be engine specific, i.e. might "
 "remove the cross-platform compatibility."
 msgstr ""
-"xlwingsのデータ クリーニング/変換をせずに、エンジン(``pywin32`` または ``appscript``)"
-"から直接値を取得または設定します。速度が問題になるときには役立つかもしれませんが"
-"エンジンに依存するため、クロスプラットフォームの互換性は失われる可能性があります。"
+"xlwingsのデータ クリーニング/変換をせずに、エンジン(``pywin32`` または "
+"``appscript``)から直接値を取得または設定します。速度が問題になるときには役立つかもしれませんがエンジンに依存するため、クロスプラットフォームの互換性は失われる可能性があります。"
 
 #: of xlwings.Range.resize:1
 msgid "Resizes the specified Range"
@@ -1218,15 +1157,13 @@ msgstr "指定したRangeをリサイズします"
 msgid ""
 "The number of rows in the new range (if None, the number of rows in the "
 "range is unchanged)."
-msgstr ""
-"新しいRangeの行数(Noneの場合、行数は変化しません)。"
+msgstr "新しいRangeの行数(Noneの場合、行数は変化しません)。"
 
 #: of xlwings.Range.resize:5
 msgid ""
 "The number of columns in the new range (if None, the number of columns in"
 " the range is unchanged)."
-msgstr ""
-"新しいRangeの列数(Noneの場合、列数は変化しません)。"
+msgstr "新しいRangeの列数(Noneの場合、列数は変化しません)。"
 
 #: of xlwings.Range.row:1
 msgid "Returns the number of the first row in the specified range. Read-only."
@@ -1238,8 +1175,8 @@ msgid ""
 "have the same height, returns the height. If rows in the Range have "
 "different heights, returns None."
 msgstr ""
-"Rangeの高さをポイント単位で取得または設定します。Range内のすべての高さが同じ場合は、"
-"その高さを返します。 Rangeの高さが異なる場合、Noneを返します。"
+"Rangeの高さをポイント単位で取得または設定します。Range内のすべての高さが同じ場合は、その高さを返します。 "
+"Rangeの高さが異なる場合、Noneを返します。"
 
 #: of xlwings.Range.row_height:5
 msgid "row_height must be in the range: 0 <= row_height <= 409.5"
@@ -1249,17 +1186,13 @@ msgstr "row_heightは次の範囲内でなければなりません: 0 <= row_hei
 msgid ""
 "Note: If the Range is outside the used range of the Worksheet, and rows "
 "in the Range have different heights, returns the height of the first row."
-msgstr ""
-"注：Rangeがワークシートの使用範囲外であり、Range内の高さが異なる場合、"
-"最初の高さを返します。"
+msgstr "注：Rangeがワークシートの使用範囲外であり、Range内の高さが異なる場合、最初の高さを返します。"
 
 #: of xlwings.Range.rows:1
 msgid ""
 "Returns a :class:`RangeRows` object that represents the rows in the "
 "specified range."
-msgstr ""
-"指定したRangeに含まれるrowの集合を表す :class:`RangeRows` オブジェクトを"
-"返します。"
+msgstr "指定したRangeに含まれるrowの集合を表す :class:`RangeRows` オブジェクトを返します。"
 
 #: of xlwings.Range.select:1
 msgid "Selects the range. Select only works on the active book."
@@ -1277,12 +1210,15 @@ msgstr "Rangeが属するSheetオブジェクトを返します。"
 msgid "Number of elements in the Range."
 msgstr "Rangeに含まれる要素数を返します。"
 
+#: of xlwings.Range.table:1
+msgid "Returns a Table object if the range is part of one, otherwise ``None``."
+msgstr ""
+
 #: of xlwings.Range.top:1
 msgid ""
 "Returns the distance, in points, from the top edge of row 1 to the top "
 "edge of the range. Read-only."
-msgstr ""
-"1行目の上端からrangeの上端までの距離をポイント単位で返します。読み取り専用。"
+msgstr "1行目の上端からrangeの上端までの距離をポイント単位で返します。読み取り専用。"
 
 #: of xlwings.Range.unmerge:1
 msgid "Separates a merged area into individual cells."
@@ -1300,9 +1236,7 @@ msgstr ""
 msgid ""
 "returned object depends on the converter being used, see "
 ":meth:`xlwings.Range.options`"
-msgstr ""
-"戻り値のオブジェクトは、使用したコンバーターに依存します。"
-":meth:`xlwings.Range.options` を参照。"
+msgstr "戻り値のオブジェクトは、使用したコンバーターに依存します。:meth:`xlwings.Range.options` を参照。"
 
 #: of xlwings.Range.width:1
 msgid "Returns the width, in points, of a Range. Read-only."
@@ -1316,9 +1250,7 @@ msgstr ""
 msgid ""
 "Represents the rows of a range. Do not construct this class directly, use"
 " :attr:`Range.rows` instead."
-msgstr ""
-"Rangeの行の集合を表します。このクラスを直接生成しないでください。"
-"代わりに :attr:`Range.rows` を使用してください。"
+msgstr "Rangeの行の集合を表します。このクラスを直接生成しないでください。代わりに :attr:`Range.rows` を使用してください。"
 
 #: of xlwings.RangeRows.autofit:1
 msgid "Autofits the height of the rows."
@@ -1336,9 +1268,7 @@ msgstr ""
 msgid ""
 "Represents the columns of a range. Do not construct this class directly, "
 "use :attr:`Range.columns` instead."
-msgstr ""
-"Rangeの列の集合を表します。このクラスを直接生成しないでください。"
-"代わりに :attr:`Range.columns` を使用してください。"
+msgstr "Rangeの列の集合を表します。このクラスを直接生成しないでください。代わりに :attr:`Range.columns` を使用してください。"
 
 #: of xlwings.RangeColumns.autofit:1
 msgid "Autofits the width of the columns."
@@ -1369,8 +1299,7 @@ msgstr ""
 msgid ""
 "The shape object is a member of the :meth:`shapes <xlwings.main.Shapes>` "
 "collection:"
-msgstr ""
-"Shapeオブジェクトは :meth:`shapes <xlwings.main.Shapes>` コレクションのメンバーです:"
+msgstr "Shapeオブジェクトは :meth:`shapes <xlwings.main.Shapes>` コレクションのメンバーです:"
 
 #: of xlwings.Shape.activate:1
 msgid "Activates the shape."
@@ -1384,15 +1313,13 @@ msgstr "Shapeを削除します。"
 msgid ""
 "Returns or sets the number of points that represent the height of the "
 "shape."
-msgstr ""
-"Shapeの高さを表すポイント単位の数値を取得または設定します。"
+msgstr "Shapeの高さを表すポイント単位の数値を取得または設定します。"
 
 #: of xlwings.Shape.left:1
 msgid ""
 "Returns or sets the number of points that represent the horizontal "
 "position of the shape."
-msgstr ""
-"Shapeの水平位置を表すポイント単位の数値を取得または設定します。"
+msgstr "Shapeの水平位置を表すポイント単位の数値を取得または設定します。"
 
 #: of xlwings.Shape.name:1
 msgid "Returns or sets the name of the shape."
@@ -1427,8 +1354,8 @@ msgid ""
 "If ``False``, it scales relative to current height (default). For "
 "``True`` must be a picture or OLE object."
 msgstr ""
-"``False`` の場合、現在の高さからの相対的な大きさで拡大縮小します (デフォルト)。"
-"``True`` は図またはOLE objectでなければなりません。"
+"``False`` の場合、現在の高さからの相対的な大きさで拡大縮小します (デフォルト)。``True`` は図またはOLE "
+"objectでなければなりません。"
 
 #: of xlwings.Shape.scale_height:9 xlwings.Shape.scale_width:9
 msgid "scale"
@@ -1451,15 +1378,18 @@ msgid ""
 "If ``False``, it scales relative to current width (default). For ``True``"
 " must be a picture or OLE object."
 msgstr ""
-"``False`` の場合、現在の幅からの相対的な大きさで拡大縮小します (デフォルト)。"
-"``True`` は図またはOLE objectでなければなりません。"
+"``False`` の場合、現在の幅からの相対的な大きさで拡大縮小します (デフォルト)。``True`` は図またはOLE "
+"objectでなければなりません。"
+
+#: of xlwings.Shape.text:1
+msgid "Returns or sets the text of a shape."
+msgstr "Shapeのテキストを取得または設定します。"
 
 #: of xlwings.Shape.top:1
 msgid ""
 "Returns or sets the number of points that represent the vertical position"
 " of the shape."
-msgstr ""
-"Shapeの垂直位置を表すポイント単位の数値を取得または設定します。"
+msgstr "Shapeの垂直位置を表すポイント単位の数値を取得または設定します。"
 
 #: of xlwings.Shape.type:1
 msgid "Returns the type of the shape."
@@ -1469,8 +1399,7 @@ msgstr "Shapeの種類を返します。"
 msgid ""
 "Returns or sets the number of points that represent the width of the "
 "shape."
-msgstr ""
-"Shapeの幅を表すポイント単位の数値を取得または設定します。"
+msgstr "Shapeの幅を表すポイント単位の数値を取得または設定します。"
 
 #: ../../api.rst:92
 msgid "Charts"
@@ -1508,12 +1437,43 @@ msgstr ""
 msgid ""
 "The chart object is a member of the :meth:`charts <xlwings.main.Charts>` "
 "collection:"
-msgstr ""
-"Chartオブジェクトは :meth:`charts <xlwings.main.Charts>` コレクションのメンバーです:"
+msgstr "Chartオブジェクトは :meth:`charts <xlwings.main.Charts>` コレクションのメンバーです:"
 
 #: of xlwings.Chart.chart_type:1
-msgid "Returns and sets the chart type of the chart."
-msgstr "Chartの種類を取得または設定します。"
+msgid ""
+"Returns and sets the chart type of the chart. The following chart types "
+"are available:"
+msgstr ""
+"Chartの種類を取得または設定します。利用可能なチャート タイプは次の通り: "
+
+#: of xlwings.Chart.chart_type:3
+msgid ""
+"``3d_area``, ``3d_area_stacked``, ``3d_area_stacked_100``, "
+"``3d_bar_clustered``, ``3d_bar_stacked``, ``3d_bar_stacked_100``, "
+"``3d_column``, ``3d_column_clustered``, ``3d_column_stacked``, "
+"``3d_column_stacked_100``, ``3d_line``, ``3d_pie``, ``3d_pie_exploded``, "
+"``area``, ``area_stacked``, ``area_stacked_100``, ``bar_clustered``, "
+"``bar_of_pie``, ``bar_stacked``, ``bar_stacked_100``, ``bubble``, "
+"``bubble_3d_effect``, ``column_clustered``, ``column_stacked``, "
+"``column_stacked_100``, ``combination``, ``cone_bar_clustered``, "
+"``cone_bar_stacked``, ``cone_bar_stacked_100``, ``cone_col``, "
+"``cone_col_clustered``, ``cone_col_stacked``, ``cone_col_stacked_100``, "
+"``cylinder_bar_clustered``, ``cylinder_bar_stacked``, "
+"``cylinder_bar_stacked_100``, ``cylinder_col``, "
+"``cylinder_col_clustered``, ``cylinder_col_stacked``, "
+"``cylinder_col_stacked_100``, ``doughnut``, ``doughnut_exploded``, "
+"``line``, ``line_markers``, ``line_markers_stacked``, "
+"``line_markers_stacked_100``, ``line_stacked``, ``line_stacked_100``, "
+"``pie``, ``pie_exploded``, ``pie_of_pie``, ``pyramid_bar_clustered``, "
+"``pyramid_bar_stacked``, ``pyramid_bar_stacked_100``, ``pyramid_col``, "
+"``pyramid_col_clustered``, ``pyramid_col_stacked``, "
+"``pyramid_col_stacked_100``, ``radar``, ``radar_filled``, "
+"``radar_markers``, ``stock_hlc``, ``stock_ohlc``, ``stock_vhlc``, "
+"``stock_vohlc``, ``surface``, ``surface_top_view``, "
+"``surface_top_view_wireframe``, ``surface_wireframe``, ``xy_scatter``, "
+"``xy_scatter_lines``, ``xy_scatter_lines_no_markers``, "
+"``xy_scatter_smooth``, ``xy_scatter_smooth_no_markers``"
+msgstr ""
 
 #: of xlwings.Chart.delete:1
 msgid "Deletes the chart."
@@ -1523,15 +1483,13 @@ msgstr "Chartを削除します。"
 msgid ""
 "Returns or sets the number of points that represent the height of the "
 "chart."
-msgstr ""
-"Chartの高さを表すポイント単位の数値を取得または設定します。"
+msgstr "Chartの高さを表すポイント単位の数値を取得または設定します。"
 
 #: of xlwings.Chart.left:1
 msgid ""
 "Returns or sets the number of points that represent the horizontal "
 "position of the chart."
-msgstr ""
-"Chartの水平位置を表すポイント単位の数値を取得または設定します。"
+msgstr "Chartの水平位置を表すポイント単位の数値を取得または設定します。"
 
 #: of xlwings.Chart.name:1
 msgid "Returns or sets the name of the chart."
@@ -1553,15 +1511,13 @@ msgstr ""
 msgid ""
 "Returns or sets the number of points that represent the vertical position"
 " of the chart."
-msgstr ""
-"Chartの垂直位置を表すポイント単位の数値を取得または設定します。"
+msgstr "Chartの垂直位置を表すポイント単位の数値を取得または設定します。"
 
 #: of xlwings.Chart.width:1
 msgid ""
 "Returns or sets the number of points that represent the width of the "
 "chart."
-msgstr ""
-"Chartの幅を表すポイント単位の数値を取得または設定します。"
+msgstr "Chartの幅を表すポイント単位の数値を取得または設定します。"
 
 #: ../../api.rst:105
 msgid "Pictures"
@@ -1571,8 +1527,7 @@ msgstr ""
 msgid ""
 "A collection of all :meth:`picture <Picture>` objects on the specified "
 "sheet:"
-msgstr ""
-"指定したシート内のすべての :meth:`picture <Picture>` オブジェクトのコレクション:"
+msgstr "指定したシート内のすべての :meth:`picture <Picture>` オブジェクトのコレクション:"
 
 #: of xlwings.main.Pictures.add:1
 msgid "Adds a picture to the specified sheet."
@@ -1594,31 +1549,25 @@ msgstr "上端位置（ポイント単位）"
 msgid ""
 "Width in points. If PIL/Pillow is installed, it defaults to the width of "
 "the picture. Otherwise it defaults to 100 points."
-msgstr ""
-"幅（ポイント単位）。PIL/Pillowがインストールされていれば、図の幅がデフォルトに"
-"なります。そうでなければ、100ポイントがデフォルトになります。"
+msgstr "幅（ポイント単位）。PIL/Pillowがインストールされていれば、図の幅がデフォルトになります。そうでなければ、100ポイントがデフォルトになります。"
 
 #: of xlwings.main.Pictures.add:12
 msgid ""
 "Height in points. If PIL/Pillow is installed, it defaults to the height "
 "of the picture. Otherwise it defaults to 100 points."
-msgstr ""
-"高さ（ポイント単位）。PIL/Pillowがインストールされていれば、図の幅がデフォルトに"
-"なります。そうでなければ、100ポイントがデフォルトになります。"
+msgstr "高さ（ポイント単位）。PIL/Pillowがインストールされていれば、図の幅がデフォルトになります。そうでなければ、100ポイントがデフォルトになります。"
 
 #: of xlwings.main.Pictures.add:15
 msgid ""
 "Excel picture name. Defaults to Excel standard name if not provided, e.g."
 " 'Picture 1'."
-msgstr ""
-"ExcelのPictureの名前。指定しなければ、'Picture 1'のようなExcelの標準の名前になります。。"
+msgstr "ExcelのPictureの名前。指定しなければ、'Picture 1'のようなExcelの標準の名前になります。。"
 
 #: of xlwings.main.Pictures.add:17
 msgid ""
 "Replace an existing picture with the same name. Requires ``name`` to be "
 "set."
-msgstr ""
-"同じ名前の既存のPictureを置き換えます。 ``name`` が設定されていなければなりません。"
+msgstr "同じ名前の既存のPictureを置き換えます。 ``name`` が設定されていなければなりません。"
 
 #: ../../api.rst:112 of xlwings.main.Pictures.add:25
 msgid "Picture"
@@ -1632,8 +1581,7 @@ msgstr ""
 msgid ""
 "The picture object is a member of the :meth:`pictures "
 "<xlwings.main.Pictures>` collection:"
-msgstr ""
-"Pictureオブジェクトは :meth:`pictures <xlwings.main.Pictures>` コレクションのメンバーです:"
+msgstr "Pictureオブジェクトは :meth:`pictures <xlwings.main.Pictures>` コレクションのメンバーです:"
 
 #: of xlwings.Picture.delete:1
 msgid "Deletes the picture."
@@ -1643,15 +1591,13 @@ msgstr "Picureを削除します。"
 msgid ""
 "Returns or sets the number of points that represent the height of the "
 "picture."
-msgstr ""
-"Pictureの高さを表すポイント単位の数値を取得または設定します。"
+msgstr "Pictureの高さを表すポイント単位の数値を取得または設定します。"
 
 #: of xlwings.Picture.left:1
 msgid ""
 "Returns or sets the number of points that represent the horizontal "
 "position of the picture."
-msgstr ""
-"Pictureの水平位置を表すポイント単位の数値を取得または設定します。"
+msgstr "Pictureの水平位置を表すポイント単位の数値を取得または設定します。"
 
 #: of xlwings.Picture.name:1
 msgid "Returns or sets the name of the picture."
@@ -1665,23 +1611,19 @@ msgstr "Pictureの親オブジェクトを返します。"
 msgid ""
 "Returns or sets the number of points that represent the vertical position"
 " of the picture."
-msgstr ""
-"Pictureの垂直位置を表すポイント単位の数値を取得または設定します。"
+msgstr "Pictureの垂直位置を表すポイント単位の数値を取得または設定します。"
 
 #: of xlwings.Picture.update:1
 msgid ""
 "Replaces an existing picture with a new one, taking over the attributes "
 "of the existing picture."
-msgstr ""
-"既存のPictureを新しいPictureで置き換えます。既存のPictureのアトリビュートは"
-"新しいPictureに引き継がれます。"
+msgstr "既存のPictureを新しいPictureで置き換えます。既存のPictureのアトリビュートは新しいPictureに引き継がれます。"
 
 #: of xlwings.Picture.width:1
 msgid ""
 "Returns or sets the number of points that represent the width of the "
 "picture."
-msgstr ""
-"Pictureの幅を表すポイント単位の数値を取得または設定します。"
+msgstr "Pictureの幅を表すポイント単位の数値を取得または設定します。"
 
 #: ../../api.rst:118
 msgid "Names"
@@ -1699,9 +1641,7 @@ msgstr "セル範囲に新しい名前を定義します。"
 msgid ""
 "Specifies the text to use as the name. Names cannot include spaces and "
 "cannot be formatted as cell references."
-msgstr ""
-"名前として使う文字列を指定します。名前にスペースを含めることはできません。"
-"またセルを参照することもできません。"
+msgstr "名前として使う文字列を指定します。名前にスペースを含めることはできません。またセルを参照することもできません。"
 
 #: of xlwings.main.Names.add:5
 msgid "Describes what the name refers to, in English, using A1-style notation."
@@ -1715,8 +1655,7 @@ msgstr ""
 msgid ""
 "The name object is a member of the :meth:`names <xlwings.main.Names>` "
 "collection:"
-msgstr ""
-"Pictureオブジェクトは :meth:`names <xlwings.main.Names>` コレクションのメンバーです:"
+msgstr "Pictureオブジェクトは :meth:`names <xlwings.main.Names>` コレクションのメンバーです:"
 
 #: of xlwings.Name.delete:1
 msgid "Deletes the name."
@@ -1730,110 +1669,288 @@ msgstr "Nameオブジェクトの名前を取得または設定します。"
 msgid ""
 "Returns or sets the formula that the name is defined to refer to, in "
 "A1-style notation, beginning with an equal sign."
-msgstr ""
-"名前の参照先を定義する数式を取得または設定します。数式はA1形式でイコールで始まります。"
+msgstr "名前の参照先を定義する数式を取得または設定します。数式はA1形式でイコールで始まります。"
 
 #: of xlwings.Name.refers_to_range:1
 msgid "Returns the Range object referred to by a Name object."
 msgstr "Nameオブジェクトが参照するRangeオブジェクトを返します。"
 
-#: ../../api.rst:132
+#: ../../api.rst:130
+msgid "Tables"
+msgstr "Tables"
+
+#: of xlwings.main.Tables:1
+msgid "A collection of all :meth:`table <Table>` objects on the specified sheet:"
+msgstr "指定したシート内のすべての :meth:`table <Table>` オブジェクトのコレクション:"
+
+#: of xlwings.main.Tables.add:1
+msgid "Creates a Table to the specified sheet."
+msgstr "指定したシートに新しいTableを作成します。"
+
+#: of xlwings.main.Tables.add:3
+msgid "An xlwings range object, representing the data source."
+msgstr "データ ソースを表すxlwingsのrangeオブジェクト。"
+
+#: of xlwings.main.Tables.add:5
+msgid ""
+"The name of the Table. By default, it uses the autogenerated name that is"
+" assigned by Excel."
+msgstr ""
+"テーブルの名前。デフォルトはExcelが自動生成する名前。"
+
+#: of xlwings.main.Tables.add:7
+msgid ""
+"This currently defaults to ``xlSrcRange``, i.e. expects an xlwings range "
+"object. No other options are allowed at the moment."
+msgstr ""
+"現在のところ、デフォルトは ``xlSrcRange`` 。つまり、xlwingsのrangeオブジェクトの使用を前提とするものです。"
+"他のオプションは使用できません。"
+
+#: of xlwings.main.Tables.add:10
+msgid ""
+"Currently not implemented as this is only in case ``source_type`` is "
+"``xlSrcExternal``."
+msgstr ""
+"``source_type`` が ``xlSrcExternal`` の時に使用するものなので、現在時点では実装されていません。"
+
+#: of xlwings.main.Tables.add:12
+msgid ""
+"Indicates whether the data being imported has column labels. Defaults to "
+"``True``. Possible values: ``True``, ``FAlse``, ``'guess'``"
+msgstr ""
+"インポートしたデータに列ラベルが含まれるかどうかを表します。"
+"デフォルトは ``True`` 。可能な値: ``True`` 、 ``FAlse`` 、 ``'guess'``"
+
+#: of xlwings.main.Tables.add:15
+msgid ""
+"Currently not implemented as this is used in case ``source_type`` is "
+"``xlSrcExternal``."
+msgstr ""
+"``source_type`` が ``xlSrcExternal`` の時に使用するものなので、現在時点では実装されていません。"
+
+#: of xlwings.main.Tables.add:17
+msgid ""
+"Possible strings: ``'TableStyleLightN''`` (where N is 1-21), "
+"``'TableStyleMediumN'`` (where N is 1-28), ``'TableStyleDarkN'`` (where N"
+" is 1-11)"
+msgstr ""
+"可能な文字列: ``'TableStyleLightN''`` (Nは1から21のいずれか)、 "
+"``'TableStyleMediumN'`` (Nは1から28のいずれか)、 ``'TableStyleDarkN'`` (Nは1から11のいずれか)"
+
+#: ../../api.rst:136
+msgid "Table"
+msgstr "Table"
+
+#: of xlwings.main.Table:1
+msgid ""
+"The table object is a member of the :meth:`tables <xlwings.main.Tables>` "
+"collection:"
+msgstr ""
+"tableオブジェクトは :meth:`tables <xlwings.main.Tables>` コレクションのメンバーです:"
+
+#: of xlwings.main.Table.data_body_range:1
+msgid ""
+"Returns an xlwings range object that represents the range of values, "
+"excluding the header row"
+msgstr ""
+"ヘッダー行を除く、値のrangeを表すxlwingsのrangeオブジェクトを返します。"
+
+#: of xlwings.main.Table.display_name:1
+msgid "Returns or sets the display name for the specified Table object"
+msgstr "指定したTableオブジェクトの表示名を取得または設定します。"
+
+#: of xlwings.main.Table.header_row_range:1
+msgid ""
+"Returns an xlwings range object that represents the range of the header "
+"row"
+msgstr ""
+"ヘッダーのrangeを表すxlwingsのrangeオブジェクトを返します。"
+
+#: of xlwings.main.Table.insert_row_range:1
+msgid ""
+"Returns an xlwings range object representing the row where data is going "
+"to be inserted. This is only available for empty tables, otherwise it'll "
+"return ``None``"
+msgstr ""
+
+#: of xlwings.main.Table.name:1
+msgid "Returns or sets the name of the Table."
+msgstr "Tableの名前を取得または設定します。"
+
+#: of xlwings.main.Table.parent:1
+msgid "Returns the parent of the table."
+msgstr "tableの親オブジェクトを返します。"
+
+#: of xlwings.main.Table.range:1
+msgid "Returns an xlwings range object of the table."
+msgstr "tableのxlwingsのrangeオブジェクトを返します。"
+
+#: of xlwings.main.Table.show_autofilter:1
+msgid ""
+"Turn the autofilter on or off by setting it to ``True`` or ``False`` "
+"(read/write boolean)"
+msgstr ""
+"オートフィルターのオン/オフを ``True`` または ``False`` で切り替える"
+"(読み取り/書き込み boolean)。"
+
+#: of xlwings.main.Table.show_headers:1
+msgid "Show or hide the header (read/write)"
+msgstr "ヘッダーの表示または非表示（読み取り/書き込み）"
+
+#: of xlwings.main.Table.show_table_style_column_stripes:1
+msgid ""
+"Returns or sets if the Column Stripes table style is used for (read/write"
+" boolean)"
+msgstr ""
+"列方向ストライプのテーブル スタイルが使用されているかを取得または設定します"
+"(読み取り/書き込み boolean)。"
+
+#: of xlwings.main.Table.show_table_style_first_column:1
+msgid "Returns or sets if the first column is formatted (read/write boolean)"
+msgstr ""
+"最初の列が書式設定されているかを取得または設定します"
+"(読み取り/書き込み boolean)。"
+
+#: of xlwings.main.Table.show_table_style_last_column:1
+msgid "Returns or sets if the last column is displayed (read/write boolean)"
+msgstr ""
+"最後の列が書式設定されているかを取得または設定します"
+"(読み取り/書き込み boolean)。"
+
+#: of xlwings.main.Table.show_table_style_row_stripes:1
+msgid ""
+"Returns or sets if the Row Stripes table style is used (read/write "
+"boolean)"
+msgstr ""
+"行方向ストライプのテーブル スタイルが使用されているかを取得または設定します"
+"(読み取り/書き込み boolean)。"
+
+#: of xlwings.main.Table.show_totals:1
+msgid "Gets or sets a boolean to show/hide the Total row."
+msgstr "集計行の表示/非表示のブール値を取得または設定します。"
+
+#: of xlwings.main.Table.table_style:1
+msgid ""
+"Gets or sets the table style. See :meth:`Tables.add "
+"<xlwings.main.Tables.add>` for possible values."
+msgstr ""
+"テーブル スタイルを取得または設定します。設定可能な値は :meth:`Tables.add "
+"<xlwings.main.Tables.add>` を参照。"
+
+#: of xlwings.main.Table.totals_row_range:1
+msgid "Returns an xlwings range object representing the Total row"
+msgstr "集計行を表すxlwingsのrangeオブジェクトを返します。"
+
+#: of xlwings.main.Table.update:1
+msgid "This method requires xlwings :guilabel:`PRO`"
+msgstr "このメソッドはxlwings :guilabel:`PRO` でのみ使用できます。"
+
+#: of xlwings.main.Table.update:3
+msgid ""
+"Updates the Excel table with the provided data. Currently restricted to "
+"DataFrames."
+msgstr ""
+"引数dataでExcelテーブルを更新します。現在のところ、DataFrameのみ利用できます。"
+
+#: of xlwings.main.Table.update:7
+msgid ""
+"Currently restricted to pandas DataFrames. If you want to hide the index,"
+" set the first column as the index, e.g. ``df.set_index('column_name')``."
+msgstr ""
+"現在のところ、pandas DataFramesのみ利用できます。インデックスを隠したい場合、"
+"最初の列をインデックスに指定してください。例: ``df.set_index('column_name')`` 。"
+
+#: ../../api.rst:144
 msgid "UDF decorators"
 msgstr "UDF デコレーター"
 
-#: ../../api.rst:137
+#: ../../api.rst:149
 msgid ""
 "Functions decorated with ``xlwings.func`` will be imported as "
 "``Function`` to Excel when running \"Import Python UDFs\"."
 msgstr ""
-"``xlwings.func`` でデコレートした関数は、\"Import Python UDFs\"実行時に"
-"Excelの ``Function`` としてインポートされます。"
+"``xlwings.func`` でデコレートした関数は、\"Import Python UDFs\"実行時にExcelの "
+"``Function`` としてインポートされます。"
 
-#: ../../api.rst:146
+#: ../../api.rst:158
 msgid "category"
 msgstr ""
 
 msgid "int or str, default \"xlwings\""
 msgstr ""
 
-#: ../../api.rst:144
+#: ../../api.rst:156
 msgid ""
 "1-14 represent built-in categories, for user-defined categories use "
 "strings"
-msgstr ""
-"1から14はビルトイン カテゴリーです。ユーザー定義 カテゴリーは文字列を使ってください。"
+msgstr "1から14はビルトイン カテゴリーです。ユーザー定義 カテゴリーは文字列を使ってください。"
 
-#: ../../api.rst:154
+#: ../../api.rst:166
 msgid "volatile"
 msgstr ""
 
 msgid "bool, default False"
 msgstr ""
 
-#: ../../api.rst:149
+#: ../../api.rst:161
 msgid ""
 "Marks a user-defined function as volatile. A volatile function must be "
 "recalculated whenever calculation occurs in any cells on the worksheet. A"
 " nonvolatile function is recalculated only when the input variables "
 "change. This method has no effect if it's not inside a user-defined "
 "function used to calculate a worksheet cell."
-msgstr ""
-"ユーザー定義関数をvolatileとします。volatileな関数はワークシートのいずれかの"
-"セルで計算が行われるたびに再計算されます。volatileではない関数は引数が"
-"変化したときのみ再計算されます。"
+msgstr "ユーザー定義関数をvolatileとします。volatileな関数はワークシートのいずれかのセルで計算が行われるたびに再計算されます。volatileではない関数は引数が変化したときのみ再計算されます。"
 
-
-#: ../../api.rst:158
+#: ../../api.rst:170
 msgid "call_in_wizard"
 msgstr ""
 
 msgid "bool, default True"
 msgstr ""
 
-#: ../../api.rst:157
+#: ../../api.rst:169
 msgid "Set to False to suppress the function call in the function wizard."
 msgstr "Falseを設定すれば、関数ウィザードでの関数呼び出しを抑制します。"
 
-#: ../../api.rst:163
+#: ../../api.rst:175
 msgid ""
 "Functions decorated with ``xlwings.sub`` will be imported as ``Sub`` "
 "(i.e. macro) to Excel when running \"Import Python UDFs\"."
 msgstr ""
-"``xlwings.sub`` でデコレートした関数は、\"Import Python UDFs\"実行時に"
-"Excelの ``Sub`` （つまりマクロ） としてインポートされます。"
+"``xlwings.sub`` でデコレートした関数は、\"Import Python UDFs\"実行時にExcelの ``Sub`` "
+"（つまりマクロ） としてインポートされます。"
 
-#: ../../api.rst:168
+#: ../../api.rst:180
 msgid "Apply converters and options to arguments, see also :meth:`Range.options`."
 msgstr "コンバーターおよびオプションを引数に適用します。 :meth:`Range.options` を参照。"
 
-#: ../../api.rst:171
+#: ../../api.rst:183
 msgid "**Examples:**"
 msgstr "**例:**"
 
-#: ../../api.rst:173
+#: ../../api.rst:185
 msgid "Convert ``x`` into a 2-dimensional numpy array:"
 msgstr "``x`` を2次元のnumpy arrayに変換します:"
 
-#: ../../api.rst:188
+#: ../../api.rst:200
 msgid ""
 "Apply converters and options to return values, see also "
 ":meth:`Range.options`."
-msgstr ""
-"コンバーターおよびオプションを戻り値に適用します。 :meth:`Range.options` を参照。"
+msgstr "コンバーターおよびオプションを戻り値に適用します。 :meth:`Range.options` を参照。"
 
-#: ../../api.rst:190
+#: ../../api.rst:202
 msgid "**Examples**"
 msgstr "**例**"
 
-#: ../../api.rst:192
+#: ../../api.rst:204
 msgid "Suppress the index and header of a returned DataFrame:"
 msgstr "戻り値のDataFrameからインデックスとヘッダーを除去:"
 
-#: ../../api.rst:204
+#: ../../api.rst:216
 msgid "Dynamic array:"
 msgstr "動的配列:"
 
-#: ../../api.rst:207
+#: ../../api.rst:219
 msgid ""
 "If your version of Excel supports the new native dynamic arrays, then you"
 " don't have to do anything special, and you shouldn't use the ``expand`` "
@@ -1841,12 +1958,11 @@ msgid ""
 " the ``=UNIQUE()`` formula available. Native dynamic arrays were "
 "introduced in Office 365 Insider Fast at the end of September 2018."
 msgstr ""
-"もしExcelが新しいネイティブな動的配列に対応済みなら、特別なことはなにもしないでください。"
-"そして``expand`` デコレーターを使用すべきではありません。Excelが対応しているか調べるには、"
-"``=UNIQUE()`` 関数が利用可能かをみてください。ネイティブな動的配列は"
-"2018年9月のOffice 365 インサイダー ファストで導入されました。"
+"もしExcelが新しいネイティブな動的配列に対応済みなら、特別なことはなにもしないでください。そして``expand`` "
+"デコレーターを使用すべきではありません。Excelが対応しているか調べるには、``=UNIQUE()`` "
+"関数が利用可能かをみてください。ネイティブな動的配列は2018年9月のOffice 365 インサイダー ファストで導入されました。"
 
-#: ../../api.rst:212
+#: ../../api.rst:224
 msgid ""
 "``expand='table'`` turns the UDF into a dynamic array. Currently you must"
 " not use volatile functions as arguments of a dynamic array, e.g. you "
@@ -1854,21 +1970,18 @@ msgid ""
 "dynamic array needs an empty row and column at the bottom and to the "
 "right and will overwrite existing data without warning."
 msgstr ""
-"``expand='table'`` を使えばUDFが動的配列になります。現在のところ、volatileな"
-"関数は動的配列の引数に使えません。 例えば、 ``=TODAY()`` は動的配列の一部として"
-"使えません。また、動的配列は空行や空列が下や右になければなりませんし、既に存在する"
-"データを警告なしで上書きします。"
+"``expand='table'`` を使えばUDFが動的配列になります。現在のところ、volatileな関数は動的配列の引数に使えません。 "
+"例えば、 ``=TODAY()`` "
+"は動的配列の一部として使えません。また、動的配列は空行や空列が下や右になければなりませんし、既に存在するデータを警告なしで上書きします。"
 
-#: ../../api.rst:217
+#: ../../api.rst:229
 msgid ""
 "Unlike standard Excel arrays, dynamic arrays are being used from a single"
 " cell like a standard function and auto-expand depending on the "
 "dimensions of the returned array:"
-msgstr ""
-"通常のExcel配列数式とは異なり、動的配列は通常の関数同様、単独のセルから使用され、"
-"戻り値に応じて自動的に拡張されます:"
+msgstr "通常のExcel配列数式とは異なり、動的配列は通常の関数同様、単独のセルから使用され、戻り値に応じて自動的に拡張されます:"
 
-#: ../../api.rst:236
+#: ../../api.rst:248
 msgid "Reports"
 msgstr ""
 

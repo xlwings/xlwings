@@ -84,8 +84,6 @@ def quickstart(args):
     # Python file
     with open(os.path.join(project_path, project_name + '.py'), 'w') as python_module:
         python_module.write('import xlwings as xw\n\n\n')
-        if sys.platform.startswith('win'):
-            python_module.write('@xw.sub  # only required if you want to import it or run it via UDF Server\n')
         python_module.write('def main():\n')
         python_module.write('    wb = xw.Book.caller()\n')
         python_module.write('    sheet = wb.sheets[0]\n')
@@ -96,7 +94,7 @@ def quickstart(args):
         if sys.platform.startswith('win'):
             python_module.write('@xw.func\n')
             python_module.write('def hello(name):\n')
-            python_module.write('    return "hello {0}".format(name)\n\n\n')
+            python_module.write('    return f"Hello {name}!"\n\n\n')
         python_module.write('if __name__ == "__main__":\n')
         python_module.write('    xw.Book("{0}.xlsm").set_mock_caller()\n'.format(project_name))
         python_module.write('    main()\n')
@@ -189,7 +187,7 @@ def config_create(args):
         extension = 'MAC' if sys.platform.startswith('darwin') else 'WIN'
         settings.append('"INTERPRETER_{}","{}"\n'.format(extension, sys.executable))
     if os.path.exists(xw.USER_CONFIG_FILE) and not force:
-        print("There is already an existing ~/.xlwings/xlwigns.conf file. Run 'xlwings config create --force' if you want to reset your configuration.")
+        print("There is already an existing ~/.xlwings/xlwings.conf file. Run 'xlwings config create --force' if you want to reset your configuration.")
     else:
         with open(xw.USER_CONFIG_FILE, 'w') as f:
             f.writelines(settings)
@@ -302,7 +300,7 @@ def main():
                                                            '"KEY" is your personal (trial) license key. This will '
                                                            'update ~/.xlwings/xlwings.conf with the LICENSE_KEY entry. '
                                                            'If you have a paid license, you can run "xlwings license deploy" '
-                                                           'to create a deploy key. This is not availalbe for trial keys.')
+                                                           'to create a deploy key. This is not available for trial keys.')
     license_subparsers = license_parser.add_subparsers(dest='subcommand')
     license_subparsers.required = True
 

@@ -7,7 +7,7 @@ Introduced with v0.7.0, converters define how Excel ranges and their values are 
 **reading** and **writing** operations. They also provide a consistent experience across **xlwings.Range** objects and
 **User Defined Functions** (UDFs).
 
-Converters are explicitely set in the ``options`` method when manipulating ``Range`` objects
+Converters are explicitly set in the ``options`` method when manipulating ``Range`` objects
 or in the ``@xw.arg`` and ``@xw.ret`` decorators when using UDFs. If no converter is specified, the default converter
 is applied when reading. When writing, xlwings will automatically apply the correct converter (if available) according to the
 object's type that is being written to Excel. If no converter is found for that type, it falls back to the default converter.
@@ -161,7 +161,7 @@ xlwings offers several built-in converters that perform type conversion to **dic
 described above can be used in this context, too (unless they are meaningless, for example the ``ndim`` in the case
 of a dictionary).
 
-It is also possible to write and register custom converter for additional types, see below.
+It is also possible to write and register a custom converter for additional types, see below.
 
 The samples below can be used with both ``xlwings.Range`` objects and UDFs even though only one version may be shown.
 
@@ -298,7 +298,7 @@ Technically speaking, these are "no-converters".
 * If you need access to the ``xlwings.Range`` object directly, you can do::
 
     @xw.func
-    @xw.arg('x', xw.Range)
+    @xw.arg('x', 'range')
     def myfunction(x):
        return x.formula
 
@@ -446,7 +446,7 @@ These samples all work the same with UDFs, e.g.::
 
     Pipelines are internally defined by ``Accessor`` classes. A Converter is just a special Accessor which
     converts to/from a particular type by adding an extra stage to the pipeline of the default Accessor. For example, the
-    ``PandasDataFrameConverter`` defines how a list of list (as delivered by the default Accessor) should be turned
+    ``PandasDataFrameConverter`` defines how a list of lists (as delivered by the default Accessor) should be turned
     into a Pandas DataFrame.
 
     The ``Converter`` class provides basic scaffolding to make the task of writing a new Converter easier. If

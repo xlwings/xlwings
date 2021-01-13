@@ -23,6 +23,7 @@ Start by creating the following Python script ``my_template.py``::
 
     df = pd.DataFrame(data=[[1,2],[3,4]])
     wb = create_report('my_template.xlsx', 'my_report.xlsx', title='MyTitle', df=df)
+    wb.to_pdf()  # requires xlwings >=0.21.1
 
 Then create the following Excel file called ``my_template.xlsx``:
 
@@ -38,6 +39,8 @@ the value from the Python variable:
 
 .. figure:: images/myreport.png
     :scale: 60%
+
+The last line (``wb.to_pdf()``) will print the workbook as PDF, for more details on the options, see :meth:`Book.to_pdf() <xlwings.Book.to_pdf>`.
 
 Apart from Strings and Pandas DataFrames, you can also use numbers, lists, simple dicts, NumPy arrays,
 Matplotlib figures and PIL Image objects that have a filename.
@@ -91,4 +94,56 @@ Running the following code::
 will generate this report:
 
 .. figure:: images/frame_report.png
+    :scale: 60%
+
+.. _excel_tables_reports:
+
+Excel Tables
+------------
+
+Using Excel tables is the recommended way to format tables as the styling can be applied dynamically across columns and rows. You can also use themes and apply alternating colors to rows/columns. On top of that, they are the easiest way to make the source of a chart dynamic. Go to ``Insert`` > ``Table`` and make sure that you activate ``My table has headers`` before clicking on ``OK``. Add the placeholder as usual on the top-left of your Excel table:
+
+.. figure:: images/excel_table_template.png
+    :scale: 60%
+
+Running the following script::
+
+    from xlwings.pro.reports import create_report
+    import pandas as pd
+
+    nrows, ncols = 3, 3
+    df = pd.DataFrame(data=nrows * [ncols * ['test']],
+                      columns=['col ' + str(i) for i in range(ncols)])
+
+    create_report('template.xlsx', 'output.xlsx', df=df.set_index('col 0'))
+
+Will produce the following report:
+
+.. figure:: images/excel_table_report.png
+    :scale: 60%
+
+.. note::
+    * If you would like to exclude the DataFrame index, make sure to set the index to the first column e.g.: ``df.set_index('column_name')``.
+    * At the moment, you can only assign pandas DataFrames to tables.
+    * For Excel table support, you need at least version 0.21.0 and the index behavior was changed in 0.21.3
+
+Shape Text
+----------
+
+.. versionadded:: 0.21.4
+
+You can also use Shapes like Text Boxes or Rectangles with template text::
+
+    from xlwings.pro.reports import create_report
+
+    create_report('template.xlsx', 'output.xlsx', temperature=12.3)
+
+This code turns this template:
+
+.. figure:: images/shape_text_template.png
+    :scale: 60%
+
+into this report:
+
+.. figure:: images/shape_text_report.png
     :scale: 60%

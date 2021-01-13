@@ -1,4 +1,3 @@
-import os
 import sys
 import shutil
 
@@ -6,7 +5,6 @@ from jinja2 import Environment
 
 from ..utils import LicenseHandler
 from ...main import Book
-from ...constants import FixedFormatType, FixedFormatQuality
 
 try:
     import PIL
@@ -29,7 +27,6 @@ except ImportError:
     pd = None
 
 LicenseHandler.validate_license('reports')
-string_types = (str, )  # in case we need to reintroduce py27 compatibility
 
 
 def create_report(template, output, book_settings=None, app=None, **data):
@@ -144,7 +141,7 @@ def create_report(template, output, book_settings=None, app=None, **data):
             row_shift = 0
             for i, row in enumerate(values):
                 for j, value in enumerate(row):
-                    if isinstance(value, string_types):
+                    if isinstance(value, str):
                         tokens = list(env.lex(value))
                         if value.count('{{') == 1 and tokens[0][1] == 'variable_begin' and tokens[-1][1] == 'variable_end':
                             # Cell contains single Jinja variable
@@ -198,7 +195,10 @@ def create_report(template, output, book_settings=None, app=None, **data):
                                                 sheet.range((i + row_shift + 2, j + frame_indices[ix] + 1),
                                                             (i + row_shift + rows_to_be_inserted + 2, end_column)).paste(paste='formats')
                                                 wb.app.screen_updating = screen_updating_original_state
-                                        sheet[i + row_shift, j + frame_indices[ix]].value = result
+                                        if sheet[i + row_shift, j + frame_indices[ix]].table:
+                                            sheet[i + row_shift, j + frame_indices[ix]].table.update(result)
+                                        else:
+                                            sheet[i + row_shift, j + frame_indices[ix]].value = result
                                         row_shift += rows_to_be_inserted
                                 elif var is not None and token_type not in ('whitespace',):
                                     var += value
@@ -209,61 +209,14 @@ def create_report(template, output, book_settings=None, app=None, **data):
                         else:
                             # Don't do anything with cells that don't contain any templating so we don't lose the formatting
                             pass
+
+        # Loop through all shapes with a template text
+        for shape in sheet.shapes:
+            shapetext = shape.text
+            if shapetext and '{{' in shapetext:
+                template = env.from_string(shapetext)
+                shape.text = template.render(data)
     wb.save()
     return wb
 
-
-def create_pdf(book, output=None, from_=None, to=None):
-    """
-    Creates a PDF report from the Excel workbook. NOTE: This is currently only availalbe on Windows.
-
-    Parameters
-    ----------
-    book: xlwings Book
-        An xlwings Book, e.g. ``xw.Book(...)`` or the object returned by ``create_report``.
-
-    output: str, optional
-        Path to the PDF report, e.g. ``C:\\my_report.pdf``. By default, the report will be called the same as
-        the Excel file, but with the ``.pdf`` extension.
-
-    ``from_`` : int, optional
-        First sheet that will be included in the PDF report (0 based indexing).
-
-    to: int, optional
-        Last sheet that will be included in the PDF report (0 based indexing).
-
-    Returns
-    -------
-    output: str
-        pdf file name
-
-    Examples
-    --------
-    >>> from xlwings.pro.reports import create_report, create_pdf
-    >>> import pandas as pd
-    >>> df = pd.DataFrame(data=[[1,2],[3,4]])
-    >>> wb = create_report('my_template.xlsx', 'my_report.xlsx', title='MyTitle', df=df)
-    >>> create_pdf(wb, from_=0, to=0)
-    """
-    if sys.platform.startswith('win'):
-        if output is None:
-            filename, extension = os.path.splitext(book.fullname)
-            output = filename + '.pdf'
-        from_to = {}
-        if from_ is not None:
-            from_to.update({'From': from_ + 1})
-        if to is not None:
-            from_to.update({'To': to + 1})
-
-        book.api.ExportAsFixedFormat(Type=FixedFormatType.xlTypePDF,
-                                     Filename=output,
-                                     Quality=FixedFormatQuality.xlQualityStandard,
-                                     IncludeDocProperties=True,
-                                     IgnorePrintAreas=False,
-                                     OpenAfterPublish=False,
-                                     **from_to)
-        book.save()
-        return output
-    else:
-        raise OSError('create_pdf is currently not supported on macOS.')
 

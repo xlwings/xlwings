@@ -19,17 +19,17 @@ from warnings import warn
 import datetime as dt
 import numbers
 import types
-from ctypes import oledll, PyDLL, py_object, byref, POINTER, windll
+import ctypes
+from ctypes import oledll, PyDLL, py_object, byref, windll
 
 import pythoncom
 from win32com.client import Dispatch, CoClassBaseClass, CDispatch, DispatchEx, DispatchBaseClass
 import win32timezone
 import win32gui
 import win32process
-from comtypes import IUnknown
-from comtypes.automation import IDispatch
 
-from .constants import ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin, DeleteShiftDirection
+from .constants import (ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin, DeleteShiftDirection,
+                        ListObjectSourceType, FixedFormatType, FixedFormatQuality)
 from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime, col_name
 
 # Optional imports
@@ -185,21 +185,31 @@ class COMRetryObjectWrapper:
 OBJID_NATIVEOM = -16
 
 
+class _GUID(ctypes.Structure):
+    # https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/49e490b8-f972-45d6-a3a4-99f924998d97
+    _fields_ = [
+        ("Data1", ctypes.c_ulong),
+        ("Data2", ctypes.c_ushort),
+        ("Data3", ctypes.c_ushort),
+        ("Data4", ctypes.c_byte * 8)]
+
+
+_IDISPATCH_GUID = _GUID()
+oledll.ole32.CLSIDFromString(
+    "{00020400-0000-0000-C000-000000000046}", byref(_IDISPATCH_GUID))
+
+
 def accessible_object_from_window(hwnd):
-    ptr = POINTER(IDispatch)()
+    # ptr is a pointer to an IDispatch:
+    # https://docs.microsoft.com/en-us/windows/win32/api/oaidl/nn-oaidl-idispatch
+    # We don't bother using ctypes.POINTER(comtypes.automation.IDispatch)()
+    # because we won't dereference the pointer except through pywin32's
+    # pythoncom.PyCom_PyObjectFromIUnknown below in get_xl_app_from_hwnd().
+    ptr = ctypes.c_void_p()
     res = oledll.oleacc.AccessibleObjectFromWindow(
         hwnd, OBJID_NATIVEOM,
-        byref(IDispatch._iid_), byref(ptr))
+        byref(_IDISPATCH_GUID), byref(ptr))
     return ptr
-
-
-def comtypes_to_pywin(ptr, interface=None):
-    _PyCom_PyObjectFromIUnknown = PyDLL(pythoncom.__file__).PyCom_PyObjectFromIUnknown
-    _PyCom_PyObjectFromIUnknown.restype = py_object
-
-    if interface is None:
-        interface = IUnknown
-    return _PyCom_PyObjectFromIUnknown(ptr, byref(interface._iid_), True)
 
 
 def is_hwnd_xl_app(hwnd):
@@ -214,13 +224,17 @@ def is_hwnd_xl_app(hwnd):
         return False
 
 
+_PyCom_PyObjectFromIUnknown = PyDLL(pythoncom.__file__).PyCom_PyObjectFromIUnknown
+_PyCom_PyObjectFromIUnknown.restype = py_object
+
+
 def get_xl_app_from_hwnd(hwnd):
     pythoncom.CoInitialize()
     child_hwnd = win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None)
     child_hwnd = win32gui.FindWindowEx(child_hwnd, 0, 'EXCEL7', None)
 
     ptr = accessible_object_from_window(child_hwnd)
-    p = comtypes_to_pywin(ptr, interface=IDispatch)
+    p = _PyCom_PyObjectFromIUnknown(ptr, byref(_IDISPATCH_GUID), True)
     disp = COMRetryObjectWrapper(Dispatch(p))
     return disp.Application
 
@@ -534,6 +548,13 @@ class Book:
     def activate(self):
         self.xl.Activate()
 
+    def to_pdf(self, path):
+        self.xl.ExportAsFixedFormat(Type=FixedFormatType.xlTypePDF,
+                                    Filename=path,
+                                    Quality=FixedFormatQuality.xlQualityStandard,
+                                    IncludeDocProperties=True,
+                                    IgnorePrintAreas=False,
+                                    OpenAfterPublish=False)
 
 class Sheets:
     def __init__(self, xl):
@@ -677,12 +698,24 @@ class Sheet:
         return Shapes(xl=self.xl.Shapes)
 
     @property
+    def tables(self):
+        return Tables(xl=self.xl.ListObjects)
+
+    @property
     def pictures(self):
         return Pictures(xl=self.xl.Pictures())
 
     @property
     def used_range(self):
         return Range(xl=self.xl.UsedRange)
+
+    @property
+    def visible(self):
+        return self.xl.Visible
+
+    @visible.setter
+    def visible(self, value):
+        self.xl.Visible = value
 
 
 class Range:
@@ -1034,6 +1067,11 @@ class Range:
     def unmerge(self):
         self.xl.UnMerge()
 
+    @property
+    def table(self):
+        if self.xl.ListObject:
+            return Table(self.xl.ListObject)
+
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
     if number_builder is not None:
@@ -1222,6 +1260,15 @@ class Shape:
         self.xl.ScaleWidth(Scale=scaling[scale], RelativeToOriginalSize=relative_to_original_size,
                            Factor=factor)
 
+    @property
+    def text(self):
+        if self.xl.TextFrame2.HasText:
+            return self.xl.TextFrame2.TextRange.Text
+
+    @text.setter
+    def text(self, value):
+        self.xl.TextFrame2.TextRange.Text = value
+
 
 class Collection:
 
@@ -1256,6 +1303,135 @@ class Collection:
 class Shapes(Collection):
 
     _wrap = Shape
+
+
+class Table:
+    def __init__(self, xl):
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def name(self):
+        return self.xl.Name
+
+    @name.setter
+    def name(self, value):
+        self.xl.Name = value
+
+    @property
+    def data_body_range(self):
+        return Range(xl=self.xl.DataBodyRange) if self.xl.DataBodyRange else None
+
+    @property
+    def display_name(self):
+        return self.xl.DisplayName
+
+    @display_name.setter
+    def display_name(self, value):
+        self.xl.DisplayName = value
+
+    @property
+    def header_row_range(self):
+        return Range(xl=self.xl.HeaderRowRange)
+
+    @property
+    def insert_row_range(self):
+        return Range(xl=self.xl.InsertRowRange)
+
+    @property
+    def parent(self):
+        return Sheet(xl=self.xl.Parent)
+
+    @property
+    def range(self):
+        return Range(xl=self.xl.Range)
+
+    @property
+    def show_autofilter(self):
+        return self.xl.ShowAutoFilter
+
+    @show_autofilter.setter
+    def show_autofilter(self, value):
+        self.xl.ShowAutoFilter = value
+
+    @property
+    def show_headers(self):
+        return self.xl.ShowHeaders
+
+    @show_headers.setter
+    def show_headers(self, value):
+        self.xl.ShowHeaders = value
+
+    @property
+    def show_table_style_column_stripes(self):
+        return self.xl.ShowTableStyleColumnStripes
+
+    @show_table_style_column_stripes.setter
+    def show_table_style_column_stripes(self, value):
+        self.xl.ShowTableStyleColumnStripes = value
+
+    @property
+    def show_table_style_first_column(self):
+        return self.xl.ShowTableStyleFirstColumn
+
+    @show_table_style_first_column.setter
+    def show_table_style_first_column(self, value):
+        self.xl.ShowTableStyleFirstColumn = value
+
+    @property
+    def show_table_style_last_column(self):
+        return self.xl.ShowTableStyleLastColumn
+
+    @show_table_style_last_column.setter
+    def show_table_style_last_column(self, value):
+        self.xl.ShowTableStyleLastColumn = value
+
+    @property
+    def show_table_style_row_stripes(self):
+        return self.xl.ShowTableStyleRowStripes
+
+    @show_table_style_row_stripes.setter
+    def show_table_style_row_stripes(self, value):
+        self.xl.ShowTableStyleRowStripes = value
+
+    @property
+    def show_totals(self):
+        return self.xl.ShowTotals
+
+    @show_totals.setter
+    def show_totals(self, value):
+        self.xl.ShowTotals = value
+
+    @property
+    def table_style(self):
+        return self.xl.TableStyle.Name
+
+    @table_style.setter
+    def table_style(self, value):
+        self.xl.TableStyle = value
+
+    @property
+    def totals_row_range(self):
+        return Range(xl=self.xl.TotalsRowRange)
+
+
+class Tables(Collection):
+
+    _wrap = Table
+
+    def add(self, source_type=None, source=None, link_source=None, has_headers=None, destination=None,
+            table_style_name=None):
+        return Table(xl=self.xl.Add(
+            SourceType=ListObjectSourceType.xlSrcRange,
+            Source=source.api,
+            LinkSource=link_source,
+            XlListObjectHasHeaders=True,
+            Destination=destination,
+            TableStyleName=table_style_name
+        ))
 
 
 class Chart:

@@ -2,7 +2,7 @@ import os
 import sys
 import numpy as np
 import pandas as pd
-from pandas.util.testing import assert_frame_equal
+from pandas.testing import assert_frame_equal
 from numpy.testing import assert_array_equal
 from PIL import Image
 from matplotlib.figure import Figure
@@ -44,6 +44,12 @@ class TestCreateReport(unittest.TestCase):
         assert_frame_equal(self.wb.sheets[0]['A2'].options(pd.DataFrame, expand='table').value,
                            data['df1'])
 
+    def test_df_table(self):
+        df = self.wb.sheets['Sheet4']['A1'].options(pd.DataFrame, expand='table').value
+        df.index.name = None
+        assert_frame_equal(df, data['df1'])
+        self.assertIsNotNone(self.wb.sheets['Sheet4']['A1'].table)
+
     def test_var_operations(self):
         assert_array_equal(self.wb.sheets[1]['A1'].options(np.array, expand='table', ndim=2).value,
                            data['mydict']['df'][:1].values)
@@ -53,8 +59,8 @@ class TestCreateReport(unittest.TestCase):
         self.assertEqual(self.wb.sheets[1].pictures[0].left, self.wb.sheets[1]['A17'].left)
 
     def test_matplotlib(self):
-        self.assertEqual(self.wb.sheets[1].pictures[1].top, self.wb.sheets[1]['B33'].top)
-        self.assertEqual(self.wb.sheets[1].pictures[1].left, self.wb.sheets[1]['B33'].left)
+        self.assertAlmostEqual(self.wb.sheets[1].pictures[1].top, self.wb.sheets[1]['B33'].top, places=2)
+        self.assertAlmostEqual(self.wb.sheets[1].pictures[1].left, self.wb.sheets[1]['B33'].left, places=2)
 
     def test_used_range(self):
         self.assertEqual(self.wb.sheets[2]['B11'].value, 'This is text with a substringtest.')
@@ -62,6 +68,13 @@ class TestCreateReport(unittest.TestCase):
 
     def test_different_vars_at_either_end(self):
         self.assertEqual(self.wb.sheets[0]['I1'].value, 'stringtest vs. stringtest')
+
+    def test_shape_text(self):
+        self.assertEqual(self.wb.sheets[4].shapes['TextBox 1'].text, 'This is no template. So the formatting should be left untouched.')
+        self.assertEqual(self.wb.sheets[4].shapes['Oval 2'].text, 'This shows stringtest.')
+        self.assertEqual(self.wb.sheets[4].shapes['TextBox 3'].text, 'This shows stringtest.')
+        self.assertEqual(self.wb.sheets[4].shapes['TextBox 4'].text, 'stringtest')
+        self.assertIsNone(self.wb.sheets[4].shapes['Oval 5'].text)
 
 
 class TestBookSettings(unittest.TestCase):
@@ -98,14 +111,23 @@ class TestFrames(unittest.TestCase):
                           columns=['c1', 'c2'],
                           index=['r1', 'r2'])
         wb = create_report('template_one_frame.xlsx', 'output.xlsx', df=df, title='MyTitle')
-        sheet = wb.sheets[0]
-        self.assertEqual(sheet['A1'].value, 'MyTitle')
-        self.assertEqual(sheet['A3'].value, 'PART ONE')
-        self.assertEqual(sheet['A8'].value, 'PART TWO')
-        assert_frame_equal(sheet['A4'].options(pd.DataFrame, expand='table').value, df)
-        assert_frame_equal(sheet['A9'].options(pd.DataFrame, expand='table').value, df)
-        self.assertEqual(sheet['A3'].color, (0, 176, 240))
-        self.assertEqual(sheet['A8'].color, (0, 176, 240))
+        for i in range(2):
+            sheet = wb.sheets[i]
+            self.assertEqual(sheet['A1'].value, 'MyTitle')
+            self.assertEqual(sheet['A3'].value, 'PART ONE')
+            self.assertEqual(sheet['A8'].value, 'PART TWO')
+            if i == 0:
+                assert_frame_equal(sheet['A4'].options(pd.DataFrame, expand='table').value, df)
+                assert_frame_equal(sheet['A9'].options(pd.DataFrame, expand='table').value, df)
+            elif i == 1:
+                df_table1 = sheet['A4'].options(pd.DataFrame, expand='table').value
+                df_table1.index.name = None
+                df_table2 = sheet['A9'].options(pd.DataFrame, expand='table').value
+                df_table2.index.name = None
+                assert_frame_equal(df_table1, df)
+                assert_frame_equal(df_table2, df)
+            self.assertEqual(sheet['A3'].color, (0, 176, 240))
+            self.assertEqual(sheet['A8'].color, (0, 176, 240))
 
     def test_two_frames(self):
         df1 = pd.DataFrame([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]],

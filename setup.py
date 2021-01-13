@@ -18,7 +18,7 @@ if sys.platform.startswith('win'):
         pywin32 = 'pywin32 >= 224'
     else:
         pywin32 = 'pywin32'
-    install_requires = ['comtypes', pywin32]
+    install_requires = [pywin32]
     # This places dlls next to python.exe for standard setup and in the parent folder for virtualenv
     data_files = [('', glob.glob('xlwings*.dll'))]
 elif sys.platform.startswith('darwin'):
@@ -61,6 +61,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Topic :: Office/Business :: Financial :: Spreadsheet',
         'License :: OSI Approved :: BSD License'],
     platforms=['Windows', 'Mac OS X'],

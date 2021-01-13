@@ -19,7 +19,7 @@ Call Python with "RunPython"
 ----------------------------
 
 In the VBA Editor (``Alt-F11``), write the code below into a VBA module. ``xlwings quickstart`` automatically
-adds a new module with a sample call. If you rather want to start from scratch, you can add new module via ``Insert > Module``.
+adds a new module with a sample call. If you rather want to start from scratch, you can add a new module via ``Insert > Module``.
 
 .. code-block:: vb.net
 
@@ -43,12 +43,11 @@ You can then attach ``HelloWorld`` to a button or run it directly in the VBA Edi
 
 .. note:: Place ``xw.Book.caller()`` within the function that is being called from Excel and not outside as
     global variable. Otherwise it prevents Excel from shutting down properly upon exiting and
-    leaves you with a zombie process when you use ``Use UDF Server = True``. Note that you need to decorate
-    the function with `@xw.sub` if you want to run it with ``Use UDF Server`` enabled.
+    leaves you with a zombie process when you use ``Use UDF Server = True``.
 
 Function Arguments and Return Values
 ------------------------------------
 
 While it's technically possible to include arguments in the function call within ``RunPython``, it's not very convenient.
-Also, ``RunPython`` does not allow you to return values. To overcome these issue, use UDFs, see :ref:`udfs` - however,
+Also, ``RunPython`` does not allow you to return values. To overcome these issues, use UDFs, see :ref:`udfs` - however,
 this is currently limited to Windows only.

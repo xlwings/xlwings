@@ -1,6 +1,52 @@
 What's New
 ==========
 
+v0.21.4 (Nov 23, 2020)
+----------------------
+
+* [Enhancement] New property :attr:`Shape.text <xlwings.Shape.text>` to read and write text to the text frame of shapes (:issue:`1456`).
+* :guilabel:`PRO` [Feature]: xlwings Reports now supports template text in shapes, see :ref:`xlwings Reports<reports_quickstart>`.
+
+v0.21.3 (Nov 22, 2020)
+----------------------
+
+* :guilabel:`PRO` **Breaking Change**: The :meth:`Table.update <xlwings.main.Table.update>` method has been changed to treat the DataFrame's index consistently whether or not it's being written to an Excel table: by default, the index is now transferred to Excel in both cases.
+
+v0.21.2 (Nov 15, 2020)
+----------------------
+
+* [Bug Fix] The default ``quickstart`` setup now also works when you store your workbooks on OneDrive (:issue:`1275`)
+* [Bug Fix] Excel files that have single quotes in their paths are now working correctly (:issue:`1021`)
+
+v0.21.1 (Nov 13, 2020)
+----------------------
+
+* [Enhancement] Added new method :meth:`Book.to_pdf() <xlwings.Book.to_pdf>` to easily export PDF reports. Needless to say, this integrates very nicely with :ref:`xlwings Reports<reports_quickstart>` (:issue:`1363`).
+* [Enhancement] Added support for :attr:`Sheet.visible <xlwings.Sheet.visible>` (:issue:`1459`).
+
+v0.21.0 (Nov 9, 2020)
+---------------------
+
+* [Enhancement] Added support for Excel tables, see: :meth:`Table <xlwings.main.Table>` and :meth:`Tables <xlwings.main.Tables>` and :meth:`range.table <xlwings.Range.table>` (:issue:`47` and :issue:`1364`)
+* [Enhancement]: When using UDFs, you can now use ``'range'`` for the ``convert`` argument where you would use before ``xw.Range``. The latter will be removed in a future version (:issue:`1455`).
+* [Enhancement] Windows: The ``comtypes`` requirement has been dropped (:issue:`1443`).
+* :guilabel:`PRO` [Feature]: :meth:`Table.update <xlwings.main.Table.update>` offers an easy way to keep your Excel tables in sync with your DataFrame source (:issue:`1454`).
+* :guilabel:`PRO` [Enhancement]: The reports package now supports Excel tables in the templates. This is e.g. helpful to style the tables with striped rows, see :ref:`excel_tables_reports`  (:issue:`1364`).
+
+v0.20.8 (Oct 18, 2020)
+----------------------
+
+* [Enhancement] Windows: With UDFs, you can now get easy access to the caller (an xlwings range object) by using ``caller`` as a function argument (:issue:`1434`). In that sense, ``caller`` is now a reserved argument by xlwings and if you have any existing arguments with this name, you'll need to rename them::
+
+    @xw.func
+    def get_caller_address(caller):
+        # caller will not be exposed in Excel, so use it like so:
+        # =get_caller_address()
+        return caller.address
+
+* [Bug Fix] Windows: The setting ``Show Console`` now also shows/hides the command prompt properly when using the UDF server with Conda. There is no more switching between ``python`` and ``pythonw`` required (:issue:`1435` and :issue:`1421`).
+* [Bug Fix] Windows: Functions called via ``RunPython`` with ``Use UDF Server`` activated don't require the ``xw.sub`` decorator anymore (:issue:`1418`).
+
 v0.20.7 (Sep 3, 2020)
 ---------------------
 
@@ -18,7 +64,7 @@ v0.20.5 (Aug 27, 2020)
 ----------------------
 
 * [Bug Fix] The conda version check was failing with spaces in the installation path (:issue:`1396`).
-* [Bug Fix] Windows: when running ``app.quit()``, the application is now properly closed without leaving a zombie process behind (:issue:`1396`).
+* [Bug Fix] Windows: when running ``app.quit()``, the application is now properly closed without leaving a zombie process behind (:issue:`1397`).
 
 v0.20.4 (Aug 20, 2020)
 ----------------------
@@ -59,7 +105,7 @@ v0.19.5 (Jul 5, 2020)
 * [Enhancement] When you install the add-in via ``xlwings addin install``, it autoconfigures the add-in if it can't find an existing user config file (:issue:`1322`).
 * [Feature] New ``xlwings config create [--force]`` command that autogenerates the user config file with the Python settings from which you run the command. Can be used to reset the add-in settings with the ``--force`` option (:issue:`1322`).
 * [Feature]: There is a new option to show/hide the console window. Note that with ``Conda Path`` and ``Conda Env`` set, the console always pops up when using the UDF server. Currently only available on Windows (:issue:`1182`).
-* [Enhancement] The ``Interpreter`` setting has been deprecated in favor of platform-specific settings: ``Interpreter_Win`` and ``Interpreter_Mac``, respectively. This allows you use the sheet config unchanged on both platforms (:issue:`1345`).
+* [Enhancement] The ``Interpreter`` setting has been deprecated in favor of platform-specific settings: ``Interpreter_Win`` and ``Interpreter_Mac``, respectively. This allows you to use the sheet config unchanged on both platforms (:issue:`1345`).
 * [Enhancement] On macOS, you can now use a few environment-like variables in your settings: ``$HOME``, ``$APPLICATIONS``, ``$DOCUMENTS``, ``$DESKTOP`` (:issue:`615`).
 * [Bug Fix]: Async functions sometimes caused an error on older Excel versions without dynamic arrays (:issue:`1341`).
 
@@ -400,7 +446,7 @@ v0.11.8 (May 13, 2018)
 v0.11.7 (Feb 5, 2018)
 ----------------------
 
-* [Win] This release fixes a bug introduced with v0.11.6 that would't allow to open workbooks by name (:issue:`804`)
+* [Win] This release fixes a bug introduced with v0.11.6 that wouldn't allow to open workbooks by name (:issue:`804`)
 
 v0.11.6 (Jan 27, 2018)
 ----------------------
@@ -438,7 +484,7 @@ This release brings further improvements with regards to the add-in:
         :scale: 80%
 
 * [Mac] Mac Excel 2011 is now supported again with the new add-in. However, since Excel 2011 doesn't support the ribbon, 
-  the config file has be created/edited manually, see :ref:`config_file` (:issue:`714`).
+  the config file has been created/edited manually, see :ref:`config_file` (:issue:`714`).
 
 Also, some new docs:
 
@@ -1192,7 +1238,7 @@ None
 Enhancements
 ************
 
-* Quickstart: It's now easier than ever to start a new xlwings project, simply use the commmand line client (:issue:`306`):
+* Quickstart: It's now easier than ever to start a new xlwings project, simply use the command line client (:issue:`306`):
 
   ``xlwings quickstart myproject`` will produce a folder with the following files, ready to be used (see :ref:`command_line`)::
 
