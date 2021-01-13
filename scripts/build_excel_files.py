@@ -101,9 +101,17 @@ standalone_code = ('Attribute VB_Name = "xlwings"\n' +
                    """#Const App = "Microsoft Excel" 'Adjust when using outside of Excel\n""" +
                    '\n'.join(standalone_code.splitlines()))
 
-for path in [standalone_path, myaddin_path, myaddin_ribbon_path]:
+for path in [standalone_path]:
     wb = Workbook(path)
     wb.VbaProject.get_Modules()['xlwings'].set_Codes(standalone_code)
+    wb.Save(path)
+
+standalone_code_addin = standalone_code.replace("ThisWorkbook", "ActiveWorkbook")
+standalone_code_addin = standalone_code_addin.replace("ThisDocument", "ActiveDocument")
+
+for path in [myaddin_path, myaddin_ribbon_path]:
+    wb = Workbook(path)
+    wb.VbaProject.get_Modules()['xlwings'].set_Codes(standalone_code_addin)
     wb.Save(path)
 
 # Save standalone as xlwings.bas to be included in python package
