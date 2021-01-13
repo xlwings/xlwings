@@ -100,11 +100,16 @@ def quickstart(args):
         python_module.write('    main()\n')
 
     # Excel file
-    if not args.standalone:
-        source_file = os.path.join(this_dir, 'quickstart.xlsm')
-    else:
+    if args.standalone:
         source_file = os.path.join(this_dir, 'quickstart_standalone.xlsm')
-    shutil.copyfile(source_file, os.path.join(project_path, project_name + '.xlsm'))
+    elif args.addin and args.ribbon:
+        source_file = os.path.join(this_dir, 'quickstart_addin_ribbon.xlam')
+    elif args.addin:
+        source_file = os.path.join(this_dir, 'quickstart_addin.xlam')
+    else:
+        source_file = os.path.join(this_dir, 'quickstart.xlsm')
+
+    shutil.copyfile(source_file, os.path.join(project_path, project_name + os.path.splitext(source_file)[1]))
 
 
 def runpython_install(args):
@@ -269,6 +274,8 @@ def main():
                                                                  'xlwings add-in.')
     quickstart_parser.add_argument("project_name")
     quickstart_parser.add_argument("-s", "--standalone", action='store_true', help='Include xlwings as VBA module.')
+    quickstart_parser.add_argument("-addin", "--addin", action='store_true', help='Create an add-in.')
+    quickstart_parser.add_argument("-ribbon", "--ribbon", action='store_true', help='Include a ribbon when creating an add-in.')
     quickstart_parser.set_defaults(func=quickstart)
 
     # RunPython (only needed when installed with conda for Mac Excel 2016)
