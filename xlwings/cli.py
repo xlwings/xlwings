@@ -10,26 +10,26 @@ import xlwings as xw
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
-def get_addin_path():
+def get_addin_dir():
     # The call to startup_path creates the XLSTART folder if it doesn't exist yet
     if xw.apps:
-        return os.path.join(xw.apps.active.startup_path, 'xlwings.xlam')
+        return xw.apps.active.startup_path
     else:
         app = xw.App(visible=False)
         startup_path = app.startup_path
         app.quit()
-        return os.path.join(startup_path, 'xlwings.xlam')
+        return startup_path
 
 
 def addin_install(args):
-    if args is None:
-        unprotected = False
-    else:
-        unprotected = args.unprotected
+    xlwings_addin_target_path = os.path.join(get_addin_dir(), 'xlwings.xlam')
+    addin_name = 'xlwings_unprotected.xlam' if args.unprotected else 'xlwings.xlam'
     try:
-        addin_path = get_addin_path()
-        addin_name = 'xlwings_unprotected.xlam' if unprotected else 'xlwings.xlam'
-        shutil.copyfile(os.path.join(this_dir, 'addin', addin_name), addin_path)
+        if args.file:
+            custom_addin_source_path = os.path.abspath(args.file)
+            shutil.copyfile(custom_addin_source_path, os.path.join(get_addin_dir(), os.path.basename(custom_addin_source_path)))
+        else:
+            shutil.copyfile(os.path.join(this_dir, 'addin', addin_name), xlwings_addin_target_path)
         print('Successfully installed the xlwings add-in! Please restart Excel.')
         if sys.platform.startswith('darwin'):
             runpython_install(None)
@@ -44,8 +44,12 @@ def addin_install(args):
 
 
 def addin_remove(args):
+    if args.file:
+        addin_name = os.path.basename(args.file)
+    else:
+        addin_name = 'xlwings.xlam'
+    addin_path = os.path.join(get_addin_dir(), addin_name)
     try:
-        addin_path = get_addin_path()
         os.remove(addin_path)
         print('Successfully removed the xlwings add-in!')
     except (WindowsError, PermissionError) as e:
@@ -61,7 +65,11 @@ def addin_remove(args):
 
 
 def addin_status(args):
-    addin_path = get_addin_path()
+    if args.file:
+        addin_name = os.path.basename(args.file)
+    else:
+        addin_name = 'xlwings.xlam'
+    addin_path = os.path.join(get_addin_dir(), addin_name)
     if os.path.isfile(addin_path):
         print('The add-in is installed at {}'.format(addin_path))
         print('Use "xlwings addin remove" to uninstall it.')
@@ -242,27 +250,37 @@ def main():
                                                        '(will be copied to the XLSTART folder). Instead of "install" you can '
                                                        'also use "update", "remove" or "status". Note that this command '
                                                        'may take a while. Use the "--unprotected" flag to install the '
-                                                       'add-in without password protection.')
+                                                       'add-in without password protection. You can install your custom add-in '
+                                                       'by providing the name or path via the --file flag, '
+                                                       'e.g. "xlwings add-in install --file custom.xlam"')
     addin_subparsers = addin_parser.add_subparsers(dest='subcommand')
     addin_subparsers.required = True
 
+    file_arg_help = 'The name or path of a custom add-in.'
+
     addin_install_parser = addin_subparsers.add_parser('install')
     addin_install_parser.add_argument("-u", "--unprotected", action='store_true', help='Install the add-in without the password protection.')
+    addin_install_parser.add_argument("-f", "--file", default=None, help=file_arg_help)
     addin_install_parser.set_defaults(func=addin_install)
 
     addin_update_parser = addin_subparsers.add_parser('update')
+    addin_update_parser.add_argument("-f", "--file", default=None, help=file_arg_help)
     addin_update_parser.set_defaults(func=addin_install)
 
     addin_upgrade_parser = addin_subparsers.add_parser('upgrade')
+    addin_upgrade_parser.add_argument("-f", "--file", default=None, help=file_arg_help)
     addin_upgrade_parser.set_defaults(func=addin_install)
 
     addin_remove_parser = addin_subparsers.add_parser('remove')
+    addin_remove_parser.add_argument("-f", "--file", default=None, help=file_arg_help)
     addin_remove_parser.set_defaults(func=addin_remove)
 
     addin_uninstall_parser = addin_subparsers.add_parser('uninstall')
+    addin_uninstall_parser.add_argument("-f", "--file", default=None, help=file_arg_help)
     addin_uninstall_parser.set_defaults(func=addin_remove)
 
     addin_status_parser = addin_subparsers.add_parser('status')
+    addin_status_parser.add_argument("-f", "--file", default=None, help=file_arg_help)
     addin_status_parser.set_defaults(func=addin_status)
 
     # Quickstart
