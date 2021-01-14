@@ -67,47 +67,62 @@ def set_version_strings(code):
     return code
 
 
+def produce_single_module(addin_modules, custom_addin=False):
+    # Read out modules
+    vba_module_names = ['License', 'Main', 'Config', 'Extensions', 'Utils']
+    if custom_addin:
+        vba_module_names.pop(vba_module_names.index('Extensions'))
+    vba_code = []
+    for m in vba_module_names:
+        vba_code[m] = addin_modules[m].get_Codes()
+
+    # Update standalone files with a single vba module containing the concatenated addin modules
+    standalone_code = ''
+    for m in vba_code:
+        standalone_code += vba_code[m]
+
+    standalone_code = set_version_strings(standalone_code)
+    standalone_code = "'Version: {}\n".format(version_string) + standalone_code
+    if custom_addin:
+        standalone_code = standalone_code.replace("Public Const CUSTOM_ADDIN As Boolean = False",
+                                                  "Public Const CUSTOM_ADDIN As Boolean = True")
+    else:
+        # TODO: handle this in the VBA code for standalone modules, too
+        standalone_code = standalone_code.replace("ActiveWorkbook", "ThisWorkbook")
+        standalone_code = standalone_code.replace("ActiveDocument", "ThisDocument")
+    standalone_code = standalone_code.replace('Attribute VB_Name = "License"', "")
+    standalone_code = standalone_code.replace("Attribute VB_Name", "\n'Attribute VB_Name")
+    standalone_code = standalone_code.replace("Option Explicit", "")
+    standalone_code = standalone_code.replace("""#Const App = "Microsoft Excel" 'Adjust when using outside of Excel""", "")
+    # Re-add the Compiler Constant
+    standalone_code = ('Attribute VB_Name = "xlwings"\n' +
+                       """#Const App = "Microsoft Excel" 'Adjust when using outside of Excel\n""" +
+                       '\n'.join(standalone_code.splitlines()))
+    return standalone_code
+
 # Get vba modules from addin
 addin_wb = Workbook(addin_path)
 addin_modules = addin_wb.VbaProject.get_Modules()
 
-# Update Main module in addin
+# Update Main module in xlwings add-in
 main_code = addin_modules['Main'].get_Codes()
 main_code = set_version_strings(main_code)
 addin_modules['Main'].set_Codes(main_code)
 addin_wb.Save(addin_path)
 
-# Create an unprotected copy of the addin without password
+# Create an unprotected copy of the xlwings add-in (without password)
 addin_unprotected_wb = Workbook(addin_path)
 addin_unprotected_wb.VbaProject.Protect(False, None)
 addin_unprotected_wb.Save(addin_unprotected_path)
 
-# Update standalone files with a single vba module containing the concatenated addin modules
-standalone_code = ''
-for m in ['License', 'Main', 'Config', 'Extensions', 'Utils']:
-    standalone_code += addin_modules[m].get_Codes()
+# Save standalone module
+standalone_code = produce_single_module(addin_modules, custom_addin=False)
+wb = Workbook(standalone_path)
+wb.VbaProject.get_Modules()['xlwings'].set_Codes(standalone_code)
+wb.Save(standalone_path)
 
-standalone_code = set_version_strings(standalone_code)
-standalone_code = "'Version: {}\n".format(version_string) + standalone_code
-standalone_code = standalone_code.replace("ActiveWorkbook", "ThisWorkbook")
-standalone_code = standalone_code.replace("ActiveDocument", "ThisDocument")
-standalone_code = standalone_code.replace('Attribute VB_Name = "License"', "")
-standalone_code = standalone_code.replace("Attribute VB_Name", "\n'Attribute VB_Name")
-standalone_code = standalone_code.replace("Option Explicit", "")
-standalone_code = standalone_code.replace("""#Const App = "Microsoft Excel" 'Adjust when using outside of Excel""", "")
-
-# Re-add the Compiler Constant
-standalone_code = ('Attribute VB_Name = "xlwings"\n' +
-                   """#Const App = "Microsoft Excel" 'Adjust when using outside of Excel\n""" +
-                   '\n'.join(standalone_code.splitlines()))
-
-for path in [standalone_path]:
-    wb = Workbook(path)
-    wb.VbaProject.get_Modules()['xlwings'].set_Codes(standalone_code)
-    wb.Save(path)
-
-standalone_code_addin = standalone_code.replace("ThisWorkbook", "ActiveWorkbook")
-standalone_code_addin = standalone_code_addin.replace("ThisDocument", "ActiveDocument")
+# Custom add-in
+standalone_code_addin = produce_single_module(addin_modules, custom_addin=True)
 
 for path in [myaddin_path, myaddin_ribbon_path]:
     wb = Workbook(path)
