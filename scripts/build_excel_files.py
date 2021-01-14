@@ -72,14 +72,9 @@ def produce_single_module(addin_modules, custom_addin=False):
     vba_module_names = ['License', 'Main', 'Config', 'Extensions', 'Utils']
     if custom_addin:
         vba_module_names.pop(vba_module_names.index('Extensions'))
-    vba_code = []
-    for i, name in enumerate(vba_module_names):
-        vba_code[i] = addin_modules[name].get_Codes()
-
-    # Update standalone files with a single vba module containing the concatenated addin modules
     standalone_code = ''
-    for module in vba_code:
-        standalone_code += module
+    for name in vba_module_names:
+        standalone_code += addin_modules[name].get_Codes()
 
     standalone_code = set_version_strings(standalone_code)
     standalone_code = "'Version: {}\n".format(version_string) + standalone_code
