@@ -81,6 +81,8 @@ def produce_single_module(addin_modules, custom_addin=False):
     if custom_addin:
         standalone_code = standalone_code.replace("Public Const CUSTOM_ADDIN As Boolean = False",
                                                   "Public Const CUSTOM_ADDIN As Boolean = True")
+        standalone_code = standalone_code.replace('Public Const PROJECT_NAME As String = "xlwings"',
+                                                  'Public Const PROJECT_NAME As String = "myaddin"')
     else:
         # TODO: handle this in the VBA code for standalone modules, too
         standalone_code = standalone_code.replace("ActiveWorkbook", "ThisWorkbook")
