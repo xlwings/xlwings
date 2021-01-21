@@ -33,7 +33,7 @@ def clear_user_config():
 
 @pytest.fixture
 def addin(app):
-    return app.books.open(this_dir.parent / 'xlwings' / 'addin' / 'xlwings.xlam')
+    return app.books.open(Path(xw.__path__[0]) / 'addin' / 'xlwings.xlam')
 
 
 @pytest.fixture
@@ -76,7 +76,6 @@ def test_config(clear_user_config, app, addin):
 
 
 def test_runpython(addin, quickstart_book):
-    quickstart_book.sheets['_xlwings.conf'].name = 'xlwings.conf'
     sample_call = quickstart_book.macro('Module1.SampleCall')
     sample_call()
     assert quickstart_book.sheets[0]['A1'].value == 'Hello xlwings!'
@@ -94,7 +93,7 @@ def test_runpython_server(addin, quickstart_book):
     assert quickstart_book.sheets[0]['A1'].value == 'Bye xlwings!'
 
 
-def test_embedded_code(clear_user_config, addin, quickstart_book):
+def test_runpython_embedded_code(clear_user_config, addin, quickstart_book):
     os.makedirs(Path.home() / '.xlwings')
     with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as config:
         config.write(f'"LICENSE_KEY","{os.getenv("TEST_XLWINGS_LICENSE_KEY")}"')
@@ -106,3 +105,46 @@ def test_embedded_code(clear_user_config, addin, quickstart_book):
     assert quickstart_book.sheets[0]['A1'].value == 'Hello xlwings!'
     sample_call()
     assert quickstart_book.sheets[0]['A1'].value == 'Bye xlwings!'
+
+
+def test_udf(clear_user_config, addin, quickstart_book):
+    addin.macro('ImportPythonUDFs')()
+    quickstart_book.sheets[0]['A1'].value = '=hello("test")'
+    assert quickstart_book.sheets[0]['A1'].value == 'Hello test!'
+
+
+def test_udf_embedded_code(clear_user_config, addin, quickstart_book):
+    os.makedirs(Path.home() / '.xlwings')
+    with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as config:
+        config.write(f'"LICENSE_KEY","{os.getenv("TEST_XLWINGS_LICENSE_KEY")}"')
+    os.chdir(Path(quickstart_book.fullname).parent)
+    subprocess.run(split('xlwings code embed'))
+    (Path(quickstart_book.fullname).parent / 'testproject.py').unlink()
+    addin.macro('ImportPythonUDFs')()
+    quickstart_book.sheets[0]['A1'].value = '=hello("test")'
+    assert quickstart_book.sheets[0]['A1'].value == 'Hello test!'
+    (Path.home() / '.xlwings' / 'xlwings.conf').unlink()
+    quickstart_book.app.api.CalculateFull()
+    assert 'xlwings.LicenseError: Embedded code requires a valid LICENSE_KEY.' in quickstart_book.sheets[0]['A1'].value
+
+
+def test_can_use_xlwings_without_license_key(clear_user_config, tmpdir):
+    import xlwings
+    import xlwings.rest.api
+    os.chdir(tmpdir)
+    subprocess.run(split('xlwings quickstart testproject'))
+
+
+def test_can_use_xlwings_wit_wrong_license_key(clear_user_config, tmpdir):
+    os.makedirs(Path.home() / '.xlwings')
+    with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as config:
+        config.write(f'"LICENSE_KEY","xxx"')
+    import xlwings
+    import xlwings.rest.api
+    os.chdir(tmpdir)
+    subprocess.run(split('xlwings quickstart testproject'))
+
+
+def test_cant_use_xlwings_pro_without_license_key(clear_user_config, tmpdir):
+    with pytest.raises(xw.LicenseError):
+        import xlwings.pro
