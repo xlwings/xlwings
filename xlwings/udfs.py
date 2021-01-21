@@ -22,7 +22,7 @@ import pythoncom
 import pywintypes
 from win32com.client import Dispatch
 
-from . import conversion, xlplatform, Range, apps, Book, PRO
+from . import conversion, xlplatform, Range, apps, Book, PRO, LicenseError
 from .utils import VBAWriter, exception
 
 if PRO:
@@ -384,9 +384,12 @@ def get_udf_module(module_name, xl_workbook):
                 module_info['module'] = module
     else:
         # Handle embedded code
-        if PRO:
-            wb = Book(impl=xlplatform.Book(Dispatch(xl_workbook)))
-            dump_embedded_code(wb, tempdir.name)
+        wb = Book(impl=xlplatform.Book(Dispatch(xl_workbook)))
+        for sheet in wb.sheets:
+            if sheet.name.endswith(".py") and not PRO:
+                raise LicenseError("Embedded code requires a valid LICENSE_KEY.")
+            elif PRO:
+                dump_embedded_code(wb, tempdir.name)
 
         module = import_module(module_name)
         filename = os.path.normcase(module.__file__.lower())

@@ -97,7 +97,7 @@ def test_runpython_server(addin, quickstart_book):
 def test_embedded_code(clear_user_config, addin, quickstart_book):
     os.makedirs(Path.home() / '.xlwings')
     with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as config:
-        config.write(f'"LICENSE_KEY","{os.getenv("TEST_LICENSE_KEY")}"')
+        config.write(f'"LICENSE_KEY","{os.getenv("TEST_XLWINGS_LICENSE_KEY")}"')
     os.chdir(Path(quickstart_book.fullname).parent)
     subprocess.run(split('xlwings code embed'))
     (Path(quickstart_book.fullname).parent / 'testproject.py').unlink()
