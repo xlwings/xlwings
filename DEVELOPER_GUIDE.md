@@ -70,6 +70,16 @@ Also, the tests are standard unittests, so `nose` is not really required to run 
 ### Build locally
 
 ```
+pip install sphinx-autobuild
+```
+
+```
+sphinx-autobuild docs docs/_build/html
+```
+
+without autobuild:
+
+```
 cd docs
 make html
 ```
