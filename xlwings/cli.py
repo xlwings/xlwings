@@ -28,12 +28,14 @@ def addin_install(args):
         if args.file:
             custom_addin_source_path = os.path.abspath(args.file)
             shutil.copyfile(custom_addin_source_path, os.path.join(get_addin_dir(), os.path.basename(custom_addin_source_path)))
+            print('Successfully installed the add-in! Please restart Excel.')
         else:
             shutil.copyfile(os.path.join(this_dir, 'addin', addin_name), xlwings_addin_target_path)
-        print('Successfully installed the xlwings add-in! Please restart Excel.')
+            print('Successfully installed the xlwings add-in! Please restart Excel.')
         if sys.platform.startswith('darwin'):
             runpython_install(None)
-        config_create(None)
+        if not args.file:
+            config_create(None)
     except IOError as e:
         if e.args[0] == 13:
             print('Error: Failed to install the add-in: If Excel is running, quit Excel and try again.')

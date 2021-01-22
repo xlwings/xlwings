@@ -1,3 +1,9 @@
+"""
+If you run this on a built/installed package, make sure to cd out of the xlwings source
+directory, copy the test folder next to the install xlwings package,then run:
+pytest test_e2e.py -p no:faulthandler
+"""
+
 import os
 from pathlib import Path
 import shutil
@@ -14,7 +20,9 @@ this_dir = Path(__file__).resolve().parent
 def app():
     app = xw.App(visible=False)
     yield app
-    app.kill()
+    for book in app.books:
+        book.close()
+    app.kill()  # test_addin_installation currently leaves Excel hanging otherwise
 
 
 @pytest.fixture
@@ -130,7 +138,6 @@ def test_udf_embedded_code(clear_user_config, addin, quickstart_book):
 
 def test_can_use_xlwings_without_license_key(clear_user_config, tmpdir):
     import xlwings
-    import xlwings.rest.api
     os.chdir(tmpdir)
     subprocess.run(split('xlwings quickstart testproject'))
 
@@ -140,11 +147,45 @@ def test_can_use_xlwings_wit_wrong_license_key(clear_user_config, tmpdir):
     with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as config:
         config.write(f'"LICENSE_KEY","xxx"')
     import xlwings
-    import xlwings.rest.api
     os.chdir(tmpdir)
     subprocess.run(split('xlwings quickstart testproject'))
 
 
-def test_cant_use_xlwings_pro_without_license_key(clear_user_config, tmpdir):
+def test_cant_use_xlwings_pro_without_license_key(clear_user_config):
     with pytest.raises(xw.LicenseError):
         import xlwings.pro
+
+
+def test_addin_installation(app):
+    assert not (Path(app.startup_path) / 'xlwings.xlam').exists()
+    subprocess.run(split('xlwings addin install'))
+    assert (Path(app.startup_path) / 'xlwings.xlam').exists()
+    subprocess.run(split('xlwings addin remove'))
+    assert not (Path(app.startup_path) / 'xlwings.xlam').exists()
+
+    # Custom file
+    assert not (Path(app.startup_path) / 'test book.xlsx').exists()
+    os.chdir(this_dir)
+    subprocess.run(split('xlwings addin install -f "test book.xlsx"'))
+    assert (Path(app.startup_path) / 'test book.xlsx').exists()
+    subprocess.run(split('xlwings addin remove -f "test book.xlsx"'))
+    assert not (Path(app.startup_path) / 'test book.xlsx').exists()
+
+
+def test_update_license_key(clear_user_config):
+    subprocess.run(split('xlwings license update -k test_key'))
+    with open(Path.home() / '.xlwings' / 'xlwings.conf', 'r') as f:
+        assert f.read() == '"LICENSE_KEY","test_key"\n'
+
+
+@pytest.mark.skipif(xw.__version__ == 'dev', reason='requires a built package')
+def test_standalone(clear_user_config, app, tmpdir):
+    os.chdir(tmpdir)
+    subprocess.run(split('xlwings quickstart testproject --standalone'))
+    standalone_book = app.books.open(Path(tmpdir) / 'testproject' / 'testproject.xlsm')
+    sample_call = standalone_book.macro('Module1.SampleCall')
+    sample_call()
+    assert standalone_book.sheets[0]['A1'].value == 'Hello xlwings!'
+    sample_call()
+    assert standalone_book.sheets[0]['A1'].value == 'Bye xlwings!'
+
