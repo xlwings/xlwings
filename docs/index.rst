@@ -51,6 +51,7 @@ See :ref:`pro` for more details.
     converters
     debugging
     extensions
+    customaddin
     threading_and_multiprocessing
     missing_features
     other_office_apps

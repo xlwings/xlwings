@@ -22,7 +22,7 @@ import pythoncom
 import pywintypes
 from win32com.client import Dispatch
 
-from . import conversion, xlplatform, Range, apps, Book, PRO
+from . import conversion, xlplatform, Range, apps, Book, PRO, LicenseError
 from .utils import VBAWriter, exception
 
 if PRO:
@@ -384,9 +384,12 @@ def get_udf_module(module_name, xl_workbook):
                 module_info['module'] = module
     else:
         # Handle embedded code
-        if PRO:
-            wb = Book(impl=xlplatform.Book(Dispatch(xl_workbook)))
-            dump_embedded_code(wb, tempdir.name)
+        wb = Book(impl=xlplatform.Book(Dispatch(xl_workbook)))
+        for sheet in wb.sheets:
+            if sheet.name.endswith(".py") and not PRO:
+                raise LicenseError("Embedded code requires a valid LICENSE_KEY.")
+            elif PRO:
+                dump_embedded_code(wb, tempdir.name)
 
         module = import_module(module_name)
         filename = os.path.normcase(module.__file__.lower())
@@ -524,7 +527,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     return xl_result
 
 
-def generate_vba_wrapper(module_name, module, f):
+def generate_vba_wrapper(module_name, module, f, xl_workbook):
 
     vba = VBAWriter(f)
 
@@ -583,12 +586,16 @@ def generate_vba_wrapper(module_name, module, f):
                 else:
                     args_vba = 'Array(' + ', '.join(arg['vba'] or arg['name'] for arg in xlfunc['args']) + ')'
 
+                # Add-ins work with ActiveWorkbook instead of ThisWorkbook
+                vba_workbook = 'ActiveWorkbook' if xl_workbook.Name.endswith('.xlam') else 'ThisWorkbook'
+
                 if ftype == "Sub":
                     with vba.block('#If App = "Microsoft Excel" Then'):
-                        vba.writeln('Py.CallUDF "{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller',
+                        vba.writeln('Py.CallUDF "{module_name}", "{fname}", {args_vba}, {vba_workbook}, Application.Caller',
                                     module_name=module_name,
                                     fname=fname,
                                     args_vba=args_vba,
+                                    vba_workbook=vba_workbook
                                     )
                     with vba.block("#Else"):
                         vba.writeln('Py.CallUDF "{module_name}", "{fname}", {args_vba}',
@@ -600,10 +607,11 @@ def generate_vba_wrapper(module_name, module, f):
                 else:
                     with vba.block('#If App = "Microsoft Excel" Then'):
                         vba.writeln("If TypeOf Application.Caller Is Range Then On Error GoTo failed")
-                        vba.writeln('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, ThisWorkbook, Application.Caller)',
+                        vba.writeln('{fname} = Py.CallUDF("{module_name}", "{fname}", {args_vba}, {vba_workbook}, Application.Caller)',
                                     module_name=module_name,
                                     fname=fname,
                                     args_vba=args_vba,
+                                    vba_workbook=vba_workbook
                                     )
                         vba.writeln("Exit " + ftype)
                     with vba.block("#Else"):
@@ -636,7 +644,7 @@ def import_udfs(module_names, xl_workbook):
 
     for module_name in module_names:
         module = get_udf_module(module_name, xl_workbook)
-        generate_vba_wrapper(module_name, module, tf.file)
+        generate_vba_wrapper(module_name, module, tf.file, xl_workbook)
 
     tf.close()
 
