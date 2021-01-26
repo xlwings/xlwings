@@ -1015,8 +1015,8 @@ class Sheet:
         .. versionadded: 0.21.5
         """
         # As copy() doesn't return the new sheet object, we're forcing the user to provide
-        # the before or after parameter so we don't have to figure out the new book object
-        # in case they wouldn't provide any of the params which would create a new book
+        # the before or after parameter so we don't have to figure out the book object
+        # (no parameters would create a new book)
         assert (before is None) ^ (after is None), "you have to specify either before or after"
         if before:
             target_book = before.book
@@ -1024,14 +1024,15 @@ class Sheet:
         if after:
             target_book = after.book
             after = after.impl
+        if name:
+            if name.lower() in (s.name.lower() for s in target_book.sheets):
+                raise ValueError("Sheet named '{name}' already present in workbook")
         sheet_names_before = {sheet.name for sheet in target_book.sheets}
         self.impl.copy(before=before, after=after)
         sheet_names_after = {sheet.name for sheet in target_book.sheets}
         new_sheet_name = sheet_names_after.difference(sheet_names_before).pop()
         copied_sheet = target_book.sheets[new_sheet_name]
         if name:
-            if name.lower() in (s.name.lower() for s in target_book.sheets):
-                raise ValueError("Sheet named '{name}' already present in workbook")
             copied_sheet.name = name
         return copied_sheet
 

@@ -143,6 +143,57 @@ class TestSheet(TestBase):
         self.wb1.sheets[0].visible = False
         self.assertFalse(self.wb1.sheets[0].visible)
 
+    def test_sheet_copy_without_arguments(self):
+        with self.assertRaises(AssertionError):
+            self.wb1.sheets[0].copy()
+
+    def test_sheet_copy_with_before_and_after(self):
+        with self.assertRaises(AssertionError):
+            self.wb1.sheets[0].copy(before=self.wb1.sheets[0], after=self.wb1.sheets[0])
+
+    def test_sheet_copy_before_same_book(self):
+        original_name = self.wb1.sheets[0].name
+        self.wb1.sheets[0]['A1'].value = 'xyz'
+        copied_sheet = self.wb1.sheets[0].copy(before=self.wb1.sheets[0])
+        self.assertNotEqual(self.wb1.sheets[0].name, original_name)
+        self.assertEqual(self.wb1.sheets[0]['A1'].value, 'xyz')
+        self.assertEqual(copied_sheet.name, self.wb1.sheets[0].name)
+
+    def test_sheet_copy_after_same_book(self):
+        original_name = self.wb1.sheets[0].name
+        self.wb1.sheets[0]['A1'].value = 'xyz'
+        self.wb1.sheets[0].copy(after=self.wb1.sheets[0])
+        self.assertNotEqual(self.wb1.sheets[1].name, original_name)
+        self.assertEqual(self.wb1.sheets[1]['A1'].value, 'xyz')
+
+    def test_sheet_copy_before_same_book_new_name(self):
+        self.wb1.sheets[0]['A1'].value = 'xyz'
+        self.wb1.sheets[0].copy(before=self.wb1.sheets[0], name='mycopy')
+        self.assertEqual(self.wb1.sheets[0].name, 'mycopy')
+        self.assertEqual(self.wb1.sheets[0]['A1'].value, 'xyz')
+
+    def test_sheet_copy_before_same_book_new_name_already_exists(self):
+        self.wb1.sheets[0]['A1'].value = 'xyz'
+        self.wb1.sheets[0].copy(before=self.wb1.sheets[0], name='mycopy')
+        with self.assertRaises(ValueError):
+            self.wb1.sheets[0].copy(before=self.wb1.sheets[0], name='mycopy')
+
+    def test_sheet_copy_before_different_book(self):
+        self.wb1.sheets[0]['A1'].value = 'xyz'
+        wb2 = self.wb1.app.books.add()
+        self.wb1.sheets[0].copy(before=wb2.sheets[0])
+        self.assertEqual(wb2.sheets[0]['A1'].value, self.wb1.sheets[0]['A1'].value)
+
+    def test_sheet_copy_before_different_book_same_name(self):
+        mysheet = self.wb1.sheets.add('mysheet')
+        mysheet['A1'].value = 'xyz'
+        wb2 = self.wb1.app.books.add()
+        self.wb1.sheets[0].copy(after=wb2.sheets[0], name='mysheet')
+        self.assertEqual(wb2.sheets[1]['A1'].value, mysheet['A1'].value)
+        self.assertEqual(wb2.sheets[1].name, 'mysheet')
+        with self.assertRaises(ValueError):
+            self.wb1.sheets[0].copy(after=wb2.sheets[0], name='mysheet')
+
 
 if __name__ == '__main__':
     unittest.main()
