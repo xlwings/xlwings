@@ -60,9 +60,16 @@ if pd:
         def write_value(cls, value, options):
             index = options.get('index', True)
             header = options.get('header', True)
+            assign_index_names = options.get('assign_index_names', False)
 
             index_names = value.index.names
-            index_names = ['' if i is None else i for i in index_names]
+            if assign_index_names:
+                # Useful when you want to have your DataFrame formatted as an Excel table which requires
+                # column header names
+                index_names = [f'index {i}' if name is None else name for i, name in enumerate(index_names)]
+                index_names = ['index'] if index_names == ['index 0'] else index_names
+            else:
+                index_names = ['' if name is None else name for name in index_names]
             index_levels = len(index_names)
 
             if index:
