@@ -53,13 +53,13 @@ def addin_remove(args):
     addin_path = os.path.join(get_addin_dir(), addin_name)
     try:
         os.remove(addin_path)
-        print('Successfully removed the xlwings add-in!')
+        print('Successfully removed the add-in!')
     except (WindowsError, PermissionError) as e:
         if e.args[0] in (13, 32):
             print('Error: Failed to remove the add-in: If Excel is running, quit Excel and try again. '
                   'You can also delete it manually from {0}'.format(addin_path))
         elif e.args[0] == 2:
-            print("Error: Could not remove the xlwings add-in. The add-in doesn't seem to be installed.")
+            print("Error: Could not remove the add-in. The add-in doesn't seem to be installed.")
         else:
             print(repr(e))
     except Exception as e:
