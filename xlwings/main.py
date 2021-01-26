@@ -1026,7 +1026,7 @@ class Sheet:
             after = after.impl
         if name:
             if name.lower() in (s.name.lower() for s in target_book.sheets):
-                raise ValueError("Sheet named '{name}' already present in workbook")
+                raise ValueError(f"Sheet named '{name}' already present in workbook")
         sheet_names_before = {sheet.name for sheet in target_book.sheets}
         self.impl.copy(before=before, after=after)
         sheet_names_after = {sheet.name for sheet in target_book.sheets}
