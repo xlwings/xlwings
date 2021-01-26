@@ -991,8 +991,27 @@ class Sheet:
         """
         return self.impl.delete()
 
-    def __repr__(self):
-        return "<Sheet [{1}]{0}>".format(self.name, self.book.name)
+    def copy(self, before=None, after=None):
+        """
+        Copy a Sheet in the current or a new Book. If you don't specify ``after`` or ``before``,
+        Excel creates a new Book with that Sheet.
+
+        Arguments
+        ---------
+        before : sheet object, default None
+            The sheet object before which you want to place the sheet
+
+        after : sheet object, default None
+            The sheet object after which you want to place the sheet
+
+        .. versionadded: 0.21.5
+        """
+        assert (before is None) or (after is None), "you can only specify before or after"
+        if before:
+            before = before.impl
+        if after:
+            after = after.impl
+        return self.impl.copy(before=before, after=after)
 
     @property
     def charts(self):
@@ -1061,6 +1080,9 @@ class Sheet:
             return self.range(item)
         else:
             return self.cells[item]
+
+    def __repr__(self):
+        return "<Sheet [{1}]{0}>".format(self.name, self.book.name)
 
 
 class Range:
