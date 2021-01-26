@@ -689,6 +689,13 @@ class Sheet:
         self.xl.Delete()
         app.DisplayAlerts = alerts_state
 
+    def copy(self, before, after):
+        if before:
+            before = before.xl
+        if after:
+            after = after.xl
+        self.xl.Copy(Before=before, After=after)
+
     @property
     def charts(self):
         return Charts(xl=self.xl.ChartObjects())

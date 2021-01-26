@@ -447,6 +447,13 @@ class Sheet:
         self.xl.delete()
         self.book.app.xl.display_alerts.set(alerts_state)
 
+    def copy(self, before, after):
+        if before:
+            before = before.xl
+        if after:
+            after = after.xl
+        self.xl.copy_worksheet(before_=before, after_=after)
+
     @property
     def charts(self):
         return Charts(self)
