@@ -991,10 +991,10 @@ class Sheet:
         """
         return self.impl.delete()
 
-    def copy(self, before=None, after=None):
+    def copy(self, before=None, after=None, name=None):
         """
-        Copy a Sheet in the current or a new Book. If you don't specify ``after`` or ``before``,
-        Excel creates a new Book with that Sheet.
+        Copy a sheet to the current or a new Book. You have to either provide
+        ``after`` or ``before``. Returns the copied sheet.
 
         Arguments
         ---------
@@ -1004,14 +1004,36 @@ class Sheet:
         after : sheet object, default None
             The sheet object after which you want to place the sheet
 
+        name : str, default None
+            The sheet name of the copy
+
+        Returns
+        -------
+        Sheet object: Sheet
+            The copied sheet
+
         .. versionadded: 0.21.5
         """
-        assert (before is None) or (after is None), "you can only specify before or after"
+        # As copy() doesn't return the new sheet object, we're forcing the user to provide
+        # the before or after parameter so we don't have to figure out the new book object
+        # in case they wouldn't provide any of the params which would create a new book
+        assert (before is None) ^ (after is None), "you have to specify either before or after"
         if before:
+            target_book = before.book
             before = before.impl
         if after:
+            target_book = after.book
             after = after.impl
-        return self.impl.copy(before=before, after=after)
+        sheet_names_before = {sheet.name for sheet in target_book.sheets}
+        self.impl.copy(before=before, after=after)
+        sheet_names_after = {sheet.name for sheet in target_book.sheets}
+        new_sheet_name = sheet_names_after.difference(sheet_names_before).pop()
+        copied_sheet = target_book.sheets[new_sheet_name]
+        if name:
+            if name.lower() in (s.name.lower() for s in target_book.sheets):
+                raise ValueError("Sheet named '{name}' already present in workbook")
+            copied_sheet.name = name
+        return copied_sheet
 
     @property
     def charts(self):
