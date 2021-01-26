@@ -10,13 +10,32 @@ See also the :ref:`Reports API reference <reports_api>`.
 Quickstart
 ----------
 
-xlwings Reports is part of xlwings PRO and a solution for template based Excel and PDF reporting. It allows
-business users without Python knowledge to create & maintain Excel templates without having
-to go back to a Python developer for every change: xlwings Reports separates the Python code
-(that gets and prepares all the data) from the Excel template (that defines which data goes where
-and how it should be formatted). See also the `xlwings Reports homepage <https://www.xlwings.org/reporting>`_.
+xlwings Reports is part of xlwings PRO and a solution for template based Excel and PDF reporting. It allows business users without Python knowledge to create & maintain Excel templates without having to go back to a Python developer for every change: xlwings Reports separates the Python code (that gets and prepares all the data) from the Excel template (that defines which data goes where and how it should be formatted). See also the `xlwings Reports homepage <https://www.xlwings.org/reporting>`_. You can render one sheet at the time via :meth:`mysheet.render_template <xlwings.Sheet.render_template>` or use the higher-level convenience wrapper :meth:`xlwings.pro.reports.create_report` which first copies the template workbook and then loops through all sheets.
 
-Start by creating the following Python script ``my_template.py``::
+Render Sheets
+*************
+
+Let's first look at how to render a single sheet. This is a workbook stored as ``Book1.xlsx``:
+
+.. figure:: images/sheet_rendering1.png
+    :scale: 60%
+
+Running the following code::
+
+    import xlwings as xw
+    wb = xw.Book('Book1.xlsx')
+    sheet = wb.sheets['template'].copy(after=wb.sheets['template'], name='report')
+    sheet.render_template(title='A Demo!', table=[[1, 2], [3, 4]])
+
+Leaves you with this:
+
+.. figure:: images/sheet_rendering2.png
+    :scale: 60%
+
+Render Workbooks
+****************
+
+If your template is a full workbook, you can use the ``create_report`` function. Start by creating the following Python script ``my_template.py``::
 
     from xlwings.pro.reports import create_report
     import pandas as pd

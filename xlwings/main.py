@@ -1038,6 +1038,42 @@ class Sheet:
             copied_sheet.name = name
         return copied_sheet
 
+    def render_template(self, **data):
+        """
+        This method requires xlwings :guilabel:`PRO`.
+
+        Replaces all Jinja variables (e.g ``{{ myvar }}``) in the sheet with the keyword argument that has the same name.
+        Following variable types are supported:
+
+        strings, numbers, lists, simple dicts, NumPy arrays, Pandas DataFrames, PIL Image objects that have a filename and
+        Matplotlib figures.
+
+        Parameters
+        ----------
+        data: kwargs
+            All key/value pairs that are used in the template.
+
+        Returns
+        -------
+        sheet: xlwings Sheet
+
+        Examples
+        --------
+
+        >>> import xlwings as xw
+        >>> book = xw.Book()
+        >>> book.sheets[0]['A1:A2'].value = '{{ myvar }}'
+        >>> book.sheets[0].render_template(myvar='test')
+
+        See Also
+        --------
+        :meth:`xlwings.pro.reports.create_report`
+
+        .. versionadded:: 0.21.5
+        """
+        from .pro.reports.main import render_template
+        return render_template(self, **data)
+
     @property
     def charts(self):
         """
