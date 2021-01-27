@@ -37,6 +37,7 @@ See :ref:`pro` for more details.
     vba
     udfs
     matplotlib
+    jupyternotebooks
     command_line
     reports
     deployment

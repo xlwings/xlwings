@@ -62,11 +62,8 @@ Note that you can have multiple Excel sheets and import them like normal Python 
 
 
 .. figure:: images/embedded_code1.png
-    :scale: 40%
 
 .. figure:: images/embedded_code2.png
-    :scale: 40%
-
 
 You can call this function from VBA like so::
 

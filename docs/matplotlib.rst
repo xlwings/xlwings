@@ -23,7 +23,6 @@ The easiest sample boils down to::
     >>> sht.pictures.add(fig, name='MyPlot', update=True)
 
 .. figure:: images/mpl_basic.png
-  :scale: 80%
 
 .. note::
     If you set ``update=True``, you can resize and position the plot on Excel: subsequent calls to ``pictures.add()``
@@ -50,7 +49,6 @@ If you import this function and call it from cell B2, then the plot gets automat
 updated when cell B1 changes:
 
 .. figure:: images/mpl_udf.png
-  :scale: 80%
 
 Properties
 **********
@@ -140,4 +138,3 @@ It works the same as with Matplotlib, however, rendering a Plotly chart takes sl
     wb.sheets[0].pictures.add(fig, name='IrisScatterPlot', update=True)
 
 .. figure:: images/plotly.png
-    :scale: 40%

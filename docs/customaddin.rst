@@ -26,7 +26,6 @@ This will create the familiar quickstart folder with a Python file and an Excel 
 You should see a new ribbon tab called ``MyAddin`` like this:
 
 .. figure:: images/custom_ribbon_addin.png
-    :scale: 40%
 
 The add-in and VBA project is currently always called ``myaddin``, no matter what name you chose in the quickstart command. We'll see towards the end of this tutorial how we can change that, but for now we'll stick with it.
 

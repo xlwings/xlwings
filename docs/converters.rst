@@ -171,7 +171,6 @@ Dictionary converter
 The dictionary converter turns two Excel columns into a dictionary. If the data is in row orientation, use ``transpose``:
 
 .. figure:: images/dict_converter.png
-    :scale: 80%
 
 ::
 
@@ -222,7 +221,6 @@ For ``index`` and ``header``, ``1`` and ``True`` may be used interchangeably.
 **Example:**
 
 .. figure:: images/series_conv.png
-    :scale: 80%
 
 ::
 
@@ -260,7 +258,6 @@ For ``index`` and ``header``, ``1`` and ``True`` may be used interchangeably.
 **Example:**
 
 .. figure:: images/df_converter.png
-  :scale: 55%
 
 ::
 

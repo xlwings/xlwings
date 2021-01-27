@@ -4,7 +4,7 @@ Add-in & Settings
 =================
 
 .. figure:: images/ribbon.png
-    :scale: 40%
+
 
 The xlwings add-in is the preferred way to be able to use the ``Run main`` button, ``RunPython`` or ``UDFs``.
 Note that you don't need an add-in if you just want to manipulate Excel from Python via xlwings.
@@ -36,7 +36,7 @@ To install the add-in, use the command line client::
 Technically, this copies the add-in from Python's installation directory to Excel's ``XLSTART`` folder. Then, to use ``RunPython`` or ``UDFs`` in a workbook, you need to set a reference to ``xlwings`` in the VBA editor, see screenshot (Windows: ``Tools > References...``, Mac: it's on the lower left corner of the VBA editor). Note that when you create a workbook via ``xlwings quickstart``, the reference should already be set.
 
 .. figure:: images/vba_reference.png
-    :scale: 40%
+
 
 .. _settings:
 
@@ -81,7 +81,7 @@ With environment variables, you can set dynamic paths e.g. to your interpreter o
 * On Windows, you can use all environment variables like so: ``%USERPROFILE%\Anaconda``.
 * On macOS, the following special variables are supported: ``$HOME``, ``$APPLICATIONS``, ``$DOCUMENTS``, ``$DESKTOP``.
 
-.. _user_file:
+.. _user_config:
 
 User Config: Ribbon/Config File
 -------------------------------
@@ -127,7 +127,6 @@ it to ``xlwings.conf`` to make it active.
 
 
 .. figure:: images/workbook_config.png
-    :scale: 40%
 
 
 Alternative: Standalone VBA module
