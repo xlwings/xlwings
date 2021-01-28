@@ -29,9 +29,129 @@ except ImportError:
 LicenseHandler.validate_license('reports')
 
 
+def render_template(sheet, **data):
+    """
+    Replaces the Jinja2 placeholders in a given sheet
+    """
+    # On Windows, Excel will not move objects correctly with screen_updating = False during row insert/delete operations
+    # So we'll need to set it to True before any such operations. Getting origin state here to revert to.
+    book = sheet.book
+    screen_updating_original_state = book.app.screen_updating
+
+    env = Environment()
+    locals().update(data)
+
+    # used_range doesn't start automatically in A1
+    last_cell = sheet.used_range.last_cell
+    values_all = sheet.range((1, 1), (last_cell.row, last_cell.column)).options(
+        ndim=2).value if sheet.used_range.value else []
+    # Frame markers
+    frame_markers = []
+    if values_all and '<frame>' in values_all[0]:
+        frame_markers = values_all[0]
+        values = values_all[1:]
+        if sys.platform.startswith('win'):
+            book.app.screen_updating = True
+        sheet['1:1'].delete('up')
+        book.app.screen_updating = screen_updating_original_state
+        frame_indices = [i for i, val in enumerate(frame_markers) if val == '<frame>']
+        frame_indices += [0, last_cell.column]
+        frame_indices = list(sorted(set(frame_indices)))
+    else:
+        values = values_all
+        frame_indices = [0, last_cell.column]
+    values_per_frame = []
+    for ix in range(len(frame_indices) - 1):
+        values_per_frame.append([i[frame_indices[ix]:frame_indices[ix + 1]] for i in values])
+    # Loop through every cell for each frame
+    for ix, values in enumerate(values_per_frame):
+        row_shift = 0
+        for i, row in enumerate(values):
+            for j, value in enumerate(row):
+                if isinstance(value, str):
+                    tokens = list(env.lex(value))
+                    if value.count('{{') == 1 and tokens[0][1] == 'variable_begin' and tokens[-1][1] == 'variable_end':
+                        # Cell contains single Jinja variable
+                        var = None
+                        for _, token_type, value in tokens:
+                            if token_type == 'variable_begin':
+                                var = ''
+                            elif token_type == 'variable_end':
+                                result = eval(var)
+                                if PIL and isinstance(result, PIL.Image.Image):
+                                    # TODO: properly support Image objects in xlwings
+                                    sheet.pictures.add(result.filename,
+                                                       top=sheet[i + row_shift, j + frame_indices[ix]].top,
+                                                       left=sheet[i + row_shift, j + frame_indices[ix]].left,
+                                                       width=result.width, height=result.height)
+                                    sheet[i + row_shift, j + frame_indices[ix]].value = None
+                                elif Figure and isinstance(result, Figure):
+                                    # Matplotlib figures
+                                    sheet.pictures.add(result,
+                                                       top=sheet[i + row_shift, j + frame_indices[ix]].top,
+                                                       left=sheet[i + row_shift, j + frame_indices[ix]].left)
+                                    sheet[i + row_shift, j + frame_indices[ix]].value = None
+                                else:
+                                    # Simple Jinja variables
+                                    # Check for height of 2d array
+                                    if isinstance(result, (list, tuple)) and isinstance(result[0], (list, tuple)):
+                                        result_len = len(result)
+                                    elif np and isinstance(result, np.ndarray):
+                                        result_len = len(result)
+                                    elif pd and isinstance(result, pd.DataFrame):
+                                        # TODO: handle MultiIndex headers
+                                        result_len = len(result) + 1
+                                    else:
+                                        result_len = 1
+                                    # Insert rows if within <frame> and 'result' is multiple rows high
+                                    rows_to_be_inserted = 0
+                                    if frame_markers and result_len > 1:
+                                        # Deduct header and first data row that are part of template
+                                        rows_to_be_inserted = result_len - 2
+                                        if rows_to_be_inserted > 0:
+                                            if sys.platform.startswith('win'):
+                                                wb.app.screen_updating = True
+                                            # Since CopyOrigin is not supported on Mac, we start copying two rows
+                                            # below the header so the data row formatting gets carried over
+                                            end_column = frame_indices[ix] + len(values[0])
+                                            sheet.range((i + row_shift + 3, j + frame_indices[ix] + 1),
+                                                        (i + row_shift + rows_to_be_inserted + 2, end_column)).insert(
+                                                'down')
+                                            # Inserting does not take over borders
+                                            sheet.range((i + row_shift + 2, j + frame_indices[ix] + 1),
+                                                        (i + row_shift + 2, end_column)).copy()
+                                            sheet.range((i + row_shift + 2, j + frame_indices[ix] + 1),
+                                                        (i + row_shift + rows_to_be_inserted + 2, end_column)).paste(
+                                                paste='formats')
+                                            book.app.screen_updating = screen_updating_original_state
+                                    if sheet[i + row_shift, j + frame_indices[ix]].table:
+                                        sheet[i + row_shift, j + frame_indices[ix]].table.update(result)
+                                    else:
+                                        sheet[i + row_shift, j + frame_indices[ix]].value = result
+                                    row_shift += rows_to_be_inserted
+                            elif var is not None and token_type not in ('whitespace',):
+                                var += value
+                    elif '{{' in value:
+                        # These are strings with (multiple) Jinja variables so apply standard text rendering here
+                        template = env.from_string(value)
+                        sheet[i + row_shift, j + frame_indices[ix]].value = template.render(data)
+                    else:
+                        # Don't do anything with cells that don't contain any templating so we don't lose the formatting
+                        pass
+
+    # Loop through all shapes with a template text
+    for shape in sheet.shapes:
+        shapetext = shape.text
+        if shapetext and '{{' in shapetext:
+            template = env.from_string(shapetext)
+            shape.text = template.render(data)
+
+
 def create_report(template, output, book_settings=None, app=None, **data):
     """
-    This feature requires xlwings :guilabel:`PRO`.
+    This function requires xlwings :guilabel:`PRO`.
+
+    This is a convenience wrapper around :meth:`mysheet.render_template <xlwings.Sheet.render_template>`
 
     Writes the values of all key word arguments to the ``output`` file according to the ``template`` and the variables
     contained in there (Jinja variable syntax).
@@ -107,115 +227,9 @@ def create_report(template, output, book_settings=None, app=None, **data):
         else:
             wb = Book(output)
 
-    # On Windows, Excel will not move objects correctly with screen_updating = False during row insert/delete operations
-    # So we'll need to set it to True before any such operations. Getting origin state here to revert to.
-    screen_updating_original_state = wb.app.screen_updating
-
-    env = Environment()
-    locals().update(data)
-
     for sheet in wb.sheets:
-        # used_range doesn't start automatically in A1
-        last_cell = sheet.used_range.last_cell
-        values_all = sheet.range((1, 1), (last_cell.row, last_cell.column)).options(ndim=2).value if sheet.used_range.value else []
-        # Frame markers
-        frame_markers = []
-        if values_all and '<frame>' in values_all[0]:
-            frame_markers = values_all[0]
-            values = values_all[1:]
-            if sys.platform.startswith('win'):
-                wb.app.screen_updating = True
-            sheet['1:1'].delete('up')
-            wb.app.screen_updating = screen_updating_original_state
-            frame_indices = [i for i, val in enumerate(frame_markers) if val == '<frame>']
-            frame_indices += [0, last_cell.column]
-            frame_indices = list(sorted(set(frame_indices)))
-        else:
-            values = values_all
-            frame_indices = [0, last_cell.column]
-        values_per_frame = []
-        for ix in range(len(frame_indices) - 1):
-            values_per_frame.append([i[frame_indices[ix]:frame_indices[ix + 1]] for i in values])
-        # Loop through every cell for each frame
-        for ix, values in enumerate(values_per_frame):
-            row_shift = 0
-            for i, row in enumerate(values):
-                for j, value in enumerate(row):
-                    if isinstance(value, str):
-                        tokens = list(env.lex(value))
-                        if value.count('{{') == 1 and tokens[0][1] == 'variable_begin' and tokens[-1][1] == 'variable_end':
-                            # Cell contains single Jinja variable
-                            var = None
-                            for _, token_type, value in tokens:
-                                if token_type == 'variable_begin':
-                                    var = ''
-                                elif token_type == 'variable_end':
-                                    result = eval(var)
-                                    if PIL and isinstance(result, PIL.Image.Image):
-                                        # TODO: properly support Image objects in xlwings
-                                        sheet.pictures.add(result.filename,
-                                                           top=sheet[i + row_shift, j + frame_indices[ix]].top,
-                                                           left=sheet[i + row_shift, j + frame_indices[ix]].left,
-                                                           width=result.width, height=result.height)
-                                        sheet[i + row_shift, j + frame_indices[ix]].value = None
-                                    elif Figure and isinstance(result, Figure):
-                                        # Matplotlib figures
-                                        sheet.pictures.add(result,
-                                                           top=sheet[i + row_shift, j + frame_indices[ix]].top,
-                                                           left=sheet[i + row_shift, j + frame_indices[ix]].left)
-                                        sheet[i + row_shift, j + frame_indices[ix]].value = None
-                                    else:
-                                        # Simple Jinja variables
-                                        # Check for height of 2d array
-                                        if isinstance(result, (list, tuple)) and isinstance(result[0], (list, tuple)):
-                                            result_len = len(result)
-                                        elif np and isinstance(result, np.ndarray):
-                                            result_len = len(result)
-                                        elif pd and isinstance(result, pd.DataFrame):
-                                            # TODO: handle MultiIndex headers
-                                            result_len = len(result) + 1
-                                        else:
-                                            result_len = 1
-                                        # Insert rows if within <frame> and 'result' is multiple rows high
-                                        rows_to_be_inserted = 0
-                                        if frame_markers and result_len > 1:
-                                            # Deduct header and first data row that are part of template
-                                            rows_to_be_inserted = result_len - 2
-                                            if rows_to_be_inserted > 0:
-                                                if sys.platform.startswith('win'):
-                                                    wb.app.screen_updating = True
-                                                # Since CopyOrigin is not supported on Mac, we start copying two rows
-                                                # below the header so the data row formatting gets carried over
-                                                end_column = frame_indices[ix] + len(values[0])
-                                                sheet.range((i + row_shift + 3, j + frame_indices[ix] + 1),
-                                                            (i + row_shift + rows_to_be_inserted + 2, end_column)).insert('down')
-                                                # Inserting does not take over borders
-                                                sheet.range((i + row_shift + 2, j + frame_indices[ix] + 1),
-                                                            (i + row_shift + 2, end_column)).copy()
-                                                sheet.range((i + row_shift + 2, j + frame_indices[ix] + 1),
-                                                            (i + row_shift + rows_to_be_inserted + 2, end_column)).paste(paste='formats')
-                                                wb.app.screen_updating = screen_updating_original_state
-                                        if sheet[i + row_shift, j + frame_indices[ix]].table:
-                                            sheet[i + row_shift, j + frame_indices[ix]].table.update(result)
-                                        else:
-                                            sheet[i + row_shift, j + frame_indices[ix]].value = result
-                                        row_shift += rows_to_be_inserted
-                                elif var is not None and token_type not in ('whitespace',):
-                                    var += value
-                        elif '{{' in value:
-                            # These are strings with (multiple) Jinja variables so apply standard text rendering here
-                            template = env.from_string(value)
-                            sheet[i + row_shift, j + frame_indices[ix]].value = template.render(data)
-                        else:
-                            # Don't do anything with cells that don't contain any templating so we don't lose the formatting
-                            pass
+        render_template(sheet, **data)
 
-        # Loop through all shapes with a template text
-        for shape in sheet.shapes:
-            shapetext = shape.text
-            if shapetext and '{{' in shapetext:
-                template = env.from_string(shapetext)
-                shape.text = template.render(data)
     wb.save()
     return wb
 
