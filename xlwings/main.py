@@ -3470,7 +3470,7 @@ def view(obj, sheet=None, table=True):
     >>> df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
     >>> xw.view(df)
 
-    See also: :meth:`read <xlwings.read>`
+    See also: :meth:`load <xlwings.load>`
 
     .. versionchanged:: 0.22.0
     """
@@ -3501,9 +3501,9 @@ def view(obj, sheet=None, table=True):
     sheet.book.app.activate(steal_focus=True)
 
 
-def read(index=1, header=1):
+def load(index=1, header=1):
     """
-    Reads the selected cell(s) of the active workbook into a pandas DataFrame. If you select a single cell that has
+    Loads the selected cell(s) of the active workbook into a pandas DataFrame. If you select a single cell that has
     adjacent cells, the range is auto-expanded and turned into a pandas DataFrame. If you don't have pandas installed,
     it returns the values as nested lists.
 
@@ -3518,7 +3518,7 @@ def read(index=1, header=1):
     Examples
     --------
     >>> import xlwings as xw
-    >>> xw.read()
+    >>> xw.load()
 
     See also: :meth:`view <xlwings.view>`
 

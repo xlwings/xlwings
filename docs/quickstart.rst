@@ -1,3 +1,5 @@
+.. _quickstart:
+
 Quickstart
 ==========
 
@@ -6,7 +8,7 @@ This guide assumes you have xlwings already installed. If that's not the case, h
 1. Interacting with Excel from a Jupyter notebook
 -------------------------------------------------
 
-If you're just interested in getting a pandas DataFrame in and out of your Jupyter notebook, you can use the ``read`` and ``view`` functions, see  :ref:`jupyternotebooks`.
+If you're just interested in getting a pandas DataFrame in and out of your Jupyter notebook, you can use the ``view`` and ``load`` functions, see  :ref:`jupyternotebooks`.
 
 2. Scripting: Automate/interact with Excel from Python
 ------------------------------------------------------
