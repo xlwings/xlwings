@@ -17,7 +17,12 @@ Here are the last versions of xlwings to support:
 Installation
 ------------
 
-xlwings comes pre-installed with `Anaconda <https://www.anaconda.com/products/individual>`_. If you are new to Python or have trouble installing xlwings, Anaconda is highly recommended. Otherwise you can also install it manually with pip::
+xlwings comes pre-installed with
+
+* `Anaconda <https://www.anaconda.com/products/individual>`_ (Windows and macOS)
+* `WinPython <https://winpython.github.io>`_ (Windows only) Make sure **not** to take the ``dot`` version as this only contains Python.
+
+If you are new to Python or have trouble installing xlwings, one of these distributions is highly recommended. Otherwise, you can also install it manually with pip::
 
     pip install xlwings
 
@@ -41,7 +46,7 @@ To install the add-in, run the following command::
 
     xlwings addin install
 
-To call Excel from Python, you don't need an add-in. Also, you can use a single file VBA module instead of the add-in. For more details, see :ref:`xlwings_addin`.
+To call Excel from Python, you don't need an add-in. Also, you can use a single file VBA module (*standalone workbook*) instead of the add-in. For more details, see :ref:`xlwings_addin`.
 
 .. note::
    The add-in needs to be the same version as the Python package. Make sure to re-install the add-in after upgrading the xlwings package.
@@ -67,7 +72,7 @@ To activate the license key, run the following command::
 
     xlwings license update -k LICENSE_KEY
 
-Make sure to replace ``LICENSE_KEY`` with your personal key. This will store the license key under your ``xlwings.conf`` file in your home folder. Alternatively, you can also store the license key under an environment variable with the name ``XLWINGS_LICENSE_KEY``.
+Make sure to replace ``LICENSE_KEY`` with your personal key. This will store the license key under your ``xlwings.conf`` file (see :ref:`user_config` for where this is on your system). Alternatively, you can also store the license key under an environment variable with the name ``XLWINGS_LICENSE_KEY``.
 
 xlwings PRO requires additionally the ``cryptography`` and ``Jinja2`` packages which come pre-installed with Anaconda. Otherwise, install them via pip or conda.
 

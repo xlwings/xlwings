@@ -49,7 +49,6 @@ If your template is a full workbook, you can use the ``create_report`` function.
 Then create the following Excel file called ``my_template.xlsx``:
 
 .. figure:: images/mytemplate.png
-    :scale: 60%
 
 Now run the Python script::
 
@@ -59,7 +58,6 @@ This will copy the template and create the following output by replacing the var
 the value from the Python variable:
 
 .. figure:: images/myreport.png
-    :scale: 60%
 
 The last line (``wb.to_pdf()``) will print the workbook as PDF, for more details on the options, see :meth:`Book.to_pdf() <xlwings.Book.to_pdf>`.
 
@@ -96,7 +94,6 @@ You can define and format tables by formatting exactly
 as shown in the screenshot:
 
 .. figure:: images/frame_template.png
-    :scale: 60%
 
 Running the following code::
 
@@ -115,7 +112,6 @@ Running the following code::
 will generate this report:
 
 .. figure:: images/frame_report.png
-    :scale: 60%
 
 .. _excel_tables_reports:
 
@@ -125,7 +121,6 @@ Excel Tables
 Using Excel tables is the recommended way to format tables as the styling can be applied dynamically across columns and rows. You can also use themes and apply alternating colors to rows/columns. On top of that, they are the easiest way to make the source of a chart dynamic. Go to ``Insert`` > ``Table`` and make sure that you activate ``My table has headers`` before clicking on ``OK``. Add the placeholder as usual on the top-left of your Excel table:
 
 .. figure:: images/excel_table_template.png
-    :scale: 60%
 
 Running the following script::
 
@@ -141,7 +136,6 @@ Running the following script::
 Will produce the following report:
 
 .. figure:: images/excel_table_report.png
-    :scale: 60%
 
 .. note::
     * If you would like to exclude the DataFrame index, make sure to set the index to the first column e.g.: ``df.set_index('column_name')``.
@@ -162,9 +156,7 @@ You can also use Shapes like Text Boxes or Rectangles with template text::
 This code turns this template:
 
 .. figure:: images/shape_text_template.png
-    :scale: 60%
 
 into this report:
 
 .. figure:: images/shape_text_report.png
-    :scale: 60%

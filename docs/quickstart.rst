@@ -3,7 +3,12 @@ Quickstart
 
 This guide assumes you have xlwings already installed. If that's not the case, head over to :ref:`installation`.
 
-1. Scripting: Automate/interact with Excel from Python
+1. Interacting with Excel from a Jupyter notebook
+-------------------------------------------------
+
+If you're just interested in getting a pandas DataFrame in and out of your Jupyter notebook, you can use the ``read`` and ``view`` functions, see  :ref:`jupyternotebooks`.
+
+2. Scripting: Automate/interact with Excel from Python
 ------------------------------------------------------
 
 Establish a connection to a workbook:
@@ -53,20 +58,7 @@ There are many **convenience features** available, e.g. Range expanding:
     >>> sht.pictures.add(fig, name='MyPlot', update=True)
     <Picture 'MyPlot' in <Sheet [Workbook4]Sheet1>>
 
-**Shortcut** for the active sheet: ``xw.Range``
-
-If you want to quickly talk to the active sheet in the active workbook, you don't need instantiate a workbook
-and sheet object, but can simply do:
-
-    >>> import xlwings as xw
-    >>> xw.Range('A1').value = 'Foo'
-    >>> xw.Range('A1').value
-    'Foo'
-
-**Note:** You should only use ``xw.Range`` when interacting with Excel. In scripts, you should always
-go via book and sheet objects as shown above.
-
-2. Macros: Call Python from Excel
+3. Macros: Call Python from Excel
 ---------------------------------
 
 You can call Python functions either by clicking the ``Run`` button (new in v0.16) in  the add-in or from VBA using the ``RunPython`` function:
@@ -82,8 +74,11 @@ If you want to call any Python function no matter in what module it lives or wha
         RunPython "import hello; hello.world()"
     End Sub
 
-Per default, ``RunPython`` expects ``hello.py`` in the same directory as the Excel file but you can change that via 
-config. Refer to the calling Excel book by using ``xw.Book.caller``:
+
+.. note::
+    Per default, ``RunPython`` expects ``hello.py`` in the same directory as the Excel file with the same name, **but you can change both of these things**: if your Python file is an a different folder, add that folder to the ``PYTHONPATH`` in the config. If the file has a different name, change the ``RunPython`` command.
+
+Refer to the calling Excel book by using ``xw.Book.caller()``:
 
 .. code-block:: python
 
@@ -96,12 +91,11 @@ config. Refer to the calling Excel book by using ``xw.Book.caller``:
         wb.sheets[0].range('A1').value = 'Hello World!'
 
 
-To make this run, you'll need to have the xlwings add-in installed. The easiest way to get everything set
-up is to use the xlwings command line client from either a command prompt on Windows or a terminal on Mac: ``xlwings quickstart myproject``.
+To make this run, you'll need to have the xlwings add-in installed or have the workbooks setup in the standalone mode. The easiest way to get everything set up is to use the xlwings command line client from either a command prompt on Windows or a terminal on Mac: ``xlwings quickstart myproject``.
 
 For details about the addin, see :ref:`xlwings_addin`.
 
-3. UDFs: User Defined Functions (Windows only)
+4. UDFs: User Defined Functions (Windows only)
 ----------------------------------------------
 
 Writing a UDF in Python is as easy as:
@@ -128,4 +122,4 @@ Converters can be used with UDFs, too. Again a Pandas DataFrame example:
         # x arrives as DataFrame
         return x.corr()
 
-Import this function into Excel by clicking the import button of the xlwings add-in: For further details, see :ref:`udfs`.
+Import this function into Excel by clicking the import button of the xlwings add-in: For a step-by-step tutorial, see :ref:`udfs`.

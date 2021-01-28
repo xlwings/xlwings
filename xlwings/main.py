@@ -30,6 +30,11 @@ try:
 except ImportError:
     Image = None
 
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
+
 
 class Collection:
 
@@ -520,8 +525,10 @@ class Book:
 
     """
 
-    def __init__(self, fullname=None, update_links=None, read_only=None, format=None, password=None, write_res_password=None,
-                 ignore_read_only_recommended=None, origin=None, delimiter=None, editable=None, notify=None, converter=None,
+    def __init__(self, fullname=None, update_links=None, read_only=None, format=None, password=None,
+                 write_res_password=None,
+                 ignore_read_only_recommended=None, origin=None, delimiter=None, editable=None, notify=None,
+                 converter=None,
                  add_to_mru=None, local=None, corrupt_load=None, impl=None):
         if not impl:
             if fullname:
@@ -859,6 +866,7 @@ class Sheet:
 
     .. versionchanged:: 0.9.0
     """
+
     def __init__(self, sheet=None, impl=None):
         if impl is None:
             self.impl = books.active.sheets(sheet).impl
@@ -1219,11 +1227,11 @@ class Range:
 
     def __eq__(self, other):
         return (
-           isinstance(other, Range)
-           and self.sheet == other.sheet
-           and self.row == other.row
-           and self.column == other.column
-           and self.shape == other.shape
+                isinstance(other, Range)
+                and self.sheet == other.sheet
+                and self.row == other.row
+                and self.column == other.column
+                and self.shape == other.shape
         )
 
     def __ne__(self, other):
@@ -1235,7 +1243,7 @@ class Range:
     def __iter__(self):
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
         for i in range(len(self)):
-            yield self(i+1)
+            yield self(i + 1)
 
     def options(self, convert=None, **options):
         """
@@ -2083,6 +2091,7 @@ class Range:
         else:
             return None
 
+
 # These have to be after definition of Range to resolve circular reference
 from . import conversion
 from . import expansion
@@ -2140,7 +2149,7 @@ class RangeRows(Ranges):
             yield self.rng[i, :]
 
     def __call__(self, key):
-        return self.rng[key-1, :]
+        return self.rng[key - 1, :]
 
     def __getitem__(self, key):
         if isinstance(key, slice):
@@ -2205,7 +2214,7 @@ class RangeColumns(Ranges):
             yield self.rng[:, j]
 
     def __call__(self, key):
-        return self.rng[:, key-1]
+        return self.rng[:, key - 1]
 
     def __getitem__(self, key):
         if isinstance(key, slice):
@@ -2233,6 +2242,7 @@ class Shape:
 
     .. versionchanged:: 0.9.0
     """
+
     def __init__(self, *args, **options):
         impl = options.pop('impl', None)
         if impl is None:
@@ -2390,7 +2400,6 @@ class Shape:
     def text(self, value):
         self.impl.text = value
 
-
     @property
     def parent(self):
         """
@@ -2402,9 +2411,9 @@ class Shape:
 
     def __eq__(self, other):
         return (
-            isinstance(other, Shape) and
-            other.parent == self.parent and
-            other.name == self.name
+                isinstance(other, Shape) and
+                other.parent == self.parent and
+                other.name == self.name
         )
 
     def __ne__(self, other):
@@ -2441,6 +2450,7 @@ class Table:
 
     .. versionadded:: 0.21.0
     """
+
     def __init__(self, *args, **options):
         impl = options.pop('impl', None)
         if impl is None:
@@ -2639,9 +2649,9 @@ class Table:
 
     def __eq__(self, other):
         return (
-            isinstance(other, Table) and
-            other.parent == self.parent and
-            other.name == self.name
+                isinstance(other, Table) and
+                other.parent == self.parent and
+                other.name == self.name
         )
 
     def __ne__(self, other):
@@ -2999,6 +3009,7 @@ class Picture:
 
     .. versionchanged:: 0.9.0
     """
+
     def __init__(self, impl=None):
         self.impl = impl
 
@@ -3101,9 +3112,9 @@ class Picture:
 
     def __eq__(self, other):
         return (
-            isinstance(other, Picture) and
-            other.parent == self.parent and
-            other.name == self.name
+                isinstance(other, Picture) and
+                other.parent == self.parent and
+                other.name == self.name
         )
 
     def __ne__(self, other):
@@ -3351,7 +3362,7 @@ class Names:
 
     def __iter__(self):
         for i in range(len(self)):
-            yield self(i+1)
+            yield self(i + 1)
 
     def __repr__(self):
         r = []
@@ -3434,9 +3445,9 @@ class Name:
 
     def __repr__(self):
         return "<Name '%s': %s>" % (self.name, self.refers_to)
-    
 
-def view(obj, sheet=None):
+
+def view(obj, sheet=None, table=True):
     """
     Opens a new workbook and displays an object on its first sheet by default. If you provide a
     sheet object, it will clear the sheet before displaying the object on the existing sheet.
@@ -3449,6 +3460,9 @@ def view(obj, sheet=None):
     sheet : Sheet, default None
         Sheet object. If none provided, the first sheet of a new workbook is used.
 
+    table : bool, default True
+        If your object is a pandas DataFrame, by default it is formatted as an Excel Table
+
     Examples
     --------
 
@@ -3458,16 +3472,68 @@ def view(obj, sheet=None):
     >>> df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
     >>> xw.view(df)
 
-    .. versionadded:: 0.7.1
+    See also: :meth:`read <xlwings.read>`
+
+    .. versionchanged:: 0.21.5
     """
     if sheet is None:
         sheet = Book().sheets.active
     else:
         sheet.clear()
 
-    sheet.range('A1').value = obj
-    sheet.autofit()
+    app = sheet.book.app
+    screen_updating_original_state = app.screen_updating
+
+    try:
+        sheet.book.app.screen_updating = False
+        if pd and isinstance(obj, pd.DataFrame):
+            if table:
+                sheet['A1'].options(assign_index_names=True).value = obj
+                sheet.tables.add(sheet['A1'].expand())
+            else:
+                sheet['A1'].options(assign_index_names=False).value = obj
+        else:
+            sheet['A1'].value = obj
+        sheet.autofit()
+    except:
+        raise
+    finally:
+        sheet.book.app.screen_updating = screen_updating_original_state
+
     sheet.book.app.activate(steal_focus=True)
+
+
+def read(index=1, header=1):
+    """
+    Reads the selected cell(s) of the active workbook into a pandas DataFrame. If you select a single cell that has
+    adjacent cells, the range is auto-expanded and turned into a pandas DataFrame. If you don't have pandas installed,
+    it returns the values as nested lists.
+
+    Parameters
+    ----------
+    index : bool or int, default 1
+        Defines the number of columns on the left that will be turned into the DataFrame's index
+
+    header : bool or int, default 1
+        Defines the number of rows at the top that will be turned into the DataFrame's columns
+
+    Examples
+    --------
+    >>> import xlwings as xw
+    >>> xw.read()
+
+    See also: :meth:`view <xlwings.view>`
+
+    .. versionadded:: 0.21.5
+    """
+    selection = books.active.selection
+    if selection.shape == (1, 1):
+        selection = selection.expand()
+    if pd:
+        values = selection.options(pd.DataFrame, index=index, header=header).value
+    else:
+        values = selection.value
+    return values
 
 
 class Macro:

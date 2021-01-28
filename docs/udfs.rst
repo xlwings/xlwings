@@ -49,7 +49,6 @@ Let's assume you have a Workbook ``myproject.xlsm``, then you would write the fo
 * Enter the formula ``=double_sum(1, 2)`` into a cell and you will see the correct result:
 
   .. figure:: images/double_sum.png
-    :scale: 80%
 
 * The docstring (in triple-quotes) will be shown as function description in Excel.
 
@@ -88,7 +87,6 @@ To use this formula in Excel,
   surrounded by curly braces as in this screenshot:
 
 .. figure:: images/array_formula.png
-    :scale: 80%
 
 Number of array dimensions: ndim
 ********************************
@@ -183,10 +181,8 @@ This is a simple example that demonstrates the syntax and effect of UDF expansio
         return np.random.randn(int(r), int(c))
 
 .. figure:: images/dynamic_array1.png
-  :scale: 40%
 
 .. figure:: images/dynamic_array2.png
-  :scale: 40%
 
 .. note::
     * Expanding array formulas will overwrite cells without prompting

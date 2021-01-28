@@ -129,7 +129,6 @@ v0.19.2 (May 11, 2020)
 * :guilabel:`PRO` [Feature]: Added support for :ref:`plotly` (:issue:`1309`).
 
 .. figure:: images/plotly.png
-    :scale: 40%
 
 v0.19.1 (May 4, 2020)
 ---------------------
@@ -225,7 +224,6 @@ The ``xlwings quickstart myproject`` has been updated accordingly. It still prod
 but you can save it as ``xlsx`` file if you intend to run it via the new ``Run`` button.
 
     .. figure:: images/ribbon.png
-        :scale: 40%
 
 v0.15.10 (Aug 31, 2019)
 -----------------------
@@ -476,12 +474,10 @@ This release brings further improvements with regards to the add-in:
 * The add-in now shows the version on the ribbon. This makes it easy to check if you are using the correct version (:issue:`724`):
 
     .. figure:: images/addin_version.png
-        :scale: 80%
 
 * [Mac] On Mac Excel 2016, the ribbon now only shows the available functionality (:issue:`723`):
 
     .. figure:: images/mac_ribbon.png
-        :scale: 80%
 
 * [Mac] Mac Excel 2011 is now supported again with the new add-in. However, since Excel 2011 doesn't support the ribbon, 
   the config file has been created/edited manually, see :ref:`config_file` (:issue:`714`).
@@ -523,7 +519,6 @@ Add-in
 ******
 
 .. figure:: images/ribbon.png
-    :scale: 80%
 
 A few highlights:
 
@@ -668,10 +663,8 @@ This is a simple example that demonstrates the syntax and effect of UDF expansio
         return np.random.randn(int(r), int(c))
 
 .. figure:: images/dynamic_array1.png
-  :scale: 40%
 
 .. figure:: images/dynamic_array2.png
-  :scale: 40%
 
 **Note**: Expanding array formulas will overwrite cells without prompting and leave an empty border around them, i.e.
 they will clear the row to the bottom and the column to the right of the array.
@@ -1039,7 +1032,6 @@ Converters are accessed via the new ``options`` method when dealing with ``xlwin
 and ``@xw.ret`` decorators when using UDFs. As an introductory sample, let's look at how to read and write Pandas DataFrames:
 
 .. figure:: images/df_converter.png
-  :scale: 55%
 
 **Range object**::
 
@@ -1080,7 +1072,6 @@ Enhancements
 * Dictionary (``dict``) converter:
 
   .. figure:: images/dict_converter.png
-    :scale: 80%
 
   ::
 
@@ -1351,7 +1342,6 @@ Enhancements
 This version adds support for Matplotlib! Matplotlib figures can be shown in Excel as pictures in just 2 lines of code:
 
 .. figure:: images/matplotlib.png
-  :scale: 80%
 
 1) Get a matplotlib ``figure`` object:
 
@@ -1881,7 +1871,6 @@ Enhancements
   Windows version (:issue:`57`):
 
   .. figure:: images/mac_error.png
-    :scale: 75%
 
 * New ``Sheet`` class: The new class handles everything directly related to a Sheet. See the Python API section about
   ``Sheet`` for details (:issue:`62`). A few examples::
@@ -2112,7 +2101,6 @@ Enhancements
     >>> my_chart.set_source_data(Range('A1').table)
 
   .. figure:: images/chart_type.png
-    :scale: 70%
 
 * ``pytz`` is no longer a dependency as ``datetime`` object are now being read in from Excel as time-zone naive (Excel
   doesn't know timezones). Before, ``datetime`` objects got the UTC timezone attached.

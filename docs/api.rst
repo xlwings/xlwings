@@ -7,7 +7,7 @@ Top-level functions
 -------------------
 
 .. automodule:: xlwings
-    :members: view
+    :members: view, read
 
 Object model
 ------------

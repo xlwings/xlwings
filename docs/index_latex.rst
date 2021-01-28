@@ -13,6 +13,7 @@
     vba
     udfs
     matplotlib
+    jupyternotebooks
     command_line
     reports
     deployment
