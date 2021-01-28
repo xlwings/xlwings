@@ -88,7 +88,7 @@ User Config: Ribbon/Config File
 
 The settings in the xlwings Ribbon are stored in a config file that can also be manipulated externally. The location is
 
-* Windows: ``.xlwings\xlwings.conf`` in your user folder  
+* Windows: ``.xlwings\xlwings.conf`` in your home folder, that is usually ``C:\Users\<username>``
 * macOS: ``~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf``
 
 The format is as follows (currently the keys are required to be all caps) - note the OS specific Interpreter settings!
