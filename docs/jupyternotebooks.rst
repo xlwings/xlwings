@@ -15,7 +15,7 @@ The view function accepts pretty much any object of interest, whether that's a n
 
 .. figure:: images/xw_view.png
 
-.. versionchanged:: 0.21.5 Earlier versions were not formatting the output as Excel table
+.. versionchanged:: 0.22.0 Earlier versions were not formatting the output as Excel table
 
 The read function
 -----------------
@@ -24,4 +24,4 @@ To read in a range in an Excel sheet as pandas DataFrame, use the ``read`` funct
 
 .. figure:: images/xw_read.png
 
-.. versionadded:: 0.21.5
+.. versionadded:: 0.22.0

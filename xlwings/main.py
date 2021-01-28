@@ -1021,7 +1021,7 @@ class Sheet:
         Sheet object: Sheet
             The copied sheet
 
-        .. versionadded: 0.21.5
+        .. versionadded: 0.22.0
         """
         # copy() doesn't return the copied sheet object and has an awkward default (copy it to a new workbook
         # if neither before or after are provided), so we're not taking that behavior over
@@ -1077,7 +1077,7 @@ class Sheet:
         --------
         :meth:`xlwings.pro.reports.create_report`
 
-        .. versionadded:: 0.21.5
+        .. versionadded:: 0.22.0
         """
         from .pro.reports.main import render_template
         return render_template(self, **data)
@@ -3474,7 +3474,7 @@ def view(obj, sheet=None, table=True):
 
     See also: :meth:`read <xlwings.read>`
 
-    .. versionchanged:: 0.21.5
+    .. versionchanged:: 0.22.0
     """
     if sheet is None:
         sheet = Book().sheets.active
@@ -3524,7 +3524,7 @@ def read(index=1, header=1):
 
     See also: :meth:`view <xlwings.view>`
 
-    .. versionadded:: 0.21.5
+    .. versionadded:: 0.22.0
     """
     selection = books.active.selection
     if selection.shape == (1, 1):

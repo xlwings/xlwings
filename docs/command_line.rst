@@ -5,7 +5,7 @@ Command Line Client (CLI)
 
 xlwings comes with a command line client. On Windows, type the commands into a ``Command Prompt``, on Mac, type them into a ``Terminal``. To get an overview of all commands, simply type ``xlwings`` and hit Enter:
 
-.. code:: text
+.. code::
 
     addin               Run "xlwings addin install" to install the Excel add-
                         in (will be copied to the XLSTART folder). Instead of

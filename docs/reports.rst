@@ -15,7 +15,7 @@ xlwings Reports is part of xlwings PRO and a solution for template based Excel a
 Render Sheets
 *************
 
-.. versionadded:: 0.21.5
+.. versionadded:: 0.22.0
 
 Let's first look at how to render a single sheet. This is a workbook stored as ``Book1.xlsx``:
 

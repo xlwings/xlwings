@@ -3,7 +3,7 @@
 Custom Add-ins
 ==============
 
-.. versionadded:: 0.21.5
+.. versionadded:: 0.22.0
 
 Custom add-ins work on Windows and macOS and are essentially white-labeled xlwings add-ins that include all your ``RunPython`` functions and UDFs (as usual, UDFs work on Windows only). You can build add-ins with and without an Excel ribbon.
 
@@ -14,7 +14,7 @@ Quickstart
 
 Start by running the following command on a command line (to create an add-in without a ribbon, you would leave away the ``--ribbon`` flag:
 
-.. code-block::
+.. code-block:: bash
 
    $ xlwings quickstart myproject --addin --ribbon
 
@@ -65,7 +65,7 @@ Installation
 
 If you want to permanently install your add-in, you can do so by using the xlwings CLI:
 
-.. code-block::
+.. code-block:: bash
 
     $ xlwings addin install --file C:\path\to\your\myproject.xlam
 
