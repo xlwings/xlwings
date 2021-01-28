@@ -15,6 +15,8 @@ xlwings Reports is part of xlwings PRO and a solution for template based Excel a
 Render Sheets
 *************
 
+.. versionadded:: 0.21.5
+
 Let's first look at how to render a single sheet. This is a workbook stored as ``Book1.xlsx``:
 
 .. figure:: images/sheet_rendering1.png
@@ -24,7 +26,7 @@ Running the following code::
 
     import xlwings as xw
     wb = xw.Book('Book1.xlsx')
-    sheet = wb.sheets['template'].copy(after=wb.sheets['template'], name='report')
+    sheet = wb.sheets['template'].copy(name='report')
     sheet.render_template(title='A Demo!', table=[[1, 2], [3, 4]])
 
 Leaves you with this:
