@@ -10,7 +10,7 @@ See also the :ref:`Reports API reference <reports_api>`.
 Quickstart
 ----------
 
-xlwings Reports is part of xlwings PRO and a solution for template based Excel and PDF reporting. It allows business users without Python knowledge to create & maintain Excel templates without having to go back to a Python developer for every change: xlwings Reports separates the Python code (that gets and prepares all the data) from the Excel template (that defines which data goes where and how it should be formatted). See also the `xlwings Reports homepage <https://www.xlwings.org/reporting>`_. You can render one sheet at the time via :meth:`mysheet.render_template <xlwings.Sheet.render_template>` or use the higher-level convenience wrapper :meth:`xlwings.pro.reports.create_report` which first copies the template workbook and then loops through all sheets.
+xlwings Reports is part of xlwings PRO and a solution for templat- based Excel and PDF reporting. It allows business users without Python knowledge to create & maintain Excel templates without having to go back to a Python developer for every change: xlwings Reports separates the Python code (that gets and prepares all the data) from the Excel template (that defines which data goes where and how it should be formatted). See also the `xlwings Reports homepage <https://www.xlwings.org/reporting>`_. You can render one sheet at the time via :meth:`mysheet.render_template <xlwings.Sheet.render_template>` or use the higher-level convenience function :meth:`xw.create_report <xlwings.pro.reports.create_report>` which first copies the template workbook and then loops through all sheets.
 
 Render Sheets
 *************

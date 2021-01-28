@@ -5,14 +5,14 @@ Custom Add-ins
 
 .. versionadded:: 0.22.0
 
-Custom add-ins work on Windows and macOS and are essentially white-labeled xlwings add-ins that include all your ``RunPython`` functions and UDFs (as usual, UDFs work on Windows only). You can build add-ins with and without an Excel ribbon.
+Custom add-ins work on Windows and macOS and are white-labeled xlwings add-ins that include all your ``RunPython`` functions and UDFs (as usual, UDFs work on Windows only). You can build add-ins with and without an Excel ribbon.
 
-The useful thing about add-in is that UDFs and RunPython calls will be available in all workbooks right out of the box without having to add any references via the VBA editor's ``Tools`` > ``References...``. This tutorial assumes you're familiar with how xlwings and its configuration works.
+The useful thing about add-in is that UDFs and RunPython calls will be available in all workbooks right out of the box without having to add any references via the VBA editor's ``Tools`` > ``References...``. You can also work with standard ``xlsx`` files rather than ``xlsm`` files. This tutorial assumes you're familiar with how xlwings and its configuration works.
 
 Quickstart
 ----------
 
-Start by running the following command on a command line (to create an add-in without a ribbon, you would leave away the ``--ribbon`` flag:
+Start by running the following command on a command line (to create an add-in without a ribbon, you would leave away the ``--ribbon`` flag):
 
 .. code-block:: bash
 
@@ -27,7 +27,7 @@ You should see a new ribbon tab called ``MyAddin`` like this:
 
 .. figure:: images/custom_ribbon_addin.png
 
-The add-in and VBA project is currently always called ``myaddin``, no matter what name you chose in the quickstart command. We'll see towards the end of this tutorial how we can change that, but for now we'll stick with it.
+The add-in and VBA project are currently always called ``myaddin``, no matter what name you chose in the quickstart command. We'll see towards the end of this tutorial how we can change that, but for now we'll stick with it.
 
 Compared to the xlwings add-in, the custom add-in offers an additional level of configuration: the configuration sheet of the add-in itself which is the easiest way to configure simple add-ins with a static configuration.
 
@@ -41,7 +41,7 @@ This will make the sheet ``_myaddin.conf`` visible (again, we'll see how to chan
 * Activate the sheet config by renaming it from ``_myaddin.conf`` to ``myaddin.conf``
 * Set your ``Interpreter_Win/_Mac`` or ``Conda`` settings (you may want to take them over from the xlwings settings for now)
 
-Once done, switch back to the VBA editor, select ``ThisWorkbook`` again, and change ``IsAddin`` back to ``True`` before you save your add-in from the VBA editor. Now click the ``Run`` button under the ``My Addin`` ribbon tab and if you've configured the Python interpreter correctly, it will print ``Hello xlwings!`` into cell ``A1`` of the active workbook.
+Once done, switch back to the VBA editor, select ``ThisWorkbook`` again, and change ``IsAddin`` back to ``True`` before you save your add-in from the VBA editor. Switch back to Excel and click the ``Run`` button under the ``My Addin`` ribbon tab and if you've configured the Python interpreter correctly, it will print ``Hello xlwings!`` into cell ``A1`` of the active workbook.
 
 Changing the Ribbon menu
 ------------------------

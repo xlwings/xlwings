@@ -3,7 +3,7 @@
 Excel and Jupyter Notebooks
 ===========================
 
-When you work with Jupyter notebooks, you may use Excel as an interactive data viewer or scratchpad. If you want to quickly read in a pandas DataFrame from Excel or want to view a DataFrame that lives in a Jupyter notebook in Excel, you can use the two convenience functions :meth:`view <xlwings.view>` and :meth:`read <xlwings.read>`.
+When you work with Jupyter notebooks, you may use Excel as an interactive data viewer or scratchpad from where you can load DataFrames. The two convenience functions :meth:`view <xlwings.view>` and :meth:`read <xlwings.read>` make this really easy.
 
 .. note::
     The :meth:`view <xlwings.view>` and :meth:`read <xlwings.read>` functions should exclusively be used for interactive work. If you write scripts, use the full xlwings API as introduced under :ref:`syntax_overview`.

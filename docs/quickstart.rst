@@ -15,7 +15,7 @@ Establish a connection to a workbook:
 
     >>> import xlwings as xw
     >>> wb = xw.Book()  # this will create a new workbook
-    >>> wb = xw.Book('FileName.xlsx')  # connect to an existing file in the current working directory
+    >>> wb = xw.Book('FileName.xlsx')  # connect to a file that is open or in the current working directory
     >>> wb = xw.Book(r'C:\path\to\file.xlsx')  # on Windows: use raw strings to escape backslashes
 
 If you have the same file open in two instances of Excel, you need to fully qualify it and include the app instance.
@@ -76,7 +76,7 @@ If you want to call any Python function no matter in what module it lives or wha
 
 
 .. note::
-    Per default, ``RunPython`` expects ``hello.py`` in the same directory as the Excel file with the same name, **but you can change both of these things**: if your Python file is an a different folder, add that folder to the ``PYTHONPATH`` in the config. If the file has a different name, change the ``RunPython`` command.
+    Per default, ``RunPython`` expects ``hello.py`` in the same directory as the Excel file with the same name, **but you can change both of these things**: if your Python file is an a different folder, add that folder to the ``PYTHONPATH`` in the config. If the file has a different name, change the ``RunPython`` command accordingly.
 
 Refer to the calling Excel book by using ``xw.Book.caller()``:
 

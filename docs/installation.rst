@@ -72,9 +72,9 @@ To activate the license key, run the following command::
 
     xlwings license update -k LICENSE_KEY
 
-Make sure to replace ``LICENSE_KEY`` with your personal key. This will store the license key under your ``xlwings.conf`` file (see :ref:`user_config` for where this is on your system). Alternatively, you can also store the license key under an environment variable with the name ``XLWINGS_LICENSE_KEY``.
+Make sure to replace ``LICENSE_KEY`` with your personal key. This will store the license key under your ``xlwings.conf`` file (see :ref:`user_config` for where this is on your system). Alternatively, you can also store the license key as an environment variable with the name ``XLWINGS_LICENSE_KEY``.
 
-xlwings PRO requires additionally the ``cryptography`` and ``Jinja2`` packages which come pre-installed with Anaconda. Otherwise, install them via pip or conda.
+xlwings PRO requires additionally the ``cryptography`` and ``Jinja2`` packages which come preinstalled with Anaconda and WinPython. Otherwise, install them via pip or conda.
 
 With pip, you can also run ``pip install "xlwings[pro]"`` which will take care of the extra dependencies for xlwings PRO.
 
