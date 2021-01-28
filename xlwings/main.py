@@ -993,8 +993,8 @@ class Sheet:
 
     def copy(self, before=None, after=None, name=None):
         """
-        Copy a sheet to the current or a new Book. You have to either provide
-        ``after`` or ``before``. Returns the copied sheet.
+        Copy a sheet to the current or a new Book. By default, it places the copied sheet after all existing sheets.
+        Returns the copied sheet.
 
         Arguments
         ---------
@@ -1002,7 +1002,8 @@ class Sheet:
             The sheet object before which you want to place the sheet
 
         after : sheet object, default None
-            The sheet object after which you want to place the sheet
+            The sheet object after which you want to place the sheet, by default it is placed after
+            all existing sheets
 
         name : str, default None
             The sheet name of the copy
@@ -1014,10 +1015,11 @@ class Sheet:
 
         .. versionadded: 0.21.5
         """
-        # As copy() doesn't return the new sheet object, we're forcing the user to provide
-        # the before or after parameter so we don't have to figure out the book object
-        # (no parameters would create a new book)
-        assert (before is None) ^ (after is None), "you have to specify either before or after"
+        # copy() doesn't return the copied sheet object and has an awkward default (copy it to a new workbook
+        # if neither before or after are provided), so we're not taking that behavior over
+        assert (before is None) or (after is None), "you must provide either before or after but not both"
+        if (before is None) and (after is None):
+            after = self.book.sheets[-1]
         if before:
             target_book = before.book
             before = before.impl
