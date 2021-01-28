@@ -4,8 +4,8 @@ What's New
 v0.22.0 (Jan 28, 2021)
 ----------------------
 
-* [Feature] While it's always been *somehow* possible to create your own xlwings-based add-ins, this release adds a toolchain to make it a lot easier to create your own white-labeled add-in, see :ref:`customaddin` (:issue:`1488`).
-* [Enhancement] ``xw.view`` now formats the pandas DataFrames as Excel table and with the new ``xw.read`` function, you can easily read in a DataFrame from your active workbook into a Jupyter notebook. See :ref:`jupyternotebooks` for a full tutorial (:issue:`1487`)
+* [Feature] While it's always been possible to  *somehow* create your own xlwings-based add-ins, this release adds a toolchain to make it a lot easier to create your own white-labeled add-in, see :ref:`customaddin` (:issue:`1488`).
+* [Enhancement] ``xw.view`` now formats the pandas DataFrames as Excel table and with the new ``xw.read`` function, you can easily read in a DataFrame from your active workbook into a Jupyter notebook. See :ref:`jupyternotebooks` for a full tutorial (:issue:`1487`).
 * [Feature] New method :meth:`mysheet.copy <xlwings.Sheet.copy>` (:issue:`123`).
 * :guilabel:`PRO` [Feature]: in addition to ``xw.create_report``, you can now also work within a workbook by using the new :meth:`mysheet.render_template <xlwings.Sheet.render_template>`, see also :ref:`reports_quickstart` (:issue:`1478`).
 

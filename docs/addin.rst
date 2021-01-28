@@ -5,7 +5,6 @@ Add-in & Settings
 
 .. figure:: images/ribbon.png
 
-
 The xlwings add-in is the preferred way to be able to use the ``Run main`` button, ``RunPython`` or ``UDFs``.
 Note that you don't need an add-in if you just want to manipulate Excel from Python via xlwings.
 

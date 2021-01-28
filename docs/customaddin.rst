@@ -94,6 +94,7 @@ If you want it the free (but hard) way, you either need to build an installer yo
 * ``Interpreter_Win/_Mac``: if your end-users have a working version of Python, you can use environment variables to dynamically resolve to the correct path. For example, if they have Anaconda installed in the default location, you could use the following configuration::
 
         Conda Path: %USERPROFILE%\anaconda3
+        Conda Env: base
         Interpreter_Mac: $HOME/opt/anaconda3/bin/python
 
 * ``PYTHONPATH``: since you can't have your Python source code in the ``XLSTART`` folder next to the add-in, you'll need to adjust the ``PYTHONPATH`` setting and add the folder to where the Python code will be. You could point this to a shared drive or again make use of environment variables so the users can place the file into a folder called ``MyAddin`` in their home directory, for example. However, you can also place your Python code where Python looks for it, for example by placing them in the ``site-packages`` directory of the Python distribution---an easy way to achieve this is to build a Python package that you can install via ``pip``.

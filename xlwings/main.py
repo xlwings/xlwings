@@ -1004,6 +1004,8 @@ class Sheet:
         Copy a sheet to the current or a new Book. By default, it places the copied sheet after all existing sheets.
         Returns the copied sheet.
 
+        .. versionadded:: 0.22.0
+
         Arguments
         ---------
         before : sheet object, default None
@@ -1020,8 +1022,6 @@ class Sheet:
         -------
         Sheet object: Sheet
             The copied sheet
-
-        .. versionadded: 0.22.0
         """
         # copy() doesn't return the copied sheet object and has an awkward default (copy it to a new workbook
         # if neither before or after are provided), so we're not taking that behavior over
@@ -1056,6 +1056,8 @@ class Sheet:
         strings, numbers, lists, simple dicts, NumPy arrays, Pandas DataFrames, PIL Image objects that have a filename and
         Matplotlib figures.
 
+        .. versionadded:: 0.22.0
+
         Parameters
         ----------
         data: kwargs
@@ -1073,11 +1075,7 @@ class Sheet:
         >>> book.sheets[0]['A1:A2'].value = '{{ myvar }}'
         >>> book.sheets[0].render_template(myvar='test')
 
-        See Also
-        --------
-        :meth:`xlwings.pro.reports.create_report`
-
-        .. versionadded:: 0.22.0
+        See also :meth:`xlwings.pro.reports.create_report`
         """
         from .pro.reports.main import render_template
         return render_template(self, **data)
