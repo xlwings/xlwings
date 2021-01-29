@@ -12,8 +12,9 @@ xlwings comes with a command line client. On Windows, type the commands into a `
                         "install" you can also use "update", "remove" or
                         "status". Note that this command may take a while. Use
                         the "--unprotected" flag to install the add-in without
-                        password protection. Use the "--file" flag to point to a
-                        custom add-in.
+                        password protection. You can install your custom add-
+                        in by providing the name or path via the --file flag,
+                        e.g. "xlwings add-in install --file custom.xlam"
                         (New in 0.6.0, the unprotected flag was added in 0.20.4)
     quickstart          Run "xlwings quickstart myproject" to create a folder
                         called "myproject" in the current directory with an
@@ -35,7 +36,7 @@ xlwings comes with a command line client. On Windows, type the commands into a `
                         update ~/.xlwings/xlwings.conf with the LICENSE_KEY
                         entry. If you have a paid license, you can run
                         "xlwings license deploy" to create a deploy key. This
-                        is not availalbe for trial keys.
+                        is not available for trial keys.
     config              Run "xlwings config create" to create the user config
                         file (~/.xlwings/xlwings.conf) which is where the
                         settings from the Ribbon add-in are stored. It will
