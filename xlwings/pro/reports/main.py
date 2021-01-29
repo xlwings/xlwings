@@ -110,7 +110,7 @@ def render_template(sheet, **data):
                                         rows_to_be_inserted = result_len - 2
                                         if rows_to_be_inserted > 0:
                                             if sys.platform.startswith('win'):
-                                                wb.app.screen_updating = True
+                                                book.app.screen_updating = True
                                             # Since CopyOrigin is not supported on Mac, we start copying two rows
                                             # below the header so the data row formatting gets carried over
                                             end_column = frame_indices[ix] + len(values[0])
