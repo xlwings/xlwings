@@ -1,7 +1,7 @@
 What's New
 ==========
 
-v0.22.0 (Jan 28, 2021)
+v0.22.0 (Jan 29, 2021)
 ----------------------
 
 * [Feature] While it's always been possible to  *somehow* create your own xlwings-based add-ins, this release adds a toolchain to make it a lot easier to create your own white-labeled add-in, see :ref:`customaddin` (:issue:`1488`).
