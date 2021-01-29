@@ -5,17 +5,13 @@ xlwings Reports
 
 This feature requires xlwings :guilabel:`PRO`.
 
-See also the :ref:`Reports API reference <reports_api>`.
-
 Quickstart
 ----------
 
-xlwings Reports is part of xlwings PRO and a solution for templat- based Excel and PDF reporting. It allows business users without Python knowledge to create & maintain Excel templates without having to go back to a Python developer for every change: xlwings Reports separates the Python code (that gets and prepares all the data) from the Excel template (that defines which data goes where and how it should be formatted). See also the `xlwings Reports homepage <https://www.xlwings.org/reporting>`_. You can render one sheet at the time via :meth:`mysheet.render_template <xlwings.Sheet.render_template>` or use the higher-level convenience function :meth:`xw.create_report <xlwings.pro.reports.create_report>` which first copies the template workbook and then loops through all sheets.
+xlwings Reports is part of xlwings PRO and a solution for template-based Excel and PDF reporting. It allows business users without Python knowledge to create & maintain Excel templates without having to go back to a Python developer for every change: xlwings Reports separates the Python code (that gets and prepares all the data) from the Excel template (that defines which data goes where and how it should be formatted). See also the `xlwings Reports homepage <https://www.xlwings.org/reporting>`_. You can render one sheet at the time via :meth:`mysheet.render_template <xlwings.Sheet.render_template>` or use the higher-level convenience function :meth:`xw.create_report <xlwings.pro.reports.create_report>` which first copies the template workbook and then loops through all sheets.
 
 Render Sheets
 *************
-
-.. versionadded:: 0.22.0
 
 Let's first look at how to render a single sheet. This is a workbook stored as ``Book1.xlsx``:
 
@@ -28,11 +24,16 @@ Running the following code::
     wb = xw.Book('Book1.xlsx')
     sheet = wb.sheets['template'].copy(name='report')
     sheet.render_template(title='A Demo!', table=[[1, 2], [3, 4]])
+    wb.to_pdf()  # requires xlwings >=0.21.1
 
 Leaves you with this:
 
 .. figure:: images/sheet_rendering2.png
     :scale: 60%
+
+See also the :meth:`API reference <xlwings.Sheet.render_template>`.
+
+.. versionadded:: 0.22.0
 
 Render Workbooks
 ****************
@@ -66,6 +67,8 @@ Matplotlib figures and PIL Image objects that have a filename.
 
 By default, xlwings Reports overwrites existing values in templates if there is not enough free space for your variable.
 If you want your rows to dynamically shift according to the height of your array, use :ref:`Frames`.
+
+See also the :meth:`API reference <xlwings.pro.reports.create_report>`.
 
 .. _frames:
 

@@ -12,7 +12,8 @@ xlwings comes with a command line client. On Windows, type the commands into a `
                         "install" you can also use "update", "remove" or
                         "status". Note that this command may take a while. Use
                         the "--unprotected" flag to install the add-in without
-                        password protection.
+                        password protection. Use the "--file" flag to point to a
+                        custom add-in.
                         (New in 0.6.0, the unprotected flag was added in 0.20.4)
     quickstart          Run "xlwings quickstart myproject" to create a folder
                         called "myproject" in the current directory with an
