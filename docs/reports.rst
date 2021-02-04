@@ -79,7 +79,7 @@ Frames are vertical containers in which content is being aligned according to th
 within Frames:
 
 * Variables do not overwrite existing cell values as they do without Frames.
-* Table formatting is applied to all data rows.
+* Formatting is applied dynamically, depending on the number of rows your object uses in Excel
 
 To use Frames, insert ``<frame>`` into **row 1** of your Excel template wherever you want a new dyanmic column
 to start. Row 1 will be removed automatically when creating the report. Frames go from one
@@ -87,9 +87,9 @@ to start. Row 1 will be removed automatically when creating the report. Frames g
 
 How Frames behave is best demonstrated with an example:
 The following screenshot defines two frames. The first one goes from column A to column E and the second one
-goes from column F to column I.
+goes from column F to column I, since this is the last column that is used.
 
-You can define and format tables by formatting exactly
+You can define and format table-like objects by formatting exactly
 
 * one header and
 * one data row
@@ -97,6 +97,8 @@ You can define and format tables by formatting exactly
 as shown in the screenshot:
 
 .. figure:: images/frame_template.png
+
+However, also make sure to check out how to use Excel Tables below, as they make the formatting easier.
 
 Running the following code::
 
@@ -144,6 +146,49 @@ Will produce the following report:
     * If you would like to exclude the DataFrame index, make sure to set the index to the first column e.g.: ``df.set_index('column_name')``.
     * At the moment, you can only assign pandas DataFrames to tables.
     * For Excel table support, you need at least version 0.21.0 and the index behavior was changed in 0.21.3
+
+Excel Charts
+------------
+
+**Note**: To use charts with a dynamic source, you'll need at least xlwings version 0.22.1
+
+To use Excel charts in your reports, follow this process:
+
+1. Add some sample/dummy data to your Excel template:
+
+    .. figure:: images/reports_chart1.png
+
+2. If your data source is dynamic, turn it into an Excel Table (``Insert`` > ``Table``). Make sure you do this *before* adding the chart in the next step.
+
+    .. figure:: images/reports_chart2.png
+
+3. Add your chart and style it:
+
+    .. figure:: images/reports_chart3.png
+
+4. Reduce the Excel table to a 2 x 2 range and add the placeholder in the top-left corner (in our example ``chart_data``) . You can leave in some dummy data or clear the values of the Excel table:
+
+    .. figure:: images/reports_chart4.png
+
+5. Assuming your file is called ``mytemplate.xlsx`` and your sheet ``template`` like on the previous screenshot, you can run the following code::
+
+    import xlwings as xw
+    import pandas as pd
+
+    df = pd.DataFrame(data={'Q1': [1000, 2000, 3000],
+                            'Q2': [4000, 5000, 6000],
+                            'Q3': [7000, 8000, 9000]},
+                      index=['North', 'South', 'West'])
+
+    wb = xw.Book("mytemplate.xlsx")
+    sheet = wb.sheets['template'].copy(name='report')
+    sheet.render_template(chart_data=df)
+
+This will produce the following report, with the chart source correctly adjusted:
+
+    .. figure:: images/reports_chart5.png
+
+**Note**: If you don't want the source data on your report, you might want to place it on a separate sheet. It's easiest if you add and design the chart on the separate sheet, before cutting the chart and pasting it on your report template.
 
 Shape Text
 ----------
