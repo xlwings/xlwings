@@ -1,6 +1,13 @@
 What's New
 ==========
 
+v0.22.1 (Feb 4, 2021)
+---------------------
+
+* :guilabel:`PRO` [Bug Fix]: :meth:`Table.update <xlwings.main.Table.update>` has been fixed so it also works when the table is the data source of a chart (:issue:`1507`).
+* :guilabel:`PRO` [Docs]: New documentation about how to work with Excel charts; see :ref:`reports_quickstart`.
+
+
 v0.22.0 (Jan 29, 2021)
 ----------------------
 
