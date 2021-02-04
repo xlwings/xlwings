@@ -219,8 +219,8 @@ class Books:
             update_links = kw.update_remote_and_external_links
         else:
             update_links = kw.do_not_update_links
-
-        self.app.activate()
+        if self.app.visible:
+            self.app.activate()
         filename = os.path.basename(fullname)
         self.app.xl.open_workbook(workbook_file_name=fullname, update_links=update_links, read_only=read_only,
                                   format=format, password=password, write_reserved_password=write_res_password,
