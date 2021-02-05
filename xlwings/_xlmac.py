@@ -200,7 +200,8 @@ class Books:
         return self.app.xl.count(each=kw.workbook)
 
     def add(self):
-        self.app.activate()
+        if self.app.visible:
+            self.app.activate()
         xl = self.app.xl.make(new=kw.workbook)
         wb = Book(self.app, xl.name.get())
         return wb
