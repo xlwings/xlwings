@@ -1025,7 +1025,8 @@ class Sheet:
 
         Examples
         --------
-        .. code-block::
+
+        .. code-block:: python
 
             # Create two books and add a value to the first sheet of the first book
             first_book = xw.Book()
