@@ -1,6 +1,13 @@
 What's New
 ==========
 
+v0.22.2 (Feb 8, 2021)
+---------------------
+
+* [Bug Fix] Windows: If the path of the Excel file included a single quote, UDFs were failing (:issue:`1511`).
+* [Bug Fix] macOS: Prevent Excel from showing up when using hidden Excel instances via ``xw.App(visible=False)`` (:issue:`1508`).
+
+
 v0.22.1 (Feb 4, 2021)
 ---------------------
 
