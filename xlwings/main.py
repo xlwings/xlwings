@@ -1001,8 +1001,8 @@ class Sheet:
 
     def copy(self, before=None, after=None, name=None):
         """
-        Copy a sheet to the current or a new Book. By default, it places the copied sheet after all existing sheets.
-        Returns the copied sheet.
+        Copy a sheet to the current or a new Book. By default, it places the copied sheet after all existing sheets
+        in the current Book. Returns the copied sheet.
 
         .. versionadded:: 0.22.0
 
@@ -1022,6 +1022,24 @@ class Sheet:
         -------
         Sheet object: Sheet
             The copied sheet
+
+        Examples
+        --------
+        .. code-block::
+
+            # Create two books and add a value to the first sheet of the first book
+            first_book = xw.Book()
+            second_book = xw.Book()
+            first_book.sheets[0]['A1'].value = 'some value'
+
+            # Copy to same Book with the default location and name
+            first_book.sheets[0].copy()
+
+            # Copy to same Book with custom sheet name
+            first_book.sheets[0].copy(name='copied')
+
+            # Copy to second Book requires to use before or after
+            first_book.sheets[0].copy(after=second_book.sheets[0])
         """
         # copy() doesn't return the copied sheet object and has an awkward default (copy it to a new workbook
         # if neither before or after are provided), so we're not taking that behavior over
