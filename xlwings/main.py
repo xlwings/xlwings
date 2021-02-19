@@ -806,6 +806,8 @@ class Book:
         >>> wb.sheets[0]['A1'].value = 'PDF'
         >>> wb.to_pdf()
 
+        See also :meth:`xlwings.Sheet.to_pdf`
+
         .. versionadded:: 0.21.1
         """
         path = utils.fspath(path)
@@ -998,6 +1000,30 @@ class Sheet:
         .. versionadded: 0.6.0
         """
         return self.impl.delete()
+
+    def to_pdf(self, path=None):
+        """
+        Exports the sheet to a PDF file.
+
+        Parameters
+        ----------
+        path : str or path-like object, default None
+            Path to the PDF file, defaults to the name of the sheet in the same directory of the workbook.
+            For unsaved workbooks, it defaults to the current working directory instead.
+
+        Examples
+        --------
+        >>> wb = xw.Book()
+        >>> sheet = wb.sheets[0]
+        >>> sheet['A1'].value = 'PDF'
+        >>> sheet.to_pdf()
+
+        See also :meth:`xlwings.Book.to_pdf`
+
+        .. versionadded:: 0.22.3
+        """
+        self.book.to_pdf(self.name + '.pdf' if path is None else path,
+                         include=self.index)
 
     def copy(self, before=None, after=None, name=None):
         """
