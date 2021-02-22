@@ -1465,6 +1465,10 @@ class Range:
         self.impl.formula_array = value
 
     @property
+    def font(self):
+        return Font(self)
+
+    @property
     def column_width(self):
         """
         Gets or sets the width, in characters, of a Range.
@@ -2442,6 +2446,10 @@ class Shape:
     @text.setter
     def text(self, value):
         self.impl.text = value
+
+    @property
+    def font(self):
+        return Font(self)
 
     @property
     def parent(self):
@@ -3591,6 +3599,50 @@ class Macro:
         return self.app.impl.run(self.macro, args)
 
     __call__ = run
+
+
+class Font:
+    def __init__(self, obj):
+        self.obj = obj
+
+    @property
+    def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        """
+        return self.obj.impl.api
+
+    @property
+    def bold(self):
+        return self.obj.impl.bold
+
+    @bold.setter
+    def bold(self, value):
+        self.obj.impl.bold = value
+
+    @property
+    def italic(self):
+        return self.obj.impl.italic
+
+    @italic.setter
+    def italic(self, value):
+        self.obj.impl.italic = value
+
+    @property
+    def size(self):
+        return self.obj.impl.size
+
+    @size.setter
+    def size(self, value):
+        self.obj.impl.size = value
+
+    @property
+    def color(self):
+        return self.obj.impl.font_color
+
+    @color.setter
+    def color(self, value):
+        self.obj.impl.font_color = value
 
 
 class Books(Collection):

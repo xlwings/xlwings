@@ -591,6 +591,42 @@ class Range:
             self.xl.formula_array.set(value)
 
     @property
+    def bold(self):
+        return self.xl.font_object.bold.get()
+
+    @bold.setter
+    def bold(self, value):
+        self.xl.font_object.bold.set(value)
+
+    @property
+    def italic(self):
+        return self.xl.font_object.italic.get()
+
+    @italic.setter
+    def italic(self, value):
+        self.xl.font_object.italic.set(value)
+
+    @property
+    def size(self):
+        return self.xl.font_object.font_size.get()
+
+    @size.setter
+    def size(self, value):
+        self.xl.font_object.font_size.set(value)
+
+    @property
+    def font_color(self):
+        return tuple(self.xl.font_object.color.get())
+
+    @font_color.setter
+    def font_color(self, color_or_rgb):
+        if self.xl is not None:
+            if isinstance(color_or_rgb, int):
+                self.xl.font_object.color.set(int_to_rgb(color_or_rgb))
+            else:
+                self.xl.font_object.color.set(color_or_rgb)
+
+    @property
     def column_width(self):
         if self.xl is not None:
             rv = self.xl.column_width.get()
@@ -907,6 +943,42 @@ class Shape:
     @text.setter
     def text(self, value):
         self.xl.shape_text_frame.text_range.content.set(value)
+
+    @property
+    def bold(self):
+        return self.xl.shape_text_frame.text_range.font.bold.get()
+
+    @bold.setter
+    def bold(self, value):
+        return self.xl.shape_text_frame.text_range.font.bold.set(value)
+
+    @property
+    def italic(self):
+        return self.xl.shape_text_frame.text_range.font.italic.get()
+
+    @italic.setter
+    def italic(self, value):
+        return self.xl.shape_text_frame.text_range.font.italic.set(value)
+
+    @property
+    def size(self):
+        return self.xl.shape_text_frame.text_range.font.font_size.get()
+
+    @size.setter
+    def size(self, value):
+        return self.xl.shape_text_frame.text_range.font.font_size.set(value)
+
+    @property
+    def font_color(self):
+        return tuple(self.xl.shape_text_frame.text_range.font.font_color.get())
+
+    @font_color.setter
+    def font_color(self, color_or_rgb):
+        if self.xl is not None:
+            if isinstance(color_or_rgb, int):
+                self.xl.shape_text_frame.text_range.font.font_color.set(int_to_rgb(color_or_rgb))
+            else:
+                self.xl.shape_text_frame.text_range.font.font_color.set(color_or_rgb)
 
 
 class Collection:
