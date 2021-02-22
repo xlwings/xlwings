@@ -1466,7 +1466,11 @@ class Range:
 
     @property
     def font(self):
-        return Font(self)
+        return Font(impl=self.impl.font)
+
+    @property
+    def characters(self):
+        return Characters(impl=self.impl.characters)
 
     @property
     def column_width(self):
@@ -2449,7 +2453,7 @@ class Shape:
 
     @property
     def font(self):
-        return Font(self)
+        return Font(impl=self.impl.font)
 
     @property
     def parent(self):
@@ -3601,48 +3605,61 @@ class Macro:
     __call__ = run
 
 
+class Characters:
+    def __init__(self, impl):
+        self.impl = impl
+
+    @property
+    def text(self):
+        return self.impl.text
+
+    @property
+    def font(self):
+        return Font(self.impl.font)
+
+
 class Font:
-    def __init__(self, obj):
-        self.obj = obj
+    def __init__(self, impl):
+        self.impl = impl
 
     @property
     def api(self):
         """
         Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
         """
-        return self.obj.impl.api
+        return self.impl.api
 
     @property
     def bold(self):
-        return self.obj.impl.bold
+        return self.impl.bold
 
     @bold.setter
     def bold(self, value):
-        self.obj.impl.bold = value
+        self.impl.bold = value
 
     @property
     def italic(self):
-        return self.obj.impl.italic
+        return self.impl.italic
 
     @italic.setter
     def italic(self, value):
-        self.obj.impl.italic = value
+        self.impl.italic = value
 
     @property
     def size(self):
-        return self.obj.impl.size
+        return self.impl.size
 
     @size.setter
     def size(self, value):
-        self.obj.impl.size = value
+        self.impl.size = value
 
     @property
     def color(self):
-        return self.obj.impl.font_color
+        return self.impl.color
 
     @color.setter
     def color(self, value):
-        self.obj.impl.font_color = value
+        self.impl.color = value
 
 
 class Books(Collection):

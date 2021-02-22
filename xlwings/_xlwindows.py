@@ -841,40 +841,8 @@ class Range:
             self.xl.FormulaArray = value
 
     @property
-    def bold(self):
-        return self.xl.Font.Bold
-
-    @bold.setter
-    def bold(self, value):
-        self.xl.Font.Bold = value
-
-    @property
-    def italic(self):
-        return self.xl.Font.Italic
-
-    @italic.setter
-    def italic(self, value):
-        self.xl.Font.Italic = value
-
-    @property
-    def size(self):
-        return self.xl.Font.Size
-
-    @size.setter
-    def size(self, value):
-        self.xl.Font.Size = value
-
-    @property
-    def font_color(self):
-        return int_to_rgb(self.xl.Font.Color)
-
-    @font_color.setter
-    def font_color(self, color_or_rgb):
-        if self.xl is not None:
-            if isinstance(color_or_rgb, int):
-                self.xl.Font.Color = color_or_rgb
-            else:
-                self.xl.Font.Color = rgb_to_int(color_or_rgb)
+    def font(self):
+        return Font(self, self.xl.Font)
 
     @property
     def column_width(self):
@@ -1313,40 +1281,65 @@ class Shape:
         self.xl.TextFrame2.TextRange.Text = value
 
     @property
+    def font(self):
+        return Font(self, self.xl.TextFrame2.TextRange.Font)
+
+
+class Font:
+    def __init__(self, parent, xl):
+        self.parent = parent
+        self.xl = xl
+
+    @property
     def bold(self):
-        return True if self.xl.TextFrame2.TextRange.Font.Bold == -1 else False
+        if isinstance(self.parent, Range):
+            return self.xl.Bold
+        elif isinstance(self.parent, Shape):
+            return True if self.xl.Bold == -1 else False
 
     @bold.setter
     def bold(self, value):
-        self.xl.TextFrame2.TextRange.Font.Bold = value
+        self.xl.Bold = value
 
     @property
     def italic(self):
-        return True if self.xl.TextFrame2.TextRange.Font.Italic == -1 else False
+        if isinstance(self.parent, Range):
+            return self.xl.Italic
+        elif isinstance(self.parent, Shape):
+            return True if self.xl.Italic == -1 else False
 
     @italic.setter
     def italic(self, value):
-        self.xl.TextFrame2.TextRange.Font.Italic = value
+        self.xl.Italic = value
 
     @property
     def size(self):
-        return self.xl.TextFrame2.TextRange.Font.Size
+        return self.xl.Size
 
     @size.setter
     def size(self, value):
-        self.xl.TextFrame2.TextRange.Font.Size = value
+        self.xl.Size = value
 
     @property
-    def font_color(self):
-        return int_to_rgb(self.xl.TextFrame2.TextRange.Font.Fill.ForeColor.RGB)
+    def color(self):
+        if isinstance(self.parent, Shape):
+            return int_to_rgb(self.xl.Fill.ForeColor.RGB)
+        elif isinstance(self.parent, Range):
+            return int_to_rgb(self.xl.Color)
 
-    @font_color.setter
-    def font_color(self, color_or_rgb):
+    @color.setter
+    def color(self, color_or_rgb):
         if self.xl is not None:
-            if isinstance(color_or_rgb, int):
-                self.xl.TextFrame2.TextRange.Font.Fill.ForeColor.RGB = color_or_rgb
-            else:
-                self.xl.TextFrame2.TextRange.Font.Fill.ForeColor.RGB = rgb_to_int(color_or_rgb)
+            if isinstance(self.parent, Shape):
+                if isinstance(color_or_rgb, int):
+                    self.xl.Fill.ForeColor.RGB = color_or_rgb
+                else:
+                    self.xl.Fill.ForeColor.RGB = rgb_to_int(color_or_rgb)
+            elif isinstance(self.parent, Range):
+                if isinstance(color_or_rgb, int):
+                    self.xl.Color = color_or_rgb
+                else:
+                    self.xl.Color = rgb_to_int(color_or_rgb)
 
 
 class Collection:
