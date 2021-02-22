@@ -841,6 +841,42 @@ class Range:
             self.xl.FormulaArray = value
 
     @property
+    def bold(self):
+        return self.xl.Font.Bold
+
+    @bold.setter
+    def bold(self, value):
+        self.xl.Font.Bold = value
+
+    @property
+    def italic(self):
+        return self.xl.Font.Italic
+
+    @italic.setter
+    def italic(self, value):
+        self.xl.Font.Italic = value
+
+    @property
+    def size(self):
+        return self.xl.Font.Size
+
+    @size.setter
+    def size(self, value):
+        self.xl.Font.Size = value
+
+    @property
+    def font_color(self):
+        return int_to_rgb(self.xl.Font.Color)
+
+    @font_color.setter
+    def font_color(self, color_or_rgb):
+        if self.xl is not None:
+            if isinstance(color_or_rgb, int):
+                self.xl.Font.Color = color_or_rgb
+            else:
+                self.xl.Font.Color = rgb_to_int(color_or_rgb)
+
+    @property
     def column_width(self):
         if self.xl is not None:
             return self.xl.ColumnWidth
@@ -1275,6 +1311,42 @@ class Shape:
     @text.setter
     def text(self, value):
         self.xl.TextFrame2.TextRange.Text = value
+
+    @property
+    def bold(self):
+        return True if self.xl.TextFrame2.TextRange.Font.Bold == -1 else False
+
+    @bold.setter
+    def bold(self, value):
+        self.xl.TextFrame2.TextRange.Font.Bold = value
+
+    @property
+    def italic(self):
+        return True if self.xl.TextFrame2.TextRange.Font.Italic == -1 else False
+
+    @italic.setter
+    def italic(self, value):
+        self.xl.TextFrame2.TextRange.Font.Italic = value
+
+    @property
+    def size(self):
+        return self.xl.TextFrame2.TextRange.Font.Size
+
+    @size.setter
+    def size(self, value):
+        self.xl.TextFrame2.TextRange.Font.Size = value
+
+    @property
+    def font_color(self):
+        return int_to_rgb(self.xl.TextFrame2.TextRange.Font.Fill.ForeColor.RGB)
+
+    @font_color.setter
+    def font_color(self, color_or_rgb):
+        if self.xl is not None:
+            if isinstance(color_or_rgb, int):
+                self.xl.TextFrame2.TextRange.Font.Fill.ForeColor.RGB = color_or_rgb
+            else:
+                self.xl.TextFrame2.TextRange.Font.Fill.ForeColor.RGB = rgb_to_int(color_or_rgb)
 
 
 class Collection:

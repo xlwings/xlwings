@@ -950,7 +950,7 @@ class Shape:
 
     @bold.setter
     def bold(self, value):
-        return self.xl.shape_text_frame.text_range.font.bold.set(value)
+        self.xl.shape_text_frame.text_range.font.bold.set(value)
 
     @property
     def italic(self):
@@ -958,7 +958,7 @@ class Shape:
 
     @italic.setter
     def italic(self, value):
-        return self.xl.shape_text_frame.text_range.font.italic.set(value)
+        self.xl.shape_text_frame.text_range.font.italic.set(value)
 
     @property
     def size(self):
@@ -966,7 +966,7 @@ class Shape:
 
     @size.setter
     def size(self, value):
-        return self.xl.shape_text_frame.text_range.font.font_size.set(value)
+        self.xl.shape_text_frame.text_range.font.font_size.set(value)
 
     @property
     def font_color(self):
