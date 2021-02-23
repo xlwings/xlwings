@@ -1085,7 +1085,7 @@ class Range:
 
     @property
     def characters(self):
-        return Characters(xl=self.xl.GetCharacters)
+        return Characters(parent=self, xl=self.xl.GetCharacters)
 
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
@@ -1288,6 +1288,10 @@ class Shape:
     def font(self):
         return Font(self, self.xl.TextFrame2.TextRange.Font)
 
+    @property
+    def characters(self):
+        return Characters(parent=self, xl=self.xl.TextFrame2.TextRange.GetCharacters)
+
 
 class Font:
     def __init__(self, parent, xl):
@@ -1296,9 +1300,9 @@ class Font:
 
     @property
     def bold(self):
-        if isinstance(self.parent, (Range, Characters)):
+        if isinstance(self.parent, Range) or isinstance(self.parent.parent, Range):
             return self.xl.Bold
-        elif isinstance(self.parent, Shape):
+        elif isinstance(self.parent, Shape) or isinstance(self.parent.parent, Shape):
             return True if self.xl.Bold == -1 else False
 
     @bold.setter
@@ -1307,9 +1311,9 @@ class Font:
 
     @property
     def italic(self):
-        if isinstance(self.parent, (Range, Characters)):
+        if isinstance(self.parent, Range) or isinstance(self.parent.parent, Range):
             return self.xl.Italic
-        elif isinstance(self.parent, Shape):
+        elif isinstance(self.parent, Shape) or isinstance(self.parent.parent, Shape):
             return True if self.xl.Italic == -1 else False
 
     @italic.setter
@@ -1326,9 +1330,14 @@ class Font:
 
     @property
     def color(self):
+        # self.parent is used for direct access, self.parent.parent via characters
         if isinstance(self.parent, Shape):
             return int_to_rgb(self.xl.Fill.ForeColor.RGB)
-        elif isinstance(self.parent, (Range, Characters)):
+        elif isinstance(self.parent, Range):
+            return int_to_rgb(self.xl.Color)
+        elif isinstance(self.parent.parent.parent, Shape):
+            return int_to_rgb(self.xl.Fill.ForeColor.RGB)
+        elif isinstance(self.parent.parent.parent, Range):
             return int_to_rgb(self.xl.Color)
 
     @color.setter
@@ -1339,7 +1348,17 @@ class Font:
                     self.xl.Fill.ForeColor.RGB = color_or_rgb
                 else:
                     self.xl.Fill.ForeColor.RGB = rgb_to_int(color_or_rgb)
-            elif isinstance(self.parent, (Range, Characters)):
+            elif isinstance(self.parent, Range):
+                if isinstance(color_or_rgb, int):
+                    self.xl.Color = color_or_rgb
+                else:
+                    self.xl.Color = rgb_to_int(color_or_rgb)
+            elif isinstance(self.parent.parent.parent, Shape):
+                if isinstance(color_or_rgb, int):
+                    self.xl.Fill.ForeColor.RGB = color_or_rgb
+                else:
+                    self.xl.Fill.ForeColor.RGB = rgb_to_int(color_or_rgb)
+            elif isinstance(self.parent.parent.parent, Range):
                 if isinstance(color_or_rgb, int):
                     self.xl.Color = color_or_rgb
                 else:
@@ -1347,10 +1366,11 @@ class Font:
 
 
 class Characters:
-    def __init__(self, xl, start=None, length=None):
+    def __init__(self, parent, xl, start=None, length=None):
+        self.parent = parent
         self.xl = xl
-        self.start = start
-        self.length = length
+        self.start = start if start else 1
+        self.length = length if length else xl().Count
 
     @property
     def api(self):
@@ -1369,15 +1389,16 @@ class Characters:
             if (item.start and item.start < 0) or (item.stop and item.stop < 0):
                 raise ValueError(self.__class__.__name__ + " object does not support slicing with negative indexes")
             start = item.start + 1 if item.start else 1
-            length = item.stop + 1 - start if item.stop else start + len(self.text)
-            return Characters(xl=self.xl,
+            length = item.stop + 1 - start if item.stop else self.length + 1 - start
+            return Characters(parent=self,
+                              xl=self.xl,
                               start=start,
                               length=length)
         else:
             if item >= 0:
-                return Characters(xl=self.xl, start=item + 1, length=1)
+                return Characters(parent=self, xl=self.xl, start=item + 1, length=1)
             else:
-                return Characters(xl=self.xl, start=len(self.text) + 1 + item, length=1)
+                return Characters(parent=self, xl=self.xl, start=len(self.text) + 1 + item, length=1)
 
 
 class Collection:

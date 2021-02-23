@@ -2456,6 +2456,10 @@ class Shape:
         return Font(impl=self.impl.font)
 
     @property
+    def characters(self):
+        return Characters(impl=self.impl.characters)
+
+    @property
     def parent(self):
         """
         Returns the parent of the shape.
@@ -3618,7 +3622,7 @@ class Characters:
         return Font(self.impl.font)
 
     def __getitem__(self, item):
-        if item.start == item.stop:
+        if (item.start and item.stop) and (item.start == item.stop):
             raise ValueError(self.__class__.__name__ + " object does not support empty slices")
         if item.step is not None:
             raise ValueError(self.__class__.__name__ + " object does not support slicing with non-default steps")
