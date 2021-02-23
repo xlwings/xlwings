@@ -3618,6 +3618,10 @@ class Characters:
         return Font(self.impl.font)
 
     def __getitem__(self, item):
+        if item.start == item.stop:
+            raise ValueError(self.__class__.__name__ + " object does not support empty slices")
+        if item.step is not None:
+            raise ValueError(self.__class__.__name__ + " object does not support slicing with non-default steps")
         if isinstance(item, slice):
             return Characters(self.impl[item.start:item.stop])
         else:

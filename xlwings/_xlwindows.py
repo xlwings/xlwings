@@ -1083,6 +1083,10 @@ class Range:
         if self.xl.ListObject:
             return Table(self.xl.ListObject)
 
+    @property
+    def characters(self):
+        return Characters(xl=self.xl.GetCharacters)
+
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
     if number_builder is not None:
@@ -1292,7 +1296,7 @@ class Font:
 
     @property
     def bold(self):
-        if isinstance(self.parent, Range):
+        if isinstance(self.parent, (Range, Characters)):
             return self.xl.Bold
         elif isinstance(self.parent, Shape):
             return True if self.xl.Bold == -1 else False
@@ -1303,7 +1307,7 @@ class Font:
 
     @property
     def italic(self):
-        if isinstance(self.parent, Range):
+        if isinstance(self.parent, (Range, Characters)):
             return self.xl.Italic
         elif isinstance(self.parent, Shape):
             return True if self.xl.Italic == -1 else False
@@ -1324,7 +1328,7 @@ class Font:
     def color(self):
         if isinstance(self.parent, Shape):
             return int_to_rgb(self.xl.Fill.ForeColor.RGB)
-        elif isinstance(self.parent, Range):
+        elif isinstance(self.parent, (Range, Characters)):
             return int_to_rgb(self.xl.Color)
 
     @color.setter
@@ -1335,11 +1339,45 @@ class Font:
                     self.xl.Fill.ForeColor.RGB = color_or_rgb
                 else:
                     self.xl.Fill.ForeColor.RGB = rgb_to_int(color_or_rgb)
-            elif isinstance(self.parent, Range):
+            elif isinstance(self.parent, (Range, Characters)):
                 if isinstance(color_or_rgb, int):
                     self.xl.Color = color_or_rgb
                 else:
                     self.xl.Color = rgb_to_int(color_or_rgb)
+
+
+class Characters:
+    def __init__(self, xl, start=None, length=None):
+        self.xl = xl
+        self.start = start
+        self.length = length
+
+    @property
+    def api(self):
+        return self.xl(self.start, self.length)
+
+    @property
+    def text(self):
+        return self.xl(self.start, self.length).Text
+
+    @property
+    def font(self):
+        return Font(self, self.xl(self.start, self.length).Font)
+
+    def __getitem__(self, item):
+        if isinstance(item, slice):
+            if (item.start and item.start < 0) or (item.stop and item.stop < 0):
+                raise ValueError(self.__class__.__name__ + " object does not support slicing with negative indexes")
+            start = item.start + 1 if item.start else 1
+            length = item.stop + 1 - start if item.stop else start + len(self.text)
+            return Characters(xl=self.xl,
+                              start=start,
+                              length=length)
+        else:
+            if item >= 0:
+                return Characters(xl=self.xl, start=item + 1, length=1)
+            else:
+                return Characters(xl=self.xl, start=len(self.text) + 1 + item, length=1)
 
 
 class Collection:
