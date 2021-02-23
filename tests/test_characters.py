@@ -59,6 +59,7 @@ def test_range_font_characters_color(app):
 def test_shape_characters_font_bold(app):
     shape = xw.Book("test book.xlsx").sheets["shape"].shapes[0]
     shape.text = "text"
+    shape.characters.font.bold = False
     assert shape.characters.font.bold is False
     shape.characters.font.bold = True
     assert shape.characters.font.bold is True
@@ -106,6 +107,7 @@ def test_range_characters_index_font_bold(app):
 def test_range_font_characters_index_italic(app):
     sheet = app.books[0].sheets[0]
     sheet['A1'].value = 'text'
+    sheet['A1'].characters[1].font.italic = False
     assert sheet['A1'].characters[1].font.italic is False
     sheet['A1'].characters[1].font.italic = True
     assert sheet['A1'].characters[1].font.italic is True
@@ -183,6 +185,7 @@ def test_range_characters_slicing_font_bold(app):
 def test_range_font_characters_slicing_italic(app):
     sheet = app.books[0].sheets[0]
     sheet['A1'].value = 'text'
+    sheet['A1'].characters[2:4].font.italic = False
     assert sheet['A1'].characters[2:4].font.italic is False
     sheet['A1'].characters[2:4].font.italic = True
     assert sheet['A1'].characters[2:4].font.italic is True

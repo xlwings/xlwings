@@ -1300,9 +1300,17 @@ class Font:
 
     @property
     def bold(self):
-        if isinstance(self.parent, Range) or isinstance(self.parent.parent, Range) or isinstance(self.parent.parent.parent, Range):
+        if isinstance(self.parent, Range):
             return self.xl.Bold
-        elif isinstance(self.parent, Shape) or isinstance(self.parent.parent, Shape) or isinstance(self.parent.parent.parent, Shape):
+        elif isinstance(self.parent, Shape):
+            return True if self.xl.Bold == -1 else False
+        elif isinstance(self.parent.parent, Range):
+            return self.xl.Bold
+        elif isinstance(self.parent.parent, Shape):
+            return True if self.xl.Bold == -1 else False
+        elif isinstance(self.parent.parent.parent, Range):
+            return self.xl.Bold
+        elif isinstance(self.parent.parent.parent, Shape):
             return True if self.xl.Bold == -1 else False
 
     @bold.setter
@@ -1311,9 +1319,17 @@ class Font:
 
     @property
     def italic(self):
-        if isinstance(self.parent, Range) or isinstance(self.parent.parent, Range) or isinstance(self.parent.parent.parent, Range):
+        if isinstance(self.parent, Range):
             return self.xl.Italic
-        elif isinstance(self.parent, Shape) or isinstance(self.parent.parent, Shape) or isinstance(self.parent.parent.parent, Shape):
+        elif isinstance(self.parent, Shape):
+            return True if self.xl.Italic == -1 else False
+        elif isinstance(self.parent.parent, Range):
+            return self.xl.Italic
+        elif isinstance(self.parent.parent, Shape):
+            return True if self.xl.Italic == -1 else False
+        elif isinstance(self.parent.parent.parent, Range):
+            return self.xl.Italic
+        elif isinstance(self.parent.parent.parent, Shape):
             return True if self.xl.Italic == -1 else False
 
     @italic.setter
