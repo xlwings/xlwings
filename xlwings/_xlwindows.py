@@ -1300,9 +1300,9 @@ class Font:
 
     @property
     def bold(self):
-        if isinstance(self.parent, Range) or isinstance(self.parent.parent, Range):
+        if isinstance(self.parent, Range) or isinstance(self.parent.parent, Range) or isinstance(self.parent.parent.parent, Range):
             return self.xl.Bold
-        elif isinstance(self.parent, Shape) or isinstance(self.parent.parent, Shape):
+        elif isinstance(self.parent, Shape) or isinstance(self.parent.parent, Shape) or isinstance(self.parent.parent.parent, Shape):
             return True if self.xl.Bold == -1 else False
 
     @bold.setter
@@ -1311,9 +1311,9 @@ class Font:
 
     @property
     def italic(self):
-        if isinstance(self.parent, Range) or isinstance(self.parent.parent, Range):
+        if isinstance(self.parent, Range) or isinstance(self.parent.parent, Range) or isinstance(self.parent.parent.parent, Range):
             return self.xl.Italic
-        elif isinstance(self.parent, Shape) or isinstance(self.parent.parent, Shape):
+        elif isinstance(self.parent, Shape) or isinstance(self.parent.parent, Shape) or isinstance(self.parent.parent.parent, Shape):
             return True if self.xl.Italic == -1 else False
 
     @italic.setter
@@ -1335,6 +1335,10 @@ class Font:
             return int_to_rgb(self.xl.Fill.ForeColor.RGB)
         elif isinstance(self.parent, Range):
             return int_to_rgb(self.xl.Color)
+        elif isinstance(self.parent.parent, Shape):
+            return int_to_rgb(self.xl.Fill.ForeColor.RGB)
+        elif isinstance(self.parent.parent, Range):
+            return int_to_rgb(self.xl.Color)
         elif isinstance(self.parent.parent.parent, Shape):
             return int_to_rgb(self.xl.Fill.ForeColor.RGB)
         elif isinstance(self.parent.parent.parent, Range):
@@ -1342,6 +1346,7 @@ class Font:
 
     @color.setter
     def color(self, color_or_rgb):
+        # TODO: refactor
         if self.xl is not None:
             if isinstance(self.parent, Shape):
                 if isinstance(color_or_rgb, int):
@@ -1353,6 +1358,18 @@ class Font:
                     self.xl.Color = color_or_rgb
                 else:
                     self.xl.Color = rgb_to_int(color_or_rgb)
+
+            elif isinstance(self.parent.parent, Shape):
+                if isinstance(color_or_rgb, int):
+                    self.xl.Fill.ForeColor.RGB = color_or_rgb
+                else:
+                    self.xl.Fill.ForeColor.RGB = rgb_to_int(color_or_rgb)
+            elif isinstance(self.parent.parent, Range):
+                if isinstance(color_or_rgb, int):
+                    self.xl.Color = color_or_rgb
+                else:
+                    self.xl.Color = rgb_to_int(color_or_rgb)
+
             elif isinstance(self.parent.parent.parent, Shape):
                 if isinstance(color_or_rgb, int):
                     self.xl.Fill.ForeColor.RGB = color_or_rgb
