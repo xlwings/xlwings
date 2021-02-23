@@ -961,7 +961,7 @@ class Font:
     @color.setter
     def color(self, color_or_rgb):
         if self.xl is not None:
-            if isinstance(self.parent, Range):
+            if isinstance(self.parent, (Range, Characters)):
                 obj = self.xl.color
             elif isinstance(self.parent, Shape):
                 obj = self.xl.font_color
@@ -988,6 +988,16 @@ class Characters:
     @property
     def font(self):
         return Font(self, self.xl.font_object)
+
+    def __getitem__(self, item):
+        # TODO: This is broken with AppleScript and Excel 2016:
+        # set bold of font object of (characters 5 thru 9 of range "A1") to true
+        # https://answers.microsoft.com/en-us/msoffice/forum/msoffice_excel-mso_mac-msoversion_other/applescript-and-excel-problem/6e5a50b1-6209-4fbf-91f4-6d6674f1e488
+        if isinstance(item, slice):
+            return Characters(parent=self.parent, xl=self.xl[item.start + 1 if item.start else None
+                                                             :item.stop if item.stop else len(self.text)])
+        else:
+            return Characters(parent=self.parent, xl=self.xl[item + 1:item + 1])
 
 
 class Collection:

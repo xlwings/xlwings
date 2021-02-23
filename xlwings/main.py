@@ -3617,6 +3617,12 @@ class Characters:
     def font(self):
         return Font(self.impl.font)
 
+    def __getitem__(self, item):
+        if isinstance(item, slice):
+            return Characters(self.impl[item.start:item.stop])
+        else:
+            return Characters(self.impl[item])
+
 
 class Font:
     def __init__(self, impl):
