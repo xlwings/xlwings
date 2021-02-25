@@ -4,22 +4,6 @@ from functools import wraps
 
 __version__ = 'dev'
 
-
-# Errors
-class ShapeAlreadyExists(Exception):
-    pass
-
-
-class LicenseError(Exception):
-    pass
-
-
-try:
-    from . import pro
-    PRO = True
-except (ImportError, LicenseError):
-    PRO = False
-
 # Platform specifics
 if sys.platform.startswith('win'):
     from . import _xlwindows as xlplatform
@@ -30,10 +14,24 @@ time_types = xlplatform.time_types
 USER_CONFIG_FILE = xlplatform.USER_CONFIG_FILE
 
 
+# Errors
+class ShapeAlreadyExists(Exception):
+    pass
+
+
+class LicenseError(Exception):
+    pass
+
+
 # API
 from .main import App, Book, Range, Chart, Sheet, Picture, Shape, Name, view, load, RangeRows, RangeColumns
 from .main import apps, books, sheets
 
+try:
+    from . import pro
+    PRO = True
+except (ImportError, LicenseError):
+    PRO = False
 
 # UDFs
 if sys.platform.startswith('win'):

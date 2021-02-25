@@ -1,18 +1,17 @@
-from . import Pipeline, Converter, Options, Accessor, accessors
-from .. import PRO
-if PRO:
-    from ..pro.reports.markdown import FormatMarkdownStage
-else:
-    class FormatMarkdownStage:
-        def __init__(self, options):
-            self.options = options
-
-from .. import xlplatform
-from ..main import Range
-
 import datetime
 from collections import OrderedDict
 
+from . import Pipeline, Converter, Options, Accessor, accessors
+
+from .. import xlplatform
+from ..main import Range
+from .. import LicenseError
+try:
+    from ..pro.reports.markdown import FormatMarkdownStage
+except (ImportError, LicenseError):
+    class FormatMarkdownStage:
+        def __init__(self, options):
+            self.options = options
 try:
     import numpy as np
 except ImportError:

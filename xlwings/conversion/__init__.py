@@ -17,11 +17,12 @@ if np:
     from .numpy_conv import NumpyArrayConverter
 if pd:
     from .pandas_conv import PandasDataFrameConverter, PandasSeriesConverter
-
-# This registers the converter
-from .. import PRO
-if PRO:
+from .. import LicenseError
+try:
+    # This registers the converter
     from ..pro.reports.markdown import MarkdownConverter
+except (ImportError, LicenseError):
+    MarkdownConverter = None
 
 
 def read(rng, value, options):
@@ -42,6 +43,8 @@ def write(value, rng, options):
             if len(first_row) != len(row):
                 raise Exception('All elements of a 2d list or tuple must be of the same length')
     convert = options.get('convert', None)
+    if not MarkdownConverter and convert == 'markdown':
+        raise LicenseError("Markdown requires a valid LICENSE_KEY.")
     pipeline = accessors.get(convert, convert).router(value, rng, options).writer(options)
     ctx = ConversionContext(rng=rng, value=value)
     pipeline(ctx)
