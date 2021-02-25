@@ -43,7 +43,7 @@ def write(value, rng, options):
             if len(first_row) != len(row):
                 raise Exception('All elements of a 2d list or tuple must be of the same length')
     convert = options.get('convert', None)
-    if not MarkdownConverter and convert == 'markdown':
+    if not MarkdownConverter and convert in ('markdown', 'md'):
         raise LicenseError("Markdown requires a valid LICENSE_KEY.")
     pipeline = accessors.get(convert, convert).router(value, rng, options).writer(options)
     ctx = ConversionContext(rng=rng, value=value)

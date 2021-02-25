@@ -211,7 +211,7 @@ class ValueAccessor(Accessor):
     def writer(options):
         return (
             Pipeline()
-            .prepend_stage(FormatMarkdownStage(options), only_if=options.get('convert') == 'markdown')
+            .prepend_stage(FormatMarkdownStage(options), only_if=options.get('convert') in ('markdown', 'md'))
             .prepend_stage(WriteValueToRangeStage(options))
             .prepend_stage(CleanDataForWriteStage())
             .prepend_stage(TransposeStage(), only_if=options.get('transpose', False))
