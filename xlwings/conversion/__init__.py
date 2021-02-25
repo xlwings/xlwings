@@ -19,7 +19,9 @@ if pd:
     from .pandas_conv import PandasDataFrameConverter, PandasSeriesConverter
 
 # This registers the converter
-from ..pro.reports.markdown import MarkdownConverter
+from .. import PRO
+if PRO:
+    from ..pro.reports.markdown import MarkdownConverter
 
 
 def read(rng, value, options):

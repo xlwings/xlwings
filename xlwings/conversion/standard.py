@@ -1,5 +1,11 @@
 from . import Pipeline, Converter, Options, Accessor, accessors
-from ..pro.reports.markdown import FormatMarkdownStage
+from .. import PRO
+if PRO:
+    from ..pro.reports.markdown import FormatMarkdownStage
+else:
+    class FormatMarkdownStage:
+        def __init__(self, options):
+            self.options = options
 
 from .. import xlplatform
 from ..main import Range
