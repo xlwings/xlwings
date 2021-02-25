@@ -1,9 +1,12 @@
 class ConversionContext:
-    __slots__ = ['range', 'value', 'meta']
+    __slots__ = ['range', 'value', 'source_value', 'meta']
 
     def __init__(self, rng=None, value=None):
         self.range = rng
         self.value = value
+        # used for markdown (could be replaced by handing the parsed ast from
+        # the converter stage to the formatting stage
+        self.source_value = value
         self.meta = {}
 
 
