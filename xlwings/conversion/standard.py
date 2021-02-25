@@ -1,4 +1,5 @@
 from . import Pipeline, Converter, Options, Accessor, accessors
+from ..pro.reports.markdown import FormatMarkdownStage
 
 from .. import xlplatform
 from ..main import Range
@@ -205,6 +206,7 @@ class ValueAccessor(Accessor):
     def writer(options):
         return (
             Pipeline()
+            .prepend_stage(FormatMarkdownStage(options), only_if=options.get('convert') == 'markdown')
             .prepend_stage(WriteValueToRangeStage(options))
             .prepend_stage(CleanDataForWriteStage())
             .prepend_stage(TransposeStage(), only_if=options.get('transpose', False))
@@ -221,7 +223,7 @@ ValueAccessor.register(None)
 
 class DictConverter(Converter):
 
-    writes_types = dict
+    writes_types = dict  # TODO: remove all these writes_types as this was long ago replaced by .register (?)
 
     @classmethod
     def base_reader(cls, options):
