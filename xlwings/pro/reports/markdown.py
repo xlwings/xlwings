@@ -4,12 +4,6 @@ from ... import mistune
 from ...conversion import Converter
 
 
-class Markdown:
-    def __init__(self, text, options=None):
-        self.text = text
-        self.options = options
-
-
 class MarkdownOptions:
     # TODO: repr
     class __Heading1:
@@ -63,6 +57,12 @@ class MarkdownOptions:
         return textwrap.dedent(repr(self.h1))
 
 
+class Markdown:
+    def __init__(self, text, options=MarkdownOptions()):
+        self.text = text
+        self.options = options
+
+
 class MarkdownConverter(Converter):
 
     @classmethod
@@ -78,33 +78,7 @@ class FormatMarkdownStage:
         self.options = options
 
     def __call__(self, ctx):
-        md_options = self.options['md_options']
-        assert ctx.meta['scalar']
-        flat_ast = flatten_ast(ctx.source_value)
-
-        position = 0
-        for node in flat_ast:
-            if 'heading' in node['parent_type'][0]:
-                node_length = sum(node['length']) + md_options.h1.blank_lines_after + 1
-                # TODO: loop over all font characteristics
-                ctx.range.characters[position:position + node_length].font.color = md_options.h1.color
-                ctx.range.characters[position:position + node_length].font.size = md_options.h1.size
-            elif 'paragraph' in node['parent_type'][0]:
-                node_length = sum(node['length']) + md_options.paragraph.blank_lines_after + 1
-                intra_node_position = position
-                for ix, j in enumerate(node['parent_type']):
-                    selection = slice(intra_node_position, intra_node_position + node['length'][ix])
-                    if 'strong' in j:
-                        ctx.range.characters[selection].font.bold = True  # TODO: take from options
-                    elif 'emphasis' in j:
-                        ctx.range.characters[selection].font.italic = True  # TODO: take from options
-                    intra_node_position += node['length'][ix]
-            elif 'list' in node['parent_type'][0]:
-                node_length = sum(node['length']) + md_options.unordered_list.blank_lines_after
-                for j in node['text']:
-                    # TODO: check ast level to allow nested **strong** etc.
-                    node_length += 3  # bullet, space and new line
-            position += node_length
+        format_text(ctx.range, ctx.source_value, self.options['md_options'])
 
 
 def traverse_ast_node(tree, data=None, level=0):
@@ -139,9 +113,7 @@ def flatten_ast(value):
     return flat_ast
 
 
-def render_text(text, options=None):
-    if options is None:
-        options = MarkdownOptions()
+def render_text(text, options):
     flat_ast = flatten_ast(text)
 
 
@@ -167,5 +139,29 @@ def render_text(text, options=None):
     return output.rstrip('\n')
 
 
-def format_text(parent):
-    pass
+def format_text(parent, text, options):
+    flat_ast = flatten_ast(text)
+
+    position = 0
+    for node in flat_ast:
+        if 'heading' in node['parent_type'][0]:
+            node_length = sum(node['length']) + options.h1.blank_lines_after + 1
+            # TODO: loop over all font characteristics
+            parent.characters[position:position + node_length].font.color = options.h1.color
+            parent.characters[position:position + node_length].font.size = options.h1.size
+        elif 'paragraph' in node['parent_type'][0]:
+            node_length = sum(node['length']) + options.paragraph.blank_lines_after + 1
+            intra_node_position = position
+            for ix, j in enumerate(node['parent_type']):
+                selection = slice(intra_node_position, intra_node_position + node['length'][ix])
+                if 'strong' in j:
+                    parent.characters[selection].font.bold = True  # TODO: take from options
+                elif 'emphasis' in j:
+                    parent.characters[selection].font.italic = True  # TODO: take from options
+                intra_node_position += node['length'][ix]
+        elif 'list' in node['parent_type'][0]:
+            node_length = sum(node['length']) + options.unordered_list.blank_lines_after
+            for j in node['text']:
+                # TODO: check ast level to allow nested **strong** etc.
+                node_length += 3  # bullet, space and new line
+        position += node_length

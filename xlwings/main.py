@@ -13,9 +13,8 @@ import sys
 import re
 import numbers
 
-from . import xlplatform, ShapeAlreadyExists
-from .utils import VersionNumber
-from . import utils
+from . import xlplatform, ShapeAlreadyExists, utils
+import xlwings
 
 # Optional imports
 try:
@@ -244,7 +243,7 @@ class App:
 
         .. versionchanged:: 0.9.0
         """
-        return VersionNumber(self.impl.version)
+        return utils.VersionNumber(self.impl.version)
 
     @property
     def selection(self):
@@ -2449,13 +2448,16 @@ class Shape:
 
     @text.setter
     def text(self, value):
-        from xlwings.pro.reports import Markdown
-        from xlwings.pro.reports.markdown import render_text, format_text
-        if isinstance(value, Markdown):
-            value = render_text(value.text)
-        self.impl.text = value
-        if isinstance(value, Markdown):
-            format_text(self)
+        if xlwings.PRO:
+            from xlwings.pro.reports import Markdown
+            from xlwings.pro.reports.markdown import render_text, format_text
+            if isinstance(value, Markdown):
+                self.impl.text = render_text(value.text, value.options)
+                format_text(self, value.text, value.options)
+            else:
+                self.impl.text = value
+        else:
+            self.impl.text = value
 
     @property
     def font(self):
