@@ -2449,7 +2449,13 @@ class Shape:
 
     @text.setter
     def text(self, value):
+        from xlwings.pro.reports import Markdown
+        from xlwings.pro.reports.markdown import render_text, format_text
+        if isinstance(value, Markdown):
+            value = render_text(value.text)
         self.impl.text = value
+        if isinstance(value, Markdown):
+            format_text(self)
 
     @property
     def font(self):

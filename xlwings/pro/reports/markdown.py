@@ -4,6 +4,12 @@ from ... import mistune
 from ...conversion import Converter
 
 
+class Markdown:
+    def __init__(self, text, options=None):
+        self.text = text
+        self.options = options
+
+
 class MarkdownOptions:
     # TODO: repr
     class __Heading1:
@@ -61,30 +67,7 @@ class MarkdownConverter(Converter):
 
     @classmethod
     def write_value(cls, value, options):
-        md_options = options['md_options']
-        flat_ast = flatten_ast(value)
-
-        # for i in flat_ast:
-        #     print(i['parent_type'])
-        #     print(i['length'])
-        #     print(i['text'])
-
-        output = ''
-        for node in flat_ast:
-            # heading/list currently don't respect the level
-            if 'heading' in node['parent_type'][0]:
-                output += ''.join(node['text'])
-                output += '\n' + md_options.h1.blank_lines_after * '\n'
-            elif 'paragraph' in node['parent_type'][0]:
-                output += ''.join(node['text'])
-                output += '\n' + md_options.paragraph.blank_lines_after * '\n'
-            elif 'list' in node['parent_type'][0]:
-                for j in node['text']:
-                    output += f'\u2022 {j}\n'
-                output += md_options.unordered_list.blank_lines_after * '\n'
-
-        value = output.rstrip('\n')
-        return value
+        return render_text(value, options['md_options'])
 
 
 MarkdownConverter.register('markdown', 'md')
@@ -110,8 +93,8 @@ class FormatMarkdownStage:
                 node_length = sum(node['length']) + md_options.paragraph.blank_lines_after + 1
                 intra_node_position = position
                 for ix, j in enumerate(node['parent_type']):
+                    selection = slice(intra_node_position, intra_node_position + node['length'][ix])
                     if 'strong' in j:
-                        selection = slice(intra_node_position, intra_node_position + node['length'][ix])
                         ctx.range.characters[selection].font.bold = True  # TODO: take from options
                     elif 'emphasis' in j:
                         ctx.range.characters[selection].font.italic = True  # TODO: take from options
@@ -154,3 +137,35 @@ def flatten_ast(value):
         del rv['parents']
         flat_ast.append(rv)
     return flat_ast
+
+
+def render_text(text, options=None):
+    if options is None:
+        options = MarkdownOptions()
+    flat_ast = flatten_ast(text)
+
+
+    # for i in flat_ast:
+    #     print(i['parent_type'])
+    #     print(i['length'])
+    #     print(i['text'])
+
+    output = ''
+    for node in flat_ast:
+        # heading/list currently don't respect the level
+        if 'heading' in node['parent_type'][0]:
+            output += ''.join(node['text'])
+            output += '\n' + options.h1.blank_lines_after * '\n'
+        elif 'paragraph' in node['parent_type'][0]:
+            output += ''.join(node['text'])
+            output += '\n' + options.paragraph.blank_lines_after * '\n'
+        elif 'list' in node['parent_type'][0]:
+            for j in node['text']:
+                output += f'\u2022 {j}\n'
+            output += options.unordered_list.blank_lines_after * '\n'
+
+    return output.rstrip('\n')
+
+
+def format_text(parent):
+    pass
