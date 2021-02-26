@@ -3622,6 +3622,13 @@ class Characters:
         self.impl = impl
 
     @property
+    def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        """
+        return self.impl.api
+
+    @property
     def text(self):
         return self.impl.text
 

@@ -928,6 +928,10 @@ class Font:
         self.xl = xl
 
     @property
+    def api(self):
+        return self.xl
+
+    @property
     def bold(self):
         return self.xl.bold.get()
 

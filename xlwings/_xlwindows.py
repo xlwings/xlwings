@@ -1299,6 +1299,10 @@ class Font:
         self.xl = xl
 
     @property
+    def api(self):
+        return self.xl
+
+    @property
     def bold(self):
         if isinstance(self.parent, Range):
             return self.xl.Bold
