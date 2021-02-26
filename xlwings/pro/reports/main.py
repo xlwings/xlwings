@@ -95,7 +95,7 @@ def render_template(sheet, **data):
                                 elif isinstance(result, Markdown):
                                     sheet[i + row_shift,
                                           j + frame_indices[ix]].options('markdown',
-                                                                         style=result.options).value = result.text
+                                                                         style=result.style).value = result.text
                                 else:
                                     # Simple Jinja variables
                                     # Check for height of 2d array

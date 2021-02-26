@@ -60,7 +60,7 @@ class MarkdownStyle:
 class Markdown:
     def __init__(self, text, style=MarkdownStyle()):
         self.text = text
-        self.options = style
+        self.style = style
 
 
 class MarkdownConverter(Converter):

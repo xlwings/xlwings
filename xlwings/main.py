@@ -2452,8 +2452,8 @@ class Shape:
             from xlwings.pro.reports import Markdown
             from xlwings.pro.reports.markdown import render_text, format_text
             if isinstance(value, Markdown):
-                self.impl.text = render_text(value.text, value.options)
-                format_text(self, value.text, value.options)
+                self.impl.text = render_text(value.text, value.style)
+                format_text(self, value.text, value.style)
             else:
                 self.impl.text = value
         else:
