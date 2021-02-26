@@ -4,7 +4,7 @@ from ... import mistune
 from ...conversion import Converter
 
 
-class MarkdownOptions:
+class MarkdownStyle:
     # TODO: repr
     class __Heading1:
         def __init__(self):
@@ -58,16 +58,16 @@ class MarkdownOptions:
 
 
 class Markdown:
-    def __init__(self, text, options=MarkdownOptions()):
+    def __init__(self, text, style=MarkdownStyle()):
         self.text = text
-        self.options = options
+        self.options = style
 
 
 class MarkdownConverter(Converter):
 
     @classmethod
     def write_value(cls, value, options):
-        return render_text(value, options['md_options'])
+        return render_text(value, options['style'])
 
 
 MarkdownConverter.register('markdown', 'md')
@@ -78,7 +78,7 @@ class FormatMarkdownStage:
         self.options = options
 
     def __call__(self, ctx):
-        format_text(ctx.range, ctx.source_value, self.options['md_options'])
+        format_text(ctx.range, ctx.source_value, self.options['style'])
 
 
 def traverse_ast_node(tree, data=None, level=0):
