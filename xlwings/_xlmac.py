@@ -971,6 +971,20 @@ class Font:
             else:
                 obj.set(color_or_rgb)
 
+    @property
+    def name(self):
+        if isinstance(self.parent, Range):
+            return self.xl.name.get()
+        elif isinstance(self.parent, Shape):
+            return self.xl.font_name.get()
+
+    @name.setter
+    def name(self, value):
+        if isinstance(self.parent, Range):
+            self.xl.name.set(value)
+        elif isinstance(self.parent, Shape):
+            self.xl.font_name.set(value)
+
 
 class Characters:
     def __init__(self, parent, xl):

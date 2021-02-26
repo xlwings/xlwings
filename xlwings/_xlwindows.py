@@ -1397,6 +1397,14 @@ class Font:
                 else:
                     self.xl.Color = rgb_to_int(color_or_rgb)
 
+    @property
+    def name(self):
+        return self.xl.Name
+
+    @name.setter
+    def name(self, value):
+        self.xl.Name = value
+
 
 class Characters:
     def __init__(self, parent, xl, start=None, length=None):

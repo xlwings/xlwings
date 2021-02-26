@@ -15,12 +15,13 @@ class Style:
 
 
 class FontStyle(Style):
-    def __init__(self, display_name=None, color=None, size=None, bold=None, italic=None):
+    def __init__(self, display_name=None, color=None, size=None, bold=None, italic=None, name=None):
         super().__init__(display_name=display_name)
         self.color = color
         self.size = size
         self.bold = bold
         self.italic = italic
+        self.name = name
 
 
 class MarkdownStyle:

@@ -3683,6 +3683,14 @@ class Font:
     def color(self, value):
         self.impl.color = value
 
+    @property
+    def name(self):
+        return self.impl.name
+
+    @name.setter
+    def name(self, value):
+        self.impl.name = value
+
 
 class Books(Collection):
     """

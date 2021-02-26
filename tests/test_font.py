@@ -55,6 +55,15 @@ def test_range_font_color(app):
     assert sheet['A1'].font.color == (255, 0, 0)
 
 
+def test_range_font_name(app):
+    sheet = app.books[0].sheets[0]
+    sheet['A1'].value = 'text'
+    sheet['A1'].font.name = 'Calibri'
+    assert sheet['A1'].font.name == 'Calibri'
+    sheet['A1'].font.name = 'Arial'
+    assert sheet['A1'].font.name == 'Arial'
+
+
 # Shape
 def test_shape_font_bold(app):
     shape = xw.Book("test book.xlsx").sheets["shape"].shapes[0]
@@ -90,3 +99,12 @@ def test_shape_font_color(app):
     assert shape.font.color == (255, 255, 255)
     shape.font.color = (255, 0, 0)
     assert shape.font.color == (255, 0, 0)
+
+
+def test_shape_font_name(app):
+    shape = xw.Book("test book.xlsx").sheets["shape"].shapes[0]
+    shape.text = "text"
+    shape.font.name = 'Calibri'
+    assert shape.font.name == 'Calibri'
+    shape.font.name = 'Arial'
+    assert shape.font.name == 'Arial'
