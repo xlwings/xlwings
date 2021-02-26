@@ -139,29 +139,34 @@ def render_text(text, options):
     return output.rstrip('\n')
 
 
-def format_text(parent, text, options):
+def format_text(parent, text, style):
     flat_ast = flatten_ast(text)
 
     position = 0
     for node in flat_ast:
         if 'heading' in node['parent_type'][0]:
-            node_length = sum(node['length']) + options.h1.blank_lines_after + 1
-            # TODO: loop over all font characteristics
-            parent.characters[position:position + node_length].font.color = options.h1.color
-            parent.characters[position:position + node_length].font.size = options.h1.size
+            node_length = sum(node['length']) + style.h1.blank_lines_after + 1
+            apply_style_to_font(style.h1,
+                                parent.characters[position:position + node_length].font)
         elif 'paragraph' in node['parent_type'][0]:
-            node_length = sum(node['length']) + options.paragraph.blank_lines_after + 1
+            node_length = sum(node['length']) + style.paragraph.blank_lines_after + 1
             intra_node_position = position
             for ix, j in enumerate(node['parent_type']):
                 selection = slice(intra_node_position, intra_node_position + node['length'][ix])
                 if 'strong' in j:
-                    parent.characters[selection].font.bold = True  # TODO: take from options
+                    apply_style_to_font(style.strong, parent.characters[selection].font)
                 elif 'emphasis' in j:
-                    parent.characters[selection].font.italic = True  # TODO: take from options
+                    apply_style_to_font(style.emphasis, parent.characters[selection].font)
                 intra_node_position += node['length'][ix]
         elif 'list' in node['parent_type'][0]:
-            node_length = sum(node['length']) + options.unordered_list.blank_lines_after
-            for j in node['text']:
+            node_length = sum(node['length']) + style.unordered_list.blank_lines_after
+            for _ in node['text']:
                 # TODO: check ast level to allow nested **strong** etc.
                 node_length += 3  # bullet, space and new line
         position += node_length
+
+
+def apply_style_to_font(style_object, font_object):
+    for attribute in vars(style_object):
+        if getattr(style_object, attribute):
+            setattr(font_object, attribute, getattr(style_object, attribute))
