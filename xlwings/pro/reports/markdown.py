@@ -1,48 +1,50 @@
-import textwrap
-
 from ... import mistune
 from ...conversion import Converter
 
 
+class Style:
+    def __init__(self, display_name=None):
+        self.display_name = display_name
+
+    def __repr__(self):
+        s = ''
+        for attribute in vars(self):
+            if getattr(self, attribute) and attribute != 'display_name':
+                s += f'{self.display_name}.{attribute}: {getattr(self, attribute)}\n'
+        return s
+
+
+class FontStyle(Style):
+    def __init__(self, display_name=None, color=None, size=None, bold=None, italic=None):
+        super().__init__(display_name=display_name)
+        self.color = color
+        self.size = size
+        self.bold = bold
+        self.italic = italic
+
+
 class MarkdownStyle:
-    # TODO: repr
-    class __Heading1:
+    class __Heading1(FontStyle):
         def __init__(self):
-            self.color = None
-            self.size = None
-            self.bold = None
-            self.italic = None
+            super().__init__(display_name='h1', bold=True)
             self.blank_lines_after = 1
 
-        def __repr__(self):
-            return f"""\
-                    h1.color: {self.color}
-                    h1.size: {self.size}
-                    h1.bold: {self.bold}
-                    h1.italic: {self.italic}
-                    h1.blank_lines_after: {self.blank_lines_after}
-                    """
-
-    class __Strong:
+    class __Strong(FontStyle):
         def __init__(self):
-            self.color = None
-            self.size = None
-            self.bold = True
-            self.italic = None
+            super().__init__(display_name='strong', bold=True)
 
-    class __Emphasis:
+    class __Emphasis(FontStyle):
         def __init__(self):
-            self.color = None
-            self.size = None
-            self.bold = None
-            self.italic = True
+            super().__init__(display_name='emphasis', italic=True)
 
-    class __Paragraph:
+    class __Paragraph(Style):
         def __init__(self):
+            super().__init__(display_name='paragraph')
             self.blank_lines_after = 1
 
-    class __UnorderedList:
+    class __UnorderedList(Style):
         def __init__(self):
+            super().__init__(display_name='unordered_list')
             self.bullet_character = '\u2022'
             self.blank_lines_after = 1
 
@@ -51,10 +53,13 @@ class MarkdownStyle:
         self.paragraph = self.__Paragraph()
         self.unordered_list = self.__UnorderedList()
         self.strong = self.__Strong()
-        self.emphasis = self.__Emphasis
+        self.emphasis = self.__Emphasis()
 
     def __repr__(self):
-        return textwrap.dedent(repr(self.h1))
+        s = '<MarkdownStyle>\n'
+        for attribute in vars(self):
+            s += f'{getattr(self, attribute)}'
+        return s
 
 
 class Markdown:
