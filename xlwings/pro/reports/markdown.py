@@ -73,10 +73,10 @@ class MarkdownConverter(Converter):
 
     @classmethod
     def write_value(cls, value, options):
-        return render_text(value, options['style'])
+        return render_text(value.text, value.style)
 
 
-MarkdownConverter.register('markdown', 'md')
+MarkdownConverter.register(Markdown)
 
 
 class FormatMarkdownStage:
@@ -84,7 +84,7 @@ class FormatMarkdownStage:
         self.options = options
 
     def __call__(self, ctx):
-        format_text(ctx.range, ctx.source_value, self.options['style'])
+        format_text(ctx.range, ctx.source_value.text, ctx.source_value.style)
 
 
 def traverse_ast_node(tree, data=None, level=0):
@@ -119,7 +119,7 @@ def flatten_ast(value):
     return flat_ast
 
 
-def render_text(text, options):
+def render_text(text, style):
     flat_ast = flatten_ast(text)
 
 
@@ -133,14 +133,14 @@ def render_text(text, options):
         # heading/list currently don't respect the level
         if 'heading' in node['parent_type'][0]:
             output += ''.join(node['text'])
-            output += '\n' + options.h1.blank_lines_after * '\n'
+            output += '\n' + style.h1.blank_lines_after * '\n'
         elif 'paragraph' in node['parent_type'][0]:
             output += ''.join(node['text'])
-            output += '\n' + options.paragraph.blank_lines_after * '\n'
+            output += '\n' + style.paragraph.blank_lines_after * '\n'
         elif 'list' in node['parent_type'][0]:
             for j in node['text']:
                 output += f'\u2022 {j}\n'
-            output += options.unordered_list.blank_lines_after * '\n'
+            output += style.unordered_list.blank_lines_after * '\n'
 
     return output.rstrip('\n')
 

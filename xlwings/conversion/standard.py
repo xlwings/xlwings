@@ -7,7 +7,7 @@ from .. import xlplatform
 from ..main import Range
 from .. import LicenseError
 try:
-    from ..pro.reports.markdown import FormatMarkdownStage
+    from ..pro.reports.markdown import FormatMarkdownStage, Markdown
 except (ImportError, LicenseError):
     class FormatMarkdownStage:
         def __init__(self, options):
@@ -207,11 +207,11 @@ class ValueAccessor(Accessor):
             .append_stage(AdjustDimensionsStage(options))
         )
 
-    @staticmethod
-    def writer(options):
+    @classmethod
+    def writer(cls, options):
         return (
             Pipeline()
-            .prepend_stage(FormatMarkdownStage(options), only_if=options.get('convert') in ('markdown', 'md'))
+            .prepend_stage(FormatMarkdownStage(options), only_if=options.get('markdown'))
             .prepend_stage(WriteValueToRangeStage(options))
             .prepend_stage(CleanDataForWriteStage())
             .prepend_stage(TransposeStage(), only_if=options.get('transpose', False))
