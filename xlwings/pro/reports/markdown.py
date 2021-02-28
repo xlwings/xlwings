@@ -30,14 +30,6 @@ class MarkdownStyle:
             super().__init__(display_name='h1', bold=True)
             self.blank_lines_after = 1
 
-    class __Strong(FontStyle):
-        def __init__(self):
-            super().__init__(display_name='strong', bold=True)
-
-    class __Emphasis(FontStyle):
-        def __init__(self):
-            super().__init__(display_name='emphasis', italic=True)
-
     class __Paragraph(Style):
         def __init__(self):
             super().__init__(display_name='paragraph')
@@ -53,8 +45,8 @@ class MarkdownStyle:
         self.h1 = self.__Heading1()
         self.paragraph = self.__Paragraph()
         self.unordered_list = self.__UnorderedList()
-        self.strong = self.__Strong()
-        self.emphasis = self.__Emphasis()
+        self.strong = FontStyle(display_name='strong', bold=True)
+        self.emphasis = FontStyle(display_name='emphasis', italic=True)
 
     def __repr__(self):
         s = '<MarkdownStyle>\n'
