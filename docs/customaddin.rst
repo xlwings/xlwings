@@ -51,7 +51,7 @@ To change the buttons and items in the ribbon menu or the Backstage View, downlo
 Importing UDFs
 --------------
 
-To import your UDFs into the custom add-in, run the ``ImportPythonUDFsToAddin`` Sub towards the end of the ``xlwings`` module (click into the Sub and hit ``F5``). Remember, you only have to do this whenever you change the function name, argument or decorator, so you're end users won't have to deal with this.
+To import your UDFs into the custom add-in, run the ``ImportPythonUDFsToAddin`` Sub towards the end of the ``xlwings`` module (click into the Sub and hit ``F5``). Remember, you only have to do this whenever you change the function name, argument or decorator, so your end users won't have to deal with this.
 
 If you are only deploying UDFs via your add-in, you probably don't need a Ribbon menu and can leave away the ``--ribbon`` flag in the ``quickstart`` command.
 
