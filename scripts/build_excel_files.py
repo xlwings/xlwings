@@ -79,8 +79,6 @@ def produce_single_module(addin_modules, custom_addin=False):
     standalone_code = set_version_strings(standalone_code)
     standalone_code = "'Version: {}\n".format(version_string) + standalone_code
     if custom_addin:
-        standalone_code = standalone_code.replace("Public Const CUSTOM_ADDIN As Boolean = False",
-                                                  "Public Const CUSTOM_ADDIN As Boolean = True")
         standalone_code = standalone_code.replace('Public Const PROJECT_NAME As String = "xlwings"',
                                                   'Public Const PROJECT_NAME As String = "myaddin"')
     else:
