@@ -25,9 +25,10 @@ class FontStyle(Style):
 
 
 class MarkdownStyle:
-    class __Heading1(FontStyle):
+    class __Heading1(Style):
         def __init__(self):
-            super().__init__(display_name='h1', bold=True)
+            super().__init__(display_name='h1')
+            self.font = FontStyle(bold=True)
             self.blank_lines_after = 1
 
     class __Paragraph(Style):
@@ -124,7 +125,7 @@ def format_text(parent, text, style):
     for node in flat_ast:
         if 'heading' in node['parent_type'][0]:
             node_length = sum(node['length']) + style.h1.blank_lines_after + 1
-            apply_style_to_font(style.h1,
+            apply_style_to_font(style.h1.font,
                                 parent.characters[position:position + node_length].font)
         elif 'paragraph' in node['parent_type'][0]:
             node_length = sum(node['length']) + style.paragraph.blank_lines_after + 1
