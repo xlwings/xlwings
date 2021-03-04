@@ -215,8 +215,8 @@ class ValueAccessor(Accessor):
             .append_stage(AdjustDimensionsStage(options))
         )
 
-    @classmethod
-    def writer(cls, options):
+    @staticmethod
+    def writer(options):
         return (
             Pipeline()
             .prepend_stage(FormatStage(options))
