@@ -7,11 +7,10 @@ from .. import xlplatform
 from ..main import Range
 from .. import LicenseError
 try:
-    from ..pro.reports.markdown import FormatMarkdownStage, Markdown
+    from ..pro import Markdown
+    from ..pro.reports import markdown
 except (ImportError, LicenseError):
-    class FormatMarkdownStage:
-        def __init__(self, options):
-            self.options = options
+    Markdown = None
 try:
     import numpy as np
 except ImportError:
@@ -147,6 +146,15 @@ class TransposeStage:
         c.value = [[e[i] for e in c.value] for i in range(len(c.value[0]) if c.value else 0)]
 
 
+class FormatStage:
+    def __init__(self, options):
+        self.options = options
+
+    def __call__(self, ctx):
+        if Markdown and isinstance(ctx.source_value, Markdown):
+            markdown.format_text(ctx.range, ctx.source_value.text, ctx.source_value.style)
+
+
 class BaseAccessor(Accessor):
 
     @classmethod
@@ -211,7 +219,7 @@ class ValueAccessor(Accessor):
     def writer(cls, options):
         return (
             Pipeline()
-            .prepend_stage(FormatMarkdownStage(options), only_if=options.get('markdown'))
+            .prepend_stage(FormatStage(options))
             .prepend_stage(WriteValueToRangeStage(options))
             .prepend_stage(CleanDataForWriteStage())
             .prepend_stage(TransposeStage(), only_if=options.get('transpose', False))

@@ -19,11 +19,10 @@ if pd:
     from .pandas_conv import PandasDataFrameConverter, PandasSeriesConverter
 from .. import LicenseError
 try:
-    # This registers the converter
     from ..pro.reports.markdown import MarkdownConverter, Markdown
+    MarkdownConverter.register(Markdown)
 except (ImportError, LicenseError):
-    MarkdownConverter = None
-    Markdown = None
+    pass
 
 
 def read(rng, value, options):
@@ -44,8 +43,6 @@ def write(value, rng, options):
             if len(first_row) != len(row):
                 raise Exception('All elements of a 2d list or tuple must be of the same length')
     convert = options.get('convert', None)
-    if Markdown and isinstance(value, Markdown):
-        options['markdown'] = True
     pipeline = accessors.get(convert, convert).router(value, rng, options).writer(options)
     ctx = ConversionContext(rng=rng, value=value)
     pipeline(ctx)

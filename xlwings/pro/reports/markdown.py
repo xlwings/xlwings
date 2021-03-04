@@ -68,17 +68,6 @@ class MarkdownConverter(Converter):
         return render_text(value.text, value.style)
 
 
-MarkdownConverter.register(Markdown)
-
-
-class FormatMarkdownStage:
-    def __init__(self, options):
-        self.options = options
-
-    def __call__(self, ctx):
-        format_text(ctx.range, ctx.source_value.text, ctx.source_value.style)
-
-
 def traverse_ast_node(tree, data=None, level=0):
     data = {'length': [], 'type': [], 'parent_type': [],
             'text': [], 'parents': [], 'level': []} if data is None else data
@@ -113,13 +102,6 @@ def flatten_ast(value):
 
 def render_text(text, style):
     flat_ast = flatten_ast(text)
-
-
-    # for i in flat_ast:
-    #     print(i['parent_type'])
-    #     print(i['length'])
-    #     print(i['text'])
-
     output = ''
     for node in flat_ast:
         # heading/list currently don't respect the level
@@ -131,15 +113,13 @@ def render_text(text, style):
             output += '\n' + style.paragraph.blank_lines_after * '\n'
         elif 'list' in node['parent_type'][0]:
             for j in node['text']:
-                output += f'\u2022 {j}\n'
+                output += f'{style.unordered_list.bullet_character} {j}\n'
             output += style.unordered_list.blank_lines_after * '\n'
-
     return output.rstrip('\n')
 
 
 def format_text(parent, text, style):
     flat_ast = flatten_ast(text)
-
     position = 0
     for node in flat_ast:
         if 'heading' in node['parent_type'][0]:
