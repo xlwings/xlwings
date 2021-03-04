@@ -1,16 +1,33 @@
 import os
 import sys
+import unittest
+
 import numpy as np
 import pandas as pd
 from pandas.testing import assert_frame_equal
 from numpy.testing import assert_array_equal
 from PIL import Image
 from matplotlib.figure import Figure
-import unittest
+
 import xlwings as xw
 from xlwings.pro.reports import create_report
+from xlwings.pro import Markdown
 
 # Test data
+text1 = """\
+# Title
+
+Text **bold** and *italic*
+
+* a first bullet
+* a second bullet
+
+# Another title
+
+this has a line break
+new line
+"""
+
 fig = Figure(figsize=(4, 3))
 ax = fig.add_subplot(111)
 ax.plot([1, 2, 3, 4, 5])
@@ -18,7 +35,7 @@ ax.plot([1, 2, 3, 4, 5])
 df1 = pd.DataFrame(index=['r0', 'r1'], columns=['c0', 'c1'], data=[[1., 1.], [1., 1.]])
 data = dict(mystring='stringtest', myfloat=12.12, substring='substringtest',
             df1=df1, mydict={'df': df1}, pic=Image.open(os.path.abspath('xlwings.jpg')),
-            fig=fig)
+            fig=fig, markdown_cell=Markdown(text1), markdown_shape=Markdown(text1))
 
 
 class TestCreateReport(unittest.TestCase):
@@ -75,6 +92,13 @@ class TestCreateReport(unittest.TestCase):
         self.assertEqual(self.wb.sheets[4].shapes['TextBox 3'].text, 'This shows stringtest.')
         self.assertEqual(self.wb.sheets[4].shapes['TextBox 4'].text, 'stringtest')
         self.assertIsNone(self.wb.sheets[4].shapes['Oval 5'].text)
+
+    def test_markdown_cell(self):
+        self.assertEqual(self.wb.sheets['Sheet6']['A1'].value, 'Title\n\nText bold and italic\n\n• a first bullet\n• a second bullet\n\nAnother title\n\nthis has a line break\nnew line')
+
+    def test_markdown_shape(self):
+        self.assertEqual(self.wb.sheets['Sheet6'].shapes[0].text,
+                         'Title\n\nText bold and italic\n\n• a first bullet\n• a second bullet\n\nAnother title\n\nthis has a line break\nnew line')
 
 
 class TestBookSettings(unittest.TestCase):
@@ -177,7 +201,7 @@ class TestFrames(unittest.TestCase):
         self.assertEqual(sheet['F35:I39'].color, (221, 235, 247))
 
         # borders
-        # TODO: pending Border implementation in xlwings CE
+        # TODO: pending Border implementation in xlwings
         if sys.platform.startswith('darwin'):
             from appscript import k as kw
             for cell in ['A4', 'A14', 'D20', 'A28', 'D36', 'F4', 'H10', 'G17', 'G28', 'I36']:

@@ -94,8 +94,7 @@ def render_template(sheet, **data):
                                     sheet[i + row_shift, j + frame_indices[ix]].value = None
                                 elif isinstance(result, Markdown):
                                     sheet[i + row_shift,
-                                          j + frame_indices[ix]].options('markdown',
-                                                                         style=result.style).value = result.text
+                                          j + frame_indices[ix]].value = result
                                 else:
                                     # Simple Jinja variables
                                     # Check for height of 2d array
