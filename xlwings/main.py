@@ -2449,7 +2449,7 @@ class Shape:
     @text.setter
     def text(self, value):
         if xlwings.PRO:
-            from xlwings.pro.reports import Markdown
+            from xlwings.pro import Markdown
             from xlwings.pro.reports.markdown import render_text, format_text
             if isinstance(value, Markdown):
                 self.impl.text = render_text(value.text, value.style)
