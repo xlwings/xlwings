@@ -1,7 +1,10 @@
 import sys
 import shutil
 
-from jinja2 import Environment
+try:
+    from jinja2 import Environment
+except ImportError:
+    pass
 
 from .markdown import Markdown
 from ..utils import LicenseHandler
