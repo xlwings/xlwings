@@ -58,12 +58,9 @@ Now you can set breakpoints in the C++ code in VS where code execution will stop
 
 ## Tests
 
-Run `nosetests` from the `xlwings` dir, see also `runtests.py`, but this is also outdated and might be replaced
-by something like `tox` again now that numpy/pandas are available as wheels via pypi.
-The tests are currently very slow. They were OK with older versions of Excel but they have to be rewritten
-to run reasonably fast (i.e. not always open/close the whole workbook).
-Also, the tests are standard unittests, so `nose` is not really required to run them.
-
+Currently, we're migrating to `pytest`, so you'll find a mix between `unittest` and `pytest` format.
+Running the whole tests suite is currently broken, so it's recommended to run single modules instead.
+See e.g., `test_font.py` for the new style of tests that are also fast.
 
 ## Docs
 
