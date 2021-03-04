@@ -1,5 +1,6 @@
+# Characters are currently not properly supported
+# on macOS due to an Excel/AppleScript bug
 from pathlib import Path
-
 
 import pytest
 import xlwings as xw
