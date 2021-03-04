@@ -1,0 +1,385 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-02-22 22:54+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.0\n"
+
+#: ../../customaddin.rst:4
+msgid "Custom Add-ins"
+msgstr "カスタム アドイン"
+
+#: ../../customaddin.rst:8
+msgid ""
+"Custom add-ins work on Windows and macOS and are white-labeled xlwings "
+"add-ins that include all your ``RunPython`` functions and UDFs (as usual,"
+" UDFs work on Windows only). You can build add-ins with and without an "
+"Excel ribbon."
+msgstr ""
+"カスタム アドインとは、ひな型のxlwingsアドインを基に ``RunPython`` 関数や"
+"UDF（Windows限定）およびExcelリボンの有無を選択して作成するアドインです。"
+"カスタム アドインはWindowsおよびmacOSの両方で利用できます。"
+
+#: ../../customaddin.rst:10
+msgid ""
+"The useful thing about add-in is that UDFs and RunPython calls will be "
+"available in all workbooks right out of the box without having to add any"
+" references via the VBA editor's ``Tools`` > ``References...``. You can "
+"also work with standard ``xlsx`` files rather than ``xlsm`` files. This "
+"tutorial assumes you're familiar with how xlwings and its configuration "
+"works."
+msgstr ""
+"カスタム アドインのメリットは、VBAエディター上で ``ツール`` > ``参照設定`` で"
+"参照設定を追加することなく、RunPython関数やUDFがすべてのワークブックで簡単に"
+"利用できるようになることです。また、``xlsm`` ファイルではなく、通常の ``xlsx`` "
+"ファイルでも使えるようになります。"
+"以降、このチュートリアルはxlwingsおよびその設定方法を既知のものとして進めます。"
+
+#: ../../customaddin.rst:13
+msgid "Quickstart"
+msgstr "クイックスタート"
+
+#: ../../customaddin.rst:15
+msgid ""
+"Start by running the following command on a command line (to create an "
+"add-in without a ribbon, you would leave away the ``--ribbon`` flag):"
+msgstr ""
+"最初にコマンド ラインで以下のコマンドを実行してください（アドインをリボンなし"
+"で作成するには ``--ribbon`` フラグを除きます）:"
+
+#: ../../customaddin.rst:21
+msgid ""
+"This will create the familiar quickstart folder with a Python file and an"
+" Excel file, but this time, the Excel file is in the ``xlam`` format."
+msgstr ""
+"実行後、クイックスタート フォルダーと同じようにPythonファイルとExcelファイルが"
+"生成されますが、今回のExcelは ``xlam`` フォーマット（Excelアドイン）に"
+"なっています。"
+
+#: ../../customaddin.rst:23
+msgid "Double-click the Excel add-in to open it in Excel"
+msgstr "ExcelアドインをダブルクリックしExcelで開いてください"
+
+#: ../../customaddin.rst:24
+msgid "Add a new empty workbook (``Ctrl+N`` on Windows or ``Command+N`` on macOS)"
+msgstr "空白のワークブックを追加（Windowsは ``Ctrl+N`` 、macOSは ``Command+N``）してください。"
+
+#: ../../customaddin.rst:26
+msgid "You should see a new ribbon tab called ``MyAddin`` like this:"
+msgstr "次のように ``MyAddin`` リボン タブが表示されます:"
+
+#: ../../customaddin.rst:30
+msgid ""
+"The add-in and VBA project are currently always called ``myaddin``, no "
+"matter what name you chose in the quickstart command. We'll see towards "
+"the end of this tutorial how we can change that, but for now we'll stick "
+"with it."
+msgstr ""
+"クイックスタート コマンドで別の名前にすることもできますが、これ以降の説明では"
+"アドインとVBAプロジェクトの名前は ``myaddin`` とします。"
+"また、このチュートリアルの最後の方で一度作成したアドインの名前の変更方法を"
+"説明します。"
+
+#: ../../customaddin.rst:32
+msgid ""
+"Compared to the xlwings add-in, the custom add-in offers an additional "
+"level of configuration: the configuration sheet of the add-in itself "
+"which is the easiest way to configure simple add-ins with a static "
+"configuration."
+msgstr ""
+"xlwingsアドインと比べて、カスタム アドインはアドイン自体に含まれる設定シートで"
+"追加的な設定を行えます。このシートを使えば、アドインのデフォルト設定を簡単に"
+"定義することができます。"
+
+#: ../../customaddin.rst:34
+msgid ""
+"Let's open the VBA editor by clicking on ``Alt+F11`` (Windows) or "
+"``Option+F11`` (macOS). In our project, select ``ThisWorkbook``, then "
+"change the Property ``IsAddin`` from ``True`` to ``False``, see the "
+"following screenshot:"
+msgstr ""
+"``Alt+F11`` (Windows) または ``Option+F11`` (macOS)で、VBAエディターを"
+"開きます。以下のスクリーンショットを参考に、アドイン プロジェクト内の"
+" ``ThisWorkbook`` を選択し、 ``IsAddin`` プロパティーを ``True`` から"
+" ``False`` に変更します:"
+
+#: ../../customaddin.rst:39
+msgid ""
+"This will make the sheet ``_myaddin.conf`` visible (again, we'll see how "
+"to change the name of ``myaddin`` at the end of this tutorial):"
+msgstr ""
+"これで ``_myaddin.conf`` シートが表示されるようになりました（繰り返しですが"
+" ``myaddin`` の名前の変更方法はこのチュートリアルの最後で説明します）:"
+
+#: ../../customaddin.rst:41
+msgid ""
+"Activate the sheet config by renaming it from ``_myaddin.conf`` to "
+"``myaddin.conf``"
+msgstr ""
+"シート名を ``_myaddin.conf`` から ``myaddin.conf`` に変更し、シートによる設定を"
+"有効化します。"
+
+#: ../../customaddin.rst:42
+msgid ""
+"Set your ``Interpreter_Win/_Mac`` or ``Conda`` settings (you may want to "
+"take them over from the xlwings settings for now)"
+msgstr ""
+"``Interpreter_Win/_Mac`` または ``Conda`` を設定します（xlwingsの設定を"
+"そのまま使うことになるでしょう）"
+
+#: ../../customaddin.rst:44
+msgid ""
+"Once done, switch back to the VBA editor, select ``ThisWorkbook`` again, "
+"and change ``IsAddin`` back to ``True`` before you save your add-in from "
+"the VBA editor. Switch back to Excel and click the ``Run`` button under "
+"the ``My Addin`` ribbon tab and if you've configured the Python "
+"interpreter correctly, it will print ``Hello xlwings!`` into cell ``A1`` "
+"of the active workbook."
+msgstr ""
+"作業が終われば、VBAエディターに戻り、 ``ThisWorkbook`` を再度選択し、"
+" ``IsAddin`` を ``True`` に戻し、VBAエディター上でアドインを保存します。"
+"Excelに戻り、 ``My Addin`` リボン タブの ``Run`` ボタンをクリックします。"
+"Pythonインタープリターの設定が適切なら、アクティブ ワークブックの"
+" ``A1`` セルに ``Hello xlwings!`` が出力されます。"
+
+#: ../../customaddin.rst:47
+msgid "Changing the Ribbon menu"
+msgstr "リボン メニューの変更"
+
+#: ../../customaddin.rst:49
+msgid ""
+"To change the buttons and items in the ribbon menu or the Backstage View,"
+" download and install the `Office RibbonX Editor "
+"<https://github.com/fernandreu/office-ribbonx-editor/releases>`_. While "
+"it is only available for Windows, the created ribbons will also work on "
+"macOS. Open your add-in with it so you can change the XML code that "
+"defines your buttons etc. You will find a good tutorial `here "
+"<https://www.rondebruin.nl/win/s2/win001.htm>`_. The callback function "
+"for the demo ``Run`` button is in the ``RibbonMyAddin`` VBA module that "
+"you'll find in the VBA editor."
+msgstr ""
+"リボン メニューやBackstageビューのボタンやアイテムを変更するには、"
+" `Office RibbonX Editor <https://github.com/fernandreu/office-ribbonx-editor/releases>`_ を"
+"ダウンロードしインストールします。Office RibbonX EditorはWindows版のみですが、"
+"作成したリボンはmacOSでも機能します。Office RibbonX Editorでアドインを開き、"
+"ボタン等を定義するXMLコードを編集します。使い方は `こちら <https://www.rondebruin.nl/win/s2/win001.htm>`_ の"
+"チュートリアルをご参照ください。デモ用の ``Run`` ボタンが呼び出している関数は、"
+"VBAエディター内の ``RibbonMyAddin`` VBAモジュールにあります。"
+
+#: ../../customaddin.rst:52
+msgid "Importing UDFs"
+msgstr "UDFのインポート"
+
+#: ../../customaddin.rst:54
+msgid ""
+"To import your UDFs into the custom add-in, run the "
+"``ImportPythonUDFsToAddin`` Sub towards the end of the ``xlwings`` module"
+" (click into the Sub and hit ``F5``). Remember, you only have to do this "
+"whenever you change the function name, argument or decorator, so your "
+"end users won't have to deal with this."
+msgstr ""
+"UDFをカスタム アドインに取り込むには、 ``xlwings`` モジュールの最後の方にある"
+" ``ImportPythonUDFsToAddin`` サブプロシージャーを実行します（サブプロシージャー内を"
+"クリックし、 ``F5`` を押します）。関数名、引数、デコレーターのいずれかを"
+"変更するたびに、このサブプロシージャーを実行します。作成時に予め実行しておくことで、"
+"アドインのエンド ユーザーは改めて実行せずに済みます。"
+
+#: ../../customaddin.rst:56
+msgid ""
+"If you are only deploying UDFs via your add-in, you probably don't need a"
+" Ribbon menu and can leave away the ``--ribbon`` flag in the "
+"``quickstart`` command."
+msgstr ""
+"アドインで配布するのがUDFのみならリボン メニューは不要です。"
+" ``quickstart`` コマンドを ``--ribbon`` フラグなしで実行することもできます。"
+
+#: ../../customaddin.rst:59
+msgid "Configuration"
+msgstr "設定"
+
+#: ../../customaddin.rst:61
+msgid ""
+"As mentioned before, configuration works the same as with xlwings, so you"
+" could have your users override the default configuration we did above by"
+" adding a ``myaddin.conf`` sheet on their workbook or you could use the "
+"``myaddin.conf`` file in the user's home directory. For details see "
+":ref:`xlwings_addin`."
+msgstr ""
+"先述のとおり、設定はxlwingsと同様に機能します。ですから、ユーザーに"
+" ``myaddin.conf`` シートをワークブックに追加してもらいデフォルトの設定を"
+"上書きしたり、 ``myaddin.conf`` ファイルをユーザーのホーム ディレクトリーに"
+"配置したりすることもできます。詳しくは :ref:`xlwings_addin` をご覧ください。"
+
+#: ../../customaddin.rst:64
+msgid "Installation"
+msgstr "インストール"
+
+#: ../../customaddin.rst:66
+msgid ""
+"If you want to permanently install your add-in, you can do so by using "
+"the xlwings CLI:"
+msgstr ""
+"カスタム アドインを永続的にインストールするには、xlwings CLIを使います:"
+
+#: ../../customaddin.rst:72
+msgid ""
+"This, however, means that you will need to adjust the ``PYTHONPATH`` for "
+"it to find your Python code (or move your Python code to somewhere where "
+"Python looks for it---more about that below under deployment). The "
+"command will copy your add-in to the ``XLSTART`` folder, a special folder"
+" from where Excel will open all files everytime you start it."
+msgstr ""
+"しかし、インストールした場合には、UDF用のPythonコードをアドインが見つけられるよう"
+" ``PYTHONPATH`` を調整する必要があります（または、PythonコードをPythonが探せる"
+"場所に配置します---詳細は後述のデプロイをご覧ください）。"
+"このコマンドはカスタム アドインを ``XLSTART`` フォルダーにコピーします。"
+"このフォルダーは特別なフォルダーで、Excel起動時にフォルダー内のすべての"
+"ファイルが自動的に読み込まれます。"
+
+#: ../../customaddin.rst:75
+msgid "Renaming your add-in"
+msgstr "カスタム アドインの名前を変更"
+
+#: ../../customaddin.rst:77
+msgid ""
+"Admittedly, this part is a bit cumbersome for now. Let's assume, we would"
+" like to rename the addin from ``MyAddin`` to ``Demo``:"
+msgstr ""
+"このパートはやや厄介です。アドインの名前を ``MyAddin`` から ``Demo`` に"
+"変更してみましょう:"
+
+#: ../../customaddin.rst:79
+msgid ""
+"In the ``xlwings`` VBA module, change ``Public Const PROJECT_NAME As "
+"String = \"myaddin\"`` to ``Public Const PROJECT_NAME As String = "
+"\"demo\"``. You'll find this line at the top, right after the ``Declare``"
+" statements."
+msgstr ""
+"``xlwings`` VBAモジュールで、 ``Public Const PROJECT_NAME As "
+"String = \"myaddin\"`` を ``Public Const PROJECT_NAME As String = "
+"\"demo\"`` に変更します。この行は最初の方の ``Declare`` ステートメントの"
+"直後にあります。"
+
+#: ../../customaddin.rst:80
+msgid ""
+"If you rely on the ``myaddin.conf`` sheet for your configuration, rename "
+"it to ``demo.conf``"
+msgstr ""
+"``myaddin.conf`` シートで設定を行っていれば、シート名を ``demo.conf`` に"
+"変更します。"
+
+#: ../../customaddin.rst:81
+msgid ""
+"Right-click the VBA project, select  ``MyAddin Properties...`` and rename"
+" the ``Project Name`` from ``MyAddin`` to ``Demo``."
+msgstr ""
+"VBAプロジェクトを右クリックし ``MyAddin のプロパティ`` を選択後、"
+" ``プロジェクト名`` を ``MyAddin`` から ``Demo`` に変更します。"
+
+#: ../../customaddin.rst:82
+msgid ""
+"If you use the ribbon, you want to rename the ``RibbonMyAddin`` VBA "
+"module to ``RibbonDemo``. To do this, select the module in the VBA "
+"editor, then rename it in the ``Properties`` window. If you don't see the"
+" Properties window, hit ``F4``."
+msgstr ""
+"リボンを使用する場合、VBAモジュール名を ``RibbonMyAddin`` から"
+" ``RibbonDemo`` に変更します。VBAエディターでモジュールを選択し、"
+" ``プロパティ`` ウィンドウから行います、ウィンドウが無い場合は、``F4`` を"
+"押します。"
+
+#: ../../customaddin.rst:83
+msgid ""
+"Open the add-in in the Office RibbonX Editor (see above) and replace all "
+"occurrences of ``MyAddin`` with ``Demo`` in the XML code."
+msgstr ""
+"先述のOffice RibbonX Editorでアドインを開き、XMLコード内に現れるすべての"
+" ``MyAddin`` を ``Demo`` に置換します。"
+
+#: ../../customaddin.rst:85
+msgid ""
+"And finally, you may want to rename your ``myproject.xlam`` file in the "
+"Windows explorer, but I assume you have already run the quickstart "
+"command with the correct name, so this won't be necessary."
+msgstr ""
+"最後に、Windowsエクスプローラーでファイル名を ``myproject.xlam`` から変更します。"
+"ですが、きっと既に適切な名前でquickstartコマンドを実行していることでしょうから、"
+"これは必要ないでしょう（訳注： 名前を変えるくらいならquickstartコマンドで"
+"最初から作り直しましょう）。"
+
+#: ../../customaddin.rst:88
+msgid "Deployment"
+msgstr "デプロイ"
+
+#: ../../customaddin.rst:90
+msgid ""
+"By far the easiest way to deploy your add-in to your end-users is to "
+"build an installer via the xlwings PRO offering. This will take care of "
+"everything and your end users literally just need to double-click the "
+"installer and they are all set (no existing Python installation required "
+"and no manual installation of the add-in or adjusting of settings "
+"required)."
+msgstr ""
+"xlwings PROのインストーラーを作成機能を使えば、最も簡単にカスタム アドインを"
+"エンドユーザーに配布することができます。この機能はすべての面倒を見てくれるため、"
+"エンドユーザーはインストーラーを文字通りダブル クリックするだけで済みます"
+"（Pythonをあらかじめインストールしておくことも、アドインの手作業での"
+"インストールや設定の調整も必要ありません）。"
+
+#: ../../customaddin.rst:92
+msgid ""
+"If you want it the free (but hard) way, you either need to build an "
+"installer yourself or you need your users to install Python and the add-"
+"in and take care of placing the Python code in the correct directory. "
+"This normally involves tweaking the following settings, for example in "
+"the ``myaddin.conf`` sheet:"
+msgstr ""
+"難易度は高いですが配布を無料で行うには、イントーラーを自分でビルドするか、"
+"エンドユーザーにPythonとアドインをインストールしPythonコードを"
+"適切なディレクトリーに配置させなければなりません。その際、通常は以下のような"
+"設定の微調整を行います。例えば ``myaddin.conf`` シートでは:"
+
+#: ../../customaddin.rst:94
+msgid ""
+"``Interpreter_Win/_Mac``: if your end-users have a working version of "
+"Python, you can use environment variables to dynamically resolve to the "
+"correct path. For example, if they have Anaconda installed in the default"
+" location, you could use the following configuration::"
+msgstr ""
+"``Interpreter_Win/_Mac``: エンドユーザーが既にPythonを利用中なら、環境変数を"
+"使って動的に適切なパスに変換することができます。例えば、ユーザーがAnacondaを"
+"デフォルトの場所にインストールしている場合、次の設定を使うことができます::"
+
+#: ../../customaddin.rst:100
+msgid ""
+"``PYTHONPATH``: since you can't have your Python source code in the "
+"``XLSTART`` folder next to the add-in, you'll need to adjust the "
+"``PYTHONPATH`` setting and add the folder to where the Python code will "
+"be. You could point this to a shared drive or again make use of "
+"environment variables so the users can place the file into a folder "
+"called ``MyAddin`` in their home directory, for example. However, you can"
+" also place your Python code where Python looks for it, for example by "
+"placing them in the ``site-packages`` directory of the Python "
+"distribution---an easy way to achieve this is to build a Python package "
+"that you can install via ``pip``."
+msgstr ""
+"``PYTHONPATH``: Pythonのコードを、アドインと同じ ``XLSTART`` フォルダーに"
+"置くことはできないため、 ``PYTHONPATH`` 設定を調整し、Pythonコードを"
+"置くフォルダーを準備する必要があります。例えば、共有ドライブに設定したり、"
+"環境変数を利用してユーザーのホーム ディレクトリーに ``MyAddin`` フォルダーを"
+"作成してそこに保存することもできます。 それ以外にも、Pythonが探せるフォルダーに"
+"Pythonコードを置くこともできます。例えば、Pythonのディストリビューションの"
+" ``site-packages`` フォルダーです --- ``pip`` でインストール可能なPythonの"
+"パッケージを作れば、簡単にそのようなフォルダーに配置できます。"

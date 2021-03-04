@@ -1,6 +1,12 @@
 What's New
 ==========
 
+v0.22.3 (Mar 3, 2021)
+---------------------
+
+* [Enhancement] As a convenience method, you can now directly export sheets to PDF instead of having to go through the book: :meth:`mysheet.to_pdf() <xlwings.Sheet.to_pdf>` (:issue:`1517`).
+* :guilabel:`PRO` [Bug Fix] Running ``RunPython`` with embedded code was broken in 0.22.0 (:issue:`1530`).
+
 v0.22.2 (Feb 8, 2021)
 ---------------------
 

@@ -1,0 +1,145 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-12-04 08:45+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.8.0\n"
+
+#: ../../r_and_julia.rst:4
+msgid "xlwings with R and Julia"
+msgstr "RおよびJuliaとの連携"
+
+#: ../../r_and_julia.rst:6
+msgid ""
+"While xlwings is a pure Python package, there are cross-language packages"
+" that allow for a relatively straightforward use from/with other "
+"languages. This means, however, that you'll always need to have Python "
+"with xlwings installed in addition to R or Julia. We recommend the "
+"`Anaconda <https://store.continuum.io/cshop/anaconda/>`_ distribution, "
+"see also :ref:`installation`."
+msgstr ""
+"xlwingsは純粋なPythonのパッケージですが、プログラミング言語間である程度の"
+"直接的な相互利用を可能にするcross-languageパッケージもあります。"
+"そのようなパッケージを利用するには、RまたはJuliaのインストールも必要です。"
+"私たちは `Anaconda <https://store.continuum.io/cshop/anaconda/>`_ ディストリビューションを"
+"推奨します。 :ref:`installation` を参照。"
+
+#: ../../r_and_julia.rst:12
+msgid "R"
+msgstr ""
+
+#: ../../r_and_julia.rst:13
+msgid ""
+"The R instructions are for Windows, but things work accordingly on Mac "
+"except that calling the R functions as User Defined Functions is not "
+"supported at the moment (but ``RunPython`` works, see :ref:`run_python`)."
+msgstr ""
+"Rの説明はWindows向けです。Macでも同様に動作しますが、R関数をユーザー定義関数"
+"（現時点でMacはサポート外）で使用することはできません（なお ``RunPython`` は"
+"使えます。 :ref:`run_python` を参照）。"
+
+#: ../../r_and_julia.rst:17 ../../r_and_julia.rst:90
+msgid "Setup:"
+msgstr "セットアップ:"
+
+#: ../../r_and_julia.rst:19
+msgid "Install R and Python"
+msgstr "RとPythonをインストール"
+
+#: ../../r_and_julia.rst:20
+msgid ""
+"Add ``R_HOME`` environment variable to base directory of installation, "
+".e.g ``C:\\Program Files\\R\\R-x.x.x``"
+msgstr ""
+"環境変数 ``R_HOME`` （なければ作成）にインストールのbaseディレクトリーを追加。"
+"例 ``C:\\Program Files\\R\\R-x.x.x``"
+
+#: ../../r_and_julia.rst:21
+msgid ""
+"Add ``R_USER`` environment variable to user folder, e.g. "
+"``C:\\Users\\<user>``"
+msgstr ""
+"環境変数 ``R_USER`` （なければ作成）にユーザー フォルダーを追加。"
+"例 ``C:\\Users\\<user>``"
+
+#: ../../r_and_julia.rst:22
+msgid "Add ``C:\\Program Files\\R\\R-x.x.x\\bin`` to ``PATH``"
+msgstr ""
+"環境変数 ``PATH`` に ``C:\\Program Files\\R\\R-x.x.x\\bin`` を追加。"
+
+#: ../../r_and_julia.rst:23
+msgid "Restart Windows because of the environment variables (!)"
+msgstr "環境変数を反映するためWindowsを再起動(!)"
+
+#: ../../r_and_julia.rst:26
+msgid "Simple functions with R"
+msgstr "Rを使ったシンプルな関数"
+
+#: ../../r_and_julia.rst:28 ../../r_and_julia.rst:56
+msgid ""
+"Original R function that we want to access from Excel (saved in "
+"``r_file.R``):"
+msgstr ""
+"ExcelからアクセスしたいオリジナルのR関数は以下のとおり（ファイル名 "
+"``r_file.R`` で保存）:"
+
+#: ../../r_and_julia.rst:37 ../../r_and_julia.rst:66
+msgid "Python wrapper code:"
+msgstr "Pythonのラッパー コード（訳注： ``rpy2`` が必要になります）:"
+
+#: ../../r_and_julia.rst:51 ../../r_and_julia.rst:85
+msgid ""
+"After importing this function (see: :ref:`udfs`), it will be available as"
+" UDF from Excel."
+msgstr ""
+"この関数をインポートすれば（ :ref:`udfs` を参照）、ExcelからUDFとして使えます。"
+
+#: ../../r_and_julia.rst:54
+msgid "Array functions with R"
+msgstr "Rを使った配列関数"
+
+#: ../../r_and_julia.rst:88
+msgid "Julia"
+msgstr ""
+
+#: ../../r_and_julia.rst:92
+msgid "Install Julia and Python"
+msgstr "JuliaとPythonをインストールします"
+
+#: ../../r_and_julia.rst:93
+msgid "Run ``Pkg.add(\"PyCall\")`` from an interactive Julia interpreter"
+msgstr "Juliaのインタラクティブ インタープリターで、 ``Pkg.add(\"PyCall\")`` を実行します"
+
+#: ../../r_and_julia.rst:95
+msgid ""
+"xlwings can then be called from Julia with the following syntax (the "
+"colons take care of automatic type conversion):"
+msgstr ""
+"以下のシンタックスでJuliaからxlwingsを呼び出せます（コロンが型変換を自動で"
+"行います）:"
+
+#~ msgid ""
+#~ "While xlwings is a pure Python "
+#~ "package, there are cross-language "
+#~ "packages that allow for a relative "
+#~ "straightforward use from/with other languages."
+#~ " This means, however, that you'll "
+#~ "always need to have Python with "
+#~ "xlwings installed in addition to R "
+#~ "or Julia. We recommend the `Anaconda "
+#~ "<https://store.continuum.io/cshop/anaconda/>`_ distribution, "
+#~ "see also :ref:`installation`."
+#~ msgstr ""
+

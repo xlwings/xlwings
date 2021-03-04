@@ -1,7 +1,11 @@
 """
 If you run this on a built/installed package, make sure to cd out of the xlwings source
 directory, copy the test folder next to the install xlwings package,then run:
-pytest test_e2e.py -p no:faulthandler
+all tests:
+pytest test_e2e.py -v -p no:faulthandler -p no:warnings
+
+single test:
+pytest test_e2e.py::test_name -v -p no:faulthandler -p no:warnings
 """
 
 import os
@@ -136,18 +140,18 @@ def test_udf_embedded_code(clear_user_config, addin, quickstart_book):
     assert 'xlwings.LicenseError: Embedded code requires a valid LICENSE_KEY.' in quickstart_book.sheets[0]['A1'].value
 
 
-def test_can_use_xlwings_without_license_key(clear_user_config, tmpdir):
+def test_can_use_xlwings_without_license_key(clear_user_config, tmp_path):
     import xlwings
-    os.chdir(tmpdir)
+    os.chdir(tmp_path)
     subprocess.run(split('xlwings quickstart testproject'))
 
 
-def test_can_use_xlwings_wit_wrong_license_key(clear_user_config, tmpdir):
+def test_can_use_xlwings_wit_wrong_license_key(clear_user_config, tmp_path):
     os.makedirs(Path.home() / '.xlwings')
     with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as config:
         config.write(f'"LICENSE_KEY","xxx"')
     import xlwings
-    os.chdir(tmpdir)
+    os.chdir(tmp_path)
     subprocess.run(split('xlwings quickstart testproject'))
 
 
@@ -179,13 +183,53 @@ def test_update_license_key(clear_user_config):
 
 
 @pytest.mark.skipif(xw.__version__ == 'dev', reason='requires a built package')
-def test_standalone(clear_user_config, app, tmpdir):
-    os.chdir(tmpdir)
+def test_standalone(clear_user_config, app, tmp_path):
+    os.chdir(tmp_path)
     subprocess.run(split('xlwings quickstart testproject --standalone'))
-    standalone_book = app.books.open(Path(tmpdir) / 'testproject' / 'testproject.xlsm')
+    standalone_book = app.books.open(tmp_path / 'testproject' / 'testproject.xlsm')
     sample_call = standalone_book.macro('Module1.SampleCall')
     sample_call()
     assert standalone_book.sheets[0]['A1'].value == 'Hello xlwings!'
     sample_call()
     assert standalone_book.sheets[0]['A1'].value == 'Bye xlwings!'
 
+
+@pytest.mark.skipif(xw.__version__ == 'dev', reason='requires a built package')
+def test_runpython_embedded_code_standalone(app, clear_user_config, tmp_path):
+    os.chdir(tmp_path)
+    subprocess.run(split(f'xlwings quickstart testproject --standalone'))
+    quickstart_book = app.books.open(tmp_path / 'testproject' / 'testproject.xlsm')
+
+    os.makedirs(Path.home() / '.xlwings')
+    with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as config:
+        config.write(f'"LICENSE_KEY","{os.getenv("TEST_XLWINGS_LICENSE_KEY")}"')
+
+    os.chdir(tmp_path / 'testproject')
+    subprocess.run(split('xlwings code embed'))
+    (tmp_path / 'testproject' / f'testproject.py').unlink()
+    sample_call = quickstart_book.macro('Module1.SampleCall')
+    sample_call()
+    assert quickstart_book.sheets[0]['A1'].value == 'Hello xlwings!'
+    sample_call()
+    assert quickstart_book.sheets[0]['A1'].value == 'Bye xlwings!'
+
+@pytest.mark.skipif(xw.__version__ == 'dev', reason='requires a built package')
+def test_udf_embedded_code_standalone(clear_user_config, app, tmp_path):
+    os.chdir(tmp_path)
+    subprocess.run(split(f'xlwings quickstart testproject --standalone'))
+    quickstart_book = app.books.open(tmp_path / 'testproject' / 'testproject.xlsm')
+
+    os.makedirs(Path.home() / '.xlwings')
+    with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as config:
+        config.write(f'"LICENSE_KEY","{os.getenv("TEST_XLWINGS_LICENSE_KEY")}"')
+
+    os.chdir(tmp_path / 'testproject')
+    subprocess.run(split('xlwings code embed'))
+    (tmp_path / 'testproject' / f'testproject.py').unlink()
+
+    quickstart_book.macro('ImportPythonUDFs')()
+    quickstart_book.sheets[0]['A1'].value = '=hello("test")'
+    assert quickstart_book.sheets[0]['A1'].value == 'Hello test!'
+    (Path.home() / '.xlwings' / 'xlwings.conf').unlink()
+    quickstart_book.app.api.CalculateFull()
+    assert 'xlwings.LicenseError: Embedded code requires a valid LICENSE_KEY.' in quickstart_book.sheets[0]['A1'].value
