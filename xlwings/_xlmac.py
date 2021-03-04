@@ -832,6 +832,7 @@ class Range:
 
     @property
     def characters(self):
+        # This is broken with AppleScript/Excel 2016
         return Characters(parent=self, xl=self.xl.characters)
 
 
@@ -919,6 +920,10 @@ class Shape:
     @property
     def font(self):
         return Font(self, self.xl.shape_text_frame.text_range.font)
+
+    @property
+    def characters(self):
+        raise AttributeError("Characters isn't supported on macOS with shapes.")
 
 
 class Font:

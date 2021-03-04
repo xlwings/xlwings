@@ -1,3 +1,6 @@
+import sys
+import warnings
+
 from ... import mistune
 from ...conversion import Converter
 
@@ -120,6 +123,10 @@ def render_text(text, style):
 
 
 def format_text(parent, text, style):
+    if sys.platform.startswith('darwin'):
+        # Characters formatting is broken because of a bug in AppleScript/Excel 2016
+        warnings.warn('Markdown formatting is currently ignored on macOS.')
+        return
     flat_ast = flatten_ast(text)
     position = 0
     for node in flat_ast:
