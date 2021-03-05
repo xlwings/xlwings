@@ -96,9 +96,7 @@ Here is the output of this:
 
 .. figure:: images/markdown2.png
 
-You can override all properties, i.e., you can change the emphasis from italic to a red font or anything else you want:
-
-.. code-block::
+You can override all properties, i.e., you can change the emphasis from italic to a red font or anything else you want::
 
     >>> style.strong.bold = False
     >>> style.strong.color = (255, 0, 0)
