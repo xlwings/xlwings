@@ -28,7 +28,7 @@ v0.23.0 (Mar 5, 2021)
     sheet['A1'].value = Markdown(mytext)
     sheet.shapes[0].text = Markdown(mytext)
 
-Running this code will give you this nicely formatted text:
+Running this code will give you this nicely formatted text, but you can also define your own style to match your corporate style guide as explained under :ref:`markdown`:
 
 .. figure:: images/markdown1.png
 
