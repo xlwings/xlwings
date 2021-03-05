@@ -13,9 +13,8 @@ import sys
 import re
 import numbers
 
-from . import xlplatform, ShapeAlreadyExists
-from .utils import VersionNumber
-from . import utils
+from . import xlplatform, ShapeAlreadyExists, utils
+import xlwings
 
 # Optional imports
 try:
@@ -244,7 +243,7 @@ class App:
 
         .. versionchanged:: 0.9.0
         """
-        return VersionNumber(self.impl.version)
+        return utils.VersionNumber(self.impl.version)
 
     @property
     def selection(self):
@@ -1465,6 +1464,14 @@ class Range:
         self.impl.formula_array = value
 
     @property
+    def font(self):
+        return Font(impl=self.impl.font)
+
+    @property
+    def characters(self):
+        return Characters(impl=self.impl.characters)
+
+    @property
     def column_width(self):
         """
         Gets or sets the width, in characters, of a Range.
@@ -2441,7 +2448,24 @@ class Shape:
 
     @text.setter
     def text(self, value):
-        self.impl.text = value
+        if xlwings.PRO:
+            from xlwings.pro import Markdown
+            from xlwings.pro.reports.markdown import render_text, format_text
+            if isinstance(value, Markdown):
+                self.impl.text = render_text(value.text, value.style)
+                format_text(self, value.text, value.style)
+            else:
+                self.impl.text = value
+        else:
+            self.impl.text = value
+
+    @property
+    def font(self):
+        return Font(impl=self.impl.font)
+
+    @property
+    def characters(self):
+        return Characters(impl=self.impl.characters)
 
     @property
     def parent(self):
@@ -3591,6 +3615,173 @@ class Macro:
         return self.app.impl.run(self.macro, args)
 
     __call__ = run
+
+
+class Characters:
+    """
+    The characters object can be accessed as an attribute of the range or shape object.
+
+    * ``mysheet['A1'].characters``
+    * ``mysheet.shapes[0].characters``
+
+    .. note:: On macOS, ``characters`` are currently not supported due to bugs/lack of support in AppleScript.
+
+    .. versionadded:: 0.23.0
+    """
+    def __init__(self, impl):
+        self.impl = impl
+
+    @property
+    def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+
+        .. versionadded:: 0.23.0
+        """
+        return self.impl.api
+
+    @property
+    def text(self):
+        """
+        Returns or sets the text property of a ``characters`` object.
+
+        >>> sheet['A1'].value = 'Python'
+        >>> sheet['A1'].characters[:3].text
+        Pyt
+
+        .. versionadded:: 0.23.0
+        """
+        return self.impl.text
+
+    @property
+    def font(self):
+        """
+        Returns or sets the text property of a ``characters`` object.
+
+        >>> sheet['A1'].characters[1:3].font.bold = True
+        >>> sheet['A1'].characters[1:3].font.bold
+        True
+
+        .. versionadded:: 0.23.0
+        """
+        return Font(self.impl.font)
+
+    def __getitem__(self, item):
+        if isinstance(item, slice) and (item.start and item.stop) and (item.start == item.stop):
+            raise ValueError(self.__class__.__name__ + " object does not support empty slices")
+        if isinstance(item, slice) and item.step is not None:
+            raise ValueError(self.__class__.__name__ + " object does not support slicing with non-default steps")
+        if isinstance(item, slice):
+            return Characters(self.impl[item.start:item.stop])
+        else:
+            return Characters(self.impl[item])
+
+
+class Font:
+    """
+    The font object can be accessed as an attribute of the range or shape object.
+
+    * ``mysheet['A1'].font``
+    * ``mysheet.shapes[0].font``
+
+    .. versionadded:: 0.23.0
+    """
+    def __init__(self, impl):
+        self.impl = impl
+
+    @property
+    def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+
+        .. versionadded:: 0.23.0
+        """
+        return self.impl.api
+
+    @property
+    def bold(self):
+        """
+        Returns or sets the bold property (boolean).
+
+        >>> sheet['A1'].font.bold = True
+        >>> sheet['A1'].font.bold
+        True
+
+        .. versionadded:: 0.23.0
+        """
+        return self.impl.bold
+
+    @bold.setter
+    def bold(self, value):
+        self.impl.bold = value
+
+    @property
+    def italic(self):
+        """
+        Returns or sets the italic property (boolean).
+
+        >>> sheet['A1'].font.italic = True
+        >>> sheet['A1'].font.italic
+        True
+
+        .. versionadded:: 0.23.0
+        """
+        return self.impl.italic
+
+    @italic.setter
+    def italic(self, value):
+        self.impl.italic = value
+
+    @property
+    def size(self):
+        """
+        Returns or sets the size (float).
+
+        >>> sheet['A1'].font.size = 13
+        >>> sheet['A1'].font.size
+        13
+
+        .. versionadded:: 0.23.0
+        """
+        return self.impl.size
+
+    @size.setter
+    def size(self, value):
+        self.impl.size = value
+
+    @property
+    def color(self):
+        """
+        Returns or sets the color property (tuple).
+
+        >>> sheet['A1'].font.color = (255, 0, 0) # RGB tuple
+        >>> sheet['A1'].font.color
+        (255, 0, 0)
+
+        .. versionadded:: 0.23.0
+        """
+        return self.impl.color
+
+    @color.setter
+    def color(self, value):
+        self.impl.color = value
+
+    @property
+    def name(self):
+        """
+        Returns or sets the name of the font (str).
+
+        >>> sheet['A1'].font.name = 'Calibri'
+        >>> sheet['A1'].font.name
+        Calibri
+
+        .. versionadded:: 0.23.0
+        """
+        return self.impl.name
+
+    @name.setter
+    def name(self, value):
+        self.impl.name = value
 
 
 class Books(Collection):

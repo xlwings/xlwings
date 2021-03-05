@@ -1,8 +1,12 @@
 import sys
 import shutil
 
-from jinja2 import Environment
+try:
+    from jinja2 import Environment
+except ImportError:
+    pass
 
+from .markdown import Markdown
 from ..utils import LicenseHandler
 from ...main import Book
 
@@ -91,6 +95,9 @@ def render_template(sheet, **data):
                                                        top=sheet[i + row_shift, j + frame_indices[ix]].top,
                                                        left=sheet[i + row_shift, j + frame_indices[ix]].left)
                                     sheet[i + row_shift, j + frame_indices[ix]].value = None
+                                elif isinstance(result, Markdown):
+                                    sheet[i + row_shift,
+                                          j + frame_indices[ix]].value = result
                                 else:
                                     # Simple Jinja variables
                                     # Check for height of 2d array
@@ -143,8 +150,21 @@ def render_template(sheet, **data):
     for shape in sheet.shapes:
         shapetext = shape.text
         if shapetext and '{{' in shapetext:
-            template = env.from_string(shapetext)
-            shape.text = template.render(data)
+            tokens = list(env.lex(shapetext))
+            # Single Jinja variable case, the only case we support with Markdown
+            if shapetext.count('{{') == 1 and tokens[0][1] == 'variable_begin' and tokens[-1][1] == 'variable_end':
+                for _, token_type, token_value in tokens:
+                    if token_type == 'name':
+                        if isinstance(data[token_value], Markdown):
+                            shape.text = data[token_value]
+                        else:
+                            # Single Jinja var but no Markdown
+                            template = env.from_string(shapetext)
+                            shape.text = template.render(data)
+            else:
+                # Multiple Jinja vars and no Markdown
+                template = env.from_string(shapetext)
+                shape.text = template.render(data)
 
 
 def create_report(template, output, book_settings=None, app=None, **data):

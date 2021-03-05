@@ -17,6 +17,12 @@ if np:
     from .numpy_conv import NumpyArrayConverter
 if pd:
     from .pandas_conv import PandasDataFrameConverter, PandasSeriesConverter
+from .. import LicenseError
+try:
+    from ..pro.reports.markdown import MarkdownConverter, Markdown
+    MarkdownConverter.register(Markdown)
+except (ImportError, LicenseError):
+    pass
 
 
 def read(rng, value, options):

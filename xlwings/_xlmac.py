@@ -591,6 +591,10 @@ class Range:
             self.xl.formula_array.set(value)
 
     @property
+    def font(self):
+        return Font(self, self.xl.font_object)
+
+    @property
     def column_width(self):
         if self.xl is not None:
             rv = self.xl.column_width.get()
@@ -826,6 +830,11 @@ class Range:
         else:
             return Table(self.sheet, self.xl.list_object.name.get())
 
+    @property
+    def characters(self):
+        # This is broken with AppleScript/Excel 2016
+        return Characters(parent=self, xl=self.xl.characters)
+
 
 class Shape:
     def __init__(self, parent, key):
@@ -907,6 +916,111 @@ class Shape:
     @text.setter
     def text(self, value):
         self.xl.shape_text_frame.text_range.content.set(value)
+
+    @property
+    def font(self):
+        return Font(self, self.xl.shape_text_frame.text_range.font)
+
+    @property
+    def characters(self):
+        raise AttributeError("Characters isn't supported on macOS with shapes.")
+
+
+class Font:
+    def __init__(self, parent, xl):
+        # xl can be font or font_object
+        self.parent = parent
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def bold(self):
+        return self.xl.bold.get()
+
+    @bold.setter
+    def bold(self, value):
+        self.xl.bold.set(value)
+
+    @property
+    def italic(self):
+        return self.xl.italic.get()
+
+    @italic.setter
+    def italic(self, value):
+        self.xl.italic.set(value)
+
+    @property
+    def size(self):
+        return self.xl.font_size.get()
+
+    @size.setter
+    def size(self, value):
+        self.xl.font_size.set(value)
+
+    @property
+    def color(self):
+        if isinstance(self.parent, Range):
+            return tuple(self.xl.color.get())
+        elif isinstance(self.parent, Shape):
+            return tuple(self.xl.font_color.get())
+
+    @color.setter
+    def color(self, color_or_rgb):
+        if self.xl is not None:
+            if isinstance(self.parent, (Range, Characters)):
+                obj = self.xl.color
+            elif isinstance(self.parent, Shape):
+                obj = self.xl.font_color
+
+            if isinstance(color_or_rgb, int):
+                obj.set(int_to_rgb(color_or_rgb))
+            else:
+                obj.set(color_or_rgb)
+
+    @property
+    def name(self):
+        if isinstance(self.parent, Range):
+            return self.xl.name.get()
+        elif isinstance(self.parent, Shape):
+            return self.xl.font_name.get()
+
+    @name.setter
+    def name(self, value):
+        if isinstance(self.parent, Range):
+            self.xl.name.set(value)
+        elif isinstance(self.parent, Shape):
+            self.xl.font_name.set(value)
+
+
+class Characters:
+    def __init__(self, parent, xl):
+        self.parent = parent
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def text(self):
+        return self.xl.content.get()
+
+    @property
+    def font(self):
+        return Font(self, self.xl.font_object)
+
+    def __getitem__(self, item):
+        # TODO: This is broken with AppleScript and Excel 2016:
+        # set bold of font object of (characters 5 thru 9 of range "A1") to true
+        # https://answers.microsoft.com/en-us/msoffice/forum/msoffice_excel-mso_mac-msoversion_other/applescript-and-excel-problem/6e5a50b1-6209-4fbf-91f4-6d6674f1e488
+        if isinstance(item, slice):
+            return Characters(parent=self.parent, xl=self.xl[item.start + 1 if item.start else None
+                                                             :item.stop if item.stop else len(self.text)])
+        else:
+            return Characters(parent=self.parent, xl=self.xl[item + 1:item + 1])
 
 
 class Collection:

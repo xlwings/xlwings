@@ -40,6 +40,7 @@ See :ref:`pro` for more details.
     jupyternotebooks
     command_line
     reports
+    markdown
     deployment
     troubleshooting
 
