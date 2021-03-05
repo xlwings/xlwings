@@ -7,14 +7,17 @@ from ...conversion import Converter
 
 class Style:
     def __init__(self, display_name=None):
-        self.display_name = display_name
+        if display_name:
+            self.display_name = display_name
+        else:
+            self.display_name = ''
 
     def __repr__(self):
         s = ''
         for attribute in vars(self):
             if getattr(self, attribute) and attribute != 'display_name':
                 s += f'{self.display_name}.{attribute}: {getattr(self, attribute)}\n'
-        return s
+        return s.replace('\n\n', '\n')
 
 
 class FontStyle(Style):
@@ -28,6 +31,31 @@ class FontStyle(Style):
 
 
 class MarkdownStyle:
+    """
+    ``MarkdownStyle`` defines how ``Markdown`` objects are being rendered in Excel cells or shapes.
+    Start by instantiating a ``MarkdownStyle`` object. Printing it will show you the current (default)
+    style:
+
+    >>> style = MarkdownStyle()
+    >>> style
+    <MarkdownStyle>
+    h1.font: .bold: True
+    h1.blank_lines_after: 1
+    paragraph.blank_lines_after: 1
+    unordered_list.bullet_character: •
+    unordered_list.blank_lines_after: 1
+    strong.bold: True
+    emphasis.italic: True
+
+    You can override the defaults, e.g., to make ``**strong**`` text red instead of bold, do this:
+
+    >>> style.strong.bold = False
+    >>> style.strong.color = (255, 0, 0)
+    >>> style.strong
+    strong.color: (255, 0, 0)
+
+    .. versionadded:: 0.23.0
+    """
     class __Heading1(Style):
         def __init__(self):
             super().__init__(display_name='h1')
@@ -60,6 +88,29 @@ class MarkdownStyle:
 
 
 class Markdown:
+    """
+    Markdown objects can be assigned to a single cell or shape via ``myrange.value`` or ``myshape.text``.
+    They accept a string in Markdown format which will cause the text in the cell to be formatted accordingly.
+    They can also be used in ``mysheet.render_template()``.
+
+    .. note:: On macOS, formatting is currently not supported, but things like bullet points will still work.
+
+    Arguments
+    ---------
+    text : str
+        The text in Markdown syntax
+
+    style : MarkdownStyle object, optional
+        The MarkdownStyle object defines how the text will be formatted.
+
+    Examples
+    --------
+
+    >>> mysheet['A1'].value = Markdown("A text with *emphasis* and **strong** style.")
+    >>> myshape.text = Markdown("A text with *emphasis* and **strong** style.")
+
+    .. versionadded:: 0.23.0
+    """
     def __init__(self, text, style=MarkdownStyle()):
         self.text = text
         self.style = style

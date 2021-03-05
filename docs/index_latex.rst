@@ -16,6 +16,7 @@
     jupyternotebooks
     command_line
     reports
+    markdown
     deployment
     troubleshooting
 

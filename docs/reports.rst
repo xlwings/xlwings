@@ -208,3 +208,44 @@ This code turns this template:
 into this report:
 
 .. figure:: images/shape_text_report.png
+
+While this works for simple text, you will loose the formatting if you have any. To prevent that, use a ``Markdown`` object, see below.
+
+Markdown
+--------
+
+.. versionadded:: 0.23.0
+
+You can format text in cells or shapes via Markdown syntax:
+
+.. code-block::
+
+    from xlwings.pro import Markdown, MarkdownStyle
+
+    mytext = """\
+    # Title
+
+    Text **bold** and *italic*
+
+    * A first bullet
+    * A second bullet
+
+    # Another Title
+
+    This paragraph has a line break.
+    Another line.
+    """
+
+    # The first sheet requires a shape as shown on the screenshot
+    sheet = xw.Book("MyTemplate.xlsx").sheets[0]
+    sheet.render_template(myplaceholder=Markdown(mytext, style)
+
+This will render this template with the placeholder in a cell and a shape:
+
+.. figure:: images/markdown_template.png
+
+Like this (this uses the default formatting):
+
+.. figure:: images/markdown1.png
+
+For more on Markdown, especially how to change the styling, see :ref:`markdown`.

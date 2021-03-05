@@ -3618,6 +3618,16 @@ class Macro:
 
 
 class Characters:
+    """
+    The characters object can be accessed as an attribute of the range or shape object.
+
+    * ``mysheet['A1'].characters``
+    * ``mysheet.shapes[0].characters``
+
+    .. note:: On macOS, ``characters`` are currently not supported due to bugs/lack of support in AppleScript.
+
+    .. versionadded:: 0.23.0
+    """
     def __init__(self, impl):
         self.impl = impl
 
@@ -3625,15 +3635,35 @@ class Characters:
     def api(self):
         """
         Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+
+        .. versionadded:: 0.23.0
         """
         return self.impl.api
 
     @property
     def text(self):
+        """
+        Returns or sets the text property of a ``characters`` object.
+
+        >>> sheet['A1'].value = 'Python'
+        >>> sheet['A1'].characters[:3].text
+        Pyt
+
+        .. versionadded:: 0.23.0
+        """
         return self.impl.text
 
     @property
     def font(self):
+        """
+        Returns or sets the text property of a ``characters`` object.
+
+        >>> sheet['A1'].characters[1:3].font.bold = True
+        >>> sheet['A1'].characters[1:3].font.bold
+        True
+
+        .. versionadded:: 0.23.0
+        """
         return Font(self.impl.font)
 
     def __getitem__(self, item):
@@ -3648,6 +3678,14 @@ class Characters:
 
 
 class Font:
+    """
+    The font object can be accessed as an attribute of the range or shape object.
+
+    * ``mysheet['A1'].font``
+    * ``mysheet.shapes[0].font``
+
+    .. versionadded:: 0.23.0
+    """
     def __init__(self, impl):
         self.impl = impl
 
@@ -3655,11 +3693,22 @@ class Font:
     def api(self):
         """
         Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+
+        .. versionadded:: 0.23.0
         """
         return self.impl.api
 
     @property
     def bold(self):
+        """
+        Returns or sets the bold property (boolean).
+
+        >>> sheet['A1'].font.bold = True
+        >>> sheet['A1'].font.bold
+        True
+
+        .. versionadded:: 0.23.0
+        """
         return self.impl.bold
 
     @bold.setter
@@ -3668,6 +3717,15 @@ class Font:
 
     @property
     def italic(self):
+        """
+        Returns or sets the italic property (boolean).
+
+        >>> sheet['A1'].font.italic = True
+        >>> sheet['A1'].font.italic
+        True
+
+        .. versionadded:: 0.23.0
+        """
         return self.impl.italic
 
     @italic.setter
@@ -3676,6 +3734,15 @@ class Font:
 
     @property
     def size(self):
+        """
+        Returns or sets the size (float).
+
+        >>> sheet['A1'].font.size = 13
+        >>> sheet['A1'].font.size
+        13
+
+        .. versionadded:: 0.23.0
+        """
         return self.impl.size
 
     @size.setter
@@ -3684,6 +3751,15 @@ class Font:
 
     @property
     def color(self):
+        """
+        Returns or sets the color property (tuple).
+
+        >>> sheet['A1'].font.color = (255, 0, 0) # RGB tuple
+        >>> sheet['A1'].font.color
+        (255, 0, 0)
+
+        .. versionadded:: 0.23.0
+        """
         return self.impl.color
 
     @color.setter
@@ -3692,6 +3768,15 @@ class Font:
 
     @property
     def name(self):
+        """
+        Returns or sets the name of the font (str).
+
+        >>> sheet['A1'].font.name = 'Calibri'
+        >>> sheet['A1'].font.name
+        Calibri
+
+        .. versionadded:: 0.23.0
+        """
         return self.impl.name
 
     @name.setter

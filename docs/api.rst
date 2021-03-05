@@ -138,6 +138,27 @@ Table
 .. autoclass:: xlwings.main.Table
     :members:
 
+Font
+****
+.. autoclass:: xlwings.main.Font
+    :members:
+
+Characters
+**********
+.. autoclass:: xlwings.main.Characters
+    :members:
+
+Markdown
+********
+.. autoclass:: xlwings.pro.Markdown
+    :members:
+
+MarkdownStyle
+*************
+.. autoclass:: xlwings.pro.MarkdownStyle
+    :members:
+
+
 .. _udf_api:
 
 UDF decorators

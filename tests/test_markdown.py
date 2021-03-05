@@ -26,7 +26,7 @@ new line
 
 @pytest.fixture(scope="module")
 def app():
-    app = xw.App(visible=True)
+    app = xw.App(visible=False)
     app.books.open(this_dir / "test book.xlsx")
     yield app
 

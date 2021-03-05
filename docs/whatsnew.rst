@@ -1,6 +1,40 @@
 What's New
 ==========
 
+v0.23.0 (Mar 5, 2021)
+---------------------
+
+* :guilabel:`PRO` [Feature]: This release adds support for Markdown-based formatting of text, both in cells as well as in shapes, see :ref:`markdown` for the details. This is also supported for template-based reports.
+
+.. code-block:: python
+
+    from xlwings.pro import Markdown, MarkdownStyle
+
+    mytext = """\
+    # Title
+
+    Text **bold** and *italic*
+
+    * A first bullet
+    * A second bullet
+
+    # Another Title
+
+    This paragraph has a line break.
+    Another line.
+    """
+
+    sheet = xw.Book("Book1.xlsx").sheets[0]
+    sheet['A1'].value = Markdown(mytext)
+    sheet.shapes[0].text = Markdown(mytext)
+
+Running this code will give you this nicely formatted text:
+
+.. figure:: images/markdown1.png
+
+* [Feature] Added support for the ``Font`` object via ``range`` or ``shape`` objects, see :meth:`Font <xlwings.main.Font>` (:issue:`897` and :issue:`559`).
+* [Feature] Added support for the ``Characters`` object via ``range`` or ``shape`` objects, see :meth:`Characters <xlwings.main.Characters>`.
+
 v0.22.3 (Mar 3, 2021)
 ---------------------
 
