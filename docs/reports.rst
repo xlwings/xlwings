@@ -216,9 +216,7 @@ Markdown
 
 .. versionadded:: 0.23.0
 
-You can format text in cells or shapes via Markdown syntax:
-
-.. code-block::
+You can format text in cells or shapes via Markdown syntax::
 
     from xlwings.pro import Markdown, MarkdownStyle
 
