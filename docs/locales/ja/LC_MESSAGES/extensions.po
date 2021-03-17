@@ -1,0 +1,59 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-08-05 11:31+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.8.0\n"
+
+#: ../../extensions.rst:4
+msgid "Extensions"
+msgstr "拡張機能"
+
+#: ../../extensions.rst:6
+msgid ""
+"It's easy to extend the xlwings add-in with own code like UDFs or "
+"RunPython macros, so that they can be deployed without end users having "
+"to import or write the functions themselves. Just add another VBA module "
+"to the xlwings addin with the respective code."
+msgstr ""
+"xlwingsアドインを拡張し、UDFやRunPythonマクロのようなコードを簡単に自分で"
+"追加することができます。そして、拡張したアドインを配布すれば、エンドユーザーは"
+"UDFのインポートや自分で関数を書くことなく使えるようになります。"
+"アドインの拡張は、追加的なコードをVBAモジュールに記述しxlwingsアドインに"
+"追加するだけでできます。"
+
+#: ../../extensions.rst:10
+msgid ""
+"UDF extensions can be used from every workbook without having to set a "
+"reference."
+msgstr ""
+"UDFの拡張機能はVBAの参照設定をすることなく全てのワークブックで使えるようになります。"
+
+#: ../../extensions.rst:13
+msgid "In-Excel SQL"
+msgstr "Excel用SQL"
+
+#: ../../extensions.rst:15
+msgid ""
+"The xlwings addin comes with a built-in extension that adds in-Excel SQL "
+"syntax (sqlite dialect):"
+msgstr ""
+"xlwingsアドインには、拡張機能Excel用SQLシンタックス(sqlite dialect）が"
+"組み込まれています:"
+
+#: ../../extensions.rst:25
+msgid "As this extension uses UDFs, it's only available on Windows right now."
+msgstr "この拡張機能はUDFを用いるため、現時点ではWindowsのみ利用可能です。"
+
