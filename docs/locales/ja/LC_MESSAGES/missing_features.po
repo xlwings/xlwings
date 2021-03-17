@@ -1,0 +1,81 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-08-05 11:31+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.8.0\n"
+
+#: ../../missing_features.rst:4
+msgid "Missing Features"
+msgstr "機能が足りない場合"
+
+#: ../../missing_features.rst:6
+msgid "If you're missing a feature in xlwings, do the following:"
+msgstr "xlwingsの機能が足りない場合には以下を行ってください:"
+
+#: ../../missing_features.rst:8
+msgid ""
+"Most importantly, open an issue on `GitHub "
+"<https://github.com/xlwings/xlwings/issues>`_. Adding functionality "
+"should be user driven, so only if you tell us about what you're missing, "
+"it's eventually going to find its way into the library. By the way, we "
+"also appreciate pull requests!"
+msgstr ""
+"`GitHub <https://github.com/xlwings/xlwings/issues>`_ でissueを"
+"オープンしてください。これが最も重要なことです。機能の追加はユーザー要望を反映して"
+"行われるため、どんな機能が足りないかを我々に伝えていただければ、ライブラリーへの"
+"実装方法の検討を開始します。またプル リクエストも歓迎しています!"
+
+#: ../../missing_features.rst:12
+msgid ""
+"Workaround: in essence, xlwings is just a smart wrapper around `pywin32 "
+"<https://github.com/mhammond/pywin32/>`_ on Windows and `appscript "
+"<http://appscript.sourceforge.net/>`_ on Mac. You can access the "
+"underlying objects by calling the ``api`` property:"
+msgstr ""
+"代替手段: 本質的には、xlwingsはWindowsの `pywin32 "
+"<https://github.com/mhammond/pywin32/>`_ およびMacの `appscript "
+"<http://appscript.sourceforge.net/>`_ のスマート ラッパーでしかありません。"
+" ``api`` プロパティを使えば元にあるオブジェクトにアクセスできます:"
+
+#: ../../missing_features.rst:23
+msgid ""
+"This works accordingly for the other objects like "
+"``sheet.range('A1').api`` etc."
+msgstr ""
+"上記は ``sheet.range('A1').api`` 等の別のオブジェクトでも同様に使えます。"
+
+#: ../../missing_features.rst:25
+msgid ""
+"The underlying objects will offer you pretty much everything you can do "
+"with VBA, using the syntax of pywin32 (which pretty much feels like VBA) "
+"and appscript (which doesn't feel like VBA). But apart from looking ugly,"
+" keep in mind that **it makes your code platform specific (!)**, i.e. "
+"even if you go for option 2), you should still follow option 1) and open "
+"an issue so the feature finds it's way into the library (cross-platform "
+"and with a Pythonic syntax)."
+msgstr ""
+"元になっているオブジェクトのpywin32 (VBAとほぼ同じAPI) および"
+"appscript (VBAとは違うAPI)を使えば、VBAで使えるほとんどすべての機能が"
+"利用できます。 ``api`` を使う場合には、見た目が悪くなること意外に、"
+" **コードがプラットフォーム依存になってしまう (!)** ことに注意してください。"
+"したがって、2.の代替手段を採る場合でも、 1.にあるようにissueをオープンし"
+"機能がライブラリー（クロスプラットフォームかつパイソニックなシンタックス）に"
+"取り込まれるようにしてください。"
+
+#: ../../missing_features.rst:32
+msgid "Example: Workaround to use VBA's ``Range.WrapText``"
+msgstr "例: 代替手段でVBAの ``Range.WrapText`` を使用"
+

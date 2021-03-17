@@ -19,7 +19,7 @@ msgstr ""
 
 #: ../../jupyternotebooks.rst:4
 msgid "Jupyter Notebooks: Interact with Excel"
-msgstr "Jupyter NotebooksとExcelのインタラクティブな連携"
+msgstr "Jupyter Notebooksとの連携"
 
 #: ../../jupyternotebooks.rst:6
 msgid ""
@@ -28,8 +28,8 @@ msgid ""
 "convenience functions :meth:`view <xlwings.view>` and :meth:`load "
 "<xlwings.load>` make this really easy."
 msgstr ""
-"Jupyter Notebookを使っていれば、Excelをデータの表示や読み込み用DataFrame作成の"
-"ためにインタラクティブに利用するかもしれません。それらは関数 :meth:`view <xlwings.view>` "
+"Jupyter Notebookを使えば、Excelをデータの表示や読み込み用DataFrame作成の"
+"ためにインタラクティブに利用することができます。それらは関数 :meth:`view <xlwings.view>` "
 "と :meth:`load <xlwings.load>` で簡単にできます。"
 
 #: ../../jupyternotebooks.rst:9

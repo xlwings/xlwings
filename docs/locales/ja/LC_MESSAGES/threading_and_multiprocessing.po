@@ -1,0 +1,70 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-12-04 08:45+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.8.0\n"
+
+#: ../../threading_and_multiprocessing.rst:4
+msgid "Threading and Multiprocessing"
+msgstr "スレッド化およびマルチプロセス化"
+
+#: ../../threading_and_multiprocessing.rst:9
+msgid "Threading"
+msgstr "スレッド化"
+
+#: ../../threading_and_multiprocessing.rst:11
+msgid ""
+"While xlwings is not technically thread safe, it's still easy to use it "
+"in threads as long as you have at least v0.13.0 and stick to a simple "
+"rule: Do not pass xlwings objects to threads. This rule isn't a "
+"requirement on macOS, but it's still recommended if you want your "
+"programs to be cross-platform."
+msgstr ""
+"xlwingsは技術的にはスレッド セーフではありませんが、v0.13.0以上でシンプルな"
+"ルールに従えば、スレッドで使用することができます。xlwingsのオブジェクトを"
+"スレッドに渡さない。このルールはmacOSでは要求されませんが、"
+"プログラムをクロスプラットフォームで使いたいのであれば推奨されます。"
+
+#: ../../threading_and_multiprocessing.rst:16
+msgid "Consider the following example that will **NOT** work::"
+msgstr "以下の **動かない** 例をみてみましょう::"
+
+#: ../../threading_and_multiprocessing.rst:48
+msgid ""
+"To make it work, you simply have to fully qualify the cell reference in "
+"the thread instead of passing a ``Book`` object::"
+msgstr ""
+"これを動かすには、 ``Book`` オブジェクトを渡すのではなく、スレッド内で"
+"セル参照を完全に指定するだけです::"
+
+#: ../../threading_and_multiprocessing.rst:80
+msgid "Multiprocessing"
+msgstr "マルチプロセス化"
+
+#: ../../threading_and_multiprocessing.rst:83
+msgid "Multiprocessing is only supported on Windows!"
+msgstr "マルチプロセス化のサポートはWindowsのみです!"
+
+#: ../../threading_and_multiprocessing.rst:85
+msgid ""
+"The same rules apply to multiprocessing as for threading, here's a "
+"working example::"
+msgstr ""
+"スレッド化と同様のルールがマルチプロセス化にあてはまります。以下は動く例です::"
+
+#~ msgid "Multiprocessing is only support on Windows!"
+#~ msgstr ""
+

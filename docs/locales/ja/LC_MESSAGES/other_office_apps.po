@@ -1,0 +1,125 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-08-05 11:31+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.8.0\n"
+
+#: ../../other_office_apps.rst:4
+msgid "xlwings with other Office Apps"
+msgstr "xlwingsと他のOfficeアプリ"
+
+#: ../../other_office_apps.rst:6
+msgid ""
+"xlwings can also be used to call Python functions from VBA within Office "
+"apps other than Excel (like Outlook, Access etc.)."
+msgstr ""
+"Excel以外のOfficeアプリ（OutlookやAccess等）のVBAから、xlwingsでPythonの関数を"
+"呼び出すことができます。"
+
+#: ../../other_office_apps.rst:9
+msgid ""
+"New in v0.12.0 and still in a somewhat early stage that involves a bit of"
+" manual work. Currently, this functionality is only available on Windows "
+"for UDFs. The ``RunPython`` functionality is currently not supported."
+msgstr ""
+"この機能はv0.12.0からありますが、初期段階のままとなっていて、若干の手作業が"
+"必要になります。現在、WindowsのUDFでのみ利用可能となっています。"
+"``RunPython`` の機能は利用できません。"
+
+#: ../../other_office_apps.rst:15
+msgid "How To"
+msgstr "方法"
+
+#: ../../other_office_apps.rst:17
+msgid ""
+"As usual, write your Python function and import it into Excel (see "
+":ref:`udfs`)."
+msgstr ""
+"Python関数を作成し、Excelにインポートします( :ref:`udfs` を参照)。"
+
+#: ../../other_office_apps.rst:18
+msgid ""
+"Press ``Alt-F11`` to get into the VBA editor, then right-click on the "
+"``xlwings_udfs`` VBA module and select ``Export File...``. Save the "
+"``xlwings_udfs.bas`` file somewhere."
+msgstr ""
+"``Alt-F11`` を押し、VBAエディターを開きます。そして ``xlwings_udfs`` VBA"
+"モジュールを右クリックし、 ``ファイルのエクスポート...`` を選択します。"
+"``xlwings_udfs.bas`` ファイルを適当な場所に保存します。"
+
+#: ../../other_office_apps.rst:20
+msgid ""
+"Switch into the other Office app, e.g. Microsoft Access and click again "
+"``Alt-F11`` to get into the VBA editor. Right-click on the VBA Project "
+"and ``Import File...``, then select the file that you exported in the "
+"previous step. Once imported, replace the app name in the first line to "
+"the one that you are using, i.e. ``Microsoft Access`` or ``Microsoft "
+"Outlook`` etc. so that the first line then reads: ``#Const App = "
+"\"Microsoft Access\"``"
+msgstr ""
+"他のOfficeアプリ（e.g. Microsoft Access）に切り替え、 ``Alt-F11`` を押して"
+"VBAエディターを開きます。VBA Projectで右クリックし、 ``ファイルの"
+"インポート...`` から先ほどエクスポートしたファイルを選択します。"
+"インポート後に、1行目のアプリの名前を今開いているアプリの名前に変更します、"
+" i.e. ``Microsoft Access`` または ``Microsoft Outlook`` 等。"
+"1行目は次のようになります: ``#Const App = \"Microsoft Access\"``"
+
+#: ../../other_office_apps.rst:24
+msgid ""
+"Now import the standalone xlwings VBA module (``xlwings.bas``). You can "
+"find it in your xlwings installation folder. To know where that is, do::"
+msgstr ""
+"次に、スタンドアローンのxlwings VBAモジュール (``xlwings.bas``)をインポートします。"
+"このファイルはxlwingsのインストール先フォルダーにあります。"
+"インストール先は次のようにすればわかます::"
+
+#: ../../other_office_apps.rst:29
+msgid ""
+"And finally do the same as in the previous step and replace the App name "
+"in the first line with the name of the corresponding app that you are "
+"using. You are now able to call the Python function from VBA."
+msgstr ""
+"最後に、ステップ3と同様にxlwings VBAモジュールの1行目にあるアプリの名前を"
+"変更します。これでVBAからPython関数を呼び出せるようになりました。"
+
+#: ../../other_office_apps.rst:33
+msgid "Config"
+msgstr "設定"
+
+#: ../../other_office_apps.rst:35
+msgid ""
+"The other Office apps will use the same global config file as you are "
+"editing via the Excel ribbon add-in. When it makes sense, you'll be able "
+"to use the directory config file (e.g. you can put it next to your Access"
+" or Word file) or you can hardcode the path to the config file in the VBA"
+" standalone module, e.g. in the function ``GetDirectoryConfigFilePath`` "
+"(e.g. suggested when using Outlook that doesn't really have the same "
+"concept of files like the other Office apps). NOTE: For Office apps "
+"without file concept, you need to make sure that the ``PYTHONPATH`` "
+"points to the directory with the Python source file. For details on the "
+"different config options, see :ref:`Config <config_file>`."
+msgstr ""
+"他のOfficeアプリは、Excelのリボン アドインで設定したグローバル設定に"
+"従います。また、ディレクトリー設定ファイルも使えます(e.g. ディレクトリー"
+"設定ファイルを使用しているAccessまたはWordファイルと同じフォルダーに置きます)。"
+"あるいは、設定ファイルへのパスをスタンドアローンVBAモジュールの中（e.g. "
+"``GetDirectoryConfigFilePath`` 関数等）にハードコードすることもできます"
+"(e.g. Outlookのファイルの概念は他のOfficeアプリとは異なっているため、"
+"この方法を推奨します)。注意: ファイル概念の無いOfficeアプリに対しては、"
+" ``PYTHONPATH`` にPythonのソース ファイルがあるフォルダーを設定する"
+"必要があります。その他の設定についての詳細は、 :ref:`Config <config_file>` を"
+"ご覧ください。"
+
