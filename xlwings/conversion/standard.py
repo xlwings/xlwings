@@ -1,3 +1,4 @@
+import math
 import datetime
 from collections import OrderedDict
 
@@ -75,8 +76,23 @@ class WriteValueToRangeStage:
 
 class ReadValueFromRangeStage:
 
+    def __init__(self, options):
+        self.options = options
+
     def __call__(self, c):
-        if c.range:
+        chunksize = self.options.get('chunksize')
+        if c.range and chunksize:
+            parts = []
+            for i in range(math.ceil(c.range.shape[0] / chunksize)):
+                raw_value = c.range[i * chunksize: (i * chunksize) + chunksize, :].raw_value
+                if isinstance(raw_value[0], list):
+                    parts.extend(raw_value)
+                else:
+                    # Turn a single row list into a 2d list
+                    parts.extend([raw_value])
+
+            c.value = parts
+        elif c.range:
             c.value = c.range.raw_value
 
 
@@ -195,7 +211,7 @@ class RawValueAccessor(Accessor):
     def reader(cls, options):
         return (
             Accessor.reader(options)
-            .append_stage(ReadValueFromRangeStage())
+            .append_stage(ReadValueFromRangeStage(options))
         )
 
     @classmethod
@@ -215,7 +231,7 @@ class ValueAccessor(Accessor):
     def reader(options):
         return (
             BaseAccessor.reader(options)
-            .append_stage(ReadValueFromRangeStage())
+            .append_stage(ReadValueFromRangeStage(options))
             .append_stage(Ensure2DStage())
             .append_stage(CleanDataFromReadStage(options))
             .append_stage(TransposeStage(), only_if=options.get('transpose', False))
