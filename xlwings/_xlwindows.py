@@ -29,7 +29,7 @@ import win32gui
 import win32process
 
 from .constants import (ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin, DeleteShiftDirection,
-                        ListObjectSourceType, FixedFormatType, FixedFormatQuality)
+                        ListObjectSourceType, FixedFormatType, FixedFormatQuality, FileFormat)
 from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime, col_name
 
 # Optional imports
@@ -516,25 +516,40 @@ class Book:
 
     def save(self, path=None):
         saved_path = self.xl.Path
+        source_ext = os.path.splitext(saved_path)[1] if saved_path else None
+        target_ext = os.path.splitext(path)[1] if path else '.xlsx'
+        if saved_path and source_ext == target_ext:
+            file_format = self.xl.FileFormat
+        else:
+            ext_to_file_format = {'.xlsx': FileFormat.xlOpenXMLWorkbook,
+                                  '.xlsm': FileFormat.xlOpenXMLWorkbookMacroEnabled,
+                                  '.xlsb': FileFormat.xlExcel12,
+                                  '.xltm': FileFormat.xlOpenXMLTemplateMacroEnabled,
+                                  '.xltx': FileFormat.xlOpenXMLTemplateMacroEnabled,
+                                  '.xlam': FileFormat.xlOpenXMLAddIn,
+                                  '.xls': FileFormat.xlWorkbookNormal,
+                                  '.xlt': FileFormat.xlTemplate,
+                                  '.xla': FileFormat.xlAddIn}
+            file_format = ext_to_file_format[target_ext]
         if (saved_path != '') and (path is None):
             # Previously saved: Save under existing name
             self.xl.Save()
         elif (saved_path != '') and (path is not None) and (os.path.split(path)[0] == ''):
             # Save existing book under new name in cwd if no path has been provided
             path = os.path.join(os.getcwd(), path)
-            self.xl.SaveAs(os.path.realpath(path))
+            self.xl.SaveAs(os.path.realpath(path), FileFormat=file_format)
         elif (saved_path == '') and (path is None):
             # Previously unsaved: Save under current name in current working directory
             path = os.path.join(os.getcwd(), self.xl.Name + '.xlsx')
             alerts_state = self.xl.Application.DisplayAlerts
             self.xl.Application.DisplayAlerts = False
-            self.xl.SaveAs(os.path.realpath(path))
+            self.xl.SaveAs(os.path.realpath(path), FileFormat=file_format)
             self.xl.Application.DisplayAlerts = alerts_state
         elif path:
             # Save under new name/location
             alerts_state = self.xl.Application.DisplayAlerts
             self.xl.Application.DisplayAlerts = False
-            self.xl.SaveAs(os.path.realpath(path))
+            self.xl.SaveAs(os.path.realpath(path), FileFormat=file_format)
             self.xl.Application.DisplayAlerts = alerts_state
 
     @property
