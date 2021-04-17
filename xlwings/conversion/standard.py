@@ -6,6 +6,7 @@ from . import Pipeline, Converter, Options, Accessor, accessors
 from .. import xlplatform
 from ..main import Range
 from .. import LicenseError
+from ..utils import chunk
 try:
     from ..pro import Markdown
     from ..pro.reports import markdown
@@ -42,6 +43,7 @@ class ExpandRangeStage:
 class WriteValueToRangeStage:
     def __init__(self, options, raw=False):
         self.raw = raw
+        self.options = options
 
     def _write_value(self, rng, value, scalar):
         if rng.api and value:
@@ -51,7 +53,12 @@ class WriteValueToRangeStage:
             else:
                 rng = rng.resize(len(value), len(value[0]))
 
-            rng.raw_value = value
+            chunksize = self.options.get('chunksize')
+            if chunksize:
+                for ix, value_chunk in enumerate(chunk(value, chunksize)):
+                    rng[ix * chunksize:ix * chunksize + chunksize, :].raw_value = value_chunk
+            else:
+                rng.raw_value = value
 
     def __call__(self, ctx):
         if ctx.range and ctx.value:
