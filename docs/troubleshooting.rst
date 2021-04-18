@@ -23,6 +23,6 @@ Solution:
 
 On either the ``xlwings.conf`` sheet or on the ``xlwings.conf`` file under your home folder (for location see :ref:`user_config`), add the following setting::
 
-    "ONEDRIVE", "C:\path\to\OneDrive"
+    "ONEDRIVE_WIN", "C:\path\to\OneDrive"
 
-Note: Don't use quotes on the ``xlwings.conf`` sheet.
+Note: Don't use quotes on the ``xlwings.conf`` sheet and if you are on macOS, use ``ONEDRIVE_MAC`` instead.
