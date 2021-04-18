@@ -31,19 +31,19 @@ def test_read_write_df(app):
 
     sheet['A1'].value = df
     assert_frame_equal(df, sheet['A1'].expand().options(pd.DataFrame).value)
-    sheet['A1'].clear()
+    sheet['A1'].expand().clear()
 
     sheet['A1'].options(chunksize=2).value = df
     assert_frame_equal(df, sheet['A1'].expand().options(pd.DataFrame, chunksize=2).value)
-    sheet['A1'].clear()
+    sheet['A1'].expand().clear()
 
     sheet['A1'].options(chunksize=nrows - 1).value = df
     assert_frame_equal(df, sheet['A1'].expand().options(pd.DataFrame, chunksize=nrows - 1).value)
-    sheet['A1'].clear()
+    sheet['A1'].expand().clear()
 
     sheet['A1'].options(chunksize=nrows + 1).value = df
     assert_frame_equal(df, sheet['A1'].expand().options(pd.DataFrame, chunksize=nrows + 2).value)
-    sheet['A1'].clear()
+    sheet['A1'].expand().clear()
 
 
 def test_read_write_np(app):
@@ -51,19 +51,19 @@ def test_read_write_np(app):
 
     sheet['A1'].value = np_data
     assert_array_equal(np_data, sheet['A1'].expand().options(np.array).value)
-    sheet['A1'].clear()
+    sheet['A1'].expand().clear()
 
     sheet['A1'].options(chunksize=2).value = np_data
     assert_array_equal(np_data, sheet['A1'].expand().options(np.array, chunksize=2).value)
-    sheet['A1'].clear()
+    sheet['A1'].expand().clear()
 
     sheet['A1'].options(chunksize=nrows - 1).value = np_data
     assert_array_equal(np_data, sheet['A1'].expand().options(np.array, chunksize=nrows - 1).value)
-    sheet['A1'].clear()
+    sheet['A1'].expand().clear()
 
     sheet['A1'].options(chunksize=nrows + 1).value = np_data
     assert_array_equal(np_data, sheet['A1'].expand().options(np.array, chunksize=nrows + 2).value)
-    sheet['A1'].clear()
+    sheet['A1'].expand().clear()
 
 
 def test_read_write_list(app):
@@ -72,19 +72,19 @@ def test_read_write_list(app):
     sheet['A1'].value = list_data
     for i in range(len(list_data)):
         assert list_data[i] == sheet['A1'].expand().value[i]
-    sheet['A1'].clear()
+    sheet['A1'].expand().clear()
 
     sheet['A1'].options(chunksize=2).value = list_data
     for i in range(len(list_data)):
         assert list_data[i] == sheet['A1'].expand().options(chunksize=2).value[i]
-    sheet['A1'].clear()
+    sheet['A1'].expand().clear()
 
     sheet['A1'].options(chunksize=nrows - 1).value = list_data
     for i in range(len(list_data)):
         assert list_data[i] == sheet['A1'].expand().options(chunksize=nrows - 1).value[i]
-    sheet['A1'].clear()
+    sheet['A1'].expand().clear()
 
     sheet['A1'].options(chunksize=nrows + 1).value = list_data
     for i in range(len(list_data)):
         assert list_data[i] == sheet['A1'].expand().options(chunksize=nrows + 2).value[i]
-    sheet['A1'].clear()
+    sheet['A1'].expand().clear()

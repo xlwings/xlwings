@@ -85,7 +85,7 @@ class ReadValueFromRangeStage:
             parts = []
             for i in range(math.ceil(c.range.shape[0] / chunksize)):
                 raw_value = c.range[i * chunksize: (i * chunksize) + chunksize, :].raw_value
-                if isinstance(raw_value[0], list):
+                if isinstance(raw_value[0], (list, tuple)):
                     parts.extend(raw_value)
                 else:
                     # Turn a single row list into a 2d list
