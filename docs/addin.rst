@@ -103,10 +103,11 @@ The format is as follows (currently the keys are required to be all caps) - note
     "DEBUG UDFS",""
     "USE UDF SERVER",""
     "SHOW CONSOLE",""
-    "ONEDRIVE",""
+    "ONEDRIVE_WIN",""
+    "ONEDRIVE_MAC",""
 
 .. note::
-    The ``ONEDRIVE`` setting has to be edited directly in the file, there is currently no possibility to edit it via the ribbon. Usually, it is only required if you are either on macOS or if your environment vars on Windows are not correctly set or if you have a private and corporate location and don't want to go with the default one. ``ONEDRIVE`` has to point to the root folder of your local OneDrive folder.
+    The ``ONEDRIVE_WIN/_MAC`` setting has to be edited directly in the file, there is currently no possibility to edit it via the ribbon. Usually, it is only required if you are either on macOS or if your environment variables on Windows are not correctly set or if you have a private and corporate location and don't want to go with the default one. ``ONEDRIVE_WIN/_MAC`` has to point to the root folder of your local OneDrive folder.
 
 Workbook Directory Config: Config file
 --------------------------------------
