@@ -3582,8 +3582,8 @@ def view(obj, sheet=None, table=True):
 def load(index=1, header=1):
     """
     Loads the selected cell(s) of the active workbook into a pandas DataFrame. If you select a single cell that has
-    adjacent cells, the range is auto-expanded and turned into a pandas DataFrame. If you don't have pandas installed,
-    it returns the values as nested lists.
+    adjacent cells, the range is auto-expanded (via current region) and turned into a pandas DataFrame. If you don't
+    have pandas installed, it returns the values as nested lists.
 
     .. note::
       Only use this in an interactive context like e.g. a Jupyter notebook! Don't use this in a script as it depends
@@ -3604,11 +3604,11 @@ def load(index=1, header=1):
 
     See also: :meth:`view <xlwings.view>`
 
-    .. versionadded:: 0.22.0
+    .. versionchanged:: 0.23.1
     """
     selection = books.active.selection
     if selection.shape == (1, 1):
-        selection = selection.expand()
+        selection = selection.current_region
     if pd:
         values = selection.options(pd.DataFrame, index=index, header=header).value
     else:
