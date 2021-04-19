@@ -1318,6 +1318,10 @@ class Range:
         expand : str, default None
             One of ``'table'``, ``'down'``, ``'right'``
 
+        chunksize : int
+            Use a chunksize, e.g. ``10000`` to prevent timeout or memory issues when reading or writing large amounts
+            of data. Works with all formats, including DataFrames, NumPy arrays, and list of lists.
+
          => For converter-specific options, see :ref:`converters`.
 
         Returns
@@ -1785,7 +1789,8 @@ class Range:
     @property
     def value(self):
         """
-        Gets and sets the values for the given Range.
+        Gets and sets the values for the given Range. See see :meth:`xlwings.Range.options` about how to set options,
+        e.g. to transform it into a DataFrame or how to set a chunksize.
 
         Returns
         -------
@@ -3519,6 +3524,10 @@ def view(obj, sheet=None, table=True):
     Opens a new workbook and displays an object on its first sheet by default. If you provide a
     sheet object, it will clear the sheet before displaying the object on the existing sheet.
 
+    .. note::
+      Only use this in an interactive context like e.g. a Jupyter notebook! Don't use this in a script as it depends
+      on the active book.
+
     Parameters
     ----------
     obj : any type with built-in converter
@@ -3575,6 +3584,10 @@ def load(index=1, header=1):
     Loads the selected cell(s) of the active workbook into a pandas DataFrame. If you select a single cell that has
     adjacent cells, the range is auto-expanded and turned into a pandas DataFrame. If you don't have pandas installed,
     it returns the values as nested lists.
+
+    .. note::
+      Only use this in an interactive context like e.g. a Jupyter notebook! Don't use this in a script as it depends
+      on the active book.
 
     Parameters
     ----------

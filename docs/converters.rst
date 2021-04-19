@@ -153,6 +153,29 @@ The following options can be set:
 
   .. note:: The ``expand`` method is only available on ``Range`` objects as UDFs only allow to manipulate the calling cells.
 
+* **chunksize**
+
+  When you read and write from or to big ranges, you may have to chunk them or you will hit a timeout or a memory error. The ideal ``chunksize`` will depend on your system and size of the array, so you will have to try out a few different chunksizes to find one that works well:
+
+  .. code-block:: python
+
+      import pandas as pd
+      import numpy as np
+      sheet = xw.Book().sheets[0]
+      data = np.arange(75_000 * 20).reshape(75_000, 20)
+      df = pd.DataFrame(data=data)
+      sheet['A1'].options(chunksize=10_000).value = df
+
+  And the same for reading:
+
+  .. code-block:: python
+
+      # As DataFrame
+      df = sheet['A1'].expand().options(pd.DataFrame, chunksize=10_000).value
+      # As list of list
+      df = sheet['A1'].expand().options(chunksize=10_000).value
+
+
 Built-in Converters
 -------------------
 

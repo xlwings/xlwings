@@ -247,3 +247,8 @@ def exception(logger, msg, *args):
     else:
         print(msg % args)
         traceback.print_exc()
+
+
+def chunk(sequence, chunksize):
+    for i in range(0, len(sequence), chunksize):
+        yield sequence[i:i+chunksize]
