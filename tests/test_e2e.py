@@ -1,11 +1,12 @@
 """
 If you run this on a built/installed package, make sure to cd out of the xlwings source
 directory, copy the test folder next to the install xlwings package,then run:
-all tests:
-pytest test_e2e.py -v -p no:faulthandler -p no:warnings
+all tests (this relies on the settings in pytest.ini):
+
+pytest test_e2e.py
 
 single test:
-pytest test_e2e.py::test_name -v -p no:faulthandler -p no:warnings
+pytest test_e2e.py::test_name
 """
 
 import os
@@ -146,7 +147,7 @@ def test_can_use_xlwings_without_license_key(clear_user_config, tmp_path):
     subprocess.run(split('xlwings quickstart testproject'))
 
 
-def test_can_use_xlwings_wit_wrong_license_key(clear_user_config, tmp_path):
+def test_can_use_xlwings_with_wrong_license_key(clear_user_config, tmp_path):
     os.makedirs(Path.home() / '.xlwings')
     with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as config:
         config.write(f'"LICENSE_KEY","xxx"')
@@ -212,6 +213,7 @@ def test_runpython_embedded_code_standalone(app, clear_user_config, tmp_path):
     assert quickstart_book.sheets[0]['A1'].value == 'Hello xlwings!'
     sample_call()
     assert quickstart_book.sheets[0]['A1'].value == 'Bye xlwings!'
+
 
 @pytest.mark.skipif(xw.__version__ == 'dev', reason='requires a built package')
 def test_udf_embedded_code_standalone(clear_user_config, app, tmp_path):

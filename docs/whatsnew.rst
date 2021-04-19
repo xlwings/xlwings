@@ -1,6 +1,41 @@
 What's New
 ==========
 
+v0.23.1 (Apr 19, 2021)
+----------------------
+
+* [Feature] You can now save your workbook in any format you want, simply by specifying its extension:
+
+  .. code-block:: python
+
+      mybook.save('binaryfile.xlsb')
+      mybook.save('macroenabled.xlsm')
+
+* [Feature] Added support for the ``chunksize`` option: when you read and write from or to big ranges, you may have to chunk them or you will hit a timeout or a memory error. The ideal ``chunksize`` will depend on your system and size of the array, so you will have to try out a few different chunksizes to find one that works well (:issue:`77`):
+
+  .. code-block:: python
+
+      import pandas as pd
+      import numpy as np
+      sheet = xw.Book().sheets[0]
+      data = np.arange(75_000 * 20).reshape(75_000, 20)
+      df = pd.DataFrame(data=data)
+      sheet['A1'].options(chunksize=10_000).value = df
+
+  And the same for reading:
+
+  .. code-block:: python
+
+      # As DataFrame
+      df = sheet['A1'].expand().options(pd.DataFrame, chunksize=10_000).value
+      # As list of list
+      df = sheet['A1'].expand().options(chunksize=10_000).value
+
+* [Enhancement] ``xw.load()`` now expands to the ``current_region`` instead of relying on ``expand()`` (:issue:`1565`).
+* [Enhancement] The OneDrive setting has been split up into a Windows and macOS-specific paths: ``ONEDRIVE_WIN`` and ``ONEDRIVE_MAC`` (:issue:`1556`).
+* [Bug Fix] macOS: There are no more timeouts when opening or saving large workbooks that take longer than 60 seconds (:issue:`618`).
+* [Bug Fix] ``RunPython`` was failing when there was a ``&`` in the Excel file name (:issue:`1557`).
+
 v0.23.0 (Mar 5, 2021)
 ---------------------
 
@@ -63,31 +98,34 @@ v0.22.0 (Jan 29, 2021)
 * [Feature] New method :meth:`mysheet.copy() <xlwings.Sheet.copy>` (:issue:`123`).
 * :guilabel:`PRO` [Feature]: in addition to ``xw.create_report()``, you can now also work within a workbook by using the new :meth:`mysheet.render_template() <xlwings.Sheet.render_template>` method, see also :ref:`reports_quickstart` (:issue:`1478`).
 
+Older Releases
+--------------
+
 v0.21.4 (Nov 23, 2020)
-----------------------
+**********************
 
 * [Enhancement] New property :attr:`Shape.text <xlwings.Shape.text>` to read and write text to the text frame of shapes (:issue:`1456`).
 * :guilabel:`PRO` [Feature]: xlwings Reports now supports template text in shapes, see :ref:`xlwings Reports<reports_quickstart>`.
 
 v0.21.3 (Nov 22, 2020)
-----------------------
+**********************
 
 * :guilabel:`PRO` **Breaking Change**: The :meth:`Table.update <xlwings.main.Table.update>` method has been changed to treat the DataFrame's index consistently whether or not it's being written to an Excel table: by default, the index is now transferred to Excel in both cases.
 
 v0.21.2 (Nov 15, 2020)
-----------------------
+**********************
 
 * [Bug Fix] The default ``quickstart`` setup now also works when you store your workbooks on OneDrive (:issue:`1275`)
 * [Bug Fix] Excel files that have single quotes in their paths are now working correctly (:issue:`1021`)
 
 v0.21.1 (Nov 13, 2020)
-----------------------
+**********************
 
 * [Enhancement] Added new method :meth:`Book.to_pdf() <xlwings.Book.to_pdf>` to easily export PDF reports. Needless to say, this integrates very nicely with :ref:`xlwings Reports<reports_quickstart>` (:issue:`1363`).
 * [Enhancement] Added support for :attr:`Sheet.visible <xlwings.Sheet.visible>` (:issue:`1459`).
 
 v0.21.0 (Nov 9, 2020)
----------------------
+*********************
 
 * [Enhancement] Added support for Excel tables, see: :meth:`Table <xlwings.main.Table>` and :meth:`Tables <xlwings.main.Tables>` and :meth:`range.table <xlwings.Range.table>` (:issue:`47` and :issue:`1364`)
 * [Enhancement]: When using UDFs, you can now use ``'range'`` for the ``convert`` argument where you would use before ``xw.Range``. The latter will be removed in a future version (:issue:`1455`).
@@ -96,7 +134,7 @@ v0.21.0 (Nov 9, 2020)
 * :guilabel:`PRO` [Enhancement]: The reports package now supports Excel tables in the templates. This is e.g. helpful to style the tables with striped rows, see :ref:`excel_tables_reports`  (:issue:`1364`).
 
 v0.20.8 (Oct 18, 2020)
-----------------------
+**********************
 
 * [Enhancement] Windows: With UDFs, you can now get easy access to the caller (an xlwings range object) by using ``caller`` as a function argument (:issue:`1434`). In that sense, ``caller`` is now a reserved argument by xlwings and if you have any existing arguments with this name, you'll need to rename them::
 
@@ -110,36 +148,36 @@ v0.20.8 (Oct 18, 2020)
 * [Bug Fix] Windows: Functions called via ``RunPython`` with ``Use UDF Server`` activated don't require the ``xw.sub`` decorator anymore (:issue:`1418`).
 
 v0.20.7 (Sep 3, 2020)
----------------------
+*********************
 
 * [Bug Fix] Windows: Fix a regression introduced with 0.20.0 that would cause an ``AttributeError: Range.CLSID`` with async and legacy dynamic array UDFs (:issue:`1404`).
 * [Enhancement]: Matplotlib figures are now converted to 300 dpi pictures for better quality when using them with ``pictures.add`` (:issue:`1402`).
 
 v0.20.6 (Sep 1, 2020)
----------------------
+*********************
 
 * [Bug Fix] macOS: ``App(visible=False)`` has been fixed (:issue:`652`).
 * [Bug Fix] macOS: The regression with ``Book.fullname`` that was introduced with 0.20.1 has been fixed (:issue:`1390`).
 * [Bug Fix] Windows: The retry mechanism has been improved (:issue:`1398`).
 
 v0.20.5 (Aug 27, 2020)
-----------------------
+**********************
 
 * [Bug Fix] The conda version check was failing with spaces in the installation path (:issue:`1396`).
 * [Bug Fix] Windows: when running ``app.quit()``, the application is now properly closed without leaving a zombie process behind (:issue:`1397`).
 
 v0.20.4 (Aug 20, 2020)
-----------------------
+**********************
 
 * [Enhancement] The add-in can now optionally be installed without the password protection: ``xlwings addin install --unprotected`` (:issue:`1392`).
 
 v0.20.3 (Aug 15, 2020)
-----------------------
+**********************
 
 * [Bug Fix] The conda version check was erroneously triggered when importing UDFs on systems without conda. (:issue:`1389`).
 
 v0.20.2 (Aug 13, 2020)
-----------------------
+**********************
 
 * :guilabel:`PRO` [Feature]: Code can now be embedded by calling the new ``xlwings code embed [--file]`` CLI command (:issue:`1380`).
 * [Bug Fix] Made the import UDFs functionality more robust to prevent an Automation 440 error that some users would see (:issue:`1381`).
@@ -147,13 +185,13 @@ v0.20.2 (Aug 13, 2020)
 * [Enhancement] xlwings now blocks the call if the Conda Path/Env settings are used with legacy Conda installations (:issue:`1384`).
 
 v0.20.1 (Aug 7, 2020)
----------------------
+*********************
 
 * [Bug Fix] macOS: password-protected sheets caused an alert when calling ``xw.Book`` (:issue:`1377`).
 * [Bug Fix] macOS: calling ``wb.save('newname.xlsx')`` wasn't updating the ``wb`` object properly and caused an alert (:issue:`1129` and :issue:`626` and :issue:`957`).
 
 v0.20.0 (Jul 22, 2020)
-----------------------
+**********************
 
 **This version drops support for Python 3.5**
 
@@ -162,7 +200,7 @@ v0.20.0 (Jul 22, 2020)
 * [Bug Fix] The UDF server has received a serious upgrade by `njwhite <https://github.com/njwhite>`_, getting rid of the many issues that were around with using a combination of async functions and legacy dynamic arrays. You can now also call functions defined via ``async def``, although for the time being they are still called synchronously from Excel (:issue:`1010` and :issue:`1164`).
 
 v0.19.5 (Jul 5, 2020)
-----------------------
+**********************
 
 * [Enhancement] When you install the add-in via ``xlwings addin install``, it autoconfigures the add-in if it can't find an existing user config file (:issue:`1322`).
 * [Feature] New ``xlwings config create [--force]`` command that autogenerates the user config file with the Python settings from which you run the command. Can be used to reset the add-in settings with the ``--force`` option (:issue:`1322`).
@@ -172,18 +210,18 @@ v0.19.5 (Jul 5, 2020)
 * [Bug Fix]: Async functions sometimes caused an error on older Excel versions without dynamic arrays (:issue:`1341`).
 
 v0.19.4 (May 20, 2020)
-----------------------
+**********************
 
 * [Feature] ``xlwings addin install`` is now available on macOS. On Windows, it has been fixed so it should now work reliably (:issue:`704`).
 * [Bug Fix] Fixed a ``dll load failed`` issue with ``pywin32`` when installed via ``pip`` on Python 3.8 (:issue:`1315`).
 
 v0.19.3 (May 19, 2020)
-----------------------
+**********************
 
 * :guilabel:`PRO` [Feature]: Added possibility to create deployment keys, see :ref:`deployment_key`.
 
 v0.19.2 (May 11, 2020)
-----------------------
+**********************
 
 * [Feature] New methods :meth:`xlwings.Shape.scale_height` and :meth:`xlwings.Shape.scale_width` (:issue:`311`).
 * [Bug Fix] Using ``Pictures.add`` is not distorting the proportions anymore (:issue:`311`).
@@ -193,12 +231,12 @@ v0.19.2 (May 11, 2020)
 .. figure:: images/plotly.png
 
 v0.19.1 (May 4, 2020)
----------------------
+*********************
 
 * [Bug Fix] Fixed an issue with the xlwings PRO license key when there was no ``xlwings.conf`` file (:issue:`1308`).
 
 v0.19.0 (May 2, 2020)
----------------------
+*********************
 
 * [Bug Fix] Native dynamic array formulas can now be used with async formulas (:issue:`1277`)
 * [Enhancement] Quickstart references the project's name when run from Python instead of the active book (:issue:`1307`)
@@ -208,7 +246,7 @@ v0.19.0 (May 2, 2020)
 * ``Conda Base`` has been renamed into ``Conda Path`` to reduce the confusion with the ``Conda Env`` called ``base``. Please adjust your settings accordingly! (:issue:`1194`)
 
 v0.18.0 (Feb 15, 2020)
-----------------------
+**********************
 
 * [Feature] Added support for merged cells: :attr:`xlwings.Range.merge_area`, :attr:`xlwings.Range.merge_cells`, :meth:`xlwings.Range.merge`
   :meth:`xlwings.Range.unmerge` (:issue:`21`).
@@ -217,27 +255,27 @@ v0.18.0 (Feb 15, 2020)
 
 
 v0.17.1 (Jan 31, 2020)
-----------------------
+**********************
 
 * [Bug Fix] Handle ``np.float64('nan')`` correctly (:issue:`1116`).
 
 v0.17.0 (Jan 6, 2020)
----------------------
+*********************
 
 This release drops support for Python 2.7 in xlwings CE. If you still rely on Python 2.7, you will need to stick to v0.16.6.
 
 v0.16.6 (Jan 5, 2020)
----------------------
+*********************
 
 * [Enhancement] CLI changes with respect to ``xlwings license`` (:issue:`1227`). 
 
 v0.16.5 (Dec 30, 2019)
-----------------------
+**********************
 
 * [Enhancement] Improvements with regards to the ``Run main`` ribbon button (:issue:`1207` and :issue:`1222`).
 
 v0.16.4 (Dec 17, 2019)
-----------------------
+**********************
 
 * [Enhancement] Added support for :meth:`xlwings.Range.copy` (:issue:`1214`).
 * [Enhancement] Added support for :meth:`xlwings.Range.paste` (:issue:`1215`). 
@@ -245,7 +283,7 @@ v0.16.4 (Dec 17, 2019)
 * [Enhancement] Added support for :meth:`xlwings.Range.delete` (:issue:`862`).
 
 v0.16.3 (Dec 12, 2019)
-----------------------
+**********************
 
 * [Bug Fix] Sometimes, xlwings would show an error of a previous run. Moreover, 0.16.2 introduced an issue that would
   not show errors at all on non-conda setups (:issue:`1158` and :issue:`1206`)
@@ -256,12 +294,12 @@ v0.16.3 (Dec 12, 2019)
 * ``LOG FILE`` has been retired and removed from the configuration/add-in.
 
 v0.16.2 (Dec 5, 2019)
----------------------
+*********************
 
 * [Bug Fix] ``RunPython`` can now be called in parallel from different Excel instances (:issue:`1196`).
 
 v0.16.1 (Dec 1, 2019)
----------------------
+*********************
 
 * [Enhancement] :meth:`xlwings.Book()` and ``myapp.books.open()`` now accept parameters like 
   ``update_links``, ``password`` etc. (:issue:`1189`).
@@ -271,7 +309,7 @@ v0.16.1 (Dec 1, 2019)
 
 
 v0.16.0 (Oct 13, 2019)
-----------------------
+**********************
 
 This release adds a small but very powerful feature: There's a new ``Run main`` button in the add-in.
 With that, you can run your Python scripts from standard ``xlsx`` files - no need to save your workbook
@@ -288,25 +326,25 @@ but you can save it as ``xlsx`` file if you intend to run it via the new ``Run``
     .. figure:: images/ribbon.png
 
 v0.15.10 (Aug 31, 2019)
------------------------
+**********************-
 
 * [Bug Fix] Fixed a Python 2.7 incompatibility introduced with 0.15.9.
 
 v0.15.9 (Aug 31, 2019)
-----------------------
+**********************
 
 * [Enhancement] The ``sql`` extension now uses the native dynamic arrays if available (:issue:`1138`).
 * [Enhancement] xlwings now support ``Path`` objects from ``pathlib`` for all file paths (:issue:`1126`).
 * [Bug Fix] Various bug fixes: (:issue:`1118`), (:issue:`1131`), (:issue:`1102`).
 
 v0.15.8 (May 5, 2019)
----------------------
+*********************
 
 * [Bug Fix] Fixed an issue introduced with the previous release that always showed the command prompt when running UDFs,
   not just when using conda envs (:issue:`1098`).
 
 v0.15.7 (May 5, 2019)
----------------------
+*********************
 
 * [Bug Fix] ``Conda Base`` and ``Conda Env`` weren't stored correctly in the config file from the ribbon (:issue:`1090`).
 * [Bug Fix] UDFs now work correctly with ``Conda Base`` and ``Conda Env``. Note, however, that currently there is no
@@ -315,7 +353,7 @@ v0.15.7 (May 5, 2019)
   it was only stopping the server and only when the first call to Python was made, it was started again (:issue:`1096`).
 
 v0.15.6 (Apr 29, 2019)
-----------------------
+**********************
 
 * [Feature] New default converter for ``OrderedDict`` (:issue:`1068`).
 * [Enhancement] ``Import Functions`` now restarts the UDF server to guarantee a clean state after importing. (:issue:`1092`)
@@ -330,7 +368,7 @@ v0.15.6 (Apr 29, 2019)
   Example: ``RunFrozenPython "C:\path\to\frozen_executable.exe", "arg1 arg2"`` (:issue:`1063`).
 
 v0.15.5 (Mar 25, 2019)
-----------------------
+**********************
 
 * [Enhancement] ``wb.macro()`` now accepts xlwings objects as arguments such as ``range``, ``sheet`` etc. when the VBA macro expects the corresponding Excel object (e.g. ``Range``, ``Worksheet`` etc.) (:issue:`784` and :issue:`1084`)
 
@@ -341,14 +379,14 @@ v0.15.5 (Mar 25, 2019)
 
 
 v0.15.4 (Mar 17, 2019)
-----------------------
+**********************
 
 * [Win] BugFix: The ribbon was not showing up in Excel 2007. (:issue:`1039`)
 * Enhancement: Allow to install xlwings on Linux even though it's not a supported platform: ``export INSTALL_ON_LINUX=1; pip install xlwings`` (:issue:`1052`)
 
 
 v0.15.3 (Feb 23, 2019)
-----------------------
+**********************
 
 Bug Fix release:
 
@@ -356,7 +394,7 @@ Bug Fix release:
 * [Win] Sometimes, the ribbon was throwing errors (:issue:`1041`)
 
 v0.15.2 (Feb 3, 2019)
----------------------
+*********************
 
 Better support and docs for deployment, see :ref:`deployment`:
 
@@ -368,14 +406,14 @@ Better support and docs for deployment, see :ref:`deployment`:
 * Accessing a not existing PID in the ``apps`` collection raises now a ``KeyError`` instead of an ``Exception`` (:issue:`1002`).
 
 v0.15.1 (Nov 29, 2018)
-----------------------
+**********************
 
 Bug Fix release:
 
 * [Win] Calling Subs or UDFs from VBA was causing an error (:issue:`998`).
 
 v0.15.0 (Nov 20, 2018)
-----------------------
+**********************
 
 **Dynamic Array Refactor**
 
@@ -397,7 +435,7 @@ In the meantime, this refactor improves the current xlwings dynamic arrays in th
 * Importing multiple UDF modules has been fixed (:issue:`991`).
 
 v0.14.1 (Nov 9, 2018)
----------------------
+*********************
 
 This is a bug fix release:
 
@@ -406,7 +444,7 @@ This is a bug fix release:
 * [Mac] Fixed an issue with the config file (:issue:`982`)
 
 v0.14.0 (Nov 5, 2018)
----------------------
+*********************
 
 **Features**:
 
@@ -429,7 +467,7 @@ See :ref:`async_functions` for the full docs.
 
 
 v0.13.0 (Oct 22, 2018)
-----------------------
+**********************
 
 **Features**:
 
@@ -455,12 +493,12 @@ see :ref:`rest_api` for all the details!
   ``xw.apps[12345]`` instead of ``xw.apps[0]``. The apps collection also has a new ``xw.apps.keys()`` method. (:issue:`951`)
 
 v0.12.1 (Oct 7, 2018)
----------------------
+*********************
 
 [Py27] Bug Fix for a Python 2.7 glitch. 
 
 v0.12.0 (Oct 7, 2018)
----------------------
+*********************
 
 **Features**:
 
@@ -498,18 +536,18 @@ using by ``xlwings quickstart``:
 * Other bug fixes: :issue:`889`, :issue:`939`, :issue:`940`, :issue:`943`.
 
 v0.11.8 (May 13, 2018)
-----------------------
+**********************
 
 * [Win] pywin32 is now automatically installed when using pip (:issue:`827`)
 * `xlwings.bas` has been readded to the python package. This facilitates e.g. the use of xlwings within other addins (:issue:`857`)
 
 v0.11.7 (Feb 5, 2018)
-----------------------
+**********************
 
 * [Win] This release fixes a bug introduced with v0.11.6 that wouldn't allow to open workbooks by name (:issue:`804`)
 
 v0.11.6 (Jan 27, 2018)
-----------------------
+**********************
 
 Bug Fixes:
 
@@ -518,7 +556,7 @@ Bug Fixes:
 
 
 v0.11.5 (Jan 7, 2018)
----------------------
+*********************
 
 This is mostly a bug fix release:
 
@@ -529,7 +567,7 @@ This is mostly a bug fix release:
 * [Mac] UDF decorators now don't cause errors on Mac anymore (:issue:`780`)
 
 v0.11.4 (Jul 23, 2017)
-----------------------
+**********************
 
 This release brings further improvements with regards to the add-in:
 
@@ -551,7 +589,7 @@ Also, some new docs:
 * A troubleshooting section: :ref:`troubleshooting`.
 
 v0.11.3 (Jul 14, 2017)
-----------------------
+**********************
 
 * Bug Fix: When using the ``xlwings.conf`` sheet, there was a subscript out of range error (:issue:`708`)
 * Enhancement: The add-in is now password protected (pw: ``xlwings``) to declutter the VBA editor (:issue:`710`)
@@ -560,20 +598,20 @@ You need to update your xlwings add-in to get the fixes!
 
 
 v0.11.2 (Jul 6, 2017)
----------------------
+*********************
 
 * Bug Fix: The sql extension was sometimes not correctly assigning the table aliases (:issue:`699`)
 * Bug Fix: Permission errors during pip installation should be resolved now (:issue:`693`)
 
 
 v0.11.1 (Jul 5, 2017)
----------------------
+*********************
 
 * Bug Fix: The sql extension installs now correctly (:issue:`695`)
 * Added migration guide for v0.11, see :ref:`migrate_to_0.11`
 
 v0.11.0 (Jul 2, 2017)
----------------------
+*********************
 
 Big news! This release adds a full blown **add-in**! We also throw in a great **In-Excel SQL Extension** and a few **bug fixes**:
 
@@ -614,7 +652,7 @@ Breaking Changes
 .. _migrate_to_0.11:
 
 Migrate to v0.11 (Add-in)
--------------------------
+*************************
 
 This migration guide shows you how you can start using the new xlwings add-in as opposed to the old xlwings VBA module
 (and the old add-in that consisted of just a single import button).
@@ -662,13 +700,13 @@ Upgrade existing workbooks
 
 
 v0.10.4 (Feb 19, 2017)
-----------------------
+**********************
 
 * [Win] Bug Fix: v0.10.3 introduced a bug that imported UDFs by default with `volatile=True`, this has now been fixed.
   You will need to reimport your functions after upgrading the xlwings package.
 
 v0.10.3 (Jan 28, 2017)
-----------------------
+**********************
 
 This release adds new features to User Defined Functions (UDFs):
 
@@ -688,13 +726,13 @@ Syntax:
 For details, check out the (also new) and comprehensive API docs about the decorators: :ref:`udf_api`
 
 v0.10.2 (Dec 31, 2016)
-----------------------
+**********************
 
 * [Win] Python 3.6 is now supported (:issue:`592`)
 
 
 v0.10.1 (Dec 5, 2016)
----------------------
+*********************
 
 * Writing a Pandas Series with a MultiIndex header was not writing out the header (:issue:`572`)
 * [Win] Docstrings for UDF arguments are now working (:issue:`367`)
@@ -702,7 +740,7 @@ v0.10.1 (Dec 5, 2016)
 * ``xw.Book(...)`` and ``xw.books.open(...)`` raise now the same error in case the file doesn't exist (:issue:`540`)
 
 v0.10.0 (Sep 20, 2016)
-----------------------
+**********************
 
 Dynamic Array Formulas
 **********************
@@ -738,7 +776,7 @@ Bug Fixes
   it could happen that the number was off by 1 due to floating point issues (:issue:`554`).
 
 v0.9.3 (Aug 22, 2016)
----------------------
+*********************
 
 * [Win] ``App.visible`` wasn't behaving correctly (:issue:`551`).
 * [Mac] Added support for the new 64bit version of Excel 2016 on Mac (:issue:`549`).
@@ -748,7 +786,7 @@ v0.9.3 (Aug 22, 2016)
   directory (:issue:`185`).
 
 v0.9.2 (Aug 8, 2016)
---------------------
+********************
 
 Another round of bug fixes:
 
@@ -757,7 +795,7 @@ Another round of bug fixes:
 * Fixed docs regarding set_mock_caller (:issue:`543`)
 
 v0.9.1 (Aug 5, 2016)
---------------------
+********************
 
 This is a bug fix release: As to be expected after a rewrite, there were some rough edges that have now been taken care of:
 
@@ -770,7 +808,7 @@ This is a bug fix release: As to be expected after a rewrite, there were some ro
 .. _v0.9_release_notes:
 
 v0.9.0 (Aug 2, 2016)
---------------------
+********************
 
 Exciting times! v0.9.0 is a complete rewrite of xlwings with loads of syntax changes (hence the version jump). But more
 importantly, this release adds a ton of new features and bug fixes that would have otherwise been impossible. Some of the
@@ -845,7 +883,7 @@ Bug Fixes
 .. _migrate_to_0.9:
 
 Migrate to v0.9
----------------
+***************
 
 The purpose of this document is to enable you a smooth experience when upgrading to xlwings v0.9.0 and above by laying out
 the concept and syntax changes in detail. If you want to get an overview of the new features and bug fixes, have a look at the
@@ -995,7 +1033,7 @@ Note that ``sht`` stands for a sheet object, like e.g. (in 0.9.0 syntax): ``sht 
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
 
 v0.7.2 (May 18, 2016)
----------------------
+*********************
 
 Bug Fixes
 *********
@@ -1005,7 +1043,7 @@ Bug Fixes
 
 
 v0.7.1 (April 3, 2016)
-----------------------
+**********************
 
 Enhancements
 ************
@@ -1076,7 +1114,7 @@ Bug Fixes
 * [Mac]: ``xlwings runpython install`` was failing (:issue:`424`)
 
 v0.7.0 (March 4, 2016)
-----------------------
+**********************
 
 This version marks an important first step on our path towards a stable release. It introduces **converters**, a new and powerful
 concept that brings a consistent experience for how Excel Ranges and their values are treated both when **reading** and **writing** but
@@ -1282,7 +1320,7 @@ A few bugfixes were made: :issue:`352`, :issue:`359`.
 
 
 v0.6.4 (January 6, 2016)
-------------------------
+**********************--
 
 API changes
 ***********
@@ -1315,7 +1353,7 @@ Bug Fixes
 
 
 v0.6.3 (December 18, 2015)
---------------------------
+**********************----
 
 Bug Fixes
 *********
@@ -1324,7 +1362,7 @@ Bug Fixes
 
 
 v0.6.2 (December 15, 2015)
---------------------------
+**********************----
 
 API changes
 ***********
@@ -1343,7 +1381,7 @@ Bug Fixes
 
 
 v0.6.1 (December 4, 2015)
--------------------------
+**********************---
 
 Bug Fixes
 *********
@@ -1353,7 +1391,7 @@ Bug Fixes
 
 
 v0.6.0 (November 30, 2015)
---------------------------
+**************************
 
 API changes
 ***********
@@ -1393,7 +1431,7 @@ Enhancements
 
 
 v0.5.0 (November 10, 2015)
---------------------------
+**************************
 
 API changes
 ***********
@@ -1455,7 +1493,7 @@ Bug Fixes
 
 
 v0.4.1 (September 27, 2015)
----------------------------
+***************************
 
 API changes
 ***********
@@ -1490,7 +1528,7 @@ Bug Fixes
 
 
 v0.4.0 (September 13, 2015)
----------------------------
+***************************
 
 API changes
 ***********
@@ -1542,7 +1580,7 @@ Bug Fixes
 * Fixed an error when adding a new Sheet that was already existing (:issue:`211`).
 
 v0.3.6 (July 14, 2015)
-----------------------
+**********************
 
 API changes
 ***********
@@ -1594,7 +1632,7 @@ Various improvements regarding unicode file path handling, including:
   (:issue:`154`).
 
 v0.3.5 (April 26, 2015)
------------------------
+***********************
 
 API changes
 ***********
@@ -1624,14 +1662,14 @@ Bug Fixes
 * The ``unicode`` bug on Windows/Python3 has been fixed (:issue:`161`)
 
 v0.3.4 (March 9, 2015)
-----------------------
+**********************
 
 Bug Fixes
 *********
 * The installation error on Windows has been fixed (:issue:`160`)
 
 v0.3.3 (March 8, 2015)
-----------------------
+**********************
 
 API changes
 ***********
@@ -1679,7 +1717,7 @@ Bug Fixes
 * [Mac]: Sometimes, xlwings was causing an error when quitting the Python interpreter (:issue:`136`).
 
 v0.3.2 (January 17, 2015)
--------------------------
+*************************
 
 API changes
 ***********
@@ -1701,7 +1739,7 @@ Bug Fixes
 
 
 v0.3.1 (January 16, 2015)
--------------------------
+*************************
 
 API changes
 ***********
@@ -1743,7 +1781,7 @@ Bug Fixes
 
 
 v0.3.0 (November 26, 2014)
---------------------------
+**************************
 
 API changes
 ***********
@@ -1809,7 +1847,7 @@ Bug Fixes
 
 
 v0.2.3 (October 17, 2014)
--------------------------
+*************************
 
 API changes
 ***********
@@ -1885,7 +1923,7 @@ Bug Fixes
 
 
 v0.2.2 (September 23, 2014)
----------------------------
+***************************
 
 API changes
 ***********
@@ -2005,7 +2043,7 @@ Bug Fixes
 
 
 v0.2.1 (August 7, 2014)
------------------------
+***********************
 
 API changes
 ***********
@@ -2045,7 +2083,7 @@ None
 Special thanks go to Georgi Petrov for helping with this release.
 
 v0.2.0 (July 29, 2014)
-----------------------
+**********************
 
 API changes
 ***********
@@ -2070,7 +2108,7 @@ Bug Fixes
 
 
 v0.1.1 (June 27, 2014)
-----------------------
+**********************
 
 API Changes
 ***********
@@ -2184,6 +2222,6 @@ Bug Fixes
 
 
 v0.1.0 (March 19, 2014)
------------------------
+***********************
 
 Initial release of xlwings.
