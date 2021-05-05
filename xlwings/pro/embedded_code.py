@@ -17,7 +17,7 @@ def dump_embedded_code(book, target_dir):
             last_cell = sheet.used_range.last_cell
             sheet_content = sheet.range((1, 1), (last_cell.row, 1)).options(ndim=1).value
 
-            with open(os.path.join(target_dir, sheet.name), 'w') as f:
+            with open(os.path.join(target_dir, sheet.name), 'w', encoding='utf-8') as f:
                 for row in sheet_content:
                     if row is None:
                         f.write('\n')

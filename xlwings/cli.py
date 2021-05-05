@@ -220,7 +220,7 @@ def code_embed(args):
         source_files = Path('.').glob('*.py')
 
     for source_file in source_files:
-        with open(source_file, 'r') as f:
+        with open(source_file, 'r', encoding='utf-8') as f:
             content = []
             for line in f.read().splitlines():
                 # Handle single-quote docstrings
