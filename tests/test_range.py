@@ -539,6 +539,11 @@ class TestRangeAttributes(TestBase):
         self.wb2.sheets[0].range('C10').select()
         self.assertEqual(self.app2.selection.address, self.wb2.sheets[0].range('C10').address)
 
+    def test_wrap_text(self):
+        self.assertFalse(self.wb1.sheets[0]['A1'].wrap_text)
+        self.wb1.sheets[0]['A1'].wrap_text = True
+        self.assertTrue(self.wb1.sheets[0]['A1'].wrap_text)
+
 
 class TestRangeIndexing(TestBase):
     # 2d Range
