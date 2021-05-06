@@ -3533,7 +3533,7 @@ class Name:
         return "<Name '%s': %s>" % (self.name, self.refers_to)
 
 
-def view(obj, sheet=None, table=True):
+def view(obj, sheet=None, table=True, chunksize=5000):
     """
     Opens a new workbook and displays an object on its first sheet by default. If you provide a
     sheet object, it will clear the sheet before displaying the object on the existing sheet.
@@ -3552,6 +3552,9 @@ def view(obj, sheet=None, table=True):
 
     table : bool, default True
         If your object is a pandas DataFrame, by default it is formatted as an Excel Table
+
+    chunksize : int, default 5000
+        Chunks the loading of big arrays.
 
     Examples
     --------
@@ -3572,16 +3575,17 @@ def view(obj, sheet=None, table=True):
         sheet.clear()
 
     app = sheet.book.app
+    app.activate(steal_focus=True)
     screen_updating_original_state = app.screen_updating
 
     try:
         sheet.book.app.screen_updating = False
         if pd and isinstance(obj, pd.DataFrame):
             if table:
-                sheet['A1'].options(assign_index_names=True).value = obj
+                sheet['A1'].options(assign_index_names=True, chunksize=chunksize).value = obj
                 sheet.tables.add(sheet['A1'].expand())
             else:
-                sheet['A1'].options(assign_index_names=False).value = obj
+                sheet['A1'].options(assign_index_names=False, chunksize=chunksize).value = obj
         else:
             sheet['A1'].value = obj
         sheet.autofit()
@@ -3590,10 +3594,8 @@ def view(obj, sheet=None, table=True):
     finally:
         sheet.book.app.screen_updating = screen_updating_original_state
 
-    sheet.book.app.activate(steal_focus=True)
 
-
-def load(index=1, header=1):
+def load(index=1, header=1, chunksize=5000):
     """
     Loads the selected cell(s) of the active workbook into a pandas DataFrame. If you select a single cell that has
     adjacent cells, the range is auto-expanded (via current region) and turned into a pandas DataFrame. If you don't
@@ -3611,6 +3613,9 @@ def load(index=1, header=1):
     header : bool or int, default 1
         Defines the number of rows at the top that will be turned into the DataFrame's columns
 
+    chunksize : int, default 5000
+        Chunks the loading of big arrays.
+
     Examples
     --------
     >>> import xlwings as xw
@@ -3624,9 +3629,9 @@ def load(index=1, header=1):
     if selection.shape == (1, 1):
         selection = selection.current_region
     if pd:
-        values = selection.options(pd.DataFrame, index=index, header=header).value
+        values = selection.options(pd.DataFrame, index=index, header=header, chunksize=chunksize).value
     else:
-        values = selection.value
+        values = selection.options(chunksize=chunksize).value
     return values
 
 
