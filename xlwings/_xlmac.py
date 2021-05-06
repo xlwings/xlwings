@@ -259,7 +259,7 @@ class Book:
 
     def save(self, path):
         saved_path = self.xl.properties().get(kw.path)
-        source_ext = os.path.splitext(saved_path)[1] if saved_path else None
+        source_ext = os.path.splitext(self.name)[1] if saved_path else None
         target_ext = os.path.splitext(path)[1] if path else '.xlsx'
         if saved_path and source_ext == target_ext:
             file_format = self.xl.properties().get(kw.file_format)
