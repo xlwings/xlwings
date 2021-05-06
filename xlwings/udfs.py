@@ -125,13 +125,13 @@ def get_async_mode(**func_kwargs):
         return None
 
 
-def check_bool(kw, **func_kwargs):
+def check_bool(kw, default, **func_kwargs):
     if kw in func_kwargs:
         check = func_kwargs.pop(kw)
         if isinstance(check, bool):
             return check
         raise Exception('{0} only takes boolean values. ("{1}" provided).'.format(kw, check))
-    return False
+    return default
 
 
 def xlfunc(f=None, **kwargs):
@@ -166,8 +166,8 @@ def xlfunc(f=None, **kwargs):
                 "options": {}
             }
         f.__xlfunc__["category"] = get_category(**kwargs)
-        f.__xlfunc__['call_in_wizard'] = check_bool('call_in_wizard', **kwargs)
-        f.__xlfunc__['volatile'] = check_bool('volatile', **kwargs)
+        f.__xlfunc__['call_in_wizard'] = check_bool('call_in_wizard', default=True, **kwargs)
+        f.__xlfunc__['volatile'] = check_bool('volatile', default=False, **kwargs)
         f.__xlfunc__['async_mode'] = get_async_mode(**kwargs)
         return f
     if f is None:
