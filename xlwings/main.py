@@ -2146,6 +2146,20 @@ class Range:
         else:
             return None
 
+    @property
+    def wrap_text(self):
+        """
+        Returns ``True`` if the wrap_text property is enabled and ``False`` if it's disabled.
+        If not all cells have the same value in a range, on Windows it returns ``None`` and on macOS ``False``.
+
+        .. versionadded:: 0.23.2
+        """
+        return self.impl.wrap_text
+
+    @wrap_text.setter
+    def wrap_text(self, value):
+        self.impl.wrap_text = value
+
 
 # These have to be after definition of Range to resolve circular reference
 from . import conversion

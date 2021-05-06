@@ -1102,6 +1102,14 @@ class Range:
     def characters(self):
         return Characters(parent=self, xl=self.xl.GetCharacters)
 
+    @property
+    def wrap_text(self):
+        return self.xl.WrapText
+
+    @wrap_text.setter
+    def wrap_text(self, value):
+        self.xl.WrapText = value
+
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
     if number_builder is not None:

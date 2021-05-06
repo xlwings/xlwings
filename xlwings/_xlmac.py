@@ -851,8 +851,17 @@ class Range:
         # This is broken with AppleScript/Excel 2016
         return Characters(parent=self, xl=self.xl.characters)
 
+    @property
+    def wrap_text(self):
+        return self.xl.wrap_text.get()
+
+    @wrap_text.setter
+    def wrap_text(self, value):
+        self.xl.wrap_text.set(value)
+
 
 class Shape:
+
     def __init__(self, parent, key):
         self.parent = parent
         self.xl = parent.xl.shapes[key]
