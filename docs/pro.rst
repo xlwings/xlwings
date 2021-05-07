@@ -13,11 +13,12 @@ xlwings PRO offers access to additional functionality. All PRO features are mark
 PRO Features
 ------------
 
-* :meth:`Table.update() <xlwings.main.Table.update>`: An easy way to keep an Excel table in sync with a pandas DataFrame
+* :ref:`zero_config_installer`: Easily build your own Python installer including all dependencies---guarantees that the end user does not need to know anything about Python.
 * :ref:`embedded_code`: Store your Python source code directly in Excel for easy deployment.
-* :ref:`reports_quickstart`: A template based reporting mechanism, allows business users to change the layout of the report without having to change Python code.
+* :ref:`reports_quickstart`: A template-based reporting mechanism, allows business users to change the layout of the report without having to change Python code.
+* :ref:`markdown`: Support for Markdown formatting of text in cells and shapes like e.g., text boxes.
 * :ref:`plotly`: Support for Plotly static charts.
-* :ref:`zero_config_installer`: Guarantees that the end user does not need to know anything about Python.
+* :meth:`Table.update() <xlwings.main.Table.update>`: An easy way to keep an Excel table in sync with a pandas DataFrame
 
 More Infos
 ----------

@@ -1,6 +1,15 @@
 What's New
 ==========
 
+v0.23.2 (May 7, 2021)
+---------------------
+
+* [Feature] Added support for :attr:`myrange.wrap_text <xlwings.Range.wrap_text>` (:issue:`173`).
+* [Enhancement] :meth:`xlwings.view` and :meth:`xlwings.load` now use chunking by default (:issue:`1570`).
+* [Bug Fix] Allow to save non-Excel file formats (:issue:`1569`)
+* [Bug Fix] Calculate formulas by default in the Function Wizard (:issue:`1574`).
+* :guilabel:`PRO` [Bug Fix] Properly embed code with unicode characters (:issue:`1575`).
+
 v0.23.1 (Apr 19, 2021)
 ----------------------
 
