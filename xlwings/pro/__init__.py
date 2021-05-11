@@ -6,7 +6,8 @@ You will find the license under https://github.com/xlwings/xlwings/blob/master/L
 """
 
 from .utils import LicenseHandler
-from .embedded_code import runpython_embedded_code
+from .embedded_code import runpython_embedded_code, dump_embedded_code
 from .reports import Markdown, MarkdownStyle
+from .module_permissions import verify_execute_permission
 
 LicenseHandler.validate_license('pro')

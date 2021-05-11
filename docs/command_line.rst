@@ -51,3 +51,9 @@ xlwings comes with a command line client. On Windows, type the commands into a `
                         providing its path. To run embedded code, you need an
                         xlwings PRO license.
                         (New in 0.20.2)
+    permission          "xlwings permission cwd" prints a JSON string that can
+                        be used to permission the execution of all modules in
+                        the current working directory via GET request.
+                        "xlwings permission book" does the same for code that
+                        is embedded in the active workbook.
+                        (New in 0.23.3)

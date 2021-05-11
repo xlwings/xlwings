@@ -23,10 +23,11 @@ import pywintypes
 from win32com.client import Dispatch
 
 from . import conversion, xlplatform, Range, apps, Book, PRO, LicenseError
-from .utils import VBAWriter, exception
+from .utils import VBAWriter, exception, get_cached_user_config
 
 if PRO:
     from .pro.embedded_code import dump_embedded_code, get_udf_temp_dir
+    from .pro import verify_execute_permission
 
 logger = logging.getLogger(__name__)
 cache = {}
@@ -419,7 +420,8 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     """
     This method executes the UDF synchronously from the COM server thread
     """
-
+    if get_cached_user_config('permission_check_enabled').lower() == 'true':
+        verify_execute_permission(module_names=(module_name,))
     module = get_udf_module(module_name, this_workbook)
     func = getattr(module, func_name)
     func_info = func.__xlfunc__
@@ -632,6 +634,8 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
 
 def import_udfs(module_names, xl_workbook):
     module_names = module_names.split(';')
+    if get_cached_user_config('permission_check_enabled').lower() == 'true':
+        verify_execute_permission(module_names=tuple(module_names))
 
     tf = tempfile.NamedTemporaryFile(mode='w', delete=False)
 
