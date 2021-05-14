@@ -25,7 +25,7 @@ this_dir = Path(__file__).resolve().parent
 
 @pytest.fixture
 def app():
-    app = xw.App(visible=True)
+    app = xw.App(visible=False)
     yield app
     for book in app.books:
         book.close()
@@ -237,46 +237,3 @@ def test_udf_embedded_code_standalone(clear_user_config, app, tmp_path):
     (Path.home() / '.xlwings' / 'xlwings.conf').unlink()
     quickstart_book.app.api.CalculateFull()
     assert 'xlwings.LicenseError: Embedded code requires a valid LICENSE_KEY.' in quickstart_book.sheets[0]['A1'].value
-
-
-@pytest.mark.parametrize("method", ["POST", "GET"])
-def test_permission_success(clear_user_config, app, addin, method):
-    # Requires permission/permission_server.py running
-    book = app.books.open(Path('.') / 'permission' / 'permission.xlsm')
-
-    config = ['"PERMISSION_CHECK_ENABLED","True"\n',
-              '"PERMISSION_CHECK_URL","http://localhost:5000/success"\n',
-              f'"PERMISSION_CHECK_METHOD","{method}"\n',
-              '"UDF Modules","permission;permission2"\n',
-              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"']
-
-    os.makedirs(Path.home() / '.xlwings')
-    with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as f:
-        f.writelines(config)
-
-    # UDF 1
-    book.macro('ImportPythonUDFs')()
-    book.sheets[0]['A10'].value = '=hello("test")'
-    assert book.sheets[0]['A10'].value == 'Hello test!'
-
-    # UDF 2
-    book.macro('ImportPythonUDFs')()
-    book.sheets[0]['A11'].value = '=hello2("test")'
-    assert book.sheets[0]['A11'].value == 'Hello2 test!'
-
-    # RunPython 1
-    sample_call = book.macro('Module1.Main')
-    sample_call()
-    assert book.sheets[0]['A1'].value == 'Hello xlwings!'
-    sample_call()
-    assert book.sheets[0]['A1'].value == 'Bye xlwings!'
-
-    # RunPython 2
-    book.sheets[0]['A1'].clear_contents()
-
-    sample_call = book.macro('Module1.Main2')
-    sample_call()
-    assert book.sheets[0]['A1'].value == 'Hello2 xlwings!'
-    sample_call()
-    assert book.sheets[0]['A1'].value == 'Bye2 xlwings!'
-

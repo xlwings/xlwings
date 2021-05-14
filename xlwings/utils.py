@@ -4,6 +4,7 @@ import tempfile
 import datetime as dt
 import traceback
 from functools import total_ordering, lru_cache
+from pathlib import Path
 
 try:
     import numpy as np
@@ -244,11 +245,12 @@ def read_config_sheet(book):
 def read_user_config():
     """Returns keys in lowercase of xlwings.conf in the user's home directory"""
     config = {}
-    with open(xlwings.USER_CONFIG_FILE, 'r') as f:
-        for line in f:
-            values = re.findall(r'"[^"]*"', line)
-            if values:
-                config[values[0].strip('"').lower()] = values[1].strip('"')
+    if Path(xlwings.USER_CONFIG_FILE).is_file():
+        with open(xlwings.USER_CONFIG_FILE, 'r') as f:
+            for line in f:
+                values = re.findall(r'"[^"]*"', line)
+                if values:
+                    config[values[0].strip('"').lower()] = values[1].strip('"')
     return config
 
 

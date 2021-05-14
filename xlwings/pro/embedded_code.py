@@ -6,7 +6,9 @@ import sys
 import tempfile
 
 from .utils import LicenseHandler
+from .module_permissions import verify_execute_permission
 from ..main import Book
+from ..utils import get_cached_user_config
 
 LicenseHandler.validate_license('pro')
 
@@ -29,6 +31,9 @@ def dump_embedded_code(book, target_dir):
 def runpython_embedded_code(command):
     with tempfile.TemporaryDirectory(prefix='xlwings-') as tempdir:
         dump_embedded_code(Book.caller(), tempdir)
+        if (get_cached_user_config('permission_check_enabled')
+                and get_cached_user_config('permission_check_enabled').lower() == 'true'):
+            verify_execute_permission(command=command)
         exec(command)
 
 
