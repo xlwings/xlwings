@@ -7,10 +7,10 @@ directory, copy the test folder next to the install xlwings package,then run:
 
 * all tests (this relies on the settings in pytest.ini):
 
-pytest test_e2e.py
+pytest test_permission.py
 
 * single test:
-pytest test_e2e.py::test_name
+pytest test_permission.py::test_name
 """
 
 import os

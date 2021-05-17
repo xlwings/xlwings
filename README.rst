@@ -1,11 +1,10 @@
 xlwings - Make Excel fly with Python!
 =====================================
 
-xlwings CE
-----------
+xlwings (Open Source)
+---------------------
 
-xlwings CE is a `BSD-licensed <http://opensource.org/licenses/BSD-3-Clause>`_ Python library that makes it easy to call
-Python from Excel and vice versa:
+xlwings is a `BSD-licensed <http://opensource.org/licenses/BSD-3-Clause>`_ Python library that makes it easy to call Python from Excel and vice versa:
 
 * **Scripting**: Automate/interact with Excel from Python using a syntax that is close to VBA.
 * **Macros**: Replace your messy VBA macros with clean and powerful Python code.
@@ -15,7 +14,7 @@ Python from Excel and vice versa:
 **Numpy arrays** and **Pandas Series/DataFrames** are fully supported. xlwings-powered workbooks are easy to distribute and work
 on **Windows** and **Mac**.
 
-xlwings CE includes all files in the xlwings package except the ``pro`` folder, i.e. the ``xlwings.pro`` subpackage.
+xlwings includes all files in the xlwings package except the ``pro`` folder, i.e. the ``xlwings.pro`` subpackage.
 
 xlwings PRO
 -----------

@@ -1,11 +1,10 @@
 xlwings - Make Excel Fly!
 =========================
 
-xlwings CE
-----------
+xlwings (Open Source)
+---------------------
 
-xlwings CE is a `BSD-licensed <http://opensource.org/licenses/BSD-3-Clause>`_ Python library that makes it easy to call
-Python from Excel and vice versa:
+xlwings is a `BSD-licensed <http://opensource.org/licenses/BSD-3-Clause>`_ Python library that makes it easy to call Python from Excel and vice versa:
 
 * **Scripting**: Automate/interact with Excel from Python using a syntax close to VBA.
 * **Macros**: Replace VBA macros with clean and powerful Python code.
@@ -39,8 +38,6 @@ See :ref:`pro` for more details.
     matplotlib
     jupyternotebooks
     command_line
-    reports
-    markdown
     deployment
     troubleshooting
 
@@ -49,7 +46,6 @@ See :ref:`pro` for more details.
     :hidden:
     :caption: Advanced Features
 
-    pro
     converters
     debugging
     extensions
@@ -57,7 +53,19 @@ See :ref:`pro` for more details.
     threading_and_multiprocessing
     missing_features
     other_office_apps
-    r_and_julia
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :caption: xlwings PRO
+
+    pro
+    markdown
+    reports
+    embedded_code
+    one_click_installer
+    deploy_key
+    permissioning
 
 .. toctree::
     :maxdepth: 2
