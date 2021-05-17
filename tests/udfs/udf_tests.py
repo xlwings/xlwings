@@ -723,5 +723,11 @@ def mysub(x):
     wb = xw.Book.caller()
     wb.sheets['Sub'].range('A3').value = x
 
+
+@xw.func
+def return_pd_nat():
+    return pd.DataFrame(data=[pd.NaT], columns=[1], index=[1])
+
+
 if __name__ == "__main__":
     xw.serve()

@@ -1185,7 +1185,7 @@ def _datetime_to_com_time(dt_time):
     """
     # Convert date to datetime
     if pd and isinstance(dt_time, type(pd.NaT)):
-        return None
+        return ""
     if np:
         if type(dt_time) is np.datetime64:
             dt_time = np_datetime_to_datetime(dt_time)
