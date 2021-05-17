@@ -27,11 +27,11 @@ this_dir = Path(__file__).resolve().parent
 
 @pytest.fixture
 def app():
-    app = xw.App(visible=True)
+    app = xw.App(visible=False)
     yield app
     for book in app.books:
         book.close()
-    app.kill()  # test_addin_installation currently leaves Excel hanging otherwise
+    app.kill()
 
 
 @pytest.fixture
@@ -174,122 +174,122 @@ def test_permission_cant_override_config_file(clear_user_config, app, addin):
 
 @pytest.mark.parametrize("method", ["POST", "GET"])
 def test_permission_udf_cant_find_file(clear_user_config, app, addin, method):
-    # TODO: has to fail currently, need to disable Excel pop-up errors for testing
     book = app.books.open(Path('.') / 'permission.xlsm')
 
     config = ['"PERMISSION_CHECK_ENABLED","True"\n',
               f'"PERMISSION_CHECK_URL","http://localhost:5000/success"\n',
               f'"PERMISSION_CHECK_METHOD","{method}"\n',
               '"UDF Modules","permission;doesnexist"\n',
-              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"']
+              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"\n',
+              '"SHOW_ERROR_POPUPS","False"']
 
     os.makedirs(Path.home() / '.xlwings')
     with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as f:
         f.writelines(config)
 
-    with pytest.raises(FileNotFoundError):
-        book.macro('ImportPythonUDFs')()
+    book.macro('ImportPythonUDFs')()
+    assert 'FileNotFoundError' in book.sheets['Error']['A1'].value
 
 
 @pytest.mark.parametrize("method, endpoint", [("POST", "fail-machinename"),
                                               ("GET", "fail-machinename"), ("GET", "fail-hash"), ("GET", "fail-filename")])
 def test_permission_udf_import_fails(clear_user_config, app, addin, method, endpoint):
-    # TODO: has to fail currently, need to disable Excel pop-up errors for testing
     book = app.books.open(Path('.') / 'permission.xlsm')
 
     config = ['"PERMISSION_CHECK_ENABLED","True"\n',
               f'"PERMISSION_CHECK_URL","http://localhost:5000/{endpoint}"\n',
               f'"PERMISSION_CHECK_METHOD","{method}"\n',
               '"UDF Modules","permission;permission2"\n',
-              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"']
+              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"\n',
+              '"SHOW_ERROR_POPUPS","False"']
 
     os.makedirs(Path.home() / '.xlwings')
     with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as f:
         f.writelines(config)
 
-    with pytest.raises(xw.XlwingsError):
-        book.macro('ImportPythonUDFs')()
+    book.macro('ImportPythonUDFs')()
+    assert 'XlwingsError' in book.sheets['Error']['A1'].value
 
 
 @pytest.mark.parametrize("method", ["POST", "GET"])
 def test_permission_runpython_cant_find_file(clear_user_config, app, addin, method):
-    # TODO: has to fail currently, need to disable Excel pop-up errors for testing
     book = app.books.open(Path('.') / 'permission.xlsm')
 
     config = ['"PERMISSION_CHECK_ENABLED","True"\n',
               f'"PERMISSION_CHECK_URL","http://localhost:5000/success"\n',
               f'"PERMISSION_CHECK_METHOD","{method}"\n',
-              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"']
+              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"\n',
+              '"SHOW_ERROR_POPUPS","False"']
 
     os.makedirs(Path.home() / '.xlwings')
     with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as f:
         f.writelines(config)
 
-    with pytest.raises(FileNotFoundError):
-        book.macro('Module1.CantFindFile')()
+    book.macro('Module1.CantFindFile')()
+    assert 'FileNotFoundError' in book.sheets['Error']['A1'].value
 
 
 @pytest.mark.parametrize("method", ["POST", "GET"])
 def test_permission_runpython_cant_use_from_imports(clear_user_config, app, addin, method):
-    # TODO: has to fail currently, need to disable Excel pop-up errors for testing
     book = app.books.open(Path('.') / 'permission.xlsm')
 
     config = ['"PERMISSION_CHECK_ENABLED","True"\n',
               f'"PERMISSION_CHECK_URL","http://localhost:5000/success"\n',
               f'"PERMISSION_CHECK_METHOD","{method}"\n',
-              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"']
+              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"\n',
+              '"SHOW_ERROR_POPUPS","False"']
 
     os.makedirs(Path.home() / '.xlwings')
     with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as f:
         f.writelines(config)
 
-    with pytest.raises(xw.XlwingsError):
-        book.macro('Module1.FromImport')()
+    book.macro('Module1.FromImport')()
+    assert 'XlwingsError' in book.sheets['Error']['A1'].value
 
 
 @pytest.mark.parametrize("method, endpoint", [("POST", "fail-machinename"),
                                               ("GET", "fail-machinename"), ("GET", "fail-hash"), ("GET", "fail-filename")])
 def test_permission_runpython_fails(clear_user_config, app, addin, method, endpoint):
-    # TODO: has to fail currently, need to disable Excel pop-up errors for testing
     book = app.books.open(Path('.') / 'permission.xlsm')
 
     config = ['"PERMISSION_CHECK_ENABLED","True"\n',
               f'"PERMISSION_CHECK_URL","http://localhost:5000/{endpoint}"\n',
               f'"PERMISSION_CHECK_METHOD","{method}"\n',
-              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"']
+              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"\n',
+              '"SHOW_ERROR_POPUPS","False"']
 
     os.makedirs(Path.home() / '.xlwings')
     with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as f:
         f.writelines(config)
 
-    with pytest.raises(xw.XlwingsError):
-        book.macro('Module1.Main')()
+    book.macro('Module1.Main')()
+    assert 'XlwingsError' in book.sheets['Error']['A1'].value
 
-    with pytest.raises(xw.XlwingsError):
-        book.macro('Module1.Main2')()
+    book.macro('Module1.Main2')()
+    assert 'XlwingsError' in book.sheets['Error']['A1'].value
 
 
 @pytest.mark.parametrize("method, endpoint", [("POST", "fail-machinename"),
                                               ("GET", "fail-machinename"), ("GET", "fail-hash"), ("GET", "fail-filename")])
 def test_permission_runpython_server_fails(clear_user_config, app, addin, method, endpoint):
-    # TODO: has to fail currently, need to disable Excel pop-up errors for testing
     book = app.books.open(Path('.') / 'permission.xlsm')
 
     config = ['"PERMISSION_CHECK_ENABLED","True"\n',
               f'"PERMISSION_CHECK_URL","http://localhost:5000/{endpoint}"\n',
               f'"PERMISSION_CHECK_METHOD","{method}"\n',
-              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"\n'
+              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"\n',
+              '"SHOW_ERROR_POPUPS","False"',
               '"USE UDF SERVER","True"']
 
     os.makedirs(Path.home() / '.xlwings')
     with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as f:
         f.writelines(config)
 
-    with pytest.raises(xw.XlwingsError):
-        book.macro('Module1.Main')()
+    book.macro('Module1.Main')()
+    assert 'XlwingsError' in book.sheets['Error']['A1'].value
 
-    with pytest.raises(xw.XlwingsError):
-        book.macro('Module1.Main2')()
+    book.macro('Module1.Main2')()
+    assert 'XlwingsError' in book.sheets['Error']['A1'].value
 
 
 @pytest.mark.parametrize("method", ["GET", "POST"])
@@ -372,13 +372,13 @@ def test_permission_runpython_embedded_code_server_success(clear_user_config, ap
 @pytest.mark.parametrize("method, endpoint", [("POST", "fail-machinename"),
                                               ("GET", "fail-machinename"), ("GET", "fail-hash"), ("GET", "fail-filename")])
 def test_permission_embedded_runpython_fails(clear_user_config, app, addin, method, endpoint):
-    # TODO: has to fail currently, need to disable Excel pop-up errors for testing
     book = app.books.open(Path('.') / 'permission.xlsm')
 
     config = ['"PERMISSION_CHECK_ENABLED","True"\n',
               f'"PERMISSION_CHECK_URL","http://localhost:5000/{endpoint}"\n',
               f'"PERMISSION_CHECK_METHOD","{method}"\n',
-              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"']
+              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"\n',
+              '"SHOW_ERROR_POPUPS","False"']
 
     os.makedirs(Path.home() / '.xlwings')
     with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as f:
@@ -387,23 +387,23 @@ def test_permission_embedded_runpython_fails(clear_user_config, app, addin, meth
     subprocess.run(split('xlwings code embed  -f permission.py'))
     subprocess.run(split('xlwings code embed  -f permission2.py'))
 
-    with pytest.raises(xw.XlwingsError):
-        book.macro('Module1.Main')()
+    book.macro('Module1.Main')()
+    assert 'XlwingsError' in book.sheets['Error']['A1'].value
 
-    with pytest.raises(xw.XlwingsError):
-        book.macro('Module1.Main2')()
+    book.macro('Module1.Main2')()
+    assert 'XlwingsError' in book.sheets['Error']['A1'].value
 
 
 @pytest.mark.parametrize("method, endpoint", [("POST", "fail-machinename"),
                                               ("GET", "fail-machinename"), ("GET", "fail-hash"), ("GET", "fail-filename")])
 def test_permission_embedded_runpython_server_fails(clear_user_config, app, addin, method, endpoint):
-    # TODO: has to fail currently, need to disable Excel pop-up errors for testing
     book = app.books.open(Path('.') / 'permission.xlsm')
 
     config = ['"PERMISSION_CHECK_ENABLED","True"\n',
               f'"PERMISSION_CHECK_URL","http://localhost:5000/{endpoint}"\n',
               f'"PERMISSION_CHECK_METHOD","{method}"\n',
-              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"\n'
+              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"\n',
+              '"SHOW_ERROR_POPUPS","False"',
               '"USE UDF SERVER","True"']
 
     os.makedirs(Path.home() / '.xlwings')
@@ -413,24 +413,24 @@ def test_permission_embedded_runpython_server_fails(clear_user_config, app, addi
     subprocess.run(split('xlwings code embed  -f permission.py'))
     subprocess.run(split('xlwings code embed  -f permission2.py'))
 
-    with pytest.raises(xw.XlwingsError):
-        book.macro('Module1.Main')()
+    book.macro('Module1.Main')()
+    assert 'XlwingsError' in book.sheets['Error']['A1'].value
 
-    with pytest.raises(xw.XlwingsError):
-        book.macro('Module1.Main2')()
+    book.macro('Module1.Main2')()
+    assert 'XlwingsError' in book.sheets['Error']['A1'].value
 
 
 @pytest.mark.parametrize("method, endpoint", [("POST", "fail-machinename"),
                                               ("GET", "fail-machinename"), ("GET", "fail-hash"), ("GET", "fail-filename")])
 def test_permission_embedded_udf_import_fails(clear_user_config, app, addin, method, endpoint):
-    # TODO: has to fail currently, need to disable Excel pop-up errors for testing
     book = app.books.open(Path('.') / 'permission.xlsm')
 
     config = ['"PERMISSION_CHECK_ENABLED","True"\n',
               f'"PERMISSION_CHECK_URL","http://localhost:5000/{endpoint}"\n',
               f'"PERMISSION_CHECK_METHOD","{method}"\n',
               '"UDF Modules","permission;permission2"\n',
-              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"']
+              f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"\n',
+              '"SHOW_ERROR_POPUPS","False"']
 
     os.makedirs(Path.home() / '.xlwings')
     with open((Path.home() / '.xlwings' / 'xlwings.conf'), 'w') as f:
@@ -439,8 +439,8 @@ def test_permission_embedded_udf_import_fails(clear_user_config, app, addin, met
     subprocess.run(split('xlwings code embed  -f permission.py'))
     subprocess.run(split('xlwings code embed  -f permission2.py'))
 
-    with pytest.raises(xw.XlwingsError):
-        book.macro('ImportPythonUDFs')()
+    book.macro('ImportPythonUDFs')()
+    assert 'XlwingsError' in book.sheets['Error']['A1'].value
 
 
 @pytest.mark.parametrize("method, endpoint", [("POST", "fail-machinename"),
