@@ -23,6 +23,14 @@ class LicenseError(Exception):
     pass
 
 
+class UserException(win32com.server.exception.Exception):
+    def __init__(self, message, title=None):
+        super().__init__(
+            description=message,
+            scode=winerror.E_FAIL,
+            source=self.__class__.__name__ if title is None else title,
+        )
+
 # API
 from .main import App, Book, Range, Chart, Sheet, Picture, Shape, Name, view, load, RangeRows, RangeColumns
 from .main import apps, books, sheets
