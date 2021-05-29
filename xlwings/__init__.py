@@ -29,7 +29,7 @@ class UserException(win32com.server.exception.Exception):
     def __init__(self, message, title=None):
         super().__init__(
             description=message,
-            scode=SCODE,
+            scode=self.SCODE,
             source=self.__class__.__name__ if title is None else title,
         )
 
