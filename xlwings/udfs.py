@@ -590,7 +590,7 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
                 vba_workbook = 'ActiveWorkbook' if xl_workbook.Name.endswith('.xlam') else 'ThisWorkbook'
 
                 if ftype == "Sub":
-                    vba.writeln("On Error Goto ExceptionHandler")
+                    vba.writeln("On Error Goto failed")
                     with vba.block('#If App = "Microsoft Excel" Then'):
                         vba.writeln(
                             'Py.CallUDF "{module_name}", "{fname}", {args_vba}, {vba_workbook}, Application.Caller',
@@ -607,12 +607,12 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
                                     )
                     vba.writeln("#End If")
                     vba.writeln("Exit Sub")
-                    with vba.block("ExceptionHandler:"):
-                        with vba.block(f"If Err.Number = {UserException.SCODE} Then"):
+                    vba.write_label("failed")
+                    with vba.block(f"If Err.Number = {UserException.SCODE} Then"):
                             vba.writeln("MsgBox Err.Description, vbCritical, Err.Source")
-                        with vba.block(f"Else"):
-                            vba.writeln("Err.Raise Err.Number")
-                        vba.writeln("End If")
+                    with vba.block(f"Else"):
+                        vba.writeln("Err.Raise Err.Number")
+                    vba.writeln("End If")
                 else:
                     with vba.block('#If App = "Microsoft Excel" Then'):
                         vba.writeln("If TypeOf Application.Caller Is Range Then On Error GoTo failed")
@@ -633,7 +633,12 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
                     vba.writeln("#End If")
 
                     vba.write_label("failed")
-                    vba.writeln(fname + " = Err.Description")
+                    with vba.block(f"If Err.Number = {UserException.SCODE} Then"):
+                        vba.writeln(fname + ' = Err.Source & ":" & Err.Description')
+                    with vba.block(f"Else"):
+                        vba.writeln(fname + " = Err.Description")
+                    vba.writeln("End If")
+
 
             vba.writeln('End ' + ftype)
             vba.writeln('')
