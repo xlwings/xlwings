@@ -24,12 +24,15 @@ class LicenseError(Exception):
 
 
 class UserException(win32com.server.exception.Exception):
+    SCODE = winerror.E_UNEXPECTED
+
     def __init__(self, message, title=None):
         super().__init__(
             description=message,
-            scode=winerror.E_FAIL,
+            scode=SCODE,
             source=self.__class__.__name__ if title is None else title,
         )
+
 
 # API
 from .main import App, Book, Range, Chart, Sheet, Picture, Shape, Name, view, load, RangeRows, RangeColumns
