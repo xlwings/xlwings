@@ -79,7 +79,7 @@ Both commands will print a JSON string similar to this one::
 
 All you need to do at this point is:
 
-* Add additional additional machines names e.g., ``"machine_names: [""DESKTOP-QQ27RP3", "DESKTOP-XY12AS2"]``. Alternatively, you can use the ``"*"`` wildcard if you want to allow the module to be used on all end user's computers. In case of the wildcard, it will still make sure that the file's content hasn't been changed by looking at its sha256 hash. xlwings uses ``import socket;socket.gethostname()`` as the machine name.
+* Add additional machines names e.g., ``"machine_names: [""DESKTOP-QQ27RP3", "DESKTOP-XY12AS2"]``. Alternatively, you can use the ``"*"`` wildcard if you want to allow the module to be used on all end user's computers. In case of the wildcard, it will still make sure that the file's content hasn't been changed by looking at its sha256 hash. xlwings uses ``import socket;socket.gethostname()`` as the machine name.
 
 * Make this JSON file accessible via your web server and update the settings in the ``xlwings.conf`` file accordingly (see above).
 
