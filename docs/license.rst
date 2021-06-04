@@ -42,10 +42,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 .. _commercial_license:
 
-xlwings PRO/Enterprise End User License Agreement
--------------------------------------------------
+xlwings PRO End User License Agreement
+--------------------------------------
 
-Last updated: June 2, 2021
+Last updated: June 4, 2021
 
 | This End User License Agreement together with the Order Form (the “Agreement”) is between Zoomer Analytics GmbH, a Zurich/Switzerland corporation (“Zoomer Analytics”), and the Customer signing this Agreement (“Customer”). This Agreement shall be effective as of the Subscription Term Start Date as defined in the applicable Order Form (the “Effective Date”).
 | Please read this Agreement carefully before using the Software. The parties agree to be bound by the following terms and conditions in connection with the subscription to and use of Zoomer Analytics Software as defined herein. If the Customer does not accept the terms of this Agreement, then the Customer must not Access, install or use the Software.
@@ -61,7 +61,7 @@ Last updated: June 2, 2021
 | 1.6.	Licensee Product means any proprietary software product owned or otherwise controlled by Licensee, in which the Software has been incorporated, and which Licensee may use for its internal purposes or make available to End-Users.
 | 1.7.	Order Form means Zoomer Analytics’ order form or other ordering document signed or referenced by Customer or its authorized reseller which identifies the specific Software ordered, the Product Limitations, and the price agreed upon by the parties.
 | 1.8.	Product Limitations means the capacity indicated on the Order Form, including number of Licensees.
-| 1.9.	Software shall mean the xlwings PRO/Enterprise software licensed to Licensee under these Terms. Unless otherwise noted, the Software and Documentation are referred to collectively herein as “Software”.
+| 1.9.	Software shall mean the xlwings PRO software licensed to Licensee under these Terms. Unless otherwise noted, the Software and Documentation are referred to collectively herein as “Software”.
 | 1.10.	Subscription Term means the period in which Licensee is authorized to utilize the Software. The Subscription Term shall be listed on the applicable Order Form and shall commence on the Effective Date.
 
 2.	LICENSE
