@@ -3,10 +3,9 @@ import re
 import sys
 import tempfile
 import datetime as dt
+import traceback
 from functools import total_ordering, lru_cache
 from pathlib import Path
-
-import xlwings
 
 try:
     import numpy as np
@@ -24,7 +23,7 @@ try:
 except ImportError:
     plotly_go = None
 
-import traceback
+import xlwings
 
 missing = object()
 

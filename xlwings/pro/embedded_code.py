@@ -6,7 +6,9 @@ import sys
 import tempfile
 
 from .utils import LicenseHandler
+from .module_permissions import verify_execute_permission
 from ..main import Book
+from ..utils import get_cached_user_config
 
 LicenseHandler.validate_license('pro')
 
@@ -17,7 +19,7 @@ def dump_embedded_code(book, target_dir):
             last_cell = sheet.used_range.last_cell
             sheet_content = sheet.range((1, 1), (last_cell.row, 1)).options(ndim=1).value
 
-            with open(os.path.join(target_dir, sheet.name), 'w', encoding='utf-8') as f:
+            with open(os.path.join(target_dir, sheet.name), 'w', encoding='utf-8', newline='\n') as f:
                 for row in sheet_content:
                     if row is None:
                         f.write('\n')
@@ -29,6 +31,9 @@ def dump_embedded_code(book, target_dir):
 def runpython_embedded_code(command):
     with tempfile.TemporaryDirectory(prefix='xlwings-') as tempdir:
         dump_embedded_code(Book.caller(), tempdir)
+        if (get_cached_user_config('permission_check_enabled')
+                and get_cached_user_config('permission_check_enabled').lower() == 'true'):
+            verify_execute_permission(command=command)
         exec(command)
 
 

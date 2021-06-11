@@ -15,11 +15,15 @@ USER_CONFIG_FILE = xlplatform.USER_CONFIG_FILE
 
 
 # Errors
-class ShapeAlreadyExists(Exception):
+class XlwingsError(Exception):
     pass
 
 
 class LicenseError(Exception):
+    pass
+
+
+class ShapeAlreadyExists(Exception):
     pass
 
 

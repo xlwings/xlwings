@@ -15,8 +15,6 @@
     matplotlib
     jupyternotebooks
     command_line
-    reports
-    markdown
     deployment
     troubleshooting
 
@@ -25,7 +23,6 @@
     :hidden:
     :caption: Advanced Features
 
-    pro
     converters
     debugging
     extensions
@@ -33,7 +30,19 @@
     threading_and_multiprocessing
     missing_features
     other_office_apps
-    r_and_julia
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :caption: xlwings PRO
+
+    pro
+    markdown
+    reports
+    embedded_code
+    deploy_key
+    one_click_installer
+    permissioning
 
 .. toctree::
     :maxdepth: 2

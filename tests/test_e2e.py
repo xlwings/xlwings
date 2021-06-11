@@ -1,11 +1,13 @@
 """
+Requires the following env var: TEST_XLWINGS_LICENSE_KEY
 If you run this on a built/installed package, make sure to cd out of the xlwings source
 directory, copy the test folder next to the install xlwings package,then run:
-all tests (this relies on the settings in pytest.ini):
+
+* all tests (this relies on the settings in pytest.ini):
 
 pytest test_e2e.py
 
-single test:
+* single test:
 pytest test_e2e.py::test_name
 """
 

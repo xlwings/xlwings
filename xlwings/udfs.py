@@ -23,10 +23,11 @@ import pywintypes
 from win32com.client import Dispatch
 
 from . import conversion, xlplatform, Range, apps, Book, PRO, LicenseError
-from .utils import VBAWriter, exception
+from .utils import VBAWriter, exception, get_cached_user_config
 
 if PRO:
     from .pro.embedded_code import dump_embedded_code, get_udf_temp_dir
+    from .pro import verify_execute_permission
 
 logger = logging.getLogger(__name__)
 cache = {}
@@ -369,6 +370,7 @@ async def delayed_resize_dynamic_array_formula(
 # Setup temp dir for embedded code
 if PRO:
     tempdir = get_udf_temp_dir()
+    sys.path[0:0] = [tempdir.name]  # required for permissioning
 
 
 def get_udf_module(module_name, xl_workbook):
@@ -390,6 +392,14 @@ def get_udf_module(module_name, xl_workbook):
                 raise LicenseError("Embedded code requires a valid LICENSE_KEY.")
             elif PRO:
                 dump_embedded_code(wb, tempdir.name)
+
+        # Permission check
+        if (get_cached_user_config('permission_check_enabled') and
+                get_cached_user_config('permission_check_enabled').lower()) == 'true':
+            if not PRO:
+                raise LicenseError('Permission checks require xlwings PRO.')
+            verify_execute_permission(module_names=(module_name,))
+
 
         module = import_module(module_name)
         filename = os.path.normcase(module.__file__.lower())
@@ -419,7 +429,11 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     """
     This method executes the UDF synchronously from the COM server thread
     """
-
+    if (get_cached_user_config('permission_check_enabled')
+            and get_cached_user_config('permission_check_enabled').lower() == 'true'):
+        if not PRO:
+            raise LicenseError('Permission checks require xlwings PRO.')
+        verify_execute_permission(module_names=(module_name,))
     module = get_udf_module(module_name, this_workbook)
     func = getattr(module, func_name)
     func_info = func.__xlfunc__
