@@ -56,7 +56,7 @@ jobs:
         path: dist
 
   test:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && github.ref == 'refs/heads/master' }}
     name: Test installation
     needs: build
     runs-on: ${{ matrix.os }}
