@@ -64,19 +64,17 @@ class LicenseHandler:
         if dt.date.today() > license_valid_until:
             raise xlwings.LicenseError('Your license expired on {}.'.format(license_valid_until.strftime("%Y-%m-%d"))) from None
         if product not in license_info['products']:
-            if product == 'pro':
-                raise xlwings.LicenseError('Invalid license key for xlwings PRO.') from None
-            elif product == 'reports':
-                raise xlwings.LicenseError('Your license is not valid for the xlwings reports add-on.') from None
+                raise xlwings.LicenseError(f"License key isn't valid for the '{product}' functionality.") from None
         if 'version' in license_info.keys() and license_info['version'] != xlwings.__version__:
             raise xlwings.LicenseError('Your license key is only valid for xlwings v{0}'.format(license_info['version'])) from None
+        return license_info
 
     @staticmethod
     def create_deploy_key():
-        LicenseHandler.validate_license('pro', license_type='developer')
+        license_info = LicenseHandler.validate_license('pro', license_type='developer')
         cipher_suite = LicenseHandler.get_cipher()
         license_dict = json.dumps({'version': xlwings.__version__,
-                                   'products': ['pro', 'reports'],
+                                   'products': license_info['products'],
                                    'valid_until': '2999-12-31',
                                    'license_type': 'deploy_key'}).encode()
         return cipher_suite.encrypt(license_dict).decode()

@@ -10,12 +10,14 @@ try:
 except ImportError:
     requests = None
 
+from . import LicenseHandler
 from .. import XlwingsError
 from ..utils import read_user_config
 
 
 @lru_cache(None)
 def verify_execute_permission(command=None, module_names=None):
+    LicenseHandler.validate_license('permissioning')
     if command:
         assert not module_names
         if re.compile(r'from .* import .*').search(command):
