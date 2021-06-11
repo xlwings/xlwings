@@ -6,6 +6,7 @@ import hashlib
 import socket
 import json
 import tempfile
+import subprocess
 from pathlib import Path
 
 import xlwings as xw
@@ -213,16 +214,20 @@ def config_create(args):
 
 
 def code_embed(args):
-    """Import all Python files of the current directory into the active Excel Book"""
+    """Import a specific file or all Python files of the Excel books' directory into the active Excel Book"""
     wb = xw.books.active
     screen_updating = wb.app.screen_updating
     wb.app.screen_updating = False
 
-    if args.file:
+    if args and args.file:
+        import_dir = False
         source_files = [Path(args.file)]
     else:
-        source_files = Path('.').glob('*.py')
+        import_dir = True
+        source_files = list(Path(wb.fullname).resolve().parent.glob('*.py'))
 
+    if not source_files:
+        print("WARNING: Couldn't find any Python files in the workbook's directory!")
     for source_file in source_files:
         with open(source_file, 'r', encoding='utf-8') as f:
             content = []
@@ -233,7 +238,7 @@ def code_embed(args):
                 # This is required even if the cell is in Text format
                 content.append(["'" + line if line.startswith("'") else line])
 
-        if source_file.name not in [sht.name for sht in wb.sheets]:
+        if source_file.name not in [sheet.name for sheet in wb.sheets]:
             sheet = wb.sheets.add(source_file.name, after=wb.sheets[len(wb.sheets) - 1])
         else:
             sheet = wb.sheets[source_file.name]
@@ -241,6 +246,13 @@ def code_embed(args):
         sheet['A1'].resize(row_size=len(content)).number_format = '@'
         sheet['A1'].value = content
         sheet['A:A'].column_width = 65
+
+    # Cleanup: remove sheets that don't exist anymore as source files
+    if import_dir:
+        source_file_names = set([path.name for path in source_files])
+        source_sheet_names = set([sheet.name for sheet in wb.sheets if sheet.name.endswith('.py')])
+        for sheet_name in source_sheet_names.difference(source_file_names):
+            wb.sheets[sheet_name].delete()
 
     wb.app.screen_updating = screen_updating
 
@@ -274,6 +286,133 @@ def permission_cwd(args):
 
 def permission_book(args):
     print_permission_json('book')
+
+
+def release(args):
+    from xlwings.utils import query_yes_no, read_user_config
+    from xlwings.pro import LicenseHandler
+
+    if sys.platform.startswith('darwin'):
+        sys.exit('This command is currently only supported on Windows. '
+                 'However, a released workbook will work on macOS, too.')
+
+    installation_dir = Path(xw.__file__).resolve().parent
+
+    if xw.apps:
+        book = xw.apps.active.books.active
+    else:
+        sys.exit('Please open your Excel file first.')
+
+    # Deploy Key
+    try:
+        deploy_key = LicenseHandler.create_deploy_key()
+    except xw.LicenseError:
+        print("WARNING: Couldn't create a deploy key, using an expiring license key instead!")
+        deploy_key = read_user_config()['license_key']
+
+    # Sheet Config
+    if 'xlwings.conf' not in [i.name for i in book.sheets]:
+        project_name = input('Name of your one-click installer? ')
+        use_embedded_code = query_yes_no('Embed your Python code?')
+        hide_config_sheet = query_yes_no('Hide the config sheet?')
+        if use_embedded_code:
+            hide_code_sheets = query_yes_no('Hide the sheets with the embedded Python code?')
+        else:
+            hide_code_sheets = False
+        use_without_addin = query_yes_no('Allow your tool to run without the xlwings add-in?')
+        print()
+        if not query_yes_no(f'This will release "{book.name}", proceed?'):
+            sys.exit()
+        else:
+            print()
+            if '_xlwings.conf' in [sheet.name for sheet in book.sheets]:
+                print('* Remove _xlwings.conf sheet')
+                book.sheets['_xlwings.conf'].delete()
+            active_sheet = book.sheets.active
+            print('* Add xlwings.conf sheet')
+            config_sheet = book.sheets.add('xlwings.conf', after=book.sheets[len(book.sheets) - 1])
+            active_sheet.activate()  # preserve the currently active sheet
+            config = {'Interpreter_Win': r'%LOCALAPPDATA%\{0}\python.exe'.format(project_name),
+                      'Interpreter_Mac': f'$HOME/{project_name}/bin/python',
+                      'PYTHONPATH': None,
+                      'Conda Path': None,
+                      'Conda Env': None,
+                      'UDF Modules': None,
+                      'Debug UDFs': False,
+                      'Use UDF Server': False,
+                      'Show Console': False,
+                      'LICENSE_KEY': deploy_key,
+                      'RELEASE_EMBED_CODE': use_embedded_code,
+                      'RELEASE_HIDE_CONFIG_SHEET': hide_config_sheet,
+                      'RELEASE_HIDE_CODE_SHEETS': hide_code_sheets,
+                      'RELEASE_NO_ADDIN': use_without_addin}
+            config_sheet['A1'].value = config
+            config_sheet['A:A'].autofit()
+    else:
+        print()
+        if not query_yes_no(f'This will release "{book.name}" according to the "xlwings.conf" sheet, proceed?'):
+            sys.exit()
+        print()
+        # Only update the deploy key
+        config = xw.utils.read_config_sheet(book)
+        print('* Update deploy key')
+        config['LICENSE_KEY'] = deploy_key
+        book.sheets['xlwings.conf']['A1'].value = config
+
+    # Remove Reference
+    if config['RELEASE_NO_ADDIN']:
+        if 'xlwings' in [i.Name for i in book.api.VBProject.References]:
+            print('* Remove VBA Reference')
+            ref = book.api.VBProject.References("xlwings")
+            book.api.VBProject.References.Remove(ref)
+
+        # Remove VBA modules/classes
+        print('* Update VBA modules')
+        if 'xlwings' in [i.Name for i in book.api.VBProject.VBComponents]:
+            book.api.VBProject.VBComponents.Remove(book.api.VBProject.VBComponents("xlwings"))
+
+        if 'Dictionary' in [i.Name for i in book.api.VBProject.VBComponents]:
+            book.api.VBProject.VBComponents.Remove(book.api.VBProject.VBComponents("Dictionary"))
+
+        # Import VBA modules/classes
+        book.api.VBProject.VBComponents.Import(installation_dir / 'xlwings.bas')
+        book.api.VBProject.VBComponents.Import(installation_dir / 'Dictionary.cls')
+
+    # Embed code
+    if config.get('RELEASE_EMBED_CODE'):
+        print('* Embed Python code')
+        code_embed(None)
+    else:
+        for sheet in book.sheets:
+            if sheet.name.endswith('.py'):
+                sheet.delete()
+
+    # Hide sheets
+    if config.get('RELEASE_HIDE_CONFIG_SHEET'):
+        print('* Hide config sheet')
+        book.sheets['xlwings.conf'].visible = False
+
+    if config.get('RELEASE_HIDE_CODE_SHEETS'):
+        print('* Hide Python sheets')
+        for sheet in book.sheets:
+            if sheet.name.endswith('.py'):
+                sheet.visible = False
+    print()
+    print('Checking for xlwings version compatibility between the one-click installer and the Excel file...')
+    if sys.platform.startswith('win'):
+        interpreter_path = os.path.expandvars(config['Interpreter_Win'])
+    else:
+        interpreter_path = os.path.expandvars(config['Interpreter_Mac'])
+    if Path(interpreter_path).is_file():
+        res = subprocess.run([interpreter_path, '-c', 'import xlwings;print(xlwings.__version__)'],
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
+        xlwings_version_installer = res.stdout.strip()
+        if xlwings_version_installer == xw.__version__:
+            print(f'Successfully prepared "{book.name}" for release!')
+        else:
+            print(f'ERROR: You are running this command with xlwings {xw.__version__} but your installer uses {xlwings_version_installer}!')
+    else:
+        print(f"""WARNING: Prepared "{book.name}" for release but couldn't verify the xlwings version since you don't have the one-click installer installed!""")
 
 
 def main():
@@ -389,9 +528,9 @@ def main():
 
     # Embed code
     code_parser = subparsers.add_parser('code', help='Run "xlwings code embed" to embed all Python modules of the '
-                                                     'current dir in your active Excel file. Use the "--file" flag to '
-                                                     'only import a single file by providing its path. To run embedded '
-                                                     'code, you need an xlwings PRO license.')
+                                                     """workbook's dir in your active Excel file. Use the "--file" flag to """
+                                                     'only import a single file by providing its path. Requires '
+                                                     'xlwings PRO.')
     code_subparsers = code_parser.add_subparsers(dest='subcommand')
     code_subparsers.required = True
 
@@ -413,6 +552,11 @@ def main():
 
     permission_book_parser = permission_subparsers.add_parser('book')
     permission_book_parser.set_defaults(func=permission_book)
+
+    # Release
+    release_parser = subparsers.add_parser('release', help='Run "xlwings release" to configure your active workbook to work with a '
+                                                           'one-click installer for easy deployment. Requires xlwings PRO.')
+    release_parser.set_defaults(func=release)
 
     # Show help when running without commands
     if len(sys.argv) == 1:

@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.23.3 (May 17, 2021)
+----------------------
+
+* [Bug Fix] Windows: UDFs returning a ``pandas.NaT`` were causing a ``#VALUE!`` error (:issue:`1590`).
+
 v0.23.2 (May 7, 2021)
 ---------------------
 
