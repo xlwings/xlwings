@@ -88,6 +88,7 @@ Optional Dependencies
 * Flask (for REST API)
 * cryptography (for xlwings.pro)
 * Jinja2 (for xlwings.pro.reports)
+* requests (for permissioning)
 
 These packages are not required but highly recommended as they play very nicely with xlwings. They are all pre-installed with Anaconda. With pip, you can install xlwings with all optional dependencies as follows::
 
@@ -123,4 +124,4 @@ or::
 
     conda remove xlwings
 
-Finally, manually remove the `.xlwings` directory in your home folder if it exists.
+Finally, manually remove the ``.xlwings`` directory in your home folder if it exists.

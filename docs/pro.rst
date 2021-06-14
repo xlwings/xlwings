@@ -8,14 +8,14 @@ The purpose of xlwings PRO is to finance the continued maintenance and enhanceme
 xlwings PRO offers access to additional functionality. All PRO features are marked with xlwings :guilabel:`PRO` in the docs.
 
 .. note::
-    To get access to the additional functionality of xlwings PRO, you need a license key and at least xlwings v0.19.0. Everything under the ``xlwings.pro`` subpackage is distributed under a :ref:`commercial license <commercial_license>`.
+    To get access to the additional functionality of xlwings PRO, you need a (trial) license key and at least xlwings v0.19.0. Everything under the ``xlwings.pro`` subpackage is distributed under a :ref:`commercial license <commercial_license>`. To make use of xlwings PRO functionality beyond the trial, you will need to subscribe to one of our `paid plans <https://www.xlwings.org/pricing>`_.
 
 PRO Features
 ------------
 
-* :ref:`zero_config_installer`: Easily build your own Python installer including all dependencies---your end users don't need to know anything about Python.
-* :ref:`embedded_code`: Store your Python source code directly in Excel for easy deployment.
-* :ref:`reports_quickstart`: A template-based reporting mechanism, allows business users to change the layout of the report without having to change Python code.
+* :ref:`One-click Installer <zero_config_installer>`: Easily build your own Python installer including all dependencies---your end users don't need to know anything about Python.
+* :ref:`Embedded code<embedded_code>`: Store your Python source code directly in Excel for easy deployment.
+* :ref:`reports_quickstart`: A template-based reporting mechanism, allowing business users to change the layout of the report without having to touch the Python code.
 * :ref:`markdown`: Support for Markdown formatting of text in cells and shapes like e.g., text boxes.
 * :ref:`permissioning`: Control which users can run which Python modules via xlwings.
 * :ref:`plotly`: Support for Plotly static charts.

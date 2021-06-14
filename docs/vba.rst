@@ -24,7 +24,7 @@ adds a new module with a sample call. If you rather want to start from scratch, 
 .. code-block:: vb.net
 
     Sub HelloWorld()
-        RunPython ("import hello; hello.world()")
+        RunPython "import hello; hello.world()"
     End Sub
 
 This calls the following code in ``hello.py``:

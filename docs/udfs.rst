@@ -13,8 +13,7 @@ This tutorial gets you quickly started on how to write User Defined Functions.
 One-time Excel preparations
 ---------------------------
 
-1) Enable ``Trust access to the VBA project object model`` under
-``File > Options > Trust Center > Trust Center Settings > Macro Settings``
+1) Enable ``Trust access to the VBA project object model`` under ``File > Options > Trust Center > Trust Center Settings > Macro Settings``. You only need to do this once. Also, this is only required for importing the functions, i.e. end users won't need to bother about this.
 
 2) Install the add-in via command prompt: ``xlwings addin install`` (see :ref:`xlwings_addin`).
 

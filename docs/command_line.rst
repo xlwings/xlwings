@@ -3,7 +3,7 @@
 Command Line Client (CLI)
 =========================
 
-xlwings comes with a command line client. On Windows, type the commands into a ``Command Prompt``, on Mac, type them into a ``Terminal``. To get an overview of all commands, simply type ``xlwings`` and hit Enter:
+xlwings comes with a command line client. On Windows, type the commands into a Command Prompt or Anaconda Prompt, on Mac, type them into a Terminal. To get an overview of all commands, simply type ``xlwings`` and hit Enter:
 
 .. code-block:: text
 
@@ -46,14 +46,17 @@ xlwings comes with a command line client. On Windows, type the commands into a `
                         current configuration.
                         (New in 0.19.5)
     code                Run "xlwings code embed" to embed all Python modules
-                        of the current dir in your active Excel file. Use the
-                        "--file" flag to only import a single file by
-                        providing its path. To run embedded code, you need an
-                        xlwings PRO license.
-                        (New in 0.20.2)
+                        of the workbook's dir in your active Excel file. Use
+                        the "--file" flag to only import a single file by
+                        providing its path. Requires xlwings PRO.
+                        (Changed in 0.23.4)
     permission          "xlwings permission cwd" prints a JSON string that can
                         be used to permission the execution of all modules in
                         the current working directory via GET request.
                         "xlwings permission book" does the same for code that
                         is embedded in the active workbook.
-                        (New in 0.23.3)
+                        (New in 0.23.4)
+    release             Run "xlwings release" to configure your active
+                        workbook to work with a one-click installer for easy
+                        deployment. Requires xlwings PRO.
+                        (New in 0.23.4)

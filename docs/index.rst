@@ -60,11 +60,9 @@ See :ref:`pro` for more details.
     :caption: xlwings PRO
 
     pro
-    markdown
     reports
-    embedded_code
-    one_click_installer
-    deploy_key
+    markdown
+    release
     permissioning
 
 .. toctree::

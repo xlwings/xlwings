@@ -108,7 +108,7 @@ Writing a UDF in Python is as easy as:
 
     @xw.func
     def hello(name):
-        return 'Hello {0}'.format(name)
+        return f'Hello {name}'
 
 Converters can be used with UDFs, too. Again a Pandas DataFrame example:
 
@@ -124,4 +124,4 @@ Converters can be used with UDFs, too. Again a Pandas DataFrame example:
         # x arrives as DataFrame
         return x.corr()
 
-Import this function into Excel by clicking the import button of the xlwings add-in: For a step-by-step tutorial, see :ref:`udfs`.
+Import this function into Excel by clicking the import button of the xlwings add-in: for a step-by-step tutorial, see :ref:`udfs`.

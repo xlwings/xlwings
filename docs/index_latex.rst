@@ -37,11 +37,9 @@
     :caption: xlwings PRO
 
     pro
-    markdown
     reports
-    embedded_code
-    deploy_key
-    one_click_installer
+    markdown
+    release
     permissioning
 
 .. toctree::
