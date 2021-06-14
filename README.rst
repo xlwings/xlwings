@@ -21,7 +21,7 @@ xlwings PRO
 
 The purpose of xlwings PRO is to finance the continued maintenance and enhancement of xlwings. This will allow you to rely on the package without being left with the dreaded `"this library currently has no active maintainers" <https://github.com/python-excel/xlrd>`_ message that happens to too many open-source packages after a couple of years.
 
-To get access to the additional functionality of xlwings PRO, you need a license key and at least xlwings v0.19.0. Everything under the ``xlwings.pro`` subpackage is distributed under a commercial license, see https://github.com/xlwings/xlwings/blob/master/LICENSE_PRO.txt.
+To get access to the additional functionality of xlwings PRO, you need a (trial) license key and at least xlwings v0.19.0. Everything under the ``xlwings.pro`` subpackage is distributed under a commercial license, see https://github.com/xlwings/xlwings/blob/master/LICENSE_PRO.txt.
 
 * For current features and pricing: https://www.xlwings.org/pricing
 * To request a trial license key: https://www.xlwings.org/trial
@@ -32,6 +32,7 @@ Links
 * Homepage: https://www.xlwings.org
 * Quickstart: https://docs.xlwings.org/en/stable/quickstart.html
 * Documentation: https://docs.xlwings.org
+* Book (O'Reilly, 2021): https://www.xlwings.org/book
 * Video Course: https://training.xlwings.org/p/xlwings
 * Source Code: https://github.com/xlwings/xlwings
 
