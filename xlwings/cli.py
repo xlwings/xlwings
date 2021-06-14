@@ -332,8 +332,8 @@ def release(args):
             print('* Add xlwings.conf sheet')
             config_sheet = book.sheets.add('xlwings.conf', after=book.sheets[len(book.sheets) - 1])
             active_sheet.activate()  # preserve the currently active sheet
-            config = {'Interpreter_Win': r'%LOCALAPPDATA%\{0}\python.exe'.format(project_name),
-                      'Interpreter_Mac': f'$HOME/{project_name}/bin/python',
+            config = {'Interpreter_Win': r'%LOCALAPPDATA%\{0}\python.exe'.format(project_name) if project_name else None,
+                      'Interpreter_Mac': f'$HOME/{project_name}/bin/python' if project_name else None,
                       'PYTHONPATH': None,
                       'Conda Path': None,
                       'Conda Env': None,
@@ -399,11 +399,13 @@ def release(args):
                 sheet.visible = False
     print()
     print('Checking for xlwings version compatibility between the one-click installer and the Excel file...')
-    if sys.platform.startswith('win'):
+    if sys.platform.startswith('win') and config['Interpreter_Win']:
         interpreter_path = os.path.expandvars(config['Interpreter_Win'])
-    else:
+    elif sys.platform.startswith('darwin') and config['Interpreter_Mac']:
         interpreter_path = os.path.expandvars(config['Interpreter_Mac'])
-    if Path(interpreter_path).is_file():
+    else:
+        interpreter_path = None
+    if interpreter_path and Path(interpreter_path).is_file():
         res = subprocess.run([interpreter_path, '-c', 'import xlwings;print(xlwings.__version__)'],
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
         xlwings_version_installer = res.stdout.strip()
@@ -412,7 +414,7 @@ def release(args):
         else:
             print(f'ERROR: You are running this command with xlwings {xw.__version__} but your installer uses {xlwings_version_installer}!')
     else:
-        print(f"""WARNING: Prepared "{book.name}" for release but couldn't verify the xlwings version since you don't have the one-click installer installed!""")
+        print(f"""WARNING: Prepared "{book.name}" for release but couldn't verify the xlwings version!""")
 
 
 def main():
