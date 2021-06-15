@@ -85,6 +85,7 @@ jobs:
   publish:
     if: github.event_name == 'release'
     name: Publish
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Set up Python
