@@ -1,6 +1,15 @@
 What's New
 ==========
 
+v0.23.4 (Jun 15, 2021)
+----------------------
+
+* [Bug Fix] Windows: Fixed the ImportUDFs function in the VBA standalone module (:issue:`1601`).
+* [Bug Fix] Fixed configuration hierarchy: if you have a setting with an empty value in the ``xlwings.conf`` sheet, it will not be overridden by the same key in the directory or user config file anymore. If you wanted it to be overridden, you'd have to get the key out of the "xlwings.conf" sheet (:issue:`1617`).
+* :guilabel:`PRO` [Feature] Added the ability to block the execution of Python modules based on the file hash and/or machine name (:issue:`1586`), see :ref:`permissioning`.
+* :guilabel:`PRO` [Feature] Added the ``xlwings release`` command for an easy release management in connection with the one-click installer, see :ref:`release`. (:issue:`1429`).
+
+
 v0.23.3 (May 17, 2021)
 ----------------------
 
