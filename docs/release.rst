@@ -34,7 +34,7 @@ As a subscriber of one of our `paid plans <https://www.xlwings.org/pricing>`_, y
   After you're done with your edits, click on the green ``Commit changes`` button.
 
   .. note::
-    If you are unsure about your dependencies, it's best to work locally with a virtual or Conda environment. In the virtual/Conda environment, only install packages that you need, then run: ``pip freeze``.
+    If you are unsure about your dependencies, it's best to work locally with a virtual or Conda environment. In the virtual/Conda environment, only install packages that you need, then run: ``pip list --format=freeze``.
 
 2) On the right-hand side of the landing page, click on ``Releases``:
 
