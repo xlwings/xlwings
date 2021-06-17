@@ -2687,13 +2687,13 @@ class Table:
         else:
             return None
 
-    def update(self, data):
+    def update(self, data, index=True):
         """
         This method requires xlwings :guilabel:`PRO`
 
         Updates the Excel table with the provided data. Currently restricted to DataFrames.
 
-        .. versionchanged:: 0.21.3
+        .. versionchanged:: 0.23.5
 
         Arguments
         ---------
@@ -2701,6 +2701,8 @@ class Table:
         data : pandas DataFrame
             Currently restricted to pandas DataFrames. If you want to hide the index,
             set the first column as the index, e.g. ``df.set_index('column_name')``.
+        index : bool, default True
+            Whether or not the index of a pandas DataFrame should be written to the Excel table.
 
         Returns
         -------
@@ -2731,7 +2733,7 @@ class Table:
                 mytable = sheet.tables.add(source=sheet['A1'], name=table_name).update(df)
         """
         from .pro.tables import update
-        return update(self, data)
+        return update(self, data, index)
 
     def __eq__(self, other):
         return (
