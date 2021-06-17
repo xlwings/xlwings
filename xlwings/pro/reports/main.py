@@ -43,7 +43,6 @@ def render_template(sheet, **data):
     screen_updating_original_state = book.app.screen_updating
 
     env = Environment()
-    locals().update(data)
 
     # used_range doesn't start automatically in A1
     last_cell = sheet.used_range.last_cell
@@ -81,7 +80,7 @@ def render_template(sheet, **data):
                             if token_type == 'variable_begin':
                                 var = ''
                             elif token_type == 'variable_end':
-                                result = eval(var)
+                                result = env.compile_expression(var)(**data)
                                 if PIL and isinstance(result, PIL.Image.Image):
                                     # TODO: properly support Image objects in xlwings
                                     sheet.pictures.add(result.filename,
