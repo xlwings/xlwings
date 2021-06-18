@@ -19,7 +19,7 @@ text1 = """\
 
 Text **bold** and *italic*
 
-* a first bullet
+* a first {{ mybullet }}
 * a second bullet
 
 # Another title
@@ -35,7 +35,7 @@ ax.plot([1, 2, 3, 4, 5])
 df1 = pd.DataFrame(index=['r0', 'r1'], columns=['c0', 'c1'], data=[[1., 1.], [1., 1.]])
 data = dict(mystring='stringtest', myfloat=12.12, substring='substringtest',
             df1=df1, mydict={'df': df1}, pic=Image.open(os.path.abspath('xlwings.jpg')),
-            fig=fig, markdown_cell=Markdown(text1), markdown_shape=Markdown(text1))
+            fig=fig, markdown_cell=Markdown(text1), markdown_shape=Markdown(text1), mybullet='bullet')
 
 
 class TestCreateReport(unittest.TestCase):

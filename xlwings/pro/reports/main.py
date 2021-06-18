@@ -124,8 +124,10 @@ def render_template(sheet, **data):
                                                left=sheet[i + row_shift, j + frame_indices[ix]].left)
                             sheet[i + row_shift, j + frame_indices[ix]].value = None
                         elif isinstance(result, Markdown):
+                            # This will conveniently render placeholders within Markdown instances
                             sheet[i + row_shift,
-                                  j + frame_indices[ix]].value = result
+                                  j + frame_indices[ix]].value = Markdown(text=env.from_string(result.text).render(**data),
+                                                                          style=result.style)
                         else:
                             # Simple Jinja variables
                             # Check for height of 2d array
@@ -184,7 +186,9 @@ def render_template(sheet, **data):
                 for _, token_type, token_value in tokens:
                     if token_type == 'name':
                         if isinstance(data[token_value], Markdown):
-                            shape.text = data[token_value]
+                            # This will conveniently render placeholders within Markdown text
+                            shape.text = Markdown(text=env.from_string(data[token_value].text).render(**data),
+                                                  style=data[token_value].style)
                         else:
                             # Single Jinja var but no Markdown
                             template = env.from_string(shapetext)
