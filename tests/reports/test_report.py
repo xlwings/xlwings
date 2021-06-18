@@ -214,5 +214,15 @@ class TestFrames(unittest.TestCase):
             # TODO
 
 
+class TestDataFrameFilters(unittest.TestCase):
+
+    def tearDown(self):
+        xw.Book('output.xlsx').app.quit()
+
+    def test_filters(self):
+        wb = create_report('template1.xlsx', 'output.xlsx', **data)
+        self.assertEqual(wb.sheets['filters']['A1:E27'].value, wb.sheets['filters']['G1:K27'].value)
+
+
 if __name__ == '__main__':
     unittest.main()
