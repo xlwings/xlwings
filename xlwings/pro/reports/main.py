@@ -35,9 +35,9 @@ LicenseHandler.validate_license('reports')
 
 def get_filters(ast):
     """Only works with a single variable, as for our 2d arrays"""
-    found = list(ast.find_all(node_type=nodes.Filter))
-    if found:
-        node = found[0]
+    found_nodes = list(ast.find_all(node_type=nodes.Filter))
+    if found_nodes:
+        node = found_nodes[0]
         filters = []
         args = []
         f = node
@@ -101,15 +101,15 @@ def render_template(sheet, **data):
                             result = env.compile_expression(var)(**data)
                             options = {'index': 'noindex' not in filter_names, 'header': 'noheader' not in filter_names}
                             if 'columns' in filter_names and isinstance(result, pd.DataFrame):
-                                columns = [arg.as_const() for arg in filter_args[0]]
+                                columns = [arg.as_const() for arg in filter_args[filter_names.index('columns')]]
                                 result = result.iloc[:, [col for col in columns if col is not None]]
-                                empty_cols = [i for i, v in enumerate(columns) if v is None]
-                                for col_ix in empty_cols:
+                                empty_col_indices = [i for i, v in enumerate(columns) if v is None]
+                                for col_ix in empty_col_indices:
                                     # this method is inplace!
                                     result.insert(loc=col_ix, column='', value=np.nan, allow_duplicates=True)
                         else:
                             result = env.compile_expression(value.replace('{{', '').replace('}}', '').strip())(**data)
-                            options = {}
+                            options = {'index': True, 'header': True}  # defaults
                         if PIL and isinstance(result, PIL.Image.Image):
                             # TODO: properly support Image objects in xlwings
                             sheet.pictures.add(result.filename,
@@ -135,7 +135,7 @@ def render_template(sheet, **data):
                                 result_len = len(result)
                             elif pd and isinstance(result, pd.DataFrame):
                                 # TODO: handle MultiIndex headers
-                                result_len = len(result) + 1
+                                result_len = len(result) + 1 if options['header'] else len(result)
                             else:
                                 result_len = 1
                             # Insert rows if within <frame> and 'result' is multiple rows high
@@ -161,7 +161,7 @@ def render_template(sheet, **data):
                                     book.app.screen_updating = screen_updating_original_state
                             # Write the 2d array to Excel
                             if sheet[i + row_shift, j + frame_indices[ix]].table:
-                                sheet[i + row_shift, j + frame_indices[ix]].table.update(result, index=not options.get('noindex'))
+                                sheet[i + row_shift, j + frame_indices[ix]].table.update(result, index=options['index'])
                             else:
                                 sheet[i + row_shift,
                                       j + frame_indices[ix]].options(**options).value = result
