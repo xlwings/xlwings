@@ -2,7 +2,7 @@ import sys
 import shutil
 
 try:
-    from jinja2 import Environment
+    from jinja2 import Environment, nodes
 except ImportError:
     pass
 
@@ -33,6 +33,25 @@ except ImportError:
 LicenseHandler.validate_license('reports')
 
 
+def get_filters(ast):
+    """Only works with a single variable, as for our 2d arrays"""
+    found_nodes = list(ast.find_all(node_type=nodes.Filter))
+    if found_nodes:
+        node = found_nodes[0]
+        filters = []
+        args = []
+        f = node
+        filters.append(f.name)
+        args.append(f.args)
+        while isinstance(f.node, nodes.Filter):
+            f = f.node
+            filters.append(f.name)
+            args.append(f.args)
+        return f.node.name, list(reversed(filters)), list(reversed(args))
+    else:
+        return None, [], []
+
+
 def render_template(sheet, **data):
     """
     Replaces the Jinja2 placeholders in a given sheet
@@ -43,7 +62,6 @@ def render_template(sheet, **data):
     screen_updating_original_state = book.app.screen_updating
 
     env = Environment()
-    locals().update(data)
 
     # used_range doesn't start automatically in A1
     last_cell = sheet.used_range.last_cell
@@ -76,68 +94,80 @@ def render_template(sheet, **data):
                     tokens = list(env.lex(value))
                     if value.count('{{') == 1 and tokens[0][1] == 'variable_begin' and tokens[-1][1] == 'variable_end':
                         # Cell contains single Jinja variable
-                        var = None
-                        for _, token_type, value in tokens:
-                            if token_type == 'variable_begin':
-                                var = ''
-                            elif token_type == 'variable_end':
-                                result = eval(var)
-                                if PIL and isinstance(result, PIL.Image.Image):
-                                    # TODO: properly support Image objects in xlwings
-                                    sheet.pictures.add(result.filename,
-                                                       top=sheet[i + row_shift, j + frame_indices[ix]].top,
-                                                       left=sheet[i + row_shift, j + frame_indices[ix]].left,
-                                                       width=result.width, height=result.height)
-                                    sheet[i + row_shift, j + frame_indices[ix]].value = None
-                                elif Figure and isinstance(result, Figure):
-                                    # Matplotlib figures
-                                    sheet.pictures.add(result,
-                                                       top=sheet[i + row_shift, j + frame_indices[ix]].top,
-                                                       left=sheet[i + row_shift, j + frame_indices[ix]].left)
-                                    sheet[i + row_shift, j + frame_indices[ix]].value = None
-                                elif isinstance(result, Markdown):
-                                    sheet[i + row_shift,
-                                          j + frame_indices[ix]].value = result
-                                else:
-                                    # Simple Jinja variables
-                                    # Check for height of 2d array
-                                    if isinstance(result, (list, tuple)) and isinstance(result[0], (list, tuple)):
-                                        result_len = len(result)
-                                    elif np and isinstance(result, np.ndarray):
-                                        result_len = len(result)
-                                    elif pd and isinstance(result, pd.DataFrame):
-                                        # TODO: handle MultiIndex headers
-                                        result_len = len(result) + 1
-                                    else:
-                                        result_len = 1
-                                    # Insert rows if within <frame> and 'result' is multiple rows high
-                                    rows_to_be_inserted = 0
-                                    if frame_markers and result_len > 1:
-                                        # Deduct header and first data row that are part of template
-                                        rows_to_be_inserted = result_len - 2
-                                        if rows_to_be_inserted > 0:
-                                            if sys.platform.startswith('win'):
-                                                book.app.screen_updating = True
-                                            # Since CopyOrigin is not supported on Mac, we start copying two rows
-                                            # below the header so the data row formatting gets carried over
-                                            end_column = frame_indices[ix] + len(values[0])
-                                            sheet.range((i + row_shift + 3, j + frame_indices[ix] + 1),
-                                                        (i + row_shift + rows_to_be_inserted + 2, end_column)).insert(
-                                                'down')
-                                            # Inserting does not take over borders
-                                            sheet.range((i + row_shift + 2, j + frame_indices[ix] + 1),
-                                                        (i + row_shift + 2, end_column)).copy()
-                                            sheet.range((i + row_shift + 2, j + frame_indices[ix] + 1),
-                                                        (i + row_shift + rows_to_be_inserted + 2, end_column)).paste(
-                                                paste='formats')
-                                            book.app.screen_updating = screen_updating_original_state
-                                    if sheet[i + row_shift, j + frame_indices[ix]].table:
-                                        sheet[i + row_shift, j + frame_indices[ix]].table.update(result)
-                                    else:
-                                        sheet[i + row_shift, j + frame_indices[ix]].value = result
-                                    row_shift += rows_to_be_inserted
-                            elif var is not None and token_type not in ('whitespace',):
-                                var += value
+                        # Handle filters
+                        ast = env.parse(value)
+                        var, filter_names, filter_args = get_filters(ast)
+                        if filter_names:
+                            result = env.compile_expression(var)(**data)
+                            options = {'index': 'noindex' not in filter_names, 'header': 'noheader' not in filter_names}
+                            if 'columns' in filter_names and isinstance(result, pd.DataFrame):
+                                columns = [arg.as_const() for arg in filter_args[filter_names.index('columns')]]
+                                result = result.iloc[:, [col for col in columns if col is not None]]
+                                empty_col_indices = [i for i, v in enumerate(columns) if v is None]
+                                for col_ix in empty_col_indices:
+                                    # this method is inplace!
+                                    result.insert(loc=col_ix, column='', value=np.nan, allow_duplicates=True)
+                        else:
+                            result = env.compile_expression(value.replace('{{', '').replace('}}', '').strip())(**data)
+                            options = {'index': True, 'header': True}  # defaults
+                        if PIL and isinstance(result, PIL.Image.Image):
+                            # TODO: properly support Image objects in xlwings
+                            sheet.pictures.add(result.filename,
+                                               top=sheet[i + row_shift, j + frame_indices[ix]].top,
+                                               left=sheet[i + row_shift, j + frame_indices[ix]].left,
+                                               width=result.width, height=result.height)
+                            sheet[i + row_shift, j + frame_indices[ix]].value = None
+                        elif Figure and isinstance(result, Figure):
+                            # Matplotlib figures
+                            sheet.pictures.add(result,
+                                               top=sheet[i + row_shift, j + frame_indices[ix]].top,
+                                               left=sheet[i + row_shift, j + frame_indices[ix]].left)
+                            sheet[i + row_shift, j + frame_indices[ix]].value = None
+                        elif isinstance(result, Markdown):
+                            # This will conveniently render placeholders within Markdown instances
+                            sheet[i + row_shift,
+                                  j + frame_indices[ix]].value = Markdown(text=env.from_string(result.text).render(**data),
+                                                                          style=result.style)
+                        else:
+                            # Simple Jinja variables
+                            # Check for height of 2d array
+                            if isinstance(result, (list, tuple)) and isinstance(result[0], (list, tuple)):
+                                result_len = len(result)
+                            elif np and isinstance(result, np.ndarray):
+                                result_len = len(result)
+                            elif pd and isinstance(result, pd.DataFrame):
+                                # TODO: handle MultiIndex headers
+                                result_len = len(result) + 1 if options['header'] else len(result)
+                            else:
+                                result_len = 1
+                            # Insert rows if within <frame> and 'result' is multiple rows high
+                            rows_to_be_inserted = 0
+                            if frame_markers and result_len > 1:
+                                # Deduct header and first data row that are part of template
+                                rows_to_be_inserted = result_len - 2
+                                if rows_to_be_inserted > 0:
+                                    if sys.platform.startswith('win'):
+                                        book.app.screen_updating = True
+                                    # Since CopyOrigin is not supported on Mac, we start copying two rows
+                                    # below the header so the data row formatting gets carried over
+                                    end_column = frame_indices[ix] + len(values[0])
+                                    sheet.range((i + row_shift + 3, j + frame_indices[ix] + 1),
+                                                (i + row_shift + rows_to_be_inserted + 2, end_column)).insert(
+                                        'down')
+                                    # Inserting does not take over borders
+                                    sheet.range((i + row_shift + 2, j + frame_indices[ix] + 1),
+                                                (i + row_shift + 2, end_column)).copy()
+                                    sheet.range((i + row_shift + 2, j + frame_indices[ix] + 1),
+                                                (i + row_shift + rows_to_be_inserted + 2, end_column)).paste(
+                                        paste='formats')
+                                    book.app.screen_updating = screen_updating_original_state
+                            # Write the 2d array to Excel
+                            if sheet[i + row_shift, j + frame_indices[ix]].table:
+                                sheet[i + row_shift, j + frame_indices[ix]].table.update(result, index=options['index'])
+                            else:
+                                sheet[i + row_shift,
+                                      j + frame_indices[ix]].options(**options).value = result
+                            row_shift += rows_to_be_inserted
                     elif '{{' in value:
                         # These are strings with (multiple) Jinja variables so apply standard text rendering here
                         template = env.from_string(value)
@@ -156,7 +186,9 @@ def render_template(sheet, **data):
                 for _, token_type, token_value in tokens:
                     if token_type == 'name':
                         if isinstance(data[token_value], Markdown):
-                            shape.text = data[token_value]
+                            # This will conveniently render placeholders within Markdown text
+                            shape.text = Markdown(text=env.from_string(data[token_value].text).render(**data),
+                                                  style=data[token_value].style)
                         else:
                             # Single Jinja var but no Markdown
                             template = env.from_string(shapetext)
