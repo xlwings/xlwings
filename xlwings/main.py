@@ -25,11 +25,6 @@ except ImportError:
     FigureCanvas = None
 
 try:
-    from PIL import Image
-except ImportError:
-    Image = None
-
-try:
     import pandas as pd
 except ImportError:
     pd = None
@@ -3226,19 +3221,40 @@ class Picture:
         .. versionadded:: 0.5.0
         """
 
-        filename, width, height = utils.process_image(image, self.width, self.height)
+        filename, is_temp_file = utils.process_image(image)
 
-        left, top = self.left, self.top
         name = self.name
 
         # todo: link_to_file, save_with_document
-        picture = self.parent.pictures.add(filename, left=left, top=top, width=width, height=height, scale=False)
+        picture = self.parent.pictures.add(filename, left=self.left, top=self.top,
+                                           width=self.width, height=self.height)
         self.delete()
 
         picture.name = name
         self.impl = picture.impl
 
+        # Cleanup temp file
+        if is_temp_file:
+            try:
+                os.unlink(filename)
+            except:
+                pass
+
         return picture
+
+    @property
+    def lock_aspect_ratio(self):
+        """
+        ``True`` will keep the original proportion,
+        ``False`` will allow you to change height and width independently of each other (read/write).
+
+        .. versionadded:: 0.23.5
+        """
+        return self.impl.lock_aspect_ratio
+
+    @lock_aspect_ratio.setter
+    def lock_aspect_ratio(self, value):
+        self.impl.lock_aspect_ratio = value
 
 
 class Pictures(Collection):
@@ -3258,7 +3274,7 @@ class Pictures(Collection):
         return Sheet(impl=self.impl.parent)
 
     def add(self, image, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None,
-            name=None, update=False, scale=1):
+            name=None, update=False, scale=None):
         """
         Adds a picture to the specified sheet.
 
@@ -3275,18 +3291,19 @@ class Pictures(Collection):
             Top position in points.
 
         width : float, default None
-            Width in points. If PIL/Pillow is installed, it defaults to the width of the picture.
-            Otherwise it defaults to 100 points.
+            Width in points. Defaults to original width.
 
         height : float, default None
-            Height in points. If PIL/Pillow is installed, it defaults to the height of the picture.
-            Otherwise it defaults to 100 points.
+            Height in points. Defaults to original height.
 
         name : str, default None
             Excel picture name. Defaults to Excel standard name if not provided, e.g. 'Picture 1'.
 
         update : bool, default False
             Replace an existing picture with the same name. Requires ``name`` to be set.
+
+        scale : float, default None
+            Scales your picture by the provided factor.
 
         Returns
         -------
@@ -3299,7 +3316,7 @@ class Pictures(Collection):
 
         >>> import xlwings as xw
         >>> sht = xw.Book().sheets[0]
-        >>> sht.pictures.add(r'C:\\path\\to\\file.jpg')
+        >>> sht.pictures.add(r'C:\\path\\to\\file.png')
         <Picture 'Picture 1' in <Sheet [Book1]Sheet1>>
 
         2. Matplotlib
@@ -3321,41 +3338,43 @@ class Pictures(Collection):
                 except KeyError:
                     pass
 
-        filename, width, height = utils.process_image(image, width, height)
+        filename, is_temp_file = utils.process_image(image)
 
         if not (link_to_file or save_with_document):
             raise Exception("Arguments link_to_file and save_with_document cannot both be false")
 
-        # Image dimensions
-        im_width, im_height = None, None
-        if width is None or height is None:
-            if Image:
-                with Image.open(filename) as im:
-                    im_width, im_height = im.size
-
-        if width is None:
-            if im_width is not None:
-                width = im_width
-            else:
-                width = 100
-
-        if height is None:
-            if im_height is not None:
-                height = im_height
-            else:
-                height = 100
+        if (height and width is None) or (width and height is None) or (width is None and height is None):
+            # If only height or width are provided, it will be scaled after adding it with the original dimensions
+            im_width, im_height = -1, -1
+        else:
+            im_width, im_height = width, height
 
         picture = Picture(impl=self.impl.add(
-            filename, link_to_file, save_with_document, left, top, width, height
+            filename, link_to_file, save_with_document, left, top,
+            width=im_width, height=im_height
         ))
 
+        if (height and width is None) or (width and height is None):
+            # If only height or width are provided, lock aspect ratio so the picture won't be distorted
+            picture.lock_aspect_ratio = True
+            if height:
+                picture.height = height
+            else:
+                picture.width = width
+
         if scale:
-            # By default, Excel usually distorts the width/height. This corrects it.
             self.parent.shapes[picture.name].scale_width(factor=scale, relative_to_original_size=True)
             self.parent.shapes[picture.name].scale_height(factor=scale, relative_to_original_size=True)
 
         if name is not None:
             picture.name = name
+
+        # Cleanup temp file
+        if is_temp_file:
+            try:
+                os.unlink(filename)
+            except:
+                pass
         return picture
 
 

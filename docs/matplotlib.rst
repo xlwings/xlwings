@@ -108,16 +108,18 @@ Here are a few examples of how you get a matplotlib ``figure`` object:
 Plotly static charts
 --------------------
 
-This feature requires xlwings :guilabel:`PRO`.
-
 Prerequisites
 *************
 
-In addition to ``plotly`` you will need ``orca``. The easiest way to get it is via conda::
+In addition to ``plotly``, you will need ``kaleido``, ``psutil``, and ``requests``. The easiest way to get it is via pip::
 
-    $ conda install -c plotly plotly-orca psutil requests
+    $ pip install kaleido psutil requests
 
-For alternative ways of installation, see: https://plotly.com/python/static-image-export/
+or conda::
+
+    $ conda install -c conda-forge python-kaleido psutil requests
+
+See also: https://plotly.com/python/static-image-export/
 
 How to use
 **********

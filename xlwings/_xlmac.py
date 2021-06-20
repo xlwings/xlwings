@@ -1392,6 +1392,14 @@ class Picture:
     def delete(self):
         self.xl.delete()
 
+    @property
+    def lock_aspect_ratio(self):
+        return self.xl.lock_aspect_ratio.get()
+
+    @lock_aspect_ratio.setter
+    def lock_aspect_ratio(self, value):
+        self.xl.lock_aspect_ratio.set(value)
+
 
 class Pictures(Collection):
 
