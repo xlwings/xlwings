@@ -70,6 +70,42 @@ If you want your rows to dynamically shift according to the height of your array
 
 See also the :meth:`API reference <xlwings.pro.reports.create_report>`.
 
+DataFrame Filters
+-----------------
+
+When you work with DataFrames, you'll often want to hide the index and/or header and have to introduce empty columns to align them with your Excel cells. You can do all this by using *filters* that you define by using the the pipe character:
+
+* **noindex**: Hide the index
+
+  Example: ``{{ df | noindex }}``
+
+* **noheader**: Hide the column header
+
+  Example: ``{{ df | noheader }}``
+
+* **columns**: Select and reorder columns and introduce empty columns (column indices are zero-based)
+
+  Example: ``{{ df | columns(0, None, 2, 1) }}``. This will introduce an empty column (``None``) as the second column and switch the order of the second and third column.
+
+  .. note::
+    Merged cells: you'll also have to introduce empty columns if you are using merged cells in your Excel template.
+
+You can combine these filters freely like this::
+
+    {{ df | noindex | noheader | columns(0, None, 1) }}
+
+Here is a full example::
+
+    import xlwings as xw
+    import pandas as pd
+
+    wb = xw.Book('Book1.xlsx')
+    sheet = wb.sheets['template'].copy(name='report')
+    df = pd.DataFrame({'one': [1, 2, 3], 'two': [4, 5, 6], 'three': [7, 8, 9]})
+    sheet.render_template(df=df)
+
+.. figure:: images/reports_df_filters.png
+
 .. _frames:
 
 Frames
@@ -81,7 +117,7 @@ within Frames:
 * Variables do not overwrite existing cell values as they do without Frames.
 * Formatting is applied dynamically, depending on the number of rows your object uses in Excel
 
-To use Frames, insert ``<frame>`` into **row 1** of your Excel template wherever you want a new dyanmic column
+To use Frames, insert ``<frame>`` into **row 1** of your Excel template wherever you want a new dynamic column
 to start. Row 1 will be removed automatically when creating the report. Frames go from one
 ``<frame>`` to the next ``<frame>`` or the right border of the used range.
 
