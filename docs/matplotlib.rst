@@ -13,14 +13,14 @@ Getting started
 
 The easiest sample boils down to::
 
-    >>> import matplotlib.pyplot as plt
-    >>> import xlwings as xw
+    import matplotlib.pyplot as plt
+    import xlwings as xw
 
-    >>> fig = plt.figure()
-    >>> plt.plot([1, 2, 3])
+    fig = plt.figure()
+    plt.plot([1, 2, 3])
 
-    >>> sht = xw.Book().sheets[0]
-    >>> sht.pictures.add(fig, name='MyPlot', update=True)
+    sheet = xw.Book().sheets[0]
+    sheet.pictures.add(fig, name='MyPlot', update=True)
 
 .. figure:: images/mpl_basic.png
 

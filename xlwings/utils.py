@@ -15,6 +15,7 @@ except ImportError:
 
 try:
     import matplotlib as mpl
+    import matplotlib.pyplot as plt
     import matplotlib.figure
 except ImportError:
     mpl = None
@@ -194,7 +195,7 @@ class VersionNumber:
             raise TypeError("Cannot compare other object with version number")
 
 
-def process_image(image):
+def process_image(image, format):
     """Returns filename and is_temp_file"""
     image = fspath(image)
     if isinstance(image, str):
@@ -207,12 +208,13 @@ def process_image(image):
         raise TypeError("Don't know what to do with that image object")
 
     temp_dir = os.path.realpath(tempfile.gettempdir())
-    filename = os.path.join(temp_dir, str(uuid.uuid4()) + '.svg')
+    filename = os.path.join(temp_dir, str(uuid.uuid4()) + '.' + format)
 
     if image_type == 'mpl':
         canvas = mpl.backends.backend_agg.FigureCanvas(image)
         canvas.draw()
-        image.savefig(filename, bbox_inches='tight')
+        image.savefig(filename, bbox_inches='tight', dpi=300)
+        plt.close(image)
     elif image_type == 'plotly':
         image.write_image(filename)
     return filename, True

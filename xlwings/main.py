@@ -3207,7 +3207,7 @@ class Picture:
             self.parent
         )
 
-    def update(self, image):
+    def update(self, image, format="png"):
         """
         Replaces an existing picture with a new one, taking over the attributes of the existing picture.
 
@@ -3221,7 +3221,7 @@ class Picture:
         .. versionadded:: 0.5.0
         """
 
-        filename, is_temp_file = utils.process_image(image)
+        filename, is_temp_file = utils.process_image(image, format=format)
 
         name = self.name
 
@@ -3274,7 +3274,7 @@ class Pictures(Collection):
         return Sheet(impl=self.impl.parent)
 
     def add(self, image, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None,
-            name=None, update=False, scale=None):
+            name=None, update=False, scale=None, format='png'):
         """
         Adds a picture to the specified sheet.
 
@@ -3305,6 +3305,11 @@ class Pictures(Collection):
         scale : float, default None
             Scales your picture by the provided factor.
 
+        format : str, default "png"
+            Only used if image is a Matplotlib or Plotly plot. By default, a the plot is inserted in the "png format,
+            but you may want to change this to a vector-based format like "svg" on Windows or "eps" on macOs for better
+            print quality.
+
         Returns
         -------
         Picture
@@ -3333,12 +3338,12 @@ class Pictures(Collection):
             else:
                 try:
                     pic = self[name]
-                    pic.update(image)
+                    pic.update(image, format=format)
                     return pic
                 except KeyError:
                     pass
 
-        filename, is_temp_file = utils.process_image(image)
+        filename, is_temp_file = utils.process_image(image, format=format)
 
         if not (link_to_file or save_with_document):
             raise Exception("Arguments link_to_file and save_with_document cannot both be false")

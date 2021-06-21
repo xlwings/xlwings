@@ -1427,13 +1427,18 @@ class Pictures(Collection):
                     kw.file_name: posix_to_hfs_path(filename),
                     kw.link_to_file: link_to_file,
                     kw.save_with_document: save_with_document,
-                    kw.top: top,
-                    kw.left_position: left,
                     kw.width: width,
-                    kw.height: height
+                    kw.height: height,
+                    # Top and left: see below
+                    kw.top: 0,
+                    kw.left_position: 0
                 }
             ).name.get()
         )
+
+        # Top and left cause an issue in the make command above if they are not set to 0 when width & height are -1
+        picture.top = top
+        picture.left = left
 
         if not link_to_file and version >= 15:
             os.remove(filename)
