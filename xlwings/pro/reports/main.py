@@ -7,6 +7,7 @@ except ImportError:
     pass
 
 from .markdown import Markdown
+from .image import Image
 from ..utils import LicenseHandler
 from ...main import Book
 
@@ -82,12 +83,10 @@ def render_template(sheet, **data):
                                 var = ''
                             elif token_type == 'variable_end':
                                 result = eval(var)
-                                if PIL and isinstance(result, PIL.Image.Image):
-                                    # TODO: properly support Image objects in xlwings
+                                if isinstance(result, Image) or (PIL and isinstance(result, PIL.Image.Image)):
                                     sheet.pictures.add(result.filename,
                                                        top=sheet[i + row_shift, j + frame_indices[ix]].top,
-                                                       left=sheet[i + row_shift, j + frame_indices[ix]].left,
-                                                       width=result.width, height=result.height)
+                                                       left=sheet[i + row_shift, j + frame_indices[ix]].left)
                                     sheet[i + row_shift, j + frame_indices[ix]].value = None
                                 elif Figure and isinstance(result, Figure):
                                     # Matplotlib figures

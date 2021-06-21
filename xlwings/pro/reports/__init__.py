@@ -8,3 +8,4 @@ LicenseHandler.validate_license('reports')
 # API
 from .main import create_report
 from .markdown import MarkdownStyle, Markdown
+from .image import Image
