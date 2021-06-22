@@ -113,12 +113,12 @@ def render_template(sheet, **data):
                         if (isinstance(result, Image)
                                 or (PIL and isinstance(result, PIL.Image.Image))
                                 or (Figure and isinstance(result, Figure))
-                                or (plotly and isinstance(result, plotly.graph_objs._figure.Figure))):
+                                or (plotly and isinstance(result, plotly.graph_objs.Figure))):
                             width = filter_args['width'][0].as_const() if 'width' in filter_names else None
                             height = filter_args['height'][0].as_const() if 'height' in filter_names else None
                             scale = filter_args['scale'][0].as_const() if 'scale' in filter_names else None
                             format_ = filter_args['format'][0].name if 'format' in filter_names else 'png'
-                            image = result.filename if isinstance(result, Image) else result
+                            image = result.filename if isinstance(result, (Image, PIL.Image.Image)) else result
                             sheet.pictures.add(image,
                                                top=sheet[i + row_shift, j + frame_indices[ix]].top,
                                                left=sheet[i + row_shift, j + frame_indices[ix]].left,
@@ -139,16 +139,28 @@ def render_template(sheet, **data):
                                 result_len = len(result)
                             elif pd and isinstance(result, pd.DataFrame):
                                 # TODO: handle MultiIndex headers
+                                result_len = len(result) + 1 if options['header'] else len(result)
                                 options = {'index': 'noindex' not in filter_names,
                                            'header': 'noheader' not in filter_names}
-                                if 'columns' in filter_names and isinstance(result, pd.DataFrame):
+                                if 'columns' in filter_names:
                                     columns = [arg.as_const() for arg in filter_args['columns']]
                                     result = result.iloc[:, [col for col in columns if col is not None]]
                                     empty_col_indices = [i for i, v in enumerate(columns) if v is None]
                                     for col_ix in empty_col_indices:
                                         # this method is inplace!
                                         result.insert(loc=col_ix, column='', value=np.nan, allow_duplicates=True)
-                                result_len = len(result) + 1 if options['header'] else len(result)
+                                if 'sortasc' in filter_names:
+                                    columns = [arg.as_const() for arg in filter_args['sortasc']]
+                                    result = result.sort_values(list(result.columns[columns]), ascending=True)
+                                if 'sortdesc' in filter_names:
+                                    columns = [arg.as_const() for arg in filter_args['sortdesc']]
+                                    result = result.sort_values(list(result.columns[columns]), ascending=False)
+                                if 'maxrows' in filter_names and len(result) > filter_args['maxrows'][0].as_const():
+                                    splitrow = filter_args['maxrows'][0].as_const() - 1
+                                    result = result.iloc[:splitrow, :].append(result.iloc[splitrow:, :].sum(numeric_only=True),
+                                                                              ignore_index=True)
+                                    result.iloc[-1, 0] = filter_args['maxrows'][1].name if len(filter_args['maxrows']) > 1 else "Other"
+
                             else:
                                 result_len = 1
                             # Insert rows if within <frame> and 'result' is multiple rows high
