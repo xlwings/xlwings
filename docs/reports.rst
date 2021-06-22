@@ -5,10 +5,22 @@ xlwings Reports
 
 This feature requires xlwings :guilabel:`PRO`.
 
+xlwings Reports is a solution for template-based Excel and PDF reporting. It allows business users without Python knowledge to create and maintain Excel templates without having to rely on a Python developer for every change: xlwings Reports separates the Python code (data acquisition) from the Excel template (layout/formatting).
+
+xlwings Reports supports all commonly required components:
+
+* **Text**: Format text via Markdown syntax.
+* **Tables**: Write pandas DataFrames to Excel cells and tables and format them dynamically based on the number of rows.
+* **Charts**: Use your favorite charting engine: Excel charts, Matplotlib, or Plotly.
+* **Images**: You can include both raster (e.g., png) or vector (e.g., svg) graphics, including dynamically generated ones, e.g., QR codes.
+* **Multi-column Layout**: Split your content up into a classic two column layout.
+* **PDF**: Generate PDF reports automatically.
+* **Languages**: Generate factsheets in various languages based on a single template.
+
 Quickstart
 ----------
 
-xlwings Reports is part of xlwings PRO and a solution for template-based Excel and PDF reporting. It allows business users without Python knowledge to create & maintain Excel templates without having to go back to a Python developer for every change: xlwings Reports separates the Python code (that gets and prepares all the data) from the Excel template (that defines which data goes where and how it should be formatted). See also the `xlwings Reports homepage <https://www.xlwings.org/reporting>`_. You can render one sheet at the time via :meth:`mysheet.render_template <xlwings.Sheet.render_template>` or use the higher-level convenience function :meth:`xw.create_report <xlwings.pro.reports.create_report>` which first copies the template workbook and then loops through all sheets.
+You can render one sheet via :meth:`mysheet.render_template <xlwings.Sheet.render_template>` or use the higher-level convenience function :meth:`xw.create_report <xlwings.pro.reports.create_report>` which first copies the template workbook and then loops through all sheets:
 
 Render Sheets
 *************
@@ -21,59 +33,54 @@ Let's first look at how to render a single sheet. This is a workbook stored as `
 Running the following code::
 
     import xlwings as xw
-    wb = xw.Book('Book1.xlsx')
-    sheet = wb.sheets['template'].copy(name='report')
+    book = xw.Book('Book1.xlsx')
+    sheet = book.sheets['template'].copy(name='report')
     sheet.render_template(title='A Demo!', table=[[1, 2], [3, 4]])
-    wb.to_pdf()  # requires xlwings >=0.21.1
+    book.to_pdf()
 
 Leaves you with this:
 
 .. figure:: images/sheet_rendering2.png
     :scale: 60%
 
-See also the :meth:`API reference <xlwings.Sheet.render_template>`.
+See also the :meth:`mysheet.render_template (API reference) <xlwings.Sheet.render_template>`.
 
 .. versionadded:: 0.22.0
 
 Render Workbooks
 ****************
 
-If your template is a full workbook, you can use the ``create_report`` function. Start by creating the following Python script ``my_template.py``::
+If your template is a full workbook, you can use the ``create_report`` function. Start by creating the following Python script ``mytemplate.py``::
 
     from xlwings.pro.reports import create_report
     import pandas as pd
 
     df = pd.DataFrame(data=[[1,2],[3,4]])
-    wb = create_report('my_template.xlsx', 'my_report.xlsx', title='MyTitle', df=df)
-    wb.to_pdf()  # requires xlwings >=0.21.1
+    book = create_report('mytemplate.xlsx', 'myreport.xlsx', title='MyTitle', df=df)
+    book.to_pdf()
 
-Then create the following Excel file called ``my_template.xlsx``:
+Then create the following Excel file called ``mytemplate.xlsx``:
 
 .. figure:: images/mytemplate.png
 
 Now run the Python script::
 
-    python my_template.py
+    python mytemplate.py
 
 This will copy the template and create the following output by replacing the variables in double curly braces with
 the value from the Python variable:
 
 .. figure:: images/myreport.png
 
-The last line (``wb.to_pdf()``) will print the workbook as PDF, for more details on the options, see :meth:`Book.to_pdf() <xlwings.Book.to_pdf>`.
-
-Apart from Strings and Pandas DataFrames, you can also use numbers, lists, simple dicts, NumPy arrays,
-Matplotlib figures and PIL Image objects that have a filename.
-
 By default, xlwings Reports overwrites existing values in templates if there is not enough free space for your variable.
-If you want your rows to dynamically shift according to the height of your array, use :ref:`Frames`.
+If you want your rows to dynamically shift according to the height of your array, use :ref:`Frames <Frames>`.
 
-See also the :meth:`API reference <xlwings.pro.reports.create_report>`.
+See also :meth:`create_reports (API reference) <xlwings.pro.reports.create_report>`.
 
-DataFrame Filters
+pandas DataFrames
 -----------------
 
-When you work with DataFrames, you'll often want to hide the index and/or header and have to introduce empty columns to align them with your Excel cells. You can do all this by using *filters* that you define by using the the pipe character:
+When you work with DataFrames, you'll often want to hide the index and/or header and have to introduce empty columns to align them with your Excel cells. You can do all this by using filters:
 
 * **noindex**: Hide the index
 
@@ -99,60 +106,12 @@ Here is a full example::
     import xlwings as xw
     import pandas as pd
 
-    wb = xw.Book('Book1.xlsx')
-    sheet = wb.sheets['template'].copy(name='report')
+    book = xw.Book('Book1.xlsx')
+    sheet = book.sheets['template'].copy(name='report')
     df = pd.DataFrame({'one': [1, 2, 3], 'two': [4, 5, 6], 'three': [7, 8, 9]})
     sheet.render_template(df=df)
 
 .. figure:: images/reports_df_filters.png
-
-.. _frames:
-
-Frames
-------
-
-Frames are vertical containers in which content is being aligned according to their height. That is,
-within Frames:
-
-* Variables do not overwrite existing cell values as they do without Frames.
-* Formatting is applied dynamically, depending on the number of rows your object uses in Excel
-
-To use Frames, insert ``<frame>`` into **row 1** of your Excel template wherever you want a new dynamic column
-to start. Row 1 will be removed automatically when creating the report. Frames go from one
-``<frame>`` to the next ``<frame>`` or the right border of the used range.
-
-How Frames behave is best demonstrated with an example:
-The following screenshot defines two frames. The first one goes from column A to column E and the second one
-goes from column F to column I, since this is the last column that is used.
-
-You can define and format table-like objects by formatting exactly
-
-* one header and
-* one data row
-
-as shown in the screenshot:
-
-.. figure:: images/frame_template.png
-
-However, also make sure to check out how to use Excel Tables below, as they make the formatting easier.
-
-Running the following code::
-
-    from xlwings.pro.reports import create_report
-    import pandas as pd
-
-    df1 = pd.DataFrame([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    df2 = pd.DataFrame([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], [13, 14, 15]])
-
-    data = dict(df1=df1, df2=df2)
-
-    create_report('my_template.xlsx',
-                  'my_report.xlsx',
-                  **data)
-
-will generate this report:
-
-.. figure:: images/frame_report.png
 
 .. _excel_tables_reports:
 
@@ -216,8 +175,8 @@ To use Excel charts in your reports, follow this process:
                             'Q3': [7000, 8000, 9000]},
                       index=['North', 'South', 'West'])
 
-    wb = xw.Book("mytemplate.xlsx")
-    sheet = wb.sheets['template'].copy(name='report')
+    book = xw.Book("mytemplate.xlsx")
+    sheet = book.sheets['template'].copy(name='report')
     sheet.render_template(chart_data=df)
 
 This will produce the following report, with the chart source correctly adjusted:
@@ -226,12 +185,97 @@ This will produce the following report, with the chart source correctly adjusted
 
 **Note**: If you don't want the source data on your report, you might want to place it on a separate sheet. It's easiest if you add and design the chart on the separate sheet, before cutting the chart and pasting it on your report template.
 
-Shape Text
-----------
+Images
+------
+
+Images are inserted so that the cell with the placeholder will become the top-left corner of the image. For example, write the following placeholder into you desired cell: ``{{ logo }}``.
+
+Then run the following code::
+
+    import xlwings as xw
+    from xlwings.pro.reports import Image
+
+    book = xw.Book('Book1.xlsx')
+    sheet = book.sheets['template'].copy(name='report')
+    sheet.render_template(logo=Image(r'C:\path\to\logo.png'))
+
+**Note**: ``Image`` also accepts a ``pathlib.Path`` object instead of a string.
+
+If you want to use vector-based graphics, you can use ``svg`` on Windows and ``eps`` on macOS. You can control the appearance of your image by applying filters on your placeholder:
+
+* **Width**: set the width in pixels (height will be scaled proportionally):
+
+  ``{{ logo | width(200) }}``
+
+* **Height**: set the height in pixels (width will be scaled proportionally):
+
+  ``{{ logo | height(200) }}``
+
+* **Width and Height**: setting both width and height will distort the proportions of the image
+
+  ``{{ logo | height(200) | width(200) }}``
+
+* **Scale**: scale your image with a factor (height and width will be scaled proportionally):
+
+  ``{{ logo | scale(1.2) }}``
+
+
+Matlotlib and Plotly Plots
+--------------------------
+
+For a general introduction on how to handle Matplotlib and Plotly, see also: See also: :ref:`matplotlib`. There, you'll also find the prerequisites to be able to export Plotly charts as pictures.
+
+Matplotlib
+**********
+
+Write the following placeholder in the cell where you want to paste the Matplotlib plot: ``{{ lineplot }}``. Then run the following code::
+
+    import matplotlib.pyplot as plt
+    import xlwings as xw
+
+    fig = plt.figure()
+    plt.plot([1, 2, 3])
+
+    book = xw.Book('Book1.xlsx')
+    sheet = book.sheets['template'].copy(name='report')
+    sheet.render_template(lineplot=fig)
+
+Plotly
+******
+
+Plotly works the same::
+
+    import plotly.express as px
+    import xlwings as xw
+
+    fig = px.line(x=["a","b","c"], y=[1,3,2], title="A line plot")
+    book = xw.Book('Book1.xlsx')
+    sheet = book.sheets['template'].copy(name='report')
+    sheet.render_template(lineplot=fig)
+
+To change the appearance of the Matplotlib or Plotly plot, you can use the same filters as with Images, namely:
+
+* width
+* height
+* size
+
+Additionally, you can use:
+
+* **format**: allows to change the default Image format from ``png`` to e.g., ``svg`` on Windows or ``eps`` on macOS, which will export the plot as vector graphics. As an example, to make the chart smaller and use the ``svg`` format, you would write the following placeholder::
+
+    {{ lineplot | scale(0.8) | format(svg) }}
+
+Text
+----
+
+You can work with placeholders in text that lives in cells or shapes like text boxes. If you have more than just a few words, text boxes usually make more sense as they won't impact the row height no matter how you style them. This is key to getting a consistent multi-page report.
+
+Simple Text without Formatting
+******************************
 
 .. versionadded:: 0.21.4
 
-You can also use Shapes like Text Boxes or Rectangles with template text::
+You can use any shapes like rectangles or circles, not just text boxes::
 
     from xlwings.pro.reports import create_report
 
@@ -245,10 +289,10 @@ into this report:
 
 .. figure:: images/shape_text_report.png
 
-While this works for simple text, you will loose the formatting if you have any. To prevent that, use a ``Markdown`` object, see below.
+While this works for simple text, you will lose the formatting if you have any. To prevent that, use a ``Markdown`` object:
 
-Markdown
---------
+Markdown Formatting
+*******************
 
 .. versionadded:: 0.23.0
 
@@ -271,8 +315,8 @@ You can format text in cells or shapes via Markdown syntax::
     """
 
     # The first sheet requires a shape as shown on the screenshot
-    sheet = xw.Book("MyTemplate.xlsx").sheets[0]
-    sheet.render_template(myplaceholder=Markdown(mytext, style)
+    sheet = xw.Book("Book1.xlsx").sheets[0]
+    sheet.render_template(myplaceholder=Markdown(mytext, style))
 
 This will render this template with the placeholder in a cell and a shape:
 
@@ -283,3 +327,52 @@ Like this (this uses the default formatting):
 .. figure:: images/markdown1.png
 
 For more on Markdown, especially how to change the styling, see :ref:`markdown`.
+
+
+.. _frames:
+
+Frames: Multi-column Layout
+---------------------------
+
+Frames are vertical containers in which content is being aligned according to their height. That is,
+within Frames:
+
+* Variables do not overwrite existing cell values as they do without Frames.
+* Formatting is applied dynamically, depending on the number of rows your object uses in Excel
+
+To use Frames, insert ``<frame>`` into **row 1** of your Excel template wherever you want a new dynamic column
+to start. Row 1 will be removed automatically when creating the report. Frames go from one
+``<frame>`` to the next ``<frame>`` or the right border of the used range.
+
+How Frames behave is best demonstrated with an example:
+The following screenshot defines two frames. The first one goes from column A to column E and the second one
+goes from column F to column I, since this is the last column that is used.
+
+You can define and format table-like objects by formatting exactly
+
+* one header and
+* one data row
+
+as shown in the screenshot:
+
+.. figure:: images/frame_template.png
+
+You could also use Excel Tables, as they can make formatting easier.
+
+Running the following code::
+
+    from xlwings.pro.reports import create_report
+    import pandas as pd
+
+    df1 = pd.DataFrame([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    df2 = pd.DataFrame([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], [13, 14, 15]])
+
+    data = dict(df1=df1, df2=df2)
+
+    create_report('my_template.xlsx',
+                  'my_report.xlsx',
+                  **data)
+
+will generate this report:
+
+.. figure:: images/frame_report.png
