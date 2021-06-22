@@ -80,15 +80,42 @@ See also :meth:`create_reports (API reference) <xlwings.pro.reports.create_repor
 pandas DataFrames
 -----------------
 
-When you work with DataFrames, you'll often want to hide the index and/or header and have to introduce empty columns to align them with your Excel cells. You can do all this by using filters:
+When you work with DataFrames, you'll often need to tweak the data. The following filters allow you to do the most common operations. A filter is added to the placeholder, separated by the pipe character. You can combine multiple filters by using multiple pipe characters as we'll see in the examples.
 
 * **noindex**: Hide the index
 
-  Example: ``{{ df | noindex }}``
+  Example::
+
+  {{ df | noindex }}
 
 * **noheader**: Hide the column header
 
-  Example: ``{{ df | noheader }}``
+  Example::
+
+  {{ df | noheader }}
+
+* **sortasc**: Sort in ascending order
+
+  Example: Sort by second, then by first column::
+
+  {{ df | sortasc(1, 0) }}
+
+* **sortdesc**: Sort in descending order
+
+  Example: Sort by first, then by second column in descending order::
+
+  {{ df | sortdesc(0, 1) }}
+
+* **maxrows**: Maximum number of rows: if your DataFrame has 12 rows and you set maxrows to 10, then you'll get a table that shows the first 9 rows as-is and sums up the remaining 3 rows as the last row. By default, this row will be called "Other", but you can change the wording by submitting a second argument:
+
+  Examples::
+
+  {{ df | maxrows(10) }}
+  {{ df | sortasc(1)| noindex | maxrows(10) }}
+  {{ df | maxrows(10, "Other Items") }}
+
+ Since it it labels the first column (not the index) with "Other", you'll probably use this filter most of the time with ``noindex``. If your data is unsorted, use ``sortasc``/``sortdesc`` to make sure the correct rows are aggregated.
+
 
 * **columns**: Select and reorder columns and introduce empty columns (column indices are zero-based)
 
@@ -97,11 +124,7 @@ When you work with DataFrames, you'll often want to hide the index and/or header
   .. note::
     Merged cells: you'll also have to introduce empty columns if you are using merged cells in your Excel template.
 
-You can combine these filters freely like this::
-
-    {{ df | noindex | noheader | columns(0, None, 1) }}
-
-Here is a full example::
+Here are a couple of examples with a screenshot::
 
     import xlwings as xw
     import pandas as pd
@@ -129,16 +152,16 @@ Running the following script::
 
     nrows, ncols = 3, 3
     df = pd.DataFrame(data=nrows * [ncols * ['test']],
-                      columns=['col ' + str(i) for i in range(ncols)])
+                      columns=[f'col {i}' for i in range(ncols)])
 
-    create_report('template.xlsx', 'output.xlsx', df=df.set_index('col 0'))
+    create_report('template.xlsx', 'output.xlsx', df=df)
 
 Will produce the following report:
 
 .. figure:: images/excel_table_report.png
 
 .. note::
-    * If you would like to exclude the DataFrame index, make sure to set the index to the first column e.g.: ``df.set_index('column_name')``.
+    * To exclude the index, use the ``noindex`` filter. for more about filters, see below.
     * At the moment, you can only assign pandas DataFrames to tables.
     * For Excel table support, you need at least version 0.21.0 and the index behavior was changed in 0.21.3
 
@@ -203,21 +226,29 @@ Then run the following code::
 
 If you want to use vector-based graphics, you can use ``svg`` on Windows and ``eps`` on macOS. You can control the appearance of your image by applying filters on your placeholder:
 
-* **Width**: set the width in pixels (height will be scaled proportionally):
+* **Width**: Set the width in pixels (height will be scaled proportionally).
 
-  ``{{ logo | width(200) }}``
+  Example::
 
-* **Height**: set the height in pixels (width will be scaled proportionally):
+  {{ logo | width(200) }}
 
-  ``{{ logo | height(200) }}``
+* **Height**: Set the height in pixels (width will be scaled proportionally).
 
-* **Width and Height**: setting both width and height will distort the proportions of the image
+  Example::
 
-  ``{{ logo | height(200) | width(200) }}``
+  {{ logo | height(200) }}
 
-* **Scale**: scale your image with a factor (height and width will be scaled proportionally):
+* **Width and Height**: Setting both width and height will distort the proportions of the image.
 
-  ``{{ logo | scale(1.2) }}``
+  Example::
+
+  {{ logo | height(200) | width(200) }}
+
+* **Scale**: Scale your image using a factor (height and width will be scaled proportionally).
+
+  Example::
+
+  {{ logo | scale(1.2) }}
 
 
 Matlotlib and Plotly Plots
