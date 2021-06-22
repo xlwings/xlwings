@@ -31,6 +31,11 @@ try:
 except ImportError:
     pd = None
 
+try:
+    import plotly
+except ImportError:
+    plotly = None
+
 LicenseHandler.validate_license('reports')
 
 
@@ -107,12 +112,13 @@ def render_template(sheet, **data):
                             result = env.compile_expression(value.replace('{{', '').replace('}}', '').strip())(**data)
                         if (isinstance(result, Image)
                                 or (PIL and isinstance(result, PIL.Image.Image))
-                                or (Figure and isinstance(result, Figure))):
+                                or (Figure and isinstance(result, Figure))
+                                or (plotly and isinstance(result, plotly.graph_objs._figure.Figure))):
                             width = filter_args['width'][0].as_const() if 'width' in filter_names else None
                             height = filter_args['height'][0].as_const() if 'height' in filter_names else None
                             scale = filter_args['scale'][0].as_const() if 'scale' in filter_names else None
                             format_ = filter_args['format'][0].name if 'format' in filter_names else 'png'
-                            image = result if isinstance(result, Figure) else result.filename
+                            image = result.filename if isinstance(result, Image) else result
                             sheet.pictures.add(image,
                                                top=sheet[i + row_shift, j + frame_indices[ix]].top,
                                                left=sheet[i + row_shift, j + frame_indices[ix]].left,
