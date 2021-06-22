@@ -80,14 +80,21 @@ class TestShape(TestBase):
         pic = self.wb1.sheets[0].pictures.add(filename, name='pic1')
         self.assertEqual(self.wb1.sheets[0].shapes[0].type, 'picture')
 
-    def test_scale_width_height(self):
+    def test_scale_width(self):
         filename = os.path.join(this_dir, 'sample_picture.png')
         pic = self.wb1.sheets[0].pictures.add(filename, name='pic1')
-        w, h = pic.width, pic.height
+        w, h = int(pic.width), int(pic.height)
         self.wb1.sheets[0].shapes['pic1'].scale_width(factor=2)
+        self.assertEqual(int(pic.width), w * 2)
+        self.assertEqual(int(pic.height), h * 2)
+
+    def test_scale_height(self):
+        filename = os.path.join(this_dir, 'sample_picture.png')
+        pic = self.wb1.sheets[0].pictures.add(filename, name='pic1')
+        w, h = int(pic.width), int(pic.height)
         self.wb1.sheets[0].shapes['pic1'].scale_height(factor=2)
-        self.assertEqual(pic.width, w * 2)
-        self.assertEqual(pic.height, h * 2)
+        self.assertEqual(int(pic.width), w * 2)
+        self.assertEqual(int(pic.height), h * 2)
 
 
 class TestPicture(TestBase):
@@ -125,11 +132,7 @@ class TestPicture(TestBase):
     def test_width(self):
         filename = os.path.join(this_dir, 'sample_picture.png')
         pic = self.wb1.sheets[0].pictures.add(filename, name='pic1')
-        if PIL:
-            self.assertEqual(pic.width, 60)
-        else:
-            self.assertEqual(pic.width, 100)
-
+        self.assertEqual(int(pic.width), 30)
         pic.width = 50
         self.assertEqual(pic.width, 50)
 
@@ -141,13 +144,9 @@ class TestPicture(TestBase):
     def test_height(self):
         filename = os.path.join(this_dir, 'sample_picture.png')
         pic = self.wb1.sheets[0].pictures.add(filename, name='pic1')
-        if PIL:
-            self.assertEqual(pic.height, 60)
-        else:
-            self.assertEqual(pic.height, 100)
-
+        self.assertEqual(int(pic.height), 30)
         pic.height = 50
-        self.assertEqual(pic.height, 50)
+        self.assertEqual(int(pic.height), 50)
 
     def test_delete(self):
         filename = os.path.join(this_dir, 'sample_picture.png')
