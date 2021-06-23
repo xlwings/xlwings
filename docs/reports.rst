@@ -5,15 +5,15 @@ xlwings Reports
 
 This feature requires xlwings :guilabel:`PRO`.
 
-xlwings Reports is a solution for template-based Excel and PDF reporting. It allows business users without Python knowledge to create and maintain Excel templates without having to rely on a Python developer for every change: xlwings Reports separates the Python code (data acquisition) from the Excel template (layout/formatting).
+xlwings Reports is a solution for template-based Excel and PDF reporting. It allows business users without Python knowledge to create and maintain Excel templates without having to rely on a Python developer for every change: xlwings Reports separates the Python code (data acquisition/manipulation) from the Excel template (layout/formatting).
 
 xlwings Reports supports all commonly required components:
 
-* **Text**: Format text via Markdown syntax.
-* **Tables**: Write pandas DataFrames to Excel cells and tables and format them dynamically based on the number of rows.
+* **Text**: Easily format your text via Markdown syntax.
+* **Tables**: Write pandas DataFrames to Excel cells and Excel tables and format them dynamically based on the number of rows.
 * **Charts**: Use your favorite charting engine: Excel charts, Matplotlib, or Plotly.
 * **Images**: You can include both raster (e.g., png) or vector (e.g., svg) graphics, including dynamically generated ones, e.g., QR codes.
-* **Multi-column Layout**: Split your content up into a classic two column layout.
+* **Multi-column Layout**: Split your content up into e.g. a classic two column layout.
 * **PDF**: Generate PDF reports automatically.
 * **Languages**: Generate factsheets in various languages based on a single template.
 
@@ -80,7 +80,21 @@ See also :meth:`create_reports (API reference) <xlwings.pro.reports.create_repor
 pandas DataFrames
 -----------------
 
-When you work with DataFrames, you'll often need to tweak the data. The following filters allow you to do the most common operations. A filter is added to the placeholder, separated by the pipe character. You can combine multiple filters by using multiple pipe characters as we'll see in the examples.
+When you work with DataFrames, you'll often need to tweak the data. The following filters allow you to do the most common operations. A filter is added to the placeholder in Excel, separated by the pipe character. You can combine multiple filters by using multiple pipe characters as we'll see in the examples.
+
+Let's start with a couple of examples before looking at each filter in more detail::
+
+    import xlwings as xw
+    import pandas as pd
+
+    book = xw.Book('Book1.xlsx')
+    sheet = book.sheets['template'].copy(name='report')
+    df = pd.DataFrame({'one': [1, 2, 3], 'two': [4, 5, 6], 'three': [7, 8, 9]})
+    sheet.render_template(df=df)
+
+.. figure:: images/reports_df_filters.png
+
+Available filters for DataFrames:
 
 * **noindex**: Hide the index
 
@@ -94,19 +108,25 @@ When you work with DataFrames, you'll often need to tweak the data. The followin
 
   {{ df | noheader }}
 
-* **sortasc**: Sort in ascending order
+* **sortasc**: Sort in ascending order (indices are zero-based)
 
-  Example: Sort by second, then by first column::
+  Example::
 
   {{ df | sortasc(1, 0) }}
 
-* **sortdesc**: Sort in descending order
+ This sorts by second, then by first column.
 
-  Example: Sort by first, then by second column in descending order::
+* **sortdesc**: Sort in descending order (indices are zero-based)
+
+  Example::
 
   {{ df | sortdesc(0, 1) }}
 
-* **maxrows**: Maximum number of rows: if your DataFrame has 12 rows and you set maxrows to 10, then you'll get a table that shows the first 9 rows as-is and sums up the remaining 3 rows as the last row. By default, this row will be called "Other", but you can change the wording by submitting a second argument:
+ Sort by first, then by second column in descending order.
+
+* **maxrows**: Maximum number of rows
+
+  If your DataFrame has 12 rows and you use ``maxrows(10)`` as filter, you'll get a table that shows the first 9 rows as-is and sums up the remaining 3 rows as the last row. By default, this row will be called "Other", but you can change the wording by submitting a second argument (e.g. "Other Items", see example below).  Since it labels the first column (not the index) with "Other", you'll probably use this filter most of the time with ``noindex``. If your data is unsorted, use ``sortasc``/``sortdesc`` to make sure the correct rows are aggregated.
 
   Examples::
 
@@ -114,34 +134,23 @@ When you work with DataFrames, you'll often need to tweak the data. The followin
   {{ df | sortasc(1)| noindex | maxrows(10) }}
   {{ df | maxrows(10, "Other Items") }}
 
- Since it it labels the first column (not the index) with "Other", you'll probably use this filter most of the time with ``noindex``. If your data is unsorted, use ``sortasc``/``sortdesc`` to make sure the correct rows are aggregated.
+* **columns**: Select/reorder columns and insert empty columns (column indices are zero-based)
 
+  Example::
 
-* **columns**: Select and reorder columns and introduce empty columns (column indices are zero-based)
+    {{ df | columns(0, None, 2, 1) }}
 
-  Example: ``{{ df | columns(0, None, 2, 1) }}``. This will introduce an empty column (``None``) as the second column and switch the order of the second and third column.
+  This will introduce an empty column (``None``) as the second column and switch the order of the second and third column.
 
   .. note::
     Merged cells: you'll also have to introduce empty columns if you are using merged cells in your Excel template.
-
-Here are a couple of examples with a screenshot::
-
-    import xlwings as xw
-    import pandas as pd
-
-    book = xw.Book('Book1.xlsx')
-    sheet = book.sheets['template'].copy(name='report')
-    df = pd.DataFrame({'one': [1, 2, 3], 'two': [4, 5, 6], 'three': [7, 8, 9]})
-    sheet.render_template(df=df)
-
-.. figure:: images/reports_df_filters.png
 
 .. _excel_tables_reports:
 
 Excel Tables
 ------------
 
-Using Excel tables is the recommended way to format tables as the styling can be applied dynamically across columns and rows. You can also use themes and apply alternating colors to rows/columns. On top of that, they are the easiest way to make the source of a chart dynamic. Go to ``Insert`` > ``Table`` and make sure that you activate ``My table has headers`` before clicking on ``OK``. Add the placeholder as usual on the top-left of your Excel table:
+Using Excel tables is the recommended way to format tables as the styling can be applied dynamically across columns and rows. You can also use themes and apply alternating colors to rows/columns. Go to ``Insert`` > ``Table`` and make sure that you activate ``My table has headers`` before clicking on ``OK``. Add the placeholder as usual on the top-left of your Excel table:
 
 .. figure:: images/excel_table_template.png
 
@@ -161,14 +170,13 @@ Will produce the following report:
 .. figure:: images/excel_table_report.png
 
 .. note::
-    * To exclude the index, use the ``noindex`` filter. for more about filters, see below.
-    * At the moment, you can only assign pandas DataFrames to tables.
-    * For Excel table support, you need at least version 0.21.0 and the index behavior was changed in 0.21.3
+    * At the moment, you can only assign pandas DataFrames to tables
+    * For Excel table support, you need at least version 0.21.0
 
 Excel Charts
 ------------
 
-**Note**: To use charts with a dynamic source, you'll need at least xlwings version 0.22.1
+**Note**: To use charts with an Excel table as source, you'll need at least xlwings version 0.22.1
 
 To use Excel charts in your reports, follow this process:
 
@@ -211,9 +219,7 @@ This will produce the following report, with the chart source correctly adjusted
 Images
 ------
 
-Images are inserted so that the cell with the placeholder will become the top-left corner of the image. For example, write the following placeholder into you desired cell: ``{{ logo }}``.
-
-Then run the following code::
+Images are inserted so that the cell with the placeholder will become the top-left corner of the image. For example, write the following placeholder into you desired cell: ``{{ logo }}``, then run the following code::
 
     import xlwings as xw
     from xlwings.pro.reports import Image
@@ -224,27 +230,29 @@ Then run the following code::
 
 **Note**: ``Image`` also accepts a ``pathlib.Path`` object instead of a string.
 
-If you want to use vector-based graphics, you can use ``svg`` on Windows and ``eps`` on macOS. You can control the appearance of your image by applying filters on your placeholder:
+If you want to use vector-based graphics, you can use ``svg`` on Windows and ``eps`` on macOS. You can control the appearance of your image by applying filters on your placeholder.
 
-* **Width**: Set the width in pixels (height will be scaled proportionally).
+Available filters for Images:
+
+* **width**: Set the width in pixels (height will be scaled proportionally).
 
   Example::
 
   {{ logo | width(200) }}
 
-* **Height**: Set the height in pixels (width will be scaled proportionally).
+* **height**: Set the height in pixels (width will be scaled proportionally).
 
   Example::
 
   {{ logo | height(200) }}
 
-* **Width and Height**: Setting both width and height will distort the proportions of the image.
+* **width and height**: Setting both width and height will distort the proportions of the image!
 
   Example::
 
   {{ logo | height(200) | width(200) }}
 
-* **Scale**: Scale your image using a factor (height and width will be scaled proportionally).
+* **scale**: Scale your image using a factor (height and width will be scaled proportionally).
 
   Example::
 
@@ -254,12 +262,12 @@ If you want to use vector-based graphics, you can use ``svg`` on Windows and ``e
 Matplotlib and Plotly Plots
 ---------------------------
 
-For a general introduction on how to handle Matplotlib and Plotly, see also: See also: :ref:`matplotlib`. There, you'll also find the prerequisites to be able to export Plotly charts as pictures.
+For a general introduction on how to handle Matplotlib and Plotly, see also: :ref:`matplotlib`. There, you'll also find the prerequisites to be able to export Plotly charts as pictures.
 
 Matplotlib
 **********
 
-Write the following placeholder in the cell where you want to paste the Matplotlib plot: ``{{ lineplot }}``. Then run the following code::
+Write the following placeholder in the cell where you want to paste the Matplotlib plot: ``{{ lineplot }}``. Then run the following code to get your Matplotlib Figure object::
 
     import matplotlib.pyplot as plt
     import xlwings as xw
@@ -274,7 +282,7 @@ Write the following placeholder in the cell where you want to paste the Matplotl
 Plotly
 ******
 
-Plotly works the same::
+Plotly works practically the same::
 
     import plotly.express as px
     import xlwings as xw
@@ -284,13 +292,13 @@ Plotly works the same::
     sheet = book.sheets['template'].copy(name='report')
     sheet.render_template(lineplot=fig)
 
-To change the appearance of the Matplotlib or Plotly plot, you can use the same filters as with Images, namely:
+To change the appearance of the Matplotlib or Plotly plot, you can use the same filters as with images, namely:
 
 * width
 * height
 * size
 
-Additionally, you can use:
+Additionally, you can use the following filter:
 
 * **format**: allows to change the default image format from ``png`` to e.g., ``svg`` on Windows or ``eps`` on macOS, which will export the plot as vector graphics. As an example, to make the chart smaller and use the ``svg`` format, you would write the following placeholder::
 
@@ -327,9 +335,10 @@ Markdown Formatting
 
 .. versionadded:: 0.23.0
 
-You can format text in cells or shapes via Markdown syntax::
+You can format text in cells or shapes via Markdown syntax. Note that you can also use placeholders in the Markdown text that will take the values from the variables you supply via the ``render_template`` or ``create_report`` functions::
 
-    from xlwings.pro import Markdown, MarkdownStyle
+    import xlwings as xw
+    from xlwings.pro import Markdown
 
     mytext = """\
     # Title
@@ -339,15 +348,16 @@ You can format text in cells or shapes via Markdown syntax::
     * A first bullet
     * A second bullet
 
-    # Another Title
+    # {{ second_title }}
 
     This paragraph has a line break.
     Another line.
     """
 
     # The first sheet requires a shape as shown on the screenshot
-    sheet = xw.Book("Book1.xlsx").sheets[0]
-    sheet.render_template(myplaceholder=Markdown(mytext, style))
+    sheet = xw.sheets.active
+    sheet.render_template(myplaceholder=Markdown(mytext),
+                          second_title='Another Title')
 
 This will render this template with the placeholder in a cell and a shape:
 
@@ -357,7 +367,7 @@ Like this (this uses the default formatting):
 
 .. figure:: images/markdown1.png
 
-For more on Markdown, especially how to change the styling, see :ref:`markdown`.
+For more details about Markdown, especially about how to change the styling, see :ref:`markdown`.
 
 
 .. _frames:
