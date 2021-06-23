@@ -226,6 +226,16 @@ class TestDataFrameFilters(unittest.TestCase):
         wb = create_report('template1.xlsx', 'output.xlsx', **data)
         self.assertEqual(wb.sheets['df_filters']['A1:E76'].value, wb.sheets['df_filters']['G1:K76'].value)
 
+    def test_df_filters_in_frames(self):
+        wb = create_report('df_filter_frame.xlsx', 'output.xlsx', **data)
+        self.assertEqual(wb.sheets['Sheet1']['A1:E10'].value, wb.sheets['expected']['A1:E10'].value)
+        self.assertEqual(wb.sheets['Sheet1']['A3'].color, wb.sheets['expected']['A3'].color)
+        self.assertEqual(wb.sheets['Sheet1']['A4:A5'].color, wb.sheets['expected']['A4:A5'].color)
+        self.assertIsNone(wb.sheets['Sheet1']['A6'].color)
+        self.assertEqual(wb.sheets['Sheet1']['A7'].color, wb.sheets['expected']['A7'].color)
+        self.assertEqual(wb.sheets['Sheet1']['A8'].color, wb.sheets['expected']['A8'].color)
+        self.assertIsNone(wb.sheets['Sheet1']['A9'].color)
+
     def test_pic_filters(self):
         wb = create_report('template1.xlsx', 'output.xlsx', **data)
         self.assertEqual(wb.sheets['pic_filters'].pictures[0].width, 397)

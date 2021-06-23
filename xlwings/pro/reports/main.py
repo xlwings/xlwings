@@ -138,8 +138,6 @@ def render_template(sheet, **data):
                             elif np and isinstance(result, np.ndarray):
                                 result_len = len(result)
                             elif pd and isinstance(result, pd.DataFrame):
-                                # TODO: handle MultiIndex headers
-                                result_len = len(result) + 1 if options['header'] else len(result)
                                 options = {'index': 'noindex' not in filter_names,
                                            'header': 'noheader' not in filter_names}
                                 if 'columns' in filter_names:
@@ -160,7 +158,8 @@ def render_template(sheet, **data):
                                     result = result.iloc[:splitrow, :].append(result.iloc[splitrow:, :].sum(numeric_only=True),
                                                                               ignore_index=True)
                                     result.iloc[-1, 0] = filter_args['maxrows'][1].name if len(filter_args['maxrows']) > 1 else "Other"
-
+                                # TODO: handle MultiIndex headers
+                                result_len = len(result) + 1 if options['header'] else len(result)
                             else:
                                 result_len = 1
                             # Insert rows if within <frame> and 'result' is multiple rows high
