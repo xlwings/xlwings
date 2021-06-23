@@ -443,6 +443,20 @@ class App:
     def status_bar(self, value):
         self.impl.status_bar = value
 
+    @property
+    def cut_copy_mode(self):
+        """
+        Gets or sets the status of the cut or copy mode.
+        Accepts ``False`` for setting and returns ``None``, ``copy`` or ``cut`` when getting the status.
+
+        .. versionadded:: 0.23.5
+        """
+        return self.impl.cut_copy_mode
+
+    @cut_copy_mode.setter
+    def cut_copy_mode(self, value):
+        self.impl.cut_copy_mode = value
+
     def __repr__(self):
         return "<Excel App %s>" % self.pid
 

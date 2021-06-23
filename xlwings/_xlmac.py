@@ -173,6 +173,15 @@ class App:
     def status_bar(self, value):
         self.xl.status_bar.set(value)
 
+    @property
+    def cut_copy_mode(self):
+        modes = {kw.cut_mode: 'cut', kw.copy_mode: 'copy'}
+        return modes.get(self.xl.cut_copy_mode.get())
+
+    @cut_copy_mode.setter
+    def cut_copy_mode(self, value):
+        self.xl.cut_copy_mode.set(value)
+
 
 class Books:
 
