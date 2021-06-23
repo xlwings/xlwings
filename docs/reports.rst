@@ -251,8 +251,8 @@ If you want to use vector-based graphics, you can use ``svg`` on Windows and ``e
   {{ logo | scale(1.2) }}
 
 
-Matlotlib and Plotly Plots
---------------------------
+Matplotlib and Plotly Plots
+---------------------------
 
 For a general introduction on how to handle Matplotlib and Plotly, see also: See also: :ref:`matplotlib`. There, you'll also find the prerequisites to be able to export Plotly charts as pictures.
 
@@ -292,7 +292,7 @@ To change the appearance of the Matplotlib or Plotly plot, you can use the same 
 
 Additionally, you can use:
 
-* **format**: allows to change the default Image format from ``png`` to e.g., ``svg`` on Windows or ``eps`` on macOS, which will export the plot as vector graphics. As an example, to make the chart smaller and use the ``svg`` format, you would write the following placeholder::
+* **format**: allows to change the default image format from ``png`` to e.g., ``svg`` on Windows or ``eps`` on macOS, which will export the plot as vector graphics. As an example, to make the chart smaller and use the ``svg`` format, you would write the following placeholder::
 
     {{ lineplot | scale(0.8) | format(svg) }}
 
@@ -362,8 +362,8 @@ For more on Markdown, especially how to change the styling, see :ref:`markdown`.
 
 .. _frames:
 
-Frames: Multi-column Layout
----------------------------
+Frames: Dynamic, multi-column Layout
+------------------------------------
 
 Frames are vertical containers in which content is being aligned according to their height. That is,
 within Frames:
