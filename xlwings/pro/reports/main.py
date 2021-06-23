@@ -182,6 +182,7 @@ def render_template(sheet, **data):
                                     sheet.range((i + row_shift + 2, j + frame_indices[ix] + 1),
                                                 (i + row_shift + rows_to_be_inserted + 2, end_column)).paste(
                                         paste='formats')
+                                    book.app.cut_copy_mode = False
                                     book.app.screen_updating = screen_updating_original_state
                             # Write the 2d array to Excel
                             if sheet[i + row_shift, j + frame_indices[ix]].table:
