@@ -3290,7 +3290,7 @@ class Pictures(Collection):
         return Sheet(impl=self.impl.parent)
 
     def add(self, image, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None,
-            name=None, update=False, scale=None, format='png'):
+            name=None, update=False, scale=None, format=None):
         """
         Adds a picture to the specified sheet.
 
@@ -3321,8 +3321,8 @@ class Pictures(Collection):
         scale : float, default None
             Scales your picture by the provided factor.
 
-        format : str, default "png"
-            Only used if image is a Matplotlib or Plotly plot. By default, a the plot is inserted in the "png format,
+        format : str, default None
+            Only used if image is a Matplotlib or Plotly plot. By default, the plot is inserted in the "png" format,
             but you may want to change this to a vector-based format like "svg" on Windows (may require Microsoft 365) or "eps" on macOS for better
             print quality. See also: https://support.microsoft.com/en-us/topic/support-for-eps-images-has-been-turned-off-in-office-a069d664-4bcf-415e-a1b5-cbb0c334a840
 
@@ -3359,7 +3359,7 @@ class Pictures(Collection):
                 except KeyError:
                     pass
 
-        filename, is_temp_file = utils.process_image(image, format=format)
+        filename, is_temp_file = utils.process_image(image, format="png" if not format else format)
 
         if not (link_to_file or save_with_document):
             raise Exception("Arguments link_to_file and save_with_document cannot both be false")
