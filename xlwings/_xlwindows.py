@@ -447,6 +447,15 @@ class App:
     def status_bar(self, value):
         self.xl.StatusBar = value
 
+    @property
+    def cut_copy_mode(self):
+        modes = {2: 'cut', 1: 'copy'}
+        return modes.get(self.xl.CutCopyMode)
+
+    @cut_copy_mode.setter
+    def cut_copy_mode(self, value):
+        self.xl.CutCopyMode = value
+
 
 class Books:
 
@@ -1794,6 +1803,14 @@ class Picture:
 
     def delete(self):
         self.xl.Delete()
+
+    @property
+    def lock_aspect_ratio(self):
+        return self.xl.ShapeRange.LockAspectRatio
+
+    @lock_aspect_ratio.setter
+    def lock_aspect_ratio(self, value):
+        self.xl.ShapeRange.LockAspectRatio = value
 
 
 class Pictures(Collection):

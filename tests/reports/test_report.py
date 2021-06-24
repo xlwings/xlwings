@@ -6,11 +6,10 @@ import numpy as np
 import pandas as pd
 from pandas.testing import assert_frame_equal
 from numpy.testing import assert_array_equal
-from PIL import Image
 from matplotlib.figure import Figure
 
 import xlwings as xw
-from xlwings.pro.reports import create_report
+from xlwings.pro.reports import create_report, Image
 from xlwings.pro import Markdown
 
 # Test data
@@ -33,8 +32,12 @@ ax = fig.add_subplot(111)
 ax.plot([1, 2, 3, 4, 5])
 
 df1 = pd.DataFrame(index=['r0', 'r1'], columns=['c0', 'c1'], data=[[1., 1.], [1., 1.]])
+df2 = pd.DataFrame({'name': ['a', 'b', 'c', 'd', 'e'],
+                    'b': [4, 2, 6, 6, 9],
+                    'c': [1, 2, 5, 7, 8],
+                    'd': [1, 1, 1, 6, 7]})
 data = dict(mystring='stringtest', myfloat=12.12, substring='substringtest',
-            df1=df1, mydict={'df': df1}, pic=Image.open(os.path.abspath('xlwings.jpg')),
+            df1=df1, df2=df2, mydict={'df': df1}, pic=Image(os.path.abspath('xlwings.jpg')),
             fig=fig, markdown_cell=Markdown(text1), markdown_shape=Markdown(text1), mybullet='bullet')
 
 
@@ -94,11 +97,11 @@ class TestCreateReport(unittest.TestCase):
         self.assertIsNone(self.wb.sheets[4].shapes['Oval 5'].text)
 
     def test_markdown_cell(self):
-        self.assertEqual(self.wb.sheets['Sheet6']['A1'].value, 'Title\n\nText bold and italic\n\n• a first bullet\n• a second bullet\n\nAnother title\n\nthis has a line break\nnew line')
+        self.assertEqual(self.wb.sheets['Sheet6']['A1'].value, 'Title\nText bold and italic\n\n• a first bullet\n• a second bullet\n\nAnother title\nthis has a line break\nnew line')
 
     def test_markdown_shape(self):
         self.assertEqual(self.wb.sheets['Sheet6'].shapes[0].text,
-                         'Title\n\nText bold and italic\n\n• a first bullet\n• a second bullet\n\nAnother title\n\nthis has a line break\nnew line')
+                         'Title\nText bold and italic\n\n• a first bullet\n• a second bullet\n\nAnother title\nthis has a line break\nnew line')
 
 
 class TestBookSettings(unittest.TestCase):
@@ -165,7 +168,7 @@ class TestFrames(unittest.TestCase):
         df3.index.name = 'df3'
 
         text = 'abcd'
-        pic = Image.open(os.path.abspath('xlwings.jpg'))
+        pic = Image(os.path.abspath('xlwings.jpg'))
 
         data = dict(df1=df1, df2='df2 dummy', df3=df3, text=text, pic=pic)
         wb = create_report('template_two_frames.xlsx', 'output.xlsx', **data)
@@ -219,9 +222,30 @@ class TestDataFrameFilters(unittest.TestCase):
     def tearDown(self):
         xw.Book('output.xlsx').app.quit()
 
-    def test_filters(self):
+    def test_df_filters(self):
         wb = create_report('template1.xlsx', 'output.xlsx', **data)
-        self.assertEqual(wb.sheets['filters']['A1:E27'].value, wb.sheets['filters']['G1:K27'].value)
+        self.assertEqual(wb.sheets['df_filters']['A1:E76'].value, wb.sheets['df_filters']['G1:K76'].value)
+
+    def test_df_filters_in_frames(self):
+        wb = create_report('df_filter_frame.xlsx', 'output.xlsx', **data)
+        self.assertEqual(wb.sheets['Sheet1']['A1:E10'].value, wb.sheets['expected']['A1:E10'].value)
+        self.assertEqual(wb.sheets['Sheet1']['A3'].color, wb.sheets['expected']['A3'].color)
+        self.assertEqual(wb.sheets['Sheet1']['A4:A5'].color, wb.sheets['expected']['A4:A5'].color)
+        self.assertIsNone(wb.sheets['Sheet1']['A6'].color)
+        self.assertEqual(wb.sheets['Sheet1']['A7'].color, wb.sheets['expected']['A7'].color)
+        self.assertEqual(wb.sheets['Sheet1']['A8'].color, wb.sheets['expected']['A8'].color)
+        self.assertIsNone(wb.sheets['Sheet1']['A9'].color)
+
+    def test_pic_filters(self):
+        wb = create_report('template1.xlsx', 'output.xlsx', **data)
+        self.assertEqual(wb.sheets['pic_filters'].pictures[0].width, 397)
+        self.assertEqual(wb.sheets['pic_filters'].pictures[0].height, 139)
+        self.assertEqual(wb.sheets['pic_filters'].pictures[1].width, 120)
+        self.assertEqual(int(wb.sheets['pic_filters'].pictures[1].height), 42)
+        self.assertEqual(int(wb.sheets['pic_filters'].pictures[2].width), 371)
+        self.assertEqual(wb.sheets['pic_filters'].pictures[2].height, 130)
+        self.assertEqual(int(wb.sheets['pic_filters'].pictures[3].width), 476)
+        self.assertEqual(int(wb.sheets['pic_filters'].pictures[3].height), 166)
 
 
 if __name__ == '__main__':

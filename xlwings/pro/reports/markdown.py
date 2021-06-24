@@ -60,7 +60,7 @@ class MarkdownStyle:
         def __init__(self):
             super().__init__(display_name='h1')
             self.font = FontStyle(bold=True)
-            self.blank_lines_after = 1
+            self.blank_lines_after = 0
 
     class __Paragraph(Style):
         def __init__(self):

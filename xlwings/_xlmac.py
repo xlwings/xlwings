@@ -173,6 +173,15 @@ class App:
     def status_bar(self, value):
         self.xl.status_bar.set(value)
 
+    @property
+    def cut_copy_mode(self):
+        modes = {kw.cut_mode: 'cut', kw.copy_mode: 'copy'}
+        return modes.get(self.xl.cut_copy_mode.get())
+
+    @cut_copy_mode.setter
+    def cut_copy_mode(self, value):
+        self.xl.cut_copy_mode.set(value)
+
 
 class Books:
 
@@ -1392,6 +1401,14 @@ class Picture:
     def delete(self):
         self.xl.delete()
 
+    @property
+    def lock_aspect_ratio(self):
+        return self.xl.lock_aspect_ratio.get()
+
+    @lock_aspect_ratio.setter
+    def lock_aspect_ratio(self, value):
+        self.xl.lock_aspect_ratio.set(value)
+
 
 class Pictures(Collection):
 
@@ -1419,13 +1436,18 @@ class Pictures(Collection):
                     kw.file_name: posix_to_hfs_path(filename),
                     kw.link_to_file: link_to_file,
                     kw.save_with_document: save_with_document,
-                    kw.top: top,
-                    kw.left_position: left,
                     kw.width: width,
-                    kw.height: height
+                    kw.height: height,
+                    # Top and left: see below
+                    kw.top: 0,
+                    kw.left_position: 0
                 }
             ).name.get()
         )
+
+        # Top and left cause an issue in the make command above if they are not set to 0 when width & height are -1
+        picture.top = top
+        picture.left = left
 
         if not link_to_file and version >= 15:
             os.remove(filename)

@@ -33,7 +33,7 @@ else:
 
 extras_require = {
     'pro': ['cryptography', 'Jinja2'],
-    'all': ['cryptography', 'Jinja2', 'pandas', 'matplotlib', 'flask', 'pillow', 'requests']
+    'all': ['cryptography', 'Jinja2', 'pandas', 'matplotlib', 'plotly', 'flask', 'requests']
 }
 
 setup(

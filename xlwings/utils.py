@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import uuid
 import tempfile
 import datetime as dt
 import traceback
@@ -14,6 +15,7 @@ except ImportError:
 
 try:
     import matplotlib as mpl
+    import matplotlib.pyplot as plt
     import matplotlib.figure
 except ImportError:
     mpl = None
@@ -193,33 +195,29 @@ class VersionNumber:
             raise TypeError("Cannot compare other object with version number")
 
 
-def process_image(image, width, height):
+def process_image(image, format):
+    """Returns filename and is_temp_file"""
     image = fspath(image)
     if isinstance(image, str):
-        return image, width, height
+        return image, False
     elif mpl and isinstance(image, mpl.figure.Figure):
         image_type = 'mpl'
-    elif plotly_go and isinstance(image, plotly_go.Figure) and xlwings.PRO:
+    elif plotly_go and isinstance(image, plotly_go.Figure):
         image_type = 'plotly'
     else:
         raise TypeError("Don't know what to do with that image object")
 
     temp_dir = os.path.realpath(tempfile.gettempdir())
-    filename = os.path.join(temp_dir, 'xlwings_plot.png')
+    filename = os.path.join(temp_dir, str(uuid.uuid4()) + '.' + format)
 
     if image_type == 'mpl':
         canvas = mpl.backends.backend_agg.FigureCanvas(image)
         canvas.draw()
-        image.savefig(filename, format='png', bbox_inches='tight', dpi=300)
-
-        if width is None:
-            width = image.bbox.bounds[2:][0]
-
-        if height is None:
-            height = image.bbox.bounds[2:][1]
+        image.savefig(filename, bbox_inches='tight', dpi=300)
+        plt.close(image)
     elif image_type == 'plotly':
-        image.write_image(filename, width=None, height=None)
-    return filename, width, height
+        image.write_image(filename)
+    return filename, True
 
 
 def fspath(path):

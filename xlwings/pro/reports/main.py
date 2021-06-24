@@ -7,6 +7,7 @@ except ImportError:
     pass
 
 from .markdown import Markdown
+from .image import Image
 from ..utils import LicenseHandler
 from ...main import Book
 
@@ -30,26 +31,34 @@ try:
 except ImportError:
     pd = None
 
+try:
+    import plotly
+except ImportError:
+    plotly = None
+
 LicenseHandler.validate_license('reports')
 
 
 def get_filters(ast):
-    """Only works with a single variable, as for our 2d arrays"""
+    """This is only for cells that contain a single placeholder.
+    Normal text with multiple placeholders could be handled by Jinja's native (custom) filter system.
+    Returns var, filter_names (list), arguments (dict)
+    """
     found_nodes = list(ast.find_all(node_type=nodes.Filter))
     if found_nodes:
         node = found_nodes[0]
         filters = []
-        args = []
+        args = {}
         f = node
         filters.append(f.name)
-        args.append(f.args)
+        args[f.name] = f.args
         while isinstance(f.node, nodes.Filter):
             f = f.node
             filters.append(f.name)
-            args.append(f.args)
-        return f.node.name, list(reversed(filters)), list(reversed(args))
+            args[f.name] = f.args
+        return f.node.name, list(reversed(filters)), args
     else:
-        return None, [], []
+        return None, [], {}
 
 
 def render_template(sheet, **data):
@@ -99,29 +108,21 @@ def render_template(sheet, **data):
                         var, filter_names, filter_args = get_filters(ast)
                         if filter_names:
                             result = env.compile_expression(var)(**data)
-                            options = {'index': 'noindex' not in filter_names, 'header': 'noheader' not in filter_names}
-                            if 'columns' in filter_names and isinstance(result, pd.DataFrame):
-                                columns = [arg.as_const() for arg in filter_args[filter_names.index('columns')]]
-                                result = result.iloc[:, [col for col in columns if col is not None]]
-                                empty_col_indices = [i for i, v in enumerate(columns) if v is None]
-                                for col_ix in empty_col_indices:
-                                    # this method is inplace!
-                                    result.insert(loc=col_ix, column='', value=np.nan, allow_duplicates=True)
                         else:
                             result = env.compile_expression(value.replace('{{', '').replace('}}', '').strip())(**data)
-                            options = {'index': True, 'header': True}  # defaults
-                        if PIL and isinstance(result, PIL.Image.Image):
-                            # TODO: properly support Image objects in xlwings
-                            sheet.pictures.add(result.filename,
+                        if (isinstance(result, Image)
+                                or (PIL and isinstance(result, PIL.Image.Image))
+                                or (Figure and isinstance(result, Figure))
+                                or (plotly and isinstance(result, plotly.graph_objs.Figure))):
+                            width = filter_args['width'][0].as_const() if 'width' in filter_names else None
+                            height = filter_args['height'][0].as_const() if 'height' in filter_names else None
+                            scale = filter_args['scale'][0].as_const() if 'scale' in filter_names else None
+                            format_ = filter_args['format'][0].name if 'format' in filter_names else 'png'
+                            image = result.filename if isinstance(result, (Image, PIL.Image.Image)) else result
+                            sheet.pictures.add(image,
                                                top=sheet[i + row_shift, j + frame_indices[ix]].top,
                                                left=sheet[i + row_shift, j + frame_indices[ix]].left,
-                                               width=result.width, height=result.height)
-                            sheet[i + row_shift, j + frame_indices[ix]].value = None
-                        elif Figure and isinstance(result, Figure):
-                            # Matplotlib figures
-                            sheet.pictures.add(result,
-                                               top=sheet[i + row_shift, j + frame_indices[ix]].top,
-                                               left=sheet[i + row_shift, j + frame_indices[ix]].left)
+                                               width=width, height=height, scale=scale, format=format_)
                             sheet[i + row_shift, j + frame_indices[ix]].value = None
                         elif isinstance(result, Markdown):
                             # This will conveniently render placeholders within Markdown instances
@@ -131,11 +132,44 @@ def render_template(sheet, **data):
                         else:
                             # Simple Jinja variables
                             # Check for height of 2d array
+                            options = {'index': True, 'header': True}  # defaults
                             if isinstance(result, (list, tuple)) and isinstance(result[0], (list, tuple)):
                                 result_len = len(result)
                             elif np and isinstance(result, np.ndarray):
                                 result_len = len(result)
                             elif pd and isinstance(result, pd.DataFrame):
+                                result = result.copy()  # prevents manipulation of the df in the data dict
+                                options = {'index': 'noindex' not in filter_names,
+                                           'header': 'noheader' not in filter_names}
+                                if 'columns' in filter_names:
+                                    columns = [arg.as_const() for arg in filter_args['columns']]
+                                    result = result.iloc[:, [col for col in columns if col is not None]]
+                                    empty_col_indices = [i for i, v in enumerate(columns) if v is None]
+                                    for col_ix in empty_col_indices:
+                                        # this method is inplace!
+                                        result.insert(loc=col_ix, column='', value=np.nan, allow_duplicates=True)
+                                if 'sortasc' in filter_names:
+                                    columns = [arg.as_const() for arg in filter_args['sortasc']]
+                                    result = result.sort_values(list(result.columns[columns]), ascending=True)
+                                if 'sortdesc' in filter_names:
+                                    columns = [arg.as_const() for arg in filter_args['sortdesc']]
+                                    result = result.sort_values(list(result.columns[columns]), ascending=False)
+                                if 'maxrows' in filter_names and len(result) > filter_args['maxrows'][0].as_const():
+                                    splitrow = filter_args['maxrows'][0].as_const() - 1
+                                    result = result.iloc[:splitrow, :].append(result.iloc[splitrow:, :].sum(numeric_only=True),
+                                                                              ignore_index=True)
+                                    result.iloc[-1, 0] = filter_args['maxrows'][1].name if len(filter_args['maxrows']) > 1 else "Other"
+                                if 'aggsmall' in filter_names:
+                                    threshold = filter_args['aggsmall'][0].as_const()
+                                    col_ix = filter_args['aggsmall'][1].as_const()
+                                    result.loc[:, '_aggregate'] = result.iloc[:, col_ix] < threshold
+                                    if True in result['_aggregate'].unique():
+                                        # unlike aggregate, groupby conveniently drops non-numeric values
+                                        others = result.groupby('_aggregate').sum().loc[True, :]
+                                        result = result.loc[result.iloc[:, col_ix] >= threshold, :].append(others, ignore_index=True)
+                                        result.iloc[-1, 0] = filter_args['aggsmall'][2].name if len(filter_args['aggsmall']) > 2 else "Other"
+                                    result = result.drop(columns='_aggregate')
+
                                 # TODO: handle MultiIndex headers
                                 result_len = len(result) + 1 if options['header'] else len(result)
                             else:
@@ -160,6 +194,7 @@ def render_template(sheet, **data):
                                     sheet.range((i + row_shift + 2, j + frame_indices[ix] + 1),
                                                 (i + row_shift + rows_to_be_inserted + 2, end_column)).paste(
                                         paste='formats')
+                                    book.app.cut_copy_mode = False
                                     book.app.screen_updating = screen_updating_original_state
                             # Write the 2d array to Excel
                             if sheet[i + row_shift, j + frame_indices[ix]].table:
@@ -198,6 +233,12 @@ def render_template(sheet, **data):
                 template = env.from_string(shapetext)
                 shape.text = template.render(data)
 
+    # Copy/pasting the formatting leaves ranges selected. Since select() only works on the active sheet, this is
+    # an awkward workaround to put the cursor into A1
+    sheet['A1'].copy()
+    sheet['A1'].paste()
+    book.app.cut_copy_mode = False
+
 
 def create_report(template, output, book_settings=None, app=None, **data):
     """
@@ -209,8 +250,8 @@ def create_report(template, output, book_settings=None, app=None, **data):
     contained in there (Jinja variable syntax).
     Following variable types are supported:
 
-    strings, numbers, lists, simple dicts, NumPy arrays, Pandas DataFrames, PIL Image objects that have a filename and
-    Matplotlib figures.
+    strings, numbers, lists, simple dicts, NumPy arrays, Pandas DataFrames, pictures and
+    Matplotlib/Plotly figures.
 
     Parameters
     ----------
