@@ -138,6 +138,7 @@ def render_template(sheet, **data):
                             elif np and isinstance(result, np.ndarray):
                                 result_len = len(result)
                             elif pd and isinstance(result, pd.DataFrame):
+                                result = result.copy()  # prevents manipulation of the df in the data dict
                                 options = {'index': 'noindex' not in filter_names,
                                            'header': 'noheader' not in filter_names}
                                 if 'columns' in filter_names:
@@ -158,6 +159,17 @@ def render_template(sheet, **data):
                                     result = result.iloc[:splitrow, :].append(result.iloc[splitrow:, :].sum(numeric_only=True),
                                                                               ignore_index=True)
                                     result.iloc[-1, 0] = filter_args['maxrows'][1].name if len(filter_args['maxrows']) > 1 else "Other"
+                                if 'aggsmall' in filter_names:
+                                    threshold = filter_args['aggsmall'][0].as_const()
+                                    col_ix = filter_args['aggsmall'][1].as_const()
+                                    result.loc[:, '_aggregate'] = result.iloc[:, col_ix] < threshold
+                                    if True in result['_aggregate'].unique():
+                                        # unlike aggregate, groupby conveniently drops non-numeric values
+                                        others = result.groupby('_aggregate').sum().loc[True, :]
+                                        result = result.loc[result.iloc[:, col_ix] >= threshold, :].append(others, ignore_index=True)
+                                        result.iloc[-1, 0] = filter_args['aggsmall'][2].name if len(filter_args['aggsmall']) > 2 else "Other"
+                                    result = result.drop(columns='_aggregate')
+
                                 # TODO: handle MultiIndex headers
                                 result_len = len(result) + 1 if options['header'] else len(result)
                             else:

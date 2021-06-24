@@ -97,11 +97,11 @@ class TestCreateReport(unittest.TestCase):
         self.assertIsNone(self.wb.sheets[4].shapes['Oval 5'].text)
 
     def test_markdown_cell(self):
-        self.assertEqual(self.wb.sheets['Sheet6']['A1'].value, 'Title\n\nText bold and italic\n\n• a first bullet\n• a second bullet\n\nAnother title\n\nthis has a line break\nnew line')
+        self.assertEqual(self.wb.sheets['Sheet6']['A1'].value, 'Title\nText bold and italic\n\n• a first bullet\n• a second bullet\n\nAnother title\nthis has a line break\nnew line')
 
     def test_markdown_shape(self):
         self.assertEqual(self.wb.sheets['Sheet6'].shapes[0].text,
-                         'Title\n\nText bold and italic\n\n• a first bullet\n• a second bullet\n\nAnother title\n\nthis has a line break\nnew line')
+                         'Title\nText bold and italic\n\n• a first bullet\n• a second bullet\n\nAnother title\nthis has a line break\nnew line')
 
 
 class TestBookSettings(unittest.TestCase):
