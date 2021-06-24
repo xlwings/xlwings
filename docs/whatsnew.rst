@@ -1,6 +1,24 @@
 What's New
 ==========
 
+v0.24.0 (Jun 24, 2021)
+----------------------
+
+* [Enhancement] ``pictures.add()`` now accepts every picture format (including vector-based formats) that your Excel version supports. For example, on Windows you can use the ``svg`` format (only supported with Excel that comes with Microsoft 365) and on macOS, you can use ``eps`` (:issue:`1624`).
+* [Enhancements] Support for Plotly images was moved from PRO to the Open Source version, i.e. you can now provide a Plotly image directly to ``pictures.add()``.
+* [Enhancement] Matplotlib and Plotly plots can now be sent to Excel in a vector-based format by providing the ``format`` argument, e.g. ``svg`` on Windows or ``eps`` on macOS.
+* [Enhancement] Removed dependency on pillow/PIL to properly size images via ``pictures.add()``.
+* [Bug Fix] Various fixes with scaling and positioning images via ``pictures.add()`` (:issue:`1491`).
+* [Feature] New methods :meth:`mypicture.lock_aspect_ratio <xlwings.Picture.lock_aspect_ratio>` and :meth:`myapp.cut_copy_mode <xlwings.App.cut_copy_mode>` (:issue:`1622` and :issue:`1625`).
+* :guilabel:`PRO`: Reports: DataFrames and Images are now offering various filters to influence the behavior of how DataFrames and Images are displayed, giving the template designer the ability to change a lot of things that previously had to be taken care of by the Python developer. For example, to hide a DataFrame's index, you can now do ``{{ df | noindex }}`` or to scale the image to double its size, you can do ``{{ img | scale(2) }}``. You'll find all available filters under :ref:`xlwings Reports<reports_quickstart>` (:issue:`1602`).
+
+
+**Breaking changes**:
+
+* [Enhancement]: By default, pictures arrive now in Excel via ``pictures.add()`` as if you would manually add them via the Excel UI. This means that using ``pictures.add()`` with the default width/height will make images appear with a different size in Excel compared to previous versions (:issue:`1491`).
+* :guilabel:`PRO`: The default MarkdownStyle removed the empty space after a h1 heading. You can always reintroduce it by applying a custom style (:issue:`1628`).
+
+
 v0.23.4 (Jun 15, 2021)
 ----------------------
 

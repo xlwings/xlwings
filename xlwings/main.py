@@ -449,7 +449,7 @@ class App:
         Gets or sets the status of the cut or copy mode.
         Accepts ``False`` for setting and returns ``None``, ``copy`` or ``cut`` when getting the status.
 
-        .. versionadded:: 0.23.5
+        .. versionadded:: 0.24.0
         """
         return self.impl.cut_copy_mode
 
@@ -2702,7 +2702,7 @@ class Table:
 
         Updates the Excel table with the provided data. Currently restricted to DataFrames.
 
-        .. versionchanged:: 0.23.5
+        .. versionchanged:: 0.24.0
 
         Arguments
         ---------
@@ -3264,7 +3264,7 @@ class Picture:
         ``True`` will keep the original proportion,
         ``False`` will allow you to change height and width independently of each other (read/write).
 
-        .. versionadded:: 0.23.5
+        .. versionadded:: 0.24.0
         """
         return self.impl.lock_aspect_ratio
 
