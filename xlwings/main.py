@@ -3223,7 +3223,7 @@ class Picture:
             self.parent
         )
 
-    def update(self, image, format="png"):
+    def update(self, image, format=None):
         """
         Replaces an existing picture with a new one, taking over the attributes of the existing picture.
 
@@ -3237,7 +3237,7 @@ class Picture:
         .. versionadded:: 0.5.0
         """
 
-        filename, is_temp_file = utils.process_image(image, format=format)
+        filename, is_temp_file = utils.process_image(image, format="png" if not format else format)
 
         name = self.name
 
