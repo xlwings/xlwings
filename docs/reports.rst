@@ -80,9 +80,7 @@ See also :meth:`create_reports (API reference) <xlwings.pro.reports.create_repor
 DataFrames
 ----------
 
-When you work with pandas DataFrames, you'll often need to tweak the data. The following filters allow you to do the most common operations. A filter is added to the placeholder in Excel, separated by the pipe character. You can combine multiple filters by using multiple pipe characters as we'll see in the examples.
-
-Let's start with a couple of examples before looking at each filter in more detail::
+When you work with pandas DataFrames, you'll often need to tweak the data. Thanks to filters, you can do the most common operations directly in your template. A filter is added to the placeholder in Excel, separated by the pipe character. You can combine multiple filters by using multiple pipe characters. Let's start with a couple of examples before looking at each filter in more detail::
 
     import xlwings as xw
     import pandas as pd
@@ -102,7 +100,7 @@ Available filters for DataFrames:
 
   {{ df | noindex }}
 
-* **noheader**: Hide the column header
+* **noheader**: Hide the column headers
 
   Example::
 
@@ -110,54 +108,56 @@ Available filters for DataFrames:
 
 * **sortasc**: Sort in ascending order (indices are zero-based)
 
-  Example::
+  Example: sort by second, then by first column::
 
   {{ df | sortasc(1, 0) }}
 
- This sorts by second, then by first column.
-
 * **sortdesc**: Sort in descending order (indices are zero-based)
 
-  Example::
+  Example: sort by first, then by second column in descending order::
 
   {{ df | sortdesc(0, 1) }}
 
- Sort by first, then by second column in descending order.
+* **columns**: Select/reorder columns and insert empty columns (indices are zero-based)
 
-* **columns**: Select/reorder columns and insert empty columns (column indices are zero-based)
-
-  Example::
+  Example: introduce an empty column (``None``) as the second column and switch the order of the second and third column::
 
     {{ df | columns(0, None, 2, 1) }}
-
-  This will introduce an empty column (``None``) as the second column and switch the order of the second and third column.
 
   .. note::
     Merged cells: you'll also have to introduce empty columns if you are using merged cells in your Excel template.
 
 * **maxrows**: Maximum number of rows (currently, only ``sum`` is supported as aggregation function)
 
-  If your DataFrame has 12 rows and you use ``maxrows(10)`` as filter, you'll get a table that shows the first 9 rows as-is and sums up the remaining 3 rows as the last row. By default, this row will be called "Other", but you can change the wording by submitting a second argument (e.g. "Other Items", see example below).  Since it labels the first column (not the index) with "Other", you'll probably use this filter most of the time with ``noindex``. If your data is unsorted, use ``sortasc``/``sortdesc`` to make sure the correct rows are aggregated.
-
-  Examples::
-
-  {{ df | maxrows(10) }}
-  {{ df | sortasc(1)| noindex | maxrows(10) }}
-  {{ df | maxrows(10, "Other Items") }}
-
-* **aggsmall**: Aggregate rows with values below a certain threshold (currently, only ``sum`` is supported as aggregation function)
-
-  If the values in the specified row are below the threshold values, they will be summed up in a single row. By default, this row will be called "Other", but you can change the wording by submitting a second argument (e.g. "Other Items", see example below).  Since it labels the first column (not the index) with "Other", you'll probably use this filter most of the time with ``noindex``. If your data is unsorted, use ``sortasc``/``sortdesc`` to make sure the correct rows are aggregated.
+  If your DataFrame has 12 rows and you use ``maxrows(10, Other)`` as filter, you'll get a table that shows the first 9 rows as-is and sums up the remaining 3 rows under the label ``Other``. If your data is unsorted, combine it with the ``sortasc``/``sortdesc`` to make sure the correct rows are aggregated.
 
   Syntax::
 
-  {{ df | aggsmall(threshold, zero_based_column_index, optional_column_name) }}
+  {{ df | maxrows(number_rows, label, label_col_ix) }}
+
+  ``label_col_ix`` is optional: if left away, it will label the index of the DataFrame (index is zero-based)
 
   Examples::
 
-  {{ df | aggsmall(0.1, 2) }}
-  {{ df | sortasc(1)| noindex | aggsmall(0.1, 2) }}
-  {{ df | aggsmall(0.5, 1, "Other Items") }}
+  {{ df | maxrows(10, Other) }}
+  {{ df | maxrows(10, Other, 0) }}
+  {{ df | sortasc(1)| noindex | maxrows(5, Other) }}
+
+* **aggsmall**: Aggregate rows with values below a certain threshold (currently, only ``sum`` is supported as aggregation function)
+
+  If the values in the specified row are below the threshold values, they will be summed up in a single row.
+
+  Syntax::
+
+  {{ df | aggsmall(threshold, threshold_col_ix, label, label_col_ix) }}
+
+  ``label_col_ix`` is optional: if left away, it will label the index of the DataFrame (indices are zero-based)
+
+  Examples::
+
+  {{ df | aggsmall(0.1, 2, Other) }}
+  {{ df | aggsmall(0.5, 1, Other, 0) }}
+  {{ df | sortasc(1)| noindex | aggsmall(0.1, 2, Other) }}
 
 .. _excel_tables_reports:
 
