@@ -106,6 +106,12 @@ Available filters for DataFrames:
 
   {{ df | noheader }}
 
+* **body**: Only write the body of the DataFrame. This is equivalent to ``{{ df | noindex | noheader }}``
+
+  Example::
+
+  {{ df | body }}
+
 * **sortasc**: Sort in ascending order (indices are zero-based)
 
   Example: sort by second, then by first column::

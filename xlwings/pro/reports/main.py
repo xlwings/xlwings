@@ -139,8 +139,11 @@ def render_template(sheet, **data):
                                 result_len = len(result)
                             elif pd and isinstance(result, pd.DataFrame):
                                 result = result.copy()  # prevents manipulation of the df in the data dict
-                                options = {'index': 'noindex' not in filter_names,
-                                           'header': 'noheader' not in filter_names}
+                                if 'body' in filter_names:
+                                    options = {'index': False, 'header': False}
+                                else:
+                                    options = {'index': 'noindex' not in filter_names,
+                                               'header': 'noheader' not in filter_names}
                                 if 'sortasc' in filter_names:
                                     columns = [arg.as_const() for arg in filter_args['sortasc']]
                                     result = result.sort_values(list(result.columns[columns]), ascending=True)
@@ -203,7 +206,6 @@ def render_template(sheet, **data):
                                                 (start_row - 1, end_col)).copy()
                                     sheet.range((start_row - 1, start_col),
                                                 (end_row, end_col)).paste(paste='formats')
-                                    book.app.cut_copy_mode = False
                                     book.app.screen_updating = screen_updating_original_state
                             # Write the 2d array to Excel
                             if sheet[i + row_shift, j + frame_indices[ix]].table:
