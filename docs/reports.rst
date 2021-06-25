@@ -106,9 +106,9 @@ Available filters for DataFrames:
 
   {{ df | noheader }}
 
-* **body**: Only write the body of the DataFrame. This is equivalent to ``{{ df | noindex | noheader }}``
+* **body**: Only write the body of the DataFrame
 
-  Example::
+  Example (this is equivalent to ``{{ df | noindex | noheader }}``)::
 
   {{ df | body }}
 
@@ -137,6 +137,8 @@ Available filters for DataFrames:
 
   If your DataFrame has 12 rows and you use ``maxrows(10, Other)`` as filter, you'll get a table that shows the first 9 rows as-is and sums up the remaining 3 rows under the label ``Other``. If your data is unsorted, combine it with the ``sortasc``/``sortdesc`` to make sure the correct rows are aggregated.
 
+  See also: ``aggsmall``
+
   Syntax::
 
   {{ df | maxrows(number_rows, label, label_col_ix) }}
@@ -152,6 +154,8 @@ Available filters for DataFrames:
 * **aggsmall**: Aggregate rows with values below a certain threshold (currently, only ``sum`` is supported as aggregation function)
 
   If the values in the specified row are below the threshold values, they will be summed up in a single row.
+
+  See also: ``maxrows``
 
   Syntax::
 
