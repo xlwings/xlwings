@@ -192,16 +192,17 @@ def render_template(sheet, **data):
                                         book.app.screen_updating = True
                                     # Since CopyOrigin is not supported on Mac, we start copying two rows
                                     # below the header so the data row formatting gets carried over
-                                    end_column = frame_indices[ix] + len(values[0])
-                                    sheet.range((i + row_shift + 3, j + frame_indices[ix] + 1),
-                                                (i + row_shift + rows_to_be_inserted + 2, end_column)).insert(
-                                        'down')
+                                    start_row = i + row_shift + (3 if options['header'] else 2)
+                                    start_col = j + frame_indices[ix] + 1
+                                    end_row = i + row_shift + rows_to_be_inserted + (2 if options['header'] else 1)
+                                    end_col = frame_indices[ix] + len(values[0])
+                                    sheet.range((start_row, start_col),
+                                                (end_row, end_col)).insert('down')
                                     # Inserting does not take over borders
-                                    sheet.range((i + row_shift + 2, j + frame_indices[ix] + 1),
-                                                (i + row_shift + 2, end_column)).copy()
-                                    sheet.range((i + row_shift + 2, j + frame_indices[ix] + 1),
-                                                (i + row_shift + rows_to_be_inserted + 2, end_column)).paste(
-                                        paste='formats')
+                                    sheet.range((start_row - 1, start_col),
+                                                (start_row - 1, end_col)).copy()
+                                    sheet.range((start_row - 1, start_col),
+                                                (end_row, end_col)).paste(paste='formats')
                                     book.app.cut_copy_mode = False
                                     book.app.screen_updating = screen_updating_original_state
                             # Write the 2d array to Excel
