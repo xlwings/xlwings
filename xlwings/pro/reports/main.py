@@ -139,15 +139,11 @@ def render_template(sheet, **data):
                                 result_len = len(result)
                             elif pd and isinstance(result, pd.DataFrame):
                                 result = result.copy()  # prevents manipulation of the df in the data dict
-                                options = {'index': 'noindex' not in filter_names,
-                                           'header': 'noheader' not in filter_names}
-                                if 'columns' in filter_names:
-                                    columns = [arg.as_const() for arg in filter_args['columns']]
-                                    result = result.iloc[:, [col for col in columns if col is not None]]
-                                    empty_col_indices = [i for i, v in enumerate(columns) if v is None]
-                                    for col_ix in empty_col_indices:
-                                        # this method is inplace!
-                                        result.insert(loc=col_ix, column='', value=np.nan, allow_duplicates=True)
+                                if 'body' in filter_names:
+                                    options = {'index': False, 'header': False}
+                                else:
+                                    options = {'index': 'noindex' not in filter_names,
+                                               'header': 'noheader' not in filter_names}
                                 if 'sortasc' in filter_names:
                                     columns = [arg.as_const() for arg in filter_args['sortasc']]
                                     result = result.sort_values(list(result.columns[columns]), ascending=True)
@@ -156,19 +152,34 @@ def render_template(sheet, **data):
                                     result = result.sort_values(list(result.columns[columns]), ascending=False)
                                 if 'maxrows' in filter_names and len(result) > filter_args['maxrows'][0].as_const():
                                     splitrow = filter_args['maxrows'][0].as_const() - 1
-                                    result = result.iloc[:splitrow, :].append(result.iloc[splitrow:, :].sum(numeric_only=True),
-                                                                              ignore_index=True)
-                                    result.iloc[-1, 0] = filter_args['maxrows'][1].name if len(filter_args['maxrows']) > 1 else "Other"
+                                    other = result.iloc[splitrow:, :].sum(numeric_only=True)
+                                    other_name = filter_args['maxrows'][1].name
+                                    other.name = other_name
+                                    result = result.iloc[:splitrow, :].append(other)
+                                    if len(filter_args['maxrows']) > 2:
+                                        result.iloc[-1, filter_args['maxrows'][2].as_const()] = other_name
                                 if 'aggsmall' in filter_names:
                                     threshold = filter_args['aggsmall'][0].as_const()
                                     col_ix = filter_args['aggsmall'][1].as_const()
-                                    result.loc[:, '_aggregate'] = result.iloc[:, col_ix] < threshold
-                                    if True in result['_aggregate'].unique():
+                                    dummy_col = '__aggregate__'
+                                    result.loc[:, dummy_col] = result.iloc[:, col_ix] < threshold
+                                    if True in result[dummy_col].unique():
                                         # unlike aggregate, groupby conveniently drops non-numeric values
-                                        others = result.groupby('_aggregate').sum().loc[True, :]
-                                        result = result.loc[result.iloc[:, col_ix] >= threshold, :].append(others, ignore_index=True)
-                                        result.iloc[-1, 0] = filter_args['aggsmall'][2].name if len(filter_args['aggsmall']) > 2 else "Other"
-                                    result = result.drop(columns='_aggregate')
+                                        other = result.groupby(dummy_col).sum().loc[True, :]
+                                        other_name = filter_args['aggsmall'][2].name
+                                        other.name = other_name
+                                        result = result.loc[result.iloc[:, col_ix] >= threshold, :].append(other)
+                                        if len(filter_args['aggsmall']) > 3:
+                                            result.iloc[-1, filter_args['aggsmall'][3].as_const()] = other_name
+                                    result = result.drop(columns=dummy_col)
+                                if 'columns' in filter_names:
+                                    # Must come after maxrows/aggsmall as the duplicate column names would cause issues
+                                    columns = [arg.as_const() for arg in filter_args['columns']]
+                                    result = result.iloc[:, [col for col in columns if col is not None]]
+                                    empty_col_indices = [i for i, v in enumerate(columns) if v is None]
+                                    for col_ix in empty_col_indices:
+                                        # this method is inplace!
+                                        result.insert(loc=col_ix, column='', value=np.nan, allow_duplicates=True)
 
                                 # TODO: handle MultiIndex headers
                                 result_len = len(result) + 1 if options['header'] else len(result)
@@ -178,23 +189,23 @@ def render_template(sheet, **data):
                             rows_to_be_inserted = 0
                             if frame_markers and result_len > 1:
                                 # Deduct header and first data row that are part of template
-                                rows_to_be_inserted = result_len - 2
+                                rows_to_be_inserted = result_len - (2 if options['header'] else 1)
                                 if rows_to_be_inserted > 0:
                                     if sys.platform.startswith('win'):
                                         book.app.screen_updating = True
                                     # Since CopyOrigin is not supported on Mac, we start copying two rows
                                     # below the header so the data row formatting gets carried over
-                                    end_column = frame_indices[ix] + len(values[0])
-                                    sheet.range((i + row_shift + 3, j + frame_indices[ix] + 1),
-                                                (i + row_shift + rows_to_be_inserted + 2, end_column)).insert(
-                                        'down')
+                                    start_row = i + row_shift + (3 if options['header'] else 2)
+                                    start_col = j + frame_indices[ix] + 1
+                                    end_row = i + row_shift + rows_to_be_inserted + (2 if options['header'] else 1)
+                                    end_col = frame_indices[ix] + len(values[0])
+                                    sheet.range((start_row, start_col),
+                                                (end_row, end_col)).insert('down')
                                     # Inserting does not take over borders
-                                    sheet.range((i + row_shift + 2, j + frame_indices[ix] + 1),
-                                                (i + row_shift + 2, end_column)).copy()
-                                    sheet.range((i + row_shift + 2, j + frame_indices[ix] + 1),
-                                                (i + row_shift + rows_to_be_inserted + 2, end_column)).paste(
-                                        paste='formats')
-                                    book.app.cut_copy_mode = False
+                                    sheet.range((start_row - 1, start_col),
+                                                (start_row - 1, end_col)).copy()
+                                    sheet.range((start_row - 1, start_col),
+                                                (end_row, end_col)).paste(paste='formats')
                                     book.app.screen_updating = screen_updating_original_state
                             # Write the 2d array to Excel
                             if sheet[i + row_shift, j + frame_indices[ix]].table:

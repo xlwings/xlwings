@@ -1,7 +1,7 @@
 What's New
 ==========
 
-v0.24.0 (Jun 24, 2021)
+v0.24.0 (Jun 25, 2021)
 ----------------------
 
 * [Enhancement] ``pictures.add()`` now accepts every picture format (including vector-based formats) that your Excel version supports. For example, on Windows you can use the ``svg`` format (only supported with Excel that comes with Microsoft 365) and on macOS, you can use ``eps`` (:issue:`1624`).
@@ -15,7 +15,7 @@ v0.24.0 (Jun 24, 2021)
 
 **Breaking changes**:
 
-* [Enhancement]: By default, pictures arrive now in Excel via ``pictures.add()`` as if you would manually add them via the Excel UI. This means that using ``pictures.add()`` with the default width/height will make images appear with a different size in Excel compared to previous versions (:issue:`1491`).
+* [Enhancement]: When using ``pictures.add()``, pictures arrive now in Excel in the same size as if you would manually add them via the Excel UI and setting width/height now behaves consistently during initial adding and resizing. Consequently, you may have to fix your image sizes when you upgrade. (:issue:`1491`).
 * :guilabel:`PRO`: The default MarkdownStyle removed the empty space after a h1 heading. You can always reintroduce it by applying a custom style (:issue:`1628`).
 
 
