@@ -21,6 +21,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
+        # pythonnet doesn't have wheels beyond 3.8
         python-version: '3.8'
         architecture: 'x64'
     - name: Setup .NET Core
@@ -63,7 +64,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, windows-latest]
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: ['3.6', '3.7', '3.8', '3.9', '3.10']
         architecture: ['x64']
     steps:
       - uses: actions/checkout@v2
@@ -91,7 +92,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.8'
+          python-version: '3.10'
           architecture: 'x64'
       - name: Install Python dependencies
         run: |
