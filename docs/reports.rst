@@ -137,7 +137,7 @@ Available filters for DataFrames:
 
   If your DataFrame has 12 rows and you use ``maxrows(10, Other)`` as filter, you'll get a table that shows the first 9 rows as-is and sums up the remaining 3 rows under the label ``Other``. If your data is unsorted, combine it with the ``sortasc``/``sortdesc`` to make sure the correct rows are aggregated.
 
-  See also: ``aggsmall``
+  See also: ``aggsmall``, ``head``, ``tail``
 
   Syntax::
 
@@ -155,7 +155,7 @@ Available filters for DataFrames:
 
   If the values in the specified row are below the threshold values, they will be summed up in a single row.
 
-  See also: ``maxrows``
+  See also: ``maxrows``, ``head``, ``tail``
 
   Syntax::
 
@@ -168,6 +168,22 @@ Available filters for DataFrames:
   {{ df | aggsmall(0.1, 2, Other) }}
   {{ df | aggsmall(0.5, 1, Other, 0) }}
   {{ df | sortasc(1)| noindex | aggsmall(0.1, 2, Other) }}
+
+* **head**: Only show the top n rows
+
+  See also: ``maxrows``, ``aggsmall``, ``tail``
+
+  Example::
+
+  {{ df | head(3) }}
+
+* **tail**: Only show the bottom n rows
+
+  See also: ``maxrows``, ``aggsmall``, ``head``
+
+  Example::
+
+  {{ df | tail(5) }}
 
 .. _excel_tables_reports:
 

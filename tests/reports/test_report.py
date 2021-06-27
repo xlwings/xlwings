@@ -224,7 +224,7 @@ class TestDataFrameFilters(unittest.TestCase):
 
     def test_df_filters(self):
         wb = create_report('template1.xlsx', 'output.xlsx', **data)
-        self.assertEqual(wb.sheets['df_filters']['A1:E76'].value, wb.sheets['df_filters']['G1:K76'].value)
+        self.assertEqual(wb.sheets['df_filters']['A1:E114'].value, wb.sheets['df_filters']['G1:K114'].value)
 
     def test_df_filters_in_frames(self):
         wb = create_report('df_filter_frame.xlsx', 'output.xlsx', **data)
