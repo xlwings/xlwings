@@ -172,6 +172,10 @@ def render_template(sheet, **data):
                                         if len(filter_args['aggsmall']) > 3:
                                             result.iloc[-1, filter_args['aggsmall'][3].as_const()] = other_name
                                     result = result.drop(columns=dummy_col)
+                                if 'head' in filter_names:
+                                    result = result.head(filter_args['head'][0].as_const())
+                                if 'tail' in filter_names:
+                                    result = result.tail(filter_args['tail'][0].as_const())
                                 if 'columns' in filter_names:
                                     # Must come after maxrows/aggsmall as the duplicate column names would cause issues
                                     columns = [arg.as_const() for arg in filter_args['columns']]

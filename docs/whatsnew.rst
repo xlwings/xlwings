@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.24.1 (Jun 27, 2021)
+----------------------
+
+* :guilabel:`PRO` [Enhancement]: The reports package now offers the additional DataFrame filters ``head`` and ``tail``, see :ref:`xlwings Reports<reports_quickstart>` (:issue:`1633`).
+
 v0.24.0 (Jun 25, 2021)
 ----------------------
 
@@ -10,7 +15,7 @@ v0.24.0 (Jun 25, 2021)
 * [Enhancement] Removed dependency on pillow/PIL to properly size images via ``pictures.add()``.
 * [Bug Fix] Various fixes with scaling and positioning images via ``pictures.add()`` (:issue:`1491`).
 * [Feature] New methods :meth:`mypicture.lock_aspect_ratio <xlwings.Picture.lock_aspect_ratio>` and :meth:`myapp.cut_copy_mode <xlwings.App.cut_copy_mode>` (:issue:`1622` and :issue:`1625`).
-* :guilabel:`PRO`: Reports: DataFrames and Images are now offering various filters to influence the behavior of how DataFrames and Images are displayed, giving the template designer the ability to change a lot of things that previously had to be taken care of by the Python developer. For example, to hide a DataFrame's index, you can now do ``{{ df | noindex }}`` or to scale the image to double its size, you can do ``{{ img | scale(2) }}``. You'll find all available filters under :ref:`xlwings Reports<reports_quickstart>` (:issue:`1602`).
+* :guilabel:`PRO` [Feature]: Reports: DataFrames and Images are now offering various filters to influence the behavior of how DataFrames and Images are displayed, giving the template designer the ability to change a lot of things that previously had to be taken care of by the Python developer. For example, to hide a DataFrame's index, you can now do ``{{ df | noindex }}`` or to scale the image to double its size, you can do ``{{ img | scale(2) }}``. You'll find all available filters under :ref:`xlwings Reports<reports_quickstart>` (:issue:`1602`).
 
 
 **Breaking changes**:
