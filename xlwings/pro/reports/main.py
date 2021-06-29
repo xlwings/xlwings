@@ -77,14 +77,10 @@ def render_template(sheet, **data):
     values_all = sheet.range((1, 1), (last_cell.row, last_cell.column)).options(
         ndim=2).value if sheet.used_range.value else []
     # Frame markers
-    frame_markers = []
-    if values_all and '<frame>' in values_all[0]:
-        frame_markers = values_all[0]
-        values = values_all[1:]
-        if sys.platform.startswith('win'):
-            book.app.screen_updating = True
-        sheet['1:1'].delete('up')
-        book.app.screen_updating = screen_updating_original_state
+    frame_markers = [rng.comment.text if rng.comment else None
+                     for rng in sheet.range((1, 1), (1, last_cell.column))]
+    if values_all and '<frame>' in frame_markers:
+        values = values_all
         frame_indices = [i for i, val in enumerate(frame_markers) if val == '<frame>']
         frame_indices += [0, last_cell.column]
         frame_indices = list(sorted(set(frame_indices)))
@@ -226,8 +222,8 @@ def render_template(sheet, **data):
                         # Don't do anything with cells that don't contain any templating so we don't lose the formatting
                         pass
 
-    # Loop through all shapes with a template text
-    for shape in sheet.shapes:
+    # Loop through all shapes of interest with a template text
+    for shape in [shape for shape in sheet.shapes if shape.type in ('auto_shape', 'text_box')]:
         shapetext = shape.text
         if shapetext and '{{' in shapetext:
             tokens = list(env.lex(shapetext))

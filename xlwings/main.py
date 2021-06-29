@@ -2176,7 +2176,7 @@ class Range:
 
         .. versionadded:: 0.24.2
         """
-        return Comment(impl=self.impl.comment)
+        return Comment(impl=self.impl.comment) if self.impl.comment else None
 
 
 # These have to be after definition of Range to resolve circular reference

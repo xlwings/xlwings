@@ -1121,7 +1121,7 @@ class Range:
 
     @property
     def comment(self):
-        return Comment(xl=self.xl.Comment)
+        return Comment(xl=self.xl.Comment) if self.xl.Comment else None
 
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
