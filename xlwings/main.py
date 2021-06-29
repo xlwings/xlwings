@@ -2169,6 +2169,15 @@ class Range:
     def wrap_text(self, value):
         self.impl.wrap_text = value
 
+    @property
+    def comment(self):
+        """
+        Returns a comment object.
+
+        .. versionadded:: 0.24.2
+        """
+        return Comment(impl=self.impl.comment)
+
 
 # These have to be after definition of Range to resolve circular reference
 from . import conversion
@@ -2532,6 +2541,36 @@ class Shapes(Collection):
     .. versionadded:: 0.9.0
     """
     _wrap = Shape
+
+
+class Comment:
+    def __init__(self, impl):
+        """
+        .. versionadded:: 0.24.2
+        """
+        self.impl = impl
+
+    @property
+    def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+
+        .. versionadded:: 0.24.2
+        """
+        return self.impl.api
+
+    @property
+    def text(self):
+        """
+        Gets or sets the text of a comment.
+
+        .. versionadded:: 0.24.2
+        """
+        return self.impl.text
+
+    @text.setter
+    def text(self, value):
+        self.impl.text = value
 
 
 class Table:

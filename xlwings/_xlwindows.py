@@ -1119,6 +1119,10 @@ class Range:
     def wrap_text(self, value):
         self.xl.WrapText = value
 
+    @property
+    def comment(self):
+        return Comment(xl=self.xl.Comment)
+
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
     if number_builder is not None:
@@ -1506,6 +1510,22 @@ class Collection:
             return True
         except pywintypes.com_error:
             return False
+
+
+class Comment:
+    def __init__(self, xl):
+        self.xl = xl
+
+    def api(self):
+        return self.xl
+
+    @property
+    def text(self):
+        return self.xl.Text()
+
+    @text.setter
+    def text(self, value):
+        self.xl.Text(value)
 
 
 class Shapes(Collection):

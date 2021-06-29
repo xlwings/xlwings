@@ -508,6 +508,7 @@ class Sheet:
     def visible(self, value):
         self.xl.visible.set(value)
 
+
 class Range:
 
     def __init__(self, sheet, address):
@@ -868,6 +869,10 @@ class Range:
     def wrap_text(self, value):
         self.xl.wrap_text.set(value)
 
+    @property
+    def comment(self):
+        return Comment(xl=self.xl.Excel_comment)
+
 
 class Shape:
 
@@ -1055,6 +1060,22 @@ class Characters:
                                                              :item.stop if item.stop else len(self.text)])
         else:
             return Characters(parent=self.parent, xl=self.xl[item + 1:item + 1])
+
+
+class Comment:
+    def __init__(self, xl):
+        self.xl = xl
+
+    def api(self):
+        return self.xl
+
+    @property
+    def text(self):
+        return self.xl.Excel_comment_text()
+
+    @text.setter
+    def text(self, value):
+        self.xl.Excel_comment_text(text=value)
 
 
 class Collection:
