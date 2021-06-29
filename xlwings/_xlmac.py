@@ -871,7 +871,11 @@ class Range:
 
     @property
     def comment(self):
-        return Comment(xl=self.xl.Excel_comment)
+        try:
+            # No easy way to check whether there's a comment like on Windows
+            return Comment(xl=self.xl.Excel_comment) if self.xl.Excel_comment.Excel_comment_text() else None
+        except appscript.reference.CommandError:
+            return None
 
 
 class Shape:
