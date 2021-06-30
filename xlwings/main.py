@@ -2172,7 +2172,8 @@ class Range:
     @property
     def note(self):
         """
-        Returns a note object.
+        Returns a Note object.
+        Before the introduction of threaded comments, a Note was called a Comment.
 
         .. versionadded:: 0.24.2
         """
@@ -2546,6 +2547,9 @@ class Shapes(Collection):
 class Note:
     def __init__(self, impl):
         """
+        Represents a cell Note.
+        Before the introduction of threaded comments, a Note was called a Comment.
+
         .. versionadded:: 0.24.2
         """
         self.impl = impl
@@ -2562,7 +2566,15 @@ class Note:
     @property
     def text(self):
         """
-        Gets or sets the text of a note.
+        Gets or sets the text of a note. Keep in mind that the note must already exist!
+
+        Examples
+        --------
+
+        >>> sheet = xw.Book(...).sheets[0]
+        >>> sheet['A1'].note.text = 'mynote'
+        >>> sheet['A1'].note.text
+        >>> 'mynote'
 
         .. versionadded:: 0.24.2
         """
