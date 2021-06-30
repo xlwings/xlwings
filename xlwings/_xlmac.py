@@ -870,10 +870,10 @@ class Range:
         self.xl.wrap_text.set(value)
 
     @property
-    def comment(self):
+    def note(self):
         try:
             # No easy way to check whether there's a comment like on Windows
-            return Comment(xl=self.xl.Excel_comment) if self.xl.Excel_comment.Excel_comment_text() else None
+            return Note(xl=self.xl.Excel_comment) if self.xl.Excel_comment.Excel_comment_text() else None
         except appscript.reference.CommandError:
             return None
 
@@ -1066,7 +1066,7 @@ class Characters:
             return Characters(parent=self.parent, xl=self.xl[item + 1:item + 1])
 
 
-class Comment:
+class Note:
     def __init__(self, xl):
         self.xl = xl
 

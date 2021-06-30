@@ -2170,13 +2170,13 @@ class Range:
         self.impl.wrap_text = value
 
     @property
-    def comment(self):
+    def note(self):
         """
-        Returns a comment object.
+        Returns a note object.
 
         .. versionadded:: 0.24.2
         """
-        return Comment(impl=self.impl.comment) if self.impl.comment else None
+        return Note(impl=self.impl.note) if self.impl.note else None
 
 
 # These have to be after definition of Range to resolve circular reference
@@ -2543,7 +2543,7 @@ class Shapes(Collection):
     _wrap = Shape
 
 
-class Comment:
+class Note:
     def __init__(self, impl):
         """
         .. versionadded:: 0.24.2
@@ -2562,7 +2562,7 @@ class Comment:
     @property
     def text(self):
         """
-        Gets or sets the text of a comment.
+        Gets or sets the text of a note.
 
         .. versionadded:: 0.24.2
         """

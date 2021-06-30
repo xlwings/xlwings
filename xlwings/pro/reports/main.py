@@ -13,6 +13,7 @@ from ...main import Book
 
 try:
     import PIL
+    import PIL.Image
 except ImportError:
     PIL = None
 
@@ -77,7 +78,7 @@ def render_template(sheet, **data):
     values_all = sheet.range((1, 1), (last_cell.row, last_cell.column)).options(
         ndim=2).value if sheet.used_range.value else []
     # Frame markers
-    frame_markers = [rng.comment.text if rng.comment else None
+    frame_markers = [rng.note.text if rng.note else None
                      for rng in sheet.range((1, 1), (1, last_cell.column))]
     if values_all and '<frame>' in frame_markers:
         values = values_all
