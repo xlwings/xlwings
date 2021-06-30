@@ -188,7 +188,7 @@ def render_template(sheet, **data):
                                 result_len = 1
                             # Insert rows if within <frame> and 'result' is multiple rows high
                             rows_to_be_inserted = 0
-                            if frame_markers and result_len > 1:
+                            if any(frame_markers) and result_len > 1:
                                 # Deduct header and first data row that are part of template
                                 rows_to_be_inserted = result_len - (2 if options['header'] else 1)
                                 if rows_to_be_inserted > 0:
