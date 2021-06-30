@@ -81,16 +81,14 @@ def render_template(sheet, **data):
     frame_markers = [rng.note.text if rng.note else None
                      for rng in sheet.range((1, 1), (1, last_cell.column))]
     if values_all and '<frame>' in frame_markers:
-        values = values_all
         frame_indices = [i for i, val in enumerate(frame_markers) if val == '<frame>']
         frame_indices += [0, last_cell.column]
         frame_indices = list(sorted(set(frame_indices)))
     else:
-        values = values_all
         frame_indices = [0, last_cell.column]
     values_per_frame = []
     for ix in range(len(frame_indices) - 1):
-        values_per_frame.append([i[frame_indices[ix]:frame_indices[ix + 1]] for i in values])
+        values_per_frame.append([i[frame_indices[ix]:frame_indices[ix + 1]] for i in values_all])
     # Loop through every cell for each frame
     for ix, values in enumerate(values_per_frame):
         row_shift = 0
