@@ -2,6 +2,7 @@ import sys
 import os
 from datetime import datetime
 import unittest
+from pathlib import Path
 
 import xlwings as xw
 from xlwings.constants import RgbColor
@@ -791,6 +792,14 @@ class TestMerging(TestBase):
         self.assertEqual(sheet['A1'].merge_area, sheet['A1'])
         sheet["A1:B2"].merge(True)
         self.assertEqual(sheet['A1'].merge_area, sheet['A1:B1'])
+
+
+class TestNotes(unittest.TestCase):
+    def test_note(self):
+        sheet = xw.Book(Path('tests/reports/template_one_frame.xlsx').resolve()).sheets[0]
+        self.assertEqual(sheet['A1'].note.text, '<frame>')
+        self.assertIsNone(sheet['A2'].note)
+        sheet.book.close()
 
 
 if __name__ == '__main__':
