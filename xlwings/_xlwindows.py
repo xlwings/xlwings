@@ -748,6 +748,10 @@ class Sheet:
     def visible(self, value):
         self.xl.Visible = value
 
+    @property
+    def page_setup(self):
+        return PageSetup(self.xl.PageSetup)
+
 
 class Range:
 
@@ -1118,6 +1122,10 @@ class Range:
     @wrap_text.setter
     def wrap_text(self, value):
         self.xl.WrapText = value
+
+    @property
+    def note(self):
+        return Note(xl=self.xl.Comment) if self.xl.Comment else None
 
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
@@ -1506,6 +1514,44 @@ class Collection:
             return True
         except pywintypes.com_error:
             return False
+
+
+class PageSetup:
+    def __init__(self, xl):
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def print_area(self):
+        value = self.xl.PrintArea
+        return None if value == '' else value
+
+    @print_area.setter
+    def print_area(self, value):
+        self.xl.PrintArea = value
+
+
+class Note:
+    def __init__(self, xl):
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def text(self):
+        return self.xl.Text()
+
+    @text.setter
+    def text(self, value):
+        self.xl.Text(value)
+
+    def delete(self):
+        self.xl.Delete()
 
 
 class Shapes(Collection):

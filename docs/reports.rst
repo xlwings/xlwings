@@ -421,24 +421,22 @@ within Frames:
 * Variables do not overwrite existing cell values as they do without Frames.
 * Formatting is applied dynamically, depending on the number of rows your object uses in Excel
 
-To use Frames, insert ``<frame>`` into **row 1** of your Excel template wherever you want a new dynamic column
-to start. Row 1 will be removed automatically when creating the report. Frames go from one
-``<frame>`` to the next ``<frame>`` or the right border of the used range.
+To use Frames, insert a Note with the text ``<frame>`` into **row 1** of your Excel template wherever you want a new dynamic column
+to start. Frames go from one ``<frame>`` to the next ``<frame>`` or the right border of the used range.
 
 How Frames behave is best demonstrated with an example:
 The following screenshot defines two frames. The first one goes from column A to column E and the second one
 goes from column F to column I, since this is the last column that is used.
 
-You can define and format table-like objects by formatting exactly
+.. figure:: images/frame_template.png
+
+You can define and format DataFrames by formatting
 
 * one header and
 * one data row
 
-as shown in the screenshot:
-
-.. figure:: images/frame_template.png
-
-You could also use Excel Tables, as they can make formatting easier.
+If you use the ``noheader`` filter for DataFrames, you can leave the header away and format a single data row.
+Alternatively, you could also use Excel Tables, as they can make formatting easier.
 
 Running the following code::
 

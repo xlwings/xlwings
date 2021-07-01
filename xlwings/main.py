@@ -1195,6 +1195,15 @@ class Sheet:
     def visible(self, value):
         self.impl.visible = value
 
+    @property
+    def page_setup(self):
+        """
+        Returns a PageSetup object.
+
+        .. versionadded:: 0.24.2
+        """
+        return PageSetup(self.impl.page_setup)
+
     def __getitem__(self, item):
         if isinstance(item, str):
             return self.range(item)
@@ -2169,6 +2178,16 @@ class Range:
     def wrap_text(self, value):
         self.impl.wrap_text = value
 
+    @property
+    def note(self):
+        """
+        Returns a Note object.
+        Before the introduction of threaded comments, a Note was called a Comment.
+
+        .. versionadded:: 0.24.2
+        """
+        return Note(impl=self.impl.note) if self.impl.note else None
+
 
 # These have to be after definition of Range to resolve circular reference
 from . import conversion
@@ -2532,6 +2551,93 @@ class Shapes(Collection):
     .. versionadded:: 0.9.0
     """
     _wrap = Shape
+
+class PageSetup:
+    def __init__(self, impl):
+        """
+        Represents a PageSetup object.
+
+        .. versionadded:: 0.24.2
+        """
+        self.impl = impl
+
+    @property
+    def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+
+        .. versionadded:: 0.24.2
+        """
+        return self.impl.api
+
+    @property
+    def print_area(self):
+        """
+        Gets or sets the range address that defines the print area.
+
+        Examples
+        --------
+
+        >>> mysheet.page_setup.print_area = '$A$1:$B$3'
+        >>> mysheet.page_setup.print_area
+        '$A$1:$B$3'
+        >>> mysheet.page_setup.print_area = None  # clear the print_area
+
+        .. versionadded:: 0.24.2
+        """
+        return self.impl.print_area
+
+    @print_area.setter
+    def print_area(self, value):
+        self.impl.print_area = value
+
+class Note:
+    def __init__(self, impl):
+        """
+        Represents a cell Note.
+        Before the introduction of threaded comments, a Note was called a Comment.
+
+        .. versionadded:: 0.24.2
+        """
+        self.impl = impl
+
+    @property
+    def api(self):
+        """
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+
+        .. versionadded:: 0.24.2
+        """
+        return self.impl.api
+
+    @property
+    def text(self):
+        """
+        Gets or sets the text of a note. Keep in mind that the note must already exist!
+
+        Examples
+        --------
+
+        >>> sheet = xw.Book(...).sheets[0]
+        >>> sheet['A1'].note.text = 'mynote'
+        >>> sheet['A1'].note.text
+        >>> 'mynote'
+
+        .. versionadded:: 0.24.2
+        """
+        return self.impl.text
+
+    @text.setter
+    def text(self, value):
+        self.impl.text = value
+
+    def delete(self):
+        """
+        Delete the note.
+
+        .. versionadded:: 0.24.2
+        """
+        self.impl.delete()
 
 
 class Table:

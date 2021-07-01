@@ -198,5 +198,16 @@ class TestSheet(TestBase):
             self.wb1.sheets[0].copy(after=wb2.sheets[0], name='mysheet')
 
 
+class TestPageSetup(unittest.TestCase):
+    def test_print_area(self):
+        sheet = xw.Book().sheets[0]
+        self.assertIsNone(sheet.page_setup.print_area)
+        sheet.page_setup.print_area = 'A1:B2'
+        self.assertEqual(sheet.page_setup.print_area, '$A$1:$B$2')
+        sheet.page_setup.print_area = None
+        self.assertIsNone(sheet.page_setup.print_area)
+        sheet.book.close()
+
+
 if __name__ == '__main__':
     unittest.main()
