@@ -71,24 +71,29 @@ def render_template(sheet, **data):
     book = sheet.book
     screen_updating_original_state = book.app.screen_updating
 
+    # A Jinja env defines the placeholder markers etc.
     env = Environment()
 
     # used_range doesn't start automatically in A1
     last_cell = sheet.used_range.last_cell
     values_all = sheet.range((1, 1), (last_cell.row, last_cell.column)).options(
         ndim=2).value if sheet.used_range.value else []
-    # Frame markers
-    frame_markers = [rng.note.text if rng.note else None
-                     for rng in sheet.range((1, 1), (1, last_cell.column))]
-    if values_all and '<frame>' in frame_markers:
-        frame_indices = [i for i, val in enumerate(frame_markers) if val == '<frame>']
-        frame_indices += [0, last_cell.column]
-        frame_indices = list(sorted(set(frame_indices)))
-    else:
-        frame_indices = [0, last_cell.column]
+
+    # Frames
+    uses_frames = False
+    frame_indices = []
+    for ix, cell in enumerate(sheet.range((1, 1), (1, last_cell.column))):
+        if cell.note:
+            if cell.note.text.strip() == '<frame>':
+                frame_indices.append(ix)
+                uses_frames = True
+                cell.note.delete()
+    frame_indices += [0, last_cell.column]
+    frame_indices = list(sorted(set(frame_indices)))
     values_per_frame = []
     for ix in range(len(frame_indices) - 1):
         values_per_frame.append([i[frame_indices[ix]:frame_indices[ix + 1]] for i in values_all])
+
     # Loop through every cell for each frame
     for ix, values in enumerate(values_per_frame):
         row_shift = 0
@@ -186,7 +191,7 @@ def render_template(sheet, **data):
                                 result_len = 1
                             # Insert rows if within <frame> and 'result' is multiple rows high
                             rows_to_be_inserted = 0
-                            if any(frame_markers) and result_len > 1:
+                            if uses_frames and result_len > 1:
                                 # Deduct header and first data row that are part of template
                                 rows_to_be_inserted = result_len - (2 if options['header'] else 1)
                                 if rows_to_be_inserted > 0:
