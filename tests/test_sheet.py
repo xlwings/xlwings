@@ -206,6 +206,7 @@ class TestPageSetup(unittest.TestCase):
         self.assertEqual(sheet.page_setup.print_area, '$A$1:$B$2')
         sheet.page_setup.print_area = None
         self.assertIsNone(sheet.page_setup.print_area)
+        sheet.book.close()
 
 
 if __name__ == '__main__':

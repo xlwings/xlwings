@@ -750,7 +750,8 @@ class Sheet:
 
     @property
     def page_setup(self):
-        return PageSetup(self, self.xl.PageSetup)
+        return PageSetup(self.xl.PageSetup)
+
 
 class Range:
 
@@ -1525,7 +1526,8 @@ class PageSetup:
 
     @property
     def print_area(self):
-        return self.xl.PrintArea
+        value = self.xl.PrintArea
+        return None if value == '' else value
 
     @print_area.setter
     def print_area(self, value):
