@@ -748,6 +748,9 @@ class Sheet:
     def visible(self, value):
         self.xl.Visible = value
 
+    @property
+    def page_setup(self):
+        return PageSetup(self, self.xl.PageSetup)
 
 class Range:
 
@@ -1510,6 +1513,23 @@ class Collection:
             return True
         except pywintypes.com_error:
             return False
+
+
+class PageSetup:
+    def __init__(self, xl):
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def print_area(self):
+        return self.xl.PrintArea
+
+    @print_area.setter
+    def print_area(self, value):
+        self.xl.PrintArea = value
 
 
 class Note:

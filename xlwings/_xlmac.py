@@ -508,6 +508,9 @@ class Sheet:
     def visible(self, value):
         self.xl.visible.set(value)
 
+    @property
+    def page_setup(self):
+        return PageSetup(self, self.xl.page_setup_object)
 
 class Range:
 
@@ -1064,6 +1067,28 @@ class Characters:
                                                              :item.stop if item.stop else len(self.text)])
         else:
             return Characters(parent=self.parent, xl=self.xl[item + 1:item + 1])
+
+
+class PageSetup:
+    def __init__(self, parent, xl):
+        self.parent = parent
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def print_area(self):
+        value = self.xl.print_area.get()
+        if value == kw.missing_value:
+            return None
+        else:
+            return self.xl.print_area.get()
+
+    @print_area.setter
+    def print_area(self, value):
+        self.xl.print_area.set('' if value is None else value)
 
 
 class Note:
