@@ -71,6 +71,9 @@ def render_template(sheet, **data):
     book = sheet.book
     screen_updating_original_state = book.app.screen_updating
 
+    # Inserting rows with Frames changes the print area. Get it here so we can revert at the end.
+    print_area = sheet.page_setup.print_area
+
     # A Jinja env defines the placeholder markers etc.
     env = Environment()
 
@@ -253,6 +256,10 @@ def render_template(sheet, **data):
     sheet['A1'].copy()
     sheet['A1'].paste()
     book.app.cut_copy_mode = False
+
+    # Reset print area
+    if print_area:
+        sheet.page_setup.print_area = print_area
 
 
 def create_report(template, output, book_settings=None, app=None, **data):
