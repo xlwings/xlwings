@@ -65,9 +65,9 @@ if pd:
             index_names = value.index.names
             if assign_index_names:
                 # Useful when you want to have your DataFrame formatted as an Excel table which requires
-                # column header names
-                index_names = [f'index {i}' if name is None else name for i, name in enumerate(index_names)]
-                index_names = ['index'] if index_names == ['index 0'] else index_names
+                # column header names. Since Excel tables only allow an empty space once, we'll generate multiple empty
+                # spaces for each column.
+                index_names = [f' ' * (i + 1) if name is None else name for i, name in enumerate(index_names)]
             else:
                 index_names = ['' if name is None else name for name in index_names]
             index_levels = len(index_names)

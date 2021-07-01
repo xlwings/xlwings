@@ -184,9 +184,12 @@ def render_template(sheet, **data):
                                     columns = [arg.as_const() for arg in filter_args['columns']]
                                     result = result.iloc[:, [col for col in columns if col is not None]]
                                     empty_col_indices = [i for i, v in enumerate(columns) if v is None]
-                                    for col_ix in empty_col_indices:
-                                        # this method is inplace!
-                                        result.insert(loc=col_ix, column='', value=np.nan, allow_duplicates=True)
+                                    for n, col_ix in enumerate(empty_col_indices):
+                                        # insert() method is inplace!
+                                        # Since Excel tables only allow an empty space once, we'll generate multiple
+                                        # empty spaces for each column.
+                                        result.insert(loc=col_ix, column=' ' * (n + 1), value=np.nan,
+                                                      allow_duplicates=True)
 
                                 # TODO: handle MultiIndex headers
                                 result_len = len(result) + 1 if options['header'] else len(result)

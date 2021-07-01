@@ -18,7 +18,11 @@ def update(self, data, index):
             self.data_body_range[len(self.data_body_range.rows) - row_diff:, :].delete()
         if self.header_row_range:
             # You can uncheck the header row in an Excel table
-            self.header_row_range.value = (list(data.index.names) + list(data.columns)) if index else list(data.columns)
+            header = (list(data.index.names) + list(data.columns)) if index else list(data.columns)
+            # Replace None in the index with a unique number of spaces
+            n_empty = len([i for i in header if i and ' ' in i])
+            header = [f' ' * (i + n_empty + 1) if name is None else name for i, name in enumerate(header)]
+            self.header_row_range.value = header
             self.range[1:, :].options(index=index, header=False).value = data
         else:
             # Without a table header, the table is deleted...
