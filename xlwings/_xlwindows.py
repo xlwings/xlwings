@@ -1516,6 +1516,7 @@ class Note:
     def __init__(self, xl):
         self.xl = xl
 
+    @property
     def api(self):
         return self.xl
 
@@ -1526,6 +1527,9 @@ class Note:
     @text.setter
     def text(self, value):
         self.xl.Text(value)
+
+    def delete(self):
+        self.xl.Delete()
 
 
 class Shapes(Collection):

@@ -873,7 +873,7 @@ class Range:
     def note(self):
         try:
             # No easy way to check whether there's a comment like on Windows
-            return Note(xl=self.xl.Excel_comment) if self.xl.Excel_comment.Excel_comment_text() else None
+            return Note(parent=self, xl=self.xl.Excel_comment) if self.xl.Excel_comment.Excel_comment_text() else None
         except appscript.reference.CommandError:
             return None
 
@@ -1067,7 +1067,8 @@ class Characters:
 
 
 class Note:
-    def __init__(self, xl):
+    def __init__(self, parent, xl):
+        self.parent = parent
         self.xl = xl
 
     def api(self):
@@ -1080,6 +1081,9 @@ class Note:
     @text.setter
     def text(self, value):
         self.xl.Excel_comment_text(text=value)
+
+    def delete(self):
+        self.parent.xl.clear_Excel_comments()
 
 
 class Collection:

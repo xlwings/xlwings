@@ -2584,6 +2584,14 @@ class Note:
     def text(self, value):
         self.impl.text = value
 
+    def delete(self):
+        """
+        Delete the note.
+
+        .. versionadded:: 0.24.2
+        """
+        self.impl.delete()
+
 
 class Table:
     """

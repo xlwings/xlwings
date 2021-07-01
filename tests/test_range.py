@@ -799,6 +799,8 @@ class TestNotes(unittest.TestCase):
         sheet = xw.Book(Path('tests/reports/template_one_frame.xlsx').resolve()).sheets[0]
         self.assertEqual(sheet['A1'].note.text, '<frame>')
         self.assertIsNone(sheet['A2'].note)
+        sheet['A1'].note.delete()
+        self.assertIsNone(sheet['A1'].note)
         sheet.book.close()
 
 
