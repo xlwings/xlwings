@@ -1,6 +1,8 @@
 import unittest
+from pathlib import Path
 
 import xlwings as xw
+import pandas as pd
 
 
 class TestTable(unittest.TestCase):
@@ -109,6 +111,22 @@ class TestTable(unittest.TestCase):
         self.assertEqual(self.test_table.totals_row_range, self.sheet['A3:B3'])
         self.test_table.show_totals = False
 
+
+class TestTableUpdate(unittest.TestCase):
+
+    def test_table_udpate(self):
+        df = pd.DataFrame({'a': [1, 2, 3, 4, 5],
+                           'b': [11, 22, 33, 44, 55],
+                           'c': [111, 222, 333, 444, 555],
+                           'd': [1111, 2222, 3333, 4444, 5555]})
+        book = xw.Book(Path('tables.xlsx').resolve())
+        sheet = book.sheets['Sheet1']
+        sheet.tables[0].update(df)
+        sheet.tables[1].update(df)
+        sheet.tables[2].update(df)
+        sheet.tables[3].update(df, index=False)
+        self.assertEqual(sheet['A1:E50'].value, book.sheets['expected']['A1:E50'].value)
+        sheet.book.close()
 
 if __name__ == '__main__':
     unittest.main()
