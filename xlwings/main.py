@@ -3728,10 +3728,10 @@ def view(obj, sheet=None, table=True, chunksize=5000):
         sheet.book.app.screen_updating = False
         if pd and isinstance(obj, pd.DataFrame):
             if table:
-                sheet['A1'].options(assign_index_names=True, chunksize=chunksize).value = obj
+                sheet['A1'].options(assign_empty_index_names=True, chunksize=chunksize).value = obj
                 sheet.tables.add(sheet['A1'].expand())
             else:
-                sheet['A1'].options(assign_index_names=False, chunksize=chunksize).value = obj
+                sheet['A1'].options(assign_empty_index_names=False, chunksize=chunksize).value = obj
         else:
             sheet['A1'].value = obj
         sheet.autofit()
