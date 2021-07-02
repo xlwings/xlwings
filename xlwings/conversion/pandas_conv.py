@@ -60,10 +60,10 @@ if pd:
         def write_value(cls, value, options):
             index = options.get('index', True)
             header = options.get('header', True)
-            assign_index_names = options.get('assign_index_names', False)
+            assign_empty_index_names = options.get('assign_empty_index_names', False)
 
             index_names = value.index.names
-            if assign_index_names:
+            if assign_empty_index_names:
                 # Useful when you want to have your DataFrame formatted as an Excel table which requires
                 # column header names. Since Excel tables only allow an empty space once, we'll generate multiple empty
                 # spaces for each column.
