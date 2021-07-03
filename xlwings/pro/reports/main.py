@@ -179,6 +179,16 @@ def render_template(sheet, **data):
                                     result = result.head(filter_args['head'][0].as_const())
                                 if 'tail' in filter_names:
                                     result = result.tail(filter_args['tail'][0].as_const())
+                                if 'rowslice' in filter_names:
+                                    args = [arg.as_const() for arg in filter_args['rowslice']]
+                                    if len(args) == 1:
+                                        args.append(None)
+                                    result = result.iloc[args[0]:args[1], :]
+                                if 'colslice' in filter_names:
+                                    args = [arg.as_const() for arg in filter_args['colslice']]
+                                    if len(args) == 1:
+                                        args.append(None)
+                                    result = result.iloc[:, args[0]:args[1]]
                                 if 'columns' in filter_names:
                                     # Must come after maxrows/aggsmall as the duplicate column names would cause issues
                                     columns = [arg.as_const() for arg in filter_args['columns']]
@@ -188,8 +198,7 @@ def render_template(sheet, **data):
                                         # insert() method is inplace!
                                         # Since Excel tables only allow an empty space once, we'll generate multiple
                                         # empty spaces for each column.
-                                        result.insert(loc=col_ix, column=' ' * (n + 1), value=np.nan,
-                                                      allow_duplicates=True)
+                                        result.insert(loc=col_ix, column=' ' * (n + 1), value=np.nan)
 
                                 # TODO: handle MultiIndex headers
                                 result_len = len(result) + 1 if options['header'] else len(result)

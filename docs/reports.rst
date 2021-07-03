@@ -72,10 +72,9 @@ the value from the Python variable:
 
 .. figure:: images/myreport.png
 
-By default, xlwings Reports overwrites existing values in templates if there is not enough free space for your variable.
-If you want your rows to dynamically shift according to the height of your array, use :ref:`Frames <Frames>`.
-
 See also :meth:`create_reports (API reference) <xlwings.pro.reports.create_report>`.
+
+.. note:: By default, xlwings Reports overwrites existing values in templates if there is not enough free space for your variable. If you want your rows to dynamically shift according to the height of your array, use :ref:`Frames <Frames>`.
 
 DataFrames
 ----------
@@ -126,6 +125,8 @@ Available filters for DataFrames:
 
 * **columns**: Select/reorder columns and insert empty columns (indices are zero-based)
 
+  See also: ``colslice``
+
   Example: introduce an empty column (``None``) as the second column and switch the order of the second and third column::
 
     {{ df | columns(0, None, 2, 1) }}
@@ -137,7 +138,7 @@ Available filters for DataFrames:
 
   If your DataFrame has 12 rows and you use ``maxrows(10, Other)`` as filter, you'll get a table that shows the first 9 rows as-is and sums up the remaining 3 rows under the label ``Other``. If your data is unsorted, combine it with the ``sortasc``/``sortdesc`` to make sure the correct rows are aggregated.
 
-  See also: ``aggsmall``, ``head``, ``tail``
+  See also: ``aggsmall``, ``head``, ``tail``, ``rowslice``
 
   Syntax::
 
@@ -155,7 +156,7 @@ Available filters for DataFrames:
 
   If the values in the specified row are below the threshold values, they will be summed up in a single row.
 
-  See also: ``maxrows``, ``head``, ``tail``
+  See also: ``maxrows``, ``head``, ``tail``, ``rowslice``
 
   Syntax::
 
@@ -171,7 +172,7 @@ Available filters for DataFrames:
 
 * **head**: Only show the top n rows
 
-  See also: ``maxrows``, ``aggsmall``, ``tail``
+  See also: ``maxrows``, ``aggsmall``, ``tail``, ``rowslice``
 
   Example::
 
@@ -179,11 +180,47 @@ Available filters for DataFrames:
 
 * **tail**: Only show the bottom n rows
 
-  See also: ``maxrows``, ``aggsmall``, ``head``
+  See also: ``maxrows``, ``aggsmall``, ``head``, ``rowslice``
 
   Example::
 
   {{ df | tail(5) }}
+
+* **rowslice**: Slice the rows
+
+  See also: ``maxrows``, ``aggsmall``, ``head``, ``tail``
+
+  Syntax::
+
+  {{ df | rowslice(start_index, stop_index) }}
+
+  ``stop_index`` is optional: if left away, it will stop at the end of the DataFrame
+
+  Example: Show rows 2 to 4 (indices are zero-based and interval is half-open, i.e. the start is including and the end is excluding)::
+
+  {{ df | rowslice(2, 5) }}
+
+  Example: Show rows 2 to the end of the DataFrame::
+
+  {{ df | rowslice(2) }}
+
+* **colslice**: Slice the columns
+
+  See also: ``columns``
+
+  Syntax::
+
+  {{ df | colslice(start_index, stop_index) }}
+
+  ``stop_index`` is optional: if left away, it will stop at the end of the DataFrame
+
+  Example: Show columns 2 to 4 (indices are zero-based and interval is half-open, i.e. the start is including and the end is excluding)::
+
+  {{ df | colslice(2, 5) }}
+
+  Example: Show columns 2 to the end of the DataFrame::
+
+  {{ df | colslice(2) }}
 
 .. _excel_tables_reports:
 
