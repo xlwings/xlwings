@@ -42,6 +42,13 @@ Book
 .. autoclass:: Book
     :members:
 
+PageSetup
+*********
+
+.. autoclass:: xlwings.main.PageSetup
+    :members:
+
+
 Sheets
 ******
 
@@ -124,6 +131,12 @@ Name
 ****
 
 .. autoclass:: Name
+    :members:
+
+Note
+****
+
+.. autoclass:: xlwings.main.Note
     :members:
 
 Tables

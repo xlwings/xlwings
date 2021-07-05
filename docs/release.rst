@@ -20,6 +20,8 @@ Advantages:
 
 You as a developer need to create the one-click installer and run the ``xlwings release`` command on the workbook. Let's go through these two steps in detail!
 
+There is a video walkthrough at: https://www.youtube.com/watch?v=yw36VT_n1qg
+
 .. _zero_config_installer:
 
 Step 1: One-Click Installer
