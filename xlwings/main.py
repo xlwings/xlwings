@@ -3429,8 +3429,10 @@ class Pictures(Collection):
 
         format : str, default None
             Only used if image is a Matplotlib or Plotly plot. By default, the plot is inserted in the "png" format,
-            but you may want to change this to a vector-based format like "svg" on Windows (may require Microsoft 365) or "eps" on macOS for better
-            print quality. See also: https://support.microsoft.com/en-us/topic/support-for-eps-images-has-been-turned-off-in-office-a069d664-4bcf-415e-a1b5-cbb0c334a840
+            but you may want to change this to a vector-based format like "svg" on Windows (may require Microsoft 365)
+            or "eps" on macOS for better print quality. If you use ``'vector'``, it will be using ``'svg'`` on Windows
+            and ``'eps'`` on macOS. To find out which formats your version of Excel supports, see:
+            https://support.microsoft.com/en-us/topic/support-for-eps-images-has-been-turned-off-in-office-a069d664-4bcf-415e-a1b5-cbb0c334a840
 
         Returns
         -------

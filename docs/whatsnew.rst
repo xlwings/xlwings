@@ -6,12 +6,13 @@ v0.24.2 (Jul 6, 2021)
 
 * [Feature] Added very basic support for :meth:`mysheet.page_setup <xlwings.Sheet.page_setup>` and :meth:`myrange.note <xlwings.Range.note>` (:issue:`1551` and :issue:`896`).
 * [Enhancement] DataFrames are now displayed in Excel tables with empty column names if the DataFrame doesn't have a column or index name. This effect is e.g. visible when using ``xw.view()`` (:issue:`1643`).
+* [Enhancement] ``mysheet.pictures.add()`` now supports ``format='vector'`` which translates to ``'svg'`` on Windows and ``'eps'`` on macOS (:issue:`1640`).
 * :guilabel:`PRO` [Enhancement]: The reports package now offers the additional DataFrame filters ``rowslice`` and ``colslice``, see :ref:`xlwings Reports<reports_quickstart>` (:issue:`1645`).
-* :guilabel:`PRO` [Bug Fix]: Bug fix with handling Excel tables without Headers.
+* :guilabel:`PRO` [Bug Fix]: Bug fix with handling Excel tables without headers.
 
 **Breaking Change**
 
-* * :guilabel:`PRO` [Enhancement]: ``<frame>`` markers now have to be defined as cell notes in the first row, see :ref:`frames`. This has the advantage that the Layout view corresponds to the print view (:issue:`1641`).
+* :guilabel:`PRO` [Enhancement]: ``<frame>`` markers now have to be defined as cell notes in the first row, see :ref:`frames`. This has the advantage that the Layout view corresponds to the print view (:issue:`1641`).
 
 v0.24.1 (Jun 27, 2021)
 ----------------------

@@ -207,6 +207,12 @@ def process_image(image, format):
     else:
         raise TypeError("Don't know what to do with that image object")
 
+    if format == 'vector':
+        if sys.platform.startswith('darwin'):
+            format = 'eps'
+        else:
+            format = 'svg'
+
     temp_dir = os.path.realpath(tempfile.gettempdir())
     filename = os.path.join(temp_dir, str(uuid.uuid4()) + '.' + format)
 
