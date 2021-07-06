@@ -12,7 +12,7 @@ v0.24.2 (Jul 6, 2021)
 
 **Breaking Change**
 
-* :guilabel:`PRO` [Enhancement]: ``<frame>`` markers now have to be defined as cell notes in the first row, see :ref:`frames`. This has the advantage that the Layout view corresponds to the print view (:issue:`1641`).
+* :guilabel:`PRO` [Enhancement]: ``<frame>`` markers now have to be defined as cell notes in the first row, see :ref:`frames`. This has the advantage that the Layout view corresponds to the print view (:issue:`1641`). Also, the print area is now preserved even if you use Frames.
 
 v0.24.1 (Jun 27, 2021)
 ----------------------
