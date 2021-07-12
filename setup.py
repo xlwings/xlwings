@@ -32,8 +32,8 @@ else:
         raise OSError("xlwings requires an installation of Excel and therefore only works on Windows and macOS. To enable the installation on Linux nevertheless, do: export INSTALL_ON_LINUX=1; pip install xlwings")
 
 extras_require = {
-    'pro': ['cryptography', 'Jinja2'],
-    'all': ['cryptography', 'Jinja2', 'pandas', 'matplotlib', 'plotly', 'flask', 'requests']
+    'pro': ['cryptography', 'Jinja2', 'pdfrw'],
+    'all': ['cryptography', 'Jinja2', 'pandas', 'matplotlib', 'plotly', 'flask', 'requests', 'pdfrw']
 }
 
 setup(

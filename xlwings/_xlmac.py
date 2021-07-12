@@ -325,8 +325,10 @@ class Book:
 
     def to_pdf(self, path):
         hfs_path = posix_to_hfs_path(path)
+        display_alerts = self.app.display_alerts
+        self.app.display_alerts = False
         self.xl.save(in_=hfs_path, as_=kw.PDF_file_format)
-
+        self.app.display_alerts = display_alerts
 
 class Sheets:
 
