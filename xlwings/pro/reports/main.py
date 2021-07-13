@@ -90,7 +90,6 @@ def render_template(sheet, **data):
             if cell.note.text.strip() == '<frame>':
                 frame_indices.append(ix)
                 uses_frames = True
-                cell.note.delete()
     frame_indices += [0, last_cell.column]
     frame_indices = list(sorted(set(frame_indices)))
     values_per_frame = []
