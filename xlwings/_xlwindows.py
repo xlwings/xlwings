@@ -320,6 +320,7 @@ class App:
         else:
             self._xl = xl
             self._hwnd = None
+        self._pid = self.pid
 
     @property
     def xl(self):
@@ -367,7 +368,7 @@ class App:
     def kill(self):
         import win32api
         PROCESS_TERMINATE = 1
-        handle = win32api.OpenProcess(PROCESS_TERMINATE, False, self.pid)
+        handle = win32api.OpenProcess(PROCESS_TERMINATE, False, self._pid)
         win32api.TerminateProcess(handle, -1)
         win32api.CloseHandle(handle)
 

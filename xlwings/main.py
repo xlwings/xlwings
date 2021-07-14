@@ -213,6 +213,7 @@ class App:
             self.impl = impl
             if visible:
                 self.visible = True
+        self._pid = self.pid
 
     @property
     def api(self):
@@ -468,6 +469,19 @@ class App:
 
     def __hash__(self):
         return hash(self.pid)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self.quit()
+        if sys.platform.startswith('win'):
+            # Check all PIDs to see if the process is still alive and kill it
+            import win32com.client
+            wmi = win32com.client.GetObject('winmgmts:')
+            for p in wmi.InstancesOf('win32_process'):
+                if int(p.Properties_('ProcessId')) == self._pid and 'excel' in p.Name.lower():
+                    self.kill()
 
 
 class Book:

@@ -25,11 +25,8 @@ this_dir = Path(__file__).resolve().parent
 
 @pytest.fixture
 def app():
-    app = xw.App(visible=False)
-    yield app
-    for book in app.books:
-        book.close()
-    app.kill()  # test_addin_installation currently leaves Excel hanging otherwise
+    with xw.App(visible=False) as app:
+        yield app
 
 
 @pytest.fixture
