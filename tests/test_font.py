@@ -9,13 +9,9 @@ this_dir = Path(__file__).resolve().parent
 
 @pytest.fixture(scope="module")
 def app():
-    app = xw.App(visible=False)
-    app.books.open(this_dir / "test book.xlsx")
-    yield app
-
-    for book in app.books:
-        book.close()
-    app.kill()
+    with xw.App(visible=False) as app:
+        app.books.open(this_dir / "test book.xlsx")
+        yield app
 
 
 # Range

@@ -18,12 +18,8 @@ df = pd.DataFrame(data=np_data, columns=[f'c{i}' for i in range(ncols)],
 
 @pytest.fixture(scope="module")
 def app():
-    app = xw.App(visible=False)
-    yield app
-
-    for book in reversed(app.books):
-        book.close()
-    app.kill()
+    with xw.App(visible=False) as app:
+        yield app
 
 
 def test_read_write_df(app):
