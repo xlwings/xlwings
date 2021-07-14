@@ -27,11 +27,8 @@ this_dir = Path(__file__).resolve().parent
 
 @pytest.fixture
 def app():
-    app = xw.App(visible=False)
-    yield app
-    for book in app.books:
-        book.close()
-    app.kill()
+    with xw.App(visible=False) as app:
+        yield app
 
 
 @pytest.fixture

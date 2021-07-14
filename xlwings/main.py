@@ -168,11 +168,13 @@ apps = Apps(impl=xlplatform.Apps())
 
 class App:
     """
-    An app corresponds to an Excel instance. New Excel instances can be fired up like so:
+    An app corresponds to an Excel instance and should normally be used as context manager to make sure that everything
+    is properly cleaned uup again and to prevent zombie processes. New Excel instances can be fired up like so::
 
-    >>> import xlwings as xw
-    >>> app1 = xw.App()
-    >>> app2 = xw.App()
+        import xlwings as xw
+
+        with xw.App() as app:
+            print(app.books)
 
     An app object is a member of the :meth:`apps <xlwings.main.Apps>` collection:
 
@@ -213,6 +215,7 @@ class App:
             self.impl = impl
             if visible:
                 self.visible = True
+        self._pid = self.pid
 
     @property
     def api(self):
@@ -468,6 +471,19 @@ class App:
 
     def __hash__(self):
         return hash(self.pid)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self.quit()
+        if sys.platform.startswith('win'):
+            # Check all PIDs to see if the process is still alive and kill it
+            import win32com.client
+            wmi = win32com.client.GetObject('winmgmts:')
+            for p in wmi.InstancesOf('win32_process'):
+                if int(p.Properties_('ProcessId')) == self._pid and 'excel' in p.Name.lower():
+                    self.kill()
 
 
 class Book:

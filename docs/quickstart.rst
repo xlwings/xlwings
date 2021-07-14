@@ -27,26 +27,26 @@ You will find your app instance key (the PID) via ``xw.apps.keys()``:
 
 Instantiate a sheet object:
 
-    >>> sht = wb.sheets['Sheet1']
+    >>> sheet = wb.sheets['Sheet1']
 
 Reading/writing values to/from ranges is as easy as:
 
-    >>> sht.range('A1').value = 'Foo 1'
-    >>> sht.range('A1').value
+    >>> sheet.range('A1').value = 'Foo 1'
+    >>> sheet.range('A1').value
     'Foo 1'
 
 There are many **convenience features** available, e.g. Range expanding:
 
-    >>> sht.range('A1').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
-    >>> sht.range('A1').expand().value
+    >>> sheet.range('A1').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
+    >>> sheet.range('A1').expand().value
     [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
 
 **Powerful converters** handle most data types of interest, including Numpy arrays and Pandas DataFrames in both directions:
 
     >>> import pandas as pd
     >>> df = pd.DataFrame([[1,2], [3,4]], columns=['a', 'b'])
-    >>> sht.range('A1').value = df
-    >>> sht.range('A1').options(pd.DataFrame, expand='table').value
+    >>> sheet.range('A1').value = df
+    >>> sheet.range('A1').options(pd.DataFrame, expand='table').value
            a    b
     0.0  1.0  2.0
     1.0  3.0  4.0
@@ -57,7 +57,7 @@ There are many **convenience features** available, e.g. Range expanding:
     >>> fig = plt.figure()
     >>> plt.plot([1, 2, 3, 4, 5])
     [<matplotlib.lines.Line2D at 0x1071706a0>]
-    >>> sht.pictures.add(fig, name='MyPlot', update=True)
+    >>> sheet.pictures.add(fig, name='MyPlot', update=True)
     <Picture 'MyPlot' in <Sheet [Workbook4]Sheet1>>
 
 3. Macros: Call Python from Excel
