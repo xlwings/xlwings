@@ -168,11 +168,13 @@ apps = Apps(impl=xlplatform.Apps())
 
 class App:
     """
-    An app corresponds to an Excel instance. New Excel instances can be fired up like so:
+    An app corresponds to an Excel instance and should normally be used as context manager to make sure that everything
+    is properly cleaned uup again and to prevent zombie processes. New Excel instances can be fired up like so::
 
-    >>> import xlwings as xw
-    >>> app1 = xw.App()
-    >>> app2 = xw.App()
+        import xlwings as xw
+
+        with xw.App() as app:
+            print(app.books)
 
     An app object is a member of the :meth:`apps <xlwings.main.Apps>` collection:
 

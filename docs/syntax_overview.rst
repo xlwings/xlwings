@@ -21,8 +21,8 @@ Active Objects
     >>> wb = app.books.active  # in specific app
 
     # Active sheet
-    >>> sht = xw.sheets.active  # in active book
-    >>> sht = wb.sheets.active  # in specific book
+    >>> sheet = xw.sheets.active  # in active book
+    >>> sheet = wb.sheets.active  # in specific book
 
     # Range on active sheet
     >>> xw.Range('A1')  # on active sheet of active book of active app
@@ -52,6 +52,14 @@ As an example, the following expressions all reference the same range::
 Note that the apps keys are different for you as they are the process IDs (PID). You can get the list of your PIDs via
 ``xw.apps.keys()``.
 
+App context manager
+-------------------
+
+If you want to open a new Excel instance via ``App()``, you usually should use ``App`` as a context manager as this will make sure that the Excel instance is closed and cleaned up again properly::
+
+    with xw.App() as app:
+        book = app.books['Book1']
+
 Range indexing/slicing
 ----------------------
 
@@ -73,14 +81,14 @@ Range Shortcuts
 Sheet objects offer a shortcut for range objects by using index/slice notation on the sheet object. This evaluates to either
 ``sheet.range`` or ``sheet.cells`` depending on whether you pass a string or indices/slices:
 
-    >>> sht = xw.Book().sheets['Sheet1']
-    >>> sht['A1']
+    >>> sheet = xw.Book().sheets['Sheet1']
+    >>> sheet['A1']
     <Range [Book1]Sheet1!$A$1>
-    >>> sht['A1:B5']
+    >>> sheet['A1:B5']
     <Range [Book1]Sheet1!$A$1:$B$5>
-    >>> sht[0, 1]
+    >>> sheet[0, 1]
     <Range [Book1]Sheet1!$B$1>
-    >>> sht[:10, :10]
+    >>> sheet[:10, :10]
     <Range [Book1]Sheet1!$A$1:$J$10>
 
 Object Hierarchy

@@ -18,6 +18,11 @@ To connect to a book in the active app instance, use ``xw.books`` and to refer t
 >>> app = xw.App()  # or something like xw.apps[10559] for existing apps, get the available PIDs via xw.apps.keys()
 >>> app.books['Book1']
 
+Note that you usually should use ``App`` as a context manager as this will make sure that the Excel instance is closed and cleaned up again properly::
+
+    with xw.App() as app:
+        book = app.books['Book1']
+
 +--------------------+--------------------------------------+--------------------------------------------+
 |                    | xw.Book                              | xw.books                                   |
 +====================+======================================+============================================+
