@@ -209,7 +209,7 @@ def process_image(image, format):
 
     if format == 'vector':
         if sys.platform.startswith('darwin'):
-            format = 'eps'
+            format = 'pdf'
         else:
             format = 'svg'
 
