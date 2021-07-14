@@ -789,7 +789,7 @@ class Book:
         """
         return Range(impl=self.app.selection.impl) if self.app.selection else None
 
-    def to_pdf(self, path=None, include=None, exclude=None):
+    def to_pdf(self, path=None, include=None, exclude=None, layout=None):
         """
         Exports the whole Excel workbook or a subset of the sheets to a PDF file.
         If you want to print hidden sheets, you will need to list them explicitely under ``include``.
@@ -808,6 +808,16 @@ class Book:
             Which sheets to exclude: provide a selection of sheets in the form of sheet indices (1-based like in Excel)
             or sheet names. Can be an int/str for a single sheet or a list of int/str for multiple sheets.
 
+        layout : str or path-like object, default None
+            This argument requires xlwings :guilabel:`PRO`.
+
+            Path to a PDF file on which the report will be printed. This is ideal for headers and footers
+            as well as borderless printing of graphics/artwork. The PDF file either needs to have only
+            1 page (every report page uses the same layout) or otherwise needs the same amount of pages
+            as the report (each report page is printed on the respective page in the layout PDF).
+
+            .. versionadded:: 0.24.3
+
         Examples
         --------
         >>> wb = xw.Book()
@@ -818,14 +828,16 @@ class Book:
 
         .. versionadded:: 0.21.1
         """
-        path = utils.fspath(path)
-        if path is None:
+        report_path = utils.fspath(path)
+        layout_path = utils.fspath(layout)
+        if report_path is None:
+            # fullname won't work if file is stored on OneDrive
             filename, extension = os.path.splitext(self.fullname)
             directory, _ = os.path.split(self.fullname)
             if directory:
-                path = os.path.join(directory, filename + '.pdf')
+                report_path = os.path.join(directory, filename + '.pdf')
             else:
-                path = filename + '.pdf'
+                report_path = filename + '.pdf'
         if (include is not None) and (exclude is not None):
             raise ValueError("You can only use either 'include' or 'exclude'")
         # Hide sheets to exclude them from printing
@@ -848,7 +860,7 @@ class Book:
                 for sheet in self.sheets:
                     if (sheet.name in exclude) or (sheet.index in exclude):
                         sheet.visible = False
-            self.impl.to_pdf(os.path.realpath(path))
+            self.impl.to_pdf(os.path.realpath(report_path))
         except Exception:
             raise
         finally:
@@ -856,6 +868,10 @@ class Book:
             if include or exclude:
                 for sheet, tf in visibility.items():
                     sheet.visible = tf
+
+        if layout:
+            from .pro.reports.pdf import print_on_layout
+            print_on_layout(report_path=report_path, layout_path=layout_path)
 
     def __repr__(self):
         return "<Book [{0}]>".format(self.name)
@@ -1009,7 +1025,7 @@ class Sheet:
         """
         return self.impl.delete()
 
-    def to_pdf(self, path=None):
+    def to_pdf(self, path=None, layout=None):
         """
         Exports the sheet to a PDF file.
 
@@ -1018,6 +1034,16 @@ class Sheet:
         path : str or path-like object, default None
             Path to the PDF file, defaults to the name of the sheet in the same directory of the workbook.
             For unsaved workbooks, it defaults to the current working directory instead.
+
+        layout : str or path-like object, default None
+            This argument requires xlwings :guilabel:`PRO`.
+
+            Path to a PDF file on which the report will be printed. This is ideal for headers and footers
+            as well as borderless printing of graphics/artwork. The PDF file either needs to have only
+            1 page (every report page uses the same layout) or otherwise needs the same amount of pages
+            as the report (each report page is printed on the respective page in the layout PDF).
+
+            .. versionadded:: 0.24.3
 
         Examples
         --------
@@ -1031,7 +1057,7 @@ class Sheet:
         .. versionadded:: 0.22.3
         """
         self.book.to_pdf(self.name + '.pdf' if path is None else path,
-                         include=self.index)
+                         include=self.index, layout=layout)
 
     def copy(self, before=None, after=None, name=None):
         """
