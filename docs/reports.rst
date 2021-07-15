@@ -5,7 +5,7 @@ xlwings Reports
 
 This feature requires xlwings :guilabel:`PRO`.
 
-xlwings Reports is a solution for template-based Excel and PDF reporting. It allows business users without Python knowledge to create and maintain Excel templates without having to rely on a Python developer for every change: xlwings Reports separates the Python code (data acquisition/manipulation) from the Excel template (layout/formatting).
+xlwings Reports is a solution for template-based Excel and PDF reporting. Put differently, xlwings Reports turns Excel into a desktop publishing software. It allows business users without Python knowledge to create and maintain Excel templates without having to rely on a Python developer for every change: xlwings Reports separates the Python code (data acquisition/manipulation) from the Excel template (layout/formatting).
 
 xlwings Reports supports all commonly required components:
 
@@ -13,9 +13,9 @@ xlwings Reports supports all commonly required components:
 * **Tables**: Write pandas DataFrames to Excel cells and Excel tables and format them dynamically based on the number of rows.
 * **Charts**: Use your favorite charting engine: Excel charts, Matplotlib, or Plotly.
 * **Images**: You can include both raster (e.g., png) or vector (e.g., svg) graphics, including dynamically generated ones, e.g., QR codes.
-* **Multi-column Layout**: Split your content up into e.g. a classic two column layout.
-* **PDF**: Generate PDF reports automatically.
-* **Languages**: Generate factsheets in various languages based on a single template.
+* **Multi-column Layout**: Split your content up into e.g. a classic two column layout by using Frames.
+* **Languages**: Generate reports in various languages based on a single template.
+* **PDF Report**: Generate PDF reports automatically and "print" the reports on PDFs in your corporate layout for pixel-perfect results including headers, footers, backgrounds and borderless graphics.
 
 Quickstart
 ----------
@@ -449,7 +449,7 @@ For more details about Markdown, especially about how to change the styling, see
 
 .. _frames:
 
-Frames: Dynamic, multi-column Layout
+Frames: Multi-column Layout
 ------------------------------------
 
 Frames are vertical containers in which content is being aligned according to their height. That is,
@@ -492,3 +492,27 @@ Running the following code::
 will generate this report:
 
 .. figure:: images/frame_report.png
+
+|
+
+.. _reports_pdf_layout:
+
+PDF Layout
+----------
+
+Using the ``layout`` parameter in the ``to_pdf()`` command, you can "print" your Excel workbook on professionally designed PDFs for pixel-perfect reports in your corporate layout including headers, footers, backgrounds and borderless graphics::
+
+    from xlwings.pro.reports import create_report
+    import pandas as pd
+
+    df = pd.DataFrame([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+    book = create_report('template.xlsx',
+                         'report.xlsx',
+                         month_year = 'May 21',
+                         summary_text = '...')
+
+    book.to_pdf('report.pdf', layout='monthly_layout.pdf')
+
+
+.. figure:: images/reports_pdf_layout.png

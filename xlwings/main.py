@@ -3480,6 +3480,8 @@ class Pictures(Collection):
             The xlwings Range object of where you want to insert the picture. If you use ``anchor``, you must not
             provide values for ``top``/``left``.
 
+            .. versionadded:: 0.24.3
+
         Returns
         -------
         Picture
