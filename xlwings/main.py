@@ -3437,8 +3437,8 @@ class Pictures(Collection):
     def parent(self):
         return Sheet(impl=self.impl.parent)
 
-    def add(self, image, link_to_file=False, save_with_document=True, left=0, top=0, width=None, height=None,
-            name=None, update=False, scale=None, format=None):
+    def add(self, image, link_to_file=False, save_with_document=True, left=None, top=None, width=None, height=None,
+            name=None, update=False, scale=None, format=None, anchor=None):
         """
         Adds a picture to the specified sheet.
 
@@ -3448,11 +3448,11 @@ class Pictures(Collection):
         image : str or path-like object or matplotlib.figure.Figure
             Either a filepath or a Matplotlib figure object.
 
-        left : float, default 0
-            Left position in points.
+        left : float, default None
+            Left position in points, defaults to 0. If you use ``top``/``left``, you must not provide a value for ``anchor``.
 
-        top : float, default 0
-            Top position in points.
+        top : float, default None
+            Top position in points, defaults to 0. If you use ``top``/``left``, you must not provide a value for ``anchor``.
 
         width : float, default None
             Width in points. Defaults to original width.
@@ -3475,6 +3475,10 @@ class Pictures(Collection):
             or "eps" on macOS for better print quality. If you use ``'vector'``, it will be using ``'svg'`` on Windows
             and ``'eps'`` on macOS. To find out which formats your version of Excel supports, see:
             https://support.microsoft.com/en-us/topic/support-for-eps-images-has-been-turned-off-in-office-a069d664-4bcf-415e-a1b5-cbb0c334a840
+
+        anchor: xw.Range, default None
+            The xlwings Range object of where you want to insert the picture. If you use ``anchor``, you must not
+            provide values for ``top``/``left``.
 
         Returns
         -------
@@ -3514,6 +3518,11 @@ class Pictures(Collection):
         if not (link_to_file or save_with_document):
             raise Exception("Arguments link_to_file and save_with_document cannot both be false")
 
+        if anchor:
+            if top or left:
+                raise ValueError("You must either provide 'anchor' or 'top'/'left', but not both.")
+            top, left = anchor.top, anchor.left
+
         if (height and width is None) or (width and height is None) or (width is None and height is None):
             # If only height or width are provided, it will be scaled after adding it with the original dimensions
             im_width, im_height = -1, -1
@@ -3521,7 +3530,7 @@ class Pictures(Collection):
             im_width, im_height = width, height
 
         picture = Picture(impl=self.impl.add(
-            filename, link_to_file, save_with_document, left, top,
+            filename, link_to_file, save_with_document, left if left else 0, top if top else 0,
             width=im_width, height=im_height
         ))
 
