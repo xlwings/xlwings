@@ -9,7 +9,7 @@ v0.24.3 (Jul 15, 2021)
         print(app.books)
 
 * [Enhancement] :meth:`mysheet.pictures.add <xlwings.main.Pictures.add>` now accepts a new ``anchor`` argument that you can use as an alternative to ``top``/``left`` to position the picture by providing an achor range object, e.g.: ``mysheet.pictures.add(img, anchor=mysheet['A1'])`` (:issue:`1648`).
-* [Bug Fix] macOS: Plots are now sent to Excel in PDF format when you select ``format='vector'`` which is supporting transparency unlike the previously use eps format (:issue:`1647`).
+* [Bug Fix] macOS: Plots are now sent to Excel in PDF format when you set ``format='vector'`` which is supporting transparency unlike the previously used eps format (:issue:`1647`).
 * :guilabel:`PRO` [Enhancement] :meth:`mybook.to_pdf <xlwings.Book.to_pdf>` now accepts a ``layout`` parameter so you can "print" your reports onto a PDF with your corporate layout including headers, footers and borderless graphics. See :ref:`reports_pdf_layout`.
 
 v0.24.2 (Jul 6, 2021)
