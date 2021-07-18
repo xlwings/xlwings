@@ -77,6 +77,21 @@ class TestApp(TestBase):
         self.app1.display_alerts = True
         self.assertTrue(self.app1.display_alerts)
 
+    def test_enable_events(self):
+        self.app1.enable_events = False
+        self.assertEqual(self.app1.enable_events, False)
+
+        self.app1.enable_events = True
+        self.assertTrue(self.app1.enable_events)
+
+    @unittest.skipIf(sys.platform.startswith('darwin'), 'app.interactive is not supported on macOS')
+    def test_interactive(self):
+        self.app1.interactive = False
+        self.assertEqual(self.app1.interactive, False)
+
+        self.app1.interactive = True
+        self.assertTrue(self.app1.interactive)
+
     def test_calculation_calculate(self):
         sht = self.wb1.sheets[0]
         sht.range('A1').value = 2

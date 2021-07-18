@@ -5,6 +5,7 @@ import subprocess
 import struct
 import shutil
 import atexit
+import warnings
 
 import psutil
 import aem
@@ -134,6 +135,24 @@ class App:
     @display_alerts.setter
     def display_alerts(self, value):
         self.xl.display_alerts.set(value)
+
+    @property
+    def enable_events(self):
+        return self.xl.enable_events.get()
+
+    @enable_events.setter
+    def enable_events(self, value):
+        self.xl.enable_events.set(value)
+
+    @property
+    def interactive(self):
+        warnings.warn("Getting or setting 'app.interactive' isn't supported on macOS.")
+        return
+
+    @interactive.setter
+    def interactive(self, value):
+        warnings.warn("Getting or setting 'app.interactive' isn't supported on macOS.")
+        pass
 
     @property
     def startup_path(self):
@@ -329,6 +348,7 @@ class Book:
         self.app.display_alerts = False
         self.xl.save(in_=hfs_path, as_=kw.PDF_file_format)
         self.app.display_alerts = display_alerts
+
 
 class Sheets:
 

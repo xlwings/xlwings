@@ -389,6 +389,22 @@ class App:
         self.xl.DisplayAlerts = value
 
     @property
+    def enable_events(self):
+        return self.xl.EnableEvents
+
+    @enable_events.setter
+    def enable_events(self, value):
+        self.xl.EnableEvents = value
+
+    @property
+    def interactive(self):
+        return self.xl.Interactive
+
+    @interactive.setter
+    def interactive(self, value):
+        self.xl.Interactive = value
+
+    @property
     def startup_path(self):
         return self.xl.StartupPath
 

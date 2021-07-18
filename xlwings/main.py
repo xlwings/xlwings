@@ -12,6 +12,7 @@ import os
 import sys
 import re
 import numbers
+from contextlib import contextmanager
 
 from . import xlplatform, ShapeAlreadyExists, utils
 import xlwings
@@ -328,6 +329,33 @@ class App:
         self.impl.display_alerts = value
 
     @property
+    def enable_events(self):
+        """
+        ``True`` if events are enabled. Read/write boolean.
+
+        .. versionadded:: 0.24.4
+        """
+        return self.impl.enable_events
+
+    @enable_events.setter
+    def enable_events(self, value):
+        self.impl.enable_events = value
+
+    @property
+    def interactive(self):
+        """
+        ``True`` if Excel is in interactive mode. If you set this property to ``False``, Excel blocks all input
+        from the keyboard and mouse (except input to dialog boxes that are displayed by your code). Read/write Boolean.
+
+        .. versionadded:: 0.24.4
+        """
+        return self.impl.interactive
+
+    @interactive.setter
+    def interactive(self, value):
+        self.impl.interactive = value
+
+    @property
     def startup_path(self):
         """
         Returns the path to ``XLSTART`` which is where the xlwings add-in gets
@@ -459,6 +487,54 @@ class App:
     @cut_copy_mode.setter
     def cut_copy_mode(self, value):
         self.impl.cut_copy_mode = value
+
+    @contextmanager
+    def suspend(self, *args):
+        """
+        Context manager that suspends certain Excel behavior until the code leaves the context manager again. This can
+        often speed up the execution of code. It accepts the following arguments:
+
+        * ``'screen'``: Sets ``app.screen_updating = False``
+        * ``'alerts'``: Sets ``app.display_alerts = False``
+        * ``'calculation'``: Sets ``app.calculation = 'manual'``
+        * ``'events'``: Sets ``app.enable_events = False``
+        * ``'interactive'`` Sets ``app.interactive = False``. Note that ``interactive`` is ignored on macOS.
+
+        Examples
+        --------
+        ::
+
+            import xlwings as xw
+            app = App()
+
+            # Suspend alerts
+            with app.suspend('alerts'):
+                # do stuff
+
+            # Suspend alerts and screen
+            with app.suspend('alerts', 'screen'):
+                # do stuff
+
+        .. versionadded:: 0.24.4
+        """
+        allowed_args = {'screen', 'alerts', 'calculation', 'events', 'interactive'}
+        if args and not set(args).issubset(allowed_args):
+            raise ValueError(f"Arguments must be one of the following: {', '.join(allowed_args)}")
+        initial_state = self.screen_updating, self.display_alerts, self.calculation, self.enable_events, self.interactive
+        if 'screen' in args:
+            self.screen_updating = False
+        if 'alerts' in args:
+            self.display_alerts = False
+        if 'calculation' in args:
+            self.calculation = 'manual'
+        if 'events' in args:
+            self.enable_events = False
+        if 'interactive' in args:
+            self.interactive = False
+        try:
+            yield
+        finally:
+            self.screen_updating, self.display_alerts, self.calculation, self.enable_events, self.interactive = initial_state
 
     def __repr__(self):
         return "<Excel App %s>" % self.pid
