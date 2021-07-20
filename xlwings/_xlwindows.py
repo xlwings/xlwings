@@ -1672,6 +1672,8 @@ class Table:
     def totals_row_range(self):
         return Range(xl=self.xl.TotalsRowRange)
 
+    def resize(self, range):
+        self.xl.Resize(range)
 
 class Tables(Collection):
 
