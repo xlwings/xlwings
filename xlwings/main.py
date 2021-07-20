@@ -2892,6 +2892,13 @@ class Table:
         from .pro.tables import update
         return update(self, data, index)
 
+    def resize(self, range):
+        """Resize a Table by providing an xlwings range object
+
+        .. versionadded:: 0.24.4
+        """
+        self.impl.resize(range.api)
+
     def __eq__(self, other):
         return (
                 isinstance(other, Table) and

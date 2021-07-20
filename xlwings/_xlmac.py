@@ -1263,6 +1263,8 @@ class Table:
         else:
             return Range(self.parent, self.xl.total_row.get_address())
 
+    def resize(self, range):
+        self.xl.resize(range=range)
 
 class Tables(Collection):
 
