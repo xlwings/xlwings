@@ -26,6 +26,7 @@ def update(self, data, index):
             self.range[1, 0].options(index=index, header=False).value = data
         else:
             # Tables with 'Header Row' unchecked
+            self.resize(self.range[0, 0])  # Otherwise the table will be deleted
             self.range[0, 0].options(index=index, header=False).value = data
             # If the top-left cell isn't empty, it doesn't manage to resize the columns automatically
             data_rows = len(data)
