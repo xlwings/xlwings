@@ -2067,7 +2067,7 @@ shape_types_s2i = {
     "ink_comment": 23,
     "line": 9,
     "linked_3d_model": 31,
-    "linked_grpahic": 29,
+    "linked_graphic": 29,
     "linked_ole_object": 10,
     "linked_picture": 11,
     "media": 16,
