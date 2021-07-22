@@ -264,10 +264,7 @@ def render_template(sheet, **data):
                 template = env.from_string(shapetext)
                 shape.text = template.render(data)
 
-    # Copy/pasting the formatting leaves ranges selected. Since select() only works on the active sheet, this is
-    # an awkward workaround to put the cursor into A1
-    sheet['A1'].copy()
-    sheet['A1'].paste()
+    # Copy/pasting the formatting leaves ranges selected.
     book.app.cut_copy_mode = False
 
     # Reset print area
