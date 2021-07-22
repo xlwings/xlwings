@@ -536,6 +536,43 @@ class App:
         finally:
             self.screen_updating, self.display_alerts, self.calculation, self.enable_events, self.interactive = initial_state
 
+    def create_report(self, template=None, output=None, book_settings=None, **data):
+        """
+        This function requires xlwings :guilabel:`PRO`.
+
+        This is a convenience wrapper around :meth:`mysheet.render_template <xlwings.Sheet.render_template>`
+
+        Writes the values of all key word arguments to the ``output`` file according to the ``template`` and the variables
+        contained in there (Jinja variable syntax).
+        Following variable types are supported:
+
+        strings, numbers, lists, simple dicts, NumPy arrays, Pandas DataFrames, pictures and
+        Matplotlib/Plotly figures.
+
+        Parameters
+        ----------
+        template: str or path-like object
+            Path to your Excel template, e.g. ``r'C:\\Path\\to\\my_template.xlsx'``
+
+        output: str or path-like object
+            Path to your Report, e.g. ``r'C:\\Path\\to\\my_report.xlsx'``
+
+        book_settings: dict, default None
+            A dictionary of ``xlwings.Book`` parameters, for details see: :attr:`xlwings.Book`.
+            For example: ``book_settings={'update_links': False}``.
+
+        data: kwargs
+            All key/value pairs that are used in the template.
+
+        Returns
+        -------
+        wb: xlwings Book
+
+        .. versionadded:: 0.24.4
+        """
+        from .pro.reports import create_report
+        return create_report(template=template, output=output, book_settings=book_settings, app=self, **data)
+
     def __repr__(self):
         return "<Excel App %s>" % self.pid
 
@@ -553,13 +590,6 @@ class App:
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         self.quit()
-        if sys.platform.startswith('win'):
-            # Check all PIDs to see if the process is still alive and kill it
-            import win32com.client
-            wmi = win32com.client.GetObject('winmgmts:')
-            for p in wmi.InstancesOf('win32_process'):
-                if int(p.Properties_('ProcessId')) == self._pid and 'excel' in p.Name.lower():
-                    self.kill()
 
 
 class Book:
@@ -881,7 +911,7 @@ class Book:
         """
         return Range(impl=self.app.selection.impl) if self.app.selection else None
 
-    def to_pdf(self, path=None, include=None, exclude=None, layout=None):
+    def to_pdf(self, path=None, include=None, exclude=None, layout=None, exclude_start_string='#'):
         """
         Exports the whole Excel workbook or a subset of the sheets to a PDF file.
         If you want to print hidden sheets, you will need to list them explicitely under ``include``.
@@ -910,6 +940,11 @@ class Book:
 
             .. versionadded:: 0.24.3
 
+        exclude_start_string : str, default '#'
+            Sheet names that start with this character/string will not be printed.
+
+            .. versionadded:: 0.24.4
+
         Examples
         --------
         >>> wb = xw.Book()
@@ -937,8 +972,9 @@ class Book:
             include = [include]
         if isinstance(exclude, (str, int)):
             exclude = [exclude]
+        exclude_by_name = [sheet.index for sheet in self.sheets if sheet.name.startswith(exclude_start_string)]
         visibility = {}
-        if include or exclude:
+        if include or exclude or exclude_by_name:
             for sheet in self.sheets:
                 visibility[sheet] = sheet.visible
         try:
@@ -948,16 +984,17 @@ class Book:
                         sheet.visible = True
                     else:
                         sheet.visible = False
-            if exclude:
+            if exclude or exclude_by_name:
+                exclude = [] if exclude is None else exclude
                 for sheet in self.sheets:
-                    if (sheet.name in exclude) or (sheet.index in exclude):
+                    if (sheet.name in exclude) or (sheet.index in exclude) or (sheet.index in exclude_by_name):
                         sheet.visible = False
             self.impl.to_pdf(os.path.realpath(report_path))
         except Exception:
             raise
         finally:
             # Reset visibility
-            if include or exclude:
+            if include or exclude or exclude_by_name:
                 for sheet, tf in visibility.items():
                     sheet.visible = tf
 
@@ -2967,6 +3004,13 @@ class Table:
         """
         from .pro.tables import update
         return update(self, data, index)
+
+    def resize(self, range):
+        """Resize a Table by providing an xlwings range object
+
+        .. versionadded:: 0.24.4
+        """
+        self.impl.resize(range.api)
 
     def __eq__(self, other):
         return (

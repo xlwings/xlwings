@@ -120,10 +120,12 @@ def render_template(sheet, **data):
                             height = filter_args['height'][0].as_const() if 'height' in filter_names else None
                             scale = filter_args['scale'][0].as_const() if 'scale' in filter_names else None
                             format_ = filter_args['format'][0].name if 'format' in filter_names else 'png'
+                            top = filter_args['top'][0].as_const() if 'top' in filter_names else 0
+                            left = filter_args['left'][0].as_const() if 'left' in filter_names else 0
                             image = result.filename if isinstance(result, (Image, PIL.Image.Image)) else result
                             sheet.pictures.add(image,
-                                               top=sheet[i + row_shift, j + frame_indices[ix]].top,
-                                               left=sheet[i + row_shift, j + frame_indices[ix]].left,
+                                               top=top + sheet[i + row_shift, j + frame_indices[ix]].top,
+                                               left=left + sheet[i + row_shift, j + frame_indices[ix]].left,
                                                width=width, height=height, scale=scale, format=format_)
                             sheet[i + row_shift, j + frame_indices[ix]].value = None
                         elif isinstance(result, Markdown):

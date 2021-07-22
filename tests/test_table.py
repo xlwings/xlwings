@@ -111,10 +111,17 @@ class TestTable(unittest.TestCase):
         self.assertEqual(self.test_table.totals_row_range, self.sheet['A3:B3'])
         self.test_table.show_totals = False
 
+    def test_resize(self):
+        self.assertEqual(self.test_table.range.address, '$A$1:$B$2')
+        self.test_table.resize(self.sheet['A1:C3'])
+        self.assertEqual(self.test_table.range.address, '$A$1:$C$3')
+        self.test_table.resize(self.sheet['$A$1:$B$2'])
+        self.assertEqual(self.test_table.range.address, '$A$1:$B$2')
+
 
 class TestTableUpdate(unittest.TestCase):
 
-    def test_table_udpate(self):
+    def test_table_update(self):
         df = pd.DataFrame({'a': [1, 2, 3, 4, 5],
                            'b': [11, 22, 33, 44, 55],
                            'c': [111, 222, 333, 444, 555],
@@ -127,6 +134,7 @@ class TestTableUpdate(unittest.TestCase):
         sheet.tables[3].update(df, index=False)
         self.assertEqual(sheet['A1:E50'].value, book.sheets['expected']['A1:E50'].value)
         sheet.book.close()
+
 
 if __name__ == '__main__':
     unittest.main()

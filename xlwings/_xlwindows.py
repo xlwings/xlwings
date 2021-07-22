@@ -1688,6 +1688,8 @@ class Table:
     def totals_row_range(self):
         return Range(xl=self.xl.TotalsRowRange)
 
+    def resize(self, range):
+        self.xl.Resize(range)
 
 class Tables(Collection):
 
@@ -2063,6 +2065,7 @@ calculation_s2i = {
 calculation_i2s = {v: k for k, v in calculation_s2i.items()}
 
 shape_types_s2i = {
+    "3d_model": 30,
     "auto_shape": 1,
     "callout": 2,
     "canvas": 20,
@@ -2073,11 +2076,14 @@ shape_types_s2i = {
     "embedded_ole_object": 7,
     "form_control": 8,
     "free_form": 5,
+    "graphic": 28,
     "group": 6,
     "igx_graphic": 24,
     "ink": 22,
     "ink_comment": 23,
     "line": 9,
+    "linked_3d_model": 31,
+    "linked_graphic": 29,
     "linked_ole_object": 10,
     "linked_picture": 11,
     "media": 16,
