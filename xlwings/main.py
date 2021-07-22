@@ -460,6 +460,43 @@ class App:
     def cut_copy_mode(self, value):
         self.impl.cut_copy_mode = value
 
+    def create_report(self, template=None, output=None, book_settings=None, **data):
+        """
+        This function requires xlwings :guilabel:`PRO`.
+
+        This is a convenience wrapper around :meth:`mysheet.render_template <xlwings.Sheet.render_template>`
+
+        Writes the values of all key word arguments to the ``output`` file according to the ``template`` and the variables
+        contained in there (Jinja variable syntax).
+        Following variable types are supported:
+
+        strings, numbers, lists, simple dicts, NumPy arrays, Pandas DataFrames, pictures and
+        Matplotlib/Plotly figures.
+
+        Parameters
+        ----------
+        template: str or path-like object
+            Path to your Excel template, e.g. ``r'C:\\Path\\to\\my_template.xlsx'``
+
+        output: str or path-like object
+            Path to your Report, e.g. ``r'C:\\Path\\to\\my_report.xlsx'``
+
+        book_settings: dict, default None
+            A dictionary of ``xlwings.Book`` parameters, for details see: :attr:`xlwings.Book`.
+            For example: ``book_settings={'update_links': False}``.
+
+        data: kwargs
+            All key/value pairs that are used in the template.
+
+        Returns
+        -------
+        wb: xlwings Book
+
+        .. versionadded:: 0.24.4
+        """
+        from .pro.reports import create_report
+        return create_report(template=template, output=output, book_settings=book_settings, app=self, **data)
+
     def __repr__(self):
         return "<Excel App %s>" % self.pid
 
