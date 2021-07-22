@@ -798,7 +798,7 @@ class Book:
         """
         return Range(impl=self.app.selection.impl) if self.app.selection else None
 
-    def to_pdf(self, path=None, include=None, exclude=None, layout=None):
+    def to_pdf(self, path=None, include=None, exclude=None, layout=None, exclude_start_string='#'):
         """
         Exports the whole Excel workbook or a subset of the sheets to a PDF file.
         If you want to print hidden sheets, you will need to list them explicitely under ``include``.
@@ -827,6 +827,11 @@ class Book:
 
             .. versionadded:: 0.24.3
 
+        exclude_start_string : str, default '#'
+            Sheet names that start with this character/string will not be printed.
+
+            .. versionadded:: 0.24.4
+
         Examples
         --------
         >>> wb = xw.Book()
@@ -854,8 +859,9 @@ class Book:
             include = [include]
         if isinstance(exclude, (str, int)):
             exclude = [exclude]
+        exclude_by_name = [sheet.index for sheet in self.sheets if sheet.name.startswith(exclude_start_string)]
         visibility = {}
-        if include or exclude:
+        if include or exclude or exclude_by_name:
             for sheet in self.sheets:
                 visibility[sheet] = sheet.visible
         try:
@@ -865,16 +871,17 @@ class Book:
                         sheet.visible = True
                     else:
                         sheet.visible = False
-            if exclude:
+            if exclude or exclude_by_name:
+                exclude = [] if exclude is None else exclude
                 for sheet in self.sheets:
-                    if (sheet.name in exclude) or (sheet.index in exclude):
+                    if (sheet.name in exclude) or (sheet.index in exclude) or (sheet.index in exclude_by_name):
                         sheet.visible = False
             self.impl.to_pdf(os.path.realpath(report_path))
         except Exception:
             raise
         finally:
             # Reset visibility
-            if include or exclude:
+            if include or exclude or exclude_by_name:
                 for sheet, tf in visibility.items():
                     sheet.visible = tf
 
