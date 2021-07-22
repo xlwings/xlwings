@@ -5,7 +5,6 @@ import subprocess
 import struct
 import shutil
 import atexit
-import warnings
 
 import psutil
 import aem
@@ -16,6 +15,7 @@ from appscript.reference import CommandError
 from .constants import ColorIndex
 from .utils import int_to_rgb, np_datetime_to_datetime, col_name, VersionNumber
 from . import mac_dict
+import xlwings
 
 try:
     import pandas as pd
@@ -146,13 +146,13 @@ class App:
 
     @property
     def interactive(self):
-        warnings.warn("Getting or setting 'app.interactive' isn't supported on macOS.")
-        return
+        # TODO: replace with specific error when Exceptions are refactored
+        raise xlwings.XlwingsError("Getting or setting 'app.interactive' isn't supported on macOS.")
 
     @interactive.setter
     def interactive(self, value):
-        warnings.warn("Getting or setting 'app.interactive' isn't supported on macOS.")
-        pass
+        # TODO: replace with specific error when Exceptions are refactored
+        raise xlwings.XlwingsError("Getting or setting 'app.interactive' isn't supported on macOS.")
 
     @property
     def startup_path(self):
@@ -240,9 +240,11 @@ class Books:
         # TODO: format and origin currently require a native appscript keyword, read_only doesn't seem to work
         # Unsupported params
         if local is not None:
-            raise Exception('local is not supported on macOS')
+            # TODO: replace with specific error when Exceptions are refactored
+            raise xlwings.XlwingsError('local is not supported on macOS')
         if corrupt_load is not None:
-            raise Exception('corrupt_load is not supported on macOS')
+            # TODO: replace with specific error when Exceptions are refactored
+            raise xlwings.XlwingsError('corrupt_load is not supported on macOS')
         # update_links: on Windows only constants 0 and 3 seem to be supported in this context
         if update_links:
             update_links = kw.update_remote_and_external_links

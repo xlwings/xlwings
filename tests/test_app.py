@@ -84,6 +84,7 @@ class TestApp(TestBase):
         self.app1.enable_events = True
         self.assertTrue(self.app1.enable_events)
 
+    # TODO: refactor test to catch exception on macOS
     @unittest.skipIf(sys.platform.startswith('darwin'), 'app.interactive is not supported on macOS')
     def test_interactive(self):
         self.app1.interactive = False

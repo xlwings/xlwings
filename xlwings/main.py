@@ -346,6 +346,7 @@ class App:
         """
         ``True`` if Excel is in interactive mode. If you set this property to ``False``, Excel blocks all input
         from the keyboard and mouse (except input to dialog boxes that are displayed by your code). Read/write Boolean.
+        Note: Not supported on macOS.
 
         .. versionadded:: 0.24.4
         """
@@ -493,7 +494,8 @@ class App:
         """
         Context manager that allows you to easily change the app's properties temporarily. Once the code
         leaves the with block, the properties are changed back to their previous state.
-        Note: You can only use app properties that you can both read and write.
+        Note: Must be used as context manager or else will have no effect. Also, you can only use app
+        properties that you can both read and write.
 
         Examples
         --------
@@ -506,7 +508,7 @@ class App:
             with app.properties(display_alerts=False):
                 # do stuff
 
-            # Sets app.calculation = 'manual' app.enable_events = True
+            # Sets app.calculation = 'manual' and app.enable_events = True
             with app.properties(calculation='manual', enable_events=True):
                 # do stuff
 
