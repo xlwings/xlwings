@@ -1,3 +1,4 @@
+import logging
 from ... import XlwingsError
 
 try:
@@ -25,4 +26,7 @@ def print_on_layout(report_path, layout_path):
                                f'layout: {len(layout.pages)})')
         merge = pdfrw.PageMerge().add(layout.pages[layout_page_ix])[0]
         pdfrw.PageMerge(page).add(merge, prepend=True).render()
+    # Changing log level as the exported PDFs from Excel aren't fully compliant and would log the following:
+    # [WARNING] tokens.py:221 Did not find PDF object (12, 0) (line=26, col=1, token='endobj')
+    logging.getLogger("pdfrw").setLevel(logging.CRITICAL)
     pdfrw.PdfWriter(report_path, trailer=report).write()
