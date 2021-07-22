@@ -489,16 +489,11 @@ class App:
         self.impl.cut_copy_mode = value
 
     @contextmanager
-    def suspend(self, *args):
+    def properties(self, **kwargs):
         """
-        Context manager that suspends certain Excel behavior until the code leaves the context manager again. This can
-        often speed up the execution of code. It accepts the following arguments:
-
-        * ``'screen'``: Sets ``app.screen_updating = False``
-        * ``'alerts'``: Sets ``app.display_alerts = False``
-        * ``'calculation'``: Sets ``app.calculation = 'manual'``
-        * ``'events'``: Sets ``app.enable_events = False``
-        * ``'interactive'`` Sets ``app.interactive = False``. Note that ``interactive`` is ignored on macOS.
+        Context manager that allows you to easily change the app's properties temporarily. Once the code
+        leaves the with block, the properties are changed back to their previous state.
+        Note: You can only use app properties that you can both read and write.
 
         Examples
         --------
@@ -507,34 +502,29 @@ class App:
             import xlwings as xw
             app = App()
 
-            # Suspend alerts
-            with app.suspend('alerts'):
+            # Sets app.display_alerts = False
+            with app.properties(display_alerts=False):
                 # do stuff
 
-            # Suspend alerts and screen
-            with app.suspend('alerts', 'screen'):
+            # Sets app.calculation = 'manual' app.enable_events = True
+            with app.properties(calculation='manual', enable_events=True):
+                # do stuff
+
+            # Makes sure the status bar is reset even if an error happens in the with block
+            with app.properties(status_bar='Calculating...'):
                 # do stuff
 
         .. versionadded:: 0.24.4
         """
-        allowed_args = {'screen', 'alerts', 'calculation', 'events', 'interactive'}
-        if args and not set(args).issubset(allowed_args):
-            raise ValueError(f"Arguments must be one of the following: {', '.join(allowed_args)}")
-        initial_state = self.screen_updating, self.display_alerts, self.calculation, self.enable_events, self.interactive
-        if 'screen' in args:
-            self.screen_updating = False
-        if 'alerts' in args:
-            self.display_alerts = False
-        if 'calculation' in args:
-            self.calculation = 'manual'
-        if 'events' in args:
-            self.enable_events = False
-        if 'interactive' in args:
-            self.interactive = False
+        initial_state = {}
+        for attribute, value in kwargs.items():
+            initial_state[attribute] = getattr(self, attribute, value)
+            setattr(self, attribute, value)
         try:
-            yield
+            yield self
         finally:
-            self.screen_updating, self.display_alerts, self.calculation, self.enable_events, self.interactive = initial_state
+            for attribute, value in initial_state.items():
+                setattr(self, attribute, value)
 
     def create_report(self, template=None, output=None, book_settings=None, **data):
         """

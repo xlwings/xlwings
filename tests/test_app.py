@@ -159,5 +159,24 @@ class TestApp(TestBase):
         self.assertEqual(res1, 1)
 
 
+class TestAppPropertiesContextManager(unittest.TestCase):
+    def test_properties_context_manager(self):
+        book = xw.Book()
+        app = book.app
+        self.assertTrue(app.display_alerts)
+        self.assertTrue(app.enable_events)
+        with app.properties(display_alerts=False):
+            self.assertFalse(app.display_alerts)
+            self.assertTrue(app.enable_events)
+            with app.properties(display_alerts=True, enable_events=False):
+                self.assertTrue(app.display_alerts)
+                self.assertFalse(app.enable_events)
+            self.assertFalse(app.display_alerts)
+            self.assertTrue(app.enable_events)
+        self.assertTrue(app.display_alerts)
+        self.assertTrue(app.enable_events)
+        book.close()
+
+
 if __name__ == '__main__':
     unittest.main()
