@@ -165,6 +165,22 @@ def render_template(sheet, **data):
                                 if 'sortdesc' in filter_names:
                                     columns = [arg.as_const() for arg in filter_args['sortdesc']]
                                     result = result.sort_values(list(result.columns[columns]), ascending=False)
+                                if 'multiply' in filter_names:
+                                    multiply_col = filter_args['multiply'][0].as_const()
+                                    multiply_val = filter_args['multiply'][1].as_const()
+                                    result.iloc[:, multiply_col] = result.iloc[:, multiply_col] * multiply_val
+                                if 'divide' in filter_names:
+                                    divide_col = filter_args['divide'][0].as_const()
+                                    divide_val = filter_args['divide'][1].as_const()
+                                    result.iloc[:, divide_col] = result.iloc[:, divide_col] / divide_val
+                                if 'add' in filter_names:
+                                    add_col = filter_args['add'][0].as_const()
+                                    add_val = filter_args['add'][1].as_const()
+                                    result.iloc[:, add_col] = result.iloc[:, add_col] + add_val
+                                if 'subtract' in filter_names:
+                                    subtract_col = filter_args['subtract'][0].as_const()
+                                    subtract_val = filter_args['subtract'][1].as_const()
+                                    result.iloc[:, subtract_col] = result.iloc[:, subtract_col] - subtract_val
                                 if 'maxrows' in filter_names and len(result) > filter_args['maxrows'][0].as_const():
                                     splitrow = filter_args['maxrows'][0].as_const() - 1
                                     other = result.iloc[splitrow:, :].sum(numeric_only=True)
