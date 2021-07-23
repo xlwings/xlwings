@@ -12,6 +12,7 @@ import os
 import sys
 import re
 import numbers
+from contextlib import contextmanager
 
 from . import xlplatform, ShapeAlreadyExists, utils
 import xlwings
@@ -328,6 +329,34 @@ class App:
         self.impl.display_alerts = value
 
     @property
+    def enable_events(self):
+        """
+        ``True`` if events are enabled. Read/write boolean.
+
+        .. versionadded:: 0.24.4
+        """
+        return self.impl.enable_events
+
+    @enable_events.setter
+    def enable_events(self, value):
+        self.impl.enable_events = value
+
+    @property
+    def interactive(self):
+        """
+        ``True`` if Excel is in interactive mode. If you set this property to ``False``, Excel blocks all input
+        from the keyboard and mouse (except input to dialog boxes that are displayed by your code). Read/write Boolean.
+        Note: Not supported on macOS.
+
+        .. versionadded:: 0.24.4
+        """
+        return self.impl.interactive
+
+    @interactive.setter
+    def interactive(self, value):
+        self.impl.interactive = value
+
+    @property
     def startup_path(self):
         """
         Returns the path to ``XLSTART`` which is where the xlwings add-in gets
@@ -459,6 +488,45 @@ class App:
     @cut_copy_mode.setter
     def cut_copy_mode(self, value):
         self.impl.cut_copy_mode = value
+
+    @contextmanager
+    def properties(self, **kwargs):
+        """
+        Context manager that allows you to easily change the app's properties temporarily. Once the code
+        leaves the with block, the properties are changed back to their previous state.
+        Note: Must be used as context manager or else will have no effect. Also, you can only use app
+        properties that you can both read and write.
+
+        Examples
+        --------
+        ::
+
+            import xlwings as xw
+            app = App()
+
+            # Sets app.display_alerts = False
+            with app.properties(display_alerts=False):
+                # do stuff
+
+            # Sets app.calculation = 'manual' and app.enable_events = True
+            with app.properties(calculation='manual', enable_events=True):
+                # do stuff
+
+            # Makes sure the status bar is reset even if an error happens in the with block
+            with app.properties(status_bar='Calculating...'):
+                # do stuff
+
+        .. versionadded:: 0.24.4
+        """
+        initial_state = {}
+        for attribute, value in kwargs.items():
+            initial_state[attribute] = getattr(self, attribute, value)
+            setattr(self, attribute, value)
+        try:
+            yield self
+        finally:
+            for attribute, value in initial_state.items():
+                setattr(self, attribute, value)
 
     def create_report(self, template=None, output=None, book_settings=None, **data):
         """
