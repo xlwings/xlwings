@@ -1,5 +1,6 @@
 import sys
 import shutil
+import datetime as dt
 
 try:
     from jinja2 import Environment, nodes
@@ -62,6 +63,11 @@ def get_filters(ast):
         return None, [], {}
 
 
+def filter_datetime(value, format="%B %-d, %Y"):
+    # Custom Jinja filter that can be used by strings/Markdown
+    return value.strftime(format)
+
+
 def render_template(sheet, **data):
     """
     Replaces the Jinja2 placeholders in a given sheet
@@ -74,8 +80,9 @@ def render_template(sheet, **data):
     # Inserting rows with Frames changes the print area. Get it here so we can revert at the end.
     print_area = sheet.page_setup.print_area
 
-    # A Jinja env defines the placeholder markers etc.
+    # A Jinja env defines the placeholder markers and allows to register custom filters
     env = Environment()
+    env.filters["datetime"] = filter_datetime
 
     # used_range doesn't start automatically in A1
     last_cell = sheet.used_range.last_cell
@@ -119,7 +126,7 @@ def render_template(sheet, **data):
                             width = filter_args['width'][0].as_const() if 'width' in filter_names else None
                             height = filter_args['height'][0].as_const() if 'height' in filter_names else None
                             scale = filter_args['scale'][0].as_const() if 'scale' in filter_names else None
-                            format_ = filter_args['format'][0].name if 'format' in filter_names else 'png'
+                            format_ = filter_args['format'][0].as_const() if 'format' in filter_names else 'png'
                             top = filter_args['top'][0].as_const() if 'top' in filter_names else 0
                             left = filter_args['left'][0].as_const() if 'left' in filter_names else 0
                             image = result.filename if isinstance(result, (Image, PIL.Image.Image)) else result
@@ -133,6 +140,10 @@ def render_template(sheet, **data):
                             sheet[i + row_shift,
                                   j + frame_indices[ix]].value = Markdown(text=env.from_string(result.text).render(**data),
                                                                           style=result.style)
+                        elif isinstance(result, dt.datetime):
+                            # Hack for single cell datetime
+                            # Since compile_expression has already run, we need to use value instead of result
+                            sheet[i + row_shift, j + frame_indices[ix]].value = env.from_string(value).render(**data)
                         else:
                             # Simple Jinja variables
                             # Check for height of 2d array
@@ -154,10 +165,26 @@ def render_template(sheet, **data):
                                 if 'sortdesc' in filter_names:
                                     columns = [arg.as_const() for arg in filter_args['sortdesc']]
                                     result = result.sort_values(list(result.columns[columns]), ascending=False)
+                                if 'multiply' in filter_names:
+                                    multiply_col = filter_args['multiply'][0].as_const()
+                                    multiply_val = filter_args['multiply'][1].as_const()
+                                    result.iloc[:, multiply_col] = result.iloc[:, multiply_col] * multiply_val
+                                if 'divide' in filter_names:
+                                    divide_col = filter_args['divide'][0].as_const()
+                                    divide_val = filter_args['divide'][1].as_const()
+                                    result.iloc[:, divide_col] = result.iloc[:, divide_col] / divide_val
+                                if 'add' in filter_names:
+                                    add_col = filter_args['add'][0].as_const()
+                                    add_val = filter_args['add'][1].as_const()
+                                    result.iloc[:, add_col] = result.iloc[:, add_col] + add_val
+                                if 'subtract' in filter_names:
+                                    subtract_col = filter_args['subtract'][0].as_const()
+                                    subtract_val = filter_args['subtract'][1].as_const()
+                                    result.iloc[:, subtract_col] = result.iloc[:, subtract_col] - subtract_val
                                 if 'maxrows' in filter_names and len(result) > filter_args['maxrows'][0].as_const():
                                     splitrow = filter_args['maxrows'][0].as_const() - 1
                                     other = result.iloc[splitrow:, :].sum(numeric_only=True)
-                                    other_name = filter_args['maxrows'][1].name
+                                    other_name = filter_args['maxrows'][1].as_const()
                                     other.name = other_name
                                     result = result.iloc[:splitrow, :].append(other)
                                     if len(filter_args['maxrows']) > 2:
@@ -170,7 +197,7 @@ def render_template(sheet, **data):
                                     if True in result[dummy_col].unique():
                                         # unlike aggregate, groupby conveniently drops non-numeric values
                                         other = result.groupby(dummy_col).sum().loc[True, :]
-                                        other_name = filter_args['aggsmall'][2].name
+                                        other_name = filter_args['aggsmall'][2].as_const()
                                         other.name = other_name
                                         result = result.loc[result.iloc[:, col_ix] >= threshold, :].append(other)
                                         if len(filter_args['aggsmall']) > 3:
