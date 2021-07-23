@@ -63,7 +63,7 @@ def get_filters(ast):
         return None, [], {}
 
 
-def filter_datetime(value, format="%m/%d/%y"):
+def filter_datetime(value, format="%B %-d, %Y"):
     # Custom Jinja filter that can be used by strings/Markdown
     return value.strftime(format)
 

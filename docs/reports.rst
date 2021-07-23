@@ -134,6 +134,16 @@ Available filters for DataFrames:
   .. note::
     Merged cells: you'll also have to introduce empty columns if you are using merged cells in your Excel template.
 
+* **multiply**, **divide**, **sum**, **subtract**: Apply an arithmetic operation on a column
+
+  Syntax::
+
+  {{ df | operation(col_ix, value) }}
+
+  Example::
+
+  {{ df | multiply(0, 100) }}
+
 * **maxrows**: Maximum number of rows (currently, only ``sum`` is supported as aggregation function)
 
   If your DataFrame has 12 rows and you use ``maxrows(10, "Other")`` as filter, you'll get a table that shows the first 9 rows as-is and sums up the remaining 3 rows under the label ``Other``. If your data is unsorted, combine it with the ``sortasc``/``sortdesc`` to make sure the correct rows are aggregated.
@@ -335,6 +345,21 @@ Available filters for Images:
 
   {{ logo | scale(1.2) }}
 
+* **top**: Top margin. Has the effect of moving the image down (positive pixel number) or up (negative pixel number), relative to the top border of the cell. This is very handy to fine-tune the position of graphics object.
+
+  See also: ``left``
+
+  Example::
+
+  {{ logo | top(5) }}
+
+* **left**: Left margin. Has the effect of moving the image right (positive pixel number) or left (negative pixel number), relative to the left border of the cell. This is very handy to fine-tune the position of graphics object.
+
+  See also: ``top``
+
+  Example::
+
+  {{ logo | left(5) }}
 
 Matplotlib and Plotly Plots
 ---------------------------
@@ -445,6 +470,27 @@ Like this (this uses the default formatting):
 .. figure:: images/markdown1.png
 
 For more details about Markdown, especially about how to change the styling, see :ref:`markdown`.
+
+
+Date and Time
+-------------
+
+If a placeholder corresponds to a single Python ``datetime`` object, by default, Excel will format that cell as a date-formatted cell. This isn't always desired as the formatting depends on the user's regional settings. To prevent that, format the cell in the ``Text`` format or use a TextBox and use the ``datetime`` filter to format the date in the desired format. The ``datetime`` filter accepts Python's strftime codes---for a good reference, see e.g., `strftime.org <https://strftime.org/>`_.
+
+To use non-English words for names of months and weekdays, you'll need to set the ``locale`` in your Python code. For example, for German, you would use the following::
+
+    import locale
+    locale.setlocale(locale.LC_ALL, 'de_DE')
+
+Examples:
+
+  The default formatting is ``December 1, 2020``::
+
+  {{ mydate | datetime }}
+
+  To apply a specific formatting, provide the desired format as filter argument. For example, to get it in the ``12/31/20`` format::
+
+  {{ mydate | datetime("%m/%d/%y") }}
 
 
 .. _frames:
