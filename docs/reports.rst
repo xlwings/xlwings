@@ -134,7 +134,7 @@ Available filters for DataFrames:
   .. note::
     Merged cells: you'll also have to introduce empty columns if you are using merged cells in your Excel template.
 
-* **multiply**, **divide**, **sum**, **subtract**: Apply an arithmetic operation on a column
+* **multiply**, **divide**, **sum**, **subtract**: Apply an arithmetic operation on a column (indices are zero-based)
 
   Syntax::
 
