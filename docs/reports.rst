@@ -136,7 +136,7 @@ Available filters for DataFrames:
 
 * **maxrows**: Maximum number of rows (currently, only ``sum`` is supported as aggregation function)
 
-  If your DataFrame has 12 rows and you use ``maxrows(10, Other)`` as filter, you'll get a table that shows the first 9 rows as-is and sums up the remaining 3 rows under the label ``Other``. If your data is unsorted, combine it with the ``sortasc``/``sortdesc`` to make sure the correct rows are aggregated.
+  If your DataFrame has 12 rows and you use ``maxrows(10, "Other")`` as filter, you'll get a table that shows the first 9 rows as-is and sums up the remaining 3 rows under the label ``Other``. If your data is unsorted, combine it with the ``sortasc``/``sortdesc`` to make sure the correct rows are aggregated.
 
   See also: ``aggsmall``, ``head``, ``tail``, ``rowslice``
 
@@ -148,9 +148,9 @@ Available filters for DataFrames:
 
   Examples::
 
-  {{ df | maxrows(10, Other) }}
-  {{ df | maxrows(10, Other, 0) }}
-  {{ df | sortasc(1)| noindex | maxrows(5, Other) }}
+  {{ df | maxrows(10, "Other") }}
+  {{ df | maxrows(10, "Other", 0) }}
+  {{ df | sortasc(1)| noindex | maxrows(5, "Other") }}
 
 * **aggsmall**: Aggregate rows with values below a certain threshold (currently, only ``sum`` is supported as aggregation function)
 
@@ -166,9 +166,9 @@ Available filters for DataFrames:
 
   Examples::
 
-  {{ df | aggsmall(0.1, 2, Other) }}
-  {{ df | aggsmall(0.5, 1, Other, 0) }}
-  {{ df | sortasc(1)| noindex | aggsmall(0.1, 2, Other) }}
+  {{ df | aggsmall(0.1, 2, "Other") }}
+  {{ df | aggsmall(0.5, 1, "Other", 0) }}
+  {{ df | sortasc(1)| noindex | aggsmall(0.1, 2, "Other") }}
 
 * **head**: Only show the top n rows
 
@@ -377,9 +377,9 @@ To change the appearance of the Matplotlib or Plotly plot, you can use the same 
 
 Additionally, you can use the following filter:
 
-* **format**: allows to change the default image format from ``png`` to e.g., ``svg`` on Windows or ``eps`` on macOS, which will export the plot as vector graphics. As an example, to make the chart smaller and use the ``svg`` format, you would write the following placeholder::
+* **format**: allows to change the default image format from ``png`` to e.g., ``vector``, which will export the plot as vector graphics (``svg`` on Windows and ``pdf`` on macOS). As an example, to make the chart smaller and use the vector format, you would write the following placeholder::
 
-    {{ lineplot | scale(0.8) | format(svg) }}
+    {{ lineplot | scale(0.8) | format("vector") }}
 
 Text
 ----

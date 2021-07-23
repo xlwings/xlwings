@@ -1,6 +1,7 @@
 import os
 import sys
 import unittest
+import datetime as dt
 
 import numpy as np
 import pandas as pd
@@ -38,7 +39,8 @@ df2 = pd.DataFrame({'name': ['a', 'b', 'c', 'd', 'e'],
                     'd': [1, 1, 1, 6, 7]})
 data = dict(mystring='stringtest', myfloat=12.12, substring='substringtest',
             df1=df1, df2=df2, mydict={'df': df1}, pic=Image(os.path.abspath('xlwings.jpg')),
-            fig=fig, markdown_cell=Markdown(text1), markdown_shape=Markdown(text1), mybullet='bullet')
+            fig=fig, markdown_cell=Markdown(text1), markdown_shape=Markdown(text1), mybullet='bullet',
+            mydate=dt.datetime(2010, 12, 13))
 
 
 class TestCreateReport(unittest.TestCase):
@@ -246,6 +248,10 @@ class TestDataFrameFilters(unittest.TestCase):
         self.assertEqual(wb.sheets['pic_filters'].pictures[2].height, 130)
         self.assertEqual(int(wb.sheets['pic_filters'].pictures[3].width), 476)
         self.assertEqual(int(wb.sheets['pic_filters'].pictures[3].height), 166)
+
+    def test_datetime_filters(self):
+        wb = create_report('template1.xlsx', 'output.xlsx', **data)
+        self.assertEqual(wb.sheets['dt']['A1:A7'].value, wb.sheets['dt']['E1:E7'].value)
 
 
 if __name__ == '__main__':
