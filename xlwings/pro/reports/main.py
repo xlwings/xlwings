@@ -1,6 +1,7 @@
 import sys
 import shutil
 import datetime as dt
+import numbers
 
 try:
     from jinja2 import Environment, nodes
@@ -72,6 +73,10 @@ def filter_datetime(value, format=None):
     return value.strftime(format)
 
 
+def filter_format(value, format):
+    return f'{value:{format}}'
+
+
 def render_template(sheet, **data):
     """
     Replaces the Jinja2 placeholders in a given sheet
@@ -87,6 +92,7 @@ def render_template(sheet, **data):
     # A Jinja env defines the placeholder markers and allows to register custom filters
     env = Environment()
     env.filters["datetime"] = filter_datetime
+    env.filters["format"] = filter_format  # This overrides Jinja's built-in filter
 
     # used_range doesn't start automatically in A1
     last_cell = sheet.used_range.last_cell
@@ -133,18 +139,18 @@ def render_template(sheet, **data):
                                                left=left + sheet[i + row_shift, j + frame_indices[ix]].left,
                                                width=width, height=height, scale=scale, format=format_)
                             sheet[i + row_shift, j + frame_indices[ix]].value = None
+                        elif isinstance(result, (str, numbers.Number)):
+                            sheet[i + row_shift,
+                                  j + frame_indices[ix]].value = env.from_string(value).render(**data)
                         elif isinstance(result, Markdown):
                             # This will conveniently render placeholders within Markdown instances
                             sheet[i + row_shift,
                                   j + frame_indices[ix]].value = Markdown(text=env.from_string(result.text).render(**data),
                                                                           style=result.style)
                         elif isinstance(result, dt.datetime):
-                            # Hack for single cell datetime
-                            # Since compile_expression has already run, we need to use value instead of result
                             sheet[i + row_shift, j + frame_indices[ix]].value = env.from_string(value).render(**data)
                         else:
-                            # Simple Jinja variables
-                            # Check for height of 2d array
+                            # Arrays
                             options = {'index': True, 'header': True}  # defaults
                             if isinstance(result, (list, tuple)) and isinstance(result[0], (list, tuple)):
                                 result_len = len(result)
@@ -226,7 +232,7 @@ def render_template(sheet, **data):
                                         # empty spaces for each column.
                                         result.insert(loc=col_ix, column=' ' * (n + 1), value=np.nan)
 
-                                # TODO: handle MultiIndex headers
+                                # Assumes 1 header row, MultiIndex headers aren't supported
                                 result_len = len(result) + 1 if options['header'] else len(result)
                             else:
                                 result_len = 1
@@ -252,7 +258,7 @@ def render_template(sheet, **data):
                                     sheet.range((start_row - 1, start_col),
                                                 (end_row, end_col)).paste(paste='formats')
                                     book.app.screen_updating = screen_updating_original_state
-                            # Write the 2d array to Excel
+                            # Write the array to Excel
                             if sheet[i + row_shift, j + frame_indices[ix]].table:
                                 sheet[i + row_shift, j + frame_indices[ix]].table.update(result, index=options['index'])
                             else:
@@ -271,8 +277,8 @@ def render_template(sheet, **data):
     for shape in [shape for shape in sheet.shapes if shape.type in ('auto_shape', 'text_box')]:
         shapetext = shape.text
         if shapetext and '{{' in shapetext:
-            # Single Jinja variable case, the only case we support with Markdown
             if shapetext.count('{{') == 1 and shapetext.startswith('{{') and shapetext.endswith('}}'):
+                # Single Jinja variable case, the only case we support with Markdown
                 var, filter_names, filter_args = parse_single_placeholder(shapetext, env)
                 result = env.compile_expression(var)(**data)
                 if isinstance(result, Markdown):

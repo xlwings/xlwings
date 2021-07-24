@@ -256,6 +256,8 @@ Will produce the following report:
 
 .. figure:: images/excel_table_report.png
 
+Headers of Excel tables are relatively strict, e.g. you can't have multi-line headers or merged cells. To get around these limitations, uncheck the ``Header Row`` checkbox under ``Table Design`` and use the ``noheader`` or ``body`` filter (see DataFrame filters). This will allow you to design your own headers outside of the Excel Table.
+
 .. note::
     * At the moment, you can only assign pandas DataFrames to tables
     * For Excel table support, you need at least version 0.21.0
@@ -475,9 +477,9 @@ For more details about Markdown, especially about how to change the styling, see
 Date and Time
 -------------
 
-If a placeholder corresponds to a single Python ``datetime`` object, by default, Excel will format that cell as a date-formatted cell. This isn't always desired as the formatting depends on the user's regional settings. To prevent that, format the cell in the ``Text`` format or use a TextBox and use the ``datetime`` filter to format the date in the desired format. The ``datetime`` filter accepts Python's strftime codes---for a good reference, see e.g., `strftime.org <https://strftime.org/>`_.
+If a placeholder corresponds to a single Python ``datetime`` object, by default, Excel will format that cell as a date-formatted cell. This isn't always desired as the formatting depends on the user's regional settings. To prevent that, format the cell in the ``Text`` format or use a TextBox and use the ``datetime`` filter to format the date in the desired format. The ``datetime`` filter accepts the strftime syntax---for a good reference, see e.g., `strftime.org <https://strftime.org/>`_.
 
-To use non-English words for names of months and weekdays, you'll need to set the ``locale`` in your Python code. For example, for German, you would use the following::
+To control the language of month and weekday names, you'll need to set the ``locale`` in your Python code. For example, for German, you would use the following::
 
     import locale
     locale.setlocale(locale.LC_ALL, 'de_DE')
@@ -493,10 +495,19 @@ Examples:
   {{ mydate | datetime("%m/%d/%y") }}
 
 
+Number Format
+-------------
+
+The ``format`` filter allows you to format numbers by using the same mechanism as offered by Python's f-strings. For example, to format the placeholder ``performance`` with a value of ``0.13`` as ``13.0%``, you would do the following::
+
+{{ performance | format(".1%") }}
+
+This corresponds to ``f"{performance:0.1%}"`` in Python. To get an introduction to the formatting string syntax, have a look at the `Python String Format Cookbook <https://mkaz.blog/code/python-string-format-cookbook/>`_.
+
 .. _frames:
 
 Frames: Multi-column Layout
-------------------------------------
+---------------------------
 
 Frames are vertical containers in which content is being aligned according to their height. That is,
 within Frames:
@@ -560,5 +571,6 @@ Using the ``layout`` parameter in the ``to_pdf()`` command, you can "print" your
 
     book.to_pdf('report.pdf', layout='monthly_layout.pdf')
 
+Note that the layout PDF either needs to consist of a single page (will be used for each reporting page) or will need to have the same number of pages as the report (each report page will be printed on the corresponding layout page).
 
 .. figure:: images/reports_pdf_layout.png
