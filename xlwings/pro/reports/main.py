@@ -41,11 +41,12 @@ except ImportError:
 LicenseHandler.validate_license('reports')
 
 
-def get_filters(ast):
+def parse_single_placeholder(value, env):
     """This is only for cells that contain a single placeholder.
-    Normal text with multiple placeholders could be handled by Jinja's native (custom) filter system.
+    Text with multiple placeholders is handled by Jinja's native (custom) filter system.
     Returns var, filter_names (list), arguments (dict)
     """
+    ast = env.parse(value)
     found_nodes = list(ast.find_all(node_type=nodes.Filter))
     if found_nodes:
         node = found_nodes[0]
@@ -60,7 +61,7 @@ def get_filters(ast):
             args[f.name] = f.args
         return f.node.name, list(reversed(filters)), args
     else:
-        return None, [], {}
+        return value.replace('{{', '').replace('}}', '').strip(), [], {}
 
 
 def filter_datetime(value, format=None):
@@ -114,13 +115,8 @@ def render_template(sheet, **data):
                 if isinstance(value, str):
                     if value.count('{{') == 1 and value.startswith('{{') and value.endswith('}}'):
                         # Cell contains single Jinja variable
-                        # Handle filters
-                        ast = env.parse(value)
-                        var, filter_names, filter_args = get_filters(ast)
-                        if filter_names:
-                            result = env.compile_expression(var)(**data)
-                        else:
-                            result = env.compile_expression(value.replace('{{', '').replace('}}', '').strip())(**data)
+                        var, filter_names, filter_args = parse_single_placeholder(value, env)
+                        result = env.compile_expression(var)(**data)
                         if (isinstance(result, Image)
                                 or (PIL and isinstance(result, PIL.Image.Image))
                                 or (Figure and isinstance(result, Figure))
@@ -277,12 +273,8 @@ def render_template(sheet, **data):
         if shapetext and '{{' in shapetext:
             # Single Jinja variable case, the only case we support with Markdown
             if shapetext.count('{{') == 1 and shapetext.startswith('{{') and shapetext.endswith('}}'):
-                ast = env.parse(shapetext)
-                var, filter_names, filter_args = get_filters(ast)
-                if filter_names:
-                    result = env.compile_expression(var)(**data)
-                else:
-                    result = env.compile_expression(shapetext.replace('{{', '').replace('}}', '').strip())(**data)
+                var, filter_names, filter_args = parse_single_placeholder(shapetext, env)
+                result = env.compile_expression(var)(**data)
                 if isinstance(result, Markdown):
                     # This will conveniently render placeholders within Markdown text
                     shape.text = Markdown(text=env.from_string(result.text).render(**data),
