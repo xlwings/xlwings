@@ -63,8 +63,11 @@ def get_filters(ast):
         return None, [], {}
 
 
-def filter_datetime(value, format="%B %-d, %Y"):
+def filter_datetime(value, format=None):
     # Custom Jinja filter that can be used by strings/Markdown
+    if format is None:
+        # Default format: July 1, 2020
+        format = f"%B %{'#' if sys.platform.startswith('win') else '-'}d, %Y"
     return value.strftime(format)
 
 
@@ -109,8 +112,7 @@ def render_template(sheet, **data):
         for i, row in enumerate(values):
             for j, value in enumerate(row):
                 if isinstance(value, str):
-                    tokens = list(env.lex(value))
-                    if value.count('{{') == 1 and tokens[0][1] == 'variable_begin' and tokens[-1][1] == 'variable_end':
+                    if value.count('{{') == 1 and value.startswith('{{') and value.endswith('}}'):
                         # Cell contains single Jinja variable
                         # Handle filters
                         ast = env.parse(value)
@@ -273,19 +275,22 @@ def render_template(sheet, **data):
     for shape in [shape for shape in sheet.shapes if shape.type in ('auto_shape', 'text_box')]:
         shapetext = shape.text
         if shapetext and '{{' in shapetext:
-            tokens = list(env.lex(shapetext))
             # Single Jinja variable case, the only case we support with Markdown
-            if shapetext.count('{{') == 1 and tokens[0][1] == 'variable_begin' and tokens[-1][1] == 'variable_end':
-                for _, token_type, token_value in tokens:
-                    if token_type == 'name':
-                        if isinstance(data[token_value], Markdown):
-                            # This will conveniently render placeholders within Markdown text
-                            shape.text = Markdown(text=env.from_string(data[token_value].text).render(**data),
-                                                  style=data[token_value].style)
-                        else:
-                            # Single Jinja var but no Markdown
-                            template = env.from_string(shapetext)
-                            shape.text = template.render(data)
+            if shapetext.count('{{') == 1 and shapetext.startswith('{{') and shapetext.endswith('}}'):
+                ast = env.parse(shapetext)
+                var, filter_names, filter_args = get_filters(ast)
+                if filter_names:
+                    result = env.compile_expression(var)(**data)
+                else:
+                    result = env.compile_expression(shapetext.replace('{{', '').replace('}}', '').strip())(**data)
+                if isinstance(result, Markdown):
+                    # This will conveniently render placeholders within Markdown text
+                    shape.text = Markdown(text=env.from_string(result.text).render(**data),
+                                          style=result.style)
+                else:
+                    # Single Jinja var but no Markdown
+                    template = env.from_string(shapetext)
+                    shape.text = template.render(data)
             else:
                 # Multiple Jinja vars and no Markdown
                 template = env.from_string(shapetext)
@@ -384,5 +389,3 @@ def create_report(template, output, book_settings=None, app=None, **data):
 
     wb.save()
     return wb
-
-

@@ -40,7 +40,7 @@ df2 = pd.DataFrame({'name': ['a', 'b', 'c', 'd', 'e'],
 data = dict(mystring='stringtest', myfloat=12.12, substring='substringtest',
             df1=df1, df2=df2, mydict={'df': df1}, pic=Image(os.path.abspath('xlwings.jpg')),
             fig=fig, markdown_cell=Markdown(text1), markdown_shape=Markdown(text1), mybullet='bullet',
-            mydate=dt.datetime(2010, 12, 13))
+            mydate=dt.datetime(2010, 12, 1))
 
 
 class TestCreateReport(unittest.TestCase):
@@ -252,6 +252,7 @@ class TestDataFrameFilters(unittest.TestCase):
     def test_datetime_filters(self):
         wb = create_report('template1.xlsx', 'output.xlsx', **data)
         self.assertEqual(wb.sheets['dt']['A1:A7'].value, wb.sheets['dt']['E1:E7'].value)
+        self.assertEqual(wb.sheets['dt'].shapes['Rectangle 1'].text, 'December 1, 2010')
 
 
 if __name__ == '__main__':
