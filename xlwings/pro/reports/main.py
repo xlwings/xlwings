@@ -140,7 +140,7 @@ def render_template(sheet, **data):
                             sheet[i + row_shift, j + frame_indices[ix]].value = env.from_string(value).render(**data)
                         else:
                             # Arrays
-                            options = {'index': True, 'header': True}  # defaults
+                            options = {'index': False, 'header': True}  # defaults
                             if isinstance(result, (list, tuple)) and isinstance(result[0], (list, tuple)):
                                 result_len = len(result)
                             elif np and isinstance(result, np.ndarray):
@@ -150,16 +150,13 @@ def render_template(sheet, **data):
                                 # DataFrame Filters
                                 for filter_item in filter_list:
                                     for filter_name, filter_args in filter_item.items():
-                                        if filter_name in ('body', 'noindex', 'noheader'):
+                                        if filter_name in ('showindex', 'noheader'):
                                             continue  # handled below
                                         func = getattr(filters, filter_name)
                                         result = func(result, filter_args)
 
-                                if any(['body' in f for f in filter_list]):
-                                    options = {'index': False, 'header': False}
-                                else:
-                                    options = {'index': not any(['noindex' in f for f in filter_list]),
-                                               'header': not any(['noheader' in f for f in filter_list])}
+                                options = {'index': any(['showindex' in f for f in filter_list]),
+                                           'header': not any(['noheader' in f for f in filter_list])}
 
                                 # Assumes 1 header row, MultiIndex headers aren't supported
                                 result_len = len(result) + 1 if options['header'] else len(result)
