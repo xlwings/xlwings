@@ -151,3 +151,7 @@ def columns(df, filter_args):
         # empty spaces for each column.
         df.insert(loc=col_ix, column=' ' * (n + 1), value=np.nan)
     return df
+
+
+def header(df, filter_args):
+    return list(df.columns)
