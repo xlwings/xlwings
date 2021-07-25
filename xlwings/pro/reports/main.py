@@ -8,6 +8,7 @@ try:
 except ImportError:
     pass
 
+from . import filters
 from .markdown import Markdown
 from .image import Image
 from ..utils import LicenseHandler
@@ -45,36 +46,20 @@ LicenseHandler.validate_license('reports')
 def parse_single_placeholder(value, env):
     """This is only for cells that contain a single placeholder.
     Text with multiple placeholders is handled by Jinja's native (custom) filter system.
-    Returns var, filter_names (list), arguments (dict)
+    Returns var, filter_list with filter_name:filter_args (list of dicts)
     """
     ast = env.parse(value)
     found_nodes = list(ast.find_all(node_type=nodes.Filter))
     if found_nodes:
         node = found_nodes[0]
-        filters = []
-        args = {}
         f = node
-        filters.append(f.name)
-        args[f.name] = f.args
+        filter_list = [{f.name: f.args}]
         while isinstance(f.node, nodes.Filter):
             f = f.node
-            filters.append(f.name)
-            args[f.name] = f.args
-        return f.node.name, list(reversed(filters)), args
+            filter_list.insert(0, {f.name: f.args})
+        return f.node.name, filter_list
     else:
-        return value.replace('{{', '').replace('}}', '').strip(), [], {}
-
-
-def filter_datetime(value, format=None):
-    # Custom Jinja filter that can be used by strings/Markdown
-    if format is None:
-        # Default format: July 1, 2020
-        format = f"%B %{'#' if sys.platform.startswith('win') else '-'}d, %Y"
-    return value.strftime(format)
-
-
-def filter_format(value, format):
-    return f'{value:{format}}'
+        return value.replace('{{', '').replace('}}', '').strip(), {}
 
 
 def render_template(sheet, **data):
@@ -91,8 +76,8 @@ def render_template(sheet, **data):
 
     # A Jinja env defines the placeholder markers and allows to register custom filters
     env = Environment()
-    env.filters["datetime"] = filter_datetime
-    env.filters["format"] = filter_format  # This overrides Jinja's built-in filter
+    env.filters["datetime"] = filters.datetime
+    env.filters["format"] = filters.fmt  # This overrides Jinja's built-in filter
 
     # used_range doesn't start automatically in A1
     last_cell = sheet.used_range.last_cell
@@ -121,18 +106,22 @@ def render_template(sheet, **data):
                 if isinstance(value, str):
                     if value.count('{{') == 1 and value.startswith('{{') and value.endswith('}}'):
                         # Cell contains single Jinja variable
-                        var, filter_names, filter_args = parse_single_placeholder(value, env)
+                        var, filter_list = parse_single_placeholder(value, env)
                         result = env.compile_expression(var)(**data)
                         if (isinstance(result, Image)
                                 or (PIL and isinstance(result, PIL.Image.Image))
                                 or (Figure and isinstance(result, Figure))
                                 or (plotly and isinstance(result, plotly.graph_objs.Figure))):
-                            width = filter_args['width'][0].as_const() if 'width' in filter_names else None
-                            height = filter_args['height'][0].as_const() if 'height' in filter_names else None
-                            scale = filter_args['scale'][0].as_const() if 'scale' in filter_names else None
-                            format_ = filter_args['format'][0].as_const() if 'format' in filter_names else 'png'
-                            top = filter_args['top'][0].as_const() if 'top' in filter_names else 0
-                            left = filter_args['left'][0].as_const() if 'left' in filter_names else 0
+
+                            # Image filters: these filters can only be used once. If they are supplied
+                            # multiple times, the first occurrence will be used.
+                            width = filters.width(filter_list)
+                            height = filters.height(filter_list)
+                            scale = filters.scale(filter_list)
+                            format_ = filters.image_format(filter_list)
+                            top = filters.top(filter_list)
+                            left = filters.left(filter_list)
+
                             image = result.filename if isinstance(result, (Image, PIL.Image.Image)) else result
                             sheet.pictures.add(image,
                                                top=top + sheet[i + row_shift, j + frame_indices[ix]].top,
@@ -158,79 +147,19 @@ def render_template(sheet, **data):
                                 result_len = len(result)
                             elif pd and isinstance(result, pd.DataFrame):
                                 result = result.copy()  # prevents manipulation of the df in the data dict
-                                if 'body' in filter_names:
+                                # DataFrame Filters
+                                for filter_item in filter_list:
+                                    for filter_name, filter_args in filter_item.items():
+                                        if filter_name in ('body', 'noindex', 'noheader'):
+                                            continue  # handled below
+                                        func = getattr(filters, filter_name)
+                                        result = func(result, filter_args)
+
+                                if any(['body' in f for f in filter_list]):
                                     options = {'index': False, 'header': False}
                                 else:
-                                    options = {'index': 'noindex' not in filter_names,
-                                               'header': 'noheader' not in filter_names}
-                                if 'sortasc' in filter_names:
-                                    columns = [arg.as_const() for arg in filter_args['sortasc']]
-                                    result = result.sort_values(list(result.columns[columns]), ascending=True)
-                                if 'sortdesc' in filter_names:
-                                    columns = [arg.as_const() for arg in filter_args['sortdesc']]
-                                    result = result.sort_values(list(result.columns[columns]), ascending=False)
-                                if 'multiply' in filter_names:
-                                    multiply_col = filter_args['multiply'][0].as_const()
-                                    multiply_val = filter_args['multiply'][1].as_const()
-                                    result.iloc[:, multiply_col] = result.iloc[:, multiply_col] * multiply_val
-                                if 'divide' in filter_names:
-                                    divide_col = filter_args['divide'][0].as_const()
-                                    divide_val = filter_args['divide'][1].as_const()
-                                    result.iloc[:, divide_col] = result.iloc[:, divide_col] / divide_val
-                                if 'add' in filter_names:
-                                    add_col = filter_args['add'][0].as_const()
-                                    add_val = filter_args['add'][1].as_const()
-                                    result.iloc[:, add_col] = result.iloc[:, add_col] + add_val
-                                if 'subtract' in filter_names:
-                                    subtract_col = filter_args['subtract'][0].as_const()
-                                    subtract_val = filter_args['subtract'][1].as_const()
-                                    result.iloc[:, subtract_col] = result.iloc[:, subtract_col] - subtract_val
-                                if 'maxrows' in filter_names and len(result) > filter_args['maxrows'][0].as_const():
-                                    splitrow = filter_args['maxrows'][0].as_const() - 1
-                                    other = result.iloc[splitrow:, :].sum(numeric_only=True)
-                                    other_name = filter_args['maxrows'][1].as_const()
-                                    other.name = other_name
-                                    result = result.iloc[:splitrow, :].append(other)
-                                    if len(filter_args['maxrows']) > 2:
-                                        result.iloc[-1, filter_args['maxrows'][2].as_const()] = other_name
-                                if 'aggsmall' in filter_names:
-                                    threshold = filter_args['aggsmall'][0].as_const()
-                                    col_ix = filter_args['aggsmall'][1].as_const()
-                                    dummy_col = '__aggregate__'
-                                    result.loc[:, dummy_col] = result.iloc[:, col_ix] < threshold
-                                    if True in result[dummy_col].unique():
-                                        # unlike aggregate, groupby conveniently drops non-numeric values
-                                        other = result.groupby(dummy_col).sum().loc[True, :]
-                                        other_name = filter_args['aggsmall'][2].as_const()
-                                        other.name = other_name
-                                        result = result.loc[result.iloc[:, col_ix] >= threshold, :].append(other)
-                                        if len(filter_args['aggsmall']) > 3:
-                                            result.iloc[-1, filter_args['aggsmall'][3].as_const()] = other_name
-                                    result = result.drop(columns=dummy_col)
-                                if 'head' in filter_names:
-                                    result = result.head(filter_args['head'][0].as_const())
-                                if 'tail' in filter_names:
-                                    result = result.tail(filter_args['tail'][0].as_const())
-                                if 'rowslice' in filter_names:
-                                    args = [arg.as_const() for arg in filter_args['rowslice']]
-                                    if len(args) == 1:
-                                        args.append(None)
-                                    result = result.iloc[args[0]:args[1], :]
-                                if 'colslice' in filter_names:
-                                    args = [arg.as_const() for arg in filter_args['colslice']]
-                                    if len(args) == 1:
-                                        args.append(None)
-                                    result = result.iloc[:, args[0]:args[1]]
-                                if 'columns' in filter_names:
-                                    # Must come after maxrows/aggsmall as the duplicate column names would cause issues
-                                    columns = [arg.as_const() for arg in filter_args['columns']]
-                                    result = result.iloc[:, [col for col in columns if col is not None]]
-                                    empty_col_indices = [i for i, v in enumerate(columns) if v is None]
-                                    for n, col_ix in enumerate(empty_col_indices):
-                                        # insert() method is inplace!
-                                        # Since Excel tables only allow an empty space once, we'll generate multiple
-                                        # empty spaces for each column.
-                                        result.insert(loc=col_ix, column=' ' * (n + 1), value=np.nan)
+                                    options = {'index': not any(['noindex' in f for f in filter_list]),
+                                               'header': not any(['noheader' in f for f in filter_list])}
 
                                 # Assumes 1 header row, MultiIndex headers aren't supported
                                 result_len = len(result) + 1 if options['header'] else len(result)
@@ -279,7 +208,7 @@ def render_template(sheet, **data):
         if shapetext and '{{' in shapetext:
             if shapetext.count('{{') == 1 and shapetext.startswith('{{') and shapetext.endswith('}}'):
                 # Single Jinja variable case, the only case we support with Markdown
-                var, filter_names, filter_args = parse_single_placeholder(shapetext, env)
+                var, filter_list = parse_single_placeholder(shapetext, env)
                 result = env.compile_expression(var)(**data)
                 if isinstance(result, Markdown):
                     # This will conveniently render placeholders within Markdown text
