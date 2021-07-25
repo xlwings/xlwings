@@ -94,8 +94,8 @@ def maxrows(df, filter_args):
         other_name = filter_args[1].as_const()
         other.name = other_name
         df = df.iloc[:splitrow, :].append(other)
-        if len(filter_args) > 2:
-            df.iloc[-1, filter_args[2].as_const()] = other_name
+        col_ix = filter_args[2].as_const() if len(filter_args) > 2 else 0
+        df.iloc[-1, col_ix] = other_name
     return df
 
 
@@ -110,8 +110,8 @@ def aggsmall(df, filter_args):
         other_name = filter_args[2].as_const()
         other.name = other_name
         df = df.loc[df.iloc[:, col_ix] >= threshold, :].append(other)
-        if len(filter_args) > 3:
-            df.iloc[-1, filter_args[3].as_const()] = other_name
+        other_ix = filter_args[3].as_const() if len(filter_args) > 3 else 0
+        df.iloc[-1, other_ix] = other_name
     df = df.drop(columns=dummy_col)
     return df
 
