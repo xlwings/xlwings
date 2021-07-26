@@ -154,7 +154,7 @@ def render_template(sheet, **data):
                                             continue  # handled below
                                         func = getattr(filters, filter_name)
                                         result = func(result, filter_args)
-
+                                # showindex is undocumented, as df.reset_index() is preferred
                                 options = {'index': any(['showindex' in f for f in filter_list]),
                                            'header': not any(['noheader' in f for f in filter_list])}
 

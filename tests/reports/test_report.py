@@ -38,7 +38,7 @@ df2 = pd.DataFrame({'name': ['a', 'b', 'c', 'd', 'e'],
                     'c': [1, 2, 5, 7, 8],
                     'd': [1, 1, 1, 6, 7]})
 data = dict(mystring='stringtest', myfloat=12.12, substring='substringtest',
-            df1=df1, df2=df2, mydict={'df': df1}, pic=Image(os.path.abspath('xlwings.jpg')),
+            df1=df1.reset_index(), df2=df2.reset_index(), mydict={'df': df1}, pic=Image(os.path.abspath('xlwings.jpg')),
             fig=fig, markdown_cell=Markdown(text1), markdown_shape=Markdown(text1), mybullet='bullet',
             mydate=dt.datetime(2010, 12, 1))
 
@@ -64,12 +64,12 @@ class TestCreateReport(unittest.TestCase):
 
     def test_df(self):
         assert_frame_equal(self.wb.sheets[0]['A2'].options(pd.DataFrame, expand='table').value,
-                           data['df1'])
+                           df1.reset_index().set_index('index'))
 
     def test_df_table(self):
         df = self.wb.sheets['Sheet4']['A1'].options(pd.DataFrame, expand='table').value
         df.index.name = None
-        assert_frame_equal(df, data['df1'])
+        assert_frame_equal(df, df1)
         self.assertIsNotNone(self.wb.sheets['Sheet4']['A1'].table)
 
     def test_var_operations(self):
@@ -139,15 +139,15 @@ class TestFrames(unittest.TestCase):
         df = pd.DataFrame([[1., 2.], [3., 4.]],
                           columns=['c1', 'c2'],
                           index=['r1', 'r2'])
-        wb = create_report('template_one_frame.xlsx', 'output.xlsx', df=df, title='MyTitle')
+        wb = create_report('template_one_frame.xlsx', 'output.xlsx', df=df.reset_index(), title='MyTitle')
         for i in range(2):
             sheet = wb.sheets[i]
             self.assertEqual(sheet['A1'].value, 'MyTitle')
             self.assertEqual(sheet['A3'].value, 'PART ONE')
             self.assertEqual(sheet['A8'].value, 'PART TWO')
             if i == 0:
-                assert_frame_equal(sheet['A4'].options(pd.DataFrame, expand='table').value, df)
-                assert_frame_equal(sheet['A9'].options(pd.DataFrame, expand='table').value, df)
+                assert_frame_equal(sheet['A4'].options(pd.DataFrame, expand='table').value, df.reset_index().set_index('index'))
+                assert_frame_equal(sheet['A9'].options(pd.DataFrame, expand='table').value, df.reset_index().set_index('index'))
             elif i == 1:
                 df_table1 = sheet['A4'].options(pd.DataFrame, expand='table').value
                 df_table1.index.name = None
@@ -172,7 +172,7 @@ class TestFrames(unittest.TestCase):
         text = 'abcd'
         pic = Image(os.path.abspath('xlwings.jpg'))
 
-        data = dict(df1=df1, df2='df2 dummy', df3=df3, text=text, pic=pic)
+        data = dict(df1=df1.reset_index(), df2='df2 dummy', df3=df3.reset_index(), text=text, pic=pic)
         wb = create_report('template_two_frames.xlsx', 'output.xlsx', **data)
         sheet = wb.sheets[0]
         # values
