@@ -1809,6 +1809,7 @@ calculation_k2s = {
 calculation_s2k = {v: k for k, v in calculation_k2s.items()}
 
 shape_types_k2s = {
+    kw.shape_type_3d_model: '3d_model',
     kw.shape_type_auto: 'auto_shape',
     kw.shape_type_callout: 'callout',
     kw.shape_type_canvas: 'canvas',
@@ -1817,10 +1818,13 @@ shape_types_k2s = {
     kw.shape_type_content_application: 'content_app',
     kw.shape_type_diagram: 'diagram',
     kw.shape_type_free_form: 'free_form',
+    kw.shape_type_graphic: 'graphic',
     kw.shape_type_group: 'group',
     kw.shape_type_embedded_OLE_control: 'embedded_ole_object',
     kw.shape_type_form_control: 'form_control',
     kw.shape_type_line: 'line',
+    kw.shape_type_linked_3d_model: 'linked_3d_model',
+    kw.shape_type_linked_graphic: 'linked_graphic',
     kw.shape_type_linked_OLE_object: 'linked_ole_object',
     kw.shape_type_linked_picture: 'linked_picture',
     kw.shape_type_OLE_control: 'ole_control_object',
@@ -1832,6 +1836,7 @@ shape_types_k2s = {
     kw.shape_type_table: 'table',
     kw.shape_type_ink: 'ink',
     kw.shape_type_ink_comment: 'ink_comment',
+    kw.shape_type_unset: 'unset'
 }
 
 scaling = {
