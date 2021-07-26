@@ -109,9 +109,9 @@ See also the :meth:`mysheet.render_template (API reference) <xlwings.Sheet.rende
 DataFrames
 ----------
 
-To write DataFrames in a consistent manner to Excel, xlwings Reports ignores the DataFrame indices. If you need to pass the index over to Excel, reset the index before passing in the DataFrame: ``df.reset_index()`` to ``create_report`` or ``render_template``.
+To write DataFrames in a consistent manner to Excel, xlwings Reports ignores the DataFrame indices. If you need to pass the index over to Excel, reset the index before passing in the DataFrame to ``create_report`` or ``render_template``: ``df.reset_index()``.
 
-When working with pandas DataFrames, the report designer often needs to tweak the data. Thanks to filters, they can do the most common operations directly in the template without the need of writing Python code. A filter is added to the placeholder in Excel by using the pipe character: ``{{ myplaceholder | myfilter }}``. You can combine multiple filters by using multiple pipe characters: they are applied from left to right, i.e. the result from the first filter will be the input for the next filter. Let's start with an example before listing each filter with its details::
+When working with pandas DataFrames, the report designer often needs to tweak the data. Thanks to filters, they can do the most common operations directly in the template without the need to write Python code. A filter is added to the placeholder in Excel by using the pipe character: ``{{ myplaceholder | myfilter }}``. You can combine multiple filters by using multiple pipe characters: they are applied from left to right, i.e. the result from the first filter will be the input for the next filter. Let's start with an example before listing each filter with its details::
 
     import xlwings as xw
     import pandas as pd
