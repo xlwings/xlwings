@@ -63,27 +63,32 @@ def sortdesc(df, filter_args):
     return df.sort_values(list(df.columns[columns]), ascending=False)
 
 
-def multiply(df, filter_args):
+def mul(df, filter_args):
     col_ix, value = filter_args[0].as_const(), filter_args[1].as_const()
-    df.iloc[:, col_ix] = df.iloc[:, col_ix] * value
+    fill_value = filter_args[2].as_const() if len(filter_args) > 2 else None
+    # fill_value makes this behave like in Excel
+    df.iloc[:, col_ix] = df.iloc[:, col_ix].mul(value, fill_value=fill_value)
     return df
 
 
-def divide(df, filter_args):
+def div(df, filter_args):
     col_ix, value = filter_args[0].as_const(), filter_args[1].as_const()
-    df.iloc[:, col_ix] = df.iloc[:, col_ix] / value
+    fill_value = filter_args[2].as_const() if len(filter_args) > 2 else None
+    df.iloc[:, col_ix] = df.iloc[:, col_ix].div(value, fill_value=fill_value)
     return df
 
 
 def add(df, filter_args):
     col_ix, value = filter_args[0].as_const(), filter_args[1].as_const()
-    df.iloc[:, col_ix] = df.iloc[:, col_ix] + value
+    fill_value = filter_args[2].as_const() if len(filter_args) > 2 else None
+    df.iloc[:, col_ix] = df.iloc[:, col_ix].add(value, fill_value=fill_value)
     return df
 
 
-def subtract(df, filter_args):
+def sub(df, filter_args):
     col_ix, value = filter_args[0].as_const(), filter_args[1].as_const()
-    df.iloc[:, col_ix] = df.iloc[:, col_ix] - value
+    fill_value = filter_args[2].as_const() if len(filter_args) > 2 else None
+    df.iloc[:, col_ix] = df.iloc[:, col_ix].sub(value, fill_value=fill_value)
     return df
 
 
