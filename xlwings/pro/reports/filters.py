@@ -66,7 +66,6 @@ def sortdesc(df, filter_args):
 def mul(df, filter_args):
     col_ix, value = filter_args[0].as_const(), filter_args[1].as_const()
     fill_value = filter_args[2].as_const() if len(filter_args) > 2 else None
-    # fill_value makes this behave like in Excel
     df.iloc[:, col_ix] = df.iloc[:, col_ix].mul(value, fill_value=fill_value)
     return df
 
@@ -146,7 +145,6 @@ def colslice(df, filter_args):
 
 
 def columns(df, filter_args):
-    # Must come after maxrows/aggsmall as the duplicate column names would cause issues
     columns = [arg.as_const() for arg in filter_args]
     df = df.iloc[:, [col for col in columns if col is not None]]
     empty_col_indices = [i for i, v in enumerate(columns) if v is None]
@@ -159,4 +157,6 @@ def columns(df, filter_args):
 
 
 def header(df, filter_args):
-    return list(df.columns)
+    # Replace the spaces introduced by a potential previous call of columns()
+    # as headers alone can't be used in Excel tables
+    return [None if i.isspace() else i for i in df.columns]
