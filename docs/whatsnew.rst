@@ -1,6 +1,12 @@
 What's New
 ==========
 
+v0.24.5 (Jul 27, 2021)
+----------------------
+
+* :guilabel:`PRO` [Bug Fix] Reports: Using the ``header`` filter in a Frame was causing rows to be inserted (:issue:`1681`).
+
+
 v0.24.4 (Jul 26, 2021)
 ----------------------
 
@@ -15,11 +21,11 @@ v0.24.4 (Jul 26, 2021)
 * [Enhancement] The app properties ``myapp.enable_events`` and ``myapp.interactive`` are now supported (:issue:`254`).
 * [Enhancement] ``mybook.to_pdf`` now ignores sheet names that start with a ``#``. This can be changed by setting the new parameter ``exclude_start_string`` (:issue:`1667`).
 * [Enhancement] New method ``mytable.resize()`` (:issue:`1662`).
-* [Bug Fix] The new App context manager introduced with v0.24.3 was sometimes causing an error on Windows during the cleanup actions.
+* [Bug Fix] The new App context manager introduced with v0.24.3 was sometimes causing an error on Windows during the cleanup actions (:issue:`1668`).
 
-**xlwings.pro.reports:**
+:guilabel:`PRO` **xlwings.pro.reports:**
 
-* **Breaking change**: DataFrame placeholders will now ignore the DataFrame's index. If you need the index, reset it via : ``df.reset_index()`` before passing the DataFrame to ``create_report`` or ``render_template``. This was required as the same column index used in filters would point to seemingly different columns in Excel depending on whether the index was included or not (:issue:`1676`).
+* **Breaking change**: DataFrame placeholders will now ignore the DataFrame's index. If you need the index, reset it via : ``df.reset_index()`` before passing the DataFrame to ``create_report`` or ``render_template``. This was required as the same column index used in filters would point to seemingly different columns in Excel depending on whether the index was included or not. This also means that the ``noindex`` and ``body`` filters are no obsolete and have been removed (:issue:`1676`).
 * [Enhancement] Dataframe filters now respect the order in which they are called and can be used multiple times (:issue:`1675`).
 * [Enhancement] New filters: ``format`` (to apply f-string like formatting), ``datetime`` (to format datetime objects), ``top`` and  ``left`` (to position graphics outside of the grid structure) ``header``, ``add``, ``sub``, ``mul``, ``div`` (to only return the header of a DataFrame or apply an arithmetic operation, respectively) (:issue:`1666`, :issue:`1660`, :issue:`1677`).
 * [Enhancement]: ``create_report`` can now be accessed as method of the app object like so: ``myapp.create_report`` (:issue:`1665`).
