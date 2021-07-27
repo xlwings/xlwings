@@ -236,7 +236,8 @@ class TestDataFrameFilters(unittest.TestCase):
         self.assertIsNone(wb.sheets['Sheet1']['A6'].color)
         self.assertEqual(wb.sheets['Sheet1']['A7'].color, wb.sheets['expected']['A7'].color)
         self.assertEqual(wb.sheets['Sheet1']['A8'].color, wb.sheets['expected']['A8'].color)
-        self.assertIsNone(wb.sheets['Sheet1']['A9'].color)
+        self.assertIsNone(wb.sheets['Sheet1']['A7'].color)
+        self.assertIsNone(wb.sheets['Sheet1']['A10'].color)
 
     def test_pic_filters(self):
         wb = create_report('template1.xlsx', 'output.xlsx', **data)

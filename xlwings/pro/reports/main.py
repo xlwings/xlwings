@@ -159,7 +159,11 @@ def render_template(sheet, **data):
                                            'header': not any(['noheader' in f for f in filter_list])}
 
                                 # Assumes 1 header row, MultiIndex headers aren't supported
-                                result_len = len(result) + 1 if options['header'] else len(result)
+                                if any(['header' in f for f in filter_list]):
+                                    # Hack for the 'header' filter
+                                    result_len = 1
+                                else:
+                                    result_len = len(result) + 1 if options['header'] else len(result)
                             else:
                                 result_len = 1
                             # Insert rows if within <frame> and 'result' is multiple rows high
