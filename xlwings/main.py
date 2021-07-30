@@ -12,6 +12,7 @@ import os
 import sys
 import re
 import numbers
+import subprocess
 from contextlib import contextmanager
 
 from . import xlplatform, ShapeAlreadyExists, utils
@@ -906,7 +907,7 @@ class Book:
         """
         return Range(impl=self.app.selection.impl) if self.app.selection else None
 
-    def to_pdf(self, path=None, include=None, exclude=None, layout=None, exclude_start_string='#'):
+    def to_pdf(self, path=None, include=None, exclude=None, layout=None, exclude_start_string='#', show=False):
         """
         Exports the whole Excel workbook or a subset of the sheets to a PDF file.
         If you want to print hidden sheets, you will need to list them explicitely under ``include``.
@@ -939,6 +940,11 @@ class Book:
             Sheet names that start with this character/string will not be printed.
 
             .. versionadded:: 0.24.4
+
+        show : bool, default False
+            Once created, open the PDF file with the default application.
+
+            .. versionadded:: 0.24.6
 
         Examples
         --------
@@ -996,6 +1002,12 @@ class Book:
         if layout:
             from .pro.reports.pdf import print_on_layout
             print_on_layout(report_path=report_path, layout_path=layout_path)
+
+        if show:
+            if sys.platform.startswith('win'):
+                os.startfile(report_path)
+            else:
+                subprocess.run(['open', report_path])
 
     def __repr__(self):
         return "<Book [{0}]>".format(self.name)
@@ -1149,7 +1161,7 @@ class Sheet:
         """
         return self.impl.delete()
 
-    def to_pdf(self, path=None, layout=None):
+    def to_pdf(self, path=None, layout=None, show=False):
         """
         Exports the sheet to a PDF file.
 
@@ -1169,6 +1181,11 @@ class Sheet:
 
             .. versionadded:: 0.24.3
 
+        show : bool, default False
+            Once created, open the PDF file with the default application.
+
+            .. versionadded:: 0.24.6
+
         Examples
         --------
         >>> wb = xw.Book()
@@ -1181,7 +1198,7 @@ class Sheet:
         .. versionadded:: 0.22.3
         """
         self.book.to_pdf(self.name + '.pdf' if path is None else path,
-                         include=self.index, layout=layout)
+                         include=self.index, layout=layout, show=show)
 
     def copy(self, before=None, after=None, name=None):
         """
