@@ -44,6 +44,15 @@ def rgb_to_int(rgb):
     return rgb[0] + (rgb[1] * 256) + (rgb[2] * 256 * 256)
 
 
+def hex_to_rgb(color):
+    color = color[1:] if color.startswith('#') else color
+    return tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
+
+
+def rgb_to_hex(r, g, b):
+    return f'#{r:02x}{g:02x}{b:02x}'
+
+
 def get_duplicates(seq):
     seen = set()
     duplicates = set(x for x in seq if x in seen or seen.add(x))
