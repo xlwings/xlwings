@@ -1891,7 +1891,8 @@ class Range:
         """
         Gets and sets the background color of the specified Range.
 
-        To set the color, either use an RGB tuple ``(0, 0, 0)`` or a color constant.
+        To set the color, either use an RGB tuple ``(0, 0, 0)`` or a hex string
+        like ``#efefef`` or an Excel color constant.
         To remove the background, set the color to ``None``, see Examples.
 
         Returns
@@ -1902,7 +1903,7 @@ class Range:
         --------
         >>> import xlwings as xw
         >>> wb = xw.Book()
-        >>> xw.Range('A1').color = (255,255,255)
+        >>> xw.Range('A1').color = (255, 255, 255)  # or '#ffffff'
         >>> xw.Range('A2').color
         (255, 255, 255)
         >>> xw.Range('A2').color = None
@@ -1915,6 +1916,8 @@ class Range:
 
     @color.setter
     def color(self, color_or_rgb):
+        if isinstance(color_or_rgb, str):
+            color_or_rgb = utils.hex_to_rgb(color_or_rgb)
         self.impl.color = color_or_rgb
 
     @property
@@ -4113,7 +4116,7 @@ class Font:
         """
         Returns or sets the color property (tuple).
 
-        >>> sheet['A1'].font.color = (255, 0, 0) # RGB tuple
+        >>> sheet['A1'].font.color = (255, 0, 0)  # or '#ff0000'
         >>> sheet['A1'].font.color
         (255, 0, 0)
 
@@ -4123,6 +4126,8 @@ class Font:
 
     @color.setter
     def color(self, value):
+        if isinstance(value, str):
+            value = utils.hex_to_rgb(value)
         self.impl.color = value
 
     @property
