@@ -19,8 +19,8 @@ def update(self, data, index):
         if self.header_row_range:
             # Tables with 'Header Row' checked
             header = (list(data.index.names) + list(data.columns)) if index else list(data.columns)
-            # Replace None in the index with a unique number of spaces
-            n_empty = len([i for i in header if i and ' ' in i])
+            # Replace None in the header with a unique number of spaces
+            n_empty = len([i for i in header if isinstance(i, str) and i.isspace()])
             header = [f' ' * (i + n_empty + 1) if name is None else name for i, name in enumerate(header)]
             self.header_row_range.value = header
             self.range[1, 0].options(index=index, header=False).value = data

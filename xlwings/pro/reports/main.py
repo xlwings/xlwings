@@ -66,6 +66,8 @@ def render_template(sheet, **data):
     """
     Replaces the Jinja2 placeholders in a given sheet
     """
+    # Shapes aren't properly moved otherwise
+    sheet.activate()
     # On Windows, Excel will not move objects correctly with screen_updating = False during row insert/delete operations
     # So we'll need to set it to True before any such operations. Getting origin state here to revert to.
     book = sheet.book
@@ -230,6 +232,11 @@ def render_template(sheet, **data):
     # Reset print area
     if print_area:
         sheet.page_setup.print_area = print_area
+
+    try:
+        sheet['A1'].select()
+    except:
+        pass
 
 
 def create_report(template, output, book_settings=None, app=None, **data):

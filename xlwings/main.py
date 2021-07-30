@@ -582,6 +582,11 @@ class App:
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         self.quit()
+        if sys.platform.startswith('win'):
+            try:
+                self.kill()
+            except:
+                pass
 
 
 class Book:
