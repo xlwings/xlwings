@@ -66,12 +66,10 @@ def render_template(sheet, **data):
     """
     Replaces the Jinja2 placeholders in a given sheet
     """
+    book = sheet.book
+
     # Shapes aren't properly moved otherwise
     sheet.activate()
-    # On Windows, Excel will not move objects correctly with screen_updating = False during row insert/delete operations
-    # So we'll need to set it to True before any such operations. Getting origin state here to revert to.
-    book = sheet.book
-    screen_updating_original_state = book.app.screen_updating
 
     # Inserting rows with Frames changes the print area. Get it here so we can revert at the end.
     print_area = sheet.page_setup.print_area
@@ -174,22 +172,22 @@ def render_template(sheet, **data):
                                 # Deduct header and first data row that are part of template
                                 rows_to_be_inserted = result_len - (2 if options['header'] else 1)
                                 if rows_to_be_inserted > 0:
-                                    if sys.platform.startswith('win'):
-                                        book.app.screen_updating = True
-                                    # Since CopyOrigin is not supported on Mac, we start copying two rows
-                                    # below the header so the data row formatting gets carried over
-                                    start_row = i + row_shift + (3 if options['header'] else 2)
-                                    start_col = j + frame_indices[ix] + 1
-                                    end_row = i + row_shift + rows_to_be_inserted + (2 if options['header'] else 1)
-                                    end_col = frame_indices[ix] + len(values[0])
-                                    sheet.range((start_row, start_col),
-                                                (end_row, end_col)).insert('down')
-                                    # Inserting does not take over borders
-                                    sheet.range((start_row - 1, start_col),
-                                                (start_row - 1, end_col)).copy()
-                                    sheet.range((start_row - 1, start_col),
-                                                (end_row, end_col)).paste(paste='formats')
-                                    book.app.screen_updating = screen_updating_original_state
+                                    properties = {'screen_updating': True} if sys.platform.startswith('win') else {}
+                                    with book.app.properties(**properties):
+                                        # Windows doesn't move objects properly with screen_updating=False
+                                        # Since CopyOrigin is not supported on Mac, we start copying two rows
+                                        # below the header so the data row formatting gets carried over
+                                        start_row = i + row_shift + (3 if options['header'] else 2)
+                                        start_col = j + frame_indices[ix] + 1
+                                        end_row = i + row_shift + rows_to_be_inserted + (2 if options['header'] else 1)
+                                        end_col = frame_indices[ix] + len(values[0])
+                                        sheet.range((start_row, start_col),
+                                                    (end_row, end_col)).insert('down')
+                                        # Inserting does not take over borders
+                                        sheet.range((start_row - 1, start_col),
+                                                    (start_row - 1, end_col)).copy()
+                                        sheet.range((start_row - 1, start_col),
+                                                    (end_row, end_col)).paste(paste='formats')
                             # Write the array to Excel
                             if sheet[i + row_shift, j + frame_indices[ix]].table:
                                 sheet[i + row_shift, j + frame_indices[ix]].table.update(result, index=options['index'])

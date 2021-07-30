@@ -863,10 +863,8 @@ class Book:
         """
         if path:
             path = utils.fspath(path)
-        display_alerts = self.app.display_alerts
-        self.app.display_alerts = False
-        self.impl.save(path)
-        self.app.display_alerts = display_alerts
+        with self.app.properties(display_alerts=False):
+            self.impl.save(path)
 
     @property
     def fullname(self):
@@ -3894,10 +3892,8 @@ def view(obj, sheet=None, table=True, chunksize=5000):
 
     app = sheet.book.app
     app.activate(steal_focus=True)
-    screen_updating_original_state = app.screen_updating
 
-    try:
-        sheet.book.app.screen_updating = False
+    with app.properties(screen_updating=False):
         if pd and isinstance(obj, pd.DataFrame):
             if table:
                 sheet['A1'].options(assign_empty_index_names=True, chunksize=chunksize).value = obj
@@ -3907,10 +3903,6 @@ def view(obj, sheet=None, table=True, chunksize=5000):
         else:
             sheet['A1'].value = obj
         sheet.autofit()
-    except:
-        raise
-    finally:
-        sheet.book.app.screen_updating = screen_updating_original_state
 
 
 def load(index=1, header=1, chunksize=5000):
