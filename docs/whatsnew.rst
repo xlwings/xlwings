@@ -1,6 +1,15 @@
 What's New
 ==========
 
+v0.24.6 (Jul 31, 2021)
+----------------------
+* [Enhancement] You can now also define the color of cells, shapes and font objects with a hex string instead of just an RGB tuple, e.g., ``mysheet["A1"].color = "#efefef"`` (:issue:`1535`).
+* [Enhancement] When you print a workbook or sheet to a pdf, you can now automatically open the PDF document via the new ``show`` argument: ``mybook.to_pdf(show=True)`` (:issue:`1683`).
+* [Bug Fix]: This release includes another round of fixing the cleanup actions of the App() context manager (:issue:`1687`).
+* :guilabel:`PRO` [Enhancement] Reports: New filter ``fontcolor``, allowing you to write text in black and turn it into e.g., white for the report. This gets around the issue that white text isn't visible in Excel on a white background: ``{{ myplaceholder | fontcolor("white") }}``. Alternatively, you can also use a hex color (:issue:`1692`).
+* :guilabel:`PRO`: [Bug Fix] Positioning shapes wasn't always respecting the top/left filters (:issue:`1687`).
+* :guilabel:`PRO`: [Bug Fix] Fixed a bug with non-string headers when calling ``table.update`` (:issue:`1687`).
+
 v0.24.5 (Jul 27, 2021)
 ----------------------
 
