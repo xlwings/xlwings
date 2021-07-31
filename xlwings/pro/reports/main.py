@@ -78,6 +78,7 @@ def render_template(sheet, **data):
     env = Environment()
     env.filters["datetime"] = filters.datetime
     env.filters["format"] = filters.fmt  # This overrides Jinja's built-in filter
+    env.filters["fontcolor"] = filters.fontcolor
 
     # used_range doesn't start automatically in A1
     last_cell = sheet.used_range.last_cell
@@ -103,6 +104,7 @@ def render_template(sheet, **data):
         row_shift = 0
         for i, row in enumerate(values):
             for j, value in enumerate(row):
+                cell = sheet[i + row_shift, j + frame_indices[ix]]
                 if isinstance(value, str):
                     if value.count('{{') == 1 and value.startswith('{{') and value.endswith('}}'):
                         # Cell contains single Jinja variable
@@ -124,20 +126,19 @@ def render_template(sheet, **data):
 
                             image = result.filename if isinstance(result, (Image, PIL.Image.Image)) else result
                             sheet.pictures.add(image,
-                                               top=top + sheet[i + row_shift, j + frame_indices[ix]].top,
-                                               left=left + sheet[i + row_shift, j + frame_indices[ix]].left,
+                                               top=top + cell.top, left=left + cell.left,
                                                width=width, height=height, scale=scale, format=format_)
-                            sheet[i + row_shift, j + frame_indices[ix]].value = None
+                            cell.value = None
                         elif isinstance(result, (str, numbers.Number)):
-                            sheet[i + row_shift,
-                                  j + frame_indices[ix]].value = env.from_string(value).render(**data)
+                            if any(['fontcolor' in f for f in filter_list]):
+                                cell.font.color = filters.fontcolor(filter_list=filter_list)
+                            cell.value = env.from_string(value).render(**data)
                         elif isinstance(result, Markdown):
                             # This will conveniently render placeholders within Markdown instances
-                            sheet[i + row_shift,
-                                  j + frame_indices[ix]].value = Markdown(text=env.from_string(result.text).render(**data),
-                                                                          style=result.style)
+                            cell.value = Markdown(text=env.from_string(result.text).render(**data),
+                                                  style=result.style)
                         elif isinstance(result, dt.datetime):
-                            sheet[i + row_shift, j + frame_indices[ix]].value = env.from_string(value).render(**data)
+                            cell.value = env.from_string(value).render(**data)
                         else:
                             # Arrays
                             options = {'index': False, 'header': True}  # defaults
@@ -189,16 +190,15 @@ def render_template(sheet, **data):
                                         sheet.range((start_row - 1, start_col),
                                                     (end_row, end_col)).paste(paste='formats')
                             # Write the array to Excel
-                            if sheet[i + row_shift, j + frame_indices[ix]].table:
-                                sheet[i + row_shift, j + frame_indices[ix]].table.update(result, index=options['index'])
+                            if cell.table:
+                                cell.table.update(result, index=options['index'])
                             else:
-                                sheet[i + row_shift,
-                                      j + frame_indices[ix]].options(**options).value = result
+                                cell.options(**options).value = result
                             row_shift += rows_to_be_inserted
                     elif '{{' in value:
                         # These are strings with (multiple) Jinja variables so apply standard text rendering here
                         template = env.from_string(value)
-                        sheet[i + row_shift, j + frame_indices[ix]].value = template.render(data)
+                        cell.value = template.render(data)
                     else:
                         # Don't do anything with cells that don't contain any templating so we don't lose the formatting
                         pass
@@ -217,6 +217,8 @@ def render_template(sheet, **data):
                                           style=result.style)
                 else:
                     # Single Jinja var but no Markdown
+                    if any(['fontcolor' in f for f in filter_list]):
+                        shape.font.color = filters.fontcolor(filter_list=filter_list)
                     template = env.from_string(shapetext)
                     shape.text = template.render(data)
             else:

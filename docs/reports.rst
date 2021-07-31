@@ -465,6 +465,15 @@ into this report:
 
 While this works for simple text, you will lose the formatting if you have any. To prevent that, use a ``Markdown`` object, as explained in the next section.
 
+If you will be printing on a :ref:`reports_pdf_layout` with a dark background, you may need to change the font color to white. This has the nasty side effect that you won't see anything on the screen anymore. To solve that issue, use the ``fontcolor`` filter:
+
+* **fontcolor**: Change the color of the whole (!) cell or shape. The primary purpose of this filter is to make white fonts visible in Excel. For most other colors, you can just change the color in Excel itself. Note that this filter changes the font of the whole cell or shape and only has an effect if there is just a single placeholder---if you need to manipulate single words, use Markdown instead, see below. Black and white can be used as word, otherwise use a hex notation of your desired color.
+
+  Example::
+
+  {{ mytitle | fontcolor("white") }}
+  {{ mytitle | fontcolor("#efefef") }}
+
 Markdown Formatting
 *******************
 
