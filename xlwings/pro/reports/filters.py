@@ -20,7 +20,7 @@ def fmt(value, format):
 
 
 # Image filters
-def _apply_image_filter(filter_list, filter_name, default=None):
+def _apply_filter(filter_list, filter_name, default=None):
     for f in filter_list:
         for k, v in f.items():
             if k == filter_name:
@@ -29,27 +29,38 @@ def _apply_image_filter(filter_list, filter_name, default=None):
 
 
 def width(filter_list):
-    return _apply_image_filter(filter_list, 'width')
+    return _apply_filter(filter_list, 'width')
 
 
 def height(filter_list):
-    return _apply_image_filter(filter_list, 'height')
+    return _apply_filter(filter_list, 'height')
 
 
 def scale(filter_list):
-    return _apply_image_filter(filter_list, 'scale')
+    return _apply_filter(filter_list, 'scale')
 
 
 def image_format(filter_list):
-    return _apply_image_filter(filter_list, 'format', 'png')
+    return _apply_filter(filter_list, 'format', 'png')
 
 
 def top(filter_list):
-    return _apply_image_filter(filter_list, 'top', 0)
+    return _apply_filter(filter_list, 'top', 0)
 
 
 def left(filter_list):
-    return _apply_image_filter(filter_list, 'left', 0)
+    return _apply_filter(filter_list, 'left', 0)
+
+
+# Font filters
+def fontcolor(value=None, filter_list=None):
+    # Useful for working with white fonts without them disappearing on screen
+    if value:
+        # Ignore if called as standard Jinja filter
+        return value
+    elif filter_list:
+        # If called from a single cell/shape placeholder
+        return _apply_filter(filter_list, 'fontcolor')
 
 
 # DataFrame filters
