@@ -60,7 +60,7 @@ class TestCreateReport(unittest.TestCase):
         self.assertAlmostEqual(self.wb.sheets[0]['B1'].value, 12.12)
 
     def test_substring(self):
-        self.assertAlmostEqual(self.wb.sheets[0]['C1'].value, 'This is text with a substringtest.')
+        self.assertEqual(self.wb.sheets[0]['C1'].value, 'This is text with a substringtest.')
 
     def test_df(self):
         assert_frame_equal(self.wb.sheets[0]['A2'].options(pd.DataFrame, expand='table').value,
@@ -254,6 +254,10 @@ class TestDataFrameFilters(unittest.TestCase):
         wb = create_report('template1.xlsx', 'output.xlsx', **data)
         self.assertEqual(wb.sheets['dt']['A1:A7'].value, wb.sheets['dt']['E1:E7'].value)
         self.assertEqual(wb.sheets['dt'].shapes['Rectangle 1'].text, 'December 1, 2010')
+
+    def test_fontcolor_filter(self):
+        wb = create_report('template1.xlsx', 'output.xlsx', **data)
+        self.assertEqual(wb.sheets['Sheet1']['Q1'].font.color, (255, 255, 255))
 
 
 if __name__ == '__main__':
