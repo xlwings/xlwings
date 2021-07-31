@@ -6,6 +6,14 @@ except ImportError:
     np = None
 
 
+def _get_filter_value(filter_list, filter_name, default=None):
+    for f in filter_list:
+        for k, v in f.items():
+            if k == filter_name:
+                return v[0].as_const()
+    return default
+
+
 # Standard Jinja custom filters
 def datetime(value, format=None):
     # Custom Jinja filter that can be used by strings/Markdown
@@ -20,36 +28,28 @@ def fmt(value, format):
 
 
 # Image filters
-def _apply_filter(filter_list, filter_name, default=None):
-    for f in filter_list:
-        for k, v in f.items():
-            if k == filter_name:
-                return v[0].as_const()
-    return default
-
-
 def width(filter_list):
-    return _apply_filter(filter_list, 'width')
+    return _get_filter_value(filter_list, 'width')
 
 
 def height(filter_list):
-    return _apply_filter(filter_list, 'height')
+    return _get_filter_value(filter_list, 'height')
 
 
 def scale(filter_list):
-    return _apply_filter(filter_list, 'scale')
+    return _get_filter_value(filter_list, 'scale')
 
 
 def image_format(filter_list):
-    return _apply_filter(filter_list, 'format', 'png')
+    return _get_filter_value(filter_list, 'format', 'png')
 
 
 def top(filter_list):
-    return _apply_filter(filter_list, 'top', 0)
+    return _get_filter_value(filter_list, 'top', 0)
 
 
 def left(filter_list):
-    return _apply_filter(filter_list, 'left', 0)
+    return _get_filter_value(filter_list, 'left', 0)
 
 
 # Font filters
@@ -60,7 +60,12 @@ def fontcolor(value=None, filter_list=None):
         return value
     elif filter_list:
         # If called from a single cell/shape placeholder
-        return _apply_filter(filter_list, 'fontcolor')
+        color = _get_filter_value(filter_list, 'fontcolor')
+        colors = {'white': '#ffffff', 'black': '#000000'}
+        if color.lower() in colors:
+            return colors[color.lower()]
+        else:
+            return color
 
 
 # DataFrame filters
