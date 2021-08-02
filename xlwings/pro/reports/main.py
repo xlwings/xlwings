@@ -59,7 +59,7 @@ def parse_single_placeholder(value, env):
             filter_list.insert(0, {f.name: f.args})
         return f.node.name, filter_list
     else:
-        return value.replace('{{', '').replace('}}', '').strip(), {}
+        return value.replace('{{', '').replace('}}', '').strip(), []
 
 
 def render_template(sheet, **data):
