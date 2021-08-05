@@ -1,6 +1,12 @@
 What's New
 ==========
 
+v0.24.7 (Aug 5, 2021)
+---------------------
+
+* :guilabel:`PRO`: **Breaking Change**: Reports: Changed the order of the arguments of the arithmetic DataFrame filters: ``sum``, ``div``, ``mul`` and ``div`` to align them with the other filters. E.g., to multiply column 2 by 100, you now have to write your filter as ``{{ df | mul(100, 2) }}`` (:issue:`1696`).
+* :guilabel:`PRO`: [Bug Fix] Reports: Fixed an issue with images when pillow wasn't installed (:issue:`1695`).
+
 v0.24.6 (Jul 31, 2021)
 ----------------------
 * [Enhancement] You can now also define the color of cells, shapes and font objects with a hex string instead of just an RGB tuple, e.g., ``mysheet["A1"].color = "#efefef"`` (:issue:`1535`).
