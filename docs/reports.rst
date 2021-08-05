@@ -164,21 +164,21 @@ Available filters for DataFrames:
 
   Syntax::
 
-  {{ df | operation(col_ix, value, fill_value) }}
+  {{ df | operation(value, col_ix, fill_value) }}
 
   ``fill_value`` is optional and determines whether empty cells are included in the operation or not. To include empty values and thus make it behave like in Excel, set it to ``0``.
 
   Example: multiply the first column by 100::
 
-  {{ df | mul(0, 100) }}
+  {{ df | mul(100, 0) }}
 
   Example: multiply the first column by 100 and the second column by 2::
 
-  {{ df | mul(0, 100) | mul(1, 2) }}
+  {{ df | mul(100, 0) | mul(2, 1) }}
 
   Example: add 100 to the first column including empty cells::
 
-  {{ df | add(0, 100, 0) }}
+  {{ df | add(100, 0, 0) }}
 
 * **maxrows**: Maximum number of rows (currently, only ``sum`` is supported as aggregation function)
 
