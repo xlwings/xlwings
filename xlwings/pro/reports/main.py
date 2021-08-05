@@ -124,7 +124,8 @@ def render_template(sheet, **data):
                             top = filters.top(filter_list)
                             left = filters.left(filter_list)
 
-                            image = result.filename if isinstance(result, (Image, PIL.Image.Image)) else result
+                            image_types = (Image, PIL.Image.Image) if PIL else (Image,)
+                            image = result.filename if isinstance(result, image_types) else result
                             sheet.pictures.add(image,
                                                top=top + cell.top, left=left + cell.left,
                                                width=width, height=height, scale=scale, format=format_)
