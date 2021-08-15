@@ -20,9 +20,8 @@ def get_addin_dir():
     if xw.apps:
         return xw.apps.active.startup_path
     else:
-        app = xw.App(visible=False)
-        startup_path = app.startup_path
-        app.quit()
+        with xw.App(visible=False) as app:
+            startup_path = app.startup_path
         return startup_path
 
 
