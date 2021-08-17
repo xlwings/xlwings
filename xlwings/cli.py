@@ -33,6 +33,9 @@ def addin_install(args):
             custom_addin_source_path = os.path.abspath(args.file)
             shutil.copyfile(custom_addin_source_path, os.path.join(get_addin_dir(), os.path.basename(custom_addin_source_path)))
             print('Successfully installed the add-in! Please restart Excel.')
+        elif args.dir:
+            for f in Path(args.dir).resolve().glob('[!~$]*.xl*'):
+                shutil.copyfile(f, os.path.join(get_addin_dir(), f.name))
         else:
             shutil.copyfile(os.path.join(this_dir, 'addin', addin_name), xlwings_addin_target_path)
             print('Successfully installed the xlwings add-in! Please restart Excel.')
@@ -429,23 +432,29 @@ def main():
                                                        'may take a while. Use the "--unprotected" flag to install the '
                                                        'add-in without password protection. You can install your custom add-in '
                                                        'by providing the name or path via the --file flag, '
-                                                       'e.g. "xlwings add-in install --file custom.xlam"')
+                                                       'e.g. "xlwings add-in install --file custom.xlam or copy all Excel'
+                                                       'files in a directory to the XLSTART folder by providing the path'
+                                                       'via the --dir flag."')
     addin_subparsers = addin_parser.add_subparsers(dest='subcommand')
     addin_subparsers.required = True
 
     file_arg_help = 'The name or path of a custom add-in.'
+    dir_arg_help = 'The path of a directory whose Excel files you want to copy to XLSTART.'
 
     addin_install_parser = addin_subparsers.add_parser('install')
     addin_install_parser.add_argument("-u", "--unprotected", action='store_true', help='Install the add-in without the password protection.')
     addin_install_parser.add_argument("-f", "--file", default=None, help=file_arg_help)
+    addin_install_parser.add_argument("-d", "--dir", default=None, help=dir_arg_help)
     addin_install_parser.set_defaults(func=addin_install)
 
     addin_update_parser = addin_subparsers.add_parser('update')
     addin_update_parser.add_argument("-f", "--file", default=None, help=file_arg_help)
+    addin_update_parser.add_argument("-d", "--dir", default=None, help=dir_arg_help)
     addin_update_parser.set_defaults(func=addin_install)
 
     addin_upgrade_parser = addin_subparsers.add_parser('upgrade')
     addin_upgrade_parser.add_argument("-f", "--file", default=None, help=file_arg_help)
+    addin_upgrade_parser.add_argument("-d", "--dir", default=None, help=dir_arg_help)
     addin_upgrade_parser.set_defaults(func=addin_install)
 
     addin_remove_parser = addin_subparsers.add_parser('remove')
