@@ -93,6 +93,7 @@ def render_template(sheet, **data):
             if cell.note.text.strip() == '<frame>':
                 frame_indices.append(ix)
                 uses_frames = True
+    is_single_frame = True if len(frame_indices) == 1 else False
     frame_indices += [0, last_cell.column]
     frame_indices = list(sorted(set(frame_indices)))
     values_per_frame = []
@@ -183,8 +184,12 @@ def render_template(sheet, **data):
                                         start_col = j + frame_indices[ix] + 1
                                         end_row = i + row_shift + rows_to_be_inserted + (2 if options['header'] else 1)
                                         end_col = frame_indices[ix] + len(values[0])
-                                        sheet.range((start_row, start_col),
-                                                    (end_row, end_col)).insert('down')
+                                        if is_single_frame:
+                                            # This will preserve the row height of rows below the inserted ones
+                                            sheet.range(f"{start_row}:{end_row}").insert('down')
+                                        else:
+                                            sheet.range((start_row, start_col),
+                                                        (end_row, end_col)).insert('down')
                                         # Inserting does not take over borders
                                         sheet.range((start_row - 1, start_col),
                                                     (start_row - 1, end_col)).copy()
