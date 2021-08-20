@@ -76,6 +76,8 @@ if pd:
                 if value.index.name in value.columns:
                     # Prevents column name collision when resetting the index
                     value.index.rename(None, inplace=True)
+                if isinstance(value.index, pd.PeriodIndex):
+                    value.index = value.index.astype(str)
                 value = value.reset_index()
 
             if header:

@@ -433,5 +433,12 @@ class TestPandas(TestBase):
         self.wb1.sheets[0].range('A1').value = df
         assert_frame_equal(df, self.wb1.sheets[0].range('A1').options(pd.DataFrame, expand='table').value)
 
+    def test_period_index(self):
+        idx = pd.PeriodIndex(year=[2000, 2002], quarter=[1, 3])
+        df = pd.DataFrame(index=idx, data=[1, 2])
+        self.wb1.sheets[0].range('A1').value = df
+        self.assertEqual([[None, 0.0], ['2000Q1', 1.0], ['2002Q3', 2.0]], self.wb1.sheets[0]['A1'].options(expand='table').value)
+
+
 if __name__ == '__main__':
     unittest.main()
