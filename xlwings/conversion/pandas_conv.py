@@ -8,6 +8,52 @@ if pd:
     import numpy as np
     from . import Converter, Options
 
+
+    def write_value(cls, value, options):
+        index = options.get('index', True)
+        header = options.get('header', True)
+        assign_empty_index_names = options.get('assign_empty_index_names', False)
+
+        index_names = value.index.names
+        if assign_empty_index_names:
+            # Useful when you want to have your DataFrame formatted as an Excel table which requires
+            # column header names. Since Excel tables only allow an empty space once, we'll generate multiple empty
+            # spaces for each column.
+            index_names = [f' ' * (i + 1) if name is None else name for i, name in enumerate(index_names)]
+        else:
+            index_names = ['' if name is None else name for name in index_names]
+        index_levels = len(index_names)
+
+        if index:
+            if value.index.name in value.columns:
+                # Prevents column name collision when resetting the index
+                value.index.rename(None, inplace=True)
+            value = value.reset_index()
+
+        # Convert PeriodDtype here for efficiency reasons (they are pandas-specific)
+        for col in value.columns:
+            if isinstance(value[col].dtype, pd.PeriodDtype):
+                value.loc[:, col] = value[col].astype(str)
+
+        if header:
+            if isinstance(value.columns, pd.MultiIndex):
+                columns = list(zip(*value.columns.tolist()))
+                columns = [list(i) for i in columns]
+                # Move index names right above the index
+                if index:
+                    for c in columns[:-1]:
+                        c[:index_levels] = [''] * index_levels
+                    columns[-1][:index_levels] = index_names
+            else:
+                columns = [value.columns.tolist()]
+                if index:
+                    columns[0][:index_levels] = index_names
+            value = columns + value.values.tolist()
+        else:
+            value = value.values.tolist()
+
+        return value
+
     class PandasDataFrameConverter(Converter):
 
         writes_types = pd.DataFrame
@@ -58,46 +104,7 @@ if pd:
 
         @classmethod
         def write_value(cls, value, options):
-            index = options.get('index', True)
-            header = options.get('header', True)
-            assign_empty_index_names = options.get('assign_empty_index_names', False)
-
-            index_names = value.index.names
-            if assign_empty_index_names:
-                # Useful when you want to have your DataFrame formatted as an Excel table which requires
-                # column header names. Since Excel tables only allow an empty space once, we'll generate multiple empty
-                # spaces for each column.
-                index_names = [f' ' * (i + 1) if name is None else name for i, name in enumerate(index_names)]
-            else:
-                index_names = ['' if name is None else name for name in index_names]
-            index_levels = len(index_names)
-
-            if index:
-                if value.index.name in value.columns:
-                    # Prevents column name collision when resetting the index
-                    value.index.rename(None, inplace=True)
-                if isinstance(value.index, pd.PeriodIndex):
-                    value.index = value.index.astype(str)
-                value = value.reset_index()
-
-            if header:
-                if isinstance(value.columns, pd.MultiIndex):
-                    columns = list(zip(*value.columns.tolist()))
-                    columns = [list(i) for i in columns]
-                    # Move index names right above the index
-                    if index:
-                        for c in columns[:-1]:
-                            c[:index_levels] = [''] * index_levels
-                        columns[-1][:index_levels] = index_names
-                else:
-                    columns = [value.columns.tolist()]
-                    if index:
-                        columns[0][:index_levels] = index_names
-                value = columns + value.values.tolist()
-            else:
-                value = value.values.tolist()
-
-            return value
+            return write_value(cls, value, options)
 
 
     PandasDataFrameConverter.register(pd.DataFrame)
@@ -145,30 +152,14 @@ if pd:
 
         @classmethod
         def write_value(cls, value, options):
-
-            index_names = value.index.names
-            index_names = ['' if i is None else i for i in index_names]
-
             if all(v is None for v in value.index.names) and value.name is None:
                 default_header = False
             else:
                 default_header = True
 
-            index = options.get('index', True)
-            header = options.get('header', default_header)
-            # Transform tuples to str to take care of handling multi-index headers
-            value_name = '(' + ', '.join(value.name) + ')' if isinstance(value.name, tuple) else value.name
-
-            if index:
-                rv = value.reset_index().values.tolist()
-                header_row = [index_names + [value_name]]
-            else:
-                rv = value.values[:, np.newaxis].tolist()
-                header_row = [[value_name]]
-            if header:
-                    rv = header_row + rv
-
-            return rv
+            options['header'] = options.get('header', default_header)
+            values = write_value(cls, value.to_frame(), options)
+            return values
 
 
     PandasSeriesConverter.register(pd.Series)
