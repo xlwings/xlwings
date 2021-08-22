@@ -2358,6 +2358,9 @@ class Range:
         """
         return Note(impl=self.impl.note) if self.impl.note else None
 
+    def copy_picture(self):
+        self.impl.copy_picture()
+
 
 # These have to be after definition of Range to resolve circular reference
 from . import conversion

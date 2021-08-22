@@ -1144,6 +1144,9 @@ class Range:
     def note(self):
         return Note(xl=self.xl.Comment) if self.xl.Comment else None
 
+    def copy_picture(self):
+        self.xl.CopyPicture()
+
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
     if number_builder is not None:
