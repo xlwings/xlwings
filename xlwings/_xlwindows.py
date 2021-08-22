@@ -1144,8 +1144,11 @@ class Range:
     def note(self):
         return Note(xl=self.xl.Comment) if self.xl.Comment else None
 
-    def copy_picture(self):
-        self.xl.CopyPicture()
+    def copy_picture(self, appearance, format):
+        _appearance = {'screen': 1, 'printer': 2}
+        _format = {'picture': -4147, 'bitmap': 2}
+        self.xl.CopyPicture(Appearance=_appearance[appearance],
+                            Format=_format[format])
 
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):

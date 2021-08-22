@@ -904,8 +904,11 @@ class Range:
         except appscript.reference.CommandError:
             return None
 
-    def copy_picture(self):
-        self.xl.copy_picture(appearance=kw.screen, format=kw.picture)
+    def copy_picture(self, appearance, format):
+        _appearance = {'screen': kw.screen, 'printer': kw.printer}
+        _format = {'picture': kw.picture, 'bitmap': kw.bitmap}
+        self.xl.copy_picture(appearance=_appearance[appearance],
+                             format=_format[format])
 
 
 class Shape:

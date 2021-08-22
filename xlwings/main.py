@@ -2358,8 +2358,19 @@ class Range:
         """
         return Note(impl=self.impl.note) if self.impl.note else None
 
-    def copy_picture(self):
-        self.impl.copy_picture()
+    def copy_picture(self, appearance='screen', format='picture'):
+        """
+        Copies the range to the clipboard as picture.
+
+        Parameters
+        ----------
+        appearance : str, default 'screen'
+            Either 'screen' or 'printer'.
+
+        format : str, default 'picture'
+            Either 'picture' or 'bitmap'.
+        """
+        self.impl.copy_picture(appearance, format)
 
 
 # These have to be after definition of Range to resolve circular reference
