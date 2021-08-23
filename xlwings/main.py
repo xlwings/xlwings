@@ -13,6 +13,7 @@ import sys
 import re
 import numbers
 import subprocess
+from pathlib import Path
 from contextlib import contextmanager
 
 from . import xlplatform, ShapeAlreadyExists, utils
@@ -3335,7 +3336,7 @@ class Chart:
             if directory:
                 path = os.path.join(directory, self.name + '.png')
             else:
-                path = self.name + '.png'
+                path = str(Path.cwd() / self.name) + '.png'
         self.impl.to_png(path)
 
     def __repr__(self):

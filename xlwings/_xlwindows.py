@@ -1807,9 +1807,9 @@ class Chart:
         # todo: what about chart sheets?
         self.xl_obj.Delete()
 
-
     def to_png(self, path):
         self.xl.Export(path)
+
 
 class Charts(Collection):
 
