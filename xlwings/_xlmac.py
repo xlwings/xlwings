@@ -5,6 +5,7 @@ import subprocess
 import struct
 import shutil
 import atexit
+import uuid
 
 import psutil
 import aem
@@ -1411,6 +1412,15 @@ class Chart:
     def delete(self):
         self.xl_obj.delete()
 
+
+    def to_png(self, path):
+        temp_path = posix_to_hfs_path(os.path.expanduser("~") + f"/Library/Containers/com.microsoft.Excel/Data/{uuid.uuid4()}.png")
+        self.xl.save_as(filename=temp_path)
+        shutil.copy2(temp_path, path)
+        try:
+            os.unlink(temp_path)
+        except:
+            pass
 
 class Charts(Collection):
 

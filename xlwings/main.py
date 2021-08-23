@@ -3327,6 +3327,17 @@ class Chart:
         """
         self.impl.delete()
 
+    def to_png(self, path=None):
+        path = utils.fspath(path)
+        if path is None:
+            # fullname won't work if file is stored on OneDrive
+            directory, _ = os.path.split(self.parent.book.fullname)
+            if directory:
+                path = os.path.join(directory, self.name + '.png')
+            else:
+                path = self.name + '.png'
+        self.impl.to_png(path)
+
     def __repr__(self):
         return "<Chart '{0}' in {1}>".format(
             self.name,

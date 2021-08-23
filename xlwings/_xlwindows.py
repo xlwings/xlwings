@@ -1808,6 +1808,9 @@ class Chart:
         self.xl_obj.Delete()
 
 
+    def to_png(self, path):
+        self.xl.Export(path)
+
 class Charts(Collection):
 
     def _wrap(self, xl):
