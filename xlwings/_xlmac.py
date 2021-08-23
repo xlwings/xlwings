@@ -26,6 +26,10 @@ try:
     import numpy as np
 except ImportError:
     np = None
+try:
+    from PIL import ImageGrab
+except ImportError:
+    PIL = None
 
 USER_CONFIG_FILE = os.path.join(os.path.expanduser("~"), 'Library', 'Containers',
                                 'com.microsoft.Excel', 'Data', 'xlwings.conf')
@@ -911,6 +915,11 @@ class Range:
         self.xl.copy_picture(appearance=_appearance[appearance],
                              format=_format[format])
 
+    def to_png(self, path):
+        self.copy_picture(appearance='screen', format='bitmap')
+        im = ImageGrab.grabclipboard()
+        im.save(path)
+
 
 class Shape:
 
@@ -1412,7 +1421,6 @@ class Chart:
     def delete(self):
         self.xl_obj.delete()
 
-
     def to_png(self, path):
         temp_path = posix_to_hfs_path(os.path.expanduser("~") + f"/Library/Containers/com.microsoft.Excel/Data/{uuid.uuid4()}.png")
         self.xl.save_as(filename=temp_path)
@@ -1421,6 +1429,7 @@ class Chart:
             os.unlink(temp_path)
         except:
             pass
+
 
 class Charts(Collection):
 
