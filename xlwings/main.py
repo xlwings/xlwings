@@ -13,9 +13,10 @@ import sys
 import re
 import numbers
 import subprocess
+from pathlib import Path
 from contextlib import contextmanager
 
-from . import xlplatform, ShapeAlreadyExists, utils
+from . import xlplatform, ShapeAlreadyExists, utils, XlwingsError
 import xlwings
 
 # Optional imports
@@ -30,6 +31,11 @@ try:
     import pandas as pd
 except ImportError:
     pd = None
+
+try:
+    import PIL
+except ImportError:
+    PIL = None
 
 
 class Collection:
@@ -2358,6 +2364,49 @@ class Range:
         """
         return Note(impl=self.impl.note) if self.impl.note else None
 
+    def copy_picture(self, appearance='screen', format='picture'):
+        """
+        Copies the range to the clipboard as picture.
+
+        Parameters
+        ----------
+        appearance : str, default 'screen'
+            Either 'screen' or 'printer'.
+
+        format : str, default 'picture'
+            Either 'picture' or 'bitmap'.
+
+        .. versionadded:: 0.24.8
+        """
+        self.impl.copy_picture(appearance, format)
+
+    def to_png(self, path=None):
+        """
+        Exports the range as PNG picture.
+
+        Parameters
+        ----------
+
+        path : str or path-like, default None
+            Path where you want to store the picture. Defaults to the name of the range in the same
+            directory as the Excel file if the Excel file is stored and to the current working directory otherwise.
+
+        .. versionadded:: 0.24.8
+        """
+        if not PIL:
+            raise XlwingsError('Range.to_png() requires an installation of Pillow.')
+        path = utils.fspath(path)
+        if path is None:
+            # TODO: factor this out as it's used in multiple locations
+            # fullname won't work if file is stored on OneDrive
+            directory, _ = os.path.split(self.sheet.book.fullname)
+            default_name = str(self).replace('<', '').replace('>', '').replace(':', '_').replace(' ', '')
+            if directory:
+                path = os.path.join(directory, default_name + '.png')
+            else:
+                path = str(Path.cwd() / default_name) + '.png'
+        self.impl.to_png(path)
+
 
 # These have to be after definition of Range to resolve circular reference
 from . import conversion
@@ -3312,6 +3361,29 @@ class Chart:
         Deletes the chart.
         """
         self.impl.delete()
+
+    def to_png(self, path=None):
+        """
+        Exports the chart as PNG picture.
+
+        Parameters
+        ----------
+
+        path : str or path-like, default None
+            Path where you want to store the picture. Defaults to the name of the chart in the same
+            directory as the Excel file if the Excel file is stored and to the current working directory otherwise.
+
+        .. versionadded:: 0.24.8
+        """
+        path = utils.fspath(path)
+        if path is None:
+            # fullname won't work if file is stored on OneDrive
+            directory, _ = os.path.split(self.parent.book.fullname)
+            if directory:
+                path = os.path.join(directory, self.name + '.png')
+            else:
+                path = str(Path.cwd() / self.name) + '.png'
+        self.impl.to_png(path)
 
     def __repr__(self):
         return "<Chart '{0}' in {1}>".format(

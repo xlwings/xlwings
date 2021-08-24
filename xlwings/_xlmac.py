@@ -25,6 +25,10 @@ try:
     import numpy as np
 except ImportError:
     np = None
+try:
+    from PIL import ImageGrab
+except ImportError:
+    PIL = None
 
 USER_CONFIG_FILE = os.path.join(os.path.expanduser("~"), 'Library', 'Containers',
                                 'com.microsoft.Excel', 'Data', 'xlwings.conf')
@@ -904,6 +908,17 @@ class Range:
         except appscript.reference.CommandError:
             return None
 
+    def copy_picture(self, appearance, format):
+        _appearance = {'screen': kw.screen, 'printer': kw.printer}
+        _format = {'picture': kw.picture, 'bitmap': kw.bitmap}
+        self.xl.copy_picture(appearance=_appearance[appearance],
+                             format=_format[format])
+
+    def to_png(self, path):
+        self.copy_picture(appearance='screen', format='bitmap')
+        im = ImageGrab.grabclipboard()
+        im.save(path)
+
 
 class Shape:
 
@@ -1404,6 +1419,24 @@ class Chart:
 
     def delete(self):
         self.xl_obj.delete()
+
+    def to_png(self, path):
+        raise xlwings.XlwingsError("Chart.to_png() isn't supported on macOS.")
+        # Both versions should work, but seem to be broken with Excel 2016
+        #
+        # Version 1
+        # import uuid
+        # temp_path = posix_to_hfs_path(os.path.expanduser("~") + f"/Library/Containers/com.microsoft.Excel/Data/{uuid.uuid4()}.png")
+        # self.xl.save_as(filename=temp_path)
+        # shutil.copy2(temp_path, path)
+        # try:
+        #     os.unlink(temp_path)
+        # except:
+        #     pass
+        #
+        # Version 2
+        # self.xl_obj.save_as_picture(file_name=posix_to_hfs_path('...'),
+        #                             picture_type=kw.save_as_PNG_file)
 
 
 class Charts(Collection):

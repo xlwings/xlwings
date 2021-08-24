@@ -767,6 +767,12 @@ class TestRangeExpansion(TestBase):
 
         self.assertEqual(rng.options(expand='right').value, [['a'] * 3] * 5)
 
+    def test_copy_picture(self):
+        rng = self.wb1.sheets[0]['A1:B2']
+        rng.copy_picture()
+        rng.copy_picture('screen', 'picture')
+        rng.copy_picture('printer', 'bitmap')
+
 
 class TestCellErrors(TestBase):
     def test_cell_erros(self):

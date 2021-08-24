@@ -41,6 +41,10 @@ try:
     import numpy as np
 except ImportError:
     np = None
+try:
+    from PIL import ImageGrab
+except ImportError:
+    PIL = None
 
 
 time_types = (dt.date, dt.datetime, pywintypes.TimeType)
@@ -1144,6 +1148,26 @@ class Range:
     def note(self):
         return Note(xl=self.xl.Comment) if self.xl.Comment else None
 
+    def copy_picture(self, appearance, format):
+        _appearance = {'screen': 1, 'printer': 2}
+        _format = {'picture': -4147, 'bitmap': 2}
+        self.xl.CopyPicture(Appearance=_appearance[appearance],
+                            Format=_format[format])
+
+    def to_png(self, path):
+        max_retries = 10
+        for retry in range(max_retries):
+            # https://stackoverflow.com/questions/24740062/copypicture-method-of-range-class-failed-sometimes
+            try:
+                # appearance='printer' fails here, not sure why
+                self.copy_picture(appearance='screen', format='bitmap')
+                im = ImageGrab.grabclipboard()
+                im.save(path)
+                break
+            except (pywintypes.com_error, AttributeError):
+                if retry == max_retries - 1:
+                    raise
+
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
     if number_builder is not None:
@@ -1691,6 +1715,7 @@ class Table:
     def resize(self, range):
         self.xl.Resize(range)
 
+
 class Tables(Collection):
 
     _wrap = Table
@@ -1800,6 +1825,9 @@ class Chart:
     def delete(self):
         # todo: what about chart sheets?
         self.xl_obj.Delete()
+
+    def to_png(self, path):
+        self.xl.Export(path)
 
 
 class Charts(Collection):
