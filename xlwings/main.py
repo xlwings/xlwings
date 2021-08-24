@@ -2388,7 +2388,7 @@ class Range:
         ----------
 
         path : str or path-like, default None
-            Path where you want to store the picture. Defaults to the name of the chart in the same
+            Path where you want to store the picture. Defaults to the name of the range in the same
             directory as the Excel file if the Excel file is stored and to the current working directory otherwise.
 
         .. versionadded:: 0.24.8
