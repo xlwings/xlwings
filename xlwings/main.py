@@ -2375,10 +2375,24 @@ class Range:
 
         format : str, default 'picture'
             Either 'picture' or 'bitmap'.
+
+        .. versionadded:: 0.24.8
         """
         self.impl.copy_picture(appearance, format)
 
     def to_png(self, path=None):
+        """
+        Exports the range as PNG picture.
+
+        Parameters
+        ----------
+
+        path : str or path-like, default None
+            Path where you want to store the picture. Defaults to the name of the chart in the same
+            directory as the Excel file if the Excel file is stored and to the current working directory otherwise.
+
+        .. versionadded:: 0.24.8
+        """
         if not PIL:
             raise XlwingsError('Range.to_png() requires an installation of Pillow.')
         path = utils.fspath(path)
@@ -3349,6 +3363,18 @@ class Chart:
         self.impl.delete()
 
     def to_png(self, path=None):
+        """
+        Exports the chart as PNG picture.
+
+        Parameters
+        ----------
+
+        path : str or path-like, default None
+            Path where you want to store the picture. Defaults to the name of the chart in the same
+            directory as the Excel file if the Excel file is stored and to the current working directory otherwise.
+
+        .. versionadded:: 0.24.8
+        """
         path = utils.fspath(path)
         if path is None:
             # fullname won't work if file is stored on OneDrive
