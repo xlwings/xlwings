@@ -107,7 +107,7 @@ if pd:
             return write_value(cls, value, options)
 
 
-    PandasDataFrameConverter.register(pd.DataFrame)
+    PandasDataFrameConverter.register(pd.DataFrame, 'df')
 
 
     class PandasSeriesConverter(Converter):
