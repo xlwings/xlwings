@@ -1,6 +1,14 @@
 What's New
 ==========
 
+v0.24.8 (Aug 25, 2021)
+----------------------
+* [Feature] New methods :meth:`mychart.to_png() <xlwings.Chart.to_png>`, :meth:`myrange.to_png() <xlwings.Range.to_png>` and :meth:`myrange.copy_picture() <xlwings.Range.copy_picture>` (:issue:`1707` and :issue:`582`).
+* [Enhancement] You can now use the alias ``'df'`` to convert to a pandas DataFrame: ``mysheet['A1:C3'].options('df').value`` is equivalent to ``import pandas as pd; mysheet['A1:C3'].options(pd.DataFrame).value`` (:issue:`1533`).
+* [Enhancement] Added ``--dir`` option to ``xlwings addin install`` to allow the installation of all files in a directory as add-ins (:issue:`1702`).
+* [Bug Fix] Pandas DataFrames now properly work with ``PeriodIndex`` / ``PeriodDtype`` (:issue:`1084`).
+* :guilabel:`PRO` Reports: If there's just one Frame, keep height of rows (:issue:`1698`).
+
 v0.24.7 (Aug 5, 2021)
 ---------------------
 
