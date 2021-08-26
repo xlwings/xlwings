@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.24.9 (Aug 26, 2021)
+----------------------
+
+* [Bug Fix] Fixed a regression introduced with 0.24.8 that was causing an error with pandas DataFrames that have repeated column headers (:issue:`1711`).
+
 v0.24.8 (Aug 25, 2021)
 ----------------------
 * [Feature] New methods :meth:`mychart.to_png() <xlwings.Chart.to_png>`, :meth:`myrange.to_png() <xlwings.Range.to_png>` and :meth:`myrange.copy_picture() <xlwings.Range.copy_picture>` (:issue:`1707` and :issue:`582`).
