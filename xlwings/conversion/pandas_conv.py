@@ -31,9 +31,9 @@ if pd:
             value = value.reset_index()
 
         # Convert PeriodDtype here for efficiency reasons (they are pandas-specific)
-        for col in value.columns:
-            if isinstance(value[col].dtype, pd.PeriodDtype):
-                value.loc[:, col] = value[col].astype(str)
+        for ix, col in enumerate(value.columns):
+            if isinstance(value.iloc[:, ix].dtype, pd.PeriodDtype):
+                value.iloc[:, ix] = value.iloc[:, ix].astype(str)
 
         if header:
             if isinstance(value.columns, pd.MultiIndex):
