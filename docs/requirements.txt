@@ -1,3 +1,4 @@
 sphinxcontrib-napoleon
 sphinxcontrib-httpdomain
 cryptography
+furo
