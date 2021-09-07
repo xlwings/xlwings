@@ -76,7 +76,8 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
               'sphinx.ext.extlinks',
               'sphinxcontrib.httpdomain',
-              'sphinx_copybutton'
+              'sphinx_copybutton',
+              'sphinx_design'
               ]
 
 # autodoc_member_order = 'bysource'
@@ -159,8 +160,21 @@ html_theme = 'furo'
 html_theme_options = {
     "sidebar_hide_name": True,
     'light_logo': 'logo-light.svg',
-    'dark_logo': 'logo-dark.svg'
+    'dark_logo': 'logo-dark.svg',
+    "light_css_variables": {
+        "color-brand-primary": "black",
+        "color-brand-content": "#28a745",
+        "color-sidebar-caption-text": "#28a745",
+        "sidebar-caption-font-size": "1.2em"
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "white"
+    },
 }
+
+html_show_sourcelink = False
+html_title = 'xlwings Documentation'
+html_favicon = '_static/favicon.png'
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
