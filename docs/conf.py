@@ -76,6 +76,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
               'sphinx.ext.extlinks',
               'sphinxcontrib.httpdomain',
+              'sphinx_copybutton'
               ]
 
 # autodoc_member_order = 'bysource'
