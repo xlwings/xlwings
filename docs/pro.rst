@@ -3,7 +3,7 @@
 xlwings PRO Overview
 ====================
 
-The purpose of xlwings PRO is to finance the continued maintenance and enhancement of xlwings. This will allow you to rely on the package without being left with the dreaded "this library currently has no active maintainers" message that happens to too many open-source packages after a couple of years.
+The purpose of xlwings PRO is to fund the continued maintenance and enhancement of xlwings. This will allow you to rely on the package without being left with the dreaded "this library currently has no active maintainers" message that happens to too many open-source packages after a couple of years.
 
 xlwings PRO offers access to additional functionality. All PRO features are marked with xlwings :guilabel:`PRO` in the docs.
 

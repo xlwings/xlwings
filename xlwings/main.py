@@ -3033,8 +3033,7 @@ class Table:
         ---------
 
         data : pandas DataFrame
-            Currently restricted to pandas DataFrames. If you want to hide the index,
-            set the first column as the index, e.g. ``df.set_index('column_name')``.
+            Currently restricted to pandas DataFrames.
         index : bool, default True
             Whether or not the index of a pandas DataFrame should be written to the Excel table.
 
