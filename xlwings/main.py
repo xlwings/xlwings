@@ -2407,6 +2407,27 @@ class Range:
                 path = str(Path.cwd() / default_name) + '.png'
         self.impl.to_png(path)
 
+    def to_pdf(self, path=None):
+        """
+        Exports the range as PDF.
+
+        Parameters
+        ----------
+
+        path : str or path-like, default None
+            Path where you want to store the pdf. Defaults to the address of the range in the same
+            directory as the Excel file if the Excel file is stored and to the current working directory otherwise.
+
+        """
+        path = utils.fspath(path)
+        if path is None:
+            # fullname won't work if file is stored on OneDrive
+            directory, _ = os.path.split(self.sheet.book.fullname)
+            if directory:
+                path = os.path.join(directory, self.address + '.pdf')
+            else:
+                path = str(Path.cwd() / self.address) + '.pdf'
+        self.impl.to_pdf(path)
 
 # These have to be after definition of Range to resolve circular reference
 from . import conversion
@@ -3384,6 +3405,28 @@ class Chart:
             else:
                 path = str(Path.cwd() / self.name) + '.png'
         self.impl.to_png(path)
+
+    def to_pdf(self, path=None):
+        """
+        Exports the chart as PDF.
+
+        Parameters
+        ----------
+
+        path : str or path-like, default None
+            Path where you want to store the pdf. Defaults to the name of the chart in the same
+            directory as the Excel file if the Excel file is stored and to the current working directory otherwise.
+
+        """
+        path = utils.fspath(path)
+        if path is None:
+            # fullname won't work if file is stored on OneDrive
+            directory, _ = os.path.split(self.parent.book.fullname)
+            if directory:
+                path = os.path.join(directory, self.name + '.pdf')
+            else:
+                path = str(Path.cwd() / self.name) + '.pdf'
+        self.impl.to_pdf(path)
 
     def __repr__(self):
         return "<Chart '{0}' in {1}>".format(

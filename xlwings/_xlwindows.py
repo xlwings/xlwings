@@ -1168,6 +1168,15 @@ class Range:
                 if retry == max_retries - 1:
                     raise
 
+    def to_pdf(self, path, quality=FixedFormatQuality.xlQualityStandard):
+        self.xl.Select()
+        self.xl.ExportAsFixedFormat(Type=FixedFormatType.xlTypePDF,
+                                    Filename=path,
+                                    Quality=quality,
+                                    IncludeDocProperties=True,
+                                    IgnorePrintAreas=False,
+                                    OpenAfterPublish=False)
+
 
 def clean_value_data(data, datetime_builder, empty_as, number_builder):
     if number_builder is not None:
@@ -1829,6 +1838,14 @@ class Chart:
     def to_png(self, path):
         self.xl.Export(path)
 
+    def to_pdf(self, path, quality=FixedFormatQuality.xlQualityStandard):
+        self.xl_obj.Select()
+        self.xl.ExportAsFixedFormat(Type=FixedFormatType.xlTypePDF,
+                                    Filename=path,
+                                    Quality=quality,
+                                    IncludeDocProperties=True,
+                                    IgnorePrintAreas=False,
+                                    OpenAfterPublish=False)
 
 class Charts(Collection):
 
