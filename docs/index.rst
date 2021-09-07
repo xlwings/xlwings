@@ -1,9 +1,6 @@
 xlwings - Make Excel Fly!
 =========================
 
-xlwings (Open Source)
----------------------
-
 xlwings is a `BSD-licensed <http://opensource.org/licenses/BSD-3-Clause>`_ Python library that makes it easy to call Python from Excel and vice versa:
 
 * **Scripting**: Automate/interact with Excel from Python using a syntax close to VBA.
@@ -14,12 +11,32 @@ xlwings is a `BSD-licensed <http://opensource.org/licenses/BSD-3-Clause>`_ Pytho
 **Numpy arrays** and **Pandas Series/DataFrames** are fully supported. xlwings-powered workbooks are easy to distribute and work
 on **Windows** and **Mac**.
 
-xlwings PRO
------------
+.. grid:: 2
+    :margin: 5 0 0 0
 
-xlwings PRO offers access to additional functionality. All PRO features are marked with xlwings :guilabel:`PRO` in the docs.
+    .. grid-item-card::  :octicon:`rocket;2em;sd-text-success` Getting Started
+        :link: quickstart
+        :link-type: doc
 
-See :ref:`pro` for more details.
+        Start here if you are new to xlwings. Learn about the syntax, the ``RunPython`` call, the add-in and UDFs.
+
+    .. grid-item-card::  :octicon:`light-bulb;2em;sd-text-success` Advanced Features
+        :link: converters
+        :link-type: doc
+
+        More in-depths explanations about converters, debugging or how to write your own add-in.
+
+    .. grid-item-card::  :octicon:`lock;2em;sd-text-success` xlwings PRO
+        :link: pro
+        :link-type: doc
+
+        xlwings PRO offers additional functionality including xlwings Reports, the template-based reporting system.
+
+    .. grid-item-card::  :octicon:`code-square;2em;sd-text-success` API Reference
+        :link: api
+        :link-type: doc
+
+        This is a description of all the classes, methods, properties and functions that xlwings offers to work with the Excel object model.
 
 .. toctree::
     :maxdepth: 2

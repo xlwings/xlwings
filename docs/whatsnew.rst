@@ -1467,7 +1467,7 @@ Enhancements
       |--myproject.py
 
 
-* New documentation about how to use xlwings with other languages like R and Julia, see :ref:`r_and_julia`.
+* New documentation about how to use xlwings with other languages like R and Julia.
 
 Bug Fixes
 *********
