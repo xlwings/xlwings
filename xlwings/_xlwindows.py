@@ -593,10 +593,10 @@ class Book:
     def activate(self):
         self.xl.Activate()
 
-    def to_pdf(self, path):
+    def to_pdf(self, path, quality=FixedFormatQuality.xlQualityStandard):
         self.xl.ExportAsFixedFormat(Type=FixedFormatType.xlTypePDF,
                                     Filename=path,
-                                    Quality=FixedFormatQuality.xlQualityStandard,
+                                    Quality=quality,
                                     IncludeDocProperties=True,
                                     IgnorePrintAreas=False,
                                     OpenAfterPublish=False)

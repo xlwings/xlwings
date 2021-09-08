@@ -17,6 +17,8 @@ from pathlib import Path
 from contextlib import contextmanager
 
 from . import xlplatform, ShapeAlreadyExists, utils, XlwingsError
+from .constants import FixedFormatQuality
+
 import xlwings
 
 # Optional imports
@@ -913,7 +915,7 @@ class Book:
         """
         return Range(impl=self.app.selection.impl) if self.app.selection else None
 
-    def to_pdf(self, path=None, include=None, exclude=None, layout=None, exclude_start_string='#', show=False):
+    def to_pdf(self, path=None, include=None, exclude=None, layout=None, exclude_start_string='#', show=False, quality=FixedFormatQuality.xlQualityStandard):
         """
         Exports the whole Excel workbook or a subset of the sheets to a PDF file.
         If you want to print hidden sheets, you will need to list them explicitely under ``include``.
@@ -996,7 +998,7 @@ class Book:
                 for sheet in self.sheets:
                     if (sheet.name in exclude) or (sheet.index in exclude) or (sheet.index in exclude_by_name):
                         sheet.visible = False
-            self.impl.to_pdf(os.path.realpath(report_path))
+            self.impl.to_pdf(os.path.realpath(report_path), quality=quality)
         except Exception:
             raise
         finally:
@@ -1167,7 +1169,7 @@ class Sheet:
         """
         return self.impl.delete()
 
-    def to_pdf(self, path=None, layout=None, show=False):
+    def to_pdf(self, path=None, layout=None, show=False, quality=FixedFormatQuality.xlQualityStandard):
         """
         Exports the sheet to a PDF file.
 
@@ -1204,7 +1206,7 @@ class Sheet:
         .. versionadded:: 0.22.3
         """
         self.book.to_pdf(self.name + '.pdf' if path is None else path,
-                         include=self.index, layout=layout, show=show)
+                         include=self.index, layout=layout, show=show, quality=quality)
 
     def copy(self, before=None, after=None, name=None):
         """
@@ -2407,7 +2409,7 @@ class Range:
                 path = str(Path.cwd() / default_name) + '.png'
         self.impl.to_png(path)
 
-    def to_pdf(self, path=None):
+    def to_pdf(self, path=None, quality=FixedFormatQuality.xlQualityStandard):
         """
         Exports the range as PDF.
 
@@ -2427,7 +2429,7 @@ class Range:
                 path = os.path.join(directory, self.address + '.pdf')
             else:
                 path = str(Path.cwd() / self.address) + '.pdf'
-        self.impl.to_pdf(path)
+        self.impl.to_pdf(path, quality)
 
 # These have to be after definition of Range to resolve circular reference
 from . import conversion
@@ -3406,7 +3408,7 @@ class Chart:
                 path = str(Path.cwd() / self.name) + '.png'
         self.impl.to_png(path)
 
-    def to_pdf(self, path=None):
+    def to_pdf(self, path=None, quality=FixedFormatQuality.xlQualityStandard):
         """
         Exports the chart as PDF.
 
@@ -3426,7 +3428,7 @@ class Chart:
                 path = os.path.join(directory, self.name + '.pdf')
             else:
                 path = str(Path.cwd() / self.name) + '.pdf'
-        self.impl.to_pdf(path)
+        self.impl.to_pdf(path, quality=quality)
 
     def __repr__(self):
         return "<Chart '{0}' in {1}>".format(

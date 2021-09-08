@@ -348,7 +348,8 @@ class Book:
     def activate(self):
         self.xl.activate_object()
 
-    def to_pdf(self, path):
+    def to_pdf(self, path, quality=None):
+        # quality parameter for compatibility
         hfs_path = posix_to_hfs_path(path)
         display_alerts = self.app.display_alerts
         self.app.display_alerts = False
