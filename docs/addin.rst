@@ -115,6 +115,9 @@ Workbook Directory Config: Config file
 The global settings of the Ribbon/Config file can be overridden for one or more workbooks by creating a ``xlwings.conf`` file
 in the workbook's directory.
 
+.. note::
+    Workbook directory config files are not supported if your workbook is stored on SharePoint.
+
 .. _addin_wb_settings:
 
 Workbook Config: xlwings.conf Sheet

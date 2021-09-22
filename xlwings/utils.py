@@ -319,3 +319,111 @@ def query_yes_no(question, default="yes"):
             return valid[choice]
         else:
             sys.stdout.write("Please respond with 'yes' or 'no' " "(or 'y' or 'n').\n")
+
+
+def prepare_sys_path(args_string):
+    """Called from Excel to prepend the default paths and those from the PYTHONPATH setting to sys.path.
+    While RunPython could use Book.caller(), the UDF server can't, as this runs before VBA can push the
+    ActiveWorkbook over. UDFs also can't interact with the book object in general as Excel is busy during the function
+    call and so won't allow you to read out the config sheet, for example. Before 0.24.9, these manipulations were
+    handled in VBA, but weren't handling SharePoint.
+    """
+    args = os.path.normcase(os.path.expandvars(args_string)).split(';')
+    # Not sure, if we really need normcase, but on Windows it replaces "/" with "\", so let's revert that
+    fullname = args[0].replace('\\', '/')
+    if '://' in fullname:
+        fullname = Path(fullname_url_to_local_path(url=fullname,
+                                                   sheet_onedrive_config=args[1],
+                                                   sheet_sharepoint_config=args[2]))
+    else:
+        fullname = Path(fullname)
+    if args[3:]:
+        sys.path[0:0] = [str(fullname.parent), str(fullname.with_suffix(".zip"))] + args[3:]
+    else:
+        sys.path[0:0] = [str(fullname.parent), str(fullname.with_suffix(".zip"))]
+
+
+@lru_cache(None)
+def fullname_url_to_local_path(url, sheet_onedrive_config=None, sheet_sharepoint_config=None):
+    """
+    When AutoSave is enabled in Excel with either OneDrive or SharePoint, VBA/COM's Workbook.FullName turns into a URL
+    without any possibilities to get the local file path. While OneDrive and OneDrive for Business make it easy enough
+    to derive the local path from the URL, SharePoint allows to define the "Site name" and "Site address" independently
+    from each other with the former ending up in the local folder path and the latter in the FullName URL. Adding to the
+    complexity: (1) When the site name contains spaces, they will be stripped out from the URL and (2) you can sync a
+    subfolder directly (this, at least, works when you have a single folder at the SharePoint's Document root), which
+    results in skipping a folder level locally when compared to the online/URL version. And (3) the OneDriveCommercial
+    env var sometimes seems to actually point to the local SharePoint folder.
+
+    Parameters
+    ----------
+    url : str
+        URL as returned by VBA's FullName
+
+    sheet_onedrive_config : str
+        Optional Path to the local OneDrive as defined in the Workbook's config sheet
+
+    sheet_sharepoint_config : str
+        Optional Path to the local SharePoint drive as defined in the Workbook's config sheet
+    """
+    # Directory config files can't be used since the whole purpose of this exercise is to find out about a book's dir
+    onedrive_config_name = 'ONEDRIVE_WIN' if sys.platform.startswith('win') else 'ONEDRIVE_MAC'
+    sharepoint_config_name = 'SHAREPOINT_WIN' if sys.platform.startswith('win') else 'SHAREPOINT_MAC'
+    onedrive_config = sheet_onedrive_config or read_user_config().get(onedrive_config_name.lower())
+    sharepoint_config = sheet_sharepoint_config or read_user_config().get(sharepoint_config_name.lower())
+
+    # OneDrive
+    pattern = re.compile(r'https://d.docs.live.net/[^/]*/(.*)')
+    match = pattern.match(url)
+    if match:
+        root = onedrive_config or os.getenv('OneDriveConsumer') or os.getenv('OneDrive')
+        if not root:
+            raise xlwings.XlwingsError(f"Couldn't find the local OneDrive folder. Please configure the {onedrive_config_name} setting, see: xlwings.org/error.")
+        local_path = Path(root) / match.group(1)
+        if local_path.is_file():
+            return str(local_path)
+
+    # OneDrive for Business
+    pattern = re.compile(r'https://[^-]*-my.sharepoint.com/[^/]*/[^/]*/[^/]*/(.*)')
+    match = pattern.match(url)
+    if match:
+        root = onedrive_config or os.getenv('OneDriveCommercial') or os.getenv('OneDrive')
+        if not root:
+            raise xlwings.XlwingsError(f"Couldn't find the local OneDrive for Business folder. Please configure the {onedrive_config_name} setting, see: xlwings.org/error.")
+        local_path = Path(root) / match.group(1)
+        if local_path.is_file():
+            return str(local_path)
+
+    # SharePoint Online & On-Premises (default top level mapping)
+    pattern = re.compile(r'https?://[^/]*/sites/([^/]*)/([^/]*)/(.*)')
+    match = pattern.match(url)
+    if match:
+        # We're trying to derive the SharePoint root path from the OneDriveCommercial path, if it exists
+        root = sharepoint_config or os.getenv('OneDriveCommercial').replace('OneDrive - ', '') if os.getenv('OneDriveCommercial') else None
+        if not root:
+            raise xlwings.XlwingsError(f"Couldn't find the local SharePoint folder. Please configure the {sharepoint_config_name} setting, see: xlwings.org/error.")
+        if not root:
+            raise xlwings.XlwingsError(f'You must first configure the {sharepoint_config_name} setting.')
+        local_path = Path(root) / f'{match.group(1)} - Documents' / match.group(3)
+        if local_path.is_file():
+            return str(local_path)
+
+    # SharePoint Online & On-Premises (non-default mapping)
+    root = sharepoint_config or (os.getenv('OneDriveCommercial').replace('OneDrive - ', '') if os.getenv('OneDriveCommercial') else None)
+    if not root:
+        raise xlwings.XlwingsError(f"Couldn't find the local SharePoint folder. Please configure the {sharepoint_config_name} setting, see: xlwings.org/error.")
+    book_name = url.split('/')[-1]
+    local_book_paths = []
+    for path in Path(root).rglob('[!~$]*.xls*'):
+        if path.name == book_name:
+            local_book_paths.append(path)
+    if len(local_book_paths) == 1:
+        return str(local_book_paths[0])
+    elif len(local_book_paths) == 0:
+        raise xlwings.XlwingsError(f"Couldn't find your SharePoint file locally. Try to "
+                                   f"{'edit' if sharepoint_config else 'add'} the {sharepoint_config_name} setting.")
+    else:
+        raise xlwings.XlwingsError(f"Your SharePoint configuration either requires your workbook name to be unique "
+                                   f"across all SharePoint folders or you need to "
+                                   f"{'edit' if sharepoint_config else 'add'} the {sharepoint_config_name} setting "
+                                   f"including one or more folder levels, see xlwings.org/error.")

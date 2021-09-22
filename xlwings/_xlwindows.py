@@ -30,7 +30,9 @@ import win32process
 
 from .constants import (ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin, DeleteShiftDirection,
                         ListObjectSourceType, FixedFormatType, FixedFormatQuality, FileFormat)
-from .utils import rgb_to_int, int_to_rgb, get_duplicates, np_datetime_to_datetime, col_name
+from .utils import (rgb_to_int, int_to_rgb, np_datetime_to_datetime, col_name, fullname_url_to_local_path,
+                    read_config_sheet)
+import xlwings
 
 # Optional imports
 try:
@@ -591,7 +593,13 @@ class Book:
 
     @property
     def fullname(self):
-        return self.xl.FullName
+        if '://' in self.xl.FullName:
+            config = read_config_sheet(xlwings.Book(impl=self))
+            return fullname_url_to_local_path(url=self.xl.FullName,
+                                              sheet_onedrive_config=config.get('ONEDRIVE_WIN'),
+                                              sheet_sharepoint_config=config.get('SHAREPOINT_WIN'))
+        else:
+            return self.xl.FullName
 
     @property
     def names(self):
