@@ -1066,6 +1066,8 @@ class Sheet:
 
     @name.setter
     def name(self, value):
+        if len(value) > 31:
+            raise ValueError(f'The max. length of a sheet name is 31 characters. Yours is {len(value)}.')
         self.impl.name = value
 
     @property
