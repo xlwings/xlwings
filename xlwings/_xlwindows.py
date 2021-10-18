@@ -106,8 +106,15 @@ class COMRetryObjectWrapper:
             try:
                 return setattr(self._inner, key, value)
             except pywintypes.com_error as e:
-                # -2147352567 is the error you get when clicking into cells
-                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult in [-2147418111, -2147352567]:
+                hresult, msg, exc, arg = e.args
+                if exc:
+                    wcode, source, text, help_file, help_id, scode = exc
+                else:
+                    wcode, source, text, help_file, help_id, scode = None, None, None, None, None, None
+                # -2147352567 is the error you get when clicking into cells. If we wouldn't check for scode,
+                # actions like renaming a sheet with >31 characters would be tried forever, causing xlwings
+                # to hang (they also have hresult -2147352567).
+                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult in [-2147418111, -2147352567] and scode in [None, -2146777998]:
                     n_attempt += 1
                     continue
                 else:
@@ -137,8 +144,8 @@ class COMRetryObjectWrapper:
                 else:
                     raise
             except AttributeError as e:
-                # Pywin32 reacts incorrectly to RPC_E_CALL_REJECTED (i.e. assumes attribute doesn't
-                # exist, thus not allowing to destinguish between cases where attribute really doesn't
+                # pywin32 reacts incorrectly to RPC_E_CALL_REJECTED (i.e. assumes attribute doesn't
+                # exist, thus not allowing to distinguish between cases where attribute really doesn't
                 # exist or error is only being thrown because the COM RPC server is busy). Here
                 # we try to test to see what's going on really
                 try:
@@ -600,6 +607,7 @@ class Book:
                                     IncludeDocProperties=True,
                                     IgnorePrintAreas=False,
                                     OpenAfterPublish=False)
+
 
 class Sheets:
     def __init__(self, xl):
