@@ -1066,9 +1066,14 @@ class Sheet:
 
     @name.setter
     def name(self, value):
-        if len(value) > 31:
+        if value in [None, ""]:
+            raise ValueError("A sheet name can't be empty.")
+        elif any(char in value for char in ['\\', '/', '?',  '*', '[', ']']):
+            raise ValueError("A sheet name must not contain any of the following characters: \\, /, ?, *, [, ]")
+        elif len(value) > 31:
             raise ValueError(f'The max. length of a sheet name is 31 characters. Yours is {len(value)}.')
-        self.impl.name = value
+        else:
+            self.impl.name = value
 
     @property
     def names(self):
