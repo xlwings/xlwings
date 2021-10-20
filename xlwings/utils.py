@@ -330,17 +330,22 @@ def prepare_sys_path(args_string):
     """
     args = os.path.normcase(os.path.expandvars(args_string)).split(';')
     # Not sure, if we really need normcase, but on Windows it replaces "/" with "\", so let's revert that
-    fullname = args[0].replace('\\', '/')
-    if '://' in fullname:
-        fullname = Path(fullname_url_to_local_path(url=fullname,
-                                                   sheet_onedrive_config=args[1],
-                                                   sheet_sharepoint_config=args[2]))
-    else:
-        fullname = Path(fullname)
-    if args[3:]:
-        sys.path[0:0] = [str(fullname.parent), str(fullname.with_suffix(".zip"))] + args[3:]
-    else:
-        sys.path[0:0] = [str(fullname.parent), str(fullname.with_suffix(".zip"))]
+    active_fullname = args[0].replace('\\', '/')
+    this_fullname = args[1].replace('\\', '/')
+    paths = []
+    for fullname in [active_fullname, this_fullname]:
+        if '://' in fullname:
+            fullname = Path(fullname_url_to_local_path(url=active_fullname,
+                                                       sheet_onedrive_config=args[2],
+                                                       sheet_sharepoint_config=args[3]))
+        else:
+            fullname = Path(fullname)
+        paths += [str(fullname.parent), str(fullname.with_suffix(".zip"))]
+
+    if args[4:]:
+        paths += args[4:]
+
+    sys.path[0:0] = list(set(paths))
 
 
 @lru_cache(None)
