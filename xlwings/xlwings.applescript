@@ -3,7 +3,7 @@ VbaHandler("TestString")
 
 on VbaHandler(ParameterString)
 	set {PYTHONPATH, PythonInterpreter, PythonCommand, WorkbookName, ApplicationFullName, LOG_FILE} to SplitString(ParameterString, "|")
-	set ShellCommand to PythonInterpreter & " -B -u -W ignore -c \"import sys, os;sys.path.extend(os.path.normcase(os.path.expandvars('" & PYTHONPATH & "')).split(';'));" & ¬
+	set ShellCommand to PythonInterpreter & " -B -u -W ignore -c \"import xlwings.utils;xlwings.utils.prepare_sys_path('" & PYTHONPATH & "');" & ¬
 		PythonCommand & " \" \"--wb=" & WorkbookName & "\" \"--from_xl=1\" \"--app=" & ApplicationFullName & "\" > /dev/null 2>\"" & LOG_FILE & "\" & "
 	try
 		do shell script "source ~/.bash_profile"

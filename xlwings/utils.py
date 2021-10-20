@@ -399,7 +399,7 @@ def fullname_url_to_local_path(url, sheet_onedrive_config=None, sheet_sharepoint
     match = pattern.match(url)
     if match:
         # We're trying to derive the SharePoint root path from the OneDriveCommercial path, if it exists
-        root = sharepoint_config or os.getenv('OneDriveCommercial').replace('OneDrive - ', '') if os.getenv('OneDriveCommercial') else None
+        root = sharepoint_config or (os.getenv('OneDriveCommercial').replace('OneDrive - ', '') if os.getenv('OneDriveCommercial') else None)
         if not root:
             raise xlwings.XlwingsError(f"Couldn't find the local SharePoint folder. Please configure the {sharepoint_config_name} setting, see: xlwings.org/error.")
         if not root:
