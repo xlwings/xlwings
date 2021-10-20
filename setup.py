@@ -23,7 +23,7 @@ if sys.platform.startswith('win'):
     data_files = [('', glob.glob('xlwings*.dll'))]
 elif sys.platform.startswith('darwin'):
     install_requires = ['psutil >= 2.0.0', 'appscript >= 1.0.1']
-    data_files = [(os.path.expanduser("~") + '/Library/Application Scripts/com.microsoft.Excel', ['xlwings/xlwings.applescript'])]
+    data_files = [(os.path.expanduser("~") + '/Library/Application Scripts/com.microsoft.Excel', [f'xlwings/xlwings-{version}.applescript'])]
 else:
     if os.environ.get('READTHEDOCS', None) == 'True' or os.environ.get('INSTALL_ON_LINUX') == '1':
         data_files = []
@@ -47,7 +47,7 @@ setup(
     long_description=readme,
     data_files=data_files,
     packages=find_packages(exclude=('tests', 'tests.*',)),
-    package_data={'xlwings': ['xlwings.bas', 'Dictionary.cls', '*.xlsm', '*.xlam', 'xlwings.applescript', 'addin/xlwings.xlam', 'addin/xlwings_unprotected.xlam']},
+    package_data={'xlwings': ['xlwings.bas', 'Dictionary.cls', '*.xlsm', '*.xlam', '*.applescript', 'addin/xlwings.xlam', 'addin/xlwings_unprotected.xlam']},
     keywords=['xls', 'excel', 'spreadsheet', 'workbook', 'vba', 'macro'],
     install_requires=install_requires,
     extras_require=extras_require,

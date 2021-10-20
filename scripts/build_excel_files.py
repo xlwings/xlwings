@@ -26,11 +26,13 @@ if os.environ['GITHUB_REF'].startswith('refs/tags'):
 else:
     version_string = os.environ['GITHUB_SHA'][:7]
 
-# Rename dlls
+# Rename dlls and applescript file
 for i in ['32', '64']:
     os.rename(os.path.join(os.environ["GITHUB_WORKSPACE"], 'xlwings{0}.dll'.format(i)),
               os.path.join(os.environ["GITHUB_WORKSPACE"], 'xlwings{0}-{1}.dll'.format(i, version_string)))
 
+os.rename(os.path.join(os.environ["GITHUB_WORKSPACE"], 'xlwings', 'xlwings-dev.applescript'),
+          os.path.join(os.environ["GITHUB_WORKSPACE"], 'xlwings', f'xlwings-{version_string}.applescript'))
 # Stamp version
 version_file = os.path.join(os.environ["GITHUB_WORKSPACE"], 'xlwings', '__init__.py')
 cli_file = os.path.join(os.environ["GITHUB_WORKSPACE"], 'xlwings', 'cli.py')
