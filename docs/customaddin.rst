@@ -27,7 +27,7 @@ You should see a new ribbon tab called ``MyAddin`` like this:
 
 .. figure:: images/custom_ribbon_addin.png
 
-The add-in and VBA project are currently always called ``myaddin``, no matter what name you chose in the quickstart command. We'll see towards the end of this tutorial how we can change that, but for now we'll stick with it.
+The add-in and VBA project are currently always called ``myaddin``, no matter what name you chose in the quickstart command. We'll see towards the end of this tutorial how we can change that, but for now we'll stick to it.
 
 Compared to the xlwings add-in, the custom add-in offers an additional level of configuration: the configuration sheet of the add-in itself which is the easiest way to configure simple add-ins with a static configuration.
 

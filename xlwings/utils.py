@@ -334,7 +334,9 @@ def prepare_sys_path(args_string):
     this_fullname = args[1].replace('\\', '/')
     paths = []
     for fullname in [active_fullname, this_fullname]:
-        if '://' in fullname:
+        if not fullname:
+            continue
+        elif '://' in fullname:
             fullname = Path(fullname_url_to_local_path(url=active_fullname,
                                                        sheet_onedrive_config=args[2],
                                                        sheet_sharepoint_config=args[3]))

@@ -6,7 +6,7 @@ xlwings with other Office Apps
 xlwings can also be used to call Python functions from VBA within Office apps other than Excel (like Outlook, Access etc.).
 
 .. note::
-    New in v0.12.0 and still in a somewhat early stage that involves a bit of manual work.
+    This is an experimental feature and may be removed in the future.
     Currently, this functionality is only available on Windows for UDFs. The ``RunPython`` functionality
     is currently not supported.
 
