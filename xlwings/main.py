@@ -13,6 +13,7 @@ import sys
 import re
 import numbers
 import subprocess
+import warnings
 from pathlib import Path
 from contextlib import contextmanager
 
@@ -536,6 +537,10 @@ class App:
                 setattr(self, attribute, value)
 
     def create_report(self, template=None, output=None, book_settings=None, **data):
+        warnings.warn('Deprecated. Use render_template instead.')
+        return self.render_template(self, template=template, output=output, book_settings=book_settings, **data)
+
+    def render_template(self, template=None, output=None, book_settings=None, **data):
         """
         This function requires xlwings :guilabel:`PRO`.
 
@@ -569,8 +574,8 @@ class App:
 
         .. versionadded:: 0.24.4
         """
-        from .pro.reports import create_report
-        return create_report(template=template, output=output, book_settings=book_settings, app=self, **data)
+        from .pro.reports import render_template
+        return render_template(template=template, output=output, book_settings=book_settings, app=self, **data)
 
     def __repr__(self):
         return "<Excel App %s>" % self.pid
@@ -1307,8 +1312,6 @@ class Sheet:
         >>> book = xw.Book()
         >>> book.sheets[0]['A1:A2'].value = '{{ myvar }}'
         >>> book.sheets[0].render_template(myvar='test')
-
-        See also :meth:`xlwings.pro.reports.create_report`
         """
         from .pro.reports.main import render_template
         return render_template(self, **data)

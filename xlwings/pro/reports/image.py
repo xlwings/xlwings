@@ -3,7 +3,7 @@ from ...utils import fspath
 
 class Image:
     """
-    Use this class to provide images to either ``mysheet.render_template()`` or ``xw.pro.reports.create_report()``.
+    Use this class to provide images to either ``render_template()``.
 
     Arguments
     ---------

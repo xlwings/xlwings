@@ -10,7 +10,7 @@ from numpy.testing import assert_array_equal
 from matplotlib.figure import Figure
 
 import xlwings as xw
-from xlwings.pro.reports import create_report, Image
+from xlwings.pro.reports import render_template, Image
 from xlwings.pro import Markdown
 
 # Test data
@@ -47,7 +47,7 @@ class TestCreateReport(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.wb = create_report('template1.xlsx', 'output.xlsx', **data)
+        cls.wb = render_template('template1.xlsx', 'output.xlsx', **data)
 
     @classmethod
     def tearDownClass(cls):
@@ -112,12 +112,12 @@ class TestBookSettings(unittest.TestCase):
         xw.Book('output.xlsx').app.quit()
 
     def test_update_links_false(self):
-        wb = create_report('template_with_links.xlsx', 'output.xlsx', book_settings={'update_links': False}, **data)
+        wb = render_template('template_with_links.xlsx', 'output.xlsx', book_settings={'update_links': False}, **data)
         self.assertEqual(wb.sheets[0]['M1'].value, 'Text for update_links')
 
     @unittest.skipIf(sys.platform.startswith('darwin') is True, 'skip macOS')  # can't seem to make this test work on mac
     def test_update_links_true(self):
-        wb = create_report('template_with_links.xlsx', 'output.xlsx', book_settings={'update_links': True}, **data)
+        wb = render_template('template_with_links.xlsx', 'output.xlsx', book_settings={'update_links': True}, **data)
         self.assertEqual(wb.sheets[0]['M1'].value, 'Updated Text for update_links')
 
 
@@ -125,7 +125,7 @@ class TestApp(unittest.TestCase):
 
     def test_app_instance(self):
         app = xw.App()
-        wb = create_report('template_with_links.xlsx', 'output.xlsx', app=app, book_settings={'update_links': False}, **data)
+        wb = render_template('template_with_links.xlsx', 'output.xlsx', app=app, book_settings={'update_links': False}, **data)
         self.assertEqual(wb.sheets[0]['M1'].value, 'Text for update_links')
         wb.app.quit()
 
@@ -139,7 +139,7 @@ class TestFrames(unittest.TestCase):
         df = pd.DataFrame([[1., 2.], [3., 4.]],
                           columns=['c1', 'c2'],
                           index=['r1', 'r2'])
-        wb = create_report('template_one_frame.xlsx', 'output.xlsx', df=df.reset_index(), title='MyTitle')
+        wb = render_template('template_one_frame.xlsx', 'output.xlsx', df=df.reset_index(), title='MyTitle')
         for i in range(2):
             sheet = wb.sheets[i]
             self.assertEqual(sheet['A1'].value, 'MyTitle')
@@ -173,7 +173,7 @@ class TestFrames(unittest.TestCase):
         pic = Image(os.path.abspath('xlwings.jpg'))
 
         data = dict(df1=df1.reset_index(), df2='df2 dummy', df3=df3.reset_index(), text=text, pic=pic)
-        wb = create_report('template_two_frames.xlsx', 'output.xlsx', **data)
+        wb = render_template('template_two_frames.xlsx', 'output.xlsx', **data)
         sheet = wb.sheets[0]
         # values
         assert_frame_equal(sheet['A1'].options(pd.DataFrame, expand='table').value, df3)
@@ -225,11 +225,11 @@ class TestDataFrameFilters(unittest.TestCase):
         xw.Book('output.xlsx').app.quit()
 
     def test_df_filters(self):
-        wb = create_report('template1.xlsx', 'output.xlsx', **data)
+        wb = render_template('template1.xlsx', 'output.xlsx', **data)
         self.assertEqual(wb.sheets['df_filters']['A1:E140'].value, wb.sheets['df_filters']['G1:K140'].value)
 
     def test_df_filters_in_frames(self):
-        wb = create_report('df_filter_frame.xlsx', 'output.xlsx', **data)
+        wb = render_template('df_filter_frame.xlsx', 'output.xlsx', **data)
         self.assertEqual(wb.sheets['Sheet1']['A1:E10'].value, wb.sheets['expected']['A1:E10'].value)
         self.assertEqual(wb.sheets['Sheet1']['A3'].color, wb.sheets['expected']['A3'].color)
         self.assertEqual(wb.sheets['Sheet1']['A4:A5'].color, wb.sheets['expected']['A4:A5'].color)
@@ -240,7 +240,7 @@ class TestDataFrameFilters(unittest.TestCase):
         self.assertIsNone(wb.sheets['Sheet1']['A10'].color)
 
     def test_pic_filters(self):
-        wb = create_report('template1.xlsx', 'output.xlsx', **data)
+        wb = render_template('template1.xlsx', 'output.xlsx', **data)
         self.assertEqual(wb.sheets['pic_filters'].pictures[0].width, 397)
         self.assertEqual(wb.sheets['pic_filters'].pictures[0].height, 139)
         self.assertEqual(wb.sheets['pic_filters'].pictures[1].width, 120)
@@ -251,12 +251,12 @@ class TestDataFrameFilters(unittest.TestCase):
         self.assertEqual(int(wb.sheets['pic_filters'].pictures[3].height), 166)
 
     def test_datetime_filters(self):
-        wb = create_report('template1.xlsx', 'output.xlsx', **data)
+        wb = render_template('template1.xlsx', 'output.xlsx', **data)
         self.assertEqual(wb.sheets['dt']['A1:A7'].value, wb.sheets['dt']['E1:E7'].value)
         self.assertEqual(wb.sheets['dt'].shapes['Rectangle 1'].text, 'December 1, 2010')
 
     def test_fontcolor_filter(self):
-        wb = create_report('template1.xlsx', 'output.xlsx', **data)
+        wb = render_template('template1.xlsx', 'output.xlsx', **data)
         self.assertEqual(wb.sheets['Sheet1']['Q1'].font.color, (255, 255, 255))
 
 

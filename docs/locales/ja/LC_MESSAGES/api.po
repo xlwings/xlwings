@@ -830,7 +830,7 @@ msgid "**sheet**"
 msgstr ""
 
 #: of xlwings.main.Sheet.render_template:24
-msgid "See also :meth:`xlwings.pro.reports.create_report`"
+msgid "See also :meth:`xlwings.pro.reports.render_template`"
 msgstr ""
 
 #: of xlwings.main.Sheet.select:1
