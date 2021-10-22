@@ -10,7 +10,7 @@ xlwings Reports is a solution for template-based Excel and PDF reporting, making
 xlwings Reports supports all commonly required components:
 
 * **Text**: Easily format your text via Markdown syntax.
-* **Tables**: Write pandas DataFrames to Excel cells and Excel tables and format them dynamically based on the number of rows.
+* **Tables (dynamic)**: Write pandas DataFrames to Excel cells and Excel tables and format them dynamically based on the number of rows.
 * **Charts**: Use your favorite charting engine: Excel charts, Matplotlib, or Plotly.
 * **Images**: You can include both raster (e.g., png) or vector (e.g., svg) graphics, including dynamically generated ones, e.g., QR codes or plots.
 * **Multi-column Layout**: Split your content up into e.g. a classic two column layout by using Frames.
@@ -22,7 +22,11 @@ xlwings Reports supports all commonly required components:
 Quickstart
 ----------
 
-You can work on the workbook or the sheet level. Let's start with rendering full workbooks!
+You can work on the ``sheet``, ``book`` or ``app`` level:
+
+* ``mysheet.render_template()``: replaces the placeholders in mysheet
+* ``mybook.render_template()``: replaces the placeholders in all sheets of a mybook
+* ``myapp.render_template()``: convenience wrapper that copies a template book before replacing the placeholder with the values. Since this approach allows you to work with hidden Excel instances, it is the most commonly used method for production.
 
 Render Workbooks
 ****************
