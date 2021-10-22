@@ -1023,6 +1023,30 @@ class Book:
     def __repr__(self):
         return "<Book [{0}]>".format(self.name)
 
+    def render_template(self, **data):
+        """
+        This method requires xlwings :guilabel:`PRO`.
+
+        Replaces all Jinja variables (e.g ``{{ myvar }}``) in the book with the keyword argument that has the same name.
+
+        .. versionadded:: 0.25.0
+
+        Parameters
+        ----------
+        data: kwargs
+            All key/value pairs that are used in the template.
+
+        Examples
+        --------
+
+        >>> import xlwings as xw
+        >>> book = xw.Book()
+        >>> book.sheets[0]['A1:A2'].value = '{{ myvar }}'
+        >>> book.render_template(myvar='test')
+        """
+        for sheet in self.sheets:
+            sheet.render_template(**data)
+
 
 class Sheet:
     """
@@ -1301,10 +1325,6 @@ class Sheet:
         data: kwargs
             All key/value pairs that are used in the template.
 
-        Returns
-        -------
-        sheet: xlwings Sheet
-
         Examples
         --------
 
@@ -1313,8 +1333,8 @@ class Sheet:
         >>> book.sheets[0]['A1:A2'].value = '{{ myvar }}'
         >>> book.sheets[0].render_template(myvar='test')
         """
-        from .pro.reports.main import render_template
-        return render_template(self, **data)
+        from .pro.reports.main import render_sheet
+        render_sheet(self, **data)
 
     @property
     def charts(self):
