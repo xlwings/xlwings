@@ -538,7 +538,7 @@ class App:
 
     def create_report(self, template=None, output=None, book_settings=None, **data):
         warnings.warn('Deprecated. Use render_template instead.')
-        return self.render_template(self, template=template, output=output, book_settings=book_settings, **data)
+        return self.render_template(template=template, output=output, book_settings=book_settings, **data)
 
     def render_template(self, template=None, output=None, book_settings=None, **data):
         """
