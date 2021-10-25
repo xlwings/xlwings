@@ -177,7 +177,7 @@ apps = Apps(impl=xlplatform.Apps())
 class App:
     """
     An app corresponds to an Excel instance and should normally be used as context manager to make sure that everything
-    is properly cleaned uup again and to prevent zombie processes. New Excel instances can be fired up like so::
+    is properly cleaned up again and to prevent zombie processes. New Excel instances can be fired up like so::
 
         import xlwings as xw
 

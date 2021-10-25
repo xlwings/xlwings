@@ -56,6 +56,7 @@ on **Windows** and **Mac**.
     jupyternotebooks
     command_line
     deployment
+    onedrive_sharepoint
     troubleshooting
 
 .. toctree::

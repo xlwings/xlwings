@@ -16,13 +16,9 @@ Solution:
    (see https://www.computerhope.com/issues/ch000549.htm) or set the full path to your interpreter in the add-in or your config sheet, e.g.
    ``C:\Users\MyUser\anaconda\pythonw.exe``
 
-Issue: Couldn't find the local location of your OneDrive or SharePoint
-----------------------------------------------------------------------
+Issue: Files that are saved on OneDrive or SharePoint cause an error to pop up
+------------------------------------------------------------------------------
 
 Solution:
 
-On either the ``xlwings.conf`` sheet or on the ``xlwings.conf`` file under your home folder (for location see :ref:`user_config`), add the following setting::
-
-    "ONEDRIVE_WIN", "C:\path\to\OneDrive"
-
-Note: Don't use quotes on the ``xlwings.conf`` sheet and if you are on macOS, use ``ONEDRIVE_MAC`` instead. You need to use the ONEDRIVE setting, even if you use SharePoint.
+See the dedicated page about how to configure OneDrive and Sharepoint: :ref:`onedrive_sharepoint`.
