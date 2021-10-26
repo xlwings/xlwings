@@ -18,7 +18,6 @@ PRO Features
 * :ref:`reports_quickstart`: A template-based reporting mechanism, allowing business users to change the layout of the report without having to touch the Python code.
 * :ref:`markdown`: Support for Markdown formatting of text in cells and shapes like e.g., text boxes.
 * :ref:`permissioning`: Control which users can run which Python modules via xlwings.
-* :meth:`Table.update() <xlwings.main.Table.update>`: An easy way to keep an Excel table in sync with a pandas DataFrame
 
 More Infos
 ----------
