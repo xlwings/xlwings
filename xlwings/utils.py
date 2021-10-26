@@ -337,7 +337,7 @@ def prepare_sys_path(args_string):
         if not fullname:
             continue
         elif '://' in fullname:
-            fullname = Path(fullname_url_to_local_path(url=active_fullname,
+            fullname = Path(fullname_url_to_local_path(url=fullname,
                                                        sheet_onedrive_consumer_config=args[2],
                                                        sheet_onedrive_commercial_config=args[3],
                                                        sheet_sharepoint_config=args[4]))
@@ -415,29 +415,27 @@ def fullname_url_to_local_path(url, sheet_onedrive_consumer_config=None, sheet_o
     # SharePoint Online & On-Premises (default top level mapping)
     pattern = re.compile(r'https?://[^/]*/sites/([^/]*)/([^/]*)/(.*)')
     match = pattern.match(url)
+    # We're trying to derive the SharePoint root path from the OneDriveCommercial path, if it exists
+    root = sharepoint_config or (os.getenv('OneDriveCommercial').replace('OneDrive - ', '') if os.getenv('OneDriveCommercial') else None)
+    if not root:
+        raise xlwings.XlwingsError(f"Couldn't find the local SharePoint folder. Please configure the {sharepoint_config_name} setting, see: xlwings.org/error.")
     if match:
-        # We're trying to derive the SharePoint root path from the OneDriveCommercial path, if it exists
-        root = sharepoint_config or (os.getenv('OneDriveCommercial').replace('OneDrive - ', '') if os.getenv('OneDriveCommercial') else None)
-        if not root:
-            raise xlwings.XlwingsError(f"Couldn't find the local SharePoint folder. Please configure the {sharepoint_config_name} setting, see: xlwings.org/error.")
         local_path = Path(root) / f'{match.group(1)} - Documents' / match.group(3)
         if local_path.is_file():
             return str(local_path)
-        else:
-            # SharePoint Online & On-Premises (non-default mapping)
-            book_name = url.split('/')[-1]
-            local_book_paths = []
-            for path in Path(root).rglob('[!~$]*.xls*'):
-                if path.name == book_name:
-                    local_book_paths.append(path)
-            if len(local_book_paths) == 1:
-                return str(local_book_paths[0])
-            elif len(local_book_paths) == 0:
-                raise xlwings.XlwingsError(f"Couldn't find your SharePoint file locally, see: xlwings.org/error")
-            else:
-                raise xlwings.XlwingsError(f"Your SharePoint configuration either requires your workbook name to be unique "
-                                           f"across all synced SharePoint folders or you need to "
-                                           f"{'edit' if sharepoint_config else 'add'} the {sharepoint_config_name} setting "
-                                           f"including one or more folder levels, see: xlwings.org/error.")
+    # SharePoint Online & On-Premises (non-default mapping)
+    book_name = url.split('/')[-1]
+    local_book_paths = []
+    for path in Path(root).rglob('[!~$]*.xls*'):
+        if path.name == book_name:
+            local_book_paths.append(path)
+    if len(local_book_paths) == 1:
+        return str(local_book_paths[0])
+    elif len(local_book_paths) == 0:
+        raise xlwings.XlwingsError(f"Couldn't find your SharePoint file locally, see: xlwings.org/error")
     else:
-        raise xlwings.XlwingsError(f"Didn't recognize url: {url}")
+        raise xlwings.XlwingsError(f"Your SharePoint configuration either requires your workbook name to be unique "
+                                   f"across all synced SharePoint folders or you need to "
+                                   f"{'edit' if sharepoint_config else 'add'} the {sharepoint_config_name} setting "
+                                   f"including one or more folder levels, see: xlwings.org/error.")
+
