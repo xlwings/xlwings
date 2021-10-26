@@ -10,7 +10,7 @@ xlwings Reports is a solution for template-based Excel and PDF reporting, making
 xlwings Reports supports all commonly required components:
 
 * **Text**: Easily format your text via Markdown syntax.
-* **Tables**: Write pandas DataFrames to Excel cells and Excel tables and format them dynamically based on the number of rows.
+* **Tables (dynamic)**: Write pandas DataFrames to Excel cells and Excel tables and format them dynamically based on the number of rows.
 * **Charts**: Use your favorite charting engine: Excel charts, Matplotlib, or Plotly.
 * **Images**: You can include both raster (e.g., png) or vector (e.g., svg) graphics, including dynamically generated ones, e.g., QR codes or plots.
 * **Multi-column Layout**: Split your content up into e.g. a classic two column layout by using Frames.
@@ -22,18 +22,22 @@ xlwings Reports supports all commonly required components:
 Quickstart
 ----------
 
-You can work on the workbook or the sheet level. Let's start with rendering full workbooks!
+You can work on the ``sheet``, ``book`` or ``app`` level:
+
+* ``mysheet.render_template()``: replaces the placeholders in mysheet
+* ``mybook.render_template()``: replaces the placeholders in all sheets of a mybook
+* ``myapp.render_template()``: convenience wrapper that copies a template book before replacing the placeholder with the values. Since this approach allows you to work with hidden Excel instances, it is the most commonly used method for production.
 
 Render Workbooks
 ****************
 
-If your template is a workbook, you can use the ``create_report`` function. Start by creating the following Python script ``mytemplate.py``::
+If your template is a workbook, you can use the ``render_template`` function. Start by creating the following Python script ``mytemplate.py``::
 
-    from xlwings.pro.reports import create_report
+    from xlwings.pro.reports import render_template
     import pandas as pd
 
     df = pd.DataFrame(data={'one': [1, 2], 'two': [3, 4]})
-    book = create_report('mytemplate.xlsx', 'myreport.xlsx', title='MyTitle', df=df)
+    book = render_template('mytemplate.xlsx', 'myreport.xlsx', title='MyTitle', df=df)
     book.to_pdf()
 
 Then create the following Excel file called ``mytemplate.xlsx``:
@@ -64,9 +68,9 @@ In production, you'll often want to run this in a separate and hidden Excel inst
     )
 
     with xw.App(visible=False) as app:
-        book = app.create_report(base_dir / 'mytemplate.xlsx',
-                                 base_dir / 'myreport.xlsx',
-                                 **data)
+        book = app.render_template(base_dir / 'mytemplate.xlsx',
+                                   base_dir / 'myreport.xlsx',
+                                   **data)
         book.to_pdf(base_dir / 'myreport.pdf')
 
 
@@ -76,12 +80,12 @@ In production, you'll often want to run this in a separate and hidden Excel inst
 .. note::
     By default, DataFrames don't write out the index. If you need the index to appear in Excel, use ``df.reset_index()``, see :ref:`dataframes_reports`.
 
-See also :meth:`create_reports (API reference) <xlwings.pro.reports.create_report>`.
+See also :meth:`render_templates (API reference) <xlwings.pro.reports.render_template>`.
 
 Render Sheets
 *************
 
-Sometimes, it's useful to render a single sheet instead of using the ``create_report`` function. This is a workbook stored as ``Book1.xlsx``:
+Sometimes, it's useful to render a single sheet instead of using the ``render_template`` function. This is a workbook stored as ``Book1.xlsx``:
 
 .. figure:: images/sheet_rendering1.png
     :scale: 60%
@@ -109,7 +113,7 @@ See also the :meth:`mysheet.render_template (API reference) <xlwings.Sheet.rende
 DataFrames
 ----------
 
-To write DataFrames in a consistent manner to Excel, xlwings Reports ignores the DataFrame indices. If you need to pass the index over to Excel, reset the index before passing in the DataFrame to ``create_report`` or ``render_template``: ``df.reset_index()``.
+To write DataFrames in a consistent manner to Excel, xlwings Reports ignores the DataFrame indices. If you need to pass the index over to Excel, reset the index before passing in the DataFrame to ``render_template`` or ``render_template``: ``df.reset_index()``.
 
 When working with pandas DataFrames, the report designer often needs to tweak the data. Thanks to filters, they can do the most common operations directly in the template without the need to write Python code. A filter is added to the placeholder in Excel by using the pipe character: ``{{ myplaceholder | myfilter }}``. You can combine multiple filters by using multiple pipe characters: they are applied from left to right, i.e. the result from the first filter will be the input for the next filter. Let's start with an example before listing each filter with its details::
 
@@ -279,14 +283,14 @@ Using Excel tables is the recommended way to format tables as the styling can be
 
 Running the following script::
 
-    from xlwings.pro.reports import create_report
+    from xlwings.pro.reports import render_template
     import pandas as pd
 
     nrows, ncols = 3, 3
     df = pd.DataFrame(data=nrows * [ncols * ['test']],
                       columns=[f'col {i}' for i in range(ncols)])
 
-    create_report('template.xlsx', 'output.xlsx', df=df)
+    render_template('template.xlsx', 'output.xlsx', df=df)
 
 Will produce the following report:
 
@@ -451,9 +455,9 @@ Simple Text without Formatting
 
 You can use any shapes like rectangles or circles, not just text boxes::
 
-    from xlwings.pro.reports import create_report
+    from xlwings.pro.reports import render_template
 
-    create_report('template.xlsx', 'output.xlsx', temperature=12.3)
+    render_template('template.xlsx', 'output.xlsx', temperature=12.3)
 
 This code turns this template:
 
@@ -479,7 +483,7 @@ Markdown Formatting
 
 .. versionadded:: 0.23.0
 
-You can format text in cells or shapes via Markdown syntax. Note that you can also use placeholders in the Markdown text that will take the values from the variables you supply via the ``render_template`` or ``create_report`` functions::
+You can format text in cells or shapes via Markdown syntax. Note that you can also use placeholders in the Markdown text that will take the values from the variables you supply via the ``render_template`` method::
 
     import xlwings as xw
     from xlwings.pro import Markdown
@@ -572,7 +576,7 @@ Alternatively, you could also use Excel Tables, as they can make formatting easi
 
 Running the following code::
 
-    from xlwings.pro.reports import create_report
+    from xlwings.pro.reports import render_template
     import pandas as pd
 
     df1 = pd.DataFrame([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -580,9 +584,9 @@ Running the following code::
 
     data = dict(df1=df1.reset_index(), df2=df2.reset_index())
 
-    create_report('my_template.xlsx',
-                  'my_report.xlsx',
-                  **data)
+    render_template('my_template.xlsx',
+                    'my_report.xlsx',
+                    **data)
 
 will generate this report:
 
@@ -597,15 +601,15 @@ PDF Layout
 
 Using the ``layout`` parameter in the ``to_pdf()`` command, you can "print" your Excel workbook on professionally designed PDFs for pixel-perfect reports in your corporate layout including headers, footers, backgrounds and borderless graphics::
 
-    from xlwings.pro.reports import create_report
+    from xlwings.pro.reports import render_template
     import pandas as pd
 
     df = pd.DataFrame([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
-    book = create_report('template.xlsx',
-                         'report.xlsx',
-                         month_year = 'May 21',
-                         summary_text = '...')
+    book = render_template('template.xlsx',
+                           'report.xlsx',
+                           month_year = 'May 21',
+                           summary_text = '...')
 
     book.to_pdf('report.pdf', layout='monthly_layout.pdf')
 

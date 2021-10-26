@@ -2,6 +2,7 @@ import sys
 import shutil
 import datetime as dt
 import numbers
+import warnings
 
 try:
     from jinja2 import Environment, nodes
@@ -62,7 +63,7 @@ def parse_single_placeholder(value, env):
         return value.replace('{{', '').replace('}}', '').strip(), []
 
 
-def render_template(sheet, **data):
+def render_sheet(sheet, **data):
     """
     Replaces the Jinja2 placeholders in a given sheet
     """
@@ -245,7 +246,12 @@ def render_template(sheet, **data):
         pass
 
 
-def create_report(template, output, book_settings=None, app=None, **data):
+def create_report(template=None, output=None, book_settings=None, **data):
+    warnings.warn('Deprecated. Use render_template instead.')
+    return render_template(template=template, output=output, book_settings=book_settings, **data)
+
+
+def render_template(template, output, book_settings=None, app=None, **data):
     """
     This function requires xlwings :guilabel:`PRO`.
 
@@ -280,37 +286,28 @@ def create_report(template, output, book_settings=None, app=None, **data):
 
     Returns
     -------
-    wb: xlwings Book
+    xlwings Book
 
 
     Examples
     --------
     In ``my_template.xlsx``, put the following Jinja variables in two cells: ``{{ title }}`` and ``{{ df }}``
 
-    >>> from xlwings.pro.reports import create_report
+    >>> from xlwings.pro.reports import render_template
     >>> import pandas as pd
     >>> df = pd.DataFrame(data=[[1,2],[3,4]])
-    >>> wb = create_report('my_template.xlsx', 'my_report.xlsx', title='MyTitle', df=df)
+    >>> mybook = render_template('my_template.xlsx', 'my_report.xlsx', title='MyTitle', df=df)
 
     With many template variables it may be useful to collect the data first:
 
     >>> data = dict(title='MyTitle', df=df)
-    >>> wb = create_report('my_template.xlsx', 'my_report.xlsx', **data)
+    >>> mybook = render_template('my_template.xlsx', 'my_report.xlsx', **data)
 
     If you need to handle external links or a password, use it like so:
 
-    >>> wb = create_report('my_template.xlsx', 'my_report.xlsx',
+    >>> mybook = render_template('my_template.xlsx', 'my_report.xlsx',
                            book_settings={'update_links': True, 'password': 'mypassword'},
                            **data)
-
-    You can control the Excel instance by passing in an xlwings App instance. For example, to
-    run the report in a separate and hidden instance of Excel, do the following:
-
-    >>> import xlwings as xw
-    >>> from xlwings.pro.reports import create_report
-    >>> app = xw.App(visible=False)  # Separate and hidden Excel instance
-    >>> wb = create_report('my_template.xlsx', 'my_report.xlsx', app=app, **data)
-    >>> app.quit()  # Close the wb and quit the Excel instance
     """
     shutil.copyfile(template, output)
     if app:
@@ -326,7 +323,7 @@ def create_report(template, output, book_settings=None, app=None, **data):
             wb = Book(output)
 
     for sheet in wb.sheets:
-        render_template(sheet, **data)
+        render_sheet(sheet, **data)
 
     wb.save()
     return wb
