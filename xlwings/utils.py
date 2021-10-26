@@ -264,7 +264,7 @@ def read_user_config():
             for line in f:
                 values = re.findall(r'"[^"]*"', line)
                 if values:
-                    config[values[0].strip('"').lower()] = values[1].strip('"')
+                    config[values[0].strip('"').lower()] = os.path.expandvars(values[1].strip('"'))
     return config
 
 
@@ -382,6 +382,12 @@ def fullname_url_to_local_path(url, sheet_onedrive_consumer_config=None, sheet_o
     onedrive_consumer_config_name = 'ONEDRIVE_CONSUMER_WIN' if sys.platform.startswith('win') else 'ONEDRIVE_CONSUMER_MAC'
     onedrive_commercial_config_name = 'ONEDRIVE_COMMERCIAL_WIN' if sys.platform.startswith('win') else 'ONEDRIVE_COMMERCIAL_MAC'
     sharepoint_config_name = 'SHAREPOINT_WIN' if sys.platform.startswith('win') else 'SHAREPOINT_MAC'
+    if sheet_onedrive_consumer_config is not None:
+        sheet_onedrive_consumer_config = os.path.expandvars(sheet_onedrive_consumer_config)
+    if sheet_onedrive_commercial_config is not None:
+        sheet_onedrive_commercial_config = os.path.expandvars(sheet_onedrive_commercial_config)
+    if sheet_sharepoint_config is not None:
+        sheet_sharepoint_config = os.path.expandvars(sheet_sharepoint_config)
     onedrive_consumer_config = sheet_onedrive_consumer_config or read_user_config().get(onedrive_consumer_config_name.lower())
     onedrive_commercial_config = sheet_onedrive_commercial_config or read_user_config().get(onedrive_commercial_config_name.lower())
     sharepoint_config = sheet_sharepoint_config or read_user_config().get(sharepoint_config_name.lower())
