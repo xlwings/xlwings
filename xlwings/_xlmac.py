@@ -343,7 +343,8 @@ class Book:
             config = read_config_sheet(xlwings.Book(impl=self))
             self.app.display_alerts = display_alerts
             return fullname_url_to_local_path(url=path,
-                                              sheet_onedrive_config=config.get('ONEDRIVE_MAC'),
+                                              sheet_onedrive_consumer_config=config.get('ONEDRIVE_CONSUMER_MAC'),
+                                              sheet_onedrive_commercial_config=config.get('ONEDRIVE_COMMERCIAL_MAC'),
                                               sheet_sharepoint_config=config.get('SHAREPOINT_MAC'))
         else:
             self.app.display_alerts = display_alerts

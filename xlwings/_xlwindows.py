@@ -596,7 +596,8 @@ class Book:
         if '://' in self.xl.FullName:
             config = read_config_sheet(xlwings.Book(impl=self))
             return fullname_url_to_local_path(url=self.xl.FullName,
-                                              sheet_onedrive_config=config.get('ONEDRIVE_WIN'),
+                                              sheet_onedrive_consumer_config=config.get('ONEDRIVE_CONSUMER_WIN'),
+                                              sheet_onedrive_commercial_config=config.get('ONEDRIVE_COMMERCIAL_WIN'),
                                               sheet_sharepoint_config=config.get('SHAREPOINT_WIN'))
         else:
             return self.xl.FullName
