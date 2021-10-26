@@ -13,7 +13,8 @@ from appscript import k as kw, mactypes, its
 from appscript.reference import CommandError
 
 from .constants import ColorIndex
-from .utils import int_to_rgb, np_datetime_to_datetime, col_name, VersionNumber
+from .utils import int_to_rgb, np_datetime_to_datetime, col_name, VersionNumber, fullname_url_to_local_path, read_config_sheet
+import xlwings
 from . import mac_dict
 import xlwings
 
@@ -338,8 +339,16 @@ class Book:
         self.app.display_alerts = False
         # This causes a pop-up if there's a pw protected sheet, see #1377
         path = self.xl.properties().get(kw.full_name)
-        self.app.display_alerts = display_alerts
-        return path
+        if '://' in path:
+            config = read_config_sheet(xlwings.Book(impl=self))
+            self.app.display_alerts = display_alerts
+            return fullname_url_to_local_path(url=path,
+                                              sheet_onedrive_consumer_config=config.get('ONEDRIVE_CONSUMER_MAC'),
+                                              sheet_onedrive_commercial_config=config.get('ONEDRIVE_COMMERCIAL_MAC'),
+                                              sheet_sharepoint_config=config.get('SHAREPOINT_MAC'))
+        else:
+            self.app.display_alerts = display_alerts
+            return path
 
     @property
     def names(self):

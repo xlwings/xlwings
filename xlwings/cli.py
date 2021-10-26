@@ -133,7 +133,7 @@ def runpython_install(args):
     destination_dir = os.path.expanduser("~") + '/Library/Application Scripts/com.microsoft.Excel'
     if not os.path.exists(destination_dir):
         os.makedirs(destination_dir)
-    shutil.copy(os.path.join(this_dir, 'xlwings.applescript'), destination_dir)
+    shutil.copy(os.path.join(this_dir, f'xlwings-{xw.__version__}.applescript'), destination_dir)
     print('Successfully enabled RunPython!')
 
 
@@ -487,7 +487,7 @@ def main():
         runpython_parser = subparsers.add_parser('runpython', help='macOS only: run "xlwings runpython install" if you '
                                                                    'want to enable the RunPython calls without installing '
                                                                    'the add-in. This will create the following file: '
-                                                                   '~/Library/Application Scripts/com.microsoft.Excel/xlwings.applescript')
+                                                                   '~/Library/Application Scripts/com.microsoft.Excel/xlwings-x.x.x.applescript')
         runpython_subparser = runpython_parser.add_subparsers(dest='subcommand')
         runpython_subparser.required = True
 

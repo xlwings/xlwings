@@ -3,6 +3,9 @@
 REST API
 ========
 
+.. note::
+    This is an experimental feature and may be removed in the future.
+
 .. versionadded:: 0.13.0
 
 Quickstart

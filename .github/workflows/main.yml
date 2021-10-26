@@ -49,6 +49,7 @@ jobs:
         XLWINGS_LICENSE_KEY_SECRET: ${{ secrets.XLWINGS_LICENSE_KEY_SECRET }}
       run: |
         python ./scripts/build_excel_files.py
+        # TODO: change this to use the build pacakge: python -m build
         python setup.py sdist
     - name: Upload artifacts
       uses: actions/upload-artifact@v1

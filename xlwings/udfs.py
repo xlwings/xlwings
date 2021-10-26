@@ -385,13 +385,14 @@ def get_udf_module(module_name, xl_workbook):
                 module_info['filetime'] = mtime
                 module_info['module'] = module
     else:
-        # Handle embedded code
-        wb = Book(impl=xlplatform.Book(Dispatch(xl_workbook)))
-        for sheet in wb.sheets:
-            if sheet.name.endswith(".py") and not PRO:
-                raise LicenseError("Embedded code requires a valid LICENSE_KEY.")
-            elif PRO:
-                dump_embedded_code(wb, tempdir.name)
+        # Handle embedded code (Excel only)
+        if xl_workbook:
+            wb = Book(impl=xlplatform.Book(Dispatch(xl_workbook)))
+            for sheet in wb.sheets:
+                if sheet.name.endswith(".py") and not PRO:
+                    raise LicenseError("Embedded code requires a valid LICENSE_KEY.")
+                elif PRO:
+                    dump_embedded_code(wb, tempdir.name)
 
         # Permission check
         if (get_cached_user_config('permission_check_enabled') and
@@ -399,7 +400,6 @@ def get_udf_module(module_name, xl_workbook):
             if not PRO:
                 raise LicenseError('Permission checks require xlwings PRO.')
             verify_execute_permission(module_names=(module_name,))
-
 
         module = import_module(module_name)
         filename = os.path.normcase(module.__file__.lower())
