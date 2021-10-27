@@ -24,21 +24,20 @@ Quickstart
 
 You can work on the ``sheet``, ``book`` or ``app`` level:
 
-* ``mysheet.render_template()``: replaces the placeholders in mysheet
-* ``mybook.render_template()``: replaces the placeholders in all sheets of a mybook
-* ``myapp.render_template()``: convenience wrapper that copies a template book before replacing the placeholder with the values. Since this approach allows you to work with hidden Excel instances, it is the most commonly used method for production.
+* ``mysheet.render_template(**data)``: replaces the placeholders in ``mysheet``
+* ``mybook.render_template(**data)``: replaces the placeholders in all sheets of ``mybook``
+* ``myapp.render_template(template, output, **data)``: convenience wrapper that copies a template book before replacing the placeholder with the values. Since this approach allows you to work with hidden Excel instances, it is the most commonly used method for production.
 
-Let's go through a typical example: start by creating the following Python script ``mytemplate.py``::
+Let's go through a typical example: start by creating the following Python script ``report.py``::
 
-    # mytemplate.py
-
+    # report.py
     from pathlib import Path
 
     import pandas as pd
     import xlwings as xw
 
-    # TODO: adjust the path to your folder
-    base_dir = Path(r'C:\Users\myuser\myreport')
+    # We'll place this file in the same directory as the Excel template
+    this_dir = Path(__file__).resolve().parent
 
     data = dict(
         title='MyTitle',
@@ -47,10 +46,11 @@ Let's go through a typical example: start by creating the following Python scrip
 
     # Change visible=False to run this in a hidden Excel instance
     with xw.App(visible=True) as app:
-        book = app.render_template(base_dir / 'mytemplate.xlsx',
-                                   base_dir / 'myreport.xlsx',
+        book = app.render_template(this_dir / 'mytemplate.xlsx',
+                                   this_dir / 'myreport.xlsx',
                                    **data)
-        book.to_pdf(base_dir / 'myreport.pdf')
+        book.to_pdf(this_dir / 'myreport.pdf')
+
 
 Then create the following Excel file called ``mytemplate.xlsx``:
 
@@ -58,12 +58,14 @@ Then create the following Excel file called ``mytemplate.xlsx``:
 
 Run the Python script (or run the code from a Jupyter notebook)::
 
-    python mytemplate.py
+    python report.py
 
 This will copy the template and create the following output by replacing the variables in double curly braces with
 the value from the Python variable:
 
 .. figure:: images/myreport.png
+
+If you like, you could also create a classic xlwings tool to call this script or you could design a GUI app by using a framework like PySimpleGUI and turn it into an executable by using a freezer (e.g., PyInstaller). This, however, is beyond the scope of this tutorial.
 
 .. note::
     By default, xlwings Reports overwrites existing values in templates if there is not enough free space for your variable. If you want your rows to dynamically shift according to the height of your array, use :ref:`Frames <Frames>`.
