@@ -28,17 +28,29 @@ You can work on the ``sheet``, ``book`` or ``app`` level:
 * ``mybook.render_template()``: replaces the placeholders in all sheets of a mybook
 * ``myapp.render_template()``: convenience wrapper that copies a template book before replacing the placeholder with the values. Since this approach allows you to work with hidden Excel instances, it is the most commonly used method for production.
 
-Render Workbooks
-****************
+Let's go through a typical example: start by creating the following Python script ``mytemplate.py``::
 
-If your template is a workbook, you can use the ``render_template`` function. Start by creating the following Python script ``mytemplate.py``::
+    # mytemplate.py
 
-    from xlwings.pro.reports import render_template
+    from pathlib import Path
+
     import pandas as pd
+    import xlwings as xw
 
-    df = pd.DataFrame(data={'one': [1, 2], 'two': [3, 4]})
-    book = render_template('mytemplate.xlsx', 'myreport.xlsx', title='MyTitle', df=df)
-    book.to_pdf()
+    # TODO: adjust the path to your folder
+    base_dir = Path(r'C:\Users\myuser\myreport')
+
+    data = dict(
+        title='MyTitle',
+        df=pd.DataFrame(data={'one': [1, 2], 'two': [3, 4]})
+    )
+
+    # Change visible=False to run this in a hidden Excel instance
+    with xw.App(visible=True) as app:
+        book = app.render_template(base_dir / 'mytemplate.xlsx',
+                                   base_dir / 'myreport.xlsx',
+                                   **data)
+        book.to_pdf(base_dir / 'myreport.pdf')
 
 Then create the following Excel file called ``mytemplate.xlsx``:
 
@@ -53,39 +65,18 @@ the value from the Python variable:
 
 .. figure:: images/myreport.png
 
-In production, you'll often want to run this in a separate and hidden Excel instance as well as use fully qualified ``Path`` objects. It's also often easier to collect the data into a data dictionary::
-
-    from pathlib import Path
-
-    import pandas as pd
-    import xlwings as xw
-
-    base_dir = Path(r'C:\Users\myuser\myreport')
-
-    data = dict(
-        title='MyTitle',
-        df=pd.DataFrame(data={'one': [1, 2], 'two': [3, 4]})
-    )
-
-    with xw.App(visible=False) as app:
-        book = app.render_template(base_dir / 'mytemplate.xlsx',
-                                   base_dir / 'myreport.xlsx',
-                                   **data)
-        book.to_pdf(base_dir / 'myreport.pdf')
-
-
 .. note::
     By default, xlwings Reports overwrites existing values in templates if there is not enough free space for your variable. If you want your rows to dynamically shift according to the height of your array, use :ref:`Frames <Frames>`.
 
 .. note::
-    By default, DataFrames don't write out the index. If you need the index to appear in Excel, use ``df.reset_index()``, see :ref:`dataframes_reports`.
+    Unlike xlwings, xlwings Reports never writes out the index of pandas DataFrames. If you need the index to appear in Excel, use ``df.reset_index()``, see :ref:`dataframes_reports`.
 
 See also :meth:`render_templates (API reference) <xlwings.pro.reports.render_template>`.
 
-Render Sheets
-*************
+Render Books and Sheets
+***********************
 
-Sometimes, it's useful to render a single sheet instead of using the ``render_template`` function. This is a workbook stored as ``Book1.xlsx``:
+Sometimes, it's useful to render a single book or sheet instead of using the ``myapp.render_template`` method. This is a workbook stored as ``Book1.xlsx``:
 
 .. figure:: images/sheet_rendering1.png
     :scale: 60%
@@ -104,7 +95,7 @@ Copies the template sheet first and then fills it in:
 .. figure:: images/sheet_rendering2.png
     :scale: 60%
 
-See also the :meth:`mysheet.render_template (API reference) <xlwings.Sheet.render_template>`.
+See also the :meth:`mysheet.render_template (API reference) <xlwings.Sheet.render_template>` and :meth:`mybook.render_template (API reference) <xlwings.Book.render_template>`.
 
 .. versionadded:: 0.22.0
 

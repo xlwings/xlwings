@@ -1,6 +1,15 @@
 What's New
 ==========
 
+v0.25.0 (Oct 27, 2021)
+----------------------
+
+* [Bug Fix] Finally, xlwings adds proper support for OneDrive, OneDrive for Business, and SharePoint. This means that the ``quickstart`` setup (Excel file and Python file in the same folder with the same name) works even if the files are stored on OneDrive/SharePoint---as long as they are being synced locally. It also makes ``mybook.fullname`` return the local file path instead of a URL. Sometimes, this requires editing the configuration, see: :ref:`onedrive_sharepoint` for the details (:issue:`1630`).
+* [Feature] The ``update()`` method of Excel tables has been moved from PRO to open source. You can now easily update an existing table in Excel with the data from a new pandas DataFrame without messing up any formulas that reference that table: ``mytable.update(df)``, see: :meth:`Table.update() <xlwings.main.Table.update>` (:issue:`1751`).
+* :guilabel:`PRO`: **Breaking Change**: Reports: ``create_report()`` is now deprecated in favor of ``render_template()`` that is available via ``app``, ``book`` (new), and ``sheet`` objects, see: :ref:`reports_quickstart` (:issue:`1738`).
+* [Bug Fix] Running UDFs from other Office apps has been fixed (:issue:`1729`).
+* [Bug Fix] Writing to a protected sheet or using an invalid sheet name etc. caused xlwings to hang instead of raising an Exception (:issue:`1725`).
+
 v0.24.9 (Aug 26, 2021)
 ----------------------
 
@@ -347,7 +356,7 @@ v0.19.4 (May 20, 2020)
 v0.19.3 (May 19, 2020)
 **********************
 
-* :guilabel:`PRO` [Feature]: Added possibility to create deployment keys, see :ref:`deployment_key`.
+* :guilabel:`PRO` [Feature]: Added possibility to create deployment keys.
 
 v0.19.2 (May 11, 2020)
 **********************

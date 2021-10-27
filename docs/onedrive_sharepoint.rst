@@ -7,7 +7,7 @@ Since v0.25.0, xlwings works with files that are stored on OneDrive, OneDrive fo
 
 
 
-.. warning:: **xlwings only works with OneDrive and SharePoint files that are synced to a local folder!** This means that both, the Excel and Python file, need to show the green check in the File Explorer/Finder as status---a cloud will not work.
+.. warning:: **xlwings only works with OneDrive and SharePoint files that are synced to a local folder!** This means that both, the Excel and Python file, need to show the green check mark in the File Explorer/Finder as status---a cloud icon will not work.
 
 OneDrive (Personal)
 -------------------
