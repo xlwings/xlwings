@@ -463,7 +463,28 @@ class App:
         >>> my_sum = app.macro('MySum')
         >>> my_sum(1, 2)
         3
+        
+        Types are supported too:
+        
+        .. code-block:: vb.net
+            Function MySum(x as integer, y as integer)
+                MySum = x + y
+            End Function            
 
+        >>> import xlwings as xw
+        >>> app = xw.App()
+        >>> my_sum = app.macro('MySum')
+        >>> my_sum(1, 2)
+        3
+        
+        However typed arrays are not supported. So the following won't work
+        
+        .. code-block:: vb.net
+
+        Function MySum(arr() as integer)
+            ''' code here
+        End Function
+            
         See also: :meth:`Book.macro`
 
         .. versionadded:: 0.9.0
