@@ -2,6 +2,7 @@ import os
 import json
 import binascii
 import datetime as dt
+import warnings
 import xlwings  # To prevent circular imports
 
 from ..utils import read_config_sheet
@@ -64,9 +65,11 @@ class LicenseHandler:
         if dt.date.today() > license_valid_until:
             raise xlwings.LicenseError('Your license expired on {}.'.format(license_valid_until.strftime("%Y-%m-%d"))) from None
         if product not in license_info['products']:
-                raise xlwings.LicenseError(f"License key isn't valid for the '{product}' functionality.") from None
+            raise xlwings.LicenseError(f"License key isn't valid for the '{product}' functionality.") from None
         if 'version' in license_info.keys() and license_info['version'] != xlwings.__version__:
             raise xlwings.LicenseError('Your license key is only valid for xlwings v{0}'.format(license_info['version'])) from None
+        if (license_valid_until - dt.date.today()) < dt.timedelta(days=30):
+            warnings.warn(f'Your license key expires in {(license_valid_until - dt.date.today()).days} days.')
         return license_info
 
     @staticmethod
