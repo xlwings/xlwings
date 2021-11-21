@@ -553,7 +553,7 @@ class Book:
     def close(self):
         self.xl.Close(SaveChanges=False)
 
-    def save(self, path=None):
+    def save(self, path=None, password=None):
         saved_path = self.xl.Path
         source_ext = os.path.splitext(self.name)[1] if saved_path else None
         target_ext = os.path.splitext(path)[1] if path else '.xlsx'
@@ -576,19 +576,19 @@ class Book:
         elif (saved_path != '') and (path is not None) and (os.path.split(path)[0] == ''):
             # Save existing book under new name in cwd if no path has been provided
             path = os.path.join(os.getcwd(), path)
-            self.xl.SaveAs(os.path.realpath(path), FileFormat=file_format)
+            self.xl.SaveAs(os.path.realpath(path), FileFormat=file_format, Password=password)
         elif (saved_path == '') and (path is None):
             # Previously unsaved: Save under current name in current working directory
             path = os.path.join(os.getcwd(), self.xl.Name + '.xlsx')
             alerts_state = self.xl.Application.DisplayAlerts
             self.xl.Application.DisplayAlerts = False
-            self.xl.SaveAs(os.path.realpath(path), FileFormat=file_format)
+            self.xl.SaveAs(os.path.realpath(path), FileFormat=file_format, Password=password)
             self.xl.Application.DisplayAlerts = alerts_state
         elif path:
             # Save under new name/location
             alerts_state = self.xl.Application.DisplayAlerts
             self.xl.Application.DisplayAlerts = False
-            self.xl.SaveAs(os.path.realpath(path), FileFormat=file_format)
+            self.xl.SaveAs(os.path.realpath(path), FileFormat=file_format, Password=password)
             self.xl.Application.DisplayAlerts = alerts_state
 
     @property

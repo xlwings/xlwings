@@ -292,7 +292,7 @@ class Book:
     def close(self):
         self.xl.close(saving=kw.no)
 
-    def save(self, path):
+    def save(self, path, password):
         saved_path = self.xl.properties().get(kw.path)
         source_ext = os.path.splitext(self.name)[1] if saved_path else None
         target_ext = os.path.splitext(path)[1] if path else '.xlsx'
@@ -318,19 +318,19 @@ class Book:
             save_as_name = path
             path = os.path.join(os.getcwd(), path)
             hfs_path = posix_to_hfs_path(os.path.realpath(path))
-            self.xl.save_workbook_as(filename=hfs_path, overwrite=True, file_format=file_format, timeout=-1)
+            self.xl.save_workbook_as(filename=hfs_path, overwrite=True, file_format=file_format, timeout=-1, password=password)
             self.xl = self.app.xl.workbooks[save_as_name]
         elif (saved_path == '') and (path is None):
             # Previously unsaved: Save under current name in current working directory
             save_as_name = self.xl.name.get() + '.xlsx'
             path = os.path.join(os.getcwd(), save_as_name)
             hfs_path = posix_to_hfs_path(os.path.realpath(path))
-            self.xl.save_workbook_as(filename=hfs_path, overwrite=True, file_format=file_format, timeout=-1)
+            self.xl.save_workbook_as(filename=hfs_path, overwrite=True, file_format=file_format, timeout=-1, password=password)
             self.xl = self.app.xl.workbooks[save_as_name]
         elif path:
             # Save under new name/location
             hfs_path = posix_to_hfs_path(os.path.realpath(path))
-            self.xl.save_workbook_as(filename=hfs_path, overwrite=True, file_format=file_format, timeout=-1)
+            self.xl.save_workbook_as(filename=hfs_path, overwrite=True, file_format=file_format, timeout=-1, password=password)
             self.xl = self.app.xl.workbooks[os.path.basename(path)]
 
     @property

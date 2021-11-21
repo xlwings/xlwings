@@ -874,7 +874,7 @@ class Book:
         """
         self.impl.close()
 
-    def save(self, path=None):
+    def save(self, path=None, password=None):
         """
         Saves the Workbook. If a path is being provided, this works like SaveAs() in Excel. If no path is specified and
         if the file hasn't been saved previously, it's being saved in the current working directory with the current
@@ -884,6 +884,10 @@ class Book:
         ---------
         path : str or path-like object, default None
             Full path to the workbook
+        password : str, default None
+            Protection password with max. 15 characters
+
+            .. versionadded :: 0.25.1
         Example
         -------
         >>> import xlwings as xw
@@ -897,7 +901,7 @@ class Book:
         if path:
             path = utils.fspath(path)
         with self.app.properties(display_alerts=False):
-            self.impl.save(path)
+            self.impl.save(path, password=password)
 
     @property
     def fullname(self):
