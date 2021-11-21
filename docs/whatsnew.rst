@@ -1,6 +1,13 @@
 What's New
 ==========
 
+v0.25.1 (Nov 21, 2021)
+----------------------
+
+* [Enhancement] ``mybook.save()`` now supports the ``password`` parameter (:issue:`1568`).
+* :guilabel:`PRO` [Bug Fix] xlwings Reports would sometimes cause a ``Could not activate App instance`` error (:issue:`1764`).
+* :guilabel:`PRO` [Enhancement] xlwings now warns about expiring developer license keys 30 days before they expire (:issue:`1758`.)
+
 v0.25.0 (Oct 27, 2021)
 ----------------------
 
