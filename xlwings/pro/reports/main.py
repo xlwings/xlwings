@@ -70,7 +70,7 @@ def render_sheet(sheet, **data):
     book = sheet.book
 
     # Shapes aren't properly moved otherwise
-    sheet.activate()
+    sheet.select()
 
     # Inserting rows with Frames changes the print area. Get it here so we can revert at the end.
     print_area = sheet.page_setup.print_area
@@ -322,7 +322,7 @@ def render_template(template, output, book_settings=None, app=None, **data):
         else:
             wb = Book(output)
 
-    for sheet in wb.sheets:
+    for sheet in reversed(wb.sheets):
         render_sheet(sheet, **data)
 
     wb.save()

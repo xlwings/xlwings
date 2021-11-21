@@ -1065,7 +1065,7 @@ class Book:
         >>> book.sheets[0]['A1:A2'].value = '{{ myvar }}'
         >>> book.render_template(myvar='test')
         """
-        for sheet in self.sheets:
+        for sheet in reversed(self.sheets):
             sheet.render_template(**data)
 
 
