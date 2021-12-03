@@ -336,7 +336,7 @@ This will produce the following report, with the chart source correctly adjusted
 
 .. note::
 
-    If you don't want the source data on your report, you can place it on a separate sheet. It's easiest if you add and design the chart on the separate sheet, before cutting the chart and pasting it on your report template. To prevent the data sheet from being printed when calling ``to_pdf``, you can give it a name that starts with ``#`` and it will be ignored.
+    If you don't want the source data on your report, you can place it on a separate sheet. It's easiest if you add and design the chart on the separate sheet, before cutting the chart and pasting it on your report template. To prevent the data sheet from being printed when calling ``to_pdf``, you can give it a name that starts with ``#`` and it will be ignored. NOTE that if you start your sheet name with ``##``, it won't be printed but also not rendered!
 
 Images
 ------

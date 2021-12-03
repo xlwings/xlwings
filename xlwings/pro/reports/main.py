@@ -67,6 +67,8 @@ def render_sheet(sheet, **data):
     """
     Replaces the Jinja2 placeholders in a given sheet
     """
+    if sheet.name.startswith('##'):
+        return
     book = sheet.book
 
     # Shapes aren't properly moved otherwise
