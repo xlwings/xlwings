@@ -205,7 +205,7 @@ Available filters for DataFrames:
 
   {{ df | aggsmall(threshold, threshold_col_ix, label[, label_col_ix][, min_rows]) }}
 
-  ``label_col_ix`` and ``min_rows`` are optional: if ``label_col_ix`` is left away, it will label the first column of the DataFrame (indices are zero-based). If ``min_rows`` is left away, you may end up with only one row called "Other" if you only have a few rows that are below the threshold.
+  ``label_col_ix`` and ``min_rows`` are optional: if ``label_col_ix`` is left away, it will label the first column of the DataFrame (indices are zero-based). ``min_rows`` has the effect that it skips rows from aggregating if it otherwise the number of rows falls below ``min_rows``. This prevents you from ending up with only one row called "Other" if you only have a few rows that are all below the threshold. NOTE that this parameter only makes sense if the data is sorted!
 
   Examples::
 

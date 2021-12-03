@@ -125,17 +125,19 @@ def aggsmall(df, filter_args):
     other_name = filter_args[2].as_const()
     other_ix = filter_args[3].as_const() if len(filter_args) > 3 else 0
     min_rows = filter_args[4].as_const() if len(filter_args) > 4 else None
-    if min_rows and len(df) < min_rows:
-        return df
-    dummy_col = '__aggregate__'
-    df.loc[:, dummy_col] = df.iloc[:, col_ix] < threshold
-    if True in df[dummy_col].unique():
+    df.loc[:, '__is_small__'] = df.iloc[:, col_ix] < threshold
+    if min_rows >= len(df):
+        df.loc[:, '__is_over_min__'] = False
+    else:
+        df.loc[:, '__is_over_min__'] = [False] * (min_rows - 1) + [True] * (len(df) - min_rows + 1)
+    df.loc[:, '__total__'] = df['__is_small__'] & df['__is_over_min__']
+    if True in df['__total__'].unique():
         # unlike aggregate, groupby conveniently drops non-numeric values
-        other = df.groupby(dummy_col).sum().loc[True, :]
+        other = df.groupby('__total__').sum().loc[True, :]
         other.name = other_name
-        df = df.loc[df.iloc[:, col_ix] >= threshold, :].append(other)
+        df = df.loc[~df['__total__'], :].append(other)
         df.iloc[-1, other_ix] = other_name
-    df = df.drop(columns=dummy_col)
+    df = df.drop(columns=['__is_small__', '__is_over_min__', '__total__'])
     return df
 
 
