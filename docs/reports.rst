@@ -161,7 +161,7 @@ Available filters for DataFrames:
 
   Syntax::
 
-  {{ df | operation(value, col_ix, fill_value) }}
+  {{ df | operation(value, col_ix[, fill_value]) }}
 
   ``fill_value`` is optional and determines whether empty cells are included in the operation or not. To include empty values and thus make it behave like in Excel, set it to ``0``.
 
@@ -185,7 +185,7 @@ Available filters for DataFrames:
 
   Syntax::
 
-  {{ df | maxrows(number_rows, label, label_col_ix) }}
+  {{ df | maxrows(number_rows, label[, label_col_ix]) }}
 
   ``label_col_ix`` is optional: if left away, it will label the first column of the DataFrame (index is zero-based)
 
@@ -203,15 +203,16 @@ Available filters for DataFrames:
 
   Syntax::
 
-  {{ df | aggsmall(threshold, threshold_col_ix, label, label_col_ix) }}
+  {{ df | aggsmall(threshold, threshold_col_ix, label[, label_col_ix][, min_rows]) }}
 
-  ``label_col_ix`` is optional: if left away, it will label the first column of the DataFrame (indices are zero-based)
+  ``label_col_ix`` and ``min_rows`` are optional: if ``label_col_ix`` is left away, it will label the first column of the DataFrame (indices are zero-based). If ``min_rows`` is left away, you may end up with only one row called "Other" if you only have a few rows that are below the threshold.
 
   Examples::
 
   {{ df | aggsmall(0.1, 2, "Other") }}
   {{ df | sortasc(1) | aggsmall(0.1, 2, "Other") }}
   {{ df | aggsmall(0.5, 1, "Other", 1) }}
+  {{ df | aggsmall(0.5, 1, "Other", 1, 10) }}
 
 * **head**: Only show the top n rows
 
@@ -235,7 +236,7 @@ Available filters for DataFrames:
 
   Syntax::
 
-  {{ df | rowslice(start_index, stop_index) }}
+  {{ df | rowslice(start_index[, stop_index]) }}
 
   ``stop_index`` is optional: if left away, it will stop at the end of the DataFrame
 
@@ -253,7 +254,7 @@ Available filters for DataFrames:
 
   Syntax::
 
-  {{ df | colslice(start_index, stop_index) }}
+  {{ df | colslice(start_index[, stop_index]) }}
 
   ``stop_index`` is optional: if left away, it will stop at the end of the DataFrame
 

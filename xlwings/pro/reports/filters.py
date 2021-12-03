@@ -122,15 +122,18 @@ def maxrows(df, filter_args):
 def aggsmall(df, filter_args):
     threshold = filter_args[0].as_const()
     col_ix = filter_args[1].as_const()
+    other_name = filter_args[2].as_const()
+    other_ix = filter_args[3].as_const() if len(filter_args) > 3 else 0
+    min_rows = filter_args[4].as_const() if len(filter_args) > 4 else None
+    if min_rows and len(df) < min_rows:
+        return df
     dummy_col = '__aggregate__'
     df.loc[:, dummy_col] = df.iloc[:, col_ix] < threshold
     if True in df[dummy_col].unique():
         # unlike aggregate, groupby conveniently drops non-numeric values
         other = df.groupby(dummy_col).sum().loc[True, :]
-        other_name = filter_args[2].as_const()
         other.name = other_name
         df = df.loc[df.iloc[:, col_ix] >= threshold, :].append(other)
-        other_ix = filter_args[3].as_const() if len(filter_args) > 3 else 0
         df.iloc[-1, other_ix] = other_name
     df = df.drop(columns=dummy_col)
     return df
