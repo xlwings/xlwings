@@ -1,6 +1,12 @@
 What's New
 ==========
 
+v0.25.2 (Dec 3, 2021)
+---------------------
+
+* :guilabel:`PRO` [Enhancement] xlwings Reports now ignores sheets whose name start with ``##`` for both rendering and printing to PDF (:issue:`1779`).
+* :guilabel:`PRO` [Enhancement] The ``aggsmall`` filter in xlwings Reports now accepts a new parameter ``min_rows`` (:issue:`1780`).
+
 v0.25.1 (Nov 21, 2021)
 ----------------------
 
