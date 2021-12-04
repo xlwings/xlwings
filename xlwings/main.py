@@ -234,9 +234,12 @@ if sys.platform.startswith('darwin'):
     from . import _xlmac
     engines.add(Engine(impl=_xlmac.engine))
 from . import _openpyxl
+from . import _web
 if _openpyxl.openpyxl:
     engines.add(Engine(impl=_openpyxl.engine))
+    engines.add(Engine(impl=_web.engine))
 engines.active = engines[0]
+
 
 class App(object):
     """
@@ -543,9 +546,12 @@ class Book(object):
 
     """
 
-    def __init__(self, fullname=None, impl=None):
+    def __init__(self, fullname=None, impl=None, json=None):
         if not impl:
-            if fullname:
+            if json:
+                app = App(add_book=False)
+                impl = app.books.open(json=json)
+            elif fullname:
                 fullname = fullname.lower()
 
                 candidates = []
@@ -2797,7 +2803,7 @@ class Books(Collection):
         """
         return Book(impl=self.impl.add())
 
-    def open(self, fullname):
+    def open(self, fullname=None, json=None):
         """
         Opens a Book if it is not open yet and returns it. If it is already open, it doesn't raise an exception but
         simply returns the Book object.
@@ -2812,7 +2818,9 @@ class Books(Collection):
         -------
         Book : Book that has been opened.
 
-        """       
+        """
+        if json:
+            return self.impl.open(json=json)
         if not os.path.exists(fullname):
             if PY3:
                 raise FileNotFoundError("No such file: '%s'" % fullname)

@@ -1,5 +1,6 @@
 from __future__ import division
 import datetime as dt
+import re
 
 from functools import total_ordering
 
@@ -63,6 +64,25 @@ def col_name(i):
         return ALPHABET[i//676] + ALPHABET[i//26%26] + ALPHABET[i%26]
     else:
         raise IndexError(i)
+
+
+def address_to_index(address):
+    # Based on a function from XlsxWriter
+    # SPDX-License-Identifier: BSD-2-Clause
+    # Copyright 2013-2021, John McNamara, jmcnamara@cpan.org
+    re_range_parts = re.compile(r'(\$?)([A-Z]{1,3})(\$?)(\d+)')
+    match = re_range_parts.match(address)
+    col_str = match.group(2)
+    row_str = match.group(4)
+
+    # Convert base26 column string to number
+    expn = 0
+    col = 0
+    for char in reversed(col_str):
+        col += (ord(char) - ord('A') + 1) * (26 ** expn)
+        expn += 1
+
+    return int(row_str), col
 
 
 class VBAWriter(object):
