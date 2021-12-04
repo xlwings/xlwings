@@ -200,7 +200,11 @@ class Sheets:
         if isinstance(name_or_index, int):
             api = self.book.api[name_or_index - 1]
         else:
-            api = self.book.api[name_or_index]
+            for sheet in self.book.api:
+                if sheet['name'] == name_or_index:
+                    api = sheet
+                    break
+                raise ValueError(f"Sheet '{name_or_index}' doesn't exist!")
         return Sheet(api=api, sheets=self)
 
     def __len__(self):
