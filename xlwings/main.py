@@ -233,11 +233,8 @@ if sys.platform.startswith('win'):
 if sys.platform.startswith('darwin'):
     from . import _xlmac
     engines.add(Engine(impl=_xlmac.engine))
-from . import _openpyxl
 from . import _web
-if _openpyxl.openpyxl:
-    engines.add(Engine(impl=_openpyxl.engine))
-    engines.add(Engine(impl=_web.engine))
+engines.add(Engine(impl=_web.engine))
 engines.active = engines[0]
 
 
