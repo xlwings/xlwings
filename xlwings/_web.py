@@ -197,15 +197,21 @@ class Sheets:
         return Sheet(api=self.book.api[0], sheets=self)
 
     def __call__(self, name_or_index):
+        api = None
         if isinstance(name_or_index, int):
             api = self.book.api[name_or_index - 1]
         else:
+            api = None
             for sheet in self.book.api:
                 if sheet['name'] == name_or_index:
                     api = sheet
                     break
-                raise ValueError(f"Sheet '{name_or_index}' doesn't exist!")
-        return Sheet(api=api, sheets=self)
+                else:
+                    continue
+        if api is None:
+            raise ValueError(f"Sheet '{name_or_index}' doesn't exist!")
+        else:
+            return Sheet(api=api, sheets=self)
 
     def __len__(self):
         return len(self.book.api)
@@ -225,7 +231,7 @@ class Sheet:
 
     @property
     def name(self):
-        return self.api.title
+        return self.api['name']
 
     @name.setter
     def name(self, value):
@@ -250,24 +256,14 @@ class Sheet:
             else:
                 arg1 = utils.address_to_index(arg1.upper())
         if len(arg1) == 4:
-            if np:
-                api = np.array(self.api['values'])[
-                    arg1[0] - 1 : arg1[0] + arg1[2], arg1[1] - 1 : arg1[1] + arg1[3]
-                ].tolist()
-            else:
-                api = [
-                    row[arg1[1] - 1 : arg1[1] + arg1[3]] for row in self.api['values'][arg1[0] - 1 : arg1[0] + arg1[2]]
-                ]
+            api = [
+                row[arg1[1] - 1 : arg1[1] + arg1[3]] for row in self.api['values'][arg1[0] - 1 : arg1[0] + arg1[2]]
+            ]
             return Range(api=api, sheet=self, row_ix=arg1[2], col_ix=arg1[3])
         elif arg2 is not None:
-            if np:
-                api = np.array(self.api['values'])[
-                    arg1[0] - 1 : arg2[0], arg1[1] - 1 : arg2[1]
-                ].tolist()
-            else:
-                api = [
-                    row[arg1[1] - 1 : arg2[1]] for row in self.api['values'][arg1[0] - 1 : arg2[0]]
-                ]
+            api = [
+                row[arg1[1] - 1 : arg2[1]] for row in self.api['values'][arg1[0] - 1 : arg2[0]]
+            ]
             return Range(api=api, sheet=self, row_ix=arg1[0], col_ix=arg1[1])
         else:
             api = self.api['values'][arg1[0] - 1][arg1[1] - 1]
