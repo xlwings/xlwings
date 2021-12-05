@@ -9,13 +9,17 @@ from xlwings.web import Book
 
 this_dir = Path(__file__).resolve().parent
 
-data = [
-    {
-        'name': 'Sheet1',
-        'values': [['a', 'b', 'c', ''], [1, 2, 3, ''], [4, 5, 6, ''], ['', '', '', '']],
-    },
-    {'name': 'Sheet2', 'values': [['aa', 'bb'], [11, 22]]},
-]
+data = {
+    'book': {'name': 'mybook.xlsx',
+             'active_sheet': 'Sheet1'},
+    'sheets': [
+        {
+            'name': 'Sheet1',
+            'values': [['a', 'b', 'c', ''], [1, 2, 3, ''], [4, 5, 6, ''], ['', '', '', '']],
+        },
+        {'name': 'Sheet2', 'values': [['aa', 'bb'], [11, 22]]},
+    ],
+}
 
 
 @pytest.fixture(scope="module")
@@ -70,4 +74,3 @@ def test_sheet_access(book):
     assert book.sheets[1] == book.sheets['Sheet2']
     assert book.sheets[0].name == 'Sheet1'
     assert book.sheets[1].name == 'Sheet2'
-

@@ -155,7 +155,7 @@ class Book:
 
     @property
     def name(self):
-        return 'TODO'
+        return self.api['book']['name']
 
     @property
     def fullname(self):
@@ -193,16 +193,15 @@ class Sheets:
 
     @property
     def active(self):
-        # TODO
-        return Sheet(api=self.book.api[0], sheets=self)
+        return Sheet(api=self.book.api['book']['active_sheet'], sheets=self)
 
     def __call__(self, name_or_index):
         api = None
         if isinstance(name_or_index, int):
-            api = self.book.api[name_or_index - 1]
+            api = self.book.api['sheets'][name_or_index - 1]
         else:
             api = None
-            for sheet in self.book.api:
+            for sheet in self.book.api['sheets']:
                 if sheet['name'] == name_or_index:
                     api = sheet
                     break
