@@ -1,0 +1,579 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-12-04 08:45+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.8.0\n"
+
+#: ../../converters.rst:4
+msgid "Converters and Options"
+msgstr "コンバーターおよびオプション"
+
+#: ../../converters.rst:6
+msgid ""
+"Introduced with v0.7.0, converters define how Excel ranges and their "
+"values are converted both during **reading** and **writing** operations. "
+"They also provide a consistent experience across **xlwings.Range** "
+"objects and **User Defined Functions** (UDFs)."
+msgstr ""
+"コンバーターはv0.7.0で導入された機能で、Excelのセル範囲やその値の **読み込み** 、**書き込み** "
+"時の変換方法を定義するものです。この機能は、**xlwings.Range** オブジェクトと **User Defined "
+"Functions** (UDF)の両方で同じように利用できます。"
+
+#: ../../converters.rst:10
+msgid ""
+"Converters are explicitly set in the ``options`` method when manipulating"
+" ``Range`` objects or in the ``@xw.arg`` and ``@xw.ret`` decorators when "
+"using UDFs. If no converter is specified, the default converter is "
+"applied when reading. When writing, xlwings will automatically apply the "
+"correct converter (if available) according to the object's type that is "
+"being written to Excel. If no converter is found for that type, it falls "
+"back to the default converter."
+msgstr ""
+"コンバーターを使うには、 ``Range`` オブジェクトの場合は ``options`` メソッドで、UDFの場合は ``@xw.arg`` と"
+" ``@xw.ret`` デコレーターで、明示的に指定します。コンバーターの指定が無ければ、読み込み時にはデフォルト "
+"コンバーターが適用されます。書き込み時には、Excelに書きこまれるオブジェクトの型に応じて、xlwingsは（可能であれば）適切なコンバーターを自動的に適用します。型に合うコンバーターが無ければ、デフォルト"
+" コンバーターにフォール バックします。"
+
+#: ../../converters.rst:15
+msgid "All code samples below depend on the following import:"
+msgstr "以下、全てのサンプル コードは次のインポートを前提としています:"
+
+#: ../../converters.rst:19
+msgid "**Syntax:**"
+msgstr "**シンタックス:**"
+
+#: ../../converters.rst:22
+msgid "**xw.Range**"
+msgstr ""
+
+#: ../../converters.rst:22
+msgid "**UDFs**"
+msgstr ""
+
+#: ../../converters.rst:24
+msgid "**reading**"
+msgstr "**読み込み**"
+
+#: ../../converters.rst:24
+msgid "``xw.Range.options(convert=None, **kwargs).value``"
+msgstr ""
+
+#: ../../converters.rst:24
+msgid "``@arg('x', convert=None, **kwargs)``"
+msgstr ""
+
+#: ../../converters.rst:25
+msgid "**writing**"
+msgstr "**書き込み**"
+
+#: ../../converters.rst:25
+msgid "``xw.Range.options(convert=None, **kwargs).value = myvalue``"
+msgstr ""
+
+#: ../../converters.rst:25
+msgid "``@ret(convert=None, **kwargs)``"
+msgstr ""
+
+#: ../../converters.rst:28
+msgid ""
+"Keyword arguments (``kwargs``) may refer to the specific converter or the"
+" default converter. For example, to set the ``numbers`` option in the "
+"default converter and the ``index`` option in the DataFrame converter, "
+"you would write::"
+msgstr ""
+"キーワード引数(``kwargs``)は、特定のコンバーターやデフォルト コンバーターで使用されます。例えば、デフォルトコンバーターの "
+"``numbers`` オプションやDataFrame コンバーターの ``index`` オプションの設定方法は以下のとおりです::"
+
+#: ../../converters.rst:35
+msgid "Default Converter"
+msgstr "デフォルト コンバーター"
+
+#: ../../converters.rst:37
+msgid "If no options are set, the following conversions are performed:"
+msgstr "オプションが設定されていない場合の変換は次のとおりです:"
+
+#: ../../converters.rst:39
+msgid ""
+"single cells are read in as ``floats`` in case the Excel cell holds a "
+"number, as ``unicode`` in case it holds text, as ``datetime`` if it "
+"contains a date and as ``None`` in case it is empty."
+msgstr ""
+"単独セルは、Excelセルの値が数字であれば ``float`` 、テキストであれば ``unicode`` 、日付であれば "
+"``datetime`` 、空白であれば ``None`` として読み込まれます。"
+
+#: ../../converters.rst:41
+msgid "columns/rows are read in as lists, e.g. ``[None, 1.0, 'a string']``"
+msgstr "行/列は、リストとして読み込まれます、e.g. ``[None, 1.0, 'a string']``"
+
+#: ../../converters.rst:42
+msgid ""
+"2d cell ranges are read in as list of lists, e.g. ``[[None, 1.0, 'a "
+"string'], [None, 2.0, 'another string']]``"
+msgstr ""
+"2次元のセル範囲は、リストのリストとして読み込まれます、e.g. ``[[None, 1.0, 'a string'], [None, 2.0, "
+"'another string']]``"
+
+#: ../../converters.rst:44
+msgid "The following options can be set:"
+msgstr "以下のオプションを設定できます:"
+
+#: ../../converters.rst:46
+msgid "**ndim**"
+msgstr ""
+
+#: ../../converters.rst:48
+msgid ""
+"Force the value to have either 1 or 2 dimensions regardless of the shape "
+"of the range:"
+msgstr "セル範囲の形に関わらず、強制的に値の次元を1か2にします::"
+
+#: ../../converters.rst:64
+msgid "**numbers**"
+msgstr ""
+
+#: ../../converters.rst:66
+msgid ""
+"By default cells with numbers are read as ``float``, but you can change "
+"it to ``int``::"
+msgstr "デフォルトでは数字のセルは ``float`` として読み込まれますが、 ``int`` に変更できます::"
+
+#: ../../converters.rst:74
+msgid ""
+"Alternatively, you can specify any other function or type which takes a "
+"single float argument."
+msgstr "それ以外にも、1つのfloat引数を受け取る関数や型を設定することもできます。"
+
+#: ../../converters.rst:76
+msgid "Using this on UDFs looks like this::"
+msgstr "UDFでの使用例を以下に示します::"
+
+#: ../../converters.rst:84
+msgid ""
+"**Note:** Excel always stores numbers internally as floats, which is the "
+"reason why the `int` converter rounds numbers first before turning them "
+"into integers. Otherwise it could happen that e.g. 5 might be returned as"
+" 4 in case it is represented as a floating point number that is slightly "
+"smaller than 5. Should you require Python's original `int` in your "
+"converter, use `raw int` instead."
+msgstr ""
+"**Note:** 内部的にはExcelは常に数字をfloatとして保持しています。そのため、 ``int`` "
+"コンバーターは、最初に数字を丸めてから、``int`` "
+"に変換しています。そうしなければ、例えば、5が5よりも僅かに小さい数字として表されている場合には、5は4として返されるためです。Pythonのオリジナルの"
+" `int` が必要であれば、代わりに `raw int` を使用します。"
+
+#: ../../converters.rst:91
+msgid "**dates**"
+msgstr ""
+
+#: ../../converters.rst:93
+msgid ""
+"By default cells with dates are read as ``datetime.datetime``, but you "
+"can change it to ``datetime.date``:"
+msgstr ""
+"デフォルトでは、日付のセルは ``datetime.datetime`` として読み込まれますが、``datetime.date`` "
+"に変更することもできます。"
+
+#: ../../converters.rst:95
+msgid "Range::"
+msgstr ""
+
+#: ../../converters.rst:100
+msgid "UDFs: ``@xw.arg('x', dates=dt.date)``"
+msgstr ""
+
+#: ../../converters.rst:102
+msgid ""
+"Alternatively, you can specify any other function or type which takes the"
+" same keyword arguments as ``datetime.datetime``, for example:"
+msgstr "それ以外にも、 ``datetime.datetime`` と同じキーワード引数を受け取る任意の関数や型を指定できます。例::"
+
+#: ../../converters.rst:110
+msgid "**empty**"
+msgstr ""
+
+#: ../../converters.rst:112
+msgid ""
+"Empty cells are converted per default into ``None``, you can change this "
+"as follows:"
+msgstr "空白のセルはデフォルトでは ``None`` に変換されますが、次のように変更できます:"
+
+#: ../../converters.rst:114
+msgid "Range: ``>>> sht.range('A1').options(empty='NA').value``"
+msgstr ""
+
+#: ../../converters.rst:116
+msgid "UDFs:  ``@xw.arg('x', empty='NA')``"
+msgstr ""
+
+#: ../../converters.rst:118
+msgid "**transpose**"
+msgstr ""
+
+#: ../../converters.rst:120
+msgid ""
+"This works for reading and writing and allows us to e.g. write a list in "
+"column orientation to Excel:"
+msgstr "transposeは読み込み/書き込み時に機能し、例えばリストを列方向に書き込めます:"
+
+#: ../../converters.rst:122
+msgid "Range: ``sht.range('A1').options(transpose=True).value = [1, 2, 3]``"
+msgstr ""
+
+#: ../../converters.rst:124
+msgid "UDFs:"
+msgstr ""
+
+#: ../../converters.rst:134
+msgid "**expand**"
+msgstr ""
+
+#: ../../converters.rst:136
+msgid ""
+"This works the same as the Range properties ``table``, ``vertical`` and "
+"``horizontal`` but is only evaluated when getting the values of a Range::"
+msgstr ""
+"これはRangeの ``table``, ``vertical``, ``horizontal`` "
+"プロパティと同じように機能しますが、Rangeの値を取得するときのみ評価されます::"
+
+#: ../../converters.rst:154
+msgid ""
+"The ``expand`` method is only available on ``Range`` objects as UDFs only"
+" allow to manipulate the calling cells."
+msgstr ""
+"``expand`` メソッドが使えるのは、 ``Range`` "
+"オブジェクトのみです。UDFは呼び出し元のセルの操作のみしかできないため、UDFでは ``expand`` メソッドを使えません。"
+
+#: ../../converters.rst:157
+msgid "Built-in Converters"
+msgstr "ビルトイン コンバーター"
+
+#: ../../converters.rst:159
+msgid ""
+"xlwings offers several built-in converters that perform type conversion "
+"to **dictionaries**, **NumPy arrays**, **Pandas Series** and "
+"**DataFrames**. These build on top of the default converter, so in most "
+"cases the options described above can be used in this context, too "
+"(unless they are meaningless, for example the ``ndim`` in the case of a "
+"dictionary)."
+msgstr ""
+"xlwingsはビルトイン コンバーターを提供しており、これらは、**辞書**、**Numpy arrays**, **Pandas "
+"Series**, **DataFrame** への型変換に対応しています。これらはデフォルト "
+"コンバーターを基にしているため、多くのケースで上記のオプションも利用できます（例えば辞書の場合の ``ndim`` "
+"のように意味がないこともありますが）。"
+
+#: ../../converters.rst:164
+msgid ""
+"It is also possible to write and register a custom converter for "
+"additional types, see below."
+msgstr "これら以外の型に対応するカスタム コンバーターの作成や登録もできます（後述）。"
+
+#: ../../converters.rst:166
+msgid ""
+"The samples below can be used with both ``xlwings.Range`` objects and "
+"UDFs even though only one version may be shown."
+msgstr "以下のサンプルは ``xlwings.Range`` オブジェクトとUDFの両方で使えますが、いずれかで説明します。"
+
+#: ../../converters.rst:169
+msgid "Dictionary converter"
+msgstr "辞書コンバーター"
+
+#: ../../converters.rst:171
+msgid ""
+"The dictionary converter turns two Excel columns into a dictionary. If "
+"the data is in row orientation, use ``transpose``:"
+msgstr "辞書コンバーターはExcelの2つの列を辞書に変換します。もしデータが行方向なら、 ``transpose`` を使ってください:"
+
+#: ../../converters.rst:184
+msgid ""
+"Note: instead of ``dict``, you can also use ``OrderedDict`` from "
+"``collections``."
+msgstr "Note: ``dict`` の代わりに、 ``collections`` の ``OrderedDict`` も使えます。"
+
+#: ../../converters.rst:187
+msgid "Numpy array converter"
+msgstr "Numpy array コンバーター"
+
+#: ../../converters.rst:189
+msgid "**options:** ``dtype=None, copy=True, order=None, ndim=None``"
+msgstr ""
+
+#: ../../converters.rst:191
+msgid ""
+"The first 3 options behave the same as when using ``np.array()`` "
+"directly. Also, ``ndim`` works the same as shown above for lists (under "
+"default converter) and hence returns either numpy scalars, 1d arrays or "
+"2d arrays."
+msgstr ""
+"最初の3つのオプションは、直接 ``np.array()`` を使うときと同じように機能します。また、 ``ndim`` "
+"は先述のリスト（デフォルト コンバーター）と同様に機能し、numpyのスカラーや1次元配列、2次元配列を返します。"
+
+#: ../../converters.rst:194
+msgid "**Example**::"
+msgstr "**例**::"
+
+#: ../../converters.rst:205
+msgid "Pandas Series converter"
+msgstr "Pandas Series コンバーター"
+
+#: ../../converters.rst:207
+msgid "**options:** ``dtype=None, copy=False, index=1, header=True``"
+msgstr ""
+
+#: ../../converters.rst:209
+msgid ""
+"The first 2 options behave the same as when using ``pd.Series()`` "
+"directly. ``ndim`` doesn't have an effect on Pandas series as they are "
+"always expected and returned in column orientation."
+msgstr ""
+"最初の2つのオプションは、直接 ``pd.Series`` を使うときと同じように機能します。Pandas "
+"Seriesは常に列方向への入出力を前提としているため、 ``ndim`` は機能しません。"
+
+#: ../../converters.rst:214 ../../converters.rst:252
+msgid "``index``: int or Boolean"
+msgstr ""
+
+#: ../../converters.rst
+msgid "When reading, it expects the number of index columns shown in Excel."
+msgstr "読み込み時、Excel上のデータからインデックスとする列の数を設定します。"
+
+#: ../../converters.rst
+msgid ""
+"When writing, include or exclude the index by setting it to ``True`` or "
+"``False``."
+msgstr "書き込み時、 インデックスの有無を ``True`` か ``False`` かで設定します。"
+
+#: ../../converters.rst:218
+msgid "``header``: Boolean"
+msgstr ""
+
+#: ../../converters.rst
+msgid ""
+"When reading, set it to ``False`` if Excel doesn't show either index or "
+"series names."
+msgstr "読み込み時、ExcelにインデックスまたはSeriesの名前がなければ、``False`` を設定します。"
+
+#: ../../converters.rst
+msgid ""
+"When writing, include or exclude the index and series names by setting it"
+" to ``True`` or ``False``."
+msgstr "書き込み時、インデックスやシリーズの名前の有無を、 ``True`` か ``False`` かで設定します。"
+
+#: ../../converters.rst:220 ../../converters.rst:258
+msgid ""
+"For ``index`` and ``header``, ``1`` and ``True`` may be used "
+"interchangeably."
+msgstr "``index`` と ``header`` には、``1`` と ``True`` の両方を使えます。"
+
+#: ../../converters.rst:222 ../../converters.rst:260
+msgid "**Example:**"
+msgstr "**例**"
+
+#: ../../converters.rst:243
+msgid "Pandas DataFrame converter"
+msgstr "Pandas DataFrame コンバーター"
+
+#: ../../converters.rst:245
+msgid "**options:** ``dtype=None, copy=False, index=1, header=1``"
+msgstr ""
+
+#: ../../converters.rst:247
+msgid ""
+"The first 2 options behave the same as when using ``pd.DataFrame()`` "
+"directly. ``ndim`` doesn't have an effect on Pandas DataFrames as they "
+"are automatically read in with ``ndim=2``."
+msgstr ""
+"最初の2つのオプションは、直接 ``pd.DataFrame()`` を使ったときと同じように機能します。Pandas "
+"DataFrameは自動的に ``ndim=2`` として読み込むため、``ndim`` は機能しません。"
+
+#: ../../converters.rst:256
+msgid "``header``: int or Boolean"
+msgstr ""
+
+#: ../../converters.rst
+msgid "When reading, it expects the number of column headers shown in Excel."
+msgstr "読み込み時、Excel上のデータから列ヘッダーの数を設定します。"
+
+#: ../../converters.rst:283
+msgid ""
+"The same sample for **UDF** (starting in ``Range('A13')`` on screenshot) "
+"looks like this::"
+msgstr "同じ例（スクリーンショットで ``Range('A13')`` から始まるもの）は **UDF** では以下のようになります::"
+
+#: ../../converters.rst:294
+msgid "xw.Range and 'raw' converters"
+msgstr "xw.Range コンバーターおよび 'raw' コンバーター"
+
+#: ../../converters.rst:296
+msgid "Technically speaking, these are \"no-converters\"."
+msgstr "技術的には、これらは \"コンバーターではありません\"。"
+
+#: ../../converters.rst:298
+msgid "If you need access to the ``xlwings.Range`` object directly, you can do::"
+msgstr "``xlwings.Range`` オブジェクトに直接アクセスする必要がある場合、次のようにします::"
+
+#: ../../converters.rst:305
+msgid ""
+"This returns x as ``xlwings.Range`` object, i.e. without applying any "
+"converters or options."
+msgstr "これはxを ``xlwings.Range`` オブジェクト、つまり、コンバーターやオプションを何も適用せずに返します。"
+
+#: ../../converters.rst:307
+msgid ""
+"The ``raw`` converter delivers the values unchanged from the underlying "
+"libraries (``pywin32`` on Windows and ``appscript`` on Mac), i.e. no "
+"sanitizing/cross-platform harmonizing of values are being made. This "
+"might be useful in a few cases for efficiency reasons. E.g::"
+msgstr ""
+"``raw`` コンバーターは、基礎となるライブラリー（Windowsでは ``pywin32`` 、Macでは ``appscript`` "
+"）に変換ぜずに値を渡します。つまり、不要なものの除去やクロスプラットフォーム用の調整がされていない値が作られます。効率化が必要な場合には、この方法が役に立つことがあるかもしれません。例::"
+
+#: ../../converters.rst:321
+msgid "Custom Converter"
+msgstr "カスタム コンバーター"
+
+#: ../../converters.rst:323
+msgid "Here are the steps to implement your own converter:"
+msgstr "自身で作成したコンバーターを実装する手順は以下のとおりです:"
+
+#: ../../converters.rst:325
+msgid "Inherit from ``xlwings.conversion.Converter``"
+msgstr "``xlwings.conversion.Converter`` を継承します。"
+
+#: ../../converters.rst:326
+msgid ""
+"Implement both a ``read_value`` and ``write_value`` method as static- or "
+"classmethod:"
+msgstr "``read_value`` メソッドと ``write_value`` メソッドをスタティックメソッドまたはクラスメソッドで実装します:"
+
+#: ../../converters.rst:328
+msgid ""
+"In ``read_value``, ``value`` is what the base converter returns: hence, "
+"if no ``base`` has been specified it arrives in the format of the default"
+" converter."
+msgstr ""
+"``read_value`` では、 ``value`` はbase コンバーターの戻り値です: したがって、``base`` "
+"が特定されなければ、デフォルト コンバーターのものになります。"
+
+#: ../../converters.rst:330
+msgid ""
+"In ``write_value``, ``value`` is the original object being written to "
+"Excel. It must be returned in the format that the base converter expects."
+" Again, if no ``base`` has been specified, this is the default converter."
+msgstr ""
+"``write_value`` では、 ``value`` はExcelに書き込まれるオリジナルのオブジェクトです。戻り値は、base "
+"コンバーターが受け取れる形式でなければなりません。``base`` が特定されていなければ、デフォルト コンバーターの形式になります。"
+
+#: ../../converters.rst:334
+msgid ""
+"The ``options`` dictionary will contain all keyword arguments specified "
+"in the ``xw.Range.options`` method, e.g. when calling "
+"``xw.Range('A1').options(myoption='some value')`` or as specified in the "
+"``@arg`` and ``@ret`` decorator when using UDFs. Here is the basic "
+"structure::"
+msgstr ""
+"``options`` 辞書は、 ``xw.Range.options`` メソッド（例えば、 "
+"``xw.Range('A1').options(myoption='some value')`` ）や、UDF使用時の ``@arg`` "
+"デコレーターや ``@ret`` デコレーターで指定した、全てのキーワード引数を含みます。 基本的な構造は次のとおりです::"
+
+#: ../../converters.rst:354
+msgid ""
+"Optional: set a ``base`` converter (``base`` expects a class name) to "
+"build on top of an existing converter, e.g. for the built-in ones: "
+"``DictCoverter``, ``NumpyArrayConverter``, ``PandasDataFrameConverter``, "
+"``PandasSeriesConverter``"
+msgstr ""
+"Optional: 既存のコンバーターを基にコンバーターを作るには、``base`` コンバーター(``base`` "
+"はクラスの名前)をセットします。既存のコンバーターの例はビルトインコンバーターです: ``DictCoverter``、 "
+"``NumpyArrayConverter`` 、``PandasDataFrameConverter`` 、 "
+"``PandasSeriesConverter``"
+
+#: ../../converters.rst:356
+msgid ""
+"Optional: register the converter: you can **(a)** register a type so that"
+" your converter becomes the default for this type during write operations"
+" and/or **(b)** you can register an alias that will allow you to "
+"explicitly call your converter by name instead of just by class name"
+msgstr ""
+"Optional: コンバーターを登録します: **(a)** 型を登録すれば、その型を書き込む際ののデフォルト "
+"コンバーターになります。そして/または **(b)** "
+"エイリアスを登録すれば、正確なクラス名ではなく、名前でコンバーターを指定できるようになります。"
+
+#: ../../converters.rst:360
+msgid ""
+"The following examples should make it much easier to follow - it defines "
+"a DataFrame converter that extends the built-in DataFrame converter to "
+"add support for dropping nan's::"
+msgstr ""
+"以下の例は理解の助けになるでしょう。ビルトイン DataFrame コンバーターを基に、nanを除去する機能を追加したDataFrame "
+"コンバーターを定義しています::"
+
+#: ../../converters.rst:390
+msgid "Now let's see how the different converters can be applied::"
+msgstr "これらコンバーターの動作の違いを見てみましょう::"
+
+#: ../../converters.rst:396
+msgid "Default converter for DataFrames::"
+msgstr "デフォルトのDataFrame コンバーター::"
+
+#: ../../converters.rst:404
+msgid "DataFrameDropna converter::"
+msgstr "DataFrameDropna コンバーター::"
+
+#: ../../converters.rst:412
+msgid "Register an alias (optional)::"
+msgstr "エイリアスの登録(optional)::"
+
+#: ../../converters.rst:423
+msgid "Register DataFrameDropna as default converter for DataFrames (optional)::"
+msgstr "DataFrameDropnaを、DataFrameに対するデフォルトのコンバーターとして登録(optional)::"
+
+#: ../../converters.rst:433
+msgid "These samples all work the same with UDFs, e.g.::"
+msgstr "これらのサンプルはUDFでも同様に機能します。例::"
+
+#: ../../converters.rst:444
+msgid ""
+"Python objects run through multiple stages of a transformation pipeline "
+"when they are being written to Excel. The same holds true in the other "
+"direction, when Excel/COM objects are being read into Python."
+msgstr ""
+"Pythonオブジェクトは、複数の変換パイプラインのステージを経て、Excelに書き出されます。反対方向、つまり、Excel/COM "
+"オブジェクトがPythonに読み込まれる際も同様です。"
+
+#: ../../converters.rst:447
+msgid ""
+"Pipelines are internally defined by ``Accessor`` classes. A Converter is "
+"just a special Accessor which converts to/from a particular type by "
+"adding an extra stage to the pipeline of the default Accessor. For "
+"example, the ``PandasDataFrameConverter`` defines how a list of lists (as"
+" delivered by the default Accessor) should be turned into a Pandas "
+"DataFrame."
+msgstr ""
+"内部的には、パイプラインは複数の ``Accessor`` "
+"クラスで定義されています。コンバーターは特別なAccessorで、デフォルトAccessorのパイプラインに特別なステージを追加することで、特定の型への/からの変換を行います。例えば、"
+" ``PandasDataFrameConverter`` は、（デフォルトのAccessorが渡す）リストのリストからPandas "
+"DataFrameに変換する方法を定めています。"
+
+#: ../../converters.rst:452
+msgid ""
+"The ``Converter`` class provides basic scaffolding to make the task of "
+"writing a new Converter easier. If you need more control you can subclass"
+" ``Accessor`` directly, but this part requires more work and is currently"
+" undocumented."
+msgstr ""
+"``Converter`` クラスは、新しいコンバーターを簡単に作るための基本的な枠組みを提供します。もっと細かい操作が必要なら、直接 "
+"``Accessor`` クラスを継承することもできますが、作業が大変になることに加え、現在のところドキュメント化もされていません。"
+

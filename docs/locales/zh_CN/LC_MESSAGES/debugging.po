@@ -1,0 +1,107 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../debugging.rst:4
+msgid "Debugging"
+msgstr "调试"
+
+#: ../../debugging.rst:6
+msgid ""
+"Since xlwings runs in every Python environment, you can use your "
+"preferred way of debugging."
+msgstr "因为xlwings可以在每种Python环境中运行，因此你可以选择自己喜欢的环境进行调试。"
+
+#: ../../debugging.rst:8
+msgid ""
+"**RunPython**: When calling Python through ``RunPython``, you can set a "
+"``mock_caller`` to make it easy to switch back and forth between calling "
+"the function from Excel and Python."
+msgstr "**RunPython**: 通过 ``RunPython`` 调用Python时，可以设置一个 ``mock_caller`` 以便可以在Excel和Python的函数调用之间自由切换。"
+
+#: ../../debugging.rst:10
+msgid ""
+"**UDFs**: For debugging User Defined Functions, xlwings offers a "
+"convenient debugging server"
+msgstr "**UDFs**: 为了调试用户定义函数，xlwings提供了一个方便的调试服务器。"
+
+#: ../../debugging.rst:13
+msgid "To begin with, Excel will show Python errors in a Message Box:"
+msgstr "首先，Excel会在消息框中显示Python错误："
+
+#: ../../debugging.rst:18
+msgid ""
+"On Mac, if the ``import`` of a module/package fails before ``xlwings`` is"
+" imported, the popup will not be shown and the StatusBar will not be "
+"reset. However, the error will still be logged in the log file "
+"(``/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings.log``)."
+msgstr ""
+"在Mac系统中，如果在 ``xlwings`` 被导入之前就有模块或程序包导入失败，不会弹出提示框、状态栏也不会重置。 "
+"但是，错误信息仍旧会写入日志文件(``/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings.log``)。"
+
+#: ../../debugging.rst:22
+msgid "RunPython"
+msgstr ""
+
+#: ../../debugging.rst:24
+msgid ""
+"Consider the following sample code of your Python source code "
+"``my_module.py``:"
+msgstr "考虑Python源文件 ``my_module.py`` 里的示例代码："
+
+#: ../../debugging.rst:42
+msgid ""
+"``my_macro()`` can now easily be run from Python for debugging and from "
+"Excel via ``RunPython`` without having to change the source code:"
+msgstr "现在 ``my_macro()`` 既可以从Python中轻松调试，又可以从Excel中通过 ``RunPython`` 来调试，用不着修改源代码："
+
+#: ../../debugging.rst:52
+msgid "UDF debug server"
+msgstr "UDF测试服务器"
+
+#: ../../debugging.rst:54
+msgid ""
+"Windows only: To debug UDFs, just check the ``Debug UDFs`` in the "
+":ref:`xlwings_addin`, at the top of the xlwings VBA module. Then add the "
+"following lines at the end of your Python source file and run it. "
+"Depending on which IDE you use, you might need to run the code in "
+"\"debug\" mode (e.g. in case you're using PyCharm or PyDev)::"
+msgstr ""
+"仅适用于Windows系统：要调试UDF，只需要在xlwings的 :ref:`xlwings_addin` 功能区的VBA模块上部选中 ``Debug UDFs`` , "
+"然后再Python源文件的结尾加上下面几行，就可以进行测试了。"
+"根据调试时用的Python集成环境，可能需要使用调试模式来运行代码(比如，使用PyCharm或者PyDev时)::"
+
+#: ../../debugging.rst:62
+msgid ""
+"When you recalculate the Sheet (``Ctrl-Alt-F9``), the code will stop at "
+"breakpoints or output any print calls that you may have."
+msgstr "接下来，当你刷新工作表时(用 ``Ctrl-Alt-F9``)，代码会停止你设置的断点处，或者会输出你设置过的打印信息。"
+
+#: ../../debugging.rst:65
+msgid ""
+"The following screenshot shows the code stopped at a breakpoint in the "
+"community version of PyCharm:"
+msgstr "下面的截图显示了这PyCharm的社区版集成环境中，代码停在断点处的情况："
+
+#: ../../debugging.rst:71
+msgid ""
+"When running the debug server from a command prompt, there is currently "
+"no gracious way to terminate it, but closing the command prompt will kill"
+" it."
+msgstr "当从命令行启动调试服务器的时候，现在这个版本中要终止服务器还没有什么比较优雅的办法，只能是通过关掉命令行窗口来停止进程。"
+

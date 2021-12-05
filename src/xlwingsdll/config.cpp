@@ -454,7 +454,7 @@ void Config::ActivateRPCServer()
 			NULL, 
 			NULL, 
 			TRUE, 
-			NORMAL_PRIORITY_CLASS | CREATE_BREAKAWAY_FROM_JOB, 
+			this->GetValue("Command").find("showconsole") != std::string::npos ? NORMAL_PRIORITY_CLASS | CREATE_BREAKAWAY_FROM_JOB : NORMAL_PRIORITY_CLASS | CREATE_BREAKAWAY_FROM_JOB | CREATE_NO_WINDOW,
 			envStr.p, 
 			this->HasValue("WorkingDir") ? workingDir.c_str() : NULL, 
 			&si, 
@@ -476,8 +476,8 @@ void Config::ActivateRPCServer()
 				throw formatted_exception() << "AssignProcessToJobObject failed: " << GetLastErrorMessage();
 		}
 
-		// now repeatedly try to create the Python interface object, waiting up to 1 minute to do it
-		for(int k=0; k<600; k++)
+		// now repeatedly try to create the Python interface object, waiting up to 2 minutes to do it
+		for(int k=0; k<1200; k++)
 		{
 			// try to create the object
 			hr = CoCreateInstance(clsid, NULL, CLSCTX_LOCAL_SERVER, IID_IDispatch, (void**) &(this->pInterface));

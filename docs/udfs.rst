@@ -1,7 +1,7 @@
 .. _udfs:
 
-VBA: User Defined Functions (UDFs)
-==================================
+User Defined Functions (UDFs)
+=============================
 
 This tutorial gets you quickly started on how to write User Defined Functions.
 
@@ -13,8 +13,7 @@ This tutorial gets you quickly started on how to write User Defined Functions.
 One-time Excel preparations
 ---------------------------
 
-1) Enable ``Trust access to the VBA project object model`` under
-``File > Options > Trust Center > Trust Center Settings > Macro Settings``
+1) Enable ``Trust access to the VBA project object model`` under ``File > Options > Trust Center > Trust Center Settings > Macro Settings``. You only need to do this once. Also, this is only required for importing the functions, i.e. end users won't need to bother about this.
 
 2) Install the add-in via command prompt: ``xlwings addin install`` (see :ref:`xlwings_addin`).
 
@@ -49,7 +48,6 @@ Let's assume you have a Workbook ``myproject.xlsm``, then you would write the fo
 * Enter the formula ``=double_sum(1, 2)`` into a cell and you will see the correct result:
 
   .. figure:: images/double_sum.png
-    :scale: 80%
 
 * The docstring (in triple-quotes) will be shown as function description in Excel.
 
@@ -88,7 +86,6 @@ To use this formula in Excel,
   surrounded by curly braces as in this screenshot:
 
 .. figure:: images/array_formula.png
-    :scale: 80%
 
 Number of array dimensions: ndim
 ********************************
@@ -160,10 +157,16 @@ For further details see the :ref:`converters` documentation.
 Dynamic Array Formulas
 ----------------------
 
+.. note::
+    If your version of Excel supports the new native dynamic arrays, then you don't have to do anything special, 
+    and you shouldn't use the ``expand`` decorator! To check if your version of Excel supports it, see if you
+    have the ``=UNIQUE()`` formula available. Native dynamic arrays were introduced in Office 365 Insider Fast
+    at the end of September 2018.
+
 As seen above, to use Excel's array formulas, you need to specify their dimensions up front by selecting the
-result array first, then entering the formula and finally hitting ``Ctrl-Shift-Enter``. While this makes sense from
-a data integrity point of view, in practice, it often turns out to be a cumbersome limitation, especially when working
-with dynamic arrays such as time series data. Since v0.10, xlwings offers dynamic UDF expansion:
+result array first, then entering the formula and finally hitting ``Ctrl-Shift-Enter``. In practice, it often turns
+out to be a cumbersome process, especially when working with dynamic arrays such as time series data.
+Since v0.10, xlwings offers dynamic UDF expansion:
 
 This is a simple example that demonstrates the syntax and effect of UDF expansion:
 
@@ -177,16 +180,16 @@ This is a simple example that demonstrates the syntax and effect of UDF expansio
         return np.random.randn(int(r), int(c))
 
 .. figure:: images/dynamic_array1.png
-  :scale: 40%
 
 .. figure:: images/dynamic_array2.png
-  :scale: 40%
 
 .. note::
-    * Expanding array formulas will overwrite cells without prompting and leave an empty border around them, i.e.
-      they will clear the row to the bottom and the column to the right of the array.
-    * The way that dynamic array formulas are currently implemented doesn't allow them to have volatile functions
-      as arguments, e.g. you cannot use functions like ``=TODAY()`` as arguments.
+    * Expanding array formulas will overwrite cells without prompting
+    * Pre v0.15.0 doesn't allow to have volatile functions as arguments, e.g. you cannot use functions like ``=TODAY()`` as arguments.
+      Starting with v0.15.0, you can use volatile functions as input, but the UDF will be called more than 1x.
+    * Dynamic Arrays have been refactored with v0.15.0 to be proper legacy arrays: To edit a dynamic array
+      with xlwings >= v0.15.0, you need to hit ``Ctrl-Shift-Enter`` while in the top left cell. Note that you don't
+      have to do that when you enter the formula for the first time.
 
 Docstrings
 ----------
@@ -206,25 +209,39 @@ show up in the function wizard in Excel:
         return 2 * (x + y)
 
 
+The "caller" argument
+---------------------
+
+You often need to know which cell called the UDF. For this, xlwings offers the reserved argument ``caller`` which returns the calling cell as xlwings range object::
+
+    @xw.func
+    def get_caller_address(caller):
+        # caller will not be exposed in Excel, so use it like so:
+        # =get_caller_address()
+        return caller.address
+
+Note that ``caller`` will not be exposed in Excel but will be provided by xlwings behind the scenes.
+
 The "vba" keyword
 -----------------
 
-It's often helpful to get the address of the calling cell. Right now, one of the easiest ways to
-accomplish this is to use the ``vba`` keyword. ``vba``, in fact, allows you to access any available VBA expression
-e.g. ``Application``. Note, however, that currently you're acting directly on the pywin32 COM object::
+By using the ``vba`` keyword, you can get access to any Excel VBA object in the form of a pywin32 object. For example, if you wanted to pass the sheet object in the form of its ``CodeName``, you can do it as follows::
 
     @xw.func
-    @xw.arg('xl_app', vba='Application')
-    def get_caller_address(xl_app):
-        return xl_app.Caller.Address
+    @xw.arg('sheet1', vba='Sheet1')
+    def get_name(sheet1):
+        # call this function in Excel with:
+        # =get_name()
+        return sheet1.Name
 
+Note that ``vba`` arguments are not exposed in the UDF but automatically provided by xlwings.
 
 .. _decorator_macros:
 
 Macros
 ------
 
-On Windows, as alternative to calling macros via :ref:`RunPython <run_python>`, you can also use the ``@xw.sub``
+On Windows, as an alternative to calling macros via :ref:`RunPython <run_python>`, you can also use the ``@xw.sub``
 decorator::
 
     import xlwings as xw
@@ -236,7 +253,7 @@ decorator::
         wb.sheets[0].range('A1').value = wb.name
 
 After clicking on ``Import Python UDFs``, you can then use this macro by executing it via ``Alt + F8`` or by
-binding it e.g. to a button. To to the latter, make sure you have the ``Developer`` tab selected under ``File >
+binding it e.g. to a button. To do the latter, make sure you have the ``Developer`` tab selected under ``File >
 Options > Customize Ribbon``. Then, under the ``Developer`` tab, you can insert a button via ``Insert > Form Controls``.
 After drawing the button, you will be prompted to assign a macro to it and you can select ``my_macro``.
 
@@ -245,7 +262,7 @@ After drawing the button, you will be prompted to assign a macro to it and you c
 Call UDFs from VBA
 ------------------
 
-Imported functions can also be used from VBA. They return a 2d array:
+Imported functions can also be used from VBA. For example, for a function returning a 2d array:
 
 .. code-block:: vb.net
 
@@ -263,3 +280,40 @@ Imported functions can also be used from VBA. They return a 2d array:
         Next j
     
     End Sub
+
+
+.. _async_functions:
+
+Asynchronous UDFs
+-----------------
+
+.. note::
+    This is an experimental feature
+
+.. versionadded:: v0.14.0
+
+xlwings offers an easy way to write asynchronous functions in Excel. Asynchronous functions return immediately with
+``#N/A waiting...``. While the function is waiting for its return value, you can use Excel to do other stuff and whenever
+the return value is available, the cell value will be updated.
+
+The only available mode is currently ``async_mode='threading'``, meaning that it's useful for I/O-bound tasks, for example when
+you fetch data from an API over the web.
+
+You make a function asynchronous simply by giving it the respective argument in the function decorator. In this example,
+the time consuming I/O-bound task is simulated by using ``time.sleep``::
+
+    import xlwings as xw
+    import time
+
+    @xw.func(async_mode='threading')
+    def myfunction(a):
+        time.sleep(5)  # long running tasks
+        return a
+
+
+
+You can use this function like any other xlwings function, simply by putting ``=myfunction("abcd")`` into a cell
+(after you have imported the function, of course).
+
+Note that xlwings doesn't use the native asynchronous functions that were introduced with Excel 2010, so xlwings
+asynchronous functions are supported with any version of Excel.

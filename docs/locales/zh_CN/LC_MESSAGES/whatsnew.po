@@ -1,0 +1,2719 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-07 21:24+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../whatsnew.rst:2
+msgid "What's New"
+msgstr "最新进展"
+
+#: ../../whatsnew.rst:5
+#, fuzzy
+msgid "v0.17.0 (Jan 6, 2020)"
+msgstr "v0.17.0 (一月 6, 2020)"
+
+#: ../../whatsnew.rst:7
+msgid ""
+"This release drops support for Python 2.7 in xlwings CE. If you still "
+"rely on Python 2.7, you will either need to stick to v0.16.6 or consider "
+"an `xlwings PRO <https://www.xlwings.org/pricing>`_ subscription."
+msgstr ""
+"这个版本中xlwings社区版里减少了对于Python 2.7的支持。"
+"如果还需要用Python 2.7，要么继续使用v0.16.6，要么请考虑订购专业版"
+"( `xlwings PRO <https://www.xlwings.org/pricing>`_ )"
+
+#: ../../whatsnew.rst:11
+#, fuzzy
+msgid "v0.16.6 (Jan 5, 2020)"
+msgstr "v0.16.6 (一月 5, 2020)"
+
+#: ../../whatsnew.rst:13
+#, fuzzy
+msgid ""
+"[Enhancement] CLI changes with respect to ``xlwings license`` "
+"(:issue:`1227`)."
+msgstr "[功能增强] 修改了命令行中的 ``xlwings license`` 相关内容(:issue:`1227`)。"
+
+#: ../../whatsnew.rst:16
+msgid "v0.16.5 (Dec 30, 2019)"
+msgstr "v0.16.5 (十二月 30, 2019)"
+
+#: ../../whatsnew.rst:18
+msgid ""
+"[Enhancement] Improvements with regards to the ``Run main`` ribbon button"
+" (:issue:`1207` and :issue:`1222`)."
+msgstr "[功能增强] 对功能区的 ``Run main`` 按钮进行了改进(:issue:`1207` 和 :issue:`1222`)。"
+
+#: ../../whatsnew.rst:21
+msgid "v0.16.4 (Dec 17, 2019)"
+msgstr "v0.16.4 (十二月 17, 2019)"
+
+#: ../../whatsnew.rst:23
+msgid ""
+"[Enhancement] Added support for :meth:`xlwings.Range.copy` "
+"(:issue:`1214`)."
+msgstr "[功能增强] 新增 :meth:`xlwings.Range.copy` 功能(:issue:`1214`)。"
+
+#: ../../whatsnew.rst:24
+msgid ""
+"[Enhancement] Added support for :meth:`xlwings.Range.paste` "
+"(:issue:`1215`)."
+msgstr "[功能增强] 新增 :meth:`xlwings.Range.paste` 功能(:issue:`1215`)。"
+
+#: ../../whatsnew.rst:25
+msgid ""
+"[Enhancement] Added support for :meth:`xlwings.Range.insert` "
+"(:issue:`80`)."
+msgstr "[功能增强] 新增 :meth:`xlwings.Range.insert` 功能(:issue:`80`)。"
+
+#: ../../whatsnew.rst:26
+msgid ""
+"[Enhancement] Added support for :meth:`xlwings.Range.delete` "
+"(:issue:`862`)."
+msgstr "[功能增强] 新增 :meth:`xlwings.Range.delete` 功能(:issue:`862`)。"
+
+#: ../../whatsnew.rst:29
+msgid "v0.16.3 (Dec 12, 2019)"
+msgstr "v0.16.3 (十二月 12, 2019)"
+
+#: ../../whatsnew.rst:31
+msgid ""
+"[Bug Fix] Sometimes, xlwings would show an error of a previous run. "
+"Moreover, 0.16.2 introduced an issue that would not show errors at all on"
+" non-conda setups (:issue:`1158` and :issue:`1206`)"
+msgstr ""
+"[问题修复] 有时候，xlwings会显示前一次运行时出现的错误。 "
+"另外，0.16.2版还带来了一个新问题，就是在非conda安装设置的情况下不报错(:issue:`1158` and "
+":issue:`1206`)。"
+
+#: ../../whatsnew.rst:33
+msgid ""
+"[Enhancement] The xlwings CLI now prints the version number "
+"(:issue:`1200`)"
+msgstr "[功能增强] 现在xlwings能在命令行打印版本号了(:issue:`1200`)。"
+
+#: ../../whatsnew.rst:35
+msgid "**Breaking Change**:"
+msgstr "**重大修改**:"
+
+#: ../../whatsnew.rst:37
+msgid "``LOG FILE`` has been retired and removed from the configuration/add-in."
+msgstr "``LOG FILE`` 退休了，已经从配置/加载项(configuration/add-in)中移除。"
+
+#: ../../whatsnew.rst:40
+msgid "v0.16.2 (Dec 5, 2019)"
+msgstr "v0.16.2 (十二月 5, 2019)"
+
+#: ../../whatsnew.rst:42
+msgid ""
+"[Bug Fix] ``RunPython`` can now be called in parallel from different "
+"Excel instances (:issue:`1196`)."
+msgstr "[问题修复] ``RunPython`` 能被多个Excel实例同时调用了(:issue:`1196`)。"
+
+#: ../../whatsnew.rst:45
+msgid "v0.16.1 (Dec 1, 2019)"
+msgstr "v0.16.1 (十二月 1, 2019)"
+
+#: ../../whatsnew.rst:47
+msgid ""
+"[Enhancement] :meth:`xlwings.Book()` and ``myapp.books.open()`` now "
+"accept parameters like ``update_links``, ``password`` etc. "
+"(:issue:`1189`)."
+msgstr ""
+"[功能增强] :meth:`xlwings.Book()` 和 ``myapp.books.open()`` 现在能接受类似 "
+"``update_links`` 、 ``password`` 等参数了(:issue:`1189`)。"
+
+#: ../../whatsnew.rst:49
+msgid ""
+"[Bug Fix] ``Conda Env`` now works correctly with ``base`` for UDFs, too "
+"(:issue:`1110`)."
+msgstr "[问题修复] 现在在UDF中用 ``base`` 作为 ``Conda Env`` 的名字不会出问题了(:issue:`1110`)。"
+
+#: ../../whatsnew.rst:50
+msgid "[Bug Fix] ``Conda Path`` now allows spaces in the path (:issue:`1176`)."
+msgstr "[问题修复] 现在在 ``Conda Env`` 中，允许路径中有空格了(:issue:`1176`)。"
+
+#: ../../whatsnew.rst:51
+msgid ""
+"[Enhacement] The UDF server timeout has been increased to 2 minutes "
+"(:issue:`1168`)."
+msgstr "[问题修复] UDF服务器的超时时间(timeout)增加到2分钟(:issue:`1168`)。"
+
+#: ../../whatsnew.rst:55
+msgid "v0.16.0 (Oct 13, 2019)"
+msgstr "v0.16.0 (十月 13, 2019)"
+
+#: ../../whatsnew.rst:57
+msgid ""
+"This release adds a small but very powerful feature: There's a new ``Run "
+"main`` button in the add-in. With that, you can run your Python scripts "
+"from standard ``xlsx`` files - no need to save your workbook as macro-"
+"enabled anymore!"
+msgstr ""
+"本版中增加了一个精悍的特性: 在加载项中新增的 ``Run main`` 按钮。有了它，就可以在标准的 ``xlsx`` "
+"文件中运行Python代码了-用不着再把工作簿保存为支持宏命令的文件了! "
+
+#: ../../whatsnew.rst:61
+msgid ""
+"The only condition to make that work is that your Python script has the "
+"same name as your workbook and that it contains a function called "
+"``main``, which will be called when you click the ``Run`` button. All "
+"settings from your config file or config sheet are still respected, so "
+"this will work even if you have the source file in a different directory "
+"than your workbook (as long as that directory is added to the "
+"``PYTHONPATH`` in your config)."
+msgstr ""
+"唯一的前提是Python文件的名称要和工作簿文件名称相同，而且里面有一个 ``main`` 函数，当按 ``Run`` "
+"按钮的时候，这个函数会被调用。因为配置文件和配置表中的设置都还照样生效，所以即便源文件所在的目录（只要在 ``PYTHONPATH`` "
+"里有）和工作簿文件是在不同的文件目录里也没有关系。"
+
+#: ../../whatsnew.rst:66
+msgid ""
+"The ``xlwings quickstart myproject`` has been updated accordingly. It "
+"still produces an ``xlsm`` file at the moment but you can save it as "
+"``xlsx`` file if you intend to run it via the new ``Run`` button."
+msgstr ""
+"同时也对 ``xlwings quickstart myproject`` 做了相应的改动。它现在仍然产生一个 ``xlsm`` "
+"文件，不过如果想通过新的 ``Run`` 按钮来运行Python代码的话，是可以存为 ``xlsx`` 的。"
+
+#: ../../whatsnew.rst:73
+msgid "v0.15.10 (Aug 31, 2019)"
+msgstr "v0.15.10 (八月 31, 2019)"
+
+#: ../../whatsnew.rst:75
+msgid "[Bug Fix] Fixed a Python 2.7 incompatibility introduced with 0.15.9."
+msgstr "[问题修复] 解决了v0.15.9带来的与Python 2.7不兼容的问题。"
+
+#: ../../whatsnew.rst:78
+msgid "v0.15.9 (Aug 31, 2019)"
+msgstr "v0.15.9 (八月 31, 2019)"
+
+#: ../../whatsnew.rst:80
+msgid ""
+"[Enhancement] The ``sql`` extension now uses the native dynamic arrays if"
+" available (:issue:`1138`)."
+msgstr "[功能增强] ``sql`` 扩展现在只要原生动态数组可用，就使用它(:issue:`1138`)。"
+
+#: ../../whatsnew.rst:81
+msgid ""
+"[Enhancement] xlwings now support ``Path`` objects from ``pathlib`` for "
+"all file paths (:issue:`1126`)."
+msgstr "[功能增强] xlwings现在对所有文件路径都支持 ``pathlib`` 的 ``Path`` 对象(:issue:`1126`)。"
+
+#: ../../whatsnew.rst:82
+msgid ""
+"[Bug Fix] Various bug fixes: (:issue:`1118`), (:issue:`1131`), "
+"(:issue:`1102`)."
+msgstr "[问题修复] 多个问题的修复: (:issue:`1118`), (:issue:`1131`), (:issue:`1102`)."
+
+#: ../../whatsnew.rst:85
+msgid "v0.15.8 (May 5, 2019)"
+msgstr ""
+
+#: ../../whatsnew.rst:87
+msgid ""
+"[Bug Fix] Fixed an issue introduced with the previous release that always"
+" showed the command prompt when running UDFs, not just when using conda "
+"envs (:issue:`1098`)."
+msgstr ""
+
+#: ../../whatsnew.rst:91
+msgid "v0.15.7 (May 5, 2019)"
+msgstr ""
+
+#: ../../whatsnew.rst:93
+msgid ""
+"[Bug Fix] ``Conda Path`` and ``Conda Env`` weren't stored correctly in "
+"the config file from the ribbon (:issue:`1090`)."
+msgstr ""
+
+#: ../../whatsnew.rst:94
+msgid ""
+"[Bug Fix] UDFs now work correctly with ``Conda Path`` and ``Conda Env``. "
+"Note, however, that currently there is no way to hide the command prompt "
+"in that configuration (:issue:`1090`)."
+msgstr ""
+
+#: ../../whatsnew.rst:96
+msgid ""
+"[Enhancement] ``Restart UDF Server`` now actually does what it says: it "
+"stops and restarts the server. Previously it was only stopping the server"
+" and only when the first call to Python was made, it was started again "
+"(:issue:`1096`)."
+msgstr ""
+
+#: ../../whatsnew.rst:100
+msgid "v0.15.6 (Apr 29, 2019)"
+msgstr ""
+
+#: ../../whatsnew.rst:102
+msgid "[Feature] New default converter for ``OrderedDict`` (:issue:`1068`)."
+msgstr ""
+
+#: ../../whatsnew.rst:103
+msgid ""
+"[Enhancement] ``Import Functions`` now restarts the UDF server to "
+"guarantee a clean state after importing. (:issue:`1092`)"
+msgstr ""
+
+#: ../../whatsnew.rst:104
+msgid "[Enhancement] The ribbon now shows tooltips on Windows (:issue:`1093`)"
+msgstr ""
+
+#: ../../whatsnew.rst:105
+msgid ""
+"[Bug Fix] RunPython now properly supports conda environments on Windows "
+"(they started to require proper activation with packages like numpy etc)."
+" Conda >=4.6. required. A fix for UDFs is still pending (:issue:`954`)."
+msgstr ""
+
+#: ../../whatsnew.rst:108 ../../whatsnew.rst:119
+msgid "**Breaking Change:**"
+msgstr ""
+
+#: ../../whatsnew.rst:110
+msgid ""
+"[Bug Fix] ``RunFronzenPython`` now accepts spaces in the path of the "
+"executable, but in turn requires to be called with command line arguments"
+" as a separate VBA argument. Example: ``RunFrozenPython "
+"\"C:\\path\\to\\frozen_executable.exe\", \"arg1 arg2\"`` (:issue:`1063`)."
+msgstr ""
+
+#: ../../whatsnew.rst:115
+msgid "v0.15.5 (Mar 25, 2019)"
+msgstr ""
+
+#: ../../whatsnew.rst:117
+msgid ""
+"[Enhancement] ``wb.macro()`` now accepts xlwings objects as arguments "
+"such as ``range``, ``sheet`` etc. when the VBA macro expects the "
+"corresponding Excel object (e.g. ``Range``, ``Worksheet`` etc.) "
+"(:issue:`784` and :issue:`1084`)"
+msgstr ""
+
+#: ../../whatsnew.rst:121
+msgid ""
+"Cells that contain a cell error such as ``#DIV/0!``, ``#N/A``, "
+"``#NAME?``, ``#NULL!``, ``#NUM!``, ``#REF!``, ``#VALUE!`` return now "
+"``None`` as value in Python. Previously they were returned as constant on"
+" Windows (e.g. ``-2146826246``) or ``k.missing_value`` on Mac."
+msgstr ""
+
+#: ../../whatsnew.rst:126
+msgid "v0.15.4 (Mar 17, 2019)"
+msgstr ""
+
+#: ../../whatsnew.rst:128
+msgid "[Win] BugFix: The ribbon was not showing up in Excel 2007. (:issue:`1039`)"
+msgstr ""
+
+#: ../../whatsnew.rst:129
+msgid ""
+"Enhancement: Allow to install xlwings on Linux even though it's not a "
+"supported platform: ``export INSTALL_ON_LINUX=1; pip install xlwings`` "
+"(:issue:`1052`)"
+msgstr ""
+
+#: ../../whatsnew.rst:133
+msgid "v0.15.3 (Feb 23, 2019)"
+msgstr ""
+
+#: ../../whatsnew.rst:135 ../../whatsnew.rst:155
+msgid "Bug Fix release:"
+msgstr ""
+
+#: ../../whatsnew.rst:137
+msgid ""
+"[Mac] `RunPython` was broken by the previous release. If you install via "
+"``conda``, make sure to run ``xlwings runpython install`` again! "
+"(:issue:`1035`)"
+msgstr ""
+
+#: ../../whatsnew.rst:138
+msgid "[Win] Sometimes, the ribbon was throwing errors (:issue:`1041`)"
+msgstr ""
+
+#: ../../whatsnew.rst:141
+msgid "v0.15.2 (Feb 3, 2019)"
+msgstr ""
+
+#: ../../whatsnew.rst:143
+msgid "Better support and docs for deployment, see :ref:`deployment`:"
+msgstr ""
+
+#: ../../whatsnew.rst:145
+msgid ""
+"You can now package your python modules into a zip file for easier "
+"distribution (:issue:`1016`)."
+msgstr ""
+
+#: ../../whatsnew.rst:146
+msgid ""
+"``RunFrozenPython`` now allows to includes arguments, e.g. "
+"``RunFrozenPython \"C:\\path\\to\\my.exe arg1 arg2\"`` (:issue:`588`)."
+msgstr ""
+
+#: ../../whatsnew.rst:148 ../../whatsnew.rst:234 ../../whatsnew.rst:254
+msgid "**Breaking changes**:"
+msgstr ""
+
+#: ../../whatsnew.rst:150
+msgid ""
+"Accessing a not existing PID in the ``apps`` collection raises now a "
+"``KeyError`` instead of an ``Exception`` (:issue:`1002`)."
+msgstr ""
+
+#: ../../whatsnew.rst:153
+msgid "v0.15.1 (Nov 29, 2018)"
+msgstr ""
+
+#: ../../whatsnew.rst:157
+msgid "[Win] Calling Subs or UDFs from VBA was causing an error (:issue:`998`)."
+msgstr ""
+
+#: ../../whatsnew.rst:160
+msgid "v0.15.0 (Nov 20, 2018)"
+msgstr ""
+
+#: ../../whatsnew.rst:162
+msgid "**Dynamic Array Refactor**"
+msgstr ""
+
+#: ../../whatsnew.rst:164
+msgid ""
+"While we're all waiting for the new native dynamic arrays, it's still "
+"going to take another while until the majority can use them (they are not"
+" yet part of Office 2019)."
+msgstr ""
+
+#: ../../whatsnew.rst:167
+msgid ""
+"In the meantime, this refactor improves the current xlwings dynamic "
+"arrays in the following way:"
+msgstr ""
+
+#: ../../whatsnew.rst:169
+msgid ""
+"Use of native (\"legacy\") array formulas instead of having a normal "
+"formula in the top left cell and writing around it"
+msgstr ""
+
+#: ../../whatsnew.rst:170
+msgid "It's up to 2x faster"
+msgstr ""
+
+#: ../../whatsnew.rst:171
+msgid "There's no empty row/col required outside of the dynamic array anymore"
+msgstr ""
+
+#: ../../whatsnew.rst:172
+msgid "It continues to overwrite existing cells (no change there)"
+msgstr ""
+
+#: ../../whatsnew.rst:173
+msgid ""
+"There's a small breaking change in the unlikely case that you were "
+"assigning values with the expand option: "
+"``myrange.options(expand='table').value = [['b'] * 3] * 3``. This was "
+"previously clearing contiguous cells to the right and bottom (or one of "
+"them depending on the option), now you have to do that explicitly."
+msgstr ""
+
+#: ../../whatsnew.rst:177 ../../whatsnew.rst:208 ../../whatsnew.rst:229
+#: ../../whatsnew.rst:277
+msgid "**Bug Fixes**:"
+msgstr ""
+
+#: ../../whatsnew.rst:179
+msgid "Importing multiple UDF modules has been fixed (:issue:`991`)."
+msgstr ""
+
+#: ../../whatsnew.rst:182
+msgid "v0.14.1 (Nov 9, 2018)"
+msgstr ""
+
+#: ../../whatsnew.rst:184
+msgid "This is a bug fix release:"
+msgstr ""
+
+#: ../../whatsnew.rst:186
+msgid ""
+"[Win] Fixed an issue when the new ``async_mode`` was used together with "
+"numpy arrays (:issue:`984`)"
+msgstr ""
+
+#: ../../whatsnew.rst:187
+msgid ""
+"[Mac] Fixed an issue with multiple arguments in ``RunPython`` "
+"(:issue:`905`)"
+msgstr ""
+
+#: ../../whatsnew.rst:188
+msgid "[Mac] Fixed an issue with the config file (:issue:`982`)"
+msgstr ""
+
+#: ../../whatsnew.rst:191
+msgid "v0.14.0 (Nov 5, 2018)"
+msgstr ""
+
+#: ../../whatsnew.rst:193 ../../whatsnew.rst:216 ../../whatsnew.rst:247
+msgid "**Features**:"
+msgstr ""
+
+#: ../../whatsnew.rst:195
+msgid ""
+"This release adds support for asynchronous functions (like all UDF "
+"related functionality, this is only available on Windows). Making a "
+"function asynchronous is as easy as::"
+msgstr ""
+
+#: ../../whatsnew.rst:206
+msgid "See :ref:`async_functions` for the full docs."
+msgstr ""
+
+#: ../../whatsnew.rst:210
+msgid "See :issue:`970` and :issue:`973`."
+msgstr ""
+
+#: ../../whatsnew.rst:214
+msgid "v0.13.0 (Oct 22, 2018)"
+msgstr ""
+
+#: ../../whatsnew.rst:218
+msgid ""
+"This release adds a REST API server to xlwings, allowing you to easily "
+"expose your workbook over the internet, see :ref:`rest_api` for all the "
+"details!"
+msgstr ""
+
+#: ../../whatsnew.rst:221
+msgid "**Enhancements**:"
+msgstr ""
+
+#: ../../whatsnew.rst:223
+msgid ""
+"Dynamic arrays are now more robust. Before, they often didn't manage to "
+"write everything when there was a lot going on in the workbook "
+"(:issue:`880`)"
+msgstr ""
+
+#: ../../whatsnew.rst:224
+msgid ""
+"Jagged arrays (lists of lists where not all rows are of equal length) now"
+" raise an error (:issue:`942`)"
+msgstr ""
+
+#: ../../whatsnew.rst:225
+msgid ""
+"xlwings can now be used with threading, see the docs: :ref:`threading` "
+"(:issue:`759`)."
+msgstr ""
+
+#: ../../whatsnew.rst:226
+msgid ""
+"[Win] xlwings now enforces pywin32 224 when installing xlwings on Python "
+"3.7 (:issue:`959`)"
+msgstr ""
+
+#: ../../whatsnew.rst:227
+msgid "New :any:`xlwings.Sheet.used_range` property (:issue:`112`)"
+msgstr ""
+
+#: ../../whatsnew.rst:231
+msgid ""
+"The current directory is now inserted in front of everything else on the "
+"PYTHONPATH (:issue:`958`)"
+msgstr ""
+
+#: ../../whatsnew.rst:232
+msgid "The standalone files had an issue in the VBA module (:issue:`960`)"
+msgstr ""
+
+#: ../../whatsnew.rst:236
+msgid ""
+"Members of the ``xw.apps`` collection are now accessed by key (=PID) "
+"instead of index, e.g.: ``xw.apps[12345]`` instead of ``xw.apps[0]``. The"
+" apps collection also has a new ``xw.apps.keys()`` method. (:issue:`951`)"
+msgstr ""
+
+#: ../../whatsnew.rst:240
+msgid "v0.12.1 (Oct 7, 2018)"
+msgstr ""
+
+#: ../../whatsnew.rst:242
+msgid "[Py27] Bug Fix for a Python 2.7 glitch."
+msgstr ""
+
+#: ../../whatsnew.rst:245
+msgid "v0.12.0 (Oct 7, 2018)"
+msgstr ""
+
+#: ../../whatsnew.rst:249
+msgid ""
+"This release adds support to call Python functions from VBA in all Office"
+" apps (e.g. Access, Outlook etc.), not just Excel. As this uses UDFs, it "
+"is only available on Windows. See the docs: :ref:`other_office_apps`."
+msgstr ""
+
+#: ../../whatsnew.rst:256
+msgid ""
+"Previously, Python functions were always returning 2d arrays when called "
+"from VBA, no matter whether it was actually a 2d array or not. Now you "
+"get the proper dimensionality which makes it easier if the return value "
+"is e.g. a string or scalar as you don't have to unpack it anymore."
+msgstr ""
+
+#: ../../whatsnew.rst:260
+msgid ""
+"Consider the following example using the VBA Editor's Immediate Window "
+"after importing UDFs from a project created using by ``xlwings "
+"quickstart``:"
+msgstr ""
+
+#: ../../whatsnew.rst:263
+msgid "**Old behaviour** ::"
+msgstr ""
+
+#: ../../whatsnew.rst:270
+msgid "**New behaviour** ::"
+msgstr ""
+
+#: ../../whatsnew.rst:279
+msgid ""
+"[Win] Support expansion of environment variables in config values "
+"(:issue:`615`)"
+msgstr ""
+
+#: ../../whatsnew.rst:280
+msgid "Other bug fixes: :issue:`889`, :issue:`939`, :issue:`940`, :issue:`943`."
+msgstr ""
+
+#: ../../whatsnew.rst:283
+msgid "v0.11.8 (May 13, 2018)"
+msgstr ""
+
+#: ../../whatsnew.rst:285
+msgid "[Win] pywin32 is now automatically installed when using pip (:issue:`827`)"
+msgstr ""
+
+#: ../../whatsnew.rst:286
+msgid ""
+"`xlwings.bas` has been readded to the python package. This facilitates "
+"e.g. the use of xlwings within other addins (:issue:`857`)"
+msgstr ""
+
+#: ../../whatsnew.rst:289
+msgid "v0.11.7 (Feb 5, 2018)"
+msgstr ""
+
+#: ../../whatsnew.rst:291
+msgid ""
+"[Win] This release fixes a bug introduced with v0.11.6 that would't allow"
+" to open workbooks by name (:issue:`804`)"
+msgstr ""
+
+#: ../../whatsnew.rst:294
+msgid "v0.11.6 (Jan 27, 2018)"
+msgstr ""
+
+#: ../../whatsnew.rst:296
+msgid "Bug Fixes:"
+msgstr ""
+
+#: ../../whatsnew.rst:298
+msgid ""
+"[Win] When constantly writing to a spreadsheet, xlwings now correctly "
+"resumes after clicking into cells, previously it was crashing. "
+"(:issue:`587`)"
+msgstr ""
+
+#: ../../whatsnew.rst:299
+msgid "Options are now correctly applied when writing to a sheet (:issue:`798`)"
+msgstr ""
+
+#: ../../whatsnew.rst:303
+msgid "v0.11.5 (Jan 7, 2018)"
+msgstr ""
+
+#: ../../whatsnew.rst:305
+msgid "This is mostly a bug fix release:"
+msgstr ""
+
+#: ../../whatsnew.rst:307
+msgid ""
+"Config files can now additionally be saved in the directory of the "
+"workbooks, overriding the global Ribbon config, see :ref:`config_file` "
+"(:issue:`772`)"
+msgstr ""
+
+#: ../../whatsnew.rst:308
+msgid ""
+"Reading Pandas DataFrames with a simple index was creating a MultiIndex "
+"with Pandas > 0.20 (:issue:`786`)"
+msgstr ""
+
+#: ../../whatsnew.rst:309
+msgid ""
+"[Win] The xlwings dlls are now properly versioned, allowing to use pre "
+"0.11 releases in parallel with >0.11 releases (:issue:`743`)"
+msgstr ""
+
+#: ../../whatsnew.rst:310
+msgid ""
+"[Mac] Sheet.names.add() was always adding the names on workbook level "
+"(:issue:`771`)"
+msgstr ""
+
+#: ../../whatsnew.rst:311
+msgid "[Mac] UDF decorators now don't cause errors on Mac anymore (:issue:`780`)"
+msgstr ""
+
+#: ../../whatsnew.rst:314
+msgid "v0.11.4 (Jul 23, 2017)"
+msgstr ""
+
+#: ../../whatsnew.rst:316
+msgid "This release brings further improvements with regards to the add-in:"
+msgstr ""
+
+#: ../../whatsnew.rst:318
+msgid ""
+"The add-in now shows the version on the ribbon. This makes it easy to "
+"check if you are using the correct version (:issue:`724`):"
+msgstr ""
+
+#: ../../whatsnew.rst:323
+msgid ""
+"[Mac] On Mac Excel 2016, the ribbon now only shows the available "
+"functionality (:issue:`723`):"
+msgstr ""
+
+#: ../../whatsnew.rst:328
+msgid ""
+"[Mac] Mac Excel 2011 is now supported again with the new add-in. However,"
+" since Excel 2011 doesn't support the ribbon, the config file has be "
+"created/edited manually, see :ref:`config_file` (:issue:`714`)."
+msgstr ""
+
+#: ../../whatsnew.rst:331
+msgid "Also, some new docs:"
+msgstr ""
+
+#: ../../whatsnew.rst:333
+msgid "[Win] How to use imported functions in VBA, see :ref:`call_udfs_from_vba`."
+msgstr ""
+
+#: ../../whatsnew.rst:334
+msgid ""
+"For more up-to-date installations via conda, use the ``conda-forge`` "
+"channel, see :ref:`installation`."
+msgstr ""
+
+#: ../../whatsnew.rst:335
+msgid "A troubleshooting section: :ref:`troubleshooting`."
+msgstr ""
+
+#: ../../whatsnew.rst:338
+msgid "v0.11.3 (Jul 14, 2017)"
+msgstr ""
+
+#: ../../whatsnew.rst:340
+msgid ""
+"Bug Fix: When using the ``xlwings.conf`` sheet, there was a subscript out"
+" of range error (:issue:`708`)"
+msgstr ""
+
+#: ../../whatsnew.rst:341
+msgid ""
+"Enhancement: The add-in is now password protected (pw: ``xlwings``) to "
+"declutter the VBA editor (:issue:`710`)"
+msgstr ""
+
+#: ../../whatsnew.rst:343
+msgid "You need to update your xlwings add-in to get the fixes!"
+msgstr ""
+
+#: ../../whatsnew.rst:347
+msgid "v0.11.2 (Jul 6, 2017)"
+msgstr ""
+
+#: ../../whatsnew.rst:349
+msgid ""
+"Bug Fix: The sql extension was sometimes not correctly assigning the "
+"table aliases (:issue:`699`)"
+msgstr ""
+
+#: ../../whatsnew.rst:350
+msgid ""
+"Bug Fix: Permission errors during pip installation should be resolved now"
+" (:issue:`693`)"
+msgstr ""
+
+#: ../../whatsnew.rst:354
+msgid "v0.11.1 (Jul 5, 2017)"
+msgstr ""
+
+#: ../../whatsnew.rst:356
+msgid "Bug Fix: The sql extension installs now correctly (:issue:`695`)"
+msgstr ""
+
+#: ../../whatsnew.rst:357
+msgid "Added migration guide for v0.11, see :ref:`migrate_to_0.11`"
+msgstr ""
+
+#: ../../whatsnew.rst:360
+msgid "v0.11.0 (Jul 2, 2017)"
+msgstr ""
+
+#: ../../whatsnew.rst:362
+msgid ""
+"Big news! This release adds a full blown **add-in**! We also throw in a "
+"great **In-Excel SQL Extension** and a few **bug fixes**:"
+msgstr ""
+
+#: ../../whatsnew.rst:365
+msgid "Add-in"
+msgstr ""
+
+#: ../../whatsnew.rst:370
+msgid "A few highlights:"
+msgstr ""
+
+#: ../../whatsnew.rst:372
+msgid ""
+"Settings don't have to be manipulated in VBA code anymore, but can be "
+"either set globally via Ribbon/config file or for the workbook via a "
+"special worksheet"
+msgstr ""
+
+#: ../../whatsnew.rst:374
+msgid "UDF server can be restarted directly from the add-in"
+msgstr ""
+
+#: ../../whatsnew.rst:375
+msgid ""
+"You can still use a VBA module instead of the add-in, but the recommended"
+" way is the add-in"
+msgstr ""
+
+#: ../../whatsnew.rst:376
+msgid "Get all the details here: :ref:`xlwings_addin`"
+msgstr ""
+
+#: ../../whatsnew.rst:379
+msgid "In-Excel SQL Extension"
+msgstr ""
+
+#: ../../whatsnew.rst:381
+msgid ""
+"The add-in can be extended with own code. We throw in an ``sql`` "
+"function, that allows you to perform SQL queries on data in your "
+"spreadsheets. It's pretty awesome, get the details here: "
+":ref:`extensions`."
+msgstr ""
+
+#: ../../whatsnew.rst:385 ../../whatsnew.rst:472 ../../whatsnew.rst:576
+#: ../../whatsnew.rst:586 ../../whatsnew.rst:656 ../../whatsnew.rst:866
+#: ../../whatsnew.rst:893 ../../whatsnew.rst:908 ../../whatsnew.rst:929
+#: ../../whatsnew.rst:937 ../../whatsnew.rst:1038 ../../whatsnew.rst:1073
+#: ../../whatsnew.rst:1129 ../../whatsnew.rst:1173 ../../whatsnew.rst:1212
+#: ../../whatsnew.rst:1219 ../../whatsnew.rst:1258 ../../whatsnew.rst:1284
+#: ../../whatsnew.rst:1325 ../../whatsnew.rst:1394 ../../whatsnew.rst:1462
+#: ../../whatsnew.rst:1577 ../../whatsnew.rst:1631 ../../whatsnew.rst:1657
+#: ../../whatsnew.rst:1767
+msgid "Bug Fixes"
+msgstr ""
+
+#: ../../whatsnew.rst:387
+msgid ""
+"[Win]: Running ``Debug > Compile`` is not throwing errors anymore "
+"(:issue:`678`)"
+msgstr ""
+
+#: ../../whatsnew.rst:388
+msgid ""
+"Pandas deprecation warnings have been fixed (:issue:`675` and "
+":issue:`664`)"
+msgstr ""
+
+#: ../../whatsnew.rst:389
+msgid "[Mac]: Errors are again shown correctly in a pop up (:issue:`660`)"
+msgstr ""
+
+#: ../../whatsnew.rst:390
+msgid ""
+"[Mac]: Like Windows, Mac now also only shows errors in a popup. Before it"
+" was including stdout, too (:issue:`666`)"
+msgstr ""
+
+#: ../../whatsnew.rst:393
+msgid "Breaking Changes"
+msgstr ""
+
+#: ../../whatsnew.rst:395
+msgid "``RunFrozenPython`` now requires the full path to the executable."
+msgstr ""
+
+#: ../../whatsnew.rst:396
+msgid ""
+"The xlwings CLI ``xlwings template`` functionality has been removed. Use "
+"``quickstart`` instead."
+msgstr ""
+
+#: ../../whatsnew.rst:400
+msgid "v0.10.4 (Feb 19, 2017)"
+msgstr ""
+
+#: ../../whatsnew.rst:402
+msgid ""
+"[Win] Bug Fix: v0.10.3 introduced a bug that imported UDFs by default "
+"with `volatile=True`, this has now been fixed. You will need to reimport "
+"your functions after upgrading the xlwings package."
+msgstr ""
+
+#: ../../whatsnew.rst:406
+msgid "v0.10.3 (Jan 28, 2017)"
+msgstr ""
+
+#: ../../whatsnew.rst:408
+msgid "This release adds new features to User Defined Functions (UDFs):"
+msgstr ""
+
+#: ../../whatsnew.rst:410
+msgid "categories"
+msgstr ""
+
+#: ../../whatsnew.rst:411
+msgid "volatile option"
+msgstr ""
+
+#: ../../whatsnew.rst:412
+msgid "suppress calculation in function wizard"
+msgstr ""
+
+#: ../../whatsnew.rst:414
+msgid "Syntax:"
+msgstr ""
+
+#: ../../whatsnew.rst:423
+msgid ""
+"For details, check out the (also new) and comprehensive API docs about "
+"the decorators: :ref:`udf_api`"
+msgstr ""
+
+#: ../../whatsnew.rst:426
+msgid "v0.10.2 (Dec 31, 2016)"
+msgstr ""
+
+#: ../../whatsnew.rst:428
+msgid "[Win] Python 3.6 is now supported (:issue:`592`)"
+msgstr ""
+
+#: ../../whatsnew.rst:432
+msgid "v0.10.1 (Dec 5, 2016)"
+msgstr ""
+
+#: ../../whatsnew.rst:434
+msgid ""
+"Writing a Pandas Series with a MultiIndex header was not writing out the "
+"header (:issue:`572`)"
+msgstr ""
+
+#: ../../whatsnew.rst:435
+msgid "[Win] Docstrings for UDF arguments are now working (:issue:`367`)"
+msgstr ""
+
+#: ../../whatsnew.rst:436
+msgid ""
+"[Mac] ``Range.clear_contents()`` has been fixed (it was doing ``clear()``"
+" instead) (:issue:`576`)"
+msgstr ""
+
+#: ../../whatsnew.rst:437
+msgid ""
+"``xw.Book(...)`` and ``xw.books.open(...)`` raise now the same error in "
+"case the file doesn't exist (:issue:`540`)"
+msgstr ""
+
+#: ../../whatsnew.rst:440
+msgid "v0.10.0 (Sep 20, 2016)"
+msgstr ""
+
+#: ../../whatsnew.rst:443
+msgid "Dynamic Array Formulas"
+msgstr ""
+
+#: ../../whatsnew.rst:445
+msgid ""
+"This release adds an often requested & powerful new feature to User "
+"Defined Functions (UDFs): Dynamic expansion for array formulas. While "
+"Excel offers array formulas, you need to specify their dimensions up "
+"front by selecting the result array first, then entering the formula and "
+"finally hitting ``Ctrl-Shift-Enter``. While this makes sense from a data "
+"integrity point of view, in practice, it often turns out to be a "
+"cumbersome limitation, especially when working with dynamic arrays such "
+"as time series data."
+msgstr ""
+
+#: ../../whatsnew.rst:451
+msgid ""
+"This is a simple example that demonstrates the syntax and effect of UDF "
+"expansion:"
+msgstr ""
+
+#: ../../whatsnew.rst:468
+msgid ""
+"**Note**: Expanding array formulas will overwrite cells without prompting"
+" and leave an empty border around them, i.e. they will clear the row to "
+"the bottom and the column to the right of the array."
+msgstr ""
+
+#: ../../whatsnew.rst:474
+msgid ""
+"The ``int`` converter works now always as you would expect (e.g.: "
+"``xw.Range('A1').options(numbers=int).value``). Before, it could happen "
+"that the number was off by 1 due to floating point issues (:issue:`554`)."
+msgstr ""
+
+#: ../../whatsnew.rst:478
+msgid "v0.9.3 (Aug 22, 2016)"
+msgstr ""
+
+#: ../../whatsnew.rst:480
+msgid "[Win] ``App.visible`` wasn't behaving correctly (:issue:`551`)."
+msgstr ""
+
+#: ../../whatsnew.rst:481
+msgid ""
+"[Mac] Added support for the new 64bit version of Excel 2016 on Mac "
+"(:issue:`549`)."
+msgstr ""
+
+#: ../../whatsnew.rst:482
+msgid "Unicode book names are again supported (:issue:`546`)."
+msgstr ""
+
+#: ../../whatsnew.rst:483
+msgid ""
+":meth:`xlwings.Book.save()` now supports relative paths. Also, when "
+"saving an existing book under a new name without specifying the full "
+"path, it'll be saved in Python's current working directory instead of in "
+"Excel's default directory (:issue:`185`)."
+msgstr ""
+
+#: ../../whatsnew.rst:488
+msgid "v0.9.2 (Aug 8, 2016)"
+msgstr ""
+
+#: ../../whatsnew.rst:490
+msgid "Another round of bug fixes:"
+msgstr ""
+
+#: ../../whatsnew.rst:492
+msgid ""
+"[Mac]: Sometimes, a column was referenced instead of a named range "
+"(:issue:`545`)"
+msgstr ""
+
+#: ../../whatsnew.rst:493
+msgid ""
+"[Mac]: Python 2.7 was raising a ``LookupError: unknown encoding: mbcs`` "
+"(:issue:`544`)"
+msgstr ""
+
+#: ../../whatsnew.rst:494
+msgid "Fixed docs regarding set_mock_caller (:issue:`543`)"
+msgstr ""
+
+#: ../../whatsnew.rst:497
+msgid "v0.9.1 (Aug 5, 2016)"
+msgstr ""
+
+#: ../../whatsnew.rst:499
+msgid ""
+"This is a bug fix release: As to be expected after a rewrite, there were "
+"some rough edges that have now been taken care of:"
+msgstr ""
+
+#: ../../whatsnew.rst:501
+msgid ""
+"[Win] Opening a file via ``xw.Book()`` was causing an additional "
+"``Book1`` to be opened in case Excel was not running yet (:issue:`531`)"
+msgstr ""
+
+#: ../../whatsnew.rst:502
+msgid "[Win] Some users were getting an ImportError (:issue:`533`)"
+msgstr ""
+
+#: ../../whatsnew.rst:503
+msgid "[PY 2.7] ``RunPython`` was broken with Python 2.7 (:issue:`537`)"
+msgstr ""
+
+#: ../../whatsnew.rst:504
+msgid "Some corrections in the docs (:issue:`538` and :issue:`536`)"
+msgstr ""
+
+#: ../../whatsnew.rst:510
+msgid "v0.9.0 (Aug 2, 2016)"
+msgstr ""
+
+#: ../../whatsnew.rst:512
+msgid ""
+"Exciting times! v0.9.0 is a complete rewrite of xlwings with loads of "
+"syntax changes (hence the version jump). But more importantly, this "
+"release adds a ton of new features and bug fixes that would have "
+"otherwise been impossible. Some of the highlights are listed below, but "
+"make sure to check out the full :ref:`migration guide <migrate_to_0.9>` "
+"for the syntax changes in details. Note, however, that the syntax for "
+"user defined functions (UDFs) did not change. At this point, the API is "
+"fairly stable and we're expecting only smaller changes on our way towards"
+" a stable v1.0 release."
+msgstr ""
+
+#: ../../whatsnew.rst:518
+msgid ""
+"**Active** book instead of **current** book: ``xw.Range('A1')`` goes "
+"against the active sheet of the active book like you're used to from VBA."
+" Instantiating an explicit connection to a Book is not necessary anymore:"
+msgstr ""
+
+#: ../../whatsnew.rst:526
+msgid "Excel Instances: Full support of multiple Excel instances (even on Mac!)"
+msgstr ""
+
+#: ../../whatsnew.rst:533
+msgid ""
+"New powerful object model based on collections and close to Excel's "
+"original, allowing to fully qualify objects: "
+"``xw.apps[0].books['MyBook.xlsx'].sheets[0].range('A1:B2').value``"
+msgstr ""
+
+#: ../../whatsnew.rst:536
+msgid ""
+"It supports both Python indexing (square brackets) and Excel indexing "
+"(round brackets):"
+msgstr ""
+
+#: ../../whatsnew.rst:538
+msgid "``xw.books[0].sheets[0]`` is the same as ``xw.books(1).sheets(1)``"
+msgstr ""
+
+#: ../../whatsnew.rst:540
+msgid "It also supports indexing and slicing of range objects:"
+msgstr ""
+
+#: ../../whatsnew.rst:548
+msgid "For more details, see :ref:`syntax_overview`."
+msgstr ""
+
+#: ../../whatsnew.rst:550
+msgid ""
+"UDFs can now also be imported from packages, not just modules "
+"(:issue:`437`)"
+msgstr ""
+
+#: ../../whatsnew.rst:552
+msgid ""
+"Named Ranges: Introduction of full object model and proper support for "
+"sheet and workbook scope (:issue:`256`)"
+msgstr ""
+
+#: ../../whatsnew.rst:554
+msgid ""
+"Excel doesn't become the active window anymore so the focus stays on your"
+" Python environment (:issue:`414`)"
+msgstr ""
+
+#: ../../whatsnew.rst:556
+msgid ""
+"When writing to ranges while Excel is busy, xlwings is now retrying until"
+" Excel is idle again (:issue:`468`)"
+msgstr ""
+
+#: ../../whatsnew.rst:558
+msgid ""
+":meth:`xlwings.view()` has been enhanced to accept an optional sheet "
+"object (:issue:`469`)"
+msgstr ""
+
+#: ../../whatsnew.rst:560
+msgid ""
+"Objects like books, sheets etc. can now be compared (e.g. ``wb1 == wb2``)"
+" and are properly hashable"
+msgstr ""
+
+#: ../../whatsnew.rst:562
+msgid "Note that support for Python 2.6 has been dropped"
+msgstr ""
+
+#: ../../whatsnew.rst:564
+msgid "Some of the new methods/properties worth mentioning are:"
+msgstr ""
+
+#: ../../whatsnew.rst:566
+msgid ":any:`xlwings.App.display_alerts`"
+msgstr ""
+
+#: ../../whatsnew.rst:567
+msgid ":meth:`xlwings.App.macro` in addition to :meth:`xlwings.Book.macro`"
+msgstr ""
+
+#: ../../whatsnew.rst:568
+msgid ":meth:`xlwings.App.kill`"
+msgstr ""
+
+#: ../../whatsnew.rst:569
+msgid ":any:`xlwings.Sheet.cells`"
+msgstr ""
+
+#: ../../whatsnew.rst:570
+msgid ":any:`xlwings.Range.rows`"
+msgstr ""
+
+#: ../../whatsnew.rst:571
+msgid ":any:`xlwings.Range.columns`"
+msgstr ""
+
+#: ../../whatsnew.rst:572
+msgid ":meth:`xlwings.Range.end`"
+msgstr ""
+
+#: ../../whatsnew.rst:573
+msgid ":any:`xlwings.Range.raw_value`"
+msgstr ""
+
+#: ../../whatsnew.rst:578
+msgid ""
+"See `here "
+"<https://github.com/xlwings/xlwings/issues?q=is%3Aclosed+is%3Aissue+milestone%3Av0.9.0+label%3Abug>`_"
+" for details about which bugs have been fixed."
+msgstr ""
+
+#: ../../whatsnew.rst:583
+msgid "v0.7.2 (May 18, 2016)"
+msgstr ""
+
+#: ../../whatsnew.rst:587
+msgid ""
+"[Win] UDFs returning Pandas DataFrames/Series containing ``nan`` were "
+"failing (:issue:`446`)."
+msgstr ""
+
+#: ../../whatsnew.rst:588
+msgid "[Win] ``RunFrozenPython`` was not finding the executable (:issue:`452`)."
+msgstr ""
+
+#: ../../whatsnew.rst:589
+msgid ""
+"The xlwings VBA module was not finding the Python interpreter if "
+"``PYTHON_WIN`` or ``PYTHON_MAC`` contained spaces (:issue:`461`)."
+msgstr ""
+
+#: ../../whatsnew.rst:593
+msgid "v0.7.1 (April 3, 2016)"
+msgstr ""
+
+#: ../../whatsnew.rst:596 ../../whatsnew.rst:718 ../../whatsnew.rst:879
+#: ../../whatsnew.rst:924 ../../whatsnew.rst:951 ../../whatsnew.rst:991
+#: ../../whatsnew.rst:1054 ../../whatsnew.rst:1089 ../../whatsnew.rst:1148
+#: ../../whatsnew.rst:1196 ../../whatsnew.rst:1231 ../../whatsnew.rst:1279
+#: ../../whatsnew.rst:1301 ../../whatsnew.rst:1351 ../../whatsnew.rst:1409
+#: ../../whatsnew.rst:1519 ../../whatsnew.rst:1606 ../../whatsnew.rst:1646
+#: ../../whatsnew.rst:1701
+msgid "Enhancements"
+msgstr ""
+
+#: ../../whatsnew.rst:597
+msgid ""
+"[Win]: User Defined Functions (UDFs) support now optional/default "
+"arguments (:issue:`363`)"
+msgstr ""
+
+#: ../../whatsnew.rst:598
+msgid ""
+"[Win]: User Defined Functions (UDFs) support now multiple source files, "
+"see also under API changes below. For example (VBA settings): "
+"``UDF_MODULES=\"common;myproject\"``"
+msgstr ""
+
+#: ../../whatsnew.rst:600
+msgid "VBA Subs & Functions are now callable from Python:"
+msgstr ""
+
+#: ../../whatsnew.rst:602
+msgid "As an example, this VBA function:"
+msgstr ""
+
+#: ../../whatsnew.rst:610
+msgid "can be accessed like this:"
+msgstr ""
+
+#: ../../whatsnew.rst:617
+msgid ""
+"New ``xw.view`` method: This opens a new workbook and displays an object "
+"on its first sheet. E.g.:"
+msgstr ""
+
+#: ../../whatsnew.rst:625
+msgid "New docs about :ref:`matplotlib` and :ref:`custom_converter`"
+msgstr ""
+
+#: ../../whatsnew.rst:626
+msgid "New method: :meth:`xlwings.Range.formula_array` (:issue:`411`)"
+msgstr ""
+
+#: ../../whatsnew.rst:629 ../../whatsnew.rst:808 ../../whatsnew.rst:875
+#: ../../whatsnew.rst:917 ../../whatsnew.rst:947 ../../whatsnew.rst:987
+#: ../../whatsnew.rst:1050 ../../whatsnew.rst:1085 ../../whatsnew.rst:1137
+#: ../../whatsnew.rst:1189 ../../whatsnew.rst:1226 ../../whatsnew.rst:1274
+#: ../../whatsnew.rst:1296 ../../whatsnew.rst:1338 ../../whatsnew.rst:1404
+#: ../../whatsnew.rst:1480 ../../whatsnew.rst:1601 ../../whatsnew.rst:1641
+msgid "API changes"
+msgstr ""
+
+#: ../../whatsnew.rst:631
+msgid ""
+"VBA settings: ``PYTHON_WIN`` and ``PYTHON_MAC`` must now include the "
+"interpreter if you are not using the default (``PYTHON_WIN = \"\"``) "
+"(:issue:`289`). E.g.::"
+msgstr ""
+
+#: ../../whatsnew.rst:637
+msgid ""
+"[Win]: VBA settings: ``UDF_PATH`` has been replaced with ``UDF_MODULES``."
+" The default behaviour doesn't change though (i.e. if ``UDF_MODULES = "
+"\"\"``, then a Python source file with the same name as the Excel file, "
+"but with ``.py`` ending will be imported from the same directory as the "
+"Excel file)."
+msgstr ""
+
+#: ../../whatsnew.rst:641
+msgid "**New**:"
+msgstr ""
+
+#: ../../whatsnew.rst:648
+msgid "**Old**:"
+msgstr ""
+
+#: ../../whatsnew.rst:657
+msgid "Numpy scalars issues were resolved (:issue:`415`)"
+msgstr ""
+
+#: ../../whatsnew.rst:658
+msgid "[Win]: xlwings was failing with freezers like cx_Freeze (:issue:`413`)"
+msgstr ""
+
+#: ../../whatsnew.rst:659
+msgid ""
+"[Win]: UDFs were failing if they were returning ``None`` or ``np.nan`` "
+"(:issue:`390`)"
+msgstr ""
+
+#: ../../whatsnew.rst:660
+msgid "Multiindex Pandas Series have been fixed (:issue:`383`)"
+msgstr ""
+
+#: ../../whatsnew.rst:661
+msgid "[Mac]: ``xlwings runpython install`` was failing (:issue:`424`)"
+msgstr ""
+
+#: ../../whatsnew.rst:664
+msgid "v0.7.0 (March 4, 2016)"
+msgstr ""
+
+#: ../../whatsnew.rst:666
+msgid ""
+"This version marks an important first step on our path towards a stable "
+"release. It introduces **converters**, a new and powerful concept that "
+"brings a consistent experience for how Excel Ranges and their values are "
+"treated both when **reading** and **writing** but also across "
+"**xlwings.Range** objects and **User Defined Functions** (UDFs)."
+msgstr ""
+
+#: ../../whatsnew.rst:670
+msgid "As a result, a few highlights of this release include:"
+msgstr ""
+
+#: ../../whatsnew.rst:672
+msgid ""
+"Pandas DataFrames and Series are now supported for reading and writing, "
+"both via Range object and UDFs"
+msgstr ""
+
+#: ../../whatsnew.rst:673
+msgid ""
+"New Range converter options: ``transpose``, ``dates``, ``numbers``, "
+"``empty``, ``expand``"
+msgstr ""
+
+#: ../../whatsnew.rst:674
+msgid "New dictionary converter"
+msgstr ""
+
+#: ../../whatsnew.rst:675
+msgid "New UDF debug server"
+msgstr ""
+
+#: ../../whatsnew.rst:676
+msgid "No more pyc files when using ``RunPython``"
+msgstr ""
+
+#: ../../whatsnew.rst:678
+msgid ""
+"Converters are accessed via the new ``options`` method when dealing with "
+"``xlwings.Range`` objects or via the ``@xw.arg`` and ``@xw.ret`` "
+"decorators when using UDFs. As an introductory sample, let's look at how "
+"to read and write Pandas DataFrames:"
+msgstr ""
+
+#: ../../whatsnew.rst:684
+msgid "**Range object**::"
+msgstr ""
+
+#: ../../whatsnew.rst:704
+msgid "**UDFs**:"
+msgstr ""
+
+#: ../../whatsnew.rst:706
+msgid ""
+"This is the same sample as above (starting in ``Range('A13')`` on "
+"screenshot). If you wanted to return a DataFrame with the defaults, the "
+"``@xw.ret`` decorator can be left away. ::"
+msgstr ""
+
+#: ../../whatsnew.rst:720
+msgid "Dictionary (``dict``) converter:"
+msgstr ""
+
+#: ../../whatsnew.rst:732
+msgid ""
+"``transpose`` option: This works in both directions and finally allows us"
+" to e.g. write a list in column orientation to Excel (:issue:`11`)::"
+msgstr ""
+
+#: ../../whatsnew.rst:737
+msgid ""
+"``dates`` option: This allows us to read Excel date-formatted cells in "
+"specific formats:"
+msgstr ""
+
+#: ../../whatsnew.rst:745
+msgid ""
+"``empty`` option: This allows us to override the default behavior for "
+"empty cells:"
+msgstr ""
+
+#: ../../whatsnew.rst:752
+msgid "``numbers`` option: This transforms all numbers into the indicated type."
+msgstr ""
+
+#: ../../whatsnew.rst:760
+msgid ""
+"``expand`` option: This works the same as the Range properties ``table``,"
+" ``vertical`` and ``horizontal`` but is only evaluated when getting the "
+"values of a Range::"
+msgstr ""
+
+#: ../../whatsnew.rst:778
+msgid ""
+"All these options work the same with decorators for UDFs, e.g. for "
+"transpose::"
+msgstr ""
+
+#: ../../whatsnew.rst:787
+msgid ""
+"**Note**: These options (``dates``, ``empty``, ``numbers``) currently "
+"apply to the whole Range and can't be selectively applied to e.g. only "
+"certain columns."
+msgstr ""
+
+#: ../../whatsnew.rst:790
+msgid "UDF debug server"
+msgstr ""
+
+#: ../../whatsnew.rst:792
+msgid ""
+"The new UDF debug server allows you to easily debug UDFs: just set "
+"``UDF_DEBUG_SERVER = True`` in the VBA Settings, at the top of the "
+"xlwings VBA module (make sure to update it to the latest version!). Then "
+"add the following lines to your Python source file and run it::"
+msgstr ""
+
+#: ../../whatsnew.rst:800
+msgid ""
+"When you recalculate the Sheet, the code will stop at breakpoints or "
+"print any statements that you may have. For details, see: "
+":ref:`debugging`."
+msgstr ""
+
+#: ../../whatsnew.rst:803
+msgid ""
+"pyc files: The creation of pyc files has been disabled when using "
+"``RunPython``, leaving your directory in an uncluttered state when having"
+" the Python source file next to the Excel workbook (:issue:`326`)."
+msgstr ""
+
+#: ../../whatsnew.rst:810
+msgid ""
+"UDF decorator changes (it is assumed that xlwings is imported as ``xw`` "
+"and numpy as ``np``):"
+msgstr ""
+
+#: ../../whatsnew.rst:813 ../../whatsnew.rst:824 ../../whatsnew.rst:832
+#: ../../whatsnew.rst:860 ../../whatsnew.rst:1345 ../../whatsnew.rst:1487
+#: ../../whatsnew.rst:1502 ../../whatsnew.rst:1513
+msgid "**New**"
+msgstr ""
+
+#: ../../whatsnew.rst:813 ../../whatsnew.rst:824 ../../whatsnew.rst:832
+#: ../../whatsnew.rst:860 ../../whatsnew.rst:1345 ../../whatsnew.rst:1487
+#: ../../whatsnew.rst:1502 ../../whatsnew.rst:1513
+msgid "**Old**"
+msgstr ""
+
+#: ../../whatsnew.rst:815
+msgid "``@xw.func``"
+msgstr ""
+
+#: ../../whatsnew.rst:815
+msgid "``@xw.xlfunc``"
+msgstr ""
+
+#: ../../whatsnew.rst:816
+msgid "``@xw.arg``"
+msgstr ""
+
+#: ../../whatsnew.rst:816
+msgid "``@xw.xlarg``"
+msgstr ""
+
+#: ../../whatsnew.rst:817
+msgid "``@xw.ret``"
+msgstr ""
+
+#: ../../whatsnew.rst:817
+msgid "``@xw.xlret``"
+msgstr ""
+
+#: ../../whatsnew.rst:818
+msgid "``@xw.sub``"
+msgstr ""
+
+#: ../../whatsnew.rst:818
+msgid "``@xw.xlsub``"
+msgstr ""
+
+#: ../../whatsnew.rst:821
+msgid "Pay attention to the following subtle change:"
+msgstr ""
+
+#: ../../whatsnew.rst:826
+msgid "``@xw.arg(\"x\", np.array)``"
+msgstr ""
+
+#: ../../whatsnew.rst:826
+msgid "``@xw.xlarg(\"x\", \"nparray\")``"
+msgstr ""
+
+#: ../../whatsnew.rst:829
+msgid ""
+"Samples of how the new options method replaces the old Range keyword "
+"arguments:"
+msgstr ""
+
+#: ../../whatsnew.rst:834
+msgid "``Range('A1:A2').options(ndim=2)``"
+msgstr ""
+
+#: ../../whatsnew.rst:834
+msgid "``Range('A1:A2', atleast_2d=True)``"
+msgstr ""
+
+#: ../../whatsnew.rst:835
+msgid "``Range('A1:B2').options(np.array)``"
+msgstr ""
+
+#: ../../whatsnew.rst:835
+msgid "``Range('A1:B2', asarray=True)``"
+msgstr ""
+
+#: ../../whatsnew.rst:836
+msgid "``Range('A1').options(index=False, header=False).value = df``"
+msgstr ""
+
+#: ../../whatsnew.rst:836
+msgid "``Range('A1', index=False, header=False).value = df``"
+msgstr ""
+
+#: ../../whatsnew.rst:839
+msgid ""
+"Upon writing, Pandas Series are now shown by default with their name and "
+"index name, if they exist. This can be changed using the same options as "
+"for DataFrames (:issue:`276`)::"
+msgstr ""
+
+#: ../../whatsnew.rst:854
+msgid "NumPy scalar values"
+msgstr ""
+
+#: ../../whatsnew.rst:856
+msgid ""
+"Previously, NumPy scalar values were returned as ``np.atleast_1d``. To "
+"keep the same behaviour, this now has to be set explicitly using "
+"``ndim=1``. Otherwise they're returned as numpy scalar values."
+msgstr ""
+
+#: ../../whatsnew.rst:862
+msgid "``Range('A1').options(np.array, ndim=1).value``"
+msgstr ""
+
+#: ../../whatsnew.rst:862
+msgid "``Range('A1', asarray=True).value``"
+msgstr ""
+
+#: ../../whatsnew.rst:868
+msgid "A few bugfixes were made: :issue:`352`, :issue:`359`."
+msgstr ""
+
+#: ../../whatsnew.rst:872
+msgid "v0.6.4 (January 6, 2016)"
+msgstr ""
+
+#: ../../whatsnew.rst:876 ../../whatsnew.rst:948 ../../whatsnew.rst:988
+#: ../../whatsnew.rst:1051 ../../whatsnew.rst:1086 ../../whatsnew.rst:1228
+#: ../../whatsnew.rst:1276 ../../whatsnew.rst:1281 ../../whatsnew.rst:1298
+#: ../../whatsnew.rst:1406 ../../whatsnew.rst:1603 ../../whatsnew.rst:1633
+#: ../../whatsnew.rst:1643
+msgid "None"
+msgstr ""
+
+#: ../../whatsnew.rst:881
+msgid ""
+"Quickstart: It's now easier than ever to start a new xlwings project, "
+"simply use the commmand line client (:issue:`306`):"
+msgstr ""
+
+#: ../../whatsnew.rst:883
+msgid ""
+"``xlwings quickstart myproject`` will produce a folder with the following"
+" files, ready to be used (see :ref:`command_line`)::"
+msgstr ""
+
+#: ../../whatsnew.rst:890
+msgid ""
+"New documentation about how to use xlwings with other languages like R "
+"and Julia, see :ref:`r_and_julia`."
+msgstr ""
+
+#: ../../whatsnew.rst:895
+msgid ""
+"[Win]: Importing UDFs with the add-in was throwing an error if the "
+"filename was including characters like spaces or dashes (:issue:`331`). "
+"To fix this, close Excel completely and run ``xlwings addin update``."
+msgstr ""
+
+#: ../../whatsnew.rst:898
+msgid ""
+"[Win]: ``Workbook.caller()`` is now also accessible within functions that"
+" are decorated with ``@xlfunc``. Previously, it was only available with "
+"functions that used the ``@xlsub`` decorator (:issue:`316`)."
+msgstr ""
+
+#: ../../whatsnew.rst:901
+msgid ""
+"Writing a Pandas DataFrame failed in case the index was named the same as"
+" a column (:issue:`334`)."
+msgstr ""
+
+#: ../../whatsnew.rst:905
+msgid "v0.6.3 (December 18, 2015)"
+msgstr ""
+
+#: ../../whatsnew.rst:910
+msgid ""
+"[Mac]: This fixes a bug introduced in v0.6.2: When using ``RunPython`` "
+"from VBA, errors were not shown in a pop-up window (:issue:`330`)."
+msgstr ""
+
+#: ../../whatsnew.rst:914
+msgid "v0.6.2 (December 15, 2015)"
+msgstr ""
+
+#: ../../whatsnew.rst:919
+msgid ""
+"LOG_FILE: So far, the log file has been placed next to the Excel file per"
+" default (VBA settings). This has been changed as it was causing issues "
+"for files on SharePoint/OneDrive and Mac Excel 2016: The place where "
+"``LOG_FILE = \"\"`` refers to depends on the OS and the Excel version, "
+"see :ref:`log`."
+msgstr ""
+
+#: ../../whatsnew.rst:925
+msgid ""
+"[Mac]: This version adds support for the VBA module on Mac Excel 2016 "
+"(i.e. the ``RunPython`` command) and is now feature equivalent with Mac "
+"Excel 2011 (:issue:`206`)."
+msgstr ""
+
+#: ../../whatsnew.rst:930
+msgid "[Win]: On certain systems, the xlwings dlls weren't found (:issue:`323`)."
+msgstr ""
+
+#: ../../whatsnew.rst:934
+msgid "v0.6.1 (December 4, 2015)"
+msgstr ""
+
+#: ../../whatsnew.rst:939
+msgid "[Python 3]: The command line client has been fixed (:issue:`319`)."
+msgstr ""
+
+#: ../../whatsnew.rst:940
+msgid "[Mac]: It now works correctly with ``psutil>=3.0.0`` (:issue:`315`)."
+msgstr ""
+
+#: ../../whatsnew.rst:944
+msgid "v0.6.0 (November 30, 2015)"
+msgstr ""
+
+#: ../../whatsnew.rst:953
+msgid "**User Defined Functions (UDFs) - currently Windows only**"
+msgstr ""
+
+#: ../../whatsnew.rst:955
+msgid ""
+"The `ExcelPython <https://github.com/ericremoreynolds/excelpython/>`_ "
+"project has been fully merged into xlwings. This means that on Windows, "
+"UDF's are now supported via decorator syntax. A simple example::"
+msgstr ""
+
+#: ../../whatsnew.rst:965
+msgid ""
+"For **array formulas** with or without **NumPy**, see the docs: "
+":ref:`udfs`"
+msgstr ""
+
+#: ../../whatsnew.rst:967
+msgid "**Command Line Client**"
+msgstr ""
+
+#: ../../whatsnew.rst:969
+msgid ""
+"The new xlwings command line client makes it easy to work with the "
+"xlwings **template** and the developer **add-in** (the add-in is "
+"currently Windows-only). E.g. to create a new Excel spreadsheet from the "
+"template, run::"
+msgstr ""
+
+#: ../../whatsnew.rst:974
+msgid "For all commands, see the docs: :ref:`command_line`"
+msgstr ""
+
+#: ../../whatsnew.rst:976 ../../whatsnew.rst:1030
+msgid "**Other enhancements**:"
+msgstr ""
+
+#: ../../whatsnew.rst:978
+msgid "New method: :meth:`xlwings.Sheet.delete`"
+msgstr ""
+
+#: ../../whatsnew.rst:979
+msgid "New method: :meth:`xlwings.Range.top`"
+msgstr ""
+
+#: ../../whatsnew.rst:980
+msgid "New method: :meth:`xlwings.Range.left`"
+msgstr ""
+
+#: ../../whatsnew.rst:984
+msgid "v0.5.0 (November 10, 2015)"
+msgstr ""
+
+#: ../../whatsnew.rst:992
+msgid ""
+"This version adds support for Matplotlib! Matplotlib figures can be shown"
+" in Excel as pictures in just 2 lines of code:"
+msgstr ""
+
+#: ../../whatsnew.rst:997
+msgid "Get a matplotlib ``figure`` object:"
+msgstr ""
+
+#: ../../whatsnew.rst:999
+msgid "via PyPlot interface::"
+msgstr ""
+
+#: ../../whatsnew.rst:1005
+msgid "via object oriented interface::"
+msgstr ""
+
+#: ../../whatsnew.rst:1012
+msgid "via Pandas::"
+msgstr ""
+
+#: ../../whatsnew.rst:1021
+msgid "Show it in Excel as picture::"
+msgstr ""
+
+#: ../../whatsnew.rst:1026
+msgid ""
+"See the full API: :meth:`xlwings.Plot`. There's also a new example "
+"available both on `GitHub "
+"<https://github.com/xlwings/xlwings/tree/master/examples/matplotlib/>`_ "
+"and as download on the `homepage <http://www.xlwings.org/examples>`_."
+msgstr ""
+
+#: ../../whatsnew.rst:1032
+msgid "New :meth:`xlwings.Shape` class"
+msgstr ""
+
+#: ../../whatsnew.rst:1033
+msgid "New :meth:`xlwings.Picture` class"
+msgstr ""
+
+#: ../../whatsnew.rst:1034
+msgid ""
+"The ``PYTHONPATH`` in the VBA settings now accepts multiple directories, "
+"separated by ``;`` (:issue:`258`)"
+msgstr ""
+
+#: ../../whatsnew.rst:1035
+msgid ""
+"An explicit exception is raised when ``Range`` is called with 0-based "
+"indices (:issue:`106`)"
+msgstr ""
+
+#: ../../whatsnew.rst:1039
+msgid "``Sheet.add`` was not always acting on the correct workbook (:issue:`287`)"
+msgstr ""
+
+#: ../../whatsnew.rst:1040
+msgid "Iteration over a ``Range`` only worked the first time (:issue:`272`)"
+msgstr ""
+
+#: ../../whatsnew.rst:1041
+msgid ""
+"[Win]: Sometimes, an error was raised when Excel was not running "
+"(:issue:`269`)"
+msgstr ""
+
+#: ../../whatsnew.rst:1042
+msgid ""
+"[Win]: Non-default Python interpreters (as specified in the VBA settings "
+"under ``PYTHON_WIN``) were not found if the path contained a space "
+"(:issue:`257`)"
+msgstr ""
+
+#: ../../whatsnew.rst:1047
+msgid "v0.4.1 (September 27, 2015)"
+msgstr ""
+
+#: ../../whatsnew.rst:1056
+msgid ""
+"This release makes it easier than ever to connect to Excel from Python! "
+"In addition to the existing ways, you can now connect to the active "
+"Workbook (on Windows across all instances) and if the Workbook is already"
+" open, it's good enough to refer to it by name (instead of having to use "
+"the full path). Accordingly, this is how you make a connection to... "
+"(:issue:`30` and :issue:`226`):"
+msgstr ""
+
+#: ../../whatsnew.rst:1061
+msgid "a new workbook: ``wb = Workbook()``"
+msgstr ""
+
+#: ../../whatsnew.rst:1062
+msgid "the active workbook [New!]: ``wb = Workbook.active()``"
+msgstr ""
+
+#: ../../whatsnew.rst:1063
+msgid "an unsaved workbook: ``wb = Workbook('Book1')``"
+msgstr ""
+
+#: ../../whatsnew.rst:1064
+msgid ""
+"a saved (open) workbook by name (incl. xlsx etc.) [New!]: ``wb = "
+"Workbook('MyWorkbook.xlsx')``"
+msgstr ""
+
+#: ../../whatsnew.rst:1065
+msgid ""
+"a saved (open or closed) workbook by path: ``wb = "
+"Workbook(r'C:\\\\path\\\\to\\\\file.xlsx')``"
+msgstr ""
+
+#: ../../whatsnew.rst:1067
+msgid "Also, there are some new docs:"
+msgstr ""
+
+#: ../../whatsnew.rst:1069
+msgid ":ref:`connect_to_workbook`"
+msgstr ""
+
+#: ../../whatsnew.rst:1070
+msgid ":ref:`missing_features`"
+msgstr ""
+
+#: ../../whatsnew.rst:1075
+msgid "The Excel template was updated to the latest VBA code (:issue:`234`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1076
+msgid ""
+"Connections to files that are saved on OneDrive/SharePoint are now "
+"working correctly (:issue:`215`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1077
+msgid "Various issues with timezone-aware objects were fixed (:issue:`195`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1078
+msgid ""
+"[Mac]: A certain range of integers were not written to Excel "
+"(:issue:`227`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1082
+msgid "v0.4.0 (September 13, 2015)"
+msgstr ""
+
+#: ../../whatsnew.rst:1090
+msgid ""
+"The most important update with this release was made on Windows: The "
+"methodology used to make a connection to Workbooks has been completely "
+"replaced. This finally allows xlwings to reliably connect to multiple "
+"instances of Excel even if the Workbooks are opened from untrusted "
+"locations (network drives or files downloaded from the internet). This "
+"gets rid of the dreaded ``Filename is already open...`` error message "
+"that was sometimes shown in this context. It also allows the VBA hooks "
+"(``RunPython``) to work correctly if the very same file is opened in "
+"various instances of Excel."
+msgstr ""
+
+#: ../../whatsnew.rst:1097
+msgid ""
+"Note that you will need to update the VBA module and that apart from "
+"``pywin32`` there is now a new dependency for the Windows version: "
+"``comtypes``. It should be installed automatically though when "
+"installing/upgrading xlwings with ``pip``."
+msgstr ""
+
+#: ../../whatsnew.rst:1102
+msgid "Other updates:"
+msgstr ""
+
+#: ../../whatsnew.rst:1104
+msgid "Added support to manipulate named Ranges (:issue:`92`):"
+msgstr ""
+
+#: ../../whatsnew.rst:1116
+msgid "New ``Range`` properties (:issue:`81`):"
+msgstr ""
+
+#: ../../whatsnew.rst:1113
+msgid ":meth:`xlwings.Range.column_width`"
+msgstr ""
+
+#: ../../whatsnew.rst:1114
+msgid ":meth:`xlwings.Range.row_height`"
+msgstr ""
+
+#: ../../whatsnew.rst:1115
+msgid ":meth:`xlwings.Range.width`"
+msgstr ""
+
+#: ../../whatsnew.rst:1116
+msgid ":meth:`xlwings.Range.height`"
+msgstr ""
+
+#: ../../whatsnew.rst:1118
+msgid ""
+"``Range`` now also accepts ``Sheet`` objects, the following 3 ways are "
+"hence all valid (:issue:`92`)::"
+msgstr ""
+
+#: ../../whatsnew.rst:1125
+msgid ""
+"[Win]: Error pop-ups show now the full error message that can also be "
+"copied with ``Ctrl-C`` (:issue:`221`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1130
+msgid "The VBA module was not accepting lower case drive letters (:issue:`205`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1131
+msgid ""
+"Fixed an error when adding a new Sheet that was already existing "
+"(:issue:`211`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1134
+msgid "v0.3.6 (July 14, 2015)"
+msgstr ""
+
+#: ../../whatsnew.rst:1139
+msgid ""
+"``Application`` as attribute of a ``Workbook`` has been removed (``wb`` "
+"is a ``Workbook`` object):"
+msgstr ""
+
+#: ../../whatsnew.rst:1142
+msgid "**Correct Syntax (as before)**"
+msgstr ""
+
+#: ../../whatsnew.rst:1142
+msgid "**Removed**"
+msgstr ""
+
+#: ../../whatsnew.rst:1144
+msgid "``Application(wkb=wb)``"
+msgstr ""
+
+#: ../../whatsnew.rst:1144
+msgid "``wb.application``"
+msgstr ""
+
+#: ../../whatsnew.rst:1150
+msgid "**Excel 2016 for Mac Support** (:issue:`170`)"
+msgstr ""
+
+#: ../../whatsnew.rst:1152
+msgid ""
+"Excel 2016 for Mac is finally supported (Python side). The VBA hooks "
+"(``RunPython``) are currently not yet supported. In more details:"
+msgstr ""
+
+#: ../../whatsnew.rst:1155
+msgid "This release allows Excel 2011 and Excel 2016 to be installed in parallel."
+msgstr ""
+
+#: ../../whatsnew.rst:1156
+msgid ""
+"``Workbook()`` will open the default Excel installation (usually Excel "
+"2016)."
+msgstr ""
+
+#: ../../whatsnew.rst:1157
+msgid ""
+"The new keyword argument ``app_target`` allows to connect to a different "
+"Excel installation, e.g.::"
+msgstr ""
+
+#: ../../whatsnew.rst:1161
+msgid ""
+"Note that ``app_target`` is only available on Mac. On Windows, if you "
+"want to change the version of Excel that xlwings talks to, go to "
+"``Control Panel > Programs and Features`` and ``Repair`` the Office "
+"version that you want as default."
+msgstr ""
+
+#: ../../whatsnew.rst:1165
+msgid ""
+"The ``RunPython`` calls in VBA are not yet available through Excel 2016 "
+"but Excel 2011 doesn't get confused anymore if Excel 2016 is installed on"
+" the same system - make sure to update your VBA module!"
+msgstr ""
+
+#: ../../whatsnew.rst:1168
+msgid "**Other enhancements**"
+msgstr ""
+
+#: ../../whatsnew.rst:1170
+msgid "New method: :meth:`xlwings.Application.calculate` (:issue:`207`)"
+msgstr ""
+
+#: ../../whatsnew.rst:1175
+msgid ""
+"[Win]: When using the ``OPTIMIZED_CONNECTION`` on Windows, Excel left an "
+"orphaned process running after closing (:issue:`193`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1178
+msgid "Various improvements regarding unicode file path handling, including:"
+msgstr ""
+
+#: ../../whatsnew.rst:1180
+msgid ""
+"[Mac]: Excel 2011 for Mac now supports unicode characters in the filename"
+" when called via VBA's ``RunPython`` (but not in the path - this is a "
+"limitation of Excel 2011 that will be resolved in Excel 2016) "
+"(:issue:`154`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1182
+msgid ""
+"[Win]: Excel on Windows now handles unicode file paths correctly with "
+"untrusted documents. (:issue:`154`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1186
+msgid "v0.3.5 (April 26, 2015)"
+msgstr ""
+
+#: ../../whatsnew.rst:1191
+msgid ""
+"``Sheet.autofit()`` and ``Range.autofit()``: The integer argument for the"
+" axis has been removed (:issue:`186`). Use string arguments ``rows`` or "
+"``r`` for autofitting rows and ``columns`` or ``c`` for autofitting "
+"columns (as before)."
+msgstr ""
+
+#: ../../whatsnew.rst:1197
+msgid "New methods:"
+msgstr ""
+
+#: ../../whatsnew.rst:1199
+msgid ":meth:`xlwings.Range.row` (:issue:`143`)"
+msgstr ""
+
+#: ../../whatsnew.rst:1200
+msgid ":meth:`xlwings.Range.column` (:issue:`143`)"
+msgstr ""
+
+#: ../../whatsnew.rst:1201
+msgid ":meth:`xlwings.Range.last_cell` (:issue:`142`)"
+msgstr ""
+
+#: ../../whatsnew.rst:1203
+msgid "Example::"
+msgstr ""
+
+#: ../../whatsnew.rst:1213
+msgid "The ``unicode`` bug on Windows/Python3 has been fixed (:issue:`161`)"
+msgstr ""
+
+#: ../../whatsnew.rst:1216
+msgid "v0.3.4 (March 9, 2015)"
+msgstr ""
+
+#: ../../whatsnew.rst:1220
+msgid "The installation error on Windows has been fixed (:issue:`160`)"
+msgstr ""
+
+#: ../../whatsnew.rst:1223
+msgid "v0.3.3 (March 8, 2015)"
+msgstr ""
+
+#: ../../whatsnew.rst:1233
+msgid ""
+"New class ``Application`` with ``quit`` method and properties "
+"``screen_updating`` und ``calculation`` (:issue:`101`, :issue:`158`, "
+":issue:`159`). It can be conveniently accessed from within a Workbook (on"
+" Windows, ``Application`` is instance dependent). A few examples:"
+msgstr ""
+
+#: ../../whatsnew.rst:1243
+msgid ""
+"New headless mode: The Excel application can be hidden either during "
+"``Workbook`` instantiation or through the ``application`` object:"
+msgstr ""
+
+#: ../../whatsnew.rst:1251
+msgid ""
+"Newly included Excel template which includes the xlwings VBA module and "
+"boilerplate code. This is currently accessible from an interactive "
+"interpreter session only:"
+msgstr ""
+
+#: ../../whatsnew.rst:1260
+msgid "[Win]: ``datetime.date`` objects were causing an error (:issue:`44`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1262
+msgid ""
+"Depending on how it was instantiated, Workbook was sometimes missing the "
+"``fullname`` attribute (:issue:`76`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1264
+msgid ""
+"``Range.hyperlink`` was failing if the hyperlink had been set as formula "
+"(:issue:`132`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1266
+msgid ""
+"A bug introduced in v0.3.0 caused frozen versions (eg. with "
+"``cx_Freeze``) to fail (:issue:`133`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1268
+msgid ""
+"[Mac]: Sometimes, xlwings was causing an error when quitting the Python "
+"interpreter (:issue:`136`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1271
+msgid "v0.3.2 (January 17, 2015)"
+msgstr ""
+
+#: ../../whatsnew.rst:1286
+msgid ""
+"The :meth:`xlwings.Workbook.save` method has been fixed to show the "
+"expected behavior (:issue:`138`): Previously, calling `save()` without a "
+"`path` argument would always create a new file in the current working "
+"directory. This is now only happening if the file hasn't been previously "
+"saved."
+msgstr ""
+
+#: ../../whatsnew.rst:1293
+msgid "v0.3.1 (January 16, 2015)"
+msgstr ""
+
+#: ../../whatsnew.rst:1303
+msgid "New method :meth:`xlwings.Workbook.save` (:issue:`110`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1305
+msgid ""
+"New method :meth:`xlwings.Workbook.set_mock_caller` (:issue:`129`). This "
+"makes calling files from both Excel and Python much easier::"
+msgstr ""
+
+#: ../../whatsnew.rst:1322
+msgid "The ``simulation`` example on the homepage works now also on Mac."
+msgstr ""
+
+#: ../../whatsnew.rst:1327
+msgid ""
+"[Win]: A long-standing bug that caused the Excel file to close and reopen"
+" under certain circumstances has been fixed (:issue:`10`): Depending on "
+"your security settings (Trust Center) and in connection with files "
+"downloaded from the internet or possibly in connection with some add-ins,"
+" Excel was either closing the file and reopening it or giving a \"file "
+"already open\" warning. This has now been fixed which means that the "
+"examples downloaded from the homepage should work right away after "
+"downloading and unzipping."
+msgstr ""
+
+#: ../../whatsnew.rst:1335
+msgid "v0.3.0 (November 26, 2014)"
+msgstr ""
+
+#: ../../whatsnew.rst:1340
+msgid ""
+"To reference the calling Workbook when running code from VBA, you now "
+"have to use ``Workbook.caller()``. This means that ``wb = Workbook()`` is"
+" now consistently creating a new Workbook, whether the code is called "
+"interactively or from VBA."
+msgstr ""
+
+#: ../../whatsnew.rst:1347
+msgid "``Workbook.caller()``"
+msgstr ""
+
+#: ../../whatsnew.rst:1347
+msgid "``Workbook()``"
+msgstr ""
+
+#: ../../whatsnew.rst:1352
+msgid ""
+"This version adds two exciting but still **experimental** features from "
+"`ExcelPython` (**Windows only!**):"
+msgstr ""
+
+#: ../../whatsnew.rst:1355
+msgid ""
+"Optimized connection: Set the ``OPTIMIZED_CONNECTION = True`` in the VBA "
+"settings. This will use a COM server that will keep the connection to "
+"Python alive between different calls and is therefore much more "
+"efficient. However, changes in the Python code are not being picked up "
+"until the ``pythonw.exe`` process is restarted by killing it manually in "
+"the Windows Task Manager. The suggested workflow is hence to set "
+"``OPTIMIZED_CONNECTION = False`` for development and only set it to "
+"``True`` for production - keep in mind though that this feature is still "
+"experimental!"
+msgstr ""
+
+#: ../../whatsnew.rst:1361
+msgid ""
+"User Defined Functions (UDFs): Using ExcelPython's wrapper syntax in VBA,"
+" you can expose Python functions as UDFs, see :ref:`udfs` for details."
+msgstr ""
+
+#: ../../whatsnew.rst:1364
+msgid ""
+"**Note:** ExcelPython's developer add-in that autogenerates the VBA "
+"wrapper code by simply using Python decorators isn't available through "
+"xlwings yet."
+msgstr ""
+
+#: ../../whatsnew.rst:1368
+msgid "Further enhancements include:"
+msgstr ""
+
+#: ../../whatsnew.rst:1370
+msgid "New method :meth:`xlwings.Range.resize` (:issue:`90`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1371
+msgid "New method :meth:`xlwings.Range.offset` (:issue:`89`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1372
+msgid "New property :attr:`xlwings.Range.shape` (:issue:`109`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1373
+msgid "New property :attr:`xlwings.Range.size` (:issue:`109`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1374
+msgid ""
+"New property :attr:`xlwings.Range.hyperlink` and new method "
+":meth:`xlwings.Range.add_hyperlink` (:issue:`104`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1375
+msgid "New property :attr:`xlwings.Range.color` (:issue:`97`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1376
+msgid "The ``len`` built-in function can now be used on ``Range`` (:issue:`109`):"
+msgstr ""
+
+#: ../../whatsnew.rst:1381
+msgid "The ``Range`` object is now iterable (:issue:`108`)::"
+msgstr ""
+
+#: ../../whatsnew.rst:1387
+msgid ""
+"[Mac]: The VBA module finds now automatically the default Python "
+"installation as per ``PATH`` variable on ``.bash_profile`` when "
+"``PYTHON_MAC = \"\"`` (the default in the VBA settings) (:issue:`95`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1389
+msgid ""
+"The VBA error pop-up can now be muted by setting ``SHOW_LOG = False`` in "
+"the VBA settings. To be used with care, but it can be useful on Mac, as "
+"the pop-up window is currently showing printed log messages even if no "
+"error occurred(:issue:`94`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1396
+msgid ""
+"[Mac]: Environment variables from ``.bash_profile`` are now available "
+"when called from VBA, e.g. by using: ``os.environ['USERNAME']`` "
+"(:issue:`95`)"
+msgstr ""
+
+#: ../../whatsnew.rst:1401
+msgid "v0.2.3 (October 17, 2014)"
+msgstr ""
+
+#: ../../whatsnew.rst:1411
+msgid "New method ``Sheet.add()`` (:issue:`71`)::"
+msgstr ""
+
+#: ../../whatsnew.rst:1419
+msgid "New method ``Sheet.count()``::"
+msgstr ""
+
+#: ../../whatsnew.rst:1424
+msgid ""
+"``autofit()`` works now also on ``Sheet`` objects, not only on ``Range`` "
+"objects (:issue:`66`)::"
+msgstr ""
+
+#: ../../whatsnew.rst:1429
+msgid "New property ``number_format`` for ``Range`` objects (:issue:`60`)::"
+msgstr ""
+
+#: ../../whatsnew.rst:1437
+msgid ""
+"Works also with the ``Range`` properties ``table``, ``vertical``, "
+"``horizontal``::"
+msgstr ""
+
+#: ../../whatsnew.rst:1442
+msgid "New method ``get_address`` for ``Range`` objects (:issue:`7`)::"
+msgstr ""
+
+#: ../../whatsnew.rst:1453
+msgid "New method ``Sheet.all()`` returning a list with all Sheet objects::"
+msgstr ""
+
+#: ../../whatsnew.rst:1464
+msgid ""
+"xlwings works now also with NumPy < 1.7.0. Before, doing something like "
+"``Range('A1').value = 'Foo'`` was causing a ``NotImplementedError: Not "
+"implemented for this type`` error when NumPy < 1.7.0 was installed "
+"(:issue:`73`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1467
+msgid ""
+"[Win]: The VBA module caused an error on the 64bit version of Excel "
+"(:issue:`72`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1469
+msgid "[Mac]: The error pop-up wasn't shown on Python 3 (:issue:`85`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1471
+msgid ""
+"[Mac]: Autofitting bigger Ranges, e.g. ``Range('A:D').autofit()`` was "
+"causing a time out (:issue:`74`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1473
+msgid ""
+"[Mac]: Sometimes, calling xlwings from Python was causing Excel to show "
+"old errors as pop-up alert (:issue:`70`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1477
+msgid "v0.2.2 (September 23, 2014)"
+msgstr ""
+
+#: ../../whatsnew.rst:1482
+msgid ""
+"The ``Workbook`` qualification changed: It now has to be specified as "
+"keyword argument. Assume we have instantiated two Workbooks like so: "
+"``wb1 = Workbook()`` and ``wb2 = Workbook()``. ``Sheet``, ``Range`` and "
+"``Chart`` classes will default to ``wb2`` as it was instantiated last. To"
+" target ``wb1``, use the new ``wkb`` keyword argument:"
+msgstr ""
+
+#: ../../whatsnew.rst:1489
+msgid "``Range('A1', wkb=wb1).value``"
+msgstr ""
+
+#: ../../whatsnew.rst:1489
+msgid "``wb1.range('A1').value``"
+msgstr ""
+
+#: ../../whatsnew.rst:1490
+msgid "``Chart('Chart1', wkb=wb1)``"
+msgstr ""
+
+#: ../../whatsnew.rst:1490
+msgid "``wb1.chart('Chart1')``"
+msgstr ""
+
+#: ../../whatsnew.rst:1493
+msgid ""
+"Alternatively, simply set the current Workbook before using the "
+"``Sheet``, ``Range`` or ``Chart`` classes::"
+msgstr ""
+
+#: ../../whatsnew.rst:1498
+msgid ""
+"Through the introduction of the ``Sheet`` class (see Enhancements), a few"
+" methods moved from the ``Workbook`` to the ``Sheet`` class. Assume the "
+"current Workbook is: ``wb = Workbook()``:"
+msgstr ""
+
+#: ../../whatsnew.rst:1504
+msgid "``Sheet('Sheet1').activate()``"
+msgstr ""
+
+#: ../../whatsnew.rst:1504
+msgid "``wb.activate('Sheet1')``"
+msgstr ""
+
+#: ../../whatsnew.rst:1505
+msgid "``Sheet('Sheet1').clear()``"
+msgstr ""
+
+#: ../../whatsnew.rst:1505
+msgid "``wb.clear('Sheet1')``"
+msgstr ""
+
+#: ../../whatsnew.rst:1506
+msgid "``Sheet('Sheet1').clear_contents()``"
+msgstr ""
+
+#: ../../whatsnew.rst:1506
+msgid "``wb.clear_contents('Sheet1')``"
+msgstr ""
+
+#: ../../whatsnew.rst:1507
+msgid "``Sheet.active().clear_contents()``"
+msgstr ""
+
+#: ../../whatsnew.rst:1507
+msgid "``wb.clear_contents()``"
+msgstr ""
+
+#: ../../whatsnew.rst:1510
+msgid ""
+"The syntax to add a new Chart has been slightly changed (it is a class "
+"method now):"
+msgstr ""
+
+#: ../../whatsnew.rst:1515
+msgid "``Chart.add()``"
+msgstr ""
+
+#: ../../whatsnew.rst:1515
+msgid "``Chart().add()``"
+msgstr ""
+
+#: ../../whatsnew.rst:1521
+msgid ""
+"[Mac]: Python errors are now also shown in a Message Box. This makes the "
+"Mac version feature equivalent with the Windows version (:issue:`57`):"
+msgstr ""
+
+#: ../../whatsnew.rst:1527
+msgid ""
+"New ``Sheet`` class: The new class handles everything directly related to"
+" a Sheet. See the Python API section about ``Sheet`` for details "
+"(:issue:`62`). A few examples::"
+msgstr ""
+
+#: ../../whatsnew.rst:1536
+msgid ""
+"The ``Range`` class has a new method ``autofit()`` that autofits the "
+"width/height of either columns, rows or both (:issue:`33`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1539
+msgid "*Arguments*::"
+msgstr ""
+
+#: ../../whatsnew.rst:1546
+msgid "*Examples*::"
+msgstr ""
+
+#: ../../whatsnew.rst:1557
+msgid ""
+"The ``Workbook`` class has the following additional methods: "
+"``current()`` and ``set_current()``. They determine the default Workbook "
+"for ``Sheet``, ``Range`` or ``Chart``. On Windows, in case there are "
+"various Excel instances, when creating new or opening existing Workbooks,"
+" they are being created in the same instance as the current Workbook."
+msgstr ""
+
+#: ../../whatsnew.rst:1570
+msgid ""
+"If a ``Sheet``, ``Range`` or ``Chart`` object is instantiated without an "
+"existing ``Workbook`` object, a user-friendly error message is raised "
+"(:issue:`58`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1573
+msgid "New docs about :ref:`debugging` and :ref:`datastructures`."
+msgstr ""
+
+#: ../../whatsnew.rst:1579
+msgid ""
+"The ``atleast_2d`` keyword had no effect on Ranges consisting of a single"
+" cell and was raising an error when used in combination with the "
+"``asarray`` keyword. Both have been fixed (:issue:`53`)::"
+msgstr ""
+
+#: ../../whatsnew.rst:1588
+msgid ""
+"[Mac]: After creating two new unsaved Workbooks with ``Workbook()``, any "
+"``Sheet``, ``Range`` or ``Chart`` object would always just access the "
+"latest one, even if the Workbook had been specified (:issue:`63`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1591
+msgid ""
+"[Mac]: When xlwings was imported without ever instantiating a "
+"``Workbook`` object, Excel would start upon quitting the Python "
+"interpreter (:issue:`51`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1594
+msgid ""
+"[Mac]: When installing xlwings, it now requires ``psutil`` to be at least"
+" version ``2.0.0`` (:issue:`48`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1598
+msgid "v0.2.1 (August 7, 2014)"
+msgstr ""
+
+#: ../../whatsnew.rst:1608
+msgid ""
+"All VBA user settings have been reorganized into a section at the top of "
+"the VBA xlwings module::"
+msgstr ""
+
+#: ../../whatsnew.rst:1616
+msgid ""
+"Calling Python from within Excel VBA is now also supported on Mac, i.e. "
+"Python functions can be called like this: ``RunPython(\"import bar; "
+"bar.foo()\")``. Running frozen executables (``RunFrozenPython``) isn't "
+"available yet on Mac though."
+msgstr ""
+
+#: ../../whatsnew.rst:1620
+msgid ""
+"Note that there is a slight difference in the way that this functionality"
+" behaves on Windows and Mac:"
+msgstr ""
+
+#: ../../whatsnew.rst:1622
+msgid ""
+"**Windows**: After calling the Macro (e.g. by pressing a button), Excel "
+"waits until Python is done. In case there's an error in the Python code, "
+"a pop-up message is being shown with the traceback."
+msgstr ""
+
+#: ../../whatsnew.rst:1625
+msgid ""
+"**Mac**: After calling the Macro, the call returns instantly but Excel's "
+"Status Bar turns into \"Running...\" during the duration of the Python "
+"call. Python errors are currently not shown as a pop-up, but need to be "
+"checked in the log file. I.e. if the Status Bar returns to its default "
+"(\"Ready\") but nothing has happened, check out the log file for the "
+"Python traceback."
+msgstr ""
+
+#: ../../whatsnew.rst:1635
+msgid "Special thanks go to Georgi Petrov for helping with this release."
+msgstr ""
+
+#: ../../whatsnew.rst:1638
+msgid "v0.2.0 (July 29, 2014)"
+msgstr ""
+
+#: ../../whatsnew.rst:1648
+msgid ""
+"Cross-platform: xlwings is now additionally supporting Microsoft Excel "
+"for Mac. The only functionality that is not yet available is the "
+"possibility to call the Python code from within Excel via VBA macros."
+msgstr ""
+
+#: ../../whatsnew.rst:1650
+msgid ""
+"The ``clear`` and ``clear_contents`` methods of the ``Workbook`` object "
+"now default to the active sheet (:issue:`5`)::"
+msgstr ""
+
+#: ../../whatsnew.rst:1659
+msgid ""
+"DataFrames with MultiHeaders were sometimes getting truncated "
+"(:issue:`41`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1663
+msgid "v0.1.1 (June 27, 2014)"
+msgstr ""
+
+#: ../../whatsnew.rst:1666
+msgid "API Changes"
+msgstr ""
+
+#: ../../whatsnew.rst:1668
+msgid ""
+"If ``asarray=True``, NumPy arrays are now always at least 1d arrays, even"
+" in the case of a single cell (:issue:`14`)::"
+msgstr ""
+
+#: ../../whatsnew.rst:1673
+msgid ""
+"Similar to NumPy's logic, 1d Ranges in Excel, i.e. rows or columns, are "
+"now being read in as flat lists or 1d arrays. If you want the same "
+"behavior as before, you can use the ``atleast_2d`` keyword (:issue:`13`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1676
+msgid ""
+"The ``table`` property is also delivering a 1d array/list, if the table "
+"Range is really a column or row."
+msgstr ""
+
+#: ../../whatsnew.rst:1698
+msgid ""
+"The single file approach has been dropped. xlwings is now a traditional "
+"Python package."
+msgstr ""
+
+#: ../../whatsnew.rst:1703
+msgid "xlwings is now officially suppported on Python 2.6-2.7 and 3.1-3.4"
+msgstr ""
+
+#: ../../whatsnew.rst:1704
+msgid "Support for Pandas ``Series`` has been added (:issue:`24`)::"
+msgstr ""
+
+#: ../../whatsnew.rst:1724
+msgid ""
+"Excel constants have been added under their original Excel name, but "
+"categorized under their enum (:issue:`18`), e.g.::"
+msgstr ""
+
+#: ../../whatsnew.rst:1739
+msgid ""
+"Slightly enhanced Chart support to control the ``ChartType`` "
+"(:issue:`1`)::"
+msgstr ""
+
+#: ../../whatsnew.rst:1748
+msgid "alternatively, the properties can also be set like this::"
+msgstr ""
+
+#: ../../whatsnew.rst:1758
+msgid ""
+"``pytz`` is no longer a dependency as ``datetime`` object are now being "
+"read in from Excel as time-zone naive (Excel doesn't know timezones). "
+"Before, ``datetime`` objects got the UTC timezone attached."
+msgstr ""
+
+#: ../../whatsnew.rst:1761
+msgid "The ``Workbook`` class has the following additional methods: ``close()``"
+msgstr ""
+
+#: ../../whatsnew.rst:1762
+msgid ""
+"The ``Range`` class has the following additional methods: ``is_cell()``, "
+"``is_column()``, ``is_row()``, ``is_table()``"
+msgstr ""
+
+#: ../../whatsnew.rst:1769
+msgid ""
+"Writing ``None`` or ``np.nan`` to Excel works now (:issue:`16` & "
+":issue:`15`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1770
+msgid "The import error on Python 3 has been fixed (:issue:`26`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1771
+msgid ""
+"Python 3 now handles Pandas DataFrames with MultiIndex headers correctly "
+"(:issue:`39`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1772
+msgid ""
+"Sometimes, a Pandas DataFrame was not handling ``nan`` correctly in Excel"
+" or numbers were being truncated (:issue:`31`) & (:issue:`35`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1774
+msgid "Installation is now putting all files in the correct place (:issue:`20`)."
+msgstr ""
+
+#: ../../whatsnew.rst:1778
+msgid "v0.1.0 (March 19, 2014)"
+msgstr ""
+
+#: ../../whatsnew.rst:1780
+msgid "Initial release of xlwings."
+msgstr ""
+

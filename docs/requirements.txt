@@ -1,1 +1,6 @@
 sphinxcontrib-napoleon
+sphinxcontrib-httpdomain
+cryptography
+furo
+sphinx-copybutton
+sphinx-design

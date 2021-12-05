@@ -1,0 +1,285 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-07 21:24+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../addin.rst:4
+msgid "Add-in"
+msgstr "加载项"
+
+#: ../../addin.rst:9
+msgid ""
+"The xlwings add-in is the preferred way to be able to use the ``Run "
+"main`` button, ``RunPython`` or ``UDFs``. Note that you don't need an "
+"add-in if you just want to manipulate Excel from Python via xlwings."
+msgstr ""
+"xlwings加载项是使用 ``Run main`` 按钮、 ``RunPython`` 或者 ``UDFs`` "
+"的最佳方法。当然如果仅仅想在Python中通过xlwings来操控Excel，那就用不着这个加载项。"
+
+#: ../../addin.rst:12
+#, fuzzy
+msgid ""
+"The ribbon of the add-in is compatible with Excel >= 2007 on Windows and "
+">= 2016 on Mac. On Mac, all UDF related functionality is not available."
+msgstr ""
+"加载项功能区兼容windows系统的Excel >= 2007版本和Mac系统的Excel >= "
+"2016版本。Mac系统中所有UDF相关的函数都无法使用。"
+
+#: ../../addin.rst:15
+msgid ""
+"The add-in is password protected with the password ``xlwings``. For "
+"debugging or to add new extensions, you need to unprotect it."
+msgstr "加载项是密码保护的，密码是 ``xlwings`` 。如果要调试或增加新的扩展，需要先解除保护。"
+
+#: ../../addin.rst:19
+msgid "Run main"
+msgstr "运行main"
+
+#: ../../addin.rst:23
+msgid ""
+"The ``Run main`` button is the easiest to run your Python code: It runs a"
+" function called ``main`` in a Python module that has the same name as "
+"your workbook. This allows you to save your workbook as ``xlsx`` without "
+"enabling macros. The ``xlwings quickstart`` command will create a "
+"workbook that will automatically work with the ``Run`` button."
+msgstr ""
+"运行Python代码的最简单的办法是使用 ``Run main`` 按钮，它会运行与工作簿同名的Python文件中的 ``main`` "
+"函数。这种方式允许把工作簿存为不启用宏的 ``xlsx`` 文件。  ``xlwings quickstart`` 命令行会生成一个自动包含 "
+"``Run`` 按钮的文件。"
+
+#: ../../addin.rst:30
+msgid "Installation"
+msgstr "安装"
+
+#: ../../addin.rst:32
+msgid ""
+"To install the add-in, it's easiest to use the command line client: "
+"``xlwings addin install``. Technically, this copies the add-in from "
+"Python's installation directory to Excel's ``XLSTART`` folder. If you "
+"encounter issues, then you can also download the add-in "
+"(``xlwings.xlam``) from the `GitHub Release page "
+"<https://github.com/ZoomerAnalytics/xlwings/releases>`_ (make sure you "
+"download the same version as the version of the Python package). Once "
+"downloaded, you can install the add-in by going to ``Developer > Excel "
+"Add-in > Browse``. If you don't see ``Developer`` as tab in your ribbon, "
+"make sure to activate the tab first under ``File > Options > Customize "
+"Ribbon`` (Mac: ``Cmd + , > Ribbon & Toolbar``)."
+msgstr ""
+"安装加载项的最简单的方法是用命令行客户端： ``xlwings addin  install`` 。 "
+"它的技术原理是把加载项从Python的安装目录拷贝到Excel软件的 ``XLSTART`` 文件夹。 "
+"如果碰到问题，可以从GitHub上的版本页面 `GitHub Release page "
+"<https://github.com/ZoomerAnalytics/xlwings/releases>` "
+"里面下载加载项文件(xlwings.xlam)，注意下载的版本要和你的Python Xlwings模块版本一致。 下载之后，就可以通过  "
+"``开发工具 > Excel 加载项 > 浏览`` 来安装加载项。如果在功能区看不到开发工具页标，就先通过  ``文件 > 选项 > "
+"自定义功能区``  (Mac系统中：  ``Cmd + , > 功能区 & 工具栏`` )先激活它。"
+
+#: ../../addin.rst:40
+msgid ""
+"Then, to use ``RunPython`` or ``UDFs`` in a workbook, you need to set a "
+"reference to ``xlwings`` in the VBA editor, see screenshot (Windows: "
+"``Tools > References...``, Mac: it's on the lower left corner of the VBA "
+"editor). Note that when you create a workbook via ``xlwings quickstart``,"
+" the reference is already set."
+msgstr ""
+"然后，要在工作簿中使用 ``RunPython`` 或者 ``UDFs`` ，还需要在VBA编辑器中(译者注： ``开发工具 > Visual "
+"Basic`` )设置一个 ``xlwings`` 的引用。 参见截屏(Windows系统，VBA编辑器中:  ``工具 > 引用...`` ， "
+"Mac系统中: 在VBA编辑器的左下角)。注意，当用 ``xlwings quickstart`` 生成一个工作簿的时候，引用已经设置好了。"
+
+#: ../../addin.rst:48
+msgid "Anaconda/Miniconda"
+msgstr "Anaconda/Miniconda"
+
+#: ../../addin.rst:50
+msgid ""
+"If you use Anaconda or Miniconda, you will need to set your ``Conda "
+"Base`` and ``Conda Env`` settings, as you will otherwise get errors when "
+"using ``NumPy`` etc. See next section."
+msgstr ""
+"如果使用Anaconda或者Miniconda，需要对 ``Conda Path`` 和 ``Conda Env`` 进行设置。 否则，在使用 "
+"``NumPy`` 等时会报错，详细情况见下一节。"
+
+#: ../../addin.rst:54
+msgid "Global Settings"
+msgstr "全局设置"
+
+#: ../../addin.rst:56
+msgid ""
+"While the defaults will often work out-of-the box, you can change the "
+"global settings directly in the add-in:"
+msgstr "虽然缺省设置一般是即装即用的，但是也可以在加载项中对全局设置进行修改："
+
+#: ../../addin.rst:58
+msgid ""
+"``Interpreter``: This is the path to the Python interpreter. This works "
+"also with virtual or conda envs on Mac. If you use conda envs on Windows,"
+" then use ``Conda Path`` and ``Conda Env`` below instead. Examples: "
+"``\"C:\\Python35\\pythonw.exe\"`` or ``\"/usr/local/bin/python3.5\"``. An"
+" empty field defaults to ``pythonw`` that expects the interpreter to be "
+"set in the ``PATH`` on Windows or ``.bash_profile`` on Mac."
+msgstr ""
+"``Interpreter`` ：这是Python解释器的路径。在Mac系统上用Python虚拟环境或者conda环境也是用这个设置。 "
+"如果在Windows系统中用conda环境，那就用后面的 ``Conda Path`` 和 ``Conda Env`` 来设置。例如： "
+"``\"C:\\Python35\\pythonw.exe\"`` 或 ``\"/usr/local/bin/python3.5\"`` "
+"。如果这里空着：在Windows系统中，缺省会到系统的 ``PATH`` 下查找 ``pythonw`` 文件；在Mac系统中，会到 "
+"``.bash_profile`` 中设置的目录下查找。"
+
+#: ../../addin.rst:62
+msgid ""
+"``PYTHONPATH``: If the source file of your code is not found, add the "
+"path here."
+msgstr "``PYTHONPATH``: 如果源文件找不到，就把源文件的路径放在这里。"
+
+#: ../../addin.rst:63
+msgid ""
+"``Conda Path``: If you are on Windows and use Anaconda or Miniconda, then"
+" type here the path to your installation, e.g. "
+"``C:\\Users\\Username\\Miniconda3`` or ``%USERPROFILE%\\Anaconda``. NOTE "
+"that you need at least conda 4.6! You also need to set ``Conda Env``, see"
+" next point."
+msgstr ""
+"``Conda Path``: 如果是在Windows系统使用conda环境，就在这里输入Anaconda或者Miniconda安装路径，比如： "
+"``C:\\Users\\Username\\Miniconda3`` 或 ``%USERPROFILE%\\Anaconda`` "
+"。注意必须是conda 4.6以上！"
+
+#: ../../addin.rst:66
+msgid ""
+"``Conda Env``: If you are on Windows and use Anaconda or Miniconda, type "
+"here the name of your conda env, e.g. ``base`` for the base installation "
+"or ``myenv`` for a conda env with the name ``myenv``. Note that this "
+"requires you to either leave the ``Interpreter`` blank or set it to one "
+"of ``python`` or ``pythonw``."
+msgstr ""
+"``Conda Env``: 如果是在Windows系统使用conda环境，这里输入conda环境的名称，例如 "
+"``myenv``。注意，这时需要把 ``Interpreter`` 留空，或者设置为 ``python`` 或 ``pythonw``。"
+
+#: ../../addin.rst:69
+msgid ""
+"``UDF Modules``: Names of Python modules (without .py extension) from "
+"which the UDFs are being imported. Separate multiple modules by \";\". "
+"Example: ``UDF_MODULES = \"common_udfs;myproject\"`` The default imports "
+"a file in the same directory as the Excel spreadsheet with the same name "
+"but ending in ``.py``."
+msgstr ""
+"``UDF Modules`` : 导入UDF的Python模块的名称(不加.py "
+"文件扩展名)。如果有多个模块，用\";\"分割。例子： ``UDF_MODULES = "
+"\"common_udfs;myproject\"`` 。 缺省情况下导入文件是Excel文件同目录下的同名但是文件扩展名为 ``.py`` 的文件。"
+
+#: ../../addin.rst:73
+msgid ""
+"``Debug UDFs``: Check this box if you want to run the xlwings COM server "
+"manually for debugging, see :ref:`debugging`."
+msgstr "``Debug UDFs``: 如果要手动运行xlwings COM服务器以便排查错误，就选中本选项，参考 :ref:`debugging`."
+
+#: ../../addin.rst:74
+msgid ""
+"``RunPython: Use UDF Server``:  Uses the same COM Server for RunPython as"
+" for UDFs. This will be faster, as the interpreter doesn't shut down "
+"after each call."
+msgstr ""
+"``RunPython: Use UDF Server``:  "
+"使用和UDF相同的COM服务器，因为Python解释器不是每次调用后就关闭，因此能够提高速度。"
+
+#: ../../addin.rst:76
+msgid ""
+"``Restart UDF Server``: This shuts down the UDF Server/Python "
+"interpreter. It'll be restarted upon the next function call."
+msgstr "``Restart UDF Server``: 关闭UDF服务器或Python解释器，下一次调用时再启动他们。"
+
+#: ../../addin.rst:78
+msgid ""
+"If you use ``Conda Path`` and ``Conda Env`` with UDFs, you currently "
+"can't hide the command prompt that pops up. You can still control if the "
+"output is printed to the command prompt or not though by setting the "
+"``Interpreter`` to ``python`` or ``pythonw``, respectively."
+msgstr ""
+"如果用 ``Conda Path`` 和 ``Conda Env`` 处理UDF，现在还无法把命令行弹窗隐藏起来。 但是通过把 "
+"``Interpreter`` 设置为  ``python`` 或者 ``pythonw`` 可以控制是否在命令行提示符界面输出信息。"
+
+#: ../../addin.rst:85
+msgid "Global Config: Ribbon/Config File"
+msgstr "全局配置：功能区/配置文件"
+
+#: ../../addin.rst:87
+msgid ""
+"The settings in the xlwings Ribbon are stored in a config file that can "
+"also be manipulated externally. The location is"
+msgstr "xlwings功能区的设置是存放在一个配置文件里面的，这个文件也可以用其他方式修改。这个文件的存储目录是："
+
+#: ../../addin.rst:89
+msgid "Windows: ``.xlwings\\xlwings.conf`` in your user folder"
+msgstr "Windows: 用户文件夹里的  ``.xlwings\\xlwings.conf``  "
+
+#: ../../addin.rst:90
+msgid "macOS: ``~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf``"
+msgstr "macOS: ``~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf``"
+
+#: ../../addin.rst:92
+msgid "The format is as follows (keys are uppercase):"
+msgstr "格式如下(关键字是大写的)："
+
+#: ../../addin.rst:100
+msgid "Workbook Directory Config: Config file"
+msgstr "工作簿目录级配置：配置文件"
+
+#: ../../addin.rst:102
+msgid ""
+"The global settings of the Ribbon/Config file can be overridden for one "
+"or more workbooks by creating a ``xlwings.conf`` file in the workbook's "
+"directory."
+msgstr "当工作簿目录下存在 ``xlwings.conf`` 时，功能区或配置文件中的全局设置会被覆盖。"
+
+#: ../../addin.rst:108
+msgid "Workbook Config: xlwings.conf Sheet"
+msgstr "工作簿级配置：xlwings.conf表"
+
+#: ../../addin.rst:110
+msgid ""
+"Workbook specific settings will override global (Ribbon) and workbook "
+"directory config files: Workbook specific settings are set by listing the"
+" config key/value pairs in a sheet with the name ``xlwings.conf``. When "
+"you create a new project with ``xlwings quickstart``, it'll already have "
+"such a sheet but you need to rename it to ``xlwings.conf`` to make it "
+"active."
+msgstr ""
+"单独为工作簿配置的属性会覆盖全局配置和工作薄目录级配置： 工作簿级的配置是放在 ``xlwings.conf`` 表中的键值对。 用 "
+"``xlwings quickstart`` 创建一个新的项目的时候，它会为你创建这样一张表，可以通过把表的名字更改为 "
+"``xlwings.conf`` 来激活它。"
+
+#: ../../addin.rst:121
+msgid "Alternative: Standalone VBA module"
+msgstr "可选方式：独立的VBA模块"
+
+#: ../../addin.rst:123
+msgid ""
+"Sometimes it might be useful to run xlwings code without having to "
+"install an add-in first. To do so, you need to use the ``standalone`` "
+"option when creating a new project: ``xlwings quickstart myproject "
+"--standalone``."
+msgstr ""
+"有的时候，在不安装xlwings加载项的情况下运行xlwings代码很有用。要这么做，可以在创建项目的时候使用 ``standalone`` "
+"选项： ``xlwings quickstart myproject --standalone`` 。"
+
+#: ../../addin.rst:126
+msgid ""
+"This will add the content of the add-in as a single VBA module so you "
+"don't need to set a reference to the add-in anymore. It will still read "
+"in the settings from your ``xlwings.conf`` if you don't override them by "
+"using a sheet with the name ``xlwings.conf``."
+msgstr ""
+"这样会把加载项的内容做成一个单独的VBA模块，就不用为加载项设置引用了。这时，如果不用名为 ``xlwings.conf`` "
+"的工作簿级的配置，还是会从前面两级 ``xlwings.conf`` 中读入配置。"
+

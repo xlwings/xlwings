@@ -15,8 +15,13 @@ The easiest way to connect to a book is offered by ``xw.Book``: it looks for the
 returns an error, should the same book be open in multiple instances.
 To connect to a book in the active app instance, use ``xw.books`` and to refer to a specific app, use:
 
->>> app = xw.App()  # or something like xw.apps[0] for existing apps
+>>> app = xw.App()  # or something like xw.apps[10559] for existing apps, get the available PIDs via xw.apps.keys()
 >>> app.books['Book1']
+
+Note that you usually should use ``App`` as a context manager as this will make sure that the Excel instance is closed and cleaned up again properly::
+
+    with xw.App() as app:
+        book = app.books['Book1']
 
 +--------------------+--------------------------------------+--------------------------------------------+
 |                    | xw.Book                              | xw.books                                   |
@@ -44,4 +49,4 @@ User Defined Functions (UDFs)
 -----------------------------
 
 Unlike ``RunPython``, UDFs don't need a call to ``xw.Book.caller()``, see :ref:`udfs`.
-However, it's available (restricted to read-only though), which sometimes proofs to be useful.
+You'll usually use the ``caller`` argument which returns the xlwings range object from where you call the function.

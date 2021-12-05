@@ -1,0 +1,116 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-04 15:42+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Eugene Chang yuyueugene84@gmail.com\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../connect_to_workbook.rst:4
+msgid "Connect to a Book"
+msgstr "與工作簿建立聯繫"
+
+#: ../../connect_to_workbook.rst:6
+msgid ""
+"When reading/writing data to the active sheet, you don't need a book "
+"object:"
+msgstr "當我們針對目前使用中的工作表讀取或寫入時，你可以直接使用 ``xw.Range()`` ，不需要另外指定 book 物件。"
+
+#: ../../connect_to_workbook.rst:12
+msgid "Python to Excel"
+msgstr "用 Python 操作 Excel"
+
+#: ../../connect_to_workbook.rst:14
+msgid ""
+"The easiest way to connect to a book is offered by ``xw.Book``: it looks "
+"for the book in all app instances and returns an error, should the same "
+"book be open in multiple instances. To connect to a book in the active "
+"app instance, use ``xw.books`` and to refer to a specific app, use:"
+msgstr "建立與一個工作簿的聯繫最簡單的方式，是透過 ``xw.Book()``：該物件會根據使用者輸入的名稱搜尋並開啓特定的工作簿，若無指定名稱，便會建立一個新的工作簿並與之建立聯繫。 若使用當下有多個被開啓的工作簿，則可透過 ``xw.books`` 讀取被開啓工作簿的集合："
+
+#: ../../connect_to_workbook.rst:22
+msgid "xw.Book"
+msgstr ""
+
+#: ../../connect_to_workbook.rst:22
+msgid "xw.books"
+msgstr ""
+
+#: ../../connect_to_workbook.rst:24
+msgid "New book"
+msgstr "新工作簿"
+
+#: ../../connect_to_workbook.rst:24
+msgid "``xw.Book()``"
+msgstr ""
+
+#: ../../connect_to_workbook.rst:24
+msgid "``xw.books.add()``"
+msgstr ""
+
+#: ../../connect_to_workbook.rst:26
+msgid "Unsaved book"
+msgstr "尚未儲存的工作簿"
+
+#: ../../connect_to_workbook.rst:26
+msgid "``xw.Book('Book1')``"
+msgstr ""
+
+#: ../../connect_to_workbook.rst:26
+msgid "``xw.books['Book1']``"
+msgstr ""
+
+#: ../../connect_to_workbook.rst:28
+msgid "Book by (full)name"
+msgstr "根據路徑開啓的工作簿"
+
+#: ../../connect_to_workbook.rst:28
+msgid "``xw.Book(r'C:/path/to/file.xlsx')``"
+msgstr ""
+
+#: ../../connect_to_workbook.rst:28
+msgid "``xw.books.open(r'C:/path/to/file.xlsx')``"
+msgstr ""
+
+#: ../../connect_to_workbook.rst:32
+msgid ""
+"When specifying file paths on Windows, you should either use raw strings "
+"by putting an ``r`` in front of the string or use double back-slashes "
+"like so: ``C:\\\\path\\\\to\\\\file.xlsx``."
+msgstr "在 Windows 作業系統下指定檔案路徑時，爲了避免反斜線符號(\)被誤認成跳脫字元，你應該使用 Python 的原始字串，在字串的前面加上 ``r``，或是在字串内容所有的反斜線前面加上另一個反斜線，像是：``C:\\\\path\\\\to\\\\file.xlsx``。"
+
+#: ../../connect_to_workbook.rst:36
+msgid "Excel to Python (RunPython)"
+msgstr "用 Excel 操作 Python (RunPython)"
+
+#: ../../connect_to_workbook.rst:38
+msgid ""
+"To reference the calling book when using ``RunPython`` in VBA, use "
+"``xw.Book.caller()``, see :ref:`run_python`. Check out the section about "
+":ref:`debugging` to see how you can call a script from both sides, Python"
+" and Excel, without the need to constantly change between "
+"``xw.Book.caller()`` and one of the methods explained above."
+msgstr "若要透過 VBA 的 ``RunPython`` 函數參照到呼叫該函數的工作簿時，可以使用 ``xw.Book.caller()``。詳細可以參考 :ref:`run_python` 的。你可以參考 :ref:`debugging` 了解要如何透過 Python 與 VBA 兩邊去呼叫一個 Python 脚本。"
+
+#: ../../connect_to_workbook.rst:44
+msgid "User Defined Functions (UDFs)"
+msgstr "使用者自定函數（UDFs）"
+
+#: ../../connect_to_workbook.rst:46
+msgid ""
+"Unlike ``RunPython``, UDFs don't need a call to ``xw.Book.caller()``, see"
+" :ref:`udfs`. However, it's available (restricted to read-only though), "
+"which sometimes proofs to be useful."
+msgstr "不同於 ``RunPython`` 函數，使用者自定函數（UDFs）不需要呼叫 ``xw.Book.caller()``，但是你依然可以使用它，不過功能僅限讀取資料。"
+

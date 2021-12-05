@@ -13,10 +13,9 @@ Since xlwings runs in every Python environment, you can use your preferred way o
 To begin with, Excel will show Python errors in a Message Box:
 
 .. figure:: images/debugging_error.png
-    :scale: 65%
 
-.. note:: On Mac, if the ``import`` of a module/package fails before xlwings is imported, the popup will not be shown and the StatusBar
-    will not be reset. However, the error will still be logged in the log file. For the location of the logfile, see :ref:`log`.
+.. note:: On Mac, if the ``import`` of a module/package fails before ``xlwings`` is imported, the popup will not be shown and the StatusBar
+    will not be reset. However, the error will still be logged in the log file (``/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings.log``).
 
 RunPython
 ---------
@@ -45,7 +44,7 @@ source code:
 .. code-block:: vb.net
 
     Sub my_macro()
-        RunPython ("import my_module; my_module.my_macro()")
+        RunPython "import my_module; my_module.my_macro()"
     End Sub
 
 UDF debug server
@@ -65,7 +64,6 @@ may have.
 The following screenshot shows the code stopped at a breakpoint in the community version of PyCharm:
 
 .. figure:: images/udf_debugging.png
-    :scale: 65%
 
 .. note::
   When running the debug server from a command prompt, there is currently no gracious way to terminate it, but closing

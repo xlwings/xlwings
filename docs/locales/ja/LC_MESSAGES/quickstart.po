@@ -1,0 +1,204 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-02-22 22:54+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.0\n"
+
+#: ../../quickstart.rst:4
+msgid "Quickstart"
+msgstr "クイックスタート"
+
+#: ../../quickstart.rst:6
+msgid ""
+"This guide assumes you have xlwings already installed. If that's not the "
+"case, head over to :ref:`installation`."
+msgstr "このガイドはxlwingsのインストールを前提とています。 まだであれば、まずは :ref:`installation` を済まてください。"
+
+#: ../../quickstart.rst:9
+msgid "1. Interacting with Excel from a Jupyter notebook"
+msgstr "1. Jupyter NotebookからExcelをインタラクティブに操作"
+
+#: ../../quickstart.rst:11
+msgid ""
+"If you're just interested in getting a pandas DataFrame in and out of "
+"your Jupyter notebook, you can use the ``view`` and ``load`` functions, "
+"see  :ref:`jupyternotebooks`."
+msgstr ""
+"もし、pandas DataFrameをJupyter Notebookから入出力したいだけであれば、"
+" ``view`` および ``load`` 関数を使用してください。 :ref:`jupyternotebooks` "
+"をご覧ください。"
+
+#: ../../quickstart.rst:14
+msgid "2. Scripting: Automate/interact with Excel from Python"
+msgstr "2. Scripting: PythonからExcelを自動化/インタラクティブに操作"
+
+#: ../../quickstart.rst:16
+msgid "Establish a connection to a workbook:"
+msgstr "ワークブックに接続してみます:"
+
+#: ../../quickstart.rst:23
+msgid ""
+"If you have the same file open in two instances of Excel, you need to "
+"fully qualify it and include the app instance. You will find your app "
+"instance key (the PID) via ``xw.apps.keys()``:"
+msgstr ""
+"もしも二つのExcelインスタンスが同じファイルを開いている場合、どちらなのかをappインスタンスに指定する必要があります。appインスタンスのキー(PID)は"
+" ``xw.apps.keys()`` で取得できます:"
+
+#: ../../quickstart.rst:28
+msgid "Instantiate a sheet object:"
+msgstr "sheetオブジェクトをインスタンス化:"
+
+#: ../../quickstart.rst:32
+msgid "Reading/writing values to/from ranges is as easy as:"
+msgstr "rangeの値の読み込み/書き込みが簡単にできます:"
+
+#: ../../quickstart.rst:38
+msgid "There are many **convenience features** available, e.g. Range expanding:"
+msgstr "多くの **便利な機能** を使えます。例えば、Rangeを拡張できます:"
+
+#: ../../quickstart.rst:44
+msgid ""
+"**Powerful converters** handle most data types of interest, including "
+"Numpy arrays and Pandas DataFrames in both directions:"
+msgstr ""
+"**強力なコンバーター** により、Numpy arraysやPandas DataFramesを含む、"
+"大半の主要なデータ型を、ExcelからPythonとPythonからExcelの双方向に変換できます:"
+
+#: ../../quickstart.rst:54
+msgid "**Matplotlib** figures can be shown as pictures in Excel:"
+msgstr "**Matplotlib** の図形をExcelの図として表示できます:"
+
+#: ../../quickstart.rst:64
+msgid "3. Macros: Call Python from Excel"
+msgstr "3. Macros: ExcelからPythonを呼び出す"
+
+#: ../../quickstart.rst:66
+msgid ""
+"You can call Python functions either by clicking the ``Run`` button (new "
+"in v0.16) in  the add-in or from VBA using the ``RunPython`` function:"
+msgstr ""
+"アドインの ``Run`` ボタン(v0.16の新機能)をクリックするか、VBA上で ``RunPython`` "
+"関数を使えば、Python関数を呼び出せます:"
+
+#: ../../quickstart.rst:68
+msgid ""
+"The ``Run`` button expects a function called ``main`` in a Python module "
+"with the same name as your workbook. The great thing about that approach "
+"is that you don't need your workbooks to be macro-enabled, you can save "
+"it as ``xlsx``."
+msgstr ""
+"``Run`` ボタンは、ワークブックと同じ名前のPythonモジュールにある ``main`` "
+"関数を実行します。このアプローチの非常に優れた点は、ワークブックのマクロを有効にしなくても良いことで、 ``xlsx`` "
+"形式でのワークブックの保存が可能となります。"
+
+#: ../../quickstart.rst:71
+msgid ""
+"If you want to call any Python function no matter in what module it lives"
+" or what name it has, use ``RunPython``:"
+msgstr "モジュール内の任意の場所に配置した任意の名前のPython関数を呼び出すには、``RunPython`` を使用します:"
+
+#: ../../quickstart.rst:81
+msgid ""
+"Per default, ``RunPython`` expects ``hello.py`` in the same directory as "
+"the Excel file with the same name, **but you can change both of these "
+"things**: if your Python file is an a different folder, add that folder "
+"to the ``PYTHONPATH`` in the config. If the file has a different name, "
+"change the ``RunPython`` command accordingly."
+msgstr ""
+"デフォルトでは、 ``RunPython`` は、Excelファイルを ``hello.py`` と同じ"
+"ディレクトリーに同じ名前で保存する必要がありますが、 **これらは変更することが"
+"できます**: Pythonファイルが別のフォルダーにある場合には、設定の ``PYTHONPATH`` に"
+"そのフォルダーを追加してください。ファイル名が異なる場合には、 ``RunPython`` "
+"コマンドを修正してください。"
+
+#: ../../quickstart.rst:83
+msgid "Refer to the calling Excel book by using ``xw.Book.caller()``:"
+msgstr "呼び出し元のExcelブックの参照には、 ``xw.Book.caller()`` を使用します:"
+
+#: ../../quickstart.rst:96
+msgid ""
+"To make this run, you'll need to have the xlwings add-in installed or "
+"have the workbooks setup in the standalone mode. The easiest way to get "
+"everything set up is to use the xlwings command line client from either a"
+" command prompt on Windows or a terminal on Mac: ``xlwings quickstart "
+"myproject``."
+msgstr ""
+"これを実行するには、xlwingsアドインをインストールするか、ワークブックを"
+"スタンドアローン モードでセットアップする必要があります。"
+"WindowsのコマンドプロンプトまたはMacのターミナルから、xlwingsのコマンドライン"
+" クライアントを使用すれば、最も簡単に全てをセットアップできます: "
+"``xlwings quickstart myproject`` 。"
+
+#: ../../quickstart.rst:98
+msgid "For details about the addin, see :ref:`xlwings_addin`."
+msgstr "アドインについての詳細は、 :ref:`xlwings_addin` をご覧ください。"
+
+#: ../../quickstart.rst:101
+msgid "4. UDFs: User Defined Functions (Windows only)"
+msgstr "4. UDFs: ユーザー定義関数 (Windowsのみ)"
+
+#: ../../quickstart.rst:103
+msgid "Writing a UDF in Python is as easy as:"
+msgstr "UDFをPythonで書いてみましょう。簡単にできます:"
+
+#: ../../quickstart.rst:113
+msgid "Converters can be used with UDFs, too. Again a Pandas DataFrame example:"
+msgstr "コンバーターはUDFsでも使えます。以下はPandas DataFrameの例です:"
+
+#: ../../quickstart.rst:127
+msgid ""
+"Import this function into Excel by clicking the import button of the "
+"xlwings add-in: For a step-by-step tutorial, see :ref:`udfs`."
+msgstr ""
+"xlwingsアドインにあるimportボタンをクリックすれば、この関数をExcelに"
+"取り込めます。 :ref:`udfs` でステップ-バイ-ステップで説明しています。"
+
+#~ msgid "**Shortcut** for the active sheet: ``xw.Range``"
+#~ msgstr "アクティブ シートへの **ショートカット** : ``xw.Range``"
+
+#~ msgid ""
+#~ "If you want to quickly talk to "
+#~ "the active sheet in the active "
+#~ "workbook, you don't need instantiate a"
+#~ " workbook and sheet object, but can"
+#~ " simply do:"
+#~ msgstr ""
+#~ "アクティブ ワークブックのアクティブ "
+#~ "シートへの参照は、workbookオブジェクトやsheetオブジェクトをインスタンス化することなく、簡潔に記述できます:"
+
+#~ msgid ""
+#~ "**Note:** You should only use "
+#~ "``xw.Range`` when interacting with Excel. "
+#~ "In scripts, you should always go "
+#~ "via book and sheet objects as "
+#~ "shown above."
+#~ msgstr ""
+#~ "**Note:** Excelとの相互操作を行う際には、 ``xw.Range`` "
+#~ "のみを使用すべきです。スクリプト上では、前述のとおり常にbookオブジェクトやsheetオブジェクトを経由すべきです。"
+
+#~ msgid ""
+#~ "Per default, ``RunPython`` expects "
+#~ "``hello.py`` in the same directory as"
+#~ " the Excel file but you can "
+#~ "change that via config. Refer to "
+#~ "the calling Excel book by using "
+#~ "``xw.Book.caller``:"
+#~ msgstr ""
+#~ "``RunPython`` のデフォルト設定では、 ``hello.py`` "
+#~ "とExcelファイルは同じディレクトリーになければなりませんが、変更もできます。``xw.Book.caller`` "
+#~ "を使って、呼び出し元のExcelブックを参照してみます:"
+

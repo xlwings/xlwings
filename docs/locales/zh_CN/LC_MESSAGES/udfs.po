@@ -1,0 +1,451 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../udfs.rst:4
+msgid "VBA: User Defined Functions (UDFs)"
+msgstr "VBA: 用户定义函数(UDF)"
+
+#: ../../udfs.rst:6
+msgid ""
+"This tutorial gets you quickly started on how to write User Defined "
+"Functions."
+msgstr "本教程指导大家快速着手写用户定义函数。"
+
+#: ../../udfs.rst:9
+msgid "UDFs are currently only available on Windows."
+msgstr "目前仅能在Windows系统中使用用户定义函数(UDF)"
+
+#: ../../udfs.rst:10
+msgid ""
+"For details of how to control the behaviour of the arguments and return "
+"values, have a look at :ref:`converters`."
+msgstr "如何控制参数和返回值的方法，请查看 :ref:`converters`."
+
+#: ../../udfs.rst:11
+msgid ""
+"For a comprehensive overview of the available decorators and their "
+"options, check out the corresponding API docs: :ref:`udf_api`."
+msgstr "关于全部装饰器及其功能的全面的综述，请查询相应的API文档: :ref:`udf_api`."
+
+#: ../../udfs.rst:14
+msgid "One-time Excel preparations"
+msgstr "Excel里的一次性准备工作"
+
+#: ../../udfs.rst:16
+msgid ""
+"1) Enable ``Trust access to the VBA project object model`` under ``File >"
+" Options > Trust Center > Trust Center Settings > Macro Settings``"
+msgstr "1) 在文件 ``> 选项 > 信任中心> 信任中心设置> 宏设置`` 中启用 ``信任对VBA工程对象模型的访问``。 "
+
+#: ../../udfs.rst:19
+msgid ""
+"Install the add-in via command prompt: ``xlwings addin install`` (see "
+":ref:`xlwings_addin`)."
+msgstr "2) 通过命令行提示符安装加载项: ``xlwings addin install`` (参见 :ref:`xlwings_addin`)."
+
+#: ../../udfs.rst:23
+msgid "Workbook preparation"
+msgstr "准备工作簿"
+
+#: ../../udfs.rst:25
+msgid ""
+"The easiest way to start a new project is to run ``xlwings quickstart "
+"myproject`` on a command prompt (see :ref:`command_line`). This "
+"automatically adds the xlwings reference to the generated workbook."
+msgstr ""
+"最简单的方法是在命令行用 ``xlwings quickstart myproject`` 来创建一个新的项目(参见 :ref:`command_line`)。"
+"这样会在创建的工作簿中自动添加xlwings引用。"
+
+#: ../../udfs.rst:29
+msgid "A simple UDF"
+msgstr "一个简单的UDF"
+
+#: ../../udfs.rst:31
+msgid ""
+"The default addin settings expect a Python source file in the way it is "
+"created by ``quickstart``:"
+msgstr "加载项缺省设置和用 ``quickstart``创建的项目一样，像下面这样找Python源文件："
+
+#: ../../udfs.rst:33
+msgid "in the same directory as the Excel file"
+msgstr "在工作簿所在的相同目录下"
+
+#: ../../udfs.rst:34
+msgid ""
+"with the same name as the Excel file, but with a ``.py`` ending instead "
+"of ``.xlsm``."
+msgstr "和工作簿同名，但是文件后缀是 ``.py`` 而不是 ``.xlsm`` 。"
+
+#: ../../udfs.rst:36
+msgid ""
+"Alternatively, you can point to a specific module via ``UDF Modules`` in "
+"the xlwings ribbon."
+msgstr "另外一种方法是在xlwings功能区通过 ``UDF Modules`` 来指明是哪一个文件。"
+
+#: ../../udfs.rst:38
+msgid ""
+"Let's assume you have a Workbook ``myproject.xlsm``, then you would write"
+" the following code in ``myproject.py``::"
+msgstr "假设你有一个工作簿 ``myproject.xlsm`` ，可以把下列代码输入 ``myproject.py``::"
+
+#: ../../udfs.rst:48
+msgid ""
+"Now click on ``Import Python UDFs`` in the xlwings tab to pick up the "
+"changes made to ``myproject.py``."
+msgstr "在xlwings工具功能区点击 ``Import Python UDFs`` ，把在 ``myproject.py`` 中修改的内容同步进来。"
+
+#: ../../udfs.rst:49
+msgid ""
+"Enter the formula ``=double_sum(1, 2)`` into a cell and you will see the "
+"correct result:"
+msgstr "在一个单元格里输入公式 ``=double_sum(1, 2)`` ，可以看到正确结果："
+
+#: ../../udfs.rst:54
+msgid ""
+"The docstring (in triple-quotes) will be shown as function description in"
+" Excel."
+msgstr "文档字符串(三重双引号内的文字)在Excel中会被显示为函数说明。"
+
+#: ../../udfs.rst:57
+msgid ""
+"You only need to re-import your functions if you change the function "
+"arguments or the function name."
+msgstr "只有修改了函数参数或者函数名称，才需要重新导入。"
+
+#: ../../udfs.rst:58
+msgid ""
+"Code changes in the actual functions are picked up automatically (i.e. at"
+" the next calculation of the formula, e.g. triggered by ``Ctrl-Alt-F9``),"
+" but changes in imported modules are not. This is the very behaviour of "
+"how Python imports work. If you want to make sure everything is in a "
+"fresh state, click ``Restart UDF Server``."
+msgstr ""
+"实际函数中的改变会被自动更新(也就是说在公式下次计算的时候，比如被 ``Ctrl-Alt-F9`` 触发的时候)，"
+"但是导入模块中的变化不是这样。 导入模块的行为和Python导入模块的行为一致。 "
+"如果需要确保所有公式都在最新状态，需要单击 ``Restart UDF Server`` 。"
+"[译者注：在Excel2013，建议修改公式内容后，每个使用到该公式的单元格都重新运行一下。]"
+
+#: ../../udfs.rst:61
+msgid ""
+"The ``@xw.func`` decorator is only used by xlwings when the function is "
+"being imported into Excel. It tells xlwings for which functions it should"
+" create a VBA wrapper function, otherwise it has no effect on how the "
+"functions behave in Python."
+msgstr ""
+"装饰器 ``@xw.func`` 只在函数被导入Excel时被xlwings模块用到。"
+"它告诉xlwings该为哪个函数创建一个VBA的封装函数，除此之外，它不影响函数在Python中的行为。"
+
+#: ../../udfs.rst:67
+msgid "Array formulas: Get efficient"
+msgstr "数组公式：提高效率"
+
+#: ../../udfs.rst:69
+msgid ""
+"Calling one big array formula in Excel is much more efficient than "
+"calling many single-cell formulas, so it's generally a good idea to use "
+"them, especially if you hit performance problems."
+msgstr "在Excel中，调用一个大数组的公式比调用多个单元格的公式效率高。所以，用大数组公式是个很好的办法，特别是要解决性能问题的时候。"
+
+#: ../../udfs.rst:72
+msgid ""
+"You can pass an Excel Range as a function argument, as opposed to a "
+"single cell and it will show up in Python as list of lists."
+msgstr "可以把一个区域而不是一个单元格作为公式的参数。区域在Python中被表示为嵌套列表。"
+
+#: ../../udfs.rst:75
+msgid ""
+"For example, you can write the following function to add 1 to every cell "
+"in a Range::"
+msgstr "例如，可以写下面一个公式来为区域里面的每个单元格加1::"
+
+#: ../../udfs.rst:81
+msgid "To use this formula in Excel,"
+msgstr "要在Excel中用这个公式，可以："
+
+#: ../../udfs.rst:83
+msgid "Click on ``Import Python UDFs`` again"
+msgstr "先再一次单击 ``Import Python UDFs`` "
+
+#: ../../udfs.rst:84
+msgid "Fill in the values in the range ``A1:B2``"
+msgstr "在区域 ``A1:B2`` 中填一些数字"
+
+#: ../../udfs.rst:85
+msgid "Select the range ``D1:E2``"
+msgstr "选中 ``D1:E2``"
+
+#: ../../udfs.rst:86
+msgid "Type in the formula ``=add_one(A1:B2)``"
+msgstr "输入公式 ``=add_one(A1:B2)``"
+
+#: ../../udfs.rst:87
+msgid ""
+"Press ``Ctrl+Shift+Enter`` to create an array formula. If you did "
+"everything correctly, you'll see the formula surrounded by curly braces "
+"as in this screenshot:"
+msgstr "按 ``Ctrl+Shift+Enter`` 组合键创建数组公式。如果上面几个动作都做对了，就会看到下面截屏中显示的公式外面有一对花括号："
+
+#: ../../udfs.rst:94
+msgid "Number of array dimensions: ndim"
+msgstr "数组的维数: ndim"
+
+#: ../../udfs.rst:96
+msgid ""
+"The above formula has the issue that it expects a \"two dimensional\" "
+"input, e.g. a nested list of the form ``[[1, 2], [3, 4]]``. Therefore, if"
+" you would apply the formula to a single cell, you would get the "
+"following error: ``TypeError: 'float' object is not iterable``."
+msgstr ""
+"上面的公式存在一个问题：它需要一个类似嵌套列表 ``[[1, 2], [3, 4]]`` 的“2维”的输入。"
+"所以如果你把这个公式用于一个单元格，会得到下面的错误信息： ``类型错误: 'float' 对象不可迭代`` 。"
+
+#: ../../udfs.rst:101
+msgid ""
+"To force Excel to always give you a two-dimensional array, no matter "
+"whether the argument is a single cell, a column/row or a two-dimensional "
+"Range, you can extend the above formula like this::"
+msgstr ""
+"要强制Excel不管输入参数是单元格、单行/单列还是2维区域都把它转化为2维数组，可以把上面的公式做如下扩展::"
+
+#: ../../udfs.rst:110
+msgid "Array formulas with NumPy and Pandas"
+msgstr "与NumPy和Pandas合用数组公式"
+
+#: ../../udfs.rst:112
+msgid ""
+"Often, you'll want to use NumPy arrays or Pandas DataFrames in your UDF, "
+"as this unlocks the full power of Python's ecosystem for scientific "
+"computing."
+msgstr "通常会在UDF中用到NumPy array或者Pandas DataFrame，因为这样能把Python的整个科学计算体系的能力都发挥出来。"
+
+#: ../../udfs.rst:115
+msgid ""
+"To define a formula for matrix multiplication using numpy arrays, you "
+"would define the following function::"
+msgstr "要用numpy array来定义一个矩阵运算公式，可以定义下面的公式::"
+
+#: ../../udfs.rst:126
+msgid ""
+"If you are not on Python >= 3.5 with NumPy >= 1.10, use ``x.dot(y)`` "
+"instead of ``x @ y``."
+msgstr "如果版本不满足Python >= 3.5 并且 NumPy >= 1.10，请用 ``x.dot(y)`` 替代 ``x @ y`` 。"
+
+#: ../../udfs.rst:128
+msgid ""
+"A great example of how you can put Pandas at work is the creation of an "
+"array-based ``CORREL`` formula. Excel's version of ``CORREL`` only works "
+"on 2 datasets and is cumbersome to use if you want to quickly get the "
+"correlation matrix of a few time-series, for example. Pandas makes the "
+"creation of an array-based ``CORREL2`` formula basically a one-liner::"
+msgstr ""
+"把Pandas用于实际工作的一个很棒的例子是创建基于数组的 ``CORREL`` 公式。"
+"Excel版的 ``CORREL`` 必须用在2个数据集上，而且在求时间序列的相关系数矩阵时用起来很复杂。"
+"Pandas使得创建数组相关的 ``CORREL2`` 公式简单到一行搞定::"
+
+#: ../../udfs.rst:145
+msgid "@xw.arg and @xw.ret decorators"
+msgstr "装饰器@xw.arg和@xw.ret"
+
+#: ../../udfs.rst:147
+msgid ""
+"These decorators are to UDFs what the ``options`` method is to ``Range`` "
+"objects: they allow you to apply converters and their options to function"
+" arguments (``@xw.arg``) and to the return value (``@xw.ret``). For "
+"example, to convert the argument ``x`` into a pandas DataFrame and "
+"suppress the index when returning it, you would do the following::"
+msgstr ""
+"装饰器之于UDF就如 ``options`` 方法之于 ``Range`` 对象：他们允许对函数的参数( ``@xw.arg`` ) 和返回值(``@xw.ret`` )使用转换器和各种选项。"
+"比如，要把参数x转换成pandas DataFrame并且在返回时抑制索引，可以这样做::"
+
+#: ../../udfs.rst:158
+msgid "For further details see the :ref:`converters` documentation."
+msgstr "更多的细节可以参考 :ref:`converters` 。"
+
+#: ../../udfs.rst:161
+msgid "Dynamic Array Formulas"
+msgstr "动态数组公式"
+
+#: ../../udfs.rst:164
+msgid ""
+"If your version of Excel supports the new native dynamic arrays, then you"
+" don't have to do anything special, and you shouldn't use the ``expand`` "
+"decorator! To check if your version of Excel supports it, see if you have"
+" the ``=UNIQUE()`` formula available. Native dynamic arrays were "
+"introduced in Office 365 Insider Fast at the end of September 2018."
+msgstr ""
+"如果你用的Excel版本支持原生的动态数组，就不需要做特别的处理，并且不要使用 ``expand`` 装饰器！ "
+"检查版本是否支持的方法是看看 ``=UNIQUE()`` 公式是否可用。"
+"原生动态数组将在2018年9月底最先在Office 365 Insider项目的Fast通道中发布。"
+
+#: ../../udfs.rst:169
+msgid ""
+"As seen above, to use Excel's array formulas, you need to specify their "
+"dimensions up front by selecting the result array first, then entering "
+"the formula and finally hitting ``Ctrl-Shift-Enter``. In practice, it "
+"often turns out to be a cumbersome process, especially when working with "
+"dynamic arrays such as time series data. Since v0.10, xlwings offers "
+"dynamic UDF expansion:"
+msgstr ""
+"就像在前面看到的那样，使用Excel的数组公式的时候，要预先通过选定结果区域来确定范围，然后输入公式，"
+"最好敲组合键 ``Ctrl-Shift-Enter`` 。这在实际操作中常常弄得很复杂，特别是在处理与时间序列相关的动态数组时更是如此。"
+"从v0.10版本开始，xlwings提供了动态UDF扩展："
+
+#: ../../udfs.rst:174
+msgid ""
+"This is a simple example that demonstrates the syntax and effect of UDF "
+"expansion:"
+msgstr "下面这个简单的例子展示了UDF扩展的语法和效果："
+
+#: ../../udfs.rst:192
+msgid "Expanding array formulas will overwrite cells without prompting"
+msgstr "扩展数组公式的输出会直接覆盖结果区域，没有预先提示;"
+
+#: ../../udfs.rst:193
+msgid ""
+"Pre v0.15.0 doesn't allow to have volatile functions as arguments, e.g. "
+"you cannot use functions like ``=TODAY()`` as arguments. Starting with "
+"v0.15.0, you can use volatile functions as input, but the UDF will be "
+"called more than 1x."
+msgstr ""
+"v0.15.0之前的版本中，易变函数不能做为参数。例如，不能使用 ``=TODAY()`` 之类的函数作为参数。"
+"从v0.15.0开始，可以用易变函数作为输入，不过UDF的调用次数会增加1倍多;"
+
+#: ../../udfs.rst:195
+msgid ""
+"Dynamic Arrays have been refactored with v0.15.0 to be proper legacy "
+"arrays: To edit a dynamic array with xlwings >= v0.15.0, you need to hit "
+"``Ctrl-Shift-Enter`` while in the top left cell. Note that you don't have"
+" to do that when you enter the formula for the first time."
+msgstr ""
+"从v0.15.0开始重构了动态数组使得它和传统数组一致： "
+"从xlwings >= v0.15.0开始， 编辑动态数组的时候，光标定位在动态数组区域的左上角，"
+"编辑完成后要需要敲组合键 ``Ctrl-Shift-Enter`` 。请注意，在第一次输入公式的时候，是用不着敲组合键的。"
+
+#: ../../udfs.rst:200
+msgid "Docstrings"
+msgstr "文档字符串"
+
+#: ../../udfs.rst:202
+msgid ""
+"The following sample shows how to include docstrings both for the "
+"function and for the arguments x and y that then show up in the function "
+"wizard in Excel:"
+msgstr "下面的例子演示了怎样在函数中加上函数及参数x、y的文档字符串，这些文档字符串能在Excel的函数向导里面显示出来："
+
+#: ../../udfs.rst:218
+msgid "The \"vba\" keyword"
+msgstr "\"vba\"关键字"
+
+#: ../../udfs.rst:220
+msgid ""
+"It's often helpful to get the address of the calling cell. Right now, one"
+" of the easiest ways to accomplish this is to use the ``vba`` keyword. "
+"``vba``, in fact, allows you to access any available VBA expression e.g. "
+"``Application``. Note, however, that currently you're acting directly on "
+"the pywin32 COM object::"
+msgstr ""
+"通常拿到在用单元格的地址很有用处。目前最简单的办法是通过使用 ``vba`` 关键字。"
+"实际上 ``vba`` 关键字允许你使用任何VBA表达式，例如 ``Application`` 等。"
+"注意，实际上你在直接操作pywin32 COM对象："
+"[译者注：在UDF对应的 ``.py`` 文件中，增加下面的语句，在Excel中重新导入UDF，然后在一个单元格里输入 ``=get_caller_address()`` ，回车就能得到单元格的地址]::"
+
+#: ../../udfs.rst:233
+msgid "Macros"
+msgstr "宏"
+
+#: ../../udfs.rst:235
+msgid ""
+"On Windows, as alternative to calling macros via :ref:`RunPython "
+"<run_python>`, you can also use the ``@xw.sub`` decorator::"
+msgstr ""
+"在Windows系统上，可以通过 :ref:`RunPython <run_python>` 调用宏，另外也可以通过装饰器 ``@xw.sub`` 来调用宏::"
+
+#: ../../udfs.rst:246
+msgid ""
+"After clicking on ``Import Python UDFs``, you can then use this macro by "
+"executing it via ``Alt + F8`` or by binding it e.g. to a button. To to "
+"the latter, make sure you have the ``Developer`` tab selected under "
+"``File > Options > Customize Ribbon``. Then, under the ``Developer`` tab,"
+" you can insert a button via ``Insert > Form Controls``. After drawing "
+"the button, you will be prompted to assign a macro to it and you can "
+"select ``my_macro``."
+msgstr ""
+"先点击 ``Import Python UDFs`` ，导入之后就能用这个宏了。可以通过 ``Alt + F8`` 组合键，也可以把这个宏绑定到一个按钮上。"
+"要用后面这种方式，先确认已经在 ``文件 >选项 > 自定义功能区`` 选中了开发工具。"
+"然后，在开发工具标签页里，通过 ``插入 > 表单`` 控件插入一个按钮。 画好按钮之后，会有一个分配宏的提示，选中 ``my_macro`` 。"
+
+#: ../../udfs.rst:254
+msgid "Call UDFs from VBA"
+msgstr "从VBA调用UDF"
+
+#: ../../udfs.rst:256
+msgid ""
+"Imported functions can also be used from VBA. For example, for a function"
+" returning a 2d array:"
+msgstr "导入的函数同样可以在VBA中使用。例如，一个返回2维数组的函数:"
+
+#: ../../udfs.rst:279
+msgid "Asynchronous UDFs"
+msgstr "异步UDF"
+
+#: ../../udfs.rst:283
+msgid ""
+"xlwings offers an easy way to write asynchronous functions in Excel. "
+"Asynchronous functions return immediately with ``#N/A waiting...``. While"
+" the function is waiting for its return value, you can use Excel to do "
+"other stuff and whenever the return value is available, the cell value "
+"will be updated."
+msgstr ""
+"xlwings提供了一个在Excel中写异步函数的很容易的方法。"
+"异步函数立即返回 ``#N/A waiting...`` 。在函数等待返回值的时候，可以用Excel处理其他事情。"
+"一旦有了返回值，相关单元格的数值会被更新。"
+
+#: ../../udfs.rst:287
+msgid ""
+"The only available mode is currently ``async_mode='threading'``, meaning "
+"that it's useful for I/O-bound tasks, for example when you fetch data "
+"from an API over the web."
+msgstr ""
+"目前的唯一可用模式是 ``async_mode='threading'`` ，这意味着对于类似使用API通过网络获得数据的这类I/O绑定的任务很有用。"
+
+#: ../../udfs.rst:290
+msgid ""
+"You make a function asynchronous simply by giving it the respective "
+"argument in the function decorator. In this example, the time consuming "
+"I/O-bound task is simulated by using ``time.sleep``::"
+msgstr ""
+"可以简单地通过设定其函数装饰器的参数中来实现一个异步函数。"
+"下面这个例子中，耗时的I/O绑定任务是用 ``time.sleep`` 来模拟的::"
+
+#: ../../udfs.rst:303
+msgid ""
+"You can use this function like any other xlwings function, simply by "
+"putting ``=myfunction(\"abcd\")`` into a cell (after you have imported "
+"the function, off course)."
+msgstr ""
+"使用这个函数和其他xlwings函数一样简单。只要在某个单元格里写上 ``=myfunction(\"abcd\")`` 就行了（当然要在你导入这个函数之后）。"
+
+#: ../../udfs.rst:306
+msgid ""
+"Note that xlwings doesn't use the native asynchronous functions that were"
+" introduced with Excel 2010, so xlwings asynchronous functions are "
+"supported with any version of Excel."
+msgstr ""
+"注意：xlwings没有使用从Excel 2010开始引入的原生异步函数，所以xlwings的异步支持所有的Excel版本。"
+

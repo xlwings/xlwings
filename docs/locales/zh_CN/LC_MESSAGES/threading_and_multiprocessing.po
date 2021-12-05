@@ -1,0 +1,63 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../threading_and_multiprocessing.rst:4
+msgid "Threading and Multiprocessing"
+msgstr "多线程和多进程"
+
+#: ../../threading_and_multiprocessing.rst:9
+msgid "Threading"
+msgstr "多线程"
+
+#: ../../threading_and_multiprocessing.rst:11
+msgid ""
+"While xlwings is not technically thread safe, it's still easy to use it "
+"in threads as long as you have at least v0.13.0 and stick to a simple "
+"rule: Do not pass xlwings objects to threads. This rule isn't a "
+"requirement on macOS, but it's still recommended if you want your "
+"programs to be cross-platform."
+msgstr ""
+"虽然xlwings在技术上并不是线程安全的，但是用在线程中也很便利，"
+"只要版本在v0.13.0以上并且遵循一个简单的规则：不要把xlwings对象传递给线程。"
+"在macOS中，这个规则不是硬性要求，但是如果你希望自己的程序能够跨平台，也还是建议遵循。"
+
+#: ../../threading_and_multiprocessing.rst:16
+msgid "Consider the following example that will **NOT** work::"
+msgstr "请考虑下面 **无法** 正常工作的例子::"
+
+#: ../../threading_and_multiprocessing.rst:48
+msgid ""
+"To make it work, you simply have to fully qualify the cell reference in "
+"the thread instead of passing a ``Book`` object::"
+msgstr "为了让上面的代码正常工作，仅需要把传递给线程的 ``Book`` 对象改为一个完全限定的单元格引用::"
+
+#: ../../threading_and_multiprocessing.rst:80
+msgid "Multiprocessing"
+msgstr "多进程"
+
+#: ../../threading_and_multiprocessing.rst:83
+msgid "Multiprocessing is only support on Windows!"
+msgstr "只在Windows系统中支持多进程！"
+
+#: ../../threading_and_multiprocessing.rst:85
+msgid ""
+"The same rules apply to multiprocessing as for threading, here's a "
+"working example::"
+msgstr "多进程要遵循的规则和多线程的一样，下面是可行的例子::"
+

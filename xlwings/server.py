@@ -1,13 +1,13 @@
-# Modified version from ExcelPython
-# Copyright (C) 2014, ericremoreynolds.
-
 # First of all see if we can load PyWin32
 try:
     import _win32sysloader
 except:
     raise Exception("Cannot import PyWin32. Are you sure it's installed?")
+import logging
 import sys
 import os
+import collections
+import importlib
 # Hack to find pythoncom.dll - needed for some distribution/setups
 # E.g. if python is started with the full path outside of the python path, then it almost certainly fails
 cwd = os.getcwd()
@@ -18,7 +18,6 @@ import win32api
 import win32event
 os.chdir(cwd)
 
-import types
 import pythoncom
 import pywintypes
 import win32com.client
@@ -26,16 +25,25 @@ import win32com.server.util as serverutil
 import win32com.server.dispatcher
 import win32com.server.policy
 
+import asyncio
+import threading
+
 from .udfs import call_udf
 
-class XLPythonOption(object):
+
+# If no handler is configured, print is used to make the statements show up in the console that opens when using
+# 'python' instead of 'pythonw' as the interpreter
+logger = logging.getLogger(__name__)
+
+
+class XLPythonOption:
     """ The XLPython class itself """
     def __init__(self, option, value):
         self.option = option
         self.value = value
 
 
-class XLPythonObject(object):
+class XLPythonObject:
     _public_methods_ = ['Item', 'Count']
     _public_attrs_ = ['_NewEnum']
 
@@ -97,7 +105,7 @@ def ToVariant(obj):
     return win32com.server.util.wrap(XLPythonObject(obj))
 
 
-class XLPython(object):
+class XLPython:
     _public_methods_ = ['Module', 'Tuple', 'TupleFromArray', 'Dict', 'DictFromArray', 'List', 'ListFromArray', 'Obj',
                         'Str', 'Var', 'Call', 'GetItem', 'SetItem', 'DelItem', 'Contains', 'GetAttr', 'SetAttr',
                         'DelAttr', 'HasAttr', 'Eval', 'Exec', 'ShowConsole', 'Builtin', 'Len', 'Bool',
@@ -113,10 +121,10 @@ class XLPython(object):
 
     def Module(self, module, reload=False):
         vars = {}
-        exec ("import " + module + " as the_module", vars)
+        exec("import " + module + " as the_module", vars)
         m = vars["the_module"]
         if reload:
-            m = __builtins__.reload(m)
+            m = importlib.reload(m)
         return ToVariant(m)
 
     def TupleFromArray(self, elements):
@@ -185,11 +193,13 @@ class XLPython(object):
         else:
             return ToVariant(getattr(obj, method)(*pargs, **kwargs))
 
-    def CallUDF(self, script, fname, args, this_workbook, caller):
+    def CallUDF(self, script, fname, args, this_workbook=None, caller=None):
         args = tuple(FromVariant(arg) for arg in args)
         res = call_udf(script, fname, args, this_workbook, FromVariant(caller))
-        if isinstance(res, (tuple, list)):
-            res = (res,)
+        if len(res) == 1 and len(res[0]) == 1:
+            res = res[0][0]
+        elif len(res) == 1 and len(res[0]) > 1:
+            res = res[0]
         return res
 
     def Len(self, obj):
@@ -204,8 +214,7 @@ class XLPython(object):
             return False
 
     def Builtin(self):
-        from . import builtins
-
+        import builtins
         return ToVariant(builtins)
 
     def GetItem(self, obj, key):
@@ -274,16 +283,16 @@ class XLPython(object):
                     raise Exception("Exec can be called with at most 2 dictionary arguments")
             else:
                 pass
-        exec (stmt, globals, locals)
+        exec(stmt, globals, locals)
 
 
-idle_queue = []
-idle_queue_event = win32event.CreateEvent(None, 0, 0, None)
+loop = asyncio.new_event_loop()
 
 
-def add_idle_task(task):
-    idle_queue.append(task)
-    win32event.SetEvent(idle_queue_event)
+def _start_background_loop():
+    pythoncom.CoInitialize()
+    asyncio.set_event_loop(loop)
+    loop.run_forever()
 
 
 def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
@@ -312,46 +321,28 @@ def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
     pythoncom.EnableQuitMessage(win32api.GetCurrentThreadId())
     pythoncom.CoResumeClassObjects()
 
-    print('xlwings server running, clsid=%s' % clsid)
+    if not loop.is_running():
+        t = threading.Thread(
+            target=_start_background_loop,
+            daemon=True)
+        t.start()
+        tid = t.ident
+    else:
+        tid = None
+
+    msg = 'xlwings server running, clsid=%s, event loop on %s'
+    logger.info(msg, clsid, tid) if logger.hasHandlers() else print(msg % (clsid, tid))
 
     while True:
         rc = win32event.MsgWaitForMultipleObjects(
-            [idle_queue_event],
+            (),
             0,
             win32event.INFINITE,
             win32event.QS_ALLEVENTS
         )
-
-        while True:
-            pythoncom.PumpWaitingMessages()
-
-            if not idle_queue:
-                break
-
-            task = idle_queue.pop(0)
-            _execute_task(task)
+        if rc == win32event.WAIT_OBJECT_0:
+            if pythoncom.PumpWaitingMessages():
+                break  # wm_quit
 
     pythoncom.CoRevokeClassObject(revokeId)
     pythoncom.CoUninitialize()
-
-
-def _execute_task(task):
-    try:
-        task()
-    except Exception as e:
-        if _ask_for_retry(e) and _can_retry(task):
-            print("Retrying TaskQueue '%s'." % task)
-            _execute_task(task)
-        else:
-            import traceback
-            print("TaskQueue '%s' threw an exception: %s" % (task, traceback.format_exc()))
-
-
-def _can_retry(task):
-    return hasattr(task, 'nb_remaining_call') and task.nb_remaining_call > 0
-
-RPC_E_SERVERCALL_RETRYLATER = -2147418111
-
-
-def _ask_for_retry(exception):
-    return hasattr(exception, 'hresult') and exception.hresult == RPC_E_SERVERCALL_RETRYLATER

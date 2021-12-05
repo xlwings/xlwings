@@ -1,0 +1,508 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-12-04 08:45+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.8.0\n"
+
+#: ../../udfs.rst:4
+msgid "User Defined Functions (UDFs)"
+msgstr "ユーザー定義関数 (UDFs)"
+
+#: ../../udfs.rst:6
+msgid ""
+"This tutorial gets you quickly started on how to write User Defined "
+"Functions."
+msgstr "このチュートリアルではユーザー定義関数(User Defined Functions, UDFs)の作成方法を学びます。"
+
+#: ../../udfs.rst:9
+msgid "UDFs are currently only available on Windows."
+msgstr "UDFが使えるのは、現在Windowsのみです。"
+
+#: ../../udfs.rst:10
+msgid ""
+"For details of how to control the behaviour of the arguments and return "
+"values, have a look at :ref:`converters`."
+msgstr "引数と戻り値の制御方法の詳細については :ref:`converters` をご覧ください。"
+
+#: ../../udfs.rst:11
+msgid ""
+"For a comprehensive overview of the available decorators and their "
+"options, check out the corresponding API docs: :ref:`udf_api`."
+msgstr "デコレーターとそのオプションについての包括的な概要は、対応するAPIドキュメントをご覧ください: :ref:`udf_api` 。"
+
+#: ../../udfs.rst:14
+msgid "One-time Excel preparations"
+msgstr "Excelの準備（1回だけ）"
+
+#: ../../udfs.rst:16
+msgid ""
+"1) Enable ``Trust access to the VBA project object model`` under ``File >"
+" Options > Trust Center > Trust Center Settings > Macro Settings``"
+msgstr ""
+"``File > Options > Trust Center > Trust Center Settings > Macro "
+"Settings`` にある ``Trust access to the VBA project object model`` を有効化します。"
+
+#: ../../udfs.rst:19
+msgid ""
+"Install the add-in via command prompt: ``xlwings addin install`` (see "
+":ref:`xlwings_addin`)."
+msgstr ""
+"コマンド プロンプトからアドインをインストールします: ``xlwings addin install`` (see "
+":ref:`xlwings_addin`)。"
+
+#: ../../udfs.rst:23
+msgid "Workbook preparation"
+msgstr "ワークブックの準備"
+
+#: ../../udfs.rst:25
+msgid ""
+"The easiest way to start a new project is to run ``xlwings quickstart "
+"myproject`` on a command prompt (see :ref:`command_line`). This "
+"automatically adds the xlwings reference to the generated workbook."
+msgstr ""
+"コマンドプロンプトから ``xlwings quickstart myproject`` を実行すれば、簡単に新しいプロジェクトを始められます "
+"(see :ref:`command_line`)。この方法で作成したワークブックは、xlwingsへの参照が設定されています。"
+
+#: ../../udfs.rst:29
+msgid "A simple UDF"
+msgstr "シンプルなUDF"
+
+#: ../../udfs.rst:31
+msgid ""
+"The default addin settings expect a Python source file in the way it is "
+"created by ``quickstart``:"
+msgstr "``quickstart`` で作成した場合、デフォルトの設定では、Pythonのソース ファイルは次のようになっていなければなりません:"
+
+#: ../../udfs.rst:33
+msgid "in the same directory as the Excel file"
+msgstr "Excel ファイルと同じディレクトリ"
+
+#: ../../udfs.rst:34
+msgid ""
+"with the same name as the Excel file, but with a ``.py`` ending instead "
+"of ``.xlsm``."
+msgstr "Excelファイルと同じ名前で、拡張子が ``.xlsm`` ではなく ``.py`` "
+
+#: ../../udfs.rst:36
+msgid ""
+"Alternatively, you can point to a specific module via ``UDF Modules`` in "
+"the xlwings ribbon."
+msgstr "デフォルトの設定以外では、xlwingsのリボンの ``UDF Modules`` で特定のモジュールを指定することもできます。"
+
+#: ../../udfs.rst:38
+msgid ""
+"Let's assume you have a Workbook ``myproject.xlsm``, then you would write"
+" the following code in ``myproject.py``::"
+msgstr ""
+"``myproject.xlsm`` というワークブックを例に説明します。 ``myproject.py`` "
+"というファイルに次のコードを書きます::"
+
+#: ../../udfs.rst:48
+msgid ""
+"Now click on ``Import Python UDFs`` in the xlwings tab to pick up the "
+"changes made to ``myproject.py``."
+msgstr ""
+"次に、xlwingsタブの ``Import Python UDFs`` をクリックして、 ``myproject.py`` "
+"への変更を取り込みます。"
+
+#: ../../udfs.rst:49
+msgid ""
+"Enter the formula ``=double_sum(1, 2)`` into a cell and you will see the "
+"correct result:"
+msgstr "セルに数式 ``=double_sum(1, 2)`` を入力すれば、正しい結果を取得できます:"
+
+#: ../../udfs.rst:54
+msgid ""
+"The docstring (in triple-quotes) will be shown as function description in"
+" Excel."
+msgstr "（トリプル クォートで囲われた）docstringは、Excelでは関数の説明に表示されます。"
+
+#: ../../udfs.rst:57
+msgid ""
+"You only need to re-import your functions if you change the function "
+"arguments or the function name."
+msgstr "再度インポートする必要があるのは、関数の引数や名前を変えた時のみです。"
+
+#: ../../udfs.rst:58
+msgid ""
+"Code changes in the actual functions are picked up automatically (i.e. at"
+" the next calculation of the formula, e.g. triggered by ``Ctrl-Alt-F9``),"
+" but changes in imported modules are not. This is the very behaviour of "
+"how Python imports work. If you want to make sure everything is in a "
+"fresh state, click ``Restart UDF Server``."
+msgstr ""
+"コードの変更は自動的（例えば、 ``Ctrl-Alt-F9`` "
+"でトリガーされる、数式の次回計算時）に取り込まれますが、コード内でインポートしたモジュールの変更は取り込まれません。これはPythonのインポートの挙動によるものです。全てをフレッシュな状態にするには、"
+" ``Restart UDF Server`` をクリックします。"
+
+#: ../../udfs.rst:61
+msgid ""
+"The ``@xw.func`` decorator is only used by xlwings when the function is "
+"being imported into Excel. It tells xlwings for which functions it should"
+" create a VBA wrapper function, otherwise it has no effect on how the "
+"functions behave in Python."
+msgstr ""
+"xlwingsが ``@xw.func`` "
+"デコレーターが使用するのは、関数をExcelに取り込むときにのみです。デコレーターは、どの関数に対してxlwingsがVBAラッパー関数を作るかを教えますが、関数のPythonでの挙動に影響を与えることはありません。"
+
+#: ../../udfs.rst:67
+msgid "Array formulas: Get efficient"
+msgstr "配列数式: 効率的に計算する"
+
+#: ../../udfs.rst:69
+msgid ""
+"Calling one big array formula in Excel is much more efficient than "
+"calling many single-cell formulas, so it's generally a good idea to use "
+"them, especially if you hit performance problems."
+msgstr "多数のセルから個別に数式を呼び出すよりも、1つの大きな配列数式を呼び出す方が効率的です。一般的に配列数式の使用は良い方法であり、パフォーマンスに問題があるケースでは特に効果があります。"
+
+#: ../../udfs.rst:72
+msgid ""
+"You can pass an Excel Range as a function argument, as opposed to a "
+"single cell and it will show up in Python as list of lists."
+msgstr "単独セル以外にも、ExcelのRangeを関数の引数にできます。その際、RangeはPythonではリストのリストになります。"
+
+#: ../../udfs.rst:75
+msgid ""
+"For example, you can write the following function to add 1 to every cell "
+"in a Range::"
+msgstr "例えば、Rangeに含まれる全てのセルに1を加える関数は次のようになります: "
+
+#: ../../udfs.rst:81
+msgid "To use this formula in Excel,"
+msgstr "この数式を使うには"
+
+#: ../../udfs.rst:83
+msgid "Click on ``Import Python UDFs`` again"
+msgstr "``Import Python UDFs`` ボタンをもう一度押します"
+
+#: ../../udfs.rst:84
+msgid "Fill in the values in the range ``A1:B2``"
+msgstr "``A1:B2`` に値を入力します"
+
+#: ../../udfs.rst:85
+msgid "Select the range ``D1:E2``"
+msgstr "``D1:E2`` を選択します"
+
+#: ../../udfs.rst:86
+msgid "Type in the formula ``=add_one(A1:B2)``"
+msgstr "数式 ``=add_one(A1:B2)`` を入力します"
+
+#: ../../udfs.rst:87
+msgid ""
+"Press ``Ctrl+Shift+Enter`` to create an array formula. If you did "
+"everything correctly, you'll see the formula surrounded by curly braces "
+"as in this screenshot:"
+msgstr "``Ctrl+Shift+Enter`` を押し、配列数式を作ります。全てを正しく行えば、次のスクリーンショットのように、数式が波括弧で囲われます。"
+
+#: ../../udfs.rst:94
+msgid "Number of array dimensions: ndim"
+msgstr "配列の次元数: ndim"
+
+#: ../../udfs.rst:96
+msgid ""
+"The above formula has the issue that it expects a \"two dimensional\" "
+"input, e.g. a nested list of the form ``[[1, 2], [3, 4]]``. Therefore, if"
+" you would apply the formula to a single cell, you would get the "
+"following error: ``TypeError: 'float' object is not iterable``."
+msgstr ""
+"上記の数式の問題点は、例えば ``[[1, 2], [3, 4]]`` "
+"のような入れ子状のリストのような\"2次元の\"インプットを前提としていることです。したがって、この数式を単独セルで使うと、次のエラーが出ます: "
+"``TypeError: 'float' object is not iterable`` 。"
+
+#: ../../udfs.rst:101
+msgid ""
+"To force Excel to always give you a two-dimensional array, no matter "
+"whether the argument is a single cell, a column/row or a two-dimensional "
+"Range, you can extend the above formula like this::"
+msgstr "引数が単独セル、列/行、2次元のRangeのいずれの場合でも、Excelから常に2次元の配列を取得するには、上記の数式を次のように拡張します::"
+
+#: ../../udfs.rst:110
+msgid "Array formulas with NumPy and Pandas"
+msgstr "NumpyおよびPandasでの配列数式"
+
+#: ../../udfs.rst:112
+msgid ""
+"Often, you'll want to use NumPy arrays or Pandas DataFrames in your UDF, "
+"as this unlocks the full power of Python's ecosystem for scientific "
+"computing."
+msgstr "科学計算分野のPythonのエコシステムを最大限に活用するために、Numpyの配列やPandasのDataFrameをUDFで使用する方法を紹介します。"
+
+#: ../../udfs.rst:115
+msgid ""
+"To define a formula for matrix multiplication using numpy arrays, you "
+"would define the following function::"
+msgstr "Numpyの配列を使った行列の掛け算の数式を定義するには、次のように記述します::"
+
+#: ../../udfs.rst:126
+msgid ""
+"If you are not on Python >= 3.5 with NumPy >= 1.10, use ``x.dot(y)`` "
+"instead of ``x @ y``."
+msgstr "Python 3.5以上、Numpy 1.10以上ではない場合、 ``x @ y`` の代わりに ``x.dot(y)`` を使ってください。"
+
+#: ../../udfs.rst:128
+msgid ""
+"A great example of how you can put Pandas at work is the creation of an "
+"array-based ``CORREL`` formula. Excel's version of ``CORREL`` only works "
+"on 2 datasets and is cumbersome to use if you want to quickly get the "
+"correlation matrix of a few time-series, for example. Pandas makes the "
+"creation of an array-based ``CORREL2`` formula basically a one-liner::"
+msgstr ""
+"Pandasの活用方法の良い例は、配列ベースの ``CORREL`` 関数です。例えば、Excelの ``CORREL`` "
+"は、2つのデータセット間の相関係数は計算できますが、複数の時系列データの相関行列は手軽には計算できません。Pandasを使えば、配列ベースの "
+"``CORREL2`` 関数をたった一行で書けます。"
+
+#: ../../udfs.rst:145
+msgid "@xw.arg and @xw.ret decorators"
+msgstr "デコレーター@xw.argと@xw.ret"
+
+#: ../../udfs.rst:147
+msgid ""
+"These decorators are to UDFs what the ``options`` method is to ``Range`` "
+"objects: they allow you to apply converters and their options to function"
+" arguments (``@xw.arg``) and to the return value (``@xw.ret``). For "
+"example, to convert the argument ``x`` into a pandas DataFrame and "
+"suppress the index when returning it, you would do the following::"
+msgstr ""
+"これらのデコレーターはUDFに対するもので、``Range`` オブジェクトに対してどのような ``options`` "
+"メソッドを適用するかを指定します。デコレーターにより、関数の引数(``@xw.arg``)や戻り値(``@xw.ret``)に対してコンバーターとそのオプションを適用できます。例えば、引数"
+" ``x`` をPandasのDataFrameに変換し、戻り値のインデックスを省略するには、次のようにします:"
+
+#: ../../udfs.rst:158
+msgid "For further details see the :ref:`converters` documentation."
+msgstr "詳細は :ref:`converters` のドキュメントをご覧ください"
+
+#: ../../udfs.rst:161
+msgid "Dynamic Array Formulas"
+msgstr "動的配列数式"
+
+#: ../../udfs.rst:164
+msgid ""
+"If your version of Excel supports the new native dynamic arrays, then you"
+" don't have to do anything special, and you shouldn't use the ``expand`` "
+"decorator! To check if your version of Excel supports it, see if you have"
+" the ``=UNIQUE()`` formula available. Native dynamic arrays were "
+"introduced in Office 365 Insider Fast at the end of September 2018."
+msgstr ""
+"Excelが新しいネイティブ動的配列をサポートしているなら、特別な事は何も必要ありませんし、 ``expand`` "
+"デコレーターを使用すべきではありません！ ``=UNIQUE()`` "
+"式が利用可能なら、Excelはネイティブ動的配列をサポートしています。ネイティブ動的配列は2018年9月末にOffice 365のInsider "
+"Fastに導入されました。"
+
+#: ../../udfs.rst:169
+msgid ""
+"As seen above, to use Excel's array formulas, you need to specify their "
+"dimensions up front by selecting the result array first, then entering "
+"the formula and finally hitting ``Ctrl-Shift-Enter``. In practice, it "
+"often turns out to be a cumbersome process, especially when working with "
+"dynamic arrays such as time series data. Since v0.10, xlwings offers "
+"dynamic UDF expansion:"
+msgstr ""
+"先述のとおり、Excelで配列数式を使うには、事前に特定した次元に応じて、結果配列を選択し、数式を入力し、 最後に ``Ctrl-Shift-"
+"Enter`` "
+"を押す必要があります。実際、時系列データのような動的配列を扱うときには特に、煩わしいプロセスです。v0.10から、xlwingsでは動的UDF拡張が利用可能になりました:"
+
+#: ../../udfs.rst:174
+msgid ""
+"This is a simple example that demonstrates the syntax and effect of UDF "
+"expansion:"
+msgstr "単純な例でシンタックスとUDF拡張の効果を説明してみます。以下をご覧ください。"
+
+#: ../../udfs.rst:192
+msgid "Expanding array formulas will overwrite cells without prompting"
+msgstr "配列数式の拡張はプロンプトせずにセルを上書きします。"
+
+#: ../../udfs.rst:193
+msgid ""
+"Pre v0.15.0 doesn't allow to have volatile functions as arguments, e.g. "
+"you cannot use functions like ``=TODAY()`` as arguments. Starting with "
+"v0.15.0, you can use volatile functions as input, but the UDF will be "
+"called more than 1x."
+msgstr ""
+"v0.15.0より前では、Volatile関数、（例えば ``=TODAY`` "
+"のような関数）は引数には使えませんでした。v0.15から、Volatile関数を引数に使えるようになりましたが、UDFは1回以上呼び出されます。"
+
+#: ../../udfs.rst:195
+msgid ""
+"Dynamic Arrays have been refactored with v0.15.0 to be proper legacy "
+"arrays: To edit a dynamic array with xlwings >= v0.15.0, you need to hit "
+"``Ctrl-Shift-Enter`` while in the top left cell. Note that you don't have"
+" to do that when you enter the formula for the first time."
+msgstr ""
+"動的配列はv0.15.0からリファクタリングされ、適切なレガシー配列になりました:xlwings >= "
+"v0.15.0で動的配列を編集するには、左上セルで ``Ctrl-Shift-Enter`` "
+"を入力する必要があります。最初に数式を入力するときには、そのような必要はありません。"
+
+#: ../../udfs.rst:200
+msgid "Docstrings"
+msgstr ""
+
+#: ../../udfs.rst:202
+msgid ""
+"The following sample shows how to include docstrings both for the "
+"function and for the arguments x and y that then show up in the function "
+"wizard in Excel:"
+msgstr "関数および引数x、yのdocstringを書いて、Excelの関数ウィザードに表示させる方法を以下の例で示します。"
+
+#: ../../udfs.rst:218
+msgid "The \"caller\" argument"
+msgstr "\"caller\" 引数"
+
+#: ../../udfs.rst:220
+msgid ""
+"You often need to know which cell called the UDF. For this, xlwings "
+"offers the reserved argument ``caller`` which returns the calling cell as"
+" xlwings range object::"
+msgstr ""
+"UDF呼び出し元セルが必要なこともあります。 xlwingsには予約済み引数 ``caller`` があり、"
+"UDFの呼び出し元セルを表すxlwingsのrangeオブジェクトとして利用できます::"
+
+#: ../../udfs.rst:228
+msgid ""
+"Note that ``caller`` will not be exposed in Excel but will be provided by"
+" xlwings behind the scenes."
+msgstr ""
+"注意: ``caller`` はExcelからは見えませんが、xlwingsが自動的に生成します。"
+
+#: ../../udfs.rst:231
+msgid "The \"vba\" keyword"
+msgstr "\"vba\" キーワード"
+
+#: ../../udfs.rst:233
+msgid ""
+"By using the ``vba`` keyword, you can get access to any Excel VBA object "
+"in the form of a pywin32 object. For example, if you wanted to pass the "
+"sheet object in the form of its ``CodeName``, you can do it as follows::"
+msgstr ""
+"``vba`` キーワードを使えば、pywin32オブジェクトの形のあらゆるExcel VBAオブジェクトに"
+"アクセスすることができます。例えば、シート オブジェクトを ``CodeName`` で"
+"参照するには次のようにします::"
+
+#: ../../udfs.rst:242
+msgid ""
+"Note that ``vba`` arguments are not exposed in the UDF but automatically "
+"provided by xlwings."
+msgstr ""
+"注意: ``vba`` 引数はExcelからは見えませんが、xlwingsが自動的に生成します。"
+
+#: ../../udfs.rst:247
+msgid "Macros"
+msgstr "マクロ"
+
+#: ../../udfs.rst:249
+msgid ""
+"On Windows, as an alternative to calling macros via :ref:`RunPython "
+"<run_python>`, you can also use the ``@xw.sub`` decorator::"
+msgstr ""
+"Windowsでは、 :ref:`RunPython <run_python>` でマクロを呼び出す代わりに、 ``@xw.sub`` "
+"デコレーターを使うこともできます。"
+
+#: ../../udfs.rst:260
+msgid ""
+"After clicking on ``Import Python UDFs``, you can then use this macro by "
+"executing it via ``Alt + F8`` or by binding it e.g. to a button. To do "
+"the latter, make sure you have the ``Developer`` tab selected under "
+"``File > Options > Customize Ribbon``. Then, under the ``Developer`` tab,"
+" you can insert a button via ``Insert > Form Controls``. After drawing "
+"the button, you will be prompted to assign a macro to it and you can "
+"select ``my_macro``."
+msgstr ""
+"``Import Python UDFs`` をクリックすれば、 ``Alt + F8`` "
+"か、登録したボタン等からこのマクロを実行できます。後者の方法を説明します。まずは ``ファイル > オプション > リボンのユーザー設定`` で、"
+" ``開発`` タブが選択されている事を確認してください。 ``開発`` タブ内の ``挿入 > フォーム コントロール`` "
+"から、ボタンを挿入します。ボタン描画後、マクロを割り当てるプロンプトが表示されるので、 ``my_macro`` を選択してください。"
+
+#: ../../udfs.rst:268
+msgid "Call UDFs from VBA"
+msgstr "VBAからUDFを呼び出す"
+
+#: ../../udfs.rst:270
+msgid ""
+"Imported functions can also be used from VBA. For example, for a function"
+" returning a 2d array:"
+msgstr "インポートした関数はVBAからも利用できます。2次元配列を返す関数の例を以下に示します:"
+
+#: ../../udfs.rst:293
+msgid "Asynchronous UDFs"
+msgstr "非同期UDF"
+
+#: ../../udfs.rst:296
+msgid "This is an experimental feature"
+msgstr ""
+
+#: ../../udfs.rst:300
+msgid ""
+"xlwings offers an easy way to write asynchronous functions in Excel. "
+"Asynchronous functions return immediately with ``#N/A waiting...``. While"
+" the function is waiting for its return value, you can use Excel to do "
+"other stuff and whenever the return value is available, the cell value "
+"will be updated."
+msgstr ""
+"xlwingsには、Excelの非同期関数を簡単に書く方法もあります。 非期関数は、即時に　``#N/A waiting...`` "
+"を返します。関数が戻り値を待つ間、Excelを使って他のことができます。まが、戻り値が取得でき次第、セルの値はアップデートされます。"
+
+#: ../../udfs.rst:304
+msgid ""
+"The only available mode is currently ``async_mode='threading'``, meaning "
+"that it's useful for I/O-bound tasks, for example when you fetch data "
+"from an API over the web."
+msgstr ""
+"現在利用可能なモードは ``async_mode='threading'`` "
+"のみで、例えば、ウェブからAPIでデータを利用する場合のようなI/Oバウンドなタスクに有用です。"
+
+#: ../../udfs.rst:307
+msgid ""
+"You make a function asynchronous simply by giving it the respective "
+"argument in the function decorator. In this example, the time consuming "
+"I/O-bound task is simulated by using ``time.sleep``::"
+msgstr ""
+"関数のデコレーターに対応する引数を入れれば、簡単に非同期関数を作れます。次の例では、時間がかかるI/Oバウンドなタスクを、 "
+"``time.sleep`` でシミュレートしています::"
+
+#: ../../udfs.rst:320
+msgid ""
+"You can use this function like any other xlwings function, simply by "
+"putting ``=myfunction(\"abcd\")`` into a cell (after you have imported "
+"the function, of course)."
+msgstr ""
+"他のxlwings関数と同様に、セルに ``=myfunction(\"abcd\")`` "
+"を入力すればこの関数を利用できます（もちろん、関数をインポートした後でですが）"
+
+#: ../../udfs.rst:323
+msgid ""
+"Note that xlwings doesn't use the native asynchronous functions that were"
+" introduced with Excel 2010, so xlwings asynchronous functions are "
+"supported with any version of Excel."
+msgstr ""
+"なお、xlwingsはExcel "
+"2010で導入されたネイティブな非同期関数を使用していないので、xlwingsの非同期関数は全バージョンのExcelで使えます。"
+
+#~ msgid ""
+#~ "It's often helpful to get the "
+#~ "address of the calling cell. Right "
+#~ "now, one of the easiest ways to"
+#~ " accomplish this is to use the "
+#~ "``vba`` keyword. ``vba``, in fact, "
+#~ "allows you to access any available "
+#~ "VBA expression e.g. ``Application``. Note, "
+#~ "however, that currently you're acting "
+#~ "directly on the pywin32 COM object::"
+#~ msgstr ""
+#~ "呼び出し元セルのアドレスが必要なこともあるでしょう。 ``vba`` "
+#~ "キーワードを使えば、簡単にアドレスを取得することができます。実は、``vba`` は ``Application``"
+#~ " のようなVBAで表現できるもの全てにアクセスできます。しかしながら、現時点ではpywin32 "
+#~ "COMオブジェクトを直接実行している点には留意しておいてください::"
+

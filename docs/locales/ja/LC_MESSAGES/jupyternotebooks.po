@@ -1,0 +1,90 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-02-22 22:54+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.0\n"
+
+#: ../../jupyternotebooks.rst:4
+msgid "Jupyter Notebooks: Interact with Excel"
+msgstr "Jupyter Notebooksとの連携"
+
+#: ../../jupyternotebooks.rst:6
+msgid ""
+"When you work with Jupyter notebooks, you may use Excel as an interactive"
+" data viewer or scratchpad from where you can load DataFrames. The two "
+"convenience functions :meth:`view <xlwings.view>` and :meth:`load "
+"<xlwings.load>` make this really easy."
+msgstr ""
+"Jupyter Notebookを使えば、Excelをデータの表示や読み込み用DataFrame作成の"
+"ためにインタラクティブに利用することができます。それらは関数 :meth:`view <xlwings.view>` "
+"と :meth:`load <xlwings.load>` で簡単にできます。"
+
+#: ../../jupyternotebooks.rst:9
+msgid ""
+"The :meth:`view <xlwings.view>` and :meth:`load <xlwings.load>` functions"
+" should exclusively be used for interactive work. If you write scripts, "
+"use the xlwings API as introduced under :ref:`quickstart` and "
+":ref:`syntax_overview`."
+msgstr ""
+"関数 :meth:`view <xlwings.view>` と :meth:`load <xlwings.load>` は"
+"インタラクティブな操作のみで使用してください。スクリプトの場合は、"
+" :ref:`quickstart` と :ref:`syntax_overview` で説明するxlwings APIを"
+"使用してください。"
+
+#: ../../jupyternotebooks.rst:12
+msgid "The view function"
+msgstr "view関数"
+
+#: ../../jupyternotebooks.rst:14
+msgid ""
+"The view function accepts pretty much any object of interest, whether "
+"that's a number, a string, a nested list or a NumPy array or a pandas "
+"DataFrame. By default, it writes the data into an Excel table in a new "
+"workbook. If you wanted to reuse the same workbook, provide a ``sheet`` "
+"object, e.g. ``view(df, sheet=xw.sheets.active)``, for further options "
+"see :meth:`view <xlwings.view>`."
+msgstr ""
+"view関数は、数値、文字列、多次元のリスト、Numpy arrayやPandas DataFrameなど"
+"表示したいオブジェクトのほとんどを利用できます。デフォルトでは、view関数は"
+"新しいワークブックのExcelのテーブルにデータを書き込みます。同じワークブックを"
+"使うには、 ``sheet`` オブジェクトを指定します。e.g.  ``view(df, sheet=xw."
+"sheets.active)`` 。詳細は :meth:`view <xlwings.view>` を参照してください。"
+
+#: ../../jupyternotebooks.rst:18
+msgid "Earlier versions were not formatting the output as Excel table"
+msgstr "以前のバージョンでは出力結果をExcelのテーブルにフォーマットしていませんでした。"
+
+#: ../../jupyternotebooks.rst:21
+msgid "The load function"
+msgstr "load関数"
+
+#: ../../jupyternotebooks.rst:23
+msgid ""
+"To load in a range in an Excel sheet as pandas DataFrame, use the "
+"``load`` function. If you only select one cell, it will auto-expand to "
+"cover the whole range. If, however, you select a specific range that is "
+"bigger than one cell, it will load in only the selected cells. If the "
+"data in Excel does not have an index or header, set them to ``False`` "
+"like this: ``xw.load(index=False)``, see also :meth:`load "
+"<xlwings.load>`."
+msgstr ""
+"ExcelのシートのRangeをPandas DataFrameとして読み込むには ``load`` 関数を"
+"使用します。一つのセルを選択すれば、自動的にすべてのRangeに拡張されます。"
+"もし二つ以上のRangeを選択すれば、選択したRangeのみを読み込みます。"
+"Excelのデータにインデックスやヘッダーがなければ、次のように ``False`` を"
+"設定します: ``xw.load(index=False)`` 。詳細は :meth:`load <xlwings.load>` を"
+"参照してください。"
+

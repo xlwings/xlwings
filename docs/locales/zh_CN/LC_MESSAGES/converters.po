@@ -1,0 +1,563 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-07 21:24+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../converters.rst:4
+msgid "Converters and Options"
+msgstr "转换器及选项"
+
+#: ../../converters.rst:6
+msgid ""
+"Introduced with v0.7.0, converters define how Excel ranges and their "
+"values are converted both during **reading** and **writing** operations. "
+"They also provide a consistent experience across **xlwings.Range** "
+"objects and **User Defined Functions** (UDFs)."
+msgstr ""
+"转换器是从v0.7.0开始引入的，它定义了在 **读出** 和 **写入** 操作中，Excel的区域及其取值是如何被转换的。同时在 "
+"**xlwings.Range** 对象和 **User Defined Functions (UDFs)** 之间保持了一致性。"
+
+#: ../../converters.rst:10
+msgid ""
+"Converters are explicitely set in the ``options`` method when "
+"manipulating ``Range`` objects or in the ``@xw.arg`` and ``@xw.ret`` "
+"decorators when using UDFs. If no converter is specified, the default "
+"converter is applied when reading. When writing, xlwings will "
+"automatically apply the correct converter (if available) according to the"
+" object's type that is being written to Excel. If no converter is found "
+"for that type, it falls back to the default converter."
+msgstr ""
+"转换器可以显性设定，当使用 ``Range`` 对象时，在  ``options`` 方法中设定；在使用UDF时，通过装饰器 "
+"``@xw.arg`` 和 ``@xw.ret`` "
+"设定。如果没有指定转换器，读出时会使用缺省转换器。在写入操作时，xlwings会自动根据写入Excel的对象类型选择合适的转换器（如果有的话）。如果该类型没有转换器，就采用缺省转换器。"
+
+#: ../../converters.rst:15
+msgid "All code samples below depend on the following import:"
+msgstr "后面所有例子依赖下面的导入："
+
+#: ../../converters.rst:19
+msgid "**Syntax:**"
+msgstr "**语法:**"
+
+#: ../../converters.rst:22
+msgid "**xw.Range**"
+msgstr ""
+
+#: ../../converters.rst:22
+msgid "**UDFs**"
+msgstr ""
+
+#: ../../converters.rst:24
+msgid "**reading**"
+msgstr "**读**"
+
+#: ../../converters.rst:24
+msgid "``xw.Range.options(convert=None, **kwargs).value``"
+msgstr ""
+
+#: ../../converters.rst:24
+msgid "``@arg('x', convert=None, **kwargs)``"
+msgstr ""
+
+#: ../../converters.rst:25
+#, fuzzy
+msgid "**writing**"
+msgstr "**写**"
+
+#: ../../converters.rst:25
+msgid "``xw.Range.options(convert=None, **kwargs).value = myvalue``"
+msgstr ""
+
+#: ../../converters.rst:25
+msgid "``@ret(convert=None, **kwargs)``"
+msgstr ""
+
+#: ../../converters.rst:28
+msgid ""
+"Keyword arguments (``kwargs``) may refer to the specific converter or the"
+" default converter. For example, to set the ``numbers`` option in the "
+"default converter and the ``index`` option in the DataFrame converter, "
+"you would write::"
+msgstr ""
+"关键词参数(``kwargs``)可以是特定转换器的参数，也可以是缺省转换器的参数。例如，为了在缺省转换器中设置 ``numbers`` 选项并在"
+" ``DataFrame`` 转换器中设置 ``index`` 选项，可以这样写::"
+
+#: ../../converters.rst:35
+msgid "Default Converter"
+msgstr "缺省转换器"
+
+#: ../../converters.rst:37
+msgid "If no options are set, the following conversions are performed:"
+msgstr "如果没有设定选项，执行下面的转换器:"
+
+#: ../../converters.rst:39
+msgid ""
+"single cells are read in as ``floats`` in case the Excel cell holds a "
+"number, as ``unicode`` in case it holds text, as ``datetime`` if it "
+"contains a date and as ``None`` in case it is empty."
+msgstr ""
+"在读单元格时，如果里面有数字，转换为 ``floats`` ，如果里面是文字，转换为 ``unicode`` 字符串，如果里面是日期，转换为 "
+"``datetime`` ，如果是空的，返回 ``None`` 。"
+
+#: ../../converters.rst:41
+msgid "columns/rows are read in as lists, e.g. ``[None, 1.0, 'a string']``"
+msgstr "行/列被作为列表读入，例如: ``[None, 1.0, 'a string']``"
+
+#: ../../converters.rst:42
+msgid ""
+"2d cell ranges are read in as list of lists, e.g. ``[[None, 1.0, 'a "
+"string'], [None, 2.0, 'another string']]``"
+msgstr ""
+"2维区域作为嵌套列表读入，例如： ``[[None, 1.0, 'a string'], [None, 2.0, 'another "
+"string']]``"
+
+#: ../../converters.rst:44
+msgid "The following options can be set:"
+msgstr "下面选项可以设定："
+
+#: ../../converters.rst:46
+msgid "**ndim**"
+msgstr ""
+
+#: ../../converters.rst:48
+msgid ""
+"Force the value to have either 1 or 2 dimensions regardless of the shape "
+"of the range:"
+msgstr "不考虑区域的形状，强制返回值为1维或2维列表："
+
+#: ../../converters.rst:64
+msgid "**numbers**"
+msgstr ""
+
+#: ../../converters.rst:66
+msgid ""
+"By default cells with numbers are read as ``float``, but you can change "
+"it to ``int``::"
+msgstr "单元格里的数字，缺省作为 ``float`` 类型，不过也可以转换为 ``int`` 类型："
+
+#: ../../converters.rst:74
+msgid ""
+"Alternatively, you can specify any other function or type which takes a "
+"single float argument."
+msgstr "或者，可以指定为其他函数或类型，只要它们关键字参数和float类型的相同即可。"
+
+#: ../../converters.rst:76
+msgid "Using this on UDFs looks like this::"
+msgstr "用在UDF中时是这样的::"
+
+#: ../../converters.rst:84
+msgid ""
+"**Note:** Excel always stores numbers internally as floats, which is the "
+"reason why the `int` converter rounds numbers first before turning them "
+"into integers. Otherwise it could happen that e.g. 5 might be returned as"
+" 4 in case it is represented as a floating point number that is slightly "
+"smaller than 5. Should you require Python's original `int` in your "
+"converter, use `raw int` instead."
+msgstr ""
+"**Note:** Excel在内部总是把数字存为浮点数，所以 `int` "
+"转换器先对数字四舍五入后转为整数。否则，万一5是被存为一个稍稍小于5的浮点数，不做四舍五入，可能会被转换成4。如果要在转换器中使用Python自带的"
+" `int` ，请使用 `raw int` 。"
+
+#: ../../converters.rst:91
+msgid "**dates**"
+msgstr ""
+
+#: ../../converters.rst:93
+msgid ""
+"By default cells with dates are read as ``datetime.datetime``, but you "
+"can change it to ``datetime.date``:"
+msgstr "单元格内的日期缺省被读作 ``datetime.datetime`` 类型，不过也可以改为 ``datetime.date`` 类型："
+
+#: ../../converters.rst:95
+msgid "Range::"
+msgstr ""
+
+#: ../../converters.rst:100
+msgid "UDFs: ``@xw.arg('x', dates=dt.date)``"
+msgstr ""
+
+#: ../../converters.rst:102
+msgid ""
+"Alternatively, you can specify any other function or type which takes the"
+" same keyword arguments as ``datetime.datetime``, for example:"
+msgstr "或者，可以指定为其他函数或类型，只要它们的关键字参数和 ``datetime.datetime`` 类型的相同即可。例如："
+
+#: ../../converters.rst:110
+msgid "**empty**"
+msgstr ""
+
+#: ../../converters.rst:112
+msgid ""
+"Empty cells are converted per default into ``None``, you can change this "
+"as follows:"
+msgstr "每个空白的单元格缺省会被转换成 ``None`` ，可以像下面一样改变："
+
+#: ../../converters.rst:114
+msgid "Range: ``>>> sht.range('A1').options(empty='NA').value``"
+msgstr ""
+
+#: ../../converters.rst:116
+msgid "UDFs:  ``@xw.arg('x', empty='NA')``"
+msgstr ""
+
+#: ../../converters.rst:118
+msgid "**transpose**"
+msgstr ""
+
+#: ../../converters.rst:120
+msgid ""
+"This works for reading and writing and allows us to e.g. write a list in "
+"column orientation to Excel:"
+msgstr "在读写时都可以转置，比如，我们可以把一个列表在Excel中写为一列："
+
+#: ../../converters.rst:122
+msgid "Range: ``sht.range('A1').options(transpose=True).value = [1, 2, 3]``"
+msgstr ""
+
+#: ../../converters.rst:124
+msgid "UDFs:"
+msgstr ""
+
+#: ../../converters.rst:134
+msgid "**expand**"
+msgstr ""
+
+#: ../../converters.rst:136
+msgid ""
+"This works the same as the Range properties ``table``, ``vertical`` and "
+"``horizontal`` but is only evaluated when getting the values of a Range::"
+msgstr "它的功能和区域的 ``table`` , ``vertical`` 及 ``horizontal`` 属性一样，只是在区域取值的时候才去求值："
+
+#: ../../converters.rst:154
+msgid ""
+"The ``expand`` method is only available on ``Range`` objects as UDFs only"
+" allow to manipulate the calling cells."
+msgstr "``expand`` 方法仅用于 ``Range`` 对象，UDF只允许对调用的单元格操作。"
+
+#: ../../converters.rst:157
+msgid "Built-in Converters"
+msgstr "内置转换器"
+
+#: ../../converters.rst:159
+msgid ""
+"xlwings offers several built-in converters that perform type conversion "
+"to **dictionaries**, **NumPy arrays**, **Pandas Series** and "
+"**DataFrames**. These build on top of the default converter, so in most "
+"cases the options described above can be used in this context, too "
+"(unless they are meaningless, for example the ``ndim`` in the case of a "
+"dictionary)."
+msgstr ""
+"xlwings提供了几种内置转换器，用于 **dictionaries** (字典), **NumPy arrays**(NumPy数组), "
+"**Pandas Series**(Pandas序列)和 **DataFrames** "
+"的转换。它们都是基于缺省服务器的，所以在大多数情况下，上面提到的选项也同样可以用(除非有些选项在某种情况下没有意义，比如ndim对字典来说是没有意义的)。"
+
+#: ../../converters.rst:164
+msgid ""
+"It is also possible to write and register custom converter for additional"
+" types, see below."
+msgstr "下面还会提到可以为其他的类型编写和注册转换器。"
+
+#: ../../converters.rst:166
+msgid ""
+"The samples below can be used with both ``xlwings.Range`` objects and "
+"UDFs even though only one version may be shown."
+msgstr "下面的例子适用于 ``xlwings.Range`` 对象和UDF，虽然有的只给出了一种例子"
+
+#: ../../converters.rst:169
+msgid "Dictionary converter"
+msgstr "字典转换器"
+
+#: ../../converters.rst:171
+msgid ""
+"The dictionary converter turns two Excel columns into a dictionary. If "
+"the data is in row orientation, use ``transpose``:"
+msgstr "字典转换器把Excel中的两列转换成一个字典。如果数据是按行排的，请使用 ``transpose`` 选项："
+
+#: ../../converters.rst:184
+msgid ""
+"Note: instead of ``dict``, you can also use ``OrderedDict`` from "
+"``collections``."
+msgstr "注意：除了 ``dict`` ，还可以用 ``collections`` 中的 ``OrderedDict`` 。"
+
+#: ../../converters.rst:187
+msgid "Numpy array converter"
+msgstr "Numpy数组转换器"
+
+#: ../../converters.rst:189
+msgid "**options:** ``dtype=None, copy=True, order=None, ndim=None``"
+msgstr ""
+
+#: ../../converters.rst:191
+msgid ""
+"The first 3 options behave the same as when using ``np.array()`` "
+"directly. Also, ``ndim`` works the same as shown above for lists (under "
+"default converter) and hence returns either numpy scalars, 1d arrays or "
+"2d arrays."
+msgstr ""
+"前3个选项的作用和直接使用 ``np.array()`` 时一致。 ``ndim`` "
+"的作用和上面用在列表上(默认转换器的情况下)的作用一致，返回标量、1维数组或2维数组。"
+
+#: ../../converters.rst:194
+msgid "**Example**::"
+msgstr "**举例**::"
+
+#: ../../converters.rst:205
+msgid "Pandas Series converter"
+msgstr "Pandas序列转换器"
+
+#: ../../converters.rst:207
+msgid "**options:** ``dtype=None, copy=False, index=1, header=True``"
+msgstr ""
+
+#: ../../converters.rst:209
+msgid ""
+"The first 2 options behave the same as when using ``pd.Series()`` "
+"directly. ``ndim`` doesn't have an effect on Pandas series as they are "
+"always expected and returned in column orientation."
+msgstr ""
+"前2个选项的作用和直接使用 ``pd.Series()`` 时一致。 ``Pandas`` 序列的返回值一直是一列，所以 ``ndim`` "
+"不起作用。"
+
+#: ../../converters.rst:214 ../../converters.rst:252
+msgid "``index``: int or Boolean"
+msgstr "``index``: 整数值或布尔值"
+
+#: ../../converters.rst
+msgid "When reading, it expects the number of index columns shown in Excel."
+msgstr "读的时候，认为它是Excel种的索引列的列数。"
+
+#: ../../converters.rst
+msgid ""
+"When writing, include or exclude the index by setting it to ``True`` or "
+"``False``."
+msgstr "写的时候，如果需要包含索引，就设为 ``True`` ，否则就设为 ``False`` 。"
+
+#: ../../converters.rst:218
+msgid "``header``: Boolean"
+msgstr "``header``: 布尔型"
+
+#: ../../converters.rst
+msgid ""
+"When reading, set it to ``False`` if Excel doesn't show either index or "
+"series names."
+msgstr "读的时候，如果Excel种没有索引或序列名，就设为 ``False`` 。"
+
+#: ../../converters.rst
+msgid ""
+"When writing, include or exclude the index and series names by setting it"
+" to ``True`` or ``False``."
+msgstr "写的时候，如果需要包含索引和序列名，就设为 ``True`` ，否则设为 ``False`` 。"
+
+#: ../../converters.rst:220 ../../converters.rst:258
+msgid ""
+"For ``index`` and ``header``, ``1`` and ``True`` may be used "
+"interchangeably."
+msgstr "对 ``index`` 和 ``header`` , ``1`` 和 ``True`` 是等价的。"
+
+#: ../../converters.rst:222 ../../converters.rst:260
+msgid "**Example:**"
+msgstr "**示例:**"
+
+#: ../../converters.rst:243
+msgid "Pandas DataFrame converter"
+msgstr "Pandas DataFrame转换器"
+
+#: ../../converters.rst:245
+msgid "**options:** ``dtype=None, copy=False, index=1, header=1``"
+msgstr ""
+
+#: ../../converters.rst:247
+msgid ""
+"The first 2 options behave the same as when using ``pd.DataFrame()`` "
+"directly. ``ndim`` doesn't have an effect on Pandas DataFrames as they "
+"are automatically read in with ``ndim=2``."
+msgstr ""
+"前2个选项的作用和直接使用 ``pd.DataFrame()`` 时一致。 ``ndim`` 不起作用，因为把数据读入到Pandas "
+"DataFrame时自动设定 ``ndim=2`` 。"
+
+#: ../../converters.rst:256
+msgid "``header``: int or Boolean"
+msgstr "``header``: 整数型或布尔型"
+
+#: ../../converters.rst
+msgid "When reading, it expects the number of column headers shown in Excel."
+msgstr "读数据时，这个值应该是Excel表中表头的行数。"
+
+#: ../../converters.rst:283
+msgid ""
+"The same sample for **UDF** (starting in ``Range('A13')`` on screenshot) "
+"looks like this::"
+msgstr "同样的例子，用 **UDF** 是这样的(在上面截图中从 ``Range('A13')`` 开始) :: "
+
+#: ../../converters.rst:294
+msgid "xw.Range and 'raw' converters"
+msgstr "xw.Range和‘裸’转换器"
+
+#: ../../converters.rst:296
+msgid "Technically speaking, these are \"no-converters\"."
+msgstr "从技术层面上说，就是\"没有转换\"。"
+
+#: ../../converters.rst:298
+msgid "If you need access to the ``xlwings.Range`` object directly, you can do::"
+msgstr "如果需要直接得到 ``xlwings.Range`` ，可以这样做::"
+
+#: ../../converters.rst:305
+msgid ""
+"This returns x as ``xlwings.Range`` object, i.e. without applying any "
+"converters or options."
+msgstr "上面函数把 ``xlwings.Range`` 对象作为x返回，也就是说没有做任何转换或设置。"
+
+#: ../../converters.rst:307
+msgid ""
+"The ``raw`` converter delivers the values unchanged from the underlying "
+"libraries (``pywin32`` on Windows and ``appscript`` on Mac), i.e. no "
+"sanitizing/cross-platform harmonizing of values are being made. This "
+"might be useful in a few cases for efficiency reasons. E.g::"
+msgstr ""
+"这个 ``裸`` 转换器从底层库里 (Windows系统里是 ``pywin32`` ，Mac系统里是 ``appscript`` "
+")把值原封不动地输出来，也就是说，没有做任何的处理或者跨平台兼容。 这在一些要求效率的场合中很有用。例如::"
+
+#: ../../converters.rst:321
+msgid "Custom Converter"
+msgstr "自定义转换器"
+
+#: ../../converters.rst:323
+msgid "Here are the steps to implement your own converter:"
+msgstr "实现自定义转换器的步骤如下："
+
+#: ../../converters.rst:325
+msgid "Inherit from ``xlwings.conversion.Converter``"
+msgstr "继承 ``xlwings.conversion.Converter`` 类"
+
+#: ../../converters.rst:326
+msgid ""
+"Implement both a ``read_value`` and ``write_value`` method as static- or "
+"classmethod:"
+msgstr "以静态方法或者类方法实现 ``read_value`` 和 ``write_value`` 方法："
+
+#: ../../converters.rst:328
+msgid ""
+"In ``read_value``, ``value`` is what the base converter returns: hence, "
+"if no ``base`` has been specified it arrives in the format of the default"
+" converter."
+msgstr ""
+"在 ``read_value`` 中， ``value`` 就是基转换器(Base converter)返回的值，因此如果没有指定 "
+"``base`` 转换器，返回的就是经过缺省转换器转换出来的值。"
+
+#: ../../converters.rst:330
+msgid ""
+"In ``write_value``, ``value`` is the original object being written to "
+"Excel. It must be returned in the format that the base converter expects."
+" Again, if no ``base`` has been specified, this is the default converter."
+msgstr ""
+"在 ``write_value`` 中， ``value`` 是需要往Excel里面写的原始对象。需要返回基转换器所需格式。如果没有指定 "
+"``base`` 转换器，还是会使用缺省转换器。"
+
+#: ../../converters.rst:334
+msgid ""
+"The ``options`` dictionary will contain all keyword arguments specified "
+"in the ``xw.Range.options`` method, e.g. when calling "
+"``xw.Range('A1').options(myoption='some value')`` or as specified in the "
+"``@arg`` and ``@ret`` decorator when using UDFs. Here is the basic "
+"structure::"
+msgstr ""
+"在 ``options`` 字典中包含 ``xw.Range.options`` 方法中指明的关键字(比如调用 "
+"``xw.Range('A1').options(myoption='some value')`` )或者在UDF的 ``@arg`` 和 "
+"``@ret`` 装饰器中指定的关键字。下面是自定义转换器基础架构::"
+
+#: ../../converters.rst:354
+msgid ""
+"Optional: set a ``base`` converter (``base`` expects a class name) to "
+"build on top of an existing converter, e.g. for the built-in ones: "
+"``DictCoverter``, ``NumpyArrayConverter``, ``PandasDataFrameConverter``, "
+"``PandasSeriesConverter``"
+msgstr ""
+"可选项：从现有转换器中选择一个 ``base`` 转换器( ``base`` 必须是类名)，例如内置转换器: ``DictCoverter``, "
+"``NumpyArrayConverter``, ``PandasDataFrameConverter``, "
+"``PandasSeriesConverter``"
+
+#: ../../converters.rst:356
+msgid ""
+"Optional: register the converter: you can **(a)** register a type so that"
+" your converter becomes the default for this type during write operations"
+" and/or **(b)** you can register an alias that will allow you to "
+"explicitly call your converter by name instead of just by class name"
+msgstr ""
+"可选项：注册转换器：可以 **(a)** 把自己的转换器注册为一个类型在写入操作时的默认转换器；以及/或者 **(b)** "
+"可以为自定义的转换器起一个别名，以便在调用转化器的时候可以用别名替代类名。"
+
+#: ../../converters.rst:360
+msgid ""
+"The following examples should make it much easier to follow - it defines "
+"a DataFrame converter that extends the built-in DataFrame converter to "
+"add support for dropping nan's::"
+msgstr "下面例子比较容易模仿，它定义了一个DataFrame转换器，扩展了内置转换器的功能，可以支持删除空值::"
+
+#: ../../converters.rst:390
+msgid "Now let's see how the different converters can be applied::"
+msgstr "现在来看看如何应用这些不同的转换器::"
+
+#: ../../converters.rst:396
+msgid "Default converter for DataFrames::"
+msgstr "DataFrames缺省转换器::"
+
+#: ../../converters.rst:404
+msgid "DataFrameDropna converter::"
+msgstr "DataFrameDropna转换器::"
+
+#: ../../converters.rst:412
+msgid "Register an alias (optional)::"
+msgstr "注册别名(可选)::"
+
+#: ../../converters.rst:423
+msgid "Register DataFrameDropna as default converter for DataFrames (optional)::"
+msgstr "把DataFrameDropna注册为DataFrames的缺省转换器(可选)::"
+
+#: ../../converters.rst:433
+msgid "These samples all work the same with UDFs, e.g.::"
+msgstr "上面示例同样适用于UDF，例如::"
+
+#: ../../converters.rst:444
+msgid ""
+"Python objects run through multiple stages of a transformation pipeline "
+"when they are being written to Excel. The same holds true in the other "
+"direction, when Excel/COM objects are being read into Python."
+msgstr "Python对象被写入Excel的时候，会在转换流水线中经过多个不同的阶段。Excel/COM对象被读进Python的时候也同样如此。"
+
+#: ../../converters.rst:447
+msgid ""
+"Pipelines are internally defined by ``Accessor`` classes. A Converter is "
+"just a special Accessor which converts to/from a particular type by "
+"adding an extra stage to the pipeline of the default Accessor. For "
+"example, the ``PandasDataFrameConverter`` defines how a list of list (as "
+"delivered by the default Accessor) should be turned into a Pandas "
+"DataFrame."
+msgstr ""
+"流水线在内部是由 ``Accessor`` "
+"(存取器)类决定的。一个转换器就是在缺省存取器的流水线上增加了到一个特殊类型的转换的一个特殊的存取器。例如， "
+"``PandasDataFrameConverter`` "
+"定义了一个嵌套列表(列表是可以被确实存取器处理的)应该被转化为一个Pandas的DataFrame。"
+
+#: ../../converters.rst:452
+msgid ""
+"The ``Converter`` class provides basic scaffolding to make the task of "
+"writing a new Converter easier. If you need more control you can subclass"
+" ``Accessor`` directly, but this part requires more work and is currently"
+" undocumented."
+msgstr ""
+"``Converter`` (转换器)类提供了一套基础框架使得写新的转换器变得容易。如果需要控制更多的东西，可以直接编写 ``Accessor``"
+" 的子类，不过这部分内容需要做更多的工作并且目前没有什么文档。"

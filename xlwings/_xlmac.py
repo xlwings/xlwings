@@ -1,7 +1,7 @@
 import os
+import re
 import datetime as dt
 import subprocess
-import unicodedata
 import struct
 import shutil
 import atexit
@@ -13,8 +13,10 @@ from appscript import k as kw, mactypes, its
 from appscript.reference import CommandError
 
 from .constants import ColorIndex
-from .utils import int_to_rgb, np_datetime_to_datetime, col_name, VersionNumber
-from . import mac_dict, PY3, string_types
+from .utils import int_to_rgb, np_datetime_to_datetime, col_name, VersionNumber, fullname_url_to_local_path, read_config_sheet
+import xlwings
+from . import mac_dict
+import xlwings
 
 try:
     import pandas as pd
@@ -24,6 +26,13 @@ try:
     import numpy as np
 except ImportError:
     np = None
+try:
+    from PIL import ImageGrab
+except ImportError:
+    PIL = None
+
+USER_CONFIG_FILE = os.path.join(os.path.expanduser("~"), 'Library', 'Containers',
+                                'com.microsoft.Excel', 'Data', 'xlwings.conf')
 
 # Time types
 time_types = (dt.date, dt.datetime)
@@ -46,7 +55,7 @@ class Engine(object):
 engine = Engine()
 
 
-class Apps(object):
+class Apps:
 
     def _iter_excel_instances(self):
         asn = subprocess.check_output(['lsappinfo', 'visibleprocesslist', '-includehidden']).decode('utf-8')
@@ -56,6 +65,9 @@ class Apps(object):
                 if pid_info != '"pid"=[ NULL ] \n':
                     yield int(pid_info.split('=')[1])
 
+    def keys(self):
+        return list(self._iter_excel_instances())
+
     def __iter__(self):
         for pid in self._iter_excel_instances():
             yield App(xl=pid)
@@ -63,17 +75,19 @@ class Apps(object):
     def __len__(self):
         return len(list(self._iter_excel_instances()))
 
-    def __getitem__(self, index):
-        pids = list(self._iter_excel_instances())
-        return App(xl=pids[index])
+    def __getitem__(self, pid):
+        if pid not in self.keys():
+            raise KeyError('Could not find an Excel instance with this PID.')
+        return App(xl=pid)
 
 
-class App(object):
+class App:
 
-    def __init__(self, spec=None, add_book=None, xl=None):
+    def __init__(self, spec=None, add_book=None, xl=None, visible=True):
         if xl is None:
-            self.xl = appscript.app(name=spec or 'Microsoft Excel', newinstance=True, terms=mac_dict)
-            self.activate()  # Makes it behave like on Windows
+            self.xl = appscript.app(name=spec or 'Microsoft Excel', newinstance=True, terms=mac_dict, hide=not visible)
+            if visible:
+                self.activate()  # Makes it behave like on Windows
         elif isinstance(xl, int):
             self.xl = appscript.app(pid=xl, terms=mac_dict)
         else:
@@ -100,7 +114,11 @@ class App(object):
     @property
     def selection(self):
         sheet = self.books.active.sheets.active
-        return Range(sheet, self.xl.selection.get_address())
+        try:
+            # fails if e.g. chart is selected
+            return Range(sheet, self.xl.selection.get_address())
+        except CommandError:
+            return None
 
     def activate(self, steal_focus=False):
         asn = subprocess.check_output(['lsappinfo', 'visibleprocesslist', '-includehidden']).decode('utf-8')
@@ -143,6 +161,28 @@ class App(object):
         self.xl.display_alerts.set(value)
 
     @property
+    def enable_events(self):
+        return self.xl.enable_events.get()
+
+    @enable_events.setter
+    def enable_events(self, value):
+        self.xl.enable_events.set(value)
+
+    @property
+    def interactive(self):
+        # TODO: replace with specific error when Exceptions are refactored
+        raise xlwings.XlwingsError("Getting or setting 'app.interactive' isn't supported on macOS.")
+
+    @interactive.setter
+    def interactive(self, value):
+        # TODO: replace with specific error when Exceptions are refactored
+        raise xlwings.XlwingsError("Getting or setting 'app.interactive' isn't supported on macOS.")
+
+    @property
+    def startup_path(self):
+        return hfs_to_posix_path(self.xl.startup_path.get())
+
+    @property
     def calculation(self):
         return calculation_k2s[self.xl.calculation.get()]
 
@@ -165,12 +205,28 @@ class App(object):
         return None
 
     def run(self, macro, args):
-        # kwargs = {'arg{0}'.format(i): n for i, n in enumerate(args, 1)}  # only for > PY 2.6
-        kwargs = dict(('arg{0}'.format(i), n) for i, n in enumerate(args, 1))
+        kwargs = {'arg{0}'.format(i): n for i, n in enumerate(args, 1)}
         return self.xl.run_VB_macro(macro, **kwargs)
 
+    @property
+    def status_bar(self):
+        return self.xl.status_bar.get()
 
-class Books(object):
+    @status_bar.setter
+    def status_bar(self, value):
+        self.xl.status_bar.set(value)
+
+    @property
+    def cut_copy_mode(self):
+        modes = {kw.cut_mode: 'cut', kw.copy_mode: 'copy'}
+        return modes.get(self.xl.cut_copy_mode.get())
+
+    @cut_copy_mode.setter
+    def cut_copy_mode(self, value):
+        self.xl.cut_copy_mode.set(value)
+
+
+class Books:
 
     def __init__(self, app):
         self.app = app
@@ -196,15 +252,36 @@ class Books(object):
         return self.app.xl.count(each=kw.workbook)
 
     def add(self):
-        self.app.activate()
+        if self.app.visible:
+            self.app.activate()
         xl = self.app.xl.make(new=kw.workbook)
         wb = Book(self.app, xl.name.get())
         return wb
 
-    def open(self, fullname):
-        self.app.activate()
+    def open(self, fullname, update_links=None, read_only=None, format=None, password=None, write_res_password=None,
+             ignore_read_only_recommended=None, origin=None, delimiter=None, editable=None, notify=None, converter=None,
+             add_to_mru=None, local=None, corrupt_load=None):
+        # TODO: format and origin currently require a native appscript keyword, read_only doesn't seem to work
+        # Unsupported params
+        if local is not None:
+            # TODO: replace with specific error when Exceptions are refactored
+            raise xlwings.XlwingsError('local is not supported on macOS')
+        if corrupt_load is not None:
+            # TODO: replace with specific error when Exceptions are refactored
+            raise xlwings.XlwingsError('corrupt_load is not supported on macOS')
+        # update_links: on Windows only constants 0 and 3 seem to be supported in this context
+        if update_links:
+            update_links = kw.update_remote_and_external_links
+        else:
+            update_links = kw.do_not_update_links
+        if self.app.visible:
+            self.app.activate()
         filename = os.path.basename(fullname)
-        self.app.xl.open(fullname)
+        self.app.xl.open_workbook(workbook_file_name=fullname, update_links=update_links, read_only=read_only,
+                                  format=format, password=password, write_reserved_password=write_res_password,
+                                  ignore_read_only_recommended=ignore_read_only_recommended,
+                                  origin=origin, delimiter=delimiter, editable=editable, notify=notify,
+                                  converter=converter, add_to_mru=add_to_mru, timeout=-1)
         wb = Book(self.app, filename)
         return wb
 
@@ -214,7 +291,7 @@ class Books(object):
             yield Book(self.app, i + 1)
 
 
-class Book(object):
+class Book:
     def __init__(self, app, name_or_index):
         self.app = app
         self.xl = app.xl.workbooks[name_or_index]
@@ -234,33 +311,63 @@ class Book(object):
     def close(self):
         self.xl.close(saving=kw.no)
 
-    def save(self, path):
+    def save(self, path, password):
         saved_path = self.xl.properties().get(kw.path)
+        source_ext = os.path.splitext(self.name)[1] if saved_path else None
+        target_ext = os.path.splitext(path)[1] if path else '.xlsx'
+        if saved_path and source_ext == target_ext:
+            file_format = self.xl.properties().get(kw.file_format)
+        else:
+            ext_to_file_format = {'.xlsx': kw.Excel_XML_file_format,
+                                  '.xlsm': kw.macro_enabled_XML_file_format,
+                                  '.xlsb': kw.Excel_binary_file_format,
+                                  '.xltm': kw.macro_enabled_template_file_format,
+                                  '.xltx': kw.template_file_format,
+                                  '.xlam': kw.add_in_file_format,
+                                  '.xls': kw.Excel98to2004_file_format,
+                                  '.xlt': kw.Excel98to2004_template_file_format,
+                                  '.xla': kw.Excel98to2004_add_in_file_format}
+
+            file_format = ext_to_file_format[target_ext]
         if (saved_path != '') and (path is None):
             # Previously saved: Save under existing name
-            self.xl.save()
+            self.xl.save(timeout=-1)
         elif (saved_path != '') and (path is not None) and (os.path.split(path)[0] == ''):
             # Save existing book under new name in cwd if no path has been provided
+            save_as_name = path
             path = os.path.join(os.getcwd(), path)
             hfs_path = posix_to_hfs_path(os.path.realpath(path))
-            self.xl.save_workbook_as(filename=hfs_path, overwrite=True)
+            self.xl.save_workbook_as(filename=hfs_path, overwrite=True, file_format=file_format, timeout=-1, password=password)
+            self.xl = self.app.xl.workbooks[save_as_name]
         elif (saved_path == '') and (path is None):
             # Previously unsaved: Save under current name in current working directory
-            path = os.path.join(os.getcwd(), self.xl.name.get() + '.xlsx')
+            save_as_name = self.xl.name.get() + '.xlsx'
+            path = os.path.join(os.getcwd(), save_as_name)
             hfs_path = posix_to_hfs_path(os.path.realpath(path))
-            self.xl.save_workbook_as(filename=hfs_path, overwrite=True)
+            self.xl.save_workbook_as(filename=hfs_path, overwrite=True, file_format=file_format, timeout=-1, password=password)
+            self.xl = self.app.xl.workbooks[save_as_name]
         elif path:
             # Save under new name/location
             hfs_path = posix_to_hfs_path(os.path.realpath(path))
-            self.xl.save_workbook_as(filename=hfs_path, overwrite=True)
+            self.xl.save_workbook_as(filename=hfs_path, overwrite=True, file_format=file_format, timeout=-1, password=password)
+            self.xl = self.app.xl.workbooks[os.path.basename(path)]
 
     @property
     def fullname(self):
-        hfs_path = self.xl.properties().get(kw.full_name)
-        # Excel 2011 returns HFS path, Excel 2016 returns POSIX path
-        if hfs_path == self.xl.properties().get(kw.name) or int(self.app.version.split('.')[0]) >= 15:
-            return hfs_path
-        return hfs_to_posix_path(hfs_path)
+        display_alerts = self.app.display_alerts
+        self.app.display_alerts = False
+        # This causes a pop-up if there's a pw protected sheet, see #1377
+        path = self.xl.properties().get(kw.full_name)
+        if '://' in path:
+            config = read_config_sheet(xlwings.Book(impl=self))
+            self.app.display_alerts = display_alerts
+            return fullname_url_to_local_path(url=path,
+                                              sheet_onedrive_consumer_config=config.get('ONEDRIVE_CONSUMER_MAC'),
+                                              sheet_onedrive_commercial_config=config.get('ONEDRIVE_COMMERCIAL_MAC'),
+                                              sheet_sharepoint_config=config.get('SHAREPOINT_MAC'))
+        else:
+            self.app.display_alerts = display_alerts
+            return path
 
     @property
     def names(self):
@@ -269,8 +376,15 @@ class Book(object):
     def activate(self):
         self.xl.activate_object()
 
+    def to_pdf(self, path):
+        hfs_path = posix_to_hfs_path(path)
+        display_alerts = self.app.display_alerts
+        self.app.display_alerts = False
+        self.xl.save(in_=hfs_path, as_=kw.PDF_file_format)
+        self.app.display_alerts = display_alerts
 
-class Sheets(object):
+
+class Sheets:
 
     def __init__(self, workbook):
         self.workbook = workbook
@@ -291,7 +405,7 @@ class Sheets(object):
 
     def __iter__(self):
         for i in range(len(self)):
-            yield self(i+1)
+            yield self(i + 1)
 
     def add(self, before=None, after=None):
         if before is None and after is None:
@@ -304,7 +418,7 @@ class Sheets(object):
         return Sheet(self.workbook, xl.name.get())
 
 
-class Sheet(object):
+class Sheet:
 
     def __init__(self, workbook, name_or_index):
         self.workbook = workbook
@@ -351,7 +465,7 @@ class Sheet(object):
             row1 = min(arg1.row, arg2.row)
             col1 = min(arg1.column, arg2.column)
             address1 = self.xl.rows[row1].columns[col1].get_address()
-        elif isinstance(arg1, string_types):
+        elif isinstance(arg1, str):
             address1 = arg1.split(':')[0]
         else:
             raise ValueError("Invalid parameters")
@@ -366,10 +480,10 @@ class Sheet(object):
             row2 = max(arg1.row + arg1.shape[0] - 1, arg2.row + arg2.shape[0] - 1)
             col2 = max(arg1.column + arg1.shape[1] - 1, arg2.column + arg2.shape[1] - 1)
             address2 = self.xl.rows[row2].columns[col2].get_address()
-        elif isinstance(arg2, string_types):
+        elif isinstance(arg2, str):
             address2 = arg2
         elif arg2 is None:
-            if isinstance(arg1, string_types) and len(arg1.split(':')) == 2:
+            if isinstance(arg1, str) and len(arg1.split(':')) == 2:
                 address2 = arg1.split(':')[1]
             else:
                 return Range(self, "{0}".format(address1))
@@ -415,6 +529,13 @@ class Sheet(object):
         self.xl.delete()
         self.book.app.xl.display_alerts.set(alerts_state)
 
+    def copy(self, before, after):
+        if before:
+            before = before.xl
+        if after:
+            after = after.xl
+        self.xl.copy_worksheet(before_=before, after_=after)
+
     @property
     def charts(self):
         return Charts(self)
@@ -424,11 +545,30 @@ class Sheet(object):
         return Shapes(self)
 
     @property
+    def tables(self):
+        return Tables(self)
+
+    @property
     def pictures(self):
         return Pictures(self)
 
+    @property
+    def used_range(self):
+        return Range(self, self.xl.used_range.get_address())
 
-class Range(object):
+    @property
+    def visible(self):
+        return True if self.xl.visible.get() == kw.sheet_visible else False
+
+    @visible.setter
+    def visible(self, value):
+        self.xl.visible.set(value)
+
+    @property
+    def page_setup(self):
+        return PageSetup(self, self.xl.page_setup_object)
+
+class Range:
 
     def __init__(self, sheet, address):
         self.sheet = sheet
@@ -438,7 +578,7 @@ class Range(object):
             if nrows and ncols:
                 self.xl = sheet.xl.cells["%s:%s" % (
                     sheet.xl.rows[row].columns[col].get_address(),
-                    sheet.xl.rows[row+nrows-1].columns[col+ncols-1].get_address(),
+                    sheet.xl.rows[row + nrows - 1].columns[col + ncols - 1].get_address(),
                 )]
             else:
                 self.xl = None
@@ -515,9 +655,20 @@ class Range(object):
             self.xl.formula.set(value)
 
     @property
+    def formula2(self):
+        if self.xl is not None:
+            return self.xl.formula2.get()
+
+    @formula2.setter
+    def formula2(self, value):
+        if self.xl is not None:
+            self.xl.formula2.set(value)
+
+    @property
     def formula_array(self):
         if self.xl is not None:
-            return self.xl.formula_array.get()
+            rv = self.xl.formula_array.get()
+            return None if rv == kw.missing_value else rv
 
     @formula_array.setter
     def formula_array(self, value):
@@ -525,9 +676,14 @@ class Range(object):
             self.xl.formula_array.set(value)
 
     @property
+    def font(self):
+        return Font(self, self.xl.font_object)
+
+    @property
     def column_width(self):
         if self.xl is not None:
-            return self.xl.column_width.get()
+            rv = self.xl.column_width.get()
+            return None if rv == kw.missing_value else rv
         else:
             return 0
 
@@ -539,7 +695,8 @@ class Range(object):
     @property
     def row_height(self):
         if self.xl is not None:
-            return self.xl.row_height.get()
+            rv = self.xl.row_height.get()
+            return None if rv == kw.missing_value else rv
         else:
             return 0
 
@@ -571,9 +728,15 @@ class Range(object):
         return self.xl.properties().get(kw.top)
 
     @property
+    def has_array(self):
+        if self.xl is not None:
+            return self.xl.has_array.get()
+
+    @property
     def number_format(self):
         if self.xl is not None:
-            return self.xl.number_format.get()
+            rv = self.xl.number_format.get()
+            return None if rv == kw.missing_value else rv
 
     @number_format.setter
     def number_format(self, value):
@@ -612,6 +775,45 @@ class Range(object):
                 self.sheet.xl.rows[address].autofit()
                 self.sheet.xl.columns[address].autofit()
             self.sheet.book.app.screen_updating = alerts_state
+
+    def insert(self, shift=None, copy_origin=None):
+        # copy_origin is not supported on mac
+        shifts = {'down': kw.shift_down, 'right': kw.shift_to_right, None: None}
+        self.xl.insert_into_range(shift=shifts[shift])
+
+    def delete(self, shift=None):
+        shifts = {'up': kw.shift_up, 'left': kw.shift_to_left, None: None}
+        self.xl.delete_range(shift=shifts[shift])
+
+    def copy(self, destination=None):
+        self.xl.copy_range(destination=destination.api if destination else None)
+
+    def paste(self, paste=None, operation=None, skip_blanks=False, transpose=False):
+        pastes = {
+            # all_merging_conditional_formats unsupported on mac
+            "all": kw.paste_all,
+            "all_except_borders": kw.paste_all_except_borders,
+            "all_using_source_theme": kw.paste_all_using_source_theme,
+            "column_widths": kw.paste_column_widths,
+            "comments": kw.paste_comments,
+            "formats": kw.paste_formats,
+            "formulas": kw.paste_formulas,
+            "formulas_and_number_formats": kw.paste_formulas_and_number_formats,
+            "validation": kw.paste_validation,
+            "values": kw.paste_values,
+            "values_and_number_formats": kw.paste_values_and_number_formats,
+            None: None
+        }
+
+        operations = {
+            "add": kw.paste_special_operation_add,
+            "divide": kw.paste_special_operation_divide,
+            "multiply": kw.paste_special_operation_multiply,
+            "subtract": kw.paste_special_operation_subtract,
+            None: None
+        }
+
+        self.xl.paste_special(what=pastes[paste], operation=operations[operation], skip_blanks=skip_blanks, transpose=transpose)
 
     @property
     def hyperlink(self):
@@ -673,7 +875,7 @@ class Range(object):
         col1 = self.column
         col2 = col1 + self.shape[1] - 1
         return [
-            self.sheet.range((row+i, col1), (row+i, col2))
+            self.sheet.range((row + i, col1), (row + i, col2))
             for i in range(self.shape[0])
         ]
 
@@ -685,15 +887,69 @@ class Range(object):
         sht = self.sheet
         return [
             sht.range((row1, col + i), (row2, col + i))
-            for i in range(self.shape[0])
+            for i in range(self.shape[1])
         ]
 
     def select(self):
         if self.xl is not None:
             return self.xl.select()
 
+    @property
+    def merge_area(self):
+        return Range(self.sheet, self.xl.merge_area.get_address())
 
-class Shape(object):
+    @property
+    def merge_cells(self):
+        return self.xl.merge_cells.get()
+
+    def merge(self, across):
+        self.xl.merge(across=across)
+
+    def unmerge(self):
+        self.xl.unmerge()
+
+    @property
+    def table(self):
+        if self.xl.list_object.name.get() == kw.missing_value:
+            return None
+        else:
+            return Table(self.sheet, self.xl.list_object.name.get())
+
+    @property
+    def characters(self):
+        # This is broken with AppleScript/Excel 2016
+        return Characters(parent=self, xl=self.xl.characters)
+
+    @property
+    def wrap_text(self):
+        return self.xl.wrap_text.get()
+
+    @wrap_text.setter
+    def wrap_text(self, value):
+        self.xl.wrap_text.set(value)
+
+    @property
+    def note(self):
+        try:
+            # No easy way to check whether there's a comment like on Windows
+            return Note(parent=self, xl=self.xl.Excel_comment) if self.xl.Excel_comment.Excel_comment_text() else None
+        except appscript.reference.CommandError:
+            return None
+
+    def copy_picture(self, appearance, format):
+        _appearance = {'screen': kw.screen, 'printer': kw.printer}
+        _format = {'picture': kw.picture, 'bitmap': kw.bitmap}
+        self.xl.copy_picture(appearance=_appearance[appearance],
+                             format=_format[format])
+
+    def to_png(self, path):
+        self.copy_picture(appearance='screen', format='bitmap')
+        im = ImageGrab.grabclipboard()
+        im.save(path)
+
+
+class Shape:
+
     def __init__(self, parent, key):
         self.parent = parent
         self.xl = parent.xl.shapes[key]
@@ -757,8 +1013,172 @@ class Shape(object):
         # self.xl.activate_object()  # doesn't work?
         self.xl.select()
 
+    def scale_height(self, factor, relative_to_original_size, scale):
+        self.xl.scale_height(scale=scaling[scale], relative_to_original_size=relative_to_original_size,
+                             factor=factor)
 
-class Collection(object):
+    def scale_width(self, factor, relative_to_original_size, scale):
+        self.xl.scale_width(scale=scaling[scale], relative_to_original_size=relative_to_original_size,
+                            factor=factor)
+
+    @property
+    def text(self):
+        if self.xl.shape_text_frame.has_text.get():
+            return self.xl.shape_text_frame.text_range.content.get()
+
+    @text.setter
+    def text(self, value):
+        self.xl.shape_text_frame.text_range.content.set(value)
+
+    @property
+    def font(self):
+        return Font(self, self.xl.shape_text_frame.text_range.font)
+
+    @property
+    def characters(self):
+        raise AttributeError("Characters isn't supported on macOS with shapes.")
+
+
+class Font:
+    def __init__(self, parent, xl):
+        # xl can be font or font_object
+        self.parent = parent
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def bold(self):
+        return self.xl.bold.get()
+
+    @bold.setter
+    def bold(self, value):
+        self.xl.bold.set(value)
+
+    @property
+    def italic(self):
+        return self.xl.italic.get()
+
+    @italic.setter
+    def italic(self, value):
+        self.xl.italic.set(value)
+
+    @property
+    def size(self):
+        return self.xl.font_size.get()
+
+    @size.setter
+    def size(self, value):
+        self.xl.font_size.set(value)
+
+    @property
+    def color(self):
+        if isinstance(self.parent, Range):
+            return tuple(self.xl.color.get())
+        elif isinstance(self.parent, Shape):
+            return tuple(self.xl.font_color.get())
+
+    @color.setter
+    def color(self, color_or_rgb):
+        if self.xl is not None:
+            if isinstance(self.parent, (Range, Characters)):
+                obj = self.xl.color
+            elif isinstance(self.parent, Shape):
+                obj = self.xl.font_color
+
+            if isinstance(color_or_rgb, int):
+                obj.set(int_to_rgb(color_or_rgb))
+            else:
+                obj.set(color_or_rgb)
+
+    @property
+    def name(self):
+        if isinstance(self.parent, Range):
+            return self.xl.name.get()
+        elif isinstance(self.parent, Shape):
+            return self.xl.font_name.get()
+
+    @name.setter
+    def name(self, value):
+        if isinstance(self.parent, Range):
+            self.xl.name.set(value)
+        elif isinstance(self.parent, Shape):
+            self.xl.font_name.set(value)
+
+
+class Characters:
+    def __init__(self, parent, xl):
+        self.parent = parent
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def text(self):
+        return self.xl.content.get()
+
+    @property
+    def font(self):
+        return Font(self, self.xl.font_object)
+
+    def __getitem__(self, item):
+        # TODO: This is broken with AppleScript and Excel 2016:
+        # set bold of font object of (characters 5 thru 9 of range "A1") to true
+        # https://answers.microsoft.com/en-us/msoffice/forum/msoffice_excel-mso_mac-msoversion_other/applescript-and-excel-problem/6e5a50b1-6209-4fbf-91f4-6d6674f1e488
+        if isinstance(item, slice):
+            return Characters(parent=self.parent, xl=self.xl[item.start + 1 if item.start else None
+                                                             :item.stop if item.stop else len(self.text)])
+        else:
+            return Characters(parent=self.parent, xl=self.xl[item + 1:item + 1])
+
+
+class PageSetup:
+    def __init__(self, parent, xl):
+        self.parent = parent
+        self.xl = xl
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def print_area(self):
+        value = self.xl.print_area.get()
+        if value == kw.missing_value:
+            return None
+        else:
+            return self.xl.print_area.get()
+
+    @print_area.setter
+    def print_area(self, value):
+        self.xl.print_area.set('' if value is None else value)
+
+
+class Note:
+    def __init__(self, parent, xl):
+        self.parent = parent
+        self.xl = xl
+
+    def api(self):
+        return self.xl
+
+    @property
+    def text(self):
+        return self.xl.Excel_comment_text()
+
+    @text.setter
+    def text(self, value):
+        self.xl.Excel_comment_text(text=value)
+
+    def delete(self):
+        self.parent.xl.clear_Excel_comments()
+
+
+class Collection:
 
     def __init__(self, parent):
         self.parent = parent
@@ -778,13 +1198,166 @@ class Collection(object):
 
     def __iter__(self):
         for i in range(len(self)):
-            yield self(i+1)
+            yield self(i + 1)
 
     def __contains__(self, key):
         return self.xl[key].exists()
 
 
-class Chart(object):
+class Table:
+    def __init__(self, parent, key):
+        self.parent = parent
+        self.xl = parent.xl.list_objects[key]
+
+    @property
+    def api(self):
+        return self.xl
+
+    @property
+    def name(self):
+        return self.xl.name.get()
+
+    @name.setter
+    def name(self, value):
+        self.xl.name.set(value)
+        self.xl = self.parent.xl.list_objects[value]
+
+    @property
+    def data_body_range(self):
+        if self.xl.cell_table.get() == kw.missing_value:
+            return
+        else:
+            return Range(self.parent, self.xl.cell_table.get_address())
+
+    @property
+    def display_name(self):
+        return self.xl.display_name.get()
+
+    @display_name.setter
+    def display_name(self, value):
+        # Changing the display_name also changes the name
+        self.xl.display_name.set(value)
+        self.xl = self.parent.xl.list_objects[value]
+
+    @property
+    def header_row_range(self):
+        if self.xl.header_row.get() == kw.missing_value:
+            return
+        else:
+            return Range(self.parent, self.xl.header_row.get_address())
+
+    @property
+    def insert_row_range(self):
+        if self.xl.insert_row.get() == kw.missing_value:
+            return
+        else:
+            return Range(self.parent, self.xl.insert_row.get_address())
+
+    @property
+    def range(self):
+        return Range(self.parent, self.xl.range_object.get_address())
+
+    @property
+    def show_autofilter(self):
+        return self.xl.show_autofilter.get()
+
+    @show_autofilter.setter
+    def show_autofilter(self, value):
+        self.xl.show_autofilter.set(value)
+
+    @property
+    def show_headers(self):
+        return self.xl.show_headers.get()
+
+    @show_headers.setter
+    def show_headers(self, value):
+        self.xl.show_headers.set(value)
+
+    @property
+    def show_table_style_column_stripes(self):
+        return self.xl.show_table_style_column_stripes.get()
+
+    @show_table_style_column_stripes.setter
+    def show_table_style_column_stripes(self, value):
+        self.xl.show_table_style_column_stripes.set(value)
+
+    @property
+    def show_table_style_first_column(self):
+        return self.xl.show_table_style_first_column.get()
+
+    @show_table_style_first_column.setter
+    def show_table_style_first_column(self, value):
+        self.xl.show_table_style_first_column.set(value)
+
+    @property
+    def show_table_style_last_column(self):
+        return self.xl.show_table_style_last_column.get()
+
+    @show_table_style_last_column.setter
+    def show_table_style_last_column(self, value):
+        self.xl.show_table_style_last_column.set(value)
+
+    @property
+    def show_table_style_row_stripes(self):
+        return self.xl.show_table_style_row_stripes.get()
+
+    @show_table_style_row_stripes.setter
+    def show_table_style_row_stripes(self, value):
+        self.xl.show_table_style_row_stripes.set(value)
+
+    @property
+    def show_totals(self):
+        return self.xl.total.get()
+
+    @show_totals.setter
+    def show_totals(self, value):
+        self.xl.total.set(value)
+
+    @property
+    def table_style(self):
+        return self.xl.table_style.properties().get(kw.name)
+
+    @table_style.setter
+    def table_style(self, value):
+        self.xl.table_style.set(value)
+
+    @property
+    def totals_row_range(self):
+        if self.xl.total_row.get() == kw.missing_value:
+            return
+        else:
+            return Range(self.parent, self.xl.total_row.get_address())
+
+    def resize(self, range):
+        self.xl.resize(range=range)
+
+class Tables(Collection):
+
+    _attr = 'list_objects'
+    _kw = kw.list_object
+    _wrap = Table
+
+    def add(self, source_type=None, source=None, link_source=None, has_headers=None, destination=None,
+            table_style_name=None):
+        header_row = {True: kw.header_yes,
+                      False: kw.header_no,
+                      'guess': kw.header_guess}
+        sheet_index = self.parent.xl.entry_index.get()
+        return Table(
+            self.parent, self.parent.xl.make(
+                at=self.parent.book.xl.sheets[sheet_index],
+                new=kw.list_object,
+                with_properties={
+                    kw.source_type: kw.src_range,
+                    kw.range_object: source.api,
+                    kw.header_row: header_row[has_headers],
+                    kw.table_style: table_style_name
+                }
+            ).name.get()
+        )
+
+
+class Chart:
 
     def __init__(self, parent, key):
         self.parent = parent
@@ -873,8 +1446,25 @@ class Chart(object):
         self.xl_obj.height.set(value)
 
     def delete(self):
-        # todo: what about chart sheets?
         self.xl_obj.delete()
+
+    def to_png(self, path):
+        raise xlwings.XlwingsError("Chart.to_png() isn't supported on macOS.")
+        # Both versions should work, but seem to be broken with Excel 2016
+        #
+        # Version 1
+        # import uuid
+        # temp_path = posix_to_hfs_path(os.path.expanduser("~") + f"/Library/Containers/com.microsoft.Excel/Data/{uuid.uuid4()}.png")
+        # self.xl.save_as(filename=temp_path)
+        # shutil.copy2(temp_path, path)
+        # try:
+        #     os.unlink(temp_path)
+        # except:
+        #     pass
+        #
+        # Version 2
+        # self.xl_obj.save_as_picture(file_name=posix_to_hfs_path('...'),
+        #                             picture_type=kw.save_as_PNG_file)
 
 
 class Charts(Collection):
@@ -899,7 +1489,7 @@ class Charts(Collection):
         )
 
 
-class Picture(object):
+class Picture:
 
     def __init__(self, parent, key):
         self.parent = parent
@@ -952,6 +1542,14 @@ class Picture(object):
     def delete(self):
         self.xl.delete()
 
+    @property
+    def lock_aspect_ratio(self):
+        return self.xl.lock_aspect_ratio.get()
+
+    @lock_aspect_ratio.setter
+    def lock_aspect_ratio(self, value):
+        self.xl.lock_aspect_ratio.set(value)
+
 
 class Pictures(Collection):
 
@@ -979,13 +1577,18 @@ class Pictures(Collection):
                     kw.file_name: posix_to_hfs_path(filename),
                     kw.link_to_file: link_to_file,
                     kw.save_with_document: save_with_document,
-                    kw.top: top,
-                    kw.left_position: left,
                     kw.width: width,
-                    kw.height: height
+                    kw.height: height,
+                    # Top and left: see below
+                    kw.top: 0,
+                    kw.left_position: 0
                 }
             ).name.get()
         )
+
+        # Top and left cause an issue in the make command above if they are not set to 0 when width & height are -1
+        picture.top = top
+        picture.left = left
 
         if not link_to_file and version >= 15:
             os.remove(filename)
@@ -993,7 +1596,7 @@ class Pictures(Collection):
         return picture
 
 
-class Names(object):
+class Names:
     def __init__(self, parent, xl):
         self.parent = parent
         self.xl = xl
@@ -1025,7 +1628,7 @@ class Names(object):
                                                      }))
 
 
-class Name(object):
+class Name:
     def __init__(self, parent, xl):
         self.parent = parent
         self.xl = xl
@@ -1051,9 +1654,10 @@ class Name(object):
 
     @property
     def refers_to_range(self):
-        ref = self.refers_to[1:].split('!')
         book = self.parent if isinstance(self.parent, Book) else self.parent.book
-        return Range(Sheet(book, ref[0]), ref[1])
+        external_address = self.xl.reference_range.get_address(external=True)
+        match = re.search(r"\](.*?)'?!(.*)", external_address)
+        return Range(Sheet(book, match.group(1)), match.group(2))
 
 
 class Shapes(Collection):
@@ -1110,7 +1714,7 @@ def is_excel_running():
 
 
 def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
-    if value == '':
+    if value == '' or value == kw.missing_value:
         return empty_as
     if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:
         value = datetime_builder(
@@ -1137,7 +1741,7 @@ Engine.clean_value_data = staticmethod(clean_value_data)
 def prepare_xl_data_element(x):
     if x is None:
         return ""
-    elif np and isinstance(x, float) and np.isnan(x):
+    elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
         return ""
     elif np and isinstance(x, np.datetime64):
         # handle numpy.datetime64
@@ -1160,10 +1764,6 @@ def prepare_xl_data_element(x):
     return x
 
 Engine.prepare_xl_data_element = staticmethod(prepare_xl_data_element)
-
-
-def open_template(fullpath):
-    subprocess.call(['open', fullpath])
 
 
 # --- constants ---
@@ -1274,18 +1874,22 @@ calculation_k2s = {
 calculation_s2k = {v: k for k, v in calculation_k2s.items()}
 
 shape_types_k2s = {
+    kw.shape_type_3d_model: '3d_model',
     kw.shape_type_auto: 'auto_shape',
     kw.shape_type_callout: 'callout',
     kw.shape_type_canvas: 'canvas',
-    kw.shape_type_chart:  'chart',
+    kw.shape_type_chart: 'chart',
     kw.shape_type_comment: 'comment',
     kw.shape_type_content_application: 'content_app',
     kw.shape_type_diagram: 'diagram',
     kw.shape_type_free_form: 'free_form',
+    kw.shape_type_graphic: 'graphic',
     kw.shape_type_group: 'group',
     kw.shape_type_embedded_OLE_control: 'embedded_ole_object',
-    kw.shape_type_form_control:  'form_control',
+    kw.shape_type_form_control: 'form_control',
     kw.shape_type_line: 'line',
+    kw.shape_type_linked_3d_model: 'linked_3d_model',
+    kw.shape_type_linked_graphic: 'linked_graphic',
     kw.shape_type_linked_OLE_object: 'linked_ole_object',
     kw.shape_type_linked_picture: 'linked_picture',
     kw.shape_type_OLE_control: 'ole_control_object',
@@ -1297,6 +1901,13 @@ shape_types_k2s = {
     kw.shape_type_table: 'table',
     kw.shape_type_ink: 'ink',
     kw.shape_type_ink_comment: 'ink_comment',
+    kw.shape_type_unset: 'unset'
+}
+
+scaling = {
+    "scale_from_top_left": kw.scale_from_top_left,
+    "scale_from_bottom_right": kw.scale_from_bottom_right,
+    "scale_from_middle": kw.scale_from_middle
 }
 
 shape_types_s2k = {v: k for k, v in shape_types_k2s.items()}

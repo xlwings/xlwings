@@ -1,4 +1,4 @@
-from .. import func, arg, ret, serve
+from .. import func, arg, ret
 import sqlite3
 
 
@@ -17,6 +17,17 @@ def conv_value(value, col_is_str):
 @arg("tables", expand='table', ndim=2)
 @ret(expand='table')
 def sql(query, *tables):
+    return _sql(query, *tables)
+
+
+@func
+@arg("tables", expand='table', ndim=2)
+def sql_dynamic(query, *tables):
+    """Called if native dynamic arrays are available"""
+    return _sql(query, *tables)
+
+
+def _sql(query, *tables):
     conn = sqlite3.connect(':memory:')
 
     c = conn.cursor()
@@ -47,6 +58,8 @@ def sql(query, *tables):
                     for row in rows
                 )
             )
+            # Fixes values like these: sql('SELECT a FROM a', [['a', 'b'], ["""X"Y'Z""", 'd']])
+            stmt = stmt.replace("\\'", "''")
             c.execute(stmt)
 
     res = []
@@ -56,6 +69,3 @@ def sql(query, *tables):
         res.append(list(row))
 
     return res
-
-if __name__ == "__main__":
-    serve()

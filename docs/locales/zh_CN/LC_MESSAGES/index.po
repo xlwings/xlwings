@@ -1,0 +1,58 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../index.rst:2
+msgid "xlwings - Make Excel Fly!"
+msgstr "xlwings - 让Excel跑得飞快!"
+
+#: ../../index.rst:4
+msgid ""
+"xlwings is a `BSD-licensed "
+"<http://opensource.org/licenses/BSD-3-Clause>`_ Python library that makes"
+" it easy to call Python from Excel and vice versa:"
+msgstr ""
+"xlwings是一个基于 `BSD-licensed(伯克利软件发行版许可协议) <http://opensource.org/licenses/BSD-3-Clause>`_ "
+"的Python库。它让Python和Excel之间的相互调用变得更加容易:"
+
+#: ../../index.rst:7
+msgid ""
+"**Scripting**: Automate/interact with Excel from Python using a syntax "
+"close to VBA."
+msgstr "**Scripting(脚本)**: 使用类似VBA的语法，在Python中自动处理Excel数据或者与Excel交互。"
+
+#: ../../index.rst:8
+msgid "**Macros**: Replace VBA macros with clean and powerful Python code."
+msgstr "**Macros(宏)**: 用强大而干净的Python代码替代VBA宏。"
+
+#: ../../index.rst:9
+msgid "**UDFs**: Write User Defined Functions (UDFs) in Python (Windows only)."
+msgstr "**UDFs(用户定义函数)**: 用Python编写用户定义函数(UDFs)，仅适用于windows系统。"
+
+#: ../../index.rst:10
+msgid "**REST API**: Expose your Excel workbooks via REST API."
+msgstr "**REST API**: 通过REST API向外部开放Excel工作簿。"
+
+#: ../../index.rst:12
+msgid ""
+"**Numpy arrays** and **Pandas Series/DataFrames** are fully supported. "
+"xlwings-powered workbooks are easy to distribute and work on **Windows** "
+"and **Mac**."
+msgstr ""
+"完全支持 **Numpy arrays(数组)** 和 **Pandas Series(序列)/DataFrames** 。 "
+"带有xlwings支持的工作簿可以在 **Windows** 和 **Mac** 系统中很容易地分发和使用。"

@@ -1,0 +1,123 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../command_line.rst:4
+msgid "Command Line Client"
+msgstr "命令行客户端"
+
+#: ../../command_line.rst:6
+msgid ""
+"xlwings comes with a command line client that makes it easy to set up "
+"workbooks and install the add-in. On Windows, type the commands into a "
+"``Command Prompt``, on Mac, type them into a ``Terminal``."
+msgstr ""
+"xlwings自带了一个命令行客户端，使得创建工作簿和安装加载项更容易。"
+"在Windows系统里，在 ``命令提示符`` 下输入命令，在Mac系统中，在 ``终端`` 中输入命令。"
+
+#: ../../command_line.rst:10
+msgid "Quickstart"
+msgstr "快速入门"
+
+#: ../../command_line.rst:12
+msgid "``xlwings quickstart myproject``"
+msgstr ""
+
+#: ../../command_line.rst:14
+msgid ""
+"This command is by far the fastest way to get off the ground: It creates "
+"a new folder ``myproject`` with an Excel workbook that already has the "
+"reference to the xlwings addin and a Python file, ready to be used right "
+"away:"
+msgstr ""
+"上面这条命令是顺利起步的最快方法：它创建了一个新的文件夹 ``myproject`` "
+"里面有一个已经包含xlings引用的Excel工作簿和一个Python文件，马上就能用起来:"
+
+#: ../../command_line.rst:23
+msgid ""
+"If you want to use xlwings via VBA module instead of addin, use the "
+"``--standalone`` or ``-s`` flag:"
+msgstr "如果你想通过VBA模块来用xlwings而不是通过加载项，就用 ``--standalone`` 或者```-s`` 标志:"
+
+#: ../../command_line.rst:25
+msgid "``xlwings quickstart myproject --standalone``"
+msgstr ""
+
+#: ../../command_line.rst:28
+msgid "Add-in"
+msgstr "加载项"
+
+#: ../../command_line.rst:30
+msgid ""
+"The `addin` command makes it easy on Windows to install/remove the addin."
+" On Mac, you need to install it manually, but ``xlwings addin install`` "
+"will show you how to do it."
+msgstr "在Windows系统里面， `addin命` 令简化了加载项的安装和卸载。在Mac系统上需要手工安装。不过 ``xlwings addin install`` 会告诉你怎么做。"
+
+#: ../../command_line.rst:33
+msgid ""
+"Excel needs to be closed before installing/updating the add-in via "
+"command line. If you're still getting an error, start the Task Manager "
+"and make sure there are no ``EXCEL.EXE`` processes left."
+msgstr "在通过命令行安装/升级加载项时需要先关闭Excel。如果仍然有报错，请启动任务管理器，确保里面没有 ``EXCEL.EXE`` 进程"
+
+#: ../../command_line.rst:36
+msgid "``xlwings addin install``: Copies the xlwings add-in to the XLSTART folder"
+msgstr "``xlwings addin install``: 把 xlwings加载项拷贝到XLSTART文件夹"
+
+#: ../../command_line.rst:38
+msgid "``xlwings addin update``: Replaces the current add-in with the latest one"
+msgstr "``xlwings addin update``: 用最新版本替代现有版本"
+
+#: ../../command_line.rst:40
+msgid "``xlwings addin remove``: Removes the add-in from the XLSTART folder"
+msgstr "``xlwings addin remove``: 从XLSTART文件夹删除加载项"
+
+#: ../../command_line.rst:42
+msgid ""
+"``xlwings addin status``: Shows if the add-in is installed together with "
+"the installation path"
+msgstr "``xlwings addin status``: 显示加载项是否安装以及安装路径"
+
+#: ../../command_line.rst:44
+msgid ""
+"After installing the add-in, it will be available as xlwings tab on the "
+"Excel Ribbon."
+msgstr "安装加载项之后，Excel功能区会有xlwings标签页。"
+
+#: ../../command_line.rst:50
+msgid "RunPython"
+msgstr ""
+
+#: ../../command_line.rst:52
+msgid ""
+"Only required if you are on Mac, are using Excel 2016 and have xlwings "
+"installed via conda or as part of Anaconda. To enable the ``RunPython`` "
+"calls in VBA, run this one time:"
+msgstr ""
+"仅在Mac系统、使用Excel 2016并且通过conda安装或者使用Anaconda中集成的xlwings时需要。"
+"为了能通过VBA调用 ``RunPython`` ，要运行一次下列命令:"
+
+#: ../../command_line.rst:55
+msgid "``xlwings runpython install``"
+msgstr ""
+
+#: ../../command_line.rst:57
+msgid "Alternatively, install xlwings with ``pip``."
+msgstr "或者可以使用 ``pip`` 来安装xlwings。"
+

@@ -1,3 +1,5 @@
+output.xlsx
+
 .metadata
 *.py[cod]
 *~*
@@ -65,6 +67,8 @@ client_secrets.json
 *.sdf
 Win32/
 x64/
+.vs
+*.vcxproj.user
 
 # binaries
 *.dll
@@ -77,3 +81,4 @@ aspose.cells
 venv
 
 
+scratch*

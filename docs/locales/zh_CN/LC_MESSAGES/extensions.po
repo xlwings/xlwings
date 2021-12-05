@@ -1,0 +1,53 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../extensions.rst:4
+msgid "Extensions"
+msgstr "扩展"
+
+#: ../../extensions.rst:6
+msgid ""
+"It's easy to extend the xlwings add-in with own code like UDFs or "
+"RunPython macros, so that they can be deployed without end users having "
+"to import or write the functions themselves. Just add another VBA module "
+"to the xlwings addin with the respective code."
+msgstr ""
+"用自己的代码，比如UDF或者RunPython宏，来扩展xlwings加载项是很容易的。"
+"用不着最终用户自己编写和导入函数，就可以进行部署。只需要给xlwings加载项增加一个包含相关代码的VBA模块就行了。"
+
+#: ../../extensions.rst:10
+msgid ""
+"UDF extensions can be used from every workbook without having to set a "
+"reference."
+msgstr "不用设置引用就可以在每个工作簿中使用UDF扩展。"
+
+#: ../../extensions.rst:13
+msgid "In-Excel SQL"
+msgstr ""
+
+#: ../../extensions.rst:15
+msgid ""
+"The xlwings addin comes with a built-in extension that adds in-Excel SQL "
+"syntax (sqlite dialect):"
+msgstr "xlwings加载项附带了内置的扩展，增加了对Excel内SQL(in-Excel SQL)语法(sqlite语法分支)的支持:"
+
+#: ../../extensions.rst:25
+msgid "As this extension uses UDFs, it's only available on Windows right now."
+msgstr "由于这个扩展用到了UDF，所以目前只支持Windows系统。"
+

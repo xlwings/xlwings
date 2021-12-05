@@ -1,0 +1,83 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../deployment.rst:4
+msgid "Deployment"
+msgstr "部署"
+
+#: ../../deployment.rst:7
+msgid "Zip files"
+msgstr "Zip文件"
+
+#: ../../deployment.rst:11
+msgid ""
+"To make it easier to distribute, you can zip up your Python code into a "
+"zip file. If you use UDFs, this will disable the automatic code reload, "
+"so this is a feature meant for distribution, not development. In "
+"practice, this means that when your code is inside a zip file, you'll "
+"have to click on re-import to get any changes."
+msgstr ""
+"为了让软件部署容易一点，可以把Python代码打包到zip文件。如果是在用UDF，这样做了之后代码就不能够自动重载，"
+"所以这样是一个部署的方法，而不是开发的方法。实际上，如果源代码中一个zip文件里面，如果代码有什么变化，必须通过点击导入按钮重新导入。"
+
+#: ../../deployment.rst:15
+msgid ""
+"If you name your zip file like your Excel file (but with ``.zip`` "
+"extension) and place it in the same folder as your Excel workbook, "
+"xlwings will automatically find it (similar to how it works with a single"
+" python file)."
+msgstr "如果zip文件名和Excel文件名一致(不过后缀是 ``.zip`` )并且与Excel文件在同一个文件夹，xlwings能够自动发现它(与单个python文件的情况类似)。"
+
+#: ../../deployment.rst:18
+msgid ""
+"If you want to use a different directory, make sure to add it to the "
+"``PYTHONPATH`` in your config (Ribbon or config file):"
+msgstr "如果需要放在不同的目录下面，请确认这个目录已经加到配置文件中的 ``PYTHONPATH`` 了:"
+
+#: ../../deployment.rst:25
+msgid "RunFrozenPython"
+msgstr ""
+
+#: ../../deployment.rst:29
+msgid ""
+"You can use a freezer like PyInstaller, cx_Freeze, py2exe etc. to freeze "
+"your Python module into an executable so that the recipient doesn't have "
+"to install a full Python distribution."
+msgstr "可以用一个像PyInstaller、cx_Freeze、py2exe之类的打包工具把Python模块打包到一个可执行文件中。这样使用者就不用安装完整的Python发行版软件包了。"
+
+#: ../../deployment.rst:33
+msgid "This does not work with UDFs."
+msgstr "本方法不适用于UDF。"
+
+#: ../../deployment.rst:34
+msgid ""
+"Currently only available on Windows, but support for Mac should be easy "
+"to add."
+msgstr "目前只在Windows系统上有效，不过对Mac系统的支持也比较容易。"
+
+#: ../../deployment.rst:35
+msgid ""
+"You need at least 0.15.2 to support arguments whereas the syntax changed "
+"in 0.15.6"
+msgstr "为了支持从V0.15.6版开始的语法变化，版本至少需要在0.15.2以上。"
+
+#: ../../deployment.rst:37
+msgid "Use it as follows:"
+msgstr "使用方法如下:"
+

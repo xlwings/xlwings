@@ -7,7 +7,7 @@ Introduced with v0.7.0, converters define how Excel ranges and their values are 
 **reading** and **writing** operations. They also provide a consistent experience across **xlwings.Range** objects and
 **User Defined Functions** (UDFs).
 
-Converters are explicitely set in the ``options`` method when manipulating ``Range`` objects
+Converters are explicitly set in the ``options`` method when manipulating ``Range`` objects
 or in the ``@xw.arg`` and ``@xw.ret`` decorators when using UDFs. If no converter is specified, the default converter
 is applied when reading. When writing, xlwings will automatically apply the correct converter (if available) according to the
 object's type that is being written to Excel. If no converter is found for that type, it falls back to the default converter.
@@ -153,6 +153,29 @@ The following options can be set:
 
   .. note:: The ``expand`` method is only available on ``Range`` objects as UDFs only allow to manipulate the calling cells.
 
+* **chunksize**
+
+  When you read and write from or to big ranges, you may have to chunk them or you will hit a timeout or a memory error. The ideal ``chunksize`` will depend on your system and size of the array, so you will have to try out a few different chunksizes to find one that works well:
+
+  .. code-block:: python
+
+      import pandas as pd
+      import numpy as np
+      sheet = xw.Book().sheets[0]
+      data = np.arange(75_000 * 20).reshape(75_000, 20)
+      df = pd.DataFrame(data=data)
+      sheet['A1'].options(chunksize=10_000).value = df
+
+  And the same for reading:
+
+  .. code-block:: python
+
+      # As DataFrame
+      df = sheet['A1'].expand().options(pd.DataFrame, chunksize=10_000).value
+      # As list of list
+      df = sheet['A1'].expand().options(chunksize=10_000).value
+
+
 Built-in Converters
 -------------------
 
@@ -161,7 +184,7 @@ xlwings offers several built-in converters that perform type conversion to **dic
 described above can be used in this context, too (unless they are meaningless, for example the ``ndim`` in the case
 of a dictionary).
 
-It is also possible to write and register custom converter for additional types, see below.
+It is also possible to write and register a custom converter for additional types, see below.
 
 The samples below can be used with both ``xlwings.Range`` objects and UDFs even though only one version may be shown.
 
@@ -171,7 +194,6 @@ Dictionary converter
 The dictionary converter turns two Excel columns into a dictionary. If the data is in row orientation, use ``transpose``:
 
 .. figure:: images/dict_converter.png
-    :scale: 80%
 
 ::
 
@@ -180,6 +202,8 @@ The dictionary converter turns two Excel columns into a dictionary. If the data 
     {'a': 1.0, 'b': 2.0}
     >>> sht.range('A4:B5').options(dict, transpose=True).value
     {'a': 1.0, 'b': 2.0}
+
+Note: instead of ``dict``, you can also use ``OrderedDict`` from ``collections``.
 
 Numpy array converter
 *********************
@@ -220,7 +244,6 @@ For ``index`` and ``header``, ``1`` and ``True`` may be used interchangeably.
 **Example:**
 
 .. figure:: images/series_conv.png
-    :scale: 80%
 
 ::
 
@@ -258,7 +281,6 @@ For ``index`` and ``header``, ``1`` and ``True`` may be used interchangeably.
 **Example:**
 
 .. figure:: images/df_converter.png
-  :scale: 55%
 
 ::
 
@@ -296,7 +318,7 @@ Technically speaking, these are "no-converters".
 * If you need access to the ``xlwings.Range`` object directly, you can do::
 
     @xw.func
-    @xw.arg('x', xw.Range)
+    @xw.arg('x', 'range')
     def myfunction(x):
        return x.formula
 
@@ -444,7 +466,7 @@ These samples all work the same with UDFs, e.g.::
 
     Pipelines are internally defined by ``Accessor`` classes. A Converter is just a special Accessor which
     converts to/from a particular type by adding an extra stage to the pipeline of the default Accessor. For example, the
-    ``PandasDataFrameConverter`` defines how a list of list (as delivered by the default Accessor) should be turned
+    ``PandasDataFrameConverter`` defines how a list of lists (as delivered by the default Accessor) should be turned
     into a Pandas DataFrame.
 
     The ``Converter`` class provides basic scaffolding to make the task of writing a new Converter easier. If

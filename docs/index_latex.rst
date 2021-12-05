@@ -1,9 +1,9 @@
 .. toctree::
     :maxdepth: 2
     :hidden:
+    :caption: Getting Started
 
-    migrate_to_0.11
-    migrate_to_0.9
+    course
     installation
     quickstart
     connect_to_workbook
@@ -12,15 +12,44 @@
     addin
     vba
     udfs
-    debugging
     matplotlib
-    converters
+    jupyternotebooks
     command_line
-    missing_features
-    r_and_julia
-    extensions
+    deployment
+    onedrive_sharepoint
     troubleshooting
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :caption: Advanced Features
+
+    converters
+    debugging
+    extensions
+    customaddin
+    threading_and_multiprocessing
+    missing_features
+    other_office_apps
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :caption: xlwings PRO
+
+    pro
+    reports
+    markdown
+    release
+    permissioning
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :caption: API Reference
+
     api
+    rest_api
 
 
 

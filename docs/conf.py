@@ -74,7 +74,11 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 extensions = ['sphinx.ext.autodoc',
               'sphinxcontrib.napoleon',
               'sphinx.ext.mathjax',
-              'sphinx.ext.extlinks']
+              'sphinx.ext.extlinks',
+              'sphinxcontrib.httpdomain',
+              'sphinx_copybutton',
+              'sphinx_design'
+              ]
 
 # autodoc_member_order = 'bysource'
 
@@ -92,7 +96,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'xlwings'
-copyright = u'2014-2016, Zoomer Analytics LLC'
+copyright = u'Zoomer Analytics LLC'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -133,14 +137,14 @@ exclude_patterns = ['_build']
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+# pygments_style = 'sphinx'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
 
 # extlinks alias
-extlinks = {'issue': ('https://github.com/ZoomerAnalytics/xlwings/issues/%s',
+extlinks = {'issue': ('https://github.com/xlwings/xlwings/issues/%s',
                       'GH')}
 
 # -- Options for HTML output ---------------------------------------------------
@@ -148,13 +152,29 @@ extlinks = {'issue': ('https://github.com/ZoomerAnalytics/xlwings/issues/%s',
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 
-if not on_rtd:  # only import and set the theme if we're building docs locally
-    html_theme = 'sphinx_rtd_theme'
+html_theme = 'furo'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = {
+    "sidebar_hide_name": True,
+    'light_logo': 'logo-light.svg',
+    'dark_logo': 'logo-dark.svg',
+    "light_css_variables": {
+        "color-brand-primary": "black",
+        "color-brand-content": "#28a745",
+        "color-sidebar-caption-text": "#28a745",
+        "sidebar-caption-font-size": "1.2em"
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "white"
+    },
+}
+
+html_show_sourcelink = False
+html_title = 'xlwings Documentation'
+html_favicon = '_static/favicon.png'
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
@@ -178,7 +198,7 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-#html_static_path = ['_static']
+html_static_path = ['_static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.

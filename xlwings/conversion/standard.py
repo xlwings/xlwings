@@ -1,12 +1,18 @@
-# -*- coding: utf-8 -*-
+import math
+import datetime
+from collections import OrderedDict
 
 from . import Pipeline, Converter, Options, Accessor, accessors
 
 #from .. import xlplatform
 from ..main import Range
-
-import datetime
-
+from .. import LicenseError
+from ..utils import chunk
+try:
+    from ..pro import Markdown
+    from ..pro.reports import markdown
+except (ImportError, LicenseError):
+    Markdown = None
 try:
     import numpy as np
 except ImportError:
@@ -24,7 +30,7 @@ _number_handlers = {
 }
 
 
-class ExpandRangeStage(object):
+class ExpandRangeStage:
     def __init__(self, options):
         self.expand = options.get('expand', None)
 
@@ -35,30 +41,10 @@ class ExpandRangeStage(object):
                 c.range = c.range.expand(self.expand)
 
 
-class ClearExpandedRangeStage(object):
-    def __init__(self, options):
-        self.expand = options.get('expand', None)
-        self.skip = options.get('_skip_tl_cells', None)
-        if self.skip is None:
-            self.skip = (0, 0)
-
-    def __call__(self, ctx):
-        if ctx.range and self.expand:
-            from ..expansion import expanders
-            expander = expanders.get(self.expand, self.expand)
-            vrows = len(ctx.value)
-            vcols = vrows and len(ctx.value[0])
-            expander.clear(
-                ctx.range,
-                skip=self.skip,
-                vshape=(vrows, vcols),
-            )
-
-
-class WriteValueToRangeStage(object):
+class WriteValueToRangeStage:
     def __init__(self, options, raw=False):
-        self.skip = options.get('_skip_tl_cells', None)
         self.raw = raw
+        self.options = options
 
     def _write_value(self, rng, value, scalar):
         if rng.api and value:
@@ -68,7 +54,12 @@ class WriteValueToRangeStage(object):
             else:
                 rng = rng.resize(len(value), len(value[0]))
 
-            rng.raw_value = value
+            chunksize = self.options.get('chunksize')
+            if chunksize:
+                for ix, value_chunk in enumerate(chunk(value, chunksize)):
+                    rng[ix * chunksize:ix * chunksize + chunksize, :].raw_value = value_chunk
+            else:
+                rng.raw_value = value
 
     def __call__(self, ctx):
         if ctx.range and ctx.value:
@@ -79,26 +70,33 @@ class WriteValueToRangeStage(object):
             scalar = ctx.meta.get('scalar', False)
             if not scalar:
                 ctx.range = ctx.range.resize(len(ctx.value), len(ctx.value[0]))
-            if self.skip:
-                r, c = self.skip
-                if scalar:
-                    self._write_value(ctx.range[:r, c:], ctx.value, True)
-                    self._write_value(ctx.range[r:, :], ctx.value, True)
-                else:
-                    self._write_value(ctx.range[:r, c:], [x[c:] for x in ctx.value[:r]], False)
-                    self._write_value(ctx.range[r:, :], ctx.value[r:], False)
-            else:
-                self._write_value(ctx.range, ctx.value, scalar)
+
+            self._write_value(ctx.range, ctx.value, scalar)
 
 
-class ReadValueFromRangeStage(object):
+class ReadValueFromRangeStage:
+
+    def __init__(self, options):
+        self.options = options
 
     def __call__(self, c):
-        if c.range:
+        chunksize = self.options.get('chunksize')
+        if c.range and chunksize:
+            parts = []
+            for i in range(math.ceil(c.range.shape[0] / chunksize)):
+                raw_value = c.range[i * chunksize: (i * chunksize) + chunksize, :].raw_value
+                if isinstance(raw_value[0], (list, tuple)):
+                    parts.extend(raw_value)
+                else:
+                    # Turn a single row list into a 2d list
+                    parts.extend([raw_value])
+
+            c.value = parts
+        elif c.range:
             c.value = c.range.raw_value
 
 
-class CleanDataFromReadStage(object):
+class CleanDataFromReadStage:
 
     def __init__(self, options):
         dates_as = options.get('dates', datetime.datetime)
@@ -111,7 +109,7 @@ class CleanDataFromReadStage(object):
         c.value = c.engine.impl.clean_value_data(c.value, self.dates_handler, self.empty_as, self.numbers_handler)
 
 
-class CleanDataForWriteStage(object):
+class CleanDataForWriteStage:
 
     def __call__(self, c):
         c.value = [
@@ -123,7 +121,7 @@ class CleanDataForWriteStage(object):
         ]
 
 
-class AdjustDimensionsStage(object):
+class AdjustDimensionsStage:
 
     def __init__(self, options):
         self.ndim = options.get('ndim', None)
@@ -153,7 +151,7 @@ class AdjustDimensionsStage(object):
             raise ValueError('Invalid c.value ndim=%s' % self.ndim)
 
 
-class Ensure2DStage(object):
+class Ensure2DStage:
 
     def __call__(self, c):
         if isinstance(c.value, (list, tuple)):
@@ -165,10 +163,19 @@ class Ensure2DStage(object):
             c.value = [[c.value]]
 
 
-class TransposeStage(object):
+class TransposeStage:
 
     def __call__(self, c):
         c.value = [[e[i] for e in c.value] for i in range(len(c.value[0]) if c.value else 0)]
+
+
+class FormatStage:
+    def __init__(self, options):
+        self.options = options
+
+    def __call__(self, ctx):
+        if Markdown and isinstance(ctx.source_value, Markdown):
+            markdown.format_text(ctx.range, ctx.source_value.text, ctx.source_value.style)
 
 
 class BaseAccessor(Accessor):
@@ -195,7 +202,7 @@ class RangeAccessor(Accessor):
         )
 
 
-RangeAccessor.register(Range)
+RangeAccessor.register('range', Range)
 
 
 class RawValueAccessor(Accessor):
@@ -204,7 +211,7 @@ class RawValueAccessor(Accessor):
     def reader(cls, options):
         return (
             Accessor.reader(options)
-            .append_stage(ReadValueFromRangeStage())
+            .append_stage(ReadValueFromRangeStage(options))
         )
 
     @classmethod
@@ -213,6 +220,7 @@ class RawValueAccessor(Accessor):
             Accessor.writer(options)
             .prepend_stage(WriteValueToRangeStage(options, raw=True))
         )
+
 
 RawValueAccessor.register('raw')
 
@@ -223,7 +231,7 @@ class ValueAccessor(Accessor):
     def reader(options):
         return (
             BaseAccessor.reader(options)
-            .append_stage(ReadValueFromRangeStage())
+            .append_stage(ReadValueFromRangeStage(options))
             .append_stage(Ensure2DStage())
             .append_stage(CleanDataFromReadStage(options))
             .append_stage(TransposeStage(), only_if=options.get('transpose', False))
@@ -234,8 +242,8 @@ class ValueAccessor(Accessor):
     def writer(options):
         return (
             Pipeline()
+            .prepend_stage(FormatStage(options))
             .prepend_stage(WriteValueToRangeStage(options))
-            .prepend_stage(ClearExpandedRangeStage(options), only_if=options.get('expand', None))
             .prepend_stage(CleanDataForWriteStage())
             .prepend_stage(TransposeStage(), only_if=options.get('transpose', False))
             .prepend_stage(Ensure2DStage())
@@ -251,7 +259,7 @@ ValueAccessor.register(None)
 
 class DictConverter(Converter):
 
-    writes_types = dict
+    writes_types = dict  # TODO: remove all these writes_types as this was long ago replaced by .register (?)
 
     @classmethod
     def base_reader(cls, options):
@@ -273,3 +281,29 @@ class DictConverter(Converter):
 
 
 DictConverter.register(dict)
+
+
+class OrderedDictConverter(Converter):
+
+    writes_types = OrderedDict
+
+    @classmethod
+    def base_reader(cls, options):
+        return (
+            super(OrderedDictConverter, cls).base_reader(
+                Options(options)
+                .override(ndim=2)
+            )
+        )
+
+    @classmethod
+    def read_value(cls, value, options):
+        assert not value or len(value[0]) == 2
+        return OrderedDict(value)
+
+    @classmethod
+    def write_value(cls, value, options):
+        return list(value.items())
+
+
+OrderedDictConverter.register(OrderedDict)

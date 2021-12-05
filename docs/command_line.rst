@@ -1,59 +1,62 @@
 .. _command_line:
 
-Command Line Client
-===================
+Command Line Client (CLI)
+=========================
 
-xlwings comes with a command line client that makes it easy to set up workbooks and install the add-in.
-On Windows, type the commands into a ``Command Prompt``, on Mac, type them into a ``Terminal``.
+xlwings comes with a command line client. On Windows, type the commands into a Command Prompt or Anaconda Prompt, on Mac, type them into a Terminal. To get an overview of all commands, simply type ``xlwings`` and hit Enter:
 
-Quickstart
-----------
+.. code-block:: text
 
-* ``xlwings quickstart myproject``
-
-This command is by far the fastest way to get off the ground: It creates a new folder ``myproject`` with an
-Excel workbook that already has the reference to the xlwings addin and a Python file, ready to be used right away:
-
-.. code::
-
-  myproject
-    |--myproject.xlsm
-    |--myproject.py
-
-If you want to use xlwings via VBA module instead of addin, use the ``--standalone`` or ``-s`` flag:
-
-``xlwings quickstart myproject --standalone``
-
-Add-in
-------
-
-The `addin` command makes it easy on Windows to install/remove the addin. On Mac, you need to install it manually, but
-``xlwings addin install`` will show you how to do it.
-
-.. note:: Excel needs to be closed before installing/updating the add-in via command line. If you're still getting an error,
-  start the Task Manager and make sure there are no ``EXCEL.EXE`` processes left.
-
-* ``xlwings addin install``: Copies the xlwings add-in to the XLSTART folder
-
-* ``xlwings addin update``: Replaces the current add-in with the latest one
-
-* ``xlwings addin remove``: Removes the add-in from the XLSTART folder
-
-* ``xlwings addin status``: Shows if the add-in is installed together with the installation path
-
-After installing the add-in, it will be available as xlwings tab on the Excel Ribbon.
-
-.. versionadded:: 0.6.0
-
-
-RunPython
----------
-
-Only required if you are on Mac, are using Excel 2016 and have xlwings installed via conda or as part of Anaconda.
-To enable the ``RunPython`` calls in VBA, run this one time:
-
-``xlwings runpython install``
-
-Alternatively, install xlwings with ``pip``.
-
-.. versionadded:: 0.7.0
+    addin               Run "xlwings addin install" to install the Excel add-
+                        in (will be copied to the XLSTART folder). Instead of
+                        "install" you can also use "update", "remove" or
+                        "status". Note that this command may take a while. Use
+                        the "--unprotected" flag to install the add-in without
+                        password protection. You can install your custom add-
+                        in by providing the name or path via the --file flag,
+                        e.g. "xlwings add-in install --file custom.xlam"
+                        (New in 0.6.0, the unprotected flag was added in 0.20.4)
+    quickstart          Run "xlwings quickstart myproject" to create a folder
+                        called "myproject" in the current directory with an
+                        Excel file and a Python file, ready to be used. Use
+                        the "--standalone" flag to embed all VBA code in the
+                        Excel file and make it work without the xlwings add-
+                        in.
+    runpython           macOS only: run "xlwings runpython install" if you
+                        want to enable the RunPython calls without installing
+                        the add-in. This will create the following file:
+                        ~/Library/Application
+                        Scripts/com.microsoft.Excel/xlwings.applescript
+                        (new in 0.7.0)
+    restapi             Use "xlwings restapi run" to run the xlwings REST API
+                        via Flask dev server. Accepts "--host" and "--port" as
+                        optional arguments.
+    license             xlwings PRO: Use "xlwings license update -k KEY" where
+                        "KEY" is your personal (trial) license key. This will
+                        update ~/.xlwings/xlwings.conf with the LICENSE_KEY
+                        entry. If you have a paid license, you can run
+                        "xlwings license deploy" to create a deploy key. This
+                        is not available for trial keys.
+    config              Run "xlwings config create" to create the user config
+                        file (~/.xlwings/xlwings.conf) which is where the
+                        settings from the Ribbon add-in are stored. It will
+                        configure the Python interpreter that you are running
+                        this command with. To reset your configuration, run
+                        this with the "--force" flag which will overwrite your
+                        current configuration.
+                        (New in 0.19.5)
+    code                Run "xlwings code embed" to embed all Python modules
+                        of the workbook's dir in your active Excel file. Use
+                        the "--file" flag to only import a single file by
+                        providing its path. Requires xlwings PRO.
+                        (Changed in 0.23.4)
+    permission          "xlwings permission cwd" prints a JSON string that can
+                        be used to permission the execution of all modules in
+                        the current working directory via GET request.
+                        "xlwings permission book" does the same for code that
+                        is embedded in the active workbook.
+                        (New in 0.23.4)
+    release             Run "xlwings release" to configure your active
+                        workbook to work with a one-click installer for easy
+                        deployment. Requires xlwings PRO.
+                        (New in 0.23.4)

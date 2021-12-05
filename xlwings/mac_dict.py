@@ -1,4 +1,6 @@
 """
+TODO: This is fixed now again with Excel 365. TBC if this only failed with Excel 2016 Beta.
+
 This file has been generated based on the Excel 2011 dictionary since Excel 2016 was screwing things up,
 see:
 http://lists.apple.com/archives/applescript-users/2015/Mar/msg00114.html
@@ -13,7 +15,7 @@ Usage:
 >>> app = app('Microsoft Excel', terms=myappglue)
 """
 version = 1.1
-#path = u'/Applications/Microsoft Office 2011/Microsoft Excel.app'
+#path = '/Applications/Microsoft Office 2011/Microsoft Excel.app'
 
 classes = \
 [('base_object', b'oItm'),
@@ -804,13 +806,20 @@ enums = \
  ('shape_type_word_art', b'\x00\x8c\x00\x0f'),
  ('shape_type_media', b'\x00\x8c\x00\x10'),
  ('shape_type_text_box', b'\x00\x8c\x00\x11'),
- ('shape_type_table', b'\x00\x8c\x00\x12'),
- ('shape_type_canvas', b'\x00\x8c\x00\x13'),
- ('shape_type_diagram', b'\x00\x8c\x00\x14'),
- ('shape_type_ink', b'\x00\x8c\x00\x15'),
- ('shape_type_ink_comment', b'\x00\x8c\x00\x16'),
- ('shape_type_smartart_graphic', b'\x00\x8c\x00\x17'),
- ('shape_type_slicer', b'\x00\x8c\x00\x18'),
+ ('shape_type_script_anchor', b'\x00\x8c\x00\x12'),
+ ('shape_type_table', b'\x00\x8c\x00\x13'),
+ ('shape_type_canvas', b'\x00\x8c\x00\x14'),
+ ('shape_type_diagram', b'\x00\x8c\x00\x15'),
+ ('shape_type_ink', b'\x00\x8c\x00\x16'),
+ ('shape_type_ink_comment', b'\x00\x8c\x00\x17'),
+ ('shape_type_smartart_graphic', b'\x00\x8c\x00\x18'),
+ ('shape_type_slicer', b'\x00\x8c\x00\x19'),
+ ('shape_type_web_video', b'\x00\x8c\x00\x1a'),
+ ('shape_type_content_application', b'\x00\x8c\x00\x1b'),
+ ('shape_type_graphic', b'\x00\x8c\x00\x1c'),
+ ('shape_type_linked_graphic', b'\x00\x8c\x00\x1d'),
+ ('shape_type_3d_model', b'\x00\x8c\x00\x1e'),
+ ('shape_type_linked_3d_model', b'\x00\x8c\x00\x1f'),
  ('color_type_unset', b'\x00j\xff\xfe'),
  ('RGB', b'\x00k\x00\x01'),
  ('Scheme', b'\x00k\x00\x02'),
@@ -2189,23 +2198,23 @@ enums = \
  ('Excel_4_workbook_file_format', b'\x02\xbc\x00#'),
  ('international_add_in_file_format', b'\x02\xbc\x00\x1a'),
  ('international_macro_file_format', b'\x02\xbc\x00\x19'),
- ('workbook_normal_file_format', b'\x02\xbb\xef\xd1'),
+ ('workbook_normal_file_format', b'\x02\xbc\x003'),
  ('SYLK_file_format', b'\x02\xbc\x00\x02'),
  ('current_platform_text_file_format', b'\x02\xbb\xef\xc2'),
  ('text_Mac_file_format', b'\x02\xbc\x00\x13'),
  ('text_MSDos_file_format', b'\x02\xbc\x00\x15'),
  ('text_printer_file_format', b'\x02\xbc\x00$'),
  ('text_windows_file_format', b'\x02\xbc\x00\x14'),
- ('HTML_file_format', b'\x02\xbc\x00,'),
- ('XML_spreadsheet_file_format', b'\x02\xbc\x00-'),
- ('PDF_file_format', b'\x02\xbc\x00.'),
- ('Excel_binary_file_format', b'\x02\xbc\x003'),
- ('Excel_XML_file_format', b'\x02\xbc\x004'),
- ('macro_enabled_XML_file_format', b'\x02\xbc\x005'),
- ('macro_enabled_template_file_format', b'\x02\xbc\x006'),
- ('template_file_format', b'\x02\xbc\x007'),
- ('add_in_file_format', b'\x02\xbc\x008'),
- ('Excel98to2004_file_format', b'\x02\xbc\x009'),
+ ('HTML_file_format', b'\x02\xbc\x00-'),
+ ('XML_spreadsheet_file_format', b'\x02\xbc\x00.'),
+ ('PDF_file_format', b'\x02\xbc\x009'),
+ ('Excel_binary_file_format', b'\x02\xbc\x002'),
+ ('Excel_XML_file_format', b'\x02\xbc\x003'),
+ ('macro_enabled_XML_file_format', b'\x02\xbc\x004'),
+ ('macro_enabled_template_file_format', b'\x02\xbc\x005'),
+ ('template_file_format', b'\x02\xbc\x006'),
+ ('add_in_file_format', b'\x02\xbc\x007'),
+ ('Excel98to2004_file_format', b'\x02\xbc\x008'),
  ('Excel98to2004_template_file_format', b'\x02\xbc\x00\x11'),
  ('Excel98to2004_add_in_file_format', b'\x02\xbc\x00\x12'),
  ('twenty_four_hour_clock', b'\x02M\x00!'),

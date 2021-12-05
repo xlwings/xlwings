@@ -1,0 +1,111 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-03 22:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../matplotlib.rst:4
+msgid "Matplotlib"
+msgstr ""
+
+#: ../../matplotlib.rst:6
+msgid ""
+"Using :meth:`pictures.add() <xlwings.main.Pictures.add>`, it is easy to "
+"paste a Matplotlib plot as picture in Excel."
+msgstr ""
+"通过使用 :meth:`pictures.add() <xlwings.main.Pictures.add>` ，能很容易地把Matplotlib图表当作图片贴进Excel中。"
+
+#: ../../matplotlib.rst:9
+msgid "Getting started"
+msgstr "从头开始"
+
+#: ../../matplotlib.rst:11
+msgid "The easiest sample boils down to::"
+msgstr "最简单的例子都可以归结为下面的模式::"
+
+#: ../../matplotlib.rst:26
+msgid ""
+"If you set ``update=True``, you can resize and position the plot on "
+"Excel: subsequent calls to ``pictures.add()`` with the same name "
+"(``'MyPlot'``) will update the picture without changing its position or "
+"size."
+msgstr ""
+"如果设置 ``update=True``,就可以做Excel里移动和缩放图表："
+"后续调用 ``pictures.add()`` 时如果图表名称相同(``'MyPlot'``)，会更新图表，不改变它的位置和大小"
+
+#: ../../matplotlib.rst:31
+msgid "Full integration with Excel"
+msgstr "全面集成到Excel"
+
+#: ../../matplotlib.rst:33
+msgid ""
+"Calling the above code with :ref:`RunPython <run_python>` and binding it "
+"e.g. to a button is straightforward and works cross-platform."
+msgstr "用 :ref:`RunPython <run_python>` 调用上面的代码并把它绑定到一个按钮上是件水到渠成的事情，并且能够跨平台工作。"
+
+#: ../../matplotlib.rst:36
+msgid ""
+"However, on Windows you can make things feel even more integrated by "
+"setting up a :ref:`UDF <udfs>` along the following lines::"
+msgstr "不过，在Windows系统上可以通过下面的代码来定义一个 :ref:`UDF <udfs>` 使得集成度更高::"
+
+#: ../../matplotlib.rst:47
+msgid ""
+"If you import this function and call it from cell B2, then the plot gets "
+"automatically updated when cell B1 changes:"
+msgstr "导入这个UDF函数并在B2上调用它，图表会随着B1的值而变化："
+
+#: ../../matplotlib.rst:54
+msgid "Properties"
+msgstr "属性"
+
+#: ../../matplotlib.rst:56
+msgid ""
+"Size, position and other properties can either be set as arguments within"
+" :meth:`pictures.add() <xlwings.main.Pictures.add>`, or by manipulating "
+"the picture object that is returned, see :meth:`xlwings.Picture`."
+msgstr ""
+"大小、位置和其他属性可以通过 :meth:`pictures.add() <xlwings.main.Pictures.add>` 的参数设定，"
+"也可以通过对返回的图片对象进行操作，参见 :meth:`xlwings.Picture`."
+
+#: ../../matplotlib.rst:59
+msgid "For example::"
+msgstr "例如::"
+
+#: ../../matplotlib.rst:65 ../../matplotlib.rst:81
+msgid "or::"
+msgstr "或::"
+
+#: ../../matplotlib.rst:72
+msgid "Getting a Matplotlib figure"
+msgstr "获得Matplotlib图片"
+
+#: ../../matplotlib.rst:73
+msgid "Here are a few examples of how you get a matplotlib ``figure`` object:"
+msgstr "下面是一些如何取得matplotlib ``figure`` 对象的例子："
+
+#: ../../matplotlib.rst:75
+msgid "via PyPlot interface::"
+msgstr "通过PyPlot接口::"
+
+#: ../../matplotlib.rst:88
+msgid "via object oriented interface::"
+msgstr "通过面向对象接口::"
+
+#: ../../matplotlib.rst:95
+msgid "via Pandas::"
+msgstr "通过Pandas::"
+

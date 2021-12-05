@@ -1,0 +1,140 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings dev\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-01-07 21:24+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../installation.rst:4
+msgid "Installation"
+msgstr "安装"
+
+#: ../../installation.rst:6
+msgid "The easiest way to install xlwings is via pip::"
+msgstr "安装xlwings的最简单的方式是用pip::"
+
+#: ../../installation.rst:10
+msgid "or conda::"
+msgstr "或者用conda::"
+
+#: ../../installation.rst:14
+msgid ""
+"Note that the official ``conda`` package might be few releases behind. "
+"You can, however, use the ``conda-forge`` channel (see: "
+"https://anaconda.org/conda-forge/xlwings) which should usually be up to "
+"date (but might still be a day or so behind the pip release)::"
+msgstr ""
+"注意官方 ``conda`` 软件包中版本可能比xlwings的当前版本落后一点。 当然，你可以使用 ``conda-forge`` 通道(参见:"
+" https://anaconda.org/conda-forge/xlwings) "
+"，通常这样就能用上最新版本(不过可能还是比pip安装的版本有一两天的滞后)::"
+
+#: ../../installation.rst:20
+msgid ""
+"When you are using Mac Excel 2016 and are installing xlwings with "
+"``conda`` (or use the version that comes with Anaconda), you'll need to "
+"run ``$ xlwings runpython install`` once to enable the ``RunPython`` "
+"calls from VBA. Alternatively, you can simply install xlwings with "
+"``pip``."
+msgstr ""
+"如果你用的是Mac Excel 2016并且用 ``conda`` 安装xlwings(或是使用了Anaconda中的版本)，你需要运行一次 "
+"``$ xlwings runpython install`` 使得VBA能调用 ``RunPython`` 。或者，你可以用 "
+"``pip``来安装xlwings。 "
+
+#: ../../installation.rst:25
+msgid "Dependencies"
+msgstr "必备软件"
+
+#: ../../installation.rst:27
+msgid "**Windows**: ``pywin32``, ``comtypes``"
+msgstr ""
+
+#: ../../installation.rst:29
+msgid ""
+"On Windows, the dependencies are automatically being handled if xlwings "
+"is installed with ``conda`` or ``pip``."
+msgstr "在Windows系统中，如果用 ``conda`` 或者 ``pip`` 安装xlwings，系统会自动安装其他需要用到的软件。"
+
+#: ../../installation.rst:31
+msgid "**Mac**: ``psutil``, ``appscript``"
+msgstr ""
+
+#: ../../installation.rst:33
+msgid ""
+"On Mac, the dependencies are automatically being handled if xlwings is "
+"installed with ``conda`` or ``pip``. However, with pip, the Xcode command"
+" line tools need to be available. Mac OS X 10.4 (*Tiger*) or later is "
+"required. The recommended Python distribution for Mac is `Anaconda "
+"<https://www.anaconda.com/distribution>`_. With ``conda`` on the other "
+"hand, you'll need to manually run the command ``xlwings runpython "
+"install``."
+msgstr ""
+"在Mac系统中, 如果用 ``conda`` 或者 ``pip`` "
+"安装xlwings，系统会自动安装其他需要用到的软件。先决条件是用pip安装的时候，系统中已经安装了Xcode命令行工具。系统版本要求是Mac "
+"OS X 10.4 (*Tiger*)或者更高。在Mac系统中推荐安装的Python版本是 `Anaconda "
+"<https://www.anaconda.com/distribution>`_."
+
+#: ../../installation.rst:40
+msgid "Optional Dependencies"
+msgstr "可选软件"
+
+#: ../../installation.rst:42
+msgid "NumPy"
+msgstr ""
+
+#: ../../installation.rst:43
+msgid "Pandas"
+msgstr ""
+
+#: ../../installation.rst:44
+msgid "Matplotlib"
+msgstr ""
+
+#: ../../installation.rst:45
+msgid "Pillow/PIL"
+msgstr ""
+
+#: ../../installation.rst:46
+msgid "Flask (for REST API only)"
+msgstr "Flask(仅用于REST API)"
+
+#: ../../installation.rst:48
+msgid ""
+"These packages are not required but highly recommended as they play very "
+"nicely with xlwings."
+msgstr "这些程序包并不是必须的，但是和xlwings相得益彰，因此强烈推荐。"
+
+#: ../../installation.rst:51
+msgid "Add-in"
+msgstr "加载项"
+
+#: ../../installation.rst:53
+msgid "Please see :ref:`xlwings_addin` on how to install the xlwings add-in."
+msgstr "如何安装xlwings加载项，请参考 :ref:`xlwings_addin` 。"
+
+#: ../../installation.rst:56
+msgid "Python version support"
+msgstr "支持的Python版本"
+
+#: ../../installation.rst:58
+msgid ""
+"xlwings CE requires at least Python 3.5. Python 2.7 is only supported "
+"with `xlwings PRO <https://www.xlwings.org/pricing>`_."
+msgstr ""
+"xlwings CE(社区版)需要Python 3.5及以上版本。"
+"只有 `xlwings PRO(专业版) <https://www.xlwings.org/pricing>`_ 才支持Python 2.7。"
+
+#~ msgid "xlwings is tested on Python 2.7 and 3.3+"
+#~ msgstr "xlwings在Python 2.7 和 3.3以上版本上测试通过。"
+
