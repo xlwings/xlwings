@@ -4412,7 +4412,7 @@ class Books(Collection):
         """
         return Book(impl=self.impl.add())
 
-    def open(self, fullname, update_links=None, read_only=None, format=None, password=None, write_res_password=None,
+    def open(self, fullname=None, update_links=None, read_only=None, format=None, password=None, write_res_password=None,
              ignore_read_only_recommended=None, origin=None, delimiter=None, editable=None, notify=None, converter=None,
              add_to_mru=None, local=None, corrupt_load=None, json=None):
         """
