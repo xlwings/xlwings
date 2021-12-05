@@ -11,11 +11,11 @@ this_dir = Path(__file__).resolve().parent
 
 data = {
     'book': {'name': 'mybook.xlsx',
-             'active_sheet': 'Sheet1'},
+             'active_sheet_index': 0},  # getPosition
     'sheets': [
         {
             'name': 'Sheet1',
-            'values': [['a', 'b', 'c', ''], [1, 2, 3, ''], [4, 5, 6, ''], ['', '', '', '']],
+            'values': [['a', 'b', 'c', ''], [1, 2, 3, '2021-01-01T00:00:00.000Z'], [4, 5, 6, ''], ['', '', '', '']],
         },
         {'name': 'Sheet2', 'values': [['aa', 'bb'], [11, 22]]},
     ],
@@ -68,9 +68,23 @@ def test_pandas_df(book):
     )
 
 
-# sheet indexing
+# sheets
 def test_sheet_access(book):
     assert book.sheets[0] == book.sheets['Sheet1']
     assert book.sheets[1] == book.sheets['Sheet2']
     assert book.sheets[0].name == 'Sheet1'
     assert book.sheets[1].name == 'Sheet2'
+
+
+def test_sheet_active(book):
+    assert book.sheets.active == book.sheets[0]
+
+
+def test_sheets_iteration(book):
+    for ix, sheet in enumerate(book.sheets):
+        assert sheet.name == 'Sheet1' if ix == 0 else 'Sheet2'
+
+
+# book name
+def test_book(book):
+    assert book.name == 'mybook.xlsx'

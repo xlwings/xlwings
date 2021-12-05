@@ -163,7 +163,7 @@ class Book:
 
     @property
     def sheets(self):
-        return Sheets(book=self)
+        return Sheets(api=self.api['sheets'], book=self)
 
     @property
     def app(self):
@@ -184,24 +184,21 @@ class Book:
 
 
 class Sheets:
-    def __init__(self, book):
+    def __init__(self, api, book):
+        self.api = api
         self.book = book
 
     @property
-    def api(self):
-        return None
-
-    @property
     def active(self):
-        return Sheet(api=self.book.api['book']['active_sheet'], sheets=self)
+        return Sheet(api=self.api[self.book.api['book']['active_sheet_index']], sheets=self)
 
     def __call__(self, name_or_index):
         api = None
         if isinstance(name_or_index, int):
-            api = self.book.api['sheets'][name_or_index - 1]
+            api = self.api[name_or_index - 1]
         else:
             api = None
-            for sheet in self.book.api['sheets']:
+            for sheet in self.api:
                 if sheet['name'] == name_or_index:
                     api = sheet
                     break
@@ -213,14 +210,14 @@ class Sheets:
             return Sheet(api=api, sheets=self)
 
     def __len__(self):
-        return len(self.book.api)
+        return len(self.api)
 
     def __iter__(self):
-        for sheet in self.book.api:
+        for sheet in self.api:
             yield Sheet(api=sheet, sheets=self)
 
-    def add(self, before=None, after=None):
-        return Sheet(api=self.book.api.create_sheet(), sheets=self)
+    # def add(self, before=None, after=None):
+    #     return Sheet(api=self.book.api.create_sheet(), sheets=self)
 
 
 class Sheet:
