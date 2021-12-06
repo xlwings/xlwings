@@ -775,6 +775,7 @@ class Book:
             if json:
                 app = App(add_book=False)
                 impl = app.books.open(json=json)
+                self.json = impl.json
             elif fullname:
                 fullname = utils.fspath(fullname)
                 fullname = fullname.lower()

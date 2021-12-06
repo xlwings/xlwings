@@ -7,10 +7,12 @@ try:
 except ImportError:
     np = None
 
+from . import utils
+
 logger = logging.getLogger(__name__)
 
 
-class Engine(object):
+class Engine:
     def __init__(self):
         self.apps = Apps()
 
@@ -55,7 +57,7 @@ def prepare_xl_data_element(x):
 Engine.prepare_xl_data_element = staticmethod(prepare_xl_data_element)
 
 
-class Apps(object):
+class Apps:
     def __init__(self):
         self._apps = [App(self)]
 
@@ -73,7 +75,7 @@ class Apps(object):
         return self._apps[0]
 
 
-class App(object):
+class App:
 
     _next_pid = -1
 
@@ -152,6 +154,10 @@ class Book:
     def __init__(self, api, books):
         self.api = api
         self.books = books
+        self._json = []
+
+    def json(self):
+        return self._json
 
     @property
     def name(self):
@@ -242,9 +248,14 @@ class Sheet:
         return self.sheets.book.index(self.api)
 
     def range(self, arg1, arg2=None):
+        # TODO: slicing the values has to be moved to raw_value as this causes issues
+        # otherwise when writing outside the used range
+        if isinstance(arg1, Range):
+            arg1 = arg1.coords[1], arg1.coords[2]
+        if isinstance(arg2, Range):
+            arg2 = arg2.coords[1], arg2.coords[2]
         if isinstance(arg1, str):
             # A1 notation
-            from . import utils
             if ":" in arg1:
                 address1, address2 = arg1.split(':')
                 arg1 = utils.address_to_index(address1.upper())
@@ -253,13 +264,12 @@ class Sheet:
                 arg1 = utils.address_to_index(arg1.upper())
         if len(arg1) == 4:
             api = [
-                row[arg1[1] - 1 : arg1[1] + arg1[3]] for row in self.api['values'][arg1[0] - 1 : arg1[0] + arg1[2]]
+                row[arg1[1] - 1 : arg1[1] + arg1[3]]
+                for row in self.api['values'][arg1[0] - 1 : arg1[0] + arg1[2]]
             ]
             return Range(api=api, sheet=self, row_ix=arg1[2], col_ix=arg1[3])
         elif arg2 is not None:
-            api = [
-                row[arg1[1] - 1 : arg2[1]] for row in self.api['values'][arg1[0] - 1 : arg2[0]]
-            ]
+            api = [row[arg1[1] - 1 : arg2[1]] for row in self.api['values'][arg1[0] - 1 : arg2[0]]]
             return Range(api=api, sheet=self, row_ix=arg1[0], col_ix=arg1[1])
         else:
             api = self.api['values'][arg1[0] - 1][arg1[1] - 1]
@@ -293,8 +303,9 @@ class Range:
             self.api = ((api,),)
         self.sheet = sheet
 
+    @property
     def coords(self):
-        return (self.sheet.name, self.row, self.column, len(self.api), len(self.api[0]))
+        return self.sheet.name, self.row - 1, self.column - 1, len(self.api), len(self.api[0])
 
     def __len__(self):
         return len(self.api) * len(self.api[0])
@@ -320,24 +331,23 @@ class Range:
 
     @raw_value.setter
     def raw_value(self, value):
-        if isinstance(value, tuple) or isinstance(value, list):
-            if (len(value), len(value[0])) != self.shape:
-                assert False, "Not implemented"
-            for i in range(len(value)):
-                for j in range(len(value[0])):
-                    self.api[i][j].value = value[i][j]
-        else:
-            for row in self.api:
-                for cell in row:
-                    cell.value = value
+        self.sheet.book._json.append(
+            {
+                'data': [[value]] if not isinstance(value, (list, tuple)) else value,
+                'sheet_name': self.sheet.name,
+                'start_row': self.coords[1],
+                'start_column': self.coords[2],
+                'row_count': self.coords[3],
+                'column_count': self.coords[4],
+            }
+        )
 
     @property
     def address(self):
-        return self.api[0][0].coordinate
+        pass  # TODO
 
     def __call__(self, row, col):
-        # TODO: better implementation
-        return Range(api=self.api[0][0].offset(row - 1, col - 1), sheet=self.sheet)
+        return Range(api=self.api, sheet=self.sheet, row_ix=row, col_ix=col)
 
 
 engine = Engine()
