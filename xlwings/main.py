@@ -2382,7 +2382,7 @@ class Range:
         else:
             column_size = self.shape[1]
 
-        return Range(self(1, 1), self(row_size, column_size)).options(**self._options)
+        return self.sheet.range((self.row, self.column), (self.row + row_size - 1, self.column + column_size - 1)).options(**self._options)
 
     def offset(self, row_offset=0, column_offset=0):
         """

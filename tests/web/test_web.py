@@ -61,12 +61,21 @@ def test_range_from_range(book):
     assert sheet.range(sheet.range('B2'), sheet.range('C3')).value == [[2, 3], [5, 6]]
 
 
-def test_range_indexing(book):
+def test_range_round_indexing(book):
     sheet = book.sheets[0]
     assert sheet['B2:C3'](1, 1).value == 2
+
+
+def test_range_square_indexing(book):
+    sheet = book.sheets[0]
     assert sheet['B2:C3'][0, 0].value == 2
 
 
+def test_range_resize(book):
+    pass # TODO
+
+
+# Conversion
 def test_numpy_array(book):
     sheet = book.sheets[0]
     np.testing.assert_array_equal(

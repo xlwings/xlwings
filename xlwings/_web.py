@@ -248,8 +248,6 @@ class Sheet:
         return self.sheets.book.index(self.api)
 
     def range(self, arg1, arg2=None):
-        # TODO: slicing the values has to be moved to raw_value as this causes issues
-        # otherwise when writing outside the used range
         if isinstance(arg1, Range):
             arg1 = arg1.coords[1], arg1.coords[2]
         if isinstance(arg2, Range):
@@ -258,22 +256,30 @@ class Sheet:
             # A1 notation
             if ":" in arg1:
                 address1, address2 = arg1.split(':')
-                arg1 = utils.address_to_index(address1.upper())
-                arg2 = utils.address_to_index(address2.upper())
+                arg1 = utils.address_to_index_tuple(address1.upper())
+                arg2 = utils.address_to_index_tuple(address2.upper())
             else:
-                arg1 = utils.address_to_index(arg1.upper())
+                arg1 = utils.address_to_index_tuple(arg1.upper())
         if len(arg1) == 4:
+            row, col, nrows, ncols = arg1
             api = [
-                row[arg1[1] - 1 : arg1[1] + arg1[3]]
-                for row in self.api['values'][arg1[0] - 1 : arg1[0] + arg1[2]]
+                row[col - 1 : col - 1 + ncols]
+                for row in self.api['values'][row - 1 : row - 1 + nrows]
             ]
             return Range(api=api, sheet=self, row_ix=arg1[2], col_ix=arg1[3])
         elif arg2 is not None:
             api = [row[arg1[1] - 1 : arg2[1]] for row in self.api['values'][arg1[0] - 1 : arg2[0]]]
+            if not api:
+                # Outside the used range
+                api = [[None] * (arg2[1] + 1 - arg1[1])] * (arg2[0] + 1 - arg1[0])
             return Range(api=api, sheet=self, row_ix=arg1[0], col_ix=arg1[1])
         else:
-            api = self.api['values'][arg1[0] - 1][arg1[1] - 1]
-            return Range(api=api, sheet=self, row_ix=arg1[0], col_ix=arg1[1])
+            try:
+                api = [[self.api['values'][arg1[0] - 1][arg1[1] - 1]]]
+                return Range(api=api, sheet=self, row_ix=arg1[0], col_ix=arg1[1])
+            except IndexError:
+                # Outside the used range
+                return Range(api=[[None]], sheet=self, row_ix=arg1[0], col_ix=arg1[1])
 
     def activate(self):
         self.sheets.book.api.active_sheet = self.sheets.book.api.index(self.api)
@@ -294,18 +300,14 @@ class Sheet:
 
 class Range:
     def __init__(self, api, sheet, row_ix, col_ix):
-        # row, col, nrows, ncols = address
         self.row_ix = row_ix
         self.col_ix = col_ix
-        if isinstance(api, list):
-            self.api = api
-        else:
-            self.api = ((api,),)
+        self.api = api
         self.sheet = sheet
 
     @property
     def coords(self):
-        return self.sheet.name, self.row - 1, self.column - 1, len(self.api), len(self.api[0])
+        return self.sheet.name, self.row, self.column, len(self.api), len(self.api[0])
 
     def __len__(self):
         return len(self.api) * len(self.api[0])
@@ -347,7 +349,7 @@ class Range:
         pass  # TODO
 
     def __call__(self, row, col):
-        return Range(api=self.api, sheet=self.sheet, row_ix=row, col_ix=col)
+        return Range(api=[[self.api[row - 1][col - 1]]], sheet=self.sheet, row_ix=self.row, col_ix=self.column)  # TODO: row_ix and col_ix OK??
 
 
 engine = Engine()
