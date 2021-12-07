@@ -338,9 +338,7 @@ class Range:
                 'data': [[value]] if not isinstance(value, (list, tuple)) else value,
                 'sheet_name': self.sheet.name,
                 'start_row': self.coords[1] - 1,
-                'start_column': self.coords[2] - 1,
-                'row_count': self.coords[3],
-                'column_count': self.coords[4],
+                'start_column': self.coords[2] - 1
             }
         )
 
