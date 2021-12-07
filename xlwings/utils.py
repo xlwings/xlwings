@@ -84,7 +84,7 @@ def col_name(i):
         raise IndexError(i)
 
 
-def address_to_index(address):
+def address_to_index_tuple(address):
     # Based on a function from XlsxWriter
     # SPDX-License-Identifier: BSD-2-Clause
     # Copyright 2013-2021, John McNamara, jmcnamara@cpan.org
