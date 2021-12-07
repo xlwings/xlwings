@@ -53,6 +53,20 @@ def test_range_from_sheet(book):
     assert sheet['B2:C3'].value == [[2, 3], [5, 6]]
 
 
+def test_range_from_range(book):
+    sheet = book.sheets[0]
+    assert sheet.range(sheet.range((1, 1))).value == 'a'
+    assert sheet.range(sheet.range('C1'), sheet.range('C3')).value == ['c', 3, 6]
+    assert sheet.range(sheet.range('A1'), sheet.range('C3')).value == [['a', 'b', 'c'], [1, 2, 3], [4, 5, 6]]
+    assert sheet.range(sheet.range('B2'), sheet.range('C3')).value == [[2, 3], [5, 6]]
+
+
+def test_range_indexing(book):
+    sheet = book.sheets[0]
+    assert sheet['B2:C3'](1, 1).value == 2
+    assert sheet['B2:C3'][0, 0].value == 2
+
+
 def test_numpy_array(book):
     sheet = book.sheets[0]
     np.testing.assert_array_equal(
