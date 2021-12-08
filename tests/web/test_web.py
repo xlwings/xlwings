@@ -1,3 +1,9 @@
+"""TODO
+* datetime
+* booleans
+* accept dicts and json
+"""
+
 from pathlib import Path
 
 import pytest
@@ -11,7 +17,7 @@ this_dir = Path(__file__).resolve().parent
 
 data = {
     'book': {'name': 'mybook.xlsx',
-             'active_sheet_index': 0},  # getPosition
+             'active_sheet_index': 0},
     'sheets': [
         {
             'name': 'Sheet1',
