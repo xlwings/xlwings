@@ -14,7 +14,7 @@ with open(os.path.join(os.path.dirname(__file__), 'xlwings', '__init__.py')) as 
 
 # Dependencies
 data_files = []
-install_requires = ['openpyxl', 'xlrd']
+install_requires = []
 if os.environ.get('READTHEDOCS', None) == 'True':
     # We're running ReadTheDocs, don't add any further dependencies.
     pass

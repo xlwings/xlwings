@@ -12,6 +12,13 @@ from . import utils
 logger = logging.getLogger(__name__)
 
 
+USER_CONFIG_FILE = '/todo'
+
+# Time types
+time_types = (dt.date, dt.datetime)
+if np:
+    time_types = time_types + (np.datetime64,)
+
 class Engine:
     def __init__(self):
         self.apps = Apps()

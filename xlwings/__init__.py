@@ -7,8 +7,10 @@ __version__ = 'dev'
 # Platform specifics
 if sys.platform.startswith('win'):
     from . import _xlwindows as xlplatform
-else:
+elif sys.platform.startswith('darwin'):
     from . import _xlmac as xlplatform
+else:
+    from . import _web as xlplatform
 
 time_types = xlplatform.time_types
 USER_CONFIG_FILE = xlplatform.USER_CONFIG_FILE
