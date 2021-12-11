@@ -1,3 +1,5 @@
+import re
+import json
 import numbers
 import datetime as dt
 import logging
@@ -19,6 +21,7 @@ time_types = (dt.date, dt.datetime)
 if np:
     time_types = time_types + (np.datetime64,)
 
+
 class Engine:
     def __init__(self):
         self.apps = Apps()
@@ -31,6 +34,12 @@ class Engine:
 def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
     if value == '':
         return empty_as
+    if isinstance(value, str):
+        pattern = r'^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$'
+        if re.compile(pattern).match(value):
+            value = dt.datetime.fromisoformat(value[:-1])  # cutting off "Z" (Excel doesn't support time-zones)
+        else:
+            value = value
     if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:
         value = datetime_builder(
             month=value.month,
@@ -164,7 +173,7 @@ class Book:
         self._json = []
 
     def json(self):
-        return self._json
+        return json.dumps(self._json, default=lambda d: d.isoformat())
 
     @property
     def name(self):
@@ -333,16 +342,13 @@ class Range:
 
     @property
     def raw_value(self):
-        if len(self.api) == 1 and len(self.api[0]) == 1:
-            return self.api[0][0]
-        else:
-            return self.api
+        return self.api
 
     @raw_value.setter
     def raw_value(self, value):
         self.sheet.book._json.append(
             {
-                'data': [[value]] if not isinstance(value, (list, tuple)) else value,
+                'data': [[value]] if not isinstance(value, list) else value,
                 'sheet_name': self.sheet.name,
                 'start_row': self.coords[1] - 1,
                 'start_column': self.coords[2] - 1

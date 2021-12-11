@@ -54,6 +54,7 @@ def test_range_address(book):
 def test_range_from_sheet(book):
     sheet = book.sheets[0]
     assert sheet['A1'].value == 'a'
+    assert sheet['A1:C1'].value == ['a', 'b', 'c']
     assert sheet['C1:C3'].value == ['c', 3, 6]
     assert sheet['A1:C3'].value == [['a', 'b', 'c'], [1, 2, 3], [4, 5, 6]]
     assert sheet['B2:C3'].value == [[2, 3], [5, 6]]
