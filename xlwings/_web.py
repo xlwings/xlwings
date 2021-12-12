@@ -374,8 +374,32 @@ class Range(platform_base_classes.Range):
         # TODO
         return False
 
+    def end(self, direction):
+        # TODO: left, up
+        if direction == 'down':
+            i = 1
+            while True:
+                if self.sheet.api['values'][self.row - 1 + i][self.column - 1]:
+                    i += 1
+                else:
+                    break
+            nrows = i - 1
+            return self.sheet.range((self.row + nrows, self.column))
+        if direction == 'right':
+            i = 1
+            while True:
+                if self.sheet.api['values'][self.row - 1][self.column - 1 + i]:
+                    i += 1
+                else:
+                    break
+            ncols = i - 1
+            return self.sheet.range((self.row, self.column + ncols))
+
     def __call__(self, row, col):
-        return Range(api=[[self.api[row - 1][col - 1]]], sheet=self.sheet, row_ix=self.row, col_ix=self.column)
+        return Range(api=[[self.sheet.api['values'][row - 1][col - 1]]],
+                     sheet=self.sheet,
+                     row_ix=self.row + row - 1 ,
+                     col_ix=self.column + col - 1)
 
 
 engine = Engine()

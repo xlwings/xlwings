@@ -2395,15 +2395,15 @@ class Range:
 
         .. versionadded:: 0.3.0
         """
-        return Range(
-            self(
+        return self.sheet.range(
+            ((
                 row_offset + 1,
                 column_offset + 1
-            ),
-            self(
+            )),
+            ((
                 row_offset + self.shape[0],
                 column_offset + self.shape[1]
-            )
+            ))
         ).options(**self._options)
 
     @property
