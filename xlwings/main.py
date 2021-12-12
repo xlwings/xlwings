@@ -1740,7 +1740,7 @@ class Range:
     @property
     def has_array(self):
         """
-        Are we part of an Array formula?
+        ``True`` if the range is part of a legacy CSE Array formula and ``False`` otherwise.
         """
         return self.impl.has_array
 

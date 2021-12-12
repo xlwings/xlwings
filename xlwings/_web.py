@@ -10,6 +10,7 @@ except ImportError:
     np = None
 
 from . import utils
+from . import platform_base_classes
 
 logger = logging.getLogger(__name__)
 
@@ -314,12 +315,16 @@ class Sheet:
         return Range(api=self.api['values'], sheet=self, row_ix=1, col_ix=1)
 
 
-class Range:
+class Range(platform_base_classes.Range):
     def __init__(self, api, sheet, row_ix, col_ix):
+        self._api = api
+        self.sheet = sheet
         self.row_ix = row_ix
         self.col_ix = col_ix
-        self.api = api
-        self.sheet = sheet
+
+    @property
+    def api(self):
+        return self._api
 
     @property
     def coords(self):
@@ -357,10 +362,20 @@ class Range:
 
     @property
     def address(self):
-        pass  # TODO
+        nrows, ncols = self.shape
+        address = f'${utils.col_name(self.column)}${self.row}'
+        if nrows == 1 and ncols == 1:
+            return address
+        else:
+            return f'{address}:${utils.col_name(self.column + ncols - 1)}${self.row + nrows - 1}'
+
+    @property
+    def has_array(self):
+        # TODO
+        return False
 
     def __call__(self, row, col):
-        return Range(api=[[self.api[row - 1][col - 1]]], sheet=self.sheet, row_ix=self.row, col_ix=self.column)  # TODO: row_ix and col_ix OK??
+        return Range(api=[[self.api[row - 1][col - 1]]], sheet=self.sheet, row_ix=self.row, col_ix=self.column)
 
 
 engine = Engine()

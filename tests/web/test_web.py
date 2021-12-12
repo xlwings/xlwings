@@ -1,6 +1,6 @@
 """TODO
-* datetime
-* booleans
+* expand
+* clear_contents
 * accept dicts and json
 """
 
@@ -27,6 +27,13 @@ data = {
     ],
 }
 
+# data = {'book': {'name': 'ExcelPython.xlsx', 'active_sheet_index': 0},
+#         'sheets': [{'name': 'Sheet1', 'values': [[1.1, '2021-01-01T00:00:00.000Z', "string", True]]},
+#                     {'name': 'xlwings.conf',
+#                      'values': [['AUTH_TOKEN', 'Bearer MYTOKEN'],
+#                                 ['URL2', 'https://w77zc253d1.execute-api.us-east-1.amazonaws.com/api'],
+#                                 ['URL', 'https://459c-217-22-135-239.ngrok.io']]}]}
+
 
 @pytest.fixture(scope="module")
 def book():
@@ -38,6 +45,7 @@ def book():
 def test_range_index(book):
     sheet = book.sheets[0]
     assert sheet.range((1, 1)).value == 'a'
+    assert sheet.range((1, 1), (3, 1)).value == ['a', 1, 4]
     assert sheet.range((1, 3), (3, 3)).value == ['c', 3, 6]
     assert sheet.range((1, 1), (3, 3)).value == [['a', 'b', 'c'], [1, 2, 3], [4, 5, 6]]
     assert sheet.range((2, 2), (3, 3)).value == [[2, 3], [5, 6]]
@@ -46,6 +54,7 @@ def test_range_index(book):
 def test_range_address(book):
     sheet = book.sheets[0]
     assert sheet.range('A1').value == 'a'
+    assert sheet.range('A1:A3').value == ['a', 1, 4]
     assert sheet.range('C1:C3').value == ['c', 3, 6]
     assert sheet.range('A1:C3').value == [['a', 'b', 'c'], [1, 2, 3], [4, 5, 6]]
     assert sheet.range('B2:C3').value == [[2, 3], [5, 6]]
@@ -54,7 +63,7 @@ def test_range_address(book):
 def test_range_from_sheet(book):
     sheet = book.sheets[0]
     assert sheet['A1'].value == 'a'
-    assert sheet['A1:C1'].value == ['a', 'b', 'c']
+    assert sheet['A1:A3'].value == ['a', 1, 4]
     assert sheet['C1:C3'].value == ['c', 3, 6]
     assert sheet['A1:C3'].value == [['a', 'b', 'c'], [1, 2, 3], [4, 5, 6]]
     assert sheet['B2:C3'].value == [[2, 3], [5, 6]]
@@ -63,6 +72,7 @@ def test_range_from_sheet(book):
 def test_range_from_range(book):
     sheet = book.sheets[0]
     assert sheet.range(sheet.range((1, 1))).value == 'a'
+    assert sheet.range(sheet.range((1, 1)), sheet.range((3, 1))).value == ['a', 1, 4]
     assert sheet.range(sheet.range('C1'), sheet.range('C3')).value == ['c', 3, 6]
     assert sheet.range(sheet.range('A1'), sheet.range('C3')).value == [['a', 'b', 'c'], [1, 2, 3], [4, 5, 6]]
     assert sheet.range(sheet.range('B2'), sheet.range('C3')).value == [[2, 3], [5, 6]]
