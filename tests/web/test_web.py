@@ -21,9 +21,9 @@ data = {
     'sheets': [
         {
             'name': 'Sheet1',
-            'values': [['a', 'b', 'c', ''], [1, 2, 3, '2021-01-01T00:00:00.000Z'], [4, 5, 6, ''], ['', '', '', '']],
+            'values': [['a', 'b', 'c', ''], [1., 2., 3., '2021-01-01T00:00:00.000Z'], [4., 5., 6., ''], ['', '', '', '']],
         },
-        {'name': 'Sheet2', 'values': [['aa', 'bb'], [11, 22]]},
+        {'name': 'Sheet2', 'values': [['aa', 'bb'], [11., 22.]]},
     ],
 }
 
@@ -45,50 +45,49 @@ def book():
 def test_range_index(book):
     sheet = book.sheets[0]
     assert sheet.range((1, 1)).value == 'a'
-    assert sheet.range((1, 1), (3, 1)).value == ['a', 1, 4]
-    assert sheet.range((1, 3), (3, 3)).value == ['c', 3, 6]
-    assert sheet.range((1, 1), (3, 3)).value == [['a', 'b', 'c'], [1, 2, 3], [4, 5, 6]]
-    assert sheet.range((2, 2), (3, 3)).value == [[2, 3], [5, 6]]
+    assert sheet.range((1, 1), (3, 1)).value == ['a', 1., 4.]
+    assert sheet.range((1, 3), (3, 3)).value == ['c', 3., 6.]
+    assert sheet.range((1, 1), (3, 3)).value == [['a', 'b', 'c'], [1., 2., 3.], [4., 5., 6.]]
+    assert sheet.range((2, 2), (3, 3)).value == [[2., 3.], [5., 6.]]
 
 
 def test_range_a1(book):
     sheet = book.sheets[0]
     assert sheet.range('A1').value == 'a'
-    assert sheet.range('A1:A3').value == ['a', 1, 4]
-    assert sheet.range('C1:C3').value == ['c', 3, 6]
-    assert sheet.range('A1:C3').value == [['a', 'b', 'c'], [1, 2, 3], [4, 5, 6]]
-    assert sheet.range('B2:C3').value == [[2, 3], [5, 6]]
+    assert sheet.range('A1:A3').value == ['a', 1., 4.]
+    assert sheet.range('C1:C3').value == ['c', 3., 6.]
+    assert sheet.range('A1:C3').value == [['a', 'b', 'c'], [1., 2., 3.], [4., 5., 6.]]
+    assert sheet.range('B2:C3').value == [[2., 3.], [5., 6.]]
 
 
 def test_range_shortcut(book):
     sheet = book.sheets[0]
     assert sheet['A1'].value == 'a'
-    assert sheet['A1:A3'].value == ['a', 1, 4]
-    assert sheet['C1:C3'].value == ['c', 3, 6]
-    assert sheet['A1:C3'].value == [['a', 'b', 'c'], [1, 2, 3], [4, 5, 6]]
-    assert sheet['B2:C3'].value == [[2, 3], [5, 6]]
+    assert sheet['A1:A3'].value == ['a', 1., 4.]
+    assert sheet['C1:C3'].value == ['c', 3., 6.]
+    assert sheet['A1:C3'].value == [['a', 'b', 'c'], [1., 2., 3.], [4., 5., 6.]]
+    assert sheet['B2:C3'].value == [[2., 3.], [5., 6.]]
 
 
 def test_range_from_range(book):
     sheet = book.sheets[0]
     assert sheet.range(sheet.range((1, 1))).value == 'a'
-    assert sheet.range(sheet.range((1, 1)), sheet.range((3, 1))).value == ['a', 1, 4]
-    assert sheet.range(sheet.range('C1'), sheet.range('C3')).value == ['c', 3, 6]
-    assert sheet.range(sheet.range('A1'), sheet.range('C3')).value == [['a', 'b', 'c'], [1, 2, 3], [4, 5, 6]]
-    assert sheet.range(sheet.range('B2'), sheet.range('C3')).value == [[2, 3], [5, 6]]
+    assert sheet.range(sheet.range((1, 1)), sheet.range((3, 1))).value == ['a', 1., 4.]
+    assert sheet.range(sheet.range('C1'), sheet.range('C3')).value == ['c', 3., 6.]
+    assert sheet.range(sheet.range('A1'), sheet.range('C3')).value == [['a', 'b', 'c'], [1., 2., 3.], [4., 5., 6.]]
+    assert sheet.range(sheet.range('B2'), sheet.range('C3')).value == [[2., 3.], [5., 6.]]
 
 
 def test_range_round_indexing(book):
     sheet = book.sheets[0]
-    assert sheet['B2:C3'](1, 1).value == 2
-    assert sheet['B2:C3'](2, 1).value == 5
+    assert sheet['B2:C3'](1, 1).value == 2.
+    assert sheet['B2:C3'](2, 1).value == 5.
 
 
 def test_range_square_indexing(book):
     sheet = book.sheets[0]
-    assert sheet['B2:C3'][0, 0].value == 2
-    assert sheet['B2:C3'][1, 0].value == 5
-
+    assert sheet['B2:C3'][0, 0].value == 2.
+    assert sheet['B2:C3'][1, 0].value == 5.
 
 def test_range_resize(book):
     pass  # TODO
@@ -101,17 +100,17 @@ def test_range_offset(book):
 def test_expand(book):
     sheet = book.sheets[0]
     assert sheet['A1'].expand().address == '$A$1:$C$3'
-    assert sheet['A1'].expand().value == [['a', 'b', 'c'], [1, 2, 3], [4, 5, 6]]
+    assert sheet['A1'].expand().value == [['a', 'b', 'c'], [1., 2., 3.], [4., 5., 6.]]
     assert sheet['B1'].expand().address == '$B$1:$C$3'
-    assert sheet['B1'].expand().value == [['b', 'c'], [2, 3], [5, 6]]
+    assert sheet['B1'].expand().value == [['b', 'c'], [2., 3.], [5., 6.]]
     assert sheet['C3'].expand().address == '$C$3'
-    assert sheet['C3'].expand().value == 6
+    assert sheet['C3'].expand().value == 6.
 
 # Conversion
 def test_numpy_array(book):
     sheet = book.sheets[0]
     np.testing.assert_array_equal(
-        sheet['B2:C3'].options(np.array).value, np.array([[2, 3], [5, 6]])
+        sheet['B2:C3'].options(np.array).value, np.array([[2., 3.], [5., 6.]])
     )
 
 
@@ -119,7 +118,7 @@ def test_pandas_df(book):
     sheet = book.sheets[0]
     pd.testing.assert_frame_equal(
         sheet['A1:C3'].options(pd.DataFrame, index=False).value,
-        pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]], columns=['a', 'b', 'c']),
+        pd.DataFrame(data=[[1., 2., 3.], [4., 5., 6.]], columns=['a', 'b', 'c']),
     )
 
 
