@@ -2,7 +2,7 @@ from .main import Range
 
 expanders = {}
 
-_empty = (None, '')
+_empty = (None, '', [['']])
 
 
 class Expander:

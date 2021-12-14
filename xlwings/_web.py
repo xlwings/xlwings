@@ -288,10 +288,12 @@ class Sheet:
 class Range(platform_base_classes.Range):
     def __init__(self, sheet, api, arg1, arg2=None):
         # Range
-        if isinstance(arg1, Range):
-            arg1 = arg1.coords[1], arg1.coords[2]
-        if isinstance(arg2, Range):
-            arg2 = arg2.coords[1], arg2.coords[2]
+        if isinstance(arg1, Range) and isinstance(arg2, Range):
+            cell1 = arg1.coords[1], arg1.coords[2]
+            cell2 = arg2.coords[1], arg2.coords[2]
+            arg1 = min(cell1[0], cell2[0]), min(cell1[1], cell2[1])
+            arg2 = max(cell1[0], cell2[0]), max(cell1[1], cell2[1])
+
         # A1 notation
         if isinstance(arg1, str):
             # A1 notation
@@ -351,6 +353,7 @@ class Range(platform_base_classes.Range):
 
     @property
     def raw_value(self):
+        # TODO: should 1x1 and 1xn be returned as scalar and list?
         return self.api
 
     @raw_value.setter
@@ -379,7 +382,7 @@ class Range(platform_base_classes.Range):
         return False
 
     def end(self, direction):
-        # TODO: left, up
+        # TODO: left, up, 2d case
         if direction == 'down':
             i = 1
             while True:
@@ -400,7 +403,6 @@ class Range(platform_base_classes.Range):
             return self.sheet.range((self.row, self.column + ncols))
 
     def __call__(self, row, col):
-        print(row, col)
         return Range(sheet=self.sheet, api=self.sheet.api, arg1=(self.row + row - 1, self.column + col - 1))
 
 
