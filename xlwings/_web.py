@@ -3,6 +3,7 @@ import json
 import numbers
 import datetime as dt
 import logging
+from functools import lru_cache
 
 try:
     import numpy as np
@@ -265,38 +266,7 @@ class Sheet:
         return self.sheets.book.index(self.api)
 
     def range(self, arg1, arg2=None):
-        if isinstance(arg1, Range):
-            arg1 = arg1.coords[1], arg1.coords[2]
-        if isinstance(arg2, Range):
-            arg2 = arg2.coords[1], arg2.coords[2]
-        if isinstance(arg1, str):
-            # A1 notation
-            if ":" in arg1:
-                address1, address2 = arg1.split(':')
-                arg1 = utils.address_to_index_tuple(address1.upper())
-                arg2 = utils.address_to_index_tuple(address2.upper())
-            else:
-                arg1 = utils.address_to_index_tuple(arg1.upper())
-        if len(arg1) == 4:
-            row, col, nrows, ncols = arg1
-            api = [
-                row[col - 1 : col - 1 + ncols]
-                for row in self.api['values'][row - 1 : row - 1 + nrows]
-            ]
-            return Range(api=api, sheet=self, row_ix=arg1[2], col_ix=arg1[3])
-        elif arg2 is not None:
-            api = [row[arg1[1] - 1 : arg2[1]] for row in self.api['values'][arg1[0] - 1 : arg2[0]]]
-            if not api:
-                # Outside the used range
-                api = [[None] * (arg2[1] + 1 - arg1[1])] * (arg2[0] + 1 - arg1[0])
-            return Range(api=api, sheet=self, row_ix=arg1[0], col_ix=arg1[1])
-        else:
-            try:
-                api = [[self.api['values'][arg1[0] - 1][arg1[1] - 1]]]
-                return Range(api=api, sheet=self, row_ix=arg1[0], col_ix=arg1[1])
-            except IndexError:
-                # Outside the used range
-                return Range(api=[[None]], sheet=self, row_ix=arg1[0], col_ix=arg1[1])
+        return Range(sheet=self, api=self.api, arg1=arg1, arg2=arg2)
 
     def activate(self):
         self.sheets.book.api.active_sheet = self.sheets.book.api.index(self.api)
@@ -316,15 +286,49 @@ class Sheet:
 
 
 class Range(platform_base_classes.Range):
-    def __init__(self, api, sheet, row_ix, col_ix):
-        self._api = api
+    def __init__(self, sheet, api, arg1, arg2=None):
+        # Range
+        if isinstance(arg1, Range):
+            arg1 = arg1.coords[1], arg1.coords[2]
+        if isinstance(arg2, Range):
+            arg2 = arg2.coords[1], arg2.coords[2]
+        # A1 notation
+        if isinstance(arg1, str):
+            # A1 notation
+            if ":" in arg1:
+                address1, address2 = arg1.split(':')
+                arg1 = utils.address_to_index_tuple(address1.upper())
+                arg2 = utils.address_to_index_tuple(address2.upper())
+            else:
+                arg1 = utils.address_to_index_tuple(arg1.upper())
+        # Coordinates
+        if len(arg1) == 4:
+            row, col, nrows, ncols = arg1
+            arg1 = (row, col)
+            if nrows > 1 or ncols > 1:
+                arg2 = (row + nrows, col + ncols)
+
+        self.arg1 = arg1  # 1-based tuple
+        self.arg2 = arg2  # 1-based tuple
         self.sheet = sheet
-        self.row_ix = row_ix
-        self.col_ix = col_ix
+        self._api = api
 
     @property
+    @lru_cache(None)
     def api(self):
-        return self._api
+        if self.arg2:
+            values = [row[self.arg1[1] - 1 : self.arg2[1]] for row in self._api['values'][self.arg1[0] - 1 : self.arg2[0]]]
+            if not values:
+                # Outside the used range
+                values = [[None] * (self.arg2[1] + 1 - self.arg1[1])] * (self.arg2[0] + 1 - self.arg1[0])
+            return values
+        else:
+            try:
+                values = [[self._api['values'][self.arg1[0] - 1][self.arg1[1] - 1]]]
+                return values
+            except IndexError:
+                # Outside the used range
+                return [[None]]
 
     @property
     def coords(self):
@@ -335,11 +339,11 @@ class Range(platform_base_classes.Range):
 
     @property
     def row(self):
-        return self.row_ix
+        return self.arg1[0]
 
     @property
     def column(self):
-        return self.col_ix
+        return self.arg1[1]
 
     @property
     def shape(self):
@@ -396,10 +400,8 @@ class Range(platform_base_classes.Range):
             return self.sheet.range((self.row, self.column + ncols))
 
     def __call__(self, row, col):
-        return Range(api=[[self.sheet.api['values'][row][col]]],
-                     sheet=self.sheet,
-                     row_ix=self.row + row - 1 ,
-                     col_ix=self.column + col - 1)
+        print(row, col)
+        return Range(sheet=self.sheet, api=self.sheet.api, arg1=(self.row + row - 1, self.column + col - 1))
 
 
 engine = Engine()
