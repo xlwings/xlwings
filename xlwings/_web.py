@@ -9,8 +9,7 @@ try:
 except ImportError:
     np = None
 
-from . import utils
-from . import platform_base_classes
+from . import utils, platform_base_classes
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +37,9 @@ def _clean_value_data_element(value, datetime_builder, empty_as, number_builder)
     if isinstance(value, str):
         pattern = r'^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$'
         if re.compile(pattern).match(value):
-            value = dt.datetime.fromisoformat(value[:-1])  # cutting off "Z" (Excel doesn't support time-zones)
+            value = dt.datetime.fromisoformat(
+                value[:-1]
+            )  # cutting off "Z" (Excel doesn't support time-zones)
         else:
             value = value
     if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:
@@ -72,6 +73,18 @@ def prepare_xl_data_element(x):
 
 
 Engine.prepare_xl_data_element = staticmethod(prepare_xl_data_element)
+
+
+def generate_response(**kwargs):
+    return {
+        'data': kwargs.get('data'),
+        'sheet_name': kwargs.get('sheet_name'),
+        'start_row': kwargs.get('start_row'),
+        'start_column': kwargs.get('start_column'),
+        'row_count': kwargs.get('row_count'),
+        'column_count': kwargs.get('column_count'),
+        'func': kwargs.get('func'),
+    }
 
 
 class Apps:
@@ -199,7 +212,12 @@ class Sheet:
 
     @property
     def cells(self):
-        return Range(sheet=self, api=self.api, arg1=(1, 1), arg2=(len(self.api['values']), len(self.api['values'][0])))
+        return Range(
+            sheet=self,
+            api=self.api,
+            arg1=(1, 1),
+            arg2=(len(self.api['values']), len(self.api['values'][0])),
+        )
 
 
 class Range(platform_base_classes.Range):
@@ -235,10 +253,15 @@ class Range(platform_base_classes.Range):
     @lru_cache(None)
     def api(self):
         if self.arg2:
-            values = [row[self.arg1[1] - 1 : self.arg2[1]] for row in self._api['values'][self.arg1[0] - 1 : self.arg2[0]]]
+            values = [
+                row[self.arg1[1] - 1 : self.arg2[1]]
+                for row in self._api['values'][self.arg1[0] - 1 : self.arg2[0]]
+            ]
             if not values:
                 # Outside the used range
-                values = [[None] * (self.arg2[1] + 1 - self.arg1[1])] * (self.arg2[0] + 1 - self.arg1[0])
+                values = [[None] * (self.arg2[1] + 1 - self.arg1[1])] * (
+                    self.arg2[0] + 1 - self.arg1[0]
+                )
             return values
         else:
             try:
@@ -273,14 +296,27 @@ class Range(platform_base_classes.Range):
     def raw_value(self, value):
         data = [[value]] if not isinstance(value, list) else value
         self.sheet.book._json.append(
-            {
-                'data': data,
-                'sheet_name': self.sheet.name,
-                'start_row': self.row - 1,
-                'start_column': self.column - 1,
-                'row_count': len(data),
-                'column_count': len(data[0]),
-            }
+            generate_response(
+                data=data,
+                sheet_name=self.sheet.name,
+                start_row=self.row - 1,
+                start_column=self.column - 1,
+                row_count=len(data),
+                column_count=len(data[0]),
+            )
+        )
+
+    def clear_contents(self):
+        nrows, ncols = self.shape
+        self.sheet.book._json.append(
+            generate_response(
+                sheet_name=self.sheet.name,
+                start_row=self.row - 1,
+                start_column=self.column - 1,
+                row_count=nrows,
+                column_count=ncols,
+                func='clear_contents',
+            )
         )
 
     @property
@@ -328,7 +364,9 @@ class Range(platform_base_classes.Range):
         return len(self.api) * len(self.api[0])
 
     def __call__(self, row, col):
-        return Range(sheet=self.sheet, api=self.sheet.api, arg1=(self.row + row - 1, self.column + col - 1))
+        return Range(
+            sheet=self.sheet, api=self.sheet.api, arg1=(self.row + row - 1, self.column + col - 1)
+        )
 
 
 engine = Engine()
