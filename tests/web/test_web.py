@@ -1,5 +1,4 @@
 """TODO
-* expand
 * clear_contents
 * accept dicts and json
 """
@@ -99,13 +98,19 @@ def test_range_offset(book):
 
 
 def test_expand(book):
-    sheet = book.sheets[0]
-    assert sheet['A1'].expand().address == '$A$1:$C$3'
-    assert sheet['A1'].expand().value == [['a', 'b', 'c'], [1., 2., 3.], [4., 5., 6.]]
-    assert sheet['B1'].expand().address == '$B$1:$C$3'
-    assert sheet['B1'].expand().value == [['b', 'c'], [2., 3.], [5., 6.]]
-    assert sheet['C3'].expand().address == '$C$3'
-    assert sheet['C3'].expand().value == 6.
+    sheet1 = book.sheets[0]
+    assert sheet1['A1'].expand().address == '$A$1:$C$3'
+    assert sheet1['A1'].expand().value == [['a', 'b', 'c'], [1., 2., 3.], [4., 5., 6.]]
+    assert sheet1['B1'].expand().address == '$B$1:$C$3'
+    assert sheet1['B1'].expand().value == [['b', 'c'], [2., 3.], [5., 6.]]
+    assert sheet1['C3'].expand().address == '$C$3'
+    assert sheet1['C3'].expand().value == 6.
+
+    # Edge case (no more rows/cols after expanded range
+    sheet2 = book.sheets[1]
+    assert sheet2['A1'].expand().value == [['aa', 'bb'], [11., 22.]]
+    assert sheet2['A1'].expand().address == '$A$1:$B$2'
+
 
 # Conversion
 def test_numpy_array(book):

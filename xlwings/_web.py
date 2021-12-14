@@ -282,7 +282,7 @@ class Sheet:
 
     @property
     def cells(self):
-        return Range(api=self.api['values'], sheet=self, row_ix=1, col_ix=1)
+        return Range(sheet=self, api=self.api, arg1=(1, 1), arg2=(len(self.api['values']), len(self.api['values'][0])))
 
 
 class Range(platform_base_classes.Range):
@@ -386,19 +386,25 @@ class Range(platform_base_classes.Range):
         if direction == 'down':
             i = 1
             while True:
-                if self.sheet.api['values'][self.row - 1 + i][self.column - 1]:
-                    i += 1
-                else:
-                    break
+                try:
+                    if self.sheet.api['values'][self.row - 1 + i][self.column - 1]:
+                        i += 1
+                    else:
+                        break
+                except IndexError:
+                    break  # outside of used range
             nrows = i - 1
             return self.sheet.range((self.row + nrows, self.column))
         if direction == 'right':
             i = 1
             while True:
-                if self.sheet.api['values'][self.row - 1][self.column - 1 + i]:
-                    i += 1
-                else:
-                    break
+                try:
+                    if self.sheet.api['values'][self.row - 1][self.column - 1 + i]:
+                        i += 1
+                    else:
+                        break
+                except IndexError:
+                    break  # outside of used range
             ncols = i - 1
             return self.sheet.range((self.row, self.column + ncols))
 
