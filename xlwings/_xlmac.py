@@ -68,6 +68,9 @@ class Apps:
     def keys(self):
         return list(self._iter_excel_instances())
 
+    def add(self, spec=None, add_book=None, visible=None):
+        return App(spec=spec, add_book=add_book, visible=visible)
+
     def __iter__(self):
         for pid in self._iter_excel_instances():
             yield App(xl=pid)

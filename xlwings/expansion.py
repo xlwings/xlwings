@@ -35,23 +35,23 @@ class TableExpander(Expander):
 
         if origin.has_array:
             bottom_left = origin.end('down')
-        elif origin.offset(1, 0).raw_value in _empty:
+        elif origin(2, 1).raw_value in _empty:
             bottom_left = origin
-        elif origin.offset(2, 0).raw_value in _empty:
-            bottom_left = origin.offset(1, 0)
+        elif origin(3, 1).raw_value in _empty:
+            bottom_left = origin(2, 1)
         else:
-            bottom_left = origin.offset(1, 0).end('down')
+            bottom_left = origin(2, 1).end('down')
 
         if origin.has_array:
             top_right = origin.end('right')
-        elif origin.offset(0, 1).raw_value in _empty:
+        elif origin(1, 2).raw_value in _empty:
             top_right = origin
-        elif origin.offset(0, 2).raw_value in _empty:
-            top_right = origin.offset(0, 1)
+        elif origin(1, 3).raw_value in _empty:
+            top_right = origin(1, 2)
         else:
-            top_right = origin.offset(0, 1).end('right')
+            top_right = origin(1, 2).end('right')
 
-        return Range((origin.row, origin.column), (bottom_left.row, top_right.column))
+        return Range(top_right, bottom_left)
 
 
 TableExpander().register('table')

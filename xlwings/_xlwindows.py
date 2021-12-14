@@ -309,6 +309,9 @@ class Apps:
             k.append(App(xl=hwnd).pid)
         return k
 
+    def add(self, spec=None, add_book=None, xl=None, visible=None):
+        return App(spec=spec, add_book=add_book, xl=xl, visible=visible)
+
     def __iter__(self):
         for hwnd in get_excel_hwnds():
             yield App(xl=hwnd)

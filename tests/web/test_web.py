@@ -16,7 +16,7 @@ from xlwings.web import Book
 this_dir = Path(__file__).resolve().parent
 
 data = {
-    'book': {'name': 'mybook.xlsx',
+    'book': {'name': 'web.xlsx',
              'active_sheet_index': 0},
     'sheets': [
         {
@@ -71,7 +71,6 @@ def test_range_shortcut(book):
 
 def test_range_from_range(book):
     sheet = book.sheets[0]
-    assert sheet.range(sheet.range((1, 1))).value == 'a'
     assert sheet.range(sheet.range((1, 1)), sheet.range((3, 1))).value == ['a', 1., 4.]
     assert sheet.range(sheet.range('C1'), sheet.range('C3')).value == ['c', 3., 6.]
     assert sheet.range(sheet.range('A1'), sheet.range('C3')).value == [['a', 'b', 'c'], [1., 2., 3.], [4., 5., 6.]]
@@ -81,7 +80,9 @@ def test_range_from_range(book):
 def test_range_round_indexing(book):
     sheet = book.sheets[0]
     assert sheet['B2:C3'](1, 1).value == 2.
+    assert sheet['B2:C3'](1, 1).address == '$B$2'
     assert sheet['B2:C3'](2, 1).value == 5.
+    assert sheet['B2:C3'](2, 1).address == '$B$3'
 
 
 def test_range_square_indexing(book):
@@ -141,4 +142,4 @@ def test_sheets_iteration(book):
 
 # book name
 def test_book(book):
-    assert book.name == 'mybook.xlsx'
+    assert book.name == 'web.xlsx'

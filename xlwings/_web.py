@@ -396,7 +396,7 @@ class Range(platform_base_classes.Range):
             return self.sheet.range((self.row, self.column + ncols))
 
     def __call__(self, row, col):
-        return Range(api=[[self.sheet.api['values'][row - 1][col - 1]]],
+        return Range(api=[[self.sheet.api['values'][row][col]]],
                      sheet=self.sheet,
                      row_ix=self.row + row - 1 ,
                      col_ix=self.column + col - 1)
