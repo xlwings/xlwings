@@ -271,12 +271,15 @@ class Range(platform_base_classes.Range):
 
     @raw_value.setter
     def raw_value(self, value):
+        data = [[value]] if not isinstance(value, list) else value
         self.sheet.book._json.append(
             {
-                'data': [[value]] if not isinstance(value, list) else value,
+                'data': data,
                 'sheet_name': self.sheet.name,
-                'start_row': self.coords[1] - 1,
-                'start_column': self.coords[2] - 1
+                'start_row': self.row - 1,
+                'start_column': self.column - 1,
+                'row_count': len(data),
+                'column_count': len(data[0]),
             }
         )
 
