@@ -1,6 +1,5 @@
 import re
 import json
-import numbers
 import datetime as dt
 import logging
 from functools import lru_cache
@@ -79,15 +78,6 @@ class Apps:
     def __init__(self):
         self._apps = [App(self)]
 
-    def __iter__(self):
-        return iter(self._apps)
-
-    def __len__(self):
-        return len(self._apps)
-
-    def __getitem__(self, index):
-        return self._apps[index]
-
     def add(self, **kwargs):
         self._apps.insert(0, App(self, **kwargs))
         return self._apps[0]
@@ -109,9 +99,6 @@ class App:
     def engine(self):
         return engine
 
-    def activate(self, steal_focus=False):
-        raise NotImplementedError()
-
     @property
     def books(self):
         return self._books
@@ -120,52 +107,19 @@ class App:
     def pid(self):
         return self._pid
 
-    def kill(self):
-        self.apps._apps.remove(self)
-        self.apps = None
-
-    def range(self, arg1, arg2=None):
-        # TODO: better implementation
-        return self.books.active.sheets.active.range(arg1)
-
 
 class Books:
     def __init__(self, app):
         self.app = app
         self.books = []
-        self.active = None
 
     def open(self, json):
         book = Book(api=json, books=self)
         self.books.append(book)
-        self.active = book
         return book
-
-    @property
-    def api(self):
-        return None
 
     def add(self, json):
-        book = Book(api=json, books=self)
-        self.books.append(book)
-        self.active = book
-        return book
-
-    def __call__(self, name_or_index):
-        if isinstance(name_or_index, numbers.Number):
-            return self.books[name_or_index - 1]
-        else:
-            book = self._try_find_book_by_name(name_or_index)
-            if book is None:
-                raise KeyError(name_or_index)
-            return book
-
-    def __len__(self):
-        return len(self.books)
-
-    def __iter__(self):
-        for book in self.books:
-            yield book
+        pass
 
 
 class Book:
@@ -193,19 +147,6 @@ class Book:
     def app(self):
         return self.books.app
 
-    @property
-    def index(self):
-        return self.app.books.index(self)
-
-    def close(self):
-        assert self.api is not None, "Seems this book was already closed."
-        self.books.books.remove(self)
-        self.books = None
-        self.api = None
-
-    def save(self, path=None):
-        pass
-
 
 class Sheets:
     def __init__(self, api, book):
@@ -217,7 +158,6 @@ class Sheets:
         return Sheet(api=self.api[self.book.api['book']['active_sheet_index']], sheets=self)
 
     def __call__(self, name_or_index):
-        api = None
         if isinstance(name_or_index, int):
             api = self.api[name_or_index - 1]
         else:
@@ -240,9 +180,6 @@ class Sheets:
         for sheet in self.api:
             yield Sheet(api=sheet, sheets=self)
 
-    # def add(self, before=None, after=None):
-    #     return Sheet(api=self.book.api.create_sheet(), sheets=self)
-
 
 class Sheet:
     def __init__(self, api, sheets):
@@ -253,32 +190,12 @@ class Sheet:
     def name(self):
         return self.api['name']
 
-    @name.setter
-    def name(self, value):
-        self.api.title = value
-
     @property
     def book(self):
         return self.sheets.book
 
-    @property
-    def index(self):
-        return self.sheets.book.index(self.api)
-
     def range(self, arg1, arg2=None):
         return Range(sheet=self, api=self.api, arg1=arg1, arg2=arg2)
-
-    def activate(self):
-        self.sheets.book.api.active_sheet = self.sheets.book.api.index(self.api)
-
-    def select(self):
-        self.sheets.book.api.active_sheet = self.sheets.book.api.index(self.api)
-
-    def clear(self):
-        return NotImplementedError()
-
-    def autofit(self, axis=None):
-        logger.warning("Autofit doesn't do anything in openpyxl engine.")
 
     @property
     def cells(self):
@@ -293,7 +210,6 @@ class Range(platform_base_classes.Range):
             cell2 = arg2.coords[1], arg2.coords[2]
             arg1 = min(cell1[0], cell2[0]), min(cell1[1], cell2[1])
             arg2 = max(cell1[0], cell2[0]), max(cell1[1], cell2[1])
-
         # A1 notation
         if isinstance(arg1, str):
             # A1 notation
@@ -335,9 +251,6 @@ class Range(platform_base_classes.Range):
     @property
     def coords(self):
         return self.sheet.name, self.row, self.column, len(self.api), len(self.api[0])
-
-    def __len__(self):
-        return len(self.api) * len(self.api[0])
 
     @property
     def row(self):
@@ -407,6 +320,9 @@ class Range(platform_base_classes.Range):
                     break  # outside of used range
             ncols = i - 1
             return self.sheet.range((self.row, self.column + ncols))
+
+    def __len__(self):
+        return len(self.api) * len(self.api[0])
 
     def __call__(self, row, col):
         return Range(sheet=self.sheet, api=self.sheet.api, arg1=(self.row + row - 1, self.column + col - 1))
