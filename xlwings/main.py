@@ -465,8 +465,9 @@ class App:
         3
         
         Types are supported too:
-        
+
         .. code-block:: vb.net
+        
             Function MySum(x as integer, y as integer)
                 MySum = x + y
             End Function            
@@ -480,8 +481,9 @@ class App:
         However typed arrays are not supported. So the following won't work
         
         .. code-block:: vb.net
+
         Function MySum(arr() as integer)
-            ''' code here
+            # code here
         End Function
             
         See also: :meth:`Book.macro`
