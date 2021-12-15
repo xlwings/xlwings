@@ -480,7 +480,6 @@ class App:
         However typed arrays are not supported. So the following won't work
         
         .. code-block:: vb.net
-
         Function MySum(arr() as integer)
             ''' code here
         End Function
