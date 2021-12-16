@@ -108,6 +108,8 @@ def sub(df, filter_args):
 
 
 def maxrows(df, filter_args):
+    if df.empty:
+        return df
     if len(df) > filter_args[0].as_const():
         splitrow = filter_args[0].as_const() - 1
         other = df.iloc[splitrow:, :].sum(numeric_only=True)
@@ -120,6 +122,8 @@ def maxrows(df, filter_args):
 
 
 def aggsmall(df, filter_args):
+    if df.empty:
+        return df
     threshold = filter_args[0].as_const()
     col_ix = filter_args[1].as_const()
     other_name = filter_args[2].as_const()
