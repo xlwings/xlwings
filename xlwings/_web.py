@@ -262,6 +262,8 @@ class Range(platform_base_classes.Range):
                 values = [[None] * (self.arg2[1] + 1 - self.arg1[1])] * (
                     self.arg2[0] + 1 - self.arg1[0]
                 )
+            # Extend range if it is outside of used range
+            # row_delta, col_delta = self.arg2[0] - len(values), self.arg2[1] - len(values[0])
             return values
         else:
             try:
@@ -285,7 +287,10 @@ class Range(platform_base_classes.Range):
 
     @property
     def shape(self):
-        return len(self.api), len(self.api[0])
+        if self.arg2:
+            return self.arg2[0] - self.arg1[0] + 1, self.arg2[1] - self.arg1[1] + 1
+        else:
+            return 1, 1
 
     @property
     def raw_value(self):
@@ -361,7 +366,8 @@ class Range(platform_base_classes.Range):
             return self.sheet.range((self.row, self.column + ncols))
 
     def __len__(self):
-        return len(self.api) * len(self.api[0])
+        nrows, ncols = self.shape
+        return nrows * ncols
 
     def __call__(self, row, col):
         return Range(

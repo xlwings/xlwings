@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 import xlwings as xw
-from xlwings.web import Book
+from xlwings import web
 
 this_dir = Path(__file__).resolve().parent
 
@@ -36,7 +36,8 @@ data = {
 
 @pytest.fixture(scope="module")
 def book():
-    book = Book(json=data)
+    book = web.Book(json=data)
+    # book = xw.Book('web.xlsx')
     yield book
 
 
@@ -89,12 +90,15 @@ def test_range_square_indexing(book):
     assert sheet['B2:C3'][0, 0].value == 2.
     assert sheet['B2:C3'][1, 0].value == 5.
 
+
 def test_range_resize(book):
-    pass  # TODO
+    sheet1 = book.sheets[0]
+    assert sheet1['A1'].resize(row_size=2, column_size=3).address == '$A$1:$C$2'
+    assert sheet1['A1'].resize(row_size=4, column_size=5).address == '$A$1:$E$4'  # outside of used range
 
 
 def test_range_offset(book):
-    pass  # TODO
+    pass
 
 
 def test_expand(book):
