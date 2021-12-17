@@ -1,6 +1,6 @@
 # Activate one of the following two lines
-# engine = 'web'
-engine = 'excel'
+engine = 'web'
+# engine = 'excel'
 
 from pathlib import Path
 
@@ -19,7 +19,7 @@ data = {
             'name': 'Sheet1',
             'values': [
                 ['a', 'b', 'c', ''],
-                [1.0, 2.0, 3.0, '2021-01-01T00:00:00.000Z'],
+                [1.0, 2.0, 3.0, '2021-01-01T00:00:00Z'],
                 [4.0, 5.0, 6.0, ''],
                 ['', '', '', ''],
             ],
@@ -103,7 +103,9 @@ def test_range_resize(book):
 
 
 def test_range_offset(book):
-    pass
+    sheet1 = book.sheets[0]
+    assert sheet1['A1'].offset(row_offset=2, column_offset=3).address == '$D$3'
+    assert sheet1['A1'].offset(row_offset=10, column_offset=10).address == '$K$11'
 
 
 def test_expand(book):
