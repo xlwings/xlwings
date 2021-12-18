@@ -1,4 +1,4 @@
-"""Generates the JSON structure as returned Excel online, excep that the timestamp would have a few more zeroes"""
+"""Generates the JSON structure as returned by Excel online"""
 
 import json
 
@@ -19,4 +19,4 @@ for sheet in book.sheets:
         }
     )
 
-print(json.loads(json.dumps(data, default=lambda d: d.isoformat() + 'Z')))
+print(json.loads(json.dumps(data, default=lambda d: d.isoformat() + '.000Z')))
