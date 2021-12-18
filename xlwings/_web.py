@@ -91,6 +91,9 @@ class Apps:
     def __init__(self):
         self._apps = [App(self)]
 
+    def __iter__(self):
+        return iter(self._apps)
+
     def add(self, **kwargs):
         self._apps.insert(0, App(self, **kwargs))
         return self._apps[0]
@@ -106,7 +109,11 @@ class App:
         App._next_pid -= 1
         self._books = Books(self)
         if add_book:
-            self._books.add(json=[])
+            self._books.add()
+
+    def kill(self):
+        self.apps._apps.remove(self)
+        self.apps = None
 
     @property
     def engine(self):
@@ -125,14 +132,38 @@ class Books:
     def __init__(self, app):
         self.app = app
         self.books = []
+        self._active = None
+
+    @property
+    def active(self):
+        return self._active
 
     def open(self, json):
         book = Book(api=json, books=self)
         self.books.append(book)
         return book
 
-    def add(self, json):
-        pass
+    def add(self):
+        book = Book(
+            api={
+                'book': {'name': 'Book1.xlsx', 'active_sheet_index': 0},
+                'sheets': [
+                    {
+                        'name': 'Sheet1',
+                        'values': [
+                            []
+                        ],
+                    },
+                ],
+            },
+            books=self,
+        )
+        self.books.append(book)
+        self._active = book
+        return book
+
+    def __len__(self):
+        return len(self.books)
 
 
 class Book:
@@ -185,6 +216,10 @@ class Sheets:
             raise ValueError(f"Sheet '{name_or_index}' doesn't exist!")
         else:
             return Sheet(api=api, sheets=self)
+
+    def add(self, before=None, after=None):
+        # TODO: before, after
+        self.api.append({'name': f'Sheet{len(self) + 1}', 'values': [[]]})
 
     def __len__(self):
         return len(self.api)
@@ -369,10 +404,16 @@ class Range(platform_base_classes.Range):
         nrows, ncols = self.shape
         return nrows * ncols
 
-    def __call__(self, row, col):
-        return Range(
-            sheet=self.sheet, api=self.sheet.api, arg1=(self.row + row - 1, self.column + col - 1)
-        )
+    def __call__(self, arg1, arg2=None):
+        if arg2 is None:
+            col = (arg1 - 1) % self.shape[1]
+            row = int((arg1 - 1 - col) / self.shape[1])
+            return self(row + 1, col + 1)
+        else:
+            return Range(
+                sheet=self.sheet, api=self.sheet.api, arg1=(self.row + arg1 - 1, self.column + arg2 - 1)
+            )
+
 
 
 engine = Engine()

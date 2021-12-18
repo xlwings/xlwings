@@ -88,10 +88,19 @@ def test_range_round_indexing(book):
     assert sheet['B2:C3'](2, 1).address == '$B$3'
 
 
-def test_range_square_indexing(book):
+def test_range_square_indexing_2d(book):
     sheet = book.sheets[0]
     assert sheet['B2:C3'][0, 0].value == 2.0
+    assert sheet['B2:C3'][0, 0].address == '$B$2'
     assert sheet['B2:C3'][1, 0].value == 5.0
+    assert sheet['B2:C3'][1, 0].address == '$B$3'
+
+
+def test_range_square_indexing_1d(book):
+    sheet1 = book.sheets[0]
+    r = sheet1.range('A1:B2')
+    assert r[0].address, '$A$1'
+    assert r(1).address, '$A$1'
 
 
 def test_range_resize(book):
@@ -127,6 +136,14 @@ def test_expand(book):
     sheet2 = book.sheets[1]
     assert sheet2['A1'].expand().value == [['aa', 'bb'], [11.0, 22.0]]
     assert sheet2['A1'].expand().address == '$A$1:$B$2'
+
+
+def test_len(book):
+    assert len(book.sheets[0]['A1:C4']) == 12
+
+
+def test_count(book):
+    assert len(book.sheets[0]['A1:C4']) == book.sheets[0]['A1:C4'].count
 
 
 # Conversion
