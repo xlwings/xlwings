@@ -277,7 +277,7 @@ class Range(platform_base_classes.Range):
             row, col, nrows, ncols = arg1
             arg1 = (row, col)
             if nrows > 1 or ncols > 1:
-                arg2 = (row + nrows, col + ncols)
+                arg2 = (row + nrows - 1, col + ncols - 1)
 
         self.arg1 = arg1  # 1-based tuple
         self.arg2 = arg2  # 1-based tuple

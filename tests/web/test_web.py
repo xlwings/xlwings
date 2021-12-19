@@ -103,6 +103,11 @@ def test_range_square_indexing_1d(book):
     assert r(1).address, '$A$1'
 
 
+def test_range_slice1(book):
+    r = book.sheets[0].range('B2:D4')
+    assert r[0:, 1:].address == '$C$2:$D$4'
+
+
 def test_range_resize(book):
     sheet1 = book.sheets[0]
     assert sheet1['A1'].resize(row_size=2, column_size=3).address == '$A$1:$C$2'
