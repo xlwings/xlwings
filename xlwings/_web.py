@@ -217,9 +217,13 @@ class Sheets:
         else:
             return Sheet(api=api, sheets=self)
 
-    def add(self, before=None, after=None):
+    def add(self, name=None, before=None, after=None):
         # TODO: before, after
-        self.api.append({'name': f'Sheet{len(self) + 1}', 'values': [[]]})
+        if name is None:
+            name = f'Sheet{len(self) + 1}'
+        api = {'name': f'{name}', 'values': [[]]}
+        self.api.append(api)
+        return Sheet(api=api, sheets=self)
 
     def __len__(self):
         return len(self.api)
@@ -237,6 +241,10 @@ class Sheet:
     @property
     def name(self):
         return self.api['name']
+
+    @name.setter
+    def name(self, value):
+        self.api['name'] = value
 
     @property
     def book(self):
