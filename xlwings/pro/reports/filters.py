@@ -70,16 +70,22 @@ def fontcolor(value=None, filter_list=None):
 
 # DataFrame filters
 def sortasc(df, filter_args):
+    if df.empty:
+        return df
     columns = [arg.as_const() for arg in filter_args]
     return df.sort_values(list(df.columns[columns]), ascending=True)
 
 
 def sortdesc(df, filter_args):
+    if df.empty:
+        return df
     columns = [arg.as_const() for arg in filter_args]
     return df.sort_values(list(df.columns[columns]), ascending=False)
 
 
 def mul(df, filter_args):
+    if df.empty:
+        return df
     value, col_ix = filter_args[0].as_const(), filter_args[1].as_const()
     fill_value = filter_args[2].as_const() if len(filter_args) > 2 else None
     df.iloc[:, col_ix] = df.iloc[:, col_ix].mul(value, fill_value=fill_value)
@@ -87,6 +93,8 @@ def mul(df, filter_args):
 
 
 def div(df, filter_args):
+    if df.empty:
+        return df
     value, col_ix = filter_args[0].as_const(), filter_args[1].as_const()
     fill_value = filter_args[2].as_const() if len(filter_args) > 2 else None
     df.iloc[:, col_ix] = df.iloc[:, col_ix].div(value, fill_value=fill_value)
@@ -94,6 +102,8 @@ def div(df, filter_args):
 
 
 def add(df, filter_args):
+    if df.empty:
+        return df
     value, col_ix = filter_args[0].as_const(), filter_args[1].as_const()
     fill_value = filter_args[2].as_const() if len(filter_args) > 2 else None
     df.iloc[:, col_ix] = df.iloc[:, col_ix].add(value, fill_value=fill_value)
@@ -101,6 +111,8 @@ def add(df, filter_args):
 
 
 def sub(df, filter_args):
+    if df.empty:
+        return df
     value, col_ix = filter_args[0].as_const(), filter_args[1].as_const()
     fill_value = filter_args[2].as_const() if len(filter_args) > 2 else None
     df.iloc[:, col_ix] = df.iloc[:, col_ix].sub(value, fill_value=fill_value)
@@ -146,14 +158,20 @@ def aggsmall(df, filter_args):
 
 
 def head(df, filter_args):
+    if df.empty:
+        return df
     return df.head(filter_args[0].as_const())
 
 
 def tail(df, filter_args):
+    if df.empty:
+        return df
     return df.tail(filter_args[0].as_const())
 
 
 def rowslice(df, filter_args):
+    if df.empty:
+        return df
     args = [arg.as_const() for arg in filter_args]
     if len(args) == 1:
         args.append(None)
@@ -170,6 +188,8 @@ def colslice(df, filter_args):
 
 
 def columns(df, filter_args):
+    if df.empty:
+        return df
     columns = [arg.as_const() for arg in filter_args]
     df = df.iloc[:, [col for col in columns if col is not None]]
     empty_col_indices = [i for i, v in enumerate(columns) if v is None]
