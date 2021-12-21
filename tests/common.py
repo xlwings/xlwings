@@ -4,6 +4,7 @@ import unittest
 import types
 
 import xlwings as xw
+import xlwings.web
 
 this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
 
@@ -36,17 +37,17 @@ class TestBase(unittest.TestCase):
     def setUp(self):
         self.wb1 = self.app1.books.add()
         self.wb2 = self.app2.books.add()
-        for wb in [self.wb1, self.wb2]:
-            if len(wb.sheets) == 1:
-                wb.sheets.add(after=1)
-                wb.sheets.add(after=2)
-                wb.sheets[0].select()
+        # for wb in [self.wb1, self.wb2]:
+        #     if len(wb.sheets) == 1:
+        #         wb.sheets.add(after=1)
+        #         wb.sheets.add(after=2)
+        #         wb.sheets[0].select()
 
-    def tearDown(self):
-        for app in [self.app1, self.app2]:
-            app.books[-1].close()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.app1.kill()
-        cls.app2.kill()
+    # def tearDown(self):
+    #     for app in [self.app1, self.app2]:
+    #         app.books[-1].close()
+    #
+    # @classmethod
+    # def tearDownClass(cls):
+    #     cls.app1.kill()
+    #     cls.app2.kill()
