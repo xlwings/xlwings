@@ -127,6 +127,14 @@ class App(platform_base_classes.App):
     def pid(self):
         return self._pid
 
+    @property
+    def visible(self):
+        return True
+
+    @visible.setter
+    def visible(self, value):
+        pass
+
 
 class Books(platform_base_classes.Books):
     def __init__(self, app):
