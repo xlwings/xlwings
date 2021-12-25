@@ -87,7 +87,7 @@ def generate_response(**kwargs):
     }
 
 
-class Apps:
+class Apps(platform_base_classes.Apps):
     def __init__(self):
         self._apps = [App(self)]
 
@@ -99,7 +99,7 @@ class Apps:
         return self._apps[0]
 
 
-class App:
+class App(platform_base_classes.App):
 
     _next_pid = -1
 
@@ -128,7 +128,7 @@ class App:
         return self._pid
 
 
-class Books:
+class Books(platform_base_classes.Books):
     def __init__(self, app):
         self.app = app
         self.books = []
@@ -166,11 +166,15 @@ class Books:
         return len(self.books)
 
 
-class Book:
+class Book(platform_base_classes.Book):
     def __init__(self, api, books):
-        self.api = api
+        self._api = api
         self.books = books
         self._json = []
+
+    @property
+    def api(self):
+        return self._api
 
     def json(self):
         return json.dumps(self._json, default=lambda d: d.isoformat())
@@ -192,21 +196,27 @@ class Book:
         return self.books.app
 
 
-class Sheets:
+class Sheets(platform_base_classes.Sheets):
     def __init__(self, api, book):
-        self.api = api
+        self._api = api
         self.book = book
 
     @property
     def active(self):
-        return Sheet(api=self.api[self.book.api['book']['active_sheet_index']], sheets=self)
+        ix = self.book.api['book']['active_sheet_index']
+        return Sheet(api=self.api[ix], sheets=self, index=ix + 1)
+
+    @property
+    def api(self):
+        return self._api
 
     def __call__(self, name_or_index):
         if isinstance(name_or_index, int):
             api = self.api[name_or_index - 1]
+            ix = name_or_index - 1
         else:
             api = None
-            for sheet in self.api:
+            for ix, sheet in enumerate(self.api):
                 if sheet['name'] == name_or_index:
                     api = sheet
                     break
@@ -215,28 +225,41 @@ class Sheets:
         if api is None:
             raise ValueError(f"Sheet '{name_or_index}' doesn't exist!")
         else:
-            return Sheet(api=api, sheets=self)
+            return Sheet(api=api, sheets=self, index=ix + 1)
 
-    def add(self, name=None, before=None, after=None):
-        # TODO: before, after
-        if name is None:
-            name = f'Sheet{len(self) + 1}'
-        api = {'name': f'{name}', 'values': [[]]}
-        self.api.append(api)
-        return Sheet(api=api, sheets=self)
+    def add(self, before=None, after=None):
+        default_name = f'Sheet{len(self) + 1}'
+        api = {'name': f'{default_name}', 'values': [[]]}
+        if before:
+            if before.index == 1:
+                ix = 1
+            else:
+                ix = before.index - 1
+        elif after:
+            ix = after.index + 1
+        else:
+            ix = 1
+        self.api.insert(ix - 1, api)
+        self.book.api['book']['active_sheet_index'] = ix - 1
+        return Sheet(api=api, sheets=self, index=ix)
 
     def __len__(self):
         return len(self.api)
 
     def __iter__(self):
-        for sheet in self.api:
-            yield Sheet(api=sheet, sheets=self)
+        for ix, sheet in enumerate(self.api):
+            yield Sheet(api=sheet, sheets=self, index=ix + 1)
 
 
-class Sheet:
-    def __init__(self, api, sheets):
-        self.api = api
+class Sheet(platform_base_classes.Sheet):
+    def __init__(self, api, sheets, index):
+        self._api = api
+        self._index = index
         self.sheets = sheets
+
+    @property
+    def api(self):
+        return self._api
 
     @property
     def name(self):
@@ -245,6 +268,10 @@ class Sheet:
     @name.setter
     def name(self, value):
         self.api['name'] = value
+
+    @property
+    def index(self):
+        return self._index
 
     @property
     def book(self):
@@ -261,6 +288,9 @@ class Sheet:
             arg1=(1, 1),
             arg2=(len(self.api['values']), len(self.api['values'][0])),
         )
+
+    def select(self):
+        self.book.api['book']['active_sheet_index'] = self.index - 1
 
 
 class Range(platform_base_classes.Range):
@@ -421,7 +451,6 @@ class Range(platform_base_classes.Range):
             return Range(
                 sheet=self.sheet, api=self.sheet.api, arg1=(self.row + arg1 - 1, self.column + arg2 - 1)
             )
-
 
 
 engine = Engine()

@@ -37,11 +37,11 @@ class TestBase(unittest.TestCase):
     def setUp(self):
         self.wb1 = self.app1.books.add()
         self.wb2 = self.app2.books.add()
-        # for wb in [self.wb1, self.wb2]:
-        #     if len(wb.sheets) == 1:
-        #         wb.sheets.add(after=1)
-        #         wb.sheets.add(after=2)
-        #         wb.sheets[0].select()
+        for wb in [self.wb1, self.wb2]:
+            if len(wb.sheets) == 1:
+                wb.sheets.add(after=1)
+                wb.sheets.add(after=2)
+                wb.sheets[0].select()
 
     # def tearDown(self):
     #     for app in [self.app1, self.app2]:
