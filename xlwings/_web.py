@@ -77,13 +77,14 @@ Engine.prepare_xl_data_element = staticmethod(prepare_xl_data_element)
 
 def generate_response(**kwargs):
     return {
+        'func': kwargs.get('func'),
+        'args': kwargs.get('args'),
         'data': kwargs.get('data'),
         'sheet_name': kwargs.get('sheet_name'),
         'start_row': kwargs.get('start_row'),
         'start_column': kwargs.get('start_column'),
         'row_count': kwargs.get('row_count'),
         'column_count': kwargs.get('column_count'),
-        'func': kwargs.get('func'),
     }
 
 
@@ -236,8 +237,14 @@ class Sheets(platform_base_classes.Sheets):
             return Sheet(api=api, sheets=self, index=ix + 1)
 
     def add(self, before=None, after=None):
-        default_name = f'Sheet{len(self) + 1}'
-        api = {'name': f'{default_name}', 'values': [[]]}
+        # Default naming logic is different from Desktop apps!
+        sheet_number = 1
+        while True:
+            if f'Sheet{sheet_number}' in [sheet.name for sheet in self]:
+                sheet_number += 1
+            else:
+                break
+        api = {'name': f'Sheet{sheet_number}', 'values': [[]]}
         if before:
             if before.index == 1:
                 ix = 1
@@ -248,7 +255,13 @@ class Sheets(platform_base_classes.Sheets):
         else:
             ix = 1
         self.api.insert(ix - 1, api)
+        self.book._json.append(
+            generate_response(
+                func='addSheet',
+            )
+        )
         self.book.api['book']['active_sheet_index'] = ix - 1
+
         return Sheet(api=api, sheets=self, index=ix)
 
     def __len__(self):
@@ -275,6 +288,13 @@ class Sheet(platform_base_classes.Sheet):
 
     @name.setter
     def name(self, value):
+        self.book._json.append(
+            generate_response(
+                func='setSheetName',
+                args=value,
+                sheet_name=self.name,
+            )
+        )
         self.api['name'] = value
 
     @property
@@ -383,6 +403,7 @@ class Range(platform_base_classes.Range):
         data = [[value]] if not isinstance(value, list) else value
         self.sheet.book._json.append(
             generate_response(
+                func='setValues',
                 data=data,
                 sheet_name=self.sheet.name,
                 start_row=self.row - 1,
@@ -396,12 +417,12 @@ class Range(platform_base_classes.Range):
         nrows, ncols = self.shape
         self.sheet.book._json.append(
             generate_response(
+                func='clearContents',
                 sheet_name=self.sheet.name,
                 start_row=self.row - 1,
                 start_column=self.column - 1,
                 row_count=nrows,
                 column_count=ncols,
-                func='clear_contents',
             )
         )
 
