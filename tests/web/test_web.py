@@ -1,7 +1,4 @@
 # TODO:
-# Refer to sheet via index as changed name won't synchronize sometimes except if you force it by calling console.log
-# That's problem when adding a new sheet with name=...
-#
 # setting values via [0, 0] syntax on a newly added sheet fails (A1 is ok)
 
 # Activate one of the following two lines

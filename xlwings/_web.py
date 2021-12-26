@@ -80,7 +80,7 @@ def generate_response(**kwargs):
         'func': kwargs.get('func'),
         'args': kwargs.get('args'),
         'data': kwargs.get('data'),
-        'sheet_name': kwargs.get('sheet_name'),
+        'sheet_position': kwargs.get('sheet_position'),
         'start_row': kwargs.get('start_row'),
         'start_column': kwargs.get('start_column'),
         'row_count': kwargs.get('row_count'),
@@ -253,7 +253,8 @@ class Sheets(platform_base_classes.Sheets):
         elif after:
             ix = after.index + 1
         else:
-            ix = 1
+            # Default position is different from Desktop apps!
+            ix = len(self) + 1
         self.api.insert(ix - 1, api)
         self.book._json.append(
             generate_response(
@@ -292,7 +293,7 @@ class Sheet(platform_base_classes.Sheet):
             generate_response(
                 func='setSheetName',
                 args=value,
-                sheet_name=self.name,
+                sheet_position=self.index - 1,
             )
         )
         self.api['name'] = value
@@ -405,7 +406,7 @@ class Range(platform_base_classes.Range):
             generate_response(
                 func='setValues',
                 data=data,
-                sheet_name=self.sheet.name,
+                sheet_position=self.sheet.index - 1,
                 start_row=self.row - 1,
                 start_column=self.column - 1,
                 row_count=len(data),
@@ -418,7 +419,7 @@ class Range(platform_base_classes.Range):
         self.sheet.book._json.append(
             generate_response(
                 func='clearContents',
-                sheet_name=self.sheet.name,
+                sheet_position=self.sheet.index - 1,
                 start_row=self.row - 1,
                 start_column=self.column - 1,
                 row_count=nrows,
