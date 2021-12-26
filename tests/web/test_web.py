@@ -1,6 +1,3 @@
-# TODO:
-# setting values via [0, 0] syntax on a newly added sheet fails (A1 is ok)
-
 # Activate one of the following two lines
 engine = 'web'
 # engine = 'excel'

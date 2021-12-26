@@ -315,7 +315,7 @@ class Sheet(platform_base_classes.Sheet):
             sheet=self,
             api=self.api,
             arg1=(1, 1),
-            arg2=(len(self.api['values']), len(self.api['values'][0])),
+            arg2=(1_048_576, 16_384),
         )
 
     def select(self):
