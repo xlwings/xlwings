@@ -95,6 +95,12 @@ class Apps(platform_base_classes.Apps):
     def __iter__(self):
         return iter(self._apps)
 
+    def __len__(self):
+        return len(self._apps)
+
+    def __getitem__(self, index):
+        return self._apps[index]
+
     def add(self, **kwargs):
         self._apps.insert(0, App(self, **kwargs))
         return self._apps[0]

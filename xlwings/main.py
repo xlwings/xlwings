@@ -773,8 +773,7 @@ class Book:
                  add_to_mru=None, local=None, corrupt_load=None, impl=None, json=None):
         if not impl:
             if json:
-                app = App(add_book=False)
-                impl = app.books.open(json=json)
+                impl = engines['web'].apps[-1].books.open(json=json)
                 self.json = impl.json
             elif fullname:
                 fullname = utils.fspath(fullname)
