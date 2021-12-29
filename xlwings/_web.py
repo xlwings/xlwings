@@ -156,6 +156,7 @@ class Books(platform_base_classes.Books):
     def open(self, json):
         book = Book(api=json, books=self)
         self.books.append(book)
+        self._active = book
         return book
 
     def add(self):
@@ -179,6 +180,10 @@ class Books(platform_base_classes.Books):
 
     def __len__(self):
         return len(self.books)
+
+    def __iter__(self):
+        for book in self.books:
+            yield book
 
 
 class Book(platform_base_classes.Book):

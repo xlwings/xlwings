@@ -4428,7 +4428,7 @@ class Books(Collection):
 
         """
         if json:
-            return self.impl.open(json=json)
+            return Book(impl=self.impl.open(json=json))
         fullname = utils.fspath(fullname)
         if not os.path.exists(fullname):
             raise FileNotFoundError("No such file: '%s'" % fullname)
