@@ -56,7 +56,6 @@ if np:
 
 N_COM_ATTEMPTS = 0      # 0 means try indefinitely
 BOOK_CALLER = None
-USER_CONFIG_FILE = os.path.join(os.path.expanduser("~"), '.xlwings', 'xlwings.conf')
 missing = object()
 
 
@@ -292,7 +291,8 @@ def is_range_instance(xl_range):
     return xl_range._oleobj_.GetTypeInfo().GetTypeAttr().iid == pywintypes.IID('{00020846-0000-0000-C000-000000000046}')
     # return pyid.GetTypeInfo().GetDocumentation(-1)[0] == 'Range'
 
-class Engine(object):
+
+class Engine:
 
     @property
     def apps(self):
@@ -301,6 +301,7 @@ class Engine(object):
     @property
     def name(self):
         return "Excel"
+
 
 class Apps:
     def keys(self):

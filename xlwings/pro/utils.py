@@ -31,7 +31,7 @@ class LicenseHandler:
         except:
             pass
         # User config file
-        config_file = xlwings.xlplatform.USER_CONFIG_FILE
+        config_file = xlwings.USER_CONFIG_FILE
         if os.path.exists(config_file):
             with open(config_file, 'r') as f:
                 config = f.readlines()

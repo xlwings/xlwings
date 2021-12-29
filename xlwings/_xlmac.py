@@ -31,8 +31,6 @@ try:
 except ImportError:
     PIL = None
 
-USER_CONFIG_FILE = os.path.join(os.path.expanduser("~"), 'Library', 'Containers',
-                                'com.microsoft.Excel', 'Data', 'xlwings.conf')
 
 # Time types
 time_types = (dt.date, dt.datetime)
@@ -40,9 +38,7 @@ if np:
     time_types = time_types + (np.datetime64,)
 
 
-
-class Engine(object):
-
+class Engine:
     @property
     def apps(self):
         return Apps()

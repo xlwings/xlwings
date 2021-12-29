@@ -4,7 +4,6 @@ from collections import OrderedDict
 
 from . import Pipeline, Converter, Options, Accessor, accessors
 
-#from .. import xlplatform
 from ..main import Range
 from .. import LicenseError
 from ..utils import chunk

@@ -1,3 +1,4 @@
+import os
 import sys
 from functools import wraps
 
@@ -5,15 +6,11 @@ from functools import wraps
 __version__ = 'dev'
 
 # Platform specifics
-if sys.platform.startswith('win'):
-    from . import _xlwindows as xlplatform
-elif sys.platform.startswith('darwin'):
-    from . import _xlmac as xlplatform
+if sys.platform.startswith('darwin'):
+    USER_CONFIG_FILE = os.path.join(os.path.expanduser("~"), 'Library', 'Containers',
+                                    'com.microsoft.Excel', 'Data', 'xlwings.conf')
 else:
-    from . import _web as xlplatform
-
-time_types = xlplatform.time_types
-USER_CONFIG_FILE = xlplatform.USER_CONFIG_FILE
+    USER_CONFIG_FILE = os.path.join(os.path.expanduser("~"), '.xlwings', 'xlwings.conf')
 
 
 # Errors

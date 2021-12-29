@@ -17,7 +17,7 @@ import warnings
 from pathlib import Path
 from contextlib import contextmanager
 
-from . import xlplatform, ShapeAlreadyExists, utils, XlwingsError
+from . import ShapeAlreadyExists, utils, XlwingsError
 import xlwings
 
 # Optional imports
@@ -106,8 +106,7 @@ class Collection:
         )
 
 
-class Engines(object):
-
+class Engines:
     def __init__(self):
         self.active = None
         self.engines = []
@@ -117,17 +116,15 @@ class Engines(object):
         self.engines.append(engine)
         self.engines_by_name[engine.name] = engine
 
+    @property
+    def count(self):
+        return len(self)
+
     def __call__(self, name_or_index):
         if isinstance(name_or_index, numbers.Number):
-            return self.engines[name_or_index-1]
+            return self.engines[name_or_index - 1]
         else:
             return self.engines_by_name[name_or_index]
-
-    def __repr__(self):
-        return '{}({})'.format(
-            self.__class__.__name__,
-            repr(list(self))
-        )
 
     def __getitem__(self, name_or_index):
         if isinstance(name_or_index, numbers.Number):
@@ -138,21 +135,18 @@ class Engines(object):
     def __len__(self):
         return len(self.engines)
 
-    @property
-    def count(self):
-        """
-        Returns the number of apps.
-
-        .. versionadded:: 0.9.0
-        """
-        return len(self)
-
     def __iter__(self):
         for engine in self.engines:
             yield engine
 
+    def __repr__(self):
+        return '{}({})'.format(
+            self.__class__.__name__,
+            repr(list(self))
+        )
 
-class Engine(object):
+
+class Engine:
 
     def __init__(self, impl):
         self.impl = impl
@@ -165,11 +159,11 @@ class Engine(object):
     def name(self):
         return self.impl.name
 
-    def __repr__(self):
-        return "<%s Engine>" % self.name
-
     def activate(self):
         engines.active = self
+
+    def __repr__(self):
+        return "<%s Engine>" % self.name
 
 
 class Apps:
@@ -747,7 +741,7 @@ class Book:
     ignore_read_only_recommended : bool, default False
         Set to ``True`` to mute the read-only recommended message
     origin : int
-        For text files only. Specifies where it originated. Use XlPlatform constants.
+        For text files only. Specifies where it originated. Use Platform constants.
     delimiter : str
         If format argument is 6, this specifies the delimiter.
     editable : bool, default False
