@@ -303,6 +303,9 @@ class Engine:
         return "Excel"
 
 
+engine = Engine()
+
+
 class Apps:
     def keys(self):
         k = []
@@ -359,6 +362,10 @@ class App:
         self._xl = value
 
     api = xl
+
+    @property
+    def engine(self):
+        return engine
 
     @property
     def selection(self):
@@ -1231,6 +1238,9 @@ def clean_value_data(data, datetime_builder, empty_as, number_builder):
         ]
 
 
+Engine.clean_value_data = staticmethod(clean_value_data)
+
+
 def _com_time_to_datetime(com_time, datetime_builder):
     """
     This function is a modified version from Pyvot (https://pypi.python.org/pypi/Pyvot)
@@ -1309,6 +1319,9 @@ def prepare_xl_data_element(x):
         return ""
     else:
         return x
+
+
+Engine.prepare_xl_data_element = staticmethod(prepare_xl_data_element)
 
 
 class Shape:

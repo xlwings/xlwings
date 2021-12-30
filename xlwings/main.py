@@ -848,16 +848,16 @@ class Book:
         elif from_xl == '1':
             name = wb.lower()
             if sys.platform.startswith('win'):
-                app = App(impl=xlplatform.App(xl=int(hwnd)))
+                app = App(impl=xlwings._xlwindows.App(xl=int(hwnd)))
                 return cls(impl=app.books[name].impl)
             else:
                 # On Mac, the same file open in two instances is not supported
                 if apps.active.version < 15:
                     name = name.encode('utf-8', 'surrogateescape').decode('mac_latin2')
                 return cls(impl=Book(name).impl)
-        elif xlplatform.BOOK_CALLER:
+        elif xlwings._xlwindows.BOOK_CALLER:
             # Called via OPTIMIZED_CONNECTION = True
-            return cls(impl=xlplatform.Book(xlplatform.BOOK_CALLER))
+            return cls(impl=xlwings._xlwindows.Book(xlwings._xlwindows.BOOK_CALLER))
         else:
             raise Exception('Book.caller() must not be called directly. Call through Excel or set a mock caller '
                             'first with Book.set_mock_caller().')
@@ -3366,11 +3366,8 @@ class Chart:
 
         .. versionadded:: 0.9.0
         """
-        impl = self.impl.parent
-        if isinstance(impl, xlplatform.Book):
-            return Book(impl=self.impl.parent)
-        else:
-            return Sheet(impl=self.impl.parent)
+        # Chart sheet (parent is Book) is not supported
+        return Sheet(impl=self.impl.parent)
 
     @property
     def chart_type(self):
