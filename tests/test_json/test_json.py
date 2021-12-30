@@ -1,5 +1,5 @@
 # Activate one of the following two lines
-engine = 'web'
+engine = 'json'
 # engine = 'excel'
 
 from pathlib import Path
@@ -14,7 +14,7 @@ import xlwings as xw
 this_dir = Path(__file__).resolve().parent
 
 data = {
-    'book': {'name': 'web.xlsx', 'active_sheet_index': 0},
+    'book': {'name': 'json.xlsx', 'active_sheet_index': 0},
     'sheets': [
         {
             'name': 'Sheet1',
@@ -41,10 +41,10 @@ data = {
 
 @pytest.fixture(scope="module")
 def book():
-    if engine == 'web':
+    if engine == 'json':
         book = xw.Book(json=data)
     else:
-        book = xw.Book('web.xlsx')
+        book = xw.Book('json.xlsx')
     yield book
 
 
@@ -221,4 +221,4 @@ def test_sheets_iteration(book):
 
 # book name
 def test_book(book):
-    assert book.name == 'web.xlsx'
+    assert book.name == 'json.xlsx'
