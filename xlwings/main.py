@@ -234,17 +234,6 @@ class Apps:
 
 engines = Engines()
 
-# Populate engines list
-if sys.platform.startswith('win'):
-    from . import _xlwindows
-    engines.add(Engine(impl=_xlwindows.engine))
-if sys.platform.startswith('darwin'):
-    from . import _xlmac
-    engines.add(Engine(impl=_xlmac.engine))
-from . import _web
-engines.add(Engine(impl=_web.engine))
-engines.active = engines[0]
-
 
 class App:
     """

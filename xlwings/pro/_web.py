@@ -9,12 +9,10 @@ try:
 except ImportError:
     np = None
 
-from . import utils, platform_base_classes
+from .. import utils, platform_base_classes
 
 logger = logging.getLogger(__name__)
 
-
-USER_CONFIG_FILE = '/todo'
 
 # Time types
 time_types = (dt.date, dt.datetime)

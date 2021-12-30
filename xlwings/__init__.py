@@ -27,11 +27,22 @@ class ShapeAlreadyExists(Exception):
 
 
 # API
-from .main import App, Book, Range, Chart, Sheet, Picture, Shape, Name, view, load, RangeRows, RangeColumns
+from .main import App, Book, Range, Chart, Sheet, Picture, Shape, Name, view, load, RangeRows, RangeColumns, Engine
 from .main import apps, books, sheets, engines
+
+# Populate engines list
+if sys.platform.startswith('win'):
+    from . import _xlwindows
+    engines.add(Engine(impl=_xlwindows.engine))
+if sys.platform.startswith('darwin'):
+    from . import _xlmac
+    engines.add(Engine(impl=_xlmac.engine))
+engines.active = engines[0]
 
 try:
     from . import pro
+    from .pro import _web
+    engines.add(Engine(impl=_web.engine))
     PRO = True
 except (ImportError, LicenseError):
     PRO = False
