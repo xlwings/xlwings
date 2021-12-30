@@ -9,7 +9,7 @@ try:
 except ImportError:
     np = None
 
-from .. import utils, platform_base_classes
+from .. import utils, platform_base_classes, __version__, XlwingsError
 
 logger = logging.getLogger(__name__)
 
@@ -161,14 +161,7 @@ class Books(platform_base_classes.Books):
         book = Book(
             api={
                 'book': {'name': 'Book1.xlsx', 'active_sheet_index': 0},
-                'sheets': [
-                    {
-                        'name': 'Sheet1',
-                        'values': [
-                            []
-                        ],
-                    },
-                ],
+                'sheets': [{'name': 'Sheet1', 'values': [[]],},],
             },
             books=self,
         )
@@ -189,6 +182,10 @@ class Book(platform_base_classes.Book):
         self._api = api
         self.books = books
         self._json = []
+        if api.get('version') and (api['version'] != __version__):
+            raise XlwingsError(
+                f'Your xlwings version is different on the client ({api["version"]}) and server ({__version__}).'
+            )
 
     @property
     def api(self):
@@ -265,11 +262,7 @@ class Sheets(platform_base_classes.Sheets):
             # Default position is different from Desktop apps!
             ix = len(self) + 1
         self.api.insert(ix - 1, api)
-        self.book._json.append(
-            generate_response(
-                func='addSheet',
-            )
-        )
+        self.book._json.append(generate_response(func='addSheet',))
         self.book.api['book']['active_sheet_index'] = ix - 1
 
         return Sheet(api=api, sheets=self, index=ix)
@@ -299,11 +292,7 @@ class Sheet(platform_base_classes.Sheet):
     @name.setter
     def name(self, value):
         self.book._json.append(
-            generate_response(
-                func='setSheetName',
-                args=value,
-                sheet_position=self.index - 1,
-            )
+            generate_response(func='setSheetName', args=value, sheet_position=self.index - 1,)
         )
         self.api['name'] = value
 
@@ -320,12 +309,7 @@ class Sheet(platform_base_classes.Sheet):
 
     @property
     def cells(self):
-        return Range(
-            sheet=self,
-            api=self.api,
-            arg1=(1, 1),
-            arg2=(1_048_576, 16_384),
-        )
+        return Range(sheet=self, api=self.api, arg1=(1, 1), arg2=(1_048_576, 16_384),)
 
     def select(self):
         self.book.api['book']['active_sheet_index'] = self.index - 1
@@ -488,7 +472,9 @@ class Range(platform_base_classes.Range):
             return self(row + 1, col + 1)
         else:
             return Range(
-                sheet=self.sheet, api=self.sheet.api, arg1=(self.row + arg1 - 1, self.column + arg2 - 1)
+                sheet=self.sheet,
+                api=self.sheet.api,
+                arg1=(self.row + arg1 - 1, self.column + arg2 - 1),
             )
 
 

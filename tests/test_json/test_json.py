@@ -14,6 +14,7 @@ import xlwings as xw
 this_dir = Path(__file__).resolve().parent
 
 data = {
+    'version': 'dev',
     'book': {'name': 'json.xlsx', 'active_sheet_index': 0},
     'sheets': [
         {
