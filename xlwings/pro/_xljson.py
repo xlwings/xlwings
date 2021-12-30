@@ -160,6 +160,7 @@ class Books(platform_base_classes.Books):
     def add(self):
         book = Book(
             api={
+                'version': __version__,
                 'book': {'name': 'Book1.xlsx', 'active_sheet_index': 0},
                 'sheets': [{'name': 'Sheet1', 'values': [[]],},],
             },
@@ -182,7 +183,7 @@ class Book(platform_base_classes.Book):
         self._api = api
         self.books = books
         self._json = []
-        if api.get('version') and (api['version'] != __version__):
+        if (api['version'] != __version__):
             raise XlwingsError(
                 f'Your xlwings version is different on the client ({api["version"]}) and server ({__version__}).'
             )
