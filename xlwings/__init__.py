@@ -41,8 +41,8 @@ engines.active = engines[0]
 
 try:
     from . import pro
-    from .pro import _web
-    engines.add(Engine(impl=_web.engine))
+    from .pro import _xljson
+    engines.add(Engine(impl=_xljson.engine))
     PRO = True
 except (ImportError, LicenseError):
     PRO = False

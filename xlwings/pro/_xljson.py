@@ -26,7 +26,7 @@ class Engine:
 
     @property
     def name(self):
-        return "web"
+        return "json"
 
 
 def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
