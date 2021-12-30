@@ -4,7 +4,6 @@ import unittest
 import types
 
 import xlwings as xw
-import xlwings.web
 
 this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe())))
 
