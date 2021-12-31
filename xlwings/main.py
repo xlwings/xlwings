@@ -759,7 +759,7 @@ class Book:
                 if xlwings.PRO:
                     impl = engines['json'].apps[-1].books.open(json=json).impl
                 else:
-                    raise xlwings.LicenseError('You need a valid license key to use Book(json=...).')
+                    raise xlwings.LicenseError('Make sure you have a valid license key and cryptography installed.')
                 self.json = impl.json
             elif fullname:
                 fullname = utils.fspath(fullname)

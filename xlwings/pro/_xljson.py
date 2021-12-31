@@ -37,7 +37,7 @@ def _clean_value_data_element(value, datetime_builder, empty_as, number_builder)
         if re.compile(pattern).match(value):
             value = dt.datetime.fromisoformat(
                 value[:-1]
-            )  # cutting off "Z" (Excel doesn't support time-zones)
+            )  # cutting off "Z" (Python doesn't accept it but Excel doesn't support time-zones anyway)
         else:
             value = value
     if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:
@@ -71,19 +71,6 @@ def prepare_xl_data_element(x):
 
 
 Engine.prepare_xl_data_element = staticmethod(prepare_xl_data_element)
-
-
-def generate_response(**kwargs):
-    return {
-        'func': kwargs.get('func'),
-        'args': kwargs.get('args'),
-        'data': kwargs.get('data'),
-        'sheet_position': kwargs.get('sheet_position'),
-        'start_row': kwargs.get('start_row'),
-        'start_column': kwargs.get('start_column'),
-        'row_count': kwargs.get('row_count'),
-        'column_count': kwargs.get('column_count'),
-    }
 
 
 class Apps(platform_base_classes.Apps):
@@ -183,10 +170,24 @@ class Book(platform_base_classes.Book):
         self._api = api
         self.books = books
         self._json = []
-        if (api['version'] != __version__):
+        if api['version'] != __version__:
             raise XlwingsError(
                 f'Your xlwings version is different on the client ({api["version"]}) and server ({__version__}).'
             )
+
+    def generate_response(self, **kwargs):
+        self._json.append(
+            {
+                'func': kwargs.get('func'),
+                'args': kwargs.get('args'),
+                'data': kwargs.get('data'),
+                'sheet_position': kwargs.get('sheet_position'),
+                'start_row': kwargs.get('start_row'),
+                'start_column': kwargs.get('start_column'),
+                'row_count': kwargs.get('row_count'),
+                'column_count': kwargs.get('column_count'),
+            }
+        )
 
     @property
     def api(self):
@@ -263,7 +264,7 @@ class Sheets(platform_base_classes.Sheets):
             # Default position is different from Desktop apps!
             ix = len(self) + 1
         self.api.insert(ix - 1, api)
-        self.book._json.append(generate_response(func='addSheet',))
+        self.book.generate_response(func='addSheet',)
         self.book.api['book']['active_sheet_index'] = ix - 1
 
         return Sheet(api=api, sheets=self, index=ix)
@@ -292,9 +293,7 @@ class Sheet(platform_base_classes.Sheet):
 
     @name.setter
     def name(self, value):
-        self.book._json.append(
-            generate_response(func='setSheetName', args=value, sheet_position=self.index - 1,)
-        )
+        self.book.generate_response(func='setSheetName', args=value, sheet_position=self.index - 1,)
         self.api['name'] = value
 
     @property
@@ -396,8 +395,7 @@ class Range(platform_base_classes.Range):
     @raw_value.setter
     def raw_value(self, value):
         data = [[value]] if not isinstance(value, list) else value
-        self.sheet.book._json.append(
-            generate_response(
+        self.sheet.book.generate_response(
                 func='setValues',
                 data=data,
                 sheet_position=self.sheet.index - 1,
@@ -406,12 +404,10 @@ class Range(platform_base_classes.Range):
                 row_count=len(data),
                 column_count=len(data[0]),
             )
-        )
 
     def clear_contents(self):
         nrows, ncols = self.shape
-        self.sheet.book._json.append(
-            generate_response(
+        self.sheet.book.generate_response(
                 func='clearContents',
                 sheet_position=self.sheet.index - 1,
                 start_row=self.row - 1,
@@ -419,7 +415,6 @@ class Range(platform_base_classes.Range):
                 row_count=nrows,
                 column_count=ncols,
             )
-        )
 
     @property
     def address(self):

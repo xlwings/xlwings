@@ -4,6 +4,7 @@ engine = 'json'
 
 from pathlib import Path
 import datetime as dt
+import json
 
 import pytest
 import numpy as np
@@ -186,21 +187,19 @@ def test_read_basic_types(book):
     ]
 
 
-# @pytest.mark.skipif(engine == 'excel', reason='requires web')
-# def test_write_basic_types(book):
-#     sheet = book.sheets[0]
-#     sheet['Z10'].value = [
-#         [None, 'string'],
-#         [-1.0, 1.0],
-#         [True, False],
-#         [dt.datetime(2021, 10, 1, 0, 0), dt.datetime(2021, 12, 31, 23, 35)],
-#     ]
-#     assert (
-#         book.json()
-#         == '[{"data": [[null, "string"], [-1.0, 1.0], [true, false], ["2021-10-01T00:00:00", "2021-12-31T23:35:00"]],'
-#            ' "sheet_name": "Sheet1", "start_row": 9, "start_column": 25, "row_count": 4, "column_count": 2,'
-#            ' "func": null}]'
-#     )
+@pytest.mark.skipif(engine == 'excel', reason='requires web')
+def test_write_basic_types(book):
+    sheet = book.sheets[0]
+    sheet['Z10'].value = [
+        [None, 'string'],
+        [-1.0, 1.0],
+        [True, False],
+        [dt.date(2021, 10, 1), dt.datetime(2021, 12, 31, 23, 35)],
+    ]
+    assert (
+        json.dumps(json.loads(book.json())[0]['data'])
+        == '[[null, "string"], [-1.0, 1.0], [true, false], ["2021-10-01", "2021-12-31T23:35:00"]]'
+    )
 
 
 # sheets

@@ -300,7 +300,7 @@ class Engine:
 
     @property
     def name(self):
-        return "Excel"
+        return "excel"
 
 
 engine = Engine()
