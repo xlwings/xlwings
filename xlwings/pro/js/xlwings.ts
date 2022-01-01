@@ -8,8 +8,6 @@ const url = 'URL';
 // https://github.com/xlwings/xlwings/blob/master/LICENSE_PRO.txt
 
 async function main(workbook: ExcelScript.Workbook): Promise<void> {
-  const currentSheet = workbook.getActiveWorksheet();
-
   // Read config from sheet
   let base_url: string;
   let config = {};
@@ -23,15 +21,21 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
       .getValues();
     configValues.forEach((el) => (config[el[0].toString()] = el[1].toString()));
   }
+  // Prepare config values
   if (url.includes("://")){
     base_url = url;
   } else if (configSheet) {
     base_url = config[url];
   } else {
-    console.log("Missing URL!")
+    throw("Missing URL!")
   }
 
-  const token: string = config["AUTH_TOKEN"];
+  let exclude_sheets: [];
+  if ('EXCLUDE_SHEETS' in config){
+    exclude_sheets = config['EXCLUDE_SHEETS'].split(",").map((item: string) => item.trim())
+  } else {
+    exclude_sheets = [];
+  }
 
   // Payload
   let sheets = workbook.getWorksheets();
@@ -54,21 +58,25 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
       lastCellCol = 0;
       lastCellRow = 0;
     }
-    values = sheet.getRangeByIndexes(0, 0, lastCellRow + 1, lastCellCol + 1).getValues();
-    categories = sheet.getRangeByIndexes(0, 0, lastCellRow + 1, lastCellCol + 1).getNumberFormatCategories();
-    // Handle dates
-    values.forEach((valueRow: [], rowIndex: number) => {
-      const categoryRow = categories[rowIndex];
-      valueRow.forEach((value, colIndex: number) => {
+    if(exclude_sheets.includes(sheet.getName())){
+      values = [[]];
+    } else {
+        values = sheet.getRangeByIndexes(0, 0, lastCellRow + 1, lastCellCol + 1).getValues();
+        categories = sheet.getRangeByIndexes(0, 0, lastCellRow + 1, lastCellCol + 1).getNumberFormatCategories();
+        // Handle dates
+        values.forEach((valueRow: [], rowIndex: number) => {
+          const categoryRow = categories[rowIndex];
+          valueRow.forEach((value, colIndex: number) => {
 
-        const category = categoryRow[colIndex];
-        if (category.toString() === "Date" && typeof value === "number") {
-          values[rowIndex][colIndex] = new Date(
-            Math.round((value - 25569) * 86400 * 1000)
-          ).toISOString();
-        }
-      });
-    });
+            const category = categoryRow[colIndex];
+            if (category.toString() === "Date" && typeof value === "number") {
+              values[rowIndex][colIndex] = new Date(
+                Math.round((value - 25569) * 86400 * 1000)
+              ).toISOString();
+            }
+          });
+        });
+    }
     // Update payload
     payload["sheets"].push({
       name: sheet.getName(),
@@ -78,10 +86,18 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
 
   // console.log(payload);
 
+  // Headers
+  let headers = { "Content-Type": "application/json" };
+  for (const property in config) {
+    if (property.toLowerCase().startsWith("header_")) {
+      headers[property.substring(7)] = config[property]
+    }
+  }
+
   // API call
   let response = await fetch(base_url, {
     method: "POST",
-    headers: { "Authorization": token, "Content-Type": "application/json" },
+    headers: headers,
     body: JSON.stringify(payload),
   });
 
