@@ -176,10 +176,11 @@ class Book(platform_base_classes.Book):
             )
 
     def generate_response(self, **kwargs):
+        args = kwargs.get('args')
         self._json.append(
             {
                 'func': kwargs.get('func'),
-                'args': kwargs.get('args'),
+                'args': [args] if not isinstance(args, list) else args,
                 'data': kwargs.get('data'),
                 'sheet_position': kwargs.get('sheet_position'),
                 'start_row': kwargs.get('start_row'),
