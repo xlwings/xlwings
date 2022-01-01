@@ -10,6 +10,7 @@ import subprocess
 from pathlib import Path
 
 import xlwings as xw
+from xlwings import pyperclip
 
 # Directories/paths
 this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -290,6 +291,12 @@ def permission_book(args):
     print_permission_json('book')
 
 
+def copy_ts(args):
+    with open(Path(this_dir) / 'pro' / 'js' / 'xlwings.ts', 'r') as f:
+        pyperclip.copy(f.read())
+        print("xlwings.ts successfully copied.")
+
+
 def release(args):
     from xlwings.utils import query_yes_no, read_user_config
     from xlwings.pro import LicenseHandler
@@ -567,6 +574,14 @@ def main():
     release_parser = subparsers.add_parser('release', help='Run "xlwings release" to configure your active workbook to work with a '
                                                            'one-click installer for easy deployment. Requires xlwings PRO.')
     release_parser.set_defaults(func=release)
+
+    # Copy
+    copy_parser = subparsers.add_parser('copy', help='Run "xlwings copy ts" to copy the TypeScript module.')
+    copy_subparser = copy_parser.add_subparsers(dest='subcommand')
+    copy_subparser.required = True
+
+    copy_ts_parser = copy_subparser.add_parser('ts')
+    copy_ts_parser.set_defaults(func=copy_ts)
 
     # Show help when running without commands
     if len(sys.argv) == 1:
