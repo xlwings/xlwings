@@ -1,18 +1,19 @@
 // Update the URL *or* replace it with a key from the xlwings.conf sheet
 const url = "https://yoururl.com/endpoint";
 
-// xlwings dev
-// (c) 2022-present by Zoomer Analytics GmbH
-// This is licensed under a commercial license and
-// must be used with a valid license key.
-// You will find the license under
-// https://github.com/xlwings/xlwings/blob/master/LICENSE_PRO.txt
+/**
+ * xlwings dev
+ * (c) 2022-present by Zoomer Analytics GmbH
+ * This file is licensed under a commercial license and
+ * must be used with a valid license key.
+ * You will find the license under
+ * https://github.com/xlwings/xlwings/blob/master/LICENSE_PRO.txt
+ */
 
 async function main(workbook: ExcelScript.Workbook): Promise<void> {
   // Read config from sheet
-  let base_url: string;
-  let config = {};
   let configSheet = workbook.getWorksheet("xlwings.conf");
+  let config = {};
   if (configSheet) {
     const configValues = workbook
       .getWorksheet("xlwings.conf")
@@ -23,6 +24,7 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
     configValues.forEach((el) => (config[el[0].toString()] = el[1].toString()));
   }
   // Prepare config values
+  let base_url: string;
   if (url.includes("://")) {
     base_url = url;
   } else if (configSheet) {
@@ -31,13 +33,11 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
     throw "Missing URL!";
   }
 
-  let exclude_sheets: [];
+  let exclude_sheets: string[] = [];
   if ("EXCLUDE_SHEETS" in config) {
     exclude_sheets = config["EXCLUDE_SHEETS"]
       .split(",")
       .map((item: string) => item.trim());
-  } else {
-    exclude_sheets = [];
   }
 
   // Payload
@@ -52,8 +52,8 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   let lastCellCol: number;
   let lastCellRow: number;
   sheets.forEach((sheet) => {
-    let values: [][];
-    let categories: [][];
+    let values: (string | number | boolean)[][];
+    let categories: ExcelScript.NumberFormatCategory[][];
     if (sheet.getUsedRange() !== undefined) {
       lastCellCol = sheet.getUsedRange().getLastCell().getColumnIndex();
       lastCellRow = sheet.getUsedRange().getLastCell().getRowIndex();
@@ -71,17 +71,19 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
         .getRangeByIndexes(0, 0, lastCellRow + 1, lastCellCol + 1)
         .getNumberFormatCategories();
       // Handle dates
-      values.forEach((valueRow: [], rowIndex: number) => {
-        const categoryRow = categories[rowIndex];
-        valueRow.forEach((value, colIndex: number) => {
-          const category = categoryRow[colIndex];
-          if (category.toString() === "Date" && typeof value === "number") {
-            values[rowIndex][colIndex] = new Date(
-              Math.round((value - 25569) * 86400 * 1000)
-            ).toISOString();
-          }
-        });
-      });
+      values.forEach(
+        (valueRow: (string | number | boolean)[], rowIndex: number) => {
+          const categoryRow = categories[rowIndex];
+          valueRow.forEach((value, colIndex: number) => {
+            const category = categoryRow[colIndex];
+            if (category.toString() === "Date" && typeof value === "number") {
+              values[rowIndex][colIndex] = new Date(
+                Math.round((value - 25569) * 86400 * 1000)
+              ).toISOString();
+            }
+          });
+        }
+      );
     }
     // Update payload
     payload["sheets"].push({
@@ -108,18 +110,7 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   });
 
   // Parse JSON response
-  let rawData: [
-    {
-      func: string;
-      args: [];
-      data: [][];
-      sheet_position: number;
-      start_row: number;
-      start_column: number;
-      row_count: number;
-      column_count: number;
-    }
-  ];
+  let rawData: Result[];
   if (response.status !== 200) {
     throw `Error while contacting server: Error ${response.status}`;
   } else {
@@ -142,11 +133,24 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   });
 }
 
-function setValues(workbook: ExcelScript.Workbook, result: {}) {
+// Interface
+interface Result {
+  func: string;
+  args: (string | number | boolean)[];
+  data: (string | number | boolean)[][];
+  sheet_position: number;
+  start_row: number;
+  start_column: number;
+  row_count: number;
+  column_count: number;
+}
+
+// Functions
+function setValues(workbook: ExcelScript.Workbook, result: Result) {
   // Handle DateTime
   let dt: Date;
   result.data.forEach((valueRow, rowIndex) => {
-    valueRow.forEach((value, colIndex) => {
+    valueRow.forEach((value: string | number | boolean, colIndex) => {
       if (typeof value === "string") {
         dt = new Date(Date.parse(value));
         let dtstr: string;
@@ -155,10 +159,10 @@ function setValues(workbook: ExcelScript.Workbook, result: {}) {
           if (
             value.length > 10 &&
             dt.getHours() +
-              dt.getMinutes() +
-              dt.getSeconds() +
-              dt.getMilliseconds() !==
-              0
+            dt.getMinutes() +
+            dt.getSeconds() +
+            dt.getMilliseconds() !==
+            0
           ) {
             dtstr += " " + dt.toLocaleTimeString();
           }
@@ -170,31 +174,31 @@ function setValues(workbook: ExcelScript.Workbook, result: {}) {
 
   workbook
     .getWorksheets()
-    [result.sheet_position].getRangeByIndexes(
-      result.start_row,
-      result.start_column,
-      result.row_count,
-      result.column_count
-    )
+  [result.sheet_position].getRangeByIndexes(
+    result.start_row,
+    result.start_column,
+    result.row_count,
+    result.column_count
+  )
     .setValues(result.data);
 }
 
-function clearContents(workbook: ExcelScript.Workbook, result: {}) {
+function clearContents(workbook: ExcelScript.Workbook, result: Result) {
   workbook
     .getWorksheets()
-    [result.sheet_position].getRangeByIndexes(
-      result.start_row,
-      result.start_column,
-      result.row_count,
-      result.column_count
-    )
+  [result.sheet_position].getRangeByIndexes(
+    result.start_row,
+    result.start_column,
+    result.row_count,
+    result.column_count
+  )
     .clear(ExcelScript.ClearApplyTo.contents);
 }
 
-function addSheet(workbook: ExcelScript.Workbook, result: {}) {
+function addSheet(workbook: ExcelScript.Workbook, result: Result) {
   workbook.addWorksheet();
 }
 
-function setSheetName(workbook: ExcelScript.Workbook, result: {}) {
+function setSheetName(workbook: ExcelScript.Workbook, result: Result) {
   workbook.getWorksheets()[result.sheet_position].setName(result.args[0]);
 }
