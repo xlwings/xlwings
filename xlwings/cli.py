@@ -298,14 +298,11 @@ def copy_ts(args):
         try:
             import pyperclip as clipboard
         except ImportError:
-            clipboard = None
+            sys.exit('Please install either "pandas" or "pyperclip" to use the copy command.')
 
     with open(Path(this_dir) / 'pro' / 'js' / 'xlwings.ts', 'r') as f:
-        if clipboard:
-            clipboard.copy(f.read())
-            print("Successfully copied to clipboard.")
-        else:
-            sys.exit('Please install either "pandas" or "pyperclip" to use the copy command.')
+        clipboard.copy(f.read())
+        print("Successfully copied to clipboard.")
 
 
 def release(args):
