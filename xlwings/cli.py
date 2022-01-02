@@ -10,7 +10,7 @@ import subprocess
 from pathlib import Path
 
 import xlwings as xw
-from xlwings import pyperclip
+
 
 # Directories/paths
 this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -292,9 +292,20 @@ def permission_book(args):
 
 
 def copy_ts(args):
+    try:
+        from pandas.io import clipboard
+    except ImportError:
+        try:
+            import pyperclip as clipboard
+        except ImportError:
+            clipboard = None
+
     with open(Path(this_dir) / 'pro' / 'js' / 'xlwings.ts', 'r') as f:
-        pyperclip.copy(f.read())
-        print("xlwings.ts successfully copied.")
+        if clipboard:
+            clipboard.copy(f.read())
+            print("Successfully copied to clipboard.")
+        else:
+            sys.exit('Please install either "pandas" or "pyperclip" to use the copy command.')
 
 
 def release(args):
