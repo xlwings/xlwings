@@ -146,6 +146,17 @@ interface Result {
 }
 
 // Functions
+function getRange(workbook: ExcelScript.Workbook, result: Result) {
+  return workbook
+    .getWorksheets()
+  [result.sheet_position].getRangeByIndexes(
+    result.start_row,
+    result.start_column,
+    result.row_count,
+    result.column_count
+  );
+}
+
 function setValues(workbook: ExcelScript.Workbook, result: Result) {
   // Handle DateTime
   let dt: Date;
@@ -171,28 +182,11 @@ function setValues(workbook: ExcelScript.Workbook, result: Result) {
       }
     });
   });
-
-  workbook
-    .getWorksheets()
-  [result.sheet_position].getRangeByIndexes(
-    result.start_row,
-    result.start_column,
-    result.row_count,
-    result.column_count
-  )
-    .setValues(result.data);
+  getRange(workbook, result).setValues(result.data);
 }
 
 function clearContents(workbook: ExcelScript.Workbook, result: Result) {
-  workbook
-    .getWorksheets()
-  [result.sheet_position].getRangeByIndexes(
-    result.start_row,
-    result.start_column,
-    result.row_count,
-    result.column_count
-  )
-    .clear(ExcelScript.ClearApplyTo.contents);
+  getRange(workbook, result).clear(ExcelScript.ClearApplyTo.contents);
 }
 
 function addSheet(workbook: ExcelScript.Workbook, result: Result) {
