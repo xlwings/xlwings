@@ -11,8 +11,6 @@ except ImportError:
 
 from .. import utils, platform_base_classes, __version__, XlwingsError
 
-logger = logging.getLogger(__name__)
-
 
 # Time types
 time_types = (dt.date, dt.datetime)
