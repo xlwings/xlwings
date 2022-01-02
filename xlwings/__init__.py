@@ -34,10 +34,11 @@ from .main import apps, books, sheets, engines
 if sys.platform.startswith('win'):
     from . import _xlwindows
     engines.add(Engine(impl=_xlwindows.engine))
+    engines.active = engines[0]
 if sys.platform.startswith('darwin'):
     from . import _xlmac
     engines.add(Engine(impl=_xlmac.engine))
-engines.active = engines[0]
+    engines.active = engines[0]
 
 try:
     from . import pro
