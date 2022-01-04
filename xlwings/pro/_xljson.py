@@ -12,8 +12,8 @@ except ImportError:
 from .. import utils, platform_base_classes, __version__, XlwingsError
 
 
-# Time types
-time_types = (dt.date, dt.datetime)
+# Time types (doesn't contain dt.date)
+time_types = (dt.datetime,)
 if np:
     time_types = time_types + (np.datetime64,)
 
@@ -65,6 +65,10 @@ Engine.clean_value_data = staticmethod(clean_value_data)
 
 
 def prepare_xl_data_element(x):
+    if isinstance(x, time_types):
+        x = x.replace(tzinfo=None).isoformat()
+    elif isinstance(x, dt.date):
+        x = x.isoformat()
     return x
 
 
@@ -193,7 +197,7 @@ class Book(platform_base_classes.Book):
         return self._api
 
     def json(self):
-        return json.dumps(self._json, default=lambda d: d.isoformat())
+        return self._json
 
     @property
     def name(self):
