@@ -101,10 +101,9 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   // console.log(payload);
 
   // Headers
-  let headers = {
-    "Content-Type": "application/json",
-    Authorization: headerApiKey,
-  };
+  let headers = { "Content-Type": "application/json",
+                  "Authorization": headerApiKey,
+   };
   for (const property in config) {
     if (property.toLowerCase().startsWith("header_")) {
       headers[property.substring(7)] = config[property];
@@ -146,7 +145,7 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
 interface Result {
   func: string;
   args: (string | number | boolean)[];
-  data: (string | number | boolean)[][];
+  values: (string | number | boolean)[][];
   sheet_position: number;
   start_row: number;
   start_column: number;
@@ -169,7 +168,7 @@ function getRange(workbook: ExcelScript.Workbook, result: Result) {
 function setValues(workbook: ExcelScript.Workbook, result: Result) {
   // Handle DateTime
   let dt: Date;
-  result.data.forEach((valueRow, rowIndex) => {
+  result.values.forEach((valueRow, rowIndex) => {
     valueRow.forEach((value: string | number | boolean, colIndex) => {
       if (typeof value === "string") {
         dt = new Date(Date.parse(value));
@@ -186,12 +185,12 @@ function setValues(workbook: ExcelScript.Workbook, result: Result) {
           ) {
             dtstr += " " + dt.toLocaleTimeString();
           }
-          result.data[rowIndex][colIndex] = dtstr;
+          result.values[rowIndex][colIndex] = dtstr;
         }
       }
     });
   });
-  getRange(workbook, result).setValues(result.data);
+  getRange(workbook, result).setValues(result.values);
 }
 
 function clearContents(workbook: ExcelScript.Workbook, result: Result) {

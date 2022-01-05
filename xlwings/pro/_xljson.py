@@ -1,7 +1,5 @@
 import re
-import json
 import datetime as dt
-import logging
 from functools import lru_cache
 
 try:
@@ -183,7 +181,7 @@ class Book(platform_base_classes.Book):
             {
                 'func': kwargs.get('func'),
                 'args': [args] if not isinstance(args, list) else args,
-                'data': kwargs.get('data'),
+                'values': kwargs.get('values'),
                 'sheet_position': kwargs.get('sheet_position'),
                 'start_row': kwargs.get('start_row'),
                 'start_column': kwargs.get('start_column'),
@@ -397,15 +395,15 @@ class Range(platform_base_classes.Range):
 
     @raw_value.setter
     def raw_value(self, value):
-        data = [[value]] if not isinstance(value, list) else value
+        values = [[value]] if not isinstance(value, list) else value
         self.sheet.book.generate_response(
                 func='setValues',
-                data=data,
+                values=values,
                 sheet_position=self.sheet.index - 1,
                 start_row=self.row - 1,
                 start_column=self.column - 1,
-                row_count=len(data),
-                column_count=len(data[0]),
+                row_count=len(values),
+                column_count=len(values[0]),
             )
 
     def clear_contents(self):
