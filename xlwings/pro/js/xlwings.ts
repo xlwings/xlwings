@@ -1,11 +1,12 @@
-// Update the URL *or* replace it with a key from the xlwings.conf sheet
-const url = "https://yoururl.com/endpoint";
+// Configuration (actual values or keys in xlwings.conf sheet)
+const url = "URL";
+const apiKey = "API_KEY";
 
 /**
  * xlwings dev
  * (c) 2022-present by Zoomer Analytics GmbH
  * This file is licensed under a commercial license and
- * must be used with a valid license key.
+ * must be used in connection with a valid license key.
  * You will find the license under
  * https://github.com/xlwings/xlwings/blob/master/LICENSE_PRO.txt
  */
@@ -25,12 +26,17 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   }
   // Prepare config values
   let base_url: string;
-  if (url.includes("://")) {
-    base_url = url;
-  } else if (configSheet) {
+  if (url in config) {
     base_url = config[url];
   } else {
-    throw "Missing URL!";
+    base_url = url;
+  }
+
+  let headerApiKey: string;
+  if (apiKey in config) {
+    headerApiKey = config[apiKey];
+  } else {
+    headerApiKey = apiKey;
   }
 
   let exclude_sheets: string[] = [];
@@ -95,7 +101,10 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   // console.log(payload);
 
   // Headers
-  let headers = { "Content-Type": "application/json" };
+  let headers = {
+    "Content-Type": "application/json",
+    Authorization: headerApiKey,
+  };
   for (const property in config) {
     if (property.toLowerCase().startsWith("header_")) {
       headers[property.substring(7)] = config[property];
