@@ -169,7 +169,7 @@ class Book(platform_base_classes.Book):
     def __init__(self, api, books):
         self._api = api
         self.books = books
-        self._json = []
+        self._json = {'actions': []}
         if api['version'] != __version__:
             raise XlwingsError(
                 f'Your xlwings version is different on the client ({api["version"]}) and server ({__version__}).'
@@ -177,7 +177,7 @@ class Book(platform_base_classes.Book):
 
     def generate_response(self, **kwargs):
         args = kwargs.get('args')
-        self._json.append(
+        self._json['actions'].append(
             {
                 'func': kwargs.get('func'),
                 'args': [args] if not isinstance(args, list) else args,

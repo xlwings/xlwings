@@ -118,9 +118,9 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   });
 
   // Parse JSON response
-  let rawData: Result[];
+  let rawData: {actions: Action[]};
   if (response.status !== 200) {
-    throw `Error while contacting server: Error ${response.status}`;
+    throw `Server responded with error ${response.status}`;
   } else {
     rawData = await response.json();
   }
@@ -136,13 +136,13 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   };
 
   // Run Functions
-  rawData.forEach((result) => {
-    funcs[result.func](workbook, result);
+  rawData['actions'].forEach((action) => {
+    funcs[action.func](workbook, action);
   });
 }
 
 // Interface
-interface Result {
+interface Action {
   func: string;
   args: (string | number | boolean)[];
   values: (string | number | boolean)[][];
@@ -154,27 +154,27 @@ interface Result {
 }
 
 // Functions
-function getRange(workbook: ExcelScript.Workbook, result: Result) {
+function getRange(workbook: ExcelScript.Workbook, action: Action) {
   return workbook
     .getWorksheets()
-  [result.sheet_position].getRangeByIndexes(
-    result.start_row,
-    result.start_column,
-    result.row_count,
-    result.column_count
+  [action.sheet_position].getRangeByIndexes(
+    action.start_row,
+    action.start_column,
+    action.row_count,
+    action.column_count
   );
 }
 
-function setValues(workbook: ExcelScript.Workbook, result: Result) {
+function setValues(workbook: ExcelScript.Workbook, action: Action) {
   // Handle DateTime
   let dt: Date;
-  result.values.forEach((valueRow, rowIndex) => {
+  let dtString: string;
+  action.values.forEach((valueRow, rowIndex) => {
     valueRow.forEach((value: string | number | boolean, colIndex) => {
       if (typeof value === "string") {
         dt = new Date(Date.parse(value));
-        let dtstr: string;
-        dtstr = dt.toLocaleDateString();
-        if (dtstr !== "Invalid Date") {
+        dtString = dt.toLocaleDateString();
+        if (dtString !== "Invalid Date") {
           if (
             value.length > 10 &&
             dt.getHours() +
@@ -183,24 +183,24 @@ function setValues(workbook: ExcelScript.Workbook, result: Result) {
             dt.getMilliseconds() !==
             0
           ) {
-            dtstr += " " + dt.toLocaleTimeString();
+            dtString += " " + dt.toLocaleTimeString();
           }
-          result.values[rowIndex][colIndex] = dtstr;
+          action.values[rowIndex][colIndex] = dtString;
         }
       }
     });
   });
-  getRange(workbook, result).setValues(result.values);
+  getRange(workbook, action).setValues(action.values);
 }
 
-function clearContents(workbook: ExcelScript.Workbook, result: Result) {
-  getRange(workbook, result).clear(ExcelScript.ClearApplyTo.contents);
+function clearContents(workbook: ExcelScript.Workbook, action: Action) {
+  getRange(workbook, action).clear(ExcelScript.ClearApplyTo.contents);
 }
 
-function addSheet(workbook: ExcelScript.Workbook, result: Result) {
+function addSheet(workbook: ExcelScript.Workbook, action: Action) {
   workbook.addWorksheet();
 }
 
-function setSheetName(workbook: ExcelScript.Workbook, result: Result) {
-  workbook.getWorksheets()[result.sheet_position].setName(result.args[0]);
+function setSheetName(workbook: ExcelScript.Workbook, action: Action) {
+  workbook.getWorksheets()[action.sheet_position].setName(action.args[0]);
 }
