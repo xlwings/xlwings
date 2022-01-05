@@ -15,8 +15,8 @@ with open(os.path.join(os.path.dirname(__file__), 'xlwings', '__init__.py')) as 
 # Dependencies
 data_files = []
 install_requires = []
-if os.environ.get('READTHEDOCS', None) == 'True':
-    # We're running ReadTheDocs, don't add any further dependencies.
+if os.environ.get('READTHEDOCS', None) == 'True' or os.environ.get('XLWINGS_NO_DEPS') == '1':
+    # We're running on ReadTheDocs, don't add any further dependencies.
     pass
 elif sys.platform.startswith('win'):
     if sys.version_info[:2] >= (3, 7):

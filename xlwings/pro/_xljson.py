@@ -35,7 +35,7 @@ def _clean_value_data_element(value, datetime_builder, empty_as, number_builder)
         if re.compile(pattern).match(value):
             value = dt.datetime.fromisoformat(
                 value[:-1]
-            )  # cutting off "Z" (Python doesn't accept it but Excel doesn't support time-zones anyway)
+            )  # cutting off "Z" (Python doesn't accept it and Excel doesn't support time-zones anyway)
         else:
             value = value
     if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:

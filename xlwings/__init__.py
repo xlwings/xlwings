@@ -32,16 +32,21 @@ from .main import apps, books, sheets, engines
 
 # Populate engines list
 if sys.platform.startswith('win'):
-    from . import _xlwindows
-    engines.add(Engine(impl=_xlwindows.engine))
-    engines.active = engines[0]
+    try:
+        from . import _xlwindows
+        engines.add(Engine(impl=_xlwindows.engine))
+        engines.active = engines[0]
+    except ImportError:
+        pass
 if sys.platform.startswith('darwin'):
-    from . import _xlmac
-    engines.add(Engine(impl=_xlmac.engine))
-    engines.active = engines[0]
+    try:
+        from . import _xlmac
+        engines.add(Engine(impl=_xlmac.engine))
+        engines.active = engines[0]
+    except ImportError:
+        pass
 
 try:
-    from . import pro
     from .pro import _xljson
     engines.add(Engine(impl=_xljson.engine))
     PRO = True
