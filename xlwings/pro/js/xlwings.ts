@@ -1,4 +1,4 @@
-// Configuration (actual values or keys in xlwings.conf sheet)
+// Config (actual values or keys in optional xlwings.conf sheet)
 const url = "URL";
 const apiKey = "API_KEY";
 
@@ -12,7 +12,7 @@ const apiKey = "API_KEY";
  */
 
 async function main(workbook: ExcelScript.Workbook): Promise<void> {
-  // Read config from sheet
+  // Read config from optional xlwings.conf sheet
   let configSheet = workbook.getWorksheet("xlwings.conf");
   let config = {};
   if (configSheet) {
@@ -24,6 +24,7 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
       .getValues();
     configValues.forEach((el) => (config[el[0].toString()] = el[1].toString()));
   }
+
   // Prepare config values
   let base_url: string;
   if (url in config) {
@@ -46,7 +47,7 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
       .map((item: string) => item.trim());
   }
 
-  // Payload
+  // Request payload
   let sheets = workbook.getWorksheets();
   let payload: {} = {};
   payload["version"] = "dev";
@@ -91,7 +92,6 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
         }
       );
     }
-    // Update payload
     payload["sheets"].push({
       name: sheet.getName(),
       values: values,
@@ -101,9 +101,10 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   // console.log(payload);
 
   // Headers
-  let headers = { "Content-Type": "application/json",
-                  "Authorization": headerApiKey,
-   };
+  let headers = {
+    "Content-Type": "application/json",
+    Authorization: headerApiKey,
+  };
   for (const property in config) {
     if (property.toLowerCase().startsWith("header_")) {
       headers[property.substring(7)] = config[property];
@@ -118,7 +119,7 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   });
 
   // Parse JSON response
-  let rawData: {actions: Action[]};
+  let rawData: { actions: Action[] };
   if (response.status !== 200) {
     throw `Server responded with error ${response.status}`;
   } else {
@@ -136,12 +137,12 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   };
 
   // Run Functions
-  rawData['actions'].forEach((action) => {
+  rawData["actions"].forEach((action) => {
     funcs[action.func](workbook, action);
   });
 }
 
-// Interface
+// Helpers
 interface Action {
   func: string;
   args: (string | number | boolean)[];
@@ -153,7 +154,6 @@ interface Action {
   column_count: number;
 }
 
-// Functions
 function getRange(workbook: ExcelScript.Workbook, action: Action) {
   return workbook
     .getWorksheets()
@@ -165,6 +165,7 @@ function getRange(workbook: ExcelScript.Workbook, action: Action) {
   );
 }
 
+// Functions
 function setValues(workbook: ExcelScript.Workbook, action: Action) {
   // Handle DateTime
   let dt: Date;
