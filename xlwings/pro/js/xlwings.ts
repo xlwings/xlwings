@@ -26,11 +26,11 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   }
 
   // Prepare config values
-  let base_url: string;
+  let url_: string;
   if (url in config) {
-    base_url = config[url];
+    url_ = config[url];
   } else {
-    base_url = url;
+    url_ = url;
   }
 
   let headerApiKey: string;
@@ -62,8 +62,9 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
     let values: (string | number | boolean)[][];
     let categories: ExcelScript.NumberFormatCategory[][];
     if (sheet.getUsedRange() !== undefined) {
-      lastCellCol = sheet.getUsedRange().getLastCell().getColumnIndex();
-      lastCellRow = sheet.getUsedRange().getLastCell().getRowIndex();
+      let lastCell = sheet.getUsedRange().getLastCell()
+      lastCellCol = lastCell.getColumnIndex();
+      lastCellRow = lastCell.getRowIndex();
     } else {
       lastCellCol = 0;
       lastCellRow = 0;
@@ -112,7 +113,7 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   }
 
   // API call
-  let response = await fetch(base_url, {
+  let response = await fetch(url_, {
     method: "POST",
     headers: headers,
     body: JSON.stringify(payload),
@@ -127,14 +128,6 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   }
 
   // console.log(rawData);
-
-  // Functions map
-  let funcs = {
-    setValues: setValues,
-    clearContents: clearContents,
-    addSheet: addSheet,
-    setSheetName: setSheetName,
-  };
 
   // Run Functions
   rawData["actions"].forEach((action) => {
@@ -164,6 +157,14 @@ function getRange(workbook: ExcelScript.Workbook, action: Action) {
     action.column_count
   );
 }
+
+// Functions map
+let funcs = {
+  setValues: setValues,
+  clearContents: clearContents,
+  addSheet: addSheet,
+  setSheetName: setSheetName,
+};
 
 // Functions
 function setValues(workbook: ExcelScript.Workbook, action: Action) {
