@@ -72,12 +72,9 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
     if (exclude_sheets.includes(sheet.getName())) {
       values = [[]];
     } else {
-      values = sheet
-        .getRangeByIndexes(0, 0, lastCellRow + 1, lastCellCol + 1)
-        .getValues();
-      categories = sheet
-        .getRangeByIndexes(0, 0, lastCellRow + 1, lastCellCol + 1)
-        .getNumberFormatCategories();
+      let range = sheet.getRangeByIndexes(0, 0, lastCellRow + 1, lastCellCol + 1)
+      values = range.getValues();
+      categories = range.getNumberFormatCategories();
       // Handle dates
       values.forEach(
         (valueRow: (string | number | boolean)[], rowIndex: number) => {
