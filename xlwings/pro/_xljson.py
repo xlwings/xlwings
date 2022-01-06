@@ -175,7 +175,7 @@ class Book(platform_base_classes.Book):
                 f'Your xlwings version is different on the client ({api["version"]}) and server ({__version__}).'
             )
 
-    def generate_response(self, **kwargs):
+    def append_json_action(self, **kwargs):
         args = kwargs.get('args')
         self._json['actions'].append(
             {
@@ -265,7 +265,7 @@ class Sheets(platform_base_classes.Sheets):
             # Default position is different from Desktop apps!
             ix = len(self) + 1
         self.api.insert(ix - 1, api)
-        self.book.generate_response(func='addSheet',)
+        self.book.append_json_action(func='addSheet', args=ix - 1)
         self.book.api['book']['active_sheet_index'] = ix - 1
 
         return Sheet(api=api, sheets=self, index=ix)
@@ -294,7 +294,7 @@ class Sheet(platform_base_classes.Sheet):
 
     @name.setter
     def name(self, value):
-        self.book.generate_response(func='setSheetName', args=value, sheet_position=self.index - 1,)
+        self.book.append_json_action(func='setSheetName', args=value, sheet_position=self.index - 1, )
         self.api['name'] = value
 
     @property
@@ -396,7 +396,7 @@ class Range(platform_base_classes.Range):
     @raw_value.setter
     def raw_value(self, value):
         values = [[value]] if not isinstance(value, list) else value
-        self.sheet.book.generate_response(
+        self.sheet.book.append_json_action(
                 func='setValues',
                 values=values,
                 sheet_position=self.sheet.index - 1,
@@ -408,7 +408,7 @@ class Range(platform_base_classes.Range):
 
     def clear_contents(self):
         nrows, ncols = self.shape
-        self.sheet.book.generate_response(
+        self.sheet.book.append_json_action(
                 func='clearContents',
                 sheet_position=self.sheet.index - 1,
                 start_row=self.row - 1,

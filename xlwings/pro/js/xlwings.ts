@@ -132,6 +132,7 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   // Run Functions
   rawData["actions"].forEach((action) => {
     funcs[action.func](workbook, action);
+    console.log();  // force sync required after changing position of sheet
   });
 }
 
@@ -200,7 +201,8 @@ function clearContents(workbook: ExcelScript.Workbook, action: Action) {
 }
 
 function addSheet(workbook: ExcelScript.Workbook, action: Action) {
-  workbook.addWorksheet();
+  let sheet = workbook.addWorksheet();
+  sheet.setPosition(action.args[0]);
 }
 
 function setSheetName(workbook: ExcelScript.Workbook, action: Action) {
