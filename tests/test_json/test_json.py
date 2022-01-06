@@ -1,4 +1,4 @@
-# Activate one of the following two lines
+# Activate one of the following two lines to run the tests with the respective engine
 engine = 'json'
 # engine = 'excel'
 
@@ -197,7 +197,7 @@ def test_write_basic_types(book):
         [dt.date(2021, 10, 1), dt.datetime(2021, 12, 31, 23, 35)],
     ]
     assert (
-        json.dumps(json.loads(book.json())[0]['data'])
+        json.dumps(book.json()['actions'][0]['values'])
         == '[[null, "string"], [-1.0, 1.0], [true, false], ["2021-10-01", "2021-12-31T23:35:00"]]'
     )
 

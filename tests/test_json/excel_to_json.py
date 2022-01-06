@@ -7,6 +7,7 @@ import xlwings as xw
 book = xw.Book('web.xlsx')
 
 data = {
+    'version': 'dev',
     'book': {'name': book.name, 'active_sheet_index': book.sheets.active.index - 1},
     'sheets': []
 }

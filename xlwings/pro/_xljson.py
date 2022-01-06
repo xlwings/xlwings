@@ -148,8 +148,13 @@ class Books(platform_base_classes.Books):
         book = Book(
             api={
                 'version': __version__,
-                'book': {'name': 'Book1.xlsx', 'active_sheet_index': 0},
-                'sheets': [{'name': 'Sheet1', 'values': [[]],},],
+                'book': {'name': f'Book{len(self) + 1}', 'active_sheet_index': 0},
+                'sheets': [
+                    {
+                        'name': 'Sheet1',
+                        'values': [[]],
+                    },
+                ],
             },
             books=self,
         )
@@ -167,8 +172,8 @@ class Books(platform_base_classes.Books):
 
 class Book(platform_base_classes.Book):
     def __init__(self, api, books):
-        self._api = api
         self.books = books
+        self._api = api
         self._json = {'actions': []}
         if api['version'] != __version__:
             raise XlwingsError(
@@ -248,6 +253,7 @@ class Sheets(platform_base_classes.Sheets):
     def add(self, before=None, after=None):
         # Default naming logic is different from Desktop apps!
         sheet_number = 1
+        # TODO:
         while True:
             if f'Sheet{sheet_number}' in [sheet.name for sheet in self]:
                 sheet_number += 1
@@ -294,7 +300,11 @@ class Sheet(platform_base_classes.Sheet):
 
     @name.setter
     def name(self, value):
-        self.book.append_json_action(func='setSheetName', args=value, sheet_position=self.index - 1, )
+        self.book.append_json_action(
+            func='setSheetName',
+            args=value,
+            sheet_position=self.index - 1,
+        )
         self.api['name'] = value
 
     @property
@@ -310,7 +320,12 @@ class Sheet(platform_base_classes.Sheet):
 
     @property
     def cells(self):
-        return Range(sheet=self, api=self.api, arg1=(1, 1), arg2=(1_048_576, 16_384),)
+        return Range(
+            sheet=self,
+            api=self.api,
+            arg1=(1, 1),
+            arg2=(1_048_576, 16_384),
+        )
 
     def select(self):
         self.book.api['book']['active_sheet_index'] = self.index - 1
@@ -390,32 +405,31 @@ class Range(platform_base_classes.Range):
 
     @property
     def raw_value(self):
-        # TODO: should 1x1 and 1xn be returned as scalar and list?
         return self.api
 
     @raw_value.setter
     def raw_value(self, value):
         values = [[value]] if not isinstance(value, list) else value
         self.sheet.book.append_json_action(
-                func='setValues',
-                values=values,
-                sheet_position=self.sheet.index - 1,
-                start_row=self.row - 1,
-                start_column=self.column - 1,
-                row_count=len(values),
-                column_count=len(values[0]),
-            )
+            func='setValues',
+            values=values,
+            sheet_position=self.sheet.index - 1,
+            start_row=self.row - 1,
+            start_column=self.column - 1,
+            row_count=len(values),
+            column_count=len(values[0]),
+        )
 
     def clear_contents(self):
         nrows, ncols = self.shape
         self.sheet.book.append_json_action(
-                func='clearContents',
-                sheet_position=self.sheet.index - 1,
-                start_row=self.row - 1,
-                start_column=self.column - 1,
-                row_count=nrows,
-                column_count=ncols,
-            )
+            func='clearContents',
+            sheet_position=self.sheet.index - 1,
+            start_row=self.row - 1,
+            start_column=self.column - 1,
+            row_count=nrows,
+            column_count=ncols,
+        )
 
     @property
     def address(self):
@@ -428,8 +442,9 @@ class Range(platform_base_classes.Range):
 
     @property
     def has_array(self):
-        # TODO
-        return False
+        # Not supported, but since this is only used for legacy CSE arrays, probably not much of an issue
+        # There's currently a dependency in the expansion.py module
+        return None
 
     def end(self, direction):
         # TODO: left, up, 2d case
