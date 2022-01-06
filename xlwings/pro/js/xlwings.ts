@@ -58,9 +58,9 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   payload["sheets"] = [];
   let lastCellCol: number;
   let lastCellRow: number;
+  let values: (string | number | boolean)[][];
+  let categories: ExcelScript.NumberFormatCategory[][];
   sheets.forEach((sheet) => {
-    let values: (string | number | boolean)[][];
-    let categories: ExcelScript.NumberFormatCategory[][];
     if (sheet.getUsedRange() !== undefined) {
       let lastCell = sheet.getUsedRange().getLastCell()
       lastCellCol = lastCell.getColumnIndex();
@@ -131,8 +131,10 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
 
   // Run Functions
   rawData["actions"].forEach((action) => {
+    if (action.func.toLowerCase().includes('sheet')) {
+      console.log();  // Force sync to prevent writing to wrong sheet
+    }
     funcs[action.func](workbook, action);
-    console.log();  // force sync required after changing position of sheet
   });
 }
 
