@@ -159,9 +159,9 @@ update_zip(addin_path, '_rels/.rels', content)
 os.makedirs(os.path.join(os.environ['GITHUB_WORKSPACE'], 'dist'), exist_ok=True)
 shutil.copyfile(addin_path, os.path.join(os.environ['GITHUB_WORKSPACE'], 'dist', 'xlwings.xlam'))
 
-# Handled version stamp in xlwings.tx
+# Handle version stamp in xlwings.ts
 ts = os.path.join(par_dir, 'xlwings', 'pro', 'js', 'xlwings.ts')
 with open(ts, 'r') as f:
-    content = f.read().replace('dev', version_string)
+    content = f.read().replace('* xlwings dev', f'* xlwings {version_string}').replace('] = "dev";', f'] = "{version_string}";')
 with open(ts, 'w') as f:
     f.write(content)
