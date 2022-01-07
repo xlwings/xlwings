@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.25.3 (Dec 16, 2021)
+----------------------
+
+* :guilabel:`PRO` [Bug Fix] The xlwings Reports filters ``aggsmall`` and ``maxrows`` don't fail with empty DataFrames anymore (:issue:`1788`).
+
 v0.25.2 (Dec 3, 2021)
 ---------------------
 
