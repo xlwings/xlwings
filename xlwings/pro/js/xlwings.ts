@@ -29,8 +29,8 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   // Prepare config values
   let url_: string = getConfig(url, config);
   let headerApiKey: string = getConfig(apiKey, config);
-  let excludeSheetsString: string = getConfig(excludeSheets, config);
 
+  let excludeSheetsString: string = getConfig(excludeSheets, config);
   let excludeSheetsArray: string[] = [];
   excludeSheetsArray = excludeSheetsString
     .split(",")
