@@ -1,6 +1,7 @@
-// Config (actual values or keys in optional xlwings.conf sheet)
-const url = "URL";
-const apiKey = "API_KEY";
+// Config (actual values or keys in xlwings.conf sheet)
+const url = "URL"; // required
+const apiKey = "API_KEY"; // required
+const excludeSheets = "EXCLUDE_SHEETS"; // optional
 
 /**
  * xlwings dev
@@ -26,26 +27,14 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   }
 
   // Prepare config values
-  let url_: string;
-  if (url in config) {
-    url_ = config[url];
-  } else {
-    url_ = url;
-  }
+  let url_: string = getConfig(url, config);
+  let headerApiKey: string = getConfig(apiKey, config);
+  let excludeSheetsString: string = getConfig(excludeSheets, config);
 
-  let headerApiKey: string;
-  if (apiKey in config) {
-    headerApiKey = config[apiKey];
-  } else {
-    headerApiKey = apiKey;
-  }
-
-  let exclude_sheets: string[] = [];
-  if ("EXCLUDE_SHEETS" in config) {
-    exclude_sheets = config["EXCLUDE_SHEETS"]
-      .split(",")
-      .map((item: string) => item.trim());
-  }
+  let excludeSheetsArray: string[] = [];
+  excludeSheetsArray = excludeSheetsString
+    .split(",")
+    .map((item: string) => item.trim());
 
   // Request payload
   let sheets = workbook.getWorksheets();
@@ -62,17 +51,22 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   let categories: ExcelScript.NumberFormatCategory[][];
   sheets.forEach((sheet) => {
     if (sheet.getUsedRange() !== undefined) {
-      let lastCell = sheet.getUsedRange().getLastCell()
+      let lastCell = sheet.getUsedRange().getLastCell();
       lastCellCol = lastCell.getColumnIndex();
       lastCellRow = lastCell.getRowIndex();
     } else {
       lastCellCol = 0;
       lastCellRow = 0;
     }
-    if (exclude_sheets.includes(sheet.getName())) {
+    if (excludeSheetsArray.includes(sheet.getName())) {
       values = [[]];
     } else {
-      let range = sheet.getRangeByIndexes(0, 0, lastCellRow + 1, lastCellCol + 1)
+      let range = sheet.getRangeByIndexes(
+        0,
+        0,
+        lastCellRow + 1,
+        lastCellCol + 1
+      );
       values = range.getValues();
       categories = range.getNumberFormatCategories();
       // Handle dates
@@ -128,8 +122,8 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
 
   // Run Functions
   rawData["actions"].forEach((action) => {
-    if (action.func.toLowerCase().includes('sheet')) {
-      console.log();  // Force sync to prevent writing to wrong sheet
+    if (action.func.toLowerCase().includes("sheet")) {
+      console.log(); // Force sync to prevent writing to wrong sheet
     }
     funcs[action.func](workbook, action);
   });
@@ -156,6 +150,14 @@ function getRange(workbook: ExcelScript.Workbook, action: Action) {
     action.row_count,
     action.column_count
   );
+}
+
+function getConfig(keyOrValue: string, config: {}) {
+  if (keyOrValue in config) {
+    return config[keyOrValue];
+  } else {
+    return keyOrValue;
+  }
 }
 
 // Functions map

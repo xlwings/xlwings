@@ -253,7 +253,6 @@ class Sheets(platform_base_classes.Sheets):
     def add(self, before=None, after=None):
         # Default naming logic is different from Desktop apps!
         sheet_number = 1
-        # TODO:
         while True:
             if f'Sheet{sheet_number}' in [sheet.name for sheet in self]:
                 sheet_number += 1
@@ -457,7 +456,7 @@ class Range(platform_base_classes.Range):
                     else:
                         break
                 except IndexError:
-                    break  # outside of used range
+                    break  # outside used range
             nrows = i - 1
             return self.sheet.range((self.row + nrows, self.column))
         if direction == 'right':
@@ -469,7 +468,7 @@ class Range(platform_base_classes.Range):
                     else:
                         break
                 except IndexError:
-                    break  # outside of used range
+                    break  # outside used range
             ncols = i - 1
             return self.sheet.range((self.row, self.column + ncols))
 
