@@ -9,6 +9,7 @@ import json
 import pytest
 import numpy as np
 import pandas as pd
+from dateutil import tz
 
 import xlwings as xw
 
@@ -187,14 +188,14 @@ def test_read_basic_types(book):
     ]
 
 
-@pytest.mark.skipif(engine == 'excel', reason='requires web')
+@pytest.mark.skipif(engine == 'excel', reason='requires json engine')
 def test_write_basic_types(book):
     sheet = book.sheets[0]
     sheet['Z10'].value = [
         [None, 'string'],
         [-1.0, 1.0],
         [True, False],
-        [dt.date(2021, 10, 1), dt.datetime(2021, 12, 31, 23, 35)],
+        [dt.date(2021, 10, 1), dt.datetime(2021, 12, 31, 23, 35, tzinfo=tz.gettz('Europe/Paris'))],
     ]
     assert (
         json.dumps(book.json()['actions'][0]['values'])
