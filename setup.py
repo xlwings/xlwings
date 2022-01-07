@@ -15,8 +15,11 @@ with open(os.path.join(os.path.dirname(__file__), 'xlwings', '__init__.py')) as 
 # Dependencies
 data_files = []
 install_requires = []
-if os.environ.get('READTHEDOCS', None) == 'True' or os.environ.get('XLWINGS_NO_DEPS') == '1':
-    # We're running on ReadTheDocs, don't add any further dependencies.
+if os.environ.get('READTHEDOCS', None) == 'True' or os.environ.get('XLWINGS_NO_DEPS') in ['1', 'True', 'true']:
+    # Don't add any further dependencies. Instead of using an env var, you could also run:
+    # pip install xlwings --no-deps
+    # but when running "pip install -r requirements.txt --no-deps" this would be applied to
+    # all packages, which may not be what you want in case the sub-dependencies are not pinned
     pass
 elif sys.platform.startswith('win'):
     if sys.version_info[:2] >= (3, 7):
