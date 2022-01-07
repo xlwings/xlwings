@@ -1,4 +1,5 @@
 import re
+import numbers
 import datetime as dt
 from functools import lru_cache
 
@@ -162,12 +163,27 @@ class Books(platform_base_classes.Books):
         self._active = book
         return book
 
+    def _try_find_book_by_name(self, name):
+        for book in self.books:
+            if book.name == name or book.fullname == name:
+                return book
+        return None
+
     def __len__(self):
         return len(self.books)
 
     def __iter__(self):
         for book in self.books:
             yield book
+
+    def __call__(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            return self.books[name_or_index - 1]
+        else:
+            book = self._try_find_book_by_name(name_or_index)
+            if book is None:
+                raise KeyError(name_or_index)
+            return book
 
 
 class Book(platform_base_classes.Book):
@@ -217,6 +233,12 @@ class Book(platform_base_classes.Book):
     @property
     def app(self):
         return self.books.app
+
+    def close(self):
+        assert self.api is not None, "Seems this book was already closed."
+        self.books.books.remove(self)
+        self.books = None
+        self._api = None
 
 
 class Sheets(platform_base_classes.Sheets):
@@ -372,8 +394,6 @@ class Range(platform_base_classes.Range):
                 values = [[None] * (self.arg2[1] + 1 - self.arg1[1])] * (
                     self.arg2[0] + 1 - self.arg1[0]
                 )
-            # Extend range if it is outside of used range
-            # row_delta, col_delta = self.arg2[0] - len(values), self.arg2[1] - len(values[0])
             return values
         else:
             try:

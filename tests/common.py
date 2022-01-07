@@ -9,6 +9,9 @@ this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe(
 
 SPEC = None  # This was used to support Excel 2011: '/Applications/Microsoft Office 2011/Microsoft Excel'
 
+# TODO: uncomment to run tests with json engine
+xw.engines.active = xw.engines['json']
+
 
 class TestBase(unittest.TestCase):
     def __init__(self, methodName):
@@ -42,11 +45,11 @@ class TestBase(unittest.TestCase):
                 wb.sheets.add(after=2)
                 wb.sheets[0].select()
 
-    # def tearDown(self):
-    #     for app in [self.app1, self.app2]:
-    #         app.books[-1].close()
-    #
-    # @classmethod
-    # def tearDownClass(cls):
-    #     cls.app1.kill()
-    #     cls.app2.kill()
+    def tearDown(self):
+        for app in [self.app1, self.app2]:
+            app.books[-1].close()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.app1.kill()
+        cls.app2.kill()
