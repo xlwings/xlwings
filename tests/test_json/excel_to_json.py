@@ -4,7 +4,7 @@ import json
 
 import xlwings as xw
 
-book = xw.Book('web.xlsx')
+book = xw.books.active
 
 data = {
     'version': 'dev',
@@ -13,10 +13,11 @@ data = {
 }
 
 for sheet in book.sheets:
+    last_cell = sheet.used_range.last_cell
     data['sheets'].append(
         {
             'name': sheet.name,
-            'values': [['' if v is None else v for v in row] for row in sheet.used_range.value]
+            'values': [['' if v is None else v for v in row] for row in sheet[0:last_cell.row, 0:last_cell.column].value]
         }
     )
 

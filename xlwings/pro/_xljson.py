@@ -446,7 +446,6 @@ class Range(platform_base_classes.Range):
         return None
 
     def end(self, direction):
-        # TODO: left, up, 2d case
         if direction == 'down':
             i = 1
             while True:
@@ -459,6 +458,16 @@ class Range(platform_base_classes.Range):
                     break  # outside used range
             nrows = i - 1
             return self.sheet.range((self.row + nrows, self.column))
+        if direction == 'up':
+            i = -1
+            while True:
+                row_ix = self.row - 1 + i
+                if row_ix >= 0 and self.sheet.api['values'][row_ix][self.column - 1]:
+                    i -= 1
+                else:
+                    break
+            nrows = i + 1
+            return self.sheet.range((self.row + nrows, self.column))
         if direction == 'right':
             i = 1
             while True:
@@ -470,6 +479,16 @@ class Range(platform_base_classes.Range):
                 except IndexError:
                     break  # outside used range
             ncols = i - 1
+            return self.sheet.range((self.row, self.column + ncols))
+        if direction == 'left':
+            i = -1
+            while True:
+                col_ix = self.column - 1 + i
+                if col_ix >= 0 and self.sheet.api['values'][self.row - 1][col_ix]:
+                    i -= 1
+                else:
+                    break
+            ncols = i + 1
             return self.sheet.range((self.row, self.column + ncols))
 
     def __len__(self):
