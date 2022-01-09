@@ -7,6 +7,10 @@ try:
     import numpy as np
 except ImportError:
     np = None
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 from .. import utils, platform_base_classes, __version__, XlwingsError
 
@@ -64,7 +68,20 @@ Engine.clean_value_data = staticmethod(clean_value_data)
 
 
 def prepare_xl_data_element(x):
-    if isinstance(x, time_types):
+    # TODO: doublecheck if all check are required
+    if x is None:
+        return ""
+    elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
+        return ""
+    elif np and isinstance(x, np.number):
+        return float(x)
+    elif np and isinstance(x, np.datetime64):
+        return utils.np_datetime_to_datetime(x).replace(tzinfo=None).isoformat()
+    elif pd and isinstance(x, pd.Timestamp):
+        return x.to_pydatetime().replace(tzinfo=None)
+    elif pd and isinstance(x, type(pd.NaT)):
+        return None
+    elif isinstance(x, time_types):
         x = x.replace(tzinfo=None).isoformat()
     elif isinstance(x, dt.date):
         x = x.isoformat()
@@ -126,6 +143,9 @@ class App(platform_base_classes.App):
 
     @visible.setter
     def visible(self, value):
+        pass
+
+    def activate(self, steal_focus=None):
         pass
 
 
@@ -240,6 +260,9 @@ class Book(platform_base_classes.Book):
         self.books = None
         self._api = None
 
+    def activate(self):
+        pass
+
 
 class Sheets(platform_base_classes.Sheets):
     def __init__(self, api, book):
@@ -311,6 +334,14 @@ class Sheet(platform_base_classes.Sheet):
         self._index = index
         self.sheets = sheets
 
+    def append_json_action(self, **kwargs):
+        self.book.append_json_action(
+            **{**kwargs, **{
+                'sheet_position': self.index - 1,
+            }
+            }
+        )
+
     @property
     def api(self):
         return self._api
@@ -321,10 +352,9 @@ class Sheet(platform_base_classes.Sheet):
 
     @name.setter
     def name(self, value):
-        self.book.append_json_action(
+        self.append_json_action(
             func='setSheetName',
             args=value,
-            sheet_position=self.index - 1,
         )
         self.api['name'] = value
 
@@ -348,8 +378,10 @@ class Sheet(platform_base_classes.Sheet):
             arg2=(1_048_576, 16_384),
         )
 
-    def select(self):
-        self.book.api['book']['active_sheet_index'] = self.index - 1
+    def activate(self):
+        ix = self.index - 1
+        self.book.api['book']['active_sheet_index'] = ix
+        self.append_json_action(func='activateSheet', args=ix)
 
 
 class Range(platform_base_classes.Range):
@@ -380,6 +412,19 @@ class Range(platform_base_classes.Range):
         self.arg2 = arg2  # 1-based tuple
         self.sheet = sheet
         self._api = api
+
+    def append_json_action(self, **kwargs):
+        nrows, ncols = self.shape
+        self.sheet.book.append_json_action(
+            **{**kwargs, **{
+                'sheet_position': self.sheet.index - 1,
+                'start_row': self.row - 1,
+                'start_column': self.column - 1,
+                'row_count': nrows,
+                'column_count': ncols,
+            }
+            }
+        )
 
     @property
     @lru_cache(None)
@@ -429,25 +474,14 @@ class Range(platform_base_classes.Range):
     @raw_value.setter
     def raw_value(self, value):
         values = [[value]] if not isinstance(value, list) else value
-        self.sheet.book.append_json_action(
+        self.append_json_action(
             func='setValues',
             values=values,
-            sheet_position=self.sheet.index - 1,
-            start_row=self.row - 1,
-            start_column=self.column - 1,
-            row_count=len(values),
-            column_count=len(values[0]),
         )
 
     def clear_contents(self):
-        nrows, ncols = self.shape
-        self.sheet.book.append_json_action(
+        self.append_json_action(
             func='clearContents',
-            sheet_position=self.sheet.index - 1,
-            start_row=self.row - 1,
-            start_column=self.column - 1,
-            row_count=nrows,
-            column_count=ncols,
         )
 
     @property
@@ -510,6 +544,37 @@ class Range(platform_base_classes.Range):
                     break
             ncols = i + 1
             return self.sheet.range((self.row, self.column + ncols))
+
+    def autofit(self, axis=None):
+        if axis == 'rows' or axis == 'r':
+            self.append_json_action(
+                func='setAutofit',
+                args='rows'
+            )
+        elif axis == 'columns' or axis == 'c':
+            self.append_json_action(
+                func='setAutofit',
+                args='columns'
+            )
+        elif axis is None:
+            self.append_json_action(
+                func='setAutofit',
+                args='rows'
+            )
+            self.append_json_action(
+                func='setAutofit',
+                args='columns'
+            )
+
+    @property
+    def color(self):
+        raise NotImplemented()
+
+    @color.setter
+    def color(self, value):
+        if '#' not in value:
+            raise ValueError('Color must be supplied as Hex format e.g., "#232323".')
+        self.append_json_action(func='setRangeColor', args=value)
 
     def __len__(self):
         nrows, ncols = self.shape

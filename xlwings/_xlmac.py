@@ -15,7 +15,7 @@ from appscript.reference import CommandError
 from .constants import ColorIndex
 from .utils import int_to_rgb, np_datetime_to_datetime, col_name, VersionNumber, fullname_url_to_local_path, read_config_sheet
 import xlwings
-from . import mac_dict
+from . import mac_dict, utils
 import xlwings
 
 try:
@@ -836,6 +836,8 @@ class Range:
 
     @color.setter
     def color(self, color_or_rgb):
+        if isinstance(color_or_rgb, str):
+            color_or_rgb = utils.hex_to_rgb(color_or_rgb)
         if self.xl is not None:
             if color_or_rgb is None:
                 self.xl.interior_object.color_index.set(ColorIndex.xlColorIndexNone)

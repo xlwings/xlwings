@@ -31,7 +31,7 @@ import win32process
 from .constants import (ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin, DeleteShiftDirection,
                         ListObjectSourceType, FixedFormatType, FixedFormatQuality, FileFormat)
 from .utils import (rgb_to_int, int_to_rgb, np_datetime_to_datetime, col_name, fullname_url_to_local_path,
-                    read_config_sheet)
+                    read_config_sheet, hex_to_rgb)
 import xlwings
 
 # Optional imports
@@ -1097,6 +1097,8 @@ class Range:
 
     @color.setter
     def color(self, color_or_rgb):
+        if isinstance(color_or_rgb, str):
+            color_or_rgb = hex_to_rgb(color_or_rgb)
         if self.xl is not None:
             if color_or_rgb is None:
                 self.xl.Interior.ColorIndex = ColorIndex.xlColorIndexNone

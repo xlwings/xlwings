@@ -166,6 +166,9 @@ let funcs = {
   clearContents: clearContents,
   addSheet: addSheet,
   setSheetName: setSheetName,
+  setAutofit: setAutofit,
+  setRangeColor: setRangeColor,
+  activateSheet: activateSheet,
 };
 
 // Functions
@@ -208,4 +211,20 @@ function addSheet(workbook: ExcelScript.Workbook, action: Action) {
 
 function setSheetName(workbook: ExcelScript.Workbook, action: Action) {
   workbook.getWorksheets()[action.sheet_position].setName(action.args[0]);
+}
+
+function setAutofit(workbook: ExcelScript.Workbook, action: Action) {
+  if (action.args[0] === 'columns') {
+    getRange(workbook, action).getFormat().autofitColumns();
+  } else {
+    getRange(workbook, action).getFormat().autofitRows();
+  }
+}
+
+function setRangeColor(workbook: ExcelScript.Workbook, action: Action) {
+  getRange(workbook, action).getFormat().getFill().setColor(action.args[0])
+}
+
+function activateSheet(workbook: ExcelScript.Workbook, action: Action) {
+  workbook.getWorksheets()[action.args[0]].activate()
 }

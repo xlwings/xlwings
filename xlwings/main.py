@@ -339,8 +339,9 @@ class App:
         """
         # Win Excel >= 2013 fails if visible=False...we may somehow not be using the correct HWND
         self.impl.activate(steal_focus)
-        if self != apps.active:
-            raise Exception('Could not activate App! Try to instantiate the App with visible=True.')
+        if self.engine.name != 'json':
+            if self != apps.active:
+                raise Exception('Could not activate App! Try to instantiate the App with visible=True.')
 
     @property
     def visible(self):
@@ -2048,8 +2049,6 @@ class Range:
 
     @color.setter
     def color(self, color_or_rgb):
-        if isinstance(color_or_rgb, str):
-            color_or_rgb = utils.hex_to_rgb(color_or_rgb)
         self.impl.color = color_or_rgb
 
     @property
