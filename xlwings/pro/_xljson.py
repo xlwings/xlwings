@@ -336,9 +336,11 @@ class Sheet(platform_base_classes.Sheet):
 
     def append_json_action(self, **kwargs):
         self.book.append_json_action(
-            **{**kwargs, **{
-                'sheet_position': self.index - 1,
-            }
+            **{
+                **kwargs,
+                **{
+                    'sheet_position': self.index - 1,
+                },
             }
         )
 
@@ -416,13 +418,15 @@ class Range(platform_base_classes.Range):
     def append_json_action(self, **kwargs):
         nrows, ncols = self.shape
         self.sheet.book.append_json_action(
-            **{**kwargs, **{
-                'sheet_position': self.sheet.index - 1,
-                'start_row': self.row - 1,
-                'start_column': self.column - 1,
-                'row_count': nrows,
-                'column_count': ncols,
-            }
+            **{
+                **kwargs,
+                **{
+                    'sheet_position': self.sheet.index - 1,
+                    'start_row': self.row - 1,
+                    'start_column': self.column - 1,
+                    'row_count': nrows,
+                    'column_count': ncols,
+                },
             }
         )
 
@@ -547,24 +551,12 @@ class Range(platform_base_classes.Range):
 
     def autofit(self, axis=None):
         if axis == 'rows' or axis == 'r':
-            self.append_json_action(
-                func='setAutofit',
-                args='rows'
-            )
+            self.append_json_action(func='setAutofit', args='rows')
         elif axis == 'columns' or axis == 'c':
-            self.append_json_action(
-                func='setAutofit',
-                args='columns'
-            )
+            self.append_json_action(func='setAutofit', args='columns')
         elif axis is None:
-            self.append_json_action(
-                func='setAutofit',
-                args='rows'
-            )
-            self.append_json_action(
-                func='setAutofit',
-                args='columns'
-            )
+            self.append_json_action(func='setAutofit', args='rows')
+            self.append_json_action(func='setAutofit', args='columns')
 
     @property
     def color(self):
