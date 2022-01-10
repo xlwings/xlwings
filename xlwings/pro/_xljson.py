@@ -68,7 +68,6 @@ Engine.clean_value_data = staticmethod(clean_value_data)
 
 
 def prepare_xl_data_element(x):
-    # TODO: doublecheck if all check are required
     if x is None:
         return ""
     elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
