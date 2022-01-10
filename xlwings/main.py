@@ -762,7 +762,6 @@ class Book:
                 else:
                     # Will raise LicenseKeyError or ImportError
                     from xlwings import pro
-                self.json = impl.json
             elif fullname:
                 fullname = utils.fspath(fullname)
                 fullname = fullname.lower()
@@ -802,6 +801,9 @@ class Book:
         .. versionadded:: 0.9.0
         """
         return self.impl.api
+
+    def json(self):
+        return self.impl.json()
 
     def __eq__(self, other):
         return isinstance(other, Book) and self.app == other.app and self.name == other.name

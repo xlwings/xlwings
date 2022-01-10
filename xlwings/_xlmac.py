@@ -38,6 +38,25 @@ if np:
     time_types = time_types + (np.datetime64,)
 
 
+def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
+    if value == '' or value == kw.missing_value:
+        return empty_as
+    if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:
+        value = datetime_builder(
+            month=value.month,
+            day=value.day,
+            year=value.year,
+            hour=value.hour,
+            minute=value.minute,
+            second=value.second,
+            microsecond=value.microsecond,
+            tzinfo=None
+        )
+    elif number_builder is not None and type(value) == float:
+        value = number_builder(value)
+    return value
+
+
 class Engine:
     @property
     def apps(self):
@@ -46,6 +65,35 @@ class Engine:
     @property
     def name(self):
         return "excel"
+
+    @staticmethod
+    def prepare_xl_data_element(x):
+        if x is None:
+            return ""
+        elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
+            return ""
+        elif np and isinstance(x, np.datetime64):
+            # handle numpy.datetime64
+            return np_datetime_to_datetime(x).replace(tzinfo=None)
+        elif np and isinstance(x, np.number):
+            return float(x)
+        elif pd and isinstance(x, pd.Timestamp):
+            # This transformation seems to be only needed on Python 2.6 (?)
+            return x.to_pydatetime().replace(tzinfo=None)
+        elif pd and isinstance(x, type(pd.NaT)):
+            return None
+        elif isinstance(x, dt.datetime):
+            # Make datetime timezone naive
+            return x.replace(tzinfo=None)
+        elif isinstance(x, int):
+            # appscript packs integers larger than SInt32 but smaller than SInt64 as typeSInt64, and integers
+            # larger than SInt64 as typeIEEE64BitFloatingPoint. Excel silently ignores typeSInt64. (GH 227)
+            return float(x)
+        return x
+
+    @staticmethod
+    def clean_value_data(data, datetime_builder, empty_as, number_builder):
+        return [[_clean_value_data_element(c, datetime_builder, empty_as, number_builder) for c in row] for row in data]
 
 
 engine = Engine()
@@ -298,6 +346,9 @@ class Book:
     @property
     def api(self):
         return self.xl
+
+    def json(self):
+        raise NotImplementedError()
 
     @property
     def name(self):
@@ -1712,59 +1763,6 @@ def is_excel_running():
         except psutil.NoSuchProcess:
             pass
     return False
-
-
-def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
-    if value == '' or value == kw.missing_value:
-        return empty_as
-    if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:
-        value = datetime_builder(
-            month=value.month,
-            day=value.day,
-            year=value.year,
-            hour=value.hour,
-            minute=value.minute,
-            second=value.second,
-            microsecond=value.microsecond,
-            tzinfo=None
-        )
-    elif number_builder is not None and type(value) == float:
-        value = number_builder(value)
-    return value
-
-
-def clean_value_data(data, datetime_builder, empty_as, number_builder):
-    return [[_clean_value_data_element(c, datetime_builder, empty_as, number_builder) for c in row] for row in data]
-
-Engine.clean_value_data = staticmethod(clean_value_data)
-
-
-def prepare_xl_data_element(x):
-    if x is None:
-        return ""
-    elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
-        return ""
-    elif np and isinstance(x, np.datetime64):
-        # handle numpy.datetime64
-        return np_datetime_to_datetime(x).replace(tzinfo=None)
-    elif np and isinstance(x, np.number):
-        return float(x)
-    elif pd and isinstance(x, pd.Timestamp):
-        # This transformation seems to be only needed on Python 2.6 (?)
-        return x.to_pydatetime().replace(tzinfo=None)
-    elif pd and isinstance(x, type(pd.NaT)):
-        return None
-    elif isinstance(x, dt.datetime):
-        # Make datetime timezone naive
-        return x.replace(tzinfo=None)
-    elif isinstance(x, int):
-        # appscript packs integers larger than SInt32 but smaller than SInt64 as typeSInt64, and integers
-        # larger than SInt64 as typeIEEE64BitFloatingPoint. Excel silently ignores typeSInt64. (GH 227)
-        return float(x)
-
-    return x
-
-Engine.prepare_xl_data_element = staticmethod(prepare_xl_data_element)
 
 
 # --- constants ---

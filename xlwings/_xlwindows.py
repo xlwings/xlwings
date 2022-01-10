@@ -292,6 +292,55 @@ def is_range_instance(xl_range):
     # return pyid.GetTypeInfo().GetDocumentation(-1)[0] == 'Range'
 
 
+def _com_time_to_datetime(com_time, datetime_builder):
+    return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
+                            hour=com_time.hour, minute=com_time.minute, second=com_time.second,
+                            microsecond=com_time.microsecond, tzinfo=None)
+
+
+def _datetime_to_com_time(dt_time):
+    """
+    This function is a modified version from Pyvot (https://pypi.python.org/pypi/Pyvot)
+    and subject to the following copyright:
+
+    Copyright (c) Microsoft Corporation.
+
+    This source code is subject to terms and conditions of the Apache License, Version 2.0. A
+    copy of the license can be found in the LICENSE.txt file at the root of this distribution. If
+    you cannot locate the Apache License, Version 2.0, please send an email to
+    vspython@microsoft.com. By using this source code in any fashion, you are agreeing to be bound
+    by the terms of the Apache License, Version 2.0.
+
+    You must not remove this notice, or any other, from this software.
+
+    """
+    # Convert date to datetime
+    if pd and isinstance(dt_time, type(pd.NaT)):
+        return ""
+    if np:
+        if type(dt_time) is np.datetime64:
+            dt_time = np_datetime_to_datetime(dt_time)
+
+    if type(dt_time) is dt.date:
+        dt_time = dt.datetime(dt_time.year, dt_time.month, dt_time.day,
+                              tzinfo=win32timezone.TimeZoneInfo.utc())
+
+    # pywintypes has its time type inherit from datetime.
+    # For some reason, though it accepts plain datetimes, they must have a timezone set.
+    # See http://docs.activestate.com/activepython/2.7/pywin32/html/win32/help/py3k.html
+    # We replace no timezone -> UTC to allow round-trips in the naive case
+    if pd and isinstance(dt_time, pd.Timestamp):
+        # Otherwise pandas prints ignored exceptions on Python 3
+        dt_time = dt_time.to_pydatetime()
+    # We don't use pytz.utc to get rid of additional dependency
+    # Don't do any timezone transformation: simply cutoff the tz info
+    # If we don't reset it first, it gets transformed into UTC before transferred to Excel
+    dt_time = dt_time.replace(tzinfo=None)
+    dt_time = dt_time.replace(tzinfo=win32timezone.TimeZoneInfo.utc())
+
+    return dt_time
+
+
 class Engine:
 
     @property
@@ -301,6 +350,51 @@ class Engine:
     @property
     def name(self):
         return "excel"
+
+    @staticmethod
+    def prepare_xl_data_element(x):
+        if isinstance(x, time_types):
+            return _datetime_to_com_time(x)
+        elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
+            return ""
+        elif np and isinstance(x, np.number):
+            return float(x)
+        elif x is None:
+            return ""
+        else:
+            return x
+
+    @staticmethod
+    def clean_value_data(data, datetime_builder, empty_as, number_builder):
+        if number_builder is not None:
+            return [
+                [
+                    _com_time_to_datetime(c, datetime_builder)
+                    if isinstance(c, time_types)
+                    else number_builder(c)
+                    if type(c) == float
+                    else empty_as
+                    # #DIV/0!, #N/A, #NAME?, #NULL!, #NUM!, #REF!, #VALUE!
+                    if c is None or (isinstance(c, int) and c in [-2146826281, -2146826246, -2146826259,
+                                                                  -2146826288, -2146826252, -2146826265, -2146826273])
+                    else c
+                    for c in row
+                ]
+                for row in data
+            ]
+        else:
+            return [
+                [
+                    _com_time_to_datetime(c, datetime_builder)
+                    if isinstance(c, time_types)
+                    else empty_as
+                    if c is None or (isinstance(c, int) and c in [-2146826281, -2146826246, -2146826259,
+                                                                  -2146826288, -2146826252, -2146826265, -2146826273])
+                    else c
+                    for c in row
+                ]
+                for row in data
+            ]
 
 
 engine = Engine()
@@ -557,6 +651,9 @@ class Book:
     @property
     def api(self):
         return self.xl
+
+    def json(self):
+        raise NotImplementedError()
 
     @property
     def name(self):
@@ -1206,124 +1303,6 @@ class Range:
             except (pywintypes.com_error, AttributeError):
                 if retry == max_retries - 1:
                     raise
-
-
-def clean_value_data(data, datetime_builder, empty_as, number_builder):
-    if number_builder is not None:
-        return [
-            [
-                _com_time_to_datetime(c, datetime_builder)
-                if isinstance(c, time_types)
-                else number_builder(c)
-                if type(c) == float
-                else empty_as
-                # #DIV/0!, #N/A, #NAME?, #NULL!, #NUM!, #REF!, #VALUE!
-                if c is None or (isinstance(c, int) and c in [-2146826281, -2146826246, -2146826259,
-                                                              -2146826288, -2146826252, -2146826265, -2146826273])
-                else c
-                for c in row
-            ]
-            for row in data
-        ]
-    else:
-        return [
-            [
-                _com_time_to_datetime(c, datetime_builder)
-                if isinstance(c, time_types)
-                else empty_as
-                if c is None or (isinstance(c, int) and c in [-2146826281, -2146826246, -2146826259,
-                                                              -2146826288, -2146826252, -2146826265, -2146826273])
-                else c
-                for c in row
-            ]
-            for row in data
-        ]
-
-
-Engine.clean_value_data = staticmethod(clean_value_data)
-
-
-def _com_time_to_datetime(com_time, datetime_builder):
-    """
-    This function is a modified version from Pyvot (https://pypi.python.org/pypi/Pyvot)
-    and subject to the following copyright:
-
-    Copyright (c) Microsoft Corporation.
-
-    This source code is subject to terms and conditions of the Apache License, Version 2.0. A
-    copy of the license can be found in the LICENSE.txt file at the root of this distribution. If
-    you cannot locate the Apache License, Version 2.0, please send an email to
-    vspython@microsoft.com. By using this source code in any fashion, you are agreeing to be bound
-    by the terms of the Apache License, Version 2.0.
-
-    You must not remove this notice, or any other, from this software.
-
-    """
-
-    # Pywintypes has its time type inherit from datetime.
-    # Changed: We make the datetime object timezone naive as Excel doesn't provide info
-    return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
-                            hour=com_time.hour, minute=com_time.minute, second=com_time.second,
-                            microsecond=com_time.microsecond, tzinfo=None)
-
-
-def _datetime_to_com_time(dt_time):
-    """
-    This function is a modified version from Pyvot (https://pypi.python.org/pypi/Pyvot)
-    and subject to the following copyright:
-
-    Copyright (c) Microsoft Corporation.
-
-    This source code is subject to terms and conditions of the Apache License, Version 2.0. A
-    copy of the license can be found in the LICENSE.txt file at the root of this distribution. If
-    you cannot locate the Apache License, Version 2.0, please send an email to
-    vspython@microsoft.com. By using this source code in any fashion, you are agreeing to be bound
-    by the terms of the Apache License, Version 2.0.
-
-    You must not remove this notice, or any other, from this software.
-
-    """
-    # Convert date to datetime
-    if pd and isinstance(dt_time, type(pd.NaT)):
-        return ""
-    if np:
-        if type(dt_time) is np.datetime64:
-            dt_time = np_datetime_to_datetime(dt_time)
-
-    if type(dt_time) is dt.date:
-        dt_time = dt.datetime(dt_time.year, dt_time.month, dt_time.day,
-                              tzinfo=win32timezone.TimeZoneInfo.utc())
-
-    # pywintypes has its time type inherit from datetime.
-    # For some reason, though it accepts plain datetimes, they must have a timezone set.
-    # See http://docs.activestate.com/activepython/2.7/pywin32/html/win32/help/py3k.html
-    # We replace no timezone -> UTC to allow round-trips in the naive case
-    if pd and isinstance(dt_time, pd.Timestamp):
-        # Otherwise pandas prints ignored exceptions on Python 3
-        dt_time = dt_time.to_pydatetime()
-    # We don't use pytz.utc to get rid of additional dependency
-    # Don't do any timezone transformation: simply cutoff the tz info
-    # If we don't reset it first, it gets transformed into UTC before transferred to Excel
-    dt_time = dt_time.replace(tzinfo=None)
-    dt_time = dt_time.replace(tzinfo=win32timezone.TimeZoneInfo.utc())
-
-    return dt_time
-
-
-def prepare_xl_data_element(x):
-    if isinstance(x, time_types):
-        return _datetime_to_com_time(x)
-    elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
-        return ""
-    elif np and isinstance(x, np.number):
-        return float(x)
-    elif x is None:
-        return ""
-    else:
-        return x
-
-
-Engine.prepare_xl_data_element = staticmethod(prepare_xl_data_element)
 
 
 class Shape:

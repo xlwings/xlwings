@@ -167,6 +167,9 @@ class Book:
     def api(self):
         raise NotImplementedError()
 
+    def json(self):
+        raise NotImplementedError()
+
     @property
     def name(self):
         raise NotImplementedError()

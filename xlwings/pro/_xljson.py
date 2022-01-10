@@ -12,7 +12,7 @@ try:
 except ImportError:
     pd = None
 
-from .. import utils, platform_base_classes, __version__, XlwingsError
+from .. import utils, base_classes, __version__, XlwingsError
 
 
 # Time types (doesn't contain dt.date)
@@ -21,19 +21,11 @@ if np:
     time_types = time_types + (np.datetime64,)
 
 
-class Engine:
-    def __init__(self):
-        self.apps = Apps()
-
-    @property
-    def name(self):
-        return "json"
-
-
 def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
     if value == '':
         return empty_as
     if isinstance(value, str):
+        # TODO: Send arrays back and forth with indices of the location of datetime values
         pattern = r'^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$'
         if re.compile(pattern).match(value):
             value = dt.datetime.fromisoformat(
@@ -57,40 +49,43 @@ def _clean_value_data_element(value, datetime_builder, empty_as, number_builder)
     return value
 
 
-def clean_value_data(data, datetime_builder, empty_as, number_builder):
-    return [
-        [_clean_value_data_element(c, datetime_builder, empty_as, number_builder) for c in row]
-        for row in data
-    ]
+class Engine:
+    def __init__(self):
+        self.apps = Apps()
+
+    @staticmethod
+    def clean_value_data(data, datetime_builder, empty_as, number_builder):
+        return [
+            [_clean_value_data_element(c, datetime_builder, empty_as, number_builder) for c in row]
+            for row in data
+        ]
+
+    @staticmethod
+    def prepare_xl_data_element(x):
+        if x is None:
+            return ""
+        elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
+            return ""
+        elif np and isinstance(x, np.number):
+            return float(x)
+        elif np and isinstance(x, np.datetime64):
+            return utils.np_datetime_to_datetime(x).replace(tzinfo=None).isoformat()
+        elif pd and isinstance(x, pd.Timestamp):
+            return x.to_pydatetime().replace(tzinfo=None)
+        elif pd and isinstance(x, type(pd.NaT)):
+            return None
+        elif isinstance(x, time_types):
+            x = x.replace(tzinfo=None).isoformat()
+        elif isinstance(x, dt.date):
+            x = x.isoformat()
+        return x
+
+    @property
+    def name(self):
+        return "json"
 
 
-Engine.clean_value_data = staticmethod(clean_value_data)
-
-
-def prepare_xl_data_element(x):
-    if x is None:
-        return ""
-    elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
-        return ""
-    elif np and isinstance(x, np.number):
-        return float(x)
-    elif np and isinstance(x, np.datetime64):
-        return utils.np_datetime_to_datetime(x).replace(tzinfo=None).isoformat()
-    elif pd and isinstance(x, pd.Timestamp):
-        return x.to_pydatetime().replace(tzinfo=None)
-    elif pd and isinstance(x, type(pd.NaT)):
-        return None
-    elif isinstance(x, time_types):
-        x = x.replace(tzinfo=None).isoformat()
-    elif isinstance(x, dt.date):
-        x = x.isoformat()
-    return x
-
-
-Engine.prepare_xl_data_element = staticmethod(prepare_xl_data_element)
-
-
-class Apps(platform_base_classes.Apps):
+class Apps(base_classes.Apps):
     def __init__(self):
         self._apps = [App(self)]
 
@@ -108,7 +103,7 @@ class Apps(platform_base_classes.Apps):
         return self._apps[0]
 
 
-class App(platform_base_classes.App):
+class App(base_classes.App):
 
     _next_pid = -1
 
@@ -148,7 +143,7 @@ class App(platform_base_classes.App):
         pass
 
 
-class Books(platform_base_classes.Books):
+class Books(base_classes.Books):
     def __init__(self, app):
         self.app = app
         self.books = []
@@ -205,7 +200,7 @@ class Books(platform_base_classes.Books):
             return book
 
 
-class Book(platform_base_classes.Book):
+class Book(base_classes.Book):
     def __init__(self, api, books):
         self.books = books
         self._api = api
@@ -263,7 +258,7 @@ class Book(platform_base_classes.Book):
         pass
 
 
-class Sheets(platform_base_classes.Sheets):
+class Sheets(base_classes.Sheets):
     def __init__(self, api, book):
         self._api = api
         self.book = book
@@ -327,7 +322,7 @@ class Sheets(platform_base_classes.Sheets):
             yield Sheet(api=sheet, sheets=self, index=ix + 1)
 
 
-class Sheet(platform_base_classes.Sheet):
+class Sheet(base_classes.Sheet):
     def __init__(self, api, sheets, index):
         self._api = api
         self._index = index
@@ -385,7 +380,7 @@ class Sheet(platform_base_classes.Sheet):
         self.append_json_action(func='activateSheet', args=ix)
 
 
-class Range(platform_base_classes.Range):
+class Range(base_classes.Range):
     def __init__(self, sheet, api, arg1, arg2=None):
         # Range
         if isinstance(arg1, Range) and isinstance(arg2, Range):
@@ -568,8 +563,8 @@ class Range(platform_base_classes.Range):
 
     @color.setter
     def color(self, value):
-        if '#' not in value:
-            raise ValueError('Color must be supplied as Hex format e.g., "#232323".')
+        if not isinstance(value, str):
+            raise ValueError('Color must be supplied in hex format e.g., "#FFA500".')
         self.append_json_action(func='setRangeColor', args=value)
 
     def __len__(self):
