@@ -199,7 +199,7 @@ def test_write_basic_types(book):
     ]
     assert (
         json.dumps(book.json()['actions'][0]['values'])
-        == '[[null, "string"], [-1.0, 1.0], [true, false], ["2021-10-01", "2021-12-31T23:35:00"]]'
+        == '[["", "string"], [-1.0, 1.0], [true, false], ["2021-10-01", "2021-12-31T23:35:00"]]'
     )
 
 

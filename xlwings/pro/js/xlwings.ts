@@ -121,13 +121,15 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   // console.log(rawData);
 
   // Run Functions
-  const forceSync = ["sheet"];
-  rawData["actions"].forEach((action) => {
-    if (forceSync.some(el => action.func.toLowerCase().includes(el))) {
-      console.log(); // Force sync to prevent writing to wrong sheet
-    }
-    funcs[action.func](workbook, action);
-  });
+  if (rawData !== null) {
+    const forceSync = ["sheet"];
+    rawData["actions"].forEach((action) => {
+      if (forceSync.some(el => action.func.toLowerCase().includes(el))) {
+        console.log(); // Force sync to prevent writing to wrong sheet
+      }
+      funcs[action.func](workbook, action);
+    });
+  }
 }
 
 // Helpers

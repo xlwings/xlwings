@@ -477,7 +477,12 @@ class Range(platform_base_classes.Range):
 
     @raw_value.setter
     def raw_value(self, value):
-        values = [[value]] if not isinstance(value, list) else value
+        if not isinstance(value, list):
+            # Covers also this case: myrange['A1:B2'].value = 'xyz'
+            nrows, ncols = self.shape
+            values = [[value] * ncols] * nrows
+        else:
+            values = value
         self.append_json_action(
             func='setValues',
             values=values,
