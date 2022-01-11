@@ -1,0 +1,4 @@
+cryptography
+fastapi
+uvicorn[standard]
+xlwings

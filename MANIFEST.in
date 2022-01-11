@@ -8,6 +8,7 @@ include xlwings*.dll
 include xlwings/xlwings*.applescript
 include xlwings/Dictionary.cls
 include xlwings/pro/js/xlwings.ts
+include xlwings/quickstart_fastapi/*.*
 
 recursive-include docs *
 prune docs

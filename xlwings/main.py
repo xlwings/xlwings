@@ -747,7 +747,10 @@ class Book:
         Not supported on macOS.
     corrupt_load : int, default xlNormalLoad
         Can be one of xlNormalLoad, xlRepairFile or xlExtractData. Not supported on macOS.
+    json : dict
+        A JSON object as delivered by the Office Scripts xlwings module but in a deserialized form, i.e., as dictionary.
 
+        .. versionadded:: 0.26.0
     """
 
     def __init__(self, fullname=None, update_links=None, read_only=None, format=None, password=None,
@@ -803,6 +806,12 @@ class Book:
         return self.impl.api
 
     def json(self):
+        """
+        Returns a JSON serializable object as expected by the Office Scripts xlwings module. Only available with
+        book objects that have been instantiated via ``xw.Book(json=...)``.
+
+        .. versionadded:: 0.26.0
+        """
         return self.impl.json()
 
     def __eq__(self, other):
