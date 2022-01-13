@@ -209,11 +209,11 @@ function clearContents(workbook: ExcelScript.Workbook, action: Action) {
 
 function addSheet(workbook: ExcelScript.Workbook, action: Action) {
   let sheet = workbook.addWorksheet();
-  sheet.setPosition(action.args[0]);
+  sheet.setPosition(parseInt(action.args[0].toString()));
 }
 
 function setSheetName(workbook: ExcelScript.Workbook, action: Action) {
-  workbook.getWorksheets()[action.sheet_position].setName(action.args[0]);
+  workbook.getWorksheets()[action.sheet_position].setName(action.args[0].toString());
 }
 
 function setAutofit(workbook: ExcelScript.Workbook, action: Action) {
@@ -225,9 +225,9 @@ function setAutofit(workbook: ExcelScript.Workbook, action: Action) {
 }
 
 function setRangeColor(workbook: ExcelScript.Workbook, action: Action) {
-  getRange(workbook, action).getFormat().getFill().setColor(action.args[0])
+  getRange(workbook, action).getFormat().getFill().setColor(action.args[0].toString())
 }
 
 function activateSheet(workbook: ExcelScript.Workbook, action: Action) {
-  workbook.getWorksheets()[action.args[0]].activate()
+  workbook.getWorksheets()[parseInt(action.args[0].toString())].activate()
 }
