@@ -381,6 +381,8 @@ class Sheet(base_classes.Sheet):
 
 class Range(base_classes.Range):
     def __init__(self, sheet, arg1, arg2=None):
+        self.sheet = sheet
+
         # Range
         if isinstance(arg1, Range) and isinstance(arg2, Range):
             cell1 = arg1.coords[1], arg1.coords[2]
@@ -424,6 +426,7 @@ class Range(base_classes.Range):
 
     @property
     def api(self):
+        # TODO: memoize this (note that multiple instances can refer to same range)
         if self.arg2:
             values = [
                 row[self.arg1[1] - 1 : self.arg2[1]]
