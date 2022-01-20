@@ -363,13 +363,12 @@ class Sheet(base_classes.Sheet):
         return self.sheets.book
 
     def range(self, arg1, arg2=None):
-        return Range(sheet=self, api=self.api, arg1=arg1, arg2=arg2)
+        return Range(sheet=self, arg1=arg1, arg2=arg2)
 
     @property
     def cells(self):
         return Range(
             sheet=self,
-            api=self.api,
             arg1=(1, 1),
             arg2=(1_048_576, 16_384),
         )
@@ -381,7 +380,7 @@ class Sheet(base_classes.Sheet):
 
 
 class Range(base_classes.Range):
-    def __init__(self, sheet, api, arg1, arg2=None):
+    def __init__(self, sheet, arg1, arg2=None):
         # Range
         if isinstance(arg1, Range) and isinstance(arg2, Range):
             cell1 = arg1.coords[1], arg1.coords[2]
@@ -407,7 +406,6 @@ class Range(base_classes.Range):
         self.arg1 = arg1  # 1-based tuple
         self.arg2 = arg2  # 1-based tuple
         self.sheet = sheet
-        self._api = api
 
     def append_json_action(self, **kwargs):
         nrows, ncols = self.shape
@@ -425,12 +423,11 @@ class Range(base_classes.Range):
         )
 
     @property
-    @lru_cache(None)
     def api(self):
         if self.arg2:
             values = [
                 row[self.arg1[1] - 1 : self.arg2[1]]
-                for row in self._api['values'][self.arg1[0] - 1 : self.arg2[0]]
+                for row in self.sheet.api['values'][self.arg1[0] - 1 : self.arg2[0]]
             ]
             if not values:
                 # Outside the used range
@@ -440,7 +437,7 @@ class Range(base_classes.Range):
             return values
         else:
             try:
-                values = [[self._api['values'][self.arg1[0] - 1][self.arg1[1] - 1]]]
+                values = [[self.sheet.api['values'][self.arg1[0] - 1][self.arg1[1] - 1]]]
                 return values
             except IndexError:
                 # Outside the used range
@@ -579,7 +576,6 @@ class Range(base_classes.Range):
         else:
             return Range(
                 sheet=self.sheet,
-                api=self.sheet.api,
                 arg1=(self.row + arg1 - 1, self.column + arg2 - 1),
             )
 
