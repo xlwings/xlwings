@@ -77,7 +77,9 @@ class Engine:
         elif isinstance(x, time_types):
             x = x.replace(tzinfo=None).isoformat()
         elif isinstance(x, dt.date):
-            x = x.isoformat()
+            # JS applies tz conversion with "2021-01-01" when calling toLocaleDateString() while
+            # it leaves "2021-01-01T00:00:00" unchanged
+            x = dt.datetime(x.year, x.month, x.day).isoformat()
         return x
 
     @property

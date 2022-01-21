@@ -124,7 +124,7 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   if (rawData !== null) {
     const forceSync = ["sheet"];
     rawData["actions"].forEach((action) => {
-      if (forceSync.some(el => action.func.toLowerCase().includes(el))) {
+      if (forceSync.some((el) => action.func.toLowerCase().includes(el))) {
         console.log(); // Force sync to prevent writing to wrong sheet
       }
       funcs[action.func](workbook, action);
@@ -176,7 +176,7 @@ let funcs = {
 
 // Functions
 function setValues(workbook: ExcelScript.Workbook, action: Action) {
-  // Handle DateTime
+  // Handle DateTime (TODO: backend should deliver indices with datetime obj)
   let dt: Date;
   let dtString: string;
   action.values.forEach((valueRow, rowIndex) => {
@@ -213,11 +213,13 @@ function addSheet(workbook: ExcelScript.Workbook, action: Action) {
 }
 
 function setSheetName(workbook: ExcelScript.Workbook, action: Action) {
-  workbook.getWorksheets()[action.sheet_position].setName(action.args[0].toString());
+  workbook
+    .getWorksheets()
+    [action.sheet_position].setName(action.args[0].toString());
 }
 
 function setAutofit(workbook: ExcelScript.Workbook, action: Action) {
-  if (action.args[0] === 'columns') {
+  if (action.args[0] === "columns") {
     getRange(workbook, action).getFormat().autofitColumns();
   } else {
     getRange(workbook, action).getFormat().autofitRows();
@@ -225,9 +227,12 @@ function setAutofit(workbook: ExcelScript.Workbook, action: Action) {
 }
 
 function setRangeColor(workbook: ExcelScript.Workbook, action: Action) {
-  getRange(workbook, action).getFormat().getFill().setColor(action.args[0].toString())
+  getRange(workbook, action)
+    .getFormat()
+    .getFill()
+    .setColor(action.args[0].toString());
 }
 
 function activateSheet(workbook: ExcelScript.Workbook, action: Action) {
-  workbook.getWorksheets()[parseInt(action.args[0].toString())].activate()
+  workbook.getWorksheets()[parseInt(action.args[0].toString())].activate();
 }
