@@ -215,7 +215,7 @@ function addSheet(workbook: ExcelScript.Workbook, action: Action) {
 function setSheetName(workbook: ExcelScript.Workbook, action: Action) {
   workbook
     .getWorksheets()
-    [action.sheet_position].setName(action.args[0].toString());
+  [action.sheet_position].setName(action.args[0].toString());
 }
 
 function setAutofit(workbook: ExcelScript.Workbook, action: Action) {
