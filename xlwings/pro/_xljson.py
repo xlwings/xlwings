@@ -379,6 +379,24 @@ class Sheet(base_classes.Sheet):
         self.append_json_action(func='activateSheet', args=ix)
 
 
+@lru_cache(None)
+def get_range_api(api_values, arg1, arg2=None):
+    # Keeping this outside of the Range class allows us to cache it across multiple instances of the same range
+    if arg2:
+        values = [row[arg1[1] - 1 : arg2[1]] for row in api_values[arg1[0] - 1 : arg2[0]]]
+        if not values:
+            # Outside the used range
+            values = [[None] * (arg2[1] + 1 - arg1[1])] * (arg2[0] + 1 - arg1[0])
+        return values
+    else:
+        try:
+            values = [[api_values[arg1[0] - 1][arg1[1] - 1]]]
+            return values
+        except IndexError:
+            # Outside the used range
+            return [[None]]
+
+
 class Range(base_classes.Range):
     def __init__(self, sheet, arg1, arg2=None):
         self.sheet = sheet
@@ -426,25 +444,9 @@ class Range(base_classes.Range):
 
     @property
     def api(self):
-        # TODO: memoize this (note that multiple instances can refer to same range)
-        if self.arg2:
-            values = [
-                row[self.arg1[1] - 1 : self.arg2[1]]
-                for row in self.sheet.api['values'][self.arg1[0] - 1 : self.arg2[0]]
-            ]
-            if not values:
-                # Outside the used range
-                values = [[None] * (self.arg2[1] + 1 - self.arg1[1])] * (
-                    self.arg2[0] + 1 - self.arg1[0]
-                )
-            return values
-        else:
-            try:
-                values = [[self.sheet.api['values'][self.arg1[0] - 1][self.arg1[1] - 1]]]
-                return values
-            except IndexError:
-                # Outside the used range
-                return [[None]]
+        return get_range_api(
+            tuple(tuple(row) for row in self.sheet.api['values']), self.arg1, self.arg2
+        )
 
     @property
     def coords(self):
