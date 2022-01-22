@@ -186,7 +186,6 @@ function setValues(workbook: ExcelScript.Workbook, action: Action) {
         dtString = dt.toLocaleDateString();
         if (dtString !== "Invalid Date") {
           if (
-            value.length > 10 &&
             dt.getHours() +
             dt.getMinutes() +
             dt.getSeconds() +
