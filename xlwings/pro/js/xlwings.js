@@ -48,22 +48,14 @@ function main() {
   let lastCellCol;
   let lastCellRow;
   let values;
-  let categories;
   sheets.forEach((sheet) => {
-    if (sheet.getDataRange() !== undefined) {
-      lastCellCol = sheet.getLastColumn();
-      lastCellRow = sheet.getLastRow();
-    } else {
-      lastCellCol = 1;
-      lastCellRow = 1;
-    }
+    lastCellCol = sheet.getLastColumn();
+    lastCellRow = sheet.getLastRow();
     if (excludeSheetsArray.includes(sheet.getName())) {
       values = [[]];
     } else {
-      let range = sheet.getRange(1, 1, lastCellRow, lastCellCol);
+      let range = sheet.getRange(1, 1, lastCellRow > 0 ? lastCellRow : 1, lastCellCol > 0 ? lastCellCol : 1);
       values = range.getValues();
-      // TODO: handle dates
-      // categories = range.getNumberFormatCategories();
     }
     payload["sheets"].push({
       name: sheet.getName(),
@@ -144,7 +136,29 @@ let funcs = {
 
 // Functions
 function setValues(workbook, action) {
-  // TODO: Handle DateTime
+  // Handle DateTime (TODO: backend should deliver indices with datetime obj)
+  let dt;
+  let dtString;
+  action.values.forEach((valueRow, rowIndex) => {
+    valueRow.forEach((value, colIndex) => {
+      if (typeof value === "string") {
+        dt = new Date(Date.parse(value));
+        dtString = dt.toLocaleDateString();
+        if (dtString !== "Invalid Date") {
+          if (
+            dt.getHours() +
+            dt.getMinutes() +
+            dt.getSeconds() +
+            dt.getMilliseconds() !==
+            0
+          ) {
+            dtString += " " + dt.toLocaleTimeString();
+          }
+          action.values[rowIndex][colIndex] = dtString;
+        }
+      }
+    });
+  });
   getRange(workbook, action).setValues(action.values);
 }
 
@@ -173,7 +187,7 @@ function setAutofit(workbook, action) {
   } else {
     workbook
       .getSheets()
-      [actions.sheet_position].autoResizeRows(
+      [action.sheet_position].autoResizeRows(
         action.start_row + 1,
         action.start_row + action.row_count
       );
