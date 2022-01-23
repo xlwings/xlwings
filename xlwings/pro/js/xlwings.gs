@@ -84,8 +84,8 @@ function main() {
   };
 
   // Parse JSON response
-  // TODO: handle non-200 status
-  let response = UrlFetchApp.fetch(url, options);
+  // TODO: handle non-200 status more gracefully
+  let response = UrlFetchApp.fetch(url_, options);
   var json = response.getContentText();
   var rawData = JSON.parse(json);
 

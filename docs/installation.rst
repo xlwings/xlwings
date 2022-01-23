@@ -7,10 +7,11 @@ Prerequisites
 -------------
 
 * xlwings requires an **installation of Excel** and therefore only works on **Windows** and **macOS**. Note that macOS currently does not support UDFs.
-* xlwings requires at least Python 3.6.
+* xlwings requires at least Python 3.7.
 
 Here are the last versions of xlwings to support:
 
+* Python 3.6: 0.25.3
 * Python 3.5: 0.19.5
 * Python 2.7: 0.16.6
 
@@ -59,6 +60,7 @@ Dependencies
 * **Mac**: ``psutil``, ``appscript``
 
 The dependencies are automatically installed via ``conda`` or ``pip``.
+If you would like to install xlwings without dependencies, you can run ``pip install xlwings --no-deps`` or set the environment variable ``XLWINGS_NO_DEPS=1`` before running ``pip install xlwings``.
 
 How to activate xlwings PRO
 ---------------------------
@@ -74,9 +76,9 @@ To activate the license key, run the following command::
 
 Make sure to replace ``LICENSE_KEY`` with your personal key. This will store the license key under your ``xlwings.conf`` file (see :ref:`user_config` for where this is on your system). Alternatively, you can also store the license key as an environment variable with the name ``XLWINGS_LICENSE_KEY``.
 
-xlwings PRO requires additionally the ``cryptography`` and ``Jinja2`` packages which come preinstalled with Anaconda and WinPython. Otherwise, install them via pip or conda.
+xlwings PRO requires additionally the ``cryptography`` and ``Jinja2`` packages, which come preinstalled with Anaconda and WinPython. Otherwise, install them via pip or conda.
 
-With pip, you can also run ``pip install "xlwings[pro]"`` which will take care of the extra dependencies for xlwings PRO.
+With pip, you can also run ``pip install "xlwings[pro]"``: this will take care of the extra dependencies for xlwings PRO.
 
 Optional Dependencies
 ---------------------
