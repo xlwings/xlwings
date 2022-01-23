@@ -182,14 +182,14 @@ function setAutofit(workbook, action) {
       .getSheets()
       [action.sheet_position].autoResizeColumns(
         action.start_column + 1,
-        action.start_column + action.column_count
+        action.column_count
       );
   } else {
     workbook
       .getSheets()
       [action.sheet_position].autoResizeRows(
         action.start_row + 1,
-        action.start_row + action.row_count
+        action.row_count
       );
   }
 }
