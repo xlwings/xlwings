@@ -16,6 +16,7 @@ import xlwings as xw
 this_dir = Path(__file__).resolve().parent
 
 data = {
+    'client': 'Microsoft Office Scripts',
     'version': 'dev',
     'book': {'name': 'json.xlsx', 'active_sheet_index': 0},
     'sheets': [

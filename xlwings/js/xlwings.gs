@@ -61,6 +61,7 @@ function main() {
   // Request payload
   let sheets = workbook.getSheets();
   let payload = {};
+  payload["client"] = "Google Apps Script";
   payload["version"] = "dev";
   payload["book"] = {
     name: workbook.getName(),

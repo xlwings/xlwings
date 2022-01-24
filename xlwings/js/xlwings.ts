@@ -61,6 +61,7 @@ async function main(workbook: ExcelScript.Workbook): Promise<void> {
   // Request payload
   let sheets = workbook.getWorksheets();
   let payload: {} = {};
+  payload["client"] = "Microsoft Office Scripts";
   payload["version"] = "dev";
   payload["book"] = {
     name: workbook.getName(),
