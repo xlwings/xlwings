@@ -298,6 +298,14 @@ def permission_book(args):
 
 
 def copy_os(args):
+    copy_js('ts')
+
+
+def copy_gs(args):
+    copy_js('gs')
+
+
+def copy_js(extension):
     try:
         from pandas.io import clipboard
     except ImportError:
@@ -306,7 +314,7 @@ def copy_os(args):
         except ImportError:
             sys.exit('Please install either "pandas" or "pyperclip" to use the copy command.')
 
-    with open(Path(this_dir) / 'pro' / 'js' / 'xlwings.ts', 'r') as f:
+    with open(Path(this_dir) / 'js' / f'xlwings.{extension}', 'r') as f:
         clipboard.copy(f.read())
         print("Successfully copied to clipboard.")
 
@@ -591,12 +599,16 @@ def main():
     release_parser.set_defaults(func=release)
 
     # Copy
-    copy_parser = subparsers.add_parser('copy', help='Run "xlwings copy os" to copy the xlwings Office Scripts module.')
+    copy_parser = subparsers.add_parser('copy', help='Run "xlwings copy os" to copy the xlwings Office Scripts module. '
+                                                     'Run "xlwings copy gs" to copy the xlwings Google Apps Script module.')
     copy_subparser = copy_parser.add_subparsers(dest='subcommand')
     copy_subparser.required = True
 
     copy_os_parser = copy_subparser.add_parser('os')
     copy_os_parser.set_defaults(func=copy_os)
+
+    copy_os_parser = copy_subparser.add_parser('gs')
+    copy_os_parser.set_defaults(func=copy_gs)
 
     # Show help when running without commands
     if len(sys.argv) == 1:
