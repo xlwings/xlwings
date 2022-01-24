@@ -1,7 +1,11 @@
-// Config (actual values or keys in xlwings.conf sheet)
-const url = "URL"; // required
-const apiKey = "API_KEY"; // required
-const excludeSheets = "EXCLUDE_SHEETS"; // optional
+async function main(workbook: ExcelScript.Workbook) {
+  // Arguments are actual values or keys in xlwings.conf sheet
+  await runPython(
+    workbook,
+    "URL",
+    "API_KEY"
+  );
+}
 
 /**
  * xlwings dev (for Microsoft Office Scripts)
@@ -34,7 +38,12 @@ const excludeSheets = "EXCLUDE_SHEETS"; // optional
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-async function main(workbook: ExcelScript.Workbook): Promise<void> {
+async function runPython(
+  workbook: ExcelScript.Workbook,
+  url: string,
+  apiKey: string,
+  excludeSheets: string = ""
+): Promise<void> {
   // Read config from optional xlwings.conf sheet
   let configSheet = workbook.getWorksheet("xlwings.conf");
   let config = {};

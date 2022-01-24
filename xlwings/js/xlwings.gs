@@ -1,7 +1,10 @@
-// Config (actual values or keys in xlwings.conf sheet)
-const url = "URL"; // required
-const apiKey = "DEVELOPMENT"; // required
-const excludeSheets = "EXCLUDE_SHEETS"; // optional
+function hello() {
+  // Arguments are actual values or keys in xlwings.conf sheet
+  runPython(
+    "URL",
+    "API_KEY"
+  );
+}
 
 /**
  * xlwings dev (for Google Apps Script)
@@ -34,7 +37,7 @@ const excludeSheets = "EXCLUDE_SHEETS"; // optional
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-function main() {
+function runPython(url, apiKey, excludeSheets = "") {
   workbook = SpreadsheetApp.getActive();
   let configSheet = workbook.getSheetByName("xlwings.conf");
   let config = {};
@@ -77,7 +80,12 @@ function main() {
     if (excludeSheetsArray.includes(sheet.getName())) {
       values = [[]];
     } else {
-      let range = sheet.getRange(1, 1, lastCellRow > 0 ? lastCellRow : 1, lastCellCol > 0 ? lastCellCol : 1);
+      let range = sheet.getRange(
+        1,
+        1,
+        lastCellRow > 0 ? lastCellRow : 1,
+        lastCellCol > 0 ? lastCellCol : 1
+      );
       values = range.getValues();
     }
     payload["sheets"].push({
@@ -170,9 +178,9 @@ function setValues(workbook, action) {
         if (dtString !== "Invalid Date") {
           if (
             dt.getHours() +
-            dt.getMinutes() +
-            dt.getSeconds() +
-            dt.getMilliseconds() !==
+              dt.getMinutes() +
+              dt.getSeconds() +
+              dt.getMilliseconds() !==
             0
           ) {
             dtString += " " + dt.toLocaleTimeString();
