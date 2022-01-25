@@ -42,7 +42,7 @@ async function runPython(
   workbook: ExcelScript.Workbook,
   url: string,
   apiKey: string,
-  excludeSheets: string = ""
+  exclude: string = ""
 ): Promise<void> {
   // Read config from optional xlwings.conf sheet
   let configSheet = workbook.getWorksheet("xlwings.conf");
@@ -61,9 +61,9 @@ async function runPython(
   let url_: string = getConfig(url, config);
   let headerApiKey: string = getConfig(apiKey, config);
 
-  let excludeSheetsString: string = getConfig(excludeSheets, config);
-  let excludeSheetsArray: string[] = [];
-  excludeSheetsArray = excludeSheetsString
+  let excludeString: string = getConfig(exclude, config);
+  let excludeArray: string[] = [];
+  excludeArray = excludeString
     .split(",")
     .map((item: string) => item.trim());
 
@@ -90,7 +90,7 @@ async function runPython(
       lastCellCol = 0;
       lastCellRow = 0;
     }
-    if (excludeSheetsArray.includes(sheet.getName())) {
+    if (excludeArray.includes(sheet.getName())) {
       values = [[]];
     } else {
       let range = sheet.getRangeByIndexes(

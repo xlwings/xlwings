@@ -41,7 +41,7 @@ function hello() {
  * @OnlyCurrentDoc
  */
 
-function runPython(url, apiKey, excludeSheets = "") {
+function runPython(url, apiKey, exclude = "") {
   const workbook = SpreadsheetApp.getActive();
   let configSheet = workbook.getSheetByName("xlwings.conf");
   let config = {};
@@ -59,9 +59,9 @@ function runPython(url, apiKey, excludeSheets = "") {
   let url_ = getConfig(url, config);
   let headerApiKey = getConfig(apiKey, config);
 
-  let excludeSheetsString = getConfig(excludeSheets, config);
-  let excludeSheetsArray = [];
-  excludeSheetsArray = excludeSheetsString
+  let excludeString = getConfig(exclude, config);
+  let excludeArray = [];
+  excludeArray = excludeString
     .split(",")
     .map((item) => item.trim());
 
@@ -81,7 +81,7 @@ function runPython(url, apiKey, excludeSheets = "") {
   sheets.forEach((sheet) => {
     lastCellCol = sheet.getLastColumn();
     lastCellRow = sheet.getLastRow();
-    if (excludeSheetsArray.includes(sheet.getName())) {
+    if (excludeArray.includes(sheet.getName())) {
       values = [[]];
     } else {
       let range = sheet.getRange(
