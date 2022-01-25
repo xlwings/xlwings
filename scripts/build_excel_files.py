@@ -160,7 +160,7 @@ os.makedirs(os.path.join(os.environ['GITHUB_WORKSPACE'], 'dist'), exist_ok=True)
 shutil.copyfile(addin_path, os.path.join(os.environ['GITHUB_WORKSPACE'], 'dist', 'xlwings.xlam'))
 
 # Handle version stamp in JavaScript modules
-for js in [os.path.join(par_dir, 'xlwings', 'js', 'xlwings.ts'), os.path.join(par_dir, 'xlwings', 'js', 'xlwings.gs')]:
+for js in [os.path.join(par_dir, 'xlwings', 'js', 'xlwings.ts'), os.path.join(par_dir, 'xlwings', 'js', 'xlwings.js')]:
     with open(js, 'r') as f:
         content = f.read().replace('* xlwings dev', f'* xlwings {version_string}').replace('] = "dev";', f'] = "{version_string}";')
     with open(js, 'w') as f:
