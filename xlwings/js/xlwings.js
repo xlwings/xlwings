@@ -37,6 +37,10 @@ function hello() {
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @OnlyCurrentDoc
+ */
+
 function runPython(url, apiKey, excludeSheets = "") {
   const workbook = SpreadsheetApp.getActive();
   let configSheet = workbook.getSheetByName("xlwings.conf");
