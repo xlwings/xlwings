@@ -1,5 +1,5 @@
 async function main(workbook: ExcelScript.Workbook) {
-  // Arguments are actual values or keys in xlwings.conf sheet
+  // String arguments are actual values or keys in xlwings.conf sheet
   await runPython(
     workbook,
     "URL",
