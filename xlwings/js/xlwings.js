@@ -38,7 +38,7 @@ function hello() {
  */
 
 function runPython(url, apiKey, excludeSheets = "") {
-  workbook = SpreadsheetApp.getActive();
+  const workbook = SpreadsheetApp.getActive();
   let configSheet = workbook.getSheetByName("xlwings.conf");
   let config = {};
   let configValues = {};
@@ -107,7 +107,7 @@ function runPython(url, apiKey, excludeSheets = "") {
   }
 
   // API call
-  var options = {
+  const options = {
     method: "post",
     contentType: "application/json",
     payload: JSON.stringify(payload),
@@ -116,9 +116,9 @@ function runPython(url, apiKey, excludeSheets = "") {
 
   // Parse JSON response
   // TODO: handle non-200 status more gracefully
-  let response = UrlFetchApp.fetch(url_, options);
-  var json = response.getContentText();
-  var rawData = JSON.parse(json);
+  const response = UrlFetchApp.fetch(url_, options);
+  const json = response.getContentText();
+  const rawData = JSON.parse(json);
 
   // console.log(rawData);
 
