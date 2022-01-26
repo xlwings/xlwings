@@ -75,9 +75,10 @@ extensions = ['sphinx.ext.autodoc',
               'sphinxcontrib.napoleon',
               'sphinx.ext.mathjax',
               'sphinx.ext.extlinks',
+              'sphinx.ext.autosectionlabel',  # To make easy intra-page links like so: :ref:`Title`
               'sphinxcontrib.httpdomain',
               'sphinx_copybutton',
-              'sphinx_design'
+              'sphinx_design',
               ]
 
 # autodoc_member_order = 'bysource'

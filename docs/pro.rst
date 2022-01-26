@@ -13,6 +13,7 @@ xlwings PRO offers access to additional functionality. All PRO features are mark
 PRO Features
 ------------
 
+* :ref:`Remote Python Interpreter (Google Sheets & Excel on the web)`: Work with Google Sheets and Excel on the web and a remote Python interpreter.
 * :ref:`One-click Installer <zero_config_installer>`: Easily build your own Python installer including all dependencies---your end users don't need to know anything about Python.
 * :ref:`Embedded code<embedded_code>`: Store your Python source code directly in Excel for easy deployment.
 * :ref:`reports_quickstart`: A template-based reporting mechanism, allowing business users to change the layout of the report without having to touch the Python code.
