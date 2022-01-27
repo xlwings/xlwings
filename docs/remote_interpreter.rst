@@ -12,7 +12,7 @@ In connection with **Google Sheets** or **Excel on the web**, xlwings can be run
 Why is this useful?
 -------------------
 
-To automate Office on the web, you have to use Office Scripts (i.e., TypeScript, a typed superset of JavaScript) and for Google Sheets, you have to use Apps Script (i.e., JavaScript). If you don't feel like learning JavaScript, xlwings allows you to write Python code instead. But even if you are comfortable with JavaScript, you are very limited in what you can do, as both Office Scripts and Apps Script are primarily designed to automate simple spreadsheet tasks such as inserting a new sheet or formatting cells rather than working with data. They also make it very hard/impossible to use external libraries.
+To automate Office on the web, you have to use Office Scripts (i.e., TypeScript, a typed superset of JavaScript) and for Google Sheets, you have to use Apps Script (i.e., JavaScript). If you don't feel like learning JavaScript, xlwings allows you to write Python code instead. But even if you are comfortable with JavaScript, you are very limited in what you can do, as both Office Scripts and Apps Script are primarily designed to automate simple spreadsheet tasks such as inserting a new sheet or formatting cells rather than working with data. They also make it very hard/impossible to use external libraries and run in environments with minimal resources.
 
 .. note:: From here on, when I refer to the **xlwings JavaScript module**, I mean either the xlwings Apps Script module if you use Google Sheets or the xlwings Office Scripts module if you use Excel on the web.
 
@@ -36,7 +36,7 @@ Prerequisites
     .. tab-item:: Excel on the web
       :sync: excel
 
-      * You need access to Excel on the web with the ``Automate`` tab enabled, i.e., access to Office Scripts. Note that Office Scripts currently requires OneDrive for Business or SharePoint (it's not available on the free office.com), see also: https://docs.microsoft.com/en-gb/office/dev/scripts/overview/excel#requirements
+      * You need access to Excel on the web with the ``Automate`` tab enabled, i.e., access to Office Scripts. Note that Office Scripts currently requires OneDrive for Business or SharePoint (it's not available on the free office.com), see also `Office Scripts Requirements <https://docs.microsoft.com/en-gb/office/dev/scripts/overview/excel#requirements>`_.
       * The ``fetch`` command in Office Scripts must **not** be disabled by your Microsoft 365 administrator.
 
 Introduction
@@ -47,7 +47,7 @@ Working with a remote Python interpreter consists of two parts:
 * the Python part (the "backend" or "server")
 * the xlwings JavaScript module (the "frontend" or "client")
 
-This corresponds to the classic use of xlwings except that the xlwings JavaScript module is used in place of the VBA add-in/module and that the Python backend runs on a server instead of on your local machine.
+This is no different from the classic desktop use of xlwings except that (a) the xlwings JavaScript module is used in place of the VBA add-in/module and (b) the Python backend runs on a server instead of on your local machine.
 
 Working with a remote Python interpreter means that you have to expose your Python functions by using a Python web framework. In more detail, you need to handle a POST request along these lines (the sample shows an excerpt that uses `FastAPI <https://fastapi.tiangolo.com/>`_ as the web framework, but it works accordingly with any other web framework like Django or Flask):
 
@@ -75,10 +75,22 @@ If you want to have a development environment up and running in less than 5 minu
    :target: https://gitpod.io/#https://github.com/xlwings/xlwings-web-fastapi
    :alt: Open in Gitpod
 
-Opening the project in Gitpod will require you to sign in with your GitHub account. A few moments later, you should see an online version of VS Code. In the Terminal, it will ask you to paste the xlwings license key (get one `here <https://www.xlwings.org/trial>`_). Note that your browser will ask you for permission to paste. Once you confirm your license key by hitting ``Enter``, the server will automatically start with everything properly configured. You can then open the file ``main.py`` in the ``app`` directory, where you'll see the ``hello`` function. This is the function we're going to call from Google Sheets/Excel on the web in just a moment. The other file in this directory, ``app.py`` contains all the FastAPI boilerplate code. Let's leave this alone for a moment and look at the ``js`` folder instead. Depending on whether you want to use Google Sheets or Excel on the web, open the following file:
+Opening the project in Gitpod will require you to sign in with your GitHub account. A few moments later, you should see an online version of VS Code. In the Terminal, it will ask you to paste the xlwings license key (get one `here <https://www.xlwings.org/trial>`_). Note that your browser will ask you for permission to paste. Once you confirm your license key by hitting ``Enter``, the server will automatically start with everything properly configured. You can then open the file ``main.py`` in the ``app`` directory, where you'll see the ``hello`` function. This is the function we're going to call from Google Sheets/Excel on the web in just a moment. The other file in this directory, ``app.py`` contains all the FastAPI boilerplate code. Let's leave this alone for a moment and look at the ``js`` folder instead. Open the file according to your platform:
 
-* Google Sheets: ``xlwings_google.js``
-* Excel on the web: ``xlwings_excel.ts``
+.. tab-set::
+    .. tab-item:: Google Sheets
+      :sync: google
+
+      .. code-block:: text
+
+          xlwings_google.js
+
+    .. tab-item:: Excel on the web
+      :sync: excel
+
+      .. code-block:: text
+
+          xlwings_excel.ts
 
 Copy the code, then switch to Google Sheets or Excel on the web, respectively, and continue as follows:
 
@@ -88,7 +100,7 @@ Copy the code, then switch to Google Sheets or Excel on the web, respectively, a
 
       Click on ``Extensions`` > ``Apps Script``. This will open a separate browser tab and open a file ``Code.gs`` with a function stub. Replace this with the copied code from ``xlwings_google.js`` and click on the ``Save`` icon. Then hit the ``Run`` button (the ``hello`` function should be automatically selected in the dropdown to the right of it). If you run this the very first time, Google Sheets will ask you for the permissions it needs. Once approved, the script will run the ``hello`` function and write ``Hello xlwings!`` into cell ``A1``.
 
-      To add a button to a sheet to run this function, switch from the Apps Script editor back to Google Sheets, click on ``Insert`` > ``Drawing`` and draw a rounded rectangle. After hitting ``Save and Close``, the rectangle will appear on the sheet. Click on it so that you can click on the 3 dots on the top right of the shape. Select ``Assign Script`` and write ``hello`` in the text box, then hit ``OK``.
+      To add a button to a sheet to run this function, switch from the Apps Script editor back to Google Sheets, click on ``Insert`` > ``Drawing`` and draw a rounded rectangle. After hitting ``Save and Close``, the rectangle will appear on the sheet. Select it so that you can click on the 3 dots on the top right of the shape. Select ``Assign Script`` and write ``hello`` in the text box, then hit ``OK``.
 
     .. tab-item:: Excel on the web
       :sync: excel
@@ -99,23 +111,25 @@ Copy the code, then switch to Google Sheets or Excel on the web, respectively, a
 
 Any changes you make to the ``hello`` function in ``app/main.py`` in Gitpod are automatically saved and reloaded by the web server and will be reflected the next time you run the script from Google Sheets or Excel on the web.
 
-To test out the other function of the `sample project <https://github.com/xlwings/xlwings-web-fastapi>`_ (``yahoo``), simply replace ``hello`` with ``yahoo`` in the ``runPython`` function in Office Scripts or Apps Script.
+To test out ``yahoo``, the other function of the `sample project <https://github.com/xlwings/xlwings-web-fastapi>`_, replace ``hello`` with ``yahoo`` in the ``runPython`` function in the xlwings JavaScript module.
 
-.. note:: While Excel on the web requires you to create a separate script for each Python function you want to call (the function has to be called ``main``), Google Sheets allows you to add any number of functions.
+.. note:: While Excel on the web requires you to create a separate script with a function called ``main`` for each Python function, Google Sheets allows you to add multiple functions with any name.
 
 Please note that clicking the Gitpod button gets you up and running quickly, but if you want to save your changes (i.e., commit them to Git), you should first fork the project on Github and open it via Gitpod (or continue with the next section, which shows you how you can start a project from scratch).
 
-An alternative to Gitpod is `GitHub Codespaces <https://github.com/features/codespaces>`_, but unlike Gitpod, GitHub Codespaces only works with GitHub, has no free tier, and may not be available yet on your account.
+An alternative for Gitpod is `GitHub Codespaces <https://github.com/features/codespaces>`_, but unlike Gitpod, GitHub Codespaces only works with GitHub, has no free tier, and may not be available yet on your account.
 
 Local Development
 -----------------
 
-This tutorial walks you through a local development workflow as an alternative to using Gitpod/GitHub Codespaces. As before, we're going to use `FastAPI <https://fastapi.tiangolo.com/>`_ as our web framework. While you can use any web framework you like, no quickstart command exists for these yet, so you'd have to set up the boilerplate yourself. Let's start with the server before turning our attention to the client side (i.e, Google Sheets or Excel on the web).
+This tutorial walks you through a local development workflow as an alternative to using Gitpod/GitHub Codespaces. What's making this a little harder than using an online service like Gitpod is the fact that we need to expose our local web server to the internet for easy development.
+
+As before, we're going to use `FastAPI <https://fastapi.tiangolo.com/>`_ as our web framework. While you can use any web framework you like, no quickstart command exists for these yet, so you'd have to set up the boilerplate yourself. Let's start with the server before turning our attention to the client side (i.e, Google Sheets or Excel on the web).
 
 Part I: xlwings Server
 **********************
 
-Start a new quickstart project by running the following command on a Terminal/Command Prompt (feel free to replace ``demo`` with another project name). Before you run this command, make sure to change into the desired directory::
+Start a new quickstart project by running the following command on a Terminal/Command Prompt (feel free to replace ``demo`` with another project name). Make sure to run this command in the desired directory::
 
     xlwings quickstart demo --fastapi
 
@@ -129,12 +143,12 @@ I would recommend you to create a virtual or Conda environment where you install
 
 The application expects you to set a unique ``XLWINGS_API_KEY`` as environment variable in order to protect your application from unauthorized access. If you don't set an environment variable, it will use ``DEVELOPMENT`` as the api key (only use this for quick tests and never for production!).
 
-To run this server locally, run ``python main.py``. Now, to make this accessible from Google sheets or Excel on the web, you need to expose your local server securely to the internet. There are many free and paid services available to help you do this. One of the more popular ones is `ngrok <https://ngrok.com/>`_ whose free version will do the trick:
+To run this server locally, run ``python main.py``. Now, to make this accessible from Google Sheets or Excel on the web, you need to expose your local server securely to the internet. There are many free and paid services available to help you do this. One of the more popular ones is `ngrok <https://ngrok.com/>`_ whose free version will do the trick:
 
 * `ngrok Installation <https://ngrok.com/download>`_
 * `ngrok Tutorial <https://ngrok.com/docs>`_
 
-For a list of alternatives, see https://github.com/anderspitman/awesome-tunneling.
+For a list of ngrok alternatives, see `Awesome Tunneling <https://github.com/anderspitman/awesome-tunneling>`_.
 
 For the sake of this tutorial, let's assume you've installed ngrok, in which case you would run the following on your Terminal/Command Prompt to expose your local server to the public internet::
 
@@ -154,10 +168,12 @@ Note that the number of the port (8000) has to correspond to the port that is co
 
 To configure the xlwings client in the next step, we'll need the ``https`` version of the Forwarding address that ngrok prints, i.e., ``https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io``.
 
+.. note:: When you're not actively developing, you should stop your ngrok session by hitting ``Ctrl-C`` on the Terminal/Command Prompt.
+
 Part II: xlwings Client
 ***********************
 
-Now it's time to switch to Google Sheets or Excel on the web! To paste the xlwings JavaScript module, follow these steps:
+Now it's time to switch to Google Sheets or Excel on the web! To paste the xlwings JavaScript module, follow these 3 steps:
 
 1. **Copy the xlwings JavaScript module**: On a Terminal/Command Prompt/Anaconda Prompt on your local machine, run the following command:
 
@@ -202,17 +218,17 @@ Configuration
 
 The xlwings JavaScript module can be configured in two ways:
 
-* Via argument in the ``runPython`` function
+* Via arguments in the ``runPython`` function
 * Via ``xlwings.conf`` sheet
 
-If both ways are configured, the function arguments are used. Using the ``xlwings.conf`` sheet has the advantages that you can (a) upgrade your xlwings script without having to adjust the code and (b) you can share your configuration with multiple scripts. Let's first see what the available settings are:
+If both ways are configured, the function arguments are used. Using the ``xlwings.conf`` sheet has the advantages that you can potentially (a) upgrade your xlwings script without having to adjust the code and (b) you can share your configuration with multiple scripts. Let's first see what the available settings are:
 
-* ``URL`` (required): This is the full URL of your function. In the above example of :ref:`Local Development`, this would be ``https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello``, i.e., the ngrok URL **with the /hello endpoint appended**.
-* ``API_KEY`` (required): The API_KEY is a key that you set yourself on both the server (as ``XLWINGS_API_KEY`` environment var) and on the client (via ``API_KEY`` setting) to protect your functions from unauthorized access. You should choose a strong random key, for example by running the following on a Terminal/Command Prompt: ``python -c "import secrets; print(secrets.token_hex(32))"``. It's good practice to keep your sensitive keys such as the ``API_KEY`` out of your source code (the JavaScript module), but putting in in the ``xlwings.conf`` sheet may only be marginally better. Excel on the web, however, doesn't currently provide you with a better way of handling this. Google Sheets, on the other hand, allows you to work with `Properties Service <https://developers.google.com/apps-script/guides/properties>`_ to keep the ``API_KEY`` out of both the JavaScript code and the ``xlwings.conf`` sheet.
+* ``URL`` (required): This is the full URL of your function. In the above example under :ref:`Local Development`, this would be ``https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello``, i.e., the ngrok URL **with the /hello endpoint appended**.
+* ``API_KEY`` (required): The ``API_KEY`` has to correspond to whatever you set the ``XLWINGS_API_KEY`` environment variable on your server and will protect your functions from unauthorized access. You should choose a strong random key, for example by running the following on a Terminal/Command Prompt: ``python -c "import secrets; print(secrets.token_hex(32))"``. It's good practice to keep your sensitive keys such as the ``API_KEY`` out of your source code (the JavaScript module), but putting it in the ``xlwings.conf`` sheet may only be marginally better. Excel on the web, however, doesn't currently provide you with a better way of handling this. Google Sheets, on the other hand, allows you to work with `Properties Service <https://developers.google.com/apps-script/guides/properties>`_ to keep the ``API_KEY`` out of both the JavaScript code and the ``xlwings.conf`` sheet.
 
   .. note:: The API_KEY is chosen by you to protect your application and has nothing to do with the xlwings license key!
 
-* ``EXCLUDE`` (optional): By default, xlwings sends over the complete content of the whole workbook. If you have sheets with big amounts of data, this can make the calls slow. If your backend doesn't need the content of certain sheets, you can exclude the content from being sent over via the ``EXCLUDE`` setting. Currently, you can only exclude entire sheets as comma-delimited string like so: ``Sheet1, Sheet2``.
+* ``EXCLUDE`` (optional): By default, xlwings sends over the complete content of the whole workbook to the server. If you have sheets with big amounts of data, this can make the calls slow or even prevent you from making the call. If your backend doesn't need the content of certain sheets, you can exclude them from being sent over via the ``EXCLUDE`` setting. Currently, you can only exclude entire sheets as comma-delimited string like so: ``Sheet1, Sheet2``.
 
 Examples for function arguments
 *******************************
@@ -338,14 +354,14 @@ The xlwings web server can be built with any web framework and can therefore be 
 
 * **Fully-managed services**: `Heroku <https://www.heroku.com>`_, `render <https://www.render.com>`_, `Fly.io <https://www.fly.io>`_, etc.
 * **Interactive environments**: `PythonAnywhere <https://www.pythonanywhere.com>`_, `Anvil <https://www.anvil.works>`_, etc.
-* **Serverless function**: `AWS Lambda <https://aws.amazon.com/lambda/>`_, `Azure Functions <https://azure.microsoft.com/en-us/services/functions/>`_, `Google Cloud Functions <https://cloud.google.com/functions>`_, `Vercel <https://vercel.com>`_, etc.
-* **Virtual Machine**: `DigitalOcean <https://m.do.co/c/ed671b0a5a9b>`_ (referral link), `vultr <https://www.vultr.com/?ref=7155223>`_ (referral link), `Linode <https://www.linode.com/>`_, `AWS EC2 <https://aws.amazon.com/ec2/>`_, `Microsoft Azure VM <https://azure.microsoft.com/en-us/services/virtual-machines/>`_, `Google Cloud Compute Engine <https://cloud.google.com/compute>`_, etc.
-* **Corporate server**: Anything will work (including Kubernetes) as long as the respective endpoints can be accessed from Excel on the web or Google Sheets.
+* **Serverless functions**: `AWS Lambda <https://aws.amazon.com/lambda/>`_, `Azure Functions <https://azure.microsoft.com/en-us/services/functions/>`_, `Google Cloud Functions <https://cloud.google.com/functions>`_, `Vercel <https://vercel.com>`_, etc.
+* **Virtual Machines**: `DigitalOcean <https://m.do.co/c/ed671b0a5a9b>`_ (referral link), `vultr <https://www.vultr.com/?ref=7155223>`_ (referral link), `Linode <https://www.linode.com/>`_, `AWS EC2 <https://aws.amazon.com/ec2/>`_, `Microsoft Azure VM <https://azure.microsoft.com/en-us/services/virtual-machines/>`_, `Google Cloud Compute Engine <https://cloud.google.com/compute>`_, etc.
+* **Corporate servers**: Anything will work (including Kubernetes) as long as the respective endpoints can be accessed from Excel on the web or Google Sheets.
 
 .. important::
     For production deployment, always make sure to set a unique and random ``API_KEY``, see :ref:`Configuration`.
 
-If you'd like to deploy the `sample project <https://github.com/xlwings/xlwings-web-fastapi>`_ to production in less than 5 minutes, you can do so by clicking the button below, which will deploy it to Heroku's free tier. Note, however, that on the free plan, the backend will "sleep" after 30 minutes of inactivity, which means that it will take a few moments the next time you call it until it is up and running again.
+If you'd like to deploy the `sample project <https://github.com/xlwings/xlwings-web-fastapi>`_ to production in less than 5 minutes, you can do so by clicking the button below, which will deploy it to Heroku's free tier. Note, however, that on the free plan, the backend will "sleep" after 30 minutes of inactivity, which means that it will take a few moments the next time you call it until it is up and running again. Note that the ``XLWINGS_API_KEY`` is auto-generated and you can look it up under your app's ``Settings`` > ``Config Vars`` > ``Reveal Config Vars``. To get the URL, you'll need to append ``/hello`` to the app's URL you'll find in your Dashboard.
 
 .. image:: https://www.herokucdn.com/deploy/button.svg
    :target: https://heroku.com/deploy?template=https://github.com/xlwings/xlwings-web-fastapi/tree/main
@@ -368,10 +384,24 @@ Triggers
 Limitations
 -----------
 
-* Currently, only a subset of the full xlwings API is covered, mainly the Range and Sheet classes with a focus on reading and writing values. This, however, includes full support for type conversion including pandas DataFrames, NumPy arrays, datetime objects, etc.
-* You will need to use the same xlwings version for the Python package and the OfficeScript module, otherwise, the server will raise an error.
-* Currently, custom functions (a.k.a. User-defined functions or UDFs) are not supported.
-* **Excel on the web only:** xlwings relies on the ``fetch`` command in Office Scripts that cannot be used via Power Automate and that can be disabled by your administrator.
+* Currently, only a subset of the xlwings API is covered, mainly the Range and Sheet classes with a focus on reading and writing values. This, however, includes full support for type conversion including pandas DataFrames, NumPy arrays, datetime objects, etc.
+* You will need to use the same xlwings version for the Python package and the JavaScript module, otherwise, the server will raise an error.
+* Currently, custom functions (a.k.a. user-defined functions or UDFs) are not supported.
+* For users with no experience in web development, this documentation may not be quite good enough just yet.
+
+Platform-specific limitations:
+
+.. tab-set::
+    .. tab-item:: Google Sheets
+      :sync: google
+
+      * `Quotas for Google Services <https://developers.google.com/apps-script/guides/services/quotas>`_ apply.
+
+    .. tab-item:: Excel on the web
+      :sync: excel
+
+      * xlwings relies on the ``fetch`` command in Office Scripts that cannot be used via Power Automate and that can be disabled by your Microsoft 365 administrator.
+      * `Platform limits with Office Scripts <https://docs.microsoft.com/en-us/office/dev/scripts/testing/platform-limits>`_ apply.
 
 Roadmap
 -------

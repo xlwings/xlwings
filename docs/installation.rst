@@ -6,7 +6,8 @@ Installation
 Prerequisites
 -------------
 
-* xlwings requires an **installation of Excel** and therefore only works on **Windows** and **macOS**. Note that macOS currently does not support UDFs.
+* Traditionally, xlwings requires an **installation of Excel** and therefore only works on **Windows** and **macOS**. Note that macOS currently does not support UDFs.
+* Since v0.26.0, xlwings can be installed on Linux servers in connection with Google Sheets or Excel on the web, see :ref:`Remote Interpreter <remote_interpreter>`.
 * xlwings requires at least Python 3.7.
 
 Here are the last versions of xlwings to support:
