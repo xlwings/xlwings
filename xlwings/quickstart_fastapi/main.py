@@ -4,8 +4,8 @@ import xlwings as xw
 from app import app
 
 
-@app.post("/hello-world")
-def hello_world(data: dict = Body(...)):
+@app.post("/hello")
+def hello(data: dict = Body(...)):
     # Instantiate a Book object with the deserialized request body
     book = xw.Book(json=data)
 

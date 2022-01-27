@@ -98,14 +98,14 @@ Copy the code, then switch to Google Sheets or Excel on the web, respectively, a
     .. tab-item:: Google Sheets
       :sync: google
 
-      Click on ``Extensions`` > ``Apps Script``. This will open a separate browser tab and open a file ``Code.gs`` with a function stub. Replace this with the copied code from ``xlwings_google.js`` and click on the ``Save`` icon. Then hit the ``Run`` button (the ``hello`` function should be automatically selected in the dropdown to the right of it). If you run this the very first time, Google Sheets will ask you for the permissions it needs. Once approved, the script will run the ``hello`` function and write ``Hello xlwings!`` into cell ``A1``.
+      Click on ``Extensions`` > ``Apps Script``. This will open a separate browser tab and open a file ``Code.gs`` with a function stub. Replace that function stub with the copied code from ``xlwings_google.js`` and click on the ``Save`` icon. Then hit the ``Run`` button (the ``hello`` function should be automatically selected in the dropdown to the right of it). If you run this the very first time, Google Sheets will ask you for the permissions it needs. Once approved, the script will run the ``hello`` function and write ``Hello xlwings!`` into cell ``A1``.
 
       To add a button to a sheet to run this function, switch from the Apps Script editor back to Google Sheets, click on ``Insert`` > ``Drawing`` and draw a rounded rectangle. After hitting ``Save and Close``, the rectangle will appear on the sheet. Select it so that you can click on the 3 dots on the top right of the shape. Select ``Assign Script`` and write ``hello`` in the text box, then hit ``OK``.
 
     .. tab-item:: Excel on the web
       :sync: excel
 
-      In the ``Automate`` tab, click on ``New Script``. This opens a code editor pane on the right-hand side where you'll paste the code from ``xlwings_excel.ts``. Make sure to click on ``Save script`` before clicking on ``Run``: the script will run the ``hello`` function and write ``Hello xlwings!`` into cell ``A1``.
+      In the ``Automate`` tab, click on ``New Script``. This opens a code editor pane on the right-hand side with a function stub. Replace that function stub with the copied code from ``xlwings_excel.ts``. Make sure to click on ``Save script`` before clicking on ``Run``: the script will run the ``hello`` function and write ``Hello xlwings!`` into cell ``A1``.
 
       To run this script from a button, click on the 3 dots in the Office Scripts pane (above the script), then select ``+ Add button``.
 
@@ -200,14 +200,14 @@ Now it's time to switch to Google Sheets or Excel on the web! To paste the xlwin
     .. tab-item:: Google Sheets
       :sync: google
 
-      Click on ``Extensions`` > ``Apps Script``. This will open a separate browser tab and open a file ``Code.gs`` with a function stub. Replace this with the copied code from the previous step and click on the ``Save`` icon. Then hit the ``Run`` button (the ``hello`` function should be automatically selected in the dropdown to the right of it). If you run this the very first time, Google Sheets will ask you for the permissions it needs. Once approved, the script will run the ``hello`` function and write ``Hello xlwings!`` into cell ``A1``.
+      Click on ``Extensions`` > ``Apps Script``. This will open a separate browser tab and open a file ``Code.gs`` with a function stub. Replace that function stub with the copied code from the previous step and click on the ``Save`` icon. Then hit the ``Run`` button (the ``hello`` function should be automatically selected in the dropdown to the right of it). If you run this the very first time, Google Sheets will ask you for the permissions it needs. Once approved, the script will run the ``hello`` function and write ``Hello xlwings!`` into cell ``A1``.
 
       To add a button to a sheet to run this function, switch from the Apps Script editor back to Google Sheets, click on ``Insert`` > ``Drawing`` and draw a rounded rectangle. After hitting ``Save and Close``, the rectangle will appear on the sheet. Click on it so that you can click on the 3 dots on the top right of the shape. Select ``Assign Script`` and write ``hello`` in the text box, then hit ``OK``.
 
     .. tab-item:: Excel on the web
       :sync: excel
 
-      In the ``Automate`` tab, click on ``New Script``. This opens a code editor pane on the right-hand side where you'll paste the copied code from the previous step. Make sure to click on ``Save script`` before clicking on ``Run``: the script will run the ``hello`` function and write ``Hello xlwings!`` into cell ``A1``.
+      In the ``Automate`` tab, click on ``New Script``. This opens a code editor pane on the right-hand side with a function stub. Replace that function stub with the copied code from the previous step. Make sure to click on ``Save script`` before clicking on ``Run``: the script will run the ``hello`` function and write ``Hello xlwings!`` into cell ``A1``.
 
       To run this script from a button, click on the 3 dots in the Office Scripts pane (above the script), then select ``+ Add button``.
 
