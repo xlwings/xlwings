@@ -61,9 +61,7 @@ function runPython(url, apiKey, exclude = "") {
 
   let excludeString = getConfig(exclude, config);
   let excludeArray = [];
-  excludeArray = excludeString
-    .split(",")
-    .map((item) => item.trim());
+  excludeArray = excludeString.split(",").map((item) => item.trim());
 
   // Request payload
   let sheets = workbook.getSheets();
@@ -91,6 +89,23 @@ function runPython(url, apiKey, exclude = "") {
         lastCellCol > 0 ? lastCellCol : 1
       );
       values = range.getValues();
+      // Handle dates
+      values.forEach((valueRow, rowIndex) => {
+        valueRow.forEach((value, colIndex) => {
+          if (value instanceof Date) {
+            // Convert from script timezone to spreadsheet timezone
+            let tzDate = new Date(
+              value.toLocaleString("en-US", {
+                timeZone: workbook.getSpreadsheetTimeZone(),
+              })
+            );
+            // toISOString transforms to UTC, so we need to correct for offset
+            values[rowIndex][colIndex] = new Date(
+              tzDate.getTime() - tzDate.getTimezoneOffset() * 60 * 1000
+            ).toISOString();
+          }
+        });
+      });
     }
     payload["sheets"].push({
       name: sheet.getName(),

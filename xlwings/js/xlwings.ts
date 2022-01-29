@@ -63,9 +63,7 @@ async function runPython(
 
   let excludeString: string = getConfig(exclude, config);
   let excludeArray: string[] = [];
-  excludeArray = excludeString
-    .split(",")
-    .map((item: string) => item.trim());
+  excludeArray = excludeString.split(",").map((item: string) => item.trim());
 
   // Request payload
   let sheets = workbook.getWorksheets();
@@ -107,7 +105,11 @@ async function runPython(
           const categoryRow = categories[rowIndex];
           valueRow.forEach((value, colIndex: number) => {
             const category = categoryRow[colIndex];
-            if (category.toString() === "Date" && typeof value === "number") {
+            if (
+              (category.toString() === "Date" ||
+                category.toString() === "Time") &&
+              typeof value === "number"
+            ) {
               values[rowIndex][colIndex] = new Date(
                 Math.round((value - 25569) * 86400 * 1000)
               ).toISOString();
