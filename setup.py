@@ -60,8 +60,7 @@ setup(
     entry_points={'console_scripts': ['xlwings=xlwings.cli:main'],},
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.7',
@@ -70,6 +69,5 @@ setup(
         'Programming Language :: Python :: 3.10',
         'Topic :: Office/Business :: Financial :: Spreadsheet',
         'License :: OSI Approved :: BSD License'],
-    platforms=['Windows', 'Mac OS X'],
     python_requires='>=3.6',
 )
