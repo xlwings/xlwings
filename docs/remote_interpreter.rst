@@ -31,7 +31,8 @@ Prerequisites
     .. tab-item:: Google Sheets
       :sync: google
 
-      No special requirements.
+      * New sheets: no special requirements.
+      * Older sheets: make sure that Chrome V8 runtime is enabled under ``Extensions`` > ``Apps Script`` > ``Project Settings`` > ``Enable Chrome V8 runtime``.
 
     .. tab-item:: Excel on the web
       :sync: excel
