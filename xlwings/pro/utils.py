@@ -50,6 +50,8 @@ class LicenseHandler:
     def validate_license(product, license_type=None):
         cipher_suite = LicenseHandler.get_cipher()
         key = LicenseHandler.get_license()
+        if key == 'personal':
+            return {'license_type': 'personal'}
         try:
             license_info = json.loads(cipher_suite.decrypt(key.encode()).decode())
         except (binascii.Error, InvalidToken):
