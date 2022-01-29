@@ -77,6 +77,8 @@ class LicenseHandler:
     @staticmethod
     def create_deploy_key():
         license_info = LicenseHandler.validate_license('pro', license_type='developer')
+        if license_info['license_type'] == 'personal':
+            return 'personal'
         cipher_suite = LicenseHandler.get_cipher()
         license_dict = json.dumps({'version': xlwings.__version__,
                                    'products': license_info['products'],
