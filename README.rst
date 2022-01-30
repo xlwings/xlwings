@@ -32,16 +32,16 @@ xlwings PRO is `source available <https://en.wikipedia.org/wiki/Source-available
 
 **License Key**
 
-To use xlwings PRO, you need to `install a license key <https://docs.xlwings.org/en/stable/installation.html#how-to-activate-xlwings-pro>`_ like so::
+To use xlwings PRO, you need to `install a license key <https://docs.xlwings.org/en/stable/installation.html#how-to-activate-xlwings-pro>`_ on a Terminal/Command Prompt like so::
 
     xlwings license update -k YOUR_LICENSE_KEY
 
 * To use xlwings PRO for free in a **noncommercial context**, use the following license key: ``noncommercial``.
 
 * To try xlwings PRO for free in a **commercial context**, request a trial license key: https://www.xlwings.org/trial
-* To use xlwings PRO in a commercial context, you need to enroll in a paid plan: https://www.xlwings.org/pricing
+* To use xlwings PRO in a commercial context, you need to enroll in a paid plan (they including additional services like support and the ability to create one-click installers): https://www.xlwings.org/pricing
 
-xlwings PRO licenses are developer licenses, are checked offline (i.e., no telemetry/license server) and allow royalty-free deployment to unlimited internal and external end-users and servers.
+xlwings PRO licenses are developer licenses, are verified offline (i.e., no telemetry/license server involved) and allow royalty-free deployment to unlimited internal and external end-users and servers for a hassle-free management.
 
 Links
 -----
