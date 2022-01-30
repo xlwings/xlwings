@@ -25,7 +25,7 @@ xlwings PRO offers `additional functionality <https://docs.xlwings.org/en/stable
 
 **License Key**
 
-To use xlwings PRO, you need to `install <https://docs.xlwings.org/en/stable/installation.html#how-to-activate-xlwings-pro>`_ a license key.
+To use xlwings PRO, you need to `install a license key<https://docs.xlwings.org/en/stable/installation.html#how-to-activate-xlwings-pro>`_.
 
 * To use xlwings PRO for free in a **noncommercial context**, use the following license key: ``noncommercial``.
 
