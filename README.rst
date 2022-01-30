@@ -18,14 +18,25 @@ xlwings includes all files in the xlwings package except the ``pro`` folder, i.e
 xlwings PRO
 -----------
 
-xlwings PRO offers `additional functionality <https://docs.xlwings.org/en/stable/pro.html>`_ on top of xlwings (Open Source), including support for Google Sheets and Excel on the web. xlwings PRO is `source available <https://en.wikipedia.org/wiki/Source-available_software>`_ and dual-licensed under one of the following licenses:
+xlwings PRO is free for noncommercial use and provides support for Google Sheets & Excel on the web, comes with xlwings Reports, the template-based reporting system and other exclusive features like easier deployment.
+
+xlwings PRO offers additional functionality on top of xlwings (Open Source), including:
+
+* Support for Google Sheets/Excel on the web
+* xlwings Reports, the flexible, template-based reporting system
+* Other exclusive features like easier deployment
+* See the `full list of PRO features <https://docs.xlwings.org/en/stable/pro.html>`_
+
+xlwings PRO is `source available <https://en.wikipedia.org/wiki/Source-available_software>`_ and dual-licensed under one of the following licenses:
 
 * `PolyForm Noncommercial License 1.0.0 <https://polyformproject.org/licenses/noncommercial/1.0.0>`_ (free for noncommercial use)
 * `xlwings PRO License <https://github.com/xlwings/xlwings/blob/main/LICENSE_PRO.txt>`_ (paid for commercial use)
 
 **License Key**
 
-To use xlwings PRO, you need to `install a license key <https://docs.xlwings.org/en/stable/installation.html#how-to-activate-xlwings-pro>`_.
+To use xlwings PRO, you need to `install a license key <https://docs.xlwings.org/en/stable/installation.html#how-to-activate-xlwings-pro>`_ like so::
+
+    xlwings license update -k YOUR_LICENSE_KEY
 
 * To use xlwings PRO for free in a **noncommercial context**, use the following license key: ``noncommercial``.
 
