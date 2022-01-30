@@ -4517,6 +4517,13 @@ class ActiveEngineApps(Apps):
 
     @property
     def impl(self):
+        if engines.active is None:
+            if not (sys.platform.startswith('darwin') or sys.platform.startswith('win')):
+                raise XlwingsError('Your platform only supports the instantiation via xw.Book(json=...)')
+            elif sys.platform.startswith('darwin'):
+                raise XlwingsError('Make sure to have "appscript" and "psutil", dependencies of xlwings, installed.')
+            elif sys.platform.startswith('win'):
+                raise XlwingsError('Make sure to have "pywin32", a dependency of xlwings, installed.')
         return engines.active.apps.impl
 
 
