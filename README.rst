@@ -20,9 +20,9 @@ xlwings PRO
 
 xlwings PRO offers additional functionality on top of xlwings (Open Source), including:
 
-* Support for Google Sheets/Excel on the web
+* Support for Google Sheets and Excel on the web
 * xlwings Reports, the flexible, template-based reporting system
-* Other exclusive features like easier deployment
+* Easy deployment via embedded code
 * See the `full list of PRO features <https://docs.xlwings.org/en/stable/pro.html>`_
 
 xlwings PRO is `source available <https://en.wikipedia.org/wiki/Source-available_software>`_ and dual-licensed under one of the following licenses:
