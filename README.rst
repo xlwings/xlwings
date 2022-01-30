@@ -18,8 +18,6 @@ xlwings includes all files in the xlwings package except the ``pro`` folder, i.e
 xlwings PRO
 -----------
 
-xlwings PRO is free for noncommercial use and provides support for Google Sheets & Excel on the web, comes with xlwings Reports, the template-based reporting system and other exclusive features like easier deployment.
-
 xlwings PRO offers additional functionality on top of xlwings (Open Source), including:
 
 * Support for Google Sheets/Excel on the web
