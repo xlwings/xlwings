@@ -43,7 +43,7 @@ See `the docs <https://docs.xlwings.org/en/stable/pro.html>`_ for more details.
 * To try xlwings PRO for free in a **commercial context**, request a trial license key: https://www.xlwings.org/trial
 * To use xlwings PRO in a commercial context beyond the trial, you need to enroll in a paid plan (they include additional services like support and the ability to create one-click installers): https://www.xlwings.org/pricing
 
-xlwings PRO licenses are developer licenses, are verified offline (i.e., no telemetry/license server involved) and allow royalty-free deployment to unlimited internal and external end-users and servers for a hassle-free management.
+xlwings PRO licenses are developer licenses, are verified offline (i.e., no telemetry/license server involved) and allow royalty-free deployment to unlimited internal and external end-users and servers for a hassle-free management. Deployments use a deploy key that doesn't expire but is bound to a specific version of xlwings.
 
 Links
 -----
