@@ -414,7 +414,7 @@ Platform-specific limitations:
       :sync: excel
 
       * xlwings relies on the ``fetch`` command in Office Scripts that cannot be used via Power Automate and that can be disabled by your Microsoft 365 administrator.
-      * While Excel on the web feels generally slow, it seems to have an extreme lag depending on your geographic location. For example, a hello world call takes ~4.5s from a server in Amsterdam/Netherlands while it takes ~8.5s from Buenos Aires/Argentina.
+      * While Excel on the web feels generally slow, it seems to have an extreme lag depending on where in the world you open the browser with Excel on the web. For example, a hello world call takes ~4.5s if you open a browser in Amsterdam/Netherlands while it takes ~8.5s if you do it Buenos Aires/Argentina.
       * `Platform limits with Office Scripts <https://docs.microsoft.com/en-us/office/dev/scripts/testing/platform-limits>`_ apply.
 
 Roadmap
