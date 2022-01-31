@@ -1,7 +1,7 @@
 What's New
 ==========
 
-v0.26.0 (Jan 28, 2022)
+v0.26.0 (Jan 31, 2022)
 ----------------------
 
 * :guilabel:`PRO` [Feature] Added experimental support for Google Sheets and Excel on the web via a remote Python interpreter. For all the details, see :ref:`Remote Interpreter <remote_interpreter>`.
