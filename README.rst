@@ -27,19 +27,21 @@ xlwings PRO offers additional functionality on top of xlwings (Open Source), inc
 
 xlwings PRO is `source available <https://en.wikipedia.org/wiki/Source-available_software>`_ and dual-licensed under one of the following licenses:
 
-* `PolyForm Noncommercial License 1.0.0 <https://polyformproject.org/licenses/noncommercial/1.0.0>`_ (free for noncommercial use)
-* `xlwings PRO License <https://github.com/xlwings/xlwings/blob/main/LICENSE_PRO.txt>`_ (paid for commercial use)
+* `PolyForm Noncommercial License 1.0.0 <https://polyformproject.org/licenses/noncommercial/1.0.0>`_ (noncommercial use is free)
+* `xlwings PRO License <https://github.com/xlwings/xlwings/blob/main/LICENSE_PRO.txt>`_ (commercial use requires a `paid plan <https://www.xlwings.org/pricing>`_)
 
 **License Key**
 
-To use xlwings PRO, you need to `install a license key <https://docs.xlwings.org/en/stable/installation.html#how-to-activate-xlwings-pro>`_ on a Terminal/Command Prompt like so::
+To use xlwings PRO, you need to install a license key on a Terminal/Command Prompt like so::
 
     xlwings license update -k YOUR_LICENSE_KEY
+
+See `the docs <https://docs.xlwings.org/en/stable/pro.html>`_ for more details.
 
 * To use xlwings PRO for free in a **noncommercial context**, use the following license key: ``noncommercial``.
 
 * To try xlwings PRO for free in a **commercial context**, request a trial license key: https://www.xlwings.org/trial
-* To use xlwings PRO in a commercial context, you need to enroll in a paid plan (they include additional services like support and the ability to create one-click installers): https://www.xlwings.org/pricing
+* To use xlwings PRO in a commercial context beyond the trial, you need to enroll in a paid plan (they include additional services like support and the ability to create one-click installers): https://www.xlwings.org/pricing
 
 xlwings PRO licenses are developer licenses, are verified offline (i.e., no telemetry/license server involved) and allow royalty-free deployment to unlimited internal and external end-users and servers for a hassle-free management.
 

@@ -36,7 +36,8 @@ else:
     pass
 
 extras_require = {
-    'pro': ['cryptography', 'Jinja2', 'pdfrw'],
+    'pro': ['cryptography'],
+    'reports': ['cryptography', 'Jinja2', 'pdfrw'],
     'all': ['cryptography', 'Jinja2', 'pandas', 'matplotlib', 'plotly', 'flask', 'requests', 'pdfrw']
 }
 

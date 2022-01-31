@@ -1,12 +1,11 @@
 xlwings - Make Excel Fly!
 =========================
 
-xlwings is a `BSD-licensed <http://opensource.org/licenses/BSD-3-Clause>`_ Python library that makes it easy to call Python from Excel and vice versa:
+xlwings (Open Source) is a `BSD-licensed <http://opensource.org/licenses/BSD-3-Clause>`_ Python library that makes it easy to call Python from Excel and vice versa:
 
 * **Scripting**: Automate/interact with Excel from Python using a syntax close to VBA.
 * **Macros**: Replace VBA macros with clean and powerful Python code.
 * **UDFs**: Write User Defined Functions (UDFs) in Python (Windows only).
-* **REST API**: Expose your Excel workbooks via REST API.
 
 **Numpy arrays** and **Pandas Series/DataFrames** are fully supported. xlwings-powered workbooks are easy to distribute and work
 on **Windows** and **Mac**.
@@ -26,11 +25,11 @@ on **Windows** and **Mac**.
 
         More in-depths explanations about converters, debugging or how to write your own add-in.
 
-    .. grid-item-card::  :octicon:`lock;2em;sd-text-success` xlwings PRO
+    .. grid-item-card::  :octicon:`star;2em;sd-text-success` xlwings PRO
         :link: pro
         :link-type: doc
 
-        xlwings PRO offers additional functionality including xlwings Reports, the template-based reporting system.
+        xlwings PRO is free for noncommercial use and provides support for Google Sheets & Excel on the web, comes with xlwings Reports, the template-based reporting system and other features like embedded Python code for easier deployment.
 
     .. grid-item-card::  :octicon:`code-square;2em;sd-text-success` API Reference
         :link: api

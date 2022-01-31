@@ -66,20 +66,7 @@ If you would like to install xlwings without dependencies, you can run ``pip ins
 How to activate xlwings PRO
 ---------------------------
 
-xlwings PRO offers access to :ref:`additional functionality <pro>`. All PRO features are marked with xlwings :guilabel:`PRO` in the docs.
-
-.. note::
-    To get access to the additional functionality of xlwings PRO, you need a license key and at least xlwings v0.19.0. Everything under the ``xlwings.pro`` subpackage is distributed under a :ref:`commercial license <commercial_license>`. See :ref:`pro` for more details.
-
-To activate the license key, run the following command::
-
-    xlwings license update -k LICENSE_KEY
-
-Make sure to replace ``LICENSE_KEY`` with your personal key. This will store the license key under your ``xlwings.conf`` file (see :ref:`user_config` for where this is on your system). Alternatively, you can also store the license key as an environment variable with the name ``XLWINGS_LICENSE_KEY``.
-
-xlwings PRO requires additionally the ``cryptography`` and ``Jinja2`` packages, which come preinstalled with Anaconda and WinPython. Otherwise, install them via pip or conda.
-
-With pip, you can also run ``pip install "xlwings[pro]"``: this will take care of the extra dependencies for xlwings PRO.
+See :ref:`xlwings PRO <pro>`.
 
 Optional Dependencies
 ---------------------
