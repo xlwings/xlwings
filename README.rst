@@ -32,7 +32,7 @@ xlwings PRO is `source available <https://en.wikipedia.org/wiki/Source-available
 
 **License Key**
 
-To use xlwings PRO, you need to install a license key on a Terminal/Command Prompt like so::
+To use xlwings PRO, you need to install a license key on a Terminal/Command Prompt like so (alternatively, set the env var ``XLWINGS_LICENSE_KEY``::
 
     xlwings license update -k YOUR_LICENSE_KEY
 
