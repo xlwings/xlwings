@@ -29,7 +29,7 @@ on **Windows** and **Mac**.
         :link: pro
         :link-type: doc
 
-        xlwings PRO is free for noncommercial use and provides support for Google Sheets & Excel on the web, comes with xlwings Reports, the template-based reporting system and other features like embedded Python code for easier deployment.
+        Work with Google Sheets & Excel on the web, use xlwings Reports (template-based reporting), embed your Python code for easy deployment and more. Free for noncommercial use only.
 
     .. grid-item-card::  :octicon:`code-square;2em;sd-text-success` API Reference
         :link: api

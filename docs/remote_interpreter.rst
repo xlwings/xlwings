@@ -12,14 +12,14 @@ In connection with **Google Sheets** or **Excel on the web**, xlwings can be run
 Why is this useful?
 -------------------
 
-To automate Office on the web, you have to use Office Scripts (i.e., TypeScript, a typed superset of JavaScript) and for Google Sheets, you have to use Apps Script (i.e., JavaScript). If you don't feel like learning JavaScript, xlwings allows you to write Python code instead. But even if you are comfortable with JavaScript, you are very limited in what you can do, as both Office Scripts and Apps Script are primarily designed to automate simple spreadsheet tasks such as inserting a new sheet or formatting cells rather than working with data. They also make it very hard/impossible to use external libraries and run in environments with minimal resources.
+To automate Office on the web, you have to use Office Scripts (i.e., TypeScript, a typed superset of JavaScript) and for Google Sheets, you have to use Apps Script (i.e., JavaScript). If you don't feel like learning JavaScript, xlwings allows you to write Python code instead. But even if you are comfortable with JavaScript, you are very limited in what you can do, as both Office Scripts and Apps Script are primarily designed to automate simple spreadsheet tasks such as inserting a new sheet or formatting cells rather than performing data-intensive tasks. They also make it very hard/impossible to use external JavaScript libraries and run in environments with minimal resources.
 
 .. note:: From here on, when I refer to the **xlwings JavaScript module**, I mean either the xlwings Apps Script module if you use Google Sheets or the xlwings Office Scripts module if you use Excel on the web.
 
 On the other hand, xlwings with a remote Python interpreter brings you these advantages:
 
 * **Work with the whole Python ecosystem**: including pandas, machine learning libraries, database packages, web scraping, boto (for AWS S3), etc. This makes xlwings a great alternative for Power Query, which isn't currently available for Excel on the web or Google Sheets.
-* **Leverage your existing development workflow**: use your favorite IDE/editor (local or cloud-based) and stick to your Git workflow, allowing you to easily track changes, collaborate and perform code reviews. You can also write unit tests easily using pytest.
+* **Leverage your existing development workflow**: use your favorite IDE/editor (local or cloud-based) with full Git support, allowing you to easily track changes, collaborate and perform code reviews. You can also write unit tests using pytest.
 * **Remain in control of your data and code**: except for the data you expose in Excel or Google Sheets, everything stays on your server. This can include database passwords and other sensitive info such as customer data. There's also no need to give the Python code to end-users: the whole business logic with your secret sauce is protected on your own infrastructure.
 * **Choose the right machine for the job**: whether that means using a GPU, a ton of CPU cores, lots of memory, or a gigantic hard disc. As long as Python runs on it, you can go from serverless functions as offered by the big cloud vendors all the way to a self-managed Kubernetes cluster under your desk (see :ref:`Production Deployment`).
 * **Headache-free deployment and maintenance**: there's only one location (usually a Linux server) where your Python code lives and you can automate the whole deployment process with continuous integration pipelines like GitHub actions etc.
@@ -117,14 +117,14 @@ To test out ``yahoo``, the other function of the `sample project <https://github
 
 .. note:: While Excel on the web requires you to create a separate script with a function called ``main`` for each Python function, Google Sheets allows you to add multiple functions with any name.
 
-Please note that clicking the Gitpod button gets you up and running quickly, but if you want to save your changes (i.e., commit them to Git), you should first fork the project on Github to your own account and open it by prepending ``https://gitpod.io/#`` to your GitHub URL instead of clicking the button (this works with GitLab and BitBucket too). Or continue with the next section, which shows you how you can start a project from scratch on your local machine.
+Please note that clicking the Gitpod button gets you up and running quickly, but if you want to save your changes (i.e., commit them to Git), you should first fork the project on GitHub to your own account and open it by prepending ``https://gitpod.io/#`` to your GitHub URL instead of clicking the button (this works with GitLab and Bitbucket too). Or continue with the next section, which shows you how you can start a project from scratch on your local machine.
 
 An alternative for Gitpod is `GitHub Codespaces <https://github.com/features/codespaces>`_, but unlike Gitpod, GitHub Codespaces only works with GitHub, has no free tier, and may not be available yet on your account.
 
 Local Development
 -----------------
 
-This tutorial walks you through a local development workflow as an alternative to using Gitpod/GitHub Codespaces. What's making this a little harder than using a preconfigured online IDE like Gitpod is the fact that we need to expose our local web server to the internet for easy development.
+This section walks you through a local development workflow as an alternative to using Gitpod/GitHub Codespaces. What's making this a little harder than using a preconfigured online IDE like Gitpod is the fact that we need to expose our local web server to the internet for easy development.
 
 As before, we're going to use `FastAPI <https://fastapi.tiangolo.com/>`_ as our web framework. While you can use any web framework you like, no quickstart command exists for these yet, so you'd have to set up the boilerplate yourself. Let's start with the server before turning our attention to the client side (i.e, Google Sheets or Excel on the web).
 
@@ -143,7 +143,7 @@ This creates a folder called ``demo`` in the current directory with the followin
 
 I would recommend you to create a virtual or Conda environment where you install the dependencies via ``pip install -r requirements.txt``. In ``app.py``, you'll find the FastAPI boilerplate code and in ``main.py``, you'll find the ``hello`` function that is exposed under the ``/hello`` endpoint.
 
-The application expects you to set a unique ``XLWINGS_API_KEY`` as environment variable in order to protect your application from unauthorized access. You should choose a strong random key, for example by running the following on a Terminal/Command Prompt: ``python -c "import secrets; print(secrets.token_hex(32))"``. If you don't set an environment variable, it will use ``DEVELOPMENT`` as the API key (only use this for quick tests and never for production!).
+The application expects you to set the environment variable ``XLWINGS_API_KEY`` to a unique key in order to protect your application from unauthorized access. You should choose a strong random key, for example by running the following on a Terminal/Command Prompt: ``python -c "import secrets; print(secrets.token_hex(32))"``. If you don't set an environment variable, it will use ``DEVELOPMENT`` as the API key (only use this for quick tests and never for production!).
 
 To run this server locally, run ``python main.py`` in your Terminal/Command Prompt or use your code editor/IDE's run button. You should see something along these lines:
 
@@ -240,7 +240,7 @@ If both ways are configured, the function arguments win. Using the ``xlwings.con
 
   .. note:: The API_KEY is chosen by you to protect your application and has nothing to do with the xlwings license key!
 
-* ``EXCLUDE`` (optional): By default, xlwings sends over the complete content of the whole workbook to the server. If you have sheets with big amounts of data, this can make the calls slow or even hit a timeout. If your backend doesn't need the content of certain sheets, you can exclude them from being sent over via the ``EXCLUDE`` setting. Currently, you can only exclude entire sheets as comma-delimited string like so: ``Sheet1, Sheet2``.
+* ``EXCLUDE`` (optional): By default, xlwings sends over the complete content of the whole workbook to the server. If you have sheets with big amounts of data, this can make the calls slow or you could even hit a timeout. If your backend doesn't need the content of certain sheets, you can exclude them from being sent over via the ``EXCLUDE`` setting. Currently, you can only exclude entire sheets as comma-delimited string like so: ``Sheet1, Sheet2``.
 
 Configuration Examples: Function Arguments
 ******************************************
@@ -397,7 +397,7 @@ Limitations
 -----------
 
 * Currently, only a subset of the xlwings API is covered, mainly the Range and Sheet classes with a focus on reading and writing values. This, however, includes full support for type conversion including pandas DataFrames, NumPy arrays, datetime objects, etc.
-* You are moving in the web's classic request/response cycle, meaning that values that you write to a range will only be written back to Google Sheets/Excel once the function call returns. Put differently, you'll get the state of the sheets at the moment the call was initiated, but you can't read from a cell you've just written to until the next call.
+* You are moving within the web's request/response cycle, meaning that values that you write to a range will only be written back to Google Sheets/Excel once the function call returns. Put differently, you'll get the state of the sheets at the moment the call was initiated, but you can't read from a cell you've just written to until the next call.
 * You will need to use the same xlwings version for the Python package and the JavaScript module, otherwise, the server will raise an error.
 * Currently, custom functions (a.k.a. user-defined functions or UDFs) are not supported.
 * For users with no experience in web development, this documentation may not be quite good enough just yet.

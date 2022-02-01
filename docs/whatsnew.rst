@@ -1,8 +1,8 @@
 What's New
 ==========
 
-v0.26.0 (Jan 31, 2022)
-----------------------
+v0.26.0 (Feb 1, 2022)
+---------------------
 
 * :guilabel:`PRO` [Feature] Added experimental support for Google Sheets and Excel on the web via a remote Python interpreter. For all the details, see :ref:`Remote Interpreter <remote_interpreter>`.
 * xlwings PRO is now free for noncommercial usage under the `PolyForm Noncommercial License 1.0.0 <https://polyformproject.org/licenses/noncommercial/1.0.0>`_, see :ref:`xlwings PRO <pro>` for the details.
