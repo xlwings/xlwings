@@ -25,7 +25,7 @@ Make sure to replace ``LICENSE_KEY`` with your personal key (see below). This wi
 * To try xlwings PRO for free in a commercial context, request a trial license key: https://www.xlwings.org/trial
 * To use xlwings PRO in a commercial context beyond the trial, you need to enroll in a paid plan (they include additional services like support and the ability to create one-click installers): https://www.xlwings.org/pricing
 
-xlwings PRO licenses are developer licenses, are verified offline (i.e., no telemetry/license server involved) and allow royalty-free deployment to unlimited internal and external end-users and servers for a hassle-free management. Deployments use deploy keys that don't expire but instead are bound to a specific version of xlwings.
+xlwings PRO licenses are developer licenses, are verified offline (i.e., no telemetry/license server involved) and allow royalty-free deployments to unlimited internal and external end-users and servers for a hassle-free management. Deployments use deploy keys that don't expire but instead are bound to a specific version of xlwings.
 
 xlwings PRO functionality requires additionally the ``cryptography`` package, which comes preinstalled with Anaconda and WinPython. Otherwise, install it via pip or Conda. With pip, you can also run ``pip install "xlwings[pro]"``: this will take care of the extra dependencies for xlwings PRO.
 
