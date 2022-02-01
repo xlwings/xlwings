@@ -1,3 +1,16 @@
+"""
+Required Notice: Copyright (C) Zoomer Analytics GmbH.
+
+xlwings PRO is dual-licensed under one of the following licenses:
+
+* PolyForm Noncommercial License 1.0.0 (for noncommercial use):
+  https://polyformproject.org/licenses/noncommercial/1.0.0
+* xlwings PRO License (for commercial use):
+  https://github.com/xlwings/xlwings/blob/main/LICENSE_PRO.txt
+
+Commercial licenses can be purchased at https://www.xlwings.org
+"""
+
 import os
 import json
 import binascii
@@ -31,7 +44,7 @@ class LicenseHandler:
         except:
             pass
         # User config file
-        config_file = xlwings.xlplatform.USER_CONFIG_FILE
+        config_file = xlwings.USER_CONFIG_FILE
         if os.path.exists(config_file):
             with open(config_file, 'r') as f:
                 config = f.readlines()
@@ -50,6 +63,8 @@ class LicenseHandler:
     def validate_license(product, license_type=None):
         cipher_suite = LicenseHandler.get_cipher()
         key = LicenseHandler.get_license()
+        if key == 'noncommercial':
+            return {'license_type': 'noncommercial'}
         try:
             license_info = json.loads(cipher_suite.decrypt(key.encode()).decode())
         except (binascii.Error, InvalidToken):
@@ -75,6 +90,8 @@ class LicenseHandler:
     @staticmethod
     def create_deploy_key():
         license_info = LicenseHandler.validate_license('pro', license_type='developer')
+        if license_info['license_type'] == 'noncommercial':
+            return 'noncommercial'
         cipher_suite = LicenseHandler.get_cipher()
         license_dict = json.dumps({'version': xlwings.__version__,
                                    'products': license_info['products'],

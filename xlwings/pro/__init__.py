@@ -1,8 +1,14 @@
-"""(c) 2020-present Zoomer Analytics GmbH
+"""
+Required Notice: Copyright (C) Zoomer Analytics GmbH.
 
-Note that the code in this directory is licensed under a commercial license and must be used with a valid license key.
+xlwings PRO is dual-licensed under one of the following licenses:
 
-You will find the license under https://github.com/xlwings/xlwings/blob/master/LICENSE_PRO.txt
+* PolyForm Noncommercial License 1.0.0 (for noncommercial use):
+  https://polyformproject.org/licenses/noncommercial/1.0.0
+* xlwings PRO License (for commercial use):
+  https://github.com/xlwings/xlwings/blob/main/LICENSE_PRO.txt
+
+Commercial licenses can be purchased at https://www.xlwings.org
 """
 
 from .utils import LicenseHandler

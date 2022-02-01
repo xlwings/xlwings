@@ -17,7 +17,7 @@ import warnings
 from pathlib import Path
 from contextlib import contextmanager
 
-from . import xlplatform, ShapeAlreadyExists, utils, XlwingsError
+from . import ShapeAlreadyExists, utils, XlwingsError
 import xlwings
 
 # Optional imports
@@ -106,6 +106,66 @@ class Collection:
         )
 
 
+class Engines:
+    def __init__(self):
+        self.active = None
+        self.engines = []
+        self.engines_by_name = {}
+
+    def add(self, engine):
+        self.engines.append(engine)
+        self.engines_by_name[engine.name] = engine
+
+    @property
+    def count(self):
+        return len(self)
+
+    def __call__(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            return self.engines[name_or_index - 1]
+        else:
+            return self.engines_by_name[name_or_index]
+
+    def __getitem__(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            return self.engines[name_or_index]
+        else:
+            return self.engines_by_name[name_or_index]
+
+    def __len__(self):
+        return len(self.engines)
+
+    def __iter__(self):
+        for engine in self.engines:
+            yield engine
+
+    def __repr__(self):
+        return '{}({})'.format(
+            self.__class__.__name__,
+            repr(list(self))
+        )
+
+
+class Engine:
+
+    def __init__(self, impl):
+        self.impl = impl
+
+    @property
+    def apps(self):
+        return Apps(impl=self.impl.apps)
+
+    @property
+    def name(self):
+        return self.impl.name
+
+    def activate(self):
+        engines.active = self
+
+    def __repr__(self):
+        return "<%s Engine>" % self.name
+
+
 class Apps:
     """
     A collection of all :meth:`app <App>` objects:
@@ -126,11 +186,11 @@ class Apps:
         """
         return self.impl.keys()
 
-    def add(self):
+    def add(self, **kwargs):
         """
         Creates a new App. The new App becomes the active one. Returns an App object.
         """
-        return App()
+        return App(impl=self.impl.add(**kwargs))
 
     @property
     def active(self):
@@ -148,7 +208,7 @@ class Apps:
 
     def __repr__(self):
         return '{}({})'.format(
-            self.__class__.__name__,
+            getattr(self.__class__, '_name', self.__class__.__name__),
             repr(list(self))
         )
 
@@ -172,7 +232,7 @@ class Apps:
             yield App(impl=app)
 
 
-apps = Apps(impl=xlplatform.Apps())
+engines = Engines()
 
 
 class App:
@@ -217,7 +277,7 @@ class App:
 
     def __init__(self, visible=None, spec=None, add_book=True, impl=None):
         if impl is None:
-            self.impl = xlplatform.App(spec=spec, add_book=add_book, visible=visible)
+            self.impl = engines.active.apps.add(spec=spec, add_book=add_book, visible=visible).impl
             if visible or visible is None:
                 self.visible = True
         else:
@@ -225,6 +285,10 @@ class App:
             if visible:
                 self.visible = True
         self._pid = self.pid
+
+    @property
+    def engine(self):
+        return Engine(impl=self.impl.engine)
 
     @property
     def api(self):
@@ -275,8 +339,9 @@ class App:
         """
         # Win Excel >= 2013 fails if visible=False...we may somehow not be using the correct HWND
         self.impl.activate(steal_focus)
-        if self != apps.active:
-            raise Exception('Could not activate App! Try to instantiate the App with visible=True.')
+        if self.engine.name != 'json':
+            if self != apps.active:
+                raise Exception('Could not activate App! Try to instantiate the App with visible=True.')
 
     @property
     def visible(self):
@@ -463,28 +528,27 @@ class App:
         >>> my_sum = app.macro('MySum')
         >>> my_sum(1, 2)
         3
-        
+
         Types are supported too:
-        
+
         .. code-block:: vb.net
             Function MySum(x as integer, y as integer)
                 MySum = x + y
-            End Function            
+            End Function
 
         >>> import xlwings as xw
         >>> app = xw.App()
         >>> my_sum = app.macro('MySum')
         >>> my_sum(1, 2)
         3
-        
+
         However typed arrays are not supported. So the following won't work
-        
+
         .. code-block:: vb.net
 
             Function MySum(arr() as integer)
                 ' code here
             End Function
-            
         See also: :meth:`Book.macro`
 
         .. versionadded:: 0.9.0
@@ -666,7 +730,7 @@ class Book:
     ignore_read_only_recommended : bool, default False
         Set to ``True`` to mute the read-only recommended message
     origin : int
-        For text files only. Specifies where it originated. Use XlPlatform constants.
+        For text files only. Specifies where it originated. Use Platform constants.
     delimiter : str
         If format argument is 6, this specifies the delimiter.
     editable : bool, default False
@@ -682,16 +746,26 @@ class Book:
         Not supported on macOS.
     corrupt_load : int, default xlNormalLoad
         Can be one of xlNormalLoad, xlRepairFile or xlExtractData. Not supported on macOS.
+    json : dict
+        A JSON object as delivered by the MS Office Scripts or Google Apps Script xlwings module but in a deserialized
+        form, i.e., as dictionary.
 
+        .. versionadded:: 0.26.0
     """
 
     def __init__(self, fullname=None, update_links=None, read_only=None, format=None, password=None,
                  write_res_password=None,
                  ignore_read_only_recommended=None, origin=None, delimiter=None, editable=None, notify=None,
                  converter=None,
-                 add_to_mru=None, local=None, corrupt_load=None, impl=None):
+                 add_to_mru=None, local=None, corrupt_load=None, impl=None, json=None):
         if not impl:
-            if fullname:
+            if json:
+                if xlwings.PRO:
+                    impl = engines['json'].apps[-1].books.open(json=json).impl
+                else:
+                    # Will raise LicenseKeyError or ImportError
+                    from xlwings import pro
+            elif fullname:
                 fullname = utils.fspath(fullname)
                 fullname = fullname.lower()
 
@@ -730,6 +804,15 @@ class Book:
         .. versionadded:: 0.9.0
         """
         return self.impl.api
+
+    def json(self):
+        """
+        Returns a JSON serializable object as expected by the MS Office Scripts or Google Apps Script xlwings
+        module. Only available with book objects that have been instantiated via ``xw.Book(json=...)``.
+
+        .. versionadded:: 0.26.0
+        """
+        return self.impl.json()
 
     def __eq__(self, other):
         return isinstance(other, Book) and self.app == other.app and self.name == other.name
@@ -770,16 +853,16 @@ class Book:
         elif from_xl == '1':
             name = wb.lower()
             if sys.platform.startswith('win'):
-                app = App(impl=xlplatform.App(xl=int(hwnd)))
+                app = App(impl=xlwings._xlwindows.App(xl=int(hwnd)))
                 return cls(impl=app.books[name].impl)
             else:
                 # On Mac, the same file open in two instances is not supported
                 if apps.active.version < 15:
                     name = name.encode('utf-8', 'surrogateescape').decode('mac_latin2')
                 return cls(impl=Book(name).impl)
-        elif xlplatform.BOOK_CALLER:
+        elif xlwings._xlwindows.BOOK_CALLER:
             # Called via OPTIMIZED_CONNECTION = True
-            return cls(impl=xlplatform.Book(xlplatform.BOOK_CALLER))
+            return cls(impl=xlwings._xlwindows.Book(xlwings._xlwindows.BOOK_CALLER))
         else:
             raise Exception('Book.caller() must not be called directly. Call through Excel or set a mock caller '
                             'first with Book.set_mock_caller().')
@@ -1655,7 +1738,7 @@ class Range:
     @property
     def has_array(self):
         """
-        Are we part of an Array formula?
+        ``True`` if the range is part of a legacy CSE Array formula and ``False`` otherwise.
         """
         return self.impl.has_array
 
@@ -1977,8 +2060,6 @@ class Range:
 
     @color.setter
     def color(self, color_or_rgb):
-        if isinstance(color_or_rgb, str):
-            color_or_rgb = utils.hex_to_rgb(color_or_rgb)
         self.impl.color = color_or_rgb
 
     @property
@@ -3288,11 +3369,8 @@ class Chart:
 
         .. versionadded:: 0.9.0
         """
-        impl = self.impl.parent
-        if isinstance(impl, xlplatform.Book):
-            return Book(impl=self.impl.parent)
-        else:
-            return Sheet(impl=self.impl.parent)
+        # Chart sheet (parent is Book) is not supported
+        return Sheet(impl=self.impl.parent)
 
     @property
     def chart_type(self):
@@ -4328,9 +4406,9 @@ class Books(Collection):
         """
         return Book(impl=self.impl.add())
 
-    def open(self, fullname, update_links=None, read_only=None, format=None, password=None, write_res_password=None,
+    def open(self, fullname=None, update_links=None, read_only=None, format=None, password=None, write_res_password=None,
              ignore_read_only_recommended=None, origin=None, delimiter=None, editable=None, notify=None, converter=None,
-             add_to_mru=None, local=None, corrupt_load=None):
+             add_to_mru=None, local=None, corrupt_load=None, json=None):
         """
         Opens a Book if it is not open yet and returns it. If it is already open, it doesn't raise an exception but
         simply returns the Book object.
@@ -4349,6 +4427,8 @@ class Books(Collection):
         Book : Book that has been opened.
 
         """
+        if json:
+            return Book(impl=self.impl.open(json=json))
         fullname = utils.fspath(fullname)
         if not os.path.exists(fullname):
             raise FileNotFoundError("No such file: '%s'" % fullname)
@@ -4427,6 +4507,25 @@ class Sheets(Collection):
         return Sheet(impl=impl)
 
 
+class ActiveEngineApps(Apps):
+
+    def __init__(self):
+        pass
+
+    _name = 'Apps'
+
+    @property
+    def impl(self):
+        if engines.active is None:
+            if not (sys.platform.startswith('darwin') or sys.platform.startswith('win')):
+                raise XlwingsError('Your platform only supports the instantiation via xw.Book(json=...)')
+            elif sys.platform.startswith('darwin'):
+                raise XlwingsError('Make sure to have "appscript" and "psutil", dependencies of xlwings, installed.')
+            elif sys.platform.startswith('win'):
+                raise XlwingsError('Make sure to have "pywin32", a dependency of xlwings, installed.')
+        return engines.active.apps.impl
+
+
 class ActiveAppBooks(Books):
 
     def __init__(self):
@@ -4452,6 +4551,8 @@ class ActiveBookSheets(Sheets):
     def impl(self):
         return books.active.sheets.impl
 
+
+apps = ActiveEngineApps()
 
 books = ActiveAppBooks()
 

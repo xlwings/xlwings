@@ -38,6 +38,7 @@
     :caption: xlwings PRO
 
     pro
+    remote_interpreter
     reports
     markdown
     release

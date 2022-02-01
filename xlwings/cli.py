@@ -11,6 +11,7 @@ from pathlib import Path
 
 import xlwings as xw
 
+
 # Directories/paths
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -90,6 +91,12 @@ def addin_status(args):
 def quickstart(args):
     project_name = args.project_name
     cwd = os.getcwd()
+
+    if args.fastapi:
+        # Raises an error on its own if the dir already exists
+        shutil.copytree(Path(this_dir) / 'quickstart_fastapi', Path(cwd) / project_name,
+                        ignore=shutil.ignore_patterns('__pycache__'))
+        sys.exit(0)
 
     # Project dir
     project_path = os.path.join(cwd, project_name)
@@ -290,6 +297,28 @@ def permission_book(args):
     print_permission_json('book')
 
 
+def copy_os(args):
+    copy_js('ts')
+
+
+def copy_gs(args):
+    copy_js('gs')
+
+
+def copy_js(extension):
+    try:
+        from pandas.io import clipboard
+    except ImportError:
+        try:
+            import pyperclip as clipboard
+        except ImportError:
+            sys.exit('Please install either "pandas" or "pyperclip" to use the copy command.')
+
+    with open(Path(this_dir) / 'js' / f'xlwings.{extension}', 'r') as f:
+        clipboard.copy(f.read())
+        print("Successfully copied to clipboard.")
+
+
 def release(args):
     from xlwings.utils import query_yes_no, read_user_config
     from xlwings.pro import LicenseHandler
@@ -478,6 +507,7 @@ def main():
                                                                  'xlwings add-in.')
     quickstart_parser.add_argument("project_name")
     quickstart_parser.add_argument("-s", "--standalone", action='store_true', help='Include xlwings as VBA module.')
+    quickstart_parser.add_argument("-fastapi", "--fastapi", action='store_true', help='Create a FastAPI project suitable for a remote Python interpreter.')
     quickstart_parser.add_argument("-addin", "--addin", action='store_true', help='Create an add-in.')
     quickstart_parser.add_argument("-ribbon", "--ribbon", action='store_true', help='Include a ribbon when creating an add-in.')
     quickstart_parser.set_defaults(func=quickstart)
@@ -567,6 +597,18 @@ def main():
     release_parser = subparsers.add_parser('release', help='Run "xlwings release" to configure your active workbook to work with a '
                                                            'one-click installer for easy deployment. Requires xlwings PRO.')
     release_parser.set_defaults(func=release)
+
+    # Copy
+    copy_parser = subparsers.add_parser('copy', help='Run "xlwings copy os" to copy the xlwings Office Scripts module. '
+                                                     'Run "xlwings copy gs" to copy the xlwings Google Apps Script module.')
+    copy_subparser = copy_parser.add_subparsers(dest='subcommand')
+    copy_subparser.required = True
+
+    copy_os_parser = copy_subparser.add_parser('os')
+    copy_os_parser.set_defaults(func=copy_os)
+
+    copy_os_parser = copy_subparser.add_parser('gs')
+    copy_os_parser.set_defaults(func=copy_gs)
 
     # Show help when running without commands
     if len(sys.argv) == 1:

@@ -60,3 +60,7 @@ xlwings comes with a command line client. On Windows, type the commands into a C
                         workbook to work with a one-click installer for easy
                         deployment. Requires xlwings PRO.
                         (New in 0.23.4)
+    copy                Run "xlwings copy os" to copy the xlwings Office
+                        Scripts module. Run "xlwings copy gs" to copy the
+                        xlwings Google Apps Script module.
+                        (New in 0.26.0)

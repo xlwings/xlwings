@@ -1,8 +1,13 @@
+import xlwings
+
+
 class ConversionContext:
-    __slots__ = ['range', 'value', 'source_value', 'meta']
+    __slots__ = ['range', 'value', 'source_value', 'meta', 'engine']
 
     def __init__(self, rng=None, value=None):
         self.range = rng
+        # rng can only be None if used via UDFs
+        self.engine = rng.sheet.book.app.engine if rng else xlwings.engines['excel']
         self.value = value
         # used for markdown (could be replaced by handing the parsed ast from
         # the converter stage to the formatting stage

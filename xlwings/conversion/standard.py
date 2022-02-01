@@ -4,7 +4,6 @@ from collections import OrderedDict
 
 from . import Pipeline, Converter, Options, Accessor, accessors
 
-from .. import xlplatform
 from ..main import Range
 from .. import LicenseError
 from ..utils import chunk
@@ -106,7 +105,7 @@ class CleanDataFromReadStage:
         self.numbers_handler = _number_handlers.get(numbers_as, numbers_as)
 
     def __call__(self, c):
-        c.value = xlplatform.clean_value_data(c.value, self.dates_handler, self.empty_as, self.numbers_handler)
+        c.value = c.engine.impl.clean_value_data(c.value, self.dates_handler, self.empty_as, self.numbers_handler)
 
 
 class CleanDataForWriteStage:
@@ -114,7 +113,7 @@ class CleanDataForWriteStage:
     def __call__(self, c):
         c.value = [
             [
-                xlplatform.prepare_xl_data_element(x)
+                c.engine.impl.prepare_xl_data_element(x)
                 for x in y
             ]
             for y in c.value

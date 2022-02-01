@@ -13,26 +13,31 @@ with open(os.path.join(os.path.dirname(__file__), 'xlwings', '__init__.py')) as 
     version = re.compile(r".*__version__ = '(.*?)'", re.S).match(f.read()).group(1)
 
 # Dependencies
-if sys.platform.startswith('win'):
+data_files = []
+install_requires = []
+if os.environ.get('READTHEDOCS', None) == 'True' or os.environ.get('XLWINGS_NO_DEPS') in ['1', 'True', 'true']:
+    # Don't add any further dependencies. Instead of using an env var, you could also run:
+    # pip install xlwings --no-deps
+    # but when running "pip install -r requirements.txt --no-deps" this would be applied to
+    # all packages, which may not be what you want in case the sub-dependencies are not pinned
+    pass
+elif sys.platform.startswith('win'):
     if sys.version_info[:2] >= (3, 7):
         pywin32 = 'pywin32 >= 224'
     else:
         pywin32 = 'pywin32'
-    install_requires = [pywin32]
+    install_requires += [pywin32]
     # This places dlls next to python.exe for standard setup and in the parent folder for virtualenv
-    data_files = [('', glob.glob('xlwings*.dll'))]
+    data_files += [('', glob.glob('xlwings*.dll'))]
 elif sys.platform.startswith('darwin'):
-    install_requires = ['psutil >= 2.0.0', 'appscript >= 1.0.1']
+    install_requires += ['psutil >= 2.0.0', 'appscript >= 1.0.1']
     data_files = [(os.path.expanduser("~") + '/Library/Application Scripts/com.microsoft.Excel', [f'xlwings/xlwings-{version}.applescript'])]
 else:
-    if os.environ.get('READTHEDOCS', None) == 'True' or os.environ.get('INSTALL_ON_LINUX') == '1':
-        data_files = []
-        install_requires = []
-    else:
-        raise OSError("xlwings requires an installation of Excel and therefore only works on Windows and macOS. To enable the installation on Linux nevertheless, do: export INSTALL_ON_LINUX=1; pip install xlwings")
+    pass
 
 extras_require = {
-    'pro': ['cryptography', 'Jinja2', 'pdfrw'],
+    'pro': ['cryptography'],
+    'reports': ['cryptography', 'Jinja2', 'pdfrw'],
     'all': ['cryptography', 'Jinja2', 'pandas', 'matplotlib', 'plotly', 'flask', 'requests', 'pdfrw']
 }
 
@@ -47,24 +52,23 @@ setup(
     long_description=readme,
     data_files=data_files,
     packages=find_packages(exclude=('tests', 'tests.*',)),
-    package_data={'xlwings': ['xlwings.bas', 'Dictionary.cls', '*.xlsm', '*.xlam', '*.applescript', 'addin/xlwings.xlam', 'addin/xlwings_unprotected.xlam']},
+    package_data={'xlwings': ['xlwings.bas', 'Dictionary.cls', '*.xlsm', '*.xlam', '*.applescript',
+                              'addin/xlwings.xlam', 'addin/xlwings_unprotected.xlam', 'js/xlwings.*',
+                              'quickstart_fastapi/*.*']},
     keywords=['xls', 'excel', 'spreadsheet', 'workbook', 'vba', 'macro'],
     install_requires=install_requires,
     extras_require=extras_require,
     entry_points={'console_scripts': ['xlwings=xlwings.cli:main'],},
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Topic :: Office/Business :: Financial :: Spreadsheet',
         'License :: OSI Approved :: BSD License'],
-    platforms=['Windows', 'Mac OS X'],
     python_requires='>=3.6',
 )

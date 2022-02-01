@@ -1,6 +1,7 @@
 import os
 import inspect
 import unittest
+import types
 
 import xlwings as xw
 
@@ -8,8 +9,28 @@ this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe(
 
 SPEC = None  # This was used to support Excel 2011: '/Applications/Microsoft Office 2011/Microsoft Excel'
 
+# TODO: uncomment to run tests with json engine
+# xw.engines.active = xw.engines['json']
+
 
 class TestBase(unittest.TestCase):
+    def __init__(self, methodName):
+        super(TestBase, self).__init__(methodName)
+
+        # Patch the test method being run to skip the test if it
+        # throws NotImplementedError. This allows us to not consider
+        # such tests failures, though they will still show up (as
+        # skipped tests).
+        test_method = getattr(self, methodName)
+
+        def wrapped_method(self, *args, **kwargs):
+            try:
+                return test_method(*args, **kwargs)
+            except NotImplementedError:
+                self.skipTest("Test body threw NotImplementedError.")
+
+        setattr(self, methodName, types.MethodType(wrapped_method, self))
+
     @classmethod
     def setUpClass(cls):
         cls.app1 = xw.App(visible=False, spec=SPEC)

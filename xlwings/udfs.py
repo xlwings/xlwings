@@ -22,7 +22,8 @@ import pythoncom
 import pywintypes
 from win32com.client import Dispatch
 
-from . import conversion, xlplatform, Range, apps, Book, PRO, LicenseError
+import xlwings
+from . import conversion, Range, apps, Book, PRO, LicenseError
 from .utils import VBAWriter, exception, get_cached_user_config
 
 if PRO:
@@ -262,7 +263,7 @@ class ComRange(Range):
             resultCLSID=self._ser_resultCLSID)
 
         self._ser = None  # single-use
-        self._deser = xlplatform.Range(xl=dispatch)
+        self._deser = xlwings._xlwindows.Range(xl=dispatch)
 
         return self._deser
 
@@ -387,7 +388,7 @@ def get_udf_module(module_name, xl_workbook):
     else:
         # Handle embedded code (Excel only)
         if xl_workbook:
-            wb = Book(impl=xlplatform.Book(Dispatch(xl_workbook)))
+            wb = Book(impl=xlwings._xlwindows.Book(Dispatch(xl_workbook)))
             for sheet in wb.sheets:
                 if sheet.name.endswith(".py") and not PRO:
                     raise LicenseError("Embedded code requires a valid LICENSE_KEY.")
@@ -420,7 +421,7 @@ def get_udf_module(module_name, xl_workbook):
 
 def get_cache_key(func, args, caller):
     """only use this if function is called from cells, not VBA"""
-    xw_caller = Range(impl=xlplatform.Range(xl=caller))
+    xw_caller = Range(impl=xlwings._xlwindows.Range(xl=caller))
     return (func.__name__ + str(args) + str(xw_caller.sheet.book.app.pid) +
             xw_caller.sheet.book.name + xw_caller.sheet.name + xw_caller.address.split(':')[0])
 
@@ -440,7 +441,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     args_info = func_info['args']
     ret_info = func_info['ret']
     is_dynamic_array = ret_info['options'].get('expand')
-    xw_caller = Range(impl=xlplatform.Range(xl=caller))
+    xw_caller = Range(impl=xlwings._xlwindows.Range(xl=caller))
 
     # If there is the 'reserved' argument "caller", assign the caller object
     for info in args_info:
@@ -460,16 +461,16 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
         arg_info = args_info[min(i, len(args_info) - 1)]
         if type(arg) is int and arg == -2147352572:  # missing
             args[i] = arg_info.get('optional', None)
-        elif xlplatform.is_range_instance(arg):
+        elif xlwings._xlwindows.is_range_instance(arg):
             if arg_info.get('output', False):
                 output_param_indices.append(i)
-                args[i] = OutputParameter(Range(impl=xlplatform.Range(xl=arg)), arg_info['options'], func, caller)
+                args[i] = OutputParameter(Range(impl=xlwings._xlwindows.Range(xl=arg)), arg_info['options'], func, caller)
             else:
-                args[i] = conversion.read(Range(impl=xlplatform.Range(xl=arg)), None, arg_info['options'])
+                args[i] = conversion.read(Range(impl=xlwings._xlwindows.Range(xl=arg)), None, arg_info['options'])
         else:
             args[i] = conversion.read(None, arg, arg_info['options'])
     if this_workbook:
-        xlplatform.BOOK_CALLER = Dispatch(this_workbook)
+        xlwings._xlwindows.BOOK_CALLER = Dispatch(this_workbook)
 
     from .server import loop
     if func_info['async_mode'] and func_info['async_mode'] == 'threading':

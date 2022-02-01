@@ -116,7 +116,7 @@ The global settings of the Ribbon/Config file can be overridden for one or more 
 in the workbook's directory.
 
 .. note::
-    Workbook directory config files are not supported if your workbook is stored on SharePoint.
+    Workbook directory config files are not supported if your workbook is stored on SharePoint or OneDrive.
 
 .. _addin_wb_settings:
 
