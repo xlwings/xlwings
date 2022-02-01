@@ -302,7 +302,7 @@ def copy_os(args):
 
 
 def copy_gs(args):
-    copy_js('gs')
+    copy_js('js')
 
 
 def copy_js(extension):
