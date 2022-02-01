@@ -1,7 +1,0 @@
-# On Windows, you need to additionally install pywin32
-numpy=1.10.1
-pandas=0.17.1
-xlwings==0.5.0
-google-api-python-client==1.3.1
-python-gflags==2.0
-oauth2client==1.4.12
