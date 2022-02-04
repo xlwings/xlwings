@@ -726,10 +726,10 @@ class Book:
     def activate(self):
         self.xl.Activate()
 
-    def to_pdf(self, path):
+    def to_pdf(self, path, quality=FixedFormatQuality.xlQualityStandard):
         self.xl.ExportAsFixedFormat(Type=FixedFormatType.xlTypePDF,
                                     Filename=path,
-                                    Quality=FixedFormatQuality.xlQualityStandard,
+                                    Quality=quality,
                                     IncludeDocProperties=True,
                                     IgnorePrintAreas=False,
                                     OpenAfterPublish=False)
@@ -1304,6 +1304,15 @@ class Range:
                 if retry == max_retries - 1:
                     raise
 
+    def to_pdf(self, path, quality=FixedFormatQuality.xlQualityStandard):
+        self.xl.Select()
+        self.xl.ExportAsFixedFormat(Type=FixedFormatType.xlTypePDF,
+                                    Filename=path,
+                                    Quality=quality,
+                                    IncludeDocProperties=True,
+                                    IgnorePrintAreas=False,
+                                    OpenAfterPublish=False)
+
 
 class Shape:
 
@@ -1853,6 +1862,14 @@ class Chart:
     def to_png(self, path):
         self.xl.Export(path)
 
+    def to_pdf(self, path, quality=FixedFormatQuality.xlQualityStandard):
+        self.xl_obj.Select()
+        self.xl.ExportAsFixedFormat(Type=FixedFormatType.xlTypePDF,
+                                    Filename=path,
+                                    Quality=quality,
+                                    IncludeDocProperties=True,
+                                    IgnorePrintAreas=False,
+                                    OpenAfterPublish=False)
 
 class Charts(Collection):
 

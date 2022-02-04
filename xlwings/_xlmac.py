@@ -12,7 +12,7 @@ import appscript
 from appscript import k as kw, mactypes, its
 from appscript.reference import CommandError
 
-from .constants import ColorIndex
+from .constants import ColorIndex, FixedFormatQuality
 from .utils import int_to_rgb, np_datetime_to_datetime, col_name, VersionNumber, fullname_url_to_local_path, read_config_sheet
 import xlwings
 from . import mac_dict, utils
@@ -426,7 +426,8 @@ class Book:
     def activate(self):
         self.xl.activate_object()
 
-    def to_pdf(self, path):
+    def to_pdf(self, path, quality=None):
+        # quality parameter for compatibility
         hfs_path = posix_to_hfs_path(path)
         display_alerts = self.app.display_alerts
         self.app.display_alerts = False
@@ -999,6 +1000,9 @@ class Range:
         im = ImageGrab.grabclipboard()
         im.save(path)
 
+    def to_pdf(self, path, quality=FixedFormatQuality.xlQualityStandard):
+        raise xlwings.XlwingsError("Range.to_pdf() isn't supported on macOS.")
+
 
 class Shape:
 
@@ -1517,6 +1521,9 @@ class Chart:
         # Version 2
         # self.xl_obj.save_as_picture(file_name=posix_to_hfs_path('...'),
         #                             picture_type=kw.save_as_PNG_file)
+
+    def to_pdf(self, path, quality=FixedFormatQuality.xlQualityStandard):
+        raise xlwings.XlwingsError("Chart.to_pdf() isn't supported on macOS.")
 
 
 class Charts(Collection):
