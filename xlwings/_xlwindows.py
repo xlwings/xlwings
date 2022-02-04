@@ -29,7 +29,7 @@ import win32gui
 import win32process
 
 from .constants import (ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin, DeleteShiftDirection,
-                        ListObjectSourceType, FixedFormatType, FixedFormatQuality, FileFormat)
+                        ListObjectSourceType, FixedFormatType, FileFormat)
 from .utils import (rgb_to_int, int_to_rgb, np_datetime_to_datetime, col_name, fullname_url_to_local_path,
                     read_config_sheet, hex_to_rgb)
 import xlwings
@@ -726,10 +726,10 @@ class Book:
     def activate(self):
         self.xl.Activate()
 
-    def to_pdf(self, path, quality=FixedFormatQuality.xlQualityStandard):
+    def to_pdf(self, path, quality):
         self.xl.ExportAsFixedFormat(Type=FixedFormatType.xlTypePDF,
                                     Filename=path,
-                                    Quality=quality,
+                                    Quality=quality_types[quality],
                                     IncludeDocProperties=True,
                                     IgnorePrintAreas=False,
                                     OpenAfterPublish=False)
@@ -1304,11 +1304,10 @@ class Range:
                 if retry == max_retries - 1:
                     raise
 
-    def to_pdf(self, path, quality=FixedFormatQuality.xlQualityStandard):
-        self.xl.Select()
+    def to_pdf(self, path, quality):
         self.xl.ExportAsFixedFormat(Type=FixedFormatType.xlTypePDF,
                                     Filename=path,
-                                    Quality=quality,
+                                    Quality=quality_types[quality],
                                     IncludeDocProperties=True,
                                     IgnorePrintAreas=False,
                                     OpenAfterPublish=False)
@@ -1862,14 +1861,15 @@ class Chart:
     def to_png(self, path):
         self.xl.Export(path)
 
-    def to_pdf(self, path, quality=FixedFormatQuality.xlQualityStandard):
+    def to_pdf(self, path, quality):
         self.xl_obj.Select()
         self.xl.ExportAsFixedFormat(Type=FixedFormatType.xlTypePDF,
                                     Filename=path,
-                                    Quality=quality,
+                                    Quality=quality_types[quality],
                                     IncludeDocProperties=True,
                                     IgnorePrintAreas=False,
                                     OpenAfterPublish=False)
+
 
 class Charts(Collection):
 
@@ -2028,6 +2028,10 @@ class Name:
 
 
 # --- constants ---
+quality_types = {
+        "minimum": 1,
+        "standard": 0
+    }
 
 chart_types_s2i = {
     '3d_area': -4098,
