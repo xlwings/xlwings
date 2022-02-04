@@ -3,6 +3,7 @@ import re
 import sys
 import uuid
 import tempfile
+import subprocess
 import datetime as dt
 import traceback
 from functools import total_ordering, lru_cache
@@ -488,3 +489,75 @@ def fullname_url_to_local_path(url, sheet_onedrive_consumer_config=None, sheet_o
                                    f"{'edit' if sharepoint_config else 'add'} the {sharepoint_config_name} setting "
                                    f"including one or more folder levels, see: xlwings.org/error.")
 
+
+def to_pdf(obj, path=None, include=None, exclude=None, layout=None, exclude_start_string=None, show=None, quality=None):
+    report_path = fspath(path)
+    layout_path = fspath(layout)
+    if isinstance(obj, (xlwings.Book, xlwings.Sheet)):
+        if report_path is None:
+            filename, extension = os.path.splitext(obj.fullname)
+            directory, _ = os.path.split(obj.fullname)
+            if directory:
+                report_path = os.path.join(directory, filename + '.pdf')
+            else:
+                report_path = filename + '.pdf'
+        if (include is not None) and (exclude is not None):
+            raise ValueError("You can only use either 'include' or 'exclude'")
+        # Hide sheets to exclude them from printing
+        if isinstance(include, (str, int)):
+            include = [include]
+        if isinstance(exclude, (str, int)):
+            exclude = [exclude]
+        exclude_by_name = [sheet.index for sheet in obj.sheets if
+                           sheet.name.startswith(exclude_start_string)]
+        visibility = {}
+        if include or exclude or exclude_by_name:
+            for sheet in obj.sheets:
+                visibility[sheet] = sheet.visible
+        try:
+            if include:
+                for sheet in obj.sheets:
+                    if (sheet.name in include) or (sheet.index in include):
+                        sheet.visible = True
+                    else:
+                        sheet.visible = False
+            if exclude or exclude_by_name:
+                exclude = [] if exclude is None else exclude
+                for sheet in obj.sheets:
+                    if (sheet.name in exclude) or (sheet.index in exclude) or (
+                            sheet.index in exclude_by_name):
+                        sheet.visible = False
+            obj.impl.to_pdf(os.path.realpath(report_path), quality=quality)
+        except Exception:
+            raise
+        finally:
+            # Reset visibility
+            if include or exclude or exclude_by_name:
+                for sheet, tf in visibility.items():
+                    sheet.visible = tf
+    else:
+        if report_path is None:
+            if isinstance(obj, xlwings.Chart):
+                directory, _ = os.path.split(obj.parent.book.fullname)
+                filename = obj.name
+            elif isinstance(obj, xlwings.Range):
+                directory, _ = os.path.split(obj.sheet.book.fullname)
+                filename = str(obj).replace('<', '').replace('>', '').replace(':', '_').replace(' ', '')
+            else:
+                raise ValueError(f'Object of type {type(obj)} are not supported.')
+            if directory:
+                report_path = os.path.join(directory, filename + '.pdf')
+            else:
+                report_path = filename + '.pdf'
+            obj.impl.to_pdf(os.path.realpath(report_path), quality=quality)
+
+    if layout:
+        from .pro.reports.pdf import print_on_layout
+        print_on_layout(report_path=report_path, layout_path=layout_path)
+
+    if show:
+        if sys.platform.startswith('win'):
+            os.startfile(report_path)
+        else:
+            subprocess.run(['open', report_path])
+    return report_path
