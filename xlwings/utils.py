@@ -450,7 +450,7 @@ def fullname_url_to_local_path(url, sheet_onedrive_consumer_config=None, sheet_o
             raise xlwings.XlwingsError("Couldn't find your local OneDrive file, see: xlwings.org/error")
 
     # OneDrive for Business
-    pattern = re.compile(r'https://[^-]*-my.sharepoint.com/[^/]*/[^/]*/[^/]*/(.*)')
+    pattern = re.compile(r'https://[^-]*-my.sharepoint.[^/]*/[^/]*/[^/]*/[^/]*/(.*)')
     match = pattern.match(url)
     if match:
         root = onedrive_commercial_config or os.getenv('OneDriveCommercial') or os.getenv('OneDrive')
