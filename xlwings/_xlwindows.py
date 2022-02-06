@@ -1,18 +1,21 @@
 import os
 import sys
 
-# Hack to find pythoncom.dll - needed for some distribution/setups (includes seemingly unused import win32api)
-# E.g. if python is started with the full path outside of the python path, then it almost certainly fails
+# Hack to find pythoncom.dll - needed for some distribution/setups (includes seemingly
+# unused import win32api) E.g. if python is started with the full path outside of the
+# python path, then it almost certainly fails
 cwd = os.getcwd()
-if not hasattr(sys, 'frozen'):
+if not hasattr(sys, "frozen"):
     # cx_Freeze etc. will fail here otherwise
     os.chdir(sys.exec_prefix)
 # Since Python 3.8, pywintypes needs to be imported before win32api or you get
-# ImportError: DLL load failed while importing win32api: The specified module could not be found.
+# ImportError: DLL load failed while importing win32api: The specified module could not
+# be found.
 # See: https://stackoverflow.com/questions/58805040/pywin32-226-and-virtual-environments
 # Seems to be required even with pywin32 227
 import pywintypes
 import win32api
+
 os.chdir(cwd)
 
 from warnings import warn
@@ -23,15 +26,36 @@ import ctypes
 from ctypes import oledll, PyDLL, py_object, byref, windll
 
 import pythoncom
-from win32com.client import Dispatch, CoClassBaseClass, CDispatch, DispatchEx, DispatchBaseClass
+from win32com.client import (
+    Dispatch,
+    CoClassBaseClass,
+    CDispatch,
+    DispatchEx,
+    DispatchBaseClass,
+)
 import win32timezone
 import win32gui
 import win32process
 
-from .constants import (ColorIndex, UpdateLinks, InsertShiftDirection, InsertFormatOrigin, DeleteShiftDirection,
-                        ListObjectSourceType, FixedFormatType, FileFormat)
-from .utils import (rgb_to_int, int_to_rgb, np_datetime_to_datetime, col_name, fullname_url_to_local_path,
-                    read_config_sheet, hex_to_rgb)
+from .constants import (
+    ColorIndex,
+    UpdateLinks,
+    InsertShiftDirection,
+    InsertFormatOrigin,
+    DeleteShiftDirection,
+    ListObjectSourceType,
+    FixedFormatType,
+    FileFormat,
+)
+from .utils import (
+    rgb_to_int,
+    int_to_rgb,
+    np_datetime_to_datetime,
+    col_name,
+    fullname_url_to_local_path,
+    read_config_sheet,
+    hex_to_rgb,
+)
 import xlwings
 
 # Optional imports
@@ -54,13 +78,12 @@ if np:
     time_types = time_types + (np.datetime64,)
 
 
-N_COM_ATTEMPTS = 0      # 0 means try indefinitely
+N_COM_ATTEMPTS = 0  # 0 means try indefinitely
 BOOK_CALLER = None
 missing = object()
 
 
 class COMRetryMethodWrapper:
-
     def __init__(self, method):
         self.__method = method
 
@@ -76,7 +99,9 @@ class COMRetryMethodWrapper:
                 else:
                     return v
             except pywintypes.com_error as e:
-                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult == -2147418111:
+                if (
+                    not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS
+                ) and e.hresult == -2147418111:
                     n_attempt += 1
                     continue
                 else:
@@ -96,7 +121,7 @@ class ExcelBusyError(Exception):
 
 class COMRetryObjectWrapper:
     def __init__(self, inner):
-        object.__setattr__(self, '_inner', inner)
+        object.__setattr__(self, "_inner", inner)
 
     def __repr__(self):
         return repr(self._inner)
@@ -111,11 +136,23 @@ class COMRetryObjectWrapper:
                 if exc:
                     wcode, source, text, help_file, help_id, scode = exc
                 else:
-                    wcode, source, text, help_file, help_id, scode = None, None, None, None, None, None
-                # -2147352567 is the error you get when clicking into cells. If we wouldn't check for scode,
-                # actions like renaming a sheet with >31 characters would be tried forever, causing xlwings
-                # to hang (they also have hresult -2147352567).
-                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult in [-2147418111, -2147352567] and scode in [None, -2146777998]:
+                    wcode, source, text, help_file, help_id, scode = (
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                    )
+                # -2147352567 is the error you get when clicking into cells. If we
+                # wouldn't check for scode, actions like renaming a sheet with >31
+                # characters would be tried forever, causing xlwings to hang (they
+                # also have hresult -2147352567).
+                if (
+                    (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS)
+                    and e.hresult in [-2147418111, -2147352567]
+                    and scode in [None, -2146777998]
+                ):
                     n_attempt += 1
                     continue
                 else:
@@ -139,20 +176,23 @@ class COMRetryObjectWrapper:
                 else:
                     return v
             except pywintypes.com_error as e:
-                if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult == -2147418111:
+                if (
+                    not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS
+                ) and e.hresult == -2147418111:
                     n_attempt += 1
                     continue
                 else:
                     raise
             except AttributeError as e:
-                # pywin32 reacts incorrectly to RPC_E_CALL_REJECTED (i.e. assumes attribute doesn't
-                # exist, thus not allowing to distinguish between cases where attribute really doesn't
-                # exist or error is only being thrown because the COM RPC server is busy). Here
-                # we try to test to see what's going on really
+                # pywin32 reacts incorrectly to RPC_E_CALL_REJECTED (i.e. assumes
+                # attribute doesn't exist, thus not allowing to distinguish between
+                # cases where attribute really doesn't exist or error is only being
+                # thrown because the COM RPC server is busy). Here we try to test to
+                # see what's going on really
                 try:
                     self._oleobj_.GetIDsOfNames(0, item)
                 except pythoncom.ole_error as e:
-                    if e.hresult != -2147418111:   # RPC_E_CALL_REJECTED
+                    if e.hresult != -2147418111:  # RPC_E_CALL_REJECTED
                         # attribute probably really doesn't exist
                         raise
                 if not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS:
@@ -173,11 +213,13 @@ class COMRetryObjectWrapper:
                 else:
                     return v
             except pywintypes.com_error as e:
-                    if (not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS) and e.hresult == -2147418111:
-                        n_attempt += 1
-                        continue
-                    else:
-                        raise
+                if (
+                    not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS
+                ) and e.hresult == -2147418111:
+                    n_attempt += 1
+                    continue
+                else:
+                    raise
             except AttributeError as e:
                 if not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS:
                     n_attempt += 1
@@ -198,17 +240,20 @@ OBJID_NATIVEOM = -16
 
 
 class _GUID(ctypes.Structure):
-    # https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/49e490b8-f972-45d6-a3a4-99f924998d97
+    # https://docs.microsoft.com/en-us/openspecs/windows_protocols/
+    #  ms-dtyp/49e490b8-f972-45d6-a3a4-99f924998d97
     _fields_ = [
         ("Data1", ctypes.c_ulong),
         ("Data2", ctypes.c_ushort),
         ("Data3", ctypes.c_ushort),
-        ("Data4", ctypes.c_byte * 8)]
+        ("Data4", ctypes.c_byte * 8),
+    ]
 
 
 _IDISPATCH_GUID = _GUID()
 oledll.ole32.CLSIDFromString(
-    "{00020400-0000-0000-C000-000000000046}", byref(_IDISPATCH_GUID))
+    "{00020400-0000-0000-C000-000000000046}", byref(_IDISPATCH_GUID)
+)
 
 
 def accessible_object_from_window(hwnd):
@@ -219,15 +264,15 @@ def accessible_object_from_window(hwnd):
     # pythoncom.PyCom_PyObjectFromIUnknown below in get_xl_app_from_hwnd().
     ptr = ctypes.c_void_p()
     res = oledll.oleacc.AccessibleObjectFromWindow(
-        hwnd, OBJID_NATIVEOM,
-        byref(_IDISPATCH_GUID), byref(ptr))
+        hwnd, OBJID_NATIVEOM, byref(_IDISPATCH_GUID), byref(ptr)
+    )
     return ptr
 
 
 def is_hwnd_xl_app(hwnd):
     try:
-        child_hwnd = win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None)
-        child_hwnd = win32gui.FindWindowEx(child_hwnd, 0, 'EXCEL7', None)
+        child_hwnd = win32gui.FindWindowEx(hwnd, 0, "XLDESK", None)
+        child_hwnd = win32gui.FindWindowEx(child_hwnd, 0, "EXCEL7", None)
         ptr = accessible_object_from_window(child_hwnd)
         return True
     except WindowsError:
@@ -242,8 +287,8 @@ _PyCom_PyObjectFromIUnknown.restype = py_object
 
 def get_xl_app_from_hwnd(hwnd):
     pythoncom.CoInitialize()
-    child_hwnd = win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None)
-    child_hwnd = win32gui.FindWindowEx(child_hwnd, 0, 'EXCEL7', None)
+    child_hwnd = win32gui.FindWindowEx(hwnd, 0, "XLDESK", None)
+    child_hwnd = win32gui.FindWindowEx(child_hwnd, 0, "EXCEL7", None)
 
     ptr = accessible_object_from_window(child_hwnd)
     p = _PyCom_PyObjectFromIUnknown(ptr, byref(_IDISPATCH_GUID), True)
@@ -258,9 +303,9 @@ def get_excel_hwnds():
     while hwnd:
         try:
             # Apparently, this fails on some systems when Excel is closed
-            child_hwnd = win32gui.FindWindowEx(hwnd, 0, 'XLDESK', None)
+            child_hwnd = win32gui.FindWindowEx(hwnd, 0, "XLDESK", None)
             if child_hwnd:
-                child_hwnd = win32gui.FindWindowEx(child_hwnd, 0, 'EXCEL7', None)
+                child_hwnd = win32gui.FindWindowEx(child_hwnd, 0, "EXCEL7", None)
             if child_hwnd:
                 pid = win32process.GetWindowThreadProcessId(hwnd)[1]
                 if pid not in pids:
@@ -269,7 +314,7 @@ def get_excel_hwnds():
         except pywintypes.error:
             pass
 
-        hwnd = windll.user32.GetWindow(hwnd, 2)   # 2 = next window according to Z-order
+        hwnd = windll.user32.GetWindow(hwnd, 2)  # 2 = next window according to Z-order
 
 
 def get_xl_apps():
@@ -279,23 +324,32 @@ def get_xl_apps():
         except ExcelBusyError:
             pass
         except WindowsError:
-            # This happens if the bare Excel Application is open without Workbook
-            # i.e. there is no 'EXCEL7' child hwnd that would be necessary to make a connection
+            # This happens if the bare Excel Application is open without Workbook, i.e.,
+            # there's no 'EXCEL7' child hwnd that would be necessary for a connection
             pass
 
 
 def is_range_instance(xl_range):
-    pyid = getattr(xl_range, '_oleobj_', None)
+    pyid = getattr(xl_range, "_oleobj_", None)
     if pyid is None:
         return False
-    return xl_range._oleobj_.GetTypeInfo().GetTypeAttr().iid == pywintypes.IID('{00020846-0000-0000-C000-000000000046}')
+    return xl_range._oleobj_.GetTypeInfo().GetTypeAttr().iid == pywintypes.IID(
+        "{00020846-0000-0000-C000-000000000046}"
+    )
     # return pyid.GetTypeInfo().GetDocumentation(-1)[0] == 'Range'
 
 
 def _com_time_to_datetime(com_time, datetime_builder):
-    return datetime_builder(month=com_time.month, day=com_time.day, year=com_time.year,
-                            hour=com_time.hour, minute=com_time.minute, second=com_time.second,
-                            microsecond=com_time.microsecond, tzinfo=None)
+    return datetime_builder(
+        month=com_time.month,
+        day=com_time.day,
+        year=com_time.year,
+        hour=com_time.hour,
+        minute=com_time.minute,
+        second=com_time.second,
+        microsecond=com_time.microsecond,
+        tzinfo=None,
+    )
 
 
 def _datetime_to_com_time(dt_time):
@@ -305,11 +359,11 @@ def _datetime_to_com_time(dt_time):
 
     Copyright (c) Microsoft Corporation.
 
-    This source code is subject to terms and conditions of the Apache License, Version 2.0. A
-    copy of the license can be found in the LICENSE.txt file at the root of this distribution. If
-    you cannot locate the Apache License, Version 2.0, please send an email to
-    vspython@microsoft.com. By using this source code in any fashion, you are agreeing to be bound
-    by the terms of the Apache License, Version 2.0.
+    This source code is subject to terms and conditions of the Apache License,
+    Version 2.0. A copy of the license can be found in the LICENSE.txt file at the root
+    of this distribution. If you cannot locate the Apache License, Version 2.0, please
+    send an email to vspython@microsoft.com. By using this source code in any fashion,
+    you are agreeing to be bound by the terms of the Apache License, Version 2.0.
 
     You must not remove this notice, or any other, from this software.
 
@@ -322,8 +376,12 @@ def _datetime_to_com_time(dt_time):
             dt_time = np_datetime_to_datetime(dt_time)
 
     if type(dt_time) is dt.date:
-        dt_time = dt.datetime(dt_time.year, dt_time.month, dt_time.day,
-                              tzinfo=win32timezone.TimeZoneInfo.utc())
+        dt_time = dt.datetime(
+            dt_time.year,
+            dt_time.month,
+            dt_time.day,
+            tzinfo=win32timezone.TimeZoneInfo.utc(),
+        )
 
     # pywintypes has its time type inherit from datetime.
     # For some reason, though it accepts plain datetimes, they must have a timezone set.
@@ -334,7 +392,7 @@ def _datetime_to_com_time(dt_time):
         dt_time = dt_time.to_pydatetime()
     # We don't use pytz.utc to get rid of additional dependency
     # Don't do any timezone transformation: simply cutoff the tz info
-    # If we don't reset it first, it gets transformed into UTC before transferred to Excel
+    # If we don't reset it first, it gets transformed into UTC before sending to Excel
     dt_time = dt_time.replace(tzinfo=None)
     dt_time = dt_time.replace(tzinfo=win32timezone.TimeZoneInfo.utc())
 
@@ -342,7 +400,6 @@ def _datetime_to_com_time(dt_time):
 
 
 class Engine:
-
     @property
     def apps(self):
         return Apps()
@@ -375,8 +432,20 @@ class Engine:
                     if type(c) == float
                     else empty_as
                     # #DIV/0!, #N/A, #NAME?, #NULL!, #NUM!, #REF!, #VALUE!
-                    if c is None or (isinstance(c, int) and c in [-2146826281, -2146826246, -2146826259,
-                                                                  -2146826288, -2146826252, -2146826265, -2146826273])
+                    if c is None
+                    or (
+                        isinstance(c, int)
+                        and c
+                        in [
+                            -2146826281,
+                            -2146826246,
+                            -2146826259,
+                            -2146826288,
+                            -2146826252,
+                            -2146826265,
+                            -2146826273,
+                        ]
+                    )
                     else c
                     for c in row
                 ]
@@ -388,8 +457,20 @@ class Engine:
                     _com_time_to_datetime(c, datetime_builder)
                     if isinstance(c, time_types)
                     else empty_as
-                    if c is None or (isinstance(c, int) and c in [-2146826281, -2146826246, -2146826259,
-                                                                  -2146826288, -2146826252, -2146826265, -2146826273])
+                    if c is None
+                    or (
+                        isinstance(c, int)
+                        and c
+                        in [
+                            -2146826281,
+                            -2146826246,
+                            -2146826259,
+                            -2146826288,
+                            -2146826252,
+                            -2146826265,
+                            -2146826273,
+                        ]
+                    )
                     else c
                     for c in row
                 ]
@@ -422,18 +503,17 @@ class Apps:
             app = App(xl=hwnd)
             if app.pid == pid:
                 return app
-        raise KeyError('Could not find an Excel instance with this PID.')
+        raise KeyError("Could not find an Excel instance with this PID.")
 
 
 class App:
-
     def __init__(self, spec=None, add_book=True, xl=None, visible=None):
         # visible is only required on mac
         if spec is not None:
-            warn('spec is ignored on Windows.')
+            warn("spec is ignored on Windows.")
         if xl is None:
             # new instance
-            self._xl = COMRetryObjectWrapper(DispatchEx('Excel.Application'))
+            self._xl = COMRetryObjectWrapper(DispatchEx("Excel.Application"))
             if add_book:
                 self._xl.Workbooks.Add()
             self._hwnd = None
@@ -464,7 +544,9 @@ class App:
     @property
     def selection(self):
         try:
-            _ = self.xl.Selection.Address  # Force an exception outside of the retry wrapper if e.g. a chart is selected
+            _ = (
+                self.xl.Selection.Address
+            )  # Force exception outside of the retry wrapper e.g., if chart is selected
             return Range(xl=self.xl.Selection)
         except pywintypes.com_error:
             return None
@@ -494,6 +576,7 @@ class App:
 
     def kill(self):
         import win32api
+
         PROCESS_TERMINATE = 1
         handle = win32api.OpenProcess(PROCESS_TERMINATE, False, self._pid)
         win32api.TerminateProcess(handle, -1)
@@ -593,7 +676,7 @@ class App:
 
     @property
     def cut_copy_mode(self):
-        modes = {2: 'cut', 1: 'copy'}
+        modes = {2: "cut", 1: "copy"}
         return modes.get(self.xl.CutCopyMode)
 
     @cut_copy_mode.setter
@@ -602,7 +685,6 @@ class App:
 
 
 class Books:
-
     def __init__(self, xl):
         self.xl = xl
 
@@ -626,17 +708,48 @@ class Books:
     def add(self):
         return Book(xl=self.xl.Add())
 
-    def open(self, fullname, update_links=None, read_only=None, format=None, password=None, write_res_password=None,
-             ignore_read_only_recommended=None, origin=None, delimiter=None, editable=None, notify=None, converter=None,
-             add_to_mru=None, local=None, corrupt_load=None):
+    def open(
+        self,
+        fullname,
+        update_links=None,
+        read_only=None,
+        format=None,
+        password=None,
+        write_res_password=None,
+        ignore_read_only_recommended=None,
+        origin=None,
+        delimiter=None,
+        editable=None,
+        notify=None,
+        converter=None,
+        add_to_mru=None,
+        local=None,
+        corrupt_load=None,
+    ):
 
-        # update_links: According to VBA docs, only constants 0 and 3 are supported in this context
+        # update_links: According to VBA docs, only constants 0 and 3 are supported
         if update_links:
             update_links = UpdateLinks.xlUpdateLinksAlways
         # Workbooks.Open params are position only on pywin32
-        return Book(xl=self.xl.Open(fullname, update_links, read_only, format, password, write_res_password,
-                                    ignore_read_only_recommended, origin, delimiter, editable, notify, converter,
-                                    add_to_mru, local, corrupt_load))
+        return Book(
+            xl=self.xl.Open(
+                fullname,
+                update_links,
+                read_only,
+                format,
+                password,
+                write_res_password,
+                ignore_read_only_recommended,
+                origin,
+                delimiter,
+                editable,
+                notify,
+                converter,
+                add_to_mru,
+                local,
+                corrupt_load,
+            )
+        )
 
     def __iter__(self):
         for xl in self.xl:
@@ -644,7 +757,6 @@ class Books:
 
 
 class Book:
-
     def __init__(self, xl):
         self.xl = xl
 
@@ -673,49 +785,61 @@ class Book:
     def save(self, path=None, password=None):
         saved_path = self.xl.Path
         source_ext = os.path.splitext(self.name)[1] if saved_path else None
-        target_ext = os.path.splitext(path)[1] if path else '.xlsx'
+        target_ext = os.path.splitext(path)[1] if path else ".xlsx"
         if saved_path and source_ext == target_ext:
             file_format = self.xl.FileFormat
         else:
-            ext_to_file_format = {'.xlsx': FileFormat.xlOpenXMLWorkbook,
-                                  '.xlsm': FileFormat.xlOpenXMLWorkbookMacroEnabled,
-                                  '.xlsb': FileFormat.xlExcel12,
-                                  '.xltm': FileFormat.xlOpenXMLTemplateMacroEnabled,
-                                  '.xltx': FileFormat.xlOpenXMLTemplateMacroEnabled,
-                                  '.xlam': FileFormat.xlOpenXMLAddIn,
-                                  '.xls': FileFormat.xlWorkbookNormal,
-                                  '.xlt': FileFormat.xlTemplate,
-                                  '.xla': FileFormat.xlAddIn}
+            ext_to_file_format = {
+                ".xlsx": FileFormat.xlOpenXMLWorkbook,
+                ".xlsm": FileFormat.xlOpenXMLWorkbookMacroEnabled,
+                ".xlsb": FileFormat.xlExcel12,
+                ".xltm": FileFormat.xlOpenXMLTemplateMacroEnabled,
+                ".xltx": FileFormat.xlOpenXMLTemplateMacroEnabled,
+                ".xlam": FileFormat.xlOpenXMLAddIn,
+                ".xls": FileFormat.xlWorkbookNormal,
+                ".xlt": FileFormat.xlTemplate,
+                ".xla": FileFormat.xlAddIn,
+            }
             file_format = ext_to_file_format[target_ext]
-        if (saved_path != '') and (path is None):
+        if (saved_path != "") and (path is None):
             # Previously saved: Save under existing name
             self.xl.Save()
-        elif (saved_path != '') and (path is not None) and (os.path.split(path)[0] == ''):
+        elif (
+            (saved_path != "") and (path is not None) and (os.path.split(path)[0] == "")
+        ):
             # Save existing book under new name in cwd if no path has been provided
             path = os.path.join(os.getcwd(), path)
-            self.xl.SaveAs(os.path.realpath(path), FileFormat=file_format, Password=password)
-        elif (saved_path == '') and (path is None):
+            self.xl.SaveAs(
+                os.path.realpath(path), FileFormat=file_format, Password=password
+            )
+        elif (saved_path == "") and (path is None):
             # Previously unsaved: Save under current name in current working directory
-            path = os.path.join(os.getcwd(), self.xl.Name + '.xlsx')
+            path = os.path.join(os.getcwd(), self.xl.Name + ".xlsx")
             alerts_state = self.xl.Application.DisplayAlerts
             self.xl.Application.DisplayAlerts = False
-            self.xl.SaveAs(os.path.realpath(path), FileFormat=file_format, Password=password)
+            self.xl.SaveAs(
+                os.path.realpath(path), FileFormat=file_format, Password=password
+            )
             self.xl.Application.DisplayAlerts = alerts_state
         elif path:
             # Save under new name/location
             alerts_state = self.xl.Application.DisplayAlerts
             self.xl.Application.DisplayAlerts = False
-            self.xl.SaveAs(os.path.realpath(path), FileFormat=file_format, Password=password)
+            self.xl.SaveAs(
+                os.path.realpath(path), FileFormat=file_format, Password=password
+            )
             self.xl.Application.DisplayAlerts = alerts_state
 
     @property
     def fullname(self):
-        if '://' in self.xl.FullName:
+        if "://" in self.xl.FullName:
             config = read_config_sheet(xlwings.Book(impl=self))
-            return fullname_url_to_local_path(url=self.xl.FullName,
-                                              sheet_onedrive_consumer_config=config.get('ONEDRIVE_CONSUMER_WIN'),
-                                              sheet_onedrive_commercial_config=config.get('ONEDRIVE_COMMERCIAL_WIN'),
-                                              sheet_sharepoint_config=config.get('SHAREPOINT_WIN'))
+            return fullname_url_to_local_path(
+                url=self.xl.FullName,
+                sheet_onedrive_consumer_config=config.get("ONEDRIVE_CONSUMER_WIN"),
+                sheet_onedrive_commercial_config=config.get("ONEDRIVE_COMMERCIAL_WIN"),
+                sheet_sharepoint_config=config.get("SHAREPOINT_WIN"),
+            )
         else:
             return self.xl.FullName
 
@@ -727,12 +851,14 @@ class Book:
         self.xl.Activate()
 
     def to_pdf(self, path, quality):
-        self.xl.ExportAsFixedFormat(Type=FixedFormatType.xlTypePDF,
-                                    Filename=path,
-                                    Quality=quality_types[quality],
-                                    IncludeDocProperties=True,
-                                    IgnorePrintAreas=False,
-                                    OpenAfterPublish=False)
+        self.xl.ExportAsFixedFormat(
+            Type=FixedFormatType.xlTypePDF,
+            Filename=path,
+            Quality=quality_types[quality],
+            IncludeDocProperties=True,
+            IgnorePrintAreas=False,
+            OpenAfterPublish=False,
+        )
 
 
 class Sheets:
@@ -777,7 +903,6 @@ class Sheets:
 
 
 class Sheet:
-
     def __init__(self, xl):
         self.xl = xl
 
@@ -814,7 +939,10 @@ class Sheet:
                 row, col, nrows, ncols = arg1
                 return Range(xl=(self.xl, row, col, nrows, ncols))
             if 0 in arg1:
-                raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
+                raise IndexError(
+                    "Attempted to access 0-based Range. "
+                    "xlwings/Excel Ranges are 1-based."
+                )
             xl1 = self.xl.Cells(arg1[0], arg1[1])
         elif isinstance(arg1, numbers.Number) and isinstance(arg2, numbers.Number):
             xl1 = self.xl.Cells(arg1, arg2)
@@ -829,7 +957,10 @@ class Sheet:
             xl2 = arg2.xl
         elif isinstance(arg2, tuple):
             if 0 in arg2:
-                raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
+                raise IndexError(
+                    "Attempted to access 0-based Range. "
+                    "xlwings/Excel Ranges are 1-based."
+                )
             xl2 = self.xl.Cells(arg2[0], arg2[1])
         else:
             xl2 = self.xl.Range(arg2)
@@ -856,9 +987,9 @@ class Sheet:
         self.xl.Cells.Clear()
 
     def autofit(self, axis=None):
-        if axis == 'rows' or axis == 'r':
+        if axis == "rows" or axis == "r":
             self.xl.Rows.AutoFit()
-        elif axis == 'columns' or axis == 'c':
+        elif axis == "columns" or axis == "c":
             self.xl.Columns.AutoFit()
         elif axis is None:
             self.xl.Rows.AutoFit()
@@ -912,7 +1043,6 @@ class Sheet:
 
 
 class Range:
-
     def __init__(self, xl):
         if isinstance(xl, tuple):
             self._coords = xl
@@ -926,7 +1056,10 @@ class Range:
         if self._xl is missing:
             xl_sheet, row, col, nrows, ncols = self._coords
             if nrows and ncols:
-                self._xl = xl_sheet.Range(xl_sheet.Cells(row, col), xl_sheet.Cells(row+nrows-1, col+ncols-1))
+                self._xl = xl_sheet.Range(
+                    xl_sheet.Cells(row, col),
+                    xl_sheet.Cells(row + nrows - 1, col + ncols - 1),
+                )
             else:
                 self._xl = None
         return self._xl
@@ -939,7 +1072,7 @@ class Range:
                 self.xl.Row,
                 self.xl.Column,
                 self.xl.Rows.Count,
-                self.xl.Columns.Count
+                self.xl.Columns.Count,
             )
         return self._coords
 
@@ -1090,7 +1223,7 @@ class Range:
         if self.xl is not None:
             return self.xl.NumberFormat
         else:
-            return ''
+            return ""
 
     @number_format.setter
     def number_format(self, value):
@@ -1120,24 +1253,32 @@ class Range:
 
     def autofit(self, axis=None):
         if self.xl is not None:
-            if axis == 'rows' or axis == 'r':
+            if axis == "rows" or axis == "r":
                 self.xl.Rows.AutoFit()
-            elif axis == 'columns' or axis == 'c':
+            elif axis == "columns" or axis == "c":
                 self.xl.Columns.AutoFit()
             elif axis is None:
                 self.xl.Columns.AutoFit()
                 self.xl.Rows.AutoFit()
 
     def insert(self, shift=None, copy_origin=None):
-        shifts = {'down': InsertShiftDirection.xlShiftDown,
-                  'right': InsertShiftDirection.xlShiftToRight,
-                  None: None}
-        copy_origins = {'format_from_left_or_above': InsertFormatOrigin.xlFormatFromLeftOrAbove,
-                        'format_from_right_or_below': InsertFormatOrigin.xlFormatFromRightOrBelow}
+        shifts = {
+            "down": InsertShiftDirection.xlShiftDown,
+            "right": InsertShiftDirection.xlShiftToRight,
+            None: None,
+        }
+        copy_origins = {
+            "format_from_left_or_above": InsertFormatOrigin.xlFormatFromLeftOrAbove,
+            "format_from_right_or_below": InsertFormatOrigin.xlFormatFromRightOrBelow,
+        }
         self.xl.Insert(Shift=shifts[shift], CopyOrigin=copy_origins[copy_origin])
 
     def delete(self, shift=None):
-        shifts = {'up': DeleteShiftDirection.xlShiftUp, 'left': DeleteShiftDirection.xlShiftToLeft, None: None}
+        shifts = {
+            "up": DeleteShiftDirection.xlShiftUp,
+            "left": DeleteShiftDirection.xlShiftToLeft,
+            None: None,
+        }
         self.xl.Delete(Shift=shifts[shift])
 
     def copy(self, destination=None):
@@ -1168,7 +1309,12 @@ class Range:
             "subtract": 3,
         }
 
-        self.xl.PasteSpecial(Paste=pastes[paste], Operation=operations[operation], SkipBlanks=skip_blanks, Transpose=transpose)
+        self.xl.PasteSpecial(
+            Paste=pastes[paste],
+            Operation=operations[operation],
+            SkipBlanks=skip_blanks,
+            Transpose=transpose,
+        )
 
     @property
     def hyperlink(self):
@@ -1178,12 +1324,13 @@ class Range:
             except pywintypes.com_error:
                 raise Exception("The cell doesn't seem to contain a hyperlink!")
         else:
-            return ''
+            return ""
 
     def add_hyperlink(self, address, text_to_display, screen_tip):
         if self.xl is not None:
-            # Another one of these pywin32 bugs that only materialize under certain circumstances:
-            # http://stackoverflow.com/questions/6284227/hyperlink-will-not-show-display-proper-text
+            # Another one of these pywin32 bugs that only materialize under certain
+            # circumstances: https://stackoverflow.com/questions/
+            #  6284227/hyperlink-will-not-show-display-proper-text
             link = self.xl.Hyperlinks.Add(Anchor=self.xl, Address=address)
             link.TextToDisplay = text_to_display
             link.ScreenTip = screen_tip
@@ -1291,18 +1438,18 @@ class Range:
         return Note(xl=self.xl.Comment) if self.xl.Comment else None
 
     def copy_picture(self, appearance, format):
-        _appearance = {'screen': 1, 'printer': 2}
-        _format = {'picture': -4147, 'bitmap': 2}
-        self.xl.CopyPicture(Appearance=_appearance[appearance],
-                            Format=_format[format])
+        _appearance = {"screen": 1, "printer": 2}
+        _format = {"picture": -4147, "bitmap": 2}
+        self.xl.CopyPicture(Appearance=_appearance[appearance], Format=_format[format])
 
     def to_png(self, path):
         max_retries = 10
         for retry in range(max_retries):
-            # https://stackoverflow.com/questions/24740062/copypicture-method-of-range-class-failed-sometimes
+            # https://stackoverflow.com/questions/
+            #  24740062/copypicture-method-of-range-class-failed-sometimes
             try:
-                # appearance='printer' fails here, not sure why
-                self.copy_picture(appearance='screen', format='bitmap')
+                # appearance="printer" fails here, not sure why
+                self.copy_picture(appearance="screen", format="bitmap")
                 im = ImageGrab.grabclipboard()
                 im.save(path)
                 break
@@ -1311,16 +1458,17 @@ class Range:
                     raise
 
     def to_pdf(self, path, quality):
-        self.xl.ExportAsFixedFormat(Type=FixedFormatType.xlTypePDF,
-                                    Filename=path,
-                                    Quality=quality_types[quality],
-                                    IncludeDocProperties=True,
-                                    IgnorePrintAreas=False,
-                                    OpenAfterPublish=False)
+        self.xl.ExportAsFixedFormat(
+            Type=FixedFormatType.xlTypePDF,
+            Filename=path,
+            Quality=quality_types[quality],
+            IncludeDocProperties=True,
+            IgnorePrintAreas=False,
+            OpenAfterPublish=False,
+        )
 
 
 class Shape:
-
     def __init__(self, xl):
         self.xl = xl
 
@@ -1387,12 +1535,18 @@ class Shape:
         self.xl.Activate()
 
     def scale_height(self, factor, relative_to_original_size, scale):
-        self.xl.ScaleHeight(Scale=scaling[scale], RelativeToOriginalSize=relative_to_original_size,
-                            Factor=factor)
+        self.xl.ScaleHeight(
+            Scale=scaling[scale],
+            RelativeToOriginalSize=relative_to_original_size,
+            Factor=factor,
+        )
 
     def scale_width(self, factor, relative_to_original_size, scale):
-        self.xl.ScaleWidth(Scale=scaling[scale], RelativeToOriginalSize=relative_to_original_size,
-                           Factor=factor)
+        self.xl.ScaleWidth(
+            Scale=scaling[scale],
+            RelativeToOriginalSize=relative_to_original_size,
+            Factor=factor,
+        )
 
     @property
     def text(self):
@@ -1551,22 +1705,23 @@ class Characters:
     def __getitem__(self, item):
         if isinstance(item, slice):
             if (item.start and item.start < 0) or (item.stop and item.stop < 0):
-                raise ValueError(self.__class__.__name__ + " object does not support slicing with negative indexes")
+                raise ValueError(
+                    self.__class__.__name__
+                    + " object does not support slicing with negative indexes"
+                )
             start = item.start + 1 if item.start else 1
             length = item.stop + 1 - start if item.stop else self.length + 1 - start
-            return Characters(parent=self,
-                              xl=self.xl,
-                              start=start,
-                              length=length)
+            return Characters(parent=self, xl=self.xl, start=start, length=length)
         else:
             if item >= 0:
                 return Characters(parent=self, xl=self.xl, start=item + 1, length=1)
             else:
-                return Characters(parent=self, xl=self.xl, start=len(self.text) + 1 + item, length=1)
+                return Characters(
+                    parent=self, xl=self.xl, start=len(self.text) + 1 + item, length=1
+                )
 
 
 class Collection:
-
     def __init__(self, xl):
         self.xl = xl
 
@@ -1606,7 +1761,7 @@ class PageSetup:
     @property
     def print_area(self):
         value = self.xl.PrintArea
-        return None if value == '' else value
+        return None if value == "" else value
 
     @print_area.setter
     def print_area(self, value):
@@ -1758,20 +1913,28 @@ class Tables(Collection):
 
     _wrap = Table
 
-    def add(self, source_type=None, source=None, link_source=None, has_headers=None, destination=None,
-            table_style_name=None):
-        return Table(xl=self.xl.Add(
-            SourceType=ListObjectSourceType.xlSrcRange,
-            Source=source.api,
-            LinkSource=link_source,
-            XlListObjectHasHeaders=True,
-            Destination=destination,
-            TableStyleName=table_style_name
-        ))
+    def add(
+        self,
+        source_type=None,
+        source=None,
+        link_source=None,
+        has_headers=None,
+        destination=None,
+        table_style_name=None,
+    ):
+        return Table(
+            xl=self.xl.Add(
+                SourceType=ListObjectSourceType.xlSrcRange,
+                Source=source.api,
+                LinkSource=link_source,
+                XlListObjectHasHeaders=True,
+                Destination=destination,
+                TableStyleName=table_style_name,
+            )
+        )
 
 
 class Chart:
-
     def __init__(self, xl_obj=None, xl=None):
         self.xl = xl_obj.Chart if xl is None else xl
         self.xl_obj = xl_obj
@@ -1869,27 +2032,25 @@ class Chart:
 
     def to_pdf(self, path, quality):
         self.xl_obj.Select()
-        self.xl.ExportAsFixedFormat(Type=FixedFormatType.xlTypePDF,
-                                    Filename=path,
-                                    Quality=quality_types[quality],
-                                    IncludeDocProperties=True,
-                                    IgnorePrintAreas=False,
-                                    OpenAfterPublish=False)
+        self.xl.ExportAsFixedFormat(
+            Type=FixedFormatType.xlTypePDF,
+            Filename=path,
+            Quality=quality_types[quality],
+            IncludeDocProperties=True,
+            IgnorePrintAreas=False,
+            OpenAfterPublish=False,
+        )
 
 
 class Charts(Collection):
-
     def _wrap(self, xl):
         return Chart(xl_obj=xl)
 
     def add(self, left, top, width, height):
-        return Chart(xl_obj=self.xl.Add(
-            left, top, width, height
-        ))
+        return Chart(xl_obj=self.xl.Add(left, top, width, height))
 
 
 class Picture:
-
     def __init__(self, xl):
         self.xl = xl
 
@@ -1962,15 +2123,17 @@ class Pictures(Collection):
         return Sheet(xl=self.xl.Parent)
 
     def add(self, filename, link_to_file, save_with_document, left, top, width, height):
-        return Picture(xl=self.xl.Parent.Shapes.AddPicture(
-            Filename=filename,
-            LinkToFile=link_to_file,
-            SaveWithDocument=save_with_document,
-            Left=left,
-            Top=top,
-            Width=width,
-            Height=height
-        ).DrawingObject)
+        return Picture(
+            xl=self.xl.Parent.Shapes.AddPicture(
+                Filename=filename,
+                LinkToFile=link_to_file,
+                SaveWithDocument=save_with_document,
+                Left=left,
+                Top=top,
+                Width=width,
+                Height=height,
+            ).DrawingObject
+        )
 
 
 class Names:
@@ -2034,112 +2197,100 @@ class Name:
 
 
 # --- constants ---
-quality_types = {
-        "minimum": 1,
-        "standard": 0
-    }
+quality_types = {"minimum": 1, "standard": 0}
 
 chart_types_s2i = {
-    '3d_area': -4098,
-    '3d_area_stacked': 78,
-    '3d_area_stacked_100': 79,
-    '3d_bar_clustered': 60,
-    '3d_bar_stacked': 61,
-    '3d_bar_stacked_100': 62,
-    '3d_column': -4100,
-    '3d_column_clustered': 54,
-    '3d_column_stacked': 55,
-    '3d_column_stacked_100': 56,
-    '3d_line': -4101,
-    '3d_pie': -4102,
-    '3d_pie_exploded': 70,
-    'area': 1,
-    'area_stacked': 76,
-    'area_stacked_100': 77,
-    'bar_clustered': 57,
-    'bar_of_pie': 71,
-    'bar_stacked': 58,
-    'bar_stacked_100': 59,
-    'bubble': 15,
-    'bubble_3d_effect': 87,
-    'column_clustered': 51,
-    'column_stacked': 52,
-    'column_stacked_100': 53,
-    'cone_bar_clustered': 102,
-    'cone_bar_stacked': 103,
-    'cone_bar_stacked_100': 104,
-    'cone_col': 105,
-    'cone_col_clustered': 99,
-    'cone_col_stacked': 100,
-    'cone_col_stacked_100': 101,
-    'cylinder_bar_clustered': 95,
-    'cylinder_bar_stacked': 96,
-    'cylinder_bar_stacked_100': 97,
-    'cylinder_col': 98,
-    'cylinder_col_clustered': 92,
-    'cylinder_col_stacked': 93,
-    'cylinder_col_stacked_100': 94,
-    'doughnut': -4120,
-    'doughnut_exploded': 80,
-    'line': 4,
-    'line_markers': 65,
-    'line_markers_stacked': 66,
-    'line_markers_stacked_100': 67,
-    'line_stacked': 63,
-    'line_stacked_100': 64,
-    'pie': 5,
-    'pie_exploded': 69,
-    'pie_of_pie': 68,
-    'pyramid_bar_clustered': 109,
-    'pyramid_bar_stacked': 110,
-    'pyramid_bar_stacked_100': 111,
-    'pyramid_col': 112,
-    'pyramid_col_clustered': 106,
-    'pyramid_col_stacked': 107,
-    'pyramid_col_stacked_100': 108,
-    'radar': -4151,
-    'radar_filled': 82,
-    'radar_markers': 81,
-    'stock_hlc': 88,
-    'stock_ohlc': 89,
-    'stock_vhlc': 90,
-    'stock_vohlc': 91,
-    'surface': 83,
-    'surface_top_view': 85,
-    'surface_top_view_wireframe': 86,
-    'surface_wireframe': 84,
-    'xy_scatter': -4169,
-    'xy_scatter_lines': 74,
-    'xy_scatter_lines_no_markers': 75,
-    'xy_scatter_smooth': 72,
-    'xy_scatter_smooth_no_markers': 73
+    "3d_area": -4098,
+    "3d_area_stacked": 78,
+    "3d_area_stacked_100": 79,
+    "3d_bar_clustered": 60,
+    "3d_bar_stacked": 61,
+    "3d_bar_stacked_100": 62,
+    "3d_column": -4100,
+    "3d_column_clustered": 54,
+    "3d_column_stacked": 55,
+    "3d_column_stacked_100": 56,
+    "3d_line": -4101,
+    "3d_pie": -4102,
+    "3d_pie_exploded": 70,
+    "area": 1,
+    "area_stacked": 76,
+    "area_stacked_100": 77,
+    "bar_clustered": 57,
+    "bar_of_pie": 71,
+    "bar_stacked": 58,
+    "bar_stacked_100": 59,
+    "bubble": 15,
+    "bubble_3d_effect": 87,
+    "column_clustered": 51,
+    "column_stacked": 52,
+    "column_stacked_100": 53,
+    "cone_bar_clustered": 102,
+    "cone_bar_stacked": 103,
+    "cone_bar_stacked_100": 104,
+    "cone_col": 105,
+    "cone_col_clustered": 99,
+    "cone_col_stacked": 100,
+    "cone_col_stacked_100": 101,
+    "cylinder_bar_clustered": 95,
+    "cylinder_bar_stacked": 96,
+    "cylinder_bar_stacked_100": 97,
+    "cylinder_col": 98,
+    "cylinder_col_clustered": 92,
+    "cylinder_col_stacked": 93,
+    "cylinder_col_stacked_100": 94,
+    "doughnut": -4120,
+    "doughnut_exploded": 80,
+    "line": 4,
+    "line_markers": 65,
+    "line_markers_stacked": 66,
+    "line_markers_stacked_100": 67,
+    "line_stacked": 63,
+    "line_stacked_100": 64,
+    "pie": 5,
+    "pie_exploded": 69,
+    "pie_of_pie": 68,
+    "pyramid_bar_clustered": 109,
+    "pyramid_bar_stacked": 110,
+    "pyramid_bar_stacked_100": 111,
+    "pyramid_col": 112,
+    "pyramid_col_clustered": 106,
+    "pyramid_col_stacked": 107,
+    "pyramid_col_stacked_100": 108,
+    "radar": -4151,
+    "radar_filled": 82,
+    "radar_markers": 81,
+    "stock_hlc": 88,
+    "stock_ohlc": 89,
+    "stock_vhlc": 90,
+    "stock_vohlc": 91,
+    "surface": 83,
+    "surface_top_view": 85,
+    "surface_top_view_wireframe": 86,
+    "surface_wireframe": 84,
+    "xy_scatter": -4169,
+    "xy_scatter_lines": 74,
+    "xy_scatter_lines_no_markers": 75,
+    "xy_scatter_smooth": 72,
+    "xy_scatter_smooth_no_markers": 73,
 }
 
 chart_types_i2s = {v: k for k, v in chart_types_s2i.items()}
 
 directions_s2i = {
-    'd': -4121,
-    'down': -4121,
-    'l': -4159,
-    'left': -4159,
-    'r': -4161,
-    'right': -4161,
-    'u': -4162,
-    'up': -4162
+    "d": -4121,
+    "down": -4121,
+    "l": -4159,
+    "left": -4159,
+    "r": -4161,
+    "right": -4161,
+    "u": -4162,
+    "up": -4162,
 }
 
-directions_i2s = {
-    -4121: 'down',
-    -4159: 'left',
-    -4161: 'right',
-    -4162: 'up'
-}
+directions_i2s = {-4121: "down", -4159: "left", -4161: "right", -4162: "up"}
 
-calculation_s2i = {
-    "automatic": -4105,
-    "manual": -4135,
-    "semiautomatic": 2
-}
+calculation_s2i = {"automatic": -4105, "manual": -4135, "semiautomatic": 2}
 
 calculation_i2s = {v: k for k, v in calculation_s2i.items()}
 
@@ -2174,13 +2325,13 @@ shape_types_s2i = {
     "table": 19,
     "text_box": 17,
     "text_effect": 15,
-    "web_video": 26
+    "web_video": 26,
 }
 
 scaling = {
     "scale_from_top_left": 0,
     "scale_from_bottom_right": 2,
-    "scale_from_middle": 1
+    "scale_from_middle": 1,
 }
 
 shape_types_i2s = {v: k for k, v in shape_types_s2i.items()}

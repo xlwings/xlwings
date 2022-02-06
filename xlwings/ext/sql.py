@@ -14,36 +14,36 @@ def conv_value(value, col_is_str):
 
 
 @func
-@arg("tables", expand='table', ndim=2)
-@ret(expand='table')
+@arg("tables", expand="table", ndim=2)
+@ret(expand="table")
 def sql(query, *tables):
     return _sql(query, *tables)
 
 
 @func
-@arg("tables", expand='table', ndim=2)
+@arg("tables", expand="table", ndim=2)
 def sql_dynamic(query, *tables):
     """Called if native dynamic arrays are available"""
     return _sql(query, *tables)
 
 
 def _sql(query, *tables):
-    conn = sqlite3.connect(':memory:')
+    conn = sqlite3.connect(":memory:")
 
     c = conn.cursor()
 
     for i, table in enumerate(tables):
         cols = table[0]
         rows = table[1:]
-        types = [
-            any(type(row[j]) is str for row in rows)
-            for j in range(len(cols))
-        ]
+        types = [any(type(row[j]) is str for row in rows) for j in range(len(cols))]
         name = chr(65 + i)
 
         stmt = "CREATE TABLE %s (%s)" % (
             name,
-            ", ".join("'%s' %s" % (col, "STRING" if typ else "REAL") for col, typ in zip(cols, types))
+            ", ".join(
+                "'%s' %s" % (col, "STRING" if typ else "REAL")
+                for col, typ in zip(cols, types)
+            ),
         )
         c.execute(stmt)
 
@@ -51,14 +51,15 @@ def _sql(query, *tables):
             stmt = "INSERT INTO %s VALUES %s" % (
                 name,
                 ", ".join(
-                    "(%s)" % ", ".join(
-                        conv_value(value, type)
-                        for value, typ in zip(row, types)
+                    "(%s)"
+                    % ", ".join(
+                        conv_value(value, type) for value, typ in zip(row, types)
                     )
                     for row in rows
-                )
+                ),
             )
-            # Fixes values like these: sql('SELECT a FROM a', [['a', 'b'], ["""X"Y'Z""", 'd']])
+            # Fixes values like these:
+            # sql('SELECT a FROM a', [['a', 'b'], ["""X"Y'Z""", 'd']])
             stmt = stmt.replace("\\'", "''")
             c.execute(stmt)
 

@@ -17,47 +17,47 @@ def app():
 # Range
 def test_range_font_bold(app):
     sheet = app.books[0].sheets[0]
-    sheet['A1'].value = 'text'
-    assert sheet['A1'].font.bold is False
-    sheet['A1'].font.bold = True
-    assert sheet['A1'].font.bold is True
-    sheet['A1'].font.bold = False
-    assert sheet['A1'].font.bold is False
+    sheet["A1"].value = "text"
+    assert sheet["A1"].font.bold is False
+    sheet["A1"].font.bold = True
+    assert sheet["A1"].font.bold is True
+    sheet["A1"].font.bold = False
+    assert sheet["A1"].font.bold is False
 
 
 def test_range_font_italic(app):
     sheet = app.books[0].sheets[0]
-    sheet['A1'].value = 'text'
-    assert sheet['A1'].font.italic is False
-    sheet['A1'].font.italic = True
-    assert sheet['A1'].font.italic is True
-    sheet['A1'].font.italic = False
-    assert sheet['A1'].font.italic is False
+    sheet["A1"].value = "text"
+    assert sheet["A1"].font.italic is False
+    sheet["A1"].font.italic = True
+    assert sheet["A1"].font.italic is True
+    sheet["A1"].font.italic = False
+    assert sheet["A1"].font.italic is False
 
 
 def test_range_font_size(app):
     sheet = app.books[0].sheets[0]
-    sheet['A1'].value = 'text'
-    assert sheet['A1'].font.size != 0
-    sheet['A1'].font.size = 33
-    assert sheet['A1'].font.size == 33
+    sheet["A1"].value = "text"
+    assert sheet["A1"].font.size != 0
+    sheet["A1"].font.size = 33
+    assert sheet["A1"].font.size == 33
 
 
 def test_range_font_color(app):
     sheet = app.books[0].sheets[0]
-    sheet['A1'].value = 'text'
-    assert sheet['A1'].font.color == (0, 0, 0)
-    sheet['A1'].font.color = (255, 0, 0)
-    assert sheet['A1'].font.color == (255, 0, 0)
+    sheet["A1"].value = "text"
+    assert sheet["A1"].font.color == (0, 0, 0)
+    sheet["A1"].font.color = (255, 0, 0)
+    assert sheet["A1"].font.color == (255, 0, 0)
 
 
 def test_range_font_name(app):
     sheet = app.books[0].sheets[0]
-    sheet['A1'].value = 'text'
-    sheet['A1'].font.name = 'Calibri'
-    assert sheet['A1'].font.name == 'Calibri'
-    sheet['A1'].font.name = 'Arial'
-    assert sheet['A1'].font.name == 'Arial'
+    sheet["A1"].value = "text"
+    sheet["A1"].font.name = "Calibri"
+    assert sheet["A1"].font.name == "Calibri"
+    sheet["A1"].font.name = "Arial"
+    assert sheet["A1"].font.name == "Arial"
 
 
 # Shape
@@ -100,7 +100,7 @@ def test_shape_font_color(app):
 def test_shape_font_name(app):
     shape = xw.Book("test book.xlsx").sheets["shape"].shapes[0]
     shape.text = "text"
-    shape.font.name = 'Calibri'
-    assert shape.font.name == 'Calibri'
-    shape.font.name = 'Arial'
-    assert shape.font.name == 'Arial'
+    shape.font.name = "Calibri"
+    assert shape.font.name == "Calibri"
+    shape.font.name = "Arial"
+    assert shape.font.name == "Arial"

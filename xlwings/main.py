@@ -39,14 +39,14 @@ except ImportError:
 
 
 class Collection:
-
     def __init__(self, impl):
         self.impl = impl
 
     @property
     def api(self):
         """
-        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        Returns the native object (``pywin32`` or ``appscript`` obj)
+        of the engine being used.
         """
         return self.impl.api
 
@@ -78,7 +78,9 @@ class Collection:
                 key += l
             return self(key + 1)
         elif isinstance(key, slice):
-            raise ValueError(self.impl.__class__.__name__ + " object does not support slicing")
+            raise ValueError(
+                self.impl.__class__.__name__ + " object does not support slicing"
+            )
         else:
             return self(key)
 
@@ -99,10 +101,7 @@ class Collection:
             else:
                 r.append(repr(x))
 
-        return '{}({})'.format(
-            self._name,
-            "[" + ", ".join(r) + "]"
-        )
+        return "{}({})".format(self._name, "[" + ", ".join(r) + "]")
 
 
 class Engines:
@@ -139,14 +138,10 @@ class Engines:
             yield engine
 
     def __repr__(self):
-        return '{}({})'.format(
-            self.__class__.__name__,
-            repr(list(self))
-        )
+        return "{}({})".format(self.__class__.__name__, repr(list(self)))
 
 
 class Engine:
-
     def __init__(self, impl):
         self.impl = impl
 
@@ -179,7 +174,8 @@ class Apps:
 
     def keys(self):
         """
-        Provides the PIDs of the Excel instances that act as keys in the Apps collection.
+        Provides the PIDs of the Excel instances
+        that act as keys in the Apps collection.
 
         .. versionadded:: 0.13.0
         """
@@ -206,9 +202,8 @@ class Apps:
         return self[i]
 
     def __repr__(self):
-        return '{}({})'.format(
-            getattr(self.__class__, '_name', self.__class__.__name__),
-            repr(list(self))
+        return "{}({})".format(
+            getattr(self.__class__, "_name", self.__class__.__name__), repr(list(self))
         )
 
     def __getitem__(self, item):
@@ -236,8 +231,9 @@ engines = Engines()
 
 class App:
     """
-    An app corresponds to an Excel instance and should normally be used as context manager to make sure that everything
-    is properly cleaned up again and to prevent zombie processes. New Excel instances can be fired up like so::
+    An app corresponds to an Excel instance and should normally be used as context
+    manager to make sure that everything is properly cleaned up again and to prevent
+    zombie processes. New Excel instances can be fired up like so::
 
         import xlwings as xw
 
@@ -256,27 +252,33 @@ class App:
     Parameters
     ----------
     visible : bool, default None
-        Returns or sets a boolean value that determines whether the app is visible. The default
-        leaves the state unchanged or sets visible=True if the object doesn't exist yet.
+        Returns or sets a boolean value that determines whether the app is visible. The
+        default leaves the state unchanged or sets visible=True if the object doesn't
+        exist yet.
 
     spec : str, default None
         Mac-only, use the full path to the Excel application,
-        e.g. ``/Applications/Microsoft Office 2011/Microsoft Excel`` or ``/Applications/Microsoft Excel``
+        e.g. ``/Applications/Microsoft Office 2011/Microsoft Excel`` or
+        ``/Applications/Microsoft Excel``
 
-        On Windows, if you want to change the version of Excel that xlwings talks to, go to ``Control Panel >
-        Programs and Features`` and ``Repair`` the Office version that you want as default.
+        On Windows, if you want to change the version of Excel that xlwings talks to, go
+        to ``Control Panel > Programs and Features`` and ``Repair`` the Office version
+        that you want as default.
 
 
     .. note::
-        On Mac, while xlwings allows you to run multiple instances of Excel, it's a feature that is not officially
-        supported by Excel for Mac: Unlike on Windows, Excel will not ask you to open a read-only version of a file
-        if it is already open in another instance. This means that you need to watch out yourself so that the same
-        file is not being overwritten from different instances.
+        On Mac, while xlwings allows you to run multiple instances of Excel, it's a
+        feature that is not officially supported by Excel for Mac: Unlike on Windows,
+        Excel will not ask you to open a read-only version of a file if it is already
+        open in another instance. This means that you need to watch out yourself so
+        that the same file is not being overwritten from different instances.
     """
 
     def __init__(self, visible=None, spec=None, add_book=True, impl=None):
         if impl is None:
-            self.impl = engines.active.apps.add(spec=spec, add_book=add_book, visible=visible).impl
+            self.impl = engines.active.apps.add(
+                spec=spec, add_book=add_book, visible=visible
+            ).impl
             if visible or visible is None:
                 self.visible = True
         else:
@@ -292,7 +294,8 @@ class App:
     @property
     def api(self):
         """
-        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        Returns the native object (``pywin32`` or ``appscript`` obj)
+        of the engine being used.
 
         .. versionadded:: 0.9.0
         """
@@ -331,16 +334,21 @@ class App:
         Parameters
         ----------
         steal_focus : bool, default False
-            If True, make frontmost application and hand over focus from Python to Excel.
+            If True, make frontmost application
+            and hand over focus from Python to Excel.
 
 
         .. versionadded:: 0.9.0
         """
-        # Win Excel >= 2013 fails if visible=False...we may somehow not be using the correct HWND
+        # Win Excel >= 2013 fails if visible=False...
+        # we may somehow not be using the correct HWND
         self.impl.activate(steal_focus)
-        if self.engine.name != 'json':
+        if self.engine.name != "json":
             if self != apps.active:
-                raise Exception('Could not activate App! Try to instantiate the App with visible=True.')
+                raise Exception(
+                    "Could not activate App! "
+                    "Try to instantiate the App with visible=True."
+                )
 
     @property
     def visible(self):
@@ -375,8 +383,9 @@ class App:
     @property
     def screen_updating(self):
         """
-        Turn screen updating off to speed up your script. You won't be able to see what the script is doing, but it
-        will run faster. Remember to set the screen_updating property back to True when your script ends.
+        Turn screen updating off to speed up your script. You won't be able to see what
+        the script is doing, but it will run faster. Remember to set the screen_updating
+        property back to True when your script ends.
 
         .. versionadded:: 0.3.3
         """
@@ -389,8 +398,9 @@ class App:
     @property
     def display_alerts(self):
         """
-        The default value is True. Set this property to False to suppress prompts and alert messages while code is
-        running; when a message requires a response, Excel chooses the default response.
+        The default value is True. Set this property to False to suppress prompts and
+        alert messages while code is running; when a message requires a response, Excel
+        chooses the default response.
 
         .. versionadded:: 0.9.0
         """
@@ -416,9 +426,10 @@ class App:
     @property
     def interactive(self):
         """
-        ``True`` if Excel is in interactive mode. If you set this property to ``False``, Excel blocks all input
-        from the keyboard and mouse (except input to dialog boxes that are displayed by your code). Read/write Boolean.
-        Note: Not supported on macOS.
+        ``True`` if Excel is in interactive mode. If you set this property to ``False``,
+        Excel blocks all input from the keyboard and mouse (except input to dialog boxes
+        that are displayed by your code). Read/write Boolean.
+        NOTE: Not supported on macOS.
 
         .. versionadded:: 0.24.4
         """
@@ -504,11 +515,13 @@ class App:
 
     def macro(self, name):
         """
-        Runs a Sub or Function in Excel VBA that are not part of a specific workbook but e.g. are part of an add-in.
+        Runs a Sub or Function in Excel VBA that are not part of a specific workbook
+        but e.g. are part of an add-in.
 
         Arguments
         ---------
-        name : Name of Sub or Function with or without module name, e.g. ``'Module1.MyMacro'`` or ``'MyMacro'``
+        name : Name of Sub or Function with or without module name,
+               e.g., ``'Module1.MyMacro'`` or ``'MyMacro'``
 
         Examples
         --------
@@ -557,7 +570,8 @@ class App:
     @property
     def status_bar(self):
         """
-        Gets or sets the value of the status bar. Returns ``False`` if Excel has control of it.
+        Gets or sets the value of the status bar.
+        Returns ``False`` if Excel has control of it.
 
         .. versionadded:: 0.20.0
         """
@@ -571,7 +585,8 @@ class App:
     def cut_copy_mode(self):
         """
         Gets or sets the status of the cut or copy mode.
-        Accepts ``False`` for setting and returns ``None``, ``copy`` or ``cut`` when getting the status.
+        Accepts ``False`` for setting and returns ``None``,
+        ``copy`` or ``cut`` when getting the status.
 
         .. versionadded:: 0.24.0
         """
@@ -584,10 +599,11 @@ class App:
     @contextmanager
     def properties(self, **kwargs):
         """
-        Context manager that allows you to easily change the app's properties temporarily. Once the code
-        leaves the with block, the properties are changed back to their previous state.
-        Note: Must be used as context manager or else will have no effect. Also, you can only use app
-        properties that you can both read and write.
+        Context manager that allows you to easily change the app's properties
+        temporarily. Once the code leaves the with block, the properties are changed
+        back to their previous state.
+        Note: Must be used as context manager or else will have no effect. Also, you can
+        only use app properties that you can both read and write.
 
         Examples
         --------
@@ -621,21 +637,24 @@ class App:
                 setattr(self, attribute, value)
 
     def create_report(self, template=None, output=None, book_settings=None, **data):
-        warnings.warn('Deprecated. Use render_template instead.')
-        return self.render_template(template=template, output=output, book_settings=book_settings, **data)
+        warnings.warn("Deprecated. Use render_template instead.")
+        return self.render_template(
+            template=template, output=output, book_settings=book_settings, **data
+        )
 
     def render_template(self, template=None, output=None, book_settings=None, **data):
         """
         This function requires xlwings :guilabel:`PRO`.
 
-        This is a convenience wrapper around :meth:`mysheet.render_template <xlwings.Sheet.render_template>`
+        This is a convenience wrapper around :meth:`mysheet.render_template
+        <xlwings.Sheet.render_template>`
 
-        Writes the values of all key word arguments to the ``output`` file according to the ``template`` and the variables
-        contained in there (Jinja variable syntax).
+        Writes the values of all key word arguments to the ``output`` file according to
+        the ``template`` and the variables contained in there (Jinja variable syntax).
         Following variable types are supported:
 
-        strings, numbers, lists, simple dicts, NumPy arrays, Pandas DataFrames, pictures and
-        Matplotlib/Plotly figures.
+        strings, numbers, lists, simple dicts, NumPy arrays, Pandas DataFrames, pictures
+        and Matplotlib/Plotly figures.
 
         Parameters
         ----------
@@ -646,7 +665,8 @@ class App:
             Path to your Report, e.g. ``r'C:\\Path\\to\\my_report.xlsx'``
 
         book_settings: dict, default None
-            A dictionary of ``xlwings.Book`` parameters, for details see: :attr:`xlwings.Book`.
+            A dictionary of ``xlwings.Book`` parameters, for details see:
+            :attr:`xlwings.Book`.
             For example: ``book_settings={'update_links': False}``.
 
         data: kwargs
@@ -659,7 +679,14 @@ class App:
         .. versionadded:: 0.24.4
         """
         from .pro.reports import render_template
-        return render_template(template=template, output=output, book_settings=book_settings, app=self, **data)
+
+        return render_template(
+            template=template,
+            output=output,
+            book_settings=book_settings,
+            app=self,
+            **data,
+        )
 
     def __repr__(self):
         return "<Excel App %s>" % self.pid
@@ -678,7 +705,7 @@ class App:
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         self.quit()
-        if sys.platform.startswith('win'):
+        if sys.platform.startswith("win"):
             try:
                 self.kill()
             except:
@@ -694,11 +721,12 @@ class Book:
     <Book [Book1]>
 
 
-    The easiest way to connect to a book is offered by ``xw.Book``: it looks for the book in all app instances and
-    returns an error, should the same book be open in multiple instances.
-    To connect to a book in the active app instance, use ``xw.books`` and to refer to a specific app, use:
+    The easiest way to connect to a book is offered by ``xw.Book``: it looks for the
+    book in all app instances and returns an error, should the same book be open in
+    multiple instances. To connect to a book in the active app instance, use
+    ``xw.books`` and to refer to a specific app, use:
 
-    >>> app = xw.App()  # or something like xw.apps[10559] for existing apps, get the PIDs via xw.apps.keys()
+    >>> app = xw.App()  # or xw.apps[10559] (get the PIDs via xw.apps.keys())
     >>> app.books['Book1']
 
     +--------------------+--------------------------------------+--------------------------------------------+
@@ -714,10 +742,12 @@ class Book:
     Parameters
     ----------
     fullname : str or path-like object, default None
-        Full path or name (incl. xlsx, xlsm etc.) of existing workbook or name of an unsaved workbook. Without a full
-        path, it looks for the file in the current working directory.
+        Full path or name (incl. xlsx, xlsm etc.) of existing workbook or name of an
+        unsaved workbook. Without a full path, it looks for the file in the current
+        working directory.
     update_links : bool, default None
-        If this argument is omitted, the user is prompted to specify how links will be updated
+        If this argument is omitted, the user is prompted to specify how links will be
+        updated
     read_only : bool, default False
         True to open workbook in read-only mode
     format : str
@@ -735,32 +765,49 @@ class Book:
     editable : bool, default False
         This option is only for legacy Microsoft Excel 4.0 addins.
     notify : bool, default False
-        Notify the user when a file becomes available If the file cannot be opened in read/write mode.
+        Notify the user when a file becomes available If the file cannot be opened in
+        read/write mode.
     converter : int
         The index of the first file converter to try when opening the file.
     add_to_mru : bool, default False
         Add this workbook to the list of recently added workbooks.
     local : bool, default False
-        If ``True``, saves files against the language of Excel, otherwise against the language of VBA.
-        Not supported on macOS.
+        If ``True``, saves files against the language of Excel, otherwise against the
+        language of VBA. Not supported on macOS.
     corrupt_load : int, default xlNormalLoad
-        Can be one of xlNormalLoad, xlRepairFile or xlExtractData. Not supported on macOS.
+        Can be one of xlNormalLoad, xlRepairFile or xlExtractData.
+        Not supported on macOS.
     json : dict
-        A JSON object as delivered by the MS Office Scripts or Google Apps Script xlwings module but in a deserialized
-        form, i.e., as dictionary.
+        A JSON object as delivered by the MS Office Scripts or Google Apps Script
+        xlwings module but in a deserialized form, i.e., as dictionary.
 
         .. versionadded:: 0.26.0
     """
 
-    def __init__(self, fullname=None, update_links=None, read_only=None, format=None, password=None,
-                 write_res_password=None,
-                 ignore_read_only_recommended=None, origin=None, delimiter=None, editable=None, notify=None,
-                 converter=None,
-                 add_to_mru=None, local=None, corrupt_load=None, impl=None, json=None):
+    def __init__(
+        self,
+        fullname=None,
+        update_links=None,
+        read_only=None,
+        format=None,
+        password=None,
+        write_res_password=None,
+        ignore_read_only_recommended=None,
+        origin=None,
+        delimiter=None,
+        editable=None,
+        notify=None,
+        converter=None,
+        add_to_mru=None,
+        local=None,
+        corrupt_load=None,
+        impl=None,
+        json=None,
+    ):
         if not impl:
             if json:
                 if xlwings.PRO:
-                    impl = engines['json'].apps[-1].books.open(json=json).impl
+                    impl = engines["json"].apps[-1].books.open(json=json).impl
                 else:
                     # Will raise LicenseKeyError or ImportError
                     from xlwings import pro
@@ -771,18 +818,38 @@ class Book:
                 candidates = []
                 for app in apps:
                     for wb in app.books:
-                        if wb.fullname.lower() == fullname or wb.name.lower() == fullname:
+                        if (
+                            wb.fullname.lower() == fullname
+                            or wb.name.lower() == fullname
+                        ):
                             candidates.append((app, wb))
 
                 app = apps.active
                 if len(candidates) == 0:
                     if not app:
                         app = App(add_book=False)
-                    impl = app.books.open(fullname, update_links, read_only, format, password, write_res_password,
-                                          ignore_read_only_recommended, origin, delimiter, editable, notify, converter,
-                                          add_to_mru, local, corrupt_load).impl
+                    impl = app.books.open(
+                        fullname,
+                        update_links,
+                        read_only,
+                        format,
+                        password,
+                        write_res_password,
+                        ignore_read_only_recommended,
+                        origin,
+                        delimiter,
+                        editable,
+                        notify,
+                        converter,
+                        add_to_mru,
+                        local,
+                        corrupt_load,
+                    ).impl
                 elif len(candidates) > 1:
-                    raise Exception("Workbook '%s' is open in more than one Excel instance." % fullname)
+                    raise Exception(
+                        "Workbook '%s' is open in more than one Excel instance."
+                        % fullname
+                    )
                 else:
                     impl = candidates[0][1].impl
             else:
@@ -798,7 +865,8 @@ class Book:
     @property
     def api(self):
         """
-        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being
+        used.
 
         .. versionadded:: 0.9.0
         """
@@ -806,15 +874,20 @@ class Book:
 
     def json(self):
         """
-        Returns a JSON serializable object as expected by the MS Office Scripts or Google Apps Script xlwings
-        module. Only available with book objects that have been instantiated via ``xw.Book(json=...)``.
+        Returns a JSON serializable object as expected by the MS Office Scripts or
+        Google Apps Script xlwings module. Only available with book objects that have
+        been instantiated via ``xw.Book(json=...)``.
 
         .. versionadded:: 0.26.0
         """
         return self.impl.json()
 
     def __eq__(self, other):
-        return isinstance(other, Book) and self.app == other.app and self.name == other.name
+        return (
+            isinstance(other, Book)
+            and self.app == other.app
+            and self.name == other.name
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -825,8 +898,8 @@ class Book:
     @classmethod
     def caller(cls):
         """
-        References the calling book when the Python function is called from Excel via ``RunPython``.
-        Pack it into the function being called from Excel, e.g.::
+        References the calling book when the Python function is called from Excel via
+        ``RunPython``. Pack it into the function being called from Excel, e.g.::
 
             import xlwings as xw
 
@@ -834,42 +907,45 @@ class Book:
                 wb = xw.Book.caller()
                 wb.sheets[0].range('A1').value = 1
 
-        To be able to easily invoke such code from Python for debugging, use ``xw.Book.set_mock_caller()``.
+        To be able to easily invoke such code from Python for debugging, use
+        ``xw.Book.set_mock_caller()``.
 
         .. versionadded:: 0.3.0
         """
         wb, from_xl, hwnd = None, None, None
         for arg in sys.argv:
-            if arg.startswith('--wb='):
-                wb = arg.split('=')[1].strip()
-            elif arg.startswith('--from_xl'):
-                from_xl = arg.split('=')[1].strip()
-            elif arg.startswith('--hwnd'):
-                hwnd = arg.split('=')[1].strip()
-        if hasattr(Book, '_mock_caller'):
+            if arg.startswith("--wb="):
+                wb = arg.split("=")[1].strip()
+            elif arg.startswith("--from_xl"):
+                from_xl = arg.split("=")[1].strip()
+            elif arg.startswith("--hwnd"):
+                hwnd = arg.split("=")[1].strip()
+        if hasattr(Book, "_mock_caller"):
             # Use mocking Book, see Book.set_mock_caller()
             return cls(impl=Book._mock_caller.impl)
-        elif from_xl == '1':
+        elif from_xl == "1":
             name = wb.lower()
-            if sys.platform.startswith('win'):
+            if sys.platform.startswith("win"):
                 app = App(impl=xlwings._xlwindows.App(xl=int(hwnd)))
                 return cls(impl=app.books[name].impl)
             else:
                 # On Mac, the same file open in two instances is not supported
                 if apps.active.version < 15:
-                    name = name.encode('utf-8', 'surrogateescape').decode('mac_latin2')
+                    name = name.encode("utf-8", "surrogateescape").decode("mac_latin2")
                 return cls(impl=Book(name).impl)
         elif xlwings._xlwindows.BOOK_CALLER:
             # Called via OPTIMIZED_CONNECTION = True
             return cls(impl=xlwings._xlwindows.Book(xlwings._xlwindows.BOOK_CALLER))
         else:
-            raise Exception('Book.caller() must not be called directly. Call through Excel or set a mock caller '
-                            'first with Book.set_mock_caller().')
+            raise Exception(
+                "Book.caller() must not be called directly. Call through Excel "
+                "or set a mock caller first with Book.set_mock_caller()."
+            )
 
     def set_mock_caller(self):
         """
-        Sets the Excel file which is used to mock ``xw.Book.caller()`` when the code is called from Python and not from
-        Excel via ``RunPython``.
+        Sets the Excel file which is used to mock ``xw.Book.caller()`` when the code is
+        called from Python and not from Excel via ``RunPython``.
 
         Examples
         --------
@@ -897,7 +973,8 @@ class Book:
 
         Arguments
         ---------
-        name : Name of Sub or Function with or without module name, e.g. ``'Module1.MyMacro'`` or ``'MyMacro'``
+        name : Name of Sub or Function with or without module name, e.g.,
+        ``'Module1.MyMacro'`` or ``'MyMacro'``
 
         Examples
         --------
@@ -958,9 +1035,10 @@ class Book:
 
     def save(self, path=None, password=None):
         """
-        Saves the Workbook. If a path is being provided, this works like SaveAs() in Excel. If no path is specified and
-        if the file hasn't been saved previously, it's being saved in the current working directory with the current
-        filename. Existing files are overwritten without prompting.
+        Saves the Workbook. If a path is being provided, this works like SaveAs() in
+        Excel. If no path is specified and if the file hasn't been saved previously,
+        it's being saved in the current working directory with the current filename.
+        Existing files are overwritten without prompting.
 
         Arguments
         ---------
@@ -988,7 +1066,8 @@ class Book:
     @property
     def fullname(self):
         """
-        Returns the name of the object, including its path on disk, as a string. Read-only String.
+        Returns the name of the object, including its path on disk, as a string.
+        Read-only String.
 
         """
         return self.impl.fullname
@@ -996,7 +1075,8 @@ class Book:
     @property
     def names(self):
         """
-        Returns a names collection that represents all the names in the specified book (including all sheet-specific names).
+        Returns a names collection that represents all the names in the specified book
+        (including all sheet-specific names).
 
         .. versionchanged:: 0.9.0
 
@@ -1025,32 +1105,46 @@ class Book:
         """
         return Range(impl=self.app.selection.impl) if self.app.selection else None
 
-    def to_pdf(self, path=None, include=None, exclude=None, layout=None, exclude_start_string='#', show=False, quality='standard'):
+    def to_pdf(
+        self,
+        path=None,
+        include=None,
+        exclude=None,
+        layout=None,
+        exclude_start_string="#",
+        show=False,
+        quality="standard",
+    ):
         """
         Exports the whole Excel workbook or a subset of the sheets to a PDF file.
-        If you want to print hidden sheets, you will need to list them explicitely under ``include``.
+        If you want to print hidden sheets, you will need to list them explicitely
+        under ``include``.
 
         Parameters
         ----------
         path : str or path-like object, default None
-            Path to the PDF file, defaults to the same name as the workbook, in the same directory.
-            For unsaved workbooks, it defaults to the current working directory instead.
+            Path to the PDF file, defaults to the same name as the workbook, in the same
+            directory. For unsaved workbooks, it defaults to the current working
+            directory instead.
 
         include : int or str or list, default None
-            Which sheets to include: provide a selection of sheets in the form of sheet indices (1-based like in Excel)
-            or sheet names. Can be an int/str for a single sheet or a list of int/str for multiple sheets.
+            Which sheets to include: provide a selection of sheets in the form of sheet
+            indices (1-based like in Excel) or sheet names. Can be an int/str for a
+            single sheet or a list of int/str for multiple sheets.
 
         exclude : int or str or list, default None
-            Which sheets to exclude: provide a selection of sheets in the form of sheet indices (1-based like in Excel)
-            or sheet names. Can be an int/str for a single sheet or a list of int/str for multiple sheets.
+            Which sheets to exclude: provide a selection of sheets in the form of sheet
+            indices (1-based like in Excel) or sheet names. Can be an int/str for a
+            single sheet or a list of int/str for multiple sheets.
 
         layout : str or path-like object, default None
             This argument requires xlwings :guilabel:`PRO`.
 
-            Path to a PDF file on which the report will be printed. This is ideal for headers and footers
-            as well as borderless printing of graphics/artwork. The PDF file either needs to have only
-            1 page (every report page uses the same layout) or otherwise needs the same amount of pages
-            as the report (each report page is printed on the respective page in the layout PDF).
+            Path to a PDF file on which the report will be printed. This is ideal for
+            headers and footers as well as borderless printing of graphics/artwork. The
+            PDF file either needs to have only 1 page (every report page uses the same
+            layout) or otherwise needs the same amount of pages as the report (each
+            report page is printed on the respective page in the layout PDF).
 
             .. versionadded:: 0.24.3
 
@@ -1079,7 +1173,16 @@ class Book:
 
         .. versionadded:: 0.21.1
         """
-        return utils.to_pdf(self, path=path, include=include, exclude=exclude, layout=layout, exclude_start_string=exclude_start_string, show=show, quality=quality)
+        return utils.to_pdf(
+            self,
+            path=path,
+            include=include,
+            exclude=exclude,
+            layout=layout,
+            exclude_start_string=exclude_start_string,
+            show=show,
+            quality=quality,
+        )
 
     def __repr__(self):
         return "<Book [{0}]>".format(self.name)
@@ -1088,7 +1191,8 @@ class Book:
         """
         This method requires xlwings :guilabel:`PRO`.
 
-        Replaces all Jinja variables (e.g ``{{ myvar }}``) in the book with the keyword argument that has the same name.
+        Replaces all Jinja variables (e.g ``{{ myvar }}``) in the book
+        with the keyword argument of the same name.
 
         .. versionadded:: 0.25.0
 
@@ -1134,14 +1238,19 @@ class Sheet:
     @property
     def api(self):
         """
-        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        Returns the native object (``pywin32`` or ``appscript`` obj)
+        of the engine being used.
 
         .. versionadded:: 0.9.0
         """
         return self.impl.api
 
     def __eq__(self, other):
-        return isinstance(other, Sheet) and self.book == other.book and self.name == other.name
+        return (
+            isinstance(other, Sheet)
+            and self.book == other.book
+            and self.name == other.name
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -1158,10 +1267,16 @@ class Sheet:
     def name(self, value):
         if value in [None, ""]:
             raise ValueError("A sheet name can't be empty.")
-        elif any(char in value for char in ['\\', '/', '?',  '*', '[', ']']):
-            raise ValueError("A sheet name must not contain any of the following characters: \\, /, ?, *, [, ]")
+        elif any(char in value for char in ["\\", "/", "?", "*", "[", "]"]):
+            raise ValueError(
+                "A sheet name must not contain any "
+                "of the following characters: \\, /, ?, *, [, ]"
+            )
         elif len(value) > 31:
-            raise ValueError(f'The max. length of a sheet name is 31 characters. Yours is {len(value)}.')
+            raise ValueError(
+                f"The max. length of a sheet name is 31 characters. "
+                f"Yours is {len(value)}."
+            )
         else:
             self.impl.name = value
 
@@ -1188,7 +1303,8 @@ class Sheet:
 
     def range(self, cell1, cell2=None):
         """
-        Returns a Range object from the active sheet of the active book, see :meth:`Range`.
+        Returns a Range object from the active sheet of the active book,
+        see :meth:`Range`.
 
         .. versionadded:: 0.9.0
         """
@@ -1271,23 +1387,25 @@ class Sheet:
         """
         return self.impl.delete()
 
-    def to_pdf(self, path=None, layout=None, show=False, quality='standard'):
+    def to_pdf(self, path=None, layout=None, show=False, quality="standard"):
         """
         Exports the sheet to a PDF file.
 
         Parameters
         ----------
         path : str or path-like object, default None
-            Path to the PDF file, defaults to the name of the sheet in the same directory of the workbook.
-            For unsaved workbooks, it defaults to the current working directory instead.
+            Path to the PDF file, defaults to the name of the sheet in the same
+            directory of the workbook. For unsaved workbooks, it defaults to the current
+            working directory instead.
 
         layout : str or path-like object, default None
             This argument requires xlwings :guilabel:`PRO`.
 
-            Path to a PDF file on which the report will be printed. This is ideal for headers and footers
-            as well as borderless printing of graphics/artwork. The PDF file either needs to have only
-            1 page (every report page uses the same layout) or otherwise needs the same amount of pages
-            as the report (each report page is printed on the respective page in the layout PDF).
+            Path to a PDF file on which the report will be printed. This is ideal for
+            headers and footers as well as borderless printing of graphics/artwork. The
+            PDF file either needs to have only 1 page (every report page uses the same
+            layout) or otherwise needs the same amount of pages as the report (each
+            report page is printed on the respective page in the layout PDF).
 
             .. versionadded:: 0.24.3
 
@@ -1312,13 +1430,18 @@ class Sheet:
 
         .. versionadded:: 0.22.3
         """
-        return self.book.to_pdf(self.name + '.pdf' if path is None else path,
-                                include=self.index, layout=layout, show=show, quality=quality)
+        return self.book.to_pdf(
+            self.name + ".pdf" if path is None else path,
+            include=self.index,
+            layout=layout,
+            show=show,
+            quality=quality,
+        )
 
     def copy(self, before=None, after=None, name=None):
         """
-        Copy a sheet to the current or a new Book. By default, it places the copied sheet after all existing sheets
-        in the current Book. Returns the copied sheet.
+        Copy a sheet to the current or a new Book. By default, it places the copied
+        sheet after all existing sheets in the current Book. Returns the copied sheet.
 
         .. versionadded:: 0.22.0
 
@@ -1328,8 +1451,8 @@ class Sheet:
             The sheet object before which you want to place the sheet
 
         after : sheet object, default None
-            The sheet object after which you want to place the sheet, by default it is placed after
-            all existing sheets
+            The sheet object after which you want to place the sheet,
+            by default it is placed after all existing sheets
 
         name : str, default None
             The sheet name of the copy
@@ -1358,9 +1481,12 @@ class Sheet:
             # Copy to second Book requires to use before or after
             first_book.sheets[0].copy(after=second_book.sheets[0])
         """
-        # copy() doesn't return the copied sheet object and has an awkward default (copy it to a new workbook
-        # if neither before or after are provided), so we're not taking that behavior over
-        assert (before is None) or (after is None), "you must provide either before or after but not both"
+        # copy() doesn't return the copied sheet object and has an awkward default
+        # (copy it to a new workbook if neither before or after are provided),
+        # so we're not taking that behavior over
+        assert (before is None) or (
+            after is None
+        ), "you must provide either before or after but not both"
         if (before is None) and (after is None):
             after = self.book.sheets[-1]
         if before:
@@ -1385,11 +1511,11 @@ class Sheet:
         """
         This method requires xlwings :guilabel:`PRO`.
 
-        Replaces all Jinja variables (e.g ``{{ myvar }}``) in the sheet with the keyword argument that has the same name.
-        Following variable types are supported:
+        Replaces all Jinja variables (e.g ``{{ myvar }}``) in the sheet with the keyword
+        argument that has the same name. Following variable types are supported:
 
-        strings, numbers, lists, simple dicts, NumPy arrays, Pandas DataFrames, PIL Image objects that have a filename and
-        Matplotlib figures.
+        strings, numbers, lists, simple dicts, NumPy arrays, Pandas DataFrames,
+        PIL Image objects that have a filename and Matplotlib figures.
 
         .. versionadded:: 0.22.0
 
@@ -1407,6 +1533,7 @@ class Sheet:
         >>> book.sheets[0].render_template(myvar='test')
         """
         from .pro.reports.main import render_sheet
+
         render_sheet(self, **data)
 
     @property
@@ -1497,11 +1624,13 @@ class Range:
     Arguments
     ---------
     cell1 : str or tuple or Range
-        Name of the range in the upper-left corner in A1 notation or as index-tuple or as name or as xw.Range object. It
-        can also specify a range using the range operator (a colon), .e.g. 'A1:B2'
+        Name of the range in the upper-left corner in A1 notation or as index-tuple or
+        as name or as xw.Range object. It can also specify a range using the range
+        operator (a colon), .e.g. 'A1:B2'
 
     cell2 : str or tuple or Range, default None
-        Name of the range in the lower-right corner in A1 notation or as index-tuple or as name or as xw.Range object.
+        Name of the range in the lower-right corner in A1 notation or as index-tuple or
+        as name or as xw.Range object.
 
     Examples
     --------
@@ -1528,9 +1657,13 @@ class Range:
     def __init__(self, cell1=None, cell2=None, **options):
 
         # Arguments
-        impl = options.pop('impl', None)
+        impl = options.pop("impl", None)
         if impl is None:
-            if cell2 is not None and isinstance(cell1, Range) and isinstance(cell2, Range):
+            if (
+                cell2 is not None
+                and isinstance(cell1, Range)
+                and isinstance(cell2, Range)
+            ):
                 if cell1.sheet != cell2.sheet:
                     raise ValueError("Ranges are not on the same sheet")
                 impl = cell1.sheet.range(cell1, cell2).impl
@@ -1538,7 +1671,11 @@ class Range:
                 impl = apps.active.range(cell1).impl
             elif cell2 is None and isinstance(cell1, tuple):
                 impl = sheets.active.range(cell1, cell2).impl
-            elif cell2 is not None and isinstance(cell1, tuple) and isinstance(cell2, tuple):
+            elif (
+                cell2 is not None
+                and isinstance(cell1, tuple)
+                and isinstance(cell2, tuple)
+            ):
                 impl = sheets.active.range(cell1, cell2).impl
             else:
                 raise ValueError("Invalid arguments")
@@ -1555,7 +1692,8 @@ class Range:
     @property
     def api(self):
         """
-        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        Returns the native object (``pywin32`` or ``appscript`` obj)
+        of the engine being used.
 
         .. versionadded:: 0.9.0
         """
@@ -1563,11 +1701,11 @@ class Range:
 
     def __eq__(self, other):
         return (
-                isinstance(other, Range)
-                and self.sheet == other.sheet
-                and self.row == other.row
-                and self.column == other.column
-                and self.shape == other.shape
+            isinstance(other, Range)
+            and self.sheet == other.sheet
+            and self.row == other.row
+            and self.column == other.column
+            and self.shape == other.shape
         )
 
     def __ne__(self, other):
@@ -1583,14 +1721,16 @@ class Range:
 
     def options(self, convert=None, **options):
         """
-        Allows you to set a converter and their options. Converters define how Excel Ranges and their values are
-        being converted both during reading and writing operations. If no explicit converter is specified, the
-        base converter is being applied, see :ref:`converters`.
+        Allows you to set a converter and their options. Converters define how Excel
+        Ranges and their values are being converted both during reading and writing
+        operations. If no explicit converter is specified, the base converter is being
+        applied, see :ref:`converters`.
 
         Arguments
         ---------
         ``convert`` : object, default None
-            A converter, e.g. ``dict``, ``np.array``, ``pd.DataFrame``, ``pd.Series``, defaults to default converter
+            A converter, e.g. ``dict``, ``np.array``, ``pd.DataFrame``, ``pd.Series``,
+            defaults to default converter
 
         Keyword Arguments
         -----------------
@@ -1613,8 +1753,9 @@ class Range:
             One of ``'table'``, ``'down'``, ``'right'``
 
         chunksize : int
-            Use a chunksize, e.g. ``10000`` to prevent timeout or memory issues when reading or writing large amounts
-            of data. Works with all formats, including DataFrames, NumPy arrays, and list of lists.
+            Use a chunksize, e.g. ``10000`` to prevent timeout or memory issues when
+            reading or writing large amounts of data. Works with all formats, including
+            DataFrames, NumPy arrays, and list of lists.
 
          => For converter-specific options, see :ref:`converters`.
 
@@ -1625,11 +1766,8 @@ class Range:
 
         .. versionadded:: 0.7.0
         """
-        options['convert'] = convert
-        return Range(
-            impl=self.impl,
-            **options
-        )
+        options["convert"] = convert
+        return Range(impl=self.impl, **options)
 
     @property
     def sheet(self):
@@ -1682,9 +1820,11 @@ class Range:
     @property
     def raw_value(self):
         """
-        Gets and sets the values directly as delivered from/accepted by the engine that is being used (``pywin32`` or ``appscript``)
-        without going through any of xlwings' data cleaning/converting. This can be helpful if speed is an issue but naturally
-        will be engine specific, i.e. might remove the cross-platform compatibility.
+        Gets and sets the values directly as delivered from/accepted by the engine that
+        s being used (``pywin32`` or ``appscript``) without going through any of
+        xlwings' data cleaning/converting. This can be helpful if speed is an issue but
+        naturally will be engine specific, i.e. might remove the cross-platform
+        compatibility.
         """
         return self.impl.raw_value
 
@@ -1710,14 +1850,16 @@ class Range:
     @property
     def has_array(self):
         """
-        ``True`` if the range is part of a legacy CSE Array formula and ``False`` otherwise.
+        ``True`` if the range is part of a legacy CSE Array formula
+        and ``False`` otherwise.
         """
         return self.impl.has_array
 
     def end(self, direction):
         """
-        Returns a Range object that represents the cell at the end of the region that contains the source range.
-        Equivalent to pressing Ctrl+Up, Ctrl+down, Ctrl+left, or Ctrl+right.
+        Returns a Range object that represents the cell at the end of the region that
+        contains the source range. Equivalent to pressing Ctrl+Up, Ctrl+down,
+        Ctrl+left, or Ctrl+right.
 
         Parameters
         ----------
@@ -1780,8 +1922,8 @@ class Range:
     def column_width(self):
         """
         Gets or sets the width, in characters, of a Range.
-        One unit of column width is equal to the width of one character in the Normal style.
-        For proportional fonts, the width of the character 0 (zero) is used.
+        One unit of column width is equal to the width of one character in the Normal
+        style. For proportional fonts, the width of the character 0 (zero) is used.
 
         If all columns in the Range have the same width, returns the width.
         If columns in the Range have different widths, returns None.
@@ -1789,8 +1931,8 @@ class Range:
         column_width must be in the range:
         0 <= column_width <= 255
 
-        Note: If the Range is outside the used range of the Worksheet, and columns in the Range have different widths,
-        returns the width of the first column.
+        Note: If the Range is outside the used range of the Worksheet, and columns in
+        the Range have different widths, returns the width of the first column.
 
         Returns
         -------
@@ -1815,8 +1957,8 @@ class Range:
         row_height must be in the range:
         0 <= row_height <= 409.5
 
-        Note: If the Range is outside the used range of the Worksheet, and rows in the Range have different heights,
-        returns the height of the first row.
+        Note: If the Range is outside the used range of the Worksheet, and rows in the
+        Range have different heights, returns the height of the first row.
 
         Returns
         -------
@@ -1862,7 +2004,8 @@ class Range:
     @property
     def left(self):
         """
-        Returns the distance, in points, from the left edge of column A to the left edge of the range. Read-only.
+        Returns the distance, in points, from the left edge of column A to the left
+        edge of the range. Read-only.
 
         Returns
         -------
@@ -1876,7 +2019,8 @@ class Range:
     @property
     def top(self):
         """
-        Returns the distance, in points, from the top edge of row 1 to the top edge of the range. Read-only.
+        Returns the distance, in points, from the top edge of row 1 to the top edge of
+        the range. Read-only.
 
         Returns
         -------
@@ -1910,24 +2054,34 @@ class Range:
     def number_format(self, value):
         self.impl.number_format = value
 
-    def get_address(self, row_absolute=True, column_absolute=True, include_sheetname=False, external=False):
+    def get_address(
+        self,
+        row_absolute=True,
+        column_absolute=True,
+        include_sheetname=False,
+        external=False,
+    ):
         """
-        Returns the address of the range in the specified format. ``address`` can be used instead if none of the
-        defaults need to be changed.
+        Returns the address of the range in the specified format. ``address`` can be
+        used instead if none of the defaults need to be changed.
 
         Arguments
         ---------
         row_absolute : bool, default True
-            Set to True to return the row part of the reference as an absolute reference.
+            Set to True to return the row part of the reference as an absolute
+            reference.
 
         column_absolute : bool, default True
-            Set to True to return the column part of the reference as an absolute reference.
+            Set to True to return the column part of the reference as an absolute
+            reference.
 
         include_sheetname : bool, default False
-            Set to True to include the Sheet name in the address. Ignored if external=True.
+            Set to True to include the Sheet name in the address. Ignored if
+            external=True.
 
         external : bool, default False
-            Set to True to return an external reference with workbook and worksheet name.
+            Set to True to return an external reference with workbook and worksheet
+            name.
 
         Returns
         -------
@@ -1952,12 +2106,13 @@ class Range:
         """
 
         if include_sheetname and not external:
-            # TODO: when the Workbook name contains spaces but not the Worksheet name, it will still be surrounded
+            # TODO: when the Workbook name contains spaces but not the Worksheet name,
+            #  it will still be surrounded
             # by '' when include_sheetname=True. Also, should probably changed to regex
             temp_str = self.impl.get_address(row_absolute, column_absolute, True)
 
             if temp_str.find("[") > -1:
-                results_address = temp_str[temp_str.rfind("]") + 1:]
+                results_address = temp_str[temp_str.rfind("]") + 1 :]
                 if results_address.find("'") > -1:
                     results_address = "'" + results_address
                 return results_address
@@ -1970,8 +2125,8 @@ class Range:
     @property
     def address(self):
         """
-        Returns a string value that represents the range reference. Use ``get_address()`` to be able to provide
-        paramaters.
+        Returns a string value that represents the range reference.
+        Use ``get_address()`` to be able to provide paramaters.
 
         .. versionadded:: 0.9.0
         """
@@ -1980,9 +2135,10 @@ class Range:
     @property
     def current_region(self):
         """
-        This property returns a Range object representing a range bounded by (but not including) any
-        combination of blank rows and blank columns or the edges of the worksheet. It corresponds to ``Ctrl-*`` on
-        Windows and ``Shift-Ctrl-Space`` on Mac.
+        This property returns a Range object representing a range bounded by (but not
+        including) any combination of blank rows and blank columns or the edges of the
+        worksheet. It corresponds to ``Ctrl-*`` on Windows and ``Shift-Ctrl-Space`` on
+        Mac.
 
         Returns
         -------
@@ -1995,8 +2151,10 @@ class Range:
         """
         Autofits the width and height of all cells in the range.
 
-        * To autofit only the width of the columns use ``xw.Range('A1:B2').columns.autofit()``
-        * To autofit only the height of the rows use ``xw.Range('A1:B2').rows.autofit()``
+        * To autofit only the width of the columns use
+          ``xw.Range('A1:B2').columns.autofit()``
+        * To autofit only the height of the rows use
+          ``xw.Range('A1:B2').rows.autofit()``
 
         .. versionchanged:: 0.9.0
         """
@@ -2054,7 +2212,8 @@ class Range:
     @property
     def rows(self):
         """
-        Returns a :class:`RangeRows` object that represents the rows in the specified range.
+        Returns a :class:`RangeRows` object that represents the rows in the specified
+        range.
 
         .. versionadded:: 0.9.0
         """
@@ -2063,7 +2222,8 @@ class Range:
     @property
     def columns(self):
         """
-        Returns a :class:`RangeColumns` object that represents the columns in the specified range.
+        Returns a :class:`RangeColumns` object that represents the columns in the
+        specified range.
 
         .. versionadded:: 0.9.0
         """
@@ -2091,12 +2251,14 @@ class Range:
     @property
     def value(self):
         """
-        Gets and sets the values for the given Range. See see :meth:`xlwings.Range.options` about how to set options,
-        e.g. to transform it into a DataFrame or how to set a chunksize.
+        Gets and sets the values for the given Range. See :meth:`xlwings.Range.options`
+        about how to set options, e.g., to transform it into a DataFrame or how to set
+        a chunksize.
 
         Returns
         -------
-        object : returned object depends on the converter being used, see :meth:`xlwings.Range.options`
+        object : returned object depends on the converter being used,
+                 see :meth:`xlwings.Range.options`
         """
         return conversion.read(self, None, self._options)
 
@@ -2104,9 +2266,10 @@ class Range:
     def value(self, data):
         conversion.write(data, self, self._options)
 
-    def expand(self, mode='table'):
+    def expand(self, mode="table"):
         """
-        Expands the range according to the mode provided. Ignores empty top-left cells (unlike ``Range.end()``).
+        Expands the range according to the mode provided. Ignores empty top-left cells
+        (unlike ``Range.end()``).
 
         Parameters
         ----------
@@ -2149,7 +2312,10 @@ class Range:
                     raise IndexError("Row index %s out of range (%s rows)." % (row, n))
                 row1 = row2 = row
             else:
-                raise TypeError("Row indices must be integers or slices, not %s" % type(row).__name__)
+                raise TypeError(
+                    "Row indices must be integers or slices, not %s"
+                    % type(row).__name__
+                )
 
             n = self.shape[1]
             if isinstance(col, slice):
@@ -2161,21 +2327,30 @@ class Range:
                 if col < 0:
                     col += n
                 if col < 0 or col >= n:
-                    raise IndexError("Column index %s out of range (%s columns)." % (col, n))
+                    raise IndexError(
+                        "Column index %s out of range (%s columns)." % (col, n)
+                    )
                 col1 = col2 = col
             else:
-                raise TypeError("Column indices must be integers or slices, not %s" % type(col).__name__)
+                raise TypeError(
+                    "Column indices must be integers or slices, not %s"
+                    % type(col).__name__
+                )
 
-            return self.sheet.range((
-                self.row + row1,
-                self.column + col1,
-                max(0, row2 - row1 + 1),
-                max(0, col2 - col1 + 1)
-            ))
+            return self.sheet.range(
+                (
+                    self.row + row1,
+                    self.column + col1,
+                    max(0, row2 - row1 + 1),
+                    max(0, col2 - col1 + 1),
+                )
+            )
 
         elif isinstance(key, slice):
             if self.shape[0] > 1 and self.shape[1] > 1:
-                raise IndexError("One-dimensional slicing is not allowed on two-dimensional ranges")
+                raise IndexError(
+                    "One-dimensional slicing is not allowed on two-dimensional ranges"
+                )
 
             if self.shape[0] > 1:
                 return self[key, :]
@@ -2191,21 +2366,27 @@ class Range:
                 return self(k + 1)
 
         else:
-            raise TypeError("Cell indices must be integers or slices, not %s" % type(key).__name__)
+            raise TypeError(
+                "Cell indices must be integers or slices, not %s" % type(key).__name__
+            )
 
     def __repr__(self):
-        return "<Range [{1}]{0}!{2}>".format(self.sheet.name, self.sheet.book.name, self.address)
+        return "<Range [{1}]{0}!{2}>".format(
+            self.sheet.name, self.sheet.book.name, self.address
+        )
 
-    def insert(self, shift=None, copy_origin='format_from_left_or_above'):
+    def insert(self, shift=None, copy_origin="format_from_left_or_above"):
         """
         Insert a cell or range of cells into the sheet.
 
         Parameters
         ----------
         shift : str, default None
-            Use ``right`` or ``down``. If omitted, Excel decides based on the shape of the range.
+            Use ``right`` or ``down``. If omitted, Excel decides based on the shape of
+            the range.
         copy_origin : str, default format_from_left_or_above
-            Use ``format_from_left_or_above`` or ``format_from_right_or_below``. Note that this is not supported on macOS.
+            Use ``format_from_left_or_above`` or ``format_from_right_or_below``.
+            Note that this is not supported on macOS.
 
         Returns
         -------
@@ -2221,7 +2402,8 @@ class Range:
         Parameters
         ----------
         shift : str, default None
-            Use ``left`` or ``up``. If omitted, Excel decides based on the shape of the range.
+            Use ``left`` or ``up``. If omitted, Excel decides based on the shape of
+            the range.
 
         Returns
         -------
@@ -2237,7 +2419,8 @@ class Range:
         Parameters
         ----------
         destination : xlwings.Range
-            xlwings Range to which the specified range will be copied. If omitted, the range is copied to the Clipboard.
+            xlwings Range to which the specified range will be copied. If omitted,
+            the range is copied to the clipboard.
 
         Returns
         -------
@@ -2253,9 +2436,10 @@ class Range:
         Parameters
         ----------
         paste : str, default None
-            One of ``all_merging_conditional_formats``, ``all``, ``all_except_borders``, ``all_using_source_theme``,
-            ``column_widths``, ``comments``, ``formats``, ``formulas``, ``formulas_and_number_formats``, ``validation``,
-            ``values``, ``values_and_number_formats``.
+            One of ``all_merging_conditional_formats``, ``all``, ``all_except_borders``,
+            ``all_using_source_theme``, ``column_widths``, ``comments``, ``formats``,
+            ``formulas``, ``formulas_and_number_formats``, ``validation``, ``values``,
+            ``values_and_number_formats``.
         operation : str, default None
             One of "add", "divide", "multiply", "subtract".
         skip_blanks : bool, default False
@@ -2268,7 +2452,12 @@ class Range:
         None
 
         """
-        self.impl.paste(paste=paste, operation=operation, skip_blanks=skip_blanks, transpose=transpose)
+        self.impl.paste(
+            paste=paste,
+            operation=operation,
+            skip_blanks=skip_blanks,
+            transpose=transpose,
+        )
 
     @property
     def hyperlink(self):
@@ -2286,11 +2475,11 @@ class Range:
 
         .. versionadded:: 0.3.0
         """
-        if self.formula.lower().startswith('='):
+        if self.formula.lower().startswith("="):
             # If it's a formula, extract the URL from the formula string
             formula = self.formula
             try:
-                return re.compile(r'\"(.+?)\"').search(formula).group(1)
+                return re.compile(r"\"(.+?)\"").search(formula).group(1)
             except AttributeError:
                 raise Exception("The cell doesn't seem to contain a hyperlink!")
         else:
@@ -2306,20 +2495,24 @@ class Range:
         address : str
             The address of the hyperlink.
         text_to_display : str, default None
-            The text to be displayed for the hyperlink. Defaults to the hyperlink address.
+            The text to be displayed for the hyperlink. Defaults to the hyperlink
+            address.
         screen_tip: str, default None
-            The screen tip to be displayed when the mouse pointer is paused over the hyperlink.
-            Default is set to '<address> - Click once to follow. Click and hold to select this cell.'
+            The screen tip to be displayed when the mouse pointer is paused over the
+            hyperlink. Default is set to '<address> - Click once to follow. Click and
+            hold to select this cell.'
 
 
         .. versionadded:: 0.3.0
         """
         if text_to_display is None:
             text_to_display = address
-        if address[:4] == 'www.':
-            address = 'http://' + address
+        if address[:4] == "www.":
+            address = "http://" + address
         if screen_tip is None:
-            screen_tip = address + ' - Click once to follow. Click and hold to select this cell.'
+            screen_tip = (
+                address + " - Click once to follow. Click and hold to select this cell."
+            )
         self.impl.add_hyperlink(address, text_to_display, screen_tip)
 
     def resize(self, row_size=None, column_size=None):
@@ -2329,9 +2522,11 @@ class Range:
         Arguments
         ---------
         row_size: int > 0
-            The number of rows in the new range (if None, the number of rows in the range is unchanged).
+            The number of rows in the new range (if None, the number of rows in the
+            range is unchanged).
         column_size: int > 0
-            The number of columns in the new range (if None, the number of columns in the range is unchanged).
+            The number of columns in the new range (if None, the number of columns in
+            the range is unchanged).
 
         Returns
         -------
@@ -2354,7 +2549,8 @@ class Range:
 
     def offset(self, row_offset=0, column_offset=0):
         """
-        Returns a Range object that represents a Range that's offset from the specified range.
+        Returns a Range object that represents a Range that's offset from the
+        specified range.
 
         Returns
         -------
@@ -2364,14 +2560,8 @@ class Range:
         .. versionadded:: 0.3.0
         """
         return Range(
-            self(
-                row_offset + 1,
-                column_offset + 1
-            ),
-            self(
-                row_offset + self.shape[0],
-                column_offset + self.shape[1]
-            )
+            self(row_offset + 1, column_offset + 1),
+            self(row_offset + self.shape[0], column_offset + self.shape[1]),
         ).options(**self._options)
 
     @property
@@ -2406,8 +2596,9 @@ class Range:
     @property
     def merge_area(self):
         """
-        Returns a Range object that represents the merged Range containing the specified cell.
-        If the specified cell isn't in a merged range, this property returns the specified cell.
+        Returns a Range object that represents the merged Range containing the
+        specified cell. If the specified cell isn't in a merged range, this property
+        returns the specified cell.
 
         """
         return Range(impl=self.impl.merge_area)
@@ -2426,7 +2617,8 @@ class Range:
         Parameters
         ----------
         across : bool, default False
-            True to merge cells in each row of the specified Range as separate merged cells.
+            True to merge cells in each row of the specified Range as separate merged
+            cells.
         """
         self.impl.merge(across)
 
@@ -2451,8 +2643,9 @@ class Range:
     @property
     def wrap_text(self):
         """
-        Returns ``True`` if the wrap_text property is enabled and ``False`` if it's disabled.
-        If not all cells have the same value in a range, on Windows it returns ``None`` and on macOS ``False``.
+        Returns ``True`` if the wrap_text property is enabled and ``False`` if it's
+        disabled. If not all cells have the same value in a range, on Windows it returns
+        ``None`` and on macOS ``False``.
 
         .. versionadded:: 0.23.2
         """
@@ -2472,7 +2665,7 @@ class Range:
         """
         return Note(impl=self.impl.note) if self.impl.note else None
 
-    def copy_picture(self, appearance='screen', format='picture'):
+    def copy_picture(self, appearance="screen", format="picture"):
         """
         Copies the range to the clipboard as picture.
 
@@ -2496,25 +2689,32 @@ class Range:
         ----------
 
         path : str or path-like, default None
-            Path where you want to store the picture. Defaults to the name of the range in the same
-            directory as the Excel file if the Excel file is stored and to the current working directory otherwise.
+            Path where you want to store the picture. Defaults to the name of the range
+            in the same directory as the Excel file if the Excel file is stored and to
+            the current working directory otherwise.
 
         .. versionadded:: 0.24.8
         """
         if not PIL:
-            raise XlwingsError('Range.to_png() requires an installation of Pillow.')
+            raise XlwingsError("Range.to_png() requires an installation of Pillow.")
         path = utils.fspath(path)
         if path is None:
             # TODO: factor this out as it's used in multiple locations
             directory, _ = os.path.split(self.sheet.book.fullname)
-            default_name = str(self).replace('<', '').replace('>', '').replace(':', '_').replace(' ', '')
+            default_name = (
+                str(self)
+                .replace("<", "")
+                .replace(">", "")
+                .replace(":", "_")
+                .replace(" ", "")
+            )
             if directory:
-                path = os.path.join(directory, default_name + '.png')
+                path = os.path.join(directory, default_name + ".png")
             else:
-                path = str(Path.cwd() / default_name) + '.png'
+                path = str(Path.cwd() / default_name) + ".png"
         self.impl.to_png(path)
 
-    def to_pdf(self, path=None, layout=None, show=None, quality='standard'):
+    def to_pdf(self, path=None, layout=None, show=None, quality="standard"):
         """
         Exports the range as PDF.
 
@@ -2522,16 +2722,18 @@ class Range:
         ----------
 
         path : str or path-like, default None
-            Path where you want to store the pdf. Defaults to the address of the range in the same
-            directory as the Excel file if the Excel file is stored and to the current working directory otherwise.
+            Path where you want to store the pdf. Defaults to the address of the range
+            in the same directory as the Excel file if the Excel file is stored and to
+            the current working directory otherwise.
 
         layout : str or path-like object, default None
             This argument requires xlwings :guilabel:`PRO`.
 
-            Path to a PDF file on which the report will be printed. This is ideal for headers and footers
-            as well as borderless printing of graphics/artwork. The PDF file either needs to have only
-            1 page (every report page uses the same layout) or otherwise needs the same amount of pages
-            as the report (each report page is printed on the respective page in the layout PDF).
+            Path to a PDF file on which the report will be printed. This is ideal for
+            headers and footers as well as borderless printing of graphics/artwork. The
+            PDF file either needs to have only 1 page (every report page uses the same
+            layout) or otherwise needs the same amount of pages as the report (each
+            report page is printed on the respective page in the layout PDF).
 
         show : bool, default False
             Once created, open the PDF file with the default application.
@@ -2556,7 +2758,8 @@ class Ranges:
 
 class RangeRows(Ranges):
     """
-    Represents the rows of a range. Do not construct this class directly, use :attr:`Range.rows` instead.
+    Represents the rows of a range. Do not construct this class directly, use
+    :attr:`Range.rows` instead.
 
     Example
     -------
@@ -2595,7 +2798,7 @@ class RangeRows(Ranges):
         """
         Autofits the height of the rows.
         """
-        self.rng.impl.autofit(axis='r')
+        self.rng.impl.autofit(axis="r")
 
     def __iter__(self):
         for i in range(0, self.rng.shape[0]):
@@ -2610,18 +2813,18 @@ class RangeRows(Ranges):
         elif isinstance(key, int):
             return self.rng[key, :]
         else:
-            raise TypeError("Indices must be integers or slices, not %s" % type(key).__name__)
+            raise TypeError(
+                "Indices must be integers or slices, not %s" % type(key).__name__
+            )
 
     def __repr__(self):
-        return '{}({})'.format(
-            self.__class__.__name__,
-            repr(self.rng)
-        )
+        return "{}({})".format(self.__class__.__name__, repr(self.rng))
 
 
 class RangeColumns(Ranges):
     """
-    Represents the columns of a range. Do not construct this class directly, use :attr:`Range.columns` instead.
+    Represents the columns of a range. Do not construct this class directly, use
+    :attr:`Range.columns` instead.
 
     Example
     -------
@@ -2660,7 +2863,7 @@ class RangeColumns(Ranges):
         """
         Autofits the width of the columns.
         """
-        self.rng.impl.autofit(axis='c')
+        self.rng.impl.autofit(axis="c")
 
     def __iter__(self):
         for j in range(0, self.rng.shape[1]):
@@ -2675,13 +2878,12 @@ class RangeColumns(Ranges):
         elif isinstance(key, int):
             return self.rng[:, key]
         else:
-            raise TypeError("Indices must be integers or slices, not %s" % type(key).__name__)
+            raise TypeError(
+                "Indices must be integers or slices, not %s" % type(key).__name__
+            )
 
     def __repr__(self):
-        return '{}({})'.format(
-            self.__class__.__name__,
-            repr(self.rng)
-        )
+        return "{}({})".format(self.__class__.__name__, repr(self.rng))
 
 
 class Shape:
@@ -2697,7 +2899,7 @@ class Shape:
     """
 
     def __init__(self, *args, **options):
-        impl = options.pop('impl', None)
+        impl = options.pop("impl", None)
         if impl is None:
             if len(args) == 1:
                 impl = sheets.active.shapes(args[0]).impl
@@ -2710,7 +2912,8 @@ class Shape:
     @property
     def api(self):
         """
-        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine
+        being used.
 
         .. versionadded:: 0.19.2
         """
@@ -2741,7 +2944,8 @@ class Shape:
     @property
     def left(self):
         """
-        Returns or sets the number of points that represent the horizontal position of the shape.
+        Returns or sets the number of points that represent the horizontal position of
+        the shape.
 
         .. versionadded:: 0.5.0
         """
@@ -2754,7 +2958,8 @@ class Shape:
     @property
     def top(self):
         """
-        Returns or sets the number of points that represent the vertical position of the shape.
+        Returns or sets the number of points that represent the vertical position of
+        the shape.
 
         .. versionadded:: 0.5.0
         """
@@ -2806,7 +3011,9 @@ class Shape:
         """
         self.impl.activate()
 
-    def scale_height(self, factor, relative_to_original_size=False, scale='scale_from_top_left'):
+    def scale_height(
+        self, factor, relative_to_original_size=False, scale="scale_from_top_left"
+    ):
         """
         factor : float
             For example 1.5 to scale it up to 150%
@@ -2816,14 +3023,20 @@ class Shape:
             For ``True`` must be a picture or OLE object.
 
         scale : str, optional
-            One of ``scale_from_top_left`` (default), ``scale_from_bottom_right``, ``scale_from_middle``
+            One of ``scale_from_top_left`` (default), ``scale_from_bottom_right``,
+            ``scale_from_middle``
 
         .. versionadded:: 0.19.2
         """
-        self.impl.scale_height(factor=factor, relative_to_original_size=relative_to_original_size,
-                               scale=scale)
+        self.impl.scale_height(
+            factor=factor,
+            relative_to_original_size=relative_to_original_size,
+            scale=scale,
+        )
 
-    def scale_width(self, factor, relative_to_original_size=False, scale='scale_from_top_left'):
+    def scale_width(
+        self, factor, relative_to_original_size=False, scale="scale_from_top_left"
+    ):
         """
         factor : float
             For example 1.5 to scale it up to 150%
@@ -2833,12 +3046,16 @@ class Shape:
             For ``True`` must be a picture or OLE object.
 
         scale : str, optional
-            One of ``scale_from_top_left`` (default), ``scale_from_bottom_right``, ``scale_from_middle``
+            One of ``scale_from_top_left`` (default), ``scale_from_bottom_right``,
+            ``scale_from_middle``
 
         .. versionadded:: 0.19.2
         """
-        self.impl.scale_width(factor=factor, relative_to_original_size=relative_to_original_size,
-                              scale=scale)
+        self.impl.scale_width(
+            factor=factor,
+            relative_to_original_size=relative_to_original_size,
+            scale=scale,
+        )
 
     @property
     def text(self):
@@ -2854,6 +3071,7 @@ class Shape:
         if xlwings.PRO:
             from xlwings.pro import Markdown
             from xlwings.pro.reports.markdown import render_text, format_text
+
             if isinstance(value, Markdown):
                 self.impl.text = render_text(value.text, value.style)
                 format_text(self, value.text, value.style)
@@ -2881,19 +3099,16 @@ class Shape:
 
     def __eq__(self, other):
         return (
-                isinstance(other, Shape) and
-                other.parent == self.parent and
-                other.name == self.name
+            isinstance(other, Shape)
+            and other.parent == self.parent
+            and other.name == self.name
         )
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __repr__(self):
-        return "<Shape '{0}' in {1}>".format(
-            self.name,
-            self.parent
-        )
+        return "<Shape '{0}' in {1}>".format(self.name, self.parent)
 
 
 class Shapes(Collection):
@@ -2902,11 +3117,14 @@ class Shapes(Collection):
 
     >>> import xlwings as xw
     >>> xw.books['Book1'].sheets[0].shapes
-    Shapes([<Shape 'Oval 1' in <Sheet [Book1]Sheet1>>, <Shape 'Rectangle 1' in <Sheet [Book1]Sheet1>>])
+    Shapes([<Shape 'Oval 1' in <Sheet [Book1]Sheet1>>,
+            <Shape 'Rectangle 1' in <Sheet [Book1]Sheet1>>])
 
     .. versionadded:: 0.9.0
     """
+
     _wrap = Shape
+
 
 class PageSetup:
     def __init__(self, impl):
@@ -2920,7 +3138,8 @@ class PageSetup:
     @property
     def api(self):
         """
-        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        Returns the native object (``pywin32`` or ``appscript`` obj)
+        of the engine being used.
 
         .. versionadded:: 0.24.2
         """
@@ -2947,6 +3166,7 @@ class PageSetup:
     def print_area(self, value):
         self.impl.print_area = value
 
+
 class Note:
     def __init__(self, impl):
         """
@@ -2960,7 +3180,8 @@ class Note:
     @property
     def api(self):
         """
-        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        Returns the native object (``pywin32`` or ``appscript`` obj)
+        of the engine being used.
 
         .. versionadded:: 0.24.2
         """
@@ -3009,7 +3230,7 @@ class Table:
     """
 
     def __init__(self, *args, **options):
-        impl = options.pop('impl', None)
+        impl = options.pop("impl", None)
         if impl is None:
             if len(args) == 1:
                 impl = sheets.active.tables(args[0]).impl
@@ -3020,7 +3241,8 @@ class Table:
     @property
     def api(self):
         """
-        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        Returns the native object (``pywin32`` or ``appscript`` obj)
+        of the engine being used.
         """
         return self.impl.api
 
@@ -3044,8 +3266,12 @@ class Table:
 
     @property
     def data_body_range(self):
-        """Returns an xlwings range object that represents the range of values, excluding the header row"""
-        return Range(impl=self.impl.data_body_range) if self.impl.data_body_range else None
+        """Returns an xlwings range object that represents the range of values,
+        excluding the header row
+        """
+        return (
+            Range(impl=self.impl.data_body_range) if self.impl.data_body_range else None
+        )
 
     @property
     def display_name(self):
@@ -3066,8 +3292,10 @@ class Table:
 
     @property
     def insert_row_range(self):
-        """Returns an xlwings range object representing the row where data is going to be inserted.
-           This is only available for empty tables, otherwise it'll return ``None``"""
+        """Returns an xlwings range object representing the row where data is going to
+        be inserted. This is only available for empty tables, otherwise it'll return
+        ``None``
+        """
         if self.impl.insert_row_range:
             return Range(impl=self.impl.insert_row_range)
         else:
@@ -3080,7 +3308,9 @@ class Table:
 
     @property
     def show_autofilter(self):
-        """Turn the autofilter on or off by setting it to ``True`` or ``False`` (read/write boolean)"""
+        """Turn the autofilter on or off by setting it to ``True`` or ``False``
+        (read/write boolean)
+        """
         return self.impl.show_autofilter
 
     @show_autofilter.setter
@@ -3098,7 +3328,9 @@ class Table:
 
     @property
     def show_table_style_column_stripes(self):
-        """Returns or sets if the Column Stripes table style is used for (read/write boolean)"""
+        """Returns or sets if the Column Stripes table style is used for
+        (read/write boolean)
+        """
         return self.impl.show_table_style_column_stripes
 
     @show_table_style_column_stripes.setter
@@ -3125,7 +3357,9 @@ class Table:
 
     @property
     def show_table_style_row_stripes(self):
-        """Returns or sets if the Row Stripes table style is used (read/write boolean)"""
+        """Returns or sets if the Row Stripes table style is used
+        (read/write boolean)
+        """
         return self.impl.show_table_style_row_stripes
 
     @show_table_style_row_stripes.setter
@@ -3143,7 +3377,9 @@ class Table:
 
     @property
     def table_style(self):
-        """Gets or sets the table style. See :meth:`Tables.add <xlwings.main.Tables.add>` for possible values."""
+        """Gets or sets the table style.
+        See :meth:`Tables.add <xlwings.main.Tables.add>` for possible values.
+        """
         return self.impl.table_style
 
     @table_style.setter
@@ -3160,7 +3396,8 @@ class Table:
 
     def update(self, data, index=True):
         """
-        Updates the Excel table with the provided data. Currently restricted to DataFrames.
+        Updates the Excel table with the provided data.
+        Currently restricted to DataFrames.
 
         .. versionchanged:: 0.24.0
 
@@ -3170,7 +3407,8 @@ class Table:
         data : pandas DataFrame
             Currently restricted to pandas DataFrames.
         index : bool, default True
-            Whether or not the index of a pandas DataFrame should be written to the Excel table.
+            Whether or not the index of a pandas DataFrame should be written to the
+            Excel table.
 
         Returns
         -------
@@ -3198,36 +3436,56 @@ class Table:
             if table_name in [table.name for table in sheet.tables]:
                 sheet.tables[table_name].update(df)
             else:
-                mytable = sheet.tables.add(source=sheet['A1'], name=table_name).update(df)
+                mytable = sheet.tables.add(source=sheet['A1'],
+                                           name=table_name).update(df)
         """
-        type_error_msg = 'Currently, only pandas DataFrames are supported by update'
+        type_error_msg = "Currently, only pandas DataFrames are supported by update"
         if pd:
             if not isinstance(data, pd.DataFrame):
                 raise TypeError(type_error_msg)
-            col_diff = len(self.range.columns) - len(data.columns) - (len(data.index.names) if index else 0)
+            col_diff = (
+                len(self.range.columns)
+                - len(data.columns)
+                - (len(data.index.names) if index else 0)
+            )
             nrows = len(self.data_body_range.rows) if self.data_body_range else 1
             row_diff = nrows - len(data.index)
             if col_diff > 0:
-                self.range[:, len(self.range.columns) - col_diff:].delete()
+                self.range[:, len(self.range.columns) - col_diff :].delete()
             if row_diff > 0 and self.data_body_range:
-                self.data_body_range[len(self.data_body_range.rows) - row_diff:, :].delete()
+                self.data_body_range[
+                    len(self.data_body_range.rows) - row_diff :, :
+                ].delete()
             if self.header_row_range:
                 # Tables with 'Header Row' checked
-                header = (list(data.index.names) + list(data.columns)) if index else list(data.columns)
+                header = (
+                    (list(data.index.names) + list(data.columns))
+                    if index
+                    else list(data.columns)
+                )
                 # Replace None in the header with a unique number of spaces
                 n_empty = len([i for i in header if isinstance(i, str) and i.isspace()])
-                header = [f' ' * (i + n_empty + 1) if name is None else name for i, name in enumerate(header)]
+                header = [
+                    f" " * (i + n_empty + 1) if name is None else name
+                    for i, name in enumerate(header)
+                ]
                 self.header_row_range.value = header
                 self.range[1, 0].options(index=index, header=False).value = data
             else:
                 # Tables with 'Header Row' unchecked
                 self.resize(self.range[0, 0])  # Otherwise the table will be deleted
                 self.range[0, 0].options(index=index, header=False).value = data
-                # If the top-left cell isn't empty, it doesn't manage to resize the columns automatically
+                # If the top-left cell isn't empty, it doesn't manage to resize the
+                # columns automatically
                 data_rows = len(data)
-                data_cols = len(data.columns) if not index else len(data.columns) + len(data.index.names)
-                self.resize(self.range[0, 0].resize(row_size=data_rows,
-                                                    column_size=data_cols))
+                data_cols = (
+                    len(data.columns)
+                    if not index
+                    else len(data.columns) + len(data.index.names)
+                )
+                self.resize(
+                    self.range[0, 0].resize(row_size=data_rows, column_size=data_cols)
+                )
             return self
         else:
             raise TypeError(type_error_msg)
@@ -3241,19 +3499,16 @@ class Table:
 
     def __eq__(self, other):
         return (
-                isinstance(other, Table) and
-                other.parent == self.parent and
-                other.name == self.name
+            isinstance(other, Table)
+            and other.parent == self.parent
+            and other.name == self.name
         )
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __repr__(self):
-        return "<Table '{0}' in {1}>".format(
-            self.name,
-            self.parent
-        )
+        return "<Table '{0}' in {1}>".format(self.name, self.parent)
 
 
 class Tables(Collection):
@@ -3261,14 +3516,24 @@ class Tables(Collection):
 
     >>> import xlwings as xw
     >>> xw.books['Book1'].sheets[0].tables
-    Tables([<Table 'Table1' in <Sheet [Book11]Sheet1>>, <Table 'Table2' in <Sheet [Book11]Sheet1>>])
+    Tables([<Table 'Table1' in <Sheet [Book11]Sheet1>>,
+            <Table 'Table2' in <Sheet [Book11]Sheet1>>])
 
     .. versionadded:: 0.21.0
     """
+
     _wrap = Table
 
-    def add(self, source=None, name=None, source_type=None, link_source=None, has_headers=True, destination=None,
-            table_style_name='TableStyleMedium2'):
+    def add(
+        self,
+        source=None,
+        name=None,
+        source_type=None,
+        link_source=None,
+        has_headers=True,
+        destination=None,
+        table_style_name="TableStyleMedium2",
+    ):
         """
         Creates a Table to the specified sheet.
 
@@ -3279,25 +3544,29 @@ class Tables(Collection):
             An xlwings range object, representing the data source.
 
         name : str, default None
-            The name of the Table. By default, it uses the autogenerated name that is assigned by Excel.
+            The name of the Table. By default, it uses the autogenerated name that is
+            assigned by Excel.
 
         source_type : str, default None
-            This currently defaults to ``xlSrcRange``, i.e. expects an xlwings range object. No other
-            options are allowed at the moment.
+            This currently defaults to ``xlSrcRange``, i.e. expects an xlwings range
+            object. No other options are allowed at the moment.
 
         link_source : bool, default None
-            Currently not implemented as this is only in case ``source_type`` is ``xlSrcExternal``.
+            Currently not implemented as this is only in case ``source_type`` is
+            ``xlSrcExternal``.
 
         has_headers : bool or str, default True
-            Indicates whether the data being imported has column labels. Defaults to ``True``. Possible
-            values: ``True``, ``FAlse``, ``'guess'``
+            Indicates whether the data being imported has column labels. Defaults to
+            ``True``. Possible values: ``True``, ``FAlse``, ``'guess'``
 
         destination : xlwings range, default None
-            Currently not implemented as this is used in case ``source_type`` is ``xlSrcExternal``.
+            Currently not implemented as this is used in case ``source_type`` is
+            ``xlSrcExternal``.
 
         table_style_name : str, default 'TableStyleMedium2'
-            Possible strings: ``'TableStyleLightN''`` (where N is 1-21), ``'TableStyleMediumN'`` (where N is 1-28),
-            ``'TableStyleDarkN'`` (where N is 1-11)
+            Possible strings: ``'TableStyleLightN''`` (where N is 1-21),
+            ``'TableStyleMediumN'`` (where N is 1-28),
+            `'TableStyleDarkN'`` (where N is 1-11)
 
         Returns
         -------
@@ -3315,8 +3584,12 @@ class Tables(Collection):
         """
 
         impl = self.impl.add(
-            source_type=source_type, source=source, link_source=link_source, has_headers=has_headers,
-            destination=destination, table_style_name=table_style_name
+            source_type=source_type,
+            source=source,
+            link_source=link_source,
+            has_headers=has_headers,
+            destination=destination,
+            table_style_name=table_style_name,
         )
 
         table = Table(impl=impl)
@@ -3346,7 +3619,8 @@ class Chart:
     @property
     def api(self):
         """
-        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        Returns the native object (``pywin32`` or ``appscript`` obj)
+        of the engine being used.
 
         .. versionadded:: 0.9.0
         """
@@ -3376,7 +3650,8 @@ class Chart:
     @property
     def chart_type(self):
         """
-        Returns and sets the chart type of the chart. The following chart types are available:
+        Returns and sets the chart type of the chart.
+        The following chart types are available:
 
         ``3d_area``,
         ``3d_area_stacked``,
@@ -3475,7 +3750,8 @@ class Chart:
     @property
     def left(self):
         """
-        Returns or sets the number of points that represent the horizontal position of the chart.
+        Returns or sets the number of points that represent the horizontal position
+        of the chart.
         """
         return self.impl.left
 
@@ -3486,7 +3762,8 @@ class Chart:
     @property
     def top(self):
         """
-        Returns or sets the number of points that represent the vertical position of the chart.
+        Returns or sets the number of points that represent the vertical position
+        of the chart.
         """
         return self.impl.top
 
@@ -3530,8 +3807,9 @@ class Chart:
         ----------
 
         path : str or path-like, default None
-            Path where you want to store the picture. Defaults to the name of the chart in the same
-            directory as the Excel file if the Excel file is stored and to the current working directory otherwise.
+            Path where you want to store the picture. Defaults to the name of the chart
+            in the same directory as the Excel file if the Excel file is stored and to
+            the current working directory otherwise.
 
         .. versionadded:: 0.24.8
         """
@@ -3539,12 +3817,12 @@ class Chart:
         if path is None:
             directory, _ = os.path.split(self.parent.book.fullname)
             if directory:
-                path = os.path.join(directory, self.name + '.png')
+                path = os.path.join(directory, self.name + ".png")
             else:
-                path = str(Path.cwd() / self.name) + '.png'
+                path = str(Path.cwd() / self.name) + ".png"
         self.impl.to_png(path)
 
-    def to_pdf(self, path=None, show=None, quality='standard'):
+    def to_pdf(self, path=None, show=None, quality="standard"):
         """
         Exports the chart as PDF.
 
@@ -3552,8 +3830,9 @@ class Chart:
         ----------
 
         path : str or path-like, default None
-            Path where you want to store the pdf. Defaults to the name of the chart in the same
-            directory as the Excel file if the Excel file is stored and to the current working directory otherwise.
+            Path where you want to store the pdf. Defaults to the name of the chart in
+            the same directory as the Excel file if the Excel file is stored and to the
+            current working directory otherwise.
 
         show : bool, default False
             Once created, open the PDF file with the default application.
@@ -3566,10 +3845,7 @@ class Chart:
         return utils.to_pdf(self, path=path, show=show, quality=quality)
 
     def __repr__(self):
-        return "<Chart '{0}' in {1}>".format(
-            self.name,
-            self.parent
-        )
+        return "<Chart '{0}' in {1}>".format(self.name, self.parent)
 
 
 class Charts(Collection):
@@ -3578,10 +3854,12 @@ class Charts(Collection):
 
     >>> import xlwings as xw
     >>> xw.books['Book1'].sheets[0].charts
-    Charts([<Chart 'Chart 1' in <Sheet [Book1]Sheet1>>, <Chart 'Chart 1' in <Sheet [Book1]Sheet1>>])
+    Charts([<Chart 'Chart 1' in <Sheet [Book1]Sheet1>>,
+            <Chart 'Chart 1' in <Sheet [Book1]Sheet1>>])
 
     .. versionadded:: 0.9.0
     """
+
     _wrap = Chart
 
     def add(self, left=0, top=0, width=355, height=211):
@@ -3620,19 +3898,15 @@ class Charts(Collection):
         'Chart1'
         """
 
-        impl = self.impl.add(
-            left,
-            top,
-            width,
-            height
-        )
+        impl = self.impl.add(left, top, width, height)
 
         return Chart(impl=impl)
 
 
 class Picture:
     """
-    The picture object is a member of the :meth:`pictures <xlwings.main.Pictures>` collection:
+    The picture object is a member of the :meth:`pictures <xlwings.main.Pictures>`
+    collection:
 
     >>> import xlwings as xw
     >>> sht = xw.books['Book1'].sheets[0]
@@ -3648,7 +3922,8 @@ class Picture:
     @property
     def api(self):
         """
-        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine
+        being used.
 
         .. versionadded:: 0.9.0
         """
@@ -3685,7 +3960,8 @@ class Picture:
     @property
     def left(self):
         """
-        Returns or sets the number of points that represent the horizontal position of the picture.
+        Returns or sets the number of points that represent the horizontal position
+        of the picture.
 
         .. versionadded:: 0.5.0
         """
@@ -3698,7 +3974,8 @@ class Picture:
     @property
     def top(self):
         """
-        Returns or sets the number of points that represent the vertical position of the picture.
+        Returns or sets the number of points that represent the vertical position
+        of the picture.
 
         .. versionadded:: 0.5.0
         """
@@ -3744,23 +4021,21 @@ class Picture:
 
     def __eq__(self, other):
         return (
-                isinstance(other, Picture) and
-                other.parent == self.parent and
-                other.name == self.name
+            isinstance(other, Picture)
+            and other.parent == self.parent
+            and other.name == self.name
         )
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __repr__(self):
-        return "<Picture '{0}' in {1}>".format(
-            self.name,
-            self.parent
-        )
+        return "<Picture '{0}' in {1}>".format(self.name, self.parent)
 
     def update(self, image, format=None):
         """
-        Replaces an existing picture with a new one, taking over the attributes of the existing picture.
+        Replaces an existing picture with a new one, taking over the attributes of the
+        existing picture.
 
         Arguments
         ---------
@@ -3772,13 +4047,16 @@ class Picture:
         .. versionadded:: 0.5.0
         """
 
-        filename, is_temp_file = utils.process_image(image, format="png" if not format else format)
+        filename, is_temp_file = utils.process_image(
+            image, format="png" if not format else format
+        )
 
         name = self.name
 
         # todo: link_to_file, save_with_document
-        picture = self.parent.pictures.add(filename, left=self.left, top=self.top,
-                                           width=self.width, height=self.height)
+        picture = self.parent.pictures.add(
+            filename, left=self.left, top=self.top, width=self.width, height=self.height
+        )
         self.delete()
 
         picture.name = name
@@ -3797,7 +4075,8 @@ class Picture:
     def lock_aspect_ratio(self):
         """
         ``True`` will keep the original proportion,
-        ``False`` will allow you to change height and width independently of each other (read/write).
+        ``False`` will allow you to change height and width independently of each other
+        (read/write).
 
         .. versionadded:: 0.24.0
         """
@@ -3814,18 +4093,33 @@ class Pictures(Collection):
 
     >>> import xlwings as xw
     >>> xw.books['Book1'].sheets[0].pictures
-    Pictures([<Picture 'Picture 1' in <Sheet [Book1]Sheet1>>, <Picture 'Picture 2' in <Sheet [Book1]Sheet1>>])
+    Pictures([<Picture 'Picture 1' in <Sheet [Book1]Sheet1>>,
+              <Picture 'Picture 2' in <Sheet [Book1]Sheet1>>])
 
     .. versionadded:: 0.9.0
     """
+
     _wrap = Picture
 
     @property
     def parent(self):
         return Sheet(impl=self.impl.parent)
 
-    def add(self, image, link_to_file=False, save_with_document=True, left=None, top=None, width=None, height=None,
-            name=None, update=False, scale=None, format=None, anchor=None):
+    def add(
+        self,
+        image,
+        link_to_file=False,
+        save_with_document=True,
+        left=None,
+        top=None,
+        width=None,
+        height=None,
+        name=None,
+        update=False,
+        scale=None,
+        format=None,
+        anchor=None,
+    ):
         """
         Adds a picture to the specified sheet.
 
@@ -3836,10 +4130,12 @@ class Pictures(Collection):
             Either a filepath or a Matplotlib figure object.
 
         left : float, default None
-            Left position in points, defaults to 0. If you use ``top``/``left``, you must not provide a value for ``anchor``.
+            Left position in points, defaults to 0. If you use ``top``/``left``, you
+            must not provide a value for ``anchor``.
 
         top : float, default None
-            Top position in points, defaults to 0. If you use ``top``/``left``, you must not provide a value for ``anchor``.
+            Top position in points, defaults to 0. If you use ``top``/``left``,
+            you must not provide a value for ``anchor``.
 
         width : float, default None
             Width in points. Defaults to original width.
@@ -3848,7 +4144,8 @@ class Pictures(Collection):
             Height in points. Defaults to original height.
 
         name : str, default None
-            Excel picture name. Defaults to Excel standard name if not provided, e.g. 'Picture 1'.
+            Excel picture name. Defaults to Excel standard name if not provided,
+            e.g., 'Picture 1'.
 
         update : bool, default False
             Replace an existing picture with the same name. Requires ``name`` to be set.
@@ -3857,15 +4154,19 @@ class Pictures(Collection):
             Scales your picture by the provided factor.
 
         format : str, default None
-            Only used if image is a Matplotlib or Plotly plot. By default, the plot is inserted in the "png" format,
-            but you may want to change this to a vector-based format like "svg" on Windows (may require Microsoft 365)
-            or "eps" on macOS for better print quality. If you use ``'vector'``, it will be using ``'svg'`` on Windows
-            and ``'eps'`` on macOS. To find out which formats your version of Excel supports, see:
-            https://support.microsoft.com/en-us/topic/support-for-eps-images-has-been-turned-off-in-office-a069d664-4bcf-415e-a1b5-cbb0c334a840
+            Only used if image is a Matplotlib or Plotly plot. By default, the plot is
+            inserted in the "png" format, but you may want to change this to a
+            vector-based format like "svg" on Windows (may require Microsoft 365) or
+            "eps" on macOS for better print quality. If you use ``'vector'``, it will be
+            using ``'svg'`` on Windows and ``'eps'`` on macOS. To find out which formats
+            your version of Excel supports, see:
+            https://support.microsoft.com/en-us/topic/
+             support-for-eps-images-has-been-turned-off-in-office-
+             a069d664-4bcf-415e-a1b5-cbb0c334a840
 
         anchor: xw.Range, default None
-            The xlwings Range object of where you want to insert the picture. If you use ``anchor``, you must not
-            provide values for ``top``/``left``.
+            The xlwings Range object of where you want to insert the picture. If you use
+            ``anchor``, you must not provide values for ``top``/``left``.
 
             .. versionadded:: 0.24.3
 
@@ -3902,29 +4203,48 @@ class Pictures(Collection):
                 except KeyError:
                     pass
 
-        filename, is_temp_file = utils.process_image(image, format="png" if not format else format)
+        filename, is_temp_file = utils.process_image(
+            image, format="png" if not format else format
+        )
 
         if not (link_to_file or save_with_document):
-            raise Exception("Arguments link_to_file and save_with_document cannot both be false")
+            raise Exception(
+                "Arguments link_to_file and save_with_document cannot both be false"
+            )
 
         if anchor:
             if top or left:
-                raise ValueError("You must either provide 'anchor' or 'top'/'left', but not both.")
+                raise ValueError(
+                    "You must either provide 'anchor' or 'top'/'left', but not both."
+                )
             top, left = anchor.top, anchor.left
 
-        if (height and width is None) or (width and height is None) or (width is None and height is None):
-            # If only height or width are provided, it will be scaled after adding it with the original dimensions
+        if (
+            (height and width is None)
+            or (width and height is None)
+            or (width is None and height is None)
+        ):
+            # If only height or width are provided, it will be scaled after adding it
+            # with the original dimensions
             im_width, im_height = -1, -1
         else:
             im_width, im_height = width, height
 
-        picture = Picture(impl=self.impl.add(
-            filename, link_to_file, save_with_document, left if left else 0, top if top else 0,
-            width=im_width, height=im_height
-        ))
+        picture = Picture(
+            impl=self.impl.add(
+                filename,
+                link_to_file,
+                save_with_document,
+                left if left else 0,
+                top if top else 0,
+                width=im_width,
+                height=im_height,
+            )
+        )
 
         if (height and width is None) or (width and height is None):
-            # If only height or width are provided, lock aspect ratio so the picture won't be distorted
+            # If only height or width are provided, lock aspect ratio so the picture
+            # won't be distorted
             picture.lock_aspect_ratio = True
             if height:
                 picture.height = height
@@ -3932,8 +4252,12 @@ class Pictures(Collection):
                 picture.width = width
 
         if scale:
-            self.parent.shapes[picture.name].scale_width(factor=scale, relative_to_original_size=True)
-            self.parent.shapes[picture.name].scale_height(factor=scale, relative_to_original_size=True)
+            self.parent.shapes[picture.name].scale_width(
+                factor=scale, relative_to_original_size=True
+            )
+            self.parent.shapes[picture.name].scale_height(
+                factor=scale, relative_to_original_size=True
+            )
 
         if name is not None:
             picture.name = name
@@ -3965,7 +4289,8 @@ class Names:
     @property
     def api(self):
         """
-        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        Returns the native object (``pywin32`` or ``appscript`` obj)
+        of the engine beingused.
 
         .. versionadded:: 0.9.0
         """
@@ -3994,7 +4319,8 @@ class Names:
         Parameters
         ----------
         name : str
-            Specifies the text to use as the name. Names cannot include spaces and cannot be formatted as cell references.
+            Specifies the text to use as the name. Names cannot include spaces and
+            cannot be formatted as cell references.
 
         refers_to : str
             Describes what the name refers to, in English, using A1-style notation.
@@ -4067,7 +4393,8 @@ class Name:
     @property
     def api(self):
         """
-        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        Returns the native object (``pywin32`` or ``appscript`` obj)
+        of the engine being used.
 
         .. versionadded:: 0.9.0
         """
@@ -4075,10 +4402,10 @@ class Name:
 
     def delete(self):
         """
-         Deletes the name.
+        Deletes the name.
 
-         .. versionadded:: 0.9.0
-         """
+        .. versionadded:: 0.9.0
+        """
         self.impl.delete()
 
     @property
@@ -4097,8 +4424,8 @@ class Name:
     @property
     def refers_to(self):
         """
-        Returns or sets the formula that the name is defined to refer to, in A1-style notation,
-        beginning with an equal sign.
+        Returns or sets the formula that the name is defined to refer to,
+        in A1-style notation, beginning with an equal sign.
 
         .. versionadded:: 0.9.0
         """
@@ -4123,23 +4450,26 @@ class Name:
 
 def view(obj, sheet=None, table=True, chunksize=5000):
     """
-    Opens a new workbook and displays an object on its first sheet by default. If you provide a
-    sheet object, it will clear the sheet before displaying the object on the existing sheet.
+    Opens a new workbook and displays an object on its first sheet by default. If you
+    provide a sheet object, it will clear the sheet before displaying the object on the
+    existing sheet.
 
     .. note::
-      Only use this in an interactive context like e.g. a Jupyter notebook! Don't use this in a script as it depends
-      on the active book.
+      Only use this in an interactive context like e.g., a Jupyter notebook! Don't use
+      this in a script as it depends on the active book.
 
     Parameters
     ----------
     obj : any type with built-in converter
-        the object to display, e.g. numbers, strings, lists, numpy arrays, pandas dataframes
+        the object to display, e.g. numbers, strings, lists, numpy arrays, pandas
+        DataFrames
 
     sheet : Sheet, default None
         Sheet object. If none provided, the first sheet of a new workbook is used.
 
     table : bool, default True
-        If your object is a pandas DataFrame, by default it is formatted as an Excel Table
+        If your object is a pandas DataFrame, by default it is formatted as an Excel
+        Table
 
     chunksize : int, default 5000
         Chunks the loading of big arrays.
@@ -4168,32 +4498,39 @@ def view(obj, sheet=None, table=True, chunksize=5000):
     with app.properties(screen_updating=False):
         if pd and isinstance(obj, pd.DataFrame):
             if table:
-                sheet['A1'].options(assign_empty_index_names=True, chunksize=chunksize).value = obj
-                sheet.tables.add(sheet['A1'].expand())
+                sheet["A1"].options(
+                    assign_empty_index_names=True, chunksize=chunksize
+                ).value = obj
+                sheet.tables.add(sheet["A1"].expand())
             else:
-                sheet['A1'].options(assign_empty_index_names=False, chunksize=chunksize).value = obj
+                sheet["A1"].options(
+                    assign_empty_index_names=False, chunksize=chunksize
+                ).value = obj
         else:
-            sheet['A1'].value = obj
+            sheet["A1"].value = obj
         sheet.autofit()
 
 
 def load(index=1, header=1, chunksize=5000):
     """
-    Loads the selected cell(s) of the active workbook into a pandas DataFrame. If you select a single cell that has
-    adjacent cells, the range is auto-expanded (via current region) and turned into a pandas DataFrame. If you don't
-    have pandas installed, it returns the values as nested lists.
+    Loads the selected cell(s) of the active workbook into a pandas DataFrame. If you
+    select a single cell that has adjacent cells, the range is auto-expanded (via
+    current region) and turned into a pandas DataFrame. If you don't have pandas
+    installed, it returns the values as nested lists.
 
     .. note::
-      Only use this in an interactive context like e.g. a Jupyter notebook! Don't use this in a script as it depends
-      on the active book.
+      Only use this in an interactive context like e.g. a Jupyter notebook! Don't use
+      this in a script as it depends on the active book.
 
     Parameters
     ----------
     index : bool or int, default 1
-        Defines the number of columns on the left that will be turned into the DataFrame's index
+        Defines the number of columns on the left that will be turned into the
+        DataFrame's index
 
     header : bool or int, default 1
-        Defines the number of rows at the top that will be turned into the DataFrame's columns
+        Defines the number of rows at the top that will be turned into the DataFrame's
+        columns
 
     chunksize : int, default 5000
         Chunks the loading of big arrays.
@@ -4211,7 +4548,9 @@ def load(index=1, header=1, chunksize=5000):
     if selection.shape == (1, 1):
         selection = selection.current_region
     if pd:
-        values = selection.options(pd.DataFrame, index=index, header=header, chunksize=chunksize).value
+        values = selection.options(
+            pd.DataFrame, index=index, header=header, chunksize=chunksize
+        ).value
     else:
         values = selection.options(chunksize=chunksize).value
     return values
@@ -4223,9 +4562,12 @@ class Macro:
         self.macro = macro
 
     def run(self, *args):
-        args = [i.api
-                if isinstance(i, (App, Book, Sheet, Range, Shape, Chart, Picture, Name))
-                else i for i in args]
+        args = [
+            i.api
+            if isinstance(i, (App, Book, Sheet, Range, Shape, Chart, Picture, Name))
+            else i
+            for i in args
+        ]
         return self.app.impl.run(self.macro, args)
 
     __call__ = run
@@ -4238,17 +4580,20 @@ class Characters:
     * ``mysheet['A1'].characters``
     * ``mysheet.shapes[0].characters``
 
-    .. note:: On macOS, ``characters`` are currently not supported due to bugs/lack of support in AppleScript.
+    .. note:: On macOS, ``characters`` are currently not supported due to bugs/lack of
+              support in AppleScript.
 
     .. versionadded:: 0.23.0
     """
+
     def __init__(self, impl):
         self.impl = impl
 
     @property
     def api(self):
         """
-        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine
+        being used.
 
         .. versionadded:: 0.23.0
         """
@@ -4281,12 +4626,21 @@ class Characters:
         return Font(self.impl.font)
 
     def __getitem__(self, item):
-        if isinstance(item, slice) and (item.start and item.stop) and (item.start == item.stop):
-            raise ValueError(self.__class__.__name__ + " object does not support empty slices")
+        if (
+            isinstance(item, slice)
+            and (item.start and item.stop)
+            and (item.start == item.stop)
+        ):
+            raise ValueError(
+                self.__class__.__name__ + " object does not support empty slices"
+            )
         if isinstance(item, slice) and item.step is not None:
-            raise ValueError(self.__class__.__name__ + " object does not support slicing with non-default steps")
+            raise ValueError(
+                self.__class__.__name__
+                + " object does not support slicing with non-default steps"
+            )
         if isinstance(item, slice):
-            return Characters(self.impl[item.start:item.stop])
+            return Characters(self.impl[item.start : item.stop])
         else:
             return Characters(self.impl[item])
 
@@ -4300,13 +4654,15 @@ class Font:
 
     .. versionadded:: 0.23.0
     """
+
     def __init__(self, impl):
         self.impl = impl
 
     @property
     def api(self):
         """
-        Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being used.
+        Returns the native object (``pywin32`` or ``appscript`` obj)
+        of the engine being used.
 
         .. versionadded:: 0.23.0
         """
@@ -4412,6 +4768,7 @@ class Books(Collection):
 
     .. versionadded:: 0.9.0
     """
+
     _wrap = Book
 
     @property
@@ -4427,18 +4784,35 @@ class Books(Collection):
         """
         return Book(impl=self.impl.add())
 
-    def open(self, fullname=None, update_links=None, read_only=None, format=None, password=None, write_res_password=None,
-             ignore_read_only_recommended=None, origin=None, delimiter=None, editable=None, notify=None, converter=None,
-             add_to_mru=None, local=None, corrupt_load=None, json=None):
+    def open(
+        self,
+        fullname=None,
+        update_links=None,
+        read_only=None,
+        format=None,
+        password=None,
+        write_res_password=None,
+        ignore_read_only_recommended=None,
+        origin=None,
+        delimiter=None,
+        editable=None,
+        notify=None,
+        converter=None,
+        add_to_mru=None,
+        local=None,
+        corrupt_load=None,
+        json=None,
+    ):
         """
-        Opens a Book if it is not open yet and returns it. If it is already open, it doesn't raise an exception but
-        simply returns the Book object.
+        Opens a Book if it is not open yet and returns it. If it is already open,
+        it doesn't raise an exception but simply returns the Book object.
 
         Parameters
         ----------
         fullname : str or path-like object
-            filename or fully qualified filename, e.g. ``r'C:\\path\\to\\file.xlsx'`` or ``'file.xlsm'``. Without a full
-            path, it looks for the file in the current working directory.
+            filename or fully qualified filename, e.g. ``r'C:\\path\\to\\file.xlsx'``
+            or ``'file.xlsm'``. Without a full path, it looks for the file in the
+            current working directory.
 
         Other Parameters
             see: :meth:`xlwings.Book()`
@@ -4459,12 +4833,27 @@ class Books(Collection):
             impl = self.impl(name)
             if not os.path.samefile(impl.fullname, fullname):
                 raise ValueError(
-                    "Cannot open two workbooks named '%s', even if they are saved in different locations." % name
+                    "Cannot open two workbooks named '%s', even if they are saved in"
+                    "different locations." % name
                 )
         except KeyError:
-            impl = self.impl.open(fullname, update_links, read_only, format, password, write_res_password,
-                                  ignore_read_only_recommended, origin, delimiter, editable, notify, converter,
-                                  add_to_mru, local, corrupt_load)
+            impl = self.impl.open(
+                fullname,
+                update_links,
+                read_only,
+                format,
+                password,
+                write_res_password,
+                ignore_read_only_recommended,
+                origin,
+                delimiter,
+                editable,
+                notify,
+                converter,
+                add_to_mru,
+                local,
+                corrupt_load,
+            )
         return Book(impl=impl)
 
 
@@ -4480,6 +4869,7 @@ class Sheets(Collection):
 
     .. versionadded:: 0.9.0
     """
+
     _wrap = Sheet
 
     @property
@@ -4529,31 +4919,39 @@ class Sheets(Collection):
 
 
 class ActiveEngineApps(Apps):
-
     def __init__(self):
         pass
 
-    _name = 'Apps'
+    _name = "Apps"
 
     @property
     def impl(self):
         if engines.active is None:
-            if not (sys.platform.startswith('darwin') or sys.platform.startswith('win')):
-                raise XlwingsError('Your platform only supports the instantiation via xw.Book(json=...)')
-            elif sys.platform.startswith('darwin'):
-                raise XlwingsError('Make sure to have "appscript" and "psutil", dependencies of xlwings, installed.')
-            elif sys.platform.startswith('win'):
-                raise XlwingsError('Make sure to have "pywin32", a dependency of xlwings, installed.')
+            if not (
+                sys.platform.startswith("darwin") or sys.platform.startswith("win")
+            ):
+                raise XlwingsError(
+                    "Your platform only supports the "
+                    "instantiation via xw.Book(json=...)"
+                )
+            elif sys.platform.startswith("darwin"):
+                raise XlwingsError(
+                    'Make sure to have "appscript" and "psutil", '
+                    "dependencies of xlwings, installed."
+                )
+            elif sys.platform.startswith("win"):
+                raise XlwingsError(
+                    'Make sure to have "pywin32", a dependency of xlwings, installed.'
+                )
         return engines.active.apps.impl
 
 
 class ActiveAppBooks(Books):
-
     def __init__(self):
         pass
 
     # override class name which appears in repr
-    _name = 'Books'
+    _name = "Books"
 
     @property
     def impl(self):
@@ -4561,12 +4959,11 @@ class ActiveAppBooks(Books):
 
 
 class ActiveBookSheets(Sheets):
-
     def __init__(self):
         pass
 
     # override class name which appears in repr
-    _name = 'Sheets'
+    _name = "Sheets"
 
     @property
     def impl(self):

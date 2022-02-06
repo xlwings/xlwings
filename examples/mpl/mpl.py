@@ -7,6 +7,7 @@ License: BSD 3-clause (see LICENSE.txt for details)
 import numpy as np
 import matplotlib.pyplot as plt
 import xlwings as xw
+
 try:
     import seaborn
 except ImportError:
@@ -30,8 +31,8 @@ def main():
     sht = xw.Book.caller().sheets[0]
 
     # Get the constant from Excel
-    const = sht.range('B1').value
+    const = sht.range("B1").value
 
     # Get the figure and show it in Excel
     fig = get_figure(const)
-    pic = sht.pictures.add(fig, name='MyStreamplot', update=True)
+    pic = sht.pictures.add(fig, name="MyStreamplot", update=True)

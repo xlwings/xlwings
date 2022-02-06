@@ -16,4 +16,4 @@ from .embedded_code import runpython_embedded_code, dump_embedded_code
 from .reports import Markdown, MarkdownStyle
 from .module_permissions import verify_execute_permission
 
-LicenseHandler.validate_license('pro')
+LicenseHandler.validate_license("pro")

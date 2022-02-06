@@ -8,20 +8,22 @@ if pd:
     import numpy as np
     from . import Converter, Options
 
-
     def write_value(cls, value, options):
-        index = options.get('index', True)
-        header = options.get('header', True)
-        assign_empty_index_names = options.get('assign_empty_index_names', False)
+        index = options.get("index", True)
+        header = options.get("header", True)
+        assign_empty_index_names = options.get("assign_empty_index_names", False)
 
         index_names = value.index.names
         if assign_empty_index_names:
-            # Useful when you want to have your DataFrame formatted as an Excel table which requires
-            # column header names. Since Excel tables only allow an empty space once, we'll generate multiple empty
-            # spaces for each column.
-            index_names = [f' ' * (i + 1) if name is None else name for i, name in enumerate(index_names)]
+            # Useful when you want to have your DataFrame formatted as an Excel table
+            # which requires column header names. Since Excel tables only allow an empty
+            # space once, we'll generate multiple empty spaces for each column.
+            index_names = [
+                f" " * (i + 1) if name is None else name
+                for i, name in enumerate(index_names)
+            ]
         else:
-            index_names = ['' if name is None else name for name in index_names]
+            index_names = ["" if name is None else name for name in index_names]
         index_levels = len(index_names)
 
         if index:
@@ -42,7 +44,7 @@ if pd:
                 # Move index names right above the index
                 if index:
                     for c in columns[:-1]:
-                        c[:index_levels] = [''] * index_levels
+                        c[:index_levels] = [""] * index_levels
                     columns[-1][:index_levels] = index_names
             else:
                 columns = [value.columns.tolist()]
@@ -60,19 +62,16 @@ if pd:
 
         @classmethod
         def base_reader(cls, options):
-            return (
-                super(PandasDataFrameConverter, cls).base_reader(
-                    Options(options)
-                    .override(ndim=2)
-                )
+            return super(PandasDataFrameConverter, cls).base_reader(
+                Options(options).override(ndim=2)
             )
 
         @classmethod
         def read_value(cls, value, options):
-            index = options.get('index', 1)
-            header = options.get('header', 1)
-            dtype = options.get('dtype', None)
-            copy = options.get('copy', False)
+            index = options.get("index", 1)
+            header = options.get("header", 1)
+            dtype = options.get("dtype", None)
+            copy = options.get("copy", False)
 
             # build dataframe with only columns (no index) but correct header
             if header == 1:
@@ -88,12 +87,14 @@ if pd:
             # and renaming the index according to the name in the last row
             if index > 0:
                 # rename uniquely the index columns to some never used name for column
-                # we do not use the column name directly as it would cause issues if several
-                # columns have the same name
+                # we do not use the column name directly as it would cause issues if
+                # several columns have the same name
                 df.columns = pd.Index(range(len(df.columns)))
                 df.set_index(list(df.columns)[:index], inplace=True)
 
-                df.index.names = pd.Index(value[header - 1][:index] if header else [None]*index)
+                df.index.names = pd.Index(
+                    value[header - 1][:index] if header else [None] * index
+                )
 
                 if header:
                     df.columns = columns[index:]
@@ -106,9 +107,7 @@ if pd:
         def write_value(cls, value, options):
             return write_value(cls, value, options)
 
-
-    PandasDataFrameConverter.register(pd.DataFrame, 'df')
-
+    PandasDataFrameConverter.register(pd.DataFrame, "df")
 
     class PandasSeriesConverter(Converter):
 
@@ -116,10 +115,10 @@ if pd:
 
         @classmethod
         def read_value(cls, value, options):
-            index = options.get('index', 1)
-            header = options.get('header', True)
-            dtype = options.get('dtype', None)
-            copy = options.get('copy', False)
+            index = options.get("index", 1)
+            header = options.get("header", True)
+            dtype = options.get("dtype", None)
+            copy = options.get("copy", False)
 
             if header:
                 columns = value[0]
@@ -135,7 +134,9 @@ if pd:
             if index:
                 df.columns = pd.Index(range(len(df.columns)))
                 df.set_index(list(df.columns)[:index], inplace=True)
-                df.index.names = pd.Index(value[header - 1][:index] if header else [None] * index)
+                df.index.names = pd.Index(
+                    value[header - 1][:index] if header else [None] * index
+                )
 
             if header:
                 df.columns = columns[index:]
@@ -157,9 +158,8 @@ if pd:
             else:
                 default_header = True
 
-            options['header'] = options.get('header', default_header)
+            options["header"] = options.get("header", default_header)
             values = write_value(cls, value.to_frame(), options)
             return values
-
 
     PandasSeriesConverter.register(pd.Series)

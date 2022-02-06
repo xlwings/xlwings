@@ -33,7 +33,7 @@ class TestApps(TestBase):
 
 class TestApp(TestBase):
     def test_activate(self):
-        if sys.platform.startswith('win') and self.app1.version.major > 14:
+        if sys.platform.startswith("win") and self.app1.version.major > 14:
             # Excel >= 2013 on Win has issues with activating hidden apps correctly
             # over two instances
             with self.assertRaises(Exception):
@@ -60,6 +60,7 @@ class TestApp(TestBase):
         n_apps = len(xw.apps)
         app.kill()
         import time
+
         time.sleep(0.5)
         self.assertEqual(n_apps - 1, len(xw.apps))
 
@@ -85,7 +86,9 @@ class TestApp(TestBase):
         self.assertTrue(self.app1.enable_events)
 
     # TODO: refactor test to catch exception on macOS
-    @unittest.skipIf(sys.platform.startswith('darwin'), 'app.interactive is not supported on macOS')
+    @unittest.skipIf(
+        sys.platform.startswith("darwin"), "app.interactive is not supported on macOS"
+    )
     def test_interactive(self):
         self.app1.interactive = False
         self.assertEqual(self.app1.interactive, False)
@@ -95,29 +98,30 @@ class TestApp(TestBase):
 
     def test_calculation_calculate(self):
         sht = self.wb1.sheets[0]
-        sht.range('A1').value = 2
-        sht.range('B1').formula = '=A1 * 2'
+        sht.range("A1").value = 2
+        sht.range("B1").formula = "=A1 * 2"
 
-        self.app1.calculation = 'manual'
-        sht.range('A1').value = 4
-        self.assertEqual(sht.range('B1').value, 4)
+        self.app1.calculation = "manual"
+        sht.range("A1").value = 4
+        self.assertEqual(sht.range("B1").value, 4)
 
-        self.app1.calculation = 'automatic'
-        self.app1.calculate()  # This is needed on Mac Excel 2016 but not on Mac Excel 2011 (changed behaviour)
-        self.assertEqual(sht.range('B1').value, 8)
+        self.app1.calculation = "automatic"
+        # This is needed on Mac Excel 2016 but not onMac Excel 2011 (changed behaviour)
+        self.app1.calculate()
+        self.assertEqual(sht.range("B1").value, 8)
 
-        sht.range('A1').value = 2
-        self.assertEqual(sht.range('B1').value, 4)
+        sht.range("A1").value = 2
+        self.assertEqual(sht.range("B1").value, 4)
 
     def test_calculation(self):
-        self.app1.calculation = 'automatic'
-        self.assertEqual(self.app1.calculation, 'automatic')
+        self.app1.calculation = "automatic"
+        self.assertEqual(self.app1.calculation, "automatic")
 
-        self.app1.calculation = 'manual'
-        self.assertEqual(self.app1.calculation, 'manual')
+        self.app1.calculation = "manual"
+        self.assertEqual(self.app1.calculation, "manual")
 
-        self.app1.calculation = 'semiautomatic'
-        self.assertEqual(self.app1.calculation, 'semiautomatic')
+        self.app1.calculation = "semiautomatic"
+        self.assertEqual(self.app1.calculation, "semiautomatic")
 
     def test_version(self):
         self.assertTrue(self.app1.version.major > 0)
@@ -140,7 +144,7 @@ class TestApp(TestBase):
         wb5.close()
 
     def test_selection(self):
-        self.assertEqual(self.app1.selection.address, '$A$1')
+        self.assertEqual(self.app1.selection.address, "$A$1")
 
     def test_books(self):
         self.assertEqual(len(self.app2.books), 2)
@@ -154,9 +158,9 @@ class TestApp(TestBase):
         self.assertEqual(len(self.app1.books), n_books + 1)
 
     def test_macro(self):
-        wb = self.app1.books.open(os.path.join(this_dir, 'macro book.xlsm'))
-        test1 = self.app1.macro('Module1.Test1')
-        res1 = test1('Test1a', 'Test1b')
+        wb = self.app1.books.open(os.path.join(this_dir, "macro book.xlsm"))
+        test1 = self.app1.macro("Module1.Test1")
+        res1 = test1("Test1a", "Test1b")
         self.assertEqual(res1, 1)
 
 
@@ -179,5 +183,5 @@ class TestAppPropertiesContextManager(unittest.TestCase):
         book.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
