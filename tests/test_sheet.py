@@ -103,6 +103,13 @@ class TestSheet(TestBase):
         self.wb1.sheets['Sheet2'].clear_contents()
         self.assertEqual(self.wb1.sheets['Sheet2'].range('G10').value, None)
 
+    def test_clear_formats(self):
+        self.wb1.sheets['Sheet2'].range('G10').value = 22
+        self.wb1.sheets['Sheet2'].range('G10').color = (255, 0, 0)
+        self.wb1.sheets['Sheet2'].clear_formats()
+        self.assertEqual(self.wb1.sheets['Sheet2'].range('G10').value, 22)
+        self.assertEqual(self.wb1.sheets['Sheet2'].range('G10').color, None)
+
     def test_clear(self):
         self.wb1.sheets['Sheet2'].range('G10').value = 22
         self.wb1.sheets['Sheet2'].range('G10').color = (255, 255, 255)

@@ -142,6 +142,13 @@ class TestRangeAttributes(TestBase):
         self.wb1.sheets[0].range('G1').clear_contents()
         self.assertEqual(self.wb1.sheets[0].range('G1').value, None)
 
+    def test_clear_formats(self):
+        self.wb1.sheets[0].range('G1').value = 22
+        self.wb1.sheets[0].range('G1').color = (255, 0, 0)
+        self.wb1.sheets[0].range('G1').clear_formats()
+        self.assertEqual(self.wb1.sheets[0].range('G1').value, 22)
+        self.assertEqual(self.wb1.sheets[0].range('G1').color, None)
+
     def test_clear(self):
         self.wb1.sheets[0].range('G1').value = 22
         self.wb1.sheets[0].range('G1').clear()

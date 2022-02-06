@@ -1229,6 +1229,13 @@ class Sheet:
         """Clears the content of the whole sheet but leaves the formatting."""
         return self.impl.clear_contents()
 
+    def clear_formats(self):
+        """Clears the format of the whole sheet but leaves the content.
+
+        .. versionadded:: 0.26.2
+        """
+        return self.impl.clear_formats()
+
     def clear(self):
         """Clears the content and formatting of the whole sheet."""
         return self.impl.clear()
@@ -1688,6 +1695,13 @@ class Range:
     def clear_contents(self):
         """Clears the content of a Range but leaves the formatting."""
         return self.impl.clear_contents()
+
+    def clear_formats(self):
+        """Clears the format of a Range but leaves the content.
+
+        .. versionadded:: 0.26.2
+        """
+        return self.impl.clear_formats()
 
     def clear(self):
         """Clears the content and the formatting of a Range."""
