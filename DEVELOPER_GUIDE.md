@@ -57,7 +57,7 @@ Now you can set breakpoints in the C++ code in VS where code execution will stop
 
 ## Black formatting
 
-This repo uses black for code formatting, you can see the configuration under `.github/workflows/black.yml`.
+This repo uses black for code formatting, you can see the configuration under `.github/workflows/main.yml`.
 
 ## Tests
 

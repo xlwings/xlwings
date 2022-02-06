@@ -1,7 +1,7 @@
 name: Build Pipeline
 
 on:
-  # Run on all pushed commits and when a new release is created
+  # Run on all pushed commits and PRs and when a new release is created
   # Prevents duplicated pipeline runs as a release also pushes a tag
   push:
     branches:
@@ -11,8 +11,20 @@ on:
   release:
     types:
       - created
+  pull_request:
+    branches:
+    - '**'
 
 jobs:
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: psf/black@stable
+        with:
+          options: "--check --diff --color --extend-exclude=xlwings/mistune --target-version=py37"
+
   build:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     # TODO: upgrade to windows-latest, i.e., windows-2022
