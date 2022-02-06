@@ -13,7 +13,14 @@ from appscript import k as kw, mactypes, its
 from appscript.reference import CommandError
 
 from .constants import ColorIndex
-from .utils import int_to_rgb, np_datetime_to_datetime, col_name, VersionNumber, fullname_url_to_local_path, read_config_sheet
+from .utils import (
+    int_to_rgb,
+    np_datetime_to_datetime,
+    col_name,
+    VersionNumber,
+    fullname_url_to_local_path,
+    read_config_sheet,
+)
 import xlwings
 from . import mac_dict, utils
 import xlwings
@@ -39,7 +46,7 @@ if np:
 
 
 def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
-    if value == '' or value == kw.missing_value:
+    if value == "" or value == kw.missing_value:
         return empty_as
     if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:
         value = datetime_builder(
@@ -50,7 +57,7 @@ def _clean_value_data_element(value, datetime_builder, empty_as, number_builder)
             minute=value.minute,
             second=value.second,
             microsecond=value.microsecond,
-            tzinfo=None
+            tzinfo=None,
         )
     elif number_builder is not None and type(value) == float:
         value = number_builder(value)
@@ -86,28 +93,38 @@ class Engine:
             # Make datetime timezone naive
             return x.replace(tzinfo=None)
         elif isinstance(x, int):
-            # appscript packs integers larger than SInt32 but smaller than SInt64 as typeSInt64, and integers
-            # larger than SInt64 as typeIEEE64BitFloatingPoint. Excel silently ignores typeSInt64. (GH 227)
+            # appscript packs integers larger than SInt32 but smaller than SInt64 as
+            # typeSInt64, and integers larger than SInt64 as typeIEEE64BitFloatingPoint.
+            # Excel silently ignores typeSInt64. (GH 227)
             return float(x)
         return x
 
     @staticmethod
     def clean_value_data(data, datetime_builder, empty_as, number_builder):
-        return [[_clean_value_data_element(c, datetime_builder, empty_as, number_builder) for c in row] for row in data]
+        return [
+            [
+                _clean_value_data_element(c, datetime_builder, empty_as, number_builder)
+                for c in row
+            ]
+            for row in data
+        ]
 
 
 engine = Engine()
 
 
 class Apps:
-
     def _iter_excel_instances(self):
-        asn = subprocess.check_output(['lsappinfo', 'visibleprocesslist', '-includehidden']).decode('utf-8')
-        for asn in asn.split(' '):
+        asn = subprocess.check_output(
+            ["lsappinfo", "visibleprocesslist", "-includehidden"]
+        ).decode("utf-8")
+        for asn in asn.split(" "):
             if "Microsoft_Excel" in asn:
-                pid_info = subprocess.check_output(['lsappinfo', 'info', '-only', 'pid', asn]).decode('utf-8')
+                pid_info = subprocess.check_output(
+                    ["lsappinfo", "info", "-only", "pid", asn]
+                ).decode("utf-8")
                 if pid_info != '"pid"=[ NULL ] \n':
-                    yield int(pid_info.split('=')[1])
+                    yield int(pid_info.split("=")[1])
 
     def keys(self):
         return list(self._iter_excel_instances())
@@ -124,15 +141,19 @@ class Apps:
 
     def __getitem__(self, pid):
         if pid not in self.keys():
-            raise KeyError('Could not find an Excel instance with this PID.')
+            raise KeyError("Could not find an Excel instance with this PID.")
         return App(xl=pid)
 
 
 class App:
-
     def __init__(self, spec=None, add_book=None, xl=None, visible=True):
         if xl is None:
-            self.xl = appscript.app(name=spec or 'Microsoft Excel', newinstance=True, terms=mac_dict, hide=not visible)
+            self.xl = appscript.app(
+                name=spec or "Microsoft Excel",
+                newinstance=True,
+                terms=mac_dict,
+                hide=not visible,
+            )
             if visible:
                 self.activate()  # Makes it behave like on Windows
         elif isinstance(xl, int):
@@ -150,8 +171,12 @@ class App:
 
     @property
     def pid(self):
-        data = self.xl.AS_appdata.target().addressdesc.coerce(aem.kae.typeKernelProcessID).data
-        pid, = struct.unpack('i', data)
+        data = (
+            self.xl.AS_appdata.target()
+            .addressdesc.coerce(aem.kae.typeKernelProcessID)
+            .data
+        )
+        (pid,) = struct.unpack("i", data)
         return pid
 
     @property
@@ -168,22 +193,36 @@ class App:
             return None
 
     def activate(self, steal_focus=False):
-        asn = subprocess.check_output(['lsappinfo', 'visibleprocesslist', '-includehidden']).decode('utf-8')
-        frontmost_asn = asn.split(' ')[0]
-        pid_info_frontmost = subprocess.check_output(['lsappinfo', 'info', '-only', 'pid', frontmost_asn]).decode('utf-8')
-        pid_frontmost = int(pid_info_frontmost.split('=')[1])
+        asn = subprocess.check_output(
+            ["lsappinfo", "visibleprocesslist", "-includehidden"]
+        ).decode("utf-8")
+        frontmost_asn = asn.split(" ")[0]
+        pid_info_frontmost = subprocess.check_output(
+            ["lsappinfo", "info", "-only", "pid", frontmost_asn]
+        ).decode("utf-8")
+        pid_frontmost = int(pid_info_frontmost.split("=")[1])
 
-        appscript.app('System Events').processes[its.unix_id == self.pid].frontmost.set(True)
+        appscript.app("System Events").processes[its.unix_id == self.pid].frontmost.set(
+            True
+        )
         if not steal_focus:
-            appscript.app('System Events').processes[its.unix_id == pid_frontmost].frontmost.set(True)
+            appscript.app("System Events").processes[
+                its.unix_id == pid_frontmost
+            ].frontmost.set(True)
 
     @property
     def visible(self):
-        return appscript.app('System Events').processes[its.unix_id == self.pid].visible.get()[0]
+        return (
+            appscript.app("System Events")
+            .processes[its.unix_id == self.pid]
+            .visible.get()[0]
+        )
 
     @visible.setter
     def visible(self, visible):
-        appscript.app('System Events').processes[its.unix_id == self.pid].visible.set(visible)
+        appscript.app("System Events").processes[its.unix_id == self.pid].visible.set(
+            visible
+        )
 
     def quit(self):
         self.xl.quit(saving=kw.no)
@@ -218,12 +257,16 @@ class App:
     @property
     def interactive(self):
         # TODO: replace with specific error when Exceptions are refactored
-        raise xlwings.XlwingsError("Getting or setting 'app.interactive' isn't supported on macOS.")
+        raise xlwings.XlwingsError(
+            "Getting or setting 'app.interactive' isn't supported on macOS."
+        )
 
     @interactive.setter
     def interactive(self, value):
         # TODO: replace with specific error when Exceptions are refactored
-        raise xlwings.XlwingsError("Getting or setting 'app.interactive' isn't supported on macOS.")
+        raise xlwings.XlwingsError(
+            "Getting or setting 'app.interactive' isn't supported on macOS."
+        )
 
     @property
     def startup_path(self):
@@ -252,7 +295,7 @@ class App:
         return None
 
     def run(self, macro, args):
-        kwargs = {'arg{0}'.format(i): n for i, n in enumerate(args, 1)}
+        kwargs = {"arg{0}".format(i): n for i, n in enumerate(args, 1)}
         return self.xl.run_VB_macro(macro, **kwargs)
 
     @property
@@ -265,7 +308,7 @@ class App:
 
     @property
     def cut_copy_mode(self):
-        modes = {kw.cut_mode: 'cut', kw.copy_mode: 'copy'}
+        modes = {kw.cut_mode: "cut", kw.copy_mode: "copy"}
         return modes.get(self.xl.cut_copy_mode.get())
 
     @cut_copy_mode.setter
@@ -274,7 +317,6 @@ class App:
 
 
 class Books:
-
     def __init__(self, app):
         self.app = app
 
@@ -305,18 +347,35 @@ class Books:
         wb = Book(self.app, xl.name.get())
         return wb
 
-    def open(self, fullname, update_links=None, read_only=None, format=None, password=None, write_res_password=None,
-             ignore_read_only_recommended=None, origin=None, delimiter=None, editable=None, notify=None, converter=None,
-             add_to_mru=None, local=None, corrupt_load=None):
-        # TODO: format and origin currently require a native appscript keyword, read_only doesn't seem to work
+    def open(
+        self,
+        fullname,
+        update_links=None,
+        read_only=None,
+        format=None,
+        password=None,
+        write_res_password=None,
+        ignore_read_only_recommended=None,
+        origin=None,
+        delimiter=None,
+        editable=None,
+        notify=None,
+        converter=None,
+        add_to_mru=None,
+        local=None,
+        corrupt_load=None,
+    ):
+        # TODO: format and origin currently require a native appscript keyword,
+        #  read_only doesn't seem to work
         # Unsupported params
         if local is not None:
             # TODO: replace with specific error when Exceptions are refactored
-            raise xlwings.XlwingsError('local is not supported on macOS')
+            raise xlwings.XlwingsError("local is not supported on macOS")
         if corrupt_load is not None:
             # TODO: replace with specific error when Exceptions are refactored
-            raise xlwings.XlwingsError('corrupt_load is not supported on macOS')
-        # update_links: on Windows only constants 0 and 3 seem to be supported in this context
+            raise xlwings.XlwingsError("corrupt_load is not supported on macOS")
+        # update_links: on Windows only constants 0 and 3 seem to be supported in
+        # this context
         if update_links:
             update_links = kw.update_remote_and_external_links
         else:
@@ -324,11 +383,22 @@ class Books:
         if self.app.visible:
             self.app.activate()
         filename = os.path.basename(fullname)
-        self.app.xl.open_workbook(workbook_file_name=fullname, update_links=update_links, read_only=read_only,
-                                  format=format, password=password, write_reserved_password=write_res_password,
-                                  ignore_read_only_recommended=ignore_read_only_recommended,
-                                  origin=origin, delimiter=delimiter, editable=editable, notify=notify,
-                                  converter=converter, add_to_mru=add_to_mru, timeout=-1)
+        self.app.xl.open_workbook(
+            workbook_file_name=fullname,
+            update_links=update_links,
+            read_only=read_only,
+            format=format,
+            password=password,
+            write_reserved_password=write_res_password,
+            ignore_read_only_recommended=ignore_read_only_recommended,
+            origin=origin,
+            delimiter=delimiter,
+            editable=editable,
+            notify=notify,
+            converter=converter,
+            add_to_mru=add_to_mru,
+            timeout=-1,
+        )
         wb = Book(self.app, filename)
         return wb
 
@@ -364,42 +434,64 @@ class Book:
     def save(self, path, password):
         saved_path = self.xl.properties().get(kw.path)
         source_ext = os.path.splitext(self.name)[1] if saved_path else None
-        target_ext = os.path.splitext(path)[1] if path else '.xlsx'
+        target_ext = os.path.splitext(path)[1] if path else ".xlsx"
         if saved_path and source_ext == target_ext:
             file_format = self.xl.properties().get(kw.file_format)
         else:
-            ext_to_file_format = {'.xlsx': kw.Excel_XML_file_format,
-                                  '.xlsm': kw.macro_enabled_XML_file_format,
-                                  '.xlsb': kw.Excel_binary_file_format,
-                                  '.xltm': kw.macro_enabled_template_file_format,
-                                  '.xltx': kw.template_file_format,
-                                  '.xlam': kw.add_in_file_format,
-                                  '.xls': kw.Excel98to2004_file_format,
-                                  '.xlt': kw.Excel98to2004_template_file_format,
-                                  '.xla': kw.Excel98to2004_add_in_file_format}
+            ext_to_file_format = {
+                ".xlsx": kw.Excel_XML_file_format,
+                ".xlsm": kw.macro_enabled_XML_file_format,
+                ".xlsb": kw.Excel_binary_file_format,
+                ".xltm": kw.macro_enabled_template_file_format,
+                ".xltx": kw.template_file_format,
+                ".xlam": kw.add_in_file_format,
+                ".xls": kw.Excel98to2004_file_format,
+                ".xlt": kw.Excel98to2004_template_file_format,
+                ".xla": kw.Excel98to2004_add_in_file_format,
+            }
 
             file_format = ext_to_file_format[target_ext]
-        if (saved_path != '') and (path is None):
+        if (saved_path != "") and (path is None):
             # Previously saved: Save under existing name
             self.xl.save(timeout=-1)
-        elif (saved_path != '') and (path is not None) and (os.path.split(path)[0] == ''):
+        elif (
+            (saved_path != "") and (path is not None) and (os.path.split(path)[0] == "")
+        ):
             # Save existing book under new name in cwd if no path has been provided
             save_as_name = path
             path = os.path.join(os.getcwd(), path)
             hfs_path = posix_to_hfs_path(os.path.realpath(path))
-            self.xl.save_workbook_as(filename=hfs_path, overwrite=True, file_format=file_format, timeout=-1, password=password)
+            self.xl.save_workbook_as(
+                filename=hfs_path,
+                overwrite=True,
+                file_format=file_format,
+                timeout=-1,
+                password=password,
+            )
             self.xl = self.app.xl.workbooks[save_as_name]
-        elif (saved_path == '') and (path is None):
+        elif (saved_path == "") and (path is None):
             # Previously unsaved: Save under current name in current working directory
-            save_as_name = self.xl.name.get() + '.xlsx'
+            save_as_name = self.xl.name.get() + ".xlsx"
             path = os.path.join(os.getcwd(), save_as_name)
             hfs_path = posix_to_hfs_path(os.path.realpath(path))
-            self.xl.save_workbook_as(filename=hfs_path, overwrite=True, file_format=file_format, timeout=-1, password=password)
+            self.xl.save_workbook_as(
+                filename=hfs_path,
+                overwrite=True,
+                file_format=file_format,
+                timeout=-1,
+                password=password,
+            )
             self.xl = self.app.xl.workbooks[save_as_name]
         elif path:
             # Save under new name/location
             hfs_path = posix_to_hfs_path(os.path.realpath(path))
-            self.xl.save_workbook_as(filename=hfs_path, overwrite=True, file_format=file_format, timeout=-1, password=password)
+            self.xl.save_workbook_as(
+                filename=hfs_path,
+                overwrite=True,
+                file_format=file_format,
+                timeout=-1,
+                password=password,
+            )
             self.xl = self.app.xl.workbooks[os.path.basename(path)]
 
     @property
@@ -408,13 +500,15 @@ class Book:
         self.app.display_alerts = False
         # This causes a pop-up if there's a pw protected sheet, see #1377
         path = self.xl.properties().get(kw.full_name)
-        if '://' in path:
+        if "://" in path:
             config = read_config_sheet(xlwings.Book(impl=self))
             self.app.display_alerts = display_alerts
-            return fullname_url_to_local_path(url=path,
-                                              sheet_onedrive_consumer_config=config.get('ONEDRIVE_CONSUMER_MAC'),
-                                              sheet_onedrive_commercial_config=config.get('ONEDRIVE_COMMERCIAL_MAC'),
-                                              sheet_sharepoint_config=config.get('SHAREPOINT_MAC'))
+            return fullname_url_to_local_path(
+                url=path,
+                sheet_onedrive_consumer_config=config.get("ONEDRIVE_CONSUMER_MAC"),
+                sheet_onedrive_commercial_config=config.get("ONEDRIVE_COMMERCIAL_MAC"),
+                sheet_sharepoint_config=config.get("SHAREPOINT_MAC"),
+            )
         else:
             self.app.display_alerts = display_alerts
             return path
@@ -436,7 +530,6 @@ class Book:
 
 
 class Sheets:
-
     def __init__(self, workbook):
         self.workbook = workbook
 
@@ -470,7 +563,6 @@ class Sheets:
 
 
 class Sheet:
-
     def __init__(self, workbook, name_or_index):
         self.workbook = workbook
         self.xl = workbook.xl.worksheets[name_or_index]
@@ -504,7 +596,10 @@ class Sheet:
         if isinstance(arg1, tuple):
             if len(arg1) == 2:
                 if 0 in arg1:
-                    raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
+                    raise IndexError(
+                        "Attempted to access 0-based Range. "
+                        "xlwings/Excel Ranges are 1-based."
+                    )
                 row1 = arg1[0]
                 col1 = arg1[1]
                 address1 = self.xl.rows[row1].columns[col1].get_address()
@@ -517,13 +612,16 @@ class Sheet:
             col1 = min(arg1.column, arg2.column)
             address1 = self.xl.rows[row1].columns[col1].get_address()
         elif isinstance(arg1, str):
-            address1 = arg1.split(':')[0]
+            address1 = arg1.split(":")[0]
         else:
             raise ValueError("Invalid parameters")
 
         if isinstance(arg2, tuple):
             if 0 in arg2:
-                raise IndexError("Attempted to access 0-based Range. xlwings/Excel Ranges are 1-based.")
+                raise IndexError(
+                    "Attempted to access 0-based Range. "
+                    "xlwings/Excel Ranges are 1-based."
+                )
             row2 = arg2[0]
             col2 = arg2[1]
             address2 = self.xl.rows[row2].columns[col2].get_address()
@@ -534,8 +632,8 @@ class Sheet:
         elif isinstance(arg2, str):
             address2 = arg2
         elif arg2 is None:
-            if isinstance(arg1, str) and len(arg1.split(':')) == 2:
-                address2 = arg1.split(':')[1]
+            if isinstance(arg1, str) and len(arg1.split(":")) == 2:
+                address2 = arg1.split(":")[1]
             else:
                 return Range(self, "{0}".format(address1))
         else:
@@ -545,7 +643,9 @@ class Sheet:
 
     @property
     def cells(self):
-        return self.range((1, 1), (self.xl.count(each=kw.row), self.xl.count(each=kw.column)))
+        return self.range(
+            (1, 1), (self.xl.count(each=kw.row), self.xl.count(each=kw.column))
+        )
 
     def activate(self):
         self.xl.activate_object()
@@ -568,9 +668,9 @@ class Sheet:
         address = self.range((1, 1), (num_rows, num_columns)).address
         alerts_state = self.book.app.screen_updating
         self.book.app.screen_updating = False
-        if axis == 'rows' or axis == 'r':
+        if axis == "rows" or axis == "r":
             self.xl.rows[address].autofit()
-        elif axis == 'columns' or axis == 'c':
+        elif axis == "columns" or axis == "c":
             self.xl.columns[address].autofit()
         elif axis is None:
             self.xl.rows[address].autofit()
@@ -622,18 +722,23 @@ class Sheet:
     def page_setup(self):
         return PageSetup(self, self.xl.page_setup_object)
 
-class Range:
 
+class Range:
     def __init__(self, sheet, address):
         self.sheet = sheet
         if isinstance(address, tuple):
             self._coords = address
             row, col, nrows, ncols = address
             if nrows and ncols:
-                self.xl = sheet.xl.cells["%s:%s" % (
-                    sheet.xl.rows[row].columns[col].get_address(),
-                    sheet.xl.rows[row + nrows - 1].columns[col + ncols - 1].get_address(),
-                )]
+                self.xl = sheet.xl.cells[
+                    "%s:%s"
+                    % (
+                        sheet.xl.rows[row].columns[col].get_address(),
+                        sheet.xl.rows[row + nrows - 1]
+                        .columns[col + ncols - 1]
+                        .get_address(),
+                    )
+                ]
             else:
                 self.xl = None
         else:
@@ -647,7 +752,7 @@ class Range:
                 self.xl.first_row_index.get(),
                 self.xl.first_column_index.get(),
                 self.xl.count(each=kw.row),
-                self.xl.count(each=kw.column)
+                self.xl.count(each=kw.column),
             )
         return self._coords
 
@@ -809,7 +914,11 @@ class Range:
 
     def get_address(self, row_absolute, col_absolute, external):
         if self.xl is not None:
-            return self.xl.get_address(row_absolute=row_absolute, column_absolute=col_absolute, external=external)
+            return self.xl.get_address(
+                row_absolute=row_absolute,
+                column_absolute=col_absolute,
+                external=external,
+            )
 
     @property
     def address(self):
@@ -828,9 +937,9 @@ class Range:
             address = self.address
             alerts_state = self.sheet.book.app.screen_updating
             self.sheet.book.app.screen_updating = False
-            if axis == 'rows' or axis == 'r':
+            if axis == "rows" or axis == "r":
                 self.sheet.xl.rows[address].autofit()
-            elif axis == 'columns' or axis == 'c':
+            elif axis == "columns" or axis == "c":
                 self.sheet.xl.columns[address].autofit()
             elif axis is None:
                 self.sheet.xl.rows[address].autofit()
@@ -839,11 +948,11 @@ class Range:
 
     def insert(self, shift=None, copy_origin=None):
         # copy_origin is not supported on mac
-        shifts = {'down': kw.shift_down, 'right': kw.shift_to_right, None: None}
+        shifts = {"down": kw.shift_down, "right": kw.shift_to_right, None: None}
         self.xl.insert_into_range(shift=shifts[shift])
 
     def delete(self, shift=None):
-        shifts = {'up': kw.shift_up, 'left': kw.shift_to_left, None: None}
+        shifts = {"up": kw.shift_up, "left": kw.shift_to_left, None: None}
         self.xl.delete_range(shift=shifts[shift])
 
     def copy(self, destination=None):
@@ -863,7 +972,7 @@ class Range:
             "validation": kw.paste_validation,
             "values": kw.paste_values,
             "values_and_number_formats": kw.paste_values_and_number_formats,
-            None: None
+            None: None,
         }
 
         operations = {
@@ -871,10 +980,15 @@ class Range:
             "divide": kw.paste_special_operation_divide,
             "multiply": kw.paste_special_operation_multiply,
             "subtract": kw.paste_special_operation_subtract,
-            None: None
+            None: None,
         }
 
-        self.xl.paste_special(what=pastes[paste], operation=operations[operation], skip_blanks=skip_blanks, transpose=transpose)
+        self.xl.paste_special(
+            what=pastes[paste],
+            operation=operations[operation],
+            skip_blanks=skip_blanks,
+            transpose=transpose,
+        )
 
     @property
     def hyperlink(self):
@@ -885,13 +999,22 @@ class Range:
 
     def add_hyperlink(self, address, text_to_display=None, screen_tip=None):
         if self.xl is not None:
-            self.xl.make(at=self.xl, new=kw.hyperlink, with_properties={kw.address: address,
-                                                                        kw.text_to_display: text_to_display,
-                                                                        kw.screen_tip: screen_tip})
+            self.xl.make(
+                at=self.xl,
+                new=kw.hyperlink,
+                with_properties={
+                    kw.address: address,
+                    kw.text_to_display: text_to_display,
+                    kw.screen_tip: screen_tip,
+                },
+            )
 
     @property
     def color(self):
-        if not self.xl or self.xl.interior_object.color_index.get() == kw.color_index_none:
+        if (
+            not self.xl
+            or self.xl.interior_object.color_index.get() == kw.color_index_none
+        ):
             return None
         else:
             return tuple(self.xl.interior_object.color.get())
@@ -929,8 +1052,12 @@ class Range:
             row = int((arg1 - 1 - col) / self.shape[1])
             return self(1 + row, 1 + col)
         else:
-            return Range(self.sheet,
-                         self.sheet.xl.rows[self.row + arg1 - 1].columns[self.column + arg2 - 1].get_address())
+            return Range(
+                self.sheet,
+                self.sheet.xl.rows[self.row + arg1 - 1]
+                .columns[self.column + arg2 - 1]
+                .get_address(),
+            )
 
     @property
     def rows(self):
@@ -949,8 +1076,7 @@ class Range:
         row2 = row1 + self.shape[0] - 1
         sht = self.sheet
         return [
-            sht.range((row1, col + i), (row2, col + i))
-            for i in range(self.shape[1])
+            sht.range((row1, col + i), (row2, col + i)) for i in range(self.shape[1])
         ]
 
     def select(self):
@@ -995,18 +1121,21 @@ class Range:
     def note(self):
         try:
             # No easy way to check whether there's a comment like on Windows
-            return Note(parent=self, xl=self.xl.Excel_comment) if self.xl.Excel_comment.Excel_comment_text() else None
+            return (
+                Note(parent=self, xl=self.xl.Excel_comment)
+                if self.xl.Excel_comment.Excel_comment_text()
+                else None
+            )
         except appscript.reference.CommandError:
             return None
 
     def copy_picture(self, appearance, format):
-        _appearance = {'screen': kw.screen, 'printer': kw.printer}
-        _format = {'picture': kw.picture, 'bitmap': kw.bitmap}
-        self.xl.copy_picture(appearance=_appearance[appearance],
-                             format=_format[format])
+        _appearance = {"screen": kw.screen, "printer": kw.printer}
+        _format = {"picture": kw.picture, "bitmap": kw.bitmap}
+        self.xl.copy_picture(appearance=_appearance[appearance], format=_format[format])
 
     def to_png(self, path):
-        self.copy_picture(appearance='screen', format='bitmap')
+        self.copy_picture(appearance="screen", format="bitmap")
         im = ImageGrab.grabclipboard()
         im.save(path)
 
@@ -1015,7 +1144,6 @@ class Range:
 
 
 class Shape:
-
     def __init__(self, parent, key):
         self.parent = parent
         self.xl = parent.xl.shapes[key]
@@ -1080,12 +1208,18 @@ class Shape:
         self.xl.select()
 
     def scale_height(self, factor, relative_to_original_size, scale):
-        self.xl.scale_height(scale=scaling[scale], relative_to_original_size=relative_to_original_size,
-                             factor=factor)
+        self.xl.scale_height(
+            scale=scaling[scale],
+            relative_to_original_size=relative_to_original_size,
+            factor=factor,
+        )
 
     def scale_width(self, factor, relative_to_original_size, scale):
-        self.xl.scale_width(scale=scaling[scale], relative_to_original_size=relative_to_original_size,
-                            factor=factor)
+        self.xl.scale_width(
+            scale=scaling[scale],
+            relative_to_original_size=relative_to_original_size,
+            factor=factor,
+        )
 
     @property
     def text(self):
@@ -1194,12 +1328,22 @@ class Characters:
     def __getitem__(self, item):
         # TODO: This is broken with AppleScript and Excel 2016:
         # set bold of font object of (characters 5 thru 9 of range "A1") to true
-        # https://answers.microsoft.com/en-us/msoffice/forum/msoffice_excel-mso_mac-msoversion_other/applescript-and-excel-problem/6e5a50b1-6209-4fbf-91f4-6d6674f1e488
+        # https://answers.microsoft.com/en-us/msoffice/forum/
+        #  msoffice_excel-mso_mac-msoversion_other/applescript-and-excel-problem/
+        #  6e5a50b1-6209-4fbf-91f4-6d6674f1e488
         if isinstance(item, slice):
-            return Characters(parent=self.parent, xl=self.xl[item.start + 1 if item.start else None
-                                                             :item.stop if item.stop else len(self.text)])
+            return Characters(
+                parent=self.parent,
+                xl=self.xl[
+                    item.start + 1
+                    if item.start
+                    else None : item.stop
+                    if item.stop
+                    else len(self.text)
+                ],
+            )
         else:
-            return Characters(parent=self.parent, xl=self.xl[item + 1:item + 1])
+            return Characters(parent=self.parent, xl=self.xl[item + 1 : item + 1])
 
 
 class PageSetup:
@@ -1221,7 +1365,7 @@ class PageSetup:
 
     @print_area.setter
     def print_area(self, value):
-        self.xl.print_area.set('' if value is None else value)
+        self.xl.print_area.set("" if value is None else value)
 
 
 class Note:
@@ -1245,7 +1389,6 @@ class Note:
 
 
 class Collection:
-
     def __init__(self, parent):
         self.parent = parent
         self.xl = getattr(self.parent.xl, self._attr)
@@ -1397,34 +1540,44 @@ class Table:
     def resize(self, range):
         self.xl.resize(range=range)
 
+
 class Tables(Collection):
 
-    _attr = 'list_objects'
+    _attr = "list_objects"
     _kw = kw.list_object
     _wrap = Table
 
-    def add(self, source_type=None, source=None, link_source=None, has_headers=None, destination=None,
-            table_style_name=None):
-        header_row = {True: kw.header_yes,
-                      False: kw.header_no,
-                      'guess': kw.header_guess}
+    def add(
+        self,
+        source_type=None,
+        source=None,
+        link_source=None,
+        has_headers=None,
+        destination=None,
+        table_style_name=None,
+    ):
+        header_row = {
+            True: kw.header_yes,
+            False: kw.header_no,
+            "guess": kw.header_guess,
+        }
         sheet_index = self.parent.xl.entry_index.get()
         return Table(
-            self.parent, self.parent.xl.make(
+            self.parent,
+            self.parent.xl.make(
                 at=self.parent.book.xl.sheets[sheet_index],
                 new=kw.list_object,
                 with_properties={
                     kw.source_type: kw.src_range,
                     kw.range_object: source.api,
                     kw.header_row: header_row[has_headers],
-                    kw.table_style: table_style_name
-                }
-            ).name.get()
+                    kw.table_style: table_style_name,
+                },
+            ).name.get(),
         )
 
 
 class Chart:
-
     def __init__(self, parent, key):
         self.parent = parent
         if isinstance(parent, Sheet):
@@ -1520,7 +1673,9 @@ class Chart:
         #
         # Version 1
         # import uuid
-        # temp_path = posix_to_hfs_path(os.path.expanduser("~") + f"/Library/Containers/com.microsoft.Excel/Data/{uuid.uuid4()}.png")
+        # temp_path = posix_to_hfs_path(os.path.expanduser("~")
+        #                               + f"/Library/Containers/com.microsoft.Excel/"
+        #                                 f"Data/{uuid.uuid4()}.png")
         # self.xl.save_as(filename=temp_path)
         # shutil.copy2(temp_path, path)
         # try:
@@ -1538,28 +1693,28 @@ class Chart:
 
 class Charts(Collection):
 
-    _attr = 'chart_objects'
+    _attr = "chart_objects"
     _kw = kw.chart_object
     _wrap = Chart
 
     def add(self, left, top, width, height):
         sheet_index = self.parent.xl.entry_index.get()
         return Chart(
-            self.parent, self.parent.xl.make(
+            self.parent,
+            self.parent.xl.make(
                 at=self.parent.book.xl.sheets[sheet_index],
                 new=kw.chart_object,
                 with_properties={
                     kw.width: width,
                     kw.top: top,
                     kw.left_position: left,
-                    kw.height: height
-                }
-            ).name.get()
+                    kw.height: height,
+                },
+            ).name.get(),
         )
 
 
 class Picture:
-
     def __init__(self, parent, key):
         self.parent = parent
         self.xl = parent.xl.pictures[key]
@@ -1622,7 +1777,7 @@ class Picture:
 
 class Pictures(Collection):
 
-    _attr = 'pictures'
+    _attr = "pictures"
     _kw = kw.picture
     _wrap = Picture
 
@@ -1631,8 +1786,12 @@ class Pictures(Collection):
         version = VersionNumber(self.parent.book.app.version)
 
         if not link_to_file and version >= 15:
-            # Office 2016 for Mac is sandboxed. This path seems to work without the need of granting access explicitly
-            xlwings_picture = os.path.expanduser("~") + '/Library/Containers/com.microsoft.Excel/Data/xlwings_picture.png'
+            # Office 2016 for Mac is sandboxed. This path seems to work without the
+            # need of granting access explicitly.
+            xlwings_picture = (
+                os.path.expanduser("~")
+                + "/Library/Containers/com.microsoft.Excel/Data/xlwings_picture.png"
+            )
             shutil.copy2(filename, xlwings_picture)
             filename = xlwings_picture
 
@@ -1650,12 +1809,13 @@ class Pictures(Collection):
                     kw.height: height,
                     # Top and left: see below
                     kw.top: 0,
-                    kw.left_position: 0
-                }
-            ).name.get()
+                    kw.left_position: 0,
+                },
+            ).name.get(),
         )
 
-        # Top and left cause an issue in the make command above if they are not set to 0 when width & height are -1
+        # Top and left cause an issue in the make command above
+        # if they are not set to 0 when width & height are -1
         picture.top = top
         picture.left = left
 
@@ -1689,12 +1849,14 @@ class Names:
             return len(named_items)
 
     def add(self, name, refers_to):
-        return Name(self.parent, self.parent.xl.make(at=self.parent.xl,
-                                                     new=kw.named_item,
-                                                     with_properties={
-                                                         kw.references: refers_to,
-                                                         kw.name: name
-                                                     }))
+        return Name(
+            self.parent,
+            self.parent.xl.make(
+                at=self.parent.xl,
+                new=kw.named_item,
+                with_properties={kw.references: refers_to, kw.name: name},
+            ),
+        )
 
 
 class Name:
@@ -1731,7 +1893,7 @@ class Name:
 
 class Shapes(Collection):
 
-    _attr = 'shapes'
+    _attr = "shapes"
     _kw = kw.shape
     _wrap = Shape
 
@@ -1739,17 +1901,18 @@ class Shapes(Collection):
 @atexit.register
 def clean_up():
     """
-    Since AppleScript cannot access Excel while a Macro is running, we have to run the Python call in a
-    background process which makes the call return immediately: we rely on the StatusBar to give the user
-    feedback.
-    This function is triggered when the interpreter exits and runs the CleanUp Macro in VBA to show any
-    errors and to reset the StatusBar.
+    Since AppleScript cannot access Excel while a Macro is running, we have to run the
+    Python call in a background process which makes the call return immediately: we
+    rely on the StatusBar to give the user feedback.
+    This function is triggered when the interpreter exits and runs the CleanUp Macro in
+    VBA to show any errors and to reset the StatusBar.
     """
     if is_excel_running():
-        # Prevents Excel from reopening if it has been closed manually or never been opened
+        # Prevents Excel from reopening
+        # if it has been closed manually or never been opened
         for app in Apps():
             try:
-                app.xl.run_VB_macro('CleanUp')
+                app.xl.run_VB_macro("CleanUp")
             except (CommandError, AttributeError, aem.aemsend.EventError):
                 # Excel files initiated from Python don't have the xlwings VBA module
                 pass
@@ -1761,7 +1924,7 @@ def posix_to_hfs_path(posix_path):
     """
     dir_name, file_name = os.path.split(posix_path)
     dir_name_hfs = mactypes.Alias(dir_name).hfspath
-    return dir_name_hfs + ':' + file_name
+    return dir_name_hfs + ":" + file_name
 
 
 def hfs_to_posix_path(hfs_path):
@@ -1775,7 +1938,7 @@ def hfs_to_posix_path(hfs_path):
 def is_excel_running():
     for proc in psutil.process_iter():
         try:
-            if proc.name() == 'Microsoft Excel':
+            if proc.name() == "Microsoft Excel":
                 return True
         except psutil.NoSuchProcess:
             pass
@@ -1785,145 +1948,145 @@ def is_excel_running():
 # --- constants ---
 
 chart_types_k2s = {
-    kw.ThreeD_area: '3d_area',
-    kw.ThreeD_area_stacked: '3d_area_stacked',
-    kw.ThreeD_area_stacked_100: '3d_area_stacked_100',
-    kw.ThreeD_bar_clustered: '3d_bar_clustered',
-    kw.ThreeD_bar_stacked: '3d_bar_stacked',
-    kw.ThreeD_bar_stacked_100: '3d_bar_stacked_100',
-    kw.ThreeD_column: '3d_column',
-    kw.ThreeD_column_clustered: '3d_column_clustered',
-    kw.ThreeD_column_stacked: '3d_column_stacked',
-    kw.ThreeD_column_stacked_100: '3d_column_stacked_100',
-    kw.ThreeD_line: '3d_line',
-    kw.ThreeD_pie: '3d_pie',
-    kw.ThreeD_pie_exploded: '3d_pie_exploded',
-    kw.area_chart: 'area',
-    kw.area_stacked: 'area_stacked',
-    kw.area_stacked_100: 'area_stacked_100',
-    kw.bar_clustered: 'bar_clustered',
-    kw.bar_of_pie: 'bar_of_pie',
-    kw.bar_stacked: 'bar_stacked',
-    kw.bar_stacked_100: 'bar_stacked_100',
-    kw.bubble: 'bubble',
-    kw.bubble_ThreeD_effect: 'bubble_3d_effect',
-    kw.column_clustered: 'column_clustered',
-    kw.column_stacked: 'column_stacked',
-    kw.column_stacked_100: 'column_stacked_100',
-    kw.combination_chart: 'combination',
-    kw.cone_bar_clustered: 'cone_bar_clustered',
-    kw.cone_bar_stacked: 'cone_bar_stacked',
-    kw.cone_bar_stacked_100: 'cone_bar_stacked_100',
-    kw.cone_col: 'cone_col',
-    kw.cone_column_clustered: 'cone_col_clustered',
-    kw.cone_column_stacked: 'cone_col_stacked',
-    kw.cone_column_stacked_100: 'cone_col_stacked_100',
-    kw.cylinder_bar_clustered: 'cylinder_bar_clustered',
-    kw.cylinder_bar_stacked: 'cylinder_bar_stacked',
-    kw.cylinder_bar_stacked_100: 'cylinder_bar_stacked_100',
-    kw.cylinder_column: 'cylinder_col',
-    kw.cylinder_column_clustered: 'cylinder_col_clustered',
-    kw.cylinder_column_stacked: 'cylinder_col_stacked',
-    kw.cylinder_column_stacked_100: 'cylinder_col_stacked_100',
-    kw.doughnut: 'doughnut',
-    kw.doughnut_exploded: 'doughnut_exploded',
-    kw.line_chart: 'line',
-    kw.line_markers: 'line_markers',
-    kw.line_markers_stacked: 'line_markers_stacked',
-    kw.line_markers_stacked_100: 'line_markers_stacked_100',
-    kw.line_stacked: 'line_stacked',
-    kw.line_stacked_100: 'line_stacked_100',
-    kw.pie_chart: 'pie',
-    kw.pie_exploded: 'pie_exploded',
-    kw.pie_of_pie: 'pie_of_pie',
-    kw.pyramid_bar_clustered: 'pyramid_bar_clustered',
-    kw.pyramid_bar_stacked: 'pyramid_bar_stacked',
-    kw.pyramid_bar_stacked_100: 'pyramid_bar_stacked_100',
-    kw.pyramid_column: 'pyramid_col',
-    kw.pyramid_column_clustered: 'pyramid_col_clustered',
-    kw.pyramid_column_stacked: 'pyramid_col_stacked',
-    kw.pyramid_column_stacked_100: 'pyramid_col_stacked_100',
-    kw.radar: 'radar',
-    kw.radar_filled: 'radar_filled',
-    kw.radar_markers: 'radar_markers',
-    kw.stock_HLC: 'stock_hlc',
-    kw.stock_OHLC: 'stock_ohlc',
-    kw.stock_VHLC: 'stock_vhlc',
-    kw.stock_VOHLC: 'stock_vohlc',
-    kw.surface: 'surface',
-    kw.surface_top_view: 'surface_top_view',
-    kw.surface_top_view_wireframe: 'surface_top_view_wireframe',
-    kw.surface_wireframe: 'surface_wireframe',
-    kw.xy_scatter_lines: 'xy_scatter_lines',
-    kw.xy_scatter_lines_no_markers: 'xy_scatter_lines_no_markers',
-    kw.xy_scatter_smooth: 'xy_scatter_smooth',
-    kw.xy_scatter_smooth_no_markers: 'xy_scatter_smooth_no_markers',
-    kw.xyscatter: 'xy_scatter',
+    kw.ThreeD_area: "3d_area",
+    kw.ThreeD_area_stacked: "3d_area_stacked",
+    kw.ThreeD_area_stacked_100: "3d_area_stacked_100",
+    kw.ThreeD_bar_clustered: "3d_bar_clustered",
+    kw.ThreeD_bar_stacked: "3d_bar_stacked",
+    kw.ThreeD_bar_stacked_100: "3d_bar_stacked_100",
+    kw.ThreeD_column: "3d_column",
+    kw.ThreeD_column_clustered: "3d_column_clustered",
+    kw.ThreeD_column_stacked: "3d_column_stacked",
+    kw.ThreeD_column_stacked_100: "3d_column_stacked_100",
+    kw.ThreeD_line: "3d_line",
+    kw.ThreeD_pie: "3d_pie",
+    kw.ThreeD_pie_exploded: "3d_pie_exploded",
+    kw.area_chart: "area",
+    kw.area_stacked: "area_stacked",
+    kw.area_stacked_100: "area_stacked_100",
+    kw.bar_clustered: "bar_clustered",
+    kw.bar_of_pie: "bar_of_pie",
+    kw.bar_stacked: "bar_stacked",
+    kw.bar_stacked_100: "bar_stacked_100",
+    kw.bubble: "bubble",
+    kw.bubble_ThreeD_effect: "bubble_3d_effect",
+    kw.column_clustered: "column_clustered",
+    kw.column_stacked: "column_stacked",
+    kw.column_stacked_100: "column_stacked_100",
+    kw.combination_chart: "combination",
+    kw.cone_bar_clustered: "cone_bar_clustered",
+    kw.cone_bar_stacked: "cone_bar_stacked",
+    kw.cone_bar_stacked_100: "cone_bar_stacked_100",
+    kw.cone_col: "cone_col",
+    kw.cone_column_clustered: "cone_col_clustered",
+    kw.cone_column_stacked: "cone_col_stacked",
+    kw.cone_column_stacked_100: "cone_col_stacked_100",
+    kw.cylinder_bar_clustered: "cylinder_bar_clustered",
+    kw.cylinder_bar_stacked: "cylinder_bar_stacked",
+    kw.cylinder_bar_stacked_100: "cylinder_bar_stacked_100",
+    kw.cylinder_column: "cylinder_col",
+    kw.cylinder_column_clustered: "cylinder_col_clustered",
+    kw.cylinder_column_stacked: "cylinder_col_stacked",
+    kw.cylinder_column_stacked_100: "cylinder_col_stacked_100",
+    kw.doughnut: "doughnut",
+    kw.doughnut_exploded: "doughnut_exploded",
+    kw.line_chart: "line",
+    kw.line_markers: "line_markers",
+    kw.line_markers_stacked: "line_markers_stacked",
+    kw.line_markers_stacked_100: "line_markers_stacked_100",
+    kw.line_stacked: "line_stacked",
+    kw.line_stacked_100: "line_stacked_100",
+    kw.pie_chart: "pie",
+    kw.pie_exploded: "pie_exploded",
+    kw.pie_of_pie: "pie_of_pie",
+    kw.pyramid_bar_clustered: "pyramid_bar_clustered",
+    kw.pyramid_bar_stacked: "pyramid_bar_stacked",
+    kw.pyramid_bar_stacked_100: "pyramid_bar_stacked_100",
+    kw.pyramid_column: "pyramid_col",
+    kw.pyramid_column_clustered: "pyramid_col_clustered",
+    kw.pyramid_column_stacked: "pyramid_col_stacked",
+    kw.pyramid_column_stacked_100: "pyramid_col_stacked_100",
+    kw.radar: "radar",
+    kw.radar_filled: "radar_filled",
+    kw.radar_markers: "radar_markers",
+    kw.stock_HLC: "stock_hlc",
+    kw.stock_OHLC: "stock_ohlc",
+    kw.stock_VHLC: "stock_vhlc",
+    kw.stock_VOHLC: "stock_vohlc",
+    kw.surface: "surface",
+    kw.surface_top_view: "surface_top_view",
+    kw.surface_top_view_wireframe: "surface_top_view_wireframe",
+    kw.surface_wireframe: "surface_wireframe",
+    kw.xy_scatter_lines: "xy_scatter_lines",
+    kw.xy_scatter_lines_no_markers: "xy_scatter_lines_no_markers",
+    kw.xy_scatter_smooth: "xy_scatter_smooth",
+    kw.xy_scatter_smooth_no_markers: "xy_scatter_smooth_no_markers",
+    kw.xyscatter: "xy_scatter",
 }
 
 chart_types_s2k = {v: k for k, v in chart_types_k2s.items()}
 
 directions_s2k = {
-    'd': kw.toward_the_bottom,
-    'down': kw.toward_the_bottom,
-    'l': kw.toward_the_left,
-    'left': kw.toward_the_left,
-    'r': kw.toward_the_right,
-    'right': kw.toward_the_right,
-    'u': kw.toward_the_top,
-    'up': kw.toward_the_top
+    "d": kw.toward_the_bottom,
+    "down": kw.toward_the_bottom,
+    "l": kw.toward_the_left,
+    "left": kw.toward_the_left,
+    "r": kw.toward_the_right,
+    "right": kw.toward_the_right,
+    "u": kw.toward_the_top,
+    "up": kw.toward_the_top,
 }
 
 directions_k2s = {
-    kw.toward_the_bottom: 'down',
-    kw.toward_the_left: 'left',
-    kw.toward_the_right: 'right',
-    kw.toward_the_top: 'up',
+    kw.toward_the_bottom: "down",
+    kw.toward_the_left: "left",
+    kw.toward_the_right: "right",
+    kw.toward_the_top: "up",
 }
 
 calculation_k2s = {
-    kw.calculation_automatic: 'automatic',
-    kw.calculation_manual: 'manual',
-    kw.calculation_semiautomatic: 'semiautomatic'
+    kw.calculation_automatic: "automatic",
+    kw.calculation_manual: "manual",
+    kw.calculation_semiautomatic: "semiautomatic",
 }
 
 calculation_s2k = {v: k for k, v in calculation_k2s.items()}
 
 shape_types_k2s = {
-    kw.shape_type_3d_model: '3d_model',
-    kw.shape_type_auto: 'auto_shape',
-    kw.shape_type_callout: 'callout',
-    kw.shape_type_canvas: 'canvas',
-    kw.shape_type_chart: 'chart',
-    kw.shape_type_comment: 'comment',
-    kw.shape_type_content_application: 'content_app',
-    kw.shape_type_diagram: 'diagram',
-    kw.shape_type_free_form: 'free_form',
-    kw.shape_type_graphic: 'graphic',
-    kw.shape_type_group: 'group',
-    kw.shape_type_embedded_OLE_control: 'embedded_ole_object',
-    kw.shape_type_form_control: 'form_control',
-    kw.shape_type_line: 'line',
-    kw.shape_type_linked_3d_model: 'linked_3d_model',
-    kw.shape_type_linked_graphic: 'linked_graphic',
-    kw.shape_type_linked_OLE_object: 'linked_ole_object',
-    kw.shape_type_linked_picture: 'linked_picture',
-    kw.shape_type_OLE_control: 'ole_control_object',
-    kw.shape_type_picture: 'picture',
-    kw.shape_type_place_holder: 'placeholder',
-    kw.shape_type_web_video: 'web_video',
-    kw.shape_type_media: 'media',
-    kw.shape_type_text_box: 'text_box',
-    kw.shape_type_table: 'table',
-    kw.shape_type_ink: 'ink',
-    kw.shape_type_ink_comment: 'ink_comment',
-    kw.shape_type_unset: 'unset'
+    kw.shape_type_3d_model: "3d_model",
+    kw.shape_type_auto: "auto_shape",
+    kw.shape_type_callout: "callout",
+    kw.shape_type_canvas: "canvas",
+    kw.shape_type_chart: "chart",
+    kw.shape_type_comment: "comment",
+    kw.shape_type_content_application: "content_app",
+    kw.shape_type_diagram: "diagram",
+    kw.shape_type_free_form: "free_form",
+    kw.shape_type_graphic: "graphic",
+    kw.shape_type_group: "group",
+    kw.shape_type_embedded_OLE_control: "embedded_ole_object",
+    kw.shape_type_form_control: "form_control",
+    kw.shape_type_line: "line",
+    kw.shape_type_linked_3d_model: "linked_3d_model",
+    kw.shape_type_linked_graphic: "linked_graphic",
+    kw.shape_type_linked_OLE_object: "linked_ole_object",
+    kw.shape_type_linked_picture: "linked_picture",
+    kw.shape_type_OLE_control: "ole_control_object",
+    kw.shape_type_picture: "picture",
+    kw.shape_type_place_holder: "placeholder",
+    kw.shape_type_web_video: "web_video",
+    kw.shape_type_media: "media",
+    kw.shape_type_text_box: "text_box",
+    kw.shape_type_table: "table",
+    kw.shape_type_ink: "ink",
+    kw.shape_type_ink_comment: "ink_comment",
+    kw.shape_type_unset: "unset",
 }
 
 scaling = {
     "scale_from_top_left": kw.scale_from_top_left,
     "scale_from_bottom_right": kw.scale_from_bottom_right,
-    "scale_from_middle": kw.scale_from_middle
+    "scale_from_middle": kw.scale_from_middle,
 }
 
 shape_types_s2k = {v: k for k, v in shape_types_k2s.items()}

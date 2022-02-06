@@ -37,32 +37,32 @@ def datetime(value, format=None):
 
 
 def fmt(value, format):
-    return f'{value:{format}}'
+    return f"{value:{format}}"
 
 
 # Image filters
 def width(filter_list):
-    return _get_filter_value(filter_list, 'width')
+    return _get_filter_value(filter_list, "width")
 
 
 def height(filter_list):
-    return _get_filter_value(filter_list, 'height')
+    return _get_filter_value(filter_list, "height")
 
 
 def scale(filter_list):
-    return _get_filter_value(filter_list, 'scale')
+    return _get_filter_value(filter_list, "scale")
 
 
 def image_format(filter_list):
-    return _get_filter_value(filter_list, 'format', 'png')
+    return _get_filter_value(filter_list, "format", "png")
 
 
 def top(filter_list):
-    return _get_filter_value(filter_list, 'top', 0)
+    return _get_filter_value(filter_list, "top", 0)
 
 
 def left(filter_list):
-    return _get_filter_value(filter_list, 'left', 0)
+    return _get_filter_value(filter_list, "left", 0)
 
 
 # Font filters
@@ -73,8 +73,8 @@ def fontcolor(value=None, filter_list=None):
         return value
     elif filter_list:
         # If called from a single cell/shape placeholder
-        color = _get_filter_value(filter_list, 'fontcolor')
-        colors = {'white': '#ffffff', 'black': '#000000'}
+        color = _get_filter_value(filter_list, "fontcolor")
+        colors = {"white": "#ffffff", "black": "#000000"}
         if color.lower() in colors:
             return colors[color.lower()]
         else:
@@ -154,19 +154,21 @@ def aggsmall(df, filter_args):
     other_name = filter_args[2].as_const()
     other_ix = filter_args[3].as_const() if len(filter_args) > 3 else 0
     min_rows = filter_args[4].as_const() if len(filter_args) > 4 else None
-    df.loc[:, '__is_small__'] = df.iloc[:, col_ix] < threshold
+    df.loc[:, "__is_small__"] = df.iloc[:, col_ix] < threshold
     if min_rows >= len(df):
-        df.loc[:, '__is_over_min__'] = False
+        df.loc[:, "__is_over_min__"] = False
     else:
-        df.loc[:, '__is_over_min__'] = [False] * (min_rows - 1) + [True] * (len(df) - min_rows + 1)
-    df.loc[:, '__total__'] = df['__is_small__'] & df['__is_over_min__']
-    if True in df['__total__'].unique():
+        df.loc[:, "__is_over_min__"] = [False] * (min_rows - 1) + [True] * (
+            len(df) - min_rows + 1
+        )
+    df.loc[:, "__total__"] = df["__is_small__"] & df["__is_over_min__"]
+    if True in df["__total__"].unique():
         # unlike aggregate, groupby conveniently drops non-numeric values
-        other = df.groupby('__total__').sum().loc[True, :]
+        other = df.groupby("__total__").sum().loc[True, :]
         other.name = other_name
-        df = df.loc[~df['__total__'], :].append(other)
+        df = df.loc[~df["__total__"], :].append(other)
         df.iloc[-1, other_ix] = other_name
-    df = df.drop(columns=['__is_small__', '__is_over_min__', '__total__'])
+    df = df.drop(columns=["__is_small__", "__is_over_min__", "__total__"])
     return df
 
 
@@ -188,7 +190,7 @@ def rowslice(df, filter_args):
     args = [arg.as_const() for arg in filter_args]
     if len(args) == 1:
         args.append(None)
-    df = df.iloc[args[0]:args[1], :]
+    df = df.iloc[args[0] : args[1], :]
     return df
 
 
@@ -196,7 +198,7 @@ def colslice(df, filter_args):
     args = [arg.as_const() for arg in filter_args]
     if len(args) == 1:
         args.append(None)
-    df = df.iloc[:, args[0]:args[1]]
+    df = df.iloc[:, args[0] : args[1]]
     return df
 
 
@@ -210,7 +212,7 @@ def columns(df, filter_args):
         # insert() method is inplace!
         # Since Excel tables only allow an empty space once, we'll generate multiple
         # empty spaces for each column.
-        df.insert(loc=col_ix, column=' ' * (n + 1), value=np.nan)
+        df.insert(loc=col_ix, column=" " * (n + 1), value=np.nan)
     return df
 
 

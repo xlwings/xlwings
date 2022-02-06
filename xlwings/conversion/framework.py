@@ -2,12 +2,12 @@ import xlwings
 
 
 class ConversionContext:
-    __slots__ = ['range', 'value', 'source_value', 'meta', 'engine']
+    __slots__ = ["range", "value", "source_value", "meta", "engine"]
 
     def __init__(self, rng=None, value=None):
         self.range = rng
         # rng can only be None if used via UDFs
-        self.engine = rng.sheet.book.app.engine if rng else xlwings.engines['excel']
+        self.engine = rng.sheet.book.app.engine if rng else xlwings.engines["excel"]
         self.value = value
         # used for markdown (could be replaced by handing the parsed ast from
         # the converter stage to the formatting stage
@@ -16,7 +16,6 @@ class ConversionContext:
 
 
 class Options(dict):
-
     def __init__(self, original):
         super(Options, self).__init__(original)
 
@@ -36,7 +35,6 @@ class Options(dict):
 
 
 class Pipeline(list):
-
     def prepend_stage(self, stage, only_if=True):
         if only_if:
             self.insert(0, stage)
@@ -47,14 +45,21 @@ class Pipeline(list):
             self.append(stage)
         return self
 
-    def insert_stage(self, stage, index=None, after=None, before=None, replace=None, only_if=True):
+    def insert_stage(
+        self, stage, index=None, after=None, before=None, replace=None, only_if=True
+    ):
         if only_if:
             if sum(x is not None for x in (index, after, before, replace)) != 1:
-                raise ValueError("Must specify exactly one of arguments: index, after, before, replace")
+                raise ValueError(
+                    "Must specify exactly one of arguments: "
+                    "index, after, before, replace"
+                )
             if index is not None:
                 indices = (index,)
             elif after is not None:
-                indices = tuple(i+1 for i, x in enumerate(self) if isinstance(x, after))
+                indices = tuple(
+                    i + 1 for i, x in enumerate(self) if isinstance(x, after)
+                )
             elif before is not None:
                 indices = tuple(i for i, x in enumerate(self) if isinstance(x, before))
             elif replace is not None:
@@ -75,7 +80,6 @@ accessors = {}
 
 
 class Accessor:
-
     @classmethod
     def reader(cls, options):
         return Pipeline()
@@ -95,9 +99,7 @@ class Accessor:
 
 
 class Converter(Accessor):
-
     class ToValueStage:
-
         def __init__(self, write_value, options):
             self.write_value = write_value
             self.options = options
@@ -106,7 +108,6 @@ class Converter(Accessor):
             c.value = self.write_value(c.value, self.options)
 
     class FromValueStage:
-
         def __init__(self, read_value, options):
             self.read_value = read_value
             self.options = options
@@ -133,14 +134,12 @@ class Converter(Accessor):
 
     @classmethod
     def reader(cls, options):
-        return (
-            cls.base_reader(options)
-            .append_stage(cls.FromValueStage(cls.read_value, options))
+        return cls.base_reader(options).append_stage(
+            cls.FromValueStage(cls.read_value, options)
         )
 
     @classmethod
     def writer(cls, options):
-        return (
-            cls.base_writer(options)
-            .prepend_stage(cls.ToValueStage(cls.write_value, options))
+        return cls.base_writer(options).prepend_stage(
+            cls.ToValueStage(cls.write_value, options)
         )

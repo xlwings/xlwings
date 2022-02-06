@@ -1,5 +1,6 @@
 # TODO: add all classes and use in _mac.py and _windows.py
 
+
 class Apps:
     def keys(self):
         raise NotImplementedError()
@@ -155,9 +156,24 @@ class Books:
     def add(self):
         raise NotImplementedError()
 
-    def open(self, fullname, update_links=None, read_only=None, format=None, password=None, write_res_password=None,
-             ignore_read_only_recommended=None, origin=None, delimiter=None, editable=None, notify=None, converter=None,
-             add_to_mru=None, local=None, corrupt_load=None):
+    def open(
+        self,
+        fullname,
+        update_links=None,
+        read_only=None,
+        format=None,
+        password=None,
+        write_res_password=None,
+        ignore_read_only_recommended=None,
+        origin=None,
+        delimiter=None,
+        editable=None,
+        notify=None,
+        converter=None,
+        add_to_mru=None,
+        local=None,
+        corrupt_load=None,
+    ):
         raise NotImplementedError()
 
     def __iter__(self):

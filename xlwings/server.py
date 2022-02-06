@@ -8,14 +8,17 @@ import sys
 import os
 import collections
 import importlib
+
 # Hack to find pythoncom.dll - needed for some distribution/setups
-# E.g. if python is started with the full path outside of the python path, then it almost certainly fails
+# E.g., if python is started with the full path outside of the python path,
+# then it almost certainly fails
 cwd = os.getcwd()
-if not hasattr(sys, 'frozen'):
+if not hasattr(sys, "frozen"):
     # cx_Freeze etc. will fail here otherwise
     os.chdir(sys.exec_prefix)
 import win32api
 import win32event
+
 os.chdir(cwd)
 
 import pythoncom
@@ -31,27 +34,30 @@ import threading
 from .udfs import call_udf
 
 
-# If no handler is configured, print is used to make the statements show up in the console that opens when using
-# 'python' instead of 'pythonw' as the interpreter
+# If no handler is configured, print is used to make the statements show up in the
+# console that opens when using 'python' instead of 'pythonw' as the interpreter
 logger = logging.getLogger(__name__)
 
 
 class XLPythonOption:
-    """ The XLPython class itself """
+    """The XLPython class itself"""
+
     def __init__(self, option, value):
         self.option = option
         self.value = value
 
 
 class XLPythonObject:
-    _public_methods_ = ['Item', 'Count']
-    _public_attrs_ = ['_NewEnum']
+    _public_methods_ = ["Item", "Count"]
+    _public_attrs_ = ["_NewEnum"]
 
     def __init__(self, obj):
         self.obj = obj
 
     def _NewEnum(self):
-        return win32com.server.util.wrap(XLPythonEnumerator(self.obj), iid=pythoncom.IID_IEnumVARIANT)
+        return win32com.server.util.wrap(
+            XLPythonEnumerator(self.obj), iid=pythoncom.IID_IEnumVARIANT
+        )
 
     def Item(self, key):
         return ToVariant(self.obj[key])
@@ -97,7 +103,9 @@ def FromVariant(var):
     except:
         obj = var
     if type(obj) is PyIDispatch:
-        obj = win32com.client.Dispatch(obj, userName=obj.GetTypeInfo().GetDocumentation(-1)[0])
+        obj = win32com.client.Dispatch(
+            obj, userName=obj.GetTypeInfo().GetDocumentation(-1)[0]
+        )
     return obj
 
 
@@ -106,10 +114,34 @@ def ToVariant(obj):
 
 
 class XLPython:
-    _public_methods_ = ['Module', 'Tuple', 'TupleFromArray', 'Dict', 'DictFromArray', 'List', 'ListFromArray', 'Obj',
-                        'Str', 'Var', 'Call', 'GetItem', 'SetItem', 'DelItem', 'Contains', 'GetAttr', 'SetAttr',
-                        'DelAttr', 'HasAttr', 'Eval', 'Exec', 'ShowConsole', 'Builtin', 'Len', 'Bool',
-                        'CallUDF']
+    _public_methods_ = [
+        "Module",
+        "Tuple",
+        "TupleFromArray",
+        "Dict",
+        "DictFromArray",
+        "List",
+        "ListFromArray",
+        "Obj",
+        "Str",
+        "Var",
+        "Call",
+        "GetItem",
+        "SetItem",
+        "DelItem",
+        "Contains",
+        "GetAttr",
+        "SetAttr",
+        "DelAttr",
+        "HasAttr",
+        "Eval",
+        "Exec",
+        "ShowConsole",
+        "Builtin",
+        "Len",
+        "Bool",
+        "CallUDF",
+    ]
 
     def ShowConsole(self):
         import ctypes
@@ -165,7 +197,7 @@ class XLPython:
             t = type(value)
             if t is dict:
                 value = tuple(value.items())
-            elif t.__name__ == 'ndarray' and t.__module__ == 'numpy':
+            elif t.__name__ == "ndarray" and t.__module__ == "numpy":
                 value = value.tolist()
         if type(value) is tuple:
             return (value,)
@@ -215,6 +247,7 @@ class XLPython:
 
     def Builtin(self):
         import builtins
+
         return ToVariant(builtins)
 
     def GetItem(self, obj, key):
@@ -264,7 +297,9 @@ class XLPython:
                 elif locals is None:
                     locals = arg
                 else:
-                    raise Exception("Eval can be called with at most 2 dictionary arguments")
+                    raise Exception(
+                        "Eval can be called with at most 2 dictionary arguments"
+                    )
             else:
                 pass
         return ToVariant(eval(expr, globals, locals))
@@ -280,7 +315,9 @@ class XLPython:
                 elif locals is None:
                     locals = arg
                 else:
-                    raise Exception("Exec can be called with at most 2 dictionary arguments")
+                    raise Exception(
+                        "Exec can be called with at most 2 dictionary arguments"
+                    )
             else:
                 pass
         exec(stmt, globals, locals)
@@ -296,10 +333,10 @@ def _start_background_loop():
 
 
 def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
-    """Launch the COM server, clsid is the XLPython object class id """
+    """Launch the COM server, clsid is the XLPython object class id"""
     clsid = pywintypes.IID(clsid)
 
-    # Ovveride CreateInstance in default policy to instantiate the XLPython object ---
+    # Override CreateInstance in default policy to instantiate the XLPython object ---
     BaseDefaultPolicy = win32com.server.policy.DefaultPolicy
 
     class MyPolicy(BaseDefaultPolicy):
@@ -322,23 +359,18 @@ def serve(clsid="{506e67c3-55b5-48c3-a035-eed5deea7d6d}"):
     pythoncom.CoResumeClassObjects()
 
     if not loop.is_running():
-        t = threading.Thread(
-            target=_start_background_loop,
-            daemon=True)
+        t = threading.Thread(target=_start_background_loop, daemon=True)
         t.start()
         tid = t.ident
     else:
         tid = None
 
-    msg = 'xlwings server running, clsid=%s, event loop on %s'
+    msg = "xlwings server running, clsid=%s, event loop on %s"
     logger.info(msg, clsid, tid) if logger.hasHandlers() else print(msg % (clsid, tid))
 
     while True:
         rc = win32event.MsgWaitForMultipleObjects(
-            (),
-            0,
-            win32event.INFINITE,
-            win32event.QS_ALLEVENTS
+            (), 0, win32event.INFINITE, win32event.QS_ALLEVENTS
         )
         if rc == win32event.WAIT_OBJECT_0:
             if pythoncom.PumpWaitingMessages():

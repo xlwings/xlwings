@@ -35,15 +35,15 @@ if np:
 
 
 def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
-    if value == '':
+    if value == "":
         return empty_as
     if isinstance(value, str):
-        # TODO: Send arrays back and forth with indices of the location of datetime values
-        pattern = r'^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$'
+        # TODO: Send arrays back and forth with indices of the location of dt values
+        pattern = r"^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$"
         if re.compile(pattern).match(value):
             value = dt.datetime.fromisoformat(
                 value[:-1]
-            )  # cutting off "Z" (Python doesn't accept it and Excel doesn't support time-zones anyway)
+            )  # cut off "Z" (Python doesn't accept it and Excel doesn't support tz)
         else:
             value = value
     if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:
@@ -69,7 +69,10 @@ class Engine:
     @staticmethod
     def clean_value_data(data, datetime_builder, empty_as, number_builder):
         return [
-            [_clean_value_data_element(c, datetime_builder, empty_as, number_builder) for c in row]
+            [
+                _clean_value_data_element(c, datetime_builder, empty_as, number_builder)
+                for c in row
+            ]
             for row in data
         ]
 
@@ -90,8 +93,8 @@ class Engine:
         elif isinstance(x, time_types):
             x = x.replace(tzinfo=None).isoformat()
         elif isinstance(x, dt.date):
-            # JS applies tz conversion with "2021-01-01" when calling toLocaleDateString() while
-            # it leaves "2021-01-01T00:00:00" unchanged
+            # JS applies tz conversion with "2021-01-01" when calling
+            # toLocaleDateString() while it leaves "2021-01-01T00:00:00" unchanged
             x = dt.datetime(x.year, x.month, x.day).isoformat()
         return x
 
@@ -177,12 +180,12 @@ class Books(base_classes.Books):
     def add(self):
         book = Book(
             api={
-                'version': __version__,
-                'book': {'name': f'Book{len(self) + 1}', 'active_sheet_index': 0},
-                'sheets': [
+                "version": __version__,
+                "book": {"name": f"Book{len(self) + 1}", "active_sheet_index": 0},
+                "sheets": [
                     {
-                        'name': 'Sheet1',
-                        'values': [[]],
+                        "name": "Sheet1",
+                        "values": [[]],
                     },
                 ],
             },
@@ -219,24 +222,25 @@ class Book(base_classes.Book):
     def __init__(self, api, books):
         self.books = books
         self._api = api
-        self._json = {'actions': []}
-        if api['version'] != __version__:
+        self._json = {"actions": []}
+        if api["version"] != __version__:
             raise XlwingsError(
-                f'Your xlwings version is different on the client ({api["version"]}) and server ({__version__}).'
+                f'Your xlwings version is different on the client ({api["version"]}) '
+                f"and server ({__version__})."
             )
 
     def append_json_action(self, **kwargs):
-        args = kwargs.get('args')
-        self._json['actions'].append(
+        args = kwargs.get("args")
+        self._json["actions"].append(
             {
-                'func': kwargs.get('func'),
-                'args': [args] if not isinstance(args, list) else args,
-                'values': kwargs.get('values'),
-                'sheet_position': kwargs.get('sheet_position'),
-                'start_row': kwargs.get('start_row'),
-                'start_column': kwargs.get('start_column'),
-                'row_count': kwargs.get('row_count'),
-                'column_count': kwargs.get('column_count'),
+                "func": kwargs.get("func"),
+                "args": [args] if not isinstance(args, list) else args,
+                "values": kwargs.get("values"),
+                "sheet_position": kwargs.get("sheet_position"),
+                "start_row": kwargs.get("start_row"),
+                "start_column": kwargs.get("start_column"),
+                "row_count": kwargs.get("row_count"),
+                "column_count": kwargs.get("column_count"),
             }
         )
 
@@ -249,7 +253,7 @@ class Book(base_classes.Book):
 
     @property
     def name(self):
-        return self.api['book']['name']
+        return self.api["book"]["name"]
 
     @property
     def fullname(self):
@@ -257,7 +261,7 @@ class Book(base_classes.Book):
 
     @property
     def sheets(self):
-        return Sheets(api=self.api['sheets'], book=self)
+        return Sheets(api=self.api["sheets"], book=self)
 
     @property
     def app(self):
@@ -280,7 +284,7 @@ class Sheets(base_classes.Sheets):
 
     @property
     def active(self):
-        ix = self.book.api['book']['active_sheet_index']
+        ix = self.book.api["book"]["active_sheet_index"]
         return Sheet(api=self.api[ix], sheets=self, index=ix + 1)
 
     @property
@@ -294,7 +298,7 @@ class Sheets(base_classes.Sheets):
         else:
             api = None
             for ix, sheet in enumerate(self.api):
-                if sheet['name'] == name_or_index:
+                if sheet["name"] == name_or_index:
                     api = sheet
                     break
                 else:
@@ -308,11 +312,11 @@ class Sheets(base_classes.Sheets):
         # Default naming logic is different from Desktop apps!
         sheet_number = 1
         while True:
-            if f'Sheet{sheet_number}' in [sheet.name for sheet in self]:
+            if f"Sheet{sheet_number}" in [sheet.name for sheet in self]:
                 sheet_number += 1
             else:
                 break
-        api = {'name': f'Sheet{sheet_number}', 'values': [[]]}
+        api = {"name": f"Sheet{sheet_number}", "values": [[]]}
         if before:
             if before.index == 1:
                 ix = 1
@@ -324,8 +328,8 @@ class Sheets(base_classes.Sheets):
             # Default position is different from Desktop apps!
             ix = len(self) + 1
         self.api.insert(ix - 1, api)
-        self.book.append_json_action(func='addSheet', args=ix - 1)
-        self.book.api['book']['active_sheet_index'] = ix - 1
+        self.book.append_json_action(func="addSheet", args=ix - 1)
+        self.book.api["book"]["active_sheet_index"] = ix - 1
 
         return Sheet(api=api, sheets=self, index=ix)
 
@@ -348,7 +352,7 @@ class Sheet(base_classes.Sheet):
             **{
                 **kwargs,
                 **{
-                    'sheet_position': self.index - 1,
+                    "sheet_position": self.index - 1,
                 },
             }
         )
@@ -359,15 +363,15 @@ class Sheet(base_classes.Sheet):
 
     @property
     def name(self):
-        return self.api['name']
+        return self.api["name"]
 
     @name.setter
     def name(self, value):
         self.append_json_action(
-            func='setSheetName',
+            func="setSheetName",
             args=value,
         )
-        self.api['name'] = value
+        self.api["name"] = value
 
     @property
     def index(self):
@@ -390,15 +394,18 @@ class Sheet(base_classes.Sheet):
 
     def activate(self):
         ix = self.index - 1
-        self.book.api['book']['active_sheet_index'] = ix
-        self.append_json_action(func='activateSheet', args=ix)
+        self.book.api["book"]["active_sheet_index"] = ix
+        self.append_json_action(func="activateSheet", args=ix)
 
 
 @lru_cache(None)
 def get_range_api(api_values, arg1, arg2=None):
-    # Keeping this outside of the Range class allows us to cache it across multiple instances of the same range
+    # Keeping this outside of the Range class allows us to cache it across multiple
+    # instances of the same range
     if arg2:
-        values = [row[arg1[1] - 1 : arg2[1]] for row in api_values[arg1[0] - 1 : arg2[0]]]
+        values = [
+            row[arg1[1] - 1 : arg2[1]] for row in api_values[arg1[0] - 1 : arg2[0]]
+        ]
         if not values:
             # Outside the used range
             values = [[None] * (arg2[1] + 1 - arg1[1])] * (arg2[0] + 1 - arg1[0])
@@ -426,7 +433,7 @@ class Range(base_classes.Range):
         if isinstance(arg1, str):
             # A1 notation
             if ":" in arg1:
-                address1, address2 = arg1.split(':')
+                address1, address2 = arg1.split(":")
                 arg1 = utils.address_to_index_tuple(address1.upper())
                 arg2 = utils.address_to_index_tuple(address2.upper())
             else:
@@ -448,11 +455,11 @@ class Range(base_classes.Range):
             **{
                 **kwargs,
                 **{
-                    'sheet_position': self.sheet.index - 1,
-                    'start_row': self.row - 1,
-                    'start_column': self.column - 1,
-                    'row_count': nrows,
-                    'column_count': ncols,
+                    "sheet_position": self.sheet.index - 1,
+                    "start_row": self.row - 1,
+                    "start_column": self.column - 1,
+                    "row_count": nrows,
+                    "column_count": ncols,
                 },
             }
         )
@@ -460,7 +467,7 @@ class Range(base_classes.Range):
     @property
     def api(self):
         return get_range_api(
-            tuple(tuple(row) for row in self.sheet.api['values']), self.arg1, self.arg2
+            tuple(tuple(row) for row in self.sheet.api["values"]), self.arg1, self.arg2
         )
 
     @property
@@ -495,36 +502,39 @@ class Range(base_classes.Range):
         else:
             values = value
         self.append_json_action(
-            func='setValues',
+            func="setValues",
             values=values,
         )
 
     def clear_contents(self):
         self.append_json_action(
-            func='clearContents',
+            func="clearContents",
         )
 
     @property
     def address(self):
         nrows, ncols = self.shape
-        address = f'${utils.col_name(self.column)}${self.row}'
+        address = f"${utils.col_name(self.column)}${self.row}"
         if nrows == 1 and ncols == 1:
             return address
         else:
-            return f'{address}:${utils.col_name(self.column + ncols - 1)}${self.row + nrows - 1}'
+            return (
+                f"{address}"
+                f":${utils.col_name(self.column + ncols - 1)}${self.row + nrows - 1}"
+            )
 
     @property
     def has_array(self):
-        # Not supported, but since this is only used for legacy CSE arrays, probably not much of an issue
-        # There's currently a dependency in the expansion.py module
+        # Not supported, but since this is only used for legacy CSE arrays, probably
+        # not much of an issue. Here as there's currently a dependency in expansion.py.
         return None
 
     def end(self, direction):
-        if direction == 'down':
+        if direction == "down":
             i = 1
             while True:
                 try:
-                    if self.sheet.api['values'][self.row - 1 + i][self.column - 1]:
+                    if self.sheet.api["values"][self.row - 1 + i][self.column - 1]:
                         i += 1
                     else:
                         break
@@ -532,21 +542,21 @@ class Range(base_classes.Range):
                     break  # outside used range
             nrows = i - 1
             return self.sheet.range((self.row + nrows, self.column))
-        if direction == 'up':
+        if direction == "up":
             i = -1
             while True:
                 row_ix = self.row - 1 + i
-                if row_ix >= 0 and self.sheet.api['values'][row_ix][self.column - 1]:
+                if row_ix >= 0 and self.sheet.api["values"][row_ix][self.column - 1]:
                     i -= 1
                 else:
                     break
             nrows = i + 1
             return self.sheet.range((self.row + nrows, self.column))
-        if direction == 'right':
+        if direction == "right":
             i = 1
             while True:
                 try:
-                    if self.sheet.api['values'][self.row - 1][self.column - 1 + i]:
+                    if self.sheet.api["values"][self.row - 1][self.column - 1 + i]:
                         i += 1
                     else:
                         break
@@ -554,11 +564,11 @@ class Range(base_classes.Range):
                     break  # outside used range
             ncols = i - 1
             return self.sheet.range((self.row, self.column + ncols))
-        if direction == 'left':
+        if direction == "left":
             i = -1
             while True:
                 col_ix = self.column - 1 + i
-                if col_ix >= 0 and self.sheet.api['values'][self.row - 1][col_ix]:
+                if col_ix >= 0 and self.sheet.api["values"][self.row - 1][col_ix]:
                     i -= 1
                 else:
                     break
@@ -566,13 +576,13 @@ class Range(base_classes.Range):
             return self.sheet.range((self.row, self.column + ncols))
 
     def autofit(self, axis=None):
-        if axis == 'rows' or axis == 'r':
-            self.append_json_action(func='setAutofit', args='rows')
-        elif axis == 'columns' or axis == 'c':
-            self.append_json_action(func='setAutofit', args='columns')
+        if axis == "rows" or axis == "r":
+            self.append_json_action(func="setAutofit", args="rows")
+        elif axis == "columns" or axis == "c":
+            self.append_json_action(func="setAutofit", args="columns")
         elif axis is None:
-            self.append_json_action(func='setAutofit', args='rows')
-            self.append_json_action(func='setAutofit', args='columns')
+            self.append_json_action(func="setAutofit", args="rows")
+            self.append_json_action(func="setAutofit", args="columns")
 
     @property
     def color(self):
@@ -582,7 +592,7 @@ class Range(base_classes.Range):
     def color(self, value):
         if not isinstance(value, str):
             raise ValueError('Color must be supplied in hex format e.g., "#FFA500".')
-        self.append_json_action(func='setRangeColor', args=value)
+        self.append_json_action(func="setRangeColor", args=value)
 
     def __len__(self):
         nrows, ncols = self.shape
