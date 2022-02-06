@@ -556,6 +556,9 @@ class Sheet:
     def clear_contents(self):
         self.xl.used_range.clear_contents()
 
+    def clear_formats(self):
+        self.xl.used_range.clear_formats()
+
     def clear(self):
         self.xl.used_range.clear_range()
 
@@ -682,6 +685,13 @@ class Range:
             alerts_state = self.sheet.book.app.screen_updating
             self.sheet.book.app.screen_updating = False
             self.xl.clear_contents()
+            self.sheet.book.app.screen_updating = alerts_state
+
+    def clear_formats(self):
+        if self.xl is not None:
+            alerts_state = self.sheet.book.app.screen_updating
+            self.sheet.book.app.screen_updating = False
+            self.xl.clear_formats()
             self.sheet.book.app.screen_updating = alerts_state
 
     def clear(self):

@@ -849,6 +849,9 @@ class Sheet:
     def clear_contents(self):
         self.xl.Cells.ClearContents()
 
+    def clear_formats(self):
+        self.xl.Cells.ClearFormats()
+
     def clear(self):
         self.xl.Cells.Clear()
 
@@ -978,6 +981,9 @@ class Range:
     def clear_contents(self):
         if self.xl is not None:
             self.xl.ClearContents()
+
+    def clear_formats(self):
+        self.xl.ClearFormats()
 
     def clear(self):
         if self.xl is not None:
