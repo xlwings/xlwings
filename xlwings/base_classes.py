@@ -1,3 +1,5 @@
+# TODO: add all classes and use in _mac.py and _windows.py
+
 class Apps:
     def keys(self):
         raise NotImplementedError()
@@ -199,7 +201,7 @@ class Book:
     def activate(self):
         raise NotImplementedError()
 
-    def to_pdf(self, path):
+    def to_pdf(self, path, quality):
         raise NotImplementedError()
 
 
@@ -266,6 +268,9 @@ class Sheet:
     def clear_contents(self):
         raise NotImplementedError()
 
+    def clear_formats(self):
+        raise NotImplementedError()
+
     def clear(self):
         raise NotImplementedError()
 
@@ -310,6 +315,9 @@ class Sheet:
     def page_setup(self):
         raise NotImplementedError()
 
+    def to_pdf(self, path, quality):
+        raise NotImplementedError()
+
 
 class Range:
     @property
@@ -344,6 +352,9 @@ class Range:
         raise NotImplementedError()
 
     def clear_contents(self):
+        raise NotImplementedError()
+
+    def clear_formats(self):
         raise NotImplementedError()
 
     def clear(self):
@@ -525,4 +536,7 @@ class Range:
         raise NotImplementedError()
 
     def to_png(self, path):
+        raise NotImplementedError()
+
+    def to_pdf(self, path, quality):
         raise NotImplementedError()
