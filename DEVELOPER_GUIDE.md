@@ -55,6 +55,10 @@ If you need to debug the dll, in Visual Studio do the following:
 
 Now you can set breakpoints in the C++ code in VS where code execution will stop when called from Excel via running a UDF.
 
+## Black formatting
+
+This repo uses black for code formatting, you can see the configuration under `.github/workflows/black.yml`.
+
 ## Tests
 
 Currently, we're migrating to `pytest`, so you'll find a mix between `unittest` and `pytest` format.
