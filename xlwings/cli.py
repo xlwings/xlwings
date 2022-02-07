@@ -527,8 +527,8 @@ def release(args):
             )
     else:
         print(
-            f"""WARNING: Prepared "{book.name}" for release 
-            but couldn't verify the xlwings version!"""
+            f"WARNING: Prepared '{book.name}' for release "
+            "but couldn't verify the xlwings version!"
         )
 
 
