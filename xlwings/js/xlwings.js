@@ -71,6 +71,7 @@ function runPython(url, apiKey, exclude = "") {
   payload["book"] = {
     name: workbook.getName(),
     active_sheet_index: workbook.getActiveSheet().getIndex() - 1,
+    selection: workbook.getActiveRange().getA1Notation(),
   };
   payload["sheets"] = [];
   let lastCellCol;

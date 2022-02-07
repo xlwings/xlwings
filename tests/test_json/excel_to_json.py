@@ -9,7 +9,11 @@ book = xw.books.active
 data = {
     "client": "Microsoft Office Scripts",
     "version": "dev",
-    "book": {"name": book.name, "active_sheet_index": book.sheets.active.index - 1},
+    "book": {
+        "name": book.name,
+        "active_sheet_index": book.sheets.active.index - 1,
+        "selection": book.selection.address.replace("$", ""),
+    },
     "sheets": [],
 }
 

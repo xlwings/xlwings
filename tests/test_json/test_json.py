@@ -18,7 +18,7 @@ this_dir = Path(__file__).resolve().parent
 data = {
     "client": "Microsoft Office Scripts",
     "version": "dev",
-    "book": {"name": "json.xlsx", "active_sheet_index": 0},
+    "book": {"name": "json.xlsx", "active_sheet_index": 0, "selection": "B3:B4"},
     "sheets": [
         {
             "name": "Sheet1",
@@ -247,3 +247,7 @@ def test_sheets_iteration(book):
 # book name
 def test_book(book):
     assert book.name == "json.xlsx"
+
+
+def test_book_selection(book):
+    assert book.selection.address == "$B$3:$B$4"

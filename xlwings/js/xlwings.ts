@@ -73,6 +73,7 @@ async function runPython(
   payload["book"] = {
     name: workbook.getName(),
     active_sheet_index: workbook.getActiveWorksheet().getPosition(),
+    selection: workbook.getSelectedRange().getAddress().split('!').pop(),
   };
   payload["sheets"] = [];
   let lastCellCol: number;
