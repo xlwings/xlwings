@@ -27,8 +27,7 @@ jobs:
 
   build:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
-    # TODO: upgrade to windows-latest, i.e., windows-2022
-    runs-on: windows-2019
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
@@ -41,6 +40,8 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.100
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
     - name: Install Python dependencies
       run: |
         python -m pip install pythonnet
@@ -52,9 +53,8 @@ jobs:
         unzip ./aspose/aspose.cells.nupkg -d ./aspose/
     - name: Build dlls
       run: |
-        cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
-        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release
-        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:Platform=x64
+        msbuild $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release -maxcpucount
+        msbuild $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:Platform=x64 -maxcpucount
     - name: Build Python Package
       shell: bash
       env:
