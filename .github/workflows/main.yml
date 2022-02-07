@@ -54,12 +54,15 @@ jobs:
         unzip ./aspose/aspose.cells.nupkg -d ./aspose/
     - name: Caching dlls
       uses: actions/cache@v2
+      id: cache
       with:
-        id: cache
         path: |
           xlwings32.dll
           xlwings64.dll
         key: ${{ runner.os }}-${{ hashFiles('src/**') }}
+    - name: list files
+      shell: bash
+      run: ls -la
     - name: Build dlls
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
@@ -72,7 +75,7 @@ jobs:
         XLWINGS_LICENSE_KEY_SECRET: ${{ secrets.XLWINGS_LICENSE_KEY_SECRET }}
       run: |
         python ./scripts/build_excel_files.py
-        # TODO: change this to use the build pacakge: python -m build
+        # TODO: change this to use the build package: python -m build
         python setup.py sdist
     - name: Upload artifacts
       uses: actions/upload-artifact@v1
