@@ -1,8 +1,9 @@
 name: Build Pipeline
 
 on:
-  # Run on all pushed commits and PRs and when a new release is created
-  # Prevents duplicated pipeline runs as a release also pushes a tag
+  # Run on all pushed commits, PRs and when a new release is created
+  # Prevents duplicate pipeline runs as a release also pushes a tag
+  pull_request:
   push:
     branches:
       - '**'
@@ -11,13 +12,11 @@ on:
   release:
     types:
       - created
-  pull_request:
-    branches:
-    - '**'
 
 jobs:
-
   lint:
+    # Prevent duplicate runs for own PRs
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -26,9 +25,9 @@ jobs:
           options: "--check --diff --color --extend-exclude=xlwings/mistune --target-version=py37"
 
   build:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
-    # TODO: upgrade to windows-latest, i.e., windows-2022
-    runs-on: windows-2019
+    # Prevent duplicate runs for own PRs
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
@@ -41,6 +40,8 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.100
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
     - name: Install Python dependencies
       run: |
         python -m pip install pythonnet
@@ -50,11 +51,19 @@ jobs:
         mkdir ./aspose
         curl -L https://www.nuget.org/api/v2/package/Aspose.Cells/17.12.0 -o ./aspose/aspose.cells.nupkg
         unzip ./aspose/aspose.cells.nupkg -d ./aspose/
+    - name: Caching dlls
+      uses: actions/cache@v2
+      id: cache
+      with:
+        path: |
+          xlwings32.dll
+          xlwings64.dll
+        key: ${{ runner.os }}-${{ hashFiles('src/**') }}
     - name: Build dlls
+      if: steps.cache.outputs.cache-hit != 'true'
       run: |
-        cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
-        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release
-        .\MSBuild.exe $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:Platform=x64
+        msbuild $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release -maxcpucount
+        msbuild $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:Platform=x64 -maxcpucount
     - name: Build Python Package
       shell: bash
       env:
@@ -62,7 +71,7 @@ jobs:
         XLWINGS_LICENSE_KEY_SECRET: ${{ secrets.XLWINGS_LICENSE_KEY_SECRET }}
       run: |
         python ./scripts/build_excel_files.py
-        # TODO: change this to use the build pacakge: python -m build
+        # TODO: change this to use the build package: python -m build
         python setup.py sdist
     - name: Upload artifacts
       uses: actions/upload-artifact@v1
@@ -71,13 +80,13 @@ jobs:
         path: dist
 
   test:
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && github.ref == 'refs/heads/master' }}
+    if: github.ref == 'refs/heads/main'
     name: Test installation
     needs: build
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         python-version: ['3.7', '3.8', '3.9', '3.10']
         architecture: ['x64']
     steps:

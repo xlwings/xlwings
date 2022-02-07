@@ -35,7 +35,7 @@ else:
 
 # Rename dlls and applescript file
 for i in ["32", "64"]:
-    os.rename(
+    shutil.copyfile(
         os.path.join(os.environ["GITHUB_WORKSPACE"], "xlwings{0}.dll".format(i)),
         os.path.join(
             os.environ["GITHUB_WORKSPACE"],

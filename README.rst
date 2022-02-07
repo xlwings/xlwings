@@ -59,7 +59,6 @@ Links
 * Video Course: https://training.xlwings.org/p/xlwings
 * Source Code: https://github.com/xlwings/xlwings
 
-
 xltrail
 -------
 

@@ -209,7 +209,7 @@ HRESULT __stdcall XLPyDLLActivate(VARIANT* xlResult, const char* xlConfigFileNam
 }
 
 
-// special configuration-less entry point for used by xlwings
+// special configuration-less entry point used by xlwings
 // just pass the command to launch the COM server, all other settings normally contained in the config file are default
 // returns existing interface if already available, otherwise tries to activate it
 HRESULT __stdcall XLPyDLLActivateAuto(VARIANT* xlResult, const char* xlCommand, int xlActivationMode)
