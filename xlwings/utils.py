@@ -548,7 +548,7 @@ def fullname_url_to_local_path(
     book_name = url.split("/")[-1]
     local_book_paths = []
     for path in Path(root).rglob("[!~$]*.xls*"):
-        if path.name == book_name:
+        if path.name.lower() == book_name.lower():
             local_book_paths.append(path)
     if len(local_book_paths) == 1:
         return str(local_book_paths[0])
