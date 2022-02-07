@@ -52,7 +52,16 @@ jobs:
         mkdir ./aspose
         curl -L https://www.nuget.org/api/v2/package/Aspose.Cells/17.12.0 -o ./aspose/aspose.cells.nupkg
         unzip ./aspose/aspose.cells.nupkg -d ./aspose/
+    - name: Caching dlls
+      uses: actions/cache@v2
+      with:
+        id: cache
+        path: |
+          xlwings32.dll
+          xlwings64.dll
+        key: ${{ runner.os }}-${{ hashFiles('src/**') }}
     - name: Build dlls
+      if: steps.cache.outputs.cache-hit != 'true'
       run: |
         msbuild $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release -maxcpucount
         msbuild $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:Platform=x64 -maxcpucount
@@ -79,7 +88,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, linux-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         python-version: ['3.7', '3.8', '3.9', '3.10']
         architecture: ['x64']
     steps:
