@@ -150,6 +150,11 @@ class App(base_classes.App):
         return self._pid
 
     @property
+    def selection(self):
+        book = self.books.active
+        return Range(sheet=book.sheets.active, arg1=book.api["book"]["selection"])
+
+    @property
     def visible(self):
         return True
 
