@@ -81,8 +81,7 @@ jobs:
         path: dist
 
   test:
-    # TODO: change python-311 to main
-    if: github.ref == 'refs/heads/python-311'
+    if: github.ref == 'refs/heads/main'
     name: Test installation
     needs: build
     runs-on: ${{ matrix.os }}
