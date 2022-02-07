@@ -13,7 +13,6 @@ on:
     types:
       - created
 
-
 jobs:
   lint:
     # Prevent duplicate runs for own PRs
