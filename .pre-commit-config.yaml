@@ -1,0 +1,13 @@
+# To install this pre-commit hook, run:
+#
+# pip install pre-commit
+# pre-commit install
+#
+# See also: https://pre-commit.com
+exclude: xlwings/mistune/
+repos:
+  - repo: https://github.com/psf/black
+    rev: 22.1.0
+    hooks:
+      - id: black
+        language_version: python3.7
