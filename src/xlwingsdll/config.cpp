@@ -1,6 +1,5 @@
 #include "xlwingsdll.h"
 
-
 #undef GetEnvironmentStrings // the windows headers screws this one up
 
 Config::ConfigMap Config::configs;
