@@ -676,6 +676,7 @@ class App:
         -------
         wb: xlwings Book
 
+
         .. versionadded:: 0.24.4
         """
         from .pro.reports import render_template
@@ -2677,6 +2678,7 @@ class Range:
         format : str, default 'picture'
             Either 'picture' or 'bitmap'.
 
+
         .. versionadded:: 0.24.8
         """
         self.impl.copy_picture(appearance, format)
@@ -2692,6 +2694,7 @@ class Range:
             Path where you want to store the picture. Defaults to the name of the range
             in the same directory as the Excel file if the Excel file is stored and to
             the current working directory otherwise.
+
 
         .. versionadded:: 0.24.8
         """
@@ -3811,6 +3814,7 @@ class Chart:
             in the same directory as the Excel file if the Excel file is stored and to
             the current working directory otherwise.
 
+
         .. versionadded:: 0.24.8
         """
         path = utils.fspath(path)
@@ -3839,6 +3843,7 @@ class Chart:
 
         quality : str, default 'standard'
             Quality of the PDF file. Can either be 'standard' or 'minimum'.
+
 
         .. versionadded:: 0.26.2
         """
@@ -4160,9 +4165,7 @@ class Pictures(Collection):
             "eps" on macOS for better print quality. If you use ``'vector'``, it will be
             using ``'svg'`` on Windows and ``'eps'`` on macOS. To find out which formats
             your version of Excel supports, see:
-            https://support.microsoft.com/en-us/topic/
-             support-for-eps-images-has-been-turned-off-in-office-
-             a069d664-4bcf-415e-a1b5-cbb0c334a840
+            https://support.microsoft.com/en-us/topic/support-for-eps-images-has-been-turned-off-in-office-a069d664-4bcf-415e-a1b5-cbb0c334a840
 
         anchor: xw.Range, default None
             The xlwings Range object of where you want to insert the picture. If you use
