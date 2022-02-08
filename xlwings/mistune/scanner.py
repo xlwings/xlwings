@@ -1,11 +1,4 @@
 import re
-try:
-    from urllib.parse import quote
-    import html
-except ImportError:
-    from urllib import quote
-    html = None
-
 
 class Scanner(re.Scanner):
     def iter(self, string, state, parse_text):
@@ -126,29 +119,3 @@ class Matcher(object):
 
         if last_end < endpos:
             yield parse_text(string[last_end:], state)
-
-
-def escape(s, quote=True):
-    s = s.replace("&", "&amp;")
-    s = s.replace("<", "&lt;")
-    s = s.replace(">", "&gt;")
-    if quote:
-        s = s.replace('"', "&quot;")
-    return s
-
-
-def escape_url(link):
-    safe = '/#:()*?=%@+,&'
-    if html is None:
-        return quote(link.encode('utf-8'), safe=safe)
-    return html.escape(quote(html.unescape(link), safe=safe))
-
-
-def escape_html(s):
-    if html is not None:
-        return html.escape(html.unescape(s)).replace('&#x27;', "'")
-    return escape(s)
-
-
-def unikey(s):
-    return ' '.join(s.split()).lower()

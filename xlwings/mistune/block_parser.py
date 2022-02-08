@@ -1,6 +1,10 @@
 import re
-from .scanner import ScannerParser, Matcher, unikey
+from .scanner import ScannerParser, Matcher
 from .inline_parser import ESCAPE_CHAR, LINK_LABEL
+from .util import unikey
+
+_NEW_LINES = re.compile(r'\r\n|\r')
+_BLANK_LINES = re.compile(r'^ +$', re.M)
 
 _TRIM_4 = re.compile(r'^ {1,4}')
 _EXPAND_TAB = re.compile(r'^( {0,3})\t', flags=re.M)
@@ -156,6 +160,7 @@ class BlockParser(ScannerParser):
         text = _BLOCK_QUOTE_LEADING.sub('', m.group(0))
         text = expand_leading_tab(text)
         text = _BLOCK_QUOTE_TRIM.sub('', text)
+        text = cleanup_lines(text)
 
         rules = self.get_block_quote_rules(depth)
         children = self.parse(text, state, rules)
@@ -286,6 +291,12 @@ class BlockParser(ScannerParser):
                 yield method(children, *params)
             else:
                 yield method(children)
+
+
+def cleanup_lines(s):
+    s = _NEW_LINES.sub('\n', s)
+    s = _BLANK_LINES.sub('', s)
+    return s
 
 
 def expand_leading_tab(text):

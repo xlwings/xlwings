@@ -1,3 +1,4 @@
+from .abbr import plugin_abbr
 from .def_list import plugin_def_list
 from .extra import plugin_strikethrough, plugin_url
 from .footnotes import plugin_footnotes
@@ -11,6 +12,7 @@ PLUGINS = {
     "table": plugin_table,
     "task_lists": plugin_task_lists,
     "def_list": plugin_def_list,
+    "abbr": plugin_abbr,
 }
 
 __all__ = [
@@ -19,4 +21,5 @@ __all__ = [
     "plugin_strikethrough",
     "plugin_footnotes",
     "plugin_table",
+    "plugin_abbr",
 ]
