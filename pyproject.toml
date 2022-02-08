@@ -1,0 +1,3 @@
+[tool.black]
+target-version = ['py37']
+extend-exclude = "xlwings/mistune"

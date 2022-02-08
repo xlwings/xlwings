@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: psf/black@stable
         with:
-          options: "--check --diff --color --extend-exclude=xlwings/mistune --target-version=py37"
+          options: "--check --diff --color"
 
   build:
     # Prevent duplicate runs for own PRs

@@ -57,7 +57,7 @@ Now you can set breakpoints in the C++ code in VS where code execution will stop
 
 ## Black formatting
 
-This repo uses black for code formatting, you can use the pre-commit hook under `.pre-commit-config.yaml`, see instructions at top of the file.
+This repo uses black for code formatting, see `pyproject.toml`. You can also use the pre-commit hook under `.pre-commit-config.yaml`, see instructions at top of the file.
 
 ## Tests
 
