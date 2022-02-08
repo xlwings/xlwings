@@ -1,16 +1,15 @@
-import os
-import sys
-import shutil
 import argparse
 import hashlib
-import socket
 import json
-import tempfile
+import os
+import shutil
+import socket
 import subprocess
+import sys
+import tempfile
 from pathlib import Path
 
 import xlwings as xw
-
 
 # Directories/paths
 this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -120,7 +119,7 @@ def shiv(args):
 
     if "$" in python:
         # if the python path contains a $, we replace it by % and use a cmd.exe shebang to trampoline to python
-        python = f'cmd.exe /C call "{python.replace("$","%")}" "{output_file}"'
+        python = f'cmd.exe /C call "{python.replace("$", "%")}"'
 
     main.callback(
         output_file=output_file,
