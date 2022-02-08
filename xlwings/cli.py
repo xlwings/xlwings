@@ -8,6 +8,7 @@ import json
 import tempfile
 import subprocess
 from pathlib import Path
+from keyword import iskeyword
 
 import xlwings as xw
 
@@ -106,6 +107,14 @@ def addin_status(args):
 
 def quickstart(args):
     project_name = args.project_name
+    if not project_name.isidentifier() or iskeyword(project_name):
+        sys.exit(
+            "Error: You must choose a project name that works as Python module, "
+            "i.e., it must only use letters, underscores and numbers and must not "
+            "start with a number. Note that you *can* rename your Excel file "
+            "manually, if you also adjust your RunPython VBA function "
+            "accordingly."
+        )
     cwd = os.getcwd()
 
     if args.fastapi:
