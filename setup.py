@@ -32,7 +32,7 @@ elif sys.platform.startswith("win"):
     install_requires += [pywin32]
     # This places dlls next to python.exe for standard setup
     # and in the parent folder for virtualenv
-    data_files += [("", glob.glob("xlwings*.dll"))]
+    data_files += [("", glob.glob("xlwings??-*.dll"))]
 elif sys.platform.startswith("darwin"):
     install_requires += ["psutil >= 2.0.0", "appscript >= 1.0.1"]
     data_files = [
