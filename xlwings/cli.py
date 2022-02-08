@@ -133,7 +133,7 @@ def shiv(args):
         extend_pythonpath=True,
         reproducible=True,
         no_modify=True,
-        preamble="xlwings/shiv_runner.py",
+        preamble=os.path.join(this_dir, "shiv_runner.py"),
         root=None,
         pip_args=requirements,
     )
