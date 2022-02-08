@@ -153,7 +153,7 @@ def aggsmall(df, filter_args):
     col_ix = filter_args[1].as_const()
     other_name = filter_args[2].as_const()
     other_ix = filter_args[3].as_const() if len(filter_args) > 3 else 0
-    min_rows = filter_args[4].as_const() if len(filter_args) > 4 else None
+    min_rows = filter_args[4].as_const() if len(filter_args) > 4 else 1
     df.loc[:, "__is_small__"] = df.iloc[:, col_ix] < threshold
     if min_rows >= len(df):
         df.loc[:, "__is_over_min__"] = False
