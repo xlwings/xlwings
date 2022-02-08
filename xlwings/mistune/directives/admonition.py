@@ -37,16 +37,18 @@ class Admonition(Directive):
             md.renderer.register('admonition', render_ast_admonition)
 
 
-def render_html_admonition(text, name, title=None):
+def render_html_admonition(text, name, title=""):
     html = '<section class="admonition ' + name + '">\n'
+    if not title:
+        title = name.capitalize()
     if title:
-        html += '<h1>' + title + '</h1>\n'
+        html += '<p class="admonition-title">' + title + '</p>\n'
     if text:
-        html += '<div class="admonition-text">\n' + text + '</div>\n'
+        html += text
     return html + '</section>\n'
 
 
-def render_ast_admonition(children, name, title=None):
+def render_ast_admonition(children, name, title=""):
     return {
         'type': 'admonition',
         'children': children,

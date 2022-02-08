@@ -1,20 +1,19 @@
 import re
-from .scanner import ScannerParser, escape_url, unikey
+from .scanner import ScannerParser
+from .util import PUNCTUATION, ESCAPE_TEXT, escape_url, unikey
 
-PUNCTUATION = r'''\\!"#$%&'()*+,./:;<=>?@\[\]^`{}|_~-'''
-ESCAPE = r'\\[' + PUNCTUATION + ']'
 HTML_TAGNAME = r'[A-Za-z][A-Za-z0-9-]*'
 HTML_ATTRIBUTES = (
     r'(?:\s+[A-Za-z_:][A-Za-z0-9_.:-]*'
     r'(?:\s*=\s*(?:[^ "\'=<>`]+|\'[^\']*?\'|"[^\"]*?"))?)*'
 )
 ESCAPE_CHAR = re.compile(r'\\([' + PUNCTUATION + r'])')
-LINK_TEXT = r'(?:\[[^\[\]]*\]|\\[\[\]]?|`[^`]*`|[^\[\]\\])*?'
-LINK_LABEL = r'(?:[^\\\[\]]|' + ESCAPE + r'){0,1000}'
+LINK_TEXT = r'(?:\[(?:\\.|[^\[\]\\])*\]|\\.|`[^`]*`|[^\[\]\\`])*?'
+LINK_LABEL = r'(?:[^\\\[\]]|' + ESCAPE_TEXT + r'){0,1000}'
 
 
 class InlineParser(ScannerParser):
-    ESCAPE = ESCAPE
+    ESCAPE = ESCAPE_TEXT
 
     #: link or email syntax::
     #:
@@ -66,11 +65,11 @@ class InlineParser(ScannerParser):
     ASTERISK_EMPHASIS = (
         r'(\*{1,2})(?=[^\s*])('
         r'(?:\\[\\*]|[^*])*'
-        r'(?:' + ESCAPE + r'|[^\s*]))\1'
+        r'(?:' + ESCAPE_TEXT + r'|[^\s*]))\1'
     )
     UNDERSCORE_EMPHASIS = (
         r'\b(_{1,2})(?=[^\s_])([\s\S]*?'
-        r'(?:' + ESCAPE + r'|[^\s_]))\1'
+        r'(?:' + ESCAPE_TEXT + r'|[^\s_]))\1'
         r'(?!_|[^\s' + PUNCTUATION + r'])\b'
     )
 
@@ -120,7 +119,8 @@ class InlineParser(ScannerParser):
             return 'text', m.group(0)
 
         text = m.group(1)
-        if '@' in text and not text.lower().startswith('mailto:'):
+        schemes = ('mailto:', 'http://', 'https://')
+        if '@' in text and not text.lower().startswith(schemes):
             link = 'mailto:' + text
         else:
             link = text
@@ -138,7 +138,7 @@ class InlineParser(ScannerParser):
             title = ESCAPE_CHAR.sub(r'\1', title[1:-1])
 
         if line[0] == '!':
-            return 'image', link, text, title
+            return 'image', escape_url(link), text, title
 
         return self.tokenize_link(line, link, text, title, state)
 
@@ -156,7 +156,7 @@ class InlineParser(ScannerParser):
             title = ESCAPE_CHAR.sub(r'\1', title)
 
         if line[0] == '!':
-            return 'image', link, text, title
+            return 'image', escape_url(link), text, title
 
         return self.tokenize_link(line, link, text, title, state)
 

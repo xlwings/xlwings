@@ -1,6 +1,6 @@
 import re
 from ..inline_parser import LINK_LABEL
-from ..scanner import unikey
+from ..util import unikey
 
 __all__ = ['plugin_footnotes']
 

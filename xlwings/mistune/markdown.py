@@ -1,9 +1,5 @@
-import re
-from .block_parser import BlockParser, expand_leading_tab
+from .block_parser import BlockParser, expand_leading_tab, cleanup_lines
 from .inline_parser import InlineParser
-
-_newline_pattern = re.compile(r'\r\n|\r')
-_blank_lines = re.compile(r'^ +$', re.M)
 
 
 class Markdown(object):
@@ -80,8 +76,7 @@ def preprocess(s, state):
         s = '\n'
     else:
         s = s.replace('\u2424', '\n')
-        s = _newline_pattern.sub('\n', s)
-        s = _blank_lines.sub('', s)
+        s = cleanup_lines(s)
         s = expand_leading_tab(s)
         if not s.endswith('\n'):
             s += '\n'

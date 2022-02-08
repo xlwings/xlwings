@@ -1,5 +1,5 @@
 ==> mistune v0.8.4 is a dependency of Jupyter notebook and part of Anaconda, so for the time being,
-    let's include v2.0.0rc1 here to prevent any incompatibilities
+    let's include v2.0.2 here to prevent any incompatibilities
 
 
 <a href="https://github.com/lepture/mistune">
@@ -33,10 +33,10 @@ Using old Mistune? Checkout docs: <https://mistune.readthedocs.io/en/v0.8.4/>
 
 ## Install
 
-To install v2 of mistune:
+To install mistune:
 
 ```
-$ pip install mistune==2.0.0rc1
+$ pip install mistune
 ```
 
 ## Overview

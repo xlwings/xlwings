@@ -1,4 +1,4 @@
-from .scanner import escape, escape_html
+from .util import escape, escape_html
 
 
 class BaseRenderer(object):
@@ -31,6 +31,8 @@ class AstRenderer(BaseRenderer):
         return {'type': 'text', 'text': text}
 
     def link(self, link, children=None, title=None):
+        if isinstance(children, str):
+            children = [{'type': 'text', 'text': children}]
         return {
             'type': 'link',
             'link': link,
