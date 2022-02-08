@@ -31,8 +31,17 @@ xlwings_bas_path = os.path.join(par_dir, "xlwings", "xlwings.bas")
 if os.environ["GITHUB_REF"].startswith("refs/tags"):
     version_string = os.environ["GITHUB_REF"][10:]
 else:
-    # Canonical release versions don't accept letters, so can't use Git hashes
-    version_string = f'0.0.0.dev{os.environ["GITHUB_RUN_ID"]}'
+    # Canonical release versions don't accept letters, so we only use the
+    # numbers from the Git Hash without leading zeroes
+    version_string = ""
+    for i in os.environ["GITHUB_SHA"]:
+        try:
+            int(i)
+            version_string += i
+        except ValueError:
+            pass
+    # Double int/str to get rid of leading zeroes first
+    version_string = f"0.0.0.dev{int(str(int(version_string))[:5])}"
 
 # Rename dlls and applescript file
 for i in ["32", "64"]:
