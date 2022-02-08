@@ -18,7 +18,7 @@ Make sure to replace ``LICENSE_KEY`` with your personal key (see below). This wi
 
 **License key for noncommercial purpose**:
 
-* To use xlwings PRO for free in a noncommercial context, use the following license key: ``noncommercial``.
+* To use xlwings PRO for free in a noncommercial context, use the following license key: ``noncommercial`` (Note that you need at least xlwings 0.26.0).
 
 **License key for commercial purpose**:
 
