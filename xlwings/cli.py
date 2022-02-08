@@ -104,6 +104,32 @@ def addin_status(args):
         print('"xlwings addin install" will install it at: {}'.format(addin_path))
 
 
+def shiv(args):
+    try:
+        from shiv.cli import main
+    except ImportError:
+        sys.stderr.write("You need to install shiv ('pip install shiv') before using this feature")
+        sys.exit(2)
+    if not any("xlwings" in req for req in args.requirements):
+        sys.stderr.write("xlwings is not one of your requirements, are your sure you did not forget to add it ?")
+    main.callback(
+        output_file=args.output_file,
+        entry_point="bin.shiv_runner.main",
+        console_script=None,
+        python=args.python,
+        site_packages=None,
+        build_id=None,
+        compressed=True,
+        compile_pyc=False,
+        extend_pythonpath=True,
+        reproducible=True,
+        no_modify=True,
+        preamble="xlwings/shiv_runner.py",
+        root=None,
+        pip_args=args.requirements,
+    )
+
+
 def quickstart(args):
     project_name = args.project_name
     cwd = os.getcwd()
@@ -624,6 +650,30 @@ def main():
         help="Include a ribbon when creating an add-in.",
     )
     quickstart_parser.set_defaults(func=quickstart)
+
+    # Shiv packing
+    shiv_parser = subparsers.add_parser(
+        "shiv",
+        help='Run "xlwings shiv requirements" to create a '
+             'package containing the depencencies in the  '
+             "requirements. "
+             'Use the "--python" argument to specify a custom '
+             "base interpreter.",
+    )
+    shiv_parser.add_argument("requirements", nargs="+")  # argparse.REMAINDER)
+    shiv_parser.add_argument(
+        "-p", "--python", help="Path to interpreter.exe to use as base. Warning, this should "
+                               "be of the same version and bitedness "
+                               "than the one used to run xlwings "
+                               "(default=the current interpreter used by the xlwing command).",
+        default=sys.executable
+    )
+    shiv_parser.add_argument(
+        "-o", "--output-file", help="Name of the output interpreter bundled "
+                                    "with the dependencies (default='shived_env.pyz').",
+        default="shived_env.pyz"
+    )
+    shiv_parser.set_defaults(func=shiv)
 
     # RunPython (only needed when installed with conda for Mac Excel 2016)
     if sys.platform.startswith("darwin"):
