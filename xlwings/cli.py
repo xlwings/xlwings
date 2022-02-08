@@ -110,13 +110,23 @@ def shiv(args):
     except ImportError:
         sys.stderr.write("You need to install shiv ('pip install shiv') before using this feature")
         sys.exit(2)
-    if not any("xlwings" in req for req in args.requirements):
+
+    python = args.python
+    requirements = args.requirements
+    output_file = args.output_file
+
+    if not any("xlwings" in req for req in requirements):
         sys.stderr.write("xlwings is not one of your requirements, are your sure you did not forget to add it ?")
+
+    if "$" in python:
+        # if the python path contains a $, we replace it by % and use a cmd.exe shebang to trampoline to python
+        python = f'cmd.exe /C call "{python.replace("$","%")}" "{output_file}"'
+
     main.callback(
-        output_file=args.output_file,
+        output_file=output_file,
         entry_point="bin.shiv_runner.main",
         console_script=None,
-        python=args.python,
+        python=python,
         site_packages=None,
         build_id=None,
         compressed=True,
@@ -126,7 +136,7 @@ def shiv(args):
         no_modify=True,
         preamble="xlwings/shiv_runner.py",
         root=None,
-        pip_args=args.requirements,
+        pip_args=requirements,
     )
 
 
@@ -665,7 +675,10 @@ def main():
         "-p", "--python", help="Path to interpreter.exe to use as base. Warning, this should "
                                "be of the same version and bitedness "
                                "than the one used to run xlwings "
-                               "(default=the current interpreter used by the xlwing command).",
+                               "(default=the current interpreter used by the xlwing command). "
+                               "It is possible to use the target environment variables in the path "
+                               "by enclosing them in $ "
+                               "(e.g. -p $USERPROFILE$\AppData\Local\pathtopython\python.exe)",
         default=sys.executable
     )
     shiv_parser.add_argument(

@@ -44,10 +44,16 @@ def get_shiv_path():
 
 
 def main():
+    # handle the case of scripted called via shebang
+    if len(sys.argv) > 1 and (sys.argv[0] in sys.argv[1]):
+        # script path has been duplicated due to the shebang call
+        del sys.argv[1]
+
     if len(sys.argv) == 1:
         # if called without arguments, print the path to the .shiv subfolder with the environment
         print(get_shiv_path())
     else:
+
         # execute the last argument of the command with the python code from xlwings
         exec(sys.argv[-1])
 
