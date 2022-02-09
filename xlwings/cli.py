@@ -556,7 +556,7 @@ def main():
         'may take a while. Use the "--unprotected" flag to install the '
         "add-in without password protection. You can install your custom add-in "
         "by providing the name or path via the --file flag, "
-        'e.g. "xlwings add-in install --file custom.xlam or copy all Excel'
+        'e.g. "xlwings add-in install --file custom.xlam or copy all Excel '
         "files in a directory to the XLSTART folder by providing the path "
         'via the --dir flag."',
     )
