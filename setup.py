@@ -35,6 +35,9 @@ elif sys.platform.startswith("win"):
     data_files += [("", glob.glob("xlwings??-*.dll"))]
 elif sys.platform.startswith("darwin"):
     install_requires += ["psutil >= 2.0.0", "appscript >= 1.0.1"]
+    # This has been broken ever since pip builds a wheel for installing as this uses
+    # an absolute path. Relative paths as in the case of Windows are still supported.
+    # These days taken care of by "xlwings addin install" or "xlwings runpython install"
     data_files = [
         (
             os.path.expanduser("~")
