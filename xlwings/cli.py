@@ -107,7 +107,9 @@ def shiv(args):
     try:
         from shiv.cli import main
     except ImportError:
-        sys.stderr.write("You need to install shiv ('pip install shiv') before using this feature")
+        sys.stderr.write(
+            "You need to install shiv ('pip install shiv') before using this feature"
+        )
         sys.exit(2)
 
     python = args.python
@@ -115,7 +117,10 @@ def shiv(args):
     output_file = args.output_file
 
     if not any("xlwings" in req for req in requirements):
-        sys.stderr.write("xlwings is not one of your requirements, are your sure you did not forget to add it ?")
+        sys.stderr.write(
+            "xlwings is not one of your requirements, "
+            "are your sure you did not forget to add it ?"
+        )
 
     if "$" in python:
         # if the python path contains a $, we replace it by % and use a cmd.exe shebang to trampoline to python
@@ -664,26 +669,30 @@ def main():
     shiv_parser = subparsers.add_parser(
         "shiv",
         help='Run "xlwings shiv requirements" to create a '
-             'package containing the depencencies in the  '
-             "requirements. "
-             'Use the "--python" argument to specify a custom '
-             "base interpreter.",
+        "package containing the depencencies in the  "
+        "requirements. "
+        'Use the "--python" argument to specify a custom '
+        "base interpreter.",
     )
     shiv_parser.add_argument("requirements", nargs="+")  # argparse.REMAINDER)
     shiv_parser.add_argument(
-        "-p", "--python", help="Path to interpreter.exe to use as base. Warning, this should "
-                               "be of the same version and bitedness "
-                               "than the one used to run xlwings "
-                               "(default=the current interpreter used by the xlwing command). "
-                               "It is possible to use the target environment variables in the path "
-                               "by enclosing them in $ "
-                               "(e.g. -p $USERPROFILE$\AppData\Local\pathtopython\python.exe)",
-        default=sys.executable
+        "-p",
+        "--python",
+        help="Path to interpreter.exe to use as base. Warning, this should "
+        "be of the same version and bitedness "
+        "than the one used to run xlwings "
+        "(default=the current interpreter used by the xlwing command). "
+        "It is possible to use the target environment variables in the path "
+        "by enclosing them in $ "
+        "(e.g. -p $USERPROFILE$\AppData\Local\pathtopython\python.exe)",
+        default=sys.executable,
     )
     shiv_parser.add_argument(
-        "-o", "--output-file", help="Name of the output interpreter bundled "
-                                    "with the dependencies (default='shived_env.pyz').",
-        default="shived_env.pyz"
+        "-o",
+        "--output-file",
+        help="Name of the output interpreter bundled "
+        "with the dependencies (default='shived_env.pyz').",
+        default="shived_env.pyz",
     )
     shiv_parser.set_defaults(func=shiv)
 

@@ -20,7 +20,9 @@ def preamble():
     # remove old version of env
     for path in cache_path.iterdir():
         try:
-            if path.name.startswith(f".{name}_") and not path.name.endswith(f"{build_id}_lock"):
+            if path.name.startswith(f".{name}_") and not path.name.endswith(
+                f"{build_id}_lock"
+            ):
                 path.unlink()
             if path.name.startswith(f"{name}_") and not path.name.endswith(build_id):
                 shutil.rmtree(path)
