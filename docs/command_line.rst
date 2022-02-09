@@ -14,8 +14,11 @@ xlwings comes with a command line client. On Windows, type the commands into a C
                         the "--unprotected" flag to install the add-in without
                         password protection. You can install your custom add-
                         in by providing the name or path via the --file flag,
-                        e.g. "xlwings add-in install --file custom.xlam"
-                        (New in 0.6.0, the unprotected flag was added in 0.20.4)
+                        e.g. "xlwings add-in install --file custom.xlam or
+                        copy all Excelfiles in a directory to the XLSTART
+                        folder by providing the path via the --dir flag."
+                        (New in 0.6.0, the unprotected flag was added in 0.20.4
+                        and the --dir flag in 0.24.8)
     quickstart          Run "xlwings quickstart myproject" to create a folder
                         called "myproject" in the current directory with an
                         Excel file and a Python file, ready to be used. Use

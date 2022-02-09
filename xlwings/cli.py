@@ -557,7 +557,7 @@ def main():
         "add-in without password protection. You can install your custom add-in "
         "by providing the name or path via the --file flag, "
         'e.g. "xlwings add-in install --file custom.xlam or copy all Excel'
-        "files in a directory to the XLSTART folder by providing the path"
+        "files in a directory to the XLSTART folder by providing the path "
         'via the --dir flag."',
     )
     addin_subparsers = addin_parser.add_subparsers(dest="subcommand")
