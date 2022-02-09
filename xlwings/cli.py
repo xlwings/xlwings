@@ -115,13 +115,37 @@ def shiv(args):
     python = args.python
     requirements = args.requirements
     output_file = args.output_file
+    user_profile = os.environ.get("USERPROFILE")
 
     if not any("xlwings" in req for req in requirements):
         sys.stderr.write(
             "xlwings is not one of your requirements, "
-            "are your sure you did not forget to add it ?"
+            "are your sure you did not forget to add it ?\n"
         )
 
+    # check the output_file ends with .pyz, otherwise append it
+    if not output_file.endswith(".pyz"):
+        output_file, output_file_original = output_file + ".pyz", output_file
+        sys.stderr.write(
+            "The output file should en with .pyz for windows to consider it "
+            f"as an executable, replacing '{output_file_original}' by '{output_file}'.\n"
+        )
+
+    # un-expand the USERPROFILE in the python path
+    if not args.do_not_replace_userprofile and user_profile:
+        try:
+            python, python_original = (
+                str("$USERPROFILE$" / Path(python).relative_to(Path(user_profile))),
+                python,
+            )
+            print(
+                f"USERPROFILE detected in python path, replacing "
+                f"the output-file {python_original} by {python}"
+            )
+        except ValueError:
+            pass
+
+    # handle $ENVIRONMENT_VARIABLES$ in python path (use an trampoline sheband)
     if "$" in python:
         # if the python path contains a $, we replace it by % and use a cmd.exe shebang to trampoline to python
         python = f'cmd.exe /C call "{python.replace("$", "%")}"'
@@ -669,7 +693,7 @@ def main():
     shiv_parser = subparsers.add_parser(
         "shiv",
         help='Run "xlwings shiv requirements" to create a '
-        "package containing the depencencies in the  "
+        "package containing the dependencies in the  "
         "requirements. "
         'Use the "--python" argument to specify a custom '
         "base interpreter.",
@@ -678,14 +702,25 @@ def main():
     shiv_parser.add_argument(
         "-p",
         "--python",
-        help="Path to interpreter.exe to use as base. Warning, this should "
-        "be of the same version and bitedness "
+        help="Path to interpreter.exe to use as base. "
+        "If you have dependencies that are version/architecture dependent, "
+        "this interpreter should have the same version & architecture "
         "than the one used to run xlwings "
         "(default=the current interpreter used by the xlwing command). "
         "It is possible to use the target environment variables in the path "
         "by enclosing them in $ "
-        "(e.g. -p $USERPROFILE$\AppData\Local\pathtopython\python.exe)",
+        "(e.g. -p $USERPROFILE$\AppData\Local\pathtopython\python.exe). "
+        "If the path contains the USERPROFILE environment variable, it will "
+        "automatically be replaced by $USERPROFILE$ except if the option "
+        "do-not-replace-userprofile is enabled.",
         default=sys.executable,
+    )
+    shiv_parser.add_argument(
+        "-d",
+        "--do-not-replace-userprofile",
+        action="store_true",
+        help="If set to True, avoid the replacement of the USERPROFILE part in the interpreter path.",
+        default=False,
     )
     shiv_parser.add_argument(
         "-o",
