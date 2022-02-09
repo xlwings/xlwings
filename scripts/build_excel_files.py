@@ -76,7 +76,7 @@ lh = os.path.join(os.environ["GITHUB_WORKSPACE"], "xlwings", "pro", "utils.py")
 with open(lh, "r") as f:
     content = f.read()
 content = content.replace(
-    "os.getenv('XLWINGS_LICENSE_KEY_SECRET')",
+    'os.getenv("XLWINGS_LICENSE_KEY_SECRET")',
     "'" + os.environ["XLWINGS_LICENSE_KEY_SECRET"] + "'",
 )
 with open(lh, "w") as f:
