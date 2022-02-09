@@ -698,7 +698,15 @@ def main():
         'Use the "--python" argument to specify a custom '
         "base interpreter.",
     )
-    shiv_parser.add_argument("requirements", nargs="+")  # argparse.REMAINDER)
+    shiv_parser.add_argument(
+        "requirements",
+        nargs="+",
+        help="The list of requirements to include in the shived environment. "
+        "The requirements will be passed to 'pip'. If you want to refer to a file "
+        "(e.g. a 'requirements.txt'), you can pass the argument '-r requirements.txt'. "
+        "However, to avoid interpreting the '-r' as an argument to the xlwings command, "
+        "you need to precede it by a '--', e.g. 'xlwings shiv -- -r requirements.txt'.",
+    )
     shiv_parser.add_argument(
         "-p",
         "--python",
