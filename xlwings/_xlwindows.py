@@ -2040,7 +2040,10 @@ class Chart:
             IgnorePrintAreas=False,
             OpenAfterPublish=False,
         )
-
+        try:
+            self.parent.range("A1").select()
+        except:
+            pass
 
 class Charts(Collection):
     def _wrap(self, xl):

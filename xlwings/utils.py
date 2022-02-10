@@ -645,7 +645,7 @@ def to_pdf(
                 report_path = os.path.join(directory, filename + ".pdf")
             else:
                 report_path = filename + ".pdf"
-            obj.impl.to_pdf(os.path.realpath(report_path), quality=quality)
+        obj.impl.to_pdf(os.path.realpath(report_path), quality=quality)
 
     if layout:
         from .pro.reports.pdf import print_on_layout
