@@ -2045,6 +2045,7 @@ class Chart:
         except:
             pass
 
+
 class Charts(Collection):
     def _wrap(self, xl):
         return Chart(xl_obj=xl)
