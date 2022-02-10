@@ -1149,7 +1149,7 @@ class Book:
 
             .. versionadded:: 0.24.3
 
-        exclude_start_string : str, default '#'
+        exclude_start_string : str, default ``'#'``
             Sheet names that start with this character/string will not be printed.
 
             .. versionadded:: 0.24.4
@@ -1159,8 +1159,8 @@ class Book:
 
             .. versionadded:: 0.24.6
 
-        quality : str, default 'standard'
-            Quality of the PDF file. Can either be 'standard' or 'minimum'.
+        quality : str, default ``'standard'``
+            Quality of the PDF file. Can either be ``'standard'`` or ``'minimum'``.
 
             .. versionadded:: 0.26.2
 
@@ -1415,8 +1415,8 @@ class Sheet:
 
             .. versionadded:: 0.24.6
 
-        quality : str, default 'standard'
-            Quality of the PDF file. Can either be 'standard' or 'minimum'.
+        quality : str, default ``'standard'``
+            Quality of the PDF file. Can either be ``'standard'`` or ``'minimum'``.
 
             .. versionadded:: 0.26.2
 
@@ -2741,8 +2741,8 @@ class Range:
         show : bool, default False
             Once created, open the PDF file with the default application.
 
-        quality : str, default 'standard'
-            Quality of the PDF file. Can either be 'standard' or 'minimum'.
+        quality : str, default ``'standard'``
+            Quality of the PDF file. Can either be ``'standard'`` or ``'minimum'``.
 
 
         .. versionadded:: 0.26.2
@@ -3841,8 +3841,8 @@ class Chart:
         show : bool, default False
             Once created, open the PDF file with the default application.
 
-        quality : str, default 'standard'
-            Quality of the PDF file. Can either be 'standard' or 'minimum'.
+        quality : str, default ``'standard'``
+            Quality of the PDF file. Can either be ``'standard'`` or ``'minimum'``.
 
 
         .. versionadded:: 0.26.2

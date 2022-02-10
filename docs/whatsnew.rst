@@ -1,6 +1,18 @@
 What's New
 ==========
 
+v0.26.2 (Feb 10, 2022)
+---------------------
+
+* :bdg-success:`Feature` Added support for ``myrange.clear_formats`` and ``mysheet.clear_formats`` (:issue:`1802`).
+* :bdg-success:`Feature` Added support for ``mychart.to_pdf()`` and ``myrange.to_pdf()`` (:issue:`1708`).
+* :bdg-success:`Feature` :bdg-secondary:`PRO` Remote interpreter: added support for ``mybook.selection`` (:issue:`1819`).
+* :bdg-info:`Enhancement` The ``quickstart`` command now makes sure that the project name is a valid Python module name (:issue:`1773`).
+* :bdg-info:`Enhancement` The ``to_pdf`` method now accepts an additional parameter ``quality`` that defaults to ``"standard"`` but can be set to ``"minimum"`` for smaller PDFs (:issue:`1697`).
+* :bdg-danger:`Bug Fix` Allow space in path to Python interpreter when using UDFs / UDF Server (:issue:`974`).
+* :bdg-danger:`Bug Fix` A few issues were fixed in case your files are synced with OneDrive or SharePoint (:issue:`1813` and :issue:`1810`).
+* :bdg-danger:`Bug Fix` :bdg-secondary:`PRO` Reports: fixed the ``aggsmall`` filter to work without the optional ``min_rows`` parameter (:issue:`1824`).
+
 v0.26.0 and v0.26.1 (Feb 1, 2022)
 ---------------------------------
 
