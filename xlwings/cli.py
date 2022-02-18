@@ -17,6 +17,11 @@ import xlwings as xw
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
+def exit_on_mac():
+    if sys.platform.startswith("darwin"):
+        sys.exit("This command is currently only supported on Windows.")
+
+
 def get_addin_dir():
     # The call to startup_path creates the XLSTART folder if it doesn't exist yet
     if xw.apps:
@@ -541,6 +546,119 @@ def release(args):
         )
 
 
+def export_vba_modules(book, overwrite=False):
+    # TODO: catch error when Trust Access to VBA Object model isn't enabled
+    # TODO: raise error if editing while file hashes differ
+    # TODO: frm always also imports/exports frx, so if you change the layout
+    # of the form in Excel, then edit frm locally, it will reset the form layout
+    # with the state that frx represents. Either need to pull first or maybe use
+    # vb_component.CodeModule.AddFromString
+    type_map = {100: "cls", 1: "bas", 2: "cls", 3: "frm"}
+    class_sheet_modules = []
+    for vb_component in book.api.VBProject.VBComponents:
+        file_path = (
+            Path(book.fullname).resolve().parent
+            / f"{vb_component.Name}.{type_map[vb_component.Type]}"
+        )
+        if vb_component.Type == 100:
+            class_sheet_modules.append(str(file_path))
+        if vb_component.CodeModule.CountOfLines > 1:
+            # Prevents cluttering everything with empty files if you have lots of sheets
+            if overwrite:
+                vb_component.Export(str(file_path))
+            elif not file_path.exists():
+                vb_component.Export(str(file_path))
+    return class_sheet_modules
+
+
+def vba_export(args):
+    exit_on_mac()
+    if args and args.file:
+        book = xw.Book(args.file)
+    else:
+        if not xw.apps:
+            sys.exit(
+                "Your workbook must be open or you have to supply the --file argument."
+            )
+        else:
+            book = xw.books.active
+    export_vba_modules(book, overwrite=True)
+    print(f"Successfully exported the VBA modules from {book.name}!")
+
+
+def vba_edit(args):
+    exit_on_mac()
+    try:
+        from watchgod import watch, RegExpWatcher, Change
+    except ImportError:
+        sys.exit(
+            "Please install watchgod to use this functionality: pip install watchgod"
+        )
+    import pywintypes
+
+    if args and args.file:
+        book = xw.Book(args.file)
+    else:
+        if not xw.apps:
+            sys.exit(
+                "Your workbook must be open or you have to supply the --file argument."
+            )
+        else:
+            book = xw.books.active
+
+    class_sheet_modules = export_vba_modules(book, overwrite=False)
+
+    mode = "verbose" if args.verbose else "silent"
+
+    print(f"NOTE: Deleting a VBA module here will also delete it in the VBA editor!")
+    print(f"Watching for changes in {book.name} ({mode} mode)...(Hit Ctrl-C to stop)")
+
+    for changes in watch(
+        Path(book.fullname).resolve().parent,
+        watcher_cls=RegExpWatcher,
+        watcher_kwargs=dict(re_files=r"^.*(\.cls|\.frm|\.bas)$"),
+        normal_sleep=400,
+    ):
+        for change_type, path in changes:
+            module_name = os.path.splitext(os.path.basename(path))[0]
+            vb_component = book.api.VBProject.VBComponents(module_name)
+            if change_type == Change.modified:
+                if path in class_sheet_modules:
+                    # ThisWorkbook and Sheet modules need to be handled differently
+                    with open(path, "r") as f:
+                        vba_code = f.readlines()[9:]  # Ignore Attribute VB_ etc.
+                    line_count = vb_component.CodeModule.CountOfLines
+                    if line_count > 0:
+                        vb_component.CodeModule.DeleteLines(1, line_count)
+                    vb_component.CodeModule.AddFromString("".join(vba_code))
+                    if args.verbose:
+                        print(f"INFO: Updated module {module_name}.")
+                else:
+                    try:
+                        book.api.VBProject.VBComponents.Remove(vb_component)
+                        book.api.VBProject.VBComponents.Import(path)
+                        if args.verbose:
+                            print(f"INFO: Updated module {module_name}.")
+                    except pywintypes.com_error:
+                        print(
+                            f"ERROR: Couldn't update module {module_name}. "
+                            f"Please update changes manually."
+                        )
+            elif change_type == Change.deleted:
+                try:
+                    book.api.VBProject.VBComponents.Remove(vb_component)
+                except pywintypes.com_error:
+                    print(
+                        f"ERROR: Couldn't delete module {module_name}. "
+                        f"Please delete it manually."
+                    )
+            elif change_type == Change.added:
+                print(
+                    f"ERROR: Couldn't add {module_name} as this isn't supported. "
+                    "Please add new files via the VBA Editor."
+                )
+
+
 def main():
     print("xlwings version: " + "dev")
     parser = argparse.ArgumentParser()
@@ -770,6 +888,50 @@ def main():
 
     copy_os_parser = copy_subparser.add_parser("gs")
     copy_os_parser.set_defaults(func=copy_gs)
+
+    # Edit VBA code
+    vba_parser = subparsers.add_parser(
+        "vba",
+        help="""This functionality allows you to easily write VBA code in an external
+        editor: run "xlwings vba edit" to update the VBA modules of the active workbook
+        from their local exports everytime you hit save. If you run this the first time,
+        the modules will be automatically exported from Excel. To overwrite the local
+        version of the modules with the one from Excel, run "xlwings vba export".
+        The "--file" flag allows you to specify a file path instead of using the active
+        Workbook. Requires "Trust access to the VBA project object model" enabled.
+        WARNING: Don't use this tool if you're actively changing the UserForm Layout as
+        it currently syncs back the exported state, which would overwrite any changes
+        that you made in Excel.""",
+    )
+    vba_subparsers = vba_parser.add_subparsers(dest="subcommand")
+    vba_subparsers.required = True
+
+    vba_edit_parser = vba_subparsers.add_parser("edit")
+    vba_edit_parser.add_argument(
+        "-f",
+        "--file",
+        help="Optional parameter to select a specific workbook, otherwise it uses the "
+        "active one.",
+    )
+    vba_edit_parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Optional parameter to print messages whenever a module has been updated "
+        "successfully.",
+    )
+
+    vba_edit_parser.set_defaults(func=vba_edit)
+
+    vba_export_parser = vba_subparsers.add_parser("export")
+    vba_export_parser.add_argument(
+        "-f",
+        "--file",
+        help="Optional parameter to select a specific file, otherwise it uses the "
+        "active one.",
+    )
+
+    vba_export_parser.set_defaults(func=vba_export)
 
     # Show help when running without commands
     if len(sys.argv) == 1:
