@@ -286,8 +286,9 @@ Sub clearContents(wb, action)
 End Sub
 
 Sub addSheet(wb, action)
-  Set mysheet = wb.Sheets.Add
-  mysheet.Move after:=Worksheets(action("args")(1) + 1)
+    Dim mysheet As Worksheet
+    Set mysheet = wb.Sheets.Add
+    mysheet.Move after:=Worksheets(action("args")(1) + 1)
 End Sub
 
 Sub setSheetName(wb, action)
