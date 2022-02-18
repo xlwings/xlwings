@@ -34,12 +34,13 @@ Configuration
 While xlwings offers various ways to configure your workbook (see :ref:`Configuration <user_config>`), it will only respect the permissioning settings in the config file in the user's home folder (on Windows, this is ``%USERPROFILE%\.xlwings\xlwings.conf``):
 
 * To prevent end users from overwriting ``xlwings.conf``, you'll need to make sure that the file is owned by the Administrator while giving end users read-only permissions.
-* Add the following settings while replacing the ``PERMISSION_CHECK_URL`` and ``PERMISSION_CHECK_METHOD`` (``POST`` or ``GET``) with the appropriate value for your case::
+* Add the following settings while replacing the ``PERMISSION_CHECK_URL`` and ``PERMISSION_CHECK_METHOD`` (``POST`` or ``GET``) with the appropriate value for your case. ``PERMISSION_CHECK_AUTHORIZATION`` is an optional setting that allows you to send a token with POST requests via the ``Authorization`` header::
 
     "LICENSE_KEY","YOUR_LICENSE_OR_DEPLOY_KEY"
     "PERMISSION_CHECK_ENABLED","True"
     "PERMISSION_CHECK_URL","https://myurl.com"
     "PERMISSION_CHECK_METHOD","POST"
+    "PERMISSION_CHECK_AUTHORIZATION","your_token"
 
 GET request
 -----------
