@@ -18,7 +18,8 @@ Function RunRemotePython( _
     Dim wb As Workbook
     Set wb = ActiveWorkbook
 
-    ' Config takes the first value it finds in this order:
+    ' Config
+    ' takes the first value it finds in this order:
     ' func arg, sheet config, directory config, user config
     If exclude = "" Then
         exclude = GetConfig("EXCLUDE")
@@ -26,10 +27,38 @@ Function RunRemotePython( _
     Dim excludeArray As Variant
     excludeArray = Split(exclude, ",")
 
+    If timeout = 0 Then
+        timeout = GetConfig("TIMEOUT", 0)
+    End If
+    If enableAutoProxy = "" Then
+        enableAutoProxy = GetConfig("ENABLE_AUTO_PROXY", False)
+    End If
+    If insecure = "" Then
+        insecure = GetConfig("INSECURE", False)
+    End If
+    If followRedirects = "" Then
+        followRedirects = GetConfig("FOLLOW_REDIRECTS", False)
+    End If
+    If proxyPassword = "" Then
+        proxyPassword = GetConfig("PROXY_PASSWORD", "")
+    End If
+    If proxyUsername = "" Then
+        proxyUsername = GetConfig("PROXY_USERNAME", "")
+    End If
+    If proxyServer = "" Then
+        proxyServer = GetConfig("PROXY_SERVER", "")
+    End If
+    If proxyBypassList = "" Then
+        proxyBypassList = GetConfig("PROXY_BYPASS_LIST", "")
+    End If
+    If apiKey = "" Then
+        apiKey = GetConfig("API_KEY", "")
+    End If
+
     ' Request payload
     Dim payload As New Dictionary
     payload.Add "client", "VBA"
-    payload.Add "version", "0.26.1"
+    payload.Add "version", "dev"
     
     Dim bookPayload As New Dictionary
     bookPayload.Add "name", ActiveWorkbook.Name
@@ -52,10 +81,12 @@ Function RunRemotePython( _
         Else
             Dim startRow As Integer, startCol As Integer
             Dim nRows As Integer, nCols As Integer
-            startRow = wb.Worksheets(i).UsedRange.Row
-            startCol = wb.Worksheets(i).UsedRange.Column
-            nRows = wb.Worksheets(i).UsedRange.Rows.Count
-            nCols = wb.Worksheets(i).UsedRange.Columns.Count
+            With wb.Worksheets(i).UsedRange
+                startRow = .Row
+                startCol = .Column
+                nRows = .Rows.Count
+                nCols = .Columns.Count
+            End With
             With wb.Worksheets(i)
                 values = .Range( _
                     .Cells(1, 1), _
@@ -76,11 +107,9 @@ Function RunRemotePython( _
 
     ' Debug.Print request.Body
 
-    ' API call
-    request.Method = WebMethod.HttpPost
-    request.Format = WebFormat.Json
-
-    ' Headers is expected as Dictionary
+    ' Headers
+    ' Expected as Dictionary and currently not supported via xlwings.conf
+    ' Providing the Authorization header will ignore the API_KEY
     Dim authHeader As Boolean
     authHeader = False
     If Not IsMissing(headers) Then
@@ -94,85 +123,46 @@ Function RunRemotePython( _
     End If
 
     If authHeader = False Then
-        If apiKey = "" Then
-            apiKey = GetConfig("API_KEY")
-        End If
         If apiKey <> "" Then
             request.AddHeader "Authorization", apiKey
         End If
     End If
 
+    ' API call
+    request.Method = WebMethod.HttpPost
+    request.Format = WebFormat.Json
+
     Dim client As New WebClient
     client.BaseUrl = url
-    If timeout = 0 Then
-        timeout = GetConfig("TIMEOUT", 0)
-        If timeout <> 0 Then
-            client.TimeoutMs = timeout
-        End If
-    Else
+    If timeout <> 0 Then
         client.TimeoutMs = timeout
     End If
-    If proxyBypassList = "" Then
-        proxyBypassList = GetConfig("PROXY_BYPASS_LIST")
-        If proxyBypassList <> "" Then
-            client.proxyBypassList = proxyBypassList
-        End If
-    Else
+    If proxyBypassList <> "" Then
         client.proxyBypassList = proxyBypassList
     End If
-    If proxyServer = "" Then
-        proxyServer = GetConfig("PROXY_SERVER")
-        If proxyServer <> "" Then
-            client.proxyServer = proxyServer
-        End If
-    Else
+    If proxyServer <> "" Then
         client.proxyServer = proxyServer
     End If
-    If proxyUsername = "" Then
-        proxyUsername = GetConfig("PROXY_USERNAME")
-        If proxyUsername <> "" Then
-            client.proxyUsername = proxyUsername
-        End If
-    Else
+    If proxyUsername <> "" Then
         client.proxyUsername = proxyUsername
     End If
-    If proxyPassword = "" Then
-        proxyPassword = GetConfig("PROXY_PASSWORD")
-        If proxyPassword <> "" Then
-            client.proxyPassword = proxyPassword
-        End If
-    Else
+    If proxyPassword <> "" Then
         client.proxyPassword = proxyPassword
     End If
-    If enableAutoProxy = "" Then
-        enableAutoProxy = GetConfig("ENABLE_AUTO_PROXY")
-        If enableAutoProxy <> "" Then
-            client.enableAutoProxy = CBool(enableAutoProxy)
-        End If
-    Else
-        client.enableAutoProxy = CBool(enableAutoProxy)
+    If enableAutoProxy <> False Then
+        client.enableAutoProxy = enableAutoProxy
     End If
-    If insecure = "" Then
-        insecure = GetConfig("INSECURE")
-        If insecure <> "" Then
-            client.insecure = CBool(insecure)
-        End If
-    Else
-        client.insecure = CBool(insecure)
+    If insecure <> False Then
+        client.insecure = insecure
     End If
-    If followRedirects = "" Then
-        followRedirects = GetConfig("FOLLOW_REDIRECTS")
-        If followRedirects <> "" Then
-            client.followRedirects = CBool(followRedirects)
-        End If
-    Else
-        client.followRedirects = CBool(followRedirects)
+    If followRedirects <> False Then
+        client.followRedirects = followRedirects
     End If
 
     Dim response As WebResponse
     Set response = client.Execute(request)
     
-'    Debug.Print response.Content
+    ' Debug.Print response.Content
     
     ' Parse JSON response and run functions
     If response.StatusCode = WebStatusCode.Ok Then
@@ -181,7 +171,7 @@ Function RunRemotePython( _
             Application.Run action("func"), wb, action
         Next
     Else
-        MsgBox "Server responded with error " & response.StatusCode
+        MsgBox "Server responded with error " & response.StatusCode, vbCritical, "Error"
     End If
 
 End Function
