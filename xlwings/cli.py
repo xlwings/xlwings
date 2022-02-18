@@ -657,6 +657,7 @@ def vba_edit(args):
                     f"ERROR: Couldn't add {module_name} as this isn't supported. "
                     "Please add new files via the VBA Editor."
                 )
+            book.save()
 
 
 def main():
