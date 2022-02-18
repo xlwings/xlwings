@@ -67,3 +67,18 @@ xlwings comes with a command line client. On Windows, type the commands into a C
                         Scripts module. Run "xlwings copy gs" to copy the
                         xlwings Google Apps Script module.
                         (New in 0.26.0)
+    vba                 This functionality allows you to easily write VBA code
+                        in an external editor: run "xlwings vba edit" to
+                        update the VBA modules of the active workbook from
+                        their local exports everytime you hit save. If you run
+                        this the first time, the modules will be automatically
+                        exported from Excel. To overwrite the local version of
+                        the modules with the one from Excel, run "xlwings vba
+                        export". The "--file" flag allows you to specify a
+                        file path instead of using the active Workbook.
+                        Requires "Trust access to the VBA project object
+                        model" enabled. WARNING: Don't use this tool if you're
+                        actively changing the UserForm Layout as it currently
+                        syncs back the exported state, which would overwrite any
+                        changes that you made in Excel.
+                        (New in 0.27.0)
