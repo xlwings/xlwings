@@ -1,8 +1,14 @@
 What's New
 ==========
 
+v0.26.3 (Feb 19, 2022)
+----------------------
+
+* :bdg-success:`Feature` If you still have to write VBA code, you can now use the new CLI command ``xlwings vba edit``: this will export all the VBA modules locally so that you can edit them with any editor like e.g., VS Code. Every local change is synced back whenever you save the local file, see :ref:`command_line` (:issue:`1839`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` The permissioning feature now allows you to send an Authorization header via the new ``PERMISSION_CHECK_AUTHORIZATION`` setting (:issue:`1840`).
+
 v0.26.2 (Feb 10, 2022)
----------------------
+----------------------
 
 * :bdg-success:`Feature` Added support for ``myrange.clear_formats`` and ``mysheet.clear_formats`` (:issue:`1802`).
 * :bdg-success:`Feature` Added support for ``mychart.to_pdf()`` and ``myrange.to_pdf()`` (:issue:`1708`).
