@@ -568,3 +568,26 @@ def test_permission_embedded_udf_calc_fails(
     # UDF 2
     book.sheets[0]["A11"].value = '=hello2("test")'
     assert "Failed to get permission" in book.sheets[0]["A11"].value
+
+
+@pytest.mark.parametrize("method", ["POST"])
+def test_authorization_header(clear_user_config, app, addin, method):
+    book = app.books.open(Path(".") / "permission.xlsm")
+
+    config = [
+        '"PERMISSION_CHECK_ENABLED","True"\n',
+        '"PERMISSION_CHECK_URL","http://localhost:5000/header"\n',
+        f'"PERMISSION_CHECK_METHOD","{method}"\n',
+        '"PERMISSION_CHECK_AUTHORIZATION","mytoken"\n',
+        '"UDF Modules","permission;permission2"\n',
+        f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"',
+    ]
+
+    os.makedirs(Path.home() / ".xlwings")
+    with open((Path.home() / ".xlwings" / "xlwings.conf"), "w") as f:
+        f.writelines(config)
+
+    # UDF 1
+    book.macro("ImportPythonUDFs")()
+    book.sheets[0]["A10"].value = '=hello("test")'
+    assert book.sheets[0]["A10"].value == "Hello test!"
