@@ -91,9 +91,18 @@ def verify_execute_permission(command=None, module_names=None):
         payload = {"machine_name": socket.gethostname(), "modules": []}
         for file_name, sha256 in file_hashes.items():
             payload["modules"].append({"file_name": file_name, "sha256": sha256})
-        response = requests.post(
-            config["permission_check_url"], json=payload, timeout=10
+        headers = (
+            {"Authorization": config["permission_check_authorization"]}
+            if config.get("permission_check_authorization")
+            else None
         )
+        response = requests.post(
+            config["permission_check_url"],
+            json=payload,
+            timeout=10,
+            headers=headers,
+        )
+
         if response.status_code == 200:
             return True
         else:
