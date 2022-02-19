@@ -77,8 +77,8 @@ xlwings comes with a command line client. On Windows, type the commands into a C
                         export". The "--file" flag allows you to specify a
                         file path instead of using the active Workbook.
                         Requires "Trust access to the VBA project object
-                        model" enabled. WARNING: Don't use this tool if you're
-                        actively changing the UserForm Layout as it currently
-                        syncs back the exported state, which would overwrite any
-                        changes that you made in Excel.
-                        (New in 0.27.0)
+                        model" enabled. NOTE: Whenever you change something in
+                        the VBA editor (such as the layout of a form or the
+                        properties of a module, you should run "xlwings vba
+                        export" again.
+                        (New in 0.26.3)
