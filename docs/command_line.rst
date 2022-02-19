@@ -79,6 +79,6 @@ xlwings comes with a command line client. On Windows, type the commands into a C
                         Requires "Trust access to the VBA project object
                         model" enabled. NOTE: Whenever you change something in
                         the VBA editor (such as the layout of a form or the
-                        properties of a module, you should run "xlwings vba
+                        properties of a module), you should run "xlwings vba
                         export" again.
                         (New in 0.26.3)

@@ -900,7 +900,7 @@ def main():
         The "--file" flag allows you to specify a file path instead of using the active
         Workbook. Requires "Trust access to the VBA project object model" enabled.
         NOTE: Whenever you change something in the VBA editor (such as the layout of a
-        form or the properties of a module, you should run "xlwings vba export" again.
+        form or the properties of a module), you should run "xlwings vba export" again.
         """,
     )
     vba_subparsers = vba_parser.add_subparsers(dest="subcommand")
