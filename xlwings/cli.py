@@ -622,11 +622,12 @@ def vba_edit(args):
                     # ThisWorkbook/Sheet (100) don't accept VBComponents.Import
                     # and Forms (3) would overwrite the frx layout part
                     with open(path, "r") as f:
-                        vba_code = f.readlines()  # Ignore Attribute VB_ etc.
+                        vba_code = f.readlines()
                     line_count = vb_component.CodeModule.CountOfLines
                     if line_count > 0:
                         vb_component.CodeModule.DeleteLines(1, line_count)
                     if path_to_type[path] == 100:
+                        # Ignore Attribute VB_ etc.
                         vb_component.CodeModule.AddFromString("".join(vba_code[9:]))
                     else:
                         vb_component.CodeModule.AddFromString("".join(vba_code[15:]))
