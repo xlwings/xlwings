@@ -549,26 +549,21 @@ def release(args):
 def export_vba_modules(book, overwrite=False):
     # TODO: catch error when Trust Access to VBA Object model isn't enabled
     # TODO: raise error if editing while file hashes differ
-    # TODO: frm always also imports/exports frx, so if you change the layout
-    # of the form in Excel, then edit frm locally, it will reset the form layout
-    # with the state that frx represents. Either need to pull first or maybe use
-    # vb_component.CodeModule.AddFromString
-    type_map = {100: "cls", 1: "bas", 2: "cls", 3: "frm"}
-    class_sheet_modules = []
+    type_to_ext = {100: "cls", 1: "bas", 2: "cls", 3: "frm"}
+    path_to_type = {}
     for vb_component in book.api.VBProject.VBComponents:
         file_path = (
             Path(book.fullname).resolve().parent
-            / f"{vb_component.Name}.{type_map[vb_component.Type]}"
+            / f"{vb_component.Name}.{type_to_ext[vb_component.Type]}"
         )
-        if vb_component.Type == 100:
-            class_sheet_modules.append(str(file_path))
-        if vb_component.CodeModule.CountOfLines > 1:
+        path_to_type[str(file_path)] = vb_component.Type
+        if vb_component.CodeModule.CountOfLines > 0:
             # Prevents cluttering everything with empty files if you have lots of sheets
             if overwrite:
                 vb_component.Export(str(file_path))
             elif not file_path.exists():
                 vb_component.Export(str(file_path))
-    return class_sheet_modules
+    return path_to_type
 
 
 def vba_export(args):
@@ -606,7 +601,7 @@ def vba_edit(args):
         else:
             book = xw.books.active
 
-    class_sheet_modules = export_vba_modules(book, overwrite=False)
+    path_to_type = export_vba_modules(book, overwrite=False)
 
     mode = "verbose" if args.verbose else "silent"
 
@@ -623,14 +618,19 @@ def vba_edit(args):
             module_name = os.path.splitext(os.path.basename(path))[0]
             vb_component = book.api.VBProject.VBComponents(module_name)
             if change_type == Change.modified:
-                if path in class_sheet_modules:
-                    # ThisWorkbook and Sheet modules need to be handled differently
+                if path_to_type[path] in [100, 3]:
+                    # ThisWorkbook/Sheet (100) don't accept VBComponents.Import
+                    # and Forms (3) would overwrite the frx layout part
                     with open(path, "r") as f:
-                        vba_code = f.readlines()[9:]  # Ignore Attribute VB_ etc.
+                        vba_code = f.readlines()
                     line_count = vb_component.CodeModule.CountOfLines
                     if line_count > 0:
                         vb_component.CodeModule.DeleteLines(1, line_count)
-                    vb_component.CodeModule.AddFromString("".join(vba_code))
+                    if path_to_type[path] == 100:
+                        # Ignore Attribute VB_ etc.
+                        vb_component.CodeModule.AddFromString("".join(vba_code[9:]))
+                    else:
+                        vb_component.CodeModule.AddFromString("".join(vba_code[15:]))
                     if args.verbose:
                         print(f"INFO: Updated module {module_name}.")
                 else:
@@ -900,9 +900,9 @@ def main():
         version of the modules with the one from Excel, run "xlwings vba export".
         The "--file" flag allows you to specify a file path instead of using the active
         Workbook. Requires "Trust access to the VBA project object model" enabled.
-        WARNING: Don't use this tool if you're actively changing the UserForm Layout as
-        it currently syncs back the exported state, which would overwrite any changes
-        that you made in Excel.""",
+        NOTE: Whenever you change something in the VBA editor (such as the layout of a
+        form or the properties of a module), you should run "xlwings vba export" again.
+        """,
     )
     vba_subparsers = vba_parser.add_subparsers(dest="subcommand")
     vba_subparsers.required = True

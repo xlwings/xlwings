@@ -122,5 +122,12 @@ def fail_filename():
         )
 
 
+@app.route("/header", methods=["POST"])
+def header():
+    if request.method == "POST":
+        assert request.headers.get("Authorization") == "mytoken"
+        return "", 200
+
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
