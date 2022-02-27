@@ -563,7 +563,51 @@ def export_vba_modules(book, overwrite=False):
                 vb_component.Export(str(file_path))
             elif not file_path.exists():
                 vb_component.Export(str(file_path))
+            if vb_component.Type == 100:
+                with open(file_path, "r") as f:
+                    exported_code = f.readlines()
+                with open(file_path, "w") as f:
+                    f.writelines(exported_code[9:])
     return path_to_type
+
+
+def vba_import(args):
+    exit_on_mac()
+    if args and args.file:
+        book = xw.Book(args.file)
+    else:
+        if not xw.apps:
+            sys.exit(
+                "Your workbook must be open or you have to supply the --file argument."
+            )
+        else:
+            book = xw.books.active
+    for path in Path(book.fullname).resolve().parent.glob("*"):
+        if path.suffix == ".bas":
+            # This also imports frx, unlike in editing mode
+            try:
+                vb_component = book.api.VBProject.VBComponents(path.stem)
+                book.api.VBProject.VBComponents.Remove(vb_component)
+            except:
+                pass
+            book.api.VBProject.VBComponents.Import(path)
+        elif path.suffix in (".cls", ".frm"):
+            with open(path, "r") as f:
+                vba_code = f.readlines()
+            if vba_code:
+                if vba_code[0].startswith("VERSION "):
+                    try:
+                        vb_component = book.api.VBProject.VBComponents(path.stem)
+                        book.api.VBProject.VBComponents.Remove(vb_component)
+                    except:
+                        pass
+                    book.api.VBProject.VBComponents.Import(path)
+                else:
+                    vb_component = book.api.VBProject.VBComponents(path.stem)
+                    line_count = vb_component.CodeModule.CountOfLines
+                    if line_count > 0:
+                        vb_component.CodeModule.DeleteLines(1, line_count)
+                    vb_component.CodeModule.AddFromString("".join(vba_code))
 
 
 def vba_export(args):
@@ -627,9 +671,9 @@ def vba_edit(args):
                     if line_count > 0:
                         vb_component.CodeModule.DeleteLines(1, line_count)
                     if path_to_type[path] == 100:
-                        # Ignore Attribute VB_ etc.
-                        vb_component.CodeModule.AddFromString("".join(vba_code[9:]))
+                        vb_component.CodeModule.AddFromString("".join(vba_code))
                     else:
+                        # frm: ignore Attribute VB_ etc.
                         vb_component.CodeModule.AddFromString("".join(vba_code[15:]))
                     if args.verbose:
                         print(f"INFO: Updated module {module_name}.")
@@ -933,6 +977,16 @@ def main():
     )
 
     vba_export_parser.set_defaults(func=vba_export)
+
+    vba_import_parser = vba_subparsers.add_parser("import")
+    vba_import_parser.add_argument(
+        "-f",
+        "--file",
+        help="Optional parameter to select a specific file, otherwise it uses the "
+        "active one.",
+    )
+
+    vba_import_parser.set_defaults(func=vba_import)
 
     # Show help when running without commands
     if len(sys.argv) == 1:
