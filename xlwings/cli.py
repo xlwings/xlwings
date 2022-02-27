@@ -553,7 +553,7 @@ def export_vba_modules(book, overwrite=False):
     path_to_type = {}
     for vb_component in book.api.VBProject.VBComponents:
         file_path = (
-            Path(book.fullname).resolve().parent
+            Path(".").resolve()
             / f"{vb_component.Name}.{type_to_ext[vb_component.Type]}"
         )
         path_to_type[str(file_path)] = vb_component.Type
@@ -571,8 +571,10 @@ def export_vba_modules(book, overwrite=False):
     return path_to_type
 
 
-def vba_import(args):
-    exit_on_mac()
+def vba_get_book(args):
+    from xlwings.utils import query_yes_no
+    import textwrap
+
     if args and args.file:
         book = xw.Book(args.file)
     else:
@@ -582,13 +584,36 @@ def vba_import(args):
             )
         else:
             book = xw.books.active
-    for path in Path(book.fullname).resolve().parent.glob("*"):
+
+    tf = query_yes_no(
+        textwrap.dedent(
+            f"""
+    This will affect the following workbook/folder:
+
+    * {book.name}
+    * {Path(".").resolve()}
+
+    Proceed?"""
+        )
+    )
+
+    if not tf:
+        sys.exit()
+    return book
+
+
+def vba_import(args):
+    exit_on_mac()
+    import pywintypes
+
+    book = vba_get_book(args)
+
+    for path in Path(".").resolve().glob("*"):
         if path.suffix == ".bas":
-            # This also imports frx, unlike in editing mode
             try:
                 vb_component = book.api.VBProject.VBComponents(path.stem)
                 book.api.VBProject.VBComponents.Remove(vb_component)
-            except:
+            except pywintypes.com_error:
                 pass
             book.api.VBProject.VBComponents.Import(path)
         elif path.suffix in (".cls", ".frm"):
@@ -596,10 +621,11 @@ def vba_import(args):
                 vba_code = f.readlines()
             if vba_code:
                 if vba_code[0].startswith("VERSION "):
+                    # For frm, this also imports frx, unlike in editing mode
                     try:
                         vb_component = book.api.VBProject.VBComponents(path.stem)
                         book.api.VBProject.VBComponents.Remove(vb_component)
-                    except:
+                    except pywintypes.com_error:
                         pass
                     book.api.VBProject.VBComponents.Import(path)
                 else:
@@ -612,82 +638,59 @@ def vba_import(args):
 
 def vba_export(args):
     exit_on_mac()
-    if args and args.file:
-        book = xw.Book(args.file)
-    else:
-        if not xw.apps:
-            sys.exit(
-                "Your workbook must be open or you have to supply the --file argument."
-            )
-        else:
-            book = xw.books.active
+    book = vba_get_book(args)
     export_vba_modules(book, overwrite=True)
     print(f"Successfully exported the VBA modules from {book.name}!")
 
 
 def vba_edit(args):
     exit_on_mac()
+    import pywintypes
+
     try:
         from watchgod import watch, RegExpWatcher, Change
     except ImportError:
         sys.exit(
             "Please install watchgod to use this functionality: pip install watchgod"
         )
-    import pywintypes
 
-    if args and args.file:
-        book = xw.Book(args.file)
-    else:
-        if not xw.apps:
-            sys.exit(
-                "Your workbook must be open or you have to supply the --file argument."
-            )
-        else:
-            book = xw.books.active
+    book = vba_get_book(args)
 
     path_to_type = export_vba_modules(book, overwrite=False)
-
     mode = "verbose" if args.verbose else "silent"
 
     print(f"NOTE: Deleting a VBA module here will also delete it in the VBA editor!")
     print(f"Watching for changes in {book.name} ({mode} mode)...(Hit Ctrl-C to stop)")
 
     for changes in watch(
-        Path(book.fullname).resolve().parent,
+        Path(".").resolve(),
         watcher_cls=RegExpWatcher,
         watcher_kwargs=dict(re_files=r"^.*(\.cls|\.frm|\.bas)$"),
         normal_sleep=400,
     ):
         for change_type, path in changes:
             module_name = os.path.splitext(os.path.basename(path))[0]
+            module_type = path_to_type[path]
             vb_component = book.api.VBProject.VBComponents(module_name)
             if change_type == Change.modified:
-                if path_to_type[path] in [100, 3]:
-                    # ThisWorkbook/Sheet (100) don't accept VBComponents.Import
-                    # and Forms (3) would overwrite the frx layout part
-                    with open(path, "r") as f:
-                        vba_code = f.readlines()
-                    line_count = vb_component.CodeModule.CountOfLines
-                    if line_count > 0:
-                        vb_component.CodeModule.DeleteLines(1, line_count)
-                    if path_to_type[path] == 100:
-                        vb_component.CodeModule.AddFromString("".join(vba_code))
-                    else:
-                        # frm: ignore Attribute VB_ etc.
-                        vb_component.CodeModule.AddFromString("".join(vba_code[15:]))
-                    if args.verbose:
-                        print(f"INFO: Updated module {module_name}.")
-                else:
-                    try:
-                        book.api.VBProject.VBComponents.Remove(vb_component)
-                        book.api.VBProject.VBComponents.Import(path)
-                        if args.verbose:
-                            print(f"INFO: Updated module {module_name}.")
-                    except pywintypes.com_error:
-                        print(
-                            f"ERROR: Couldn't update module {module_name}. "
-                            f"Please update changes manually."
-                        )
+                with open(path, "r") as f:
+                    vba_code = f.readlines()
+                line_count = vb_component.CodeModule.CountOfLines
+                if line_count > 0:
+                    vb_component.CodeModule.DeleteLines(1, line_count)
+                # ThisWorkbook/Sheet, bas, cls, frm
+                type_to_firstline = {100: 0, 1: 1, 2: 9, 3: 15}
+                try:
+                    vb_component.CodeModule.AddFromString(
+                        "".join(vba_code[type_to_firstline[module_type] :])
+                    )
+                except pywintypes.com_error:
+                    print(
+                        f"ERROR: Couldn't update module {module_name}. "
+                        f"Please update changes manually."
+                    )
+                if args.verbose:
+                    print(f"INFO: Updated module {module_name}.")
             elif change_type == Change.deleted:
                 try:
                     book.api.VBProject.VBComponents.Remove(vb_component)
