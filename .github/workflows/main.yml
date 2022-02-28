@@ -64,6 +64,16 @@ jobs:
       run: |
         msbuild $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release -maxcpucount
         msbuild $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:Platform=x64 -maxcpucount
+    - name: Get Certificate
+      id: write_file
+      uses: timheuer/base64-to-file@v1.1
+      with:
+        fileName: 'cert.p12'
+        encodedString: ${{ secrets.CODESIGN_CERTIFICATE }}
+    - name: Code Signing
+      run: |
+        signtool sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /fd SHA256 xlwings32.dll
+        signtool sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /fd SHA256 xlwings64.dll
     - name: Build Python Package
       shell: bash
       env:
