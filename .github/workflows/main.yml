@@ -70,12 +70,12 @@ jobs:
       with:
         fileName: 'cert.p12'
         encodedString: ${{ secrets.CODESIGN_CERTIFICATE }}
-    - name: set PATH for signtool
+    - name: Set PATH for signtool
       shell: bash
       run: echo "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x64" >> $GITHUB_PATH
     - name: Code Signing
       run: |
-        signtool sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /fd SHA256 xlwings32.dll xlwings64.dll
+        signtool sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /tr http://timestamp.sectigo.com /td sha256 /fd SHA256 xlwings32.dll xlwings64.dll
     - name: Build Python Package
       shell: bash
       env:
