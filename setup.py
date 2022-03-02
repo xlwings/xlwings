@@ -67,6 +67,9 @@ setup(
     name="xlwings",
     version=version,
     url="https://www.xlwings.org",
+    project_urls={
+        "Source": "https://github.com/xlwings/xlwings",
+    },
     license="BSD 3-clause",
     author="Zoomer Analytics LLC",
     author_email="felix.zumstein@zoomeranalytics.com",
