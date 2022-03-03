@@ -34,7 +34,7 @@ def get_addin_dir():
 
 def addin_install(args):
     xlwings_addin_target_path = os.path.join(get_addin_dir(), "xlwings.xlam")
-    addin_name = "xlwings_unprotected.xlam" if args.unprotected else "xlwings.xlam"
+    addin_name = "xlwings.xlam"
     try:
         if args.file:
             custom_addin_source_path = os.path.abspath(args.file)
@@ -721,10 +721,9 @@ def main():
         help='Run "xlwings addin install" to install the Excel add-in '
         '(will be copied to the XLSTART folder). Instead of "install" you can '
         'also use "update", "remove" or "status". Note that this command '
-        'may take a while. Use the "--unprotected" flag to install the '
-        "add-in without password protection. You can install your custom add-in "
-        "by providing the name or path via the --file flag, "
-        'e.g. "xlwings add-in install --file custom.xlam or copy all Excel '
+        "may take a while. You can install your custom add-in "
+        "by providing the name or path via the --file/-f flag, "
+        'e.g. "xlwings add-in install -f custom.xlam or copy all Excel '
         "files in a directory to the XLSTART folder by providing the path "
         'via the --dir flag."',
     )
@@ -737,12 +736,7 @@ def main():
     )
 
     addin_install_parser = addin_subparsers.add_parser("install")
-    addin_install_parser.add_argument(
-        "-u",
-        "--unprotected",
-        action="store_true",
-        help="Install the add-in without the password protection.",
-    )
+
     addin_install_parser.add_argument("-f", "--file", default=None, help=file_arg_help)
     addin_install_parser.add_argument("-d", "--dir", default=None, help=dir_arg_help)
     addin_install_parser.set_defaults(func=addin_install)
@@ -883,7 +877,7 @@ def main():
     code_parser = subparsers.add_parser(
         "code",
         help='Run "xlwings code embed" to embed all Python modules of the '
-        """workbook's dir in your active Excel file. Use the "--file" flag to """
+        """workbook's dir in your active Excel file. Use the "--file/-f" flag to """
         "only import a single file by providing its path. Requires "
         "xlwings PRO.",
     )
@@ -949,8 +943,9 @@ def main():
         To overwrite the local version of the modules with those from Excel,
         run "xlwings vba export". To overwrite the VBA modules in Excel with their local
         versions, run "xlwings vba import".
-        The "--file" flag allows you to specify a file path instead of using the active
-        Workbook. Requires "Trust access to the VBA project object model" enabled.
+        The "--file/-f" flag allows you to specify a file path instead of using the
+        active Workbook. Requires "Trust access to the VBA project object model" 
+        enabled.
         NOTE: Whenever you change something in the VBA editor (such as the layout of a
         form or the properties of a module), you have to run "xlwings vba export".
         """,
