@@ -84,7 +84,7 @@ Function RunRemotePython( _
             With wb.Worksheets(i).UsedRange
                 startRow = .Row
                 startCol = .Column
-                nRows = .Rows.Count
+                nRows = .rows.Count
                 nCols = .Columns.Count
             End With
             With wb.Worksheets(i)
@@ -299,7 +299,7 @@ Sub setAutofit(wb, action)
     If action("args")(1) = "columns" Then
         GetRange(wb, action).Columns.AutoFit
     Else
-        GetRange(wb, action).Rows.AutoFit
+        GetRange(wb, action).rows.AutoFit
     End If
 End Sub
 

@@ -146,7 +146,7 @@ Public TimeoutMs As Long
 ' @property ProxyBypassList
 ' @type String
 ''
-Public proxyByPassList As String
+Public proxyBypassList As String
 
 ''
 ' Username for proxy.
@@ -482,7 +482,7 @@ Public Sub SetProxy(proxyServer As String, _
     Me.proxyServer = proxyServer
     Me.proxyUsername = Username
     Me.proxyPassword = Password
-    Me.proxyByPassList = BypassList
+    Me.proxyBypassList = BypassList
 End Sub
 
 ''
@@ -531,7 +531,7 @@ Public Function PrepareHttpRequest(Request As WebRequest, Optional Async As Bool
     ' See http://msdn.microsoft.com/en-us/library/windows/desktop/aa384059(v=vs.85).aspx for details
     If Me.proxyServer <> "" Then
         WebHelpers.LogDebug "SetProxy: " & Me.proxyServer, "WebClient.PrepareHttpRequest"
-        web_Http.SetProxy web_HttpRequest_ProxySetting_Proxy, Me.proxyServer, Me.proxyByPassList
+        web_Http.SetProxy web_HttpRequest_ProxySetting_Proxy, Me.proxyServer, Me.proxyBypassList
 
         If Me.proxyUsername <> "" Then
             WebHelpers.LogDebug "SetProxyCredentials: " & Me.proxyUsername & ", " & WebHelpers.Obfuscate(Me.proxyPassword), "WebClient.PrepareHttpRequest"
@@ -625,8 +625,8 @@ Public Function PrepareCurlRequest(Request As WebRequest) As String
     If Me.proxyServer <> "" Then
         web_Curl = web_Curl & " --proxy " & Me.proxyServer
 
-        If Me.proxyByPassList <> "" Then
-            web_Curl = web_Curl & " --noproxy " & Me.proxyByPassList
+        If Me.proxyBypassList <> "" Then
+            web_Curl = web_Curl & " --noproxy " & Me.proxyBypassList
         End If
         If Me.proxyUsername <> "" Then
             web_Curl = web_Curl & " --proxy-user " & Me.proxyUsername & ":" & Me.proxyPassword
@@ -688,7 +688,7 @@ Public Function Clone() As WebClient
     Set Clone = New WebClient
     Clone.BaseUrl = Me.BaseUrl
     Clone.proxyServer = Me.proxyServer
-    Clone.proxyByPassList = Me.proxyByPassList
+    Clone.proxyBypassList = Me.proxyBypassList
     Clone.proxyUsername = Me.proxyUsername
     Clone.proxyPassword = Me.proxyPassword
     Clone.enableAutoProxy = Me.enableAutoProxy
@@ -737,7 +737,7 @@ Private Sub web_LoadAutoProxy(web_Request As WebRequest)
 
         ' Store proxy server in underlying to avoid turning off auto-proxy
         web_pProxyServer = web_ProxyServer
-        Me.proxyByPassList = web_ProxyBypassList
+        Me.proxyBypassList = web_ProxyBypassList
     End If
 
     Exit Sub
