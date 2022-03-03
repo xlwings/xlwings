@@ -102,10 +102,10 @@ Function RunRemotePython( _
     Next
     payload.Add "sheets", sheetsPayload
     
-    Dim request As New WebRequest
-    Set request.Body = payload
+    Dim myRequest As New WebRequest
+    Set myRequest.Body = payload
 
-    ' Debug.Print request.Body
+    ' Debug.Print myRequest.Body
 
     ' Headers
     ' Expected as Dictionary and currently not supported via xlwings.conf
@@ -113,9 +113,9 @@ Function RunRemotePython( _
     Dim authHeader As Boolean
     authHeader = False
     If Not IsMissing(headers) Then
-        Dim key as Variant
-        For Each key in headers.Keys
-            request.AddHeader CStr(key), headers(key)
+        Dim myKey as Variant
+        For Each myKey in headers.myKeys
+            myRequest.AddHeader CStr(myKey), headers(myKey)
         Next
         If headers.Exists("Authorization") Then
             authHeader = True
@@ -124,43 +124,43 @@ Function RunRemotePython( _
 
     If authHeader = False Then
         If apiKey <> "" Then
-            request.AddHeader "Authorization", apiKey
+            myRequest.AddHeader "Authorization", apiKey
         End If
     End If
 
     ' API call
-    request.Method = WebMethod.HttpPost
-    request.Format = WebFormat.Json
+    myRequest.Method = WebMethod.HttpPost
+    myRequest.Format = WebFormat.Json
 
-    Dim client As New WebClient
-    client.BaseUrl = url
+    Dim myClient As New WebClient
+    myClient.BaseUrl = url
     If timeout <> 0 Then
-        client.TimeoutMs = timeout
+        myClient.TimeoutMs = timeout
     End If
     If proxyBypassList <> "" Then
-        client.proxyBypassList = proxyBypassList
+        myClient.proxyBypassList = proxyBypassList
     End If
     If proxyServer <> "" Then
-        client.proxyServer = proxyServer
+        myClient.proxyServer = proxyServer
     End If
     If proxyUsername <> "" Then
-        client.proxyUsername = proxyUsername
+        myClient.proxyUsername = proxyUsername
     End If
     If proxyPassword <> "" Then
-        client.proxyPassword = proxyPassword
+        myClient.proxyPassword = proxyPassword
     End If
     If enableAutoProxy <> False Then
-        client.enableAutoProxy = enableAutoProxy
+        myClient.enableAutoProxy = enableAutoProxy
     End If
     If insecure <> False Then
-        client.insecure = insecure
+        myClient.insecure = insecure
     End If
     If followRedirects <> False Then
-        client.followRedirects = followRedirects
+        myClient.followRedirects = followRedirects
     End If
 
     Dim response As WebResponse
-    Set response = client.Execute(request)
+    Set response = myClient.Execute(myRequest)
     
     ' Debug.Print response.Content
     
@@ -253,26 +253,26 @@ End Function
 Sub setValues(wb, action)
     Dim arr() As Variant
     Dim i As Long, j As Long
-    Dim rows As Collection, cols As Collection
+    Dim values As Collection, valueRow As Collection
 
-    Set rows = action("values")
-    ReDim arr(rows.Count, rows(1).Count)
+    Set values = action("values")
+    ReDim arr(values.Count, values(1).Count)
 
-    For i = 1 To rows.Count
-        Set cols = rows(i)
-        For j = 1 To cols.Count
+    For i = 1 To values.Count
+        Set valueRow = values(i)
+        For j = 1 To valueRow.Count
             On Error Resume Next
                 ' TODO: will be replaced when backend sends location of dates
-                arr(i - 1, j - 1) = WebHelpers.ParseIso(cols(j))
+                arr(i - 1, j - 1) = WebHelpers.ParseIso(valueRow(j))
             If Err.Number <> 0 Then
                 #If Mac Then
-                If Application.IsText(cols(j)) Then
-                    arr(i - 1, j - 1) = Utf8ToUtf16(cols(j))
+                If Application.IsText(valueRow(j)) Then
+                    arr(i - 1, j - 1) = Utf8ToUtf16(valueRow(j))
                 Else
-                    arr(i - 1, j - 1) = cols(j)
+                    arr(i - 1, j - 1) = valueRow(j)
                 End If
                 #Else
-                    arr(i - 1, j - 1) = cols(j)
+                    arr(i - 1, j - 1) = valueRow(j)
                 #End If
             End If
             On Error GoTo 0
