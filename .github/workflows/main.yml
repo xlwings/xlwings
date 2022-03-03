@@ -27,7 +27,7 @@ jobs:
   build:
     # Prevent duplicate runs for own PRs
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
@@ -64,13 +64,60 @@ jobs:
       run: |
         msbuild $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release -maxcpucount
         msbuild $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:Platform=x64 -maxcpucount
-    - name: Build Python Package
+    - name: Get Certificate
+      id: write_file
+      uses: timheuer/base64-to-file@v1.1
+      with:
+        fileName: 'cert.p12'
+        encodedString: ${{ secrets.CODESIGN_CERTIFICATE }}
+    - name: Set PATH for signtool
+      shell: bash
+      run: echo "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x64" >> $GITHUB_PATH
+    - name: Code Sign dlls
+      run: |
+        signtool sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /tr http://timestamp.sectigo.com /td sha256 /fd SHA256 xlwings32.dll xlwings64.dll
+    - name: Build files
       shell: bash
       env:
         ASPOSE_LICENSE: ${{ secrets.ASPOSE_LICENSE }}
         XLWINGS_LICENSE_KEY_SECRET: ${{ secrets.XLWINGS_LICENSE_KEY_SECRET }}
       run: |
         python ./scripts/build_excel_files.py
+      # Code sign Excel add-in (start)
+    - name: Download and unzip Microsoft Office Subject Interface Packages
+      if: github.event_name == 'release'
+      shell: bash
+      run: |
+        # Microsoft Office Subject Interface Packages for Digitally Signing VBA Projects: https://www.microsoft.com/en-us/download/details.aspx?id=56617
+        # NOTE: see README in officesips.exe: the whole stack needs to be x86, including signtool, regsvr32.exe and C++ Redistribution Runtime 2010
+        mkdir ./officesips
+        curl -L https://download.microsoft.com/download/F/B/4/FB46F8CA-6A6F-4CB0-B8F4-06BF3D44DA48/officesips.exe -o ./officesips.exe
+        7z x ./officesips.exe -o./officesips
+    - name: Install Microsoft Visual C++ Redistributable 2010
+      if: github.event_name == 'release'
+      run: |
+        # https://vcredist.com
+        # Must be 2010: https://stackoverflow.com/questions/60239192/signtool-exe-error-signersign-failed-2147220492-0x800403f4-when-signing-ex
+        Install-Module -Name VcRedist -Force
+        New-Item -Path .\VcRedist -ItemType Directory
+        $VcRedists = Get-VcList -Export Unsupported | Where-Object { $_.Release -eq "2010" -and $_.Architecture -eq "x86" }
+        Save-VcRedist -VcList $VcRedists -Path .\VcRedist
+        Install-VcRedist -VcList $VcRedists -Path .\VcRedist
+    - name: Register msosipx.dll
+      if: github.event_name == 'release'
+      run: |
+        # Make sure it uses the 32bit version of regsvr32.exe
+        C:\Windows\system32\regsvr32.exe officesips\msosipx.dll
+    - name: Sign Excel add-in
+      if: github.event_name == 'release'
+      run: |
+        # Office 365 supports three different signatures on VBA projects, which is the reason why OffSign.bat signs and verifies the files 3x
+        # Note that signtools is in ...\bin\x86
+        .\officesips\OffSign.bat "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x86\" "sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /tr http://timestamp.sectigo.com /td sha256 /fd SHA256" "verify /pa" ".\xlwings\addin\xlwings.xlam"
+      # Code sign Excel add-in (end)
+    - name: Build Python Package
+      shell: bash
+      run: |
         # TODO: change this to use the build package: python -m build
         python setup.py sdist
     - name: Upload artifacts
