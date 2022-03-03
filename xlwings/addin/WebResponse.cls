@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
 ' CHANGED:
-' This version includes support for unicode handling on Windows by including
+' This version includes support for unicode handling on Windows
 ' by incorporating https://github.com/VBA-tools/VBA-Web/pull/305/files
 ' but enhanced so it's ignored by macOS and works with both 64 and 32bit Excel
 '
