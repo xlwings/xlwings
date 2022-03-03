@@ -27,7 +27,7 @@ jobs:
   build:
     # Prevent duplicate runs for own PRs
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
