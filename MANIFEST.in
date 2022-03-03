@@ -3,7 +3,6 @@ include README.rst
 include xlwings/*.xlsm
 include xlwings/*.xlam
 include xlwings/addin/xlwings.xlam
-include xlwings/addin/xlwings_unprotected.xlam
 include xlwings??-*.dll
 include xlwings/xlwings*.applescript
 include xlwings/Dictionary.cls
