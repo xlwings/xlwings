@@ -553,21 +553,30 @@ def export_vba_modules(book, overwrite=False):
     path_to_type = {}
     for vb_component in book.api.VBProject.VBComponents:
         file_path = (
-            Path(book.fullname).resolve().parent
+            Path(".").resolve()
             / f"{vb_component.Name}.{type_to_ext[vb_component.Type]}"
         )
         path_to_type[str(file_path)] = vb_component.Type
-        if vb_component.CodeModule.CountOfLines > 0:
+        if (
+            vb_component.Type == 100 and vb_component.CodeModule.CountOfLines > 0
+        ) or vb_component.Type != 100:
             # Prevents cluttering everything with empty files if you have lots of sheets
-            if overwrite:
+            if overwrite or not file_path.exists():
                 vb_component.Export(str(file_path))
-            elif not file_path.exists():
-                vb_component.Export(str(file_path))
+                if vb_component.Type == 100:
+                    # Remove the meta info so it can be distinguished from regular
+                    # classes when running "xlwings vba import"
+                    with open(file_path, "r") as f:
+                        exported_code = f.readlines()
+                    with open(file_path, "w") as f:
+                        f.writelines(exported_code[9:])
     return path_to_type
 
 
-def vba_export(args):
-    exit_on_mac()
+def vba_get_book(args):
+    from xlwings.utils import query_yes_no
+    import textwrap
+
     if args and args.file:
         book = xw.Book(args.file)
     else:
@@ -577,73 +586,113 @@ def vba_export(args):
             )
         else:
             book = xw.books.active
+
+    tf = query_yes_no(
+        textwrap.dedent(
+            f"""
+    This will affect the following workbook/folder:
+
+    * {book.name}
+    * {Path(".").resolve()}
+
+    Proceed?"""
+        )
+    )
+
+    if not tf:
+        sys.exit()
+    return book
+
+
+def vba_import(args):
+    exit_on_mac()
+    import pywintypes
+
+    book = vba_get_book(args)
+
+    for path in Path(".").resolve().glob("*"):
+        if path.suffix == ".bas":
+            try:
+                vb_component = book.api.VBProject.VBComponents(path.stem)
+                book.api.VBProject.VBComponents.Remove(vb_component)
+            except pywintypes.com_error:
+                pass
+            book.api.VBProject.VBComponents.Import(path)
+        elif path.suffix in (".cls", ".frm"):
+            with open(path, "r") as f:
+                vba_code = f.readlines()
+            if vba_code:
+                if vba_code[0].startswith("VERSION "):
+                    # For frm, this also imports frx, unlike in editing mode
+                    try:
+                        vb_component = book.api.VBProject.VBComponents(path.stem)
+                        book.api.VBProject.VBComponents.Remove(vb_component)
+                    except pywintypes.com_error:
+                        pass
+                    book.api.VBProject.VBComponents.Import(path)
+                else:
+                    vb_component = book.api.VBProject.VBComponents(path.stem)
+                    line_count = vb_component.CodeModule.CountOfLines
+                    if line_count > 0:
+                        vb_component.CodeModule.DeleteLines(1, line_count)
+                    vb_component.CodeModule.AddFromString("".join(vba_code))
+
+
+def vba_export(args):
+    exit_on_mac()
+    book = vba_get_book(args)
     export_vba_modules(book, overwrite=True)
     print(f"Successfully exported the VBA modules from {book.name}!")
 
 
 def vba_edit(args):
     exit_on_mac()
+    import pywintypes
+
     try:
         from watchgod import watch, RegExpWatcher, Change
     except ImportError:
         sys.exit(
             "Please install watchgod to use this functionality: pip install watchgod"
         )
-    import pywintypes
 
-    if args and args.file:
-        book = xw.Book(args.file)
-    else:
-        if not xw.apps:
-            sys.exit(
-                "Your workbook must be open or you have to supply the --file argument."
-            )
-        else:
-            book = xw.books.active
+    book = vba_get_book(args)
 
     path_to_type = export_vba_modules(book, overwrite=False)
-
     mode = "verbose" if args.verbose else "silent"
 
     print(f"NOTE: Deleting a VBA module here will also delete it in the VBA editor!")
     print(f"Watching for changes in {book.name} ({mode} mode)...(Hit Ctrl-C to stop)")
 
     for changes in watch(
-        Path(book.fullname).resolve().parent,
+        Path(".").resolve(),
         watcher_cls=RegExpWatcher,
         watcher_kwargs=dict(re_files=r"^.*(\.cls|\.frm|\.bas)$"),
         normal_sleep=400,
     ):
         for change_type, path in changes:
             module_name = os.path.splitext(os.path.basename(path))[0]
+            module_type = path_to_type[path]
             vb_component = book.api.VBProject.VBComponents(module_name)
             if change_type == Change.modified:
-                if path_to_type[path] in [100, 3]:
-                    # ThisWorkbook/Sheet (100) don't accept VBComponents.Import
-                    # and Forms (3) would overwrite the frx layout part
-                    with open(path, "r") as f:
-                        vba_code = f.readlines()
-                    line_count = vb_component.CodeModule.CountOfLines
-                    if line_count > 0:
-                        vb_component.CodeModule.DeleteLines(1, line_count)
-                    if path_to_type[path] == 100:
-                        # Ignore Attribute VB_ etc.
-                        vb_component.CodeModule.AddFromString("".join(vba_code[9:]))
-                    else:
-                        vb_component.CodeModule.AddFromString("".join(vba_code[15:]))
-                    if args.verbose:
-                        print(f"INFO: Updated module {module_name}.")
-                else:
-                    try:
-                        book.api.VBProject.VBComponents.Remove(vb_component)
-                        book.api.VBProject.VBComponents.Import(path)
-                        if args.verbose:
-                            print(f"INFO: Updated module {module_name}.")
-                    except pywintypes.com_error:
-                        print(
-                            f"ERROR: Couldn't update module {module_name}. "
-                            f"Please update changes manually."
-                        )
+                with open(path, "r") as f:
+                    vba_code = f.readlines()
+                line_count = vb_component.CodeModule.CountOfLines
+                if line_count > 0:
+                    vb_component.CodeModule.DeleteLines(1, line_count)
+                # ThisWorkbook/Sheet, bas, cls, frm
+                type_to_firstline = {100: 0, 1: 1, 2: 9, 3: 15}
+                try:
+                    vb_component.CodeModule.AddFromString(
+                        "".join(vba_code[type_to_firstline[module_type] :])
+                    )
+                except pywintypes.com_error:
+                    print(
+                        f"ERROR: Couldn't update module {module_name}. "
+                        f"Please update changes manually."
+                    )
+                if args.verbose:
+                    print(f"INFO: Updated module {module_name}.")
             elif change_type == Change.deleted:
                 try:
                     book.api.VBProject.VBComponents.Remove(vb_component)
@@ -896,12 +945,14 @@ def main():
         help="""This functionality allows you to easily write VBA code in an external
         editor: run "xlwings vba edit" to update the VBA modules of the active workbook
         from their local exports everytime you hit save. If you run this the first time,
-        the modules will be automatically exported from Excel. To overwrite the local
-        version of the modules with the one from Excel, run "xlwings vba export".
+        the modules will be exported from Excel into your current working directory.
+        To overwrite the local version of the modules with those from Excel,
+        run "xlwings vba export". To overwrite the VBA modules in Excel with their local
+        versions, run "xlwings vba import".
         The "--file" flag allows you to specify a file path instead of using the active
         Workbook. Requires "Trust access to the VBA project object model" enabled.
         NOTE: Whenever you change something in the VBA editor (such as the layout of a
-        form or the properties of a module), you should run "xlwings vba export" again.
+        form or the properties of a module), you have to run "xlwings vba export".
         """,
     )
     vba_subparsers = vba_parser.add_subparsers(dest="subcommand")
@@ -933,6 +984,16 @@ def main():
     )
 
     vba_export_parser.set_defaults(func=vba_export)
+
+    vba_import_parser = vba_subparsers.add_parser("import")
+    vba_import_parser.add_argument(
+        "-f",
+        "--file",
+        help="Optional parameter to select a specific file, otherwise it uses the "
+        "active one.",
+    )
+
+    vba_import_parser.set_defaults(func=vba_import)
 
     # Show help when running without commands
     if len(sys.argv) == 1:

@@ -71,14 +71,16 @@ xlwings comes with a command line client. On Windows, type the commands into a C
                         in an external editor: run "xlwings vba edit" to
                         update the VBA modules of the active workbook from
                         their local exports everytime you hit save. If you run
-                        this the first time, the modules will be automatically
-                        exported from Excel. To overwrite the local version of
-                        the modules with the one from Excel, run "xlwings vba
-                        export". The "--file" flag allows you to specify a
-                        file path instead of using the active Workbook.
-                        Requires "Trust access to the VBA project object
-                        model" enabled. NOTE: Whenever you change something in
-                        the VBA editor (such as the layout of a form or the
-                        properties of a module), you should run "xlwings vba
-                        export" again.
-                        (New in 0.26.3)
+                        this the first time, the modules will be exported from
+                        Excel into your current working directory. To
+                        overwrite the local version of the modules with those
+                        from Excel, run "xlwings vba export". To overwrite the
+                        VBA modules in Excel with their local versions, run
+                        "xlwings vba import". The "--file" flag allows you to
+                        specify a file path instead of using the active
+                        Workbook. Requires "Trust access to the VBA project
+                        object model" enabled. NOTE: Whenever you change
+                        something in the VBA editor (such as the layout of a
+                        form or the properties of a module), you have to run
+                        "xlwings vba export".
+                        (New in 0.26.3, changed in 0.27.0)
