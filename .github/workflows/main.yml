@@ -83,8 +83,9 @@ jobs:
         XLWINGS_LICENSE_KEY_SECRET: ${{ secrets.XLWINGS_LICENSE_KEY_SECRET }}
       run: |
         python ./scripts/build_excel_files.py
-      # Code sign Excel workbooks (start)
+      # Code sign Excel add-in (start)
     - name: Download and unzip Microsoft Office Subject Interface Packages
+      if: github.event_name == 'release'
       shell: bash
       run: |
         # Microsoft Office Subject Interface Packages for Digitally Signing VBA Projects: https://www.microsoft.com/en-us/download/details.aspx?id=56617
@@ -93,6 +94,7 @@ jobs:
         curl -L https://download.microsoft.com/download/F/B/4/FB46F8CA-6A6F-4CB0-B8F4-06BF3D44DA48/officesips.exe -o ./officesips.exe
         7z x ./officesips.exe -o./officesips
     - name: Install Microsoft Visual C++ Redistributable 2010
+      if: github.event_name == 'release'
       run: |
         # https://vcredist.com
         # Must be 2010: https://stackoverflow.com/questions/60239192/signtool-exe-error-signersign-failed-2147220492-0x800403f4-when-signing-ex
@@ -102,15 +104,17 @@ jobs:
         Save-VcRedist -VcList $VcRedists -Path .\VcRedist
         Install-VcRedist -VcList $VcRedists -Path .\VcRedist
     - name: Register msosipx.dll
+      if: github.event_name == 'release'
       run: |
         # Make sure it uses the 32bit version of regsvr32.exe
         C:\Windows\system32\regsvr32.exe officesips\msosipx.dll
-    - name: Sign all workbooks
+    - name: Sign Excel add-in
+      if: github.event_name == 'release'
       run: |
-        # Office 365 supports three different signatatues on VBA projects, which is the reason why OffSign.bat signs and verifies the files 3x  
+        # Office 365 supports three different signatures on VBA projects, which is the reason why OffSign.bat signs and verifies the files 3x
+        # Note that signtools is in ...\bin\x86
         .\officesips\OffSign.bat "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x86\" "sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /tr http://timestamp.sectigo.com /td sha256 /fd SHA256" "verify /pa" ".\xlwings\addin\xlwings.xlam"
-        .\officesips\OffSign.bat "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x86\" "sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /tr http://timestamp.sectigo.com /td sha256 /fd SHA256" "verify /pa" ".\xlwings\addin\xlwings_unprotected.xlam"
-      # Code sign Excel workbooks (end)
+      # Code sign Excel add-in (end)
     - name: Build Python Package
       shell: bash
       run: |
