@@ -557,17 +557,19 @@ def export_vba_modules(book, overwrite=False):
             / f"{vb_component.Name}.{type_to_ext[vb_component.Type]}"
         )
         path_to_type[str(file_path)] = vb_component.Type
-        if vb_component.CodeModule.CountOfLines > 0:
+        if (
+            vb_component.Type == 100 and vb_component.CodeModule.CountOfLines > 0
+        ) or vb_component.Type != 100:
             # Prevents cluttering everything with empty files if you have lots of sheets
-            if overwrite:
+            if overwrite or not file_path.exists():
                 vb_component.Export(str(file_path))
-            elif not file_path.exists():
-                vb_component.Export(str(file_path))
-            if vb_component.Type == 100:
-                with open(file_path, "r") as f:
-                    exported_code = f.readlines()
-                with open(file_path, "w") as f:
-                    f.writelines(exported_code[9:])
+                if vb_component.Type == 100:
+                    # Remove the meta info so it can be distinguished from regular
+                    # classes when running "xlwings vba import"
+                    with open(file_path, "r") as f:
+                        exported_code = f.readlines()
+                    with open(file_path, "w") as f:
+                        f.writelines(exported_code[9:])
     return path_to_type
 
 
@@ -943,12 +945,14 @@ def main():
         help="""This functionality allows you to easily write VBA code in an external
         editor: run "xlwings vba edit" to update the VBA modules of the active workbook
         from their local exports everytime you hit save. If you run this the first time,
-        the modules will be automatically exported from Excel. To overwrite the local
-        version of the modules with the one from Excel, run "xlwings vba export".
+        the modules will be exported from Excel into your current working directory.
+        To overwrite the local version of the modules with those from Excel,
+        run "xlwings vba export". To overwrite the VBA modules in Excel with their local
+        versions, run "xlwings vba import".
         The "--file" flag allows you to specify a file path instead of using the active
         Workbook. Requires "Trust access to the VBA project object model" enabled.
         NOTE: Whenever you change something in the VBA editor (such as the layout of a
-        form or the properties of a module), you should run "xlwings vba export" again.
+        form or the properties of a module), you have to run "xlwings vba export".
         """,
     )
     vba_subparsers = vba_parser.add_subparsers(dest="subcommand")
