@@ -91,7 +91,6 @@ setup(
             "*.xlam",
             "*.applescript",
             "addin/xlwings.xlam",
-            "addin/xlwings_unprotected.xlam",
             "js/xlwings.*",
             "quickstart_fastapi/*.*",
         ]
