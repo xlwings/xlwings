@@ -113,8 +113,8 @@ Function RunRemotePython( _
     Dim authHeader As Boolean
     authHeader = False
     If Not IsMissing(headers) Then
-        Dim myKey as Variant
-        For Each myKey in headers.myKeys
+        Dim myKey As Variant
+        For Each myKey In headers.myKeys
             myRequest.AddHeader CStr(myKey), headers(myKey)
         Next
         If headers.Exists("Authorization") Then
@@ -159,19 +159,19 @@ Function RunRemotePython( _
         myClient.followRedirects = followRedirects
     End If
 
-    Dim response As WebResponse
-    Set response = myClient.Execute(myRequest)
+    Dim myResponse As WebResponse
+    Set myResponse = myClient.Execute(myRequest)
     
-    ' Debug.Print response.Content
+    ' Debug.Print myResponse.Content
     
     ' Parse JSON response and run functions
-    If response.StatusCode = WebStatusCode.Ok Then
+    If myResponse.StatusCode = WebStatusCode.Ok Then
         Dim action As Dictionary
-        For Each action In response.Data("actions")
+        For Each action In myResponse.Data("actions")
             Application.Run action("func"), wb, action
         Next
     Else
-        MsgBox "Server responded with error " & response.StatusCode, vbCritical, "Error"
+        MsgBox "Server responded with error " & myResponse.StatusCode, vbCritical, "Error"
     End If
 
 End Function
