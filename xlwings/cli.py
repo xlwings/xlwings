@@ -122,6 +122,8 @@ def quickstart(args):
         )
     cwd = os.getcwd()
 
+    # Project dir
+    project_path = os.path.join(cwd, project_name)
     if args.fastapi:
         # Raises an error on its own if the dir already exists
         shutil.copytree(
@@ -129,34 +131,30 @@ def quickstart(args):
             Path(cwd) / project_name,
             ignore=shutil.ignore_patterns("__pycache__"),
         )
-        sys.exit(0)
-
-    # Project dir
-    project_path = os.path.join(cwd, project_name)
-    if not os.path.exists(project_path):
-        os.makedirs(project_path)
     else:
-        sys.exit("Error: Directory already exists.")
+        if not os.path.exists(project_path):
+            os.makedirs(project_path)
+        else:
+            sys.exit("Error: Directory already exists.")
 
     # Python file
-    with open(os.path.join(project_path, project_name + ".py"), "w") as python_module:
-        python_module.write("import xlwings as xw\n\n\n")
-        python_module.write("def main():\n")
-        python_module.write("    wb = xw.Book.caller()\n")
-        python_module.write("    sheet = wb.sheets[0]\n")
-        python_module.write('    if sheet["A1"].value == "Hello xlwings!":\n')
-        python_module.write('        sheet["A1"].value = "Bye xlwings!"\n')
-        python_module.write("    else:\n")
-        python_module.write('        sheet["A1"].value = "Hello xlwings!"\n\n\n')
-        if sys.platform.startswith("win"):
-            python_module.write("@xw.func\n")
-            python_module.write("def hello(name):\n")
-            python_module.write('    return f"Hello {name}!"\n\n\n')
-        python_module.write('if __name__ == "__main__":\n')
-        python_module.write(
-            '    xw.Book("{0}.xlsm").set_mock_caller()\n'.format(project_name)
-        )
-        python_module.write("    main()\n")
+    if not args.fastapi:
+        with open(os.path.join(project_path, project_name + ".py"), "w") as f:
+            f.write("import xlwings as xw\n\n\n")
+            f.write("def main():\n")
+            f.write("    wb = xw.Book.caller()\n")
+            f.write("    sheet = wb.sheets[0]\n")
+            f.write('    if sheet["A1"].value == "Hello xlwings!":\n')
+            f.write('        sheet["A1"].value = "Bye xlwings!"\n')
+            f.write("    else:\n")
+            f.write('        sheet["A1"].value = "Hello xlwings!"\n\n\n')
+            if sys.platform.startswith("win"):
+                f.write("@xw.func\n")
+                f.write("def hello(name):\n")
+                f.write('    return f"Hello {name}!"\n\n\n')
+            f.write('if __name__ == "__main__":\n')
+            f.write('    xw.Book("{0}.xlsm").set_mock_caller()\n'.format(project_name))
+            f.write("    main()\n")
 
     # Excel file
     if args.standalone:
@@ -176,7 +174,7 @@ def quickstart(args):
         target_file,
     )
 
-    if args.remote:
+    if args.standalone and args.fastapi:
         book = xw.Book(target_file)
         import_remote_modules(book)
         book.save()
@@ -799,11 +797,11 @@ def main():
         "with an Excel file and a Python file, ready to be "
         'used. Use the "--standalone" flag to embed all VBA '
         "code in the Excel file and make it work without the "
-        'xlwings add-in (use additionally "--remote" if you use a remote interpreter). '
+        "xlwings add-in. "
+        'Use "--fastapi" for creating a project that uses a remote '
+        "Python interpreter."
         'Use "--addin --ribbon" to create a template for a custom ribbon addin. Leave '
-        'away the "--ribbon" if you don\'t want a ribbon tab. '
-        'Use "--fastapi" for creating the server boilerplate for setting up a remote '
-        "Python interpreter.",
+        'away the "--ribbon" if you don\'t want a ribbon tab. ',
     )
     quickstart_parser.add_argument("project_name")
     quickstart_parser.add_argument(
