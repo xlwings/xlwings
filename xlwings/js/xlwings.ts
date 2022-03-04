@@ -1,9 +1,8 @@
 async function main(workbook: ExcelScript.Workbook) {
   // String arguments are actual values or keys in xlwings.conf sheet
   await runPython(
-    workbook,
-    "URL",
-    "API_KEY"
+      workbook, "URL",
+      { apiKey: "API_KEY" }
   );
 }
 
@@ -40,9 +39,8 @@ async function main(workbook: ExcelScript.Workbook) {
 
 async function runPython(
   workbook: ExcelScript.Workbook,
-  url: string,
-  apiKey: string,
-  exclude: string = ""
+  url = "",
+  { apiKey = "", exclude = "" }: Options = {}
 ): Promise<void> {
   // Read config from optional xlwings.conf sheet
   let configSheet = workbook.getWorksheet("xlwings.conf");
@@ -73,7 +71,7 @@ async function runPython(
   payload["book"] = {
     name: workbook.getName(),
     active_sheet_index: workbook.getActiveWorksheet().getPosition(),
-    selection: workbook.getSelectedRange().getAddress().split('!').pop(),
+    selection: workbook.getSelectedRange().getAddress().split("!").pop(),
   };
   payload["sheets"] = [];
   let lastCellCol: number;
@@ -168,6 +166,11 @@ async function runPython(
 }
 
 // Helpers
+interface Options {
+  apiKey?: string;
+  exclude?: string;
+}
+
 interface Action {
   func: string;
   args: (string | number | boolean)[];
@@ -182,12 +185,12 @@ interface Action {
 function getRange(workbook: ExcelScript.Workbook, action: Action) {
   return workbook
     .getWorksheets()
-  [action.sheet_position].getRangeByIndexes(
-    action.start_row,
-    action.start_column,
-    action.row_count,
-    action.column_count
-  );
+    [action.sheet_position].getRangeByIndexes(
+      action.start_row,
+      action.start_column,
+      action.row_count,
+      action.column_count
+    );
 }
 
 function getConfig(keyOrValue: string, config: {}) {
@@ -222,9 +225,9 @@ function setValues(workbook: ExcelScript.Workbook, action: Action) {
         if (dtString !== "Invalid Date") {
           if (
             dt.getHours() +
-            dt.getMinutes() +
-            dt.getSeconds() +
-            dt.getMilliseconds() !==
+              dt.getMinutes() +
+              dt.getSeconds() +
+              dt.getMilliseconds() !==
             0
           ) {
             dtString += " " + dt.toLocaleTimeString();
@@ -249,7 +252,7 @@ function addSheet(workbook: ExcelScript.Workbook, action: Action) {
 function setSheetName(workbook: ExcelScript.Workbook, action: Action) {
   workbook
     .getWorksheets()
-  [action.sheet_position].setName(action.args[0].toString());
+    [action.sheet_position].setName(action.args[0].toString());
 }
 
 function setAutofit(workbook: ExcelScript.Workbook, action: Action) {

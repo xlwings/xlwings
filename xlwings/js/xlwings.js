@@ -1,8 +1,6 @@
 function hello() {
-  // Arguments are actual values or keys in xlwings.conf sheet
-  runPython(
-    "URL",
-    "API_KEY"
+  runPython("URL",
+            { apiKey: "API_KEY" }
   );
 }
 
@@ -41,7 +39,7 @@ function hello() {
  * @OnlyCurrentDoc
  */
 
-function runPython(url, apiKey, exclude = "") {
+function runPython(url, { apiKey, exclude = "" } = {}) {
   const workbook = SpreadsheetApp.getActive();
   let configSheet = workbook.getSheetByName("xlwings.conf");
   let config = {};
