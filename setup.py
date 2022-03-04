@@ -86,11 +86,12 @@ setup(
     package_data={
         "xlwings": [
             "xlwings.bas",
-            "Dictionary.cls",
             "*.xlsm",
             "*.xlam",
             "*.applescript",
             "addin/xlwings.xlam",
+            "addin/*.cls",
+            "addin/WebHelpers.bas",
             "js/xlwings.*",
             "quickstart_fastapi/*.*",
         ]
