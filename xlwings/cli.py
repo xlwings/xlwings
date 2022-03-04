@@ -799,8 +799,10 @@ def main():
         "with an Excel file and a Python file, ready to be "
         'used. Use the "--standalone" flag to embed all VBA '
         "code in the Excel file and make it work without the "
-        'xlwings add-in (use additionally "--remote" if you use a remote intepreter.'
-        'Use "--fastapi" for creating the server boilerplate for setting up a remote'
+        'xlwings add-in (use additionally "--remote" if you use a remote interpreter). '
+        'Use "--addin --ribbon" to create a template for a custom ribbon addin. Leave '
+        'away the "--ribbon" if you don\'t want a ribbon tab. '
+        'Use "--fastapi" for creating the server boilerplate for setting up a remote '
         "Python interpreter.",
     )
     quickstart_parser.add_argument("project_name")
