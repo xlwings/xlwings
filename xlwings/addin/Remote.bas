@@ -224,12 +224,13 @@ Function Utf8ToUtf16(ByVal strText As String) As String
     Next i
 End Function
 
-Function HexToRgb(ByVal HexColor As String) As Variant
+Function HexToRgb(ByVal hexColor As String) As Variant
+    ' Based on https://stackoverflow.com/a/63779233/918626
     Dim red As String, green As String, blue As String
-    HexColor = Replace(HexColor, "#", "")
-    red = Val("&H" & Mid(HexColor, 1, 2))
-    green = Val("&H" & Mid(HexColor, 3, 2))
-    blue = Val("&H" & Mid(HexColor, 5, 2))
+    hexColor = Replace(hexColor, "#", "")
+    red = Val("&H" & Mid(hexColor, 1, 2))
+    green = Val("&H" & Mid(hexColor, 3, 2))
+    blue = Val("&H" & Mid(hexColor, 5, 2))
     HexToRgb = RGB(red, green, blue)
 End Function
 
@@ -288,7 +289,7 @@ End Sub
 Sub addSheet(wb, action)
     Dim mysheet As Worksheet
     Set mysheet = wb.Sheets.Add
-    mysheet.Move after:=Worksheets(action("args")(1) + 1)
+    mysheet.Move After:=Worksheets(action("args")(1) + 1)
 End Sub
 
 Sub setSheetName(wb, action)
