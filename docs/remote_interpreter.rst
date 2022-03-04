@@ -1,16 +1,18 @@
 .. _remote_interpreter:
 
-Remote Python Interpreter: Google Sheets & Excel on the web
-===========================================================
+Remote Python Interpreter: Google Sheets & Excel (Desktop & Web)
+================================================================
 
-This feature requires xlwings :guilabel:`PRO` and at least v0.26.0.
+This feature requires xlwings :bdg-secondary:`PRO` and at least v0.27.0.
 
-In connection with **Google Sheets** or **Excel on the web**, xlwings can be run on a **server** (cloud service or self-hosted) for a full cloud experience without local installations of neither Excel nor Python.
+Instead of installing Python on each end-user's machine, you can work with a remote Python interpreter. This works the same as a web application, but uses Excel as the frontend instead of a web page in a browser. A remote interpreter works not just with the Desktop versions of Excel on Windows and macOS but allows you additionally to use xlwings with Google Sheets and Excel on the web for a full cloud experience. You can run the Python web server wherever it works best for you, whether that's by using a cloud service or using physical on-premise server.
 
 .. important:: This feature is currently experimental and only covers parts of the xlwings API, see also :ref:`Limitations` and :ref:`Roadmap`.
 
 Why is this useful?
 -------------------
+
+Having to install a local installation of Python with the correct dependencies is the number one friction when using xlwings. Most excitingly though, the remote interpreter adds support for the web-based spreadsheets: Google Sheets and Excel on the web.
 
 To automate Office on the web, you have to use Office Scripts (i.e., TypeScript, a typed superset of JavaScript) and for Google Sheets, you have to use Apps Script (i.e., JavaScript). If you don't feel like learning JavaScript, xlwings allows you to write Python code instead. But even if you are comfortable with JavaScript, you are very limited in what you can do, as both Office Scripts and Apps Script are primarily designed to automate simple spreadsheet tasks such as inserting a new sheet or formatting cells rather than performing data-intensive tasks. They also make it very hard/impossible to use external JavaScript libraries and run in environments with minimal resources.
 
@@ -46,10 +48,8 @@ Introduction
 
 Working with a remote Python interpreter consists of two parts:
 
-* the Python part (the "backend" or "server")
-* the xlwings JavaScript module (the "frontend" or "client")
-
-This is no different from the classic desktop use of xlwings except that (a) the xlwings JavaScript module is used in place of the VBA add-in/module and (b) the Python backend runs on a server instead of on your local machine.
+* Backend: the Python part
+* Frontend: the xlwings JavaScript module (for Google Sheets/Excel on the web) or the VBA code in the form of the add-in or standalone modules (Desktop Excel)
 
 Working with a remote Python interpreter means that you have to expose your Python functions by using a Python web framework. In more detail, you need to handle a POST request along these lines (the sample shows an excerpt that uses `FastAPI <https://fastapi.tiangolo.com/>`_ as the web framework, but it works accordingly with any other web framework like Django or Flask):
 
@@ -66,10 +66,55 @@ Working with a remote Python interpreter means that you have to expose your Pyth
         # Pass the following back as the response
         return book.json()
 
-Once this runs on a public-facing web server, you simply have to paste the xlwings JavaScript module into the editor in Excel on the web or Google Sheets, respectively, adjust the configuration, and you're all set! The next section shows you how you can play around with this in no time.
+* For Desktop Excel, you can run the web server locally and call the respective function from VBA right away (given that you have the add-in installed).
+* For Google Sheets or Excel on the web, you have to run this on a public-facing web server, and you have to paste the xlwings JavaScript module into the editor in Excel on the web or Google Sheets, respectively, adjust the configuration, and you're all set!
+
+The next section shows you how you can play around with this in no time.
+
+Local Development with Desktop Excel
+------------------------------------
+
+The easiest way to try things out is to run the web server locally against your Desktop version of Excel. We're going to use `FastAPI <https://fastapi.tiangolo.com/>`_ as our web framework. While you can use any web framework you like, no quickstart command exists for these yet, so you'd have to set up the boilerplate yourself.
+
+Start by running the following command on a Terminal/Command Prompt. Feel free to replace ``demo`` with another project name and make sure to run this command in the desired directory::
+
+    $ xlwings quickstart demo --fastapi
+
+This creates a folder called ``demo`` in the current directory with the following files::
+
+    app.py
+    demo.xlsm
+    main.py
+    requirements.txt
+
+I would recommend you to create a virtual or Conda environment where you install the dependencies via ``pip install -r requirements.txt``. In ``app.py``, you'll find the FastAPI boilerplate code and in ``main.py``, you'll find the ``hello`` function that is exposed under the ``/hello`` endpoint.
+
+To run this server locally, run ``python main.py`` in your Terminal/Command Prompt or use your code editor/IDE's run button. You should see something along these lines:
+
+.. code-block:: text
+
+    $ python main.py
+    INFO:     Will watch for changes in these directories: ['/Users/fz/Dev/demo']
+    INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+    INFO:     Started reloader process [36073] using watchgod
+    INFO:     Started server process [36075]
+    INFO:     Waiting for application startup.
+    INFO:     Application startup complete.
+
+Your web server is now listing, so let's open ``demo.xlsm``, press ``Alt+F11`` to open the VBA editor, open ``Module1`` and place your cursor in the following function:
+
+.. code-block:: vb.net
+
+    Sub SampleRemoteCall()
+        RunRemotePython "http://127.0.0.1:8000/hello", apiKey:="DEVELOPMENT"
+    End Sub
+
+Then hit ``F5`` to run the function---you shoul see ``Hello xlwings!`` in cell A1 of the first sheet.
 
 Cloud-based development with Gitpod
 -----------------------------------
+
+Using Gitpod is the easiest solution if you'd like to develop against either Google Sheets or Excel on the web
 
 If you want to have a development environment up and running in less than 5 minutes (even if you're new to web development), simply click the ``Open in Gitpod`` button to open a `sample project <https://github.com/xlwings/xlwings-web-fastapi>`_ in `Gitpod <https://www.gitpod.io>`_ (Gitpod is a cloud-based development environment with a generous free tier):
 
@@ -121,8 +166,8 @@ Please note that clicking the Gitpod button gets you up and running quickly, but
 
 An alternative for Gitpod is `GitHub Codespaces <https://github.com/features/codespaces>`_, but unlike Gitpod, GitHub Codespaces only works with GitHub, has no free tier, and may not be available yet on your account.
 
-Local Development
------------------
+Local Development with Google Sheets or Excel on the web
+--------------------------------------------------------
 
 This section walks you through a local development workflow as an alternative to using Gitpod/GitHub Codespaces. What's making this a little harder than using a preconfigured online IDE like Gitpod is the fact that we need to expose our local web server to the internet for easy development.
 
@@ -422,4 +467,3 @@ Roadmap
 
 * Complete the xlwings API by adding features that currently aren't supported yet, e.g., charts, shapes, named ranges, tables, etc.
 * Improve efficiency.
-* Add support for Excel Desktop (Windows & macOS). Note that Office Scripts on Windows is out for Office Insiders (Microsoft 365 only), so if you have access to this, it should work out of the box.

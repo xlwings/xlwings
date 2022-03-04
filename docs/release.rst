@@ -3,7 +3,7 @@
 Releasing xlwings Tools
 =======================
 
-This feature requires xlwings :guilabel:`PRO`.
+This feature requires xlwings :bdg-secondary:`PRO`.
 
 xlwings PRO offers a simple way to deploy your xlwings tools to your end users without the usual hassle that's involved when installing and configuring Python and xlwings. End users don't need to know anything about Python as they only need to:
 

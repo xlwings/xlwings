@@ -127,8 +127,8 @@ msgid "Plotly static charts"
 msgstr ""
 
 #: ../../matplotlib.rst:114
-msgid "This feature requires xlwings :guilabel:`PRO`."
-msgstr "この機能は xlwings :guilabel:`PRO` のみ利用できます。"
+msgid "This feature requires xlwings :bdg-secondary:`PRO`."
+msgstr "この機能は xlwings :bdg-secondary:`PRO` のみ利用できます。"
 
 #: ../../matplotlib.rst:117
 msgid "Prerequisites"
