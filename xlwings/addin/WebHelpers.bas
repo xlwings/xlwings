@@ -1514,7 +1514,7 @@ Public Sub AddOrReplaceInKeyValues(KeyValues As Collection, Key As Variant, Valu
             If KeyValues.Count = 0 Then
                 KeyValues.Add web_NewKeyValue
             ElseIf web_Index > KeyValues.Count Then
-                KeyValues.Add web_NewKeyValue, after:=web_Index - 1
+                KeyValues.Add web_NewKeyValue, After:=web_Index - 1
             Else
                 KeyValues.Add web_NewKeyValue, Before:=web_Index
             End If
