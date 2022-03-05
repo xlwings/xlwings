@@ -1,7 +1,5 @@
 function hello() {
-  runPython("URL",
-            { apiKey: "API_KEY" }
-  );
+  runPython("URL", { apiKey: "API_KEY" });
 }
 
 /**
@@ -39,8 +37,10 @@ function hello() {
  * @OnlyCurrentDoc
  */
 
-function runPython(url, { apiKey, exclude = "" } = {}) {
+function runPython(url, { apiKey = "", exclude = "", headers = {} } = {}) {
   const workbook = SpreadsheetApp.getActive();
+
+  // Config
   let configSheet = workbook.getSheetByName("xlwings.conf");
   let config = {};
   let configValues = {};
@@ -53,13 +53,26 @@ function runPython(url, { apiKey, exclude = "" } = {}) {
     configValues.forEach((el) => (config[el[0].toString()] = el[1].toString()));
   }
 
-  // Prepare config values
-  let url_ = getConfig(url, config);
-  let headerApiKey = getConfig(apiKey, config);
+  if (apiKey === "") {
+    apiKey = config["API_KEY"] || "";
+  }
 
-  let excludeString = getConfig(exclude, config);
+  if (exclude === "") {
+    exclude = config["EXCLUDE"] || "";
+  }
   let excludeArray = [];
-  excludeArray = excludeString.split(",").map((item) => item.trim());
+  excludeArray = exclude.split(",").map((item) => item.trim());
+
+  if (Object.keys(headers).length === 0) {
+    for (const property in config) {
+      if (property.toLowerCase().startsWith("header_")) {
+        headers[property.substring(7)] = config[property];
+      }
+    }
+  }
+  if (!("Authorization" in headers)) {
+    headers["Authorization"] = apiKey;
+  }
 
   // Request payload
   let sheets = workbook.getSheets();
@@ -114,16 +127,6 @@ function runPython(url, { apiKey, exclude = "" } = {}) {
 
   // console.log(payload);
 
-  // Headers
-  let headers = {
-    Authorization: headerApiKey,
-  };
-  for (const property in config) {
-    if (property.toLowerCase().startsWith("header_")) {
-      headers[property.substring(7)] = config[property];
-    }
-  }
-
   // API call
   const options = {
     method: "post",
@@ -134,7 +137,7 @@ function runPython(url, { apiKey, exclude = "" } = {}) {
 
   // Parse JSON response
   // TODO: handle non-200 status more gracefully
-  const response = UrlFetchApp.fetch(url_, options);
+  const response = UrlFetchApp.fetch(url, options);
   const json = response.getContentText();
   const rawData = JSON.parse(json);
 
@@ -162,14 +165,6 @@ function getRange(workbook, action) {
       action.row_count,
       action.column_count
     );
-}
-
-function getConfig(keyOrValue, config) {
-  if (keyOrValue in config) {
-    return config[keyOrValue];
-  } else {
-    return keyOrValue;
-  }
 }
 
 // Functions map
