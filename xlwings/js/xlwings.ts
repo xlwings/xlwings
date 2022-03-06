@@ -1,9 +1,6 @@
 async function main(workbook: ExcelScript.Workbook) {
   // String arguments are actual values or keys in xlwings.conf sheet
-  await runPython(
-      workbook, "URL",
-      { apiKey: "API_KEY" }
-  );
+  await runPython(workbook, "URL", { apiKey: "API_KEY" });
 }
 
 /**
@@ -40,28 +37,43 @@ async function main(workbook: ExcelScript.Workbook) {
 async function runPython(
   workbook: ExcelScript.Workbook,
   url = "",
-  { apiKey = "", exclude = "" }: Options = {}
+  { apiKey = "", exclude = "", headers = {} }: Options = {}
 ): Promise<void> {
-  // Read config from optional xlwings.conf sheet
+  // Config
   let configSheet = workbook.getWorksheet("xlwings.conf");
   let config = {};
   if (configSheet) {
     const configValues = workbook
       .getWorksheet("xlwings.conf")
       .getRange("A1")
-      .getExtendedRange(ExcelScript.KeyboardDirection.down)
-      .getExtendedRange(ExcelScript.KeyboardDirection.right)
+      .getSurroundingRegion()
       .getValues();
     configValues.forEach((el) => (config[el[0].toString()] = el[1].toString()));
   }
 
-  // Prepare config values
-  let url_: string = getConfig(url, config);
-  let headerApiKey: string = getConfig(apiKey, config);
+  if (apiKey === "") {
+    apiKey = config["API_KEY"] || "";
+  }
 
-  let excludeString: string = getConfig(exclude, config);
+  if (exclude === "") {
+    exclude = config["EXCLUDE"] || "";
+  }
   let excludeArray: string[] = [];
-  excludeArray = excludeString.split(",").map((item: string) => item.trim());
+  excludeArray = exclude.split(",").map((item) => item.trim());
+
+  if (Object.keys(headers).length === 0) {
+    for (const property in config) {
+      if (property.toLowerCase().startsWith("header_")) {
+        headers[property.substring(7)] = config[property];
+      }
+    }
+  }
+  if (!("Authorization" in headers)) {
+    headers["Authorization"] = apiKey;
+  }
+
+  // Standard headers
+  headers["Content-Type"] = "application/json";
 
   // Request payload
   let sheets = workbook.getWorksheets();
@@ -125,19 +137,8 @@ async function runPython(
 
   // console.log(payload);
 
-  // Headers
-  let headers = {
-    "Content-Type": "application/json",
-    Authorization: headerApiKey,
-  };
-  for (const property in config) {
-    if (property.toLowerCase().startsWith("header_")) {
-      headers[property.substring(7)] = config[property];
-    }
-  }
-
   // API call
-  let response = await fetch(url_, {
+  let response = await fetch(url, {
     method: "POST",
     headers: headers,
     body: JSON.stringify(payload),
@@ -169,6 +170,7 @@ async function runPython(
 interface Options {
   apiKey?: string;
   exclude?: string;
+  headers?: {};
 }
 
 interface Action {
@@ -191,14 +193,6 @@ function getRange(workbook: ExcelScript.Workbook, action: Action) {
       action.row_count,
       action.column_count
     );
-}
-
-function getConfig(keyOrValue: string, config: {}) {
-  if (keyOrValue in config) {
-    return config[keyOrValue];
-  } else {
-    return keyOrValue;
-  }
 }
 
 // Functions map
