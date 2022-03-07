@@ -65,7 +65,7 @@ cli_file = os.path.join(os.environ["GITHUB_WORKSPACE"], "xlwings", "cli.py")
 for source_file in [version_file, cli_file]:
     with open(source_file, "r") as f:
         content = f.read()
-    content = content.replace("dev", version_string)
+    content = re.sub(r"\bdev\b", version_string, content)
     with open(source_file, "w") as f:
         f.write(content)
 

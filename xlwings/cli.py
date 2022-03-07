@@ -815,8 +815,8 @@ def main():
     # restapi run
     restapi_parser = subparsers.add_parser(
         "restapi",
-        help='Use "xlwings restapi run" to run the xlwings REST API via Flask dev '
-        'server. Accepts "--host" and "--port" as optional arguments.',
+        help='Use "xlwings restapi run" to run the xlwings REST API via Flask '
+        'development server. Accepts "--host" and "--port" as optional arguments.',
     )
     restapi_subparser = restapi_parser.add_subparsers(dest="subcommand")
     restapi_subparser.required = True
