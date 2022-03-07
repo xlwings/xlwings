@@ -14,7 +14,7 @@ import xlwings as xw
 
 
 # Directories/paths
-this_dir = os.path.dirname(os.path.realpath(__file__))
+this_dir = Path(__file__).resolve().parent
 
 
 def exit_on_mac():
@@ -117,11 +117,13 @@ def quickstart(args):
             "Error: You must choose a project name that works as Python module, "
             "i.e., it must only use letters, underscores and numbers and must not "
             "start with a number. Note that you *can* rename your Excel file "
-            "manually, if you also adjust your RunPython VBA function "
-            "accordingly."
+            "manually after running this command, if you also adjust your RunPython "
+            "VBA function accordingly."
         )
     cwd = os.getcwd()
 
+    # Project dir
+    project_path = os.path.join(cwd, project_name)
     if args.fastapi:
         # Raises an error on its own if the dir already exists
         shutil.copytree(
@@ -129,34 +131,30 @@ def quickstart(args):
             Path(cwd) / project_name,
             ignore=shutil.ignore_patterns("__pycache__"),
         )
-        sys.exit(0)
-
-    # Project dir
-    project_path = os.path.join(cwd, project_name)
-    if not os.path.exists(project_path):
-        os.makedirs(project_path)
     else:
-        sys.exit("Error: Directory already exists.")
+        if not os.path.exists(project_path):
+            os.makedirs(project_path)
+        else:
+            sys.exit("Error: Directory already exists.")
 
     # Python file
-    with open(os.path.join(project_path, project_name + ".py"), "w") as python_module:
-        python_module.write("import xlwings as xw\n\n\n")
-        python_module.write("def main():\n")
-        python_module.write("    wb = xw.Book.caller()\n")
-        python_module.write("    sheet = wb.sheets[0]\n")
-        python_module.write('    if sheet["A1"].value == "Hello xlwings!":\n')
-        python_module.write('        sheet["A1"].value = "Bye xlwings!"\n')
-        python_module.write("    else:\n")
-        python_module.write('        sheet["A1"].value = "Hello xlwings!"\n\n\n')
-        if sys.platform.startswith("win"):
-            python_module.write("@xw.func\n")
-            python_module.write("def hello(name):\n")
-            python_module.write('    return f"Hello {name}!"\n\n\n')
-        python_module.write('if __name__ == "__main__":\n')
-        python_module.write(
-            '    xw.Book("{0}.xlsm").set_mock_caller()\n'.format(project_name)
-        )
-        python_module.write("    main()\n")
+    if not args.fastapi:
+        with open(os.path.join(project_path, project_name + ".py"), "w") as f:
+            f.write("import xlwings as xw\n\n\n")
+            f.write("def main():\n")
+            f.write("    wb = xw.Book.caller()\n")
+            f.write("    sheet = wb.sheets[0]\n")
+            f.write('    if sheet["A1"].value == "Hello xlwings!":\n')
+            f.write('        sheet["A1"].value = "Bye xlwings!"\n')
+            f.write("    else:\n")
+            f.write('        sheet["A1"].value = "Hello xlwings!"\n\n\n')
+            if sys.platform.startswith("win"):
+                f.write("@xw.func\n")
+                f.write("def hello(name):\n")
+                f.write('    return f"Hello {name}!"\n\n\n')
+            f.write('if __name__ == "__main__":\n')
+            f.write('    xw.Book("{0}.xlsm").set_mock_caller()\n'.format(project_name))
+            f.write("    main()\n")
 
     # Excel file
     if args.standalone:
@@ -168,10 +166,18 @@ def quickstart(args):
     else:
         source_file = os.path.join(this_dir, "quickstart.xlsm")
 
+    target_file = os.path.join(
+        project_path, project_name + os.path.splitext(source_file)[1]
+    )
     shutil.copyfile(
         source_file,
-        os.path.join(project_path, project_name + os.path.splitext(source_file)[1]),
+        target_file,
     )
+
+    if args.standalone and args.fastapi:
+        book = xw.Book(target_file)
+        import_remote_modules(book)
+        book.save()
 
 
 def runpython_install(args):
@@ -380,6 +386,17 @@ def copy_js(extension):
         print("Successfully copied to clipboard.")
 
 
+def import_remote_modules(book):
+    for vba_module in [
+        "IWebAuthenticator.cls",
+        "WebClient.cls",
+        "WebRequest.cls",
+        "WebResponse.cls",
+        "WebHelpers.bas",
+    ]:
+        book.api.VBProject.VBComponents.Import(this_dir / "addin" / vba_module)
+
+
 def release(args):
     from xlwings.utils import query_yes_no, read_user_config
     from xlwings.pro import LicenseHandler
@@ -389,8 +406,6 @@ def release(args):
             "This command is currently only supported on Windows. "
             "However, a released workbook will work on macOS, too."
         )
-
-    installation_dir = Path(xw.__file__).resolve().parent
 
     if xw.apps:
         book = xw.apps.active.books.active
@@ -421,6 +436,7 @@ def release(args):
         use_without_addin = query_yes_no(
             "Allow your tool to run without the xlwings add-in?"
         )
+        use_remote = query_yes_no("Support remote interpreter?", "no")
         print()
         if not query_yes_no(f'This will release "{book.name}", proceed?'):
             sys.exit()
@@ -454,6 +470,7 @@ def release(args):
                 "RELEASE_HIDE_CONFIG_SHEET": hide_config_sheet,
                 "RELEASE_HIDE_CODE_SHEETS": hide_code_sheets,
                 "RELEASE_NO_ADDIN": use_without_addin,
+                "RELEASE_REMOTE_INTERPRETER": use_remote,
             }
             config_sheet["A1"].value = config
             config_sheet["A:A"].autofit()
@@ -480,19 +497,26 @@ def release(args):
 
         # Remove VBA modules/classes
         print("* Update VBA modules")
-        if "xlwings" in [i.Name for i in book.api.VBProject.VBComponents]:
-            book.api.VBProject.VBComponents.Remove(
-                book.api.VBProject.VBComponents("xlwings")
-            )
 
-        if "Dictionary" in [i.Name for i in book.api.VBProject.VBComponents]:
-            book.api.VBProject.VBComponents.Remove(
-                book.api.VBProject.VBComponents("Dictionary")
-            )
+        for vba_module in [
+            "xlwings",
+            "Dictionary",
+            "IWebAuthenticator",
+            "WebClient",
+            "WebRequest",
+            "WebResponse",
+            "WebHelpers",
+        ]:
+            if vba_module in [i.Name for i in book.api.VBProject.VBComponents]:
+                book.api.VBProject.VBComponents.Remove(
+                    book.api.VBProject.VBComponents(vba_module)
+                )
 
         # Import VBA modules/classes
-        book.api.VBProject.VBComponents.Import(installation_dir / "xlwings.bas")
-        book.api.VBProject.VBComponents.Import(installation_dir / "Dictionary.cls")
+        book.api.VBProject.VBComponents.Import(this_dir / "xlwings.bas")
+        book.api.VBProject.VBComponents.Import(this_dir / "addin" / "Dictionary.cls")
+        if config["RELEASE_REMOTE_INTERPRETER"]:
+            import_remote_modules(book)
 
     # Embed code
     if config.get("RELEASE_EMBED_CODE"):
@@ -773,11 +797,21 @@ def main():
         "with an Excel file and a Python file, ready to be "
         'used. Use the "--standalone" flag to embed all VBA '
         "code in the Excel file and make it work without the "
-        "xlwings add-in.",
+        "xlwings add-in. "
+        'Use "--fastapi" for creating a project that uses a remote '
+        "Python interpreter. "
+        'Use "--addin --ribbon" to create a template for a custom ribbon addin. Leave '
+        'away the "--ribbon" if you don\'t want a ribbon tab. ',
     )
     quickstart_parser.add_argument("project_name")
     quickstart_parser.add_argument(
         "-s", "--standalone", action="store_true", help="Include xlwings as VBA module."
+    )
+    quickstart_parser.add_argument(
+        "-r",
+        "--remote",
+        action="store_true",
+        help="Support a remote Python interpreter.",
     )
     quickstart_parser.add_argument(
         "-fastapi",
@@ -796,7 +830,7 @@ def main():
     )
     quickstart_parser.set_defaults(func=quickstart)
 
-    # RunPython (only needed when installed with conda for Mac Excel 2016)
+    # RunPython (macOS only)
     if sys.platform.startswith("darwin"):
         runpython_parser = subparsers.add_parser(
             "runpython",

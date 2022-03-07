@@ -3,7 +3,7 @@
 Markdown Formatting
 ===================
 
-This feature requires xlwings :guilabel:`PRO`.
+This feature requires xlwings :bdg-secondary:`PRO`.
 
 .. versionadded:: 0.23.0
 

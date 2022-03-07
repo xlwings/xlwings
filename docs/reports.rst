@@ -3,7 +3,7 @@
 xlwings Reports
 ===============
 
-This feature requires xlwings :guilabel:`PRO`.
+This feature requires xlwings :bdg-secondary:`PRO`.
 
 xlwings Reports is a solution for template-based Excel and PDF reporting, making the generation of pixel-perfect factsheets really simple. xlwings Reports allows business users without Python knowledge to create and maintain Excel templates without having to rely on a Python developer after the intial setup has been done: xlwings Reports separates the Python code (pre- and post-processing) from the Excel template (layout/formatting).
 

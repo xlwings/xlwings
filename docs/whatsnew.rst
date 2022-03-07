@@ -22,34 +22,34 @@ v0.26.2 (Feb 10, 2022)
 v0.26.0 and v0.26.1 (Feb 1, 2022)
 ---------------------------------
 
-* :guilabel:`PRO` [Feature] Added experimental support for Google Sheets and Excel on the web via a remote Python interpreter. For all the details, see :ref:`Remote Interpreter <remote_interpreter>`.
-* :guilabel:`PRO` [Bug Fix] 0.26.1 fixes an issue with the ``xlwings copy gs`` command.
+* :bdg-secondary:`PRO` [Feature] Added experimental support for Google Sheets and Excel on the web via a remote Python interpreter. For all the details, see :ref:`Remote Interpreter <remote_interpreter>`.
+* :bdg-secondary:`PRO` [Bug Fix] 0.26.1 fixes an issue with the ``xlwings copy gs`` command.
 * xlwings PRO is now free for noncommercial usage under the `PolyForm Noncommercial License 1.0.0 <https://polyformproject.org/licenses/noncommercial/1.0.0>`_, see :ref:`xlwings PRO <pro>` for the details.
 
 v0.25.3 (Dec 16, 2021)
 ----------------------
 
-* :guilabel:`PRO` [Bug Fix] The xlwings Reports filters ``aggsmall`` and ``maxrows`` don't fail with empty DataFrames anymore (:issue:`1788`).
+* :bdg-secondary:`PRO` [Bug Fix] The xlwings Reports filters ``aggsmall`` and ``maxrows`` don't fail with empty DataFrames anymore (:issue:`1788`).
 
 v0.25.2 (Dec 3, 2021)
 ---------------------
 
-* :guilabel:`PRO` [Enhancement] xlwings Reports now ignores sheets whose name start with ``##`` for both rendering and printing to PDF (:issue:`1779`).
-* :guilabel:`PRO` [Enhancement] The ``aggsmall`` filter in xlwings Reports now accepts a new parameter ``min_rows`` (:issue:`1780`).
+* :bdg-secondary:`PRO` [Enhancement] xlwings Reports now ignores sheets whose name start with ``##`` for both rendering and printing to PDF (:issue:`1779`).
+* :bdg-secondary:`PRO` [Enhancement] The ``aggsmall`` filter in xlwings Reports now accepts a new parameter ``min_rows`` (:issue:`1780`).
 
 v0.25.1 (Nov 21, 2021)
 ----------------------
 
 * [Enhancement] ``mybook.save()`` now supports the ``password`` parameter (:issue:`1568`).
-* :guilabel:`PRO` [Bug Fix] xlwings Reports would sometimes cause a ``Could not activate App instance`` error (:issue:`1764`).
-* :guilabel:`PRO` [Enhancement] xlwings now warns about expiring developer license keys 30 days before they expire (:issue:`1758`).
+* :bdg-secondary:`PRO` [Bug Fix] xlwings Reports would sometimes cause a ``Could not activate App instance`` error (:issue:`1764`).
+* :bdg-secondary:`PRO` [Enhancement] xlwings now warns about expiring developer license keys 30 days before they expire (:issue:`1758`).
 
 v0.25.0 (Oct 27, 2021)
 ----------------------
 
 * [Bug Fix] Finally, xlwings adds proper support for OneDrive, OneDrive for Business, and SharePoint. This means that the ``quickstart`` setup (Excel file and Python file in the same folder with the same name) works even if the files are stored on OneDrive/SharePoint---as long as they are being synced locally. It also makes ``mybook.fullname`` return the local file path instead of a URL. Sometimes, this requires editing the configuration, see: :ref:`onedrive_sharepoint` for the details (:issue:`1630`).
 * [Feature] The ``update()`` method of Excel tables has been moved from PRO to open source. You can now easily update an existing table in Excel with the data from a new pandas DataFrame without messing up any formulas that reference that table: ``mytable.update(df)``, see: :meth:`Table.update() <xlwings.main.Table.update>` (:issue:`1751`).
-* :guilabel:`PRO`: **Breaking Change**: Reports: ``create_report()`` is now deprecated in favor of ``render_template()`` that is available via ``app``, ``book`` (new), and ``sheet`` objects, see: :ref:`reports_quickstart` (:issue:`1738`).
+* :bdg-secondary:`PRO`: **Breaking Change**: Reports: ``create_report()`` is now deprecated in favor of ``render_template()`` that is available via ``app``, ``book`` (new), and ``sheet`` objects, see: :ref:`reports_quickstart` (:issue:`1738`).
 * [Bug Fix] Running UDFs from other Office apps has been fixed (:issue:`1729`).
 * [Bug Fix] Writing to a protected sheet or using an invalid sheet name etc. caused xlwings to hang instead of raising an Exception (:issue:`1725`).
 
@@ -64,27 +64,27 @@ v0.24.8 (Aug 25, 2021)
 * [Enhancement] You can now use the alias ``'df'`` to convert to a pandas DataFrame: ``mysheet['A1:C3'].options('df').value`` is equivalent to ``import pandas as pd; mysheet['A1:C3'].options(pd.DataFrame).value`` (:issue:`1533`).
 * [Enhancement] Added ``--dir`` option to ``xlwings addin install`` to allow the installation of all files in a directory as add-ins (:issue:`1702`).
 * [Bug Fix] Pandas DataFrames now properly work with ``PeriodIndex`` / ``PeriodDtype`` (:issue:`1084`).
-* :guilabel:`PRO` Reports: If there's just one Frame, keep height of rows (:issue:`1698`).
+* :bdg-secondary:`PRO` Reports: If there's just one Frame, keep height of rows (:issue:`1698`).
 
 v0.24.7 (Aug 5, 2021)
 ---------------------
 
-* :guilabel:`PRO`: **Breaking Change**: Reports: Changed the order of the arguments of the arithmetic DataFrame filters: ``sum``, ``div``, ``mul`` and ``div`` to align them with the other filters. E.g., to multiply column 2 by 100, you now have to write your filter as ``{{ df | mul(100, 2) }}`` (:issue:`1696`).
-* :guilabel:`PRO`: [Bug Fix] Reports: Fixed an issue with images when pillow wasn't installed (:issue:`1695`).
+* :bdg-secondary:`PRO`: **Breaking Change**: Reports: Changed the order of the arguments of the arithmetic DataFrame filters: ``sum``, ``div``, ``mul`` and ``div`` to align them with the other filters. E.g., to multiply column 2 by 100, you now have to write your filter as ``{{ df | mul(100, 2) }}`` (:issue:`1696`).
+* :bdg-secondary:`PRO`: [Bug Fix] Reports: Fixed an issue with images when pillow wasn't installed (:issue:`1695`).
 
 v0.24.6 (Jul 31, 2021)
 ----------------------
 * [Enhancement] You can now also define the color of cells, shapes and font objects with a hex string instead of just an RGB tuple, e.g., ``mysheet["A1"].color = "#efefef"`` (:issue:`1535`).
 * [Enhancement] When you print a workbook or sheet to a pdf, you can now automatically open the PDF document via the new ``show`` argument: ``mybook.to_pdf(show=True)`` (:issue:`1683`).
 * [Bug Fix]: This release includes another round of fixing the cleanup actions of the App() context manager (:issue:`1687`).
-* :guilabel:`PRO` [Enhancement] Reports: New filter ``fontcolor``, allowing you to write text in black and turn it into e.g., white for the report. This gets around the issue that white text isn't visible in Excel on a white background: ``{{ myplaceholder | fontcolor("white") }}``. Alternatively, you can also use a hex color (:issue:`1692`).
-* :guilabel:`PRO`: [Bug Fix] Positioning shapes wasn't always respecting the top/left filters (:issue:`1687`).
-* :guilabel:`PRO`: [Bug Fix] Fixed a bug with non-string headers when calling ``table.update`` (:issue:`1687`).
+* :bdg-secondary:`PRO` [Enhancement] Reports: New filter ``fontcolor``, allowing you to write text in black and turn it into e.g., white for the report. This gets around the issue that white text isn't visible in Excel on a white background: ``{{ myplaceholder | fontcolor("white") }}``. Alternatively, you can also use a hex color (:issue:`1692`).
+* :bdg-secondary:`PRO`: [Bug Fix] Positioning shapes wasn't always respecting the top/left filters (:issue:`1687`).
+* :bdg-secondary:`PRO`: [Bug Fix] Fixed a bug with non-string headers when calling ``table.update`` (:issue:`1687`).
 
 v0.24.5 (Jul 27, 2021)
 ----------------------
 
-* :guilabel:`PRO` [Bug Fix] Reports: Using the ``header`` filter in a Frame was causing rows to be inserted (:issue:`1681`).
+* :bdg-secondary:`PRO` [Bug Fix] Reports: Using the ``header`` filter in a Frame was causing rows to be inserted (:issue:`1681`).
 
 
 v0.24.4 (Jul 26, 2021)
@@ -103,7 +103,7 @@ v0.24.4 (Jul 26, 2021)
 * [Enhancement] New method ``mytable.resize()`` (:issue:`1662`).
 * [Bug Fix] The new App context manager introduced with v0.24.3 was sometimes causing an error on Windows during the cleanup actions (:issue:`1668`).
 
-:guilabel:`PRO` **xlwings.pro.reports:**
+:bdg-secondary:`PRO` **xlwings.pro.reports:**
 
 * **Breaking change**: DataFrame placeholders will now ignore the DataFrame's index. If you need the index, reset it via : ``df.reset_index()`` before passing the DataFrame to ``create_report`` or ``render_template``. This was required as the same column index used in filters would point to seemingly different columns in Excel depending on whether the index was included or not. This also means that the ``noindex`` and ``body`` filters are no obsolete and have been removed (:issue:`1676`).
 * [Enhancement] Dataframe filters now respect the order in which they are called and can be used multiple times (:issue:`1675`).
@@ -121,7 +121,7 @@ v0.24.3 (Jul 15, 2021)
 
 * [Enhancement] :meth:`mysheet.pictures.add <xlwings.main.Pictures.add>` now accepts a new ``anchor`` argument that you can use as an alternative to ``top``/``left`` to position the picture by providing an achor range object, e.g.: ``mysheet.pictures.add(img, anchor=mysheet['A1'])`` (:issue:`1648`).
 * [Bug Fix] macOS: Plots are now sent to Excel in PDF format when you set ``format='vector'`` which is supporting transparency unlike the previously used eps format (:issue:`1647`).
-* :guilabel:`PRO` [Enhancement] :meth:`mybook.to_pdf <xlwings.Book.to_pdf>` now accepts a ``layout`` parameter so you can "print" your reports onto a PDF with your corporate layout including headers, footers and borderless graphics. See :ref:`reports_pdf_layout`.
+* :bdg-secondary:`PRO` [Enhancement] :meth:`mybook.to_pdf <xlwings.Book.to_pdf>` now accepts a ``layout`` parameter so you can "print" your reports onto a PDF with your corporate layout including headers, footers and borderless graphics. See :ref:`reports_pdf_layout`.
 
 v0.24.2 (Jul 6, 2021)
 ---------------------
@@ -129,17 +129,17 @@ v0.24.2 (Jul 6, 2021)
 * [Feature] Added very basic support for :meth:`mysheet.page_setup <xlwings.Sheet.page_setup>` and :meth:`myrange.note <xlwings.Range.note>` (:issue:`1551` and :issue:`896`).
 * [Enhancement] DataFrames are now displayed in Excel tables with empty column names if the DataFrame doesn't have a column or index name. This effect is e.g. visible when using ``xw.view()`` (:issue:`1643`).
 * [Enhancement] ``mysheet.pictures.add()`` now supports ``format='vector'`` which translates to ``'svg'`` on Windows and ``'eps'`` on macOS (:issue:`1640`).
-* :guilabel:`PRO` [Enhancement]: The reports package now offers the additional DataFrame filters ``rowslice`` and ``colslice``, see :ref:`xlwings Reports<reports_quickstart>` (:issue:`1645`).
-* :guilabel:`PRO` [Bug Fix]: Bug fix with handling Excel tables without headers.
+* :bdg-secondary:`PRO` [Enhancement]: The reports package now offers the additional DataFrame filters ``rowslice`` and ``colslice``, see :ref:`xlwings Reports<reports_quickstart>` (:issue:`1645`).
+* :bdg-secondary:`PRO` [Bug Fix]: Bug fix with handling Excel tables without headers.
 
 **Breaking Change**
 
-* :guilabel:`PRO` [Enhancement]: ``<frame>`` markers now have to be defined as cell notes in the first row, see :ref:`frames`. This has the advantage that the Layout view corresponds to the print view (:issue:`1641`). Also, the print area is now preserved even if you use Frames.
+* :bdg-secondary:`PRO` [Enhancement]: ``<frame>`` markers now have to be defined as cell notes in the first row, see :ref:`frames`. This has the advantage that the Layout view corresponds to the print view (:issue:`1641`). Also, the print area is now preserved even if you use Frames.
 
 v0.24.1 (Jun 27, 2021)
 ----------------------
 
-* :guilabel:`PRO` [Enhancement]: The reports package now offers the additional DataFrame filters ``head`` and ``tail``, see :ref:`xlwings Reports<reports_quickstart>` (:issue:`1633`).
+* :bdg-secondary:`PRO` [Enhancement]: The reports package now offers the additional DataFrame filters ``head`` and ``tail``, see :ref:`xlwings Reports<reports_quickstart>` (:issue:`1633`).
 
 v0.24.0 (Jun 25, 2021)
 ----------------------
@@ -150,13 +150,13 @@ v0.24.0 (Jun 25, 2021)
 * [Enhancement] Removed dependency on pillow/PIL to properly size images via ``pictures.add()``.
 * [Bug Fix] Various fixes with scaling and positioning images via ``pictures.add()`` (:issue:`1491`).
 * [Feature] New methods :meth:`mypicture.lock_aspect_ratio <xlwings.Picture.lock_aspect_ratio>` and :meth:`myapp.cut_copy_mode <xlwings.App.cut_copy_mode>` (:issue:`1622` and :issue:`1625`).
-* :guilabel:`PRO` [Feature]: Reports: DataFrames and Images are now offering various filters to influence the behavior of how DataFrames and Images are displayed, giving the template designer the ability to change a lot of things that previously had to be taken care of by the Python developer. For example, to hide a DataFrame's index, you can now do ``{{ df | noindex }}`` or to scale the image to double its size, you can do ``{{ img | scale(2) }}``. You'll find all available filters under :ref:`xlwings Reports<reports_quickstart>` (:issue:`1602`).
+* :bdg-secondary:`PRO` [Feature]: Reports: DataFrames and Images are now offering various filters to influence the behavior of how DataFrames and Images are displayed, giving the template designer the ability to change a lot of things that previously had to be taken care of by the Python developer. For example, to hide a DataFrame's index, you can now do ``{{ df | noindex }}`` or to scale the image to double its size, you can do ``{{ img | scale(2) }}``. You'll find all available filters under :ref:`xlwings Reports<reports_quickstart>` (:issue:`1602`).
 
 
 **Breaking changes**:
 
 * [Enhancement]: When using ``pictures.add()``, pictures arrive now in Excel in the same size as if you would manually add them via the Excel UI and setting width/height now behaves consistently during initial adding and resizing. Consequently, you may have to fix your image sizes when you upgrade. (:issue:`1491`).
-* :guilabel:`PRO`: The default MarkdownStyle removed the empty space after a h1 heading. You can always reintroduce it by applying a custom style (:issue:`1628`).
+* :bdg-secondary:`PRO`: The default MarkdownStyle removed the empty space after a h1 heading. You can always reintroduce it by applying a custom style (:issue:`1628`).
 
 
 v0.23.4 (Jun 15, 2021)
@@ -164,8 +164,8 @@ v0.23.4 (Jun 15, 2021)
 
 * [Bug Fix] Windows: Fixed the ImportUDFs function in the VBA standalone module (:issue:`1601`).
 * [Bug Fix] Fixed configuration hierarchy: if you have a setting with an empty value in the ``xlwings.conf`` sheet, it will not be overridden by the same key in the directory or user config file anymore. If you wanted it to be overridden, you'd have to get the key out of the "xlwings.conf" sheet (:issue:`1617`).
-* :guilabel:`PRO` [Feature] Added the ability to block the execution of Python modules based on the file hash and/or machine name (:issue:`1586`), see :ref:`permissioning`.
-* :guilabel:`PRO` [Feature] Added the ``xlwings release`` command for an easy release management in connection with the one-click installer, see :ref:`release`. (:issue:`1429`).
+* :bdg-secondary:`PRO` [Feature] Added the ability to block the execution of Python modules based on the file hash and/or machine name (:issue:`1586`), see :ref:`permissioning`.
+* :bdg-secondary:`PRO` [Feature] Added the ``xlwings release`` command for an easy release management in connection with the one-click installer, see :ref:`release`. (:issue:`1429`).
 
 
 v0.23.3 (May 17, 2021)
@@ -180,7 +180,7 @@ v0.23.2 (May 7, 2021)
 * [Enhancement] :meth:`xlwings.view` and :meth:`xlwings.load` now use chunking by default (:issue:`1570`).
 * [Bug Fix] Allow to save non-Excel file formats (:issue:`1569`)
 * [Bug Fix] Calculate formulas by default in the Function Wizard (:issue:`1574`).
-* :guilabel:`PRO` [Bug Fix] Properly embed code with unicode characters (:issue:`1575`).
+* :bdg-secondary:`PRO` [Bug Fix] Properly embed code with unicode characters (:issue:`1575`).
 
 v0.23.1 (Apr 19, 2021)
 ----------------------
@@ -220,7 +220,7 @@ v0.23.1 (Apr 19, 2021)
 v0.23.0 (Mar 5, 2021)
 ---------------------
 
-* :guilabel:`PRO` [Feature]: This release adds support for Markdown-based formatting of text, both in cells as well as in shapes, see :ref:`markdown` for the details. This is also supported for template-based reports.
+* :bdg-secondary:`PRO` [Feature]: This release adds support for Markdown-based formatting of text, both in cells as well as in shapes, see :ref:`markdown` for the details. This is also supported for template-based reports.
 
 .. code-block:: python
 
@@ -255,7 +255,7 @@ v0.22.3 (Mar 3, 2021)
 ---------------------
 
 * [Enhancement] As a convenience method, you can now directly export sheets to PDF instead of having to go through the book: :meth:`mysheet.to_pdf() <xlwings.Sheet.to_pdf>` (:issue:`1517`).
-* :guilabel:`PRO` [Bug Fix] Running ``RunPython`` with embedded code was broken in 0.22.0 (:issue:`1530`).
+* :bdg-secondary:`PRO` [Bug Fix] Running ``RunPython`` with embedded code was broken in 0.22.0 (:issue:`1530`).
 
 v0.22.2 (Feb 8, 2021)
 ---------------------
@@ -267,8 +267,8 @@ v0.22.2 (Feb 8, 2021)
 v0.22.1 (Feb 4, 2021)
 ---------------------
 
-* :guilabel:`PRO` [Bug Fix]: :meth:`Table.update <xlwings.main.Table.update>` has been fixed so it also works when the table is the data source of a chart (:issue:`1507`).
-* :guilabel:`PRO` [Docs]: New documentation about how to work with Excel charts in templates; see :ref:`reports_quickstart`.
+* :bdg-secondary:`PRO` [Bug Fix]: :meth:`Table.update <xlwings.main.Table.update>` has been fixed so it also works when the table is the data source of a chart (:issue:`1507`).
+* :bdg-secondary:`PRO` [Docs]: New documentation about how to work with Excel charts in templates; see :ref:`reports_quickstart`.
 
 
 v0.22.0 (Jan 29, 2021)
@@ -277,7 +277,7 @@ v0.22.0 (Jan 29, 2021)
 * [Feature] While it's always been possible to  *somehow* create your own xlwings-based add-ins, this release adds a toolchain to make it a lot easier to create your own white-labeled add-in, see :ref:`customaddin` (:issue:`1488`).
 * [Enhancement] ``xw.view`` now formats the pandas DataFrames as Excel table and with the new ``xw.load`` function, you can easily load a DataFrame from your active workbook into a Jupyter notebook. See :ref:`jupyternotebooks` for a full tutorial (:issue:`1487`).
 * [Feature] New method :meth:`mysheet.copy() <xlwings.Sheet.copy>` (:issue:`123`).
-* :guilabel:`PRO` [Feature]: in addition to ``xw.create_report()``, you can now also work within a workbook by using the new :meth:`mysheet.render_template() <xlwings.Sheet.render_template>` method, see also :ref:`reports_quickstart` (:issue:`1478`).
+* :bdg-secondary:`PRO` [Feature]: in addition to ``xw.create_report()``, you can now also work within a workbook by using the new :meth:`mysheet.render_template() <xlwings.Sheet.render_template>` method, see also :ref:`reports_quickstart` (:issue:`1478`).
 
 Older Releases
 --------------
@@ -286,12 +286,12 @@ v0.21.4 (Nov 23, 2020)
 **********************
 
 * [Enhancement] New property :attr:`Shape.text <xlwings.Shape.text>` to read and write text to the text frame of shapes (:issue:`1456`).
-* :guilabel:`PRO` [Feature]: xlwings Reports now supports template text in shapes, see :ref:`xlwings Reports<reports_quickstart>`.
+* :bdg-secondary:`PRO` [Feature]: xlwings Reports now supports template text in shapes, see :ref:`xlwings Reports<reports_quickstart>`.
 
 v0.21.3 (Nov 22, 2020)
 **********************
 
-* :guilabel:`PRO` **Breaking Change**: The :meth:`Table.update <xlwings.main.Table.update>` method has been changed to treat the DataFrame's index consistently whether or not it's being written to an Excel table: by default, the index is now transferred to Excel in both cases.
+* :bdg-secondary:`PRO` **Breaking Change**: The :meth:`Table.update <xlwings.main.Table.update>` method has been changed to treat the DataFrame's index consistently whether or not it's being written to an Excel table: by default, the index is now transferred to Excel in both cases.
 
 v0.21.2 (Nov 15, 2020)
 **********************
@@ -311,8 +311,8 @@ v0.21.0 (Nov 9, 2020)
 * [Enhancement] Added support for Excel tables, see: :meth:`Table <xlwings.main.Table>` and :meth:`Tables <xlwings.main.Tables>` and :meth:`range.table <xlwings.Range.table>` (:issue:`47` and :issue:`1364`)
 * [Enhancement]: When using UDFs, you can now use ``'range'`` for the ``convert`` argument where you would use before ``xw.Range``. The latter will be removed in a future version (:issue:`1455`).
 * [Enhancement] Windows: The ``comtypes`` requirement has been dropped (:issue:`1443`).
-* :guilabel:`PRO` [Feature]: :meth:`Table.update <xlwings.main.Table.update>` offers an easy way to keep your Excel tables in sync with your DataFrame source (:issue:`1454`).
-* :guilabel:`PRO` [Enhancement]: The reports package now supports Excel tables in the templates. This is e.g. helpful to style the tables with striped rows, see :ref:`excel_tables_reports`  (:issue:`1364`).
+* :bdg-secondary:`PRO` [Feature]: :meth:`Table.update <xlwings.main.Table.update>` offers an easy way to keep your Excel tables in sync with your DataFrame source (:issue:`1454`).
+* :bdg-secondary:`PRO` [Enhancement]: The reports package now supports Excel tables in the templates. This is e.g. helpful to style the tables with striped rows, see :ref:`excel_tables_reports`  (:issue:`1364`).
 
 v0.20.8 (Oct 18, 2020)
 **********************
@@ -360,7 +360,7 @@ v0.20.3 (Aug 15, 2020)
 v0.20.2 (Aug 13, 2020)
 **********************
 
-* :guilabel:`PRO` [Feature]: Code can now be embedded by calling the new ``xlwings code embed [--file]`` CLI command (:issue:`1380`).
+* :bdg-secondary:`PRO` [Feature]: Code can now be embedded by calling the new ``xlwings code embed [--file]`` CLI command (:issue:`1380`).
 * [Bug Fix] Made the import UDFs functionality more robust to prevent an Automation 440 error that some users would see (:issue:`1381`).
 * [Enhancement] The standalone Excel file now includes all VBA dependencies to make it work on Windows and macOS (:issue:`1349`).
 * [Enhancement] xlwings now blocks the call if the Conda Path/Env settings are used with legacy Conda installations (:issue:`1384`).
@@ -399,7 +399,7 @@ v0.19.4 (May 20, 2020)
 v0.19.3 (May 19, 2020)
 **********************
 
-* :guilabel:`PRO` [Feature]: Added possibility to create deployment keys.
+* :bdg-secondary:`PRO` [Feature]: Added possibility to create deployment keys.
 
 v0.19.2 (May 11, 2020)
 **********************
@@ -407,7 +407,7 @@ v0.19.2 (May 11, 2020)
 * [Feature] New methods :meth:`xlwings.Shape.scale_height` and :meth:`xlwings.Shape.scale_width` (:issue:`311`).
 * [Bug Fix] Using ``Pictures.add`` is not distorting the proportions anymore (:issue:`311`).
 
-* :guilabel:`PRO` [Feature]: Added support for :ref:`plotly` (:issue:`1309`).
+* :bdg-secondary:`PRO` [Feature]: Added support for :ref:`plotly` (:issue:`1309`).
 
 .. figure:: images/plotly.png
 

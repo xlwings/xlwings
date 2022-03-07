@@ -8,24 +8,24 @@ Option Explicit
     #End If
     #If Win64 Then
         Const XLPyDLLName As String = "xlwings64-dev.dll"
-        Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlwings64-dev.dll" (ByRef result As Variant, Optional ByVal Config As String = "", Optional ByVal mode As Long = 1) As Long
+        Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlwings64-dev.dll" (ByRef Result As Variant, Optional ByVal Config As String = "", Optional ByVal mode As Long = 1) As Long
         Declare PtrSafe Function XLPyDLLNDims Lib "xlwings64-dev.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
         Declare PtrSafe Function XLPyDLLVersion Lib "xlwings64-dev.dll" (tag As String, VERSION As Double, arch As String) As Long
     #Else
         Private Const XLPyDLLName As String = "xlwings32-dev.dll"
-        Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlwings32-dev.dll" (ByRef result As Variant, Optional ByVal Config As String = "", Optional ByVal mode As Long = 1) As Long
+        Declare PtrSafe Function XLPyDLLActivateAuto Lib "xlwings32-dev.dll" (ByRef Result As Variant, Optional ByVal Config As String = "", Optional ByVal mode As Long = 1) As Long
         Private Declare PtrSafe Function XLPyDLLNDims Lib "xlwings32-dev.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
         Private Declare PtrSafe Function XLPyDLLVersion Lib "xlwings32-dev.dll" (tag As String, VERSION As Double, arch As String) As Long
     #End If
-    Private Declare PtrSafe Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
+    Private Declare PtrSafe Function LoadLibrary Lib "KERNEL32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
 #Else
     #If Mac Then
         Private Declare Function system Lib "libc.dylib" (ByVal Command As String) As Long
     #End If
     Private Const XLPyDLLName As String = "xlwings32-dev.dll"
-    Private Declare Function XLPyDLLActivateAuto Lib "xlwings32-dev.dll" (ByRef result As Variant, Optional ByVal Config As String = "", Optional ByVal mode As Long = 1) As Long
+    Private Declare Function XLPyDLLActivateAuto Lib "xlwings32-dev.dll" (ByRef Result As Variant, Optional ByVal Config As String = "", Optional ByVal mode As Long = 1) As Long
     Private Declare Function XLPyDLLNDims Lib "xlwings32-dev.dll" (ByRef src As Variant, ByRef dims As Long, ByRef transpose As Boolean, ByRef dest As Variant) As Long
-    Private Declare Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
+    Private Declare Function LoadLibrary Lib "KERNEL32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As Long
     Declare Function XLPyDLLVersion Lib "xlwings32-dev.dll" (tag As String, VERSION As Double, arch As String) As Long
 #End If
 
@@ -85,7 +85,7 @@ Public Function RunPython(PythonCommand As String)
             Set wb = ThisWorkbook
         End If
         For Each sht In wb.Worksheets
-            If Right$(sht.name, 3) = ".py" Then
+            If Right$(sht.Name, 3) = ".py" Then
                 uses_embedded_code = True
                 Exit For
             End If
@@ -162,7 +162,7 @@ Sub ExecuteMac(PythonCommand As String, PYTHON_MAC As String, Optional PYTHONPAT
     ParameterString = PYTHONPATH + ";"
     ParameterString = ParameterString + "|" + PythonInterpreter
     ParameterString = ParameterString + "|" + PythonCommand
-    ParameterString = ParameterString + "|" + ActiveWorkbook.name
+    ParameterString = ParameterString + "|" + ActiveWorkbook.Name
     ParameterString = ParameterString + "|" + Left(Application.Path, Len(Application.Path) - 4)
     ParameterString = ParameterString + "|" + LOG_FILE
 
@@ -269,8 +269,8 @@ Function ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN
     
     ExitCode = Wsh.Run("cmd.exe /C " & DriveCommand & _
                        RunCommand & _
-                       " --wb=" & """" & ActiveWorkbook.name & """ --from_xl=1" & " --app=" & Chr(34) & _
-                       Application.Path & "\" & Application.name & Chr(34) & " --hwnd=" & Chr(34) & Application.Hwnd & Chr(34) & _
+                       " --wb=" & """" & ActiveWorkbook.Name & """ --from_xl=1" & " --app=" & Chr(34) & _
+                       Application.Path & "\" & Application.Name & Chr(34) & " --hwnd=" & Chr(34) & Application.Hwnd & Chr(34) & _
                        " 2> """ & LOG_FILE & """ ", _
                        WindowStyle, WaitOnReturn)
 
@@ -319,18 +319,18 @@ Function GetUdfModules(Optional wb As Variant) As String
     
     ' Automatically add embedded code sheets
     For Each sht In wb.Worksheets
-        If Right$(sht.name, 3) = ".py" Then
+        If Right$(sht.Name, 3) = ".py" Then
             If GetUdfModules = "" Then
-                GetUdfModules = Left$(sht.name, Len(sht.name) - 3)
+                GetUdfModules = Left$(sht.Name, Len(sht.Name) - 3)
             Else
-                GetUdfModules = GetUdfModules & ";" & Left$(sht.name, Len(sht.name) - 3)
+                GetUdfModules = GetUdfModules & ";" & Left$(sht.Name, Len(sht.Name) - 3)
             End If
         End If
     Next
 
     ' Default
     If GetUdfModules = "" Then
-        GetUdfModules = Left$(wb.name, Len(wb.name) - 5) ' assume that it ends in .xls*
+        GetUdfModules = Left$(wb.Name, Len(wb.Name) - 5) ' assume that it ends in .xls*
     End If
     
 End Function

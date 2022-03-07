@@ -4,7 +4,7 @@
 Permissioning of Code Execution
 ===============================
 
-This feature requires xlwings :guilabel:`PRO`.
+This feature requires xlwings :bdg-secondary:`PRO`.
 
 xlwings allows you to control which Python modules are allowed to run from Excel. In order to use this functionality, you need to run your own web server. You can choose between an HTTP POST and a GET request for the permissioning:
 

@@ -84,10 +84,10 @@ msgstr ""
 #: ../../index.rst:21
 msgid ""
 "xlwings PRO offers access to additional functionality. All PRO features "
-"are marked with xlwings :guilabel:`PRO` in the docs."
+"are marked with xlwings :bdg-secondary:`PRO` in the docs."
 msgstr ""
 "xlwings PROは追加的な機能を提供します。全てのPRO機能は、ドキュメント上では"
-"xlwings :guilabel:`PRO` と記載されています。"
+"xlwings :bdg-secondary:`PRO` と記載されています。"
 
 #: ../../index.rst:23
 msgid "See :ref:`pro` for more details."
