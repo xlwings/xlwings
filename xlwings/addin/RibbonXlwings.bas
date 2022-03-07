@@ -8,10 +8,10 @@ Sub RunMain(control As IRibbonControl)
     Set wb = ActiveWorkbook
     
     If ActiveWorkbook.Path = vbNullString Then
-        MsgBox "Please save this workbook (""" + wb.name + """) first."
+        MsgBox "Please save this workbook (""" + wb.Name + """) first."
         Exit Sub
     Else
-        mymodule = Left(wb.name, (InStrRev(wb.name, ".", -1, vbTextCompare) - 1))
+        mymodule = Left(wb.Name, (InStrRev(wb.Name, ".", -1, vbTextCompare) - 1))
     End If
     
     Application.StatusBar = "Running..."
@@ -26,8 +26,8 @@ Sub ImportFunctions(control As IRibbonControl)
     Dim wb As Workbook
     Set wb = ActiveWorkbook
 
-    If LCase$(Right$(wb.name, 5)) <> ".xlsm" And LCase$(Right$(wb.name, 5)) <> ".xlsb" And LCase$(Right$(wb.name, 5)) <> ".xlam" Then
-        MsgBox "Please save this workbook (""" + wb.name + """) as a macro-enabled workbook first."
+    If LCase$(Right$(wb.Name, 5)) <> ".xlsm" And LCase$(Right$(wb.Name, 5)) <> ".xlsb" And LCase$(Right$(wb.Name, 5)) <> ".xlam" Then
+        MsgBox "Please save this workbook (""" + wb.Name + """) as a macro-enabled workbook first."
         Exit Sub
     End If
     KillPy
@@ -48,7 +48,7 @@ Sub GetVersion(control As IRibbonControl, ByRef returnedVal)
     returnedVal = "Version: " & XLWINGS_VERSION
 End Sub
 
-Sub SetInterpreter(control As IRibbonControl, text As String)
+Sub SetInterpreter(control As IRibbonControl, Text As String)
     Dim tf As Boolean
     Dim interpreter As String
     #If Mac Then
@@ -56,7 +56,7 @@ Sub SetInterpreter(control As IRibbonControl, text As String)
     #Else
         interpreter = "INTERPRETER_WIN"
     #End If
-    tf = SaveConfigToFile(GetConfigFilePath, interpreter, text)
+    tf = SaveConfigToFile(GetConfigFilePath, interpreter, Text)
 End Sub
 
 Sub GetInterpreter(control As IRibbonControl, ByRef returnedVal)
@@ -79,9 +79,9 @@ Sub GetInterpreter(control As IRibbonControl, ByRef returnedVal)
     End If
 End Sub
 
-Sub SetPythonpath(control As IRibbonControl, text As String)
+Sub SetPythonpath(control As IRibbonControl, Text As String)
     Dim tf As Boolean
-    tf = SaveConfigToFile(GetConfigFilePath, "PYTHONPATH", text)
+    tf = SaveConfigToFile(GetConfigFilePath, "PYTHONPATH", Text)
 End Sub
 
 Sub GetPythonpath(control As IRibbonControl, ByRef returnedVal)
@@ -93,9 +93,9 @@ Sub GetPythonpath(control As IRibbonControl, ByRef returnedVal)
     End If
 End Sub
 
-Sub SetCondaPath(control As IRibbonControl, text As String)
+Sub SetCondaPath(control As IRibbonControl, Text As String)
     Dim tf As Boolean
-    tf = SaveConfigToFile(GetConfigFilePath, "CONDA PATH", text)
+    tf = SaveConfigToFile(GetConfigFilePath, "CONDA PATH", Text)
 End Sub
 
 Sub GetCondaPath(control As IRibbonControl, ByRef returnedVal)
@@ -107,9 +107,9 @@ Sub GetCondaPath(control As IRibbonControl, ByRef returnedVal)
     End If
 End Sub
 
-Sub SetCondaEnv(control As IRibbonControl, text As String)
+Sub SetCondaEnv(control As IRibbonControl, Text As String)
     Dim tf As Boolean
-    tf = SaveConfigToFile(GetConfigFilePath, "CONDA ENV", text)
+    tf = SaveConfigToFile(GetConfigFilePath, "CONDA ENV", Text)
 End Sub
 
 Sub GetCondaEnv(control As IRibbonControl, ByRef returnedVal)
@@ -121,11 +121,11 @@ Sub GetCondaEnv(control As IRibbonControl, ByRef returnedVal)
     End If
 End Sub
 
-Sub SetUdfModules(control As IRibbonControl, text As String)
+Sub SetUdfModules(control As IRibbonControl, Text As String)
     #If Mac Then
     #Else
         Dim tf As Boolean
-        tf = SaveConfigToFile(GetConfigFilePath, "UDF MODULES", text)
+        tf = SaveConfigToFile(GetConfigFilePath, "UDF MODULES", Text)
     #End If
 End Sub
 

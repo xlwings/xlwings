@@ -802,8 +802,8 @@ msgid ""
 msgstr "アクティブなブックのアクティブなシートからRangeオブジェクトを返します。:meth:`Range` を参照。"
 
 #: of xlwings.main.Sheet.render_template:1
-msgid "This method requires xlwings :guilabel:`PRO`."
-msgstr "このメソッドはxlwings :guilabel:`PRO` でのみ使用できます。"
+msgid "This method requires xlwings :bdg-secondary:`PRO`."
+msgstr "このメソッドはxlwings :bdg-secondary:`PRO` でのみ使用できます。"
 
 #: of xlwings.main.Sheet.render_template:3
 msgid ""
@@ -1948,8 +1948,8 @@ msgid "Returns an xlwings range object representing the Total row"
 msgstr "集計行を表すxlwingsのrangeオブジェクトを返します。"
 
 #: of xlwings.main.Table.update:1
-msgid "This method requires xlwings :guilabel:`PRO`"
-msgstr "このメソッドはxlwings :guilabel:`PRO` でのみ使用できます。"
+msgid "This method requires xlwings :bdg-secondary:`PRO`"
+msgstr "このメソッドはxlwings :bdg-secondary:`PRO` でのみ使用できます。"
 
 #: of xlwings.main.Table.update:3
 msgid ""

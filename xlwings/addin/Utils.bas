@@ -95,23 +95,23 @@ Function ToMacPath(PosixPath As String) As String
     #End If
 End Function
 
-Function GetMacDir(name As String, Normalize As Boolean) As String
+Function GetMacDir(Name As String, Normalize As Boolean) As String
     #If Mac Then
-        Select Case name
+        Select Case Name
             Case "$HOME"
-                name = "home folder"
+                Name = "home folder"
             Case "$APPLICATIONS"
-                name = "applications folder"
+                Name = "applications folder"
             Case "$DOCUMENTS"
-                name = "documents folder"
+                Name = "documents folder"
             Case "$DOWNLOADS"
-                name = "downloads folder"
+                Name = "downloads folder"
             Case "$DESKTOP"
-                name = "desktop folder"
+                Name = "desktop folder"
             Case "$TMPDIR"
-                name = "temporary items"
+                Name = "temporary items"
         End Select
-        GetMacDir = MacScript("return POSIX path of (path to " & name & ") as string")
+        GetMacDir = MacScript("return POSIX path of (path to " & Name & ") as string")
         If Normalize = True Then
             'Normalize Excel sandbox location
             GetMacDir = Replace(GetMacDir, "/Library/Containers/com.microsoft.Excel/Data", "")
@@ -138,7 +138,7 @@ Function ToPosixPath(ByVal MacPath As String) As String
     #End If
 End Function
 
-Sub ShowError(FileName As String, Optional message As String = "")
+Sub ShowError(FileName As String, Optional Message As String = "")
     ' Shows a MsgBox with the content of a text file
 
     Dim Content As String
@@ -148,17 +148,17 @@ Sub ShowError(FileName As String, Optional message As String = "")
     Const OK_BUTTON_ERROR = 16
     Const AUTO_DISMISS = 0
     
-    If message = "" Then
+    If Message = "" Then
         Content = ReadFile(FileName)
     Else
-        Content = message
+        Content = Message
     End If
     
 
     If GetConfig("SHOW_ERROR_POPUPS", "True") = "False" Then
         If SheetExists(ActiveWorkbook, "Error") = False Then
             Set ErrorSheet = ActiveWorkbook.Sheets.Add()
-            ErrorSheet.name = "Error"
+            ErrorSheet.Name = "Error"
         Else
             Set ErrorSheet = ActiveWorkbook.Sheets("Error")
         End If

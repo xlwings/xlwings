@@ -82,7 +82,7 @@ Function GetConfig(configKey As String, Optional default As String = "", Optiona
     ' Sheet
     #If App = "Microsoft Excel" Then
     If source = "" Or source = "sheet" Then
-        If Application.name = "Microsoft Excel" Then
+        If Application.Name = "Microsoft Excel" Then
             'Workbook Sheet Config
             If SheetExists(ActiveWorkbook, PROJECT_NAME & ".conf") = True Then
                 If GetConfigFromSheet(ActiveWorkbook).Exists(configKey) = True Then

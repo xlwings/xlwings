@@ -149,10 +149,10 @@ msgstr "xlwings PROを使うには"
 #: ../../installation.rst:66
 msgid ""
 "xlwings PRO offers access to :ref:`additional functionality <pro>`. All "
-"PRO features are marked with xlwings :guilabel:`PRO` in the docs."
+"PRO features are marked with xlwings :bdg-secondary:`PRO` in the docs."
 msgstr ""
 "xlwings PROは :ref:`additional functionality <pro>` を提供します。ドキュメントではPRO機能に "
-"xlwings :guilabel:`PRO` と記載しています。"
+"xlwings :bdg-secondary:`PRO` と記載しています。"
 
 #: ../../installation.rst:69
 msgid ""

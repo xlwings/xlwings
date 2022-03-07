@@ -88,7 +88,7 @@ msgid "Embedded Code"
 msgstr ""
 
 #: ../../deployment.rst:50 ../../deployment.rst:95
-msgid "This feature requires xlwings :guilabel:`PRO`."
+msgid "This feature requires xlwings :bdg-secondary:`PRO`."
 msgstr ""
 
 #: ../../deployment.rst:52

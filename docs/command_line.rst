@@ -22,7 +22,10 @@ xlwings comes with a command line client. On Windows, type the commands into a C
                         Excel file and a Python file, ready to be used. Use
                         the "--standalone" flag to embed all VBA code in the
                         Excel file and make it work without the xlwings add-
-                        in.
+                        in. Use "--fastapi" for creating a project that uses a
+                        remote Python interpreter. Use "--addin --ribbon" to
+                        create a template for a custom ribbon addin. Leave
+                        away the "--ribbon" if you don't want a ribbon tab.
     runpython           macOS only: run "xlwings runpython install" if you
                         want to enable the RunPython calls without installing
                         the add-in. This will create the following file:

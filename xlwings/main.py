@@ -3448,7 +3448,11 @@ class Table:
                 raise TypeError(type_error_msg)
             col_diff = (
                 len(self.range.columns)
-                - len(data.columns)
+                - (
+                    len(data.columns)
+                    if not data.columns.empty
+                    else len(self.range.columns)
+                )
                 - (len(data.index.names) if index else 0)
             )
             nrows = len(self.data_body_range.rows) if self.data_body_range else 1

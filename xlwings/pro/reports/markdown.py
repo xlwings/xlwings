@@ -240,6 +240,8 @@ def format_text(parent, text, style):
             for _ in node["text"]:
                 # TODO: check ast level to allow nested **strong** etc.
                 node_length += 3  # bullet, space and new line
+        else:
+            node_length = sum(node["length"])
         position += node_length
 
 

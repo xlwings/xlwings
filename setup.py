@@ -14,7 +14,11 @@ with open(os.path.join(os.path.dirname(__file__), "xlwings", "__init__.py")) as 
 
 # Dependencies
 data_files = []
-install_requires = []
+install_requires = [
+    "pywin32 >= 224;platform_system=='Windows'",
+    "psutil >= 2.0.0;platform_system=='Darwin'",
+    "appscript >= 1.0.1;platform_system=='Darwin'",
+]
 if os.environ.get("READTHEDOCS", None) == "True" or os.environ.get(
     "XLWINGS_NO_DEPS"
 ) in ["1", "True", "true"]:
@@ -25,16 +29,10 @@ if os.environ.get("READTHEDOCS", None) == "True" or os.environ.get(
     # sub-dependencies are not pinned
     pass
 elif sys.platform.startswith("win"):
-    if sys.version_info[:2] >= (3, 7):
-        pywin32 = "pywin32 >= 224"
-    else:
-        pywin32 = "pywin32"
-    install_requires += [pywin32]
     # This places dlls next to python.exe for standard setup
     # and in the parent folder for virtualenv
     data_files += [("", glob.glob("xlwings??-*.dll"))]
 elif sys.platform.startswith("darwin"):
-    install_requires += ["psutil >= 2.0.0", "appscript >= 1.0.1"]
     # This has been broken ever since pip builds a wheel for installing as this uses
     # an absolute path. Relative paths as in the case of Windows are still supported.
     # These days taken care of by "xlwings addin install" or "xlwings runpython install"
@@ -86,11 +84,12 @@ setup(
     package_data={
         "xlwings": [
             "xlwings.bas",
-            "Dictionary.cls",
             "*.xlsm",
             "*.xlam",
             "*.applescript",
             "addin/xlwings.xlam",
+            "addin/*.cls",
+            "addin/WebHelpers.bas",
             "js/xlwings.*",
             "quickstart_fastapi/*.*",
         ]
