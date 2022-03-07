@@ -799,7 +799,7 @@ def main():
         "code in the Excel file and make it work without the "
         "xlwings add-in. "
         'Use "--fastapi" for creating a project that uses a remote '
-        "Python interpreter."
+        "Python interpreter. "
         'Use "--addin --ribbon" to create a template for a custom ribbon addin. Leave '
         'away the "--ribbon" if you don\'t want a ribbon tab. ',
     )
