@@ -1,5 +1,5 @@
 function hello() {
-  runPython("URL", { apiKey: "API_KEY" });
+  runPython("url", { apiKey: "API_KEY" });
 }
 
 /**

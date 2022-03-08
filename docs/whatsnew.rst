@@ -1,6 +1,18 @@
 What's New
 ==========
 
+v0.27.0 (Mar 8, 2022)
+---------------------
+
+* :bdg-success:`Feature` :bdg-secondary:`PRO` This release adds support for the remote interpreter to the Excel Desktop apps on both Windows and macOS. The new VBA function ``RunRemotePython`` is equivalent to ``runPython`` in the JavaScript modules of Google Sheets and Excel on the web, see :ref:`Remote Interpreter<remote_interpreter>` (:issue:`1841`).
+* :bdg-info:`Enhancement` The xlwings package is now uploaded as wheel to PyPI in addition to the source format (:issue:`1855`).
+* :bdg-info:`Enhancement` The xlwings package is now compatible with Poetry (:issue:`1265`).
+* :bdg-info:`Enhancement` The add-in and the dll files are now code signed (:issue:`1848`).
+* :bdg-danger:`Breaking Change` :bdg-secondary:`PRO` The JavaScript modules (Google Sheet/Excel on the web ) changed the parameters in ``runPython``, see :ref:`Remote Interpreter<remote_interpreter>` (:issue:`1852`).
+* :bdg-danger:`Breaking Change` ``xlwings vba edit`` has been refactored and there is an additional command ``xlwings vba import`` to edit your VBA code outside of the VBA editor, e.g., in VS Code or any other editor, see :ref:`command_line` (:issue:`1843`).
+* :bdg-danger:`Breaking Change` The ``--unprotected`` flag has been removed from the ``xlwings addin install`` command. You can still manually remove the password (``xlwings``) though (:issue:`1850`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` The ``Markdown`` class has been fixed in case the first line was empty (:issue:`1856`).
+
 v0.26.3 (Feb 19, 2022)
 ----------------------
 
@@ -15,82 +27,82 @@ v0.26.2 (Feb 10, 2022)
 * :bdg-success:`Feature` :bdg-secondary:`PRO` Remote interpreter: added support for ``mybook.selection`` (:issue:`1819`).
 * :bdg-info:`Enhancement` The ``quickstart`` command now makes sure that the project name is a valid Python module name (:issue:`1773`).
 * :bdg-info:`Enhancement` The ``to_pdf`` method now accepts an additional parameter ``quality`` that defaults to ``"standard"`` but can be set to ``"minimum"`` for smaller PDFs (:issue:`1697`).
-* :bdg-danger:`Bug Fix` Allow space in path to Python interpreter when using UDFs / UDF Server (:issue:`974`).
-* :bdg-danger:`Bug Fix` A few issues were fixed in case your files are synced with OneDrive or SharePoint (:issue:`1813` and :issue:`1810`).
-* :bdg-danger:`Bug Fix` :bdg-secondary:`PRO` Reports: fixed the ``aggsmall`` filter to work without the optional ``min_rows`` parameter (:issue:`1824`).
+* :bdg-warning:`Bug Fix` Allow space in path to Python interpreter when using UDFs / UDF Server (:issue:`974`).
+* :bdg-warning:`Bug Fix` A few issues were fixed in case your files are synced with OneDrive or SharePoint (:issue:`1813` and :issue:`1810`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Reports: fixed the ``aggsmall`` filter to work without the optional ``min_rows`` parameter (:issue:`1824`).
 
 v0.26.0 and v0.26.1 (Feb 1, 2022)
 ---------------------------------
 
-* :bdg-secondary:`PRO` [Feature] Added experimental support for Google Sheets and Excel on the web via a remote Python interpreter. For all the details, see :ref:`Remote Interpreter <remote_interpreter>`.
-* :bdg-secondary:`PRO` [Bug Fix] 0.26.1 fixes an issue with the ``xlwings copy gs`` command.
+* :bdg-secondary:`PRO` :bdg-success:`Feature` Added experimental support for Google Sheets and Excel on the web via a remote Python interpreter. For all the details, see :ref:`Remote Interpreter <remote_interpreter>`.
+* :bdg-secondary:`PRO` :bdg-warning:`Bug Fix` 0.26.1 fixes an issue with the ``xlwings copy gs`` command.
 * xlwings PRO is now free for noncommercial usage under the `PolyForm Noncommercial License 1.0.0 <https://polyformproject.org/licenses/noncommercial/1.0.0>`_, see :ref:`xlwings PRO <pro>` for the details.
 
 v0.25.3 (Dec 16, 2021)
 ----------------------
 
-* :bdg-secondary:`PRO` [Bug Fix] The xlwings Reports filters ``aggsmall`` and ``maxrows`` don't fail with empty DataFrames anymore (:issue:`1788`).
+* :bdg-secondary:`PRO` :bdg-warning:`Bug Fix` The xlwings Reports filters ``aggsmall`` and ``maxrows`` don't fail with empty DataFrames anymore (:issue:`1788`).
 
 v0.25.2 (Dec 3, 2021)
 ---------------------
 
-* :bdg-secondary:`PRO` [Enhancement] xlwings Reports now ignores sheets whose name start with ``##`` for both rendering and printing to PDF (:issue:`1779`).
-* :bdg-secondary:`PRO` [Enhancement] The ``aggsmall`` filter in xlwings Reports now accepts a new parameter ``min_rows`` (:issue:`1780`).
+* :bdg-secondary:`PRO` :bdg-info:`Enhancement` xlwings Reports now ignores sheets whose name start with ``##`` for both rendering and printing to PDF (:issue:`1779`).
+* :bdg-secondary:`PRO` :bdg-info:`Enhancement` The ``aggsmall`` filter in xlwings Reports now accepts a new parameter ``min_rows`` (:issue:`1780`).
 
 v0.25.1 (Nov 21, 2021)
 ----------------------
 
-* [Enhancement] ``mybook.save()`` now supports the ``password`` parameter (:issue:`1568`).
-* :bdg-secondary:`PRO` [Bug Fix] xlwings Reports would sometimes cause a ``Could not activate App instance`` error (:issue:`1764`).
-* :bdg-secondary:`PRO` [Enhancement] xlwings now warns about expiring developer license keys 30 days before they expire (:issue:`1758`).
+* :bdg-info:`Enhancement` ``mybook.save()`` now supports the ``password`` parameter (:issue:`1568`).
+* :bdg-secondary:`PRO` :bdg-warning:`Bug Fix` xlwings Reports would sometimes cause a ``Could not activate App instance`` error (:issue:`1764`).
+* :bdg-secondary:`PRO` :bdg-info:`Enhancement` xlwings now warns about expiring developer license keys 30 days before they expire (:issue:`1758`).
 
 v0.25.0 (Oct 27, 2021)
 ----------------------
 
-* [Bug Fix] Finally, xlwings adds proper support for OneDrive, OneDrive for Business, and SharePoint. This means that the ``quickstart`` setup (Excel file and Python file in the same folder with the same name) works even if the files are stored on OneDrive/SharePoint---as long as they are being synced locally. It also makes ``mybook.fullname`` return the local file path instead of a URL. Sometimes, this requires editing the configuration, see: :ref:`onedrive_sharepoint` for the details (:issue:`1630`).
-* [Feature] The ``update()`` method of Excel tables has been moved from PRO to open source. You can now easily update an existing table in Excel with the data from a new pandas DataFrame without messing up any formulas that reference that table: ``mytable.update(df)``, see: :meth:`Table.update() <xlwings.main.Table.update>` (:issue:`1751`).
-* :bdg-secondary:`PRO`: **Breaking Change**: Reports: ``create_report()`` is now deprecated in favor of ``render_template()`` that is available via ``app``, ``book`` (new), and ``sheet`` objects, see: :ref:`reports_quickstart` (:issue:`1738`).
-* [Bug Fix] Running UDFs from other Office apps has been fixed (:issue:`1729`).
-* [Bug Fix] Writing to a protected sheet or using an invalid sheet name etc. caused xlwings to hang instead of raising an Exception (:issue:`1725`).
+* :bdg-warning:`Bug Fix` Finally, xlwings adds proper support for OneDrive, OneDrive for Business, and SharePoint. This means that the ``quickstart`` setup (Excel file and Python file in the same folder with the same name) works even if the files are stored on OneDrive/SharePoint---as long as they are being synced locally. It also makes ``mybook.fullname`` return the local file path instead of a URL. Sometimes, this requires editing the configuration, see: :ref:`onedrive_sharepoint` for the details (:issue:`1630`).
+* :bdg-success:`Feature` The ``update()`` method of Excel tables has been moved from PRO to open source. You can now easily update an existing table in Excel with the data from a new pandas DataFrame without messing up any formulas that reference that table: ``mytable.update(df)``, see: :meth:`Table.update() <xlwings.main.Table.update>` (:issue:`1751`).
+* :bdg-secondary:`PRO` :bdg-danger:`Breaking Change`: Reports: ``create_report()`` is now deprecated in favor of ``render_template()`` that is available via ``app``, ``book`` (new), and ``sheet`` objects, see: :ref:`reports_quickstart` (:issue:`1738`).
+* :bdg-warning:`Bug Fix` Running UDFs from other Office apps has been fixed (:issue:`1729`).
+* :bdg-warning:`Bug Fix` Writing to a protected sheet or using an invalid sheet name etc. caused xlwings to hang instead of raising an Exception (:issue:`1725`).
 
 v0.24.9 (Aug 26, 2021)
 ----------------------
 
-* [Bug Fix] Fixed a regression introduced with 0.24.8 that was causing an error with pandas DataFrames that have repeated column headers (:issue:`1711`).
+* :bdg-warning:`Bug Fix` Fixed a regression introduced with 0.24.8 that was causing an error with pandas DataFrames that have repeated column headers (:issue:`1711`).
 
 v0.24.8 (Aug 25, 2021)
 ----------------------
-* [Feature] New methods :meth:`mychart.to_png() <xlwings.Chart.to_png>`, :meth:`myrange.to_png() <xlwings.Range.to_png>` and :meth:`myrange.copy_picture() <xlwings.Range.copy_picture>` (:issue:`1707` and :issue:`582`).
-* [Enhancement] You can now use the alias ``'df'`` to convert to a pandas DataFrame: ``mysheet['A1:C3'].options('df').value`` is equivalent to ``import pandas as pd; mysheet['A1:C3'].options(pd.DataFrame).value`` (:issue:`1533`).
-* [Enhancement] Added ``--dir`` option to ``xlwings addin install`` to allow the installation of all files in a directory as add-ins (:issue:`1702`).
-* [Bug Fix] Pandas DataFrames now properly work with ``PeriodIndex`` / ``PeriodDtype`` (:issue:`1084`).
+* :bdg-success:`Feature` New methods :meth:`mychart.to_png() <xlwings.Chart.to_png>`, :meth:`myrange.to_png() <xlwings.Range.to_png>` and :meth:`myrange.copy_picture() <xlwings.Range.copy_picture>` (:issue:`1707` and :issue:`582`).
+* :bdg-info:`Enhancement` You can now use the alias ``'df'`` to convert to a pandas DataFrame: ``mysheet['A1:C3'].options('df').value`` is equivalent to ``import pandas as pd; mysheet['A1:C3'].options(pd.DataFrame).value`` (:issue:`1533`).
+* :bdg-info:`Enhancement` Added ``--dir`` option to ``xlwings addin install`` to allow the installation of all files in a directory as add-ins (:issue:`1702`).
+* :bdg-warning:`Bug Fix` Pandas DataFrames now properly work with ``PeriodIndex`` / ``PeriodDtype`` (:issue:`1084`).
 * :bdg-secondary:`PRO` Reports: If there's just one Frame, keep height of rows (:issue:`1698`).
 
 v0.24.7 (Aug 5, 2021)
 ---------------------
 
-* :bdg-secondary:`PRO`: **Breaking Change**: Reports: Changed the order of the arguments of the arithmetic DataFrame filters: ``sum``, ``div``, ``mul`` and ``div`` to align them with the other filters. E.g., to multiply column 2 by 100, you now have to write your filter as ``{{ df | mul(100, 2) }}`` (:issue:`1696`).
-* :bdg-secondary:`PRO`: [Bug Fix] Reports: Fixed an issue with images when pillow wasn't installed (:issue:`1695`).
+* :bdg-secondary:`PRO` :bdg-danger:`Breaking Change`: Reports: Changed the order of the arguments of the arithmetic DataFrame filters: ``sum``, ``div``, ``mul`` and ``div`` to align them with the other filters. E.g., to multiply column 2 by 100, you now have to write your filter as ``{{ df | mul(100, 2) }}`` (:issue:`1696`).
+* :bdg-secondary:`PRO` :bdg-warning:`Bug Fix` Reports: Fixed an issue with images when pillow wasn't installed (:issue:`1695`).
 
 v0.24.6 (Jul 31, 2021)
 ----------------------
-* [Enhancement] You can now also define the color of cells, shapes and font objects with a hex string instead of just an RGB tuple, e.g., ``mysheet["A1"].color = "#efefef"`` (:issue:`1535`).
-* [Enhancement] When you print a workbook or sheet to a pdf, you can now automatically open the PDF document via the new ``show`` argument: ``mybook.to_pdf(show=True)`` (:issue:`1683`).
-* [Bug Fix]: This release includes another round of fixing the cleanup actions of the App() context manager (:issue:`1687`).
-* :bdg-secondary:`PRO` [Enhancement] Reports: New filter ``fontcolor``, allowing you to write text in black and turn it into e.g., white for the report. This gets around the issue that white text isn't visible in Excel on a white background: ``{{ myplaceholder | fontcolor("white") }}``. Alternatively, you can also use a hex color (:issue:`1692`).
-* :bdg-secondary:`PRO`: [Bug Fix] Positioning shapes wasn't always respecting the top/left filters (:issue:`1687`).
-* :bdg-secondary:`PRO`: [Bug Fix] Fixed a bug with non-string headers when calling ``table.update`` (:issue:`1687`).
+* :bdg-info:`Enhancement` You can now also define the color of cells, shapes and font objects with a hex string instead of just an RGB tuple, e.g., ``mysheet["A1"].color = "#efefef"`` (:issue:`1535`).
+* :bdg-info:`Enhancement` When you print a workbook or sheet to a pdf, you can now automatically open the PDF document via the new ``show`` argument: ``mybook.to_pdf(show=True)`` (:issue:`1683`).
+* :bdg-warning:`Bug Fix`: This release includes another round of fixing the cleanup actions of the App() context manager (:issue:`1687`).
+* :bdg-secondary:`PRO` :bdg-info:`Enhancement` Reports: New filter ``fontcolor``, allowing you to write text in black and turn it into e.g., white for the report. This gets around the issue that white text isn't visible in Excel on a white background: ``{{ myplaceholder | fontcolor("white") }}``. Alternatively, you can also use a hex color (:issue:`1692`).
+* :bdg-secondary:`PRO` :bdg-warning:`Bug Fix` Positioning shapes wasn't always respecting the top/left filters (:issue:`1687`).
+* :bdg-secondary:`PRO` :bdg-warning:`Bug Fix` Fixed a bug with non-string headers when calling ``table.update`` (:issue:`1687`).
 
 v0.24.5 (Jul 27, 2021)
 ----------------------
 
-* :bdg-secondary:`PRO` [Bug Fix] Reports: Using the ``header`` filter in a Frame was causing rows to be inserted (:issue:`1681`).
+* :bdg-secondary:`PRO` :bdg-warning:`Bug Fix` Reports: Using the ``header`` filter in a Frame was causing rows to be inserted (:issue:`1681`).
 
 
 v0.24.4 (Jul 26, 2021)
 ----------------------
 
-* [Feature] ``myapp.properties`` is a new context manager that allows you to easily change the app’s properties temporarily. Once the code leaves the with block, the properties are changed back to their previous state (:issue:`254`). For example::
+* :bdg-success:`Feature` ``myapp.properties`` is a new context manager that allows you to easily change the app’s properties temporarily. Once the code leaves the with block, the properties are changed back to their previous state (:issue:`254`). For example::
 
     import xlwings as xw
     app = App()
@@ -98,101 +110,101 @@ v0.24.4 (Jul 26, 2021)
     with app.properties(display_alerts=False):
         # Alerts are disabled until you leave the with block again
 
-* [Enhancement] The app properties ``myapp.enable_events`` and ``myapp.interactive`` are now supported (:issue:`254`).
-* [Enhancement] ``mybook.to_pdf`` now ignores sheet names that start with a ``#``. This can be changed by setting the new parameter ``exclude_start_string`` (:issue:`1667`).
-* [Enhancement] New method ``mytable.resize()`` (:issue:`1662`).
-* [Bug Fix] The new App context manager introduced with v0.24.3 was sometimes causing an error on Windows during the cleanup actions (:issue:`1668`).
+* :bdg-info:`Enhancement` The app properties ``myapp.enable_events`` and ``myapp.interactive`` are now supported (:issue:`254`).
+* :bdg-info:`Enhancement` ``mybook.to_pdf`` now ignores sheet names that start with a ``#``. This can be changed by setting the new parameter ``exclude_start_string`` (:issue:`1667`).
+* :bdg-info:`Enhancement` New method ``mytable.resize()`` (:issue:`1662`).
+* :bdg-warning:`Bug Fix` The new App context manager introduced with v0.24.3 was sometimes causing an error on Windows during the cleanup actions (:issue:`1668`).
 
 :bdg-secondary:`PRO` **xlwings.pro.reports:**
 
-* **Breaking change**: DataFrame placeholders will now ignore the DataFrame's index. If you need the index, reset it via : ``df.reset_index()`` before passing the DataFrame to ``create_report`` or ``render_template``. This was required as the same column index used in filters would point to seemingly different columns in Excel depending on whether the index was included or not. This also means that the ``noindex`` and ``body`` filters are no obsolete and have been removed (:issue:`1676`).
-* [Enhancement] Dataframe filters now respect the order in which they are called and can be used multiple times (:issue:`1675`).
-* [Enhancement] New filters: ``format`` (to apply f-string like formatting), ``datetime`` (to format datetime objects), ``top`` and  ``left`` (to position graphics outside of the grid structure) ``header``, ``add``, ``sub``, ``mul``, ``div`` (to only return the header of a DataFrame or apply an arithmetic operation, respectively) (:issue:`1666`, :issue:`1660`, :issue:`1677`).
-* [Enhancement]: ``create_report`` can now be accessed as method of the app object like so: ``myapp.create_report`` (:issue:`1665`).
-* [Bug Fix]: Excel tables that had the Header Row unchecked were sometimes causing row shifts in the template (:issue:`1663`).
-* [Bug Fix]: Rendering a template was sometimes causing the following error ``PasteSpecial method of Range class failed`` (:issue:`1672`).
+* :bdg-danger:`Breaking Change`: DataFrame placeholders will now ignore the DataFrame's index. If you need the index, reset it via : ``df.reset_index()`` before passing the DataFrame to ``create_report`` or ``render_template``. This was required as the same column index used in filters would point to seemingly different columns in Excel depending on whether the index was included or not. This also means that the ``noindex`` and ``body`` filters are no obsolete and have been removed (:issue:`1676`).
+* :bdg-info:`Enhancement` Dataframe filters now respect the order in which they are called and can be used multiple times (:issue:`1675`).
+* :bdg-info:`Enhancement` New filters: ``format`` (to apply f-string like formatting), ``datetime`` (to format datetime objects), ``top`` and  ``left`` (to position graphics outside of the grid structure) ``header``, ``add``, ``sub``, ``mul``, ``div`` (to only return the header of a DataFrame or apply an arithmetic operation, respectively) (:issue:`1666`, :issue:`1660`, :issue:`1677`).
+* :bdg-info:`Enhancement`: ``create_report`` can now be accessed as method of the app object like so: ``myapp.create_report`` (:issue:`1665`).
+* :bdg-warning:`Bug Fix`: Excel tables that had the Header Row unchecked were sometimes causing row shifts in the template (:issue:`1663`).
+* :bdg-warning:`Bug Fix`: Rendering a template was sometimes causing the following error ``PasteSpecial method of Range class failed`` (:issue:`1672`).
 
 v0.24.3 (Jul 15, 2021)
 ----------------------
-* [Enhancement] :meth:`xlwings.App` can now be used as context manager, making sure that there are no zombie processes left over on Windows, even if you use a hidden instance and your code fails. It is therefore recommended to use it whenever you can, like so::
+* :bdg-info:`Enhancement` :meth:`xlwings.App` can now be used as context manager, making sure that there are no zombie processes left over on Windows, even if you use a hidden instance and your code fails. It is therefore recommended to use it whenever you can, like so::
 
     with xw.App(visible=True) as app:
         print(app.books)
 
-* [Enhancement] :meth:`mysheet.pictures.add <xlwings.main.Pictures.add>` now accepts a new ``anchor`` argument that you can use as an alternative to ``top``/``left`` to position the picture by providing an achor range object, e.g.: ``mysheet.pictures.add(img, anchor=mysheet['A1'])`` (:issue:`1648`).
-* [Bug Fix] macOS: Plots are now sent to Excel in PDF format when you set ``format='vector'`` which is supporting transparency unlike the previously used eps format (:issue:`1647`).
-* :bdg-secondary:`PRO` [Enhancement] :meth:`mybook.to_pdf <xlwings.Book.to_pdf>` now accepts a ``layout`` parameter so you can "print" your reports onto a PDF with your corporate layout including headers, footers and borderless graphics. See :ref:`reports_pdf_layout`.
+* :bdg-info:`Enhancement` :meth:`mysheet.pictures.add <xlwings.main.Pictures.add>` now accepts a new ``anchor`` argument that you can use as an alternative to ``top``/``left`` to position the picture by providing an achor range object, e.g.: ``mysheet.pictures.add(img, anchor=mysheet['A1'])`` (:issue:`1648`).
+* :bdg-warning:`Bug Fix` macOS: Plots are now sent to Excel in PDF format when you set ``format='vector'`` which is supporting transparency unlike the previously used eps format (:issue:`1647`).
+* :bdg-secondary:`PRO` :bdg-info:`Enhancement` :meth:`mybook.to_pdf <xlwings.Book.to_pdf>` now accepts a ``layout`` parameter so you can "print" your reports onto a PDF with your corporate layout including headers, footers and borderless graphics. See :ref:`reports_pdf_layout`.
 
 v0.24.2 (Jul 6, 2021)
 ---------------------
 
-* [Feature] Added very basic support for :meth:`mysheet.page_setup <xlwings.Sheet.page_setup>` and :meth:`myrange.note <xlwings.Range.note>` (:issue:`1551` and :issue:`896`).
-* [Enhancement] DataFrames are now displayed in Excel tables with empty column names if the DataFrame doesn't have a column or index name. This effect is e.g. visible when using ``xw.view()`` (:issue:`1643`).
-* [Enhancement] ``mysheet.pictures.add()`` now supports ``format='vector'`` which translates to ``'svg'`` on Windows and ``'eps'`` on macOS (:issue:`1640`).
-* :bdg-secondary:`PRO` [Enhancement]: The reports package now offers the additional DataFrame filters ``rowslice`` and ``colslice``, see :ref:`xlwings Reports<reports_quickstart>` (:issue:`1645`).
-* :bdg-secondary:`PRO` [Bug Fix]: Bug fix with handling Excel tables without headers.
+* :bdg-success:`Feature` Added very basic support for :meth:`mysheet.page_setup <xlwings.Sheet.page_setup>` and :meth:`myrange.note <xlwings.Range.note>` (:issue:`1551` and :issue:`896`).
+* :bdg-info:`Enhancement` DataFrames are now displayed in Excel tables with empty column names if the DataFrame doesn't have a column or index name. This effect is e.g. visible when using ``xw.view()`` (:issue:`1643`).
+* :bdg-info:`Enhancement` ``mysheet.pictures.add()`` now supports ``format='vector'`` which translates to ``'svg'`` on Windows and ``'eps'`` on macOS (:issue:`1640`).
+* :bdg-secondary:`PRO` :bdg-info:`Enhancement`: The reports package now offers the additional DataFrame filters ``rowslice`` and ``colslice``, see :ref:`xlwings Reports<reports_quickstart>` (:issue:`1645`).
+* :bdg-secondary:`PRO` :bdg-warning:`Bug Fix`: Bug fix with handling Excel tables without headers.
 
-**Breaking Change**
+:bdg-danger:`Breaking Change`
 
-* :bdg-secondary:`PRO` [Enhancement]: ``<frame>`` markers now have to be defined as cell notes in the first row, see :ref:`frames`. This has the advantage that the Layout view corresponds to the print view (:issue:`1641`). Also, the print area is now preserved even if you use Frames.
+* :bdg-secondary:`PRO` :bdg-info:`Enhancement`: ``<frame>`` markers now have to be defined as cell notes in the first row, see :ref:`frames`. This has the advantage that the Layout view corresponds to the print view (:issue:`1641`). Also, the print area is now preserved even if you use Frames.
 
 v0.24.1 (Jun 27, 2021)
 ----------------------
 
-* :bdg-secondary:`PRO` [Enhancement]: The reports package now offers the additional DataFrame filters ``head`` and ``tail``, see :ref:`xlwings Reports<reports_quickstart>` (:issue:`1633`).
+* :bdg-secondary:`PRO` :bdg-info:`Enhancement`: The reports package now offers the additional DataFrame filters ``head`` and ``tail``, see :ref:`xlwings Reports<reports_quickstart>` (:issue:`1633`).
 
 v0.24.0 (Jun 25, 2021)
 ----------------------
 
-* [Enhancement] ``pictures.add()`` now accepts every picture format (including vector-based formats) that your Excel version supports. For example, on Windows you can use the ``svg`` format (only supported with Excel that comes with Microsoft 365) and on macOS, you can use ``eps`` (:issue:`1624`).
+* :bdg-info:`Enhancement` ``pictures.add()`` now accepts every picture format (including vector-based formats) that your Excel version supports. For example, on Windows you can use the ``svg`` format (only supported with Excel that comes with Microsoft 365) and on macOS, you can use ``eps`` (:issue:`1624`).
 * [Enhancements] Support for Plotly images was moved from PRO to the Open Source version, i.e. you can now provide a Plotly image directly to ``pictures.add()``.
-* [Enhancement] Matplotlib and Plotly plots can now be sent to Excel in a vector-based format by providing the ``format`` argument, e.g. ``svg`` on Windows or ``eps`` on macOS.
-* [Enhancement] Removed dependency on pillow/PIL to properly size images via ``pictures.add()``.
-* [Bug Fix] Various fixes with scaling and positioning images via ``pictures.add()`` (:issue:`1491`).
-* [Feature] New methods :meth:`mypicture.lock_aspect_ratio <xlwings.Picture.lock_aspect_ratio>` and :meth:`myapp.cut_copy_mode <xlwings.App.cut_copy_mode>` (:issue:`1622` and :issue:`1625`).
-* :bdg-secondary:`PRO` [Feature]: Reports: DataFrames and Images are now offering various filters to influence the behavior of how DataFrames and Images are displayed, giving the template designer the ability to change a lot of things that previously had to be taken care of by the Python developer. For example, to hide a DataFrame's index, you can now do ``{{ df | noindex }}`` or to scale the image to double its size, you can do ``{{ img | scale(2) }}``. You'll find all available filters under :ref:`xlwings Reports<reports_quickstart>` (:issue:`1602`).
+* :bdg-info:`Enhancement` Matplotlib and Plotly plots can now be sent to Excel in a vector-based format by providing the ``format`` argument, e.g. ``svg`` on Windows or ``eps`` on macOS.
+* :bdg-info:`Enhancement` Removed dependency on pillow/PIL to properly size images via ``pictures.add()``.
+* :bdg-warning:`Bug Fix` Various fixes with scaling and positioning images via ``pictures.add()`` (:issue:`1491`).
+* :bdg-success:`Feature` New methods :meth:`mypicture.lock_aspect_ratio <xlwings.Picture.lock_aspect_ratio>` and :meth:`myapp.cut_copy_mode <xlwings.App.cut_copy_mode>` (:issue:`1622` and :issue:`1625`).
+* :bdg-secondary:`PRO` :bdg-success:`Feature`: Reports: DataFrames and Images are now offering various filters to influence the behavior of how DataFrames and Images are displayed, giving the template designer the ability to change a lot of things that previously had to be taken care of by the Python developer. For example, to hide a DataFrame's index, you can now do ``{{ df | noindex }}`` or to scale the image to double its size, you can do ``{{ img | scale(2) }}``. You'll find all available filters under :ref:`xlwings Reports<reports_quickstart>` (:issue:`1602`).
 
 
-**Breaking changes**:
+:bdg-danger:`Breaking Change`
 
-* [Enhancement]: When using ``pictures.add()``, pictures arrive now in Excel in the same size as if you would manually add them via the Excel UI and setting width/height now behaves consistently during initial adding and resizing. Consequently, you may have to fix your image sizes when you upgrade. (:issue:`1491`).
-* :bdg-secondary:`PRO`: The default MarkdownStyle removed the empty space after a h1 heading. You can always reintroduce it by applying a custom style (:issue:`1628`).
+* :bdg-info:`Enhancement`: When using ``pictures.add()``, pictures arrive now in Excel in the same size as if you would manually add them via the Excel UI and setting width/height now behaves consistently during initial adding and resizing. Consequently, you may have to fix your image sizes when you upgrade. (:issue:`1491`).
+* :bdg-secondary:`PRO` The default MarkdownStyle removed the empty space after a h1 heading. You can always reintroduce it by applying a custom style (:issue:`1628`).
 
 
 v0.23.4 (Jun 15, 2021)
 ----------------------
 
-* [Bug Fix] Windows: Fixed the ImportUDFs function in the VBA standalone module (:issue:`1601`).
-* [Bug Fix] Fixed configuration hierarchy: if you have a setting with an empty value in the ``xlwings.conf`` sheet, it will not be overridden by the same key in the directory or user config file anymore. If you wanted it to be overridden, you'd have to get the key out of the "xlwings.conf" sheet (:issue:`1617`).
-* :bdg-secondary:`PRO` [Feature] Added the ability to block the execution of Python modules based on the file hash and/or machine name (:issue:`1586`), see :ref:`permissioning`.
-* :bdg-secondary:`PRO` [Feature] Added the ``xlwings release`` command for an easy release management in connection with the one-click installer, see :ref:`release`. (:issue:`1429`).
+* :bdg-warning:`Bug Fix` Windows: Fixed the ImportUDFs function in the VBA standalone module (:issue:`1601`).
+* :bdg-warning:`Bug Fix` Fixed configuration hierarchy: if you have a setting with an empty value in the ``xlwings.conf`` sheet, it will not be overridden by the same key in the directory or user config file anymore. If you wanted it to be overridden, you'd have to get the key out of the "xlwings.conf" sheet (:issue:`1617`).
+* :bdg-secondary:`PRO` :bdg-success:`Feature` Added the ability to block the execution of Python modules based on the file hash and/or machine name (:issue:`1586`), see :ref:`permissioning`.
+* :bdg-secondary:`PRO` :bdg-success:`Feature` Added the ``xlwings release`` command for an easy release management in connection with the one-click installer, see :ref:`release`. (:issue:`1429`).
 
 
 v0.23.3 (May 17, 2021)
 ----------------------
 
-* [Bug Fix] Windows: UDFs returning a ``pandas.NaT`` were causing a ``#VALUE!`` error (:issue:`1590`).
+* :bdg-warning:`Bug Fix` Windows: UDFs returning a ``pandas.NaT`` were causing a ``#VALUE!`` error (:issue:`1590`).
 
 v0.23.2 (May 7, 2021)
 ---------------------
 
-* [Feature] Added support for :attr:`myrange.wrap_text <xlwings.Range.wrap_text>` (:issue:`173`).
-* [Enhancement] :meth:`xlwings.view` and :meth:`xlwings.load` now use chunking by default (:issue:`1570`).
-* [Bug Fix] Allow to save non-Excel file formats (:issue:`1569`)
-* [Bug Fix] Calculate formulas by default in the Function Wizard (:issue:`1574`).
-* :bdg-secondary:`PRO` [Bug Fix] Properly embed code with unicode characters (:issue:`1575`).
+* :bdg-success:`Feature` Added support for :attr:`myrange.wrap_text <xlwings.Range.wrap_text>` (:issue:`173`).
+* :bdg-info:`Enhancement` :meth:`xlwings.view` and :meth:`xlwings.load` now use chunking by default (:issue:`1570`).
+* :bdg-warning:`Bug Fix` Allow to save non-Excel file formats (:issue:`1569`)
+* :bdg-warning:`Bug Fix` Calculate formulas by default in the Function Wizard (:issue:`1574`).
+* :bdg-secondary:`PRO` :bdg-warning:`Bug Fix` Properly embed code with unicode characters (:issue:`1575`).
 
 v0.23.1 (Apr 19, 2021)
 ----------------------
 
-* [Feature] You can now save your workbook in any format you want, simply by specifying its extension:
+* :bdg-success:`Feature` You can now save your workbook in any format you want, simply by specifying its extension:
 
   .. code-block:: python
 
       mybook.save('binaryfile.xlsb')
       mybook.save('macroenabled.xlsm')
 
-* [Feature] Added support for the ``chunksize`` option: when you read and write from or to big ranges, you may have to chunk them or you will hit a timeout or a memory error. The ideal ``chunksize`` will depend on your system and size of the array, so you will have to try out a few different chunksizes to find one that works well (:issue:`77`):
+* :bdg-success:`Feature` Added support for the ``chunksize`` option: when you read and write from or to big ranges, you may have to chunk them or you will hit a timeout or a memory error. The ideal ``chunksize`` will depend on your system and size of the array, so you will have to try out a few different chunksizes to find one that works well (:issue:`77`):
 
   .. code-block:: python
 
@@ -212,15 +224,15 @@ v0.23.1 (Apr 19, 2021)
       # As list of list
       df = sheet['A1'].expand().options(chunksize=10_000).value
 
-* [Enhancement] ``xw.load()`` now expands to the ``current_region`` instead of relying on ``expand()`` (:issue:`1565`).
-* [Enhancement] The OneDrive setting has been split up into a Windows and macOS-specific paths: ``ONEDRIVE_WIN`` and ``ONEDRIVE_MAC`` (:issue:`1556`).
-* [Bug Fix] macOS: There are no more timeouts when opening or saving large workbooks that take longer than 60 seconds (:issue:`618`).
-* [Bug Fix] ``RunPython`` was failing when there was a ``&`` in the Excel file name (:issue:`1557`).
+* :bdg-info:`Enhancement` ``xw.load()`` now expands to the ``current_region`` instead of relying on ``expand()`` (:issue:`1565`).
+* :bdg-info:`Enhancement` The OneDrive setting has been split up into a Windows and macOS-specific paths: ``ONEDRIVE_WIN`` and ``ONEDRIVE_MAC`` (:issue:`1556`).
+* :bdg-warning:`Bug Fix` macOS: There are no more timeouts when opening or saving large workbooks that take longer than 60 seconds (:issue:`618`).
+* :bdg-warning:`Bug Fix` ``RunPython`` was failing when there was a ``&`` in the Excel file name (:issue:`1557`).
 
 v0.23.0 (Mar 5, 2021)
 ---------------------
 
-* :bdg-secondary:`PRO` [Feature]: This release adds support for Markdown-based formatting of text, both in cells as well as in shapes, see :ref:`markdown` for the details. This is also supported for template-based reports.
+* :bdg-secondary:`PRO` :bdg-success:`Feature`: This release adds support for Markdown-based formatting of text, both in cells as well as in shapes, see :ref:`markdown` for the details. This is also supported for template-based reports.
 
 .. code-block:: python
 
@@ -248,76 +260,70 @@ Running this code will give you this nicely formatted text, but you can also def
 
 .. figure:: images/markdown1.png
 
-* [Feature] Added support for the ``Font`` object via ``range`` or ``shape`` objects, see :meth:`Font <xlwings.main.Font>` (:issue:`897` and :issue:`559`).
-* [Feature] Added support for the ``Characters`` object via ``range`` or ``shape`` objects, see :meth:`Characters <xlwings.main.Characters>`.
+* :bdg-success:`Feature` Added support for the ``Font`` object via ``range`` or ``shape`` objects, see :meth:`Font <xlwings.main.Font>` (:issue:`897` and :issue:`559`).
+* :bdg-success:`Feature` Added support for the ``Characters`` object via ``range`` or ``shape`` objects, see :meth:`Characters <xlwings.main.Characters>`.
 
 v0.22.3 (Mar 3, 2021)
 ---------------------
 
-* [Enhancement] As a convenience method, you can now directly export sheets to PDF instead of having to go through the book: :meth:`mysheet.to_pdf() <xlwings.Sheet.to_pdf>` (:issue:`1517`).
-* :bdg-secondary:`PRO` [Bug Fix] Running ``RunPython`` with embedded code was broken in 0.22.0 (:issue:`1530`).
+* :bdg-info:`Enhancement` As a convenience method, you can now directly export sheets to PDF instead of having to go through the book: :meth:`mysheet.to_pdf() <xlwings.Sheet.to_pdf>` (:issue:`1517`).
+* :bdg-secondary:`PRO` :bdg-warning:`Bug Fix` Running ``RunPython`` with embedded code was broken in 0.22.0 (:issue:`1530`).
 
 v0.22.2 (Feb 8, 2021)
 ---------------------
 
-* [Bug Fix] Windows: If the path of the Excel file included a single quote, UDFs were failing (:issue:`1511`).
-* [Bug Fix] macOS: Prevent Excel from showing up when using hidden Excel instances via ``xw.App(visible=False)`` (:issue:`1508`).
+* :bdg-warning:`Bug Fix` Windows: If the path of the Excel file included a single quote, UDFs were failing (:issue:`1511`).
+* :bdg-warning:`Bug Fix` macOS: Prevent Excel from showing up when using hidden Excel instances via ``xw.App(visible=False)`` (:issue:`1508`).
 
 
 v0.22.1 (Feb 4, 2021)
 ---------------------
 
-* :bdg-secondary:`PRO` [Bug Fix]: :meth:`Table.update <xlwings.main.Table.update>` has been fixed so it also works when the table is the data source of a chart (:issue:`1507`).
+* :bdg-secondary:`PRO` :bdg-warning:`Bug Fix`: :meth:`Table.update <xlwings.main.Table.update>` has been fixed so it also works when the table is the data source of a chart (:issue:`1507`).
 * :bdg-secondary:`PRO` [Docs]: New documentation about how to work with Excel charts in templates; see :ref:`reports_quickstart`.
 
 
 v0.22.0 (Jan 29, 2021)
 ----------------------
 
-* [Feature] While it's always been possible to  *somehow* create your own xlwings-based add-ins, this release adds a toolchain to make it a lot easier to create your own white-labeled add-in, see :ref:`customaddin` (:issue:`1488`).
-* [Enhancement] ``xw.view`` now formats the pandas DataFrames as Excel table and with the new ``xw.load`` function, you can easily load a DataFrame from your active workbook into a Jupyter notebook. See :ref:`jupyternotebooks` for a full tutorial (:issue:`1487`).
-* [Feature] New method :meth:`mysheet.copy() <xlwings.Sheet.copy>` (:issue:`123`).
-* :bdg-secondary:`PRO` [Feature]: in addition to ``xw.create_report()``, you can now also work within a workbook by using the new :meth:`mysheet.render_template() <xlwings.Sheet.render_template>` method, see also :ref:`reports_quickstart` (:issue:`1478`).
+* :bdg-success:`Feature` While it's always been possible to  *somehow* create your own xlwings-based add-ins, this release adds a toolchain to make it a lot easier to create your own white-labeled add-in, see :ref:`customaddin` (:issue:`1488`).
+* :bdg-info:`Enhancement` ``xw.view`` now formats the pandas DataFrames as Excel table and with the new ``xw.load`` function, you can easily load a DataFrame from your active workbook into a Jupyter notebook. See :ref:`jupyternotebooks` for a full tutorial (:issue:`1487`).
+* :bdg-success:`Feature` New method :meth:`mysheet.copy() <xlwings.Sheet.copy>` (:issue:`123`).
+* :bdg-secondary:`PRO` :bdg-success:`Feature`: in addition to ``xw.create_report()``, you can now also work within a workbook by using the new :meth:`mysheet.render_template() <xlwings.Sheet.render_template>` method, see also :ref:`reports_quickstart` (:issue:`1478`).
 
 Older Releases
 --------------
 
 v0.21.4 (Nov 23, 2020)
-**********************
 
-* [Enhancement] New property :attr:`Shape.text <xlwings.Shape.text>` to read and write text to the text frame of shapes (:issue:`1456`).
-* :bdg-secondary:`PRO` [Feature]: xlwings Reports now supports template text in shapes, see :ref:`xlwings Reports<reports_quickstart>`.
+* :bdg-info:`Enhancement` New property :attr:`Shape.text <xlwings.Shape.text>` to read and write text to the text frame of shapes (:issue:`1456`).
+* :bdg-secondary:`PRO` :bdg-success:`Feature`: xlwings Reports now supports template text in shapes, see :ref:`xlwings Reports<reports_quickstart>`.
 
 v0.21.3 (Nov 22, 2020)
-**********************
 
-* :bdg-secondary:`PRO` **Breaking Change**: The :meth:`Table.update <xlwings.main.Table.update>` method has been changed to treat the DataFrame's index consistently whether or not it's being written to an Excel table: by default, the index is now transferred to Excel in both cases.
+* :bdg-secondary:`PRO` :bdg-danger:`Breaking Change`: The :meth:`Table.update <xlwings.main.Table.update>` method has been changed to treat the DataFrame's index consistently whether or not it's being written to an Excel table: by default, the index is now transferred to Excel in both cases.
 
 v0.21.2 (Nov 15, 2020)
-**********************
 
-* [Bug Fix] The default ``quickstart`` setup now also works when you store your workbooks on OneDrive (:issue:`1275`)
-* [Bug Fix] Excel files that have single quotes in their paths are now working correctly (:issue:`1021`)
+* :bdg-warning:`Bug Fix` The default ``quickstart`` setup now also works when you store your workbooks on OneDrive (:issue:`1275`)
+* :bdg-warning:`Bug Fix` Excel files that have single quotes in their paths are now working correctly (:issue:`1021`)
 
 v0.21.1 (Nov 13, 2020)
-**********************
 
-* [Enhancement] Added new method :meth:`Book.to_pdf() <xlwings.Book.to_pdf>` to easily export PDF reports. Needless to say, this integrates very nicely with :ref:`xlwings Reports<reports_quickstart>` (:issue:`1363`).
-* [Enhancement] Added support for :attr:`Sheet.visible <xlwings.Sheet.visible>` (:issue:`1459`).
+* :bdg-info:`Enhancement` Added new method :meth:`Book.to_pdf() <xlwings.Book.to_pdf>` to easily export PDF reports. Needless to say, this integrates very nicely with :ref:`xlwings Reports<reports_quickstart>` (:issue:`1363`).
+* :bdg-info:`Enhancement` Added support for :attr:`Sheet.visible <xlwings.Sheet.visible>` (:issue:`1459`).
 
 v0.21.0 (Nov 9, 2020)
-*********************
 
-* [Enhancement] Added support for Excel tables, see: :meth:`Table <xlwings.main.Table>` and :meth:`Tables <xlwings.main.Tables>` and :meth:`range.table <xlwings.Range.table>` (:issue:`47` and :issue:`1364`)
-* [Enhancement]: When using UDFs, you can now use ``'range'`` for the ``convert`` argument where you would use before ``xw.Range``. The latter will be removed in a future version (:issue:`1455`).
-* [Enhancement] Windows: The ``comtypes`` requirement has been dropped (:issue:`1443`).
-* :bdg-secondary:`PRO` [Feature]: :meth:`Table.update <xlwings.main.Table.update>` offers an easy way to keep your Excel tables in sync with your DataFrame source (:issue:`1454`).
-* :bdg-secondary:`PRO` [Enhancement]: The reports package now supports Excel tables in the templates. This is e.g. helpful to style the tables with striped rows, see :ref:`excel_tables_reports`  (:issue:`1364`).
+* :bdg-info:`Enhancement` Added support for Excel tables, see: :meth:`Table <xlwings.main.Table>` and :meth:`Tables <xlwings.main.Tables>` and :meth:`range.table <xlwings.Range.table>` (:issue:`47` and :issue:`1364`)
+* :bdg-info:`Enhancement`: When using UDFs, you can now use ``'range'`` for the ``convert`` argument where you would use before ``xw.Range``. The latter will be removed in a future version (:issue:`1455`).
+* :bdg-info:`Enhancement` Windows: The ``comtypes`` requirement has been dropped (:issue:`1443`).
+* :bdg-secondary:`PRO` :bdg-success:`Feature`: :meth:`Table.update <xlwings.main.Table.update>` offers an easy way to keep your Excel tables in sync with your DataFrame source (:issue:`1454`).
+* :bdg-secondary:`PRO` :bdg-info:`Enhancement`: The reports package now supports Excel tables in the templates. This is e.g. helpful to style the tables with striped rows, see :ref:`excel_tables_reports`  (:issue:`1364`).
 
 v0.20.8 (Oct 18, 2020)
-**********************
 
-* [Enhancement] Windows: With UDFs, you can now get easy access to the caller (an xlwings range object) by using ``caller`` as a function argument (:issue:`1434`). In that sense, ``caller`` is now a reserved argument by xlwings and if you have any existing arguments with this name, you'll need to rename them::
+* :bdg-info:`Enhancement` Windows: With UDFs, you can now get easy access to the caller (an xlwings range object) by using ``caller`` as a function argument (:issue:`1434`). In that sense, ``caller`` is now a reserved argument by xlwings and if you have any existing arguments with this name, you'll need to rename them::
 
     @xw.func
     def get_caller_address(caller):
@@ -325,172 +331,146 @@ v0.20.8 (Oct 18, 2020)
         # =get_caller_address()
         return caller.address
 
-* [Bug Fix] Windows: The setting ``Show Console`` now also shows/hides the command prompt properly when using the UDF server with Conda. There is no more switching between ``python`` and ``pythonw`` required (:issue:`1435` and :issue:`1421`).
-* [Bug Fix] Windows: Functions called via ``RunPython`` with ``Use UDF Server`` activated don't require the ``xw.sub`` decorator anymore (:issue:`1418`).
+* :bdg-warning:`Bug Fix` Windows: The setting ``Show Console`` now also shows/hides the command prompt properly when using the UDF server with Conda. There is no more switching between ``python`` and ``pythonw`` required (:issue:`1435` and :issue:`1421`).
+* :bdg-warning:`Bug Fix` Windows: Functions called via ``RunPython`` with ``Use UDF Server`` activated don't require the ``xw.sub`` decorator anymore (:issue:`1418`).
 
 v0.20.7 (Sep 3, 2020)
-*********************
 
-* [Bug Fix] Windows: Fix a regression introduced with 0.20.0 that would cause an ``AttributeError: Range.CLSID`` with async and legacy dynamic array UDFs (:issue:`1404`).
-* [Enhancement]: Matplotlib figures are now converted to 300 dpi pictures for better quality when using them with ``pictures.add`` (:issue:`1402`).
+* :bdg-warning:`Bug Fix` Windows: Fix a regression introduced with 0.20.0 that would cause an ``AttributeError: Range.CLSID`` with async and legacy dynamic array UDFs (:issue:`1404`).
+* :bdg-info:`Enhancement`: Matplotlib figures are now converted to 300 dpi pictures for better quality when using them with ``pictures.add`` (:issue:`1402`).
 
 v0.20.6 (Sep 1, 2020)
-*********************
 
-* [Bug Fix] macOS: ``App(visible=False)`` has been fixed (:issue:`652`).
-* [Bug Fix] macOS: The regression with ``Book.fullname`` that was introduced with 0.20.1 has been fixed (:issue:`1390`).
-* [Bug Fix] Windows: The retry mechanism has been improved (:issue:`1398`).
+* :bdg-warning:`Bug Fix` macOS: ``App(visible=False)`` has been fixed (:issue:`652`).
+* :bdg-warning:`Bug Fix` macOS: The regression with ``Book.fullname`` that was introduced with 0.20.1 has been fixed (:issue:`1390`).
+* :bdg-warning:`Bug Fix` Windows: The retry mechanism has been improved (:issue:`1398`).
 
 v0.20.5 (Aug 27, 2020)
-**********************
 
-* [Bug Fix] The conda version check was failing with spaces in the installation path (:issue:`1396`).
-* [Bug Fix] Windows: when running ``app.quit()``, the application is now properly closed without leaving a zombie process behind (:issue:`1397`).
+* :bdg-warning:`Bug Fix` The conda version check was failing with spaces in the installation path (:issue:`1396`).
+* :bdg-warning:`Bug Fix` Windows: when running ``app.quit()``, the application is now properly closed without leaving a zombie process behind (:issue:`1397`).
 
 v0.20.4 (Aug 20, 2020)
-**********************
 
-* [Enhancement] The add-in can now optionally be installed without the password protection: ``xlwings addin install --unprotected`` (:issue:`1392`).
+* :bdg-info:`Enhancement` The add-in can now optionally be installed without the password protection: ``xlwings addin install --unprotected`` (:issue:`1392`).
 
 v0.20.3 (Aug 15, 2020)
-**********************
 
-* [Bug Fix] The conda version check was erroneously triggered when importing UDFs on systems without conda. (:issue:`1389`).
+* :bdg-warning:`Bug Fix` The conda version check was erroneously triggered when importing UDFs on systems without conda. (:issue:`1389`).
 
 v0.20.2 (Aug 13, 2020)
-**********************
 
-* :bdg-secondary:`PRO` [Feature]: Code can now be embedded by calling the new ``xlwings code embed [--file]`` CLI command (:issue:`1380`).
-* [Bug Fix] Made the import UDFs functionality more robust to prevent an Automation 440 error that some users would see (:issue:`1381`).
-* [Enhancement] The standalone Excel file now includes all VBA dependencies to make it work on Windows and macOS (:issue:`1349`).
-* [Enhancement] xlwings now blocks the call if the Conda Path/Env settings are used with legacy Conda installations (:issue:`1384`).
+* :bdg-secondary:`PRO` :bdg-success:`Feature`: Code can now be embedded by calling the new ``xlwings code embed [--file]`` CLI command (:issue:`1380`).
+* :bdg-warning:`Bug Fix` Made the import UDFs functionality more robust to prevent an Automation 440 error that some users would see (:issue:`1381`).
+* :bdg-info:`Enhancement` The standalone Excel file now includes all VBA dependencies to make it work on Windows and macOS (:issue:`1349`).
+* :bdg-info:`Enhancement` xlwings now blocks the call if the Conda Path/Env settings are used with legacy Conda installations (:issue:`1384`).
 
 v0.20.1 (Aug 7, 2020)
-*********************
 
-* [Bug Fix] macOS: password-protected sheets caused an alert when calling ``xw.Book`` (:issue:`1377`).
-* [Bug Fix] macOS: calling ``wb.save('newname.xlsx')`` wasn't updating the ``wb`` object properly and caused an alert (:issue:`1129` and :issue:`626` and :issue:`957`).
+* :bdg-warning:`Bug Fix` macOS: password-protected sheets caused an alert when calling ``xw.Book`` (:issue:`1377`).
+* :bdg-warning:`Bug Fix` macOS: calling ``wb.save('newname.xlsx')`` wasn't updating the ``wb`` object properly and caused an alert (:issue:`1129` and :issue:`626` and :issue:`957`).
 
 v0.20.0 (Jul 22, 2020)
-**********************
 
 **This version drops support for Python 3.5**
 
-* [Feature] New property :attr:`xlwings.App.status_bar` (:issue:`1362`).
-* [Enhancement] ``xlwings.view()`` now becomes the active window, making it easier to work with in interactive workflows (please speak up if you feel differently) (:issue:`1353`).
-* [Bug Fix] The UDF server has received a serious upgrade by `njwhite <https://github.com/njwhite>`_, getting rid of the many issues that were around with using a combination of async functions and legacy dynamic arrays. You can now also call functions defined via ``async def``, although for the time being they are still called synchronously from Excel (:issue:`1010` and :issue:`1164`).
+* :bdg-success:`Feature` New property :attr:`xlwings.App.status_bar` (:issue:`1362`).
+* :bdg-info:`Enhancement` ``xlwings.view()`` now becomes the active window, making it easier to work with in interactive workflows (please speak up if you feel differently) (:issue:`1353`).
+* :bdg-warning:`Bug Fix` The UDF server has received a serious upgrade by `njwhite <https://github.com/njwhite>`_, getting rid of the many issues that were around with using a combination of async functions and legacy dynamic arrays. You can now also call functions defined via ``async def``, although for the time being they are still called synchronously from Excel (:issue:`1010` and :issue:`1164`).
 
 v0.19.5 (Jul 5, 2020)
-**********************
 
-* [Enhancement] When you install the add-in via ``xlwings addin install``, it autoconfigures the add-in if it can't find an existing user config file (:issue:`1322`).
-* [Feature] New ``xlwings config create [--force]`` command that autogenerates the user config file with the Python settings from which you run the command. Can be used to reset the add-in settings with the ``--force`` option (:issue:`1322`).
-* [Feature]: There is a new option to show/hide the console window. Note that with ``Conda Path`` and ``Conda Env`` set, the console always pops up when using the UDF server. Currently only available on Windows (:issue:`1182`).
-* [Enhancement] The ``Interpreter`` setting has been deprecated in favor of platform-specific settings: ``Interpreter_Win`` and ``Interpreter_Mac``, respectively. This allows you to use the sheet config unchanged on both platforms (:issue:`1345`).
-* [Enhancement] On macOS, you can now use a few environment-like variables in your settings: ``$HOME``, ``$APPLICATIONS``, ``$DOCUMENTS``, ``$DESKTOP`` (:issue:`615`).
-* [Bug Fix]: Async functions sometimes caused an error on older Excel versions without dynamic arrays (:issue:`1341`).
+* :bdg-info:`Enhancement` When you install the add-in via ``xlwings addin install``, it autoconfigures the add-in if it can't find an existing user config file (:issue:`1322`).
+* :bdg-success:`Feature` New ``xlwings config create [--force]`` command that autogenerates the user config file with the Python settings from which you run the command. Can be used to reset the add-in settings with the ``--force`` option (:issue:`1322`).
+* :bdg-success:`Feature`: There is a new option to show/hide the console window. Note that with ``Conda Path`` and ``Conda Env`` set, the console always pops up when using the UDF server. Currently only available on Windows (:issue:`1182`).
+* :bdg-info:`Enhancement` The ``Interpreter`` setting has been deprecated in favor of platform-specific settings: ``Interpreter_Win`` and ``Interpreter_Mac``, respectively. This allows you to use the sheet config unchanged on both platforms (:issue:`1345`).
+* :bdg-info:`Enhancement` On macOS, you can now use a few environment-like variables in your settings: ``$HOME``, ``$APPLICATIONS``, ``$DOCUMENTS``, ``$DESKTOP`` (:issue:`615`).
+* :bdg-warning:`Bug Fix`: Async functions sometimes caused an error on older Excel versions without dynamic arrays (:issue:`1341`).
 
 v0.19.4 (May 20, 2020)
-**********************
 
-* [Feature] ``xlwings addin install`` is now available on macOS. On Windows, it has been fixed so it should now work reliably (:issue:`704`).
-* [Bug Fix] Fixed a ``dll load failed`` issue with ``pywin32`` when installed via ``pip`` on Python 3.8 (:issue:`1315`).
+* :bdg-success:`Feature` ``xlwings addin install`` is now available on macOS. On Windows, it has been fixed so it should now work reliably (:issue:`704`).
+* :bdg-warning:`Bug Fix` Fixed a ``dll load failed`` issue with ``pywin32`` when installed via ``pip`` on Python 3.8 (:issue:`1315`).
 
 v0.19.3 (May 19, 2020)
-**********************
 
-* :bdg-secondary:`PRO` [Feature]: Added possibility to create deployment keys.
+* :bdg-secondary:`PRO` :bdg-success:`Feature`: Added possibility to create deployment keys.
 
 v0.19.2 (May 11, 2020)
-**********************
 
-* [Feature] New methods :meth:`xlwings.Shape.scale_height` and :meth:`xlwings.Shape.scale_width` (:issue:`311`).
-* [Bug Fix] Using ``Pictures.add`` is not distorting the proportions anymore (:issue:`311`).
+* :bdg-success:`Feature` New methods :meth:`xlwings.Shape.scale_height` and :meth:`xlwings.Shape.scale_width` (:issue:`311`).
+* :bdg-warning:`Bug Fix` Using ``Pictures.add`` is not distorting the proportions anymore (:issue:`311`).
 
-* :bdg-secondary:`PRO` [Feature]: Added support for :ref:`plotly` (:issue:`1309`).
+* :bdg-secondary:`PRO` :bdg-success:`Feature`: Added support for :ref:`plotly` (:issue:`1309`).
 
 .. figure:: images/plotly.png
 
 v0.19.1 (May 4, 2020)
-*********************
 
-* [Bug Fix] Fixed an issue with the xlwings PRO license key when there was no ``xlwings.conf`` file (:issue:`1308`).
+* :bdg-warning:`Bug Fix` Fixed an issue with the xlwings PRO license key when there was no ``xlwings.conf`` file (:issue:`1308`).
 
 v0.19.0 (May 2, 2020)
-*********************
 
-* [Bug Fix] Native dynamic array formulas can now be used with async formulas (:issue:`1277`)
-* [Enhancement] Quickstart references the project's name when run from Python instead of the active book (:issue:`1307`)
+* :bdg-warning:`Bug Fix` Native dynamic array formulas can now be used with async formulas (:issue:`1277`)
+* :bdg-info:`Enhancement` Quickstart references the project's name when run from Python instead of the active book (:issue:`1307`)
 
-**Breaking Change**:
+:bdg-danger:`Breaking Change`:
 
 * ``Conda Base`` has been renamed into ``Conda Path`` to reduce the confusion with the ``Conda Env`` called ``base``. Please adjust your settings accordingly! (:issue:`1194`)
 
 v0.18.0 (Feb 15, 2020)
-**********************
 
-* [Feature] Added support for merged cells: :attr:`xlwings.Range.merge_area`, :attr:`xlwings.Range.merge_cells`, :meth:`xlwings.Range.merge`
+* :bdg-success:`Feature` Added support for merged cells: :attr:`xlwings.Range.merge_area`, :attr:`xlwings.Range.merge_cells`, :meth:`xlwings.Range.merge`
   :meth:`xlwings.Range.unmerge` (:issue:`21`).
-* [Bug Fix] ``RunPython`` now works properly with files that have a URL as ``fullname``, i.e. OneDrive and SharePoint (:issue:`1253`).
-* [Bug Fix] Fixed a bug with ``wb.names['...'].refers_to_range`` on macOS (:issue:`1256`).
-
+* :bdg-warning:`Bug Fix` ``RunPython`` now works properly with files that have a URL as ``fullname``, i.e. OneDrive and SharePoint (:issue:`1253`).
+* :bdg-warning:`Bug Fix` Fixed a bug with ``wb.names['...'].refers_to_range`` on macOS (:issue:`1256`).
 
 v0.17.1 (Jan 31, 2020)
-**********************
 
-* [Bug Fix] Handle ``np.float64('nan')`` correctly (:issue:`1116`).
+* :bdg-warning:`Bug Fix` Handle ``np.float64('nan')`` correctly (:issue:`1116`).
 
 v0.17.0 (Jan 6, 2020)
-*********************
 
 This release drops support for Python 2.7 in xlwings CE. If you still rely on Python 2.7, you will need to stick to v0.16.6.
 
 v0.16.6 (Jan 5, 2020)
-*********************
 
-* [Enhancement] CLI changes with respect to ``xlwings license`` (:issue:`1227`). 
+* :bdg-info:`Enhancement` CLI changes with respect to ``xlwings license`` (:issue:`1227`). 
 
 v0.16.5 (Dec 30, 2019)
-**********************
 
-* [Enhancement] Improvements with regards to the ``Run main`` ribbon button (:issue:`1207` and :issue:`1222`).
+* :bdg-info:`Enhancement` Improvements with regards to the ``Run main`` ribbon button (:issue:`1207` and :issue:`1222`).
 
 v0.16.4 (Dec 17, 2019)
-**********************
 
-* [Enhancement] Added support for :meth:`xlwings.Range.copy` (:issue:`1214`).
-* [Enhancement] Added support for :meth:`xlwings.Range.paste` (:issue:`1215`). 
-* [Enhancement] Added support for :meth:`xlwings.Range.insert` (:issue:`80`).
-* [Enhancement] Added support for :meth:`xlwings.Range.delete` (:issue:`862`).
+* :bdg-info:`Enhancement` Added support for :meth:`xlwings.Range.copy` (:issue:`1214`).
+* :bdg-info:`Enhancement` Added support for :meth:`xlwings.Range.paste` (:issue:`1215`). 
+* :bdg-info:`Enhancement` Added support for :meth:`xlwings.Range.insert` (:issue:`80`).
+* :bdg-info:`Enhancement` Added support for :meth:`xlwings.Range.delete` (:issue:`862`).
 
 v0.16.3 (Dec 12, 2019)
-**********************
 
-* [Bug Fix] Sometimes, xlwings would show an error of a previous run. Moreover, 0.16.2 introduced an issue that would
+* :bdg-warning:`Bug Fix` Sometimes, xlwings would show an error of a previous run. Moreover, 0.16.2 introduced an issue that would
   not show errors at all on non-conda setups (:issue:`1158` and :issue:`1206`)
-* [Enhancement] The xlwings CLI now prints the version number (:issue:`1200`)
+* :bdg-info:`Enhancement` The xlwings CLI now prints the version number (:issue:`1200`)
 
-**Breaking Change**:
+:bdg-danger:`Breaking Change`
 
 * ``LOG FILE`` has been retired and removed from the configuration/add-in.
 
 v0.16.2 (Dec 5, 2019)
-*********************
 
-* [Bug Fix] ``RunPython`` can now be called in parallel from different Excel instances (:issue:`1196`).
+* :bdg-warning:`Bug Fix` ``RunPython`` can now be called in parallel from different Excel instances (:issue:`1196`).
 
 v0.16.1 (Dec 1, 2019)
-*********************
 
-* [Enhancement] :meth:`xlwings.Book()` and ``myapp.books.open()`` now accept parameters like 
+* :bdg-info:`Enhancement` :meth:`xlwings.Book()` and ``myapp.books.open()`` now accept parameters like 
   ``update_links``, ``password`` etc. (:issue:`1189`).
-* [Bug Fix] ``Conda Env`` now works correctly with ``base`` for UDFs, too (:issue:`1110`).
-* [Bug Fix] ``Conda Base`` now allows spaces in the path (:issue:`1176`).
-* [Enhacement] The UDF server timeout has been increased to 2 minutes (:issue:`1168`).
-
+* :bdg-warning:`Bug Fix` ``Conda Env`` now works correctly with ``base`` for UDFs, too (:issue:`1110`).
+* :bdg-warning:`Bug Fix` ``Conda Base`` now allows spaces in the path (:issue:`1176`).
+* :bdg-info:`Enhancement` The UDF server timeout has been increased to 2 minutes (:issue:`1168`).
 
 v0.16.0 (Oct 13, 2019)
-**********************
 
 This release adds a small but very powerful feature: There's a new ``Run main`` button in the add-in.
 With that, you can run your Python scripts from standard ``xlsx`` files - no need to save your workbook
@@ -507,67 +487,57 @@ but you can save it as ``xlsx`` file if you intend to run it via the new ``Run``
     .. figure:: images/ribbon.png
 
 v0.15.10 (Aug 31, 2019)
-**********************-
 
-* [Bug Fix] Fixed a Python 2.7 incompatibility introduced with 0.15.9.
+* :bdg-warning:`Bug Fix` Fixed a Python 2.7 incompatibility introduced with 0.15.9.
 
 v0.15.9 (Aug 31, 2019)
-**********************
 
-* [Enhancement] The ``sql`` extension now uses the native dynamic arrays if available (:issue:`1138`).
-* [Enhancement] xlwings now support ``Path`` objects from ``pathlib`` for all file paths (:issue:`1126`).
-* [Bug Fix] Various bug fixes: (:issue:`1118`), (:issue:`1131`), (:issue:`1102`).
+* :bdg-info:`Enhancement` The ``sql`` extension now uses the native dynamic arrays if available (:issue:`1138`).
+* :bdg-info:`Enhancement` xlwings now support ``Path`` objects from ``pathlib`` for all file paths (:issue:`1126`).
+* :bdg-warning:`Bug Fix` Various bug fixes: (:issue:`1118`), (:issue:`1131`), (:issue:`1102`).
 
 v0.15.8 (May 5, 2019)
-*********************
 
-* [Bug Fix] Fixed an issue introduced with the previous release that always showed the command prompt when running UDFs,
+* :bdg-warning:`Bug Fix` Fixed an issue introduced with the previous release that always showed the command prompt when running UDFs,
   not just when using conda envs (:issue:`1098`).
 
 v0.15.7 (May 5, 2019)
-*********************
 
-* [Bug Fix] ``Conda Base`` and ``Conda Env`` weren't stored correctly in the config file from the ribbon (:issue:`1090`).
-* [Bug Fix] UDFs now work correctly with ``Conda Base`` and ``Conda Env``. Note, however, that currently there is no
+* :bdg-warning:`Bug Fix` ``Conda Base`` and ``Conda Env`` weren't stored correctly in the config file from the ribbon (:issue:`1090`).
+* :bdg-warning:`Bug Fix` UDFs now work correctly with ``Conda Base`` and ``Conda Env``. Note, however, that currently there is no
   way to hide the command prompt in that configuration (:issue:`1090`).
-* [Enhancement] ``Restart UDF Server`` now actually does what it says: it stops and restarts the server. Previously
+* :bdg-info:`Enhancement` ``Restart UDF Server`` now actually does what it says: it stops and restarts the server. Previously
   it was only stopping the server and only when the first call to Python was made, it was started again (:issue:`1096`).
 
 v0.15.6 (Apr 29, 2019)
-**********************
 
-* [Feature] New default converter for ``OrderedDict`` (:issue:`1068`).
-* [Enhancement] ``Import Functions`` now restarts the UDF server to guarantee a clean state after importing. (:issue:`1092`)
-* [Enhancement] The ribbon now shows tooltips on Windows (:issue:`1093`)
-* [Bug Fix] RunPython now properly supports conda environments on Windows (they started to require proper activation
+* :bdg-success:`Feature` New default converter for ``OrderedDict`` (:issue:`1068`).
+* :bdg-info:`Enhancement` ``Import Functions`` now restarts the UDF server to guarantee a clean state after importing. (:issue:`1092`)
+* :bdg-info:`Enhancement` The ribbon now shows tooltips on Windows (:issue:`1093`)
+* :bdg-warning:`Bug Fix` RunPython now properly supports conda environments on Windows (they started to require proper activation
   with packages like numpy etc). Conda >=4.6. required. A fix for UDFs is still pending (:issue:`954`).
 
-**Breaking Change:**
+:bdg-danger:`Breaking Change`
 
-* [Bug Fix] ``RunFronzenPython`` now accepts spaces in the path of the executable, but in turn requires to be called
+* :bdg-warning:`Bug Fix` ``RunFronzenPython`` now accepts spaces in the path of the executable, but in turn requires to be called
   with command line arguments as a separate VBA argument.
   Example: ``RunFrozenPython "C:\path\to\frozen_executable.exe", "arg1 arg2"`` (:issue:`1063`).
 
 v0.15.5 (Mar 25, 2019)
-**********************
 
-* [Enhancement] ``wb.macro()`` now accepts xlwings objects as arguments such as ``range``, ``sheet`` etc. when the VBA macro expects the corresponding Excel object (e.g. ``Range``, ``Worksheet`` etc.) (:issue:`784` and :issue:`1084`)
+* :bdg-info:`Enhancement` ``wb.macro()`` now accepts xlwings objects as arguments such as ``range``, ``sheet`` etc. when the VBA macro expects the corresponding Excel object (e.g. ``Range``, ``Worksheet`` etc.) (:issue:`784` and :issue:`1084`)
 
-**Breaking Change:**
+:bdg-danger:`Breaking Change`
 
 * Cells that contain a cell error such as ``#DIV/0!``, ``#N/A``, ``#NAME?``, ``#NULL!``, ``#NUM!``, ``#REF!``, ``#VALUE!`` return now 
   ``None`` as value in Python. Previously they were returned as constant on Windows (e.g. ``-2146826246``) or ``k.missing_value`` on Mac.
 
-
 v0.15.4 (Mar 17, 2019)
-**********************
 
 * [Win] BugFix: The ribbon was not showing up in Excel 2007. (:issue:`1039`)
 * Enhancement: Allow to install xlwings on Linux even though it's not a supported platform: ``export INSTALL_ON_LINUX=1; pip install xlwings`` (:issue:`1052`)
 
-
 v0.15.3 (Feb 23, 2019)
-**********************
 
 Bug Fix release:
 
@@ -575,26 +545,23 @@ Bug Fix release:
 * [Win] Sometimes, the ribbon was throwing errors (:issue:`1041`)
 
 v0.15.2 (Feb 3, 2019)
-*********************
 
 Better support and docs for deployment, see :ref:`deployment`:
 
 * You can now package your python modules into a zip file for easier distribution (:issue:`1016`).
 * ``RunFrozenPython`` now allows to includes arguments, e.g. ``RunFrozenPython "C:\path\to\my.exe arg1 arg2"`` (:issue:`588`).
 
-**Breaking changes**:
+:bdg-danger:`Breaking Change`
 
 * Accessing a not existing PID in the ``apps`` collection raises now a ``KeyError`` instead of an ``Exception`` (:issue:`1002`).
 
 v0.15.1 (Nov 29, 2018)
-**********************
 
 Bug Fix release:
 
 * [Win] Calling Subs or UDFs from VBA was causing an error (:issue:`998`).
 
 v0.15.0 (Nov 20, 2018)
-**********************
 
 **Dynamic Array Refactor**
 
@@ -616,7 +583,6 @@ In the meantime, this refactor improves the current xlwings dynamic arrays in th
 * Importing multiple UDF modules has been fixed (:issue:`991`).
 
 v0.14.1 (Nov 9, 2018)
-*********************
 
 This is a bug fix release:
 
@@ -625,7 +591,6 @@ This is a bug fix release:
 * [Mac] Fixed an issue with the config file (:issue:`982`)
 
 v0.14.0 (Nov 5, 2018)
-*********************
 
 **Features**:
 
@@ -648,7 +613,6 @@ See :ref:`async_functions` for the full docs.
 
 
 v0.13.0 (Oct 22, 2018)
-**********************
 
 **Features**:
 
@@ -668,18 +632,16 @@ see :ref:`rest_api` for all the details!
 * The current directory is now inserted in front of everything else on the PYTHONPATH (:issue:`958`)
 * The standalone files had an issue in the VBA module (:issue:`960`)
 
-**Breaking changes**:
+:bdg-danger:`Breaking Change`
 
 * Members of the ``xw.apps`` collection are now accessed by key (=PID) instead of index, e.g.:
   ``xw.apps[12345]`` instead of ``xw.apps[0]``. The apps collection also has a new ``xw.apps.keys()`` method. (:issue:`951`)
 
 v0.12.1 (Oct 7, 2018)
-*********************
 
 [Py27] Bug Fix for a Python 2.7 glitch. 
 
 v0.12.0 (Oct 7, 2018)
-*********************
 
 **Features**:
 
@@ -688,7 +650,7 @@ this uses UDFs, it is only available on Windows.
 See the docs: :ref:`other_office_apps`. 
 
 
-**Breaking changes**:
+:bdg-danger:`Breaking Change`
 
 Previously, Python functions were always returning 2d arrays when called from VBA, no matter whether it was actually a 2d array or not.
 Now you get the proper dimensionality which makes it easier if the return value is e.g. a string or scalar as you don't have to
@@ -717,27 +679,22 @@ using by ``xlwings quickstart``:
 * Other bug fixes: :issue:`889`, :issue:`939`, :issue:`940`, :issue:`943`.
 
 v0.11.8 (May 13, 2018)
-**********************
 
 * [Win] pywin32 is now automatically installed when using pip (:issue:`827`)
 * `xlwings.bas` has been readded to the python package. This facilitates e.g. the use of xlwings within other addins (:issue:`857`)
 
 v0.11.7 (Feb 5, 2018)
-**********************
 
 * [Win] This release fixes a bug introduced with v0.11.6 that wouldn't allow to open workbooks by name (:issue:`804`)
 
 v0.11.6 (Jan 27, 2018)
-**********************
 
 Bug Fixes:
 
 * [Win] When constantly writing to a spreadsheet, xlwings now correctly resumes after clicking into cells, previously it was crashing. (:issue:`587`)
 * Options are now correctly applied when writing to a sheet (:issue:`798`)
 
-
 v0.11.5 (Jan 7, 2018)
-*********************
 
 This is mostly a bug fix release:
 
@@ -748,7 +705,6 @@ This is mostly a bug fix release:
 * [Mac] UDF decorators now don't cause errors on Mac anymore (:issue:`780`)
 
 v0.11.4 (Jul 23, 2017)
-**********************
 
 This release brings further improvements with regards to the add-in:
 
@@ -770,34 +726,27 @@ Also, some new docs:
 * A troubleshooting section: :ref:`troubleshooting`.
 
 v0.11.3 (Jul 14, 2017)
-**********************
 
 * Bug Fix: When using the ``xlwings.conf`` sheet, there was a subscript out of range error (:issue:`708`)
 * Enhancement: The add-in is now password protected (pw: ``xlwings``) to declutter the VBA editor (:issue:`710`)
 
 You need to update your xlwings add-in to get the fixes!
 
-
 v0.11.2 (Jul 6, 2017)
-*********************
 
 * Bug Fix: The sql extension was sometimes not correctly assigning the table aliases (:issue:`699`)
 * Bug Fix: Permission errors during pip installation should be resolved now (:issue:`693`)
 
-
 v0.11.1 (Jul 5, 2017)
-*********************
 
 * Bug Fix: The sql extension installs now correctly (:issue:`695`)
 * Added migration guide for v0.11, see :ref:`migrate_to_0.11`
 
 v0.11.0 (Jul 2, 2017)
-*********************
 
 Big news! This release adds a full blown **add-in**! We also throw in a great **In-Excel SQL Extension** and a few **bug fixes**:
 
 Add-in
-******
 
 .. figure:: images/ribbon.png
 
@@ -810,21 +759,18 @@ A few highlights:
 * Get all the details here: :ref:`xlwings_addin`
 
 In-Excel SQL Extension
-**********************
 
 The add-in can be extended with own code. We throw in an ``sql`` function, that allows you to perform SQL queries
 on data in your spreadsheets. It's pretty awesome, get the details here: :ref:`extensions`.
 
 Bug Fixes
-*********
 
 * [Win]: Running ``Debug > Compile`` is not throwing errors anymore (:issue:`678`)
 * Pandas deprecation warnings have been fixed (:issue:`675` and :issue:`664`)
 * [Mac]: Errors are again shown correctly in a pop up (:issue:`660`)
 * [Mac]: Like Windows, Mac now also only shows errors in a popup. Before it was including stdout, too (:issue:`666`) 
 
-Breaking Changes
-****************
+:bdg-danger:`Breaking Change`
 
 * ``RunFrozenPython`` now requires the full path to the executable.
 * The xlwings CLI ``xlwings template`` functionality has been removed. Use ``quickstart`` instead.
@@ -833,13 +779,11 @@ Breaking Changes
 .. _migrate_to_0.11:
 
 Migrate to v0.11 (Add-in)
-*************************
 
 This migration guide shows you how you can start using the new xlwings add-in as opposed to the old xlwings VBA module
 (and the old add-in that consisted of just a single import button).
 
 Upgrade the xlwings Python package
-**********************************
 
 1. Check where xlwings is currently installed
 
@@ -856,7 +800,6 @@ Upgrade the xlwings Python package
     >>> xlwings.__version__
 
 Install the add-in
-******************
 
 1. If you have the old xlwings addin installed, find the location and remove it or overwrite it with the new version (see next step).
    If you installed it via the xlwings command line client, you should be able to do: ``xlwings addin remove``.
@@ -866,9 +809,7 @@ Install the add-in
    You can find the location of this folder under Options > Trust Center > Trust Center Settings... > Trusted Locations,
    under the description ``Excel default location: User StartUp``. Restart Excel and you should see the add-in.
 
-
 Upgrade existing workbooks
-**************************
 
 1. Make a backup of your Excel file
 2. Open the file and go to the VBA Editor (``Alt-F11``)
@@ -876,18 +817,14 @@ Upgrade existing workbooks
 4. Add a reference to the xlwings addin, see :ref:`addin_installation`
 5. If you want to use workbook specific settings, add a sheet ``xlwings.conf``, see :ref:`addin_wb_settings`
 
-
 **Note**: To import UDFs, you need to have the reference to the xlwings add-in set!
 
-
 v0.10.4 (Feb 19, 2017)
-**********************
 
 * [Win] Bug Fix: v0.10.3 introduced a bug that imported UDFs by default with `volatile=True`, this has now been fixed.
   You will need to reimport your functions after upgrading the xlwings package.
 
 v0.10.3 (Jan 28, 2017)
-**********************
 
 This release adds new features to User Defined Functions (UDFs):
 
@@ -907,13 +844,10 @@ Syntax:
 For details, check out the (also new) and comprehensive API docs about the decorators: :ref:`udf_api`
 
 v0.10.2 (Dec 31, 2016)
-**********************
 
 * [Win] Python 3.6 is now supported (:issue:`592`)
 
-
 v0.10.1 (Dec 5, 2016)
-*********************
 
 * Writing a Pandas Series with a MultiIndex header was not writing out the header (:issue:`572`)
 * [Win] Docstrings for UDF arguments are now working (:issue:`367`)
@@ -921,10 +855,8 @@ v0.10.1 (Dec 5, 2016)
 * ``xw.Book(...)`` and ``xw.books.open(...)`` raise now the same error in case the file doesn't exist (:issue:`540`)
 
 v0.10.0 (Sep 20, 2016)
-**********************
 
 Dynamic Array Formulas
-**********************
 
 This release adds an often requested & powerful new feature to User Defined Functions (UDFs): Dynamic expansion for
 array formulas. While Excel offers array formulas, you need to specify their dimensions up front by selecting the
@@ -951,13 +883,11 @@ This is a simple example that demonstrates the syntax and effect of UDF expansio
 they will clear the row to the bottom and the column to the right of the array.
 
 Bug Fixes
-*********
 
 * The ``int`` converter works now always as you would expect (e.g.: ``xw.Range('A1').options(numbers=int).value``). Before,
   it could happen that the number was off by 1 due to floating point issues (:issue:`554`).
 
 v0.9.3 (Aug 22, 2016)
-*********************
 
 * [Win] ``App.visible`` wasn't behaving correctly (:issue:`551`).
 * [Mac] Added support for the new 64bit version of Excel 2016 on Mac (:issue:`549`).
@@ -967,7 +897,6 @@ v0.9.3 (Aug 22, 2016)
   directory (:issue:`185`).
 
 v0.9.2 (Aug 8, 2016)
-********************
 
 Another round of bug fixes:
 
@@ -976,7 +905,6 @@ Another round of bug fixes:
 * Fixed docs regarding set_mock_caller (:issue:`543`)
 
 v0.9.1 (Aug 5, 2016)
-********************
 
 This is a bug fix release: As to be expected after a rewrite, there were some rough edges that have now been taken care of:
 
@@ -985,11 +913,9 @@ This is a bug fix release: As to be expected after a rewrite, there were some ro
 * [PY 2.7] ``RunPython`` was broken with Python 2.7 (:issue:`537`)
 * Some corrections in the docs (:issue:`538` and :issue:`536`)
 
-
 .. _v0.9_release_notes:
 
 v0.9.0 (Aug 2, 2016)
-********************
 
 Exciting times! v0.9.0 is a complete rewrite of xlwings with loads of syntax changes (hence the version jump). But more
 importantly, this release adds a ton of new features and bug fixes that would have otherwise been impossible. Some of the
@@ -1055,23 +981,19 @@ Some of the new methods/properties worth mentioning are:
 * :any:`xlwings.Range.raw_value`
 
 Bug Fixes
-*********
 
 * See `here <https://github.com/xlwings/xlwings/issues?q=is%3Aclosed+is%3Aissue+milestone%3Av0.9.0+label%3Abug>`_
   for details about which bugs have been fixed.
 
-
 .. _migrate_to_0.9:
 
 Migrate to v0.9
-***************
 
 The purpose of this document is to enable you a smooth experience when upgrading to xlwings v0.9.0 and above by laying out
 the concept and syntax changes in detail. If you want to get an overview of the new features and bug fixes, have a look at the
 :ref:`release notes <v0.9_release_notes>`. Note that the syntax for User Defined Functions (UDFs) didn't change.
 
 Full qualification: Using collections
-*************************************
 
 The new object model allows to specify the Excel application instance if needed:
 
@@ -1082,7 +1004,6 @@ The new object model allows to specify the Excel application instance if needed:
 See :ref:`syntax_overview` for the details of the new object model.
 
 Connecting to Books
-*******************
 
 * **old**: ``xw.Workbook()``
 * **new**: ``xw.Book()`` or via ``xw.books`` if you need to control the app instance.
@@ -1090,7 +1011,6 @@ Connecting to Books
 See :ref:`connect_to_workbook` for the details.
 
 Active Objects
-**************
 
 ::
 
@@ -1109,7 +1029,6 @@ Active Objects
     >>> xw.Range('A1')  # on active sheet of active book of active app
 
 Round vs. Square Brackets
-*************************
 
 Round brackets follow Excel's behavior (i.e. 1-based indexing), while square brackets use Python's 0-based indexing/slicing.
 
@@ -1121,7 +1040,6 @@ As an example, the following all reference the same range::
     xw.apps(1).books('Book1').sheets('Sheet1').range('A1')
 
 Access the underlying Library/Engine
-************************************
 
 * **old**: ``xw.Range('A1').xl_range`` and ``xl_sheet`` etc.
 
@@ -1129,9 +1047,7 @@ Access the underlying Library/Engine
 
 This returns a ``pywin32`` COM object on Windows and an ``appscript`` object on Mac.
 
-
 Cheat sheet
-***********
 
 Note that ``sht`` stands for a sheet object, like e.g. (in 0.9.0 syntax): ``sht = xw.books['Book1'].sheets[0]``
 
@@ -1214,20 +1130,17 @@ Note that ``sht`` stands for a sheet object, like e.g. (in 0.9.0 syntax): ``sht 
 +----------------------------+--------------------------------------------------+--------------------------------------------------------------------+
 
 v0.7.2 (May 18, 2016)
-*********************
 
 Bug Fixes
-*********
+
 * [Win] UDFs returning Pandas DataFrames/Series containing ``nan`` were failing (:issue:`446`).
 * [Win] ``RunFrozenPython`` was not finding the executable (:issue:`452`).
 * The xlwings VBA module was not finding the Python interpreter if ``PYTHON_WIN`` or ``PYTHON_MAC`` contained spaces (:issue:`461`).
 
-
 v0.7.1 (April 3, 2016)
-**********************
 
 Enhancements
-************
+
 * [Win]: User Defined Functions (UDFs) support now optional/default arguments (:issue:`363`)
 * [Win]: User Defined Functions (UDFs) support now multiple source files, see also under API changes below. For example
   (VBA settings): ``UDF_MODULES="common;myproject"``
@@ -1260,7 +1173,6 @@ Enhancements
 * New method: :meth:`xlwings.Range.formula_array` (:issue:`411`)
 
 API changes
-***********
 
 * VBA settings: ``PYTHON_WIN`` and ``PYTHON_MAC`` must now include the interpreter if you are not using the default
   (``PYTHON_WIN = ""``) (:issue:`289`). E.g.::
@@ -1287,7 +1199,7 @@ API changes
 
 
 Bug Fixes
-*********
+
 * Numpy scalars issues were resolved (:issue:`415`)
 * [Win]: xlwings was failing with freezers like cx_Freeze (:issue:`413`)
 * [Win]: UDFs were failing if they were returning ``None`` or ``np.nan`` (:issue:`390`)
@@ -1295,7 +1207,6 @@ Bug Fixes
 * [Mac]: ``xlwings runpython install`` was failing (:issue:`424`)
 
 v0.7.0 (March 4, 2016)
-**********************
 
 This version marks an important first step on our path towards a stable release. It introduces **converters**, a new and powerful
 concept that brings a consistent experience for how Excel Ranges and their values are treated both when **reading** and **writing** but
@@ -1348,7 +1259,6 @@ the defaults, the ``@xw.ret`` decorator can be left away. ::
 
 
 Enhancements
-************
 
 * Dictionary (``dict``) converter:
 
@@ -1425,7 +1335,6 @@ applied to e.g. only certain columns.
   at the top of the xlwings VBA module (make sure to update it to the latest version!). Then add the following lines
   to your Python source file and run it::
 
-
     if __name__ == '__main__':
         xw.serve()
 
@@ -1435,9 +1344,7 @@ applied to e.g. only certain columns.
 * pyc files: The creation of pyc files has been disabled when using ``RunPython``, leaving your directory in an
   uncluttered state when having the Python source file next to the Excel workbook (:issue:`326`).
 
-
 API changes
-***********
 
 * UDF decorator changes (it is assumed that xlwings is imported as ``xw`` and numpy as ``np``):
 
@@ -1495,20 +1402,16 @@ API changes
   ===============================================                  =========================
 
 Bug Fixes
-*********
 
 A few bugfixes were made: :issue:`352`, :issue:`359`.
 
-
 v0.6.4 (January 6, 2016)
-**********************--
 
 API changes
-***********
+
 None
 
 Enhancements
-************
 
 * Quickstart: It's now easier than ever to start a new xlwings project, simply use the command line client (:issue:`306`):
 
@@ -1522,7 +1425,6 @@ Enhancements
 * New documentation about how to use xlwings with other languages like R and Julia.
 
 Bug Fixes
-*********
 
 * [Win]: Importing UDFs with the add-in was throwing an error if the filename was including characters like spaces or dashes (:issue:`331`).
   To fix this, close Excel completely and run ``xlwings addin update``.
@@ -1532,54 +1434,44 @@ Bug Fixes
 
 * Writing a Pandas DataFrame failed in case the index was named the same as a column (:issue:`334`).
 
-
 v0.6.3 (December 18, 2015)
-**********************----
 
 Bug Fixes
-*********
 
 * [Mac]: This fixes a bug introduced in v0.6.2: When using ``RunPython`` from VBA, errors were not shown in a pop-up window (:issue:`330`).
 
-
 v0.6.2 (December 15, 2015)
-**********************----
 
 API changes
-***********
 
 * LOG_FILE: So far, the log file has been placed next to the Excel file per default (VBA settings). This has been changed as it was
   causing issues for files on SharePoint/OneDrive and Mac Excel 2016: The place where ``LOG_FILE = ""`` refers to depends on the OS and the Excel version.
 
 Enhancements
-************
+
 * [Mac]: This version adds support for the VBA module on Mac Excel 2016 (i.e. the ``RunPython`` command) and is now feature equivalent
   with Mac Excel 2011 (:issue:`206`).
 
 Bug Fixes
-*********
+
 * [Win]: On certain systems, the xlwings dlls weren't found (:issue:`323`).
 
 
 v0.6.1 (December 4, 2015)
-**********************---
 
 Bug Fixes
-*********
 
 * [Python 3]: The command line client has been fixed (:issue:`319`).
 * [Mac]: It now works correctly with ``psutil>=3.0.0`` (:issue:`315`).
 
 
 v0.6.0 (November 30, 2015)
-**************************
 
 API changes
-***********
+
 None
 
 Enhancements
-************
 
 * **User Defined Functions (UDFs) - currently Windows only**
 
@@ -1610,16 +1502,14 @@ Enhancements
   - New method: :meth:`xlwings.Range.top`
   - New method: :meth:`xlwings.Range.left`
 
-
 v0.5.0 (November 10, 2015)
-**************************
 
 API changes
-***********
+
 None
 
 Enhancements
-************
+
 This version adds support for Matplotlib! Matplotlib figures can be shown in Excel as pictures in just 2 lines of code:
 
 .. figure:: images/matplotlib.png
@@ -1665,7 +1555,7 @@ See the full API: :meth:`xlwings.Plot`. There's also a new example available bot
 * An explicit exception is raised when ``Range`` is called with 0-based indices (:issue:`106`)
 
 Bug Fixes
-*********
+
 * ``Sheet.add`` was not always acting on the correct workbook (:issue:`287`)
 * Iteration over a ``Range`` only worked the first time (:issue:`272`)
 * [Win]: Sometimes, an error was raised when Excel was not running (:issue:`269`)
@@ -1674,14 +1564,12 @@ Bug Fixes
 
 
 v0.4.1 (September 27, 2015)
-***************************
 
 API changes
-***********
+
 None
 
 Enhancements
-************
 
 This release makes it easier than ever to connect to Excel from Python! In addition to the existing ways, you can now
 connect to the active Workbook (on Windows across all instances) and if the Workbook is already open, it's good enough
@@ -1700,23 +1588,20 @@ Also, there are some new docs:
 * :ref:`missing_features`
 
 Bug Fixes
-*********
 
 * The Excel template was updated to the latest VBA code (:issue:`234`).
 * Connections to files that are saved on OneDrive/SharePoint are now working correctly (:issue:`215`).
 * Various issues with timezone-aware objects were fixed (:issue:`195`).
 * [Mac]: A certain range of integers were not written to Excel (:issue:`227`).
 
-
 v0.4.0 (September 13, 2015)
-***************************
 
 API changes
-***********
+
 None
 
 Enhancements
-************
+
 The most important update with this release was made on Windows: The methodology used to make a connection
 to Workbooks has been completely replaced. This finally allows xlwings to reliably connect to multiple instances of
 Excel even if the Workbooks are opened from untrusted locations (network drives or files downloaded from the internet).
@@ -1754,17 +1639,14 @@ Other updates:
 
 * [Win]: Error pop-ups show now the full error message that can also be copied with ``Ctrl-C`` (:issue:`221`).
 
-
 Bug Fixes
-*********
+
 * The VBA module was not accepting lower case drive letters (:issue:`205`).
 * Fixed an error when adding a new Sheet that was already existing (:issue:`211`).
 
 v0.3.6 (July 14, 2015)
-**********************
 
 API changes
-***********
 
 ``Application`` as attribute of a ``Workbook`` has been removed (``wb`` is a ``Workbook`` object):
 
@@ -1775,7 +1657,6 @@ API changes
 ==============================  =========================
 
 Enhancements
-************
 
 **Excel 2016 for Mac Support** (:issue:`170`)
 
@@ -1800,7 +1681,6 @@ In more details:
 * New method: :meth:`xlwings.Application.calculate` (:issue:`207`)
 
 Bug Fixes
-*********
 
 * [Win]: When using the ``OPTIMIZED_CONNECTION`` on Windows, Excel left an orphaned process running after
   closing (:issue:`193`).
@@ -1813,17 +1693,15 @@ Various improvements regarding unicode file path handling, including:
   (:issue:`154`).
 
 v0.3.5 (April 26, 2015)
-***********************
 
 API changes
-***********
 
 ``Sheet.autofit()`` and ``Range.autofit()``: The integer argument for the axis has been removed (:issue:`186`).
 Use string arguments ``rows`` or ``r`` for autofitting rows and ``columns`` or ``c`` for autofitting columns
 (as before).
 
 Enhancements
-************
+
 New methods:
 
 * :meth:`xlwings.Range.row` (:issue:`143`)
@@ -1839,26 +1717,22 @@ Example::
     (4, 5)
 
 Bug Fixes
-*********
+
 * The ``unicode`` bug on Windows/Python3 has been fixed (:issue:`161`)
 
 v0.3.4 (March 9, 2015)
-**********************
 
 Bug Fixes
-*********
+
 * The installation error on Windows has been fixed (:issue:`160`)
 
 v0.3.3 (March 8, 2015)
-**********************
 
 API changes
-***********
 
 None
 
 Enhancements
-************
 
 * New class ``Application`` with ``quit`` method and properties ``screen_updating`` und ``calculation`` (:issue:`101`,
   :issue:`158`, :issue:`159`). It can be
@@ -1885,7 +1759,6 @@ Enhancements
   >>> Workbook.open_template()
 
 Bug Fixes
-*********
 
 * [Win]: ``datetime.date`` objects were causing an error (:issue:`44`).
 
@@ -1898,37 +1771,28 @@ Bug Fixes
 * [Mac]: Sometimes, xlwings was causing an error when quitting the Python interpreter (:issue:`136`).
 
 v0.3.2 (January 17, 2015)
-*************************
 
 API changes
-***********
 
 None
 
 Enhancements
-************
 
 None
 
 Bug Fixes
-*********
 
 * The :meth:`xlwings.Workbook.save` method has been fixed to show the expected behavior (:issue:`138`): Previously,
   calling `save()` without a `path` argument would always create a new file in the current working directory. This is
   now only happening if the file hasn't been previously saved.
 
-
-
 v0.3.1 (January 16, 2015)
-*************************
 
 API changes
-***********
 
 None
 
 Enhancements
-************
 
 * New method :meth:`xlwings.Workbook.save` (:issue:`110`).
 
@@ -1952,7 +1816,6 @@ Enhancements
 * The ``simulation`` example on the homepage works now also on Mac.
 
 Bug Fixes
-*********
 
 * [Win]: A long-standing bug that caused the Excel file to close and reopen under certain circumstances has been
   fixed (:issue:`10`): Depending on your security settings (Trust Center) and in connection with files downloaded from
@@ -1960,12 +1823,9 @@ Bug Fixes
   a "file already open" warning. This has now been fixed which means that the examples downloaded from the homepage should
   work right away after downloading and unzipping.
 
-
 v0.3.0 (November 26, 2014)
-**************************
 
 API changes
-***********
 
 * To reference the calling Workbook when running code from VBA, you now have to use ``Workbook.caller()``. This means
   that ``wb = Workbook()`` is now consistently creating a new Workbook, whether the code is called interactively or
@@ -1978,7 +1838,7 @@ API changes
   ==============================  =========================
 
 Enhancements
-************
+
 This version adds two exciting but still **experimental** features from
 `ExcelPython` (**Windows only!**):
 
@@ -1993,7 +1853,6 @@ This version adds two exciting but still **experimental** features from
 
 **Note:** ExcelPython's developer add-in that autogenerates the VBA wrapper code by simply using Python decorators
 isn't available through xlwings yet.
-
 
 Further enhancements include:
 
@@ -2021,22 +1880,17 @@ Further enhancements include:
   occurred(:issue:`94`).
 
 Bug Fixes
-*********
 
 * [Mac]: Environment variables from ``.bash_profile`` are now available when called from VBA, e.g. by using:
   ``os.environ['USERNAME']`` (:issue:`95`)
 
-
 v0.2.3 (October 17, 2014)
-*************************
 
 API changes
-***********
 
 None
 
 Enhancements
-************
 
 * New method ``Sheet.add()`` (:issue:`71`)::
 
@@ -2089,7 +1943,6 @@ Enhancements
     >>> [i.autofit() for i in Sheet.all()]
 
 Bug Fixes
-*********
 
 * xlwings works now also with NumPy < 1.7.0. Before, doing something like ``Range('A1').value = 'Foo'`` was causing
   a ``NotImplementedError: Not implemented for this type`` error when NumPy < 1.7.0 was installed (:issue:`73`).
@@ -2104,10 +1957,8 @@ Bug Fixes
 
 
 v0.2.2 (September 23, 2014)
-***************************
 
 API changes
-***********
 
 * The ``Workbook`` qualification changed: It now has to be specified as keyword argument. Assume we have instantiated
   two Workbooks like so: ``wb1 = Workbook()`` and ``wb2 = Workbook()``. ``Sheet``, ``Range`` and ``Chart`` classes will
@@ -2146,7 +1997,6 @@ API changes
   ===============================  ====================================
 
 Enhancements
-************
 
 * [Mac]: Python errors are now also shown in a Message Box. This makes the Mac version feature equivalent with the
   Windows version (:issue:`57`):
@@ -2201,9 +2051,7 @@ Enhancements
 
 * New docs about :ref:`debugging` and :ref:`datastructures`.
 
-
 Bug Fixes
-*********
 
 * The ``atleast_2d`` keyword had no effect on Ranges consisting of a single cell and was raising an error when used in
   combination with the ``asarray`` keyword. Both have been fixed (:issue:`53`)::
@@ -2222,17 +2070,13 @@ Bug Fixes
 
 * [Mac]: When installing xlwings, it now requires ``psutil`` to be at least version ``2.0.0`` (:issue:`48`).
 
-
 v0.2.1 (August 7, 2014)
-***********************
 
 API changes
-***********
 
 None
 
 Enhancements
-************
 
 * All VBA user settings have been reorganized into a section at the top of the VBA xlwings module::
 
@@ -2257,22 +2101,18 @@ Note that there is a slight difference in the way that this functionality behave
   for the Python traceback.
 
 Bug Fixes
-*********
 
 None
 
 Special thanks go to Georgi Petrov for helping with this release.
 
 v0.2.0 (July 29, 2014)
-**********************
 
 API changes
-***********
 
 None
 
 Enhancements
-************
 
 * Cross-platform: xlwings is now additionally supporting Microsoft Excel for Mac. The only functionality that is not
   yet available is the possibility to call the Python code from within Excel via VBA macros.
@@ -2283,16 +2123,12 @@ Enhancements
     wb.clear_contents()  # Clears contents of the entire active sheet
 
 Bug Fixes
-*********
 
 * DataFrames with MultiHeaders were sometimes getting truncated (:issue:`41`).
 
-
 v0.1.1 (June 27, 2014)
-**********************
 
 API Changes
-***********
 
 * If ``asarray=True``, NumPy arrays are now always at least 1d arrays, even in the case of a single cell (:issue:`14`)::
 
@@ -2327,7 +2163,6 @@ API Changes
 * The single file approach has been dropped. xlwings is now a traditional Python package.
 
 Enhancements
-************
 
 * xlwings is now officially suppported on Python 2.6-2.7 and 3.1-3.4
 * Support for Pandas ``Series`` has been added (:issue:`24`)::
@@ -2390,9 +2225,7 @@ Enhancements
 * The ``Range`` class has the following additional methods: ``is_cell()``, ``is_column()``, ``is_row()``,
   ``is_table()``
 
-
 Bug Fixes
-*********
 
 * Writing ``None`` or ``np.nan`` to Excel works now (:issue:`16` & :issue:`15`).
 * The import error on Python 3 has been fixed (:issue:`26`).
@@ -2401,8 +2234,6 @@ Bug Fixes
   (:issue:`31`) & (:issue:`35`).
 * Installation is now putting all files in the correct place (:issue:`20`).
 
-
 v0.1.0 (March 19, 2014)
-***********************
 
 Initial release of xlwings.

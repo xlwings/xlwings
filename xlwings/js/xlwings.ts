@@ -1,6 +1,5 @@
 async function main(workbook: ExcelScript.Workbook) {
-  // String arguments are actual values or keys in xlwings.conf sheet
-  await runPython(workbook, "URL", { apiKey: "API_KEY" });
+  await runPython(workbook, "url", { apiKey: "API_KEY" });
 }
 
 /**
