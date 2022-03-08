@@ -1,8 +1,8 @@
 What's New
 ==========
 
-v0.27.0 (Mar 8, 2022)
----------------------
+v0.27.0 and v0.27.1 (Mar 8, 2022)
+---------------------------------
 
 * :bdg-success:`Feature` :bdg-secondary:`PRO` This release adds support for the remote interpreter to the Excel Desktop apps on both Windows and macOS. The new VBA function ``RunRemotePython`` is equivalent to ``runPython`` in the JavaScript modules of Google Sheets and Excel on the web, see :ref:`Remote Interpreter<remote_interpreter>` (:issue:`1841`).
 * :bdg-info:`Enhancement` The xlwings package is now uploaded as wheel to PyPI in addition to the source format (:issue:`1855`).
@@ -12,6 +12,7 @@ v0.27.0 (Mar 8, 2022)
 * :bdg-danger:`Breaking Change` ``xlwings vba edit`` has been refactored and there is an additional command ``xlwings vba import`` to edit your VBA code outside of the VBA editor, e.g., in VS Code or any other editor, see :ref:`command_line` (:issue:`1843`).
 * :bdg-danger:`Breaking Change` The ``--unprotected`` flag has been removed from the ``xlwings addin install`` command. You can still manually remove the password (``xlwings``) though (:issue:`1850`).
 * :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` The ``Markdown`` class has been fixed in case the first line was empty (:issue:`1856`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` 0.27.1 fixes an issue with the version string in the new RunRemotePython VBA call (:issue:`1859`).
 
 v0.26.3 (Feb 19, 2022)
 ----------------------
