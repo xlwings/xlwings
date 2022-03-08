@@ -58,7 +58,7 @@ Function RunRemotePython( _
     ' Request payload
     Dim payload As New Dictionary
     payload.Add "client", "VBA"
-    payload.Add "version", "dev"
+    payload.Add "version", XLWINGS_VERSION
     
     Dim bookPayload As New Dictionary
     bookPayload.Add "name", ActiveWorkbook.Name
