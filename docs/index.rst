@@ -90,6 +90,7 @@ on **Windows** and **Mac**.
 
     whatsnew
     license
+    opensource_licenses
 
 .. toctree::
     :maxdepth: 2
