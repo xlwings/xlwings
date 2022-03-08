@@ -5,9 +5,9 @@ Remote Python Interpreter: Google Sheets & Excel (Desktop & Web)
 
 This feature requires xlwings :bdg-secondary:`PRO` and at least v0.27.0.
 
-Instead of installing Python on each end-user's machine, you can work with a remote Python interpreter. This works the same as a web application, but uses Excel as the frontend instead of a web page in a browser. A remote interpreter works not just with the Desktop versions of Excel on Windows and macOS but allows you to also use xlwings with Google Sheets and Excel on the web for a full cloud experience. You can run the Python web server wherever it works best for you, whether that's by using a cloud service or using physical on-premise server.
+Instead of installing Python on each end-user's machine, you can work with a remote Python interpreter. This works the same as a web application, but uses Excel as the frontend instead of a web page in a browser. A remote interpreter doesn't just work with the Desktop versions of Excel on Windows and macOS but additionally supports Google Sheets and Excel on the web for a full cloud experience. You can run the Python web server wherever it works best for you, whether that means using a cloud service or running a physical machine on premise.
 
-.. important:: This feature is currently experimental and only covers parts of the RunPython API, UDFs are not yet supported. See also :ref:`Limitations` and :ref:`Roadmap`.
+.. important:: This feature is currently experimental and only covers parts of the RunPython API (UDFs are not yet supported). See also :ref:`Limitations` and :ref:`Roadmap`.
 
 Why is this useful?
 -------------------
@@ -109,7 +109,7 @@ To run this server locally, run ``python main.py`` in your Terminal/Command Prom
     INFO:     Waiting for application startup.
     INFO:     Application startup complete.
 
-Your web server is now listening, so let's open ``demo.xlsm``, press ``Alt+F11`` to open the VBA editor, and in ``Module1``, place your cursor in the following function:
+Your web server is now listening, so let's open ``demo.xlsm``, press ``Alt+F11`` to open the VBA editor, and in ``Module1``, place your cursor somewhere inside the following function:
 
 .. code-block:: vb.net
 
@@ -117,9 +117,9 @@ Your web server is now listening, so let's open ``demo.xlsm``, press ``Alt+F11``
         RunRemotePython "http://127.0.0.1:8000/hello", apiKey:="DEVELOPMENT"
     End Sub
 
-Then hit ``F5`` to run the function---you should see ``Hello xlwings!`` in cell A1 of the first sheet. Now, all you need to do is deploy the backend to a server and adjust the URL in the RunRemotePython function accordingly, see :ref:`Production Deployment`.
+Then hit ``F5`` to run the function---you should see ``Hello xlwings!`` in cell A1 of the first sheet. To move this to production, you need to deploy the backend to a server, set a unique API key and adjust the ``url``/``apiKey`` in the RunRemotePython function accordingly, see :ref:`Production Deployment`.
 
-The next sections, however, will deal with making this work with the Google Sheets and Excel on the web.
+The next sections, however, show you how you can make this work with the Google Sheets and Excel on the web.
 
 Cloud-based development with Gitpod
 -----------------------------------
@@ -283,24 +283,44 @@ Now it's time to switch to Google Sheets or Excel on the web! To paste the xlwin
 Configuration
 -------------
 
-The xlwings JavaScript module can be configured in two ways:
+xlwings can be configured in two ways:
 
-* Via arguments in the ``runPython`` function
-* Via ``xlwings.conf`` sheet
+* Via arguments in the ``runPython`` (Google Sheets or Excel on the web) or ``RunRemotePython`` (Desktop Excel) function, respectively.
+* Via ``xlwings.conf`` sheet (in this case, the keys are UPPER_CASE with underscore instead of camelCase, see the screenshot below).
 
-If both ways are configured, the function arguments win. Using the ``xlwings.conf`` sheet has the advantages that you can potentially (a) upgrade your xlwings module without having to adjust the code and (b) you can share your configuration with multiple ``runPython`` calls. Let's first see what the available settings are:
+If you provide a value via config sheet and via function argument, the function argument wins. Let's see what the available settings are:
 
-* ``URL`` (required): This is the full URL of your function. In the above example under :ref:`Local Development`, this would be ``https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello``, i.e., the ngrok URL **with the /hello endpoint appended**.
-* ``API_KEY`` (required): The ``API_KEY`` has to correspond to whatever you set the ``XLWINGS_API_KEY`` environment variable on your server and will protect your functions from unauthorized access. It's good practice to keep your sensitive keys such as the ``API_KEY`` out of your source code (the JavaScript module), but putting it in the ``xlwings.conf`` sheet may only be marginally better. Excel on the web, however, doesn't currently provide you with a better way of handling this. Google Sheets, on the other hand, allows you to work with `Properties Service <https://developers.google.com/apps-script/guides/properties>`_ to keep the ``API_KEY`` out of both the JavaScript code and the ``xlwings.conf`` sheet.
+* ``url`` (required): This is the full URL of your function. In the above example under :ref:`Local Development with Google Sheets or Excel on the web`, this would be ``https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello``, i.e., the ngrok URL **with the /hello endpoint appended**.
+* ``apiKey`` (optional): While this is technically optional, it is usually required by the backend. It has to correspond to whatever you set the ``XLWINGS_API_KEY`` environment variable on your server and will protect your functions from unauthorized access. It's good practice to keep your sensitive keys such as the ``apiKey`` out of your source code (the JavaScript/VBA module), but putting it in the ``xlwings.conf`` sheet may only be marginally better. Excel on the web, however, doesn't currently provide you with a better way of handling this. Google Sheets, on the other hand, allows you to work with `Properties Service <https://developers.google.com/apps-script/guides/properties>`_ to keep the API key out of both the JavaScript code and the ``xlwings.conf`` sheet.
 
-  .. note:: The API_KEY is chosen by you to protect your application and has nothing to do with the xlwings license key!
+  .. note:: The API key is chosen by you to protect your application and has nothing to do with the xlwings license key!
 
-* ``EXCLUDE`` (optional): By default, xlwings sends over the complete content of the whole workbook to the server. If you have sheets with big amounts of data, this can make the calls slow or you could even hit a timeout. If your backend doesn't need the content of certain sheets, you can exclude them from being sent over via the ``EXCLUDE`` setting. Currently, you can only exclude entire sheets as comma-delimited string like so: ``Sheet1, Sheet2``.
+* ``headers`` (optional): A dictionary (VBA) or object literal (JS) with name/value pairs. If you set the ``Authorization`` header, ``apiKey`` will be ignored.
+* ``exclude`` (optional): By default, xlwings sends over the complete content of the whole workbook to the server. If you have sheets with big amounts of data, this can make the calls slow or you could even hit a timeout. If your backend doesn't need the content of certain sheets, you can exclude them from being sent over via this setting. Currently, you can only exclude entire sheets as comma-delimited string like so: ``"Sheet1, Sheet2"``.
 
 Configuration Examples: Function Arguments
 ******************************************
 
 .. tab-set::
+
+    .. tab-item:: Excel Desktop
+      :sync: desktop
+
+      Using only required arguments:
+
+      .. code-block:: vb.net
+
+        Sub Hello()
+            RunRemotePython "http://127.0.0.1:8000/hello", apiKey:="YOUR_UNIQUE_API_KEY"
+        End Sub
+
+      Additionally providing the ``exclude`` parameter to exclude the content of the ``xlwings.conf`` and ``Sheet1`` sheets:
+
+      .. code-block:: vb.net
+
+        Sub Hello()
+            RunRemotePython "http://127.0.0.1:8000/hello", apiKey:="YOUR_UNIQUE_API_KEY", exclude:="xlwings.conf, Sheet1"
+        End Sub
 
     .. tab-item:: Google Sheets
       :sync: google
@@ -310,22 +330,21 @@ Configuration Examples: Function Arguments
       .. code-block:: JavaScript
 
         function hello() {
-          runPython(
-            "https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello",
-            "YOUR_UNIQUE_API_KEY"
-          );
+          runPython("https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello", {
+            apiKey: "YOUR_UNIQUE_API_KEY",
+          });
         }
 
-      Additionally providing the ``exclude`` parameter to exclude the content of the ``xlwings.conf`` and ``Sheet1`` sheets:
+      Additionally providing the ``exclude`` parameter to exclude the content of the ``xlwings.conf`` and ``Sheet1`` sheets as well as a custom header:
 
       .. code-block:: JavaScript
 
         function hello() {
-          runPython(
-            "https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello",
-            "YOUR_UNIQUE_API_KEY",
-            "xlwings.conf, Sheet1"
-          );
+          runPython("https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello", {
+            apiKey: "YOUR_UNIQUE_API_KEY",
+            exclude: "xlwings.conf, Sheet1",
+            headers: { MyHeader: "my value" },
+          });
         }
 
     .. tab-item:: Excel on the web
@@ -339,11 +358,11 @@ Configuration Examples: Function Arguments
           await runPython(
             workbook,
             "https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello",
-            "YOUR_UNIQUE_API_KEY"
+            { apiKey: "YOUR_UNIQUE_API_KEY" }
           );
         }
 
-      Additionally providing the ``exclude`` parameter to exclude the content of the ``xlwings.conf`` and ``Sheet1`` sheets:
+      Additionally providing the ``exclude`` parameter to exclude the content of the ``xlwings.conf`` and ``Sheet1`` sheets as well as a custom header:
 
       .. code-block:: JavaScript
 
@@ -351,10 +370,14 @@ Configuration Examples: Function Arguments
           await runPython(
             workbook,
             "https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello",
-            "YOUR_UNIQUE_API_KEY",
-            "xlwings.conf, Sheet1"
+            {
+              apiKey: "YOUR_UNIQUE_API_KEY",
+              exclude: "xlwings.conf, Sheet1",
+              headers: { MyHeader: "my value" },
+            }
           );
         }
+
 
 Configuration Examples: xlwings.conf sheet
 ******************************************
@@ -362,57 +385,6 @@ Configuration Examples: xlwings.conf sheet
 Create a sheet called ``xlwings.conf`` and fill in key/value pairs like so:
 
 .. figure:: images/xlwings_conf_sheet.png
-
-You can now refer to this configuration as follows:
-
-.. tab-set::
-    .. tab-item:: Google Sheets
-      :sync: google
-
-      Both functions can be on a single xlwings module:
-
-      .. code-block:: JavaScript
-
-        function hello() {
-          runPython(
-            "URL",
-            "API_KEY"
-          );
-        }
-
-        function yahoo() {
-          runPython(
-            "URL_YAHOO",
-            "API_KEY"
-          );
-        }
-
-    .. tab-item:: Excel on the web
-      :sync: excel
-
-      Office Scripts requires the calls to be on separate xlwings modules:
-
-      .. code-block:: JavaScript
-
-        // Script 1
-        async function main(workbook: ExcelScript.Workbook) {
-          await runPython(
-            workbook,
-            "URL",
-            "API_KEY"
-          );
-        }
-
-      .. code-block:: JavaScript
-
-        // Script 2
-        async function main(workbook: ExcelScript.Workbook) {
-          await runPython(
-            workbook,
-            "URL_YAHOO",
-            "API_KEY"
-          );
-        }
 
 Production Deployment
 ---------------------
@@ -426,7 +398,7 @@ The xlwings web server can be built with any web framework and can therefore be 
 * **Corporate servers**: Anything will work (including Kubernetes) as long as the respective endpoints can be accessed from your spreadsheet app.
 
 .. important::
-    For production deployment, always make sure to set a unique and random ``API_KEY``, see :ref:`Configuration`.
+    For production deployment, always make sure to set a unique and random API key, see :ref:`Configuration`.
 
 If you'd like to deploy the `sample project <https://github.com/xlwings/xlwings-web-fastapi>`_ to production in less than 5 minutes, you can do so by clicking the button below, which will deploy it to Heroku's free tier. Note, however, that on the free plan, the backend will "sleep" after 30 minutes of inactivity, which means that it will take a few moments the next time you call it until it is up and running again. The ``XLWINGS_API_KEY`` is auto-generated and you can look it up under your app's ``Settings`` > ``Config Vars`` > ``Reveal Config Vars`` once the app is deployed. To get the URL, you'll need to append ``/hello`` to the app's URL that you'll find in your dashboard.
 
