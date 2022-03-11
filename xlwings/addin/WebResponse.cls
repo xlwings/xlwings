@@ -49,8 +49,8 @@ Private Const CP_UTF8 = 65001
 #ElseIf VBA7 Then
 Private Declare PtrSafe Function MultiByteToWideChar Lib "KERNEL32" ( _
    ByVal CodePage As Long, ByVal dwFlags As Long, _
-   ByVal lpMultiByteStr As Long, ByVal cchMultiByte As Long, _
-   ByVal lpWideCharStr As Long, ByVal cchWideChar As Long) As Long
+   ByVal lpMultiByteStr As LongPtr, ByVal cchMultiByte As Long, _
+   ByVal lpWideCharStr As LongPtr, ByVal cchWideChar As Long) As Long
 #Else
 Private Declare Function MultiByteToWideChar Lib "KERNEL32" ( _
    ByVal CodePage As Long, ByVal dwFlags As Long, _

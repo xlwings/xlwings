@@ -177,7 +177,7 @@ Function RunRemotePython( _
 End Function
 
 ' Helpers
-Function GetRange(wb, action)
+Function GetRange(wb As Workbook, action As Dictionary)
     If action("row_count") = 1 And action("column_count") = 1 Then
         Set GetRange = wb.Worksheets( _
             action("sheet_position") + 1).Cells(action("start_row") + 1, _
@@ -251,7 +251,7 @@ Function IsInArray(stringToBeFound As String, arr As Variant) As Boolean
 End Function
 
 ' Functions
-Sub setValues(wb, action)
+Sub setValues(wb As Workbook, action As Dictionary)
     Dim arr() As Variant
     Dim i As Long, j As Long
     Dim values As Collection, valueRow As Collection
@@ -282,21 +282,21 @@ Sub setValues(wb, action)
     GetRange(wb, action).Value = arr
 End Sub
 
-Sub clearContents(wb, action)
+Sub clearContents(wb As Workbook, action As Dictionary)
     GetRange(wb, action).clearContents
 End Sub
 
-Sub addSheet(wb, action)
+Sub addSheet(wb As Workbook, action As Dictionary)
     Dim mysheet As Worksheet
     Set mysheet = wb.Sheets.Add
     mysheet.Move After:=Worksheets(action("args")(1) + 1)
 End Sub
 
-Sub setSheetName(wb, action)
+Sub setSheetName(wb As Workbook, action As Dictionary)
     wb.Sheets(action("sheet_position") + 1).Name = action("args")(1)
 End Sub
 
-Sub setAutofit(wb, action)
+Sub setAutofit(wb As Workbook, action As Dictionary)
     If action("args")(1) = "columns" Then
         GetRange(wb, action).Columns.AutoFit
     Else
@@ -304,10 +304,10 @@ Sub setAutofit(wb, action)
     End If
 End Sub
 
-Sub setRangeColor(wb, action)
+Sub setRangeColor(wb As Workbook, action As Dictionary)
     GetRange(wb, action).Interior.Color = HexToRgb(action("args")(1))
 End Sub
 
-Sub activateSheet(wb, action)
+Sub activateSheet(wb As Workbook, action As Dictionary)
     wb.Sheets(action("args")(1) + 1).Activate
 End Sub
