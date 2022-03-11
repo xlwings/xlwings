@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.27.2 (Mar 11, 2022)
+----------------------
+
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Fixes an issue with the remote interpreter that occurred on 64-bit versions of Excel.
+
 v0.27.0 and v0.27.1 (Mar 8, 2022)
 ---------------------------------
 
