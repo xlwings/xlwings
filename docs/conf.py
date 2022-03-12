@@ -193,6 +193,9 @@ html_show_sourcelink = False
 html_title = "xlwings Documentation"
 html_favicon = "_static/favicon.png"
 
+copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
+copybutton_prompt_is_regexp = True
+
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
 
