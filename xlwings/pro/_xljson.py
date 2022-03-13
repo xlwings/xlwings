@@ -412,16 +412,31 @@ def get_range_api(api_values, arg1, arg2=None):
             row[arg1[1] - 1 : arg2[1]] for row in api_values[arg1[0] - 1 : arg2[0]]
         ]
         if not values:
-            # Outside the used range
-            values = [[None] * (arg2[1] + 1 - arg1[1])] * (arg2[0] + 1 - arg1[0])
-        return values
+            # Completely outside the used range
+            return [(None,) * (arg2[1] + 1 - arg1[1])] * (arg2[0] + 1 - arg1[0])
+        else:
+            # Partly outside the used range
+            nrows = arg2[0] + 1 - arg1[0]
+            ncols = arg2[1] + 1 - arg1[1]
+            nrows_actual = len(values)
+            ncols_actual = len(values[0])
+            delta_rows = nrows - nrows_actual
+            delta_cols = ncols - ncols_actual
+            if delta_rows != 0:
+                values.extend([(None,) * ncols_actual] * delta_rows)
+            if delta_cols != 0:
+                v = []
+                for row in values:
+                    v.append(row + (None,) * delta_cols)
+                values = v
+            return values
     else:
         try:
-            values = [[api_values[arg1[0] - 1][arg1[1] - 1]]]
+            values = [(api_values[arg1[0] - 1][arg1[1] - 1],)]
             return values
         except IndexError:
             # Outside the used range
-            return [[None]]
+            return [(None,)]
 
 
 class Range(base_classes.Range):

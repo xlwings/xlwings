@@ -174,6 +174,22 @@ def test_expand(book):
     assert sheet2["A1"].expand().address == "$A$1:$B$2"
 
 
+def test_completely_outside_usedrange(book):
+    sheet = book.sheets[0]
+    assert sheet["D5"].value is None
+    assert sheet["D5:D6"].value == [None, None]
+    assert sheet["D5:E7"].value == [[None, None], [None, None], [None, None]]
+
+
+def test_partly_outside_usedrange(book):
+    sheet = book.sheets[0]
+    assert sheet["A4:A5"].value == [None, None]
+    assert sheet["A3:A5"].value == [4, None, None]
+    assert sheet["A4:B6"].value == [[None, None], [None, None], [None, None]]
+    assert sheet["D4:F4"].value == [None, None, None]
+    assert sheet["D4:F5"].value == [[None, None, None], [None, None, None]]
+
+
 def test_len(book):
     assert len(book.sheets[0]["A1:C4"]) == 12
 
