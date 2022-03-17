@@ -183,11 +183,12 @@ function setValues(workbook, action) {
   // Handle DateTime (TODO: backend should deliver indices with datetime obj)
   let dt;
   let dtString;
+  let locale = workbook.getSpreadsheetLocale().replace("_", "-");
   action.values.forEach((valueRow, rowIndex) => {
     valueRow.forEach((value, colIndex) => {
       if (typeof value === "string") {
         dt = new Date(Date.parse(value));
-        dtString = dt.toLocaleDateString();
+        dtString = dt.toLocaleDateString(locale);
         if (dtString !== "Invalid Date") {
           if (
             dt.getHours() +
