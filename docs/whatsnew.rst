@@ -1,6 +1,12 @@
 What's New
 ==========
 
+v0.27.3 (Mar 18, 2022)
+----------------------
+
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Fixes an issue with Date formatting on Google Sheets in case you're not using the U.S. locale (:issue:`1866`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Fixes the truncating of ranges with the remote interpreter in case the range was partly outside the used range (:issue:`1822`).
+
 v0.27.2 (Mar 11, 2022)
 ----------------------
 
