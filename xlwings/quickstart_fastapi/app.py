@@ -21,7 +21,7 @@ async def validate_api_key(api_key: str = Security(APIKeyHeader(name="Authorizat
 app = FastAPI(dependencies=[Security(validate_api_key)])
 
 # Excel on the web and our Python backend are on different origins, so we'll need to
-# enable CORS (Google Sheets doesn't doesn't use CORS and will ingore this)
+# enable CORS (Google Sheets doesn't use CORS and will ignore this)
 app.add_middleware(
     CORSMiddleware,
     allow_origin_regex=r"https://.*.officescripts.microsoftusercontent.com",
