@@ -524,7 +524,17 @@ def fullname_url_to_local_path(
                 "Couldn't find your local OneDrive for Business file, "
                 "see: xlwings.org/error"
             )
-
+    # SharePoint Online & On-Premises (Windows registry)
+    url_to_mount = get_url_to_mount()
+    for url_namespace, mount_point in url_to_mount.items():
+        if url.startswith(url_namespace):
+            local_path = Path(mount_point) / url[len(url_namespace) :]
+            if local_path.is_file():
+                return str(local_path)
+            else:
+                return search_local_sharepoint_path(
+                    url, mount_point, sharepoint_config, sharepoint_config_name
+                )
     # SharePoint Online & On-Premises (default top level mapping)
     pattern = re.compile(r"https?://[^/]*/sites/([^/]*)/([^/]*)/(.*)")
     match = pattern.match(url)
@@ -545,24 +555,9 @@ def fullname_url_to_local_path(
         if local_path.is_file():
             return str(local_path)
     # SharePoint Online & On-Premises (non-default mapping)
-    book_name = url.split("/")[-1]
-    local_book_paths = []
-    for path in Path(root).rglob("[!~$]*.xls*"):
-        if path.name.lower() == book_name.lower():
-            local_book_paths.append(path)
-    if len(local_book_paths) == 1:
-        return str(local_book_paths[0])
-    elif len(local_book_paths) == 0:
-        raise xlwings.XlwingsError(
-            f"Couldn't find your SharePoint file locally, see: xlwings.org/error"
-        )
-    else:
-        raise xlwings.XlwingsError(
-            f"Your SharePoint configuration either requires your workbook name to be "
-            f"unique across all synced SharePoint folders or you need to "
-            f"{'edit' if sharepoint_config else 'add'} the {sharepoint_config_name} "
-            f"setting including one or more folder levels, see: xlwings.org/error."
-        )
+    return search_local_sharepoint_path(
+        url, root, sharepoint_config, sharepoint_config_name
+    )
 
 
 def to_pdf(
@@ -658,3 +653,54 @@ def to_pdf(
         else:
             subprocess.run(["open", report_path])
     return report_path
+
+
+def get_url_to_mount():
+    """Windows stores the mount points in the registry. This helps but still isn't
+    foolproof.
+    """
+    if sys.platform.startswith("win"):
+        import winreg
+        from winreg import HKEY_CURRENT_USER, KEY_READ
+
+        root = r"SOFTWARE\SyncEngines\Providers\OneDrive"
+        url_to_mount = {}
+        try:
+            with winreg.OpenKey(HKEY_CURRENT_USER, root, 0, KEY_READ) as root_key:
+                for i in range(0, winreg.QueryInfoKey(root_key)[0]):
+                    subfolder = winreg.EnumKey(root_key, i)
+                    with winreg.OpenKey(
+                        HKEY_CURRENT_USER, f"{root}\\{subfolder}", 0, KEY_READ
+                    ) as key:
+                        try:
+                            mount_point, _ = winreg.QueryValueEx(key, "MountPoint")
+                            url_namespace, _ = winreg.QueryValueEx(key, "URLNamespace")
+                            url_to_mount[url_namespace] = mount_point
+                        except FileNotFoundError:
+                            pass
+        except FileNotFoundError:
+            pass
+        return url_to_mount
+    else:
+        return {}
+
+
+def search_local_sharepoint_path(url, root, sharepoint_config, sharepoint_config_name):
+    book_name = url.split("/")[-1]
+    local_book_paths = []
+    for path in Path(root).rglob("[!~$]*.xls*"):
+        if path.name.lower() == book_name.lower():
+            local_book_paths.append(path)
+    if len(local_book_paths) == 1:
+        return str(local_book_paths[0])
+    elif len(local_book_paths) == 0:
+        raise xlwings.XlwingsError(
+            f"Couldn't find your SharePoint file locally, see: xlwings.org/error"
+        )
+    else:
+        raise xlwings.XlwingsError(
+            f"Your SharePoint configuration either requires your workbook name to be "
+            f"unique across all synced SharePoint folders or you need to "
+            f"{'edit' if sharepoint_config else 'add'} the {sharepoint_config_name} "
+            f"setting including one or more folder levels, see: xlwings.org/error."
+        )
