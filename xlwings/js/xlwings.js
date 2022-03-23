@@ -40,6 +40,9 @@ function hello() {
 function runPython(url, { apiKey = "", exclude = "", headers = {} } = {}) {
   const workbook = SpreadsheetApp.getActive();
 
+  // Only used to request permission for proper OAuth Scope
+  Session.getActiveUser().getEmail();
+
   // Config
   let configSheet = workbook.getSheetByName("xlwings.conf");
   let config = {};
