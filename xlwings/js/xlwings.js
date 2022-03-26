@@ -37,7 +37,10 @@ function hello() {
  * @OnlyCurrentDoc
  */
 
-function runPython(url, { apiKey = "", include = "", exclude = "", headers = {} } = {}) {
+function runPython(
+  url,
+  { apiKey = "", include = "", exclude = "", headers = {} } = {}
+) {
   const workbook = SpreadsheetApp.getActive();
   const sheets = workbook.getSheets();
 
@@ -65,7 +68,7 @@ function runPython(url, { apiKey = "", include = "", exclude = "", headers = {} 
     include = config["INCLUDE"] || "";
   }
   let includeArray = [];
-  if (include !== ""){
+  if (include !== "") {
     includeArray = include.split(",").map((item) => item.trim());
   }
 
@@ -73,18 +76,18 @@ function runPython(url, { apiKey = "", include = "", exclude = "", headers = {} 
     exclude = config["EXCLUDE"] || "";
   }
   let excludeArray = [];
-  if (exclude !== ""){
+  if (exclude !== "") {
     excludeArray = exclude.split(",").map((item) => item.trim());
   }
-  if ((includeArray.length > 0) && (excludeArray.length > 0)) {
-    throw "Either use 'include' or 'exclude', but not both!"
+  if (includeArray.length > 0 && excludeArray.length > 0) {
+    throw "Either use 'include' or 'exclude', but not both!";
   }
   if (includeArray.length > 0) {
     sheets.forEach((sheet) => {
-      if (!includeArray.includes(sheet.getName())){
+      if (!includeArray.includes(sheet.getName())) {
         excludeArray.push(sheet.getName());
       }
-    })
+    });
   }
 
   if (Object.keys(headers).length === 0) {
