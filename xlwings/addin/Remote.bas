@@ -38,6 +38,11 @@ Function RunRemotePython( _
         excludeArray = Split(exclude, ",")
     End If
 
+    If include <> "" And exclude <> "" Then
+        MsgBox "Either use 'include' or 'exclude', but not both!", vbCritical
+        Exit Function
+    End If
+
     If include <> "" Then
         Dim i As Integer
         For i = 1 To wb.Worksheets.Count
