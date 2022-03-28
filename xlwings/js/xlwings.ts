@@ -36,8 +36,9 @@ async function main(workbook: ExcelScript.Workbook) {
 async function runPython(
   workbook: ExcelScript.Workbook,
   url = "",
-  { apiKey = "", exclude = "", headers = {} }: Options = {}
+  { apiKey = "", include = "", exclude = "", headers = {} }: Options = {}
 ): Promise<void> {
+  const sheets = workbook.getWorksheets();
   // Config
   let configSheet = workbook.getWorksheet("xlwings.conf");
   let config = {};
@@ -54,11 +55,31 @@ async function runPython(
     apiKey = config["API_KEY"] || "";
   }
 
+  if (include === "") {
+    include = config["INCLUDE"] || "";
+  }
+  let includeArray: string[] = [];
+  if (include !== "") {
+    includeArray = include.split(",").map((item) => item.trim());
+  }
+
   if (exclude === "") {
     exclude = config["EXCLUDE"] || "";
   }
   let excludeArray: string[] = [];
-  excludeArray = exclude.split(",").map((item) => item.trim());
+  if (exclude !== "") {
+    excludeArray = exclude.split(",").map((item) => item.trim());
+  }
+  if (includeArray.length > 0 && excludeArray.length > 0) {
+    throw "Either use 'include' or 'exclude', but not both!";
+  }
+  if (includeArray.length > 0) {
+    sheets.forEach((sheet) => {
+      if (!includeArray.includes(sheet.getName())) {
+        excludeArray.push(sheet.getName());
+      }
+    });
+  }
 
   if (Object.keys(headers).length === 0) {
     for (const property in config) {
@@ -75,7 +96,6 @@ async function runPython(
   headers["Content-Type"] = "application/json";
 
   // Request payload
-  let sheets = workbook.getWorksheets();
   let payload: {} = {};
   payload["client"] = "Microsoft Office Scripts";
   payload["version"] = "dev";
@@ -168,6 +188,7 @@ async function runPython(
 // Helpers
 interface Options {
   apiKey?: string;
+  include?: string;
   exclude?: string;
   headers?: {};
 }

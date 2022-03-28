@@ -3,6 +3,7 @@ Option Explicit
 Function RunRemotePython( _
     url As String, _
     Optional apiKey As String, _
+    Optional include As String, _
     Optional exclude As String, _
     Optional headers As Variant, _
     Optional timeout As Integer, _
@@ -21,11 +22,36 @@ Function RunRemotePython( _
     ' Config
     ' takes the first value it finds in this order:
     ' func arg, sheet config, directory config, user config
+    If include = "" Then
+        include = GetConfig("INCLUDE")
+    End If
+    Dim includeArray() As String
+    If include <> "" Then
+        includeArray = Split(include, ",")
+    End If
+
     If exclude = "" Then
         exclude = GetConfig("EXCLUDE")
     End If
-    Dim excludeArray As Variant
-    excludeArray = Split(exclude, ",")
+    Dim excludeArray() As String
+    If exclude <> "" Then
+        excludeArray = Split(exclude, ",")
+    End If
+
+    If include <> "" And exclude <> "" Then
+        MsgBox "Either use 'include' or 'exclude', but not both!", vbCritical
+        Exit Function
+    End If
+
+    If include <> "" Then
+        Dim i As Integer
+        For i = 1 To wb.Worksheets.Count
+            If Not IsInArray(wb.Worksheets(i).Name, includeArray) Then
+                ReDim Preserve excludeArray(0 To i)
+                excludeArray(i) = wb.Worksheets(i).Name
+            End If
+        Next
+    End If
 
     If timeout = 0 Then
         timeout = GetConfig("TIMEOUT", 0)
@@ -68,7 +94,6 @@ Function RunRemotePython( _
     
     Dim sheetsPayload() As Dictionary
     ReDim sheetsPayload(wb.Worksheets.Count - 1)
-    Dim i As Integer
     For i = 1 To wb.Worksheets.Count
         Dim sheetDict As Dictionary
         Set sheetDict = New Dictionary
@@ -241,12 +266,16 @@ Function IsInArray(stringToBeFound As String, arr As Variant) As Boolean
         Exit Function
     End If
     Dim i As Integer
+    On Error GoTo ErrHandler
     For i = LBound(arr) To UBound(arr)
         If Trim(arr(i)) = stringToBeFound Then
             IsInArray = True
             Exit Function
         End If
     Next i
+    On Error GoTo 0
+    IsInArray = False
+ErrHandler:
     IsInArray = False
 End Function
 
