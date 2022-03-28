@@ -202,6 +202,7 @@ let funcs = {
   setAutofit: setAutofit,
   setRangeColor: setRangeColor,
   activateSheet: activateSheet,
+  addHyperlink: addHyperlink,
 };
 
 // Functions
@@ -271,4 +272,12 @@ function setRangeColor(workbook, action) {
 
 function activateSheet(workbook, action) {
   workbook.getSheets()[parseInt(action.args[0])].activate();
+}
+
+function addHyperlink(workbook, action) {
+  let value = SpreadsheetApp.newRichTextValue()
+    .setText(action.args[1])
+    .setLinkUrl(action.args[0])
+    .build();
+  getRange(workbook, action).setRichTextValue(value);
 }
