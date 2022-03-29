@@ -224,6 +224,7 @@ let funcs = {
   setAutofit: setAutofit,
   setRangeColor: setRangeColor,
   activateSheet: activateSheet,
+  addHyperlink: addHyperlink,
 };
 
 // Functions
@@ -286,4 +287,12 @@ function setRangeColor(workbook: ExcelScript.Workbook, action: Action) {
 
 function activateSheet(workbook: ExcelScript.Workbook, action: Action) {
   workbook.getWorksheets()[parseInt(action.args[0].toString())].activate();
+}
+
+function addHyperlink(workbook: ExcelScript.Workbook, action: Action) {
+  getRange(workbook, action).setHyperlink({
+    address: action.args[0].toString(),
+    textToDisplay: action.args[1].toString(),
+    screenTip: action.args[2].toString(),
+  });
 }

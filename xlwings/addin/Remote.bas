@@ -340,3 +340,11 @@ End Sub
 Sub activateSheet(wb As Workbook, action As Dictionary)
     wb.Sheets(action("args")(1) + 1).Activate
 End Sub
+
+Sub addHyperlink(wb As Workbook, action As Dictionary)
+    GetRange(wb, action).Hyperlinks.Add _
+        Anchor:=GetRange(wb, action), _
+        Address:=action("args")(1), _
+        TextToDisplay:=action("args")(2), _
+        ScreenTip:=action("args")(3)
+End Sub

@@ -614,6 +614,11 @@ class Range(base_classes.Range):
             raise ValueError('Color must be supplied in hex format e.g., "#FFA500".')
         self.append_json_action(func="setRangeColor", args=value)
 
+    def add_hyperlink(self, address, text_to_display=None, screen_tip=None):
+        self.append_json_action(
+            func="addHyperlink", args=[address, text_to_display, screen_tip]
+        )
+
     def __len__(self):
         nrows, ncols = self.shape
         return nrows * ncols
