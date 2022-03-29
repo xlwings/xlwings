@@ -182,13 +182,13 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
   #          repository_url: https://test.pypi.org/legacy/
-      - name: Upload add-in to GH Release
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: Package/xlwings.xlam
-          asset_name: xlwings.xlam
-          asset_content_type: application/zip
+#      - name: Upload add-in to GH Release
+#        id: upload-release-asset
+#        uses: actions/upload-release-asset@v1.0.1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          upload_url: ${{ github.event.release.upload_url }}
+#          asset_path: Package/xlwings.xlam
+#          asset_name: xlwings.xlam
+#          asset_content_type: application/zip
