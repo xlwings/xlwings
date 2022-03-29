@@ -66,7 +66,7 @@ jobs:
         msbuild $Env:GITHUB_WORKSPACE\src\xlwings.sln /p:Configuration=Release /p:Platform=x64 -maxcpucount
     - name: Get Certificate
       id: write_file
-      uses: timheuer/base64-to-file@v1.1
+      uses: timheuer/base64-to-file@2d34558844bc851d6a653f79b3720f44dc6bff53
       with:
         fileName: 'cert.p12'
         encodedString: ${{ secrets.CODESIGN_CERTIFICATE }}
