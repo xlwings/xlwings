@@ -378,31 +378,33 @@ def prepare_sys_path(args_string):
     these manipulations were handled in VBA, but couldn't handle SharePoint.
     """
     args = os.path.normcase(os.path.expandvars(args_string)).split(";")
-    # Not sure, if we really need normcase,
-    # but on Windows it replaces "/" with "\", so let's revert that
-    active_fullname = args[0].replace("\\", "/")
-    this_fullname = args[1].replace("\\", "/")
     paths = []
-    for fullname in [active_fullname, this_fullname]:
-        if not fullname:
-            continue
-        elif "://" in fullname:
-            fullname = Path(
-                fullname_url_to_local_path(
-                    url=fullname,
-                    sheet_onedrive_consumer_config=args[2],
-                    sheet_onedrive_commercial_config=args[3],
-                    sheet_sharepoint_config=args[4],
+    if args[0].lower() == "true":  # Add dir of Excel file to PYTHONPATH
+        # Not sure if we really need normcase,
+        # but on Windows it replaces "/" with "\", so let's revert that
+        active_fullname = args[1].replace("\\", "/")
+        this_fullname = args[2].replace("\\", "/")
+        for fullname in [active_fullname, this_fullname]:
+            if not fullname:
+                continue
+            elif "://" in fullname:
+                fullname = Path(
+                    fullname_url_to_local_path(
+                        url=fullname,
+                        sheet_onedrive_consumer_config=args[3],
+                        sheet_onedrive_commercial_config=args[4],
+                        sheet_sharepoint_config=args[5],
+                    )
                 )
-            )
-        else:
-            fullname = Path(fullname)
-        paths += [str(fullname.parent), str(fullname.with_suffix(".zip"))]
+            else:
+                fullname = Path(fullname)
+            paths += [str(fullname.parent), str(fullname.with_suffix(".zip"))]
 
-    if args[5:]:
-        paths += args[5:]
+    if args[6:]:
+        paths += args[6:]
 
-    sys.path[0:0] = list(set(paths))
+    if paths:
+        sys.path[0:0] = list(set(paths))
 
 
 @lru_cache(None)
