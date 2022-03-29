@@ -660,6 +660,7 @@ def vba_import(args):
                     if line_count > 0:
                         vb_component.CodeModule.DeleteLines(1, line_count)
                     vb_component.CodeModule.AddFromString("".join(vba_code))
+    book.save()
 
 
 def vba_export(args):
