@@ -1,6 +1,14 @@
 What's New
 ==========
 
+v0.27.4 (Mar 29, 2022)
+----------------------
+* :bdg-info:`Enhancement` Further SharePoint enhancements on Windows, increasing the chance that ``mybook.fullname`` returns the proper local filepath (by taking into account the info in the registry) (:issue:`1829`).
+* :bdg-info:`Enhancement` The ribbon, i.e., the config, now allows you to uncheck the box ``Add workbook to PYTHONPATH`` to not automatically add the directory of your workbook to the PYTHONPATH. The respective config is called ``ADD_WORKBOOK_TO_PYTHONPATH``. This can be helpful if you experience issues with OneDrive/SharePoint: uncheck this box and provide the path where your source file is manually via the PYTHONPATH setting (:issue:`1873`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Added support for ``myrange.add_hyperlink()`` with the remote interpreter (:issue:`1882`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Added a new optional parameter ``include`` in connection with ``runPython`` (JS) and ``RunRemotePython`` (VBA), respectively. It's the counterpart to ``exclude`` and allows you to submit the names of the sheets that you want to send to the server. Like ``exclude``, ``include`` accepts a comma-delimited string, e.g., "Sheet1,Sheet2"  (:issue:`1882`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` On Google Sheets, the xlwings JS module now automatically asks for the proper permission to allow authentication based on OAuth Token (:issue:`1876`).
+
 v0.27.3 (Mar 18, 2022)
 ----------------------
 

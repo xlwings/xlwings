@@ -63,6 +63,7 @@ When you install the add-in for the first time, it will get auto-configured and 
   interpreter doesn't shut down after each call.
 * ``Restart UDF Server``: This restarts the UDF Server/Python interpreter.
 * ``Show Console``: Check the box in the ribbon or set the config to ``TRUE`` if you want the command prompt to pop up. This currently only works on Windows.
+* ``ADD_WORKBOOK_TO_PYTHONPATH``: Uncheck this box to not automatically add the directory of your workbook to the PYTHONPATH. This can be helpful if you experience issues with OneDrive/SharePoint: uncheck this box and provide the path where your source file is manually via the PYTHONPATH setting.
 
 Anaconda/Miniconda
 ******************
@@ -72,8 +73,8 @@ otherwise get errors when using ``NumPy`` etc. In return, leave ``Interpreter`` 
 
 .. _config_file:
 
-Environment Variables
----------------------
+Making use of Environment Variables
+-----------------------------------
 
 With environment variables, you can set dynamic paths e.g. to your interpreter or ``PYTHONPATH``:
 
@@ -97,14 +98,19 @@ The format is as follows (currently the keys are required to be all caps) - note
     "INTERPRETER_WIN","C:\path\to\python.exe"
     "INTERPRETER_MAC","/path/to/python"
     "PYTHONPATH",""
+    "ADD_WORKBOOK_TO_PYTHONPATH",""
     "CONDA PATH",""
     "CONDA ENV",""
     "UDF MODULES",""
     "DEBUG UDFS",""
     "USE UDF SERVER",""
     "SHOW CONSOLE",""
-    "ONEDRIVE_WIN",""
-    "ONEDRIVE_MAC",""
+    "ONEDRIVE_CONSUMER_WIN",""
+    "ONEDRIVE_CONSUMER_WIN",""
+    "ONEDRIVE_COMMERCIAL_WIN",""
+    "ONEDRIVE_COMMERCIAL_MAC",""
+    "SHAREPOINT_WIN",""
+    "SHAREPOINT_MAC",""
 
 .. note::
     The ``ONEDRIVE_WIN/_MAC`` setting has to be edited directly in the file, there is currently no possibility to edit it via the ribbon. Usually, it is only required if you are either on macOS or if your environment variables on Windows are not correctly set or if you have a private and corporate location and don't want to go with the default one. ``ONEDRIVE_WIN/_MAC`` has to point to the root folder of your local OneDrive folder.
