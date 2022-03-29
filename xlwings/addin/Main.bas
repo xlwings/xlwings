@@ -37,7 +37,7 @@ Public Function RunPython(PythonCommand As String)
     ' RunPython "import bar; bar.foo()"
     
     Dim i As Integer
-    Dim SourcePythonCommand As String, interpreter As String, PYTHONPATH As String, licenseKey, ActiveFullName As String, ThisFullName As String
+    Dim SourcePythonCommand As String, interpreter As String, PYTHONPATH As String, licenseKey, ActiveFullName As String, ThisFullName As String, AddExcelDir As String
     Dim OPTIMIZED_CONNECTION As Boolean, uses_embedded_code As Boolean
     Dim wb As Workbook
     Dim sht As Worksheet
@@ -53,30 +53,8 @@ Public Function RunPython(PythonCommand As String)
         ' Legacy
         interpreter = GetConfig("INTERPRETER", "python")
     End If
-    
-    ' The first 5 args are not technically part of the PYTHONPATH, but it's just easier to add it here (used by xlwings.utils.prepare_sys_path)
-    #If Mac Then
-        If InStr(ActiveWorkbook.FullName, "://") = 0 Then
-            ActiveFullName = ToPosixPath(ActiveWorkbook.FullName)
-            ThisFullName = ToPosixPath(ThisWorkbook.FullName)
-        Else
-            ActiveFullName = ActiveWorkbook.FullName
-            ThisFullName = ThisWorkbook.FullName
-        End If
-    #Else
-        ActiveFullName = ActiveWorkbook.FullName
-        ThisFullName = ThisWorkbook.FullName
-    #End If
-    
-    #If Mac Then
-        PYTHONPATH = ActiveFullName & ";" & ThisFullName & ";" & GetConfig("ONEDRIVE_CONSUMER_MAC") & ";" & GetConfig("ONEDRIVE_COMMERCIAL_MAC") & ";" & GetConfig("SHAREPOINT_MAC") & ";" & GetConfig("PYTHONPATH")
-    #Else
-        PYTHONPATH = ActiveFullName & ";" & ThisFullName & ";" & GetConfig("ONEDRIVE_CONSUMER_WIN") & ";" & GetConfig("ONEDRIVE_COMMERCIAL_WIN") & ";" & GetConfig("SHAREPOINT_WIN") & ";" & GetConfig("PYTHONPATH")
-    #End If
 
-    OPTIMIZED_CONNECTION = GetConfig("USE UDF SERVER", False)
-
-    ' Handle embedded Python code
+    ' Check for embedded Python code
     uses_embedded_code = False
     For i = 1 To 2
         If i = 1 Then
@@ -92,6 +70,35 @@ Public Function RunPython(PythonCommand As String)
         Next
     Next i
 
+    If uses_embedded_code = True Then
+        AddExcelDir = "false"
+    Else
+        AddExcelDir = GetConfig("ADD_WORKBOOK_TO_PYTHONPATH", "true")
+    End If
+
+    ' The first 5 args are not technically part of the PYTHONPATH, but it's just easier to add it here (used by xlwings.utils.prepare_sys_path)
+    #If Mac Then
+        If InStr(ActiveWorkbook.FullName, "://") = 0 Then
+            ActiveFullName = ToPosixPath(ActiveWorkbook.FullName)
+            ThisFullName = ToPosixPath(ThisWorkbook.FullName)
+        Else
+            ActiveFullName = ActiveWorkbook.FullName
+            ThisFullName = ThisWorkbook.FullName
+        End If
+    #Else
+        ActiveFullName = ActiveWorkbook.FullName
+        ThisFullName = ThisWorkbook.FullName
+    #End If
+    
+    #If Mac Then
+        PYTHONPATH = AddExcelDir & ";" & ActiveFullName & ";" & ThisFullName & ";" & GetConfig("ONEDRIVE_CONSUMER_MAC") & ";" & GetConfig("ONEDRIVE_COMMERCIAL_MAC") & ";" & GetConfig("SHAREPOINT_MAC") & ";" & GetConfig("PYTHONPATH")
+    #Else
+        PYTHONPATH = AddExcelDir & ";" & ActiveFullName & ";" & ThisFullName & ";" & GetConfig("ONEDRIVE_CONSUMER_WIN") & ";" & GetConfig("ONEDRIVE_COMMERCIAL_WIN") & ";" & GetConfig("SHAREPOINT_WIN") & ";" & GetConfig("PYTHONPATH")
+    #End If
+
+    OPTIMIZED_CONNECTION = GetConfig("USE UDF SERVER", False)
+
+    ' PythonCommand with embedded code
     If uses_embedded_code = True Then
         licenseKey = GetConfig("LICENSE_KEY")
         If licenseKey = "" Then
@@ -366,17 +373,20 @@ End Sub
 
 Function XLPyCommand()
     'TODO: the whole python vs. pythonw should be obsolete now that the console is shown/hidden by the dll
-    Dim PYTHON_WIN As String, PYTHONPATH As String, LOG_FILE As String, tail As String, licenseKey As String, LicenseKeyEnvString As String
+    Dim PYTHON_WIN As String, PYTHONPATH As String, LOG_FILE As String, tail As String, licenseKey As String, LicenseKeyEnvString As String, AddExcelDir As String
     Dim CondaCmd As String, CondaPath As String, CondaEnv As String, ConsoleSwitch As String, FName As String
 
     Dim DEBUG_UDFS As Boolean
     #If App = "Microsoft Excel" Then
     Dim wb As Workbook
     #End If
-    
-    ' The first 5 args are not technically part of the PYTHONPATH, but it's just easier to add it here (used by xlwings.utils.prepare_sys_path)
+
+    ' TODO: Doesn't automatically check if code is embedded
+    AddExcelDir = GetConfig("ADD_WORKBOOK_TO_PYTHONPATH", "true")
+
+    ' The first 6 args are not technically part of the PYTHONPATH, but it's just easier to add it here (used by xlwings.utils.prepare_sys_path)
     #If App = "Microsoft Excel" Then
-        PYTHONPATH = ActiveWorkbook.FullName & ";" & ThisWorkbook.FullName & ";" & GetConfig("ONEDRIVE_CONSUMER_WIN") & ";" & GetConfig("ONEDRIVE_COMMERCIAL_WIN") & ";" & GetConfig("SHAREPOINT_WIN") & ";" & GetConfig("PYTHONPATH")
+        PYTHONPATH = AddExcelDir & ";" & ActiveWorkbook.FullName & ";" & ThisWorkbook.FullName & ";" & GetConfig("ONEDRIVE_CONSUMER_WIN") & ";" & GetConfig("ONEDRIVE_COMMERCIAL_WIN") & ";" & GetConfig("SHAREPOINT_WIN") & ";" & GetConfig("PYTHONPATH")
     #Else
         ' Other office apps
         #If App = "Microsoft Word" Then
@@ -401,7 +411,7 @@ Function XLPyCommand()
     End If
     DEBUG_UDFS = GetConfig("DEBUG UDFS", False)
 
-    ' /showconsole is a ficticous command line switch that's ignored by cmd.exe but used by CreateProcessA in the dll
+    ' /showconsole is a fictitious command line switch that's ignored by cmd.exe but used by CreateProcessA in the dll
     ' It's the only setting that's sent over like this at the moment
     If GetConfig("SHOW CONSOLE", False) = True Then
         ConsoleSwitch = "/showconsole"

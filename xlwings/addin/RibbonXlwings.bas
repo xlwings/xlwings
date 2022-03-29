@@ -213,6 +213,24 @@ Sub GetPressedShowConsole(control As IRibbonControl, ByRef pressed)
     #End If
 End Sub
 
+Sub ChangeAddDirToPath(control As IRibbonControl, pressed As Boolean)
+    Dim tf As Boolean
+    tf = SaveConfigToFile(GetConfigFilePath, "ADD_WORKBOOK_TO_PYTHONPATH", CStr(pressed))
+End Sub
+
+Sub GetPressedAddDirToPath(control As IRibbonControl, ByRef pressed)
+    Dim setting As String
+    If GetConfigFromFile(GetConfigFilePath, "ADD_WORKBOOK_TO_PYTHONPATH", setting) Then
+        If setting = "True" Then
+            pressed = True
+        Else
+            pressed = False
+        End If
+    Else
+        pressed = True
+    End If
+End Sub
+
 Sub RestartPython(control As IRibbonControl)
     #If Mac Then
     #Else
