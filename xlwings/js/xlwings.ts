@@ -234,7 +234,7 @@ function setValues(workbook: ExcelScript.Workbook, action: Action) {
   let dtString: string;
   action.values.forEach((valueRow, rowIndex) => {
     valueRow.forEach((value: string | number | boolean, colIndex) => {
-      if (typeof value === "string") {
+      if (typeof value === "string" && value.length > 18 && value.includes("T")) {
         dt = new Date(Date.parse(value));
         dtString = dt.toLocaleDateString();
         if (dtString !== "Invalid Date") {

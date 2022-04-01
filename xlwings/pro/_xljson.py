@@ -87,7 +87,7 @@ class Engine:
         elif np and isinstance(x, np.datetime64):
             return utils.np_datetime_to_datetime(x).replace(tzinfo=None).isoformat()
         elif pd and isinstance(x, pd.Timestamp):
-            return x.to_pydatetime().replace(tzinfo=None)
+            return x.to_pydatetime().replace(tzinfo=None).isoformat()
         elif pd and isinstance(x, type(pd.NaT)):
             return None
         elif isinstance(x, time_types):
