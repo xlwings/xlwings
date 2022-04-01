@@ -1,6 +1,12 @@
 What's New
 ==========
 
+v0.27.5 (Apr 1, 2022)
+---------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Remote interpreter: added support for setting the number format of a range via ``myrange.number_format = "..."`` (:issue:`1887`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Remote interpreter: Google Sheets/Excel on the web were formatting strings like ``"1"`` as date (:issue:`1885`).
+
 v0.27.4 (Mar 29, 2022)
 ----------------------
 * :bdg-info:`Enhancement` Further SharePoint enhancements on Windows, increasing the chance that ``mybook.fullname`` returns the proper local filepath (by taking into account the info in the registry) (:issue:`1829`).
