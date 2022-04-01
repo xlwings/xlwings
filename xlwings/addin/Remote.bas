@@ -348,3 +348,7 @@ Sub addHyperlink(wb As Workbook, action As Dictionary)
         TextToDisplay:=action("args")(2), _
         ScreenTip:=action("args")(3)
 End Sub
+
+Sub setNumberFormat(wb As Workbook, action as Dictionary)
+    GetRange(wb, action).NumberFormat = action("args")(1)
+End Sub

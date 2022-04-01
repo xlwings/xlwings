@@ -619,6 +619,14 @@ class Range(base_classes.Range):
             func="addHyperlink", args=[address, text_to_display, screen_tip]
         )
 
+    @property
+    def number_format(self):
+        raise NotImplemented()
+
+    @number_format.setter
+    def number_format(self, value):
+        self.append_json_action(func="setNumberFormat", args=value)
+
     def __len__(self):
         nrows, ncols = self.shape
         return nrows * ncols

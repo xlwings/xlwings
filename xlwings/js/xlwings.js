@@ -203,6 +203,7 @@ let funcs = {
   setRangeColor: setRangeColor,
   activateSheet: activateSheet,
   addHyperlink: addHyperlink,
+  setNumberFormat: setNumberFormat,
 };
 
 // Functions
@@ -280,4 +281,8 @@ function addHyperlink(workbook, action) {
     .setLinkUrl(action.args[0])
     .build();
   getRange(workbook, action).setRichTextValue(value);
+}
+
+function setNumberFormat(workbook, action) {
+  getRange(workbook, action).setNumberFormat(action.args[0]);
 }
