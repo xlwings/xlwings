@@ -213,7 +213,7 @@ function setValues(workbook, action) {
   let locale = workbook.getSpreadsheetLocale().replace("_", "-");
   action.values.forEach((valueRow, rowIndex) => {
     valueRow.forEach((value, colIndex) => {
-      if (typeof value === "string") {
+      if (typeof value === "string" && value.length > 18 && value.includes("T")) {
         dt = new Date(Date.parse(value));
         dtString = dt.toLocaleDateString(locale);
         if (dtString !== "Invalid Date") {
