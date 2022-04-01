@@ -225,6 +225,7 @@ let funcs = {
   setRangeColor: setRangeColor,
   activateSheet: activateSheet,
   addHyperlink: addHyperlink,
+  setNumberFormat: setNumberFormat,
 };
 
 // Functions
@@ -295,4 +296,8 @@ function addHyperlink(workbook: ExcelScript.Workbook, action: Action) {
     textToDisplay: action.args[1].toString(),
     screenTip: action.args[2].toString(),
   });
+}
+
+function setNumberFormat(workbook: ExcelScript.Workbook, action: Action) {
+  getRange(workbook, action).setNumberFormat(action.args[0].toString());
 }
