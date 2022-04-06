@@ -196,7 +196,7 @@ Function RunRemotePython( _
             Application.Run action("func"), wb, action
         Next
     Else
-        MsgBox "Server responded with error " & myResponse.StatusCode, vbCritical, "Error"
+        MsgBox myResponse.Content, vbCritical, "Error"
     End If
 
 End Function
