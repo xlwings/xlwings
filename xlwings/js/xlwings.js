@@ -159,6 +159,7 @@ function runPython(
     contentType: "application/json",
     payload: JSON.stringify(payload),
     headers: headers,
+    muteHttpExceptions: true,
   };
 
   // Parse JSON response
