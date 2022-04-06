@@ -162,16 +162,9 @@ function runPython(
   };
 
   // Parse JSON response
-  let response;
-  try {
-    response = UrlFetchApp.fetch(url, options);
-  } catch (err) {
-    throw new Error(
-      err.message
-        .split("Truncated server response:")[1]
-        .split("(use muteHttpExceptions option to examine full response)")[0]
-        .trim()
-    );
+  const response = UrlFetchApp.fetch(url, options);
+  if (response.getResponseCode() !== 200) {
+    throw new Error(response.getContentText());
   }
   const json = response.getContentText();
   const rawData = JSON.parse(json);
