@@ -166,7 +166,7 @@ async function runPython(
   // Parse JSON response
   let rawData: { actions: Action[] };
   if (response.status !== 200) {
-    throw `Server responded with error ${response.status}`;
+    throw await response.text();
   } else {
     rawData = await response.json();
   }
@@ -235,7 +235,11 @@ function setValues(workbook: ExcelScript.Workbook, action: Action) {
   let dtString: string;
   action.values.forEach((valueRow, rowIndex) => {
     valueRow.forEach((value: string | number | boolean, colIndex) => {
-      if (typeof value === "string" && value.length > 18 && value.includes("T")) {
+      if (
+        typeof value === "string" &&
+        value.length > 18 &&
+        value.includes("T")
+      ) {
         dt = new Date(Date.parse(value));
         dtString = dt.toLocaleDateString();
         if (dtString !== "Invalid Date") {
