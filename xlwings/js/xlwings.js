@@ -164,7 +164,7 @@ function runPython(
   // Parse JSON response
   const response = UrlFetchApp.fetch(url, options);
   if (response.getResponseCode() !== 200) {
-    throw new Error(response.getContentText());
+    throw response.getContentText();
   }
   const json = response.getContentText();
   const rawData = JSON.parse(json);
