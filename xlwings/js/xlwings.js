@@ -162,8 +162,17 @@ function runPython(
   };
 
   // Parse JSON response
-  // TODO: handle non-200 status more gracefully
-  const response = UrlFetchApp.fetch(url, options);
+  let response;
+  try {
+    response = UrlFetchApp.fetch(url, options);
+  } catch (err) {
+    throw new Error(
+      err.message
+        .split("Truncated server response:")[1]
+        .split("(use muteHttpExceptions option to examine full response)")[0]
+        .trim()
+    );
+  }
   const json = response.getContentText();
   const rawData = JSON.parse(json);
 
@@ -214,7 +223,11 @@ function setValues(workbook, action) {
   let locale = workbook.getSpreadsheetLocale().replace("_", "-");
   action.values.forEach((valueRow, rowIndex) => {
     valueRow.forEach((value, colIndex) => {
-      if (typeof value === "string" && value.length > 18 && value.includes("T")) {
+      if (
+        typeof value === "string" &&
+        value.length > 18 &&
+        value.includes("T")
+      ) {
         dt = new Date(Date.parse(value));
         dtString = dt.toLocaleDateString(locale);
         if (dtString !== "Invalid Date") {
