@@ -484,11 +484,17 @@ def fullname_url_to_local_path(
     pattern = re.compile(r"https://d.docs.live.net/[^/]*/(.*)")
     match = pattern.match(url)
     if match:
+        if sys.platform.startswith("darwin"):
+            default_dir = Path.home() / "Library" / "CloudStorage" / "OneDrive-Personal"
+        else:
+            default_dir = Path.home() / "OneDrive"
+        legacy_default_dir = Path.home() / "OneDrive"
         root = (
             onedrive_consumer_config
             or os.getenv("OneDriveConsumer")
             or os.getenv("OneDrive")
-            or str(Path.home() / "OneDrive")
+            or (str(default_dir) if default_dir.is_dir() else None)
+            or (str(legacy_default_dir) if legacy_default_dir else None)
         )
         if not root:
             raise xlwings.XlwingsError(
