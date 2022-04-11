@@ -1,6 +1,13 @@
 What's New
 ==========
 
+v0.27.6 (Apr 11, 2022)
+----------------------
+
+* :bdg-warning:`Bug Fix` macOS: Python modules on OneDrive Personal are now found again in the default setup even if they have been migrated to the new location (:issue:`1891`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` The remote interpreter now shows nicely formatted error messages across all platforms (:issue:`1889`).
+
+
 v0.27.5 (Apr 1, 2022)
 ---------------------
 
