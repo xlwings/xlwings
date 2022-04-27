@@ -1781,7 +1781,17 @@ class Pictures(Collection):
     _kw = kw.picture
     _wrap = Picture
 
-    def add(self, filename, link_to_file, save_with_document, left, top, width, height):
+    def add(
+        self,
+        filename,
+        link_to_file,
+        save_with_document,
+        left,
+        top,
+        width,
+        height,
+        anchor,
+    ):
 
         version = VersionNumber(self.parent.book.app.version)
 

@@ -274,7 +274,7 @@ def process_image(image, format):
     if image_type == "mpl":
         canvas = mpl.backends.backend_agg.FigureCanvas(image)
         canvas.draw()
-        image.savefig(filename, bbox_inches="tight", dpi=300)
+        image.savefig(filename, bbox_inches="tight", dpi=200)
         plt.close(image)
     elif image_type == "plotly":
         image.write_image(filename)

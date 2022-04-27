@@ -12,6 +12,7 @@ Commercial licenses can be purchased at https://www.xlwings.org
 """
 
 import re
+import base64
 import numbers
 import datetime as dt
 from functools import lru_cache
@@ -402,6 +403,10 @@ class Sheet(base_classes.Sheet):
         self.book.api["book"]["active_sheet_index"] = ix
         self.append_json_action(func="activateSheet", args=ix)
 
+    @property
+    def pictures(self):
+        return Pictures(self)
+
 
 @lru_cache(None)
 def get_range_api(api_values, arg1, arg2=None):
@@ -641,6 +646,148 @@ class Range(base_classes.Range):
                 sheet=self.sheet,
                 arg1=(self.row + arg1 - 1, self.column + arg2 - 1),
             )
+
+
+class Collection(base_classes.Collection):
+    def __init__(self, parent):
+        self._parent = parent
+        self._api = parent.api[self._attr]
+
+    @property
+    def api(self):
+        return self._api
+
+    @property
+    def parent(self):
+        return self._parent
+
+    def __call__(self, key):
+        if isinstance(key, numbers.Number):
+            if key > len(self):
+                raise KeyError(key)
+            else:
+                return self._wrap(self.parent, key - 1)
+        else:
+            for ix, i in enumerate(self.api):
+                if i["name"] == key:
+                    return self._wrap(self.parent, ix)
+            raise KeyError(key)
+
+    def __len__(self):
+        return len(self.api)
+
+    def __iter__(self):
+        for ix, api in enumerate(self.api):
+            yield self._wrap(self._parent, ix)
+
+    def __contains__(self, key):
+        if isinstance(key, numbers.Number):
+            return key < len(self)
+        else:
+            for i in self.api:
+                if i["name"] == key:
+                    return True
+            return False
+
+
+class Picture(base_classes.Picture):
+    def __init__(self, parent, key):
+        self._parent = parent
+        self._api = self.parent.api["pictures"][key]
+        self.key = key
+
+    def append_json_action(self, **kwargs):
+        self.parent.book.append_json_action(
+            **{
+                **kwargs,
+                **{
+                    "sheet_position": self.parent.index - 1,
+                },
+            }
+        )
+
+    @property
+    def api(self):
+        return self._api
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @property
+    def name(self):
+        return self.api["name"]
+
+    @name.setter
+    def name(self, value):
+        self.append_json_action(func="setPictureName", args=[self.index - 1, value])
+
+    @property
+    def width(self):
+        return self.api["width"]
+
+    @width.setter
+    def width(self, value):
+        self.append_json_action(func="setPictureWidth", args=[self.index - 1, value])
+
+    @property
+    def height(self):
+        return self.api["height"]
+
+    @height.setter
+    def height(self, value):
+        self.append_json_action(func="setPictureHeight", args=[self.index - 1, value])
+
+    @property
+    def index(self):
+        if isinstance(self.key, numbers.Number):
+            return self.key + 1
+        else:
+            for ix, obj in self.api:
+                if obj["name"] == self.key:
+                    return ix
+            raise KeyError(self.key)
+
+    def delete(self):
+        self.parent._api["pictures"].pop(self.index - 1)
+        self.append_json_action(func="deletePicture", args=self.index - 1)
+
+
+class Pictures(base_classes.Pictures, Collection):
+
+    _attr = "pictures"
+    _wrap = Picture
+
+    def append_json_action(self, **kwargs):
+        self.parent.book.append_json_action(
+            **{
+                **kwargs,
+                **{
+                    "sheet_position": self.parent.index - 1,
+                },
+            }
+        )
+
+    def add(
+        self,
+        filename,
+        link_to_file=None,
+        save_with_document=None,
+        left=None,
+        top=None,
+        width=None,
+        height=None,
+        anchor=None,
+    ):
+        with open(filename, "rb") as image_file:
+            encoded_image_string = base64.b64encode(image_file.read())
+        self.append_json_action(
+            func="addPicture", args=[encoded_image_string, anchor.column, anchor.row]
+        )
+        self.parent._api["pictures"].append(
+            {"name": "Image", "width": None, "height": None}
+        )
+        return Picture(self.parent, len(self.parent.api["pictures"]) - 1)
 
 
 engine = Engine()

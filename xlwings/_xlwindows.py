@@ -2126,7 +2126,17 @@ class Pictures(Collection):
     def parent(self):
         return Sheet(xl=self.xl.Parent)
 
-    def add(self, filename, link_to_file, save_with_document, left, top, width, height):
+    def add(
+        self,
+        filename,
+        link_to_file,
+        save_with_document,
+        left,
+        top,
+        width,
+        height,
+        anchor,
+    ):
         return Picture(
             xl=self.xl.Parent.Shapes.AddPicture(
                 Filename=filename,

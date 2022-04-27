@@ -145,9 +145,20 @@ function runPython(
         });
       });
     }
+
+    let pictures = [];
+    workbook.getImages().forEach((image, ix) => {
+      pictures[ix] = {
+        name: image.getAltTextTitle(),
+        height: image.getHeight(),
+        width: image.getWidth(),
+      };
+    });
+
     payload["sheets"].push({
       name: sheet.getName(),
       values: values,
+      pictures: pictures,
     });
   });
 
@@ -207,6 +218,9 @@ let funcs = {
   activateSheet: activateSheet,
   addHyperlink: addHyperlink,
   setNumberFormat: setNumberFormat,
+  setPictureName: setPictureName,
+  deletePicture: deletePicture,
+  addPicture: addPicture,
 };
 
 // Functions
@@ -292,4 +306,34 @@ function addHyperlink(workbook, action) {
 
 function setNumberFormat(workbook, action) {
   getRange(workbook, action).setNumberFormat(action.args[0]);
+}
+
+function setPictureName(workbook, action) {
+  workbook
+    .getSheets()
+    [action.sheet_position].getImages()
+    [action.args[0]].setAltTextTitle(action.args[1]);
+}
+
+function deletePicture(workbook, action) {
+  workbook
+    .getSheets()
+    [action.sheet_position].getImages()
+    [action.args[0]].remove();
+}
+
+function addPicture(workbook, action) {
+  let imageBlob = Utilities.newBlob(
+    Utilities.base64Decode(action.args[0]),
+    "image/png",
+    "MyImageName"
+  );
+  workbook
+    .getSheets()
+    [action.sheet_position].insertImage(
+      imageBlob,
+      action.args[1],
+      action.args[2]
+    );
+  SpreadsheetApp.flush();
 }
