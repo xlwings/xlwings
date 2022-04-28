@@ -222,8 +222,11 @@ let funcs = {
   addHyperlink: addHyperlink,
   setNumberFormat: setNumberFormat,
   setPictureName: setPictureName,
+  setPictureWidth: setPictureWidth,
+  setPictureHeight: setPictureHeight,
   deletePicture: deletePicture,
   addPicture: addPicture,
+  updatePicture: updatePicture,
 };
 
 // Functions
@@ -318,6 +321,20 @@ function setPictureName(workbook, action) {
     [action.args[0]].setAltTextTitle(action.args[1]);
 }
 
+function setPictureHeight(workbook, action) {
+  workbook
+    .getSheets()
+    [action.sheet_position].getImages()
+    [action.args[0]].setHeight(action.args[1]);
+}
+
+function setPictureWidth(workbook, action) {
+  workbook
+    .getSheets()
+    [action.sheet_position].getImages()
+    [action.args[0]].setWidth(action.args[1]);
+}
+
 function deletePicture(workbook, action) {
   workbook
     .getSheets()
@@ -338,5 +355,21 @@ function addPicture(workbook, action) {
       action.args[1] + 1,
       action.args[2] + 1
     );
+  SpreadsheetApp.flush();
+}
+
+function updatePicture(workbook, action) {
+  let imageBlob = Utilities.newBlob(
+    Utilities.base64Decode(action.args[0]),
+    "image/png",
+    "MyImageName"
+  );
+  let img = workbook.getSheets()[action.sheet_position].getImages()[
+    action.args[1]
+  ];
+  img.replace(imageBlob);
+  img.setAltTextTitle(action.args[2]);
+  img.setWidth(action.args[3]);
+  img.setHeight(action.args[4]);
   SpreadsheetApp.flush();
 }

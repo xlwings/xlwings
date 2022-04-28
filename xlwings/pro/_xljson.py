@@ -749,6 +749,7 @@ class Picture(base_classes.Picture):
 
     @property
     def index(self):
+        # TODO: make available in public API
         if isinstance(self.key, numbers.Number):
             return self.key
         else:
@@ -760,6 +761,21 @@ class Picture(base_classes.Picture):
     def delete(self):
         self.parent._api["pictures"].pop(self.index - 1)
         self.append_json_action(func="deletePicture", args=self.index - 1)
+
+    def update(self, filename):
+        with open(filename, "rb") as image_file:
+            encoded_image_string = base64.b64encode(image_file.read())
+        self.append_json_action(
+            func="updatePicture",
+            args=[
+                encoded_image_string,
+                self.index - 1,
+                self.name,
+                self.width,
+                self.height,
+            ],
+        )
+        return Picture(self.parent, self.index)
 
 
 class Pictures(base_classes.Pictures, Collection):

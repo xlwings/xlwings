@@ -4070,15 +4070,20 @@ class Picture:
 
         name = self.name
         left, top, width, height = self.left, self.top, self.width, self.height
-        self.delete()
 
-        # todo: link_to_file, save_with_document
-        picture = self.parent.pictures.add(
-            filename, left=left, top=top, width=width, height=height
-        )
+        if left is None:
+            # Hack for Google Sheets (should be handled the same way for Excel)
+            picture = Picture(impl=self.impl.update(filename))
+        else:
+            self.delete()
 
-        picture.name = name
-        self.impl = picture.impl
+            # todo: link_to_file, save_with_document
+            picture = self.parent.pictures.add(
+                filename, left=left, top=top, width=width, height=height
+            )
+
+            picture.name = name
+            self.impl = picture.impl
 
         # Cleanup temp file
         if is_temp_file:
