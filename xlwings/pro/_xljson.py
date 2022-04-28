@@ -779,6 +779,12 @@ class Pictures(base_classes.Pictures, Collection):
         height=None,
         anchor=None,
     ):
+        if anchor is None:
+            column_index = 0
+            row_index = 0
+        else:
+            column_index = anchor.column - 1
+            row_index = anchor.row - 1
         # Google Sheets allows a max size of 1 million pixels. For matplotlib, you
         # can control the pixels like so: fig = plt.figure(figsize=(6, 4), dpi=200)
         # This sample has (6 * 200) * (4 * 200) = 960,000 px
@@ -790,7 +796,7 @@ class Pictures(base_classes.Pictures, Collection):
         with open(filename, "rb") as image_file:
             encoded_image_string = base64.b64encode(image_file.read())
         self.append_json_action(
-            func="addPicture", args=[encoded_image_string, anchor.column, anchor.row]
+            func="addPicture", args=[encoded_image_string, column_index, row_index]
         )
         self.parent._api["pictures"].append(
             {"name": "Image", "width": None, "height": None}

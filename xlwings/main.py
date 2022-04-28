@@ -4232,13 +4232,6 @@ class Pictures(Collection):
                 "Arguments link_to_file and save_with_document cannot both be false"
             )
 
-        # if anchor:
-        #     if top or left:
-        #         raise ValueError(
-        #             "You must either provide 'anchor' or 'top'/'left', but not both."
-        #         )
-        #     top, left = anchor.top, anchor.left
-
         if (
             (height and width is None)
             or (width and height is None)
@@ -4255,8 +4248,8 @@ class Pictures(Collection):
                 filename,
                 link_to_file,
                 save_with_document,
-                left if left else 0,
-                top if top else 0,
+                left if left else None,
+                top if top else None,
                 width=im_width,
                 height=im_height,
                 anchor=anchor.impl if anchor else None,

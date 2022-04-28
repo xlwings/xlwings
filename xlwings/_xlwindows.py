@@ -2137,6 +2137,17 @@ class Pictures(Collection):
         height,
         anchor,
     ):
+
+        if anchor:
+            if top or left:
+                raise ValueError(
+                    "You must either provide 'anchor' or 'top'/'left', but not both."
+                )
+            top, left = anchor.top, anchor.left
+        else:
+            top = top if top else 0
+            left = left if left else 0
+
         return Picture(
             xl=self.xl.Parent.Shapes.AddPicture(
                 Filename=filename,

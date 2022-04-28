@@ -332,8 +332,8 @@ function addPicture(workbook, action) {
     .getSheets()
     [action.sheet_position].insertImage(
       imageBlob,
-      action.args[1],
-      action.args[2]
+      action.args[1] + 1,
+      action.args[2] + 1
     );
   SpreadsheetApp.flush();
 }
