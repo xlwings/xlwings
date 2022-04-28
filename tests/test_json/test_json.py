@@ -33,17 +33,11 @@ data = {
                     "name": "pic1",
                     "height": 10,
                     "width": 20,
-                    "anchor_address": "C12",
-                    "anchor_x_offset": 10,
-                    "anchor_y_offset": 0,
                 },
                 {
                     "name": "pic2",
                     "height": 30,
                     "width": 40,
-                    "anchor_address": "C12",
-                    "anchor_x_offset": 10,
-                    "anchor_y_offset": 0,
                 },
             ],
         },
@@ -316,3 +310,26 @@ def test_pictures_add(book):
     assert len(sheet.pictures) == 3
     assert sheet.pictures[2].name == "new"
     assert sheet.pictures[2].impl.index == 3
+    sheet.pictures["new"].delete()
+
+
+def test_pictures_iter(book):
+    sheet = book.sheets[0]
+    pic_names = []
+    for pic in sheet.pictures:
+        pic_names.append(pic.name)
+    assert pic_names == ["pic1", "pic2"]
+
+
+def test_pictures_contains(book):
+    sheet = book.sheets[0]
+    assert "pic1" in sheet.pictures
+    assert 1 in sheet.pictures
+    assert "pic2" in sheet.pictures
+    assert 2 in sheet.pictures
+    assert "no" not in sheet.pictures
+    assert 3 not in sheet.pictures
+
+
+def test_empty_pictures(book):
+    assert not book.sheets[1].pictures

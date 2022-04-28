@@ -678,11 +678,11 @@ class Collection(base_classes.Collection):
 
     def __iter__(self):
         for ix, api in enumerate(self.api):
-            yield self._wrap(self._parent, ix)
+            yield self._wrap(self._parent, ix + 1)
 
     def __contains__(self, key):
         if isinstance(key, numbers.Number):
-            return key < len(self)
+            return 1 <= key <= len(self)
         else:
             for i in self.api:
                 if i["name"] == key:
