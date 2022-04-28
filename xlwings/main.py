@@ -4128,6 +4128,7 @@ class Pictures(Collection):
         scale=None,
         format=None,
         anchor=None,
+        savefig_settings=None,
     ):
         """
         Adds a picture to the specified sheet.
@@ -4177,6 +4178,14 @@ class Pictures(Collection):
 
             .. versionadded:: 0.24.3
 
+        savefig_settings : dict, default None
+            For Matplotlib plots, this dictionary is passed on to ``image.savefig()``.
+            Uses the following defaults: ``{"bbox_inches": "tight", "dpi": 200}``, so
+            if you want to leave things uncropped and increase dpi to 300, you'd do:
+            ``savefig_settings={"dpi": 300}``
+
+            .. versionadded:: 0.27.7
+
         Returns
         -------
         Picture
@@ -4199,6 +4208,8 @@ class Pictures(Collection):
         >>> sht.pictures.add(fig, name='MyPlot', update=True)
         <Picture 'MyPlot' in <Sheet [Book1]Sheet1>>
         """
+        if savefig_settings is None:
+            savefig_settings = {"bbox_inches": "tight", "dpi": 200}
         if update:
             if name is None:
                 raise ValueError("If update is true then name must be specified")
@@ -4211,7 +4222,9 @@ class Pictures(Collection):
                     pass
 
         filename, is_temp_file = utils.process_image(
-            image, format="png" if not format else format
+            image,
+            format="png" if not format else format,
+            savefig_settings=savefig_settings,
         )
 
         if not (link_to_file or save_with_document):

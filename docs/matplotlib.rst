@@ -103,6 +103,9 @@ Here are a few examples of how you get a matplotlib ``figure`` object:
     fig = ax.get_figure()
 
 
+.. note::
+    When working with Google Sheets, you can use a maximum of 1 million pixels per picture. Total pixels is a function of figure size and dpi: (width in inches * dpi) * (height in inches * dpi). For example, ``fig = plt.figure(figsize=(6, 4))`` with 200 dpi (default dpi when using ``pictures.add()``) will result in 960,000 px (6 * 200) * (4 * 200). To change the dpi, provide ``savefig_settings``: ``pictures.add(fig, savefig_settings={"bbox_inches": "tight", "dpi": 300})``. Existing figure size can be checked via ``fig.get_size_inches()``. pandas also ``figsize`` like so:  ``ax = df.plot(figsize=(3, 3))``. Note that ``"bbox_inches": "tight"`` crops the image and therefore will reduce the number of pixels in a non-deterministic way.
+
 .. _plotly:
 
 Plotly static charts

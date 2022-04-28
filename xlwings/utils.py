@@ -250,7 +250,7 @@ class VersionNumber:
             raise TypeError("Cannot compare other object with version number")
 
 
-def process_image(image, format):
+def process_image(image, format, savefig_settings):
     """Returns filename and is_temp_file"""
     image = fspath(image)
     if isinstance(image, str):
@@ -274,7 +274,7 @@ def process_image(image, format):
     if image_type == "mpl":
         canvas = mpl.backends.backend_agg.FigureCanvas(image)
         canvas.draw()
-        image.savefig(filename, bbox_inches="tight", dpi=200)
+        image.savefig(filename, **savefig_settings)
         plt.close(image)
     elif image_type == "plotly":
         image.write_image(filename)

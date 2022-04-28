@@ -779,6 +779,14 @@ class Pictures(base_classes.Pictures, Collection):
         height=None,
         anchor=None,
     ):
+        # Google Sheets allows a max size of 1 million pixels. For matplotlib, you
+        # can control the pixels like so: fig = plt.figure(figsize=(6, 4), dpi=200)
+        # This sample has (6 * 200) * (4 * 200) = 960,000 px
+        # Note that savefig(bbox_inches="tight") crops the image and therefore will
+        # reduce the number of pixels in a non-deterministic way. Existing figure
+        # size can be checked via fig.get_size_inches(). pandas accepts figsize also:
+        # ax = df.plot(figsize=(3,3))
+        # fig = ax.get_figure()
         with open(filename, "rb") as image_file:
             encoded_image_string = base64.b64encode(image_file.read())
         self.append_json_action(
