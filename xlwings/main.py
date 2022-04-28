@@ -4041,7 +4041,7 @@ class Picture:
     def __repr__(self):
         return "<Picture '{0}' in {1}>".format(self.name, self.parent)
 
-    def update(self, image, format=None):
+    def update(self, image, format=None, savefig_settings=None):
         """
         Replaces an existing picture with a new one, taking over the attributes of the
         existing picture.
@@ -4052,21 +4052,30 @@ class Picture:
         image : str or path-like object or matplotlib.figure.Figure
             Either a filepath or a Matplotlib figure object.
 
+        format : str, default None
+            See under ``Pictures.add()``
+
+        savefig_settings : dict, default None
+            See under ``Pictures.add()``
+
 
         .. versionadded:: 0.5.0
         """
 
         filename, is_temp_file = utils.process_image(
-            image, format="png" if not format else format
+            image,
+            format="png" if not format else format,
+            savefig_settings=savefig_settings,
         )
 
         name = self.name
+        left, top, width, height = self.left, self.top, self.width, self.height
+        self.delete()
 
         # todo: link_to_file, save_with_document
         picture = self.parent.pictures.add(
-            filename, left=self.left, top=self.top, width=self.width, height=self.height
+            filename, left=left, top=top, width=width, height=height
         )
-        self.delete()
 
         picture.name = name
         self.impl = picture.impl
@@ -4208,8 +4217,6 @@ class Pictures(Collection):
         >>> sht.pictures.add(fig, name='MyPlot', update=True)
         <Picture 'MyPlot' in <Sheet [Book1]Sheet1>>
         """
-        if savefig_settings is None:
-            savefig_settings = {"bbox_inches": "tight", "dpi": 200}
         if update:
             if name is None:
                 raise ValueError("If update is true then name must be specified")

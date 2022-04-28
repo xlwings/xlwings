@@ -262,6 +262,9 @@ def process_image(image, format, savefig_settings):
     else:
         raise TypeError("Don't know what to do with that image object")
 
+    if savefig_settings is None:
+        savefig_settings = {"bbox_inches": "tight", "dpi": 200}
+
     if format == "vector":
         if sys.platform.startswith("darwin"):
             format = "pdf"

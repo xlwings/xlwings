@@ -152,6 +152,9 @@ function runPython(
         name: image.getAltTextTitle(),
         height: image.getHeight(),
         width: image.getWidth(),
+        anchor_address: image.getAnchorCell().getA1Notation(),
+        anchor_x_offset: image.getAnchorCellXOffset(),
+        anchor_y_offset: image.getAnchorCellYOffset(),
       };
     });
 

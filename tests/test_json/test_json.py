@@ -29,8 +29,22 @@ data = {
                 ["", "", "", ""],
             ],
             "pictures": [
-                {"name": "pic1", "height": 10, "width": 20},
-                {"name": "pic2", "height": 30, "width": 40},
+                {
+                    "name": "pic1",
+                    "height": 10,
+                    "width": 20,
+                    "anchor_address": "C12",
+                    "anchor_x_offset": 10,
+                    "anchor_y_offset": 0,
+                },
+                {
+                    "name": "pic2",
+                    "height": 30,
+                    "width": 40,
+                    "anchor_address": "C12",
+                    "anchor_x_offset": 10,
+                    "anchor_y_offset": 0,
+                },
             ],
         },
         {"name": "Sheet2", "values": [["aa", "bb"], [11.0, 22.0]], "pictures": []},
@@ -294,3 +308,11 @@ def test_pictures_width(book):
 def test_pictures_height(book):
     assert book.sheets[0].pictures[0].height == 10
     assert book.sheets[0].pictures[1].height == 30
+
+
+def test_pictures_add(book):
+    sheet = book.sheets[0]
+    sheet.pictures.add(this_dir.parent / "sample_picture.png", name="new")
+    assert len(sheet.pictures) == 3
+    assert sheet.pictures[2].name == "new"
+    assert sheet.pictures[2].impl.index == 3

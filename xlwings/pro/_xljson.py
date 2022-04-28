@@ -666,11 +666,11 @@ class Collection(base_classes.Collection):
             if key > len(self):
                 raise KeyError(key)
             else:
-                return self._wrap(self.parent, key - 1)
+                return self._wrap(self.parent, key)
         else:
             for ix, i in enumerate(self.api):
                 if i["name"] == key:
-                    return self._wrap(self.parent, ix)
+                    return self._wrap(self.parent, ix + 1)
             raise KeyError(key)
 
     def __len__(self):
@@ -693,7 +693,7 @@ class Collection(base_classes.Collection):
 class Picture(base_classes.Picture):
     def __init__(self, parent, key):
         self._parent = parent
-        self._api = self.parent.api["pictures"][key]
+        self._api = self.parent.api["pictures"][key - 1]
         self.key = key
 
     def append_json_action(self, **kwargs):
@@ -720,6 +720,7 @@ class Picture(base_classes.Picture):
 
     @name.setter
     def name(self, value):
+        self.api["name"] = value
         self.append_json_action(func="setPictureName", args=[self.index - 1, value])
 
     @property
@@ -739,13 +740,21 @@ class Picture(base_classes.Picture):
         self.append_json_action(func="setPictureHeight", args=[self.index - 1, value])
 
     @property
+    def left(self):
+        return None
+
+    @property
+    def top(self):
+        return None
+
+    @property
     def index(self):
         if isinstance(self.key, numbers.Number):
-            return self.key + 1
+            return self.key
         else:
             for ix, obj in self.api:
                 if obj["name"] == self.key:
-                    return ix
+                    return ix + 1
             raise KeyError(self.key)
 
     def delete(self):
@@ -801,7 +810,7 @@ class Pictures(base_classes.Pictures, Collection):
         self.parent._api["pictures"].append(
             {"name": "Image", "width": None, "height": None}
         )
-        return Picture(self.parent, len(self.parent.api["pictures"]) - 1)
+        return Picture(self.parent, len(self.parent.api["pictures"]))
 
 
 engine = Engine()
