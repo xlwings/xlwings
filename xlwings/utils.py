@@ -250,7 +250,7 @@ class VersionNumber:
             raise TypeError("Cannot compare other object with version number")
 
 
-def process_image(image, format, savefig_settings):
+def process_image(image, format, mpl_savefig_settings):
     """Returns filename and is_temp_file"""
     image = fspath(image)
     if isinstance(image, str):
@@ -262,8 +262,8 @@ def process_image(image, format, savefig_settings):
     else:
         raise TypeError("Don't know what to do with that image object")
 
-    if savefig_settings is None:
-        savefig_settings = {"bbox_inches": "tight", "dpi": 200}
+    if mpl_savefig_settings is None:
+        mpl_savefig_settings = {"bbox_inches": "tight", "dpi": 200}
 
     if format == "vector":
         if sys.platform.startswith("darwin"):
@@ -277,7 +277,7 @@ def process_image(image, format, savefig_settings):
     if image_type == "mpl":
         canvas = mpl.backends.backend_agg.FigureCanvas(image)
         canvas.draw()
-        image.savefig(filename, **savefig_settings)
+        image.savefig(filename, **mpl_savefig_settings)
         plt.close(image)
     elif image_type == "plotly":
         image.write_image(filename)

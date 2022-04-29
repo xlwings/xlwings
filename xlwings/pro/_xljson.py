@@ -770,7 +770,7 @@ class Picture(base_classes.Picture):
         return self
 
 
-class Pictures(base_classes.Pictures, Collection):
+class Pictures(Collection, base_classes.Pictures):
 
     _attr = "pictures"
     _wrap = Picture
@@ -796,6 +796,11 @@ class Pictures(base_classes.Pictures, Collection):
         height=None,
         anchor=None,
     ):
+        if self.parent.book.api["client"] == "Google Apps Script" and (left or top):
+            raise ValueError(
+                "'left' and 'top' are not supported with Google Sheets. "
+                "Use 'anchor' instead."
+            )
         if anchor is None:
             column_index = 0
             row_index = 0
