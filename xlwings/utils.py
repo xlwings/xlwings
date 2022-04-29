@@ -726,8 +726,8 @@ def excel_update_picture(picture, filename):
 
     picture = picture.parent.pictures.add(
         filename,
-        link_to_file=None,
-        save_with_document=None,
+        link_to_file=False,
+        save_with_document=True,
         left=left,
         top=top,
         width=width,

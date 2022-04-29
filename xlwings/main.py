@@ -4213,8 +4213,7 @@ class Pictures(Collection):
             else:
                 try:
                     pic = self[name]
-                    pic.update(image, format=format)
-                    return pic
+                    return pic.update(image, format=format)
                 except KeyError:
                     pass
 
