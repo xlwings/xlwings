@@ -314,25 +314,25 @@ function setNumberFormat(workbook: ExcelScript.Workbook, action: Action) {
 }
 
 function setPictureName(workbook: ExcelScript.Workbook, action: Action) {
-  throw "Not Implemented";
+  throw "Not Implemented: setPictureName";
 }
 
 function setPictureHeight(workbook: ExcelScript.Workbook, action: Action) {
-  throw "Not Implemented";
+  throw "Not Implemented: setPictureHeight";
 }
 
 function setPictureWidth(workbook: ExcelScript.Workbook, action: Action) {
-  throw "Not Implemented";
+  throw "Not Implemented: setPictureWidth";
 }
 
 function deletePicture(workbook: ExcelScript.Workbook, action: Action) {
-  throw "Not Implemented";
+  throw "Not Implemented: deletePicture";
 }
 
 function addPicture(workbook: ExcelScript.Workbook, action: Action) {
-  throw "Not Implemented";
+  throw "Not Implemented: addPicture";
 }
 
 function updatePicture(workbook: ExcelScript.Workbook, action: Action) {
-  throw "Not Implemented";
+  throw "Not Implemented: updatePicture";
 }
