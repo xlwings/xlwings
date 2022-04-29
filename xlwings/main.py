@@ -4219,7 +4219,7 @@ class Pictures(Collection):
                 except KeyError:
                     pass
 
-        if name in self.parent.pictures:
+        if name and name in self.parent.pictures:
             raise ShapeAlreadyExists(
                 f"'{name}' is already present on {self.parent.name}."
             )
