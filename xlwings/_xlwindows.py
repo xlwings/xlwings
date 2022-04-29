@@ -56,6 +56,7 @@ from .utils import (
     read_config_sheet,
     hex_to_rgb,
 )
+from . import utils
 import xlwings
 
 # Optional imports
@@ -2116,6 +2117,9 @@ class Picture:
     @lock_aspect_ratio.setter
     def lock_aspect_ratio(self, value):
         self.xl.ShapeRange.LockAspectRatio = value
+
+    def update(self, filename):
+        return utils.excel_update_picture(self, filename)
 
 
 class Pictures(Collection):

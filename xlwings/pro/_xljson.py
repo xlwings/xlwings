@@ -740,14 +740,6 @@ class Picture(base_classes.Picture):
         self.append_json_action(func="setPictureHeight", args=[self.index - 1, value])
 
     @property
-    def left(self):
-        return None
-
-    @property
-    def top(self):
-        return None
-
-    @property
     def index(self):
         # TODO: make available in public API
         if isinstance(self.key, numbers.Number):
@@ -775,7 +767,7 @@ class Picture(base_classes.Picture):
                 self.height,
             ],
         )
-        return Picture(self.parent, self.index)
+        return self
 
 
 class Pictures(base_classes.Pictures, Collection):

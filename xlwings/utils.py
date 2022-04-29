@@ -715,3 +715,25 @@ def search_local_sharepoint_path(url, root, sharepoint_config, sharepoint_config
             f"{'edit' if sharepoint_config else 'add'} the {sharepoint_config_name} "
             f"setting including one or more folder levels, see: xlwings.org/error."
         )
+
+
+def excel_update_picture(picture, filename):
+    name = picture.name
+    left, top = picture.left, picture.top
+    width, height = picture.width, picture.height
+
+    picture.delete()
+
+    picture = picture.parent.pictures.add(
+        filename,
+        link_to_file=None,
+        save_with_document=None,
+        left=left,
+        top=top,
+        width=width,
+        height=height,
+        anchor=None,
+    )
+
+    picture.name = name
+    return picture

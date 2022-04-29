@@ -4068,22 +4068,7 @@ class Picture:
             savefig_settings=savefig_settings,
         )
 
-        name = self.name
-        left, top, width, height = self.left, self.top, self.width, self.height
-
-        if left is None:
-            # Hack for Google Sheets (should be handled the same way for Excel)
-            picture = Picture(impl=self.impl.update(filename))
-        else:
-            self.delete()
-
-            # todo: link_to_file, save_with_document
-            picture = self.parent.pictures.add(
-                filename, left=left, top=top, width=width, height=height
-            )
-
-            picture.name = name
-            self.impl = picture.impl
+        picture = Picture(impl=self.impl.update(filename))
 
         # Cleanup temp file
         if is_temp_file:

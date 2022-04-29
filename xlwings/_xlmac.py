@@ -1774,6 +1774,9 @@ class Picture:
     def lock_aspect_ratio(self, value):
         self.xl.lock_aspect_ratio.set(value)
 
+    def update(self, filename):
+        return utils.excel_update_picture(self, filename)
+
 
 class Pictures(Collection):
 
