@@ -24,11 +24,11 @@ class XlwingsError(Exception):
     pass
 
 
-class LicenseError(Exception):
+class LicenseError(XlwingsError):
     pass
 
 
-class ShapeAlreadyExists(Exception):
+class ShapeAlreadyExists(XlwingsError):
     pass
 
 

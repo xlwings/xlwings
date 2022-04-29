@@ -333,3 +333,8 @@ def test_pictures_contains(book):
 
 def test_empty_pictures(book):
     assert not book.sheets[1].pictures
+
+
+def test_picture_exists(book):
+    with pytest.raises(xw.ShapeAlreadyExists):
+        book.sheets[0].pictures.add(this_dir.parent / "sample_picture.png", name="pic1")

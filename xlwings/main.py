@@ -3962,7 +3962,9 @@ class Picture:
             if value == self.name:
                 return
             else:
-                raise ShapeAlreadyExists()
+                raise ShapeAlreadyExists(
+                    f"'{value}' is already present on {self.parent.name}."
+                )
 
         self.impl.name = value
 
@@ -4216,6 +4218,11 @@ class Pictures(Collection):
                     return pic.update(image, format=format)
                 except KeyError:
                     pass
+
+        if name in self.parent.pictures:
+            raise ShapeAlreadyExists(
+                f"'{name}' is already present on {self.parent.name}."
+            )
 
         filename, is_temp_file = utils.process_image(
             image,
