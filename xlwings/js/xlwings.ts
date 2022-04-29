@@ -226,6 +226,12 @@ let funcs = {
   activateSheet: activateSheet,
   addHyperlink: addHyperlink,
   setNumberFormat: setNumberFormat,
+  setPictureName: setPictureName,
+  setPictureWidth: setPictureWidth,
+  setPictureHeight: setPictureHeight,
+  deletePicture: deletePicture,
+  addPicture: addPicture,
+  updatePicture: updatePicture,
 };
 
 // Functions
@@ -304,4 +310,28 @@ function addHyperlink(workbook: ExcelScript.Workbook, action: Action) {
 
 function setNumberFormat(workbook: ExcelScript.Workbook, action: Action) {
   getRange(workbook, action).setNumberFormat(action.args[0].toString());
+}
+
+function setPictureName(workbook: ExcelScript.Workbook, action: Action) {
+  throw "Not Implemented";
+}
+
+function setPictureHeight(workbook: ExcelScript.Workbook, action: Action) {
+  throw "Not Implemented";
+}
+
+function setPictureWidth(workbook: ExcelScript.Workbook, action: Action) {
+  throw "Not Implemented";
+}
+
+function deletePicture(workbook: ExcelScript.Workbook, action: Action) {
+  throw "Not Implemented";
+}
+
+function addPicture(workbook: ExcelScript.Workbook, action: Action) {
+  throw "Not Implemented";
+}
+
+function updatePicture(workbook: ExcelScript.Workbook, action: Action) {
+  throw "Not Implemented";
 }
