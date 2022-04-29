@@ -151,6 +151,7 @@ async function runPython(
     payload["sheets"].push({
       name: sheet.getName(),
       values: values,
+      pictures: [],  // TODO: NotImplemented
     });
   });
 
