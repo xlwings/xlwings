@@ -5,7 +5,7 @@ from app import app
 
 
 @app.post("/hello")
-def hello(data: dict = Body(...)):
+def hello(data: dict = Body):
     # Instantiate a Book object with the deserialized request body
     book = xw.Book(json=data)
 
