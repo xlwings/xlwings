@@ -4215,7 +4215,9 @@ class Pictures(Collection):
             else:
                 try:
                     pic = self[name]
-                    return pic.update(image, format=format)
+                    return pic.update(
+                        image, format=format, mpl_savefig_settings=mpl_savefig_settings
+                    )
                 except KeyError:
                     pass
 
