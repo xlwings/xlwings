@@ -4255,7 +4255,7 @@ class Pictures(Collection):
                 top if top else None,
                 width=im_width,
                 height=im_height,
-                anchor=anchor.impl if anchor else None,
+                anchor=anchor,
             )
         )
 

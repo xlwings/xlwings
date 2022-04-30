@@ -717,14 +717,14 @@ def search_local_sharepoint_path(url, root, sharepoint_config, sharepoint_config
         )
 
 
-def excel_update_picture(picture, filename):
-    name = picture.name
-    left, top = picture.left, picture.top
-    width, height = picture.width, picture.height
+def excel_update_picture(picture_impl, filename):
+    name = picture_impl.name
+    left, top = picture_impl.left, picture_impl.top
+    width, height = picture_impl.width, picture_impl.height
 
-    picture.delete()
+    picture_impl.delete()
 
-    picture = picture.parent.pictures.add(
+    picture_impl = picture_impl.parent.pictures.add(
         filename,
         link_to_file=False,
         save_with_document=True,
@@ -735,5 +735,5 @@ def excel_update_picture(picture, filename):
         anchor=None,
     )
 
-    picture.name = name
-    return picture
+    picture_impl.name = name
+    return picture_impl

@@ -304,13 +304,14 @@ def test_pictures_height(book):
     assert book.sheets[0].pictures[1].height == 30
 
 
-def test_pictures_add(book):
+def test_pictures_add_and_delete(book):
     sheet = book.sheets[0]
     sheet.pictures.add(this_dir.parent / "sample_picture.png", name="new")
     assert len(sheet.pictures) == 3
     assert sheet.pictures[2].name == "new"
     assert sheet.pictures[2].impl.index == 3
     sheet.pictures["new"].delete()
+    assert len(sheet.pictures) == 2
 
 
 def test_pictures_iter(book):
