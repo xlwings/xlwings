@@ -56,6 +56,7 @@ from .utils import (
     read_config_sheet,
     hex_to_rgb,
 )
+from . import utils
 import xlwings
 
 # Optional imports
@@ -2117,6 +2118,9 @@ class Picture:
     def lock_aspect_ratio(self, value):
         self.xl.ShapeRange.LockAspectRatio = value
 
+    def update(self, filename):
+        return utils.excel_update_picture(self, filename)
+
 
 class Pictures(Collection):
 
@@ -2126,7 +2130,28 @@ class Pictures(Collection):
     def parent(self):
         return Sheet(xl=self.xl.Parent)
 
-    def add(self, filename, link_to_file, save_with_document, left, top, width, height):
+    def add(
+        self,
+        filename,
+        link_to_file,
+        save_with_document,
+        left,
+        top,
+        width,
+        height,
+        anchor,
+    ):
+
+        if anchor:
+            if top or left:
+                raise ValueError(
+                    "You must either provide 'anchor' or 'top'/'left', but not both."
+                )
+            top, left = anchor.top, anchor.left
+        else:
+            top = top if top else 0
+            left = left if left else 0
+
         return Picture(
             xl=self.xl.Parent.Shapes.AddPicture(
                 Filename=filename,

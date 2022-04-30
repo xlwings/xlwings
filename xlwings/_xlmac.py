@@ -1774,6 +1774,9 @@ class Picture:
     def lock_aspect_ratio(self, value):
         self.xl.lock_aspect_ratio.set(value)
 
+    def update(self, filename):
+        return utils.excel_update_picture(self, filename)
+
 
 class Pictures(Collection):
 
@@ -1781,7 +1784,24 @@ class Pictures(Collection):
     _kw = kw.picture
     _wrap = Picture
 
-    def add(self, filename, link_to_file, save_with_document, left, top, width, height):
+    def add(
+        self,
+        filename,
+        link_to_file,
+        save_with_document,
+        left,
+        top,
+        width,
+        height,
+        anchor,
+    ):
+
+        if anchor:
+            if top or left:
+                raise ValueError(
+                    "You must either provide 'anchor' or 'top'/'left', but not both."
+                )
+            top, left = anchor.top, anchor.left
 
         version = VersionNumber(self.parent.book.app.version)
 
@@ -1816,8 +1836,8 @@ class Pictures(Collection):
 
         # Top and left cause an issue in the make command above
         # if they are not set to 0 when width & height are -1
-        picture.top = top
-        picture.left = left
+        picture.top = top if top else 0
+        picture.left = left if left else 0
 
         if not link_to_file and version >= 15:
             os.remove(filename)

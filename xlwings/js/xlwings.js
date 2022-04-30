@@ -145,9 +145,20 @@ function runPython(
         });
       });
     }
+
+    let pictures = [];
+    sheet.getImages().forEach((image, ix) => {
+      pictures[ix] = {
+        name: image.getAltTextTitle(),
+        height: image.getHeight(),
+        width: image.getWidth(),
+      };
+    });
+
     payload["sheets"].push({
       name: sheet.getName(),
       values: values,
+      pictures: pictures,
     });
   });
 
@@ -207,6 +218,12 @@ let funcs = {
   activateSheet: activateSheet,
   addHyperlink: addHyperlink,
   setNumberFormat: setNumberFormat,
+  setPictureName: setPictureName,
+  setPictureWidth: setPictureWidth,
+  setPictureHeight: setPictureHeight,
+  deletePicture: deletePicture,
+  addPicture: addPicture,
+  updatePicture: updatePicture,
 };
 
 // Functions
@@ -292,4 +309,64 @@ function addHyperlink(workbook, action) {
 
 function setNumberFormat(workbook, action) {
   getRange(workbook, action).setNumberFormat(action.args[0]);
+}
+
+function setPictureName(workbook, action) {
+  workbook
+    .getSheets()
+    [action.sheet_position].getImages()
+    [action.args[0]].setAltTextTitle(action.args[1]);
+}
+
+function setPictureHeight(workbook, action) {
+  workbook
+    .getSheets()
+    [action.sheet_position].getImages()
+    [action.args[0]].setHeight(action.args[1]);
+}
+
+function setPictureWidth(workbook, action) {
+  workbook
+    .getSheets()
+    [action.sheet_position].getImages()
+    [action.args[0]].setWidth(action.args[1]);
+}
+
+function deletePicture(workbook, action) {
+  workbook
+    .getSheets()
+    [action.sheet_position].getImages()
+    [action.args[0]].remove();
+}
+
+function addPicture(workbook, action) {
+  let imageBlob = Utilities.newBlob(
+    Utilities.base64Decode(action.args[0]),
+    "image/png",
+    "MyImageName"
+  );
+  workbook
+    .getSheets()
+    [action.sheet_position].insertImage(
+      imageBlob,
+      action.args[1] + 1,
+      action.args[2] + 1
+    );
+  SpreadsheetApp.flush();
+}
+
+function updatePicture(workbook, action) {
+  let imageBlob = Utilities.newBlob(
+    Utilities.base64Decode(action.args[0]),
+    "image/png",
+    "MyImageName"
+  );
+  let img = workbook.getSheets()[action.sheet_position].getImages()[
+    action.args[1]
+  ];
+  img.replace(imageBlob);
+  img.setAltTextTitle(action.args[2]);
+  img.setWidth(action.args[3]);
+  img.setHeight(action.args[4]);
+  SpreadsheetApp.flush();
 }

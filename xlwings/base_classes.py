@@ -556,3 +556,94 @@ class Range:
 
     def to_pdf(self, path, quality):
         raise NotImplementedError()
+
+
+class Picture:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def name(self):
+        raise NotImplementedError()
+
+    @name.setter
+    def name(self, value):
+        raise NotImplementedError()
+
+    @property
+    def parent(self):
+        raise NotImplementedError()
+
+    @property
+    def left(self):
+        raise NotImplementedError()
+
+    @left.setter
+    def left(self, value):
+        raise NotImplementedError()
+
+    @property
+    def top(self):
+        raise NotImplementedError()
+
+    @top.setter
+    def top(self, value):
+        raise NotImplementedError()
+
+    @property
+    def width(self):
+        raise NotImplementedError()
+
+    @width.setter
+    def width(self, value):
+        raise NotImplementedError()
+
+    @property
+    def height(self):
+        raise NotImplementedError()
+
+    @height.setter
+    def height(self, value):
+        raise NotImplementedError()
+
+    def delete(self):
+        raise NotImplementedError()
+
+    @property
+    def lock_aspect_ratio(self):
+        raise NotImplementedError()
+
+    @lock_aspect_ratio.setter
+    def lock_aspect_ratio(self, value):
+        raise NotImplementedError()
+
+    def index(self):
+        raise NotImplementedError()
+
+
+class Collection:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def parent(self):
+        raise NotImplementedError()
+
+    def __call__(self, key):
+        raise NotImplementedError()
+
+    def __len__(self):
+        raise NotImplementedError()
+
+    def __iter__(self):
+        raise NotImplementedError()
+
+    def __contains__(self, key):
+        raise NotImplementedError()
+
+
+class Pictures:
+    def add(self, filename, link_to_file, save_with_document, left, top, width, height):
+        raise NotImplementedError()

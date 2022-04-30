@@ -250,7 +250,7 @@ class VersionNumber:
             raise TypeError("Cannot compare other object with version number")
 
 
-def process_image(image, format):
+def process_image(image, format, mpl_savefig_settings):
     """Returns filename and is_temp_file"""
     image = fspath(image)
     if isinstance(image, str):
@@ -261,6 +261,9 @@ def process_image(image, format):
         image_type = "plotly"
     else:
         raise TypeError("Don't know what to do with that image object")
+
+    if mpl_savefig_settings is None:
+        mpl_savefig_settings = {"bbox_inches": "tight", "dpi": 200}
 
     if format == "vector":
         if sys.platform.startswith("darwin"):
@@ -274,7 +277,7 @@ def process_image(image, format):
     if image_type == "mpl":
         canvas = mpl.backends.backend_agg.FigureCanvas(image)
         canvas.draw()
-        image.savefig(filename, bbox_inches="tight", dpi=300)
+        image.savefig(filename, **mpl_savefig_settings)
         plt.close(image)
     elif image_type == "plotly":
         image.write_image(filename)
@@ -712,3 +715,25 @@ def search_local_sharepoint_path(url, root, sharepoint_config, sharepoint_config
             f"{'edit' if sharepoint_config else 'add'} the {sharepoint_config_name} "
             f"setting including one or more folder levels, see: xlwings.org/error."
         )
+
+
+def excel_update_picture(picture_impl, filename):
+    name = picture_impl.name
+    left, top = picture_impl.left, picture_impl.top
+    width, height = picture_impl.width, picture_impl.height
+
+    picture_impl.delete()
+
+    picture_impl = picture_impl.parent.pictures.add(
+        filename,
+        link_to_file=False,
+        save_with_document=True,
+        left=left,
+        top=top,
+        width=width,
+        height=height,
+        anchor=None,
+    )
+
+    picture_impl.name = name
+    return picture_impl

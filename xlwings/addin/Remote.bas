@@ -98,6 +98,7 @@ Function RunRemotePython( _
         Dim sheetDict As Dictionary
         Set sheetDict = New Dictionary
         sheetDict.Add "name", wb.Worksheets(i).Name
+        sheetDict.Add "pictures", Array()  'TODO: NotImplemented
         Dim values As Variant
         If IsInArray(wb.Worksheets(i).Name, excludeArray) Then
             values = Array(Array())
@@ -106,6 +107,7 @@ Function RunRemotePython( _
         Else
             Dim startRow As Integer, startCol As Integer
             Dim nRows As Integer, nCols As Integer
+            Dim myUsedRange As Range
             With wb.Worksheets(i).UsedRange
                 startRow = .Row
                 startCol = .Column
@@ -113,11 +115,12 @@ Function RunRemotePython( _
                 nCols = .Columns.Count
             End With
             With wb.Worksheets(i)
-                values = .Range( _
+                Set myUsedRange = .Range( _
                     .Cells(1, 1), _
                     .Cells(startRow + nRows - 1, startCol + nCols - 1) _
-                ).Value
-                If nRows = 1 And nCols = 1 Then
+                )
+                values = myUsedRange.Value
+                If myUsedRange.Count = 1 Then
                     values = Array(Array(values))
                 End If
             End With
@@ -349,6 +352,31 @@ Sub addHyperlink(wb As Workbook, action As Dictionary)
         ScreenTip:=action("args")(3)
 End Sub
 
-Sub setNumberFormat(wb As Workbook, action as Dictionary)
+Sub setNumberFormat(wb As Workbook, action As Dictionary)
     GetRange(wb, action).NumberFormat = action("args")(1)
 End Sub
+
+Sub setPictureName(wb As Workbook, action As Dictionary)
+    Err.Raise vbObjectError + 513, , "Not Implemented: setPictureName"
+End Sub
+
+Sub setPictureHeight(wb As Workbook, action As Dictionary)
+    Err.Raise vbObjectError + 513, , "Not Implemented: setPictureHeight"
+End Sub
+
+Sub setPictureWidth(wb As Workbook, action As Dictionary)
+    Err.Raise vbObjectError + 513, , "Not Implemented: setPictureWidth"
+End Sub
+
+Sub deletePicture(wb As Workbook, action As Dictionary)
+    Err.Raise vbObjectError + 513, , "Not Implemented: deletePicture"
+End Sub
+
+Sub addPicture(wb As Workbook, action As Dictionary)
+    Err.Raise vbObjectError + 513, , "Not Implemented: addPicture"
+End Sub
+
+Sub updatePicture(wb As Workbook, action As Dictionary)
+    Err.Raise vbObjectError + 513, , "Not Implemented: updatePicture"
+End Sub
+

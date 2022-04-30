@@ -28,8 +28,20 @@ data = {
                 [4.0, 5.0, 6.0, ""],
                 ["", "", "", ""],
             ],
+            "pictures": [
+                {
+                    "name": "pic1",
+                    "height": 10,
+                    "width": 20,
+                },
+                {
+                    "name": "pic2",
+                    "height": 30,
+                    "width": 40,
+                },
+            ],
         },
-        {"name": "Sheet2", "values": [["aa", "bb"], [11.0, 22.0]]},
+        {"name": "Sheet2", "values": [["aa", "bb"], [11.0, 22.0]], "pictures": []},
         {
             "name": "Sheet3",
             "values": [
@@ -38,6 +50,7 @@ data = {
                 [True, False],
                 ["2021-10-01T00:00:00.000Z", "2021-12-31T23:35:00.000Z"],
             ],
+            "pictures": [],
         },
     ],
 }
@@ -267,3 +280,62 @@ def test_book(book):
 
 def test_book_selection(book):
     assert book.selection.address == "$B$3:$B$4"
+
+
+# pictures
+def test_pictures_len(book):
+    assert len(book.sheets[0].pictures) == 2
+
+
+def test_pictures_name(book):
+    assert book.sheets[0].pictures[0].name == "pic1"
+    assert book.sheets[0].pictures[1].name == "pic2"
+    assert book.sheets[0].pictures(1).name == "pic1"
+    assert book.sheets[0].pictures(2).name == "pic2"
+
+
+def test_pictures_width(book):
+    assert book.sheets[0].pictures[0].width == 20
+    assert book.sheets[0].pictures[1].width == 40
+
+
+def test_pictures_height(book):
+    assert book.sheets[0].pictures[0].height == 10
+    assert book.sheets[0].pictures[1].height == 30
+
+
+def test_pictures_add_and_delete(book):
+    sheet = book.sheets[0]
+    sheet.pictures.add(this_dir.parent / "sample_picture.png", name="new")
+    assert len(sheet.pictures) == 3
+    assert sheet.pictures[2].name == "new"
+    assert sheet.pictures[2].impl.index == 3
+    sheet.pictures["new"].delete()
+    assert len(sheet.pictures) == 2
+
+
+def test_pictures_iter(book):
+    sheet = book.sheets[0]
+    pic_names = []
+    for pic in sheet.pictures:
+        pic_names.append(pic.name)
+    assert pic_names == ["pic1", "pic2"]
+
+
+def test_pictures_contains(book):
+    sheet = book.sheets[0]
+    assert "pic1" in sheet.pictures
+    assert 1 in sheet.pictures
+    assert "pic2" in sheet.pictures
+    assert 2 in sheet.pictures
+    assert "no" not in sheet.pictures
+    assert 3 not in sheet.pictures
+
+
+def test_empty_pictures(book):
+    assert not book.sheets[1].pictures
+
+
+def test_picture_exists(book):
+    with pytest.raises(xw.ShapeAlreadyExists):
+        book.sheets[0].pictures.add(this_dir.parent / "sample_picture.png", name="pic1")

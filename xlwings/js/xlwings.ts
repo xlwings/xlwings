@@ -151,6 +151,7 @@ async function runPython(
     payload["sheets"].push({
       name: sheet.getName(),
       values: values,
+      pictures: [],  // TODO: NotImplemented
     });
   });
 
@@ -226,6 +227,12 @@ let funcs = {
   activateSheet: activateSheet,
   addHyperlink: addHyperlink,
   setNumberFormat: setNumberFormat,
+  setPictureName: setPictureName,
+  setPictureWidth: setPictureWidth,
+  setPictureHeight: setPictureHeight,
+  deletePicture: deletePicture,
+  addPicture: addPicture,
+  updatePicture: updatePicture,
 };
 
 // Functions
@@ -304,4 +311,28 @@ function addHyperlink(workbook: ExcelScript.Workbook, action: Action) {
 
 function setNumberFormat(workbook: ExcelScript.Workbook, action: Action) {
   getRange(workbook, action).setNumberFormat(action.args[0].toString());
+}
+
+function setPictureName(workbook: ExcelScript.Workbook, action: Action) {
+  throw "Not Implemented: setPictureName";
+}
+
+function setPictureHeight(workbook: ExcelScript.Workbook, action: Action) {
+  throw "Not Implemented: setPictureHeight";
+}
+
+function setPictureWidth(workbook: ExcelScript.Workbook, action: Action) {
+  throw "Not Implemented: setPictureWidth";
+}
+
+function deletePicture(workbook: ExcelScript.Workbook, action: Action) {
+  throw "Not Implemented: deletePicture";
+}
+
+function addPicture(workbook: ExcelScript.Workbook, action: Action) {
+  throw "Not Implemented: addPicture";
+}
+
+function updatePicture(workbook: ExcelScript.Workbook, action: Action) {
+  throw "Not Implemented: updatePicture";
 }
