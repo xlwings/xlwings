@@ -4043,7 +4043,7 @@ class Picture:
     def __repr__(self):
         return "<Picture '{0}' in {1}>".format(self.name, self.parent)
 
-    def update(self, image, format=None, mpl_savefig_settings=None):
+    def update(self, image, format=None, export_options=None):
         """
         Replaces an existing picture with a new one, taking over the attributes of the
         existing picture.
@@ -4057,7 +4057,7 @@ class Picture:
         format : str, default None
             See under ``Pictures.add()``
 
-        mpl_savefig_settings : dict, default None
+        export_options : dict, default None
             See under ``Pictures.add()``
 
 
@@ -4067,7 +4067,7 @@ class Picture:
         filename, is_temp_file = utils.process_image(
             image,
             format="png" if not format else format,
-            mpl_savefig_settings=mpl_savefig_settings,
+            export_options=export_options,
         )
 
         picture = Picture(impl=self.impl.update(filename))
@@ -4129,7 +4129,7 @@ class Pictures(Collection):
         scale=None,
         format=None,
         anchor=None,
-        mpl_savefig_settings=None,
+        export_options=None,
     ):
         """
         Adds a picture to the specified sheet.
@@ -4179,11 +4179,12 @@ class Pictures(Collection):
 
             .. versionadded:: 0.24.3
 
-        mpl_savefig_settings : dict, default None
-            For Matplotlib plots, this dictionary is passed on to ``image.savefig()``.
-            Uses the following defaults: ``{"bbox_inches": "tight", "dpi": 200}``, so
-            if you want to leave things uncropped and increase dpi to 300, you'd do:
-            ``mpl_savefig_settings={"dpi": 300}``
+        export_options : dict, default None
+            For Matplotlib plots, this dictionary is passed on to ``image.savefig()``
+            with the following defaults: ``{"bbox_inches": "tight", "dpi": 200}``, so
+            if you want to leave the picture uncropped and increase dpi to 300, use:
+            ``export_options={"dpi": 300}``. For Plotly, the options are passed to
+            ``write_image()``.
 
             .. versionadded:: 0.27.7
 
@@ -4216,7 +4217,7 @@ class Pictures(Collection):
                 try:
                     pic = self[name]
                     return pic.update(
-                        image, format=format, mpl_savefig_settings=mpl_savefig_settings
+                        image, format=format, export_options=export_options
                     )
                 except KeyError:
                     pass
@@ -4229,7 +4230,7 @@ class Pictures(Collection):
         filename, is_temp_file = utils.process_image(
             image,
             format="png" if not format else format,
-            mpl_savefig_settings=mpl_savefig_settings,
+            export_options=export_options,
         )
 
         if not (link_to_file or save_with_document):

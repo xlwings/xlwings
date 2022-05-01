@@ -104,7 +104,7 @@ Here are a few examples of how you get a matplotlib ``figure`` object:
 
 
 .. note::
-    When working with Google Sheets, you can use a maximum of 1 million pixels per picture. Total pixels is a function of figure size and dpi: (width in inches * dpi) * (height in inches * dpi). For example, ``fig = plt.figure(figsize=(6, 4))`` with 200 dpi (default dpi when using ``pictures.add()``) will result in (6 * 200) * (4 * 200) = 960,000 px. To change the dpi, provide ``mpl_savefig_settings``: ``pictures.add(fig, mpl_savefig_settings={"bbox_inches": "tight", "dpi": 300})``. Existing figure size can be checked via ``fig.get_size_inches()``. pandas also accepts ``figsize`` like so:  ``ax = df.plot(figsize=(3, 3))``. Note that ``"bbox_inches": "tight"`` crops the image and therefore will reduce the number of pixels in a non-deterministic way.
+    When working with Google Sheets, you can use a maximum of 1 million pixels per picture. Total pixels is a function of figure size and dpi: (width in inches * dpi) * (height in inches * dpi). For example, ``fig = plt.figure(figsize=(6, 4))`` with 200 dpi (default dpi when using ``pictures.add()``) will result in (6 * 200) * (4 * 200) = 960,000 px. To change the dpi, provide ``export_options``: ``pictures.add(fig, export_options={"bbox_inches": "tight", "dpi": 300})``. Existing figure size can be checked via ``fig.get_size_inches()``. pandas also accepts ``figsize`` like so:  ``ax = df.plot(figsize=(3, 3))``. Note that ``"bbox_inches": "tight"`` crops the image and therefore will reduce the number of pixels in a non-deterministic way. ``export_options`` will be passed to ``figure.figsave()`` when using Matplotlib and to ``figure.write_image()`` when using Plotly.
 
 .. _plotly:
 
