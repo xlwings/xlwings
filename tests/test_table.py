@@ -130,7 +130,7 @@ class TestTableUpdate(unittest.TestCase):
             }
         )
         book = xw.Book(Path("tables.xlsx").resolve())
-        sheet = book.sheets["Sheet1"]
+        sheet = book.sheets["template"].copy()
         sheet.tables[0].update(df)
         sheet.tables[1].update(df)
         sheet.tables[2].update(df)

@@ -3446,23 +3446,40 @@ class Table:
         if pd:
             if not isinstance(data, pd.DataFrame):
                 raise TypeError(type_error_msg)
-            col_diff = (
-                len(self.range.columns)
-                - (
+            if data.empty:
+                nrows_data = 1
+            else:
+                nrows_data = len(data)
+            nrows_table = len(self.data_body_range.rows) if self.data_body_range else 1
+            row_diff = nrows_table - nrows_data
+            if data.empty:
+                ncols_data = 1
+            else:
+                ncols_data = (
                     len(data.columns)
-                    if not data.columns.empty
-                    else len(self.range.columns)
+                    if not index
+                    else len(data.columns) + len(data.index.names)
                 )
-                - (len(data.index.names) if index else 0)
-            )
-            nrows = len(self.data_body_range.rows) if self.data_body_range else 1
-            row_diff = nrows - len(data.index)
+            ncols_table = len(self.range.columns)
+            col_diff = ncols_table - ncols_data
+            cols_to_be_cleared = None
             if col_diff > 0:
-                self.range[:, len(self.range.columns) - col_diff :].delete()
+                cols_to_be_cleared = self.range[:, ncols_table - col_diff :]
+            rows_to_be_cleared = None
             if row_diff > 0 and self.data_body_range:
-                self.data_body_range[
-                    len(self.data_body_range.rows) - row_diff :, :
-                ].delete()
+                rows_to_be_cleared = self.data_body_range[nrows_table - row_diff :, :]
+            self.resize(
+                self.range[0, 0].resize(
+                    row_size=nrows_data + 1 if self.header_row_range else nrows_data,
+                    column_size=ncols_data,
+                )
+            )
+            # Clearing must happen after resizing as table headers will be replaced
+            # with Column1 etc. if deleted while still being part of table
+            if cols_to_be_cleared:
+                cols_to_be_cleared.clear_contents()
+            if rows_to_be_cleared:
+                rows_to_be_cleared.clear_contents()
             if self.header_row_range:
                 # Tables with 'Header Row' checked
                 header = (
@@ -3484,14 +3501,8 @@ class Table:
                 self.range[0, 0].options(index=index, header=False).value = data
                 # If the top-left cell isn't empty, it doesn't manage to resize the
                 # columns automatically
-                data_rows = len(data)
-                data_cols = (
-                    len(data.columns)
-                    if not index
-                    else len(data.columns) + len(data.index.names)
-                )
                 self.resize(
-                    self.range[0, 0].resize(row_size=data_rows, column_size=data_cols)
+                    self.range[0, 0].resize(row_size=nrows_data, column_size=ncols_data)
                 )
             return self
         else:
