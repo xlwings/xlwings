@@ -105,7 +105,7 @@ Public Function RunPython(PythonCommand As String)
             MsgBox "Embedded code requires a valid LICENSE_KEY."
             Exit Function
         Else
-            PythonCommand = "import xlwings.pro;xlwings.pro.runpython_embedded_code(\" & Chr(34) & SourcePythonCommand & "\" & Chr(34) & ")"
+            PythonCommand = "import xlwings.pro;xlwings.pro.runpython_embedded_code('" & SourcePythonCommand & "')"
         End If
     End If
 
