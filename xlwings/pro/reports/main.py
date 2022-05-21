@@ -20,13 +20,13 @@ import warnings
 try:
     from jinja2 import Environment, nodes
 except ImportError:
-    pass
+    Environment, nodes = None, None
 
 from . import filters
 from .markdown import Markdown
 from .image import Image
 from ..utils import LicenseHandler
-from ...main import Book
+from ...main import Book, XlwingsError
 
 try:
     import PIL
@@ -92,6 +92,10 @@ def render_sheet(sheet, **data):
     print_area = sheet.page_setup.print_area
 
     # A Jinja env defines the placeholder markers and allows to register custom filters
+    if not Environment:
+        raise XlwingsError(
+            "Couldn't find the 'jinja2' package, which is required for xlwings Reports."
+        )
     env = Environment()
     env.filters["datetime"] = filters.datetime
     env.filters["format"] = filters.fmt  # This overrides Jinja's built-in filter
