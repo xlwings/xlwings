@@ -550,7 +550,12 @@ def release(args):
         interpreter_path = None
     if interpreter_path and Path(interpreter_path).is_file():
         res = subprocess.run(
-            [interpreter_path, "-c", "import xlwings;print(xlwings.__version__)"],
+            [
+                interpreter_path,
+                "-c",
+                "import warnings;warnings.filterwarnings('ignore');"
+                "import xlwings;print(xlwings.__version__)",
+            ],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             encoding="utf-8",
