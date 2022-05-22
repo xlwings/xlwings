@@ -1,6 +1,14 @@
 What's New
 ==========
 
+v0.27.8 (May 22, 2022)
+----------------------
+
+* :bdg-info:`Enhancement` Smarter shrinking of Excel tables when using ``mytable.update(df)`` as it doesn't delete rows below the table anymore (:issue:`1908`).
+* :bdg-warning:`Bug Fix` Fixed a regression when ``RunPyhon`` was used with ``Use UDF Server = True`` (introduced in v0.26.2) (:issue:`1912`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` The ``xlwings release`` command would sometimes incorrectly show a version mismatch error (:issue:`1918`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Reports now raises an explicit error when Jinja2 is missing (:issue:`1637`).
+
 v0.27.7 (May 1, 2022)
 ---------------------
 
