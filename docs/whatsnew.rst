@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.27.9 (Jun 4, 2022)
+---------------------
+
+* :bdg-warning:`Bug Fix` Fixes a bug on Windows that caused an Excel Zombie process with pywin32 > v301 (:issue:`1929`).
+
 v0.27.8 (May 22, 2022)
 ----------------------
 
