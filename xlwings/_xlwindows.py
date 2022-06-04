@@ -26,6 +26,15 @@ import ctypes
 from ctypes import oledll, PyDLL, py_object, byref, windll
 
 import pythoncom
+
+# Patching CoClassBaseClass, see https://github.com/xlwings/xlwings/issues/1789
+import win32com.client
+
+from ._win32patch import CoClassBaseClass
+
+win32com.client.CoClassBaseClass = CoClassBaseClass
+# End Patch
+
 from win32com.client import (
     Dispatch,
     CoClassBaseClass,
