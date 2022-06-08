@@ -28,7 +28,7 @@ from . import conversion, Range, apps, Book, PRO, LicenseError
 from .utils import VBAWriter, exception, get_cached_user_config
 
 if PRO:
-    from .pro.embedded_code import dump_embedded_code, get_udf_temp_dir
+    from .pro.embedded_code import dump_embedded_code, TEMPDIR
     from .pro import verify_execute_permission
 
 logger = logging.getLogger(__name__)
@@ -377,8 +377,7 @@ async def delayed_resize_dynamic_array_formula(target_range, caller):
 
 # Setup temp dir for embedded code
 if PRO:
-    tempdir = get_udf_temp_dir()
-    sys.path[0:0] = [tempdir.name]  # required for permissioning
+    sys.path[0:0] = [TEMPDIR]  # required for permissioning
 
 
 def get_udf_module(module_name, xl_workbook):
@@ -400,7 +399,7 @@ def get_udf_module(module_name, xl_workbook):
                 if sheet.name.endswith(".py") and not PRO:
                     raise LicenseError("Embedded code requires a valid LICENSE_KEY.")
                 elif PRO:
-                    dump_embedded_code(wb, tempdir.name)
+                    dump_embedded_code(wb, TEMPDIR)
 
         # Permission check
         if (

@@ -17,6 +17,11 @@ import binascii
 import datetime as dt
 import warnings
 import xlwings  # To prevent circular imports
+import time
+import glob
+import shutil
+import tempfile
+import atexit
 
 from ..utils import read_config_sheet
 
@@ -134,3 +139,20 @@ class LicenseHandler:
             }
         ).encode()
         return cipher_suite.encrypt(license_dict).decode()
+
+
+def get_embedded_code_temp_dir():
+    tmp_base_path = os.path.join(tempfile.gettempdir(), "xlwings")
+    os.makedirs(tmp_base_path, exist_ok=True)
+    try:
+        # HACK: Clean up directories that are older than 30 days
+        # This should be done in the C++ part when the Python process is killed
+        for subdir in glob.glob(tmp_base_path + "/*/"):
+            if os.path.getmtime(subdir) < time.time() - 30 * 86400:
+                shutil.rmtree(subdir, ignore_errors=True)
+    except Exception:
+        pass  # we don't care if it fails
+    tempdir = tempfile.mkdtemp(dir=tmp_base_path)
+    # This only works for RunPython calls running outside the COM server
+    atexit.register(shutil.rmtree, tempdir)
+    return tempdir
