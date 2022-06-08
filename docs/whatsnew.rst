@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.27.10 (Jun 8, 2022)
+----------------------
+
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` This release fixes a ``FileNotFound`` error that could sometimes happen with embedded code (:issue:`1931`).
+
 v0.27.9 (Jun 4, 2022)
 ---------------------
 
