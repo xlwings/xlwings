@@ -422,6 +422,8 @@ class Engine:
     def prepare_xl_data_element(x):
         if isinstance(x, time_types):
             return _datetime_to_com_time(x)
+        elif pd and pd.isna(x):
+            return ""
         elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
             return ""
         elif np and isinstance(x, np.number):
