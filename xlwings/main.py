@@ -819,7 +819,10 @@ class Book:
                 candidates = []
                 for app in apps:
                     for wb in app.books:
-                        if (
+                        # Comparing by name first saves us from having to compare the
+                        # fullname for non-candidates, which can get around issues in
+                        # case the fullname is a problematic URL (GH 1946)
+                        if wb.name.lower() == os.path.split(fullname)[1].lower() and (
                             wb.fullname.lower() == fullname
                             or wb.name.lower() == fullname
                         ):
