@@ -1,6 +1,13 @@
 What's New
 ==========
 
+v0.27.11 (Jul 6, 2022)
+----------------------
+
+* :bdg-info:`Enhancement` Added support for pandas ``pd.NA`` (:issue:`1939`).
+* :bdg-warning:`Bug Fix` Empty cells in UDFs are now properly returned as ``None`` / ``NaN`` instead of an empty string (:issue:`1947`).
+* :bdg-warning:`Bug Fix` Resolved an issue with OneDrive/SharePoint files that are unsynced locally (:issue:`1946`).
+
 v0.27.10 (Jun 8, 2022)
 ----------------------
 
