@@ -435,6 +435,7 @@ class Engine:
 
     @staticmethod
     def clean_value_data(data, datetime_builder, empty_as, number_builder):
+        # TODO: deduplicate
         if number_builder is not None:
             return [
                 [
@@ -444,7 +445,7 @@ class Engine:
                     if type(c) == float
                     else empty_as
                     # #DIV/0!, #N/A, #NAME?, #NULL!, #NUM!, #REF!, #VALUE!
-                    if c is None
+                    if c in (None, "")
                     or (
                         isinstance(c, int)
                         and c
@@ -469,7 +470,7 @@ class Engine:
                     _com_time_to_datetime(c, datetime_builder)
                     if isinstance(c, time_types)
                     else empty_as
-                    if c is None
+                    if c in (None, "")
                     or (
                         isinstance(c, int)
                         and c
