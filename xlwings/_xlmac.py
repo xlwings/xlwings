@@ -77,6 +77,8 @@ class Engine:
     def prepare_xl_data_element(x):
         if x is None:
             return ""
+        elif pd and pd.isna(x):
+            return ""
         elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
             return ""
         elif np and isinstance(x, np.datetime64):
