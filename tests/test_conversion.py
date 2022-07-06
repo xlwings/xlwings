@@ -614,6 +614,14 @@ class TestPandas(TestBase):
             self.wb1.sheets[0]["A1"].options(expand="table").value,
         )
 
+    def test_NA(self):
+        df = pd.DataFrame([pd.NA, np.nan], index=[0.0, 1.0], columns=["one"])
+        self.wb1.sheets[0].range("A1").value = df
+        assert_frame_equal(
+            df,
+            self.wb1.sheets[0].range("A1").options(pd.DataFrame, expand="table").value,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
