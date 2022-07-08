@@ -663,6 +663,19 @@ class App:
     def range(self, arg1, arg2=None):
         if isinstance(arg1, Range):
             xl1 = arg1.xl
+        elif isinstance(arg1, tuple):
+            if len(arg1) == 4:
+                row, col, nrows, ncols = arg1
+                return Range(xl=(self.xl, row, col, nrows, ncols))
+            if 0 in arg1:
+                raise IndexError(
+                    "Attempted to access 0-based Range. "
+                    "xlwings/Excel Ranges are 1-based."
+                )
+            xl1 = self.xl.Cells(arg1[0], arg1[1])
+        elif isinstance(arg1, numbers.Number) and isinstance(arg2, numbers.Number):
+            xl1 = self.xl.Cells(arg1, arg2)
+            arg2 = None
         else:
             xl1 = self.xl.Range(arg1)
 
