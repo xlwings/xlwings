@@ -1,7 +1,8 @@
 Attribute VB_Name = "WebHelpers"
 ''
 ' CHANGES:
-' ParseIso and ConvertToIso have been changed to not do any timezone conversion
+' * ParseIso and ConvertToIso have been changed to not do any timezone conversion
+' * ConvertToJson has been changed to add support for vbError
 '
 ' WebHelpers v4.1.6
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
@@ -767,9 +768,9 @@ Public Function ParseByFormat(Value As String, Format As WebFormat, _
             Set web_Instance = web_Converter("Instance")
 
             If web_Converter("ParseType") = "Binary" Then
-                Set ParseByFormat = VBA.CallByName(web_Instance, web_Callback, VBA.vbMethod, Bytes)
+                Set ParseByFormat = VBA.CallByName(web_Instance, web_Callback, VBA.VbMethod, Bytes)
             Else
-                Set ParseByFormat = VBA.CallByName(web_Instance, web_Callback, VBA.vbMethod, Value)
+                Set ParseByFormat = VBA.CallByName(web_Instance, web_Callback, VBA.VbMethod, Value)
             End If
         Else
             If web_Converter("ParseType") = "Binary" Then
@@ -827,7 +828,7 @@ Public Function ConvertToFormat(Obj As Variant, Format As WebFormat, Optional Cu
         If web_Converter.Exists("Instance") Then
             Dim web_Instance As Object
             Set web_Instance = web_Converter("Instance")
-            ConvertToFormat = VBA.CallByName(web_Instance, web_Callback, VBA.vbMethod, Obj)
+            ConvertToFormat = VBA.CallByName(web_Instance, web_Callback, VBA.VbMethod, Obj)
         Else
             ConvertToFormat = Application.Run(web_Callback, Obj)
         End If
@@ -2115,6 +2116,23 @@ Public Function ConvertToJson(ByVal JsonValue As Variant, Optional ByVal Whitesp
         Else
             ConvertToJson = "false"
         End If
+    Case VBA.vbError ' CHANGED: handle vbError
+        Select Case CStr(JsonValue)
+        Case "Error 2007"
+            ConvertToJson = """" & "#DIV/0!" & """"
+        Case "Error 2042"
+            ConvertToJson = """" & "#N/A" & """"
+        Case "Error 2029"
+            ConvertToJson = """" & "#NAME?" & """"
+        Case "Error 2000"
+            ConvertToJson = """" & "#NULL!" & """"
+        Case "Error 2036"
+            ConvertToJson = """" & "#NUM!" & """"
+        Case "Error 2023"
+            ConvertToJson = """" & "#REF!" & """"
+        Case "Error 2015"
+            ConvertToJson = """" & "#VALUE!" & """"
+        End Select
     Case VBA.vbArray To VBA.vbArray + VBA.vbByte
         If json_PrettyPrint Then
             If VBA.VarType(Whitespace) = VBA.vbString Then
