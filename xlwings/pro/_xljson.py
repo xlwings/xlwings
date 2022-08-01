@@ -820,7 +820,14 @@ class Pictures(Collection, base_classes.Pictures):
         with open(filename, "rb") as image_file:
             encoded_image_string = base64.b64encode(image_file.read())
         self.append_json_action(
-            func="addPicture", args=[encoded_image_string, column_index, row_index]
+            func="addPicture",
+            args=[
+                encoded_image_string,
+                column_index,
+                row_index,
+                left if left else 0,
+                top if top else 0,
+            ],
         )
         self.parent._api["pictures"].append(
             {"name": "Image", "width": None, "height": None}

@@ -98,7 +98,30 @@ Function RunRemotePython( _
         Dim sheetDict As Dictionary
         Set sheetDict = New Dictionary
         sheetDict.Add "name", wb.Worksheets(i).Name
-        sheetDict.Add "pictures", Array()  'TODO: NotImplemented
+
+        ' Pictures
+        Dim pic As Picture
+        Dim pics() As Dictionary
+        Dim nPics As Integer
+        Dim nPic As Integer
+        nPics =  wb.Worksheets(i).Pictures.Count
+        If nPics > 0 Then
+            ReDim pics(nPics - 1)
+            For nPic = 1 To nPics
+                Set pic =  wb.Worksheets(i).Pictures(nPic)
+                Dim picDict As Dictionary
+                Set picDict = New Dictionary
+                picDict.Add "name", pic.Name
+                picDict.Add "height", pic.Height
+                picDict.Add "width", pic.Width
+                Set pics(nPic - 1) = picDict
+            Next
+            sheetDict.Add "pictures", pics
+        Else
+            sheetDict.Add "pictures", Array()
+        End If
+
+        ' Values
         Dim values As Variant
         If IsInArray(wb.Worksheets(i).Name, excludeArray) Then
             values = Array(Array())
@@ -282,6 +305,22 @@ ErrHandler:
     IsInArray = False
 End Function
 
+Function base64ToPic(base64string As Variant) As String
+    Dim tempPath As String
+    ' TODO: handle other image formats than png
+    #If Mac Then
+        tempPath = GetMacDir("$HOME", False) & "xlwings-" & CreateGUID() & ".png"
+        Dim rv As Variant
+        rv = ExecuteInShell("echo """ & base64string & """ | base64 -d > " & tempPath).Output
+    #Else
+        tempPath = Environ("Temp") & "\xlwings-" & CreateGUID() & ".png"
+        Open tempPath For Binary As #1
+           Put #1, 1, Base64Decode(base64string)
+        Close #1
+    #End If
+    base64ToPic = tempPath
+End Function
+
 ' Functions
 Sub setValues(wb As Workbook, action As Dictionary)
     Dim arr() As Variant
@@ -357,26 +396,47 @@ Sub setNumberFormat(wb As Workbook, action As Dictionary)
 End Sub
 
 Sub setPictureName(wb As Workbook, action As Dictionary)
-    Err.Raise vbObjectError + 513, , "Not Implemented: setPictureName"
+    wb.Sheets(action("sheet_position") + 1).Pictures(action("args")(1) + 1).Name = action("args")(2)
 End Sub
 
 Sub setPictureHeight(wb As Workbook, action As Dictionary)
-    Err.Raise vbObjectError + 513, , "Not Implemented: setPictureHeight"
+    wb.Sheets(action("sheet_position") + 1).Pictures(action("args")(1) + 1).Height = action("args")(2)
 End Sub
 
 Sub setPictureWidth(wb As Workbook, action As Dictionary)
-    Err.Raise vbObjectError + 513, , "Not Implemented: setPictureWidth"
+    wb.Sheets(action("sheet_position") + 1).Pictures(action("args")(1) + 1).Width = action("args")(2)
 End Sub
 
 Sub deletePicture(wb As Workbook, action As Dictionary)
-    Err.Raise vbObjectError + 513, , "Not Implemented: deletePicture"
+    wb.Sheets(action("sheet_position") + 1).Pictures(action("args")(1) + 1).Delete
 End Sub
 
 Sub addPicture(wb As Workbook, action As Dictionary)
-    Err.Raise vbObjectError + 513, , "Not Implemented: addPicture"
+    Dim tempPath As String
+    tempPath = base64ToPic(action("args")(1))
+    wb.Sheets(action("sheet_position") + 1).Shapes.addPicture tempPath, False, True, action("args")(4), action("args")(5), -1, -1
+    On Error Resume Next
+        Kill tempPath
+    On Error GoTo 0
 End Sub
 
 Sub updatePicture(wb As Workbook, action As Dictionary)
-    Err.Raise vbObjectError + 513, , "Not Implemented: updatePicture"
+    Dim img As Picture
+    Dim newImg As Shape
+    Dim tempPath, imgName As String
+    Dim imgLeft, imgTop, imgWidth, imgHeight As Long
+    tempPath = base64ToPic(action("args")(1))
+    Set img = wb.Sheets(action("sheet_position") + 1).Pictures(action("args")(2) + 1)
+    imgName = img.Name
+    imgLeft = img.Left
+    imgTop = img.Top
+    imgWidth = img.Width
+    imgHeight = img.Height
+    img.Delete
+    Set newImg = wb.Sheets(action("sheet_position") + 1).Shapes.addPicture(tempPath, False, True, imgLeft, imgTop, imgWidth, imgHeight)
+    newImg.Name = imgName
+    On Error Resume Next
+        Kill tempPath
+    On Error GoTo 0
 End Sub
 
