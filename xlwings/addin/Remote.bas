@@ -91,7 +91,30 @@ Function RunRemotePython( _
     bookPayload.Add "active_sheet_index", ActiveSheet.Index - 1
     bookPayload.Add "selection", Application.Selection.Address(False, False)
     payload.Add "book", bookPayload
-    
+
+    ' Names
+    Dim myname As Name
+    Dim mynames() As Dictionary
+    Dim nNames As Integer
+    Dim iName As Integer
+    nNames = wb.Names.Count
+    If nNames > 0 Then
+        ReDim mynames(nNames - 1)
+        For iName = 1 To nNames
+            Set myname = wb.Names(iName)
+            Dim nameDict As Dictionary
+            Set nameDict = New Dictionary
+            nameDict.Add "name", myname.Name
+            nameDict.Add "sheet_index", myname.RefersToRange.Parent.Index - 1
+            nameDict.Add "address", myname.RefersToRange.Address(False, False)
+            nameDict.Add "book_scope", TypeOf myname.Parent Is Workbook
+            Set mynames(iName - 1) = nameDict
+        Next
+        payload.Add "names", mynames
+    Else
+        payload.Add "names", Array()
+    End If
+
     Dim sheetsPayload() As Dictionary
     ReDim sheetsPayload(wb.Worksheets.Count - 1)
     For i = 1 To wb.Worksheets.Count

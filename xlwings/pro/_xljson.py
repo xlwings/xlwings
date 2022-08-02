@@ -459,12 +459,18 @@ class Range(base_classes.Range):
         # A1 notation
         if isinstance(arg1, str):
             # A1 notation
-            if ":" in arg1:
-                address1, address2 = arg1.split(":")
-                arg1 = utils.address_to_index_tuple(address1.upper())
-                arg2 = utils.address_to_index_tuple(address2.upper())
+            tuple1, tuple2 = utils.a1_to_tuples(arg1)
+            if not tuple1:
+                # Named range
+                for api_name in sheet.book.api["names"]:
+                    if (
+                        api_name["name"].split("!")[-1] == arg1
+                        and api_name["sheet_index"] == sheet.index - 1
+                    ):
+                        arg1, arg2 = utils.a1_to_tuples(api_name["address"])
             else:
-                arg1 = utils.address_to_index_tuple(arg1.upper())
+                arg1, arg2 = tuple1, tuple2
+
         # Coordinates
         if len(arg1) == 4:
             row, col, nrows, ncols = arg1

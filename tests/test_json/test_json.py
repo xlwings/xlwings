@@ -19,6 +19,16 @@ data = {
     "client": "Microsoft Office Scripts",
     "version": "dev",
     "book": {"name": "json.xlsx", "active_sheet_index": 0, "selection": "B3:B4"},
+    "names": [
+        {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
+        {
+            "name": "Sheet1!two",
+            "sheet_index": 0,
+            "address": "C7:D8",
+            "book_scope": False,
+        },
+        {"name": "two", "sheet_index": 1, "address": "A1:A2", "book_scope": True},
+    ],
     "sheets": [
         {
             "name": "Sheet1",
@@ -339,3 +349,16 @@ def test_empty_pictures(book):
 def test_picture_exists(book):
     with pytest.raises(xw.ShapeAlreadyExists):
         book.sheets[0].pictures.add(this_dir.parent / "sample_picture.png", name="pic1")
+
+
+# Named Ranges
+def test_named_range_global(book):
+    sheet1 = book.sheets[0]
+    sheet2 = book.sheets[1]
+    assert sheet1["one"].address == "$A$1"
+    assert sheet2["two"].address == "$A$1:$A$2"
+
+
+def test_named_range_sheet_scope(book):
+    sheet1 = book.sheets[0]
+    assert sheet1["two"].address == "$C$7:$D$8"
