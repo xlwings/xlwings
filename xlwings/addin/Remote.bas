@@ -105,9 +105,16 @@ Function RunRemotePython( _
             Dim nameDict As Dictionary
             Set nameDict = New Dictionary
             nameDict.Add "name", myname.Name
-            nameDict.Add "sheet_index", myname.RefersToRange.Parent.Index - 1
-            nameDict.Add "address", myname.RefersToRange.Address(False, False)
-            nameDict.Add "book_scope", TypeOf myname.Parent Is Workbook
+            If InStr(1, myname.RefersTo, "=") <> 1 Then
+                ' If the reference doesn't start with an =, it's a named range
+                nameDict.Add "sheet_index", myname.RefersToRange.Parent.Index - 1
+                nameDict.Add "address", myname.RefersToRange.Address(False, False)
+                nameDict.Add "book_scope", TypeOf myname.Parent Is Workbook
+            Else
+                nameDict.Add "sheet_index", Null
+                nameDict.Add "address", Null
+                nameDict.Add "book_scope", Null
+            End If
             Set mynames(iName - 1) = nameDict
         Next
         payload.Add "names", mynames
