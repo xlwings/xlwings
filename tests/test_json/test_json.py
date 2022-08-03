@@ -352,7 +352,7 @@ def test_picture_exists(book):
 
 
 # Named Ranges
-def test_named_range_global(book):
+def test_named_range_book_scope(book):
     sheet1 = book.sheets[0]
     sheet2 = book.sheets[1]
     assert sheet1["one"].address == "$A$1"
@@ -362,3 +362,9 @@ def test_named_range_global(book):
 def test_named_range_sheet_scope(book):
     sheet1 = book.sheets[0]
     assert sheet1["two"].address == "$C$7:$D$8"
+
+
+def test_named_range_missing(book):
+    sheet1 = book.sheets[0]
+    with pytest.raises(xw.NoSuchObjectError):
+        values = sheet1["doesnt_exist"].value

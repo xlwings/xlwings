@@ -26,7 +26,7 @@ try:
 except ImportError:
     pd = None
 
-from .. import utils, base_classes, __version__, XlwingsError
+from .. import utils, base_classes, __version__, XlwingsError, NoSuchObjectError
 
 
 # Time types (doesn't contain dt.date)
@@ -467,9 +467,12 @@ class Range(base_classes.Range):
                         api_name["name"].split("!")[-1] == arg1
                         and api_name["sheet_index"] == sheet.index - 1
                     ):
-                        arg1, arg2 = utils.a1_to_tuples(api_name["address"])
-            else:
-                arg1, arg2 = tuple1, tuple2
+                        tuple1, tuple2 = utils.a1_to_tuples(api_name["address"])
+                if not tuple1:
+                    raise NoSuchObjectError(
+                        f"The address/named range '{arg1}' doesn't exist."
+                    )
+            arg1, arg2 = tuple1, tuple2
 
         # Coordinates
         if len(arg1) == 4:
