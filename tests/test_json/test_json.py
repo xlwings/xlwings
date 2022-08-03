@@ -368,3 +368,14 @@ def test_named_range_missing(book):
     sheet1 = book.sheets[0]
     with pytest.raises(xw.NoSuchObjectError):
         values = sheet1["doesnt_exist"].value
+
+
+@pytest.mark.skipif(engine == "excel", reason="requires json engine")
+def test_named_range_book_change_value(book):
+    sheet1 = book.sheets[0]
+    assert sheet1["one"].value == "a"
+    sheet1["one"].value = 1000
+    assert book.json()["actions"][0]["values"] == [[1000]]
+    assert book.json()["actions"][0]["sheet_position"] == 0
+    assert book.json()["actions"][0]["start_row"] == 0
+    assert book.json()["actions"][0]["start_column"] == 0
