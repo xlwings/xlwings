@@ -116,17 +116,29 @@ def address_to_index_tuple(address):
     """
     re_range_parts = re.compile(r"(\$?)([A-Z]{1,3})(\$?)(\d+)")
     match = re_range_parts.match(address)
-    col_str = match.group(2)
-    row_str = match.group(4)
+    if match:
+        col_str = match.group(2)
+        row_str = match.group(4)
 
-    # Convert base26 column string to number
-    expn = 0
-    col = 0
-    for char in reversed(col_str):
-        col += (ord(char) - ord("A") + 1) * (26**expn)
-        expn += 1
+        # Convert base26 column string to number
+        expn = 0
+        col = 0
+        for char in reversed(col_str):
+            col += (ord(char) - ord("A") + 1) * (26**expn)
+            expn += 1
 
-    return int(row_str), col
+        return int(row_str), col
+
+
+def a1_to_tuples(address):
+    if ":" in address:
+        address1, address2 = address.split(":")
+        tuple1 = address_to_index_tuple(address1.upper())
+        tuple2 = address_to_index_tuple(address2.upper())
+    else:
+        tuple1 = address_to_index_tuple(address.upper())
+        tuple2 = None
+    return tuple1, tuple2
 
 
 class VBAWriter:

@@ -32,6 +32,10 @@ class ShapeAlreadyExists(XlwingsError):
     pass
 
 
+class NoSuchObjectError(XlwingsError):
+    pass
+
+
 # API
 from .main import (
     App,

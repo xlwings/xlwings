@@ -104,6 +104,25 @@ async function runPython(
     active_sheet_index: workbook.getActiveWorksheet().getPosition(),
     selection: workbook.getSelectedRange().getAddress().split("!").pop(),
   };
+
+  // Names
+  let names: Names[] = [];
+  workbook.getNames().forEach((namedItem, ix) => {
+    // Currently filtering to named ranges
+    // Sheet scope names don't seem to come through despite the existence of getScope()
+    let itemType: ExcelScript.NamedItemType = namedItem.getType();
+    if (itemType === ExcelScript.NamedItemType.range) {
+      names[ix] = {
+        name: namedItem.getName(),
+        sheet_index: namedItem.getRange().getWorksheet().getPosition(),
+        address: namedItem.getRange().getAddress().split("!").pop(),
+        book_scope:
+          namedItem.getScope() === ExcelScript.NamedItemScope.workbook,
+      };
+    }
+  });
+  payload["names"] = names;
+
   payload["sheets"] = [];
   let lastCellCol: number;
   let lastCellRow: number;
@@ -151,7 +170,7 @@ async function runPython(
     payload["sheets"].push({
       name: sheet.getName(),
       values: values,
-      pictures: [],  // TODO: NotImplemented
+      pictures: [], // TODO: NotImplemented
     });
   });
 
@@ -203,6 +222,13 @@ interface Action {
   start_column: number;
   row_count: number;
   column_count: number;
+}
+
+interface Names {
+  name: string;
+  sheet_index: number;
+  address: string;
+  book_scope: boolean;
 }
 
 function getRange(workbook: ExcelScript.Workbook, action: Action) {
