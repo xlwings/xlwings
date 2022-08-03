@@ -8,6 +8,9 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ''
+' CHANGES:
+' * PrepareCurlRequest: allow big request body, based on https://github.com/VBA-tools/VBA-Web/pull/397
+'
 ' WebClient v4.1.6
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-Web
 '
@@ -655,9 +658,18 @@ Public Function PrepareCurlRequest(Request As WebRequest) As String
         web_Curl = web_Curl & " --cookie '" & web_CookieString & "'"
     End If
 
-    ' Add method, data, and url
+    ' Add method  (CHANGED from here to end of function)
     web_Curl = web_Curl & " -X " & WebHelpers.MethodToName(Request.Method)
-    web_Curl = web_Curl & " -d '" & Request.Body & "'"
+
+    ' Add data
+    Dim TempFileName As String
+    TempFileName = "xlwings-" & CreateGUID() & ".txt"
+    Open TempFileName For Output As #1
+    Print #1, Request.Body
+    Close #1
+    web_Curl = web_Curl & " -d @" & TempFileName & "'" & "'"
+
+    ' Add url
     web_Curl = web_Curl & " '" & Me.GetFullUrl(Request) & "'"
 
     ' Give authenticator opportunity to update cURL
@@ -665,9 +677,11 @@ Public Function PrepareCurlRequest(Request As WebRequest) As String
         Me.Authenticator.PrepareCurl Me, Request, web_Curl
     End If
 
-    ' Log request and return
+    ' Log request
     WebHelpers.LogRequest Me, Request
-    PrepareCurlRequest = web_Curl
+
+    ' Remove data file and return
+    PrepareCurlRequest = web_Curl & "&& rm " & TempFileName
     Exit Function
 
 web_ErrorHandling:
