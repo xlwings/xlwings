@@ -110,6 +110,20 @@ function runPython(
     active_sheet_index: workbook.getActiveSheet().getIndex() - 1,
     selection: workbook.getActiveRange().getA1Notation(),
   };
+
+  // Names
+  let names = [];
+  workbook.getNamedRanges().forEach((namedRange, ix) => {
+    names[ix] = {
+      name: namedRange.getName(),
+      sheet_index: namedRange.getRange().getSheet().getIndex() - 1,
+      address: namedRange.getRange().getA1Notation(),
+      // Sheet scope can only happen by copying a sheet from another workbook
+      book_scope: !(namedRange.getName().includes("!"))
+    };
+  });
+  payload["names"] = names;
+
   payload["sheets"] = [];
   let lastCellCol;
   let lastCellRow;
