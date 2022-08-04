@@ -21,7 +21,6 @@ from .utils import (
     fullname_url_to_local_path,
     read_config_sheet,
 )
-import xlwings
 from . import mac_dict, utils
 import xlwings
 
@@ -203,28 +202,36 @@ class App:
             ["lsappinfo", "info", "-only", "pid", frontmost_asn]
         ).decode("utf-8")
         pid_frontmost = int(pid_info_frontmost.split("=")[1])
-
-        appscript.app("System Events").processes[its.unix_id == self.pid].frontmost.set(
-            True
-        )
-        if not steal_focus:
+        try:
             appscript.app("System Events").processes[
-                its.unix_id == pid_frontmost
+                its.unix_id == self.pid
             ].frontmost.set(True)
+            if not steal_focus:
+                appscript.app("System Events").processes[
+                    its.unix_id == pid_frontmost
+                ].frontmost.set(True)
+        except CommandError:
+            pass  # may require root privileges (GH 1966)
 
     @property
     def visible(self):
-        return (
-            appscript.app("System Events")
-            .processes[its.unix_id == self.pid]
-            .visible.get()[0]
-        )
+        try:
+            return (
+                appscript.app("System Events")
+                .processes[its.unix_id == self.pid]
+                .visible.get()[0]
+            )
+        except CommandError:
+            return None  # may require root privileges (GH 1966)
 
     @visible.setter
     def visible(self, visible):
-        appscript.app("System Events").processes[its.unix_id == self.pid].visible.set(
-            visible
-        )
+        try:
+            appscript.app("System Events").processes[
+                its.unix_id == self.pid
+            ].visible.set(visible)
+        except CommandError:
+            pass  # may require root privileges (GH 1966)
 
     def quit(self):
         self.xl.quit(saving=kw.no)
