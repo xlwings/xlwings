@@ -2155,10 +2155,6 @@ class Pictures(Collection):
     ):
 
         if anchor:
-            if top or left:
-                raise ValueError(
-                    "You must either provide 'anchor' or 'top'/'left', but not both."
-                )
             top, left = anchor.top, anchor.left
         else:
             top = top if top else 0

@@ -454,8 +454,25 @@ End Sub
 
 Sub addPicture(wb As Workbook, action As Dictionary)
     Dim tempPath As String
+    Dim anchorCell As Range
+    Dim imgLeft, imgTop, imgWidth, imgHeight As Long
+
     tempPath = base64ToPic(action("args")(1))
-    wb.Sheets(action("sheet_position") + 1).Shapes.addPicture tempPath, False, True, action("args")(4), action("args")(5), -1, -1
+    With wb.Sheets(action("sheet_position") + 1)
+        Set anchorCell = .Cells(action("args")(3) + 1, action("args")(2) + 1)
+    End With
+    If action("args")(4) > 0 Then
+        imgLeft = action("args")(4)
+    Else
+        imgLeft = anchorCell.Left
+    End If
+    If action("args")(5) > 0 Then
+        imgTop = action("args")(5)
+    Else
+        imgTop = anchorCell.Top
+    End If
+
+    wb.Sheets(action("sheet_position") + 1).Shapes.addPicture tempPath, False, True, imgLeft, imgTop, -1, -1
     On Error Resume Next
         Kill tempPath
     On Error GoTo 0

@@ -4224,6 +4224,11 @@ class Pictures(Collection):
         >>> sht.pictures.add(fig, name='MyPlot', update=True)
         <Picture 'MyPlot' in <Sheet [Book1]Sheet1>>
         """
+        if anchor:
+            if top or left:
+                raise ValueError(
+                    "You must either provide 'anchor' or 'top'/'left', but not both."
+                )
         if update:
             if name is None:
                 raise ValueError("If update is true then name must be specified")
