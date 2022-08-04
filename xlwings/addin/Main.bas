@@ -207,10 +207,8 @@ Function ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN
         ShowConsole = 0
     End If
 
-    Dim Wsh As Object
     Dim WaitOnReturn As Boolean: WaitOnReturn = True
     Dim WindowStyle As Integer: WindowStyle = ShowConsole
-    Set Wsh = CreateObject("WScript.Shell")
     Dim DriveCommand As String, RunCommand, condaExcecutable As String
     Dim PythonInterpreter As String, PythonDir As String, CondaCmd As String, CondaPath As String, CondaEnv As String
     Dim ExitCode As Long
@@ -274,7 +272,7 @@ Function ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN
         RunCommand = Chr(34) & PythonCommand & Chr(34) & " " & FrozenArgs & " "
     End If
     
-    ExitCode = Wsh.Run("cmd.exe /C " & DriveCommand & _
+    ExitCode = WScript.Run("cmd.exe /C " & DriveCommand & _
                        RunCommand & _
                        " --wb=" & """" & ActiveWorkbook.Name & """ --from_xl=1" & " --app=" & Chr(34) & _
                        Application.Path & "\" & Application.Name & Chr(34) & " --hwnd=" & Chr(34) & Application.Hwnd & Chr(34) & _
@@ -291,9 +289,6 @@ Function ExecuteWindows(IsFrozen As Boolean, PythonCommand As String, PYTHON_WIN
     On Error Resume Next
         Kill LOG_FILE
     On Error GoTo 0
-
-    ' Clean up
-    Set Wsh = Nothing
 End Function
 
 Public Function RunFrozenPython(Executable As String, Optional Args As String)

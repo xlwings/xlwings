@@ -2,6 +2,12 @@ Attribute VB_Name = "Utils"
 Option Explicit
 #Const App = "Microsoft Excel" 'Adjust when using outside of Excel
 
+Function WScript(Optional CreateNew As Boolean) As Object
+  Static Value As Object
+  If CreateNew Or Value Is Nothing Then Set Value = CreateObject("WScript.Shell")
+  Set WScript = Value
+End Function
+
 Function IsFullName(sFile As String) As Boolean
   ' if sFile includes path, it contains path separator "\" or "/"
   IsFullName = InStr(sFile, "\") + InStr(sFile, "/") > 0
@@ -142,7 +148,6 @@ Sub ShowError(FileName As String, Optional Message As String = "")
     ' Shows a MsgBox with the content of a text file
 
     Dim Content As String
-    Dim objShell
     Dim ErrorSheet As Worksheet
 
     Const OK_BUTTON_ERROR = 16
@@ -170,8 +175,7 @@ Sub ShowError(FileName As String, Optional Message As String = "")
             Content = Content & vbCrLf
             Content = Content & "Press Ctrl+C to copy this message to the clipboard."
     
-            Set objShell = CreateObject("Wscript.Shell")
-            objShell.Popup Content, AUTO_DISMISS, "Error", OK_BUTTON_ERROR
+            WScript.Popup Content, AUTO_DISMISS, "Error", OK_BUTTON_ERROR
         #End If
     End If
 End Sub
@@ -197,10 +201,7 @@ Function ExpandEnvironmentStrings(ByVal s As String)
             ExpandEnvironmentStrings = s
         End If
     #Else
-        Dim objShell As Object
-        Set objShell = CreateObject("WScript.Shell")
-        ExpandEnvironmentStrings = objShell.ExpandEnvironmentStrings(s)
-        Set objShell = Nothing
+        ExpandEnvironmentStrings = WScript.ExpandEnvironmentStrings(s)
     #End If
 End Function
 
