@@ -89,7 +89,11 @@ Function RunRemotePython( _
     Dim bookPayload As New Dictionary
     bookPayload.Add "name", ActiveWorkbook.Name
     bookPayload.Add "active_sheet_index", ActiveSheet.Index - 1
-    bookPayload.Add "selection", Application.Selection.Address(False, False)
+    If TypeOf Selection Is Range Then
+        bookPayload.Add "selection", Application.Selection.Address(False, False)
+    Else
+        bookPayload.Add "selection", Null
+    End If
     payload.Add "book", bookPayload
 
     ' Names
@@ -105,12 +109,19 @@ Function RunRemotePython( _
             Dim nameDict As Dictionary
             Set nameDict = New Dictionary
             nameDict.Add "name", myname.Name
-            If InStr(1, myname.RefersTo, "=") <> 1 Then
-                ' If the reference doesn't start with an =, it's a named range
+            Dim isNamedRange As Boolean
+            Dim testRange As Range
+            isNamedRange = False
+            On Error Resume Next
+            Set testRange = myname.RefersToRange
+            If Err.Number = 0 Then isNamedRange = True
+            On Error GoTo 0
+            If isNamedRange Then
                 nameDict.Add "sheet_index", myname.RefersToRange.Parent.Index - 1
                 nameDict.Add "address", myname.RefersToRange.Address(False, False)
                 nameDict.Add "book_scope", TypeOf myname.Parent Is Workbook
             Else
+                ' Named constants and formulas
                 nameDict.Add "sheet_index", Null
                 nameDict.Add "address", Null
                 nameDict.Add "book_scope", Null
@@ -133,18 +144,18 @@ Function RunRemotePython( _
         Dim pic As Picture
         Dim pics() As Dictionary
         Dim nPics As Integer
-        Dim nPic As Integer
+        Dim iPic As Integer
         nPics =  wb.Worksheets(i).Pictures.Count
         If nPics > 0 Then
             ReDim pics(nPics - 1)
-            For nPic = 1 To nPics
-                Set pic =  wb.Worksheets(i).Pictures(nPic)
+            For iPic = 1 To nPics
+                Set pic =  wb.Worksheets(i).Pictures(iPic)
                 Dim picDict As Dictionary
                 Set picDict = New Dictionary
                 picDict.Add "name", pic.Name
                 picDict.Add "height", pic.Height
                 picDict.Add "width", pic.Width
-                Set pics(nPic - 1) = picDict
+                Set pics(iPic - 1) = picDict
             Next
             sheetDict.Add "pictures", pics
         Else
@@ -443,8 +454,25 @@ End Sub
 
 Sub addPicture(wb As Workbook, action As Dictionary)
     Dim tempPath As String
+    Dim anchorCell As Range
+    Dim imgLeft, imgTop, imgWidth, imgHeight As Long
+
     tempPath = base64ToPic(action("args")(1))
-    wb.Sheets(action("sheet_position") + 1).Shapes.addPicture tempPath, False, True, action("args")(4), action("args")(5), -1, -1
+    With wb.Sheets(action("sheet_position") + 1)
+        Set anchorCell = .Cells(action("args")(3) + 1, action("args")(2) + 1)
+    End With
+    If action("args")(4) > 0 Then
+        imgLeft = action("args")(4)
+    Else
+        imgLeft = anchorCell.Left
+    End If
+    If action("args")(5) > 0 Then
+        imgTop = action("args")(5)
+    Else
+        imgTop = anchorCell.Top
+    End If
+
+    wb.Sheets(action("sheet_position") + 1).Shapes.addPicture tempPath, False, True, imgLeft, imgTop, -1, -1
     On Error Resume Next
         Kill tempPath
     On Error GoTo 0
