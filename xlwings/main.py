@@ -511,7 +511,7 @@ class App:
 
         .. versionadded:: 0.9.0
         """
-        return Range(impl=self.impl.range(cell1, cell2))
+        return self.books.active.sheets.active.range(cell1, cell2)
 
     def macro(self, name):
         """

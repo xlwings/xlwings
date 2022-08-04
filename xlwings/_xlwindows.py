@@ -660,22 +660,6 @@ class App:
     def pid(self):
         return win32process.GetWindowThreadProcessId(self.hwnd)[1]
 
-    def range(self, arg1, arg2=None):
-        if isinstance(arg1, Range):
-            xl1 = arg1.xl
-        else:
-            xl1 = self.xl.Range(arg1)
-
-        if arg2 is None:
-            return Range(xl=xl1)
-
-        if isinstance(arg2, Range):
-            xl2 = arg2.xl
-        else:
-            xl2 = self.xl.Range(arg2)
-
-        return Range(xl=self.xl.Range(xl1, xl2))
-
     def run(self, macro, args):
         return self.xl.Run(macro, *args)
 

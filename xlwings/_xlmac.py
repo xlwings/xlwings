@@ -296,9 +296,6 @@ class App:
     def books(self):
         return Books(self)
 
-    def range(self, arg1, arg2):
-        return self.books.active.sheets.active.range(arg1, arg2)
-
     @property
     def hwnd(self):
         return None
