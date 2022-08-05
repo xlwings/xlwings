@@ -119,7 +119,7 @@ function runPython(
       sheet_index: namedRange.getRange().getSheet().getIndex() - 1,
       address: namedRange.getRange().getA1Notation(),
       // Sheet scope can only happen by copying a sheet from another workbook
-      book_scope: !(namedRange.getName().includes("!"))
+      book_scope: !namedRange.getName().includes("!"),
     };
   });
   payload["names"] = names;
@@ -370,6 +370,7 @@ function addPicture(workbook, action) {
 }
 
 function updatePicture(workbook, action) {
+  // Workaround as img.replace() doesn't manage to refresh the screen half of the time
   let imageBlob = Utilities.newBlob(
     Utilities.base64Decode(action.args[0]),
     "image/png",
@@ -378,9 +379,26 @@ function updatePicture(workbook, action) {
   let img = workbook.getSheets()[action.sheet_position].getImages()[
     action.args[1]
   ];
-  img.replace(imageBlob);
-  img.setAltTextTitle(action.args[2]);
-  img.setWidth(action.args[3]);
-  img.setHeight(action.args[4]);
+  let altTextTitle = img.getAltTextTitle();
+  let rowIndex = img.getAnchorCell().getRowIndex();
+  let colIndex = img.getAnchorCell().getColumnIndex();
+  let xOffset = img.getAnchorCellXOffset();
+  let yOffset = img.getAnchorCellYOffset();
+  let width = img.getWidth();
+  let height = img.getHeight();
+  // Seems to help if the new image is inserted first before deleting the old one
+  imgNew = workbook
+    .getSheets()
+    [action.sheet_position].insertImage(
+      imageBlob,
+      colIndex,
+      rowIndex,
+      xOffset,
+      yOffset
+    );
+  img.remove();
+  imgNew.setAltTextTitle(altTextTitle);
+  imgNew.setWidth(width);
+  imgNew.setHeight(height);
   SpreadsheetApp.flush();
 }
