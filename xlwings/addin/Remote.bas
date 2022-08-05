@@ -263,7 +263,11 @@ Function RunRemotePython( _
             Application.Run action("func"), wb, action
         Next
     Else
-        MsgBox myResponse.StatusDescription & " (" & myResponse.StatusCode & ")", vbCritical, "Error"
+        If myResponse.Content <> "" Then
+            MsgBox myResponse.Content, vbCritical, "Error"
+        Else
+            MsgBox myResponse.StatusDescription & " (" & myResponse.StatusCode & ")", vbCritical, "Error"
+        End If
     End If
 
 End Function
