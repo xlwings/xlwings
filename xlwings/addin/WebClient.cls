@@ -667,7 +667,7 @@ Public Function PrepareCurlRequest(Request As WebRequest) As String
     Open TempFileName For Output As #1
     Print #1, Request.Body
     Close #1
-    web_Curl = web_Curl & " -d @" & TempFileName & "'" & "'"
+    web_Curl = web_Curl & " -d @" & TempFileName
 
     ' Add url
     web_Curl = web_Curl & " '" & Me.GetFullUrl(Request) & "'"
