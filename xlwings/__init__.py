@@ -80,6 +80,7 @@ except (ImportError, LicenseError):
 if sys.platform.startswith("win"):
     from .udfs import (
         xlfunc as func,
+        xlcache as cache,
         xlsub as sub,
         xlret as ret,
         xlarg as arg,
@@ -102,6 +103,16 @@ if sys.platform.startswith("win"):
     except:
         pass
 else:
+
+    def cache(f=None, *args, **kwargs):
+        @wraps(f)
+        def inner(f):
+            return f
+
+        if f is None:
+            return inner
+        else:
+            return inner(f)
 
     def func(f=None, *args, **kwargs):
         @wraps(f)
