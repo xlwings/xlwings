@@ -1,13 +1,13 @@
 .. _remote_interpreter:
 
-Remote Python Interpreter: Google Sheets & Excel (Desktop & Web)
-================================================================
+Remote Interpreter
+==================
 
 This feature requires xlwings :bdg-secondary:`PRO` and at least v0.27.0.
 
-Instead of installing Python on each end-user's machine, you can work with a remote Python interpreter. This works the same as a web application, but uses Excel as the frontend instead of a web page in a browser. A remote interpreter doesn't just work with the Desktop versions of Excel on Windows and macOS but additionally supports Google Sheets and Excel on the web for a full cloud experience. You can run the Python web server wherever it works best for you, whether that means using a cloud service or running a physical machine on premise.
+Instead of installing Python on each end-user's machine, you can work with a remote Python interpreter. This works the same as a web application, but uses your spreadsheet as the frontend instead of a web page in a browser. A remote interpreter doesn't just work with the Desktop versions of Excel on Windows and macOS but additionally supports Google Sheets and Excel on the web for a full cloud experience. The remote interpreter runs everywhere where Python runs, including Linux, Docker and WSL (Windows Subsystem for Linux) and can by run locally or deployed to a (serverless) cloud service or an on-premise server.
 
-.. important:: This feature is currently experimental and only covers parts of the RunPython API (UDFs are not yet supported). See also :ref:`Limitations` and :ref:`Roadmap`.
+.. important:: This feature currently only covers parts of the RunPython API (UDFs are not yet supported). See also :ref:`Limitations` and :ref:`Roadmap`.
 
 Why is this useful?
 -------------------
@@ -424,7 +424,7 @@ Triggers
 Limitations
 -----------
 
-* Currently, only a subset of the xlwings API is covered, mainly the Range and Sheet classes with a focus on reading and writing values. This, however, includes full support for type conversion including pandas DataFrames, NumPy arrays, datetime objects, etc.
+* Currently, only a subset of the xlwings API is covered, mainly the Range and Sheet classes with a focus on reading and writing values and sending pictures (including Matplotlib plots). This, however, includes full support for type conversion including pandas DataFrames, NumPy arrays, datetime objects, etc.
 * You are moving within the web's request/response cycle, meaning that values that you write to a range will only be written back to Google Sheets/Excel once the function call returns. Put differently, you'll get the state of the sheets at the moment the call was initiated, but you can't read from a cell you've just written to until the next call.
 * You will need to use the same xlwings version for the Python package and the JavaScript module, otherwise, the server will raise an error.
 * Currently, custom functions (a.k.a. user-defined functions or UDFs) are not supported.
@@ -448,6 +448,6 @@ Platform-specific limitations:
 Roadmap
 -------
 
+* Complete the RunPython API by adding features that currently aren't supported yet, e.g., charts, shapes, names collections, tables, etc.
 * Add support for UDFs/custom functions.
-* Complete the RunPython API by adding features that currently aren't supported yet, e.g., charts, shapes, named ranges, tables, etc.
 * Improve efficiency.
