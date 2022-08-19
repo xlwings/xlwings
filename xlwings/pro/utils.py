@@ -12,6 +12,9 @@ Commercial licenses can be purchased at https://www.xlwings.org
 """
 
 import os
+import base64
+import hmac
+import hashlib
 import json
 import binascii
 import datetime as dt
@@ -22,15 +25,15 @@ import glob
 import shutil
 import tempfile
 import atexit
+from functools import lru_cache
 
 from ..utils import read_config_sheet
 
 try:
     from cryptography.fernet import Fernet, InvalidToken
 except ImportError as e:
-    raise ImportError(
-        "Couldn't find 'cryptography', a dependency of xlwings PRO."
-    ) from None
+    Fernet = None
+    InvalidToken = None
 
 
 class LicenseHandler:
@@ -69,15 +72,38 @@ class LicenseHandler:
         raise xlwings.LicenseError("Couldn't find a license key.")
 
     @staticmethod
+    @lru_cache()
     def validate_license(product, license_type=None):
-        cipher_suite = LicenseHandler.get_cipher()
         key = LicenseHandler.get_license()
         if key == "noncommercial":
             return {"license_type": "noncommercial"}
-        try:
-            license_info = json.loads(cipher_suite.decrypt(key.encode()).decode())
-        except (binascii.Error, InvalidToken):
-            raise xlwings.LicenseError("Invalid license key.") from None
+        if key.startswith("gA") and not Fernet:
+            # Legacy up to 0.27.12
+            raise ImportError(
+                "You are using a legacy license key that requires the 'cryptography' "
+                "package. Alternatively, contact us for a new license key."
+            ) from None
+        elif key.startswith("gA"):
+            cipher_suite = LicenseHandler.get_cipher()
+            try:
+                license_info = json.loads(cipher_suite.decrypt(key.encode()).decode())
+            except (binascii.Error, InvalidToken):
+                raise xlwings.LicenseError("Invalid license key.") from None
+        else:
+            signature = hmac.new(
+                os.getenv("XLWINGS_LICENSE_KEY_SECRET").encode(),
+                key[:-5].encode(),
+                hashlib.sha256,
+            ).hexdigest()
+            if signature[:5] != key[-5:]:
+                raise xlwings.LicenseError("Invalid license key.") from None
+            else:
+                try:
+                    license_info = json.loads(
+                        base64.urlsafe_b64decode(key[:-5]).decode()
+                    )
+                except:
+                    raise xlwings.LicenseError("Invalid license key.") from None
         try:
             if (
                 license_type == "developer"
@@ -129,7 +155,6 @@ class LicenseHandler:
         license_info = LicenseHandler.validate_license("pro", license_type="developer")
         if license_info["license_type"] == "noncommercial":
             return "noncommercial"
-        cipher_suite = LicenseHandler.get_cipher()
         license_dict = json.dumps(
             {
                 "version": xlwings.__version__,
@@ -138,7 +163,16 @@ class LicenseHandler:
                 "license_type": "deploy_key",
             }
         ).encode()
-        return cipher_suite.encrypt(license_dict).decode()
+        if LicenseHandler.get_license().startswith("gA"):
+            # Legacy
+            cipher_suite = LicenseHandler.get_cipher()
+            return cipher_suite.encrypt(license_dict).decode()
+        else:
+            body = base64.urlsafe_b64encode(license_dict)
+            signature = hmac.new(
+                os.getenv("XLWINGS_LICENSE_KEY_SECRET").encode(), body, hashlib.sha256
+            ).hexdigest()
+            return f"{body.decode()}{signature[:5]}"
 
 
 def get_embedded_code_temp_dir():

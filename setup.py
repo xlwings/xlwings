@@ -47,10 +47,8 @@ else:
     pass
 
 extras_require = {
-    "pro": ["cryptography"],
-    "reports": ["cryptography", "Jinja2", "pdfrw"],
+    "reports": ["Jinja2", "pdfrw"],
     "all": [
-        "cryptography",
         "Jinja2",
         "pandas",
         "matplotlib",

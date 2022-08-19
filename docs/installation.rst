@@ -74,7 +74,6 @@ Optional Dependencies
 * pandas
 * Matplotlib
 * Pillow
-* cryptography (for xlwings.pro)
 * Jinja2 (for xlwings.pro.reports)
 * requests (for permissioning)
 
