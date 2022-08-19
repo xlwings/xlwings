@@ -18,13 +18,13 @@ Before looking at both of these options in more detail, let's go through the pre
 Prerequisites
 -------------
 
-* This functionality requires every end user to have the ``requests`` and ``cryptography`` libraries installed. You can install them via pip::
+* This functionality requires every end user to have the ``requests`` library installed. You can install them via pip::
 
-    pip install requests cryptography
+    pip install requests
 
   or via Conda::
 
-    conda install requests cryptography
+    conda install requests
 
 * You need to have a ``LICENSE_KEY`` in the form of a `trial key <https://www.xlwings.org/trial>`_, a paid license key or a deploy key.
 

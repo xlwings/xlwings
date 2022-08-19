@@ -27,8 +27,6 @@ Make sure to replace ``LICENSE_KEY`` with your personal key (see below). This wi
 
 xlwings PRO licenses are developer licenses, are verified offline (i.e., no telemetry/license server involved) and allow royalty-free deployments to unlimited internal and external end-users and servers for a hassle-free management. Deployments use deploy keys that don't expire but instead are bound to a specific version of xlwings.
 
-xlwings PRO functionality requires additionally the ``cryptography`` package, which comes preinstalled with Anaconda and WinPython. Otherwise, install it via pip or Conda. With pip, you can also run ``pip install "xlwings[pro]"``: this will take care of the extra dependencies for xlwings PRO.
-
 PRO Features
 ------------
 
