@@ -115,9 +115,6 @@ class App:
     def pid(self):
         raise NotImplementedError()
 
-    def range(self, arg1, arg2=None):
-        raise NotImplementedError()
-
     def run(self, macro, args):
         raise NotImplementedError()
 
