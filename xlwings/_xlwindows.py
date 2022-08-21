@@ -15,6 +15,7 @@ if not hasattr(sys, "frozen"):
 # Seems to be required even with pywin32 227
 import pywintypes
 import win32api
+import win32con
 
 os.chdir(cwd)
 
@@ -679,6 +680,30 @@ class App:
     @cut_copy_mode.setter
     def cut_copy_mode(self, value):
         self.xl.CutCopyMode = value
+
+    def alert(self, prompt, title, buttons, mode):
+        buttons_dict = {
+            None: win32con.MB_OK,
+            "ok": win32con.MB_OK,
+            "ok_cancel": win32con.MB_OKCANCEL,
+            "yes_no": win32con.MB_YESNO,
+            "yes_no_cancel": win32con.MB_YESNOCANCEL,
+        }
+        modes = {
+            "info": win32con.MB_ICONINFORMATION,
+            "critical": win32con.MB_ICONWARNING,
+        }
+        style = buttons_dict[buttons]
+        if mode:
+            style += modes[mode]
+        rv = win32api.MessageBox(
+            self.hwnd,
+            "" if prompt is None else prompt,
+            "" if title is None else title,
+            style,
+        )
+        return_values = {1: "OK", 2: "Cancel", 6: "Yes", 7: "No"}
+        return return_values[rv]
 
 
 class Books:

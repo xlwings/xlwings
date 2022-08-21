@@ -689,6 +689,9 @@ class App:
             **data,
         )
 
+    def alert(self, prompt, title=None, buttons=None, mode=None):
+        return self.impl.alert(prompt, title, buttons, mode)
+
     def __repr__(self):
         return "<Excel App %s>" % self.pid
 

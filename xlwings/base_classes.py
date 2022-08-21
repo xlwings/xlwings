@@ -134,6 +134,9 @@ class App:
     def cut_copy_mode(self, value):
         raise NotImplementedError()
 
+    def alert(self, prompt, title, buttons, mode):
+        raise NotImplementedError()
+
 
 class Books:
     @property
