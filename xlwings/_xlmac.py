@@ -322,7 +322,7 @@ class App:
     def cut_copy_mode(self, value):
         self.xl.cut_copy_mode.set(value)
 
-    def alert(self, prompt, title, buttons, mode):
+    def alert(self, prompt, title, buttons, mode, callback):
         # OSAX (Open Scripting Architecture Extension) instance for StandardAdditions
         # See /System/Library/ScriptingAdditions/StandardAdditions.osax
         sa = osax.OSAX(pid=self.pid)
@@ -345,7 +345,7 @@ class App:
             buttons=buttons_dict[buttons],
             as_=modes[mode],
         )
-        return rv[kw.button_returned]
+        return rv[kw.button_returned].lower()
 
 
 class Books:

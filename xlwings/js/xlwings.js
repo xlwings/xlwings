@@ -410,13 +410,13 @@ function alert(workbook, action) {
 
   let buttonResult;
   if (rv == ui.Button.OK) {
-    buttonResult = "OK";
+    buttonResult = "ok";
   } else if (rv == ui.Button.CANCEL) {
-    buttonResult = "Cancel";
+    buttonResult = "cancel";
   } else if (rv == ui.Button.YES) {
-    buttonResult = "Yes";
+    buttonResult = "yes";
   } else if (rv == ui.Button.NO) {
-    buttonResult = "No";
+    buttonResult = "no";
   }
 
   if (myCallback != "") {

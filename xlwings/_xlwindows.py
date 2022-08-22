@@ -681,7 +681,7 @@ class App:
     def cut_copy_mode(self, value):
         self.xl.CutCopyMode = value
 
-    def alert(self, prompt, title, buttons, mode):
+    def alert(self, prompt, title, buttons, mode, callback):
         buttons_dict = {
             None: win32con.MB_OK,
             "ok": win32con.MB_OK,
@@ -702,7 +702,7 @@ class App:
             "" if title is None else title,
             style,
         )
-        return_values = {1: "OK", 2: "Cancel", 6: "Yes", 7: "No"}
+        return_values = {1: "ok", 2: "cancel", 6: "yes", 7: "no"}
         return return_values[rv]
 
 
