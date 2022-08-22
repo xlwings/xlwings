@@ -55,7 +55,8 @@ def addin_install(args):
             print("Successfully installed the xlwings add-in! Please restart Excel.")
         if sys.platform.startswith("darwin"):
             runpython_install(None)
-        if not args.file:
+        if not args.file and not args.dir:
+            # Don't create config for custom add-ins
             config_create(None)
     except IOError as e:
         if e.args[0] == 13:
