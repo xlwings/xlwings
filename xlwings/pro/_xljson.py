@@ -168,6 +168,18 @@ class App(base_classes.App):
     def activate(self, steal_focus=None):
         pass
 
+    def alert(self, prompt, title, buttons, mode, callback):
+        self.books.active.append_json_action(
+            func="alert",
+            args=[
+                "" if prompt is None else prompt,
+                "" if title is None else title,
+                "" if buttons is None else buttons,
+                "" if mode is None else mode,
+                "" if callback is None else callback,
+            ],
+        )
+
 
 class Books(base_classes.Books):
     def __init__(self, app):
