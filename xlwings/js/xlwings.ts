@@ -362,3 +362,7 @@ function addPicture(workbook: ExcelScript.Workbook, action: Action) {
 function updatePicture(workbook: ExcelScript.Workbook, action: Action) {
   throw "Not Implemented: updatePicture";
 }
+
+function alert(workbook: ExcelScript.Workbook, action: Action) {
+  throw "Not Implemented: alert";
+}
