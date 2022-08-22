@@ -721,7 +721,7 @@ class App:
         -------
         button_value: str or None
             Returns ``None`` when used with the remote interpreter, otherwise the value
-            of the pressed button.
+            of the pressed button in lowercase: ``ok``, ``cancel``, ``yes``, ``no``.
 
 
         .. versionadded:: 0.27.13
