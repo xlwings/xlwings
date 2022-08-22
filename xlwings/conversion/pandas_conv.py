@@ -32,9 +32,12 @@ if pd:
                 value.index.rename(None, inplace=True)
             value = value.reset_index()
 
-        # Convert PeriodDtype here for efficiency reasons (they are pandas-specific)
+        # Convert pandas-specific types without corresponding Excel type to strings
         for ix, col in enumerate(value.columns):
-            if isinstance(value.iloc[:, ix].dtype, pd.PeriodDtype):
+            if (
+                isinstance(value.iloc[:, ix].dtype, pd.PeriodDtype)
+                or value.iloc[:, ix].dtype == "timedelta64[ns]"
+            ):
                 value.iloc[:, ix] = value.iloc[:, ix].astype(str)
 
         if header:
