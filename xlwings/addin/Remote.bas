@@ -502,3 +502,50 @@ Sub updatePicture(wb As Workbook, action As Dictionary)
     On Error GoTo 0
 End Sub
 
+Sub alert(wb As Workbook, action As Dictionary)
+    Dim myPrompt As String, myTitle As String, myButtons As String, myMode As String, myCallback As String
+    Dim myStyle As Integer, rv As Integer
+    Dim buttonResult As String
+
+    myPrompt = action("args")(1)
+    myTitle = action("args")(2)
+    myButtons = action("args")(3)
+    myMode = action("args")(4)
+    myCallback = action("args")(5)
+
+    Select Case myButtons
+    Case "ok"
+        myStyle = VBA.vbOK
+    Case "ok_cancel"
+        myStyle = VBA.vbOKCancel
+    Case "yes_no"
+        myStyle = VBA.vbYesNo
+    Case "yes_no_cancel"
+        myStyle = VBA.vbYesNoCancel
+    End Select
+
+    If myMode = "info" Then
+        myStyle = myStyle + VBA.vbInformation
+    ElseIf myMode = "critical" Then
+        myStyle = myStyle + VBA.vbCritical
+    End If
+
+    rv = MsgBox(Prompt:=myPrompt, Title:=myTitle, Buttons:=myStyle)
+
+    Select Case rv
+    Case 1
+        buttonResult = "ok"
+    Case 2
+        buttonResult = "cancel"
+    Case 6
+        buttonResult = "yes"
+    Case 7
+        buttonResult = "no"
+    End Select
+
+
+    If myCallback <> "" Then
+        Application.Run myCallback, buttonResult
+    End If
+
+End Sub

@@ -222,23 +222,7 @@ function getRange(workbook, action) {
 }
 
 // Functions map
-let funcs = {
-  setValues: setValues,
-  clearContents: clearContents,
-  addSheet: addSheet,
-  setSheetName: setSheetName,
-  setAutofit: setAutofit,
-  setRangeColor: setRangeColor,
-  activateSheet: activateSheet,
-  addHyperlink: addHyperlink,
-  setNumberFormat: setNumberFormat,
-  setPictureName: setPictureName,
-  setPictureWidth: setPictureWidth,
-  setPictureHeight: setPictureHeight,
-  deletePicture: deletePicture,
-  addPicture: addPicture,
-  updatePicture: updatePicture,
-};
+let funcs = this;
 
 // Functions
 function setValues(workbook, action) {
@@ -401,4 +385,41 @@ function updatePicture(workbook, action) {
   imgNew.setWidth(width);
   imgNew.setHeight(height);
   SpreadsheetApp.flush();
+}
+
+function alert(workbook, action) {
+  let ui = SpreadsheetApp.getUi();
+
+  let myPrompt = action.args[0];
+  let myTitle = action.args[1];
+  let myButtons = action.args[2];
+  let myMode = action.args[3]; // ignored
+  let myCallback = action.args[4];
+
+  if (myButtons == "ok") {
+    myButtons = ui.ButtonSet.OK;
+  } else if (myButtons == "ok_cancel") {
+    myButtons = ui.ButtonSet.OK_CANCEL;
+  } else if (myButtons == "yes_no") {
+    myButtons = ui.ButtonSet.YES_NO;
+  } else if (myButtons == "yes_no_cancel") {
+    myButtons = ui.ButtonSet.YES_NO_CANCEL;
+  }
+
+  let rv = ui.alert(myTitle, myPrompt, myButtons);
+
+  let buttonResult;
+  if (rv == ui.Button.OK) {
+    buttonResult = "ok";
+  } else if (rv == ui.Button.CANCEL) {
+    buttonResult = "cancel";
+  } else if (rv == ui.Button.YES) {
+    buttonResult = "yes";
+  } else if (rv == ui.Button.NO) {
+    buttonResult = "no";
+  }
+
+  if (myCallback != "") {
+    funcs[myCallback](buttonResult);
+  }
 }

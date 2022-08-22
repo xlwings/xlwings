@@ -689,6 +689,45 @@ class App:
             **data,
         )
 
+    def alert(self, prompt, title=None, buttons="ok", mode=None, callback=None):
+        """
+        This corresponds to ``MsgBox`` in VBA, shows an alert/message box and returns
+        the value of the pressed button. For the remote interpreter, instead of
+        returning a value, the function accepts the name of a callback to which it will
+        supply the value of the pressed button.
+
+        Parameters
+        ----------
+
+        prompt : str, default None
+            The message to be displayed.
+
+        title : str, default None
+            The title of the alert.
+
+        buttons : str, default "ok"
+            Can be either "ok", "ok_cancel", "yes_no", or "yes_no_cancel".
+
+        mode : str, default None
+            Can be "info" or "critical". Not supported by Google Sheets.
+
+        callback : str, default None
+            Only used by the remote interpreter: you can provide the name of a
+            function that will be called with the value of the pressed button as
+            argument. The function has to exist on the client side, i.e., in VBA or
+            JavaScript.
+
+        Returns
+        -------
+        button_value: str or None
+            Returns ``None`` when used with the remote interpreter, otherwise the value
+            of the pressed button in lowercase: ``ok``, ``cancel``, ``yes``, ``no``.
+
+
+        .. versionadded:: 0.27.13
+        """
+        return self.impl.alert(prompt, title, buttons, mode, callback)
+
     def __repr__(self):
         return "<Excel App %s>" % self.pid
 

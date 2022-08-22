@@ -115,9 +115,6 @@ class App:
     def pid(self):
         raise NotImplementedError()
 
-    def range(self, arg1, arg2=None):
-        raise NotImplementedError()
-
     def run(self, macro, args):
         raise NotImplementedError()
 
@@ -135,6 +132,9 @@ class App:
 
     @cut_copy_mode.setter
     def cut_copy_mode(self, value):
+        raise NotImplementedError()
+
+    def alert(self, prompt, title, buttons, mode, callback):
         raise NotImplementedError()
 
 
