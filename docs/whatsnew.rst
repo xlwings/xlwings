@@ -1,6 +1,13 @@
 What's New
 ==========
 
+v0.27.13 (Aug 22, 2022)
+-----------------------
+
+* :bdg-success:`Feature` Add support for alerts: ``myapp.alert("Hello World")``, see :meth:`myapp.alert() <xlwings.App.alert>` for more details (:issue:`756`).
+* :bdg-info:`Enhancement` Handle Timedelta dtypes in pandas DataFrames and Series (:issue:`1991`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Remove the cryptography dependency from xlwings PRO (:issue:`1992`).
+
 v0.27.12 (Aug 8, 2022)
 ----------------------
 

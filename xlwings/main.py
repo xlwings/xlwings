@@ -705,11 +705,12 @@ class App:
         title : str, default None
             The title of the alert.
 
-        buttons : str, default "ok"
-            Can be either "ok", "ok_cancel", "yes_no", or "yes_no_cancel".
+        buttons : str, default ``"ok"``
+            Can be either ``"ok"``, ``"ok_cancel"``, ``"yes_no"``, or
+            ``"yes_no_cancel"``.
 
         mode : str, default None
-            Can be "info" or "critical". Not supported by Google Sheets.
+            Can be ``"info"`` or ``"critical"``. Not supported by Google Sheets.
 
         callback : str, default None
             Only used by the remote interpreter: you can provide the name of a
@@ -721,7 +722,8 @@ class App:
         -------
         button_value: str or None
             Returns ``None`` when used with the remote interpreter, otherwise the value
-            of the pressed button in lowercase: ``ok``, ``cancel``, ``yes``, ``no``.
+            of the pressed button in lowercase: ``"ok"``, ``"cancel"``, ``"yes"``,
+            ``"no"``.
 
 
         .. versionadded:: 0.27.13
