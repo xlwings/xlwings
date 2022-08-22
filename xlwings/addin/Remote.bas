@@ -515,7 +515,7 @@ Sub alert(wb As Workbook, action As Dictionary)
 
     Select Case myButtons
     Case "ok"
-        myStyle = VBA.vbOK
+        myStyle = VBA.vbOKOnly
     Case "ok_cancel"
         myStyle = VBA.vbOKCancel
     Case "yes_no"
