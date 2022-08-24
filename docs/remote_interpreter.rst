@@ -5,7 +5,7 @@ Remote Interpreter
 
 This feature requires xlwings :bdg-secondary:`PRO` and at least v0.27.0.
 
-Instead of installing Python on each end-user's machine, you can work with a remote Python interpreter. This works the same as a web application, but uses your spreadsheet as the frontend instead of a web page in a browser. A remote interpreter doesn't just work with the Desktop versions of Excel on Windows and macOS but additionally supports Google Sheets and Excel on the web for a full cloud experience. The remote interpreter runs everywhere where Python runs, including Linux, Docker and WSL (Windows Subsystem for Linux) and can by run locally or deployed to a (serverless) cloud service or an on-premise server.
+Instead of installing Python on each end-user's machine, you can work with a remote Python interpreter. This works the same as a web application, but uses your spreadsheet as the frontend instead of a web page in a browser. A remote interpreter doesn't just work with the Desktop versions of Excel on Windows and macOS but additionally supports Google Sheets and Excel on the web for a full cloud experience. The remote interpreter runs everywhere where Python runs, including Linux, Docker and WSL (Windows Subsystem for Linux) and can be run on your local machine or deployed to a (serverless) cloud service or an on-premise server.
 
 .. important:: This feature currently only covers parts of the RunPython API (UDFs are not yet supported). See also :ref:`Limitations` and :ref:`Roadmap`.
 
