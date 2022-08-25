@@ -89,10 +89,17 @@ def _addin_install(addin_source_path):
 
 
 def addin_remove(args):
+    if args.dir:
+        for addin_source_path in Path(args.dir).resolve().glob("[!~$]*.xl*"):
+            _addin_remove(addin_source_path)
     if args.file:
-        addin_name = os.path.basename(args.file)
+        _addin_remove(args.file)
     else:
-        addin_name = "xlwings.xlam"
+        _addin_remove("xlwings.xlam")
+
+
+def _addin_remove(addin_name):
+    addin_name = os.path.basename(addin_name)
     addin_path = os.path.join(get_addin_dir(), addin_name)
     try:
         if xw.apps:
@@ -782,7 +789,8 @@ def main():
 
     file_arg_help = "The name or path of a custom add-in."
     dir_arg_help = (
-        "The path of a directory whose Excel files you want to copy to XLSTART."
+        "The path of a directory whose Excel files you want to copy to or remove from "
+        "XLSTART."
     )
 
     addin_install_parser = addin_subparsers.add_parser("install")
@@ -803,6 +811,7 @@ def main():
 
     addin_remove_parser = addin_subparsers.add_parser("remove")
     addin_remove_parser.add_argument("-f", "--file", default=None, help=file_arg_help)
+    addin_remove_parser.add_argument("-d", "--dir", default=None, help=dir_arg_help)
     addin_remove_parser.set_defaults(func=addin_remove)
 
     addin_uninstall_parser = addin_subparsers.add_parser("uninstall")
