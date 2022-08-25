@@ -33,30 +33,48 @@ def get_addin_dir():
 
 
 def addin_install(args):
-    xlwings_addin_target_path = os.path.join(get_addin_dir(), "xlwings.xlam")
-    addin_name = "xlwings.xlam"
+    if args.dir:
+        for addin_source_path in Path(args.dir).resolve().glob("[!~$]*.xl*"):
+            _addin_install(str(addin_source_path))
+    elif args.file:
+        addin_source_path = os.path.abspath(args.file)
+        _addin_install(addin_source_path)
+    else:
+        addin_source_path = os.path.join(this_dir, "addin", "xlwings.xlam")
+        _addin_install(addin_source_path)
+
+
+def _addin_install(addin_source_path):
+    addin_name = os.path.basename(addin_source_path)
+    addin_target_path = os.path.join(get_addin_dir(), addin_name)
+    # Close any open add-ins
+    if xw.apps:
+        for app in xw.apps:
+            try:
+                app.books[addin_name].close()
+            except KeyError:
+                pass
     try:
-        if args.file:
-            custom_addin_source_path = os.path.abspath(args.file)
-            shutil.copyfile(
-                custom_addin_source_path,
-                os.path.join(
-                    get_addin_dir(), os.path.basename(custom_addin_source_path)
-                ),
-            )
-            print("Successfully installed the add-in! Please restart Excel.")
-        elif args.dir:
-            for f in Path(args.dir).resolve().glob("[!~$]*.xl*"):
-                shutil.copyfile(f, os.path.join(get_addin_dir(), f.name))
-        else:
-            shutil.copyfile(
-                os.path.join(this_dir, "addin", addin_name), xlwings_addin_target_path
-            )
-            print("Successfully installed the xlwings add-in! Please restart Excel.")
+        # Install the add-in
+        shutil.copyfile(addin_source_path, addin_target_path)
+        # Load the add-in
+        if xw.apps:
+            for app in xw.apps:
+                try:
+                    app.books.open(Path(app.startup_path) / addin_name)
+                    print("Successfully installed the xlwings add-in!")
+                except Exception as e:
+                    print(
+                        "Successfully installed the xlwings add-in! "
+                        "Please restart Excel."
+                    )
+                try:
+                    app.activate(steal_focus=True)
+                except Exception as e:
+                    pass
         if sys.platform.startswith("darwin"):
             runpython_install(None)
-        if not args.file and not args.dir:
-            # Don't create config for custom add-ins
+        if addin_name == "xlwings.xlam":
             config_create(None)
     except IOError as e:
         if e.args[0] == 13:
@@ -77,6 +95,12 @@ def addin_remove(args):
         addin_name = "xlwings.xlam"
     addin_path = os.path.join(get_addin_dir(), addin_name)
     try:
+        if xw.apps:
+            for app in xw.apps:
+                try:
+                    app.books[addin_name].close()
+                except KeyError:
+                    pass
         os.remove(addin_path)
         print("Successfully removed the add-in!")
     except (WindowsError, PermissionError) as e:
@@ -270,12 +294,7 @@ def config_create(args):
     else:
         extension = "MAC" if sys.platform.startswith("darwin") else "WIN"
         settings.append('"INTERPRETER_{}","{}"\n'.format(extension, sys.executable))
-    if os.path.exists(xw.USER_CONFIG_FILE) and not force:
-        print(
-            "There is already an existing ~/.xlwings/xlwings.conf file. Run "
-            "'xlwings config create --force' if you want to reset your configuration."
-        )
-    else:
+    if not os.path.exists(xw.USER_CONFIG_FILE) or force:
         with open(xw.USER_CONFIG_FILE, "w") as f:
             f.writelines(settings)
 
