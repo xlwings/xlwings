@@ -47,7 +47,7 @@ To install the add-in, run the following command::
 To call Excel from Python, you don't need an add-in. Also, you can use a single file VBA module (*standalone workbook*) instead of the add-in. For more details, see :ref:`xlwings_addin`.
 
 .. note::
-   The add-in needs to be the same version as the Python package. Make sure to re-install the add-in after upgrading the xlwings package. Make sure to close Ecxel before installing/upgrading the add-in.
+   The add-in needs to be the same version as the Python package. Make sure to re-install the add-in after upgrading the xlwings package.
 
 .. note::
   When you are on macOS and are using the VBA standalone module instead of the add-in, you need to run ``$ xlwings runpython install`` once.

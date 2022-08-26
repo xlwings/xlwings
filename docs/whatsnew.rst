@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.27.14 (Aug 26, 2022)
+-----------------------
+
+* :bdg-info:`Enhancement` Allow to install/remove the addin via ``xlwings addin install`` while Excel is running (:issue:`1999`).
+
 v0.27.13 (Aug 22, 2022)
 -----------------------
 
