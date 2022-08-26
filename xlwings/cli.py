@@ -60,18 +60,28 @@ def _addin_install(addin_source_path):
         # Load the add-in
         if xw.apps:
             for app in xw.apps:
-                try:
-                    app.books.open(Path(app.startup_path) / addin_name)
-                    print("Successfully installed the xlwings add-in!")
-                except Exception as e:
+                if sys.platform.startswith("win"):
+                    try:
+                        app.books.open(Path(app.startup_path) / addin_name)
+                        print("Successfully installed the xlwings add-in!")
+                    except Exception as e:
+                        print(
+                            "Successfully installed the xlwings add-in! "
+                            "Please restart Excel."
+                        )
+                    try:
+                        app.activate(steal_focus=True)
+                    except Exception as e:
+                        pass
+                else:
+                    # macOS asks to explicitly enable macros when opened directly
+                    # which isn't a good UX
                     print(
                         "Successfully installed the xlwings add-in! "
-                        "Please restart Excel."
+                        "Please restart Excel (quit via Cmd-Q, then start Excel again)."
                     )
-                try:
-                    app.activate(steal_focus=True)
-                except Exception as e:
-                    pass
+        else:
+            print("Successfully installed the xlwings add-in! ")
         if sys.platform.startswith("darwin"):
             runpython_install(None)
         if addin_name == "xlwings.xlam":
@@ -221,7 +231,9 @@ def runpython_install(args):
     shutil.copy(
         os.path.join(this_dir, f"xlwings-{xw.__version__}.applescript"), destination_dir
     )
-    print("Successfully enabled RunPython!")
+    if args:
+        # Don't print when called as part of "xlwings addin install"
+        print("Successfully enabled RunPython!")
 
 
 def restapi_run(args):
