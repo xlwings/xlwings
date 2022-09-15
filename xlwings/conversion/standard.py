@@ -101,6 +101,7 @@ class ReadValueFromRangeStage:
 
 class CleanDataFromReadStage:
     def __init__(self, options):
+        self.options = options
         dates_as = options.get("dates", datetime.datetime)
         self.empty_as = options.get("empty", None)
         self.dates_handler = _date_handlers.get(dates_as, dates_as)
@@ -108,9 +109,12 @@ class CleanDataFromReadStage:
         self.numbers_handler = _number_handlers.get(numbers_as, numbers_as)
 
     def __call__(self, c):
-        c.value = c.engine.impl.clean_value_data(
-            c.value, self.dates_handler, self.empty_as, self.numbers_handler
-        )
+        if c.engine.name == "calamine" and not self.options:
+            return c.value
+        else:
+            c.value = c.engine.impl.clean_value_data(
+                c.value, self.dates_handler, self.empty_as, self.numbers_handler
+            )
 
 
 class CleanDataForWriteStage:

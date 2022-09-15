@@ -1,6 +1,7 @@
-# Activate one of the following two lines to run the tests with the respective engine
-engine = "json"
-# engine = 'excel'
+# Activate one of the following lines to run the tests with the respective engine
+# engine = "calamine"
+# engine = "json"
+engine = "excel"
 
 from pathlib import Path
 import datetime as dt
@@ -70,9 +71,12 @@ data = {
 def book():
     if engine == "json":
         book = xw.Book(json=data)
+    elif engine == "calamine":
+        book = xw.Book("json.xlsx", mode="r")
     else:
         book = xw.Book("json.xlsx")
     yield book
+    book.close()
 
 
 # range.value
@@ -247,7 +251,7 @@ def test_read_basic_types(book):
     ]
 
 
-@pytest.mark.skipif(engine == "excel", reason="requires json engine")
+@pytest.mark.skipif(engine != "json", reason="requires json engine")
 def test_write_basic_types(book):
     sheet = book.sheets[0]
     sheet["Z10"].value = [
@@ -274,6 +278,7 @@ def test_sheet_access(book):
     assert book.sheets[1].name == "Sheet2"
 
 
+@pytest.mark.skipif(engine == "calamine", reason="reader engine")
 def test_sheet_active(book):
     assert book.sheets.active == book.sheets[0]
 
@@ -288,15 +293,18 @@ def test_book(book):
     assert book.name == "json.xlsx"
 
 
+@pytest.mark.skipif(engine in ["calamine", "excel"], reason="reader engine")
 def test_book_selection(book):
     assert book.selection.address == "$B$3:$B$4"
 
 
 # pictures
+@pytest.mark.skipif(engine == "calamine", reason="reader engine")
 def test_pictures_len(book):
     assert len(book.sheets[0].pictures) == 2
 
 
+@pytest.mark.skipif(engine == "calamine", reason="reader engine")
 def test_pictures_name(book):
     assert book.sheets[0].pictures[0].name == "pic1"
     assert book.sheets[0].pictures[1].name == "pic2"
@@ -304,16 +312,19 @@ def test_pictures_name(book):
     assert book.sheets[0].pictures(2).name == "pic2"
 
 
+@pytest.mark.skipif(engine == "calamine", reason="reader engine")
 def test_pictures_width(book):
     assert book.sheets[0].pictures[0].width == 20
     assert book.sheets[0].pictures[1].width == 40
 
 
+@pytest.mark.skipif(engine == "calamine", reason="reader engine")
 def test_pictures_height(book):
     assert book.sheets[0].pictures[0].height == 10
     assert book.sheets[0].pictures[1].height == 30
 
 
+@pytest.mark.skipif(engine == "calamine", reason="reader engine")
 def test_pictures_add_and_delete(book):
     sheet = book.sheets[0]
     sheet.pictures.add(this_dir.parent / "sample_picture.png", name="new")
@@ -324,6 +335,7 @@ def test_pictures_add_and_delete(book):
     assert len(sheet.pictures) == 2
 
 
+@pytest.mark.skipif(engine == "calamine", reason="reader engine")
 def test_pictures_iter(book):
     sheet = book.sheets[0]
     pic_names = []
@@ -332,6 +344,7 @@ def test_pictures_iter(book):
     assert pic_names == ["pic1", "pic2"]
 
 
+@pytest.mark.skipif(engine == "calamine", reason="reader engine")
 def test_pictures_contains(book):
     sheet = book.sheets[0]
     assert "pic1" in sheet.pictures
@@ -342,10 +355,12 @@ def test_pictures_contains(book):
     assert 3 not in sheet.pictures
 
 
+@pytest.mark.skipif(engine == "calamine", reason="reader engine")
 def test_empty_pictures(book):
     assert not book.sheets[1].pictures
 
 
+@pytest.mark.skipif(engine == "calamine", reason="reader engine")
 def test_picture_exists(book):
     with pytest.raises(xw.ShapeAlreadyExists):
         book.sheets[0].pictures.add(this_dir.parent / "sample_picture.png", name="pic1")
@@ -370,7 +385,7 @@ def test_named_range_missing(book):
         values = sheet1["doesnt_exist"].value
 
 
-@pytest.mark.skipif(engine == "excel", reason="requires json engine")
+@pytest.mark.skipif(engine != "json", reason="requires json engine")
 def test_named_range_book_change_value(book):
     sheet1 = book.sheets[0]
     assert sheet1["one"].value == "a"

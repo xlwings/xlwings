@@ -16,7 +16,7 @@ import warnings
 from pathlib import Path
 from contextlib import contextmanager
 
-from . import ShapeAlreadyExists, utils, XlwingsError
+from . import ShapeAlreadyExists, utils, XlwingsError, LicenseError
 import xlwings
 
 # Optional imports
@@ -128,7 +128,15 @@ class Engines:
         if isinstance(name_or_index, numbers.Number):
             return self.engines[name_or_index]
         else:
-            return self.engines_by_name[name_or_index]
+            try:
+                return self.engines_by_name[name_or_index]
+            except KeyError:
+                if not xlwings.PRO and name_or_index in ["calamine", "json"]:
+                    raise LicenseError(
+                        f"The '{name_or_index}' engine requires xlwings PRO."
+                    )
+                else:
+                    raise
 
     def __len__(self):
         return len(self.engines)
@@ -157,7 +165,7 @@ class Engine:
         engines.active = self
 
     def __repr__(self):
-        return "<%s Engine>" % self.name
+        return f"<Engine {self.name}>"
 
 
 class Apps:
@@ -731,7 +739,7 @@ class App:
         return self.impl.alert(prompt, title, buttons, mode, callback)
 
     def __repr__(self):
-        return "<Excel App %s>" % self.pid
+        return f"<App [{self.engine.name}] {self.pid}>"
 
     def __eq__(self, other):
         return type(other) is App and other.pid == self.pid
@@ -845,14 +853,15 @@ class Book:
         corrupt_load=None,
         impl=None,
         json=None,
+        mode=None,
     ):
         if not impl:
-            if json:
-                if xlwings.PRO:
-                    impl = engines["json"].apps[-1].books.open(json=json).impl
-                else:
-                    # Will raise LicenseKeyError or ImportError
-                    from xlwings import pro
+            if json or engines.active.name == "json":
+                engines["json"].activate()
+                impl = apps.active.books.open(json=json).impl
+            elif fullname and mode == "r" or engines.active.name == "calamine":
+                engines["calamine"].activate()
+                impl = apps.active.books.open(fullname=fullname, mode=mode).impl
             elif fullname:
                 fullname = utils.fspath(fullname)
                 fullname = fullname.lower()
@@ -1256,6 +1265,12 @@ class Book:
         """
         for sheet in reversed(self.sheets):
             sheet.render_template(**data)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self.close()
 
 
 class Sheet:
@@ -4882,6 +4897,7 @@ class Books(Collection):
         local=None,
         corrupt_load=None,
         json=None,
+        mode=None,
     ):
         """
         Opens a Book if it is not open yet and returns it. If it is already open,
@@ -4902,13 +4918,20 @@ class Books(Collection):
         Book : Book that has been opened.
 
         """
-        if json:
+        if json or engines.active.name == "json":
+            engines["json"].activate()
             return Book(impl=self.impl.open(json=json))
+
         fullname = utils.fspath(fullname)
         if not os.path.exists(fullname):
             raise FileNotFoundError("No such file: '%s'" % fullname)
         fullname = os.path.realpath(fullname)
         _, name = os.path.split(fullname)
+
+        if mode == "r" or engines.active.name == "calamine":
+            engines["calamine"].activate()
+            return Book(impl=self.impl.open(filename=fullname))
+
         try:
             impl = self.impl(name)
             if not os.path.samefile(impl.fullname, fullname):
@@ -5035,6 +5058,8 @@ class ActiveAppBooks(Books):
 
     @property
     def impl(self):
+        if not apps:
+            raise XlwingsError("Couldn't find any active App!")
         return apps.active.books.impl
 
 
