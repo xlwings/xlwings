@@ -114,7 +114,7 @@ def render_sheet(sheet, **data):
     frame_indices = []
     for ix, cell in enumerate(sheet.range((1, 1), (1, last_cell.column))):
         if cell.note:
-            if cell.note.text.strip() == "<frame>":
+            if "<frame>" in cell.note.text:
                 frame_indices.append(ix)
                 uses_frames = True
     is_single_frame = True if len(frame_indices) == 1 else False
