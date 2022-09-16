@@ -225,18 +225,44 @@ def header(df, filter_args):
 
 # DataFrame formatting filters
 def vmerge(df, filter_args, top_left_cell, header):
+    """
+    vmerge(0, 1) is hierarchical: i.e., it only merges the cells with the same content
+    in col 1 as long as they are within a merged cell in col 0.
+
+    To merge columns independently, the filter can be used like this:
+    vmerge(0) | vmerge(1)
+    """
     if df.empty:
         return []
     cols = [arg.as_const() for arg in filter_args]
+
+    merged_cells_count_all = []
+    for ix, col in enumerate(cols):
+        if ix == 0:
+            # ['a', 'a', 'b', 'c', 'c'] = > [2, 1, 2]
+            merged_cells_count_origin = [
+                sum(1 for _ in group) for _, group in groupby(df.iloc[:, col])
+            ]
+            merged_cells_count_all.append(merged_cells_count_origin)
+        else:
+            merged_cells_count_subsection_all = []
+            cum_section_len = 0
+            for section_len in merged_cells_count_all[ix - 1]:
+                merged_cells_count_subsection = [
+                    sum(1 for _ in group)
+                    for _, group in groupby(
+                        df.iloc[cum_section_len : cum_section_len + section_len, col]
+                    )
+                ]
+                merged_cells_count_subsection_all.extend(merged_cells_count_subsection)
+                cum_section_len += section_len
+            merged_cells_count_all.append(merged_cells_count_subsection_all)
+
     ranges_to_merge = []
-    for col in cols:
-        # merged_cells_count: ['a', 'a', 'b', 'c', 'c'] => [2, 1, 2]
-        merged_cells_count = [
-            sum(1 for _ in group) for _, group in groupby(df.iloc[:, col])
-        ]
+    for ix, col in enumerate(cols):
         ranges_to_merge_col = []
         row_offset = 1 if header else 0
-        for count in merged_cells_count:
+        for count in merged_cells_count_all[ix]:
             if count > 1:
                 ranges_to_merge_col.append(
                     top_left_cell.offset(
