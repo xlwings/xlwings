@@ -123,171 +123,209 @@ When working with pandas DataFrames, the report designer often needs to tweak th
 DataFrames Filters
 ******************
 
-* **noheader**: Hide the column headers
+noheader
+~~~~~~~~
 
-  Example::
+Hide the column headers
 
-  {{ df | noheader }}
+Example::
 
-* **header**: Only return the header
+{{ df | noheader }}
 
-  Example::
+header
+~~~~~~
 
-  {{ df | header }}
+Only return the header
 
-* **sortasc**: Sort in ascending order (indices are zero-based)
+Example::
 
-  Example: sort by second, then by first column::
+{{ df | header }}
 
-  {{ df | sortasc(1, 0) }}
+sortasc
+~~~~~~~
 
-* **sortdesc**: Sort in descending order (indices are zero-based)
+Sort in ascending order (indices are zero-based)
 
-  Example: sort by first, then by second column in descending order::
+Example: sort by second, then by first column::
 
-  {{ df | sortdesc(0, 1) }}
+{{ df | sortasc(1, 0) }}
 
-* **columns**: Select/reorder columns and insert empty columns (indices are zero-based)
+sortdesc
+~~~~~~~~
 
-  See also: ``colslice``
+Sort in descending order (indices are zero-based)
 
-  Example: introduce an empty column (``None``) as the second column and switch the order of the second and third column::
+Example: sort by first, then by second column in descending order::
 
-    {{ df | columns(0, None, 2, 1) }}
+{{ df | sortdesc(0, 1) }}
 
-  .. note::
-    Merged cells: you'll also have to introduce empty columns if you are using merged cells in your Excel template.
+columns
+~~~~~~~
 
-* **mul**, **div**, **sum**, **sub**: Apply an arithmetic operation (multiply, divide, sum, subtract) on a column (indices are zero-based)
+Select/reorder columns and insert empty columns (indices are zero-based)
 
-  Syntax::
+See also: ``colslice``
 
-  {{ df | operation(value, col_ix[, fill_value]) }}
+Example: introduce an empty column (``None``) as the second column and switch the order of the second and third column::
 
-  ``fill_value`` is optional and determines whether empty cells are included in the operation or not. To include empty values and thus make it behave like in Excel, set it to ``0``.
+{{ df | columns(0, None, 2, 1) }}
 
-  Example: multiply the first column by 100::
+.. note::
+Merged cells: you'll also have to introduce empty columns if you are using merged cells in your Excel template.
 
-  {{ df | mul(100, 0) }}
+mul, div, sum, sub
+~~~~~~~~~~~~~~~~~~
 
-  Example: multiply the first column by 100 and the second column by 2::
+Apply an arithmetic operation (multiply, divide, sum, subtract) on a column (indices are zero-based)
 
-  {{ df | mul(100, 0) | mul(2, 1) }}
+Syntax::
 
-  Example: add 100 to the first column including empty cells::
+{{ df | operation(value, col_ix[, fill_value]) }}
 
-  {{ df | add(100, 0, 0) }}
+``fill_value`` is optional and determines whether empty cells are included in the operation or not. To include empty values and thus make it behave like in Excel, set it to ``0``.
 
-* **maxrows**: Maximum number of rows (currently, only ``sum`` is supported as aggregation function)
+Example: multiply the first column by 100::
 
-  If your DataFrame has 12 rows and you use ``maxrows(10, "Other")`` as filter, you'll get a table that shows the first 9 rows as-is and sums up the remaining 3 rows under the label ``Other``. If your data is unsorted, make sure to call ``sortasc``/``sortdesc`` first to make sure the correct rows are aggregated.
+{{ df | mul(100, 0) }}
 
-  See also: ``aggsmall``, ``head``, ``tail``, ``rowslice``
+Example: multiply the first column by 100 and the second column by 2::
 
-  Syntax::
+{{ df | mul(100, 0) | mul(2, 1) }}
 
-  {{ df | maxrows(number_rows, label[, label_col_ix]) }}
+Example: add 100 to the first column including empty cells::
 
-  ``label_col_ix`` is optional: if left away, it will label the first column of the DataFrame (index is zero-based)
+{{ df | add(100, 0, 0) }}
 
-  Examples::
+maxrows
+~~~~~~~
 
-  {{ df | maxrows(10, "Other") }}
-  {{ df | sortasc(1)| maxrows(5, "Other") }}
-  {{ df | maxrows(10, "Other", 1) }}
+Maximum number of rows (currently, only ``sum`` is supported as aggregation function)
 
-* **aggsmall**: Aggregate rows with values below a certain threshold (currently, only ``sum`` is supported as aggregation function)
+If your DataFrame has 12 rows and you use ``maxrows(10, "Other")`` as filter, you'll get a table that shows the first 9 rows as-is and sums up the remaining 3 rows under the label ``Other``. If your data is unsorted, make sure to call ``sortasc``/``sortdesc`` first to make sure the correct rows are aggregated.
 
-  If the values in the specified row are below the threshold values, they will be summed up in a single row.
+See also: ``aggsmall``, ``head``, ``tail``, ``rowslice``
 
-  See also: ``maxrows``, ``head``, ``tail``, ``rowslice``
+Syntax::
 
-  Syntax::
+{{ df | maxrows(number_rows, label[, label_col_ix]) }}
 
-  {{ df | aggsmall(threshold, threshold_col_ix, label[, label_col_ix][, min_rows]) }}
+``label_col_ix`` is optional: if left away, it will label the first column of the DataFrame (index is zero-based)
 
-  ``label_col_ix`` and ``min_rows`` are optional: if ``label_col_ix`` is left away, it will label the first column of the DataFrame (indices are zero-based). ``min_rows`` has the effect that it skips rows from aggregating if it otherwise the number of rows falls below ``min_rows``. This prevents you from ending up with only one row called "Other" if you only have a few rows that are all below the threshold. NOTE that this parameter only makes sense if the data is sorted!
+Examples::
 
-  Examples::
+{{ df | maxrows(10, "Other") }}
+{{ df | sortasc(1)| maxrows(5, "Other") }}
+{{ df | maxrows(10, "Other", 1) }}
 
-  {{ df | aggsmall(0.1, 2, "Other") }}
-  {{ df | sortasc(1) | aggsmall(0.1, 2, "Other") }}
-  {{ df | aggsmall(0.5, 1, "Other", 1) }}
-  {{ df | aggsmall(0.5, 1, "Other", 1, 10) }}
+aggsmall
+~~~~~~~~
 
-* **head**: Only show the top n rows
+Aggregate rows with values below a certain threshold (currently, only ``sum`` is supported as aggregation function)
 
-  See also: ``maxrows``, ``aggsmall``, ``tail``, ``rowslice``
+If the values in the specified row are below the threshold values, they will be summed up in a single row.
 
-  Example::
+See also: ``maxrows``, ``head``, ``tail``, ``rowslice``
 
-  {{ df | head(3) }}
+Syntax::
 
-* **tail**: Only show the bottom n rows
+{{ df | aggsmall(threshold, threshold_col_ix, label[, label_col_ix][, min_rows]) }}
 
-  See also: ``maxrows``, ``aggsmall``, ``head``, ``rowslice``
+``label_col_ix`` and ``min_rows`` are optional: if ``label_col_ix`` is left away, it will label the first column of the DataFrame (indices are zero-based). ``min_rows`` has the effect that it skips rows from aggregating if it otherwise the number of rows falls below ``min_rows``. This prevents you from ending up with only one row called "Other" if you only have a few rows that are all below the threshold. NOTE that this parameter only makes sense if the data is sorted!
 
-  Example::
+Examples::
 
-  {{ df | tail(5) }}
+{{ df | aggsmall(0.1, 2, "Other") }}
+{{ df | sortasc(1) | aggsmall(0.1, 2, "Other") }}
+{{ df | aggsmall(0.5, 1, "Other", 1) }}
+{{ df | aggsmall(0.5, 1, "Other", 1, 10) }}
 
-* **rowslice**: Slice the rows
+head
+~~~~
 
-  See also: ``maxrows``, ``aggsmall``, ``head``, ``tail``
+Only show the top n rows
 
-  Syntax::
+See also: ``maxrows``, ``aggsmall``, ``tail``, ``rowslice``
 
-  {{ df | rowslice(start_index[, stop_index]) }}
+Example::
 
-  ``stop_index`` is optional: if left away, it will stop at the end of the DataFrame
+{{ df | head(3) }}
 
-  Example: Show rows 2 to 4 (indices are zero-based and interval is half-open, i.e. the start is including and the end is excluding)::
+tail
+~~~~
 
-  {{ df | rowslice(2, 5) }}
+Only show the bottom n rows
 
-  Example: Show rows 2 to the end of the DataFrame::
+See also: ``maxrows``, ``aggsmall``, ``head``, ``rowslice``
 
-  {{ df | rowslice(2) }}
+Example::
 
-* **colslice**: Slice the columns
+{{ df | tail(5) }}
 
-  See also: ``columns``
+rowslice
+~~~~~~~~
 
-  Syntax::
+Slice the rows
 
-  {{ df | colslice(start_index[, stop_index]) }}
+See also: ``maxrows``, ``aggsmall``, ``head``, ``tail``
 
-  ``stop_index`` is optional: if left away, it will stop at the end of the DataFrame
+Syntax::
 
-  Example: Show columns 2 to 4 (indices are zero-based and interval is half-open, i.e. the start is including and the end is excluding)::
+{{ df | rowslice(start_index[, stop_index]) }}
 
-  {{ df | colslice(2, 5) }}
+``stop_index`` is optional: if left away, it will stop at the end of the DataFrame
 
-  Example: Show columns 2 to the end of the DataFrame::
+Example: Show rows 2 to 4 (indices are zero-based and interval is half-open, i.e. the start is including and the end is excluding)::
 
-  {{ df | colslice(2) }}
+{{ df | rowslice(2, 5) }}
 
-* **vmerge**: Merge cells vertically for adjacent cells with the same value
+Example: Show rows 2 to the end of the DataFrame::
 
-  .. note:: The ``vmerge`` filter does not work in Excel tables, as Excel tables don't support merged cells!
+{{ df | rowslice(2) }}
 
-  .. figure:: images/vmerge.png
+colslice
+~~~~~~~~
 
-  The screenshot shows cells that have been vertically and horizontally aligned in the template. They are also placed in a ``<frame>``.
+Slice the columns
 
+See also: ``columns``
 
-  Syntax::
+Syntax::
 
-  {{ df | vmerge(col_index1, col_index2, ...) }}
+{{ df | colslice(start_index[, stop_index]) }}
 
-  Example: Merge cells vertically in the first column (indices are zero-based)::
+``stop_index`` is optional: if left away, it will stop at the end of the DataFrame
 
-  {{ df | vmerge(0) }}
+Example: Show columns 2 to 4 (indices are zero-based and interval is half-open, i.e. the start is including and the end is excluding)::
 
-  Example: Merge cells vertically in the first two columns (indices are zero-based)::
+{{ df | colslice(2, 5) }}
 
-  {{ df | vmerge(0, 1) }}
+Example: Show columns 2 to the end of the DataFrame::
 
+{{ df | colslice(2) }}
+
+vmerge
+~~~~~~
+
+Merge cells vertically for adjacent cells with the same value --- can be used to represent hierarchies
+
+.. note:: The ``vmerge`` filter does not work in Excel tables, as Excel tables don't support merged cells!
+
+.. figure:: images/vmerge.png
+
+The screenshot makes use of :ref:`Frames <Frames>`.
+
+
+Syntax::
+
+{{ df | vmerge(col_index1, col_index2, ...) }}
+
+Example: Hierarchical mode: Merge cells vertically in the first column (indices are zero-based) and merge cells in the next column to stay within the merged cells of the previous column ::
+
+{{ df | vmerge(0, 1) }}
+
+Example: Indenpendent mode: If you want to merge cells within columns independently of each other, use the filter multiple times. This sample merge cells vertically in the first two columns (indices are zero-based)::
+
+{{ df | vmerge(0) | vmerge(1) }}
 
 .. _excel_tables_reports:
 
