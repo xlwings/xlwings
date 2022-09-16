@@ -43,12 +43,19 @@ df2 = pd.DataFrame(
         "d": [1, 1, 1, 6, 7],
     }
 )
+df3 = pd.DataFrame(
+    {
+        "one": ["a", "a", "b", "b", "b", "c", "d", "d"],
+        "two": ["c", "a", "a", "b", "c", "c", "c", "c"],
+    }
+)
 data = dict(
     mystring="stringtest",
     myfloat=12.12,
     substring="substringtest",
     df1=df1.reset_index(),
     df2=df2.reset_index(),
+    df3=df3,
     mydict={"df": df1},
     pic=Image(os.path.abspath("xlwings.jpg")),
     fig=fig,
@@ -373,6 +380,12 @@ class TestDataFrameFilters(unittest.TestCase):
         )
         self.assertIsNone(wb.sheets["Sheet1"]["A7"].color)
         self.assertIsNone(wb.sheets["Sheet1"]["A10"].color)
+
+    def test_df_filter_vmerge(self):
+        wb = render_template("df_filter_frame.xlsx", "output.xlsx", **data)
+        self.assertEqual(
+            wb.sheets["Sheet1"]["A13:B21"].value, wb.sheets["expected"]["A13:B21"].value
+        )
 
     def test_pic_filters(self):
         wb = render_template("template1.xlsx", "output.xlsx", **data)

@@ -12,6 +12,7 @@ Commercial licenses can be purchased at https://www.xlwings.org
 """
 
 import sys
+from itertools import groupby
 
 try:
     import numpy as np
@@ -205,9 +206,9 @@ def colslice(df, filter_args):
 def columns(df, filter_args):
     if df.empty:
         return df
-    columns = [arg.as_const() for arg in filter_args]
-    df = df.iloc[:, [col for col in columns if col is not None]]
-    empty_col_indices = [i for i, v in enumerate(columns) if v is None]
+    cols = [arg.as_const() for arg in filter_args]
+    df = df.iloc[:, [col for col in cols if col is not None]]
+    empty_col_indices = [i for i, v in enumerate(cols) if v is None]
     for n, col_ix in enumerate(empty_col_indices):
         # insert() method is inplace!
         # Since Excel tables only allow an empty space once, we'll generate multiple
@@ -220,3 +221,28 @@ def header(df, filter_args):
     # Replace the spaces introduced by a potential previous call of columns()
     # as headers alone can't be used in Excel tables
     return [None if i.isspace() else i for i in df.columns]
+
+
+# DataFrame formatting filters
+def vmerge(df, filter_args, top_left_cell, header):
+    if df.empty:
+        return []
+    cols = [arg.as_const() for arg in filter_args]
+    ranges_to_merge = []
+    for col in cols:
+        # merged_cells_count: ['a', 'a', 'b', 'c', 'c'] => [2, 1, 2]
+        merged_cells_count = [
+            sum(1 for _ in group) for _, group in groupby(df.iloc[:, col])
+        ]
+        ranges_to_merge_col = []
+        row_offset = 1 if header else 0
+        for count in merged_cells_count:
+            if count > 1:
+                ranges_to_merge_col.append(
+                    top_left_cell.offset(
+                        row_offset=row_offset, column_offset=col
+                    ).resize(row_size=count)
+                )
+            ranges_to_merge.extend(ranges_to_merge_col)
+            row_offset += count
+    return ranges_to_merge
