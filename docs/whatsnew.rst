@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.27.15 (Sep 16, 2022)
+-----------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Reports: Added new ``vmerge`` filter to vertically merge cells with the same values, for details, see :ref:`vmerge` (:issue:`2020`).
+
 v0.27.14 (Aug 26, 2022)
 -----------------------
 
@@ -17,11 +22,11 @@ v0.27.12 (Aug 8, 2022)
 ----------------------
 
 * :bdg-info:`Enhancement` :bdg-secondary:`PRO`: Remote Interpreter: added support for named ranges via ``mysheet["myname"]`` or ``mysheet.range("myname")`` (:issue:`1975`).
-* :bdg-info:`Enhancement` :bdg-secondary:`PRO`: Remote Interpreter: in addition to Google Sheets, ``pictures.add()`` is now also supported on Desktop Excel (Windows and macOS). This includes support for Matplotlib plots (:issue:`1974`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Remote Interpreter: in addition to Google Sheets, ``pictures.add()`` is now also supported on Desktop Excel (Windows and macOS). This includes support for Matplotlib plots (:issue:`1974`).
 * :bdg-info:`Enhancement` Faster UDFs (:issue:`1976`).
 * :bdg-warning:`Bug Fix` Made ``myapp.range()`` behave the same as ``mysheet.range()`` (:issue:`1982`).
-* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO`: Remote Interpreter: cell errors were causing a bug with Desktop Excel (:issue:`1968`).
-* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO`: Remote Interpreter: sending large payloads with Desktop Excel on macOS is now possible (:issue:`1977`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Remote Interpreter: cell errors were causing a bug with Desktop Excel (:issue:`1968`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Remote Interpreter: sending large payloads with Desktop Excel on macOS is now possible (:issue:`1977`).
 
 v0.27.11 (Jul 6, 2022)
 ----------------------
