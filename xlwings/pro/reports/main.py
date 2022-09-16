@@ -204,7 +204,11 @@ def render_sheet(sheet, **data):
                                 # DataFrame Filters
                                 for filter_item in filter_list:
                                     for filter_name, filter_args in filter_item.items():
-                                        if filter_name in ("showindex", "noheader"):
+                                        if filter_name in (
+                                            "showindex",
+                                            "noheader",
+                                            "vmerge",
+                                        ):
                                             continue  # handled below
                                         func = getattr(filters, filter_name)
                                         result = func(result, filter_args)
@@ -290,6 +294,15 @@ def render_sheet(sheet, **data):
                                 cell.table.update(result, index=options["index"])
                             else:
                                 cell.options(**options).value = result
+                            # DataFrame formatting filters
+                            for filter_item in filter_list:
+                                for filter_name, filter_args in filter_item.items():
+                                    if filter_name == "vmerge":
+                                        merge_ranges = filters.vmerge(
+                                            result, filter_args, cell, options["header"]
+                                        )
+                                        for merge_range in merge_ranges:
+                                            merge_range.merge()
                             row_shift += rows_to_be_inserted
                     elif "{{" in value:
                         # These are strings with (multiple) Jinja variables so apply
