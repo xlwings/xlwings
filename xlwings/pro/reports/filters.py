@@ -231,10 +231,16 @@ def vmerge(df, filter_args, top_left_cell, header):
 
     To merge columns independently, the filter can be used like this:
     vmerge(0) | vmerge(1)
+
+    vmerge without args merges hierarchically over all columns
     """
     if df.empty:
         return []
-    cols = [arg.as_const() for arg in filter_args]
+    if not filter_args:
+        # Default merges hierarchically over all columns
+        cols = list(range(len(df.columns)))
+    else:
+        cols = [arg.as_const() for arg in filter_args]
 
     merged_cells_count_all = []
     for ix, col in enumerate(cols):

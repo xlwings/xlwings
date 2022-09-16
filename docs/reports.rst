@@ -312,14 +312,18 @@ Merge cells vertically for adjacent cells with the same value --- can be used to
 
 .. figure:: images/vmerge.png
 
-The screenshot makes use of :ref:`Frames <Frames>`.
+Note that the screenshot uses 4 :ref:`Frames <Frames>` and the text is centered/vertically aligned in the template.
 
 
-Syntax::
+Syntax (arguments are optional)::
 
 {{ df | vmerge(col_index1, col_index2, ...) }}
 
-Example: Hierarchical mode: Merge cells vertically in the first column (indices are zero-based) and merge cells in the next column to stay within the merged cells of the previous column ::
+Example (default): Hierarchical mode across all columns --- this is helpful if the number of columns is dynamic. In hierarchical mode, cells are merged vertically in the first column (indices are zero-based) and cells in the next columns are merged only within the merged cells of the previous column::
+
+{{ df | vmerge }}
+
+Example: Hierarchical mode across the specified columns only::
 
 {{ df | vmerge(0, 1) }}
 
