@@ -105,6 +105,10 @@ class Engine:
     def name(self):
         return "remote"
 
+    @property
+    def type(self):
+        return "remote"
+
 
 class Apps(base_classes.Apps):
     def __init__(self):

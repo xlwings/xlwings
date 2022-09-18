@@ -10,7 +10,7 @@ this_dir = os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe(
 SPEC = None  # This was used to support Excel 2011: '/Applications/Microsoft Office 2011/Microsoft Excel'
 
 # TODO: uncomment to run tests with remote engine
-# xw.engines.active = xw.engines['remote']
+# xw.engines["remote"].activate()
 
 
 class TestBase(unittest.TestCase):

@@ -161,6 +161,10 @@ class Engine:
     def name(self):
         return self.impl.name
 
+    @property
+    def type(self):
+        return self.impl.type
+
     def activate(self):
         engines.active = self
 
@@ -854,14 +858,15 @@ class Book:
         impl=None,
         json=None,
         mode=None,
+        engine=None,
     ):
         if not impl:
-            if json or engines.active.name == "remote":
-                engines["remote"].activate()
-                impl = apps.active.books.open(json=json).impl
-            elif fullname and mode == "r" or engines.active.name == "calamine":
-                engines["calamine"].activate()
-                impl = apps.active.books.open(fullname=fullname, mode=mode).impl
+            if json or engines.active.type == "remote":
+                engine = engine if engine else "remote"
+                impl = engines[engine].apps.active.books.open(json=json).impl
+            elif fullname and mode == "r" or engines.active.type == "reader":
+                engine = engine if engine else "calamine"
+                impl = engines[engine].apps.active.books.open(fullname=fullname).impl
             elif fullname:
                 fullname = utils.fspath(fullname)
                 fullname = fullname.lower()
@@ -4897,7 +4902,6 @@ class Books(Collection):
         local=None,
         corrupt_load=None,
         json=None,
-        mode=None,
     ):
         """
         Opens a Book if it is not open yet and returns it. If it is already open,
@@ -4918,8 +4922,7 @@ class Books(Collection):
         Book : Book that has been opened.
 
         """
-        if json or engines.active.name == "remote":
-            engines["remote"].activate()
+        if self.impl.app.engine.name == "remote":
             return Book(impl=self.impl.open(json=json))
 
         fullname = utils.fspath(fullname)
@@ -4928,8 +4931,7 @@ class Books(Collection):
         fullname = os.path.realpath(fullname)
         _, name = os.path.split(fullname)
 
-        if mode == "r" or engines.active.name == "calamine":
-            engines["calamine"].activate()
+        if self.impl.app.engine.name == "calamine":
             return Book(impl=self.impl.open(filename=fullname))
 
         try:

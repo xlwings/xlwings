@@ -75,6 +75,10 @@ class Engine:
     def name(self):
         return "calamine"
 
+    @property
+    def type(self):
+        return "reader"
+
 
 class Apps(base_classes.Apps):
     def __init__(self):

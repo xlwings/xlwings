@@ -419,6 +419,10 @@ class Engine:
     def name(self):
         return "excel"
 
+    @property
+    def type(self):
+        return "desktop"
+
     @staticmethod
     def prepare_xl_data_element(x):
         if isinstance(x, time_types):
@@ -649,7 +653,7 @@ class App:
 
     @property
     def books(self):
-        return Books(xl=self.xl.Workbooks)
+        return Books(xl=self.xl.Workbooks, app=self)
 
     @property
     def hwnd(self):
@@ -707,8 +711,9 @@ class App:
 
 
 class Books:
-    def __init__(self, xl):
+    def __init__(self, xl, app):
         self.xl = xl
+        self.app = app
 
     @property
     def api(self):

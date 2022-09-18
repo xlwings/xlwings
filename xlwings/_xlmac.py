@@ -73,6 +73,10 @@ class Engine:
     def name(self):
         return "excel"
 
+    @property
+    def type(self):
+        return "desktop"
+
     @staticmethod
     def prepare_xl_data_element(x):
         if x is None:
