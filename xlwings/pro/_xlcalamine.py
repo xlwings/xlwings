@@ -297,7 +297,7 @@ class Range(base_classes.Range):
         self.sheet = sheet
         self.book = book
 
-        # Range  # TODO: consolidate with json engine
+        # Range  # TODO: consolidate with remote engine
         if isinstance(arg1, Range) and isinstance(arg2, Range):
             cell1 = arg1.coords[1], arg1.coords[2]
             cell2 = arg2.coords[1], arg2.coords[2]
@@ -394,7 +394,7 @@ class Range(base_classes.Range):
         return None
 
     def end(self, direction):
-        # TODO: consolidate with json engine
+        # TODO: consolidate with remote engine
         if not self.sheet.api.get("values"):
             self.sheet._api[
                 "values"

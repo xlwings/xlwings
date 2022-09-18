@@ -73,9 +73,9 @@ if sys.platform.startswith("darwin"):
         pass
 
 try:
-    from .pro import _xljson, _xlcalamine
+    from .pro import _xlremote, _xlcalamine
 
-    engines.add(Engine(impl=_xljson.engine))
+    engines.add(Engine(impl=_xlremote.engine))
     engines.add(Engine(impl=_xlcalamine.engine))
     PRO = True
 except (ImportError, LicenseError):

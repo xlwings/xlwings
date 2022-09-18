@@ -131,7 +131,7 @@ class Engines:
             try:
                 return self.engines_by_name[name_or_index]
             except KeyError:
-                if not xlwings.PRO and name_or_index in ["calamine", "json"]:
+                if not xlwings.PRO and name_or_index in ["calamine", "remote"]:
                     raise LicenseError(
                         f"The '{name_or_index}' engine requires xlwings PRO."
                     )
@@ -351,7 +351,7 @@ class App:
         # Win Excel >= 2013 fails if visible=False...
         # we may somehow not be using the correct HWND
         self.impl.activate(steal_focus)
-        if self.engine.name != "json":
+        if self.engine.name != "remote":
             if self != apps.active:
                 raise Exception(
                     "Could not activate App! "
@@ -856,8 +856,8 @@ class Book:
         mode=None,
     ):
         if not impl:
-            if json or engines.active.name == "json":
-                engines["json"].activate()
+            if json or engines.active.name == "remote":
+                engines["remote"].activate()
                 impl = apps.active.books.open(json=json).impl
             elif fullname and mode == "r" or engines.active.name == "calamine":
                 engines["calamine"].activate()
@@ -4918,8 +4918,8 @@ class Books(Collection):
         Book : Book that has been opened.
 
         """
-        if json or engines.active.name == "json":
-            engines["json"].activate()
+        if json or engines.active.name == "remote":
+            engines["remote"].activate()
             return Book(impl=self.impl.open(json=json))
 
         fullname = utils.fspath(fullname)

@@ -103,7 +103,7 @@ class Engine:
 
     @property
     def name(self):
-        return "json"
+        return "remote"
 
 
 class Apps(base_classes.Apps):
