@@ -107,14 +107,16 @@ class CleanDataFromReadStage:
         self.dates_handler = _date_handlers.get(dates_as, dates_as)
         numbers_as = options.get("numbers", None)
         self.numbers_handler = _number_handlers.get(numbers_as, numbers_as)
+        self.err_as_str = options.get("err_as_str", False)
 
     def __call__(self, c):
-        if c.engine.name == "calamine" and not self.options:
-            return c.value
-        else:
-            c.value = c.engine.impl.clean_value_data(
-                c.value, self.dates_handler, self.empty_as, self.numbers_handler
-            )
+        c.value = c.engine.impl.clean_value_data(
+            c.value,
+            self.dates_handler,
+            self.empty_as,
+            self.numbers_handler,
+            self.err_as_str,
+        )
 
 
 class CleanDataForWriteStage:

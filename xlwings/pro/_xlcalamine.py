@@ -58,14 +58,20 @@ class Engine:
         self.apps = Apps()
 
     @staticmethod
-    def clean_value_data(data, datetime_builder, empty_as, number_builder):
-        return [
-            [
-                _clean_value_data_element(c, datetime_builder, empty_as, number_builder)
-                for c in row
+    def clean_value_data(data, datetime_builder, empty_as, number_builder, err_as_str):
+        # err_as_str is handled in raw_values for efficiency
+        if empty_as or number_builder or datetime_builder is not dt.datetime:
+            return [
+                [
+                    _clean_value_data_element(
+                        c, datetime_builder, empty_as, number_builder
+                    )
+                    for c in row
+                ]
+                for row in data
             ]
-            for row in data
-        ]
+        else:
+            return data
 
     @staticmethod
     def prepare_xl_data_element(x):
@@ -300,6 +306,7 @@ class Range(base_classes.Range):
     def __init__(self, sheet, book, arg1, arg2=None):
         self.sheet = sheet
         self.book = book
+        self.options = None  # Assigned by main.Range to keep API of sheet.range clean
 
         # Range  # TODO: consolidate with remote engine
         if isinstance(arg1, Range) and isinstance(arg2, Range):
@@ -360,15 +367,16 @@ class Range(base_classes.Range):
 
     @property
     def raw_value(self):
+        err_as_str = self.options.get("err_as_str", False)
         if self.arg2 is None:
             self.arg2 = self.arg1
         if self.arg2[0] == -1 and self.arg2[1] == -1:
             # Whole sheet via sheet.cells
-            if not self.sheet.api.get("values"):
+            if not self.sheet.api.get(f"values_err_as_str_{err_as_str}"):
                 values = xlwings_calamine.get_sheet_values_by_sheet_index(
-                    self.book.fullname, self.sheet.index - 1
+                    self.book.fullname, self.sheet.index - 1, err_as_str
                 )
-                self.sheet._api["values"] = values
+                self.sheet._api[f"values_err_as_str_{err_as_str}"] = values
                 return values
         else:
             # Specific range
@@ -377,6 +385,7 @@ class Range(base_classes.Range):
                 self.sheet.index - 1,
                 (self.arg1[0] - 1, self.arg1[1] - 1),
                 (self.arg2[0] - 1, self.arg2[1] - 1),
+                err_as_str,
             )
 
     @property
@@ -399,17 +408,19 @@ class Range(base_classes.Range):
 
     def end(self, direction):
         # TODO: consolidate with remote engine
-        if not self.sheet.api.get("values"):
-            self.sheet._api[
-                "values"
-            ] = xlwings_calamine.get_sheet_values_by_sheet_index(
-                self.book.fullname, self.sheet.index - 1
+        err_as_str = self.options.get("err_as_str", False)
+        if not self.sheet.api.get(f"values_err_as_str_{err_as_str}"):
+            values = xlwings_calamine.get_sheet_values_by_sheet_index(
+                self.book.fullname, self.sheet.index - 1, err_as_str
             )
+            self.sheet._api[f"values_err_as_str_{err_as_str}"] = values
+        else:
+            values = self.sheet.api[f"values_err_as_str_{err_as_str}"]
         if direction == "down":
             i = 1
             while True:
                 try:
-                    if self.sheet.api["values"][self.row - 1 + i][self.column - 1]:
+                    if values[self.row - 1 + i][self.column - 1]:
                         i += 1
                     else:
                         break
@@ -421,7 +432,7 @@ class Range(base_classes.Range):
             i = -1
             while True:
                 row_ix = self.row - 1 + i
-                if row_ix >= 0 and self.sheet.api["values"][row_ix][self.column - 1]:
+                if row_ix >= 0 and values[row_ix][self.column - 1]:
                     i -= 1
                 else:
                     break
@@ -431,7 +442,7 @@ class Range(base_classes.Range):
             i = 1
             while True:
                 try:
-                    if self.sheet.api["values"][self.row - 1][self.column - 1 + i]:
+                    if values[self.row - 1][self.column - 1 + i]:
                         i += 1
                     else:
                         break
@@ -443,7 +454,7 @@ class Range(base_classes.Range):
             i = -1
             while True:
                 col_ix = self.column - 1 + i
-                if col_ix >= 0 and self.sheet.api["values"][self.row - 1][col_ix]:
+                if col_ix >= 0 and values[self.row - 1][col_ix]:
                     i -= 1
                 else:
                     break

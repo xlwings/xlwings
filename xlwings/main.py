@@ -1748,6 +1748,7 @@ class Range:
         self._impl = impl
 
         # Keyword Arguments
+        self._impl.options = options
         self._options = options
 
     @property

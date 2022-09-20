@@ -410,6 +410,34 @@ def _datetime_to_com_time(dt_time):
     return dt_time
 
 
+cell_errors = {
+    -2146826281: "#DIV/0!",
+    -2146826246: "#N/A",
+    -2146826259: "#NAME?",
+    -2146826288: "#NULL!",
+    -2146826252: "#NUM!",
+    -2146826265: "#REF!",
+    -2146826273: "#VALUE!",
+}
+
+
+def _clean_value_data_element(
+    value, datetime_builder, empty_as, number_builder, err_as_str
+):
+    if value in ("", None):
+        return empty_as
+    elif isinstance(value, time_types):
+        return _com_time_to_datetime(value, datetime_builder)
+    elif number_builder is not None and type(value) == float:
+        value = number_builder(value)
+    elif isinstance(value, int) and value in cell_errors:
+        if err_as_str:
+            return cell_errors[value]
+        else:
+            return None
+    return value
+
+
 class Engine:
     @property
     def apps(self):
@@ -439,61 +467,16 @@ class Engine:
             return x
 
     @staticmethod
-    def clean_value_data(data, datetime_builder, empty_as, number_builder):
-        # TODO: deduplicate
-        if number_builder is not None:
-            return [
-                [
-                    _com_time_to_datetime(c, datetime_builder)
-                    if isinstance(c, time_types)
-                    else number_builder(c)
-                    if type(c) == float
-                    else empty_as
-                    # #DIV/0!, #N/A, #NAME?, #NULL!, #NUM!, #REF!, #VALUE!
-                    if c in (None, "")
-                    or (
-                        isinstance(c, int)
-                        and c
-                        in [
-                            -2146826281,
-                            -2146826246,
-                            -2146826259,
-                            -2146826288,
-                            -2146826252,
-                            -2146826265,
-                            -2146826273,
-                        ]
-                    )
-                    else c
-                    for c in row
-                ]
-                for row in data
+    def clean_value_data(data, datetime_builder, empty_as, number_builder, err_as_str):
+        return [
+            [
+                _clean_value_data_element(
+                    c, datetime_builder, empty_as, number_builder, err_as_str
+                )
+                for c in row
             ]
-        else:
-            return [
-                [
-                    _com_time_to_datetime(c, datetime_builder)
-                    if isinstance(c, time_types)
-                    else empty_as
-                    if c in (None, "")
-                    or (
-                        isinstance(c, int)
-                        and c
-                        in [
-                            -2146826281,
-                            -2146826246,
-                            -2146826259,
-                            -2146826288,
-                            -2146826252,
-                            -2146826265,
-                            -2146826273,
-                        ]
-                    )
-                    else c
-                    for c in row
-                ]
-                for row in data
-            ]
+            for row in data
+        ]
 
 
 engine = Engine()
