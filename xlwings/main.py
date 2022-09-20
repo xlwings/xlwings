@@ -1748,6 +1748,7 @@ class Range:
         self._impl = impl
 
         # Keyword Arguments
+        self._impl.options = options
         self._options = options
 
     @property
@@ -1821,6 +1822,10 @@ class Range:
             Use a chunksize, e.g. ``10000`` to prevent timeout or memory issues when
             reading or writing large amounts of data. Works with all formats, including
             DataFrames, NumPy arrays, and list of lists.
+
+        err_to_str : Boolean, default False
+            If ``True``, will include cell errors such as ``#N/A`` as strings. By
+            default, they will be converted to ``None``.
 
          => For converter-specific options, see :ref:`converters`.
 
