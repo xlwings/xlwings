@@ -3,6 +3,7 @@ import sys
 import re
 import glob
 from setuptools import setup, find_packages
+from setuptools_rust import Binding, RustExtension
 
 # long_description: Take from README file
 with open(os.path.join(os.path.dirname(__file__), "README.rst")) as f:
@@ -32,17 +33,6 @@ elif sys.platform.startswith("win"):
     # This places dlls next to python.exe for standard setup
     # and in the parent folder for virtualenv
     data_files += [("", glob.glob("xlwings??-*.dll"))]
-elif sys.platform.startswith("darwin"):
-    # This has been broken ever since pip builds a wheel for installing as this uses
-    # an absolute path. Relative paths as in the case of Windows are still supported.
-    # These days taken care of by "xlwings addin install" or "xlwings runpython install"
-    data_files = [
-        (
-            os.path.expanduser("~")
-            + "/Library/Application Scripts/com.microsoft.Excel",
-            [f"xlwings/xlwings-{version}.applescript"],
-        )
-    ]
 else:
     pass
 
@@ -62,6 +52,14 @@ extras_require = {
 setup(
     name="xlwings",
     version=version,
+    rust_extensions=[
+        RustExtension(
+            "xlwings_calamine",
+            binding=Binding.PyO3,
+            path="./xlwings/xlwings_calamine/Cargo.toml",
+        )
+    ],
+    zip_safe=False,  # rust extensions are not zip safe
     url="https://www.xlwings.org",
     project_urls={
         "Source": "https://github.com/xlwings/xlwings",
@@ -110,5 +108,5 @@ setup(
         "Topic :: Office/Business :: Financial :: Spreadsheet",
         "License :: OSI Approved :: BSD License",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.7",
 )

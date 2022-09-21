@@ -83,4 +83,4 @@ venv
 
 scratch*
 
-/target
+target/

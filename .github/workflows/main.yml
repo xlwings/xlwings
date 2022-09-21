@@ -24,7 +24,7 @@ jobs:
         with:
           options: "--check --diff --color"
 
-  build:
+  pre-build:
     # Prevent duplicate runs for own PRs
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-2022
@@ -44,7 +44,7 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
     - name: Install Python dependencies
       run: |
-        python -m pip install pythonnet wheel
+        python -m pip install pythonnet wheel setuptools-rust cibuildwheel
     - name: Install Aspose
       shell: bash
       run: |
@@ -115,16 +115,81 @@ jobs:
         # Note that signtools is in ...\bin\x86
         .\officesips\OffSign.bat "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x86\" "sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /tr http://timestamp.sectigo.com /td sha256 /fd SHA256" "verify /pa" ".\xlwings\addin\xlwings.xlam"
       # Code sign Excel add-in (end)
-    - name: Build Python Package
-      shell: bash
-      run: |
-        # TODO: change this to use the build package: python -m build
-        python setup.py sdist bdist_wheel
     - name: Upload artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v3
       with:
-        name: Package
-        path: dist
+        name: pre-build
+        path: |
+          ./*
+          !./aspose
+          !./src
+          !./resources
+          !./examples
+          !./docs
+
+  build:
+    needs: pre-build
+    name:  Build wheel
+    runs-on: ${{ matrix.platform.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [
+#          {os: "macos-latest"},
+#          {os: "windows-latest"},
+          {os: "ubuntu-latest"}
+        ]
+#        python-version: ["cp37"]
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: pre-build
+      - name: Set up Python
+        uses: actions/setup-python@v3
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          default: true
+      - name: Add aarch64-apple-darwin rust target
+        if: matrix.platform.os == 'macos-latest'
+        run: rustup target add aarch64-apple-darwin
+      - name: Install Python dependencies
+        run: python -m pip install wheel setuptools-rust cibuildwheel
+
+      - name: Set up QEMU
+        if: matrix.platform.os == 'ubuntu-latest'
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: all
+
+      - name: Build Python Package
+#        uses: pypa/cibuildwheel@v2.10.1
+        env:
+          CIBW_BUILD: "cp310-*"
+          CIBW_TEST_SKIP: "*_arm64"
+          CIBW_ARCHS_MACOS: "x86_64 arm64"
+          CIBW_ARCHS_WINDOWS: "AMD64"
+#          CIBW_ARCHS_LINUX: "x86_64"
+          CIBW_ARCHS_LINUX: "aarch64"
+          CIBW_ENVIRONMENT_LINUX: 'PATH="$HOME/.cargo/bin:$PATH" CARGO_NET_GIT_FETCH_WITH_CLI="true"'
+          CIBW_BEFORE_BUILD_LINUX: "python -m pip install setuptools wheel setuptools-rust"
+          CIBW_MANYLINUX_AARCH64_IMAGE: messense/manylinux2014-cross:aarch64
+#          CIBW_BEFORE_ALL_LINUX: |
+#            curl -O https://sh.rustup.rs/rustup-init.sh &&
+#            sh rustup-init.sh --default-toolchain stable -y
+        shell: bash
+        run: |
+          cd pre-build
+          python -m cibuildwheel --output-dir ./wheelhouse
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Package
+          path: ./pre-build/wheelhouse/*.whl
 
   test:
     if: github.ref == 'refs/heads/main'

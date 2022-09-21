@@ -1,0 +1,14 @@
+[package]
+name = "xlwings_calamine"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "xlwings_calamine"
+crate-type = ["cdylib"]
+
+[dependencies]
+calamine = {git = "https://github.com/tafia/calamine", rev = "e7cd6d8", features = ["dates"] }
+chrono = { version = "0.4.22" }
+pyo3 = { version = "0.17.1", features = ["extension-module"] }
