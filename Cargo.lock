@@ -538,8 +538,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c811ca4a8c853ef420abd8592ba53ddbbac90410fab6903b3e79972a631f7680"
 
 [[package]]
-name = "xlwings_calamine"
-version = "0.1.0"
+name = "xlwings"
+version = "0.0.0"
 dependencies = [
  "calamine",
  "chrono",

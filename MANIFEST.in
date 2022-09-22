@@ -9,6 +9,9 @@ include xlwings/addin/*.cls
 include xlwings/addin/WebHelpers.bas
 include xlwings/js/xlwings.*
 include xlwings/quickstart_fastapi/*.*
+include Cargo.toml
+include Cargo.lock
+recursive-include src *
 
 recursive-include docs *
 prune docs

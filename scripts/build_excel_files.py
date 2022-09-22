@@ -3,6 +3,7 @@ import re
 import zipfile
 import tempfile
 import shutil
+from pathlib import Path
 
 # pythonnet
 import clr
@@ -38,8 +39,7 @@ else:
             version_string += i
         except ValueError:
             pass
-    # Double int/str to get rid of leading zeroes first
-    version_string = f"0.0.0.dev{int(str(int(version_string))[:5])}"
+    version_string = f"0.0.0+{os.environ['GITHUB_SHA'][:7]}"
 
 # Rename dlls and applescript file
 for i in ["32", "64"]:
@@ -68,6 +68,11 @@ for source_file in [version_file, cli_file]:
     content = re.sub(r"\bdev\b", version_string, content)
     with open(source_file, "w") as f:
         f.write(content)
+
+cargo_file = Path(os.environ["GITHUB_WORKSPACE"]) / "Cargo.toml"
+cargo_text = cargo_file.read_text()
+cargo_text = cargo_text.replace("0.0.0", version_string)
+cargo_file.write_text(cargo_text)
 
 # License handler
 lh = os.path.join(os.environ["GITHUB_WORKSPACE"], "xlwings", "pro", "utils.py")

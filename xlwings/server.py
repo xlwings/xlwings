@@ -1,12 +1,6 @@
-# First of all see if we can load PyWin32
-try:
-    import _win32sysloader
-except:
-    raise Exception("Cannot import PyWin32. Are you sure it's installed?")
 import logging
 import sys
 import os
-import collections
 import importlib
 
 # Hack to find pythoncom.dll - needed for some distribution/setups
@@ -16,12 +10,24 @@ cwd = os.getcwd()
 if not hasattr(sys, "frozen"):
     # cx_Freeze etc. will fail here otherwise
     os.chdir(sys.exec_prefix)
-import win32api
+try:
+    import win32api
+except ImportError:
+    raise ImportError(
+        "Couldn't find 'pywin32'. Install it via"
+        "'pip install pywin32' or 'conda install pywin32'."
+    ) from None
 import win32event
 
 os.chdir(cwd)
 
-import pythoncom
+try:
+    import pythoncom
+except ImportError:
+    raise ImportError(
+        "Couldn't find 'pywin32'. Install it via"
+        "'pip install pywin32' or 'conda install pywin32'."
+    ) from None
 import pywintypes
 import win32com.client
 import win32com.server.util as serverutil

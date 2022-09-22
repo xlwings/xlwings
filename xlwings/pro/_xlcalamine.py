@@ -24,8 +24,11 @@ try:
 except ImportError:
     pd = None
 
-import xlwings_calamine
+from xlwings import xlwingslib
 from .. import utils, base_classes, NoSuchObjectError
+
+MAX_ROWS = 1_048_576
+MAX_COLUMNS = 16_384
 
 
 def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
@@ -146,7 +149,7 @@ class Books(base_classes.Books):
 
     def open(self, filename):
         filename = str(Path(filename).resolve())
-        sheet_names = xlwings_calamine.get_sheet_names(filename)
+        sheet_names = xlwingslib.get_sheet_names(filename)
         book = Book(
             api={
                 "sheet_names": sheet_names,
@@ -157,7 +160,7 @@ class Books(base_classes.Books):
                         "address": t2.split("!")[1],
                         "book_scope": True,  # TODO: not provided by calamine
                     }
-                    for t1, t2 in xlwings_calamine.get_defined_names(filename)
+                    for t1, t2 in xlwingslib.get_defined_names(filename)
                 ],
             },
             books=self,
@@ -291,7 +294,7 @@ class Sheet(base_classes.Sheet):
             sheet=self,
             book=self.book,
             arg1=(1, 1),
-            arg2=(-1, -1),
+            arg2=(MAX_ROWS, MAX_COLUMNS),
         )
 
 
@@ -363,17 +366,17 @@ class Range(base_classes.Range):
         err_to_str = self.options.get("err_to_str", False)
         if self.arg2 is None:
             self.arg2 = self.arg1
-        if self.arg2[0] == -1 and self.arg2[1] == -1:
+        if self.arg2[0] == MAX_ROWS and self.arg2[1] == MAX_COLUMNS:
             # Whole sheet via sheet.cells
             if not self.sheet.api.get(f"values_err_to_str_{err_to_str}"):
-                values = xlwings_calamine.get_sheet_values_by_sheet_index(
+                values = xlwingslib.get_sheet_values(
                     self.book.fullname, self.sheet.index - 1, err_to_str
                 )
                 self.sheet._api[f"values_err_to_str_{err_to_str}"] = values
                 return values
         else:
             # Specific range
-            return xlwings_calamine.get_range_values_by_sheet_index(
+            return xlwingslib.get_range_values(
                 self.book.fullname,
                 self.sheet.index - 1,
                 (self.arg1[0] - 1, self.arg1[1] - 1),
@@ -402,7 +405,7 @@ class Range(base_classes.Range):
     def end(self, direction):
         err_to_str = self.options.get("err_to_str", False)
         if not self.sheet.api.get(f"values_err_to_str_{err_to_str}"):
-            values = xlwings_calamine.get_sheet_values_by_sheet_index(
+            values = xlwingslib.get_sheet_values(
                 self.book.fullname, self.sheet.index - 1, err_to_str
             )
             self.sheet._api[f"values_err_to_str_{err_to_str}"] = values

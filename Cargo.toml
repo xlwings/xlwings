@@ -1,14 +1,17 @@
 [package]
-name = "xlwings_calamine"
-version = "0.1.0"
+name = "xlwings"
+version = "0.0.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[package.metadata.maturin]
+name = "xlwings.xlwingslib"
+
 [lib]
-name = "xlwings_calamine"
+name = "xlwingslib"
 crate-type = ["cdylib"]
 
 [dependencies]
 calamine = {git = "https://github.com/tafia/calamine", rev = "e7cd6d8", features = ["dates"] }
-chrono = { version = "0.4.22" }
+chrono = "0.4.22"
+# abi3 wheels aren't supported as DateTime is not part of the ABI spec (PEP 384)
 pyo3 = { version = "0.17.1", features = ["extension-module"] }

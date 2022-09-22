@@ -4927,7 +4927,7 @@ class Books(Collection):
         Book : Book that has been opened.
 
         """
-        if self.impl.app.engine.name == "remote":
+        if self.impl.app.engine.type == "remote":
             return Book(impl=self.impl.open(json=json))
 
         fullname = utils.fspath(fullname)
@@ -4936,7 +4936,7 @@ class Books(Collection):
         fullname = os.path.realpath(fullname)
         _, name = os.path.split(fullname)
 
-        if self.impl.app.engine.name == "calamine":
+        if self.impl.app.engine.type == "reader":
             return Book(impl=self.impl.open(filename=fullname))
 
         try:

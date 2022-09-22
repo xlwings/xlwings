@@ -1,37 +1,26 @@
-// Based on https://github.com/dimastbk/python-calamine,
-// which is released under the following license:
-//
-// MIT License
-//
-// Copyright (c) 2021 dimastbk
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-
 use calamine::CellErrorType::{Div0, GettingData, Name, Null, Num, Ref, Value, NA};
 use calamine::{open_workbook_auto, CellErrorType, DataType, Error, Range, Reader};
 use chrono::{Datelike, NaiveDateTime, Timelike};
 use pyo3::create_exception;
-use pyo3::exceptions::{PyException, PyIOError};
+use pyo3::exceptions::{PyException, PyIOError, PyRuntimeError};
 use pyo3::prelude::*;
 use pyo3::types::PyDateTime;
 
-create_exception!(xlwings_calamine, CalamineError, PyException);
+create_exception!(xlwingslib, XlwingslibError, PyException);
+
+struct CalamineError(Error);
+
+impl From<CalamineError> for PyErr {
+    fn from(err: CalamineError) -> PyErr {
+        PyRuntimeError::new_err(err.0.to_string())
+    }
+}
+
+impl From<Error> for CalamineError {
+    fn from(other: Error) -> Self {
+        Self(other)
+    }
+}
 
 #[derive(Debug)]
 pub enum CellValue {
@@ -145,11 +134,12 @@ fn get_values(
 
 #[pyfunction]
 #[pyo3(text_signature = "path: str, sheet_index: int, err_to_str: bool")]
-fn get_sheet_values_by_sheet_index(
+fn get_sheet_values(
     path: &str,
     sheet_index: usize,
     err_to_str: bool,
 ) -> PyResult<Vec<Vec<CellValue>>> {
+    // TODO: proper error handling
     let mut book = open_workbook_auto(path).unwrap();
     let used_range = book.worksheet_range_at(sheet_index).unwrap().unwrap();
     let cell1 = (0, 0);
@@ -164,7 +154,7 @@ fn get_sheet_values_by_sheet_index(
         Ok(r) => Ok(r),
         Err(e) => match e {
             Error::Io(err) => Err(PyIOError::new_err(err.to_string())),
-            _ => Err(CalamineError::new_err(e.to_string())),
+            _ => Err(XlwingslibError::new_err(e.to_string())),
         },
     }
 }
@@ -174,13 +164,14 @@ fn get_sheet_values_by_sheet_index(
     text_signature = "path: str, sheet_index: int, cell1: tuple[int, int], \
                       cell2: tuple[int, int], err_to_str: bool"
 )]
-fn get_range_values_by_sheet_index(
+fn get_range_values(
     path: &str,
     sheet_index: usize,
     cell1: (u32, u32),
     cell2: (u32, u32),
     err_to_str: bool,
 ) -> PyResult<Vec<Vec<CellValue>>> {
+    // TODO: proper error handling
     let mut book = open_workbook_auto(path).unwrap();
     let used_range = book.worksheet_range_at(sheet_index).unwrap().unwrap();
     let used_range = match used_range.is_empty() {
@@ -191,31 +182,56 @@ fn get_range_values_by_sheet_index(
         Ok(r) => Ok(r),
         Err(e) => match e {
             Error::Io(err) => Err(PyIOError::new_err(err.to_string())),
-            _ => Err(CalamineError::new_err(e.to_string())),
+            _ => Err(XlwingslibError::new_err(e.to_string())),
         },
     }
 }
 
 #[pyfunction]
 #[pyo3(text_signature = "path: str")]
-fn get_sheet_names(path: &str) -> PyResult<Vec<String>> {
-    let book = open_workbook_auto(path).unwrap();
+fn get_sheet_names(path: &str) -> Result<Vec<String>, CalamineError> {
+    let book = open_workbook_auto(path)?;
     Ok(book.sheet_names().to_owned())
 }
 
 #[pyfunction]
 #[pyo3(text_signature = "path: str")]
-fn get_defined_names(path: &str) -> PyResult<Vec<(String, String)>> {
-    let book = open_workbook_auto(path).unwrap();
+fn get_defined_names(path: &str) -> Result<Vec<(String, String)>, CalamineError> {
+    let book = open_workbook_auto(path)?;
     Ok(book.defined_names().to_owned())
 }
 
 #[pymodule]
-fn xlwings_calamine(py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(get_range_values_by_sheet_index, m)?)?;
-    m.add_function(wrap_pyfunction!(get_sheet_values_by_sheet_index, m)?)?;
+fn xlwingslib(py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(get_range_values, m)?)?;
+    m.add_function(wrap_pyfunction!(get_sheet_values, m)?)?;
     m.add_function(wrap_pyfunction!(get_sheet_names, m)?)?;
     m.add_function(wrap_pyfunction!(get_defined_names, m)?)?;
-    m.add("CalamineError", py.get_type::<CalamineError>())?;
+    m.add("XlwingslibError", py.get_type::<XlwingslibError>())?;
     Ok(())
 }
+
+// Based on https://github.com/dimastbk/python-calamine,
+// which is released under the following license:
+//
+// MIT License
+//
+// Copyright (c) 2021 dimastbk
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.

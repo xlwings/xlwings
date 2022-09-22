@@ -1,3 +1,7 @@
+"""
+Windows builds currently rely on setup.py instead of pyproject.toml/maturin as long
+as the dlls are distributed as data_files
+"""
 import os
 import sys
 import re
@@ -54,9 +58,9 @@ setup(
     version=version,
     rust_extensions=[
         RustExtension(
-            "xlwings_calamine",
+            "xlwings.xlwingslib",
             binding=Binding.PyO3,
-            path="./xlwings/xlwings_calamine/Cargo.toml",
+            path="./Cargo.toml",
         )
     ],
     zip_safe=False,  # rust extensions are not zip safe
@@ -88,7 +92,11 @@ setup(
             "addin/WebHelpers.bas",
             "js/xlwings.*",
             "quickstart_fastapi/*.*",
-        ]
+        ],
+        "src": [
+            "src",
+            "Cargo.*",
+        ],
     },
     keywords=["xls", "excel", "spreadsheet", "workbook", "vba", "macro"],
     install_requires=install_requires,

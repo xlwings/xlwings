@@ -1,25 +1,35 @@
 # Activate one of the following lines to run the tests with the respective engine
-engine = "calamine"
-# engine = "remote"
-# engine = "excel"
-
+import os
 from pathlib import Path
 import datetime as dt
 import json
 
 import pytest
-import numpy as np
-import pandas as pd
-from dateutil import tz
+
+try:
+    import numpy as np
+except ImportError:
+    np = None
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
+try:
+    from dateutil import tz
+except ImportError:
+    tz = None
 
 import xlwings as xw
+
+# "calamine", "remote" or "excel"
+engine = os.environ.get("XLWINGS_ENGINE") or "calamine"
 
 this_dir = Path(__file__).resolve().parent
 
 data = {
     "client": "Microsoft Office Scripts",
-    "version": "dev",
-    "book": {"name": "json.xlsx", "active_sheet_index": 0, "selection": "B3:B4"},
+    "version": xw.__version__,
+    "book": {"name": "engines.xlsx", "active_sheet_index": 0, "selection": "B3:B4"},
     "names": [
         {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
         {
@@ -72,9 +82,9 @@ def book():
     if engine == "remote":
         book = xw.Book(json=data)
     elif engine == "calamine":
-        book = xw.Book("json.xlsx", mode="r")
+        book = xw.Book(this_dir / "engines.xlsx", mode="r")
     else:
-        book = xw.Book("json.xlsx")
+        book = xw.Book(this_dir / "engines.xlsx")
     yield book
     book.close()
 
@@ -226,6 +236,7 @@ def test_count(book):
 
 
 # Conversion
+@pytest.mark.skipif(not np, reason="requires NumPy")
 def test_numpy_array(book):
     sheet = book.sheets[0]
     np.testing.assert_array_equal(
@@ -233,6 +244,7 @@ def test_numpy_array(book):
     )
 
 
+@pytest.mark.skipif(not pd, reason="requires pandas")
 def test_pandas_df(book):
     sheet = book.sheets[0]
     pd.testing.assert_frame_equal(
@@ -252,6 +264,7 @@ def test_read_basic_types(book):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.skipif(not tz, reason="requires dateutil")
 def test_write_basic_types(book):
     sheet = book.sheets[0]
     sheet["Z10"].value = [
@@ -290,7 +303,7 @@ def test_sheets_iteration(book):
 
 # book name
 def test_book(book):
-    assert book.name == "json.xlsx"
+    assert book.name == "engines.xlsx"
 
 
 @pytest.mark.skipif(engine in ["calamine", "excel"], reason="calamine engine")
@@ -387,10 +400,10 @@ def test_named_range_missing(book):
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_named_range_book_change_value(book):
+    book.impl._json = {"actions": []}
     sheet1 = book.sheets[0]
     assert sheet1["one"].value == "a"
     sheet1["one"].value = 1000
-    # TODO: clear book.json()
     assert book.json()["actions"][0]["values"] == [[1000]]
     assert book.json()["actions"][0]["sheet_position"] == 0
     assert book.json()["actions"][0]["start_row"] == 0
