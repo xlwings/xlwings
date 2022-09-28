@@ -20,16 +20,16 @@ whether the cell contains a number, a string, is empty or represents a date:
 
     >>> import datetime as dt
     >>> sheet = xw.Book().sheets[0]
-    >>> sheet.range('A1').value = 1
-    >>> sheet.range('A1').value
+    >>> sheet['A1'].value = 1
+    >>> sheet['A1'].value
     1.0
-    >>> sheet.range('A2').value = 'Hello'
-    >>> sheet.range('A2').value
+    >>> sheet['A2'].value = 'Hello'
+    >>> sheet['A2'].value
     'Hello'
-    >>> sheet.range('A3').value is None
+    >>> sheet['A3'].value is None
     True
-    >>> sheet.range('A4').value = dt.datetime(2000, 1, 1)
-    >>> sheet.range('A4').value
+    >>> sheet['A4'].value = dt.datetime(2000, 1, 1)
+    >>> sheet['A4'].value
     datetime.datetime(2000, 1, 1, 0, 0)
 
 Lists
@@ -41,16 +41,16 @@ Lists
   .. code-block:: python
 
     >>> sheet = xw.Book().sheets[0]
-    >>> sheet.range('A1').value = [[1],[2],[3],[4],[5]]  # Column orientation (nested list)
-    >>> sheet.range('A1:A5').value
+    >>> sheet['A1'].value = [[1],[2],[3],[4],[5]]  # Column orientation (nested list)
+    >>> sheet['A1:A5'].value
     [1.0, 2.0, 3.0, 4.0, 5.0]
-    >>> sheet.range('A1').value = [1, 2, 3, 4, 5]
-    >>> sheet.range('A1:E1').value
+    >>> sheet['A1'].value = [1, 2, 3, 4, 5]
+    >>> sheet['A1:E1'].value
     [1.0, 2.0, 3.0, 4.0, 5.0]
 
   To force a single cell to arrive as list, use::
 
-    >>> sheet.range('A1').options(ndim=1).value
+    >>> sheet['A1'].options(ndim=1).value
     [1.0]
 
   .. note::
@@ -61,9 +61,9 @@ Lists
 
   .. code-block:: python
 
-    >>> sheet.range('A1:A5').options(ndim=2).value
+    >>> sheet['A1:A5'].options(ndim=2).value
     [[1.0], [2.0], [3.0], [4.0], [5.0]]
-    >>> sheet.range('A1:E1').options(ndim=2).value
+    >>> sheet['A1:E1'].options(ndim=2).value
     [[1.0, 2.0, 3.0, 4.0, 5.0]]
 
 
@@ -73,7 +73,7 @@ Lists
 
   .. code-block:: python
 
-    >>> sheet.range('A10').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10, 20, 30]]
+    >>> sheet['A10'].value = [['Foo 1', 'Foo 2', 'Foo 3'], [10, 20, 30]]
     >>> sheet.range((10,1),(11,3)).value
     [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
 
@@ -91,17 +91,17 @@ accessing the values of a Range. The difference is best explained with an exampl
 .. code-block:: python
 
     >>> sheet = xw.Book().sheets[0]
-    >>> sheet.range('A1').value = [[1,2], [3,4]]
-    >>> rng1 = sheet.range('A1').expand('table')  # or just .expand()
-    >>> rng2 = sheet.range('A1').options(expand='table')
-    >>> rng1.value
+    >>> sheet['A1'].value = [[1,2], [3,4]]
+    >>> range1 = sheet['A1'].expand('table')  # or just .expand()
+    >>> range2 = sheet['A1'].options(expand='table')
+    >>> range1.value
     [[1.0, 2.0], [3.0, 4.0]]
-    >>> rng2.value
+    >>> range2.value
     [[1.0, 2.0], [3.0, 4.0]]
-    >>> sheet.range('A3').value = [5, 6]
-    >>> rng1.value
+    >>> sheet['A3'].value = [5, 6]
+    >>> range1.value
     [[1.0, 2.0], [3.0, 4.0]]
-    >>> rng2.value
+    >>> range2.value
     [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
 
 ``'table'`` expands to ``'down'`` and ``'right'``, the other available options which can be used for column or row only
@@ -121,8 +121,8 @@ NumPy arrays work similar to nested lists. However, empty cells are represented 
 
     >>> import numpy as np
     >>> sheet = xw.Book().sheets[0]
-    >>> sheet.range('A1').value = np.eye(3)
-    >>> sheet.range('A1').options(np.array, expand='table').value
+    >>> sheet['A1'].value = np.eye(3)
+    >>> sheet['A1'].options(np.array, expand='table').value
     array([[ 1.,  0.,  0.],
            [ 0.,  1.,  0.],
            [ 0.,  0.,  1.]])
@@ -138,14 +138,14 @@ Pandas DataFrames
        one  two
     0  1.1  2.2
     1  3.3  NaN
-    >>> sheet.range('A1').value = df
-    >>> sheet.range('A1:C3').options(pd.DataFrame).value
+    >>> sheet['A1'].value = df
+    >>> sheet['A1:C3'].options(pd.DataFrame).value
        one  two
     0  1.1  2.2
     1  3.3  NaN
     # options: work for reading and writing
-    >>> sheet.range('A5').options(index=False).value = df
-    >>> sheet.range('A9').options(index=False, header=False).value = df
+    >>> sheet['A5'].options(index=False).value = df
+    >>> sheet['A9'].options(index=False, header=False).value = df
 
 Pandas Series
 -------------
@@ -164,8 +164,8 @@ Pandas Series
     4    6.0
     5    8.0
     Name: myseries, dtype: float64
-    >>> sheet.range('A1').value = s
-    >>> sheet.range('A1:B7').options(pd.Series).value
+    >>> sheet['A1'].value = s
+    >>> sheet['A1:B7'].options(pd.Series).value
     0    1.1
     1    3.3
     2    5.0
@@ -175,7 +175,7 @@ Pandas Series
     Name: myseries, dtype: float64
 
 .. note:: You only need to specify the top left cell when writing a list, a NumPy array or a Pandas
-    DataFrame to Excel, e.g.: ``sheet.range('A1').value = np.eye(10)``
+    DataFrame to Excel, e.g.: ``sheet['A1'].value = np.eye(10)``
 
 Chunking: Read/Write big DataFrames etc.
 ----------------------------------------

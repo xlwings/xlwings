@@ -3,11 +3,6 @@
 Connect to a Book
 =================
 
-When reading/writing data to the active sheet, you don't need a book object:
-
-  >>> import xlwings as xw
-  >>> xw.Range('A1').value = 'something'
-
 Python to Excel
 ---------------
 

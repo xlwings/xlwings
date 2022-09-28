@@ -38,11 +38,40 @@
     :caption: xlwings PRO
 
     pro
-    remote_interpreter
-    reports
-    markdown
     release
     permissioning
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :caption: File Reader
+
+    reader
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :caption: xlwings Reports
+
+    reports
+    markdown
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :caption: xlwings Server
+
+    remote_interpreter
+
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :caption: About
+
+    whatsnew
+    license
+    opensource_licenses
 
 .. toctree::
     :maxdepth: 2

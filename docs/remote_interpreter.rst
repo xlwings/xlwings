@@ -1,31 +1,31 @@
 .. _remote_interpreter:
 
-Remote Interpreter
-==================
+xlwings Server :bdg-secondary:`PRO`
+===================================
 
-This feature requires xlwings :bdg-secondary:`PRO` and at least v0.27.0.
+This feature requires at least v0.27.0.
 
-Instead of installing Python on each end-user's machine, you can work with a remote Python interpreter. This works the same as a web application, but uses your spreadsheet as the frontend instead of a web page in a browser. A remote interpreter doesn't just work with the Desktop versions of Excel on Windows and macOS but additionally supports Google Sheets and Excel on the web for a full cloud experience. The remote interpreter runs everywhere where Python runs, including Linux, Docker and WSL (Windows Subsystem for Linux) and can be run on your local machine or deployed to a (serverless) cloud service or an on-premise server.
+Instead of installing Python on each end-user's machine, you can work with a server-based Python installation. It's essentially a web application, but uses your spreadsheet as the frontend instead of a web page in a browser. xlwings Server doesn't just work with the Desktop versions of Excel on Windows and macOS but additionally supports Google Sheets and Excel on the web for a full cloud experience. xlwings Server runs everywhere where Python runs, including Linux, Docker and WSL (Windows Subsystem for Linux). it can run on your local machine, as a (serverless) cloud service, or on an on-premise server.
 
 .. important:: This feature currently only covers parts of the RunPython API (UDFs are not yet supported). See also :ref:`Limitations` and :ref:`Roadmap`.
 
 Why is this useful?
 -------------------
 
-Having to install a local installation of Python with the correct dependencies is the number one friction when using xlwings. Most excitingly though, the remote interpreter adds support for the web-based spreadsheets: Google Sheets and Excel on the web.
+Having to install a local installation of Python with the correct dependencies is the number one friction when using xlwings. Most excitingly though, xlwings Server adds support for the web-based spreadsheets: Google Sheets and Excel on the web.
 
 To automate Office on the web, you have to use Office Scripts (i.e., TypeScript, a typed superset of JavaScript) and for Google Sheets, you have to use Apps Script (i.e., JavaScript). If you don't feel like learning JavaScript, xlwings allows you to write Python code instead. But even if you are comfortable with JavaScript, you are very limited in what you can do, as both Office Scripts and Apps Script are primarily designed to automate simple spreadsheet tasks such as inserting a new sheet or formatting cells rather than performing data-intensive tasks. They also make it very hard/impossible to use external JavaScript libraries and run in environments with minimal resources.
 
 .. note:: From here on, when I refer to the **xlwings JavaScript module**, I mean either the xlwings Apps Script module if you use Google Sheets or the xlwings Office Scripts module if you use Excel on the web.
 
-On the other hand, xlwings with a remote Python interpreter brings you these advantages:
+On the other hand, xlwings Server brings you these advantages:
 
 * **Work with the whole Python ecosystem**: including pandas, machine learning libraries, database packages, web scraping, boto (for AWS S3), etc. This makes xlwings a great alternative for Power Query, which isn't currently available for Excel on the web or Google Sheets.
 * **Leverage your existing development workflow**: use your favorite IDE/editor (local or cloud-based) with full Git support, allowing you to easily track changes, collaborate and perform code reviews. You can also write unit tests using pytest.
 * **Remain in control of your data and code**: except for the data you expose in Excel or Google Sheets, everything stays on your server. This can include database passwords and other sensitive info such as customer data. There's also no need to give the Python code to end-users: the whole business logic with your secret sauce is protected on your own infrastructure.
 * **Choose the right machine for the job**: whether that means using a GPU, a ton of CPU cores, lots of memory, or a gigantic hard disc. As long as Python runs on it, you can go from serverless functions as offered by the big cloud vendors all the way to a self-managed Kubernetes cluster under your desk (see :ref:`Production Deployment`).
 * **Headache-free deployment and maintenance**: there's only one location (usually a Linux server) where your Python code lives and you can automate the whole deployment process with continuous integration pipelines like GitHub actions etc.
-* **Cross-platform**: xlwings with a remote interpreter works with Google Sheets, Excel on the web and the Desktop apps of Excel on Windows and macOS.
+* **Cross-platform**: xlwings Server works with Google Sheets, Excel on the web and the Desktop apps of Excel on Windows and macOS.
 
 Prerequisites
 -------------
@@ -54,7 +54,7 @@ Prerequisites
 Introduction
 ------------
 
-Working with a remote Python interpreter consists of two parts:
+xlwings Server consists of two parts:
 
 * Backend: the Python part
 * Frontend: the xlwings JavaScript module (for Google Sheets/Excel on the web) or the VBA code in the form of the add-in or standalone modules (Desktop Excel)
@@ -64,7 +64,7 @@ The backend exposes your Python functions by using a Python web framework. In mo
 .. code-block:: python
 
     @app.post("/hello")
-    def hello(data: dict = Body(...)):
+    def hello(data: dict = Body):
         # Instantiate a Book object with the deserialized request body
         book = xw.Book(json=data)
 
@@ -77,7 +77,7 @@ The backend exposes your Python functions by using a Python web framework. In mo
 * For Desktop Excel, you can run the web server locally and call the respective function from VBA right away (given that you have the add-in installed).
 * For the cloud-based spreadsheets, you have to run this on a web server that can be reached from Google Sheets or Excel on the web, and you have to paste the xlwings JavaScript module into the respective editor. How this all works, will be shown in detail under :ref:`Cloud-based development with Gitpod`.
 
-The next section shows you how you can play around with the remote interpreter on your local desktop before we'll dive into developing against the cloud-based spreadsheets.
+The next section shows you how you can play around with the xlwings Server on your local desktop before we'll dive into developing against the cloud-based spreadsheets.
 
 Local Development with Desktop Excel
 ------------------------------------
@@ -124,7 +124,7 @@ The next sections, however, show you how you can make this work with the Google 
 Cloud-based development with Gitpod
 -----------------------------------
 
-Using Gitpod is the easiest solution if you'd like to develop against either Google Sheets or Excel on the web
+Using Gitpod is the easiest solution if you'd like to develop against either Google Sheets or Excel on the web.
 
 If you want to have a development environment up and running in less than 5 minutes (even if you're new to web development), simply click the ``Open in Gitpod`` button to open a `sample project <https://github.com/xlwings/xlwings-web-fastapi>`_ in `Gitpod <https://www.gitpod.io>`_ (Gitpod is a cloud-based development environment with a generous free tier):
 
@@ -183,8 +183,8 @@ This section walks you through a local development workflow as an alternative to
 
 As before, we're going to use `FastAPI <https://fastapi.tiangolo.com/>`_ as our web framework. While you can use any web framework you like, no quickstart command exists for these yet, so you'd have to set up the boilerplate yourself. Let's start with the server before turning our attention to the client side (i.e, Google Sheets or Excel on the web).
 
-Part I: xlwings Server
-**********************
+Part I: Backend
+***************
 
 Start a new quickstart project by running the following command on a Terminal/Command Prompt. Feel free to replace ``demo`` with another project name and make sure to run this command in the desired directory::
 
@@ -237,8 +237,8 @@ To configure the xlwings client in the next step, we'll need the ``https`` versi
 
 .. note:: When you're not actively developing, you should stop your ngrok session by hitting ``Ctrl-C`` in the Terminal/Command Prompt.
 
-Part II: xlwings Client
-***********************
+Part II: Frontend
+*****************
 
 Now it's time to switch to Google Sheets or Excel on the web! To paste the xlwings JavaScript module, follow these 3 steps:
 

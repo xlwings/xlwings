@@ -184,7 +184,7 @@ html_theme_options = {
         "color-brand-primary": "black",
         "color-brand-content": "#28a745",
         "color-sidebar-caption-text": "#28a745",
-        "sidebar-caption-font-size": "1.2em",
+        "sidebar-caption-font-size": "1em",
     },
     "dark_css_variables": {"color-brand-primary": "white"},
 }

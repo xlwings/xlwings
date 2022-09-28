@@ -159,10 +159,8 @@ jobs:
       - name: Copy files to root
         shell: bash
         run: |
-          ls -la
           shopt -s dotglob
           mv pre-build/* ./
-          ls -la
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
@@ -201,6 +199,8 @@ jobs:
       - name: Legacy Windows Build
         if: matrix.platform.os == 'windows-latest'
         shell: bash
+        env:
+          BUILD_RUST: 1
         run: |
           rm pyproject.toml
           python setup.py sdist bdist_wheel
@@ -219,11 +219,11 @@ jobs:
         run: |
           python -m pip install xlwings --no-index --find-links dist --force-reinstall  --no-deps
           cd ..
-          pwd
           python -c "import xlwings;print(xlwings.__version__)"
           python -c "import xlwings;print(xlwings.__path__)"
           XLWINGS_ENGINE=remote pytest xlwings/tests/test_engines/test_engines.py
           XLWINGS_ENGINE=calamine pytest xlwings/tests/test_engines/test_engines.py
+          xlwings quickstart testproject1
 
   publish:
     if: github.event_name == 'release'

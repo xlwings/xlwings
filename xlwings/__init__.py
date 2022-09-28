@@ -73,15 +73,15 @@ if sys.platform.startswith("darwin"):
         pass
 
 try:
-    from .pro import _xlremote, _xlcalamine
+    from .pro import _xlremote
 
-    engines.add(Engine(impl=_xlcalamine.engine))
     engines.add(Engine(impl=_xlremote.engine))
     PRO = True
 except (ImportError, LicenseError):
     PRO = False
 
-engines.active = engines[0]
+if engines:
+    engines.active = engines[0]
 
 # UDFs
 if sys.platform.startswith("win") and has_pywin32:

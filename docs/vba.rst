@@ -37,7 +37,7 @@ This calls the following code in ``hello.py``:
 
     def world():
         wb = xw.Book.caller()
-        wb.sheets[0].range('A1').value = 'Hello World!'
+        wb.sheets[0]['A1'].value = 'Hello World!'
 
 You can then attach ``HelloWorld`` to a button or run it directly in the VBA Editor by hitting ``F5``.
 

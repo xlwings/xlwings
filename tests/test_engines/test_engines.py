@@ -1,4 +1,3 @@
-# Activate one of the following lines to run the tests with the respective engine
 import os
 from pathlib import Path
 import datetime as dt

@@ -656,7 +656,7 @@ class App:
 
     def render_template(self, template=None, output=None, book_settings=None, **data):
         """
-        This function requires xlwings :guilabel:`PRO`.
+        This function requires xlwings :bdg-secondary:`PRO`.
 
         This is a convenience wrapper around :meth:`mysheet.render_template
         <xlwings.Sheet.render_template>`
@@ -836,6 +836,14 @@ class Book:
         xlwings module but in a deserialized form, i.e., as dictionary.
 
         .. versionadded:: 0.26.0
+
+    mode : str, default None
+        Either ``"i"`` (interactive (default)) or ``"r"`` (read). In interactive mode,
+        xlwings opens the workbook in Excel, i.e., Excel needs to be installed. In read
+        mode, xlwings reads from the file directly, without requiring Excel to be
+        installed. Read mode requires xlwings :bdg-secondary:`PRO`.
+
+        .. versionadded:: 0.28.0
     """
 
     def __init__(
@@ -1197,7 +1205,7 @@ class Book:
             single sheet or a list of int/str for multiple sheets.
 
         layout : str or path-like object, default None
-            This argument requires xlwings :guilabel:`PRO`.
+            This argument requires xlwings :bdg-secondary:`PRO`.
 
             Path to a PDF file on which the report will be printed. This is ideal for
             headers and footers as well as borderless printing of graphics/artwork. The
@@ -1248,7 +1256,7 @@ class Book:
 
     def render_template(self, **data):
         """
-        This method requires xlwings :guilabel:`PRO`.
+        This method requires xlwings :bdg-secondary:`PRO`.
 
         Replaces all Jinja variables (e.g ``{{ myvar }}``) in the book
         with the keyword argument of the same name.
@@ -1464,7 +1472,7 @@ class Sheet:
             working directory instead.
 
         layout : str or path-like object, default None
-            This argument requires xlwings :guilabel:`PRO`.
+            This argument requires xlwings :bdg-secondary:`PRO`.
 
             Path to a PDF file on which the report will be printed. This is ideal for
             headers and footers as well as borderless printing of graphics/artwork. The
@@ -1574,7 +1582,7 @@ class Sheet:
 
     def render_template(self, **data):
         """
-        This method requires xlwings :guilabel:`PRO`.
+        This method requires xlwings :bdg-secondary:`PRO`.
 
         Replaces all Jinja variables (e.g ``{{ myvar }}``) in the sheet with the keyword
         argument that has the same name. Following variable types are supported:
@@ -1700,23 +1708,23 @@ class Range:
     Examples
     --------
 
-    Active Sheet:
-
     .. code-block:: python
 
         import xlwings as xw
-        xw.Range('A1')
-        xw.Range('A1:C3')
-        xw.Range((1,1))
-        xw.Range((1,1), (3,3))
-        xw.Range('NamedRange')
-        xw.Range(xw.Range('A1'), xw.Range('B2'))
+        sheet1 = xw.Book("MyBook.xlsx").sheets[0]
 
-    Specific Sheet:
+        sheet1.range("A1")
+        sheet1.range("A1:C3")
+        sheet1.range((1,1))
+        sheet1.range((1,1), (3,3))
+        sheet1.range("NamedRange")
 
-    .. code-block:: python
-
-        xw.books['MyBook.xlsx'].sheets[0].range('A1')
+        # Or using index/slice notation
+        sheet1["A1"]
+        sheet1["A1:C3"]
+        sheet1[0, 0]
+        sheet1[0:4, 0:4]
+        sheet1["NamedRange"]
     """
 
     def __init__(self, cell1=None, cell2=None, **options):
@@ -1827,14 +1835,14 @@ class Range:
             If ``True``, will include cell errors such as ``#N/A`` as strings. By
             default, they will be converted to ``None``.
 
-         => For converter-specific options, see :ref:`converters`.
+            .. versionadded:: 0.28.0
+
+        => For converter-specific options, see :ref:`converters`.
 
         Returns
         -------
         Range object
 
-
-        .. versionadded:: 0.7.0
         """
         options["convert"] = convert
         return Range(impl=self.impl, **options)
@@ -1939,10 +1947,11 @@ class Range:
         --------
         >>> import xlwings as xw
         >>> wb = xw.Book()
-        >>> xw.Range('A1:B2').value = 1
-        >>> xw.Range('A1').end('down')
+        >>> sheet1 = xw.sheets[0]
+        >>> sheet1.range('A1:B2').value = 1
+        >>> sheet1.range('A1').end('down')
         <Range [Book1]Sheet1!$A$2>
-        >>> xw.Range('B2').end('right')
+        >>> sheet1.range('B2').end('right')
         <Range [Book1]Sheet1!$B$2>
 
         .. versionadded:: 0.9.0
@@ -2110,10 +2119,11 @@ class Range:
         --------
         >>> import xlwings as xw
         >>> wb = xw.Book()
-        >>> xw.Range('A1').number_format
+        >>> sheet1 = wb.sheets[0]
+        >>> sheet1.range('A1').number_format
         'General'
-        >>> xw.Range('A1:C3').number_format = '0.00%'
-        >>> xw.Range('A1:C3').number_format
+        >>> sheet1.range('A1:C3').number_format = '0.00%'
+        >>> sheet1.range('A1:C3').number_format
         '0.00%'
 
         .. versionadded:: 0.2.3
@@ -2163,13 +2173,14 @@ class Range:
 
             >>> import xlwings as xw
             >>> wb = xw.Book()
-            >>> xw.Range((1,1)).get_address()
+            >>> sheet1 = wb.sheets[0]
+            >>> sheet1.range((1,1)).get_address()
             '$A$1'
-            >>> xw.Range((1,1)).get_address(False, False)
+            >>> sheet1.range((1,1)).get_address(False, False)
             'A1'
-            >>> xw.Range((1,1), (3,3)).get_address(True, False, True)
+            >>> sheet1.range((1,1), (3,3)).get_address(True, False, True)
             'Sheet1!A$1:C$3'
-            >>> xw.Range((1,1), (3,3)).get_address(True, False, external=True)
+            >>> sheet1.range((1,1), (3,3)).get_address(True, False, external=True)
             '[Book1]Sheet1!A$1:C$3'
 
         .. versionadded:: 0.2.3
@@ -2222,9 +2233,9 @@ class Range:
         Autofits the width and height of all cells in the range.
 
         * To autofit only the width of the columns use
-          ``xw.Range('A1:B2').columns.autofit()``
+          ``myrange.columns.autofit()``
         * To autofit only the height of the rows use
-          ``xw.Range('A1:B2').rows.autofit()``
+          ``myrange.rows.autofit()``
 
         .. versionchanged:: 0.9.0
         """
@@ -2247,11 +2258,12 @@ class Range:
         --------
         >>> import xlwings as xw
         >>> wb = xw.Book()
-        >>> xw.Range('A1').color = (255, 255, 255)  # or '#ffffff'
-        >>> xw.Range('A2').color
+        >>> sheet1 = xw.sheets[0]
+        >>> sheet1.range('A1').color = (255, 255, 255)  # or '#ffffff'
+        >>> sheet1.range('A2').color
         (255, 255, 255)
-        >>> xw.Range('A2').color = None
-        >>> xw.Range('A2').color is None
+        >>> sheet1.range('A2').color = None
+        >>> sheet1.range('A2').color is None
         True
 
         .. versionadded:: 0.3.0
@@ -2355,10 +2367,11 @@ class Range:
 
         >>> import xlwings as xw
         >>> wb = xw.Book()
-        >>> xw.Range('A1').value = [[None, 1], [2, 3]]
-        >>> xw.Range('A1').expand().address
+        >>> sheet1 = wb.sheets[0]
+        >>> sheet1.range('A1').value = [[None, 1], [2, 3]]
+        >>> sheet1.range('A1').expand().address
         $A$1:$B$2
-        >>> xw.Range('A1').expand('right').address
+        >>> sheet1.range('A1').expand('right').address
         $A$1:$B$1
 
         .. versionadded:: 0.9.0
@@ -2538,9 +2551,10 @@ class Range:
         --------
         >>> import xlwings as xw
         >>> wb = xw.Book()
-        >>> xw.Range('A1').value
+        >>> sheet1 = wb.sheets[0]
+        >>> sheet1.range('A1').value
         'www.xlwings.org'
-        >>> xw.Range('A1').hyperlink
+        >>> sheet1.range('A1').hyperlink
         'http://www.xlwings.org'
 
         .. versionadded:: 0.3.0
@@ -2647,8 +2661,9 @@ class Range:
         -------
         >>> import xlwings as xw
         >>> wb = xw.Book()
-        >>> rng = xw.Range('A1:E4')
-        >>> rng.last_cell.row, rng.last_cell.column
+        >>> sheet1 = wb.sheets[0]
+        >>> myrange = sheet1.range('A1:E4')
+        >>> myrange.last_cell.row, myrange.last_cell.column
         (4, 5)
 
         .. versionadded:: 0.3.5
@@ -2799,7 +2814,7 @@ class Range:
             the current working directory otherwise.
 
         layout : str or path-like object, default None
-            This argument requires xlwings :guilabel:`PRO`.
+            This argument requires xlwings :bdg-secondary:`PRO`.
 
             Path to a PDF file on which the report will be printed. This is ideal for
             headers and footers as well as borderless printing of graphics/artwork. The
@@ -2840,16 +2855,18 @@ class RangeRows(Ranges):
 
         import xlwings as xw
 
-        rng = xw.Range('A1:C4')
+        wb = xw.Book("MyBook.xlsx")
+        sheet1 = wb.sheets[0]
+        myrange = sheet1.range('A1:C4')
 
-        assert len(rng.rows) == 4  # or rng.rows.count
+        assert len(myrange.rows) == 4  # or myrange.rows.count
 
-        rng.rows[0].value = 'a'
+        myrange.rows[0].value = 'a'
 
-        assert rng.rows[2] == xw.Range('A3:C3')
-        assert rng.rows(2) == xw.Range('A2:C2')
+        assert myrange.rows[2] == sheet1.range('A3:C3')
+        assert myrange.rows(2) == sheet1.range('A2:C2')
 
-        for r in rng.rows:
+        for r in myrange.rows:
             print(r.address)
     """
 
@@ -2905,16 +2922,18 @@ class RangeColumns(Ranges):
 
         import xlwings as xw
 
-        rng = xw.Range('A1:C4')
+        wb = xw.Book("MyFile.xlsx")
+        sheet1 = wb.sheets[0]
+        myrange = sheet1.range('A1:C4')
 
-        assert len(rng.columns) == 3  # or rng.columns.count
+        assert len(myrange.columns) == 3  # or myrange.columns.count
 
-        rng.columns[0].value = 'a'
+        myrange.columns[0].value = 'a'
 
-        assert rng.columns[2] == xw.Range('C1:C4')
-        assert rng.columns(2) == xw.Range('B1:B4')
+        assert myrange.columns[2] == sheet1.range('C1:C4')
+        assert myrange.columns(2) == sheet1.range('B1:B4')
 
-        for c in rng.columns:
+        for c in myrange.columns:
             print(c.address)
     """
 

@@ -7,7 +7,7 @@ import sys
 import re
 import glob
 from setuptools import setup, find_packages
-from setuptools_rust import Binding, RustExtension
+
 
 # long_description: Take from README file
 with open(os.path.join(os.path.dirname(__file__), "README.rst")) as f:
@@ -53,17 +53,24 @@ extras_require = {
     ],
 }
 
-setup(
-    name="xlwings",
-    version=version,
-    rust_extensions=[
+if os.getenv("BUILD_RUST", "0") == "1":
+    from setuptools_rust import Binding, RustExtension
+
+    rust_extensions = [
         RustExtension(
             "xlwings.xlwingslib",
             binding=Binding.PyO3,
             path="./Cargo.toml",
         )
-    ],
-    zip_safe=False,  # rust extensions are not zip safe
+    ]
+else:
+    rust_extensions = []
+
+setup(
+    name="xlwings",
+    version=version,
+    rust_extensions=rust_extensions,
+    zip_safe=False,  # Rust extensions are not zip safe
     url="https://www.xlwings.org",
     project_urls={
         "Source": "https://github.com/xlwings/xlwings",
