@@ -55,12 +55,13 @@ from .main import (
 from .main import apps, books, sheets, engines
 
 # Populate engines list
+has_pywin32 = False
 if sys.platform.startswith("win"):
     try:
         from . import _xlwindows
 
         engines.add(Engine(impl=_xlwindows.engine))
-        engines.active = engines[0]
+        has_pywin32 = True
     except ImportError:
         pass
 if sys.platform.startswith("darwin"):
@@ -68,20 +69,29 @@ if sys.platform.startswith("darwin"):
         from . import _xlmac
 
         engines.add(Engine(impl=_xlmac.engine))
-        engines.active = engines[0]
     except ImportError:
         pass
 
 try:
-    from .pro import _xljson
+    from .pro import _xlremote
 
-    engines.add(Engine(impl=_xljson.engine))
+    engines.add(Engine(impl=_xlremote.engine))
     PRO = True
 except (ImportError, LicenseError):
     PRO = False
 
+try:
+    from .pro import _xlcalamine
+
+    engines.add(Engine(impl=_xlcalamine.engine))
+except (ImportError, LicenseError):
+    pass
+
+if engines:
+    engines.active = engines[0]
+
 # UDFs
-if sys.platform.startswith("win"):
+if sys.platform.startswith("win") and has_pywin32:
     from .udfs import (
         xlfunc as func,
         xlsub as sub,
@@ -90,6 +100,7 @@ if sys.platform.startswith("win"):
         get_udf_module,
         import_udfs,
     )
+    from .server import serve
 
     # This generates the modules for early-binding under %TEMP%\gen_py\3.x
     # generated via makepy.py -i, but using an old minor=2, as it still seems to
@@ -139,7 +150,12 @@ else:
 
         return inner
 
+    def raise_missing_pywin32():
+        raise ImportError(
+            "Couldn't find 'pywin32'. Install it via"
+            "'pip install pywin32' or 'conda install pywin32'."
+        )
 
-# Server
-if sys.platform.startswith("win"):
-    from .server import serve
+    serve = raise_missing_pywin32
+    get_udf_module = raise_missing_pywin32
+    import_udfs = raise_missing_pywin32

@@ -3,6 +3,7 @@ import re
 import zipfile
 import tempfile
 import shutil
+from pathlib import Path
 
 # pythonnet
 import clr
@@ -38,8 +39,7 @@ else:
             version_string += i
         except ValueError:
             pass
-    # Double int/str to get rid of leading zeroes first
-    version_string = f"0.0.0.dev{int(str(int(version_string))[:5])}"
+    version_string = f"0.0.0+{os.environ['GITHUB_SHA'][:7]}"
 
 # Rename dlls and applescript file
 for i in ["32", "64"]:
@@ -68,6 +68,11 @@ for source_file in [version_file, cli_file]:
     content = re.sub(r"\bdev\b", version_string, content)
     with open(source_file, "w") as f:
         f.write(content)
+
+cargo_file = Path(os.environ["GITHUB_WORKSPACE"]) / "Cargo.toml"
+cargo_text = cargo_file.read_text()
+cargo_text = cargo_text.replace("0.0.0", version_string)
+cargo_file.write_text(cargo_text)
 
 # License handler
 lh = os.path.join(os.environ["GITHUB_WORKSPACE"], "xlwings", "pro", "utils.py")
@@ -192,12 +197,6 @@ def update_zip(zipname, filename, data):
 
 content = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="R09696ac1de4341b9" Type="http://schemas.microsoft.com/office/2006/relationships/ui/extensibility" Target="customUI/customUI.xml"/></Relationships>'
 update_zip(addin_path, "_rels/.rels", content)
-
-# Copy add-in to dist folder so it gets uploaded to artifacts
-os.makedirs(os.path.join(os.environ["GITHUB_WORKSPACE"], "dist"), exist_ok=True)
-shutil.copyfile(
-    addin_path, os.path.join(os.environ["GITHUB_WORKSPACE"], "dist", "xlwings.xlam")
-)
 
 # Handle version stamp in JavaScript modules
 for js in [

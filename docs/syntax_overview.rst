@@ -24,19 +24,25 @@ Active Objects
     >>> sheet = xw.sheets.active  # in active book
     >>> sheet = wb.sheets.active  # in specific book
 
-    # Range on active sheet
-    >>> xw.Range('A1')  # on active sheet of active book of active app
-
-A Range can be instantiated with A1 notation, a tuple of Excel's 1-based indices, a named range or two Range objects:
+A Range can be instantiated with A1 notation, a tuple of Excel's 1-based indices, or a named range:
 
 ::
 
-    xw.Range('A1')
-    xw.Range('A1:C3')
-    xw.Range((1,1))
-    xw.Range((1,1), (3,3))
-    xw.Range('NamedRange')
-    xw.Range(xw.Range('A1'), xw.Range('B2'))
+    import xlwings as xw
+    sheet1 = xw.Book("MyBook.xlsx").sheets[0]
+
+    sheet1.range("A1")
+    sheet1.range("A1:C3")
+    sheet1.range((1,1))
+    sheet1.range((1,1), (3,3))
+    sheet1.range("NamedRange")
+
+    # Or using index/slice notation
+    sheet1["A1"]
+    sheet1["A1:C3"]
+    sheet1[0, 0]
+    sheet1[0:4, 0:4]
+    sheet1["NamedRange"]
 
 Full qualification
 ------------------
@@ -65,14 +71,14 @@ Range indexing/slicing
 
 Range objects support indexing and slicing, a few examples:
 
->>> rng = xw.Book().sheets[0].range('A1:D5')
->>> rng[0, 0]
+>>> myrange = xw.Book().sheets[0].range('A1:D5')
+>>> myrange[0, 0]
  <Range [Workbook1]Sheet1!$A$1>
->>> rng[1]
+>>> myrange[1]
  <Range [Workbook1]Sheet1!$B$1>
->>> rng[:, 3:]
+>>> myrange[:, 3:]
 <Range [Workbook1]Sheet1!$D$1:$D$5>
->>> rng[1:3, 1:3]
+>>> myrange[1:3, 1:3]
 <Range [Workbook1]Sheet1!$B$2:$C$3>
 
 Range Shortcuts
@@ -97,6 +103,6 @@ Object Hierarchy
 The following shows an example of the object hierarchy, i.e. how to get from an app to a range object
 and all the way back:
 
->>> rng = xw.apps[10559].books[0].sheets[0].range('A1')
->>> rng.sheet.book.app
+>>> myrange = xw.apps[10559].books[0].sheets[0].range('A1')
+>>> myrange.sheet.book.app
 <Excel App 10559>

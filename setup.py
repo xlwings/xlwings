@@ -1,8 +1,13 @@
+"""
+Windows builds currently rely on setup.py instead of pyproject.toml/maturin as long
+as the dlls are distributed as data_files
+"""
 import os
 import sys
 import re
 import glob
 from setuptools import setup, find_packages
+
 
 # long_description: Take from README file
 with open(os.path.join(os.path.dirname(__file__), "README.rst")) as f:
@@ -32,17 +37,6 @@ elif sys.platform.startswith("win"):
     # This places dlls next to python.exe for standard setup
     # and in the parent folder for virtualenv
     data_files += [("", glob.glob("xlwings??-*.dll"))]
-elif sys.platform.startswith("darwin"):
-    # This has been broken ever since pip builds a wheel for installing as this uses
-    # an absolute path. Relative paths as in the case of Windows are still supported.
-    # These days taken care of by "xlwings addin install" or "xlwings runpython install"
-    data_files = [
-        (
-            os.path.expanduser("~")
-            + "/Library/Application Scripts/com.microsoft.Excel",
-            [f"xlwings/xlwings-{version}.applescript"],
-        )
-    ]
 else:
     pass
 
@@ -59,9 +53,24 @@ extras_require = {
     ],
 }
 
+if os.getenv("BUILD_RUST", "0") == "1":
+    from setuptools_rust import Binding, RustExtension
+
+    rust_extensions = [
+        RustExtension(
+            "xlwings.xlwingslib",
+            binding=Binding.PyO3,
+            path="./Cargo.toml",
+        )
+    ]
+else:
+    rust_extensions = []
+
 setup(
     name="xlwings",
     version=version,
+    rust_extensions=rust_extensions,
+    zip_safe=False,  # Rust extensions are not zip safe
     url="https://www.xlwings.org",
     project_urls={
         "Source": "https://github.com/xlwings/xlwings",
@@ -90,7 +99,11 @@ setup(
             "addin/WebHelpers.bas",
             "js/xlwings.*",
             "quickstart_fastapi/*.*",
-        ]
+        ],
+        "src": [
+            "src",
+            "Cargo.*",
+        ],
     },
     keywords=["xls", "excel", "spreadsheet", "workbook", "vba", "macro"],
     install_requires=install_requires,
@@ -110,5 +123,5 @@ setup(
         "Topic :: Office/Business :: Financial :: Spreadsheet",
         "License :: OSI Approved :: BSD License",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.7",
 )

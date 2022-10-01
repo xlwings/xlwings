@@ -30,7 +30,7 @@ Consider the following sample code of your Python source code ``my_module.py``:
 
     def my_macro():
         wb = xw.Book.caller()
-        wb.sheets[0].range('A1').value = 1
+        wb.sheets[0]['A1'].value = 1
 
     if __name__ == '__main__':
         # Expects the Excel file next to this source file, adjust accordingly.

@@ -25,11 +25,20 @@ on **Windows** and **Mac**.
 
         More in-depths explanations about converters, debugging or how to write your own add-in.
 
-    .. grid-item-card::  :octicon:`star;2em;sd-text-success` xlwings PRO
+    .. grid-item-card::  :octicon:`star;2em;sd-text-success` xlwings :bdg-secondary:`PRO`
         :link: pro
         :link-type: doc
 
-        Work with Google Sheets & Excel on the web, use xlwings Reports (template-based reporting), embed your Python code for easy deployment and more. Free for noncommercial use only.
+        Use advanced features such as:
+
+        * Ultra fast file reader: no Excel required
+        * xlwings Reports: work with templates
+        * xlwings Server: no local Python required
+        * Google Sheets & Excel on the web
+        * Embedded code: easy deployment
+        * etc.
+
+        Free for non-commercial use only.
 
     .. grid-item-card::  :octicon:`code-square;2em;sd-text-success` API Reference
         :link: api
@@ -77,11 +86,31 @@ on **Windows** and **Mac**.
     :caption: xlwings PRO
 
     pro
-    remote_interpreter
-    reports
-    markdown
     release
     permissioning
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :caption: File Reader
+
+    reader
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :caption: xlwings Reports
+
+    reports
+    markdown
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :caption: xlwings Server
+
+    remote_interpreter
+
 
 .. toctree::
     :maxdepth: 2

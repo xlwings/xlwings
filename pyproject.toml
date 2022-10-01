@@ -1,3 +1,63 @@
+[build-system]
+requires = ["maturin>=0.13,<0.14"]
+build-backend = "maturin"
+
+[project]
+name = "xlwings"
+description="Make Excel fly: Interact with Excel from Python and vice versa."
+authors = [
+    {name ="Felix Zumstein", email = "felix.zumstein@zoomeranalytics.com"},
+]
+readme="README.rst"
+requires-python = ">=3.7"
+dependencies = [
+    "pywin32 >= 224;platform_system=='Windows'",
+    "psutil >= 2.0.0;platform_system=='Darwin'",
+    "appscript >= 1.0.1;platform_system=='Darwin'",
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Office/Business :: Financial :: Spreadsheet",
+    "License :: OSI Approved :: BSD License",
+]
+
+dynamic = [
+    "version"
+]
+
+[project.optional-dependencies]
+reports = [
+    "Jinja2",
+    "pdfrw"
+]
+all = [
+    "Jinja2",
+    "pandas",
+    "matplotlib",
+    "plotly",
+    "flask",
+    "requests",
+    "pdfrw",
+]
+
+[project.scripts]
+xlwings = "xlwings.cli:main"
+
+[project.urls]
+Homepage = "https://www.xlwings.org"
+Documentation = "https://docs.xlwings.org"
+Funding = "https://www.xlwings.org/pricing"
+Source = "https://github.com/xlwings/xlwings"
+Changelog = "https://docs.xlwings.org/en/stable/whatsnew.html"
+
 [tool.black]
-target-version = ['py37']
+target-version = ["py37"]
 force-exclude = "xlwings/mistune"

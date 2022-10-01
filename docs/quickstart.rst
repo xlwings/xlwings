@@ -16,7 +16,7 @@ If you're just interested in getting a pandas DataFrame in and out of your Jupyt
 Establish a connection to a workbook:
 
     >>> import xlwings as xw
-    >>> wb = xw.Book()  # this will create a new workbook
+    >>> wb = xw.Book()  # this will open a new workbook
     >>> wb = xw.Book('FileName.xlsx')  # connect to a file that is open or in the current working directory
     >>> wb = xw.Book(r'C:\path\to\file.xlsx')  # on Windows: use raw strings to escape backslashes
 
@@ -31,22 +31,22 @@ Instantiate a sheet object:
 
 Reading/writing values to/from ranges is as easy as:
 
-    >>> sheet.range('A1').value = 'Foo 1'
-    >>> sheet.range('A1').value
+    >>> sheet['A1'].value = 'Foo 1'
+    >>> sheet['A1'].value
     'Foo 1'
 
 There are many **convenience features** available, e.g. Range expanding:
 
-    >>> sheet.range('A1').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
-    >>> sheet.range('A1').expand().value
+    >>> sheet['A1'].value = [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
+    >>> sheet['A1'].expand().value
     [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
 
 **Powerful converters** handle most data types of interest, including Numpy arrays and Pandas DataFrames in both directions:
 
     >>> import pandas as pd
     >>> df = pd.DataFrame([[1,2], [3,4]], columns=['a', 'b'])
-    >>> sheet.range('A1').value = df
-    >>> sheet.range('A1').options(pd.DataFrame, expand='table').value
+    >>> sheet['A1'].value = df
+    >>> sheet['A1'].options(pd.DataFrame, expand='table').value
            a    b
     0.0  1.0  2.0
     1.0  3.0  4.0
@@ -90,7 +90,7 @@ Refer to the calling Excel book by using ``xw.Book.caller()``:
 
     def world():
         wb = xw.Book.caller()
-        wb.sheets[0].range('A1').value = 'Hello World!'
+        wb.sheets[0]['A1'].value = 'Hello World!'
 
 
 To make this run, you'll need to have the xlwings add-in installed or have the workbooks setup in the standalone mode. The easiest way to get everything set up is to use the xlwings command line client from either a command prompt on Windows or a terminal on Mac: ``xlwings quickstart myproject``.

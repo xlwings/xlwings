@@ -44,8 +44,20 @@ time_types = (dt.date, dt.datetime)
 if np:
     time_types = time_types + (np.datetime64,)
 
+cell_errors = (
+    "#DIV/0!",
+    "#N/A",
+    "#NAME?",
+    "#NULL!",
+    "#NUM!",
+    "#REF!",
+    "#VALUE!",
+)
 
-def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
+
+def _clean_value_data_element(
+    value, datetime_builder, empty_as, number_builder, err_to_str
+):
     if value == "" or value == kw.missing_value:
         return empty_as
     if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:
@@ -72,6 +84,10 @@ class Engine:
     @property
     def name(self):
         return "excel"
+
+    @property
+    def type(self):
+        return "desktop"
 
     @staticmethod
     def prepare_xl_data_element(x):
@@ -102,10 +118,12 @@ class Engine:
         return x
 
     @staticmethod
-    def clean_value_data(data, datetime_builder, empty_as, number_builder):
+    def clean_value_data(data, datetime_builder, empty_as, number_builder, err_to_str):
         return [
             [
-                _clean_value_data_element(c, datetime_builder, empty_as, number_builder)
+                _clean_value_data_element(
+                    c, datetime_builder, empty_as, number_builder, err_to_str
+                )
                 for c in row
             ]
             for row in data
@@ -758,6 +776,7 @@ class Sheet:
 class Range:
     def __init__(self, sheet, address):
         self.sheet = sheet
+        self.options = None  # Assigned by main.Range to keep API of sheet.range clean
         if isinstance(address, tuple):
             self._coords = address
             row, col, nrows, ncols = address
@@ -809,8 +828,25 @@ class Range:
 
     @property
     def raw_value(self):
+        def ensure_2d(values):
+            # Usually done in converter, but macOS doesn't deliver any info about
+            # errors with values
+            if not isinstance(values, list):
+                return [[values]]
+            elif not isinstance(values[0], list):
+                return [values]
+
         if self.xl is not None:
-            return self.xl.value.get()
+            values = self.xl.value.get()
+            if self.options.get("err_to_str", False):
+                string_values = self.xl.string_value.get()
+                values = ensure_2d(values)
+                string_values = ensure_2d(string_values)
+                for row_ix, row in enumerate(string_values):
+                    for col_ix, c in enumerate(row):
+                        if c in cell_errors:
+                            values[row_ix][col_ix] = c
+            return values
 
     @raw_value.setter
     def raw_value(self, value):

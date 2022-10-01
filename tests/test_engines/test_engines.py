@@ -1,24 +1,34 @@
-# Activate one of the following two lines to run the tests with the respective engine
-engine = "json"
-# engine = 'excel'
-
+import os
 from pathlib import Path
 import datetime as dt
 import json
 
 import pytest
-import numpy as np
-import pandas as pd
-from dateutil import tz
+
+try:
+    import numpy as np
+except ImportError:
+    np = None
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
+try:
+    from dateutil import tz
+except ImportError:
+    tz = None
 
 import xlwings as xw
+
+# "calamine", "remote" or "excel"
+engine = os.environ.get("XLWINGS_ENGINE") or "calamine"
 
 this_dir = Path(__file__).resolve().parent
 
 data = {
     "client": "Microsoft Office Scripts",
-    "version": "dev",
-    "book": {"name": "json.xlsx", "active_sheet_index": 0, "selection": "B3:B4"},
+    "version": xw.__version__,
+    "book": {"name": "engines.xlsx", "active_sheet_index": 0, "selection": "B3:B4"},
     "names": [
         {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
         {
@@ -68,11 +78,14 @@ data = {
 
 @pytest.fixture(scope="module")
 def book():
-    if engine == "json":
+    if engine == "remote":
         book = xw.Book(json=data)
+    elif engine == "calamine":
+        book = xw.Book(this_dir / "engines.xlsx", mode="r")
     else:
-        book = xw.Book("json.xlsx")
+        book = xw.Book(this_dir / "engines.xlsx")
     yield book
+    book.close()
 
 
 # range.value
@@ -102,13 +115,22 @@ def test_range_a1(book):
     assert sheet.range("B2:C3").value == [[2.0, 3.0], [5.0, 6.0]]
 
 
-def test_range_shortcut(book):
+def test_range_shortcut_address(book):
     sheet = book.sheets[0]
     assert sheet["A1"].value == "a"
     assert sheet["A1:A3"].value == ["a", 1.0, 4.0]
     assert sheet["C1:C3"].value == ["c", 3.0, 6.0]
     assert sheet["A1:C3"].value == [["a", "b", "c"], [1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
     assert sheet["B2:C3"].value == [[2.0, 3.0], [5.0, 6.0]]
+
+
+def test_range_shortcut_index(book):
+    sheet = book.sheets[0]
+    assert sheet[0, 0].value == "a"
+    assert sheet[0:3, 0].value == ["a", 1.0, 4.0]
+    assert sheet[0:3, 2].value == ["c", 3.0, 6.0]
+    assert sheet[0:3, 0:3].value == [["a", "b", "c"], [1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
+    assert sheet[1:3, 1:3].value == [[2.0, 3.0], [5.0, 6.0]]
 
 
 def test_range_from_range(book):
@@ -222,6 +244,7 @@ def test_count(book):
 
 
 # Conversion
+@pytest.mark.skipif(not np, reason="requires NumPy")
 def test_numpy_array(book):
     sheet = book.sheets[0]
     np.testing.assert_array_equal(
@@ -229,6 +252,7 @@ def test_numpy_array(book):
     )
 
 
+@pytest.mark.skipif(not pd, reason="requires pandas")
 def test_pandas_df(book):
     sheet = book.sheets[0]
     pd.testing.assert_frame_equal(
@@ -247,7 +271,8 @@ def test_read_basic_types(book):
     ]
 
 
-@pytest.mark.skipif(engine == "excel", reason="requires json engine")
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.skipif(not tz, reason="requires dateutil")
 def test_write_basic_types(book):
     sheet = book.sheets[0]
     sheet["Z10"].value = [
@@ -274,6 +299,7 @@ def test_sheet_access(book):
     assert book.sheets[1].name == "Sheet2"
 
 
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_sheet_active(book):
     assert book.sheets.active == book.sheets[0]
 
@@ -285,18 +311,21 @@ def test_sheets_iteration(book):
 
 # book name
 def test_book(book):
-    assert book.name == "json.xlsx"
+    assert book.name == "engines.xlsx"
 
 
+@pytest.mark.skipif(engine in ["calamine", "excel"], reason="calamine engine")
 def test_book_selection(book):
     assert book.selection.address == "$B$3:$B$4"
 
 
 # pictures
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_pictures_len(book):
     assert len(book.sheets[0].pictures) == 2
 
 
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_pictures_name(book):
     assert book.sheets[0].pictures[0].name == "pic1"
     assert book.sheets[0].pictures[1].name == "pic2"
@@ -304,16 +333,19 @@ def test_pictures_name(book):
     assert book.sheets[0].pictures(2).name == "pic2"
 
 
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_pictures_width(book):
     assert book.sheets[0].pictures[0].width == 20
     assert book.sheets[0].pictures[1].width == 40
 
 
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_pictures_height(book):
     assert book.sheets[0].pictures[0].height == 10
     assert book.sheets[0].pictures[1].height == 30
 
 
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_pictures_add_and_delete(book):
     sheet = book.sheets[0]
     sheet.pictures.add(this_dir.parent / "sample_picture.png", name="new")
@@ -324,6 +356,7 @@ def test_pictures_add_and_delete(book):
     assert len(sheet.pictures) == 2
 
 
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_pictures_iter(book):
     sheet = book.sheets[0]
     pic_names = []
@@ -332,6 +365,7 @@ def test_pictures_iter(book):
     assert pic_names == ["pic1", "pic2"]
 
 
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_pictures_contains(book):
     sheet = book.sheets[0]
     assert "pic1" in sheet.pictures
@@ -342,10 +376,12 @@ def test_pictures_contains(book):
     assert 3 not in sheet.pictures
 
 
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_empty_pictures(book):
     assert not book.sheets[1].pictures
 
 
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_picture_exists(book):
     with pytest.raises(xw.ShapeAlreadyExists):
         book.sheets[0].pictures.add(this_dir.parent / "sample_picture.png", name="pic1")
@@ -370,8 +406,9 @@ def test_named_range_missing(book):
         values = sheet1["doesnt_exist"].value
 
 
-@pytest.mark.skipif(engine == "excel", reason="requires json engine")
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_named_range_book_change_value(book):
+    book.impl._json = {"actions": []}
     sheet1 = book.sheets[0]
     assert sheet1["one"].value == "a"
     sheet1["one"].value = 1000

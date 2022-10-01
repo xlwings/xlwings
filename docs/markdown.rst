@@ -1,9 +1,7 @@
 .. _markdown:
 
-Markdown Formatting
-===================
-
-This feature requires xlwings :bdg-secondary:`PRO`.
+Markdown Formatting :bdg-secondary:`PRO`
+========================================
 
 .. versionadded:: 0.23.0
 

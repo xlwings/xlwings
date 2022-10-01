@@ -34,17 +34,34 @@ time_types = (dt.datetime,)
 if np:
     time_types = time_types + (np.datetime64,)
 
+datetime_pattern = (
+    pattern
+) = r"^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$"
+datetime_regex = re.compile(pattern)
 
-def _clean_value_data_element(value, datetime_builder, empty_as, number_builder):
+
+def _clean_value_data_element(
+    value, datetime_builder, empty_as, number_builder, err_to_str
+):
     if value == "":
         return empty_as
     if isinstance(value, str):
         # TODO: Send arrays back and forth with indices of the location of dt values
-        pattern = r"^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$"
-        if re.compile(pattern).match(value):
+        if datetime_regex.match(value):
             value = dt.datetime.fromisoformat(
                 value[:-1]
             )  # cut off "Z" (Python doesn't accept it and Excel doesn't support tz)
+        elif not err_to_str and value in [
+            "#DIV/0!",
+            "#N/A",
+            "#NAME?",
+            "#NULL!",
+            "#NUM!",
+            "#REF!",
+            "#VALUE!",
+            "#DATA!",
+        ]:
+            value = None
         else:
             value = value
     if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:
@@ -68,10 +85,12 @@ class Engine:
         self.apps = Apps()
 
     @staticmethod
-    def clean_value_data(data, datetime_builder, empty_as, number_builder):
+    def clean_value_data(data, datetime_builder, empty_as, number_builder, err_to_str):
         return [
             [
-                _clean_value_data_element(c, datetime_builder, empty_as, number_builder)
+                _clean_value_data_element(
+                    c, datetime_builder, empty_as, number_builder, err_to_str
+                )
                 for c in row
             ]
             for row in data
@@ -103,7 +122,11 @@ class Engine:
 
     @property
     def name(self):
-        return "json"
+        return "remote"
+
+    @property
+    def type(self):
+        return "remote"
 
 
 class Apps(base_classes.Apps):

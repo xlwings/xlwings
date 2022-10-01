@@ -1,6 +1,24 @@
 What's New
 ==========
 
+
+v0.28.0 (Sep XX, 2022)
+----------------------
+
+* :bdg-success:`Feature` :bdg-secondary:`PRO`: xlwings PRO adds an ultra fast file reader, allowing you to read Excel files much faster than via ``pandas.read_excel()``:
+
+  .. code-block:: python
+
+      with xw.Book("myfile.xlsx", mode="r") as book:
+          sheet1 = book.sheets[0]
+          df = sheet1["A1:B2"].options("df", index=False, header=True).value
+
+  For more details, see :ref:`Excel File Reader`.
+
+* :bdg-info:`Enhancement` ``Book`` can now be used as context manager (i.e., with the ``with`` statement, see previous bullet point), which will close the book automatically when leaving the body of the context manager.
+* :bdg-info:`Enhancement` The new option ``err_to_str`` allows you to deliver cell errors like ``#N/A`` as strings instead of ``None`` (default): ``xw.Book("mybook.xlsx").options(err_to_str=True).value``.
+* :bdg-danger:`Breaking Change` :bdg-secondary:`PRO` xlwings Server used to deliver cell errors as strings, which wasn't consistent with the rest of xlwings. This has now been fixed. To get the previous behavior, use the ``err_to_str`` options, see the previous bullet point.
+
 v0.27.15 (Sep 16, 2022)
 -----------------------
 
@@ -21,12 +39,12 @@ v0.27.13 (Aug 22, 2022)
 v0.27.12 (Aug 8, 2022)
 ----------------------
 
-* :bdg-info:`Enhancement` :bdg-secondary:`PRO`: Remote Interpreter: added support for named ranges via ``mysheet["myname"]`` or ``mysheet.range("myname")`` (:issue:`1975`).
-* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Remote Interpreter: in addition to Google Sheets, ``pictures.add()`` is now also supported on Desktop Excel (Windows and macOS). This includes support for Matplotlib plots (:issue:`1974`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO`: xlwings Server: added support for named ranges via ``mysheet["myname"]`` or ``mysheet.range("myname")`` (:issue:`1975`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO`: xlwings Server: in addition to Google Sheets, ``pictures.add()`` is now also supported on Desktop Excel (Windows and macOS). This includes support for Matplotlib plots (:issue:`1974`).
 * :bdg-info:`Enhancement` Faster UDFs (:issue:`1976`).
 * :bdg-warning:`Bug Fix` Made ``myapp.range()`` behave the same as ``mysheet.range()`` (:issue:`1982`).
-* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Remote Interpreter: cell errors were causing a bug with Desktop Excel (:issue:`1968`).
-* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Remote Interpreter: sending large payloads with Desktop Excel on macOS is now possible (:issue:`1977`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO`: xlwings Server: cell errors were causing a bug with Desktop Excel (:issue:`1968`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO`: xlwings Server: sending large payloads with Desktop Excel on macOS is now possible (:issue:`1977`).
 
 v0.27.11 (Jul 6, 2022)
 ----------------------
@@ -56,7 +74,7 @@ v0.27.8 (May 22, 2022)
 v0.27.7 (May 1, 2022)
 ---------------------
 
-* :bdg-success:`Feature` :bdg-secondary:`PRO` Google Sheets now support pictures via ``mysheet.pictures.add()`` incl. Matplotlib/Plotly (note that Excel on the web and Desktop Excel via remote interpreter are not yet supported). Also note that Google Sheets allows a maximum of 1 million pixels as calculated by  (width in inches * dpi) * (height in inches * dpi), see also :ref:`Matplotlib & Plotly charts` (:issue:`1906`).
+* :bdg-success:`Feature` :bdg-secondary:`PRO` Google Sheets now support pictures via ``mysheet.pictures.add()`` incl. Matplotlib/Plotly (note that Excel on the web and Desktop Excel via xlwings Server are not yet supported). Also note that Google Sheets allows a maximum of 1 million pixels as calculated by  (width in inches * dpi) * (height in inches * dpi), see also :ref:`Matplotlib & Plotly charts` (:issue:`1906`).
 * :bdg-danger:`Breaking Change` Matplotlib plots are now written to Excel/Google Sheets with a default of 200 dpi instead of 300 dpi. You can change this (and all other options that Matplotlib's ``savefig()`` and Plotly's ``write_image()`` offer via ``sheet.pictures.add(image=myfigure, export_options={"bbox_inches": "tight", "dpi": 300})`` (:issue:`665`, :issue:`519`).
 
 
@@ -64,20 +82,20 @@ v0.27.6 (Apr 11, 2022)
 ----------------------
 
 * :bdg-warning:`Bug Fix` macOS: Python modules on OneDrive Personal are now found again in the default setup even if they have been migrated to the new location (:issue:`1891`).
-* :bdg-info:`Enhancement` :bdg-secondary:`PRO` The remote interpreter now shows nicely formatted error messages across all platforms (:issue:`1889`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server now shows nicely formatted error messages across all platforms (:issue:`1889`).
 
 
 v0.27.5 (Apr 1, 2022)
 ---------------------
 
-* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Remote interpreter: added support for setting the number format of a range via ``myrange.number_format = "..."`` (:issue:`1887`).
-* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Remote interpreter: Google Sheets/Excel on the web were formatting strings like ``"1"`` as date (:issue:`1885`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server: added support for setting the number format of a range via ``myrange.number_format = "..."`` (:issue:`1887`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Server: Google Sheets/Excel on the web were formatting strings like ``"1"`` as date (:issue:`1885`).
 
 v0.27.4 (Mar 29, 2022)
 ----------------------
 * :bdg-info:`Enhancement` Further SharePoint enhancements on Windows, increasing the chance that ``mybook.fullname`` returns the proper local filepath (by taking into account the info in the registry) (:issue:`1829`).
 * :bdg-info:`Enhancement` The ribbon, i.e., the config, now allows you to uncheck the box ``Add workbook to PYTHONPATH`` to not automatically add the directory of your workbook to the PYTHONPATH. The respective config is called ``ADD_WORKBOOK_TO_PYTHONPATH``. This can be helpful if you experience issues with OneDrive/SharePoint: uncheck this box and provide the path where your source file is manually via the PYTHONPATH setting (:issue:`1873`).
-* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Added support for ``myrange.add_hyperlink()`` with the remote interpreter (:issue:`1882`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Added support for ``myrange.add_hyperlink()`` with remote interpreter (:issue:`1882`).
 * :bdg-info:`Enhancement` :bdg-secondary:`PRO` Added a new optional parameter ``include`` in connection with ``runPython`` (JS) and ``RunRemotePython`` (VBA), respectively. It's the counterpart to ``exclude`` and allows you to submit the names of the sheets that you want to send to the server. Like ``exclude``, ``include`` accepts a comma-delimited string, e.g., "Sheet1,Sheet2"  (:issue:`1882`).
 * :bdg-info:`Enhancement` :bdg-secondary:`PRO` On Google Sheets, the xlwings JS module now automatically asks for the proper permission to allow authentication based on OAuth Token (:issue:`1876`).
 
@@ -85,21 +103,21 @@ v0.27.3 (Mar 18, 2022)
 ----------------------
 
 * :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Fixes an issue with Date formatting on Google Sheets in case you're not using the U.S. locale (:issue:`1866`).
-* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Fixes the truncating of ranges with the remote interpreter in case the range was partly outside the used range (:issue:`1822`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Fixes the truncating of ranges with xlwings Server in case the range was partly outside the used range (:issue:`1822`).
 
 v0.27.2 (Mar 11, 2022)
 ----------------------
 
-* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Fixes an issue with the remote interpreter that occurred on 64-bit versions of Excel.
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Fixes an issue with xlwings Server that occurred on 64-bit versions of Excel.
 
 v0.27.0 and v0.27.1 (Mar 8, 2022)
 ---------------------------------
 
-* :bdg-success:`Feature` :bdg-secondary:`PRO` This release adds support for the remote interpreter to the Excel Desktop apps on both Windows and macOS. The new VBA function ``RunRemotePython`` is equivalent to ``runPython`` in the JavaScript modules of Google Sheets and Excel on the web, see :ref:`Remote Interpreter<remote_interpreter>` (:issue:`1841`).
+* :bdg-success:`Feature` :bdg-secondary:`PRO` This release adds support for xlwings Server to the Excel Desktop apps on both Windows and macOS. The new VBA function ``RunRemotePython`` is equivalent to ``runPython`` in the JavaScript modules of Google Sheets and Excel on the web, see :ref:`xlwings Server<remote_interpreter>` (:issue:`1841`).
 * :bdg-info:`Enhancement` The xlwings package is now uploaded as wheel to PyPI in addition to the source format (:issue:`1855`).
 * :bdg-info:`Enhancement` The xlwings package is now compatible with Poetry (:issue:`1265`).
 * :bdg-info:`Enhancement` The add-in and the dll files are now code signed (:issue:`1848`).
-* :bdg-danger:`Breaking Change` :bdg-secondary:`PRO` The JavaScript modules (Google Sheet/Excel on the web ) changed the parameters in ``runPython``, see :ref:`Remote Interpreter<remote_interpreter>` (:issue:`1852`).
+* :bdg-danger:`Breaking Change` :bdg-secondary:`PRO` The JavaScript modules (Google Sheet/Excel on the web ) changed the parameters in ``runPython``, see :ref:`xlwings Server<remote_interpreter>` (:issue:`1852`).
 * :bdg-danger:`Breaking Change` ``xlwings vba edit`` has been refactored and there is an additional command ``xlwings vba import`` to edit your VBA code outside of the VBA editor, e.g., in VS Code or any other editor, see :ref:`command_line` (:issue:`1843`).
 * :bdg-danger:`Breaking Change` The ``--unprotected`` flag has been removed from the ``xlwings addin install`` command. You can still manually remove the password (``xlwings``) though (:issue:`1850`).
 * :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` The ``Markdown`` class has been fixed in case the first line was empty (:issue:`1856`).
@@ -116,7 +134,7 @@ v0.26.2 (Feb 10, 2022)
 
 * :bdg-success:`Feature` Added support for ``myrange.clear_formats`` and ``mysheet.clear_formats`` (:issue:`1802`).
 * :bdg-success:`Feature` Added support for ``mychart.to_pdf()`` and ``myrange.to_pdf()`` (:issue:`1708`).
-* :bdg-success:`Feature` :bdg-secondary:`PRO` Remote interpreter: added support for ``mybook.selection`` (:issue:`1819`).
+* :bdg-success:`Feature` :bdg-secondary:`PRO` xlwings Server: added support for ``mybook.selection`` (:issue:`1819`).
 * :bdg-info:`Enhancement` The ``quickstart`` command now makes sure that the project name is a valid Python module name (:issue:`1773`).
 * :bdg-info:`Enhancement` The ``to_pdf`` method now accepts an additional parameter ``quality`` that defaults to ``"standard"`` but can be set to ``"minimum"`` for smaller PDFs (:issue:`1697`).
 * :bdg-warning:`Bug Fix` Allow space in path to Python interpreter when using UDFs / UDF Server (:issue:`974`).
@@ -126,7 +144,7 @@ v0.26.2 (Feb 10, 2022)
 v0.26.0 and v0.26.1 (Feb 1, 2022)
 ---------------------------------
 
-* :bdg-secondary:`PRO` :bdg-success:`Feature` Added experimental support for Google Sheets and Excel on the web via a remote Python interpreter. For all the details, see :ref:`Remote Interpreter <remote_interpreter>`.
+* :bdg-secondary:`PRO` :bdg-success:`Feature` Added experimental support for Google Sheets and Excel on the web via a remote Python interpreter. For all the details, see :ref:`xlwings Server <remote_interpreter>`.
 * :bdg-secondary:`PRO` :bdg-warning:`Bug Fix` 0.26.1 fixes an issue with the ``xlwings copy gs`` command.
 * xlwings PRO is now free for noncommercial usage under the `PolyForm Noncommercial License 1.0.0 <https://polyformproject.org/licenses/noncommercial/1.0.0>`_, see :ref:`xlwings PRO <pro>` for the details.
 

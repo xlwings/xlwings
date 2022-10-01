@@ -1,9 +1,7 @@
 .. _reports_quickstart:
 
-xlwings Reports
-===============
-
-This feature requires xlwings :bdg-secondary:`PRO`.
+xlwings Reports :bdg-secondary:`PRO`
+====================================
 
 xlwings Reports is a solution for template-based Excel and PDF reporting, making the generation of pixel-perfect factsheets really simple. xlwings Reports allows business users without Python knowledge to create and maintain Excel templates without having to rely on a Python developer after the initial setup has been done: xlwings Reports separates the Python code (pre- and post-processing) from the Excel template (layout/formatting).
 
@@ -342,14 +340,14 @@ Using Excel tables is the recommended way to format tables as the styling can be
 
 Running the following script::
 
-    from xlwings.pro.reports import render_template
     import pandas as pd
 
     nrows, ncols = 3, 3
     df = pd.DataFrame(data=nrows * [ncols * ['test']],
                       columns=[f'col {i}' for i in range(ncols)])
 
-    render_template('template.xlsx', 'output.xlsx', df=df)
+    with xw.App(visible=True) as app:
+        book = app.render_template('template.xlsx', 'output.xlsx', df=df)
 
 Will produce the following report:
 
@@ -514,9 +512,8 @@ Simple Text without Formatting
 
 You can use any shapes like rectangles or circles, not just text boxes::
 
-    from xlwings.pro.reports import render_template
-
-    render_template('template.xlsx', 'output.xlsx', temperature=12.3)
+    with xw.App(visible=True) as app:
+        app.render_template('template.xlsx', 'output.xlsx', temperature=12.3)
 
 This code turns this template:
 
@@ -635,7 +632,6 @@ Alternatively, you could also use Excel Tables, as they can make formatting easi
 
 Running the following code::
 
-    from xlwings.pro.reports import render_template
     import pandas as pd
 
     df1 = pd.DataFrame([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -643,9 +639,10 @@ Running the following code::
 
     data = dict(df1=df1.reset_index(), df2=df2.reset_index())
 
-    render_template('my_template.xlsx',
-                    'my_report.xlsx',
-                    **data)
+    with xw.App(visible=True) as app:
+        book = app.render_template('my_template.xlsx',
+                                   'my_report.xlsx',
+                                   **data)
 
 will generate this report:
 
@@ -660,17 +657,16 @@ PDF Layout
 
 Using the ``layout`` parameter in the ``to_pdf()`` command, you can "print" your Excel workbook on professionally designed PDFs for pixel-perfect reports in your corporate layout including headers, footers, backgrounds and borderless graphics::
 
-    from xlwings.pro.reports import render_template
     import pandas as pd
 
     df = pd.DataFrame([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
-    book = render_template('template.xlsx',
-                           'report.xlsx',
-                           month_year = 'May 21',
-                           summary_text = '...')
-
-    book.to_pdf('report.pdf', layout='monthly_layout.pdf')
+    with xw.App(visible=True) as app:
+        book = app.render_template('template.xlsx',
+                                   'report.xlsx',
+                                   month_year = 'May 21',
+                                   summary_text = '...')
+        book.to_pdf('report.pdf', layout='monthly_layout.pdf')
 
 Note that the layout PDF either needs to consist of a single page (will be used for each reporting page) or will need to have the same number of pages as the report (each report page will be printed on the corresponding layout page).
 

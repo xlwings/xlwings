@@ -24,9 +24,9 @@ Consider the following example that will **NOT** work::
     
     def write_to_workbook():
         while True:
-            rng = q.get()
-            rng.value = rng.address
-            print(rng.address)
+            myrange = q.get()
+            myrange.value = myrange.address
+            print(myrange.address)
             q.task_done()
     
     
@@ -39,8 +39,8 @@ Consider the following example that will **NOT** work::
     
     for cell in ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']:
         # THIS DOESN'T WORK - passing xlwings objects to threads will fail!
-        rng = xw.Book('Book1.xlsx').sheets[0].range(cell)
-        q.put(rng)
+        myrange = xw.Book('Book1.xlsx').sheets[0].range(cell)
+        q.put(myrange)
     
     q.join()
 

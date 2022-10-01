@@ -6,8 +6,10 @@ Installation
 Prerequisites
 -------------
 
-* Traditionally, xlwings requires an **installation of Excel** and therefore only works on **Windows** and **macOS**. Note that macOS currently does not support UDFs.
-* Since v0.26.0, xlwings can be installed on Linux servers in connection with Google Sheets or Excel on the web, see :ref:`Remote Interpreter <remote_interpreter>`.
+* xlwings (Open Source) requires an **installation of Excel** and therefore only works on **Windows** and **macOS**. Note that macOS currently does not support UDFs.
+* xlwings :bdg-secondary:`PRO` offers additional features:
+    * :ref:`File Reader <file_reader>` (new in v0.28.0): Runs additionally on Linux and doesn't require an installation of Excel.
+    * :ref:`xlwings Server <remote_interpreter>` (new in v0.26.0). Runs additionally on Linux and doesn't require a local installation of Python. Works with Desktop Excel on Windows and macOS as well as with Excel on the web and Google Sheets.
 * xlwings requires at least Python 3.7.
 
 Here are previous versions of xlwings that support older versions of Python:
@@ -44,10 +46,10 @@ To install the add-in, run the following command::
 
     xlwings addin install
 
-To call Excel from Python, you don't need an add-in. Also, you can use a single file VBA module (*standalone workbook*) instead of the add-in. For more details, see :ref:`xlwings_addin`.
+To automate Excel from Python, you don't need an add-in. Also, you can use a single file VBA module (*standalone workbook*) instead of the add-in. For more details, see :ref:`xlwings_addin`.
 
 .. note::
-   The add-in needs to be the same version as the Python package. Make sure to re-install the add-in after upgrading the xlwings package.
+   The add-in needs to be the same version as the Python package. Make sure to run ``xlwings add install`` again after upgrading the xlwings package.
 
 .. note::
   When you are on macOS and are using the VBA standalone module instead of the add-in, you need to run ``$ xlwings runpython install`` once.
@@ -55,15 +57,17 @@ To call Excel from Python, you don't need an add-in. Also, you can use a single 
 Dependencies
 ------------
 
+For automating Excel, you'll need the following dependencies:
+
 * **Windows**: ``pywin32``
 
 * **Mac**: ``psutil``, ``appscript``
 
 The dependencies are automatically installed via ``conda`` or ``pip``.
-If you would like to install xlwings without dependencies, you can run ``pip install xlwings --no-deps`` or set the environment variable ``XLWINGS_NO_DEPS=1`` before running ``pip install xlwings``.
+If you would like to install xlwings without dependencies, you can run ``pip install xlwings --no-deps``.
 
-How to activate xlwings PRO
----------------------------
+How to activate xlwings :bdg-secondary:`PRO`
+--------------------------------------------
 
 See :ref:`xlwings PRO <pro>`.
 
