@@ -144,6 +144,7 @@ def xlfunc(f=None, **kwargs):
             xlf = f.__xlfunc__ = {}
             xlf["name"] = f.__name__
             xlf["sub"] = False
+            xlf["cache"] = False
             xlargs = xlf["args"] = []
             xlargmap = xlf["argmap"] = {}
             sig = func_sig(f)
@@ -184,6 +185,18 @@ def xlfunc(f=None, **kwargs):
         )
         f.__xlfunc__["volatile"] = check_bool("volatile", default=False, **kwargs)
         f.__xlfunc__["async_mode"] = get_async_mode(**kwargs)
+        return f
+
+    if f is None:
+        return inner
+    else:
+        return inner(f)
+
+
+def xlcache(f=None, **kwargs):
+    def inner(f):
+        f = xlfunc(**kwargs)(f)
+        f.__xlfunc__["cache"] = True
         return f
 
     if f is None:
@@ -578,6 +591,7 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
         if hasattr(svar, "__xlfunc__"):
             xlfunc = svar.__xlfunc__
             xlret = xlfunc["ret"]
+            xlcache = xlfunc["cache"]
             fname = xlfunc["name"]
             call_in_wizard = xlfunc["call_in_wizard"]
             volatile = xlfunc["volatile"]
@@ -619,6 +633,17 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
                         )
                     if volatile:
                         vba.writeln("Application.Volatile")
+                    if xlcache:
+                        vba.writeln("Dim Key As String")
+                        vba.writeln(f'Key = "{fname}"')
+                        for arg in xlfunc["args"]:
+                            arg_name = arg["vba"] or arg["name"]
+                            vba.writeln(f"Key = Key & vbTab & {arg_name}")
+                        vba.writeln("If UdfCache Is Nothing Then Set UdfCache = NewDictionary")
+                        vba.writeln("If UdfCache.Exists(Key) Then")
+                        vba.writeln(f"    {fname} = UdfCache(Key)")
+                        vba.writeln("    Exit Function")
+                        vba.writeln("End If")
 
                 if vararg != "":
                     vba.writeln("Dim argsArray() As Variant")
@@ -701,6 +726,7 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
                             args_vba=args_vba,
                             vba_workbook=vba_workbook,
                         )
+                        vba.writeln(f"UdfCache.Add Key, {fname}")
                         vba.writeln("Exit " + ftype)
                     with vba.block("#Else"):
                         vba.writeln(
@@ -710,6 +736,7 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
                             fname=fname,
                             args_vba=args_vba,
                         )
+                        vba.writeln(f"UdfCache.Add Key, {fname}")
                         vba.writeln("Exit " + ftype)
                     vba.writeln("#End If")
 
@@ -735,6 +762,7 @@ def import_udfs(module_names, xl_workbook):
     vba.writeln(
         """#Const App = "Microsoft Excel" 'Adjust when using outside of Excel"""
     )
+    vba.writeln("Private UdfCache As Dictionary")
 
     for module_name in module_names:
         module = get_udf_module(module_name, xl_workbook)
