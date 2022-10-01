@@ -212,7 +212,7 @@ jobs:
           path: ./dist
 
       - name: Tests
-        if: matrix.platform.target == 'x86_64'
+        if: matrix.platform.target == 'x86_64' && matrix.platform.manylinux != 'musllinux_1_1'
         shell: bash
         env:
           XLWINGS_LICENSE_KEY: ${{ secrets.XLWINGS_LICENSE_KEY }}

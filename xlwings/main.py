@@ -869,10 +869,10 @@ class Book:
         engine=None,
     ):
         if not impl:
-            if json or engines.active.type == "remote":
+            if json:
                 engine = engine if engine else "remote"
                 impl = engines[engine].apps.active.books.open(json=json).impl
-            elif fullname and mode == "r" or engines.active.type == "reader":
+            elif fullname and mode == "r":
                 engine = engine if engine else "calamine"
                 impl = engines[engine].apps.active.books.open(fullname=fullname).impl
             elif fullname:
