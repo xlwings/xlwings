@@ -80,6 +80,13 @@ try:
 except (ImportError, LicenseError):
     PRO = False
 
+try:
+    from .pro import _xlcalamine
+
+    engines.add(Engine(impl=_xlcalamine.engine))
+except (ImportError, LicenseError):
+    pass
+
 if engines:
     engines.active = engines[0]
 

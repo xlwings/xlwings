@@ -828,10 +828,20 @@ class Range:
 
     @property
     def raw_value(self):
+        def ensure_2d(values):
+            # Usually done in converter, but macOS doesn't deliver any info about
+            # errors with values
+            if not isinstance(values, list):
+                return [[values]]
+            elif not isinstance(values[0], list):
+                return [values]
+
         if self.xl is not None:
             values = self.xl.value.get()
             if self.options.get("err_to_str", False):
                 string_values = self.xl.string_value.get()
+                values = ensure_2d(values)
+                string_values = ensure_2d(string_values)
                 for row_ix, row in enumerate(string_values):
                     for col_ix, c in enumerate(row):
                         if c in cell_errors:

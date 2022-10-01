@@ -843,12 +843,24 @@ class TestRangeExpansion(TestBase):
 
 
 class TestCellErrors(TestBase):
-    def test_cell_erros(self):
+    def test_cell_errors_default(self):
         wb = xw.Book("cell_errors.xlsx")
         sheet = wb.sheets[0]
 
         for i in range(1, 8):
             self.assertIsNone(sheet.range((i, 1)).value)
+        wb.close()
+
+    def test_cell_errors_str(self):
+        wb = xw.Book("cell_errors.xlsx")
+        sheet = wb.sheets[0]
+        # Single cells, since macOS has massive issues with ranges that contain cell
+        # errors, see #1028 and #1924
+        expected = ["#DIV/0!", "#N/A", "#NAME?", "#NULL!", "#NUM!", "#REF!", "#VALUE!"]
+        for i in range(1, 8):
+            self.assertEqual(
+                sheet.range((i, 1)).options(err_to_str=True).value, expected[i - 1]
+            )
         wb.close()
 
 

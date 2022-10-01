@@ -115,13 +115,22 @@ def test_range_a1(book):
     assert sheet.range("B2:C3").value == [[2.0, 3.0], [5.0, 6.0]]
 
 
-def test_range_shortcut(book):
+def test_range_shortcut_address(book):
     sheet = book.sheets[0]
     assert sheet["A1"].value == "a"
     assert sheet["A1:A3"].value == ["a", 1.0, 4.0]
     assert sheet["C1:C3"].value == ["c", 3.0, 6.0]
     assert sheet["A1:C3"].value == [["a", "b", "c"], [1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
     assert sheet["B2:C3"].value == [[2.0, 3.0], [5.0, 6.0]]
+
+
+def test_range_shortcut_index(book):
+    sheet = book.sheets[0]
+    assert sheet[0, 0].value == "a"
+    assert sheet[0:3, 0].value == ["a", 1.0, 4.0]
+    assert sheet[0:3, 2].value == ["c", 3.0, 6.0]
+    assert sheet[0:3, 0:3].value == [["a", "b", "c"], [1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
+    assert sheet[1:3, 1:3].value == [[2.0, 3.0], [5.0, 6.0]]
 
 
 def test_range_from_range(book):
