@@ -2705,7 +2705,8 @@ class Range:
             True to merge cells in each row of the specified Range as separate merged
             cells.
         """
-        self.impl.merge(across)
+        with self.sheet.book.app.properties(display_alerts=False):
+            self.impl.merge(across)
 
     def unmerge(self):
         """

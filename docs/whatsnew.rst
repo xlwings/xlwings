@@ -1,6 +1,7 @@
 What's New
 ==========
 
+
 v0.28.0 (Sep XX, 2022)
 ----------------------
 
@@ -17,6 +18,11 @@ v0.28.0 (Sep XX, 2022)
 * :bdg-info:`Enhancement` ``Book`` can now be used as context manager (i.e., with the ``with`` statement, see previous bullet point), which will close the book automatically when leaving the body of the context manager.
 * :bdg-info:`Enhancement` The new option ``err_to_str`` allows you to deliver cell errors like ``#N/A`` as strings instead of ``None`` (default): ``xw.Book("mybook.xlsx").options(err_to_str=True).value``.
 * :bdg-danger:`Breaking Change` :bdg-secondary:`PRO` xlwings Server used to deliver cell errors as strings, which wasn't consistent with the rest of xlwings. This has now been fixed. To get the previous behavior, use the ``err_to_str`` options, see the previous bullet point.
+
+v0.27.15 (Sep 16, 2022)
+-----------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Reports: Added new ``vmerge`` filter to vertically merge cells with the same values, for details, see :ref:`vmerge` (:issue:`2020`).
 
 v0.27.14 (Aug 26, 2022)
 -----------------------

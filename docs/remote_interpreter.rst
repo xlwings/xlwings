@@ -69,7 +69,8 @@ The backend exposes your Python functions by using a Python web framework. In mo
         book = xw.Book(json=data)
 
         # Use xlwings as usual
-        book.sheets[0].value = 'Hello xlwings!'
+        sheet = book.sheets[0]
+        sheet["A1"].value = 'Hello xlwings!'
 
         # Pass the following back as the response
         return book.json()
