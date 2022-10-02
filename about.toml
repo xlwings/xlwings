@@ -1,0 +1,14 @@
+# Build with
+# cargo about generate about.hbs > docs/_static/opensource_licenses2.html
+accepted = [
+    "Apache-2.0",
+    "MIT",
+    "BSD-3-Clause",
+    "Apache-2.0 WITH LLVM-exception",
+    "Unicode-DFS-2016"
+]
+
+private = { ignore = true }
+
+ignore-build-dependencies = true
+ignore-dev-dependencies = true
