@@ -5,7 +5,13 @@ Excel File Reader :bdg-secondary:`PRO`
 
 This feature requires at least v0.28.0.
 
-xlwings PRO comes with an ultra fast Excel file reader. Compared with ``pandas.read_excel()``, you should be able to see speedups anywhere between 5 to 20 times when reading a single sheet. The exact speed will depend on your content, file format (``xlsx`` / ``xlsb`` / ``xls``), and Python version. Other advantages include:
+xlwings PRO comes with an ultra fast Excel file reader. Compared with ``pandas.read_excel()``, you should be able to see speedups anywhere between 5 to 20 times when reading a single sheet. The exact speed will depend on your content, file format, and Python version. The following Excel file formats are supported:
+
+* ``xlsx`` / ``xlsm`` / ``xlam``
+* ``xlsb``
+* ``xls``
+
+Other advantages include:
 
 * Support for named ranges
 * Support for dynamic ranges via ``myrange.expand()`` or ``myrange.options(expand="table")``, respectively.
