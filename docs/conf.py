@@ -192,6 +192,7 @@ html_theme_options = {
 html_show_sourcelink = False
 html_title = "xlwings Documentation"
 html_favicon = "_static/favicon.png"
+html_extra_path = ["_static/opensource_licenses2.html"]
 
 copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
 copybutton_prompt_is_regexp = True
