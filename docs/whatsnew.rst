@@ -5,7 +5,7 @@ What's New
 v0.28.0 (Sep XX, 2022)
 ----------------------
 
-* :bdg-success:`Feature` :bdg-secondary:`PRO`: xlwings PRO adds an ultra fast file reader, allowing you to read Excel files much faster than via ``pandas.read_excel()``:
+* :bdg-success:`Feature` :bdg-secondary:`PRO` xlwings PRO adds an ultra fast file reader, allowing you to read Excel files much faster than via ``pandas.read_excel()``:
 
   .. code-block:: python
 
@@ -13,11 +13,12 @@ v0.28.0 (Sep XX, 2022)
           sheet1 = book.sheets[0]
           df = sheet1["A1:B2"].options("df", index=False, header=True).value
 
-  For more details, see :ref:`Excel File Reader`.
+  For all the details, see :ref:`Excel File Reader<file_reader>`.
 
-* :bdg-info:`Enhancement` ``Book`` can now be used as context manager (i.e., with the ``with`` statement, see previous bullet point), which will close the book automatically when leaving the body of the context manager.
+* :bdg-info:`Enhancement` ``Book`` can now be used as context manager (i.e., with the ``with`` statement, see previous bullet point), which will close the book automatically when leaving the body of the ``with`` statement.
 * :bdg-info:`Enhancement` The new option ``err_to_str`` allows you to deliver cell errors like ``#N/A`` as strings instead of ``None`` (default): ``xw.Book("mybook.xlsx").options(err_to_str=True).value``.
-* :bdg-danger:`Breaking Change` :bdg-secondary:`PRO` xlwings Server used to deliver cell errors as strings, which wasn't consistent with the rest of xlwings. This has now been fixed. To get the previous behavior, use the ``err_to_str`` options, see the previous bullet point.
+* :bdg-danger:`Breaking Change` :bdg-secondary:`PRO` xlwings Server used to deliver cell errors as strings, which wasn't consistent with the rest of xlwings. This has now been fixed by delivering them as ``None`` by default. To get the previous behavior, use the ``err_to_str`` option, see the previous bullet point.
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` The *Remote Interpreter* has been rebranded to *xlwings Server*.
 
 v0.27.15 (Sep 16, 2022)
 -----------------------

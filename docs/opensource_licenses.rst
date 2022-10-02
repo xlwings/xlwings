@@ -3,7 +3,7 @@ Open Source Licenses
 
 Depending on the platform and features that you use, xlwings requires various Open Source dependencies.
 
-* The licenses of the compiled code are available in a `separate document </opensource_licenses2.html>`_
+* The licenses of the compiled code are available in a `separate document <opensource_licenses2.html>`_
 * All other licenses are listed below
 
 pywin32 (Windows only)

@@ -160,6 +160,8 @@ class Books(base_classes.Books):
                         "address": t2.split("!")[1],
                         "book_scope": True,  # TODO: not provided by calamine
                     }
+                    if t2
+                    else None
                     for t1, t2 in xlwingslib.get_defined_names(filename)
                 ],
             },
