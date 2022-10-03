@@ -1,18 +1,18 @@
 use calamine::CellErrorType::{Div0, GettingData, Name, Null, Num, Ref, Value, NA};
 use calamine::{open_workbook_auto, CellErrorType, DataType, Error, Range, Reader};
 use chrono::{Datelike, NaiveDateTime, Timelike};
-use pyo3::create_exception;
-use pyo3::exceptions::{PyException, PyIOError, PyRuntimeError};
+use pyo3::exceptions::PyIOError;
+use pyo3::import_exception;
 use pyo3::prelude::*;
 use pyo3::types::PyDateTime;
 
-create_exception!(xlwingslib, XlwingslibError, PyException);
+import_exception!(xlwings, XlwingsError);
 
 struct CalamineError(Error);
 
 impl From<CalamineError> for PyErr {
     fn from(err: CalamineError) -> PyErr {
-        PyRuntimeError::new_err(err.0.to_string())
+        XlwingsError::new_err(err.0.to_string())
     }
 }
 
@@ -154,7 +154,7 @@ fn get_sheet_values(
         Ok(r) => Ok(r),
         Err(e) => match e {
             Error::Io(err) => Err(PyIOError::new_err(err.to_string())),
-            _ => Err(XlwingslibError::new_err(e.to_string())),
+            _ => Err(XlwingsError::new_err(e.to_string())),
         },
     }
 }
@@ -182,7 +182,7 @@ fn get_range_values(
         Ok(r) => Ok(r),
         Err(e) => match e {
             Error::Io(err) => Err(PyIOError::new_err(err.to_string())),
-            _ => Err(XlwingslibError::new_err(e.to_string())),
+            _ => Err(XlwingsError::new_err(e.to_string())),
         },
     }
 }
@@ -202,12 +202,11 @@ fn get_defined_names(path: &str) -> Result<Vec<(String, String)>, CalamineError>
 }
 
 #[pymodule]
-fn xlwingslib(py: Python, m: &PyModule) -> PyResult<()> {
+fn xlwingslib(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(get_range_values, m)?)?;
     m.add_function(wrap_pyfunction!(get_sheet_values, m)?)?;
     m.add_function(wrap_pyfunction!(get_sheet_names, m)?)?;
     m.add_function(wrap_pyfunction!(get_defined_names, m)?)?;
-    m.add("XlwingslibError", py.get_type::<XlwingslibError>())?;
     Ok(())
 }
 
