@@ -2,8 +2,8 @@ What's New
 ==========
 
 
-v0.28.0 (Sep XX, 2022)
-----------------------
+v0.28.0 (Oct 3, 2022)
+---------------------
 
 * :bdg-success:`Feature` :bdg-secondary:`PRO` xlwings PRO adds an ultra fast file reader, allowing you to read Excel files much faster than via ``pandas.read_excel()``:
 

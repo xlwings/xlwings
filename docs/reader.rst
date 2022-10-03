@@ -5,7 +5,7 @@ Excel File Reader :bdg-secondary:`PRO`
 
 This feature requires at least v0.28.0.
 
-xlwings PRO comes with an ultra fast Excel file reader. Compared with ``pandas.read_excel()``, you should be able to see speedups anywhere between 5 to 20 times when reading a single sheet. The exact speed will depend on your content, file format, and Python version. The following Excel file formats are supported:
+xlwings PRO comes with an ultra fast Excel file reader. Compared with ``pandas.read_excel()``, you should be able to see speedups anywhere between 5 to 25 times when reading a single sheet. The exact speed will depend on your content, file format, and Python version. The following Excel file formats are supported:
 
 * ``xlsx`` / ``xlsm`` / ``xlam``
 * ``xlsb``
@@ -95,7 +95,7 @@ While xlwings reads in cell errors such as ``#N/A`` as ``None`` by default, you 
 
 Limitations
 -----------
-
+* The reader is currently only available via ``pip install xlwings``. Installation via ``conda`` is not yet supported, but you can still use pip to install xlwings into a Conda environment!
 * Date cells: Excel cells with a Date/Time are currently only converted to a ``datetime`` object in Python for ``xlsx`` file formats. For ``xlsb`` format, pandas has the same restriction though (it uses ``pyxlsb`` under the hood).
 * Dynamic ranges: ``myrange.expand()`` is currently inefficient, so will slow down the reading considerably if the dynamic range is big.
 * Named ranges: Accessing named ranges is currently only supported via ``mysheet["mynamedrange"].value``, but not via ``mybook.names`` or ``mysheet.names``.
