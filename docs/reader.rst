@@ -16,6 +16,7 @@ Other advantages include:
 * Support for named ranges
 * Support for dynamic ranges via ``myrange.expand()`` or ``myrange.options(expand="table")``, respectively.
 * Support for converters so you can read in ranges not just as pandas DataFrames, but also as NumPy arrays, lists, scalar values, dictionaries, etc.
+* You can read out cell errors like ``#DIV/0!`` or ``#N/A`` as strings instead of converting them all into ``NaN``
 
 Unlike the classic ("interactive") use of xlwings that requires Excel to be installed, reading a file doesn't depend on an installation of Excel and therefore works everywhere where Python runs. However, reading directly from a file requires the workbook to be saved before xlwings is able to pick up any changes.
 
@@ -68,7 +69,8 @@ Named ranges are supported like so:
 
     with xw.Book("myfile.xlsx", mode="r") as book:
         sheet1 = book.sheets[0]
-        data = sheet1["myname"].value
+        data = sheet1["myname"].value  # get values
+        address = sheet1["myname"].address  # get address
 
 Dynamic Ranges
 --------------
