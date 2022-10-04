@@ -20,15 +20,22 @@ except ImportError:
 
 import xlwings as xw
 
-# "calamine", "remote" or "excel"
-engine = os.environ.get("XLWINGS_ENGINE") or "calamine"
-
 this_dir = Path(__file__).resolve().parent
+
+# "calamine", "remote", or "excel"
+engine = os.environ.get("XLWINGS_ENGINE") or "calamine"
+# "xlsx", "xlsb", or "xls"
+file_extension = os.environ.get("XLWINGS_FILE_EXTENSION") or "xlsx"
+
 
 data = {
     "client": "Microsoft Office Scripts",
     "version": xw.__version__,
-    "book": {"name": "engines.xlsx", "active_sheet_index": 0, "selection": "B3:B4"},
+    "book": {
+        "name": f"engines.{file_extension}",
+        "active_sheet_index": 0,
+        "selection": "B3:B4",
+    },
     "names": [
         {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
         {
@@ -81,9 +88,9 @@ def book():
     if engine == "remote":
         book = xw.Book(json=data)
     elif engine == "calamine":
-        book = xw.Book(this_dir / "engines.xlsx", mode="r")
+        book = xw.Book(this_dir / f"engines.{file_extension}", mode="r")
     else:
-        book = xw.Book(this_dir / "engines.xlsx")
+        book = xw.Book(this_dir / f"engines.{file_extension}")
     yield book
     book.close()
 
@@ -261,6 +268,9 @@ def test_pandas_df(book):
     )
 
 
+@pytest.mark.skipif(
+    file_extension != "xlsx" and engine == "calamine", reason="datetime unsupported"
+)
 def test_read_basic_types(book):
     sheet = book.sheets[2]
     assert sheet["A1:B4"].value == [
@@ -268,6 +278,15 @@ def test_read_basic_types(book):
         [-1.0, 1.0],
         [True, False],
         [dt.datetime(2021, 10, 1, 0, 0), dt.datetime(2021, 12, 31, 23, 35)],
+    ]
+
+
+def test_read_basic_types_no_datetime(book):
+    sheet = book.sheets[2]
+    assert sheet["A1:B3"].value == [
+        [None, "string"],
+        [-1.0, 1.0],
+        [True, False],
     ]
 
 
@@ -311,7 +330,7 @@ def test_sheets_iteration(book):
 
 # book name
 def test_book(book):
-    assert book.name == "engines.xlsx"
+    assert book.name == f"engines.{file_extension}"
 
 
 @pytest.mark.skipif(engine in ["calamine", "excel"], reason="calamine engine")
