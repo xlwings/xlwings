@@ -1,5 +1,6 @@
 import os
 import sys
+import uuid
 import shutil
 import argparse
 import hashlib
@@ -323,47 +324,60 @@ def code_embed(args):
     into the active Excel Book
     """
     wb = xw.books.active
-    screen_updating = wb.app.screen_updating
-    wb.app.screen_updating = False
-
     if args and args.file:
         import_dir = False
         source_files = [Path(args.file)]
     else:
         import_dir = True
-        source_files = list(Path(wb.fullname).resolve().parent.glob("*.py"))
-
+        source_files = list(Path(wb.fullname).resolve().parent.rglob("*.py"))
     if not source_files:
         print("WARNING: Couldn't find any Python files in the workbook's directory!")
-    for source_file in source_files:
-        with open(source_file, "r", encoding="utf-8") as f:
-            content = []
-            for line in f.read().splitlines():
-                # Handle single-quote docstrings
-                line = line.replace("'''", '"""')
-                # Duplicate leading single quotes so Excel interprets them properly
-                # This is required even if the cell is in Text format
-                content.append(["'" + line if line.startswith("'") else line])
 
-        if source_file.name not in [sheet.name for sheet in wb.sheets]:
-            sheet = wb.sheets.add(source_file.name, after=wb.sheets[len(wb.sheets) - 1])
+    # Delete existing source code sheets
+    # A bug prevents deleting sheets from the collection directly (#1400)
+    with wb.app.properties(screen_updating=False):
+        for sheetname in [sheet.name for sheet in wb.sheets]:
+            if wb.sheets[sheetname].name.endswith(".py"):
+                wb.sheets[sheetname].delete()
+
+        # Import source code
+        sheetname_to_path = {}
+        for source_file in source_files:
+            sheetname = uuid.uuid4().hex[:28] + ".py"
+            sheetname_to_path[sheetname] = str(
+                source_file.relative_to(Path(wb.fullname).parent)
+            )
+            with open(source_file, "r", encoding="utf-8") as f:
+                content = []
+                for line in f.read().splitlines():
+                    # Handle single-quote docstrings
+                    line = line.replace("'''", '"""')
+                    # Duplicate leading single quotes so Excel interprets them properly
+                    # This is required even if the cell is in Text format
+                    content.append(["'" + line if line.startswith("'") else line])
+
+            sheet = wb.sheets.add(sheetname, after=wb.sheets[len(wb.sheets) - 1])
+            sheet["A1"].resize(
+                row_size=len(content) if content else 1
+            ).number_format = "@"
+            sheet["A1"].value = content
+            sheet["A:A"].column_width = 65
+
+        # Update config with the sheetname_to_path mapping
+        if "xlwings.conf" in [sheet.name for sheet in wb.sheets]:
+            config = xw.utils.read_config_sheet(wb)
+            sheetname_to_path_str = json.dumps(sheetname_to_path)
+            if len(sheetname_to_path_str) > 32_767:
+                sys.exit("ERROR: The package structure is too complex to embed.")
+            config["RELEASE_EMBED_CODE_MAP"] = sheetname_to_path_str
+            wb.sheets["xlwings.conf"]["A1"].value = config
         else:
-            sheet = wb.sheets[source_file.name]
-        sheet.cells.clear_contents()
-        sheet["A1"].resize(row_size=len(content)).number_format = "@"
-        sheet["A1"].value = content
-        sheet["A:A"].column_width = 65
-
-    # Cleanup: remove sheets that don't exist anymore as source files
-    if import_dir:
-        source_file_names = set([path.name for path in source_files])
-        source_sheet_names = set(
-            [sheet.name for sheet in wb.sheets if sheet.name.endswith(".py")]
-        )
-        for sheet_name in source_sheet_names.difference(source_file_names):
-            wb.sheets[sheet_name].delete()
-
-    wb.app.screen_updating = screen_updating
+            config_sheet = wb.sheets.add(
+                "xlwings.conf", after=wb.sheets[len(wb.sheets) - 1]
+            )
+            config_sheet["A1"].value = {
+                "RELEASE_EMBED_CODE_MAP": json.dumps(sheetname_to_path)
+            }
 
 
 def print_permission_json(scope):
@@ -455,10 +469,7 @@ def release(args):
     try:
         deploy_key = LicenseHandler.create_deploy_key()
     except xw.LicenseError:
-        print(
-            "WARNING: Couldn't create a deploy key, "
-            "using an expiring license key instead!"
-        )
+        # Can't create deploy key with trial keys, so use trial key directly
         deploy_key = read_user_config()["license_key"]
 
     # Sheet Config

@@ -1,4 +1,5 @@
 import sys
+import json
 import asyncio
 
 if sys.version_info >= (3, 7):
@@ -25,7 +26,7 @@ from win32com.client import Dispatch
 
 import xlwings
 from . import conversion, Range, apps, Book, PRO, LicenseError
-from .utils import VBAWriter, exception, get_cached_user_config
+from .utils import VBAWriter, exception, get_cached_user_config, read_config_sheet
 
 if PRO:
     from .pro.embedded_code import dump_embedded_code, TEMPDIR
@@ -735,6 +736,18 @@ def import_udfs(module_names, xl_workbook):
     vba.writeln(
         """#Const App = "Microsoft Excel" 'Adjust when using outside of Excel"""
     )
+
+    if PRO:
+        for module_name in module_names:
+            sheet_config = read_config_sheet(
+                Book(impl=xlwings._xlwindows.Book(Dispatch(xl_workbook)))
+            )
+            code_map = sheet_config.get("RELEASE_EMBED_CODE_MAP", "{}")
+            sheetname_to_path = json.loads(code_map)
+            if module_name + ".py" in sheetname_to_path:
+                real_module_name = sheetname_to_path[module_name + ".py"][:-3]
+                module_names.remove(module_name)
+                module_names.append(real_module_name)
 
     for module_name in module_names:
         module = get_udf_module(module_name, xl_workbook)
