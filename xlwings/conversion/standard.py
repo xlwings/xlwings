@@ -1,12 +1,11 @@
-import math
 import datetime
+import math
 from collections import OrderedDict
 
-from . import Pipeline, Converter, Options, Accessor, accessors
-
-from ..main import Range
 from .. import LicenseError
+from ..main import Range
 from ..utils import chunk
+from . import Accessor, Converter, Options, Pipeline, accessors
 
 try:
     from ..pro import Markdown

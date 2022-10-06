@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+
 import xlwings as xw
 from xlwings.pro import Markdown, MarkdownStyle
 

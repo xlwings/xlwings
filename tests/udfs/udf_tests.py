@@ -1,8 +1,9 @@
-from datetime import datetime, date
 import sys
+from datetime import date, datetime
 
 if sys.version_info >= (2, 7):
     from nose.tools import assert_dict_equal
+
 import xlwings as xw
 
 try:

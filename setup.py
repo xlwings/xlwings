@@ -2,12 +2,12 @@
 Windows builds currently rely on setup.py instead of pyproject.toml/maturin as long
 as the dlls are distributed as data_files
 """
-import os
-import sys
-import re
 import glob
-from setuptools import setup, find_packages
+import os
+import re
+import sys
 
+from setuptools import find_packages, setup
 
 # long_description: Take from README file
 with open(os.path.join(os.path.dirname(__file__), "README.rst")) as f:

@@ -1,6 +1,7 @@
-from tests.restapi import TestCase
-import unittest
 import json
+import unittest
+
+from tests.restapi import TestCase
 
 
 class TestRestApi(TestCase):

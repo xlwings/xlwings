@@ -1,8 +1,8 @@
 import os
 import re
-import zipfile
-import tempfile
 import shutil
+import tempfile
+import zipfile
 from pathlib import Path
 
 # pythonnet
@@ -14,8 +14,7 @@ dll = os.path.abspath(
     )
 )
 clr.AddReference(dll)
-from Aspose.Cells import Workbook, License
-
+from Aspose.Cells import License, Workbook
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 par_dir = os.path.join(this_dir, os.path.pardir)

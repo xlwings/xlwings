@@ -1,12 +1,12 @@
+import datetime as dt
 import os
 import re
-import sys
-import uuid
-import tempfile
 import subprocess
-import datetime as dt
+import sys
+import tempfile
 import traceback
-from functools import total_ordering, lru_cache
+import uuid
+from functools import lru_cache, total_ordering
 from pathlib import Path
 
 try:
@@ -16,8 +16,8 @@ except ImportError:
 
 try:
     import matplotlib as mpl
-    import matplotlib.pyplot as plt
     import matplotlib.figure
+    import matplotlib.pyplot as plt
 except ImportError:
     mpl = None
 

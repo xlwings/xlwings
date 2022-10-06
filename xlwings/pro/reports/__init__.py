@@ -19,6 +19,6 @@ __all__ = ["render_template", "create_report", "Image", "Markdown", "MarkdownSty
 LicenseHandler.validate_license("reports")
 
 # API
-from .main import render_template, create_report
-from .markdown import MarkdownStyle, Markdown
 from .image import Image
+from .main import create_report, render_template
+from .markdown import Markdown, MarkdownStyle

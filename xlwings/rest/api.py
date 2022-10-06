@@ -1,26 +1,26 @@
 # See also:
 # https://developer.microsoft.com/en-us/graph/docs/api-reference/v1.0/resources/excel
 # TODO: proper exception handling in xlwings base package so it can be used here
-import sys
 import logging
+import sys
 
 from werkzeug.routing import PathConverter
 
 import xlwings as xw
 from xlwings.rest.serializers import (
-    serialize_book,
-    serialize_sheet,
     serialize_app,
+    serialize_book,
     serialize_chart,
     serialize_name,
     serialize_picture,
     serialize_range,
     serialize_shape,
+    serialize_sheet,
 )
 
 try:
     import flask
-    from flask import Flask, jsonify, request, abort
+    from flask import Flask, abort, jsonify, request
 except ImportError:
     raise Exception(
         "To use the xlwings REST API server, you need Flask>=1.0.0 installed."

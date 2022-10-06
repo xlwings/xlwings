@@ -1,5 +1,4 @@
-from cx_Freeze import setup, Executable
-
+from cx_Freeze import Executable, setup
 
 build_exe_options = {
     "packages": ["win32com", "xlwings"],

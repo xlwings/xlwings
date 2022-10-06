@@ -1,11 +1,12 @@
-import sys
 import os
-from datetime import datetime
+import sys
 import unittest
+from datetime import datetime
 from pathlib import Path
 
 import xlwings as xw
 from xlwings.constants import RgbColor
+
 from .common import TestBase, this_dir
 
 # Mac imports

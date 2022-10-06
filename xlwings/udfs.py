@@ -1,11 +1,12 @@
-import sys
-import json
 import asyncio
+import json
+import sys
 
 if sys.version_info >= (3, 7):
     from asyncio import get_running_loop
 else:
     from asyncio import get_event_loop as get_running_loop
+
 import concurrent
 import copy
 import functools
@@ -16,8 +17,8 @@ import os.path
 import re
 import tempfile
 import threading
-from importlib import import_module
 from importlib import reload  # requires >= py 3.4
+from importlib import import_module
 from random import random
 
 import pythoncom
@@ -25,12 +26,13 @@ import pywintypes
 from win32com.client import Dispatch
 
 import xlwings
-from . import conversion, Range, apps, Book, PRO, LicenseError
+
+from . import PRO, Book, LicenseError, Range, apps, conversion
 from .utils import VBAWriter, exception, get_cached_user_config, read_config_sheet
 
 if PRO:
-    from .pro.embedded_code import dump_embedded_code, TEMPDIR
     from .pro import verify_execute_permission
+    from .pro.embedded_code import TEMPDIR, dump_embedded_code
 
 logger = logging.getLogger(__name__)
 cache = {}

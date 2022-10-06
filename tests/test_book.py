@@ -3,6 +3,7 @@ import sys
 import unittest
 
 import xlwings as xw
+
 from .common import TestBase, this_dir
 
 if sys.version_info[0] >= 3 and sys.version_info[1] >= 6:

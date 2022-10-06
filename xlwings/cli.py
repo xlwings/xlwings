@@ -1,18 +1,17 @@
-import os
-import sys
-import uuid
-import shutil
 import argparse
 import hashlib
-import socket
 import json
-import tempfile
+import os
+import shutil
+import socket
 import subprocess
-from pathlib import Path
+import sys
+import tempfile
+import uuid
 from keyword import iskeyword
+from pathlib import Path
 
 import xlwings as xw
-
 
 # Directories/paths
 this_dir = Path(__file__).resolve().parent
@@ -451,8 +450,8 @@ def import_remote_modules(book):
 
 
 def release(args):
-    from xlwings.utils import query_yes_no, read_user_config
     from xlwings.pro import LicenseHandler
+    from xlwings.utils import query_yes_no, read_user_config
 
     if sys.platform.startswith("darwin"):
         sys.exit(
@@ -653,8 +652,9 @@ def export_vba_modules(book, overwrite=False):
 
 
 def vba_get_book(args):
-    from xlwings.utils import query_yes_no
     import textwrap
+
+    from xlwings.utils import query_yes_no
 
     if args and args.file:
         book = xw.Book(args.file)
@@ -730,7 +730,7 @@ def vba_edit(args):
     import pywintypes
 
     try:
-        from watchgod import watch, RegExpWatcher, Change
+        from watchgod import Change, RegExpWatcher, watch
     except ImportError:
         sys.exit(
             "Please install watchgod to use this functionality: pip install watchgod"

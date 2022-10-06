@@ -4,8 +4,9 @@ All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
 """
-import sqlite3
 import os
+import sqlite3
+
 import xlwings as xw
 
 

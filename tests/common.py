@@ -1,7 +1,7 @@
-import os
 import inspect
-import unittest
+import os
 import types
+import unittest
 
 import xlwings as xw
 

@@ -12,6 +12,7 @@ Commercial licenses can be purchased at https://www.xlwings.org
 """
 
 import logging
+
 from ... import XlwingsError
 
 try:

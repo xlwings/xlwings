@@ -8,7 +8,7 @@ description="Make Excel fly: Interact with Excel from Python and vice versa."
 authors = [
     {name ="Felix Zumstein", email = "felix.zumstein@zoomeranalytics.com"},
 ]
-readme="README.rst"
+readme = "README.rst"
 requires-python = ">=3.7"
 dependencies = [
     "pywin32 >= 224;platform_system=='Windows'",
@@ -61,3 +61,9 @@ Changelog = "https://docs.xlwings.org/en/stable/whatsnew.html"
 [tool.black]
 target-version = ["py37"]
 force-exclude = "xlwings/mistune"
+
+[tool.isort]
+profile = "black"
+py_version=37
+skip = "xlwings/mistune"
+combine_as_imports = true

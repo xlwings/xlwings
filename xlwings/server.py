@@ -1,7 +1,7 @@
-import logging
-import sys
-import os
 import importlib
+import logging
+import os
+import sys
 
 # Hack to find pythoncom.dll - needed for some distribution/setups
 # E.g., if python is started with the full path outside of the python path,
@@ -28,17 +28,16 @@ except ImportError:
         "Couldn't find 'pywin32'. Install it via"
         "'pip install pywin32' or 'conda install pywin32'."
     ) from None
-import pywintypes
-import win32com.client
-import win32com.server.util as serverutil
-import win32com.server.dispatcher
-import win32com.server.policy
-
 import asyncio
 import threading
 
-from .udfs import call_udf
+import pywintypes
+import win32com.client
+import win32com.server.dispatcher
+import win32com.server.policy
+import win32com.server.util as serverutil
 
+from .udfs import call_udf
 
 # If no handler is configured, print is used to make the statements show up in the
 # console that opens when using 'python' instead of 'pythonw' as the interpreter
