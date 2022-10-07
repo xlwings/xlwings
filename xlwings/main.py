@@ -4401,9 +4401,10 @@ class Names:
     A collection of all :meth:`name <Name>` objects in the workbook:
 
     >>> import xlwings as xw
-    >>> sht = xw.books['Book1'].sheets[0]
-    >>> sht.names
+    >>> book = xw.books['Book1']  # book scope and sheet scope
+    >>> book.names
     [<Name 'MyName': =Sheet1!$A$3>]
+    >>> book.sheets[0].names  # sheet scope only
 
     .. versionadded:: 0.9.0
     """

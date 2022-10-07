@@ -221,6 +221,10 @@ class Book(base_classes.Book):
         return self.path
 
     @property
+    def names(self):
+        return Names(parent=self, api=self.api["names"])
+
+    @property
     def sheets(self):
         return Sheets(book=self)
 
@@ -474,6 +478,59 @@ class Range(base_classes.Range):
                 book=self.book,
                 arg1=(self.row + arg1 - 1, self.column + arg2 - 1),
             )
+
+
+class Name(base_classes.Name):
+    def __init__(self, parent, api):
+        self.parent = parent  # only implemented for Book, not Sheet
+        self.api = api
+
+    @property
+    def name(self):
+        return self.api["name"]
+
+    @property
+    def refers_to(self):
+        sheet_name = self.parent.sheets(self.api["sheet_index"] + 1).name
+        sheet_name = f"'{sheet_name}'" if " " in sheet_name else sheet_name
+        return f"={sheet_name}!{self.api['address']}"
+
+    @property
+    def refers_to_range(self):
+        return self.parent.sheets(self.api["sheet_index"] + 1).range(
+            self.api["address"]
+        )
+
+
+class Names(base_classes.Names):
+    def __init__(self, parent, api):
+        self.parent = parent  # only implemented for Book, not Sheet
+        self.api = api
+
+    def __call__(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            name_or_index -= 1
+            if name_or_index > len(self):
+                raise KeyError(name_or_index)
+            else:
+                return Name(self.parent, api=self.api[name_or_index])
+        else:
+            for ix, i in enumerate(self.api):
+                if i["name"] == name_or_index:
+                    return Name(self.parent, api=self.api[ix])
+            raise KeyError(name_or_index)
+
+    def contains(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            return 1 <= name_or_index <= len(self)
+        else:
+            for i in self.api:
+                if i["name"] == name_or_index:
+                    return True
+            return False
+
+    def __len__(self):
+        return len(self.api)
 
 
 engine = Engine()

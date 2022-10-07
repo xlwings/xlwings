@@ -647,3 +647,42 @@ class Collection:
 class Pictures:
     def add(self, filename, link_to_file, save_with_document, left, top, width, height):
         raise NotImplementedError()
+
+
+class Names:
+    def __call__(self, name_or_index):
+        raise NotImplementedError()
+
+    def contains(self, name_or_index):
+        raise NotImplementedError()
+
+    def __len__(self):
+        raise NotImplementedError()
+
+    def add(self, name, refers_to):
+        raise NotImplementedError()
+
+
+class Name:
+    def delete(self):
+        raise NotImplementedError()
+
+    @property
+    def name(self):
+        raise NotImplementedError()
+
+    @name.setter
+    def name(self, value):
+        raise NotImplementedError()
+
+    @property
+    def refers_to(self):
+        raise NotImplementedError()
+
+    @refers_to.setter
+    def refers_to(self, value):
+        raise NotImplementedError()
+
+    @property
+    def refers_to_range(self):
+        raise NotImplementedError()
