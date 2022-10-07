@@ -63,7 +63,7 @@ For more details, see :ref:`converters`.
 Named Ranges
 ------------
 
-Named ranges are supported like so:
+Named ranges can be accessed like so:
 
 .. code-block:: python
 
@@ -71,6 +71,14 @@ Named ranges are supported like so:
         sheet1 = book.sheets[0]
         data = sheet1["myname"].value  # get values
         address = sheet1["myname"].address  # get address
+
+Alternatively, you can also access them via the :meth:`Names <xlwings.main.Names>` collection:
+
+.. code-block:: python
+
+    with xw.Book("myfile.xlsx", mode="r") as book:
+        for name in book.names:
+            print(name.refers_to_range.value)
 
 Dynamic Ranges
 --------------
@@ -100,7 +108,7 @@ Limitations
 * The reader is currently only available via ``pip install xlwings``. Installation via ``conda`` is not yet supported, but you can still use pip to install xlwings into a Conda environment!
 * Date cells: Excel cells with a Date/Time are currently only converted to a ``datetime`` object in Python for ``xlsx`` file formats. For ``xlsb`` format, pandas has the same restriction though (it uses ``pyxlsb`` under the hood).
 * Dynamic ranges: ``myrange.expand()`` is currently inefficient, so will slow down the reading considerably if the dynamic range is big.
-* Named ranges: Accessing named ranges is currently only supported via ``mysheet["mynamedrange"].value``, but not via ``mybook.names`` or ``mysheet.names``.
+* Named ranges: Named ranges with sheet scope are currently not shown with their proper name: E.g. ``mybook.names[0].name`` will show the name ``mylocalname`` instead of including the sheet name like so ``Sheet1!mylocalname``. Along the same lines, the ``names`` property can only be accessed via ``book`` object, not via ``sheet`` object.
 * Excel tables: Accessing data via table names isn't supported at the moment.
 * Options: except for ``err_to_str``, non-default options are currently inefficient and will slow down the read operation. This includes ``dates``, ``empty``, and ``numbers``.
 * Formulas: currently only the cell values are supported, but not the cell formulas.

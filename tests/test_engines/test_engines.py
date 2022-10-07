@@ -419,6 +419,7 @@ def test_named_range_sheet_scope(book):
     assert sheet1["two"].address == "$C$7:$D$8"
 
 
+@pytest.mark.skipif(engine == "excel", reason="unhandled engine error")
 def test_named_range_missing(book):
     sheet1 = book.sheets[0]
     with pytest.raises(xw.NoSuchObjectError):
@@ -435,3 +436,48 @@ def test_named_range_book_change_value(book):
     assert book.json()["actions"][0]["sheet_position"] == 0
     assert book.json()["actions"][0]["start_row"] == 0
     assert book.json()["actions"][0]["start_column"] == 0
+
+
+# Names collection
+@pytest.mark.skipif(engine == "remote", reason="TODO: remote")
+def test_names_len(book):
+    assert len(book.names) == 3
+
+
+@pytest.mark.skipif(engine == "remote", reason="TODO: remote")
+def test_names_index_vs_name(book):
+    assert book.names[0].name == "one"
+    assert book.names["one"].name == "one"
+
+
+@pytest.mark.skipif(engine != "excel", reason="TODO: calamine, remote")
+def test_name_local_scope(book):
+    assert book.names[1].name == "Sheet1!two"
+
+
+@pytest.mark.skipif(engine == "remote", reason="TODO: remote")
+def test_name_refers_to(book):
+    assert book.names[0].refers_to == "=Sheet1!$A$1"
+
+
+@pytest.mark.skipif(engine == "remote", reason="TODO: remote")
+def test_name_refers_to_range(book):
+    assert book.names[0].refers_to_range == book.sheets[0]["A1"]
+    assert book.names[1].refers_to_range == book.sheets[0]["C7:D8"]
+    assert book.names[2].refers_to_range == book.sheets[1]["A1:A2"]
+
+
+@pytest.mark.skipif(engine == "remote", reason="TODO: remote")
+def test_name_contains(book):
+    assert "one" in book.names
+
+
+@pytest.mark.skipif(engine == "remote", reason="TODO: remote")
+def test_names_iter(book):
+    for ix, name in enumerate(book.names):
+        if ix == 0:
+            assert name.refers_to_range == book.sheets[0]["A1"]
+        elif ix == 1:
+            assert name.refers_to_range == book.sheets[0]["C7:D8"]
+        elif ix == 2:
+            assert name.refers_to_range == book.sheets[1]["A1:A2"]
