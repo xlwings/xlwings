@@ -10,12 +10,19 @@ The source for the Python package is in the `xlwings` directory.
 4. With the desired development environment activated: `pip install -e ".[all]"`. This will install xlwings like a standard package
    but runs from your cloned source code, i.e. you can edit/debug the xlwings code. If you don't want the dependencies to be taken care of, you could also use `python setup.py develop`.
 
-## Mac implementation
+## macOS
 
-All mac specific code is in `xlwings/_xlmac.py`. To find out the syntax of a new feature, it sometimes works by just looking at the existing
+All macOS specific code is in `xlwings/_xlmac.py`. To find out the syntax of a new feature, it sometimes works by just looking at the existing
 code and comparing it with the dictionaries exported by `ASDictionary` (see under `resources/mac`).
 If that doesn't work, you'll need to find out the corresponding syntax in `AppleScript`, e.g. by looking at `Excel2004AppleScriptRef.pdf`
 under `resouces/mac` or by searching the internet. Then use `ASTranslate` to translate it into `appscript` syntax.
+
+FWIW, Apple has added support for JavaScript in the Script Editor in addition to AppleScript and the syntax is very close to `appscript`:
+
+```js
+Application('Microsoft Excel').worksheets['Sheet1'].rows[0].columns[0].value.get()
+Application('Microsoft Excel').worksheets['Sheet1'].rows[0].columns[0].properties.get()
+```
 
 Links:
 
@@ -23,7 +30,7 @@ Links:
 [ASTranslate & ASDictionary download](https://sourceforge.net/projects/appscript/files/)  
 [appscript source code](https://github.com/hhas/appscript)
 
-## Addin
+## Excel add-in
 
 Install the addin in Excel by going to `Developer` > `Excel Add-in` > `Browse` and pointing to the addin in the source code,
 i.e. under `xlwings/addin/xlwings.xlam`.
@@ -47,9 +54,9 @@ The code is pure VBA code. The suggested way to edit the VBA code is:
 3. Make changes to the source code under `xlwings/addin` in an external editor: the changes are synced automatically to the VBA editor.
 
 
-## dlls
+## Windows dlls
 
-The source for the dlls (used for the UDF related stuff on Windows) is under `src`. It's written in C++.
+These are used for the UDFs on Windows. The source for the dlls is under `xlwingsdll`. It's written in C++.
 
 The dlls are almost never touched, so you should not bother to setup the development environment. What you should do is
 download the latest version of xlwings from https://pypi.org, unpack it and place the two dlls next to the Python interpreter,
@@ -69,9 +76,24 @@ If you need to debug the dll, in Visual Studio do the following:
 
 Now you can set breakpoints in the C++ code in VS where code execution will stop when called from Excel via running a UDF.
 
-## Black formatting
+## Rust extension
 
-This repo uses black for code formatting, see `pyproject.toml`. You can also use the pre-commit hook under `.pre-commit-config.yaml`, see instructions at top of the file.
+This is used for the file reader. The source is under `src` together with
+
+* Requires Rust: https://rustup.rs
+* `pip install maturin`
+* Run the following for local development:
+  `maturin develop` or `maturin develop --release` for optimized builds
+  This will build and install the extension in the current environment.
+
+## Code formatting
+
+This repo uses the following packages for code formatting, see `pyproject.toml`:
+
+* black
+* isort
+
+You can use the pre-commit hook under `.pre-commit-config.yaml`, see instructions at top of the file.
 
 ## Tests
 
