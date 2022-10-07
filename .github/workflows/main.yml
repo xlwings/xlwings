@@ -24,6 +24,7 @@ jobs:
       - uses: psf/black@stable
         with:
           options: "--check --diff --color"
+      - uses: isort/isort-action@master
 
   pre-build:
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build]')
