@@ -5034,6 +5034,9 @@ class Sheets(Collection):
         Returns
         -------
 
+        sheet : Sheet
+            Added sheet object
+
         """
         if name is not None:
             if name.lower() in (s.name.lower() for s in self):
@@ -5046,6 +5049,20 @@ class Sheets(Collection):
         if name is not None:
             impl.name = name
         return Sheet(impl=impl)
+
+    @property
+    def names(self):
+        """
+        Returns
+        -------
+
+        names : List
+            List of sheet names in order of appearance.
+
+
+        .. versionadded:: 0.28.1
+        """
+        return [sheet.name for sheet in self]
 
 
 class ActiveEngineApps(Apps):
