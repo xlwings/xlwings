@@ -14,12 +14,13 @@ pytest test_permission.py::test_name
 """
 
 import os
-from pathlib import Path
 import shutil
-from shlex import split
 import subprocess
+from pathlib import Path
+from shlex import split
 
 import pytest
+
 import xlwings as xw
 
 this_dir = Path(__file__).resolve().parent

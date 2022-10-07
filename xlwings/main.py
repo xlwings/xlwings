@@ -8,16 +8,17 @@ All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
 """
-import os
-import sys
-import re
 import numbers
+import os
+import re
+import sys
 import warnings
-from pathlib import Path
 from contextlib import contextmanager
+from pathlib import Path
 
-from . import ShapeAlreadyExists, utils, XlwingsError, LicenseError
 import xlwings
+
+from . import LicenseError, ShapeAlreadyExists, XlwingsError, utils
 
 # Optional imports
 try:
@@ -2836,8 +2837,7 @@ class Range:
 
 
 # These have to be after definition of Range to resolve circular reference
-from . import conversion
-from . import expansion
+from . import conversion, expansion
 
 
 class Ranges:
@@ -3162,7 +3162,7 @@ class Shape:
     def text(self, value):
         if xlwings.PRO:
             from xlwings.pro import Markdown
-            from xlwings.pro.reports.markdown import render_text, format_text
+            from xlwings.pro.reports.markdown import format_text, render_text
 
             if isinstance(value, Markdown):
                 self.impl.text = render_text(value.text, value.style)

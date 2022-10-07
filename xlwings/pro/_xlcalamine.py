@@ -11,8 +11,8 @@ xlwings PRO is dual-licensed under one of the following licenses:
 Commercial licenses can be purchased at https://www.xlwings.org
 """
 
-import numbers
 import datetime as dt
+import numbers
 from pathlib import Path
 
 try:
@@ -25,7 +25,8 @@ except ImportError:
     pd = None
 
 from xlwings import xlwingslib
-from .. import utils, base_classes, NoSuchObjectError
+
+from .. import NoSuchObjectError, base_classes, utils
 
 MAX_ROWS = 1_048_576
 MAX_COLUMNS = 16_384

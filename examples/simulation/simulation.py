@@ -5,8 +5,11 @@ All rights reserved.
 License: BSD 3-clause (see LICENSE.txt for details)
 """
 from __future__ import division
+
 import sys
+
 import numpy as np
+
 import xlwings as xw
 
 

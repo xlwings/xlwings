@@ -19,12 +19,12 @@ import win32con
 
 os.chdir(cwd)
 
-from warnings import warn
+import ctypes
 import datetime as dt
 import numbers
 import types
-import ctypes
-from ctypes import oledll, PyDLL, py_object, byref, windll
+from ctypes import PyDLL, byref, oledll, py_object, windll
+from warnings import warn
 
 import pythoncom
 
@@ -36,38 +36,39 @@ from ._win32patch import CoClassBaseClass
 win32com.client.CoClassBaseClass = CoClassBaseClass
 # End Patch
 
-from win32com.client import (
-    Dispatch,
-    CoClassBaseClass,
-    CDispatch,
-    DispatchEx,
-    DispatchBaseClass,
-)
-import win32timezone
 import win32gui
 import win32process
+import win32timezone
+from win32com.client import (
+    CDispatch,
+    CoClassBaseClass,
+    Dispatch,
+    DispatchBaseClass,
+    DispatchEx,
+)
 
+import xlwings
+
+from . import utils
 from .constants import (
     ColorIndex,
-    UpdateLinks,
-    InsertShiftDirection,
-    InsertFormatOrigin,
     DeleteShiftDirection,
-    ListObjectSourceType,
-    FixedFormatType,
     FileFormat,
+    FixedFormatType,
+    InsertFormatOrigin,
+    InsertShiftDirection,
+    ListObjectSourceType,
+    UpdateLinks,
 )
 from .utils import (
-    rgb_to_int,
-    int_to_rgb,
-    np_datetime_to_datetime,
     col_name,
     fullname_url_to_local_path,
-    read_config_sheet,
     hex_to_rgb,
+    int_to_rgb,
+    np_datetime_to_datetime,
+    read_config_sheet,
+    rgb_to_int,
 )
-from . import utils
-import xlwings
 
 # Optional imports
 try:

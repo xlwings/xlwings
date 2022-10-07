@@ -11,9 +11,9 @@ xlwings PRO is dual-licensed under one of the following licenses:
 Commercial licenses can be purchased at https://www.xlwings.org
 """
 
-from .utils import LicenseHandler
-from .embedded_code import runpython_embedded_code, dump_embedded_code
-from .reports import Markdown, MarkdownStyle
+from .embedded_code import dump_embedded_code, runpython_embedded_code
 from .module_permissions import verify_execute_permission
+from .reports import Markdown, MarkdownStyle
+from .utils import LicenseHandler
 
 LicenseHandler.validate_license("pro")

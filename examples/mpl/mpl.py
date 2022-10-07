@@ -4,8 +4,9 @@ All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
 """
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
 import xlwings as xw
 
 try:

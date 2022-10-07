@@ -2,7 +2,6 @@ import os
 import sys
 from functools import wraps
 
-
 __version__ = "dev"
 
 # Platform specifics
@@ -40,19 +39,22 @@ class NoSuchObjectError(XlwingsError):
 from .main import (
     App,
     Book,
-    Range,
     Chart,
-    Sheet,
-    Picture,
-    Shape,
-    Name,
-    view,
-    load,
-    RangeRows,
-    RangeColumns,
     Engine,
+    Name,
+    Picture,
+    Range,
+    RangeColumns,
+    RangeRows,
+    Shape,
+    Sheet,
+    apps,
+    books,
+    engines,
+    load,
+    sheets,
+    view,
 )
-from .main import apps, books, sheets, engines
 
 # Populate engines list
 has_pywin32 = False
@@ -92,15 +94,15 @@ if engines:
 
 # UDFs
 if sys.platform.startswith("win") and has_pywin32:
+    from .server import serve
     from .udfs import (
-        xlfunc as func,
-        xlsub as sub,
-        xlret as ret,
-        xlarg as arg,
         get_udf_module,
         import_udfs,
+        xlarg as arg,
+        xlfunc as func,
+        xlret as ret,
+        xlsub as sub,
     )
-    from .server import serve
 
     # This generates the modules for early-binding under %TEMP%\gen_py\3.x
     # generated via makepy.py -i, but using an old minor=2, as it still seems to

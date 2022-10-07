@@ -11,10 +11,10 @@ xlwings PRO is dual-licensed under one of the following licenses:
 Commercial licenses can be purchased at https://www.xlwings.org
 """
 
-import re
-import sys
 import hashlib
+import re
 import socket
+import sys
 from functools import lru_cache
 from pathlib import Path
 
@@ -23,9 +23,9 @@ try:
 except ImportError:
     requests = None
 
-from . import LicenseHandler
 from .. import XlwingsError
 from ..utils import read_user_config
+from .utils import LicenseHandler
 
 
 @lru_cache(None)

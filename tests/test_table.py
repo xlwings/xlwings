@@ -1,8 +1,9 @@
 import unittest
 from pathlib import Path
 
-import xlwings as xw
 import pandas as pd
+
+import xlwings as xw
 
 
 class TestTable(unittest.TestCase):

@@ -11,21 +11,22 @@ xlwings PRO is dual-licensed under one of the following licenses:
 Commercial licenses can be purchased at https://www.xlwings.org
 """
 
-import os
+import atexit
 import base64
-import hmac
-import hashlib
-import json
 import binascii
 import datetime as dt
-import warnings
-import xlwings  # To prevent circular imports
-import time
 import glob
+import hashlib
+import hmac
+import json
+import os
 import shutil
 import tempfile
-import atexit
+import time
+import warnings
 from functools import lru_cache
+
+import xlwings  # To prevent circular imports
 
 from ..utils import read_config_sheet
 

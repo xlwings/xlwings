@@ -1,6 +1,6 @@
-import xlwings as xw
-
 import random
+
+import xlwings as xw
 
 
 @xw.func

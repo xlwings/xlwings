@@ -1,5 +1,5 @@
-import sys
 import datetime as dt
+import sys
 import unittest
 from collections import OrderedDict
 

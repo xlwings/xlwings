@@ -1,7 +1,7 @@
 from pathlib import Path
 
-
 import pytest
+
 import xlwings as xw
 
 this_dir = Path(__file__).resolve().parent

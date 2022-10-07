@@ -1,17 +1,17 @@
+import datetime as dt
 import os
 import sys
 import unittest
-import datetime as dt
 
 import numpy as np
 import pandas as pd
-from pandas.testing import assert_frame_equal
-from numpy.testing import assert_array_equal
 from matplotlib.figure import Figure
+from numpy.testing import assert_array_equal
+from pandas.testing import assert_frame_equal
 
 import xlwings as xw
-from xlwings.pro.reports import render_template, Image
 from xlwings.pro import Markdown
+from xlwings.pro.reports import Image, render_template
 
 # Test data
 text1 = """\

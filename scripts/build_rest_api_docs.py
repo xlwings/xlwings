@@ -1,6 +1,8 @@
-import os
 import datetime as dt
+import os
+
 import requests
+
 import xlwings as xw
 from xlwings.rest.api import api
 

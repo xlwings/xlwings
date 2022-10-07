@@ -11,10 +11,10 @@ xlwings PRO is dual-licensed under one of the following licenses:
 Commercial licenses can be purchased at https://www.xlwings.org
 """
 
-import sys
-import shutil
 import datetime as dt
 import numbers
+import shutil
+import sys
 import warnings
 
 try:
@@ -22,11 +22,11 @@ try:
 except ImportError:
     Environment, nodes = None, None
 
-from . import filters
-from .markdown import Markdown
-from .image import Image
-from ..utils import LicenseHandler
 from ...main import Book, XlwingsError
+from ..utils import LicenseHandler
+from . import filters
+from .image import Image
+from .markdown import Markdown
 
 try:
     import PIL

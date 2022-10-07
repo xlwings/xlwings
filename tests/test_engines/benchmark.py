@@ -1,11 +1,12 @@
 # Make sure to build the Rust library with the release flag
-from codetiming import Timer
 from pathlib import Path
 
 import openpyxl
-import xlrd
-import pyxlsb
 import pandas as pd
+import pyxlsb
+import xlrd
+from codetiming import Timer
+
 import xlwings as xw
 
 this_dir = Path(__file__).resolve().parent

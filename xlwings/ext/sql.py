@@ -1,5 +1,6 @@
-from .. import func, arg, ret
 import sqlite3
+
+from .. import arg, func, ret
 
 
 def conv_value(value, col_is_str):

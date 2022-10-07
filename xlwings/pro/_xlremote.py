@@ -11,10 +11,10 @@ xlwings PRO is dual-licensed under one of the following licenses:
 Commercial licenses can be purchased at https://www.xlwings.org
 """
 
-import re
 import base64
-import numbers
 import datetime as dt
+import numbers
+import re
 from functools import lru_cache
 
 try:
@@ -26,8 +26,7 @@ try:
 except ImportError:
     pd = None
 
-from .. import utils, base_classes, __version__, XlwingsError, NoSuchObjectError
-
+from .. import NoSuchObjectError, XlwingsError, __version__, base_classes, utils
 
 # Time types (doesn't contain dt.date)
 time_types = (dt.datetime,)

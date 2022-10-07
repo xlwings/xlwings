@@ -4,7 +4,8 @@ import time
 import unittest
 
 import xlwings as xw
-from .common import TestBase, this_dir, SPEC
+
+from .common import SPEC, TestBase, this_dir
 
 
 class TestApps(TestBase):

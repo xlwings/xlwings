@@ -1,10 +1,11 @@
 from pathlib import Path
 
-import pytest
-import pandas as pd
-from pandas.testing import assert_frame_equal
-from numpy.testing import assert_array_equal
 import numpy as np
+import pandas as pd
+import pytest
+from numpy.testing import assert_array_equal
+from pandas.testing import assert_frame_equal
+
 import xlwings as xw
 
 this_dir = Path(__file__).resolve().parent

@@ -6,6 +6,7 @@ except ImportError:
 
 if pd:
     import numpy as np
+
     from . import Converter, Options
 
     def write_value(cls, value, options):

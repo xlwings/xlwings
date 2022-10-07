@@ -2,6 +2,7 @@ import os
 import unittest
 
 import xlwings as xw
+
 from .common import TestBase, this_dir
 
 try:
