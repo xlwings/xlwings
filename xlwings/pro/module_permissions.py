@@ -25,7 +25,7 @@ except ImportError:
 
 from .. import XlwingsError
 from ..utils import read_user_config
-from . import LicenseHandler
+from .utils import LicenseHandler
 
 
 @lru_cache(None)
