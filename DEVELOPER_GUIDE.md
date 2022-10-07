@@ -78,13 +78,15 @@ Now you can set breakpoints in the C++ code in VS where code execution will stop
 
 ## Rust extension
 
-This is used for the file reader. The source is under `src` together with
+This is used for the file reader. The source is under `src` together with various Cargo files/dirs in the root directory.
 
 * Requires Rust: https://rustup.rs
 * `pip install maturin`
 * Run the following for local development:
   `maturin develop` or `maturin develop --release` for optimized builds
   This will build and install the extension in the current environment.
+
+The 3rd party Open Source licenses document is built with `cargo about generate about.hbs > docs/_static/opensource_licenses2.html` this requires `cargo install --locked cargo-about`.
 
 ## Code formatting
 
