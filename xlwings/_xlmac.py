@@ -773,6 +773,10 @@ class Sheet:
     def page_setup(self):
         return PageSetup(self, self.xl.page_setup_object)
 
+    @property
+    def to_html(self):
+        raise NotImplementedError()
+
 
 class Range:
     def __init__(self, sheet, address):

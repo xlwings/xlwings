@@ -331,7 +331,7 @@ class Sheet:
     def page_setup(self):
         raise NotImplementedError()
 
-    def to_pdf(self, path, quality):
+    def to_html(self, path):
         raise NotImplementedError()
 
 
