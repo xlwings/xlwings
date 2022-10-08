@@ -112,7 +112,7 @@ pip install sphinx-autobuild
 ```
 
 ```
-sphinx-autobuild docs docs/_build/html
+sphinx-autobuild docs docs/_build/html --watch ./xlwings
 ```
 
 without autobuild:
