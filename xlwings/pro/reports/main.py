@@ -98,7 +98,7 @@ def render_sheet(sheet, **data):
         )
     env = Environment()
     env.filters["datetime"] = filters.datetime
-    env.filters["format"] = filters.fmt  # This overrides Jinja's built-in filter
+    env.filters["format"] = filters.string_format  # Overrides Jinja's built-in filter
     env.filters["fontcolor"] = filters.fontcolor
 
     # used_range doesn't start automatically in A1
@@ -208,6 +208,7 @@ def render_sheet(sheet, **data):
                                             "showindex",
                                             "noheader",
                                             "vmerge",
+                                            "formatter",
                                         ):
                                             continue  # handled below
                                         func = getattr(filters, filter_name)
@@ -293,6 +294,9 @@ def render_sheet(sheet, **data):
                             if cell.table:
                                 cell.table.update(result, index=options["index"])
                             else:
+                                df_formatter = filters.df_formatter(filter_list)
+                                if df_formatter:
+                                    options["formatter"] = df_formatter
                                 cell.options(**options).value = result
                             # DataFrame formatting filters
                             for filter_item in filter_list:
