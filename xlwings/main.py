@@ -1283,6 +1283,20 @@ class Book:
         for sheet in reversed(self.sheets):
             sheet.render_template(**data)
 
+    @property
+    def sheet_names(self):
+        """
+        Returns
+        -------
+
+        sheet_names : List
+            List of sheet names in order of appearance.
+
+
+        .. versionadded:: 0.28.1
+        """
+        return [sheet.name for sheet in self.sheets]
+
     def __enter__(self):
         return self
 
@@ -5070,20 +5084,6 @@ class Sheets(Collection):
         if name is not None:
             impl.name = name
         return Sheet(impl=impl)
-
-    @property
-    def names(self):
-        """
-        Returns
-        -------
-
-        names : List
-            List of sheet names in order of appearance.
-
-
-        .. versionadded:: 0.28.1
-        """
-        return [sheet.name for sheet in self]
 
 
 class ActiveEngineApps(Apps):
