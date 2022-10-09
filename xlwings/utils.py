@@ -16,7 +16,7 @@ except ImportError:
 
 try:
     import matplotlib as mpl
-    import matplotlib.figure
+    import matplotlib.figure  # noqa: F401
     import matplotlib.pyplot as plt
 except ImportError:
     mpl = None
@@ -312,7 +312,7 @@ def fspath(path):
 def read_config_sheet(book):
     try:
         return book.sheets["xlwings.conf"]["A1:B1"].options(dict, expand="down").value
-    except:
+    except:  # noqa: E722
         # A missing sheet currently produces different errors on mac and win
         return {}
 
@@ -718,7 +718,7 @@ def search_local_sharepoint_path(url, root, sharepoint_config, sharepoint_config
         return str(local_book_paths[0])
     elif len(local_book_paths) == 0:
         raise xlwings.XlwingsError(
-            f"Couldn't find your SharePoint file locally, see: xlwings.org/error"
+            "Couldn't find your SharePoint file locally, see: xlwings.org/error"
         )
     else:
         raise xlwings.XlwingsError(

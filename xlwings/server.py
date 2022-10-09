@@ -105,7 +105,7 @@ PyIDispatch = pythoncom.TypeIIDs[pythoncom.IID_IDispatch]
 def FromVariant(var):
     try:
         obj = win32com.server.util.unwrap(var).obj
-    except:
+    except:  # noqa: E722
         obj = var
     if type(obj) is PyIDispatch:
         obj = win32com.client.Dispatch(

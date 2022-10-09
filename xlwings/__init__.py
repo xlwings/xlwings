@@ -56,6 +56,26 @@ from .main import (
     view,
 )
 
+__all__ = (
+    "App",
+    "Book",
+    "Chart",
+    "Engine",
+    "Name",
+    "Picture",
+    "Range",
+    "RangeColumns",
+    "RangeRows",
+    "Shape",
+    "Sheet",
+    "apps",
+    "books",
+    "engines",
+    "load",
+    "sheets",
+    "view",
+)
+
 # Populate engines list
 has_pywin32 = False
 if sys.platform.startswith("win"):
@@ -116,7 +136,7 @@ if sys.platform.startswith("win") and has_pywin32:
         gencache.EnsureModule(
             "{00020813-0000-0000-C000-000000000046}", lcid=0, major=1, minor=2
         )
-    except:
+    except:  # noqa: E722
         pass
 else:
 

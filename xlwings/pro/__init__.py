@@ -16,4 +16,12 @@ from .module_permissions import verify_execute_permission
 from .reports import Markdown, MarkdownStyle
 from .utils import LicenseHandler
 
+__all__ = (
+    "dump_embedded_code",
+    "runpython_embedded_code",
+    "verify_execute_permission",
+    "Markdown",
+    "MarkdownStyle",
+)
+
 LicenseHandler.validate_license("pro")

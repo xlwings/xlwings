@@ -24,7 +24,7 @@ class Expander:
         Range object: The expanded range
 
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 class TableExpander(Expander):

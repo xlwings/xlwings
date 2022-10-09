@@ -70,13 +70,15 @@ class Collection:
 
     def __getitem__(self, key):
         if isinstance(key, numbers.Number):
-            l = len(self)
-            if key >= l:
-                raise IndexError("Index %s out of range (%s elements)" % (key, l))
+            length = len(self)
+            if key >= length:
+                raise IndexError("Index %s out of range (%s elements)" % (key, length))
             if key < 0:
-                if key < -l:
-                    raise IndexError("Index %s out of range (%s elements)" % (key, l))
-                key += l
+                if key < -length:
+                    raise IndexError(
+                        "Index %s out of range (%s elements)" % (key, length)
+                    )
+                key += length
             return self(key + 1)
         elif isinstance(key, slice):
             raise ValueError(
@@ -763,7 +765,7 @@ class App:
         if sys.platform.startswith("win"):
             try:
                 self.kill()
-            except:
+            except:  # noqa: E722
                 pass
 
 
@@ -3613,7 +3615,7 @@ class Table:
                 # Replace None in the header with a unique number of spaces
                 n_empty = len([i for i in header if isinstance(i, str) and i.isspace()])
                 header = [
-                    f" " * (i + n_empty + 1) if name is None else name
+                    " " * (i + n_empty + 1) if name is None else name
                     for i, name in enumerate(header)
                 ]
                 self.header_row_range.value = header
@@ -4210,7 +4212,7 @@ class Picture:
         if is_temp_file:
             try:
                 os.unlink(filename)
-            except:
+            except:  # noqa: E722
                 pass
 
         return picture
@@ -4425,7 +4427,7 @@ class Pictures(Collection):
         if is_temp_file:
             try:
                 os.unlink(filename)
-            except:
+            except:  # noqa: E722
                 pass
         return picture
 

@@ -1925,7 +1925,7 @@ class Names:
     def contains(self, name_or_index):
         try:
             self.xl[name_or_index].get()
-        except appscript.reference.CommandError as e:
+        except appscript.reference.CommandError:
             # TODO: make more specific
             return False
         return True

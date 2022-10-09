@@ -5,8 +5,6 @@ except ImportError:
 
 
 if pd:
-    import numpy as np
-
     from . import Converter, Options
 
     def write_value(cls, value, options):
@@ -20,7 +18,7 @@ if pd:
             # which requires column header names. Since Excel tables only allow an empty
             # space once, we'll generate multiple empty spaces for each column.
             index_names = [
-                f" " * (i + 1) if name is None else name
+                " " * (i + 1) if name is None else name
                 for i, name in enumerate(index_names)
             ]
         else:

@@ -79,7 +79,7 @@ async def async_thread(base, my_has_dynamic_array, func, args, cache_key, expand
             await base.set_formula2(stashme)
         else:
             await base.set_formula(stashme)
-    except:
+    except:  # noqa: E722
         exception(logger, "async_thread failed")
 
 
@@ -374,7 +374,7 @@ async def delayed_resize_dynamic_array_formula(target_range, caller):
         # be careful not to block the async loop!
         await target_range.set_formula_array(stashme)
 
-    except:
+    except:  # noqa: E722
         exception(logger, "couldn't resize")
 
 
@@ -473,28 +473,17 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     if writing and writing == xw_caller.address:
         return func_info["rval"]
 
-    output_param_indices = []
-
     args = list(args)
     for i, arg in enumerate(args):
         arg_info = args_info[min(i, len(args_info) - 1)]
         if type(arg) is int and arg == -2147352572:  # missing
             args[i] = arg_info.get("optional", None)
         elif xlwings._xlwindows.is_range_instance(arg):
-            if arg_info.get("output", False):
-                output_param_indices.append(i)
-                args[i] = OutputParameter(
-                    Range(impl=xlwings._xlwindows.Range(xl=arg)),
-                    arg_info["options"],
-                    func,
-                    caller,
-                )
-            else:
-                args[i] = conversion.read(
-                    Range(impl=xlwings._xlwindows.Range(xl=arg)),
-                    None,
-                    arg_info["options"],
-                )
+            args[i] = conversion.read(
+                Range(impl=xlwings._xlwindows.Range(xl=arg)),
+                None,
+                arg_info["options"],
+            )
         else:
             args[i] = conversion.read(None, arg, arg_info["options"])
     if this_workbook:
@@ -580,7 +569,6 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
     for svar in map(lambda attr: getattr(module, attr), dir(module)):
         if hasattr(svar, "__xlfunc__"):
             xlfunc = svar.__xlfunc__
-            xlret = xlfunc["ret"]
             fname = xlfunc["name"]
             call_in_wizard = xlfunc["call_in_wizard"]
             volatile = xlfunc["volatile"]
@@ -591,7 +579,6 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
 
             first = True
             vararg = ""
-            n_args = len(xlfunc["args"])
             for arg in xlfunc["args"]:
                 if arg["name"] == "caller":
                     arg[
@@ -809,7 +796,7 @@ def import_udfs(module_names, xl_workbook):
     # try to delete the temp file - doesn't matter too much if it fails
     try:
         os.unlink(tf.name)
-    except:
+    except:  # noqa: E722
         pass
     msg = f'Imported functions from the following modules: {", ".join(module_names)}'
     logger.info(msg) if logger.hasHandlers() else print(msg)
@@ -823,5 +810,5 @@ def has_dynamic_array(pid):
     try:
         apps[pid].api.WorksheetFunction.Unique("dummy")
         return True
-    except (AttributeError, pywintypes.com_error) as e:
+    except (AttributeError, pywintypes.com_error):
         return False
