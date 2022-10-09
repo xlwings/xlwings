@@ -283,6 +283,9 @@ class TestBook(TestBase):
         self.wb1.sheets.add()
         self.assertEqual(len(self.wb1.sheets), 4)
 
+    def test_sheets_names(self):
+        self.assertEqual(self.wb1.sheet_names, ["Sheet1", "Sheet2", "Sheet3"])
+
 
 if __name__ == "__main__":
     unittest.main()

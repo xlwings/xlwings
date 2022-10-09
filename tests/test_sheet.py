@@ -57,9 +57,6 @@ class TestSheets(TestBase):
         with self.assertRaises(Exception):
             self.wb1.sheets.add("Sheet1")
 
-    def test_sheets_names(self):
-        self.assertEqual(self.wb1.sheets.names, ["Sheet1", "Sheet2", "Sheet3"])
-
 
 class TestSheet(TestBase):
     def test_name(self):
