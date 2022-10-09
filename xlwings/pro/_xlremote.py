@@ -656,7 +656,7 @@ class Range(base_classes.Range):
 
     @property
     def color(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     @color.setter
     def color(self, value):
@@ -671,7 +671,7 @@ class Range(base_classes.Range):
 
     @property
     def number_format(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     @number_format.setter
     def number_format(self, value):

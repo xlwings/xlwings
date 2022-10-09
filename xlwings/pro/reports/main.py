@@ -354,7 +354,7 @@ def render_sheet(sheet, **data):
 
     try:
         sheet["A1"].select()
-    except:
+    except:  # noqa: E722
         pass
 
 

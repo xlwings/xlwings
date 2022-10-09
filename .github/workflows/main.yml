@@ -21,10 +21,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
       - uses: psf/black@stable
         with:
           options: "--check --diff --color"
       - uses: isort/isort-action@master
+      - run: pip install flake8
+      - run: flake8 .
 
   pre-build:
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build]')

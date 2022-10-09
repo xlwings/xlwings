@@ -32,7 +32,7 @@ from ..utils import read_config_sheet
 
 try:
     from cryptography.fernet import Fernet, InvalidToken
-except ImportError as e:
+except ImportError:
     Fernet = None
     InvalidToken = None
 
@@ -54,7 +54,7 @@ class LicenseHandler:
             )
             if sheet_license_key:
                 return sheet_license_key
-        except:
+        except:  # noqa: E722
             pass
         # User config file
         config_file = xlwings.USER_CONFIG_FILE
@@ -103,7 +103,7 @@ class LicenseHandler:
                     license_info = json.loads(
                         base64.urlsafe_b64decode(key[:-5]).decode()
                     )
-                except:
+                except:  # noqa: E722
                     raise xlwings.LicenseError("Invalid license key.") from None
         try:
             if (

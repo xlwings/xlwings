@@ -109,7 +109,7 @@ class COMRetryMethodWrapper:
                 v = self.__method(*args, **kwargs)
                 if isinstance(v, (CDispatch, CoClassBaseClass, DispatchBaseClass)):
                     return COMRetryObjectWrapper(v)
-                elif type(v) is types.MethodType:
+                elif isinstance(v, types.MethodType):
                     return COMRetryMethodWrapper(v)
                 else:
                     return v
@@ -121,7 +121,7 @@ class COMRetryMethodWrapper:
                     continue
                 else:
                     raise
-            except AttributeError as e:
+            except AttributeError:
                 if not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS:
                     n_attempt += 1
                     continue
@@ -151,7 +151,7 @@ class COMRetryObjectWrapper:
                 if exc:
                     wcode, source, text, help_file, help_id, scode = exc
                 else:
-                    wcode, source, text, help_file, help_id, scode = (
+                    wcode, source, text, help_file, help_id, scode = (  # noqa: F841
                         None,
                         None,
                         None,
@@ -172,7 +172,7 @@ class COMRetryObjectWrapper:
                     continue
                 else:
                     raise
-            except AttributeError as e:
+            except AttributeError:
                 if not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS:
                     n_attempt += 1
                     continue
@@ -186,7 +186,7 @@ class COMRetryObjectWrapper:
                 v = getattr(self._inner, item)
                 if isinstance(v, (CDispatch, CoClassBaseClass, DispatchBaseClass)):
                     return COMRetryObjectWrapper(v)
-                elif type(v) is types.MethodType:
+                elif isinstance(v, types.MethodType):
                     return COMRetryMethodWrapper(v)
                 else:
                     return v
@@ -198,7 +198,7 @@ class COMRetryObjectWrapper:
                     continue
                 else:
                     raise
-            except AttributeError as e:
+            except AttributeError:
                 # pywin32 reacts incorrectly to RPC_E_CALL_REJECTED (i.e. assumes
                 # attribute doesn't exist, thus not allowing to distinguish between
                 # cases where attribute really doesn't exist or error is only being
@@ -223,7 +223,7 @@ class COMRetryObjectWrapper:
                 v = self._inner(*args, **kwargs)
                 if isinstance(v, (CDispatch, CoClassBaseClass, DispatchBaseClass)):
                     return COMRetryObjectWrapper(v)
-                elif type(v) is types.MethodType:
+                elif isinstance(v, types.MethodType):
                     return COMRetryMethodWrapper(v)
                 else:
                     return v
@@ -235,7 +235,7 @@ class COMRetryObjectWrapper:
                     continue
                 else:
                     raise
-            except AttributeError as e:
+            except AttributeError:
                 if not N_COM_ATTEMPTS or n_attempt < N_COM_ATTEMPTS:
                     n_attempt += 1
                     continue
@@ -278,7 +278,7 @@ def accessible_object_from_window(hwnd):
     # because we won't dereference the pointer except through pywin32's
     # pythoncom.PyCom_PyObjectFromIUnknown below in get_xl_app_from_hwnd().
     ptr = ctypes.c_void_p()
-    res = oledll.oleacc.AccessibleObjectFromWindow(
+    res = oledll.oleacc.AccessibleObjectFromWindow(  # noqa: F841
         hwnd, OBJID_NATIVEOM, byref(_IDISPATCH_GUID), byref(ptr)
     )
     return ptr
@@ -288,7 +288,7 @@ def is_hwnd_xl_app(hwnd):
     try:
         child_hwnd = win32gui.FindWindowEx(hwnd, 0, "XLDESK", None)
         child_hwnd = win32gui.FindWindowEx(child_hwnd, 0, "EXCEL7", None)
-        ptr = accessible_object_from_window(child_hwnd)
+        ptr = accessible_object_from_window(child_hwnd)  # noqa: F841
         return True
     except WindowsError:
         return False
@@ -1272,7 +1272,7 @@ class Range:
         if self.xl is not None:
             return self.xl.GetAddress(row_absolute, col_absolute, 1, external)
         else:
-            raise NotImplemented()
+            raise NotImplementedError()
 
     @property
     def address(self):
@@ -1427,7 +1427,7 @@ class Range:
                 raise ValueError("Invalid arguments")
             return Range(xl=self.xl(*args))
         else:
-            raise NotImplemented()
+            raise NotImplementedError()
 
     @property
     def rows(self):
@@ -2080,7 +2080,7 @@ class Chart:
         )
         try:
             self.parent.range("A1").select()
-        except:
+        except:  # noqa: E722
             pass
 
 

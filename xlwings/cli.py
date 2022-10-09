@@ -64,14 +64,14 @@ def _addin_install(addin_source_path):
                     try:
                         app.books.open(Path(app.startup_path) / addin_name)
                         print("Successfully installed the xlwings add-in!")
-                    except Exception as e:
+                    except:  # noqa: E722
                         print(
                             "Successfully installed the xlwings add-in! "
                             "Please restart Excel."
                         )
                     try:
                         app.activate(steal_focus=True)
-                    except Exception as e:
+                    except:  # noqa: E722
                         pass
                 else:
                     # macOS asks to explicitly enable macros when opened directly
@@ -240,7 +240,7 @@ def restapi_run(args):
     import subprocess
 
     try:
-        import flask
+        import flask  # noqa: F401
     except ImportError:
         sys.exit("To use the xlwings REST API server, you need Flask>=1.0.0 installed.")
     host = args.host
@@ -324,10 +324,8 @@ def code_embed(args):
     """
     wb = xw.books.active
     if args and args.file:
-        import_dir = False
         source_files = [Path(args.file)]
     else:
-        import_dir = True
         source_files = list(Path(wb.fullname).resolve().parent.rglob("*.py"))
     if not source_files:
         print("WARNING: Couldn't find any Python files in the workbook's directory!")
@@ -741,7 +739,7 @@ def vba_edit(args):
     path_to_type = export_vba_modules(book, overwrite=False)
     mode = "verbose" if args.verbose else "silent"
 
-    print(f"NOTE: Deleting a VBA module here will also delete it in the VBA editor!")
+    print("NOTE: Deleting a VBA module here will also delete it in the VBA editor!")
     print(f"Watching for changes in {book.name} ({mode} mode)...(Hit Ctrl-C to stop)")
 
     for changes in watch(
@@ -1036,7 +1034,7 @@ def main():
         run "xlwings vba export". To overwrite the VBA modules in Excel with their local
         versions, run "xlwings vba import".
         The "--file/-f" flag allows you to specify a file path instead of using the
-        active Workbook. Requires "Trust access to the VBA project object model" 
+        active Workbook. Requires "Trust access to the VBA project object model"
         enabled.
         NOTE: Whenever you change something in the VBA editor (such as the layout of a
         form or the properties of a module), you have to run "xlwings vba export".
