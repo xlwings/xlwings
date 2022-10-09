@@ -24,6 +24,7 @@ import datetime as dt
 import numbers
 import types
 from ctypes import PyDLL, byref, oledll, py_object, windll
+from pathlib import Path
 from warnings import warn
 
 import pythoncom
@@ -55,9 +56,11 @@ from .constants import (
     DeleteShiftDirection,
     FileFormat,
     FixedFormatType,
+    HtmlType,
     InsertFormatOrigin,
     InsertShiftDirection,
     ListObjectSourceType,
+    SourceType,
     UpdateLinks,
 )
 from .utils import (
@@ -810,6 +813,7 @@ class Book:
                 ".xls": FileFormat.xlWorkbookNormal,
                 ".xlt": FileFormat.xlTemplate,
                 ".xla": FileFormat.xlAddIn,
+                ".html": FileFormat.xlHtml,
             }
             file_format = ext_to_file_format[target_ext]
         if (saved_path != "") and (path is None):
@@ -1051,6 +1055,29 @@ class Sheet:
     @property
     def page_setup(self):
         return PageSetup(self.xl.PageSetup)
+
+    def to_html(self, path):
+        if not Path(path).is_absolute():
+            path = Path(".").resolve() / path
+        source_cell2 = self.used_range.address.split(":")
+        if len(source_cell2) == 2:
+            source = f"A1:{source_cell2[1]}"
+        else:
+            source = f"A1:{source_cell2[0]}"
+        self.book.xl.PublishObjects.Add(
+            SourceType=SourceType.xlSourceRange,
+            Filename=path,
+            Sheet=self.name,
+            Source=source,
+            HtmlType=HtmlType.xlHtmlStatic,
+        ).Publish(True)
+        html_file = Path(path)
+        content = html_file.read_text()
+        html_file.write_text(
+            content.replace(
+                "align=center x:publishsource=", "align=left x:publishsource="
+            )
+        )
 
 
 class Range:

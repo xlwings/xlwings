@@ -1103,19 +1103,22 @@ class Book:
 
     def save(self, path=None, password=None):
         """
-        Saves the Workbook. If a path is being provided, this works like SaveAs() in
+        Saves the Workbook. If a path is provided, this works like SaveAs() in
         Excel. If no path is specified and if the file hasn't been saved previously,
-        it's being saved in the current working directory with the current filename.
-        Existing files are overwritten without prompting.
+        it's saved in the current working directory with the current filename.
+        Existing files are overwritten without prompting. To change the file type,
+        provide the appropriate extension, e.g. to save ``myfile.xlsx`` in the ``xlsb``
+        format, provide ``myfile.xlsb`` as path.
 
         Arguments
         ---------
         path : str or path-like object, default None
-            Full path to the workbook
+            Path where you want to save the Book.
         password : str, default None
             Protection password with max. 15 characters
 
             .. versionadded :: 0.25.1
+
         Example
         -------
         >>> import xlwings as xw
@@ -1457,9 +1460,26 @@ class Sheet:
         """
         Deletes the Sheet.
 
-        .. versionadded: 0.6.0
+        .. versionadded:: 0.6.0
         """
         return self.impl.delete()
+
+    def to_html(self, path=None):
+        """
+        Export a Sheet as HTML page.
+
+        Parameters
+        ----------
+
+        path : str or path-like, default None
+            Path where you want to save the HTML file. Defaults to Sheet name in the
+            current working directory.
+
+
+        .. versionadded:: 0.28.1
+        """
+        path = utils.fspath(path)
+        self.impl.to_html(self.name + ".html" if path is None else path)
 
     def to_pdf(self, path=None, layout=None, show=False, quality="standard"):
         """
