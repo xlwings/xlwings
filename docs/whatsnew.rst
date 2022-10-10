@@ -4,7 +4,7 @@ What's New
 v0.28.1 (Oct 10, 2022)
 ----------------------
 
-* :bdg-success:`Feature` You can now use formatters to format the data you write to Excel or Google Sheets in a very flexible manner::
+* :bdg-success:`Feature` You can now use formatters to format the data you write to Excel or Google Sheets in a very flexible manner (see also :ref:`Default Converter`)::
 
     import pandas as pd
     import xlwings as xw
