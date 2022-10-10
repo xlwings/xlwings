@@ -86,8 +86,6 @@ The following options can be set:
   returned as 4 in case it is represented as a floating point number that is slightly smaller than 5.
   Should you require Python's original `int` in your converter, use `raw int` instead.
 
-
-
 * **dates**
 
   By default cells with dates are read as ``datetime.datetime``, but you can change it to ``datetime.date``:
@@ -105,7 +103,6 @@ The following options can be set:
     >>> my_date_handler = lambda year, month, day, **kwargs: "%04i-%02i-%02i" % (year, month, day)
     >>> sheet['A1'].options(dates=my_date_handler).value
     '2017-02-20'
-
 
 * **empty**
 
@@ -180,6 +177,48 @@ The following options can be set:
 
   If ``True``, will include cell errors such as ``#N/A`` as strings. By default, they
   will be converted to ``None``.
+
+* **formatter** (new in v0.28.1)
+
+  The ``formatter`` option accepts the name of a function. The function will be called after writing the values to Excel and allows you to easily style the range in a very flexible way. How it works is best shown with a little example:
+
+  .. code-block:: python
+
+    import pandas as pd
+    import xlwings as xw
+
+    sheet = xw.Book().sheets[0]
+
+    def table(rng: xw.Range, df: pd.DataFrame):
+        """This is the formatter function"""
+        # Header
+        rng[0, :].color = "#A9D08E"
+
+        # Rows
+        for ix, row in enumerate(rng.rows[1:]):
+            if ix % 2 == 0:
+                row.color = "#D0CECE"  # Even rows
+
+        # Columns
+        for ix, col in enumerate(df.columns):
+            if "two" in col:
+                rng[:, ix].number_format = "0.0%"
+
+
+    df = pd.DataFrame(data={"one": [1, 2, 3, 4], "two": [5, 6, 7, 8]})
+    sheet["A1"].options(formatter=table, index=False).value = df
+
+  Running this code will format the DataFrame like this:
+
+  .. image:: images/formatter.png
+
+  The formatter's signature is: ``def myformatter(myrange, myvalues)`` where ``myrange`` corresponds to the range where ``myvalues`` are written to. ``myvalues`` is simply what you assign to the ``value`` property in the last line of the example. Since we're using this with a DataFrame, it makes sense to name the argument accordingly and using type hints will help your editor with auto-completion. If you would use a nested list instead of a DataFrame, you would write something like this instead:
+
+  .. code-block:: python
+
+    def table(rng: xw.Range, values: list[list]):  # Python >= 3.9
+
+  For Python <= 3.8, you'll need to capitalize ``List`` and import it like so: ``from typing import List``.
 
 Built-in Converters
 -------------------
