@@ -1,6 +1,46 @@
 What's New
 ==========
 
+v0.28.1 (Oct 10, 2022)
+----------------------
+
+* :bdg-success:`Feature` You can now use formatters to format the data you write to Excel or Google Sheets in a very flexible manner::
+
+    import pandas as pd
+    import xlwings as xw
+
+    sheet = xw.Book().sheets[0]
+
+    def table(rng: xw.Range, df: pd.DataFrame):
+        """This is the formatter function"""
+        # Header
+        rng[0, :].color = "#A9D08E"
+
+        # Rows
+        for ix, row in enumerate(rng.rows[1:]):
+            if ix % 2 == 0:
+                row.color = "#D0CECE"  # Even rows
+
+        # Columns
+        for ix, col in enumerate(df.columns):
+            if "two" in col:
+                rng[1:, ix].number_format = "0.0%"
+
+
+    df = pd.DataFrame(data={"one": [1, 2, 3, 4], "two": [5, 6, 7, 8]})
+    sheet["A1"].options(formatter=table, index=False).value = df
+
+  .. image:: images/formatter.png
+
+* :bdg-success:`Feature` :bdg-secondary:`PRO` Formatters are also available for xlwings Reports via filters: ``{{ df | formatter("myformatter") }}``, see :ref:`DataFrames Filters`.
+* :bdg-success:`Feature` You can now export a sheet to an HTML page via :meth:`mysheet.to_html() <xlwings.Sheet.to_html()>`
+* :bdg-success:`Feature` New convenience property to get a list of the sheet names: :attr:`mybook.sheet_names <xlwings.Book.sheet_names>`
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` The Excel File Reader now supports the Names collection. I.e., you can now run code like this::
+
+    with xw.Book("myfile.xlsx", mode="r") as book:
+        for name in book.names:
+            print(name.refers_to_range.value)
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Code embedding via ``xlwings release`` or ``xlwings code embed`` now allows you to work with Python packages, i.e., nested directories.
 
 v0.28.0 (Oct 4, 2022)
 ---------------------
