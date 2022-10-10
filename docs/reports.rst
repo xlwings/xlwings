@@ -366,7 +366,7 @@ Example::
         # Columns
         for ix, col in enumerate(df.columns):
             if 'two' in col:
-                rng[:, ix].number_format = '0.0%'
+                rng[1:, ix].number_format = '0.0%'
 
     # Make sure to register the formatter
     reports.register_formatter(table)

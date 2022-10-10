@@ -15,10 +15,21 @@ except ImportError:
     np = None
 try:
     import pandas as pd
-    from pandas import DataFrame, Series
+    from pandas import DataFrame
     from pandas.testing import assert_frame_equal, assert_series_equal
 except ImportError:
     pd = None
+
+
+def table_formatter(rng, values):
+    """This is the formatter function"""
+    # Header
+    rng[0, :].color = "#A9D08E"
+
+    # Rows
+    for ix, row in enumerate(rng.rows[1:]):
+        if ix % 2 == 0:
+            row.color = "#D0CECE"  # Even rows
 
 
 class TestConverter(TestBase):
@@ -111,6 +122,17 @@ class TestConverter(TestBase):
         self.assertEqual(
             self.wb1.sheets[0].range("A1:B2").value, [[5.0, 5.0], [5.0, 5.0]]
         )
+
+    def test_formatter(self):
+        self.wb1.sheets[0]["A50"].options(formatter=table_formatter).value = [
+            ["one", "two"],
+            [1, 2],
+            [3, 4],
+            [5, 6],
+        ]
+        self.assertEqual(self.wb1.sheets[0]["A50:B50"].color, (169, 208, 142))
+        self.assertEqual(self.wb1.sheets[0]["A51:B51"].color, (208, 206, 206))
+        self.assertIsNone(self.wb1.sheets[0]["A52:B52"].color)
 
 
 @unittest.skipIf(np is None, "numpy missing")

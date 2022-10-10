@@ -11,7 +11,7 @@ from pandas.testing import assert_frame_equal
 
 import xlwings as xw
 from xlwings.pro import Markdown
-from xlwings.pro.reports import Image, render_template
+from xlwings.pro.reports import Image, register_formatter, render_template
 
 # Test data
 text1 = """\
@@ -49,6 +49,26 @@ df3 = pd.DataFrame(
         "two": ["c", "a", "a", "b", "c", "c", "c", "c"],
     }
 )
+
+
+def table(rng: xw.Range, df: pd.DataFrame):
+    """This is the formatter function"""
+    # Header
+    rng[0, :].color = "#A9D08E"
+
+    # Rows
+    for ix, row in enumerate(rng.rows[1:]):
+        if ix % 2 == 0:
+            row.color = "#D0CECE"  # Even rows
+
+    # Columns
+    for ix, col in enumerate(df.columns):
+        if "two" in col:
+            rng[1:, ix].number_format = "0.0%"
+
+
+register_formatter(table)
+
 data = dict(
     mystring="stringtest",
     myfloat=12.12,
@@ -385,6 +405,18 @@ class TestDataFrameFilters(unittest.TestCase):
         wb = render_template("df_filter_frame.xlsx", "output.xlsx", **data)
         self.assertEqual(
             wb.sheets["Sheet1"]["A13:B21"].value, wb.sheets["expected"]["A13:B21"].value
+        )
+
+    def test_df_filter_formatter(self):
+        wb = render_template("df_filter_frame.xlsx", "output.xlsx", **data)
+        self.assertEqual(
+            wb.sheets["Sheet1"]["A23:B23"].color, wb.sheets["expected"]["A23:B23"].color
+        )
+        self.assertEqual(
+            wb.sheets["Sheet1"]["A24:B24"].color, wb.sheets["expected"]["A24:B24"].color
+        )
+        self.assertEqual(
+            wb.sheets["Sheet1"]["A25:B25"].color, wb.sheets["expected"]["A25:B25"].color
         )
 
     def test_pic_filters(self):

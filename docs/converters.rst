@@ -202,7 +202,7 @@ The following options can be set:
         # Columns
         for ix, col in enumerate(df.columns):
             if "two" in col:
-                rng[:, ix].number_format = "0.0%"
+                rng[1:, ix].number_format = "0.0%"
 
 
     df = pd.DataFrame(data={"one": [1, 2, 3, 4], "two": [5, 6, 7, 8]})
