@@ -181,6 +181,8 @@ class FormatStage:
             markdown.format_text(
                 ctx.range, ctx.source_value.text, ctx.source_value.style
             )
+        if "formatter" in self.options:
+            self.options["formatter"](ctx.range, ctx.source_value)
 
 
 class BaseAccessor(Accessor):

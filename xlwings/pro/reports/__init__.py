@@ -13,12 +13,24 @@ Commercial licenses can be purchased at https://www.xlwings.org
 
 from ..utils import LicenseHandler
 
-# __all__ is required by Sphinx so it won't produce things like
-# xlwings.pro.main.render_template (?) and to have undocumented functions
-__all__ = ["render_template", "create_report", "Image", "Markdown", "MarkdownStyle"]
+__all__ = (
+    "render_template",
+    "create_report",
+    "Image",
+    "Markdown",
+    "MarkdownStyle",
+    "register_formatter",
+)
+
 LicenseHandler.validate_license("reports")
 
 # API
 from .image import Image
 from .main import create_report, render_template
 from .markdown import Markdown, MarkdownStyle
+
+format_callbacks = {}
+
+
+def register_formatter(func):
+    format_callbacks[func.__name__] = func

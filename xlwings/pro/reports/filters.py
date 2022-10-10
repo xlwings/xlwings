@@ -37,7 +37,7 @@ def datetime(value, format=None):
     return value.strftime(format)
 
 
-def fmt(value, format):
+def string_format(value, format):
     return f"{value:{format}}"
 
 
@@ -278,3 +278,10 @@ def vmerge(df, filter_args, top_left_cell, header):
             ranges_to_merge.extend(ranges_to_merge_col)
             row_offset += count
     return ranges_to_merge
+
+
+def df_formatter(filter_list):
+    from . import format_callbacks
+
+    fname = _get_filter_value(filter_list, "formatter")
+    return format_callbacks.get(fname)

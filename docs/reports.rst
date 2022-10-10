@@ -325,9 +325,66 @@ Example: Hierarchical mode across the specified columns only::
 
 {{ df | vmerge(0, 1) }}
 
-Example: Indenpendent mode: If you want to merge cells within columns independently of each other, use the filter multiple times. This sample merge cells vertically in the first two columns (indices are zero-based)::
+Example: Independent mode: If you want to merge cells within columns independently of each other, use the filter multiple times. This sample merge cells vertically in the first two columns (indices are zero-based)::
 
 {{ df | vmerge(0) | vmerge(1) }}
+
+formatter
+~~~~~~~~~
+
+The ``formatter`` filter accepts the name of a function. The function will be called after writing the values to Excel and allows you to easily style the range in a very flexible way::
+
+{{ df | formatter("myformatter") }}
+
+The formatter's signature is: ``def myformatter(rng, df)`` where ``rng`` corresponds to the range where the original DataFrame ``df`` is written to. Adding type hints (as shown in the example below) will help your editor with auto-completion.
+
+Note that the ``myformatter`` function needs to be registered via ``xlwings.pro.reports.register_formatter(myformatter)``.
+
+Let's run through the Quickstart example again, amended for a formatter.
+
+Example::
+
+    from pathlib import Path
+
+    import pandas as pd
+    import xlwings as xw
+    from xlwings.pro import reports
+
+    # We'll place this file in the same directory as the Excel template
+    this_dir = Path(__file__).resolve().parent
+
+    def table(rng: xw.Range, df: pd.DataFrame):
+        """This is the formatter function"""
+        # Header
+        rng[0, :].color = "#A9D08E"
+
+        # Rows
+        for ix, row in enumerate(rng.rows[1:]):
+            if ix % 2 == 0:
+                row.color = "#D0CECE"  # Even rows
+
+        # Columns
+        for ix, col in enumerate(df.columns):
+            if 'two' in col:
+                rng[1:, ix].number_format = '0.0%'
+
+    # Make sure to register the formatter
+    reports.register_formatter(table)
+
+    data = dict(
+        title='MyTitle',
+        df=pd.DataFrame(data={'one': [1, 2, 3, 4], 'two': [5, 6, 7, 8]})
+    )
+
+    # Change visible=False to run this in a hidden Excel instance
+    with xw.App(visible=True) as app:
+        book = app.render_template(this_dir / 'mytemplate.xlsx',
+                                   this_dir / 'myreport.xlsx',
+                                   **data)
+
+
+
+.. figure:: images/formatter_reports.png
 
 .. _excel_tables_reports:
 
