@@ -1,7 +1,7 @@
 import datetime as dt
-import os
 import sys
 import unittest
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -10,8 +10,9 @@ from numpy.testing import assert_array_equal
 from pandas.testing import assert_frame_equal
 
 import xlwings as xw
-from xlwings.pro import Markdown
-from xlwings.pro.reports import Image, register_formatter, render_template
+from xlwings.reports import Image, Markdown, formatter, render_template
+
+this_dir = Path(__file__).resolve().parent
 
 # Test data
 text1 = """\
@@ -51,6 +52,7 @@ df3 = pd.DataFrame(
 )
 
 
+@formatter
 def table(rng: xw.Range, df: pd.DataFrame):
     """This is the formatter function"""
     # Header
@@ -67,8 +69,6 @@ def table(rng: xw.Range, df: pd.DataFrame):
             rng[1:, ix].number_format = "0.0%"
 
 
-register_formatter(table)
-
 data = dict(
     mystring="stringtest",
     myfloat=12.12,
@@ -77,7 +77,7 @@ data = dict(
     df2=df2.reset_index(),
     df3=df3,
     mydict={"df": df1},
-    pic=Image(os.path.abspath("xlwings.jpg")),
+    pic=Image(this_dir / "xlwings.jpg"),
     fig=fig,
     markdown_cell=Markdown(text1),
     markdown_shape=Markdown(text1),
@@ -89,7 +89,9 @@ data = dict(
 class TestCreateReport(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.wb = render_template("template1.xlsx", "output.xlsx", **data)
+        cls.wb = render_template(
+            this_dir / "template1.xlsx", this_dir / "output.xlsx", **data
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -180,12 +182,12 @@ class TestCreateReport(unittest.TestCase):
 
 class TestBookSettings(unittest.TestCase):
     def tearDown(self):
-        xw.Book("output.xlsx").app.quit()
+        xw.Book(this_dir / "output.xlsx").app.quit()
 
     def test_update_links_false(self):
         wb = render_template(
-            "template_with_links.xlsx",
-            "output.xlsx",
+            this_dir / "template_with_links.xlsx",
+            this_dir / "output.xlsx",
             book_settings={"update_links": False},
             **data,
         )
@@ -196,8 +198,8 @@ class TestBookSettings(unittest.TestCase):
     )  # can't seem to make this test work on mac
     def test_update_links_true(self):
         wb = render_template(
-            "template_with_links.xlsx",
-            "output.xlsx",
+            this_dir / "template_with_links.xlsx",
+            this_dir / "output.xlsx",
             book_settings={"update_links": True},
             **data,
         )
@@ -208,8 +210,8 @@ class TestApp(unittest.TestCase):
     def test_app_instance(self):
         app = xw.App()
         wb = render_template(
-            "template_with_links.xlsx",
-            "output.xlsx",
+            this_dir / "template_with_links.xlsx",
+            this_dir / "output.xlsx",
             app=app,
             book_settings={"update_links": False},
             **data,
@@ -220,15 +222,15 @@ class TestApp(unittest.TestCase):
 
 class TestFrames(unittest.TestCase):
     def tearDown(self):
-        xw.Book("output.xlsx").app.quit()
+        xw.Book(this_dir / "output.xlsx").app.quit()
 
     def test_one_frame(self):
         df = pd.DataFrame(
             [[1.0, 2.0], [3.0, 4.0]], columns=["c1", "c2"], index=["r1", "r2"]
         )
         wb = render_template(
-            "template_one_frame.xlsx",
-            "output.xlsx",
+            this_dir / "template_one_frame.xlsx",
+            this_dir / "output.xlsx",
             df=df.reset_index(),
             title="MyTitle",
         )
@@ -278,7 +280,7 @@ class TestFrames(unittest.TestCase):
         df3.index.name = "df3"
 
         text = "abcd"
-        pic = Image(os.path.abspath("xlwings.jpg"))
+        pic = Image(this_dir / "xlwings.jpg")
 
         data = dict(
             df1=df1.reset_index(),
@@ -287,7 +289,9 @@ class TestFrames(unittest.TestCase):
             text=text,
             pic=pic,
         )
-        wb = render_template("template_two_frames.xlsx", "output.xlsx", **data)
+        wb = render_template(
+            this_dir / "template_two_frames.xlsx", this_dir / "output.xlsx", **data
+        )
         sheet = wb.sheets[0]
         # values
         assert_frame_equal(sheet["A1"].options(pd.DataFrame, expand="table").value, df3)
@@ -371,17 +375,21 @@ class TestFrames(unittest.TestCase):
 
 class TestDataFrameFilters(unittest.TestCase):
     def tearDown(self):
-        xw.Book("output.xlsx").app.quit()
+        xw.Book(this_dir / "output.xlsx").app.quit()
 
     def test_df_filters(self):
-        wb = render_template("template1.xlsx", "output.xlsx", **data)
+        wb = render_template(
+            this_dir / "template1.xlsx", this_dir / "output.xlsx", **data
+        )
         self.assertEqual(
             wb.sheets["df_filters"]["A1:E140"].value,
             wb.sheets["df_filters"]["G1:K140"].value,
         )
 
     def test_df_filters_in_frames(self):
-        wb = render_template("df_filter_frame.xlsx", "output.xlsx", **data)
+        wb = render_template(
+            this_dir / "df_filter_frame.xlsx", this_dir / "output.xlsx", **data
+        )
         self.assertEqual(
             wb.sheets["Sheet1"]["A1:E10"].value, wb.sheets["expected"]["A1:E10"].value
         )
@@ -402,13 +410,17 @@ class TestDataFrameFilters(unittest.TestCase):
         self.assertIsNone(wb.sheets["Sheet1"]["A10"].color)
 
     def test_df_filter_vmerge(self):
-        wb = render_template("df_filter_frame.xlsx", "output.xlsx", **data)
+        wb = render_template(
+            this_dir / "df_filter_frame.xlsx", this_dir / "output.xlsx", **data
+        )
         self.assertEqual(
             wb.sheets["Sheet1"]["A13:B21"].value, wb.sheets["expected"]["A13:B21"].value
         )
 
     def test_df_filter_formatter(self):
-        wb = render_template("df_filter_frame.xlsx", "output.xlsx", **data)
+        wb = render_template(
+            this_dir / "df_filter_frame.xlsx", this_dir / "output.xlsx", **data
+        )
         self.assertEqual(
             wb.sheets["Sheet1"]["A23:B23"].color, wb.sheets["expected"]["A23:B23"].color
         )
@@ -420,7 +432,9 @@ class TestDataFrameFilters(unittest.TestCase):
         )
 
     def test_pic_filters(self):
-        wb = render_template("template1.xlsx", "output.xlsx", **data)
+        wb = render_template(
+            this_dir / "template1.xlsx", this_dir / "output.xlsx", **data
+        )
         self.assertEqual(wb.sheets["pic_filters"].pictures[0].width, 397)
         self.assertEqual(wb.sheets["pic_filters"].pictures[0].height, 139)
         self.assertEqual(wb.sheets["pic_filters"].pictures[1].width, 120)
@@ -431,12 +445,16 @@ class TestDataFrameFilters(unittest.TestCase):
         self.assertEqual(int(wb.sheets["pic_filters"].pictures[3].height), 166)
 
     def test_datetime_filters(self):
-        wb = render_template("template1.xlsx", "output.xlsx", **data)
+        wb = render_template(
+            this_dir / "template1.xlsx", this_dir / "output.xlsx", **data
+        )
         self.assertEqual(wb.sheets["dt"]["A1:A7"].value, wb.sheets["dt"]["E1:E7"].value)
         self.assertEqual(wb.sheets["dt"].shapes["Rectangle 1"].text, "December 1, 2010")
 
     def test_fontcolor_filter(self):
-        wb = render_template("template1.xlsx", "output.xlsx", **data)
+        wb = render_template(
+            this_dir / "template1.xlsx", this_dir / "output.xlsx", **data
+        )
         self.assertEqual(wb.sheets["Sheet1"]["Q1"].font.color, (255, 255, 255))
 
 

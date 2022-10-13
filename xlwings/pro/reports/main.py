@@ -385,10 +385,10 @@ def render_template(template, output, book_settings=None, app=None, **data):
 
     Parameters
     ----------
-    template: str
+    template: str or path-like
         Path to your Excel template, e.g. ``r'C:\\Path\\to\\my_template.xlsx'``
 
-    output: str
+    output: str or path-like
         Path to your Report, e.g. ``r'C:\\Path\\to\\my_report.xlsx'``
 
     book_settings: dict, default None
@@ -414,7 +414,7 @@ def render_template(template, output, book_settings=None, app=None, **data):
     In ``my_template.xlsx``, put the following Jinja variables in two cells:
     ``{{ title }}`` and ``{{ df }}``
 
-    >>> from xlwings.pro.reports import render_template
+    >>> from xlwings.reports import render_template
     >>> import pandas as pd
     >>> df = pd.DataFrame(data=[[1,2],[3,4]])
     >>> mybook = render_template('my_template.xlsx', 'my_report.xlsx',
