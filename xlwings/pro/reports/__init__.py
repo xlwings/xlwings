@@ -20,6 +20,7 @@ __all__ = (
     "Markdown",
     "MarkdownStyle",
     "register_formatter",
+    "formatter",
 )
 
 LicenseHandler.validate_license("reports")
@@ -32,5 +33,9 @@ from .markdown import Markdown, MarkdownStyle
 format_callbacks = {}
 
 
-def register_formatter(func):
+def formatter(func):
     format_callbacks[func.__name__] = func
+
+
+# Deprecated
+register_formatter = formatter

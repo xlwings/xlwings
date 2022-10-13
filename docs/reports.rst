@@ -338,9 +338,9 @@ The ``formatter`` filter accepts the name of a function. The function will be ca
 
 The formatter's signature is: ``def myformatter(rng, df)`` where ``rng`` corresponds to the range where the original DataFrame ``df`` is written to. Adding type hints (as shown in the example below) will help your editor with auto-completion.
 
-Note that the ``myformatter`` function needs to be registered via ``xlwings.pro.reports.register_formatter(myformatter)``.
+.. note:: Within the reports framework, formatters need to be decorated with ``xlwings.reports.formatter`` (see example below)! This isn't necessary though when you use them as part of the standard xlwings API.
 
-Let's run through the Quickstart example again, amended for a formatter.
+Let's run through the Quickstart example again, amended by a formatter.
 
 Example::
 
@@ -348,11 +348,12 @@ Example::
 
     import pandas as pd
     import xlwings as xw
-    from xlwings.pro import reports
+    from xlwings.reports import formatter
 
     # We'll place this file in the same directory as the Excel template
     this_dir = Path(__file__).resolve().parent
 
+    @formatter
     def table(rng: xw.Range, df: pd.DataFrame):
         """This is the formatter function"""
         # Header
@@ -367,9 +368,6 @@ Example::
         for ix, col in enumerate(df.columns):
             if 'two' in col:
                 rng[1:, ix].number_format = '0.0%'
-
-    # Make sure to register the formatter
-    reports.register_formatter(table)
 
     data = dict(
         title='MyTitle',
@@ -464,7 +462,7 @@ Images
 Images are inserted so that the cell with the placeholder will become the top-left corner of the image. For example, write the following placeholder into you desired cell: ``{{ logo }}``, then run the following code::
 
     import xlwings as xw
-    from xlwings.pro.reports import Image
+    from xlwings.reports import Image
 
     book = xw.Book('Book1.xlsx')
     sheet = book.sheets['template'].copy(name='report')
@@ -599,7 +597,7 @@ Markdown Formatting
 You can format text in cells or shapes via Markdown syntax. Note that you can also use placeholders in the Markdown text that will take the values from the variables you supply via the ``render_template`` method::
 
     import xlwings as xw
-    from xlwings.pro import Markdown
+    from xlwings.reports import Markdown
 
     mytext = """\
     # Title
