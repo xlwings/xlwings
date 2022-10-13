@@ -103,6 +103,7 @@ except (ImportError, LicenseError):
     PRO = False
 
 try:
+    # Separately handled in case the Rust extension is missing
     from .pro import _xlcalamine
 
     engines.add(Engine(impl=_xlcalamine.engine))

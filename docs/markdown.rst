@@ -20,7 +20,7 @@ Let's go through an example to see how everything works!
 
 .. code-block:: python
 
-    from xlwings.pro import Markdown, MarkdownStyle
+    from xlwings.reports import Markdown, MarkdownStyle
 
     mytext = """\
     # Title
@@ -55,7 +55,7 @@ But why not make things a tad more stylish? By providing a ``MarkdownStyle`` obj
 .. code-block:: python
 
 
-    from xlwings.pro import Markdown, MarkdownStyle
+    from xlwings.reports import Markdown, MarkdownStyle
 
     mytext = """\
     # Title
