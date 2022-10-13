@@ -88,12 +88,13 @@ This is used for the file reader. The source is under `src` together with variou
 
 The 3rd party Open Source licenses document is built with `cargo about generate about.hbs > docs/_static/opensource_licenses2.html` this requires `cargo install --locked cargo-about`.
 
-## Code formatting
+## Code formatting/linting
 
-This repo uses the following packages for code formatting, see `pyproject.toml`:
+This repo uses the following packages for code formatting/linting, see `pyproject.toml`:
 
 * black
 * isort
+* flake8
 
 You can use the pre-commit hook under `.pre-commit-config.yaml`, see instructions at top of the file.
 
