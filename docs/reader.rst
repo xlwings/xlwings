@@ -108,7 +108,7 @@ Limitations
 * The reader is currently only available via ``pip install xlwings``. Installation via ``conda`` is not yet supported, but you can still use pip to install xlwings into a Conda environment!
 * Date cells: Excel cells with a Date/Time are currently only converted to a ``datetime`` object in Python for ``xlsx`` file formats. For ``xlsb`` format, pandas has the same restriction though (it uses ``pyxlsb`` under the hood).
 * Dynamic ranges: ``myrange.expand()`` is currently inefficient, so will slow down the reading considerably if the dynamic range is big.
-* Named ranges: Named ranges with sheet scope are currently not shown with their proper name: E.g. ``mybook.names[0].name`` will show the name ``mylocalname`` instead of including the sheet name like so ``Sheet1!mylocalname``. Along the same lines, the ``names`` property can only be accessed via ``book`` object, not via ``sheet`` object.
+* Named ranges: Named ranges with sheet scope are currently not shown with their proper name: E.g. ``mybook.names[0].name`` will show the name ``mylocalname`` instead of including the sheet name like so ``Sheet1!mylocalname``. Along the same lines, the ``names`` property can only be accessed via ``book`` object, not via ``sheet`` object. Other defined names (formulas and constants) are currently not supported.
 * Excel tables: Accessing data via table names isn't supported at the moment.
 * Options: except for ``err_to_str``, non-default options are currently inefficient and will slow down the read operation. This includes ``dates``, ``empty``, and ``numbers``.
 * Formulas: currently only the cell values are supported, but not the cell formulas.

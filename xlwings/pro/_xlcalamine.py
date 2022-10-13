@@ -161,8 +161,8 @@ class Books(base_classes.Books):
                         "address": t2.split("!")[1],
                         "book_scope": True,  # TODO: not provided by calamine
                     }
-                    if t2
-                    else None
+                    # TODO: ignore hidden named ranges in calamine
+                    if t2.split("!")[0].strip("'") in sheet_names else None
                     for t1, t2 in xlwingslib.get_defined_names(filename)
                 ],
             },
