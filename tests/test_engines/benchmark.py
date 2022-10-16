@@ -1,10 +1,10 @@
 # Make sure to build the Rust library with the release flag
 from pathlib import Path
 
-import openpyxl
+import openpyxl  # noqa: F401
 import pandas as pd
-import pyxlsb
-import xlrd
+import pyxlsb  # noqa: F401
+import xlrd  # noqa : F401
 from codetiming import Timer
 
 import xlwings as xw
@@ -15,10 +15,10 @@ test_file = this_dir / "single_sheet_many_rows.xlsx"
 if test_file.suffix in [".xlsx", ".xlsm"]:
     engine = "openpyxl"
 elif test_file.suffix == ".xls":
-    # Calamine doesn't yet support datetime conversion, while xlrd does
+    # xcalamine doesn't yet support datetime conversion, while xlrd does
     engine = "xlrd"
 elif test_file.suffix == ".xlsb":
-    # Both, calamine and pyxlsb don't yet support datetime conversion
+    # Both, xcalamine and pyxlsb don't yet support datetime conversion
     engine = "pyxlsb"
 else:
     engine = None
