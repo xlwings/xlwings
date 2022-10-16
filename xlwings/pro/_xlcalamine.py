@@ -77,7 +77,7 @@ class Engine:
 
     @property
     def name(self):
-        return "calamine"
+        return "xcalamine"
 
     @property
     def type(self):
@@ -151,20 +151,21 @@ class Books(base_classes.Books):
     def open(self, filename):
         filename = str(Path(filename).resolve())
         sheet_names = xlwingslib.get_sheet_names(filename)
+        names = []
+        for name, ref in xlwingslib.get_defined_names(filename):
+            if ref.split("!")[0].strip("'") in sheet_names:
+                names.append(
+                    {
+                        "name": name,
+                        "sheet_index": sheet_names.index(ref.split("!")[0].strip("'")),
+                        "address": ref.split("!")[1],
+                        "book_scope": True,  # TODO: not provided by xcalamine
+                    }
+                )
         book = Book(
             api={
                 "sheet_names": sheet_names,
-                "names": [
-                    {
-                        "name": t1,
-                        "sheet_index": sheet_names.index(t2.split("!")[0].strip("'")),
-                        "address": t2.split("!")[1],
-                        "book_scope": True,  # TODO: not provided by calamine
-                    }
-                    # TODO: ignore hidden named ranges in calamine
-                    if t2.split("!")[0].strip("'") in sheet_names else None
-                    for t1, t2 in xlwingslib.get_defined_names(filename)
-                ],
+                "names": names,
             },
             books=self,
             path=filename,

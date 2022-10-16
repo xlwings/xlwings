@@ -42,21 +42,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
-name = "calamine"
-version = "0.18.0"
-source = "git+https://github.com/tafia/calamine?rev=e7cd6d8#e7cd6d8d0becb09b907a8e220e8a46d457315e00"
-dependencies = [
- "byteorder",
- "chrono",
- "codepage",
- "encoding_rs",
- "log",
- "quick-xml",
- "serde",
- "zip",
-]
-
-[[package]]
 name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -538,12 +523,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c811ca4a8c853ef420abd8592ba53ddbbac90410fab6903b3e79972a631f7680"
 
 [[package]]
+name = "xcalamine"
+version = "0.0.0"
+source = "git+https://github.com/xlwings/xcalamine?rev=3845ff7#3845ff73765dfc1b2c1bf225dc7d7c1dd6b30e15"
+dependencies = [
+ "byteorder",
+ "chrono",
+ "codepage",
+ "encoding_rs",
+ "log",
+ "quick-xml",
+ "serde",
+ "zip",
+]
+
+[[package]]
 name = "xlwings"
 version = "0.0.0"
 dependencies = [
- "calamine",
  "chrono",
  "pyo3",
+ "xcalamine",
 ]
 
 [[package]]

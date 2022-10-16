@@ -134,7 +134,7 @@ class Engines:
             try:
                 return self.engines_by_name[name_or_index]
             except KeyError:
-                if not xlwings.PRO and name_or_index in ["calamine", "remote"]:
+                if not xlwings.PRO and name_or_index in ["xcalamine", "remote"]:
                     raise LicenseError(
                         f"The '{name_or_index}' engine requires xlwings PRO."
                     )
@@ -876,7 +876,7 @@ class Book:
                 engine = engine if engine else "remote"
                 impl = engines[engine].apps.active.books.open(json=json).impl
             elif fullname and mode == "r":
-                engine = engine if engine else "calamine"
+                engine = engine if engine else "xcalamine"
                 impl = engines[engine].apps.active.books.open(fullname=fullname).impl
             elif fullname:
                 fullname = utils.fspath(fullname)
