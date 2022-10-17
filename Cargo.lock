@@ -525,7 +525,7 @@ checksum = "c811ca4a8c853ef420abd8592ba53ddbbac90410fab6903b3e79972a631f7680"
 [[package]]
 name = "xcalamine"
 version = "0.0.0"
-source = "git+https://github.com/xlwings/xcalamine?rev=3845ff7#3845ff73765dfc1b2c1bf225dc7d7c1dd6b30e15"
+source = "git+https://github.com/xlwings/xcalamine?rev=77e94c0#77e94c054eaabe5243f90a821f952defa34b989a"
 dependencies = [
  "byteorder",
  "chrono",
