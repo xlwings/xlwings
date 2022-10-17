@@ -1,6 +1,14 @@
 What's New
 ==========
 
+v0.28.2 (Oct 17, 2022)
+----------------------
+
+* :bdg-danger:`Breaking Change` :bdg-secondary:`PRO` xlwings File Reader: The reader was including Chartsheets etc. in ``mybook.sheets``, which was inconsistent with the rest of the API. Accordingly, it now only shows Worksheets (:issue:`2058`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings File Reader: With ``xlsb`` formats, slightly unusual defined names caused the reader to fail (:issue:`2057`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Reports: the imports have been flattened. What previously was available via ``xlwings.pro.reports`` is now also available via ``xlwings.reports`` (:issue:`2055`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Reports: the registration of formatters for use with templates has been simplified by allowing you to use the ``@formatter`` decorator instead of having to register the function via ``register_formatter(myfunc)`` (:issue:`2055`).
+
 v0.28.1 (Oct 10, 2022)
 ----------------------
 
