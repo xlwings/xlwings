@@ -12,3 +12,11 @@ private = { ignore = true }
 
 ignore-build-dependencies = true
 ignore-dev-dependencies = true
+
+[parking_lot_core.clarify]
+license = "MIT"
+
+[[parking_lot_core.clarify.files]]
+path = 'LICENSE-MIT'
+license = 'MIT'
+checksum = 'c9a75f18b9ab2927829a208fc6aa2cf4e63b8420887ba29cdb265d6619ae82d5'
