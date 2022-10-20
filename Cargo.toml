@@ -12,7 +12,7 @@ name = "xlwingslib"
 crate-type = ["cdylib"]
 
 [dependencies]
-xcalamine = {git = "https://github.com/xlwings/xcalamine", rev = "c6f6ce9", features = ["dates"] }
+calamine = {git = "https://github.com/xlwings/calamine", rev = "ed5aba7", features = ["dates"] }
 chrono = { version = "0.4.22", features = ["serde"], default-features = false }
 # abi3 wheels aren't supported as DateTime is not part of the ABI spec (PEP 384)
-pyo3 = { version = "0.17.1", features = ["extension-module"] }
+pyo3 = { version = "0.17.2", features = ["extension-module"] }

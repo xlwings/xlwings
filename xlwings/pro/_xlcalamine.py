@@ -77,7 +77,7 @@ class Engine:
 
     @property
     def name(self):
-        return "xcalamine"
+        return "calamine"
 
     @property
     def type(self):
@@ -159,7 +159,7 @@ class Books(base_classes.Books):
                         "name": name,
                         "sheet_index": sheet_names.index(ref.split("!")[0].strip("'")),
                         "address": ref.split("!")[1],
-                        "book_scope": True,  # TODO: not provided by xcalamine
+                        "book_scope": True,  # TODO: not provided by calamine
                     }
                 )
         book = Book(

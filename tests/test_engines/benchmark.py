@@ -15,10 +15,10 @@ test_file = this_dir / "single_sheet_many_rows.xlsx"
 if test_file.suffix in [".xlsx", ".xlsm"]:
     engine = "openpyxl"
 elif test_file.suffix == ".xls":
-    # xcalamine doesn't yet support datetime conversion, while xlrd does
+    # calamine doesn't yet support datetime conversion, while xlrd does
     engine = "xlrd"
 elif test_file.suffix == ".xlsb":
-    # Both, xcalamine and pyxlsb don't yet support datetime conversion
+    # Both, calamine and pyxlsb don't yet support datetime conversion
     engine = "pyxlsb"
 else:
     engine = None
