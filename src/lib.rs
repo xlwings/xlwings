@@ -1,10 +1,9 @@
 use calamine::CellErrorType::{Div0, GettingData, Name, Null, Num, Ref, Value, NA};
 use calamine::{open_workbook_auto, CellErrorType, DataType, Error, Range, Reader};
-use chrono::{Datelike, NaiveDateTime, Timelike};
+use chrono::NaiveDateTime;
 use pyo3::exceptions::PyIOError;
 use pyo3::import_exception;
 use pyo3::prelude::*;
-use pyo3::types::PyDateTime;
 
 import_exception!(xlwings, XlwingsError);
 
@@ -40,19 +39,7 @@ impl IntoPy<PyObject> for CellValue {
             CellValue::Float(v) => v.to_object(py),
             CellValue::String(v) => v.to_object(py),
             CellValue::Bool(v) => v.to_object(py),
-            CellValue::DateTime(v) => PyDateTime::new(
-                py,
-                v.year(),
-                v.month() as u8,
-                v.day() as u8,
-                v.hour() as u8,
-                v.minute() as u8,
-                v.second() as u8,
-                v.timestamp_subsec_micros(),
-                None,
-            )
-            .unwrap()
-            .to_object(py),
+            CellValue::DateTime(v) => v.to_object(py),
             CellValue::Empty => py.None(),
             // Errors are already converted to String or Empty
             CellValue::Error(_) => String::from("Error").to_object(py),
@@ -74,7 +61,8 @@ fn get_values(
         // println!("{:?}", row);
         for value in row.iter() {
             match value {
-                DataType::Int(v) => result_row.push(CellValue::Int(*v)),
+                // Float to be in line with COM API
+                DataType::Int(v) => result_row.push(CellValue::Float((*v) as f64)),
                 DataType::Float(v) => result_row.push(CellValue::Float(*v)),
                 DataType::String(v) => result_row.push(CellValue::String(String::from(v))),
                 DataType::DateTime(_v) => {

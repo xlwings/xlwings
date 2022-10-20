@@ -20,3 +20,11 @@ license = "MIT"
 path = 'LICENSE-MIT'
 license = 'MIT'
 checksum = 'c9a75f18b9ab2927829a208fc6aa2cf4e63b8420887ba29cdb265d6619ae82d5'
+
+[bumpalo.clarify]
+license = "MIT"
+
+[[bumpalo.clarify.files]]
+path = 'LICENSE-MIT'
+license = 'MIT'
+checksum = '65f94e99ddaf4f5d1782a6dae23f35d4293a9a01444a13135a6887017d353cee'
