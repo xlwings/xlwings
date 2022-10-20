@@ -22,8 +22,8 @@ import xlwings as xw
 
 this_dir = Path(__file__).resolve().parent
 
-# "xcalamine", "remote", or "excel"
-engine = os.environ.get("XLWINGS_ENGINE") or "xcalamine"
+# "calamine", "remote", or "excel"
+engine = os.environ.get("XLWINGS_ENGINE") or "calamine"
 # "xlsx", "xlsb", or "xls"
 file_extension = os.environ.get("XLWINGS_FILE_EXTENSION") or "xlsx"
 
@@ -87,7 +87,7 @@ data = {
 def book():
     if engine == "remote":
         book = xw.Book(json=data)
-    elif engine == "xcalamine":
+    elif engine == "calamine":
         book = xw.Book(this_dir / f"engines.{file_extension}", mode="r")
     else:
         book = xw.Book(this_dir / f"engines.{file_extension}")
@@ -269,7 +269,7 @@ def test_pandas_df(book):
 
 
 @pytest.mark.skipif(
-    file_extension != "xlsx" and engine == "xcalamine", reason="datetime unsupported"
+    file_extension != "xlsx" and engine == "calamine", reason="datetime unsupported"
 )
 def test_read_basic_types(book):
     sheet = book.sheets[2]
@@ -318,7 +318,7 @@ def test_sheet_access(book):
     assert book.sheets[1].name == "Sheet2"
 
 
-@pytest.mark.skipif(engine == "xcalamine", reason="xcalamine engine")
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_sheet_active(book):
     assert book.sheets.active == book.sheets[0]
 
@@ -333,18 +333,18 @@ def test_book(book):
     assert book.name == f"engines.{file_extension}"
 
 
-@pytest.mark.skipif(engine in ["xcalamine", "excel"], reason="xcalamine engine")
+@pytest.mark.skipif(engine in ["calamine", "excel"], reason="calamine engine")
 def test_book_selection(book):
     assert book.selection.address == "$B$3:$B$4"
 
 
 # pictures
-@pytest.mark.skipif(engine == "xcalamine", reason="xcalamine engine")
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_pictures_len(book):
     assert len(book.sheets[0].pictures) == 2
 
 
-@pytest.mark.skipif(engine == "xcalamine", reason="xcalamine engine")
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_pictures_name(book):
     assert book.sheets[0].pictures[0].name == "pic1"
     assert book.sheets[0].pictures[1].name == "pic2"
@@ -352,19 +352,19 @@ def test_pictures_name(book):
     assert book.sheets[0].pictures(2).name == "pic2"
 
 
-@pytest.mark.skipif(engine == "xcalamine", reason="xcalamine engine")
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_pictures_width(book):
     assert book.sheets[0].pictures[0].width == 20
     assert book.sheets[0].pictures[1].width == 40
 
 
-@pytest.mark.skipif(engine == "xcalamine", reason="xcalamine engine")
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_pictures_height(book):
     assert book.sheets[0].pictures[0].height == 10
     assert book.sheets[0].pictures[1].height == 30
 
 
-@pytest.mark.skipif(engine == "xcalamine", reason="xcalamine engine")
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_pictures_add_and_delete(book):
     sheet = book.sheets[0]
     sheet.pictures.add(this_dir.parent / "sample_picture.png", name="new")
@@ -375,7 +375,7 @@ def test_pictures_add_and_delete(book):
     assert len(sheet.pictures) == 2
 
 
-@pytest.mark.skipif(engine == "xcalamine", reason="xcalamine engine")
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_pictures_iter(book):
     sheet = book.sheets[0]
     pic_names = []
@@ -384,7 +384,7 @@ def test_pictures_iter(book):
     assert pic_names == ["pic1", "pic2"]
 
 
-@pytest.mark.skipif(engine == "xcalamine", reason="xcalamine engine")
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_pictures_contains(book):
     sheet = book.sheets[0]
     assert "pic1" in sheet.pictures
@@ -395,12 +395,12 @@ def test_pictures_contains(book):
     assert 3 not in sheet.pictures
 
 
-@pytest.mark.skipif(engine == "xcalamine", reason="xcalamine engine")
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_empty_pictures(book):
     assert not book.sheets[1].pictures
 
 
-@pytest.mark.skipif(engine == "xcalamine", reason="xcalamine engine")
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_picture_exists(book):
     with pytest.raises(xw.ShapeAlreadyExists):
         book.sheets[0].pictures.add(this_dir.parent / "sample_picture.png", name="pic1")
@@ -450,7 +450,7 @@ def test_names_index_vs_name(book):
     assert book.names["one"].name == "one"
 
 
-@pytest.mark.skipif(engine != "excel", reason="TODO: xcalamine, remote")
+@pytest.mark.skipif(engine != "excel", reason="TODO: calamine, remote")
 def test_name_local_scope(book):
     assert book.names[1].name == "Sheet1!two"
 

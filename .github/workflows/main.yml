@@ -230,9 +230,9 @@ jobs:
           python -c "import xlwings;print(xlwings.__version__)"
           python -c "import xlwings;print(xlwings.__path__)"
           XLWINGS_ENGINE=remote pytest xlwings/tests/test_engines/test_engines.py
-          XLWINGS_ENGINE=xcalamine XLWINGS_FILE_EXTENSION=xlsx pytest xlwings/tests/test_engines/test_engines.py
-          XLWINGS_ENGINE=xcalamine XLWINGS_FILE_EXTENSION=xlsb pytest xlwings/tests/test_engines/test_engines.py
-          XLWINGS_ENGINE=xcalamine XLWINGS_FILE_EXTENSION=xls pytest xlwings/tests/test_engines/test_engines.py
+          XLWINGS_ENGINE=calamine XLWINGS_FILE_EXTENSION=xlsx pytest xlwings/tests/test_engines/test_engines.py
+          XLWINGS_ENGINE=calamine XLWINGS_FILE_EXTENSION=xlsb pytest xlwings/tests/test_engines/test_engines.py
+          XLWINGS_ENGINE=calamine XLWINGS_FILE_EXTENSION=xls pytest xlwings/tests/test_engines/test_engines.py
           xlwings quickstart testproject1
 
   publish:

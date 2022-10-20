@@ -1,10 +1,10 @@
+use calamine::CellErrorType::{Div0, GettingData, Name, Null, Num, Ref, Value, NA};
+use calamine::{open_workbook_auto, CellErrorType, DataType, Error, Range, Reader};
 use chrono::{Datelike, NaiveDateTime, Timelike};
 use pyo3::exceptions::PyIOError;
 use pyo3::import_exception;
 use pyo3::prelude::*;
 use pyo3::types::PyDateTime;
-use xcalamine::CellErrorType::{Div0, GettingData, Name, Null, Num, Ref, Value, NA};
-use xcalamine::{open_workbook_auto, CellErrorType, DataType, Error, Range, Reader};
 
 import_exception!(xlwings, XlwingsError);
 
