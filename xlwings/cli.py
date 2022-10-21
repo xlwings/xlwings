@@ -323,8 +323,10 @@ def code_embed(args):
     into the active Excel Book
     """
     wb = xw.books.active
+    single_file = False
     if args and args.file:
         source_files = [Path(args.file)]
+        single_file = True
     else:
         source_files = list(Path(wb.fullname).resolve().parent.rglob("*.py"))
     if not source_files:
@@ -333,17 +335,19 @@ def code_embed(args):
     # Delete existing source code sheets
     # A bug prevents deleting sheets from the collection directly (#1400)
     with wb.app.properties(screen_updating=False):
-        for sheetname in [sheet.name for sheet in wb.sheets]:
-            if wb.sheets[sheetname].name.endswith(".py"):
-                wb.sheets[sheetname].delete()
+        if not single_file:
+            for sheetname in [sheet.name for sheet in wb.sheets]:
+                if wb.sheets[sheetname].name.endswith(".py"):
+                    wb.sheets[sheetname].delete()
 
         # Import source code
         sheetname_to_path = {}
         for source_file in source_files:
-            sheetname = uuid.uuid4().hex[:28] + ".py"
-            sheetname_to_path[sheetname] = str(
-                source_file.relative_to(Path(wb.fullname).parent)
-            )
+            if not single_file:
+                sheetname = uuid.uuid4().hex[:28] + ".py"
+                sheetname_to_path[sheetname] = str(
+                    source_file.relative_to(Path(wb.fullname).parent)
+                )
             with open(source_file, "r", encoding="utf-8") as f:
                 content = []
                 for line in f.read().splitlines():
@@ -352,8 +356,15 @@ def code_embed(args):
                     # Duplicate leading single quotes so Excel interprets them properly
                     # This is required even if the cell is in Text format
                     content.append(["'" + line if line.startswith("'") else line])
+            if single_file and source_file.name not in wb.sheet_names:
+                sheet = wb.sheets.add(
+                    source_file.name, after=wb.sheets[len(wb.sheets) - 1]
+                )
+            elif single_file:
+                sheet = wb.sheets[source_file.name]
+            else:
+                sheet = wb.sheets.add(sheetname, after=wb.sheets[len(wb.sheets) - 1])
 
-            sheet = wb.sheets.add(sheetname, after=wb.sheets[len(wb.sheets) - 1])
             sheet["A1"].resize(
                 row_size=len(content) if content else 1
             ).number_format = "@"
@@ -361,14 +372,14 @@ def code_embed(args):
             sheet["A:A"].column_width = 65
 
         # Update config with the sheetname_to_path mapping
-        if "xlwings.conf" in [sheet.name for sheet in wb.sheets]:
+        if "xlwings.conf" in wb.sheet_names and not single_file:
             config = xw.utils.read_config_sheet(wb)
             sheetname_to_path_str = json.dumps(sheetname_to_path)
             if len(sheetname_to_path_str) > 32_767:
                 sys.exit("ERROR: The package structure is too complex to embed.")
             config["RELEASE_EMBED_CODE_MAP"] = sheetname_to_path_str
             wb.sheets["xlwings.conf"]["A1"].value = config
-        else:
+        elif not single_file:
             config_sheet = wb.sheets.add(
                 "xlwings.conf", after=wb.sheets[len(wb.sheets) - 1]
             )
@@ -569,10 +580,6 @@ def release(args):
     if config.get("RELEASE_EMBED_CODE"):
         print("* Embed Python code")
         code_embed(None)
-    else:
-        for sheet in book.sheets:
-            if sheet.name.endswith(".py"):
-                sheet.delete()
 
     # Hide sheets
     if config.get("RELEASE_HIDE_CONFIG_SHEET"):
