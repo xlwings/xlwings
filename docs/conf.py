@@ -185,8 +185,13 @@ html_theme_options = {
         "color-brand-content": "#28a745",
         "color-sidebar-caption-text": "#28a745",
         "sidebar-caption-font-size": "1em",
+        "color-announcement-background": "#28a745",
     },
-    "dark_css_variables": {"color-brand-primary": "white"},
+    "dark_css_variables": {
+        "color-brand-primary": "white",
+        "color-announcement-background": "#28a745",
+    },
+    # "announcement": '<string>Live Webinar (Oct 26):</strong> Introducing xlwings PRO File Reader <a href="https://zoomeranalytics.webinargeek.com/introducing-xlwings-file-reader?cst=home/">Sign Up!</a>',
 }
 
 html_show_sourcelink = False
@@ -270,11 +275,11 @@ htmlhelp_basename = "xlwingsdoc"
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
-    #'papersize': 'letterpaper',
+    # 'papersize': 'letterpaper',
     # The font size ('10pt', '11pt' or '12pt').
     "pointsize": "11pt",
     # Additional stuff for the LaTeX preamble.
-    #'preamble': '',
+    # 'preamble': '',
     # Index: '' for no index, '\\printindex' to generate one
     "printindex": "\\printindex",
 }
