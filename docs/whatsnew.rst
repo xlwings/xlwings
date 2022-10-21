@@ -1,6 +1,13 @@
 What's New
 ==========
 
+v0.28.3 (Oct 21, 2022)
+----------------------
+
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings File Reader: To be in line with the rest of the API, integers are now delivered as floats (:issue:`2066`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings File Reader: Fixed a bug that sometimes read in incorrect decimals with the legacy ``xls`` file formats (:issue:`2062`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Fixed a bug introduced with 0.28.1 when ``xlwings code embed`` was run with the ``--file`` flag and a relative path (:issue:`2061`).
+
 v0.28.2 (Oct 17, 2022)
 ----------------------
 
