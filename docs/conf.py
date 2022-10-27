@@ -191,7 +191,7 @@ html_theme_options = {
         "color-brand-primary": "white",
         "color-announcement-background": "#28a745",
     },
-    "announcement": '<string>Live Webinar (Oct 26):</strong> Introducing xlwings PRO File Reader <a href="https://zoomeranalytics.webinargeek.com/introducing-xlwings-file-reader?cst=docs/">Sign Up!</a>',
+    # "announcement": '<string>Live Webinar (Oct 26):</strong> Introducing xlwings PRO File Reader <a href="https://zoomeranalytics.webinargeek.com/introducing-xlwings-file-reader?cst=docs/">Sign Up!</a>',
 }
 
 html_show_sourcelink = False
