@@ -144,7 +144,7 @@ jobs:
       fail-fast: false
       matrix:
         # abi3 wheels aren't supported as DateTime is not part of the ABI spec (PEP 384)
-        python-version: ["3.11"]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         platform: [
           {os: "windows-latest", target: "x86_64"},
 
@@ -170,14 +170,12 @@ jobs:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
       - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          profile: minimal
-          default: true
-      - name: Add aarch64-apple-darwin rust target
-        if: matrix.platform.os == 'macos-latest'
-        run: rustup target add aarch64-apple-darwin
+          # Add the arm64 target in addition to the native arch (x86_64)
+          target: aarch64-apple-darwin
+
       - name: Install Python dependencies
         run: python -m pip install wheel setuptools-rust pytest
 
