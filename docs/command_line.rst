@@ -8,15 +8,19 @@ xlwings comes with a command line client. On Windows, type the commands into a C
 .. code-block:: text
 
     addin               Run "xlwings addin install" to install the Excel add-
-                        in (will be copied to the XLSTART folder). Instead of
-                        "install" you can also use "update", "remove" or
-                        "status". Note that this command may take a while. You
-                        can install your custom add-in by providing the name
-                        or path via the --file/-f flag, e.g. "xlwings add-in
-                        install -f custom.xlam or copy all Excel files in a
-                        directory to the XLSTART folder by providing the path
-                        via the --dir flag."
-                        (New in 0.6.0, the --dir flag was added in 0.24.8)
+                        in (will be copied to the user's XLSTART folder).
+                        Instead of "install" you can also use "update",
+                        "remove" or "status". Note that this command may take
+                        a while. You can install your custom add-in by
+                        providing the name or path via the --file/-f flag,
+                        e.g. "xlwings add-in install -f custom.xlam or copy
+                        all Excel files in a directory to the XLSTART folder
+                        by providing the path via the --dir flag." To install
+                        the add-in for every user globally, use the --glob/-g
+                        flag and run this command from an Elevated Command
+                        Prompt.
+                        (New in 0.6.0, the --dir flag was added in 0.24.8 and the
+                        --glob flag in 0.28.4)
     quickstart          Run "xlwings quickstart myproject" to create a folder
                         called "myproject" in the current directory with an
                         Excel file and a Python file, ready to be used. Use

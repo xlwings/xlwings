@@ -17,36 +17,57 @@ import xlwings as xw
 this_dir = Path(__file__).resolve().parent
 
 
-def exit_on_mac():
-    if sys.platform.startswith("darwin"):
-        sys.exit("This command is currently only supported on Windows.")
+def exit_unsupported_platform():
+    if not sys.platform.startswith("win"):
+        sys.exit("Error: This command is currently only supported on Windows.")
 
 
-def get_addin_dir():
+def get_addin_dir(global_location=False):
     # The call to startup_path creates the XLSTART folder if it doesn't exist yet
+    # The global XLSTART folder seems to be always existing
     if xw.apps:
-        return xw.apps.active.startup_path
+        if global_location:
+            addin_dir = Path(xw.apps.active.path) / "XLSTART"
+            addin_dir.mkdir(exist_ok=True)
+            return addin_dir
+        else:
+            return xw.apps.active.startup_path
     else:
         with xw.App(visible=False) as app:
-            startup_path = app.startup_path
-        return startup_path
+            if global_location:
+                addin_dir = app.path / "XLSTART"
+                addin_dir.mkdir(exist_ok=True)
+                return addin_dir
+            else:
+                return app.startup_path
+
+
+def _handle_addin_glob_arg(args):
+    if args.glob:
+        if not sys.platform.startswith("win"):
+            sys.exit("Error: The '--glob' option is only supported on Windows.")
+        return True
+    else:
+        return False
 
 
 def addin_install(args):
+    global_install = _handle_addin_glob_arg(args)
     if args.dir:
         for addin_source_path in Path(args.dir).resolve().glob("[!~$]*.xl*"):
-            _addin_install(str(addin_source_path))
+            _addin_install(str(addin_source_path), global_install)
     elif args.file:
         addin_source_path = os.path.abspath(args.file)
-        _addin_install(addin_source_path)
+        _addin_install(addin_source_path, global_install)
     else:
         addin_source_path = os.path.join(this_dir, "addin", "xlwings.xlam")
-        _addin_install(addin_source_path)
+        _addin_install(addin_source_path, global_install)
 
 
-def _addin_install(addin_source_path):
+def _addin_install(addin_source_path, global_location=False):
     addin_name = os.path.basename(addin_source_path)
-    addin_target_path = os.path.join(get_addin_dir(), addin_name)
+    addin_target_path = os.path.join(get_addin_dir(global_location), addin_name)
+
     # Close any open add-ins
     if xw.apps:
         for app in xw.apps:
@@ -90,7 +111,8 @@ def _addin_install(addin_source_path):
         if e.args[0] == 13:
             print(
                 "Error: Failed to install the add-in: If Excel is running, "
-                "quit Excel and try again."
+                "quit Excel and try again. If you are using the '--glob' option "
+                "make sure to run this command from an Elevated Command Prompt."
             )
         else:
             print(repr(e))
@@ -99,18 +121,19 @@ def _addin_install(addin_source_path):
 
 
 def addin_remove(args):
+    global_install = _handle_addin_glob_arg(args)
     if args.dir:
         for addin_source_path in Path(args.dir).resolve().glob("[!~$]*.xl*"):
-            _addin_remove(addin_source_path)
+            _addin_remove(addin_source_path, global_install)
     if args.file:
-        _addin_remove(args.file)
+        _addin_remove(args.file, global_install)
     else:
-        _addin_remove("xlwings.xlam")
+        _addin_remove("xlwings.xlam", global_install)
 
 
-def _addin_remove(addin_name):
+def _addin_remove(addin_name, global_install):
     addin_name = os.path.basename(addin_name)
-    addin_path = os.path.join(get_addin_dir(), addin_name)
+    addin_path = os.path.join(get_addin_dir(global_install), addin_name)
     try:
         if xw.apps:
             for app in xw.apps:
@@ -124,7 +147,8 @@ def _addin_remove(addin_name):
         if e.args[0] in (13, 32):
             print(
                 "Error: Failed to remove the add-in: If Excel is running, "
-                "quit Excel and try again. "
+                "quit Excel and try again. If you use the '--glob' option, make "
+                "sure to run this command from an Elevated Command Prompt!"
                 "You can also delete it manually from {0}".format(addin_path)
             )
         elif e.args[0] == 2:
@@ -139,11 +163,12 @@ def _addin_remove(addin_name):
 
 
 def addin_status(args):
+    global_install = _handle_addin_glob_arg(args)
     if args.file:
         addin_name = os.path.basename(args.file)
     else:
         addin_name = "xlwings.xlam"
-    addin_path = os.path.join(get_addin_dir(), addin_name)
+    addin_path = os.path.join(get_addin_dir(global_install), addin_name)
     if os.path.isfile(addin_path):
         print("The add-in is installed at {}".format(addin_path))
         print('Use "xlwings addin remove" to uninstall it.')
@@ -689,7 +714,7 @@ def vba_get_book(args):
 
 
 def vba_import(args):
-    exit_on_mac()
+    exit_unsupported_platform()
     import pywintypes
 
     book = vba_get_book(args)
@@ -724,14 +749,14 @@ def vba_import(args):
 
 
 def vba_export(args):
-    exit_on_mac()
+    exit_unsupported_platform()
     book = vba_get_book(args)
     export_vba_modules(book, overwrite=True)
     print(f"Successfully exported the VBA modules from {book.name}!")
 
 
 def vba_edit(args):
-    exit_on_mac()
+    exit_unsupported_platform()
     import pywintypes
 
     try:
@@ -804,13 +829,14 @@ def main():
     addin_parser = subparsers.add_parser(
         "addin",
         help='Run "xlwings addin install" to install the Excel add-in '
-        '(will be copied to the XLSTART folder). Instead of "install" you can '
+        '(will be copied to the user\'s XLSTART folder). Instead of "install" you can '
         'also use "update", "remove" or "status". Note that this command '
         "may take a while. You can install your custom add-in "
         "by providing the name or path via the --file/-f flag, "
         'e.g. "xlwings add-in install -f custom.xlam or copy all Excel '
         "files in a directory to the XLSTART folder by providing the path "
-        'via the --dir flag."',
+        'via the --dir flag." To install the add-in for every user globally, use the '
+        " --glob/-g flag and run this command from an Elevated Command Prompt.",
     )
     addin_subparsers = addin_parser.add_subparsers(dest="subcommand")
     addin_subparsers.required = True
@@ -820,36 +846,56 @@ def main():
         "The path of a directory whose Excel files you want to copy to or remove from "
         "XLSTART."
     )
+    glob_arg_help = "Install the add-in for all users."
 
     addin_install_parser = addin_subparsers.add_parser("install")
 
     addin_install_parser.add_argument("-f", "--file", default=None, help=file_arg_help)
     addin_install_parser.add_argument("-d", "--dir", default=None, help=dir_arg_help)
+    addin_install_parser.add_argument(
+        "-g", "--glob", action="store_true", help=glob_arg_help
+    )
     addin_install_parser.set_defaults(func=addin_install)
 
     addin_update_parser = addin_subparsers.add_parser("update")
     addin_update_parser.add_argument("-f", "--file", default=None, help=file_arg_help)
     addin_update_parser.add_argument("-d", "--dir", default=None, help=dir_arg_help)
+    addin_update_parser.add_argument(
+        "-g", "--glob", action="store_true", help=glob_arg_help
+    )
     addin_update_parser.set_defaults(func=addin_install)
 
     addin_upgrade_parser = addin_subparsers.add_parser("upgrade")
     addin_upgrade_parser.add_argument("-f", "--file", default=None, help=file_arg_help)
     addin_upgrade_parser.add_argument("-d", "--dir", default=None, help=dir_arg_help)
+    addin_upgrade_parser.add_argument(
+        "-g", "--glob", action="store_true", help=glob_arg_help
+    )
     addin_upgrade_parser.set_defaults(func=addin_install)
 
     addin_remove_parser = addin_subparsers.add_parser("remove")
     addin_remove_parser.add_argument("-f", "--file", default=None, help=file_arg_help)
     addin_remove_parser.add_argument("-d", "--dir", default=None, help=dir_arg_help)
+    addin_remove_parser.add_argument(
+        "-g", "--glob", action="store_true", help=glob_arg_help
+    )
     addin_remove_parser.set_defaults(func=addin_remove)
 
     addin_uninstall_parser = addin_subparsers.add_parser("uninstall")
     addin_uninstall_parser.add_argument(
         "-f", "--file", default=None, help=file_arg_help
     )
+    addin_uninstall_parser.add_argument("-d", "--dir", default=None, help=dir_arg_help)
+    addin_uninstall_parser.add_argument(
+        "-g", "--glob", action="store_true", help=glob_arg_help
+    )
     addin_uninstall_parser.set_defaults(func=addin_remove)
 
     addin_status_parser = addin_subparsers.add_parser("status")
     addin_status_parser.add_argument("-f", "--file", default=None, help=file_arg_help)
+    addin_status_parser.add_argument(
+        "-g", "--glob", action="store_true", help=glob_arg_help
+    )
     addin_status_parser.set_defaults(func=addin_status)
 
     # Quickstart
