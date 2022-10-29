@@ -1,12 +1,13 @@
 What's New
 ==========
 
-v0.28.4 (Oct 29, 2022)
-----------------------
+v0.28.4 and v0.28.5 (Oct 29, 2022)
+----------------------------------
 
 * :bdg-info:`Enhancement` Added possibility to install the add-in globally for all users via ``xlwings addin install -g`` (:issue:`2075`).
 * :bdg-info:`Enhancement` Added ``App.path`` property (:issue:`2074`).
 * :bdg-info:`Enhancement` Build wheels for Python 3.11 (:issue:`2071`).
+* :bdg-warning:`Bug Fix` 0.28.5 fixes an issue with the global add-in install (:issue:`2076`).
 
 v0.28.3 (Oct 21, 2022)
 ----------------------
