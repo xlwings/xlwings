@@ -649,6 +649,10 @@ class App:
         return self._hwnd
 
     @property
+    def path(self):
+        return self.xl.Path
+
+    @property
     def pid(self):
         return win32process.GetWindowThreadProcessId(self.hwnd)[1]
 

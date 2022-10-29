@@ -512,6 +512,15 @@ class App:
         return self.impl.hwnd
 
     @property
+    def path(self):
+        """
+        Returns the path to where the App is installed.
+
+        .. versionadded:: 0.28.4
+        """
+        return self.impl.path
+
+    @property
     def pid(self):
         """
         Returns the PID of the app.

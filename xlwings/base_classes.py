@@ -112,6 +112,10 @@ class App:
         raise NotImplementedError()
 
     @property
+    def path(self):
+        raise NotImplementedError()
+
+    @property
     def pid(self):
         raise NotImplementedError()
 

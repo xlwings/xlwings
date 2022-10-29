@@ -191,6 +191,10 @@ class App:
         return engine
 
     @property
+    def path(self):
+        return hfs_to_posix_path(self.xl.path.get())
+
+    @property
     def pid(self):
         data = (
             self.xl.AS_appdata.target()
