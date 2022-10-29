@@ -7,8 +7,8 @@
    This kicks off the GitHub actions pipeline that will:
    
    * Build the dlls, the `xlwings.xlam`, the standalone files and `xlwings.bas` (they depend on the version number) and the Python package
-   * Upload the Python package to PyPI and `xlwings.xlam` to the GitHub release page
-   * Trigger a rebuild of https://www.xlwings.org so it is updated with latest version/date
+   * Upload the Python package to PyPI
+   * Trigger a rebuild of https://www.xlwings.org so it is updated with latest version
 
 3. readthedocs.org triggers a new build automatically (login with GH account)
 4. The [conda-forge](https://github.com/conda-forge/xlwings-feedstock) package automatically
