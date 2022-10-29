@@ -35,7 +35,7 @@ def get_addin_dir(global_location=False):
     else:
         with xw.App(visible=False) as app:
             if global_location:
-                addin_dir = app.path / "XLSTART"
+                addin_dir = Path(app.path) / "XLSTART"
                 addin_dir.mkdir(exist_ok=True)
                 return addin_dir
             else:
