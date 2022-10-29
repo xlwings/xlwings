@@ -246,6 +246,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: Package
+          path: Package
       - name: Publish package and update Homepage with release version
         shell: bash
         run: |
