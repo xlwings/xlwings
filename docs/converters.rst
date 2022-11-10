@@ -180,6 +180,8 @@ The following options can be set:
 
 * **formatter** (new in v0.28.1)
 
+  .. note:: You can't use formatters with Excel tables.
+
   The ``formatter`` option accepts the name of a function. The function will be called after writing the values to Excel and allows you to easily style the range in a very flexible way. How it works is best shown with a little example:
 
   .. code-block:: python

@@ -332,6 +332,8 @@ Example: Independent mode: If you want to merge cells within columns independent
 formatter
 ~~~~~~~~~
 
+.. note:: You can't use formatters with Excel tables.
+
 The ``formatter`` filter accepts the name of a function. The function will be called after writing the values to Excel and allows you to easily style the range in a very flexible way::
 
 {{ df | formatter("myformatter") }}
