@@ -82,6 +82,17 @@ async def async_thread(base, my_has_dynamic_array, func, args, cache_key, expand
     except:  # noqa: E722
         exception(logger, "async_thread failed")
 
+async def async_thread_nocaller(func, args,):
+    backcompat_check_com_initialized()
+    try:
+        loop = get_running_loop()
+        await loop.run_in_executor(
+            com_executor, functools.partial(func, *args)
+        )
+
+    except:
+        exception(logger, "async_thread failed")
+
 
 def func_sig(f):
     s = inspect.signature(f)
@@ -492,6 +503,12 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     from .server import loop
 
     if func_info["async_mode"] and func_info["async_mode"] == "threading":
+        if caller is None:
+            asyncio.run_coroutine_threadsafe(
+                async_thread_nocaller(func, args),
+                loop,
+            )
+            return [[0]]
         cache_key = get_cache_key(func, args, caller)
         cached_value = cache.get(cache_key)
         if (
