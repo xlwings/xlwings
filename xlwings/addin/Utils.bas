@@ -390,4 +390,17 @@ Function GetFullName(wb As Workbook) As String
 End Function
 #End If
 
+Function GetAzureAdAccessToken()
+    Dim nowTs As Long, expiresTs As Long
 
+    expiresTs = GetConfig("AZUREAD_ACCESS_TOKEN_EXPIRES_ON", 0)
+    nowTs = DateDiff("s", #1/1/1970#, ConvertToUtc(Now()))
+
+    If (expiresTs > 0) And (nowTs < (expiresTs - 30)) Then
+        GetAzureAdAccessToken = GetConfig("AZUREAD_ACCESS_TOKEN")
+        Exit Function
+    Else
+        RunPython "from xlwings import cli;cli._auth_aad()"
+        GetAzureAdAccessToken = GetConfig("AZUREAD_ACCESS_TOKEN")
+    End If
+End Function

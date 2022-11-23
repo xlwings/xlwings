@@ -7,6 +7,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import time
 import uuid
 from keyword import iskeyword
 from pathlib import Path
@@ -15,6 +16,84 @@ import xlwings as xw
 
 # Directories/paths
 this_dir = Path(__file__).resolve().parent
+
+
+def auth_aad(args):
+    _auth_aad(
+        tenant_id=args.tenant_id,
+        client_id=args.client_id,
+        port=args.port,
+        scopes=args.scopes,
+        username=args.username,
+    )
+
+
+def _auth_aad(client_id=None, tenant_id=None, username=None, port=None, scopes=None):
+    from xlwings.utils import read_user_config
+
+    try:
+        import msal
+    except ImportError:
+        sys.exit("Couldn't find the 'msal' package. Install it via `pip install msal`.")
+
+    user_config = read_user_config()
+    if tenant_id is None:
+        tenant_id = user_config["azuread_tenant_id"]
+    if client_id is None:
+        client_id = user_config["azuread_client_id"]
+    if port is None:
+        port = user_config.get("azuread_port")
+    if scopes is None:
+        scopes = user_config.get("azuread_scopes")
+    if username is None:
+        username = user_config.get("azuread_username")
+    if scopes is None:
+        scopes = [""]
+    elif isinstance(scopes, str):
+        scopes = scopes.split(",")
+    else:
+        sys.exit("Please provide scopes as a single string with commas.")
+
+    # https://learn.microsoft.com/en-us/azure/active-directory/develop/msal-client-application-configuration#authority
+    authority = f"https://login.microsoftonline.com/{tenant_id}"
+
+    # Cache
+    token_cache = msal.SerializableTokenCache()
+
+    cache_dir = Path(xw.USER_CONFIG_FILE).parent
+    cache_file = cache_dir / "aad.json"
+    cache_file.parent.mkdir(exist_ok=True)
+    if cache_file.exists():
+        token_cache.deserialize(cache_file.read_text())
+
+    app = msal.PublicClientApplication(
+        client_id=client_id,
+        authority=authority,
+        token_cache=token_cache,
+    )
+
+    result = None
+    # Username selects the account if multiple accounts are logged in
+    # This requires scopes to be set though, but scopes=[""] seem to do the trick.
+    accounts = app.get_accounts(username=username if username else None)
+    if accounts:
+        account = accounts[0]
+        result = app.acquire_token_silent(scopes=scopes, account=account)
+    if not result:
+        result = app.acquire_token_interactive(
+            scopes=scopes, timeout=60, port=int(port) if port else None
+        )
+
+    if "access_token" not in result:
+        sys.exit(result.get("error_description"))
+
+    update_user_config("AZUREAD_ACCESS_TOKEN", result["access_token"])
+    update_user_config(
+        "AZUREAD_ACCESS_TOKEN_EXPIRES_ON", int(time.time()) + result["expires_in"]
+    )
+
+    if token_cache.has_state_changed:
+        cache_file.write_text(token_cache.serialize())
 
 
 def exit_unsupported_platform():
@@ -283,26 +362,28 @@ def license_update(args):
             "Please provide a license key via the -k/--key option. "
             "For example: xlwings license update -k MY_KEY"
         )
-    license_kv = '"LICENSE_KEY","{0}"\n'.format(key)
-    # Update xlwings.conf
+    update_user_config("LICENSE_KEY", key)
+    print("Successfully updated license key.")
+
+
+def update_user_config(key, value):
     new_config = []
     if os.path.exists(xw.USER_CONFIG_FILE):
         with open(xw.USER_CONFIG_FILE, "r") as f:
             config = f.readlines()
         for line in config:
-            # Remove existing license key and empty lines
-            if line.split(",")[0] == '"LICENSE_KEY"' or line in ("\r\n", "\n"):
+            # Remove existing key and empty lines
+            if line.split(",")[0] == f'"{key}"' or line in ("\r\n", "\n"):
                 pass
             else:
                 new_config.append(line)
-        new_config.append(license_kv)
+        new_config.append(f'"{key}","{value}"\n')
     else:
-        new_config = [license_kv]
+        new_config = [f'"{key}","{value}"\n']
     if not os.path.exists(os.path.dirname(xw.USER_CONFIG_FILE)):
         os.makedirs(os.path.dirname(xw.USER_CONFIG_FILE))
     with open(xw.USER_CONFIG_FILE, "w") as f:
         f.writelines(new_config)
-    print("Successfully updated license key.")
 
 
 def license_deploy(args):
@@ -1076,6 +1157,41 @@ def main():
     copy_os_parser = copy_subparser.add_parser("gs")
     copy_os_parser.set_defaults(func=copy_gs)
 
+    # Azure AD authentication (MSAL)
+    auth_parser = subparsers.add_parser(
+        "auth", help='Microsoft Azure AD (v2): "xlwings auth azuread"'
+    )
+
+    aad_subparser = auth_parser.add_subparsers(dest="subcommand")
+    aad_subparser.required = True
+
+    aad_os_parser = aad_subparser.add_parser("azuread")
+    aad_os_parser.set_defaults(func=auth_aad)
+    aad_os_parser.add_argument(
+        "-tid",
+        "--tenant_id",
+        help="Tenant ID",
+    )
+    aad_os_parser.add_argument(
+        "-cid",
+        "--client_id",
+        help="CLIENT ID",
+    )
+    aad_os_parser.add_argument(
+        "-p",
+        "--port",
+        help="Port",
+    )
+    aad_os_parser.add_argument(
+        "-s",
+        "--scopes",
+        help="Scopes",
+    )
+    aad_os_parser.add_argument(
+        "-u",
+        "--username",
+        help="Username",
+    )
     # Edit VBA code
     vba_parser = subparsers.add_parser(
         "vba",
