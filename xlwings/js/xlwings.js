@@ -1,5 +1,5 @@
 function hello() {
-  runPython("url", { apiKey: "API_KEY" });
+  runPython("url", { auth: "..." });
 }
 
 /**
@@ -39,7 +39,7 @@ function hello() {
 
 function runPython(
   url,
-  { apiKey = "", include = "", exclude = "", headers = {} } = {}
+  { auth = "", apiKey = "", include = "", exclude = "", headers = {} } = {}
 ) {
   const workbook = SpreadsheetApp.getActive();
   const sheets = workbook.getSheets();
@@ -62,6 +62,10 @@ function runPython(
 
   if (apiKey === "") {
     apiKey = config["API_KEY"] || "";
+  }
+
+  if (auth === "") {
+    auth = config["AUTH"] || "";
   }
 
   if (include === "") {
@@ -97,8 +101,12 @@ function runPython(
       }
     }
   }
-  if (!("Authorization" in headers)) {
+  // Deprecated: replaced by "auth"
+  if (!("Authorization" in headers) && apiKey.length > 0) {
     headers["Authorization"] = apiKey;
+  }
+  if (!("Authorization" in headers) && auth.length > 0) {
+    headers["Authorization"] = auth;
   }
 
   // Request payload

@@ -115,10 +115,10 @@ Your web server is now listening, so let's open ``demo.xlsm``, press ``Alt+F11``
 .. code-block:: vb.net
 
     Sub SampleRemoteCall()
-        RunRemotePython "http://127.0.0.1:8000/hello", apiKey:="DEVELOPMENT"
+        RunRemotePython "http://127.0.0.1:8000/hello", auth:="DEVELOPMENT"
     End Sub
 
-Then hit ``F5`` to run the function---you should see ``Hello xlwings!`` in cell A1 of the first sheet. To move this to production, you need to deploy the backend to a server, set a unique API key and adjust the ``url``/``apiKey`` in the RunRemotePython function accordingly, see :ref:`Production Deployment`.
+Then hit ``F5`` to run the function---you should see ``Hello xlwings!`` in cell A1 of the first sheet. To move this to production, you need to deploy the backend to a server, set a unique API key and adjust the ``url``/``auth`` in the RunRemotePython function accordingly, see :ref:`Production Deployment`.
 
 The next sections, however, show you how you can make this work with the Google Sheets and Excel on the web.
 
@@ -292,11 +292,11 @@ xlwings can be configured in two ways:
 If you provide a value via config sheet and via function argument, the function argument wins. Let's see what the available settings are:
 
 * ``url`` (required): This is the full URL of your function. In the above example under :ref:`Local Development with Google Sheets or Excel on the web`, this would be ``https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello``, i.e., the ngrok URL **with the /hello endpoint appended**.
-* ``apiKey`` (optional): While this is technically optional, it is usually required by the backend. It has to correspond to whatever you set the ``XLWINGS_API_KEY`` environment variable on your server and will protect your functions from unauthorized access. It's good practice to keep your sensitive keys such as the ``apiKey`` out of your source code (the JavaScript/VBA module), but putting it in the ``xlwings.conf`` sheet may only be marginally better. Excel on the web, however, doesn't currently provide you with a better way of handling this. Google Sheets, on the other hand, allows you to work with `Properties Service <https://developers.google.com/apps-script/guides/properties>`_ to keep the API key out of both the JavaScript code and the ``xlwings.conf`` sheet.
+* ``auth`` (optional): While this is technically optional, it is usually required by the backend. It has to correspond to whatever you set the ``XLWINGS_API_KEY`` environment variable on your server and will protect your functions from unauthorized access. It's good practice to keep your sensitive keys such as the ``auth`` out of your source code (the JavaScript/VBA module), but putting it in the ``xlwings.conf`` sheet may only be marginally better. Excel on the web, however, doesn't currently provide you with a better way of handling this. Google Sheets, on the other hand, allows you to work with `Properties Service <https://developers.google.com/apps-script/guides/properties>`_ to keep the API key out of both the JavaScript code and the ``xlwings.conf`` sheet.
 
   .. note:: The API key is chosen by you to protect your application and has nothing to do with the xlwings license key!
 
-* ``headers`` (optional): A dictionary (VBA) or object literal (JS) with name/value pairs. If you set the ``Authorization`` header, ``apiKey`` will be ignored.
+* ``headers`` (optional): A dictionary (VBA) or object literal (JS) with name/value pairs. If you set the ``Authorization`` header, ``auth`` will be ignored.
 * ``exclude`` (optional): By default, xlwings sends over the complete content of the whole workbook to the server. If you have sheets with big amounts of data, this can make the calls slow or you could even hit a timeout. If your backend doesn't need the content of certain sheets, you can exclude them from being sent over via this setting. Currently, you can only exclude entire sheets as comma-delimited string like so: ``"Sheet1, Sheet2"``.
 * ``include`` (optional): It's the counterpart to ``exclude`` and allows you to submit the names of the sheets that you want to send to the server. Like ``exclude``, ``include`` accepts a comma-delimited string, e.g., ``"Sheet1,Sheet2"``.
 
@@ -313,7 +313,7 @@ Configuration Examples: Function Arguments
       .. code-block:: vb.net
 
         Sub Hello()
-            RunRemotePython "http://127.0.0.1:8000/hello", apiKey:="YOUR_UNIQUE_API_KEY"
+            RunRemotePython "http://127.0.0.1:8000/hello", auth:="YOUR_UNIQUE_API_KEY"
         End Sub
 
       Additionally providing the ``exclude`` parameter to exclude the content of the ``xlwings.conf`` and ``Sheet1`` sheets:
@@ -321,7 +321,7 @@ Configuration Examples: Function Arguments
       .. code-block:: vb.net
 
         Sub Hello()
-            RunRemotePython "http://127.0.0.1:8000/hello", apiKey:="YOUR_UNIQUE_API_KEY", exclude:="xlwings.conf, Sheet1"
+            RunRemotePython "http://127.0.0.1:8000/hello", auth:="YOUR_UNIQUE_API_KEY", exclude:="xlwings.conf, Sheet1"
         End Sub
 
     .. tab-item:: Google Sheets
@@ -333,7 +333,7 @@ Configuration Examples: Function Arguments
 
         function hello() {
           runPython("https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello", {
-            apiKey: "YOUR_UNIQUE_API_KEY",
+            auth: "YOUR_UNIQUE_API_KEY",
           });
         }
 
@@ -343,7 +343,7 @@ Configuration Examples: Function Arguments
 
         function hello() {
           runPython("https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello", {
-            apiKey: "YOUR_UNIQUE_API_KEY",
+            auth: "YOUR_UNIQUE_API_KEY",
             exclude: "xlwings.conf, Sheet1",
             headers: { MyHeader: "my value" },
           });
@@ -360,7 +360,7 @@ Configuration Examples: Function Arguments
           await runPython(
             workbook,
             "https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello",
-            { apiKey: "YOUR_UNIQUE_API_KEY" }
+            { auth: "YOUR_UNIQUE_API_KEY" }
           );
         }
 
@@ -373,7 +373,7 @@ Configuration Examples: Function Arguments
             workbook,
             "https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello",
             {
-              apiKey: "YOUR_UNIQUE_API_KEY",
+              auth: "YOUR_UNIQUE_API_KEY",
               exclude: "xlwings.conf, Sheet1",
               headers: { MyHeader: "my value" },
             }

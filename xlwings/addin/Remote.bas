@@ -2,6 +2,7 @@ Attribute VB_Name = "Remote"
 Option Explicit
 Function RunRemotePython( _
     url As String, _
+    Optional auth As String, _
     Optional apiKey As String, _
     Optional include As String, _
     Optional exclude As String, _
@@ -77,8 +78,11 @@ Function RunRemotePython( _
     If proxyBypassList = "" Then
         proxyBypassList = GetConfig("PROXY_BYPASS_LIST", "")
     End If
-    If apiKey = "" Then
+    If apiKey = "" Then  ' Deprecated: replaced by "auth"
         apiKey = GetConfig("API_KEY", "")
+    End If
+    If auth = "" Then
+        auth = GetConfig("AUTH", "")
     End If
 
     ' Request payload
@@ -215,8 +219,11 @@ Function RunRemotePython( _
     End If
 
     If authHeader = False Then
-        If apiKey <> "" Then
+        If apiKey <> "" Then  ' Deprecated: replaced by "auth"
             myRequest.AddHeader "Authorization", apiKey
+        End If
+        If auth <> "" Then
+            myRequest.AddHeader "Authorization", auth
         End If
     End If
 
