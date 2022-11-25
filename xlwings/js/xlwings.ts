@@ -1,5 +1,5 @@
 async function main(workbook: ExcelScript.Workbook) {
-  await runPython(workbook, "url", { apiKey: "API_KEY" });
+  await runPython(workbook, "url", { auth: "..." });
 }
 
 /**
@@ -36,7 +36,7 @@ async function main(workbook: ExcelScript.Workbook) {
 async function runPython(
   workbook: ExcelScript.Workbook,
   url = "",
-  { apiKey = "", include = "", exclude = "", headers = {} }: Options = {}
+  { auth = "", apiKey = "", include = "", exclude = "", headers = {} }: Options = {}
 ): Promise<void> {
   const sheets = workbook.getWorksheets();
   // Config
@@ -53,6 +53,9 @@ async function runPython(
 
   if (apiKey === "") {
     apiKey = config["API_KEY"] || "";
+  }
+  if (auth === "") {
+    auth = config["AUTH"] || "";
   }
 
   if (include === "") {
@@ -88,8 +91,12 @@ async function runPython(
       }
     }
   }
-  if (!("Authorization" in headers)) {
+  // Deprecated: replaced by "auth"
+  if (!("Authorization" in headers) && apiKey.length > 0) {
     headers["Authorization"] = apiKey;
+  }
+  if (!("Authorization" in headers) && auth.length > 0) {
+    headers["Authorization"] = auth;
   }
 
   // Standard headers
