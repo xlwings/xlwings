@@ -206,7 +206,7 @@ Function RunRemotePython( _
     authHeader = False
     If Not IsMissing(headers) Then
         Dim myKey As Variant
-        For Each myKey In headers.myKeys
+        For Each myKey In headers.Keys
             myRequest.AddHeader CStr(myKey), headers(myKey)
         Next
         If headers.Exists("Authorization") Then
