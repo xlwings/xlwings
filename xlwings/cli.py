@@ -47,10 +47,11 @@ def _auth_aad(client_id=None, tenant_id=None, username=None, port=None, scopes=N
         scopes = user_config.get("azuread_scopes")
     if username is None:
         username = user_config.get("azuread_username")
+    # Scopes can only be from one application!
     if scopes is None:
         scopes = [""]
     elif isinstance(scopes, str):
-        scopes = scopes.split(",")
+        scopes = [scope.strip() for scope in scopes.split(",")]
     else:
         sys.exit("Please provide scopes as a single string with commas.")
 
