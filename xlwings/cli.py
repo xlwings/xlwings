@@ -25,16 +25,28 @@ def auth_aad(args):
         port=args.port,
         scopes=args.scopes,
         username=args.username,
+        reset=args.reset,
     )
 
 
-def _auth_aad(client_id=None, tenant_id=None, username=None, port=None, scopes=None):
+def _auth_aad(
+    client_id=None, tenant_id=None, username=None, port=None, scopes=None, reset=False
+):
     from xlwings.utils import read_user_config
 
     try:
         import msal
     except ImportError:
         sys.exit("Couldn't find the 'msal' package. Install it via `pip install msal`.")
+
+    cache_dir = Path(xw.USER_CONFIG_FILE).parent
+    cache_file = cache_dir / "aad.json"
+
+    if reset:
+        if cache_file.exists():
+            cache_file.unlink()
+        update_user_config("AZUREAD_ACCESS_TOKEN", None, action="delete")
+        update_user_config("AZUREAD_ACCESS_TOKEN_EXPIRES_ON", None, action="delete")
 
     user_config = read_user_config()
     if tenant_id is None:
@@ -61,8 +73,6 @@ def _auth_aad(client_id=None, tenant_id=None, username=None, port=None, scopes=N
     # Cache
     token_cache = msal.SerializableTokenCache()
 
-    cache_dir = Path(xw.USER_CONFIG_FILE).parent
-    cache_file = cache_dir / "aad.json"
     cache_file.parent.mkdir(exist_ok=True)
     if cache_file.exists():
         token_cache.deserialize(cache_file.read_text())
@@ -367,7 +377,8 @@ def license_update(args):
     print("Successfully updated license key.")
 
 
-def update_user_config(key, value):
+def update_user_config(key, value=None, action="add"):
+    # action: 'add' or 'remove'
     new_config = []
     if os.path.exists(xw.USER_CONFIG_FILE):
         with open(xw.USER_CONFIG_FILE, "r") as f:
@@ -378,9 +389,13 @@ def update_user_config(key, value):
                 pass
             else:
                 new_config.append(line)
-        new_config.append(f'"{key}","{value}"\n')
+        if action == "add":
+            new_config.append(f'"{key}","{value}"\n')
     else:
-        new_config = [f'"{key}","{value}"\n']
+        if action == "add":
+            new_config = [f'"{key}","{value}"\n']
+        else:
+            return
     if not os.path.exists(os.path.dirname(xw.USER_CONFIG_FILE)):
         os.makedirs(os.path.dirname(xw.USER_CONFIG_FILE))
     with open(xw.USER_CONFIG_FILE, "w") as f:
@@ -1166,32 +1181,35 @@ def main():
     aad_subparser = auth_parser.add_subparsers(dest="subcommand")
     aad_subparser.required = True
 
-    aad_os_parser = aad_subparser.add_parser("azuread")
-    aad_os_parser.set_defaults(func=auth_aad)
-    aad_os_parser.add_argument(
+    auth_aad_parser = aad_subparser.add_parser("azuread")
+    auth_aad_parser.set_defaults(func=auth_aad)
+    auth_aad_parser.add_argument(
         "-tid",
         "--tenant_id",
         help="Tenant ID",
     )
-    aad_os_parser.add_argument(
+    auth_aad_parser.add_argument(
         "-cid",
         "--client_id",
         help="CLIENT ID",
     )
-    aad_os_parser.add_argument(
+    auth_aad_parser.add_argument(
         "-p",
         "--port",
         help="Port",
     )
-    aad_os_parser.add_argument(
+    auth_aad_parser.add_argument(
         "-s",
         "--scopes",
         help="Scopes",
     )
-    aad_os_parser.add_argument(
+    auth_aad_parser.add_argument(
         "-u",
         "--username",
         help="Username",
+    )
+    auth_aad_parser.add_argument(
+        "-r", "--reset", action="store_true", help="Clear local cache."
     )
     # Edit VBA code
     vba_parser = subparsers.add_parser(
