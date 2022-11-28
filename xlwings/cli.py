@@ -53,10 +53,10 @@ def _auth_aad(
         tenant_id = user_config["azuread_tenant_id"]
     if client_id is None:
         client_id = user_config["azuread_client_id"]
+    if scopes is None:
+        scopes = user_config["azuread_scopes"]
     if port is None:
         port = user_config.get("azuread_port")
-    if scopes is None:
-        scopes = user_config.get("azuread_scopes")
     if username is None:
         username = user_config.get("azuread_username")
     # Scopes can only be from one application!
