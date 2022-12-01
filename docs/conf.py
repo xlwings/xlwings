@@ -191,7 +191,7 @@ html_theme_options = {
         "color-brand-primary": "white",
         "color-announcement-background": "#28a745",
     },
-    "announcement": 'Happy Black Friday! Get the xlwings on-demand video course with a 50% discount (ends Nov 30, 2022): <a href="https://training.xlwings.org/p/xlwings?coupon_code=BF2022DC">Get 50% off!</a>',
+    # "announcement": 'Happy Black Friday! Get the xlwings on-demand video course with a 50% discount (ends Nov 30, 2022): <a href="https://training.xlwings.org/p/xlwings?coupon_code=BF2022DC">Get 50% off!</a>',
 }
 
 html_show_sourcelink = False
