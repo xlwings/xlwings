@@ -390,15 +390,31 @@ Function GetFullName(wb As Workbook) As String
 End Function
 #End If
 
-Function GetAzureAdAccessToken()
+Function GetAzureAdAccessToken( _
+    Optional tenantId As String, _
+    Optional clientId As String, _
+    Optional port as String, _
+    Optional scopes as String, _
+    Optional username as String _
+)
     Dim nowTs As Long, expiresTs As Long
-    Dim clientId As String, kwargs as String
+    Dim kwargs as String
 
-    tenantId = GetConfig("AZUREAD_TENANT_ID")
-    clientId = GetConfig("AZUREAD_CLIENT_ID")
-    port = GetConfig("AZUREAD_PORT")
-    scopes = GetConfig("AZUREAD_SCOPES")
-    username = GetConfig("AZUREAD_USERNAME")
+    If tenantId = "" Then
+        tenantId = GetConfig("AZUREAD_TENANT_ID")
+    End If
+    If clientId = "" Then
+        clientId = GetConfig("AZUREAD_CLIENT_ID")
+    End If
+    If port = "" Then
+        port = GetConfig("AZUREAD_PORT")
+    End If
+    If scopes = "" Then
+        scopes = GetConfig("AZUREAD_SCOPES")
+    End If
+    If username = "" Then
+        username = GetConfig("AZUREAD_USERNAME")
+    End If
     kwargs = "tenant_id='" & tenantId & "', "
     kwargs = kwargs & "client_id='" & clientId & "', "
     If port <> "" Then
