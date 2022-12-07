@@ -392,15 +392,33 @@ End Function
 
 Function GetAzureAdAccessToken()
     Dim nowTs As Long, expiresTs As Long
+    Dim clientId As String, kwargs as String
 
-    expiresTs = GetConfig("AZUREAD_ACCESS_TOKEN_EXPIRES_ON", 0)
+    tenantId = GetConfig("AZUREAD_TENANT_ID")
+    clientId = GetConfig("AZUREAD_CLIENT_ID")
+    port = GetConfig("AZUREAD_PORT")
+    scopes = GetConfig("AZUREAD_SCOPES")
+    username = GetConfig("AZUREAD_USERNAME")
+    kwargs = "tenant_id='" & tenantId & "', "
+    kwargs = kwargs & "client_id='" & clientId & "', "
+    If port <> "" Then
+        kwargs = kwargs & "port='" & port & "', "
+    End If
+    If scopes <> "" Then
+        kwargs = kwargs & "scopes='" & scopes & "', "
+    End If
+    If username <> "" Then
+        kwargs = kwargs & "username='" & username & "', "
+    End If
+
+    expiresTs = GetConfig("AZUREAD_ACCESS_TOKEN_EXPIRES_ON_" & clientId, 0)
     nowTs = DateDiff("s", #1/1/1970#, ConvertToUtc(Now()))
 
     If (expiresTs > 0) And (nowTs < (expiresTs - 30)) Then
-        GetAzureAdAccessToken = GetConfig("AZUREAD_ACCESS_TOKEN")
+        GetAzureAdAccessToken = GetConfig("AZUREAD_ACCESS_TOKEN_" & clientId)
         Exit Function
     Else
-        RunPython "from xlwings import cli;cli._auth_aad()"
-        GetAzureAdAccessToken = GetConfig("AZUREAD_ACCESS_TOKEN")
+        RunPython "from xlwings import cli;cli._auth_aad(" & kwargs & ")"
+        GetAzureAdAccessToken = GetConfig("AZUREAD_ACCESS_TOKEN_" & clientId)
     End If
 End Function
