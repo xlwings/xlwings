@@ -98,9 +98,10 @@ def _auth_aad(
     if "access_token" not in result:
         sys.exit(result.get("error_description"))
 
-    update_user_config("AZUREAD_ACCESS_TOKEN", result["access_token"])
+    update_user_config(f"AZUREAD_ACCESS_TOKEN_{client_id}", result["access_token"])
     update_user_config(
-        "AZUREAD_ACCESS_TOKEN_EXPIRES_ON", int(time.time()) + result["expires_in"]
+        f"AZUREAD_ACCESS_TOKEN_EXPIRES_ON_{client_id}",
+        int(time.time()) + result["expires_in"],
     )
 
     if token_cache.has_state_changed:
