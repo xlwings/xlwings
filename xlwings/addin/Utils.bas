@@ -393,12 +393,12 @@ End Function
 Function GetAzureAdAccessToken( _
     Optional tenantId As String, _
     Optional clientId As String, _
-    Optional port as String, _
-    Optional scopes as String, _
-    Optional username as String _
+    Optional port As String, _
+    Optional scopes As String, _
+    Optional username As String _
 )
     Dim nowTs As Long, expiresTs As Long
-    Dim kwargs as String
+    Dim kwargs As String
 
     If tenantId = "" Then
         tenantId = GetConfig("AZUREAD_TENANT_ID")
@@ -435,6 +435,18 @@ Function GetAzureAdAccessToken( _
         Exit Function
     Else
         RunPython "from xlwings import cli;cli._auth_aad(" & kwargs & ")"
-        GetAzureAdAccessToken = GetConfig("AZUREAD_ACCESS_TOKEN_" & clientId)
+        #If Mac Then
+            ' RunPython on macOS is async: 60s should be enough if you have to login from scratch
+            For i = 1 To 60
+                expiresTs = GetConfig("AZUREAD_ACCESS_TOKEN_EXPIRES_ON_" & clientId, 0)
+                If (nowTs < (expiresTs - 30)) Then
+                    GetAzureAdAccessToken = GetConfig("AZUREAD_ACCESS_TOKEN_" & clientId)
+                    Exit Function
+                End If
+                Application.Wait (Now + TimeValue("0:00:01"))
+            Next i
+        #Else
+            GetAzureAdAccessToken = GetConfig("AZUREAD_ACCESS_TOKEN_" & clientId)
+        #End If
     End If
 End Function
