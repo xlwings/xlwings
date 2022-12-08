@@ -64,23 +64,22 @@ The release command is part of the xlwings CLI (command-line client) and will pr
 * Run the installer from the previous step. This will not interfere with your existing Python installation as it won't touch your environment variables or registry. Instead, it will only write to the following folder: ``%LOCALAPPDATA%\<installer-name>``.
 * Make sure that your local version of xlwings corresponds to the version of xlwings in the ``requirements.txt`` from the installer. The easiest way to double-check this is to run ``pip freeze`` on a Command Prompt or Anaconda Prompt. If your local version of xlwings differs, install the same version as the installer uses via: ``pip install xlwings==<version from installer>``.
 
-To work with the release command, you should have your workbook in the ``xlsm`` format and all the Python modules in the same folder::
+To work with the release command, you should have your workbook in the ``xlsm`` format next to your Python code::
 
     myworkbook.xlsm
     mymodule_one.py
-    mymodule_two.py
+    mypackage/
+      mymodule_two.py
     ...
-
-You currently can't organize your code in directories, but you can easily import ``mymodule_two`` from ``mymodule_one``.
 
 Make sure that your Excel workbook is the active workbook, then run the following command on a Command/Anaconda Prompt::
 
     xlwings release
 
-If this is the first time you are running this command, you will be asked a few questions. If you are shown a ``[Y/n]``, you can hit Enter to accept the default as expressed by the capitalized letter:
+If this is the first time you run this command, you will be asked a few questions. If you are shown a ``[Y/n]``, you can hit Enter to accept the default as expressed by the capitalized letter:
 
 * ``Name of your one-click installer?`` `Type in the name of your one-click installer. If you want to use a different Python distribution (e.g., Anaconda), you can leave this empty (but you will need to update the xlwings.conf sheet with the Conda settings once the release command has been run).`
-* ``Embed your Python code? [Y/n]`` `This will copy the Python code into the sheets of the Excel file. It will respect all Python files that are in the same folder as the Excel workbook.`
+* ``Embed your Python code? [Y/n]`` `This will copy the Python code into the sheets of the Excel file.`
 * ``Hide the config sheet? [Y/n]`` `This will hide the xlwings.conf sheet.`
 * ``Hide the sheets with the embedded Python code? [Y/n]`` `If you embed your Python code, this will hide all sheets with a .py ending.`
 * ``Allow your tool to run without the xlwings add-in? [Y/n]`` `This will remove the VBA reference to xlwings and copy in the xlwings VBA modules so that the end users don't need to have the xlwings add-in installed. Note that in this case, you will need to have your RunPython calls bound to a button as you can't use the Ribbon's Run main button anymore.`
