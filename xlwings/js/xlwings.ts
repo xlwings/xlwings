@@ -214,6 +214,7 @@ async function runPython(
 
 // Helpers
 interface Options {
+  auth?: string;
   apiKey?: string;
   include?: string;
   exclude?: string;
@@ -266,6 +267,7 @@ let funcs = {
   deletePicture: deletePicture,
   addPicture: addPicture,
   updatePicture: updatePicture,
+  alert: alert,
 };
 
 // Functions
