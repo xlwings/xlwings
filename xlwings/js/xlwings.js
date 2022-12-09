@@ -3,7 +3,7 @@ function hello() {
 }
 
 /**
- * xlwings dev (for Google Apps Script)
+ * xlwings for Google Apps Script
  * Copyright (C) 2014 - present, Zoomer Analytics GmbH.
  * All rights reserved.
  *
@@ -41,6 +41,7 @@ function runPython(
   url,
   { auth = "", apiKey = "", include = "", exclude = "", headers = {} } = {}
 ) {
+  const version = "dev";
   const workbook = SpreadsheetApp.getActive();
   const sheets = workbook.getSheets();
 
@@ -112,7 +113,7 @@ function runPython(
   // Request payload
   let payload = {};
   payload["client"] = "Google Apps Script";
-  payload["version"] = "dev";
+  payload["version"] = version;
   payload["book"] = {
     name: workbook.getName(),
     active_sheet_index: workbook.getActiveSheet().getIndex() - 1,

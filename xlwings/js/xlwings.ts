@@ -3,7 +3,7 @@ async function main(workbook: ExcelScript.Workbook) {
 }
 
 /**
- * xlwings dev (for Microsoft Office Scripts)
+ * xlwings for Microsoft Office Scripts
  * Copyright (C) 2014 - present, Zoomer Analytics GmbH.
  * All rights reserved.
  *
@@ -38,6 +38,7 @@ async function runPython(
   url = "",
   { auth = "", apiKey = "", include = "", exclude = "", headers = {} }: Options = {}
 ): Promise<void> {
+  const version = "dev";
   const sheets = workbook.getWorksheets();
   // Config
   let configSheet = workbook.getWorksheet("xlwings.conf");
@@ -105,7 +106,7 @@ async function runPython(
   // Request payload
   let payload: {} = {};
   payload["client"] = "Microsoft Office Scripts";
-  payload["version"] = "dev";
+  payload["version"] = version;
   payload["book"] = {
     name: workbook.getName(),
     active_sheet_index: workbook.getActiveWorksheet().getPosition(),
