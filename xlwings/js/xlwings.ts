@@ -36,7 +36,13 @@ async function main(workbook: ExcelScript.Workbook) {
 async function runPython(
   workbook: ExcelScript.Workbook,
   url = "",
-  { auth = "", apiKey = "", include = "", exclude = "", headers = {} }: Options = {}
+  {
+    auth = "",
+    apiKey = "",
+    include = "",
+    exclude = "",
+    headers = {},
+  }: Options = {}
 ): Promise<void> {
   const version = "dev";
   const sheets = workbook.getWorksheets();
@@ -374,5 +380,11 @@ function updatePicture(workbook: ExcelScript.Workbook, action: Action) {
 }
 
 function alert(workbook: ExcelScript.Workbook, action: Action) {
-  throw "Not Implemented: alert";
+  // OfficeScripts doesn't have an any alert outside of DataValidation...
+  let myPrompt = action.args[0];
+  let myTitle = action.args[1]; // ignored
+  let myButtons = action.args[2]; // ignored
+  let myMode = action.args[3]; // ignored
+  let myCallback = action.args[4]; // ignored
+  throw myPrompt;
 }
