@@ -60,8 +60,7 @@ os.rename(
 )
 # Stamp version
 version_file = os.path.join(os.environ["GITHUB_WORKSPACE"], "xlwings", "__init__.py")
-cli_file = os.path.join(os.environ["GITHUB_WORKSPACE"], "xlwings", "cli.py")
-for source_file in [version_file, cli_file]:
+for source_file in [version_file]:
     with open(source_file, "r") as f:
         content = f.read()
     content = re.sub(r"\bdev\b", version_string, content)

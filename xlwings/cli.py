@@ -918,7 +918,7 @@ def vba_edit(args):
 
 
 def main():
-    print("xlwings version: " + "dev")
+    print("xlwings version: " + xw.__version__)
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command")
     subparsers.required = True
