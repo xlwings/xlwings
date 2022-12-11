@@ -202,10 +202,8 @@ for js in [
     os.path.join(par_dir, "xlwings", "js", "xlwings.js"),
 ]:
     with open(js, "r") as f:
-        content = (
-            f.read()
-            .replace("* xlwings dev", f"* xlwings {version_string}")
-            .replace('] = "dev";', f'] = "{version_string}";')
+        content = f.read().replace(
+            'const version = "dev";', f'const version = "{version_string}";'
         )
     with open(js, "w") as f:
         f.write(content)
