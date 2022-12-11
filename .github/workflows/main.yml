@@ -132,6 +132,7 @@ jobs:
           !./git
           !./aspose
           !./xlwingsdll
+          !./resources/mac
           !./examples
           !./docs
 
