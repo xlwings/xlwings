@@ -395,7 +395,8 @@ Function GetAzureAdAccessToken( _
     Optional clientId As String, _
     Optional port As String, _
     Optional scopes As String, _
-    Optional username As String _
+    Optional username As String, _
+    Optional cliPath As String _
 )
     Dim nowTs As Long, expiresTs As Long
     Dim kwargs As String
@@ -415,16 +416,30 @@ Function GetAzureAdAccessToken( _
     If username = "" Then
         username = GetConfig("AZUREAD_USERNAME")
     End If
-    kwargs = "tenant_id='" & tenantId & "', "
-    kwargs = kwargs & "client_id='" & clientId & "', "
-    If port <> "" Then
-        kwargs = kwargs & "port='" & port & "', "
-    End If
-    If scopes <> "" Then
-        kwargs = kwargs & "scopes='" & scopes & "', "
-    End If
-    If username <> "" Then
-        kwargs = kwargs & "username='" & username & "', "
+    If cliPath = "" Then
+        kwargs = "tenant_id='" & tenantId & "', "
+        kwargs = kwargs & "client_id='" & clientId & "', "
+        If port <> "" Then
+            kwargs = kwargs & "port='" & port & "', "
+        End If
+        If scopes <> "" Then
+            kwargs = kwargs & "scopes='" & scopes & "', "
+        End If
+        If username <> "" Then
+            kwargs = kwargs & "username='" & username & "', "
+        End If
+    Else
+        kwargs = "--tenant_id=" & tenantId & " "
+        kwargs = kwargs & "--client_id=" & clientId & " "
+        If port <> "" Then
+            kwargs = kwargs & "--port=" & port & " "
+        End If
+        If scopes <> "" Then
+            kwargs = kwargs & "--scopes=" & scopes & " "
+        End If
+        If username <> "" Then
+            kwargs = kwargs & "--username=" & username & " "
+        End If
     End If
 
     expiresTs = GetConfig("AZUREAD_ACCESS_TOKEN_EXPIRES_ON_" & clientId, 0)
@@ -434,7 +449,11 @@ Function GetAzureAdAccessToken( _
         GetAzureAdAccessToken = GetConfig("AZUREAD_ACCESS_TOKEN_" & clientId)
         Exit Function
     Else
-        RunPython "from xlwings import cli;cli._auth_aad(" & kwargs & ")"
+        If cliPath <> "" Then
+            RunFrozenPython cliPath, "auth azuread " & kwargs
+        Else
+            RunPython "from xlwings import cli;cli._auth_aad(" & kwargs & ")"
+        End If
         #If Mac Then
             ' RunPython on macOS is async: 60s should be enough if you have to login from scratch
             For i = 1 To 60

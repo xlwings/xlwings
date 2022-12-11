@@ -1275,7 +1275,7 @@ def main():
         sys.exit(1)
 
     # Boilerplate
-    args = parser.parse_known_args()
+    args, _ = parser.parse_known_args()
     args.func(args)
 
 
