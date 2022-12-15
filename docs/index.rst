@@ -110,6 +110,7 @@ on **Windows** and **Mac**.
     :caption: xlwings Server
 
     remote_interpreter
+    server_authentication
 
 
 .. toctree::
@@ -128,8 +129,3 @@ on **Windows** and **Mac**.
 
     api
     rest_api
-
-
-
-
-

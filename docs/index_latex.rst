@@ -62,6 +62,7 @@
     :caption: xlwings Server
 
     remote_interpreter
+    server_authentication
 
 
 .. toctree::
@@ -80,8 +81,3 @@
 
     api
     rest_api
-
-
-
-
-
