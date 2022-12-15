@@ -417,6 +417,9 @@ Function GetAzureAdAccessToken( _
         username = GetConfig("AZUREAD_USERNAME")
     End If
     If cliPath = "" Then
+        cliPath = GetConfig("CLI_PATH")
+    End If
+    If cliPath = "" Then
         kwargs = "tenant_id='" & tenantId & "', "
         kwargs = kwargs & "client_id='" & clientId & "', "
         If port <> "" Then
