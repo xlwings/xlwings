@@ -1176,7 +1176,9 @@ def main():
 
     # Azure AD authentication (MSAL)
     auth_parser = subparsers.add_parser(
-        "auth", help='Microsoft Azure AD (v2): "xlwings auth azuread"'
+        "auth",
+        help='Microsoft Azure AD: "xlwings auth azuread", see '
+        "https://docs.xlwings.org/en/stable/server_authentication.html",
     )
 
     aad_subparser = auth_parser.add_subparsers(dest="subcommand")

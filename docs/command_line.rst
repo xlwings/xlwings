@@ -72,6 +72,9 @@ xlwings comes with a command line client. On Windows, type the commands into a C
                         Scripts module. Run "xlwings copy gs" to copy the
                         xlwings Google Apps Script module.
                         (New in 0.26.0)
+    auth                Microsoft Azure AD: "xlwings auth azuread", see
+                        https://docs.xlwings.org/en/stable/server_authentication.html
+                        (New in 0.28.6)
     vba                 This functionality allows you to easily write VBA code
                         in an external editor: run "xlwings vba edit" to
                         update the VBA modules of the active workbook from
