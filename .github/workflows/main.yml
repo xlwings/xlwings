@@ -295,7 +295,7 @@ jobs:
           body: |
             * Release Notes: https://docs.xlwings.org/en/latest/whatsnew.html
             * Installation: To install this release, use must use either the `pip` or `conda` package manager, you can't install from source directly, see https://docs.xlwings.org/en/stable/installation.html
-            * CLI: `xlwings.exe` is a standalone xlwings command-line client with very limited functionality. It currently works for the `xlwings vba` and `xlwings auth` commands and saves you from having to install a full Python installation if these are your only use cases.
+            * CLI: `xlwings.exe` is a standalone xlwings command-line client with very limited functionality. It currently works for the `xlwings vba`, `xlwings addin -f`, and `xlwings auth` commands and saves you from having to install a full Python installation if these are your only use cases.
       - name: Publish package and update homepage with release version
         shell: bash
         run: |
