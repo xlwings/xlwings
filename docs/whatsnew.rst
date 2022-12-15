@@ -1,6 +1,16 @@
 What's New
 ==========
 
+v0.28.6 (Dec 15, 2022)
+----------------------
+
+* :bdg-success:`Feature` xlwings now allows to authenticate and authorize users via Azure AD in connection with the Ribbon add-in or VBA standalone module. This is useful in connection with a server component, such as xlwings Server, where the acquired access tokens can be validated, see :ref:`Server Auth <server_auth>` (:issue:`2122`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server: added support for reading the Names collection via ``mybook.names`` and ``mysheet.names`` (:issue:`2123`).
+* :bdg-success:`Feature` The xlwings CLI (command-line interface) is now also available as a standalone executable for a limited set of uses cases. It can be downloaded from the `GitHub Release page <https://github.com/xlwings/xlwings/releases>`_ and can be useful to run ``xlwings vba ...``, ``xlwings auth ...``, and ``xlwings addin ... -f`` without having to install a full Python installation (:issue:`2121`).
+* :bdg-danger:`Breaking Change` :bdg-secondary:`PRO`: xlwings Server: ``auth`` replaces the ``apiKey`` argument in the ``runPython`` and ``RunRemotePython`` calls respectively. Technically it's only a deprecation, so ``apiKey`` still works for now (:issue:`2104`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Server: Fixed an error with setting custom headers in VBA (:issue:`2081`).
+
+
 v0.28.4 and v0.28.5 (Oct 29, 2022)
 ----------------------------------
 
