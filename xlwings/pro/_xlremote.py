@@ -302,6 +302,10 @@ class Book(base_classes.Book):
         return self.name
 
     @property
+    def names(self):
+        return Names(parent=self, api=self.api["names"])
+
+    @property
     def sheets(self):
         return Sheets(api=self.api["sheets"], book=self)
 
@@ -433,6 +437,15 @@ class Sheet(base_classes.Sheet):
             arg1=(1, 1),
             arg2=(1_048_576, 16_384),
         )
+
+    @property
+    def names(self):
+        api = [
+            name
+            for name in self.book.api["names"]
+            if name["sheet_index"] + 1 == self.index and not name["book_scope"]
+        ]
+        return Names(parent=self, api=api)
 
     def activate(self):
         ix = self.index - 1
@@ -877,6 +890,60 @@ class Pictures(Collection, base_classes.Pictures):
             {"name": "Image", "width": None, "height": None}
         )
         return Picture(self.parent, len(self.parent.api["pictures"]))
+
+
+class Name(base_classes.Name):
+    def __init__(self, parent, api):
+        self.parent = parent
+        self.api = api
+
+    @property
+    def name(self):
+        return self.api["name"]
+
+    @property
+    def refers_to(self):
+        book = self.parent if isinstance(self.parent, Book) else self.parent.book
+        sheet = book.sheets(self.api["sheet_index"] + 1)
+        sheet_name = f"'{sheet.name}'" if " " in sheet.name else sheet.name
+        return f"={sheet_name}!{sheet.range(self.api['address']).address}"
+
+    @property
+    def refers_to_range(self):
+        book = self.parent if isinstance(self.parent, Book) else self.parent.book
+        sheet = book.sheets(self.api["sheet_index"] + 1)
+        return sheet.range(self.api["address"])
+
+
+class Names(base_classes.Names):
+    def __init__(self, parent, api):
+        self.parent = parent
+        self.api = api
+
+    def __call__(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            name_or_index -= 1
+            if name_or_index > len(self):
+                raise KeyError(name_or_index)
+            else:
+                return Name(self.parent, api=self.api[name_or_index])
+        else:
+            for ix, i in enumerate(self.api):
+                if i["name"] == name_or_index:
+                    return Name(self.parent, api=self.api[ix])
+            raise KeyError(name_or_index)
+
+    def contains(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            return 1 <= name_or_index <= len(self)
+        else:
+            for i in self.api:
+                if i["name"] == name_or_index:
+                    return True
+            return False
+
+    def __len__(self):
+        return len(self.api)
 
 
 engine = Engine()
