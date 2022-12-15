@@ -107,18 +107,36 @@ Now you can call the following function in VBA:
         tenantId:="...", _
         clientId:="...", _
         scopes:="...", _
+        port:="...", _
+        username:="...", _
         cliPath:="C:\Program and Files\xlwings\xlwings.exe" _
       )
     End Sub
 
-You can also use the ``xlwings.conf`` file or ``xlwings.conf`` sheet to configure the Tenant ID etc. Note that if you use the xlwings add-in rather than relying on the xlwings standalone VBA module, you will need to add a reference to xlwings in the VBA editor under ``Tools`` > ``References``.
+``port`` and ``username`` are optional:
+
+* Use ``port`` if the randomly assigned default port causes issues
+* Use ``username`` if the user is logged in with multiple Microsoft accounts
+
+.. note::
+  Instead of relying on ``xlwings.exe``, you could also use a normal Python installation with ``xlwings`` and  ``msal`` installed. In this case, simply leave away the ``cliPath`` argument.
+
+You can also use the ``xlwings.conf`` file or ``xlwings.conf`` sheet for configuration. In this case, the settings are the following:
+
+.. code-block::
+
+    AZUREAD_TENANT_ID
+    AZUREAD_CLIENT_ID
+    AZUREAD_SCOPES
+    AZUREAD_USERNAME
+    AZUREAD_PORT
+    CLI_PATH
+
+Note that if you use the xlwings add-in rather than relying on the xlwings standalone VBA module, you will need to make sure that there's a reference set to xlwings in the VBA editor under ``Tools`` > ``References``.
 
 When you now call the ``Main`` function the very first time, a browser Window will open where the user needs to login to Azure AD. The acquired OAuth2 access token is then cached for 60-90 minutes. Once an access token has expired, a new one will be requested using the refresh token, i.e., without user intervention, but it will slow that that request.
 
 For a complete walk-through on how to set up an app on Azure AD and how to validate the access token on the backend, see: https://github.com/xlwings/xlwings-server-auth-azuread
-
-.. note::
-  Instead of relying on ``xlwings.exe``, you could also use a normal Python installation with ``xlwings`` and  ``msal`` installed. In this case, simply leave away the ``cliPath`` argument.
 
 OAuth2 Access Token for Google Sheets
 -------------------------------------
