@@ -155,10 +155,13 @@ function runPython(
         valueRow.forEach((value, colIndex) => {
           if (value instanceof Date) {
             // Convert from script timezone to spreadsheet timezone
-            let tzDate = new Date(
-              value.toLocaleString("en-US", {
-                timeZone: workbook.getSpreadsheetTimeZone(),
-              })
+            let localeString = value.toLocaleString("en-US", {
+              timeZone: workbook.getSpreadsheetTimeZone(),
+            });
+            let tzDate = Utilities.parseDate(
+              localeString,
+              workbook.getSpreadsheetTimeZone(),
+              "MM/dd/yyyy, h:mm:ss a" // Note the Narrow No-Break Space after ss
             );
             // toISOString transforms to UTC, so we need to correct for offset
             values[rowIndex][colIndex] = new Date(
