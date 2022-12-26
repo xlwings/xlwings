@@ -254,14 +254,14 @@ function setValues(workbook, action) {
         dt = new Date(Date.parse(value));
         dtString = dt.toLocaleDateString(locale);
         if (dtString !== "Invalid Date") {
-          if (
-            dt.getHours() +
-              dt.getMinutes() +
-              dt.getSeconds() +
-              dt.getMilliseconds() !==
-            0
-          ) {
-            dtString += " " + dt.toLocaleTimeString();
+          let hours = dt.getHours();
+          let minutes = dt.getMinutes();
+          let seconds = dt.getSeconds();
+          let milliseconds = dt.getMilliseconds();
+          if (hours + minutes + seconds + milliseconds !== 0) {
+            // The time doesn't follow the locale in the Date Time combination!
+            dtString +=
+              " " + hours + ":" + minutes + ":" + seconds + "." + milliseconds;
           }
           action.values[rowIndex][colIndex] = dtString;
         }
