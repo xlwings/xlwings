@@ -158,10 +158,12 @@ function runPython(
             let localeString = value.toLocaleString("en-US", {
               timeZone: workbook.getSpreadsheetTimeZone(),
             });
-            let tzDate = Utilities.parseDate(
-              localeString,
-              workbook.getSpreadsheetTimeZone(),
-              "MM/dd/yyyy, h:mm:ss a" // Note the Narrow No-Break Space after ss
+            let tzDate = new Date(
+              value
+                .toLocaleString("en-US", {
+                  timeZone: workbook.getSpreadsheetTimeZone(),
+                })
+                .replace(/\u202F/, " ") // https://bugs.chromium.org/p/v8/issues/detail?id=13494
             );
             // toISOString transforms to UTC, so we need to correct for offset
             values[rowIndex][colIndex] = new Date(
