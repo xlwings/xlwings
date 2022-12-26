@@ -156,9 +156,11 @@ function runPython(
           if (value instanceof Date) {
             // Convert from script timezone to spreadsheet timezone
             let tzDate = new Date(
-              value.toLocaleString("en-US", {
-                timeZone: workbook.getSpreadsheetTimeZone(),
-              })
+              value
+                .toLocaleString("en-US", {
+                  timeZone: workbook.getSpreadsheetTimeZone(),
+                })
+                .replace(/\u202F/, " ") // https://bugs.chromium.org/p/v8/issues/detail?id=13494
             );
             // toISOString transforms to UTC, so we need to correct for offset
             values[rowIndex][colIndex] = new Date(
@@ -249,14 +251,14 @@ function setValues(workbook, action) {
         dt = new Date(Date.parse(value));
         dtString = dt.toLocaleDateString(locale);
         if (dtString !== "Invalid Date") {
-          if (
-            dt.getHours() +
-              dt.getMinutes() +
-              dt.getSeconds() +
-              dt.getMilliseconds() !==
-            0
-          ) {
-            dtString += " " + dt.toLocaleTimeString();
+          let hours = dt.getHours();
+          let minutes = dt.getMinutes();
+          let seconds = dt.getSeconds();
+          let milliseconds = dt.getMilliseconds();
+          if (hours + minutes + seconds + milliseconds !== 0) {
+            // The time doesn't follow the locale in the Date Time combination!
+            dtString +=
+              " " + hours + ":" + minutes + ":" + seconds + "." + milliseconds;
           }
           action.values[rowIndex][colIndex] = dtString;
         }
