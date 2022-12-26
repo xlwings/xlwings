@@ -155,9 +155,6 @@ function runPython(
         valueRow.forEach((value, colIndex) => {
           if (value instanceof Date) {
             // Convert from script timezone to spreadsheet timezone
-            let localeString = value.toLocaleString("en-US", {
-              timeZone: workbook.getSpreadsheetTimeZone(),
-            });
             let tzDate = new Date(
               value
                 .toLocaleString("en-US", {
