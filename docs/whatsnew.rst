@@ -1,6 +1,14 @@
 What's New
 ==========
 
+v0.28.7 (Dec 27, 2022)
+----------------------
+
+* :bdg-info:`Enhancement` New CLI commands ``xlwings copy vba`` and ``xlwings copy vba --addin``: They can help you to upgrade existing standalone projects and custom add-ins more easily (:issue:`2129`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Server: Google Sheets was failing when cells contained a Date, caused by a recent Chromium V8 bug (:issue:`2126`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Server: Writing ``datetime`` objects from Python to Google Sheets (with a time part not being zero) weren't formatting the cell properly as Date Time (:issue:`2126`).
+
+
 v0.28.6 (Dec 15, 2022)
 ----------------------
 
