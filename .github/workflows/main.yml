@@ -288,10 +288,14 @@ jobs:
         with:
           name: Package
           path: Package
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: cli
       - name: GH Release
         uses: softprops/action-gh-release@v1
         with:
-          files: Package/xlwings.exe
+          files: xlwings.exe
           body: |
             * Release Notes: https://docs.xlwings.org/en/latest/whatsnew.html
             * Installation: To install this release, you must use the `pip` or `conda` package manager, you can't install from source directly, see https://docs.xlwings.org/en/stable/installation.html
