@@ -91,6 +91,7 @@ setup(
     package_data={
         "xlwings": [
             "xlwings.bas",
+            "xlwings_custom_addin.bas",
             "*.xlsm",
             "*.xlam",
             "*.applescript",

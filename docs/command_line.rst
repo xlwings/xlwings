@@ -70,8 +70,11 @@ xlwings comes with a command line client. On Windows, type the commands into a C
                         (New in 0.23.4)
     copy                Run "xlwings copy os" to copy the xlwings Office
                         Scripts module. Run "xlwings copy gs" to copy the
-                        xlwings Google Apps Script module.
-                        (New in 0.26.0)
+                        xlwings Google Apps Script module. Run "xlwings copy
+                        vba" to copy the standalone xlwings VBA module. Run
+                        "xlwings copy vba --addin" to copy the xlwings VBA
+                        module for custom add-ins.
+                        (New in 0.26.0, 'vba' added in 0.28.7)
     auth                Microsoft Azure AD: "xlwings auth azuread", see
                         https://docs.xlwings.org/en/stable/server_authentication.html
                         (New in 0.28.6)
