@@ -15,4 +15,3 @@ recursive-include src *
 
 recursive-include docs *
 prune docs
-

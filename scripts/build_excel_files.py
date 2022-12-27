@@ -24,20 +24,14 @@ standalone_path = os.path.join(par_dir, "xlwings", "quickstart_standalone.xlsm")
 myaddin_ribbon_path = os.path.join(par_dir, "xlwings", "quickstart_addin_ribbon.xlam")
 myaddin_path = os.path.join(par_dir, "xlwings", "quickstart_addin.xlam")
 xlwings_bas_path = os.path.join(par_dir, "xlwings", "xlwings.bas")
+xlwings_custom_addin_bas_path = os.path.join(
+    par_dir, "xlwings", "xlwings_custom_addin.bas"
+)
 
 # Version string
 if os.environ["GITHUB_REF"].startswith("refs/tags"):
     version_string = os.environ["GITHUB_REF"][10:]
 else:
-    # Canonical release versions don't accept letters, so we only use the
-    # numbers from the Git Hash without leading zeroes
-    version_string = ""
-    for i in os.environ["GITHUB_SHA"]:
-        try:
-            int(i)
-            version_string += i
-        except ValueError:
-            pass
     version_string = f"0.0.0+{os.environ['GITHUB_SHA'][:7]}"
 
 # Rename dlls and applescript file
@@ -160,6 +154,7 @@ wb.Save(standalone_path)
 
 # Custom add-in
 standalone_code_addin = produce_single_module(addin_modules, custom_addin=True)
+Path(xlwings_custom_addin_bas_path).write_text(standalone_code_addin)
 
 for path in [myaddin_path, myaddin_ribbon_path]:
     wb = Workbook(path)

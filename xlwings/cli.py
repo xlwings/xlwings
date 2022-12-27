@@ -547,14 +547,25 @@ def permission_book(args):
 
 
 def copy_os(args):
-    copy_js("ts")
+    copy_code(Path(this_dir) / "js" / "xlwings.ts")
 
 
 def copy_gs(args):
-    copy_js("js")
+    copy_code(Path(this_dir) / "js" / "xlwings.js")
 
 
-def copy_js(extension):
+def copy_vba(args):
+    if args.addin:
+        copy_code(Path(this_dir) / "xlwings_custom_addin.bas")
+    else:
+        copy_code(Path(this_dir) / "xlwings.bas")
+
+
+def copy_customaddin(args):
+    copy_code(Path(this_dir) / "xlwings_custom_addin.bas")
+
+
+def copy_code(fpath):
     try:
         from pandas.io import clipboard
     except ImportError:
@@ -565,8 +576,16 @@ def copy_js(extension):
                 'Please install either "pandas" or "pyperclip" to use the copy command.'
             )
 
-    with open(Path(this_dir) / "js" / f"xlwings.{extension}", "r") as f:
-        clipboard.copy(f.read())
+    with open(fpath, "r") as f:
+        if "bas" in str(fpath):
+            text = (
+                f.read()
+                .replace('Attribute VB_Name = "xlwings"\n', "")
+                .replace('Attribute VB_Name = "xlwings"\r\n', "")
+            )
+        else:
+            text = f.read()
+        clipboard.copy(text)
         print("Successfully copied to clipboard.")
 
 
@@ -1163,7 +1182,10 @@ def main():
     copy_parser = subparsers.add_parser(
         "copy",
         help='Run "xlwings copy os" to copy the xlwings Office Scripts module. '
-        'Run "xlwings copy gs" to copy the xlwings Google Apps Script module.',
+        'Run "xlwings copy gs" to copy the xlwings Google Apps Script module. '
+        'Run "xlwings copy vba" to copy the standalone xlwings VBA module. '
+        'Run "xlwings copy vba --addin" to copy the xlwings VBA module for custom '
+        "add-ins.",
     )
     copy_subparser = copy_parser.add_subparsers(dest="subcommand")
     copy_subparser.required = True
@@ -1173,6 +1195,12 @@ def main():
 
     copy_os_parser = copy_subparser.add_parser("gs")
     copy_os_parser.set_defaults(func=copy_gs)
+
+    copy_vba_parser = copy_subparser.add_parser("vba")
+    copy_vba_parser.add_argument(
+        "-a", "--addin", action="store_true", help="VBA for custom add-ins"
+    )
+    copy_vba_parser.set_defaults(func=copy_vba)
 
     # Azure AD authentication (MSAL)
     auth_parser = subparsers.add_parser(
