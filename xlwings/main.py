@@ -3718,9 +3718,9 @@ class Tables(Collection):
             ``xlSrcExternal``.
 
         table_style_name : str, default 'TableStyleMedium2'
-            Possible strings: ``'TableStyleLightN''`` (where N is 1-21),
+            Possible strings: ``'TableStyleLightN'`` (where N is 1-21),
             ``'TableStyleMediumN'`` (where N is 1-28),
-            `'TableStyleDarkN'`` (where N is 1-11)
+            ``'TableStyleDarkN'`` (where N is 1-11)
 
         Returns
         -------
