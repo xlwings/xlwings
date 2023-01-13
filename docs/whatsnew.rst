@@ -1,6 +1,12 @@
 What's New
 ==========
 
+v0.28.8 (Jan 13, 2023)
+----------------------
+
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Server: make ``include``/``exclude`` parameters respect all objects in a sheet, not just values (:issue:`2139`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Server (VBA client): ignore shapes that aren't real pictures in the pictures collection (:issue:`2140`).
+
 v0.28.7 (Dec 27, 2022)
 ----------------------
 
