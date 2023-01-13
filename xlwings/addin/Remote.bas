@@ -150,7 +150,7 @@ Function RunRemotePython( _
         Dim nPics As Integer
         Dim iPic As Integer
         nPics =  wb.Worksheets(i).Pictures.Count
-        If nPics > 0 Then
+        If (nPics > 0) And Not (IsInArray(wb.Worksheets(i).Name, excludeArray)) Then
             ReDim pics(nPics - 1)
             For iPic = 1 To nPics
                 Set pic =  wb.Worksheets(i).Pictures(iPic)
