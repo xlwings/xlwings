@@ -145,21 +145,26 @@ Function RunRemotePython( _
         sheetDict.Add "name", wb.Worksheets(i).Name
 
         ' Pictures
-        Dim pic As Picture
+        Dim pic As Shape
         Dim pics() As Dictionary
-        Dim nPics As Integer
+        Dim nShapes As Integer
+        Dim iShape As Integer
         Dim iPic As Integer
-        nPics =  wb.Worksheets(i).Pictures.Count
-        If (nPics > 0) And Not (IsInArray(wb.Worksheets(i).Name, excludeArray)) Then
-            ReDim pics(nPics - 1)
-            For iPic = 1 To nPics
-                Set pic =  wb.Worksheets(i).Pictures(iPic)
-                Dim picDict As Dictionary
-                Set picDict = New Dictionary
-                picDict.Add "name", pic.Name
-                picDict.Add "height", pic.Height
-                picDict.Add "width", pic.Width
-                Set pics(iPic - 1) = picDict
+        nShapes =  wb.Worksheets(i).Shapes.Count
+        If (nShapes > 0) And Not (IsInArray(wb.Worksheets(i).Name, excludeArray)) Then
+            iPic = 0
+            For iShape = 1 To nShapes
+                Set pic =  wb.Worksheets(i).Shapes(iShape)
+                If pic.Type = msoPicture Then
+                    ReDim Preserve pics(iPic)
+                    Dim picDict As Dictionary
+                    Set picDict = New Dictionary
+                    picDict.Add "name", pic.Name
+                    picDict.Add "height", pic.Height
+                    picDict.Add "width", pic.Width
+                    Set pics(iPic) = picDict
+                    iPic = iPic + 1
+                End If
             Next
             sheetDict.Add "pictures", pics
         Else
