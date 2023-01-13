@@ -172,13 +172,17 @@ function runPython(
     }
 
     let pictures = [];
-    sheet.getImages().forEach((image, ix) => {
-      pictures[ix] = {
-        name: image.getAltTextTitle(),
-        height: image.getHeight(),
-        width: image.getWidth(),
-      };
-    });
+    if (excludeArray.includes(sheet.getName())) {
+      pictures = [];
+    } else {
+      sheet.getImages().forEach((image, ix) => {
+        pictures[ix] = {
+          name: image.getAltTextTitle(),
+          height: image.getHeight(),
+          width: image.getWidth(),
+        };
+      });
+    }
 
     payload["sheets"].push({
       name: sheet.getName(),
