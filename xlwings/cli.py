@@ -216,7 +216,7 @@ def addin_remove(args):
     if args.dir:
         for addin_source_path in Path(args.dir).resolve().glob("[!~$]*.xl*"):
             _addin_remove(addin_source_path, global_install)
-    if args.file:
+    elif args.file:
         _addin_remove(args.file, global_install)
     else:
         _addin_remove("xlwings.xlam", global_install)
