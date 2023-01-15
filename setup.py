@@ -100,6 +100,7 @@ setup(
             "addin/WebHelpers.bas",
             "js/xlwings.*",
             "quickstart_fastapi/*.*",
+            "html/*.*",
         ],
         "src": [
             "src",

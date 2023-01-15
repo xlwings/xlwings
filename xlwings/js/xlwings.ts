@@ -119,11 +119,11 @@ async function runPython(
     selection: workbook.getSelectedRange().getAddress().split("!").pop(),
   };
 
-  // Names
+  // Names (book scope only)
   let names: Names[] = [];
   workbook.getNames().forEach((namedItem, ix) => {
     // Currently filtering to named ranges
-    // Sheet scope names don't seem to come through despite the existence of getScope()
+    // TODO: add sheet scoped named ranges via sheets as in officejs
     let itemType: ExcelScript.NamedItemType = namedItem.getType();
     if (itemType === ExcelScript.NamedItemType.range) {
       names[ix] = {

@@ -33,6 +33,7 @@ _build
 *.egg-info
 *.zip
 dist
+!xlwingsjs/dist
 build
 eggs
 parts
@@ -84,3 +85,7 @@ venv
 scratch*
 
 target/
+
+node_modules
+*.pem
+.parcel-cache

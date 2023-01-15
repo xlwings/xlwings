@@ -8,6 +8,7 @@ include xlwings/xlwings*.applescript
 include xlwings/addin/*.cls
 include xlwings/addin/WebHelpers.bas
 include xlwings/js/xlwings.*
+include xlwings/html/*.*
 include xlwings/quickstart_fastapi/*.*
 include Cargo.toml
 include Cargo.lock
