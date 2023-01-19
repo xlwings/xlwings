@@ -579,7 +579,7 @@ Sub nameDelete(wb As Workbook, action As Dictionary)
     For Each myName In wb.Names()
         If (myName.Name = action("args")(1)) And (myName.RefersTo = action("args")(2)) Then
             myName.Delete
-            Exit Sub
+            Exit For
         End If
     Next
 End Sub

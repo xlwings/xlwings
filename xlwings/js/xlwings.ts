@@ -277,6 +277,7 @@ let funcs = {
   alert: alert,
   setRangeName: setRangeName,
   namesAdd: namesAdd,
+  deleteName: deleteName,
 };
 
 // Functions
