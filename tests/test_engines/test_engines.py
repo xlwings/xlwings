@@ -23,7 +23,7 @@ import xlwings as xw
 this_dir = Path(__file__).resolve().parent
 
 # "calamine", "remote", or "excel"
-engine = os.environ.get("XLWINGS_ENGINE") or "calamine"
+engine = os.environ.get("XLWINGS_ENGINE") or "remote"
 # "xlsx", "xlsb", or "xls"
 file_extension = os.environ.get("XLWINGS_FILE_EXTENSION") or "xlsx"
 
@@ -497,3 +497,19 @@ def test_range_set_name(book):
     book.sheets[0]["A1:C3"].name = "mytestrange"
     assert json.dumps(book.json()["actions"][0]["func"]) == '"setRangeName"'
     assert json.dumps(book.json()["actions"][0]["args"][0]) == '"mytestrange"'
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_book_names_add(book):
+    book.names.add("test1", "=Sheet1!$A$1:$B$3")
+    assert book.json()["actions"][0]["func"] == "namesAdd"
+    assert book.json()["actions"][0]["args"] == ["test1", "=Sheet1!$A$1:$B$3"]
+    assert book.json()["actions"][0]["sheet_position"] is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_names_add(book):
+    book.sheets[0].names.add("test1", "=Sheet1!$A$1:$B$3")
+    assert book.json()["actions"][0]["func"] == "namesAdd"
+    assert book.json()["actions"][0]["args"] == ["test1", "=Sheet1!$A$1:$B$3"]
+    assert book.json()["actions"][0]["sheet_position"] == 0

@@ -442,3 +442,7 @@ function alert(workbook, action) {
 function setRangeName(workbook, action) {
   throw "NotImplemented: setRangeName";
 }
+
+function namesAdd(workbook, action) {
+  throw "NotImplemented: namesAdd";
+}

@@ -275,6 +275,8 @@ let funcs = {
   addPicture: addPicture,
   updatePicture: updatePicture,
   alert: alert,
+  setRangeName: setRangeName,
+  namesAdd: namesAdd,
 };
 
 // Functions
@@ -395,4 +397,9 @@ function updatePicture(workbook: ExcelScript.Workbook, action: Action) {
 
 function setRangeName(workbook: ExcelScript.Workbook, action: Action) {
   throw "NotImplemented: setRangeName";
+}
+
+
+function namesAdd(workbook: ExcelScript.Workbook, action: Action) {
+  throw "NotImplemented: namesAdd";
 }

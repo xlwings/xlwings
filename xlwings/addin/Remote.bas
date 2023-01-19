@@ -565,3 +565,11 @@ End Sub
 Sub setRangeName(wb As Workbook, action As Dictionary)
     GetRange(wb, action).Name = action("args")(1)
 End Sub
+
+Sub namesAdd(wb As Workbook, action As Dictionary)
+    If IsNull(action("sheet_position")) Then
+        wb.Names.Add Name:=action("args")(1), RefersTo:=action("args")(2)
+    Else
+        wb.Worksheets(action("sheet_position") + 1).Names.Add Name:=action("args")(1), RefersTo:=action("args")(2)
+    End If
+End Sub
