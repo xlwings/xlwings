@@ -249,12 +249,12 @@ interface Names {
 function getRange(workbook: ExcelScript.Workbook, action: Action) {
   return workbook
     .getWorksheets()
-    [action.sheet_position].getRangeByIndexes(
-      action.start_row,
-      action.start_column,
-      action.row_count,
-      action.column_count
-    );
+  [action.sheet_position].getRangeByIndexes(
+    action.start_row,
+    action.start_column,
+    action.row_count,
+    action.column_count
+  );
 }
 
 // Functions map
@@ -294,9 +294,9 @@ function setValues(workbook: ExcelScript.Workbook, action: Action) {
         if (dtString !== "Invalid Date") {
           if (
             dt.getHours() +
-              dt.getMinutes() +
-              dt.getSeconds() +
-              dt.getMilliseconds() !==
+            dt.getMinutes() +
+            dt.getSeconds() +
+            dt.getMilliseconds() !==
             0
           ) {
             dtString += " " + dt.toLocaleTimeString();
@@ -321,7 +321,7 @@ function addSheet(workbook: ExcelScript.Workbook, action: Action) {
 function setSheetName(workbook: ExcelScript.Workbook, action: Action) {
   workbook
     .getWorksheets()
-    [action.sheet_position].setName(action.args[0].toString());
+  [action.sheet_position].setName(action.args[0].toString());
 }
 
 function setAutofit(workbook: ExcelScript.Workbook, action: Action) {
@@ -387,4 +387,12 @@ function alert(workbook: ExcelScript.Workbook, action: Action) {
   let myMode = action.args[3]; // ignored
   let myCallback = action.args[4]; // ignored
   throw myPrompt;
+}
+
+function updatePicture(workbook: ExcelScript.Workbook, action: Action) {
+  throw "Not Implemented: updatePicture";
+}
+
+function setRangeName(workbook: ExcelScript.Workbook, action: Action) {
+  throw "NotImplemented: setRangeName";
 }

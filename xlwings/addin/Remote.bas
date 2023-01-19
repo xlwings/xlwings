@@ -561,3 +561,7 @@ Sub alert(wb As Workbook, action As Dictionary)
     End If
 
 End Sub
+
+Sub setRangeName(wb As Workbook, action As Dictionary)
+    GetRange(wb, action).Name = action("args")(1)
+End Sub
