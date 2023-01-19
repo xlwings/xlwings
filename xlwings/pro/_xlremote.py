@@ -443,9 +443,7 @@ class Sheet(base_classes.Sheet):
         api = [
             name
             for name in self.book.api["names"]
-            if name["sheet_index"]
-            and name["sheet_index"] + 1 == self.index
-            and not name["book_scope"]
+            if name["sheet_index"] + 1 == self.index and not name["book_scope"]
         ]
         return Names(parent=self, api=api)
 

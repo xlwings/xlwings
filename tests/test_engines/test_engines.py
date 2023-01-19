@@ -95,6 +95,11 @@ def book():
     book.close()
 
 
+@pytest.fixture(autouse=True)
+def clear_json(book):
+    book.impl._json = {"actions": []}
+
+
 # range.value
 def test_range_index(book):
     sheet = book.sheets[0]
@@ -430,7 +435,6 @@ def test_named_range_missing(book):
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_named_range_book_change_value(book):
-    book.impl._json = {"actions": []}
     sheet1 = book.sheets[0]
     assert sheet1["one"].value == "a"
     sheet1["one"].value = 1000
