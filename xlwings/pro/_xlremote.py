@@ -690,6 +690,24 @@ class Range(base_classes.Range):
     def number_format(self, value):
         self.append_json_action(func="setNumberFormat", args=value)
 
+    @property
+    def name(self):
+        for name in self.sheet.book.api["names"]:
+            if name["sheet_index"] == self.sheet.index - 1 and name[
+                "address"
+            ] == self.address.replace("$", ""):
+                return Name(
+                    parent=self.sheet.book if name["book_scope"] else self.sheet,
+                    api=name,
+                )
+
+    @name.setter
+    def name(self, value):
+        self.append_json_action(
+            func="setRangeName",
+            args=value,
+        )
+
     def __len__(self):
         nrows, ncols = self.shape
         return nrows * ncols

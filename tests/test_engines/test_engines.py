@@ -482,3 +482,18 @@ def test_names_iter(book):
             assert name.refers_to_range == book.sheets[0]["C7:D8"]
         elif ix == 2:
             assert name.refers_to_range == book.sheets[1]["A1:A2"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_get_name(book):
+    assert book.sheets[0]["A1"].name == book.names[0]
+    assert book.sheets[0]["C7:D8"].name == book.names[1]
+    assert book.sheets[1]["A1:A2"].name == book.names[2]
+    assert book.sheets[0]["X1"].name is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_set_name(book):
+    book.sheets[0]["A1:C3"].name = "mytestrange"
+    assert json.dumps(book.json()["actions"][0]["func"]) == '"setRangeName"'
+    assert json.dumps(book.json()["actions"][0]["args"][0]) == '"mytestrange"'
