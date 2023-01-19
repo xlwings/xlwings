@@ -446,3 +446,8 @@ function setRangeName(workbook, action) {
 function namesAdd(workbook, action) {
   throw "NotImplemented: namesAdd";
 }
+
+
+function deleteName(workbook, action) {
+  throw "NotImplemented: deleteName";
+}

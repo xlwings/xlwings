@@ -513,3 +513,10 @@ def test_sheet_names_add(book):
     assert book.json()["actions"][0]["func"] == "namesAdd"
     assert book.json()["actions"][0]["args"] == ["test1", "=Sheet1!$A$1:$B$3"]
     assert book.json()["actions"][0]["sheet_position"] == 0
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_name_delete(book):
+    book.names[0].delete()
+    assert book.json()["actions"][0]["func"] == "nameDelete"
+    assert book.json()["actions"][0]["args"] == ["one", "=Sheet1!$A$1"]

@@ -934,6 +934,12 @@ class Name(base_classes.Name):
         sheet = book.sheets(self.api["sheet_index"] + 1)
         return sheet.range(self.api["address"])
 
+    def delete(self):
+        # TODO: delete in api
+        self.parent.append_json_action(
+            func="nameDelete", args=[self.name, self.refers_to]
+        )
+
 
 class Names(base_classes.Names):
     def __init__(self, parent, api):

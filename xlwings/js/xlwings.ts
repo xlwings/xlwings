@@ -403,3 +403,8 @@ function setRangeName(workbook: ExcelScript.Workbook, action: Action) {
 function namesAdd(workbook: ExcelScript.Workbook, action: Action) {
   throw "NotImplemented: namesAdd";
 }
+
+
+function deleteName(workbook: ExcelScript.Workbook, action: Action) {
+  throw "NotImplemented: deleteName";
+}
