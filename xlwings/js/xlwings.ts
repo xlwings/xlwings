@@ -249,12 +249,12 @@ interface Names {
 function getRange(workbook: ExcelScript.Workbook, action: Action) {
   return workbook
     .getWorksheets()
-  [action.sheet_position].getRangeByIndexes(
-    action.start_row,
-    action.start_column,
-    action.row_count,
-    action.column_count
-  );
+    [action.sheet_position].getRangeByIndexes(
+      action.start_row,
+      action.start_column,
+      action.row_count,
+      action.column_count
+    );
 }
 
 // Functions map
@@ -277,7 +277,7 @@ let funcs = {
   alert: alert,
   setRangeName: setRangeName,
   namesAdd: namesAdd,
-  deleteName: deleteName,
+  nameDelete: nameDelete,
 };
 
 // Functions
@@ -297,9 +297,9 @@ function setValues(workbook: ExcelScript.Workbook, action: Action) {
         if (dtString !== "Invalid Date") {
           if (
             dt.getHours() +
-            dt.getMinutes() +
-            dt.getSeconds() +
-            dt.getMilliseconds() !==
+              dt.getMinutes() +
+              dt.getSeconds() +
+              dt.getMilliseconds() !==
             0
           ) {
             dtString += " " + dt.toLocaleTimeString();
@@ -324,7 +324,7 @@ function addSheet(workbook: ExcelScript.Workbook, action: Action) {
 function setSheetName(workbook: ExcelScript.Workbook, action: Action) {
   workbook
     .getWorksheets()
-  [action.sheet_position].setName(action.args[0].toString());
+    [action.sheet_position].setName(action.args[0].toString());
 }
 
 function setAutofit(workbook: ExcelScript.Workbook, action: Action) {
@@ -392,20 +392,14 @@ function alert(workbook: ExcelScript.Workbook, action: Action) {
   throw myPrompt;
 }
 
-function updatePicture(workbook: ExcelScript.Workbook, action: Action) {
-  throw "Not Implemented: updatePicture";
-}
-
 function setRangeName(workbook: ExcelScript.Workbook, action: Action) {
   throw "NotImplemented: setRangeName";
 }
-
 
 function namesAdd(workbook: ExcelScript.Workbook, action: Action) {
   throw "NotImplemented: namesAdd";
 }
 
-
-function deleteName(workbook: ExcelScript.Workbook, action: Action) {
+function nameDelete(workbook: ExcelScript.Workbook, action: Action) {
   throw "NotImplemented: deleteName";
 }

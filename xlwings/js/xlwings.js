@@ -228,12 +228,12 @@ function runPython(
 function getRange(workbook, action) {
   return workbook
     .getSheets()
-  [action.sheet_position].getRange(
-    action.start_row + 1,
-    action.start_column + 1,
-    action.row_count,
-    action.column_count
-  );
+    [action.sheet_position].getRange(
+      action.start_row + 1,
+      action.start_column + 1,
+      action.row_count,
+      action.column_count
+    );
 }
 
 // Functions map
@@ -283,24 +283,24 @@ function addSheet(workbook, action) {
 function setSheetName(workbook, action) {
   workbook
     .getSheets()
-  [action.sheet_position].setName(action.args[0].toString());
+    [action.sheet_position].setName(action.args[0].toString());
 }
 
 function setAutofit(workbook, action) {
   if (action.args[0] === "columns") {
     workbook
       .getSheets()
-    [action.sheet_position].autoResizeColumns(
-      action.start_column + 1,
-      action.column_count
-    );
+      [action.sheet_position].autoResizeColumns(
+        action.start_column + 1,
+        action.column_count
+      );
   } else {
     workbook
       .getSheets()
-    [action.sheet_position].autoResizeRows(
-      action.start_row + 1,
-      action.row_count
-    );
+      [action.sheet_position].autoResizeRows(
+        action.start_row + 1,
+        action.row_count
+      );
   }
 }
 
@@ -327,29 +327,29 @@ function setNumberFormat(workbook, action) {
 function setPictureName(workbook, action) {
   workbook
     .getSheets()
-  [action.sheet_position].getImages()
-  [action.args[0]].setAltTextTitle(action.args[1]);
+    [action.sheet_position].getImages()
+    [action.args[0]].setAltTextTitle(action.args[1]);
 }
 
 function setPictureHeight(workbook, action) {
   workbook
     .getSheets()
-  [action.sheet_position].getImages()
-  [action.args[0]].setHeight(action.args[1]);
+    [action.sheet_position].getImages()
+    [action.args[0]].setHeight(action.args[1]);
 }
 
 function setPictureWidth(workbook, action) {
   workbook
     .getSheets()
-  [action.sheet_position].getImages()
-  [action.args[0]].setWidth(action.args[1]);
+    [action.sheet_position].getImages()
+    [action.args[0]].setWidth(action.args[1]);
 }
 
 function deletePicture(workbook, action) {
   workbook
     .getSheets()
-  [action.sheet_position].getImages()
-  [action.args[0]].remove();
+    [action.sheet_position].getImages()
+    [action.args[0]].remove();
 }
 
 function addPicture(workbook, action) {
@@ -360,11 +360,11 @@ function addPicture(workbook, action) {
   );
   workbook
     .getSheets()
-  [action.sheet_position].insertImage(
-    imageBlob,
-    action.args[1] + 1,
-    action.args[2] + 1
-  );
+    [action.sheet_position].insertImage(
+      imageBlob,
+      action.args[1] + 1,
+      action.args[2] + 1
+    );
   SpreadsheetApp.flush();
 }
 
@@ -388,13 +388,13 @@ function updatePicture(workbook, action) {
   // Seems to help if the new image is inserted first before deleting the old one
   imgNew = workbook
     .getSheets()
-  [action.sheet_position].insertImage(
-    imageBlob,
-    colIndex,
-    rowIndex,
-    xOffset,
-    yOffset
-  );
+    [action.sheet_position].insertImage(
+      imageBlob,
+      colIndex,
+      rowIndex,
+      xOffset,
+      yOffset
+    );
   img.remove();
   imgNew.setAltTextTitle(altTextTitle);
   imgNew.setWidth(width);
@@ -447,7 +447,6 @@ function namesAdd(workbook, action) {
   throw "NotImplemented: namesAdd";
 }
 
-
-function deleteName(workbook, action) {
+function nameDelete(workbook, action) {
   throw "NotImplemented: deleteName";
 }
