@@ -902,9 +902,12 @@ class Sheets:
         for xl in self.xl:
             yield Sheet(xl=xl)
 
-    def add(self, before=None, after=None):
+    def add(self, before=None, after=None, name=None):
         if before:
-            return Sheet(xl=self.xl.Add(Before=before.xl))
+            sheet = Sheet(xl=self.xl.Add(Before=before.xl))
+            if name is not None:
+                sheet.name = name
+            return sheet
         elif after:
             # Hack, since "After" is broken in certain environments
             # see: http://code.activestate.com/lists/python-win32/11554/
@@ -916,9 +919,15 @@ class Sheets:
                 self.xl(self.xl.Count).Activate()
             else:
                 xl_sheet = self.xl.Add(Before=self.xl(after.xl.Index + 1))
-            return Sheet(xl=xl_sheet)
+            sheet = Sheet(xl=xl_sheet)
+            if name is not None:
+                sheet.name = name
+            return sheet
         else:
-            return Sheet(xl=self.xl.Add())
+            sheet = Sheet(xl=self.xl.Add())
+            if name is not None:
+                sheet.name = name
+            return sheet
 
 
 class Sheet:

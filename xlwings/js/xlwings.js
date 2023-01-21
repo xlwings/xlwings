@@ -277,7 +277,8 @@ function clearContents(workbook, action) {
 }
 
 function addSheet(workbook, action) {
-  let sheet = workbook.insertSheet(action.args[0]);
+  // insertSheet(sheetName, sheetIndex)
+  let sheet = workbook.insertSheet(action.args[1], parseInt(action.args[0]));
 }
 
 function setSheetName(workbook, action) {

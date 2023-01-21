@@ -1,4 +1,5 @@
 import datetime as dt
+from pathlib import Path
 
 import jinja2
 import markupsafe
@@ -12,6 +13,7 @@ import xlwings as xw
 
 app = FastAPI()
 
+this_dir = Path(__file__).resolve().parent
 
 expected_body = {
     "client": "Office.js",
@@ -40,7 +42,8 @@ expected_body = {
                 ["", "string"],
                 [-1, 1],
                 [True, False],
-                ["2021-10-01T00:00:00.000Z", "2021-12-31T23:35:00.000Z"],
+                # TODO: Custom datetime format not supported yet
+                ["2021-10-01T00:00:00.000Z", 44561.9826388889],
             ],
             "pictures": [],
         },
@@ -92,17 +95,24 @@ def integration_test_read(data: dict = Body):
 def integration_test_write(data: dict = Body):
     book = xw.Book(json=data)
     assert book.name == "integration_write.xlsx"
-    sheet1 = book.sheets[0]
-    sheet1["B2"].value = [
+    sheet1 = book.sheets["Sheet 1"]
+    # Values
+    sheet1["D3"].value = [
         [None, "string"],
         [-1, 1],
         [-1.1, 1.1],
         [True, False],
         [
-            dt.date(2021, 10, 1),
+            dt.date(2021, 7, 1),
             dt.datetime(2021, 12, 31, 23, 35, 12, tzinfo=tz.gettz("Europe/Paris")),
         ],
     ]
+    # Add sheets and write to it
+    sheet2 = book.sheets.add("New Named Sheet")
+    sheet2["A1"].value = "Named Sheet"
+    sheet3 = book.sheets.add()
+    sheet3["A1"].value = "Unnamed Sheet"
+
     return book.json()
 
 
@@ -124,18 +134,18 @@ async def alert(
     )
 
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/", StaticFiles(directory="build"), name="home")
+app.mount("/static", StaticFiles(directory=this_dir / "static"), name="static")
+app.mount("/", StaticFiles(directory=this_dir / "build"), name="home")
 StaticFiles.is_not_modified = lambda *args, **kwargs: False  # Never cache static files
 
 # Add the xlwings alert template as source
 loader = jinja2.ChoiceLoader(
     [
-        jinja2.FileSystemLoader("build"),
+        jinja2.FileSystemLoader(this_dir / "build"),
         jinja2.PackageLoader("xlwings", "html"),
     ]
 )
-templates = Jinja2Templates(directory="build", loader=loader)
+templates = Jinja2Templates(directory=this_dir / "build", loader=loader)
 
 
 if __name__ == "__main__":
@@ -148,6 +158,6 @@ if __name__ == "__main__":
         reload=True,
         reload_dirs=["."],
         reload_includes=["*.py", "*.html", "*.js", "*.css"],
-        ssl_keyfile="localhost+2-key.pem",
-        ssl_certfile="localhost+2.pem",
+        ssl_keyfile=this_dir / "localhost+2-key.pem",
+        ssl_certfile=this_dir / "localhost+2.pem",
     )

@@ -606,7 +606,7 @@ class Sheets:
         for i in range(len(self)):
             yield self(i + 1)
 
-    def add(self, before=None, after=None):
+    def add(self, before=None, after=None, name=None):
         if before is None and after is None:
             before = self.workbook.app.books.active.sheets.active
         if before:
@@ -614,6 +614,8 @@ class Sheets:
         else:
             position = after.xl.after
         xl = self.workbook.xl.make(new=kw.worksheet, at=position)
+        if name is not None:
+            xl.name.set(name)
         return Sheet(self.workbook, xl.name.get())
 
 

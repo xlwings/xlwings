@@ -5101,9 +5101,7 @@ class Sheets(Collection):
             before = self(before)
         if after is not None and not isinstance(after, Sheet):
             after = self(after)
-        impl = self.impl.add(before and before.impl, after and after.impl)
-        if name is not None:
-            impl.name = name
+        impl = self.impl.add(before and before.impl, after and after.impl, name)
         return Sheet(impl=impl)
 
 

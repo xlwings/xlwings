@@ -250,9 +250,10 @@ export async function runPython(
 
       // Run Functions
       if (rawData !== null) {
-        rawData["actions"].forEach((action) => {
+        for (let action of rawData["actions"]) {
           funcs[action.func](context, action);
-        });
+          await context.sync();
+        }
       }
     });
   } catch (error) {
@@ -369,7 +370,12 @@ async function clearContents(context, action: Action) {
 }
 
 async function addSheet(context, action: Action) {
-  let sheet = context.workbook.worksheets.add();
+  let sheet: Excel.Worksheet
+  if (action.args[1] !== null) {
+    sheet = context.workbook.worksheets.add(action.args[1].toString());
+  } else {
+    sheet = context.workbook.worksheets.add();
+  }
   sheet.position = parseInt(action.args[0].toString());
   await context.sync();
 }
