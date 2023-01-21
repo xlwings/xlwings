@@ -1,6 +1,13 @@
 What's New
 ==========
 
+v0.28.9 (Jan 21, 2023)
+----------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server: add full support for named ranges when called from VBA. JavaScript client implementations are still pending (:issue:`2145`).
+* :bdg-warning:`Bug Fix` On macOS, opening a file was turning its name into lower case  (:issue:`2052`).
+* :bdg-warning:`Bug Fix` The xlwings CLI was removing the xlwings addin when the ``remove`` command was called with the ``--dir`` flag. Also, the ``xlwings.exe`` builds are now 32-bit (:issue:`2142`).
+
 v0.28.8 (Jan 13, 2023)
 ----------------------
 
