@@ -318,6 +318,9 @@ let funcs = {
   addPicture: addPicture,
   updatePicture: updatePicture,
   alert: alert,
+  setRangeName: setRangeName,
+  namesAdd: namesAdd,
+  nameDelete: nameDelete,
 };
 
 Object.assign(globalThis.funcs, funcs);
@@ -337,7 +340,7 @@ async function setValues(context, action: Action) {
         dt = new Date(Date.parse(value));
         // Excel on macOS doesn't use proper locale if not passed explicitly
         dtString = dt.toLocaleDateString(Office.context.displayLanguage);
-        // Note that adding the time will format the cell as Custom instead of Date/Time 
+        // Note that adding the time will format the cell as Custom instead of Date/Time
         // which xlwings currently doesn't translate to datetime when reading
         if (dtString !== "Invalid Date") {
           if (
@@ -448,4 +451,16 @@ async function alert(context, action: Action) {
   let myMode = action.args[3].toString();
   let myCallback = action.args[4].toString();
   xlAlert(myPrompt, myTitle, myButtons, myMode, myCallback);
+}
+
+async function setRangeName(contex, action: Action) {
+  throw "NotImplemented: setRangeName";
+}
+
+async function namesAdd(context, action: Action) {
+  throw "NotImplemented: namesAdd";
+}
+
+async function nameDelete(context, action: Action) {
+  throw "NotImplemented: deleteName";
 }
