@@ -23,7 +23,7 @@ import xlwings as xw
 this_dir = Path(__file__).resolve().parent
 
 # "calamine", "remote", or "excel"
-engine = os.environ.get("XLWINGS_ENGINE") or "calamine"
+engine = os.environ.get("XLWINGS_ENGINE") or "remote"
 # "xlsx", "xlsb", or "xls"
 file_extension = os.environ.get("XLWINGS_FILE_EXTENSION") or "xlsx"
 
@@ -93,6 +93,11 @@ def book():
         book = xw.Book(this_dir / f"engines.{file_extension}")
     yield book
     book.close()
+
+
+@pytest.fixture(autouse=True)
+def clear_json(book):
+    book.impl._json = {"actions": []}
 
 
 # range.value
@@ -430,7 +435,6 @@ def test_named_range_missing(book):
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_named_range_book_change_value(book):
-    book.impl._json = {"actions": []}
     sheet1 = book.sheets[0]
     assert sheet1["one"].value == "a"
     sheet1["one"].value = 1000
@@ -482,3 +486,41 @@ def test_names_iter(book):
             assert name.refers_to_range == book.sheets[0]["C7:D8"]
         elif ix == 2:
             assert name.refers_to_range == book.sheets[1]["A1:A2"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_get_name(book):
+    assert book.sheets[0]["A1"].name == book.names[0]
+    assert book.sheets[0]["C7:D8"].name == book.names[1]
+    assert book.sheets[1]["A1:A2"].name == book.names[2]
+    assert book.sheets[0]["X1"].name is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_set_name(book):
+    book.sheets[0]["A1:C3"].name = "mytestrange"
+    assert json.dumps(book.json()["actions"][0]["func"]) == '"setRangeName"'
+    assert json.dumps(book.json()["actions"][0]["args"][0]) == '"mytestrange"'
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_book_names_add(book):
+    book.names.add("test1", "=Sheet1!$A$1:$B$3")
+    assert book.json()["actions"][0]["func"] == "namesAdd"
+    assert book.json()["actions"][0]["args"] == ["test1", "=Sheet1!$A$1:$B$3"]
+    assert book.json()["actions"][0]["sheet_position"] is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_names_add(book):
+    book.sheets[0].names.add("test1", "=Sheet1!$A$1:$B$3")
+    assert book.json()["actions"][0]["func"] == "namesAdd"
+    assert book.json()["actions"][0]["args"] == ["test1", "=Sheet1!$A$1:$B$3"]
+    assert book.json()["actions"][0]["sheet_position"] == 0
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_name_delete(book):
+    book.names[0].delete()
+    assert book.json()["actions"][0]["func"] == "nameDelete"
+    assert book.json()["actions"][0]["args"] == ["one", "=Sheet1!$A$1"]

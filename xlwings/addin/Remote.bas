@@ -561,3 +561,25 @@ Sub alert(wb As Workbook, action As Dictionary)
     End If
 
 End Sub
+
+Sub setRangeName(wb As Workbook, action As Dictionary)
+    GetRange(wb, action).Name = action("args")(1)
+End Sub
+
+Sub namesAdd(wb As Workbook, action As Dictionary)
+    If IsNull(action("sheet_position")) Then
+        wb.Names.Add Name:=action("args")(1), RefersTo:=action("args")(2)
+    Else
+        wb.Worksheets(action("sheet_position") + 1).Names.Add Name:=action("args")(1), RefersTo:=action("args")(2)
+    End If
+End Sub
+
+Sub nameDelete(wb As Workbook, action As Dictionary)
+    Dim myname As Name
+    For Each myName In wb.Names()
+        If (myName.Name = action("args")(1)) And (myName.RefersTo = action("args")(2)) Then
+            myName.Delete
+            Exit For
+        End If
+    Next
+End Sub

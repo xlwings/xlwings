@@ -275,6 +275,9 @@ let funcs = {
   addPicture: addPicture,
   updatePicture: updatePicture,
   alert: alert,
+  setRangeName: setRangeName,
+  namesAdd: namesAdd,
+  nameDelete: nameDelete,
 };
 
 // Functions
@@ -387,4 +390,16 @@ function alert(workbook: ExcelScript.Workbook, action: Action) {
   let myMode = action.args[3]; // ignored
   let myCallback = action.args[4]; // ignored
   throw myPrompt;
+}
+
+function setRangeName(workbook: ExcelScript.Workbook, action: Action) {
+  throw "NotImplemented: setRangeName";
+}
+
+function namesAdd(workbook: ExcelScript.Workbook, action: Action) {
+  throw "NotImplemented: namesAdd";
+}
+
+function nameDelete(workbook: ExcelScript.Workbook, action: Action) {
+  throw "NotImplemented: deleteName";
 }

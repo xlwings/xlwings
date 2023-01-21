@@ -438,3 +438,15 @@ function alert(workbook, action) {
     funcs[myCallback](buttonResult);
   }
 }
+
+function setRangeName(workbook, action) {
+  throw "NotImplemented: setRangeName";
+}
+
+function namesAdd(workbook, action) {
+  throw "NotImplemented: namesAdd";
+}
+
+function nameDelete(workbook, action) {
+  throw "NotImplemented: deleteName";
+}

@@ -4620,6 +4620,14 @@ class Name:
     def __repr__(self):
         return "<Name '%s': %s>" % (self.name, self.refers_to)
 
+    def __eq__(self, other):
+        return (
+            type(other) is Name
+            and other.name == self.name
+            and other.refers_to_range == self.refers_to_range
+            and other.refers_to == self.refers_to
+        )
+
 
 def view(obj, sheet=None, table=True, chunksize=5000):
     """

@@ -690,6 +690,24 @@ class Range(base_classes.Range):
     def number_format(self, value):
         self.append_json_action(func="setNumberFormat", args=value)
 
+    @property
+    def name(self):
+        for name in self.sheet.book.api["names"]:
+            if name["sheet_index"] == self.sheet.index - 1 and name[
+                "address"
+            ] == self.address.replace("$", ""):
+                return Name(
+                    parent=self.sheet.book if name["book_scope"] else self.sheet,
+                    api=name,
+                )
+
+    @name.setter
+    def name(self, value):
+        self.append_json_action(
+            func="setRangeName",
+            args=value,
+        )
+
     def __len__(self):
         nrows, ncols = self.shape
         return nrows * ncols
@@ -914,11 +932,45 @@ class Name(base_classes.Name):
         sheet = book.sheets(self.api["sheet_index"] + 1)
         return sheet.range(self.api["address"])
 
+    def delete(self):
+        # TODO: delete in api
+        self.parent.append_json_action(
+            func="nameDelete", args=[self.name, self.refers_to]
+        )
+
 
 class Names(base_classes.Names):
     def __init__(self, parent, api):
         self.parent = parent
         self.api = api
+
+    def add(self, name, refers_to):
+        if isinstance(self.parent, Book):
+            is_parent_book = True
+        else:
+            is_parent_book = False
+        self.parent.append_json_action(func="namesAdd", args=[name, refers_to])
+
+        def _get_sheet_index(parent):
+            if is_parent_book:
+                sheets = parent.sheets
+            else:
+                sheets = parent.book.sheets
+            for sheet in sheets:
+                if sheet.name == refers_to.split("!")[0].replace("=", "").replace(
+                    "'", ""
+                ):
+                    return sheet.index - 1
+
+        return Name(
+            self.parent,
+            {
+                "name": name,
+                "sheet_index": _get_sheet_index(self.parent),
+                "address": refers_to.split("!")[1].replace("$", ""),
+                "book_scope": True if is_parent_book else False,
+            },
+        )
 
     def __call__(self, name_or_index):
         if isinstance(name_or_index, numbers.Number):
