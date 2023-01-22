@@ -5,6 +5,7 @@ import jinja2
 import markupsafe
 from dateutil import tz
 from fastapi import Body, FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -147,6 +148,14 @@ loader = jinja2.ChoiceLoader(
 )
 templates = Jinja2Templates(directory=this_dir / "build", loader=loader)
 
+
+# Excel via OfficeScripts requires CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origin_regex=r"https://.*.officescripts.microsoftusercontent.com",
+    allow_methods=["POST"],
+    allow_headers=["*"],
+)
 
 if __name__ == "__main__":
     import uvicorn

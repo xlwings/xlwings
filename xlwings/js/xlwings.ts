@@ -317,7 +317,12 @@ function clearContents(workbook: ExcelScript.Workbook, action: Action) {
 }
 
 function addSheet(workbook: ExcelScript.Workbook, action: Action) {
-  let sheet = workbook.addWorksheet(action.args[1].toString());
+  let sheet: ExcelScript.Worksheet;
+  if (action.args[1] !== null) {
+    sheet = workbook.addWorksheet(action.args[1].toString());
+  } else {
+    sheet = workbook.addWorksheet();
+  }
   sheet.setPosition(parseInt(action.args[0].toString()));
 }
 

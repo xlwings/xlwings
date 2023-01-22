@@ -418,6 +418,9 @@ Sub addSheet(wb As Workbook, action As Dictionary)
     Dim mysheet As Worksheet
     Set mysheet = wb.Sheets.Add
     mysheet.Move After:=Worksheets(action("args")(1) + 1)
+    If NOT ISNULL(action("args")(2)) Then
+        mysheet.Name = action("args")(2)
+    End If
 End Sub
 
 Sub setSheetName(wb As Workbook, action As Dictionary)
