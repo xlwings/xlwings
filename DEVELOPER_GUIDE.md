@@ -104,7 +104,7 @@ The 3rd party Open Source licenses document is built with `cargo about generate 
   npm install
   ```
 * Run `npm start` to continuously compile the TypeScript source. This will also inject code for hot-reloading the source code.
-* In a different Terminal, run `python server.py`: this will run the development server
+* In a different Terminal, run `python devserver.py`: this will run the development server
 * Sideload the `manifest.xml` according to the [office.js docs](https://learn.microsoft.com/en-us/office/dev/add-ins/testing/test-debug-office-add-ins#sideload-an-office-add-in-for-testing)
 * Excel on macOS requires to run the following command in a Terminal to be able to right-click in the Taskpane to inspect element:
 

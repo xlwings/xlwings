@@ -4,9 +4,9 @@ from pathlib import Path
 import jinja2
 import markupsafe
 from dateutil import tz
-from fastapi import Body, FastAPI, Request
+from fastapi import Body, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -15,6 +15,17 @@ import xlwings as xw
 app = FastAPI()
 
 this_dir = Path(__file__).resolve().parent
+
+
+@app.exception_handler(Exception)
+async def exception_handler(request, exception):
+    # Handling all Exceptions is OK since it's only a dev server, but you
+    # probably don't want to show the details of every Exception to the user
+    # in production
+    return PlainTextResponse(
+        str(exception), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+    )
+
 
 expected_body = {
     "client": "Office.js",
@@ -84,9 +95,6 @@ def integration_test_read(data: dict = Body):
     # NOTE: Select "A1" on Sheet1
     book = xw.Book(json=data)
     assert book.name == "engines.xlsx"
-    import json
-
-    print(json.dumps(data))
     assert data == expected_body
     book.app.alert("OK", title="Integration Test Read")
     return book.json()
@@ -97,8 +105,9 @@ def integration_test_write(data: dict = Body):
     book = xw.Book(json=data)
     assert book.name == "integration_write.xlsx"
     sheet1 = book.sheets["Sheet 1"]
+
     # Values
-    sheet1["D3"].value = [
+    sheet1["E3"].value = [
         [None, "string"],
         [-1, 1],
         [-1.1, 1.1],
@@ -108,11 +117,39 @@ def integration_test_write(data: dict = Body):
             dt.datetime(2021, 12, 31, 23, 35, 12, tzinfo=tz.gettz("Europe/Paris")),
         ],
     ]
-    # Add sheets and write to it
+
+    # Add sheets and write to them
     sheet2 = book.sheets.add("New Named Sheet")
     sheet2["A1"].value = "Named Sheet"
     sheet3 = book.sheets.add()
     sheet3["A1"].value = "Unnamed Sheet"
+
+    # Set sheet name
+    book.sheets["Sheet2"].name = "Changed"
+    book.sheets["Changed"]["A1"].value = "Changed"
+
+    # Autofit
+    autofit_sheet = book.sheets["Autofit"]
+    autofit_sheet["A1"].value = [[1, 2], [3, 4]]
+    autofit_sheet["A1:B2"].autofit()
+    autofit_sheet["D4:E5"].rows.autofit()
+    autofit_sheet["G7:H82"].columns.autofit()
+
+    # Range color
+    sheet1["E12:F12"].color = "#3DBAC1"
+
+    # Activate sheet
+    book.sheets[1].activate()
+
+    # Add Hyperlink
+    sheet1["E14"].add_hyperlink("https://www.xlwings.org", "xlwings", "xw homepage")
+
+    # Number format
+    sheet1["E9:F10"].value = [[1, 2], [3, 4]]
+    sheet1["E9:F10"].number_format = "0%"
+
+    # Clear contents
+    sheet1["E16:F17"].clear_contents()
 
     return book.json()
 
@@ -161,7 +198,7 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(
-        "server:app",
+        "devserver:app",
         host="127.0.0.1",
         port=8000,
         reload=True,

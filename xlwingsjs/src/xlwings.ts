@@ -290,7 +290,7 @@ interface Names {
   book_scope: boolean;
 }
 
-async function getRange(context, action: Action) {
+async function getRange(context: Excel.RequestContext, action: Action) {
   let sheets = context.workbook.worksheets.load("items");
   await context.sync();
   return sheets.items[action["sheet_position"]].getRangeByIndexes(
@@ -327,7 +327,7 @@ let funcs = {
 Object.assign(globalThis.funcs, funcs);
 
 // Functions
-async function setValues(context, action: Action) {
+async function setValues(context: Excel.RequestContext, action: Action) {
   // Handle DateTime (TODO: backend should deliver indices with datetime obj)
   let dt: Date;
   let dtString: string;
@@ -363,14 +363,14 @@ async function setValues(context, action: Action) {
   await context.sync();
 }
 
-async function clearContents(context, action: Action) {
+async function clearContents(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
   range.clear(Excel.ClearApplyTo.contents);
   // await context.sync();  // why is this not needed here
 }
 
-async function addSheet(context, action: Action) {
-  let sheet: Excel.Worksheet
+async function addSheet(context: Excel.RequestContext, action: Action) {
+  let sheet: Excel.Worksheet;
   if (action.args[1] !== null) {
     sheet = context.workbook.worksheets.add(action.args[1].toString());
   } else {
@@ -380,16 +380,13 @@ async function addSheet(context, action: Action) {
   await context.sync();
 }
 
-async function setSheetName(context, action: Action) {
-  await context.sync();
+async function setSheetName(context: Excel.RequestContext, action: Action) {
   let sheets = context.workbook.worksheets.load("items");
-  await context.sync();
-  console.log(sheets.items[action.sheet_position]);
   sheets.items[action.sheet_position].name = action.args[0].toString();
   await context.sync();
 }
 
-async function setAutofit(context, action: Action) {
+async function setAutofit(context: Excel.RequestContext, action: Action) {
   if (action.args[0] === "columns") {
     let range = await getRange(context, action);
     range.format.autofitColumns();
@@ -399,19 +396,19 @@ async function setAutofit(context, action: Action) {
   }
 }
 
-async function setRangeColor(context, action: Action) {
+async function setRangeColor(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
   range.format.fill.color = action.args[0].toString();
 }
 
-async function activateSheet(context, action: Action) {
+async function activateSheet(context: Excel.RequestContext, action: Action) {
   let worksheets = context.workbook.worksheets;
   worksheets.load("items");
   await context.sync();
   worksheets.items[parseInt(action.args[0].toString())].activate();
 }
 
-async function addHyperlink(context, action: Action) {
+async function addHyperlink(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
   let hyperlink = {
     textToDisplay: action.args[1].toString(),
@@ -421,36 +418,37 @@ async function addHyperlink(context, action: Action) {
   range.hyperlink = hyperlink;
 }
 
-async function setNumberFormat(context, action: Action) {
+async function setNumberFormat(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
-  range.numberFormat = action.args[0].toString();
+  range.numberFormat = [[action.args[0].toString()]];
+  await context.sync();
 }
 
-async function setPictureName(context, action: Action) {
+async function setPictureName(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: setPictureName";
 }
 
-async function setPictureHeight(context, action: Action) {
+async function setPictureHeight(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: setPictureHeight";
 }
 
-async function setPictureWidth(context, action: Action) {
+async function setPictureWidth(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: setPictureWidth";
 }
 
-async function deletePicture(context, action: Action) {
+async function deletePicture(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: deletePicture";
 }
 
-async function addPicture(context, action: Action) {
+async function addPicture(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: addPicture";
 }
 
-async function updatePicture(context, action: Action) {
+async function updatePicture(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: updatePicture";
 }
 
-async function alert(context, action: Action) {
+async function alert(context: Excel.RequestContext, action: Action) {
   let myPrompt = action.args[0].toString();
   let myTitle = action.args[1].toString();
   let myButtons = action.args[2].toString();
@@ -459,14 +457,14 @@ async function alert(context, action: Action) {
   xlAlert(myPrompt, myTitle, myButtons, myMode, myCallback);
 }
 
-async function setRangeName(contex, action: Action) {
+async function setRangeName(context: Excel.RequestContext, action: Action) {
   throw "NotImplemented: setRangeName";
 }
 
-async function namesAdd(context, action: Action) {
+async function namesAdd(context: Excel.RequestContext, action: Action) {
   throw "NotImplemented: namesAdd";
 }
 
-async function nameDelete(context, action: Action) {
+async function nameDelete(context: Excel.RequestContext, action: Action) {
   throw "NotImplemented: deleteName";
 }
