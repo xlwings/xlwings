@@ -19,9 +19,8 @@ this_dir = Path(__file__).resolve().parent
 
 @app.exception_handler(Exception)
 async def exception_handler(request, exception):
-    # Handling all Exceptions is OK since it's only a dev server, but you
-    # probably don't want to show the details of every Exception to the user
-    # in production
+    # Handling all Exceptions is OK since it's only a dev server, but you probably
+    # don't want to show the details of every Exception to the user in production
     return PlainTextResponse(
         str(exception), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
     )
@@ -90,12 +89,9 @@ def show_alert(data: dict = Body):
 
 @app.post("/integration-test-read")
 def integration_test_read(data: dict = Body):
-    # Click "Integration Test" on the Taskpane
-    # with tests/test_engines/engines.xlsx open
-    # NOTE: Select "A1" on Sheet1
     book = xw.Book(json=data)
-    assert book.name == "engines.xlsx"
-    assert data == expected_body
+    assert book.name == "engines.xlsx", "engines.xlsx must be the active file"
+    assert data == expected_body, "Body differs (Make sure to select cell Sheet1!A1)"
     book.app.alert("OK", title="Integration Test Read")
     return book.json()
 
@@ -103,7 +99,9 @@ def integration_test_read(data: dict = Body):
 @app.post("/integration-test-write")
 def integration_test_write(data: dict = Body):
     book = xw.Book(json=data)
-    assert book.name == "integration_write.xlsx"
+    assert (
+        book.name == "integration_write.xlsx"
+    ), "integration_write.xlsx must be the active file"
     sheet1 = book.sheets["Sheet 1"]
 
     # Values
@@ -119,6 +117,8 @@ def integration_test_write(data: dict = Body):
     ]
 
     # Add sheets and write to them
+    # NOTE: in Excel Online, adding/renaming sheets makes an alert impossible to quit
+    # via provided buttons ("osfControl for the given ID doesn't exist.")
     sheet2 = book.sheets.add("New Named Sheet")
     sheet2["A1"].value = "Named Sheet"
     sheet3 = book.sheets.add()
@@ -138,9 +138,6 @@ def integration_test_write(data: dict = Body):
     # Range color
     sheet1["E12:F12"].color = "#3DBAC1"
 
-    # Activate sheet
-    book.sheets[1].activate()
-
     # Add Hyperlink
     sheet1["E14"].add_hyperlink("https://www.xlwings.org", "xlwings", "xw homepage")
 
@@ -150,6 +147,9 @@ def integration_test_write(data: dict = Body):
 
     # Clear contents
     sheet1["E16:F17"].clear_contents()
+
+    # Activate sheet
+    book.sheets[1].activate()
 
     return book.json()
 

@@ -250,9 +250,12 @@ export async function runPython(
 
       // Run Functions
       if (rawData !== null) {
+        const forceSync = ["sheet"];
         for (let action of rawData["actions"]) {
           funcs[action.func](context, action);
-          await context.sync();
+          if (forceSync.some((el) => action.func.toLowerCase().includes(el))) {
+            await context.sync();
+          }
         }
       }
     });
@@ -366,7 +369,7 @@ async function setValues(context: Excel.RequestContext, action: Action) {
 async function clearContents(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
   range.clear(Excel.ClearApplyTo.contents);
-  // await context.sync();  // why is this not needed here
+  await context.sync();
 }
 
 async function addSheet(context: Excel.RequestContext, action: Action) {
@@ -377,13 +380,11 @@ async function addSheet(context: Excel.RequestContext, action: Action) {
     sheet = context.workbook.worksheets.add();
   }
   sheet.position = parseInt(action.args[0].toString());
-  await context.sync();
 }
 
 async function setSheetName(context: Excel.RequestContext, action: Action) {
   let sheets = context.workbook.worksheets.load("items");
   sheets.items[action.sheet_position].name = action.args[0].toString();
-  await context.sync();
 }
 
 async function setAutofit(context: Excel.RequestContext, action: Action) {
@@ -399,6 +400,7 @@ async function setAutofit(context: Excel.RequestContext, action: Action) {
 async function setRangeColor(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
   range.format.fill.color = action.args[0].toString();
+  await context.sync();
 }
 
 async function activateSheet(context: Excel.RequestContext, action: Action) {
@@ -416,12 +418,12 @@ async function addHyperlink(context: Excel.RequestContext, action: Action) {
     address: action.args[0].toString(),
   };
   range.hyperlink = hyperlink;
+  await context.sync();
 }
 
 async function setNumberFormat(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
   range.numberFormat = [[action.args[0].toString()]];
-  await context.sync();
 }
 
 async function setPictureName(context: Excel.RequestContext, action: Action) {
