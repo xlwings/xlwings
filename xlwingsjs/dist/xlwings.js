@@ -1,7 +1,11 @@
 /**
 * Copyright (C) 2014 - present, Zoomer Analytics GmbH. All rights reserved.
-* Released under the BSD-3-Clause license, see: https://docs.xlwings.org/en/stable/license.html
-* For third-party Open Source licenses, see: https://docs.xlwings.org/en/stable/opensource_licenses.html
+* Licensed under BSD-3-Clause license, see: https://docs.xlwings.org/en/stable/license.html
+* 
+* This file also contains code from core-js
+* Copyright (C) 2014-2023 Denis Pushkarev, Licensed under MIT license, see https://raw.githubusercontent.com/zloirock/core-js/master/LICENSE
+* This file also contains code from Webpack
+* Copyright (C) JS Foundation and other contributors, Licensed under MIT license, see https://raw.githubusercontent.com/webpack/webpack/main/LICENSE
 */
 var xlwings;
 /******/ (function() { // webpackBootstrap
@@ -2148,37 +2152,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "xlAlert": function() { return /* binding */ xlAlert; }
 /* harmony export */ });
+// https://learn.microsoft.com/en-us/office/dev/add-ins/develop/dialog-api-in-office-add-ins
 var dialog;
 function dialogCallback(asyncResult) {
-    if (asyncResult.status == "failed") {
-        switch (asyncResult.error.code) {
-            case 12004:
-                console.log("Domain is not trusted");
-                break;
-            case 12005:
-                console.log("HTTPS is required");
-                break;
-            case 12007:
-                console.log("A dialog is already opened.");
-                break;
-            case 12009:
-                console.log("The user chose to ignore the dialog box.");
-                break;
-            case 12011:
-                console.log("The user's browser configuration is blocking popups.");
-                break;
-            default:
-                console.log(asyncResult.error.message);
-                break;
-        }
+    if (asyncResult.status === Office.AsyncResultStatus.Failed) {
+        console.log("".concat(asyncResult.error.message, " [").concat(asyncResult.error.code, "]"));
     }
     else {
         dialog = asyncResult.value;
-        dialog.addEventHandler(Office.EventType.DialogMessageReceived, messageHandler);
-        dialog.addEventHandler(Office.EventType.DialogEventReceived, eventHandler);
+        // Handle messages and events
+        dialog.addEventHandler(Office.EventType.DialogMessageReceived, processMessage);
+        dialog.addEventHandler(Office.EventType.DialogEventReceived, processDialogEvent);
     }
 }
-function messageHandler(arg) {
+function processMessage(arg) {
     dialog.close();
     var _a = arg.message.split("|"), selection = _a[0], callback = _a[1];
     if (callback !== "" && callback in globalThis.funcs) {
@@ -2190,10 +2177,10 @@ function messageHandler(arg) {
         }
     }
 }
-function eventHandler(arg) {
+function processDialogEvent(arg) {
     switch (arg.error) {
         case 12002:
-            console.log("Cannot load URL, no such page or bad URL syntax.");
+            console.log("The dialog box has been directed to a page that it cannot find or load, or the URL syntax is invalid.");
             break;
         case 12003:
             console.log("HTTPS is required.");
@@ -2202,7 +2189,7 @@ function eventHandler(arg) {
             console.log("Dialog closed by user");
             break;
         default:
-            console.log("Undefined error in dialog window");
+            console.log("Unknown error in dialog box");
             break;
     }
 }
@@ -2391,9 +2378,9 @@ function runPython(url, _a) {
                 case 0:
                     _g.trys.push([0, 2, , 3]);
                     return [4 /*yield*/, Excel.run(function (context) { return __awaiter(_this, void 0, void 0, function () {
-                            var workbook, worksheets, sheets, configSheet, config, configRange, configValues, includeArray, excludeArray, property, payload, activeSheet, selection, names, namedItems, sheetsLoader, response, rawData;
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
+                            var workbook, worksheets, sheets, configSheet, config, configRange, configValues, includeArray, excludeArray, property, payload, activeSheet, selection, names, namedItems, sheetsLoader, namesSheetScope, namesSheetsScope2, response, rawData, forceSync, _loop_1, _i, _a, action;
+                            return __generator(this, function (_b) {
+                                switch (_b.label) {
                                     case 0:
                                         workbook = context.workbook;
                                         workbook.load("name");
@@ -2401,12 +2388,12 @@ function runPython(url, _a) {
                                         worksheets.load("items/name");
                                         return [4 /*yield*/, context.sync()];
                                     case 1:
-                                        _a.sent();
+                                        _b.sent();
                                         sheets = worksheets.items;
                                         configSheet = worksheets.getItemOrNullObject("xlwings.conf");
                                         return [4 /*yield*/, context.sync()];
                                     case 2:
-                                        _a.sent();
+                                        _b.sent();
                                         config = {};
                                         if (!!configSheet.isNullObject) return [3 /*break*/, 4];
                                         configRange = configSheet
@@ -2415,10 +2402,10 @@ function runPython(url, _a) {
                                             .load("values");
                                         return [4 /*yield*/, context.sync()];
                                     case 3:
-                                        _a.sent();
+                                        _b.sent();
                                         configValues = configRange.values;
                                         configValues.forEach(function (el) { return (config[el[0].toString()] = el[1].toString()); });
-                                        _a.label = 4;
+                                        _b.label = 4;
                                     case 4:
                                         if (auth === "") {
                                             auth = config["AUTH"] || "";
@@ -2466,17 +2453,17 @@ function runPython(url, _a) {
                                         selection = workbook.getSelectedRange().load("address");
                                         return [4 /*yield*/, context.sync()];
                                     case 5:
-                                        _a.sent();
+                                        _b.sent();
                                         payload["book"] = {
                                             name: workbook.name,
                                             active_sheet_index: activeSheet.position,
                                             selection: selection.address.split("!").pop(),
                                         };
                                         names = [];
-                                        namedItems = context.workbook.names.load("name, scope, type");
+                                        namedItems = context.workbook.names.load("name, type");
                                         return [4 /*yield*/, context.sync()];
                                     case 6:
-                                        _a.sent();
+                                        _b.sent();
                                         namedItems.items.forEach(function (namedItem, ix) {
                                             // Currently filtering to named ranges
                                             if (namedItem.type === "Range") {
@@ -2484,13 +2471,13 @@ function runPython(url, _a) {
                                                     name: namedItem.name,
                                                     sheet: namedItem.getRange().worksheet.load("position"),
                                                     range: namedItem.getRange().load("address"),
-                                                    book_scope: namedItem.scope === "Workbook" ? true : false,
+                                                    book_scope: true, // workbook.names contains only workbook scope!
                                                 };
                                             }
                                         });
                                         return [4 /*yield*/, context.sync()];
                                     case 7:
-                                        _a.sent();
+                                        _b.sent();
                                         names.forEach(function (namedItem, ix) {
                                             names[ix] = {
                                                 name: namedItem.name,
@@ -2504,7 +2491,7 @@ function runPython(url, _a) {
                                         payload["sheets"] = [];
                                         sheetsLoader = [];
                                         sheets.forEach(function (sheet) {
-                                            sheet.load("name");
+                                            sheet.load("name names");
                                             var lastCell;
                                             if (sheet.getUsedRange() !== undefined) {
                                                 lastCell = sheet.getUsedRange().getLastCell().load("address");
@@ -2519,17 +2506,45 @@ function runPython(url, _a) {
                                         });
                                         return [4 /*yield*/, context.sync()];
                                     case 8:
-                                        _a.sent();
+                                        _b.sent();
                                         sheetsLoader.forEach(function (item, ix) {
                                             var range;
                                             range = item["sheet"]
                                                 .getRange("A1:".concat(item["lastCell"].address))
                                                 .load("values, numberFormatCategories");
                                             sheetsLoader[ix]["range"] = range;
+                                            // Names (sheet scope)
+                                            sheetsLoader[ix]["names"] = item["sheet"].names.load("name, type");
                                         });
                                         return [4 /*yield*/, context.sync()];
                                     case 9:
-                                        _a.sent();
+                                        _b.sent();
+                                        namesSheetScope = [];
+                                        sheetsLoader.forEach(function (item) {
+                                            item["names"].items.forEach(function (namedItem, ix) {
+                                                namesSheetScope[ix] = {
+                                                    name: namedItem.name,
+                                                    sheet: namedItem.getRange().worksheet.load("position"),
+                                                    range: namedItem.getRange().load("address"),
+                                                    book_scope: false,
+                                                };
+                                            });
+                                        });
+                                        return [4 /*yield*/, context.sync()];
+                                    case 10:
+                                        _b.sent();
+                                        namesSheetsScope2 = [];
+                                        namesSheetScope.forEach(function (namedItem, ix) {
+                                            namesSheetsScope2[ix] = {
+                                                name: namedItem.name,
+                                                sheet_index: namedItem.sheet.position,
+                                                address: namedItem.range.address.split("!").pop(),
+                                                book_scope: namedItem.book_scope,
+                                            };
+                                        });
+                                        // Add sheet scoped names to book scoped names
+                                        payload["names"] = payload["names"].concat(namesSheetsScope2);
+                                        // values
                                         sheetsLoader.forEach(function (item) {
                                             var values;
                                             if (excludeArray.includes(item["sheet"].name)) {
@@ -2542,6 +2557,7 @@ function runPython(url, _a) {
                                                     // i.e., dates aren't transformed to Python's datetime in Excel <=2019
                                                     var categories_1 = item["range"].numberFormatCategories;
                                                     // Handle dates
+                                                    // https://learn.microsoft.com/en-us/office/dev/scripts/resources/samples/excel-samples#dates
                                                     values.forEach(function (valueRow, rowIndex) {
                                                         var categoryRow = categories_1[rowIndex];
                                                         valueRow.forEach(function (value, colIndex) {
@@ -2566,24 +2582,45 @@ function runPython(url, _a) {
                                                 headers: headers,
                                                 body: JSON.stringify(payload),
                                             })];
-                                    case 10:
-                                        response = _a.sent();
-                                        if (!(response.status !== 200)) return [3 /*break*/, 12];
+                                    case 11:
+                                        response = _b.sent();
+                                        if (!(response.status !== 200)) return [3 /*break*/, 13];
                                         return [4 /*yield*/, response.text()];
-                                    case 11: throw _a.sent();
-                                    case 12: return [4 /*yield*/, response.json()];
-                                    case 13:
-                                        rawData = _a.sent();
-                                        _a.label = 14;
+                                    case 12: throw _b.sent();
+                                    case 13: return [4 /*yield*/, response.json()];
                                     case 14:
-                                        // console.log(rawData);
-                                        // Run Functions
-                                        if (rawData !== null) {
-                                            rawData["actions"].forEach(function (action) {
-                                                funcs[action.func](context, action);
+                                        rawData = _b.sent();
+                                        _b.label = 15;
+                                    case 15:
+                                        if (!(rawData !== null)) return [3 /*break*/, 19];
+                                        forceSync = ["sheet"];
+                                        _loop_1 = function (action) {
+                                            return __generator(this, function (_c) {
+                                                switch (_c.label) {
+                                                    case 0:
+                                                        funcs[action.func](context, action);
+                                                        if (!forceSync.some(function (el) { return action.func.toLowerCase().includes(el); })) return [3 /*break*/, 2];
+                                                        return [4 /*yield*/, context.sync()];
+                                                    case 1:
+                                                        _c.sent();
+                                                        _c.label = 2;
+                                                    case 2: return [2 /*return*/];
+                                                }
                                             });
-                                        }
-                                        return [2 /*return*/];
+                                        };
+                                        _i = 0, _a = rawData["actions"];
+                                        _b.label = 16;
+                                    case 16:
+                                        if (!(_i < _a.length)) return [3 /*break*/, 19];
+                                        action = _a[_i];
+                                        return [5 /*yield**/, _loop_1(action)];
+                                    case 17:
+                                        _b.sent();
+                                        _b.label = 18;
+                                    case 18:
+                                        _i++;
+                                        return [3 /*break*/, 16];
+                                    case 19: return [2 /*return*/];
                                 }
                             });
                         }); })];
@@ -2633,6 +2670,9 @@ var funcs = {
     addPicture: addPicture,
     updatePicture: updatePicture,
     alert: alert,
+    setRangeName: setRangeName,
+    namesAdd: namesAdd,
+    nameDelete: nameDelete,
 };
 Object.assign(globalThis.funcs, funcs);
 // Functions
@@ -2650,6 +2690,8 @@ function setValues(context, action) {
                                 dt = new Date(Date.parse(value));
                                 // Excel on macOS doesn't use proper locale if not passed explicitly
                                 dtString = dt.toLocaleDateString(Office.context.displayLanguage);
+                                // Note that adding the time will format the cell as Custom instead of Date/Time
+                                // which xlwings currently doesn't translate to datetime when reading
                                 if (dtString !== "Invalid Date") {
                                     if (dt.getHours() +
                                         dt.getMinutes() +
@@ -2684,6 +2726,9 @@ function clearContents(context, action) {
                 case 1:
                     range = _a.sent();
                     range.clear(Excel.ClearApplyTo.contents);
+                    return [4 /*yield*/, context.sync()];
+                case 2:
+                    _a.sent();
                     return [2 /*return*/];
             }
         });
@@ -2693,15 +2738,14 @@ function addSheet(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var sheet;
         return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    sheet = context.workbook.worksheets.add();
-                    sheet.position = parseInt(action.args[0].toString());
-                    return [4 /*yield*/, context.sync()];
-                case 1:
-                    _a.sent();
-                    return [2 /*return*/];
+            if (action.args[1] !== null) {
+                sheet = context.workbook.worksheets.add(action.args[1].toString());
             }
+            else {
+                sheet = context.workbook.worksheets.add();
+            }
+            sheet.position = parseInt(action.args[0].toString());
+            return [2 /*return*/];
         });
     });
 }
@@ -2709,21 +2753,9 @@ function setSheetName(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var sheets;
         return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, context.sync()];
-                case 1:
-                    _a.sent();
-                    sheets = context.workbook.worksheets.load("items");
-                    return [4 /*yield*/, context.sync()];
-                case 2:
-                    _a.sent();
-                    console.log(sheets.items[action.sheet_position]);
-                    sheets.items[action.sheet_position].name = action.args[0].toString();
-                    return [4 /*yield*/, context.sync()];
-                case 3:
-                    _a.sent();
-                    return [2 /*return*/];
-            }
+            sheets = context.workbook.worksheets.load("items");
+            sheets.items[action.sheet_position].name = action.args[0].toString();
+            return [2 /*return*/];
         });
     });
 }
@@ -2758,6 +2790,9 @@ function setRangeColor(context, action) {
                 case 1:
                     range = _a.sent();
                     range.format.fill.color = action.args[0].toString();
+                    return [4 /*yield*/, context.sync()];
+                case 2:
+                    _a.sent();
                     return [2 /*return*/];
             }
         });
@@ -2794,6 +2829,9 @@ function addHyperlink(context, action) {
                         address: action.args[0].toString(),
                     };
                     range.hyperlink = hyperlink;
+                    return [4 /*yield*/, context.sync()];
+                case 2:
+                    _a.sent();
                     return [2 /*return*/];
             }
         });
@@ -2807,7 +2845,7 @@ function setNumberFormat(context, action) {
                 case 0: return [4 /*yield*/, getRange(context, action)];
                 case 1:
                     range = _a.sent();
-                    range.numberFormat = action.args[0].toString();
+                    range.numberFormat = [[action.args[0].toString()]];
                     return [2 /*return*/];
             }
         });
@@ -2866,6 +2904,27 @@ function alert(context, action) {
             myCallback = action.args[4].toString();
             (0,_alert__WEBPACK_IMPORTED_MODULE_4__.xlAlert)(myPrompt, myTitle, myButtons, myMode, myCallback);
             return [2 /*return*/];
+        });
+    });
+}
+function setRangeName(context, action) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            throw "NotImplemented: setRangeName";
+        });
+    });
+}
+function namesAdd(context, action) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            throw "NotImplemented: namesAdd";
+        });
+    });
+}
+function nameDelete(context, action) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            throw "NotImplemented: deleteName";
         });
     });
 }

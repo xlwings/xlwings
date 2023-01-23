@@ -30,8 +30,12 @@ def prepend_license(path):
             """\
             /**
             * Copyright (C) 2014 - present, Zoomer Analytics GmbH. All rights reserved.
-            * Released under the BSD-3-Clause license, see: https://docs.xlwings.org/en/stable/license.html
-            * For third-party Open Source licenses, see: https://docs.xlwings.org/en/stable/opensource_licenses.html
+            * Licensed under BSD-3-Clause license, see: https://docs.xlwings.org/en/stable/license.html
+            *
+            * This file also contains code from core-js
+            * Copyright (C) 2014-2023 Denis Pushkarev, Licensed under MIT license, see https://raw.githubusercontent.com/zloirock/core-js/master/LICENSE
+            * This file also contains code from Webpack
+            * Copyright (C) JS Foundation and other contributors, Licensed under MIT license, see https://raw.githubusercontent.com/webpack/webpack/main/LICENSE
             */
             """
         )
