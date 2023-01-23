@@ -1,38 +1,25 @@
-﻿let dialog;
+﻿// https://learn.microsoft.com/en-us/office/dev/add-ins/develop/dialog-api-in-office-add-ins
 
-function dialogCallback(asyncResult) {
-  if (asyncResult.status == "failed") {
-    switch (asyncResult.error.code) {
-      case 12004:
-        console.log("Domain is not trusted");
-        break;
-      case 12005:
-        console.log("HTTPS is required");
-        break;
-      case 12007:
-        console.log("A dialog is already opened.");
-        break;
-      case 12009:
-        console.log("The user chose to ignore the dialog box.");
-        break;
-      case 12011:
-        console.log("The user's browser configuration is blocking popups.");
-        break;
-      default:
-        console.log(asyncResult.error.message);
-        break;
-    }
+let dialog: Office.Dialog;
+
+function dialogCallback(asyncResult: Office.AsyncResult<Office.Dialog>) {
+  if (asyncResult.status === Office.AsyncResultStatus.Failed) {
+    console.log(`${asyncResult.error.message} [${asyncResult.error.code}]`);
   } else {
     dialog = asyncResult.value;
+    // Handle messages and events
     dialog.addEventHandler(
       Office.EventType.DialogMessageReceived,
-      messageHandler
+      processMessage
     );
-    dialog.addEventHandler(Office.EventType.DialogEventReceived, eventHandler);
+    dialog.addEventHandler(
+      Office.EventType.DialogEventReceived,
+      processDialogEvent
+    );
   }
 }
 
-function messageHandler(arg) {
+function processMessage(arg: Office.DialogParentMessageReceivedEventArgs) {
   dialog.close();
   let [selection, callback] = arg.message.split("|");
   if (callback !== "" && callback in globalThis.funcs) {
@@ -46,10 +33,12 @@ function messageHandler(arg) {
   }
 }
 
-function eventHandler(arg) {
+function processDialogEvent(arg: { error: number }) {
   switch (arg.error) {
     case 12002:
-      console.log("Cannot load URL, no such page or bad URL syntax.");
+      console.log(
+        "The dialog box has been directed to a page that it cannot find or load, or the URL syntax is invalid."
+      );
       break;
     case 12003:
       console.log("HTTPS is required.");
@@ -58,7 +47,7 @@ function eventHandler(arg) {
       console.log("Dialog closed by user");
       break;
     default:
-      console.log("Undefined error in dialog window");
+      console.log("Unknown error in dialog box");
       break;
   }
 }
