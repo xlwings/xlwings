@@ -105,7 +105,7 @@ I would recommend you to create a virtual or Conda environment where you install
     $ python main.py
     INFO:     Will watch for changes in these directories: ['/Users/fz/Dev/demo']
     INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
-    INFO:     Started reloader process [36073] using watchgod
+    INFO:     Started reloader process [36073] using WatchFiles
     INFO:     Started server process [36075]
     INFO:     Waiting for application startup.
     INFO:     Application startup complete.
@@ -283,6 +283,8 @@ Now it's time to switch to Google Sheets or Excel! To paste the xlwings JavaScri
 
 3. **Configuration**: The final step is to configure the xlwings JavaScript module properly, see the next section :ref:`Configuration`.
 
+.. _xlwings_server_config:
+
 Configuration
 -------------
 
@@ -389,6 +391,8 @@ Create a sheet called ``xlwings.conf`` and fill in key/value pairs like so::
     1 | AUTH    | xxxxxxxxxxxx       |
     2 | EXCLUDE | Sheet1,xlwings.conf|
 
+
+.. _server_production:
 
 Production Deployment
 ---------------------

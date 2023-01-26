@@ -8,45 +8,54 @@ Authentication (and potentially authorization) is an important step in securing 
 * within your app (via your web framework)
 * outside of your app (via e.g. a reverse proxy such as nginx or oauth2-proxy that sits in front of your app)
 
-Furthermore, you can use different authentication techniques such as HTTP Basic Auth or Bearer tokens in the form of API keys or OAuth2 access tokens.
+Furthermore, you can use different authentication techniques such as HTTP Basic Auth or Bearer tokens in the form of API keys or OAuth2 access tokens. The most reliable and comfortable authentication is available for Office.js add-ins in connection with Excel 365 as this allows you to leverage the built-in SSO capabilities, see :ref:`SSO/Azure AD for Excel 365`.
 
 On the client side, you set the ``Authorization`` header when you make a request from Excel or Google Sheets to your xlwings backend. To set the ``Authorization`` header, xlwings offers the ``auth`` parameter:
 
 
 .. tab-set::
 
-    .. tab-item:: Excel (via VBA)
+    .. tab-item:: VBA
       :sync: desktop
 
       .. code-block:: vb.net
 
         Sub Main()
-            RunRemotePython "url", auth:="..."
+            RunRemotePython "url", auth:="mytoken"
         End Sub
 
-    .. tab-item:: Excel (via Office Scripts)
+    .. tab-item:: Office Scripts
       :sync: excel
 
       .. code-block:: JavaScript
 
         async function main(workbook: ExcelScript.Workbook) {
-          await runPython(workbook, "url", {
-            auth: "...",
-          });
+          await runPython(workbook, "url", { auth: "mytoken" });
         }
 
-    .. tab-item:: Google Sheets
+    .. tab-item:: Office.js
+      :sync: excel
+
+      .. code-block:: JavaScript
+
+        function hello {
+          let accessToken = await Office.auth.getAccessToken();
+          xlwings.runPython("url", { auth: "Bearer " + accessToken })
+        }
+
+    .. tab-item:: Google Apps Script
       :sync: google
 
       .. code-block:: JavaScript
 
         function main() {
+          let accessToken = ScriptApp.getOAuthToken()
           runPython("url", {
-            auth: "...",
+            auth: "Bearer " + accessToken,
           });
         }
 
-Your backend will then have to validate the Authorization header. Let's get started with the simplest implementation of an API key before looking at HTTP Basic Auth and more advanced options like Azure AD and Google access tokens (for Google Sheets).
+Your backend will then have to validate the Authorization header. Let's get started with the simplest implementation of an API key before looking at HTTP Basic Auth and more advanced options like Azure AD/SSO and Google access tokens (for Google Sheets).
 
 API Key
 -------
@@ -84,6 +93,43 @@ In this case, you'd provide ``"Basic bXl1c2VybmFtZTpteXBhc3N3b3Jk"`` as your ``a
 
   .. warning::
     ngrok HTTP Basic auth will NOT work with Excel via Office Scripts as it doesn't support CORS. It's, however, an easy method for protecting your app during development if you use xlwings via VBA or Google Sheets.
+
+SSO/Azure AD for Excel 365
+--------------------------
+
+.. versionadded:: 0.29.0
+
+Single Sign-on (SSO) means that users who are signed into Office 365 get access to an add-in's Azure AD-protected backend and to Microsoft Graph without needing to sign-in again. Start by reading the official Microsoft documentation:
+
+* `Overview of authentication and authorization in Office Add-ins <https://learn.microsoft.com/en-us/office/dev/add-ins/develop/overview-authn-authz>`_
+* `Enable single sign-on (SSO) in an Office Add-in <https://learn.microsoft.com/en-us/office/dev/add-ins/develop/sso-in-office-add-ins>`_
+
+As a summary, here are the components needed to enable SSO:
+
+1. You must use Excel 365 so users can login into Office
+2.  `Register your add-in as an app on the Microsoft Identity Platform <https://learn.microsoft.com/en-us/office/dev/add-ins/develop/register-sso-add-in-aad-v2>`_
+3. Add the following to the end of the ``<VersionOverrides ... xsi:type="VersionOverridesV1_0">`` section of your manifest XML:
+
+   .. code-block:: XML
+ 
+     <WebApplicationInfo>
+         <Id>Your Client ID</Id>
+         <Resource>api://...</Resource>
+         <Scopes>
+             <Scope>openid</Scope>
+             <Scope>profile</Scope>
+             <Scope>...</Scope>
+             <Scope>...</Scope>
+         </Scopes>
+     </WebApplicationInfo>
+
+4.  Acquire an access token in your client-side code and send it as Authorization header to your backend where you can parse it and/or use it to authenticate with Microsoft Graph API:
+
+    .. code-block:: js
+  
+        let accessToken = await Office.auth.getAccessToken();
+        xlwings.runPython("url", { auth: "Bearer " + accessToken })
+
 
 Azure AD for Excel VBA
 ----------------------
