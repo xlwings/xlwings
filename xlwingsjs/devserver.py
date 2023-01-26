@@ -154,7 +154,7 @@ def integration_test_write(data: dict = Body):
     return book.json()
 
 
-@app.get("/alert", response_class=HTMLResponse)
+@app.get("/xlwings/alert", response_class=HTMLResponse)
 async def alert(
     request: Request, prompt: str, title: str, buttons: str, mode: str, callback: str
 ):
@@ -172,7 +172,7 @@ async def alert(
     )
 
 
-app.mount("/static", StaticFiles(directory=this_dir / "static"), name="static")
+app.mount("/icons", StaticFiles(directory=this_dir / "icons"), name="icons")
 app.mount("/", StaticFiles(directory=this_dir / "build"), name="home")
 StaticFiles.is_not_modified = lambda *args, **kwargs: False  # Never cache static files
 
@@ -186,7 +186,7 @@ loader = jinja2.ChoiceLoader(
 templates = Jinja2Templates(directory=this_dir / "build", loader=loader)
 
 
-# Excel via OfficeScripts requires CORS
+# Excel via Office Scripts requires CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origin_regex=r"https://.*.officescripts.microsoftusercontent.com",
@@ -202,8 +202,6 @@ if __name__ == "__main__":
         host="127.0.0.1",
         port=8000,
         reload=True,
-        reload_dirs=["."],
-        reload_includes=["*.py", "*.html", "*.js", "*.css"],
         ssl_keyfile=this_dir / "localhost+2-key.pem",
         ssl_certfile=this_dir / "localhost+2.pem",
     )

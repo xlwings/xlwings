@@ -7,9 +7,9 @@ function myCallback(arg: string) {
 }
 xlwings.registerCallback(myCallback);
 
-async function run(event: Office.AddinCommands.Event) {
+async function hello(event: Office.AddinCommands.Event) {
   console.log("Called 'run' from commands.ts")
   await xlwings.runPython(window.location.origin + "/hello");
   event.completed();
 }
-Office.actions.associate("run", run);
+Office.actions.associate("run", hello);

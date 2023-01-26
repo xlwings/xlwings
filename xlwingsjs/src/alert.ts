@@ -73,7 +73,7 @@ export function xlAlert(
   }
   Office.context.ui.displayDialogAsync(
     window.location.origin +
-      `/alert?prompt=` +
+      `/xlwings/alert?prompt=` +
       encodeURIComponent(`${prompt}`) +
       `&title=` +
       encodeURIComponent(`${title}`) +

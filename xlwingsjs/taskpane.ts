@@ -2,7 +2,7 @@ import * as xlwings from "./src/xlwings";
 
 Office.onReady(function (info) {});
 
-document.getElementById("run").addEventListener("click", run);
+document.getElementById("run").addEventListener("click", hello);
 document.getElementById("show-alert").addEventListener("click", showAlert);
 document.getElementById("integration-test-read").addEventListener("click", integrationTestRead);
 document.getElementById("integration-test-write").addEventListener("click", integrationTestWrite);
@@ -12,7 +12,7 @@ function myCallback(arg: string) {
 }
 xlwings.registerCallback(myCallback);
 
-async function run() {
+async function hello() {
   console.log("Called 'run' from taskpane.ts")
   await xlwings.runPython(window.location.origin + "/hello");
 }
