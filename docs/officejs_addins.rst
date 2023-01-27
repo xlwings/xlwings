@@ -416,7 +416,7 @@ If you need to debug errors on the client side, you'll need to open the develope
     
   Then, after restarting Excel, right-click on the task pane and select ``Inspect Element`` and switch to the Console tab. Note that after running this command, you'll also see an empty page loaded when you call a command from the Ribbon button directly. To hide it, you would need disable debugging again by running the same command in the Terminal with ``false`` instead of ``true``.
 
-Production Deployment
+Production deployment
 ---------------------
 
 Depending on whether you want to deploy your add-in internal to your company or to the whole world via Excel's add-in store, there's a different process for deploying the manifest XML:
@@ -426,6 +426,35 @@ Depending on whether you want to deploy your add-in internal to your company or 
 
 The Python backend can be deployed anywhere you like, there are some suggestions under :ref:`xlwings Server production deployment <server_production>`.
 
+Workaround for missing features
+-------------------------------
+
+In the classic version of xlwings, you can use the ``.api`` property to fall back to the underlying automation library and work around :ref:`missing features <missing_features>` in xlwings. That's not possible with xlwings Server.
+
+Instead, call the ``book.app.macro()`` method to run functions in JavaScript. The first parameter will have to be the request context, which gives you access to the Excel JavaScript API. Note that you have to register JavaScript functions that you want to call from Python via ``xlwings.registerCallback()`` (last line):
+
+.. code-block:: js
+
+    async function wrapText(context, sheetName, cellAddress) {
+      // The first parameter has to be the request context, the others 
+      // are those parameters that you will provide via Python
+      const range = context.workbook.worksheets
+        .getItem(sheetName)
+        .getRange(cellAddress);
+      range.format.wrapText = true;
+      await context.sync();
+    }
+    // Make sure to register the function as callback
+    xlwings.registerCallback(wrapText);
+
+Now you can call this function from Python like so:
+
+.. code-block:: Python
+
+    # book is an xlwings Book object
+    wrap_text = book.app.macro("wrapText")
+    wrap_text("Sheet1", "A1")
+    wrap_text("Sheet2", "B2")
 
 Limitations
 -----------

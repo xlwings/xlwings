@@ -252,7 +252,7 @@ export async function runPython(
       if (rawData !== null) {
         const forceSync = ["sheet"];
         for (let action of rawData["actions"]) {
-          funcs[action.func](context, action);
+          await funcs[action.func](context, action);
           if (forceSync.some((el) => action.func.toLowerCase().includes(el))) {
             await context.sync();
           }
@@ -473,5 +473,5 @@ async function nameDelete(context: Excel.RequestContext, action: Action) {
 }
 
 async function runMacro(context: Excel.RequestContext, action: Action) {
-  globalThis.funcs[action.args[0].toString()](...action.args.slice(1));
+  await globalThis.funcs[action.args[0].toString()](context, ...action.args.slice(1));
 }
