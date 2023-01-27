@@ -278,6 +278,7 @@ let funcs = {
   setRangeName: setRangeName,
   namesAdd: namesAdd,
   nameDelete: nameDelete,
+  runMacro: runMacro,
 };
 
 // Functions
@@ -407,4 +408,8 @@ function namesAdd(workbook: ExcelScript.Workbook, action: Action) {
 
 function nameDelete(workbook: ExcelScript.Workbook, action: Action) {
   throw "NotImplemented: deleteName";
+}
+
+function runMacro(workbook: ExcelScript.Workbook, action: Action) {
+  throw "NotImplemented: runMacro";
 }

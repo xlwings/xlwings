@@ -451,3 +451,7 @@ function namesAdd(workbook, action) {
 function nameDelete(workbook, action) {
   throw "NotImplemented: deleteName";
 }
+
+function runMacro(workbook, action) {
+  throw "NotImplemented: runMacro";
+}

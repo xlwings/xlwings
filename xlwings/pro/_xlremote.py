@@ -202,6 +202,12 @@ class App(base_classes.App):
             ],
         )
 
+    def run(self, macro, args):
+        self.books.active.append_json_action(
+            func="runMacro",
+            args=[macro] + [args] if not isinstance(args, list) else [macro] + args,
+        )
+
 
 class Books(base_classes.Books):
     def __init__(self, app):

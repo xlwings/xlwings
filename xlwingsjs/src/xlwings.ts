@@ -325,6 +325,7 @@ let funcs = {
   setRangeName: setRangeName,
   namesAdd: namesAdd,
   nameDelete: nameDelete,
+  runMacro: runMacro,
 };
 
 Object.assign(globalThis.funcs, funcs);
@@ -469,4 +470,8 @@ async function namesAdd(context: Excel.RequestContext, action: Action) {
 
 async function nameDelete(context: Excel.RequestContext, action: Action) {
   throw "NotImplemented: deleteName";
+}
+
+async function runMacro(context: Excel.RequestContext, action: Action) {
+  globalThis.funcs[action.args[0].toString()](...action.args.slice(1));
 }

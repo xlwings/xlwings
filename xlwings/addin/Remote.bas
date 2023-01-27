@@ -586,3 +586,7 @@ Sub nameDelete(wb As Workbook, action As Dictionary)
         End If
     Next
 End Sub
+
+Sub runMacro(wb As Workbook, action As Dictionary)
+    Err.Raise vbObjectError + 513, , "Not Implemented: runMacro"
+End Sub
