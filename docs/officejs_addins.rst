@@ -5,7 +5,7 @@ Office.js Add-ins :bdg-secondary:`PRO`
 
 This feature requires at least v0.29.0.
 
-Office.js add-ins (officially called *Office add-ins*) are web apps that traditionally require you to use the `Excel JavaScript API <https://learn.microsoft.com/en-us/office/dev/add-ins/reference/overview/excel-add-ins-reference-overview>`_ by writing JavaScript or TypeScript code. Note that the Excel JavaScript API ("Office.js") is not to be confused with `Office Scripts <https://learn.microsoft.com/en-us/office/dev/scripts/overview/excel>`_, which is a layer on top of Office.js. While Office Scripts is much easier to use than Office.js, it only works for writing scripts that run via the Automate tab and can't be used to create add-ins. This documentation will teach you how to build Office.js add-ins with xlwings Server, saving you from having to write Office.js code.
+Office.js add-ins (officially called *Office add-ins*) are web apps that traditionally require you to use the `Excel JavaScript API <https://learn.microsoft.com/en-us/office/dev/add-ins/reference/overview/excel-add-ins-reference-overview>`_ by writing JavaScript or TypeScript code. Note that the Excel JavaScript API ("Office.js") is not to be confused with `Office Scripts <https://learn.microsoft.com/en-us/office/dev/scripts/overview/excel>`_, which is a layer on top of Office.js. While Office Scripts is much easier to use than Office.js, it only works for writing scripts that run via Excel's Automate tab and can't be used to create add-ins. This documentation will teach you how to build Office.js add-ins with xlwings Server, saving you from having to write Office.js code.
 
 .. note::
 
@@ -36,31 +36,45 @@ Office.js add-ins are web apps that can interact with Excel. In its simplest for
 
 To get a better understanding about how the simplest possible add-in works (without Python or xlwings), have a look at the following repo: `<https://github.com/xlwings/officejs-helloworld>`_. Follow the repo's README to load the add-in in development mode, a process that is called *sideloading*.
 
-Now that you know the basic structure of an Office.js add-in, let's see how we can replace the Excel JavaScript API with ``xlwings.runPython`` calls!
+Now that you know the basic structure of an Office.js add-in, let's see how we can replace the Excel JavaScript API with ``xlwings.runPython()`` calls!
 
 Quickstart
 ----------
 
-This quickstart uses FastAPI as the web framework and shows you how you can call Python both from a button on the task pane and directly from a Ribbon button. Instead of FastAPI, you could easily adapt the code to use any other web framework like Flask or Django. At the end of this quickstart, you'll have a working environment for local development.
+This quickstart shows you how you can call Python both from a button on the task pane and directly from a Ribbon button. xlwings can be used with any web framework and the quickstart repo therefore contains various implementations such as ``app/server_fastapi.py`` or ``app/server_starlette.py``. At the end of this quickstart, you'll have a working environment for local development.
 
-1. **Download repo**: Use Git to clone the following sample repository: https://github.com/xlwings/xlwings-officejs-helloworld. If you don't want to use Git, you could also download the repo by clicking on the green ``Code`` button, followed by ``Download ZIP``, then unzipping it locally.
-2. **Update manifest**: In ``manifest-xlwings-officejs-hello.xml``, replace ``<Id>TODO</Id>`` with a unique ID that you can create by visiting https://www.guidgen.com or by running the following command in Python: ``import uuid;print(uuid.uuid4())``. After pasting your own ID, the respective line in the ``manifest.xml`` file should look something like this: ``<Id>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</Id>``
-3. **Create certificates**: Generate development certificates as the development server needs to be accessed via https instead of http (even on localhost). Otherwise, icons and alerts won't work and Excel on the web won't load the manifest at all: `download mkcert <https://github.com/FiloSottile/mkcert/releases>`_ (pick the correct file according to your platform), rename the file to ``mkcert``, then run the following commands from a Terminal/Command Prompt (make sure you're in the same directory as ``mkcert``):
+1. **Download quickstart repo**: Use Git to clone the following repository: https://github.com/xlwings/xlwings-officejs-quickstart. If you don't want to use Git, you could also download the repo by clicking on the green ``Code`` button, followed by ``Download ZIP``, then unzipping it locally.
+2. **Update manifest**: If you want to build your own add-in based off this quickstart repo, replace ``<Id>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</Id>`` in ``manifest-xlwings-officejs-quickstart.xml`` with a unique ID that you can create by visiting https://www.guidgen.com or by running the following command in Python: ``import uuid;print(uuid.uuid4())``.
+3. **Create certificates**: Generate development certificates as the development server needs to be accessed via https instead of http (even on localhost). Otherwise, icons and alerts won't work and Excel on the web won't load the manifest at all. `Download mkcert <https://github.com/FiloSottile/mkcert/releases>`_ (pick the correct file according to your platform), rename the file to ``mkcert``, then run the following commands from a Terminal/Command Prompt (make sure you're in the same directory as ``mkcert``):
 
    .. code-block:: text
 
      $ ./mkcert -install
      $ ./mkcert localhost 127.0.0.1 ::1
 
-   This will generate two files ``localhost+2.pem`` and ``localhost+2-key.pem``: move them to the root of the ``xlwings-officejs-helloworld`` sample repo.
+   This will generate two files ``localhost+2.pem`` and ``localhost+2-key.pem``: move them to the root of the ``xlwings-officejs-quickstart`` quickstart repo.
 
-4. **Install Python dependencies**: Create a virtual or Conda environment and install the Python dependencies by running: ``pip install -r requirements.txt``. If you want to use Docker instead of a local Python installation, skip this step.
-5. **Start web app**: With the previously created virtual/Conda env activated, start the Python development server by running ``python run.py`` or by running `run.py` via your editor. If you want to use Docker, run ``docker compose up`` instead. If you see the following, the server is up and running:
+4. **Install Python dependencies**: 
+   
+   * Local Python installation: create a virtual or Conda environment and install the Python dependencies by running: ``pip install -r requirements.txt``.
+   * Docker: skip this step.
+5. **xlwings license key**:
+
+   Get a free `trial license key <https://www.xlwings.org/trial>`_ and install it as follows:
+
+   * Local Python installation: ``xlwings license update -k your-license-key``
+   * Docker: set the license key as ``XLWINGS_LICENSE_KEY`` environment variable. The easiest way to do this is to run ``cp .env.template .env`` in a Terminal/Command Prompt and fill in the license key in the ``.env`` file.
+6. **Start web app**: 
+
+   * Local Python installation: with the previously created virtual/Conda env activated, start the Python development server by running the Python file with the desired implementation. For example, to run the backend with FastAPI, run the following: ``python app/server_fastapi.py``. You could also run the file via the capabilities offered by your editor.
+   * Docker: run ``docker compose up`` instead. Note that Docker by default uses the FastAPI implementation, so you'll need to edit ``docker-compose.yaml`` if you want to change that.
+   
+   If you see the following, the server is up and running:
 
    .. code-block:: text
 
-      $ python run.py 
-      INFO:     Will watch for changes in these directories: ['/Users/fz/Dev/xlwings-officejs-helloworld']
+      $ python app/server_fastapi.py 
+      INFO:     Will watch for changes in these directories: ['/Users/fz/Dev/xlwings-officejs-quickstart']
       INFO:     Uvicorn running on https://127.0.0.1:8000 (Press CTRL+C to quit)
       INFO:     Started reloader process [56708] using WatchFiles
       INFO:     Started server process [56714]
@@ -68,23 +82,21 @@ This quickstart uses FastAPI as the web framework and shows you how you can call
       INFO:     Application startup complete.
 
 
-6. **Sideload the add-in**: Manually load ``manifest-xlwings-officejs-hello.xml`` in Excel. This is called *sideloading* and the process differes depending on the platform you're using, see `Office.js docs <https://learn.microsoft.com/en-us/office/dev/add-ins/testing/test-debug-office-add-ins#sideload-an-office-add-in-for-testing>`_ for instructions. Once you've sideloaded the manifest, you'll see the ``MyAddin`` tab in the Ribbon.
-7. **Time to play**: You're now ready to play around with the add-in in Excel and make changes to the source code under ``app/main.py``. Every time you edit and save the Python code, the development server will restart automatically so that you can instantly try out the code changes in Excel. If you make changes to the HTML file, you'll need to right-click on the task pane and select ``Reload``.
+7. **Sideload the add-in**: Manually load ``manifest-xlwings-officejs-quickstart.xml`` in Excel. This is called *sideloading* and the process differs depending on the platform you're using, see `Office.js docs <https://learn.microsoft.com/en-us/office/dev/add-ins/testing/test-debug-office-add-ins#sideload-an-office-add-in-for-testing>`_ for instructions. Once you've sideloaded the manifest, you'll see the ``Quickstart`` tab in the Ribbon.
+8. **Time to play**: You're now ready to play around with the add-in in Excel and make changes to the source code under ``app/server_fastapi.py`` or under the respective file of your framework. Every time you edit and save the Python code, the development server will restart automatically so that you can instantly try out the code changes in Excel. If you make changes to the HTML file, you'll need to right-click on the task pane and select ``Reload``.
 
 With a working development environment, let's see how everything works step-by-step. Let's start with looking at the Python backend server.
 
 Backend
 -------
 
-The backend exposes your Python functions by using a Python web framework: you need to handle a POST request as shown in the following sample. While the sample repo uses `FastAPI <https://fastapi.tiangolo.com/>`_ as the web framework, you can use any other web framework like Django or Flask by slightly adapting the code:
+The backend exposes your Python functions by using a Python web framework: you need to handle a POST request as shown in the following sample. Please have a look at the respective Python file in the ``app`` directory for the full context:
 
 .. tab-set::
     .. tab-item:: FastAPI
       :sync: fastapi
 
       .. code-block::
-
-          # For the full context, see app/main.py
 
           from fastapi import Body, FastAPI
 
@@ -131,12 +143,43 @@ The backend exposes your Python functions by using a Python web framework: you n
             # Pass the following back as the response
             return jsonify(book.json())
 
-Let's now move over to the frontend to learn how we can call these Python functions from the Office.js add-ins!
+    .. tab-item:: Starlette
+      :sync: starlette
+
+      .. code-block::
+
+            from starlette.applications import Starlette
+            from starlette.responses import JSONResponse
+            from starlette.routing import Route
+
+            async def hello(request):
+                # Instantiate a Book object with the deserialized request body
+                data = await request.json()
+                book = xw.Book(json=data)
+
+                # Use xlwings as usual
+                sheet = book.sheets[0]
+                cell = sheet["A1"]
+                if cell.value == "Hello xlwings!":
+                    cell.value = "Bye xlwings!"
+                else:
+                    cell.value = "Hello xlwings!"
+
+                # Pass the following back as the response
+                return JSONResponse(book.json())
+
+            routes = [
+                Route("/hello", hello, methods=["POST"]),
+            ]
+
+            app = Starlette(debug=True, routes=routes)
+
+Let's now move over to the frontend to learn how we can call these Python functions from the Office.js add-in!
 
 Frontend
 --------
 
-In the following code snippet (taken from ``app/taskpane.html``), the relevant lines are highlighted---the rest is just HTML boilerplate.
+In the following code snippet (an excerpt from ``app/taskpane.html``), the highlighted lines represent the relevant ones---the rest is just HTML boilerplate.
 
 .. code-block:: html
    :emphasize-lines: 8-10, 14-15, 17-26
@@ -180,9 +223,9 @@ Let's see what's happening here by walking through the numbered sections!
 
 Before anything else, we need to load ``office.js`` and ``xlwings.min.js`` in the ``head`` of the HTML file. While ``office.js`` is giving us access to the Excel JavaScript API, ``xlwings.min.js`` will make the ``runPython`` function available.
 
-For ``xlwings.min.js``, make sure to adjust the version number after the ``@`` sign to match the version of the xlwings Python package you're using on the backend. In the sample repo, this would have to correspond to the version of xlwings defined in ``requirements.txt``.
+For ``xlwings.min.js``, make sure to adjust the version number after the ``@`` sign to match the version of the xlwings Python package you're using on the backend. In the quickstart repo, this would have to correspond to the version of xlwings defined in ``requirements.txt``.
 
-While ``xlwings.js`` is not available via npm package manager at the moment, you could also download the file and its corresponding ``map`` file (by adding ``.map`` to the URL). Then refer to the file path of ``xlwings.min.js`` instead of using the URL of the CDN.
+While ``xlwings.min.js`` is not available via npm package manager at the moment, you could also download the file and its corresponding ``map`` file (by adding ``.map`` to the URL). Then refer to the file path of ``xlwings.min.js`` instead of using the URL of the CDN.
 
 Note, however, that ``office.js`` requires you to use the CDN version in case you want to distribute the add-in publicly via the add-in store.
 
@@ -196,17 +239,17 @@ Putting a button on the task pane is a single line of HTML. Note the ``id`` that
 
 In the body, as the first line in your ``script`` tag, you have to initialize Office.js.
 
-Usually, this is all you need to worry about, but if you want to block your addin from certain versions of Excel, ``Office.onReady()`` is where you would handle this, see `the official docs <https://learn.microsoft.com/en-us/office/dev/add-ins/develop/initialize-add-in>`_.
+Usually, this is all you need to worry about, but if you want to block your addin from running on certain versions of Excel, ``Office.onReady()`` is where you would handle this, see `the official docs <https://learn.microsoft.com/en-us/office/dev/add-ins/develop/initialize-add-in>`_.
 
 ➍ Add click event listeners
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In order to know what should happen when you click the button, you need to attach an event listener to your button. In our case, we're telling the event listener to call the ``hello`` function when the button with the ``id=run`` is clicked.
+To define what should happen when you click the button, you need to attach an event listener to it. In our case, we're telling the event listener to call the ``hello`` function when the button with ``id=run`` is clicked.
 
 ❺ Use runPython
 ~~~~~~~~~~~~~~~
 
-To call a function of your backend, you have to provide the ``xlwings.runPython()`` function the respective URL. Use ``window.location.origin + /myendpoint`` instead of hardcoding the full URL. Note that ``runPython`` accepts optional arguments, such as ``auth`` to send an Authorization header:
+To call a function of your backend, you have to provide the ``xlwings.runPython()`` function the respective URL. Use ``window.location.origin + /myendpoint`` instead of hardcoding the full URL. This will ensure that everything still works when you change the URL e.g., when moving from development to production. Note that ``runPython`` accepts optional arguments, such as ``auth`` to send an Authorization header:
 
 .. code-block:: js
 
@@ -214,13 +257,13 @@ To call a function of your backend, you have to provide the ``xlwings.runPython(
         xlwings.runPython(window.location.origin + "/hello", { auth: "mytoken" });
     }
 
-* For more details on the optional ``runPython`` arguments, see :ref:`xlwings Server config<xlwings_server_config>`.
+* For more details on the optional ``runPython`` arguments, see :ref:`xlwings Server Config<xlwings_server_config>`.
 * For more details on authentication, see :ref:`xlwings Server Auth<server_auth>`.
 
 Task pane
 ---------
 
-To have a Ribbon button show the task pane, you'll need to configure it properly in the manifest. The relevant blocks are the following (these lines are out of context, so search for them in ``manifest-xlwings-officejs-hello.xml``):
+To have a Ribbon button show the task pane, you'll need to configure it properly in the manifest. The relevant blocks are the following (these lines are out of context, so search for them in ``manifest-xlwings-officejs-quickstart.xml``):
 
 .. code-block:: xml
 
@@ -248,7 +291,7 @@ Commands
 
   Functions that you bind to a Ribbon button directly react a bit slower than a button on a task pane. This is because the task pane gets loaded once and stays loaded, whereas clicking a button on the Ribbon loads everything from scratch every time you click the button.
 
-To understand how you can call ``xlwings.runPython()`` directly from a Ribbon button, have a look at ``app/commands.html`` in the sample repo. Its body reads as follows:
+To understand how you can call ``xlwings.runPython()`` directly from a Ribbon button, have a look at ``app/commands.html`` in the quickstart repo. Its body reads as follows:
 
 .. code-block:: html
 
@@ -270,7 +313,7 @@ To understand how you can call ``xlwings.runPython()`` directly from a Ribbon bu
       </script>
   </body>
 
-The relevant blocks in the manifest are the following (these lines are out of context, so search for them in ``manifest-xlwings-officejs-hello.xml``). Note that compared to task panes, you need the additional reference to ``FunctionFile``:
+The relevant blocks in the manifest are the following (again, these lines are out of context, so search for them in ``manifest-xlwings-officejs-quickstart.xml``). Note that compared to task panes, you need the additional reference to ``FunctionFile``:
 
 .. code-block:: xml
 
@@ -313,7 +356,7 @@ The boilerplate consists of:
 * Implementing the ``/xlwings/alert`` endpoint
 * Giving your templating engine access to the ``xlwings-alert.html`` template, which is included in the xlwings Python package under ``xlwings.html``
 
-Here is the relevant code. As usual, have a look at ``app/main.py`` for the full context.
+Here is the relevant code. As usual, have a look at ``app/server_fastapi.py`` for the full context.
 
 .. tab-set::
     .. tab-item:: FastAPI + Jinja2
@@ -323,9 +366,8 @@ Here is the relevant code. As usual, have a look at ``app/main.py`` for the full
   
           import jinja2
           import markupsafe  # This is a dependency of Jinja2
-          from fastapi import Body, FastAPI, Request
+          from fastapi import Request
           from fastapi.responses import HTMLResponse
-          from fastapi.staticfiles import StaticFiles
           from fastapi.templating import Jinja2Templates
       
           @app.get("/xlwings/alert", response_class=HTMLResponse)
@@ -354,6 +396,46 @@ Here is the relevant code. As usual, have a look at ``app/main.py`` for the full
           )
           templates = Jinja2Templates(directory="mytemplates", loader=loader)
 
+    .. tab-item:: Starlette + Jinja2
+      :sync: starlette
+
+      .. code-block:: python
+
+        import jinja2
+        import markupsafe  # This is a dependency of Jinja2
+        from starlette.templating import Jinja2Templates
+
+        async def alert(request):
+            """Boilerplate required by book.app.alert() and to show unhandled exceptions"""
+            params = request.query_params
+            return templates.TemplateResponse(
+                "xlwings-alert.html",
+                {
+                    "request": request,
+                    "prompt": markupsafe.Markup(params["prompt"].replace("\n", "<br>")),
+                    "title": params["title"],
+                    "buttons": params["buttons"],
+                    "mode": params["mode"],
+                    "callback": params["callback"],
+                },
+            )
+
+        # Add xlwings.html as additional source for templates so the /xlwings/alert endpoint
+        # will find xlwings-alert.html. "mytemplates" can be a dummy if the app doesn't use
+        # own templates
+        loader = jinja2.ChoiceLoader(
+            [
+                jinja2.FileSystemLoader("mytemplates"),
+                jinja2.PackageLoader("xlwings", "html"),
+            ]
+        )
+        templates = Jinja2Templates(directory="mytemplates", loader=loader)
+
+        routes = [
+            Route("/xlwings/alert", alert),
+        ]
+
+
 With the boilerplate in place, you're now ready to use alerts, as we'll see next.
 
 Showing alerts
@@ -375,7 +457,7 @@ Calling an alert with an ``OK`` button is as simple as:
 
 Clicking either the "x" at the top right or the OK button will close the alert and you're done with it.
 
-However, if you need to react differently depending on whether the user clicks on OK or Cancel, you can do that by supplying a ``callback`` argument that accepts the name of a JavaScript function. To understand how this works, consider the following example:
+However, if you need to react differently depending on whether the user clicks on OK or Cancel, you can supply a ``callback`` argument that accepts the name of a JavaScript function. To understand how this works, consider the following example:
 
 .. code-block:: python
 
@@ -401,27 +483,27 @@ When the user clicks a button, it will call the JavaScript function ``capitalize
     // Make sure to register the callback function
     xlwings.registerCallback(capitalizeSheetNames);
 
-As usual, to get a better understanding, check out ``app/taskpane.html`` and ``app/main.py`` for the full context and play around with the respective button on the task pane.
+As usual, to get a better understanding, check out ``app/taskpane.html`` and ``app/server_fastapi.py`` for the full context and play around with the respective button on the task pane.
 
 Debugging
 ---------
 
-If you need to debug errors on the client side, you'll need to open the developer tools of the browser that's being used so you can inspect the error messages in the Console. Depending on the platform, browser, and version of Excel, the process is different:
+If you need to debug errors on the client side, you'll need to open the developer tools of the browser that's being used so you can inspect the error messages in the console. Depending on the platform and version of Excel, the process is different:
 
 * Excel on the web: open the developer tools of the browser you're using. For example, in Chrome you can type ``Ctrl+Shift+I`` (Windows) or ``Cmd-Option-I`` (macOS), then switch to the Console tab.
 * Desktop Excel on Windows: right-click on the task pane and select ``Inspect``, then switch to the Console tab.
-* Desktop Excel on macOS: first, you'll need to run the following command in a Terminal:: 
+* Desktop Excel on macOS: to be able to get the Web Inspector showing up, you'll need to run the following command in a Terminal once:: 
     
     defaults write com.microsoft.Excel OfficeWebAddinDeveloperExtras -bool true
     
-  Then, after restarting Excel, right-click on the task pane and select ``Inspect Element`` and switch to the Console tab. Note that after running this command, you'll also see an empty page loaded when you call a command from the Ribbon button directly. To hide it, you would need disable debugging again by running the same command in the Terminal with ``false`` instead of ``true``.
+  Then, after restarting Excel, right-click on the task pane and select ``Inspect Element`` and switch to the Console tab. Note that after running this command, you'll also see an empty page loaded when you call a command from the Ribbon button directly. To hide it, you would need to disable debugging again by running the same command in the Terminal with ``false`` instead of ``true``.
 
 Production deployment
 ---------------------
 
-Depending on whether you want to deploy your add-in internal to your company or to the whole world via Excel's add-in store, there's a different process for deploying the manifest XML:
+Depending on whether you want to deploy your add-in within your company or to the whole world, there's a different process for deploying the manifest XML:
 
-* **Company-internal** (must be done by Microsoft 365 Admin): on office.com, click on Admin > Show all > Settings > Integrated Apps > Add-ins. There, click on the ``Deploy Add-in`` button which allows you to upload the manifest or point to it via URL.
+* **Company-internal** (must be done by a Microsoft 365 admin): on office.com, click on Admin > Show all > Settings > Integrated Apps > Add-ins. There, click on the ``Deploy Add-in`` button which allows you to upload the manifest or point to it via URL.
 * **Public**: you'll need to submit your add-in for approval to Microsoft AppSource, see: https://learn.microsoft.com/en-us/azure/marketplace/submit-to-appsource-via-partner-center
 
 The Python backend can be deployed anywhere you like, there are some suggestions under :ref:`xlwings Server production deployment <server_production>`.
