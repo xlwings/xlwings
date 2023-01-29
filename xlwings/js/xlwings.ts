@@ -1,5 +1,5 @@
 async function main(workbook: ExcelScript.Workbook) {
-  await runPython(workbook, "url", { auth: "..." });
+  await runPython(workbook, "url", { auth: "DEVELOPMENT" });
 }
 
 /**
