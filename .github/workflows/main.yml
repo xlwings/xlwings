@@ -32,6 +32,18 @@ jobs:
       - run: pip install flake8
       - run: flake8 .
 
+  check-js-dist:
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - name: Check js versions
+      run: python xlwingsjs/check_version.py
+
   pre-build:
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build]') || contains(github.event.head_commit.message, '[build-cli]')
     runs-on: windows-2022

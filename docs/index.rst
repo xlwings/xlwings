@@ -110,6 +110,7 @@ on **Windows** and **Mac**.
     :caption: xlwings Server
 
     remote_interpreter
+    officejs_addins
     server_authentication
 
 

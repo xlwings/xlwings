@@ -202,6 +202,12 @@ class App(base_classes.App):
             ],
         )
 
+    def run(self, macro, args):
+        self.books.active.append_json_action(
+            func="runMacro",
+            args=[macro] + [args] if not isinstance(args, list) else [macro] + args,
+        )
+
 
 class Books(base_classes.Books):
     def __init__(self, app):
@@ -354,7 +360,7 @@ class Sheets(base_classes.Sheets):
         else:
             return Sheet(api=api, sheets=self, index=ix + 1)
 
-    def add(self, before=None, after=None):
+    def add(self, before=None, after=None, name=None):
         # Default naming logic is different from Desktop apps!
         sheet_number = 1
         while True:
@@ -374,7 +380,7 @@ class Sheets(base_classes.Sheets):
             # Default position is different from Desktop apps!
             ix = len(self) + 1
         self.api.insert(ix - 1, api)
-        self.book.append_json_action(func="addSheet", args=ix - 1)
+        self.book.append_json_action(func="addSheet", args=[ix - 1, name])
         self.book.api["book"]["active_sheet_index"] = ix - 1
 
         return Sheet(api=api, sheets=self, index=ix)

@@ -119,11 +119,11 @@ async function runPython(
     selection: workbook.getSelectedRange().getAddress().split("!").pop(),
   };
 
-  // Names
+  // Names (book scope only)
   let names: Names[] = [];
   workbook.getNames().forEach((namedItem, ix) => {
     // Currently filtering to named ranges
-    // Sheet scope names don't seem to come through despite the existence of getScope()
+    // TODO: add sheet scoped named ranges via sheets as in officejs
     let itemType: ExcelScript.NamedItemType = namedItem.getType();
     if (itemType === ExcelScript.NamedItemType.range) {
       names[ix] = {
@@ -278,6 +278,7 @@ let funcs = {
   setRangeName: setRangeName,
   namesAdd: namesAdd,
   nameDelete: nameDelete,
+  runMacro: runMacro,
 };
 
 // Functions
@@ -317,7 +318,12 @@ function clearContents(workbook: ExcelScript.Workbook, action: Action) {
 }
 
 function addSheet(workbook: ExcelScript.Workbook, action: Action) {
-  let sheet = workbook.addWorksheet();
+  let sheet: ExcelScript.Worksheet;
+  if (action.args[1] !== null) {
+    sheet = workbook.addWorksheet(action.args[1].toString());
+  } else {
+    sheet = workbook.addWorksheet();
+  }
   sheet.setPosition(parseInt(action.args[0].toString()));
 }
 
@@ -402,4 +408,8 @@ function namesAdd(workbook: ExcelScript.Workbook, action: Action) {
 
 function nameDelete(workbook: ExcelScript.Workbook, action: Action) {
   throw "NotImplemented: deleteName";
+}
+
+function runMacro(workbook: ExcelScript.Workbook, action: Action) {
+  throw "NotImplemented: runMacro";
 }
