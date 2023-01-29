@@ -1,7 +1,7 @@
 /**
 * Copyright (C) 2014 - present, Zoomer Analytics GmbH. All rights reserved.
 * Licensed under BSD-3-Clause license, see: https://docs.xlwings.org/en/stable/license.html
-* 
+*
 * This file also contains code from core-js
 * Copyright (C) 2014-2023 Denis Pushkarev, Licensed under MIT license, see https://raw.githubusercontent.com/zloirock/core-js/master/LICENSE
 * This file also contains code from Webpack
@@ -2209,7 +2209,7 @@ function xlAlert(prompt, title, buttons, mode, callback) {
         height = 30;
     }
     Office.context.ui.displayDialogAsync(window.location.origin +
-        "/alert?prompt=" +
+        "/xlwings/alert?prompt=" +
         encodeURIComponent("".concat(prompt)) +
         "&title=" +
         encodeURIComponent("".concat(title)) +
@@ -2355,6 +2355,15 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
         } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
+};
+var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
 };
 // core-js polyfills for ie11
 
@@ -2597,14 +2606,15 @@ function runPython(url, _a) {
                                         _loop_1 = function (action) {
                                             return __generator(this, function (_c) {
                                                 switch (_c.label) {
-                                                    case 0:
-                                                        funcs[action.func](context, action);
-                                                        if (!forceSync.some(function (el) { return action.func.toLowerCase().includes(el); })) return [3 /*break*/, 2];
-                                                        return [4 /*yield*/, context.sync()];
+                                                    case 0: return [4 /*yield*/, funcs[action.func](context, action)];
                                                     case 1:
                                                         _c.sent();
-                                                        _c.label = 2;
-                                                    case 2: return [2 /*return*/];
+                                                        if (!forceSync.some(function (el) { return action.func.toLowerCase().includes(el); })) return [3 /*break*/, 3];
+                                                        return [4 /*yield*/, context.sync()];
+                                                    case 2:
+                                                        _c.sent();
+                                                        _c.label = 3;
+                                                    case 3: return [2 /*return*/];
                                                 }
                                             });
                                         };
@@ -2673,6 +2683,7 @@ var funcs = {
     setRangeName: setRangeName,
     namesAdd: namesAdd,
     nameDelete: nameDelete,
+    runMacro: runMacro,
 };
 Object.assign(globalThis.funcs, funcs);
 // Functions
@@ -2925,6 +2936,19 @@ function nameDelete(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             throw "NotImplemented: deleteName";
+        });
+    });
+}
+function runMacro(context, action) {
+    return __awaiter(this, void 0, void 0, function () {
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0: return [4 /*yield*/, (_a = globalThis.funcs)[action.args[0].toString()].apply(_a, __spreadArray([context], action.args.slice(1), false))];
+                case 1:
+                    _b.sent();
+                    return [2 /*return*/];
+            }
         });
     });
 }
