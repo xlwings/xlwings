@@ -1,6 +1,11 @@
 What's New
 ==========
 
+v0.29.0 (Jan 29, 2023)
+----------------------
+
+* :bdg-success:`Feature` :bdg-secondary:`PRO` xlwings Server now supports Office.js add-ins! Check out the comprehensive :ref:`documentation <officejs_addins>` (:issue:`2151`).
+
 v0.28.9 (Jan 21, 2023)
 ----------------------
 
