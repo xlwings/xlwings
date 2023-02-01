@@ -57,27 +57,40 @@ export function xlAlert(
   title: string,
   buttons: string,
   mode: string,
-  callback: string
+  callback: string,
+  width?: number,
+  height?: number,
+  url?: string,
 ) {
-  let width: number;
-  let height: number;
-  if (Office.context.platform.toString() === "OfficeOnline") {
-    width = 28;
-    height = 36;
-  } else if (Office.context.platform.toString() === "PC") {
-    width = 28; // seems to have a wider min width
-    height = 40;
-  } else {
-    width = 32;
-    height = 30;
+  if (typeof width === 'undefined') {
+    console.log('width undef')
+    if (Office.context.platform.toString() === "OfficeOnline") {
+      width = 28;
+    } else if (Office.context.platform.toString() === "PC") {
+      width = 28; // seems to have a wider min width
+    } else {
+      width = 32;
+    }
+  }
+  if (typeof height === 'undefined') {
+    if (Office.context.platform.toString() === "OfficeOnline") {
+      height = 36;
+    } else if (Office.context.platform.toString() === "PC") {
+      height = 40;
+    } else {
+      height = 30;
+    }
+  }
+  if (typeof url === 'undefined') {
+    url = window.location.origin +
+    `/xlwings/alert?prompt=` +
+    encodeURIComponent(`${prompt}`) +
+    `&title=` +
+    encodeURIComponent(`${title}`) +
+    `&buttons=${buttons}&mode=${mode}&callback=${callback}`
   }
   Office.context.ui.displayDialogAsync(
-    window.location.origin +
-      `/xlwings/alert?prompt=` +
-      encodeURIComponent(`${prompt}`) +
-      `&title=` +
-      encodeURIComponent(`${title}`) +
-      `&buttons=${buttons}&mode=${mode}&callback=${callback}`,
+    url,
     { height: height, width: width, displayInIframe: true },
     dialogCallback
   );

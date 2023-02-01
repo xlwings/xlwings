@@ -4,6 +4,7 @@ import "core-js/actual/array/includes";
 import "core-js/actual/global-this";
 import "core-js/actual/function/name";
 import { xlAlert } from "./alert";
+export { xlAlert } from "./alert";
 
 const version = "dev";
 globalThis.funcs = {};
@@ -473,5 +474,8 @@ async function nameDelete(context: Excel.RequestContext, action: Action) {
 }
 
 async function runMacro(context: Excel.RequestContext, action: Action) {
-  await globalThis.funcs[action.args[0].toString()](context, ...action.args.slice(1));
+  await globalThis.funcs[action.args[0].toString()](
+    context,
+    ...action.args.slice(1)
+  );
 }
