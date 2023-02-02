@@ -142,7 +142,6 @@ def a1_to_tuples(address):
 
 
 class VBAWriter:
-
     MAX_VBA_LINE_LENGTH = 1024
     VBA_LINE_SPLIT = " _\n"
     MAX_VBA_SPLITTED_LINE_LENGTH = MAX_VBA_LINE_LENGTH - len(VBA_LINE_SPLIT)

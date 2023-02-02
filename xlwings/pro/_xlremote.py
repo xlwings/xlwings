@@ -147,7 +147,6 @@ class Apps(base_classes.Apps):
 
 
 class App(base_classes.App):
-
     _next_pid = -1
 
     def __init__(self, apps, add_book=True, **kwargs):
@@ -853,7 +852,6 @@ class Picture(base_classes.Picture):
 
 
 class Pictures(Collection, base_classes.Pictures):
-
     _attr = "pictures"
     _wrap = Picture
 

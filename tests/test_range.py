@@ -55,25 +55,25 @@ class TestRangeInstantiation(TestBase):
 
     def test_range10(self):
         with self.assertRaises(ValueError):
-            r = self.wb1.sheets[0].range(
+            self.wb1.sheets[0].range(
                 self.wb2.sheets[0].range("A1"), self.wb1.sheets[0].range("B2")
             )
 
     def test_range11(self):
         with self.assertRaises(ValueError):
-            r = self.wb1.sheets[1].range(
+            self.wb1.sheets[1].range(
                 self.wb1.sheets[0].range("A1"), self.wb1.sheets[0].range("B2")
             )
 
     def test_range12(self):
         with self.assertRaises(ValueError):
-            r = self.wb1.sheets[0].range(
+            self.wb1.sheets[0].range(
                 self.wb1.sheets[1].range("A1"), self.wb1.sheets[0].range("B2")
             )
 
     def test_range13(self):
         with self.assertRaises(ValueError):
-            r = self.wb1.sheets[0].range(
+            self.wb1.sheets[0].range(
                 self.wb1.sheets[0].range("A1"), self.wb1.sheets[1].range("B2")
             )
 
@@ -83,7 +83,7 @@ class TestRangeInstantiation(TestBase):
 
     def test_zero_based_index2(self):
         with self.assertRaises(IndexError):
-            a = self.wb1.sheets[0].range((1, 1), (1, 0)).value
+            self.wb1.sheets[0].range((1, 1), (1, 0)).value
 
     def test_zero_based_index3(self):
         with self.assertRaises(IndexError):
@@ -91,7 +91,7 @@ class TestRangeInstantiation(TestBase):
 
     def test_zero_based_index4(self):
         with self.assertRaises(IndexError):
-            a = xw.Range((1, 0), (1, 0)).value
+            xw.Range((1, 0), (1, 0)).value
 
     def test_jagged_array(self):
         with self.assertRaises(Exception):
@@ -639,7 +639,7 @@ class TestRangeIndexing(TestBase):
     def test_index3(self):
         with self.assertRaises(IndexError):
             r = self.wb1.sheets[0].range("A1:B2")
-            a = r[4].address
+            r[4].address
 
     def test_index4(self):
         r = self.wb1.sheets[0].range("A1:B2")
@@ -648,7 +648,7 @@ class TestRangeIndexing(TestBase):
     def test_index5(self):
         with self.assertRaises(IndexError):
             r = self.wb1.sheets[0].range("A1:B2")
-            a = r[0, 4].address
+            r[0, 4].address
 
     def test_index6(self):
         r = self.wb1.sheets[0].range("A1:B2")
@@ -676,7 +676,7 @@ class TestRangeIndexing(TestBase):
     def test_index3row(self):
         with self.assertRaises(IndexError):
             r = self.wb1.sheets[0].range("A1:D1")
-            a = r[4].address
+            r[4].address
 
     def test_index4row(self):
         r = self.wb1.sheets[0].range("A1:D1")
@@ -685,7 +685,7 @@ class TestRangeIndexing(TestBase):
     def test_index5row(self):
         with self.assertRaises(IndexError):
             r = self.wb1.sheets[0].range("A1:D1")
-            a = r[0, 4].address
+            r[0, 4].address
 
     def test_index6row(self):
         r = self.wb1.sheets[0].range("A1:D1")
@@ -713,7 +713,7 @@ class TestRangeIndexing(TestBase):
     def test_index3col(self):
         with self.assertRaises(IndexError):
             r = self.wb1.sheets[0].range("A1:A4")
-            a = r[4].address
+            r[4].address
 
     def test_index4col(self):
         r = self.wb1.sheets[0].range("A1:A4")
@@ -722,7 +722,7 @@ class TestRangeIndexing(TestBase):
     def test_index5col(self):
         with self.assertRaises(IndexError):
             r = self.wb1.sheets[0].range("A1:A4")
-            a = r[4, 0].address
+            r[4, 0].address
 
     def test_index6col(self):
         r = self.wb1.sheets[0].range("A1:A4")
@@ -797,20 +797,19 @@ class TestRangeShortcut(TestBase):
 
     def test_shortcut5(self):
         with self.assertRaises(TypeError):
-            r = self.wb1.sheets[0]["A1", "B5"]
+            self.wb1.sheets[0]["A1", "B5"]
 
     def test_shortcut6(self):
         with self.assertRaises(TypeError):
-            r = self.wb1.sheets[0][self.wb1.sheets[0]["A1"], "B5"]
+            self.wb1.sheets[0][self.wb1.sheets[0]["A1"], "B5"]
 
     def test_shortcut7(self):
         with self.assertRaises(TypeError):
-            r = self.wb1.sheets[0]["A1", self.wb1.sheets[0]["B5"]]
+            self.wb1.sheets[0]["A1", self.wb1.sheets[0]["B5"]]
 
 
 class TestRangeExpansion(TestBase):
     def test_table(self):
-
         sht = self.wb1.sheets[0]
         rng = sht[0, 0]
 
@@ -819,7 +818,6 @@ class TestRangeExpansion(TestBase):
         self.assertEqual(rng.options(expand="table").value, [["a"] * 5] * 5)
 
     def test_vertical(self):
-
         sht = self.wb1.sheets[0]
         rng = sht[0, 0:3]
 
@@ -828,7 +826,6 @@ class TestRangeExpansion(TestBase):
         self.assertEqual(rng.options(expand="down").value, [["a"] * 3] * 5)
 
     def test_horizontal(self):
-
         sht = self.wb1.sheets[0]
         rng = sht[0:5, 0]
 

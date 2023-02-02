@@ -1621,7 +1621,6 @@ class Table:
 
 
 class Tables(Collection):
-
     _attr = "list_objects"
     _kw = kw.list_object
     _wrap = Table
@@ -1771,7 +1770,6 @@ class Chart:
 
 
 class Charts(Collection):
-
     _attr = "chart_objects"
     _kw = kw.chart_object
     _wrap = Chart
@@ -1858,7 +1856,6 @@ class Picture:
 
 
 class Pictures(Collection):
-
     _attr = "pictures"
     _kw = kw.picture
     _wrap = Picture
@@ -1874,7 +1871,6 @@ class Pictures(Collection):
         height,
         anchor,
     ):
-
         if anchor:
             top, left = anchor.top, anchor.left
 
@@ -1987,7 +1983,6 @@ class Name:
 
 
 class Shapes(Collection):
-
     _attr = "shapes"
     _kw = kw.shape
     _wrap = Shape

@@ -744,7 +744,6 @@ class Books:
         local=None,
         corrupt_load=None,
     ):
-
         # update_links: According to VBA docs, only constants 0 and 3 are supported
         if update_links:
             update_links = UpdateLinks.xlUpdateLinksAlways
@@ -959,7 +958,6 @@ class Sheet:
         return self.xl.Index
 
     def range(self, arg1, arg2=None):
-
         if isinstance(arg1, Range):
             xl1 = arg1.xl
         elif isinstance(arg1, tuple):
@@ -1840,7 +1838,6 @@ class Note:
 
 
 class Shapes(Collection):
-
     _wrap = Shape
 
 
@@ -1961,7 +1958,6 @@ class Table:
 
 
 class Tables(Collection):
-
     _wrap = Table
 
     def add(
@@ -2173,7 +2169,6 @@ class Picture:
 
 
 class Pictures(Collection):
-
     _wrap = Picture
 
     @property
@@ -2191,7 +2186,6 @@ class Pictures(Collection):
         height,
         anchor,
     ):
-
         if anchor:
             top, left = anchor.top, anchor.left
         else:

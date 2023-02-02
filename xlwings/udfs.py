@@ -521,7 +521,6 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
             )
             return ret
     else:
-
         if is_dynamic_array:
             cache_key = get_cache_key(func, args, caller)
             cached_value = cache.get(cache_key)
@@ -563,7 +562,6 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
 
 
 def generate_vba_wrapper(module_name, module, f, xl_workbook):
-
     vba = VBAWriter(f)
 
     for svar in map(lambda attr: getattr(module, attr), dir(module)):
@@ -600,7 +598,6 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
             func_sig += ")"
 
             with vba.block(func_sig):
-
                 if ftype == "Function":
                     if not call_in_wizard:
                         vba.writeln(

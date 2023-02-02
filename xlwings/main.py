@@ -1775,7 +1775,6 @@ class Range:
     """
 
     def __init__(self, cell1=None, cell2=None, **options):
-
         # Arguments
         impl = options.pop("impl", None)
         if impl is None:

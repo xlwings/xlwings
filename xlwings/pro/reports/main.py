@@ -147,7 +147,6 @@ def render_sheet(sheet, **data):
                             or (Figure and isinstance(result, Figure))
                             or (plotly and isinstance(result, plotly.graph_objs.Figure))
                         ):
-
                             # Image filters: these filters can only be used once. If
                             # supplied multiple times, the first one will be used.
                             width = filters.width(filter_list)

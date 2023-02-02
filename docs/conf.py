@@ -29,7 +29,6 @@ sys.path.insert(0, os.path.abspath(".."))
 
 
 class Mock(object):
-
     __all__ = []
 
     def __init__(self, *args, **kwargs):

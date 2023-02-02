@@ -130,7 +130,6 @@ class AdjustDimensionsStage:
         self.ndim = options.get("ndim", None)
 
     def __call__(self, c):
-
         # the assumption is that value is 2-dimensional at this stage
 
         if self.ndim is None:
@@ -255,7 +254,6 @@ ValueAccessor.register(None)
 
 
 class DictConverter(Converter):
-
     # TODO: remove all these writes_types as this was long ago replaced by .register (?)
     writes_types = dict
 
@@ -277,7 +275,6 @@ DictConverter.register(dict)
 
 
 class OrderedDictConverter(Converter):
-
     writes_types = OrderedDict
 
     @classmethod

@@ -5,7 +5,6 @@ except ImportError:
 
 
 if np:
-
     try:
         import pandas as pd
     except ImportError:
@@ -14,7 +13,6 @@ if np:
     from . import Converter, Options
 
     class NumpyArrayConverter(Converter):
-
         writes_types = np.ndarray
 
         @classmethod

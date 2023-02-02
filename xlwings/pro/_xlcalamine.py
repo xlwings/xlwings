@@ -103,7 +103,6 @@ class Apps(base_classes.Apps):
 
 
 class App(base_classes.App):
-
     _next_pid = -1
 
     def __init__(self, apps, add_book=True, **kwargs):

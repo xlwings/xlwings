@@ -59,7 +59,6 @@ if pd:
         return value
 
     class PandasDataFrameConverter(Converter):
-
         writes_types = pd.DataFrame
 
         @classmethod
@@ -112,7 +111,6 @@ if pd:
     PandasDataFrameConverter.register(pd.DataFrame, "df")
 
     class PandasSeriesConverter(Converter):
-
         writes_types = pd.Series
 
         @classmethod
