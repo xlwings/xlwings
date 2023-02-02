@@ -590,3 +590,13 @@ End Sub
 Sub runMacro(wb As Workbook, action As Dictionary)
     Err.Raise vbObjectError + 513, , "Not Implemented: runMacro"
 End Sub
+
+Sub rangeDelete(wb As Workbook, action As Dictionary)
+    Dim shift As String
+    shift = action("args")(1)
+    If shift = "up" Then
+        GetRange(wb, action).Delete (XlDeleteShiftDirection.xlShiftUp)
+    Else
+        GetRange(wb, action).Delete (XlDeleteShiftDirection.xlShiftToLeft)
+    End If
+End Sub

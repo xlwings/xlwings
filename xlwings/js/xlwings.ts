@@ -414,3 +414,13 @@ function runMacro(workbook: ExcelScript.Workbook, action: Action) {
   globalThis.callbacks[action.args[0].toString()](...action.args.slice(1));
 }
 registerCallback(runMacro);
+
+function rangeDelete(workbook: ExcelScript.Workbook, action: Action) {
+  let shift = action.args[0].toString();
+  if (shift === "up") {
+    getRange(workbook, action).delete(ExcelScript.DeleteShiftDirection.up);
+  } else if (shift === "left") {
+    getRange(workbook, action).delete(ExcelScript.DeleteShiftDirection.left);
+  }
+}
+registerCallback(rangeDelete);
