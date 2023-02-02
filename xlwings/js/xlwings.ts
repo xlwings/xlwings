@@ -411,7 +411,10 @@ function nameDelete(workbook: ExcelScript.Workbook, action: Action) {
 registerCallback(nameDelete);
 
 function runMacro(workbook: ExcelScript.Workbook, action: Action) {
-  globalThis.callbacks[action.args[0].toString()](...action.args.slice(1));
+  globalThis.callbacks[action.args[0].toString()](
+    workbook,
+    ...action.args.slice(1)
+  );
 }
 registerCallback(runMacro);
 
