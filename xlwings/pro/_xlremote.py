@@ -713,6 +713,14 @@ class Range(base_classes.Range):
             args=value,
         )
 
+    def delete(self, shift=None):
+        if shift not in ("up", "left"):
+            # Non-remote version allows shift=None
+            raise XlwingsError(
+                "range.delete() requires either 'up' or 'left' as shift arguments."
+            )
+        self.append_json_action(func="rangeDelete", args=shift)
+
     def __len__(self):
         nrows, ncols = self.shape
         return nrows * ncols

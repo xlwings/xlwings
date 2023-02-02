@@ -524,3 +524,10 @@ def test_sheet_name_delete(book):
     book.names[0].delete()
     assert book.json()["actions"][0]["func"] == "nameDelete"
     assert book.json()["actions"][0]["args"] == ["one", "=Sheet1!$A$1"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_delete(book):
+    book.sheets[0]["A1:B2"].delete("up")
+    assert book.json()["actions"][0]["func"] == "rangeDelete"
+    assert book.json()["actions"][0]["args"] == ["up"]

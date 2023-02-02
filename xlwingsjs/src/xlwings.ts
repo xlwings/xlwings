@@ -326,6 +326,7 @@ let funcs = {
   namesAdd: namesAdd,
   nameDelete: nameDelete,
   runMacro: runMacro,
+  rangeDelete: rangeDelete,
 };
 
 Object.assign(globalThis.funcs, funcs);
@@ -474,4 +475,14 @@ async function nameDelete(context: Excel.RequestContext, action: Action) {
 
 async function runMacro(context: Excel.RequestContext, action: Action) {
   await globalThis.funcs[action.args[0].toString()](context, ...action.args.slice(1));
+}
+
+async function rangeDelete(context: Excel.RequestContext, action: Action) {
+  let range = await getRange(context, action);
+  let shift = action.args[0].toString();
+  if (shift === "up") {
+    range.delete(Excel.DeleteShiftDirection.up);
+  } else if (shift === "left") {
+    range.delete(Excel.DeleteShiftDirection.left);
+  }
 }

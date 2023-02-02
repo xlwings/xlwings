@@ -17,51 +17,6 @@ app = FastAPI()
 this_dir = Path(__file__).resolve().parent
 
 
-@app.exception_handler(Exception)
-async def exception_handler(request, exception):
-    # Handling all Exceptions is OK since it's only a dev server, but you probably
-    # don't want to show the details of every Exception to the user in production
-    return PlainTextResponse(
-        str(exception), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-    )
-
-
-expected_body = {
-    "client": "Office.js",
-    "version": "dev",
-    "book": {"name": "engines.xlsx", "active_sheet_index": 0, "selection": "A1"},
-    "names": [
-        {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
-        {"name": "two", "sheet_index": 1, "address": "A1:A2", "book_scope": True},
-        {"name": "two", "sheet_index": 0, "address": "C7:D8", "book_scope": False},
-    ],
-    "sheets": [
-        {
-            "name": "Sheet1",
-            "values": [
-                ["a", "b", "c", ""],
-                [1, 2, 3, "2021-01-01T00:00:00.000Z"],
-                [4, 5, 6, ""],
-                ["", "", "", ""],
-            ],
-            "pictures": [],
-        },
-        {"name": "Sheet2", "values": [["aa", "bb"], [11, 22]], "pictures": []},
-        {
-            "name": "Sheet3",
-            "values": [
-                ["", "string"],
-                [-1, 1],
-                [True, False],
-                # TODO: Custom datetime format not supported yet
-                ["2021-10-01T00:00:00.000Z", 44561.9826388889],
-            ],
-            "pictures": [],
-        },
-    ],
-}
-
-
 @app.post("/hello")
 def hello(data: dict = Body):
     book = xw.Book(json=data)
@@ -193,6 +148,51 @@ app.add_middleware(
     allow_methods=["POST"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(Exception)
+async def exception_handler(request, exception):
+    # Handling all Exceptions is OK since it's only a dev server, but you probably
+    # don't want to show the details of every Exception to the user in production
+    return PlainTextResponse(
+        str(exception), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+    )
+
+
+expected_body = {
+    "client": "Office.js",
+    "version": "dev",
+    "book": {"name": "engines.xlsx", "active_sheet_index": 0, "selection": "A1"},
+    "names": [
+        {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
+        {"name": "two", "sheet_index": 1, "address": "A1:A2", "book_scope": True},
+        {"name": "two", "sheet_index": 0, "address": "C7:D8", "book_scope": False},
+    ],
+    "sheets": [
+        {
+            "name": "Sheet1",
+            "values": [
+                ["a", "b", "c", ""],
+                [1, 2, 3, "2021-01-01T00:00:00.000Z"],
+                [4, 5, 6, ""],
+                ["", "", "", ""],
+            ],
+            "pictures": [],
+        },
+        {"name": "Sheet2", "values": [["aa", "bb"], [11, 22]], "pictures": []},
+        {
+            "name": "Sheet3",
+            "values": [
+                ["", "string"],
+                [-1, 1],
+                [True, False],
+                # TODO: Custom datetime format not supported yet
+                ["2021-10-01T00:00:00.000Z", 44561.9826388889],
+            ],
+            "pictures": [],
+        },
+    ],
+}
 
 if __name__ == "__main__":
     import uvicorn

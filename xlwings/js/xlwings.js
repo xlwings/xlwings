@@ -455,3 +455,11 @@ function nameDelete(workbook, action) {
 function runMacro(workbook, action) {
   throw "NotImplemented: runMacro";
 }
+
+function rangeDelete(workbook, action) {
+  if (action.args[0] === "up") {
+    getRange(workbook, action).deleteCells(SpreadsheetApp.Dimension.ROWS);
+  } else {
+    getRange(workbook, action).deleteCells(SpreadsheetApp.Dimension.COLUMNS);
+  }
+}

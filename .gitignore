@@ -89,3 +89,5 @@ target/
 node_modules
 *.pem
 .parcel-cache
+
+.hypothesis/
