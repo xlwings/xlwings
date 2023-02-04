@@ -588,7 +588,33 @@ Sub nameDelete(wb As Workbook, action As Dictionary)
 End Sub
 
 Sub runMacro(wb As Workbook, action As Dictionary)
-    Err.Raise vbObjectError + 513, , "Not Implemented: runMacro"
+    ' Err.Raise vbObjectError + 513, , "Not Implemented: runMacro"
+    Dim nArgs As Integer
+    nArgs = action("args").Count
+    Select Case nArgs
+    Case 1
+        Application.Run action("args")(1), wb
+    Case 2
+        Application.Run action("args")(1), wb, action("args")(2)
+    Case 3
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3)
+    Case 4
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4)
+    Case 5
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4), action("args")(5)
+    Case 6
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4), action("args")(5), action("args")(6)
+    Case 7
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4), action("args")(5), action("args")(6), action("args")(7)
+    Case 8
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4), action("args")(5), action("args")(6), action("args")(7), action("args")(8)
+    Case 9
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4), action("args")(5), action("args")(6), action("args")(7), action("args")(8), action("args")(9)
+    Case 10
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4), action("args")(5), action("args")(6), action("args")(7), action("args")(8), action("args")(9), action("args")(10)
+    Case 11
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4), action("args")(5), action("args")(6), action("args")(7), action("args")(8), action("args")(9), action("args")(10), action("args")(11)
+    End Select
 End Sub
 
 Sub rangeDelete(wb As Workbook, action As Dictionary)
