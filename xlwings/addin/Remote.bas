@@ -588,7 +588,6 @@ Sub nameDelete(wb As Workbook, action As Dictionary)
 End Sub
 
 Sub runMacro(wb As Workbook, action As Dictionary)
-    ' Err.Raise vbObjectError + 513, , "Not Implemented: runMacro"
     Dim nArgs As Integer
     nArgs = action("args").Count
     Select Case nArgs
@@ -614,6 +613,8 @@ Sub runMacro(wb As Workbook, action As Dictionary)
         Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4), action("args")(5), action("args")(6), action("args")(7), action("args")(8), action("args")(9), action("args")(10)
     Case 11
         Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4), action("args")(5), action("args")(6), action("args")(7), action("args")(8), action("args")(9), action("args")(10), action("args")(11)
+    Case Else
+        Err.Raise vbObjectError + 513, , "macro() only supports up to 10 arguments"
     End Select
 End Sub
 
