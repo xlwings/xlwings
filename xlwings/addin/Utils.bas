@@ -459,6 +459,7 @@ Function GetAzureAdAccessToken( _
         End If
         #If Mac Then
             ' RunPython on macOS is async: 60s should be enough if you have to login from scratch
+            Dim i as Integer
             For i = 1 To 60
                 expiresTs = GetConfig("AZUREAD_ACCESS_TOKEN_EXPIRES_ON_" & clientId, 0)
                 If (nowTs < (expiresTs - 30)) Then
