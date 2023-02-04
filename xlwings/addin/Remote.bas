@@ -240,6 +240,8 @@ Function RunRemotePython( _
     myClient.BaseUrl = url
     If timeout <> 0 Then
         myClient.TimeoutMs = timeout
+    Else
+        myClient.TimeoutMs = 30000 ' Set default to 30s
     End If
     If proxyBypassList <> "" Then
         myClient.proxyBypassList = proxyBypassList

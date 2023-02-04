@@ -301,6 +301,7 @@ If you provide a value via config sheet and via function argument, the function 
 * ``headers`` (optional): A dictionary (VBA) or object literal (JS) with name/value pairs. If you set the ``Authorization`` header, the ``auth`` argument will be ignored.
 * ``exclude`` (optional): By default, xlwings sends over the complete content of the whole workbook to the server. If you have sheets with big amounts of data, this can make the calls slow or you could even hit a timeout. If your backend doesn't need the content of certain sheets, the ``exclude`` option will block the sheet's content (e.g., values, pictures, etc.) from being sent to the backend. Currently, you can only exclude entire sheets as comma-delimited string like so: ``"Sheet1, Sheet2"``.
 * ``include`` (optional): It's the counterpart to ``exclude`` and allows you to submit the names of the sheets whose content (e.g., values, pictures, etc.) you want to send to the server. Like ``exclude``, ``include`` accepts a comma-delimited string, e.g., ``"Sheet1,Sheet2"``.
+* ``timeout`` (optional, VBA client only): By default, the VBA client has a timeout of 30s, you can change it by providing the timeout in milliseconds, so if you want to increase it to 40s, provide the argument as ``timeout:=40000``.
 
 Configuration Examples: Function Arguments
 ******************************************
