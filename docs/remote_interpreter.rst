@@ -431,36 +431,57 @@ Instead, call the ``book.app.macro()`` method to run functions in JavaScript or 
 
 .. tab-set::
 
+    .. tab-item:: Excel (VBA)
+      :sync: vba
+
+      .. code-block:: vb.net
+
+        ' The first parameter has to be the workbook, the others 
+        ' are those parameters that you will provide via Python
+        ' NOTE: you're limited to 10 parameters
+        Sub WrapText(wb As Workbook, sheetName As String, cellAddress As String)
+            wb.Worksheets(sheetName).Range(cellAddress).WrapText = True
+        End Sub
+
+      Now you can call this function from Python like so:
+
+      .. code-block:: Python
+
+          # book is an xlwings Book object
+          wrap_text = book.app.macro("'MyWorkbook.xlsm'!WrapText")
+          wrap_text("Sheet1", "A1")
+          wrap_text("Sheet2", "B2")
+
     .. tab-item:: Excel (Office Scripts)
       :sync: officescripts
 
-      .. code-block:: js
+      .. code-block:: JavaScript
 
-        // Note that you need to register your function before calling runPython
-        async function main(workbook: ExcelScript.Workbook) {
-          registerCallback(wrapText);
-          await runPython(workbook, "url", { auth: "DEVELOPMENT" });
-        }
+          // Note that you need to register your function before calling runPython
+          async function main(workbook: ExcelScript.Workbook) {
+            registerCallback(wrapText);
+            await runPython(workbook, "url", { auth: "DEVELOPMENT" });
+          }
 
-        // The first parameter has to be the workbook, the others 
-        // are those parameters that you will provide via Python
-        function wrapText(
-          workbook: ExcelScript.Workbook,
-          sheetName: string,
-          cellAddress: string
-        ) {
-          const range = workbook.getWorksheet(sheetName).getRange(cellAddress);
-          range.getFormat().setWrapText(true);
-        }
+          // The first parameter has to be the workbook, the others 
+          // are those parameters that you will provide via Python
+          function wrapText(
+            workbook: ExcelScript.Workbook,
+            sheetName: string,
+            cellAddress: string
+          ) {
+            const range = workbook.getWorksheet(sheetName).getRange(cellAddress);
+            range.getFormat().setWrapText(true);
+          }
 
-Now you can call this function from Python like so:
+      Now you can call this function from Python like so:
 
-.. code-block:: Python
+      .. code-block:: Python
 
-    # book is an xlwings Book object
-    wrap_text = book.app.macro("wrapText")
-    wrap_text("Sheet1", "A1")
-    wrap_text("Sheet2", "B2")
+          # book is an xlwings Book object
+          wrap_text = book.app.macro("wrapText")
+          wrap_text("Sheet1", "A1")
+          wrap_text("Sheet2", "B2")
 
 Limitations
 -----------
