@@ -453,7 +453,7 @@ function nameDelete(workbook, action) {
 }
 
 function runMacro(workbook, action) {
-  throw "NotImplemented: runMacro";
+  funcs[action.args[0]](workbook, ...action.args.slice(1));
 }
 
 function rangeDelete(workbook, action) {

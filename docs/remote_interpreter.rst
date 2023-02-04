@@ -142,13 +142,6 @@ If you want to have a development environment up and running in less than 5 minu
 Opening the project in Gitpod will require you to sign in with your GitHub account. A few moments later, you should see an online version of VS Code. In the Terminal, it will ask you to paste the xlwings license key (`get a free trial key <https://www.xlwings.org/trial>`_ if you want to try this out in a commercial context or use the ``noncommercial`` license key if your usage `qualifies as noncommercial <https://polyformproject.org/licenses/noncommercial/1.0.0>`_). Note that your browser will ask you for permission to paste. Once you confirm your license key by hitting ``Enter``, the server will automatically start with everything properly configured. You can then open the ``app`` directory and look at the ``main.py`` file, where you'll see the ``hello`` function. This is the function we're going to call from Google Sheets/Excel on the web in just a moment. Let's now look at the ``js`` folder and open the file according to your platform:
 
 .. tab-set::
-    .. tab-item:: Google Sheets
-      :sync: google
-
-      .. code-block:: text
-
-          xlwings_google.js
-
     .. tab-item:: Excel (Office Scripts)
       :sync: officescripts
 
@@ -156,9 +149,23 @@ Opening the project in Gitpod will require you to sign in with your GitHub accou
 
           xlwings_excel.ts
 
+    .. tab-item:: Google Sheets
+      :sync: google
+
+      .. code-block:: text
+
+          xlwings_google.js
+
 Copy all the code, then switch to Google Sheets or Excel, respectively, and continue as follows:
 
 .. tab-set::
+    .. tab-item:: Excel (Office Scripts)
+      :sync: officescripts
+
+      In the ``Automate`` tab, click on ``New Script``. This opens a code editor pane on the right-hand side with a function stub. Replace this function stub with the copied code from ``xlwings_excel.ts``. Make sure to click on ``Save script`` before clicking on ``Run``: the script will run the ``hello`` function and write ``Hello xlwings!`` into cell ``A1``.
+
+      To run this script from a button, click on the 3 dots in the Office Scripts pane (above the script), then select ``+ Add button``.
+
     .. tab-item:: Google Sheets
       :sync: google
 
@@ -166,12 +173,6 @@ Copy all the code, then switch to Google Sheets or Excel, respectively, and cont
 
       To add a button to a sheet to run this function, switch from the Apps Script editor back to Google Sheets, click on ``Insert`` > ``Drawing`` and draw a rounded rectangle. After hitting ``Save and Close``, the rectangle will appear on the sheet. Select it so that you can click on the 3 dots on the top right of the shape. Select ``Assign Script`` and write ``hello`` in the text box, then hit ``OK``.
 
-    .. tab-item:: Excel (Office Scripts)
-      :sync: officescripts
-
-      In the ``Automate`` tab, click on ``New Script``. This opens a code editor pane on the right-hand side with a function stub. Replace this function stub with the copied code from ``xlwings_excel.ts``. Make sure to click on ``Save script`` before clicking on ``Run``: the script will run the ``hello`` function and write ``Hello xlwings!`` into cell ``A1``.
-
-      To run this script from a button, click on the 3 dots in the Office Scripts pane (above the script), then select ``+ Add button``.
 
 Any changes you make to the ``hello`` function in ``app/main.py`` in Gitpod are automatically saved and reloaded by the web server and will be reflected the next time you run the script from Google Sheets or Excel on the web.
 
@@ -248,13 +249,6 @@ Now it's time to switch to Google Sheets or Excel! To paste the xlwings JavaScri
 1. **Copy the xlwings JavaScript module**: On a Terminal/Command Prompt on your local machine, run the following command:
 
    .. tab-set::
-       .. tab-item:: Google Sheets
-         :sync: google
-
-         .. code-block:: text
-
-             $ xlwings copy gs
-
        .. tab-item:: Excel (Office Scripts)
          :sync: officescripts
 
@@ -262,24 +256,31 @@ Now it's time to switch to Google Sheets or Excel! To paste the xlwings JavaScri
 
              $ xlwings copy os
 
+       .. tab-item:: Google Sheets
+         :sync: google
+
+         .. code-block:: text
+
+             $ xlwings copy gs
+
    This will copy the correct xlwings JavaScript module to the clipboard so we can paste it in the next step.
 
 2. **Paste the xlwings JavaScript module**
 
 .. tab-set::
-    .. tab-item:: Google Sheets
-      :sync: google
-
-      Click on ``Extensions`` > ``Apps Script``. This will open a separate browser tab and open a file called ``Code.gs`` with a function stub. Replace this function stub with the copied code from the previous step and click on the ``Save`` icon. Then hit the ``Run`` button (the ``hello`` function should be automatically selected in the dropdown to the right of it). If you run this the very first time, Google Sheets will ask you for the permissions it needs. Once approved, the script will run the ``hello`` function and write ``Hello xlwings!`` into cell ``A1``.
-
-      To add a button to a sheet to run this function, switch from the Apps Script editor back to Google Sheets, click on ``Insert`` > ``Drawing`` and draw a rounded rectangle. After hitting ``Save and Close``, the rectangle will appear on the sheet. Select it so that you can click on the 3 dots on the top right of the shape. Select ``Assign Script`` and write ``hello`` in the text box, then hit ``OK``.
-
     .. tab-item:: Excel (Office Scripts)
       :sync: officescripts
 
       In the ``Automate`` tab, click on ``New Script``. This opens a code editor pane on the right-hand side with a function stub. Replace this function stub with the copied code from the previous step. Make sure to click on ``Save script`` before clicking on ``Run``: the script will run the ``hello`` function and write ``Hello xlwings!`` into cell ``A1``.
 
       To run this script from a button, click on the 3 dots in the Office Scripts pane (above the script), then select ``+ Add button``.
+
+    .. tab-item:: Google Sheets
+      :sync: google
+
+      Click on ``Extensions`` > ``Apps Script``. This will open a separate browser tab and open a file called ``Code.gs`` with a function stub. Replace this function stub with the copied code from the previous step and click on the ``Save`` icon. Then hit the ``Run`` button (the ``hello`` function should be automatically selected in the dropdown to the right of it). If you run this the very first time, Google Sheets will ask you for the permissions it needs. Once approved, the script will run the ``hello`` function and write ``Hello xlwings!`` into cell ``A1``.
+
+      To add a button to a sheet to run this function, switch from the Apps Script editor back to Google Sheets, click on ``Insert`` > ``Drawing`` and draw a rounded rectangle. After hitting ``Save and Close``, the rectangle will appear on the sheet. Select it so that you can click on the 3 dots on the top right of the shape. Select ``Assign Script`` and write ``hello`` in the text box, then hit ``OK``.
 
 3. **Configuration**: The final step is to configure the xlwings JavaScript module properly, see the next section :ref:`Configuration`.
 
@@ -412,15 +413,16 @@ Triggers
 --------
 
 .. tab-set::
+    .. tab-item:: Excel (Office Scripts)
+      :sync: officescripts
+
+      Normally, you would use Power Automate to achieve similar things as with Google Sheets Triggers, but unfortunately, Power Automate can't run Office Scripts that contain a ``fetch`` command like xlwings does, so for the time being, you can only trigger xlwings calls manually on Excel on the web. Alternatively, you can open your Excel file with Google Sheets and leverage the Triggers that Google Sheets offers. This, however, requires you to store your Excel file on Google Drive.
+
     .. tab-item:: Google Sheets
       :sync: google
 
       For Google Sheets, you can take advantage of the integrated Triggers (accessible from the menu on the left-hand side of the Apps Script editor). You can trigger your xlwings functions on a schedule or by an event, such as opening or editing a sheet.
 
-    .. tab-item:: Excel (Office Scripts)
-      :sync: officescripts
-
-      Normally, you would use Power Automate to achieve similar things as with Google Sheets Triggers, but unfortunately, Power Automate can't run Office Scripts that contain a ``fetch`` command like xlwings does, so for the time being, you can only trigger xlwings calls manually on Excel on the web. Alternatively, you can open your Excel file with Google Sheets and leverage the Triggers that Google Sheets offers. This, however, requires you to store your Excel file on Google Drive.
 
 Workaround for missing features
 -------------------------------
@@ -483,6 +485,26 @@ Instead, call the ``book.app.macro()`` method to run functions in JavaScript or 
           wrap_text("Sheet1", "A1")
           wrap_text("Sheet2", "B2")
 
+    .. tab-item:: Google Sheets
+      :sync: google
+  
+      .. code-block:: JavaScript
+
+        // The first parameter has to be the workbook, the others 
+        // are those parameters that you will provide via Python
+        function wrapText(workbook, sheetName, cellAddress) {
+          workbook.getSheetByName(sheetName).getRange(cellAddress).setWrap(true);
+        }
+
+      Now you can call this function from Python like so:
+
+      .. code-block:: Python
+
+          # book is an xlwings Book object
+          wrap_text = book.app.macro("wrapText")
+          wrap_text("Sheet1", "A1")
+          wrap_text("Sheet2", "B2")
+
 Limitations
 -----------
 
@@ -495,17 +517,18 @@ Limitations
 Platform-specific limitations:
 
 .. tab-set::
-    .. tab-item:: Google Sheets
-      :sync: google
-
-      * `Quotas for Google Services <https://developers.google.com/apps-script/guides/services/quotas>`_ apply.
-
     .. tab-item:: Excel on the web
       :sync: officescripts
 
       * xlwings relies on the ``fetch`` command in Office Scripts that cannot be used via Power Automate and that can be disabled by your Microsoft 365 administrator.
       * While Excel on the web feels generally slow, it seems to have an extreme lag depending on where in the world you open the browser with Excel on the web. For example, a hello world call takes ~4.5s if you open a browser in Amsterdam/Netherlands while it takes ~8.5s if you do it Buenos Aires/Argentina.
       * `Platform limits with Office Scripts <https://docs.microsoft.com/en-us/office/dev/scripts/testing/platform-limits>`_ apply.
+
+    .. tab-item:: Google Sheets
+      :sync: google
+
+      * `Quotas for Google Services <https://developers.google.com/apps-script/guides/services/quotas>`_ apply.
+
 
 Roadmap
 -------
