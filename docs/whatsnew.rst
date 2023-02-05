@@ -1,6 +1,13 @@
 What's New
 ==========
 
+v0.29.1 (Feb 5, 2023)
+---------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server (VBA client): the default timeout for ``RunRemotePython`` has been increased from 5s to 30s (:issue:`2153`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server (all clients): added support for ``app.macro()`` (:issue:`2157`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server (all clients): added support for ``range.delete()`` (:issue:`2157`).
+
 v0.29.0 (Jan 29, 2023)
 ----------------------
 

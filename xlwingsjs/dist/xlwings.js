@@ -2371,7 +2371,7 @@ var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from
 
 
 
-var version = "0.29.0";
+var version = "0.29.1";
 globalThis.funcs = {};
 function registerCallback(callback) {
     globalThis.funcs[callback.name] = callback;
@@ -2684,6 +2684,7 @@ var funcs = {
     namesAdd: namesAdd,
     nameDelete: nameDelete,
     runMacro: runMacro,
+    rangeDelete: rangeDelete,
 };
 Object.assign(globalThis.funcs, funcs);
 // Functions
@@ -2947,6 +2948,26 @@ function runMacro(context, action) {
                 case 0: return [4 /*yield*/, (_a = globalThis.funcs)[action.args[0].toString()].apply(_a, __spreadArray([context], action.args.slice(1), false))];
                 case 1:
                     _b.sent();
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function rangeDelete(context, action) {
+    return __awaiter(this, void 0, void 0, function () {
+        var range, shift;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getRange(context, action)];
+                case 1:
+                    range = _a.sent();
+                    shift = action.args[0].toString();
+                    if (shift === "up") {
+                        range.delete(Excel.DeleteShiftDirection.up);
+                    }
+                    else if (shift === "left") {
+                        range.delete(Excel.DeleteShiftDirection.left);
+                    }
                     return [2 /*return*/];
             }
         });
