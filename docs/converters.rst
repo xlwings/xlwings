@@ -43,184 +43,202 @@ If no options are set, the following conversions are performed:
 
 The following options can be set:
 
-* **ndim**
+ndim
+~~~~
 
-  Force the value to have either 1 or 2 dimensions regardless of the shape of the range:
+Force the value to have either 1 or 2 dimensions regardless of the shape of the range:
+
+>>> import xlwings as xw
+>>> sheet = xw.Book().sheets[0]
+>>> sheet['A1'].value = [[1, 2], [3, 4]]
+>>> sheet['A1'].value
+1.0
+>>> sheet['A1'].options(ndim=1).value
+[1.0]
+>>> sheet['A1'].options(ndim=2).value
+[[1.0]]
+>>> sheet['A1:A2'].value
+[1.0 3.0]
+>>> sheet['A1:A2'].options(ndim=2).value
+[[1.0], [3.0]]
+
+numbers
+~~~~~~~
+
+By default cells with numbers are read as ``float``, but you can change it to ``int``::
+
+  >>> sheet['A1'].value = 1
+  >>> sheet['A1'].value
+  1.0
+  >>> sheet['A1'].options(numbers=int).value
+  1
+
+Alternatively, you can specify any other function or type which takes a single float argument.
+
+Using this on UDFs looks like this::
+
+  @xw.func
+  @xw.arg('x', numbers=int)
+  def myfunction(x):
+      # all numbers in x arrive as int
+      return x
+
+.. note:: 
+  Excel delivers all numbers as floats in the interactive mode, which is the reason why the ``int`` converter rounds numbers first before turning them into integers. Otherwise it could happen that e.g., 5 might be returned as 4 in case it is represented as a floating point number that is slightly smaller than 5. Should you require Python's original ``int`` in your converter, use raw int` instead.
+
+dates
+~~~~~
+
+By default cells with dates are read as ``datetime.datetime``, but you can change it to ``datetime.date``:
+
+- Range::
+
+  >>> import datetime as dt
+  >>> sheet['A1'].options(dates=dt.date).value
+
+- UDFs (decorator)::
+  
+  @xw.arg('x', dates=dt.date)
+
+Alternatively, you can specify any other function or type which takes the same keyword arguments
+as ``datetime.datetime``, for example:
+
+  >>> my_date_handler = lambda year, month, day, **kwargs: "%04i-%02i-%02i" % (year, month, day)
+  >>> sheet['A1'].options(dates=my_date_handler).value
+  '2017-02-20'
+
+empty
+~~~~~
+
+Empty cells are converted per default into ``None``, you can change this as follows:
+
+- Range: 
+
+>>> sheet['A1'].options(empty='NA').value
+
+- UDFs (decorator)::
+
+  @xw.arg('x', empty='NA')
+
+transpose
+~~~~~~~~~
+
+This works for reading and writing and allows us to e.g. write a list in column orientation to Excel:
+
+- Range: ``sheet['A1'].options(transpose=True).value = [1, 2, 3]``
+
+- UDFs:
+
+  .. code-block:: python
+
+      @xw.arg('x', transpose=True)
+      @xw.ret(transpose=True)
+      def myfunction(x):
+          # x will be returned unchanged as transposed both when reading and writing
+          return x
+
+expand
+~~~~~~
+
+This works the same as the Range properties ``table``, ``vertical`` and ``horizontal`` but is
+only evaluated when getting the values of a Range::
 
   >>> import xlwings as xw
   >>> sheet = xw.Book().sheets[0]
-  >>> sheet['A1'].value = [[1, 2], [3, 4]]
-  >>> sheet['A1'].value
-  1.0
-  >>> sheet['A1'].options(ndim=1).value
-  [1.0]
-  >>> sheet['A1'].options(ndim=2).value
-  [[1.0]]
-  >>> sheet['A1:A2'].value
-  [1.0 3.0]
-  >>> sheet['A1:A2'].options(ndim=2).value
-  [[1.0], [3.0]]
+  >>> sheet['A1'].value = [[1,2], [3,4]]
+  >>> range1 = sheet['A1'].expand()
+  >>> range2 = sheet['A1'].options(expand='table')
+  >>> range1.value
+  [[1.0, 2.0], [3.0, 4.0]]
+  >>> range2.value
+  [[1.0, 2.0], [3.0, 4.0]]
+  >>> sheet['A3'].value = [5, 6]
+  >>> range1.value
+  [[1.0, 2.0], [3.0, 4.0]]
+  >>> range2.value
+  [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
 
-* **numbers**
+.. note:: The ``expand`` method is only available on ``Range`` objects as UDFs only allow to manipulate the calling cells.
 
-  By default cells with numbers are read as ``float``, but you can change it to ``int``::
+chunksize
+~~~~~~~~~
 
-    >>> sheet['A1'].value = 1
-    >>> sheet['A1'].value
-    1.0
-    >>> sheet['A1'].options(numbers=int).value
-    1
+When you read and write from or to big ranges, you may have to chunk them or you will hit a timeout or a memory error. The ideal ``chunksize`` will depend on your system and size of the array, so you will have to try out a few different chunksizes to find one that works well:
 
-  Alternatively, you can specify any other function or type which takes a single float argument.
-
-  Using this on UDFs looks like this::
-
-    @xw.func
-    @xw.arg('x', numbers=int)
-    def myfunction(x):
-        # all numbers in x arrive as int
-        return x
-
-  **Note:** Excel always stores numbers internally as floats, which is the reason why the `int` converter
-  rounds numbers first before turning them into integers. Otherwise it could happen that e.g. 5 might be
-  returned as 4 in case it is represented as a floating point number that is slightly smaller than 5.
-  Should you require Python's original `int` in your converter, use `raw int` instead.
-
-* **dates**
-
-  By default cells with dates are read as ``datetime.datetime``, but you can change it to ``datetime.date``:
-
-  - Range::
-
-    >>> import datetime as dt
-    >>> sheet['A1'].options(dates=dt.date).value
-
-  - UDFs: ``@xw.arg('x', dates=dt.date)``
-
-  Alternatively, you can specify any other function or type which takes the same keyword arguments
-  as ``datetime.datetime``, for example:
-
-    >>> my_date_handler = lambda year, month, day, **kwargs: "%04i-%02i-%02i" % (year, month, day)
-    >>> sheet['A1'].options(dates=my_date_handler).value
-    '2017-02-20'
-
-* **empty**
-
-  Empty cells are converted per default into ``None``, you can change this as follows:
-
-  - Range: ``>>> sheet['A1'].options(empty='NA').value``
-
-  - UDFs:  ``@xw.arg('x', empty='NA')``
-
-* **transpose**
-
-  This works for reading and writing and allows us to e.g. write a list in column orientation to Excel:
-
-  - Range: ``sheet['A1'].options(transpose=True).value = [1, 2, 3]``
-
-  - UDFs:
-
-    .. code-block:: python
-
-        @xw.arg('x', transpose=True)
-        @xw.ret(transpose=True)
-        def myfunction(x):
-            # x will be returned unchanged as transposed both when reading and writing
-            return x
-
-* **expand**
-
-  This works the same as the Range properties ``table``, ``vertical`` and ``horizontal`` but is
-  only evaluated when getting the values of a Range::
-
-    >>> import xlwings as xw
-    >>> sheet = xw.Book().sheets[0]
-    >>> sheet['A1'].value = [[1,2], [3,4]]
-    >>> range1 = sheet['A1'].expand()
-    >>> range2 = sheet['A1'].options(expand='table')
-    >>> range1.value
-    [[1.0, 2.0], [3.0, 4.0]]
-    >>> range2.value
-    [[1.0, 2.0], [3.0, 4.0]]
-    >>> sheet['A3'].value = [5, 6]
-    >>> range1.value
-    [[1.0, 2.0], [3.0, 4.0]]
-    >>> range2.value
-    [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
-
-  .. note:: The ``expand`` method is only available on ``Range`` objects as UDFs only allow to manipulate the calling cells.
-
-* **chunksize**
-
-  When you read and write from or to big ranges, you may have to chunk them or you will hit a timeout or a memory error. The ideal ``chunksize`` will depend on your system and size of the array, so you will have to try out a few different chunksizes to find one that works well:
-
-  .. code-block:: python
-
-      import pandas as pd
-      import numpy as np
-      sheet = xw.Book().sheets[0]
-      data = np.arange(75_000 * 20).reshape(75_000, 20)
-      df = pd.DataFrame(data=data)
-      sheet['A1'].options(chunksize=10_000).value = df
-
-  And the same for reading:
-
-  .. code-block:: python
-
-      # As DataFrame
-      df = sheet['A1'].expand().options(pd.DataFrame, chunksize=10_000).value
-      # As list of list
-      df = sheet['A1'].expand().options(chunksize=10_000).value
-
-
-* **err_to_str** (new in v0.28.0)
-
-  If ``True``, will include cell errors such as ``#N/A`` as strings. By default, they
-  will be converted to ``None``.
-
-* **formatter** (new in v0.28.1)
-
-  .. note:: You can't use formatters with Excel tables.
-
-  The ``formatter`` option accepts the name of a function. The function will be called after writing the values to Excel and allows you to easily style the range in a very flexible way. How it works is best shown with a little example:
-
-  .. code-block:: python
+.. code-block:: python
 
     import pandas as pd
-    import xlwings as xw
-
+    import numpy as np
     sheet = xw.Book().sheets[0]
+    data = np.arange(75_000 * 20).reshape(75_000, 20)
+    df = pd.DataFrame(data=data)
+    sheet['A1'].options(chunksize=10_000).value = df
 
-    def table(rng: xw.Range, df: pd.DataFrame):
-        """This is the formatter function"""
-        # Header
-        rng[0, :].color = "#A9D08E"
+And the same for reading:
 
-        # Rows
-        for ix, row in enumerate(rng.rows[1:]):
-            if ix % 2 == 0:
-                row.color = "#D0CECE"  # Even rows
+.. code-block:: python
 
-        # Columns
-        for ix, col in enumerate(df.columns):
-            if "two" in col:
-                rng[1:, ix].number_format = "0.0%"
+    # As DataFrame
+    df = sheet['A1'].expand().options(pd.DataFrame, chunksize=10_000).value
+    # As list of list
+    df = sheet['A1'].expand().options(chunksize=10_000).value
+
+err_to_str
+~~~~~~~~~~
+
+.. versionadded:: 0.28.0
+
+If ``True``, will include cell errors such as ``#N/A`` as strings. By default, they
+will be converted to ``None``.
+
+formatter
+~~~~~~~~~
+
+.. versionadded:: 0.28.1
+
+.. note:: You can't use formatters with Excel tables.
+
+The ``formatter`` option accepts the name of a function. The function will be called after writing the values to Excel and allows you to easily style the range in a very flexible way. How it works is best shown with a little example:
+
+.. code-block:: python
+
+  import pandas as pd
+  import xlwings as xw
+
+  sheet = xw.Book().sheets[0]
+
+  def table(rng: xw.Range, df: pd.DataFrame):
+      """This is the formatter function"""
+      # Header
+      rng[0, :].color = "#A9D08E"
+
+      # Rows
+      for ix, row in enumerate(rng.rows[1:]):
+          if ix % 2 == 0:
+              row.color = "#D0CECE"  # Even rows
+
+      # Columns
+      for ix, col in enumerate(df.columns):
+          if "two" in col:
+              rng[1:, ix].number_format = "0.0%"
 
 
-    df = pd.DataFrame(data={"one": [1, 2, 3, 4], "two": [5, 6, 7, 8]})
-    sheet["A1"].options(formatter=table, index=False).value = df
+  df = pd.DataFrame(data={"one": [1, 2, 3, 4], "two": [5, 6, 7, 8]})
+  sheet["A1"].options(formatter=table, index=False).value = df
 
-  Running this code will format the DataFrame like this:
+Running this code will format the DataFrame like this:
 
-  .. image:: images/formatter.png
+.. image:: images/formatter.png
 
-  The formatter's signature is: ``def myformatter(myrange, myvalues)`` where ``myrange`` corresponds to the range where ``myvalues`` are written to. ``myvalues`` is simply what you assign to the ``value`` property in the last line of the example. Since we're using this with a DataFrame, it makes sense to name the argument accordingly and using type hints will help your editor with auto-completion. If you would use a nested list instead of a DataFrame, you would write something like this instead:
+The formatter's signature is: ``def myformatter(myrange, myvalues)`` where ``myrange`` corresponds to the range where ``myvalues`` are written to. ``myvalues`` is simply what you assign to the ``value`` property in the last line of the example. Since we're using this with a DataFrame, it makes sense to name the argument accordingly and using type hints will help your editor with auto-completion. If you would use a nested list instead of a DataFrame, you would write something like this instead:
 
-  .. code-block:: python
+.. code-block:: python
 
-    def table(rng: xw.Range, values: list[list]):  # Python >= 3.9
+  def table(rng: xw.Range, values: list[list]):  # Python >= 3.9
 
-  For Python <= 3.8, you'll need to capitalize ``List`` and import it like so: ``from typing import List``.
+For Python <= 3.8, you'll need to capitalize ``List`` and import it like so::
+
+  from typing import List
 
 Built-in Converters
 -------------------
@@ -235,42 +253,41 @@ It is also possible to write and register a custom converter for additional type
 The samples below can be used with both ``xlwings.Range`` objects and UDFs even though only one version may be shown.
 
 Dictionary converter
-********************
+~~~~~~~~~~~~~~~~~~~~
 
 The dictionary converter turns two Excel columns into a dictionary. If the data is in row orientation, use ``transpose``:
 
 .. figure:: images/dict_converter.png
 
-::
-
-    >>> sheet = xw.sheets.active
-    >>> sheet['A1:B2'].options(dict).value
-    {'a': 1.0, 'b': 2.0}
-    >>> sheet['A4:B5'].options(dict, transpose=True).value
-    {'a': 1.0, 'b': 2.0}
+>>> sheet = xw.sheets.active
+>>> sheet['A1:B2'].options(dict).value
+{'a': 1.0, 'b': 2.0}
+>>> sheet['A4:B5'].options(dict, transpose=True).value
+{'a': 1.0, 'b': 2.0}
 
 Note: instead of ``dict``, you can also use ``OrderedDict`` from ``collections``.
 
 Numpy array converter
-*********************
+~~~~~~~~~~~~~~~~~~~~~
 
 **options:** ``dtype=None, copy=True, order=None, ndim=None``
 
 The first 3 options behave the same as when using ``np.array()`` directly. Also, ``ndim`` works the same as shown above
 for lists (under default converter) and hence returns either numpy scalars, 1d arrays or 2d arrays.
 
-**Example**::
+**Example**
 
-    >>> import numpy as np
-    >>> sheet = xw.Book().sheets[0]
-    >>> sheet['A1'].options(transpose=True).value = np.array([1, 2, 3])
-    >>> sheet['A1:A3'].options(np.array, ndim=2).value
-    array([[ 1.],
-           [ 2.],
-           [ 3.]])
+>>> import numpy as np
+>>> sheet = xw.Book().sheets[0]
+>>> sheet['A1'].options(transpose=True).value = np.array([1, 2, 3])
+>>> sheet['A1:A3'].options(np.array, ndim=2).value
+array([[ 1.],
+       [ 2.],
+       [ 3.]])
+
 
 Pandas Series converter
-***********************
+~~~~~~~~~~~~~~~~~~~~~~~
 
 **options:** ``dtype=None, copy=False, index=1, header=True``
 
@@ -291,22 +308,20 @@ For ``index`` and ``header``, ``1`` and ``True`` may be used interchangeably.
 
 .. figure:: images/series_conv.png
 
-::
-
-    >>> sheet = xw.Book().sheets[0]
-    >>> s = sheet['A1'].options(pd.Series, expand='table').value
-    >>> s
-    date
-    2001-01-01    1
-    2001-01-02    2
-    2001-01-03    3
-    2001-01-04    4
-    2001-01-05    5
-    2001-01-06    6
-    Name: series name, dtype: float64
+>>> sheet = xw.Book().sheets[0]
+>>> s = sheet['A1'].options(pd.Series, expand='table').value
+>>> s
+date
+2001-01-01    1
+2001-01-02    2
+2001-01-03    3
+2001-01-04    4
+2001-01-05    5
+2001-01-06    6
+Name: series name, dtype: float64
 
 Pandas DataFrame converter
-**************************
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **options:** ``dtype=None, copy=False, index=1, header=1``
 
@@ -356,7 +371,7 @@ The same sample for **UDF** (starting in cell ``A13`` on screenshot) looks like 
 
 
 xw.Range and 'raw' converters
-*****************************
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Technically speaking, these are "no-converters".
 
