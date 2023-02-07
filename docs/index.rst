@@ -31,12 +31,13 @@ on **Windows** and **Mac**.
 
         Use advanced features such as:
 
+        * 1-click installer: bundle Python and all your packages
+        * Embedded code: easy deployment
         * Ultra fast file reader: no Excel required
         * xlwings Reports: work with templates
         * xlwings Server: no local Python required
-        * Google Sheets & Excel on the web
-        * Embedded code: easy deployment
-        * etc.
+        * No more VBA: Call Python from Office Scripts and Office.js
+        * Excel on the web & Google Sheets
 
         Free for non-commercial use only.
 

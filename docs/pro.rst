@@ -13,6 +13,7 @@ PRO Features
 
 * :ref:`Ultra Fast File Reader <file_reader>`: Similar to ``pandas.read_excel()`` but 5-25 times faster and you can leverage the convenient xlwings syntax. Works without an Excel installation and therefore on all platforms including Linux.
 * :ref:`xlwings Server <remote_interpreter>`: With xlwings Server, you don't need to install Python locally anymore. Instead, run it as a web app on a server. Works with Desktop Excel on Windows and macOS and with Google Sheet and Excel on the web. Runs on all platforms, including Linux, WSL and Docker.
+* :ref:`Office.js Add-ins <officejs_addins>`: Build Office.js add-ins.
 * :ref:`Embedded code <release>`: Store your Python source code directly in Excel for easy deployment.
 * :ref:`xlwings Reports <reports_quickstart>`: A template-based reporting framework, allowing business users to change the layout of the report without having to touch the Python code.
 * :ref:`Markdown Formatting <markdown>`: Support for Markdown formatting of text in cells and shapes like e.g., text boxes.
