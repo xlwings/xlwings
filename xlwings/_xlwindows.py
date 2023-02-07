@@ -88,7 +88,7 @@ except ImportError:
     PIL = None
 
 
-time_types = (dt.date, dt.datetime, pywintypes.TimeType)
+time_types = (dt.date, dt.time, dt.datetime, pywintypes.TimeType)
 if np:
     time_types = time_types + (np.datetime64,)
 
@@ -395,6 +395,18 @@ def _datetime_to_com_time(dt_time):
             dt_time.year,
             dt_time.month,
             dt_time.day,
+            tzinfo=win32timezone.TimeZoneInfo.utc(),
+        )
+
+    if type(dt_time) is dt.time:
+        # Excel does not have a time-only data type. It stores times with date `1900/01/01`.
+        dt_time = dt.datetime(
+            1900,
+            1,
+            1,
+            dt_time.hour,
+            dt_time.minute,
+            dt_time.second,
             tzinfo=win32timezone.TimeZoneInfo.utc(),
         )
 
