@@ -5,6 +5,7 @@ import re
 import shutil
 import struct
 import subprocess
+from pathlib import Path
 
 import aem
 import appscript
@@ -580,6 +581,9 @@ class Book:
         hfs_path = posix_to_hfs_path(path)
         display_alerts = self.app.display_alerts
         self.app.display_alerts = False
+        if Path(path).exists():
+            # Errors out with Parameter error (OSERROR: -50) otherwise
+            os.unlink(path)
         self.xl.save(in_=hfs_path, as_=kw.PDF_file_format)
         self.app.display_alerts = display_alerts
 
