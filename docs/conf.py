@@ -190,7 +190,7 @@ html_theme_options = {
         "color-brand-primary": "white",
         "color-announcement-background": "#28a745",
     },
-    # "announcement": 'Happy Black Friday! Get the xlwings on-demand video course with a 50% discount (ends Nov 30, 2022): <a href="https://training.xlwings.org/p/xlwings?coupon_code=BF2022DC">Get 50% off!</a>',
+    "announcement": 'Webinar (Feb 15, 2023): Build Office.js add-ins for Excel with Python: <a href="https://zoomeranalytics.webinargeek.com/build-office-js-add-ins-the-easy-way?cst=docs">Sign up!</a>',
 }
 
 html_show_sourcelink = False
