@@ -130,6 +130,8 @@ As a summary, here are the components needed to enable SSO:
         let accessToken = await Office.auth.getAccessToken();
         xlwings.runPython("url", { auth: "Bearer " + accessToken })
 
+A good walkthrough is also `Create a Node.js Office Add-in that uses single sign-on <https://learn.microsoft.com/en-us/office/dev/add-ins/develop/create-sso-office-add-ins-nodejs>`_, but as the title says, it uses Node.js on the backend instead of Python.
+
 
 Azure AD for Excel VBA
 ----------------------
