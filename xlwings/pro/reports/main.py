@@ -85,7 +85,9 @@ def render_sheet(sheet, **data):
     book = sheet.book
 
     # Shapes aren't properly moved otherwise
-    sheet.select()
+    if sheet.visible:
+        # Select fails on Windows for hidden sheets
+        sheet.select()
 
     # Inserting rows with Frames changes the print area.
     # Get it here so we can revert at the end.
