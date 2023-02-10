@@ -87,6 +87,7 @@ on **Windows** and **Mac**.
     :caption: xlwings PRO
 
     pro
+    license_key
     release
     permissioning
 

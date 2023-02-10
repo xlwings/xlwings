@@ -38,6 +38,7 @@
     :caption: xlwings PRO
 
     pro
+    license_key
     release
     permissioning
 
