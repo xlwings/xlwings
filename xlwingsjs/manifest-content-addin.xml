@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" xsi:type="ContentApp">
+  <!-- Replace ID with one from https://www.guidgen.com or by running in Python: import uuid;print(uuid.uuid4()) -->
+  <Id>e22685a6-80f0-43cc-b69c-b22b60b2b3e5</Id>
+  <Version>1.0.0</Version>
+  <ProviderName>Zoomer Analytics GmbH</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="xlwings.js content add-in"/>
+  <Description DefaultValue="xlwings.js content add-in"/>
+  <IconUrl DefaultValue="https://127.0.0.1:8000/icons/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://127.0.0.1:8000/icons/icon-64.png"/>
+  <SupportUrl DefaultValue="https://www.xlwings.org/contact"/>
+  <AppDomains>
+    <AppDomain>https://127.0.0.1:8000</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Workbook"/>
+  </Hosts>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://127.0.0.1:8000/taskpane.html"/>
+    <RequestedWidth>1000</RequestedWidth>
+    <RequestedHeight>700</RequestedHeight>
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+</OfficeApp>
