@@ -72,7 +72,7 @@ class Engine:
             return data
 
     @staticmethod
-    def prepare_xl_data_element(x):
+    def prepare_xl_data_element(x, date_format):
         return x
 
     @property

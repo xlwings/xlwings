@@ -92,7 +92,7 @@ The 3rd party Open Source licenses document is built with `cargo about generate 
 
 * Generate dev certificates (otherwise, icons and dialogs won't load and Excel on the web won't load the manifest at all): download `mkcert` from the [GH Release page](https://github.com/FiloSottile/mkcert/releases), rename the file to `mkcert`, then run the following commands:
   ```
-  cd officejs
+  cd xlwingsjs
   mkcert -install
   mkcert localhost 127.0.0.1 ::1
   ```
@@ -100,7 +100,7 @@ The 3rd party Open Source licenses document is built with `cargo about generate 
 * Install dependencies:
 
   ```
-  cd officejs
+  cd xlwingsjs
   npm install
   ```
 * Run `npm start` to continuously compile the TypeScript source. This will also inject code for hot-reloading the source code.

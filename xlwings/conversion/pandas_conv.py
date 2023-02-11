@@ -59,8 +59,6 @@ if pd:
         return value
 
     class PandasDataFrameConverter(Converter):
-        writes_types = pd.DataFrame
-
         @classmethod
         def base_reader(cls, options):
             return super(PandasDataFrameConverter, cls).base_reader(
@@ -111,8 +109,6 @@ if pd:
     PandasDataFrameConverter.register(pd.DataFrame, "df")
 
     class PandasSeriesConverter(Converter):
-        writes_types = pd.Series
-
         @classmethod
         def read_value(cls, value, options):
             index = options.get("index", 1)

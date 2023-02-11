@@ -119,9 +119,13 @@ class CleanDataFromReadStage:
 
 
 class CleanDataForWriteStage:
+    def __init__(self, options):
+        self.date_format = options.get("date_format", None)
+
     def __call__(self, c):
         c.value = [
-            [c.engine.impl.prepare_xl_data_element(x) for x in y] for y in c.value
+            [c.engine.impl.prepare_xl_data_element(x, self.date_format) for x in y]
+            for y in c.value
         ]
 
 
@@ -240,7 +244,7 @@ class ValueAccessor(Accessor):
             Pipeline()
             .prepend_stage(FormatStage(options))
             .prepend_stage(WriteValueToRangeStage(options))
-            .prepend_stage(CleanDataForWriteStage())
+            .prepend_stage(CleanDataForWriteStage(options))
             .prepend_stage(TransposeStage(), only_if=options.get("transpose", False))
             .prepend_stage(Ensure2DStage())
         )
@@ -254,9 +258,6 @@ ValueAccessor.register(None)
 
 
 class DictConverter(Converter):
-    # TODO: remove all these writes_types as this was long ago replaced by .register (?)
-    writes_types = dict
-
     @classmethod
     def base_reader(cls, options):
         return super(DictConverter, cls).base_reader(Options(options).override(ndim=2))
@@ -275,8 +276,6 @@ DictConverter.register(dict)
 
 
 class OrderedDictConverter(Converter):
-    writes_types = OrderedDict
-
     @classmethod
     def base_reader(cls, options):
         return super(OrderedDictConverter, cls).base_reader(

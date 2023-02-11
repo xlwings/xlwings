@@ -13,8 +13,6 @@ if np:
     from . import Converter, Options
 
     class NumpyArrayConverter(Converter):
-        writes_types = np.ndarray
-
         @classmethod
         def base_reader(cls, options):
             return super(NumpyArrayConverter, cls).base_reader(

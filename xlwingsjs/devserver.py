@@ -127,7 +127,39 @@ async def alert(
     )
 
 
+@app.get("/xlwings/functions-meta")
+async def functions_meta():
+    import functions
+
+    from xlwings import udfs2
+
+    return udfs2.generate_json_meta(functions)
+
+
+@app.get("/xlwings/functions")
+async def myfunctions():
+    # text = Path(this_dir / "functions" / "functions.js").read_text()
+    # return PlainTextResponse(text)
+    import functions
+
+    from xlwings import udfs2
+
+    return PlainTextResponse(udfs2.generate_js_wrapper(functions))
+
+
+@app.post("/xlwings/udfs")
+async def udfs(data: dict = Body):
+    # print(data)
+    from xlwings import udfs2
+
+    rv = await udfs2.call_udf(data)
+    # print(rv)
+
+    return {"result": rv}
+
+
 app.mount("/icons", StaticFiles(directory=this_dir / "icons"), name="icons")
+app.mount("/functions", StaticFiles(directory=this_dir / "functions"), name="functions")
 app.mount("/", StaticFiles(directory=this_dir / "build"), name="home")
 StaticFiles.is_not_modified = lambda *args, **kwargs: False  # Never cache static files
 
@@ -155,7 +187,7 @@ async def exception_handler(request, exception):
     # Handling all Exceptions is OK since it's only a dev server, but you probably
     # don't want to show the details of every Exception to the user in production
     return PlainTextResponse(
-        str(exception), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        repr(exception), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
     )
 
 
@@ -202,6 +234,7 @@ if __name__ == "__main__":
         host="127.0.0.1",
         port=8000,
         reload=True,
+        reload_dirs=[this_dir, this_dir.parent / "xlwings"],
         ssl_keyfile=this_dir / "localhost+2-key.pem",
         ssl_certfile=this_dir / "localhost+2.pem",
     )

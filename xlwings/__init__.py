@@ -95,9 +95,10 @@ if sys.platform.startswith("darwin"):
         pass
 
 try:
-    from .pro import _xlremote
+    from .pro import _xlofficejs, _xlremote
 
     engines.add(Engine(impl=_xlremote.engine))
+    engines.add(Engine(impl=_xlofficejs.engine))
     PRO = True
 except (ImportError, LicenseError):
     PRO = False
@@ -140,16 +141,7 @@ if sys.platform.startswith("win") and has_pywin32:
     except:  # noqa: E722
         pass
 else:
-
-    def func(f=None, *args, **kwargs):
-        @wraps(f)
-        def inner(f):
-            return f
-
-        if f is None:
-            return inner
-        else:
-            return inner(f)
+    from .udfs2 import xlarg as arg, xlfunc as func, xlret as ret  # noqa: F401
 
     def sub(f=None, *args, **kwargs):
         @wraps(f)
@@ -160,18 +152,6 @@ else:
             return inner
         else:
             return inner(f)
-
-    def ret(*args, **kwargs):
-        def inner(f):
-            return f
-
-        return inner
-
-    def arg(*args, **kwargs):
-        def inner(f):
-            return f
-
-        return inner
 
     def raise_missing_pywin32():
         raise ImportError(

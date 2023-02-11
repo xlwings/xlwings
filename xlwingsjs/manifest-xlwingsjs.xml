@@ -19,13 +19,46 @@
   <Hosts>
     <Host Name="Workbook"/>
   </Hosts>
+
+  <!-- Runtime for Custom Functions (part 1)
+       * SharedRuntime (requires Runtimes below. Uses taskpane.html.)
+       * CustomFunctionsRuntime (remove Runtimes and switch SourceLocationuses below. Uses functions.html with ref to custom-functions-runtime.js.)
+  -->
+  <Requirements>
+    <Sets DefaultMinVersion="1.1">
+      <Set Name="SharedRuntime" MinVersion="1.1"/>
+    </Sets>
+  </Requirements>
+
   <DefaultSettings>
     <SourceLocation DefaultValue="https://127.0.0.1:8000/taskpane.html"/>
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
-    <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
     <Hosts>
       <Host xsi:type="Workbook">
+
+        <!-- Runtime for Custom Functions (part 2, only for SharedRuntime)-->
+        <Runtimes>
+          <Runtime resid="Taskpane.Url" lifetime="long"/>
+        </Runtimes>
+        <!-- Custom Functions -->
+        <AllFormFactors>
+          <ExtensionPoint xsi:type="CustomFunctions">
+            <Script>
+              <SourceLocation resid="Functions.Script.Url"/>
+            </Script>
+            <Page>
+              <!-- Taskpane.Url (SharedRuntime) or Functions.Page.Url (CustomFunctionsRuntime)-->
+              <SourceLocation resid="Taskpane.Url"/>
+            </Page>
+            <Metadata>
+              <SourceLocation resid="Functions.Metadata.Url"/>
+            </Metadata>
+            <Namespace resid="Functions.Namespace"/>
+          </ExtensionPoint>
+        </AllFormFactors>
+
         <DesktopFormFactor>
           <!-- resid must point to a Url Resource -->
           <FunctionFile resid="Commands.Url" />
@@ -102,8 +135,14 @@
         <bt:Url id="Commands.Url" DefaultValue="https://127.0.0.1:8000/commands.html" />
         <!-- This must point to the HTML document with the task pane -->
         <bt:Url id="Taskpane.Url" DefaultValue="https://127.0.0.1:8000/taskpane.html" />
+        <!-- Custom Functions: functions.html is only used with CustomFunctionsRuntime-->
+        <bt:Url id="Functions.Script.Url" DefaultValue="https://127.0.0.1:8000/xlwings/functions"/>
+        <bt:Url id="Functions.Metadata.Url" DefaultValue="https://127.0.0.1:8000/xlwings/functions-meta"/>
+        <bt:Url id="Functions.Page.Url" DefaultValue="https://127.0.0.1:8000/functions/functions.html" />
       </bt:Urls>
       <bt:ShortStrings>
+        <!-- The global Namespace isn't requied and can also be set per function via xw.func(namespace="...") -->
+        <bt:String id="Functions.Namespace" DefaultValue="XLWINGS"/>
         <bt:String id="MyTab.TabLabel" DefaultValue="xlwings.js" />
         <bt:String id="MyCommandsGroup.Label" DefaultValue="MyGroup" />
         <bt:String id="MyFunctionButton.Label" DefaultValue="Hello World" />

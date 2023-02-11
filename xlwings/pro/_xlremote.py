@@ -96,7 +96,7 @@ class Engine:
         ]
 
     @staticmethod
-    def prepare_xl_data_element(x):
+    def prepare_xl_data_element(x, date_format):
         if x is None:
             return ""
         elif pd and pd.isna(x):
