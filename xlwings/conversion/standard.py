@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 from .. import LicenseError
 from ..main import Range
-from ..utils import chunk
+from ..utils import chunk, xlserial_to_datetime
 from . import Accessor, Converter, Options, Pipeline, accessors
 
 try:
@@ -293,3 +293,29 @@ class OrderedDictConverter(Converter):
 
 
 OrderedDictConverter.register(OrderedDict)
+
+
+class DatetimeConverter(Converter):
+    @classmethod
+    def read_value(cls, value, options):
+        return xlserial_to_datetime(value)
+
+    @classmethod
+    def write_value(cls, value, options):
+        return value
+
+
+DatetimeConverter.register(datetime.datetime)
+
+
+class DateConverter(Converter):
+    @classmethod
+    def read_value(cls, value, options):
+        return xlserial_to_datetime(value).date()
+
+    @classmethod
+    def write_value(cls, value, options):
+        return value
+
+
+DateConverter.register(datetime.date)

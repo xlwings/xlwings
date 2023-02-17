@@ -66,6 +66,31 @@ def np_datetime_to_datetime(np_datetime):
     return dt_datetime
 
 
+def xlserial_to_datetime(serial):
+    """
+    Converts a date in Excel's serial format (e.g., 44197.0) to a Python datetime object
+    """
+    # https://learn.microsoft.com/en-us/office/dev/scripts/resources/samples/excel-samples#dates
+    epoch = round((serial - 25569) * 86400, 3)
+    return dt.datetime.utcfromtimestamp(epoch)  # tz-naive, which is what we want
+
+
+def datetime_to_xlserial(obj):
+    """
+    Converts a Python date or datetime object to Excel's date serial (e.g, 44197.0)
+    """
+    if isinstance(obj, dt.datetime):
+        obj = obj.replace(tzinfo=dt.timezone.utc)
+    elif isinstance(obj, dt.date):
+        obj = dt.datetime(
+            obj.year,
+            obj.month,
+            obj.day,
+            tzinfo=dt.timezone.utc,
+        )
+    return obj.timestamp() / 86400 + 25569
+
+
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 

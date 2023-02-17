@@ -55,6 +55,7 @@ from .main import (
     sheets,
     view,
 )
+from .utils import xlserial_to_datetime as to_datetime
 
 __all__ = (
     "App",
@@ -74,6 +75,7 @@ __all__ = (
     "load",
     "sheets",
     "view",
+    "to_datetime",
 )
 
 # Populate engines list

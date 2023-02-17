@@ -1,8 +1,13 @@
 """
-This could be combined with udf_tests.py but has to handle
-* floats vs ints
-* empty cells vs ="" required
+Key differences with COM UDFs:
+* respects ints (COM always returns floats)
+* returns 0 for empty cells, in line with COM if they have the ="" formula
+* caller range object not supported (caller address would easy to get though)
+* reading datetime must be explicitly converted via dt.date / dt.datetime or parse_dates (pandas)
+* writing datetime is now automatically formatting it as date in Excel
+* categories aren't supported: replaced by namespaces
 """
+import datetime as dt
 import sys
 from datetime import date, datetime
 
@@ -81,6 +86,7 @@ def read_empty(x):
 
 
 @xw.func
+@xw.arg("x", dt.datetime)
 def read_date(x):
     print(x)
     return x == datetime(2015, 1, 15)
@@ -92,6 +98,7 @@ def write_date():
 
 
 @xw.func
+@xw.arg("x", dt.datetime)
 def read_datetime(x):
     return x == datetime(1976, 2, 15, 13, 6, 22)
 
@@ -159,20 +166,22 @@ def write_transpose():
 
 
 @xw.func
-@xw.arg("x", dates=date)
 def read_dates_as1(x):
+    x[0][1] = xw.to_datetime(x[0][1]).date()
+    x[1][0] = xw.to_datetime(x[1][0]).date()
     return x == [[1, date(2015, 1, 13)], [date(2000, 12, 1), 4]]
 
 
 @xw.func
-@xw.arg("x", dates=date)
+@xw.arg("x", dt.date)
 def read_dates_as2(x):
     return x == date(2005, 1, 15)
 
 
 @xw.func
-@xw.arg("x", dates=datetime)
 def read_dates_as3(x):
+    x[0][1] = xw.to_datetime(x[0][1])
+    x[1][0] = xw.to_datetime(x[1][0])
     return x == [[1, datetime(2015, 1, 13)], [datetime(2000, 12, 1), 4]]
 
 
@@ -226,8 +235,9 @@ if np:
         return nparray_equal(x, np.array([1, 2]))
 
     @xw.func
-    @xw.arg("x", np.array)
+    @xw.arg("x", dt.datetime)
     def read_date_nparray(x):
+        x = np.array(x)
         return nparray_equal(x, np.array(datetime(2000, 12, 20)))
 
     # Keyword args on Numpy arrays
@@ -253,8 +263,9 @@ if np:
         return np.array([[1, 2], [3, 4]])
 
     @xw.func
-    @xw.arg("x", np.array, dates=date)
+    @xw.arg("x", dt.date)
     def read_dates_as_nparray(x):
+        x = np.array(x)
         return nparray_equal(x, np.array(date(2000, 12, 20)))
 
     @xw.func
@@ -361,7 +372,7 @@ if pd:
         return pd.Series([1, 2], index=ix)
 
     @xw.func
-    @xw.arg("x", pd.Series)
+    @xw.arg("x", pd.Series, parse_dates=True)
     def read_timeseries(x):
         return series_equal(
             x,
@@ -603,7 +614,7 @@ if pd:
         return df
 
     @xw.func
-    @xw.arg("x", pd.DataFrame)
+    @xw.arg("x", pd.DataFrame, parse_dates=True)
     def read_df_date_index(x):
         df = pd.DataFrame(
             [[1, 2, 3], [4, 5, 6]],

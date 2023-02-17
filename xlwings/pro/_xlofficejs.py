@@ -16,7 +16,6 @@ This engine is only used in connection with Office.js UDFs, not with runPython.
 """
 
 import datetime as dt
-import re
 
 try:
     import numpy as np
@@ -29,24 +28,16 @@ except ImportError:
 
 from .. import utils
 
-datetime_pattern = (
-    pattern
-) = r"^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$"
-datetime_regex = re.compile(pattern)
-
 
 def datetime_to_formatted_number(datetime_object, date_format):
-    datetime_object = datetime_object.replace(tzinfo=dt.timezone.utc)
-    xl_date_serial = datetime_object.timestamp() / 86400 + 25569
     return {
         "type": "FormattedNumber",
-        "basicValue": xl_date_serial,
+        "basicValue": utils.datetime_to_xlserial(datetime_object),
         "numberFormat": date_format,
     }
 
 
 def _clean_value_data_element(
-    # TODO
     value,
     datetime_builder,
     empty_as,
@@ -56,12 +47,7 @@ def _clean_value_data_element(
     if value == "":
         return empty_as
     if isinstance(value, str):
-        # TODO: Send arrays back and forth with indices of the location of dt values
-        if datetime_regex.match(value):
-            value = dt.datetime.fromisoformat(
-                value[:-1]
-            )  # cut off "Z" (Python doesn't accept it and Excel doesn't support tz)
-        elif not err_to_str and value in [
+        if not err_to_str and value in [
             "#DIV/0!",
             "#N/A",
             "#NAME?",
