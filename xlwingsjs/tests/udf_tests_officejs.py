@@ -1,7 +1,7 @@
 """
 Key differences with COM UDFs:
 * respects ints (COM always returns floats)
-* returns 0 for empty cells, in line with COM if they have the ="" formula
+* returns 0 for empty cells. To get None like in COM, you need to set the formula to: =""
 * caller range object not supported (caller address would easy to get though)
 * reading datetime must be explicitly converted via dt.date / dt.datetime or parse_dates (pandas)
 * writing datetime is now automatically formatting it as date in Excel

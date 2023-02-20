@@ -1,25 +1,37 @@
+"""
+Required Notice: Copyright (C) Zoomer Analytics GmbH.
+
+xlwings PRO is dual-licensed under one of the following licenses:
+
+* PolyForm Noncommercial License 1.0.0 (for noncommercial use):
+  https://polyformproject.org/licenses/noncommercial/1.0.0
+* xlwings PRO License (for commercial use):
+  https://github.com/xlwings/xlwings/blob/main/LICENSE_PRO.txt
+
+Commercial licenses can be purchased at https://www.xlwings.org
+"""
+
 import inspect
-from importlib import import_module
 from textwrap import dedent
 
-from . import conversion
+from .. import XlwingsError, __version__, conversion
 
 
 def func_sig(f):
-    s = inspect.signature(f)
+    sig = inspect.signature(f)
     vararg = None
     args = []
     defaults = []
-    for p in s.parameters.values():
-        if p.kind is inspect.Parameter.POSITIONAL_OR_KEYWORD:
-            args.append(p.name)
-            if p.default is not inspect.Signature.empty:
-                defaults.append(p.default)
-        elif p.kind is inspect.Parameter.VAR_POSITIONAL:
-            args.append(p.name)
-            vararg = p.name
+    for param in sig.parameters.values():
+        if param.kind is inspect.Parameter.POSITIONAL_OR_KEYWORD:
+            args.append(param.name)
+            if param.default is not inspect.Signature.empty:
+                defaults.append(param.default)
+        elif param.kind is inspect.Parameter.VAR_POSITIONAL:
+            args.append(param.name)
+            vararg = param.name
         else:
-            raise Exception("xlwings does not support UDFs with keyword arguments")
+            raise XlwingsError("xlwings does not support UDFs with keyword arguments")
     return {"args": args, "defaults": defaults, "vararg": vararg}
 
 
@@ -28,9 +40,7 @@ def check_bool(kw, default, **func_kwargs):
         check = func_kwargs.pop(kw)
         if isinstance(check, bool):
             return check
-        raise Exception(
-            '{0} only takes boolean values. ("{1}" provided).'.format(kw, check)
-        )
+        raise XlwingsError(f'{kw} only takes boolean values. ("{check}" provided).')
     return default
 
 
@@ -42,26 +52,26 @@ def xlfunc(f=None, **kwargs):
             xlargs = xlf["args"] = []
             xlargmap = xlf["argmap"] = {}
             sig = func_sig(f)
-            nArgs = len(sig["args"])
-            nDefaults = len(sig["defaults"])
-            nRequiredArgs = nArgs - nDefaults
-            if sig["vararg"] and nDefaults > 0:
-                raise Exception(
+            num_args = len(sig["args"])
+            num_defaults = len(sig["defaults"])
+            num_required_args = num_args - num_defaults
+            if sig["vararg"] and num_defaults > 0:
+                raise XlwingsError(
                     "xlwings does not support UDFs "
                     "with both optional and variable length arguments"
                 )
-            for vpos, vname in enumerate(sig["args"]):
+            for var_pos, var_name in enumerate(sig["args"]):
                 arg_info = {
-                    "name": vname,
-                    "pos": vpos,
-                    "doc": "Positional argument " + str(vpos + 1),
-                    "vararg": vname == sig["vararg"],
+                    "name": var_name,
+                    "pos": var_pos,
+                    "doc": f"Positional argument {var_pos + 1}",
+                    "vararg": var_name == sig["vararg"],
                     "options": {},
                 }
-                if vpos >= nRequiredArgs:
-                    arg_info["optional"] = sig["defaults"][vpos - nRequiredArgs]
+                if var_pos >= num_required_args:
+                    arg_info["optional"] = sig["defaults"][var_pos - num_required_args]
                 xlargs.append(arg_info)
-                xlargmap[vname] = xlargs[-1]
+                xlargmap[var_name] = xlargs[-1]
             xlf["ret"] = {
                 "doc": f.__doc__
                 if f.__doc__ is not None
@@ -100,7 +110,7 @@ def xlarg(arg, convert=None, **kwargs):
     def inner(f):
         xlf = xlfunc(f).__xlfunc__
         if arg not in xlf["argmap"]:
-            raise Exception("Invalid argument name '" + arg + "'.")
+            raise Exception(f"Invalid argument name '{arg}'.")
         xla = xlf["argmap"][arg]
         if "doc" in kwargs:
             xla["doc"] = kwargs.pop("doc")
@@ -119,15 +129,19 @@ def to_scalar(arg):
     return arg
 
 
-async def call_udf(data):
-    module_name = data["module_name"]
+async def custom_functions_call(data, module):
     func_name = data["func_name"]
     args = data["args"]
-    module = import_module(module_name)
     func = getattr(module, func_name)
     func_info = func.__xlfunc__
     args_info = func_info["args"]
     ret_info = func_info["ret"]
+
+    if data["version"] != __version__:
+        raise XlwingsError(
+            "xlwings version mismatch: please restart Excel or "
+            "right-click on the task pane and select 'reload'!"
+        )
 
     args = list(args)
     # Turn varargs into regular arguments (remove the outermost list)
@@ -158,7 +172,7 @@ async def call_udf(data):
     return ret
 
 
-def generate_js_wrapper(module):
+def custom_functions_code(module):
     js = """\
          async function base() {
            // Turn arguments into an array, the last one is the invocation parameter
@@ -169,16 +183,16 @@ def generate_js_wrapper(module):
            // headers
            let headers = {};
            headers["Content-Type"] = "application/json";
-           let response = await fetch(window.location.origin + "/xlwings/udfs", {
+           let response = await fetch(window.location.origin + "/xlwings/custom-functions-call", {
              method: "POST",
              headers: headers,
              body: JSON.stringify({
-               module_name: "functions",
                func_name: func_name,
                args: args,
                caller_address: invocation.address,
                formula_name: invocation.functionName,
                content_language: Office.context.contentLanguage,
+               version: "xlwings_version",
              }),
            });
            if (response.status !== 200) {
@@ -192,7 +206,9 @@ def generate_js_wrapper(module):
            result = rawData.result;
            return result;
          }
-    """
+    """.replace(
+        "xlwings_version", __version__
+    )  # format string would require to double all curly braces
     js = dedent(js)
     for name, obj in inspect.getmembers(module):
         if hasattr(obj, "__xlfunc__"):
@@ -211,7 +227,7 @@ def generate_js_wrapper(module):
     return js
 
 
-def generate_json_meta(module):
+def custom_functions_meta(module):
     funcs = []
     for name, obj in inspect.getmembers(module):
         if hasattr(obj, "__xlfunc__"):
@@ -254,95 +270,95 @@ def generate_json_meta(module):
 
 locale_to_shortdate = {
     # This is using the locales from https://github.com/OfficeDev/office-js/tree/release/dist
-    # with the short date format from ChatGPT. Maybe replace with https://stackoverflow.com/a/9893752/918626
-    "af-za": "yyyy/MM/dd",
-    "am-et": "d/M/yyyy",
-    "ar-ae": "dd/MM/yy",
-    "ar-bh": "dd/MM/yy",
-    "ar-dz": "dd/MM/yy",
-    "ar-eg": "dd/MM/yy",
-    "ar-iq": "dd/MM/yy",
-    "ar-jo": "dd/MM/yy",
-    "ar-kw": "dd/MM/yy",
-    "ar-lb": "dd/MM/yy",
-    "ar-ly": "dd/MM/yyyy",
-    "ar-ma": "dd/MM/yyyy",
-    "ar-om": "dd/MM/yyyy",
-    "ar-qa": "dd/MM/yyyy",
-    "ar-sa": "dd/MM/yy",
-    "ar-sy": "dd/MM/yyyy",
-    "ar-tn": "dd/MM/yyyy",
-    "ar-ye": "dd/MM/yyyy",
-    "az-latn-az": "dd.MM.yyyy",
-    "be-by": "dd.MM.yyyy",
-    "bg-bg": "d.M.yyyy",
-    "bn-in": "dd/MM/yy",
-    "bs-latn-ba": "d.M.yyyy.",
-    "ca-es": "dd/MM/yy",
-    "cs-cz": "d.M.yyyy",
-    "cy-gb": "dd/MM/yy",
-    "da-dk": "dd-MM-yy",
-    "de-at": "dd.MM.yy",
-    "de-ch": "dd.MM.yy",
-    "de-de": "dd.MM.yy",
-    "de-li": "dd.MM.yy",
-    "de-lu": "dd.MM.yy",
-    "el-gr": "d/M/yy",
-    "en-029": "MM/dd/yyyy",
-    "en-au": "d/MM/yyyy",
-    "en-bz": "dd/MM/yyyy",
-    "en-ca": "yyyy-MM-dd",
-    "en-gb": "dd/MM/yyyy",
-    "en-ie": "dd/MM/yyyy",
-    "en-in": "dd-MM-yyyy",
-    "en-jm": "dd/MM/yyyy",
-    "en-my": "d/M/yyyy",
-    "en-nz": "d/MM/yyyy",
-    "en-ph": "M/d/yyyy",
-    "en-sg": "d/M/yyyy",
-    "en-tt": "dd/MM/yyyy",
-    "en-us": "m/d/yy",
-    "en-za": "yyyy/MM/dd",
-    "en-zw": "M/d/yyyy",
-    "es-ar": "dd/MM/yy",
-    "es-bo": "dd/MM/yy",
-    "es-cl": "dd-MM-yy",
-    "es-co": "dd/MM/yy",
-    "es-cr": "dd/MM/yy",
-    "es-do": "dd/MM/yyyy",
-    "es-ec": "dd/MM/yyyy",
-    "es-es": "dd/MM/yy",
-    "es-gt": "dd/MM/yyyy",
-    "es-hn": "dd/MM/yyyy",
-    "es-mx": "dd/MM/yyyy",
-    "es-ni": "dd/MM/yyyy",
-    "es-pa": "MM/dd/yyyy",
-    "es-pe": "dd/MM/yyyy",
-    "es-pr": "MM-dd-yy",
-    "es-py": "dd/MM/yyyy",
-    "es-sv": "dd/MM/yyyy",
-    "es-us": "M/d/yyyy",
-    "es-uy": "d/m/yyyy",
+    # matched with values from https://stackoverflow.com/a/9893752/918626
+    "af-za": "yyyy/mm/dd",
+    "am-et": "d/m/yyyy",
+    "ar-ae": "dd/mm/yyyy",
+    "ar-bh": "dd/mm/yyyy",
+    "ar-dz": "dd-mm-yyyy",
+    "ar-eg": "dd/mm/yyyy",
+    "ar-iq": "dd/mm/yyyy",
+    "ar-jo": "dd/mm/yyyy",
+    "ar-kw": "dd/mm/yyyy",
+    "ar-lb": "dd/mm/yyyy",
+    "ar-ly": "dd/mm/yyyy",
+    "ar-ma": "dd-mm-yyyy",
+    "ar-om": "dd/mm/yyyy",
+    "ar-qa": "dd/mm/yyyy",
+    "ar-sa": "dd/mm/yy",
+    "ar-sy": "dd/mm/yyyy",
+    "ar-tn": "dd-mm-yyyy",
+    "ar-ye": "dd/mm/yyyy",
+    "az-latn-az": "dd.mm.yyyy",
+    "be-by": "dd.mm.yyyy",
+    "bg-bg": "dd.m.yyyy",
+    "bn-in": "dd-mm-yy",
+    "bs-latn-ba": "d.m.yyyy",
+    "ca-es": "dd/mm/yyyy",
+    "cs-cz": "d.m.yyyy",
+    "cy-gb": "dd/mm/yyyy",
+    "da-dk": "dd-mm-yyyy",
+    "de-at": "dd.mm.yyyy",
+    "de-ch": "dd.mm.yyyy",
+    "de-de": "dd.mm.yyyy",
+    "de-li": "dd.mm.yyyy",
+    "de-lu": "dd.mm.yyyy",
+    "el-gr": "d/m/yyyy",
+    "en-029": "mm/dd/yyyy",
+    "en-au": "d/mm/yyyy",
+    "en-bz": "dd/mm/yyyy",
+    "en-ca": "dd/mm/yyyy",
+    "en-gb": "dd/mm/yyyy",
+    "en-ie": "dd/mm/yyyy",
+    "en-in": "dd-mm-yyyy",
+    "en-jm": "dd/mm/yyyy",
+    "en-my": "d/m/yyyy",
+    "en-nz": "d/mm/yyyy",
+    "en-ph": "m/d/yyyy",
+    "en-sg": "d/m/yyyy",
+    "en-tt": "dd/mm/yyyy",
+    "en-us": "m/d/yyyy",
+    "en-za": "yyyy/mm/dd",
+    "en-zw": "m/d/yyyy",
+    "es-ar": "dd/mm/yyyy",
+    "es-bo": "dd/mm/yyyy",
+    "es-cl": "dd-mm-yyyy",
+    "es-co": "dd/mm/yyyy",
+    "es-cr": "dd/mm/yyyy",
+    "es-do": "dd/mm/yyyy",
+    "es-ec": "dd/mm/yyyy",
+    "es-es": "dd/mm/yyyy",
+    "es-gt": "dd/mm/yyyy",
+    "es-hn": "dd/mm/yyyy",
+    "es-mx": "dd/mm/yyyy",
+    "es-ni": "dd/mm/yyyy",
+    "es-pa": "mm/dd/yyyy",
+    "es-pe": "dd/mm/yyyy",
+    "es-pr": "dd/mm/yyyy",
+    "es-py": "dd/mm/yyyy",
+    "es-sv": "dd/mm/yyyy",
+    "es-us": "m/d/yyyy",
+    "es-uy": "dd/mm/yyyy",
     "es-ve": "dd/mm/yyyy",
-    "et-ee": "dd.mm.yyyy",
+    "et-ee": "d.mm.yyyy",
     "eu-es": "yyyy/mm/dd",
     "fa-ir": "mm/dd/yyyy",
     "fi-fi": "d.m.yyyy",
     "fil-ph": "m/d/yyyy",
-    "fr-be": "d/m/yyyy",
+    "fr-be": "d/mm/yyyy",
     "fr-ca": "yyyy-mm-dd",
     "fr-ch": "dd.mm.yyyy",
     "fr-fr": "dd/mm/yyyy",
-    "fr-lu": "d/m/yyyy",
+    "fr-lu": "dd/mm/yyyy",
     "fr-mc": "dd/mm/yyyy",
     "ga-ie": "dd/mm/yyyy",
-    "gl-es": "dd/mm/yyyy",
-    "gu-in": "dd/mm/yyyy",
+    "gl-es": "dd/mm/yy",
+    "gu-in": "dd-mm-yy",
     "he-il": "dd/mm/yyyy",
     "hi-in": "dd-mm-yyyy",
     "hr-ba": "d.m.yyyy.",
-    "hr-hr": "d.m.yyyy.",
-    "hu-hu": "yyyy.mm.dd.",
+    "hr-hr": "d.m.yyyy",
+    "hu-hu": "yyyy. mm. dd.",
     "hy-am": "dd.mm.yyyy",
     "id-id": "dd/mm/yyyy",
     "is-is": "d.m.yyyy",
@@ -353,11 +369,11 @@ locale_to_shortdate = {
     "kk-kz": "dd.mm.yyyy",
     "km-kh": "yyyy-mm-dd",
     "kn-in": "dd-mm-yy",
-    "ko-kr": "yyyy-mm-dd",
+    "ko-kr": "yyyy. mm. dd",
     "lb-lu": "dd/mm/yyyy",
     "lo-la": "dd/mm/yyyy",
     "lt-lt": "yyyy.mm.dd",
-    "lv-lv": "dd.mm.yyyy.",
+    "lv-lv": "yyyy.mm.dd.",
     "mk-mk": "dd.mm.yyyy",
     "ml-in": "dd-mm-yy",
     "mn-mn": "yy.mm.dd",
@@ -370,13 +386,13 @@ locale_to_shortdate = {
     "nl-be": "d/mm/yyyy",
     "nl-nl": "d-m-yyyy",
     "nn-no": "dd.mm.yyyy",
-    "pl-pl": "yyyy-mm-dd",
-    "pt-br": "dd/mm/yyyy",
+    "pl-pl": "dd.mm.yyyy",
+    "pt-br": "d/m/yyyy",
     "pt-pt": "dd-mm-yyyy",
     "ro-ro": "dd.mm.yyyy",
     "ru-ru": "dd.mm.yyyy",
     "si-lk": "yyyy-mm-dd",
-    "sk-sk": "d.m.yyyy",
+    "sk-sk": "d. m. yyyy",
     "sl-si": "d.m.yyyy",
     "sq-al": "yyyy-mm-dd",
     "sr-cyrl-cs": "d.m.yyyy",

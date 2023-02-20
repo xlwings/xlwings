@@ -101,9 +101,9 @@ try:
 
     engines.add(Engine(impl=_xlremote.engine))
     engines.add(Engine(impl=_xlofficejs.engine))
-    PRO = True
+    __pro__ = True
 except (ImportError, LicenseError):
-    PRO = False
+    __pro__ = False
 
 try:
     # Separately handled in case the Rust extension is missing
@@ -143,7 +143,16 @@ if sys.platform.startswith("win") and has_pywin32:
     except:  # noqa: E722
         pass
 else:
-    from .udfs2 import xlarg as arg, xlfunc as func, xlret as ret  # noqa: F401
+
+    def func(f=None, *args, **kwargs):
+        @wraps(f)
+        def inner(f):
+            return f
+
+        if f is None:
+            return inner
+        else:
+            return inner(f)
 
     def sub(f=None, *args, **kwargs):
         @wraps(f)
@@ -154,6 +163,18 @@ else:
             return inner
         else:
             return inner(f)
+
+    def ret(*args, **kwargs):
+        def inner(f):
+            return f
+
+        return inner
+
+    def arg(*args, **kwargs):
+        def inner(f):
+            return f
+
+        return inner
 
     def raise_missing_pywin32():
         raise ImportError(

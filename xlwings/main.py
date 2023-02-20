@@ -134,7 +134,7 @@ class Engines:
             try:
                 return self.engines_by_name[name_or_index]
             except KeyError:
-                if not xlwings.PRO and name_or_index in ["calamine", "remote"]:
+                if not xlwings.__pro__ and name_or_index in ["calamine", "remote"]:
                     raise LicenseError(
                         f"The '{name_or_index}' engine requires xlwings PRO."
                     )
@@ -3205,7 +3205,7 @@ class Shape:
 
     @text.setter
     def text(self, value):
-        if xlwings.PRO:
+        if xlwings.__pro__:
             from xlwings.pro import Markdown
             from xlwings.pro.reports.markdown import format_text, render_text
 
