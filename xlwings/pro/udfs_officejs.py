@@ -183,6 +183,7 @@ def custom_functions_code(module):
            // headers
            let headers = {};
            headers["Content-Type"] = "application/json";
+           headers["Authorization"] = await globalThis.getAuth();
            let response = await fetch(window.location.origin + "/xlwings/custom-functions-call", {
              method: "POST",
              headers: headers,

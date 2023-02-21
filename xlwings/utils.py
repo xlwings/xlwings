@@ -71,8 +71,8 @@ def xlserial_to_datetime(serial):
     Converts a date in Excel's serial format (e.g., 44197.0) to a Python datetime object
     """
     # https://learn.microsoft.com/en-us/office/dev/scripts/resources/samples/excel-samples#dates
-    epoch = round((serial - 25569) * 86400, 3)
-    return dt.datetime.utcfromtimestamp(epoch)  # tz-naive, which is what we want
+    ts = round((serial - 25569) * 86400, 3)
+    return dt.datetime.utcfromtimestamp(ts)  # tz-naive, which is what we want
 
 
 def datetime_to_xlserial(obj):
