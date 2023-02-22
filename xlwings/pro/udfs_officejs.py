@@ -204,8 +204,7 @@ def custom_functions_code(module):
            } else {
              rawData = await response.json();
            }
-           result = rawData.result;
-           return result;
+           return rawData.result;
          }
     """.replace(
         "xlwings_version", __version__

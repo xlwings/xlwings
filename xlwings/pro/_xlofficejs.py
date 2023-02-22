@@ -37,6 +37,23 @@ def datetime_to_formatted_number(datetime_object, date_format):
     }
 
 
+def errorstr_to_errortype(error):
+    error_to_type = {
+        "#DIV/0!": "Div0",
+        "#N/A": "NotAvailable",
+        "#NAME?": "Name",
+        "#NULL!": "Null",
+        "#NUM!": "Num",
+        "#REF!": "Ref",
+        "#VALUE!": "Value",
+    }
+
+    return {
+        "type": "Error",
+        "errorType": error_to_type[error],
+    }
+
+
 def _clean_value_data_element(
     value,
     datetime_builder,
@@ -44,33 +61,18 @@ def _clean_value_data_element(
     number_builder,
     err_to_str,
 ):
+    # datetime_builder is not supported as normal date-formatted cells aren't recognized
     if value == "":
         return empty_as
-    if isinstance(value, str):
-        if not err_to_str and value in [
-            "#DIV/0!",
-            "#N/A",
-            "#NAME?",
-            "#NULL!",
-            "#NUM!",
-            "#REF!",
-            "#VALUE!",
-            "#DATA!",
-        ]:
-            value = None
+    elif isinstance(value, dict):
+        # https://learn.microsoft.com/en-us/office/dev/add-ins/excel/custom-functions-data-types-concepts
+        if value["type"] == "Error":
+            if err_to_str:
+                return value["basicValue"]
+            else:
+                return None
         else:
-            value = value
-    if isinstance(value, dt.datetime) and datetime_builder is not dt.datetime:
-        value = datetime_builder(
-            month=value.month,
-            day=value.day,
-            year=value.year,
-            hour=value.hour,
-            minute=value.minute,
-            second=value.second,
-            microsecond=value.microsecond,
-            tzinfo=None,
-        )
+            value = value["basicValue"]  # e.g., datetime (only via data types)
     elif number_builder is not None and type(value) == float:
         value = number_builder(value)
     return value
@@ -79,7 +81,6 @@ def _clean_value_data_element(
 class Engine:
     @staticmethod
     def clean_value_data(data, datetime_builder, empty_as, number_builder, err_to_str):
-        # TODO
         return [
             [
                 _clean_value_data_element(
@@ -95,9 +96,9 @@ class Engine:
         if x is None:
             return ""
         elif pd and pd.isna(x):
-            return ""
+            return errorstr_to_errortype("#NUM!")
         elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
-            return ""
+            return errorstr_to_errortype("#NUM!")
         elif np and isinstance(x, np.number):
             return float(x)
         elif np and isinstance(x, np.datetime64):
@@ -107,9 +108,12 @@ class Engine:
         elif pd and isinstance(x, pd.Timestamp):
             return datetime_to_formatted_number(x.to_pydatetime(), date_format)
         elif pd and isinstance(x, type(pd.NaT)):
-            return None
+            # This seems to be caught by pd.isna() nowadays?
+            return ""
         elif isinstance(x, (dt.date, dt.datetime)):
             return datetime_to_formatted_number(x, date_format)
+        elif isinstance(x, str) and x.startswith("#"):
+            return errorstr_to_errortype(x)
         return x
 
     @property
