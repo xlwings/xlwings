@@ -92,7 +92,7 @@ class Engine:
         return "desktop"
 
     @staticmethod
-    def prepare_xl_data_element(x, date_format):
+    def prepare_xl_data_element(x, options):
         if x is None:
             return ""
         elif pd and pd.isna(x):

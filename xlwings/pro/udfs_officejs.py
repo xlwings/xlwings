@@ -165,9 +165,11 @@ async def custom_functions_call(data, module):
     else:
         ret = func(*args)
 
-    ret_info["options"]["date_format"] = locale_to_shortdate[
-        data["content_language"].lower()
-    ]
+    if "date_format" not in ret_info["options"]:
+        ret_info["options"]["date_format"] = locale_to_shortdate[
+            data["content_language"].lower()
+        ]
+    ret_info["options"]["runtime"] = data["runtime"]
     ret = conversion.write(ret, None, ret_info["options"], engine_name="officejs")
     return ret
 
@@ -184,23 +186,55 @@ def custom_functions_code(module):
            let headers = {};
            headers["Content-Type"] = "application/json";
            headers["Authorization"] = await globalThis.getAuth();
-           let response = await fetch(window.location.origin + "/xlwings/custom-functions-call", {
-             method: "POST",
-             headers: headers,
-             body: JSON.stringify({
-               func_name: func_name,
-               args: args,
-               caller_address: invocation.address,
-               formula_name: invocation.functionName,
-               content_language: Office.context.contentLanguage,
-               version: "xlwings_version",
-             }),
-           });
+           let runtime;
+           if (
+             Office.context.requirements.isSetSupported("CustomFunctionsRuntime", "1.4")
+           ) {
+             runtime = "1.4";
+           } else if (
+             Office.context.requirements.isSetSupported("CustomFunctionsRuntime", "1.3")
+           ) {
+             runtime = "1.3";
+           } else if (
+             Office.context.requirements.isSetSupported("CustomFunctionsRuntime", "1.2")
+           ) {
+             runtime = "1.2";
+           } else {
+             runtime = "1.1";
+           }
+           let response = await fetch(
+             window.location.origin + "/xlwings/custom-functions-call",
+             {
+               method: "POST",
+               headers: headers,
+               body: JSON.stringify({
+                 func_name: func_name,
+                 args: args,
+                 caller_address: invocation.address,
+                 formula_name: invocation.functionName,
+                 content_language: Office.context.contentLanguage,
+                 version: "xlwings_version",
+                 runtime: runtime,
+               }),
+             }
+           );
            if (response.status !== 200) {
              let errMsg = await response.text();
-             // Error message only visible by hovering over the error flag, not by clicking it!
-             let error = new CustomFunctions.Error(CustomFunctions.ErrorCode.invalidValue, errMsg);
-             throw error;
+             // Error message only visible by hovering over the error flag!
+             if (
+               Office.context.requirements.isSetSupported(
+                 "CustomFunctionsRuntime",
+                 "1.2"
+               )
+             ) {
+               let error = new CustomFunctions.Error(
+                 CustomFunctions.ErrorCode.invalidValue,
+                 errMsg
+               );
+               throw error;
+             } else {
+               return [[errMsg]];
+             }
            } else {
              rawData = await response.json();
            }

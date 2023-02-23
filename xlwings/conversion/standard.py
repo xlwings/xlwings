@@ -120,11 +120,11 @@ class CleanDataFromReadStage:
 
 class CleanDataForWriteStage:
     def __init__(self, options):
-        self.date_format = options.get("date_format", None)
+        self.options = options
 
     def __call__(self, c):
         c.value = [
-            [c.engine.impl.prepare_xl_data_element(x, self.date_format) for x in y]
+            [c.engine.impl.prepare_xl_data_element(x, self.options) for x in y]
             for y in c.value
         ]
 

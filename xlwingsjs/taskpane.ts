@@ -20,15 +20,17 @@ globalThis.getAuth = async function () {
   // Replace this function with your own logic if you don't want to use SSO.
   // NOTE: the access token is also an identity token and
   // getAccessToken() automatically caches the token.
-  try {
-    let accessToken = await Office.auth.getAccessToken({
-      allowSignInPrompt: true,
-    });
-    return "Bearer " + accessToken;
-  } catch (error) {
-    console.log(error);
-    return "Error: " + error.message;
-  }
+
+  // try {
+  //   let accessToken = await Office.auth.getAccessToken({
+  //     allowSignInPrompt: true,
+  //   });
+  //   return "Bearer " + accessToken;
+  // } catch (error) {
+  //   return "Error: " + error.message;
+  // }
+
+  return ""
 };
 
 function myCallback(arg: string) {

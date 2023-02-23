@@ -29,15 +29,22 @@ except ImportError:
 from .. import utils
 
 
-def datetime_to_formatted_number(datetime_object, date_format):
-    return {
-        "type": "FormattedNumber",
-        "basicValue": utils.datetime_to_xlserial(datetime_object),
-        "numberFormat": date_format,
-    }
+def datetime_to_formatted_number(datetime_object, date_format, runtime):
+    # https://learn.microsoft.com/en-us/javascript/api/requirement-sets/excel/custom-functions-requirement-sets
+    serial = utils.datetime_to_xlserial(datetime_object)
+    if float(runtime) < 1.4:
+        return serial
+    else:
+        return {
+            "type": "FormattedNumber",
+            "basicValue": serial,
+            "numberFormat": date_format,
+        }
 
 
-def errorstr_to_errortype(error):
+def errorstr_to_errortype(error, runtime):
+    if float(runtime) < 1.4:
+        return error
     error_to_type = {
         "#DIV/0!": "Div0",
         "#N/A": "NotAvailable",
@@ -92,28 +99,36 @@ class Engine:
         ]
 
     @staticmethod
-    def prepare_xl_data_element(x, date_format):
+    def prepare_xl_data_element(x, options):
         if x is None:
             return ""
         elif pd and pd.isna(x):
-            return errorstr_to_errortype("#NUM!")
+            return errorstr_to_errortype("#NUM!", options["runtime"])
         elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
-            return errorstr_to_errortype("#NUM!")
+            return errorstr_to_errortype("#NUM!", options["runtime"])
         elif np and isinstance(x, np.number):
             return float(x)
         elif np and isinstance(x, np.datetime64):
             return datetime_to_formatted_number(
-                utils.np_datetime_to_datetime(x), date_format
+                utils.np_datetime_to_datetime(x),
+                options["date_format"],
+                options["runtime"],
             )
         elif pd and isinstance(x, pd.Timestamp):
-            return datetime_to_formatted_number(x.to_pydatetime(), date_format)
+            return datetime_to_formatted_number(
+                x.to_pydatetime(),
+                options["date_format"],
+                options["runtime"],
+            )
         elif pd and isinstance(x, type(pd.NaT)):
             # This seems to be caught by pd.isna() nowadays?
             return ""
         elif isinstance(x, (dt.date, dt.datetime)):
-            return datetime_to_formatted_number(x, date_format)
+            return datetime_to_formatted_number(
+                x, options["date_format"], options["runtime"]
+            )
         elif isinstance(x, str) and x.startswith("#"):
-            return errorstr_to_errortype(x)
+            return errorstr_to_errortype(x, options["runtime"])
         return x
 
     @property
