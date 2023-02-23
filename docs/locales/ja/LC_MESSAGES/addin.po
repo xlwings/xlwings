@@ -7,14 +7,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xlwings dev\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-02-22 22:54+0900\n"
+"POT-Creation-Date: 2023-02-22 22:27+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.9.0\n"
+"Generated-By: Babel 2.9.1\n"
 
 #: ../../addin.rst:4
 msgid "Add-in & Settings"
@@ -32,10 +32,11 @@ msgstr ""
 #: ../../addin.rst:11
 msgid ""
 "The ribbon of the add-in is compatible with Excel >= 2007 on Windows and "
-">= 2016 on Mac. On Mac, all UDF related functionality is not available."
+">= 2016 on macOS. On macOS, all UDF related functionality is not "
+"available."
 msgstr ""
-"アドインのリボンは、WindowsならExcel 2007以降、MacならExcel "
-"2016以降で使えます。なお、UDF関連機能はMacでは使えません。"
+"アドインのリボンは、WindowsならExcel 2007以降、macOSならExcel "
+"2016以降で使えます。なお、UDF関連機能はmacOSでは使えません。"
 
 #: ../../addin.rst:14
 msgid ""
@@ -44,9 +45,8 @@ msgid ""
 "Alternatively, you can also install the add-in via ``xlwings addin "
 "install --unprotected``."
 msgstr ""
-"アドインは、パスワード ``xlwings`` でパスワード保護されています。デバッグまたは"
-"機能追加を行うには、保護を解除してください。もしくは、 ``xlwings addin "
-"install --unprotected`` でアドインをインストールすることもできます。"
+"アドインは、パスワード ``xlwings`` でパスワード保護されています。デバッグまたは機能追加を行うには、保護を解除してください。もしくは、"
+" ``xlwings addin install --unprotected`` でアドインをインストールすることもできます。"
 
 #: ../../addin.rst:18
 msgid "Run main"
@@ -85,7 +85,7 @@ msgstr ""
 "技術的には、このコマンドは、Pythonのインストール ディレクトリからExcelの ``XLSTART`` "
 "ディレクトリに、アドインをコピーします。 次に、ワークブックで ``RunPython`` や ``UDFs`` "
 "を使用するために、VBAエディタの参照設定に ``xlwings`` を追加します。次のスクリーンショットを見てください(Windows: "
-"``ツール > 参照設定...`` , Mac: VBAエディタの左下の角)。なお、 ``xlwings quickstart`` "
+"``ツール > 参照設定...`` , Mac: VBAエディタの左下の角)。なお、 ``xlwings quickstart`` "
 "で作成したワークブックであれば、参照設定への追加は必要ありません。"
 
 #: ../../addin.rst:43
@@ -143,7 +143,7 @@ msgid ""
 "here the name of your conda env, e.g. ``base`` for the base installation "
 "or ``myenv`` for a conda env with the name ``myenv``."
 msgstr ""
-"``Conda Env``: "
+"``Conda Env``: "
 "WindowsでAnacondaかMinicondaを使っている場合、ここにconda環境の名前を入力してください。例えば、ベース "
 "インストールであれば ``base`` 、 ``myenv`` という名前のconda環境であれば ``myenv`` とします。"
 
@@ -165,7 +165,7 @@ msgid ""
 "``Debug UDFs``: Check this box if you want to run the xlwings COM server "
 "manually for debugging, see :ref:`debugging`."
 msgstr ""
-"``Debug UDFs``: デバッグ用に手動でxlwingsのCOM サーバーで実行するには、このボックスにチェックを入れます。 "
+"``Debug UDFs``: デバッグ用に手動でxlwingsのCOM サーバーで実行するには、このボックスにチェックを入れます。 "
 ":ref:`debugging` をご覧ください。"
 
 #: ../../addin.rst:62
@@ -174,7 +174,7 @@ msgid ""
 " for UDFs. This will be faster, as the interpreter doesn't shut down "
 "after each call."
 msgstr ""
-"``RunPython: Use UDF Server``: "
+"``RunPython: Use UDF Server``: "
 "RunPythonでUDFと同じCOMサーバーを使用します。コールの都度インタープリターをシャットダウンしないため、動作が速くなります。"
 
 #: ../../addin.rst:64
@@ -187,15 +187,27 @@ msgid ""
 "``TRUE`` if you want the command prompt to pop up. This currently only "
 "works on Windows."
 msgstr ""
-"``Show Console``: コマンド "
-"プロンプトを表示するには、リボンのボックスにチェックするかconfigファイルで ``TRUE`` "
+"``Show Console``: コマンド プロンプトを表示するには、リボンのボックスにチェックするかconfigファイルで ``TRUE`` "
 "を設定してください。これは現在Windowsのみで有効です。"
 
-#: ../../addin.rst:68
+#: ../../addin.rst:66
+msgid ""
+"``ADD_WORKBOOK_TO_PYTHONPATH``: Uncheck this box to not automatically add"
+" the directory of your workbook to the PYTHONPATH. This can be helpful if"
+" you experience issues with OneDrive/SharePoint: uncheck this box and "
+"provide the path where your source file is manually via the PYTHONPATH "
+"setting."
+msgstr ""
+"``ADD_WORKBOOK_TO_PYTHONPATH``: このチェック ボックスをオフにすると、ワークブックの"
+"ディレクトリが自動的に PYTHONPATH に追加されません。これは、OneDrive/SharePointで"
+"問題が発生した場合に役立ちます。このボックスのチェックを外し、PYTHONPATH設定で"
+"ソース ファイルのパスを手動で指定します。"
+
+#: ../../addin.rst:69
 msgid "Anaconda/Miniconda"
 msgstr ""
 
-#: ../../addin.rst:70
+#: ../../addin.rst:71
 msgid ""
 "If you use Anaconda or Miniconda on Windows, you will need to set your "
 "``Conda Path`` and ``Conda Env`` settings, as you will otherwise get "
@@ -204,23 +216,23 @@ msgstr ""
 "WindowsでAnacondaかMinicondaを使用している場合、 ``Numpy`` 等の使用時にエラーとならないよう、 ``Conda "
 "Path`` と ``Conda Env`` を設定し、 ``Interpreter`` を空白にする必要があります。"
 
-#: ../../addin.rst:76
-msgid "Environment Variables"
-msgstr "環境変数"
+#: ../../addin.rst:77
+msgid "Making use of Environment Variables"
+msgstr "環境変数を利用する"
 
-#: ../../addin.rst:78
+#: ../../addin.rst:79
 msgid ""
 "With environment variables, you can set dynamic paths e.g. to your "
 "interpreter or ``PYTHONPATH``:"
 msgstr "環境変数を使えば、インタープリターや ``PYTHONPATH`` へのパス等を動的に設定することができます:"
 
-#: ../../addin.rst:80
+#: ../../addin.rst:81
 msgid ""
 "On Windows, you can use all environment variables like so: "
 "``%USERPROFILE%\\Anaconda``."
 msgstr "Windowsでは、 ``%USERPROFILE%\\Anaconda`` のようなすべての環境変数を利用できます。"
 
-#: ../../addin.rst:81
+#: ../../addin.rst:82
 msgid ""
 "On macOS, the following special variables are supported: ``$HOME``, "
 "``$APPLICATIONS``, ``$DOCUMENTS``, ``$DESKTOP``."
@@ -228,62 +240,75 @@ msgstr ""
 "macOSでは、次の変数をサポートしています: ``$HOME`` 、 ``$APPLICATIONS`` 、 ``$DOCUMENTS`` 、 "
 "``$DESKTOP`` 。"
 
-#: ../../addin.rst:86
+#: ../../addin.rst:87
 msgid "User Config: Ribbon/Config File"
 msgstr "ユーザー設定: リボン/Config ファイル"
 
-#: ../../addin.rst:88
+#: ../../addin.rst:89
 msgid ""
 "The settings in the xlwings Ribbon are stored in a config file that can "
 "also be manipulated externally. The location is"
 msgstr "xlwingsのリボンで行った設定はコンフィグファイルに保存されていますが、手動で設定することもできます。その場所は以下のとおりです。"
 
-#: ../../addin.rst:90
-#, fuzzy
+#: ../../addin.rst:91
 msgid ""
 "Windows: ``.xlwings\\xlwings.conf`` in your home folder, that is usually "
 "``C:\\Users\\<username>``"
-msgstr "Windows: ユーザーフォルダーにある ``.xlwings\\xlwings.conf`` "
+msgstr ""
+"Windows: ホーム フォルダー（通常は ``C:\\Users\\<username>`` ）にある "
+"``.xlwings\\xlwings.conf`` "
 
-#: ../../addin.rst:91
+#: ../../addin.rst:92
 msgid "macOS: ``~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf``"
 msgstr "macOS: ``~/Library/Containers/com.microsoft.Excel/Data/xlwings.conf``"
 
-#: ../../addin.rst:93
+#: ../../addin.rst:94
 msgid ""
 "The format is as follows (currently the keys are required to be all caps)"
 " - note the OS specific Interpreter settings!"
 msgstr "フォーマットは次のとおり（現在のところキー項目は全て大文字でなければなりません） - OS依存のインタープリター設定があることに注意!"
 
-#: ../../addin.rst:109
+#: ../../addin.rst:116
 msgid ""
-"The ``ONEDRIVE`` setting has to be edited directly in the file, there is "
-"currently no possibility to edit it via the ribbon. Usually, it is only "
-"required if you are either on macOS or if your environment vars on "
-"Windows are not correctly set or if you have a private and corporate "
-"location and don't want to go with the default one. ``ONEDRIVE`` has to "
-"point to the root folder of your local OneDrive folder."
+"The ``ONEDRIVE_WIN/_MAC`` setting has to be edited directly in the file, "
+"there is currently no possibility to edit it via the ribbon. Usually, it "
+"is only required if you are either on macOS or if your environment "
+"variables on Windows are not correctly set or if you have a private and "
+"corporate location and don't want to go with the default one. "
+"``ONEDRIVE_WIN/_MAC`` has to point to the root folder of your local "
+"OneDrive folder."
 msgstr ""
-"``ONEDRIVE`` "
-"の設定はファイルでの直接編集しかできません。また、現在のところリボンで設定可能にする予定もありません。通常、macOSを使用しているか、Windows上の環境変数が正しく設定されていないか、プライベートかつ会社用のロケーションを持ちデフォルトのものを使用したくない場合にのみこの設定が必要になります。``ONEDRIVE``"
+"``ONEDRIVE_WIN/_MAC`` の設定はファイルでの直接編集しかできません。"
+"また、現在のところリボンで設定可能にする予定もありません。通常、macOSを"
+"使用しているか、Windows上の環境変数が正しく設定されていないか、"
+"プライベートかつ会社用のロケーションを持ちデフォルトのものを"
+"使用したくない場合にのみこの設定が必要になります。``ONEDRIVE_WIN/_MAC``"
 " にはローカルのOneDriveフォルダーのルートを設定してください。"
 
-#: ../../addin.rst:112
+#: ../../addin.rst:119
 msgid "Workbook Directory Config: Config file"
 msgstr "ワークブック ディレクトリ設定: Config ファイル"
 
-#: ../../addin.rst:114
+#: ../../addin.rst:121
 msgid ""
 "The global settings of the Ribbon/Config file can be overridden for one "
 "or more workbooks by creating a ``xlwings.conf`` file in the workbook's "
 "directory."
 msgstr "ワークブックのディレクトリに ``xlwings.conf`` ファイルを作れば、リボン/Config ファイルのグローバル設定を上書きできます。"
 
-#: ../../addin.rst:120
+#: ../../addin.rst:125
+msgid ""
+"Workbook directory config files are not supported if your workbook is "
+"stored on SharePoint or OneDrive."
+msgstr ""
+"ワークブック ディレクトリのConfigファイルは、ワークブックがSharePointや"
+"OneDriveに保存されている場合には対応していません。"
+
+#: ../../addin.rst:130
 msgid "Workbook Config: xlwings.conf Sheet"
 msgstr "ワークブック設定: xlwings.conf シート"
 
-#: ../../addin.rst:122
+#: ../../addin.rst:132
 msgid ""
 "Workbook specific settings will override global (Ribbon) and workbook "
 "directory config files: Workbook specific settings are set by listing the"
@@ -297,11 +322,11 @@ msgstr ""
 "で新しいプロジェクトを始めれば、ワークブックにそのようなシートが初めから含まれており、シート名を ``xlwings.conf`` "
 "に変更すると設定が有効になります。"
 
-#: ../../addin.rst:132
+#: ../../addin.rst:142
 msgid "Alternative: Standalone VBA module"
 msgstr "その他の方法: 独立したVBA モジュール"
 
-#: ../../addin.rst:134
+#: ../../addin.rst:144
 msgid ""
 "Sometimes, it might be useful to run xlwings code without having to "
 "install an add-in first. To do so, you need to use the ``standalone`` "
@@ -311,7 +336,7 @@ msgstr ""
 "アドインをインストールせずにxlwingsのコードを実行するのが有用なときもあります。プロジェクト作成時に ``standalone`` "
 "オプションを使用すれば、そのようにできます: ``xlwings quickstart myproject --standalone``。"
 
-#: ../../addin.rst:137
+#: ../../addin.rst:147
 msgid ""
 "This will add the content of the add-in as a single VBA module so you "
 "don't need to set a reference to the add-in anymore. It will also include"
@@ -322,125 +347,3 @@ msgstr ""
 "これはアドインの内容を1つのVBAモジュールとしてブックに追加するもので、アドインへの参照設定が不要になります。 macOSでは、さらに "
 "``Dictionary.cls`` を含める必要があります。なお、この方法でも ``xlwings.conf`` の設定は読み込まれますし、 "
 "``xlwings.conf`` シートで上書きすることもできます。"
-
-#~ msgid "Add-in"
-#~ msgstr "アドイン"
-
-#~ msgid ""
-#~ "If you use Anaconda or Miniconda "
-#~ "on Windows, you will need to set"
-#~ " your ``Conda Path`` and ``Conda "
-#~ "Env`` settings, as you will otherwise"
-#~ " get errors when using ``NumPy`` etc."
-#~ " See next section."
-#~ msgstr ""
-#~ "AnacondaかMinicondaを使用している場合、 ``Numpy`` 等の使用時にエラーとならないよう、"
-#~ " ``Conda Path`` と ``Conda Env`` "
-#~ "の設定をアドイン上で設定する必要があります。詳しくは次のセクションをご覧ください。"
-
-#~ msgid "Global Settings"
-#~ msgstr "アドインの各種設定"
-
-#~ msgid ""
-#~ "If you use ``Conda Path`` and "
-#~ "``Conda Env`` with UDFs, you currently"
-#~ " can't hide the command prompt that"
-#~ " pops up. You can still control "
-#~ "if the output is printed to the"
-#~ " command prompt or not though by "
-#~ "setting the ``Interpreter`` to ``python`` "
-#~ "or ``pythonw``, respectively."
-#~ msgstr ""
-#~ "UDFで ``Conda Path`` か ``Conda Env`` "
-#~ "を使用しているのなら、コマンドプロンプトのポップアップは非表示にはできません。ただし、コマンド "
-#~ "プロンプトへのアウトプットの出力は制御可能で、``Interpreter`` に ``python`` "
-#~ "を入力すれば出力されますし、 ``pyenv`` を入力すれば出力されません。"
-
-#~ msgid "The format is as follows (keys are uppercase):"
-#~ msgstr "フォーマットは次のようになっています（キーは大文字）:"
-
-#~ msgid ""
-#~ "To install the add-in, it's "
-#~ "easiest to use the command line "
-#~ "client: ``xlwings addin install``. "
-#~ "Technically, this copies the add-in "
-#~ "from Python's installation directory to "
-#~ "Excel's ``XLSTART`` folder. If you "
-#~ "encounter issues, then you can also "
-#~ "download the add-in (``xlwings.xlam``) "
-#~ "from the `GitHub Release page "
-#~ "<https://github.com/xlwings/xlwings/releases>`_ (make sure"
-#~ " you download the same version as "
-#~ "the version of the Python package). "
-#~ "Once downloaded, you can install the "
-#~ "add-in by going to ``Developer >"
-#~ " Excel Add-in > Browse``. If "
-#~ "you don't see ``Developer`` as tab "
-#~ "in your ribbon, make sure to "
-#~ "activate the tab first under ``File "
-#~ "> Options > Customize Ribbon`` (Mac: "
-#~ "``Cmd + , > Ribbon & Toolbar``)."
-#~ msgstr ""
-#~ "コマンドライン クライアントで ``xlwings addin install`` "
-#~ "を実行すれば、簡単にアドインをインストールできます。 技術的には、このコマンドは、Pythonのインストール "
-#~ "ディレクトリからExcelの ``XLSTART`` ディレクトリに、アドインをコピーします。 "
-#~ "アドインのインストールに問題があれば、`GitHub Release page "
-#~ "<https://github.com/xlwings/xlwings/releases>`_ "
-#~ "からアドイン(``xlwings.xlam``)をダウンロードすることもできます（Pythonのパッケージと同じバージョンのアドインをインストールしてください）。ダウンロードすれば、"
-#~ " ``開発 > アドイン > 参照`` "
-#~ "からアドインをインストールできます。リボンに ``開発`` タブがなければ、まずは ``ファイル "
-#~ "> オプション > リボンのユーザー設定``  (Mac: ``Cmd "
-#~ "+ , > Ribbon & Toolbar`` "
-#~ ")から開発タブを表示しましょう。"
-
-#~ msgid ""
-#~ "While the defaults will often work "
-#~ "out-of-the box, you can change "
-#~ "the global settings directly in the "
-#~ "add-in:"
-#~ msgstr "アドインはデフォルトの設定のままで十分に機能しますが、リボンから直接グローバル設定を変更することもできます。"
-
-#~ msgid ""
-#~ "``Interpreter``: This is the path to "
-#~ "the Python interpreter. This works also"
-#~ " with virtual or conda envs on "
-#~ "Mac. If you use conda envs on "
-#~ "Windows, then use ``Conda Path`` and "
-#~ "``Conda Env`` below instead. Examples: "
-#~ "``\"C:\\Python35\\pythonw.exe\"`` or "
-#~ "``\"/usr/local/bin/python3.5\"``. An empty field "
-#~ "defaults to ``pythonw`` that expects the"
-#~ " interpreter to be set in the "
-#~ "``PATH`` on Windows or ``.bash_profile`` "
-#~ "on Mac. Note that in the settings,"
-#~ " this is stored as ``Interpreter_Win`` "
-#~ "or ``Interpreter_Mac``, respectively, see "
-#~ "below!"
-#~ msgstr ""
-#~ "``Interpreter``: Python "
-#~ "インタープリターのパスを設定します。この設定はMac上の仮想環境かconda環境でも機能します。Windowsでconda環境を使用している場合、代わりに以下で説明する"
-#~ " ``Conda Path`` と ``Conda Env`` "
-#~ "を設定してください。例: ``\"C:\\Python35\\pythonw.exe\"`` や "
-#~ "``\"/usr/local/bin/python3.5\"``。空白の場合、デフォルト設定の ``pythonw`` "
-#~ "、つまり、Windowsなら ``PATH`` 、Macなら ``.bash_profile`` "
-#~ "で設定したインタープリターとなります。なお、configファイルにはそれぞれ ``Interpreter_Win`` "
-#~ "または ``Interpreter_Mac`` として保存されています（以下を参照）。"
-
-#~ msgid ""
-#~ "``Restart UDF Server``: This shuts down"
-#~ " the UDF Server/Python interpreter. It'll"
-#~ " be restarted upon the next function"
-#~ " call."
-#~ msgstr ""
-#~ "``Restart UDF Server``: UDF サーバー/Python "
-#~ "インタープリターをシャットダウンします。再起動は次回関数呼び出し時に行われます。"
-
-#~ msgid ""
-#~ "If you use ``Conda Path`` and "
-#~ "``Conda Env`` with UDFs, you currently"
-#~ " can't hide the command prompt that"
-#~ " pops up."
-#~ msgstr ""
-#~ "UDFsで ``Conda Path`` と ``Conda Env`` "
-#~ "を使用している場合、現時点ではコマンド プロンプトのポップアップを隠すことはできません。"
-
