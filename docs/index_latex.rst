@@ -3,69 +3,63 @@
     :hidden:
     :caption: Getting Started
 
-    course
-    installation
     quickstart
-    connect_to_workbook
-    syntax_overview
-    datastructures
-    addin
-    vba
-    udfs
-    matplotlib
-    jupyternotebooks
-    command_line
-    deployment
-    onedrive_sharepoint
-    troubleshooting
+    getting_started/course
+    getting_started/installation
+    getting_started/connect_to_workbook
+    getting_started/syntax_overview
+    getting_started/datastructures
+    getting_started/addin
+    getting_started/vba
+    getting_started/udfs
+    getting_started/matplotlib
+    getting_started/jupyternotebooks
+    getting_started/command_line
+    getting_started/deployment
+    getting_started/onedrive_sharepoint
+    getting_started/troubleshooting
 
 .. toctree::
     :maxdepth: 2
     :hidden:
     :caption: Advanced Features
 
-    converters
-    debugging
-    extensions
-    customaddin
-    threading_and_multiprocessing
-    missing_features
-    other_office_apps
+    advanced_features/converters
+    advanced_features/debugging
+    advanced_features/extensions
+    advanced_features/customaddin
+    advanced_features/threading_and_multiprocessing
+    advanced_features/missing_features
+    advanced_features/other_office_apps
 
 .. toctree::
     :maxdepth: 2
     :hidden:
     :caption: xlwings PRO
 
-    pro
-    license_key
-    release
-    permissioning
+    pro/license_key
+    pro/release
 
 .. toctree::
     :maxdepth: 2
     :hidden:
     :caption: File Reader
 
-    reader
+    pro/reader
 
 .. toctree::
     :maxdepth: 2
     :hidden:
     :caption: xlwings Reports
 
-    reports
-    markdown
+    pro/reports/index
 
 .. toctree::
     :maxdepth: 2
     :hidden:
     :caption: xlwings Server
 
-    remote_interpreter
-    officejs_addins
-    server_authentication
-
+    pro/server/index
 
 .. toctree::
     :maxdepth: 2
@@ -81,5 +75,28 @@
     :hidden:
     :caption: API Reference
 
-    api
-    rest_api
+    api/top_level_functions
+    api/udf_decorators
+    api/app
+    api/apps
+    api/book
+    api/books
+    api/characters
+    api/chart
+    api/charts
+    api/font
+    api/name
+    api/names
+    api/note
+    api/page_setup
+    api/picture
+    api/pictures
+    api/range
+    api/range_columns
+    api/range_rows
+    api/reports
+    api/shapes
+    api/sheet
+    api/sheets
+    api/table
+    api/tables
