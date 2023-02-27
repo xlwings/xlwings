@@ -1,5 +1,3 @@
-.. _deployment:
-
 Deployment
 ==========
 
@@ -41,4 +39,3 @@ Use it as follows:
     Sub MySample()
         RunFrozenPython "C:\path\to\dist\myproject\myproject.exe", "arg1 arg2"
     End Sub
-

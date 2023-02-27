@@ -7,5 +7,3 @@ at our video course:
 https://training.xlwings.org/p/xlwings
 
 It's also a great way to support the ongoing development of xlwings :)
-
-

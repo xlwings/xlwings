@@ -15,3 +15,9 @@ xlwings PRO is `source available <https://en.wikipedia.org/wiki/Source-available
 
 * `PolyForm Noncommercial License 1.0.0 <https://polyformproject.org/licenses/noncommercial/1.0.0>`_ (noncommercial use is free)
 * `xlwings PRO License <https://github.com/xlwings/xlwings/blob/main/LICENSE_PRO.txt>`_ (commercial use requires a `paid plan <https://www.xlwings.org/pricing>`_)
+
+
+Third-party Open Source Licenses
+--------------------------------
+
+For the licenses of third-party Open Source dependencies, see :ref:`opensource_licenses:Open Source Licenses`.

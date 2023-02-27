@@ -1,13 +1,13 @@
 .. _remote_interpreter:
 
-xlwings Server :bdg-secondary:`PRO`
-===================================
+xlwings Server: VBA, Office Scripts, Google Apps Script
+=======================================================
 
-This feature requires at least v0.27.0.
+This feature requires xlwings PRO and at least v0.27.0.
 
 Instead of installing Python on each end-user's machine, you can work with a server-based Python installation. It's essentially a web application, but uses your spreadsheet as the frontend instead of a web page in a browser. xlwings Server doesn't just work with the Desktop versions of Excel on Windows and macOS but additionally supports Google Sheets and Excel on the web for a full cloud experience. xlwings Server runs everywhere where Python runs, including Linux, Docker and WSL (Windows Subsystem for Linux). it can run on your local machine, as a (serverless) cloud service, or on an on-premise server.
 
-.. important:: This feature currently only covers parts of the RunPython API (UDFs are not yet supported). See also :ref:`Limitations` and :ref:`Roadmap`.
+.. important:: This feature currently only covers parts of the RunPython API (UDFs are not yet supported). See also :ref:`pro/server/server:Limitations` and :ref:`pro/server/server:Roadmap`.
 
 Why is this useful?
 -------------------
@@ -23,7 +23,7 @@ On the other hand, xlwings Server brings you these advantages:
 * **Work with the whole Python ecosystem**: including pandas, machine learning libraries, database packages, web scraping, boto (for AWS S3), etc. This makes xlwings a great alternative for Power Query, which isn't currently available for Excel on the web or Google Sheets.
 * **Leverage your existing development workflow**: use your favorite IDE/editor (local or cloud-based) with full Git support, allowing you to easily track changes, collaborate and perform code reviews. You can also write unit tests using pytest.
 * **Remain in control of your data and code**: except for the data you expose in Excel or Google Sheets, everything stays on your server. This can include database passwords and other sensitive info such as customer data. There's also no need to give the Python code to end-users: the whole business logic with your secret sauce is protected on your own infrastructure.
-* **Choose the right machine for the job**: whether that means using a GPU, a ton of CPU cores, lots of memory, or a gigantic hard disc. As long as Python runs on it, you can go from serverless functions as offered by the big cloud vendors all the way to a self-managed Kubernetes cluster under your desk (see :ref:`Production Deployment`).
+* **Choose the right machine for the job**: whether that means using a GPU, a ton of CPU cores, lots of memory, or a gigantic hard disc. As long as Python runs on it, you can go from serverless functions as offered by the big cloud vendors all the way to a self-managed Kubernetes cluster under your desk (see :ref:`pro/server/server:Production Deployment`).
 * **Headache-free deployment and maintenance**: there's only one location (usually a Linux server) where your Python code lives and you can automate the whole deployment process with continuous integration pipelines like GitHub actions etc.
 * **Cross-platform**: xlwings Server works with Google Sheets, Excel on the web and the Desktop apps of Excel on Windows and macOS.
 
@@ -79,7 +79,7 @@ The backend exposes your Python functions by using a Python web framework. In mo
 * For Desktop Excel, you can run the web server locally and call the respective function
     * from VBA (requires the add-in installed) or
     * from Office Scripts
-* For the cloud-based spreadsheets, you have to run this on a web server that can be reached from Google Sheets or Excel on the web, and you have to paste the xlwings JavaScript module into the respective editor. How this all works, will be shown in detail under :ref:`Cloud-based development with Gitpod`.
+* For the cloud-based spreadsheets, you have to run this on a web server that can be reached from Google Sheets or Excel on the web, and you have to paste the xlwings JavaScript module into the respective editor. How this all works, will be shown in detail under :ref:`pro/server/server:Cloud-based development with Gitpod`.
 
 The next section shows you how you can play around with the xlwings Server on your local desktop before we'll dive into developing against the cloud-based spreadsheets.
 
@@ -124,7 +124,7 @@ Then hit ``F5`` to run the function---you should see ``Hello xlwings!`` in cell 
 
 If, however, you want to use Office Scripts, you can basically start from an empty file (it can be ``xlsx``, it doesn't have to be ``xlsm``), and run `xlwings copy os` on the Terminal/Command Prompt/Anaconda Prompt. Then add a new Office Script and paste the code from the clipboard before clicking on `Run`.
 
-To move this to production, you need to deploy the backend to a server, set up authentication, and point the URL to the production server, see :ref:`Production Deployment`.
+To move this to production, you need to deploy the backend to a server, set up authentication, and point the URL to the production server, see :ref:`pro/server/server:Production Deployment`.
 
 The next sections, however, show you how you can make this work with Google Sheets and Excel on the web.
 
@@ -282,7 +282,7 @@ Now it's time to switch to Google Sheets or Excel! To paste the xlwings JavaScri
 
       To add a button to a sheet to run this function, switch from the Apps Script editor back to Google Sheets, click on ``Insert`` > ``Drawing`` and draw a rounded rectangle. After hitting ``Save and Close``, the rectangle will appear on the sheet. Select it so that you can click on the 3 dots on the top right of the shape. Select ``Assign Script`` and write ``hello`` in the text box, then hit ``OK``.
 
-3. **Configuration**: The final step is to configure the xlwings JavaScript module properly, see the next section :ref:`Configuration`.
+3. **Configuration**: The final step is to configure the xlwings JavaScript module properly, see the next section :ref:`pro/server/server:Configuration`.
 
 .. _xlwings_server_config:
 
@@ -296,7 +296,7 @@ xlwings can be configured in two ways:
 
 If you provide a value via config sheet and via function argument, the function argument wins. Let's see what the available settings are:
 
-* ``url`` (required): This is the full URL of your function. In the above example under :ref:`Local Development with Google Sheets or Excel on the web`, this would be ``https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello``, i.e., the ngrok URL **with the /hello endpoint appended**.
+* ``url`` (required): This is the full URL of your function. In the above example under :ref:`pro/server/server:Local Development with Google Sheets or Excel via Office Scripts`, this would be ``https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello``, i.e., the ngrok URL **with the /hello endpoint appended**.
 * ``auth`` (optional): This is a shortcut to set the ``Authorization`` header. See the section about :ref:`Server Auth <server_auth>` for the options.
 * ``headers`` (optional): A dictionary (VBA) or object literal (JS) with name/value pairs. If you set the ``Authorization`` header, the ``auth`` argument will be ignored.
 * ``exclude`` (optional): By default, xlwings sends over the complete content of the whole workbook to the server. If you have sheets with big amounts of data, this can make the calls slow or you could even hit a timeout. If your backend doesn't need the content of certain sheets, the ``exclude`` option will block the sheet's content (e.g., values, pictures, etc.) from being sent to the backend. Currently, you can only exclude entire sheets as comma-delimited string like so: ``"Sheet1, Sheet2"``.
@@ -535,5 +535,4 @@ Roadmap
 -------
 
 * Complete the RunPython API by adding features that currently aren't supported yet, e.g., charts, shapes, tables, etc.
-* Add support for UDFs/custom functions.
-* Improve efficiency.
+* Perfomance improvements

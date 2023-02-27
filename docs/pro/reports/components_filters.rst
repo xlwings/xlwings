@@ -1,103 +1,5 @@
-.. _reports_quickstart:
-
-xlwings Reports :bdg-secondary:`PRO`
-====================================
-
-xlwings Reports is a solution for template-based Excel and PDF reporting, making the generation of pixel-perfect factsheets really simple. xlwings Reports allows business users without Python knowledge to create and maintain Excel templates without having to rely on a Python developer after the initial setup has been done: xlwings Reports separates the Python code (pre- and post-processing) from the Excel template (layout/formatting).
-
-xlwings Reports supports all commonly required components:
-
-* **Text**: Easily format your text via Markdown syntax.
-* **Tables (dynamic)**: Write pandas DataFrames to Excel cells and Excel tables and format them dynamically based on the number of rows.
-* **Charts**: Use your favorite charting engine: Excel charts, Matplotlib, or Plotly.
-* **Images**: You can include both raster (e.g., png) or vector (e.g., svg) graphics, including dynamically generated ones, e.g., QR codes or plots.
-* **Multi-column Layout**: Split your content up into e.g. a classic two column layout by using Frames.
-* **Single Template**: Generate reports in various languages, for various funds etc. based on a single template.
-* **PDF Report**: Generate PDF reports automatically and "print" the reports on PDFs in your corporate layout for pixel-perfect results including headers, footers, backgrounds and borderless graphics.
-* **Easy Pre-processing**: Since everything is based on Python, you can connect with literally any data source and clean it with pandas or some other library.
-* **Easy Post-processing**: Again, with Python you're just a few lines of code away from sending an email with the reports as attachment or uploading the reports to your web server, S3 bucket etc.
-
-Quickstart
-----------
-
-You can work on the ``sheet``, ``book`` or ``app`` level:
-
-* ``mysheet.render_template(**data)``: replaces the placeholders in ``mysheet``
-* ``mybook.render_template(**data)``: replaces the placeholders in all sheets of ``mybook``
-* ``myapp.render_template(template, output, **data)``: convenience wrapper that copies a template book before replacing the placeholder with the values. Since this approach allows you to work with hidden Excel instances, it is the most commonly used method for production.
-
-Let's go through a typical example: start by creating the following Python script ``report.py``::
-
-    # report.py
-    from pathlib import Path
-
-    import pandas as pd
-    import xlwings as xw
-
-    # We'll place this file in the same directory as the Excel template
-    this_dir = Path(__file__).resolve().parent
-
-    data = dict(
-        title='MyTitle',
-        df=pd.DataFrame(data={'one': [1, 2], 'two': [3, 4]})
-    )
-
-    # Change visible=False to run this in a hidden Excel instance
-    with xw.App(visible=True) as app:
-        book = app.render_template(this_dir / 'mytemplate.xlsx',
-                                   this_dir / 'myreport.xlsx',
-                                   **data)
-        book.to_pdf(this_dir / 'myreport.pdf')
-
-
-Then create the following Excel file called ``mytemplate.xlsx``:
-
-.. figure:: images/mytemplate.png
-
-Run the Python script (or run the code from a Jupyter notebook)::
-
-    python report.py
-
-This will copy the template and create the following output by replacing the variables in double curly braces with
-the value from the Python variable:
-
-.. figure:: images/myreport.png
-
-If you like, you could also create a classic xlwings tool to call this script or you could design a GUI app by using a framework like PySimpleGUI and turn it into an executable by using a freezer (e.g., PyInstaller). This, however, is beyond the scope of this tutorial.
-
-.. note::
-    By default, xlwings Reports overwrites existing values in templates if there is not enough free space for your variable. If you want your rows to dynamically shift according to the height of your array, use :ref:`Frames <Frames>`.
-
-.. note::
-    Unlike xlwings, xlwings Reports never writes out the index of pandas DataFrames. If you need the index to appear in Excel, use ``df.reset_index()``, see :ref:`dataframes_reports`.
-
-See also :meth:`render_templates (API reference) <xlwings.pro.reports.render_template>`.
-
-Render Books and Sheets
-***********************
-
-Sometimes, it's useful to render a single book or sheet instead of using the ``myapp.render_template`` method. This is a workbook stored as ``Book1.xlsx``:
-
-.. figure:: images/sheet_rendering1.png
-    :scale: 60%
-
-Running the following code::
-
-    import xlwings as xw
-
-    book = xw.Book('Book1.xlsx')
-    sheet = book.sheets['template'].copy(name='report')
-    sheet.render_template(title='A Demo!', table=[[1, 2], [3, 4]])
-    book.to_pdf()
-
-Copies the template sheet first and then fills it in:
-
-.. figure:: images/sheet_rendering2.png
-    :scale: 60%
-
-See also the :meth:`mysheet.render_template (API reference) <xlwings.Sheet.render_template>` and :meth:`mybook.render_template (API reference) <xlwings.Book.render_template>`.
-
-.. versionadded:: 0.22.0
+Components and Filters
+======================
 
 .. _dataframes_reports:
 
@@ -116,7 +18,7 @@ When working with pandas DataFrames, the report designer often needs to tweak th
     df = pd.DataFrame({'one': [1, 2, 3], 'two': [4, 5, 6], 'three': [7, 8, 9]})
     sheet.render_template(df=df)
 
-.. figure:: images/reports_df_filters.png
+.. figure:: ../../images/reports_df_filters.png
 
 DataFrames Filters
 ******************
@@ -169,7 +71,8 @@ Example: introduce an empty column (``None``) as the second column and switch th
 {{ df | columns(0, None, 2, 1) }}
 
 .. note::
-Merged cells: you'll also have to introduce empty columns if you are using merged cells in your Excel template.
+
+    Merged cells: you'll also have to introduce empty columns if you are using merged cells in your Excel template.
 
 mul, div, sum, sub
 ~~~~~~~~~~~~~~~~~~
@@ -308,7 +211,7 @@ Merge cells vertically for adjacent cells with the same value --- can be used to
 
 .. note:: The ``vmerge`` filter does not work in Excel tables, as Excel tables don't support merged cells!
 
-.. figure:: images/vmerge.png
+.. figure:: ../../images/vmerge.png
 
 Note that the screenshot uses 4 :ref:`Frames <Frames>` and the text is centered/vertically aligned in the template.
 
@@ -384,7 +287,7 @@ Example::
 
 
 
-.. figure:: images/formatter_reports.png
+.. figure:: ../../images/formatter_reports.png
 
 .. _excel_tables_reports:
 
@@ -393,7 +296,7 @@ Excel Tables
 
 Using Excel tables is the recommended way to format tables as the styling can be applied dynamically across columns and rows. You can also use themes and apply alternating colors to rows/columns. Go to ``Insert`` > ``Table`` and make sure that you activate ``My table has headers`` before clicking on ``OK``. Add the placeholder as usual on the top-left of your Excel table (note that this example makes use of :ref:`Frames <Frames>`):
 
-.. figure:: images/excel_table_template.png
+.. figure:: ../../images/excel_table_template.png
 
 Running the following script::
 
@@ -408,7 +311,7 @@ Running the following script::
 
 Will produce the following report:
 
-.. figure:: images/excel_table_report.png
+.. figure:: ../../images/excel_table_report.png
 
 Headers of Excel tables are relatively strict, e.g. you can't have multi-line headers or merged cells. To get around these limitations, uncheck the ``Header Row`` checkbox under ``Table Design`` and use the ``noheader`` filter (see DataFrame filters). This will allow you to design your own headers outside of the Excel Table.
 
@@ -422,19 +325,19 @@ To use Excel charts in your reports, follow this process:
 
 1. Add some sample/dummy data to your Excel template:
 
-    .. figure:: images/reports_chart1.png
+    .. figure:: ../../images/reports_chart1.png
 
 2. If your data source is dynamic, turn it into an Excel Table (``Insert`` > ``Table``). Make sure you do this *before* adding the chart in the next step.
 
-    .. figure:: images/reports_chart2.png
+    .. figure:: ../../images/reports_chart2.png
 
 3. Add your chart and style it:
 
-    .. figure:: images/reports_chart3.png
+    .. figure:: ../../images/reports_chart3.png
 
 4. Reduce the Excel table to a 2 x 2 range and add the placeholder in the top-left corner (in our example ``{{ chart_data }}``) . You can leave in some dummy data or clear the values of the Excel table:
 
-    .. figure:: images/reports_chart4.png
+    .. figure:: ../../images/reports_chart4.png
 
 5. Assuming your file is called ``mytemplate.xlsx`` and your sheet ``template`` like on the previous screenshot, you can run the following code::
 
@@ -452,7 +355,7 @@ To use Excel charts in your reports, follow this process:
 
 This will produce the following report, with the chart source correctly adjusted:
 
-    .. figure:: images/reports_chart5.png
+    .. figure:: ../../images/reports_chart5.png
 
 .. note::
 
@@ -574,11 +477,11 @@ You can use any shapes like rectangles or circles, not just text boxes::
 
 This code turns this template:
 
-.. figure:: images/shape_text_template.png
+.. figure:: ../../images/shape_text_template.png
 
 into this report:
 
-.. figure:: images/shape_text_report.png
+.. figure:: ../../images/shape_text_report.png
 
 While this works for simple text, you will lose the formatting if you have any. To prevent that, use a ``Markdown`` object, as explained in the next section.
 
@@ -622,11 +525,11 @@ You can format text in cells or shapes via Markdown syntax. Note that you can al
 
 This will render this template with the placeholder in a cell and a shape:
 
-.. figure:: images/markdown_template.png
+.. figure:: ../../images/markdown_template.png
 
 Like this (this uses the default formatting):
 
-.. figure:: images/markdown1.png
+.. figure:: ../../images/markdown1.png
 
 For more details about Markdown, especially about how to change the styling, see :ref:`markdown`.
 
@@ -677,7 +580,7 @@ How Frames behave is best demonstrated with an example:
 The following screenshot defines two frames. The first one goes from column A to column E and the second one
 goes from column F to column I, since this is the last column that is used.
 
-.. figure:: images/frame_template.png
+.. figure:: ../../images/frame_template.png
 
 You can define and format DataFrames by formatting
 
@@ -703,7 +606,7 @@ Running the following code::
 
 will generate this report:
 
-.. figure:: images/frame_report.png
+.. figure:: ../../images/frame_report.png
 
 |
 
@@ -729,4 +632,4 @@ Note that the layout PDF either needs to consist of a single page (will be used 
 
 To create your layout PDF, you can use any program capable of exporting a file in PDF format such as PowerPoint or Word, but for the best results consider using a professional desktop publishing software such as Adobe InDesign.
 
-.. figure:: images/reports_pdf_layout.png
+.. figure:: ../../images/reports_pdf_layout.png

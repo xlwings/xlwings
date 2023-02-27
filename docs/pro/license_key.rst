@@ -1,14 +1,28 @@
+.. _pro:
 .. _license_key:
 
-License Key Handling :bdg-secondary:`PRO`
-=========================================
+License Key
+===========
 
 To use xlwings PRO functionality, you need to use a license key. xlwings PRO licenses keys are verified offline (i.e., no telemetry/license server involved). There are two types of license keys:
 
 * **Developer key**: this is the key that you will be provided with after purchase. As the name suggests, a developer key should be used by the developer, i.e., someone who writes xlwings code. Developer keys are valid for one or more developers (depending on your plan) and expire after 1 year.
 * **Deploy key**: to create deploy keys, you'll need an activated developer key. As the name suggests, a deploy key should be used for the deployment of workbooks to end-users or with xlwings Server. A deploy key doesn't expire but is bound to a specific version of xlwings, which means that you need to generate a new deploy key every time you update xlwings (the ``xlwings release`` command handles this automatically as we'll see below). Note that you can't generate deploy keys with a trial license.
 
-Let's now have a look at the various possibilities to activate developer and deploy keys. 
+Let's now see how you can get and activate a license key.
+
+How to get a license key
+------------------------
+
+**License Key for Commercial Purpose**:
+
+* To try xlwings PRO for free in a commercial context, request a trial license key: https://www.xlwings.org/trial
+* To use xlwings PRO in a commercial context beyond the trial, you need to enroll in a paid plan (they include additional services like support and the ability to create one-click installers): https://www.xlwings.org/pricing
+
+**License Key for non-commercial Purpose**:
+
+* To use xlwings PRO for free in a non-commercial context (as defined by the `PolyForm Noncommercial License 1.0.0 <https://polyformproject.org/licenses/noncommercial/1.0.0>`_) use the following license key: ``noncommercial`` (Note that you need at least xlwings 0.26.0).
+
 
 Activate a developer key
 ------------------------
@@ -67,15 +81,3 @@ If you run use xlwings PRO by running a Python script directly (e.g., as a froze
     os.environ["XLWINGS_LICENSE_KEY"] = "YOUR_DEPLOY_KEY"
 
 These lines must be run before importing xlwings. It is also best practice to store the deploy key in an external config file instead of hardcoding it directly in the code.
-
-How to get a license key
-------------------------
-
-**License Key for Commercial Purpose**:
-
-* To try xlwings PRO for free in a commercial context, request a trial license key: https://www.xlwings.org/trial
-* To use xlwings PRO in a commercial context beyond the trial, you need to enroll in a paid plan (they include additional services like support and the ability to create one-click installers): https://www.xlwings.org/pricing
-
-**License Key for non-commercial Purpose**:
-
-* To use xlwings PRO for free in a non-commercial context (as defined by the `PolyForm Noncommercial License 1.0.0 <https://polyformproject.org/licenses/noncommercial/1.0.0>`_) use the following license key: ``noncommercial`` (Note that you need at least xlwings 0.26.0).

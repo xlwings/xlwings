@@ -93,10 +93,12 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.extlinks",
     "sphinx.ext.autosectionlabel",  # To make easy intra-page links: :ref:`Title`
-    "sphinxcontrib.httpdomain",
     "sphinx_copybutton",
     "sphinx_design",
 ]
+
+# For sphinx.ext.autosectionlabel
+autosectionlabel_prefix_document = True
 
 # autodoc_member_order = 'bysource'
 
@@ -149,7 +151,7 @@ exclude_patterns = ["_build"]
 
 # If true, the current module name will be prepended to all description
 # unit titles (such as .. function::).
-# add_module_names = True
+add_module_names = False
 
 # If true, sectionauthor and moduleauthor directives will be shown in the
 # output. They are ignored by default.
@@ -163,7 +165,7 @@ exclude_patterns = ["_build"]
 
 
 # extlinks alias
-extlinks = {"issue": ("https://github.com/xlwings/xlwings/issues/%s", "GH")}
+extlinks = {"issue": ("https://github.com/xlwings/xlwings/issues/%s", "GH %s")}
 
 # -- Options for HTML output ---------------------------------------------------
 

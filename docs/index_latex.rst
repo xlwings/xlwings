@@ -3,9 +3,9 @@
     :hidden:
     :caption: Getting Started
 
+    quickstart
     course
     installation
-    quickstart
     connect_to_workbook
     syntax_overview
     datastructures
@@ -37,35 +37,29 @@
     :hidden:
     :caption: xlwings PRO
 
-    pro
-    license_key
-    release
-    permissioning
+    pro/license_key
+    pro/release
 
 .. toctree::
     :maxdepth: 2
     :hidden:
     :caption: File Reader
 
-    reader
+    pro/reader
 
 .. toctree::
     :maxdepth: 2
     :hidden:
     :caption: xlwings Reports
 
-    reports
-    markdown
+    pro/reports/index
 
 .. toctree::
     :maxdepth: 2
     :hidden:
     :caption: xlwings Server
 
-    remote_interpreter
-    officejs_addins
-    server_authentication
-
+    pro/server/index
 
 .. toctree::
     :maxdepth: 2
@@ -81,5 +75,29 @@
     :hidden:
     :caption: API Reference
 
-    api
-    rest_api
+    api/top_level_functions
+    api/udf_decorators
+    api/app
+    api/apps
+    api/book
+    api/books
+    api/characters
+    api/chart
+    api/charts
+    api/font
+    api/name
+    api/names
+    api/note
+    api/page_setup
+    api/picture
+    api/pictures
+    api/range
+    api/range_columns
+    api/range_rows
+    api/reports
+    api/shape
+    api/shapes
+    api/sheet
+    api/sheets
+    api/table
+    api/tables

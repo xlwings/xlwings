@@ -25,8 +25,8 @@ on **Windows** and **Mac**.
 
         More in-depths explanations about converters, debugging or how to write your own add-in.
 
-    .. grid-item-card::  :octicon:`star;2em;sd-text-success` xlwings :bdg-secondary:`PRO`
-        :link: pro
+    .. grid-item-card::  :octicon:`star;2em;sd-text-success` xlwings PRO
+        :link: pro/license_key
         :link-type: doc
 
         Use advanced features such as:
@@ -42,7 +42,7 @@ on **Windows** and **Mac**.
         Free for non-commercial use only.
 
     .. grid-item-card::  :octicon:`code-square;2em;sd-text-success` API Reference
-        :link: api
+        :link: api/index
         :link-type: doc
 
         This is a description of all the classes, methods, properties and functions that xlwings offers to work with the Excel object model.
@@ -50,85 +50,32 @@ on **Windows** and **Mac**.
 .. toctree::
     :maxdepth: 2
     :hidden:
-    :caption: Getting Started
 
-    course
-    installation
     quickstart
-    connect_to_workbook
-    syntax_overview
-    datastructures
-    addin
-    vba
-    udfs
-    matplotlib
-    jupyternotebooks
-    command_line
-    deployment
-    onedrive_sharepoint
-    troubleshooting
+    getting_started/index
 
 .. toctree::
     :maxdepth: 2
     :hidden:
-    :caption: Advanced Features
 
-    converters
-    debugging
-    extensions
-    customaddin
-    threading_and_multiprocessing
-    missing_features
-    other_office_apps
+    advanced_features/index
 
 .. toctree::
     :maxdepth: 2
-    :hidden:
     :caption: xlwings PRO
+    :hidden:
 
-    pro
-    license_key
-    release
-    permissioning
+    pro/license_key
+    pro/server/index
+    pro/reports/index
+    pro/reader
+    pro/release
 
 .. toctree::
     :maxdepth: 2
-    :hidden:
-    :caption: File Reader
-
-    reader
-
-.. toctree::
-    :maxdepth: 2
-    :hidden:
-    :caption: xlwings Reports
-
-    reports
-    markdown
-
-.. toctree::
-    :maxdepth: 2
-    :hidden:
-    :caption: xlwings Server
-
-    remote_interpreter
-    officejs_addins
-    server_authentication
-
-
-.. toctree::
-    :maxdepth: 2
-    :hidden:
     :caption: About
+    :hidden:
 
     whatsnew
     license
-    opensource_licenses
-
-.. toctree::
-    :maxdepth: 2
-    :hidden:
-    :caption: API Reference
-
-    api
-    rest_api
+    api/index

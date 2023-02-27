@@ -2253,7 +2253,7 @@ class Range:
     def address(self):
         """
         Returns a string value that represents the range reference.
-        Use ``get_address()`` to be able to provide paramaters.
+        Use ``get_address()`` to be able to provide parameters.
 
         .. versionadded:: 0.9.0
         """

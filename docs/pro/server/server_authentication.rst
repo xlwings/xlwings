@@ -1,14 +1,16 @@
 .. _server_auth:
 
-Server Auth :bdg-secondary:`PRO`
-================================
+Server Auth
+===========
+
+This feature requires xlwings PRO.
 
 Authentication (and potentially authorization) is an important step in securing your xlwings Server app. On the server side, you can handle authentication
 
 * within your app (via your web framework)
 * outside of your app (via e.g. a reverse proxy such as nginx or oauth2-proxy that sits in front of your app)
 
-Furthermore, you can use different authentication techniques such as HTTP Basic Auth or Bearer tokens in the form of API keys or OAuth2 access tokens. The most reliable and comfortable authentication is available for Office.js add-ins in connection with Excel 365 as this allows you to leverage the built-in SSO capabilities, see :ref:`SSO/Azure AD for Excel 365`.
+Furthermore, you can use different authentication techniques such as HTTP Basic Auth or Bearer tokens in the form of API keys or OAuth2 access tokens. The most reliable and comfortable authentication is available for Office.js add-ins in connection with Excel 365 as this allows you to leverage the built-in SSO capabilities, see :ref:`pro/server/server_authentication:SSO/Azure AD for Excel 365`.
 
 On the client side, you set the ``Authorization`` header when you make a request from Excel or Google Sheets to your xlwings backend. To set the ``Authorization`` header, xlwings offers the ``auth`` parameter:
 

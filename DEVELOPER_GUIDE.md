@@ -149,6 +149,13 @@ cd docs
 make html
 ```
 
+To double-check the Sphinx warnings, it's best to run it as follows:
+
+```
+cd docs
+clear && make clean html
+```
+
 ### Build doc translations locally
 
 See https://docs.readthedocs.io/en/stable/guides/manage-translations.html#manage-translations

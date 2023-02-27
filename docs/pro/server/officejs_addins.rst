@@ -1,7 +1,7 @@
 .. _officejs_addins:
 
-Office.js Add-ins :bdg-secondary:`PRO`
-======================================
+Office.js Add-ins
+=================
 
 This feature requires at least v0.29.0.
 
@@ -24,7 +24,7 @@ Compared to using Office.js directly, using Office.js via xlwings Server has the
 
 .. note::
 
-  While xlwings will reduce the amount of JavaScript code to almost zero, you still have to use HTML and CSS if you want to use a task pane. However, task panes aren't mandatory as you can link your function directly to a Ribbon button, see :ref:`Commands`.
+  While xlwings will reduce the amount of JavaScript code to almost zero, you still have to use HTML and CSS if you want to use a task pane. However, task panes aren't mandatory as you can link your function directly to a Ribbon button, see :ref:`pro/server/officejs_addins:Commands`.
 
 Introduction to Office.js add-ins 
 ---------------------------------

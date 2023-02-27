@@ -1,9 +1,9 @@
 .. _markdown:
 
-Markdown Formatting :bdg-secondary:`PRO`
-========================================
+Markdown Formatting
+===================
 
-.. versionadded:: 0.23.0
+This feature requires xlwings PRO and at least v0.23.0.
 
 Markdown offers an easy and intuitive way of styling text components in your cells and shapes. For an introduction to Markdown, see e.g., `Mastering Markdown <https://guides.github.com/features/mastering-markdown/>`_.
 
@@ -48,7 +48,7 @@ Let's go through an example to see how everything works!
 
 Running this code will give you this nicely formatted text:
 
-.. figure:: images/markdown1.png
+.. figure:: ../../images/markdown1.png
 
 But why not make things a tad more stylish? By providing a ``MarkdownStyle`` object, you can define your style. Let's change the previous example like this:
 
@@ -92,7 +92,7 @@ But why not make things a tad more stylish? By providing a ``MarkdownStyle`` obj
 
 Here is the output of this:
 
-.. figure:: images/markdown2.png
+.. figure:: ../../images/markdown2.png
 
 You can override all properties, i.e., you can change the emphasis from italic to a red font or anything else you want::
 

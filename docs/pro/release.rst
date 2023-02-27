@@ -1,7 +1,7 @@
 .. _release:
 
-1-click installer :bdg-secondary:`PRO`
-======================================
+1-click Installer/Embedded Code
+===============================
 
 xlwings PRO offers a simple way to deploy your xlwings tools to your end users without the usual hassle that's involved when installing and configuring Python and xlwings. End users don't need to know anything about Python as they only need to:
 
@@ -29,7 +29,7 @@ As a subscriber of one of our `paid plans <https://www.xlwings.org/pricing>`_, y
 
 1) Update your ``requirements.txt`` file with your dependencies: in your repository, start by clicking on the ``requirements.txt`` file. This will open the following screen where you can click on the pencil icon to edit the file (if you know your way around Git, you can also clone the repository and use your local commit/push workflow instead):
 
-  .. figure:: images/gh_edit_requirements.png
+  .. figure:: ../images/gh_edit_requirements.png
 
   After you're done with your edits, click on the green ``Commit changes`` button.
 
@@ -38,19 +38,19 @@ As a subscriber of one of our `paid plans <https://www.xlwings.org/pricing>`_, y
 
 2) On the right-hand side of the landing page, click on ``Releases``:
 
-  .. figure:: images/gh_releases.png
+  .. figure:: ../images/gh_releases.png
 
   On the next screen, click on ``Draft a new release`` (note, the very first time, you will see a green button called ``Create a new release`` instead):
 
-  .. figure:: images/gh_create_release.png
+  .. figure:: ../images/gh_create_release.png
 
   This will bring up the following screen, where you'll only have to fill in a ``Tag version`` (e.g., ``1.0.0``), then click on the green button ``Publish release``:
 
-  .. figure:: images/gh_publish_release.png
+  .. figure:: ../images/gh_publish_release.png
 
   After 3-5 minutes (you can follow the progress under the ``Actions`` tab), you'll find the installer ready for download under Releases (ignore the ``zip`` and ``tar.gz`` files):
 
-  .. figure:: images/gh_installer_download.png
+  .. figure:: ../images/gh_installer_download.png
 
 .. note::
   The one-click installer is a normal Python installation that you can use with multiple Excel workbooks. Hence, you don't need to create a separate installer for each workbook as long as they all work with the same set of dependencies as defined by the ``requirements.txt`` file.
@@ -110,9 +110,9 @@ This will import all Python files from the current directory and paste them into
 
 Note that you can have multiple Excel sheets and import them like normal Python files. Consider this example:
 
-.. figure:: images/embedded_code1.png
+.. figure:: ../images/embedded_code1.png
 
-.. figure:: images/embedded_code2.png
+.. figure:: ../images/embedded_code2.png
 
 You can call the ``main`` function from VBA like so::
 

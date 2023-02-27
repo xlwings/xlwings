@@ -1,5 +1,3 @@
-.. _debugging:
-
 Debugging
 =========
 
@@ -12,7 +10,7 @@ Since xlwings runs in every Python environment, you can use your preferred way o
 
 To begin with, Excel will show Python errors in a Message Box:
 
-.. figure:: images/debugging_error.png
+.. figure:: ./images/debugging_error.png
 
 .. note:: On Mac, if the ``import`` of a module/package fails before ``xlwings`` is imported, the popup will not be shown and the StatusBar
     will not be reset. However, the error will still be logged in the log file (``/Users/<User>/Library/Containers/com.microsoft.Excel/Data/xlwings.log``).
@@ -63,7 +61,7 @@ may have.
 
 The following screenshot shows the code stopped at a breakpoint in the community version of PyCharm:
 
-.. figure:: images/udf_debugging.png
+.. figure:: ./images/udf_debugging.png
 
 .. note::
   When running the debug server from a command prompt, there is currently no gracious way to terminate it, but closing

@@ -1,5 +1,3 @@
-.. _installation:
-
 Installation
 ============
 
@@ -7,7 +5,7 @@ Prerequisites
 -------------
 
 * xlwings (Open Source) requires an **installation of Excel** and therefore only works on **Windows** and **macOS**. Note that macOS currently does not support UDFs.
-* xlwings :bdg-secondary:`PRO` offers additional features:
+* xlwings PRO offers additional features:
     * :ref:`File Reader <file_reader>` (new in v0.28.0): Runs additionally on Linux and doesn't require an installation of Excel.
     * :ref:`xlwings Server <remote_interpreter>` (new in v0.26.0). Runs additionally on Linux and doesn't require a local installation of Python. Works with Desktop Excel on Windows and macOS as well as with Excel on the web and Google Sheets.
 * xlwings requires at least Python 3.7.
@@ -18,8 +16,8 @@ Here are previous versions of xlwings that support older versions of Python:
 * Python 3.5: 0.19.5
 * Python 2.7: 0.16.6
 
-Installation
-------------
+xlwings Python package
+----------------------
 
 xlwings comes pre-installed with
 
@@ -39,8 +37,8 @@ use the ``conda-forge`` channel (replace ``install`` with ``upgrade`` if xlwings
 
   conda install -c conda-forge xlwings
 
-Add-in
-------
+xlwings Excel Add-in
+--------------------
 
 To install the add-in, run the following command::
 
@@ -66,8 +64,8 @@ For automating Excel, you'll need the following dependencies:
 The dependencies are automatically installed via ``conda`` or ``pip``.
 If you would like to install xlwings without dependencies, you can run ``pip install xlwings --no-deps``.
 
-How to activate xlwings :bdg-secondary:`PRO`
---------------------------------------------
+How to activate xlwings PRO
+---------------------------
 
 See :ref:`xlwings PRO <pro>`.
 
@@ -78,8 +76,7 @@ Optional Dependencies
 * pandas
 * Matplotlib
 * Pillow
-* Jinja2 (for xlwings.pro.reports)
-* requests (for permissioning)
+* Jinja2 (for xlwings.reports)
 
 These packages are not required but highly recommended as they play very nicely with xlwings. They are all pre-installed with Anaconda. With pip, you can install xlwings with all optional dependencies as follows::
 
