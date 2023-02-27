@@ -20,7 +20,7 @@ on **Windows** and **Mac**.
         Start here if you are new to xlwings. Learn about the syntax, the ``RunPython`` call, the add-in and UDFs.
 
     .. grid-item-card::  :octicon:`light-bulb;2em;sd-text-success` Advanced Features
-        :link: advanced_features/converters
+        :link: converters
         :link-type: doc
 
         More in-depths explanations about converters, debugging or how to write your own add-in.

@@ -4,33 +4,33 @@
     :caption: Getting Started
 
     quickstart
-    getting_started/course
-    getting_started/installation
-    getting_started/connect_to_workbook
-    getting_started/syntax_overview
-    getting_started/datastructures
-    getting_started/addin
-    getting_started/vba
-    getting_started/udfs
-    getting_started/matplotlib
-    getting_started/jupyternotebooks
-    getting_started/command_line
-    getting_started/deployment
-    getting_started/onedrive_sharepoint
-    getting_started/troubleshooting
+    course
+    installation
+    connect_to_workbook
+    syntax_overview
+    datastructures
+    addin
+    vba
+    udfs
+    matplotlib
+    jupyternotebooks
+    command_line
+    deployment
+    onedrive_sharepoint
+    troubleshooting
 
 .. toctree::
     :maxdepth: 2
     :hidden:
     :caption: Advanced Features
 
-    advanced_features/converters
-    advanced_features/debugging
-    advanced_features/extensions
-    advanced_features/customaddin
-    advanced_features/threading_and_multiprocessing
-    advanced_features/missing_features
-    advanced_features/other_office_apps
+    converters
+    debugging
+    extensions
+    customaddin
+    threading_and_multiprocessing
+    missing_features
+    other_office_apps
 
 .. toctree::
     :maxdepth: 2
@@ -95,6 +95,7 @@
     api/range_columns
     api/range_rows
     api/reports
+    api/shape
     api/shapes
     api/sheet
     api/sheets

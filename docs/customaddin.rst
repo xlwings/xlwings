@@ -25,7 +25,7 @@ This will create the familiar quickstart folder with a Python file and an Excel 
 
 You should see a new ribbon tab called ``MyAddin`` like this:
 
-.. figure:: ../images/custom_ribbon_addin.png
+.. figure:: ./images/custom_ribbon_addin.png
 
 The add-in and VBA project are currently always called ``myaddin``, no matter what name you chose in the quickstart command. We'll see towards the end of this tutorial how we can change that, but for now we'll stick to it.
 
@@ -33,7 +33,7 @@ Compared to the xlwings add-in, the custom add-in offers an additional level of 
 
 Let's open the VBA editor by clicking on ``Alt+F11`` (Windows) or ``Option+F11`` (macOS). In our project, select ``ThisWorkbook``, then change the Property ``IsAddin`` from ``True`` to ``False``, see the following screenshot:
 
-.. figure:: ../images/custom_addin_vba_properties.png
+.. figure:: ./images/custom_addin_vba_properties.png
     :scale: 40%
 
 This will make the sheet ``_myaddin.conf`` visible (again, we'll see how to change the name of ``myaddin`` at the end of this tutorial):

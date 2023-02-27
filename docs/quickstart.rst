@@ -3,7 +3,7 @@
 Quickstart
 ==========
 
-This guide assumes you have xlwings already installed. If that's not the case, head over to :ref:`getting_started/installation:installation`.
+This guide assumes you have xlwings already installed. If that's not the case, head over to :ref:`installation:installation`.
 
 1. Interacting with Excel from a Jupyter notebook
 -------------------------------------------------

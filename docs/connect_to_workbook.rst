@@ -37,7 +37,7 @@ Excel to Python (RunPython)
 
 To reference the calling book when using ``RunPython`` in VBA, use ``xw.Book.caller()``, see
 :ref:`run_python`.
-Check out the section about :ref:`advanced_features/debugging:debugging` to see how you can call a script from both sides, Python and Excel, without
+Check out the section about :ref:`debugging:debugging` to see how you can call a script from both sides, Python and Excel, without
 the need to constantly change between ``xw.Book.caller()`` and one of the methods explained above.
 
 User Defined Functions (UDFs)

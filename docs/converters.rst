@@ -228,7 +228,7 @@ The ``formatter`` option accepts the name of a function. The function will be ca
 
 Running this code will format the DataFrame like this:
 
-.. image:: ../images/formatter.png
+.. image:: ./images/formatter.png
 
 The formatter's signature is: ``def myformatter(myrange, myvalues)`` where ``myrange`` corresponds to the range where ``myvalues`` are written to. ``myvalues`` is simply what you assign to the ``value`` property in the last line of the example. Since we're using this with a DataFrame, it makes sense to name the argument accordingly and using type hints will help your editor with auto-completion. If you would use a nested list instead of a DataFrame, you would write something like this instead:
 
@@ -257,7 +257,7 @@ Dictionary converter
 
 The dictionary converter turns two Excel columns into a dictionary. If the data is in row orientation, use ``transpose``:
 
-.. figure:: ../images/dict_converter.png
+.. figure:: ./images/dict_converter.png
 
 >>> sheet = xw.sheets.active
 >>> sheet['A1:B2'].options(dict).value
@@ -306,7 +306,7 @@ For ``index`` and ``header``, ``1`` and ``True`` may be used interchangeably.
 
 **Example:**
 
-.. figure:: ../images/series_conv.png
+.. figure:: ./images/series_conv.png
 
 >>> sheet = xw.Book().sheets[0]
 >>> s = sheet['A1'].options(pd.Series, expand='table').value
@@ -340,7 +340,7 @@ For ``index`` and ``header``, ``1`` and ``True`` may be used interchangeably.
 
 **Example:**
 
-.. figure:: ../images/df_converter.png
+.. figure:: ./images/df_converter.png
 
 ::
 

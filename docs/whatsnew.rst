@@ -70,7 +70,7 @@ v0.28.2 (Oct 17, 2022)
 v0.28.1 (Oct 10, 2022)
 ----------------------
 
-* :bdg-success:`Feature` You can now use formatters to format the data you write to Excel or Google Sheets in a very flexible manner (see also :ref:`advanced_features/converters:Default Converter`)::
+* :bdg-success:`Feature` You can now use formatters to format the data you write to Excel or Google Sheets in a very flexible manner (see also :ref:`converters:Default Converter`)::
 
     import pandas as pd
     import xlwings as xw
@@ -181,7 +181,7 @@ v0.27.8 (May 22, 2022)
 v0.27.7 (May 1, 2022)
 ---------------------
 
-* :bdg-success:`Feature` :bdg-secondary:`PRO` Google Sheets now support pictures via ``mysheet.pictures.add()`` incl. Matplotlib/Plotly (note that Excel on the web and Desktop Excel via xlwings Server are not yet supported). Also note that Google Sheets allows a maximum of 1 million pixels as calculated by  (width in inches * dpi) * (height in inches * dpi), see also :ref:`getting_started/matplotlib:Matplotlib & Plotly charts` (:issue:`1906`).
+* :bdg-success:`Feature` :bdg-secondary:`PRO` Google Sheets now support pictures via ``mysheet.pictures.add()`` incl. Matplotlib/Plotly (note that Excel on the web and Desktop Excel via xlwings Server are not yet supported). Also note that Google Sheets allows a maximum of 1 million pixels as calculated by  (width in inches * dpi) * (height in inches * dpi), see also :ref:`matplotlib:Matplotlib & Plotly charts` (:issue:`1906`).
 * :bdg-danger:`Breaking Change` Matplotlib plots are now written to Excel/Google Sheets with a default of 200 dpi instead of 300 dpi. You can change this (and all other options that Matplotlib's ``savefig()`` and Plotly's ``write_image()`` offer via ``sheet.pictures.add(image=myfigure, export_options={"bbox_inches": "tight", "dpi": 300})`` (:issue:`665`, :issue:`519`).
 
 
@@ -739,7 +739,7 @@ Bug Fix release:
 
 v0.15.2 (Feb 3, 2019)
 
-Better support and docs for deployment, see :ref:`getting_started/deployment:deployment`:
+Better support and docs for deployment, see :ref:`deployment:deployment`:
 
 * You can now package your python modules into a zip file for easier distribution (:issue:`1016`).
 * ``RunFrozenPython`` now allows to includes arguments, e.g. ``RunFrozenPython "C:\path\to\my.exe arg1 arg2"`` (:issue:`588`).
@@ -815,7 +815,7 @@ This release adds a REST API server to xlwings, allowing you to easily expose yo
 
 * Dynamic arrays are now more robust. Before, they often didn't manage to write everything when there was a lot going on in the workbook (:issue:`880`)
 * Jagged arrays (lists of lists where not all rows are of equal length) now raise an error (:issue:`942`)
-* xlwings can now be used with threading, see the docs: :ref:`advanced_features/threading_and_multiprocessing:threading` (:issue:`759`).
+* xlwings can now be used with threading, see the docs: :ref:`threading_and_multiprocessing:threading` (:issue:`759`).
 * [Win] xlwings now enforces pywin32 224 when installing xlwings on Python 3.7 (:issue:`959`)
 * New :any:`xlwings.Sheet.used_range` property (:issue:`112`)
 
@@ -914,7 +914,7 @@ This release brings further improvements with regards to the add-in:
 Also, some new docs:
 
 * [Win] How to use imported functions in VBA, see :ref:`call_udfs_from_vba`.
-* For more up-to-date installations via conda, use the ``conda-forge`` channel, see :ref:`getting_started/installation:installation`.
+* For more up-to-date installations via conda, use the ``conda-forge`` channel, see :ref:`installation:installation`.
 * A troubleshooting section: :ref:`troubleshooting`.
 
 v0.11.3 (Jul 14, 2017)
@@ -952,7 +952,7 @@ A few highlights:
 In-Excel SQL Extension
 
 The add-in can be extended with own code. We throw in an ``sql`` function, that allows you to perform SQL queries
-on data in your spreadsheets. It's pretty awesome, get the details here: :ref:`advanced_features/extensions:extensions`.
+on data in your spreadsheets. It's pretty awesome, get the details here: :ref:`extensions:extensions`.
 
 Bug Fixes
 
@@ -1530,7 +1530,7 @@ applied to e.g. only certain columns.
         xw.serve()
 
   When you recalculate the Sheet, the code will stop at breakpoints or print any statements that you may have. For
-  details, see: :ref:`advanced_features/debugging:debugging`.
+  details, see: :ref:`debugging:debugging`.
 
 * pyc files: The creation of pyc files has been disabled when using ``RunPython``, leaving your directory in an
   uncluttered state when having the Python source file next to the Excel workbook (:issue:`326`).
@@ -2240,7 +2240,7 @@ Enhancements
 * If a ``Sheet``, ``Range`` or ``Chart`` object is instantiated without an existing ``Workbook`` object, a user-friendly
   error message is raised (:issue:`58`).
 
-* New docs about :ref:`advanced_features/debugging:debugging` and :ref:`datastructures`.
+* New docs about :ref:`debugging:debugging` and :ref:`datastructures`.
 
 Bug Fixes
 

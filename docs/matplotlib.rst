@@ -22,7 +22,7 @@ The easiest sample boils down to::
     sheet = xw.Book().sheets[0]
     sheet.pictures.add(fig, name='MyPlot', update=True)
 
-.. figure:: ../images/mpl_basic.png
+.. figure:: ./images/mpl_basic.png
 
 .. note::
     If you set ``update=True``, you can resize and position the plot on Excel: subsequent calls to ``pictures.add()``
@@ -48,7 +48,7 @@ However, on Windows you can make things feel even more integrated by setting up 
 If you import this function and call it from cell B2, then the plot gets automatically
 updated when cell B1 changes:
 
-.. figure:: ../images/mpl_udf.png
+.. figure:: ./images/mpl_udf.png
 
 Properties
 **********
@@ -142,4 +142,4 @@ It works the same as with Matplotlib, however, rendering a Plotly chart takes sl
     wb = xw.Book()
     wb.sheets[0].pictures.add(fig, name='IrisScatterPlot', update=True)
 
-.. figure:: ../images/plotly.png
+.. figure:: ./images/plotly.png
