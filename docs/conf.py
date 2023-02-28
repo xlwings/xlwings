@@ -24,8 +24,7 @@ sys.path.insert(0, os.path.abspath(".."))
 # -- Handle unavailable packages/modules on build machine -----------------------
 
 # pywin32 can't be installed on non-Windows OS (e.g. on Read-the-Docs), therefore mock
-# it https://read-the-docs.readthedocs.org/en/latest/
-#  faq.html#i-get-import-errors-on-libraries-that-depend-on-c-modules
+# it https://docs.readthedocs.io/en/latest/faq.html#why-do-i-get-import-errors-from-libraries-depending-on-c-modules
 
 
 class Mock(object):
@@ -54,22 +53,27 @@ class Mock(object):
 
 
 MOCK_MODULES = [
-    "win32com",
-    "win32com.client",
-    "pywintypes",
-    "pythoncom",
-    "win32timezone",
     "appscript",
     "appscript.reference",
     "psutil",
     "xlplatform",
     "atexit",
     "aem",
-    "win32com.server",
-    "win32com.server.util",
-    "win32com.server.dispatcher",
-    "win32com.server.policy",
 ]
+
+if not sys.platform.startswith("win"):
+    MOCK_MODULES += [
+        "win32com",
+        "win32com.client",
+        "pywintypes",
+        "pythoncom",
+        "win32timezone",
+        "win32com.server",
+        "win32com.server.util",
+        "win32com.server.dispatcher",
+        "win32com.server.policy",
+    ]
+
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
