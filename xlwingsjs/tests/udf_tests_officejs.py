@@ -727,3 +727,103 @@ def method_signature_with_more_than_1024_characters(
 @func
 def return_pd_nat():
     return pd.DataFrame(data=[pd.NaT], columns=[1], index=[1])
+
+
+@func
+@arg("df", pd.DataFrame, parse_dates=[0, 2])
+def parse_dates_index(df):
+    expected = pd.DataFrame(
+        [
+            [1, dt.datetime(2021, 1, 1, 11, 11, 11), 4],
+            [2, dt.datetime(2021, 1, 2, 22, 22, 22), 5],
+            [3, dt.datetime(2021, 1, 3), 6],
+        ],
+        columns=["one", "two", "three"],
+        index=[
+            dt.datetime(2021, 1, 1, 11, 11, 11),
+            dt.datetime(2021, 1, 2, 22, 22, 22),
+            dt.datetime(2021, 1, 3),
+        ],
+    )
+    assert_frame_equal(df, expected)
+    return True
+
+
+@func
+@arg("df", pd.DataFrame, parse_dates=["ix", "two"])
+def parse_dates_names(df):
+    expected = pd.DataFrame(
+        [
+            [1, dt.datetime(2021, 1, 1, 11, 11, 11), 4],
+            [2, dt.datetime(2021, 1, 2, 22, 22, 22), 5],
+            [3, dt.datetime(2021, 1, 3), 6],
+        ],
+        columns=["one", "two", "three"],
+        index=[
+            dt.datetime(2021, 1, 1, 11, 11, 11),
+            dt.datetime(2021, 1, 2, 22, 22, 22),
+            dt.datetime(2021, 1, 3),
+        ],
+    )
+    expected.index.name = "ix"
+    assert_frame_equal(df, expected)
+    return True
+
+
+@func
+@arg("df", pd.DataFrame, parse_dates=True)
+def parse_dates_true(df):
+    expected = pd.DataFrame(
+        [[1], [2], [3]],
+        columns=["one"],
+        index=[
+            dt.datetime(2021, 1, 1, 11, 11, 11),
+            dt.datetime(2021, 1, 2, 22, 22, 22),
+            dt.datetime(2021, 1, 3),
+        ],
+    )
+    assert_frame_equal(df, expected)
+    return True
+
+
+@func
+@ret(transpose=True)
+def write_error_cells():
+    return ["#DIV/0!", "#N/A", "#NAME?", "#NULL!", "#NUM!", "#REF!", "#VALUE!"]
+
+
+@func
+def read_error_cells(errors):
+    assert [None] * 7 == errors
+    return True
+
+
+@func
+@arg("errors", err_to_str=True)
+def read_error_cells_str(errors):
+    assert [
+        "#DIV/0!",
+        "#N/A",
+        "#NAME?",
+        "#NULL!",
+        "#NUM!",
+        "#REF!",
+        "#VALUE!",
+    ] == errors
+    return True
+
+
+@func
+@ret(date_format="yyyy-m-d")
+def explicit_date_format():
+    return dt.datetime(2022, 1, 13)
+
+
+@func(namespace="subname")
+def namespace():
+    return True
+
+
+@func(volatile=True)
+def volatile():
+    return True
