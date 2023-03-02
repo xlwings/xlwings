@@ -7,6 +7,7 @@ xlwings Server
 
     server
     officejs_addins
+    officejs_custom_functions
     server_authentication
 
 xlwings Server turns the Python dependency into a web app that runs on the server (in the form of a serverless function, a fully managed container image, etc.). It can be used from various clients:

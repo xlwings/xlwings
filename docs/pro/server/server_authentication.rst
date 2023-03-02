@@ -41,8 +41,9 @@ On the client side, you set the ``Authorization`` header when you make a request
       .. code-block:: JavaScript
 
         function hello {
-          let accessToken = await Office.auth.getAccessToken();
-          xlwings.runPython("url", { auth: "Bearer " + accessToken })
+          // This requires getAuth to be properly implemented, see below under SSO
+          let token = await globalThis.getAuth();
+          xlwings.runPython("url", { auth: token })
         }
 
     .. tab-item:: Google Apps Script
@@ -108,15 +109,16 @@ Single Sign-on (SSO) means that users who are signed into Office 365 get access 
 
 As a summary, here are the components needed to enable SSO:
 
-1. You must use Excel 365 so users can login into Office
-2.  `Register your add-in as an app on the Microsoft Identity Platform <https://learn.microsoft.com/en-us/office/dev/add-ins/develop/register-sso-add-in-aad-v2>`_
-3. Add the following to the end of the ``<VersionOverrides ... xsi:type="VersionOverridesV1_0">`` section of your manifest XML:
+1. SSO is only available for Office.js add-ins
+2. You must use Excel 365 so users can login into Office
+3.  `Register your add-in as an app on the Microsoft Identity Platform <https://learn.microsoft.com/en-us/office/dev/add-ins/develop/register-sso-add-in-aad-v2>`_
+4. Add the following to the end of the ``<VersionOverrides ... xsi:type="VersionOverridesV1_0">`` section of your manifest XML:
 
    .. code-block:: XML
  
      <WebApplicationInfo>
          <Id>Your Client ID</Id>
-         <Resource>api://...</Resource>
+         <Resource>api://.../Your Client ID</Resource>
          <Scopes>
              <Scope>openid</Scope>
              <Scope>profile</Scope>
@@ -125,14 +127,32 @@ As a summary, here are the components needed to enable SSO:
          </Scopes>
      </WebApplicationInfo>
 
-4.  Acquire an access token in your client-side code and send it as Authorization header to your backend where you can parse it and/or use it to authenticate with Microsoft Graph API:
+5.  Acquire an access token in your client-side code and send it as Authorization header to your backend where you can parse it and/or use it to authenticate with Microsoft Graph API. The quickstart repo has a dummy global function ``globalThis.getAuth()`` that you can implement as follows:
 
     .. code-block:: js
   
-        let accessToken = await Office.auth.getAccessToken();
-        xlwings.runPython("url", { auth: "Bearer " + accessToken })
+      globalThis.getAuth = async function () {
+        try {
+          let accessToken = await Office.auth.getAccessToken({
+            allowSignInPrompt: true,
+          });
+          return "Bearer " + accessToken;
+        } catch (error) {
+          return "Error: " + error.message;
+        }
+      };
 
-A good walkthrough is also `Create a Node.js Office Add-in that uses single sign-on <https://learn.microsoft.com/en-us/office/dev/add-ins/develop/create-sso-office-add-ins-nodejs>`_, but as the title says, it uses Node.js on the backend instead of Python.
+    This then allows you to call ``runPython`` like so (note that custom functions do this automatically):
+  
+    .. code-block:: JavaScript
+  
+      function hello {
+        let token = await globalThis.getAuth();
+        xlwings.runPython("url", { auth: token })
+      }
+
+* For an example implementation on how to validate the token on the backend, have a look at https://github.com/xlwings/xlwings-server-auth-azuread
+* A good walkthrough is also `Create a Node.js Office Add-in that uses single sign-on <https://learn.microsoft.com/en-us/office/dev/add-ins/develop/create-sso-office-add-ins-nodejs>`_, but as the title says, it uses Node.js on the backend instead of Python.
 
 
 Azure AD for Excel VBA
