@@ -54,11 +54,14 @@ def errorstr_to_errortype(error, runtime):
         "#REF!": "Ref",
         "#VALUE!": "Value",
     }
-
-    return {
-        "type": "Error",
-        "errorType": error_to_type[error],
-    }
+    error_type = error_to_type.get(error)
+    if not error_type:
+        return error
+    else:
+        return {
+            "type": "Error",
+            "errorType": error_type,
+        }
 
 
 def _clean_value_data_element(
