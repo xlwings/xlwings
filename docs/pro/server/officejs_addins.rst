@@ -194,7 +194,7 @@ In the following code snippet (an excerpt from ``app/taskpane.html``), the highl
         <title>My Taskpane</title>
         <!-- ➊ Load office.js and xlwings.min.js -->
         <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-        <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/xlwings/xlwings@0.29.0/xlwingsjs/dist/xlwings.min.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/xlwings/xlwings@0.30.0/xlwingsjs/dist/xlwings.min.js"></script>
     </head>
 
     <body>

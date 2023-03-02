@@ -2371,7 +2371,7 @@ var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from
 
 
 
-var version = "0.29.1";
+var version = "0.30.0";
 globalThis.funcs = {};
 function registerCallback(callback) {
     globalThis.funcs[callback.name] = callback;
@@ -2701,7 +2701,8 @@ function setValues(context, action) {
                                 value.includes("T")) {
                                 dt = new Date(Date.parse(value));
                                 // Excel on macOS doesn't use proper locale if not passed explicitly
-                                dtString = dt.toLocaleDateString(Office.context.displayLanguage);
+                                // https://learn.microsoft.com/en-us/office/dev/add-ins/develop/localization#match-datetime-format-with-client-locale
+                                dtString = dt.toLocaleDateString(Office.context.contentLanguage);
                                 // Note that adding the time will format the cell as Custom instead of Date/Time
                                 // which xlwings currently doesn't translate to datetime when reading
                                 if (dtString !== "Invalid Date") {

@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.30.0 (Mar 2, 2023)
+---------------------
+
+* :bdg-info:`Feature` :bdg-secondary:`PRO` xlwings Server now supports custom functions (a.k.a. user-defined functions or UDFs) on Windows, macOS, and Web via the Office.js add-ins. See :ref:`pro/server/officejs_custom_functions:Office.js Custom Functions` (:issue:`2177`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Reports: fixed ``render_template()`` on Windows when the template had hidden sheets (:issue:`2166`).
+
 v0.29.1 (Feb 5, 2023)
 ---------------------
 
