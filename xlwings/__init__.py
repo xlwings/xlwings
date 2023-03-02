@@ -55,6 +55,7 @@ from .main import (
     sheets,
     view,
 )
+from .utils import xlserial_to_datetime as to_datetime
 
 __all__ = (
     "App",
@@ -74,6 +75,7 @@ __all__ = (
     "load",
     "sheets",
     "view",
+    "to_datetime",
 )
 
 # Populate engines list
@@ -95,12 +97,13 @@ if sys.platform.startswith("darwin"):
         pass
 
 try:
-    from .pro import _xlremote
+    from .pro import _xlofficejs, _xlremote
 
     engines.add(Engine(impl=_xlremote.engine))
-    PRO = True
+    engines.add(Engine(impl=_xlofficejs.engine))
+    __pro__ = True
 except (ImportError, LicenseError):
-    PRO = False
+    __pro__ = False
 
 try:
     # Separately handled in case the Rust extension is missing

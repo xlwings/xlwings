@@ -501,12 +501,14 @@ If you need to debug errors on the client side, you'll need to open the develope
 Production deployment
 ---------------------
 
-Depending on whether you want to deploy your add-in within your company or to the whole world, there's a different process for deploying the manifest XML:
+* Make sure that the ``Id`` in the manifest is your own unique UUID.
+* Make sure you have authentication implemented.
+* The Python backend can be deployed anywhere you like, there are some suggestions under :ref:`xlwings Server production deployment <server_production>`.
+* Once you have your backend deployed, you'll need to replace ``https://127.0.0.1:8000`` with your production URL. You may want to keep multiple copies of the manifest, one for local development and one for each environment like production.
+* Depending on whether you want to deploy your add-in within your company or to the whole world, there's a different process for deploying the manifest XML:
+    * **Company-internal** (must be done by a Microsoft 365 admin): on office.com, click on Admin > Show all > Settings > Integrated Apps > Add-ins. There, click on the ``Deploy Add-in`` button which allows you to upload the manifest or point to it via URL.
+    * **Public**: you'll need to submit your add-in for approval to Microsoft AppSource, see: https://learn.microsoft.com/en-us/azure/marketplace/submit-to-appsource-via-partner-center
 
-* **Company-internal** (must be done by a Microsoft 365 admin): on office.com, click on Admin > Show all > Settings > Integrated Apps > Add-ins. There, click on the ``Deploy Add-in`` button which allows you to upload the manifest or point to it via URL.
-* **Public**: you'll need to submit your add-in for approval to Microsoft AppSource, see: https://learn.microsoft.com/en-us/azure/marketplace/submit-to-appsource-via-partner-center
-
-The Python backend can be deployed anywhere you like, there are some suggestions under :ref:`xlwings Server production deployment <server_production>`.
 
 Workaround for missing features
 -------------------------------

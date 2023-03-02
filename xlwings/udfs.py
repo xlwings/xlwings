@@ -27,10 +27,10 @@ from win32com.client import Dispatch
 
 import xlwings
 
-from . import PRO, Book, LicenseError, Range, apps, conversion
+from . import Book, LicenseError, Range, __pro__, apps, conversion
 from .utils import VBAWriter, exception, get_cached_user_config, read_config_sheet
 
-if PRO:
+if __pro__:
     from .pro import verify_execute_permission
     from .pro.embedded_code import TEMPDIR, dump_embedded_code
 
@@ -379,7 +379,7 @@ async def delayed_resize_dynamic_array_formula(target_range, caller):
 
 
 # Setup temp dir for embedded code
-if PRO:
+if __pro__:
     sys.path[0:0] = [TEMPDIR]  # required for permissioning
 
 
@@ -399,9 +399,9 @@ def get_udf_module(module_name, xl_workbook):
         if xl_workbook:
             wb = Book(impl=xlwings._xlwindows.Book(Dispatch(xl_workbook)))
             for sheet in wb.sheets:
-                if sheet.name.endswith(".py") and not PRO:
+                if sheet.name.endswith(".py") and not __pro__:
                     raise LicenseError("Embedded code requires a valid LICENSE_KEY.")
-                elif PRO:
+                elif __pro__:
                     dump_embedded_code(wb, TEMPDIR)
 
         # Permission check
@@ -409,7 +409,7 @@ def get_udf_module(module_name, xl_workbook):
             get_cached_user_config("permission_check_enabled")
             and get_cached_user_config("permission_check_enabled").lower()
         ) == "true":
-            if not PRO:
+            if not __pro__:
                 raise LicenseError("Permission checks require xlwings PRO.")
             verify_execute_permission(module_names=(module_name,))
 
@@ -451,7 +451,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
         get_cached_user_config("permission_check_enabled")
         and get_cached_user_config("permission_check_enabled").lower() == "true"
     ):
-        if not PRO:
+        if not __pro__:
             raise LicenseError("Permission checks require xlwings PRO.")
         verify_execute_permission(module_names=(module_name,))
     module = get_udf_module(module_name, this_workbook)
@@ -723,7 +723,7 @@ def import_udfs(module_names, xl_workbook):
         """#Const App = "Microsoft Excel" 'Adjust when using outside of Excel"""
     )
 
-    if PRO:
+    if __pro__:
         for module_name in module_names:
             sheet_config = read_config_sheet(
                 Book(impl=xlwings._xlwindows.Book(Dispatch(xl_workbook)))

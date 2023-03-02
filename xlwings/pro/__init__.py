@@ -14,6 +14,14 @@ Commercial licenses can be purchased at https://www.xlwings.org
 from .embedded_code import dump_embedded_code, runpython_embedded_code
 from .module_permissions import verify_execute_permission
 from .reports import Markdown, MarkdownStyle
+from .udfs_officejs import (
+    custom_functions_call,
+    custom_functions_code,
+    custom_functions_meta,
+    xlarg as arg,
+    xlfunc as func,
+    xlret as ret,
+)
 from .utils import LicenseHandler
 
 __all__ = (
@@ -22,6 +30,12 @@ __all__ = (
     "verify_execute_permission",
     "Markdown",
     "MarkdownStyle",
+    "arg",
+    "func",
+    "ret",
+    "custom_functions_code",
+    "custom_functions_meta",
+    "custom_functions_call",
 )
 
 LicenseHandler.validate_license("pro")

@@ -1,6 +1,7 @@
 import datetime as dt
 from pathlib import Path
 
+import custom_functions
 import jinja2
 import markupsafe
 from dateutil import tz
@@ -11,6 +12,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 import xlwings as xw
+
+# from tests import udf_tests_officejs as custom_functions
 
 app = FastAPI()
 
@@ -127,6 +130,22 @@ async def alert(
     )
 
 
+@app.get("/xlwings/custom-functions-meta")
+async def custom_functions_meta():
+    return xw.pro.custom_functions_meta(custom_functions)
+
+
+@app.get("/xlwings/custom-functions-code")
+async def custom_functions_code():
+    return PlainTextResponse(xw.pro.custom_functions_code(custom_functions))
+
+
+@app.post("/xlwings/custom-functions-call")
+async def custom_functions_call(data: dict = Body):
+    rv = await xw.pro.custom_functions_call(data, custom_functions)
+    return {"result": rv}
+
+
 app.mount("/icons", StaticFiles(directory=this_dir / "icons"), name="icons")
 app.mount("/", StaticFiles(directory=this_dir / "build"), name="home")
 StaticFiles.is_not_modified = lambda *args, **kwargs: False  # Never cache static files
@@ -141,10 +160,12 @@ loader = jinja2.ChoiceLoader(
 templates = Jinja2Templates(directory=this_dir / "build", loader=loader)
 
 
-# Excel via Office Scripts requires CORS
+# Office Scripts requires CORS and the following would be enough:
+# allow_origin_regex=r"https://.*.officescripts.microsoftusercontent.com"
+# but Office.js from Excel on the web also requires CORS and will have other origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"https://.*.officescripts.microsoftusercontent.com",
+    allow_origins="*",
     allow_methods=["POST"],
     allow_headers=["*"],
 )
@@ -155,7 +176,7 @@ async def exception_handler(request, exception):
     # Handling all Exceptions is OK since it's only a dev server, but you probably
     # don't want to show the details of every Exception to the user in production
     return PlainTextResponse(
-        str(exception), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        repr(exception), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
     )
 
 
@@ -202,6 +223,7 @@ if __name__ == "__main__":
         host="127.0.0.1",
         port=8000,
         reload=True,
+        reload_dirs=[this_dir, this_dir.parent / "xlwings"],
         ssl_keyfile=this_dir / "localhost+2-key.pem",
         ssl_certfile=this_dir / "localhost+2.pem",
     )

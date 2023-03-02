@@ -345,7 +345,8 @@ async function setValues(context: Excel.RequestContext, action: Action) {
       ) {
         dt = new Date(Date.parse(value));
         // Excel on macOS doesn't use proper locale if not passed explicitly
-        dtString = dt.toLocaleDateString(Office.context.displayLanguage);
+        // https://learn.microsoft.com/en-us/office/dev/add-ins/develop/localization#match-datetime-format-with-client-locale
+        dtString = dt.toLocaleDateString(Office.context.contentLanguage);
         // Note that adding the time will format the cell as Custom instead of Date/Time
         // which xlwings currently doesn't translate to datetime when reading
         if (dtString !== "Invalid Date") {

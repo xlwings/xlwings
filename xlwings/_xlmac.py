@@ -92,7 +92,7 @@ class Engine:
         return "desktop"
 
     @staticmethod
-    def prepare_xl_data_element(x):
+    def prepare_xl_data_element(x, options):
         if x is None:
             return ""
         elif pd and pd.isna(x):
@@ -112,6 +112,9 @@ class Engine:
         elif isinstance(x, dt.datetime):
             # Make datetime timezone naive
             return x.replace(tzinfo=None)
+        elif isinstance(x, bool):
+            # Must be tested before int!
+            return x
         elif isinstance(x, int):
             # appscript packs integers larger than SInt32 but smaller than SInt64 as
             # typeSInt64, and integers larger than SInt64 as typeIEEE64BitFloatingPoint.
