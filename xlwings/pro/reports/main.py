@@ -282,15 +282,18 @@ def render_sheet(sheet, **data):
                                                 (start_row, start_col),
                                                 (end_row, end_col),
                                             ).insert("down")
-                                        # Inserting does not take over borders
-                                        sheet.range(
+                                        # Inserting does not take over borders and
+                                        # copy/paste format can cause conflicts with
+                                        # other processes that use the clipboard
+                                        origin = sheet.range(
                                             (start_row - 1, start_col),
                                             (start_row - 1, end_col),
-                                        ).copy()
-                                        sheet.range(
+                                        )
+                                        destination = sheet.range(
                                             (start_row - 1, start_col),
                                             (end_row, end_col),
-                                        ).paste(paste="formats")
+                                        )
+                                        origin.autofill(destination, "fill_formats")
                             # Write the array to Excel
                             if cell.table:
                                 cell.table.update(result, index=options["index"])
