@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.30.1 (Mar 6, 2023)
+---------------------
+
+* :bdg-info:`Enhancement` Added support for ``Range.autofill()`` (interactive engines on Windows and macOS) (:issue:`2180`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Reports: improved stability of dynamic range formatting by removing the use of the clipboard (:issue:`2175`).
+
 v0.30.0 (Mar 2, 2023)
 ---------------------
 
