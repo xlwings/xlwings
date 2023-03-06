@@ -2880,6 +2880,28 @@ class Range:
         """
         return utils.to_pdf(self, path=path, layout=layout, show=show, quality=quality)
 
+    def autofill(self, destination, type_="fill_default"):
+        """
+        Autofills the destination Range. Note that the destination Range must include
+        the origin Range.
+
+        Arguments
+        ---------
+
+        destination : Range
+            The origin.
+
+        type_ : str, default ``"fill_default"``
+            One of the following strings: ``"fill_copy"``, ``"fill_days"``,
+            ``"fill_default"``, ``"fill_formats"``, ``"fill_months"``,
+            ``"fill_series"``, ``"fill_values"``, ``"fill_weekdays"``, ``"fill_years"``,
+            ``"growth_trend"``, ``"linear_trend"``, ``"flash_fill``
+
+
+        .. versionadded:: 0.30.1
+        """
+        self.impl.autofill(destination=destination, type_=type_)
+
 
 # These have to be after definition of Range to resolve circular reference
 from . import conversion, expansion

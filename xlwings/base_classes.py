@@ -561,6 +561,9 @@ class Range:
     def to_pdf(self, path, quality):
         raise NotImplementedError()
 
+    def autofill(self, destination, type_):
+        raise NotImplementedError()
+
 
 class Picture:
     @property

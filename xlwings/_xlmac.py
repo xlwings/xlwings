@@ -1228,6 +1228,23 @@ class Range:
     def to_pdf(self, path, quality=None):
         raise xlwings.XlwingsError("Range.to_pdf() isn't supported on macOS.")
 
+    def autofill(self, destination, type_):
+        types = {
+            "fill_copy": kw.fill_copy,
+            "fill_days": kw.fill_days,
+            "fill_default": kw.fill_default,
+            "fill_formats": kw.fill_formats,
+            "fill_months": kw.fill_months,
+            "fill_series": kw.fill_series,
+            "fill_values": kw.fill_values,
+            "fill_weekdays": kw.fill_weekdays,
+            "fill_years": kw.fill_years,
+            "growth_trend": kw.growth_trend,
+            "linear_trend": kw.linear_trend,
+            "flash_fill": kw.flashfill,
+        }
+        self.xl.autofill(destination=destination.api, type=types[type_])
+
 
 class Shape:
     def __init__(self, parent, key):
