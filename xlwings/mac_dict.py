@@ -2109,6 +2109,7 @@ enums = [
     ("fill_years", b"\x02I\x00\x08"),
     ("growth_trend", b"\x02I\x00\n"),
     ("linear_trend", b"\x02I\x00\t"),
+    ("flashfill", b"\x02I\x00\x0b"),
     ("autofilter_and", b"\x02J\x00\x01"),
     ("bottom_10_items", b"\x02J\x00\x04"),
     ("bottom_10_percent", b"\x02J\x00\x06"),

@@ -50,7 +50,7 @@ from win32com.client import (
 
 import xlwings
 
-from . import utils
+from . import constants, utils
 from .constants import (
     ColorIndex,
     DeleteShiftDirection,
@@ -1515,6 +1515,23 @@ class Range:
             IgnorePrintAreas=False,
             OpenAfterPublish=False,
         )
+
+    def autofill(self, destination, type_):
+        types = {
+            "fill_copy": constants.AutoFillType.xlFillCopy,
+            "fill_days": constants.AutoFillType.xlFillDays,
+            "fill_default": constants.AutoFillType.xlFillDefault,
+            "fill_formats": constants.AutoFillType.xlFillFormats,
+            "fill_months": constants.AutoFillType.xlFillMonths,
+            "fill_series": constants.AutoFillType.xlFillSeries,
+            "fill_values": constants.AutoFillType.xlFillValues,
+            "fill_weekdays": constants.AutoFillType.xlFillWeekdays,
+            "fill_years": constants.AutoFillType.xlFillYears,
+            "growth_trend": constants.AutoFillType.xlGrowthTrend,
+            "linear_trend": constants.AutoFillType.xlLinearTrend,
+            "flash_fill": constants.AutoFillType.xlFlashFill,
+        }
+        self.xl.AutoFill(Destination=destination.api, Type=types[type_])
 
 
 class Shape:

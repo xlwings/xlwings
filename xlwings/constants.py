@@ -328,6 +328,7 @@ class AutoFillType:
     xlFillYears = 8  # from enum XlAutoFillType
     xlGrowthTrend = 10  # from enum XlAutoFillType
     xlLinearTrend = 9  # from enum XlAutoFillType
+    xlFlashFill = 11  # from enum XlAutoFillType
 
 
 class AutoFilterOperator:
