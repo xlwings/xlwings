@@ -127,7 +127,7 @@ As a summary, here are the components needed to enable SSO:
          </Scopes>
      </WebApplicationInfo>
 
-5.  Acquire an access token in your client-side code and send it as Authorization header to your backend where you can parse it and/or use it to authenticate with Microsoft Graph API. The quickstart repo has a dummy global function ``globalThis.getAuth()`` that you can implement as follows:
+5.  Acquire an access token in your client-side code and send it as Authorization header to your backend where you can parse it and/or use it to authenticate with Microsoft Graph API. The officejs quickstart repo has a dummy global function ``globalThis.getAuth()`` in the ``app/taskpane.html`` file that you can implement as follows:
 
     .. code-block:: js
   
@@ -151,7 +151,7 @@ As a summary, here are the components needed to enable SSO:
         xlwings.runPython("url", { auth: token })
       }
 
-* For an example implementation on how to validate the token on the backend, have a look at https://github.com/xlwings/xlwings-server-auth-azuread
+* For a sample implementation on how to validate the token on the backend, have a look at https://github.com/xlwings/xlwings-server-auth-azuread
 * A good walkthrough is also `Create a Node.js Office Add-in that uses single sign-on <https://learn.microsoft.com/en-us/office/dev/add-ins/develop/create-sso-office-add-ins-nodejs>`_, but as the title says, it uses Node.js on the backend instead of Python.
 
 

@@ -7,7 +7,7 @@ This feature requires xlwings PRO and at least v0.27.0.
 
 Instead of installing Python on each end-user's machine, you can work with a server-based Python installation. It's essentially a web application, but uses your spreadsheet as the frontend instead of a web page in a browser. xlwings Server doesn't just work with the Desktop versions of Excel on Windows and macOS but additionally supports Google Sheets and Excel on the web for a full cloud experience. xlwings Server runs everywhere where Python runs, including Linux, Docker and WSL (Windows Subsystem for Linux). it can run on your local machine, as a (serverless) cloud service, or on an on-premise server.
 
-.. important:: This feature currently only covers parts of the RunPython API (UDFs are not yet supported). See also :ref:`pro/server/server:Limitations` and :ref:`pro/server/server:Roadmap`.
+.. important:: This feature currently only covers parts of the RunPython API. See also :ref:`pro/server/server:Limitations` and :ref:`pro/server/server:Roadmap`.
 
 Why is this useful?
 -------------------
@@ -512,7 +512,6 @@ Limitations
 * Currently, only a subset of the xlwings API is covered, mainly the Range and Sheet classes with a focus on reading and writing values and sending pictures (including Matplotlib plots). This, however, includes full support for type conversion including pandas DataFrames, NumPy arrays, datetime objects, etc.
 * You are moving within the web's request/response cycle, meaning that values that you write to a range will only be written back to Google Sheets/Excel once the function call returns. Put differently, you'll get the state of the sheets at the moment the call was initiated, but you can't read from a cell you've just written to until the next call.
 * You will need to use the same xlwings version for the Python package and the JavaScript module, otherwise, the server will raise an error.
-* Currently, custom functions (a.k.a. user-defined functions or UDFs) are not supported.
 * For users with no experience in web development, this documentation may not be quite good enough just yet.
 
 Platform-specific limitations:
