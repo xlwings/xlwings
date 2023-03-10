@@ -1,7 +1,7 @@
 .. _server_auth:
 
-Server Auth
-===========
+Server Authentication
+=====================
 
 This feature requires xlwings PRO.
 
@@ -40,10 +40,10 @@ On the client side, you set the ``Authorization`` header when you make a request
 
       .. code-block:: JavaScript
 
-        function hello {
+        async function hello {
           // This requires getAuth to be properly implemented, see below under SSO
           let token = await globalThis.getAuth();
-          xlwings.runPython("url", { auth: token })
+          xlwings.runPython("your-url", { auth: token });
         }
 
     .. tab-item:: Google Apps Script
@@ -53,9 +53,7 @@ On the client side, you set the ``Authorization`` header when you make a request
 
         function main() {
           let accessToken = ScriptApp.getOAuthToken()
-          runPython("url", {
-            auth: "Bearer " + accessToken,
-          });
+          runPython("url", { auth: "Bearer " + accessToken });
         }
 
 Your backend will then have to validate the Authorization header. Let's get started with the simplest implementation of an API key before looking at HTTP Basic Auth and more advanced options like Azure AD/SSO and Google access tokens (for Google Sheets).
@@ -67,10 +65,33 @@ Generate a secure random string, for example by running the following from a Ter
 
     python -c "import secrets; print(secrets.token_hex(32))"
 
-Provide this value as your ``auth`` argument in the ``RunRemotePython`` or ``runPython`` call and validate it on your backend.
+Provide this value as your ``auth`` argument in the ``RunRemotePython`` or ``runPython``, respectively, and validate it on your backend along the following lines (these are changes meant to be introduced to a quickstart project or https://github.com/xlwings/xlwings-server-helloworld-fastapi):
 
-| For a sample backend implementation, see:
-| https://github.com/xlwings/xlwings-server-helloworld-fastapi
+.. code-block:: python
+
+    # Only showing additional imports
+    import os
+    import secrets
+    from fastapi import HTTPException, Security, status
+    from fastapi.security.api_key import APIKeyHeader
+
+    async def authenticate(api_key: str = Security(APIKeyHeader(name="Authorization"))):
+        """Validate the Authorization header"""
+
+        if not secrets.compare_digest(api_key, os.environ["APP_API_KEY"]):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid API Key",
+            )
+
+    # If you want to require the API Key for every endpoint
+    app = FastAPI(dependencies=[Security(authenticate)])
+
+This sample assumes that you have a single ``APP_API_KEY`` key set as an environment variable on your backend: if you provide the same key as ``auth`` parameter in your ``RunRemotePython`` or ``runPython`` call, everybody with the workbook gets anonymous access. So this approach merely protects your backend from unauthorized access, but it isn't really secure, as there is no secure way to store the API key in the workbook securely, so everybody with the workbook can look up the API key.
+
+If you use the VBA client, you could use a solution where users have to store an individual API Key in an external config file and read it from there. This way, users with the workbook alone would not be able to run the xlwings functionality and you could search for the individual API keys in a database to identify the user.
+
+A much more secure approach is to use Azure AD authentication, see below.
 
 HTTP Basic Auth
 ---------------
@@ -146,9 +167,9 @@ As a summary, here are the components needed to enable SSO:
   
     .. code-block:: JavaScript
   
-      function hello {
+      async function hello {
         let token = await globalThis.getAuth();
-        xlwings.runPython("url", { auth: token })
+        xlwings.runPython("your-url", { auth: token })
       }
 
 * For a sample implementation on how to validate the token on the backend, have a look at https://github.com/xlwings/xlwings-server-auth-azuread

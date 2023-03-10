@@ -196,7 +196,7 @@ html_theme_options = {
         "color-brand-primary": "white",
         "color-announcement-background": "#28a745",
     },
-    # "announcement": 'Webinar (Feb 15, 2023): Build Office.js add-ins for Excel with Python: <a href="https://zoomeranalytics.webinargeek.com/build-office-js-add-ins-the-easy-way?cst=docs">Sign up!</a>',
+    "announcement": 'Custom Functions ("UDFs") are now available on all platforms, including macOS and Web: <a href="https://docs.xlwings.org/en/latest/pro/server/officejs_custom_functions.html">Check out the docs!</a>',
 }
 
 html_show_sourcelink = False
