@@ -311,26 +311,28 @@ Configuration Examples: Function Arguments
     .. tab-item:: Excel (VBA)
       :sync: vba
 
-      Using only required arguments:
+      No arguments:
 
       .. code-block:: vb.net
 
         Sub Hello()
-            RunRemotePython "http://127.0.0.1:8000/hello", auth:="xxxxxxxxxxxx"
+            RunRemotePython "http://127.0.0.1:8000/hello"
         End Sub
 
-      Additionally providing the ``exclude`` parameter to exclude the content of the ``xlwings.conf`` and ``Sheet1`` sheets:
+      Additionally providing the ``auth`` and ``exclude`` parameters as well as including a custom header:
 
       .. code-block:: vb.net
 
         Sub Hello()
-            RunRemotePython "http://127.0.0.1:8000/hello", auth:="xxxxxxxxxxxx", exclude:="xlwings.conf, Sheet1"
+            Dim headers As New Dictionary
+            headers.Add "MyHeader", "my-value"
+            RunRemotePython "http://127.0.0.1:8000/hello", auth:="xxxxxxxxxxxx", exclude:="xlwings.conf, Sheet1", headers:=headers
         End Sub
 
     .. tab-item:: Excel (Office Scripts)
       :sync: officescripts
 
-      Using only required arguments:
+      No arguments:
 
       .. code-block:: JavaScript
 
@@ -338,11 +340,10 @@ Configuration Examples: Function Arguments
           await runPython(
             workbook,
             "https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello",
-            { auth: "xxxxxxxxxxxx" }
           );
         }
 
-      Additionally providing the ``exclude`` parameter to exclude the content of the ``xlwings.conf`` and ``Sheet1`` sheets as well as a custom header:
+      Additionally providing the ``auth`` and ``exclude`` parameters as well as a custom header:
 
       .. code-block:: JavaScript
 
@@ -353,7 +354,7 @@ Configuration Examples: Function Arguments
             {
               auth: "xxxxxxxxxxxx",
               exclude: "xlwings.conf, Sheet1",
-              headers: { MyHeader: "my value" },
+              headers: { MyHeader: "my-value" },
             }
           );
         }
@@ -361,17 +362,15 @@ Configuration Examples: Function Arguments
     .. tab-item:: Google Sheets
       :sync: google
 
-      Using only required arguments:
+      No arguments:
 
       .. code-block:: JavaScript
 
         function hello() {
-          runPython("https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello", {
-            auth: "xxxxxxxxxxxx",
-          });
+          runPython("https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello");
         }
 
-      Additionally providing the ``exclude`` parameter to exclude the content of the ``xlwings.conf`` and ``Sheet1`` sheets as well as a custom header:
+      Additionally providing the ``auth`` and ``exclude`` parameters as well as a custom header:
 
       .. code-block:: JavaScript
 
@@ -379,7 +378,7 @@ Configuration Examples: Function Arguments
           runPython("https://xxxx-xxxx-xx-xx-xxx-xxxx-xxxx-xxxx-xxx.ngrok.io/hello", {
             auth: "xxxxxxxxxxxx",
             exclude: "xlwings.conf, Sheet1",
-            headers: { MyHeader: "my value" },
+            headers: { MyHeader: "my-value" },
           });
         }
 
