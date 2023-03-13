@@ -30,7 +30,7 @@ globalThis.getAuth = async function () {
   //   return "Error: " + error.message;
   // }
 
-  return ""
+  return "";
 };
 
 function myCallback(arg: string) {
@@ -44,6 +44,14 @@ async function hello() {
     auth: await globalThis.getAuth(),
   });
 }
+
+// Note: when bound to ribbon, this needs event.completed() and Office.actions.associate
+async function helloRibbon(event: Office.AddinCommands.Event) {
+  console.log("Called 'helloRibbon' from commands.ts");
+  await xlwings.runPython(window.location.origin + "/hello");
+  event.completed();
+}
+Office.actions.associate("run-hello", helloRibbon);
 
 async function showAlert() {
   console.log("Called 'showAlert' from taskpane.ts");

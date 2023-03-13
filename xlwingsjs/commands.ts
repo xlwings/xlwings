@@ -1,3 +1,5 @@
+// This file is unused and would only be used in connection with a separate Runtime (FunctionFile in manifest)
+// Activating it would require npm start to also build commands.html
 import * as xlwings from "./src/xlwings";
 
 Office.onReady(function (info) {});
