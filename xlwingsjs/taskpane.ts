@@ -39,7 +39,7 @@ function myCallback(arg: string) {
 xlwings.registerCallback(myCallback);
 
 async function hello() {
-  console.log("Called 'run' from taskpane.ts");
+  console.log("Called 'run' from Task pane");
   await xlwings.runPython(window.location.origin + "/hello", {
     auth: await globalThis.getAuth(),
   });
@@ -47,7 +47,7 @@ async function hello() {
 
 // Note: when bound to ribbon, this needs event.completed() and Office.actions.associate
 async function helloRibbon(event: Office.AddinCommands.Event) {
-  console.log("Called 'helloRibbon' from commands.ts");
+  console.log("Called 'helloRibbon' from ribbon");
   await xlwings.runPython(window.location.origin + "/hello");
   event.completed();
 }

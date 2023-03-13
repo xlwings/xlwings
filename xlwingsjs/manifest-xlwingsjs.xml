@@ -60,7 +60,7 @@
         </AllFormFactors>
 
         <DesktopFormFactor>
-          <!-- resid could be a Url Resource pointing to commandas.html if you don't want to use the Shared Runtime -->
+          <!-- resid could be a Url Resource pointing to commands.html if you don't want to use the Shared Runtime -->
           <FunctionFile resid="Taskpane.Url" />
           <ExtensionPoint xsi:type="PrimaryCommandSurface">
 
