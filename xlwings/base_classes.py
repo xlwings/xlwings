@@ -8,6 +8,9 @@ class Apps:
     def add(self, spec=None, add_book=None, xl=None, visible=None):
         raise NotImplementedError()
 
+    def cleanup(self):
+        raise NotImplementedError()
+
     def __iter__(self):
         raise NotImplementedError()
 
