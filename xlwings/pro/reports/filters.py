@@ -18,6 +18,10 @@ try:
     import numpy as np
 except ImportError:
     np = None
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 
 def _get_filter_value(filter_list, filter_name, default=None):
@@ -141,7 +145,7 @@ def maxrows(df, filter_args):
         other = df.iloc[splitrow:, :].sum(numeric_only=True)
         other_name = filter_args[1].as_const()
         other.name = other_name
-        df = df.iloc[:splitrow, :].append(other)
+        df = pd.concat([df.iloc[:splitrow, :], other.to_frame().transpose()])
         col_ix = filter_args[2].as_const() if len(filter_args) > 2 else 0
         df.iloc[-1, col_ix] = other_name
     return df
@@ -164,10 +168,9 @@ def aggsmall(df, filter_args):
         )
     df.loc[:, "__total__"] = df["__is_small__"] & df["__is_over_min__"]
     if True in df["__total__"].unique():
-        # unlike aggregate, groupby conveniently drops non-numeric values
-        other = df.groupby("__total__").sum().loc[True, :]
+        other = df.groupby("__total__").sum(numeric_only=True).loc[True, :]
         other.name = other_name
-        df = df.loc[~df["__total__"], :].append(other)
+        df = pd.concat([df.loc[~df["__total__"], :], other.to_frame().transpose()])
         df.iloc[-1, other_ix] = other_name
     df = df.drop(columns=["__is_small__", "__is_over_min__", "__total__"])
     return df
