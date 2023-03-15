@@ -1,5 +1,7 @@
 import os
+import subprocess
 import sys
+from shlex import split
 
 # Hack to find pythoncom.dll - needed for some distribution/setups (includes seemingly
 # unused import win32api) E.g. if python is started with the full path outside of the
@@ -496,6 +498,32 @@ class Apps:
     def add(self, spec=None, add_book=None, xl=None, visible=None):
         return App(spec=spec, add_book=add_book, xl=xl, visible=visible)
 
+    @staticmethod
+    def cleanup():
+        res = subprocess.run(
+            split('tasklist /FI "IMAGENAME eq EXCEL.exe"'),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            encoding="utf-8",
+        )
+
+        all_pids = set()
+        for line in res.stdout.splitlines()[3:]:
+            # Ignored if there's no processes as it prints only 1 line
+            _, pid, _, _, _, _ = line.split()
+            all_pids.add(int(pid))
+
+        active_pids = {app.pid for app in xlwings.apps}
+        zombie_pids = all_pids - active_pids
+
+        for pid in zombie_pids:
+            subprocess.run(
+                split(f"taskkill /PID {pid} /F"),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                encoding="utf-8",
+            )
+
     def __iter__(self):
         for hwnd in get_excel_hwnds():
             yield App(xl=hwnd)
@@ -578,14 +606,20 @@ class App:
         self.xl.DisplayAlerts = False
         self.xl.Quit()
         self.xl = None
+        try:
+            Apps.cleanup()
+        except:  # noqa: E722
+            pass
 
     def kill(self):
-        import win32api
-
         PROCESS_TERMINATE = 1
         handle = win32api.OpenProcess(PROCESS_TERMINATE, False, self._pid)
         win32api.TerminateProcess(handle, -1)
         win32api.CloseHandle(handle)
+        try:
+            Apps.cleanup()
+        except:  # noqa: E722
+            pass
 
     @property
     def screen_updating(self):

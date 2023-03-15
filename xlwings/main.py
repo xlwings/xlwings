@@ -236,6 +236,14 @@ class Apps:
         """
         return len(self)
 
+    def cleanup(self):
+        """
+        Removes Excel zombie processes (Windows-only).
+
+        .. versionadded:: 0.30.2
+        """
+        self.impl.cleanup()
+
     def __iter__(self):
         for app in self.impl:
             yield App(impl=app)
