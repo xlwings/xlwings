@@ -62,22 +62,27 @@ xlwings Server consists of two parts:
 
 The backend exposes your Python functions by using a Python web framework. In more detail, you need to handle a POST request along these lines (the sample shows an excerpt that uses `FastAPI <https://fastapi.tiangolo.com/>`_ as the web framework, but it works accordingly with any other web framework like Django or Flask):
 
-.. code-block:: python
+.. tab-set::
 
-    @app.post("/hello")
-    def hello(data: dict = Body):
-        # Instantiate a Book object with the deserialized request body
-        book = xw.Book(json=data)
+    .. tab-item:: FastAPI
+      :sync: fastapi
 
-        # Use xlwings as usual
-        sheet = book.sheets[0]
-        sheet["A1"].value = 'Hello xlwings!'
+      .. code-block:: python
 
-        # Pass the following back as the response
-        return book.json()
+          @app.post("/hello")
+          def hello(data: dict = Body):
+              # Instantiate a Book object with the deserialized request body
+              book = xw.Book(json=data)
+
+              # Use xlwings as usual
+              sheet = book.sheets[0]
+              sheet["A1"].value = 'Hello xlwings!'
+
+              # Pass the following back as the response
+              return book.json()
 
 * For Desktop Excel, you can run the web server locally and call the respective function
-    * from VBA (requires the add-in installed) or
+    * from VBA (requires the add-in installed or a workbook in standalone mode) or
     * from Office Scripts
 * For the cloud-based spreadsheets, you have to run this on a web server that can be reached from Google Sheets or Excel on the web, and you have to paste the xlwings JavaScript module into the respective editor. How this all works, will be shown in detail under :ref:`pro/server/server:Cloud-based development with Gitpod`.
 
@@ -86,7 +91,7 @@ The next section shows you how you can play around with the xlwings Server on yo
 Local Development with Desktop Excel
 ------------------------------------
 
-The easiest way to try things out is to run the web server locally against your Desktop version of Excel. We're going to use `FastAPI <https://fastapi.tiangolo.com/>`_ as our web framework. While you can use any web framework you like, no quickstart command exists for these yet, so you'd have to set up the boilerplate yourself.
+The easiest way to try things out is to run the web server locally against your Desktop version of Excel. We're going to use `FastAPI <https://fastapi.tiangolo.com/>`_ as our web framework. While you can use any web framework you like, no quickstart command exists for these yet. However, for Flask, you can find the respective project on GitHub: https://github.com/xlwings/xlwings-server-helloworld-flask
 
 Start by running the following command on a Terminal/Command Prompt. Feel free to replace ``demo`` with another project name and make sure to run this command in the desired directory::
 
@@ -122,7 +127,7 @@ If you want to use VBA, press ``Alt+F11`` to open the VBA editor, and in ``Modul
 
 Then hit ``F5`` to run the function---you should see ``Hello xlwings!`` in cell A1 of the first sheet.
 
-If, however, you want to use Office Scripts, you can basically start from an empty file (it can be ``xlsx``, it doesn't have to be ``xlsm``), and run `xlwings copy os` on the Terminal/Command Prompt/Anaconda Prompt. Then add a new Office Script and paste the code from the clipboard before clicking on `Run`.
+If, however, you want to use Office Scripts, you can start from an empty file (it can be ``xlsx``, it doesn't have to be ``xlsm``), and run ``xlwings copy os`` on the Terminal/Command Prompt/Anaconda Prompt. Then add a new Office Script and paste the code from the clipboard before clicking on ``Run``.
 
 To move this to production, you need to deploy the backend to a server, set up authentication, and point the URL to the production server, see :ref:`pro/server/server:Production Deployment`.
 

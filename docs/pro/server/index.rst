@@ -14,5 +14,5 @@ xlwings Server turns the Python dependency into a web app that runs on the serve
 
 * **VBA**: Desktop Excel (Windows and macOS)
 * **Office Scripts**: Desktop Excel (Windows and macOS) and Excel on the web
-* **Office.js**: Desktop Excel (Windows and macOS), Excel on the web, and Excel on iPad
+* **Office.js Add-ins**: Desktop Excel (Windows and macOS), Excel on the web, and Excel on iPad
 * **Google Apps Scripts**: Google Sheets

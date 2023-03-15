@@ -87,7 +87,7 @@ To describe your function and its arguments, you can use a function docstring or
         """This is a classic Hello World example"""
         return f"Hello {name}!"
 
-These doc strings will appear in Excel's function wizard. Note that the name of the arguments will automatically be shown when typing the formula into a cell (intellisense).
+These doc strings will appear in Excel's function wizard/formula builder. Note that the name of the arguments will automatically be shown when typing the formula into a cell (intellisense).
 
 Date and time
 -------------
@@ -197,20 +197,20 @@ This function will be shown as ``NUMPY.RANDOM.STANDARD_NORMAL`` in Excel.
 
 **Default namespace**
 
-If you want all your functions appear under a common namespace, you can include the following line under the ShortStrings sections in the manifest XML:
+If you want all your functions to appear under a common namespace, you can include the following line under the ShortStrings sections in the manifest XML:
 
 .. code-block:: xml
 
     <bt:String id="Functions.Namespace" DefaultValue="XLWINGS"/>
 
-Have a look at ``manifest-xlwings-officejs-quickstart`` where the respective line is commented out.
+Have a look at ``manifest-xlwings-officejs-quickstart.xml`` where the respective line is commented out.
 
 If you define a namespace as part of the function decorator while also having a default namespace defined, the namespace from the function decorator will define the sub-namespace.
 
 Array Dimensions
 ----------------
 
-If arguments can be anything from a single cell to one- or two-dimensional ranges, you may need to use the ``ndim`` option to make your code work in every case. Likewise, there's an easy trick to return a simple list in a vertical orientation by using the ``transpose`` option.
+If you want your function to accept arguments of any dimensions (as single cell or one- or two-dimensional ranges), you may need to use the ``ndim`` option to make your code work in every case. Likewise, there's an easy trick to return a simple list in a vertical orientation by using the ``transpose`` option.
 
 **Arguments**
 
@@ -247,14 +247,14 @@ If you need to write out a list in vertical orientation, the ``transpose`` optio
 Error handling and error cells
 ------------------------------
 
-Error cells in Excel such as ``#VALUE!`` are used to display an error from Python. xlwings also treats error cells in a specific way and allows you to return them explicitly. Let's get into the details!
+Error cells in Excel such as ``#VALUE!`` are used to display an error from Python. xlwings reads error cells as ``None`` by default but also allows you to read them as strings. When writing to Excel, you can Excel have an cell formatted as error. Let's get into the details!
 
 Error handling
 **************
 
 Whenever there's an error in Python, the cell value will show ``#VALUE!``. To understand what's going on, click on the cell with the error, then hover (don't click!) on the exclamation mark that appears: you'll see the error message.
 
-If you see ``Internal Server Error``, you need to consult the Python server logs or you can add an exception handler for the type of Exception that you'd like to see in more detail on the frontend, see ``xlwings_exception_handler`` in the quickstart project under ``app/server_fastapi.py``.
+If you see ``Internal Server Error``, you need to consult the Python server logs or you can add an exception handler for the type of Exception that you'd like to see in more detail on the frontend, see the function ``xlwings_exception_handler`` in the quickstart project under ``app/server_fastapi.py``.
 
 Writing NaN values
 ******************
@@ -292,7 +292,7 @@ To format cells as proper error cells in Excel, simply use their string represen
 Dynamic arrays
 --------------
 
-If your return value is not just a sinle value but a one- or two-dimensional list, Excel will automatically spill the values into the surrounding cells by using the native dynamic arrays. There are no code changes required:
+If your return value is not just a single value but a one- or two-dimensional list, Excel will automatically spill the values into the surrounding cells by using the native dynamic arrays. There are no code changes required:
 
 Returning a simple list:
 

@@ -3,9 +3,16 @@
 Office.js Add-ins
 =================
 
-This feature requires at least v0.29.0.
+.. admonition:: Requirements
 
-Office.js add-ins (officially called *Office add-ins*) are web apps that traditionally require you to use the `Excel JavaScript API <https://learn.microsoft.com/en-us/office/dev/add-ins/reference/overview/excel-add-ins-reference-overview>`_ by writing JavaScript or TypeScript code. Note that the Excel JavaScript API ("Office.js") is not to be confused with `Office Scripts <https://learn.microsoft.com/en-us/office/dev/scripts/overview/excel>`_, which is a layer on top of Office.js. While Office Scripts is much easier to use than Office.js, it only works for writing scripts that run via Excel's Automate tab and can't be used to create add-ins. This documentation will teach you how to build Office.js add-ins with xlwings Server, saving you from having to write Office.js code.
+    * xlwings edition: PRO
+    * Server OS: Windows, macOS, Linux
+    * Excel platform: Windows, macOS, Web
+    * Google Sheets: not supported
+    * Minimum xlwings version: 0.29.0
+    * Minimum Excel version: 2016 or 365
+
+Office.js add-ins (officially called *Office add-ins*) are web apps that traditionally require you to use the `Excel JavaScript API <https://learn.microsoft.com/en-us/office/dev/add-ins/reference/overview/excel-add-ins-reference-overview>`_ by writing JavaScript or TypeScript code. Note that the Excel JavaScript API ("Office.js") is not to be confused with `Office Scripts <https://learn.microsoft.com/en-us/office/dev/scripts/overview/excel>`_, which is a layer on top of Office.js. While Office Scripts is much easier to use than Office.js, it only works for writing scripts that run via Excel's Automate tab and can't be used to create add-ins. This documentation will teach you how to build Office.js add-ins with xlwings Server.
 
 .. note::
 
@@ -14,13 +21,13 @@ Office.js add-ins (officially called *Office add-ins*) are web apps that traditi
 Why is this useful?
 -------------------
 
-Compared to using Office.js directly, using Office.js via xlwings Server has the following advantages:
+Compared to using Office.js' original Node.js implementation, using Office.js with xlwings has the following advantages:
 
 * No need to learn JavaScript and the Excel JavaScript API. Instead, use the familiar xlwings syntax in Python.
 * No need to install Node.js or use any JavaScript build tool such as Webpack.
+* The Python source code stays on your server and can't be accessed by the end-user.
 * xlwings alerts saves you from having to use the `Office dialog API <https://learn.microsoft.com/en-us/office/dev/add-ins/develop/dialog-api-in-office-add-ins>`_ and from designing your own HTML for simple pop-ups.
 * Error handling is built-in.
-* Compatible with Excel 365 and the perpetual editions back to Excel 2016.
 
 .. note::
 
@@ -29,10 +36,10 @@ Compared to using Office.js directly, using Office.js via xlwings Server has the
 Introduction to Office.js add-ins 
 ---------------------------------
 
-Office.js add-ins are web apps that can interact with Excel. In its simplest form, they consist of just two files:
+Office.js add-ins are web apps that can interact with Excel. In their simplest form, they consist of just two files:
 
 * **Manifest XML file**: This is a configuration file that is loaded in Excel (either manually during development or via the add-in store for production). It defines the Ribbon buttons and includes the URL to the backend/web server.
-* **HTML file**: The HTML file has to be served by a web server and defines either a visible *task pane* or *commands* that are directly linked to Ribbon buttons. There are more possibilities than just task panes and commands (see the `official documentation <https://learn.microsoft.com/en-us/office/dev/add-ins/overview/office-add-ins>`_), but we'll ignore them for the purpose of this introduction.
+* **HTML file**: The HTML file has to be served by a web server and defines the layout and functionality of the *task pane* as well as *commands* (commands are functions that are directly linked to Ribbon buttons).
 
 To get a better understanding about how the simplest possible add-in works (without Python or xlwings), have a look at the following repo: `<https://github.com/xlwings/officejs-helloworld>`_. Follow the repo's README to load the add-in in development mode, a process that is called *sideloading*.
 
@@ -41,7 +48,7 @@ Now that you know the basic structure of an Office.js add-in, let's see how we c
 Quickstart
 ----------
 
-This quickstart shows you how you can call Python both from a button on the task pane and directly from a Ribbon button. xlwings can be used with any web framework and the quickstart repo therefore contains various implementations such as ``app/server_fastapi.py`` or ``app/server_starlette.py``. At the end of this quickstart, you'll have a working environment for local development.
+This quickstart shows you how you can call Python both from a button on the task pane and directly from a Ribbon button. xlwings can be used with any web framework and the quickstart repo therefore contains various implementations such as ``app/server_fastapi.py`` or ``app/server_starlette.py``: you only need to use one of them. At the end of this quickstart, you'll have a working environment for local development.
 
 1. **Download quickstart repo**: Use Git to clone the following repository: https://github.com/xlwings/xlwings-officejs-quickstart. If you don't want to use Git, you could also download the repo by clicking on the green ``Code`` button, followed by ``Download ZIP``, then unzipping it locally.
 2. **Update manifest**: If you want to build your own add-in based off this quickstart repo, replace ``<Id>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</Id>`` in ``manifest-xlwings-officejs-quickstart.xml`` with a unique ID that you can create by visiting https://www.guidgen.com or by running the following command in Python: ``import uuid;print(uuid.uuid4())``.
@@ -52,7 +59,7 @@ This quickstart shows you how you can call Python both from a button on the task
      $ ./mkcert -install
      $ ./mkcert localhost 127.0.0.1 ::1
 
-   This will generate two files ``localhost+2.pem`` and ``localhost+2-key.pem``: move them to the root of the ``xlwings-officejs-quickstart`` quickstart repo.
+   This will generate two files ``localhost+2.pem`` and ``localhost+2-key.pem``: move them to the ``certs`` directory in the root of the ``xlwings-officejs-quickstart`` quickstart repo.
 
 4. **Install Python dependencies**: 
    
@@ -183,7 +190,7 @@ In the following code snippet (an excerpt from ``app/taskpane.html``), the highl
 
 .. code-block:: html
    :emphasize-lines: 8-10, 14-15, 17-26
-   :caption: app/taskpane.html (excerpt: only showing the 'Run hello' functionality)
+   :caption: app/taskpane.html (excerpt)
 
     <!doctype html>
     <html lang="en">
@@ -191,24 +198,24 @@ In the following code snippet (an excerpt from ``app/taskpane.html``), the highl
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>My Taskpane</title>
+        <title>My Task Pane</title>
         <!-- ➊ Load office.js and xlwings.min.js -->
         <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-        <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/xlwings/xlwings@0.30.0/xlwingsjs/dist/xlwings.min.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/xlwings/xlwings@0.30.1/xlwingsjs/dist/xlwings.min.js"></script>
     </head>
 
     <body>
         <!-- ➋ Put a button on the task pane -->
-        <button id="run" type="button">Run hello</button>
+        <button id="btn-hello-taskpane" type="button">Run hello</button>
         <script>
             // ➌ Initialize Office.js
             Office.onReady(function (info) { });
 
             // ➍ Add click event listeners to button
-            document.getElementById("run").addEventListener("click", hello);
+            document.getElementById("btn-hello-taskpane").addEventListener("click", helloTaskpane);
 
             // ❺ Use runPython with the desired endpoint of your web app
-            function hello() {
+            function helloTaskpane() {
                 xlwings.runPython(window.location.origin + "/hello");
             }
         </script>
@@ -244,12 +251,12 @@ Usually, this is all you need to worry about, but if you want to block your addi
 ➍ Add click event listeners
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To define what should happen when you click the button, you need to attach an event listener to it. In our case, we're telling the event listener to call the ``hello`` function when the button with ``id=run`` is clicked.
+To define what should happen when you click the button, you need to attach an event listener to it. In our case, we're telling the event listener to call the ``helloTaskpane`` function when the button with ``id=btn-hello-taskpane`` is clicked.
 
 ❺ Use runPython
 ~~~~~~~~~~~~~~~
 
-To call a function of your backend, you have to provide the ``xlwings.runPython()`` function the respective URL. Use ``window.location.origin + /myendpoint`` instead of hardcoding the full URL. This will ensure that everything still works when you change the URL e.g., when moving from development to production. Note that ``runPython`` accepts optional arguments, such as ``auth`` to send an Authorization header:
+To call a function of your backend, you have to provide the ``xlwings.runPython()`` function the respective URL. Use ``window.location.origin + "/myendpoint"`` instead of hardcoding the full URL. This will ensure that everything still works when you change the URL, e.g., when moving from development to production. Note that ``runPython`` accepts optional arguments, such as ``auth`` to send an Authorization header:
 
 .. code-block:: js
 
@@ -287,31 +294,21 @@ To have a Ribbon button show the task pane, you'll need to configure it properly
 Commands
 --------
 
-.. note::
+To understand how you can call ``xlwings.runPython()`` directly from a Ribbon button, have a look at Sample 2 in ``app/taskpane.html`` in the quickstart repo. Its body reads as follows:
 
-  Functions that you bind to a Ribbon button directly react a bit slower than a button on a task pane. This is because the task pane gets loaded once and stays loaded, whereas clicking a button on the Ribbon loads everything from scratch every time you click the button.
+.. code-block:: js
 
-To understand how you can call ``xlwings.runPython()`` directly from a Ribbon button, have a look at ``app/commands.html`` in the quickstart repo. Its body reads as follows:
+    function helloRibbon(event) {
+        xlwings.runPython(window.location.origin + "/hello");
+        event.completed();
+    }
+    Office.actions.associate("hello-ribbon", helloRibbon);
 
-.. code-block:: html
+The code looks almost the same as when you call it from a button on the task pane with these differences:
 
-  <body>
-      <script>
-          // Initialize Office.js
-          Office.onReady(function (info) { });
-  
-          // Make sure to provide the event argument and call 
-          // event.completed() at the end of functions that 
-          // are directly associated with Ribbon buttons
-          function hello(event) {
-              xlwings.runPython(window.location.origin + "/hello");
-              event.completed();
-          }
-          // You must associate the FunctionName from manifest.xml ("run")
-          // with the JavaScript function name (hello)
-          Office.actions.associate("run", hello);
-      </script>
-  </body>
+* You need to provide ``event`` as argument
+* You need to call ``event.completed()`` at the end of the function
+* You have to associate the function (``helloRibbon``) with the id (``hello-ribbon``) that you use in the manifest via ``Office.actions.associate()``
 
 The relevant blocks in the manifest are the following (again, these lines are out of context, so search for them in ``manifest-xlwings-officejs-quickstart.xml``). Note that compared to task panes, you need the additional reference to ``FunctionFile``:
 
@@ -320,7 +317,7 @@ The relevant blocks in the manifest are the following (again, these lines are ou
     <!-- ... -->
 
     <!-- resid must point to a Url Resource -->
-    <FunctionFile resid="Commands.Url"/>
+    <FunctionFile resid="Taskpane.Url"/>
 
     <!-- ... -->
 
@@ -330,23 +327,16 @@ The relevant blocks in the manifest are the following (again, these lines are ou
       <Action xsi:type="ExecuteFunction">
         <!-- This is the name that you use in Office.actions.associate()
             to connect it to a function -->
-        <FunctionName>run</FunctionName>
+        <FunctionName>hello-ribbon</FunctionName>
       </Action>
     </Control>
-
-    <!-- ... -->
-
-    <!-- This must point to the HTML document with the function -->
-    <bt:Url id="Commands.Url" DefaultValue="https://127.0.0.1:8000/commands.html"/>
-
-    <!-- ... -->
 
 Having seen how you can call Python from task panes and Ribbon buttons, let's move on with alerts!
 
 Alerts
 ------
 
-Alerts require a bit of boilerplate on the Python side. Because alerts are used for unhandled exceptions, you should implement the boilerplate code even if you don't use alerts in your own code.
+Alerts require a bit of boilerplate on the Python side. Because alerts are used for unhandled exceptions, you should implement the boilerplate code even if you don't use alerts in your own code. The quickstart repo already contains all the code.
 
 Alerts boilerplate
 ~~~~~~~~~~~~~~~~~~
@@ -477,7 +467,7 @@ When the user clicks a button, it will call the JavaScript function ``capitalize
         if (arg == "ok") {
             xlwings.runPython(window.location.origin + "/capitalize-sheet-names");
         } else {
-            // Cancel
+            // cancel
         }
     }
     // Make sure to register the callback function
@@ -544,7 +534,6 @@ Limitations
 -----------
 
 * Currently, only a subset of the xlwings API is covered, mainly the Range and Sheet classes with a focus on reading and writing values. This, however, includes full support for type conversion including pandas DataFrames, NumPy arrays, datetime objects, etc.
-* Excel 2016 and 2019 won't support automatic Date conversion when reading from Excel to Python. It works properly though on Excel 2021 and Excel 365.
+* Excel 2016 and 2019 won't support automatic Date conversion when reading from Excel to Python. It works properly though on Excel 2021 and Excel 365 and for previous versions, you can use either ``xw.to_datetime()`` or the ``datetime.date`` or ``datetime.datetime`` converters. For pandas DataFrames, you can use the ``parse_dates`` converter.
 * You are moving within the web's request/response cycle, meaning that values that you write to a range will only be written back to Google Sheets/Excel once the function call returns. Put differently, you'll get the state of the sheets at the moment the call was initiated, but you can't read from a cell you've just written to until the next call.
 * You will need to use the same xlwings version for the Python package and the JavaScript module, otherwise, the server will raise an error.
-* Currently, custom functions (a.k.a. user-defined functions or UDFs) are not supported.
