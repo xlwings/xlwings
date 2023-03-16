@@ -2371,7 +2371,7 @@ var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from
 
 
 
-var version = "0.30.1";
+var version = "0.30.2";
 globalThis.funcs = {};
 function registerCallback(callback) {
     globalThis.funcs[callback.name] = callback;
