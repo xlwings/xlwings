@@ -1,3 +1,4 @@
+import atexit
 import os
 import subprocess
 import sys
@@ -98,6 +99,15 @@ if np:
 N_COM_ATTEMPTS = 0  # 0 means try indefinitely
 BOOK_CALLER = None
 missing = object()
+
+
+@atexit.register
+def cleanup():
+    """Clear up any zombie processes"""
+    try:
+        Apps.cleanup()
+    except:  # noqa: E722
+        pass
 
 
 class COMRetryMethodWrapper:

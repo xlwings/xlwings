@@ -2013,7 +2013,7 @@ class Shapes(Collection):
 
 
 @atexit.register
-def clean_up():
+def cleanup():
     """
     Since AppleScript cannot access Excel while a Macro is running, we have to run the
     Python call in a background process which makes the call return immediately: we
