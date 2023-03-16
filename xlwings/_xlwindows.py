@@ -53,7 +53,7 @@ from win32com.client import (
 
 import xlwings
 
-from . import constants, utils
+from . import base_classes, constants, utils
 from .constants import (
     ColorIndex,
     DeleteShiftDirection,
@@ -498,7 +498,7 @@ class Engine:
 engine = Engine()
 
 
-class Apps:
+class Apps(base_classes.Apps):
     def keys(self):
         k = []
         for hwnd in get_excel_hwnds():
@@ -549,7 +549,7 @@ class Apps:
         raise KeyError("Could not find an Excel instance with this PID.")
 
 
-class App:
+class App(base_classes.App):
     def __init__(self, spec=None, add_book=True, xl=None, visible=None):
         # visible is only required on mac
         if spec is not None:
@@ -745,7 +745,7 @@ class App:
         return return_values[rv]
 
 
-class Books:
+class Books(base_classes.Books):
     def __init__(self, xl, app):
         self.xl = xl
         self.app = app
@@ -817,7 +817,7 @@ class Books:
             yield Book(xl=xl)
 
 
-class Book:
+class Book(base_classes.Book):
     def __init__(self, xl):
         self.xl = xl
 
@@ -923,7 +923,7 @@ class Book:
         )
 
 
-class Sheets:
+class Sheets(base_classes.Sheets):
     def __init__(self, xl):
         self.xl = xl
 
@@ -973,7 +973,7 @@ class Sheets:
             return sheet
 
 
-class Sheet:
+class Sheet(base_classes.Sheet):
     def __init__(self, xl):
         self.xl = xl
 
@@ -1135,7 +1135,7 @@ class Sheet:
         )
 
 
-class Range:
+class Range(base_classes.Range):
     def __init__(self, xl):
         if isinstance(xl, tuple):
             self._coords = xl
@@ -1831,7 +1831,7 @@ class Characters:
                 )
 
 
-class Collection:
+class Collection(base_classes.Collection):
     def __init__(self, xl):
         self.xl = xl
 
@@ -2162,7 +2162,7 @@ class Charts(Collection):
         return Chart(xl_obj=self.xl.Add(left, top, width, height))
 
 
-class Picture:
+class Picture(base_classes.Picture):
     def __init__(self, xl):
         self.xl = xl
 
@@ -2229,7 +2229,7 @@ class Picture:
         return utils.excel_update_picture(self, filename)
 
 
-class Pictures(Collection):
+class Pictures(Collection, base_classes.Pictures):
     _wrap = Picture
 
     @property
@@ -2266,7 +2266,7 @@ class Pictures(Collection):
         )
 
 
-class Names:
+class Names(base_classes.Names):
     def __init__(self, xl):
         self.xl = xl
 
@@ -2294,7 +2294,7 @@ class Names:
         return Name(xl=self.xl.Add(name, refers_to))
 
 
-class Name:
+class Name(base_classes.Name):
     def __init__(self, xl):
         self.xl = xl
 
