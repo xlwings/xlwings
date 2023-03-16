@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.30.2 (Mar 16, 2023)
+----------------------
+
+* :bdg-info:`Enhancement` On Windows, xlwings now actively cleans up Excel zombie processes when quitting or killing App objects and when exiting the Python process. You can also remove zombies manually by calling ``xw.apps.cleanup()`` (:issue:`2001`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Reports: fixed a regression introduced with 0.30.1 that was causing issues when using Excel tables in frames (:issue:`2192`).
+
 v0.30.1 (Mar 6, 2023)
 ---------------------
 
