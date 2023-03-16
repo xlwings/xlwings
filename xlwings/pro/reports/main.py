@@ -293,7 +293,8 @@ def render_sheet(sheet, **data):
                                             (start_row - 1, start_col),
                                             (end_row, end_col),
                                         )
-                                        origin.autofill(destination, "fill_formats")
+                                        if not origin.table:
+                                            origin.autofill(destination, "fill_formats")
                             # Write the array to Excel
                             if cell.table:
                                 cell.table.update(result, index=options["index"])
