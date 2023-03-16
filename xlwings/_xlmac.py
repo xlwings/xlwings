@@ -16,7 +16,7 @@ from appscript.reference import CommandError
 
 import xlwings
 
-from . import mac_dict, utils
+from . import base_classes, mac_dict, utils
 from .constants import ColorIndex
 from .utils import (
     VersionNumber,
@@ -138,7 +138,7 @@ class Engine:
 engine = Engine()
 
 
-class Apps:
+class Apps(base_classes.Apps):
     def _iter_excel_instances(self):
         asn = subprocess.check_output(
             ["lsappinfo", "visibleprocesslist", "-includehidden"]
@@ -170,10 +170,10 @@ class Apps:
         return App(xl=pid)
 
 
-class App:
+class App(base_classes.App):
     def __init__(self, spec=None, add_book=None, xl=None, visible=True):
         if xl is None:
-            self.xl = appscript.app(
+            self._xl = appscript.app(
                 name=spec or "Microsoft Excel",
                 newinstance=True,
                 terms=mac_dict,
@@ -182,9 +182,17 @@ class App:
             if visible:
                 self.activate()  # Makes it behave like on Windows
         elif isinstance(xl, int):
-            self.xl = appscript.app(pid=xl, terms=mac_dict)
+            self._xl = appscript.app(pid=xl, terms=mac_dict)
         else:
-            self.xl = xl
+            self._xl = xl
+
+    @property
+    def xl(self):
+        return self._xl
+
+    @xl.setter
+    def xl(self, value):
+        self._xl = value
 
     @property
     def api(self):
@@ -375,7 +383,7 @@ class App:
         return rv[kw.button_returned].lower()
 
 
-class Books:
+class Books(base_classes.Books):
     def __init__(self, app):
         self.app = app
 
@@ -467,10 +475,14 @@ class Books:
             yield Book(self.app, i + 1)
 
 
-class Book:
+class Book(base_classes.Book):
     def __init__(self, app, name_or_index):
-        self.app = app
+        self._app = app
         self.xl = app.xl.workbooks[name_or_index]
+
+    @property
+    def app(self):
+        return self._app
 
     @property
     def api(self):
@@ -591,7 +603,7 @@ class Book:
         self.app.display_alerts = display_alerts
 
 
-class Sheets:
+class Sheets(base_classes.Sheets):
     def __init__(self, workbook):
         self.workbook = workbook
 
@@ -626,7 +638,7 @@ class Sheets:
         return Sheet(self.workbook, xl.name.get())
 
 
-class Sheet:
+class Sheet(base_classes.Sheet):
     def __init__(self, workbook, name_or_index):
         self.workbook = workbook
         self.xl = workbook.xl.worksheets[name_or_index]
@@ -786,12 +798,8 @@ class Sheet:
     def page_setup(self):
         return PageSetup(self, self.xl.page_setup_object)
 
-    @property
-    def to_html(self):
-        raise NotImplementedError()
 
-
-class Range:
+class Range(base_classes.Range):
     def __init__(self, sheet, address):
         self.sheet = sheet
         self.options = None  # Assigned by main.Range to keep API of sheet.range clean
@@ -1491,10 +1499,14 @@ class Note:
         self.parent.xl.clear_Excel_comments()
 
 
-class Collection:
+class Collection(base_classes.Collection):
     def __init__(self, parent):
-        self.parent = parent
+        self._parent = parent
         self.xl = getattr(self.parent.xl, self._attr)
+
+    @property
+    def parent(self):
+        return self._parent
 
     @property
     def api(self):
@@ -1815,10 +1827,14 @@ class Charts(Collection):
         )
 
 
-class Picture:
+class Picture(base_classes.Picture):
     def __init__(self, parent, key):
-        self.parent = parent
+        self._parent = parent
         self.xl = parent.xl.pictures[key]
+
+    @property
+    def parent(self):
+        return self._parent
 
     @property
     def api(self):
@@ -1879,7 +1895,7 @@ class Picture:
         return utils.excel_update_picture(self, filename)
 
 
-class Pictures(Collection):
+class Pictures(Collection, base_classes.Pictures):
     _attr = "pictures"
     _kw = kw.picture
     _wrap = Picture
@@ -1940,7 +1956,7 @@ class Pictures(Collection):
         return picture
 
 
-class Names:
+class Names(base_classes.Names):
     def __init__(self, parent, xl):
         self.parent = parent
         self.xl = xl
@@ -1974,7 +1990,7 @@ class Names:
         )
 
 
-class Name:
+class Name(base_classes.Name):
     def __init__(self, parent, xl):
         self.parent = parent
         self.xl = xl
