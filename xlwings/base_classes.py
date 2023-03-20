@@ -661,6 +661,10 @@ class Pictures:
 
 
 class Names:
+    # @property
+    # def api(self):
+    #     raise NotImplementedError()
+
     def __call__(self, name_or_index):
         raise NotImplementedError()
 
@@ -675,6 +679,10 @@ class Names:
 
 
 class Name:
+    # @property
+    # def api(self):
+    #     raise NotImplementedError()
+
     def delete(self):
         raise NotImplementedError()
 
@@ -696,4 +704,388 @@ class Name:
 
     @property
     def refers_to_range(self):
+        raise NotImplementedError()
+
+
+class Shape:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def name(self):
+        raise NotImplementedError()
+
+    @property
+    def parent(self):
+        raise NotImplementedError()
+
+    @property
+    def type(self):
+        raise NotImplementedError()
+
+    @property
+    def left(self):
+        raise NotImplementedError()
+
+    @left.setter
+    def left(self, value):
+        raise NotImplementedError()
+
+    @property
+    def top(self):
+        raise NotImplementedError()
+
+    @top.setter
+    def top(self, value):
+        raise NotImplementedError()
+
+    @property
+    def width(self):
+        raise NotImplementedError()
+
+    @width.setter
+    def width(self, value):
+        raise NotImplementedError()
+
+    @property
+    def height(self):
+        raise NotImplementedError()
+
+    @height.setter
+    def height(self, value):
+        raise NotImplementedError()
+
+    def delete(self):
+        raise NotImplementedError()
+
+    @name.setter
+    def name(self, value):
+        raise NotImplementedError()
+
+    @property
+    def index(self):
+        raise NotImplementedError()
+
+    def activate(self):
+        raise NotImplementedError()
+
+    def scale_height(self, factor, relative_to_original_size, scale):
+        raise NotImplementedError()
+
+    def scale_width(self, factor, relative_to_original_size, scale):
+        raise NotImplementedError()
+
+    @property
+    def text(self):
+        raise NotImplementedError()
+
+    @text.setter
+    def text(self, value):
+        raise NotImplementedError()
+
+    @property
+    def font(self):
+        raise NotImplementedError()
+
+    @property
+    def characters(self):
+        raise NotImplementedError()
+
+
+class Font:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def bold(self):
+        raise NotImplementedError()
+
+    @bold.setter
+    def bold(self, value):
+        raise NotImplementedError()
+
+    @property
+    def italic(self):
+        raise NotImplementedError()
+
+    @italic.setter
+    def italic(self, value):
+        raise NotImplementedError()
+
+    @property
+    def size(self):
+        raise NotImplementedError()
+
+    @size.setter
+    def size(self, value):
+        raise NotImplementedError()
+
+    @property
+    def color(self):
+        raise NotImplementedError()
+
+    @color.setter
+    def color(self, color_or_rgb):
+        raise NotImplementedError()
+
+    @property
+    def name(self):
+        raise NotImplementedError()
+
+    @name.setter
+    def name(self, value):
+        raise NotImplementedError()
+
+
+class Characters:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def text(self):
+        raise NotImplementedError()
+
+    @property
+    def font(self):
+        raise NotImplementedError()
+
+    def __getitem__(self, item):
+        raise NotImplementedError()
+
+
+class PageSetup:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def print_area(self):
+        raise NotImplementedError()
+
+    @print_area.setter
+    def print_area(self, value):
+        raise NotImplementedError()
+
+
+class Note:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def text(self):
+        raise NotImplementedError()
+
+    @text.setter
+    def text(self, value):
+        raise NotImplementedError()
+
+    def delete(self):
+        raise NotImplementedError()
+
+
+class Table:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def name(self):
+        raise NotImplementedError()
+
+    @name.setter
+    def name(self, value):
+        raise NotImplementedError()
+
+    @property
+    def data_body_range(self):
+        raise NotImplementedError()
+
+    @property
+    def display_name(self):
+        raise NotImplementedError()
+
+    @display_name.setter
+    def display_name(self, value):
+        raise NotImplementedError()
+
+    @property
+    def header_row_range(self):
+        raise NotImplementedError()
+
+    @property
+    def insert_row_range(self):
+        raise NotImplementedError()
+
+    @property
+    def parent(self):
+        raise NotImplementedError()
+
+    @property
+    def range(self):
+        raise NotImplementedError()
+
+    @property
+    def show_autofilter(self):
+        raise NotImplementedError()
+
+    @show_autofilter.setter
+    def show_autofilter(self, value):
+        raise NotImplementedError()
+
+    @property
+    def show_headers(self):
+        raise NotImplementedError()
+
+    @show_headers.setter
+    def show_headers(self, value):
+        raise NotImplementedError()
+
+    @property
+    def show_table_style_column_stripes(self):
+        raise NotImplementedError()
+
+    @show_table_style_column_stripes.setter
+    def show_table_style_column_stripes(self, value):
+        raise NotImplementedError()
+
+    @property
+    def show_table_style_first_column(self):
+        raise NotImplementedError()
+
+    @show_table_style_first_column.setter
+    def show_table_style_first_column(self, value):
+        raise NotImplementedError()
+
+    @property
+    def show_table_style_last_column(self):
+        raise NotImplementedError()
+
+    @show_table_style_last_column.setter
+    def show_table_style_last_column(self, value):
+        raise NotImplementedError()
+
+    @property
+    def show_table_style_row_stripes(self):
+        raise NotImplementedError()
+
+    @show_table_style_row_stripes.setter
+    def show_table_style_row_stripes(self, value):
+        raise NotImplementedError()
+
+    @property
+    def show_totals(self):
+        raise NotImplementedError()
+
+    @show_totals.setter
+    def show_totals(self, value):
+        raise NotImplementedError()
+
+    @property
+    def table_style(self):
+        raise NotImplementedError()
+
+    @table_style.setter
+    def table_style(self, value):
+        raise NotImplementedError()
+
+    @property
+    def totals_row_range(self):
+        raise NotImplementedError()
+
+    def resize(self, range):
+        raise NotImplementedError()
+
+
+class Tables:
+    def add(
+        self,
+        source_type=None,
+        source=None,
+        link_source=None,
+        has_headers=None,
+        destination=None,
+        table_style_name=None,
+    ):
+        raise NotImplementedError()
+
+
+class Chart:
+    @property
+    def api(self):
+        raise NotImplementedError()
+
+    @property
+    def name(self):
+        raise NotImplementedError()
+
+    @name.setter
+    def name(self, value):
+        raise NotImplementedError()
+
+    @property
+    def parent(self):
+        raise NotImplementedError()
+
+    def set_source_data(self, rng):
+        raise NotImplementedError()
+
+    @property
+    def chart_type(self):
+        raise NotImplementedError()
+
+    @chart_type.setter
+    def chart_type(self, chart_type):
+        raise NotImplementedError()
+
+    @property
+    def left(self):
+        raise NotImplementedError()
+
+    @left.setter
+    def left(self, value):
+        raise NotImplementedError()
+
+    @property
+    def top(self):
+        raise NotImplementedError()
+
+    @top.setter
+    def top(self, value):
+        raise NotImplementedError()
+
+    @property
+    def width(self):
+        raise NotImplementedError()
+
+    @width.setter
+    def width(self, value):
+        raise NotImplementedError()
+
+    @property
+    def height(self):
+        raise NotImplementedError()
+
+    @height.setter
+    def height(self, value):
+        raise NotImplementedError()
+
+    def delete(self):
+        raise NotImplementedError()
+
+    def to_png(self, path):
+        raise NotImplementedError()
+
+    def to_pdf(self, path, quality):
+        raise NotImplementedError()
+
+
+class Charts:
+    def _wrap(self, xl):
+        raise NotImplementedError()
+
+    def add(self, left, top, width, height):
         raise NotImplementedError()
