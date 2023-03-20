@@ -635,6 +635,7 @@ class Sheets(base_classes.Sheets):
         xl = self.workbook.xl.make(new=kw.worksheet, at=position)
         if name is not None:
             xl.name.set(name)
+            xl = self.workbook.xl.worksheets[name]
         return Sheet(self.workbook, xl.name.get())
 
 
@@ -1254,10 +1255,14 @@ class Range(base_classes.Range):
         self.xl.autofill(destination=destination.api, type=types[type_])
 
 
-class Shape:
+class Shape(base_classes.Shape):
     def __init__(self, parent, key):
-        self.parent = parent
+        self._parent = parent
         self.xl = parent.xl.shapes[key]
+
+    @property
+    def parent(self):
+        return self._parent
 
     @property
     def api(self):
@@ -1350,7 +1355,7 @@ class Shape:
         raise AttributeError("Characters isn't supported on macOS with shapes.")
 
 
-class Font:
+class Font(base_classes.Font):
     def __init__(self, parent, xl):
         # xl can be font or font_object
         self.parent = parent
@@ -1419,7 +1424,7 @@ class Font:
             self.xl.font_name.set(value)
 
 
-class Characters:
+class Characters(base_classes.Characters):
     def __init__(self, parent, xl):
         self.parent = parent
         self.xl = xl
@@ -1457,7 +1462,7 @@ class Characters:
             return Characters(parent=self.parent, xl=self.xl[item + 1 : item + 1])
 
 
-class PageSetup:
+class PageSetup(base_classes.PageSetup):
     def __init__(self, parent, xl):
         self.parent = parent
         self.xl = xl
@@ -1479,7 +1484,7 @@ class PageSetup:
         self.xl.print_area.set("" if value is None else value)
 
 
-class Note:
+class Note(base_classes.Note):
     def __init__(self, parent, xl):
         self.parent = parent
         self.xl = xl
@@ -1528,10 +1533,14 @@ class Collection(base_classes.Collection):
         return self.xl[key].exists()
 
 
-class Table:
+class Table(base_classes.Table):
     def __init__(self, parent, key):
-        self.parent = parent
+        self._parent = parent
         self.xl = parent.xl.list_objects[key]
+
+    @property
+    def parent(self):
+        return self._parent
 
     @property
     def api(self):
@@ -1656,7 +1665,7 @@ class Table:
         self.xl.resize(range=range)
 
 
-class Tables(Collection):
+class Tables(Collection, base_classes.Tables):
     _attr = "list_objects"
     _kw = kw.list_object
     _wrap = Table
@@ -1691,15 +1700,19 @@ class Tables(Collection):
         )
 
 
-class Chart:
+class Chart(base_classes.Chart):
     def __init__(self, parent, key):
-        self.parent = parent
+        self._parent = parent
         if isinstance(parent, Sheet):
             self.xl_obj = parent.xl.chart_objects[key]
             self.xl = self.xl_obj.chart
         else:
             self.xl_obj = None
             self.xl = self.charts[key]
+
+    @property
+    def parent(self):
+        return self._parent
 
     @property
     def api(self):
@@ -1805,7 +1818,7 @@ class Chart:
         raise xlwings.XlwingsError("Chart.to_pdf() isn't supported on macOS.")
 
 
-class Charts(Collection):
+class Charts(Collection, base_classes.Charts):
     _attr = "chart_objects"
     _kw = kw.chart_object
     _wrap = Chart
