@@ -9,10 +9,6 @@ from xlwings.constants import RgbColor
 
 from .common import TestBase, this_dir
 
-# Mac imports
-if sys.platform.startswith("darwin"):
-    from appscript import k as kw
-
 
 class TestRangeInstantiation(TestBase):
     def test_range1(self):
@@ -216,10 +212,7 @@ class TestRangeAttributes(TestBase):
         self.wb1.sheets[0].range("A1:B2").value = "ensure cells are used"
         self.wb1.sheets[0].range("B2").column_width = 20.0
         result = self.wb1.sheets[0].range("A1:B2").column_width
-        if sys.platform.startswith("win"):
-            self.assertEqual(None, result)
-        else:
-            self.assertEqual(kw.missing_value, result)
+        self.assertEqual(None, result)
 
     def test_row_height(self):
         self.wb1.sheets[0].range("A1:B2").row_height = 15.0
@@ -229,10 +222,7 @@ class TestRangeAttributes(TestBase):
         self.wb1.sheets[0].range("A1:B2").value = "ensure cells are used"
         self.wb1.sheets[0].range("B2").row_height = 20.0
         result = self.wb1.sheets[0].range("A1:B2").row_height
-        if sys.platform.startswith("win"):
-            self.assertEqual(None, result)
-        else:
-            self.assertEqual(kw.missing_value, result)
+        self.assertEqual(None, result)
 
     def test_width(self):
         """test_width: Width depends on default style text size,
@@ -842,7 +832,7 @@ class TestRangeExpansion(TestBase):
 
 class TestCellErrors(TestBase):
     def test_cell_errors_default(self):
-        wb = xw.Book("cell_errors.xlsx")
+        wb = xw.Book(Path(this_dir) / "cell_errors.xlsx")
         sheet = wb.sheets[0]
 
         for i in range(1, 8):
@@ -850,7 +840,7 @@ class TestCellErrors(TestBase):
         wb.close()
 
     def test_cell_errors_str(self):
-        wb = xw.Book("cell_errors.xlsx")
+        wb = xw.Book(Path(this_dir) / "cell_errors.xlsx")
         sheet = wb.sheets[0]
         # Single cells, since macOS has massive issues with ranges that contain cell
         # errors, see #1028 and #1924
@@ -880,7 +870,7 @@ class TestMerging(TestBase):
 
 class TestNotes(unittest.TestCase):
     def test_note(self):
-        sheet = xw.Book(Path("tests/reports/template_one_frame.xlsx").resolve()).sheets[
+        sheet = xw.Book(Path(this_dir) / "reports" / "template_one_frame.xlsx").sheets[
             0
         ]
         self.assertEqual(sheet["A1"].note.text, "<frame>")

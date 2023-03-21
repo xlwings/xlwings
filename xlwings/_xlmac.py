@@ -16,7 +16,7 @@ from appscript.reference import CommandError
 
 import xlwings
 
-from . import mac_dict, utils
+from . import base_classes, mac_dict, utils
 from .constants import ColorIndex
 from .utils import (
     VersionNumber,
@@ -138,7 +138,7 @@ class Engine:
 engine = Engine()
 
 
-class Apps:
+class Apps(base_classes.Apps):
     def _iter_excel_instances(self):
         asn = subprocess.check_output(
             ["lsappinfo", "visibleprocesslist", "-includehidden"]
@@ -170,10 +170,10 @@ class Apps:
         return App(xl=pid)
 
 
-class App:
+class App(base_classes.App):
     def __init__(self, spec=None, add_book=None, xl=None, visible=True):
         if xl is None:
-            self.xl = appscript.app(
+            self._xl = appscript.app(
                 name=spec or "Microsoft Excel",
                 newinstance=True,
                 terms=mac_dict,
@@ -182,9 +182,17 @@ class App:
             if visible:
                 self.activate()  # Makes it behave like on Windows
         elif isinstance(xl, int):
-            self.xl = appscript.app(pid=xl, terms=mac_dict)
+            self._xl = appscript.app(pid=xl, terms=mac_dict)
         else:
-            self.xl = xl
+            self._xl = xl
+
+    @property
+    def xl(self):
+        return self._xl
+
+    @xl.setter
+    def xl(self, value):
+        self._xl = value
 
     @property
     def api(self):
@@ -375,7 +383,7 @@ class App:
         return rv[kw.button_returned].lower()
 
 
-class Books:
+class Books(base_classes.Books):
     def __init__(self, app):
         self.app = app
 
@@ -467,10 +475,14 @@ class Books:
             yield Book(self.app, i + 1)
 
 
-class Book:
+class Book(base_classes.Book):
     def __init__(self, app, name_or_index):
-        self.app = app
+        self._app = app
         self.xl = app.xl.workbooks[name_or_index]
+
+    @property
+    def app(self):
+        return self._app
 
     @property
     def api(self):
@@ -591,7 +603,7 @@ class Book:
         self.app.display_alerts = display_alerts
 
 
-class Sheets:
+class Sheets(base_classes.Sheets):
     def __init__(self, workbook):
         self.workbook = workbook
 
@@ -623,10 +635,11 @@ class Sheets:
         xl = self.workbook.xl.make(new=kw.worksheet, at=position)
         if name is not None:
             xl.name.set(name)
+            xl = self.workbook.xl.worksheets[name]
         return Sheet(self.workbook, xl.name.get())
 
 
-class Sheet:
+class Sheet(base_classes.Sheet):
     def __init__(self, workbook, name_or_index):
         self.workbook = workbook
         self.xl = workbook.xl.worksheets[name_or_index]
@@ -786,12 +799,8 @@ class Sheet:
     def page_setup(self):
         return PageSetup(self, self.xl.page_setup_object)
 
-    @property
-    def to_html(self):
-        raise NotImplementedError()
 
-
-class Range:
+class Range(base_classes.Range):
     def __init__(self, sheet, address):
         self.sheet = sheet
         self.options = None  # Assigned by main.Range to keep API of sheet.range clean
@@ -1246,10 +1255,14 @@ class Range:
         self.xl.autofill(destination=destination.api, type=types[type_])
 
 
-class Shape:
+class Shape(base_classes.Shape):
     def __init__(self, parent, key):
-        self.parent = parent
+        self._parent = parent
         self.xl = parent.xl.shapes[key]
+
+    @property
+    def parent(self):
+        return self._parent
 
     @property
     def api(self):
@@ -1342,7 +1355,7 @@ class Shape:
         raise AttributeError("Characters isn't supported on macOS with shapes.")
 
 
-class Font:
+class Font(base_classes.Font):
     def __init__(self, parent, xl):
         # xl can be font or font_object
         self.parent = parent
@@ -1411,7 +1424,7 @@ class Font:
             self.xl.font_name.set(value)
 
 
-class Characters:
+class Characters(base_classes.Characters):
     def __init__(self, parent, xl):
         self.parent = parent
         self.xl = xl
@@ -1449,7 +1462,7 @@ class Characters:
             return Characters(parent=self.parent, xl=self.xl[item + 1 : item + 1])
 
 
-class PageSetup:
+class PageSetup(base_classes.PageSetup):
     def __init__(self, parent, xl):
         self.parent = parent
         self.xl = xl
@@ -1471,7 +1484,7 @@ class PageSetup:
         self.xl.print_area.set("" if value is None else value)
 
 
-class Note:
+class Note(base_classes.Note):
     def __init__(self, parent, xl):
         self.parent = parent
         self.xl = xl
@@ -1491,10 +1504,14 @@ class Note:
         self.parent.xl.clear_Excel_comments()
 
 
-class Collection:
+class Collection(base_classes.Collection):
     def __init__(self, parent):
-        self.parent = parent
+        self._parent = parent
         self.xl = getattr(self.parent.xl, self._attr)
+
+    @property
+    def parent(self):
+        return self._parent
 
     @property
     def api(self):
@@ -1516,10 +1533,14 @@ class Collection:
         return self.xl[key].exists()
 
 
-class Table:
+class Table(base_classes.Table):
     def __init__(self, parent, key):
-        self.parent = parent
+        self._parent = parent
         self.xl = parent.xl.list_objects[key]
+
+    @property
+    def parent(self):
+        return self._parent
 
     @property
     def api(self):
@@ -1644,7 +1665,7 @@ class Table:
         self.xl.resize(range=range)
 
 
-class Tables(Collection):
+class Tables(Collection, base_classes.Tables):
     _attr = "list_objects"
     _kw = kw.list_object
     _wrap = Table
@@ -1679,15 +1700,19 @@ class Tables(Collection):
         )
 
 
-class Chart:
+class Chart(base_classes.Chart):
     def __init__(self, parent, key):
-        self.parent = parent
+        self._parent = parent
         if isinstance(parent, Sheet):
             self.xl_obj = parent.xl.chart_objects[key]
             self.xl = self.xl_obj.chart
         else:
             self.xl_obj = None
             self.xl = self.charts[key]
+
+    @property
+    def parent(self):
+        return self._parent
 
     @property
     def api(self):
@@ -1793,7 +1818,7 @@ class Chart:
         raise xlwings.XlwingsError("Chart.to_pdf() isn't supported on macOS.")
 
 
-class Charts(Collection):
+class Charts(Collection, base_classes.Charts):
     _attr = "chart_objects"
     _kw = kw.chart_object
     _wrap = Chart
@@ -1815,10 +1840,14 @@ class Charts(Collection):
         )
 
 
-class Picture:
+class Picture(base_classes.Picture):
     def __init__(self, parent, key):
-        self.parent = parent
+        self._parent = parent
         self.xl = parent.xl.pictures[key]
+
+    @property
+    def parent(self):
+        return self._parent
 
     @property
     def api(self):
@@ -1879,7 +1908,7 @@ class Picture:
         return utils.excel_update_picture(self, filename)
 
 
-class Pictures(Collection):
+class Pictures(Collection, base_classes.Pictures):
     _attr = "pictures"
     _kw = kw.picture
     _wrap = Picture
@@ -1940,7 +1969,7 @@ class Pictures(Collection):
         return picture
 
 
-class Names:
+class Names(base_classes.Names):
     def __init__(self, parent, xl):
         self.parent = parent
         self.xl = xl
@@ -1974,7 +2003,7 @@ class Names:
         )
 
 
-class Name:
+class Name(base_classes.Name):
     def __init__(self, parent, xl):
         self.parent = parent
         self.xl = xl

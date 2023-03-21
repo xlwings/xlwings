@@ -53,7 +53,7 @@ from win32com.client import (
 
 import xlwings
 
-from . import constants, utils
+from . import base_classes, constants, utils
 from .constants import (
     ColorIndex,
     DeleteShiftDirection,
@@ -498,7 +498,7 @@ class Engine:
 engine = Engine()
 
 
-class Apps:
+class Apps(base_classes.Apps):
     def keys(self):
         k = []
         for hwnd in get_excel_hwnds():
@@ -549,7 +549,7 @@ class Apps:
         raise KeyError("Could not find an Excel instance with this PID.")
 
 
-class App:
+class App(base_classes.App):
     def __init__(self, spec=None, add_book=True, xl=None, visible=None):
         # visible is only required on mac
         if spec is not None:
@@ -745,7 +745,7 @@ class App:
         return return_values[rv]
 
 
-class Books:
+class Books(base_classes.Books):
     def __init__(self, xl, app):
         self.xl = xl
         self.app = app
@@ -817,7 +817,7 @@ class Books:
             yield Book(xl=xl)
 
 
-class Book:
+class Book(base_classes.Book):
     def __init__(self, xl):
         self.xl = xl
 
@@ -923,7 +923,7 @@ class Book:
         )
 
 
-class Sheets:
+class Sheets(base_classes.Sheets):
     def __init__(self, xl):
         self.xl = xl
 
@@ -973,7 +973,7 @@ class Sheets:
             return sheet
 
 
-class Sheet:
+class Sheet(base_classes.Sheet):
     def __init__(self, xl):
         self.xl = xl
 
@@ -1135,7 +1135,7 @@ class Sheet:
         )
 
 
-class Range:
+class Range(base_classes.Range):
     def __init__(self, xl):
         if isinstance(xl, tuple):
             self._coords = xl
@@ -1578,7 +1578,7 @@ class Range:
         self.xl.AutoFill(Destination=destination.api, Type=types[type_])
 
 
-class Shape:
+class Shape(base_classes.Shape):
     def __init__(self, xl):
         self.xl = xl
 
@@ -1676,7 +1676,7 @@ class Shape:
         return Characters(parent=self, xl=self.xl.TextFrame2.TextRange.GetCharacters)
 
 
-class Font:
+class Font(base_classes.Font):
     def __init__(self, parent, xl):
         self.parent = parent
         self.xl = xl
@@ -1793,7 +1793,7 @@ class Font:
         self.xl.Name = value
 
 
-class Characters:
+class Characters(base_classes.Characters):
     def __init__(self, parent, xl, start=None, length=None):
         self.parent = parent
         self.xl = xl
@@ -1831,7 +1831,7 @@ class Characters:
                 )
 
 
-class Collection:
+class Collection(base_classes.Collection):
     def __init__(self, xl):
         self.xl = xl
 
@@ -1860,7 +1860,7 @@ class Collection:
             return False
 
 
-class PageSetup:
+class PageSetup(base_classes.PageSetup):
     def __init__(self, xl):
         self.xl = xl
 
@@ -1878,7 +1878,7 @@ class PageSetup:
         self.xl.PrintArea = value
 
 
-class Note:
+class Note(base_classes.Note):
     def __init__(self, xl):
         self.xl = xl
 
@@ -1902,7 +1902,7 @@ class Shapes(Collection):
     _wrap = Shape
 
 
-class Table:
+class Table(base_classes.Table):
     def __init__(self, xl):
         self.xl = xl
 
@@ -2018,7 +2018,7 @@ class Table:
         self.xl.Resize(range)
 
 
-class Tables(Collection):
+class Tables(Collection, base_classes.Tables):
     _wrap = Table
 
     def add(
@@ -2042,7 +2042,7 @@ class Tables(Collection):
         )
 
 
-class Chart:
+class Chart(base_classes.Chart):
     def __init__(self, xl_obj=None, xl=None):
         self.xl = xl_obj.Chart if xl is None else xl
         self.xl_obj = xl_obj
@@ -2154,7 +2154,7 @@ class Chart:
             pass
 
 
-class Charts(Collection):
+class Charts(Collection, base_classes.Charts):
     def _wrap(self, xl):
         return Chart(xl_obj=xl)
 
@@ -2162,7 +2162,7 @@ class Charts(Collection):
         return Chart(xl_obj=self.xl.Add(left, top, width, height))
 
 
-class Picture:
+class Picture(base_classes.Picture):
     def __init__(self, xl):
         self.xl = xl
 
@@ -2229,7 +2229,7 @@ class Picture:
         return utils.excel_update_picture(self, filename)
 
 
-class Pictures(Collection):
+class Pictures(Collection, base_classes.Pictures):
     _wrap = Picture
 
     @property
@@ -2266,7 +2266,7 @@ class Pictures(Collection):
         )
 
 
-class Names:
+class Names(base_classes.Names):
     def __init__(self, xl):
         self.xl = xl
 
@@ -2294,7 +2294,7 @@ class Names:
         return Name(xl=self.xl.Add(name, refers_to))
 
 
-class Name:
+class Name(base_classes.Name):
     def __init__(self, xl):
         self.xl = xl
 
