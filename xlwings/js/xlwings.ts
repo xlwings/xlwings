@@ -51,6 +51,7 @@ async function runPython(
   let configSheet = workbook.getWorksheet("xlwings.conf");
   let config = {};
   if (configSheet) {
+    // @ts-ignore
     const configValues = workbook
       .getWorksheet("xlwings.conf")
       .getRange("A1")
@@ -141,9 +142,10 @@ async function runPython(
   payload["sheets"] = [];
   let lastCellCol: number;
   let lastCellRow: number;
-  let values: (string | number | boolean)[][];
+  let values: (string | number | boolean)[][] = [[]];
   let categories: ExcelScript.NumberFormatCategory[][];
   sheets.forEach((sheet) => {
+    let isSheetIncluded = !excludeArray.includes(sheet.getName());
     if (sheet.getUsedRange() !== undefined) {
       let lastCell = sheet.getUsedRange().getLastCell();
       lastCellCol = lastCell.getColumnIndex();
@@ -152,9 +154,7 @@ async function runPython(
       lastCellCol = 0;
       lastCellRow = 0;
     }
-    if (excludeArray.includes(sheet.getName())) {
-      values = [[]];
-    } else {
+    if (isSheetIncluded) {
       let range = sheet.getRangeByIndexes(
         0,
         0,
@@ -182,10 +182,36 @@ async function runPython(
         }
       );
     }
+    // Tables
+    let tables: Tables[] = [];
+    if (isSheetIncluded) {
+      for (let table of sheet.getTables()) {
+        tables.push({
+          name: table.getName(),
+          range_address: table.getRange().getAddress().split("!").pop(),
+          header_row_range_address: table.getShowHeaders()
+            ? table.getHeaderRowRange().getAddress().split("!").pop()
+            : null,
+          data_body_range_address: table
+            .getRangeBetweenHeaderAndTotal()
+            .getAddress()
+            .split("!")
+            .pop(),
+          total_row_range_address: table.getShowTotals()
+            ? table.getTotalRowRange().getAddress().split("!").pop()
+            : null,
+          show_headers: table.getShowHeaders(),
+          show_totals: table.getShowTotals(),
+          table_style: table.getPredefinedTableStyle(),
+          show_autofilter: table.getShowFilterButton(),
+        });
+      }
+    }
     payload["sheets"].push({
       name: sheet.getName(),
       values: values,
       pictures: [], // TODO: NotImplemented
+      tables: tables,
     });
   });
 
@@ -243,8 +269,20 @@ interface Action {
 interface Names {
   name: string;
   sheet_index: number;
-  address: string;
+  address: string | undefined;
   book_scope: boolean;
+}
+
+interface Tables {
+  name: string;
+  range_address: string | undefined;
+  header_row_range_address: string | undefined | null;
+  data_body_range_address: string | undefined;
+  total_row_range_address: string | undefined | null;
+  show_headers: boolean;
+  show_totals: boolean;
+  table_style: string;
+  show_autofilter: boolean;
 }
 
 function getRange(workbook: ExcelScript.Workbook, action: Action) {
@@ -427,3 +465,43 @@ function rangeDelete(workbook: ExcelScript.Workbook, action: Action) {
   }
 }
 registerCallback(rangeDelete);
+
+function addTable(workbook: ExcelScript.Workbook, action: Action) {
+  let mytable = workbook
+    .getWorksheets()
+    [action.sheet_position].addTable(
+      action.args[0].toString(),
+      Boolean(action.args[1]),
+    );
+    if (action.args[2] !== null) {
+      mytable.setPredefinedTableStyle(action.args[2].toString());
+    }
+}
+registerCallback(addTable);
+
+function setTableName(workbook: ExcelScript.Workbook, action: Action) {
+  console.log('Updating table name')  // Won't work without this :-/
+  const mytable = workbook
+    .getWorksheets()
+  [action.sheet_position].getTables()[parseInt(action.args[0].toString())];
+  mytable.setName(action.args[1].toString());
+}
+registerCallback(setTableName);
+
+function resizeTable(workbook: ExcelScript.Workbook, action: Action) {
+  console.log('Resizing table')  // Won't work without this :-
+  const mytable = workbook
+    .getWorksheets()
+  [action.sheet_position].getTables()[parseInt(action.args[0].toString())];
+  mytable.resize(action.args[1].toString());
+}
+registerCallback(resizeTable);
+
+function showAutofilterTable(workbook: ExcelScript.Workbook, action: Action) {
+  console.log('Showing autofilter')  // Won't work without this :-/
+  const mytable = workbook
+    .getWorksheets()
+  [action.sheet_position].getTables()[parseInt(action.args[0].toString())];
+  mytable.setShowFilterButton(Boolean(action.args[1]));
+}
+registerCallback(showAutofilterTable);

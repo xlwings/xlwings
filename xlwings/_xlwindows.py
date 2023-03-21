@@ -2015,7 +2015,7 @@ class Table(base_classes.Table):
         return Range(xl=self.xl.TotalsRowRange)
 
     def resize(self, range):
-        self.xl.Resize(range)
+        self.xl.Resize(range.api)
 
 
 class Tables(Collection, base_classes.Tables):

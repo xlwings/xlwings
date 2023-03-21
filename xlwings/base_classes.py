@@ -906,6 +906,7 @@ class Table:
 
     @property
     def display_name(self):
+        # This seems to be equivalent to name and Office Scripts has dropped it
         raise NotImplementedError()
 
     @display_name.setter

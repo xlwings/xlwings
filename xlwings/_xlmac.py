@@ -1662,7 +1662,7 @@ class Table(base_classes.Table):
             return Range(self.parent, self.xl.total_row.get_address())
 
     def resize(self, range):
-        self.xl.resize(range=range)
+        self.xl.resize(range=range.api)
 
 
 class Tables(Collection, base_classes.Tables):

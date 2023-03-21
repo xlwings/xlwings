@@ -67,6 +67,28 @@ data = {
                     "width": 40,
                 },
             ],
+            "tables": [
+                {
+                    "name": "Table1",
+                    "range_address": "A1:E6",
+                    "header_row_range_address": "A1:E1",
+                    "data_body_range_address": "A2:E6",
+                    "total_row_range_address": None,
+                    "show_headers": True,
+                    "show_totals": False,
+                    "table_style": "TableStyleMedium2",
+                },
+                {
+                    "name": "Table2",
+                    "range_address": "A52:D56",
+                    "header_row_range_address": None,
+                    "data_body_range_address": "A52:D56",
+                    "total_row_range_address": None,
+                    "show_headers": False,
+                    "show_totals": False,
+                    "table_style": "TableStyleMedium2",
+                },
+            ],
         },
         {"name": "Sheet2", "values": [["aa", "bb"], [11.0, 22.0]], "pictures": []},
         {
@@ -78,6 +100,7 @@ data = {
                 ["2021-10-01T00:00:00.000Z", "2021-12-31T23:35:00.000Z"],
             ],
             "pictures": [],
+            "tables": [],
         },
     ],
 }
@@ -531,3 +554,52 @@ def test_range_delete(book):
     book.sheets[0]["A1:B2"].delete("up")
     assert book.json()["actions"][0]["func"] == "rangeDelete"
     assert book.json()["actions"][0]["args"] == ["up"]
+
+
+# Tables
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_table_names(book):
+    assert book.sheets[0].tables[0].name == "Table1"
+    assert book.sheets[0].tables[1].name == "Table2"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_table_range(book):
+    assert book.sheets[0].tables[0].range == book.sheets[0]["A1:E6"]
+    assert book.sheets[0].tables[1].range == book.sheets[0]["A52:D56"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_table_header_row_range(book):
+    assert book.sheets[0].tables[0].header_row_range == book.sheets[0]["A1:E1"]
+    assert book.sheets[0].tables[1].header_row_range is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_table_totals_row_range(book):
+    assert book.sheets[0].tables[0].totals_row_range is None
+    assert book.sheets[0].tables[1].totals_row_range is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_table_show_headers(book):
+    assert book.sheets[0].tables[0].show_headers is True
+    assert book.sheets[0].tables[1].show_headers is False
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_table_show_totals(book):
+    assert book.sheets[0].tables[0].show_totals is False
+    assert book.sheets[0].tables[1].show_totals is False
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_table_table_style(book):
+    assert book.sheets[0].tables[0].table_style == "TableStyleMedium2"
+    assert book.sheets[0].tables[1].table_style == "TableStyleMedium2"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_table_data_body_range(book):
+    assert book.sheets[0].tables[0].data_body_range == book.sheets[0]["A2:E6"]
+    assert book.sheets[0].tables[1].data_body_range == book.sheets[0]["A52:D56"]

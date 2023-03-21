@@ -461,6 +461,10 @@ class Sheet(base_classes.Sheet):
     def pictures(self):
         return Pictures(self)
 
+    @property
+    def tables(self):
+        return Tables(parent=self)
+
 
 @lru_cache(None)
 def get_range_api(api_values, arg1, arg2=None):
@@ -1011,3 +1015,145 @@ class Names(base_classes.Names):
 
 
 engine = Engine()
+
+
+class Table(base_classes.Table):
+    @property
+    def show_autofilter(self):
+        return self.api["show_autofilter"]
+
+    @show_autofilter.setter
+    def show_autofilter(self, value):
+        self.append_json_action(
+            func="showAutofilterTable", args=[self.index - 1, value]
+        )
+
+    def __init__(self, parent, key):
+        self._parent = parent
+        self._api = self.parent.api["tables"][key - 1]
+        self.key = key
+
+    def append_json_action(self, **kwargs):
+        self.parent.book.append_json_action(
+            **{
+                **kwargs,
+                **{
+                    "sheet_position": self.parent.index - 1,
+                },
+            }
+        )
+
+    @property
+    def api(self):
+        return self._api
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @property
+    def name(self):
+        return self.api["name"]
+
+    @name.setter
+    def name(self, value):
+        self.api["name"] = value
+        self.append_json_action(func="setTableName", args=[self.index - 1, value])
+
+    @property
+    def range(self):
+        if self.api["range_address"]:
+            return self.parent.range(self.api["range_address"])
+        else:
+            return None
+
+    @property
+    def header_row_range(self):
+        if self.api["header_row_range_address"]:
+            return self.parent.range(self.api["header_row_range_address"])
+        else:
+            return None
+
+    @property
+    def data_body_range(self):
+        if self.api["data_body_range_address"]:
+            return self.parent.range(self.api["data_body_range_address"])
+        else:
+            return None
+
+    @property
+    def totals_row_range(self):
+        if self.api["total_row_range_address"]:
+            return self.parent.range(self.api["total_row_range_address"])
+        else:
+            return None
+
+    @property
+    def show_headers(self):
+        return self.api["show_headers"]
+
+    @property
+    def show_totals(self):
+        return self.api["show_totals"]
+
+    @property
+    def table_style(self):
+        return self.api["table_style"]
+
+    @property
+    def index(self):
+        # TODO: make available in public API
+        if isinstance(self.key, numbers.Number):
+            return self.key
+        else:
+            for ix, obj in self.api:
+                if obj["name"] == self.key:
+                    return ix + 1
+            raise KeyError(self.key)
+
+    def resize(self, range):
+        self.append_json_action(
+            func="resizeTable", args=[self.index - 1, range.address]
+        )
+
+
+class Tables(Collection, base_classes.Tables):
+    _attr = "tables"
+    _wrap = Table
+
+    def append_json_action(self, **kwargs):
+        self.parent.book.append_json_action(
+            **{
+                **kwargs,
+                **{
+                    "sheet_position": self.parent.index - 1,
+                },
+            }
+        )
+
+    def add(
+        self,
+        source_type=None,
+        source=None,
+        link_source=None,
+        has_headers=None,
+        destination=None,
+        table_style_name=None,
+    ):
+        self.append_json_action(
+            func="addTable",
+            args=[source.address, has_headers, table_style_name],
+        )
+        self.parent._api["tables"].append(
+            {
+                "name": "",
+                "range_address": None,
+                "header_row_range_address": None,
+                "data_body_range_address": None,
+                "total_row_range_address": None,
+                "show_headers": None,
+                "show_totals": None,
+                "table_style": "",
+            }
+        )
+        return Table(self.parent, len(self.parent.api["tables"]))
