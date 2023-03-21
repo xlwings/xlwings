@@ -113,8 +113,20 @@ try:
 except (ImportError, LicenseError):
     pass
 
-if engines:
-    engines.active = engines[0]
+if "excel" in [engine.name for engine in engines]:
+    # An active engine only really makes sense for the interactive mode with a desktop
+    # installation of Excel. Still, you could activate an engine explicitly via
+    # xw.engines["engine_name"].activate() which might be useful for testing purposes.
+    engines.active = engines["excel"]
+elif not engines:
+    error_msg = "No engine found! "
+    if sys.platform.startswith("win"):
+        error_msg += "Please install pywin32 or activate a license key."
+    elif sys.platform.startswith("darwin"):
+        error_msg += "Please install appscript and psutil or activate a license key."
+    else:
+        error_msg += "Please activate a license key."
+    raise XlwingsError(error_msg)
 
 # UDFs
 if sys.platform.startswith("win") and has_pywin32:

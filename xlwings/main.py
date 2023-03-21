@@ -134,7 +134,7 @@ class Engines:
             try:
                 return self.engines_by_name[name_or_index]
             except KeyError:
-                if not xlwings.__pro__ and name_or_index in ["calamine", "remote"]:
+                if not xlwings.__pro__ and name_or_index != "excel":
                     raise LicenseError(
                         f"The '{name_or_index}' engine requires xlwings PRO."
                     )
@@ -5147,8 +5147,8 @@ class ActiveEngineApps(Apps):
                 sys.platform.startswith("darwin") or sys.platform.startswith("win")
             ):
                 raise XlwingsError(
-                    "Your platform only supports the "
-                    "instantiation via xw.Book(json=...)"
+                    "The interactive mode of xlwings is only supported on Windows and "
+                    "macOS."
                 )
             elif sys.platform.startswith("darwin"):
                 raise XlwingsError(
