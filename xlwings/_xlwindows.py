@@ -1578,7 +1578,7 @@ class Range(base_classes.Range):
         self.xl.AutoFill(Destination=destination.api, Type=types[type_])
 
 
-class Shape:
+class Shape(base_classes.Shape):
     def __init__(self, xl):
         self.xl = xl
 
@@ -1676,7 +1676,7 @@ class Shape:
         return Characters(parent=self, xl=self.xl.TextFrame2.TextRange.GetCharacters)
 
 
-class Font:
+class Font(base_classes.Font):
     def __init__(self, parent, xl):
         self.parent = parent
         self.xl = xl
@@ -1793,7 +1793,7 @@ class Font:
         self.xl.Name = value
 
 
-class Characters:
+class Characters(base_classes.Characters):
     def __init__(self, parent, xl, start=None, length=None):
         self.parent = parent
         self.xl = xl
@@ -1860,7 +1860,7 @@ class Collection(base_classes.Collection):
             return False
 
 
-class PageSetup:
+class PageSetup(base_classes.PageSetup):
     def __init__(self, xl):
         self.xl = xl
 
@@ -1878,7 +1878,7 @@ class PageSetup:
         self.xl.PrintArea = value
 
 
-class Note:
+class Note(base_classes.Note):
     def __init__(self, xl):
         self.xl = xl
 
@@ -1902,7 +1902,7 @@ class Shapes(Collection):
     _wrap = Shape
 
 
-class Table:
+class Table(base_classes.Table):
     def __init__(self, xl):
         self.xl = xl
 
@@ -2018,7 +2018,7 @@ class Table:
         self.xl.Resize(range)
 
 
-class Tables(Collection):
+class Tables(Collection, base_classes.Tables):
     _wrap = Table
 
     def add(
@@ -2042,7 +2042,7 @@ class Tables(Collection):
         )
 
 
-class Chart:
+class Chart(base_classes.Chart):
     def __init__(self, xl_obj=None, xl=None):
         self.xl = xl_obj.Chart if xl is None else xl
         self.xl_obj = xl_obj
@@ -2154,7 +2154,7 @@ class Chart:
             pass
 
 
-class Charts(Collection):
+class Charts(Collection, base_classes.Charts):
     def _wrap(self, xl):
         return Chart(xl_obj=xl)
 

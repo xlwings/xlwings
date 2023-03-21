@@ -832,7 +832,7 @@ class TestRangeExpansion(TestBase):
 
 class TestCellErrors(TestBase):
     def test_cell_errors_default(self):
-        wb = xw.Book("cell_errors.xlsx")
+        wb = xw.Book(Path(this_dir) / "cell_errors.xlsx")
         sheet = wb.sheets[0]
 
         for i in range(1, 8):
@@ -840,7 +840,7 @@ class TestCellErrors(TestBase):
         wb.close()
 
     def test_cell_errors_str(self):
-        wb = xw.Book("cell_errors.xlsx")
+        wb = xw.Book(Path(this_dir) / "cell_errors.xlsx")
         sheet = wb.sheets[0]
         # Single cells, since macOS has massive issues with ranges that contain cell
         # errors, see #1028 and #1924
