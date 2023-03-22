@@ -191,7 +191,8 @@ export async function runPython(
       payload["names"] = payload["names"].concat(namesSheetsScope2);
 
       // values
-      sheetsLoader.forEach((item) => {
+      for (let item of sheetsLoader) {
+        let sheet = item["sheet"]; // TODO: replace item["sheet"] with sheet
         let values;
         if (excludeArray.includes(item["sheet"].name)) {
           values = [[]];
@@ -222,12 +223,62 @@ export async function runPython(
             );
           }
         }
+        // Tables
+        let tablesArray: Tables[] = [];
+        if (!excludeArray.includes(item["sheet"].name)) {
+          const tables = sheet.tables.load([
+            "name",
+            "showHeaders",
+            "dataBodyRange",
+            "showTotals",
+            "style",
+            "showFilterButton",
+          ]);
+          await context.sync();
+          let tablesLoader = [];
+          for (let table of sheet.tables.items) {
+            tablesLoader.push({
+              name: table.name,
+              showHeaders: table.showHeaders,
+              showTotals: table.showTotals,
+              style: table.style,
+              showFilterButton: table.showFilterButton,
+              range: table.getRange().load("address"),
+              dataBodyRange: table.getDataBodyRange().load("address"),
+              headerRowRange: table.showHeaders
+                ? table.getHeaderRowRange().load("address")
+                : null,
+              totalRowRange: table.showTotals
+                ? table.getTotalRowRange().load("address")
+                : null,
+            });
+          }
+          await context.sync();
+          for (let table of tablesLoader) {
+            tablesArray.push({
+              name: table.name,
+              range_address: table.range.address.split("!").pop(),
+              header_row_range_address: table.showHeaders
+                ? table.headerRowRange.address.split("!").pop()
+                : null,
+              data_body_range_address: table.dataBodyRange.address.split("!").pop(),
+              total_row_range_address: table.showTotals
+                ? table.totalRowRange.address.split("!").pop()
+                : null,
+              show_headers: table.showHeaders,
+              show_totals: table.showTotals,
+              table_style: table.style,
+              show_autofilter: table.showFilterButton,
+            });
+          }
+        }
         payload["sheets"].push({
           name: item["sheet"].name,
           values: values,
           pictures: [], // TODO
+          tables: tablesArray,
         });
-      });
+      }
 
       // console.log(payload);
 
@@ -291,6 +342,18 @@ interface Names {
   range?: Excel.Range;
   address?: string;
   book_scope: boolean;
+}
+
+interface Tables {
+  name: string;
+  range_address: string | undefined;
+  header_row_range_address: string | undefined | null;
+  data_body_range_address: string | undefined;
+  total_row_range_address: string | undefined | null;
+  show_headers: boolean;
+  show_totals: boolean;
+  table_style: string;
+  show_autofilter: boolean;
 }
 
 async function getRange(context: Excel.RequestContext, action: Action) {
@@ -475,7 +538,10 @@ async function nameDelete(context: Excel.RequestContext, action: Action) {
 }
 
 async function runMacro(context: Excel.RequestContext, action: Action) {
-  await globalThis.funcs[action.args[0].toString()](context, ...action.args.slice(1));
+  await globalThis.funcs[action.args[0].toString()](
+    context,
+    ...action.args.slice(1)
+  );
 }
 
 async function rangeDelete(context: Excel.RequestContext, action: Action) {

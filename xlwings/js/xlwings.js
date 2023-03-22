@@ -463,3 +463,19 @@ function rangeDelete(workbook, action) {
     getRange(workbook, action).deleteCells(SpreadsheetApp.Dimension.COLUMNS);
   }
 }
+
+function addTable(workbook, action) {
+  throw "NotImplemented: addTable";
+}
+
+function setTableName(workbook, action) {
+  throw "NotImplemented: setTableName";
+}
+
+function resizeTable(workbook, action) {
+  throw "NotImplemented: resizeTable";
+}
+
+function showAutofilterTable(workbook, action) {
+  throw "NotImplemented: showAutofilterTable";
+}

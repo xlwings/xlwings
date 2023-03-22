@@ -77,6 +77,7 @@ data = {
                     "show_headers": True,
                     "show_totals": False,
                     "table_style": "TableStyleMedium2",
+                    "show_autofilter": True,
                 },
                 {
                     "name": "Table2",
@@ -87,6 +88,7 @@ data = {
                     "show_headers": False,
                     "show_totals": False,
                     "table_style": "TableStyleMedium2",
+                    "show_autofilter": True,
                 },
             ],
         },
