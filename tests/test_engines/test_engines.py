@@ -70,9 +70,9 @@ data = {
             "tables": [
                 {
                     "name": "Table1",
-                    "range_address": "A1:E6",
-                    "header_row_range_address": "A1:E1",
-                    "data_body_range_address": "A2:E6",
+                    "range_address": "A10:B11",
+                    "header_row_range_address": "A10:B10",
+                    "data_body_range_address": "A11:B11",
                     "total_row_range_address": None,
                     "show_headers": True,
                     "show_totals": False,
@@ -81,14 +81,14 @@ data = {
                 },
                 {
                     "name": "Table2",
-                    "range_address": "A52:D56",
+                    "range_address": "A15:C17",
                     "header_row_range_address": None,
-                    "data_body_range_address": "A52:D56",
-                    "total_row_range_address": None,
+                    "data_body_range_address": "A15:C16",
+                    "total_row_range_address": "A17:C17",
                     "show_headers": False,
-                    "show_totals": False,
-                    "table_style": "TableStyleMedium2",
-                    "show_autofilter": True,
+                    "show_totals": True,
+                    "table_style": "TableStyleLight1",
+                    "show_autofilter": False,
                 },
             ],
         },
@@ -559,49 +559,61 @@ def test_range_delete(book):
 
 
 # Tables
-@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
 def test_table_names(book):
     assert book.sheets[0].tables[0].name == "Table1"
     assert book.sheets[0].tables[1].name == "Table2"
 
 
-@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
 def test_table_range(book):
-    assert book.sheets[0].tables[0].range == book.sheets[0]["A1:E6"]
-    assert book.sheets[0].tables[1].range == book.sheets[0]["A52:D56"]
+    assert book.sheets[0].tables[0].range == book.sheets[0]["A10:B11"]
+    assert book.sheets[0].tables[1].range == book.sheets[0]["A15:C17"]
 
 
-@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
 def test_table_header_row_range(book):
-    assert book.sheets[0].tables[0].header_row_range == book.sheets[0]["A1:E1"]
+    assert book.sheets[0].tables[0].header_row_range == book.sheets[0]["A10:B10"]
     assert book.sheets[0].tables[1].header_row_range is None
 
 
-@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
 def test_table_totals_row_range(book):
     assert book.sheets[0].tables[0].totals_row_range is None
-    assert book.sheets[0].tables[1].totals_row_range is None
+    assert book.sheets[0].tables[1].totals_row_range == book.sheets[0]["A17:C17"]
 
 
-@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
 def test_table_show_headers(book):
     assert book.sheets[0].tables[0].show_headers is True
     assert book.sheets[0].tables[1].show_headers is False
 
 
-@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
 def test_table_show_totals(book):
     assert book.sheets[0].tables[0].show_totals is False
-    assert book.sheets[0].tables[1].show_totals is False
+    assert book.sheets[0].tables[1].show_totals is True
 
 
-@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
 def test_table_table_style(book):
     assert book.sheets[0].tables[0].table_style == "TableStyleMedium2"
-    assert book.sheets[0].tables[1].table_style == "TableStyleMedium2"
+    assert book.sheets[0].tables[1].table_style == "TableStyleLight1"
 
 
-@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
 def test_table_data_body_range(book):
-    assert book.sheets[0].tables[0].data_body_range == book.sheets[0]["A2:E6"]
-    assert book.sheets[0].tables[1].data_body_range == book.sheets[0]["A52:D56"]
+    assert book.sheets[0].tables[0].data_body_range == book.sheets[0]["A11:B11"]
+    assert book.sheets[0].tables[1].data_body_range == book.sheets[0]["A15:C16"]
+
+
+@pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
+def test_table_parent(book):
+    assert book.sheets[0].tables[0].parent == book.sheets[0]
+    assert book.sheets[0].tables[1].parent == book.sheets[0]
+
+
+@pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
+def test_table_show_autofilter(book):
+    assert book.sheets[0].tables[0].show_autofilter is True
+    assert book.sheets[0].tables[1].show_autofilter is False
