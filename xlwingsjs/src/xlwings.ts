@@ -6,12 +6,7 @@ import "core-js/actual/function/name";
 import { xlAlert } from "./alert";
 
 const version = "dev";
-globalThis.funcs = {};
-
-export function registerCallback(callback: Function) {
-  globalThis.funcs[callback.name] = callback;
-}
-
+globalThis.callbacks = {};
 export async function runPython(
   url = "",
   { auth = "", include = "", exclude = "", headers = {} }: Options = {}
@@ -303,7 +298,7 @@ export async function runPython(
       if (rawData !== null) {
         const forceSync = ["sheet"];
         for (let action of rawData["actions"]) {
-          await funcs[action.func](context, action);
+          await globalThis.callbacks[action.func](context, action);
           if (forceSync.some((el) => action.func.toLowerCase().includes(el))) {
             await context.sync();
           }
@@ -367,34 +362,11 @@ async function getRange(context: Excel.RequestContext, action: Action) {
   );
 }
 
-// Functions map
-let funcs = {
-  setValues: setValues,
-  clearContents: clearContents,
-  addSheet: addSheet,
-  setSheetName: setSheetName,
-  setAutofit: setAutofit,
-  setRangeColor: setRangeColor,
-  activateSheet: activateSheet,
-  addHyperlink: addHyperlink,
-  setNumberFormat: setNumberFormat,
-  setPictureName: setPictureName,
-  setPictureWidth: setPictureWidth,
-  setPictureHeight: setPictureHeight,
-  deletePicture: deletePicture,
-  addPicture: addPicture,
-  updatePicture: updatePicture,
-  alert: alert,
-  setRangeName: setRangeName,
-  namesAdd: namesAdd,
-  nameDelete: nameDelete,
-  runMacro: runMacro,
-  rangeDelete: rangeDelete,
-};
+export function registerCallback(callback: Function) {
+  globalThis.callbacks[callback.name] = callback;
+}
 
-Object.assign(globalThis.funcs, funcs);
-
-// Functions
+// Callbacks
 async function setValues(context: Excel.RequestContext, action: Action) {
   // Handle DateTime (TODO: backend should deliver indices with datetime obj)
   let dt: Date;
@@ -431,12 +403,14 @@ async function setValues(context: Excel.RequestContext, action: Action) {
   range.values = action.values;
   await context.sync();
 }
+registerCallback(setValues);
 
 async function clearContents(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
   range.clear(Excel.ClearApplyTo.contents);
   await context.sync();
 }
+registerCallback(clearContents);
 
 async function addSheet(context: Excel.RequestContext, action: Action) {
   let sheet: Excel.Worksheet;
@@ -447,11 +421,13 @@ async function addSheet(context: Excel.RequestContext, action: Action) {
   }
   sheet.position = parseInt(action.args[0].toString());
 }
+registerCallback(addSheet);
 
 async function setSheetName(context: Excel.RequestContext, action: Action) {
   let sheets = context.workbook.worksheets.load("items");
   sheets.items[action.sheet_position].name = action.args[0].toString();
 }
+registerCallback(setSheetName);
 
 async function setAutofit(context: Excel.RequestContext, action: Action) {
   if (action.args[0] === "columns") {
@@ -462,12 +438,14 @@ async function setAutofit(context: Excel.RequestContext, action: Action) {
     range.format.autofitRows();
   }
 }
+registerCallback(setAutofit);
 
 async function setRangeColor(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
   range.format.fill.color = action.args[0].toString();
   await context.sync();
 }
+registerCallback(setRangeColor);
 
 async function activateSheet(context: Excel.RequestContext, action: Action) {
   let worksheets = context.workbook.worksheets;
@@ -475,6 +453,7 @@ async function activateSheet(context: Excel.RequestContext, action: Action) {
   await context.sync();
   worksheets.items[parseInt(action.args[0].toString())].activate();
 }
+registerCallback(activateSheet);
 
 async function addHyperlink(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
@@ -486,35 +465,43 @@ async function addHyperlink(context: Excel.RequestContext, action: Action) {
   range.hyperlink = hyperlink;
   await context.sync();
 }
+registerCallback(addHyperlink);
 
 async function setNumberFormat(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
   range.numberFormat = [[action.args[0].toString()]];
 }
+registerCallback(setNumberFormat);
 
 async function setPictureName(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: setPictureName";
 }
+registerCallback(setPictureName);
 
 async function setPictureHeight(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: setPictureHeight";
 }
+registerCallback(setPictureHeight);
 
 async function setPictureWidth(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: setPictureWidth";
 }
+registerCallback(setPictureWidth);
 
 async function deletePicture(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: deletePicture";
 }
+registerCallback(deletePicture);
 
 async function addPicture(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: addPicture";
 }
+registerCallback(addPicture);
 
 async function updatePicture(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: updatePicture";
 }
+registerCallback(updatePicture);
 
 async function alert(context: Excel.RequestContext, action: Action) {
   let myPrompt = action.args[0].toString();
@@ -524,25 +511,30 @@ async function alert(context: Excel.RequestContext, action: Action) {
   let myCallback = action.args[4].toString();
   xlAlert(myPrompt, myTitle, myButtons, myMode, myCallback);
 }
+registerCallback(alert);
 
 async function setRangeName(context: Excel.RequestContext, action: Action) {
   throw "NotImplemented: setRangeName";
 }
+registerCallback(setRangeName);
 
 async function namesAdd(context: Excel.RequestContext, action: Action) {
   throw "NotImplemented: namesAdd";
 }
+registerCallback(namesAdd);
 
 async function nameDelete(context: Excel.RequestContext, action: Action) {
   throw "NotImplemented: deleteName";
 }
+registerCallback(nameDelete);
 
 async function runMacro(context: Excel.RequestContext, action: Action) {
-  await globalThis.funcs[action.args[0].toString()](
+  await globalThis.callbacks[action.args[0].toString()](
     context,
     ...action.args.slice(1)
   );
 }
+registerCallback(runMacro);
 
 async function rangeDelete(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
@@ -553,3 +545,4 @@ async function rangeDelete(context: Excel.RequestContext, action: Action) {
     range.delete(Excel.DeleteShiftDirection.left);
   }
 }
+registerCallback(rangeDelete);
