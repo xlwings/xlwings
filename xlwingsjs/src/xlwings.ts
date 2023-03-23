@@ -256,7 +256,9 @@ export async function runPython(
               header_row_range_address: table.showHeaders
                 ? table.headerRowRange.address.split("!").pop()
                 : null,
-              data_body_range_address: table.dataBodyRange.address.split("!").pop(),
+              data_body_range_address: table.dataBodyRange.address
+                .split("!")
+                .pop(),
               total_row_range_address: table.showTotals
                 ? table.totalRowRange.address.split("!").pop()
                 : null,
@@ -360,6 +362,14 @@ async function getRange(context: Excel.RequestContext, action: Action) {
     action.row_count,
     action.column_count
   );
+}
+
+async function getTable(context: Excel.RequestContext, action: Action) {
+  // Requires action.args[0] to be the table index
+  let sheets = context.workbook.worksheets.load("items");
+  const tables = sheets.items[action.sheet_position].tables.load("items");
+  await context.sync();
+  return tables.items[parseInt(action.args[0].toString())];
 }
 
 export function registerCallback(callback: Function) {
@@ -546,3 +556,37 @@ async function rangeDelete(context: Excel.RequestContext, action: Action) {
   }
 }
 registerCallback(rangeDelete);
+
+async function addTable(context: Excel.RequestContext, action: Action) {
+  let worksheets = context.workbook.worksheets.load("items");
+  await context.sync();
+  let mytable = worksheets.items[action.sheet_position].tables.add(
+    action.args[0].toString(),
+    Boolean(action.args[1])
+  );
+  if (action.args[2] !== null) {
+    mytable.style = action.args[2].toString();
+  }
+}
+registerCallback(addTable);
+
+async function setTableName(context: Excel.RequestContext, action: Action) {
+  const mytable = await getTable(context, action);
+  mytable.name = action.args[1].toString();
+}
+registerCallback(setTableName);
+
+async function resizeTable(context: Excel.RequestContext, action: Action) {
+  const mytable = await getTable(context, action);
+  mytable.resize(action.args[1].toString());
+}
+registerCallback(resizeTable);
+
+async function showAutofilterTable(
+  context: Excel.RequestContext,
+  action: Action
+) {
+  const mytable = await getTable(context, action);
+  mytable.showFilterButton = Boolean(action.args[1]);
+}
+registerCallback(showAutofilterTable);
