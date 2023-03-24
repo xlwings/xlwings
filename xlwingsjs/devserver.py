@@ -49,7 +49,15 @@ def show_alert(data: dict = Body):
 def integration_test_read(data: dict = Body):
     book = xw.Book(json=data)
     assert book.name == "engines.xlsx", "engines.xlsx must be the active file"
-    assert data == expected_body, "Body differs (Make sure to select cell Sheet1!A1)"
+    if data["client"] == "Office.js":
+        expected_data = expected_body["Office.js"]
+    elif data["client"] == "VBA":
+        expected_data = expected_body["VBA"]
+    elif data["client"] == "Google Apps Script":
+        expected_data = expected_body["Google Apps Script"]
+    elif data["client"] == "Office Scripts":
+        expected_data = expected_body["Office Scripts"]
+    assert data == expected_data, "Body differs (Make sure to select cell Sheet1!A1)"
     book.app.alert("OK", title="Integration Test Read")
     return book.json()
 
@@ -180,7 +188,8 @@ async def exception_handler(request, exception):
     )
 
 
-expected_body = {
+expected_body = {}
+expected_body["Office.js"] = {
     "client": "Office.js",
     "version": "dev",
     "book": {"name": "engines.xlsx", "active_sheet_index": 0, "selection": "A1"},
@@ -194,23 +203,65 @@ expected_body = {
             "name": "Sheet1",
             "values": [
                 ["a", "b", "c", ""],
-                [1, 2, 3, "2021-01-01T00:00:00.000Z"],
-                [4, 5, 6, ""],
+                [1.1, 2.2, 3.3, "2021-01-01T00:00:00.000Z"],
+                [4.4, 5.5, 6.6, ""],
                 ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["Column1", "Column2", "", ""],
+                [1.1, 2.2, "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                [1.1, 2.2, 3.3, ""],
+                [4.4, 5.5, 6.6, ""],
+                ["Total", "", 9.9, ""],
             ],
             "pictures": [],
+            "tables": [
+                {
+                    "name": "Table1",
+                    "range_address": "A10:B11",
+                    "header_row_range_address": "A10:B10",
+                    "data_body_range_address": "A11:B11",
+                    "total_row_range_address": None,
+                    "show_headers": True,
+                    "show_totals": False,
+                    "table_style": "TableStyleMedium2",
+                    "show_autofilter": True,
+                },
+                {
+                    "name": "Table2",
+                    "range_address": "A15:C17",
+                    "header_row_range_address": None,
+                    "data_body_range_address": "A15:C16",
+                    "total_row_range_address": "A17:C17",
+                    "show_headers": False,
+                    "show_totals": True,
+                    "table_style": "TableStyleLight1",
+                    "show_autofilter": False,
+                },
+            ],
         },
-        {"name": "Sheet2", "values": [["aa", "bb"], [11, 22]], "pictures": []},
+        {
+            "name": "Sheet2",
+            "values": [["aa", "bb"], [11, 22]],
+            "pictures": [],
+            "tables": [],
+        },
         {
             "name": "Sheet3",
             "values": [
                 ["", "string"],
                 [-1, 1],
                 [True, False],
-                # TODO: Custom datetime format not supported yet
                 ["2021-10-01T00:00:00.000Z", 44561.9826388889],
             ],
             "pictures": [],
+            "tables": [],
         },
     ],
 }

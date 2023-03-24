@@ -506,10 +506,7 @@ function showAutofilterTable(workbook: ExcelScript.Workbook, action: Action) {
 }
 registerCallback(showAutofilterTable);
 
-async function showHeadersTable(
-  workbook: ExcelScript.Workbook,
-  action: Action
-) {
+function showHeadersTable(workbook: ExcelScript.Workbook, action: Action) {
   const mytable = workbook.getWorksheets()[action.sheet_position].getTables()[
     parseInt(action.args[0].toString())
   ];
@@ -517,7 +514,7 @@ async function showHeadersTable(
 }
 registerCallback(showHeadersTable);
 
-async function showTotalsTable(workbook: ExcelScript.Workbook, action: Action) {
+function showTotalsTable(workbook: ExcelScript.Workbook, action: Action) {
   const mytable = workbook.getWorksheets()[action.sheet_position].getTables()[
     parseInt(action.args[0].toString())
   ];
@@ -525,7 +522,7 @@ async function showTotalsTable(workbook: ExcelScript.Workbook, action: Action) {
 }
 registerCallback(showTotalsTable);
 
-async function setTableStyle(workbook: ExcelScript.Workbook, action: Action) {
+function setTableStyle(workbook: ExcelScript.Workbook, action: Action) {
   const mytable = workbook.getWorksheets()[action.sheet_position].getTables()[
     parseInt(action.args[0].toString())
   ];
