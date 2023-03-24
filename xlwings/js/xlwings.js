@@ -479,3 +479,15 @@ function resizeTable(workbook, action) {
 function showAutofilterTable(workbook, action) {
   throw "NotImplemented: showAutofilterTable";
 }
+
+async function showHeadersTable(workbook, action) {
+  throw "NotImplemented: showHeadersTable";
+}
+
+async function showTotalsTable(workbook, action) {
+  throw "NotImplemented: showTotalsTable";
+}
+
+async function setTableStyle(workbook, action) {
+  throw "NotImplemented: setTableStyle";
+}

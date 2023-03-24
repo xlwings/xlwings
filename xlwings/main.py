@@ -3773,12 +3773,10 @@ class Tables(Collection):
             has_headers=has_headers,
             destination=destination,
             table_style_name=table_style_name,
+            name=name,
         )
 
-        table = Table(impl=impl)
-        if name is not None:
-            table.name = name
-        return table
+        return Table(impl=impl)
 
 
 class Chart:

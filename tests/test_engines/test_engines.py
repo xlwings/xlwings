@@ -617,3 +617,163 @@ def test_table_parent(book):
 def test_table_show_autofilter(book):
     assert book.sheets[0].tables[0].show_autofilter is True
     assert book.sheets[0].tables[1].show_autofilter is False
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_tables_add(book):
+    sheet1 = book.sheets[0]
+    sheet1.tables.add(sheet1["A1:B2"], name="Table1")
+    assert book.json() == {
+        "actions": [
+            {
+                "func": "addTable",
+                "args": ["$A$1:$B$2", True, "TableStyleMedium2", "Table1"],
+                "values": None,
+                "sheet_position": 0,
+                "start_row": None,
+                "start_column": None,
+                "row_count": None,
+                "column_count": None,
+            },
+        ]
+    }
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_tables_update(book):
+    sheet1 = book.sheets[0]
+    sheet1.tables[0].update(pd.DataFrame({"A": [1, 2], "B": [3, 4]}))
+    assert book.json() == {
+        "actions": [
+            {
+                "func": "resizeTable",
+                "args": [0, "$A$10:$C$12"],
+                "values": None,
+                "sheet_position": 0,
+                "start_row": None,
+                "start_column": None,
+                "row_count": None,
+                "column_count": None,
+            },
+            {
+                "func": "setValues",
+                "args": [None],
+                "values": [[" ", "A", "B"]],
+                "sheet_position": 0,
+                "start_row": 9,
+                "start_column": 0,
+                "row_count": 1,
+                "column_count": 3,
+            },
+            {
+                "func": "setValues",
+                "args": [None],
+                "values": [[0, 1, 3], [1, 2, 4]],
+                "sheet_position": 0,
+                "start_row": 10,
+                "start_column": 0,
+                "row_count": 2,
+                "column_count": 3,
+            },
+        ]
+    }
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_tables_resize(book):
+    sheet1 = book.sheets[0]
+    sheet1.tables[0].resize(sheet1["A10:C12"])
+    assert book.json() == {
+        "actions": [
+            {
+                "func": "resizeTable",
+                "args": [0, "$A$10:$C$12"],
+                "values": None,
+                "sheet_position": 0,
+                "start_row": None,
+                "start_column": None,
+                "row_count": None,
+                "column_count": None,
+            },
+        ]
+    }
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_table_set_name(book):
+    sheet1 = book.sheets[0]
+    sheet1.tables[0].name = "NewName"
+    assert book.json() == {
+        "actions": [
+            {
+                "func": "setTableName",
+                "args": [0, "NewName"],
+                "values": None,
+                "sheet_position": 0,
+                "start_row": None,
+                "start_column": None,
+                "row_count": None,
+                "column_count": None,
+            },
+        ]
+    }
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_table_set_show_autofilter(book):
+    sheet1 = book.sheets[0]
+    sheet1.tables[0].show_autofilter = False
+    assert book.json() == {
+        "actions": [
+            {
+                "func": "showAutofilterTable",
+                "args": [0, False],
+                "values": None,
+                "sheet_position": 0,
+                "start_row": None,
+                "start_column": None,
+                "row_count": None,
+                "column_count": None,
+            },
+        ]
+    }
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_table_set_show_headers(book):
+    sheet1 = book.sheets[0]
+    sheet1.tables[0].show_headers = False
+    assert book.json() == {
+        "actions": [
+            {
+                "func": "showHeadersTable",
+                "args": [0, False],
+                "values": None,
+                "sheet_position": 0,
+                "start_row": None,
+                "start_column": None,
+                "row_count": None,
+                "column_count": None,
+            },
+        ]
+    }
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_table_set_show_totals(book):
+    sheet1 = book.sheets[0]
+    sheet1.tables[0].show_totals = True
+    assert book.json() == {
+        "actions": [
+            {
+                "func": "showTotalsTable",
+                "args": [0, True],
+                "values": None,
+                "sheet_position": 0,
+                "start_row": None,
+                "start_column": None,
+                "row_count": None,
+                "column_count": None,
+            },
+        ]
+    }

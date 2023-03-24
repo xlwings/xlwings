@@ -1678,6 +1678,7 @@ class Tables(Collection, base_classes.Tables):
         has_headers=None,
         destination=None,
         table_style_name=None,
+        name=None,
     ):
         header_row = {
             True: kw.header_yes,
@@ -1685,7 +1686,7 @@ class Tables(Collection, base_classes.Tables):
             "guess": kw.header_guess,
         }
         sheet_index = self.parent.xl.entry_index.get()
-        return Table(
+        table = Table(
             self.parent,
             self.parent.xl.make(
                 at=self.parent.book.xl.sheets[sheet_index],
@@ -1698,6 +1699,9 @@ class Tables(Collection, base_classes.Tables):
                 },
             ).name.get(),
         )
+        if name is not None:
+            table.name = name
+        return table
 
 
 class Chart(base_classes.Chart):

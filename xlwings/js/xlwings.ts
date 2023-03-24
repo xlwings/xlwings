@@ -236,12 +236,12 @@ async function runPython(
 
   // Run Functions
   if (rawData !== null) {
-    const forceSync = ["sheet"];
+    const forceSync = ["sheet", "table"];
     rawData["actions"].forEach((action) => {
-      if (forceSync.some((el) => action.func.toLowerCase().includes(el))) {
-        console.log(); // Force sync to prevent writing to wrong sheet
-      }
       globalThis.callbacks[action.func](workbook, action);
+      if (forceSync.some((el) => action.func.toLowerCase().includes(el))) {
+        console.log(); // Force sync
+      }
     });
   }
 }
@@ -471,37 +471,64 @@ function addTable(workbook: ExcelScript.Workbook, action: Action) {
     .getWorksheets()
     [action.sheet_position].addTable(
       action.args[0].toString(),
-      Boolean(action.args[1]),
+      Boolean(action.args[1])
     );
-    if (action.args[2] !== null) {
-      mytable.setPredefinedTableStyle(action.args[2].toString());
-    }
+  if (action.args[2] !== null) {
+    mytable.setPredefinedTableStyle(action.args[2].toString());
+  }
+  if (action.args[3] !== null) {
+    mytable.setName(action.args[3].toString());
+  }
 }
 registerCallback(addTable);
 
 function setTableName(workbook: ExcelScript.Workbook, action: Action) {
-  console.log('Updating table name')  // Won't work without this :-/
-  const mytable = workbook
-    .getWorksheets()
-  [action.sheet_position].getTables()[parseInt(action.args[0].toString())];
+  const mytable = workbook.getWorksheets()[action.sheet_position].getTables()[
+    parseInt(action.args[0].toString())
+  ];
   mytable.setName(action.args[1].toString());
 }
 registerCallback(setTableName);
 
 function resizeTable(workbook: ExcelScript.Workbook, action: Action) {
-  console.log('Resizing table')  // Won't work without this :-
-  const mytable = workbook
-    .getWorksheets()
-  [action.sheet_position].getTables()[parseInt(action.args[0].toString())];
+  const mytable = workbook.getWorksheets()[action.sheet_position].getTables()[
+    parseInt(action.args[0].toString())
+  ];
   mytable.resize(action.args[1].toString());
 }
 registerCallback(resizeTable);
 
 function showAutofilterTable(workbook: ExcelScript.Workbook, action: Action) {
-  console.log('Showing autofilter')  // Won't work without this :-/
-  const mytable = workbook
-    .getWorksheets()
-  [action.sheet_position].getTables()[parseInt(action.args[0].toString())];
+  const mytable = workbook.getWorksheets()[action.sheet_position].getTables()[
+    parseInt(action.args[0].toString())
+  ];
   mytable.setShowFilterButton(Boolean(action.args[1]));
 }
 registerCallback(showAutofilterTable);
+
+async function showHeadersTable(
+  workbook: ExcelScript.Workbook,
+  action: Action
+) {
+  const mytable = workbook.getWorksheets()[action.sheet_position].getTables()[
+    parseInt(action.args[0].toString())
+  ];
+  mytable.setShowHeaders(Boolean(action.args[1]));
+}
+registerCallback(showHeadersTable);
+
+async function showTotalsTable(workbook: ExcelScript.Workbook, action: Action) {
+  const mytable = workbook.getWorksheets()[action.sheet_position].getTables()[
+    parseInt(action.args[0].toString())
+  ];
+  mytable.setShowTotals(Boolean(action.args[1]));
+}
+registerCallback(showTotalsTable);
+
+async function setTableStyle(workbook: ExcelScript.Workbook, action: Action) {
+  const mytable = workbook.getWorksheets()[action.sheet_position].getTables()[
+    parseInt(action.args[0].toString())
+  ];
+  mytable.setPredefinedTableStyle(action.args[1].toString());
+}
+registerCallback(setTableStyle);

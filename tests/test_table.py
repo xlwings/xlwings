@@ -5,6 +5,8 @@ import pandas as pd
 
 import xlwings as xw
 
+this_dir = Path(__file__).parent
+
 
 class TestTable(unittest.TestCase):
     @classmethod
@@ -130,7 +132,7 @@ class TestTableUpdate(unittest.TestCase):
                 "d": [1111, 2222, 3333, 4444, 5555],
             }
         )
-        book = xw.Book(Path("tables.xlsx").resolve())
+        book = xw.Book(this_dir / "tables.xlsx")
         sheet = book.sheets["template"].copy()
         sheet.tables[0].update(df)
         sheet.tables[1].update(df)

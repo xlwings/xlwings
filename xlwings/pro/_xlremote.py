@@ -367,7 +367,12 @@ class Sheets(base_classes.Sheets):
                 sheet_number += 1
             else:
                 break
-        api = {"name": f"Sheet{sheet_number}", "values": [[]]}
+        api = {
+            "name": f"Sheet{sheet_number}",
+            "values": [[]],
+            "pictures": [],
+            "tables": [],
+        }
         if before:
             if before.index == 1:
                 ix = 1
@@ -1092,13 +1097,25 @@ class Table(base_classes.Table):
     def show_headers(self):
         return self.api["show_headers"]
 
+    @show_headers.setter
+    def show_headers(self, value):
+        self.append_json_action(func="showHeadersTable", args=[self.index - 1, value])
+
     @property
     def show_totals(self):
         return self.api["show_totals"]
 
+    @show_totals.setter
+    def show_totals(self, value):
+        self.append_json_action(func="showTotalsTable", args=[self.index - 1, value])
+
     @property
     def table_style(self):
         return self.api["table_style"]
+
+    @table_style.setter
+    def table_style(self, value):
+        self.append_json_action(func="setTableStyle", args=[self.index - 1, value])
 
     @property
     def index(self):
@@ -1139,10 +1156,11 @@ class Tables(Collection, base_classes.Tables):
         has_headers=None,
         destination=None,
         table_style_name=None,
+        name=None,
     ):
         self.append_json_action(
             func="addTable",
-            args=[source.address, has_headers, table_style_name],
+            args=[source.address, has_headers, table_style_name, name],
         )
         self.parent._api["tables"].append(
             {

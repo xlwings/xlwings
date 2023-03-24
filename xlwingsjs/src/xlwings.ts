@@ -567,6 +567,9 @@ async function addTable(context: Excel.RequestContext, action: Action) {
   if (action.args[2] !== null) {
     mytable.style = action.args[2].toString();
   }
+  if (action.args[3] !== null) {
+    mytable.name = action.args[3].toString();
+  }
 }
 registerCallback(addTable);
 
@@ -590,3 +593,21 @@ async function showAutofilterTable(
   mytable.showFilterButton = Boolean(action.args[1]);
 }
 registerCallback(showAutofilterTable);
+
+async function showHeadersTable(context: Excel.RequestContext, action: Action) {
+  const mytable = await getTable(context, action);
+  mytable.showHeaders = Boolean(action.args[1]);
+}
+registerCallback(showHeadersTable);
+
+async function showTotalsTable(context: Excel.RequestContext, action: Action) {
+  const mytable = await getTable(context, action);
+  mytable.showTotals = Boolean(action.args[1]);
+}
+registerCallback(showTotalsTable);
+
+async function setTableStyle(context: Excel.RequestContext, action: Action) {
+  const mytable = await getTable(context, action);
+  mytable.style = action.args[1].toString();
+}
+registerCallback(setTableStyle);

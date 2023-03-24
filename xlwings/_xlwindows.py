@@ -2029,8 +2029,9 @@ class Tables(Collection, base_classes.Tables):
         has_headers=None,
         destination=None,
         table_style_name=None,
+        name=None,
     ):
-        return Table(
+        table = Table(
             xl=self.xl.Add(
                 SourceType=ListObjectSourceType.xlSrcRange,
                 Source=source.api,
@@ -2040,6 +2041,9 @@ class Tables(Collection, base_classes.Tables):
                 TableStyleName=table_style_name,
             )
         )
+        if name is not None:
+            table.name = name
+        return table
 
 
 class Chart(base_classes.Chart):
