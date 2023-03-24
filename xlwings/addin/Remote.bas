@@ -190,7 +190,11 @@ Function RunRemotePython( _
                 Else
                     tableDict.Add "header_row_range_address", Null
                 End If
-                tableDict.Add "data_body_range_address", table.DataBodyRange.Address
+                If table.DataBodyRange Is Nothing Then
+                    tableDict.Add "data_body_range_address", Null
+                Else
+                    tableDict.Add "data_body_range_address", table.DataBodyRange.Address
+                End If
                 If table.ShowTotals Then
                     tableDict.Add "total_row_range_address", table.TotalsRowRange.Address
                 Else
@@ -667,7 +671,9 @@ Sub rangeDelete(wb As Workbook, action As Dictionary)
 End Sub
 
 Sub addTable(wb As Workbook, action as Dictionary)
-    wb.Worksheets(action("sheet_position") + 1).ListObjects.Add Source:=wb.Worksheets(action("sheet_position") + 1).Range(action("args")(1)), XlListObjectHasHeaders:=action("args")(2), TableStyleName:=action("args")(3)
+    Dim table As ListObject
+    Set table = wb.Worksheets(action("sheet_position") + 1).ListObjects.Add(Source:=wb.Worksheets(action("sheet_position") + 1).Range(action("args")(1)), XlListObjectHasHeaders:=action("args")(2), TableStyleName:=action("args")(3))
+    table.Name = action("args")(4)
 End Sub
 
 Sub setTableName(wb As Workbook, action as Dictionary)
@@ -680,4 +686,16 @@ End Sub
 
 Sub showAutofilterTable(wb As Workbook, action as Dictionary)
     wb.Worksheets(action("sheet_position") + 1).ListObjects(action("args")(1) + 1).ShowAutoFilter = action("args")(2)
+End Sub
+
+Sub showHeadersTable(wb As Workbook, action as Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).ListObjects(action("args")(1) + 1).ShowHeaders = action("args")(2)
+End Sub
+
+Sub showTotalsTable(wb As Workbook, action as Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).ListObjects(action("args")(1) + 1).ShowTotals = action("args")(2)
+End Sub
+
+Sub setTableStyle(wb As Workbook, action as Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).ListObjects(action("args")(1) + 1).TableStyle = action("args")(2)
 End Sub
