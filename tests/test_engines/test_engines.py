@@ -24,8 +24,8 @@ this_dir = Path(__file__).resolve().parent
 
 # "calamine", "remote", or "excel"
 engine = os.environ.get("XLWINGS_ENGINE") or "remote"
-# "xlsx", "xlsb", or "xls"
-file_extension = os.environ.get("XLWINGS_FILE_EXTENSION") or "xlsx"
+# "xlsm", "xlsb", or "xls"
+file_extension = os.environ.get("XLWINGS_FILE_EXTENSION") or "xlsm"
 
 
 data = {

@@ -188,6 +188,7 @@ function runPython(
       name: sheet.getName(),
       values: values,
       pictures: pictures,
+      tables: [],
     });
   });
 
