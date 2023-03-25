@@ -90,6 +90,28 @@ def integration_test_write(data: dict = Body):
     sheet3 = book.sheets.add()
     sheet3["A1"].value = "Unnamed Sheet"
 
+    # Tables
+    sheet_tables = book.sheets["Tables"]
+
+    sheet_tables["A1"].value = [["one", "two"], [1, 2], [3, 4]]
+    sheet_tables.tables.add(sheet3["A1:B3"])
+
+    sheet_tables["A5"].value = [[1, 2], [3, 4]]
+    sheet_tables.tables.add(sheet_tables["A5:B6"], has_headers=False)
+
+    sheet_tables["A9"].value = [["one", "two"], [1, 2], [3, 4]]
+    mytable1 = sheet_tables.tables.add(sheet_tables["A9:B11"], name="MyTable1")
+    mytable1.show_autofilter = False
+
+    sheet_tables["A13"].value = [[1, 2], [3, 4]]
+    mytable2 = sheet_tables.tables.add(
+        sheet_tables["A13:B14"], name="MyTable2", has_headers=False
+    )
+    mytable2.show_headers = False
+    mytable2.show_totals = True
+    mytable2.show_filters = False
+    mytable2.resize(sheet_tables["A14:C17"])
+
     # Set sheet name
     book.sheets["Sheet2"].name = "Changed"
     book.sheets["Changed"]["A1"].value = "Changed"
