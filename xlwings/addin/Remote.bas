@@ -670,10 +670,18 @@ Sub rangeDelete(wb As Workbook, action As Dictionary)
     End If
 End Sub
 
-Sub addTable(wb As Workbook, action as Dictionary)
+Sub addTable(wb As Workbook, action As Dictionary)
+    Dim hasHeaders As Integer
+    If action("args")(2) = True Then
+        hasHeaders = XlYesNoGuess.xlYes
+    Else
+        hasHeaders = XlYesNoGuess.xlNo
+    End If
     Dim table As ListObject
-    Set table = wb.Worksheets(action("sheet_position") + 1).ListObjects.Add(Source:=wb.Worksheets(action("sheet_position") + 1).Range(action("args")(1)), XlListObjectHasHeaders:=action("args")(2), TableStyleName:=action("args")(3))
-    table.Name = action("args")(4)
+    Set table = wb.Worksheets(action("sheet_position") + 1).ListObjects.Add(source:=wb.Worksheets(action("sheet_position") + 1).Range(action("args")(1)), XlListObjectHasHeaders:=hasHeaders, TableStyleName:=action("args")(3))
+    If Not IsNull(action("args")(4)) Then
+        table.Name = action("args")(4)
+    End If
 End Sub
 
 Sub setTableName(wb As Workbook, action as Dictionary)
