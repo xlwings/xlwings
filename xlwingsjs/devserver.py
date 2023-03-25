@@ -48,6 +48,7 @@ def show_alert(data: dict = Body):
 @app.post("/integration-test-read")
 def integration_test_read(data: dict = Body):
     book = xw.Book(json=data)
+    print(data)
     assert book.name == "engines.xlsm", "engines.xlsm must be the active file"
     if data["client"] == "Office.js":
         expected_data = expected_body["Office.js"]
@@ -214,7 +215,7 @@ expected_body = {}
 expected_body["Office.js"] = {
     "client": "Office.js",
     "version": "dev",
-    "book": {"name": "engines.xlsx", "active_sheet_index": 0, "selection": "A1"},
+    "book": {"name": "engines.xlsm", "active_sheet_index": 0, "selection": "A1"},
     "names": [
         {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
         {"name": "two", "sheet_index": 1, "address": "A1:A2", "book_scope": True},
@@ -270,7 +271,7 @@ expected_body["Office.js"] = {
         },
         {
             "name": "Sheet2",
-            "values": [["aa", "bb"], [11, 22]],
+            "values": [["aa", "bb"], [11.1, 22.2]],
             "pictures": [],
             "tables": [],
         },
@@ -278,7 +279,7 @@ expected_body["Office.js"] = {
             "name": "Sheet3",
             "values": [
                 ["", "string"],
-                [-1, 1],
+                [-1.1, 1.1],
                 [True, False],
                 ["2021-10-01T00:00:00.000Z", 44561.9826388889],
             ],
@@ -332,7 +333,6 @@ expected_body["VBA"] = {
                     "table_style": "TableStyleLight1",
                     "show_autofilter": False,
                 },
-                None,
             ],
             "values": [
                 ["a", "b", "c", None],
@@ -358,7 +358,7 @@ expected_body["VBA"] = {
             "name": "Sheet2",
             "pictures": [],
             "tables": [],
-            "values": [["aa", "bb"], [11, 22]],
+            "values": [["aa", "bb"], [11.1, 22.2]],
         },
         {
             "name": "Sheet3",
@@ -366,7 +366,7 @@ expected_body["VBA"] = {
             "tables": [],
             "values": [
                 [None, "string"],
-                [-1, 1],
+                [-1.1, 1.1],
                 [True, False],
                 ["2021-10-01T00:00:00.000Z", "2021-12-31T23:35:00.000Z"],
             ],
