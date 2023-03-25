@@ -48,8 +48,16 @@ def show_alert(data: dict = Body):
 @app.post("/integration-test-read")
 def integration_test_read(data: dict = Body):
     book = xw.Book(json=data)
-    assert book.name == "engines.xlsx", "engines.xlsx must be the active file"
-    assert data == expected_body, "Body differs (Make sure to select cell Sheet1!A1)"
+    assert book.name == "engines.xlsm", "engines.xlsm must be the active file"
+    if data["client"] == "Office.js":
+        expected_data = expected_body["Office.js"]
+    elif data["client"] == "VBA":
+        expected_data = expected_body["VBA"]
+    elif data["client"] == "Google Apps Script":
+        expected_data = expected_body["Google Apps Script"]
+    elif data["client"] == "Microsoft Office Scripts":
+        expected_data = expected_body["Office Scripts"]
+    assert data == expected_data, "Body differs (Make sure to select cell Sheet1!A1)"
     book.app.alert("OK", title="Integration Test Read")
     return book.json()
 
@@ -58,8 +66,8 @@ def integration_test_read(data: dict = Body):
 def integration_test_write(data: dict = Body):
     book = xw.Book(json=data)
     assert (
-        book.name == "integration_write.xlsx"
-    ), "integration_write.xlsx must be the active file"
+        book.name == "integration_write.xlsm"
+    ), "integration_write.xlsm must be the active file"
     sheet1 = book.sheets["Sheet 1"]
 
     # Values
@@ -81,6 +89,28 @@ def integration_test_write(data: dict = Body):
     sheet2["A1"].value = "Named Sheet"
     sheet3 = book.sheets.add()
     sheet3["A1"].value = "Unnamed Sheet"
+
+    # Tables
+    sheet_tables = book.sheets["Tables"]
+
+    sheet_tables["A1"].value = [["one", "two"], [1, 2], [3, 4]]
+    sheet_tables.tables.add(sheet3["A1:B3"])
+
+    sheet_tables["A5"].value = [[1, 2], [3, 4]]
+    sheet_tables.tables.add(sheet_tables["A5:B6"], has_headers=False)
+
+    sheet_tables["A9"].value = [["one", "two"], [1, 2], [3, 4]]
+    mytable1 = sheet_tables.tables.add(sheet_tables["A9:B11"], name="MyTable1")
+    mytable1.show_autofilter = False
+
+    sheet_tables["A13"].value = [[1, 2], [3, 4]]
+    mytable2 = sheet_tables.tables.add(
+        sheet_tables["A13:B14"], name="MyTable2", has_headers=False
+    )
+    mytable2.show_headers = False
+    mytable2.show_totals = True
+    mytable2.show_filters = False
+    mytable2.resize(sheet_tables["A14:C17"])
 
     # Set sheet name
     book.sheets["Sheet2"].name = "Changed"
@@ -180,10 +210,11 @@ async def exception_handler(request, exception):
     )
 
 
-expected_body = {
+expected_body = {}
+expected_body["Office.js"] = {
     "client": "Office.js",
     "version": "dev",
-    "book": {"name": "engines.xlsx", "active_sheet_index": 0, "selection": "A1"},
+    "book": {"name": "engines.xlsm", "active_sheet_index": 0, "selection": "A1"},
     "names": [
         {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
         {"name": "two", "sheet_index": 1, "address": "A1:A2", "book_scope": True},
@@ -194,27 +225,275 @@ expected_body = {
             "name": "Sheet1",
             "values": [
                 ["a", "b", "c", ""],
-                [1, 2, 3, "2021-01-01T00:00:00.000Z"],
-                [4, 5, 6, ""],
+                [1.1, 2.2, 3.3, "2021-01-01T00:00:00.000Z"],
+                [4.4, 5.5, 6.6, ""],
                 ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["Column1", "Column2", "", ""],
+                [1.1, 2.2, "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                [1.1, 2.2, 3.3, ""],
+                [4.4, 5.5, 6.6, ""],
+                ["Total", "", 9.9, ""],
             ],
             "pictures": [],
+            "tables": [
+                {
+                    "name": "Table1",
+                    "range_address": "A10:B11",
+                    "header_row_range_address": "A10:B10",
+                    "data_body_range_address": "A11:B11",
+                    "total_row_range_address": None,
+                    "show_headers": True,
+                    "show_totals": False,
+                    "table_style": "TableStyleMedium2",
+                    "show_autofilter": True,
+                },
+                {
+                    "name": "Table2",
+                    "range_address": "A15:C17",
+                    "header_row_range_address": None,
+                    "data_body_range_address": "A15:C16",
+                    "total_row_range_address": "A17:C17",
+                    "show_headers": False,
+                    "show_totals": True,
+                    "table_style": "TableStyleLight1",
+                    "show_autofilter": False,
+                },
+            ],
         },
-        {"name": "Sheet2", "values": [["aa", "bb"], [11, 22]], "pictures": []},
+        {
+            "name": "Sheet2",
+            "values": [["aa", "bb"], [11.1, 22.2]],
+            "pictures": [],
+            "tables": [],
+        },
+        {
+            "name": "Sheet3",
+            "values": [
+                ["", "string"],
+                [-1.1, 1.1],
+                [True, False],
+                ["2021-10-01T00:00:00.000Z", 44561.9826388889],
+            ],
+            "pictures": [],
+            "tables": [],
+        },
+    ],
+}
+
+expected_body["VBA"] = {
+    "client": "VBA",
+    "version": "dev",
+    "book": {"name": "engines.xlsm", "active_sheet_index": 0, "selection": "A1"},
+    "names": [
+        {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
+        {
+            "name": "Sheet1!two",
+            "sheet_index": 0,
+            "address": "C7:D8",
+            "book_scope": False,
+        },
+        {"name": "two", "sheet_index": 1, "address": "A1:A2", "book_scope": True},
+    ],
+    "sheets": [
+        {
+            "name": "Sheet1",
+            "pictures": [
+                {"name": "mypic1", "height": 10, "width": 20},
+                {"name": "mypic2", "height": 30, "width": 40},
+            ],
+            "tables": [
+                {
+                    "name": "Table1",
+                    "range_address": "$A$10:$B$11",
+                    "header_row_range_address": "$A$10:$B$10",
+                    "data_body_range_address": "$A$11:$B$11",
+                    "total_row_range_address": None,
+                    "show_headers": True,
+                    "show_totals": False,
+                    "table_style": "TableStyleMedium2",
+                    "show_autofilter": True,
+                },
+                {
+                    "name": "Table2",
+                    "range_address": "$A$15:$C$17",
+                    "header_row_range_address": None,
+                    "data_body_range_address": "$A$15:$C$16",
+                    "total_row_range_address": "$A$17:$C$17",
+                    "show_headers": False,
+                    "show_totals": True,
+                    "table_style": "TableStyleLight1",
+                    "show_autofilter": False,
+                },
+            ],
+            "values": [
+                ["a", "b", "c", None],
+                [1.1, 2.2, 3.3, "2021-01-01T00:00:00.000Z"],
+                [4.4, 5.5, 6.6, None],
+                [None, None, None, None],
+                [None, None, None, None],
+                [None, None, None, None],
+                [None, None, None, None],
+                [None, None, None, None],
+                [None, None, None, None],
+                ["Column1", "Column2", None, None],
+                [1.1, 2.2, None, None],
+                [None, None, None, None],
+                [None, None, None, None],
+                [None, None, None, None],
+                [1.1, 2.2, 3.3, None],
+                [4.4, 5.5, 6.6, None],
+                ["Total", None, 9.9, None],
+            ],
+        },
+        {
+            "name": "Sheet2",
+            "pictures": [],
+            "tables": [],
+            "values": [["aa", "bb"], [11.1, 22.2]],
+        },
+        {
+            "name": "Sheet3",
+            "pictures": [],
+            "tables": [],
+            "values": [
+                [None, "string"],
+                [-1.1, 1.1],
+                [True, False],
+                ["2021-10-01T00:00:00.000Z", "2021-12-31T23:35:00.000Z"],
+            ],
+        },
+    ],
+}
+expected_body["Office Scripts"] = {
+    "client": "Microsoft Office Scripts",
+    "version": "dev",
+    "book": {"name": "engines.xlsm", "active_sheet_index": 0, "selection": "A1"},
+    "names": [
+        {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
+        {"name": "two", "sheet_index": 1, "address": "A1:A2", "book_scope": True},
+    ],
+    "sheets": [
+        {
+            "name": "Sheet1",
+            "values": [
+                ["a", "b", "c", ""],
+                [1.1, 2.2, 3.3, "2021-01-01T00:00:00.000Z"],
+                [4.4, 5.5, 6.6, ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["Column1", "Column2", "", ""],
+                [1.1, 2.2, "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                [1.1, 2.2, 3.3, ""],
+                [4.4, 5.5, 6.6, ""],
+                ["Total", "", 9.9, ""],
+            ],
+            "pictures": [],
+            "tables": [
+                {
+                    "name": "Table1",
+                    "range_address": "A10:B11",
+                    "header_row_range_address": "A10:B10",
+                    "data_body_range_address": "A11:B11",
+                    "total_row_range_address": None,
+                    "show_headers": True,
+                    "show_totals": False,
+                    "table_style": "TableStyleMedium2",
+                    "show_autofilter": True,
+                },
+                {
+                    "name": "Table2",
+                    "range_address": "A15:C17",
+                    "header_row_range_address": None,
+                    "data_body_range_address": "A15:C16",
+                    "total_row_range_address": "A17:C17",
+                    "show_headers": False,
+                    "show_totals": True,
+                    "table_style": "TableStyleLight1",
+                    "show_autofilter": False,
+                },
+            ],
+        },
+        {
+            "name": "Sheet2",
+            "values": [["aa", "bb"], [11.1, 22.2]],
+            "pictures": [],
+            "tables": [],
+        },
+        {
+            "name": "Sheet3",
+            "values": [
+                ["", "string"],
+                [-1.1, 1.1],
+                [True, False],
+                ["2021-10-01T00:00:00.000Z", 44561.9826388889],
+            ],
+            "pictures": [],
+            "tables": [],
+        },
+    ],
+}
+expected_body["Google Apps Script"] = {
+    "client": "Google Apps Script",
+    "version": "dev",
+    "book": {"name": "engines.xlsx", "active_sheet_index": 0, "selection": "A1"},
+    "names": [
+        {"name": "two", "sheet_index": 1, "address": "A1:A2", "book_scope": True},
+        {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
+        {
+            "name": "'Sheet1'!two",
+            "sheet_index": 0,
+            "address": "C7:D8",
+            "book_scope": False,
+        },
+    ],
+    "sheets": [
+        {
+            "name": "Sheet1",
+            "values": [
+                ["a", "b", "c", ""],
+                [1, 2, 3, "2021-01-01T00:00:00.000Z"],
+                [4, 5, 6, ""],
+            ],
+            "pictures": [
+                {"name": "", "height": 13, "width": 28},
+                {"name": "", "height": 40, "width": 56},
+            ],
+            "tables": [],
+        },
+        {
+            "name": "Sheet2",
+            "values": [["aa", "bb"], [11, 22]],
+            "pictures": [],
+            "tables": [],
+        },
         {
             "name": "Sheet3",
             "values": [
                 ["", "string"],
                 [-1, 1],
                 [True, False],
-                # TODO: Custom datetime format not supported yet
-                ["2021-10-01T00:00:00.000Z", 44561.9826388889],
+                ["2021-10-01T00:00:00.000Z", "2021-12-31T23:35:00.000Z"],
             ],
             "pictures": [],
+            "tables": [],
         },
     ],
 }
-
 if __name__ == "__main__":
     import uvicorn
 

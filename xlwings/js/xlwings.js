@@ -188,6 +188,7 @@ function runPython(
       name: sheet.getName(),
       values: values,
       pictures: pictures,
+      tables: [],
     });
   });
 
@@ -462,4 +463,32 @@ function rangeDelete(workbook, action) {
   } else {
     getRange(workbook, action).deleteCells(SpreadsheetApp.Dimension.COLUMNS);
   }
+}
+
+function addTable(workbook, action) {
+  throw "NotImplemented: addTable";
+}
+
+function setTableName(workbook, action) {
+  throw "NotImplemented: setTableName";
+}
+
+function resizeTable(workbook, action) {
+  throw "NotImplemented: resizeTable";
+}
+
+function showAutofilterTable(workbook, action) {
+  throw "NotImplemented: showAutofilterTable";
+}
+
+async function showHeadersTable(workbook, action) {
+  throw "NotImplemented: showHeadersTable";
+}
+
+async function showTotalsTable(workbook, action) {
+  throw "NotImplemented: showTotalsTable";
+}
+
+async function setTableStyle(workbook, action) {
+  throw "NotImplemented: setTableStyle";
 }

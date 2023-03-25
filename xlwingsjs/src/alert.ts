@@ -22,10 +22,10 @@ function dialogCallback(asyncResult: Office.AsyncResult<Office.Dialog>) {
 function processMessage(arg: Office.DialogParentMessageReceivedEventArgs) {
   dialog.close();
   let [selection, callback] = arg.message.split("|");
-  if (callback !== "" && callback in globalThis.funcs) {
-    globalThis.funcs[callback](selection);
+  if (callback !== "" && callback in globalThis.callbacks) {
+    globalThis.callbacks[callback](selection);
   } else {
-    if (callback !== "" && !(callback in globalThis.funcs)) {
+    if (callback !== "" && !(callback in globalThis.callbacks)) {
       throw new Error(
         `Didn't find callback '${callback}'! Make sure to run xlwings.registerCallback(${callback}) before calling runPython.`
       );

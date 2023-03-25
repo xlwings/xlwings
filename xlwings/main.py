@@ -3678,7 +3678,7 @@ class Table:
 
         .. versionadded:: 0.24.4
         """
-        self.impl.resize(range.api)
+        self.impl.resize(range)
 
     def __eq__(self, other):
         return (
@@ -3740,7 +3740,7 @@ class Tables(Collection):
 
         has_headers : bool or str, default True
             Indicates whether the data being imported has column labels. Defaults to
-            ``True``. Possible values: ``True``, ``FAlse``, ``'guess'``
+            ``True``. Possible values: ``True``, ``False``, ``'guess'``
 
         destination : xlwings range, default None
             Currently not implemented as this is used in case ``source_type`` is
@@ -3773,12 +3773,10 @@ class Tables(Collection):
             has_headers=has_headers,
             destination=destination,
             table_style_name=table_style_name,
+            name=name,
         )
 
-        table = Table(impl=impl)
-        if name is not None:
-            table.name = name
-        return table
+        return Table(impl=impl)
 
 
 class Chart:

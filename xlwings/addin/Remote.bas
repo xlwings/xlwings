@@ -171,6 +171,46 @@ Function RunRemotePython( _
             sheetDict.Add "pictures", Array()
         End If
 
+        ' Tables
+        Dim table As ListObject
+        Dim tables() As Dictionary
+        Dim nTables As Integer
+        Dim iTable As Integer
+        nTables =  wb.Worksheets(i).ListObjects.Count
+        If (nTables > 0) And Not (IsInArray(wb.Worksheets(i).Name, excludeArray)) Then
+            For iTable = 1 To nTables
+                Set table =  wb.Worksheets(i).ListObjects(iTable)
+                ReDim Preserve tables(iTable - 1)
+                Dim tableDict As Dictionary
+                Set tableDict = New Dictionary
+                tableDict.Add "name", table.Name
+                tableDict.Add "range_address", table.Range.Address
+                If table.ShowHeaders Then
+                    tableDict.Add "header_row_range_address", table.HeaderRowRange.Address
+                Else
+                    tableDict.Add "header_row_range_address", Null
+                End If
+                If table.DataBodyRange Is Nothing Then
+                    tableDict.Add "data_body_range_address", Null
+                Else
+                    tableDict.Add "data_body_range_address", table.DataBodyRange.Address
+                End If
+                If table.ShowTotals Then
+                    tableDict.Add "total_row_range_address", table.TotalsRowRange.Address
+                Else
+                    tableDict.Add "total_row_range_address", Null
+                End If
+                tableDict.Add "show_headers", table.ShowHeaders
+                tableDict.Add "show_totals", table.ShowTotals
+                tableDict.Add "table_style", table.TableStyle.Name
+                tableDict.Add "show_autofilter", table.ShowAutoFilter
+                Set tables(iTable - 1) = tableDict
+            Next
+            sheetDict.Add "tables", tables
+        Else
+            sheetDict.Add "tables", Array()
+        End If
+
         ' Values
         Dim values As Variant
         If IsInArray(wb.Worksheets(i).Name, excludeArray) Then
@@ -628,4 +668,42 @@ Sub rangeDelete(wb As Workbook, action As Dictionary)
     Else
         GetRange(wb, action).Delete (XlDeleteShiftDirection.xlShiftToLeft)
     End If
+End Sub
+
+Sub addTable(wb As Workbook, action As Dictionary)
+    Dim hasHeaders As Integer
+    If action("args")(2) = True Then
+        hasHeaders = XlYesNoGuess.xlYes
+    Else
+        hasHeaders = XlYesNoGuess.xlNo
+    End If
+    Dim table As ListObject
+    Set table = wb.Worksheets(action("sheet_position") + 1).ListObjects.Add(source:=wb.Worksheets(action("sheet_position") + 1).Range(action("args")(1)), XlListObjectHasHeaders:=hasHeaders, TableStyleName:=action("args")(3))
+    If Not IsNull(action("args")(4)) Then
+        table.Name = action("args")(4)
+    End If
+End Sub
+
+Sub setTableName(wb As Workbook, action as Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).ListObjects(action("args")(1) + 1).Name = action("args")(2)
+End Sub
+
+Sub resizeTable(wb As Workbook, action as Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).ListObjects(action("args")(1) + 1).Resize(wb.Worksheets(action("sheet_position") + 1).Range(action("args")(2)))
+End Sub
+
+Sub showAutofilterTable(wb As Workbook, action as Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).ListObjects(action("args")(1) + 1).ShowAutoFilter = action("args")(2)
+End Sub
+
+Sub showHeadersTable(wb As Workbook, action as Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).ListObjects(action("args")(1) + 1).ShowHeaders = action("args")(2)
+End Sub
+
+Sub showTotalsTable(wb As Workbook, action as Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).ListObjects(action("args")(1) + 1).ShowTotals = action("args")(2)
+End Sub
+
+Sub setTableStyle(wb As Workbook, action as Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).ListObjects(action("args")(1) + 1).TableStyle = action("args")(2)
 End Sub

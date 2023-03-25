@@ -546,5 +546,5 @@ Platform-specific limitations:
 Roadmap
 -------
 
-* Complete the RunPython API by adding features that currently aren't supported yet, e.g., charts, shapes, tables, etc.
+* Complete the RunPython API by adding features that currently aren't supported yet, e.g., charts, shapes, etc.
 * Perfomance improvements
