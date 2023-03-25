@@ -180,7 +180,7 @@ Function RunRemotePython( _
         If (nTables > 0) And Not (IsInArray(wb.Worksheets(i).Name, excludeArray)) Then
             For iTable = 1 To nTables
                 Set table =  wb.Worksheets(i).ListObjects(iTable)
-                ReDim Preserve tables(iTable)
+                ReDim Preserve tables(iTable - 1)
                 Dim tableDict As Dictionary
                 Set tableDict = New Dictionary
                 tableDict.Add "name", table.Name
