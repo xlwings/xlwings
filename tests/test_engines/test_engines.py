@@ -657,6 +657,7 @@ def test_tables_add(book):
     }
 
 
+@pytest.mark.skipif(not pd, reason="requires pandas")
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_tables_update(book):
     sheet1 = book.sheets[0]

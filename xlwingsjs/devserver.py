@@ -48,7 +48,6 @@ def show_alert(data: dict = Body):
 @app.post("/integration-test-read")
 def integration_test_read(data: dict = Body):
     book = xw.Book(json=data)
-    print(data)
     assert book.name == "engines.xlsm", "engines.xlsm must be the active file"
     if data["client"] == "Office.js":
         expected_data = expected_body["Office.js"]
