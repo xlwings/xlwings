@@ -722,6 +722,16 @@ class Range(base_classes.Range):
             args=value,
         )
 
+    def copy(self, destination=None):
+        if destination is not None:
+            args = [destination.sheet.index - 1, destination.address]
+        else:
+            args = None
+        self.append_json_action(
+            func="copyRange",
+            args=args,
+        )
+
     def delete(self, shift=None):
         if shift not in ("up", "left"):
             # Non-remote version allows shift=None
