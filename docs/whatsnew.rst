@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v0.30.3 (Mar 26, 2023)
+----------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server now supports Excel tables (:issue:`2072`), ``range.insert()`` (:issue:`2073`), and ``range.copy()`` (:issue:`2204`).
+* :bdg-info:`Enhancement` Improved error message when no engines is available either because of missing dependencies (OSS) or a missing license key (PRO) (:issue:`2072`).
+* :bdg-danger:`Breaking Change` ``range.insert()`` now requires the ``shift`` argument. The previous default was to let Excel guess the shift direction (:issue:`2073`).
+
 v0.30.2 (Mar 16, 2023)
 ----------------------
 

@@ -2529,8 +2529,10 @@ class Range:
         -------
         None
 
+
         .. versionchanged:: 0.30.3
             ``shift`` is now a required argument.
+
         """
         self.impl.insert(shift, copy_origin)
 

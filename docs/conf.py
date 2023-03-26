@@ -59,6 +59,7 @@ MOCK_MODULES = [
     "xlplatform",
     "atexit",
     "aem",
+    "osax",
 ]
 
 if not sys.platform.startswith("win"):
