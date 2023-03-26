@@ -557,6 +557,17 @@ async function rangeDelete(context: Excel.RequestContext, action: Action) {
 }
 registerCallback(rangeDelete);
 
+async function rangeInsert(context: Excel.RequestContext, action: Action) {
+  let range = await getRange(context, action);
+  let shift = action.args[0].toString();
+  if (shift === "down") {
+    range.insert(Excel.InsertShiftDirection.down);
+  } else if (shift === "right") {
+    range.insert(Excel.InsertShiftDirection.right);
+  }
+}
+registerCallback(rangeInsert);
+
 async function addTable(context: Excel.RequestContext, action: Action) {
   let worksheets = context.workbook.worksheets.load("items");
   await context.sync();

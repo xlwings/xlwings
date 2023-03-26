@@ -2513,23 +2513,24 @@ class Range:
             self.sheet.name, self.sheet.book.name, self.address
         )
 
-    def insert(self, shift=None, copy_origin="format_from_left_or_above"):
+    def insert(self, shift, copy_origin="format_from_left_or_above"):
         """
         Insert a cell or range of cells into the sheet.
 
         Parameters
         ----------
-        shift : str, default None
-            Use ``right`` or ``down``. If omitted, Excel decides based on the shape of
-            the range.
+        shift : str
+            Use ``right`` or ``down``.
         copy_origin : str, default format_from_left_or_above
             Use ``format_from_left_or_above`` or ``format_from_right_or_below``.
-            Note that this is not supported on macOS.
+            Note that copy_origin is only supported on Windows.
 
         Returns
         -------
         None
 
+        .. versionchanged:: 0.30.3
+            ``shift`` is now a required argument.
         """
         self.impl.insert(shift, copy_origin)
 

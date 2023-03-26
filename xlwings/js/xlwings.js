@@ -465,6 +465,14 @@ function rangeDelete(workbook, action) {
   }
 }
 
+function rangeInsert(workbook, action) {
+  if (action.args[0] === "down") {
+    getRange(workbook, action).insertCells(SpreadsheetApp.Dimension.ROWS);
+  } else {
+    getRange(workbook, action).insertCells(SpreadsheetApp.Dimension.COLUMNS);
+  }
+}
+
 function addTable(workbook, action) {
   throw "NotImplemented: addTable";
 }

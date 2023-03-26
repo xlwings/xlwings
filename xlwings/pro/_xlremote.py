@@ -730,6 +730,22 @@ class Range(base_classes.Range):
             )
         self.append_json_action(func="rangeDelete", args=shift)
 
+    def insert(self, shift=None, copy_origin=None):
+        if shift not in ("down", "right"):
+            raise XlwingsError(
+                "range.insert() requires either 'down' or 'right' as shift arguments."
+            )
+        if copy_origin not in (
+            "format_from_left_or_above",
+            "format_from_right_or_below",
+        ):
+            raise XlwingsError(
+                "range.insert() requires either 'format_from_left_or_above' or "
+                "'format_from_right_or_below' as copy_origin arguments."
+            )
+        # copy_origin is only supported by VBA clients
+        self.append_json_action(func="rangeInsert", args=[shift, copy_origin])
+
     def __len__(self):
         nrows, ncols = self.shape
         return nrows * ncols

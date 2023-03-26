@@ -670,6 +670,16 @@ Sub rangeDelete(wb As Workbook, action As Dictionary)
     End If
 End Sub
 
+Sub rangeInsert(wb As Workbook, action As Dictionary)
+    Dim shift As String
+    shift = action("args")(1)
+    If shift = "down" Then
+        GetRange(wb, action).Insert (XlInsertShiftDirection.xlShiftDown)
+    Else
+        GetRange(wb, action).Insert (XlInsertShiftDirection.xlShiftToRight)
+    End If
+End Sub
+
 Sub addTable(wb As Workbook, action As Dictionary)
     Dim hasHeaders As Integer
     If action("args")(2) = True Then
