@@ -166,9 +166,8 @@ jobs:
           {os: "ubuntu-latest", target: "x86_64"},
           {os: "ubuntu-latest", target: "aarch64"},
           {os: "ubuntu-latest", target: "armv7"},
-          # Currently musllinux with latest maturin requires nightly rust
-          # {os: "ubuntu-latest", target: "x86_64", manylinux: "musllinux_1_1"},
-          # {os: "ubuntu-latest", target: "aarch64", manylinux: "musllinux_1_1"},
+          {os: "ubuntu-latest", target: "x86_64", manylinux: "musllinux_1_1"},
+          {os: "ubuntu-latest", target: "aarch64", manylinux: "musllinux_1_1"},
         ]
 
     runs-on: ${{ matrix.platform.os }}
