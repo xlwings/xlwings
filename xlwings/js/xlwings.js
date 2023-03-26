@@ -489,14 +489,21 @@ function showAutofilterTable(workbook, action) {
   throw "NotImplemented: showAutofilterTable";
 }
 
-async function showHeadersTable(workbook, action) {
+function showHeadersTable(workbook, action) {
   throw "NotImplemented: showHeadersTable";
 }
 
-async function showTotalsTable(workbook, action) {
+function showTotalsTable(workbook, action) {
   throw "NotImplemented: showTotalsTable";
 }
 
-async function setTableStyle(workbook, action) {
+function setTableStyle(workbook, action) {
   throw "NotImplemented: setTableStyle";
+}
+
+function copyRange(workbook, action) {
+  const destination = workbook
+    .getSheets()
+    [parseInt(action.args[0])].getRange(action.args[1].toString());
+  getRange(workbook, action).copyTo(destination);
 }
