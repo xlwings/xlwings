@@ -466,6 +466,16 @@ function rangeDelete(workbook: ExcelScript.Workbook, action: Action) {
 }
 registerCallback(rangeDelete);
 
+function rangeInsert(workbook: ExcelScript.Workbook, action: Action) {
+  let shift = action.args[0].toString();
+  if (shift === "down") {
+    getRange(workbook, action).insert(ExcelScript.InsertShiftDirection.down);
+  } else if (shift === "right") {
+    getRange(workbook, action).insert(ExcelScript.InsertShiftDirection.right);
+  }
+}
+registerCallback(rangeInsert);
+
 function addTable(workbook: ExcelScript.Workbook, action: Action) {
   let mytable = workbook
     .getWorksheets()
