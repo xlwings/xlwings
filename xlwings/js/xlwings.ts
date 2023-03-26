@@ -236,7 +236,7 @@ async function runPython(
 
   // Run Functions
   if (rawData !== null) {
-    const forceSync = ["sheet", "table"];
+    const forceSync = ["sheet", "table", "copy"];
     rawData["actions"].forEach((action) => {
       globalThis.callbacks[action.func](workbook, action);
       if (forceSync.some((el) => action.func.toLowerCase().includes(el))) {
@@ -539,3 +539,11 @@ function setTableStyle(workbook: ExcelScript.Workbook, action: Action) {
   mytable.setPredefinedTableStyle(action.args[1].toString());
 }
 registerCallback(setTableStyle);
+
+function copyRange(workbook: ExcelScript.Workbook, action: Action) {
+  const destination = workbook
+    .getWorksheets()
+    [parseInt(action.args[0].toString())].getRange(action.args[1].toString());
+  destination.copyFrom(getRange(workbook, action));
+}
+registerCallback(copyRange);

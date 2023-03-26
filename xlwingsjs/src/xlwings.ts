@@ -622,3 +622,11 @@ async function setTableStyle(context: Excel.RequestContext, action: Action) {
   mytable.style = action.args[1].toString();
 }
 registerCallback(setTableStyle);
+
+async function copyRange(context: Excel.RequestContext, action: Action) {
+  const destination = context.workbook.worksheets.items[
+    parseInt(action.args[0].toString())
+  ].getRange(action.args[1].toString());
+  destination.copyFrom(await getRange(context, action));
+}
+registerCallback(copyRange);
