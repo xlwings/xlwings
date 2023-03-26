@@ -723,13 +723,12 @@ class Range(base_classes.Range):
         )
 
     def copy(self, destination=None):
-        if destination is not None:
-            args = [destination.sheet.index - 1, destination.address]
-        else:
-            args = None
+        # TODO: introduce the new copy_from from Office Scripts
+        if destination is None:
+            raise XlwingsError("range.copy() requires a destination argument.")
         self.append_json_action(
             func="copyRange",
-            args=args,
+            args=[destination.sheet.index - 1, destination.address],
         )
 
     def delete(self, shift=None):
