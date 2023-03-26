@@ -33,7 +33,6 @@ jobs:
       - run: flake8 .
 
   check-js-dist:
-    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -46,6 +45,7 @@ jobs:
 
   pre-build:
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build]') || contains(github.event.head_commit.message, '[build-cli]')
+    needs: check-js-dist
     runs-on: windows-2022
     steps:
     - uses: actions/checkout@v3
