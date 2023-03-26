@@ -717,3 +717,11 @@ End Sub
 Sub setTableStyle(wb As Workbook, action as Dictionary)
     wb.Worksheets(action("sheet_position") + 1).ListObjects(action("args")(1) + 1).TableStyle = action("args")(2)
 End Sub
+
+Sub copyRange(wb As Workbook, action As Dictionary)
+    If IsNull(action("args")(1)) Then
+        GetRange(wb, action).Copy
+    Else
+        GetRange(wb, action).Copy Destination:=wb.Worksheets(action("args")(1) + 1).Range(action("args")(2))
+    End If
+End Sub
