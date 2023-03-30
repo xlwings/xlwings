@@ -552,6 +552,7 @@ class Apps(base_classes.Apps):
 class App(base_classes.App):
     def __init__(self, spec=None, add_book=True, xl=None, visible=None):
         # visible is only required on mac
+        pythoncom.CoInitialize()
         if spec is not None:
             warn("spec is ignored on Windows.")
         if xl is None:
