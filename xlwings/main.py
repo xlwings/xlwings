@@ -134,9 +134,16 @@ class Engines:
             try:
                 return self.engines_by_name[name_or_index]
             except KeyError:
+                engine_to_product_name = {
+                    "remote": "xlwings Server",
+                    "calamine": "xlwings Reader",
+                }
                 if not xlwings.__pro__ and name_or_index != "excel":
                     raise LicenseError(
-                        f"The '{name_or_index}' engine requires xlwings PRO."
+                        f"{engine_to_product_name.get(name_or_index, name_or_index)} "
+                        "requires a license key. Install one by running 'xlwings "
+                        "license update -k your-key-here' or by setting the "
+                        "XLWINGS_LICENSE_KEY environment variable."
                     )
                 else:
                     raise
@@ -5149,7 +5156,7 @@ class ActiveEngineApps(Apps):
             ):
                 raise XlwingsError(
                     "The interactive mode of xlwings is only supported on Windows and "
-                    "macOS."
+                    "macOS. On Linux, you can use xlwings Server or xlwings Reader."
                 )
             elif sys.platform.startswith("darwin"):
                 raise XlwingsError(
