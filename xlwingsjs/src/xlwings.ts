@@ -376,6 +376,44 @@ export function registerCallback(callback: Function) {
   globalThis.callbacks[callback.name] = callback;
 }
 
+// Functions map
+// Didn't find a way to use registerCallback so that webpack won't strip out these
+// functions when optimizing
+let funcs = {
+  setValues: setValues,
+  clearContents: clearContents,
+  addSheet: addSheet,
+  setSheetName: setSheetName,
+  setAutofit: setAutofit,
+  setRangeColor: setRangeColor,
+  activateSheet: activateSheet,
+  addHyperlink: addHyperlink,
+  setNumberFormat: setNumberFormat,
+  setPictureName: setPictureName,
+  setPictureWidth: setPictureWidth,
+  setPictureHeight: setPictureHeight,
+  deletePicture: deletePicture,
+  addPicture: addPicture,
+  updatePicture: updatePicture,
+  alert: alert,
+  setRangeName: setRangeName,
+  namesAdd: namesAdd,
+  nameDelete: nameDelete,
+  runMacro: runMacro,
+  rangeDelete: rangeDelete,
+  rangeInsert: rangeInsert,
+  addTable: addTable,
+  setTableName: setTableName,
+  resizeTable: resizeTable,
+  showAutofilterTable: showAutofilterTable,
+  showHeadersTable: showHeadersTable,
+  showTotalsTable: showTotalsTable,
+  setTableStyle: setTableStyle,
+  copyRange: copyRange,
+};
+
+Object.assign(globalThis.callbacks, funcs);
+
 // Callbacks
 async function setValues(context: Excel.RequestContext, action: Action) {
   // Handle DateTime (TODO: backend should deliver indices with datetime obj)
@@ -413,14 +451,12 @@ async function setValues(context: Excel.RequestContext, action: Action) {
   range.values = action.values;
   await context.sync();
 }
-registerCallback(setValues);
 
 async function clearContents(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
   range.clear(Excel.ClearApplyTo.contents);
   await context.sync();
 }
-registerCallback(clearContents);
 
 async function addSheet(context: Excel.RequestContext, action: Action) {
   let sheet: Excel.Worksheet;
@@ -431,13 +467,11 @@ async function addSheet(context: Excel.RequestContext, action: Action) {
   }
   sheet.position = parseInt(action.args[0].toString());
 }
-registerCallback(addSheet);
 
 async function setSheetName(context: Excel.RequestContext, action: Action) {
   let sheets = context.workbook.worksheets.load("items");
   sheets.items[action.sheet_position].name = action.args[0].toString();
 }
-registerCallback(setSheetName);
 
 async function setAutofit(context: Excel.RequestContext, action: Action) {
   if (action.args[0] === "columns") {
@@ -448,14 +482,12 @@ async function setAutofit(context: Excel.RequestContext, action: Action) {
     range.format.autofitRows();
   }
 }
-registerCallback(setAutofit);
 
 async function setRangeColor(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
   range.format.fill.color = action.args[0].toString();
   await context.sync();
 }
-registerCallback(setRangeColor);
 
 async function activateSheet(context: Excel.RequestContext, action: Action) {
   let worksheets = context.workbook.worksheets;
@@ -463,7 +495,6 @@ async function activateSheet(context: Excel.RequestContext, action: Action) {
   await context.sync();
   worksheets.items[parseInt(action.args[0].toString())].activate();
 }
-registerCallback(activateSheet);
 
 async function addHyperlink(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
@@ -475,43 +506,35 @@ async function addHyperlink(context: Excel.RequestContext, action: Action) {
   range.hyperlink = hyperlink;
   await context.sync();
 }
-registerCallback(addHyperlink);
 
 async function setNumberFormat(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
   range.numberFormat = [[action.args[0].toString()]];
 }
-registerCallback(setNumberFormat);
 
 async function setPictureName(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: setPictureName";
 }
-registerCallback(setPictureName);
 
 async function setPictureHeight(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: setPictureHeight";
 }
-registerCallback(setPictureHeight);
 
 async function setPictureWidth(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: setPictureWidth";
 }
-registerCallback(setPictureWidth);
 
 async function deletePicture(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: deletePicture";
 }
-registerCallback(deletePicture);
 
 async function addPicture(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: addPicture";
 }
-registerCallback(addPicture);
 
 async function updatePicture(context: Excel.RequestContext, action: Action) {
   throw "Not Implemented: updatePicture";
 }
-registerCallback(updatePicture);
 
 async function alert(context: Excel.RequestContext, action: Action) {
   let myPrompt = action.args[0].toString();
@@ -521,22 +544,18 @@ async function alert(context: Excel.RequestContext, action: Action) {
   let myCallback = action.args[4].toString();
   xlAlert(myPrompt, myTitle, myButtons, myMode, myCallback);
 }
-registerCallback(alert);
 
 async function setRangeName(context: Excel.RequestContext, action: Action) {
   throw "NotImplemented: setRangeName";
 }
-registerCallback(setRangeName);
 
 async function namesAdd(context: Excel.RequestContext, action: Action) {
   throw "NotImplemented: namesAdd";
 }
-registerCallback(namesAdd);
 
 async function nameDelete(context: Excel.RequestContext, action: Action) {
   throw "NotImplemented: deleteName";
 }
-registerCallback(nameDelete);
 
 async function runMacro(context: Excel.RequestContext, action: Action) {
   await globalThis.callbacks[action.args[0].toString()](
@@ -544,7 +563,6 @@ async function runMacro(context: Excel.RequestContext, action: Action) {
     ...action.args.slice(1)
   );
 }
-registerCallback(runMacro);
 
 async function rangeDelete(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
@@ -555,7 +573,6 @@ async function rangeDelete(context: Excel.RequestContext, action: Action) {
     range.delete(Excel.DeleteShiftDirection.left);
   }
 }
-registerCallback(rangeDelete);
 
 async function rangeInsert(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
@@ -566,7 +583,6 @@ async function rangeInsert(context: Excel.RequestContext, action: Action) {
     range.insert(Excel.InsertShiftDirection.right);
   }
 }
-registerCallback(rangeInsert);
 
 async function addTable(context: Excel.RequestContext, action: Action) {
   let worksheets = context.workbook.worksheets.load("items");
@@ -582,19 +598,16 @@ async function addTable(context: Excel.RequestContext, action: Action) {
     mytable.name = action.args[3].toString();
   }
 }
-registerCallback(addTable);
 
 async function setTableName(context: Excel.RequestContext, action: Action) {
   const mytable = await getTable(context, action);
   mytable.name = action.args[1].toString();
 }
-registerCallback(setTableName);
 
 async function resizeTable(context: Excel.RequestContext, action: Action) {
   const mytable = await getTable(context, action);
   mytable.resize(action.args[1].toString());
 }
-registerCallback(resizeTable);
 
 async function showAutofilterTable(
   context: Excel.RequestContext,
@@ -603,25 +616,21 @@ async function showAutofilterTable(
   const mytable = await getTable(context, action);
   mytable.showFilterButton = Boolean(action.args[1]);
 }
-registerCallback(showAutofilterTable);
 
 async function showHeadersTable(context: Excel.RequestContext, action: Action) {
   const mytable = await getTable(context, action);
   mytable.showHeaders = Boolean(action.args[1]);
 }
-registerCallback(showHeadersTable);
 
 async function showTotalsTable(context: Excel.RequestContext, action: Action) {
   const mytable = await getTable(context, action);
   mytable.showTotals = Boolean(action.args[1]);
 }
-registerCallback(showTotalsTable);
 
 async function setTableStyle(context: Excel.RequestContext, action: Action) {
   const mytable = await getTable(context, action);
   mytable.style = action.args[1].toString();
 }
-registerCallback(setTableStyle);
 
 async function copyRange(context: Excel.RequestContext, action: Action) {
   const destination = context.workbook.worksheets.items[
@@ -629,4 +638,3 @@ async function copyRange(context: Excel.RequestContext, action: Action) {
   ].getRange(action.args[1].toString());
   destination.copyFrom(await getRange(context, action));
 }
-registerCallback(copyRange);
