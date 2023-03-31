@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v0.30.4 (Mar 31, 2023)
+----------------------
+
+* :bdg-warning:`Bug Fix` Fixed a bug that could cause a ``CoInitialize has not been called`` error on Windows when xlwings was used inside a web framework (:issue:`2213`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` ``xlwings.min.js``: Fixed a regression introduced with 0.30.3 that caused a pop-up error to show when calling ``xlwings.runPython`` (:issue:`2214`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Fixed a regression introduced with 0.30.3 that was causing the ``xlwings license`` CLI command to fail on Linux (:issue:`2211`).
+
 v0.30.3 (Mar 26, 2023)
 ----------------------
 

@@ -2371,7 +2371,7 @@ var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from
 
 
 
-var version = "0.30.3";
+var version = "0.30.4";
 globalThis.callbacks = {};
 function runPython(url, _a) {
     if (url === void 0) { url = ""; }
@@ -2752,6 +2752,42 @@ function getTable(context, action) {
 function registerCallback(callback) {
     globalThis.callbacks[callback.name] = callback;
 }
+// Functions map
+// Didn't find a way to use registerCallback so that webpack won't strip out these
+// functions when optimizing
+var funcs = {
+    setValues: setValues,
+    clearContents: clearContents,
+    addSheet: addSheet,
+    setSheetName: setSheetName,
+    setAutofit: setAutofit,
+    setRangeColor: setRangeColor,
+    activateSheet: activateSheet,
+    addHyperlink: addHyperlink,
+    setNumberFormat: setNumberFormat,
+    setPictureName: setPictureName,
+    setPictureWidth: setPictureWidth,
+    setPictureHeight: setPictureHeight,
+    deletePicture: deletePicture,
+    addPicture: addPicture,
+    updatePicture: updatePicture,
+    alert: alert,
+    setRangeName: setRangeName,
+    namesAdd: namesAdd,
+    nameDelete: nameDelete,
+    runMacro: runMacro,
+    rangeDelete: rangeDelete,
+    rangeInsert: rangeInsert,
+    addTable: addTable,
+    setTableName: setTableName,
+    resizeTable: resizeTable,
+    showAutofilterTable: showAutofilterTable,
+    showHeadersTable: showHeadersTable,
+    showTotalsTable: showTotalsTable,
+    setTableStyle: setTableStyle,
+    copyRange: copyRange,
+};
+Object.assign(globalThis.callbacks, funcs);
 // Callbacks
 function setValues(context, action) {
     return __awaiter(this, void 0, void 0, function () {
@@ -2795,7 +2831,6 @@ function setValues(context, action) {
         });
     });
 }
-registerCallback(setValues);
 function clearContents(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var range;
@@ -2813,7 +2848,6 @@ function clearContents(context, action) {
         });
     });
 }
-registerCallback(clearContents);
 function addSheet(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var sheet;
@@ -2829,7 +2863,6 @@ function addSheet(context, action) {
         });
     });
 }
-registerCallback(addSheet);
 function setSheetName(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var sheets;
@@ -2840,7 +2873,6 @@ function setSheetName(context, action) {
         });
     });
 }
-registerCallback(setSheetName);
 function setAutofit(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var range, range;
@@ -2863,7 +2895,6 @@ function setAutofit(context, action) {
         });
     });
 }
-registerCallback(setAutofit);
 function setRangeColor(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var range;
@@ -2881,7 +2912,6 @@ function setRangeColor(context, action) {
         });
     });
 }
-registerCallback(setRangeColor);
 function activateSheet(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var worksheets;
@@ -2899,7 +2929,6 @@ function activateSheet(context, action) {
         });
     });
 }
-registerCallback(activateSheet);
 function addHyperlink(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var range, hyperlink;
@@ -2922,7 +2951,6 @@ function addHyperlink(context, action) {
         });
     });
 }
-registerCallback(addHyperlink);
 function setNumberFormat(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var range;
@@ -2937,7 +2965,6 @@ function setNumberFormat(context, action) {
         });
     });
 }
-registerCallback(setNumberFormat);
 function setPictureName(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
@@ -2945,7 +2972,6 @@ function setPictureName(context, action) {
         });
     });
 }
-registerCallback(setPictureName);
 function setPictureHeight(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
@@ -2953,7 +2979,6 @@ function setPictureHeight(context, action) {
         });
     });
 }
-registerCallback(setPictureHeight);
 function setPictureWidth(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
@@ -2961,7 +2986,6 @@ function setPictureWidth(context, action) {
         });
     });
 }
-registerCallback(setPictureWidth);
 function deletePicture(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
@@ -2969,7 +2993,6 @@ function deletePicture(context, action) {
         });
     });
 }
-registerCallback(deletePicture);
 function addPicture(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
@@ -2977,7 +3000,6 @@ function addPicture(context, action) {
         });
     });
 }
-registerCallback(addPicture);
 function updatePicture(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
@@ -2985,7 +3007,6 @@ function updatePicture(context, action) {
         });
     });
 }
-registerCallback(updatePicture);
 function alert(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var myPrompt, myTitle, myButtons, myMode, myCallback;
@@ -3000,7 +3021,6 @@ function alert(context, action) {
         });
     });
 }
-registerCallback(alert);
 function setRangeName(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
@@ -3008,7 +3028,6 @@ function setRangeName(context, action) {
         });
     });
 }
-registerCallback(setRangeName);
 function namesAdd(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
@@ -3016,7 +3035,6 @@ function namesAdd(context, action) {
         });
     });
 }
-registerCallback(namesAdd);
 function nameDelete(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
@@ -3024,7 +3042,6 @@ function nameDelete(context, action) {
         });
     });
 }
-registerCallback(nameDelete);
 function runMacro(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var _a;
@@ -3038,7 +3055,6 @@ function runMacro(context, action) {
         });
     });
 }
-registerCallback(runMacro);
 function rangeDelete(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var range, shift;
@@ -3059,7 +3075,6 @@ function rangeDelete(context, action) {
         });
     });
 }
-registerCallback(rangeDelete);
 function rangeInsert(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var range, shift;
@@ -3080,7 +3095,6 @@ function rangeInsert(context, action) {
         });
     });
 }
-registerCallback(rangeInsert);
 function addTable(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var worksheets, mytable;
@@ -3103,7 +3117,6 @@ function addTable(context, action) {
         });
     });
 }
-registerCallback(addTable);
 function setTableName(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var mytable;
@@ -3118,7 +3131,6 @@ function setTableName(context, action) {
         });
     });
 }
-registerCallback(setTableName);
 function resizeTable(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var mytable;
@@ -3133,7 +3145,6 @@ function resizeTable(context, action) {
         });
     });
 }
-registerCallback(resizeTable);
 function showAutofilterTable(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var mytable;
@@ -3148,7 +3159,6 @@ function showAutofilterTable(context, action) {
         });
     });
 }
-registerCallback(showAutofilterTable);
 function showHeadersTable(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var mytable;
@@ -3163,7 +3173,6 @@ function showHeadersTable(context, action) {
         });
     });
 }
-registerCallback(showHeadersTable);
 function showTotalsTable(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var mytable;
@@ -3178,7 +3187,6 @@ function showTotalsTable(context, action) {
         });
     });
 }
-registerCallback(showTotalsTable);
 function setTableStyle(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var mytable;
@@ -3193,7 +3201,6 @@ function setTableStyle(context, action) {
         });
     });
 }
-registerCallback(setTableStyle);
 function copyRange(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var destination, _a, _b;
@@ -3210,7 +3217,6 @@ function copyRange(context, action) {
         });
     });
 }
-registerCallback(copyRange);
 
 }();
 xlwings = __webpack_exports__;
