@@ -50,6 +50,7 @@ extras_require = {
         "flask",
         "requests",
         "pdfrw",
+        "pytest"
     ],
 }
 
