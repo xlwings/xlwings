@@ -43,6 +43,7 @@ else:
 extras_require = {
     "reports": ["Jinja2", "pdfrw"],
     "all": [
+        "black",
         "Jinja2",
         "pandas",
         "matplotlib",
@@ -50,7 +51,7 @@ extras_require = {
         "flask",
         "requests",
         "pdfrw",
-        "pytest"
+        "pytest",
     ],
 }
 
