@@ -102,7 +102,7 @@ try:
     engines.add(Engine(impl=_xlremote.engine))
     engines.add(Engine(impl=_xlofficejs.engine))
     __pro__ = True
-except (ImportError, LicenseError):
+except (ImportError, LicenseError, AttributeError):
     __pro__ = False
 
 try:
