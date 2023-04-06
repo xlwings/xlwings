@@ -36,7 +36,7 @@ To use xlwings PRO, you need to install a license key on a Terminal/Command Prom
 
     xlwings license update -k YOUR_LICENSE_KEY
 
-See `the docs <https://docs.xlwings.org/en/stable/pro.html>`_ for more details.
+See `the docs <https://docs.xlwings.org/en/latest/pro/license_key.html>`_ for more details.
 
 **License key for noncommercial purpose**:
 
