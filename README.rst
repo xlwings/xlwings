@@ -20,10 +20,11 @@ xlwings PRO
 
 xlwings PRO offers additional functionality on top of xlwings (Open Source), including:
 
-* Support for Google Sheets and Excel on the web
-* xlwings Reports, the flexible, template-based reporting system
-* Easy deployment via embedded code
-* See the `full list of PRO features <https://docs.xlwings.org/en/stable/pro.html>`_
+* xlwings Server: No local Python installation required, supports Excel on the web and Google Sheets in addition to Excel on Windows and macOS. Integrates with VBA, Office Scripts and Office.js and supports custom functions on all platforms.
+* xlwings Reports: the flexible, template-based reporting system
+* xlwings Reader: A faster and more feature-rich alternative for ``pandas.read_excel()`` (no Excel installation required)
+* Easy deployment via 1-click installer and embedded code
+* See the `full list of PRO features <https://www.xlwings.org/pricing>`_
 
 xlwings PRO is `source available <https://en.wikipedia.org/wiki/Source-available_software>`_ and dual-licensed under one of the following licenses:
 
