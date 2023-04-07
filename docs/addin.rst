@@ -95,7 +95,7 @@ The configuration hierachy to which xlwings listens is as follows:
         └── workbook-directory-config - If a file named xlwings.conf is present
             └── xlwing.conf-sheet - If a sheet named xlwings.conf is present and active
 
-You can read more information about each config below. Where the lower takes precedence over the higher.
+Where the lower takes precedence over the higher. You can read more information about each config below. 
 
 .. _user_config:
 
