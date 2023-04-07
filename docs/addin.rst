@@ -86,7 +86,7 @@ With environment variables, you can set dynamic paths e.g. to your interpreter o
 Config Hierarchy
 ----------------
 
-The configuration hierachy to which xlwings listens is as follows. You can read more information about each config below. Where the lower takes precedence over the higher.
+The configuration hierachy to which xlwings listens is as follows: 
 
 .. code-block:: bash
 
@@ -94,6 +94,8 @@ The configuration hierachy to which xlwings listens is as follows. You can read 
     └── xlwings-ribbon-config - If xlwings ribbon is installed
         └── workbook-directory-config - If a file named xlwings.conf is present
             └── xlwing.conf-sheet - If a sheet named xlwings.conf is present and active
+
+You can read more information about each config below. Where the lower takes precedence over the higher.
 
 .. _user_config:
 
