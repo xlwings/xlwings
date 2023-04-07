@@ -33,4 +33,4 @@ The Python interpreter is not correctly installed or the configuration does not 
 Solution:
 
 1) Verifiy that an interpreter is installed. This can be an installation provided by conda, virtual environment or the xlwings-installer(requires pro)
-2) Check the configuration of xlwings accoring to its hierachy :ref:`_config_hierarchy:`
+2) Check the configuration of xlwings accoring to its hierachy :ref:`config_hierarchy`
