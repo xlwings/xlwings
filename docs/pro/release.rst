@@ -67,11 +67,9 @@ The release command is part of the xlwings CLI (command-line client) and will pr
 To work with the release command, you should have your workbook in the ``xlsm`` format next to your Python code::
 
     myworkbook.xlsm
-    packages
-    src
-      mymodule_one.py
-      mypackage/
-        mymodule_two.py
+    mymodule_one.py
+    mypackage/
+      mymodule_two.py
     ...
 
 Make sure that your Excel workbook is the active workbook, then run the following command on a Command/Anaconda Prompt::
