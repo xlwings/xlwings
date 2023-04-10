@@ -1,25 +1,38 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>My Task Pane</title>
-    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-    <script type="module" src="taskpane.ts"></script>
-    <!-- Full URL only required during dev as Parcel would otherwise not find it. For prod, use /xlwings/custom-functions-code -->
-    <script src="https://127.0.0.1:8000/xlwings/custom-functions-code"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Task Pane</title>
+  <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <script type="module" src="taskpane.ts"></script>
+  <!-- Full URL only required during dev as Parcel would otherwise not find it. For prod, use /xlwings/custom-functions-code -->
+  <script src="https://127.0.0.1:8000/xlwings/custom-functions-code"></script>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/xlwings/bootstrap-xlwings@5.2.3-1/dist/bootstrap-xlwings.min.css"
+    integrity="sha384-i5I2lAVAlgW17zIpddwzMBj4fo3zQqx+CMxfm4B9qjxz6QloL4/c3J0V8cyk89S1" crossorigin="anonymous" />
 </head>
 
 <body>
-    <h3>Basic functionality</h3>
-    <button id="run" type="button">Run hello</button>
-    <button id="show-alert" type="button">Show alert</button>
-    <h3>Integration Test</h3>
-    <p>Open engines.xlsm and select "A1" of Sheet1 </p>
-    <button id="integration-test-read" type="button">Integration Test Read</button>
-    <p>Open integration_write.xlsm</p>
-    <button id="integration-test-write" type="button">Integration Test Write</button>
+  <div class="container-fluid">
+    <h1 class="pt-4">Basic functionality</h1>
+    <button id="run" type="button" class="btn btn-primary btn-sm">
+      Run hello
+    </button>
+    <button id="show-alert" type="button" class="btn btn-primary btn-sm">
+      Show alert
+    </button>
+    <h1 class="pt-4">Integration Test</h1>
+    <p class="mb-1">Open engines.xlsm and select "A1" of Sheet1</p>
+    <button id="integration-test-read" type="button" class="btn btn-primary btn-sm">
+      Integration Test Read
+    </button>
+    <p class="pt-4 mb-1">Open integration_write.xlsm</p>
+    <button id="integration-test-write" type="button" class="btn btn-primary btn-sm">
+      Integration Test Write
+    </button>
+  </div>
 </body>
 
 </html>
