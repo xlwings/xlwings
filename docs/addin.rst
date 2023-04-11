@@ -81,6 +81,22 @@ With environment variables, you can set dynamic paths e.g. to your interpreter o
 * On Windows, you can use all environment variables like so: ``%USERPROFILE%\Anaconda``.
 * On macOS, the following special variables are supported: ``$HOME``, ``$APPLICATIONS``, ``$DOCUMENTS``, ``$DESKTOP``.
 
+.. _config_hierarchy:
+
+Config Hierarchy
+----------------
+
+The configuration hierachy to which xlwings listens is as follows: 
+
+.. code-block:: bash
+
+    .
+    └── xlwings-ribbon-config - If xlwings ribbon is installed
+        └── workbook-directory-config - If a file named xlwings.conf is present
+            └── xlwing.conf-sheet - If a sheet named xlwings.conf is present and active
+
+Where the lower takes precedence over the higher. You can read more information about each config below. 
+
 .. _user_config:
 
 User Config: Ribbon/Config File
@@ -132,7 +148,7 @@ Workbook Config: xlwings.conf Sheet
 Workbook specific settings will override global (Ribbon) and workbook directory config files: 
 Workbook specific settings are set by listing the config key/value pairs in a sheet with the name ``xlwings.conf``.
 When you create a new project with ``xlwings quickstart``, it'll already have such a sheet but you need to rename
-it to ``xlwings.conf`` to make it active.
+it from ``_xlwings.conf`` to ``xlwings.conf`` to make it active.
 
 
 .. figure:: ./images/workbook_config.png
