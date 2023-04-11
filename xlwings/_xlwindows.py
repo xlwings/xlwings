@@ -514,6 +514,7 @@ class Apps(base_classes.Apps):
             split('tasklist /FI "IMAGENAME eq EXCEL.exe"'),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
+            creationflags=subprocess.CREATE_NO_WINDOW,
             encoding="utf-8",
         )
 
@@ -531,6 +532,7 @@ class Apps(base_classes.Apps):
                 split(f"taskkill /PID {pid} /F"),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
+                creationflags=subprocess.CREATE_NO_WINDOW,
                 encoding="utf-8",
             )
 
