@@ -12,7 +12,7 @@ Note that you don't need an add-in if you just want to manipulate Excel by runni
   On macOS, all UDF related functionality is not available.
 
 .. note:: The add-in is password protected with the password ``xlwings``. For debugging or to add new extensions, you need
-  to unprotect it. Alternatively, you can also install the add-in via ``xlwings addin install --unprotected``.
+  to unprotect it.
 
 Run main
 --------
@@ -86,16 +86,24 @@ With environment variables, you can set dynamic paths e.g. to your interpreter o
 Config Hierarchy
 ----------------
 
-The configuration hierachy to which xlwings listens is as follows: 
 
-.. code-block:: bash
+xlwings looks for settings in the following locations and order:
 
-    .
-    └── xlwings-ribbon-config - If xlwings ribbon is installed
-        └── workbook-directory-config - If a file named xlwings.conf is present
-            └── xlwing.conf-sheet - If a sheet named xlwings.conf is present and active
+* **Workbook configuration**
 
-Where the lower takes precedence over the higher. You can read more information about each config below. 
+  First, xlwings looks for a sheet called ``xlwings.conf``. This is the recommended way to configure your workbook for deployment as you don't have to handle an additional config file. When you run the quickstart command, it will create a sample configuration on a sheet called ``_xlwings.conf``: remove the leading underscore in the name to activate it. If you don't want to use it, feel free to delete the sheet.
+
+* **Directory configuration**
+
+  Next, xlwings looks for a file called ``xlwings.conf`` in the same directory as your Excel workbook.
+
+* **User configuration**
+
+  Finally, xlwings looks for a file called ``xlwings.conf`` in the ``.xlwings`` folder in the user's home directory. Normally, you don't edit this file directly—instead, it is created and edited by the add-in whenever you change a setting.
+
+You will find more details about the each configuration type below. 
+
+*Source: The section "Config Hierarchy" is taken from "Python for Excel by Felix Zumstein (O'Reilly). Copyright 2021 Zoomer Analytics LLC, 978-1-492-08100-5."*
 
 .. _user_config:
 
@@ -131,8 +139,8 @@ The format is as follows (currently the keys are required to be all caps) - note
 .. note::
     The ``ONEDRIVE_WIN/_MAC`` setting has to be edited directly in the file, there is currently no possibility to edit it via the ribbon. Usually, it is only required if you are either on macOS or if your environment variables on Windows are not correctly set or if you have a private and corporate location and don't want to go with the default one. ``ONEDRIVE_WIN/_MAC`` has to point to the root folder of your local OneDrive folder.
 
-Workbook Directory Config: Config file
---------------------------------------
+Directory Config: Config file
+-----------------------------
 
 The global settings of the Ribbon/Config file can be overridden for one or more workbooks by creating a ``xlwings.conf`` file
 in the workbook's directory.
