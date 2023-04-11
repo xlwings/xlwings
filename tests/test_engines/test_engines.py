@@ -105,7 +105,12 @@ data = {
                 },
             ],
         },
-        {"name": "Sheet2", "values": [["aa", "bb"], [11.1, 22.2]], "pictures": []},
+        {
+            "name": "Sheet2",
+            "values": [["aa", "bb"], [11.1, 22.2]],
+            "pictures": [],
+            "tables": [],
+        },
         {
             "name": "Sheet3",
             "values": [
@@ -635,6 +640,11 @@ def test_table_show_autofilter(book):
 @pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
 def test_table_get_values(book):
     assert book.sheets[0].tables[0].range.value == [["Column1", "Column2"], [1.1, 2.2]]
+
+
+@pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
+def test_range_with_table_name(book):
+    assert book.sheets[0]["Table1"].value == [1.1, 2.2]
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
