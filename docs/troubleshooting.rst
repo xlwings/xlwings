@@ -22,3 +22,13 @@ Issue: Files that are saved on OneDrive or SharePoint cause an error to pop up
 Solution:
 
 See the dedicated page about how to configure OneDrive and Sharepoint: :ref:`onedrive_sharepoint`.
+
+Issue: Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Manage App Execution Aliases.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Solution:
+
+The Python interpreter is not correctly installed or the configuration does not point to the Python interpreter. To fix this:
+
+1) Verify that a Python interpreter is installed. Python can be installed in any way, including via Conda or virtual environment or the xlwings 1-click installer (part of xlwings PRO).
+2) Check the configuration of xlwings according to its :ref:`config_hierarchy`.
