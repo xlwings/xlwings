@@ -139,6 +139,15 @@ def integration_test_write(data: dict = Body):
     # Activate sheet
     book.sheets[1].activate()
 
+    # Pictures
+    sheet1.pictures.add(
+        this_dir.parent / "tests" / "sample_picture.png",
+        name="MyPic",
+        anchor=sheet1["C28"],
+    )
+    sheet1.pictures.add(this_dir / "icons" / "icon-80.png", name="MyPic", update=True)
+    book.sheets[1].pictures.add(this_dir.parent / "tests" / "sample_picture.png")
+
     return book.json()
 
 
@@ -402,7 +411,10 @@ expected_body["Office Scripts"] = {
                 [4.4, 5.5, 6.6, ""],
                 ["Total", "", 9.9, ""],
             ],
-            "pictures": [],
+            "pictures": [
+                {"name": "mypic1", "width": 21, "height": 10},
+                {"name": "mypic2", "width": 41, "height": 29.5},
+            ],
             "tables": [
                 {
                     "name": "Table1",

@@ -115,10 +115,16 @@ async function runPython(
   let payload: {} = {};
   payload["client"] = "Microsoft Office Scripts";
   payload["version"] = version;
+  let selection: string | null | undefined;
+  try {
+    selection = workbook.getSelectedRange().getAddress().split("!").pop();
+  } catch (error) {
+    selection = null;
+  }
   payload["book"] = {
     name: workbook.getName(),
     active_sheet_index: workbook.getActiveWorksheet().getPosition(),
-    selection: workbook.getSelectedRange().getAddress().split("!").pop(),
+    selection: selection,
   };
 
   // Names (book scope only)
@@ -477,7 +483,6 @@ function deletePicture(workbook: ExcelScript.Workbook, action: Action) {
 registerCallback(deletePicture);
 
 function addPicture(workbook: ExcelScript.Workbook, action: Action) {
-  const selection = workbook.getSelectedRange();
   const imageBase64 = action["args"][0].toString();
   const colIndex = Number(action["args"][1]);
   const rowIndex = Number(action["args"][2]);
@@ -491,12 +496,10 @@ function addPicture(workbook: ExcelScript.Workbook, action: Action) {
   const image = sheet.addImage(imageBase64);
   image.setLeft(left);
   image.setTop(top);
-  selection.select();
 }
 registerCallback(addPicture);
 
 function updatePicture(workbook: ExcelScript.Workbook, action: Action) {
-  const selection = workbook.getSelectedRange();
   const imageBase64 = action["args"][0].toString();
   const sheet = workbook.getWorksheets()[action.sheet_position];
   let image = getShapeByType(
@@ -518,7 +521,6 @@ function updatePicture(workbook: ExcelScript.Workbook, action: Action) {
   newImage.setTop(imgTop);
   newImage.setHeight(imgHeight);
   newImage.setWidth(imgWidth);
-  selection.select();
 }
 registerCallback(updatePicture);
 
