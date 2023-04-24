@@ -115,10 +115,16 @@ async function runPython(
   let payload: {} = {};
   payload["client"] = "Microsoft Office Scripts";
   payload["version"] = version;
+  let selection: string | null | undefined;
+  try {
+    selection = workbook.getSelectedRange().getAddress().split("!").pop();
+  } catch (error) {
+    selection = null;
+  }
   payload["book"] = {
     name: workbook.getName(),
     active_sheet_index: workbook.getActiveWorksheet().getPosition(),
-    selection: workbook.getSelectedRange().getAddress().split("!").pop(),
+    selection: selection,
   };
 
   // Names (book scope only)
@@ -207,10 +213,24 @@ async function runPython(
         });
       }
     }
+
+    // Pictures
+    let pictures: Pictures[] = [];
+    if (isSheetIncluded) {
+      for (let shape of sheet.getShapes())
+        if (shape.getType() === ExcelScript.ShapeType.image) {
+          pictures.push({
+            name: shape.getName(),
+            width: shape.getWidth(),
+            height: shape.getHeight(),
+          });
+        }
+    }
+
     payload["sheets"].push({
       name: sheet.getName(),
       values: values,
-      pictures: [], // TODO: NotImplemented
+      pictures: pictures,
       tables: tables,
     });
   });
@@ -236,9 +256,16 @@ async function runPython(
 
   // Run Functions
   if (rawData !== null) {
-    const forceSync = ["sheet", "table", "copy"];
+    const forceSync = ["sheet", "table", "copy", "picture"];
     rawData["actions"].forEach((action) => {
-      globalThis.callbacks[action.func](workbook, action);
+      if (action.func === "addPicture") {
+        // addPicture doesn't manage to pull both top and left from anchorCell otherwise
+        addPicture(workbook, action);
+      } else if (action.func === "updatePicture") {
+        updatePicture(workbook, action);
+      } else {
+        globalThis.callbacks[action.func](workbook, action);
+      }
       if (forceSync.some((el) => action.func.toLowerCase().includes(el))) {
         console.log(); // Force sync
       }
@@ -285,6 +312,12 @@ interface Tables {
   show_autofilter: boolean;
 }
 
+interface Pictures {
+  name: string;
+  height: number;
+  width: number;
+}
+
 function getRange(workbook: ExcelScript.Workbook, action: Action) {
   return workbook
     .getWorksheets()
@@ -294,6 +327,19 @@ function getRange(workbook: ExcelScript.Workbook, action: Action) {
       action.row_count,
       action.column_count
     );
+}
+
+function getShapeByType(
+  workbook: ExcelScript.Workbook,
+  sheetPosition: number,
+  shapeIndex: number,
+  shapeType: ExcelScript.ShapeType
+) {
+  const myshapes = workbook
+    .getWorksheets()
+    [sheetPosition].getShapes()
+    .filter((shape: ExcelScript.Shape) => shape.getType() === shapeType);
+  return myshapes[shapeIndex];
 }
 
 function registerCallback(callback: Function) {
@@ -393,32 +439,88 @@ function setNumberFormat(workbook: ExcelScript.Workbook, action: Action) {
 registerCallback(setNumberFormat);
 
 function setPictureName(workbook: ExcelScript.Workbook, action: Action) {
-  throw "Not Implemented: setPictureName";
+  const myshape = getShapeByType(
+    workbook,
+    action.sheet_position,
+    Number(action.args[0]),
+    ExcelScript.ShapeType.image
+  );
+  myshape.setName(action.args[1].toString());
 }
 registerCallback(setPictureName);
 
 function setPictureHeight(workbook: ExcelScript.Workbook, action: Action) {
-  throw "Not Implemented: setPictureHeight";
+  const myshape = getShapeByType(
+    workbook,
+    action.sheet_position,
+    Number(action.args[0]),
+    ExcelScript.ShapeType.image
+  );
+  myshape.setHeight(Number(action.args[1]));
 }
 registerCallback(setPictureHeight);
 
 function setPictureWidth(workbook: ExcelScript.Workbook, action: Action) {
-  throw "Not Implemented: setPictureWidth";
+  const myshape = getShapeByType(
+    workbook,
+    action.sheet_position,
+    Number(action.args[0]),
+    ExcelScript.ShapeType.image
+  );
+  myshape.setWidth(Number(action.args[1]));
 }
 registerCallback(setPictureWidth);
 
 function deletePicture(workbook: ExcelScript.Workbook, action: Action) {
-  throw "Not Implemented: deletePicture";
+  const myshape = getShapeByType(
+    workbook,
+    action.sheet_position,
+    Number(action.args[0]),
+    ExcelScript.ShapeType.image
+  );
+  myshape.delete();
 }
 registerCallback(deletePicture);
 
 function addPicture(workbook: ExcelScript.Workbook, action: Action) {
-  throw "Not Implemented: addPicture";
+  const imageBase64 = action["args"][0].toString();
+  const colIndex = Number(action["args"][1]);
+  const rowIndex = Number(action["args"][2]);
+  let left = Number(action["args"][3]);
+  let top = Number(action["args"][4]);
+
+  const sheet = workbook.getWorksheets()[action.sheet_position];
+  let anchorCell = sheet.getRangeByIndexes(rowIndex, colIndex, 1, 1);
+  left = Math.max(left, anchorCell.getLeft());
+  top = Math.max(top, anchorCell.getTop());
+  const image = sheet.addImage(imageBase64);
+  image.setLeft(left);
+  image.setTop(top);
 }
 registerCallback(addPicture);
 
 function updatePicture(workbook: ExcelScript.Workbook, action: Action) {
-  throw "Not Implemented: updatePicture";
+  const imageBase64 = action["args"][0].toString();
+  const sheet = workbook.getWorksheets()[action.sheet_position];
+  let image = getShapeByType(
+    workbook,
+    action.sheet_position,
+    Number(action.args[1]),
+    ExcelScript.ShapeType.image
+  );
+  let imgName = image.getName();
+  let imgLeft = image.getLeft();
+  let imgTop = image.getTop();
+  let imgHeight = image.getHeight();
+  let imgWidth = image.getWidth();
+  image.delete();
+
+  const newImage = sheet.addImage(imageBase64);
+  newImage.setName(imgName);
+  newImage.setLeft(imgLeft);
+  newImage.setTop(imgTop);
+  newImage.setHeight(imgHeight);
+  newImage.setWidth(imgWidth);
 }
 registerCallback(updatePicture);
 
