@@ -20,7 +20,7 @@ def main():
     if f'version = "{version}"' not in xlwingsjs.read_text():
         raise Exception("Didn't find expected version in xlwings.js!")
 
-    if f'version="{version}"' not in xlwingsminjs.read_text():
+    if f'"{version}"' not in xlwingsminjs.read_text():
         raise Exception("Didn't find expected version in xlwings.min.js!")
 
 
