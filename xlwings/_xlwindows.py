@@ -1,4 +1,5 @@
 import atexit
+import locale
 import os
 import subprocess
 import sys
@@ -515,7 +516,7 @@ class Apps(base_classes.Apps):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             creationflags=subprocess.CREATE_NO_WINDOW,
-            encoding="utf-8",
+            encoding=locale.getpreferredencoding(),
         )
 
         all_pids = set()
@@ -533,7 +534,7 @@ class Apps(base_classes.Apps):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 creationflags=subprocess.CREATE_NO_WINDOW,
-                encoding="utf-8",
+                encoding=locale.getpreferredencoding(),
             )
 
     def __iter__(self):
