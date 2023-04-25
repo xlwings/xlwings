@@ -251,7 +251,10 @@ expected_body["Office.js"] = {
                 [4.4, 5.5, 6.6, ""],
                 ["Total", "", 9.9, ""],
             ],
-            "pictures": [],
+            "pictures": [
+                {"name": "mypic1", "height": 10, "width": 20},
+                {"name": "mypic2", "height": 30, "width": 40},
+            ],
             "tables": [
                 {
                     "name": "Table1",
