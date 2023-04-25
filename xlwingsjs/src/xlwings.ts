@@ -269,10 +269,27 @@ export async function runPython(
             });
           }
         }
+
+        // Pictures
+        let picturesArray: Pictures[] = [];
+        if (!excludeArray.includes(item["sheet"].name)) {
+          const shapes = sheet.shapes.load(["name", "width", "height", "type"]);
+          await context.sync();
+          for (let shape of sheet.shapes.items) {
+            if (shape.type == Excel.ShapeType.image) {
+              picturesArray.push({
+                name: shape.name,
+                height: shape.height,
+                width: shape.width,
+              });
+            }
+          }
+        }
+
         payload["sheets"].push({
           name: item["sheet"].name,
           values: values,
-          pictures: [], // TODO
+          pictures: picturesArray,
           tables: tablesArray,
         });
       }
@@ -353,6 +370,12 @@ interface Tables {
   show_autofilter: boolean;
 }
 
+interface Pictures {
+  name: string;
+  height: number;
+  width: number;
+}
+
 async function getRange(context: Excel.RequestContext, action: Action) {
   let sheets = context.workbook.worksheets.load("items");
   await context.sync();
@@ -364,12 +387,33 @@ async function getRange(context: Excel.RequestContext, action: Action) {
   );
 }
 
+async function getSheet(context: Excel.RequestContext, action: Action) {
+  let sheets = context.workbook.worksheets.load("items");
+  await context.sync();
+  return sheets.items[action.sheet_position];
+}
+
 async function getTable(context: Excel.RequestContext, action: Action) {
   // Requires action.args[0] to be the table index
   let sheets = context.workbook.worksheets.load("items");
   const tables = sheets.items[action.sheet_position].tables.load("items");
   await context.sync();
   return tables.items[parseInt(action.args[0].toString())];
+}
+
+async function getShapeByType(
+  context: Excel.RequestContext,
+  sheetPosition: number,
+  shapeIndex: number,
+  shapeType: Excel.ShapeType
+) {
+  let sheets = context.workbook.worksheets.load("items");
+  const shapes = sheets.items[sheetPosition].shapes.load("items");
+  await context.sync();
+  const myshapes = shapes.items.filter(
+    (shape: Excel.Shape) => shape.type === shapeType
+  );
+  return myshapes[shapeIndex];
 }
 
 export function registerCallback(callback: Function) {
@@ -513,27 +557,88 @@ async function setNumberFormat(context: Excel.RequestContext, action: Action) {
 }
 
 async function setPictureName(context: Excel.RequestContext, action: Action) {
-  throw "Not Implemented: setPictureName";
+  const myshape = await getShapeByType(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+    Excel.ShapeType.image
+  );
+  myshape.name = action.args[1].toString();
 }
 
 async function setPictureHeight(context: Excel.RequestContext, action: Action) {
-  throw "Not Implemented: setPictureHeight";
+  const myshape = await getShapeByType(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+    Excel.ShapeType.image
+  );
+  myshape.height = Number(action.args[1]);
 }
 
 async function setPictureWidth(context: Excel.RequestContext, action: Action) {
-  throw "Not Implemented: setPictureWidth";
+  const myshape = await getShapeByType(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+    Excel.ShapeType.image
+  );
+  myshape.width = Number(action.args[1]);
 }
 
 async function deletePicture(context: Excel.RequestContext, action: Action) {
-  throw "Not Implemented: deletePicture";
+  const myshape = await getShapeByType(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+    Excel.ShapeType.image
+  );
+  myshape.delete();
 }
 
 async function addPicture(context: Excel.RequestContext, action: Action) {
-  throw "Not Implemented: addPicture";
+  const imageBase64 = action["args"][0].toString();
+  const colIndex = Number(action["args"][1]);
+  const rowIndex = Number(action["args"][2]);
+  let left = Number(action["args"][3]);
+  let top = Number(action["args"][4]);
+
+  const sheet = await getSheet(context, action);
+  let anchorCell = sheet
+    .getRangeByIndexes(rowIndex, colIndex, 1, 1)
+    .load("left, top");
+  await context.sync();
+  left = Math.max(left, anchorCell.left);
+  top = Math.max(top, anchorCell.top);
+  const image = sheet.shapes.addImage(imageBase64);
+  image.left = left;
+  image.top = top;
 }
 
 async function updatePicture(context: Excel.RequestContext, action: Action) {
-  throw "Not Implemented: updatePicture";
+  const imageBase64 = action["args"][0].toString();
+  const sheet = await getSheet(context, action);
+  let image = await getShapeByType(
+    context,
+    action.sheet_position,
+    Number(action.args[1]),
+    Excel.ShapeType.image
+  );
+  image = image.load("name, left, top, height, width");
+  await context.sync();
+  let imgName = image.name;
+  let imgLeft = image.left;
+  let imgTop = image.top;
+  let imgHeight = image.height;
+  let imgWidth = image.width;
+  image.delete();
+
+  const newImage = sheet.shapes.addImage(imageBase64);
+  newImage.name = imgName;
+  newImage.left = imgLeft;
+  newImage.top = imgTop;
+  newImage.height = imgHeight;
+  newImage.width = imgWidth;
 }
 
 async function alert(context: Excel.RequestContext, action: Action) {
