@@ -309,6 +309,24 @@ module.exports = function (bitmap, value) {
 
 /***/ }),
 
+/***/ "./node_modules/core-js/internals/define-built-in-accessor.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/core-js/internals/define-built-in-accessor.js ***!
+  \********************************************************************/
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+var makeBuiltIn = __webpack_require__(/*! ../internals/make-built-in */ "./node_modules/core-js/internals/make-built-in.js");
+var defineProperty = __webpack_require__(/*! ../internals/object-define-property */ "./node_modules/core-js/internals/object-define-property.js");
+
+module.exports = function (target, name, descriptor) {
+  if (descriptor.get) makeBuiltIn(descriptor.get, name, { getter: true });
+  if (descriptor.set) makeBuiltIn(descriptor.set, name, { setter: true });
+  return defineProperty.f(target, name, descriptor);
+};
+
+
+/***/ }),
+
 /***/ "./node_modules/core-js/internals/define-built-in.js":
 /*!***********************************************************!*\
   !*** ./node_modules/core-js/internals/define-built-in.js ***!
@@ -429,11 +447,9 @@ module.exports = function (it) {
 /*!*************************************************************!*\
   !*** ./node_modules/core-js/internals/engine-user-agent.js ***!
   \*************************************************************/
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+/***/ (function(module) {
 
-var getBuiltIn = __webpack_require__(/*! ../internals/get-built-in */ "./node_modules/core-js/internals/get-built-in.js");
-
-module.exports = getBuiltIn('navigator', 'userAgent') || '';
+module.exports = typeof navigator != 'undefined' && String(navigator.userAgent) || '';
 
 
 /***/ }),
@@ -1078,6 +1094,7 @@ module.exports = function (obj) {
   \*********************************************************/
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
+var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "./node_modules/core-js/internals/function-uncurry-this.js");
 var fails = __webpack_require__(/*! ../internals/fails */ "./node_modules/core-js/internals/fails.js");
 var isCallable = __webpack_require__(/*! ../internals/is-callable */ "./node_modules/core-js/internals/is-callable.js");
 var hasOwn = __webpack_require__(/*! ../internals/has-own-property */ "./node_modules/core-js/internals/has-own-property.js");
@@ -1088,8 +1105,12 @@ var InternalStateModule = __webpack_require__(/*! ../internals/internal-state */
 
 var enforceInternalState = InternalStateModule.enforce;
 var getInternalState = InternalStateModule.get;
+var $String = String;
 // eslint-disable-next-line es/no-object-defineproperty -- safe
 var defineProperty = Object.defineProperty;
+var stringSlice = uncurryThis(''.slice);
+var replace = uncurryThis(''.replace);
+var join = uncurryThis([].join);
 
 var CONFIGURABLE_LENGTH = DESCRIPTORS && !fails(function () {
   return defineProperty(function () { /* empty */ }, 'length', { value: 8 }).length !== 8;
@@ -1098,8 +1119,8 @@ var CONFIGURABLE_LENGTH = DESCRIPTORS && !fails(function () {
 var TEMPLATE = String(String).split('String');
 
 var makeBuiltIn = module.exports = function (value, name, options) {
-  if (String(name).slice(0, 7) === 'Symbol(') {
-    name = '[' + String(name).replace(/^Symbol\(([^)]*)\)/, '$1') + ']';
+  if (stringSlice($String(name), 0, 7) === 'Symbol(') {
+    name = '[' + replace($String(name), /^Symbol\(([^)]*)\)/, '$1') + ']';
   }
   if (options && options.getter) name = 'get ' + name;
   if (options && options.setter) name = 'set ' + name;
@@ -1118,7 +1139,7 @@ var makeBuiltIn = module.exports = function (value, name, options) {
   } catch (error) { /* empty */ }
   var state = enforceInternalState(value);
   if (!hasOwn(state, 'source')) {
-    state.source = TEMPLATE.join(typeof name == 'string' ? name : '');
+    state.source = join(TEMPLATE, typeof name == 'string' ? name : '');
   } return value;
 };
 
@@ -1676,10 +1697,10 @@ var store = __webpack_require__(/*! ../internals/shared-store */ "./node_modules
 (module.exports = function (key, value) {
   return store[key] || (store[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.27.1',
+  version: '3.30.0',
   mode: IS_PURE ? 'pure' : 'global',
-  copyright: '© 2014-2022 Denis Pushkarev (zloirock.ru)',
-  license: 'https://github.com/zloirock/core-js/blob/v3.27.1/LICENSE',
+  copyright: '© 2014-2023 Denis Pushkarev (zloirock.ru)',
+  license: 'https://github.com/zloirock/core-js/blob/v3.30.0/LICENSE',
   source: 'https://github.com/zloirock/core-js'
 });
 
@@ -1964,21 +1985,15 @@ var uid = __webpack_require__(/*! ../internals/uid */ "./node_modules/core-js/in
 var NATIVE_SYMBOL = __webpack_require__(/*! ../internals/symbol-constructor-detection */ "./node_modules/core-js/internals/symbol-constructor-detection.js");
 var USE_SYMBOL_AS_UID = __webpack_require__(/*! ../internals/use-symbol-as-uid */ "./node_modules/core-js/internals/use-symbol-as-uid.js");
 
-var WellKnownSymbolsStore = shared('wks');
 var Symbol = global.Symbol;
-var symbolFor = Symbol && Symbol['for'];
-var createWellKnownSymbol = USE_SYMBOL_AS_UID ? Symbol : Symbol && Symbol.withoutSetter || uid;
+var WellKnownSymbolsStore = shared('wks');
+var createWellKnownSymbol = USE_SYMBOL_AS_UID ? Symbol['for'] || Symbol : Symbol && Symbol.withoutSetter || uid;
 
 module.exports = function (name) {
-  if (!hasOwn(WellKnownSymbolsStore, name) || !(NATIVE_SYMBOL || typeof WellKnownSymbolsStore[name] == 'string')) {
-    var description = 'Symbol.' + name;
-    if (NATIVE_SYMBOL && hasOwn(Symbol, name)) {
-      WellKnownSymbolsStore[name] = Symbol[name];
-    } else if (USE_SYMBOL_AS_UID && symbolFor) {
-      WellKnownSymbolsStore[name] = symbolFor(description);
-    } else {
-      WellKnownSymbolsStore[name] = createWellKnownSymbol(description);
-    }
+  if (!hasOwn(WellKnownSymbolsStore, name)) {
+    WellKnownSymbolsStore[name] = NATIVE_SYMBOL && hasOwn(Symbol, name)
+      ? Symbol[name]
+      : createWellKnownSymbol('Symbol.' + name);
   } return WellKnownSymbolsStore[name];
 };
 
@@ -2000,6 +2015,7 @@ var addToUnscopables = __webpack_require__(/*! ../internals/add-to-unscopables *
 
 // FF99+ bug
 var BROKEN_ON_SPARSE = fails(function () {
+  // eslint-disable-next-line es/no-array-prototype-includes -- detection
   return !Array(1).includes();
 });
 
@@ -2026,7 +2042,7 @@ addToUnscopables('includes');
 var DESCRIPTORS = __webpack_require__(/*! ../internals/descriptors */ "./node_modules/core-js/internals/descriptors.js");
 var FUNCTION_NAME_EXISTS = (__webpack_require__(/*! ../internals/function-name */ "./node_modules/core-js/internals/function-name.js").EXISTS);
 var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "./node_modules/core-js/internals/function-uncurry-this.js");
-var defineProperty = (__webpack_require__(/*! ../internals/object-define-property */ "./node_modules/core-js/internals/object-define-property.js").f);
+var defineBuiltInAccessor = __webpack_require__(/*! ../internals/define-built-in-accessor */ "./node_modules/core-js/internals/define-built-in-accessor.js");
 
 var FunctionPrototype = Function.prototype;
 var functionToString = uncurryThis(FunctionPrototype.toString);
@@ -2037,7 +2053,7 @@ var NAME = 'name';
 // Function instances `.name` property
 // https://tc39.es/ecma262/#sec-function-instances-name
 if (DESCRIPTORS && !FUNCTION_NAME_EXISTS) {
-  defineProperty(FunctionPrototype, NAME, {
+  defineBuiltInAccessor(FunctionPrototype, NAME, {
     configurable: true,
     get: function () {
       try {
@@ -2371,7 +2387,7 @@ var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from
 
 
 
-var version = "0.30.4";
+var version = "0.30.5";
 globalThis.callbacks = {};
 function runPython(url, _a) {
     if (url === void 0) { url = ""; }
@@ -2551,9 +2567,9 @@ function runPython(url, _a) {
                                         // Add sheet scoped names to book scoped names
                                         payload["names"] = payload["names"].concat(namesSheetsScope2);
                                         _loop_1 = function (item) {
-                                            var sheet, values, categories_1, tablesArray, tables, tablesLoader, _d, _e, table, _f, tablesLoader_1, table;
-                                            return __generator(this, function (_g) {
-                                                switch (_g.label) {
+                                            var sheet, values, categories_1, tablesArray, tables, tablesLoader, _d, _e, table, _f, tablesLoader_1, table, picturesArray, shapes, _g, _h, shape;
+                                            return __generator(this, function (_j) {
+                                                switch (_j.label) {
                                                     case 0:
                                                         sheet = item["sheet"];
                                                         if (excludeArray.includes(item["sheet"].name)) {
@@ -2590,7 +2606,7 @@ function runPython(url, _a) {
                                                         ]);
                                                         return [4 /*yield*/, context.sync()];
                                                     case 1:
-                                                        _g.sent();
+                                                        _j.sent();
                                                         tablesLoader = [];
                                                         for (_d = 0, _e = sheet.tables.items; _d < _e.length; _d++) {
                                                             table = _e[_d];
@@ -2612,7 +2628,7 @@ function runPython(url, _a) {
                                                         }
                                                         return [4 /*yield*/, context.sync()];
                                                     case 2:
-                                                        _g.sent();
+                                                        _j.sent();
                                                         for (_f = 0, tablesLoader_1 = tablesLoader; _f < tablesLoader_1.length; _f++) {
                                                             table = tablesLoader_1[_f];
                                                             tablesArray.push({
@@ -2633,12 +2649,30 @@ function runPython(url, _a) {
                                                                 show_autofilter: table.showFilterButton,
                                                             });
                                                         }
-                                                        _g.label = 3;
+                                                        _j.label = 3;
                                                     case 3:
+                                                        picturesArray = [];
+                                                        if (!!excludeArray.includes(item["sheet"].name)) return [3 /*break*/, 5];
+                                                        shapes = sheet.shapes.load(["name", "width", "height", "type"]);
+                                                        return [4 /*yield*/, context.sync()];
+                                                    case 4:
+                                                        _j.sent();
+                                                        for (_g = 0, _h = sheet.shapes.items; _g < _h.length; _g++) {
+                                                            shape = _h[_g];
+                                                            if (shape.type == Excel.ShapeType.image) {
+                                                                picturesArray.push({
+                                                                    name: shape.name,
+                                                                    height: shape.height,
+                                                                    width: shape.width,
+                                                                });
+                                                            }
+                                                        }
+                                                        _j.label = 5;
+                                                    case 5:
                                                         payload["sheets"].push({
                                                             name: item["sheet"].name,
                                                             values: values,
-                                                            pictures: [],
+                                                            pictures: picturesArray,
                                                             tables: tablesArray,
                                                         });
                                                         return [2 /*return*/];
@@ -2675,16 +2709,16 @@ function runPython(url, _a) {
                                         if (!(rawData !== null)) return [3 /*break*/, 23];
                                         forceSync = ["sheet"];
                                         _loop_2 = function (action) {
-                                            return __generator(this, function (_h) {
-                                                switch (_h.label) {
+                                            return __generator(this, function (_k) {
+                                                switch (_k.label) {
                                                     case 0: return [4 /*yield*/, globalThis.callbacks[action.func](context, action)];
                                                     case 1:
-                                                        _h.sent();
+                                                        _k.sent();
                                                         if (!forceSync.some(function (el) { return action.func.toLowerCase().includes(el); })) return [3 /*break*/, 3];
                                                         return [4 /*yield*/, context.sync()];
                                                     case 2:
-                                                        _h.sent();
-                                                        _h.label = 3;
+                                                        _k.sent();
+                                                        _k.label = 3;
                                                     case 3: return [2 /*return*/];
                                                 }
                                             });
@@ -2733,6 +2767,21 @@ function getRange(context, action) {
         });
     });
 }
+function getSheet(context, action) {
+    return __awaiter(this, void 0, void 0, function () {
+        var sheets;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    sheets = context.workbook.worksheets.load("items");
+                    return [4 /*yield*/, context.sync()];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/, sheets.items[action.sheet_position]];
+            }
+        });
+    });
+}
 function getTable(context, action) {
     return __awaiter(this, void 0, void 0, function () {
         var sheets, tables;
@@ -2745,6 +2794,23 @@ function getTable(context, action) {
                 case 1:
                     _a.sent();
                     return [2 /*return*/, tables.items[parseInt(action.args[0].toString())]];
+            }
+        });
+    });
+}
+function getShapeByType(context, sheetPosition, shapeIndex, shapeType) {
+    return __awaiter(this, void 0, void 0, function () {
+        var sheets, shapes, myshapes;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    sheets = context.workbook.worksheets.load("items");
+                    shapes = sheets.items[sheetPosition].shapes.load("items");
+                    return [4 /*yield*/, context.sync()];
+                case 1:
+                    _a.sent();
+                    myshapes = shapes.items.filter(function (shape) { return shape.type === shapeType; });
+                    return [2 /*return*/, myshapes[shapeIndex]];
             }
         });
     });
@@ -2967,43 +3033,121 @@ function setNumberFormat(context, action) {
 }
 function setPictureName(context, action) {
     return __awaiter(this, void 0, void 0, function () {
+        var myshape;
         return __generator(this, function (_a) {
-            throw "Not Implemented: setPictureName";
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getShapeByType(context, action.sheet_position, Number(action.args[0]), Excel.ShapeType.image)];
+                case 1:
+                    myshape = _a.sent();
+                    myshape.name = action.args[1].toString();
+                    return [2 /*return*/];
+            }
         });
     });
 }
 function setPictureHeight(context, action) {
     return __awaiter(this, void 0, void 0, function () {
+        var myshape;
         return __generator(this, function (_a) {
-            throw "Not Implemented: setPictureHeight";
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getShapeByType(context, action.sheet_position, Number(action.args[0]), Excel.ShapeType.image)];
+                case 1:
+                    myshape = _a.sent();
+                    myshape.height = Number(action.args[1]);
+                    return [2 /*return*/];
+            }
         });
     });
 }
 function setPictureWidth(context, action) {
     return __awaiter(this, void 0, void 0, function () {
+        var myshape;
         return __generator(this, function (_a) {
-            throw "Not Implemented: setPictureWidth";
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getShapeByType(context, action.sheet_position, Number(action.args[0]), Excel.ShapeType.image)];
+                case 1:
+                    myshape = _a.sent();
+                    myshape.width = Number(action.args[1]);
+                    return [2 /*return*/];
+            }
         });
     });
 }
 function deletePicture(context, action) {
     return __awaiter(this, void 0, void 0, function () {
+        var myshape;
         return __generator(this, function (_a) {
-            throw "Not Implemented: deletePicture";
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getShapeByType(context, action.sheet_position, Number(action.args[0]), Excel.ShapeType.image)];
+                case 1:
+                    myshape = _a.sent();
+                    myshape.delete();
+                    return [2 /*return*/];
+            }
         });
     });
 }
 function addPicture(context, action) {
     return __awaiter(this, void 0, void 0, function () {
+        var imageBase64, colIndex, rowIndex, left, top, sheet, anchorCell, image;
         return __generator(this, function (_a) {
-            throw "Not Implemented: addPicture";
+            switch (_a.label) {
+                case 0:
+                    imageBase64 = action["args"][0].toString();
+                    colIndex = Number(action["args"][1]);
+                    rowIndex = Number(action["args"][2]);
+                    left = Number(action["args"][3]);
+                    top = Number(action["args"][4]);
+                    return [4 /*yield*/, getSheet(context, action)];
+                case 1:
+                    sheet = _a.sent();
+                    anchorCell = sheet
+                        .getRangeByIndexes(rowIndex, colIndex, 1, 1)
+                        .load("left, top");
+                    return [4 /*yield*/, context.sync()];
+                case 2:
+                    _a.sent();
+                    left = Math.max(left, anchorCell.left);
+                    top = Math.max(top, anchorCell.top);
+                    image = sheet.shapes.addImage(imageBase64);
+                    image.left = left;
+                    image.top = top;
+                    return [2 /*return*/];
+            }
         });
     });
 }
 function updatePicture(context, action) {
     return __awaiter(this, void 0, void 0, function () {
+        var imageBase64, sheet, image, imgName, imgLeft, imgTop, imgHeight, imgWidth, newImage;
         return __generator(this, function (_a) {
-            throw "Not Implemented: updatePicture";
+            switch (_a.label) {
+                case 0:
+                    imageBase64 = action["args"][0].toString();
+                    return [4 /*yield*/, getSheet(context, action)];
+                case 1:
+                    sheet = _a.sent();
+                    return [4 /*yield*/, getShapeByType(context, action.sheet_position, Number(action.args[1]), Excel.ShapeType.image)];
+                case 2:
+                    image = _a.sent();
+                    image = image.load("name, left, top, height, width");
+                    return [4 /*yield*/, context.sync()];
+                case 3:
+                    _a.sent();
+                    imgName = image.name;
+                    imgLeft = image.left;
+                    imgTop = image.top;
+                    imgHeight = image.height;
+                    imgWidth = image.width;
+                    image.delete();
+                    newImage = sheet.shapes.addImage(imageBase64);
+                    newImage.name = imgName;
+                    newImage.left = imgLeft;
+                    newImage.top = imgTop;
+                    newImage.height = imgHeight;
+                    newImage.width = imgWidth;
+                    return [2 /*return*/];
+            }
         });
     });
 }

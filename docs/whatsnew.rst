@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v0.30.5 (Apr 25, 2023)
+----------------------
+
+*  :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server: this version adds picture support for Office Scripts and Office.js, meaning that pictures are now supported across all clients (:issue:`2235` and :issue:`2238`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server: Excel tables can now be accessed via the ``mysheet['MyTable']`` syntax in addition to ``mysheet.tables`` (:issue:`2229`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Stability fixes with ``xw.apps.cleanup()`` (:issue:`2225` and :issue:`2239`).
+
 v0.30.4 (Mar 31, 2023)
 ----------------------
 
