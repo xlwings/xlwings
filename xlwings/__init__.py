@@ -110,7 +110,7 @@ try:
     from .pro import _xlcalamine
 
     engines.add(Engine(impl=_xlcalamine.engine))
-except (ImportError, LicenseError):
+except (ImportError, LicenseError, AttributeError):
     pass
 
 if "excel" in [engine.name for engine in engines]:

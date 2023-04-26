@@ -41,7 +41,7 @@ try:
     from ..pro.reports.markdown import Markdown, MarkdownConverter
 
     MarkdownConverter.register(Markdown)
-except (ImportError, LicenseError):
+except (ImportError, LicenseError, AttributeError):
     pass
 
 

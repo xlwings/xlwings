@@ -10,7 +10,7 @@ from . import Accessor, Converter, Options, Pipeline, accessors
 try:
     from ..pro import Markdown
     from ..pro.reports import markdown
-except (ImportError, LicenseError):
+except (ImportError, LicenseError, AttributeError):
     Markdown = None
 try:
     import numpy as np
