@@ -131,7 +131,6 @@ async function runPython(
   let names: Names[] = [];
   workbook.getNames().forEach((namedItem, ix) => {
     // Currently filtering to named ranges
-    // TODO: add sheet scoped named ranges via sheets as in officejs
     let itemType: ExcelScript.NamedItemType = namedItem.getType();
     if (itemType === ExcelScript.NamedItemType.range) {
       names[ix] = {
@@ -160,6 +159,26 @@ async function runPython(
       lastCellCol = 0;
       lastCellRow = 0;
     }
+
+    // Names (sheet scope)
+    let namesSheetScope: Names[] = [];
+    sheet.getNames().forEach((namedItem, ix) => {
+      // Currently filtering to named ranges
+      let itemType: ExcelScript.NamedItemType = namedItem.getType();
+      if (itemType === ExcelScript.NamedItemType.range) {
+        namesSheetScope[ix] = {
+          name: namedItem.getName(),
+          sheet_index: namedItem.getRange().getWorksheet().getPosition(),
+          address: namedItem.getRange().getAddress().split("!").pop(),
+          book_scope: false,
+        };
+      }
+    });
+
+    // Add sheet scoped names to book scoped names
+    payload["names"] = payload["names"].concat(namesSheetScope);
+
+    // values
     if (isSheetIncluded) {
       let range = sheet.getRangeByIndexes(
         0,
