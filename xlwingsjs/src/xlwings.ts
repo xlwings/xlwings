@@ -108,6 +108,8 @@ export async function runPython(
             name: namedItem.name,
             sheet: namedItem.getRange().worksheet.load("position"),
             range: namedItem.getRange().load("address"),
+            scope_sheet_name: null,
+            scope_sheet_index: null,
             book_scope: true, // workbook.names contains only workbook scope!
           };
         }
@@ -120,6 +122,8 @@ export async function runPython(
           name: namedItem.name,
           sheet_index: namedItem.sheet.position,
           address: namedItem.range.address.split("!").pop(),
+          scope_sheet_name: null,
+          scope_sheet_index: null,
           book_scope: namedItem.book_scope,
         };
       });
@@ -165,6 +169,8 @@ export async function runPython(
             name: namedItem.name,
             sheet: namedItem.getRange().worksheet.load("position"),
             range: namedItem.getRange().load("address"),
+            scope_sheet_name: namedItem.worksheet.load("name"),
+            scope_sheet_index: namedItem.worksheet.load("position"),
             book_scope: false,
           };
         });
@@ -178,6 +184,8 @@ export async function runPython(
           name: namedItem.name,
           sheet_index: namedItem.sheet.position,
           address: namedItem.range.address.split("!").pop(),
+          scope_sheet_name: namedItem.scope_sheet_name.name,
+          scope_sheet_index: namedItem.scope_sheet_index.position,
           book_scope: namedItem.book_scope,
         };
       });
@@ -355,6 +363,8 @@ interface Names {
   sheet?: Excel.Worksheet;
   range?: Excel.Range;
   address?: string;
+  scope_sheet_name: Excel.Worksheet | string | undefined | null;
+  scope_sheet_index: Excel.Worksheet | number | undefined | null;
   book_scope: boolean;
 }
 
@@ -651,15 +661,33 @@ async function alert(context: Excel.RequestContext, action: Action) {
 }
 
 async function setRangeName(context: Excel.RequestContext, action: Action) {
-  throw "NotImplemented: setRangeName";
+  let range = await getRange(context, action);
+  context.workbook.names.add(action.args[0].toString(), range);
 }
 
 async function namesAdd(context: Excel.RequestContext, action: Action) {
-  throw "NotImplemented: namesAdd";
+  let name = action.args[0].toString();
+  let refersTo = action.args[1].toString();
+  if (action.sheet_position === null) {
+    context.workbook.names.add(name, refersTo);
+  } else {
+    let sheets = context.workbook.worksheets.load("items");
+    await context.sync();
+    sheets.items[action.sheet_position].names.add(name, refersTo);
+  }
 }
 
 async function nameDelete(context: Excel.RequestContext, action: Action) {
-  throw "NotImplemented: deleteName";
+  let name = action.args[2].toString();
+  let book_scope = Boolean(action.args[4]);
+  let scope_sheet_index = Number(action.args[5]);
+  if (book_scope === true) {
+    context.workbook.names.getItem(name).delete();
+  } else {
+    let sheets = context.workbook.worksheets.load("items");
+    await context.sync();
+    sheets.items[scope_sheet_index].names.getItem(name).delete();
+  }
 }
 
 async function runMacro(context: Excel.RequestContext, action: Action) {
