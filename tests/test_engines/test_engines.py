@@ -37,14 +37,30 @@ data = {
         "selection": "B3:B4",
     },
     "names": [
-        {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
         {
-            "name": "Sheet1!two",
+            "name": "one",
+            "sheet_index": 0,
+            "address": "A1",
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+            "book_scope": True,
+        },
+        {
+            "name": "two",
             "sheet_index": 0,
             "address": "C7:D8",
+            "scope_sheet_name": "Sheet1",
+            "scope_sheet_index": 0,
             "book_scope": False,
         },
-        {"name": "two", "sheet_index": 1, "address": "A1:A2", "book_scope": True},
+        {
+            "name": "two",
+            "sheet_index": 1,
+            "address": "A1:A2",
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+            "book_scope": True,
+        },
     ],
     "sheets": [
         {
@@ -566,7 +582,14 @@ def test_sheet_names_add(book):
 def test_sheet_name_delete(book):
     book.names[0].delete()
     assert book.json()["actions"][0]["func"] == "nameDelete"
-    assert book.json()["actions"][0]["args"] == ["one", "=Sheet1!$A$1"]
+    assert book.json()["actions"][0]["args"] == [
+        "one",
+        "=Sheet1!$A$1",
+        "one",
+        0,
+        True,
+        None,
+    ]
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")

@@ -997,9 +997,9 @@ class Name(base_classes.Name):
         self.parent.append_json_action(
             func="nameDelete",
             args=[
-                self.name,
+                self.name,  # this includes the sheet name for sheet scope
                 self.refers_to,
-                self.api["name"],
+                self.api["name"],  # no sheet name
                 self.api["sheet_index"],
                 self.api["book_scope"],
                 self.api["scope_sheet_index"],

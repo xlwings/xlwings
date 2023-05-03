@@ -225,9 +225,30 @@ expected_body["Office.js"] = {
     "version": "dev",
     "book": {"name": "engines.xlsm", "active_sheet_index": 0, "selection": "A1"},
     "names": [
-        {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
-        {"name": "two", "sheet_index": 1, "address": "A1:A2", "book_scope": True},
-        {"name": "two", "sheet_index": 0, "address": "C7:D8", "book_scope": False},
+        {
+            "name": "one",
+            "sheet_index": 0,
+            "address": "A1",
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+            "book_scope": True,
+        },
+        {
+            "name": "two",
+            "sheet_index": 1,
+            "address": "A1:A2",
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+            "book_scope": True,
+        },
+        {
+            "name": "two",
+            "sheet_index": 0,
+            "address": "C7:D8",
+            "scope_sheet_name": "Sheet1",
+            "scope_sheet_index": 0,
+            "book_scope": False,
+        },
     ],
     "sheets": [
         {
@@ -389,8 +410,30 @@ expected_body["Office Scripts"] = {
     "version": "dev",
     "book": {"name": "engines.xlsm", "active_sheet_index": 0, "selection": "A1"},
     "names": [
-        {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
-        {"name": "two", "sheet_index": 1, "address": "A1:A2", "book_scope": True},
+        {
+            "name": "one",
+            "sheet_index": 0,
+            "address": "A1",
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+            "book_scope": True,
+        },
+        {
+            "name": "two",
+            "sheet_index": 1,
+            "address": "A1:A2",
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+            "book_scope": True,
+        },
+        {
+            "name": "two",
+            "sheet_index": 0,
+            "address": "C7:D8",
+            "scope_sheet_name": "Sheet1",
+            "scope_sheet_index": 0,
+            "book_scope": False,
+        },
     ],
     "sheets": [
         {
@@ -415,8 +458,8 @@ expected_body["Office Scripts"] = {
                 ["Total", "", 9.9, ""],
             ],
             "pictures": [
-                {"name": "mypic1", "width": 21, "height": 10},
-                {"name": "mypic2", "width": 41, "height": 29.5},
+                {"name": "mypic1", "width": 20, "height": 10},
+                {"name": "mypic2", "width": 40, "height": 30},
             ],
             "tables": [
                 {
