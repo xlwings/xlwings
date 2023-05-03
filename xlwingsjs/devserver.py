@@ -326,14 +326,30 @@ expected_body["VBA"] = {
     "version": "dev",
     "book": {"name": "engines.xlsm", "active_sheet_index": 0, "selection": "A1"},
     "names": [
-        {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
+        {
+            "name": "one",
+            "sheet_index": 0,
+            "address": "A1",
+            "book_scope": True,
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+        },
         {
             "name": "Sheet1!two",
             "sheet_index": 0,
             "address": "C7:D8",
             "book_scope": False,
+            "scope_sheet_name": "Sheet1",
+            "scope_sheet_index": 0,
         },
-        {"name": "two", "sheet_index": 1, "address": "A1:A2", "book_scope": True},
+        {
+            "name": "two",
+            "sheet_index": 1,
+            "address": "A1:A2",
+            "book_scope": True,
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+        },
     ],
     "sheets": [
         {
