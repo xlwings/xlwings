@@ -131,8 +131,10 @@ export async function runPython(
       let sheetsLoader = [];
       sheets.forEach((sheet) => {
         sheet.load("name names");
-        let lastCell: Excel.Range;
-        if (sheet.getUsedRange() !== undefined) {
+        let lastCell: Excel.Range | null;
+        if (excludeArray.includes(sheet.name)) {
+          lastCell = null;
+        } else if (sheet.getUsedRange() !== undefined) {
           lastCell = sheet.getUsedRange().getLastCell().load("address");
         } else {
           lastCell = sheet.getRange("A1").load("address");
@@ -146,13 +148,15 @@ export async function runPython(
       await context.sync();
 
       sheetsLoader.forEach((item, ix) => {
-        let range: Excel.Range;
-        range = item["sheet"]
-          .getRange(`A1:${item["lastCell"].address}`)
-          .load("values, numberFormatCategories");
-        sheetsLoader[ix]["range"] = range;
-        // Names (sheet scope)
-        sheetsLoader[ix]["names"] = item["sheet"].names.load("name, type");
+        if (!excludeArray.includes(item["sheet"].name)) {
+          let range: Excel.Range;
+          range = item["sheet"]
+            .getRange(`A1:${item["lastCell"].address}`)
+            .load("values, numberFormatCategories");
+          sheetsLoader[ix]["range"] = range;
+          // Names (sheet scope)
+          sheetsLoader[ix]["names"] = item["sheet"].names.load("name, type");
+        }
       });
 
       await context.sync();
@@ -160,14 +164,16 @@ export async function runPython(
       // Names (sheet scope)
       let namesSheetScope: Names[] = [];
       sheetsLoader.forEach((item) => {
-        item["names"].items.forEach((namedItem, ix) => {
-          namesSheetScope[ix] = {
-            name: namedItem.name,
-            sheet: namedItem.getRange().worksheet.load("position"),
-            range: namedItem.getRange().load("address"),
-            book_scope: false,
-          };
-        });
+        if (!excludeArray.includes(item["sheet"].name)) {
+          item["names"].items.forEach((namedItem, ix) => {
+            namesSheetScope[ix] = {
+              name: namedItem.name,
+              sheet: namedItem.getRange().worksheet.load("position"),
+              range: namedItem.getRange().load("address"),
+              book_scope: false,
+            };
+          });
+        }
       });
 
       await context.sync();
