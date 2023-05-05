@@ -2387,7 +2387,7 @@ var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from
 
 
 
-var version = "0.30.5";
+var version = "0.30.6";
 globalThis.callbacks = {};
 function runPython(url, _a) {
     if (url === void 0) { url = ""; }
@@ -2515,7 +2515,10 @@ function runPython(url, _a) {
                                         sheets.forEach(function (sheet) {
                                             sheet.load("name names");
                                             var lastCell;
-                                            if (sheet.getUsedRange() !== undefined) {
+                                            if (excludeArray.includes(sheet.name)) {
+                                                lastCell = null;
+                                            }
+                                            else if (sheet.getUsedRange() !== undefined) {
                                                 lastCell = sheet.getUsedRange().getLastCell().load("address");
                                             }
                                             else {
@@ -2530,27 +2533,31 @@ function runPython(url, _a) {
                                     case 8:
                                         _c.sent();
                                         sheetsLoader.forEach(function (item, ix) {
-                                            var range;
-                                            range = item["sheet"]
-                                                .getRange("A1:".concat(item["lastCell"].address))
-                                                .load("values, numberFormatCategories");
-                                            sheetsLoader[ix]["range"] = range;
-                                            // Names (sheet scope)
-                                            sheetsLoader[ix]["names"] = item["sheet"].names.load("name, type");
+                                            if (!excludeArray.includes(item["sheet"].name)) {
+                                                var range = void 0;
+                                                range = item["sheet"]
+                                                    .getRange("A1:".concat(item["lastCell"].address))
+                                                    .load("values, numberFormatCategories");
+                                                sheetsLoader[ix]["range"] = range;
+                                                // Names (sheet scope)
+                                                sheetsLoader[ix]["names"] = item["sheet"].names.load("name, type");
+                                            }
                                         });
                                         return [4 /*yield*/, context.sync()];
                                     case 9:
                                         _c.sent();
                                         namesSheetScope = [];
                                         sheetsLoader.forEach(function (item) {
-                                            item["names"].items.forEach(function (namedItem, ix) {
-                                                namesSheetScope[ix] = {
-                                                    name: namedItem.name,
-                                                    sheet: namedItem.getRange().worksheet.load("position"),
-                                                    range: namedItem.getRange().load("address"),
-                                                    book_scope: false,
-                                                };
-                                            });
+                                            if (!excludeArray.includes(item["sheet"].name)) {
+                                                item["names"].items.forEach(function (namedItem, ix) {
+                                                    namesSheetScope[ix] = {
+                                                        name: namedItem.name,
+                                                        sheet: namedItem.getRange().worksheet.load("position"),
+                                                        range: namedItem.getRange().load("address"),
+                                                        book_scope: false,
+                                                    };
+                                                });
+                                            }
                                         });
                                         return [4 /*yield*/, context.sync()];
                                     case 10:

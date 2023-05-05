@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.30.6 (May 5, 2023)
+---------------------
+
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Server (Office Scripts client): named ranges with sheet scope were ignored (:issue:`2245`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Server (Office.js client): excluded sheets were still loading sheet values (:issue:`2251`).
+
 v0.30.5 (Apr 25, 2023)
 ----------------------
 
