@@ -123,12 +123,22 @@ function runPython(
   // Names
   let names = [];
   workbook.getNamedRanges().forEach((namedRange, ix) => {
+    let name = namedRange.getName().includes(" ")
+      ? namedRange.getName()
+      : namedRange.getName().replace("'", "").replace("'", "");
     names[ix] = {
-      name: namedRange.getName(),
+      name: name,
       sheet_index: namedRange.getRange().getSheet().getIndex() - 1,
       address: namedRange.getRange().getA1Notation(),
-      // Sheet scope can only happen by copying a sheet from another workbook
+      // Sheet scope can only be created by copying a sheet (?)
+      scope_sheet_name: namedRange.getName().includes("!")
+        ? namedRange.getRange().getSheet().getName()
+        : null,
+      scope_sheet_index: namedRange.getName().includes("!")
+        ? namedRange.getRange().getSheet().getIndex() - 1
+        : null,
       book_scope: !namedRange.getName().includes("!"),
+      name_index: ix,
     };
   });
   payload["names"] = names;
@@ -442,15 +452,30 @@ function alert(workbook, action) {
 }
 
 function setRangeName(workbook, action) {
-  throw "NotImplemented: setRangeName";
+  let range = getRange(workbook, action);
+  range.getSheet().getParent().setNamedRange(action.args[0], range);
 }
 
 function namesAdd(workbook, action) {
-  throw "NotImplemented: namesAdd";
+  let name = action.args[0];
+  if (name.includes("!")) {
+    throw "NotImplemented: sheet scoped names";
+  }
+  let refersTo = action.args[1];
+  const parts = refersTo.split("!");
+  const address = parts[1];
+  let sheetName = parts[0];
+  if (sheetName.charAt(0) === "=") {
+    sheetName = sheetName.substring(1);
+  }
+  let range = workbook.getSheetByName(sheetName).getRange(address);
+  range.getSheet().getParent().setNamedRange(name, range);
 }
 
 function nameDelete(workbook, action) {
-  throw "NotImplemented: deleteName";
+  // workbook.removeNamedRange(name) doesn't work with sheet scoped names
+  let index = action.args[6];
+  workbook.getNamedRanges()[index].remove();
 }
 
 function runMacro(workbook, action) {

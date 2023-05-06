@@ -974,10 +974,12 @@ class Name(base_classes.Name):
             return self.api["name"]
         else:
             sheet_name = self.api["scope_sheet_name"]
-            if "!" not in sheet_name:
-                # VBA already does this
+            if "!" not in self.api["name"]:
+                # VBA/Google Sheets already do this
                 sheet_name = f"'{sheet_name}'" if " " in sheet_name else sheet_name
-            return f"{sheet_name}!{self.api['name']}"
+                return f"{sheet_name}!{self.api['name']}"
+            else:
+                return self.api["name"]
 
     @property
     def refers_to(self):
@@ -1003,6 +1005,7 @@ class Name(base_classes.Name):
                 self.api["sheet_index"],
                 self.api["book_scope"],
                 self.api["scope_sheet_index"],
+                self.api.get("name_index"),  # only available with Google Sheets
             ],
         )
 
