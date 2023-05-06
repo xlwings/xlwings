@@ -84,7 +84,6 @@ for mod_name in MOCK_MODULES:
 # on_rtd is whether we are on readthedocs.org
 # Note: under Admin > Advanced Settings, check the box 'Install your project inside a
 # virtualenv...' and provide a setup.py and requirements.txt file for the extension
-# 'sphinxcontrib-napoleon' (will be obsolete under sphinx 1.3)
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -94,7 +93,6 @@ on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinxcontrib.napoleon",
     "sphinx.ext.mathjax",
     "sphinx.ext.extlinks",
     "sphinx.ext.autosectionlabel",  # To make easy intra-page links: :ref:`Title`

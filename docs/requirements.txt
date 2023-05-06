@@ -1,5 +1,5 @@
-sphinxcontrib-napoleon
-sphinxcontrib-httpdomain
 furo
 sphinx-copybutton
 sphinx-design
+sphinx>=6.0
+sphinxcontrib-httpdomain
