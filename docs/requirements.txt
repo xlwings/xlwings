@@ -1,5 +1,5 @@
 furo
 sphinx-copybutton
 sphinx-design
-sphinx>=6.0
+sphinx
 sphinxcontrib-httpdomain
