@@ -27,7 +27,8 @@ globalThis.getAuth = async function () {
   //   });
   //   return "Bearer " + accessToken;
   // } catch (error) {
-  //   return "Error: " + error.message;
+  //   // Error codes: https://learn.microsoft.com/en-us/office/dev/add-ins/develop/troubleshoot-sso-in-office-add-ins#causes-and-handling-of-errors-from-getaccesstoken
+  //   return `Error ${error.code}: ${error.message}`;
   // }
 
   return "";
