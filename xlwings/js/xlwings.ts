@@ -275,7 +275,6 @@ async function runPython(
 
   // Run Functions
   if (rawData !== null) {
-    const forceSync = ["sheet", "table", "copy", "picture"];
     rawData["actions"].forEach((action) => {
       if (action.func === "addPicture") {
         // addPicture doesn't manage to pull both top and left from anchorCell otherwise
@@ -285,9 +284,7 @@ async function runPython(
       } else {
         globalThis.callbacks[action.func](workbook, action);
       }
-      if (forceSync.some((el) => action.func.toLowerCase().includes(el))) {
-        console.log(); // Force sync
-      }
+      console.log(); // Force sync
     });
   }
 }
