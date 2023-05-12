@@ -91,26 +91,27 @@ def integration_test_write(data: dict = Body):
     sheet3["A1"].value = "Unnamed Sheet"
 
     # Tables
-    sheet_tables = book.sheets["Tables"]
+    if data["client"] != "Google Apps Script":
+        sheet_tables = book.sheets["Tables"]
 
-    sheet_tables["A1"].value = [["one", "two"], [1, 2], [3, 4]]
-    sheet_tables.tables.add(sheet3["A1:B3"])
+        sheet_tables["A1"].value = [["one", "two"], [1, 2], [3, 4]]
+        sheet_tables.tables.add(sheet3["A1:B3"])
 
-    sheet_tables["A5"].value = [[1, 2], [3, 4]]
-    sheet_tables.tables.add(sheet_tables["A5:B6"], has_headers=False)
+        sheet_tables["A5"].value = [[1, 2], [3, 4]]
+        sheet_tables.tables.add(sheet_tables["A5:B6"], has_headers=False)
 
-    sheet_tables["A9"].value = [["one", "two"], [1, 2], [3, 4]]
-    mytable1 = sheet_tables.tables.add(sheet_tables["A9:B11"], name="MyTable1")
-    mytable1.show_autofilter = False
+        sheet_tables["A9"].value = [["one", "two"], [1, 2], [3, 4]]
+        mytable1 = sheet_tables.tables.add(sheet_tables["A9:B11"], name="MyTable1")
+        mytable1.show_autofilter = False
 
-    sheet_tables["A13"].value = [[1, 2], [3, 4]]
-    mytable2 = sheet_tables.tables.add(
-        sheet_tables["A13:B14"], name="MyTable2", has_headers=False
-    )
-    mytable2.show_headers = False
-    mytable2.show_totals = True
-    mytable2.show_filters = False
-    mytable2.resize(sheet_tables["A14:C17"])
+        sheet_tables["A13"].value = [[1, 2], [3, 4]]
+        mytable2 = sheet_tables.tables.add(
+            sheet_tables["A13:B14"], name="MyTable2", has_headers=False
+        )
+        mytable2.show_headers = False
+        mytable2.show_totals = True
+        mytable2.show_filters = False
+        mytable2.resize(sheet_tables["A14:C17"])
 
     # Set sheet name
     book.sheets["Sheet2"].name = "Changed"
@@ -148,6 +149,18 @@ def integration_test_write(data: dict = Body):
     sheet1.pictures.add(this_dir / "icons" / "icon-80.png", name="MyPic", update=True)
     book.sheets[1].pictures.add(this_dir.parent / "tests" / "sample_picture.png")
 
+    # Add named ranges
+    book.names.add("test1", "='Sheet 1'!$A$1:$B$3")
+    book.names.add("test2", "=Changed!$A$1")
+    sheet1["A1"].name = "test3"
+    if data["client"] != "Google Apps Script":
+        sheet1.names.add("test4", "='Sheet 1'!$A$1:$B$3")
+
+    # Delete named ranges
+    book.names["DeleteMe"].delete()
+    book.names["Sheet4!DeleteMe"].delete()
+    book.names["'Sheet 3'!DeleteMe"].delete()
+
     return book.json()
 
 
@@ -180,7 +193,8 @@ async def custom_functions_code():
 
 
 @app.post("/xlwings/custom-functions-call")
-async def custom_functions_call(data: dict = Body):
+async def custom_functions_call(request: Request, data: dict = Body):
+    print(request.headers["Authorization"])
     rv = await xw.pro.custom_functions_call(data, custom_functions)
     return {"result": rv}
 

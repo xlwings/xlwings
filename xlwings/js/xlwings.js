@@ -468,14 +468,30 @@ function namesAdd(workbook, action) {
   if (sheetName.charAt(0) === "=") {
     sheetName = sheetName.substring(1);
   }
+  if (sheetName.includes(" ")) {
+    sheetName = sheetName.replace("'", "").replace("'", "");
+  }
   let range = workbook.getSheetByName(sheetName).getRange(address);
   range.getSheet().getParent().setNamedRange(name, range);
 }
 
 function nameDelete(workbook, action) {
   // workbook.removeNamedRange(name) doesn't work with sheet scoped names
-  let index = action.args[6];
-  workbook.getNamedRanges()[index].remove();
+  function processName(name) {
+    if (name.includes("!")) {
+      const [sheetName, definedName] = name.split("!");
+      if (!sheetName.startsWith("'")) {
+        return `'${sheetName}'!${definedName}`;
+      }
+    }
+    return name;
+  }
+  workbook.getNamedRanges().forEach((namedRange) => {
+    if (namedRange.getName() === processName(action.args[0])) {
+      namedRange.remove();
+      return;
+    }
+  });
 }
 
 function runMacro(workbook, action) {

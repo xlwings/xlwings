@@ -481,7 +481,12 @@ async function setValues(context: Excel.RequestContext, action: Action) {
         value.includes("T")
       ) {
         dt = new Date(Date.parse(value));
-        // Excel on macOS doesn't use proper locale if not passed explicitly
+        // Excel on macOS does use the wrong locale if you set a custom one via
+        // macOS Settings > Date & Time > Open Language & Region > Apps
+        // as the date format seems to stick to the Region selected under General
+        // while toLocaleDateString then respects the specific selected language.
+        // Providing Office.context.contentLanguage fixes this but isn't available for
+        // Office Scripts
         // https://learn.microsoft.com/en-us/office/dev/add-ins/develop/localization#match-datetime-format-with-client-locale
         dtString = dt.toLocaleDateString(Office.context.contentLanguage);
         // Note that adding the time will format the cell as Custom instead of Date/Time
