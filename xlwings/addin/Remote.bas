@@ -104,25 +104,28 @@ Function RunRemotePython( _
     Dim myname As Name
     Dim mynames() As Dictionary
     Dim nNames As Integer
+    Dim namedRangeCount As Integer
     Dim iName As Integer
+
     nNames = wb.Names.Count
+    namedRangeCount = 0
+
     If nNames > 0 Then
-        ReDim mynames(nNames - 1)
         For iName = 1 To nNames
             Set myname = wb.Names(iName)
             Dim nameDict As Dictionary
             Set nameDict = New Dictionary
-            nameDict.Add "name", myname.Name
             Dim isNamedRange As Boolean
-            Dim isBookScope As Boolean
             Dim testRange As Range
+            Dim isBookScope As Boolean
+            nameDict.Add "name", myname.Name
             isNamedRange = False
             On Error Resume Next
-            Set testRange = myname.RefersToRange
-            If Err.Number = 0 Then isNamedRange = True
+                Set testRange = myname.RefersToRange
+                If Err.Number = 0 Then isNamedRange = True
             On Error GoTo 0
-            If TypeOf myname.Parent Is Workbook Then isBookScope = True Else isBookScope = False
             If isNamedRange Then
+                If TypeOf myname.Parent Is Workbook Then isBookScope = True Else isBookScope = False
                 nameDict.Add "sheet_index", myname.RefersToRange.Parent.Index - 1
                 nameDict.Add "address", myname.RefersToRange.Address(False, False)
                 nameDict.Add "book_scope", isBookScope
@@ -133,17 +136,16 @@ Function RunRemotePython( _
                     nameDict.Add "scope_sheet_name", myname.Parent.Name
                     nameDict.Add "scope_sheet_index", myname.Parent.Index - 1
                 End If
-            Else
-                ' Named constants and formulas
-                nameDict.Add "sheet_index", Null
-                nameDict.Add "address", Null
-                nameDict.Add "book_scope", Null
-                nameDict.Add "scope_sheet_name", Null
-                nameDict.Add "scope_sheet_index", Null
+                ReDim Preserve mynames(namedRangeCount)
+                Set mynames(namedRangeCount) = nameDict
+                namedRangeCount = namedRangeCount + 1
             End If
-            Set mynames(iName - 1) = nameDict
         Next
-        payload.Add "names", mynames
+        If namedRangeCount > 0 Then
+            payload.Add "names", mynames
+        Else
+            payload.Add "names", Array()
+        End If
     Else
         payload.Add "names", Array()
     End If
