@@ -104,31 +104,32 @@ export async function runPython(
       namedItems.items.forEach((namedItem, ix) => {
         // Currently filtering to named ranges
         if (namedItem.type === "Range") {
-          names[ix] = {
+          names.push({
             name: namedItem.name,
             sheet: namedItem.getRange().worksheet.load("position"),
             range: namedItem.getRange().load("address"),
             scope_sheet_name: null,
             scope_sheet_index: null,
             book_scope: true, // workbook.names contains only workbook scope!
-          };
+          });
         }
       });
 
       await context.sync();
 
+      let names2: Names[] = [];
       names.forEach((namedItem, ix) => {
-        names[ix] = {
+        names2.push({
           name: namedItem.name,
           sheet_index: namedItem.sheet.position,
           address: namedItem.range.address.split("!").pop(),
           scope_sheet_name: null,
           scope_sheet_index: null,
           book_scope: namedItem.book_scope,
-        };
+        });
       });
 
-      payload["names"] = names;
+      payload["names"] = names2;
 
       // Sheets
       payload["sheets"] = [];
@@ -165,14 +166,14 @@ export async function runPython(
       let namesSheetScope: Names[] = [];
       sheetsLoader.forEach((item) => {
         item["names"].items.forEach((namedItem, ix) => {
-          namesSheetScope[ix] = {
+          namesSheetScope.push({
             name: namedItem.name,
             sheet: namedItem.getRange().worksheet.load("position"),
             range: namedItem.getRange().load("address"),
             scope_sheet_name: namedItem.worksheet.load("name"),
             scope_sheet_index: namedItem.worksheet.load("position"),
             book_scope: false,
-          };
+          });
         });
       });
 
@@ -180,14 +181,14 @@ export async function runPython(
 
       let namesSheetsScope2: Names[] = [];
       namesSheetScope.forEach((namedItem, ix) => {
-        namesSheetsScope2[ix] = {
+        namesSheetsScope2.push({
           name: namedItem.name,
           sheet_index: namedItem.sheet.position,
           address: namedItem.range.address.split("!").pop(),
           scope_sheet_name: namedItem.scope_sheet_name.name,
           scope_sheet_index: namedItem.scope_sheet_index.position,
           book_scope: namedItem.book_scope,
-        };
+        });
       });
 
       // Add sheet scoped names to book scoped names
