@@ -133,7 +133,7 @@ async function runPython(
     // Currently filtering to named ranges
     let itemType: ExcelScript.NamedItemType = namedItem.getType();
     if (itemType === ExcelScript.NamedItemType.range) {
-      names[ix] = {
+      names.push({
         name: namedItem.getName(),
         sheet_index: namedItem.getRange().getWorksheet().getPosition(),
         address: namedItem.getRange().getAddress().split("!").pop(),
@@ -141,7 +141,7 @@ async function runPython(
         scope_sheet_index: null,
         book_scope:
           namedItem.getScope() === ExcelScript.NamedItemScope.workbook,
-      };
+      });
     }
   });
   payload["names"] = names;
@@ -168,14 +168,14 @@ async function runPython(
       // Currently filtering to named ranges
       let itemType: ExcelScript.NamedItemType = namedItem.getType();
       if (itemType === ExcelScript.NamedItemType.range) {
-        namesSheetScope[ix] = {
+        namesSheetScope.push({
           name: namedItem.getName(),
           sheet_index: namedItem.getRange().getWorksheet().getPosition(),
           address: namedItem.getRange().getAddress().split("!").pop(),
           scope_sheet_name: namedItem.getWorksheet().getName(),
           scope_sheet_index: namedItem.getWorksheet().getPosition(),
           book_scope: false,
-        };
+        });
       }
     });
 
