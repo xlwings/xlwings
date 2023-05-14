@@ -286,6 +286,7 @@ expected_body["Office.js"] = {
                 [4.4, 5.5, 6.6, ""],
                 ["Total", "", 9.9, ""],
             ],
+            # Width/height differ for Desktop and Web
             "pictures": [
                 {"name": "mypic1", "height": 10, "width": 20},
                 {"name": "mypic2", "height": 30, "width": 40},
@@ -368,6 +369,7 @@ expected_body["VBA"] = {
     "sheets": [
         {
             "name": "Sheet1",
+            # Differs between Windows and macOS
             "pictures": [
                 {"name": "mypic1", "height": 10, "width": 20},
                 {"name": "mypic2", "height": 30, "width": 40},
@@ -487,6 +489,7 @@ expected_body["Office Scripts"] = {
                 [4.4, 5.5, 6.6, ""],
                 ["Total", "", 9.9, ""],
             ],
+            # Width/height differ for Desktop and Web
             "pictures": [
                 {"name": "mypic1", "width": 20, "height": 10},
                 {"name": "mypic2", "width": 40, "height": 30},
