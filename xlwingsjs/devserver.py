@@ -550,7 +550,6 @@ expected_body["Google Apps Script"] = {
             "scope_sheet_name": "Sheet1",
             "scope_sheet_index": 0,
             "book_scope": False,
-            "name_index": 0,
         },
         {
             "name": "two",
@@ -559,7 +558,6 @@ expected_body["Google Apps Script"] = {
             "scope_sheet_name": None,
             "scope_sheet_index": None,
             "book_scope": True,
-            "name_index": 1,
         },
         {
             "name": "one",
@@ -568,7 +566,6 @@ expected_body["Google Apps Script"] = {
             "scope_sheet_name": None,
             "scope_sheet_index": None,
             "book_scope": True,
-            "name_index": 2,
         },
     ],
     "sheets": [

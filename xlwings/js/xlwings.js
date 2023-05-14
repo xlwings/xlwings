@@ -138,7 +138,6 @@ function runPython(
         ? namedRange.getRange().getSheet().getIndex() - 1
         : null,
       book_scope: !namedRange.getName().includes("!"),
-      name_index: ix,
     };
   });
   payload["names"] = names;

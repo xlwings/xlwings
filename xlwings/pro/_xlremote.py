@@ -1005,7 +1005,6 @@ class Name(base_classes.Name):
                 self.api["sheet_index"],
                 self.api["book_scope"],
                 self.api["scope_sheet_index"],
-                self.api.get("name_index"),  # only available with Google Sheets
             ],
         )
 
