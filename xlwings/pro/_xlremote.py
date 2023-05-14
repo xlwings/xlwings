@@ -529,6 +529,7 @@ class Range(base_classes.Range):
                         and api_name["sheet_index"] == sheet.index - 1
                     ):
                         tuple1, tuple2 = utils.a1_to_tuples(api_name["address"])
+                        break
             if not tuple1:
                 # Tables
                 for api_table in sheet.api["tables"]:
@@ -536,6 +537,7 @@ class Range(base_classes.Range):
                         tuple1, tuple2 = utils.a1_to_tuples(
                             api_table["data_body_range_address"]
                         )
+                        break
             if not tuple1:
                 raise NoSuchObjectError(
                     f"The address/named range '{arg1}' doesn't exist."

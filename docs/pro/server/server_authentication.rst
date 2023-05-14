@@ -159,7 +159,7 @@ As a summary, here are the components needed to enable SSO:
           });
           return "Bearer " + accessToken;
         } catch (error) {
-          return "Error: " + error.message;
+          return `Error ${error.code}: ${error.message}`;
         }
       };
 
