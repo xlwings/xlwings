@@ -589,7 +589,6 @@ def test_sheet_name_delete(book):
         0,
         True,
         None,
-        None,
     ]
 
 
