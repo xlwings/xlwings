@@ -104,27 +104,32 @@ export async function runPython(
       namedItems.items.forEach((namedItem, ix) => {
         // Currently filtering to named ranges
         if (namedItem.type === "Range") {
-          names[ix] = {
+          names.push({
             name: namedItem.name,
             sheet: namedItem.getRange().worksheet.load("position"),
             range: namedItem.getRange().load("address"),
+            scope_sheet_name: null,
+            scope_sheet_index: null,
             book_scope: true, // workbook.names contains only workbook scope!
-          };
+          });
         }
       });
 
       await context.sync();
 
+      let names2: Names[] = [];
       names.forEach((namedItem, ix) => {
-        names[ix] = {
+        names2.push({
           name: namedItem.name,
           sheet_index: namedItem.sheet.position,
           address: namedItem.range.address.split("!").pop(),
+          scope_sheet_name: null,
+          scope_sheet_index: null,
           book_scope: namedItem.book_scope,
-        };
+        });
       });
 
-      payload["names"] = names;
+      payload["names"] = names2;
 
       // Sheets
       payload["sheets"] = [];
@@ -166,12 +171,14 @@ export async function runPython(
       sheetsLoader.forEach((item) => {
         if (!excludeArray.includes(item["sheet"].name)) {
           item["names"].items.forEach((namedItem, ix) => {
-            namesSheetScope[ix] = {
+            namesSheetScope.push({
               name: namedItem.name,
               sheet: namedItem.getRange().worksheet.load("position"),
               range: namedItem.getRange().load("address"),
+            scope_sheet_name: namedItem.worksheet.load("name"),
+            scope_sheet_index: namedItem.worksheet.load("position"),
               book_scope: false,
-            };
+            });
           });
         }
       });
@@ -180,12 +187,14 @@ export async function runPython(
 
       let namesSheetsScope2: Names[] = [];
       namesSheetScope.forEach((namedItem, ix) => {
-        namesSheetsScope2[ix] = {
+        namesSheetsScope2.push({
           name: namedItem.name,
           sheet_index: namedItem.sheet.position,
           address: namedItem.range.address.split("!").pop(),
+          scope_sheet_name: namedItem.scope_sheet_name.name,
+          scope_sheet_index: namedItem.scope_sheet_index.position,
           book_scope: namedItem.book_scope,
-        };
+        });
       });
 
       // Add sheet scoped names to book scoped names
@@ -361,6 +370,8 @@ interface Names {
   sheet?: Excel.Worksheet;
   range?: Excel.Range;
   address?: string;
+  scope_sheet_name: Excel.Worksheet | string | undefined | null;
+  scope_sheet_index: Excel.Worksheet | number | undefined | null;
   book_scope: boolean;
 }
 
@@ -477,7 +488,12 @@ async function setValues(context: Excel.RequestContext, action: Action) {
         value.includes("T")
       ) {
         dt = new Date(Date.parse(value));
-        // Excel on macOS doesn't use proper locale if not passed explicitly
+        // Excel on macOS does use the wrong locale if you set a custom one via
+        // macOS Settings > Date & Time > Open Language & Region > Apps
+        // as the date format seems to stick to the Region selected under General
+        // while toLocaleDateString then respects the specific selected language.
+        // Providing Office.context.contentLanguage fixes this but isn't available for
+        // Office Scripts
         // https://learn.microsoft.com/en-us/office/dev/add-ins/develop/localization#match-datetime-format-with-client-locale
         dtString = dt.toLocaleDateString(Office.context.contentLanguage);
         // Note that adding the time will format the cell as Custom instead of Date/Time
@@ -657,15 +673,33 @@ async function alert(context: Excel.RequestContext, action: Action) {
 }
 
 async function setRangeName(context: Excel.RequestContext, action: Action) {
-  throw "NotImplemented: setRangeName";
+  let range = await getRange(context, action);
+  context.workbook.names.add(action.args[0].toString(), range);
 }
 
 async function namesAdd(context: Excel.RequestContext, action: Action) {
-  throw "NotImplemented: namesAdd";
+  let name = action.args[0].toString();
+  let refersTo = action.args[1].toString();
+  if (action.sheet_position === null) {
+    context.workbook.names.add(name, refersTo);
+  } else {
+    let sheets = context.workbook.worksheets.load("items");
+    await context.sync();
+    sheets.items[action.sheet_position].names.add(name, refersTo);
+  }
 }
 
 async function nameDelete(context: Excel.RequestContext, action: Action) {
-  throw "NotImplemented: deleteName";
+  let name = action.args[2].toString();
+  let book_scope = Boolean(action.args[4]);
+  let scope_sheet_index = Number(action.args[5]);
+  if (book_scope === true) {
+    context.workbook.names.getItem(name).delete();
+  } else {
+    let sheets = context.workbook.worksheets.load("items");
+    await context.sync();
+    sheets.items[scope_sheet_index].names.getItem(name).delete();
+  }
 }
 
 async function runMacro(context: Excel.RequestContext, action: Action) {

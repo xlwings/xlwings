@@ -133,13 +133,15 @@ async function runPython(
     // Currently filtering to named ranges
     let itemType: ExcelScript.NamedItemType = namedItem.getType();
     if (itemType === ExcelScript.NamedItemType.range) {
-      names[ix] = {
+      names.push({
         name: namedItem.getName(),
         sheet_index: namedItem.getRange().getWorksheet().getPosition(),
         address: namedItem.getRange().getAddress().split("!").pop(),
+        scope_sheet_name: null,
+        scope_sheet_index: null,
         book_scope:
           namedItem.getScope() === ExcelScript.NamedItemScope.workbook,
-      };
+      });
     }
   });
   payload["names"] = names;
@@ -166,12 +168,14 @@ async function runPython(
       // Currently filtering to named ranges
       let itemType: ExcelScript.NamedItemType = namedItem.getType();
       if (itemType === ExcelScript.NamedItemType.range) {
-        namesSheetScope[ix] = {
+        namesSheetScope.push({
           name: namedItem.getName(),
           sheet_index: namedItem.getRange().getWorksheet().getPosition(),
           address: namedItem.getRange().getAddress().split("!").pop(),
+          scope_sheet_name: namedItem.getWorksheet().getName(),
+          scope_sheet_index: namedItem.getWorksheet().getPosition(),
           book_scope: false,
-        };
+        });
       }
     });
 
@@ -275,13 +279,17 @@ async function runPython(
 
   // Run Functions
   if (rawData !== null) {
+    const forceSync = ["sheet", "table", "copy", "picture", "name"];
     rawData["actions"].forEach((action) => {
       if (action.func === "addPicture") {
         // addPicture doesn't manage to pull both top and left from anchorCell otherwise
         addPicture(workbook, action);
       } else if (action.func === "updatePicture") {
         updatePicture(workbook, action);
-      } else {
+      } else if (action.func === "nameDelete") {
+        nameDelete(workbook, action);
+      }
+      {
         globalThis.callbacks[action.func](workbook, action);
       }
       console.log(); // Force sync
@@ -313,6 +321,8 @@ interface Names {
   name: string;
   sheet_index: number;
   address: string | undefined;
+  scope_sheet_name: string | undefined | null;
+  scope_sheet_index: number | undefined | null;
   book_scope: boolean;
 }
 
@@ -552,17 +562,32 @@ function alert(workbook: ExcelScript.Workbook, action: Action) {
 registerCallback(alert);
 
 function setRangeName(workbook: ExcelScript.Workbook, action: Action) {
-  throw "NotImplemented: setRangeName";
+  workbook.addNamedItem(action.args[0].toString(), getRange(workbook, action));
 }
 registerCallback(setRangeName);
 
 function namesAdd(workbook: ExcelScript.Workbook, action: Action) {
-  throw "NotImplemented: namesAdd";
+  let name = action.args[0].toString();
+  let refersTo = action.args[1].toString();
+  if (action.sheet_position === null) {
+    workbook.addNamedItem(name, refersTo);
+  } else {
+    workbook
+      .getWorksheets()
+      [action.sheet_position].addNamedItem(name, refersTo);
+  }
 }
 registerCallback(namesAdd);
 
 function nameDelete(workbook: ExcelScript.Workbook, action: Action) {
-  throw "NotImplemented: deleteName";
+  let name = action.args[2].toString();
+  let book_scope = Boolean(action.args[4]);
+  let scope_sheet_index = Number(action.args[5]);
+  if (book_scope === true) {
+    workbook.getNamedItem(name).delete();
+  } else {
+    workbook.getWorksheets()[scope_sheet_index].getNamedItem(name).delete();
+  }
 }
 registerCallback(nameDelete);
 

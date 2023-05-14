@@ -972,7 +972,16 @@ class Name(base_classes.Name):
 
     @property
     def name(self):
-        return self.api["name"]
+        if self.api["book_scope"]:
+            return self.api["name"]
+        else:
+            sheet_name = self.api["scope_sheet_name"]
+            if "!" not in self.api["name"]:
+                # VBA/Google Sheets already do this
+                sheet_name = f"'{sheet_name}'" if " " in sheet_name else sheet_name
+                return f"{sheet_name}!{self.api['name']}"
+            else:
+                return self.api["name"]
 
     @property
     def refers_to(self):
@@ -990,7 +999,15 @@ class Name(base_classes.Name):
     def delete(self):
         # TODO: delete in api
         self.parent.append_json_action(
-            func="nameDelete", args=[self.name, self.refers_to]
+            func="nameDelete",
+            args=[
+                self.name,  # this includes the sheet name for sheet scope
+                self.refers_to,
+                self.api["name"],  # no sheet name
+                self.api["sheet_index"],
+                self.api["book_scope"],
+                self.api["scope_sheet_index"],
+            ],
         )
 
 
@@ -1000,6 +1017,7 @@ class Names(base_classes.Names):
         self.api = api
 
     def add(self, name, refers_to):
+        # TODO: raise backend error in case of duplicates
         if isinstance(self.parent, Book):
             is_parent_book = True
         else:
@@ -1036,8 +1054,10 @@ class Names(base_classes.Names):
                 return Name(self.parent, api=self.api[name_or_index])
         else:
             for ix, i in enumerate(self.api):
-                if i["name"] == name_or_index:
-                    return Name(self.parent, api=self.api[ix])
+                name = Name(self.parent, api=self.api[ix])
+                if name.name == name_or_index:
+                    # Sheet scope names have the sheet name prepended
+                    return name
             raise KeyError(name_or_index)
 
     def contains(self, name_or_index):

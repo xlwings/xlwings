@@ -91,26 +91,27 @@ def integration_test_write(data: dict = Body):
     sheet3["A1"].value = "Unnamed Sheet"
 
     # Tables
-    sheet_tables = book.sheets["Tables"]
+    if data["client"] != "Google Apps Script":
+        sheet_tables = book.sheets["Tables"]
 
-    sheet_tables["A1"].value = [["one", "two"], [1, 2], [3, 4]]
-    sheet_tables.tables.add(sheet3["A1:B3"])
+        sheet_tables["A1"].value = [["one", "two"], [1, 2], [3, 4]]
+        sheet_tables.tables.add(sheet3["A1:B3"])
 
-    sheet_tables["A5"].value = [[1, 2], [3, 4]]
-    sheet_tables.tables.add(sheet_tables["A5:B6"], has_headers=False)
+        sheet_tables["A5"].value = [[1, 2], [3, 4]]
+        sheet_tables.tables.add(sheet_tables["A5:B6"], has_headers=False)
 
-    sheet_tables["A9"].value = [["one", "two"], [1, 2], [3, 4]]
-    mytable1 = sheet_tables.tables.add(sheet_tables["A9:B11"], name="MyTable1")
-    mytable1.show_autofilter = False
+        sheet_tables["A9"].value = [["one", "two"], [1, 2], [3, 4]]
+        mytable1 = sheet_tables.tables.add(sheet_tables["A9:B11"], name="MyTable1")
+        mytable1.show_autofilter = False
 
-    sheet_tables["A13"].value = [[1, 2], [3, 4]]
-    mytable2 = sheet_tables.tables.add(
-        sheet_tables["A13:B14"], name="MyTable2", has_headers=False
-    )
-    mytable2.show_headers = False
-    mytable2.show_totals = True
-    mytable2.show_filters = False
-    mytable2.resize(sheet_tables["A14:C17"])
+        sheet_tables["A13"].value = [[1, 2], [3, 4]]
+        mytable2 = sheet_tables.tables.add(
+            sheet_tables["A13:B14"], name="MyTable2", has_headers=False
+        )
+        mytable2.show_headers = False
+        mytable2.show_totals = True
+        mytable2.show_filters = False
+        mytable2.resize(sheet_tables["A14:C17"])
 
     # Set sheet name
     book.sheets["Sheet2"].name = "Changed"
@@ -148,6 +149,18 @@ def integration_test_write(data: dict = Body):
     sheet1.pictures.add(this_dir / "icons" / "icon-80.png", name="MyPic", update=True)
     book.sheets[1].pictures.add(this_dir.parent / "tests" / "sample_picture.png")
 
+    # Add named ranges
+    book.names.add("test1", "='Sheet 1'!$A$1:$B$3")
+    book.names.add("test2", "=Changed!$A$1")
+    sheet1["A1"].name = "test3"
+    if data["client"] != "Google Apps Script":
+        sheet1.names.add("test4", "='Sheet 1'!$A$1:$B$3")
+
+    # Delete named ranges
+    book.names["DeleteMe"].delete()
+    book.names["Sheet4!DeleteMe"].delete()
+    book.names["'Sheet 3'!DeleteMe"].delete()
+
     return book.json()
 
 
@@ -180,7 +193,8 @@ async def custom_functions_code():
 
 
 @app.post("/xlwings/custom-functions-call")
-async def custom_functions_call(data: dict = Body):
+async def custom_functions_call(request: Request, data: dict = Body):
+    print(request.headers["Authorization"])
     rv = await xw.pro.custom_functions_call(data, custom_functions)
     return {"result": rv}
 
@@ -225,9 +239,30 @@ expected_body["Office.js"] = {
     "version": "dev",
     "book": {"name": "engines.xlsm", "active_sheet_index": 0, "selection": "A1"},
     "names": [
-        {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
-        {"name": "two", "sheet_index": 1, "address": "A1:A2", "book_scope": True},
-        {"name": "two", "sheet_index": 0, "address": "C7:D8", "book_scope": False},
+        {
+            "name": "one",
+            "sheet_index": 0,
+            "address": "A1",
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+            "book_scope": True,
+        },
+        {
+            "name": "two",
+            "sheet_index": 1,
+            "address": "A1:A2",
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+            "book_scope": True,
+        },
+        {
+            "name": "two",
+            "sheet_index": 0,
+            "address": "C7:D8",
+            "scope_sheet_name": "Sheet1",
+            "scope_sheet_index": 0,
+            "book_scope": False,
+        },
     ],
     "sheets": [
         {
@@ -251,6 +286,7 @@ expected_body["Office.js"] = {
                 [4.4, 5.5, 6.6, ""],
                 ["Total", "", 9.9, ""],
             ],
+            # Width/height differ for Desktop and Web
             "pictures": [
                 {"name": "mypic1", "height": 10, "width": 20},
                 {"name": "mypic2", "height": 30, "width": 40},
@@ -305,18 +341,35 @@ expected_body["VBA"] = {
     "version": "dev",
     "book": {"name": "engines.xlsm", "active_sheet_index": 0, "selection": "A1"},
     "names": [
-        {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
+        {
+            "name": "one",
+            "sheet_index": 0,
+            "address": "A1",
+            "book_scope": True,
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+        },
         {
             "name": "Sheet1!two",
             "sheet_index": 0,
             "address": "C7:D8",
             "book_scope": False,
+            "scope_sheet_name": "Sheet1",
+            "scope_sheet_index": 0,
         },
-        {"name": "two", "sheet_index": 1, "address": "A1:A2", "book_scope": True},
+        {
+            "name": "two",
+            "sheet_index": 1,
+            "address": "A1:A2",
+            "book_scope": True,
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+        },
     ],
     "sheets": [
         {
             "name": "Sheet1",
+            # Differs between Windows and macOS
             "pictures": [
                 {"name": "mypic1", "height": 10, "width": 20},
                 {"name": "mypic2", "height": 30, "width": 40},
@@ -389,8 +442,30 @@ expected_body["Office Scripts"] = {
     "version": "dev",
     "book": {"name": "engines.xlsm", "active_sheet_index": 0, "selection": "A1"},
     "names": [
-        {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
-        {"name": "two", "sheet_index": 1, "address": "A1:A2", "book_scope": True},
+        {
+            "name": "one",
+            "sheet_index": 0,
+            "address": "A1",
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+            "book_scope": True,
+        },
+        {
+            "name": "two",
+            "sheet_index": 1,
+            "address": "A1:A2",
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+            "book_scope": True,
+        },
+        {
+            "name": "two",
+            "sheet_index": 0,
+            "address": "C7:D8",
+            "scope_sheet_name": "Sheet1",
+            "scope_sheet_index": 0,
+            "book_scope": False,
+        },
     ],
     "sheets": [
         {
@@ -414,9 +489,10 @@ expected_body["Office Scripts"] = {
                 [4.4, 5.5, 6.6, ""],
                 ["Total", "", 9.9, ""],
             ],
+            # Width/height differ for Desktop and Web
             "pictures": [
-                {"name": "mypic1", "width": 21, "height": 10},
-                {"name": "mypic2", "width": 41, "height": 29.5},
+                {"name": "mypic1", "width": 20, "height": 10},
+                {"name": "mypic2", "width": 40, "height": 30},
             ],
             "tables": [
                 {
@@ -465,15 +541,31 @@ expected_body["Office Scripts"] = {
 expected_body["Google Apps Script"] = {
     "client": "Google Apps Script",
     "version": "dev",
-    "book": {"name": "engines.xlsx", "active_sheet_index": 0, "selection": "A1"},
+    "book": {"name": "engines.xlsm", "active_sheet_index": 0, "selection": "A1"},
     "names": [
-        {"name": "two", "sheet_index": 1, "address": "A1:A2", "book_scope": True},
-        {"name": "one", "sheet_index": 0, "address": "A1", "book_scope": True},
         {
-            "name": "'Sheet1'!two",
+            "name": "Sheet1!two",
             "sheet_index": 0,
             "address": "C7:D8",
+            "scope_sheet_name": "Sheet1",
+            "scope_sheet_index": 0,
             "book_scope": False,
+        },
+        {
+            "name": "two",
+            "sheet_index": 1,
+            "address": "A1:A2",
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+            "book_scope": True,
+        },
+        {
+            "name": "one",
+            "sheet_index": 0,
+            "address": "A1",
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+            "book_scope": True,
         },
     ],
     "sheets": [
@@ -481,18 +573,32 @@ expected_body["Google Apps Script"] = {
             "name": "Sheet1",
             "values": [
                 ["a", "b", "c", ""],
-                [1, 2, 3, "2021-01-01T00:00:00.000Z"],
-                [4, 5, 6, ""],
+                [1.1, 2.2, 3.3, "2021-01-01T00:00:00.000Z"],
+                [4.4, 5.5, 6.6, ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["Column1", "Column2", "", ""],
+                [1.1, 2.2, "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                ["", "", "", ""],
+                [1.1, 2.2, 3.3, ""],
+                [4.4, 5.5, 6.6, ""],
+                ["Total", "", 9.899999999999999, ""],
             ],
             "pictures": [
-                {"name": "", "height": 13, "width": 28},
-                {"name": "", "height": 40, "width": 56},
+                {"name": "", "height": 13, "width": 35},
+                {"name": "", "height": 40, "width": 62},
             ],
             "tables": [],
         },
         {
             "name": "Sheet2",
-            "values": [["aa", "bb"], [11, 22]],
+            "values": [["aa", "bb"], [11.1, 22.2]],
             "pictures": [],
             "tables": [],
         },
@@ -500,7 +606,7 @@ expected_body["Google Apps Script"] = {
             "name": "Sheet3",
             "values": [
                 ["", "string"],
-                [-1, 1],
+                [-1.1, 1.1],
                 [True, False],
                 ["2021-10-01T00:00:00.000Z", "2021-12-31T23:35:00.000Z"],
             ],

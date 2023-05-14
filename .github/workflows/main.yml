@@ -200,11 +200,11 @@ jobs:
 
       - name: Build macOS and Linux wheels
         if: matrix.platform.os != 'windows-latest'
-        uses: messense/maturin-action@v1
+        uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
           manylinux: ${{ matrix.platform.manylinux || 'auto' }}
-          maturin-version: latest
+          maturin-version: v0.14.17
           command: build
           args: --release --out dist --interpreter ${{ matrix.python-version }}
 
