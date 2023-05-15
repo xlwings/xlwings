@@ -344,20 +344,14 @@ class Sheets(base_classes.Sheets):
 
     def __call__(self, name_or_index):
         if isinstance(name_or_index, int):
-            api = self.api[name_or_index - 1]
-            ix = name_or_index - 1
+            return Sheet(
+                api=self.api[name_or_index - 1], sheets=self, index=name_or_index
+            )
         else:
-            api = None
             for ix, sheet in enumerate(self.api):
                 if sheet["name"] == name_or_index:
-                    api = sheet
-                    break
-                else:
-                    continue
-        if api is None:
-            raise ValueError(f"Sheet '{name_or_index}' doesn't exist!")
-        else:
-            return Sheet(api=api, sheets=self, index=ix + 1)
+                    return Sheet(api=sheet, sheets=self, index=ix + 1)
+        raise ValueError(f"Sheet '{name_or_index}' doesn't exist!")
 
     def add(self, before=None, after=None, name=None):
         # Default naming logic is different from Desktop apps!
