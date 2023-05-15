@@ -286,13 +286,12 @@ async function runPython(
         addPicture(workbook, action);
       } else if (action.func === "updatePicture") {
         updatePicture(workbook, action);
-      } else if (action.func === "nameDelete") {
-        nameDelete(workbook, action);
-      }
-      {
+      } else {
         globalThis.callbacks[action.func](workbook, action);
       }
-      console.log(); // Force sync
+      if (forceSync.some((el) => action.func.toLowerCase().includes(el))) {
+        console.log(); // Force sync
+      }
     });
   }
 }
