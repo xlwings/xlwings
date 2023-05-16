@@ -484,7 +484,7 @@ The most convenient way to authenticate users is to use single-sign on (SSO) bas
         });
         return "Bearer " + accessToken;
       } catch (error) {
-        return "Error: " + error.message;
+        return `Error ${error.code}: ${error.message}`;
       }
     };
 

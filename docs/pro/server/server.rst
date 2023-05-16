@@ -60,7 +60,7 @@ xlwings Server consists of two parts:
 * Backend: the Python part
 * Frontend: the xlwings JavaScript module (for Google Sheets/Excel via Office Scripts) or the VBA code in the form of the add-in or standalone modules (Desktop Excel via VBA)
 
-The backend exposes your Python functions by using a Python web framework. In more detail, you need to handle a POST request along these lines (the sample shows an excerpt that uses `FastAPI <https://fastapi.tiangolo.com/>`_ as the web framework, but it works accordingly with any other web framework like Django or Flask):
+The backend exposes your Python functions by using a Python web framework. In more detail, you need to handle a POST request along these lines (note that you can use any web framework, these are just examples of some of the most popular ones):
 
 .. tab-set::
 
@@ -70,16 +70,69 @@ The backend exposes your Python functions by using a Python web framework. In mo
       .. code-block:: python
 
           @app.post("/hello")
-          def hello(data: dict = Body):
+          async def hello(data: dict = Body):
               # Instantiate a Book object with the deserialized request body
-              book = xw.Book(json=data)
+              with xw.Book(json=data) as book:
 
-              # Use xlwings as usual
-              sheet = book.sheets[0]
-              sheet["A1"].value = 'Hello xlwings!'
+                  # Use xlwings as usual
+                  sheet = book.sheets[0]
+                  sheet["A1"].value = "Hello xlwings!"
 
-              # Pass the following back as the response
-              return book.json()
+                  # Return a JSON response
+                  return book.json()
+
+    .. tab-item:: Flask
+      :sync: flask
+
+      .. code-block:: python
+
+          @app.route("/hello", methods=["POST"])
+          def hello():
+              # Instantiate a Book object with the deserialized request body
+              with xw.Book(json=request.json) as book:
+
+                  # Use xlwings as usual
+                  sheet = book.sheets[0]
+                  sheet["A1"].value = "Hello xlwings!"
+
+                  # Return a JSON response
+                  return book.json()
+
+    .. tab-item:: Django
+      :sync: django
+
+      .. code-block:: python
+
+          def hello(request):
+              # Instantiate a book object with the parsed request body
+              data = json.loads(request.body.decode("utf-8"))
+              with xw.Book(json=data) as book:
+
+                  # Use xlwings as usual
+                  sheet = book.sheets[0]
+                  sheet["A1"].value = "Hello xlwings!"
+
+                  # Return a JSON response
+                  return JsonResponse(book.json())
+
+    .. tab-item:: Starlette
+      :sync: starlette
+
+      .. code-block:: python
+
+          async def hello(request):
+              # Instantiate a Book object with the deserialized request body
+              data = await request.json()
+              with xw.Book(json=data) as book:
+
+                  # Use xlwings as usual
+                  sheet = book.sheets[0]
+                  sheet["A1"].value = "Hello xlwings!"
+
+                  # Return a JSON response
+                  return JSONResponse(book.json())
+
+.. caution:: To prevent a memory leak, it is important to close the book at the end of the request either by invoking ``book.close()`` or, as shown in the example, by using ``book`` as a context manager via the ``with`` statement.
 
 * For Desktop Excel, you can run the web server locally and call the respective function
     * from VBA (requires the add-in installed or a workbook in standalone mode) or

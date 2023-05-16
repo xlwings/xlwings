@@ -10,18 +10,17 @@ app = FastAPI()
 @app.post("/hello")
 def hello(data: dict = Body):
     # Instantiate a Book object with the deserialized request body
-    book = xw.Book(json=data)
+    with xw.Book(json=data) as book:
+        # Use xlwings as usual
+        sheet = book.sheets[0]
+        cell = sheet["A1"]
+        if cell.value == "Hello xlwings!":
+            cell.value = "Bye xlwings!"
+        else:
+            cell.value = "Hello xlwings!"
 
-    # Use xlwings as usual
-    sheet = book.sheets[0]
-    cell = sheet["A1"]
-    if cell.value == "Hello xlwings!":
-        cell.value = "Bye xlwings!"
-    else:
-        cell.value = "Hello xlwings!"
-
-    # Pass the following back as the response
-    return book.json()
+        # Pass the following back as the response
+        return book.json()
 
 
 @app.exception_handler(Exception)
