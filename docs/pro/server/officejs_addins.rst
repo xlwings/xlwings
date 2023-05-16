@@ -48,7 +48,7 @@ Now that you know the basic structure of an Office.js add-in, let's see how we c
 Quickstart
 ----------
 
-This quickstart shows you how you can call Python both from a button on the task pane and directly from a Ribbon button. xlwings can be used with any web framework and the quickstart repo therefore contains various implementations such as ``app/server_fastapi.py`` or ``app/server_starlette.py``: you only need to use one of them. At the end of this quickstart, you'll have a working environment for local development.
+This quickstart shows you how you can call Python both from a button on the task pane and directly from a Ribbon button. xlwings can be used with any web framework and the quickstart repo therefore contains various implementations such as ``app/server_fastapi.py`` or ``app/server_django.py``: you only need to use one of them. At the end of this quickstart, you'll have a working environment for local development.
 
 1. **Download quickstart repo**: Use Git to clone the following repository: https://github.com/xlwings/xlwings-officejs-quickstart. If you don't want to use Git, you could also download the repo by clicking on the green ``Code`` button, followed by ``Download ZIP``, then unzipping it locally.
 2. **Update manifest**: If you want to build your own add-in based off this quickstart repo, replace ``<Id>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</Id>`` in ``manifest-xlwings-officejs-quickstart.xml`` with a unique ID that you can create by visiting https://www.guidgen.com or by running the following command in Python: ``import uuid;print(uuid.uuid4())``.
@@ -112,43 +112,43 @@ The backend exposes your Python functions by using a Python web framework: you n
           @app.post("/hello")
           async def hello(data: dict = Body):
               # Instantiate a Book object with the deserialized request body
-              book = xw.Book(json=data)
-          
-              # Use xlwings as usual
-              sheet = book.sheets[0]
-              cell = sheet["A1"]
-              if cell.value == "Hello xlwings!":
-                  cell.value = "Bye xlwings!"
-              else:
-                  cell.value = "Hello xlwings!"
-      
-              # Pass the following back as the response
-              return book.json()
+              with xw.Book(json=data) as book:
+
+                  # Use xlwings as usual
+                  sheet = book.sheets[0]
+                  cell = sheet["A1"]
+                  if cell.value == "Hello xlwings!":
+                      cell.value = "Bye xlwings!"
+                  else:
+                      cell.value = "Hello xlwings!"
+
+                  # Pass the following back as the response
+                  return book.json()
 
     .. tab-item:: Flask
       :sync: flask
 
       .. code-block::
 
-        from flask import Flask, jsonify, request
+        from flask import Flask, request
 
         app = Flask(__name__)
 
         @app.route("/hello", methods=["POST"])
         def hello():
             # Instantiate a Book object with the deserialized request body
-            book = xw.Book(json=request.json)
+            with xw.Book(json=request.json) as book:
 
-            # Use xlwings as usual
-            sheet = book.sheets[0]
-            cell = sheet["A1"]
-            if cell.value == "Hello xlwings!":
-                cell.value = "Bye xlwings!"
-            else:
-                cell.value = "Hello xlwings!"
+                # Use xlwings as usual
+                sheet = book.sheets[0]
+                cell = sheet["A1"]
+                if cell.value == "Hello xlwings!":
+                    cell.value = "Bye xlwings!"
+                else:
+                    cell.value = "Hello xlwings!"
 
-            # Pass the following back as the response
-            return jsonify(book.json())
+                # Pass the following back as the response
+                return book.json()
 
     .. tab-item:: Starlette
       :sync: starlette
@@ -162,24 +162,47 @@ The backend exposes your Python functions by using a Python web framework: you n
             async def hello(request):
                 # Instantiate a Book object with the deserialized request body
                 data = await request.json()
-                book = xw.Book(json=data)
+                with xw.Book(json=data) as book:
 
-                # Use xlwings as usual
-                sheet = book.sheets[0]
-                cell = sheet["A1"]
-                if cell.value == "Hello xlwings!":
-                    cell.value = "Bye xlwings!"
-                else:
-                    cell.value = "Hello xlwings!"
+                    # Use xlwings as usual
+                    sheet = book.sheets[0]
+                    cell = sheet["A1"]
+                    if cell.value == "Hello xlwings!":
+                        cell.value = "Bye xlwings!"
+                    else:
+                        cell.value = "Hello xlwings!"
 
-                # Pass the following back as the response
-                return JSONResponse(book.json())
+                    # Pass the following back as the response
+                    return JSONResponse(book.json())
 
             routes = [
                 Route("/hello", hello, methods=["POST"]),
             ]
 
             app = Starlette(debug=True, routes=routes)
+
+    .. tab-item:: Django
+      :sync: django
+
+      .. code-block::
+
+          def hello(request):
+              # Instantiate a book object with the parsed request body
+              data = json.loads(request.body.decode("utf-8"))
+              with xw.Book(json=data) as book:
+
+                  # Use xlwings as usual
+                  sheet = book.sheets[0]
+                  cell = sheet["A1"]
+                  if cell.value == "Hello xlwings!":
+                      cell.value = "Bye xlwings!"
+                  else:
+                      cell.value = "Hello xlwings!"
+
+                  # Return a JSON response
+                  return JsonResponse(book.json())
+
+.. caution:: To prevent a memory leak, it is important to close the book at the end of the request either by invoking ``book.close()`` or, as shown in the example, by using ``book`` as a context manager via the ``with`` statement.
 
 Let's now move over to the frontend to learn how we can call these Python functions from the Office.js add-in!
 
