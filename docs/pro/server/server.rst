@@ -132,7 +132,7 @@ The backend exposes your Python functions by using a Python web framework. In mo
                   # Return a JSON response
                   return JSONResponse(book.json())
 
-.. caution:: To prevent a memory leak, it is important to close the book at the end of the request either by invoking ``book.close()`` or, as shown in the example, by using ``book`` as a context manager via the ``with`` statement.
+.. caution:: To prevent a memory leak, it is important to close the book at the end of the request either by invoking ``book.close()`` or, as shown in the example, by using ``book`` as context manager via the ``with`` statement. Note that your framework may offer better means to automatically close the book at the end of a request via middleware or similar mechanism. As an example, for FastAPI, you can use dependency injection, see https://github.com/xlwings/xlwings-server-helloworld-fastapi.
 
 * For Desktop Excel, you can run the web server locally and call the respective function
     * from VBA (requires the add-in installed or a workbook in standalone mode) or

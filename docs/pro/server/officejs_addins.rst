@@ -202,7 +202,7 @@ The backend exposes your Python functions by using a Python web framework: you n
                   # Return a JSON response
                   return JsonResponse(book.json())
 
-.. caution:: To prevent a memory leak, it is important to close the book at the end of the request either by invoking ``book.close()`` or, as shown in the example, by using ``book`` as a context manager via the ``with`` statement.
+.. caution:: To prevent a memory leak, it is important to close the book at the end of the request either by invoking ``book.close()`` or, as shown in the example, by using ``book`` as context manager via the ``with`` statement. Note that your framework may offer better means to automatically close the book at the end of a request via middleware or similar mechanism. As an example, for FastAPI, you can use dependency injection, see https://github.com/xlwings/xlwings-server-helloworld-fastapi.
 
 Let's now move over to the frontend to learn how we can call these Python functions from the Office.js add-in!
 
