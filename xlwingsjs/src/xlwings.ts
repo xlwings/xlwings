@@ -170,13 +170,12 @@ export async function runPython(
       let namesSheetScope: Names[] = [];
       sheetsLoader.forEach((item) => {
         if (!excludeArray.includes(item["sheet"].name)) {
-          item["names"].items.forEach((namedItem, ix) => {
+          item["names"].items.forEach((namedItem) => {
             namesSheetScope.push({
               name: namedItem.name,
               sheet: namedItem.getRange().worksheet.load("position"),
               range: namedItem.getRange().load("address"),
-            scope_sheet_name: namedItem.worksheet.load("name"),
-            scope_sheet_index: namedItem.worksheet.load("position"),
+              scope_sheet: namedItem.worksheet.load("name, position"),
               book_scope: false,
             });
           });
@@ -186,13 +185,13 @@ export async function runPython(
       await context.sync();
 
       let namesSheetsScope2: Names[] = [];
-      namesSheetScope.forEach((namedItem, ix) => {
+      namesSheetScope.forEach((namedItem) => {
         namesSheetsScope2.push({
           name: namedItem.name,
           sheet_index: namedItem.sheet.position,
           address: namedItem.range.address.split("!").pop(),
-          scope_sheet_name: namedItem.scope_sheet_name.name,
-          scope_sheet_index: namedItem.scope_sheet_index.position,
+          scope_sheet_name: namedItem.scope_sheet.name,
+          scope_sheet_index: namedItem.scope_sheet.position,
           book_scope: namedItem.book_scope,
         });
       });
@@ -370,8 +369,9 @@ interface Names {
   sheet?: Excel.Worksheet;
   range?: Excel.Range;
   address?: string;
-  scope_sheet_name: Excel.Worksheet | string | undefined | null;
-  scope_sheet_index: Excel.Worksheet | number | undefined | null;
+  scope_sheet?: Excel.Worksheet | undefined | null;
+  scope_sheet_name?: string | undefined | null;
+  scope_sheet_index?: number | undefined | null;
   book_scope: boolean;
 }
 
