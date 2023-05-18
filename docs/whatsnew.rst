@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.30.7 (May 18, 2023)
+----------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server: added named range support for Office Scripts, Office.js, and Google Apps Script clients in addition to the VBA client (:issue:`2257`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server: the documentation has been improved to point out that the ``book`` object has to be closed at the end of a request in oder to prevent a memory leak. This can be done via ``mybook.close()`` or by using ``Book`` as a context manager (``with xw.Book(json=data) as book:```). Note that your framework may offer better means to automatically close the book at the end of a request via middleware or similar mechanism. As an example, for FastAPI, you can use dependency injection. See :ref:`pro/server/server:Introduction` (:issue:`2260`).
+
 v0.30.6 (May 5, 2023)
 ---------------------
 

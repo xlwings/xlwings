@@ -2387,7 +2387,7 @@ var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from
 
 
 
-var version = "0.30.6";
+var version = "0.30.7";
 globalThis.callbacks = {};
 function runPython(url, _a) {
     if (url === void 0) { url = ""; }
@@ -2400,7 +2400,7 @@ function runPython(url, _a) {
                 case 0:
                     _g.trys.push([0, 2, , 3]);
                     return [4 /*yield*/, Excel.run(function (context) { return __awaiter(_this, void 0, void 0, function () {
-                            var workbook, worksheets, sheets, configSheet, config, configRange, configValues, includeArray, excludeArray, property, payload, activeSheet, selection, names, namedItems, sheetsLoader, namesSheetScope, namesSheetsScope2, _loop_1, _i, sheetsLoader_1, item, response, rawData, forceSync, _loop_2, _a, _b, action;
+                            var workbook, worksheets, sheets, configSheet, config, configRange, configValues, includeArray, excludeArray, property, payload, activeSheet, selection, names, namedItems, names2, sheetsLoader, namesSheetScope, namesSheetsScope2, _loop_1, _i, sheetsLoader_1, item, response, rawData, forceSync, _loop_2, _a, _b, action;
                             return __generator(this, function (_c) {
                                 switch (_c.label) {
                                     case 0:
@@ -2489,26 +2489,31 @@ function runPython(url, _a) {
                                         namedItems.items.forEach(function (namedItem, ix) {
                                             // Currently filtering to named ranges
                                             if (namedItem.type === "Range") {
-                                                names[ix] = {
+                                                names.push({
                                                     name: namedItem.name,
                                                     sheet: namedItem.getRange().worksheet.load("position"),
                                                     range: namedItem.getRange().load("address"),
+                                                    scope_sheet_name: null,
+                                                    scope_sheet_index: null,
                                                     book_scope: true, // workbook.names contains only workbook scope!
-                                                };
+                                                });
                                             }
                                         });
                                         return [4 /*yield*/, context.sync()];
                                     case 7:
                                         _c.sent();
+                                        names2 = [];
                                         names.forEach(function (namedItem, ix) {
-                                            names[ix] = {
+                                            names2.push({
                                                 name: namedItem.name,
                                                 sheet_index: namedItem.sheet.position,
                                                 address: namedItem.range.address.split("!").pop(),
+                                                scope_sheet_name: null,
+                                                scope_sheet_index: null,
                                                 book_scope: namedItem.book_scope,
-                                            };
+                                            });
                                         });
-                                        payload["names"] = names;
+                                        payload["names"] = names2;
                                         // Sheets
                                         payload["sheets"] = [];
                                         sheetsLoader = [];
@@ -2549,13 +2554,14 @@ function runPython(url, _a) {
                                         namesSheetScope = [];
                                         sheetsLoader.forEach(function (item) {
                                             if (!excludeArray.includes(item["sheet"].name)) {
-                                                item["names"].items.forEach(function (namedItem, ix) {
-                                                    namesSheetScope[ix] = {
+                                                item["names"].items.forEach(function (namedItem) {
+                                                    namesSheetScope.push({
                                                         name: namedItem.name,
                                                         sheet: namedItem.getRange().worksheet.load("position"),
                                                         range: namedItem.getRange().load("address"),
+                                                        scope_sheet: namedItem.worksheet.load("name, position"),
                                                         book_scope: false,
-                                                    };
+                                                    });
                                                 });
                                             }
                                         });
@@ -2563,13 +2569,15 @@ function runPython(url, _a) {
                                     case 10:
                                         _c.sent();
                                         namesSheetsScope2 = [];
-                                        namesSheetScope.forEach(function (namedItem, ix) {
-                                            namesSheetsScope2[ix] = {
+                                        namesSheetScope.forEach(function (namedItem) {
+                                            namesSheetsScope2.push({
                                                 name: namedItem.name,
                                                 sheet_index: namedItem.sheet.position,
                                                 address: namedItem.range.address.split("!").pop(),
+                                                scope_sheet_name: namedItem.scope_sheet.name,
+                                                scope_sheet_index: namedItem.scope_sheet.position,
                                                 book_scope: namedItem.book_scope,
-                                            };
+                                            });
                                         });
                                         // Add sheet scoped names to book scoped names
                                         payload["names"] = payload["names"].concat(namesSheetsScope2);
@@ -2874,7 +2882,12 @@ function setValues(context, action) {
                                 value.length > 18 &&
                                 value.includes("T")) {
                                 dt = new Date(Date.parse(value));
-                                // Excel on macOS doesn't use proper locale if not passed explicitly
+                                // Excel on macOS does use the wrong locale if you set a custom one via
+                                // macOS Settings > Date & Time > Open Language & Region > Apps
+                                // as the date format seems to stick to the Region selected under General
+                                // while toLocaleDateString then respects the specific selected language.
+                                // Providing Office.context.contentLanguage fixes this but isn't available for
+                                // Office Scripts
                                 // https://learn.microsoft.com/en-us/office/dev/add-ins/develop/localization#match-datetime-format-with-client-locale
                                 dtString = dt.toLocaleDateString(Office.context.contentLanguage);
                                 // Note that adding the time will format the cell as Custom instead of Date/Time
@@ -3174,22 +3187,62 @@ function alert(context, action) {
 }
 function setRangeName(context, action) {
     return __awaiter(this, void 0, void 0, function () {
+        var range;
         return __generator(this, function (_a) {
-            throw "NotImplemented: setRangeName";
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getRange(context, action)];
+                case 1:
+                    range = _a.sent();
+                    context.workbook.names.add(action.args[0].toString(), range);
+                    return [2 /*return*/];
+            }
         });
     });
 }
 function namesAdd(context, action) {
     return __awaiter(this, void 0, void 0, function () {
+        var name, refersTo, sheets;
         return __generator(this, function (_a) {
-            throw "NotImplemented: namesAdd";
+            switch (_a.label) {
+                case 0:
+                    name = action.args[0].toString();
+                    refersTo = action.args[1].toString();
+                    if (!(action.sheet_position === null)) return [3 /*break*/, 1];
+                    context.workbook.names.add(name, refersTo);
+                    return [3 /*break*/, 3];
+                case 1:
+                    sheets = context.workbook.worksheets.load("items");
+                    return [4 /*yield*/, context.sync()];
+                case 2:
+                    _a.sent();
+                    sheets.items[action.sheet_position].names.add(name, refersTo);
+                    _a.label = 3;
+                case 3: return [2 /*return*/];
+            }
         });
     });
 }
 function nameDelete(context, action) {
     return __awaiter(this, void 0, void 0, function () {
+        var name, book_scope, scope_sheet_index, sheets;
         return __generator(this, function (_a) {
-            throw "NotImplemented: deleteName";
+            switch (_a.label) {
+                case 0:
+                    name = action.args[2].toString();
+                    book_scope = Boolean(action.args[4]);
+                    scope_sheet_index = Number(action.args[5]);
+                    if (!(book_scope === true)) return [3 /*break*/, 1];
+                    context.workbook.names.getItem(name).delete();
+                    return [3 /*break*/, 3];
+                case 1:
+                    sheets = context.workbook.worksheets.load("items");
+                    return [4 /*yield*/, context.sync()];
+                case 2:
+                    _a.sent();
+                    sheets.items[scope_sheet_index].names.getItem(name).delete();
+                    _a.label = 3;
+                case 3: return [2 /*return*/];
+            }
         });
     });
 }
