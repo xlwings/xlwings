@@ -40,6 +40,7 @@ class TestApp(TestBase):
             with self.assertRaises(Exception):
                 self.app1.activate()
         else:
+            self.app2.activate()
             self.assertEqual(self.app2, xw.apps.active)
             self.app1.activate()
             self.assertEqual(self.app1, xw.apps.active)
