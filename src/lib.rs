@@ -112,6 +112,8 @@ fn get_values(
                     }),
                 },
                 DataType::Empty => result_row.push(CellValue::Empty),
+                DataType::DateTimeIso(_v) => result_row.push(CellValue::DateTime(value.as_datetime().unwrap())),
+                DataType::DurationIso(_v) => result_row.push(CellValue::DateTime(value.as_datetime().unwrap())),
             };
         }
         result.push(result_row);
