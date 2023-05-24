@@ -23,10 +23,6 @@ path = (
 ix = 0
 for ix, f in enumerate(path.glob("[!~$]*.xls*")):
     file_name = f.resolve()
-    if "testdateoverflow" in str(file_name):
-        # 1e+20 formatted as date isn't supported anymore since
-        # https://github.com/tafia/calamine/pull/303
-        continue
     try:
         with xw.Book(f.resolve(), mode="r") as book:
             for sheet in book.sheets:

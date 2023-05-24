@@ -29,7 +29,7 @@ checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 [[package]]
 name = "calamine"
 version = "0.19.1"
-source = "git+https://github.com/xlwings/calamine?rev=51a0c0b#51a0c0b646698f6518d3fc841d3bd7c6514573be"
+source = "git+https://github.com/xlwings/calamine?rev=35d52e88cc8d48a5182978116f445ad5ed61365c#35d52e88cc8d48a5182978116f445ad5ed61365c"
 dependencies = [
  "byteorder",
  "chrono",

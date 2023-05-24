@@ -332,9 +332,6 @@ def test_pandas_df(book):
     )
 
 
-@pytest.mark.skipif(
-    file_extension != "xlsx" and engine == "calamine", reason="datetime unsupported"
-)
 def test_read_basic_types(book):
     sheet = book.sheets[2]
     assert sheet["A1:B4"].value == [
