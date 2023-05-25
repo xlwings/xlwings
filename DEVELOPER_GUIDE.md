@@ -130,6 +130,8 @@ Currently, we're migrating to `pytest`, so you'll find a mix between `unittest` 
 Running the whole tests suite is currently broken, so it's recommended to run single modules instead.
 See e.g., `test_font.py` for the new style of tests that are also fast.
 
+For running the xlwings pro related tests, you'll need to use the `noncommercial` license key, see: [developer](https://docs.xlwings.org/en/latest/pro/license_key.html#activate-a-developer-key).
+
 ## Docs
 
 ### Build locally
