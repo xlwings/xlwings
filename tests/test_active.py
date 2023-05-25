@@ -1,7 +1,4 @@
 import os
-import pytest
-
-
 import xlwings as xw
 
 from .common import TestBase, this_dir
