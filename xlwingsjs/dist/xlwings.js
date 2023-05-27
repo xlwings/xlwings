@@ -2387,7 +2387,7 @@ var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from
 
 
 
-var version = "0.30.7";
+var version = "0.30.8";
 globalThis.callbacks = {};
 function runPython(url, _a) {
     if (url === void 0) { url = ""; }

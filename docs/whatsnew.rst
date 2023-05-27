@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.30.8 (May 27, 2023)
+----------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings File Reader: when reading ``xls`` and ``xlsb`` formats, date cells are now properly converted into ``datetime`` objects (:issue:`2059`).
+
 v0.30.7 (May 18, 2023)
 ----------------------
 
