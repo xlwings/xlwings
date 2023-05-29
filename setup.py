@@ -44,6 +44,7 @@ extras_require = {
     "reports": ["Jinja2", "pdfrw"],
     "all": [
         "black",
+        "isort",
         "Jinja2",
         "pandas",
         "matplotlib",

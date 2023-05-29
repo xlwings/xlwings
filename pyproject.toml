@@ -41,6 +41,7 @@ reports = [
 ]
 all = [
     "black",
+    "isort",
     "Jinja2",
     "pandas",
     "matplotlib",
