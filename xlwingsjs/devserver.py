@@ -263,6 +263,14 @@ expected_body["Office.js"] = {
             "scope_sheet_index": 0,
             "book_scope": False,
         },
+        {
+            "name": "two",
+            "sheet_index": 2,
+            "address": "B3",
+            "scope_sheet_name": "Sheet2",
+            "scope_sheet_index": 1,
+            "book_scope": False,
+        },
     ],
     "sheets": [
         {
@@ -356,6 +364,14 @@ expected_body["VBA"] = {
             "book_scope": False,
             "scope_sheet_name": "Sheet 1",
             "scope_sheet_index": 0,
+        },
+        {
+            "name": "Sheet2!two",
+            "sheet_index": 2,
+            "address": "B3",
+            "book_scope": False,
+            "scope_sheet_name": "Sheet2",
+            "scope_sheet_index": 1,
         },
         {
             "name": "two",
@@ -465,6 +481,14 @@ expected_body["Office Scripts"] = {
             "scope_sheet_index": 0,
             "book_scope": False,
         },
+        {
+            "name": "two",
+            "sheet_index": 2,
+            "address": "B3",
+            "scope_sheet_name": "Sheet2",
+            "scope_sheet_index": 1,
+            "book_scope": False,
+        },
     ],
     "sheets": [
         {
@@ -543,6 +567,14 @@ expected_body["Google Apps Script"] = {
     "book": {"name": "engines.xlsm", "active_sheet_index": 0, "selection": "A1"},
     "names": [
         {
+            "name": "one",
+            "sheet_index": 0,
+            "address": "A1",
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+            "book_scope": True,
+        },
+        {
             "name": "'Sheet 1'!two",
             "sheet_index": 0,
             "address": "C7:D8",
@@ -551,17 +583,17 @@ expected_body["Google Apps Script"] = {
             "book_scope": False,
         },
         {
+            "name": "Sheet2!two",
+            "sheet_index": 2,
+            "address": "B3",
+            "scope_sheet_name": "Sheet3",
+            "scope_sheet_index": 2,
+            "book_scope": False,
+        },
+        {
             "name": "two",
             "sheet_index": 1,
             "address": "A1:A2",
-            "scope_sheet_name": None,
-            "scope_sheet_index": None,
-            "book_scope": True,
-        },
-        {
-            "name": "one",
-            "sheet_index": 0,
-            "address": "A1",
             "scope_sheet_name": None,
             "scope_sheet_index": None,
             "book_scope": True,

@@ -35,7 +35,7 @@ if np:
 
 datetime_pattern = (
     pattern
-) = r"^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$"
+) = r"^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$"  # noqa: E501
 datetime_regex = re.compile(pattern)
 
 
@@ -447,7 +447,9 @@ class Sheet(base_classes.Sheet):
         api = [
             name
             for name in self.book.api["names"]
-            if name["sheet_index"] + 1 == self.index and not name["book_scope"]
+            if name["scope_sheet_index"] is not None
+            and name["scope_sheet_index"] + 1 == self.index
+            and not name["book_scope"]
         ]
         return Names(parent=self, api=api)
 

@@ -46,12 +46,20 @@ data = {
             "book_scope": True,
         },
         {
-            "name": "two",
+            "name": "two",  # VBA/GS send: "'Sheet 1'!two"
             "sheet_index": 0,
             "address": "C7:D8",
             "scope_sheet_name": "Sheet 1",
             "scope_sheet_index": 0,
             "book_scope": False,
+        },
+        {
+            "name": "two",  # VBA/GS send: "Sheet2!two"
+            "sheet_index": 2,
+            "address": "B3",
+            "book_scope": False,
+            "scope_sheet_name": "Sheet2",
+            "scope_sheet_index": 1,
         },
         {
             "name": "two",
@@ -472,9 +480,7 @@ def test_picture_exists(book):
 # Named Ranges
 def test_named_range_book_scope(book):
     sheet1 = book.sheets[0]
-    sheet2 = book.sheets[1]
     assert sheet1["one"].address == "$A$1"
-    assert sheet2["two"].address == "$A$1:$A$2"
 
 
 def test_named_range_sheet_scope(book):
@@ -502,7 +508,7 @@ def test_named_range_book_change_value(book):
 
 # Names collection
 def test_names_len(book):
-    assert len(book.names) == 3
+    assert len(book.names) == 4
 
 
 def test_names_index_vs_name(book):
@@ -513,11 +519,13 @@ def test_names_index_vs_name(book):
 @pytest.mark.skipif(engine == "calamine", reason="doesn't support local scope yet")
 def test_name_local_scope1(book):
     assert book.names[1].name == "'Sheet 1'!two"
+    assert book.names[2].name == "Sheet2!two"
 
 
 @pytest.mark.skipif(engine == "calamine", reason="doesn't support local scope yet")
 def test_name_local_scope2(book):
     assert book.sheets["Sheet 1"].names[0].name == "'Sheet 1'!two"
+    assert book.sheets["Sheet2"].names[0].name == "Sheet2!two"
 
 
 def test_name_refers_to(book):
@@ -527,7 +535,7 @@ def test_name_refers_to(book):
 def test_name_refers_to_range(book):
     assert book.names[0].refers_to_range == book.sheets[0]["A1"]
     assert book.names[1].refers_to_range == book.sheets[0]["C7:D8"]
-    assert book.names[2].refers_to_range == book.sheets[1]["A1:A2"]
+    assert book.names[3].refers_to_range == book.sheets[1]["A1:A2"]
 
 
 def test_name_contains(book):
@@ -540,15 +548,15 @@ def test_names_iter(book):
             assert name.refers_to_range == book.sheets[0]["A1"]
         elif ix == 1:
             assert name.refers_to_range == book.sheets[0]["C7:D8"]
-        elif ix == 2:
+        elif ix == 3:
             assert name.refers_to_range == book.sheets[1]["A1:A2"]
 
 
-@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
 def test_range_get_name(book):
-    assert book.sheets[0]["A1"].name == book.names[0]
-    assert book.sheets[0]["C7:D8"].name == book.names[1]
-    assert book.sheets[1]["A1:A2"].name == book.names[2]
+    assert book.sheets[0]["A1"].name.name == "one"
+    assert book.sheets[0]["C7:D8"].name.name == "'Sheet 1'!two"
+    assert book.sheets[1]["A1:A2"].name.name == "two"
     assert book.sheets[0]["X1"].name is None
 
 
