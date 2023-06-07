@@ -49,7 +49,7 @@ data = {
             "name": "two",
             "sheet_index": 0,
             "address": "C7:D8",
-            "scope_sheet_name": "Sheet1",
+            "scope_sheet_name": "Sheet 1",
             "scope_sheet_index": 0,
             "book_scope": False,
         },
@@ -64,7 +64,7 @@ data = {
     ],
     "sheets": [
         {
-            "name": "Sheet1",
+            "name": "Sheet 1",
             "values": [
                 ["a", "b", "c", ""],
                 [1.1, 2.2, 3.3, "2021-01-01T00:00:00.000Z"],
@@ -373,9 +373,9 @@ def test_write_basic_types(book):
 
 # sheets
 def test_sheet_access(book):
-    assert book.sheets[0] == book.sheets["Sheet1"]
+    assert book.sheets[0] == book.sheets["Sheet 1"]
     assert book.sheets[1] == book.sheets["Sheet2"]
-    assert book.sheets[0].name == "Sheet1"
+    assert book.sheets[0].name == "Sheet 1"
     assert book.sheets[1].name == "Sheet2"
 
 
@@ -386,7 +386,7 @@ def test_sheet_active(book):
 
 def test_sheets_iteration(book):
     for ix, sheet in enumerate(book.sheets):
-        assert sheet.name == "Sheet1" if ix == 0 else "Sheet2"
+        assert sheet.name == "Sheet 1" if ix == 0 else "Sheet2"
 
 
 # book name
@@ -512,16 +512,16 @@ def test_names_index_vs_name(book):
 
 @pytest.mark.skipif(engine == "calamine", reason="doesn't support local scope yet")
 def test_name_local_scope1(book):
-    assert book.names[1].name == "Sheet1!two"
+    assert book.names[1].name == "'Sheet 1'!two"
 
 
 @pytest.mark.skipif(engine == "calamine", reason="doesn't support local scope yet")
 def test_name_local_scope2(book):
-    assert book.sheets["Sheet1"].names[0].name == "Sheet1!two"
+    assert book.sheets["Sheet 1"].names[0].name == "'Sheet 1'!two"
 
 
 def test_name_refers_to(book):
-    assert book.names[0].refers_to == "=Sheet1!$A$1"
+    assert book.names[0].refers_to == "='Sheet 1'!$A$1"
 
 
 def test_name_refers_to_range(book):
@@ -581,7 +581,7 @@ def test_sheet_name_delete(book):
     assert book.json()["actions"][0]["func"] == "nameDelete"
     assert book.json()["actions"][0]["args"] == [
         "one",
-        "=Sheet1!$A$1",
+        "='Sheet 1'!$A$1",
         "one",
         0,
         True,
