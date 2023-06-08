@@ -57,7 +57,7 @@ def integration_test_read(data: dict = Body):
         expected_data = expected_body["Google Apps Script"]
     elif data["client"] == "Microsoft Office Scripts":
         expected_data = expected_body["Office Scripts"]
-    assert data == expected_data, "Body differs (Make sure to select cell Sheet1!A1)"
+    assert data == expected_data, "Body differs (Make sure to select cell 'Sheet 1'!A1)"
     book.app.alert("OK", title="Integration Test Read")
     return book.json()
 
@@ -259,14 +259,22 @@ expected_body["Office.js"] = {
             "name": "two",
             "sheet_index": 0,
             "address": "C7:D8",
-            "scope_sheet_name": "Sheet1",
+            "scope_sheet_name": "Sheet 1",
             "scope_sheet_index": 0,
+            "book_scope": False,
+        },
+        {
+            "name": "two",
+            "sheet_index": 2,
+            "address": "B3",
+            "scope_sheet_name": "Sheet2",
+            "scope_sheet_index": 1,
             "book_scope": False,
         },
     ],
     "sheets": [
         {
-            "name": "Sheet1",
+            "name": "Sheet 1",
             "values": [
                 ["a", "b", "c", ""],
                 [1.1, 2.2, 3.3, "2021-01-01T00:00:00.000Z"],
@@ -350,12 +358,20 @@ expected_body["VBA"] = {
             "scope_sheet_index": None,
         },
         {
-            "name": "Sheet1!two",
+            "name": "'Sheet 1'!two",
             "sheet_index": 0,
             "address": "C7:D8",
             "book_scope": False,
-            "scope_sheet_name": "Sheet1",
+            "scope_sheet_name": "Sheet 1",
             "scope_sheet_index": 0,
+        },
+        {
+            "name": "Sheet2!two",
+            "sheet_index": 2,
+            "address": "B3",
+            "book_scope": False,
+            "scope_sheet_name": "Sheet2",
+            "scope_sheet_index": 1,
         },
         {
             "name": "two",
@@ -368,8 +384,7 @@ expected_body["VBA"] = {
     ],
     "sheets": [
         {
-            "name": "Sheet1",
-            # Differs between Windows and macOS
+            "name": "Sheet 1",
             "pictures": [
                 {"name": "mypic1", "height": 10, "width": 20},
                 {"name": "mypic2", "height": 30, "width": 40},
@@ -462,14 +477,22 @@ expected_body["Office Scripts"] = {
             "name": "two",
             "sheet_index": 0,
             "address": "C7:D8",
-            "scope_sheet_name": "Sheet1",
+            "scope_sheet_name": "Sheet 1",
             "scope_sheet_index": 0,
+            "book_scope": False,
+        },
+        {
+            "name": "two",
+            "sheet_index": 2,
+            "address": "B3",
+            "scope_sheet_name": "Sheet2",
+            "scope_sheet_index": 1,
             "book_scope": False,
         },
     ],
     "sheets": [
         {
-            "name": "Sheet1",
+            "name": "Sheet 1",
             "values": [
                 ["a", "b", "c", ""],
                 [1.1, 2.2, 3.3, "2021-01-01T00:00:00.000Z"],
@@ -544,11 +567,27 @@ expected_body["Google Apps Script"] = {
     "book": {"name": "engines.xlsm", "active_sheet_index": 0, "selection": "A1"},
     "names": [
         {
-            "name": "Sheet1!two",
+            "name": "one",
+            "sheet_index": 0,
+            "address": "A1",
+            "scope_sheet_name": None,
+            "scope_sheet_index": None,
+            "book_scope": True,
+        },
+        {
+            "name": "'Sheet 1'!two",
             "sheet_index": 0,
             "address": "C7:D8",
-            "scope_sheet_name": "Sheet1",
+            "scope_sheet_name": "Sheet 1",
             "scope_sheet_index": 0,
+            "book_scope": False,
+        },
+        {
+            "name": "Sheet2!two",
+            "sheet_index": 2,
+            "address": "B3",
+            "scope_sheet_name": "Sheet3",
+            "scope_sheet_index": 2,
             "book_scope": False,
         },
         {
@@ -559,18 +598,10 @@ expected_body["Google Apps Script"] = {
             "scope_sheet_index": None,
             "book_scope": True,
         },
-        {
-            "name": "one",
-            "sheet_index": 0,
-            "address": "A1",
-            "scope_sheet_name": None,
-            "scope_sheet_index": None,
-            "book_scope": True,
-        },
     ],
     "sheets": [
         {
-            "name": "Sheet1",
+            "name": "Sheet 1",
             "values": [
                 ["a", "b", "c", ""],
                 [1.1, 2.2, 3.3, "2021-01-01T00:00:00.000Z"],

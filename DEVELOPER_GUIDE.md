@@ -90,6 +90,10 @@ The 3rd party Open Source licenses document is built with `cargo about generate 
 
 ## Office.js add-ins
 
+Script Lab: figuring out the exact syntax for Office.js works is easiest done in the Script Lab add-in that can be installed via Excel's add-in store.
+
+To set up a development environment for the xlwings.js library, you need to do the following:
+
 * Generate dev certificates (otherwise, icons and dialogs won't load and Excel on the web won't load the manifest at all): download `mkcert` from the [GH Release page](https://github.com/FiloSottile/mkcert/releases), rename the file to `mkcert`, then run the following commands:
   ```
   cd xlwingsjs
