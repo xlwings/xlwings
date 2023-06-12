@@ -207,6 +207,20 @@ Have a look at ``manifest-xlwings-officejs-quickstart.xml`` where the respective
 
 If you define a namespace as part of the function decorator while also having a default namespace defined, the namespace from the function decorator will define the sub-namespace.
 
+Help URL
+--------
+
+You can include a link to an internet page with more information about your function by using the ``help_url`` option. The function wizard/formula builder will show that link under "More help on this function".
+
+.. code-block:: python
+
+    from xlwings import pro
+
+    @pro.func(help_url="https://www.xlwings.org")
+    def hello(name):
+        return f"Hello {name}!"
+
+
 Array Dimensions
 ----------------
 

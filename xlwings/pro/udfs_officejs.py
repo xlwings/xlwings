@@ -82,6 +82,7 @@ def xlfunc(f=None, **kwargs):
         # If there's a global namespace defined in the manifest, this will be the
         # sub-namespace, i.e. NAMESPACE.SUBNAMESPACE.FUNCTIONNAME
         f.__xlfunc__["namespace"] = kwargs.get("namespace")
+        f.__xlfunc__["help_url"] = kwargs.get("help_url")
         return f
 
     if f is None:
@@ -268,6 +269,8 @@ def custom_functions_meta(module):
             xlfunc = obj.__xlfunc__
             func = {}
             func["description"] = xlfunc["ret"]["doc"]
+            if xlfunc["help_url"]:
+                func["helpUrl"] = xlfunc["help_url"]
             func["id"] = xlfunc["name"].upper()
             if xlfunc["namespace"]:
                 func["name"] = f"{xlfunc['namespace'].upper()}.{xlfunc['name'].upper()}"
