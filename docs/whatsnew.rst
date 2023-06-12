@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.30.9 (Jun 12, 2023)
+----------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Custom functions: added support for ``help_url``, which allows you to link to more information via the function wizard/forumla builder. See :ref:`pro/server/officejs_custom_functions:Help URL` (:issue:`2283`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Fixed a bug with sheet-scoped named ranges in case the scope and refers_to point to different sheets (:issue:`2280`).
+
 v0.30.8 (May 27, 2023)
 ----------------------
 
