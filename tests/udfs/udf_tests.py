@@ -626,6 +626,11 @@ if pd:
         wb = xw.Book.caller()
         return xw.Range("E277").value == 1.0
 
+    @xw.func
+    def cell_caller(caller):
+        wb = xw.Book.caller()
+        return xw.Range("G353") == caller
+
 
 @xw.func
 def default_args(x, y="hello", z=20):
