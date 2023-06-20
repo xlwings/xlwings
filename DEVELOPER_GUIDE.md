@@ -94,7 +94,7 @@ Script Lab: figuring out the exact syntax for Office.js is easiest done in the S
 
 To set up a development environment for the xlwings.js library, you need to do the following:
 
-* Generate dev certificates (otherwise, icons and dialogs won't load and Excel on the web won't load the manifest at all): download `mkcert` from the [GH Release page](https://github.com/FiloSottile/mkcert/releases), rename the file to `mkcert`, then run the following commands (NOTE: on macOS Apple Sillicon, use `brew install mkcert` instead):
+* Generate dev certificates (otherwise, icons and dialogs won't load and Excel on the web won't load the manifest at all): download `mkcert` from the [GH Release page](https://github.com/FiloSottile/mkcert/releases), rename the file to `mkcert`, then run the following commands (NOTE: on macOS >= 13.4, use `brew install mkcert` instead):
   ```
   cd xlwingsjs
   mkcert -install
