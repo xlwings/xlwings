@@ -9,7 +9,7 @@ authors = [
     {name ="Felix Zumstein", email = "felix.zumstein@zoomeranalytics.com"},
 ]
 readme = "README.rst"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 dependencies = [
     "pywin32 >= 224;platform_system=='Windows'",
     "psutil >= 2.0.0;platform_system=='Darwin'",
@@ -63,12 +63,12 @@ Source = "https://github.com/xlwings/xlwings"
 Changelog = "https://docs.xlwings.org/en/stable/whatsnew.html"
 
 [tool.black]
-target-version = ["py37"]
+target-version = ["py38"]
 force-exclude = "xlwings/mistune"
 
 [tool.isort]
 profile = "black"
-py_version=37
+py_version=38
 skip = "xlwings/mistune"
 combine_as_imports = true
 
