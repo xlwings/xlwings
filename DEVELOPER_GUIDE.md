@@ -141,6 +141,7 @@ For running the xlwings pro related tests, you'll need to use the `noncommercial
 ### Build locally
 
 ```
+pip install -r docs/requirements.txt
 pip install sphinx-autobuild
 ```
 

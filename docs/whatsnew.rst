@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.30.10 (Jun 23, 2023)
+-----------------------
+
+* :bdg-danger:`Breaking Change` Dropped support for Python 3.7
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server: added ``custom_function_call_path`` parameter in ``xw.pro.custom_functions_code()`` (:issue:`2289`).
+
 v0.30.9 (Jun 12, 2023)
 ----------------------
 
