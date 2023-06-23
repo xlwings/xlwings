@@ -7,9 +7,9 @@ on:
   pull_request:
   push:
     branches:
-      - '**'
+      - "**"
     tags-ignore:
-      - '**'
+      - "**"
   release:
     types:
       - created
@@ -23,8 +23,8 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
-          cache: 'pip'
+          python-version: "3.10"
+          cache: "pip"
       - uses: psf/black@stable
         with:
           options: "--check --diff --color"
@@ -35,140 +35,149 @@ jobs:
   check-js-dist:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    - name: Check js versions
-      run: python xlwingsjs/check_version.py
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: Check js versions
+        run: python xlwingsjs/check_version.py
 
   pre-build:
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build]') || contains(github.event.head_commit.message, '[build-cli]')
     needs: check-js-dist
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        # pythonnet doesn't have wheels beyond 3.8
-        python-version: '3.8'
-        architecture: 'x64'
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 3.1.100
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
-    - name: Install Python dependencies
-      run: |
-        python -m pip install pythonnet wheel setuptools-rust
-    - name: Install Aspose
-      shell: bash
-      run: |
-        mkdir ./aspose
-        curl -L https://www.nuget.org/api/v2/package/Aspose.Cells/17.12.0 -o ./aspose/aspose.cells.nupkg
-        unzip ./aspose/aspose.cells.nupkg -d ./aspose/
-    - name: Caching dlls
-      uses: actions/cache@v3
-      id: cache
-      with:
-        path: |
-          xlwings32.dll
-          xlwings64.dll
-        key: ${{ runner.os }}-${{ hashFiles('xlwingsdll/**') }}
-    - name: Build dlls
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: |
-        msbuild $Env:GITHUB_WORKSPACE\xlwingsdll\xlwings.sln /p:Configuration=Release -maxcpucount
-        msbuild $Env:GITHUB_WORKSPACE\xlwingsdll\xlwings.sln /p:Configuration=Release /p:Platform=x64 -maxcpucount
-    - name: Get Certificate
-      id: write_file
-      uses: timheuer/base64-to-file@48657ba25c726c2e3dcf02efa3639fff9b3d587e
-      with:
-        fileName: 'cert.p12'
-        encodedString: ${{ secrets.CODESIGN_CERTIFICATE }}
-    - name: Set PATH for signtool
-      shell: bash
-      run: echo "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x64" >> $GITHUB_PATH
-    - name: Code Sign dlls
-      run: |
-        signtool sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /tr http://timestamp.sectigo.com /td sha256 /fd SHA256 xlwings32.dll xlwings64.dll
-    - name: Build files
-      shell: bash
-      env:
-        ASPOSE_LICENSE: ${{ secrets.ASPOSE_LICENSE }}
-        XLWINGS_LICENSE_KEY_SECRET: ${{ secrets.XLWINGS_LICENSE_KEY_SECRET }}
-      run: |
-        python ./scripts/build_excel_files.py
-      # Code sign Excel add-in (start)
-    - name: Download and unzip Microsoft Office Subject Interface Packages
-      if: github.event_name == 'release'
-      shell: bash
-      run: |
-        # Microsoft Office Subject Interface Packages for Digitally Signing VBA Projects: https://www.microsoft.com/en-us/download/details.aspx?id=56617
-        # NOTE: see README in officesips.exe: the whole stack needs to be x86, including signtool, regsvr32.exe and C++ Redistribution Runtime 2010
-        mkdir ./officesips
-        curl -L https://download.microsoft.com/download/F/B/4/FB46F8CA-6A6F-4CB0-B8F4-06BF3D44DA48/officesips.exe -o ./officesips.exe
-        7z x ./officesips.exe -o./officesips
-    - name: Install Microsoft Visual C++ Redistributable 2010
-      if: github.event_name == 'release'
-      run: |
-        # https://vcredist.com
-        # Must be 2010: https://stackoverflow.com/questions/60239192/signtool-exe-error-signersign-failed-2147220492-0x800403f4-when-signing-ex
-        Install-Module -Name VcRedist -Force
-        New-Item -Path .\VcRedist -ItemType Directory
-        $VcRedists = Get-VcList -Export Unsupported | Where-Object { $_.Release -eq "2010" -and $_.Architecture -eq "x86" }
-        Save-VcRedist -VcList $VcRedists -Path .\VcRedist
-        Install-VcRedist -VcList $VcRedists -Path .\VcRedist
-    - name: Register msosipx.dll
-      if: github.event_name == 'release'
-      run: |
-        # Make sure it uses the 32bit version of regsvr32.exe
-        C:\Windows\system32\regsvr32.exe officesips\msosipx.dll
-    - name: Sign Excel add-in
-      if: github.event_name == 'release'
-      run: |
-        # Office 365 supports three different signatures on VBA projects, which is the reason why OffSign.bat signs and verifies the files 3x
-        # Note that signtools is in ...\bin\x86
-        .\officesips\OffSign.bat "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x86\" "sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /tr http://timestamp.sectigo.com /td sha256 /fd SHA256" "verify /pa" ".\xlwings\addin\xlwings.xlam"
-      # Code sign Excel add-in (end)
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: pre-build
-        retention-days: 1
-        path: |
-          ./*
-          !./git
-          !./aspose
-          !./xlwingsdll
-          !./resources/mac
-          !./examples
-          !./docs
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          # pythonnet doesn't have wheels beyond 3.8
+          python-version: "3.8"
+          architecture: "x64"
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 3.1.100
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
+      - name: Install Python dependencies
+        run: |
+          python -m pip install pythonnet wheel setuptools-rust
+      - name: Install Aspose
+        shell: bash
+        run: |
+          mkdir ./aspose
+          curl -L https://www.nuget.org/api/v2/package/Aspose.Cells/17.12.0 -o ./aspose/aspose.cells.nupkg
+          unzip ./aspose/aspose.cells.nupkg -d ./aspose/
+      - name: Caching dlls
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: |
+            xlwings32.dll
+            xlwings64.dll
+          key: ${{ runner.os }}-${{ hashFiles('xlwingsdll/**') }}
+      - name: Build dlls
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          msbuild $Env:GITHUB_WORKSPACE\xlwingsdll\xlwings.sln /p:Configuration=Release -maxcpucount
+          msbuild $Env:GITHUB_WORKSPACE\xlwingsdll\xlwings.sln /p:Configuration=Release /p:Platform=x64 -maxcpucount
+      - name: Get Certificate
+        id: write_file
+        uses: timheuer/base64-to-file@48657ba25c726c2e3dcf02efa3639fff9b3d587e
+        with:
+          fileName: "cert.p12"
+          encodedString: ${{ secrets.CODESIGN_CERTIFICATE }}
+      - name: Set PATH for signtool
+        shell: bash
+        run: echo "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x64" >> $GITHUB_PATH
+      - name: Code Sign dlls
+        run: |
+          signtool sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /tr http://timestamp.sectigo.com /td sha256 /fd SHA256 xlwings32.dll xlwings64.dll
+      - name: Build files
+        shell: bash
+        env:
+          ASPOSE_LICENSE: ${{ secrets.ASPOSE_LICENSE }}
+          XLWINGS_LICENSE_KEY_SECRET: ${{ secrets.XLWINGS_LICENSE_KEY_SECRET }}
+        run: |
+          python ./scripts/build_excel_files.py
+        # Code sign Excel add-in (start)
+      - name: Download and unzip Microsoft Office Subject Interface Packages
+        if: github.event_name == 'release'
+        shell: bash
+        run: |
+          # Microsoft Office Subject Interface Packages for Digitally Signing VBA Projects: https://www.microsoft.com/en-us/download/details.aspx?id=56617
+          # NOTE: see README in officesips.exe: the whole stack needs to be x86, including signtool, regsvr32.exe and C++ Redistribution Runtime 2010
+          mkdir ./officesips
+          curl -L https://download.microsoft.com/download/F/B/4/FB46F8CA-6A6F-4CB0-B8F4-06BF3D44DA48/officesips.exe -o ./officesips.exe
+          7z x ./officesips.exe -o./officesips
+      - name: Install Microsoft Visual C++ Redistributable 2010
+        if: github.event_name == 'release'
+        run: |
+          # https://vcredist.com
+          # Must be 2010: https://stackoverflow.com/questions/60239192/signtool-exe-error-signersign-failed-2147220492-0x800403f4-when-signing-ex
+          Install-Module -Name VcRedist -Force
+          New-Item -Path .\VcRedist -ItemType Directory
+          $VcRedists = Get-VcList -Export Unsupported | Where-Object { $_.Release -eq "2010" -and $_.Architecture -eq "x86" }
+          Save-VcRedist -VcList $VcRedists -Path .\VcRedist
+          Install-VcRedist -VcList $VcRedists -Path .\VcRedist
+      - name: Register msosipx.dll
+        if: github.event_name == 'release'
+        run: |
+          # Make sure it uses the 32bit version of regsvr32.exe
+          C:\Windows\system32\regsvr32.exe officesips\msosipx.dll
+      - name: Sign Excel add-in
+        if: github.event_name == 'release'
+        run: |
+          # Office 365 supports three different signatures on VBA projects, which is the reason why OffSign.bat signs and verifies the files 3x
+          # Note that signtools is in ...\bin\x86
+          .\officesips\OffSign.bat "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x86\" "sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /tr http://timestamp.sectigo.com /td sha256 /fd SHA256" "verify /pa" ".\xlwings\addin\xlwings.xlam"
+        # Code sign Excel add-in (end)
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: pre-build
+          retention-days: 1
+          path: |
+            ./*
+            !./git
+            !./aspose
+            !./xlwingsdll
+            !./resources/mac
+            !./examples
+            !./docs
 
   build:
     needs: pre-build
-    name:  Build wheel
+    name: Build wheel
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build]')
     strategy:
       fail-fast: false
       matrix:
         # abi3 wheels aren't supported as DateTime is not part of the ABI spec (PEP 384)
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
-        platform: [
-          {os: "windows-latest", target: "x86_64"},
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        platform:
+          [
+            { os: "windows-latest", target: "x86_64" },
 
-          {os: "macos-latest", target: "x86_64"},
-          {os: "macos-latest", target: "aarch64"},
+            { os: "macos-latest", target: "x86_64" },
+            { os: "macos-latest", target: "aarch64" },
 
-          {os: "ubuntu-latest", target: "x86_64"},
-          {os: "ubuntu-latest", target: "aarch64"},
-          {os: "ubuntu-latest", target: "armv7"},
-          {os: "ubuntu-latest", target: "x86_64", manylinux: "musllinux_1_1"},
-          {os: "ubuntu-latest", target: "aarch64", manylinux: "musllinux_1_1"},
-        ]
+            { os: "ubuntu-latest", target: "x86_64" },
+            { os: "ubuntu-latest", target: "aarch64" },
+            { os: "ubuntu-latest", target: "armv7" },
+            {
+              os: "ubuntu-latest",
+              target: "x86_64",
+              manylinux: "musllinux_1_1",
+            },
+            {
+              os: "ubuntu-latest",
+              target: "aarch64",
+              manylinux: "musllinux_1_1",
+            },
+          ]
 
     runs-on: ${{ matrix.platform.os }}
     steps:
@@ -180,7 +189,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: 'x64'
+          architecture: "x64"
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -253,13 +262,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
-          cache: 'pip'
+          python-version: "3.10"
+          cache: "pip"
       - name: Get Certificate
         id: write_file
         uses: timheuer/base64-to-file@48657ba25c726c2e3dcf02efa3639fff9b3d587e
         with:
-          fileName: 'cert.p12'
+          fileName: "cert.p12"
           encodedString: ${{ secrets.CODESIGN_CERTIFICATE }}
       - name: Set PATH for signtool
         shell: bash
@@ -290,8 +299,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
-          architecture: 'x64'
+          python-version: "3.10"
+          architecture: "x64"
       - name: Install Python dependencies
         run: |
           python -m pip install wheel twine
