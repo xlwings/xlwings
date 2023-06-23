@@ -175,7 +175,9 @@ async def custom_functions_call(data, module):
     return ret
 
 
-def custom_functions_code(module):
+def custom_functions_code(
+    module, custom_functions_call_path="/xlwings/custom-functions-call"
+):
     js = """\
          async function base() {
            // Turn arguments into an array, the last one is the invocation parameter
@@ -204,7 +206,7 @@ def custom_functions_code(module):
              runtime = "1.1";
            }
            let response = await fetch(
-             window.location.origin + "/xlwings/custom-functions-call",
+             window.location.origin + "custom_functions_call_path",
              {
                method: "POST",
                headers: headers,
@@ -243,6 +245,8 @@ def custom_functions_code(module):
          }
     """.replace(
         "xlwings_version", __version__
+    ).replace(
+        "custom_functions_call_path", custom_functions_call_path
     )  # format string would require to double all curly braces
     js = dedent(js)
     for name, obj in inspect.getmembers(module):
