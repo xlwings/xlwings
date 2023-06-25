@@ -148,19 +148,55 @@ As a summary, here are the components needed to enable SSO:
          </Scopes>
      </WebApplicationInfo>
 
-5.  Acquire an access token in your client-side code and send it as Authorization header to your backend where you can parse it and/or use it to authenticate with Microsoft Graph API. The officejs quickstart repo has a dummy global function ``globalThis.getAuth()`` in the ``app/taskpane.html`` file that you can implement as follows:
+5.  Acquire an access token in your client-side code and send it as Authorization header to your backend where you can verify it using e.g., Azure functions or parse/verify it manually. You could also use it to authenticate with Microsoft Graph API. The officejs quickstart repo has a dummy global function ``globalThis.getAuth()`` in the ``app/taskpane.html`` file that you can implement as follows (Note that ``Office.auth.getAccessToken`` is supposed to take care of caching automatically, but this doesn't seem to work, see: https://github.com/OfficeDev/office-js/issues/3298):
 
     .. code-block:: js
   
-      globalThis.getAuth = async function () {
+      let isRenewingToken = false;
+      let tokenLock = false;
+      let accessToken = null;
+      let tokenTimestamp = null;
+
+      function hasKeyExpired() {
+        if (!tokenTimestamp) {
+          return true;
+        }
+        // 55 minutes, adjust according to Azure AD token lifetime
+        const expirationTime = 55 * 60 * 1000;
+        const currentTime = Date.now();
+        return currentTime - tokenTimestamp > expirationTime;
+      }
+
+      async function renewAccessToken() {
+        console.log("Renewing access token");
         try {
-          let accessToken = await Office.auth.getAccessToken({
+          accessToken = await Office.auth.getAccessToken({
             allowSignInPrompt: true,
           });
-          return "Bearer " + accessToken;
+          accessToken = "Bearer " + accessToken;
+          tokenTimestamp = Date.now();
         } catch (error) {
-          return `Error ${error.code}: ${error.message}`;
+          console.log(`Error ${error.code}: ${error.message}`);
+        } finally {
+          tokenLock = false;
         }
+      }
+
+      globalThis.getAuth = async function () {
+        if (!accessToken || hasKeyExpired()) {
+          if (!tokenLock) {
+            tokenLock = true;
+            isRenewingToken = true;
+            await renewAccessToken();
+
+            isRenewingToken = false;
+          } else {
+            while (isRenewingToken) {
+              await new Promise((resolve) => setTimeout(resolve, 100));
+            }
+          }
+        }
+        return accessToken;
       };
 
     This then allows you to call ``runPython`` like so (note that custom functions do this automatically):
