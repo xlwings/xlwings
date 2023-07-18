@@ -3,6 +3,9 @@
 # pip install pre-commit
 # pre-commit install
 #
+# To run changed files manually: pre-commit
+# To run all files manually: pre-commit run --all-files
+#
 # See also: https://pre-commit.com
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
