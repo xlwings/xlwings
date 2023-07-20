@@ -94,20 +94,37 @@ def datetime_to_xlserial(obj):
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
-def col_name(i):
-    i -= 1
-    if i < 0:
-        raise IndexError(i)
-    elif i < 26:
-        return ALPHABET[i]
-    elif i < 702:
-        i -= 26
-        return ALPHABET[i // 26] + ALPHABET[i % 26]
-    elif i < 16384:
-        i -= 702
-        return ALPHABET[i // 676] + ALPHABET[i // 26 % 26] + ALPHABET[i % 26]
-    else:
-        raise IndexError(i)
+def col_name(i: int) -> str:
+    """Return the column name for a given column index ``i``
+
+    It is important to note that Excel indexing starts from 1,
+    and that the last column 'XFD' corresponds to an index of 16384.
+    i.e. ``i`` needs to be in the range of 1 and 16384
+
+    Args:
+        i (int): column index integer
+
+    Raises:
+        IndexError: Exception raised when the column index is not in the range 1, 16384
+
+    Returns:
+        str: Column Letter
+    """
+    if i not in range(1, 16385):
+        raise IndexError(
+            f'Invalid column index "{i}". Column index needs to be between 1 and 16384'
+        )
+
+    column_letter = []
+
+    while i > 0:
+        i -= 1
+        column_letter.append(ALPHABET[i % 26])
+        i //= 26
+
+    column_letter.reverse()
+
+    return "".join(column_letter)
 
 
 def address_to_index_tuple(address):

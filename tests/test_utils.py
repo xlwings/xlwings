@@ -14,14 +14,14 @@ def test_col_name_raise_exception():
         xw.utils.col_name(0)
     assert (
         str(exception.value)
-        == 'Invalid column index "0". Column index needs to be between 1 and 16383'
+        == 'Invalid column index "0". Column index needs to be between 1 and 16384'
     )
     # Excel Columns end at 16384
     with pytest.raises(IndexError) as exception:
         xw.utils.col_name(16385)
     assert (
         str(exception.value)
-        == 'Invalid column index "16384". Column index needs to be between 1 and 16383'
+        == 'Invalid column index "16385". Column index needs to be between 1 and 16384'
     )
 
 
