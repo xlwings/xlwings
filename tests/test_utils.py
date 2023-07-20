@@ -1,10 +1,6 @@
-from pathlib import Path
-
 import pytest
 
 import xlwings as xw
-
-this_dir = Path(__file__).resolve().parent
 
 
 def test_col_name_raise_exception():
