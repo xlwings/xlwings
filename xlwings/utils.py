@@ -92,6 +92,7 @@ def datetime_to_xlserial(obj):
 
 
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+MAX_COLUMN_INDEX = 16384
 
 
 def col_name(i: int) -> str:
@@ -110,7 +111,7 @@ def col_name(i: int) -> str:
     Returns:
         str: Column Letter
     """
-    if i not in range(1, 16385):
+    if i < 1 or i > MAX_COLUMN_INDEX:
         raise IndexError(
             f'Invalid column index "{i}". Column index needs to be between 1 and 16384'
         )
