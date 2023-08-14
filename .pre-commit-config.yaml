@@ -23,14 +23,16 @@ repos:
     hooks:
       - id: end-of-file-fixer
 
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.0.283
+    hooks:
+      - id: ruff
+        args:
+          - --config=./pyproject.toml
+
   - repo: https://github.com/psf/black
     rev: 23.3.0
     hooks:
       - id: black
-        args: [--config=./pyproject.toml]
-
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.0.282
-    hooks:
-      - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
+        args:
+          - --config=./pyproject.toml

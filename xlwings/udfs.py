@@ -17,8 +17,10 @@ import os.path
 import re
 import tempfile
 import threading
-from importlib import reload  # requires >= py 3.4
-from importlib import import_module
+from importlib import (
+    import_module,
+    reload,  # requires >= py 3.4
+)
 from random import random
 
 import pythoncom
@@ -476,7 +478,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     args = list(args)
     for i, arg in enumerate(args):
         arg_info = args_info[min(i, len(args_info) - 1)]
-        if type(arg) is int and arg == -2147352572:  # missing
+        if isinstance(arg, int) and arg == -2147352572:  # missing
             args[i] = arg_info.get("optional", None)
         elif xlwings._xlwindows.is_range_instance(arg):
             args[i] = conversion.read(

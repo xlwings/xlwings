@@ -10,7 +10,7 @@ import numpy as np
 import xlwings as xw
 
 try:
-    import seaborn
+    import seaborn  # noqa: F401
 except ImportError:
     pass
 
@@ -36,4 +36,4 @@ def main():
 
     # Get the figure and show it in Excel
     fig = get_figure(const)
-    pic = sht.pictures.add(fig, name="MyStreamplot", update=True)
+    sht.pictures.add(fig, name="MyStreamplot", update=True)

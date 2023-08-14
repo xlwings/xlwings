@@ -167,8 +167,8 @@ def test_permission_cant_override_config_file(clear_user_config, app, addin):
 
     config = [
         '"PERMISSION_CHECK_ENABLED","True"\n',
-        f'"PERMISSION_CHECK_URL","http://localhost:5000/fail-machinename"\n',
-        f'"PERMISSION_CHECK_METHOD","POST"\n',
+        '"PERMISSION_CHECK_URL","http://localhost:5000/fail-machinename"\n',
+        '"PERMISSION_CHECK_METHOD","POST"\n',
         '"UDF Modules","permission;permission2"\n',
         f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"',
     ]
@@ -191,7 +191,7 @@ def test_permission_udf_cant_find_file(clear_user_config, app, addin, method):
 
     config = [
         '"PERMISSION_CHECK_ENABLED","True"\n',
-        f'"PERMISSION_CHECK_URL","http://localhost:5000/success"\n',
+        '"PERMISSION_CHECK_URL","http://localhost:5000/success"\n',
         f'"PERMISSION_CHECK_METHOD","{method}"\n',
         '"UDF Modules","permission;doesnexist"\n',
         f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"\n',
@@ -241,7 +241,7 @@ def test_permission_runpython_cant_find_file(clear_user_config, app, addin, meth
 
     config = [
         '"PERMISSION_CHECK_ENABLED","True"\n',
-        f'"PERMISSION_CHECK_URL","http://localhost:5000/success"\n',
+        '"PERMISSION_CHECK_URL","http://localhost:5000/success"\n',
         f'"PERMISSION_CHECK_METHOD","{method}"\n',
         f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"\n',
         '"SHOW_ERROR_POPUPS","False"',
@@ -263,7 +263,7 @@ def test_permission_runpython_cant_use_from_imports(
 
     config = [
         '"PERMISSION_CHECK_ENABLED","True"\n',
-        f'"PERMISSION_CHECK_URL","http://localhost:5000/success"\n',
+        '"PERMISSION_CHECK_URL","http://localhost:5000/success"\n',
         f'"PERMISSION_CHECK_METHOD","{method}"\n',
         f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"\n',
         '"SHOW_ERROR_POPUPS","False"',
@@ -348,7 +348,7 @@ def test_permission_embedded_code_success(clear_user_config, app, addin, method)
 
     config = [
         '"PERMISSION_CHECK_ENABLED","True"\n',
-        f'"PERMISSION_CHECK_URL","http://localhost:5000/success-embedded"\n',
+        '"PERMISSION_CHECK_URL","http://localhost:5000/success-embedded"\n',
         f'"PERMISSION_CHECK_METHOD","{method}"\n',
         f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"',
     ]
@@ -395,7 +395,7 @@ def test_permission_runpython_embedded_code_server_success(
 
     config = [
         '"PERMISSION_CHECK_ENABLED","True"\n',
-        f'"PERMISSION_CHECK_URL","http://localhost:5000/success-embedded"\n',
+        '"PERMISSION_CHECK_URL","http://localhost:5000/success-embedded"\n',
         f'"PERMISSION_CHECK_METHOD","{method}"\n',
         f'"LICENSE_KEY","{os.environ["TEST_XLWINGS_LICENSE_KEY"]}"\n',
         '"USE UDF SERVER","True"',

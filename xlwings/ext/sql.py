@@ -36,7 +36,7 @@ def _sql(query, *tables):
     for i, table in enumerate(tables):
         cols = table[0]
         rows = table[1:]
-        types = [any(type(row[j]) is str for row in rows) for j in range(len(cols))]
+        types = [any(isinstance(row[j], str) for row in rows) for j in range(len(cols))]
         name = chr(65 + i)
 
         stmt = "CREATE TABLE %s (%s)" % (

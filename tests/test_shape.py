@@ -87,7 +87,7 @@ class TestShape(TestBase):
 
     def test_type(self):
         filename = os.path.join(this_dir, "sample_picture.png")
-        pic = self.wb1.sheets[0].pictures.add(filename, name="pic1")
+        self.wb1.sheets[0].pictures.add(filename, name="pic1")
         self.assertEqual(self.wb1.sheets[0].shapes[0].type, "picture")
 
     def test_scale_width(self):
@@ -168,8 +168,8 @@ class TestPicture(TestBase):
     def test_duplicate(self):
         with self.assertRaises(xw.ShapeAlreadyExists):
             filename = os.path.join(this_dir, "sample_picture.png")
-            pic1 = self.wb1.sheets[0].pictures.add(filename, name="pic1")
-            pic2 = self.wb1.sheets[0].pictures.add(filename, name="pic1")
+            self.wb1.sheets[0].pictures.add(filename, name="pic1")
+            self.wb1.sheets[0].pictures.add(filename, name="pic1")
 
     def test_picture_update(self):
         filename = os.path.join(this_dir, "sample_picture.png")
@@ -184,18 +184,18 @@ class TestPicture(TestBase):
 
     def test_picture_auto_update(self):
         filename = os.path.join(this_dir, "sample_picture.png")
-        pic1 = self.wb1.sheets[0].pictures.add(filename, name="pic1", update=True)
-        pic1 = self.wb1.sheets[0].pictures.add(filename, name="pic1", update=True)
+        self.wb1.sheets[0].pictures.add(filename, name="pic1", update=True)
+        self.wb1.sheets[0].pictures.add(filename, name="pic1", update=True)
         self.assertEqual(len(self.wb1.sheets[0].pictures), 1)
 
     def test_picture_auto_update_without_name(self):
         with self.assertRaises(ValueError):
             filename = os.path.join(this_dir, "sample_picture.png")
-            pic1 = self.wb1.sheets[0].pictures.add(filename, update=True)
+            self.wb1.sheets[0].pictures.add(filename, update=True)
 
     def test_picture_index(self):
         filename = os.path.join(this_dir, "sample_picture.png")
-        pic1 = self.wb1.sheets[0].pictures.add(filename, name="pic1")
+        self.wb1.sheets[0].pictures.add(filename, name="pic1")
         self.assertEqual(
             self.wb1.sheets[0].pictures[0], self.wb1.sheets[0].pictures["pic1"]
         )
@@ -203,21 +203,21 @@ class TestPicture(TestBase):
 
     def test_len(self):
         filename = os.path.join(this_dir, "sample_picture.png")
-        pic1 = self.wb1.sheets[0].pictures.add(filename, name="pic1")
-        pic2 = self.wb1.sheets[0].pictures.add(filename, name="pic2")
+        self.wb1.sheets[0].pictures.add(filename, name="pic1")
+        self.wb1.sheets[0].pictures.add(filename, name="pic2")
         self.assertEqual(len(self.wb1.sheets[0].pictures), 2)
 
     def test_iter(self):
         filename = os.path.join(this_dir, "sample_picture.png")
         names = ["pic1", "pic2"]
-        pic1 = self.wb1.sheets[0].pictures.add(filename, name=names[0])
-        pic2 = self.wb1.sheets[0].pictures.add(filename, name=names[1])
+        self.wb1.sheets[0].pictures.add(filename, name=names[0])
+        self.wb1.sheets[0].pictures.add(filename, name=names[1])
         for ix, pic in enumerate(self.wb1.sheets[0].pictures):
             self.assertEqual(self.wb1.sheets[0].pictures[ix].name, names[ix])
 
     def test_contains(self):
         filename = os.path.join(this_dir, "sample_picture.png")
-        pic1 = self.wb1.sheets[0].pictures.add(filename, name="pic 1")
+        self.wb1.sheets[0].pictures.add(filename, name="pic 1")
         self.assertTrue("pic 1" in self.wb1.sheets[0].pictures)
 
 
@@ -298,11 +298,11 @@ class TestCharts(TestBase):
 
 class TestChart(TestBase):
     def test_len(self):
-        chart = self.wb1.sheets[0].charts.add()
+        self.wb1.sheets[0].charts.add()
         self.assertEqual(len(self.wb1.sheets[0].charts), 1)
 
     def test_count(self):
-        chart = self.wb1.sheets[0].charts.add()
+        self.wb1.sheets[0].charts.add()
         self.assertEqual(
             len(self.wb1.sheets[0].charts), self.wb1.sheets[0].charts.count
         )

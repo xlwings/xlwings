@@ -15,7 +15,7 @@ class TestApps(TestBase):
     def test_len(self):
         n_original = len(xw.apps)
         app = xw.App(spec=SPEC)
-        wb = app.books.add()
+        app.books.add()
         self.assertEqual(n_original + 1, len(xw.apps))
         app.quit()
 
@@ -160,7 +160,7 @@ class TestApp(TestBase):
         self.assertEqual(len(self.app1.books), n_books + 1)
 
     def test_macro(self):
-        wb = self.app1.books.open(os.path.join(this_dir, "macro book.xlsm"))
+        self.app1.books.open(os.path.join(this_dir, "macro book.xlsm"))
         test1 = self.app1.macro("Module1.Test1")
         res1 = test1("Test1a", "Test1b")
         self.assertEqual(res1, 1)

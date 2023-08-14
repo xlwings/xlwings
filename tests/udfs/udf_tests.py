@@ -21,7 +21,6 @@ except ImportError:
     np = None
 try:
     import pandas as pd
-    from pandas import DataFrame, Series
     from pandas.testing import assert_frame_equal, assert_series_equal
 
     def frame_equal(a, b):
@@ -623,17 +622,17 @@ if pd:
 
     @xw.func
     def read_workbook_caller():
-        wb = xw.Book.caller()
+        xw.Book.caller()
         return xw.Range("E277").value == 1.0
 
     @xw.func
     def cell_caller(caller):
-        wb = xw.Book.caller()
+        xw.Book.caller()
         return xw.Range("G353") == caller
 
     @xw.func
     def cell_caller_multiple_args(name, caller):
-        wb = xw.Book.caller()
+        xw.Book.caller()
         if not name == "Test":
             return "Name Error"
         return xw.Range("G355") == caller
