@@ -538,4 +538,3 @@ Private Sub GetDLLVersion()
     Debug.Print ver
     Debug.Print arch
 End Sub
-
