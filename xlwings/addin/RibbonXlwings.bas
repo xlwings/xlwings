@@ -238,4 +238,3 @@ Sub RestartPython(control As IRibbonControl)
     Py.Exec ""
     #End If
 End Sub
-
