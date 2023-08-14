@@ -445,7 +445,7 @@ def _clean_value_data_element(
         return empty_as
     elif isinstance(value, time_types):
         return _com_time_to_datetime(value, datetime_builder)
-    elif number_builder is not None and type(value) == float:
+    elif number_builder is not None and isinstance(value, float):
         value = number_builder(value)
     elif isinstance(value, int) and value in cell_errors:
         if err_to_str:

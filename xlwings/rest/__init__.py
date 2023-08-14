@@ -1,1 +1,1 @@
-from .api import api, run
+from .api import api, run  # noqa: F401

@@ -46,7 +46,7 @@ def _clean_value_data_element(value, datetime_builder, empty_as, number_builder)
             microsecond=value.microsecond,
             tzinfo=None,
         )
-    elif number_builder is not None and type(value) == float:
+    elif number_builder is not None and isinstance(value, float):
         value = number_builder(value)
     return value
 

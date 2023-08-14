@@ -123,8 +123,7 @@ To set up a development environment for the xlwings.js library, you need to do t
 This repo uses the following packages for code formatting/linting, see `pyproject.toml`:
 
 * black
-* isort
-* flake8
+* ruff
 
 You can use the pre-commit hook under `.pre-commit-config.yaml`, see instructions at top of the file.
 
