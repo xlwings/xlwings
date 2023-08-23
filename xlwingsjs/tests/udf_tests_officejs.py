@@ -1,4 +1,6 @@
 """
+TODO: why is this here and and under root tests folder?
+
 Key differences with COM UDFs:
 * respects ints (COM always returns floats)
 * returns 0 for empty cells. To get None like in COM, you need to set the formula to: =""
@@ -8,10 +10,7 @@ Key differences with COM UDFs:
 * categories aren't supported: replaced by namespaces
 """
 import datetime as dt
-import sys
 from datetime import date, datetime
-
-from nose.tools import assert_dict_equal
 
 import xlwings as xw
 from xlwings.pro import arg, func, ret
@@ -49,14 +48,6 @@ try:
 
 except ImportError:
     pd = None
-
-
-def dict_equal(a, b):
-    try:
-        assert_dict_equal(a, b)
-    except AssertionError:
-        return False
-    return True
 
 
 # Defaults
@@ -191,19 +182,17 @@ def read_empty_as(x):
     return x == [[1, "empty"], ["empty", 4]]
 
 
-if sys.version_info >= (2, 7):
-    # assert_dict_equal isn't available on nose for PY 2.6
+# Dicts
+@func
+@arg("x", dict)
+def read_dict(x):
+    return x == {"a": 1, "b": "c"}
 
-    # Dicts
-    @func
-    @arg("x", dict)
-    def read_dict(x):
-        return dict_equal(x, {"a": 1, "b": "c"})
 
-    @func
-    @arg("x", dict, transpose=True)
-    def read_dict_transpose(x):
-        return dict_equal(x, {1: "c", "a": "b"})
+@func
+@arg("x", dict, transpose=True)
+def read_dict_transpose(x):
+    return x == {1: "c", "a": "b"}
 
 
 @func
