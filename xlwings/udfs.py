@@ -491,7 +491,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     if this_workbook:
         xlwings._xlwindows.BOOK_CALLER = Dispatch(this_workbook)
 
-    from .server import loop
+    from .com_server import loop
 
     if func_info["async_mode"] and func_info["async_mode"] == "threading":
         cache_key = get_cache_key(func, args, caller)
