@@ -120,11 +120,11 @@ Public Function RunPython(PythonCommand As String)
         ExecuteMac PythonCommand, interpreter, PYTHONPATH
     #Else
         If OPTIMIZED_CONNECTION = True Then
-            Py.SetAttr Py.Module("xlwings._xlwindows"), "BOOK_CALLER", ActiveWorkbook
+            XLPy.SetAttr XLPy.Module("xlwings._xlwindows"), "BOOK_CALLER", ActiveWorkbook
             
             On Error GoTo err_handling
             
-            Py.Exec "" & PythonCommand & ""
+            XLPy.Exec "" & PythonCommand & ""
             GoTo end_err_handling
 err_handling:
             ShowError "", Err.Description
@@ -479,9 +479,9 @@ Function NDims(ByRef src As Variant, dims As Long, Optional transpose As Boolean
     If 0 <> XLPyDLLNDims(src, dims, transpose, NDims) Then Err.Raise 1001, Description:=NDims
 End Function
 
-Function Py()
+Function XLPy()
     XLPyLoadDLL
-    If 0 <> XLPyDLLActivateAuto(Py, XLPyCommand, 1) Then Err.Raise 1000, Description:=Py
+    If 0 <> XLPyDLLActivateAuto(XLPy, XLPyCommand, 1) Then Err.Raise 1000, Description:=XLPy
 End Function
 
 Sub KillPy()
@@ -506,7 +506,7 @@ Sub ImportPythonUDFsBase(Optional addin As Boolean = False)
     End If
 
     On Error GoTo ImportError
-        tempPath = Py.Str(Py.Call(Py.Module("xlwings"), "import_udfs", Py.Tuple(GetUdfModules(wb), wb)))
+        tempPath = XLPy.Str(XLPy.Call(XLPy.Module("xlwings"), "import_udfs", XLPy.Tuple(GetUdfModules(wb), wb)))
     Exit Sub
 ImportError:
     errorMsg = Err.Description & " " & Err.Number

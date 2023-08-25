@@ -235,6 +235,6 @@ Sub RestartPython(control As IRibbonControl)
     #If Mac Then
     #Else
     KillPy
-    Py.Exec ""
+    XLPy.Exec ""
     #End If
 End Sub
