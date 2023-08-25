@@ -661,7 +661,7 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
                 if ftype == "Sub":
                     with vba.block('#If App = "Microsoft Excel" Then'):
                         vba.writeln(
-                            'Py.CallUDF "{module_name}", "{fname}", '
+                            'XLPy.CallUDF "{module_name}", "{fname}", '
                             "{args_vba}, {vba_workbook}, Application.Caller",
                             module_name=module_name,
                             fname=fname,
@@ -670,7 +670,7 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
                         )
                     with vba.block("#Else"):
                         vba.writeln(
-                            'Py.CallUDF "{module_name}", "{fname}", {args_vba}',
+                            'XLPy.CallUDF "{module_name}", "{fname}", {args_vba}',
                             module_name=module_name,
                             fname=fname,
                             args_vba=args_vba,
@@ -683,7 +683,7 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
                             "On Error GoTo failed"
                         )
                         vba.writeln(
-                            '{fname} = Py.CallUDF("{module_name}", "{fname}", '
+                            '{fname} = XLPy.CallUDF("{module_name}", "{fname}", '
                             "{args_vba}, {vba_workbook}, Application.Caller)",
                             module_name=module_name,
                             fname=fname,
@@ -693,7 +693,7 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
                         vba.writeln("Exit " + ftype)
                     with vba.block("#Else"):
                         vba.writeln(
-                            '{fname} = Py.CallUDF("{module_name}", '
+                            '{fname} = XLPy.CallUDF("{module_name}", '
                             '"{fname}", {args_vba})',
                             module_name=module_name,
                             fname=fname,
