@@ -436,7 +436,7 @@ Function XLPyCommand()
     Else
         ' Spaces in path of python.exe require quote around path AND quotes around whole command, see:
         ' https://stackoverflow.com/questions/6376113/how-do-i-use-spaces-in-the-command-prompt
-        tail = " -B -c ""import sys, os;" & LicenseKeyEnvString & "import xlwings.utils;xlwings.utils.prepare_sys_path(\""" & PYTHONPATH & "\"");import xlwings.server; xlwings.server.serve('$(CLSID)')"""
+        tail = " -B -c ""import sys, os;" & LicenseKeyEnvString & "import xlwings.utils;xlwings.utils.prepare_sys_path(\""" & PYTHONPATH & "\"");import xlwings; xlwings.serve('$(CLSID)')"""
         XLPyCommand = PYTHON_WIN & tail & Chr(34)
     End If
 End Function
