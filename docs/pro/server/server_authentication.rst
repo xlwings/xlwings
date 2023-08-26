@@ -210,6 +210,7 @@ As a summary, here are the components needed to enable SSO:
 
 * For a sample implementation on how to validate the token on the backend, have a look at https://github.com/xlwings/xlwings-server-auth-azuread
 * A good walkthrough is also `Create a Node.js Office Add-in that uses single sign-on <https://learn.microsoft.com/en-us/office/dev/add-ins/develop/create-sso-office-add-ins-nodejs>`_, but as the title says, it uses Node.js on the backend instead of Python.
+* For a reference of the error codes, see: https://learn.microsoft.com/en-us/office/dev/add-ins/develop/troubleshoot-sso-in-office-add-ins
 
 
 Azure AD for Excel VBA
