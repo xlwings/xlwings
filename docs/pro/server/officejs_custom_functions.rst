@@ -62,7 +62,8 @@ For example, to read in the values of a range as pandas DataFrame and return the
 
 .. code-block:: python
 
-    from xlwings import pro
+    import pandas as pd
+    from xlwings import server
 
     @server.func
     @server.arg("df", pd.DataFrame, index=False, header=False)
@@ -79,7 +80,7 @@ To describe your function and its arguments, you can use a function docstring or
 
 .. code-block:: python
 
-    from xlwings import pro
+    from xlwings import server
 
     @server.func
     @server.arg("name", doc='A name such as "World"')
@@ -101,7 +102,7 @@ In the context of custom functions, xlwings will detect numbers, strings, and bo
 .. code-block:: python
 
     import datetime as dt
-    from xlwings import pro
+    from xlwings import server
 
     @server.func
     @server.arg("date", dt.datetime)
@@ -116,7 +117,7 @@ If you have multiple values that you need to convert, you can use the ``xlwings.
 
     import datetime as dt
     import xlwings as xw
-    from xlwings import pro
+    from xlwings import server
 
     @server.func
     def isoformat(dates):
@@ -128,7 +129,7 @@ And if you are dealing with pandas DataFrames, you can simply use the ``parse_da
 .. code-block:: python
 
     import pandas as pd
-    from xlwings import pro
+    from xlwings import server
 
     @server.func
     @server.arg("df", pd.DataFrame, parse_dates=[0])
@@ -143,8 +144,9 @@ When writing datetime object to Excel, xlwings automatically formats the cells a
 
 .. code-block:: python
 
-    import xlwings as xw
     import datetime as dt
+    import xlwings as xw
+    from xlwings import server
 
     @server.func
     def pytoday():
@@ -154,8 +156,9 @@ By default, it will format the date according to the content language of your Ex
 
 .. code-block:: python
 
-    import xlwings as xw
     import datetime as dt
+    import xlwings as xw
+    from xlwings import server
 
     @server.func
     @server.ret(date_format="yyyy-m-d")
@@ -176,7 +179,7 @@ A namespace groups related custom functions together by prepending the namespace
 .. code-block:: python
 
     import numpy as np
-    from xlwings import pro
+    from xlwings import server
 
     @server.func(namespace="numpy")
     def standard_normal(rows, columns):
@@ -214,7 +217,7 @@ You can include a link to an internet page with more information about your func
 
 .. code-block:: python
 
-    from xlwings import pro
+    from xlwings import server
 
     @server.func(help_url="https://www.xlwings.org")
     def hello(name):
@@ -240,6 +243,8 @@ However, if the argument can be anything from a single cell to a one- or two-dim
 
 .. code-block:: python
 
+    from xlwings import server
+
     @server.func
     @server.arg("x", ndim=2)
     def add_one(x):
@@ -252,6 +257,8 @@ The above sample would raise an error if you'd leave away the ``ndim=2`` and use
 If you need to write out a list in vertical orientation, the ``transpose`` option comes in handy:
 
 .. code-block:: python
+
+    from xlwings import server
 
     @server.func
     @server.ret(transpose=True)
@@ -284,6 +291,8 @@ By default, error cells are converted to ``None`` (scalars and lists) or ``np.na
 
 .. code-block:: python
 
+    from xlwings import server
+
     @server.func
     @server.arg("x", err_to_str=True)
     def myfunc(x):
@@ -294,6 +303,8 @@ By default, error cells are converted to ``None`` (scalars and lists) or ``np.na
 To format cells as proper error cells in Excel, simply use their string representation (``#DIV/0!``, ``#N/A``, ``#NAME?``, ``#NULL!``, ``#NUM!``, ``#REF!``, ``#VALUE!``):
 
 .. code-block:: python
+
+    from xlwings import server
 
     @server.func
     def myfunc(x):
@@ -312,7 +323,7 @@ Returning a simple list:
 
 .. code-block:: python
 
-    from xlwings import pro
+    from xlwings import server
 
     @server.func
     def programming_languages():
@@ -323,7 +334,7 @@ Returning a NumPy array with standard normally distributed random numbers:
 .. code-block:: python
 
     import numpy as np
-    from xlwings import pro
+    from xlwings import server
 
     @server.func
     def standard_normal(rows, columns):
@@ -335,7 +346,7 @@ Returning a pandas DataFrame:
 .. code-block:: python
 
     import pandas as pd
-    from xlwings import pro
+    from xlwings import server
 
     @server.func
     def get_dataframe():
@@ -350,7 +361,7 @@ Volatile functions are recalculated whenever Excel calculates something, even if
 .. code-block:: python
 
     import datetime as dt
-    from xlwings import pro
+    from xlwings import server
 
     @server.func(volatile=True)
     def last_calculated():
@@ -561,7 +572,7 @@ While Office.js-based custom functions are mostly compatible with the VBA-based 
       - Requires ``@xw.func(async_mode="threading")``
   
     * - Decorators
-      - ``from xlwings import pro``, then ``server.func`` etc.
+      - ``from xlwings import server``, then ``server.func`` etc.
       - ``import xlwings as xw``, then ``xw.func`` etc.
 
     * - Formula Intellisense
