@@ -31,11 +31,11 @@ on **Windows** and **Mac**.
 
         Use advanced features such as:
 
+        * xlwings Server (self-hosted): no local Python required
+        * xlwings Reports: work with templates
         * 1-click installer: bundle Python and all your packages
         * Embedded code: easy deployment
         * Ultra fast file reader: no Excel required
-        * xlwings Reports: work with templates
-        * xlwings Server: no local Python required
         * No more VBA: Call Python from Office Scripts and Office.js
         * Excel on the web & Google Sheets
 
