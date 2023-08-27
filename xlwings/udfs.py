@@ -60,9 +60,8 @@ async def async_thread(base, my_has_dynamic_array, func, args, cache_key, expand
         exception(logger, "async_thread failed")
 
 async def async_thread_nocaller(func, args,):
-    backcompat_check_com_initialized()
     try:
-        loop = get_running_loop()
+        loop = asyncio.get_running_loop()
         await loop.run_in_executor(
             com_executor, functools.partial(func, *args)
         )
