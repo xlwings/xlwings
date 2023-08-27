@@ -43,7 +43,9 @@ class LicenseHandler:
         try:
             return Fernet(os.getenv("XLWINGS_LICENSE_KEY_SECRET"))
         except (TypeError, ValueError):
-            raise xlwings.LicenseError("Couldn't validate license key.") from None
+            raise xlwings.LicenseError(
+                "Couldn't validate xlwings license key."
+            ) from None
 
     @staticmethod
     def get_license():
@@ -70,7 +72,7 @@ class LicenseHandler:
         # Env Var - also used if LICENSE_KEY is in config sheet and called via UDF
         if os.getenv("XLWINGS_LICENSE_KEY"):
             return os.environ["XLWINGS_LICENSE_KEY"]
-        raise xlwings.LicenseError("Couldn't find a license key.")
+        raise xlwings.LicenseError("Couldn't find an xlwings license key.")
 
     @staticmethod
     @lru_cache()
@@ -81,15 +83,17 @@ class LicenseHandler:
         if key.startswith("gA") and not Fernet:
             # Legacy up to 0.27.12
             raise ImportError(
-                "You are using a legacy license key that requires the 'cryptography' "
-                "package. Alternatively, contact us for a new license key."
+                "You are using a legacy xlwings license key that requires the "
+                "'cryptography' package. Either install it via 'pip install "
+                "cryptography' or contact us for a new license key that doesn't depend "
+                "on cryptography."
             ) from None
         elif key.startswith("gA"):
             cipher_suite = LicenseHandler.get_cipher()
             try:
                 license_info = json.loads(cipher_suite.decrypt(key.encode()).decode())
             except (binascii.Error, InvalidToken):
-                raise xlwings.LicenseError("Invalid license key.") from None
+                raise xlwings.LicenseError("Invalid xlwings license key.") from None
         else:
             signature = hmac.new(
                 os.getenv("XLWINGS_LICENSE_KEY_SECRET").encode(),
@@ -97,56 +101,57 @@ class LicenseHandler:
                 hashlib.sha256,
             ).hexdigest()
             if signature[:5] != key[-5:]:
-                raise xlwings.LicenseError("Invalid license key.") from None
+                raise xlwings.LicenseError("Invalid xlwings license key.") from None
             else:
                 try:
                     license_info = json.loads(
                         base64.urlsafe_b64decode(key[:-5]).decode()
                     )
                 except:  # noqa: E722
-                    raise xlwings.LicenseError("Invalid license key.") from None
+                    raise xlwings.LicenseError("Invalid xlwings license key.") from None
         try:
             if (
                 license_type == "developer"
                 and license_info["license_type"] != "developer"
             ):
                 raise xlwings.LicenseError(
-                    "You need a developer license for this action."
+                    "You need a paid xlwings license key for this action."
                 )
         except KeyError:
             raise xlwings.LicenseError(
-                "You need a developer license for this action."
+                "You need a paid xlwings license key for this action."
             ) from None
         if (
             "valid_until" not in license_info.keys()
             or "products" not in license_info.keys()
         ):
-            raise xlwings.LicenseError("Invalid license key format.") from None
+            raise xlwings.LicenseError("Invalid xlwings license key format.") from None
         license_valid_until = dt.datetime.strptime(
             license_info["valid_until"], "%Y-%m-%d"
         ).date()
         if dt.date.today() > license_valid_until:
             raise xlwings.LicenseError(
-                "Your license expired on {}.".format(
+                "Your xlwings license expired on {}.".format(
                     license_valid_until.strftime("%Y-%m-%d")
                 )
             ) from None
         if product not in license_info["products"]:
             raise xlwings.LicenseError(
-                f"License key isn't valid for the '{product}' functionality."
+                f"Your xlwings license key isn't valid for the '{product}' "
+                "functionality."
             ) from None
         if (
             "version" in license_info.keys()
             and license_info["version"] != xlwings.__version__
         ):
             raise xlwings.LicenseError(
-                "Your license key is only valid for xlwings v{0}".format(
-                    license_info["version"]
-                )
+                "Your xlwings deploy key is only valid for v{0}. To use a different "
+                "version of xlwings, re-release your tool or generate a new deploy key "
+                "via 'xlwings license deploy'.".format(license_info["version"])
             ) from None
         if (license_valid_until - dt.date.today()) < dt.timedelta(days=30):
             warnings.warn(
-                f"Your license key expires in "
+                f"Your xlwings license key expires in "
                 f"{(license_valid_until - dt.date.today()).days} days."
             )
         return license_info

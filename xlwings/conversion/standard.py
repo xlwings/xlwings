@@ -4,13 +4,13 @@ from collections import OrderedDict
 
 from .. import LicenseError
 from ..main import Range
-from ..utils import chunk
+from ..utils import chunk, xlserial_to_datetime
 from . import Accessor, Converter, Options, Pipeline, accessors
 
 try:
     from ..pro import Markdown
     from ..pro.reports import markdown
-except (ImportError, LicenseError):
+except (ImportError, LicenseError, AttributeError):
     Markdown = None
 try:
     import numpy as np
@@ -119,9 +119,13 @@ class CleanDataFromReadStage:
 
 
 class CleanDataForWriteStage:
+    def __init__(self, options):
+        self.options = options
+
     def __call__(self, c):
         c.value = [
-            [c.engine.impl.prepare_xl_data_element(x) for x in y] for y in c.value
+            [c.engine.impl.prepare_xl_data_element(x, self.options) for x in y]
+            for y in c.value
         ]
 
 
@@ -130,7 +134,6 @@ class AdjustDimensionsStage:
         self.ndim = options.get("ndim", None)
 
     def __call__(self, c):
-
         # the assumption is that value is 2-dimensional at this stage
 
         if self.ndim is None:
@@ -241,7 +244,7 @@ class ValueAccessor(Accessor):
             Pipeline()
             .prepend_stage(FormatStage(options))
             .prepend_stage(WriteValueToRangeStage(options))
-            .prepend_stage(CleanDataForWriteStage())
+            .prepend_stage(CleanDataForWriteStage(options))
             .prepend_stage(TransposeStage(), only_if=options.get("transpose", False))
             .prepend_stage(Ensure2DStage())
         )
@@ -255,10 +258,6 @@ ValueAccessor.register(None)
 
 
 class DictConverter(Converter):
-
-    # TODO: remove all these writes_types as this was long ago replaced by .register (?)
-    writes_types = dict
-
     @classmethod
     def base_reader(cls, options):
         return super(DictConverter, cls).base_reader(Options(options).override(ndim=2))
@@ -277,9 +276,6 @@ DictConverter.register(dict)
 
 
 class OrderedDictConverter(Converter):
-
-    writes_types = OrderedDict
-
     @classmethod
     def base_reader(cls, options):
         return super(OrderedDictConverter, cls).base_reader(
@@ -297,3 +293,29 @@ class OrderedDictConverter(Converter):
 
 
 OrderedDictConverter.register(OrderedDict)
+
+
+class DatetimeConverter(Converter):
+    @classmethod
+    def read_value(cls, value, options):
+        return xlserial_to_datetime(value)
+
+    @classmethod
+    def write_value(cls, value, options):
+        return value
+
+
+DatetimeConverter.register(datetime.datetime)
+
+
+class DateConverter(Converter):
+    @classmethod
+    def read_value(cls, value, options):
+        return xlserial_to_datetime(value).date()
+
+    @classmethod
+    def write_value(cls, value, options):
+        return value
+
+
+DateConverter.register(datetime.date)

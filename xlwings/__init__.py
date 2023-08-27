@@ -55,6 +55,7 @@ from .main import (
     sheets,
     view,
 )
+from .utils import xlserial_to_datetime as to_datetime
 
 __all__ = (
     "App",
@@ -74,6 +75,7 @@ __all__ = (
     "load",
     "sheets",
     "view",
+    "to_datetime",
 )
 
 # Populate engines list
@@ -95,27 +97,31 @@ if sys.platform.startswith("darwin"):
         pass
 
 try:
-    from .pro import _xlremote
+    from .pro import _xlofficejs, _xlremote
 
     engines.add(Engine(impl=_xlremote.engine))
-    PRO = True
-except (ImportError, LicenseError):
-    PRO = False
+    engines.add(Engine(impl=_xlofficejs.engine))
+    __pro__ = True
+except (ImportError, LicenseError, AttributeError):
+    __pro__ = False
 
 try:
     # Separately handled in case the Rust extension is missing
     from .pro import _xlcalamine
 
     engines.add(Engine(impl=_xlcalamine.engine))
-except (ImportError, LicenseError):
+except (ImportError, LicenseError, AttributeError):
     pass
 
-if engines:
-    engines.active = engines[0]
+if "excel" in [engine.name for engine in engines]:
+    # An active engine only really makes sense for the interactive mode with a desktop
+    # installation of Excel. Still, you could activate an engine explicitly via
+    # xw.engines["engine_name"].activate() which might be useful for testing purposes.
+    engines.active = engines["excel"]
 
 # UDFs
 if sys.platform.startswith("win") and has_pywin32:
-    from .server import serve
+    from .com_server import serve
     from .udfs import (
         get_udf_module,
         import_udfs,

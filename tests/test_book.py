@@ -18,7 +18,7 @@ class TestBooks(TestBase):
 
     def test_len(self):
         count = self.app1.books.count
-        wb = self.app1.books.add()
+        self.app1.books.add()
         self.assertEqual(len(self.app1.books), count + 1)
 
     def test_count(self):

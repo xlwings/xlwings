@@ -41,7 +41,7 @@ try:
     from ..pro.reports.markdown import Markdown, MarkdownConverter
 
     MarkdownConverter.register(Markdown)
-except (ImportError, LicenseError):
+except (ImportError, LicenseError, AttributeError):
     pass
 
 
@@ -70,15 +70,15 @@ __all__ = (
 )
 
 
-def read(rng, value, options):
+def read(rng, value, options, engine_name=None):
     convert = options.get("convert", None)
     pipeline = accessors.get(convert, convert).reader(options)
-    ctx = ConversionContext(rng=rng, value=value)
+    ctx = ConversionContext(rng=rng, value=value, engine_name=engine_name)
     pipeline(ctx)
     return ctx.value
 
 
-def write(value, rng, options):
+def write(value, rng, options, engine_name=None):
     # Don't allow to write lists and tuples as jagged arrays as appscript and pywin32
     # don't handle that properly. This should really be handled in Ensure2DStage, but
     # we'd have to set the original format in the conversion ctx meta as the check
@@ -98,6 +98,6 @@ def write(value, rng, options):
     pipeline = (
         accessors.get(convert, convert).router(value, rng, options).writer(options)
     )
-    ctx = ConversionContext(rng=rng, value=value)
+    ctx = ConversionContext(rng=rng, value=value, engine_name=engine_name)
     pipeline(ctx)
     return ctx.value

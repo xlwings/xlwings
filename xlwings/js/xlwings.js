@@ -1,9 +1,9 @@
 function hello() {
-  runPython("url", { apiKey: "API_KEY" });
+  runPython("url", { auth: "DEVELOPMENT" });
 }
 
 /**
- * xlwings dev (for Google Apps Script)
+ * xlwings for Google Apps Script
  * Copyright (C) 2014 - present, Zoomer Analytics GmbH.
  * All rights reserved.
  *
@@ -39,8 +39,9 @@ function hello() {
 
 function runPython(
   url,
-  { apiKey = "", include = "", exclude = "", headers = {} } = {}
+  { auth = "", apiKey = "", include = "", exclude = "", headers = {} } = {}
 ) {
+  const version = "dev";
   const workbook = SpreadsheetApp.getActive();
   const sheets = workbook.getSheets();
 
@@ -62,6 +63,10 @@ function runPython(
 
   if (apiKey === "") {
     apiKey = config["API_KEY"] || "";
+  }
+
+  if (auth === "") {
+    auth = config["AUTH"] || "";
   }
 
   if (include === "") {
@@ -97,14 +102,18 @@ function runPython(
       }
     }
   }
-  if (!("Authorization" in headers)) {
+  // Deprecated: replaced by "auth"
+  if (!("Authorization" in headers) && apiKey.length > 0) {
     headers["Authorization"] = apiKey;
+  }
+  if (!("Authorization" in headers) && auth.length > 0) {
+    headers["Authorization"] = auth;
   }
 
   // Request payload
   let payload = {};
   payload["client"] = "Google Apps Script";
-  payload["version"] = "dev";
+  payload["version"] = version;
   payload["book"] = {
     name: workbook.getName(),
     active_sheet_index: workbook.getActiveSheet().getIndex() - 1,
@@ -114,11 +123,20 @@ function runPython(
   // Names
   let names = [];
   workbook.getNamedRanges().forEach((namedRange, ix) => {
+    let name = namedRange.getName().includes(" ")
+      ? namedRange.getName()
+      : namedRange.getName().replace("'", "").replace("'", "");
     names[ix] = {
-      name: namedRange.getName(),
+      name: name,
       sheet_index: namedRange.getRange().getSheet().getIndex() - 1,
       address: namedRange.getRange().getA1Notation(),
-      // Sheet scope can only happen by copying a sheet from another workbook
+      // Sheet scope can only be created by copying a sheet (?)
+      scope_sheet_name: namedRange.getName().includes("!")
+        ? namedRange.getRange().getSheet().getName()
+        : null,
+      scope_sheet_index: namedRange.getName().includes("!")
+        ? namedRange.getRange().getSheet().getIndex() - 1
+        : null,
       book_scope: !namedRange.getName().includes("!"),
     };
   });
@@ -147,9 +165,11 @@ function runPython(
           if (value instanceof Date) {
             // Convert from script timezone to spreadsheet timezone
             let tzDate = new Date(
-              value.toLocaleString("en-US", {
-                timeZone: workbook.getSpreadsheetTimeZone(),
-              })
+              value
+                .toLocaleString("en-US", {
+                  timeZone: workbook.getSpreadsheetTimeZone(),
+                })
+                .replace(/\u202F/, " ") // https://bugs.chromium.org/p/v8/issues/detail?id=13494
             );
             // toISOString transforms to UTC, so we need to correct for offset
             values[rowIndex][colIndex] = new Date(
@@ -161,18 +181,23 @@ function runPython(
     }
 
     let pictures = [];
-    sheet.getImages().forEach((image, ix) => {
-      pictures[ix] = {
-        name: image.getAltTextTitle(),
-        height: image.getHeight(),
-        width: image.getWidth(),
-      };
-    });
+    if (excludeArray.includes(sheet.getName())) {
+      pictures = [];
+    } else {
+      sheet.getImages().forEach((image, ix) => {
+        pictures[ix] = {
+          name: image.getAltTextTitle(),
+          height: image.getHeight(),
+          width: image.getWidth(),
+        };
+      });
+    }
 
     payload["sheets"].push({
       name: sheet.getName(),
       values: values,
       pictures: pictures,
+      tables: [],
     });
   });
 
@@ -240,14 +265,14 @@ function setValues(workbook, action) {
         dt = new Date(Date.parse(value));
         dtString = dt.toLocaleDateString(locale);
         if (dtString !== "Invalid Date") {
-          if (
-            dt.getHours() +
-              dt.getMinutes() +
-              dt.getSeconds() +
-              dt.getMilliseconds() !==
-            0
-          ) {
-            dtString += " " + dt.toLocaleTimeString();
+          let hours = dt.getHours();
+          let minutes = dt.getMinutes();
+          let seconds = dt.getSeconds();
+          let milliseconds = dt.getMilliseconds();
+          if (hours + minutes + seconds + milliseconds !== 0) {
+            // The time doesn't follow the locale in the Date Time combination!
+            dtString +=
+              " " + hours + ":" + minutes + ":" + seconds + "." + milliseconds;
           }
           action.values[rowIndex][colIndex] = dtString;
         }
@@ -262,7 +287,8 @@ function clearContents(workbook, action) {
 }
 
 function addSheet(workbook, action) {
-  let sheet = workbook.insertSheet(action.args[0]);
+  // insertSheet(sheetName, sheetIndex)
+  let sheet = workbook.insertSheet(action.args[1], parseInt(action.args[0]));
 }
 
 function setSheetName(workbook, action) {
@@ -422,4 +448,102 @@ function alert(workbook, action) {
   if (myCallback != "") {
     funcs[myCallback](buttonResult);
   }
+}
+
+function setRangeName(workbook, action) {
+  let range = getRange(workbook, action);
+  range.getSheet().getParent().setNamedRange(action.args[0], range);
+}
+
+function namesAdd(workbook, action) {
+  let name = action.args[0];
+  if (name.includes("!")) {
+    throw "NotImplemented: sheet scoped names";
+  }
+  let refersTo = action.args[1];
+  const parts = refersTo.split("!");
+  const address = parts[1];
+  let sheetName = parts[0];
+  if (sheetName.charAt(0) === "=") {
+    sheetName = sheetName.substring(1);
+  }
+  if (sheetName.includes(" ")) {
+    sheetName = sheetName.replace("'", "").replace("'", "");
+  }
+  let range = workbook.getSheetByName(sheetName).getRange(address);
+  range.getSheet().getParent().setNamedRange(name, range);
+}
+
+function nameDelete(workbook, action) {
+  // workbook.removeNamedRange(name) doesn't work with sheet scoped names
+  function processName(name) {
+    if (name.includes("!")) {
+      const [sheetName, definedName] = name.split("!");
+      if (!sheetName.startsWith("'")) {
+        return `'${sheetName}'!${definedName}`;
+      }
+    }
+    return name;
+  }
+  workbook.getNamedRanges().forEach((namedRange) => {
+    if (namedRange.getName() === processName(action.args[0])) {
+      namedRange.remove();
+      return;
+    }
+  });
+}
+
+function runMacro(workbook, action) {
+  funcs[action.args[0]](workbook, ...action.args.slice(1));
+}
+
+function rangeDelete(workbook, action) {
+  if (action.args[0] === "up") {
+    getRange(workbook, action).deleteCells(SpreadsheetApp.Dimension.ROWS);
+  } else {
+    getRange(workbook, action).deleteCells(SpreadsheetApp.Dimension.COLUMNS);
+  }
+}
+
+function rangeInsert(workbook, action) {
+  if (action.args[0] === "down") {
+    getRange(workbook, action).insertCells(SpreadsheetApp.Dimension.ROWS);
+  } else {
+    getRange(workbook, action).insertCells(SpreadsheetApp.Dimension.COLUMNS);
+  }
+}
+
+function addTable(workbook, action) {
+  throw "NotImplemented: addTable";
+}
+
+function setTableName(workbook, action) {
+  throw "NotImplemented: setTableName";
+}
+
+function resizeTable(workbook, action) {
+  throw "NotImplemented: resizeTable";
+}
+
+function showAutofilterTable(workbook, action) {
+  throw "NotImplemented: showAutofilterTable";
+}
+
+function showHeadersTable(workbook, action) {
+  throw "NotImplemented: showHeadersTable";
+}
+
+function showTotalsTable(workbook, action) {
+  throw "NotImplemented: showTotalsTable";
+}
+
+function setTableStyle(workbook, action) {
+  throw "NotImplemented: setTableStyle";
+}
+
+function copyRange(workbook, action) {
+  const destination = workbook
+    .getSheets()
+    [parseInt(action.args[0])].getRange(action.args[1].toString());
+  getRange(workbook, action).copyTo(destination);
 }

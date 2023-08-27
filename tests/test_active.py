@@ -1,5 +1,4 @@
 import os
-import unittest
 
 import xlwings as xw
 
@@ -13,6 +12,7 @@ except ImportError:
 
 class TestActive(TestBase):
     def test_apps_active(self):
+        self.app2.activate()
         self.assertEqual(xw.apps.active, self.app2)
 
     def test_books_active(self):
@@ -74,7 +74,3 @@ class TestView(TestBase):
         xw.view([1, 2, 3], sheet=xw.books[0].sheets[0])
         self.assertEqual(xw.books.count, n_books)
         self.assertEqual(xw.books[0].sheets[0].range("A1:C1").value, [1.0, 2.0, 3.0])
-
-
-if __name__ == "__main__":
-    unittest.main()

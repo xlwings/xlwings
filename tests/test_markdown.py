@@ -1,11 +1,15 @@
-# Characters are currently not properly supported
-# on macOS due to an Excel/AppleScript bug
+import sys
 from pathlib import Path
 
 import pytest
 
 import xlwings as xw
 from xlwings.pro import Markdown, MarkdownStyle
+
+# Characters are currently not properly supported
+# on macOS due to an Excel/AppleScript bug
+if not sys.platform.startswith("win"):
+    pytest.skip("skipping windows-only tests", allow_module_level=True)
 
 this_dir = Path(__file__).resolve().parent
 

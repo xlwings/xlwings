@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="TaskPaneApp">
+  <!-- Replace ID with one from https://www.guidgen.com or by running in Python: import uuid;print(uuid.uuid4()) -->
+  <Id>9269fe91-d698-4781-a301-1c0f00660ec5</Id>
+  <Version>1.0.0</Version>
+  <ProviderName>Zoomer Analytics GmbH</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="xlwings.js"/>
+  <Description DefaultValue="xlwings.js dev"/>
+  <IconUrl DefaultValue="https://127.0.0.1:8000/icons/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://127.0.0.1:8000/icons/icon-64.png"/>
+  <SupportUrl DefaultValue="https://www.xlwings.org/contact"/>
+  <AppDomains>
+    <AppDomain>https://127.0.0.1:8000</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Workbook"/>
+  </Hosts>
+
+  <!-- Runtime for Custom Functions (part 1)
+       * SharedRuntime (requires Runtimes below. Uses taskpane.html.)
+       * CustomFunctionsRuntime (remove Runtimes and switch SourceLocationuses below. Uses functions.html with ref to custom-functions-runtime.js.)
+  -->
+  <Requirements>
+    <Sets DefaultMinVersion="1.1">
+      <Set Name="SharedRuntime" MinVersion="1.1"/>
+    </Sets>
+  </Requirements>
+
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://127.0.0.1:8000/taskpane.html"/>
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Workbook">
+
+        <!-- Runtime for Custom Functions (part 2, only for SharedRuntime)-->
+        <Runtimes>
+          <Runtime resid="Taskpane.Url" lifetime="long"/>
+        </Runtimes>
+        <!-- Custom Functions -->
+        <AllFormFactors>
+          <ExtensionPoint xsi:type="CustomFunctions">
+            <Script>
+              <SourceLocation resid="Functions.Script.Url"/>
+            </Script>
+            <Page>
+              <!-- Taskpane.Url (SharedRuntime) or Functions.Page.Url (CustomFunctionsRuntime)-->
+              <SourceLocation resid="Taskpane.Url"/>
+            </Page>
+            <Metadata>
+              <SourceLocation resid="Functions.Metadata.Url"/>
+            </Metadata>
+            <Namespace resid="Functions.Namespace"/>
+          </ExtensionPoint>
+        </AllFormFactors>
+
+        <DesktopFormFactor>
+          <!-- resid could be a Url Resource pointing to commands.html if you don't want to use the Shared Runtime -->
+          <FunctionFile resid="Taskpane.Url" />
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+
+            <CustomTab id="MyTab">
+              <Group id="MyCommandsGroup">
+                <Label resid="MyCommandsGroup.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16" />
+                  <bt:Image size="32" resid="Icon.32x32" />
+                  <bt:Image size="80" resid="Icon.80x80" />
+                </Icon>
+
+                <!-- Ribbon button that calls a function -->
+                <Control xsi:type="Button" id="MyFunctionButton">
+                  <!-- Label for your button. resid must point to a ShortString resource -->
+                  <Label resid="MyFunctionButton.Label" />
+                  <Supertip>
+                    <!-- ToolTip title. resid must point to a ShortString resource -->
+                    <Title resid="MyFunctionButton.Label" />
+                    <!-- ToolTip description. resid must point to a LongString resource -->
+                    <Description resid="MyFunctionButton.Tooltip" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <!--Action type must be ExecuteFunction -->
+                  <Action xsi:type="ExecuteFunction">
+                    <!-- This is the name that you use in Office.actions.associate() to connect it to a function -->
+                    <FunctionName>run-hello</FunctionName>
+                  </Action>
+                </Control>
+
+                <!-- Ribbon button that opens the task pane -->
+                <Control xsi:type="Button" id="MyTaskpaneButton">
+                  <Label resid="MyTaskpaneButton.Label" />
+                  <Supertip>
+                    <Title resid="MyTaskpaneButton.Label" />
+                    <Description resid="MyTaskpaneButton.Tooltip" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <!-- Action type must be ShowTaskpane -->
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>ButtonId1</TaskpaneId>
+                    <!-- resid must point to a Url Resource -->
+                    <SourceLocation resid="Taskpane.Url" />
+                  </Action>
+                </Control>
+
+              </Group>
+              <Label resid="MyTab.TabLabel" />
+            </CustomTab>
+
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16x16" DefaultValue="https://127.0.0.1:8000/icons/icon-16.png" />
+        <bt:Image id="Icon.32x32" DefaultValue="https://127.0.0.1:8000/icons/icon-32.png" />
+        <bt:Image id="Icon.80x80" DefaultValue="https://127.0.0.1:8000/icons/icon-80.png" />
+      </bt:Images>
+      <bt:Urls>
+        <!-- This isn't used with SharedRuntime. FunctionFile would have to point to Commands.Url-->
+        <!-- <bt:Url id="Commands.Url" DefaultValue="https://127.0.0.1:8000/commands.html" /> -->
+        <!-- This must point to the HTML document with the task pane -->
+        <bt:Url id="Taskpane.Url" DefaultValue="https://127.0.0.1:8000/taskpane.html" />
+        <bt:Url id="Functions.Script.Url" DefaultValue="https://127.0.0.1:8000/xlwings/custom-functions-code"/>
+        <bt:Url id="Functions.Metadata.Url" DefaultValue="https://127.0.0.1:8000/xlwings/custom-functions-meta"/>
+        <!-- Custom Functions: custom-functions.html is only used with CustomFunctionsRuntime-->
+        <!-- <bt:Url id="Functions.Page.Url" DefaultValue="https://127.0.0.1:8000/custom-functions.html" /> -->
+      </bt:Urls>
+      <bt:ShortStrings>
+        <!-- The global Namespace isn't requied and can also be set per function via xw.func(namespace="...") -->
+        <bt:String id="Functions.Namespace" DefaultValue="XLWINGS"/>
+        <bt:String id="MyTab.TabLabel" DefaultValue="xlwings.js" />
+        <bt:String id="MyCommandsGroup.Label" DefaultValue="MyGroup" />
+        <bt:String id="MyFunctionButton.Label" DefaultValue="Hello World" />
+        <bt:String id="MyTaskpaneButton.Label" DefaultValue="Show Taskpane" />
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="MyFunctionButton.Tooltip" DefaultValue="Click to call the hello function" />
+        <bt:String id="MyTaskpaneButton.Tooltip" DefaultValue="Click to show the task pane" />
+      </bt:LongStrings>
+    </Resources>
+
+  </VersionOverrides>
+</OfficeApp>

@@ -1,0 +1,23 @@
+{
+  "scripts": {
+    "start": "rm -rf build && parcel watch taskpane.html --dist-dir build --no-hmr"
+  },
+  "devDependencies": {
+    "@parcel/packager-xml": "^2.8.3",
+    "@parcel/transformer-xml": "^2.8.3",
+    "@types/node": "^18.15.11",
+    "@types/office-js": "^1.0.318",
+    "@types/office-runtime": "^1.0.30",
+    "office-addin-lint": "^2.2.5",
+    "parcel": "^2.8.3",
+    "ts-loader": "^9.4.2",
+    "typescript": "^5.0.4",
+    "webpack-cli": "^5.0.1"
+  },
+  "browserslist": [
+    "ie 11"
+  ],
+  "dependencies": {
+    "core-js": "^3.30.0"
+  }
+}

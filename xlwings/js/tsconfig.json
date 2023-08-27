@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": false, // TODO: This should be true
+    "target": "ESNEXT",
+    "module": "commonjs",
+    "strict": true,
+    "moduleResolution": "node",
+  },
+  "files": [
+    "xlwings.ts",
+    "excel.d.ts"
+  ]
+}

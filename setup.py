@@ -43,6 +43,8 @@ else:
 extras_require = {
     "reports": ["Jinja2", "pdfrw"],
     "all": [
+        "black",
+        "isort",
         "Jinja2",
         "pandas",
         "matplotlib",
@@ -50,6 +52,7 @@ extras_require = {
         "flask",
         "requests",
         "pdfrw",
+        "pytest",
     ],
 }
 
@@ -91,6 +94,7 @@ setup(
     package_data={
         "xlwings": [
             "xlwings.bas",
+            "xlwings_custom_addin.bas",
             "*.xlsm",
             "*.xlam",
             "*.applescript",
@@ -99,6 +103,7 @@ setup(
             "addin/WebHelpers.bas",
             "js/xlwings.*",
             "quickstart_fastapi/*.*",
+            "html/*.*",
         ],
         "src": [
             "src",
@@ -116,12 +121,12 @@ setup(
         "Operating System :: OS Independent",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Office/Business :: Financial :: Spreadsheet",
         "License :: OSI Approved :: BSD License",
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.8",
 )

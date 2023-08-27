@@ -1,3 +1,5 @@
+from ..utils import xlserial_to_datetime
+
 try:
     import pandas as pd
 except ImportError:
@@ -6,6 +8,19 @@ except ImportError:
 
 if pd:
     from . import Converter, Options
+
+    def _parse_dates(df, parse_dates):
+        # Office.js UDFs don't have the info whether the cell is in date format
+        if parse_dates is True:
+            parse_dates = [0]
+        elif not isinstance(parse_dates, list):
+            parse_dates = [parse_dates]
+        for col in parse_dates:
+            if isinstance(col, str):
+                df.loc[:, col] = df.loc[:, col].apply(xlserial_to_datetime)
+            else:
+                df.iloc[:, col] = df.iloc[:, col].apply(xlserial_to_datetime)
+        return df
 
     def write_value(cls, value, options):
         index = options.get("index", True)
@@ -28,7 +43,7 @@ if pd:
         if index:
             if value.index.name in value.columns:
                 # Prevents column name collision when resetting the index
-                value.index.rename(None, inplace=True)
+                value.index = value.index.rename(None)
             value = value.reset_index()
 
         # Convert pandas-specific types without corresponding Excel type to strings
@@ -59,9 +74,6 @@ if pd:
         return value
 
     class PandasDataFrameConverter(Converter):
-
-        writes_types = pd.DataFrame
-
         @classmethod
         def base_reader(cls, options):
             return super(PandasDataFrameConverter, cls).base_reader(
@@ -74,6 +86,7 @@ if pd:
             header = options.get("header", 1)
             dtype = options.get("dtype", None)
             copy = options.get("copy", False)
+            parse_dates = options.get("parse_dates", None)
 
             # build dataframe with only columns (no index) but correct header
             if header == 1:
@@ -85,6 +98,9 @@ if pd:
 
             df = pd.DataFrame(value[header:], columns=columns, dtype=dtype, copy=copy)
 
+            if parse_dates:
+                df = _parse_dates(df, parse_dates)
+
             # handle index by resetting the index to the index first columns
             # and renaming the index according to the name in the last row
             if index > 0:
@@ -92,7 +108,7 @@ if pd:
                 # we do not use the column name directly as it would cause issues if
                 # several columns have the same name
                 df.columns = pd.Index(range(len(df.columns)))
-                df.set_index(list(df.columns)[:index], inplace=True)
+                df = df.set_index(list(df.columns)[:index])
 
                 df.index.names = pd.Index(
                     value[header - 1][:index] if header else [None] * index
@@ -112,15 +128,13 @@ if pd:
     PandasDataFrameConverter.register(pd.DataFrame, "df")
 
     class PandasSeriesConverter(Converter):
-
-        writes_types = pd.Series
-
         @classmethod
         def read_value(cls, value, options):
             index = options.get("index", 1)
             header = options.get("header", True)
             dtype = options.get("dtype", None)
             copy = options.get("copy", False)
+            parse_dates = options.get("parse_dates", None)
 
             if header:
                 columns = value[0]
@@ -133,9 +147,12 @@ if pd:
 
             df = pd.DataFrame(data, columns=columns, dtype=dtype, copy=copy)
 
+            if parse_dates:
+                df = _parse_dates(df, parse_dates)
+
             if index:
                 df.columns = pd.Index(range(len(df.columns)))
-                df.set_index(list(df.columns)[:index], inplace=True)
+                df = df.set_index(list(df.columns)[:index])
                 df.index.names = pd.Index(
                     value[header - 1][:index] if header else [None] * index
                 )

@@ -7,9 +7,9 @@ Function sql(query, ParamArray tables())
         argsArray(2 + K - LBound(tables)) = tables(K)
         Next K
         If has_dynamic_array() Then
-            sql = Py.CallUDF("xlwings.ext", "sql_dynamic", argsArray, ActiveWorkbook, Application.Caller)
+            sql = XLPy.CallUDF("xlwings.ext", "sql_dynamic", argsArray, ActiveWorkbook, Application.Caller)
         Else
-            sql = Py.CallUDF("xlwings.ext", "sql", argsArray, ActiveWorkbook, Application.Caller)
+            sql = XLPy.CallUDF("xlwings.ext", "sql", argsArray, ActiveWorkbook, Application.Caller)
         End If
         Exit Function
 failed:

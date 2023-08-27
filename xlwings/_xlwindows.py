@@ -1,5 +1,9 @@
+import atexit
+import locale
 import os
+import subprocess
 import sys
+from shlex import split
 
 # Hack to find pythoncom.dll - needed for some distribution/setups (includes seemingly
 # unused import win32api) E.g. if python is started with the full path outside of the
@@ -50,7 +54,7 @@ from win32com.client import (
 
 import xlwings
 
-from . import utils
+from . import base_classes, constants, utils
 from .constants import (
     ColorIndex,
     DeleteShiftDirection,
@@ -96,6 +100,15 @@ if np:
 N_COM_ATTEMPTS = 0  # 0 means try indefinitely
 BOOK_CALLER = None
 missing = object()
+
+
+@atexit.register
+def cleanup():
+    """Clear up any zombie processes"""
+    try:
+        Apps.cleanup()
+    except:  # noqa: E722
+        pass
 
 
 class COMRetryMethodWrapper:
@@ -432,7 +445,7 @@ def _clean_value_data_element(
         return empty_as
     elif isinstance(value, time_types):
         return _com_time_to_datetime(value, datetime_builder)
-    elif number_builder is not None and type(value) == float:
+    elif number_builder is not None and isinstance(value, float):
         value = number_builder(value)
     elif isinstance(value, int) and value in cell_errors:
         if err_to_str:
@@ -456,7 +469,7 @@ class Engine:
         return "desktop"
 
     @staticmethod
-    def prepare_xl_data_element(x):
+    def prepare_xl_data_element(x, date_format):
         if isinstance(x, time_types):
             return _datetime_to_com_time(x)
         elif pd and pd.isna(x):
@@ -486,7 +499,7 @@ class Engine:
 engine = Engine()
 
 
-class Apps:
+class Apps(base_classes.Apps):
     def keys(self):
         k = []
         for hwnd in get_excel_hwnds():
@@ -495,6 +508,34 @@ class Apps:
 
     def add(self, spec=None, add_book=None, xl=None, visible=None):
         return App(spec=spec, add_book=add_book, xl=xl, visible=visible)
+
+    @staticmethod
+    def cleanup():
+        res = subprocess.run(
+            split('tasklist /FI "IMAGENAME eq EXCEL.exe"'),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            creationflags=subprocess.CREATE_NO_WINDOW,
+            encoding=locale.getpreferredencoding(),
+        )
+
+        all_pids = set()
+        for line in res.stdout.splitlines()[3:]:
+            # Ignored if there's no processes as it prints only 1 line
+            _, pid, _, _, _, _ = line.split()
+            all_pids.add(int(pid))
+
+        active_pids = {app.pid for app in xlwings.apps}
+        zombie_pids = all_pids - active_pids
+
+        for pid in zombie_pids:
+            subprocess.run(
+                split(f"taskkill /PID {pid} /F"),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+                encoding=locale.getpreferredencoding(),
+            )
 
     def __iter__(self):
         for hwnd in get_excel_hwnds():
@@ -511,9 +552,10 @@ class Apps:
         raise KeyError("Could not find an Excel instance with this PID.")
 
 
-class App:
+class App(base_classes.App):
     def __init__(self, spec=None, add_book=True, xl=None, visible=None):
         # visible is only required on mac
+        pythoncom.CoInitialize()
         if spec is not None:
             warn("spec is ignored on Windows.")
         if xl is None:
@@ -578,14 +620,20 @@ class App:
         self.xl.DisplayAlerts = False
         self.xl.Quit()
         self.xl = None
+        try:
+            Apps.cleanup()
+        except:  # noqa: E722
+            pass
 
     def kill(self):
-        import win32api
-
         PROCESS_TERMINATE = 1
         handle = win32api.OpenProcess(PROCESS_TERMINATE, False, self._pid)
         win32api.TerminateProcess(handle, -1)
         win32api.CloseHandle(handle)
+        try:
+            Apps.cleanup()
+        except:  # noqa: E722
+            pass
 
     @property
     def screen_updating(self):
@@ -701,7 +749,7 @@ class App:
         return return_values[rv]
 
 
-class Books:
+class Books(base_classes.Books):
     def __init__(self, xl, app):
         self.xl = xl
         self.app = app
@@ -744,7 +792,6 @@ class Books:
         local=None,
         corrupt_load=None,
     ):
-
         # update_links: According to VBA docs, only constants 0 and 3 are supported
         if update_links:
             update_links = UpdateLinks.xlUpdateLinksAlways
@@ -774,7 +821,7 @@ class Books:
             yield Book(xl=xl)
 
 
-class Book:
+class Book(base_classes.Book):
     def __init__(self, xl):
         self.xl = xl
 
@@ -880,7 +927,7 @@ class Book:
         )
 
 
-class Sheets:
+class Sheets(base_classes.Sheets):
     def __init__(self, xl):
         self.xl = xl
 
@@ -902,9 +949,12 @@ class Sheets:
         for xl in self.xl:
             yield Sheet(xl=xl)
 
-    def add(self, before=None, after=None):
+    def add(self, before=None, after=None, name=None):
         if before:
-            return Sheet(xl=self.xl.Add(Before=before.xl))
+            sheet = Sheet(xl=self.xl.Add(Before=before.xl))
+            if name is not None:
+                sheet.name = name
+            return sheet
         elif after:
             # Hack, since "After" is broken in certain environments
             # see: http://code.activestate.com/lists/python-win32/11554/
@@ -916,12 +966,18 @@ class Sheets:
                 self.xl(self.xl.Count).Activate()
             else:
                 xl_sheet = self.xl.Add(Before=self.xl(after.xl.Index + 1))
-            return Sheet(xl=xl_sheet)
+            sheet = Sheet(xl=xl_sheet)
+            if name is not None:
+                sheet.name = name
+            return sheet
         else:
-            return Sheet(xl=self.xl.Add())
+            sheet = Sheet(xl=self.xl.Add())
+            if name is not None:
+                sheet.name = name
+            return sheet
 
 
-class Sheet:
+class Sheet(base_classes.Sheet):
     def __init__(self, xl):
         self.xl = xl
 
@@ -950,7 +1006,6 @@ class Sheet:
         return self.xl.Index
 
     def range(self, arg1, arg2=None):
-
         if isinstance(arg1, Range):
             xl1 = arg1.xl
         elif isinstance(arg1, tuple):
@@ -1084,7 +1139,7 @@ class Sheet:
         )
 
 
-class Range:
+class Range(base_classes.Range):
     def __init__(self, xl):
         if isinstance(xl, tuple):
             self._coords = xl
@@ -1509,8 +1564,25 @@ class Range:
             OpenAfterPublish=False,
         )
 
+    def autofill(self, destination, type_):
+        types = {
+            "fill_copy": constants.AutoFillType.xlFillCopy,
+            "fill_days": constants.AutoFillType.xlFillDays,
+            "fill_default": constants.AutoFillType.xlFillDefault,
+            "fill_formats": constants.AutoFillType.xlFillFormats,
+            "fill_months": constants.AutoFillType.xlFillMonths,
+            "fill_series": constants.AutoFillType.xlFillSeries,
+            "fill_values": constants.AutoFillType.xlFillValues,
+            "fill_weekdays": constants.AutoFillType.xlFillWeekdays,
+            "fill_years": constants.AutoFillType.xlFillYears,
+            "growth_trend": constants.AutoFillType.xlGrowthTrend,
+            "linear_trend": constants.AutoFillType.xlLinearTrend,
+            "flash_fill": constants.AutoFillType.xlFlashFill,
+        }
+        self.xl.AutoFill(Destination=destination.api, Type=types[type_])
 
-class Shape:
+
+class Shape(base_classes.Shape):
     def __init__(self, xl):
         self.xl = xl
 
@@ -1608,7 +1680,7 @@ class Shape:
         return Characters(parent=self, xl=self.xl.TextFrame2.TextRange.GetCharacters)
 
 
-class Font:
+class Font(base_classes.Font):
     def __init__(self, parent, xl):
         self.parent = parent
         self.xl = xl
@@ -1725,7 +1797,7 @@ class Font:
         self.xl.Name = value
 
 
-class Characters:
+class Characters(base_classes.Characters):
     def __init__(self, parent, xl, start=None, length=None):
         self.parent = parent
         self.xl = xl
@@ -1763,7 +1835,7 @@ class Characters:
                 )
 
 
-class Collection:
+class Collection(base_classes.Collection):
     def __init__(self, xl):
         self.xl = xl
 
@@ -1792,7 +1864,7 @@ class Collection:
             return False
 
 
-class PageSetup:
+class PageSetup(base_classes.PageSetup):
     def __init__(self, xl):
         self.xl = xl
 
@@ -1810,7 +1882,7 @@ class PageSetup:
         self.xl.PrintArea = value
 
 
-class Note:
+class Note(base_classes.Note):
     def __init__(self, xl):
         self.xl = xl
 
@@ -1831,11 +1903,10 @@ class Note:
 
 
 class Shapes(Collection):
-
     _wrap = Shape
 
 
-class Table:
+class Table(base_classes.Table):
     def __init__(self, xl):
         self.xl = xl
 
@@ -1948,11 +2019,10 @@ class Table:
         return Range(xl=self.xl.TotalsRowRange)
 
     def resize(self, range):
-        self.xl.Resize(range)
+        self.xl.Resize(range.api)
 
 
-class Tables(Collection):
-
+class Tables(Collection, base_classes.Tables):
     _wrap = Table
 
     def add(
@@ -1963,8 +2033,9 @@ class Tables(Collection):
         has_headers=None,
         destination=None,
         table_style_name=None,
+        name=None,
     ):
-        return Table(
+        table = Table(
             xl=self.xl.Add(
                 SourceType=ListObjectSourceType.xlSrcRange,
                 Source=source.api,
@@ -1974,9 +2045,12 @@ class Tables(Collection):
                 TableStyleName=table_style_name,
             )
         )
+        if name is not None:
+            table.name = name
+        return table
 
 
-class Chart:
+class Chart(base_classes.Chart):
     def __init__(self, xl_obj=None, xl=None):
         self.xl = xl_obj.Chart if xl is None else xl
         self.xl_obj = xl_obj
@@ -2088,7 +2162,7 @@ class Chart:
             pass
 
 
-class Charts(Collection):
+class Charts(Collection, base_classes.Charts):
     def _wrap(self, xl):
         return Chart(xl_obj=xl)
 
@@ -2096,7 +2170,7 @@ class Charts(Collection):
         return Chart(xl_obj=self.xl.Add(left, top, width, height))
 
 
-class Picture:
+class Picture(base_classes.Picture):
     def __init__(self, xl):
         self.xl = xl
 
@@ -2163,8 +2237,7 @@ class Picture:
         return utils.excel_update_picture(self, filename)
 
 
-class Pictures(Collection):
-
+class Pictures(Collection, base_classes.Pictures):
     _wrap = Picture
 
     @property
@@ -2182,7 +2255,6 @@ class Pictures(Collection):
         height,
         anchor,
     ):
-
         if anchor:
             top, left = anchor.top, anchor.left
         else:
@@ -2202,7 +2274,7 @@ class Pictures(Collection):
         )
 
 
-class Names:
+class Names(base_classes.Names):
     def __init__(self, xl):
         self.xl = xl
 
@@ -2230,7 +2302,7 @@ class Names:
         return Name(xl=self.xl.Add(name, refers_to))
 
 
-class Name:
+class Name(base_classes.Name):
     def __init__(self, xl):
         self.xl = xl
 

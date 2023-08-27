@@ -46,7 +46,7 @@ def _clean_value_data_element(value, datetime_builder, empty_as, number_builder)
             microsecond=value.microsecond,
             tzinfo=None,
         )
-    elif number_builder is not None and type(value) == float:
+    elif number_builder is not None and isinstance(value, float):
         value = number_builder(value)
     return value
 
@@ -72,7 +72,7 @@ class Engine:
             return data
 
     @staticmethod
-    def prepare_xl_data_element(x):
+    def prepare_xl_data_element(x, options):
         return x
 
     @property
@@ -103,7 +103,6 @@ class Apps(base_classes.Apps):
 
 
 class App(base_classes.App):
-
     _next_pid = -1
 
     def __init__(self, apps, add_book=True, **kwargs):

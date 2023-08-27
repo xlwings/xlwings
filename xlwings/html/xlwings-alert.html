@@ -1,0 +1,71 @@
+﻿<!doctype html>
+<!-- 
+Copyright (C) 2014 - present, Zoomer Analytics GmbH. All rights reserved.
+Licensed under BSD-3-Clause license, see: https://docs.xlwings.org/en/stable/license.html
+
+This file also contains code from Bootstrap
+Copyright (c) 2011-2023 The Bootstrap Authors, Licensed under MIT license, see https://raw.githubusercontent.com/twbs/bootstrap/main/LICENSE
+
+This file also contains code from bootstrap-ie11
+Copyright (c) 2022 Christian Oliff, Licensed under MIT license, see https://raw.githubusercontent.com/coliff/bootstrap-ie11/main/LICENSE
+ -->
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alert</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/xlwings/bootstrap-xlwings@5.2.3-2/dist/bootstrap-xlwings.min.css"
+    integrity="sha384-TZ8CaOSXLBEEL73Aw1vX6a/2YP7QHdiuilF2C8Put8X81F3FzyRgt9ba77CMKAXq" crossorigin="anonymous">
+  <script
+    nomodule>window.MSInputMethodContext && document.documentMode && document.write('<link rel="stylesheet" href="/css/bootstrap-ie11.min.css"><script src="https://cdn.jsdelivr.net/combine/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js,npm/ie11-custom-properties@4,npm/element-qsa-scope@1"><\/script><script crossorigin="anonymous" src="https://polyfill.io/v3/polyfill.min.js?features=default%2CNumber.parseInt%2CNumber.parseFloat%2CArray.prototype.find%2CArray.prototype.includes"><\/script>');</script>
+</head>
+
+<body>
+  <div id="callback" data-callback="{{ callback }}"></div>
+  <div class="container-fluid">
+    <div class="d-flex flex-column pb-3 px-2 vh-100">
+      <h1 class="pt-4">{{ title }}</h1>
+      <p>{{ prompt }}</p>
+      <div class="mt-auto">
+        <div class="float-end">
+          {% if "ok" in buttons %}
+          <button id="ok" type="button" class="btn btn-primary btn-xl-alert">OK</button>
+          {% endif %}
+          {% if "yes" in buttons %}
+          <button id="yes" type="button" class="btn btn-primary btn-xl-alert">Yes</button>
+          {% endif %}
+          {% if "no" in buttons %}
+          <button id="no" type="button" class="btn btn-outline-secondary btn-xl-alert">No</button>
+          {% endif %}
+          {% if "cancel" in buttons %}
+          <button id="cancel" type="button" class="btn btn-outline-secondary btn-xl-alert">Cancel</button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    Office.onReady(function (info) { });
+    if (document.getElementById("ok")) {
+      document.getElementById("ok").addEventListener("click", buttonCallback);
+    }
+    if (document.getElementById("yes")) {
+      document.getElementById("yes").addEventListener("click", buttonCallback);
+    }
+    if (document.getElementById("no")) {
+      document.getElementById("no").addEventListener("click", buttonCallback);
+    }
+    if (document.getElementById("cancel")) {
+      document.getElementById("cancel").addEventListener("click", buttonCallback);
+    }
+    function buttonCallback() {
+      Office.context.ui.messageParent(this.id + "|" + document.getElementById("callback").getAttribute("data-callback"));
+    }
+  </script>
+</body>
+
+</html>

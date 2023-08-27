@@ -1,24 +1,20 @@
 import asyncio
-import json
-import sys
-
-if sys.version_info >= (3, 7):
-    from asyncio import get_running_loop
-else:
-    from asyncio import get_event_loop as get_running_loop
-
 import concurrent
 import copy
 import functools
 import inspect
+import json
 import logging
 import os
 import os.path
 import re
+import sys
 import tempfile
 import threading
-from importlib import reload  # requires >= py 3.4
-from importlib import import_module
+from importlib import (
+    import_module,
+    reload,
+)
 from random import random
 
 import pythoncom
@@ -27,39 +23,20 @@ from win32com.client import Dispatch
 
 import xlwings
 
-from . import PRO, Book, LicenseError, Range, apps, conversion
+from . import Book, LicenseError, Range, __pro__, apps, conversion
 from .utils import VBAWriter, exception, get_cached_user_config, read_config_sheet
 
-if PRO:
+if __pro__:
     from .pro import verify_execute_permission
     from .pro.embedded_code import TEMPDIR, dump_embedded_code
 
 logger = logging.getLogger(__name__)
 cache = {}
 
-if sys.version_info >= (3, 7):
-    com_executor = concurrent.futures.ThreadPoolExecutor(
-        initializer=pythoncom.CoInitialize
-    )
-
-    def backcompat_check_com_initialized():
-        pass
-
-else:
-    com_executor = concurrent.futures.ThreadPoolExecutor()
-    com_is_initialized = threading.local()
-
-    def backcompat_check_com_initialized():
-        try:
-            com_is_initialized.done
-        except AttributeError:
-            pythoncom.CoInitialize()
-            com_is_initialized.done = True
+com_executor = concurrent.futures.ThreadPoolExecutor(initializer=pythoncom.CoInitialize)
 
 
 async def async_thread(base, my_has_dynamic_array, func, args, cache_key, expand):
-    backcompat_check_com_initialized()
-
     try:
         if expand:
             stashme = await base.get_formula_array()
@@ -68,7 +45,7 @@ async def async_thread(base, my_has_dynamic_array, func, args, cache_key, expand
         else:
             stashme = await base.get_formula()
 
-        loop = get_running_loop()
+        loop = asyncio.get_running_loop()
         cache[cache_key] = await loop.run_in_executor(
             com_executor, functools.partial(func, *args)
         )
@@ -310,15 +287,7 @@ class ComRange(Range):
           a cap.
         """
 
-        loop = get_running_loop()
-
-        if sys.version_info[:2] <= (3, 6):
-
-            def _fn(fn, *args):
-                backcompat_check_com_initialized()
-                return fn(*args)
-
-            fn = functools.partial(_fn, fn)
+        loop = asyncio.get_running_loop()
 
         try:
             return await loop.run_in_executor(
@@ -390,7 +359,7 @@ async def delayed_resize_dynamic_array_formula(target_range, caller):
 
 
 # Setup temp dir for embedded code
-if PRO:
+if __pro__:
     sys.path[0:0] = [TEMPDIR]  # required for permissioning
 
 
@@ -410,9 +379,9 @@ def get_udf_module(module_name, xl_workbook):
         if xl_workbook:
             wb = Book(impl=xlwings._xlwindows.Book(Dispatch(xl_workbook)))
             for sheet in wb.sheets:
-                if sheet.name.endswith(".py") and not PRO:
+                if sheet.name.endswith(".py") and not __pro__:
                     raise LicenseError("Embedded code requires a valid LICENSE_KEY.")
-                elif PRO:
+                elif __pro__:
                     dump_embedded_code(wb, TEMPDIR)
 
         # Permission check
@@ -420,7 +389,7 @@ def get_udf_module(module_name, xl_workbook):
             get_cached_user_config("permission_check_enabled")
             and get_cached_user_config("permission_check_enabled").lower()
         ) == "true":
-            if not PRO:
+            if not __pro__:
                 raise LicenseError("Permission checks require xlwings PRO.")
             verify_execute_permission(module_names=(module_name,))
 
@@ -462,7 +431,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
         get_cached_user_config("permission_check_enabled")
         and get_cached_user_config("permission_check_enabled").lower() == "true"
     ):
-        if not PRO:
+        if not __pro__:
             raise LicenseError("Permission checks require xlwings PRO.")
         verify_execute_permission(module_names=(module_name,))
     module = get_udf_module(module_name, this_workbook)
@@ -487,7 +456,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     args = list(args)
     for i, arg in enumerate(args):
         arg_info = args_info[min(i, len(args_info) - 1)]
-        if type(arg) is int and arg == -2147352572:  # missing
+        if isinstance(arg, int) and arg == -2147352572:  # missing
             args[i] = arg_info.get("optional", None)
         elif xlwings._xlwindows.is_range_instance(arg):
             args[i] = conversion.read(
@@ -500,7 +469,7 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     if this_workbook:
         xlwings._xlwindows.BOOK_CALLER = Dispatch(this_workbook)
 
-    from .server import loop
+    from .com_server import loop
 
     if func_info["async_mode"] and func_info["async_mode"] == "threading":
         if caller is None:
@@ -538,7 +507,6 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
             )
             return ret
     else:
-
         if is_dynamic_array:
             cache_key = get_cache_key(func, args, caller)
             cached_value = cache.get(cache_key)
@@ -580,7 +548,6 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
 
 
 def generate_vba_wrapper(module_name, module, f, xl_workbook):
-
     vba = VBAWriter(f)
 
     for svar in map(lambda attr: getattr(module, attr), dir(module)):
@@ -617,7 +584,6 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
             func_sig += ")"
 
             with vba.block(func_sig):
-
                 if ftype == "Function":
                     if not call_in_wizard:
                         vba.writeln(
@@ -679,7 +645,7 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
                 if ftype == "Sub":
                     with vba.block('#If App = "Microsoft Excel" Then'):
                         vba.writeln(
-                            'Py.CallUDF "{module_name}", "{fname}", '
+                            'XLPy.CallUDF "{module_name}", "{fname}", '
                             "{args_vba}, {vba_workbook}, Application.Caller",
                             module_name=module_name,
                             fname=fname,
@@ -688,7 +654,7 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
                         )
                     with vba.block("#Else"):
                         vba.writeln(
-                            'Py.CallUDF "{module_name}", "{fname}", {args_vba}',
+                            'XLPy.CallUDF "{module_name}", "{fname}", {args_vba}',
                             module_name=module_name,
                             fname=fname,
                             args_vba=args_vba,
@@ -701,7 +667,7 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
                             "On Error GoTo failed"
                         )
                         vba.writeln(
-                            '{fname} = Py.CallUDF("{module_name}", "{fname}", '
+                            '{fname} = XLPy.CallUDF("{module_name}", "{fname}", '
                             "{args_vba}, {vba_workbook}, Application.Caller)",
                             module_name=module_name,
                             fname=fname,
@@ -711,7 +677,7 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
                         vba.writeln("Exit " + ftype)
                     with vba.block("#Else"):
                         vba.writeln(
-                            '{fname} = Py.CallUDF("{module_name}", '
+                            '{fname} = XLPy.CallUDF("{module_name}", '
                             '"{fname}", {args_vba})',
                             module_name=module_name,
                             fname=fname,
@@ -743,7 +709,7 @@ def import_udfs(module_names, xl_workbook):
         """#Const App = "Microsoft Excel" 'Adjust when using outside of Excel"""
     )
 
-    if PRO:
+    if __pro__:
         for module_name in module_names:
             sheet_config = read_config_sheet(
                 Book(impl=xlwings._xlwindows.Book(Dispatch(xl_workbook)))

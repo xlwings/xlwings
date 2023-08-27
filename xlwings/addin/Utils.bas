@@ -390,4 +390,86 @@ Function GetFullName(wb As Workbook) As String
 End Function
 #End If
 
+Function GetAzureAdAccessToken( _
+    Optional tenantId As String, _
+    Optional clientId As String, _
+    Optional port As String, _
+    Optional scopes As String, _
+    Optional username As String, _
+    Optional cliPath As String _
+)
+    Dim nowTs As Long, expiresTs As Long
+    Dim kwargs As String
 
+    If tenantId = "" Then
+        tenantId = GetConfig("AZUREAD_TENANT_ID")
+    End If
+    If clientId = "" Then
+        clientId = GetConfig("AZUREAD_CLIENT_ID")
+    End If
+    If port = "" Then
+        port = GetConfig("AZUREAD_PORT")
+    End If
+    If scopes = "" Then
+        scopes = GetConfig("AZUREAD_SCOPES")
+    End If
+    If username = "" Then
+        username = GetConfig("AZUREAD_USERNAME")
+    End If
+    If cliPath = "" Then
+        cliPath = GetConfig("CLI_PATH")
+    End If
+    If cliPath = "" Then
+        kwargs = "tenant_id='" & tenantId & "', "
+        kwargs = kwargs & "client_id='" & clientId & "', "
+        If port <> "" Then
+            kwargs = kwargs & "port='" & port & "', "
+        End If
+        If scopes <> "" Then
+            kwargs = kwargs & "scopes='" & scopes & "', "
+        End If
+        If username <> "" Then
+            kwargs = kwargs & "username='" & username & "', "
+        End If
+    Else
+        kwargs = "--tenant_id=" & tenantId & " "
+        kwargs = kwargs & "--client_id=" & clientId & " "
+        If port <> "" Then
+            kwargs = kwargs & "--port=" & port & " "
+        End If
+        If scopes <> "" Then
+            kwargs = kwargs & "--scopes=" & scopes & " "
+        End If
+        If username <> "" Then
+            kwargs = kwargs & "--username=" & username & " "
+        End If
+    End If
+
+    expiresTs = GetConfig("AZUREAD_ACCESS_TOKEN_EXPIRES_ON_" & clientId, 0)
+    nowTs = DateDiff("s", #1/1/1970#, ConvertToUtc(Now()))
+
+    If (expiresTs > 0) And (nowTs < (expiresTs - 30)) Then
+        GetAzureAdAccessToken = GetConfig("AZUREAD_ACCESS_TOKEN_" & clientId)
+        Exit Function
+    Else
+        If cliPath <> "" Then
+            RunFrozenPython cliPath, "auth azuread " & kwargs
+        Else
+            RunPython "from xlwings import cli;cli._auth_aad(" & kwargs & ")"
+        End If
+        #If Mac Then
+            ' RunPython on macOS is async: 60s should be enough if you have to login from scratch
+            Dim i as Integer
+            For i = 1 To 60
+                expiresTs = GetConfig("AZUREAD_ACCESS_TOKEN_EXPIRES_ON_" & clientId, 0)
+                If (nowTs < (expiresTs - 30)) Then
+                    GetAzureAdAccessToken = GetConfig("AZUREAD_ACCESS_TOKEN_" & clientId)
+                    Exit Function
+                End If
+                Application.Wait (Now + TimeValue("0:00:01"))
+            Next i
+        #Else
+            GetAzureAdAccessToken = GetConfig("AZUREAD_ACCESS_TOKEN_" & clientId)
+        #End If
+    End If
+End Function

@@ -1,26 +1,38 @@
 # To install this pre-commit hook, run:
 #
-# pip install pre-commit
+# pip install pre-commit (or brew install pre-commit)
 # pre-commit install
 #
+# To run changed files manually: pre-commit
+# To run a specific hook only (e.g., black): pre-commit black
+# To run all files manually: pre-commit run --all-files
+#
 # See also: https://pre-commit.com
+
+exclude: |
+  (?x)^(
+  xlwingsjs/dist/.*|
+  xlwings/mistune/.*|
+  docs/.*|
+  resources/.*
+  )$
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v4.4.0
     hooks:
-    - id: end-of-file-fixer
+      - id: end-of-file-fixer
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.0.283
+    hooks:
+      - id: ruff
+        args:
+          - --config=./pyproject.toml
 
   - repo: https://github.com/psf/black
-    rev: 22.1.0
+    rev: 23.3.0
     hooks:
       - id: black
-
-  - repo: https://github.com/pycqa/isort
-    rev: 5.10.1
-    hooks:
-      - id: isort
-
-  - repo: https://github.com/pycqa/flake8
-    rev: 5.0.4
-    hooks:
-    -   id: flake8
+        args:
+          - --config=./pyproject.toml

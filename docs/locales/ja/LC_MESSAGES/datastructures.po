@@ -8,14 +8,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xlwings dev\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-12-04 08:45+0900\n"
+"POT-Creation-Date: 2023-02-22 22:27+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.8.0\n"
+"Generated-By: Babel 2.9.1\n"
 
 #: ../../datastructures.rst:4
 msgid "Data Structures Tutorial"
@@ -69,10 +69,10 @@ msgstr "単独セルを強制的にリストとして読み込む方法は次の
 #: ../../datastructures.rst:57
 msgid ""
 "To write a list in column orientation to Excel, use ``transpose``: "
-"``sht.range('A1').options(transpose=True).value = [1,2,3,4]``"
+"``sheet.range('A1').options(transpose=True).value = [1,2,3,4]``"
 msgstr ""
 "``transpose`` を使えば、リストをExcelの列方向に書き込めます: "
-"``sht.range('A1').options(transpose=True).value = [1,2,3,4]``"
+"``sheet.range('A1').options(transpose=True).value = [1,2,3,4]``"
 
 #: ../../datastructures.rst:59
 msgid ""
@@ -94,12 +94,12 @@ msgstr "2次元のRangeは自動的に入れ子のリストとして読み込ま
 #: ../../datastructures.rst:81
 msgid ""
 "Try to minimize the number of interactions with Excel. It is always more "
-"efficient to do ``sht.range('A1').value = [[1,2],[3,4]]`` than "
-"``sht.range('A1').value = [1, 2]`` and ``sht.range('A2').value = [3, "
+"efficient to do ``sheet.range('A1').value = [[1,2],[3,4]]`` than "
+"``sheet.range('A1').value = [1, 2]`` and ``sheet.range('A2').value = [3, "
 "4]``."
 msgstr ""
-"Excelとの相互作用は最低限に留めてください。 ``sht.range('A1').value = [1, 2]`` と "
-"``sht.range('A2').value = [3, 4]`` を行うよりも、 ``sht.range('A1').value = "
+"Excelとの相互作用は最低限に留めてください。 ``sheet.range('A1').value = [1, 2]`` と "
+"``sheet.range('A2').value = [3, 4]`` を行うよりも、 ``sht.range('A1').value = "
 "[[1,2],[3,4]]`` とする方が、常に効率的です。"
 
 #: ../../datastructures.rst:85
@@ -130,10 +130,10 @@ msgid ""
 "Using ``expand()`` together with a named Range as top left cell gives you"
 " a flexible setup in Excel: You can move around the table and change its "
 "size without having to adjust your code, e.g. by using something like "
-"``sht.range('NamedRange').expand().value``."
+"``sheet.range('NamedRange').expand().value``."
 msgstr ""
 "左上セルの代わりに名前付きRangeで ``expand()`` メソッドを使用すれば、Excelでの柔軟なセットアップが可能になります。つまり、"
-" ``sht.range('NamedRange').expand().value`` "
+" ``sheet.range('NamedRange').expand().value`` "
 "のような書き方をすることで、コードを変更することなく、Excel上でテーブルの位置やサイズの変更が可能になります。"
 
 #: ../../datastructures.rst:115
@@ -161,9 +161,28 @@ msgstr ""
 #: ../../datastructures.rst:177
 msgid ""
 "You only need to specify the top left cell when writing a list, a NumPy "
-"array or a Pandas DataFrame to Excel, e.g.: ``sht.range('A1').value = "
+"array or a Pandas DataFrame to Excel, e.g.: ``sheet['A1'].value = "
 "np.eye(10)``"
 msgstr ""
 "リストやNumPy arrayやPandas DataFrameをExcelに書き込むには、左上セルを指定するだけで済みます。例: "
-"``sht.range('A1').value = np.eye(10)``"
+"``sheet.range('A1').value = np.eye(10)``"
+
+#: ../../datastructures.rst:181
+msgid "Chunking: Read/Write big DataFrames etc."
+msgstr "チャンク(Chunking): 巨大なDataFrame等の読み書き"
+
+#: ../../datastructures.rst:183
+msgid ""
+"When you read and write from or to big ranges, you may have to chunk them"
+" or you will hit a timeout or a memory error. The ideal ``chunksize`` "
+"will depend on your system and size of the array, so you will have to try"
+" out a few different chunksizes to find one that works well:"
+msgstr ""
+"大きなRangeを読み書きする場合、チャンクしないとタイムアウトやメモリー エラーに"
+"なることがあります。理想的な ``chunksize`` はシステムや配列のサイズに依存するため、"
+"いくつかのチャンクサイズを試して、うまく機能するものを見つける必要があります:"
+
+#: ../../datastructures.rst:194
+msgid "And the same for reading:"
+msgstr "読み込みについても同様に:"
 

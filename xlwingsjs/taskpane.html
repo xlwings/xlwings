@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Task Pane</title>
+  <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <script type="module" src="taskpane.ts"></script>
+  <!-- Full URL only required during dev as Parcel would otherwise not find it. For prod, use /xlwings/custom-functions-code -->
+  <script src="https://127.0.0.1:8000/xlwings/custom-functions-code"></script>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/xlwings/bootstrap-xlwings@5.2.3-2/dist/bootstrap-xlwings.min.css"
+    integrity="sha384-TZ8CaOSXLBEEL73Aw1vX6a/2YP7QHdiuilF2C8Put8X81F3FzyRgt9ba77CMKAXq" crossorigin="anonymous">
+</head>
+
+<body>
+  <div class="container-fluid">
+    <h1 class="pt-4">Basic functionality</h1>
+    <button id="run" type="button" class="btn btn-primary btn-sm">
+      Run hello
+    </button>
+    <button id="show-alert" type="button" class="btn btn-primary btn-sm">
+      Show alert
+    </button>
+    <h1 class="pt-4">Integration Test</h1>
+    <p class="mb-1">Open engines.xlsm and select "A1" of Sheet1</p>
+    <button id="integration-test-read" type="button" class="btn btn-primary btn-sm">
+      Integration Test Read
+    </button>
+    <p class="pt-4 mb-1">Open integration_write.xlsm</p>
+    <button id="integration-test-write" type="button" class="btn btn-primary btn-sm">
+      Integration Test Write
+    </button>
+  </div>
+</body>
+
+</html>

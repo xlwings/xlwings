@@ -34,7 +34,9 @@ format_callbacks = {}
 
 
 def formatter(func):
+    """Decorator"""
     format_callbacks[func.__name__] = func
+    return func
 
 
 # Deprecated

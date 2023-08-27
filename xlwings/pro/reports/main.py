@@ -85,7 +85,9 @@ def render_sheet(sheet, **data):
     book = sheet.book
 
     # Shapes aren't properly moved otherwise
-    sheet.select()
+    if sheet.visible:
+        # Select fails on Windows for hidden sheets
+        sheet.select()
 
     # Inserting rows with Frames changes the print area.
     # Get it here so we can revert at the end.
@@ -147,7 +149,6 @@ def render_sheet(sheet, **data):
                             or (Figure and isinstance(result, Figure))
                             or (plotly and isinstance(result, plotly.graph_objs.Figure))
                         ):
-
                             # Image filters: these filters can only be used once. If
                             # supplied multiple times, the first one will be used.
                             width = filters.width(filter_list)
@@ -281,15 +282,19 @@ def render_sheet(sheet, **data):
                                                 (start_row, start_col),
                                                 (end_row, end_col),
                                             ).insert("down")
-                                        # Inserting does not take over borders
-                                        sheet.range(
+                                        # Inserting does not take over borders and
+                                        # copy/paste format can cause conflicts with
+                                        # other processes that use the clipboard
+                                        origin = sheet.range(
                                             (start_row - 1, start_col),
                                             (start_row - 1, end_col),
-                                        ).copy()
-                                        sheet.range(
+                                        )
+                                        destination = sheet.range(
                                             (start_row - 1, start_col),
                                             (end_row, end_col),
-                                        ).paste(paste="formats")
+                                        )
+                                        if not origin.table:
+                                            origin.autofill(destination, "fill_formats")
                             # Write the array to Excel
                             if cell.table:
                                 cell.table.update(result, index=options["index"])

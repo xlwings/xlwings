@@ -7,6 +7,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import time
 import uuid
 from keyword import iskeyword
 from pathlib import Path
@@ -15,6 +16,96 @@ import xlwings as xw
 
 # Directories/paths
 this_dir = Path(__file__).resolve().parent
+
+
+def auth_aad(args):
+    _auth_aad(
+        tenant_id=args.tenant_id,
+        client_id=args.client_id,
+        port=args.port,
+        scopes=args.scopes,
+        username=args.username,
+        reset=args.reset,
+    )
+
+
+def _auth_aad(
+    client_id=None, tenant_id=None, username=None, port=None, scopes=None, reset=False
+):
+    from xlwings.utils import read_user_config
+
+    try:
+        import msal
+    except ImportError:
+        sys.exit("Couldn't find the 'msal' package. Install it via `pip install msal`.")
+
+    cache_dir = Path(xw.USER_CONFIG_FILE).parent
+    cache_file = cache_dir / "aad.json"
+
+    if reset:
+        if cache_file.exists():
+            cache_file.unlink()
+        update_user_config("AZUREAD_ACCESS_TOKEN", None, action="delete")
+        update_user_config("AZUREAD_ACCESS_TOKEN_EXPIRES_ON", None, action="delete")
+
+    user_config = read_user_config()
+    if tenant_id is None:
+        tenant_id = user_config["azuread_tenant_id"]
+    if client_id is None:
+        client_id = user_config["azuread_client_id"]
+    if scopes is None:
+        scopes = user_config["azuread_scopes"]
+    if port is None:
+        port = user_config.get("azuread_port")
+    if username is None:
+        username = user_config.get("azuread_username")
+    # Scopes can only be from one application!
+    if scopes is None:
+        scopes = [""]
+    elif isinstance(scopes, str):
+        scopes = [scope.strip() for scope in scopes.split(",")]
+    else:
+        sys.exit("Please provide scopes as a single string with commas.")
+
+    # https://learn.microsoft.com/en-us/azure/active-directory/develop/msal-client-application-configuration#authority
+    authority = f"https://login.microsoftonline.com/{tenant_id}"
+
+    # Cache
+    token_cache = msal.SerializableTokenCache()
+
+    cache_file.parent.mkdir(exist_ok=True)
+    if cache_file.exists():
+        token_cache.deserialize(cache_file.read_text())
+
+    app = msal.PublicClientApplication(
+        client_id=client_id,
+        authority=authority,
+        token_cache=token_cache,
+    )
+
+    result = None
+    # Username selects the account if multiple accounts are logged in
+    # This requires scopes to be set though, but scopes=[""] seem to do the trick.
+    accounts = app.get_accounts(username=username if username else None)
+    if accounts:
+        account = accounts[0]
+        result = app.acquire_token_silent(scopes=scopes, account=account)
+    if not result:
+        result = app.acquire_token_interactive(
+            scopes=scopes, timeout=60, port=int(port) if port else None
+        )
+
+    if "access_token" not in result:
+        sys.exit(result.get("error_description"))
+
+    update_user_config(f"AZUREAD_ACCESS_TOKEN_{client_id}", result["access_token"])
+    update_user_config(
+        f"AZUREAD_ACCESS_TOKEN_EXPIRES_ON_{client_id}",
+        int(time.time()) + result["expires_in"],
+    )
+
+    if token_cache.has_state_changed:
+        cache_file.write_text(token_cache.serialize())
 
 
 def exit_unsupported_platform():
@@ -125,7 +216,7 @@ def addin_remove(args):
     if args.dir:
         for addin_source_path in Path(args.dir).resolve().glob("[!~$]*.xl*"):
             _addin_remove(addin_source_path, global_install)
-    if args.file:
+    elif args.file:
         _addin_remove(args.file, global_install)
     else:
         _addin_remove("xlwings.xlam", global_install)
@@ -283,26 +374,33 @@ def license_update(args):
             "Please provide a license key via the -k/--key option. "
             "For example: xlwings license update -k MY_KEY"
         )
-    license_kv = '"LICENSE_KEY","{0}"\n'.format(key)
-    # Update xlwings.conf
+    update_user_config("LICENSE_KEY", key)
+    print("Successfully updated license key.")
+
+
+def update_user_config(key, value=None, action="add"):
+    # action: 'add' or 'remove'
     new_config = []
     if os.path.exists(xw.USER_CONFIG_FILE):
         with open(xw.USER_CONFIG_FILE, "r") as f:
             config = f.readlines()
         for line in config:
-            # Remove existing license key and empty lines
-            if line.split(",")[0] == '"LICENSE_KEY"' or line in ("\r\n", "\n"):
+            # Remove existing key and empty lines
+            if line.split(",")[0] == f'"{key}"' or line in ("\r\n", "\n"):
                 pass
             else:
                 new_config.append(line)
-        new_config.append(license_kv)
+        if action == "add":
+            new_config.append(f'"{key}","{value}"\n')
     else:
-        new_config = [license_kv]
+        if action == "add":
+            new_config = [f'"{key}","{value}"\n']
+        else:
+            return
     if not os.path.exists(os.path.dirname(xw.USER_CONFIG_FILE)):
         os.makedirs(os.path.dirname(xw.USER_CONFIG_FILE))
     with open(xw.USER_CONFIG_FILE, "w") as f:
         f.writelines(new_config)
-    print("Successfully updated license key.")
 
 
 def license_deploy(args):
@@ -449,14 +547,25 @@ def permission_book(args):
 
 
 def copy_os(args):
-    copy_js("ts")
+    copy_code(Path(this_dir) / "js" / "xlwings.ts")
 
 
 def copy_gs(args):
-    copy_js("js")
+    copy_code(Path(this_dir) / "js" / "xlwings.js")
 
 
-def copy_js(extension):
+def copy_vba(args):
+    if args.addin:
+        copy_code(Path(this_dir) / "xlwings_custom_addin.bas")
+    else:
+        copy_code(Path(this_dir) / "xlwings.bas")
+
+
+def copy_customaddin(args):
+    copy_code(Path(this_dir) / "xlwings_custom_addin.bas")
+
+
+def copy_code(fpath):
     try:
         from pandas.io import clipboard
     except ImportError:
@@ -467,8 +576,16 @@ def copy_js(extension):
                 'Please install either "pandas" or "pyperclip" to use the copy command.'
             )
 
-    with open(Path(this_dir) / "js" / f"xlwings.{extension}", "r") as f:
-        clipboard.copy(f.read())
+    with open(fpath, "r") as f:
+        if "bas" in str(fpath):
+            text = (
+                f.read()
+                .replace('Attribute VB_Name = "xlwings"\n', "")
+                .replace('Attribute VB_Name = "xlwings"\r\n', "")
+            )
+        else:
+            text = f.read()
+        clipboard.copy(text)
         print("Successfully copied to clipboard.")
 
 
@@ -820,7 +937,7 @@ def vba_edit(args):
 
 
 def main():
-    print("xlwings version: " + "dev")
+    print("xlwings version: " + xw.__version__)
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command")
     subparsers.required = True
@@ -1065,7 +1182,10 @@ def main():
     copy_parser = subparsers.add_parser(
         "copy",
         help='Run "xlwings copy os" to copy the xlwings Office Scripts module. '
-        'Run "xlwings copy gs" to copy the xlwings Google Apps Script module.',
+        'Run "xlwings copy gs" to copy the xlwings Google Apps Script module. '
+        'Run "xlwings copy vba" to copy the standalone xlwings VBA module. '
+        'Run "xlwings copy vba --addin" to copy the xlwings VBA module for custom '
+        "add-ins.",
     )
     copy_subparser = copy_parser.add_subparsers(dest="subcommand")
     copy_subparser.required = True
@@ -1076,6 +1196,52 @@ def main():
     copy_os_parser = copy_subparser.add_parser("gs")
     copy_os_parser.set_defaults(func=copy_gs)
 
+    copy_vba_parser = copy_subparser.add_parser("vba")
+    copy_vba_parser.add_argument(
+        "-a", "--addin", action="store_true", help="VBA for custom add-ins"
+    )
+    copy_vba_parser.set_defaults(func=copy_vba)
+
+    # Azure AD authentication (MSAL)
+    auth_parser = subparsers.add_parser(
+        "auth",
+        help='Microsoft Azure AD: "xlwings auth azuread", see '
+        "https://docs.xlwings.org/en/stable/server_authentication.html",
+    )
+
+    aad_subparser = auth_parser.add_subparsers(dest="subcommand")
+    aad_subparser.required = True
+
+    auth_aad_parser = aad_subparser.add_parser("azuread")
+    auth_aad_parser.set_defaults(func=auth_aad)
+    auth_aad_parser.add_argument(
+        "-tid",
+        "--tenant_id",
+        help="Tenant ID",
+    )
+    auth_aad_parser.add_argument(
+        "-cid",
+        "--client_id",
+        help="CLIENT ID",
+    )
+    auth_aad_parser.add_argument(
+        "-p",
+        "--port",
+        help="Port",
+    )
+    auth_aad_parser.add_argument(
+        "-s",
+        "--scopes",
+        help="Scopes",
+    )
+    auth_aad_parser.add_argument(
+        "-u",
+        "--username",
+        help="Username",
+    )
+    auth_aad_parser.add_argument(
+        "-r", "--reset", action="store_true", help="Clear local cache."
+    )
     # Edit VBA code
     vba_parser = subparsers.add_parser(
         "vba",
@@ -1139,7 +1305,7 @@ def main():
         sys.exit(1)
 
     # Boilerplate
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
     args.func(args)
 
 

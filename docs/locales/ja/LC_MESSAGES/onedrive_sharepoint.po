@@ -1,0 +1,286 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) Zoomer Analytics LLC
+# This file is distributed under the same license as the xlwings package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xlwings \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-02-22 22:27+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../../onedrive_sharepoint.rst:4
+msgid "OneDrive and SharePoint"
+msgstr "OneDriveおよびSharePoint"
+
+#: ../../onedrive_sharepoint.rst:6
+msgid ""
+"Since v0.27.4, xlwings works with locally synced files on OneDrive, "
+"OneDrive for Business, and SharePoint. Some constellations will work out-"
+"of-the-box, while others require you to edit the configuration via the "
+"``xlwings.conf`` file (see :ref:`User Config<user_config>`) or the "
+"workbook's ``xlwings.conf`` sheet (see :ref:`Workbook "
+"Config<addin_wb_settings>`)."
+msgstr ""
+"v0.27.4以降、xlwingsは、ローカルと同期するOneDrive、OneDrive for Business、"
+"SharePoint上のファイルと連携できます。いくつかの機能はすぐに使えますが、 "
+"``xlwings.conf`` ファイル ( :ref:`User Config<user_config>` 参照) または"
+"ワークブックの ``xlwings.conf`` シート ( :ref:`Workbook Config<addin_wb_settings>` 参照) での設定が必要な機能もあります。"
+
+#: ../../onedrive_sharepoint.rst:8
+msgid ""
+"This documentation is for OneDrive and SharePoint files that are synced "
+"to a local folder. This means that both, the Excel and Python file, need "
+"to show the green check mark in the File Explorer/Finder as status---a "
+"cloud icon will not work. If, in turn, you are looking for the "
+"documentation to run xlwings with Excel on the web, see "
+":ref:`remote_interpreter`."
+msgstr ""
+"このドキュメントは、ローカルフォルダーと同期するOneDriveとSharePointのファイルを"
+"対象としています。つまり、ExcelファイルとPythonファイルの両方が、ファイルエクスプローラー/"
+"ファインダーで緑色のチェックマークがついた状態でなければなりません---雲アイコンは使えません。"
+"なお、Web上のExcelでxlwingsを動作させるためのドキュメントは "
+":ref:`remote_interpreter` を参照してください。"
+
+#: ../../onedrive_sharepoint.rst:10
+msgid "An easy workaround if you run into issues is to:"
+msgstr "問題が発生した場合の簡単な回避策は以下:"
+
+
+#: ../../onedrive_sharepoint.rst:12
+msgid ""
+"Disable the ``ADD_WORKBOOK_TO_PYTHONPATH`` setting (either via the "
+"checkbox on the Ribbon or via the settings in the ``xlwings.conf`` "
+"sheet)."
+msgstr ""
+"``ADD_WORKBOOK_TO_PYTHONPATH`` の設定（リボン上のチェックボックスか "
+" ``xlwings.conf`` シートの設定）を無効にする。
+"
+
+#: ../../onedrive_sharepoint.rst:13
+msgid ""
+"Add the directory of your Python source file to the "
+"``PYTHONPATH``---again, either via Ribbon or ``xlwings.conf`` sheet."
+msgstr ""
+"Pythonソース ファイルのディレクトリを ``PYTHONPATH`` に追加する"
+"---ここでもリボンか ``xlwings.conf`` シートで設定します。"
+
+#: ../../onedrive_sharepoint.rst:15
+msgid ""
+"If you are using the PRO version, you could instead also embed your code "
+"to get around these issues."
+msgstr ""
+"PROバージョンであれば、これらの問題を回避するために、代わりにコードを埋め込むことも"
+"可能です。"
+
+#: ../../onedrive_sharepoint.rst:17
+msgid "For a bit more flexibility, follow the solutions below."
+msgstr "もう少し柔軟性を持たせたい場合は、以下の解決策に従ってください。"
+
+#: ../../onedrive_sharepoint.rst:20
+msgid "OneDrive (Personal)"
+msgstr "OneDrive（個人用）"
+
+#: ../../onedrive_sharepoint.rst:22
+msgid ""
+"Default setups work out-of-the-box on Windows and macOS. If you get an "
+"error message, add the following setting with the correct path to the "
+"local root directory of your OneDrive. If possible, make use of "
+"environment variables (as shown in the examples) so the configuration "
+"will work across different users with the same setup:"
+msgstr ""
+"WindowsとmacOSでは、デフォルトの設定がそのまま機能します。エラーメッセージが"
+"表示された場合は、OneDriveのローカル ルート ディレクトリへの正しいパスを指定して、"
+"次の設定を追加してください。可能であれば、 （例に示すように）環境変数を使用して、"
+"設定が同じの異なるユーザー間で設定が機能するようにします:"
+
+#: ../../onedrive_sharepoint.rst:24
+msgid "**Windows** (Example):"
+msgstr ""
+
+#: ../../onedrive_sharepoint.rst:27
+msgid "``ONEDRIVE_CONSUMER_WIN``"
+msgstr ""
+
+#: ../../onedrive_sharepoint.rst:27
+msgid "``%USERPROFILE%\\OneDrive``"
+msgstr ""
+
+#: ../../onedrive_sharepoint.rst:30
+msgid "**macOS** (Example):"
+msgstr ""
+
+#: ../../onedrive_sharepoint.rst:33
+msgid "``ONEDRIVE_CONSUMER_MAC``"
+msgstr ""
+
+#: ../../onedrive_sharepoint.rst:33
+msgid "``$HOME/OneDrive``"
+msgstr ""
+
+#: ../../onedrive_sharepoint.rst:37
+msgid "OneDrive for Business"
+msgstr ""
+
+#: ../../onedrive_sharepoint.rst:39
+msgid ""
+"**Windows**: Default setups work out-of-the-box. If you get an error "
+"message, add the following setting with the correct path to the local "
+"root directory of your OneDrive for Business. If possible, make use of "
+"environment variables (as shown in the examples) so the configuration "
+"will work across different users with the same setup:"
+msgstr ""
+"**Windows**: デフォルトの設定で動作します。エラーメッセージが表示された場合は、"
+"OneDrive for Businessのローカル ルート ディレクトリへの正しいパスを指定して、"
+"次の設定を追加してください。可能であれば、 （例に示すように）環境変数を使用して、"
+"設定が同じの異なるユーザー間で設定が機能するようにします:"
+
+#: ../../onedrive_sharepoint.rst:42
+msgid "``ONEDRIVE_COMMERCIAL_WIN``"
+msgstr ""
+
+#: ../../onedrive_sharepoint.rst:42
+msgid "``%USERPROFILE%\\OneDrive - My Company LLC``"
+msgstr ""
+
+#: ../../onedrive_sharepoint.rst:45
+msgid ""
+"**macOS**: macOS *always* requires the following setting with the correct"
+" path to the local root directory of your OneDrive for Business. If "
+"possible, make use of environment variables (as shown in the examples) so"
+" the configuration will work across different users with the same setup:"
+msgstr ""
+"**macOS**: macOSでは **常に** 、OneDrive for Businessのローカル ルート "
+"ディレクトリへの正しいパスを指定して、次の設定を追加してください。"
+"可能であれば、 （例に示すように）環境変数を使用して、設定が同じの異なるユーザー間で"
+"設定が機能するようにします:"
+
+#: ../../onedrive_sharepoint.rst:48
+msgid "``ONEDRIVE_COMMERCIAL_MAC``"
+msgstr ""
+
+#: ../../onedrive_sharepoint.rst:48
+msgid "``$HOME/OneDrive - My Company LLC``"
+msgstr ""
+
+#: ../../onedrive_sharepoint.rst:52
+msgid "SharePoint (Online and On-Premises)"
+msgstr "SharePoint（オンラインおよびオンプレミス）"
+
+#: ../../onedrive_sharepoint.rst:54
+msgid ""
+"On Windows, the location of the local root folder of SharePoint can "
+"*sometimes* be derived from the OneDrive environment variables. Most of "
+"the time though, you'll have to provide the following setting (on macOS "
+"this is a must):"
+msgstr ""
+"Windowsでは、 **ときどき** SharePointのローカル ルート フォルダの位置を、"
+"OneDriveの環境変数から取得できます。しかし、ほとんどの場合は以下の設定を"
+"行う必要があります（macOSでは必須です）:"
+
+#: ../../onedrive_sharepoint.rst:56
+msgid "**Windows**:"
+msgstr ""
+
+#: ../../onedrive_sharepoint.rst:59 ../../onedrive_sharepoint.rst:88
+msgid "``SHAREPOINT_WIN``"
+msgstr ""
+
+#: ../../onedrive_sharepoint.rst:59
+msgid "``%USERPROFILE%\\My Company LLC``"
+msgstr ""
+
+#: ../../onedrive_sharepoint.rst:62
+msgid "**macOS**:"
+msgstr ""
+
+#: ../../onedrive_sharepoint.rst:65
+msgid "``SHAREPOINT_MAC``"
+msgstr ""
+
+#: ../../onedrive_sharepoint.rst:65
+msgid "``$HOME/My Company LLC``"
+msgstr ""
+
+#: ../../onedrive_sharepoint.rst:69
+msgid "Implementation Details & Limitations"
+msgstr "実装の詳細と制限事項"
+
+#: ../../onedrive_sharepoint.rst:71
+msgid ""
+"A lot of the xlwings functionality depends on the workbook's ``FullName``"
+" property (via VBA/COM) that returns the local path of the file unless it"
+" is saved on OneDrive, OneDrive for Business or SharePoint **with "
+"AutoSave enabled**. In this case, it returns a URL instead."
+msgstr ""
+"xlwingsの機能の多くは、ワークブックの ``FullName`` プロパティ（VBA/COM経由）に"
+"依存しており、このプロパティはファイルのローカル パスを返します。ただし、"
+"ファイルが、 **自動保存が有効化された** OneDrive、OneDrive for Business、または"
+"SharePointに保存されている場合には、代わりにURLが返されます。"
+
+#: ../../onedrive_sharepoint.rst:73
+msgid ""
+"URLs for OneDrive and OneDrive for Business can be translated fairly "
+"straight forward to the local equivalent. You will need to know the root "
+"directory of the local drive though: on Windows, these are usually "
+"provided via environment variables for OneDrive. On macOS they don't "
+"exist, which is the reason why you need to provide the root directory for"
+" OneDrive. On Windows, the root directory for SharePoint can sometimes be"
+" derived from the env vars, too, but this is not guaranteed. On macOS, "
+"you'll need to provide it always anyway."
+msgstr ""
+"OneDriveとOneDrive for BusinessのURLは、対応するローカル ファイルにかなり簡単に"
+"変換できます。ただし、ローカル ドライブのルート ディレクトリを知る必要がありますが、"
+"Windowsでは、通常、OneDriveの環境変数から取得できます。macOSではこれらが"
+"存在しないため、OneDriveのルート ディレクトリを取得する必要があります。"
+"Windowsでは、SharePointのルートディレクトリも環境変数から得られることがありますが、"
+"保証されているわけではありません。macOSの場合は、常に取得する必要があります。"
+
+#: ../../onedrive_sharepoint.rst:75
+msgid ""
+"SharePoint, unfortunately, allows you to map the drives locally in any "
+"way you want and there's no way to reliably get the local path for these "
+"files. On Windows, xlwings first checks the registry for the mapping. If "
+"this doesn't work, xlwings checks if the local path is mapped by using "
+"the defaults and if the file can't be found, it checks all existing local"
+" files on SharePoint. If it finds one with the same name, it'll use this."
+" If, however, it finds more than one with the same name, you will get an "
+"error message. In this case, you can either rename the file to something "
+"unique across all the locally synced SharePoint files or you can change "
+"the ``SHAREPOINT_WIN/MAC`` setting to not stop at the root folder but "
+"include additional folders. As an example, assume you have the following "
+"file structure on your local SharePoint:"
+msgstr ""
+"SharePointでは残念ながら、ローカルにドライブを好きなようにマッピングできるため、"
+"これらのファイルのローカルパスを確実に取得する方法はありません。Windowsでは、"
+"xlwingsはまずレジストリをチェックして、マッピングを確認します。"
+"これがうまくいかない場合、xlwingsはデフォルト設定でローカルパスが"
+"マッピングされているかどうかをチェックし、ファイルが見つからない場合は、"
+"SharePoint上の既存のすべてのローカル ファイルをチェックします。"
+"もし、同じ名前のファイルが見つかれば、それを使用します。しかし、同じ名前のものが"
+"複数見つかった場合は、エラー メッセージが表示されます。この場合、ローカルと同期する"
+"すべてのSharePointファイルで一意なファイル名に変更するか、 ``SHAREPOINT_WIN/MAC`` の"
+"設定を変更してルート フォルダーだけでなく、追加のフォルダーを含むようにします。"
+"例として、ローカルのSharePointに以下のようなファイル構造があるとします:"
+
+#: ../../onedrive_sharepoint.rst:85
+msgid ""
+"In this case, you could either rename one of the files, or you could add "
+"a path that goes beyond the root folder (preferably under the "
+"``xlwings.conf`` sheet):"
+msgstr ""
+"この場合、いずれかのファイル名を変更するか、ルートフォルダよりも下位のパス"
+"（できれば ``xlwings.conf`` シートで）を追加することで解決します:"
+
+#: ../../onedrive_sharepoint.rst:88
+msgid "``%USERPROFILE%/My Company LLC/sitename2 - Documents``"
+msgstr ""
+

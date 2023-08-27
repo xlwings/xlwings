@@ -2,6 +2,7 @@ Attribute VB_Name = "Remote"
 Option Explicit
 Function RunRemotePython( _
     url As String, _
+    Optional auth As String, _
     Optional apiKey As String, _
     Optional include As String, _
     Optional exclude As String, _
@@ -77,8 +78,11 @@ Function RunRemotePython( _
     If proxyBypassList = "" Then
         proxyBypassList = GetConfig("PROXY_BYPASS_LIST", "")
     End If
-    If apiKey = "" Then
+    If apiKey = "" Then  ' Deprecated: replaced by "auth"
         apiKey = GetConfig("API_KEY", "")
+    End If
+    If auth = "" Then
+        auth = GetConfig("AUTH", "")
     End If
 
     ' Request payload
@@ -100,35 +104,48 @@ Function RunRemotePython( _
     Dim myname As Name
     Dim mynames() As Dictionary
     Dim nNames As Integer
+    Dim namedRangeCount As Integer
     Dim iName As Integer
+
     nNames = wb.Names.Count
+    namedRangeCount = 0
+
     If nNames > 0 Then
-        ReDim mynames(nNames - 1)
         For iName = 1 To nNames
             Set myname = wb.Names(iName)
             Dim nameDict As Dictionary
             Set nameDict = New Dictionary
-            nameDict.Add "name", myname.Name
             Dim isNamedRange As Boolean
             Dim testRange As Range
+            Dim isBookScope As Boolean
+            nameDict.Add "name", myname.Name
             isNamedRange = False
             On Error Resume Next
-            Set testRange = myname.RefersToRange
-            If Err.Number = 0 Then isNamedRange = True
+                Set testRange = myname.RefersToRange
+                If Err.Number = 0 Then isNamedRange = True
             On Error GoTo 0
             If isNamedRange Then
+                If TypeOf myname.Parent Is Workbook Then isBookScope = True Else isBookScope = False
                 nameDict.Add "sheet_index", myname.RefersToRange.Parent.Index - 1
                 nameDict.Add "address", myname.RefersToRange.Address(False, False)
-                nameDict.Add "book_scope", TypeOf myname.Parent Is Workbook
-            Else
-                ' Named constants and formulas
-                nameDict.Add "sheet_index", Null
-                nameDict.Add "address", Null
-                nameDict.Add "book_scope", Null
+                nameDict.Add "book_scope", isBookScope
+                If isBookScope = True Then
+                    nameDict.Add "scope_sheet_name", Null
+                    nameDict.Add "scope_sheet_index", Null
+                Else
+                    nameDict.Add "scope_sheet_name", myname.Parent.Name
+                    nameDict.Add "scope_sheet_index", myname.Parent.Index - 1
+                End If
+                ReDim Preserve mynames(namedRangeCount)
+                Set mynames(namedRangeCount) = nameDict
+                namedRangeCount = namedRangeCount + 1
             End If
-            Set mynames(iName - 1) = nameDict
         Next
-        payload.Add "names", mynames
+        If namedRangeCount > 0 Then
+            payload.Add "names", mynames
+        Else
+            payload.Add "names", Array()
+        End If
     Else
         payload.Add "names", Array()
     End If
@@ -141,25 +158,70 @@ Function RunRemotePython( _
         sheetDict.Add "name", wb.Worksheets(i).Name
 
         ' Pictures
-        Dim pic As Picture
+        Dim pic As Shape
         Dim pics() As Dictionary
-        Dim nPics As Integer
+        Dim nShapes As Integer
+        Dim iShape As Integer
         Dim iPic As Integer
-        nPics =  wb.Worksheets(i).Pictures.Count
-        If nPics > 0 Then
-            ReDim pics(nPics - 1)
-            For iPic = 1 To nPics
-                Set pic =  wb.Worksheets(i).Pictures(iPic)
-                Dim picDict As Dictionary
-                Set picDict = New Dictionary
-                picDict.Add "name", pic.Name
-                picDict.Add "height", pic.Height
-                picDict.Add "width", pic.Width
-                Set pics(iPic - 1) = picDict
+        nShapes = wb.Worksheets(i).Shapes.Count
+        If (nShapes > 0) And Not (IsInArray(wb.Worksheets(i).Name, excludeArray)) Then
+            iPic = 0
+            For iShape = 1 To nShapes
+                Set pic = wb.Worksheets(i).Shapes(iShape)
+                If pic.Type = msoPicture Then
+                    ReDim Preserve pics(iPic)
+                    Dim picDict As Dictionary
+                    Set picDict = New Dictionary
+                    picDict.Add "name", pic.Name
+                    picDict.Add "height", pic.Height
+                    picDict.Add "width", pic.Width
+                    Set pics(iPic) = picDict
+                    iPic = iPic + 1
+                End If
             Next
             sheetDict.Add "pictures", pics
         Else
             sheetDict.Add "pictures", Array()
+        End If
+
+        ' Tables
+        Dim table As ListObject
+        Dim tables() As Dictionary
+        Dim nTables As Integer
+        Dim iTable As Integer
+        nTables = wb.Worksheets(i).ListObjects.Count
+        If (nTables > 0) And Not (IsInArray(wb.Worksheets(i).Name, excludeArray)) Then
+            For iTable = 1 To nTables
+                Set table = wb.Worksheets(i).ListObjects(iTable)
+                ReDim Preserve tables(iTable - 1)
+                Dim tableDict As Dictionary
+                Set tableDict = New Dictionary
+                tableDict.Add "name", table.Name
+                tableDict.Add "range_address", table.Range.Address
+                If table.ShowHeaders Then
+                    tableDict.Add "header_row_range_address", table.HeaderRowRange.Address
+                Else
+                    tableDict.Add "header_row_range_address", Null
+                End If
+                If table.DataBodyRange Is Nothing Then
+                    tableDict.Add "data_body_range_address", Null
+                Else
+                    tableDict.Add "data_body_range_address", table.DataBodyRange.Address
+                End If
+                If table.ShowTotals Then
+                    tableDict.Add "total_row_range_address", table.TotalsRowRange.Address
+                Else
+                    tableDict.Add "total_row_range_address", Null
+                End If
+                tableDict.Add "show_headers", table.ShowHeaders
+                tableDict.Add "show_totals", table.ShowTotals
+                tableDict.Add "table_style", table.TableStyle.Name
+                tableDict.Add "show_autofilter", table.ShowAutoFilter
+                Set tables(iTable - 1) = tableDict
+            Next
+            sheetDict.Add "tables", tables
+        Else
+            sheetDict.Add "tables", Array()
         End If
 
         ' Values
@@ -206,7 +268,7 @@ Function RunRemotePython( _
     authHeader = False
     If Not IsMissing(headers) Then
         Dim myKey As Variant
-        For Each myKey In headers.myKeys
+        For Each myKey In headers.Keys
             myRequest.AddHeader CStr(myKey), headers(myKey)
         Next
         If headers.Exists("Authorization") Then
@@ -215,8 +277,11 @@ Function RunRemotePython( _
     End If
 
     If authHeader = False Then
-        If apiKey <> "" Then
+        If apiKey <> "" Then  ' Deprecated: replaced by "auth"
             myRequest.AddHeader "Authorization", apiKey
+        End If
+        If auth <> "" Then
+            myRequest.AddHeader "Authorization", auth
         End If
     End If
 
@@ -228,6 +293,8 @@ Function RunRemotePython( _
     myClient.BaseUrl = url
     If timeout <> 0 Then
         myClient.TimeoutMs = timeout
+    Else
+        myClient.TimeoutMs = 30000 ' Set default to 30s
     End If
     If proxyBypassList <> "" Then
         myClient.proxyBypassList = proxyBypassList
@@ -406,6 +473,9 @@ Sub addSheet(wb As Workbook, action As Dictionary)
     Dim mysheet As Worksheet
     Set mysheet = wb.Sheets.Add
     mysheet.Move After:=Worksheets(action("args")(1) + 1)
+    If Not IsNull(action("args")(2)) Then
+        mysheet.Name = action("args")(2)
+    End If
 End Sub
 
 Sub setSheetName(wb As Workbook, action As Dictionary)
@@ -548,4 +618,123 @@ Sub alert(wb As Workbook, action As Dictionary)
         Application.Run myCallback, buttonResult
     End If
 
+End Sub
+
+Sub setRangeName(wb As Workbook, action As Dictionary)
+    GetRange(wb, action).Name = action("args")(1)
+End Sub
+
+Sub namesAdd(wb As Workbook, action As Dictionary)
+    If IsNull(action("sheet_position")) Then
+        wb.Names.Add Name:=action("args")(1), RefersTo:=action("args")(2)
+    Else
+        wb.Worksheets(action("sheet_position") + 1).Names.Add Name:=action("args")(1), RefersTo:=action("args")(2)
+    End If
+End Sub
+
+Sub nameDelete(wb As Workbook, action As Dictionary)
+    Dim myname As Name
+    For Each myname In wb.Names()
+        If (myname.Name = action("args")(1)) And (myname.RefersTo = action("args")(2)) Then
+            myname.Delete
+            Exit For
+        End If
+    Next
+End Sub
+
+Sub runMacro(wb As Workbook, action As Dictionary)
+    Dim nArgs As Integer
+    nArgs = action("args").Count
+    Select Case nArgs
+    Case 1
+        Application.Run action("args")(1), wb
+    Case 2
+        Application.Run action("args")(1), wb, action("args")(2)
+    Case 3
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3)
+    Case 4
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4)
+    Case 5
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4), action("args")(5)
+    Case 6
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4), action("args")(5), action("args")(6)
+    Case 7
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4), action("args")(5), action("args")(6), action("args")(7)
+    Case 8
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4), action("args")(5), action("args")(6), action("args")(7), action("args")(8)
+    Case 9
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4), action("args")(5), action("args")(6), action("args")(7), action("args")(8), action("args")(9)
+    Case 10
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4), action("args")(5), action("args")(6), action("args")(7), action("args")(8), action("args")(9), action("args")(10)
+    Case 11
+        Application.Run action("args")(1), wb, action("args")(2), action("args")(3), action("args")(4), action("args")(5), action("args")(6), action("args")(7), action("args")(8), action("args")(9), action("args")(10), action("args")(11)
+    Case Else
+        Err.Raise vbObjectError + 513, , "macro() only supports up to 10 arguments"
+    End Select
+End Sub
+
+Sub rangeDelete(wb As Workbook, action As Dictionary)
+    Dim shift As String
+    shift = action("args")(1)
+    If shift = "up" Then
+        GetRange(wb, action).Delete (XlDeleteShiftDirection.xlShiftUp)
+    Else
+        GetRange(wb, action).Delete (XlDeleteShiftDirection.xlShiftToLeft)
+    End If
+End Sub
+
+Sub rangeInsert(wb As Workbook, action As Dictionary)
+    Dim shift As String
+    shift = action("args")(1)
+    If shift = "down" Then
+        GetRange(wb, action).Insert (XlInsertShiftDirection.xlShiftDown)
+    Else
+        GetRange(wb, action).Insert (XlInsertShiftDirection.xlShiftToRight)
+    End If
+End Sub
+
+Sub addTable(wb As Workbook, action As Dictionary)
+    Dim hasHeaders As Integer
+    If action("args")(2) = True Then
+        hasHeaders = XlYesNoGuess.xlYes
+    Else
+        hasHeaders = XlYesNoGuess.xlNo
+    End If
+    Dim table As ListObject
+    Set table = wb.Worksheets(action("sheet_position") + 1).ListObjects.Add(source:=wb.Worksheets(action("sheet_position") + 1).Range(action("args")(1)), XlListObjectHasHeaders:=hasHeaders, TableStyleName:=action("args")(3))
+    If Not IsNull(action("args")(4)) Then
+        table.Name = action("args")(4)
+    End If
+End Sub
+
+Sub setTableName(wb As Workbook, action As Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).ListObjects(action("args")(1) + 1).Name = action("args")(2)
+End Sub
+
+Sub resizeTable(wb As Workbook, action As Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).ListObjects(action("args")(1) + 1).Resize (wb.Worksheets(action("sheet_position") + 1).Range(action("args")(2)))
+End Sub
+
+Sub showAutofilterTable(wb As Workbook, action As Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).ListObjects(action("args")(1) + 1).ShowAutoFilter = action("args")(2)
+End Sub
+
+Sub showHeadersTable(wb As Workbook, action As Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).ListObjects(action("args")(1) + 1).ShowHeaders = action("args")(2)
+End Sub
+
+Sub showTotalsTable(wb As Workbook, action As Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).ListObjects(action("args")(1) + 1).ShowTotals = action("args")(2)
+End Sub
+
+Sub setTableStyle(wb As Workbook, action As Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).ListObjects(action("args")(1) + 1).TableStyle = action("args")(2)
+End Sub
+
+Sub copyRange(wb As Workbook, action As Dictionary)
+    If IsNull(action("args")(1)) Then
+        GetRange(wb, action).Copy
+    Else
+        GetRange(wb, action).Copy Destination:=wb.Worksheets(action("args")(1) + 1).Range(action("args")(2))
+    End If
 End Sub

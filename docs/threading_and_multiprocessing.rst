@@ -1,5 +1,3 @@
-.. _threading:
-
 Threading and Multiprocessing
 =============================
 

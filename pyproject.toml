@@ -1,15 +1,15 @@
 [build-system]
-requires = ["maturin>=0.13,<0.14"]
+requires = ["maturin>=0.14,<0.15"]
 build-backend = "maturin"
 
 [project]
 name = "xlwings"
-description="Make Excel fly: Interact with Excel from Python and vice versa."
+description = "Make Excel fly: Interact with Excel from Python and vice versa."
 authors = [
-    {name ="Felix Zumstein", email = "felix.zumstein@zoomeranalytics.com"},
+    { name = "Felix Zumstein", email = "felix.zumstein@zoomeranalytics.com" },
 ]
 readme = "README.rst"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 dependencies = [
     "pywin32 >= 224;platform_system=='Windows'",
     "psutil >= 2.0.0;platform_system=='Darwin'",
@@ -21,24 +21,21 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Topic :: Office/Business :: Financial :: Spreadsheet",
     "License :: OSI Approved :: BSD License",
 ]
 
-dynamic = [
-    "version"
-]
+dynamic = ["version"]
 
 [project.optional-dependencies]
-reports = [
-    "Jinja2",
-    "pdfrw"
-]
+reports = ["Jinja2", "pdfrw"]
 all = [
+    "black",
+    "isort",
     "Jinja2",
     "pandas",
     "matplotlib",
@@ -46,6 +43,7 @@ all = [
     "flask",
     "requests",
     "pdfrw",
+    "pytest",
 ]
 
 [project.scripts]
@@ -58,12 +56,31 @@ Funding = "https://www.xlwings.org/pricing"
 Source = "https://github.com/xlwings/xlwings"
 Changelog = "https://docs.xlwings.org/en/stable/whatsnew.html"
 
+[tool.maturin]
+exclude = ["xlwings/js/tsconfig.json", "xlwings/js/excel.d.ts"]
+
 [tool.black]
-target-version = ["py37"]
+target-version = ["py38"]
 force-exclude = "xlwings/mistune"
 
-[tool.isort]
-profile = "black"
-py_version=37
-skip = "xlwings/mistune"
-combine_as_imports = true
+[tool.ruff]
+target-version = "py38"
+line-length = 88
+fix = true
+ignore = [
+    # Whitespace before ':' (black compatibility)
+    "E203",
+    # Line too long (black doesn't handle long strings)
+    "E501",
+    # Module level import not at top of file
+    "E402",
+]
+select = [
+    "E", # pycodestyle errors
+    "F", # pyflakes
+    "I", # isort
+]
+
+[tool.ruff.isort]
+combine-as-imports = true
+known-first-party = ["xlwings"]

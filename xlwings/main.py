@@ -134,9 +134,16 @@ class Engines:
             try:
                 return self.engines_by_name[name_or_index]
             except KeyError:
-                if not xlwings.PRO and name_or_index in ["calamine", "remote"]:
+                engine_to_product_name = {
+                    "remote": "xlwings Server",
+                    "calamine": "xlwings Reader",
+                }
+                if not xlwings.__pro__ and name_or_index != "excel":
                     raise LicenseError(
-                        f"The '{name_or_index}' engine requires xlwings PRO."
+                        f"{engine_to_product_name.get(name_or_index, name_or_index)} "
+                        "requires a license key. Install one by running 'xlwings "
+                        "license update -k your-key-here' or by setting the "
+                        "XLWINGS_LICENSE_KEY environment variable."
                     )
                 else:
                     raise
@@ -235,6 +242,15 @@ class Apps:
         .. versionadded:: 0.9.0
         """
         return len(self)
+
+    def cleanup(self):
+        """
+        Removes Excel zombie processes (Windows-only). Note that this is automatically
+        called with ``App.quit()`` and ``App.kill()``.
+
+        .. versionadded:: 0.30.2
+        """
+        self.impl.cleanup()
 
     def __iter__(self):
         for app in self.impl:
@@ -718,7 +734,7 @@ class App:
     def alert(self, prompt, title=None, buttons="ok", mode=None, callback=None):
         """
         This corresponds to ``MsgBox`` in VBA, shows an alert/message box and returns
-        the value of the pressed button. For the remote interpreter, instead of
+        the value of the pressed button. For xlwings Server, instead of
         returning a value, the function accepts the name of a callback to which it will
         supply the value of the pressed button.
 
@@ -739,7 +755,7 @@ class App:
             Can be ``"info"`` or ``"critical"``. Not supported by Google Sheets.
 
         callback : str, default None
-            Only used by the remote interpreter: you can provide the name of a
+            Only used by xlwings Server: you can provide the name of a
             function that will be called with the value of the pressed button as
             argument. The function has to exist on the client side, i.e., in VBA or
             JavaScript.
@@ -747,7 +763,7 @@ class App:
         Returns
         -------
         button_value: str or None
-            Returns ``None`` when used with the remote interpreter, otherwise the value
+            Returns ``None`` when used with xlwings Server, otherwise the value
             of the pressed button in lowercase: ``"ok"``, ``"cancel"``, ``"yes"``,
             ``"no"``.
 
@@ -891,7 +907,6 @@ class Book:
                 impl = engines[engine].apps.active.books.open(fullname=fullname).impl
             elif fullname:
                 fullname = utils.fspath(fullname)
-                fullname = fullname.lower()
 
                 candidates = []
                 for app in apps:
@@ -900,8 +915,8 @@ class Book:
                         # fullname for non-candidates, which can get around issues in
                         # case the fullname is a problematic URL (GH 1946)
                         if wb.name.lower() == os.path.split(fullname)[1].lower() and (
-                            wb.fullname.lower() == fullname
-                            or wb.name.lower() == fullname
+                            wb.fullname.lower() == fullname.lower()
+                            or wb.name.lower() == fullname.lower()
                         ):
                             candidates.append((app, wb))
 
@@ -1776,7 +1791,6 @@ class Range:
     """
 
     def __init__(self, cell1=None, cell2=None, **options):
-
         # Arguments
         impl = options.pop("impl", None)
         if impl is None:
@@ -2255,7 +2269,7 @@ class Range:
     def address(self):
         """
         Returns a string value that represents the range reference.
-        Use ``get_address()`` to be able to provide paramaters.
+        Use ``get_address()`` to be able to provide parameters.
 
         .. versionadded:: 0.9.0
         """
@@ -2506,22 +2520,25 @@ class Range:
             self.sheet.name, self.sheet.book.name, self.address
         )
 
-    def insert(self, shift=None, copy_origin="format_from_left_or_above"):
+    def insert(self, shift, copy_origin="format_from_left_or_above"):
         """
         Insert a cell or range of cells into the sheet.
 
         Parameters
         ----------
-        shift : str, default None
-            Use ``right`` or ``down``. If omitted, Excel decides based on the shape of
-            the range.
+        shift : str
+            Use ``right`` or ``down``.
         copy_origin : str, default format_from_left_or_above
             Use ``format_from_left_or_above`` or ``format_from_right_or_below``.
-            Note that this is not supported on macOS.
+            Note that copy_origin is only supported on Windows.
 
         Returns
         -------
         None
+
+
+        .. versionchanged:: 0.30.3
+            ``shift`` is now a required argument.
 
         """
         self.impl.insert(shift, copy_origin)
@@ -2882,6 +2899,28 @@ class Range:
         """
         return utils.to_pdf(self, path=path, layout=layout, show=show, quality=quality)
 
+    def autofill(self, destination, type_="fill_default"):
+        """
+        Autofills the destination Range. Note that the destination Range must include
+        the origin Range.
+
+        Arguments
+        ---------
+
+        destination : Range
+            The origin.
+
+        type_ : str, default ``"fill_default"``
+            One of the following strings: ``"fill_copy"``, ``"fill_days"``,
+            ``"fill_default"``, ``"fill_formats"``, ``"fill_months"``,
+            ``"fill_series"``, ``"fill_values"``, ``"fill_weekdays"``, ``"fill_years"``,
+            ``"growth_trend"``, ``"linear_trend"``, ``"flash_fill``
+
+
+        .. versionadded:: 0.30.1
+        """
+        self.impl.autofill(destination=destination, type_=type_)
+
 
 # These have to be after definition of Range to resolve circular reference
 from . import conversion, expansion
@@ -3207,7 +3246,7 @@ class Shape:
 
     @text.setter
     def text(self, value):
-        if xlwings.PRO:
+        if xlwings.__pro__:
             from xlwings.pro import Markdown
             from xlwings.pro.reports.markdown import format_text, render_text
 
@@ -3649,7 +3688,7 @@ class Table:
 
         .. versionadded:: 0.24.4
         """
-        self.impl.resize(range.api)
+        self.impl.resize(range)
 
     def __eq__(self, other):
         return (
@@ -3711,16 +3750,16 @@ class Tables(Collection):
 
         has_headers : bool or str, default True
             Indicates whether the data being imported has column labels. Defaults to
-            ``True``. Possible values: ``True``, ``FAlse``, ``'guess'``
+            ``True``. Possible values: ``True``, ``False``, ``'guess'``
 
         destination : xlwings range, default None
             Currently not implemented as this is used in case ``source_type`` is
             ``xlSrcExternal``.
 
         table_style_name : str, default 'TableStyleMedium2'
-            Possible strings: ``'TableStyleLightN''`` (where N is 1-21),
+            Possible strings: ``'TableStyleLightN'`` (where N is 1-21),
             ``'TableStyleMediumN'`` (where N is 1-28),
-            `'TableStyleDarkN'`` (where N is 1-11)
+            ``'TableStyleDarkN'`` (where N is 1-11)
 
         Returns
         -------
@@ -3744,12 +3783,10 @@ class Tables(Collection):
             has_headers=has_headers,
             destination=destination,
             table_style_name=table_style_name,
+            name=name,
         )
 
-        table = Table(impl=impl)
-        if name is not None:
-            table.name = name
-        return table
+        return Table(impl=impl)
 
 
 class Chart:
@@ -4620,6 +4657,14 @@ class Name:
     def __repr__(self):
         return "<Name '%s': %s>" % (self.name, self.refers_to)
 
+    def __eq__(self, other):
+        return (
+            type(other) is Name
+            and other.name == self.name
+            and other.refers_to_range == self.refers_to_range
+            and other.refers_to == self.refers_to
+        )
+
 
 def view(obj, sheet=None, table=True, chunksize=5000):
     """
@@ -5093,9 +5138,7 @@ class Sheets(Collection):
             before = self(before)
         if after is not None and not isinstance(after, Sheet):
             after = self(after)
-        impl = self.impl.add(before and before.impl, after and after.impl)
-        if name is not None:
-            impl.name = name
+        impl = self.impl.add(before and before.impl, after and after.impl, name)
         return Sheet(impl=impl)
 
 
@@ -5112,8 +5155,8 @@ class ActiveEngineApps(Apps):
                 sys.platform.startswith("darwin") or sys.platform.startswith("win")
             ):
                 raise XlwingsError(
-                    "Your platform only supports the "
-                    "instantiation via xw.Book(json=...)"
+                    "The interactive mode of xlwings is only supported on Windows and "
+                    "macOS. On Linux, you can use xlwings Server or xlwings Reader."
                 )
             elif sys.platform.startswith("darwin"):
                 raise XlwingsError(

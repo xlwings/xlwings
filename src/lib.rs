@@ -66,7 +66,12 @@ fn get_values(
                 DataType::Float(v) => result_row.push(CellValue::Float(*v)),
                 DataType::String(v) => result_row.push(CellValue::String(String::from(v))),
                 DataType::DateTime(_v) => {
-                    result_row.push(CellValue::DateTime(value.as_datetime().unwrap()))
+                    if value.as_datetime().is_none() {
+                        // This can happen with date overflows (1e+20 formatted as date cell)
+                        result_row.push(CellValue::Empty);
+                    } else {
+                        result_row.push(CellValue::DateTime(value.as_datetime().unwrap()))
+                    }
                 }
                 DataType::Bool(v) => result_row.push(CellValue::Bool(*v)),
                 DataType::Error(v) => match v {
@@ -112,6 +117,12 @@ fn get_values(
                     }),
                 },
                 DataType::Empty => result_row.push(CellValue::Empty),
+                DataType::DateTimeIso(_v) => {
+                    result_row.push(CellValue::DateTime(value.as_datetime().unwrap()))
+                }
+                DataType::DurationIso(_v) => {
+                    result_row.push(CellValue::DateTime(value.as_datetime().unwrap()))
+                }
             };
         }
         result.push(result_row);

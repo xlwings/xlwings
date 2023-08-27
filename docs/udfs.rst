@@ -47,7 +47,7 @@ Let's assume you have a Workbook ``myproject.xlsm``, then you would write the fo
 * Now click on ``Import Python UDFs`` in the xlwings tab to pick up the changes made to ``myproject.py``.
 * Enter the formula ``=double_sum(1, 2)`` into a cell and you will see the correct result:
 
-  .. figure:: images/double_sum.png
+  .. figure:: ./images/double_sum.png
 
 * The docstring (in triple-quotes) will be shown as function description in Excel.
 
@@ -85,7 +85,7 @@ To use this formula in Excel,
 * Press ``Ctrl+Shift+Enter`` to create an array formula. If you did everything correctly, you'll see the formula
   surrounded by curly braces as in this screenshot:
 
-.. figure:: images/array_formula.png
+.. figure:: ./images/array_formula.png
 
 Number of array dimensions: ndim
 ********************************
@@ -179,9 +179,9 @@ This is a simple example that demonstrates the syntax and effect of UDF expansio
     def dynamic_array(r, c):
         return np.random.randn(int(r), int(c))
 
-.. figure:: images/dynamic_array1.png
+.. figure:: ./images/dynamic_array1.png
 
-.. figure:: images/dynamic_array2.png
+.. figure:: ./images/dynamic_array2.png
 
 .. note::
     * Expanding array formulas will overwrite cells without prompting

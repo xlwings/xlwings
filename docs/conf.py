@@ -24,12 +24,10 @@ sys.path.insert(0, os.path.abspath(".."))
 # -- Handle unavailable packages/modules on build machine -----------------------
 
 # pywin32 can't be installed on non-Windows OS (e.g. on Read-the-Docs), therefore mock
-# it https://read-the-docs.readthedocs.org/en/latest/
-#  faq.html#i-get-import-errors-on-libraries-that-depend-on-c-modules
+# it https://docs.readthedocs.io/en/latest/faq.html#why-do-i-get-import-errors-from-libraries-depending-on-c-modules
 
 
 class Mock(object):
-
     __all__ = []
 
     def __init__(self, *args, **kwargs):
@@ -55,22 +53,28 @@ class Mock(object):
 
 
 MOCK_MODULES = [
-    "win32com",
-    "win32com.client",
-    "pywintypes",
-    "pythoncom",
-    "win32timezone",
     "appscript",
     "appscript.reference",
     "psutil",
     "xlplatform",
     "atexit",
     "aem",
-    "win32com.server",
-    "win32com.server.util",
-    "win32com.server.dispatcher",
-    "win32com.server.policy",
+    "osax",
 ]
+
+if not sys.platform.startswith("win"):
+    MOCK_MODULES += [
+        "win32com",
+        "win32com.client",
+        "pywintypes",
+        "pythoncom",
+        "win32timezone",
+        "win32com.server",
+        "win32com.server.util",
+        "win32com.server.dispatcher",
+        "win32com.server.policy",
+    ]
+
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
@@ -80,7 +84,6 @@ for mod_name in MOCK_MODULES:
 # on_rtd is whether we are on readthedocs.org
 # Note: under Admin > Advanced Settings, check the box 'Install your project inside a
 # virtualenv...' and provide a setup.py and requirements.txt file for the extension
-# 'sphinxcontrib-napoleon' (will be obsolete under sphinx 1.3)
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -90,14 +93,15 @@ on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinxcontrib.napoleon",
     "sphinx.ext.mathjax",
     "sphinx.ext.extlinks",
     "sphinx.ext.autosectionlabel",  # To make easy intra-page links: :ref:`Title`
-    "sphinxcontrib.httpdomain",
     "sphinx_copybutton",
     "sphinx_design",
 ]
+
+# For sphinx.ext.autosectionlabel
+autosectionlabel_prefix_document = True
 
 # autodoc_member_order = 'bysource'
 
@@ -150,7 +154,7 @@ exclude_patterns = ["_build"]
 
 # If true, the current module name will be prepended to all description
 # unit titles (such as .. function::).
-# add_module_names = True
+add_module_names = False
 
 # If true, sectionauthor and moduleauthor directives will be shown in the
 # output. They are ignored by default.
@@ -164,7 +168,7 @@ exclude_patterns = ["_build"]
 
 
 # extlinks alias
-extlinks = {"issue": ("https://github.com/xlwings/xlwings/issues/%s", "GH")}
+extlinks = {"issue": ("https://github.com/xlwings/xlwings/issues/%s", "GH %s")}
 
 # -- Options for HTML output ---------------------------------------------------
 
@@ -191,7 +195,7 @@ html_theme_options = {
         "color-brand-primary": "white",
         "color-announcement-background": "#28a745",
     },
-    # "announcement": '<string>Live Webinar (Oct 26):</strong> Introducing xlwings PRO File Reader <a href="https://zoomeranalytics.webinargeek.com/introducing-xlwings-file-reader?cst=docs/">Sign Up!</a>',
+    "announcement": 'Custom Functions ("UDFs") are now available on all platforms, including macOS and Web: <a href="https://docs.xlwings.org/en/latest/pro/server/officejs_custom_functions.html">Check out the docs!</a>',
 }
 
 html_show_sourcelink = False

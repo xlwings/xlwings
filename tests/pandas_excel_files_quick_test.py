@@ -22,12 +22,15 @@ path = (
 
 ix = 0
 for ix, f in enumerate(path.glob("[!~$]*.xls*")):
-    print(f.resolve())
-    with xw.Book(f.resolve(), mode="r") as book:
-        for sheet in book.sheets:
-            print(sheet.name)
-            data = sheet.cells.value
-            print(data)
+    file_name = f.resolve()
+    try:
+        with xw.Book(f.resolve(), mode="r") as book:
+            for sheet in book.sheets:
+                sheet_name = sheet.name
+                data = sheet.cells.value
+        print(".", end="", flush=True)
+    except:  # noqa: E722
+        print(f"FAILED: {f.resolve()} [repr(e)]")
 
 print()
 print(f"Tested {ix + 1} files.")

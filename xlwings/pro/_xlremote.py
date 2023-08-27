@@ -35,7 +35,7 @@ if np:
 
 datetime_pattern = (
     pattern
-) = r"^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$"
+) = r"^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$"  # noqa: E501
 datetime_regex = re.compile(pattern)
 
 
@@ -74,7 +74,7 @@ def _clean_value_data_element(
             microsecond=value.microsecond,
             tzinfo=None,
         )
-    elif number_builder is not None and type(value) == float:
+    elif number_builder is not None and isinstance(value, float):
         value = number_builder(value)
     return value
 
@@ -96,7 +96,7 @@ class Engine:
         ]
 
     @staticmethod
-    def prepare_xl_data_element(x):
+    def prepare_xl_data_element(x, options):
         if x is None:
             return ""
         elif pd and pd.isna(x):
@@ -147,7 +147,6 @@ class Apps(base_classes.Apps):
 
 
 class App(base_classes.App):
-
     _next_pid = -1
 
     def __init__(self, apps, add_book=True, **kwargs):
@@ -200,6 +199,12 @@ class App(base_classes.App):
                 "" if mode is None else mode,
                 "" if callback is None else callback,
             ],
+        )
+
+    def run(self, macro, args):
+        self.books.active.append_json_action(
+            func="runMacro",
+            args=[macro] + [args] if not isinstance(args, list) else [macro] + args,
         )
 
 
@@ -302,6 +307,10 @@ class Book(base_classes.Book):
         return self.name
 
     @property
+    def names(self):
+        return Names(parent=self, api=self.api["names"])
+
+    @property
     def sheets(self):
         return Sheets(api=self.api["sheets"], book=self)
 
@@ -335,22 +344,16 @@ class Sheets(base_classes.Sheets):
 
     def __call__(self, name_or_index):
         if isinstance(name_or_index, int):
-            api = self.api[name_or_index - 1]
-            ix = name_or_index - 1
+            return Sheet(
+                api=self.api[name_or_index - 1], sheets=self, index=name_or_index
+            )
         else:
-            api = None
             for ix, sheet in enumerate(self.api):
                 if sheet["name"] == name_or_index:
-                    api = sheet
-                    break
-                else:
-                    continue
-        if api is None:
-            raise ValueError(f"Sheet '{name_or_index}' doesn't exist!")
-        else:
-            return Sheet(api=api, sheets=self, index=ix + 1)
+                    return Sheet(api=sheet, sheets=self, index=ix + 1)
+        raise ValueError(f"Sheet '{name_or_index}' doesn't exist!")
 
-    def add(self, before=None, after=None):
+    def add(self, before=None, after=None, name=None):
         # Default naming logic is different from Desktop apps!
         sheet_number = 1
         while True:
@@ -358,7 +361,12 @@ class Sheets(base_classes.Sheets):
                 sheet_number += 1
             else:
                 break
-        api = {"name": f"Sheet{sheet_number}", "values": [[]]}
+        api = {
+            "name": f"Sheet{sheet_number}",
+            "values": [[]],
+            "pictures": [],
+            "tables": [],
+        }
         if before:
             if before.index == 1:
                 ix = 1
@@ -370,7 +378,7 @@ class Sheets(base_classes.Sheets):
             # Default position is different from Desktop apps!
             ix = len(self) + 1
         self.api.insert(ix - 1, api)
-        self.book.append_json_action(func="addSheet", args=ix - 1)
+        self.book.append_json_action(func="addSheet", args=[ix - 1, name])
         self.book.api["book"]["active_sheet_index"] = ix - 1
 
         return Sheet(api=api, sheets=self, index=ix)
@@ -434,6 +442,17 @@ class Sheet(base_classes.Sheet):
             arg2=(1_048_576, 16_384),
         )
 
+    @property
+    def names(self):
+        api = [
+            name
+            for name in self.book.api["names"]
+            if name["scope_sheet_index"] is not None
+            and name["scope_sheet_index"] + 1 == self.index
+            and not name["book_scope"]
+        ]
+        return Names(parent=self, api=api)
+
     def activate(self):
         ix = self.index - 1
         self.book.api["book"]["active_sheet_index"] = ix
@@ -442,6 +461,10 @@ class Sheet(base_classes.Sheet):
     @property
     def pictures(self):
         return Pictures(self)
+
+    @property
+    def tables(self):
+        return Tables(parent=self)
 
 
 @lru_cache(None)
@@ -502,10 +525,19 @@ class Range(base_classes.Range):
                         and api_name["sheet_index"] == sheet.index - 1
                     ):
                         tuple1, tuple2 = utils.a1_to_tuples(api_name["address"])
-                if not tuple1:
-                    raise NoSuchObjectError(
-                        f"The address/named range '{arg1}' doesn't exist."
-                    )
+                        break
+            if not tuple1:
+                # Tables
+                for api_table in sheet.api["tables"]:
+                    if api_table["name"] == arg1:
+                        tuple1, tuple2 = utils.a1_to_tuples(
+                            api_table["data_body_range_address"]
+                        )
+                        break
+            if not tuple1:
+                raise NoSuchObjectError(
+                    f"The address/named range '{arg1}' doesn't exist."
+                )
             arg1, arg2 = tuple1, tuple2
 
         # Coordinates
@@ -677,6 +709,57 @@ class Range(base_classes.Range):
     def number_format(self, value):
         self.append_json_action(func="setNumberFormat", args=value)
 
+    @property
+    def name(self):
+        for name in self.sheet.book.api["names"]:
+            if name["sheet_index"] == self.sheet.index - 1 and name[
+                "address"
+            ] == self.address.replace("$", ""):
+                return Name(
+                    parent=self.sheet.book if name["book_scope"] else self.sheet,
+                    api=name,
+                )
+
+    @name.setter
+    def name(self, value):
+        self.append_json_action(
+            func="setRangeName",
+            args=value,
+        )
+
+    def copy(self, destination=None):
+        # TODO: introduce the new copy_from from Office Scripts
+        if destination is None:
+            raise XlwingsError("range.copy() requires a destination argument.")
+        self.append_json_action(
+            func="copyRange",
+            args=[destination.sheet.index - 1, destination.address],
+        )
+
+    def delete(self, shift=None):
+        if shift not in ("up", "left"):
+            # Non-remote version allows shift=None
+            raise XlwingsError(
+                "range.delete() requires either 'up' or 'left' as shift arguments."
+            )
+        self.append_json_action(func="rangeDelete", args=shift)
+
+    def insert(self, shift=None, copy_origin=None):
+        if shift not in ("down", "right"):
+            raise XlwingsError(
+                "range.insert() requires either 'down' or 'right' as shift arguments."
+            )
+        if copy_origin not in (
+            "format_from_left_or_above",
+            "format_from_right_or_below",
+        ):
+            raise XlwingsError(
+                "range.insert() requires either 'format_from_left_or_above' or "
+                "'format_from_right_or_below' as copy_origin arguments."
+            )
+        # copy_origin is only supported by VBA clients
+        self.append_json_action(func="rangeInsert", args=[shift, copy_origin])
+
     def __len__(self):
         nrows, ncols = self.shape
         return nrows * ncols
@@ -816,7 +899,6 @@ class Picture(base_classes.Picture):
 
 
 class Pictures(Collection, base_classes.Pictures):
-
     _attr = "pictures"
     _wrap = Picture
 
@@ -879,4 +961,267 @@ class Pictures(Collection, base_classes.Pictures):
         return Picture(self.parent, len(self.parent.api["pictures"]))
 
 
+class Name(base_classes.Name):
+    def __init__(self, parent, api):
+        self.parent = parent
+        self.api = api
+
+    @property
+    def name(self):
+        if self.api["book_scope"]:
+            return self.api["name"]
+        else:
+            sheet_name = self.api["scope_sheet_name"]
+            if "!" not in self.api["name"]:
+                # VBA/Google Sheets already do this
+                sheet_name = f"'{sheet_name}'" if " " in sheet_name else sheet_name
+                return f"{sheet_name}!{self.api['name']}"
+            else:
+                return self.api["name"]
+
+    @property
+    def refers_to(self):
+        book = self.parent if isinstance(self.parent, Book) else self.parent.book
+        sheet = book.sheets(self.api["sheet_index"] + 1)
+        sheet_name = f"'{sheet.name}'" if " " in sheet.name else sheet.name
+        return f"={sheet_name}!{sheet.range(self.api['address']).address}"
+
+    @property
+    def refers_to_range(self):
+        book = self.parent if isinstance(self.parent, Book) else self.parent.book
+        sheet = book.sheets(self.api["sheet_index"] + 1)
+        return sheet.range(self.api["address"])
+
+    def delete(self):
+        # TODO: delete in api
+        self.parent.append_json_action(
+            func="nameDelete",
+            args=[
+                self.name,  # this includes the sheet name for sheet scope
+                self.refers_to,
+                self.api["name"],  # no sheet name
+                self.api["sheet_index"],
+                self.api["book_scope"],
+                self.api["scope_sheet_index"],
+            ],
+        )
+
+
+class Names(base_classes.Names):
+    def __init__(self, parent, api):
+        self.parent = parent
+        self.api = api
+
+    def add(self, name, refers_to):
+        # TODO: raise backend error in case of duplicates
+        if isinstance(self.parent, Book):
+            is_parent_book = True
+        else:
+            is_parent_book = False
+        self.parent.append_json_action(func="namesAdd", args=[name, refers_to])
+
+        def _get_sheet_index(parent):
+            if is_parent_book:
+                sheets = parent.sheets
+            else:
+                sheets = parent.book.sheets
+            for sheet in sheets:
+                if sheet.name == refers_to.split("!")[0].replace("=", "").replace(
+                    "'", ""
+                ):
+                    return sheet.index - 1
+
+        return Name(
+            self.parent,
+            {
+                "name": name,
+                "sheet_index": _get_sheet_index(self.parent),
+                "address": refers_to.split("!")[1].replace("$", ""),
+                "book_scope": True if is_parent_book else False,
+            },
+        )
+
+    def __call__(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            name_or_index -= 1
+            if name_or_index > len(self):
+                raise KeyError(name_or_index)
+            else:
+                return Name(self.parent, api=self.api[name_or_index])
+        else:
+            for ix, i in enumerate(self.api):
+                name = Name(self.parent, api=self.api[ix])
+                if name.name == name_or_index:
+                    # Sheet scope names have the sheet name prepended
+                    return name
+            raise KeyError(name_or_index)
+
+    def contains(self, name_or_index):
+        if isinstance(name_or_index, numbers.Number):
+            return 1 <= name_or_index <= len(self)
+        else:
+            for i in self.api:
+                if i["name"] == name_or_index:
+                    return True
+            return False
+
+    def __len__(self):
+        return len(self.api)
+
+
 engine = Engine()
+
+
+class Table(base_classes.Table):
+    @property
+    def show_autofilter(self):
+        return self.api["show_autofilter"]
+
+    @show_autofilter.setter
+    def show_autofilter(self, value):
+        self.append_json_action(
+            func="showAutofilterTable", args=[self.index - 1, value]
+        )
+
+    def __init__(self, parent, key):
+        self._parent = parent
+        self._api = self.parent.api["tables"][key - 1]
+        self.key = key
+
+    def append_json_action(self, **kwargs):
+        self.parent.book.append_json_action(
+            **{
+                **kwargs,
+                **{
+                    "sheet_position": self.parent.index - 1,
+                },
+            }
+        )
+
+    @property
+    def api(self):
+        return self._api
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @property
+    def name(self):
+        return self.api["name"]
+
+    @name.setter
+    def name(self, value):
+        self.api["name"] = value
+        self.append_json_action(func="setTableName", args=[self.index - 1, value])
+
+    @property
+    def range(self):
+        if self.api["range_address"]:
+            return self.parent.range(self.api["range_address"])
+        else:
+            return None
+
+    @property
+    def header_row_range(self):
+        if self.api["header_row_range_address"]:
+            return self.parent.range(self.api["header_row_range_address"])
+        else:
+            return None
+
+    @property
+    def data_body_range(self):
+        if self.api["data_body_range_address"]:
+            return self.parent.range(self.api["data_body_range_address"])
+        else:
+            return None
+
+    @property
+    def totals_row_range(self):
+        if self.api["total_row_range_address"]:
+            return self.parent.range(self.api["total_row_range_address"])
+        else:
+            return None
+
+    @property
+    def show_headers(self):
+        return self.api["show_headers"]
+
+    @show_headers.setter
+    def show_headers(self, value):
+        self.append_json_action(func="showHeadersTable", args=[self.index - 1, value])
+
+    @property
+    def show_totals(self):
+        return self.api["show_totals"]
+
+    @show_totals.setter
+    def show_totals(self, value):
+        self.append_json_action(func="showTotalsTable", args=[self.index - 1, value])
+
+    @property
+    def table_style(self):
+        return self.api["table_style"]
+
+    @table_style.setter
+    def table_style(self, value):
+        self.append_json_action(func="setTableStyle", args=[self.index - 1, value])
+
+    @property
+    def index(self):
+        # TODO: make available in public API
+        if isinstance(self.key, numbers.Number):
+            return self.key
+        else:
+            for ix, obj in self.api:
+                if obj["name"] == self.key:
+                    return ix + 1
+            raise KeyError(self.key)
+
+    def resize(self, range):
+        self.append_json_action(
+            func="resizeTable", args=[self.index - 1, range.address]
+        )
+
+
+class Tables(Collection, base_classes.Tables):
+    _attr = "tables"
+    _wrap = Table
+
+    def append_json_action(self, **kwargs):
+        self.parent.book.append_json_action(
+            **{
+                **kwargs,
+                **{
+                    "sheet_position": self.parent.index - 1,
+                },
+            }
+        )
+
+    def add(
+        self,
+        source_type=None,
+        source=None,
+        link_source=None,
+        has_headers=None,
+        destination=None,
+        table_style_name=None,
+        name=None,
+    ):
+        self.append_json_action(
+            func="addTable",
+            args=[source.address, has_headers, table_style_name, name],
+        )
+        self.parent._api["tables"].append(
+            {
+                "name": "",
+                "range_address": None,
+                "header_row_range_address": None,
+                "data_body_range_address": None,
+                "total_row_range_address": None,
+                "show_headers": None,
+                "show_totals": None,
+                "table_style": "",
+            }
+        )
+        return Table(self.parent, len(self.parent.api["tables"]))
