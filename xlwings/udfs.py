@@ -59,14 +59,16 @@ async def async_thread(base, my_has_dynamic_array, func, args, cache_key, expand
     except:  # noqa: E722
         exception(logger, "async_thread failed")
 
-async def async_thread_nocaller(func, args,):
+
+async def async_thread_nocaller(
+    func,
+    args,
+):
     try:
         loop = asyncio.get_running_loop()
-        await loop.run_in_executor(
-            com_executor, functools.partial(func, *args)
-        )
+        await loop.run_in_executor(com_executor, functools.partial(func, *args))
 
-    except:
+    except:  # noqa: E722
         exception(logger, "async_thread failed")
 
 
