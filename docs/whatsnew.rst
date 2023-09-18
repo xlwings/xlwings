@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.30.12 (Sep 18, 2023)
+-----------------------
+
+* :bdg-success:`Feature` New CLI command ``xlwings py edit``: this allows you to edit Microsoft's Python in Excel cells (`=PY`) in an external editor of your choice with auto-sync (:issue:`2331`).
+
 v0.30.11 (Aug 26, 2023)
 -----------------------
 
