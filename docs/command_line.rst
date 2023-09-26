@@ -58,12 +58,6 @@ xlwings comes with a command line client. On Windows, type the commands into a C
                         the "--file" flag to only import a single file by
                         providing its path. Requires xlwings PRO.
                         (Changed in 0.23.4)
-    permission          "xlwings permission cwd" prints a JSON string that can
-                        be used to permission the execution of all modules in
-                        the current working directory via GET request.
-                        "xlwings permission book" does the same for code that
-                        is embedded in the active workbook.
-                        (New in 0.23.4)
     release             Run "xlwings release" to configure your active
                         workbook to work with a one-click installer for easy
                         deployment. Requires xlwings PRO.

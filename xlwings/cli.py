@@ -1,12 +1,9 @@
 import argparse
-import hashlib
 import json
 import os
 import shutil
-import socket
 import subprocess
 import sys
-import tempfile
 import time
 import uuid
 from keyword import iskeyword
@@ -509,41 +506,6 @@ def code_embed(args):
             config_sheet["A1"].value = {
                 "RELEASE_EMBED_CODE_MAP": json.dumps(sheetname_to_path)
             }
-
-
-def print_permission_json(scope):
-    from .pro import dump_embedded_code
-
-    assert scope in ["cwd", "book"]
-    if scope == "cwd":
-        source_files = Path(".").glob("*.py")
-    else:
-        tempdir = tempfile.TemporaryDirectory(prefix="xlwings-")
-        source_files = Path(tempdir.name).glob("*.py")
-        dump_embedded_code(xw.books.active, tempdir.name)
-
-    payload = {"modules": []}
-    for source_file in source_files:
-        with open(source_file, "rb") as f:
-            content = f.read()
-        payload["modules"].append(
-            {
-                "file_name": source_file.name,
-                "sha256": hashlib.sha256(content).hexdigest(),
-                "machine_names": [socket.gethostname()],
-            }
-        )
-    print(json.dumps(payload, indent=2))
-    if scope == "book":
-        tempdir.cleanup()
-
-
-def permission_cwd(args):
-    print_permission_json("cwd")
-
-
-def permission_book(args):
-    print_permission_json("book")
 
 
 def copy_os(args):
@@ -1185,24 +1147,6 @@ def main():
         help="Optional parameter to only import a single file provided as file path.",
     )
     code_create_parser.set_defaults(func=code_embed)
-
-    # Permission
-    permission_parser = subparsers.add_parser(
-        "permission",
-        help='"xlwings permission cwd" prints a JSON string that can'
-        " be used to permission the execution of all modules in"
-        " the current working directory via GET request. "
-        '"xlwings permission book" does the same for code '
-        "that is embedded in the active workbook.",
-    )
-    permission_subparsers = permission_parser.add_subparsers(dest="subcommand")
-    permission_subparsers.required = True
-
-    permission_cwd_parser = permission_subparsers.add_parser("cwd")
-    permission_cwd_parser.set_defaults(func=permission_cwd)
-
-    permission_book_parser = permission_subparsers.add_parser("book")
-    permission_book_parser.set_defaults(func=permission_book)
 
     # Release
     release_parser = subparsers.add_parser(
