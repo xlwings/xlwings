@@ -8,7 +8,6 @@ import logging
 import os
 import os.path
 import re
-import sys
 import tempfile
 import threading
 from importlib import (
@@ -24,10 +23,9 @@ from win32com.client import Dispatch
 import xlwings
 
 from . import Book, LicenseError, Range, __pro__, apps, conversion
-from .utils import VBAWriter, exception, get_cached_user_config, read_config_sheet
+from .utils import VBAWriter, exception, read_config_sheet
 
 if __pro__:
-    from .pro import verify_execute_permission
     from .pro.embedded_code import TEMPDIR, dump_embedded_code
 
 logger = logging.getLogger(__name__)
@@ -359,11 +357,6 @@ async def delayed_resize_dynamic_array_formula(target_range, caller):
         exception(logger, "couldn't resize")
 
 
-# Setup temp dir for embedded code
-if __pro__:
-    sys.path[0:0] = [TEMPDIR]  # required for permissioning
-
-
 def get_udf_module(module_name, xl_workbook):
     module_info = udf_modules.get(module_name, None)
     if module_info is not None:
@@ -384,15 +377,6 @@ def get_udf_module(module_name, xl_workbook):
                     raise LicenseError("Embedded code requires a valid LICENSE_KEY.")
                 elif __pro__:
                     dump_embedded_code(wb, TEMPDIR)
-
-        # Permission check
-        if (
-            get_cached_user_config("permission_check_enabled")
-            and get_cached_user_config("permission_check_enabled").lower()
-        ) == "true":
-            if not __pro__:
-                raise LicenseError("Permission checks require xlwings PRO.")
-            verify_execute_permission(module_names=(module_name,))
 
         module = import_module(module_name)
         filename = os.path.normcase(module.__file__.lower())
@@ -428,13 +412,6 @@ def call_udf(module_name, func_name, args, this_workbook=None, caller=None):
     """
     This method executes the UDF synchronously from the COM server thread
     """
-    if (
-        get_cached_user_config("permission_check_enabled")
-        and get_cached_user_config("permission_check_enabled").lower() == "true"
-    ):
-        if not __pro__:
-            raise LicenseError("Permission checks require xlwings PRO.")
-        verify_execute_permission(module_names=(module_name,))
     module = get_udf_module(module_name, this_workbook)
     func = getattr(module, func_name)
     func_info = func.__xlfunc__

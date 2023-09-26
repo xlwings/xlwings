@@ -12,7 +12,6 @@ Commercial licenses can be purchased at https://www.xlwings.org
 """
 
 from .embedded_code import dump_embedded_code, runpython_embedded_code
-from .module_permissions import verify_execute_permission
 from .reports import Markdown, MarkdownStyle
 from .udfs_officejs import (
     custom_functions_call,

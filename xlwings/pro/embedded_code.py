@@ -18,8 +18,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from ..main import Book
-from ..utils import get_cached_user_config, read_config_sheet
-from .module_permissions import verify_execute_permission
+from ..utils import read_config_sheet
 from .utils import LicenseHandler, get_embedded_code_temp_dir
 
 LicenseHandler.validate_license("pro")
@@ -60,9 +59,4 @@ def dump_embedded_code(book, target_dir):
 
 def runpython_embedded_code(command):
     dump_embedded_code(Book.caller(), TEMPDIR)
-    if (
-        get_cached_user_config("permission_check_enabled")
-        and get_cached_user_config("permission_check_enabled").lower() == "true"
-    ):
-        verify_execute_permission(command=command)
     exec(command)

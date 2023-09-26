@@ -109,11 +109,6 @@ Public Function RunPython(PythonCommand As String)
         End If
     End If
 
-    ' Handle module execute permission (for embedded code that happens in Python)
-    If LCase(GetConfig("PERMISSION_CHECK_ENABLED", , source:="user")) = "true" And uses_embedded_code = False Then
-        PythonCommand = "import xlwings.pro;xlwings.pro.verify_execute_permission('" & SourcePythonCommand & "');" & PythonCommand
-    End If
-
     ' Call Python platform-dependent
     #If Mac Then
         Application.StatusBar = "Running..."  ' Non-blocking way of giving feedback that something is happening
