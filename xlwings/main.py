@@ -3173,6 +3173,19 @@ class Shape:
     def height(self, value):
         self.impl.height = value
 
+    @property
+    def formula(self):
+        """
+        Returns or sets the fomular of the shape.
+
+        .. versionadded:: 0.30.13
+        """
+        return self.impl.formula
+
+    @formula.setter
+    def formula(self, value):
+        self.impl.formula = value
+
     def delete(self):
         """
         Deletes the shape.
