@@ -111,10 +111,10 @@ class TestShape(TestBase):
         self.wb1.sheets[0].pictures.add(filename, name="pic1")
 
         sh = self.wb1.sheets[0].shapes[0]
-        sh.formula = "A2"
-        self.assertEqual(sh.formula, "A2")
+        sh.formula = "A2:C3"
+        self.assertEqual((sh.formula).strip(), "A2:C3")
         sh.formula = "B3"
-        self.assertEqual(sh.formula, "B3")
+        self.assertEqual((sh.formula).strip(), 'B3')
 
 
 class TestPicture(TestBase):
