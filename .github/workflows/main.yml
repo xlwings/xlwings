@@ -150,7 +150,7 @@ jobs:
       fail-fast: false
       matrix:
         # abi3 wheels aren't supported as DateTime is not part of the ABI spec (PEP 384)
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.12.0-alpha - 3.12.0"]
         platform:
           [
             { os: "windows-latest", target: "x86_64" },
