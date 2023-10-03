@@ -114,7 +114,7 @@ class TestShape(TestBase):
         sh.formula = "A2:C3"
         self.assertEqual((sh.formula).strip(), "A2:C3")
         sh.formula = "B3"
-        self.assertEqual((sh.formula).strip(), 'B3')
+        self.assertEqual((sh.formula).strip(), "B3")
 
 
 class TestPicture(TestBase):

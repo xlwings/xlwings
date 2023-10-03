@@ -791,11 +791,11 @@ class Shape:
     @property
     def characters(self):
         raise NotImplementedError()
-    
+
     @property
     def formula(self):
         raise NotImplementedError()
-    
+
     @formula.setter
     def formula(self, value):
         raise NotImplementedError()
