@@ -8,7 +8,7 @@ publish = false
 name = "xlwings.xlwingslib"
 
 [lib]
-name = "xlwingslib"
+name = "xlwings"
 crate-type = ["cdylib"]
 
 [dependencies]
