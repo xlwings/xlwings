@@ -26,7 +26,9 @@ pub enum CellValue {
     Int(i64),
     Float(f64),
     String(String),
+    Time(chrono::NaiveTime),
     DateTime(NaiveDateTime),
+    Timedelta(chrono::Duration),
     Bool(bool),
     Error(CellErrorType),
     Empty,
@@ -39,7 +41,9 @@ impl IntoPy<PyObject> for CellValue {
             CellValue::Float(v) => v.to_object(py),
             CellValue::String(v) => v.to_object(py),
             CellValue::Bool(v) => v.to_object(py),
+            CellValue::Time(v) => v.to_object(py),
             CellValue::DateTime(v) => v.to_object(py),
+            CellValue::Timedelta(v) => v.to_object(py),
             CellValue::Empty => py.None(),
             // Errors are already converted to String or Empty
             CellValue::Error(_) => String::from("Error").to_object(py),
@@ -120,8 +124,11 @@ fn get_values(
                 DataType::DateTimeIso(_v) => {
                     result_row.push(CellValue::DateTime(value.as_datetime().unwrap()))
                 }
+                DataType::Duration(_v) => {
+                    result_row.push(CellValue::Timedelta(value.as_duration().unwrap()))
+                }
                 DataType::DurationIso(_v) => {
-                    result_row.push(CellValue::DateTime(value.as_datetime().unwrap()))
+                    result_row.push(CellValue::Time(value.as_time().unwrap()))
                 }
             };
         }
