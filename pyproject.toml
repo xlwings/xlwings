@@ -1,5 +1,5 @@
 [build-system]
-requires = ["maturin>=0.14,<0.15"]
+requires = ["maturin>=1,<2"]
 build-backend = "maturin"
 
 [project]
@@ -25,6 +25,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Office/Business :: Financial :: Spreadsheet",
     "License :: OSI Approved :: BSD License",
 ]
@@ -58,6 +59,7 @@ Changelog = "https://docs.xlwings.org/en/stable/whatsnew.html"
 
 [tool.maturin]
 exclude = ["xlwings/js/tsconfig.json", "xlwings/js/excel.d.ts"]
+module-name = "xlwings.xlwingslib"
 
 [tool.black]
 target-version = ["py38"]
