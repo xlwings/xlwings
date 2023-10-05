@@ -8,6 +8,8 @@ All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
 """
+from __future__ import annotations
+
 import numbers
 import os
 import re
@@ -1104,7 +1106,7 @@ class Book:
         return self.impl.name
 
     @property
-    def sheets(self):
+    def sheets(self) -> Sheets:
         """
         Returns a sheets collection that represents all the sheets in the book.
 
