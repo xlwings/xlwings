@@ -1,5 +1,7 @@
 # Build with
 # cargo about generate about.hbs > docs/_static/opensource_licenses2.html
+# 
+# To calculate checksum: shasum -a 256 path/to/file
 accepted = [
     "Apache-2.0",
     "MIT",
@@ -28,3 +30,11 @@ license = "MIT"
 path = 'LICENSE-MIT'
 license = 'MIT'
 checksum = '65f94e99ddaf4f5d1782a6dae23f35d4293a9a01444a13135a6887017d353cee'
+
+[chrono.clarify]
+license = "MIT"
+
+[[chrono.clarify.files]]
+path = 'License.txt'
+license = 'MIT'
+checksum = '46610329ff0b38effb9cb05979ff1ef761e465fed96b2eaca39e439d00129fd7'

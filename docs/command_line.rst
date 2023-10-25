@@ -95,3 +95,10 @@ xlwings comes with a command line client. On Windows, type the commands into a C
                         form or the properties of a module), you have to run
                         "xlwings vba export".
                         (New in 0.26.3, changed in 0.27.0)
+    py                  This functionality allows you to easily write Python code for 
+                        Microsoft's Python in Excel cells (=PY) via a local editor:
+                        run "xlwings py edit" to export the code of the selected cell
+                        into a local file. Whenever you save the file, the code will be 
+                        synced back to the cell.
+                        (New in 0.30.12)
+

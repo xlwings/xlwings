@@ -83,7 +83,7 @@ def _clean_value_data_element(
                 return None
         else:
             value = value["basicValue"]  # e.g., datetime (only via data types)
-    elif number_builder is not None and type(value) == float:
+    elif number_builder is not None and isinstance(value, float):
         value = number_builder(value)
     return value
 

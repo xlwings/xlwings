@@ -23,19 +23,19 @@ As long as you don't change the name or arguments of the function, you can edit 
 Basic syntax
 ------------
 
-As you could see in the quickstart sample, the simplest custom function only requires the ``@pro.func`` decorator:
+As you could see in the quickstart sample, the simplest custom function only requires the ``@server.func`` decorator:
 
 .. code-block:: python
 
-    from xlwings import pro
+    from xlwings import server
 
-    @pro.func
+    @server.func
     def hello(name):
         return f"Hello {name}!"
 
 .. note::
 
-    The decorators for Office.js are imported from ``xlwings.pro`` instead of ``xlwings`` and therefore read ``pro.func`` instead of ``xw.func``. See also :ref:`pro/server/officejs_custom_functions:Custom functions vs. legacy UDFs`.
+    The decorators for Office.js are imported from ``xlwings.server`` instead of ``xlwings`` and therefore read ``server.func`` instead of ``xw.func``. See also :ref:`pro/server/officejs_custom_functions:Custom functions vs. legacy UDFs`.
 
 Python modules
 --------------
@@ -56,17 +56,18 @@ Note that ``custom_functions`` needs to be imported where you define the require
 pandas DataFrames
 -----------------
 
-By using the ``@pro.arg`` and ``@pro.ret`` decorators, you can apply converters and options to arguments and the return value, respectively.
+By using the ``@server.arg`` and ``@server.ret`` decorators, you can apply converters and options to arguments and the return value, respectively.
 
 For example, to read in the values of a range as pandas DataFrame and return the correlations without writing out the header and the index, you would write:
 
 .. code-block:: python
 
-    from xlwings import pro
+    import pandas as pd
+    from xlwings import server
 
-    @pro.func
-    @pro.arg("df", pd.DataFrame, index=False, header=False)
-    @pro.ret(index=False, header=False)
+    @server.func
+    @server.arg("df", pd.DataFrame, index=False, header=False)
+    @server.ret(index=False, header=False)
     def correl2(df):
         return df.corr()
 
@@ -79,10 +80,10 @@ To describe your function and its arguments, you can use a function docstring or
 
 .. code-block:: python
 
-    from xlwings import pro
+    from xlwings import server
 
-    @pro.func
-    @pro.arg("name", doc='A name such as "World"')
+    @server.func
+    @server.arg("name", doc='A name such as "World"')
     def hello(name):
         """This is a classic Hello World example"""
         return f"Hello {name}!"
@@ -101,10 +102,10 @@ In the context of custom functions, xlwings will detect numbers, strings, and bo
 .. code-block:: python
 
     import datetime as dt
-    from xlwings import pro
+    from xlwings import server
 
-    @pro.func
-    @pro.arg("date", dt.datetime)
+    @server.func
+    @server.arg("date", dt.datetime)
     def isoformat(date):
         return date.isoformat()
 
@@ -116,9 +117,9 @@ If you have multiple values that you need to convert, you can use the ``xlwings.
 
     import datetime as dt
     import xlwings as xw
-    from xlwings import pro
+    from xlwings import server
 
-    @pro.func
+    @server.func
     def isoformat(dates):
         dates = [xw.to_datetime(d) for d in dates]
         return [d.isoformat() for d in dates]
@@ -128,10 +129,10 @@ And if you are dealing with pandas DataFrames, you can simply use the ``parse_da
 .. code-block:: python
 
     import pandas as pd
-    from xlwings import pro
+    from xlwings import server
 
-    @pro.func
-    @pro.arg("df", pd.DataFrame, parse_dates=[0])
+    @server.func
+    @server.arg("df", pd.DataFrame, parse_dates=[0])
     def timeseries_start(df):
         return df.index.min()
 
@@ -143,10 +144,11 @@ When writing datetime object to Excel, xlwings automatically formats the cells a
 
 .. code-block:: python
 
-    import xlwings as xw
     import datetime as dt
+    import xlwings as xw
+    from xlwings import server
 
-    @pro.func
+    @server.func
     def pytoday():
         return dt.date.today()
 
@@ -154,11 +156,12 @@ By default, it will format the date according to the content language of your Ex
 
 .. code-block:: python
 
-    import xlwings as xw
     import datetime as dt
+    import xlwings as xw
+    from xlwings import server
 
-    @pro.func
-    @pro.ret(date_format="yyyy-m-d")
+    @server.func
+    @server.ret(date_format="yyyy-m-d")
     def pytoday():
         return dt.date.today()
 
@@ -176,9 +179,9 @@ A namespace groups related custom functions together by prepending the namespace
 .. code-block:: python
 
     import numpy as np
-    from xlwings import pro
+    from xlwings import server
 
-    @pro.func(namespace="numpy")
+    @server.func(namespace="numpy")
     def standard_normal(rows, columns):
         rng = np.random.default_rng()
         return rng.standard_normal(size=(rows, columns))
@@ -191,7 +194,7 @@ You can create sub-namespaces by including a dot like so:
 
 .. code-block:: python
 
-    @pro.func(namespace="numpy.random")
+    @server.func(namespace="numpy.random")
 
 This function will be shown as ``NUMPY.RANDOM.STANDARD_NORMAL`` in Excel.
 
@@ -214,9 +217,9 @@ You can include a link to an internet page with more information about your func
 
 .. code-block:: python
 
-    from xlwings import pro
+    from xlwings import server
 
-    @pro.func(help_url="https://www.xlwings.org")
+    @server.func(help_url="https://www.xlwings.org")
     def hello(name):
         return f"Hello {name}!"
 
@@ -240,8 +243,10 @@ However, if the argument can be anything from a single cell to a one- or two-dim
 
 .. code-block:: python
 
-    @pro.func
-    @pro.arg("x", ndim=2)
+    from xlwings import server
+
+    @server.func
+    @server.arg("x", ndim=2)
     def add_one(x):
         return [[cell + 1 for cell in row] for row in data]
 
@@ -253,8 +258,10 @@ If you need to write out a list in vertical orientation, the ``transpose`` optio
 
 .. code-block:: python
 
-    @pro.func
-    @pro.ret(transpose=True)
+    from xlwings import server
+
+    @server.func
+    @server.ret(transpose=True)
     def vertical_list():
         return [1, 2, 3, 4]
 
@@ -284,8 +291,10 @@ By default, error cells are converted to ``None`` (scalars and lists) or ``np.na
 
 .. code-block:: python
 
-    @pro.func
-    @pro.arg("x", err_to_str=True)
+    from xlwings import server
+
+    @server.func
+    @server.arg("x", err_to_str=True)
     def myfunc(x):
         ...
 
@@ -295,7 +304,9 @@ To format cells as proper error cells in Excel, simply use their string represen
 
 .. code-block:: python
 
-    @pro.func
+    from xlwings import server
+
+    @server.func
     def myfunc(x):
         return ["#N/A", "#VALUE!"]
 
@@ -312,9 +323,9 @@ Returning a simple list:
 
 .. code-block:: python
 
-    from xlwings import pro
+    from xlwings import server
 
-    @pro.func
+    @server.func
     def programming_languages():
         return ["Python", "JavaScript"]
 
@@ -323,9 +334,9 @@ Returning a NumPy array with standard normally distributed random numbers:
 .. code-block:: python
 
     import numpy as np
-    from xlwings import pro
+    from xlwings import server
 
-    @pro.func
+    @server.func
     def standard_normal(rows, columns):
         rng = np.random.default_rng()
         return rng.standard_normal(size=(rows, columns))
@@ -335,9 +346,9 @@ Returning a pandas DataFrame:
 .. code-block:: python
 
     import pandas as pd
-    from xlwings import pro
+    from xlwings import server
 
-    @pro.func
+    @server.func
     def get_dataframe():
         df = pd.DataFrame({"Language": ["Python", "JavaScript"], "Year": [1991, 1995]})
         return df
@@ -350,9 +361,9 @@ Volatile functions are recalculated whenever Excel calculates something, even if
 .. code-block:: python
 
     import datetime as dt
-    from xlwings import pro
+    from xlwings import server
 
-    @pro.func(volatile=True)
+    @server.func(volatile=True)
     def last_calculated():
         return f"Last calculated: {dt.datetime.now()}"
 
@@ -382,17 +393,17 @@ The backend needs to implement the following three endpoints to support custom f
 
           @app.get("/xlwings/custom-functions-meta")
           async def custom_functions_meta():
-              return xw.pro.custom_functions_meta(custom_functions)
+              return xw.server.custom_functions_meta(custom_functions)
   
   
           @app.get("/xlwings/custom-functions-code")
           async def custom_functions_code():
-              return PlainTextResponse(xw.pro.custom_functions_code(custom_functions))
+              return PlainTextResponse(xw.server.custom_functions_code(custom_functions))
   
   
           @app.post("/xlwings/custom-functions-call")
           async def custom_functions_call(data: dict = Body):
-              rv = await xw.pro.custom_functions_call(data, custom_functions)
+              rv = await xw.server.custom_functions_call(data, custom_functions)
               return {"result": rv}
 
     .. tab-item:: Starlette
@@ -404,16 +415,16 @@ The backend needs to implement the following three endpoints to support custom f
           import custom_functions
 
           async def custom_functions_meta(request):
-              return JSONResponse(xw.pro.custom_functions_meta(custom_functions))
+              return JSONResponse(xw.server.custom_functions_meta(custom_functions))
 
 
           async def custom_functions_code(request):
-              return PlainTextResponse(xw.pro.custom_functions_code(custom_functions))
+              return PlainTextResponse(xw.server.custom_functions_code(custom_functions))
 
 
           async def custom_functions_call(request):
               data = await request.json()
-              rv = await xw.pro.custom_functions_call(data, custom_functions)
+              rv = await xw.server.custom_functions_call(data, custom_functions)
               return JSONResponse({"result": rv})
 
 You'll also need to load the custom functions by adding the following line at the end of the ``head`` element in your HTML file, see ``app/taskpane.html`` in the quickstart project:
@@ -561,7 +572,7 @@ While Office.js-based custom functions are mostly compatible with the VBA-based 
       - Requires ``@xw.func(async_mode="threading")``
   
     * - Decorators
-      - ``from xlwings import pro``, then ``pro.func`` etc.
+      - ``from xlwings import server``, then ``server.func`` etc.
       - ``import xlwings as xw``, then ``xw.func`` etc.
 
     * - Formula Intellisense

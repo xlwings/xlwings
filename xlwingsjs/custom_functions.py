@@ -1,11 +1,7 @@
-"""
-Custom Functions (UDFs)
-"""
-
-from xlwings import pro
+from xlwings import server
 
 
-@pro.func
+@server.func
 def add(first, second, third=None):
     if third:
         return first + second + third
@@ -13,6 +9,6 @@ def add(first, second, third=None):
         return first + second
 
 
-@pro.func
+@server.func
 async def add2(first, second):
     return first + second

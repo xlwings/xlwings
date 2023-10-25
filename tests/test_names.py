@@ -87,7 +87,7 @@ class TestNames(TestBase):
             self.wb2.sheets[0].range("B2:C3").value, [[1.0, 2.0], [3.0, 4.0]]
         )
         with self.assertRaises(Exception):
-            values = self.wb2.sheets[1].range("sheet_scope1").value
+            self.wb2.sheets[1].range("sheet_scope1").value
 
     def test_workbook_scope(self):
         self.wb1.sheets[0].range("A1").name = "test1"

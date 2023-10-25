@@ -10,7 +10,7 @@ class TestRestApi(TestCase):
             f"/apps/{self.app1.pid}/books/{self.wb1.name}" + endpoint,
             f"/apps/{self.app1.pid}/books/0" + endpoint,
             f"/books/{self.wb1.name}" + endpoint,
-            f"/books/0" + endpoint,
+            "/books/0" + endpoint,
             f"/book/{self.wb1.name}" + endpoint,
             f"/book/{self.wb1.fullname}" + endpoint,
         ]

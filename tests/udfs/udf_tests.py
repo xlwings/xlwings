@@ -1,8 +1,4 @@
-import sys
 from datetime import date, datetime
-
-if sys.version_info >= (2, 7):
-    from nose.tools import assert_dict_equal
 
 import xlwings as xw
 
@@ -21,7 +17,6 @@ except ImportError:
     np = None
 try:
     import pandas as pd
-    from pandas import DataFrame, Series
     from pandas.testing import assert_frame_equal, assert_series_equal
 
     def frame_equal(a, b):
@@ -40,14 +35,6 @@ try:
 
 except ImportError:
     pd = None
-
-
-def dict_equal(a, b):
-    try:
-        assert_dict_equal(a, b)
-    except AssertionError:
-        return False
-    return True
 
 
 # Defaults
@@ -177,19 +164,17 @@ def read_empty_as(x):
     return x == [[1.0, "empty"], ["empty", 4.0]]
 
 
-if sys.version_info >= (2, 7):
-    # assert_dict_equal isn't available on nose for PY 2.6
+# Dicts
+@xw.func
+@xw.arg("x", dict)
+def read_dict(x):
+    return x == {"a": 1.0, "b": "c"}
 
-    # Dicts
-    @xw.func
-    @xw.arg("x", dict)
-    def read_dict(x):
-        return dict_equal(x, {"a": 1.0, "b": "c"})
 
-    @xw.func
-    @xw.arg("x", dict, transpose=True)
-    def read_dict_transpose(x):
-        return dict_equal(x, {1.0: "c", "a": "b"})
+@xw.func
+@xw.arg("x", dict, transpose=True)
+def read_dict_transpose(x):
+    return x == {1.0: "c", "a": "b"}
 
 
 @xw.func
@@ -623,17 +608,17 @@ if pd:
 
     @xw.func
     def read_workbook_caller():
-        wb = xw.Book.caller()
+        xw.Book.caller()
         return xw.Range("E277").value == 1.0
 
     @xw.func
     def cell_caller(caller):
-        wb = xw.Book.caller()
+        xw.Book.caller()
         return xw.Range("G353") == caller
 
     @xw.func
     def cell_caller_multiple_args(name, caller):
-        wb = xw.Book.caller()
+        xw.Book.caller()
         if not name == "Test":
             return "Name Error"
         return xw.Range("G355") == caller

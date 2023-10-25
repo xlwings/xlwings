@@ -120,11 +120,11 @@ Public Function RunPython(PythonCommand As String)
         ExecuteMac PythonCommand, interpreter, PYTHONPATH
     #Else
         If OPTIMIZED_CONNECTION = True Then
-            Py.SetAttr Py.Module("xlwings._xlwindows"), "BOOK_CALLER", ActiveWorkbook
+            XLPy.SetAttr XLPy.Module("xlwings._xlwindows"), "BOOK_CALLER", ActiveWorkbook
             
             On Error GoTo err_handling
             
-            Py.Exec "" & PythonCommand & ""
+            XLPy.Exec "" & PythonCommand & ""
             GoTo end_err_handling
 err_handling:
             ShowError "", Err.Description
@@ -436,7 +436,7 @@ Function XLPyCommand()
     Else
         ' Spaces in path of python.exe require quote around path AND quotes around whole command, see:
         ' https://stackoverflow.com/questions/6376113/how-do-i-use-spaces-in-the-command-prompt
-        tail = " -B -c ""import sys, os;" & LicenseKeyEnvString & "import xlwings.utils;xlwings.utils.prepare_sys_path(\""" & PYTHONPATH & "\"");import xlwings.server; xlwings.server.serve('$(CLSID)')"""
+        tail = " -B -c ""import sys, os;" & LicenseKeyEnvString & "import xlwings.utils;xlwings.utils.prepare_sys_path(\""" & PYTHONPATH & "\"");import xlwings; xlwings.serve('$(CLSID)')"""
         XLPyCommand = PYTHON_WIN & tail & Chr(34)
     End If
 End Function
@@ -479,9 +479,9 @@ Function NDims(ByRef src As Variant, dims As Long, Optional transpose As Boolean
     If 0 <> XLPyDLLNDims(src, dims, transpose, NDims) Then Err.Raise 1001, Description:=NDims
 End Function
 
-Function Py()
+Function XLPy()
     XLPyLoadDLL
-    If 0 <> XLPyDLLActivateAuto(Py, XLPyCommand, 1) Then Err.Raise 1000, Description:=Py
+    If 0 <> XLPyDLLActivateAuto(XLPy, XLPyCommand, 1) Then Err.Raise 1000, Description:=XLPy
 End Function
 
 Sub KillPy()
@@ -506,7 +506,7 @@ Sub ImportPythonUDFsBase(Optional addin As Boolean = False)
     End If
 
     On Error GoTo ImportError
-        tempPath = Py.Str(Py.Call(Py.Module("xlwings"), "import_udfs", Py.Tuple(GetUdfModules(wb), wb)))
+        tempPath = XLPy.Str(XLPy.Call(XLPy.Module("xlwings"), "import_udfs", XLPy.Tuple(GetUdfModules(wb), wb)))
     Exit Sub
 ImportError:
     errorMsg = Err.Description & " " & Err.Number
@@ -538,4 +538,3 @@ Private Sub GetDLLVersion()
     Debug.Print ver
     Debug.Print arch
 End Sub
-

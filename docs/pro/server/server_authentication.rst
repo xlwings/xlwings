@@ -118,7 +118,7 @@ In this case, you'd provide ``"Basic bXl1c2VybmFtZTpteXBhc3N3b3Jk"`` as your ``a
   .. warning::
     ngrok HTTP Basic auth will NOT work with Excel via Office Scripts as it doesn't support CORS. It's, however, an easy method for protecting your app during development if you use xlwings via VBA or Google Sheets.
 
-SSO/Azure AD for Excel 365
+SSO/Azure AD for Office.js
 --------------------------
 
 .. versionadded:: 0.29.0
@@ -131,7 +131,7 @@ Single Sign-on (SSO) means that users who are signed into Office 365 get access 
 As a summary, here are the components needed to enable SSO:
 
 1. SSO is only available for Office.js add-ins
-2. You must use Excel 365 so users can login into Office
+2. You must use a supported version of Office, see: https://learn.microsoft.com/en-us/javascript/api/requirement-sets/common/identity-api-requirement-sets
 3.  `Register your add-in as an app on the Microsoft Identity Platform <https://learn.microsoft.com/en-us/office/dev/add-ins/develop/register-sso-add-in-aad-v2>`_
 4. Add the following to the end of the ``<VersionOverrides ... xsi:type="VersionOverridesV1_0">`` section of your manifest XML:
 
@@ -210,6 +210,7 @@ As a summary, here are the components needed to enable SSO:
 
 * For a sample implementation on how to validate the token on the backend, have a look at https://github.com/xlwings/xlwings-server-auth-azuread
 * A good walkthrough is also `Create a Node.js Office Add-in that uses single sign-on <https://learn.microsoft.com/en-us/office/dev/add-ins/develop/create-sso-office-add-ins-nodejs>`_, but as the title says, it uses Node.js on the backend instead of Python.
+* For a reference of the error codes, see: https://learn.microsoft.com/en-us/office/dev/add-ins/develop/troubleshoot-sso-in-office-add-ins
 
 
 Azure AD for Excel VBA

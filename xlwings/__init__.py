@@ -121,7 +121,7 @@ if "excel" in [engine.name for engine in engines]:
 
 # UDFs
 if sys.platform.startswith("win") and has_pywin32:
-    from .server import serve
+    from .com_server import serve
     from .udfs import (
         get_udf_module,
         import_udfs,

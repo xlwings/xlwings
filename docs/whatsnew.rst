@@ -1,6 +1,17 @@
 Changelog
 =========
 
+v0.30.12 (Sep 18, 2023)
+-----------------------
+
+* :bdg-success:`Feature` New CLI command ``xlwings py edit``: this allows you to edit Microsoft's Python in Excel cells (`=PY`) in an external editor of your choice with auto-sync (:issue:`2331`).
+
+v0.30.11 (Aug 26, 2023)
+-----------------------
+
+* :bdg-warning:`Bug Fix` Enabled a conflict-free co-existence with Microsoft's new Python in Excel feature as xlwings was internally also using ``=PY()``. This requires that you re-import your User-defined functions (UDFs) (:issue:`2319`).
+* :bdg-danger:`Breaking Change` xlwings Server: The ``@pro`` decorators have been deprecated in favor of ``@server`` decorators, so e.g., functions are now decorated with ``@server.func`` instead of ``@pro.func``. The latter keeps working though for now (:issue:`2320`).
+
 v0.30.10 (Jun 23, 2023)
 -----------------------
 

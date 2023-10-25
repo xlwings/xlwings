@@ -23,14 +23,8 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
-          cache: "pip"
-      - uses: psf/black@stable
-        with:
-          options: "--check --diff --color"
-      - uses: isort/isort-action@master
-      - run: pip install flake8
-      - run: flake8 .
+          python-version: "3.11"
+      - uses: pre-commit/action@v3.0.0
 
   check-js-dist:
     runs-on: ubuntu-latest
@@ -156,7 +150,7 @@ jobs:
       fail-fast: false
       matrix:
         # abi3 wheels aren't supported as DateTime is not part of the ABI spec (PEP 384)
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         platform:
           [
             { os: "windows-latest", target: "x86_64" },
@@ -213,7 +207,7 @@ jobs:
         with:
           target: ${{ matrix.platform.target }}
           manylinux: ${{ matrix.platform.manylinux || 'auto' }}
-          maturin-version: v0.14.17
+          maturin-version: v1.2.3
           command: build
           args: --release --out dist --interpreter ${{ matrix.python-version }}
 

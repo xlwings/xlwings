@@ -19,7 +19,6 @@ from xlwings.rest.serializers import (
 )
 
 try:
-    import flask
     from flask import Flask, abort, jsonify, request
 except ImportError:
     raise Exception(

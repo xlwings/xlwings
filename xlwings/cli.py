@@ -936,6 +936,40 @@ def vba_edit(args):
             book.save()
 
 
+def py_edit(args):
+    try:
+        from watchgod import RegExpWatcher, watch
+    except ImportError:
+        sys.exit(
+            "Please install watchgod to use this functionality: pip install watchgod"
+        )
+    book = xw.books.active
+    selection = book.selection
+    source_path = (
+        selection.get_address(include_sheetname=True, external=True)
+        .replace("!", "")
+        .replace(" ", "_")
+        .replace("'", "")
+        .replace("[", "")
+        .replace("]", "_")
+        + ".py"
+    )
+
+    Path(source_path).write_text(selection.formula.strip()[5:-4].replace('""', '"'))
+    print(f"Open {Path(source_path).resolve()} to edit!")
+    print("Syncing changes... (Hit Ctrl-C to stop)")
+    for changes in watch(
+        Path(".").resolve(),
+        watcher_cls=RegExpWatcher,
+        watcher_kwargs=dict(re_files=r"^.*(\.py)$"),
+        normal_sleep=400,
+    ):
+        source_code = Path(source_path).read_text()
+        # 1 = Object, 0 = Value
+        # Note that the initial beta version only supports 1
+        selection.value = '=PY("{0}",1)'.format(source_code.replace('"', '""'))
+
+
 def main():
     print("xlwings version: " + xw.__version__)
     parser = argparse.ArgumentParser()
@@ -1298,6 +1332,21 @@ def main():
     )
 
     vba_import_parser.set_defaults(func=vba_import)
+
+    # Edit =PY cells
+    py_parser = subparsers.add_parser(
+        "py",
+        help="""This functionality allows you to easily write Python code for 
+        Microsoft's Python in Excel cells (=PY) via a local editor: run "xlwings py edit" to
+        export the code of the selected cell into a local file. Whenever you save the
+        file, the code will be synced back to the cell.
+        """,
+    )
+    py_subparsers = py_parser.add_subparsers(dest="subcommand")
+    py_subparsers.required = True
+
+    py_edit_parser = py_subparsers.add_parser("edit")
+    py_edit_parser.set_defaults(func=py_edit)
 
     # Show help when running without commands
     if len(sys.argv) == 1:

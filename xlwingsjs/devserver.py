@@ -184,18 +184,18 @@ async def alert(
 
 @app.get("/xlwings/custom-functions-meta")
 async def custom_functions_meta():
-    return xw.pro.custom_functions_meta(custom_functions)
+    return xw.server.custom_functions_meta(custom_functions)
 
 
 @app.get("/xlwings/custom-functions-code")
 async def custom_functions_code():
-    return PlainTextResponse(xw.pro.custom_functions_code(custom_functions))
+    return PlainTextResponse(xw.server.custom_functions_code(custom_functions))
 
 
 @app.post("/xlwings/custom-functions-call")
 async def custom_functions_call(request: Request, data: dict = Body):
     print(request.headers["Authorization"])
-    rv = await xw.pro.custom_functions_call(data, custom_functions)
+    rv = await xw.server.custom_functions_call(data, custom_functions)
     return {"result": rv}
 
 

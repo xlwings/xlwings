@@ -32,14 +32,17 @@ Links:
 
 ## Excel add-in
 
-Install the addin in Excel by going to `Developer` > `Excel Add-in` > `Browse` and pointing to the addin in the source code,
+* Install the addin in Excel by going to `Developer` > `Excel Add-in` > `Browse` and pointing to the addin in the source code,
 i.e. under `xlwings/addin/xlwings.xlam`.
+
+* Configure the addin manually (by setting `Interpreter` or `Conda Path`/`Conda Env` settings) or run `xlwings config create --force` to create a new `xlwings.conf` file (this is where the ribbon will read/write the configuration to). 
 
 To change the ribbon UI, you need to download the Office RibbonX Editor (only runs on Windows) from 
 https://github.com/fernandreu/office-ribbonx-editor/releases
 
 The code is pure VBA code. The suggested way to edit the VBA code is:
 
+1. In Excel, make sure that `Trust access` to the VBA project object model is enabled under `File` > `Options` > `Trust Center` > `Trust Center Settings` > `Macro Settings`.
 1. Open the VBA editor via `Alt+F11`, then click on the source code of xlwings and unlock it with the password `xlwings`.
 2. Run the following on a command prompt: 
 
@@ -52,6 +55,7 @@ The code is pure VBA code. The suggested way to edit the VBA code is:
 
 
 3. Make changes to the source code under `xlwings/addin` in an external editor: the changes are synced automatically to the VBA editor.
+
 
 
 ## Windows dlls
@@ -123,8 +127,7 @@ To set up a development environment for the xlwings.js library, you need to do t
 This repo uses the following packages for code formatting/linting, see `pyproject.toml`:
 
 * black
-* isort
-* flake8
+* ruff
 
 You can use the pre-commit hook under `.pre-commit-config.yaml`, see instructions at top of the file.
 
@@ -134,7 +137,9 @@ Currently, we're migrating to `pytest`, so you'll find a mix between `unittest` 
 Running the whole tests suite is currently broken, so it's recommended to run single modules instead.
 See e.g., `test_font.py` for the new style of tests that are also fast.
 
-For running the xlwings pro related tests, you'll need to use the `noncommercial` license key, see: [developer](https://docs.xlwings.org/en/latest/pro/license_key.html#activate-a-developer-key).
+For running the xlwings pro related tests, you'll need to use the `noncommercial` license key, see: [Activate a developer key](https://docs.xlwings.org/en/latest/pro/license_key.html#activate-a-developer-key).
+
+To run the UDF tests, open `udf_tests.xlsm` in the `tests/udfs` directory and follow the instructions at the top of the file. The other files work accordingly.
 
 ## Docs
 

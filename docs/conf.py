@@ -195,7 +195,7 @@ html_theme_options = {
         "color-brand-primary": "white",
         "color-announcement-background": "#28a745",
     },
-    "announcement": 'Custom Functions ("UDFs") are now available on all platforms, including macOS and Web: <a href="https://docs.xlwings.org/en/latest/pro/server/officejs_custom_functions.html">Check out the docs!</a>',
+    # "announcement": 'Webinar (Sep 14, 2023): Excel Custom Functions with Python and Azure Functions: <a href="https://zoomeranalytics.webinargeek.com/excel-custom-functions-with-python-and-azure-functions-1?cst=docs">Sign up!</a>',
 }
 
 html_show_sourcelink = False
