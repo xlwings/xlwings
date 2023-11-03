@@ -34,6 +34,20 @@ The default addin settings expect a Python source file in the way it is created 
 
 Alternatively, you can point to a specific module via ``UDF Modules`` in the xlwings ribbon.
 
+  * The Image below shows how to set up the UDF modules in the xlwings ribbon with a module called "MyUDF.py":
+
+  .. figure:: ./images/udf_modules.png
+
+  * If the module is not within the same directory as the Excel file, you point to it via the "PYTHONPATH" field. The image below shows input for if the module was in a folder under "C:\\py_folder":
+
+  .. figure:: ./images/pythonpath.png
+
+  * With those changes, this is how your xlwings.conf file should look:
+
+  .. figure:: ./images/pythonpath_conf.png
+
+  * \* note that this path name is not a real path, it is just an example
+
 Let's assume you have a Workbook ``myproject.xlsm``, then you would write the following code in ``myproject.py``::
 
     import xlwings as xw
