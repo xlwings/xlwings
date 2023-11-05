@@ -130,7 +130,7 @@ Single Sign-on (SSO) means that users who are signed into Office 365 get access 
 
 As a summary, here are the components needed to enable SSO:
 
-1. SSO is only available for Office.js add-ins
+1. SSO is only available for Office.js add-ins. If you want to enable multi-tenant access (i.e, access for users outside your own organization) external users need to install the add-in via their internal Office add-in store, sideloading the add-in won't work.
 2. You must use a supported version of Office, see: https://learn.microsoft.com/en-us/javascript/api/requirement-sets/common/identity-api-requirement-sets
 3.  `Register your add-in as an app on the Microsoft Identity Platform <https://learn.microsoft.com/en-us/office/dev/add-ins/develop/register-sso-add-in-aad-v2>`_
 4. Add the following to the end of the ``<VersionOverrides ... xsi:type="VersionOverridesV1_0">`` section of your manifest XML:
