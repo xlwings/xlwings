@@ -1,10 +1,122 @@
 {
-    "python.testing.pytestArgs": [
-        "tests"
-    ],
-    "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true,
-    "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter"
+  // ===============================================================
+  // xlwings_dev Settings
+  // 2023-11-28
+  // ===============================================================
+  //
+  // ---------------------------------------------------------------
+  // Note: python interpreter should be set in the project settings
+  // ---------------------------------------------------------------
+  //
+  // Absolute path to a file (`.env`) containing environment variable
+  // definitions
+  "python.envFile": "${workspaceFolder}\\.vscode\\dev.env",
+  //
+  // Path to default Python to use when extension loads up for the first time,
+  // no longer used once an interpreter is selected for the workspace. See the
+  // follosing url to understand when this is used 
+  // https://github.com/microsoft/vscode-python/wiki/Setting-descriptions#pythondefaultinterpreterpath
+  // NOTE: `.env` variable can NOT be used here
+  "python.defaultInterpreterPath": "C:\\bin\\venv\\.dev310\\Scripts\\python.exe",
+  //
+  // ---------------------------------------------------------------
+  // Test
+  //
+  // FIXME: refactor with `.env` variable
+  "python.testing.cwd":"${workspaceFolder}/tests",
+  "python.testing.pytestArgs": [
+    "${workspaceFolder}/tests"
+  ],
+  //
+  "pythonTestExplorer.testFramework": "pytest",
+  //
+  // FIXME: refactor with `.env` variable
+  // "python.testing.cwd":"${workspaceFolder}\\xlwings",
+  //"python.testing.pytestArgs": ["${workspaceFolder}\\xlwings"],
+  // "pythonTestExplorer.testplanArgs": [
+  // "${workspaceFolder}\\xlwings"
+  // ],
+  //
+  "python.testing.unittestEnabled": false,
+  "python.testing.nosetestsEnabled": false,
+  "python.testing.pytestEnabled": true,
+  //   
+  // ---------------------------------------------------------------
+  // Pylance extension
+  //
+  // FIXME: refactor with `.env` variable
+  "python.analysis.extraPaths": [
+    "src"
+],
+  // 
+  //----------------------------------------------------------------
+  // pylint
+  //
+  //"pylint.args": [
+  //    "--ignorePath=src\\xlx\\pkg\\*,src\\tests\\pkg_tests\\*,src\\demos\\pkg\\*,docs\\*"
+  //],
+  //
+  // ---------------------------------------------------------------
+  // Flake8 extension
+  //
+  // "flake8.args": [
+  //   "--max-line-length=79",
+  //   "--ignore=E402,F841,F401,E302,E305,E501",
+  //   "--exclude=`src\\xlx\\pkg\\*,// src\\tests\\pkg_tests\\*,src\\demos\\pkg\\*,docs\\*`"
+  // ],
+  // 
+  // ---------------------------------------------------------------
+  // cSpell extension    
+  // - replace <proj_name> with local project name -> pysm
+  "cSpell.customDictionaries": {
+    "workspace_dictionary": {
+      "name": "workspace_dictionary",
+      "path": "${workspaceFolder:c-w-m_xlwings}/.cspell/workspace_dictionary.dic",
+      "addWords": true,
+      "scope": "workspace"
     }
+  },
+  // 
+  // ---------------------------------------------------------------
+  // reStructuredText
+  //
+  //root ReadMe.rst
+  // If it is "", then docutils is used to render the preview page.
+  "esbonio.sphinx.confDir": "",
+  "restructuredtext.preview.docutils.disabled": false,
+  //
+  // ---------------------------------------------------------------
+  // peacock color scheme
+  // 
+  // JWL6-DarkTeal
+  "peacock.color": "#003241",
+  "peacock.affectActivityBar": true,
+  "peacock.affectStatusBar": true,
+  "peacock.affectTitleBar": true,
+  "peacock.elementAdjustments": {
+      "activityBar": "lighten"
+  },
+  //
+  // ---------------------------------------------------------------
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#005974",
+    "activityBar.background": "#005974",
+    "activityBar.foreground": "#e7e7e7",
+    "activityBar.inactiveForeground": "#e7e7e799",
+    "activityBarBadge.background": "#400031",
+    "activityBarBadge.foreground": "#e7e7e7",
+    "commandCenter.border": "#e7e7e799",
+    "sash.hoverBorder": "#005974",
+    "statusBar.background": "#003241",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.hoverBackground": "#005974",
+    "statusBarItem.remoteBackground": "#003241",
+    "statusBarItem.remoteForeground": "#e7e7e7",
+    "titleBar.activeBackground": "#003241",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveBackground": "#00324199",
+    "titleBar.inactiveForeground": "#e7e7e799"
+  },
+  // JWL7-BlueGray
+  "peacock.remoteColor": "#002f52",
 }

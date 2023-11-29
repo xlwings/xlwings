@@ -1,0 +1,335 @@
+{
+    // ===============================================================
+    // c-w-m_xlwings launch
+    // 2023-11-28
+    // ===============================================================
+    // set environment variable
+    // DEBUGPY_PROCESS_SPAWN_TIMEOUT=500
+    // ===============================================================
+    //
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYDEVD_DISABLE_FILE_VALIDATION": "1"
+            },
+            "pythonArgs": [
+                "-Xfrozen_modules=off"
+            ]
+        },
+        {
+            //------------------------------------------------------------
+            // **Local** Python file
+            "name": "L-py-file-p5678",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            //------------------------------------------------------------
+            // **Local** pytest file from the python test runner
+            "name": "L-pytest-file",
+            "type": "python",
+            "request": "test",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            //------------------------------------------------------------
+            // **Local** `API` debugger for FastAPI (with jinja) 
+            // calling startup file which in turn select the code path
+            // and starts the uvicorn server on another thread using the
+            // container FASTAPI_HOST environment variable.
+            //
+            // container FASTAPI_PORT environment variable should be set to
+            // $FASTAPI_API_LOCAL_PORT=8000
+            //
+            // localhost ~ 127.0.0.1 ~ 0.0.0.0  # are all equivalent
+            //
+            // http://localhost:8000
+            // http://localhost:8000/docs
+            //
+            "name": "L-api-p8000",
+            "type": "python",
+            "request": "launch",
+            "module": "uvicorn",
+            "cwd": "${workspaceFolder}/src/api/",
+            "args": [
+                "startup:app",
+                "--reload",
+                "--port",
+                "8000"
+            ],
+            "jinja": true,
+            "justMyCode": false
+        },
+        {
+            "type": "L-R-Debugger",
+            "name": "Debug R-File",
+            "request": "launch",
+            "debugMode": "file",
+            "workingDirectory": "",
+            "file": ""
+        },
+        {
+            //------------------------------------------------------------
+            // http://localhost:8080
+            // http://localhost:8080/docs
+            //
+            "name": "L-shortify-p8080",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/proj/shortify/shortify/__main__.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            //------------------------------------------------------------
+            // **WSL-Ubuntu** and **Container** `API` debugger for FastAPI
+            // (with jinja) calling startup file which in turn select the
+            // code path and starts the uvicorn server on another thread
+            // using the container FASTAPI_HOST environment variable.
+            //
+            // container FASTAPI_PORT environment variable should be set
+            //  to $FASTAPI_API_LOCAL_PORT=8001
+            //
+            // localhost ~ 127.0.0.1 ~ 0.0.0.0  # are all equivalent
+            //
+            // http://localhost:8001
+            // http://localhost:8001/docs
+            //
+            "name": "C-api-p8001",
+            "type": "python",
+            "request": "launch",
+            "module": "uvicorn",
+            "cwd": "${workspaceFolder}/src/api/",
+            "args": [
+                "startup:app",
+                "--reload",
+                "--port",
+                "8001"
+            ],
+            "jinja": true,
+            "justMyCode": false
+        },
+        {
+            //------------------------------------------------------------
+            // **Container** `APP` debugger for FastAPI (with jinja) 
+            // calling startup file which in turn select the code path
+            // and starts the uvicorn server on another thread using the
+            // container FASTAPI_HOST environment variable.
+            //
+            // container FASTAPI_PORT environment variable should be set to
+            // $FASTAPI_API_LOCAL_PORT=8002
+            //
+            // localhost ~ 127.0.0.1 ~ 0.0.0.0  # are all equivalent
+            //
+            // http://localhost:8002
+            // http://localhost:8002/docs
+            //
+            "name": "C-app-p8002",
+            "type": "python",
+            "request": "launch",
+            "module": "uvicorn",
+            "cwd": "${workspaceFolder}/src/api/",
+            "args": [
+                "startup:app",
+                "--reload",
+                "--port",
+                "8002"
+            ],
+            "jinja": true,
+            "justMyCode": false
+        },
+        {
+            //------------------------------------------------------------
+            // **Local** Django file
+            // manage.py is a single project server launch
+            "name": "L-dj-server",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/manage.py",
+            "args": [
+                "runserver"
+            ],
+            "django": true
+        },
+        {
+            //------------------------------------------------------------
+            // **Local** Django startup file used to select code path
+            // and starts server on a separate thread
+            "name": "L-dj-startup",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/dj/startup.py",
+            "args": [
+                "runserver"
+            ],
+            "django": true
+        },
+        {
+            //------------------------------------------------------------
+            // **WSL-Ubuntu** and **Container** `APP` debugger for Flask
+            // (with jinja) - only running TalkPython examples for now
+            //
+            // container FASTAPI_PORT environment variable should be set
+            //  to $FASTAPI_API_LOCAL_PORT=8001
+            //
+            // localhost ~ 127.0.0.1 ~ 0.0.0.0  # are all equivalent
+            //
+            // http://localhost:5000
+            //
+            "name": "L-flask-p5000",
+            "type": "python",
+            "request": "launch",
+            "module": "flask",
+            "env": {
+                "FLASK_APP": "${workspaceFolder}/src/app/talkpython/app.py",
+                "FLASK_ENV": "development",
+                "FLASK_DEBUG": "1"
+            },
+            "args": [
+                "run",
+                "--no-debugger",
+                "--no-reload"
+            ],
+            "jinja": true
+        },
+        {
+            //------------------------------------------------------------
+            //  TODO: outline how to use this
+            //  DEBUGPY_APP_LOCAL_PORT=5680
+            //------------------------------------------------------------
+            //> Set PYDEVD_DISABLE_FILE_VALIDATION=1
+            //  then select this script and start debug
+            //  view Flask/FastAPI through browser
+            //  http://127.0.0.1:FLASK_PORT          # Flask
+            //  http://127.0.0.1:FASTAPI_PORT        # FastAPI
+            //  http://127.0.0.1:FASTAPI_PORT/docs   # FastApi OpenAPI docs
+            //  http://127.0.0.1:FASTAPI_PORT/redoc  # FastApi OpenAPI docs
+            //
+            "name": "C-app-p5688",
+            "type": "python",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5688
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/src/app",
+                    "remoteRoot": "."
+                }
+            ],
+            "justMyCode": false
+        },
+        {
+            //------------------------------------------------------------
+            //  TODO: outline how to use this
+            //  FASTAPI_APP_LOCAL_DEBUG_PORT=8990
+            //------------------------------------------------------------
+            "name": "C-app-p8990",
+            "type": "python",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 8990
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/src",
+                    "remoteRoot": "."
+                }
+            ],
+            "justMyCode": false
+        },
+        {
+            //------------------------------------------------------------
+            //  TODO: outline how to use this
+            //  FLASK_APP_PORT=5557
+            //------------------------------------------------------------
+            "name": "C-app-p5557",
+            "type": "python",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5557
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/src",
+                    "remoteRoot": "."
+                }
+            ],
+            "justMyCode": false
+        },
+        {
+            //------------------------------------------------------------
+            // Local debugger wait-for-client mode on port 8888, used
+            // to attach to a second debug (with F5) session running startup,
+            // browser (on port 8000) initiates events that hit breakpoints
+            //
+            //> Set PYDEVD_DISABLE_FILE_VALIDATION=1
+            //
+            //> python -m debugpy --listen 8888 --wait-for-client startup.py
+            //
+            // http://0.0.0.0:8000     
+            // http://0.0.0.0:8000/docs
+            //
+            "name": "L-dbg-p8888",
+            "type": "python",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 8888
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/src/api/",
+                    "remoteRoot": "."
+                }
+            ],
+            "justMyCode": false
+        },
+        {
+            //------------------------------------------------------------
+            // Local debugger wait-for-client mode on port 8899, used
+            // to attach to a second debug (with F5) session running startup,
+            // browser (on port 8011) initiates events that hit breakpoints
+            //
+            //> Set PYDEVD_DISABLE_FILE_VALIDATION=1
+            //
+            // run the docker container that has this entrypoint that forwards to our local port 9988
+            // entrypoint: [ "python", "-m", "debugpy", "--listen", "0.0.0.0:$FASTAPI_DOCKER_DEBUG_PORT", "--wait-for-client", "startup.py" ]
+            //
+            // http://0.0.0.0:8011     
+            // http://0.0.0.0:8011/docs
+            //
+            // FASTAPI_LOCAL_PORT used to forward to container port to the local port 8011
+            "name": "C-p9988-api-debugpy",
+            "type": "python",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 9988
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/src/api/",
+                    "remoteRoot": "."
+                }
+            ],
+            "justMyCode": false
+        }
+        //==============================================================
+    ]
+}
