@@ -34,7 +34,7 @@ The default addin settings expect a Python source file in the way it is created 
 
 Alternatively, you can point to a specific module via ``UDF Modules`` in the xlwings ribbon.
 
-  * The Image below shows the correct input for the "UDF Modules" field in the xlwings ribbon with a module called "MyUDF.py":
+  * The Image below shows the correct input for the "UDF Modules" field in the xlwings ribbon with a module called "my_udf.py":
 
   .. figure:: ./images/udf_modules.png
 
@@ -171,7 +171,7 @@ Dynamic Array Formulas
 ----------------------
 
 .. note::
-    If your version of Excel supports the new native dynamic arrays, then you don't have to do anything special, 
+    If your version of Excel supports the new native dynamic arrays, then you don't have to do anything special,
     and you shouldn't use the ``expand`` decorator! To check if your version of Excel supports it, see if you
     have the ``=UNIQUE()`` formula available. Native dynamic arrays were introduced in Office 365 Insider Fast
     at the end of September 2018.
@@ -280,18 +280,18 @@ Imported functions can also be used from VBA. For example, for a function return
 .. code-block:: vb.net
 
     Sub MySub()
-    
+
     Dim arr() As Variant
     Dim i As Long, j As Long
-    
+
         arr = my_imported_function(...)
-        
+
         For j = LBound(arr, 2) To UBound(arr, 2)
             For i = LBound(arr, 1) To UBound(arr, 1)
                 Debug.Print "(" & i & "," & j & ")", arr(i, j)
             Next i
         Next j
-    
+
     End Sub
 
 
