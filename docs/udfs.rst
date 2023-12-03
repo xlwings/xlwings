@@ -34,6 +34,19 @@ The default addin settings expect a Python source file in the way it is created 
 
 Alternatively, you can point to a specific module via ``UDF Modules`` in the xlwings ribbon.
 
+  * The Image below shows the correct input for the "UDF Modules" field in the xlwings ribbon with a module called "my_udf.py":
+
+  .. figure:: ./images/udf_modules.png
+
+  * If the module is not within the same directory as the Excel file, you point to it via the "PYTHONPATH" field. The image below shows input for if the module was in a folder under "C:\\py_folder" (just an example so it fits in the field window):
+
+  .. figure:: ./images/pythonpath.png
+
+  * For reference, with those changes, this is how your xlwings.conf file should look:
+
+  .. figure:: ./images/pythonpath_conf.png
+
+
 Let's assume you have a Workbook ``myproject.xlsm``, then you would write the following code in ``myproject.py``::
 
     import xlwings as xw
@@ -158,7 +171,7 @@ Dynamic Array Formulas
 ----------------------
 
 .. note::
-    If your version of Excel supports the new native dynamic arrays, then you don't have to do anything special, 
+    If your version of Excel supports the new native dynamic arrays, then you don't have to do anything special,
     and you shouldn't use the ``expand`` decorator! To check if your version of Excel supports it, see if you
     have the ``=UNIQUE()`` formula available. Native dynamic arrays were introduced in Office 365 Insider Fast
     at the end of September 2018.
@@ -267,18 +280,18 @@ Imported functions can also be used from VBA. For example, for a function return
 .. code-block:: vb.net
 
     Sub MySub()
-    
+
     Dim arr() As Variant
     Dim i As Long, j As Long
-    
+
         arr = my_imported_function(...)
-        
+
         For j = LBound(arr, 2) To UBound(arr, 2)
             For i = LBound(arr, 1) To UBound(arr, 1)
                 Debug.Print "(" & i & "," & j & ")", arr(i, j)
             Next i
         Next j
-    
+
     End Sub
 
 
