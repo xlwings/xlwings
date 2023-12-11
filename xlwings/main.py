@@ -3052,7 +3052,7 @@ class RangeColumns(Ranges):
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            return RangeRows(rng=self.rng[:, key])
+            return RangeColumns(rng=self.rng[:, key])
         elif isinstance(key, int):
             return self.rng[:, key]
         else:
