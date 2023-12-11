@@ -59,9 +59,4 @@ Links
 * Book (O'Reilly, 2021): https://www.xlwings.org/book
 * Video Course: https://training.xlwings.org/p/xlwings
 * Source Code: https://github.com/xlwings/xlwings
-
-xltrail
--------
-
-The Excel files are also tracked with `xltrail <https://www.xltrail.com>`_. You can see the diffs
-`here <https://app.xltrail.com/#/?path=github.com%2Fxlwings%2Fxlwings.git&branch=main&public=true>`_.
+* xltrail (Version control for Excel files): https://www.xltrail.com 

@@ -7,7 +7,7 @@ Function RunRemotePython( _
     Optional include As String, _
     Optional exclude As String, _
     Optional headers As Variant, _
-    Optional timeout As Integer, _
+    Optional timeout As Long, _
     Optional proxyServer As String, _
     Optional proxyBypassList As String, _
     Optional proxyUsername As String, _
