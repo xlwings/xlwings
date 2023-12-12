@@ -1,10 +1,18 @@
 Changelog
 =========
 
+v0.30.13 (Dec 12, 2023)
+-----------------------
+
+* :bdg-info:`Enhancement` Wheels are now built for Python 3.12  (:issue:`2341`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` The ``timeout`` argument in the ``RunRemotePython`` call has been fixed for high values (:issue:`2363`).
+* :bdg-warning:`Bug Fix` Various bug fixes (:issue:`2335`, :issue:`2356`).
+* :bdg-danger:`Breaking Change` :bdg-secondary:`PRO` Permissioning has been removed and replaced by the authentication in Office.js add-ins (:issue:`2336`).
+
 v0.30.12 (Sep 18, 2023)
 -----------------------
 
-* :bdg-success:`Feature` New CLI command ``xlwings py edit``: this allows you to edit Microsoft's Python in Excel cells (`=PY`) in an external editor of your choice with auto-sync (:issue:`2331`).
+* :bdg-success:`Feature` New CLI command ``xlwings py edit``: this allows you to edit Microsoft's Python in Excel cells (``=PY``) in an external editor of your choice with auto-sync (:issue:`2331`).
 
 v0.30.11 (Aug 26, 2023)
 -----------------------
