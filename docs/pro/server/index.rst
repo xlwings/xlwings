@@ -14,5 +14,5 @@ xlwings Server is a self-hosted and privacy-compliant solution that turns the Py
 
 * **VBA**: Desktop Excel (Windows and macOS)
 * **Office Scripts**: Desktop Excel (Windows and macOS) and Excel on the web
-* **Office.js Add-ins**: Desktop Excel (Windows and macOS), Excel on the web, and Excel on iPad
+* **Office.js Add-ins**: Desktop Excel (Windows and macOS), Excel on the web, and Excel on iPad (Note that Office.js add-ins don't work with the legacy `xls` format)
 * **Google Apps Scripts**: Google Sheets
