@@ -246,7 +246,8 @@ class Apps:
     def cleanup(self):
         """
         Removes Excel zombie processes (Windows-only). Note that this is automatically
-        called with ``App.quit()`` and ``App.kill()``.
+        called with ``App.quit()`` and ``App.kill()`` and when the Python interpreter
+        exits.
 
         .. versionadded:: 0.30.2
         """
