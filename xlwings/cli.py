@@ -734,6 +734,8 @@ def release(args):
 
 
 def export_vba_modules(book, overwrite=False):
+    # TODO: catch error when Trust Access to VBA Object model isn't enabled
+    # TODO: raise error if editing while file hashes differ
     type_to_ext = {100: "cls", 1: "bas", 2: "cls", 3: "frm"}
     path_to_type = {}
     encodings = ['utf-8', 'ISO-8859-1', 'cp1252']
@@ -747,9 +749,12 @@ def export_vba_modules(book, overwrite=False):
         if (
             vb_component.Type == 100 and vb_component.CodeModule.CountOfLines > 0
         ) or vb_component.Type != 100:
+            # Prevents cluttering everything with empty files if you have lots of sheets
             if overwrite or not file_path.exists():
                 vb_component.Export(str(file_path))
                 if vb_component.Type == 100:
+                    # Remove the meta info so it can be distinguished from regular
+                    # classes when running "xlwings vba import"
                     for encoding in encodings:
                         try:
                             with open(file_path, "r", encoding=encoding) as f:
@@ -829,6 +834,7 @@ def vba_import(args):
 
             if vba_code:
                 if vba_code[0].startswith("VERSION "):
+                    # For frm, this also imports frx, unlike in editing mode
                     try:
                         vb_component = book.api.VBProject.VBComponents(path.stem)
                         book.api.VBProject.VBComponents.Remove(vb_component)
@@ -896,7 +902,7 @@ def vba_edit(args):
                 line_count = vb_component.CodeModule.CountOfLines
                 if line_count > 0:
                     vb_component.CodeModule.DeleteLines(1, line_count)
-
+                # ThisWorkbook/Sheet, bas, cls, frm
                 type_to_firstline = {100: 0, 1: 1, 2: 9, 3: 15}
                 try:
                     vb_component.CodeModule.AddFromString(
