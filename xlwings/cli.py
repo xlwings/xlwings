@@ -734,10 +734,10 @@ def release(args):
 
 
 def export_vba_modules(book, overwrite=False):
-    # TODO: catch error when Trust Access to VBA Object model isn't enabled
-    # TODO: raise error if editing while file hashes differ
     type_to_ext = {100: "cls", 1: "bas", 2: "cls", 3: "frm"}
     path_to_type = {}
+    encodings = ['utf-8', 'ISO-8859-1', 'cp1252']
+
     for vb_component in book.api.VBProject.VBComponents:
         file_path = (
             Path(".").resolve()
@@ -747,16 +747,23 @@ def export_vba_modules(book, overwrite=False):
         if (
             vb_component.Type == 100 and vb_component.CodeModule.CountOfLines > 0
         ) or vb_component.Type != 100:
-            # Prevents cluttering everything with empty files if you have lots of sheets
             if overwrite or not file_path.exists():
                 vb_component.Export(str(file_path))
                 if vb_component.Type == 100:
-                    # Remove the meta info so it can be distinguished from regular
-                    # classes when running "xlwings vba import"
-                    with open(file_path, "r", encoding="utf-8") as f:
-                        exported_code = f.readlines()
+                    for encoding in encodings:
+                        try:
+                            with open(file_path, "r", encoding=encoding) as f:
+                                exported_code = f.readlines()
+                            break  # Successful read, break the loop
+                        except UnicodeDecodeError:
+                            continue  # This encoding didn't work, try the next one
+                    else:
+                        # All encodings failed
+                        raise UnicodeDecodeError("Failed to decode the file with any of the provided encodings.")
+                    
                     with open(file_path, "w", encoding="utf-8") as f:
                         f.writelines(exported_code[9:])
+
     return path_to_type
 
 
@@ -798,6 +805,8 @@ def vba_import(args):
 
     book = vba_get_book(args)
 
+    encodings = ['utf-8', 'ISO-8859-1', 'cp1252']
+
     for path in Path(".").resolve().glob("*"):
         if path.suffix == ".bas":
             try:
@@ -807,11 +816,19 @@ def vba_import(args):
                 pass
             book.api.VBProject.VBComponents.Import(path)
         elif path.suffix in (".cls", ".frm"):
-            with open(path, "r", encoding="utf-8") as f:
-                vba_code = f.readlines()
+            for encoding in encodings:
+                try:
+                    with open(path, "r", encoding=encoding) as f:
+                        vba_code = f.readlines()
+                    break  # Successful read, break the loop
+                except UnicodeDecodeError:
+                    continue  # This encoding didn't work, try the next one
+            else:
+                # All encodings failed
+                raise UnicodeDecodeError("Failed to decode the file with any of the provided encodings.")
+
             if vba_code:
                 if vba_code[0].startswith("VERSION "):
-                    # For frm, this also imports frx, unlike in editing mode
                     try:
                         vb_component = book.api.VBProject.VBComponents(path.stem)
                         book.api.VBProject.VBComponents.Remove(vb_component)
@@ -864,12 +881,22 @@ def vba_edit(args):
             module_type = path_to_type[path]
             vb_component = book.api.VBProject.VBComponents(module_name)
             if change_type == Change.modified:
-                with open(path, "r", encoding="utf-8") as f:
-                    vba_code = f.readlines()
+                encodings = ['utf-8', 'ISO-8859-1', 'cp1252']
+                for encoding in encodings:
+                    try:
+                        with open(path, "r", encoding=encoding) as f:
+                            vba_code = f.readlines()
+                        break  # Successful read, break the loop
+                    except UnicodeDecodeError:
+                        continue  # This encoding didn't work, try the next one
+                else:
+                    # All encodings failed
+                    raise UnicodeDecodeError("Failed to decode the file with any of the provided encodings.")
+
                 line_count = vb_component.CodeModule.CountOfLines
                 if line_count > 0:
                     vb_component.CodeModule.DeleteLines(1, line_count)
-                # ThisWorkbook/Sheet, bas, cls, frm
+
                 type_to_firstline = {100: 0, 1: 1, 2: 9, 3: 15}
                 try:
                     vb_component.CodeModule.AddFromString(
