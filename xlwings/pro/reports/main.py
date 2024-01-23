@@ -302,7 +302,7 @@ def render_sheet(sheet, **data):
                                 df_formatter = filters.df_formatter(filter_list)
                                 if df_formatter:
                                     options["formatter"] = df_formatter
-                                cell.options(**options).value = result
+                                cell.options(chunksize=10000, **options).value = result
                             # DataFrame formatting filters
                             for filter_item in filter_list:
                                 for filter_name, filter_args in filter_item.items():
