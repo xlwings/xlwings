@@ -587,7 +587,7 @@ def fullname_url_to_local_path(
             local_path = Path(root) / f"{match.group(1)} - Documents" / match.group(3)
             if local_path.is_file():
                 return str(local_path)
-        # SharePoint Online & On-Premises (non-default mapping)
+            # SharePoint Online & On-Premises (non-default mapping)
             return search_local_sharepoint_path(
                 url, root, sharepoint_config, sharepoint_config_name
             )
@@ -600,8 +600,7 @@ def fullname_url_to_local_path(
                     return str(local_path)
                 else:
                     return search_local_sharepoint_path(
-                        url, mount_point, sharepoint_config, 
-                        sharepoint_config_name
+                        url, mount_point, sharepoint_config, sharepoint_config_name
                     )
         raise xlwings.XlwingsError(
             f"Couldn't find the local SharePoint folder. Please configure the "
