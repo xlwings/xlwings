@@ -18,20 +18,10 @@ globalThis.getAuth = async function () {
   // then be verified by the backend, see:
   // https://learn.microsoft.com/en-us/office/dev/add-ins/develop/sso-in-office-add-ins#validate-the-access-token
   // Replace this function with your own logic if you don't want to use SSO.
-  // NOTE: the access token is also an identity token and
-  // getAccessToken() automatically caches the token.
+  // NOTE: the access token is also an identity token
 
-  // try {
-  //   let accessToken = await Office.auth.getAccessToken({
-  //     allowSignInPrompt: true,
-  //   });
-  //   return "Bearer " + accessToken;
-  // } catch (error) {
-  //   // Error codes: https://learn.microsoft.com/en-us/office/dev/add-ins/develop/troubleshoot-sso-in-office-add-ins#causes-and-handling-of-errors-from-getaccesstoken
-  //   return `Error ${error.code}: ${error.message}`;
-  // }
-
-  return "";
+  return await xlwings.getAccessToken();
+  // return "";
 };
 
 function myCallback(arg: string) {
