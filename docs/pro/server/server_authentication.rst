@@ -118,8 +118,8 @@ In this case, you'd provide ``"Basic bXl1c2VybmFtZTpteXBhc3N3b3Jk"`` as your ``a
   .. warning::
     ngrok HTTP Basic auth will NOT work with Excel via Office Scripts as it doesn't support CORS. It's, however, an easy method for protecting your app during development if you use xlwings via VBA or Google Sheets.
 
-SSO/Azure AD for Office.js
---------------------------
+SSO/Entra ID (previously called Azure AD) for Office.js
+-------------------------------------------------------
 
 .. versionadded:: 0.29.0
 
@@ -133,77 +133,35 @@ As a summary, here are the components needed to enable SSO:
 1. SSO is only available for Office.js add-ins. If you want to enable multi-tenant access (i.e, access for users outside your own organization) external users need to install the add-in via their internal Office add-in store, sideloading the add-in won't work.
 2. You must use a supported version of Office, see: https://learn.microsoft.com/en-us/javascript/api/requirement-sets/common/identity-api-requirement-sets
 3.  `Register your add-in as an app on the Microsoft Identity Platform <https://learn.microsoft.com/en-us/office/dev/add-ins/develop/register-sso-add-in-aad-v2>`_
-4. Add the following to the end of the ``<VersionOverrides ... xsi:type="VersionOverridesV1_0">`` section of your manifest XML:
+4. Add the following to the end of the ``<VersionOverrides ... xsi:type="VersionOverridesV1_0">`` section of your manifest XML (replace `127.0.0.1:8000` with your domain if you're not running the server locally):
 
    .. code-block:: XML
  
      <WebApplicationInfo>
          <Id>Your Client ID</Id>
-         <Resource>api://.../Your Client ID</Resource>
+         <Resource>api://127.0.0.1:8000/Your Client ID</Resource>
          <Scopes>
              <Scope>openid</Scope>
              <Scope>profile</Scope>
-             <Scope>...</Scope>
-             <Scope>...</Scope>
          </Scopes>
      </WebApplicationInfo>
 
-5.  Acquire an access token in your client-side code and send it as Authorization header to your backend where you can verify it using e.g., Azure functions or parse/verify it manually. You could also use it to authenticate with Microsoft Graph API. The officejs quickstart repo has a dummy global function ``globalThis.getAuth()`` in the ``app/taskpane.html`` file that you can implement as follows (Note that ``Office.auth.getAccessToken`` is supposed to take care of caching automatically, but this doesn't seem to work, see: https://github.com/OfficeDev/office-js/issues/3298):
+5.  Acquire an access token in your client-side code and send it as Authorization header to your backend where you can verify it using e.g., Azure functions or parse/verify it manually. You could also use it to authenticate with Microsoft Graph API. The officejs quickstart repo has a dummy global function ``globalThis.getAuth()`` in the ``app/taskpane.html`` file that you can activate as follows:
 
     .. code-block:: js
-  
-      let isRenewingToken = false;
-      let tokenLock = false;
-      let accessToken = null;
-      let tokenTimestamp = null;
-
-      function hasKeyExpired() {
-        if (!tokenTimestamp) {
-          return true;
-        }
-        // 55 minutes, adjust according to Azure AD token lifetime
-        const expirationTime = 55 * 60 * 1000;
-        const currentTime = Date.now();
-        return currentTime - tokenTimestamp > expirationTime;
-      }
-
-      async function renewAccessToken() {
-        console.log("Renewing access token");
-        try {
-          accessToken = await Office.auth.getAccessToken({
-            allowSignInPrompt: true,
-          });
-          accessToken = "Bearer " + accessToken;
-          tokenTimestamp = Date.now();
-        } catch (error) {
-          console.log(`Error ${error.code}: ${error.message}`);
-        } finally {
-          tokenLock = false;
-        }
-      }
 
       globalThis.getAuth = async function () {
-        if (!accessToken || hasKeyExpired()) {
-          if (!tokenLock) {
-            tokenLock = true;
-            isRenewingToken = true;
-            await renewAccessToken();
-
-            isRenewingToken = false;
-          } else {
-            while (isRenewingToken) {
-              await new Promise((resolve) => setTimeout(resolve, 100));
-            }
-          }
-        }
-        return accessToken;
+        return await xlwings.getAccessToken();
       };
+
+
+    **NOTE:** ``xlwings.getAccessToken()`` was added in 0.13.14
 
     This then allows you to call ``runPython`` like so (note that custom functions do this automatically):
   
     .. code-block:: JavaScript
   
-      async function hello {
+      async function hello() {
         let token = await globalThis.getAuth();
         xlwings.runPython("your-url", { auth: token })
       }

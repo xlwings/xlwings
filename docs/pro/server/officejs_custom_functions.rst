@@ -496,24 +496,17 @@ The string that this functions returns will be provided as Authorization header 
 
     The ``getAuth`` function is required for custom functions to work, even if you don't want to authenticate users, so don't delete it.
 
-**SSO / AzureAD authentication**
+**SSO / Entra ID (previously called AzureAD) authentication**
 
-The most convenient way to authenticate users is to use single-sign on (SSO) based on Azure AD, which will use the identity of the signed-in Office user (requires Microsoft 365):
+The most convenient way to authenticate users is to use single-sign on (SSO) based on Entra ID (previously called Azure AD), which will use the identity of the signed-in Office user:
 
 .. code-block:: js
 
     globalThis.getAuth = async function () {
-      try {
-        let accessToken = await Office.auth.getAccessToken({
-          allowSignInPrompt: true,
-        });
-        return "Bearer " + accessToken;
-      } catch (error) {
-        return `Error ${error.code}: ${error.message}`;
-      }
+      return await xlwings.getAccessToken();
     };
 
-* This requires you to set up an Azure AD app as well as adjusting the manifest accordingly, see :ref:`pro/server/server_authentication:SSO/Azure AD for Excel 365`.
+* This requires you to set up an Entra ID (previously called Azure AD) app as well as adjusting the manifest accordingly, see :ref:`pro/server/server_authentication:SSO/Azure AD for Excel 365`.
 * You'll also need to verify the AzureAD access token on the backend. For an example on how to do that, have a look at https://github.com/xlwings/xlwings-server-auth-azuread
 
 Deployment

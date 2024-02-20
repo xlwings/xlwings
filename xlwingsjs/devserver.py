@@ -21,7 +21,8 @@ this_dir = Path(__file__).resolve().parent
 
 
 @app.post("/hello")
-def hello(data: dict = Body):
+def hello(request: Request, data: dict = Body):
+    print(request.headers)
     book = xw.Book(json=data)
     sheet = book.sheets[0]
     cell = sheet["A1"]

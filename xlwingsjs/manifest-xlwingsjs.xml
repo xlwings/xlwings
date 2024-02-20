@@ -142,7 +142,7 @@
       </bt:Urls>
       <bt:ShortStrings>
         <!-- The global Namespace isn't requied and can also be set per function via xw.func(namespace="...") -->
-        <bt:String id="Functions.Namespace" DefaultValue="XLWINGS"/>
+        <bt:String id="Functions.Namespace" DefaultValue="XLWINGSJS"/>
         <bt:String id="MyTab.TabLabel" DefaultValue="xlwings.js" />
         <bt:String id="MyCommandsGroup.Label" DefaultValue="MyGroup" />
         <bt:String id="MyFunctionButton.Label" DefaultValue="Hello World" />

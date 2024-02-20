@@ -4,6 +4,8 @@ import "core-js/actual/array/includes";
 import "core-js/actual/global-this";
 import "core-js/actual/function/name";
 import { xlAlert } from "./alert";
+import { getAccessToken } from "./auth";
+export { getAccessToken };
 
 const version = "dev";
 globalThis.callbacks = {};
