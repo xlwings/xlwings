@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v0.30.14 (Feb 21, 2024)
+-----------------------
+
+* :bdg-warning:`Bug Fix`: When files are auto-saved to SharePoint, the xlwings configuration is now checked before trying to derive the local path via registry/env variables (:issue:`2396`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO`: xlwings Reports now chunks the writing of big ranges (:issue:`2384`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO`: Office.js add-ins can now use ``xlwings.getAccessToken()`` via xlwings.js to acquire an Entra ID access token (:issue:`2399`).
+
 v0.30.13 (Dec 12, 2023)
 -----------------------
 
