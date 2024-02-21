@@ -392,7 +392,9 @@ Here is the relevant code. As usual, have a look at ``app/server_fastapi.py`` fo
                   "xlwings-alert.html",
                   {
                       "request": request,
-                      "prompt": markupsafe.Markup(prompt.replace("\n", "<br>")),
+                      "prompt": markupsafe.escape(prompt).replace(
+                          "\n", markupsafe.Markup("<br>")
+                      ),
                       "title": title,
                       "buttons": buttons,
                       "mode": mode,
@@ -425,7 +427,9 @@ Here is the relevant code. As usual, have a look at ``app/server_fastapi.py`` fo
                 "xlwings-alert.html",
                 {
                     "request": request,
-                    "prompt": markupsafe.Markup(params["prompt"].replace("\n", "<br>")),
+                    "prompt": markupsafe.escape(prompt).replace(
+                        "\n", markupsafe.Markup("<br>")
+                    ),
                     "title": params["title"],
                     "buttons": params["buttons"],
                     "mode": params["mode"],
