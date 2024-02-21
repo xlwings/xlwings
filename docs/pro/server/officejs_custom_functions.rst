@@ -73,6 +73,22 @@ For example, to read in the values of a range as pandas DataFrame and return the
 
 For an overview of the available converters and options, have a look at :ref:`converters`.
 
+Variable number of arguments (``*args``)
+----------------------------------------
+
+.. versionadded:: 0.30.15
+
+Varargs are supported. You can also use a converter, which will be applied to all arguments provided by ``*args**``:
+
+.. code-block:: python
+
+  from xlwings import server
+
+  @server.func
+  @server.arg("*args", pd.DataFrame, index=False)
+  def concat(*args):
+      return pd.concat(list(args))
+
 Doc strings
 -----------
 
@@ -490,7 +506,7 @@ To authenticate (and possibly authorize) the users of your custom functions, you
       return ""
     };
 
-The string that this functions returns will be provided as Authorization header whenever a custom function executes so the backend can authenticate the user. Hence, to activate authentication, you'll need to change this function to give back the desired token/credentials.
+The string that this function returns will be provided as Authorization header whenever a custom function executes so the backend can authenticate the user. Hence, to activate authentication, you'll need to change this function to give back the desired token/credentials.
 
 .. note::
 
@@ -506,8 +522,8 @@ The most convenient way to authenticate users is to use single-sign on (SSO) bas
       return await xlwings.getAccessToken();
     };
 
-* This requires you to set up an Entra ID (previously called Azure AD) app as well as adjusting the manifest accordingly, see :ref:`pro/server/server_authentication:SSO/Azure AD for Excel 365`.
-* You'll also need to verify the AzureAD access token on the backend. For an example on how to do that, have a look at https://github.com/xlwings/xlwings-server-auth-azuread
+* This requires you to set up an Entra ID (previously called Azure AD) app as well as adjusting the manifest accordingly, see :ref:`pro/server/server_authentication:SSO/Entra ID (previously called Azure AD) for Office.js`.
+* You'll also need to verify the AzureAD access token on the backend. This is already implemented in https://github.com/xlwings/xlwings-server
 
 Deployment
 ----------

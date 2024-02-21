@@ -13,7 +13,7 @@ import datetime as dt
 from datetime import date, datetime
 
 import xlwings as xw
-from xlwings.pro import arg, func, ret
+from xlwings.server import arg, func, ret
 
 try:
     import numpy as np
@@ -816,3 +816,10 @@ def namespace():
 @func(volatile=True)
 def volatile():
     return True
+
+
+@func
+@arg("x", pd.DataFrame, index=False)
+@arg("*params", pd.DataFrame, index=False)
+def varargs_arg_decorator(x, *params):
+    return pd.concat(list(params) + [x])

@@ -73,9 +73,11 @@ def xlfunc(f=None, **kwargs):
                 xlargs.append(arg_info)
                 xlargmap[var_name] = xlargs[-1]
             xlf["ret"] = {
-                "doc": f.__doc__
-                if f.__doc__ is not None
-                else f"Python function '{f.__name__}'",
+                "doc": (
+                    f.__doc__
+                    if f.__doc__ is not None
+                    else f"Python function '{f.__name__}'"
+                ),
                 "options": {},
             }
         f.__xlfunc__["volatile"] = check_bool("volatile", default=False, **kwargs)
@@ -110,9 +112,9 @@ def xlarg(arg, convert=None, **kwargs):
 
     def inner(f):
         xlf = xlfunc(f).__xlfunc__
-        if arg not in xlf["argmap"]:
+        if arg.lstrip("*") not in xlf["argmap"]:
             raise Exception(f"Invalid argument name '{arg}'.")
-        xla = xlf["argmap"][arg]
+        xla = xlf["argmap"][arg.lstrip("*")]
         if "doc" in kwargs:
             xla["doc"] = kwargs.pop("doc")
         xla["options"].update(kwargs)
@@ -144,16 +146,24 @@ async def custom_functions_call(data, module):
             "right-click on the task pane and select 'reload'!"
         )
 
+    # Turn varargs into regular arguments
     args = list(args)
-    # Turn varargs into regular arguments (remove the outermost list)
+    new_args = []
+    new_args_info = []
     for i, arg in enumerate(args):
         arg_info = args_info[min(i, len(args_info) - 1)]
         if arg_info["vararg"]:
-            del args[i]
-            args[i:i] = arg
+            new_args.extend(arg)
+            for _ in range(len(arg)):
+                new_args_info.append(arg_info)
+        else:
+            new_args.append(arg)
+            new_args_info.append(arg_info)
+    args = new_args
+    args_info = new_args_info
 
     for i, arg in enumerate(args):
-        arg_info = args_info[min(i, len(args_info) - 1)]
+        arg_info = args_info[i]
         arg = to_scalar(arg)
         if arg is None:
             args[i] = arg_info.get("optional", None)

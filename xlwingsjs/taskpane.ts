@@ -20,8 +20,8 @@ globalThis.getAuth = async function () {
   // Replace this function with your own logic if you don't want to use SSO.
   // NOTE: the access token is also an identity token
 
-  return await xlwings.getAccessToken();
-  // return "";
+  // return await xlwings.getAccessToken();
+  return "";
 };
 
 function myCallback(arg: string) {

@@ -171,8 +171,8 @@ As a summary, here are the components needed to enable SSO:
 * For a reference of the error codes, see: https://learn.microsoft.com/en-us/office/dev/add-ins/develop/troubleshoot-sso-in-office-add-ins
 
 
-Azure AD for Excel VBA
-----------------------
+Entra ID (previously called Azure AD) for Excel VBA
+---------------------------------------------------
 
 .. versionadded:: 0.28.6
 
