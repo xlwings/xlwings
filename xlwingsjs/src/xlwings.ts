@@ -6,6 +6,8 @@ import "core-js/actual/function/name";
 import { xlAlert } from "./alert";
 import { getAccessToken } from "./auth";
 export { getAccessToken };
+import { getActiveBookName } from "./utils";
+export { getActiveBookName };
 
 const version = "dev";
 globalThis.callbacks = {};
