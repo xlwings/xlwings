@@ -282,8 +282,12 @@ function setValues(workbook, action) {
   getRange(workbook, action).setValues(action.values);
 }
 
-function clearContents(workbook, action) {
+function rangeClearContents(workbook, action) {
   getRange(workbook, action).clearContent();
+}
+
+function rangeClear(workbook, action) {
+  getRange(workbook, action).clear();
 }
 
 function addSheet(workbook, action) {

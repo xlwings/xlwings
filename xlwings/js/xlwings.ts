@@ -404,10 +404,15 @@ function setValues(workbook: ExcelScript.Workbook, action: Action) {
 }
 registerCallback(setValues);
 
-function clearContents(workbook: ExcelScript.Workbook, action: Action) {
+function rangeClearContents(workbook: ExcelScript.Workbook, action: Action) {
   getRange(workbook, action).clear(ExcelScript.ClearApplyTo.contents);
 }
-registerCallback(clearContents);
+registerCallback(rangeClearContents);
+
+function rangeClear(workbook: ExcelScript.Workbook, action: Action) {
+  getRange(workbook, action).clear();
+}
+registerCallback(rangeClear);
 
 function addSheet(workbook: ExcelScript.Workbook, action: Action) {
   let sheet: ExcelScript.Worksheet;
