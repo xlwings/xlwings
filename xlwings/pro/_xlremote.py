@@ -464,6 +464,10 @@ class Sheet(base_classes.Sheet):
     def tables(self):
         return Tables(parent=self)
 
+    def delete(self):
+        del self.book.api["sheets"][self.index - 1]
+        self.append_json_action(func="sheetDelete")
+
 
 @lru_cache(None)
 def get_range_api(api_values, arg1, arg2=None):
