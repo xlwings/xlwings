@@ -468,6 +468,15 @@ class Sheet(base_classes.Sheet):
         del self.book.api["sheets"][self.index - 1]
         self.append_json_action(func="sheetDelete")
 
+    def clear(self):
+        self.append_json_action(func="sheetClear")
+
+    def clear_contents(self):
+        self.append_json_action(func="sheetClearContents")
+
+    def clear_formats(self):
+        self.append_json_action(func="sheetClearFormats")
+
 
 @lru_cache(None)
 def get_range_api(api_values, arg1, arg2=None):

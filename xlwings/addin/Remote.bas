@@ -754,3 +754,15 @@ Sub sheetDelete(wb As Workbook, action As Dictionary)
     wb.Worksheets(action("sheet_position") + 1).Delete
     Application.DisplayAlerts = displayAlertsState
 End Sub
+
+Sub sheetClear(wb As Workbook, action As Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).Cells.Clear
+End Sub
+
+Sub sheetClearContents(wb As Workbook, action As Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).Cells.ClearContents
+End Sub
+
+Sub sheetClearFormats(wb As Workbook, action As Dictionary)
+    wb.Worksheets(action("sheet_position") + 1).Cells.ClearFormats
+End Sub

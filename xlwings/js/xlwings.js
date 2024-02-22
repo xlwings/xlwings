@@ -559,3 +559,15 @@ function copyRange(workbook, action) {
 function sheetDelete(workbook, action) {
   workbook.deleteSheet(workbook.getSheets()[action.sheet_position]);
 }
+
+function sheetClear(workbook, action) {
+  workbook.getSheets()[action.sheet_position].clear();
+}
+
+function sheetClearFormats(workbook, action) {
+  workbook.getSheets()[action.sheet_position].clearFormats();
+}
+
+function sheetClearContents(workbook, action) {
+  workbook.getSheets()[action.sheet_position].clearContents();
+}

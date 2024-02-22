@@ -476,6 +476,9 @@ let funcs = {
   setTableStyle: setTableStyle,
   copyRange: copyRange,
   sheetDelete: sheetDelete,
+  sheetClear: sheetClear,
+  sheetClearFormats: sheetClearFormats,
+  sheetClearContents: sheetClearContents,
 };
 
 Object.assign(globalThis.callbacks, funcs);
@@ -811,4 +814,34 @@ async function sheetDelete(context: Excel.RequestContext, action: Action) {
   let worksheets = context.workbook.worksheets.load("items");
   await context.sync();
   worksheets.items[action.sheet_position].delete();
+}
+
+async function sheetClear(context: Excel.RequestContext, action: Action) {
+  let worksheets = context.workbook.worksheets.load("items");
+  await context.sync();
+  worksheets.items[action.sheet_position]
+    .getRanges()
+    .clear(Excel.ClearApplyTo.all);
+}
+
+async function sheetClearFormats(
+  context: Excel.RequestContext,
+  action: Action
+) {
+  let worksheets = context.workbook.worksheets.load("items");
+  await context.sync();
+  worksheets.items[action.sheet_position]
+    .getRanges()
+    .clear(Excel.ClearApplyTo.formats);
+}
+
+async function sheetClearContents(
+  context: Excel.RequestContext,
+  action: Action
+) {
+  let worksheets = context.workbook.worksheets.load("items");
+  await context.sync();
+  worksheets.items[action.sheet_position]
+    .getRanges()
+    .clear(Excel.ClearApplyTo.contents);
 }

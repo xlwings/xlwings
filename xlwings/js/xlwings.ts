@@ -704,3 +704,21 @@ function sheetDelete(workbook: ExcelScript.Workbook, action: Action) {
   const mytable = workbook.getWorksheets()[action.sheet_position].delete();
 }
 registerCallback(sheetDelete);
+
+function sheetClear(workbook: ExcelScript.Workbook, action: Action) {
+  const sheet = workbook.getWorksheets()[action.sheet_position];
+    sheet.getRanges().clear();
+}
+registerCallback(sheetClear);
+
+function sheetClearFormats(workbook: ExcelScript.Workbook, action: Action) {
+  const sheet = workbook.getWorksheets()[action.sheet_position];
+    sheet.getRanges().clear(ExcelScript.ClearApplyTo.formats);
+}
+registerCallback(sheetClearFormats);
+
+function sheetClearContents(workbook: ExcelScript.Workbook, action: Action) {
+  const sheet = workbook.getWorksheets()[action.sheet_position];
+    sheet.getRanges().clear(ExcelScript.ClearApplyTo.contents);
+}
+registerCallback(sheetClearContents);
