@@ -610,7 +610,12 @@ class Range(base_classes.Range):
 
     def clear_contents(self):
         self.append_json_action(
-            func="clearContents",
+            func="rangeClearContents",
+        )
+
+    def clear(self):
+        self.append_json_action(
+            func="rangeClear",
         )
 
     @property

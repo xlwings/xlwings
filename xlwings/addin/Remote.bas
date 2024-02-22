@@ -465,8 +465,12 @@ Sub setValues(wb As Workbook, action As Dictionary)
     GetRange(wb, action).Value = arr
 End Sub
 
-Sub clearContents(wb As Workbook, action As Dictionary)
-    GetRange(wb, action).clearContents
+Sub rangeClearContents(wb As Workbook, action As Dictionary)
+    GetRange(wb, action).ClearContents
+End Sub
+
+Sub rangeClear(wb As Workbook, action As Dictionary)
+    GetRange(wb, action).Clear
 End Sub
 
 Sub addSheet(wb As Workbook, action As Dictionary)

@@ -444,7 +444,6 @@ export function registerCallback(callback: Function) {
 // functions when optimizing
 let funcs = {
   setValues: setValues,
-  clearContents: clearContents,
   addSheet: addSheet,
   setSheetName: setSheetName,
   setAutofit: setAutofit,
@@ -465,6 +464,8 @@ let funcs = {
   runMacro: runMacro,
   rangeDelete: rangeDelete,
   rangeInsert: rangeInsert,
+  rangeClearContents: rangeClearContents,
+  rangeClear: rangeClear,
   addTable: addTable,
   setTableName: setTableName,
   resizeTable: resizeTable,
@@ -520,9 +521,15 @@ async function setValues(context: Excel.RequestContext, action: Action) {
   await context.sync();
 }
 
-async function clearContents(context: Excel.RequestContext, action: Action) {
+async function rangeClearContents(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
   range.clear(Excel.ClearApplyTo.contents);
+  await context.sync();
+}
+
+async function rangeClear(context: Excel.RequestContext, action: Action) {
+  let range = await getRange(context, action);
+  range.clear(Excel.ClearApplyTo.all);
   await context.sync();
 }
 
