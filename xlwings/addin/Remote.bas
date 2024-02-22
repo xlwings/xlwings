@@ -746,3 +746,11 @@ Sub copyRange(wb As Workbook, action As Dictionary)
         GetRange(wb, action).Copy Destination:=wb.Worksheets(action("args")(1) + 1).Range(action("args")(2))
     End If
 End Sub
+
+Sub sheetDelete(wb As Workbook, action As Dictionary)
+    Dim displayAlertsState As Boolean
+    displayAlertsState = Application.DisplayAlerts
+    Application.DisplayAlerts = False
+    wb.Worksheets(action("sheet_position") + 1).Delete
+    Application.DisplayAlerts = displayAlertsState
+End Sub

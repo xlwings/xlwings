@@ -699,3 +699,8 @@ function copyRange(workbook: ExcelScript.Workbook, action: Action) {
   destination.copyFrom(getRange(workbook, action));
 }
 registerCallback(copyRange);
+
+function sheetDelete(workbook: ExcelScript.Workbook, action: Action) {
+  const mytable = workbook.getWorksheets()[action.sheet_position].delete();
+}
+registerCallback(sheetDelete);

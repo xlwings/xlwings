@@ -475,6 +475,7 @@ let funcs = {
   showTotalsTable: showTotalsTable,
   setTableStyle: setTableStyle,
   copyRange: copyRange,
+  sheetDelete: sheetDelete,
 };
 
 Object.assign(globalThis.callbacks, funcs);
@@ -522,13 +523,19 @@ async function setValues(context: Excel.RequestContext, action: Action) {
   await context.sync();
 }
 
-async function rangeClearContents(context: Excel.RequestContext, action: Action) {
+async function rangeClearContents(
+  context: Excel.RequestContext,
+  action: Action
+) {
   let range = await getRange(context, action);
   range.clear(Excel.ClearApplyTo.contents);
   await context.sync();
 }
 
-async function rangeClearFormats(context: Excel.RequestContext, action: Action) {
+async function rangeClearFormats(
+  context: Excel.RequestContext,
+  action: Action
+) {
   let range = await getRange(context, action);
   range.clear(Excel.ClearApplyTo.formats);
   await context.sync();
@@ -798,4 +805,10 @@ async function copyRange(context: Excel.RequestContext, action: Action) {
     parseInt(action.args[0].toString())
   ].getRange(action.args[1].toString());
   destination.copyFrom(await getRange(context, action));
+}
+
+async function sheetDelete(context: Excel.RequestContext, action: Action) {
+  let worksheets = context.workbook.worksheets.load("items");
+  await context.sync();
+  worksheets.items[action.sheet_position].delete();
 }

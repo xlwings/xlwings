@@ -555,3 +555,7 @@ function copyRange(workbook, action) {
     [parseInt(action.args[0])].getRange(action.args[1].toString());
   getRange(workbook, action).copyTo(destination);
 }
+
+function sheetDelete(workbook, action) {
+  workbook.deleteSheet(workbook.getSheets()[action.sheet_position]);
+}
