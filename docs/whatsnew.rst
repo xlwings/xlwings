@@ -1,12 +1,19 @@
 Changelog
 =========
 
+v0.30.15 (Feb 22, 2024)
+-----------------------
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` New xlwings Server methods: ``Range.clear()``, ``Range.clear_formats()``, ``Sheet.clear()``, ``Sheet.clear_contents()``, ``Sheet.clear_formats()``, and ``Sheet.delete()`` (:issue:`2325`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Custom functions now handle ``*args`` properly and allow to use the ``@server.arg("*args")`` decorator (:issue:`2398`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Added ``xlwings.getActiveBookName`` as convenience method in xlwings.js (:issue:`2405`).
+
+
 v0.30.14 (Feb 21, 2024)
 -----------------------
 
-* :bdg-warning:`Bug Fix`: When files are auto-saved to SharePoint, the xlwings configuration is now checked before trying to derive the local path via registry/env variables (:issue:`2396`).
-* :bdg-info:`Enhancement` :bdg-secondary:`PRO`: xlwings Reports now chunks the writing of big ranges (:issue:`2384`).
-* :bdg-info:`Enhancement` :bdg-secondary:`PRO`: Office.js add-ins can now use ``xlwings.getAccessToken()`` via xlwings.js to acquire an Entra ID access token (:issue:`2399`).
+* :bdg-warning:`Bug Fix` When files are auto-saved to SharePoint, the xlwings configuration is now checked before trying to derive the local path via registry/env variables (:issue:`2396`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Reports now chunks the writing of big ranges (:issue:`2384`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Office.js add-ins can now use ``xlwings.getAccessToken()`` via xlwings.js to acquire an Entra ID access token (:issue:`2399`).
 
 v0.30.13 (Dec 12, 2023)
 -----------------------
