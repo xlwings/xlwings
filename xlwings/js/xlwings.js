@@ -286,6 +286,10 @@ function rangeClearContents(workbook, action) {
   getRange(workbook, action).clearContent();
 }
 
+function rangeClearFormats(workbook, action) {
+  getRange(workbook, action).clearFormat();
+}
+
 function rangeClear(workbook, action) {
   getRange(workbook, action).clear();
 }
