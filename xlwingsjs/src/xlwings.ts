@@ -465,6 +465,7 @@ let funcs = {
   rangeDelete: rangeDelete,
   rangeInsert: rangeInsert,
   rangeClearContents: rangeClearContents,
+  rangeClearFormats: rangeClearFormats,
   rangeClear: rangeClear,
   addTable: addTable,
   setTableName: setTableName,
@@ -524,6 +525,12 @@ async function setValues(context: Excel.RequestContext, action: Action) {
 async function rangeClearContents(context: Excel.RequestContext, action: Action) {
   let range = await getRange(context, action);
   range.clear(Excel.ClearApplyTo.contents);
+  await context.sync();
+}
+
+async function rangeClearFormats(context: Excel.RequestContext, action: Action) {
+  let range = await getRange(context, action);
+  range.clear(Excel.ClearApplyTo.formats);
   await context.sync();
 }
 

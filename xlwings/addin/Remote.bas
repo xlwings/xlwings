@@ -469,6 +469,10 @@ Sub rangeClearContents(wb As Workbook, action As Dictionary)
     GetRange(wb, action).ClearContents
 End Sub
 
+Sub rangeClearFormats(wb As Workbook, action As Dictionary)
+    GetRange(wb, action).ClearFormats
+End Sub
+
 Sub rangeClear(wb As Workbook, action As Dictionary)
     GetRange(wb, action).Clear
 End Sub

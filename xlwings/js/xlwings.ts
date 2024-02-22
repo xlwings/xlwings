@@ -409,6 +409,11 @@ function rangeClearContents(workbook: ExcelScript.Workbook, action: Action) {
 }
 registerCallback(rangeClearContents);
 
+function rangeClearFormats(workbook: ExcelScript.Workbook, action: Action) {
+  getRange(workbook, action).clear(ExcelScript.ClearApplyTo.formats);
+}
+registerCallback(rangeClearFormats);
+
 function rangeClear(workbook: ExcelScript.Workbook, action: Action) {
   getRange(workbook, action).clear();
 }

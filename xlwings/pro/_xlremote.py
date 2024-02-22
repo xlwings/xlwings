@@ -33,10 +33,8 @@ time_types = (dt.datetime,)
 if np:
     time_types = time_types + (np.datetime64,)
 
-datetime_pattern = (
-    pattern
-) = r"^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$"  # noqa: E501
-datetime_regex = re.compile(pattern)
+datetime_pattern = r"^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$"  # noqa: E501
+datetime_regex = re.compile(datetime_pattern)
 
 
 def _clean_value_data_element(
@@ -616,6 +614,11 @@ class Range(base_classes.Range):
     def clear(self):
         self.append_json_action(
             func="rangeClear",
+        )
+
+    def clear_formats(self):
+        self.append_json_action(
+            func="rangeClearFormats",
         )
 
     @property
