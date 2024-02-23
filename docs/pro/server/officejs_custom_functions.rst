@@ -78,7 +78,7 @@ Variable number of arguments (``*args``)
 
 .. versionadded:: 0.30.15
 
-Varargs are supported. You can also use a converter, which will be applied to all arguments provided by ``*args**``:
+Varargs are supported. You can also use a converter, which will be applied to all arguments provided by ``*args``:
 
 .. code-block:: python
 
