@@ -87,7 +87,7 @@ Varargs are supported. You can also use a converter, which will be applied to al
   @server.func
   @server.arg("*args", pd.DataFrame, index=False)
   def concat(*args):
-      return pd.concat(list(args))
+      return pd.concat(args)
 
 Doc strings
 -----------
