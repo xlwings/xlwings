@@ -213,9 +213,9 @@ def xlarg(arg, convert=None, **kwargs):
 
     def inner(f):
         xlf = xlfunc(f).__xlfunc__
-        if arg not in xlf["argmap"]:
+        if arg.lstrip("*") not in xlf["argmap"]:
             raise Exception("Invalid argument name '" + arg + "'.")
-        xla = xlf["argmap"][arg]
+        xla = xlf["argmap"][arg.lstrip("*")]
         for special in ("vba", "doc"):
             if special in kwargs:
                 xla[special] = kwargs.pop(special)
