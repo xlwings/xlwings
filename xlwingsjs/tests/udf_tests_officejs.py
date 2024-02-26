@@ -822,4 +822,4 @@ def volatile():
 @arg("x", pd.DataFrame, index=False)
 @arg("*params", pd.DataFrame, index=False)
 def varargs_arg_decorator(x, *params):
-    return pd.concat(list(params) + [x])
+    return pd.concat(params + (x,))

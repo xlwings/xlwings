@@ -843,5 +843,12 @@ def return_pd_nat():
     return pd.DataFrame(data=[pd.NaT], columns=[1], index=[1])
 
 
+@xw.func
+@xw.arg("x", pd.DataFrame, index=False)
+@xw.arg("*params", pd.DataFrame, index=False)
+def varargs_arg_decorator(x, *params):
+    return pd.concat(params + (x,))
+
+
 if __name__ == "__main__":
     xw.serve()
