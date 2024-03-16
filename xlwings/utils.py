@@ -574,37 +574,30 @@ def fullname_url_to_local_path(
     # SharePoint Online & On-Premises
     pattern = re.compile(r"https?://[^/]*/sites/([^/]*)/([^/]*)/(.*)")
     match = pattern.match(url)
-    # We're trying to derive the SharePoint root path
-    # from the OneDriveCommercial path, if it exists
     if match:
-        root = sharepoint_config or (
-            os.getenv("OneDriveCommercial").replace("OneDrive - ", "")
-            if os.getenv("OneDriveCommercial")
-            else None
-        )
-        # SharePoint Online & On-Premises (default top level mapping)
-        if root:
+        # xlwings config
+        if sharepoint_config:
+            root = sharepoint_config
             local_path = Path(root) / f"{match.group(1)} - Documents" / match.group(3)
             if local_path.is_file():
                 return str(local_path)
-            # SharePoint Online & On-Premises (non-default mapping)
-            return search_local_sharepoint_path(
-                url, root, sharepoint_config, sharepoint_config_name
-            )
-        # SharePoint Online & On-Premises (Windows registry)
+        # Env var
+        if os.getenv("OneDriveCommercial"):
+            # Default top level mapping
+            root = os.getenv("OneDriveCommercial").replace("OneDrive - ", "")
+            local_path = Path(root) / f"{match.group(1)} - Documents" / match.group(3)
+            if local_path.is_file():
+                return str(local_path)
+        # Windows registry
         url_to_mount = get_url_to_mount()
         for url_namespace, mount_point in url_to_mount.items():
             if url.startswith(url_namespace):
                 local_path = Path(mount_point) / url[len(url_namespace) :]
                 if local_path.is_file():
                     return str(local_path)
-                else:
-                    return search_local_sharepoint_path(
-                        url, mount_point, sharepoint_config, sharepoint_config_name
-                    )
-        raise xlwings.XlwingsError(
-            f"Couldn't find the local SharePoint folder. Please configure the "
-            f"{sharepoint_config_name} setting, see: xlwings.org/error."
+        # Horrible fallback
+        return search_local_sharepoint_path(
+            url, mount_point, sharepoint_config, sharepoint_config_name
         )
     raise xlwings.XlwingsError(
         f"URL {url} not recognized as valid OneDrive/SharePoint link."
@@ -707,8 +700,8 @@ def to_pdf(
 
 
 def get_url_to_mount():
-    """Windows stores the mount points in the registry. This helps but still isn't
-    foolproof.
+    """Windows stores the sharepoint mount points in the registry. This helps but still
+    isn't foolproof.
     """
     if sys.platform.startswith("win"):
         import winreg
