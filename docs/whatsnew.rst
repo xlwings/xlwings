@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.30.16 (Mar 16, 2024)
+-----------------------
+* :bdg-warning:`Bug Fix` Fixed a regression with files synced to Sharepoint that was introduced in v0.30.14 (:issue:`2413`).
+* :bdg-info:`Enhancement` ``xw.arg`` now allows you to use ``*args`` as argument in addition to ``args`` for converting multiple arguments as provided by ``*args`` (:issue:`2407`).
+
+
 v0.30.15 (Feb 22, 2024)
 -----------------------
 * :bdg-info:`Enhancement` :bdg-secondary:`PRO` New xlwings Server methods: ``Range.clear()``, ``Range.clear_formats()``, ``Sheet.clear()``, ``Sheet.clear_contents()``, ``Sheet.clear_formats()``, and ``Sheet.delete()`` (:issue:`2325`).
