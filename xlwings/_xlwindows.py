@@ -472,9 +472,9 @@ class Engine:
     def prepare_xl_data_element(x, date_format):
         if isinstance(x, time_types):
             return _datetime_to_com_time(x)
-        elif pd and pd.isna(x):
+        elif pd and pd.isna(x).all():
             return ""
-        elif np and isinstance(x, (np.floating, float)) and np.isnan(x):
+        elif np and isinstance(x, (np.floating, float)) and np.isnan(x).all():
             return ""
         elif np and isinstance(x, np.number):
             return float(x)
@@ -482,7 +482,7 @@ class Engine:
             return ""
         else:
             return x
-
+        
     @staticmethod
     def clean_value_data(data, datetime_builder, empty_as, number_builder, err_to_str):
         return [
