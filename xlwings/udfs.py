@@ -645,7 +645,7 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
                             "On Error GoTo failed"
                         )
                         vba.writeln(
-                            '{fname} = XLPy.CallUDF("{module_name}", "{fname}", '
+                            'assign {fname}, XLPy.CallUDF("{module_name}", "{fname}", '
                             "{args_vba}, {vba_workbook}, Application.Caller)",
                             module_name=module_name,
                             fname=fname,
@@ -655,7 +655,7 @@ def generate_vba_wrapper(module_name, module, f, xl_workbook):
                         vba.writeln("Exit " + ftype)
                     with vba.block("#Else"):
                         vba.writeln(
-                            '{fname} = XLPy.CallUDF("{module_name}", '
+                            'assign {fname}, XLPy.CallUDF("{module_name}", '
                             '"{fname}", {args_vba})',
                             module_name=module_name,
                             fname=fname,
@@ -685,6 +685,22 @@ def import_udfs(module_names, xl_workbook):
     )
     vba.writeln(
         """#Const App = "Microsoft Excel" 'Adjust when using outside of Excel"""
+    )
+
+    # The assign sub is used in `generate_vba_wrapper` to assign the return value of a UDF in a way that supports
+    # both `Object` and `Variant` return types.
+    vba.writeln(
+        """
+
+Private Sub assign(ByRef Var As Variant, ByRef Val As Variant)
+    If IsObject(Val) Then
+        Set Var = Val
+    Else
+        Var = Val
+    End If
+End Sub
+
+"""
     )
 
     if __pro__:
