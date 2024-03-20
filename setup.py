@@ -53,6 +53,7 @@ extras_require = {
         "requests",
         "pdfrw",
         "pytest",
+        "py.typed",
     ],
 }
 
@@ -104,6 +105,7 @@ setup(
             "js/xlwings.*",
             "quickstart_fastapi/*.*",
             "html/*.*",
+            "py.typed",
         ],
         "src": [
             "src",

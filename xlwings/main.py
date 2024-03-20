@@ -8,6 +8,8 @@ All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
 """
+from __future__ import annotations
+
 import numbers
 import os
 import re
@@ -15,6 +17,7 @@ import sys
 import warnings
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Optional, Union
 
 import xlwings
 
@@ -25,18 +28,18 @@ try:
     import matplotlib as mpl
     from matplotlib.backends.backend_agg import FigureCanvas
 except ImportError:
-    mpl = None
+    mpl = None  # type: ignore
     FigureCanvas = None
 
 try:
     import pandas as pd
 except ImportError:
-    pd = None
+    pd = None  # type: ignore
 
 try:
     import PIL
 except ImportError:
-    PIL = None
+    PIL = None  # type: ignore
 
 
 class Collection:
@@ -160,11 +163,11 @@ class Engines:
 
 
 class Engine:
-    def __init__(self, impl):
+    def __init__(self, impl: Union[xlwings._xlwindows.Engine, xlwings._xlmac.Engine]):
         self.impl = impl
 
     @property
-    def apps(self):
+    def apps(self) -> Union[xlwings._xlmac.Apps, xlwings._xlwindows.Apps]:
         return Apps(impl=self.impl.apps)
 
     @property
@@ -191,7 +194,7 @@ class Apps:
     Apps([<Excel App 1668>, <Excel App 1644>])
     """
 
-    def __init__(self, impl):
+    def __init__(self, impl: Union[xlwings._xlmac.Apps, xlwings._xlwindows.Apps]):
         self.impl = impl
 
     def keys(self):
@@ -306,7 +309,13 @@ class App:
         that the same file is not being overwritten from different instances.
     """
 
-    def __init__(self, visible=None, spec=None, add_book=True, impl=None):
+    def __init__(
+        self,
+        visible=None,
+        spec=None,
+        add_book=True,
+        impl: Union[xlwings._xlmac.App, xlwings._xlwindows.App] = None,
+    ):
         if impl is None:
             self.impl = engines.active.apps.add(
                 spec=spec, add_book=add_book, visible=visible
@@ -894,7 +903,7 @@ class Book:
         add_to_mru=None,
         local=None,
         corrupt_load=None,
-        impl=None,
+        impl: Union[xlwings._xlmac.Book, xlwings._xlwindows.Book] = None,
         json=None,
         mode=None,
         engine=None,
@@ -1105,7 +1114,7 @@ class Book:
         return self.impl.name
 
     @property
-    def sheets(self):
+    def sheets(self) -> Sheets:
         """
         Returns a sheets collection that represents all the sheets in the book.
 
@@ -1349,7 +1358,11 @@ class Sheet:
     .. versionchanged:: 0.9.0
     """
 
-    def __init__(self, sheet=None, impl=None):
+    def __init__(
+        self,
+        sheet=None,
+        impl: Union[xlwings._xlmac.Sheet, xlwings._xlwindows.Sheet] = None,
+    ):
         if impl is None:
             self.impl = books.active.sheets(sheet).impl
         else:
@@ -1793,7 +1806,9 @@ class Range:
 
     def __init__(self, cell1=None, cell2=None, **options):
         # Arguments
-        impl = options.pop("impl", None)
+        impl: Optional[
+            Union[xlwings._xlmac.Range, xlwings._xlwindows.Range]
+        ] = options.pop("impl", None)
         if impl is None:
             if (
                 cell2 is not None
@@ -5103,7 +5118,7 @@ class Sheets(Collection):
         """
         return Sheet(impl=self.impl.active)
 
-    def __call__(self, name_or_index):
+    def __call__(self, name_or_index) -> Sheet:
         if isinstance(name_or_index, Sheet):
             return name_or_index
         else:
