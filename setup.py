@@ -104,6 +104,7 @@ setup(
             "js/xlwings.*",
             "quickstart_fastapi/*.*",
             "html/*.*",
+            "pro/custom_functions_code.js",
         ],
         "src": [
             "src",

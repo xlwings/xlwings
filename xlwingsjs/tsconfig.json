@@ -13,7 +13,8 @@
     "dist",
     "build",
     "lib",
-    "lib-amd"
+    "lib-amd",
+    "taskpane.ts",
   ],
   "ts-node": { 
     "files": true 
