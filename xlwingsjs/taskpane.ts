@@ -21,8 +21,22 @@ globalThis.getAuth = async function () {
   // NOTE: the access token is also an identity token
 
   // return await xlwings.getAccessToken();
-  return "";
+  return "mytoken";
 };
+const getAuth = globalThis.getAuth;
+
+try {
+  globalThis.socket = io({
+    auth: async (callback) => {
+      let token = await getAuth();
+      callback({
+        token: token,
+      });
+    },
+  });
+} catch (error) {
+  globalThis.socket = null;
+}
 
 function myCallback(arg: string) {
   console.log(`You selected ${arg} from taskpane.ts!`);
@@ -32,7 +46,7 @@ xlwings.registerCallback(myCallback);
 async function hello() {
   console.log("Called 'run' from Task pane");
   await xlwings.runPython(window.location.origin + "/hello", {
-    auth: await globalThis.getAuth(),
+    auth: await getAuth(),
   });
 }
 

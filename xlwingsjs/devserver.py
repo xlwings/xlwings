@@ -1,10 +1,13 @@
 import datetime as dt
+import logging
 from pathlib import Path
 
 import custom_functions
 import jinja2
 import markupsafe
+import socketio
 from dateutil import tz
+from engineio.payload import Payload
 from fastapi import Body, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, PlainTextResponse
@@ -15,7 +18,19 @@ import xlwings as xw
 
 # from tests import udf_tests_officejs as custom_functions
 
+logging.basicConfig(level="INFO")
+logger = logging.getLogger(__name__)
+
 app = FastAPI()
+
+# Socket.IO: https://github.com/miguelgrinberg/python-engineio/issues/142
+Payload.max_decode_packets = 16
+
+sio = socketio.AsyncServer(
+    async_mode="asgi",
+    cors_allowed_origins=["https://127.0.0.1:8000"],
+)
+sio_app = socketio.ASGIApp(sio, app)
 
 this_dir = Path(__file__).resolve().parent
 
@@ -649,11 +664,33 @@ expected_body["Google Apps Script"] = {
         },
     ],
 }
+
+
+# Socket.io (sid is the session ID)
+task_key_to_sids = {}
+task_key_to_task = {}
+
+
+@sio.on("connect")
+async def connect(sid, environ, auth):
+    await xw.server.sio_connect(sid, environ, auth, sio)
+
+
+@sio.on("disconnect")
+async def disconnect(sid):
+    await xw.server.sio_disconnect(sid)
+
+
+@sio.on("xlwings:function-call")
+async def sio_function_call(sid, data):
+    await xw.server.sio_custom_function_call(sid, data, custom_functions, sio)
+
+
 if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(
-        "devserver:app",
+        "devserver:sio_app",
         host="127.0.0.1",
         port=8000,
         reload=True,

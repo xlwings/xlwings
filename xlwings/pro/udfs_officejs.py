@@ -11,10 +11,18 @@ xlwings PRO is dual-licensed under one of the following licenses:
 Commercial licenses can be purchased at https://www.xlwings.org
 """
 
+import asyncio
 import inspect
+import logging
+from pathlib import Path
 from textwrap import dedent
 
 from .. import XlwingsError, __version__, conversion
+
+logger = logging.getLogger(__name__)
+
+# Tasks started by streaming functions
+background_tasks = {}
 
 
 def func_sig(f):
@@ -132,7 +140,20 @@ def to_scalar(arg):
     return arg
 
 
-async def custom_functions_call(data, module):
+def convert(result, ret_info, data):
+    if "date_format" not in ret_info["options"]:
+        ret_info["options"]["date_format"] = locale_to_shortdate[
+            data["content_language"].lower()
+        ]
+    ret_info["options"]["runtime"] = data["runtime"]
+    result = conversion.write(result, None, ret_info["options"], engine_name="officejs")
+    return result
+
+
+async def custom_functions_call(data, module, sio=None):
+    """
+    sio : socketio.AsyncServer instance
+    """
     func_name = data["func_name"]
     args = data["args"]
     func = getattr(module, func_name)
@@ -171,102 +192,67 @@ async def custom_functions_call(data, module):
             args[i] = conversion.read(
                 None, arg, arg_info["options"], engine_name="officejs"
             )
-    if inspect.iscoroutinefunction(func):
+    if inspect.isasyncgenfunction(func):
+        # Streaming functions
+        task_key = data["task_key"]
+
+        async def task():
+            try:
+                async for result in func(*args):
+                    result = convert(result, ret_info, data)
+                    await sio.emit(
+                        f"xlwings:set-result-{task_key}",
+                        {"result": result},
+                    )
+            except Exception as e:  # noqa: E722
+                await sio.emit(
+                    f"xlwings:set-result-{task_key}",
+                    {"result": [[f"ERROR: {repr(e)}"]]},
+                )
+                logger.exception(f"Error in custom function '{func_name}'")
+                raise
+
+        if task_key not in background_tasks:
+            mytask = asyncio.create_task(task(), name=f"xlwings-{task_key}")
+            background_tasks[task_key] = mytask
+
+            def on_task_done(t):
+                if not t.cancelled() and t.exception() is not None:
+                    t.cancel()
+                    logger.info(
+                        f"Task {t.get_name()} cancelled as it failed with exception: {t.exception()}"
+                    )
+                del background_tasks[task_key]
+
+            mytask.add_done_callback(on_task_done)
+            return mytask
+
+    elif inspect.iscoroutinefunction(func):
         ret = await func(*args)
     else:
         ret = func(*args)
 
-    if "date_format" not in ret_info["options"]:
-        ret_info["options"]["date_format"] = locale_to_shortdate[
-            data["content_language"].lower()
-        ]
-    ret_info["options"]["runtime"] = data["runtime"]
-    ret = conversion.write(ret, None, ret_info["options"], engine_name="officejs")
+    ret = convert(ret, ret_info, data)
     return ret
 
 
 def custom_functions_code(
     module, custom_functions_call_path="/xlwings/custom-functions-call"
 ):
-    js = """\
-         async function base() {
-           // Turn arguments into an array, the last one is the invocation parameter
-           let argsArr = Array.prototype.slice.call(arguments);
-           let func_name = argsArr[0];
-           let args = argsArr.slice(1, -1);
-           let invocation = argsArr[argsArr.length - 1];
-           // headers
-           let headers = {};
-           headers["Content-Type"] = "application/json";
-           headers["Authorization"] = await globalThis.getAuth();
-           let runtime;
-           if (
-             Office.context.requirements.isSetSupported("CustomFunctionsRuntime", "1.4")
-           ) {
-             runtime = "1.4";
-           } else if (
-             Office.context.requirements.isSetSupported("CustomFunctionsRuntime", "1.3")
-           ) {
-             runtime = "1.3";
-           } else if (
-             Office.context.requirements.isSetSupported("CustomFunctionsRuntime", "1.2")
-           ) {
-             runtime = "1.2";
-           } else {
-             runtime = "1.1";
-           }
-           let response = await fetch(
-             window.location.origin + "custom_functions_call_path",
-             {
-               method: "POST",
-               headers: headers,
-               body: JSON.stringify({
-                 func_name: func_name,
-                 args: args,
-                 caller_address: invocation.address,
-                 formula_name: invocation.functionName,
-                 content_language: Office.context.contentLanguage,
-                 version: "xlwings_version",
-                 runtime: runtime,
-               }),
-             }
-           );
-           if (response.status !== 200) {
-             let errMsg = await response.text();
-             // Error message only visible by hovering over the error flag!
-             if (
-               Office.context.requirements.isSetSupported(
-                 "CustomFunctionsRuntime",
-                 "1.2"
-               )
-             ) {
-               let error = new CustomFunctions.Error(
-                 CustomFunctions.ErrorCode.invalidValue,
-                 errMsg
-               );
-               throw error;
-             } else {
-               return [[errMsg]];
-             }
-           } else {
-             rawData = await response.json();
-           }
-           return rawData.result;
-         }
-    """.replace(
-        "xlwings_version", __version__
-    ).replace(
-        "custom_functions_call_path", custom_functions_call_path
-    )  # format string would require to double all curly braces
-    js = dedent(js)
+    js = (Path(__file__).parent / "custom_functions_code.js").read_text()
+    # format string would require to double all curly braces
+    js = js.replace("placeholder_xlwings_version", __version__).replace(
+        "placeholder_custom_functions_call_path", custom_functions_call_path
+    )
     for name, obj in inspect.getmembers(module):
         if hasattr(obj, "__xlfunc__"):
             xlfunc = obj.__xlfunc__
             func_name = xlfunc["name"]
+            streaming = "true" if inspect.isasyncgenfunction(obj) else "false"
             js += dedent(
                 f"""\
             async function {func_name}() {{
-                args = ["{func_name}"]
+                let args = ["{func_name}", {streaming}]
                 args.push.apply(args, arguments);
                 return await base.apply(null, args);
             }}
@@ -290,10 +276,15 @@ def custom_functions_meta(module):
                 func["name"] = f"{xlfunc['namespace'].upper()}.{xlfunc['name'].upper()}"
             else:
                 func["name"] = xlfunc["name"].upper()
-            func["options"] = {
-                "requiresAddress": True,
-                "requiresParameterAddresses": True,
-            }
+            if inspect.isasyncgenfunction(obj):
+                func["options"] = {
+                    "stream": True,
+                }
+            else:
+                func["options"] = {
+                    "requiresAddress": True,
+                    "requiresParameterAddresses": True,
+                }
             if xlfunc["volatile"]:
                 func["options"]["volatile"] = True
             func["result"] = {"dimensionality": "matrix", "type": "any"}
@@ -317,6 +308,56 @@ def custom_functions_meta(module):
         "allowErrorForDataTypeAny": True,
         "functions": funcs,
     }
+
+
+# Socket.io (sid is the session ID)
+task_key_to_sids = {}
+task_key_to_task = {}
+
+
+async def sio_connect(sid, environ, auth, sio, authenticate=None):
+    token = auth.get("token")
+    if authenticate:
+        try:
+            current_user = authenticate(token)
+            logger.info(f"Socket.io: connect {sid}")
+            logger.info(f"Socket.io: User authenticated {current_user.name}")
+        except Exception as e:
+            logger.info(f"Socket.io: authentication failed for sid {sid} ({e})")
+            await sio.disconnect(sid)
+    logger.info(f"Socket.io: connect {sid}")
+
+
+async def sio_disconnect(sid):
+    logger.info(f"disconnect {sid}")
+    try:
+        # Using list() to prevent the loop from changing the dict directly
+        for task_key in list(task_key_to_sids.keys()):
+            task = task_key_to_task[task_key]
+            task_key_to_sids[task_key].discard(sid)
+            if not task_key_to_sids[task_key]:
+                task.cancel()
+                logger.info(f"Cancelled task {task.get_name()}")
+                del task_key_to_sids[task_key]
+                del task_key_to_task[task_key]
+    except KeyError:
+        # Renaming functions during development can cause issues
+        pass
+    await asyncio.sleep(0)  # Allow event loop to cancel the tasks
+    active_tasks = [
+        task.get_name()
+        for task in asyncio.all_tasks()
+        if task.get_name().startswith("xlwings")
+    ]
+    logger.info(f"Active xlwings tasks:" f"{active_tasks}")
+
+
+async def sio_custom_function_call(sid, data, custom_functions, sio):
+    task_key = data["task_key"]
+    task_key_to_sids[task_key] = task_key_to_sids.get(task_key, set()).union({sid})
+    task = await custom_functions_call(data, custom_functions, sio)
+    if task:
+        task_key_to_task[task_key] = task
 
 
 locale_to_shortdate = {
