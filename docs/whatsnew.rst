@@ -1,6 +1,28 @@
 Changelog
 =========
 
+v0.31.0 (Mar 26, 2024)
+----------------------
+
+* :bdg-success:`Feature` :bdg-secondary:`PRO` This release adds support for streaming functions (the successor of RealTimeData/RTD functions) in connection with xlwings Server and Office.js add-ins. A streaming function is defined as an asynchronous generator (:issue:`2423`):
+
+  .. code-block:: python
+
+    import asyncio
+    from xlwings import server
+
+    @server.func
+    async def streaming_random(rows, cols):
+        """A streaming function pushing updates of a random DataFrame every second"""
+        rng = np.random.default_rng()
+        while True:
+            matrix = rng.standard_normal(size=(rows, cols))
+            df = pd.DataFrame(matrix, columns=[f"col{i+1}" for i in range(matrix.shape[1])])
+            yield df
+            await asyncio.sleep(1)
+
+For more details, see: :ref:`pro/server/officejs_custom_functions:Streaming functions ("RTD functions")`
+
 v0.30.16 (Mar 16, 2024)
 -----------------------
 * :bdg-warning:`Bug Fix` Fixed a regression with files synced to Sharepoint that was introduced in v0.30.14 (:issue:`2413`).

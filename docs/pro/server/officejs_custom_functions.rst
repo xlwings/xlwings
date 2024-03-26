@@ -388,6 +388,57 @@ Asynchronous functions
 
 Custom functions are always asynchronous, meaning that the cell will show ``#BUSY!`` during calculation, allowing you to continue using Excel: custom function don't block Excel's user interface.
 
+Streaming functions ("RTD functions")
+-------------------------------------
+
+In the traditional version of Excel, streaming functions were called "RTD functions" or "RealTimeData functions". However, unlike traditional RTD functions, streaming functions don't use a local COM server. Instead, the process runs as a background task on xlwings Server and pushes updates via WebSockets (using Socket.io) to Excel. What's great about streaming functions is that you can connect to your data source in a single place and stream the values to every Excel installation in your entire company.
+
+To create a streaming function, you simply need to write an asynchronous generator. That is, you need to use ``async def`` and ``yield`` instead of ``return``, e.g.:
+
+.. code-block:: python
+
+  import asyncio
+  from xlwings import server
+
+  @server.func
+  async def streaming_random(rows, cols):
+      """A streaming function pushing updates of a random DataFrame every second"""
+      rng = np.random.default_rng()
+      while True:
+          matrix = rng.standard_normal(size=(rows, cols))
+          df = pd.DataFrame(matrix, columns=[f"col{i+1}" for i in range(matrix.shape[1])])
+          yield df
+          await asyncio.sleep(1)
+
+As a bit of a more real-world sample, here's how you can transform a REST API into a streaming function to stream the BTC price:
+
+.. code-block:: python
+
+  import asyncio
+  from xlwings import server
+
+  @server.func
+  @server.ret(date_format="hh:mm:ss", index=False)
+  async def btc_price(base_currency="USD"):
+      while True:
+          async with httpx.AsyncClient() as client:
+              response = await client.get(
+                  f"https://cex.io/api/ticker/BTC/{base_currency}"
+              )
+          response_data = response.json()
+          response_data["timestamp"] = pd.to_datetime(
+              int(response_data["timestamp"]), unit="s"
+          )
+          df = pd.DataFrame(response_data, index=[0])
+          df = df[["pair", "timestamp", "bid", "ask"]]
+          yield df
+          await asyncio.sleep(1)
+
+Key to remember is that you're moving in the async world with streaming functions, so you shouldn't use long-running blocking operations. For example, instead of using ``requests`` to fetch the data, you should use one of the async libraries such as ``httpx`` or ``aiohttp``.
+
+If you use the `official xlwings Server <https://github.com/xlwings/xlwings-server>`_ implementation, that's all you need because it supports streaming functions out-of-the-box. If you're using your own server implementation, you'll need to implement the Socket.io endpoints according to the official xlwings Server implementation.
+
+
 Backend and Manifest
 --------------------
 
