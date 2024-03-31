@@ -28,7 +28,7 @@ Copyright (c) 2022 Christian Oliff, Licensed under MIT license, see https://raw.
   <div class="container-fluid">
     <div class="d-flex flex-column pb-3 px-2 vh-100">
       <h1 class="pt-4">{{ title }}</h1>
-      <p>{{ prompt }}</p>
+      <p>{{ prompt|replace("\n", "<br>"|safe) }}</p>
       <div class="mt-auto">
         <div class="float-end">
           {% if "ok" in buttons %}
