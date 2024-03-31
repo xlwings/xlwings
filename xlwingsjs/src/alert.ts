@@ -52,13 +52,14 @@ function processDialogEvent(arg: { error: number }) {
   }
 }
 
-export function xlAlert(
+export async function xlAlert(
   prompt: string,
   title: string,
   buttons: string,
   mode: string,
   callback: string
 ) {
+  await Office.onReady();
   let width: number;
   let height: number;
   if (Office.context.platform.toString() === "OfficeOnline") {

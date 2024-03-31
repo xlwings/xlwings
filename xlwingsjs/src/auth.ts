@@ -45,6 +45,7 @@ async function renewAccessToken() {
 }
 
 export async function getAccessToken() {
+  await Office.onReady();
   if (!accessToken || hasKeyExpired()) {
     if (!tokenLock) {
       tokenLock = true;

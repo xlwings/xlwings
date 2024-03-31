@@ -15,6 +15,7 @@ export async function runPython(
   url = "",
   { auth = "", include = "", exclude = "", headers = {} }: Options = {}
 ) {
+  await Office.onReady();
   try {
     await Excel.run(async (context) => {
       // workbook
@@ -344,7 +345,7 @@ export async function runPython(
     });
   } catch (error) {
     console.error(error);
-    xlAlert(error, "Error", "ok", "critical", "");
+    await xlAlert(error, "Error", "ok", "critical", "");
   }
 }
 
