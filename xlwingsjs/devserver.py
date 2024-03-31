@@ -4,7 +4,6 @@ from pathlib import Path
 
 import custom_functions
 import jinja2
-import markupsafe
 import socketio
 from dateutil import tz
 from engineio.payload import Payload
@@ -189,9 +188,7 @@ async def alert(
         "xlwings-alert.html",
         {
             "request": request,
-            "prompt": markupsafe.escape(prompt).replace(
-                "\n", markupsafe.Markup("<br>")
-            ),
+            "prompt": prompt,
             "title": title,
             "buttons": buttons,
             "mode": mode,

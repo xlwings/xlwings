@@ -378,7 +378,6 @@ Here is the relevant code. As usual, have a look at ``app/server_fastapi.py`` fo
       .. code-block:: python
   
           import jinja2
-          import markupsafe  # This is a dependency of Jinja2
           from fastapi import Request
           from fastapi.responses import HTMLResponse
           from fastapi.templating import Jinja2Templates
@@ -392,9 +391,7 @@ Here is the relevant code. As usual, have a look at ``app/server_fastapi.py`` fo
                   "xlwings-alert.html",
                   {
                       "request": request,
-                      "prompt": markupsafe.escape(prompt).replace(
-                          "\n", markupsafe.Markup("<br>")
-                      ),
+                      "prompt": prompt
                       "title": title,
                       "buttons": buttons,
                       "mode": mode,
@@ -417,7 +414,6 @@ Here is the relevant code. As usual, have a look at ``app/server_fastapi.py`` fo
       .. code-block:: python
 
         import jinja2
-        import markupsafe  # This is a dependency of Jinja2
         from starlette.templating import Jinja2Templates
 
         async def alert(request):
@@ -427,9 +423,7 @@ Here is the relevant code. As usual, have a look at ``app/server_fastapi.py`` fo
                 "xlwings-alert.html",
                 {
                     "request": request,
-                    "prompt": markupsafe.escape(prompt).replace(
-                        "\n", markupsafe.Markup("<br>")
-                    ),
+                    "prompt": prompt,
                     "title": params["title"],
                     "buttons": params["buttons"],
                     "mode": params["mode"],
