@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.31.1 (Apr 2, 2024)
+---------------------
+
+* :bdg-info:`Enhancement` xlwings Server: The xlwings.js functions now await the ``Office.onReady`` event and the alert endpoint does not need to handle line breaks anymore (:issue:`2425`).
+
 v0.31.0 (Mar 26, 2024)
 ----------------------
 
