@@ -398,6 +398,8 @@ To create a streaming function, you simply need to write an asynchronous generat
 .. code-block:: python
 
   import asyncio
+  import numpy as np
+  import pandas as pd
   from xlwings import server
 
   @server.func
@@ -415,6 +417,8 @@ As a bit of a more real-world sample, here's how you can transform a REST API in
 .. code-block:: python
 
   import asyncio
+  import httpx
+  import pandas as pd
   from xlwings import server
 
   @server.func
