@@ -155,10 +155,11 @@ jobs:
           [
             { os: "windows-latest", target: "x86_64" },
 
-            { os: "macos-latest", target: "x86_64" },
-            { os: "macos-latest", target: "aarch64" },
+            { os: "macos-13", target: "x86_64" },
+            { os: "macos-13", target: "aarch64" },
 
             { os: "ubuntu-latest", target: "x86_64" },
+            { os: "ubuntu-latest", target: "any" },  # HACK: replace with WASM build
             { os: "ubuntu-latest", target: "aarch64" },
             { os: "ubuntu-latest", target: "armv7" },
             {
@@ -202,12 +203,12 @@ jobs:
           platforms: all
 
       - name: Build macOS and Linux wheels
-        if: matrix.platform.os != 'windows-latest'
+        if: matrix.platform.os != 'windows-latest' && matrix.platform.target != 'any'
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
           manylinux: ${{ matrix.platform.manylinux || 'auto' }}
-          maturin-version: v1.2.3
+          maturin-version: v1.5.1
           command: build
           args: --release --out dist --interpreter ${{ matrix.python-version }}
 
@@ -217,6 +218,15 @@ jobs:
         shell: bash
         env:
           BUILD_RUST: 1
+        run: |
+          rm pyproject.toml
+          python setup.py sdist bdist_wheel
+
+      - name: any wheel (for now used for wasm but without the Reader)
+        if: matrix.platform.target == 'any' && matrix.python-version == '3.12'
+        shell: bash
+        env:
+          BUILD_RUST: 0
         run: |
           rm pyproject.toml
           python setup.py sdist bdist_wheel
