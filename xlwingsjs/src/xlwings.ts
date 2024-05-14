@@ -17,7 +17,7 @@ export async function runPython(
 ) {
   await Office.onReady();
   try {
-    await Excel.run(async (context) => {
+    return await Excel.run(async (context) => {
       // workbook
       const workbook = context.workbook;
       workbook.load("name");
@@ -313,22 +313,20 @@ export async function runPython(
         });
       }
 
-      // console.log(payload);
+      return JSON.stringify(payload);
+    });
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+}
 
-      // API call
-      let response = await fetch(url, {
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify(payload),
-      });
-
-      // Parse JSON response
+export async function processResult(data) {
+  await Office.onReady();
+  try {
+    return await Excel.run(async (context) => {
       let rawData: { actions: Action[] };
-      if (response.status !== 200) {
-        throw await response.text();
-      } else {
-        rawData = await response.json();
-      }
+      rawData = JSON.parse(data);
 
       // console.log(rawData);
 
@@ -345,7 +343,6 @@ export async function runPython(
     });
   } catch (error) {
     console.error(error);
-    await xlAlert(error, "Error", "ok", "critical", "");
   }
 }
 
