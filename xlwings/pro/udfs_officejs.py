@@ -400,6 +400,7 @@ locale_to_shortdate = {
     "en-au": "d/mm/yyyy",
     "en-bz": "dd/mm/yyyy",
     "en-ca": "dd/mm/yyyy",
+    "en-ch": "dd.mm.yyyy",
     "en-gb": "dd/mm/yyyy",
     "en-ie": "dd/mm/yyyy",
     "en-in": "dd-mm-yyyy",
