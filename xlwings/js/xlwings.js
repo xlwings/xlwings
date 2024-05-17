@@ -521,6 +521,10 @@ function rangeInsert(workbook, action) {
   }
 }
 
+function rangeSelect(workbook, action) {
+  getRange(workbook, action).activate();
+}
+
 function addTable(workbook, action) {
   throw "NotImplemented: addTable";
 }

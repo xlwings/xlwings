@@ -628,6 +628,11 @@ function rangeInsert(workbook: ExcelScript.Workbook, action: Action) {
 }
 registerCallback(rangeInsert);
 
+function rangeSelect(workbook: ExcelScript.Workbook, action: Action) {
+  getRange(workbook, action).select();
+}
+registerCallback(rangeSelect);
+
 function addTable(workbook: ExcelScript.Workbook, action: Action) {
   let mytable = workbook
     .getWorksheets()
@@ -707,18 +712,18 @@ registerCallback(sheetDelete);
 
 function sheetClear(workbook: ExcelScript.Workbook, action: Action) {
   const sheet = workbook.getWorksheets()[action.sheet_position];
-    sheet.getRanges().clear();
+  sheet.getRanges().clear();
 }
 registerCallback(sheetClear);
 
 function sheetClearFormats(workbook: ExcelScript.Workbook, action: Action) {
   const sheet = workbook.getWorksheets()[action.sheet_position];
-    sheet.getRanges().clear(ExcelScript.ClearApplyTo.formats);
+  sheet.getRanges().clear(ExcelScript.ClearApplyTo.formats);
 }
 registerCallback(sheetClearFormats);
 
 function sheetClearContents(workbook: ExcelScript.Workbook, action: Action) {
   const sheet = workbook.getWorksheets()[action.sheet_position];
-    sheet.getRanges().clear(ExcelScript.ClearApplyTo.contents);
+  sheet.getRanges().clear(ExcelScript.ClearApplyTo.contents);
 }
 registerCallback(sheetClearContents);

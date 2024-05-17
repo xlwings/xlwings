@@ -701,6 +701,10 @@ Sub rangeInsert(wb As Workbook, action As Dictionary)
     End If
 End Sub
 
+Sub rangeSelect(wb As Workbook, action As Dictionary)
+    GetRange(wb, action).Select
+End Sub
+
 Sub addTable(wb As Workbook, action As Dictionary)
     Dim hasHeaders As Integer
     If action("args")(2) = True Then
