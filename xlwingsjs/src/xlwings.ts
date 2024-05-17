@@ -467,6 +467,7 @@ let funcs = {
   runMacro: runMacro,
   rangeDelete: rangeDelete,
   rangeInsert: rangeInsert,
+  rangeSelect: rangeSelect,
   rangeClearContents: rangeClearContents,
   rangeClearFormats: rangeClearFormats,
   rangeClear: rangeClear,
@@ -756,6 +757,11 @@ async function rangeInsert(context: Excel.RequestContext, action: Action) {
   } else if (shift === "right") {
     range.insert(Excel.InsertShiftDirection.right);
   }
+}
+
+async function rangeSelect(context: Excel.RequestContext, action: Action) {
+  let range = await getRange(context, action);
+  range.select();
 }
 
 async function addTable(context: Excel.RequestContext, action: Action) {

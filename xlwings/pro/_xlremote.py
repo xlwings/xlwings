@@ -781,6 +781,11 @@ class Range(base_classes.Range):
         # copy_origin is only supported by VBA clients
         self.append_json_action(func="rangeInsert", args=[shift, copy_origin])
 
+    def select(self):
+        self.append_json_action(
+            func="rangeSelect",
+        )
+
     def __len__(self):
         nrows, ncols = self.shape
         return nrows * ncols
