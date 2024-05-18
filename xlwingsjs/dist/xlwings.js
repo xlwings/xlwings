@@ -2658,7 +2658,7 @@ var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from
 
 
 
-var version = "0.31.1";
+var version = "0.31.2";
 globalThis.callbacks = {};
 function runPython(url, _a) {
     if (url === void 0) { url = ""; }
@@ -3135,6 +3135,7 @@ var funcs = {
     runMacro: runMacro,
     rangeDelete: rangeDelete,
     rangeInsert: rangeInsert,
+    rangeSelect: rangeSelect,
     rangeClearContents: rangeClearContents,
     rangeClearFormats: rangeClearFormats,
     rangeClear: rangeClear,
@@ -3611,6 +3612,20 @@ function rangeInsert(context, action) {
                     else if (shift === "right") {
                         range.insert(Excel.InsertShiftDirection.right);
                     }
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function rangeSelect(context, action) {
+    return __awaiter(this, void 0, void 0, function () {
+        var range;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getRange(context, action)];
+                case 1:
+                    range = _a.sent();
+                    range.select();
                     return [2 /*return*/];
             }
         });

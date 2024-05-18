@@ -1,10 +1,16 @@
 Changelog
 =========
 
+v0.31.2 (May 18, 2024)
+----------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server: Added support for ``Range.select()`` (:issue:`2440`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Server: fix an issue with custom functions and ``en-ch`` locale (:issue:`2437`).
+
 v0.31.1 (Apr 2, 2024)
 ---------------------
 
-* :bdg-info:`Enhancement` xlwings Server: The xlwings.js functions now await the ``Office.onReady`` event and the alert endpoint does not need to handle line breaks anymore (:issue:`2425`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server: The xlwings.js functions now await the ``Office.onReady`` event and the alert endpoint does not need to handle line breaks anymore (:issue:`2425`).
 
 v0.31.0 (Mar 26, 2024)
 ----------------------
