@@ -1251,3 +1251,43 @@ class Tables(Collection, base_classes.Tables):
             }
         )
         return Table(self.parent, len(self.parent.api["tables"]))
+
+
+if __name__ == "__main__":
+    # python -m xlwings.pro._xlremote
+    import inspect
+
+    def print_unimplemented_attributes(class_name, base_class, derived_class=None):
+        if class_name == "Apps":
+            return
+        base_attributes = set(
+            attr
+            for attr in vars(base_class)
+            if not (attr.startswith("_") or attr == "api")
+        )
+        if derived_class:
+            derived_attributes = set(
+                attr for attr in vars(derived_class) if not attr.startswith("_")
+            )
+        else:
+            derived_attributes = set()
+        unimplemented_attributes = base_attributes - derived_attributes
+
+        if unimplemented_attributes:
+            print("")
+            print(f"    xlwings.{class_name}")
+            print("")
+            for attribute in unimplemented_attributes:
+                if not attribute.startswith("__") and attribute not in (
+                    "api",
+                    "xl",
+                    "hwnd",
+                ):
+                    if callable(getattr(base_class, attribute)):
+                        print(f"        - {attribute}()")
+                    else:
+                        print(f"        - {attribute}")
+
+    for name, obj in inspect.getmembers(base_classes):
+        if inspect.isclass(obj):
+            print_unimplemented_attributes(name, obj, globals().get(name))
