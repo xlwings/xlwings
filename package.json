@@ -1,0 +1,10 @@
+{
+  "name": "xlwings",
+  "version": "0.31.2",
+  "description": "xlwings - Make Excel fly with Python!",
+  "author": "Zoomer Analytics LLC",
+  "license": "LICENSE.txt",
+  "files": [
+    "xlwingsjs/dist"
+  ]
+}
