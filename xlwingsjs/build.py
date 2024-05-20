@@ -1,5 +1,6 @@
 import argparse
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -7,6 +8,7 @@ from shlex import split
 from textwrap import dedent
 
 this_dir = Path(__file__).resolve().parent
+root_dir = this_dir.parent
 os.chdir(this_dir)
 
 target_dir = "dist"
@@ -78,6 +80,20 @@ def build(version):
         'filename: "xlwings.js"', 'filename: "xlwings.min.js"'
     )
     Path(webpack_config).write_text(content)
+
+    # Bump package.json
+    file_path = root_dir / "package.json"
+    with open(file_path, "r") as file:
+        lines = file.readlines()
+
+    with open(file_path, "w") as file:
+        for line in lines:
+            line = re.sub(
+                r'"version": "\d+\.\d+\.\d+"',
+                f'"version": "{version}"',
+                line,
+            )
+            file.write(line)
 
 
 if __name__ == "__main__":
