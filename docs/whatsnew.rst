@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.31.3 (May 23, 2024)
+----------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server: Allow streaming functions to authenticate via sync or async function (:issue:`2443`).
+
 v0.31.2 (May 18, 2024)
 ----------------------
 
