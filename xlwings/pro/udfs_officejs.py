@@ -319,11 +319,14 @@ async def sio_connect(sid, environ, auth, sio, authenticate=None):
     token = auth.get("token")
     if authenticate:
         try:
-            current_user = authenticate(token)
+            if inspect.iscoroutinefunction(authenticate):
+                current_user = await authenticate(token)
+            else:
+                current_user = authenticate(token)
             logger.info(f"Socket.io: connect {sid}")
             logger.info(f"Socket.io: User authenticated {current_user.name}")
         except Exception as e:
-            logger.info(f"Socket.io: authentication failed for sid {sid} ({e})")
+            logger.info(f"Socket.io: authentication failed for sid {sid}: {repr(e)}")
             await sio.disconnect(sid)
     logger.info(f"Socket.io: connect {sid}")
 
