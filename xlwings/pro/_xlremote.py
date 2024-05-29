@@ -910,7 +910,7 @@ class Picture(base_classes.Picture):
 
     def update(self, filename):
         with open(filename, "rb") as image_file:
-            encoded_image_string = base64.b64encode(image_file.read())
+            encoded_image_string = base64.b64encode(image_file.read()).decode("utf-8")
         self.append_json_action(
             func="updatePicture",
             args=[
