@@ -969,7 +969,7 @@ class Pictures(Collection, base_classes.Pictures):
         # ax = df.plot(figsize=(3,3))
         # fig = ax.get_figure()
         with open(filename, "rb") as image_file:
-            encoded_image_string = base64.b64encode(image_file.read())
+            encoded_image_string = base64.b64encode(image_file.read()).decode("utf-8")
         # TODO: width and height are currently ignored but can be set via obj properties
         self.append_json_action(
             func="addPicture",

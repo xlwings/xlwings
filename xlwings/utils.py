@@ -18,6 +18,11 @@ try:
     import matplotlib as mpl
     import matplotlib.figure  # noqa: F401
     import matplotlib.pyplot as plt
+
+    # https://matplotlib.org/stable/users/explain/figure/backends.html#static-backends
+    # This prevents "Starting a Matplotlib GUI outside of the main thread will likely
+    # fail." with xlwings Server
+    mpl.use("agg")
 except ImportError:
     mpl = None
 
