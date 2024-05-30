@@ -14,6 +14,7 @@ Commercial licenses can be purchased at https://www.xlwings.org
 import asyncio
 import inspect
 import logging
+import os
 from pathlib import Path
 from textwrap import dedent
 
@@ -142,9 +143,15 @@ def to_scalar(arg):
 
 def convert(result, ret_info, data):
     if "date_format" not in ret_info["options"]:
-        ret_info["options"]["date_format"] = locale_to_shortdate[
-            data["content_language"].lower()
-        ]
+        date_format = os.getenv("XLWINGS_DATE_FORMAT")
+        if date_format is None:
+            try:
+                date_format = locale_to_shortdate[data["content_language"].lower()]
+            except KeyError:
+                raise KeyError(
+                    f'Locale {data["content_language"].lower()} not found and XLWINGS_DATE_FORMAT is not set'
+                )
+        ret_info["options"]["date_format"] = date_format
     ret_info["options"]["runtime"] = data["runtime"]
     result = conversion.write(result, None, ret_info["options"], engine_name="officejs")
     return result
@@ -366,6 +373,9 @@ async def sio_custom_function_call(sid, data, custom_functions, sio):
 locale_to_shortdate = {
     # This is using the locales from https://github.com/OfficeDev/office-js/tree/release/dist
     # matched with values from https://stackoverflow.com/a/9893752/918626
+    # TODO: https://metacpan.org/dist/DateTime-Locale seems to be much better than SO
+    # Also, office-js doesn't have all locales supported by Office, such as en-ch or
+    # en-ae are missing
     "af-za": "yyyy/mm/dd",
     "am-et": "d/m/yyyy",
     "ar-ae": "dd/mm/yyyy",
