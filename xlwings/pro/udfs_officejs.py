@@ -416,6 +416,7 @@ locale_to_shortdate = {
     "en-us": "m/d/yyyy",
     "en-za": "yyyy/mm/dd",
     "en-zw": "m/d/yyyy",
+    "en-ae": "dd/mm/yyyy",
     "es-ar": "dd/mm/yyyy",
     "es-bo": "dd/mm/yyyy",
     "es-cl": "dd-mm-yyyy",
