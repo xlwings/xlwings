@@ -72,8 +72,13 @@ export async function xlAlert(
     width = 32;
     height = 30;
   }
+
+  // See xlwings-server repo for how app-path is provided
+  const appPathElement = document.getElementById("app-path");
+  const appPath = appPathElement ? JSON.parse(appPathElement.textContent) : null;
   Office.context.ui.displayDialogAsync(
     window.location.origin +
+      (appPath && appPath.appPath !== "" ? `/${appPath.appPath}` : "") +
       `/xlwings/alert?prompt=` +
       encodeURIComponent(`${prompt}`) +
       `&title=` +
