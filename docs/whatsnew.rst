@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v0.31.4 (Jun 3, 2024)
+---------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server: Fix alert when backend is mounted on a non-root path (:issue:`2449`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server: Allow to set the date format in Office.js-based custom functions via ``XLWINGS_DATE_FORMAT`` env var (:issue:`2447`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Server: Fix a few issues with Matplotlib (:issue:`2445`).
+
 v0.31.3 (May 23, 2024)
 ----------------------
 

@@ -2247,7 +2247,7 @@ function processDialogEvent(arg) {
 }
 function xlAlert(prompt, title, buttons, mode, callback) {
     return __awaiter(this, void 0, void 0, function () {
-        var width, height;
+        var width, height, appPathElement, appPath;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, Office.onReady()];
@@ -2265,7 +2265,10 @@ function xlAlert(prompt, title, buttons, mode, callback) {
                         width = 32;
                         height = 30;
                     }
+                    appPathElement = document.getElementById("app-path");
+                    appPath = appPathElement ? JSON.parse(appPathElement.textContent) : null;
                     Office.context.ui.displayDialogAsync(window.location.origin +
+                        (appPath && appPath.appPath !== "" ? "/".concat(appPath.appPath) : "") +
                         "/xlwings/alert?prompt=" +
                         encodeURIComponent("".concat(prompt)) +
                         "&title=" +
@@ -2658,7 +2661,7 @@ var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from
 
 
 
-var version = "0.31.3";
+var version = "0.31.4";
 globalThis.callbacks = {};
 function runPython(url, _a) {
     if (url === void 0) { url = ""; }
