@@ -1634,6 +1634,14 @@ class Shape(base_classes.Shape):
     def height(self, value):
         self.xl.Height = value
 
+    @property
+    def formula(self):
+        return self.xl.OLEFormat.Object.Formula
+
+    @formula.setter
+    def formula(self, value):
+        self.xl.OLEFormat.Object.Formula = value
+
     def delete(self):
         self.xl.Delete()
 
