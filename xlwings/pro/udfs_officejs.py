@@ -145,12 +145,13 @@ def convert(result, ret_info, data):
     if "date_format" not in ret_info["options"]:
         date_format = os.getenv("XLWINGS_DATE_FORMAT")
         if date_format is None:
-            try:
-                date_format = locale_to_shortdate[data["content_language"].lower()]
-            except KeyError:
-                raise KeyError(
-                    f'Locale {data["content_language"].lower()} not found and XLWINGS_DATE_FORMAT is not set'
-                )
+            date_format = locale_to_shortdate.get(data["content_language"].lower())
+            logger.warning(
+                f"Locale {data['content_language'].lower()} not found, so custom "
+                "functions won't format dates automatically. Please open an issue with "
+                "this warning on https://github.com/xlwings/xlwings/issues. In the "
+                "meantime, you can set the XLWINGS_DATE_FORMAT env var to fix that."
+            )
         ret_info["options"]["date_format"] = date_format
     ret_info["options"]["runtime"] = data["runtime"]
     result = conversion.write(result, None, ret_info["options"], engine_name="officejs")

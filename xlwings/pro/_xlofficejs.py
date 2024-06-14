@@ -32,7 +32,7 @@ from .. import utils
 def datetime_to_formatted_number(datetime_object, date_format, runtime):
     # https://learn.microsoft.com/en-us/javascript/api/requirement-sets/excel/custom-functions-requirement-sets
     serial = utils.datetime_to_xlserial(datetime_object)
-    if float(runtime) < 1.4:
+    if float(runtime) < 1.4 or date_format is None:
         return serial
     else:
         return {
