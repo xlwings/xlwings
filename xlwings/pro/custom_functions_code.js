@@ -19,7 +19,7 @@ let contentLanguage;
 
 Office.onReady(function (info) {
   // Socket.io
-  const socket = globalThis.socket;
+  const socket = globalThis.socket ? globalThis.socket : null;
 
   if (socket !== null) {
     socket.on("disconnect", () => {
@@ -115,7 +115,8 @@ async function base() {
   // Normal functions communicate via REST API
   let headers = {};
   headers["Content-Type"] = "application/json";
-  headers["Authorization"] = await globalThis.getAuth();
+  headers["Authorization"] =
+    typeof globalThis.getAuth === "function" ? await globalThis.getAuth() : "";
 
   let response = await fetch(
     window.location.origin + "placeholder_custom_functions_call_path",
