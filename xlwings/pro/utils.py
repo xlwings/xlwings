@@ -181,6 +181,7 @@ class LicenseHandler:
             return f"{body.decode()}{signature[:5]}"
 
 
+@lru_cache()
 def get_embedded_code_temp_dir():
     tmp_base_path = os.path.join(tempfile.gettempdir(), "xlwings")
     os.makedirs(tmp_base_path, exist_ok=True)

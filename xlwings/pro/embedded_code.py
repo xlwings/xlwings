@@ -23,8 +23,6 @@ from .utils import LicenseHandler, get_embedded_code_temp_dir
 
 LicenseHandler.validate_license("pro")
 
-TEMPDIR = get_embedded_code_temp_dir()
-
 
 @lru_cache()
 def dump_embedded_code(book, target_dir):
@@ -58,5 +56,5 @@ def dump_embedded_code(book, target_dir):
 
 
 def runpython_embedded_code(command):
-    dump_embedded_code(Book.caller(), TEMPDIR)
+    dump_embedded_code(Book.caller(), get_embedded_code_temp_dir())
     exec(command)

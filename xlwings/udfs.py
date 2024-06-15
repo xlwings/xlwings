@@ -25,9 +25,6 @@ import xlwings
 from . import Book, LicenseError, Range, __pro__, apps, conversion
 from .utils import VBAWriter, exception, read_config_sheet
 
-if __pro__:
-    from .pro.embedded_code import TEMPDIR, dump_embedded_code
-
 logger = logging.getLogger(__name__)
 cache = {}
 
@@ -375,8 +372,11 @@ def get_udf_module(module_name, xl_workbook):
             for sheet in wb.sheets:
                 if sheet.name.endswith(".py") and not __pro__:
                     raise LicenseError("Embedded code requires a valid LICENSE_KEY.")
-                elif __pro__:
-                    dump_embedded_code(wb, TEMPDIR)
+                elif sheet.name.endswith(".py") and __pro__:
+                    from .pro.embedded_code import dump_embedded_code
+                    from .pro.utils import get_embedded_code_temp_dir
+
+                    dump_embedded_code(wb, get_embedded_code_temp_dir())
 
         module = import_module(module_name)
         filename = os.path.normcase(module.__file__.lower())
