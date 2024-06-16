@@ -15,6 +15,7 @@ import asyncio
 import inspect
 import logging
 import os
+from functools import wraps
 from pathlib import Path
 from textwrap import dedent
 
@@ -317,6 +318,28 @@ def custom_functions_meta(module):
         "allowErrorForDataTypeAny": True,
         "functions": funcs,
     }
+
+
+# Custom scripts
+def script(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        if inspect.iscoroutinefunction(func):
+            await func(*args, **kwargs)
+        else:
+            func(*args, **kwargs)
+        return args[0]
+
+    return wrapper
+
+
+async def custom_scripts_call(module, script_name, book):
+    func = getattr(module, script_name)
+    if inspect.iscoroutinefunction(func):
+        book = await func(book)
+    else:
+        book = func(book)
+    return book
 
 
 # Socket.io (sid is the session ID)
