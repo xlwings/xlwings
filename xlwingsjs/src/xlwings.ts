@@ -9,6 +9,35 @@ export { getAccessToken };
 import { getActiveBookName } from "./utils";
 export { getActiveBookName };
 
+// Hook up buttons with the click event upon loading xlwings.js
+document.addEventListener("DOMContentLoaded", init);
+
+export function init() {
+  const appPathElement = document.getElementById("app-path");
+  const appPath = appPathElement
+    ? JSON.parse(appPathElement.textContent)
+    : null;
+  const elements = document.querySelectorAll("[xw-click]");
+  elements.forEach((element) => {
+    element.addEventListener("click", async (event) => {
+      let token =
+        typeof globalThis.getAuth === "function"
+          ? await globalThis.getAuth()
+          : "";
+      let config = element.getAttribute("xw-config")
+        ? JSON.parse(element.getAttribute("xw-config"))
+        : {};
+      runPython(
+        window.location.origin +
+          (appPath && appPath.appPath !== "" ? `/${appPath.appPath}` : "") +
+          "/xlwings/custom-scripts-call/" +
+          element.getAttribute("xw-click"),
+        { ...config, auth: token }
+      );
+    });
+  });
+}
+
 const version = "dev";
 globalThis.callbacks = {};
 export async function runPython(
