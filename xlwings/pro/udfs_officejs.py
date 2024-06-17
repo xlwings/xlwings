@@ -143,9 +143,10 @@ def to_scalar(arg):
 
 def convert(result, ret_info, data):
     if "date_format" not in ret_info["options"]:
-        date_format = os.getenv("XLWINGS_DATE_FORMAT")
+        date_format = os.getenv("XLWINGS_DATE_FORMAT") or locale_to_shortdate.get(
+            data["content_language"].lower()
+        )
         if date_format is None:
-            date_format = locale_to_shortdate.get(data["content_language"].lower())
             logger.warning(
                 f"Locale {data['content_language'].lower()} not found, so custom "
                 "functions won't format dates automatically. Please open an issue with "
