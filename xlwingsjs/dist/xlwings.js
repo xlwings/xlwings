@@ -2592,6 +2592,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "getAccessToken": function() { return /* reexport safe */ _auth__WEBPACK_IMPORTED_MODULE_5__.getAccessToken; },
 /* harmony export */   "getActiveBookName": function() { return /* reexport safe */ _utils__WEBPACK_IMPORTED_MODULE_6__.getActiveBookName; },
+/* harmony export */   "init": function() { return /* binding */ init; },
 /* harmony export */   "registerCallback": function() { return /* binding */ registerCallback; },
 /* harmony export */   "runPython": function() { return /* binding */ runPython; }
 /* harmony export */ });
@@ -2606,6 +2607,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _alert__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./alert */ "./src/alert.ts");
 /* harmony import */ var _auth__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./auth */ "./src/auth.ts");
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./utils */ "./src/utils.ts");
+var __assign = (undefined && undefined.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -2661,7 +2673,45 @@ var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from
 
 
 
-var version = "0.31.4";
+// Hook up buttons with the click event upon loading xlwings.js
+document.addEventListener("DOMContentLoaded", init);
+function init() {
+    var _this = this;
+    var appPathElement = document.getElementById("app-path");
+    var appPath = appPathElement
+        ? JSON.parse(appPathElement.textContent)
+        : null;
+    var elements = document.querySelectorAll("[xw-click]");
+    elements.forEach(function (element) {
+        element.addEventListener("click", function (event) { return __awaiter(_this, void 0, void 0, function () {
+            var token, _a, config;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        if (!(typeof globalThis.getAuth === "function")) return [3 /*break*/, 2];
+                        return [4 /*yield*/, globalThis.getAuth()];
+                    case 1:
+                        _a = _b.sent();
+                        return [3 /*break*/, 3];
+                    case 2:
+                        _a = "";
+                        _b.label = 3;
+                    case 3:
+                        token = _a;
+                        config = element.getAttribute("xw-config")
+                            ? JSON.parse(element.getAttribute("xw-config"))
+                            : {};
+                        runPython(window.location.origin +
+                            (appPath && appPath.appPath !== "" ? "/".concat(appPath.appPath) : "") +
+                            "/xlwings/custom-scripts-call/" +
+                            element.getAttribute("xw-click"), __assign(__assign({}, config), { auth: token }));
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+    });
+}
+var version = "0.31.5";
 globalThis.callbacks = {};
 function runPython(url, _a) {
     if (url === void 0) { url = ""; }

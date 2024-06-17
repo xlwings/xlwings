@@ -1,6 +1,14 @@
 Changelog
 =========
 
+v0.31.5 (Jun 17, 2024)
+----------------------
+
+* :bdg-success:`Feature` :bdg-secondary:`PRO` Introduced ``@server.script`` decorator (:issue:`2454`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Prevent unnecessary tempdir creation when importing ``xlwings.pro`` (:issue:`2452`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Various bug fixes, including custom function date formatting (:issue:`2453`).
+
+
 v0.31.4 (Jun 3, 2024)
 ---------------------
 
