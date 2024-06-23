@@ -1455,10 +1455,11 @@ class Sheet:
 
     def select(self):
         """
-        Selects the Sheet. Select only works on the active book.
+        Selects the Sheet. Activates the book if it isn't the active one.
 
         .. versionadded:: 0.9.0
         """
+        self.book.activate()
         return self.impl.select()
 
     def clear_contents(self):
