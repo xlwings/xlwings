@@ -2228,6 +2228,7 @@ shape_types_k2s = {
     kw.shape_type_ink: "ink",
     kw.shape_type_ink_comment: "ink_comment",
     kw.shape_type_unset: "unset",
+    kw.shape_type_slicer: "slicer",
 }
 
 scaling = {
