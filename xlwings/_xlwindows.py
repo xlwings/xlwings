@@ -2460,6 +2460,7 @@ shape_types_s2i = {
     "placeholder": 14,
     "script_anchor": 18,
     "shape_type_mixed": -2,
+    "slicer": 25,
     "table": 19,
     "text_box": 17,
     "text_effect": 15,
