@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.31.6 (Jun 23, 2024)
+----------------------
+
+* :bdg-warning:`Bug Fix` ``mysheet.select()`` now automatically activates the book first, which is required to avoid a com_error on Windows (:issue:`2460`).
+* :bdg-warning:`Bug Fix` Added the missing shape type for slicer (:issue:`2459`).
+
 v0.31.5 (Jun 17, 2024)
 ----------------------
 

@@ -2711,7 +2711,7 @@ function init() {
         }); });
     });
 }
-var version = "0.31.5";
+var version = "0.31.6";
 globalThis.callbacks = {};
 function runPython(url, _a) {
     if (url === void 0) { url = ""; }
