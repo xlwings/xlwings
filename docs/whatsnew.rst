@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.31.7 (Jun 26, 2024)
+----------------------
+
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Fixed polyfill.io vulnerability. This was only an issue with Office.js alerts on systems where Excel is still relying on Internet Explorer 11. Also, this only concerns DIY xlwings Server applications (the official ``xlwings-server`` repo is unaffected) (:issue:`2461`).
+
+
 v0.31.6 (Jun 23, 2024)
 ----------------------
 
