@@ -512,6 +512,8 @@ let funcs = {
   sheetClear: sheetClear,
   sheetClearFormats: sheetClearFormats,
   sheetClearContents: sheetClearContents,
+  freezePaneAtRange: freezePaneAtRange,
+  freezePaneUnfreeze: freezePaneUnfreeze,
 };
 
 Object.assign(globalThis.callbacks, funcs);
@@ -882,4 +884,21 @@ async function sheetClearContents(
   worksheets.items[action.sheet_position]
     .getRanges()
     .clear(Excel.ClearApplyTo.contents);
+}
+
+async function freezePaneAtRange(
+  context: Excel.RequestContext,
+  action: Action
+) {
+  let sheet = await getSheet(context, action);
+  let range = sheet.getRange(action.args[0].toString());
+  sheet.freezePanes.freezeAt(range);
+}
+
+async function freezePaneUnfreeze(
+  context: Excel.RequestContext,
+  action: Action
+) {
+  let sheet = await getSheet(context, action);
+  sheet.freezePanes.unfreeze();
 }
