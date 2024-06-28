@@ -933,7 +933,6 @@ def py_edit(args):
 
 
 def main():
-    print("xlwings version: " + xw.__version__)
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command")
     subparsers.required = True
@@ -1294,6 +1293,7 @@ def main():
 
     # Show help when running without commands
     if len(sys.argv) == 1:
+        print("xlwings version: " + xw.__version__)
         parser.print_help(sys.stderr)
         sys.exit(1)
 
