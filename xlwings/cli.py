@@ -401,6 +401,10 @@ def update_user_config(key, value=None, action="add"):
 
 
 def license_deploy(args):
+    developer_key = os.getenv("XLWINGS_DEVELOPER_KEY")
+    if developer_key:
+        # TODO: fix this when we have a proper config
+        os.environ["XLWINGS_LICENSE_KEY"] = developer_key
     from .pro import LicenseHandler
 
     print(LicenseHandler.create_deploy_key())
