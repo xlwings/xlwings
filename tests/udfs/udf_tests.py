@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from typing import Mapping, Any
 
 import xlwings as xw
 
@@ -848,6 +849,27 @@ def return_pd_nat():
 @xw.arg("*params", pd.DataFrame, index=False)
 def varargs_arg_decorator(x, *params):
     return pd.concat(params + (x,))
+
+
+@xw.func
+def return_vba_dict() -> Any:
+    return create_vba_dict({"a": 1, "b": 2})
+
+
+def create_vba_dict(d: Mapping[str, Any]) -> Any:
+    """
+    Create a VBA `Scripting.Dictionary` object.
+
+    See https://stackoverflow.com/questions/67397267/pass-dictionary-to-excel-macro-using-win32com-and-comtypes
+    """
+    import win32com.client
+
+    result = win32com.client.Dispatch("Scripting.Dictionary")
+
+    for key, value in d.items():
+        result[key] = value
+
+    return result
 
 
 if __name__ == "__main__":
