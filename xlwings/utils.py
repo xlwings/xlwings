@@ -796,3 +796,15 @@ def excel_update_picture(picture_impl, filename):
 
     picture_impl.name = name
     return picture_impl
+
+
+def determine_columns_or_rows(address):
+    """
+    If the address is a row '1:3' or a column 'A:C', it returns "rows" or "columns",
+    respectively.
+    """
+    start, end = address.replace("$", "").split(":")
+    if start.isdigit() and end.isdigit():
+        return "rows"
+    elif start.isalpha() and end.isalpha():
+        return "columns"

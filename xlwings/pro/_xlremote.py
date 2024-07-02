@@ -792,6 +792,9 @@ class Range(base_classes.Range):
     def group(self, by):
         self.append_json_action(func="rangeGroup", args=[by])
 
+    def ungroup(self, by):
+        self.append_json_action(func="rangeUngroup", args=[by])
+
     def __len__(self):
         nrows, ncols = self.shape
         return nrows * ncols

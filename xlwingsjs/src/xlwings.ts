@@ -500,6 +500,7 @@ let funcs = {
   rangeClearContents: rangeClearContents,
   rangeClearFormats: rangeClearFormats,
   rangeGroup: rangeGroup,
+  rangeUngroup: rangeUngroup,
   rangeClear: rangeClear,
   addTable: addTable,
   setTableName: setTableName,
@@ -895,5 +896,14 @@ async function rangeGroup(context: Excel.RequestContext, action: Action) {
     myrange.group(Excel.GroupOption.byColumns);
   } else {
     myrange.group(Excel.GroupOption.byRows);
+  }
+}
+
+async function rangeUngroup(context: Excel.RequestContext, action: Action) {
+  let myrange = await getRange(context, action);
+  if (action.args[0].toString() == "columns") {
+    myrange.ungroup(Excel.GroupOption.byColumns);
+  } else {
+    myrange.ungroup(Excel.GroupOption.byRows);
   }
 }

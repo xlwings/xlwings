@@ -347,6 +347,9 @@ class Range:
     def group(self, by):
         raise NotImplementedError()
 
+    def ungroup(self, by):
+        raise NotImplementedError()
+
     @property
     def coords(self):
         raise NotImplementedError()
