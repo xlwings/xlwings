@@ -269,6 +269,10 @@ class Sheet:
         raise NotImplementedError()
 
     @property
+    def freeze_panes(self):
+        raise NotImplementedError()
+
+    @property
     def book(self):
         raise NotImplementedError()
 
@@ -1095,4 +1099,12 @@ class Charts:
         raise NotImplementedError()
 
     def add(self, left, top, width, height):
+        raise NotImplementedError()
+
+
+class FreezePanes:
+    def freeze_at(self, frozen_range):
+        raise NotImplementedError()
+
+    def unfreeze():
         raise NotImplementedError()

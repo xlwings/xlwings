@@ -1413,6 +1413,20 @@ class Sheet:
         return Names(impl=self.impl.names)
 
     @property
+    def freeze_panes(self):
+        """
+        Interface to freeze/unfreeze panes.
+
+        Examples
+        --------
+
+        >>> mysheet.freeze_panes.freeze_at("A1")
+        >>> mysheet.freeze_panes.freeze_at(mysheet["A1"])
+        >>> mysheet.freeze_panes.unfreeze()
+        """
+        return FreezePanes(impl=self.impl.freeze_panes, sheet=self)
+
+    @property
     def book(self):
         """Returns the Book of the specified Sheet. Read-only."""
         return Book(impl=self.impl.book)
@@ -5013,6 +5027,38 @@ class Font:
     @name.setter
     def name(self, value):
         self.impl.name = value
+
+
+class FreezePanes:
+    """ """
+
+    def __init__(self, impl, sheet):
+        self.impl = impl
+        self.sheet = sheet
+
+    def freeze_at(self, frozen_range):
+        """
+        Parameters
+        ----------
+
+        frozen_range : str or xw.Range
+            E.g., "A1", "A:A", or "1:1" or mysheet["A1"], etc.
+
+        Returns
+        -------
+        None
+        """
+        if isinstance(frozen_range, Range):
+            if self.sheet != frozen_range.sheet:
+                raise ValueError("Range object is on a different sheet.")
+            frozen_range = frozen_range.address
+        self.impl.freeze_at(frozen_range)
+
+    def unfreeze(self):
+        """
+        Removes all frozen panes in the sheet.
+        """
+        self.impl.unfreeze()
 
 
 class Books(Collection):

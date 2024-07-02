@@ -478,6 +478,10 @@ class Sheet(base_classes.Sheet):
     def clear_formats(self):
         self.append_json_action(func="sheetClearFormats")
 
+    @property
+    def freeze_panes(self):
+        return FreezePanes(self)
+
 
 @lru_cache(None)
 def get_range_api(api_values, arg1, arg2=None):
@@ -1260,6 +1264,27 @@ class Tables(Collection, base_classes.Tables):
             }
         )
         return Table(self.parent, len(self.parent.api["tables"]))
+
+
+class FreezePanes(base_classes.FreezePanes):
+    def __init__(self, sheet):
+        self.sheet = sheet
+
+    def append_json_action(self, **kwargs):
+        self.sheet.book.append_json_action(
+            **{
+                **kwargs,
+                **{
+                    "sheet_position": self.sheet.index - 1,
+                },
+            }
+        )
+
+    def freeze_at(self, frozen_range):
+        self.append_json_action(func="freezePaneAtRange", args=[frozen_range])
+
+    def unfreeze(self):
+        self.append_json_action(func="freezePaneUnfreeze")
 
 
 if __name__ == "__main__":
