@@ -27,6 +27,7 @@ except ImportError:
     pd = None
 
 from .. import NoSuchObjectError, XlwingsError, __version__, base_classes, utils
+from ..constants import MAX_COLUMNS, MAX_ROWS
 
 # Time types (doesn't contain dt.date)
 time_types = (dt.datetime,)
@@ -437,7 +438,7 @@ class Sheet(base_classes.Sheet):
         return Range(
             sheet=self,
             arg1=(1, 1),
-            arg2=(1_048_576, 16_384),
+            arg2=(MAX_ROWS, MAX_COLUMNS),
         )
 
     @property
@@ -517,6 +518,8 @@ def get_range_api(api_values, arg1, arg2=None):
 class Range(base_classes.Range):
     def __init__(self, sheet, arg1, arg2=None):
         self.sheet = sheet
+        self.arg1_input = arg1
+        self.arg2_input = arg2
 
         # Range
         if isinstance(arg1, Range) and isinstance(arg2, Range):
@@ -785,6 +788,9 @@ class Range(base_classes.Range):
         self.append_json_action(
             func="rangeSelect",
         )
+
+    def group(self, by):
+        self.append_json_action(func="rangeGroup", args=[by])
 
     def __len__(self):
         nrows, ncols = self.shape

@@ -3,6 +3,11 @@ import re
 RE_WORD = re.compile("^[A-Z0-9]([A-Z0-9](?![a-z]))*[a-z]*")
 
 
+# TODO: this should be part of Book to cater for the smaller xls format
+MAX_ROWS = 1_048_576
+MAX_COLUMNS = 16_384
+
+
 def _dump_enum(cls):
     constants = [c for c in dir(cls) if c.startswith("xl")]
     s2i = {}

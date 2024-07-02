@@ -344,6 +344,9 @@ class Sheet:
 
 
 class Range:
+    def group(self, by):
+        raise NotImplementedError()
+
     @property
     def coords(self):
         raise NotImplementedError()
