@@ -8,6 +8,7 @@ All rights reserved.
 
 License: BSD 3-clause (see LICENSE.txt for details)
 """
+
 import numbers
 import os
 import re
@@ -1856,6 +1857,26 @@ class Range:
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
         for i in range(len(self)):
             yield self(i + 1)
+
+    def group(self, by=None):
+        """
+        Arguments
+        ---------
+        by : str, optional
+            "columns" or "rows". Figured out automatically if the range is defined as
+            '1:3' or 'A:C', respectively.
+        """
+        if ":" in self.impl.arg1_input:
+            start, end = self.impl.arg1_input.replace("$", "").split(":")
+            if start.isdigit() and end.isdigit():
+                by = "rows"
+            elif start.isalpha() and end.isalpha():
+                by = "columns"
+            else:
+                raise ValueError(
+                    "Either provide a range in the form '1:3' or 'A:C', respectively, or provide by='column' or by='rows' as argument"
+                )
+        self.impl.group(by)
 
     def options(self, convert=None, **options):
         """
@@ -4783,9 +4804,11 @@ class Macro:
 
     def run(self, *args):
         args = [
-            i.api
-            if isinstance(i, (App, Book, Sheet, Range, Shape, Chart, Picture, Name))
-            else i
+            (
+                i.api
+                if isinstance(i, (App, Book, Sheet, Range, Shape, Chart, Picture, Name))
+                else i
+            )
             for i in args
         ]
         return self.app.impl.run(self.macro, args)

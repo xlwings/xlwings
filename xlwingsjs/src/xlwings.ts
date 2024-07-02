@@ -499,6 +499,7 @@ let funcs = {
   rangeSelect: rangeSelect,
   rangeClearContents: rangeClearContents,
   rangeClearFormats: rangeClearFormats,
+  rangeGroup: rangeGroup,
   rangeClear: rangeClear,
   addTable: addTable,
   setTableName: setTableName,
@@ -849,12 +850,14 @@ async function copyRange(context: Excel.RequestContext, action: Action) {
 }
 
 async function sheetDelete(context: Excel.RequestContext, action: Action) {
+  // TODO: use getSheet
   let worksheets = context.workbook.worksheets.load("items");
   await context.sync();
   worksheets.items[action.sheet_position].delete();
 }
 
 async function sheetClear(context: Excel.RequestContext, action: Action) {
+  // TODO: use getSheet
   let worksheets = context.workbook.worksheets.load("items");
   await context.sync();
   worksheets.items[action.sheet_position]
@@ -866,6 +869,7 @@ async function sheetClearFormats(
   context: Excel.RequestContext,
   action: Action
 ) {
+  // TODO: use getSheet
   let worksheets = context.workbook.worksheets.load("items");
   await context.sync();
   worksheets.items[action.sheet_position]
@@ -877,9 +881,19 @@ async function sheetClearContents(
   context: Excel.RequestContext,
   action: Action
 ) {
+  // TODO: use getSheet
   let worksheets = context.workbook.worksheets.load("items");
   await context.sync();
   worksheets.items[action.sheet_position]
     .getRanges()
     .clear(Excel.ClearApplyTo.contents);
+}
+
+async function rangeGroup(context: Excel.RequestContext, action: Action) {
+  let myrange = await getRange(context, action);
+  if (action.args[0].toString() == "columns") {
+    myrange.group(Excel.GroupOption.byColumns);
+  } else {
+    myrange.group(Excel.GroupOption.byRows);
+  }
 }

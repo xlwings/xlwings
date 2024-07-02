@@ -9,6 +9,8 @@ import uuid
 from functools import lru_cache, total_ordering
 from pathlib import Path
 
+from .constants import MAX_COLUMNS, MAX_ROWS
+
 try:
     import numpy as np
 except ImportError:
@@ -160,15 +162,34 @@ def address_to_index_tuple(address):
         return int(row_str), col
 
 
+def column_to_number(col_str):
+    expn = 0
+    col = 0
+    for char in reversed(col_str):
+        col += (ord(char) - ord("A") + 1) * (26**expn)
+        expn += 1
+    return col
+
+
 def a1_to_tuples(address):
     if ":" in address:
-        address1, address2 = address.split(":")
-        tuple1 = address_to_index_tuple(address1.upper())
-        tuple2 = address_to_index_tuple(address2.upper())
+        part1, part2 = address.split(":")
+        if part1.isdigit() and part2.isdigit():
+            # Rows
+            return (int(part1), 1), (int(part2), MAX_COLUMNS)
+        elif re.match(r"^[A-Z]+$", part1, re.I) and re.match(r"^[A-Z]+$", part2, re.I):
+            # Columns
+            col1 = column_to_number(part1.upper())
+            col2 = column_to_number(part2.upper())
+            return (1, col1), (MAX_ROWS, col2)
+        else:
+            # Standard range
+            tuple1 = address_to_index_tuple(part1.upper())
+            tuple2 = address_to_index_tuple(part2.upper())
+            return tuple1, tuple2
     else:
-        tuple1 = address_to_index_tuple(address.upper())
-        tuple2 = None
-    return tuple1, tuple2
+        # Single cell
+        return address_to_index_tuple(address.upper()), None
 
 
 class VBAWriter:
