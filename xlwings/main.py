@@ -1860,23 +1860,39 @@ class Range:
 
     def group(self, by=None):
         """
+        Group rows or columns.
+
         Arguments
         ---------
         by : str, optional
             "columns" or "rows". Figured out automatically if the range is defined as
             '1:3' or 'A:C', respectively.
         """
-        if ":" in self.impl.arg1_input:
-            start, end = self.impl.arg1_input.replace("$", "").split(":")
-            if start.isdigit() and end.isdigit():
-                by = "rows"
-            elif start.isalpha() and end.isalpha():
-                by = "columns"
-            else:
-                raise ValueError(
-                    "Either provide a range in the form '1:3' or 'A:C', respectively, or provide by='column' or by='rows' as argument"
-                )
+        if ":" in self.impl.arg1_input and by is None:
+            by = utils.determine_columns_or_rows(self.impl.arg1_input)
+        elif by is None:
+            raise ValueError(
+                "Either provide a range in the form '1:3' or 'A:C', respectively, or provide by='column' or by='rows' as argument"
+            )
         self.impl.group(by)
+
+    def ungroup(self, by=None):
+        """
+        Ungroup rows or columns
+
+        Arguments
+        ---------
+        by : str, optional
+            "columns" or "rows". Figured out automatically if the range is defined as
+            '1:3' or 'A:C', respectively.
+        """
+        if ":" in self.impl.arg1_input and by is None:
+            by = utils.determine_columns_or_rows(self.impl.arg1_input)
+        elif by is None:
+            raise ValueError(
+                "Either provide a range in the form '1:3' or 'A:C', respectively, or provide by='column' or by='rows' as argument"
+            )
+        self.impl.ungroup(by)
 
     def options(self, convert=None, **options):
         """
