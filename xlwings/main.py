@@ -1422,6 +1422,8 @@ class Sheet:
 
         >>> mysheet.freeze_panes.freeze_at("A1")
         >>> mysheet.freeze_panes.freeze_at(mysheet["A1"])
+        >>> mysheet.freeze_panes.freeze_at("A:A")
+        >>> mysheet.freeze_panes.freeze_at("1:1")
         >>> mysheet.freeze_panes.unfreeze()
         """
         return FreezePanes(impl=self.impl.freeze_panes, sheet=self)
@@ -5042,7 +5044,9 @@ class Font:
 
 
 class FreezePanes:
-    """ """
+    """
+    Freeze panes interface. Use via ``mysheet.freeze_panes``.
+    """
 
     def __init__(self, impl, sheet):
         self.impl = impl
@@ -5050,6 +5054,8 @@ class FreezePanes:
 
     def freeze_at(self, frozen_range):
         """
+        Sets the frozen cells in the sheet.
+
         Parameters
         ----------
 
