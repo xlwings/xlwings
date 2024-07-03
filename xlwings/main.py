@@ -1872,6 +1872,18 @@ class Range:
         for i in range(len(self)):
             yield self(i + 1)
 
+    def adjust_indent(self, amount):
+        """
+        Adjusts the indentation in a Range.
+
+        Arguments
+        ---------
+        amount : int
+            Number of spaces by which the indent is adjusted.
+            Can be positive or negative.
+        """
+        self.impl.adjust_indent(amount)
+
     def group(self, by=None):
         """
         Group rows or columns.

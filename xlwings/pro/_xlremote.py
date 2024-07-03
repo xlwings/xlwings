@@ -799,6 +799,9 @@ class Range(base_classes.Range):
     def ungroup(self, by):
         self.append_json_action(func="rangeUngroup", args=[by])
 
+    def adjust_indent(self, amount):
+        self.append_json_action(func="rangeAdjustIndent", args=amount)
+
     def __len__(self):
         nrows, ncols = self.shape
         return nrows * ncols
