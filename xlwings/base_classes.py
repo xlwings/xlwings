@@ -348,6 +348,9 @@ class Sheet:
 
 
 class Range:
+    def adjust_indent(self, amount):
+        raise NotImplementedError()
+
     def group(self, by):
         raise NotImplementedError()
 

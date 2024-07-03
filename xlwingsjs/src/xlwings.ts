@@ -502,6 +502,7 @@ let funcs = {
   rangeGroup: rangeGroup,
   rangeUngroup: rangeUngroup,
   rangeClear: rangeClear,
+  rangeAdjustIndent: rangeAdjustIndent,
   addTable: addTable,
   setTableName: setTableName,
   resizeTable: resizeTable,
@@ -925,4 +926,12 @@ async function freezePaneUnfreeze(
 ) {
   let sheet = await getSheet(context, action);
   sheet.freezePanes.unfreeze();
+}
+
+async function rangeAdjustIndent(
+  context: Excel.RequestContext,
+  action: Action
+){
+  let range = await getRange(context, action);
+  range.format.adjustIndent(parseInt(action.args[0].toString()))
 }
