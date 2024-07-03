@@ -2773,7 +2773,7 @@ function init() {
         }); });
     });
 }
-var version = "0.31.7";
+var version = "0.31.8";
 globalThis.callbacks = {};
 function runPython() {
     return __awaiter(this, arguments, void 0, function (url, _a) {
@@ -3253,7 +3253,10 @@ var funcs = {
     rangeSelect: rangeSelect,
     rangeClearContents: rangeClearContents,
     rangeClearFormats: rangeClearFormats,
+    rangeGroup: rangeGroup,
+    rangeUngroup: rangeUngroup,
     rangeClear: rangeClear,
+    rangeAdjustIndent: rangeAdjustIndent,
     addTable: addTable,
     setTableName: setTableName,
     resizeTable: resizeTable,
@@ -3266,6 +3269,8 @@ var funcs = {
     sheetClear: sheetClear,
     sheetClearFormats: sheetClearFormats,
     sheetClearContents: sheetClearContents,
+    freezePaneAtRange: freezePaneAtRange,
+    freezePaneUnfreeze: freezePaneUnfreeze,
 };
 Object.assign(globalThis.callbacks, funcs);
 // Callbacks
@@ -3933,6 +3938,87 @@ function sheetClearContents(context, action) {
                     worksheets.items[action.sheet_position]
                         .getRanges()
                         .clear(Excel.ClearApplyTo.contents);
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function rangeGroup(context, action) {
+    return __awaiter(this, void 0, void 0, function () {
+        var myrange;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getRange(context, action)];
+                case 1:
+                    myrange = _a.sent();
+                    if (action.args[0].toString() == "columns") {
+                        myrange.group(Excel.GroupOption.byColumns);
+                    }
+                    else {
+                        myrange.group(Excel.GroupOption.byRows);
+                    }
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function rangeUngroup(context, action) {
+    return __awaiter(this, void 0, void 0, function () {
+        var myrange;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getRange(context, action)];
+                case 1:
+                    myrange = _a.sent();
+                    if (action.args[0].toString() == "columns") {
+                        myrange.ungroup(Excel.GroupOption.byColumns);
+                    }
+                    else {
+                        myrange.ungroup(Excel.GroupOption.byRows);
+                    }
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function freezePaneAtRange(context, action) {
+    return __awaiter(this, void 0, void 0, function () {
+        var sheet, range;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getSheet(context, action)];
+                case 1:
+                    sheet = _a.sent();
+                    range = sheet.getRange(action.args[0].toString());
+                    sheet.freezePanes.freezeAt(range);
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function freezePaneUnfreeze(context, action) {
+    return __awaiter(this, void 0, void 0, function () {
+        var sheet;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getSheet(context, action)];
+                case 1:
+                    sheet = _a.sent();
+                    sheet.freezePanes.unfreeze();
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function rangeAdjustIndent(context, action) {
+    return __awaiter(this, void 0, void 0, function () {
+        var range;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getRange(context, action)];
+                case 1:
+                    range = _a.sent();
+                    range.format.adjustIndent(parseInt(action.args[0].toString()));
                     return [2 /*return*/];
             }
         });

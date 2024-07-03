@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v0.31.8 (Jul 3, 2024)
+---------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Implemented ``Range.adjust_indent()`` (Office.js clients only) (:issue:`2471`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Implemented ``Sheet.freeze_panes.freeze_at()`` and ``Sheet.freeze_panes.unfreeze()`` for (Office.js clients only) (:issue:`2463`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Implemented ``Range.group()`` and ``Range.ungroup()`` for (Office.js clients only) (:issue:`2468`).
+
 v0.31.7 (Jun 26, 2024)
 ----------------------
 
