@@ -118,6 +118,10 @@ async function base() {
   headers["Authorization"] =
     typeof globalThis.getAuth === "function" ? await globalThis.getAuth() : "";
 
+  // Socket.io
+  const sid = socket && socket.id ? socket.id.toString() : null;
+  headers["sid"] = sid;
+
   let response = await fetch(
     window.location.origin + "placeholder_custom_functions_call_path",
     {
