@@ -75,7 +75,13 @@ export async function xlAlert(
 
   // See xlwings-server repo for how app-path is provided
   const appPathElement = document.getElementById("app-path");
-  const appPath = appPathElement ? JSON.parse(appPathElement.textContent) : null;
+  const appPath = appPathElement
+    ? JSON.parse(appPathElement.textContent)
+    : null;
+  if (dialog) {
+    dialog.close();
+    console.log("Closed perviously open dialog to prevent error 12007.")
+  }
   Office.context.ui.displayDialogAsync(
     window.location.origin +
       (appPath && appPath.appPath !== "" ? `/${appPath.appPath}` : "") +
