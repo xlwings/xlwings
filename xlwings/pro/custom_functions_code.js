@@ -122,33 +122,38 @@ async function base() {
   const sid = socket && socket.id ? socket.id.toString() : null;
   headers["sid"] = sid;
 
-  let response = await fetch(
-    window.location.origin + "placeholder_custom_functions_call_path",
-    {
-      method: "POST",
-      headers: headers,
-      body: JSON.stringify(body),
-    }
-  );
-  if (response.status !== 200) {
-    let errMsg = await response.text();
-    // Error message is only visible by hovering over the error flag!
-    if (
-      Office.context.requirements.isSetSupported(
-        "CustomFunctionsRuntime",
-        "1.2"
-      )
-    ) {
-      let error = new CustomFunctions.Error(
-        CustomFunctions.ErrorCode.invalidValue,
-        errMsg
-      );
-      throw error;
+  try {
+    let response = await fetch(
+      window.location.origin + "placeholder_custom_functions_call_path",
+      {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify(body),
+      }
+    );
+    if (!response.ok) {
+      let errMsg = await response.text();
+      return showError(errMsg);
     } else {
-      return [[errMsg]];
+      let responseData = await response.json();
+      return responseData.result;
     }
+  } catch (error) {
+    return showError(error.toString());
+  }
+}
+
+function showError(errorMessage) {
+  if (
+    Office.context.requirements.isSetSupported("CustomFunctionsRuntime", "1.2")
+  ) {
+    // Error message is only visible by hovering over the error flag!
+    let excelError = new CustomFunctions.Error(
+      CustomFunctions.ErrorCode.invalidValue,
+      errorMessage
+    );
+    throw excelError;
   } else {
-    let responseData = await response.json();
-    return responseData.result;
+    return [[errorMessage]];
   }
 }
