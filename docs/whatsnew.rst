@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.31.9 (Jul 9, 2024)
+---------------------
+
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Server via Office.js now closes open alerts before showing a new one to prevent errors (:issue:`2476`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Server via Office.js now shows custom function errors from outside of the app, such as timeouts (:issue:`2475`).
+
 v0.31.8 (Jul 3, 2024)
 ---------------------
 

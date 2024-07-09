@@ -120,7 +120,13 @@ function xlAlert(prompt, title, buttons, mode, callback) {
                         height = 30;
                     }
                     appPathElement = document.getElementById("app-path");
-                    appPath = appPathElement ? JSON.parse(appPathElement.textContent) : null;
+                    appPath = appPathElement
+                        ? JSON.parse(appPathElement.textContent)
+                        : null;
+                    if (dialog) {
+                        dialog.close();
+                        console.log("Closed perviously open dialog to prevent error 12007.");
+                    }
                     Office.context.ui.displayDialogAsync(window.location.origin +
                         (appPath && appPath.appPath !== "" ? "/".concat(appPath.appPath) : "") +
                         "/xlwings/alert?prompt=" +
@@ -2773,7 +2779,7 @@ function init() {
         }); });
     });
 }
-var version = "0.31.8";
+var version = "0.31.9";
 globalThis.callbacks = {};
 function runPython() {
     return __awaiter(this, arguments, void 0, function (url, _a) {
