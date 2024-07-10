@@ -16,10 +16,11 @@ let invocations = new Set();
 let bodies = new Set();
 let runtime;
 let contentLanguage;
+let socket = null;
 
 Office.onReady(function (info) {
   // Socket.io
-  const socket = globalThis.socket ? globalThis.socket : null;
+  socket = globalThis.socket ? globalThis.socket : null;
 
   if (socket !== null) {
     socket.on("disconnect", () => {
