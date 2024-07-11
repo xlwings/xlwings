@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.31.10 (Jul 11, 2024)
+-----------------------
+
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Fixed an issue with custom functions when using the setting ``XLWINGS_ENABLE_SOCKETIO=false`` (:issue:`2477`).
+
 v0.31.9 (Jul 9, 2024)
 ---------------------
 
