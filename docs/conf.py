@@ -85,6 +85,13 @@ for mod_name in MOCK_MODULES:
 # Note: under Admin > Advanced Settings, check the box 'Install your project inside a
 # virtualenv...' and provide a setup.py and requirements.txt file for the extension
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
+# Define the canonical URL if you are using a custom domain on Read the Docs
+html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
+
+# Tell Jinja2 templates the build is running on Read the Docs
+html_context = {}
+if os.environ.get("READTHEDOCS", "") == "True":
+    html_context["READTHEDOCS"] = True
 
 # If your documentation needs a minimal Sphinx version, state it here.
 # needs_sphinx = '1.0'
