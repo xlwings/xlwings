@@ -69,8 +69,9 @@ def get_duplicates(seq):
 
 def np_datetime_to_datetime(np_datetime):
     ts = (np_datetime - np.datetime64("1970-01-01T00:00:00Z")) / np.timedelta64(1, "s")
-    dt_datetime = dt.datetime.utcfromtimestamp(ts)
-    return dt_datetime
+    aware_datetime = dt.datetime.fromtimestamp(ts, dt.timezone.utc)
+    naive_datetime = aware_datetime.replace(tzinfo=None)
+    return naive_datetime
 
 
 def xlserial_to_datetime(serial):
@@ -79,7 +80,9 @@ def xlserial_to_datetime(serial):
     """
     # https://learn.microsoft.com/en-us/office/dev/scripts/resources/samples/excel-samples#dates
     ts = round((serial - 25569) * 86400, 3)
-    return dt.datetime.utcfromtimestamp(ts)  # tz-naive, which is what we want
+    aware_datetime = dt.datetime.fromtimestamp(ts, dt.timezone.utc)
+    naive_datetime = aware_datetime.replace(tzinfo=None)
+    return naive_datetime
 
 
 def datetime_to_xlserial(obj):
