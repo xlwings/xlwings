@@ -1,4 +1,5 @@
 import datetime as dt
+import inspect
 import os
 import re
 import subprocess
@@ -811,3 +812,10 @@ def determine_columns_or_rows(address):
         return "rows"
     elif start.isalpha() and end.isalpha():
         return "columns"
+
+
+async def await_me_maybe(callback, *args, **kwargs):
+    result = callback(*args, **kwargs)
+    if inspect.isawaitable(result):
+        return await result
+    return result

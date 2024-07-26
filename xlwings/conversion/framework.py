@@ -1,4 +1,5 @@
 import xlwings
+import xlwings.utils
 
 
 class ConversionContext:
@@ -74,9 +75,9 @@ class Pipeline(list):
                 self.insert(i, stage)
         return self
 
-    def __call__(self, *args, **kwargs):
+    async def __call__(self, *args, **kwargs):
         for stage in self:
-            stage(*args, **kwargs)
+            await xlwings.utils.await_me_maybe(stage, *args, **kwargs)
 
 
 accessors = {}
@@ -107,16 +108,20 @@ class Converter(Accessor):
             self.write_value = write_value
             self.options = options
 
-        def __call__(self, c):
-            c.value = self.write_value(c.value, self.options)
+        async def __call__(self, c):
+            c.value = await xlwings.utils.await_me_maybe(
+                self.write_value, c.value, self.options
+            )
 
     class FromValueStage:
         def __init__(self, read_value, options):
             self.read_value = read_value
             self.options = options
 
-        def __call__(self, c):
-            c.value = self.read_value(c.value, self.options)
+        async def __call__(self, c):
+            c.value = await xlwings.utils.await_me_maybe(
+                self.read_value, c.value, self.options
+            )
 
     base_type = None
     base = None
