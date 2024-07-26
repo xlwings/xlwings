@@ -8,7 +8,7 @@ The source for the Python package is in the `xlwings` directory.
 2. Clone your forked repository: `git clone <your forked git url>`
 3. `cd xlwings`
 4. With the desired development environment activated: `pip install -e ".[all]"`. This will install xlwings like a standard package
-   but runs from your cloned source code, i.e. you can edit/debug the xlwings code. If you don't want the dependencies to be taken care of or don't want to install Rust (used by xlwings Reader), you can use `python setup.py develop`.
+   but runs from your cloned source code, i.e. you can edit/debug the xlwings code. If you don't want the dependencies to be taken care of or don't want to install Rust (used by xlwings Reader), you can use `python setup.py develop` (this requires you to temporarily remove `pyproject.toml` though).
 
 ## macOS
 
