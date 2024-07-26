@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "rm -rf build && parcel watch taskpane.html --dist-dir build --no-hmr"
+    "start": "rm -rf build/* && parcel watch taskpane.html --dist-dir build --no-hmr"
   },
   "devDependencies": {
     "@parcel/packager-xml": "^2.12.0",
