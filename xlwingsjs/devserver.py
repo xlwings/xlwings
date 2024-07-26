@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 import xlwings as xw
+import xlwings.server
 
 # from tests import udf_tests_officejs as custom_functions
 
@@ -199,18 +200,18 @@ async def alert(
 
 @app.get("/xlwings/custom-functions-meta")
 async def custom_functions_meta():
-    return xw.server.custom_functions_meta(custom_functions)
+    return xlwings.server.custom_functions_meta(custom_functions)
 
 
 @app.get("/xlwings/custom-functions-code")
 async def custom_functions_code():
-    return PlainTextResponse(xw.server.custom_functions_code(custom_functions))
+    return PlainTextResponse(xlwings.server.custom_functions_code(custom_functions))
 
 
 @app.post("/xlwings/custom-functions-call")
 async def custom_functions_call(request: Request, data: dict = Body):
     print(request.headers["Authorization"])
-    rv = await xw.server.custom_functions_call(data, custom_functions)
+    rv = await xlwings.server.custom_functions_call(data, custom_functions)
     return {"result": rv}
 
 
