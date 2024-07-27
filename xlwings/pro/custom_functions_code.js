@@ -73,15 +73,30 @@ async function base() {
   let args = argsArr.slice(2, -1);
   let invocation = argsArr[argsArr.length - 1];
 
+  // Workbook name
+  const context = new Excel.RequestContext();
+  const workbook = context.workbook;
+  workbook.load("name");
+  await context.sync();
+  const workbookName = workbook.name
+
   // Body
   let body = {
     func_name: funcName,
     args: args,
-    caller_address: invocation.address, // not available for streaming functions
+    caller_address: `[${workbookName}]${invocation.address}`, // not available for streaming functions
     content_language: contentLanguage,
     version: "placeholder_xlwings_version",
     runtime: runtime,
   };
+
+  // For arguments that are Entities, replace the arg with their address (cache key)
+  args.forEach((arg, index) => {
+    if (arg[0][0].type === "Entity") {
+      const address = `[${workbookName}]${invocation.parameterAddresses[index]}`;
+      args[index] = address;
+    }
+  });
 
   // Streaming functions communicate via socket.io
   if (isStreaming) {
