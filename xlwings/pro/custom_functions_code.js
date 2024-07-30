@@ -78,25 +78,27 @@ async function base() {
   const workbook = context.workbook;
   workbook.load("name");
   await context.sync();
-  const workbookName = workbook.name
+  const workbookName = workbook.name;
+  const officeApiClient = localStorage.getItem("Office API client");
+
+  // For arguments that are Entities, replace the arg with their address (cache key)
+  args.forEach((arg, index) => {
+    if (arg[0][0].type === "Entity") {
+      const address = `${officeApiClient}[${workbookName}]${invocation.parameterAddresses[index]}`;
+      args[index] = address;
+    }
+  });
 
   // Body
   let body = {
     func_name: funcName,
     args: args,
-    caller_address: `[${workbookName}]${invocation.address}`, // not available for streaming functions
+    caller_address: `${officeApiClient}[${workbookName}]${invocation.address}`, // not available for streaming functions
     content_language: contentLanguage,
     version: "placeholder_xlwings_version",
     runtime: runtime,
+    office_api_client: localStorage.getItem("Office API client"),
   };
-
-  // For arguments that are Entities, replace the arg with their address (cache key)
-  args.forEach((arg, index) => {
-    if (arg[0][0].type === "Entity") {
-      const address = `[${workbookName}]${invocation.parameterAddresses[index]}`;
-      args[index] = address;
-    }
-  });
 
   // Streaming functions communicate via socket.io
   if (isStreaming) {
