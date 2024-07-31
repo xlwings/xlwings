@@ -18,6 +18,7 @@ import os
 from functools import wraps
 from pathlib import Path
 from textwrap import dedent
+from typing import get_type_hints
 
 from .. import XlwingsError, __version__, conversion
 
@@ -57,6 +58,7 @@ def check_bool(kw, default, **func_kwargs):
 def xlfunc(f=None, **kwargs):
     def inner(f):
         if not hasattr(f, "__xlfunc__"):
+            type_hints = get_type_hints(f)
             xlf = f.__xlfunc__ = {}
             xlf["name"] = f.__name__
             xlargs = xlf["args"] = []
@@ -78,6 +80,9 @@ def xlfunc(f=None, **kwargs):
                     "vararg": var_name == sig["vararg"],
                     "options": {},
                 }
+                # Check if the argument has a type hint and add it to options if it does
+                if var_name in type_hints:
+                    arg_info["options"]["convert"] = type_hints[var_name]
                 if var_pos >= num_required_args:
                     arg_info["optional"] = sig["defaults"][var_pos - num_required_args]
                 xlargs.append(arg_info)
@@ -90,6 +95,9 @@ def xlfunc(f=None, **kwargs):
                 ),
                 "options": {},
             }
+            if "return" in type_hints:
+                xlf["ret"]["options"]["convert"] = type_hints["return"]
+
         f.__xlfunc__["volatile"] = check_bool("volatile", default=False, **kwargs)
         # If there's a global namespace defined in the manifest, this will be the
         # sub-namespace, i.e. NAMESPACE.SUBNAMESPACE.FUNCTIONNAME
