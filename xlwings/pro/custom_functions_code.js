@@ -65,7 +65,23 @@ Office.onReady(function (info) {
   contentLanguage = Office.context.contentLanguage;
 });
 
+// Workbook name
+let cachedWorkbookName = null;
+
+async function getWorkbookName() {
+  if (cachedWorkbookName) {
+    return cachedWorkbookName;
+  }
+  const context = new Excel.RequestContext();
+  const workbook = context.workbook;
+  workbook.load("name");
+  await context.sync();
+  cachedWorkbookName = workbook.name;
+  return cachedWorkbookName;
+}
+
 async function base() {
+  await Office.onReady(); // Block execution until office.js is ready
   // Arguments
   let argsArr = Array.prototype.slice.call(arguments);
   let funcName = argsArr[0];
@@ -73,17 +89,12 @@ async function base() {
   let args = argsArr.slice(2, -1);
   let invocation = argsArr[argsArr.length - 1];
 
-  // Workbook name
-  const context = new Excel.RequestContext();
-  const workbook = context.workbook;
-  workbook.load("name");
-  await context.sync();
-  const workbookName = workbook.name;
+  const workbookName = await getWorkbookName();
   const officeApiClient = localStorage.getItem("Office API client");
 
   // For arguments that are Entities, replace the arg with their address (cache key)
   args.forEach((arg, index) => {
-    if (arg[0][0].type === "Entity") {
+    if (arg && arg[0] && arg[0][0] && arg[0][0].type === "Entity") {
       const address = `${officeApiClient}[${workbookName}]${invocation.parameterAddresses[index]}`;
       args[index] = address;
     }
@@ -97,7 +108,6 @@ async function base() {
     content_language: contentLanguage,
     version: "placeholder_xlwings_version",
     runtime: runtime,
-    office_api_client: localStorage.getItem("Office API client"),
   };
 
   // Streaming functions communicate via socket.io
