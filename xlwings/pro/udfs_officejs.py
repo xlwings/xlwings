@@ -236,6 +236,8 @@ async def custom_functions_call(data, module, sio=None):
 
             mytask.add_done_callback(on_task_done)
             return mytask
+        else:
+            return
 
     elif inspect.iscoroutinefunction(func):
         ret = await func(*args)
