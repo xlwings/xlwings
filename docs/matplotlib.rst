@@ -28,6 +28,9 @@ The easiest sample boils down to::
     If you set ``update=True``, you can resize and position the plot on Excel: subsequent calls to ``pictures.add()``
     with the same name (``'MyPlot'``) will update the picture without changing its position or size.
 
+.. note::
+    If you get the following warning ``UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail.``, make sure to set the Matplotlib backend before using any Matplotlib/Pyplot code: ``import matplotlib as mpl`` and ``mpl.use("agg")``.
+
 
 Full integration with Excel
 ***************************
