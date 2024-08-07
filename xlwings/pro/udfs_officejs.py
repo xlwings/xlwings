@@ -18,7 +18,7 @@ import os
 from functools import wraps
 from pathlib import Path
 from textwrap import dedent
-from typing import get_type_hints
+from typing import Annotated, get_args, get_origin, get_type_hints
 
 from .. import XlwingsError, __version__, conversion
 
@@ -55,10 +55,18 @@ def check_bool(kw, default, **func_kwargs):
     return default
 
 
+def extract_type_and_annotations(type_hint):
+    if get_origin(type_hint) is Annotated:
+        base_type, *annotations = get_args(type_hint)
+        return base_type, annotations
+    else:
+        return type_hint, []
+
+
 def xlfunc(f=None, **kwargs):
     def inner(f):
         if not hasattr(f, "__xlfunc__"):
-            type_hints = get_type_hints(f)
+            type_hints = get_type_hints(f, include_extras=True)  # requires Python 3.9
             xlf = f.__xlfunc__ = {}
             xlf["name"] = f.__name__
             xlargs = xlf["args"] = []
@@ -80,9 +88,17 @@ def xlfunc(f=None, **kwargs):
                     "vararg": var_name == sig["vararg"],
                     "options": {},
                 }
-                # Check if the argument has a type hint and add it to options if it does
                 if var_name in type_hints:
-                    arg_info["options"]["convert"] = type_hints[var_name]
+                    type_hint, annotations = extract_type_and_annotations(
+                        type_hints[var_name]
+                    )
+                    arg_info["options"]["convert"] = type_hint
+                    if annotations:
+                        for key, value in annotations[0].items():
+                            if key == "doc":
+                                arg_info["doc"] = value
+                            else:
+                                arg_info["options"][key] = value
                 if var_pos >= num_required_args:
                     arg_info["optional"] = sig["defaults"][var_pos - num_required_args]
                 xlargs.append(arg_info)
@@ -96,7 +112,12 @@ def xlfunc(f=None, **kwargs):
                 "options": {},
             }
             if "return" in type_hints:
-                xlf["ret"]["options"]["convert"] = type_hints["return"]
+                type_hint, annotations = extract_type_and_annotations(
+                    type_hints["return"]
+                )
+                xlf["ret"]["options"]["convert"] = type_hint
+                if annotations:
+                    xlf["ret"]["options"].update(annotations[0])
 
         f.__xlfunc__["volatile"] = check_bool("volatile", default=False, **kwargs)
         # If there's a global namespace defined in the manifest, this will be the
