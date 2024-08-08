@@ -9,8 +9,10 @@ Key differences with COM UDFs:
 * writing datetime is now automatically formatting it as date in Excel
 * categories aren't supported: replaced by namespaces
 """
+
 import datetime as dt
 from datetime import date, datetime
+from typing import Annotated
 
 import xlwings as xw
 from xlwings.server import arg, func, ret
@@ -823,3 +825,49 @@ def volatile():
 @arg("*params", pd.DataFrame, index=False)
 def varargs_arg_decorator(x, *params):
     return pd.concat(params + (x,))
+
+
+# Type hints notation
+@func
+def type_hints_arg(x: pd.DataFrame):
+    return frame_equal(
+        x,
+        pd.DataFrame([[1, 2], [3, 4]], columns=["one", "two"], index=[0, 1]),
+    )
+
+
+@func
+def type_hints_arg_annotated(x: Annotated[pd.DataFrame, {"index": False}]):
+    return frame_equal(
+        x,
+        pd.DataFrame(
+            [[0, 1, 2], [1, 3, 4]],
+            columns=[None, "one", "two"],
+            index=[0, 1],
+        ),
+    )
+
+
+@func
+def type_hints_ret_annotated() -> Annotated[pd.DataFrame, {"index": False}]:
+    return pd.DataFrame([[1, 2], [3, 4]], columns=["one", "two"])
+
+
+@func
+@ret(index=False)
+def type_hints_ret_decorator_override() -> Annotated[pd.DataFrame, {"index": True}]:
+    return pd.DataFrame([[1, 2], [3, 4]], columns=["one", "two"])
+
+
+@func
+@arg("x", index=False)
+def type_hints_arg_decorator_coexistence(x: pd.DataFrame):
+    print(x)
+    return frame_equal(
+        x,
+        pd.DataFrame(
+            [[0, 1, 2], [1, 3, 4]],
+            columns=[None, "one", "two"],
+            index=[0, 1],
+        ),
+    )
