@@ -898,5 +898,7 @@ def type_hints_arg_decorator_coexistence(x: pd.DataFrame):
     )
 
 
+# More type hints tests are in xlwingsjs/tests/udf_tests_officejs.py
+
 if __name__ == "__main__":
     xw.serve()
