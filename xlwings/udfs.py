@@ -127,11 +127,17 @@ def check_bool(kw, default, **func_kwargs):
 
 
 def extract_type_and_annotations(type_hint):
-    if get_origin(type_hint) is Annotated:
+    """Extracts only the top-level type, i.e., List for type_hint=List[List[int]]
+    so that the ValueAccessor doesn't have to register all possibilities of nested types
+    """
+    origin = get_origin(type_hint)
+    if origin is Annotated:
         base_type, *annotations = get_args(type_hint)
-        return base_type, annotations
+        top_level_type = get_origin(base_type) or base_type
+        return top_level_type, annotations
     else:
-        return type_hint, []
+        top_level_type = origin or type_hint
+        return top_level_type, []
 
 
 def xlfunc(f=None, **kwargs):
