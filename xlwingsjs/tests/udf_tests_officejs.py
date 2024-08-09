@@ -829,7 +829,70 @@ def varargs_arg_decorator(x, *params):
 
 # Type hints notation
 @func
-def type_hints_arg(x: pd.DataFrame):
+def type_hints_arg_int(x: int) -> bool:
+    return isinstance(x, int) and x == 2
+
+
+@func
+def type_hints_arg_float(x: float):
+    return isinstance(x, float) and x == 2.2
+
+
+@func
+def type_hints_arg_str(x: str):
+    return x == "xlwings"
+
+
+@func
+def type_hints_arg_bool(x: bool):
+    return x is True
+
+
+@func
+def type_hints_arg_datetime(x: dt.datetime):
+    return x == dt.datetime(2020, 12, 20)
+
+
+@func
+def type_hints_arg_list(x: list):
+    return x == [1, 2]
+
+
+@func
+def type_hints_arg_list_int(x: list[int]):
+    return x == [1, 2]
+
+
+@func
+def type_hints_arg_list_list_int(x: list[list[int]]):
+    return x == [[1, 2], [3, 4]]
+
+
+@func
+def type_hints_arg_dict(x: dict):
+    return x == {"a": 1}
+
+
+@func
+def type_hints_arg_array(x: np.array):
+    try:
+        assert_array_equal(x, np.array([[1, 2], [3, 4]]))
+    except AssertionError:
+        return False
+    return True
+
+
+@func
+def type_hints_arg_ndarray(x: np.ndarray):
+    try:
+        assert_array_equal(x, np.array([[1, 2], [3, 4]]))
+    except AssertionError:
+        return False
+    return True
+
+
+@func
+def type_hints_arg_df(x: pd.DataFrame):
     return frame_equal(
         x,
         pd.DataFrame([[1, 2], [3, 4]], columns=["one", "two"], index=[0, 1]),
@@ -837,7 +900,7 @@ def type_hints_arg(x: pd.DataFrame):
 
 
 @func
-def type_hints_arg_annotated(x: Annotated[pd.DataFrame, {"index": False}]):
+def type_hints_arg_df_annotated(x: Annotated[pd.DataFrame, {"index": False}]):
     return frame_equal(
         x,
         pd.DataFrame(
@@ -849,19 +912,19 @@ def type_hints_arg_annotated(x: Annotated[pd.DataFrame, {"index": False}]):
 
 
 @func
-def type_hints_ret_annotated() -> Annotated[pd.DataFrame, {"index": False}]:
+def type_hints_ret_df_annotated() -> Annotated[pd.DataFrame, {"index": False}]:
     return pd.DataFrame([[1, 2], [3, 4]], columns=["one", "two"])
 
 
 @func
 @ret(index=False)
-def type_hints_ret_decorator_override() -> Annotated[pd.DataFrame, {"index": True}]:
+def type_hints_ret_df_decorator_override() -> Annotated[pd.DataFrame, {"index": True}]:
     return pd.DataFrame([[1, 2], [3, 4]], columns=["one", "two"])
 
 
 @func
 @arg("x", index=False)
-def type_hints_arg_decorator_coexistence(x: pd.DataFrame):
+def type_hints_arg_df_decorator_coexistence(x: pd.DataFrame):
     print(x)
     return frame_equal(
         x,
