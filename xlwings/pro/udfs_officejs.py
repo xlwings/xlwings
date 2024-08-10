@@ -56,7 +56,7 @@ def check_bool(kw, default, **func_kwargs):
 
 
 def extract_type_and_annotations(type_hint):
-    """Extracts only the top-level type, i.e., List for type_hint=List[List[int]]
+    """Extracts only the top-level type, i.e., list for type_hint=list[list[int]]
     so that the ValueAccessor doesn't have to register all possibilities of nested types
     TODO: it would, however, be great to make list[list[dt.datetime]] work as well as
     use list[list] as equivalent to ndim=2

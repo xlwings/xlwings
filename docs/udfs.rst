@@ -27,24 +27,24 @@ This automatically adds the xlwings reference to the generated workbook.
 A simple UDF
 ------------
 
-The default addin settings expect a Python source file in the way it is created by ``quickstart``:
+The default add-in settings expect a Python source file in the way it is created by ``quickstart``:
 
 * in the same directory as the Excel file
 * with the same name as the Excel file, but with a ``.py`` ending instead of ``.xlsm``.
 
 Alternatively, you can point to a specific module via ``UDF Modules`` in the xlwings ribbon.
 
-  * The Image below shows the correct input for the "UDF Modules" field in the xlwings ribbon with a module called "my_udf.py":
+* The Image below shows the correct input for the "UDF Modules" field in the xlwings ribbon with a module called "my_udf.py":
 
-  .. figure:: ./images/udf_modules.png
+.. figure:: ./images/udf_modules.png
 
-  * If the module is not within the same directory as the Excel file, you point to it via the "PYTHONPATH" field. The image below shows input for if the module was in a folder under "C:\\py_folder" (just an example so it fits in the field window):
+* If the module is not within the same directory as the Excel file, you point to it via the "PYTHONPATH" field. The image below shows the configuration if the module was in the folder "C:\\py_folder" (just an example so it fits in the field window):
 
-  .. figure:: ./images/pythonpath.png
+.. figure:: ./images/pythonpath.png
 
-  * For reference, with those changes, this is how your xlwings.conf file should look:
+* For reference, this is how your xlwings.conf file would look like with these settings:
 
-  .. figure:: ./images/pythonpath_conf.png
+.. figure:: ./images/pythonpath_conf.png
 
 
 Let's assume you have a Workbook ``myproject.xlsm``, then you would write the following code in ``myproject.py``::
@@ -72,7 +72,6 @@ Let's assume you have a Workbook ``myproject.xlsm``, then you would write the fo
   * The ``@xw.func`` decorator is only used by xlwings when the function is being imported into Excel. It tells xlwings
     for which functions it should create a VBA wrapper function, otherwise it has no effect on how the functions behave
     in Python.
-
 
 Array formulas: Get efficient
 -----------------------------
@@ -116,6 +115,26 @@ column/row or a two-dimensional Range, you can extend the above formula like thi
     def add_one(data):
         return [[cell + 1 for cell in row] for row in data]
 
+Using type hints, the same can be written like this::
+
+    from typing import Annotated
+
+    @xw.func
+    def add_one(data: Annotated[list[list[float], {"ndim": 2}]]):
+        return [[cell + 1 for cell in row] for row in data]
+
+If you want to reuse that type hint for other functions, you can simplify things like this::
+
+    from typing import Annotated
+
+    List2d = Annotated[list[list[float], {"ndim": 2}]]
+
+    @xw.func
+    def add_one(data: List2d):
+        return [[cell + 1 for cell in row] for row in data]
+
+
+
 Array formulas with NumPy and Pandas
 ------------------------------------
 
@@ -133,6 +152,18 @@ To define a formula for matrix multiplication using numpy arrays, you would defi
     def matrix_mult(x, y):
         return x @ y
 
+and again the same with type hints::
+
+    from typing import Annotated
+    import xlwings as xw
+    import numpy as np
+
+    Array2d = Annotated[np.ndarray, {"ndim": 2}]
+
+    @xw.func
+    def matrix_mult(x: Array2d, y: Array2d):
+        return x @ y
+
 .. note:: If you are not on Python >= 3.5 with NumPy >= 1.10, use ``x.dot(y)`` instead of ``x @ y``.
 
 A great example of how you can put Pandas at work is the creation of an array-based ``CORREL`` formula. Excel's
@@ -144,12 +175,22 @@ a one-liner::
     import pandas as pd
 
     @xw.func
-    @xw.arg('x', pd.DataFrame, index=False, header=False)
+    @xw.arg('df', pd.DataFrame, index=False, header=False)
     @xw.ret(index=False, header=False)
-    def CORREL2(x):
+    def CORREL2(df):
         """Like CORREL, but as array formula for more than 2 data sets"""
-        return x.corr()
+        return df.corr()
 
+and the same again with type hints::
+
+    from typing import Annotated
+    import xlwings as xw
+    import pandas as pd
+
+    @xw.func
+    def CORREL2(df: Annotated[pd.DataFrame, {"index": False, "header": False}]):
+        """Like CORREL, but as array formula for more than 2 data sets"""
+        return df.corr()
 
 @xw.arg and @xw.ret decorators
 ------------------------------
@@ -159,22 +200,80 @@ options to function arguments (``@xw.arg``) and to the return value (``@xw.ret``
 a pandas DataFrame and suppress the index when returning it, you would do the following::
 
     @xw.func
-    @xw.arg('x', pd.DataFrame)
+    @xw.arg("df", pd.DataFrame)
     @xw.ret(index=False)
-    def myfunction(x):
-       # x is a DataFrame, do something with it
-       return x
+    def myfunction(df):
+        # df is a DataFrame, do something with it
+        return df
 
 For further details see the :ref:`converters` documentation.
 
-Dynamic Array Formulas
-----------------------
+Using type hints instead of decorators
+--------------------------------------
+
+.. versionadded:: 0.32.0
+
+Since v0.32.0, xlwings has supported type hints that you can use instead of or in combination with decorators::
+
+    import xlwings as xw
+    import pandas as pd
+
+    @xw.func
+    def myfunction(df: pd.DataFrame) -> pd.DataFrame:
+         # df is a DataFrame, do something with it
+        return df
+
+In this example, the return type (``-> pd.DataFrame``) is optional, as xlwings automatically checks the type of the returned object.
+
+If you need to provide additional conversion arguments, you can either provide them via an annotated type hint or via a decorator. Note that when you use type hints and decorators together, decorators override type hints for conversion.
+
+To set ``index=False`` for both the argument and the return value, you can annotate the type hint like this::
+
+    from typing import Annotated
+    import xlwings as xw
+    import pandas as pd
+
+    @xw.func
+    def myfunction(
+        df: Annotated[pd.DataFrame, {"index": False}]
+    ) -> Annotated[pd.DataFrame, {"index": False}]:
+        # df is a DataFrame, do something with it
+        return df
+
+As this might be a little harder to read, you can extract the type definition, which also allows you to reuse it like so::
+
+    from typing import Annotated
+    import xlwings as xw
+    import pandas as pd
+
+    Df = Annotated[pd.DataFrame, {"index": False}]
+
+    @xw.func
+    def myfunction(df: Df) -> Df:
+        # df is a DataFrame, do something with it
+        return df
+
+Alternatively, you could also combine type hints with decorators::
+
+    from typing import Annotated
+    import xlwings as xw
+    import pandas as pd
+
+    @xw.func
+    @xw.arg("df", index=False)
+    @xw.ret(index=False)
+    def myfunction(df: pd.DataFrame) -> pd.DataFrame:
+        # df is a DataFrame, do something with it
+        return df
+
+
+Legacy Dynamic Arrays
+---------------------
 
 .. note::
     If your version of Excel supports the new native dynamic arrays, then you don't have to do anything special,
     and you shouldn't use the ``expand`` decorator! To check if your version of Excel supports it, see if you
-    have the ``=UNIQUE()`` formula available. Native dynamic arrays were introduced in Office 365 Insider Fast
-    at the end of September 2018.
+    have the ``=UNIQUE()`` formula available. Native dynamic arrays were first introduced at the end of 2018.
 
 As seen above, to use Excel's array formulas, you need to specify their dimensions up front by selecting the
 result array first, then entering the formula and finally hitting ``Ctrl-Shift-Enter``. In practice, it often turns
@@ -190,6 +289,19 @@ This is a simple example that demonstrates the syntax and effect of UDF expansio
     @xw.func
     @xw.ret(expand='table')
     def dynamic_array(r, c):
+        return np.random.randn(int(r), int(c))
+
+
+and the same with type hints:
+
+
+.. code-block:: python
+
+    from typing import Annotated
+    import numpy as np
+
+    @xw.func
+    def dynamic_array(r: int, c: int) -> Annotated[np.ndarray, {"expand": "table"}]:
         return np.random.randn(int(r), int(c))
 
 .. figure:: ./images/dynamic_array1.png
@@ -218,6 +330,21 @@ show up in the function wizard in Excel:
     @xw.arg('x', doc='This is x.')
     @xw.arg('y', doc='This is y.')
     def double_sum(x, y):
+        """Returns twice the sum of the two arguments"""
+        return 2 * (x + y)
+
+And the same with type hints:
+
+.. code-block:: python
+
+    from typing import Annotated
+    import xlwings as xw
+
+    @xw.func
+    def double_sum(
+        x: Annotated[float, {"doc": "This is x."}],
+        y: Annotated[float, {"doc": "This is y."}],
+    ):
         """Returns twice the sum of the two arguments"""
         return 2 * (x + y)
 
