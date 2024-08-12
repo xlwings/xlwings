@@ -69,6 +69,9 @@ force-exclude = "xlwings/mistune"
 target-version = "py38"
 line-length = 88
 fix = true
+unfixable = [
+    "F401", # prevents imports in __init__.py to be deleted
+]
 ignore = [
     # Whitespace before ':' (black compatibility)
     "E203",
