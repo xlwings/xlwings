@@ -24,6 +24,7 @@ _date_handlers = {
 }
 
 _number_handlers = {
+    # https://github.com/xlwings/xlwings/issues/554
     int: lambda x: int(round(x)),
     "raw int": int,
 }

@@ -188,3 +188,7 @@ else:
     serve = raise_missing_pywin32
     get_udf_module = raise_missing_pywin32
     import_udfs = raise_missing_pywin32
+
+# This follows the Office Script/Office.js convention to make the constants available
+# in the top-level namespace. Should be done for all constants with xlwings 1.0.
+from .constants import ObjectHandleIcons  # noqa: F401
