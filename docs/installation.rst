@@ -8,10 +8,11 @@ Prerequisites
 * xlwings PRO offers additional features:
     * :ref:`File Reader <file_reader>` (new in v0.28.0): Runs additionally on Linux and doesn't require an installation of Excel.
     * :ref:`xlwings Server <remote_interpreter>` (new in v0.26.0). Runs additionally on Linux and doesn't require a local installation of Python. Works with Desktop Excel on Windows and macOS as well as with Excel on the web and Google Sheets.
-* xlwings requires at least Python 3.8.
+* xlwings requires at least Python 3.9.
 
 Here are previous versions of xlwings that support older versions of Python:
 
+* Python 3.8: 0.31.10
 * Python 3.7: 0.30.9
 * Python 3.6: 0.25.3
 * Python 3.5: 0.19.5

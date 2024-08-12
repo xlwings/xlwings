@@ -234,11 +234,8 @@ The formatter's signature is: ``def myformatter(myrange, myvalues)`` where ``myr
 
 .. code-block:: python
 
-  def table(rng: xw.Range, values: list[list]):  # Python >= 3.9
+  def table(rng: xw.Range, values: list[list]):
 
-For Python <= 3.8, you'll need to capitalize ``List`` and import it like so::
-
-  from typing import List
 
 Built-in Converters
 -------------------
