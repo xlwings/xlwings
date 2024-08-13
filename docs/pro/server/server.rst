@@ -600,4 +600,4 @@ Roadmap
 -------
 
 * Complete the RunPython API by adding features that currently aren't supported yet, e.g., charts, shapes, etc.
-* Perfomance improvements
+* Performance improvements

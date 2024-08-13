@@ -1,6 +1,70 @@
 Changelog
 =========
 
+v0.32.0 (Aug 13, 2024)
+----------------------
+
+This release introduces support for type hints in UDFs/custom functions. Type hints can be used alone or alongside decorators to specify data conversion between Excel and Python::
+
+    from xlwings import func  # or: from xlwings.server import func
+    import pandas as pd
+
+    @func
+    def myfunction(df: pd.DataFrame) -> pd.DataFrame:
+         # df is a DataFrame, do something with it
+        return df
+
+In this example, the return type (``-> pd.DataFrame``) is optional, as xlwings automatically checks the type of the returned object.
+
+If you need to provide additional conversion arguments, you can either provide them via an annotated type hint or via a decorator. Note that when you use type hints and decorators together, decorators override type hints for conversion.
+
+To set ``index=False`` for both the argument and the return value, you can annotate the type hint like this::
+
+    from typing import Annotated
+    from xlwings import func  # or: from xlwings.server import func
+    import pandas as pd
+
+    @func
+    def myfunction(
+        df: Annotated[pd.DataFrame, {"index": False}]
+    ) -> Annotated[pd.DataFrame, {"index": False}]:
+        # df is a DataFrame, do something with it
+        return df
+
+As this might be a little harder to read, you can extract the type definition, which also allows you to reuse it like so::
+
+    from typing import Annotated
+    from xlwings import func  # or: from xlwings.server import func
+    import pandas as pd
+
+    Df = Annotated[pd.DataFrame, {"index": False}]
+
+    @func
+    def myfunction(df: Df) -> Df:
+        # df is a DataFrame, do something with it
+        return df
+
+Alternatively, you could also combine type hints with decorators::
+
+    from typing import Annotated
+    from xlwings import func, arg, ret  # or: from xlwings.server import func, arg, ret
+    import pandas as pd
+
+    @func
+    @arg("df", index=False)
+    @ret(index=False)
+    def myfunction(df: pd.DataFrame) -> pd.DataFrame:
+        # df is a DataFrame, do something with it
+        return df
+
+Other changes include:
+
+* :bdg-danger:`Breaking Change` Dropped Python 3.8 support (:issue:`2497`).
+* :bdg-warning:`Bug Fix` v0.31.4 introduced a change that would set the Matplotlib backend to ``agg`` globally. This has been reverted (:issue:`2484`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Reports: when using Markdown functionality, ``mistune`` is now required as dependency (:issue:`2498`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` Fixed a bug with streaming functions (:issue:`2491`).
+
+
 v0.31.10 (Jul 11, 2024)
 -----------------------
 

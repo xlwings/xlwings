@@ -120,7 +120,7 @@ As this might be a little harder to read, you can extract the type definition, w
 Alternatively, you could also combine type hints with decorators::
 
     from typing import Annotated
-    import xlwings as xw
+    from xlwings import server
     import pandas as pd
 
     @server.func
@@ -842,7 +842,5 @@ Limitations
 Roadmap
 -------
 
-* Streaming functions
-* Object handlers
 * Client-side caching
 * Add support for Google Sheets
