@@ -15,6 +15,7 @@ from importlib import (
     reload,
 )
 from random import random
+from typing import Annotated, get_args, get_origin, get_type_hints
 
 import pythoncom
 import pywintypes
@@ -125,9 +126,24 @@ def check_bool(kw, default, **func_kwargs):
     return default
 
 
+def extract_type_and_annotations(type_hint):
+    """Extracts only the top-level type, i.e., list for type_hint=list[list[int]]
+    so that the ValueAccessor doesn't have to register all possibilities of nested types
+    """
+    origin = get_origin(type_hint)
+    if origin is Annotated:
+        base_type, *annotations = get_args(type_hint)
+        top_level_type = get_origin(base_type) or base_type
+        return top_level_type, annotations
+    else:
+        top_level_type = origin or type_hint
+        return top_level_type, []
+
+
 def xlfunc(f=None, **kwargs):
     def inner(f):
         if not hasattr(f, "__xlfunc__"):
+            type_hints = get_type_hints(f, include_extras=True)  # requires Python 3.9
             xlf = f.__xlfunc__ = {}
             xlf["name"] = f.__name__
             xlf["sub"] = False
@@ -151,6 +167,17 @@ def xlfunc(f=None, **kwargs):
                     "vararg": vname == sig["vararg"],
                     "options": {},
                 }
+                if vname in type_hints:
+                    type_hint, annotations = extract_type_and_annotations(
+                        type_hints[vname]
+                    )
+                    arg_info["options"]["convert"] = type_hint
+                    if annotations:
+                        for key, value in annotations[0].items():
+                            if key == "doc":
+                                arg_info["doc"] = value
+                            else:
+                                arg_info["options"][key] = value
                 if vpos >= nRequiredArgs:
                     arg_info["optional"] = sig["defaults"][vpos - nRequiredArgs]
                 xlargs.append(arg_info)
@@ -165,6 +192,13 @@ def xlfunc(f=None, **kwargs):
                 + "'.",
                 "options": {},
             }
+            if "return" in type_hints:
+                type_hint, annotations = extract_type_and_annotations(
+                    type_hints["return"]
+                )
+                xlf["ret"]["options"]["convert"] = type_hint
+                if annotations:
+                    xlf["ret"]["options"].update(annotations[0])
         f.__xlfunc__["category"] = get_category(**kwargs)
         f.__xlfunc__["call_in_wizard"] = check_bool(
             "call_in_wizard", default=True, **kwargs

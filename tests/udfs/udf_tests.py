@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from typing import Annotated
 
 import xlwings as xw
 
@@ -849,6 +850,55 @@ def return_pd_nat():
 def varargs_arg_decorator(x, *params):
     return pd.concat(params + (x,))
 
+
+# Type hints notation
+@xw.func
+def type_hints_arg(x: pd.DataFrame):
+    return frame_equal(
+        x,
+        pd.DataFrame(
+            [[1.0, 2.0], [3.0, 4.0]], columns=["one", "two"], index=[0.0, 1.0]
+        ),
+    )
+
+
+@xw.func
+def type_hints_arg_annotated(x: Annotated[pd.DataFrame, {"index": False}]):
+    return frame_equal(
+        x,
+        pd.DataFrame(
+            [[0.0, 1.0, 2.0], [1.0, 3.0, 4.0]],
+            columns=[None, "one", "two"],
+            index=[0, 1],
+        ),
+    )
+
+
+@xw.func
+def type_hints_ret_annotated() -> Annotated[pd.DataFrame, {"index": False}]:
+    return pd.DataFrame([[1.0, 2.0], [3.0, 4.0]], columns=["one", "two"])
+
+
+@xw.func
+@xw.ret(index=False)
+def type_hints_ret_decorator_override() -> Annotated[pd.DataFrame, {"index": True}]:
+    return pd.DataFrame([[1.0, 2.0], [3.0, 4.0]], columns=["one", "two"])
+
+
+@xw.func
+@xw.arg("x", index=False)
+def type_hints_arg_decorator_coexistence(x: pd.DataFrame):
+    return frame_equal(
+        x,
+        pd.DataFrame(
+            [[0.0, 1.0, 2.0], [1.0, 3.0, 4.0]],
+            columns=[None, "one", "two"],
+            index=[0, 1],
+        ),
+    )
+
+
+# More type hints tests are in xlwingsjs/tests/udf_tests_officejs.py
 
 if __name__ == "__main__":
     xw.serve()

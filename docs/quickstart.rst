@@ -13,7 +13,7 @@ If you're just interested in getting a pandas DataFrame in and out of your Jupyt
 2. Scripting: Automate/interact with Excel from Python
 ------------------------------------------------------
 
-Establish a connection to a workbook:
+Establish a connection with a workbook:
 
     >>> import xlwings as xw
     >>> wb = xw.Book()  # this will open a new workbook
@@ -110,7 +110,7 @@ Writing a UDF in Python is as easy as:
     def hello(name):
         return f'Hello {name}'
 
-Converters can be used with UDFs, too. Again a Pandas DataFrame example:
+Converters can be used with UDFs by using type hints. Again a Pandas DataFrame example:
 
 
 .. code-block:: python
@@ -119,9 +119,21 @@ Converters can be used with UDFs, too. Again a Pandas DataFrame example:
     import pandas as pd
 
     @xw.func
-    @xw.arg('x', pd.DataFrame)
-    def correl2(x):
-        # x arrives as DataFrame
-        return x.corr()
+    def correl2(df: pd.DataFrame):
+        # df arrives as DataFrame
+        return df.corr()
+
+Type hints have been supported since v0.32.0. Previously, you would need to use a decorator (which continues to work):
+
+.. code-block:: python
+
+    import xlwings as xw
+    import pandas as pd
+
+    @xw.func
+    @xw.arg("df", pd.DataFrame)
+    def correl2(df):
+        # df arrives as DataFrame
+        return df.corr()
 
 Import this function into Excel by clicking the import button of the xlwings add-in: for a step-by-step tutorial, see :ref:`udfs`.

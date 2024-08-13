@@ -1,6 +1,8 @@
 import datetime
+import datetime as dt
 import math
 from collections import OrderedDict
+from typing import Any, Sequence
 
 from .. import LicenseError
 from ..main import Range
@@ -255,7 +257,19 @@ class ValueAccessor(Accessor):
         return accessors.get(type(value), cls)
 
 
-ValueAccessor.register(None)
+ValueAccessor.register(
+    None,
+    "default",
+    Any,
+    Sequence,
+    list,
+    tuple,
+    str,
+    float,
+    int,
+    bool,
+    dt.datetime,
+)
 
 
 class DictConverter(Converter):

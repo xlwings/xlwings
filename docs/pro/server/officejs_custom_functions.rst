@@ -43,7 +43,7 @@ Python modules
 By default, xlwings expects the functions to live in a module called ``custom_functions.py``.
 
 * If you want to call your module differently, import it like so: ``import your_module as custom_functions``
-* If you want to store your custom functions across different modules/packages, import them into ``custom_functions.py``:
+* If you want to store your custom functions across different modules/packages, import them into ``custom_functions.py`` (or into the ``__init__.py`` file of a (sub)package called ``custom_functions``):
 
   .. code-block:: python
   
@@ -73,6 +73,63 @@ For example, to read in the values of a range as pandas DataFrame and return the
 
 For an overview of the available converters and options, have a look at :ref:`converters`.
 
+Using type hints instead of decorators
+--------------------------------------
+.. versionadded:: 0.32.0
+
+Since v0.32.0, xlwings has supported type hints that you can use instead of or in combination with decorators::
+
+    from xlwings import server
+    import pandas as pd
+
+    @server.func
+    def myfunction(df: pd.DataFrame) -> pd.DataFrame:
+         # df is a DataFrame, do something with it
+        return df
+
+In this example, the return type (``-> pd.DataFrame``) is optional, as xlwings automatically checks the type of the returned object.
+
+If you need to provide additional conversion arguments, you can either provide them via an annotated type hint or via a decorator. Note that when you use type hints and decorators together, decorators override type hints for conversion.
+
+To set ``index=False`` for both the argument and the return value, you can annotate the type hint like this::
+
+    from typing import Annotated
+    from xlwings import server
+    import pandas as pd
+
+    @server.func
+    def myfunction(
+        df: Annotated[pd.DataFrame, {"index": False}]
+    ) -> Annotated[pd.DataFrame, {"index": False}]:
+        # df is a DataFrame, do something with it
+        return df
+
+As this might be a little harder to read, you can extract the type definition, which also allows you to reuse it like so::
+
+    from typing import Annotated
+    from xlwings import server
+    import pandas as pd
+
+    Df = Annotated[pd.DataFrame, {"index": False}]
+
+    @server.func
+    def myfunction(df: Df) -> Df:
+        # df is a DataFrame, do something with it
+        return df
+
+Alternatively, you could also combine type hints with decorators::
+
+    from typing import Annotated
+    import xlwings as xw
+    import pandas as pd
+
+    @server.func
+    @server.arg("df", index=False)
+    @server.ret(index=False)
+    def myfunction(df: pd.DataFrame) -> pd.DataFrame:
+        # df is a DataFrame, do something with it
+        return df
+
 Variable number of arguments (``*args``)
 ----------------------------------------
 
@@ -89,6 +146,17 @@ Varargs are supported. You can also use a converter, which will be applied to al
   def concat(*args):
       return pd.concat(args)
 
+and the same with type hints:
+
+.. code-block:: python
+
+  from typing import Annotated
+  from xlwings import server
+
+  @server.func
+  def concat(*args: Annotated[pd.DataFrame, {"index": False}]):
+      return pd.concat(args)
+
 Doc strings
 -----------
 
@@ -103,6 +171,19 @@ To describe your function and its arguments, you can use a function docstring or
     def hello(name):
         """This is a classic Hello World example"""
         return f"Hello {name}!"
+
+And again with type hints:
+
+.. code-block:: python
+
+    from typing import Annotated
+    from xlwings import server
+
+    @server.func
+    def hello(name: Annotated[str, {"doc": 'A name such as "World"'}]):
+        """This is a classic Hello World example"""
+        return f"Hello {name}!"
+
 
 These doc strings will appear in Excel's function wizard/formula builder. Note that the name of the arguments will automatically be shown when typing the formula into a cell (intellisense).
 
@@ -123,6 +204,17 @@ In the context of custom functions, xlwings will detect numbers, strings, and bo
     @server.func
     @server.arg("date", dt.datetime)
     def isoformat(date):
+        return date.isoformat()
+
+And again with type hints:
+
+.. code-block:: python
+
+    import datetime as dt
+    from xlwings import server
+
+    @server.func
+    def isoformat(date: dt.datetime):
         return date.isoformat()
 
 Instead of ``dt.datetime``, you can also use ``dt.date`` to get a date object instead.
@@ -152,6 +244,18 @@ And if you are dealing with pandas DataFrames, you can simply use the ``parse_da
     def timeseries_start(df):
         return df.index.min()
 
+and again with type hints:
+
+.. code-block:: python
+
+    from typing import Annotated
+    import pandas as pd
+    from xlwings import server
+
+    @server.func
+    def timeseries_start(df: Annotated[pd.DataFrame, {"parse_dates": [0]}]):
+        return df.index.min()
+
 Like ``pandas.read_csv()``, you could also provide ``parse_dates`` with a list of columns names instead of indices.
 
 **Writing**
@@ -179,6 +283,18 @@ By default, it will format the date according to the content language of your Ex
     @server.func
     @server.ret(date_format="yyyy-m-d")
     def pytoday():
+        return dt.date.today()
+
+and again with type hints:
+
+.. code-block:: python
+
+    import datetime as dt
+    import xlwings as xw
+    from xlwings import server
+
+    @server.func
+    def pytoday() -> Annotated[dt.date, {"date_format": "yyyy-m-d"}]:
         return dt.date.today()
 
 For the accepted ``date_format`` string, consult the `official Excel documentation <https://support.microsoft.com/en-us/office/format-numbers-as-dates-or-times-418bd3fe-0577-47c8-8caa-b4d30c528309>`_.
@@ -266,6 +382,17 @@ However, if the argument can be anything from a single cell to a one- or two-dim
     def add_one(x):
         return [[cell + 1 for cell in row] for row in data]
 
+and again with type hints:
+
+.. code-block:: python
+
+    from typing import Annotated
+    from xlwings import server
+
+    @server.func
+    def add_one(x: Annotated[float, {"ndim": 2}]):
+        return [[cell + 1 for cell in row] for row in data]
+
 The above sample would raise an error if you'd leave away the ``ndim=2`` and use a single cell as argument ``x``.
 
 **Return value**
@@ -279,6 +406,17 @@ If you need to write out a list in vertical orientation, the ``transpose`` optio
     @server.func
     @server.ret(transpose=True)
     def vertical_list():
+        return [1, 2, 3, 4]
+
+and again with type hints:
+
+.. code-block:: python
+
+    from typing import Annotated
+    from xlwings import server
+
+    @server.func
+    def vertical_list() -> Annotated[list, {"transpose": True}]:
         return [1, 2, 3, 4]
 
 Error handling and error cells
@@ -314,6 +452,17 @@ By default, error cells are converted to ``None`` (scalars and lists) or ``np.na
     def myfunc(x):
         ...
 
+and again with type hints:
+
+.. code-block:: python
+
+    from typing import Annotated, Any
+    from xlwings import server
+
+    @server.func
+    def myfunc(x: Annotated[list[list[Any]], {"err_to_str"=True}):
+        ...
+
 **Writing**
 
 To format cells as proper error cells in Excel, simply use their string representation (``#DIV/0!``, ``#N/A``, ``#NAME?``, ``#NULL!``, ``#NUM!``, ``#REF!``, ``#VALUE!``):
@@ -333,7 +482,7 @@ To format cells as proper error cells in Excel, simply use their string represen
 Dynamic arrays
 --------------
 
-If your return value is not just a single value but a one- or two-dimensional list, Excel will automatically spill the values into the surrounding cells by using the native dynamic arrays. There are no code changes required:
+If your return value is not just a single value but a one- or two-dimensional array such as a list, NumPy array, or pandas DataFrame, Excel will automatically spill the values into the surrounding cells by using the native dynamic arrays. There are no code changes required:
 
 Returning a simple list:
 
