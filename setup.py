@@ -2,6 +2,7 @@
 Windows builds currently rely on setup.py instead of pyproject.toml/maturin as long
 as the dlls are distributed as data_files
 """
+
 import glob
 import os
 import re
@@ -41,7 +42,7 @@ else:
     pass
 
 extras_require = {
-    "reports": ["Jinja2", "pdfrw"],
+    "reports": ["Jinja2", "pdfrw", "mistune"],
     "all": [
         "black",
         "isort",
@@ -53,6 +54,7 @@ extras_require = {
         "requests",
         "pdfrw",
         "pytest",
+        "mistune",
     ],
 }
 

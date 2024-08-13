@@ -1,7 +1,0 @@
-name: xw35-no-opt-deps
-dependencies:
-- python=3.5
-- pip
-- nose
-- pywin32
-- pytz
