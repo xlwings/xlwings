@@ -14,7 +14,10 @@ Commercial licenses can be purchased at https://www.xlwings.org
 import sys
 import warnings
 
-from ... import mistune
+try:
+    import mistune
+except ImportError:
+    mistune = None
 from ...conversion import Converter
 
 
@@ -171,16 +174,31 @@ def traverse_ast_node(tree, data=None, level=0):
             data["parent_type"].append([parent["type"] for parent in data["parents"]])
             data["type"].append(element["type"])
             if element["type"] == "text":
-                data["length"].append(len(element["text"]))
-                data["text"].append(element["text"])
-            elif element["type"] == "linebreak":
+                marker = "text" if mistune.__version__.startswith("2") else "raw"
+                data["length"].append(len(element[marker]))
+                data["text"].append(element[marker])
+            elif element["type"] in ("linebreak", "softbreak"):
+                # mistune v2 uses linebreak, mistune v3 uses softbreak
                 data["length"].append(1)
                 data["text"].append("\n")
     return data
 
 
 def flatten_ast(value):
-    parse_ast = mistune.create_markdown(renderer=mistune.AstRenderer())
+    if not mistune:
+        raise ImportError(
+            "For xlwings Reports, "
+            "you need to install mistune via 'pip/conda install mistune'"
+        )
+    if mistune.__version__.startswith("0"):
+        raise ImportError(
+            "Only mistune v2.x and v3.x are supported. "
+            f"You have version {mistune.__version__}"
+        )
+    elif mistune.__version__.startswith("2"):
+        parse_ast = mistune.create_markdown(renderer=mistune.AstRenderer())
+    else:
+        parse_ast = mistune.create_markdown(renderer="ast")
     ast = parse_ast(value)
     flat_ast = []
     for node in ast:

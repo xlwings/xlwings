@@ -33,7 +33,7 @@ classifiers = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
-reports = ["Jinja2", "pdfrw"]
+reports = ["Jinja2", "pdfrw", "mistune"]
 all = [
     "black",
     "isort",
@@ -45,6 +45,7 @@ all = [
     "requests",
     "pdfrw",
     "pytest",
+    "mistune",
 ]
 
 [project.scripts]
@@ -63,7 +64,6 @@ module-name = "xlwings.xlwingslib"
 
 [tool.black]
 target-version = ["py38"]
-force-exclude = "xlwings/mistune"
 
 [tool.ruff]
 target-version = "py38"
