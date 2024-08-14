@@ -591,6 +591,65 @@ Key to remember is that you're moving in the async world with streaming function
 
 If you use the `official xlwings Server <https://github.com/xlwings/xlwings-server>`_ implementation, that's all you need because it supports streaming functions out-of-the-box. If you're using your own server implementation, you'll need to implement the Socket.io endpoints according to the official xlwings Server implementation.
 
+Object handles
+--------------
+
+Object handles allow you to return Python objects such as a pandas DataFrame to a single cell. Other custom functions can then use the cell with the object handle as a function argument for further manipulation. This functionality is especially helpful if you have huge amounts of data or if the object can't be "translated" into Excel cells.
+
+.. figure:: ../../images/object_handles.png
+
+To make a custom function return an object, simply specify the ``object`` type hint for the return value::
+
+    from typing import Annotated
+    from xlwings.server import func, ret
+    from xlwings.constants import ObjectHandleIcons
+
+    @func
+    async def get_mymodel() -> object:
+        return pd.DataFrame(
+            {"A": [1, 2, 3, 4, 5], "B": [10, 8, 6, 4, 2], "C": [10, 9, 8, 7, 6]}
+        )
+
+By default, this will display an icon in the cell together with the data type of the object (cell ``A1`` in the screenshot). By clicking on the icon, you will get some info about that object. You can, however, add valuable information by specifying a different text and/or icon (cell ``A3`` in the screenshot). You can use an annotated type hint for this or provide the additional arguments via the ``ret`` decorator::
+
+    @func
+    @ret(icon=ObjectHandleIcons.table, text="My Model")
+    async def get_mymodel() -> object:
+        return pd.DataFrame(
+            {"A": [1, 2, 3, 4, 5], "B": [10, 8, 6, 4, 2], "C": [10, 9, 8, 7, 6]}
+        )
+
+To do the same via annotated type hint, you would do::
+
+    @func
+    async def get_mymodel() -> Annotated[object, {"icon": ObjectHandleIcons.table, "text": "My Model"}]:
+        return pd.DataFrame(
+            {"A": [1, 2, 3, 4, 5], "B": [10, 8, 6, 4, 2], "C": [10, 9, 8, 7, 6]}
+        )
+
+To be able to use an object handle as argument in another function, just use the ``object`` type hint with the argument. A simple ``view`` function to translate an object handle to Excel values would look like this::
+
+    @func
+    async def view(obj: object):
+        return obj
+
+In the custom functions examples in the `xlwings Server repo <https://www.github.com/xlwings/xlwings-server>`_  repo, you will find a slightly more sophisticated ``view`` function that allows you to return just the first couple of rows.
+
+If you are looking for functionality similar to how the ``xl()`` function works in Microsoft's Python in Excel, you can do it as follows::
+
+    @func
+    async def to_df(df: pd.DataFrame) -> object:
+        return df
+
+This turns an existing Excel range into a DataFrame. Using an Excel table as your source range is a good idea as it makes your object handle dynamically update whenever you resize the Excel table.
+
+.. note::
+    This feature requires xlwings Server v0.5.0+ as well as a Redis/ValKey database for production via ``XLWINGS_OBJECT_CACHE_URL``. The object cache is purged once a week, but this can be configured via ``XLWINGS_OBJECT_CACHE_EXPIRE_AT``. Alternatively, you'll find a function called ``clear_object_cache`` in the examples of the `xlwings Server repo <https://www.github.com/xlwings/xlwings-server>`_. For development purposes, you don't need Redis, but the cache is in-memory and thus only works with a single worker/process for as long as the app runs.
+
+    Right now, you can return the majority of Python data types such as simple lists, dictionaries, and tuples. NumPy arrays and pandas DataFrames/Series are also supported. However, more complex objects like a dictionary that holds a pandas DataFrame isn't supported yet.
+
+    The object handles are stored in the cache using a key that is specific to the add-in installation, workbook name and cell address, i.e, objects are not shared across different Excel installations or users.
+
 
 Backend and Manifest
 --------------------
