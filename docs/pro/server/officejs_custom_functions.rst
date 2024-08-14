@@ -644,11 +644,11 @@ If you are looking for functionality similar to how the ``xl()`` function works 
 This turns an existing Excel range into a DataFrame. Using an Excel table as your source range is a good idea as it makes your object handle dynamically update whenever you resize the Excel table.
 
 .. note::
-    This feature requires xlwings Server v0.5.0+ as well as a Redis/ValKey database for production via ``XLWINGS_OBJECT_CACHE_URL``. The object cache is purged once a week, but this can be configured via ``XLWINGS_OBJECT_CACHE_EXPIRE_AT``. Alternatively, you'll find a function called ``clear_object_cache`` in the examples of the `xlwings Server repo <https://www.github.com/xlwings/xlwings-server>`_. For development purposes, you don't need Redis, but the cache is in-memory and thus only works with a single worker/process for as long as the app runs.
+    This feature requires xlwings Server v0.5.0+ as well as a Redis/ValKey database for production via ``XLWINGS_OBJECT_CACHE_URL``. The object cache is purged once a week, but this can be configured via ``XLWINGS_OBJECT_CACHE_EXPIRE_AT``. Alternatively, you'll find a function called ``clear_object_cache`` in the examples of the `xlwings Server repo <https://www.github.com/xlwings/xlwings-server>`_. For development purposes, you don't need Redis, but the cache is in-memory and thus only works with a single worker/process for as long as the app runs. More importantly, there won't be any cache purging happening.
 
     Right now, you can return the majority of Python data types such as simple lists, dictionaries, and tuples. NumPy arrays and pandas DataFrames/Series are also supported. However, more complex objects like a dictionary that holds a pandas DataFrame isn't supported yet.
 
-    The object handles are stored in the cache using a key that is specific to the add-in installation, workbook name and cell address, i.e, objects are not shared across different Excel installations or users.
+    The object handles are stored in the cache using a key that derives from the add-in installation, workbook name and cell address, i.e, objects are not shared across different Excel installations or users.
 
 
 Backend and Manifest
