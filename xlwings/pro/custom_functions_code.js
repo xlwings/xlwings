@@ -80,6 +80,33 @@ async function getWorkbookName() {
   return cachedWorkbookName;
 }
 
+class Semaphore {
+  constructor(maxConcurrency) {
+    this.maxConcurrency = maxConcurrency;
+    this.currentConcurrency = 0;
+    this.queue = [];
+  }
+
+  async acquire() {
+    if (this.currentConcurrency < this.maxConcurrency) {
+      this.currentConcurrency++;
+      return;
+    }
+    return new Promise((resolve) => this.queue.push(resolve));
+  }
+
+  release() {
+    this.currentConcurrency--;
+    if (this.queue.length > 0) {
+      this.currentConcurrency++;
+      const nextResolve = this.queue.shift();
+      nextResolve();
+    }
+  }
+}
+
+const semaphore = new Semaphore(1000);
+
 async function base() {
   await Office.onReady(); // Block execution until office.js is ready
   // Arguments
@@ -141,33 +168,53 @@ async function base() {
   }
 
   // Normal functions communicate via REST API
-  let headers = {};
-  headers["Content-Type"] = "application/json";
-  headers["Authorization"] =
-    typeof globalThis.getAuth === "function" ? await globalThis.getAuth() : "";
+  return await makeApiCall(body);
+}
 
-  // Socket.io
-  const sid = socket && socket.id ? socket.id.toString() : null;
-  headers["sid"] = sid;
+async function makeApiCall(body) {
+  const MAX_RETRIES = 5;
+  let attempt = 0;
 
-  try {
-    let response = await fetch(
-      window.location.origin + "placeholder_custom_functions_call_path",
-      {
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify(body),
+  while (attempt < MAX_RETRIES) {
+    attempt++;
+    let headers = {
+      "Content-Type": "application/json",
+      Authorization:
+        typeof globalThis.getAuth === "function"
+          ? await globalThis.getAuth()
+          : "",
+      sid: socket && socket.id ? socket.id.toString() : null,
+    };
+
+    await semaphore.acquire();
+    try {
+      let response = await fetch(
+        window.location.origin + "placeholder_custom_functions_call_path",
+        {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(body),
+        }
+      );
+
+      if (!response.ok) {
+        let errMsg = await response.text();
+        console.error(`Attempt ${attempt}: ${errMsg}`);
+        if (attempt === MAX_RETRIES) {
+          return showError(errMsg);
+        }
+      } else {
+        let responseData = await response.json();
+        return responseData.result;
       }
-    );
-    if (!response.ok) {
-      let errMsg = await response.text();
-      return showError(errMsg);
-    } else {
-      let responseData = await response.json();
-      return responseData.result;
+    } catch (error) {
+      console.error(`Attempt ${attempt}: ${error.toString()}`);
+      if (attempt === MAX_RETRIES) {
+        return showError(error.toString());
+      }
+    } finally {
+      semaphore.release();
     }
-  } catch (error) {
-    return showError(error.toString());
   }
 }
 
