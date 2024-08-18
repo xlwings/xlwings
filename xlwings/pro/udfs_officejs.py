@@ -20,6 +20,8 @@ from pathlib import Path
 from textwrap import dedent
 from typing import Annotated, get_args, get_origin, get_type_hints
 
+import xlwings as xw
+
 from .. import XlwingsError, __version__, conversion
 
 logger = logging.getLogger(__name__)
@@ -197,7 +199,21 @@ def convert(result, ret_info, data):
     return result
 
 
-async def custom_functions_call(data, module, sio=None):
+def provide_values_for_special_args(func, args, typehint_to_value: dict) -> tuple:
+    if typehint_to_value is None:
+        typehint_to_value = {}
+
+    type_hints = get_type_hints(func)
+    args_list = list(args)
+    for param, hint in type_hints.items():
+        if hint in typehint_to_value:
+            param_index = list(func.__code__.co_varnames).index(param)
+            args_list.insert(param_index, typehint_to_value[hint])
+    args = tuple(args_list)
+    return args
+
+
+async def custom_functions_call(data, module, sio=None, typehint_to_value: dict = None):
     """
     sio : socketio.AsyncServer instance
     """
@@ -239,6 +255,10 @@ async def custom_functions_call(data, module, sio=None):
             args[i] = conversion.read(
                 None, arg, arg_info["options"], engine_name="officejs"
             )
+
+    # Handle function args that are provided behind the scenes and not via Excel
+    args = provide_values_for_special_args(func, args, typehint_to_value)
+
     if inspect.isasyncgenfunction(func):
         # Streaming functions
         task_key = data["task_key"]
@@ -311,7 +331,7 @@ def custom_functions_code(
     return js
 
 
-def custom_functions_meta(module):
+def custom_functions_meta(module, typehinted_params_to_exclude=None):
     funcs = []
     for name, obj in inspect.getmembers(module):
         if hasattr(obj, "__xlfunc__"):
@@ -338,8 +358,14 @@ def custom_functions_meta(module):
                 func["options"]["volatile"] = True
             func["result"] = {"dimensionality": "matrix", "type": "any"}
 
+            type_hints = get_type_hints(obj)
             params = []
             for arg in xlfunc["args"]:
+                if (
+                    arg["name"] in type_hints
+                    and type_hints[arg["name"]] in typehinted_params_to_exclude
+                ):
+                    continue
                 param = {}
                 param["description"] = arg["doc"]
                 param["name"] = arg["name"]
@@ -367,17 +393,40 @@ def script(func):
             await func(*args, **kwargs)
         else:
             func(*args, **kwargs)
-        return args[0]
+
+        type_hints = get_type_hints(func)
+        sig = inspect.signature(func)
+
+        for param_name, arg_value in zip(sig.parameters.keys(), args):
+            if param_name in type_hints and type_hints[param_name] == xw.Book:
+                return arg_value
+
+        raise XlwingsError("No xw.Book found in your function arguments!")
 
     return wrapper
 
 
-async def custom_scripts_call(module, script_name, book):
+async def custom_scripts_call(module, script_name, typehint_to_value: dict = None):
+    # Currently, there are no arguments from the client accepted, only internally
+    # provided args via type hints are allowed
     func = getattr(module, script_name)
+
+    # Get the function signature
+    sig = inspect.signature(func)
+    args = []
+
+    # Iterate over the parameters and check their type hints
+    for param in sig.parameters.values():
+        if param.annotation in typehint_to_value:
+            args.append(typehint_to_value[param.annotation])
+        else:
+            raise XlwingsError("Scripts currently only allow Book and User as params")
+
     if inspect.iscoroutinefunction(func):
-        book = await func(book)
+        book = await func(*args)
     else:
-        book = func(book)
+        book = func(*args)
+
     return book
 
 
@@ -426,10 +475,12 @@ async def sio_disconnect(sid):
     logger.info(f"Active xlwings tasks:" f"{active_tasks}")
 
 
-async def sio_custom_function_call(sid, data, custom_functions, sio):
+async def sio_custom_function_call(
+    sid, data, custom_functions, sio, typehint_to_value: dict = None
+):
     task_key = data["task_key"]
     task_key_to_sids[task_key] = task_key_to_sids.get(task_key, set()).union({sid})
-    task = await custom_functions_call(data, custom_functions, sio)
+    task = await custom_functions_call(data, custom_functions, sio, typehint_to_value)
     if task:
         task_key_to_task[task_key] = task
 
