@@ -420,7 +420,9 @@ async def custom_scripts_call(module, script_name, typehint_to_value: dict = Non
         if param.annotation in typehint_to_value:
             args.append(typehint_to_value[param.annotation])
         else:
-            raise XlwingsError("Scripts currently only allow Book and User as params")
+            raise XlwingsError(
+                "Scripts currently only allow Book and CurrentUser as params"
+            )
 
     if inspect.iscoroutinefunction(func):
         book = await func(*args)
