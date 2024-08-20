@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.32.1 (Aug 20, 2024)
+----------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Custom functions via xlwings Server: allow to call thousands of custom functions concurrently (:issue:`2502`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Custom functions via xlwings Server: added support for special type-hinted params such as ``CurrentUser`` (:issue:`2501`).
+
 v0.32.0 (Aug 13, 2024)
 ----------------------
 
