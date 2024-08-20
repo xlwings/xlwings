@@ -332,6 +332,8 @@ def custom_functions_code(
 
 
 def custom_functions_meta(module, typehinted_params_to_exclude=None):
+    if typehinted_params_to_exclude is None:
+        typehinted_params_to_exclude = []
     funcs = []
     for name, obj in inspect.getmembers(module):
         if hasattr(obj, "__xlfunc__"):
@@ -407,6 +409,8 @@ def script(func):
 
 
 async def custom_scripts_call(module, script_name, typehint_to_value: dict = None):
+    if typehint_to_value is None:
+        typehint_to_value = {}
     # Currently, there are no arguments from the client accepted, only internally
     # provided args via type hints are allowed
     func = getattr(module, script_name)
@@ -480,6 +484,8 @@ async def sio_disconnect(sid):
 async def sio_custom_function_call(
     sid, data, custom_functions, sio, typehint_to_value: dict = None
 ):
+    if typehint_to_value is None:
+        typehint_to_value = {}
     task_key = data["task_key"]
     task_key_to_sids[task_key] = task_key_to_sids.get(task_key, set()).union({sid})
     task = await custom_functions_call(data, custom_functions, sio, typehint_to_value)
