@@ -99,6 +99,8 @@ Make sure to keep your version of the Excel add-in in sync with your Python pack
 
     xlwings addin install
 
+.. note:: If you get an ``Object required`` error with UDFs after an update, re-import the functions and recalculate the workbook via ``Ctrl+Alt+F9``.
+
 Uninstall
 ---------
 
