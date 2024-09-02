@@ -899,6 +899,7 @@ class Book:
         json=None,
         mode=None,
         engine=None,
+        **kwargs,
     ):
         if not impl:
             if json:
@@ -913,10 +914,13 @@ class Book:
                 candidates = []
                 for app in apps:
                     for wb in app.books:
+                        if kwargs.get("from_xl") and sys.platform.startswith("darwin"):
+                            if wb.name.lower() == os.path.split(fullname)[1].lower():
+                                candidates.append((app, wb))
                         # Comparing by name first saves us from having to compare the
                         # fullname for non-candidates, which can get around issues in
                         # case the fullname is a problematic URL (GH 1946)
-                        if wb.name.lower() == os.path.split(fullname)[1].lower() and (
+                        elif wb.name.lower() == os.path.split(fullname)[1].lower() and (
                             wb.fullname.lower() == fullname.lower()
                             or wb.name.lower() == fullname.lower()
                         ):
@@ -1030,7 +1034,7 @@ class Book:
                 # On Mac, the same file open in two instances is not supported
                 if apps.active.version < 15:
                     name = name.encode("utf-8", "surrogateescape").decode("mac_latin2")
-                return cls(impl=Book(name).impl)
+                return cls(impl=Book(name, from_xl=True).impl)
         elif xlwings._xlwindows.BOOK_CALLER:
             # Called via OPTIMIZED_CONNECTION = True
             return cls(impl=xlwings._xlwindows.Book(xlwings._xlwindows.BOOK_CALLER))

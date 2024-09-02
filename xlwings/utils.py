@@ -614,6 +614,7 @@ def fullname_url_to_local_path(
                 return str(local_path)
         # Windows registry
         url_to_mount = get_url_to_mount()
+        mount_point = None
         for url_namespace, mount_point in url_to_mount.items():
             if url.startswith(url_namespace):
                 local_path = Path(mount_point) / url[len(url_namespace) :]
@@ -621,7 +622,10 @@ def fullname_url_to_local_path(
                     return str(local_path)
         # Horrible fallback
         return search_local_sharepoint_path(
-            url, mount_point, sharepoint_config, sharepoint_config_name
+            url,
+            root if not mount_point else mount_point,
+            sharepoint_config,
+            sharepoint_config_name,
         )
     raise xlwings.XlwingsError(
         f"URL {url} not recognized as valid OneDrive/SharePoint link."
