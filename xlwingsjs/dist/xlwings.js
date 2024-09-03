@@ -2779,7 +2779,7 @@ function init() {
         }); });
     });
 }
-var version = "0.32.1";
+var version = "0.32.2";
 globalThis.callbacks = {};
 function runPython() {
     return __awaiter(this, arguments, void 0, function (url, _a) {

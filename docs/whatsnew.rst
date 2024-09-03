@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.32.2 (Sep 3, 2024)
+---------------------
+
+* :bdg-warning:`Bug Fix` Fixed a few bugs with OneDrive/SharePoint on macOS so that the suggestions in the docs actually work (:issue:`2496` and :issue:`2508`).
+
 v0.32.1 (Aug 20, 2024)
 ----------------------
 
