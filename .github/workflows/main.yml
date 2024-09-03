@@ -177,7 +177,7 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: pre-build
       - name: Set up Python
@@ -260,7 +260,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: pre-build
       - name: Set up Python
@@ -309,12 +309,12 @@ jobs:
         run: |
           python -m pip install wheel twine
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: Package
           path: Package
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: cli
       - name: GH Release
