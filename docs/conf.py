@@ -290,7 +290,7 @@ latex_elements = {
     # The font size ('10pt', '11pt' or '12pt').
     "pointsize": "11pt",
     # Additional stuff for the LaTeX preamble.
-    "preamble": "\\usepackage[UTF8]{ctex}\n",
+    # "preamble": "\\usepackage[UTF8]{ctex}\n",
     # Index: '' for no index, '\\printindex' to generate one
     "printindex": "\\printindex",
 }
@@ -309,7 +309,7 @@ latex_documents = [
     ),
 ]
 
-latex_engine = "xelatex"
+# latex_engine = "xelatex"
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
