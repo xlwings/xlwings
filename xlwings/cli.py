@@ -279,21 +279,13 @@ def quickstart(args):
 
     # Project dir
     project_path = os.path.join(cwd, project_name)
-    if args.fastapi:
-        # Raises an error on its own if the dir already exists
-        shutil.copytree(
-            Path(this_dir) / "quickstart_fastapi",
-            Path(cwd) / project_name,
-            ignore=shutil.ignore_patterns("__pycache__"),
-        )
+    if not os.path.exists(project_path):
+        os.makedirs(project_path)
     else:
-        if not os.path.exists(project_path):
-            os.makedirs(project_path)
-        else:
-            sys.exit("Error: Directory already exists.")
+        sys.exit("Error: Directory already exists.")
 
     # Python file
-    if not args.fastapi:
+    if not args.server:
         with open(os.path.join(project_path, project_name + ".py"), "w") as f:
             f.write("import xlwings as xw\n\n\n")
             f.write("def main():\n")
@@ -329,7 +321,7 @@ def quickstart(args):
         target_file,
     )
 
-    if args.standalone and args.fastapi:
+    if args.standalone and args.server:
         book = xw.Book(target_file)
         import_remote_modules(book)
         book.save()
@@ -602,7 +594,7 @@ def release(args):
         use_without_addin = query_yes_no(
             "Allow your tool to run without the xlwings add-in?"
         )
-        use_remote = query_yes_no("Support remote interpreter?", "no")
+        use_remote = query_yes_no("Support xlwings Server?", "no")
         print()
         if not query_yes_no(f'This will release "{book.name}", proceed?'):
             sys.exit()
@@ -618,12 +610,14 @@ def release(args):
             )
             active_sheet.activate()  # preserve the currently active sheet
             config = {
-                "Interpreter_Win": r"%LOCALAPPDATA%\{0}\python.exe".format(project_name)
-                if project_name
-                else None,
-                "Interpreter_Mac": f"$HOME/{project_name}/bin/python"
-                if project_name
-                else None,
+                "Interpreter_Win": (
+                    r"%LOCALAPPDATA%\{0}\python.exe".format(project_name)
+                    if project_name
+                    else None
+                ),
+                "Interpreter_Mac": (
+                    f"$HOME/{project_name}/bin/python" if project_name else None
+                ),
                 "PYTHONPATH": None,
                 "Conda Path": None,
                 "Conda Env": None,
@@ -1023,8 +1017,7 @@ def main():
         'used. Use the "--standalone" flag to embed all VBA '
         "code in the Excel file and make it work without the "
         "xlwings add-in. "
-        'Use "--fastapi" for creating a project that uses a remote '
-        "Python interpreter. "
+        'Use "--server" for creating a project for xlwings Server. '
         'Use "--addin --ribbon" to create a template for a custom ribbon addin. Leave '
         'away the "--ribbon" if you don\'t want a ribbon tab. ',
     )
@@ -1033,16 +1026,10 @@ def main():
         "-s", "--standalone", action="store_true", help="Include xlwings as VBA module."
     )
     quickstart_parser.add_argument(
-        "-r",
-        "--remote",
+        "-server",
+        "--server",
         action="store_true",
-        help="Support a remote Python interpreter.",
-    )
-    quickstart_parser.add_argument(
-        "-fastapi",
-        "--fastapi",
-        action="store_true",
-        help="Create a FastAPI project suitable for a remote Python interpreter.",
+        help="Create a standalone workbook that can be used with xlwings Server.",
     )
     quickstart_parser.add_argument(
         "-addin", "--addin", action="store_true", help="Create an add-in."
