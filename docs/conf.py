@@ -202,7 +202,7 @@ html_theme_options = {
         "color-brand-primary": "white",
         "color-announcement-background": "#28a745",
     },
-    # "announcement": 'Webinar (Sep 14, 2023): Excel Custom Functions with Python and Azure Functions: <a href="https://zoomeranalytics.webinargeek.com/excel-custom-functions-with-python-and-azure-functions-1?cst=docs">Sign up!</a>',
+    "announcement": 'Introducing xlwings Server (self-hosted): <a href="https://server.xlwings.org/" target="_blank"> Learn more</a>',
 }
 
 html_show_sourcelink = False
