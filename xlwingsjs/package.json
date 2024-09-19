@@ -5,19 +5,19 @@
   "devDependencies": {
     "@parcel/packager-xml": "^2.12.0",
     "@parcel/transformer-xml": "^2.12.0",
-    "@types/node": "^20.14.9",
-    "@types/office-js": "^1.0.398",
+    "@types/node": "^22.5.5",
+    "@types/office-js": "^1.0.423",
     "@types/office-runtime": "^1.0.35",
-    "office-addin-lint": "^2.3.3",
+    "office-addin-lint": "^2.3.4",
     "parcel": "^2.12.0",
     "ts-loader": "^9.5.1",
-    "typescript": "^5.5.2",
+    "typescript": "^5.6.2",
     "webpack-cli": "^5.1.4"
   },
   "browserslist": [
     "ie 11"
   ],
   "dependencies": {
-    "core-js": "^3.37.1"
+    "core-js": "^3.38.1"
   }
 }
