@@ -103,6 +103,7 @@ setup(
             "addin/xlwings.xlam",
             "addin/*.cls",
             "addin/WebHelpers.bas",
+            "addin/Remote.bas",
             "js/xlwings.*",
             "quickstart_fastapi/*.*",
             "html/*.*",
