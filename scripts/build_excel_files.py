@@ -101,7 +101,7 @@ def set_version_strings(code):
 
 def produce_single_module(addin_modules, custom_addin=False):
     # Read out modules
-    vba_module_names = ["License", "Main", "Config", "Extensions", "Utils", "Remote"]
+    vba_module_names = ["License", "Main", "Config", "Extensions", "Utils"]
     if custom_addin:
         vba_module_names.pop(vba_module_names.index("Extensions"))
     standalone_code = ""

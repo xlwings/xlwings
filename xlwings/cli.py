@@ -549,6 +549,7 @@ def copy_code(fpath):
 
 def import_remote_modules(book):
     for vba_module in [
+        "Remote.bas",
         "IWebAuthenticator.cls",
         "WebClient.cls",
         "WebRequest.cls",
