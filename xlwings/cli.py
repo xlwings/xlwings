@@ -321,7 +321,7 @@ def quickstart(args):
         target_file,
     )
 
-    if args.standalone and args.server:
+    if args.server:
         book = xw.Book(target_file)
         import_remote_modules(book)
         book.save()
