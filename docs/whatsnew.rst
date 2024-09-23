@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v0.33.0 (Sep 23, 2024)
+----------------------
+
+* :bdg-warning:`Bug Fix` Fixed various issues with VBA compile errors (:issue:`2118` and :issue:`2290`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server: deprecate the "DIY" approach in favor of the official `xlwings Server <https://github.com/xlwings/xlwings-server>`_ repo and moved docs to https://server.xlwings.org (:issue:`2519`).
+* :bdg-danger:`Breaking Change` :bdg-secondary:`PRO` xlwings Server: deprecated ``RunRemotePython`` in favor of ``RunServerPython`` and removed ``xlwings quickstart myproject --fastapi`` in favor of ``xlwings quickstart myproject --server`` (:issue:`2522`).
+
 v0.32.2 (Sep 3, 2024)
 ---------------------
 
