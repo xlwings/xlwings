@@ -2785,7 +2785,7 @@ function init() {
         }); });
     });
 }
-var version = "0.33.0";
+var version = "0.33.1";
 globalThis.callbacks = {};
 function runPython() {
     return __awaiter(this, arguments, void 0, function (url, _a) {

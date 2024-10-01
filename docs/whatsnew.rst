@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.33.1 (Oct 1, 2024)
+---------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` The ``@script`` decorator now accepts ``target_cell`` and ``config`` arguments to bind it to an Office.js sheet button (:issue:`0.33.1`).
+
 v0.33.0 (Sep 23, 2024)
 ----------------------
 
