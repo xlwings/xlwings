@@ -388,24 +388,35 @@ def custom_functions_meta(module, typehinted_params_to_exclude=None):
 
 
 # Custom scripts
-def script(func):
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        if inspect.iscoroutinefunction(func):
-            await func(*args, **kwargs)
-        else:
-            func(*args, **kwargs)
+def script(f=None, target_cell=None, config=None):
+    if config is None:
+        config = {}
 
-        type_hints = get_type_hints(func)
-        sig = inspect.signature(func)
+    def inner(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            if inspect.iscoroutinefunction(func):
+                await func(*args, **kwargs)
+            else:
+                func(*args, **kwargs)
 
-        for param_name, arg_value in zip(sig.parameters.keys(), args):
-            if param_name in type_hints and type_hints[param_name] == xw.Book:
-                return arg_value
+            type_hints = get_type_hints(func)
+            sig = inspect.signature(func)
 
-        raise XlwingsError("No xw.Book found in your function arguments!")
+            for param_name, arg_value in zip(sig.parameters.keys(), args):
+                if param_name in type_hints and type_hints[param_name] == xw.Book:
+                    return arg_value
 
-    return wrapper
+            raise XlwingsError("No xw.Book found in your function arguments!")
+
+        wrapper.target_cell = target_cell
+        wrapper.config = config
+        return wrapper
+
+    if f is None:
+        return inner
+    else:
+        return inner(f)
 
 
 async def custom_scripts_call(module, script_name, typehint_to_value: dict = None):
