@@ -20,6 +20,19 @@ export function init() {
   const elements = document.querySelectorAll("[xw-click]");
   elements.forEach((element) => {
     element.addEventListener("click", async (event) => {
+      // Clean up error messages
+      const globalErrorAlert = document.querySelector("#global-error-alert");
+      if (globalErrorAlert) {
+        globalErrorAlert.classList.add("d-none");
+      }
+      element.setAttribute("disabled", "true");
+      // Spinner
+      const spinner = document.createElement("span");
+      spinner.className = "spinner-border spinner-border-sm text-white";
+      spinner.setAttribute("role", "status");
+      spinner.setAttribute("aria-hidden", "true");
+      element.appendChild(spinner);
+
       let token =
         typeof globalThis.getAuth === "function"
           ? await globalThis.getAuth()
@@ -27,13 +40,17 @@ export function init() {
       let config = element.getAttribute("xw-config")
         ? JSON.parse(element.getAttribute("xw-config"))
         : {};
-      runPython(
+
+      await runPython(
         window.location.origin +
           (appPath && appPath.appPath !== "" ? `/${appPath.appPath}` : "") +
           "/xlwings/custom-scripts-call/" +
           element.getAttribute("xw-click"),
-        { ...config, auth: token }
+        { ...config, auth: token, errorDisplayMode: "taskpane" }
       );
+
+      element.removeChild(spinner);
+      element.removeAttribute("disabled");
     });
   });
 }
@@ -42,7 +59,13 @@ const version = "dev";
 globalThis.callbacks = {};
 export async function runPython(
   url = "",
-  { auth = "", include = "", exclude = "", headers = {} }: Options = {}
+  {
+    auth = "",
+    include = "",
+    exclude = "",
+    headers = {},
+    errorDisplayMode = "alert",
+  }: Options = {}
 ) {
   await Office.onReady();
   try {
@@ -374,7 +397,15 @@ export async function runPython(
     });
   } catch (error) {
     console.error(error);
-    await xlAlert(error, "Error", "ok", "critical", "");
+    if (errorDisplayMode === "alert") {
+      await xlAlert(error, "Error", "ok", "critical", "");
+    } else {
+      const globalErrorAlert = document.querySelector("#global-error-alert");
+      if (globalErrorAlert) {
+        globalErrorAlert.classList.remove("d-none");
+        globalErrorAlert.querySelector("span").textContent = error;
+      }
+    }
   }
 }
 
@@ -384,6 +415,7 @@ interface Options {
   include?: string;
   exclude?: string;
   headers?: {};
+  errorDisplayMode?: "taskpane" | "alert";
 }
 
 interface Action {
@@ -931,7 +963,7 @@ async function freezePaneUnfreeze(
 async function rangeAdjustIndent(
   context: Excel.RequestContext,
   action: Action
-){
+) {
   let range = await getRange(context, action);
-  range.format.adjustIndent(parseInt(action.args[0].toString()))
+  range.format.adjustIndent(parseInt(action.args[0].toString()));
 }
