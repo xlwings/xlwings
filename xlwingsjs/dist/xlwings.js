@@ -2758,10 +2758,20 @@ function init() {
     var elements = document.querySelectorAll("[xw-click]");
     elements.forEach(function (element) {
         element.addEventListener("click", function (event) { return __awaiter(_this, void 0, void 0, function () {
-            var token, _a, config;
+            var globalErrorAlert, spinner, token, _a, config;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
+                        globalErrorAlert = document.querySelector("#global-error-alert");
+                        if (globalErrorAlert) {
+                            globalErrorAlert.classList.add("d-none");
+                        }
+                        element.setAttribute("disabled", "true");
+                        spinner = document.createElement("span");
+                        spinner.className = "spinner-border spinner-border-sm text-white";
+                        spinner.setAttribute("role", "status");
+                        spinner.setAttribute("aria-hidden", "true");
+                        element.appendChild(spinner);
                         if (!(typeof globalThis.getAuth === "function")) return [3 /*break*/, 2];
                         return [4 /*yield*/, globalThis.getAuth()];
                     case 1:
@@ -2775,32 +2785,36 @@ function init() {
                         config = element.getAttribute("xw-config")
                             ? JSON.parse(element.getAttribute("xw-config"))
                             : {};
-                        runPython(window.location.origin +
-                            (appPath && appPath.appPath !== "" ? "/".concat(appPath.appPath) : "") +
-                            "/xlwings/custom-scripts-call/" +
-                            element.getAttribute("xw-click"), __assign(__assign({}, config), { auth: token }));
+                        return [4 /*yield*/, runPython(window.location.origin +
+                                (appPath && appPath.appPath !== "" ? "/".concat(appPath.appPath) : "") +
+                                "/xlwings/custom-scripts-call/" +
+                                element.getAttribute("xw-click"), __assign(__assign({}, config), { auth: token, errorDisplayMode: "taskpane" }))];
+                    case 4:
+                        _b.sent();
+                        element.removeChild(spinner);
+                        element.removeAttribute("disabled");
                         return [2 /*return*/];
                 }
             });
         }); });
     });
 }
-var version = "0.33.1";
+var version = "0.33.2";
 globalThis.callbacks = {};
 function runPython() {
     return __awaiter(this, arguments, void 0, function (url, _a) {
-        var error_1;
+        var error_1, globalErrorAlert;
         var _this = this;
         if (url === void 0) { url = ""; }
-        var _b = _a === void 0 ? {} : _a, _c = _b.auth, auth = _c === void 0 ? "" : _c, _d = _b.include, include = _d === void 0 ? "" : _d, _e = _b.exclude, exclude = _e === void 0 ? "" : _e, _f = _b.headers, headers = _f === void 0 ? {} : _f;
-        return __generator(this, function (_g) {
-            switch (_g.label) {
+        var _b = _a === void 0 ? {} : _a, _c = _b.auth, auth = _c === void 0 ? "" : _c, _d = _b.include, include = _d === void 0 ? "" : _d, _e = _b.exclude, exclude = _e === void 0 ? "" : _e, _f = _b.headers, headers = _f === void 0 ? {} : _f, _g = _b.errorDisplayMode, errorDisplayMode = _g === void 0 ? "alert" : _g;
+        return __generator(this, function (_h) {
+            switch (_h.label) {
                 case 0: return [4 /*yield*/, Office.onReady()];
                 case 1:
-                    _g.sent();
-                    _g.label = 2;
+                    _h.sent();
+                    _h.label = 2;
                 case 2:
-                    _g.trys.push([2, 4, , 6]);
+                    _h.trys.push([2, 4, , 8]);
                     return [4 /*yield*/, Excel.run(function (context) { return __awaiter(_this, void 0, void 0, function () {
                             var workbook, worksheets, sheets, configSheet, config, configRange, configValues, includeArray, excludeArray, property, payload, activeSheet, selection, names, namedItems, names2, sheetsLoader, namesSheetScope, namesSheetsScope2, _loop_1, _i, sheetsLoader_1, item, response, rawData, forceSync, _loop_2, _a, _b, action;
                             return __generator(this, function (_c) {
@@ -3157,16 +3171,25 @@ function runPython() {
                             });
                         }); })];
                 case 3:
-                    _g.sent();
-                    return [3 /*break*/, 6];
+                    _h.sent();
+                    return [3 /*break*/, 8];
                 case 4:
-                    error_1 = _g.sent();
+                    error_1 = _h.sent();
                     console.error(error_1);
+                    if (!(errorDisplayMode === "alert")) return [3 /*break*/, 6];
                     return [4 /*yield*/, (0,_alert__WEBPACK_IMPORTED_MODULE_4__.xlAlert)(error_1, "Error", "ok", "critical", "")];
                 case 5:
-                    _g.sent();
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
+                    _h.sent();
+                    return [3 /*break*/, 7];
+                case 6:
+                    globalErrorAlert = document.querySelector("#global-error-alert");
+                    if (globalErrorAlert) {
+                        globalErrorAlert.classList.remove("d-none");
+                        globalErrorAlert.querySelector("span").textContent = error_1;
+                    }
+                    _h.label = 7;
+                case 7: return [3 /*break*/, 8];
+                case 8: return [2 /*return*/];
             }
         });
     });
