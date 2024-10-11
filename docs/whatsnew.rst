@@ -5,7 +5,7 @@ v0.33.2 (Oct 11, 2024)
 ----------------------
 
 * :bdg-info:`Enhancement` Added support for Python 3.13 (:issue:`2534`).
-* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Enhancements to task pane buttons to run custom scripts (:issue:`2533`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Office.js add-ins: Task pane button enhancements for running custom scripts (:issue:`2533`).
 
 v0.33.1 (Oct 1, 2024)
 ---------------------
