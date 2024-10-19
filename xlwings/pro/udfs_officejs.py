@@ -134,6 +134,7 @@ def xlfunc(f=None, **kwargs):
         # sub-namespace, i.e. NAMESPACE.SUBNAMESPACE.FUNCTIONNAME
         f.__xlfunc__["namespace"] = kwargs.get("namespace")
         f.__xlfunc__["help_url"] = kwargs.get("help_url")
+        f.__xlfunc__["required_roles"] = kwargs.get("required_roles")
         return f
 
     if f is None:
@@ -213,7 +214,20 @@ def provide_values_for_special_args(func, args, typehint_to_value: dict) -> tupl
     return args
 
 
-async def custom_functions_call(data, module, sio=None, typehint_to_value: dict = None):
+async def check_user_roles(current_user, required_roles):
+    has_required_roles = await current_user.has_required_roles(required_roles)
+    if not has_required_roles:
+        error_message = (
+            f"Access Denied. {current_user.name} is missing the following roles: "
+            f"{', '.join(set(required_roles).difference(current_user.roles))}"
+        )
+        logger.error(error_message)
+        raise XlwingsError(error_message)
+
+
+async def custom_functions_call(
+    data, module, current_user, sio=None, typehint_to_value: dict = None
+):
     """
     sio : socketio.AsyncServer instance
     """
@@ -223,6 +237,9 @@ async def custom_functions_call(data, module, sio=None, typehint_to_value: dict 
     func_info = func.__xlfunc__
     args_info = func_info["args"]
     ret_info = func_info["ret"]
+    required_roles = func_info["required_roles"]
+
+    await check_user_roles(current_user, required_roles)
 
     if data["version"] != __version__:
         raise XlwingsError(
@@ -388,13 +405,16 @@ def custom_functions_meta(module, typehinted_params_to_exclude=None):
 
 
 # Custom scripts
-def script(f=None, target_cell=None, config=None):
+def script(f=None, target_cell=None, config=None, required_roles=None):
     if config is None:
         config = {}
 
     def inner(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
+            # Remove the first arg and assign it to current_user
+            current_user, *args = args
+            await check_user_roles(current_user, required_roles)
             if inspect.iscoroutinefunction(func):
                 await func(*args, **kwargs)
             else:
@@ -419,7 +439,9 @@ def script(f=None, target_cell=None, config=None):
         return inner(f)
 
 
-async def custom_scripts_call(module, script_name, typehint_to_value: dict = None):
+async def custom_scripts_call(
+    module, script_name, current_user, typehint_to_value: dict = None
+):
     if typehint_to_value is None:
         typehint_to_value = {}
     # Currently, there are no arguments from the client accepted, only internally
@@ -428,7 +450,8 @@ async def custom_scripts_call(module, script_name, typehint_to_value: dict = Non
 
     # Get the function signature
     sig = inspect.signature(func)
-    args = []
+    # Prepend current_user, which will be removed again by the script decorator
+    args = [current_user]
 
     # Iterate over the parameters and check their type hints
     for param in sig.parameters.values():
