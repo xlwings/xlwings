@@ -121,7 +121,11 @@ async function base() {
 
   // For arguments that are Entities, replace the arg with their address (cache key)
   args.forEach((arg, index) => {
-    if (arg && arg[0] && arg[0][0] && arg[0][0].type === "Entity") {
+    if (arg && arg[0] && arg[0][0] && arg[0][0][0] && arg[0][0][0].type === "Entity") {
+      // Varargs (meta info 'repeating') deliver the args inside an array
+      const address = `${officeApiClient}[${workbookName}]${invocation.parameterAddresses[index]}`;
+      args[index] = [address];
+    } else if (arg && arg[0] && arg[0][0] && arg[0][0].type === "Entity") {
       const address = `${officeApiClient}[${workbookName}]${invocation.parameterAddresses[index]}`;
       args[index] = address;
     }
