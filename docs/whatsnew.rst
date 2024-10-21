@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.33.3 (Oct 21, 2024)
+----------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Custom functions: Support object handles with ``*args`` (:issue:`2538`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` Office.js add-ins: introduce ``required_roles`` decorator argument ``*args`` (:issue:`2539`).
+
 v0.33.2 (Oct 11, 2024)
 ----------------------
 
