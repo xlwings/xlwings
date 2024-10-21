@@ -516,13 +516,15 @@ async def sio_disconnect(sid):
 
 
 async def sio_custom_function_call(
-    sid, data, custom_functions, sio, typehint_to_value: dict = None
+    sid, data, custom_functions, current_user, sio, typehint_to_value: dict = None
 ):
     if typehint_to_value is None:
         typehint_to_value = {}
     task_key = data["task_key"]
     task_key_to_sids[task_key] = task_key_to_sids.get(task_key, set()).union({sid})
-    task = await custom_functions_call(data, custom_functions, sio, typehint_to_value)
+    task = await custom_functions_call(
+        data, custom_functions, current_user, sio, typehint_to_value
+    )
     if task:
         task_key_to_task[task_key] = task
 
