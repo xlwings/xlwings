@@ -467,7 +467,19 @@ def prepare_sys_path(args_string):
         paths += args[6:]
 
     if paths:
-        sys.path[0:0] = list(set(paths))
+        def toRealCase(path):
+            if os.name == 'nt':
+                parts=Path(path).parts
+                drive=parts[0]
+                result_path=Path({drv.lower():drv for drv in os.listdrives()}[drive])
+                for path_elem in parts[1:]:
+                    try:
+                        result_path/={elem.lower():elem for elem in os.listdir(result_path)}[path_elem]
+                    except KeyError:
+                        result_path/=path_elem
+                    return str(result_path)
+            return path
+        sys.path[0:0] = [toRealCase(path) for path in set(paths) if path]
 
 
 @lru_cache(None)
