@@ -65,6 +65,25 @@ Office.onReady(function (info) {
   contentLanguage = Office.context.contentLanguage;
 });
 
+function flattenArray(arr) {
+  const result = [];
+  const indices = [];
+  
+  function recursiveFlatten(item, path) {
+    if (Array.isArray(item)) {
+      item.forEach((subItem, index) => {
+        recursiveFlatten(subItem, [...path, index]);
+      });
+    } else {
+      result.push(item);
+      indices.push(path);
+    }
+  }
+  
+  recursiveFlatten(arr, []);
+  return { result, indices };
+}
+
 // Workbook name
 let cachedWorkbookName = null;
 
@@ -119,15 +138,24 @@ async function base() {
   const workbookName = await getWorkbookName();
   const officeApiClient = localStorage.getItem("Office API client");
 
-  // For arguments that are Entities, replace the arg with their address (cache key)
-  args.forEach((arg, index) => {
-    if (arg && arg[0] && arg[0][0] && arg[0][0][0] && arg[0][0][0].type === "Entity") {
-      // Varargs (meta info 'repeating') deliver the args inside an array
+  // For arguments that are Entities, replace the arg with their address (cache key).
+  // The issues is that invocation.parameterAddresses returns a flat list while args
+  // contains a nested array for varargs (in Office.js called 'repeating').
+  const { result: flatArgs, indices } = flattenArray(args);
+  
+  flatArgs.forEach((item, index) => {
+    if (item?.type === "Entity") {
       const address = `${officeApiClient}[${workbookName}]${invocation.parameterAddresses[index]}`;
-      args[index] = [address];
-    } else if (arg && arg[0] && arg[0][0] && arg[0][0].type === "Entity") {
-      const address = `${officeApiClient}[${workbookName}]${invocation.parameterAddresses[index]}`;
-      args[index] = address;
+      
+      let target = args;
+      const path = indices[index];
+      
+      for (let i = 0; i < path.length - 1; i++) {
+        target = target[path[i]];
+      }
+      
+      const lastIndex = path[path.length - 1];
+      target[lastIndex] = address;
     }
   });
 
