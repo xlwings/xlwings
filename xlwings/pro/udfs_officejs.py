@@ -439,6 +439,13 @@ def script(f=None, target_cell=None, config=None, required_roles=None):
         return inner(f)
 
 
+import uuid
+from typing import Any, Dict
+
+# Global store for background tasks
+background_tasks: Dict[str, Any] = {}
+
+
 async def custom_scripts_call(
     module, script_name, current_user, typehint_to_value: dict = None
 ):
@@ -462,12 +469,30 @@ async def custom_scripts_call(
                 "Scripts currently only allow Book and CurrentUser as params"
             )
 
-    if inspect.iscoroutinefunction(func):
-        book = await func(*args)
-    else:
-        book = func(*args)
+    # Generate unique task ID
+    task_id = str(uuid.uuid4())
 
-    return book
+    async def execute_task(task_id, func, *args):
+        try:
+            if inspect.iscoroutinefunction(func):
+                task = asyncio.create_task(func(*args))
+            else:
+                task = asyncio.create_task(asyncio.to_thread(func, *args))
+
+            # Store the task in the background_tasks dictionary
+            background_tasks[task_id] = {"status": "running", "task": task}
+
+            # Return immediately
+            return {"status": "Task started"}
+        except Exception as e:
+            # Handle exceptions if necessary
+            return {"status": "Error", "message": str(e)}
+
+    # Start task without awaiting
+    asyncio.create_task(execute_task(task_id, func, *args))
+
+    # Return task ID immediately
+    return {"task_id": task_id}
 
 
 # Socket.io (sid is the session ID)
