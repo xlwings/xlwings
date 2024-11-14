@@ -226,7 +226,7 @@ async def check_user_roles(current_user, required_roles):
 
 
 async def custom_functions_call(
-    data, module, current_user, sio=None, typehint_to_value: dict = None
+    data, module, current_user=None, sio=None, typehint_to_value: dict = None
 ):
     """
     sio : socketio.AsyncServer instance
@@ -239,7 +239,8 @@ async def custom_functions_call(
     ret_info = func_info["ret"]
     required_roles = func_info["required_roles"]
 
-    await check_user_roles(current_user, required_roles)
+    if current_user:
+        await check_user_roles(current_user, required_roles)
 
     if data["version"] != __version__:
         raise XlwingsError(
@@ -414,7 +415,8 @@ def script(f=None, target_cell=None, config=None, required_roles=None):
         async def wrapper(*args, **kwargs):
             # Remove the first arg and assign it to current_user
             current_user, *args = args
-            await check_user_roles(current_user, required_roles)
+            if current_user:
+                await check_user_roles(current_user, required_roles)
             if inspect.iscoroutinefunction(func):
                 await func(*args, **kwargs)
             else:
@@ -440,7 +442,7 @@ def script(f=None, target_cell=None, config=None, required_roles=None):
 
 
 async def custom_scripts_call(
-    module, script_name, current_user, typehint_to_value: dict = None
+    module, script_name, current_user=None, typehint_to_value: dict = None
 ):
     if typehint_to_value is None:
         typehint_to_value = {}
