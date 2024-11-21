@@ -392,14 +392,19 @@ def update_user_config(key, value=None, action="add"):
         f.writelines(new_config)
 
 
-def license_deploy(args):
+def get_deploy_key():
     developer_key = os.getenv("XLWINGS_DEVELOPER_KEY")
     if developer_key:
         # TODO: fix this when we have a proper config
         os.environ["XLWINGS_LICENSE_KEY"] = developer_key
     from .pro import LicenseHandler
 
-    print(LicenseHandler.create_deploy_key())
+    return LicenseHandler.create_deploy_key()
+
+
+def license_deploy(args):
+    deploy_key = get_deploy_key()
+    print(deploy_key)
 
 
 def get_conda_settings():
