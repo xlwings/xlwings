@@ -49,6 +49,9 @@ class LicenseHandler:
 
     @staticmethod
     def get_license():
+        # Env Var - also used if LICENSE_KEY is in config sheet and called via UDF
+        if os.getenv("XLWINGS_LICENSE_KEY"):
+            return os.environ["XLWINGS_LICENSE_KEY"]
         # Sheet config (only used by RunPython, UDFs use env var)
         try:
             sheet_license_key = read_config_sheet(xlwings.Book.caller()).get(
@@ -69,9 +72,6 @@ class LicenseHandler:
                     key = line.split(",")[1].strip()[1:-1]
             if key:
                 return key
-        # Env Var - also used if LICENSE_KEY is in config sheet and called via UDF
-        if os.getenv("XLWINGS_LICENSE_KEY"):
-            return os.environ["XLWINGS_LICENSE_KEY"]
         raise xlwings.LicenseError("Couldn't find an xlwings license key.")
 
     @staticmethod
