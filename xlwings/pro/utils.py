@@ -28,7 +28,7 @@ from functools import lru_cache
 
 import xlwings  # To prevent circular imports
 
-from ..utils import read_config_sheet
+from ..utils import VersionNumber, read_config_sheet
 
 try:
     from cryptography.fernet import Fernet, InvalidToken
@@ -140,14 +140,12 @@ class LicenseHandler:
                 f"Your xlwings license key isn't valid for the '{product}' "
                 "functionality."
             ) from None
-        if (
-            "version" in license_info.keys()
-            and license_info["version"] != xlwings.__version__
-        ):
+        if "version" in license_info.keys() and VersionNumber(
+            license_info["version"]
+        ) < VersionNumber(xlwings.__version__):
             raise xlwings.LicenseError(
-                "Your xlwings deploy key is only valid for v{0}. To use a different "
-                "version of xlwings, re-release your tool or generate a new deploy key "
-                "via 'xlwings license deploy'.".format(license_info["version"])
+                f"Your deploy key is only valid for <=v{license_info['version']}. "
+                f"You're using v{xlwings.__version__}."
             ) from None
         if (license_valid_until - dt.date.today()) < dt.timedelta(days=30):
             warnings.warn(
