@@ -26,6 +26,8 @@ import time
 import warnings
 from functools import lru_cache
 
+from packaging.version import Version
+
 import xlwings  # To prevent circular imports
 
 from ..utils import read_config_sheet
@@ -157,18 +159,25 @@ class LicenseHandler:
         return license_info
 
     @staticmethod
-    def create_deploy_key():
+    def create_deploy_key(version=None):
         license_info = LicenseHandler.validate_license("pro", license_type="developer")
         if license_info["license_type"] == "noncommercial":
             return "noncommercial"
+
+        if version and Version(version) <= Version(xlwings.__version__):
+            license_version = version
+        else:
+            license_version = xlwings.__version__
+
         license_dict = json.dumps(
             {
-                "version": xlwings.__version__,
+                "version": license_version,
                 "products": license_info["products"],
                 "valid_until": "2999-12-31",
                 "license_type": "deploy_key",
             }
         ).encode()
+
         if LicenseHandler.get_license().startswith("gA"):
             # Legacy
             cipher_suite = LicenseHandler.get_cipher()
