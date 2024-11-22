@@ -6,7 +6,7 @@ v0.33.4 (Nov 22, 2024)
 
 * :bdg-info:`Enhancement` :bdg-secondary:`PRO` License keys set via env vars are now overriding everything else (:issue:`2547`).
 * :bdg-info:`Enhancement` :bdg-secondary:`PRO` Deploy keys now work for all versions that are lower or equal to the one they were created with (:issue:`2550`).
-
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings.js was moved to the xlwings-server repo (:issue:`2551`).
 
 v0.33.3 (Oct 21, 2024)
 ----------------------
