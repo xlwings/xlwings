@@ -11,7 +11,6 @@ include xlwings/addin/Remote.bas
 include xlwings/js/xlwings.*
 include xlwings/html/*.*
 include xlwings/quickstart_fastapi/*.*
-include xlwings/pro/custom_functions_code.js
 include Cargo.toml
 include Cargo.lock
 recursive-include src *
