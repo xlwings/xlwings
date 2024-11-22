@@ -26,20 +26,8 @@ jobs:
           python-version: "3.11"
       - uses: pre-commit/action@v3.0.1
 
-  check-js-dist:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Check js versions
-        run: python xlwingsjs/check_version.py
-
   pre-build:
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build]') || contains(github.event.head_commit.message, '[build-cli]')
-    needs: check-js-dist
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4

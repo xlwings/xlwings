@@ -92,36 +92,6 @@ This is used for the file reader. The source is under `src` together with variou
 
 The 3rd party Open Source licenses document is built with `cargo about generate about.hbs > docs/_static/opensource_licenses2.html` this requires `cargo install --locked cargo-about`.
 
-## Office.js add-ins
-
-Script Lab: figuring out the exact syntax for Office.js is easiest done in the Script Lab add-in that can be installed via Excel's add-in store.
-
-To set up a development environment for the xlwings.js library, you need to do the following:
-
-* Generate dev certificates (otherwise, icons and dialogs won't load and Excel on the web won't load the manifest at all): download `mkcert` from the [GH Release page](https://github.com/FiloSottile/mkcert/releases), rename the file to `mkcert`, then run the following commands (NOTE: on macOS >= 13.4, use `brew install mkcert` instead):
-  ```
-  cd xlwingsjs
-  mkcert -install
-  mkcert localhost 127.0.0.1 ::1
-  ```
-* Install node.js (comes with npm package manager)
-* Install dependencies:
-
-  ```
-  cd xlwingsjs
-  npm install
-  ```
-* Run `npm start` to continuously compile the TypeScript source. Hot reloading is disabled via `--no-hmr` because it doesn't work inside Excel. If you want to work outside of Excel in a browser, you can enable it by removing the flag in `package.json`.
-* In a different Terminal, run `python devserver.py`: this will run the development server
-* Sideload the `manifest-xlwingsjs.xml` according to the [office.js docs](https://learn.microsoft.com/en-us/office/dev/add-ins/testing/test-debug-office-add-ins#sideload-an-office-add-in-for-testing)
-* Excel on macOS requires to run the following command in a Terminal to be able to right-click in the Taskpane to inspect element:
-
-  ```
-  defaults write com.microsoft.Excel OfficeWebAddinDeveloperExtras -bool true
-  ```
-  This will also make a browser window visible when running commands. To hide it, run the command again with `false`.
-* Run `python build.py --version x.x.x` to create the production files.
-
 ## Code formatting/linting
 
 This repo uses the following packages for code formatting/linting, see `pyproject.toml`:
