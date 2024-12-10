@@ -202,7 +202,7 @@ html_theme_options = {
         "color-brand-primary": "white",
         "color-announcement-background": "#28a745",
     },
-    "announcement": 'Introducing xlwings Server (self-hosted): <a href="https://server.xlwings.org/" target="_blank"> Learn more</a>',
+    "announcement": 'Introducing <a href="https://server.xlwings.org/" target="_blank"> xlwings Server (self-hosted)</a> and <a href="https://server.xlwings.org/en/latest/index_lite/" target="_blank"> xlwings Lite</a>',
 }
 
 html_show_sourcelink = False
