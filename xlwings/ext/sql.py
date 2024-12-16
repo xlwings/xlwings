@@ -17,30 +17,43 @@ def conv_value(value, col_is_str):
 @func
 @arg("tables", expand="table", ndim=2)
 @ret(expand="table")
-def sql(query, *tables):
-    return _sql(query, *tables)
+def sql(query, *table_or_alias):
+    return _sql(query, *table_or_alias)
 
 
 @func
 @arg("tables", expand="table", ndim=2)
-def sql_dynamic(query, *tables):
+def sql_dynamic(query, *table_or_alias):
     """Called if native dynamic arrays are available"""
-    return _sql(query, *tables)
+    return _sql(query, *table_or_alias)
 
 
-def _sql(query, *tables):
+def _sql(query, *tables_or_aliases):
+    """Excel formula: =SQL(query, ["alias1"], range1, ["alias2"], range2, ...)"""
     conn = sqlite3.connect(":memory:")
-
     c = conn.cursor()
 
-    for i, table in enumerate(tables):
+    tables = []
+    current_alias = None
+
+    # Process arguments into (alias, table) pairs
+    for table_or_alias in tables_or_aliases:
+        if len(table_or_alias[0]) == 1 and isinstance(table_or_alias[0][0], str):
+            current_alias = table_or_alias[0][0]
+        else:
+            if current_alias is None:
+                # Auto-assign alias (A, B, C...)
+                current_alias = chr(65 + len(tables))
+            tables.append((current_alias, table_or_alias))
+            current_alias = None
+
+    for alias, table in tables:
         cols = table[0]
         rows = table[1:]
         types = [any(isinstance(row[j], str) for row in rows) for j in range(len(cols))]
-        name = chr(65 + i)
 
         stmt = "CREATE TABLE %s (%s)" % (
-            name,
+            alias,
             ", ".join(
                 "'%s' %s" % (col, "STRING" if typ else "REAL")
                 for col, typ in zip(cols, types)
@@ -50,7 +63,7 @@ def _sql(query, *tables):
 
         if rows:
             stmt = "INSERT INTO %s VALUES %s" % (
-                name,
+                alias,
                 ", ".join(
                     "(%s)"
                     % ", ".join(
