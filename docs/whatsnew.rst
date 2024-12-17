@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.33.5 (Dec 17, 2024)
+----------------------
+* :bdg-info:`Enhancement` The ``=SQL()`` extension now allows to use custom table aliases instead of simply ``a``, ``b``, ``c``, etc. (:issue:`2435`).
+* :bdg-info:`Enhancement` The ``=SQL()`` extension now returns proper booleans and datetime cells instead of strings (:issue:`2562`).
+
 v0.33.4 (Nov 22, 2024)
 ----------------------
 
