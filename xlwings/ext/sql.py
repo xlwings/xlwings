@@ -1,6 +1,22 @@
+import datetime as dt
 import sqlite3
 
 from .. import arg, func, ret
+
+
+@func
+@arg("arg", expand="table", ndim=2)
+@ret(expand="table")
+def sql(query, *arg):
+    # Singular arg to make is show up correctly in Excel
+    return _sql(query, *arg)
+
+
+@func
+@arg("arg", expand="table", ndim=2)
+def sql_dynamic(query, *arg):
+    """Called if native dynamic arrays are available"""
+    return _sql(query, *arg)
 
 
 def conv_value(value, col_is_str):
@@ -8,29 +24,39 @@ def conv_value(value, col_is_str):
         return "NULL"
     if col_is_str:
         return repr(str(value))
-    elif isinstance(value, bool):
-        return 1 if value else 0
+    elif isinstance(value, dt.datetime):
+        return value.isoformat()
     else:
         return repr(value)
 
 
-@func
-@arg("tables", expand="table", ndim=2)
-@ret(expand="table")
-def sql(query, *table_or_alias):
-    return _sql(query, *table_or_alias)
-
-
-@func
-@arg("tables", expand="table", ndim=2)
-def sql_dynamic(query, *table_or_alias):
-    """Called if native dynamic arrays are available"""
-    return _sql(query, *table_or_alias)
+def get_column_type(column_values):
+    for val in column_values:
+        if val in (None, ""):
+            continue
+        elif isinstance(val, dt.datetime):
+            return "DATETIME"
+        elif isinstance(val, bool):
+            return "BOOLEAN"
+        elif isinstance(val, str):
+            return "STRING"
+        return "REAL"
 
 
 def _sql(query, *tables_or_aliases):
     """Excel formula: =SQL(query, ["alias1"], range1, ["alias2"], range2, ...)"""
-    conn = sqlite3.connect(":memory:")
+
+    def convert_datetime(bytestring):
+        return dt.datetime.fromisoformat(bytestring.decode("utf-8"))
+
+    def convert_boolean(value):
+        print(value)
+        return True if value.decode("utf-8").lower() == "true" else False
+
+    sqlite3.register_converter("DATETIME", convert_datetime)
+    sqlite3.register_converter("BOOLEAN", convert_boolean)
+
+    conn = sqlite3.connect(":memory:", detect_types=sqlite3.PARSE_DECLTYPES)
     c = conn.cursor()
 
     tables = []
@@ -50,14 +76,14 @@ def _sql(query, *tables_or_aliases):
     for alias, table in tables:
         cols = table[0]
         rows = table[1:]
-        types = [any(isinstance(row[j], str) for row in rows) for j in range(len(cols))]
+        types = []
+        for j in range(len(cols)):
+            column_values = (row[j] for row in rows)
+            types.append(get_column_type(column_values))
 
         stmt = "CREATE TABLE %s (%s)" % (
             alias,
-            ", ".join(
-                "'%s' %s" % (col, "STRING" if typ else "REAL")
-                for col, typ in zip(cols, types)
-            ),
+            ", ".join("'%s' %s" % (col, typ) for col, typ in zip(cols, types)),
         )
         c.execute(stmt)
 
