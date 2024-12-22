@@ -373,33 +373,6 @@ function registerCallback(callback: Function) {
 
 // Callbacks
 function setValues(workbook: ExcelScript.Workbook, action: Action) {
-  // Handle DateTime (TODO: backend should deliver indices with datetime obj)
-  let dt: Date;
-  let dtString: string;
-  action.values.forEach((valueRow, rowIndex) => {
-    valueRow.forEach((value: string | number | boolean, colIndex) => {
-      if (
-        typeof value === "string" &&
-        value.length > 18 &&
-        value.includes("T")
-      ) {
-        dt = new Date(Date.parse(value));
-        dtString = dt.toLocaleDateString();
-        if (dtString !== "Invalid Date") {
-          if (
-            dt.getHours() +
-              dt.getMinutes() +
-              dt.getSeconds() +
-              dt.getMilliseconds() !==
-            0
-          ) {
-            dtString += " " + dt.toLocaleTimeString();
-          }
-          action.values[rowIndex][colIndex] = dtString;
-        }
-      }
-    });
-  });
   getRange(workbook, action).setValues(action.values);
 }
 registerCallback(setValues);

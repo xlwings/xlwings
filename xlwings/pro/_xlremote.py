@@ -111,11 +111,12 @@ class Engine:
         elif pd and isinstance(x, type(pd.NaT)):
             return None
         elif isinstance(x, time_types):
-            x = x.replace(tzinfo=None).isoformat()
+            if x.time() == dt.time(0, 0):
+                x = x.date().isoformat()
+            else:
+                x = x.replace(tzinfo=None).isoformat(sep=" ").split(".")[0]
         elif isinstance(x, dt.date):
-            # JS applies tz conversion with "2021-01-01" when calling
-            # toLocaleDateString() while it leaves "2021-01-01T00:00:00" unchanged
-            x = dt.datetime(x.year, x.month, x.day).isoformat()
+            x = x.isoformat()
         return x
 
     @property
