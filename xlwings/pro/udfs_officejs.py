@@ -243,7 +243,7 @@ async def custom_functions_call(
         await check_user_roles(current_user, required_roles)
 
     if data["version"] != __version__:
-        raise XlwingsError(
+        print(
             f"xlwings version mismatch (client: {data['version']} backend: {__version__}): please restart Excel or "
             "right-click on the task pane and select 'reload'!"
         )
