@@ -244,7 +244,7 @@ async def custom_functions_call(
 
     if data["version"] != __version__:
         raise XlwingsError(
-            "xlwings version mismatch: please restart Excel or "
+            f"xlwings version mismatch (client: {data['version']} backend: {__version__}): please restart Excel or "
             "right-click on the task pane and select 'reload'!"
         )
 
