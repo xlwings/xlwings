@@ -182,16 +182,52 @@ def to_scalar(arg):
     return arg
 
 
+date_format_language_map = {
+    "de": {"j": "y", "t": "d"},
+    "fr": {"a": "y", "j": "d"},
+    "es": {"a": "y"},  # not required on macOS
+    "it": {"a": "y", "g": "d"},
+    "da": {"å": "y"},
+    "nb": {"å": "y"},
+    "cs": {"r": "y"},
+    "nl": {"j": "y"},
+    "fi": {"v": "y", "k": "m", "p": "d"},
+    "el": {"ε": "y", "μ": "m", "η": "d"},
+    "hu": {"é": "y", "h": "m", "n": "d"},
+    "pl": {"r": "y"},
+    "pt": {"a": "y"},
+    "ru": {"г": "y", "м": "m", "д": "d"},
+    "sv": {"å": "y"},
+    "tr": {"a": "m", "g": "d"},
+}
+
+
 def convert(result, ret_info, data):
+    options = ret_info["options"].copy()
     date_format = (
-        ret_info["options"].get("date_format")  # @ret decorator
+        options.get("date_format")  # @ret decorator
         or os.getenv("XLWINGS_DATE_FORMAT")  # env var
-        or locale_to_shortdate.get(
-            data["culture_info_name"]
-        )  # Excel cultureInfo (default)
+        or data.get("date_format")  # Excel cultureInfo
     )
-    ret_info["options"].update({"date_format": date_format, "runtime": data["runtime"]})
-    result = conversion.write(result, None, ret_info["options"], engine_name="officejs")
+
+    # Handle non-English locales
+    if (
+        date_format
+        and data.get("culture_info_name")
+        and not data["culture_info_name"].startswith("en")
+    ):
+        if any(c not in "dmy" for c in date_format.lower() if c.isalpha()):
+            language = data["culture_info_name"][:2].lower()
+
+            if language in date_format_language_map:
+                replacements = date_format_language_map[language]
+                for old, new in replacements.items():
+                    date_format = date_format.lower().replace(old, new)
+            else:
+                date_format = None
+
+    options.update({"date_format": date_format, "runtime": data["runtime"]})
+    result = conversion.write(result, None, options, engine_name="officejs")
     return result
 
 
