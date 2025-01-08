@@ -183,6 +183,9 @@ def to_scalar(arg):
 
 
 date_format_language_map = {
+    # This is currently missing unusual locales such as de-IT (gg.mm.aaaa) but it's
+    # covering native locales and those starting with en-, which probably covers 99%
+    # of use cases. If needed, specific locales such as de-IT can always be added.
     "cs": {"r": "y"},
     "da": {"å": "y"},
     "de": {"j": "y", "t": "d"},
@@ -224,14 +227,13 @@ def convert(result, ret_info, data):
     if date_format and data.get("culture_info_name"):
         if any(c not in "dmy" for c in date_format.lower() if c.isalpha()):
             locale = data["culture_info_name"]
-            key = date_format_language_map.get(locale.lower())
+            replacements = date_format_language_map.get(locale.lower())
 
-            if key is None:
+            if replacements is None:
                 language = locale.split("-")[0]
-                key = date_format_language_map.get(language.lower())
+                replacements = date_format_language_map.get(language.lower())
 
-            if key:
-                replacements = date_format_language_map[key]
+            if replacements:
                 for old, new in replacements.items():
                     date_format = date_format.lower().replace(old, new)
             else:
