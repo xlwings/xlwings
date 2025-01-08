@@ -187,6 +187,12 @@ date_format_language_map = {
     "da": {"å": "y"},
     "de": {"j": "y", "t": "d"},
     "el": {"ε": "y", "μ": "m", "η": "d"},
+    "en-at": {"j": "y", "t": "d"},
+    "en-de": {"j": "y", "t": "d"},
+    "en-dk": {"å": "y"},
+    "en-fi": {"v": "y", "k": "m", "p": "d"},
+    "en-nl": {"j": "y"},
+    "en-se": {"å": "y"},
     "es": {"a": "y"},
     "fi": {"v": "y", "k": "m", "p": "d"},
     "fr": {"a": "y", "j": "d"},
@@ -210,17 +216,22 @@ def convert(result, ret_info, data):
         or data.get("date_format")  # Excel cultureInfo
     )
 
-    # Handle non-English locales
-    if (
-        date_format
-        and data.get("culture_info_name")
-        and not data["culture_info_name"].startswith("en")
-    ):
+    # Handle non-English locales, which are completely inconsistent. Examples:
+    # en-DE: TT/MM/JJJJ
+    # de-DE: TT.MM.JJJJ
+    # en-CH: dd.mm.yyyy
+    # de-CH: TT.MM.JJJJ
+    if date_format and data.get("culture_info_name"):
         if any(c not in "dmy" for c in date_format.lower() if c.isalpha()):
-            language = data["culture_info_name"][:2].lower()
+            locale = data["culture_info_name"]
+            key = date_format_language_map.get(locale.lower())
 
-            if language in date_format_language_map:
-                replacements = date_format_language_map[language]
+            if key is None:
+                language = locale.split("-")[0]
+                key = date_format_language_map.get(language.lower())
+
+            if key:
+                replacements = date_format_language_map[key]
                 for old, new in replacements.items():
                     date_format = date_format.lower().replace(old, new)
             else:
