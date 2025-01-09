@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.33.6 (Jan 9, 2025)
+---------------------
+
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Server: datetime fixes both with custom scripts (day and month were misinterpreted with certain locales) and custom functions (the formatting of dates in custom functions now respects the specific format chosen on the system) (:issue:`2566`).
+
 v0.33.5 (Dec 17, 2024)
 ----------------------
 * :bdg-info:`Enhancement` The ``=SQL()`` extension now allows to use custom table aliases instead of simply ``a``, ``b``, ``c``, etc. (:issue:`2435`).
