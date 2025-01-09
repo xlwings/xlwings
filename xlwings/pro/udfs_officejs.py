@@ -182,21 +182,75 @@ def to_scalar(arg):
     return arg
 
 
+date_format_language_map = {
+    # This is currently missing unusual locales such as de-IT (gg.mm.aaaa) but it's
+    # covering native locales and those starting with en-, which probably covers 99%
+    # of use cases. If needed, specific locales such as de-IT can always be added.
+    "cs": {"r": "y"},
+    "da": {"å": "y"},
+    "de": {"j": "y", "t": "d"},
+    "el": {"ε": "y", "μ": "m", "η": "d"},
+    "en-at": {"j": "y", "t": "d"},
+    "en-de": {"j": "y", "t": "d"},
+    "en-dk": {"å": "y"},
+    "en-fi": {"v": "y", "k": "m", "p": "d"},
+    "en-nl": {"j": "y"},
+    "en-se": {"å": "y"},
+    "es": {"a": "y"},
+    "fi": {"v": "y", "k": "m", "p": "d"},
+    "fr": {"a": "y", "j": "d"},
+    "hu": {"é": "y", "h": "m", "n": "d"},
+    "it": {"a": "y", "g": "d"},
+    "nb": {"å": "y"},
+    "nl": {"j": "y"},
+    "pl": {"r": "y"},
+    "pt": {"a": "y"},
+    "ru": {"г": "y", "м": "m", "д": "d"},
+    "sv": {"å": "y"},
+    "tr": {"a": "m", "g": "d"},
+}
+
+
 def convert(result, ret_info, data):
-    if "date_format" not in ret_info["options"]:
-        date_format = os.getenv("XLWINGS_DATE_FORMAT") or locale_to_shortdate.get(
-            data["content_language"].lower()
-        )
-        if date_format is None:
-            logger.warning(
-                f"Locale {data['content_language'].lower()} not found, so custom "
-                "functions won't format dates automatically. Please open an issue with "
-                "this warning on https://github.com/xlwings/xlwings/issues. In the "
-                "meantime, you can set the XLWINGS_DATE_FORMAT env var to fix that."
-            )
-        ret_info["options"]["date_format"] = date_format
-    ret_info["options"]["runtime"] = data["runtime"]
-    result = conversion.write(result, None, ret_info["options"], engine_name="officejs")
+    options = ret_info["options"].copy()
+    date_format = (
+        options.get("date_format")  # @ret decorator
+        or os.getenv("XLWINGS_DATE_FORMAT")  # env var
+        or data.get("date_format")  # Excel cultureInfo
+    )
+
+    # Handle international locales, which are completely inconsistent. Examples:
+    # en-DE: TT/MM/JJJJ
+    # de-DE: TT.MM.JJJJ
+    # en-CH: dd.mm.yyyy
+    # de-CH: TT.MM.JJJJ
+    #
+    # The main issue is that Office.js delivers date_format a.k.a
+    # context.application.cultureInfo.datetimeFormat.shortDatePattern
+    # sometimes in a localized version, which in turn isn't accepted when setting the
+    # values. To change the default datetime format for Excel:
+    # WIN: Windows Settings > Time & Language > Language & Region > Regional Format.
+    # Note that the available selection depends on the added languages under Language.
+    # MAC: Mac System Settings > Language & Region. Select Microsoft Excel under
+    # Applications.
+    # WEB: File > Options > Regional Format Settings
+    if date_format and data.get("culture_info_name"):
+        if any(c not in "dmy" for c in date_format.lower() if c.isalpha()):
+            locale = data["culture_info_name"]
+            replacements = date_format_language_map.get(locale.lower())
+
+            if replacements is None:
+                language = locale.split("-")[0]
+                replacements = date_format_language_map.get(language.lower())
+
+            if replacements:
+                for old, new in replacements.items():
+                    date_format = date_format.lower().replace(old, new)
+            else:
+                date_format = None
+
+    options.update({"date_format": date_format, "runtime": data["runtime"]})
+    result = conversion.write(result, None, options, engine_name="officejs")
     return result
 
 
@@ -244,7 +298,7 @@ async def custom_functions_call(
 
     if data["version"] != __version__:
         raise XlwingsError(
-            "xlwings version mismatch: please restart Excel or "
+            f"xlwings version mismatch (client: {data['version']} backend: {__version__}): please restart Excel or "
             "right-click on the task pane and select 'reload'!"
         )
 
@@ -529,157 +583,3 @@ async def sio_custom_function_call(
     )
     if task:
         task_key_to_task[task_key] = task
-
-
-locale_to_shortdate = {
-    # This is using the locales from https://github.com/OfficeDev/office-js/tree/release/dist
-    # matched with values from https://stackoverflow.com/a/9893752/918626
-    # TODO: https://metacpan.org/dist/DateTime-Locale seems to be much better than SO
-    # Also, office-js doesn't have all locales supported by Office, such as en-ch or
-    # en-ae are missing
-    "af-za": "yyyy/mm/dd",
-    "am-et": "d/m/yyyy",
-    "ar-ae": "dd/mm/yyyy",
-    "ar-bh": "dd/mm/yyyy",
-    "ar-dz": "dd-mm-yyyy",
-    "ar-eg": "dd/mm/yyyy",
-    "ar-iq": "dd/mm/yyyy",
-    "ar-jo": "dd/mm/yyyy",
-    "ar-kw": "dd/mm/yyyy",
-    "ar-lb": "dd/mm/yyyy",
-    "ar-ly": "dd/mm/yyyy",
-    "ar-ma": "dd-mm-yyyy",
-    "ar-om": "dd/mm/yyyy",
-    "ar-qa": "dd/mm/yyyy",
-    "ar-sa": "dd/mm/yy",
-    "ar-sy": "dd/mm/yyyy",
-    "ar-tn": "dd-mm-yyyy",
-    "ar-ye": "dd/mm/yyyy",
-    "az-latn-az": "dd.mm.yyyy",
-    "be-by": "dd.mm.yyyy",
-    "bg-bg": "dd.m.yyyy",
-    "bn-in": "dd-mm-yy",
-    "bs-latn-ba": "d.m.yyyy",
-    "ca-es": "dd/mm/yyyy",
-    "cs-cz": "d.m.yyyy",
-    "cy-gb": "dd/mm/yyyy",
-    "da-dk": "dd-mm-yyyy",
-    "de-at": "dd.mm.yyyy",
-    "de-ch": "dd.mm.yyyy",
-    "de-de": "dd.mm.yyyy",
-    "de-li": "dd.mm.yyyy",
-    "de-lu": "dd.mm.yyyy",
-    "el-gr": "d/m/yyyy",
-    "en-029": "mm/dd/yyyy",
-    "en-au": "d/mm/yyyy",
-    "en-bz": "dd/mm/yyyy",
-    "en-ca": "dd/mm/yyyy",
-    "en-ch": "dd.mm.yyyy",
-    "en-gb": "dd/mm/yyyy",
-    "en-ie": "dd/mm/yyyy",
-    "en-in": "dd-mm-yyyy",
-    "en-jm": "dd/mm/yyyy",
-    "en-my": "d/m/yyyy",
-    "en-nz": "d/mm/yyyy",
-    "en-ph": "m/d/yyyy",
-    "en-sg": "d/m/yyyy",
-    "en-tt": "dd/mm/yyyy",
-    "en-us": "m/d/yyyy",
-    "en-za": "yyyy/mm/dd",
-    "en-zw": "m/d/yyyy",
-    "en-ae": "dd/mm/yyyy",
-    "es-ar": "dd/mm/yyyy",
-    "es-bo": "dd/mm/yyyy",
-    "es-cl": "dd-mm-yyyy",
-    "es-co": "dd/mm/yyyy",
-    "es-cr": "dd/mm/yyyy",
-    "es-do": "dd/mm/yyyy",
-    "es-ec": "dd/mm/yyyy",
-    "es-es": "dd/mm/yyyy",
-    "es-gt": "dd/mm/yyyy",
-    "es-hn": "dd/mm/yyyy",
-    "es-mx": "dd/mm/yyyy",
-    "es-ni": "dd/mm/yyyy",
-    "es-pa": "mm/dd/yyyy",
-    "es-pe": "dd/mm/yyyy",
-    "es-pr": "dd/mm/yyyy",
-    "es-py": "dd/mm/yyyy",
-    "es-sv": "dd/mm/yyyy",
-    "es-us": "m/d/yyyy",
-    "es-uy": "dd/mm/yyyy",
-    "es-ve": "dd/mm/yyyy",
-    "et-ee": "d.mm.yyyy",
-    "eu-es": "yyyy/mm/dd",
-    "fa-ir": "mm/dd/yyyy",
-    "fi-fi": "d.m.yyyy",
-    "fil-ph": "m/d/yyyy",
-    "fr-be": "d/mm/yyyy",
-    "fr-ca": "yyyy-mm-dd",
-    "fr-ch": "dd.mm.yyyy",
-    "fr-fr": "dd/mm/yyyy",
-    "fr-lu": "dd/mm/yyyy",
-    "fr-mc": "dd/mm/yyyy",
-    "ga-ie": "dd/mm/yyyy",
-    "gl-es": "dd/mm/yy",
-    "gu-in": "dd-mm-yy",
-    "he-il": "dd/mm/yyyy",
-    "hi-in": "dd-mm-yyyy",
-    "hr-ba": "d.m.yyyy.",
-    "hr-hr": "d.m.yyyy",
-    "hu-hu": "yyyy. mm. dd.",
-    "hy-am": "dd.mm.yyyy",
-    "id-id": "dd/mm/yyyy",
-    "is-is": "d.m.yyyy",
-    "it-ch": "dd.mm.yyyy",
-    "it-it": "dd/mm/yyyy",
-    "ja-jp": "yyyy/mm/dd",
-    "ka-ge": "dd.mm.yyyy",
-    "kk-kz": "dd.mm.yyyy",
-    "km-kh": "yyyy-mm-dd",
-    "kn-in": "dd-mm-yy",
-    "ko-kr": "yyyy. mm. dd",
-    "lb-lu": "dd/mm/yyyy",
-    "lo-la": "dd/mm/yyyy",
-    "lt-lt": "yyyy.mm.dd",
-    "lv-lv": "yyyy.mm.dd.",
-    "mk-mk": "dd.mm.yyyy",
-    "ml-in": "dd-mm-yy",
-    "mn-mn": "yy.mm.dd",
-    "mr-in": "dd-mm-yyyy",
-    "ms-bn": "dd/mm/yyyy",
-    "ms-my": "dd/mm/yyyy",
-    "mt-mt": "dd/mm/yyyy",
-    "nb-no": "dd.mm.yyyy",
-    "ne-np": "m/d/yyyy",
-    "nl-be": "d/mm/yyyy",
-    "nl-nl": "d-m-yyyy",
-    "nn-no": "dd.mm.yyyy",
-    "pl-pl": "dd.mm.yyyy",
-    "pt-br": "d/m/yyyy",
-    "pt-pt": "dd-mm-yyyy",
-    "ro-ro": "dd.mm.yyyy",
-    "ru-ru": "dd.mm.yyyy",
-    "si-lk": "yyyy-mm-dd",
-    "sk-sk": "d. m. yyyy",
-    "sl-si": "d.m.yyyy",
-    "sq-al": "yyyy-mm-dd",
-    "sr-cyrl-cs": "d.m.yyyy",
-    "sr-cyrl-rs": "d.m.yyyy",
-    "sr-latn-cs": "d.m.yyyy",
-    "sr-latn-rs": "d.m.yyyy",
-    "sv-fi": "d.m.yyyy",
-    "sv-se": "yyyy-mm-dd",
-    "sw-ke": "m/d/yyyy",
-    "ta-in": "dd-mm-yyyy",
-    "te-in": "dd-mm-yy",
-    "th-th": "d/m/yyyy",
-    "tr-tr": "dd.mm.yyyy",
-    "uk-ua": "dd.mm.yyyy",
-    "ur-pk": "dd/mm/yyyy",
-    "vi-vn": "dd/mm/yyyy",
-    "zh-cn": "yyyy/m/d",
-    "zh-hk": "d/m/yyyy",
-    "zh-mo": "d/m/yyyy",
-    "zh-sg": "d/m/yyyy",
-    "zh-tw": "yyyy/m/d",
-}
