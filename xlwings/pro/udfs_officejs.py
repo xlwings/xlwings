@@ -219,7 +219,7 @@ def convert(result, ret_info, data):
         or data.get("date_format")  # Excel cultureInfo
     )
 
-    # Handle non-English locales, which are completely inconsistent. Examples:
+    # Handle international locales, which are completely inconsistent. Examples:
     # en-DE: TT/MM/JJJJ
     # de-DE: TT.MM.JJJJ
     # en-CH: dd.mm.yyyy
