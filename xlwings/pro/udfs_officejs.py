@@ -224,6 +224,16 @@ def convert(result, ret_info, data):
     # de-DE: TT.MM.JJJJ
     # en-CH: dd.mm.yyyy
     # de-CH: TT.MM.JJJJ
+    #
+    # The main issue is that Office.js delivers date_format a.k.a
+    # context.application.cultureInfo.datetimeFormat.shortDatePattern
+    # sometimes in a localized version, which in turn isn't accepted when setting the
+    # values. To change the default datetime format for Excel:
+    # WIN: Windows Settings > Time & Language > Language & Region > Regional Format.
+    # Note that the available selection depends on the added languages under Language.
+    # MAC: Mac System Settings > Language & Region. Select Microsoft Excel under
+    # Applications.
+    # WEB: File > Options > Regional Format Settings
     if date_format and data.get("culture_info_name"):
         if any(c not in "dmy" for c in date_format.lower() if c.isalpha()):
             locale = data["culture_info_name"]
