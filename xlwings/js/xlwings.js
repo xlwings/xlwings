@@ -251,34 +251,6 @@ let funcs = this;
 
 // Functions
 function setValues(workbook, action) {
-  // Handle DateTime (TODO: backend should deliver indices with datetime obj)
-  let dt;
-  let dtString;
-  let locale = workbook.getSpreadsheetLocale().replace("_", "-");
-  action.values.forEach((valueRow, rowIndex) => {
-    valueRow.forEach((value, colIndex) => {
-      if (
-        typeof value === "string" &&
-        value.length > 18 &&
-        value.includes("T")
-      ) {
-        dt = new Date(Date.parse(value));
-        dtString = dt.toLocaleDateString(locale);
-        if (dtString !== "Invalid Date") {
-          let hours = dt.getHours();
-          let minutes = dt.getMinutes();
-          let seconds = dt.getSeconds();
-          let milliseconds = dt.getMilliseconds();
-          if (hours + minutes + seconds + milliseconds !== 0) {
-            // The time doesn't follow the locale in the Date Time combination!
-            dtString +=
-              " " + hours + ":" + minutes + ":" + seconds + "." + milliseconds;
-          }
-          action.values[rowIndex][colIndex] = dtString;
-        }
-      }
-    });
-  });
   getRange(workbook, action).setValues(action.values);
 }
 
