@@ -28,13 +28,12 @@ jobs:
 
   pre-build:
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build]') || contains(github.event.head_commit.message, '[build-cli]')
-    runs-on: windows-2022
+    runs-on: windows-2025
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          # pythonnet doesn't have wheels beyond 3.8
           python-version: "3.12"
           architecture: "x64"
       - name: Setup .NET Core
@@ -73,7 +72,7 @@ jobs:
           encodedString: ${{ secrets.CODESIGN_CERTIFICATE }}
       - name: Set PATH for signtool
         shell: bash
-        run: echo "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x64" >> $GITHUB_PATH
+        run: echo "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64" >> $GITHUB_PATH
       - name: Code Sign dlls
         run: |
           signtool sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /tr http://timestamp.sectigo.com /td sha256 /fd SHA256 xlwings32.dll xlwings64.dll
@@ -246,7 +245,7 @@ jobs:
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build-cli]')
     needs: pre-build
     name: Build CLI
-    runs-on: windows-2022
+    runs-on: windows-2025
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -255,7 +254,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.12"
           cache: "pip"
       - name: Get Certificate
         id: write_file
@@ -265,7 +264,7 @@ jobs:
           encodedString: ${{ secrets.CODESIGN_CERTIFICATE }}
       - name: Set PATH for signtool
         shell: bash
-        run: echo "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x64" >> $GITHUB_PATH
+        run: echo "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64" >> $GITHUB_PATH
       - name: Install Python dependencies
         run: pip install pyinstaller pywin32 msal watchgod
       - name: Build executable
@@ -292,7 +291,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.12"
           architecture: "x64"
       - name: Install Python dependencies
         run: |
