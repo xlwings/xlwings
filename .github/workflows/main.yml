@@ -117,7 +117,7 @@ jobs:
           .\officesips\OffSign.bat "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x86\" "sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /tr http://timestamp.sectigo.com /td sha256 /fd SHA256" "verify /pa" ".\xlwings\addin\xlwings.xlam"
         # Code sign Excel add-in (end)
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pre-build
           retention-days: 1
@@ -165,7 +165,7 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: pre-build
       - name: Set up Python
@@ -220,10 +220,11 @@ jobs:
           python setup.py sdist bdist_wheel
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: Package
+          name: Package-${{matrix.python-version}}-${{ matrix.platform.os }}-${{ matrix.platform.target }}-${{matrix.platform.manylinux}}
           path: ./dist
+          if-no-files-found: ignore
 
       - name: Tests
         if: matrix.platform.target == 'x86_64' && matrix.platform.manylinux != 'musllinux_1_1'
@@ -248,7 +249,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: pre-build
       - name: Set up Python
@@ -258,7 +259,7 @@ jobs:
           cache: "pip"
       - name: Get Certificate
         id: write_file
-        uses: timheuer/base64-to-file@48657ba25c726c2e3dcf02efa3639fff9b3d587e
+        uses: timheuer/base64-to-file@604a8926a81a2da120d09b06bb76da9bba5aee6e
         with:
           fileName: "cert.p12"
           encodedString: ${{ secrets.CODESIGN_CERTIFICATE }}
@@ -275,12 +276,30 @@ jobs:
         run: |
           signtool sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /tr http://timestamp.sectigo.com /td sha256 /fd SHA256 xlwings.exe
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cli
           retention-days: 1
           path: |
             ./xlwings.exe
+
+  publish-test:
+    name: Publish-test
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: Package-*
+          merge-multiple: true
+          path: Package
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: cli
+      - name: List Package contents
+        run: ls -la Package/
 
   publish:
     if: github.event_name == 'release'
@@ -297,12 +316,13 @@ jobs:
         run: |
           python -m pip install wheel twine
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: Package
+          pattern: Package-*
+          merge-multiple: true
           path: Package
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: cli
       - name: GH Release
