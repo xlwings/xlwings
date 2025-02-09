@@ -33,6 +33,8 @@ from ..constants import MAX_COLUMNS, MAX_ROWS
 time_types = (dt.datetime,)
 if np:
     time_types = time_types + (np.datetime64,)
+if pd:
+    time_types = time_types + (pd.Timestamp,)
 
 datetime_pattern = r"^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$"  # noqa: E501
 datetime_regex = re.compile(datetime_pattern)
@@ -104,13 +106,13 @@ class Engine:
             return ""
         elif np and isinstance(x, np.number):
             return float(x)
-        elif np and isinstance(x, np.datetime64):
-            return utils.np_datetime_to_datetime(x).replace(tzinfo=None).isoformat()
-        elif pd and isinstance(x, pd.Timestamp):
-            return x.to_pydatetime().replace(tzinfo=None).isoformat()
         elif pd and isinstance(x, type(pd.NaT)):
             return None
         elif isinstance(x, time_types):
+            if np and isinstance(x, np.datetime64):
+                x = utils.np_datetime_to_datetime(x)
+            elif pd and isinstance(x, pd.Timestamp):
+                x = x.to_pydatetime()
             if x.time() == dt.time(0, 0):
                 x = x.date().isoformat()
             else:
