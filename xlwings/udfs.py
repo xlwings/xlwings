@@ -1,6 +1,7 @@
 import asyncio
 import concurrent
 import copy
+import datetime as dt
 import functools
 import inspect
 import json
@@ -171,13 +172,15 @@ def xlfunc(f=None, **kwargs):
                     type_hint, annotations = extract_type_and_annotations(
                         type_hints[vname]
                     )
-                    arg_info["options"]["convert"] = type_hint
-                    if annotations:
-                        for key, value in annotations[0].items():
-                            if key == "doc":
-                                arg_info["doc"] = value
-                            else:
-                                arg_info["options"][key] = value
+                    if type_hint is not dt.datetime and type_hint is not dt.date:
+                        # pywin32 takes care of converting datetime objects (GH #2571)
+                        arg_info["options"]["convert"] = type_hint
+                        if annotations:
+                            for key, value in annotations[0].items():
+                                if key == "doc":
+                                    arg_info["doc"] = value
+                                else:
+                                    arg_info["options"][key] = value
                 if vpos >= nRequiredArgs:
                     arg_info["optional"] = sig["defaults"][vpos - nRequiredArgs]
                 xlargs.append(arg_info)
