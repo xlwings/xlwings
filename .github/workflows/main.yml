@@ -113,7 +113,7 @@ jobs:
         run: |
           # Office 365 supports three different signatures on VBA projects, which is the reason why OffSign.bat signs and verifies the files 3x
           # Note that signtools is in ...\bin\x86
-          .\officesips\OffSign.bat "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x86\" "sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /tr http://timestamp.sectigo.com /td sha256 /fd SHA256" "verify /pa" ".\xlwings\addin\xlwings.xlam"
+          .\officesips\OffSign.bat "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x86\" "sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /tr http://timestamp.sectigo.com /td sha256 /fd SHA256" "verify /pa" ".\xlwings\addin\xlwings.xlam"
         # Code sign Excel add-in (end)
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
