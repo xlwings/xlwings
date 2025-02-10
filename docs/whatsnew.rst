@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.33.7 (Feb 11, 2025)
+----------------------
+
+* :bdg-warning:`Bug Fix` Datetime type hints in UDFs were causing an issue (:issue:`2571`).
+* :bdg-warning:`Bug Fix`  :bdg-secondary:`PRO` xlwings Server: Fixed NumPy and pandas datetime conversion issues (:issue:`2572`).
+
 v0.33.6 (Jan 9, 2025)
 ---------------------
 
