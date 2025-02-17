@@ -31,6 +31,9 @@ classifiers = [
 ]
 
 dynamic = ["version"]
+license = {text = "BSD 3-clause"}
+keywords = ["xls", "excel", "spreadsheet", "workbook", "vba", "macro"]
+
 
 [project.optional-dependencies]
 reports = ["Jinja2", "pdfrw", "mistune"]
