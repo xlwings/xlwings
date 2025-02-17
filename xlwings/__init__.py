@@ -145,6 +145,8 @@ if sys.platform.startswith("win") and has_pywin32:
         )
     except:  # noqa: E722
         pass
+elif __pro__:
+    from xlwings.server import arg, func, ret, script  # noqa: F401
 else:
 
     def func(f=None, *args, **kwargs):
