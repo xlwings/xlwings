@@ -190,7 +190,7 @@ jobs:
           platforms: all
 
       - name: Build source distribution
-        if: matrix.platform.os == 'ubuntu-latest' && matrix.platform.target == 'x86_64' && matrix.platform.manylinux != 'musllinux_1_1'
+        if: matrix.python-version == '3.13' && matrix.platform.os == 'ubuntu-latest' && matrix.platform.target == 'x86_64'
         shell: bash
         run: |
           python -m build --sdist
