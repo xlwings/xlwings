@@ -4,7 +4,7 @@ Changelog
 v0.33.9 (Feb 17, 2025)
 ----------------------
 
-* :bdg-info:`Enhancement` :bdg-secondary:`PRO` The `script`, `func`, `arg`, and `ret` decorators can now also be imported directly from `xlwings` instead of `xlwings.server` except if you are on Windows and have pywin32 installed (:issue:`2579`).
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` The ``script``, ``func``, ``arg``, and ``ret`` decorators can now also be imported directly from ``xlwings`` instead of ``xlwings.server`` except if you are on Windows and have ``pywin32`` installed (:issue:`2579`).
 
 v0.33.8 (Feb 17, 2025)
 ----------------------
