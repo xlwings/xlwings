@@ -57,7 +57,7 @@ version_file = os.path.join(os.environ["GITHUB_WORKSPACE"], "xlwings", "__init__
 for source_file in [version_file]:
     with open(source_file, "r") as f:
         content = f.read()
-    content = re.sub(r"\bdev\b", version_string, content)
+    content = re.sub(r"\b0.0.0\b", version_string, content)
     with open(source_file, "w") as f:
         f.write(content)
 
