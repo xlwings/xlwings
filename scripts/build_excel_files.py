@@ -198,7 +198,7 @@ for js in [
 ]:
     with open(js, "r") as f:
         content = f.read().replace(
-            'const version = "0.0.0";', f'const version = "{version_string}";'
+            'const version = "dev";', f'const version = "{version_string}";'
         )
     with open(js, "w") as f:
         f.write(content)
