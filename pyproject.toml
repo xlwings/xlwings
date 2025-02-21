@@ -50,6 +50,7 @@ all = [
     "pytest",
     "mistune",
 ]
+vba_edit = ["watchgod"]
 
 [project.scripts]
 xlwings = "xlwings.cli:main"
