@@ -56,6 +56,7 @@ extras_require = {
         "pytest",
         "mistune",
     ],
+    "vba_edit": ["watchgod"],
 }
 
 if os.getenv("BUILD_RUST", "0") == "1":
