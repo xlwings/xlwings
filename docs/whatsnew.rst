@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v0.33.10 (Mar 6, 2025)
+----------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server: Added ``Range.copy_from`` (:issue:`2590`).
+* :bdg-warning:`Bug Fix` :bdg-secondary:`PRO` xlwings Server: Fixed ``Sheets.add()`` (:issue:`2589`).
+
+
 v0.33.9 (Feb 17, 2025)
 ----------------------
 
