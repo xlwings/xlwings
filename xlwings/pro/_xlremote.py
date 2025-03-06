@@ -274,7 +274,7 @@ class Book(base_classes.Book):
         self._json = {"actions": []}
         if api["version"] != __version__:
             raise XlwingsError(
-                f'Your xlwings version is different on the client ({api["version"]}) '
+                f"Your xlwings version is different on the client ({api['version']}) "
                 f"and server ({__version__})."
             )
 
@@ -356,19 +356,23 @@ class Sheets(base_classes.Sheets):
         raise ValueError(f"Sheet '{name_or_index}' doesn't exist!")
 
     def add(self, before=None, after=None, name=None):
-        # Default naming logic is different from Desktop apps!
-        sheet_number = 1
-        while True:
-            if f"Sheet{sheet_number}" in [sheet.name for sheet in self]:
-                sheet_number += 1
-            else:
-                break
+        # TODO: this is hardcoded to English
+        if name is None:
+            sheet_number = 1
+            while True:
+                if f"Sheet{sheet_number}" in [sheet.name for sheet in self]:
+                    sheet_number += 1
+                else:
+                    break
+            name = f"Sheet{sheet_number}"
+
         api = {
-            "name": f"Sheet{sheet_number}",
+            "name": name,
             "values": [[]],
             "pictures": [],
             "tables": [],
         }
+
         if before:
             if before.index == 1:
                 ix = 1
@@ -379,6 +383,7 @@ class Sheets(base_classes.Sheets):
         else:
             # Default position is different from Desktop apps!
             ix = len(self) + 1
+
         self.api.insert(ix - 1, api)
         self.book.append_json_action(func="addSheet", args=[ix - 1, name])
         self.book.api["book"]["active_sheet_index"] = ix - 1
