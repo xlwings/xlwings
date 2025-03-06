@@ -2648,6 +2648,25 @@ class Range:
         """
         self.impl.copy(destination)
 
+    def copy_from(
+        self, source_range, copy_type="all", skip_blanks=False, transpose=False
+    ):
+        """
+        A newer variant of copy that replaces copy/paste.
+
+        Parameters
+        ----------
+        source_range : xlwings.Range
+
+        copy_type : string, default "all"
+            One of "all", "formats", "formulas", "link", "values"
+
+        skip_blanks : bool, default False
+
+        transpose : bool, default False
+        """
+        self.impl.copy_from(source_range, copy_type, skip_blanks, transpose)
+
     def paste(self, paste=None, operation=None, skip_blanks=False, transpose=False):
         """
         Pastes a range from the clipboard into the specified range.

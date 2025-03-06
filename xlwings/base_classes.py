@@ -495,6 +495,11 @@ class Range:
     def copy(self, destination=None):
         raise NotImplementedError()
 
+    def copy_from(
+        self, source_range, copy_type="all", skip_blanks=False, transpose=False
+    ):
+        raise NotImplementedError()
+
     def paste(self, paste=None, operation=None, skip_blanks=False, transpose=False):
         raise NotImplementedError()
 
