@@ -272,7 +272,7 @@ class Book(base_classes.Book):
         self.books = books
         self._api = api
         self._json = {"actions": []}
-        if api["version"] != __version__:
+        if api["version"] != __version__ and api["client"] != "Office.js":
             raise XlwingsError(
                 f"Your xlwings version is different on the client ({api['version']}) "
                 f"and server ({__version__})."
@@ -764,7 +764,6 @@ class Range(base_classes.Range):
         )
 
     def copy(self, destination=None):
-        # TODO: introduce the new copy_from from Office Scripts
         if destination is None:
             raise XlwingsError("range.copy() requires a destination argument.")
         self.append_json_action(
