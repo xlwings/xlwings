@@ -208,7 +208,7 @@ fn get_defined_names(path: &str) -> Result<Vec<(String, String)>, CalamineError>
 }
 
 #[pymodule]
-fn xlwingslib(_py: Python, m: &PyModule) -> PyResult<()> {
+fn xlwingslib(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(get_range_values, m)?)?;
     m.add_function(wrap_pyfunction!(get_sheet_values, m)?)?;
     m.add_function(wrap_pyfunction!(get_sheet_names, m)?)?;
