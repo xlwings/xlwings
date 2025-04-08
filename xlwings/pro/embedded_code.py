@@ -36,7 +36,8 @@ def dump_embedded_code(book, target_dir):
             )
             if sheetname_to_path:
                 (Path(target_dir) / sheetname_to_path[sheet.name]).parent.mkdir(
-                    exist_ok=True
+                    parents=True,
+                    exist_ok=True,
                 )
             with open(
                 os.path.join(
