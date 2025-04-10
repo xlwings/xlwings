@@ -15,6 +15,18 @@ on **Windows** and **macOS**.
 
 xlwings includes all files in the xlwings package except the ``pro`` folder, i.e., the ``xlwings.pro`` subpackage.
 
+xlwings Lite
+------------
+
+`xlwings Lite <https://lite.xlwings.org>`_ is the easiest way to get started with xlwings. Simply install xlwings Lite from Excel's `add-in store <https://appsource.microsoft.com/en-us/product/office/WA200008175>`_ and build something amazing!
+
+* No local Python installation required
+* Works on Windows, macOS, and Excel on the web (incl. the free version of Excel)
+* Custom Functions
+* Access to the Excel object model
+* Python code is stored inside the workbook
+* Free for personal and commercial use
+
 xlwings PRO
 -----------
 
