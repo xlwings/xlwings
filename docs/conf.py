@@ -202,7 +202,7 @@ html_theme_options = {
         "color-brand-primary": "white",
         "color-announcement-background": "#28a745",
     },
-    "announcement": 'Introducing <a href="https://server.xlwings.org/" target="_blank"> xlwings Server (self-hosted)</a> and <a href="https://server.xlwings.org/en/latest/index_wasm/" target="_blank"> xlwings Wasm</a>',
+    "announcement": '<a href="https://lite.xlwings.org/" target="_blank"> xlwings Lite</a> is now available in the add-in store for free!</a>',
 }
 
 html_show_sourcelink = False
