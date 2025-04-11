@@ -6,6 +6,10 @@ try:
     import numpy as np
 except ImportError:
     np = None
+try:
+    import polars as pl
+except ImportError:
+    pl = None
 
 from .framework import (
     Accessor,
@@ -34,6 +38,8 @@ if np:
     from .numpy_conv import NumpyArrayConverter
 if pd:
     from .pandas_conv import PandasDataFrameConverter, PandasSeriesConverter
+if pl:
+    from .polars_conv import PolarsDataFrameConverter, PolarsSeriesConverter
 
 from .. import LicenseError
 
@@ -67,6 +73,8 @@ __all__ = (
     "NumpyArrayConverter",
     "PandasDataFrameConverter",
     "PandasSeriesConverter",
+    "PolarsDataFrameConverter",
+    "PolarsSeriesConverter",
 )
 
 

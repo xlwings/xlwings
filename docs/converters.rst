@@ -366,6 +366,23 @@ The same sample for **UDF** (starting in cell ``A13`` on screenshot) looks like 
        # x is a DataFrame, do something with it
        return x
 
+Polars DataFrame and Series converters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Polars DataFrames work the same as pandas DataFrames, with the difference of the imports. Also, since polars DataFrames don't have an index and don't support MultiIndex headers, the ``index`` option isn't available and the ``header`` option only accepts ``True`` (default) or ``False``.
+
+**Example:**
+
+::
+
+    import polars as pl
+
+    @xw.func
+    def myfunction(df: pl.DataFrame):
+       # df is a polars DataFrame, do something with it
+       return df
+
+
 
 xw.Range and 'raw' converters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -1,4 +1,5 @@
 import datetime as dt
+import numbers
 import os
 import re
 import subprocess
@@ -74,6 +75,8 @@ def xlserial_to_datetime(serial):
     Converts a date in Excel's serial format (e.g., 44197.0) to a Python datetime object
     """
     # https://learn.microsoft.com/en-us/office/dev/scripts/resources/samples/excel-samples#dates
+    if not isinstance(serial, numbers.Number):
+        return serial
     ts = round((serial - 25569) * 86400, 3)
     aware_datetime = dt.datetime.fromtimestamp(ts, dt.timezone.utc)
     naive_datetime = aware_datetime.replace(tzinfo=None)
