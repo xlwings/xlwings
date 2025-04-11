@@ -98,7 +98,7 @@ if pd:
 
             df = pd.DataFrame(value[header:], columns=columns, dtype=dtype, copy=copy)
 
-            if parse_dates:
+            if parse_dates is not None:
                 df = _parse_dates(df, parse_dates)
 
             # handle index by resetting the index to the index first columns
@@ -147,7 +147,7 @@ if pd:
 
             df = pd.DataFrame(data, columns=columns, dtype=dtype, copy=copy)
 
-            if parse_dates:
+            if parse_dates is not None:
                 df = _parse_dates(df, parse_dates)
 
             if index:
