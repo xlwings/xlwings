@@ -411,6 +411,35 @@ Polars DataFrames work almost the same as pandas DataFrames. But since polars Da
        # df is a polars DataFrame, do something with it
        return df
 
+DuckDB converter
+~~~~~~~~~~~~~~~~
+
+You can use the ``duckdb`` converter to get a DuckDB relation, see the `DuckDB Relation API <https://duckdb.org/docs/stable/clients/python/relational_api>`_.
+
+Note that xlwings returns a wrapper object around ``duckdb.DuckDBPyRelation`` with the additional attributes ``con`` (to get the underlying DuckDB connection) and ``close()`` to properly clean up the resources (connection and temporary files). Otherwise, the object behaves like a normal DuckDB relation though (``duckdb.DuckDBPyRelation``).
+
+.. code-block:: python
+
+    from duckdb import DuckDBPyRelation
+
+    mysheet = xw.books.active.sheets[0]
+    mysheet["A1"].value = [["col_one", "col_two"], [1, "x"], [2, "y"], [3, "z"]]
+    source_range = mysheet['A1'].expand()
+    rel = source_range.options(DuckDBPyRelation, name="mytable").value
+    rel.show()
+    rel.con.sql("SELECT sum(col_one) FROM mytable")
+    rel.close()  # With xlwings, you have to close the relation
+
+TODO: there's currently no way to close the rel with custom functions...
+Since connections are closed implicitly when they go out of scope, maybe this would be an option instead of csv file:
+
+rel = con.from_query("""
+    SELECT * FROM (VALUES 
+        ('Alice', 30), 
+        ('Bob', 25), 
+        ('Charlie', 35)
+    ) AS people(name, age)
+""")
 
 
 xw.Range and 'raw' converters

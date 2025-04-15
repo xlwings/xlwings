@@ -10,6 +10,10 @@ try:
     import polars as pl
 except ImportError:
     pl = None
+try:
+    import duckdb
+except ImportError:
+    duckdb = None
 
 from .framework import (
     Accessor,
@@ -40,6 +44,8 @@ if pd:
     from .pandas_conv import PandasDataFrameConverter, PandasSeriesConverter
 if pl:
     from .polars_conv import PolarsDataFrameConverter, PolarsSeriesConverter
+if duckdb:
+    from .duckdb_conv import DuckdbConverter
 
 from .. import LicenseError
 
@@ -75,6 +81,7 @@ __all__ = (
     "PandasSeriesConverter",
     "PolarsDataFrameConverter",
     "PolarsSeriesConverter",
+    "DuckdbConverter",
 )
 
 
