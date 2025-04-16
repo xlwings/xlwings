@@ -533,6 +533,12 @@ class Range(base_classes.Range):
         self.arg1_input = arg1
         self.arg2_input = arg2
 
+        # Handle None case (for app.selection if e.g., a shape is selected)
+        if arg1 is None:
+            self.arg1 = None
+            self.arg2 = None
+            return
+
         # Range
         if isinstance(arg1, Range) and isinstance(arg2, Range):
             cell1 = arg1.coords[1], arg1.coords[2]
@@ -578,6 +584,9 @@ class Range(base_classes.Range):
         self.sheet = sheet
 
     def append_json_action(self, **kwargs):
+        # Do nothing if the range is None (e.g., if a Shape is selected)
+        if self.arg1 is None:
+            return
         nrows, ncols = self.shape
         self.sheet.book.append_json_action(
             **{
@@ -651,6 +660,9 @@ class Range(base_classes.Range):
 
     @property
     def address(self):
+        # Handle non-cell selection
+        if self.arg1 is None:
+            return
         nrows, ncols = self.shape
         address = f"${utils.col_name(self.column)}${self.row}"
         if nrows == 1 and ncols == 1:
