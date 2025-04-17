@@ -5044,8 +5044,6 @@ class Font:
 
     @color.setter
     def color(self, value):
-        if isinstance(value, str):
-            value = utils.hex_to_rgb(value)
         self.impl.color = value
 
     @property
