@@ -369,11 +369,40 @@ The same sample for **UDF** (starting in cell ``A13`` on screenshot) looks like 
 Polars DataFrame and Series converters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Polars DataFrames work the same as pandas DataFrames, with the difference of the imports. Also, since polars DataFrames don't have an index and don't support MultiIndex headers, the ``index`` option isn't available and the ``header`` option only accepts ``True`` (default) or ``False``.
+Polars DataFrames work almost the same as pandas DataFrames. But since polars DataFrames don't have an index and don't support MultiIndex headers, the ``index`` option isn't available and the ``header`` option only accepts ``True`` (default) or ``False``.
 
-**Example:**
+**Examples:**
 
 ::
+
+    # This is a script example
+
+    import datetime as dt
+    import polars as pl
+    import xlwings as xw
+
+    df = pl.DataFrame(
+        {
+            "name": ["Alice Archer", "Ben Brown", "Chloe Cooper", "Daniel Donovan"],
+            "birthdate": [
+                dt.date(1997, 1, 10),
+                dt.date(1985, 2, 15),
+                dt.date(1983, 3, 22),
+                dt.date(1981, 4, 30),
+            ],
+            "weight": [57.9, 72.5, 53.6, 83.1],
+            "height": [1.56, 1.77, 1.65, 1.75],
+        }
+    )
+
+    book = xw.Book()
+    sheet = book.sheets[0]
+    sheet["A1"].value = df  # writing
+    df_read = sheet["A1"].expand().options(pl.DataFrame).value  # reading
+
+::
+
+    # This is a UDF example
 
     import polars as pl
 

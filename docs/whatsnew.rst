@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.33.12 (Apr 17, 2025)
+-----------------------
+
+* :bdg-info:`Enhancement` Added a Polars DataFrame and Series converter, see :ref:`converters:Polars DataFrame and Series converters` (:issue:`2602`).
+
 v0.33.11 (Mar 7, 2025)
 ----------------------
 
