@@ -845,6 +845,10 @@ class Range(base_classes.Range):
     def adjust_indent(self, amount):
         self.append_json_action(func="rangeAdjustIndent", args=amount)
 
+    @property
+    def font(self):
+        return Font(self, self.sheet.book.api)
+
     def __len__(self):
         nrows, ncols = self.shape
         return nrows * ncols
@@ -1331,6 +1335,69 @@ class FreezePanes(base_classes.FreezePanes):
 
     def unfreeze(self):
         self.append_json_action(func="freezePaneUnfreeze")
+
+
+class Font(base_classes.Font):
+    # TODO: support Shape and getters
+    def __init__(self, parent, api):
+        self.parent = parent
+        self._api = api
+
+    def append_json_action(self, **kwargs):
+        if isinstance(self.parent, Range):
+            self.parent.append_json_action(
+                **{
+                    **kwargs,
+                }
+            )
+        else:
+            raise NotImplementedError()
+
+    @property
+    def api(self):
+        return self._api
+
+    @property
+    def bold(self):
+        raise NotImplementedError()
+
+    @bold.setter
+    def bold(self, value):
+        self.append_json_action(func="setFontProperty", args=["bold", value])
+
+    @property
+    def italic(self):
+        raise NotImplementedError()
+
+    @italic.setter
+    def italic(self, value):
+        self.append_json_action(func="setFontProperty", args=["italic", value])
+
+    @property
+    def size(self):
+        raise NotImplementedError()
+
+    @size.setter
+    def size(self, value):
+        self.append_json_action(func="setFontProperty", args=["size", value])
+
+    @property
+    def color(self):
+        raise NotImplementedError()
+
+    @color.setter
+    def color(self, color_or_rgb):
+        if not isinstance(color_or_rgb, str):
+            raise ValueError('Color must be supplied in hex format e.g., "#FFA500".')
+        self.append_json_action(func="setFontProperty", args=["color", color_or_rgb])
+
+    @property
+    def name(self):
+        raise NotImplementedError()
+
+    @name.setter
+    def name(self, value):
+        self.append_json_action(func="setFontProperty", args=["name", value])
 
 
 if __name__ == "__main__":
