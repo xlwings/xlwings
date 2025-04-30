@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.33.13 (Apr 30, 2025)
+-----------------------
+
+This is a maintenance release with no features or bug fixes.
+
 v0.33.12 (Apr 17, 2025)
 -----------------------
 
