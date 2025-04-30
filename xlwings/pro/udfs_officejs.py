@@ -483,10 +483,11 @@ def script(f=None, target_cell=None, config=None, required_roles=None):
                 if param_name in type_hints and type_hints[param_name] == xw.Book:
                     return arg_value
 
-            raise XlwingsError("No xw.Book found in your function arguments!")
+            raise XlwingsError("No xlwings.Book found in your function arguments!")
 
-        wrapper.target_cell = target_cell
-        wrapper.config = config
+        wrapper.__xlscript__ = {}
+        wrapper.__xlscript__["target_cell"] = target_cell
+        wrapper.__xlscript__["config"] = config
         return wrapper
 
     if f is None:
@@ -524,6 +525,21 @@ async def custom_scripts_call(
         book = func(*args)
 
     return book
+
+
+def custom_scripts_meta(module):
+    scripts_meta = []
+    for name, func in inspect.getmembers(module, inspect.isfunction):
+        meta = getattr(func, "__xlscript__", None)
+        if meta:
+            scripts_meta.append(
+                {
+                    "function_name": name,
+                    "target_cell": meta.get("target_cell"),
+                    "config": meta.get("config"),
+                }
+            )
+    return scripts_meta
 
 
 # Socket.io (sid is the session ID)
@@ -568,7 +584,7 @@ async def sio_disconnect(sid):
         for task in asyncio.all_tasks()
         if task.get_name().startswith("xlwings")
     ]
-    logger.info(f"Active xlwings tasks:" f"{active_tasks}")
+    logger.info(f"Active xlwings tasks: {active_tasks}")
 
 
 async def sio_custom_function_call(
