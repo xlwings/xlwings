@@ -460,10 +460,15 @@ def custom_functions_meta(module, typehinted_params_to_exclude=None):
 
 
 # Custom scripts
-def script(f=None, target_cell=None, config=None, required_roles=None):
-    if config is None:
-        config = {}
-
+def script(
+    f=None,
+    required_roles=None,
+    include=None,
+    exclude=None,
+    button_ref=None,
+    show_taskpane=None,
+    **kwargs,
+):
     def inner(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -485,9 +490,20 @@ def script(f=None, target_cell=None, config=None, required_roles=None):
 
             raise XlwingsError("No xlwings.Book found in your function arguments!")
 
-        wrapper.__xlscript__ = {}
-        wrapper.__xlscript__["target_cell"] = target_cell
-        wrapper.__xlscript__["config"] = config
+        wrapper.__xlscript__ = {
+            "required_roles": required_roles,
+            "include": include,
+            "exclude": exclude,
+            # target_cell is deprecated
+            "button_ref": button_ref or kwargs.get("target_cell"),
+            "show_taskpane": show_taskpane,
+        }
+        wrapper.__xlscript__.update(kwargs)
+
+        # For backward compatibility with deprecated 'config' parameter
+        if "config" in kwargs and isinstance(kwargs["config"], dict):
+            wrapper.__xlscript__.update(kwargs["config"])
+
         return wrapper
 
     if f is None:
@@ -532,13 +548,10 @@ def custom_scripts_meta(module):
     for name, func in inspect.getmembers(module, inspect.isfunction):
         meta = getattr(func, "__xlscript__", None)
         if meta:
-            scripts_meta.append(
-                {
-                    "function_name": name,
-                    "target_cell": meta.get("target_cell"),
-                    "config": meta.get("config"),
-                }
-            )
+            script_entry = {"function_name": name}
+            if isinstance(meta, dict):
+                script_entry.update(meta)
+            scripts_meta.append(script_entry)
     return scripts_meta
 
 
