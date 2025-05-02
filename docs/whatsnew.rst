@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.33.14 (May 2, 2025)
+----------------------
+
+* :bdg-info:`Enhancement` :bdg-secondary:`PRO` xlwings Server: enhanced script decorator, see https://server.xlwings.org.
+
 v0.33.13 (Apr 30, 2025)
 -----------------------
 
