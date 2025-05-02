@@ -465,7 +465,7 @@ def script(
     required_roles=None,
     include=None,
     exclude=None,
-    button_ref=None,
+    button=None,
     show_taskpane=None,
     **kwargs,
 ):
@@ -495,7 +495,7 @@ def script(
             "include": include,
             "exclude": exclude,
             # target_cell is deprecated
-            "button_ref": button_ref or kwargs.get("target_cell"),
+            "button": button or kwargs.get("target_cell"),
             "show_taskpane": show_taskpane,
         }
         wrapper.__xlscript__.update(kwargs)
@@ -550,7 +550,12 @@ def custom_scripts_meta(module):
         if meta:
             script_entry = {"function_name": name}
             if isinstance(meta, dict):
-                script_entry.update(meta)
+                # Allow include/exclude to be delivered as list
+                meta_copy = meta.copy()
+                for key in ["include", "exclude"]:
+                    if key in meta_copy and isinstance(meta_copy[key], list):
+                        meta_copy[key] = ",".join(meta_copy[key])
+                script_entry.update(meta_copy)
             scripts_meta.append(script_entry)
     return scripts_meta
 
