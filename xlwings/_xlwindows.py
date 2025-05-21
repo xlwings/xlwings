@@ -1753,6 +1753,8 @@ class Font(base_classes.Font):
 
     @color.setter
     def color(self, color_or_rgb):
+        if isinstance(color_or_rgb, str):
+            color_or_rgb = utils.hex_to_rgb(color_or_rgb)
         # TODO: refactor
         if self.xl is not None:
             if isinstance(self.parent, Shape):
