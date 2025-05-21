@@ -1398,6 +1398,8 @@ class Font(base_classes.Font):
 
     @color.setter
     def color(self, color_or_rgb):
+        if isinstance(color_or_rgb, str):
+            color_or_rgb = utils.hex_to_rgb(color_or_rgb)
         if self.xl is not None:
             if isinstance(self.parent, (Range, Characters)):
                 obj = self.xl.color

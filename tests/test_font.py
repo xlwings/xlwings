@@ -49,6 +49,8 @@ def test_range_font_color(app):
     assert sheet["A1"].font.color == (0, 0, 0)
     sheet["A1"].font.color = (255, 0, 0)
     assert sheet["A1"].font.color == (255, 0, 0)
+    sheet["A1"].font.color = "#00FF00"
+    assert sheet["A1"].font.color == (0, 255, 0)
 
 
 def test_range_font_name(app):
