@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.33.15 (May 2, 2025)
+----------------------
+
+* :bdg-warning:`Bug Fix` Fixed a regression introduced with 0.33.12, which wouldn't accept hex colors anymore with Range.font.color (:issue:`2615`).
+
 v0.33.14 (May 2, 2025)
 ----------------------
 
