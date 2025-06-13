@@ -94,11 +94,7 @@ The 3rd party Open Source licenses document is built with `cargo about generate 
 
 ## Code formatting/linting
 
-This repo uses the following packages for code formatting/linting, see `pyproject.toml`:
-
-* black
-* ruff
-
+This repo uses `ruff` for code formatting/linting, see `pyproject.toml`.
 You can use the pre-commit hook under `.pre-commit-config.yaml`, see instructions at top of the file.
 
 ## Tests
@@ -110,6 +106,12 @@ See e.g., `test_font.py` for the new style of tests that are also fast.
 For running the xlwings pro related tests, you'll need to use the `noncommercial` license key, see: [Activate a developer key](https://docs.xlwings.org/en/latest/pro/license_key.html#activate-a-developer-key).
 
 To run the UDF tests, open `udf_tests.xlsm` in the `tests/udfs` directory and follow the instructions at the top of the file. The other files work accordingly.
+
+Run a unittest:
+
+```
+python -m unittest tests.test_range
+```
 
 ## Docs
 
