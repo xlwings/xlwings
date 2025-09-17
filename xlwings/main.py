@@ -13,6 +13,7 @@ import numbers
 import os
 import re
 import sys
+import time
 import warnings
 from contextlib import contextmanager
 from pathlib import Path
@@ -314,6 +315,10 @@ class App:
             ).impl
             if visible or visible is None:
                 self.visible = True
+            if add_book and not self.books:
+                # Simple hack for macOS where e.g., xw.view() wouldn't otherwise
+                # work if Excel isn't running yet
+                time.sleep(0.1)
         else:
             self.impl = impl
             if visible:
