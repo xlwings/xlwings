@@ -605,6 +605,37 @@ class TestRangeAttributes(TestBase):
         self.wb1.sheets[0]["A1"].wrap_text = True
         self.assertTrue(self.wb1.sheets[0]["A1"].wrap_text)
 
+    def test_range_coords_after_insert(self):
+        """Test that range coordinates update correctly after insert operations"""
+        sheet = self.wb1.sheets[0]
+        rng = sheet.range((1, 1))
+
+        # Initial coordinates
+        self.assertEqual(rng.row, 1)
+        self.assertEqual(rng.column, 1)
+        self.assertEqual(rng.address, "$A$1")
+
+        # Insert row above, shifting the range down
+        rng.insert(shift="down")
+
+        # Coordinates should reflect the new position
+        self.assertEqual(rng.row, 2)
+        self.assertEqual(rng.column, 1)
+        self.assertEqual(rng.address, "$A$2")
+
+        # Test insert with shift right
+        rng2 = sheet.range((1, 1))
+        self.assertEqual(rng2.row, 1)
+        self.assertEqual(rng2.column, 1)
+        self.assertEqual(rng2.address, "$A$1")
+
+        rng2.insert(shift="right")
+
+        # Should shift to the right
+        self.assertEqual(rng2.row, 1)
+        self.assertEqual(rng2.column, 2)
+        self.assertEqual(rng2.address, "$B$1")
+
 
 class TestRangeIndexing(TestBase):
     # 2d Range
