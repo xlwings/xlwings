@@ -34,20 +34,25 @@ pub enum CellValue {
     Empty,
 }
 
-impl IntoPy<PyObject> for CellValue {
-    fn into_py(self, py: Python) -> PyObject {
-        match self {
-            CellValue::Int(v) => v.to_object(py),
-            CellValue::Float(v) => v.to_object(py),
-            CellValue::String(v) => v.to_object(py),
-            CellValue::Bool(v) => v.to_object(py),
-            CellValue::Time(v) => v.to_object(py),
-            CellValue::DateTime(v) => v.to_object(py),
-            CellValue::Timedelta(v) => v.to_object(py),
-            CellValue::Empty => py.None(),
+impl<'py> IntoPyObject<'py> for CellValue {
+    type Target = PyAny;
+    type Output = Bound<'py, Self::Target>;
+    type Error = std::convert::Infallible;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, <Self as IntoPyObject<'py>>::Error> {
+        let result: Bound<'py, PyAny> = match self {
+            CellValue::Int(v) => v.into_pyobject(py).unwrap().into_any(),
+            CellValue::Float(v) => v.into_pyobject(py).unwrap().into_any(),
+            CellValue::String(v) => v.into_pyobject(py).unwrap().into_any(),
+            CellValue::Bool(v) => v.into_pyobject(py).unwrap().to_owned().into_any(),
+            CellValue::Time(v) => v.into_pyobject(py).unwrap().into_any(),
+            CellValue::DateTime(v) => v.into_pyobject(py).unwrap().into_any(),
+            CellValue::Timedelta(v) => v.into_pyobject(py).unwrap().into_any(),
+            CellValue::Empty => py.None().into_bound(py),
             // Errors are already converted to String or Empty
-            CellValue::Error(_) => String::from("Error").to_object(py),
-        }
+            CellValue::Error(_) => String::from("Error").into_pyobject(py).unwrap().into_any(),
+        };
+        Ok(result)
     }
 }
 
