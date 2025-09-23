@@ -938,6 +938,9 @@ def py_edit(args):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-v", "--version", action="version", version=f"xlwings {xw.__version__}"
+    )
     subparsers = parser.add_subparsers(dest="command")
     subparsers.required = True
 
