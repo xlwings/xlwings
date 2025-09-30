@@ -825,14 +825,15 @@ class Range(base_classes.Range):
 
     @property
     def coords(self):
-        if self._coords is None:
-            self._coords = (
+        if self.xl is not None:
+            return (
                 self.xl.first_row_index.get(),
                 self.xl.first_column_index.get(),
                 self.xl.count(each=kw.row),
                 self.xl.count(each=kw.column),
             )
-        return self._coords
+        else:
+            return self._coords
 
     @property
     def api(self):
