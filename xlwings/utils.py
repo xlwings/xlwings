@@ -618,9 +618,9 @@ def fullname_url_to_local_path(
         # Windows registry
         url_to_mount = get_url_to_mount()
         mount_point = None
-        for url_namespace, mount_point in url_to_mount.items():
-            if url.startswith(url_namespace):
-                local_path = Path(mount_point) / url[len(url_namespace) :]
+        for remote_path, mount_point in url_to_mount.items():
+            if url.startswith(remote_path):
+                local_path = Path(mount_point) / url[len(remote_path) :].removeprefix("/")
                 if local_path.is_file():
                     return str(local_path)
         # Horrible fallback
@@ -749,8 +749,9 @@ def get_url_to_mount():
                     ) as key:
                         try:
                             mount_point, _ = winreg.QueryValueEx(key, "MountPoint")
-                            url_namespace, _ = winreg.QueryValueEx(key, "URLNamespace")
-                            url_to_mount[url_namespace] = mount_point
+                            remote_path, _ =  winreg.QueryValueEx(key, "FullRemotePath")
+                            remote_path = re.sub(r"^https:/(?!/)", "https://", remote_path)
+                            url_to_mount[remote_path] = mount_point
                         except FileNotFoundError:
                             pass
         except FileNotFoundError:
