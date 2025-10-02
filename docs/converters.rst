@@ -34,12 +34,16 @@ Action                          **Range objects**                               
 Default Converter
 -----------------
 
-If no options are set, the following conversions are performed:
+If no options are set, the following default conversions are applied when accessing ``Range.value``:
 
-* single cells are read in as ``floats`` in case the Excel cell holds a number, as ``str`` in case it holds text,
-  as ``datetime`` if it contains a date and/or time, as ``bool`` if it contains ``TRUE`` or ``FALSE``, and as ``None`` in case it is empty.
-* columns/rows are read in as lists, e.g. ``[None, 1.0, 'a string']``
-* 2d cell ranges are read in as list of lists, e.g. ``[[None, 1.0, 'a string'], [None, 2.0, 'another string']]``
+* Numbers -> ``floats``
+* Text -> ``str``
+* Date and/or time -> ``datetime``
+* ``TRUE`` or ``FALSE`` -> ``bool``
+* Empty cell -> ``None``
+* Windows only: Currency -> ``Decimal``, truncated to 4 decimals
+
+Columns/rows are read in as lists, e.g. ``[None, 1.0, 'a string']`` and 2d cell ranges are read in as list of lists, e.g. ``[[None, 1.0, 'a string'], [None, 2.0, 'another string']]``.
 
 The following options can be set:
 
