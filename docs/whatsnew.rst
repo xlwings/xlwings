@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v0.33.16 (Oct 10, 2025)
+-----------------------
+
+* :bdg-info:`Enhancement` Added support for Python 3.14 (:issue:`2643`).
+* :bdg-info:`Enhancement` xlwings CLI now has a ``--version`` / ``-v`` argument (:issue:`2644`).
+* :bdg-warning:`Bug Fix` Fix ``xw.App()`` on macOS so that commands like ``xw.view()`` work even if Excel isn't running yet (:issue:`2642`).
+
 v0.33.15 (May 2, 2025)
 ----------------------
 
