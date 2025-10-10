@@ -106,6 +106,16 @@ class TestShape(TestBase):
         self.assertEqual(int(pic.width), w * 2)
         self.assertEqual(int(pic.height), h * 2)
 
+    def test_formula(self):
+        filename = os.path.join(this_dir, "sample_picture.png")
+        self.wb1.sheets[0].pictures.add(filename, name="pic1")
+
+        sh = self.wb1.sheets[0].shapes[0]
+        sh.formula = "A2:C3"
+        self.assertEqual((sh.formula).strip(), "A2:C3")
+        sh.formula = "B3"
+        self.assertEqual((sh.formula).strip(), "B3")
+
 
 class TestPicture(TestBase):
     def test_two_books(self):
