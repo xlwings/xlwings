@@ -71,4 +71,3 @@ Links
 * Book (O'Reilly, 2021): https://www.xlwings.org/book
 * Video Course: https://training.xlwings.org/p/xlwings
 * Source Code: https://github.com/xlwings/xlwings
-* xltrail (Version control for Excel files): https://www.xltrail.com 
