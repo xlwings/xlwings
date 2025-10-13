@@ -128,6 +128,7 @@ if sys.platform.startswith("win") and has_pywin32:
         xlarg as arg,
         xlfunc as func,
         xlret as ret,
+        xlsub as script,
         xlsub as sub,
     )
 
@@ -168,6 +169,8 @@ else:
             return inner
         else:
             return inner(f)
+
+    script = sub
 
     def ret(*args, **kwargs):
         def inner(f):
