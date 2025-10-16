@@ -334,3 +334,25 @@ class DateConverter(Converter):
 
 
 DateConverter.register(datetime.date)
+
+
+class TupleConverter(Converter):
+    @classmethod
+    def read_value(cls, value, options):
+        if isinstance(value, list):
+            if value and isinstance(value[0], list):
+                # 2D list: convert each row to a tuple
+                return tuple(tuple(row) for row in value)
+            else:
+                # 1D list: convert to a simple tuple
+                return tuple(value)
+        # Scalar
+        return (value,)
+
+    @classmethod
+    def write_value(cls, value, options):
+        # Don't do anything as the engines know how to write tuples
+        return value
+
+
+TupleConverter.register(tuple)
