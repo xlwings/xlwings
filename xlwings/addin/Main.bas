@@ -452,6 +452,8 @@ Private Sub XLPyLoadDLL()
         ' Otherwise you'll have to add the full path for the interpreter in addition to the conda infos
         If CondaEnv = "base" Then
             PYTHON_WIN = CondaPath & "\" & PYTHON_WIN
+        ElseIf InStr(CondaEnv, "\") > 0 Then
+            PYTHON_WIN = CondaEnv & "\" & PYTHON_WIN
         Else
             PYTHON_WIN = CondaPath & "\envs\" & CondaEnv & "\" & PYTHON_WIN
         End If
