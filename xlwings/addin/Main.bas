@@ -448,10 +448,11 @@ Private Sub XLPyLoadDLL()
     CondaEnv = GetConfig("CONDA ENV")
 
     If (PYTHON_WIN = "python" Or PYTHON_WIN = "pythonw") And (CondaPath <> "" And CondaEnv <> "") Then
-        ' This only works if the envs are in their default location
-        ' Otherwise you'll have to add the full path for the interpreter in addition to the conda infos
         If CondaEnv = "base" Then
             PYTHON_WIN = CondaPath & "\" & PYTHON_WIN
+        ElseIf InStr(CondaEnv, "\") > 0 Then
+            ' Path to a non-default env location, see GH 2655
+            PYTHON_WIN = CondaEnv & "\" & PYTHON_WIN
         Else
             PYTHON_WIN = CondaPath & "\envs\" & CondaEnv & "\" & PYTHON_WIN
         End If
