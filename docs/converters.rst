@@ -268,6 +268,15 @@ The dictionary converter turns two Excel columns into a dictionary. If the data 
 
 Note: instead of ``dict``, you can also use ``OrderedDict`` from ``collections``.
 
+Tuple converter
+~~~~~~~~~~~~~~~
+
+Get the values as (nested) tuples instead of (nested) lists. This can be helpful in connection with caching, as tuples are immutable and hashable.
+
+>>> sheet = xw.sheets.active
+>>> sheet['A1:B2'].options(tuple).value
+(('a', 1.0), ('b', 2.0))
+
 Numpy array converter
 ~~~~~~~~~~~~~~~~~~~~~
 
