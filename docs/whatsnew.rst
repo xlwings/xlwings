@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v0.33.17 (Dec 6, 2025)
+----------------------
+
+* :bdg-info:`Enhancement` Added a new ``tuple`` converter to turn values into tuple of tuples instead of list of lists (:issue:`2648`).
+* :bdg-info:`Enhancement` Better support for non-default locations of Conda envs (:issue:`2656`).
+* :bdg-danger:`Breaking Change` The ``@sub`` decorator is now called `@script` to be in line with xlwings Lite. ``@sub`` is deprecated (:issue:`2646`).
+
 v0.33.16 (Oct 10, 2025)
 -----------------------
 
