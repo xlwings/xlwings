@@ -29,10 +29,10 @@ UDF decorators
 
         .. versionadded:: 0.10.3
 
-.. py:function:: xlwings.sub()
+.. py:function:: xlwings.script()
 
-    Functions decorated with ``xlwings.sub`` will be imported as ``Sub`` (i.e. macro) to Excel when running
-    "Import Python UDFs".
+    Functions decorated with ``xlwings.script`` will be imported as ``Sub`` (i.e., macro) to Excel when running
+    "Import Python UDFs". Previously, ``xlwings.script`` was called ``xlwings.subs``, which is now deprecated.
 
 .. py:function:: xlwings.arg(arg, convert=None, **options)
 
