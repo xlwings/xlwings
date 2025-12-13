@@ -1,5 +1,6 @@
 import datetime
 import datetime as dt
+import json
 import math
 from collections import OrderedDict
 from typing import Any, Sequence
@@ -356,3 +357,48 @@ class TupleConverter(Converter):
 
 
 TupleConverter.register(tuple)
+
+
+class JsonConverter(Converter):
+    """Useful for sending context to LLMs"""
+
+    @classmethod
+    def read_value(cls, value, options):
+        def serialize_datetime(obj):
+            if isinstance(obj, (datetime.datetime, datetime.date)):
+                return obj.isoformat()
+            raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+
+        return json.dumps(value, default=serialize_datetime)
+
+    @classmethod
+    def write_value(cls, value, options):
+        def deserialize_datetime(obj):
+            if isinstance(obj, list):
+                return [deserialize_datetime(item) for item in obj]
+            elif isinstance(obj, str):
+                try:
+                    return dt.datetime.fromisoformat(obj)
+                except ValueError:
+                    return obj
+            else:
+                return obj
+
+        def pad_jagged_array(values):
+            if isinstance(values, list) and values and isinstance(values[0], list):
+                max_length = max(len(row) for row in values)
+                return [row + [None] * (max_length - len(row)) for row in values]
+            else:
+                return values
+
+        try:
+            result = json.loads(value)
+        except json.JSONDecodeError:
+            return value
+        result = deserialize_datetime(result)
+        # LLMs often give back things like this: [['a', 'b'], ['c']]
+        result = pad_jagged_array(result)
+        return result
+
+
+JsonConverter.register("json")
