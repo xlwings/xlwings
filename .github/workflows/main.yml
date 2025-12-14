@@ -142,8 +142,8 @@ jobs:
           [
             { os: "windows-latest", target: "x86_64" },
 
-            { os: "macos-13", target: "x86_64" },
-            { os: "macos-13", target: "aarch64" },
+            { os: "macos-15", target: "x86_64" },
+            { os: "macos-15", target: "aarch64" },
 
             { os: "ubuntu-latest", target: "x86_64" },
             { os: "ubuntu-latest", target: "any" },  # HACK: replace with WASM build
