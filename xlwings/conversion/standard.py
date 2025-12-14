@@ -376,6 +376,8 @@ class JsonConverter(Converter):
         def deserialize_datetime(obj):
             if isinstance(obj, list):
                 return [deserialize_datetime(item) for item in obj]
+            elif isinstance(obj, dict):
+                return {key: deserialize_datetime(value) for key, value in obj.items()}
             elif isinstance(obj, str):
                 try:
                     return dt.datetime.fromisoformat(obj)
@@ -397,6 +399,7 @@ class JsonConverter(Converter):
             return value
         result = deserialize_datetime(result)
         # LLMs often give back things like this: [['a', 'b'], ['c']]
+        # TODO: should be done in Ensure2DStage, see  see write() in __init__
         result = pad_jagged_array(result)
         return result
 
