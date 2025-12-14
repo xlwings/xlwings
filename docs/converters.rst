@@ -277,6 +277,15 @@ Get the values as (nested) tuples instead of (nested) lists. This can be helpful
 >>> sheet['A1:B2'].options(tuple).value
 (('a', 1.0), ('b', 2.0))
 
+JSON converter
+~~~~~~~~~~~~~~
+
+Read and write values as JSON-formatted strings. This is especially useful to interact with LLMs.
+
+>>> sheet = xw.sheets.active
+>>> sheet['A1:B2'].options("json").value
+'[["2024-01-01T00:00:00", "text", true], [null, 42.0, false]]'
+
 Numpy array converter
 ~~~~~~~~~~~~~~~~~~~~~
 

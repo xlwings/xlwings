@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.33.18 (Dec 14, 2025)
+-----------------------
+
+* :bdg-info:`Enhancement` Added new ``json`` converter to read and write values as JSON-formatted strings (:issue:`2657`).
+
 v0.33.17 (Dec 6, 2025)
 ----------------------
 
