@@ -283,7 +283,7 @@ JSON converter
 Read and write values as JSON-formatted strings. This is especially useful to interact with LLMs.
 
 >>> sheet = xw.sheets.active
->>> sheet['A1:B2'].options("json").value
+>>> sheet['A1:C2'].options("json").value
 '[["2024-01-01T00:00:00", "text", true], [null, 42.0, false]]'
 
 Numpy array converter
