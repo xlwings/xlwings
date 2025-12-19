@@ -393,8 +393,33 @@ class JsonConverter(Converter):
             else:
                 return values
 
+        def strip_markdown_code_block(text):
+            """Remove markdown code block delimiters (```json```, etc.)"""
+            if not isinstance(text, str):
+                return text
+
+            text = text.strip()
+            # Remove opening code block marker (```json, ```JSON, or just ```)
+            if text.startswith("```"):
+                # Find the end of the first line (opening marker)
+                first_newline = text.find("\n")
+                if first_newline != -1:
+                    text = text[first_newline + 1 :]
+                else:
+                    # Just ``` without newline, remove it
+                    text = text[3:]
+
+            # Remove closing code block marker
+            if text.endswith("```"):
+                text = text[:-3]
+
+            return text.strip()
+
+        # Strip potential markdown code blocks before parsing
+        cleaned_value = strip_markdown_code_block(value)
+
         try:
-            result = json.loads(value)
+            result = json.loads(cleaned_value)
         except json.JSONDecodeError:
             return value
         result = deserialize_datetime(result)
