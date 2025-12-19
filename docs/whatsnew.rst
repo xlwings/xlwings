@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.33.19 (Dec 19, 2025)
+-----------------------
+
+* :bdg-info:`Enhancement` Improved the ``"json"`` converter by stripping off markdown formatting, which is common with LLM responses (:issue:`2663`).
+* :bdg-info:`Enhancement` Added support for ``ndim="natural"``. The key difference with the default behavior is that vertical Excel ranges, i.e., columns, preserve their orientation (``[[1], [2]]``, instead of ``[1, 2]``), see :ref:`converters:ndim`.
+
 v0.33.18 (Dec 14, 2025)
 -----------------------
 
