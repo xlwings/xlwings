@@ -145,3 +145,22 @@ def test_write_json_jagged_array(app):
     sheet["A1"].options("json").value = '[["a", "b"], ["c"]]'
     result = sheet["A1:B2"].value
     assert result == [["a", "b"], ["c", None]]
+
+
+def test_write_json_with_markdown_code_block(app):
+    """Test that markdown code blocks (```json...```) are stripped from AI responses"""
+    sheet = app.books[0].sheets[0]
+    sheet["A1:D2"].clear()
+    # Simulate AI-generated response with markdown code block
+    ai_response = """```json
+[
+    ["Conglomerate", "US", 95000, 32.8],
+    ["Biotechnology", "US", 50000, 56.2]
+]
+```"""
+    sheet["A1"].options("json").value = ai_response
+    result = sheet["A1:D2"].value
+    assert result == [
+        ["Conglomerate", "US", 95000.0, 32.8],
+        ["Biotechnology", "US", 50000.0, 56.2],
+    ]
