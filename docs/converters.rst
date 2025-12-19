@@ -66,6 +66,22 @@ Force the value to have either 1 or 2 dimensions regardless of the shape of the 
 >>> sheet['A1:A2'].options(ndim=2).value
 [[1.0], [3.0]]
 
+To preserve the vertical orientation of columns, use ``ndim="natural"``. This returns scalars for
+single cells, 1D lists for horizontal ranges, and 2D lists for vertical or multi-row ranges:
+
+>>> sheet['A1'].value = 1
+>>> sheet['A1'].options(ndim="natural").value
+1.0
+>>> sheet['A1'].value = ["Industry", "Country", "Employees", "Revenue"]
+>>> sheet['A1:D1'].options(ndim="natural").value
+['Industry', 'Country', 'Employees', 'Revenue']
+>>> sheet['A1'].value = [["3M"], ["AbbVie"], ["Apple"]]
+>>> sheet['A1:A3'].options(ndim="natural").value  # Key difference to default
+[['3M'], ['AbbVie'], ['Apple']]
+>>> sheet['A1'].value = [[1, 2, 3], [4, 5, 6]]
+>>> sheet['A1:C2'].options(ndim="natural").value
+[[1, 2, 3], [4, 5, 6]]
+
 numbers
 ~~~~~~~
 
