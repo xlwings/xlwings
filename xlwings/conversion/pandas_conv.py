@@ -19,7 +19,8 @@ if pd:
             if isinstance(col, str):
                 df[col] = df[col].apply(xlserial_to_datetime)
             else:
-                df[col] = df[col].apply(xlserial_to_datetime)
+                col_name = df.columns[col]
+                df[col_name] = df.iloc[:, col].apply(xlserial_to_datetime)
         return df
 
     def write_value(cls, value, options):
