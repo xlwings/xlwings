@@ -6,6 +6,7 @@ they work correctly with our fix.
 """
 
 from typing import Iterable
+from xlwings.conversion import ValueAccessor, Accessor
 
 
 def test_example_1_sub_with_none_return_type():
@@ -24,20 +25,11 @@ def test_example_1_sub_with_none_return_type():
     """
     # We can't actually run the decorator on Linux without Excel,
     # but we can verify the conversion logic works
-    from xlwings.conversion import write
-    from xlwings.conversion import accessors, ValueAccessor, Accessor
+    from xlwings.conversion import _get_accessor
     
     # Simulate what happens when a function has return type hint -> None
     # The decorator would set options like this:
-    options = {"convert": type(None)}
-    
-    # The write function should handle this without errors
-    convert = options.get("convert", None)
-    accessor = accessors.get(convert, ValueAccessor)
-    
-    # Our fix: Fallback to ValueAccessor if the accessor is not a subclass of Accessor
-    if not (isinstance(accessor, type) and issubclass(accessor, Accessor)):
-        accessor = ValueAccessor
+    accessor = _get_accessor(type(None))
     
     # Should not raise AttributeError
     assert accessor == ValueAccessor
@@ -58,22 +50,12 @@ def test_example_2_sub_with_iterable_arg():
         def foo(asdf: Iterable[str]):
             do_something()
     """
-    from xlwings.conversion import read
-    from xlwings.conversion import accessors, ValueAccessor, Accessor
-    from collections.abc import Iterable as AbcIterable
+    from xlwings.conversion import _get_accessor
     
     # Simulate what happens when a function has Iterable[str] argument
     # The extract_type_and_annotations function extracts the top-level type
     # So from Iterable[str], it extracts just Iterable
-    options = {"convert": Iterable}
-    
-    # The read function should handle this without errors
-    convert = options.get("convert", None)
-    accessor = accessors.get(convert, ValueAccessor)
-    
-    # Our fix: Fallback to ValueAccessor if the accessor is not a subclass of Accessor
-    if not (isinstance(accessor, type) and issubclass(accessor, Accessor)):
-        accessor = ValueAccessor
+    accessor = _get_accessor(Iterable)
     
     # Should not raise AttributeError
     assert accessor == ValueAccessor
@@ -82,17 +64,13 @@ def test_example_2_sub_with_iterable_arg():
 
 def test_registered_types_still_work():
     """Verify that registered types still work correctly after our fix"""
-    from xlwings.conversion import accessors, ValueAccessor, Accessor
+    from xlwings.conversion import _get_accessor
     
     # Test with some registered types
     registered_types = [None, list, str, int, float, bool]
     
     for type_hint in registered_types:
-        accessor = accessors.get(type_hint, ValueAccessor)
-        
-        # Apply the fix logic
-        if not (isinstance(accessor, type) and issubclass(accessor, Accessor)):
-            accessor = ValueAccessor
+        accessor = _get_accessor(type_hint)
         
         # All registered types should resolve to a valid Accessor
         assert isinstance(accessor, type) and issubclass(accessor, Accessor)

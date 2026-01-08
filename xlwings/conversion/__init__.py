@@ -78,12 +78,23 @@ __all__ = (
 )
 
 
-def read(rng, value, options, engine_name=None):
-    convert = options.get("convert", None)
+def _get_accessor(convert):
+    """
+    Get an accessor for the given type, falling back to ValueAccessor for unregistered types.
+    
+    This ensures that unregistered types (like NoneType or Iterable) don't cause AttributeError
+    when the conversion system tries to call .reader() or .router() on them.
+    """
     accessor = accessors.get(convert, ValueAccessor)
     # Fallback to ValueAccessor if the accessor is not a subclass of Accessor
     if not (isinstance(accessor, type) and issubclass(accessor, Accessor)):
         accessor = ValueAccessor
+    return accessor
+
+
+def read(rng, value, options, engine_name=None):
+    convert = options.get("convert", None)
+    accessor = _get_accessor(convert)
     pipeline = accessor.reader(options)
     ctx = ConversionContext(rng=rng, value=value, engine_name=engine_name)
     pipeline(ctx)
@@ -107,10 +118,7 @@ def write(value, rng, options, engine_name=None):
                     "All elements of a 2d list or tuple must be of the same length"
                 )
     convert = options.get("convert", None)
-    accessor = accessors.get(convert, ValueAccessor)
-    # Fallback to ValueAccessor if the accessor is not a subclass of Accessor
-    if not (isinstance(accessor, type) and issubclass(accessor, Accessor)):
-        accessor = ValueAccessor
+    accessor = _get_accessor(convert)
     pipeline = accessor.router(value, rng, options).writer(options)
     ctx = ConversionContext(rng=rng, value=value, engine_name=engine_name)
     pipeline(ctx)
