@@ -81,7 +81,6 @@ __all__ = (
 def _get_accessor(convert):
     """
     Get an accessor for the given type, falling back to ValueAccessor for unregistered types.
-    
     This ensures that unregistered types (like NoneType or Iterable) don't cause AttributeError
     when the conversion system tries to call .reader() or .router() on them.
     """

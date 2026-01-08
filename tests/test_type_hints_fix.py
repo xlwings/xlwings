@@ -1,9 +1,7 @@
 """
-Test to verify the fix for type hint analysis breaking subs.
-
-This test verifies that type hints like 'None' and 'Iterable[str]' 
+Tests to verify the fix for type hint analysis breaking subs.
+These tests verify that type hints like 'None' and 'Iterable[str]' 
 don't cause errors when used with @xw.sub and @xw.func decorators.
-
 The core fix is in xlwings/conversion/__init__.py where we ensure that
 unregistered types (like NoneType or Iterable) fallback to ValueAccessor.
 """
