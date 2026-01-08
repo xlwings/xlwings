@@ -85,7 +85,8 @@ def _get_accessor(convert):
     when the conversion system tries to call .reader() or .router() on them.
     """
     accessor = accessors.get(convert, ValueAccessor)
-    # Fallback to ValueAccessor if the accessor is not a subclass of Accessor
+    # Additional safety check: ensure we have a valid Accessor subclass
+    # This handles edge cases where the accessor might not be properly registered
     if not (isinstance(accessor, type) and issubclass(accessor, Accessor)):
         accessor = ValueAccessor
     return accessor
