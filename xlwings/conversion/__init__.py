@@ -80,7 +80,11 @@ __all__ = (
 
 def read(rng, value, options, engine_name=None):
     convert = options.get("convert", None)
-    pipeline = accessors.get(convert, convert).reader(options)
+    accessor = accessors.get(convert, ValueAccessor)
+    # Fallback to ValueAccessor if the accessor is not a subclass of Accessor
+    if not (isinstance(accessor, type) and issubclass(accessor, Accessor)):
+        accessor = ValueAccessor
+    pipeline = accessor.reader(options)
     ctx = ConversionContext(rng=rng, value=value, engine_name=engine_name)
     pipeline(ctx)
     return ctx.value
@@ -103,9 +107,11 @@ def write(value, rng, options, engine_name=None):
                     "All elements of a 2d list or tuple must be of the same length"
                 )
     convert = options.get("convert", None)
-    pipeline = (
-        accessors.get(convert, convert).router(value, rng, options).writer(options)
-    )
+    accessor = accessors.get(convert, ValueAccessor)
+    # Fallback to ValueAccessor if the accessor is not a subclass of Accessor
+    if not (isinstance(accessor, type) and issubclass(accessor, Accessor)):
+        accessor = ValueAccessor
+    pipeline = accessor.router(value, rng, options).writer(options)
     ctx = ConversionContext(rng=rng, value=value, engine_name=engine_name)
     pipeline(ctx)
     return ctx.value
