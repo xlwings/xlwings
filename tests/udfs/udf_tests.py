@@ -71,6 +71,7 @@ def read_date(x):
 
 @xw.func
 def read_time(x):
+    # FIXME: This does not work, because `x` is a float here.
     return x == time(12, 13, 14)
 
 
@@ -91,6 +92,7 @@ def write_datetime():
 
 @xw.func
 def write_time():
+    # FIXME: For some reason, this ends up as a time on `1900/01/02` in Excel instead of on `1900/01/01`.
     return time(12, 13, 14)
 
 
