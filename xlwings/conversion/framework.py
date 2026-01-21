@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Dict, Any, Type
+
 import xlwings
 
 
@@ -79,7 +83,7 @@ class Pipeline(list):
             stage(*args, **kwargs)
 
 
-accessors = {}
+accessors: Dict[Any, Type[Accessor]] = {}
 
 
 class Accessor:
