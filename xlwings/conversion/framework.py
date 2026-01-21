@@ -93,8 +93,8 @@ class Accessor:
 
     @classmethod
     def register(cls, *types):
-        for type in types:
-            accessors[type] = cls
+        for type_ in types:
+            accessors[type_] = cls
 
     @classmethod
     def router(cls, value, rng, options):
