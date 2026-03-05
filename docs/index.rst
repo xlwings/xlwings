@@ -66,7 +66,6 @@ on **Windows** and **Mac**.
     :hidden:
 
     pro/license_key
-    pro/server/index
     pro/reports/index
     pro/reader
     pro/release
