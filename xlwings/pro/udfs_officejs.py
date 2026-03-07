@@ -462,6 +462,7 @@ def custom_functions_meta(module, typehinted_params_to_exclude=None):
 # Custom scripts
 def script(
     f=None,
+    name=None,
     required_roles=None,
     include=None,
     exclude=None,
@@ -491,6 +492,7 @@ def script(
             raise XlwingsError("No xlwings.Book found in your function arguments!")
 
         wrapper.__xlscript__ = {
+            "name": name,
             "required_roles": required_roles,
             "include": include,
             "exclude": exclude,
