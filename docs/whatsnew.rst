@@ -4,7 +4,7 @@ Changelog
 v0.33.21 (Mar 9, 2026)
 ----------------------
 
-* :bdg-info:`Enhancement` Added `name` argument to `@script` decorator for use by xlwings Lite (:issue: `2677`).
+* :bdg-info:`Enhancement` Added ``name`` argument to ``@script`` decorator for use by xlwings Lite (:issue:`2677`).
 
 v0.33.20 (Jan 21, 2026)
 -----------------------
