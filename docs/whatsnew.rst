@@ -1,8 +1,13 @@
 Changelog
 =========
 
+v0.33.21 (Mar 9, 2025)
+----------------------
+
+* :bdg-info:`Enhancement` Added `name` argument to `@script` decorator for use by xlwings Lite (:issue: `2677`).
+
 v0.33.20 (Jan 21, 2025)
-------------------------
+-----------------------
 
 * :bdg-info:`Enhancement` :bdg-secondary:`PRO` Allow to use top-level decorator imports on xlwings Server even if pywin32 is installed (:issue:`2669`).
 
