@@ -343,7 +343,10 @@ class ComRange(Range):
 
         await asyncio.sleep(max_backoff * random() / 1e3)
         return await self._com(
-            fn, *args, max_backoff=min(max_backoff * exp_base, MAX_BACKOFF_MS)
+            fn,
+            *args,
+            max_backoff=min(max_backoff * exp_base, MAX_BACKOFF_MS),
+            exp_base=exp_base,
         )
 
     async def clear_contents(self):
