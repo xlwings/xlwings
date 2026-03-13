@@ -262,6 +262,7 @@ def xlarg(arg, convert=None, **kwargs):
 udf_modules = {}
 
 RPC_E_SERVERCALL_RETRYLATER = {-2147418111, -2146777998}
+EXCEPTION_OCCURRED = {-2147352567}
 MAX_BACKOFF_MS = 512
 
 
@@ -332,7 +333,11 @@ class ComRange(Range):
             # to handle the TypeInfo call when requested
             pass
         except Exception as e:
-            if getattr(e, "hresult", 0) not in RPC_E_SERVERCALL_RETRYLATER:
+            if getattr(e, "hresult", 0) in RPC_E_SERVERCALL_RETRYLATER:
+                pass
+            elif getattr(e, "hresult", 0) in EXCEPTION_OCCURRED:
+                pass
+            else:
                 raise
 
         await asyncio.sleep(backoff / 1e3)
