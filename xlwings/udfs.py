@@ -316,7 +316,7 @@ class ComRange(Range):
 
     async def _com(self, fn, *args, max_backoff=1, exp_base=2):
         """
-        Errors retries follow a random exponential backoff to a cap.
+        Retries follow a random exponential backoff to a cap.
 
         :param max_backoff: if the call fails, maximum time to wait in ms
         :param exp_base: base of the exponential ramp up. Default: 2
