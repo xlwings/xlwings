@@ -262,7 +262,8 @@ def xlarg(arg, convert=None, **kwargs):
 udf_modules = {}
 
 RPC_E_SERVERCALL_RETRYLATER = {-2147418111, -2146777998}
-EXCEPTION_OCCURRED = {-2147352567}
+DISP_E_EXCEPTION = -2147352567
+RETRYABLE_SCODES = {None, -2146777998}
 MAX_BACKOFF_MS = 512
 
 
@@ -334,10 +335,14 @@ class ComRange(Range):
             # to handle the TypeInfo call when requested
             pass
         except Exception as e:
-            if getattr(e, "hresult", 0) in RPC_E_SERVERCALL_RETRYLATER:
+            hresult = getattr(e, "hresult", 0)
+            if hresult in RPC_E_SERVERCALL_RETRYLATER:
                 pass
-            elif getattr(e, "hresult", 0) in EXCEPTION_OCCURRED:
-                pass
+            elif hresult == DISP_E_EXCEPTION:
+                exc = e.args[2] if len(getattr(e, "args", ())) > 2 else None
+                scode = exc[5] if exc else None
+                if scode not in RETRYABLE_SCODES:
+                    raise
             else:
                 raise
 
