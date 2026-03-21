@@ -2943,6 +2943,11 @@ class Range:
 
         .. versionadded:: 0.24.8
         """
+        if sys.platform == "emscripten":
+            if path is None:
+                raise ValueError("path is required in xlwings Lite")
+            self.impl.to_png(str(path))
+            return
         if not PIL:
             raise XlwingsError("Range.to_png() requires an installation of Pillow.")
         path = utils.fspath(path)

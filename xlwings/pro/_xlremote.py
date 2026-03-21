@@ -841,6 +841,9 @@ class Range(base_classes.Range):
     def adjust_indent(self, amount):
         self.append_json_action(func="rangeAdjustIndent", args=amount)
 
+    def to_png(self, path):
+        self.append_json_action(func="rangeToPng", args=[path])
+
     @property
     def font(self):
         return Font(self, self.sheet.book.api)
