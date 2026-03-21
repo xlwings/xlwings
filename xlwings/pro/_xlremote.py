@@ -11,10 +11,12 @@ xlwings PRO is dual-licensed under one of the following licenses:
 Commercial licenses can be purchased at https://www.xlwings.org
 """
 
+import asyncio
 import base64
 import datetime as dt
 import numbers
 import re
+import sys
 from functools import lru_cache
 
 try:
@@ -299,6 +301,22 @@ class Book(base_classes.Book):
 
     def json(self):
         return self._json
+
+    async def sync(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError("Book.sync() is only supported in xlwings Lite")
+        import js
+        from pyodide.ffi import to_js
+
+        actions = self._json["actions"]
+        if actions:
+            actions_js = to_js(
+                {"actions": actions}, dict_converter=js.Object.fromEntries
+            )
+            await js.xlwings.runActions(actions_js)
+            self._json["actions"] = []
+        # Yield to the browser event loop so it can repaint (to print to output pane)
+        await asyncio.sleep(0.01)
 
     @property
     def name(self):

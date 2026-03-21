@@ -989,6 +989,15 @@ class Book:
         """
         return self.impl.json()
 
+    async def sync(self):
+        """
+        Flushes all pending actions to Excel. Only available in xlwings Lite.
+        Use this when you need the side effects of previous
+        operations (e.g., files written by ``Range.to_png()``) to be available
+        before continuing.
+        """
+        await self.impl.sync()
+
     def __eq__(self, other):
         return (
             isinstance(other, Book)
