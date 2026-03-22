@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.33.22 (Mar 22, 2026)
+-----------------------
+
+* :bdg-info:`Enhancement` Added ``Range.to_png()`` and ``Book.sync()`` for xlwings Lite (:issue:`#2684`).
+
 v0.33.21 (Mar 9, 2026)
 ----------------------
 
