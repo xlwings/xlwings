@@ -10,6 +10,7 @@ include xlwings/addin/WebHelpers.bas
 include xlwings/addin/Remote.bas
 include xlwings/js/xlwings.*
 include xlwings/html/*.*
+include xlwings/py.typed
 include xlwings/quickstart_fastapi/*.*
 include Cargo.toml
 include Cargo.lock

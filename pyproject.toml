@@ -69,6 +69,20 @@ module-name = "xlwings.xlwingslib"
 [tool.black]
 target-version = ["py39"]
 
+[tool.pyright]
+pythonVersion = "3.9"
+typeCheckingMode = "basic"
+include = ["xlwings"]
+exclude = [
+    "xlwings/_xlwindows.py",
+    "xlwings/_xlmac.py",
+    "xlwings/base_classes.py",
+    "xlwings/conversion/**",
+    "xlwings/pro/**",
+    "xlwings/rest/**",
+    "xlwings/cli.py",
+]
+
 [tool.ruff]
 target-version = "py39"
 line-length = 88

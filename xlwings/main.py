@@ -9,6 +9,8 @@ All rights reserved.
 License: BSD 3-clause (see LICENSE.txt for details)
 """
 
+from __future__ import annotations
+
 import numbers
 import os
 import re
@@ -16,7 +18,9 @@ import sys
 import time
 import warnings
 from contextlib import contextmanager
+from os import PathLike
 from pathlib import Path
+from typing import Any, Iterator
 
 import xlwings
 
@@ -1827,7 +1831,12 @@ class Range:
         sheet1["NamedRange"]
     """
 
-    def __init__(self, cell1=None, cell2=None, **options):
+    def __init__(
+        self,
+        cell1: str | tuple[int, int] | Range | None = None,
+        cell2: str | tuple[int, int] | Range | None = None,
+        **options: Any,
+    ) -> None:
         # Arguments
         impl = options.pop("impl", None)
         if impl is None:
@@ -1859,11 +1868,11 @@ class Range:
         self._options = options
 
     @property
-    def impl(self):
+    def impl(self) -> Any:
         return self._impl
 
     @property
-    def api(self):
+    def api(self) -> Any:
         """
         Returns the native object (``pywin32`` or ``appscript`` obj)
         of the engine being used.
@@ -1872,7 +1881,7 @@ class Range:
         """
         return self.impl.api
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return (
             isinstance(other, Range)
             and self.sheet == other.sheet
@@ -1881,18 +1890,18 @@ class Range:
             and self.shape == other.shape
         )
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.sheet, self.row, self.column, self.shape))
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Range]:
         # Iterator object that returns cell Ranges: (1, 1), (1, 2) etc.
         for i in range(len(self)):
             yield self(i + 1)
 
-    def adjust_indent(self, amount):
+    def adjust_indent(self, amount: int) -> None:
         """
         Adjusts the indentation in a Range.
 
@@ -1904,7 +1913,7 @@ class Range:
         """
         self.impl.adjust_indent(amount)
 
-    def group(self, by=None):
+    def group(self, by: str | None = None) -> None:
         """
         Group rows or columns.
 
@@ -1922,7 +1931,7 @@ class Range:
             )
         self.impl.group(by)
 
-    def ungroup(self, by=None):
+    def ungroup(self, by: str | None = None) -> None:
         """
         Ungroup rows or columns
 
@@ -1940,7 +1949,7 @@ class Range:
             )
         self.impl.ungroup(by)
 
-    def options(self, convert=None, **options):
+    def options(self, convert: Any = None, **options: Any) -> Range:
         """
         Allows you to set a converter and their options. Converters define how Excel
         Ranges and their values are being converted both during reading and writing
@@ -1995,7 +2004,7 @@ class Range:
         return Range(impl=self.impl, **options)
 
     @property
-    def sheet(self):
+    def sheet(self) -> Sheet:
         """
         Returns the Sheet object to which the Range belongs.
 
@@ -2003,11 +2012,11 @@ class Range:
         """
         return Sheet(impl=self.impl.sheet)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.impl)
 
     @property
-    def count(self):
+    def count(self) -> int:
         """
         Returns the number of cells.
 
@@ -2015,7 +2024,7 @@ class Range:
         return len(self)
 
     @property
-    def row(self):
+    def row(self) -> int:
         """
         Returns the number of the first row in the specified range. Read-only.
 
@@ -2029,7 +2038,7 @@ class Range:
         return self.impl.row
 
     @property
-    def column(self):
+    def column(self) -> int:
         """
         Returns the number of the first column in the in the specified range. Read-only.
 
@@ -2043,7 +2052,7 @@ class Range:
         return self.impl.column
 
     @property
-    def raw_value(self):
+    def raw_value(self) -> Any:
         """
         Gets and sets the values directly as delivered from/accepted by the engine that
         s being used (``pywin32`` or ``appscript``) without going through any of
@@ -2054,33 +2063,33 @@ class Range:
         return self.impl.raw_value
 
     @raw_value.setter
-    def raw_value(self, data):
+    def raw_value(self, data: Any) -> None:
         self.impl.raw_value = data
 
-    def clear_contents(self):
+    def clear_contents(self) -> None:
         """Clears the content of a Range but leaves the formatting."""
         return self.impl.clear_contents()
 
-    def clear_formats(self):
+    def clear_formats(self) -> None:
         """Clears the format of a Range but leaves the content.
 
         .. versionadded:: 0.26.2
         """
         return self.impl.clear_formats()
 
-    def clear(self):
+    def clear(self) -> None:
         """Clears the content and the formatting of a Range."""
         return self.impl.clear()
 
     @property
-    def has_array(self):
+    def has_array(self) -> bool:
         """
         ``True`` if the range is part of a legacy CSE Array formula
         and ``False`` otherwise.
         """
         return self.impl.has_array
 
-    def end(self, direction):
+    def end(self, direction: str) -> Range:
         """
         Returns a Range object that represents the cell at the end of the region that
         contains the source range. Equivalent to pressing Ctrl+Up, Ctrl+down,
@@ -2106,25 +2115,25 @@ class Range:
         return Range(impl=self.impl.end(direction))
 
     @property
-    def formula(self):
+    def formula(self) -> str | list[str] | list[list[str]]:
         """Gets or sets the formula for the given Range."""
         return self.impl.formula
 
     @formula.setter
-    def formula(self, value):
+    def formula(self, value: str | list[str] | list[list[str]]) -> None:
         self.impl.formula = value
 
     @property
-    def formula2(self):
+    def formula2(self) -> str | list[str] | list[list[str]]:
         """Gets or sets the formula2 for the given Range."""
         return self.impl.formula2
 
     @formula2.setter
-    def formula2(self, value):
+    def formula2(self, value: str | list[str] | list[list[str]]) -> None:
         self.impl.formula2 = value
 
     @property
-    def formula_array(self):
+    def formula_array(self) -> str | None:
         """
         Gets or sets an  array formula for the given Range.
 
@@ -2133,19 +2142,19 @@ class Range:
         return self.impl.formula_array
 
     @formula_array.setter
-    def formula_array(self, value):
+    def formula_array(self, value: str) -> None:
         self.impl.formula_array = value
 
     @property
-    def font(self):
+    def font(self) -> Font:
         return Font(impl=self.impl.font)
 
     @property
-    def characters(self):
+    def characters(self) -> Characters:
         return Characters(impl=self.impl.characters)
 
     @property
-    def column_width(self):
+    def column_width(self) -> float | None:
         """
         Gets or sets the width, in characters, of a Range.
         One unit of column width is equal to the width of one character in the Normal
@@ -2170,11 +2179,11 @@ class Range:
         return self.impl.column_width
 
     @column_width.setter
-    def column_width(self, value):
+    def column_width(self, value: float) -> None:
         self.impl.column_width = value
 
     @property
-    def row_height(self):
+    def row_height(self) -> float | None:
         """
         Gets or sets the height, in points, of a Range.
         If all rows in the Range have the same height, returns the height.
@@ -2196,11 +2205,11 @@ class Range:
         return self.impl.row_height
 
     @row_height.setter
-    def row_height(self, value):
+    def row_height(self, value: float) -> None:
         self.impl.row_height = value
 
     @property
-    def width(self):
+    def width(self) -> float:
         """
         Returns the width, in points, of a Range. Read-only.
 
@@ -2214,7 +2223,7 @@ class Range:
         return self.impl.width
 
     @property
-    def height(self):
+    def height(self) -> float:
         """
         Returns the height, in points, of a Range. Read-only.
 
@@ -2228,7 +2237,7 @@ class Range:
         return self.impl.height
 
     @property
-    def left(self):
+    def left(self) -> float:
         """
         Returns the distance, in points, from the left edge of column A to the left
         edge of the range. Read-only.
@@ -2243,7 +2252,7 @@ class Range:
         return self.impl.left
 
     @property
-    def top(self):
+    def top(self) -> float:
         """
         Returns the distance, in points, from the top edge of row 1 to the top edge of
         the range. Read-only.
@@ -2258,7 +2267,7 @@ class Range:
         return self.impl.top
 
     @property
-    def number_format(self):
+    def number_format(self) -> str:
         """
         Gets and sets the number_format of a Range.
 
@@ -2278,16 +2287,16 @@ class Range:
         return self.impl.number_format
 
     @number_format.setter
-    def number_format(self, value):
+    def number_format(self, value: str) -> None:
         self.impl.number_format = value
 
     def get_address(
         self,
-        row_absolute=True,
-        column_absolute=True,
-        include_sheetname=False,
-        external=False,
-    ):
+        row_absolute: bool = True,
+        column_absolute: bool = True,
+        include_sheetname: bool = False,
+        external: bool = False,
+    ) -> str:
         """
         Returns the address of the range in the specified format. ``address`` can be
         used instead if none of the defaults need to be changed.
@@ -2351,7 +2360,7 @@ class Range:
             return self.impl.get_address(row_absolute, column_absolute, external)
 
     @property
-    def address(self):
+    def address(self) -> str:
         """
         Returns a string value that represents the range reference.
         Use ``get_address()`` to be able to provide parameters.
@@ -2361,7 +2370,7 @@ class Range:
         return self.impl.address
 
     @property
-    def current_region(self):
+    def current_region(self) -> Range:
         """
         This property returns a Range object representing a range bounded by (but not
         including) any combination of blank rows and blank columns or the edges of the
@@ -2375,7 +2384,7 @@ class Range:
 
         return Range(impl=self.impl.current_region)
 
-    def autofit(self):
+    def autofit(self) -> None:
         """
         Autofits the width and height of all cells in the range.
 
@@ -2389,7 +2398,7 @@ class Range:
         return self.impl.autofit()
 
     @property
-    def color(self):
+    def color(self) -> tuple[int, int, int] | None:
         """
         Gets and sets the background color of the specified Range.
 
@@ -2418,11 +2427,11 @@ class Range:
         return self.impl.color
 
     @color.setter
-    def color(self, color_or_rgb):
+    def color(self, color_or_rgb: tuple[int, int, int] | int | str | None) -> None:
         self.impl.color = color_or_rgb
 
     @property
-    def name(self):
+    def name(self) -> Name | None:
         """
         Sets or gets the name of a Range.
 
@@ -2432,14 +2441,14 @@ class Range:
         return impl and Name(impl=impl)
 
     @name.setter
-    def name(self, value):
+    def name(self, value: str) -> None:
         self.impl.name = value
 
-    def __call__(self, *args):
+    def __call__(self, *args: int) -> Range:
         return Range(impl=self.impl(*args))
 
     @property
-    def rows(self):
+    def rows(self) -> RangeRows:
         """
         Returns a :class:`RangeRows` object that represents the rows in the specified
         range.
@@ -2449,7 +2458,7 @@ class Range:
         return RangeRows(self)
 
     @property
-    def columns(self):
+    def columns(self) -> RangeColumns:
         """
         Returns a :class:`RangeColumns` object that represents the columns in the
         specified range.
@@ -2459,7 +2468,7 @@ class Range:
         return RangeColumns(self)
 
     @property
-    def shape(self):
+    def shape(self) -> tuple[int, int]:
         """
         Tuple of Range dimensions.
 
@@ -2468,7 +2477,7 @@ class Range:
         return self.impl.shape
 
     @property
-    def size(self):
+    def size(self) -> int:
         """
         Number of elements in the Range.
 
@@ -2478,7 +2487,7 @@ class Range:
         return a * b
 
     @property
-    def value(self):
+    def value(self) -> Any:
         """
         Gets and sets the values for the given Range. See :meth:`xlwings.Range.options`
         about how to set options, e.g., to transform it into a DataFrame or how to set
@@ -2492,10 +2501,10 @@ class Range:
         return conversion.read(self, None, self._options)
 
     @value.setter
-    def value(self, data):
+    def value(self, data: Any) -> None:
         conversion.write(data, self, self._options)
 
-    def expand(self, mode="table"):
+    def expand(self, mode: str = "table") -> Range:
         """
         Expands the range according to the mode provided. Ignores empty top-left cells
         (unlike ``Range.end()``).
@@ -2525,7 +2534,7 @@ class Range:
         """
         return expansion.expanders.get(mode, mode).expand(self)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: tuple[int | slice, int | slice] | int | slice) -> Range:
         if type(key) is tuple:
             row, col = key
 
@@ -2600,12 +2609,14 @@ class Range:
                 "Cell indices must be integers or slices, not %s" % type(key).__name__
             )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<Range [{1}]{0}!{2}>".format(
             self.sheet.name, self.sheet.book.name, self.address
         )
 
-    def insert(self, shift, copy_origin="format_from_left_or_above"):
+    def insert(
+        self, shift: str, copy_origin: str = "format_from_left_or_above"
+    ) -> None:
         """
         Insert a cell or range of cells into the sheet.
 
@@ -2628,7 +2639,7 @@ class Range:
         """
         self.impl.insert(shift, copy_origin)
 
-    def delete(self, shift=None):
+    def delete(self, shift: str | None = None) -> None:
         """
         Deletes a cell or range of cells.
 
@@ -2645,7 +2656,7 @@ class Range:
         """
         self.impl.delete(shift)
 
-    def copy(self, destination=None):
+    def copy(self, destination: Range | None = None) -> None:
         """
         Copy a range to a destination range or clipboard.
 
@@ -2663,8 +2674,12 @@ class Range:
         self.impl.copy(destination)
 
     def copy_from(
-        self, source_range, copy_type="all", skip_blanks=False, transpose=False
-    ):
+        self,
+        source_range: Range,
+        copy_type: str = "all",
+        skip_blanks: bool = False,
+        transpose: bool = False,
+    ) -> None:
         """
         A newer variant of copy that replaces copy/paste.
 
@@ -2681,7 +2696,13 @@ class Range:
         """
         self.impl.copy_from(source_range, copy_type, skip_blanks, transpose)
 
-    def paste(self, paste=None, operation=None, skip_blanks=False, transpose=False):
+    def paste(
+        self,
+        paste: str | None = None,
+        operation: str | None = None,
+        skip_blanks: bool = False,
+        transpose: bool = False,
+    ) -> None:
         """
         Pastes a range from the clipboard into the specified range.
 
@@ -2712,7 +2733,7 @@ class Range:
         )
 
     @property
-    def hyperlink(self):
+    def hyperlink(self) -> str:
         """
         Returns the hyperlink address of the specified Range (single Cell only)
 
@@ -2739,7 +2760,12 @@ class Range:
             # If it has been set pragmatically
             return self.impl.hyperlink
 
-    def add_hyperlink(self, address, text_to_display=None, screen_tip=None):
+    def add_hyperlink(
+        self,
+        address: str,
+        text_to_display: str | None = None,
+        screen_tip: str | None = None,
+    ) -> None:
         """
         Adds a hyperlink to the specified Range (single Cell)
 
@@ -2768,7 +2794,9 @@ class Range:
             )
         self.impl.add_hyperlink(address, text_to_display, screen_tip)
 
-    def resize(self, row_size=None, column_size=None):
+    def resize(
+        self, row_size: int | None = None, column_size: int | None = None
+    ) -> Range:
         """
         Resizes the specified Range
 
@@ -2800,7 +2828,7 @@ class Range:
 
         return Range(self(1, 1), self(row_size, column_size)).options(**self._options)
 
-    def offset(self, row_offset=0, column_offset=0):
+    def offset(self, row_offset: int = 0, column_offset: int = 0) -> Range:
         """
         Returns a Range object that represents a Range that's offset from the
         specified range.
@@ -2818,7 +2846,7 @@ class Range:
         ).options(**self._options)
 
     @property
-    def last_cell(self):
+    def last_cell(self) -> Range:
         """
         Returns the bottom right cell of the specified range. Read-only.
 
@@ -2839,7 +2867,7 @@ class Range:
         """
         return self(self.shape[0], self.shape[1]).options(**self._options)
 
-    def select(self):
+    def select(self) -> None:
         """
         Selects the range. Select only works on the active book.
 
@@ -2848,7 +2876,7 @@ class Range:
         self.impl.select()
 
     @property
-    def merge_area(self):
+    def merge_area(self) -> Range:
         """
         Returns a Range object that represents the merged Range containing the
         specified cell. If the specified cell isn't in a merged range, this property
@@ -2858,13 +2886,13 @@ class Range:
         return Range(impl=self.impl.merge_area)
 
     @property
-    def merge_cells(self):
+    def merge_cells(self) -> bool:
         """
         Returns ``True`` if the Range contains merged cells, otherwise ``False``
         """
         return self.impl.merge_cells
 
-    def merge(self, across=False):
+    def merge(self, across: bool = False) -> None:
         """
         Creates a merged cell from the specified Range object.
 
@@ -2877,14 +2905,14 @@ class Range:
         with self.sheet.book.app.properties(display_alerts=False):
             self.impl.merge(across)
 
-    def unmerge(self):
+    def unmerge(self) -> None:
         """
         Separates a merged area into individual cells.
         """
         self.impl.unmerge()
 
     @property
-    def table(self):
+    def table(self) -> Table | None:
         """
         Returns a Table object if the range is part of one, otherwise ``None``.
 
@@ -2896,7 +2924,7 @@ class Range:
             return None
 
     @property
-    def wrap_text(self):
+    def wrap_text(self) -> bool | None:
         """
         Returns ``True`` if the wrap_text property is enabled and ``False`` if it's
         disabled. If not all cells have the same value in a range, on Windows it returns
@@ -2907,11 +2935,11 @@ class Range:
         return self.impl.wrap_text
 
     @wrap_text.setter
-    def wrap_text(self, value):
+    def wrap_text(self, value: bool) -> None:
         self.impl.wrap_text = value
 
     @property
-    def note(self):
+    def note(self) -> Note | None:
         """
         Returns a Note object.
         Before the introduction of threaded comments, a Note was called a Comment.
@@ -2920,7 +2948,7 @@ class Range:
         """
         return Note(impl=self.impl.note) if self.impl.note else None
 
-    def copy_picture(self, appearance="screen", format="picture"):
+    def copy_picture(self, appearance: str = "screen", format: str = "picture") -> None:
         """
         Copies the range to the clipboard as picture.
 
@@ -2937,7 +2965,7 @@ class Range:
         """
         self.impl.copy_picture(appearance, format)
 
-    def to_png(self, path=None):
+    def to_png(self, path: str | PathLike[str] | None = None) -> None:
         """
         Exports the range as PNG picture.
 
@@ -2976,7 +3004,13 @@ class Range:
                 path = str(Path.cwd() / default_name) + ".png"
         self.impl.to_png(path)
 
-    def to_pdf(self, path=None, layout=None, show=None, quality="standard"):
+    def to_pdf(
+        self,
+        path: str | PathLike[str] | None = None,
+        layout: str | PathLike[str] | None = None,
+        show: bool | None = None,
+        quality: str = "standard",
+    ) -> str:
         """
         Exports the range as PDF.
 
@@ -3008,7 +3042,7 @@ class Range:
         """
         return utils.to_pdf(self, path=path, layout=layout, show=show, quality=quality)
 
-    def autofill(self, destination, type_="fill_default"):
+    def autofill(self, destination: Range, type_: str = "fill_default") -> None:
         """
         Autofills the destination Range. Note that the destination Range must include
         the origin Range.
@@ -3066,10 +3100,10 @@ class RangeRows(Ranges):
             print(r.address)
     """
 
-    def __init__(self, rng):
+    def __init__(self, rng: Range) -> None:
         self.rng = rng
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Returns the number of rows.
 
@@ -3079,20 +3113,20 @@ class RangeRows(Ranges):
 
     count = property(__len__)
 
-    def autofit(self):
+    def autofit(self) -> None:
         """
         Autofits the height of the rows.
         """
         self.rng.impl.autofit(axis="r")
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Range]:
         for i in range(0, self.rng.shape[0]):
             yield self.rng[i, :]
 
-    def __call__(self, key):
+    def __call__(self, key: int) -> Range:
         return self.rng[key - 1, :]
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: int | slice) -> Range | RangeRows:
         if isinstance(key, slice):
             return RangeRows(rng=self.rng[key, :])
         elif isinstance(key, int):
@@ -3102,7 +3136,7 @@ class RangeRows(Ranges):
                 "Indices must be integers or slices, not %s" % type(key).__name__
             )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{}({})".format(self.__class__.__name__, repr(self.rng))
 
 
@@ -3133,10 +3167,10 @@ class RangeColumns(Ranges):
             print(c.address)
     """
 
-    def __init__(self, rng):
+    def __init__(self, rng: Range) -> None:
         self.rng = rng
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Returns the number of columns.
 
@@ -3146,20 +3180,20 @@ class RangeColumns(Ranges):
 
     count = property(__len__)
 
-    def autofit(self):
+    def autofit(self) -> None:
         """
         Autofits the width of the columns.
         """
         self.rng.impl.autofit(axis="c")
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Range]:
         for j in range(0, self.rng.shape[1]):
             yield self.rng[:, j]
 
-    def __call__(self, key):
+    def __call__(self, key: int) -> Range:
         return self.rng[:, key - 1]
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: int | slice) -> Range | RangeColumns:
         if isinstance(key, slice):
             return RangeColumns(rng=self.rng[:, key])
         elif isinstance(key, int):
@@ -3169,7 +3203,7 @@ class RangeColumns(Ranges):
                 "Indices must be integers or slices, not %s" % type(key).__name__
             )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{}({})".format(self.__class__.__name__, repr(self.rng))
 
 
@@ -3185,7 +3219,7 @@ class Shape:
     .. versionchanged:: 0.9.0
     """
 
-    def __init__(self, *args, **options):
+    def __init__(self, *args: Any, **options: Any) -> None:
         impl = options.pop("impl", None)
         if impl is None:
             if len(args) == 1:
@@ -3197,7 +3231,7 @@ class Shape:
         self.impl = impl
 
     @property
-    def api(self):
+    def api(self) -> Any:
         """
         Returns the native object (``pywin32`` or ``appscript`` obj) of the engine
         being used.
@@ -3207,7 +3241,7 @@ class Shape:
         return self.impl.api
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Returns or sets the name of the shape.
 
@@ -3216,11 +3250,11 @@ class Shape:
         return self.impl.name
 
     @name.setter
-    def name(self, value):
+    def name(self, value: str) -> None:
         self.impl.name = value
 
     @property
-    def type(self):
+    def type(self) -> str:
         """
         Returns the type of the shape.
 
@@ -3229,7 +3263,7 @@ class Shape:
         return self.impl.type
 
     @property
-    def left(self):
+    def left(self) -> float:
         """
         Returns or sets the number of points that represent the horizontal position of
         the shape.
@@ -3239,11 +3273,11 @@ class Shape:
         return self.impl.left
 
     @left.setter
-    def left(self, value):
+    def left(self, value: float) -> None:
         self.impl.left = value
 
     @property
-    def top(self):
+    def top(self) -> float:
         """
         Returns or sets the number of points that represent the vertical position of
         the shape.
@@ -3253,11 +3287,11 @@ class Shape:
         return self.impl.top
 
     @top.setter
-    def top(self, value):
+    def top(self, value: float) -> None:
         self.impl.top = value
 
     @property
-    def width(self):
+    def width(self) -> float:
         """
         Returns or sets the number of points that represent the width of the shape.
 
@@ -3266,11 +3300,11 @@ class Shape:
         return self.impl.width
 
     @width.setter
-    def width(self, value):
+    def width(self, value: float) -> None:
         self.impl.width = value
 
     @property
-    def height(self):
+    def height(self) -> float:
         """
         Returns or sets the number of points that represent the height of the shape.
 
@@ -3279,10 +3313,10 @@ class Shape:
         return self.impl.height
 
     @height.setter
-    def height(self, value):
+    def height(self, value: float) -> None:
         self.impl.height = value
 
-    def delete(self):
+    def delete(self) -> None:
         """
         Deletes the shape.
 
@@ -3290,7 +3324,7 @@ class Shape:
         """
         self.impl.delete()
 
-    def activate(self):
+    def activate(self) -> None:
         """
         Activates the shape.
 
@@ -3299,8 +3333,11 @@ class Shape:
         self.impl.activate()
 
     def scale_height(
-        self, factor, relative_to_original_size=False, scale="scale_from_top_left"
-    ):
+        self,
+        factor: float,
+        relative_to_original_size: bool = False,
+        scale: str = "scale_from_top_left",
+    ) -> None:
         """
         factor : float
             For example 1.5 to scale it up to 150%
@@ -3322,8 +3359,11 @@ class Shape:
         )
 
     def scale_width(
-        self, factor, relative_to_original_size=False, scale="scale_from_top_left"
-    ):
+        self,
+        factor: float,
+        relative_to_original_size: bool = False,
+        scale: str = "scale_from_top_left",
+    ) -> None:
         """
         factor : float
             For example 1.5 to scale it up to 150%
@@ -3345,7 +3385,7 @@ class Shape:
         )
 
     @property
-    def text(self):
+    def text(self) -> str:
         """
         Returns or sets the text of a shape.
 
@@ -3354,7 +3394,7 @@ class Shape:
         return self.impl.text
 
     @text.setter
-    def text(self, value):
+    def text(self, value: Any) -> None:
         if xlwings.__pro__:
             from xlwings.pro import Markdown
             from xlwings.pro.reports.markdown import format_text, render_text
@@ -3368,15 +3408,15 @@ class Shape:
             self.impl.text = value
 
     @property
-    def font(self):
+    def font(self) -> Font:
         return Font(impl=self.impl.font)
 
     @property
-    def characters(self):
+    def characters(self) -> Characters:
         return Characters(impl=self.impl.characters)
 
     @property
-    def parent(self):
+    def parent(self) -> Sheet:
         """
         Returns the parent of the shape.
 
@@ -3384,17 +3424,17 @@ class Shape:
         """
         return Sheet(impl=self.impl.parent)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return (
             isinstance(other, Shape)
             and other.parent == self.parent
             and other.name == self.name
         )
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<Shape '{0}' in {1}>".format(self.name, self.parent)
 
 
@@ -3414,7 +3454,7 @@ class Shapes(Collection):
 
 
 class PageSetup:
-    def __init__(self, impl):
+    def __init__(self, impl: Any) -> None:
         """
         Represents a PageSetup object.
 
@@ -3423,7 +3463,7 @@ class PageSetup:
         self.impl = impl
 
     @property
-    def api(self):
+    def api(self) -> Any:
         """
         Returns the native object (``pywin32`` or ``appscript`` obj)
         of the engine being used.
@@ -3433,7 +3473,7 @@ class PageSetup:
         return self.impl.api
 
     @property
-    def print_area(self):
+    def print_area(self) -> str | None:
         """
         Gets or sets the range address that defines the print area.
 
@@ -3450,12 +3490,12 @@ class PageSetup:
         return self.impl.print_area
 
     @print_area.setter
-    def print_area(self, value):
+    def print_area(self, value: str | None) -> None:
         self.impl.print_area = value
 
 
 class Note:
-    def __init__(self, impl):
+    def __init__(self, impl: Any) -> None:
         """
         Represents a cell Note.
         Before the introduction of threaded comments, a Note was called a Comment.
@@ -3465,7 +3505,7 @@ class Note:
         self.impl = impl
 
     @property
-    def api(self):
+    def api(self) -> Any:
         """
         Returns the native object (``pywin32`` or ``appscript`` obj)
         of the engine being used.
@@ -3475,7 +3515,7 @@ class Note:
         return self.impl.api
 
     @property
-    def text(self):
+    def text(self) -> str:
         """
         Gets or sets the text of a note. Keep in mind that the note must already exist!
 
@@ -3492,10 +3532,10 @@ class Note:
         return self.impl.text
 
     @text.setter
-    def text(self, value):
+    def text(self, value: str) -> None:
         self.impl.text = value
 
-    def delete(self):
+    def delete(self) -> None:
         """
         Delete the note.
 
@@ -3516,7 +3556,7 @@ class Table:
     .. versionadded:: 0.21.0
     """
 
-    def __init__(self, *args, **options):
+    def __init__(self, *args: Any, **options: Any) -> None:
         impl = options.pop("impl", None)
         if impl is None:
             if len(args) == 1:
@@ -3526,7 +3566,7 @@ class Table:
         self.impl = impl
 
     @property
-    def api(self):
+    def api(self) -> Any:
         """
         Returns the native object (``pywin32`` or ``appscript`` obj)
         of the engine being used.
@@ -3534,25 +3574,25 @@ class Table:
         return self.impl.api
 
     @property
-    def parent(self):
+    def parent(self) -> Sheet:
         """
         Returns the parent of the table.
         """
         return Sheet(impl=self.impl.parent)
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Returns or sets the name of the Table.
         """
         return self.impl.name
 
     @name.setter
-    def name(self, value):
+    def name(self, value: str) -> None:
         self.impl.name = value
 
     @property
-    def data_body_range(self):
+    def data_body_range(self) -> Range | None:
         """Returns an xlwings range object that represents the range of values,
         excluding the header row
         """
@@ -3561,16 +3601,16 @@ class Table:
         )
 
     @property
-    def display_name(self):
+    def display_name(self) -> str:
         """Returns or sets the display name for the specified Table object"""
         return self.impl.display_name
 
     @display_name.setter
-    def display_name(self, value):
+    def display_name(self, value: str) -> None:
         self.impl.display_name = value
 
     @property
-    def header_row_range(self):
+    def header_row_range(self) -> Range | None:
         """Returns an xlwings range object that represents the range of the header row"""
         if self.impl.header_row_range:
             return Range(impl=self.impl.header_row_range)
@@ -3578,7 +3618,7 @@ class Table:
             return None
 
     @property
-    def insert_row_range(self):
+    def insert_row_range(self) -> Range | None:
         """Returns an xlwings range object representing the row where data is going to
         be inserted. This is only available for empty tables, otherwise it'll return
         ``None``
@@ -3589,99 +3629,99 @@ class Table:
             return None
 
     @property
-    def range(self):
+    def range(self) -> Range:
         """Returns an xlwings range object of the table."""
         return Range(impl=self.impl.range)
 
     @property
-    def show_autofilter(self):
+    def show_autofilter(self) -> bool:
         """Turn the autofilter on or off by setting it to ``True`` or ``False``
         (read/write boolean)
         """
         return self.impl.show_autofilter
 
     @show_autofilter.setter
-    def show_autofilter(self, value):
+    def show_autofilter(self, value: bool) -> None:
         self.impl.show_autofilter = value
 
     @property
-    def show_headers(self):
+    def show_headers(self) -> bool:
         """Show or hide the header (read/write)"""
         return self.impl.show_headers
 
     @show_headers.setter
-    def show_headers(self, value):
+    def show_headers(self, value: bool) -> None:
         self.impl.show_headers = value
 
     @property
-    def show_table_style_column_stripes(self):
+    def show_table_style_column_stripes(self) -> bool:
         """Returns or sets if the Column Stripes table style is used for
         (read/write boolean)
         """
         return self.impl.show_table_style_column_stripes
 
     @show_table_style_column_stripes.setter
-    def show_table_style_column_stripes(self, value):
+    def show_table_style_column_stripes(self, value: bool) -> None:
         self.impl.show_table_style_column_stripes = value
 
     @property
-    def show_table_style_first_column(self):
+    def show_table_style_first_column(self) -> bool:
         """Returns or sets if the first column is formatted (read/write boolean)"""
         return self.impl.show_table_style_first_column
 
     @show_table_style_first_column.setter
-    def show_table_style_first_column(self, value):
+    def show_table_style_first_column(self, value: bool) -> None:
         self.impl.show_table_style_first_column = value
 
     @property
-    def show_table_style_last_column(self):
+    def show_table_style_last_column(self) -> bool:
         """Returns or sets if the last column is displayed (read/write boolean)"""
         return self.impl.show_table_style_last_column
 
     @show_table_style_last_column.setter
-    def show_table_style_last_column(self, value):
+    def show_table_style_last_column(self, value: bool) -> None:
         self.impl.show_table_style_last_column = value
 
     @property
-    def show_table_style_row_stripes(self):
+    def show_table_style_row_stripes(self) -> bool:
         """Returns or sets if the Row Stripes table style is used
         (read/write boolean)
         """
         return self.impl.show_table_style_row_stripes
 
     @show_table_style_row_stripes.setter
-    def show_table_style_row_stripes(self, value):
+    def show_table_style_row_stripes(self, value: bool) -> None:
         self.impl.show_table_style_row_stripes = value
 
     @property
-    def show_totals(self):
+    def show_totals(self) -> bool:
         """Gets or sets a boolean to show/hide the Total row."""
         return self.impl.show_totals
 
     @show_totals.setter
-    def show_totals(self, value):
+    def show_totals(self, value: bool) -> None:
         self.impl.show_totals = value
 
     @property
-    def table_style(self):
+    def table_style(self) -> str:
         """Gets or sets the table style.
         See :meth:`Tables.add <xlwings.main.Tables.add>` for possible values.
         """
         return self.impl.table_style
 
     @table_style.setter
-    def table_style(self, value):
+    def table_style(self, value: str) -> None:
         self.impl.table_style = value
 
     @property
-    def totals_row_range(self):
+    def totals_row_range(self) -> Range | None:
         """Returns an xlwings range object representing the Total row"""
         if self.impl.totals_row_range:
             return Range(impl=self.impl.totals_row_range)
         else:
             return None
 
-    def update(self, data, index=True):
+    def update(self, data: Any, index: bool = True) -> Table:
         """
         Updates the Excel table with the provided data.
         Currently restricted to DataFrames.
@@ -3792,24 +3832,24 @@ class Table:
         else:
             raise TypeError(type_error_msg)
 
-    def resize(self, range):
+    def resize(self, range: Range) -> None:
         """Resize a Table by providing an xlwings range object
 
         .. versionadded:: 0.24.4
         """
         self.impl.resize(range)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return (
             isinstance(other, Table)
             and other.parent == self.parent
             and other.name == self.name
         )
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<Table '{0}' in {1}>".format(self.name, self.parent)
 
 
@@ -3828,14 +3868,14 @@ class Tables(Collection):
 
     def add(
         self,
-        source=None,
-        name=None,
-        source_type=None,
-        link_source=None,
-        has_headers=True,
-        destination=None,
-        table_style_name="TableStyleMedium2",
-    ):
+        source: Range | None = None,
+        name: str | None = None,
+        source_type: str | None = None,
+        link_source: bool | None = None,
+        has_headers: bool | str = True,
+        destination: Range | None = None,
+        table_style_name: str = "TableStyleMedium2",
+    ) -> Table:
         """
         Creates a Table to the specified sheet.
 
@@ -3908,7 +3948,9 @@ class Chart:
     <Chart 'Chart 1' in <Sheet [Book1]Sheet1>>
     """
 
-    def __init__(self, name_or_index=None, impl=None):
+    def __init__(
+        self, name_or_index: str | int | None = None, impl: Any = None
+    ) -> None:
         if impl is not None:
             self.impl = impl
         elif name_or_index is not None:
@@ -3917,7 +3959,7 @@ class Chart:
             self.impl = sheets.active.charts.add().impl
 
     @property
-    def api(self):
+    def api(self) -> Any:
         """
         Returns the native object (``pywin32`` or ``appscript`` obj)
         of the engine being used.
@@ -3927,18 +3969,18 @@ class Chart:
         return self.impl.api
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Returns or sets the name of the chart.
         """
         return self.impl.name
 
     @name.setter
-    def name(self, value):
+    def name(self, value: str) -> None:
         self.impl.name = value
 
     @property
-    def parent(self):
+    def parent(self) -> Sheet:
         """
         Returns the parent of the chart.
 
@@ -3948,7 +3990,7 @@ class Chart:
         return Sheet(impl=self.impl.parent)
 
     @property
-    def chart_type(self):
+    def chart_type(self) -> str:
         """
         Returns and sets the chart type of the chart.
         The following chart types are available:
@@ -4033,10 +4075,10 @@ class Chart:
         return self.impl.chart_type
 
     @chart_type.setter
-    def chart_type(self, value):
+    def chart_type(self, value: str) -> None:
         self.impl.chart_type = value
 
-    def set_source_data(self, source):
+    def set_source_data(self, source: Range) -> None:
         """
         Sets the source data range for the chart.
 
@@ -4048,7 +4090,7 @@ class Chart:
         self.impl.set_source_data(source.impl)
 
     @property
-    def left(self):
+    def left(self) -> float:
         """
         Returns or sets the number of points that represent the horizontal position
         of the chart.
@@ -4056,11 +4098,11 @@ class Chart:
         return self.impl.left
 
     @left.setter
-    def left(self, value):
+    def left(self, value: float) -> None:
         self.impl.left = value
 
     @property
-    def top(self):
+    def top(self) -> float:
         """
         Returns or sets the number of points that represent the vertical position
         of the chart.
@@ -4068,38 +4110,38 @@ class Chart:
         return self.impl.top
 
     @top.setter
-    def top(self, value):
+    def top(self, value: float) -> None:
         self.impl.top = value
 
     @property
-    def width(self):
+    def width(self) -> float:
         """
         Returns or sets the number of points that represent the width of the chart.
         """
         return self.impl.width
 
     @width.setter
-    def width(self, value):
+    def width(self, value: float) -> None:
         self.impl.width = value
 
     @property
-    def height(self):
+    def height(self) -> float:
         """
         Returns or sets the number of points that represent the height of the chart.
         """
         return self.impl.height
 
     @height.setter
-    def height(self, value):
+    def height(self, value: float) -> None:
         self.impl.height = value
 
-    def delete(self):
+    def delete(self) -> None:
         """
         Deletes the chart.
         """
         self.impl.delete()
 
-    def to_png(self, path=None):
+    def to_png(self, path: str | PathLike[str] | None = None) -> None:
         """
         Exports the chart as PNG picture.
 
@@ -4123,7 +4165,12 @@ class Chart:
                 path = str(Path.cwd() / self.name) + ".png"
         self.impl.to_png(path)
 
-    def to_pdf(self, path=None, show=None, quality="standard"):
+    def to_pdf(
+        self,
+        path: str | PathLike[str] | None = None,
+        show: bool | None = None,
+        quality: str = "standard",
+    ) -> str:
         """
         Exports the chart as PDF.
 
@@ -4146,7 +4193,7 @@ class Chart:
         """
         return utils.to_pdf(self, path=path, show=show, quality=quality)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<Chart '{0}' in {1}>".format(self.name, self.parent)
 
 
@@ -4164,7 +4211,9 @@ class Charts(Collection):
 
     _wrap = Chart
 
-    def add(self, left=0, top=0, width=355, height=211):
+    def add(
+        self, left: float = 0, top: float = 0, width: float = 355, height: float = 211
+    ) -> Chart:
         """
         Creates a new chart on the specified sheet.
 
@@ -4218,11 +4267,11 @@ class Picture:
     .. versionchanged:: 0.9.0
     """
 
-    def __init__(self, impl=None):
+    def __init__(self, impl: Any = None) -> None:
         self.impl = impl
 
     @property
-    def api(self):
+    def api(self) -> Any:
         """
         Returns the native object (``pywin32`` or ``appscript`` obj) of the engine
         being used.
@@ -4232,7 +4281,7 @@ class Picture:
         return self.impl.api
 
     @property
-    def parent(self):
+    def parent(self) -> Sheet:
         """
         Returns the parent of the picture.
 
@@ -4241,7 +4290,7 @@ class Picture:
         return Sheet(impl=self.impl.parent)
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Returns or sets the name of the picture.
 
@@ -4250,7 +4299,7 @@ class Picture:
         return self.impl.name
 
     @name.setter
-    def name(self, value):
+    def name(self, value: str) -> None:
         if value in self.parent.pictures:
             if value == self.name:
                 return
@@ -4262,7 +4311,7 @@ class Picture:
         self.impl.name = value
 
     @property
-    def left(self):
+    def left(self) -> float:
         """
         Returns or sets the number of points that represent the horizontal position
         of the picture.
@@ -4272,11 +4321,11 @@ class Picture:
         return self.impl.left
 
     @left.setter
-    def left(self, value):
+    def left(self, value: float) -> None:
         self.impl.left = value
 
     @property
-    def top(self):
+    def top(self) -> float:
         """
         Returns or sets the number of points that represent the vertical position
         of the picture.
@@ -4286,11 +4335,11 @@ class Picture:
         return self.impl.top
 
     @top.setter
-    def top(self, value):
+    def top(self, value: float) -> None:
         self.impl.top = value
 
     @property
-    def width(self):
+    def width(self) -> float:
         """
         Returns or sets the number of points that represent the width of the picture.
 
@@ -4299,11 +4348,11 @@ class Picture:
         return self.impl.width
 
     @width.setter
-    def width(self, value):
+    def width(self, value: float) -> None:
         self.impl.width = value
 
     @property
-    def height(self):
+    def height(self) -> float:
         """
         Returns or sets the number of points that represent the height of the picture.
 
@@ -4312,10 +4361,10 @@ class Picture:
         return self.impl.height
 
     @height.setter
-    def height(self, value):
+    def height(self, value: float) -> None:
         self.impl.height = value
 
-    def delete(self):
+    def delete(self) -> None:
         """
         Deletes the picture.
 
@@ -4323,20 +4372,25 @@ class Picture:
         """
         self.impl.delete()
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return (
             isinstance(other, Picture)
             and other.parent == self.parent
             and other.name == self.name
         )
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<Picture '{0}' in {1}>".format(self.name, self.parent)
 
-    def update(self, image, format=None, export_options=None):
+    def update(
+        self,
+        image: str | PathLike[str] | Any,
+        format: str | None = None,
+        export_options: dict[str, Any] | None = None,
+    ) -> Picture:
         """
         Replaces an existing picture with a new one, taking over the attributes of the
         existing picture.
@@ -4375,7 +4429,7 @@ class Picture:
         return picture
 
     @property
-    def lock_aspect_ratio(self):
+    def lock_aspect_ratio(self) -> bool:
         """
         ``True`` will keep the original proportion,
         ``False`` will allow you to change height and width independently of each other
@@ -4386,7 +4440,7 @@ class Picture:
         return self.impl.lock_aspect_ratio
 
     @lock_aspect_ratio.setter
-    def lock_aspect_ratio(self, value):
+    def lock_aspect_ratio(self, value: bool) -> None:
         self.impl.lock_aspect_ratio = value
 
 
@@ -4405,25 +4459,25 @@ class Pictures(Collection):
     _wrap = Picture
 
     @property
-    def parent(self):
+    def parent(self) -> Sheet:
         return Sheet(impl=self.impl.parent)
 
     def add(
         self,
-        image,
-        link_to_file=False,
-        save_with_document=True,
-        left=None,
-        top=None,
-        width=None,
-        height=None,
-        name=None,
-        update=False,
-        scale=None,
-        format=None,
-        anchor=None,
-        export_options=None,
-    ):
+        image: str | PathLike[str] | Any,
+        link_to_file: bool = False,
+        save_with_document: bool = True,
+        left: float | None = None,
+        top: float | None = None,
+        width: float | None = None,
+        height: float | None = None,
+        name: str | None = None,
+        update: bool = False,
+        scale: float | None = None,
+        format: str | None = None,
+        anchor: Range | None = None,
+        export_options: dict[str, Any] | None = None,
+    ) -> Picture:
         """
         Adds a picture to the specified sheet.
 
@@ -4602,11 +4656,11 @@ class Names:
     .. versionadded:: 0.9.0
     """
 
-    def __init__(self, impl):
+    def __init__(self, impl: Any) -> None:
         self.impl = impl
 
     @property
-    def api(self):
+    def api(self) -> Any:
         """
         Returns the native object (``pywin32`` or ``appscript`` obj)
         of the engine beingused.
@@ -4615,23 +4669,23 @@ class Names:
         """
         return self.impl.api
 
-    def __call__(self, name_or_index):
+    def __call__(self, name_or_index: int | str) -> Name:
         return Name(impl=self.impl(name_or_index))
 
-    def contains(self, name_or_index):
+    def contains(self, name_or_index: str) -> bool:
         return self.impl.contains(name_or_index)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.impl)
 
     @property
-    def count(self):
+    def count(self) -> int:
         """
         Returns the number of objects in the collection.
         """
         return len(self)
 
-    def add(self, name, refers_to):
+    def add(self, name: str, refers_to: str) -> Name:
         """
         Defines a new name for a range of cells.
 
@@ -4653,13 +4707,13 @@ class Names:
         """
         return Name(impl=self.impl.add(name, refers_to))
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int | str) -> Name:
         if isinstance(item, numbers.Number):
             return self(item + 1)
         else:
             return self(item)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Range | str) -> None:
         if isinstance(value, Range):
             value.name = key
         elif key in self:
@@ -4667,23 +4721,23 @@ class Names:
         else:
             self.add(key, value)
 
-    def __contains__(self, item):
+    def __contains__(self, item: int | str) -> bool:
         if isinstance(item, numbers.Number):
             return 0 <= item < len(self)
         else:
             return self.contains(item)
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: int | str) -> None:
         if key in self:
             self[key].delete()
         else:
             raise KeyError(key)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Name]:
         for i in range(len(self)):
             yield self(i + 1)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         r = []
         for i, n in enumerate(self):
             if i == 3:
@@ -4706,11 +4760,11 @@ class Name:
     .. versionadded:: 0.9.0
     """
 
-    def __init__(self, impl):
+    def __init__(self, impl: Any) -> None:
         self.impl = impl
 
     @property
-    def api(self):
+    def api(self) -> Any:
         """
         Returns the native object (``pywin32`` or ``appscript`` obj)
         of the engine being used.
@@ -4719,7 +4773,7 @@ class Name:
         """
         return self.impl.api
 
-    def delete(self):
+    def delete(self) -> None:
         """
         Deletes the name.
 
@@ -4728,7 +4782,7 @@ class Name:
         self.impl.delete()
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Returns or sets the name of the name object.
 
@@ -4737,11 +4791,11 @@ class Name:
         return self.impl.name
 
     @name.setter
-    def name(self, value):
+    def name(self, value: str) -> None:
         self.impl.name = value
 
     @property
-    def refers_to(self):
+    def refers_to(self) -> str:
         """
         Returns or sets the formula that the name is defined to refer to,
         in A1-style notation, beginning with an equal sign.
@@ -4751,11 +4805,11 @@ class Name:
         return self.impl.refers_to
 
     @refers_to.setter
-    def refers_to(self, value):
+    def refers_to(self, value: str) -> None:
         self.impl.refers_to = value
 
     @property
-    def refers_to_range(self):
+    def refers_to_range(self) -> Range:
         """
         Returns the Range object referred to by a Name object.
 
@@ -4763,10 +4817,10 @@ class Name:
         """
         return Range(impl=self.impl.refers_to_range)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<Name '%s': %s>" % (self.name, self.refers_to)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return (
             type(other) is Name
             and other.name == self.name
@@ -4775,7 +4829,9 @@ class Name:
         )
 
 
-def view(obj, sheet=None, table=True, chunksize=5000):
+def view(
+    obj: Any, sheet: Sheet | None = None, table: bool = True, chunksize: int = 5000
+) -> None:
     """
     Opens a new workbook and displays an object on its first sheet by default. If you
     provide a sheet object, it will clear the sheet before displaying the object on the
@@ -4838,7 +4894,7 @@ def view(obj, sheet=None, table=True, chunksize=5000):
         sheet.autofit()
 
 
-def load(index=1, header=1, chunksize=5000):
+def load(index: bool | int = 1, header: bool | int = 1, chunksize: int = 5000) -> Any:
     """
     Loads the selected cell(s) of the active workbook into a pandas DataFrame. If you
     select a single cell that has adjacent cells, the range is auto-expanded (via
@@ -4884,11 +4940,11 @@ def load(index=1, header=1, chunksize=5000):
 
 
 class Macro:
-    def __init__(self, app, macro):
+    def __init__(self, app: App, macro: str) -> None:
         self.app = app
         self.macro = macro
 
-    def run(self, *args):
+    def run(self, *args: Any) -> Any:
         args = [
             (
                 i.api
@@ -4915,11 +4971,11 @@ class Characters:
     .. versionadded:: 0.23.0
     """
 
-    def __init__(self, impl):
+    def __init__(self, impl: Any) -> None:
         self.impl = impl
 
     @property
-    def api(self):
+    def api(self) -> Any:
         """
         Returns the native object (``pywin32`` or ``appscript`` obj) of the engine
         being used.
@@ -4929,7 +4985,7 @@ class Characters:
         return self.impl.api
 
     @property
-    def text(self):
+    def text(self) -> str:
         """
         Returns or sets the text property of a ``characters`` object.
 
@@ -4942,7 +4998,7 @@ class Characters:
         return self.impl.text
 
     @property
-    def font(self):
+    def font(self) -> Font:
         """
         Returns or sets the text property of a ``characters`` object.
 
@@ -4954,7 +5010,7 @@ class Characters:
         """
         return Font(self.impl.font)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int | slice) -> Characters:
         if (
             isinstance(item, slice)
             and (item.start and item.stop)
@@ -4984,11 +5040,11 @@ class Font:
     .. versionadded:: 0.23.0
     """
 
-    def __init__(self, impl):
+    def __init__(self, impl: Any) -> None:
         self.impl = impl
 
     @property
-    def api(self):
+    def api(self) -> Any:
         """
         Returns the native object (``pywin32`` or ``appscript`` obj)
         of the engine being used.
@@ -4998,7 +5054,7 @@ class Font:
         return self.impl.api
 
     @property
-    def bold(self):
+    def bold(self) -> bool | None:
         """
         Returns or sets the bold property (boolean).
 
@@ -5011,11 +5067,11 @@ class Font:
         return self.impl.bold
 
     @bold.setter
-    def bold(self, value):
+    def bold(self, value: bool) -> None:
         self.impl.bold = value
 
     @property
-    def italic(self):
+    def italic(self) -> bool | None:
         """
         Returns or sets the italic property (boolean).
 
@@ -5028,11 +5084,11 @@ class Font:
         return self.impl.italic
 
     @italic.setter
-    def italic(self, value):
+    def italic(self, value: bool) -> None:
         self.impl.italic = value
 
     @property
-    def size(self):
+    def size(self) -> float | None:
         """
         Returns or sets the size (float).
 
@@ -5045,11 +5101,11 @@ class Font:
         return self.impl.size
 
     @size.setter
-    def size(self, value):
+    def size(self, value: float) -> None:
         self.impl.size = value
 
     @property
-    def color(self):
+    def color(self) -> tuple[int, int, int] | None:
         """
         Returns or sets the color property (tuple).
 
@@ -5062,11 +5118,11 @@ class Font:
         return self.impl.color
 
     @color.setter
-    def color(self, value):
+    def color(self, value: tuple[int, int, int] | str) -> None:
         self.impl.color = value
 
     @property
-    def name(self):
+    def name(self) -> str | None:
         """
         Returns or sets the name of the font (str).
 
@@ -5079,7 +5135,7 @@ class Font:
         return self.impl.name
 
     @name.setter
-    def name(self, value):
+    def name(self, value: str) -> None:
         self.impl.name = value
 
 
@@ -5088,11 +5144,11 @@ class FreezePanes:
     Freeze panes interface. Use via ``mysheet.freeze_panes``.
     """
 
-    def __init__(self, impl, sheet):
+    def __init__(self, impl: Any, sheet: Sheet) -> None:
         self.impl = impl
         self.sheet = sheet
 
-    def freeze_at(self, frozen_range):
+    def freeze_at(self, frozen_range: str | Range) -> None:
         """
         Sets the frozen cells in the sheet.
 
@@ -5112,7 +5168,7 @@ class FreezePanes:
             frozen_range = frozen_range.address
         self.impl.freeze_at(frozen_range)
 
-    def unfreeze(self):
+    def unfreeze(self) -> None:
         """
         Removes all frozen panes in the sheet.
         """
@@ -5135,13 +5191,13 @@ class Books(Collection):
     _wrap = Book
 
     @property
-    def active(self):
+    def active(self) -> Book:
         """
         Returns the active Book.
         """
         return Book(impl=self.impl.active)
 
-    def add(self):
+    def add(self) -> Book:
         """
         Creates a new Book. The new Book becomes the active Book. Returns a Book object.
         """
@@ -5149,23 +5205,23 @@ class Books(Collection):
 
     def open(
         self,
-        fullname=None,
-        update_links=None,
-        read_only=None,
-        format=None,
-        password=None,
-        write_res_password=None,
-        ignore_read_only_recommended=None,
-        origin=None,
-        delimiter=None,
-        editable=None,
-        notify=None,
-        converter=None,
-        add_to_mru=None,
-        local=None,
-        corrupt_load=None,
-        json=None,
-    ):
+        fullname: str | PathLike[str] | None = None,
+        update_links: bool | None = None,
+        read_only: bool | None = None,
+        format: str | None = None,
+        password: str | None = None,
+        write_res_password: str | None = None,
+        ignore_read_only_recommended: bool | None = None,
+        origin: int | None = None,
+        delimiter: str | None = None,
+        editable: bool | None = None,
+        notify: bool | None = None,
+        converter: int | None = None,
+        add_to_mru: bool | None = None,
+        local: bool | None = None,
+        corrupt_load: int | None = None,
+        json: dict[str, Any] | None = None,
+    ) -> Book:
         """
         Opens a Book if it is not open yet and returns it. If it is already open,
         it doesn't raise an exception but simply returns the Book object.
@@ -5241,22 +5297,27 @@ class Sheets(Collection):
     _wrap = Sheet
 
     @property
-    def active(self):
+    def active(self) -> Sheet:
         """
         Returns the active Sheet.
         """
         return Sheet(impl=self.impl.active)
 
-    def __call__(self, name_or_index):
+    def __call__(self, name_or_index: int | str | Sheet) -> Sheet:
         if isinstance(name_or_index, Sheet):
             return name_or_index
         else:
             return Sheet(impl=self.impl(name_or_index))
 
-    def __delitem__(self, name_or_index):
+    def __delitem__(self, name_or_index: int | str) -> None:
         self[name_or_index].delete()
 
-    def add(self, name=None, before=None, after=None):
+    def add(
+        self,
+        name: str | None = None,
+        before: Sheet | None = None,
+        after: Sheet | None = None,
+    ) -> Sheet:
         """
         Creates a new Sheet and makes it the active sheet.
 
@@ -5288,13 +5349,13 @@ class Sheets(Collection):
 
 
 class ActiveEngineApps(Apps):
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     _name = "Apps"
 
     @property
-    def impl(self):
+    def impl(self) -> Any:
         if engines.active is None:
             if not (
                 sys.platform.startswith("darwin") or sys.platform.startswith("win")
@@ -5316,28 +5377,28 @@ class ActiveEngineApps(Apps):
 
 
 class ActiveAppBooks(Books):
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     # override class name which appears in repr
     _name = "Books"
 
     @property
-    def impl(self):
+    def impl(self) -> Any:
         if not apps:
             raise XlwingsError("Couldn't find any active App!")
         return apps.active.books.impl
 
 
 class ActiveBookSheets(Sheets):
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     # override class name which appears in repr
     _name = "Sheets"
 
     @property
-    def impl(self):
+    def impl(self) -> Any:
         return books.active.sheets.impl
 
 
