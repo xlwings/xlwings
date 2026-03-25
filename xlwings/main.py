@@ -20,7 +20,7 @@ import warnings
 from contextlib import contextmanager
 from os import PathLike
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Generator, Iterator
 
 import xlwings
 
@@ -46,35 +46,35 @@ except ImportError:
 
 
 class Collection:
-    def __init__(self, impl):
+    def __init__(self, impl: Any) -> None:
         self.impl = impl
 
     @property
-    def api(self):
+    def api(self) -> Any:
         """
         Returns the native object (``pywin32`` or ``appscript`` obj)
         of the engine being used.
         """
         return self.impl.api
 
-    def __call__(self, name_or_index):
+    def __call__(self, name_or_index: int | str) -> Any:
         return self._wrap(impl=self.impl(name_or_index))
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.impl)
 
     @property
-    def count(self):
+    def count(self) -> int:
         """
         Returns the number of objects in the collection.
         """
         return len(self)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Any]:
         for impl in self.impl:
             yield self._wrap(impl=impl)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: int | str) -> Any:
         if isinstance(key, numbers.Number):
             length = len(self)
             if key >= length:
@@ -93,15 +93,15 @@ class Collection:
         else:
             return self(key)
 
-    def __contains__(self, key):
+    def __contains__(self, key: str) -> bool:
         return key in self.impl
 
     # used by repr - by default the name of the collection class, but can be overridden
     @property
-    def _name(self):
+    def _name(self) -> str:
         return self.__class__.__name__
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         r = []
         for i, x in enumerate(self):
             if i == 3:
@@ -114,26 +114,26 @@ class Collection:
 
 
 class Engines:
-    def __init__(self):
+    def __init__(self) -> None:
         self.active = None
         self.engines = []
         self.engines_by_name = {}
 
-    def add(self, engine):
+    def add(self, engine: Engine) -> None:
         self.engines.append(engine)
         self.engines_by_name[engine.name] = engine
 
     @property
-    def count(self):
+    def count(self) -> int:
         return len(self)
 
-    def __call__(self, name_or_index):
+    def __call__(self, name_or_index: int | str) -> Engine:
         if isinstance(name_or_index, numbers.Number):
             return self.engines[name_or_index - 1]
         else:
             return self.engines_by_name[name_or_index]
 
-    def __getitem__(self, name_or_index):
+    def __getitem__(self, name_or_index: int | str) -> Engine:
         if isinstance(name_or_index, numbers.Number):
             return self.engines[name_or_index]
         else:
@@ -154,37 +154,37 @@ class Engines:
                 else:
                     raise
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.engines)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Engine]:
         for engine in self.engines:
             yield engine
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{}({})".format(self.__class__.__name__, repr(list(self)))
 
 
 class Engine:
-    def __init__(self, impl):
+    def __init__(self, impl: Any) -> None:
         self.impl = impl
 
     @property
-    def apps(self):
+    def apps(self) -> Apps:
         return Apps(impl=self.impl.apps)
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.impl.name
 
     @property
-    def type(self):
+    def type(self) -> str:
         return self.impl.type
 
-    def activate(self):
+    def activate(self) -> None:
         engines.active = self
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Engine {self.name}>"
 
 
@@ -197,10 +197,10 @@ class Apps:
     Apps([<Excel App 1668>, <Excel App 1644>])
     """
 
-    def __init__(self, impl):
+    def __init__(self, impl: Any) -> None:
         self.impl = impl
 
-    def keys(self):
+    def keys(self) -> list[int]:
         """
         Provides the PIDs of the Excel instances
         that act as keys in the Apps collection.
@@ -209,14 +209,14 @@ class Apps:
         """
         return self.impl.keys()
 
-    def add(self, **kwargs):
+    def add(self, **kwargs: Any) -> App:
         """
         Creates a new App. The new App becomes the active one. Returns an App object.
         """
         return App(impl=self.impl.add(**kwargs))
 
     @property
-    def active(self):
+    def active(self) -> App | None:
         """
         Returns the active app.
 
@@ -226,22 +226,22 @@ class Apps:
             return App(impl=app)
         return None
 
-    def __call__(self, i):
+    def __call__(self, i: int) -> App:
         return self[i]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{}({})".format(
             getattr(self.__class__, "_name", self.__class__.__name__), repr(list(self))
         )
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int) -> App:
         return App(impl=self.impl[item])
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.impl)
 
     @property
-    def count(self):
+    def count(self) -> int:
         """
         Returns the number of apps.
 
@@ -249,7 +249,7 @@ class Apps:
         """
         return len(self)
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """
         Removes Excel zombie processes (Windows-only). Note that this is automatically
         called with ``App.quit()`` and ``App.kill()`` and when the Python interpreter
@@ -259,7 +259,7 @@ class Apps:
         """
         self.impl.cleanup()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[App]:
         for app in self.impl:
             yield App(impl=app)
 
@@ -312,7 +312,13 @@ class App:
         that the same file is not being overwritten from different instances.
     """
 
-    def __init__(self, visible=None, spec=None, add_book=True, impl=None):
+    def __init__(
+        self,
+        visible: bool | None = None,
+        spec: str | None = None,
+        add_book: bool = True,
+        impl: Any = None,
+    ) -> None:
         if impl is None:
             self.impl = engines.active.apps.add(
                 spec=spec, add_book=add_book, visible=visible
@@ -330,11 +336,11 @@ class App:
         self._pid = self.pid
 
     @property
-    def engine(self):
+    def engine(self) -> Engine:
         return Engine(impl=self.impl.engine)
 
     @property
-    def api(self):
+    def api(self) -> Any:
         """
         Returns the native object (``pywin32`` or ``appscript`` obj)
         of the engine being used.
@@ -344,7 +350,7 @@ class App:
         return self.impl.api
 
     @property
-    def version(self):
+    def version(self) -> utils.VersionNumber:
         """
         Returns the Excel version number object.
 
@@ -361,7 +367,7 @@ class App:
         return utils.VersionNumber(self.impl.version)
 
     @property
-    def selection(self):
+    def selection(self) -> Range | None:
         """
         Returns the selected cells as Range.
 
@@ -369,7 +375,7 @@ class App:
         """
         return Range(impl=self.impl.selection) if self.impl.selection else None
 
-    def activate(self, steal_focus=False):
+    def activate(self, steal_focus: bool = False) -> None:
         """
         Activates the Excel app.
 
@@ -393,7 +399,7 @@ class App:
                 )
 
     @property
-    def visible(self):
+    def visible(self) -> bool:
         """
         Gets or sets the visibility of Excel to ``True`` or  ``False``.
 
@@ -402,10 +408,10 @@ class App:
         return self.impl.visible
 
     @visible.setter
-    def visible(self, value):
+    def visible(self, value: bool) -> None:
         self.impl.visible = value
 
-    def quit(self):
+    def quit(self) -> None:
         """
         Quits the application without saving any workbooks.
 
@@ -414,7 +420,7 @@ class App:
         """
         return self.impl.quit()
 
-    def kill(self):
+    def kill(self) -> None:
         """
         Forces the Excel app to quit by killing its process.
 
@@ -423,7 +429,7 @@ class App:
         return self.impl.kill()
 
     @property
-    def screen_updating(self):
+    def screen_updating(self) -> bool:
         """
         Turn screen updating off to speed up your script. You won't be able to see what
         the script is doing, but it will run faster. Remember to set the screen_updating
@@ -434,11 +440,11 @@ class App:
         return self.impl.screen_updating
 
     @screen_updating.setter
-    def screen_updating(self, value):
+    def screen_updating(self, value: bool) -> None:
         self.impl.screen_updating = value
 
     @property
-    def display_alerts(self):
+    def display_alerts(self) -> bool:
         """
         The default value is True. Set this property to False to suppress prompts and
         alert messages while code is running; when a message requires a response, Excel
@@ -449,11 +455,11 @@ class App:
         return self.impl.display_alerts
 
     @display_alerts.setter
-    def display_alerts(self, value):
+    def display_alerts(self, value: bool) -> None:
         self.impl.display_alerts = value
 
     @property
-    def enable_events(self):
+    def enable_events(self) -> bool:
         """
         ``True`` if events are enabled. Read/write boolean.
 
@@ -462,11 +468,11 @@ class App:
         return self.impl.enable_events
 
     @enable_events.setter
-    def enable_events(self, value):
+    def enable_events(self, value: bool) -> None:
         self.impl.enable_events = value
 
     @property
-    def interactive(self):
+    def interactive(self) -> bool:
         """
         ``True`` if Excel is in interactive mode. If you set this property to ``False``,
         Excel blocks all input from the keyboard and mouse (except input to dialog boxes
@@ -478,11 +484,11 @@ class App:
         return self.impl.interactive
 
     @interactive.setter
-    def interactive(self, value):
+    def interactive(self, value: bool) -> None:
         self.impl.interactive = value
 
     @property
-    def startup_path(self):
+    def startup_path(self) -> str:
         """
         Returns the path to ``XLSTART`` which is where the xlwings add-in gets
         copied to by doing ``xlwings addin install``.
@@ -492,7 +498,7 @@ class App:
         return self.impl.startup_path
 
     @property
-    def calculation(self):
+    def calculation(self) -> str:
         """
         Returns or sets a calculation value that represents the calculation mode.
         Modes: ``'manual'``, ``'automatic'``, ``'semiautomatic'``
@@ -508,10 +514,10 @@ class App:
         return self.impl.calculation
 
     @calculation.setter
-    def calculation(self, value):
+    def calculation(self, value: str) -> None:
         self.impl.calculation = value
 
-    def calculate(self):
+    def calculate(self) -> None:
         """
         Calculates all open books.
 
@@ -521,7 +527,7 @@ class App:
         self.impl.calculate()
 
     @property
-    def books(self):
+    def books(self) -> Books:
         """
         A collection of all Book objects that are currently open.
 
@@ -530,7 +536,7 @@ class App:
         return Books(impl=self.impl.books)
 
     @property
-    def hwnd(self):
+    def hwnd(self) -> int | None:
         """
         Returns the Window handle (Windows-only).
 
@@ -539,7 +545,7 @@ class App:
         return self.impl.hwnd
 
     @property
-    def path(self):
+    def path(self) -> str:
         """
         Returns the path to where the App is installed.
 
@@ -548,7 +554,7 @@ class App:
         return self.impl.path
 
     @property
-    def pid(self):
+    def pid(self) -> int:
         """
         Returns the PID of the app.
 
@@ -556,7 +562,11 @@ class App:
         """
         return self.impl.pid
 
-    def range(self, cell1, cell2=None):
+    def range(
+        self,
+        cell1: str | tuple[int, int] | Range,
+        cell2: str | tuple[int, int] | Range | None = None,
+    ) -> Range:
         """
         Range object from the active sheet of the active book, see :meth:`Range`.
 
@@ -564,7 +574,7 @@ class App:
         """
         return self.books.active.sheets.active.range(cell1, cell2)
 
-    def macro(self, name):
+    def macro(self, name: str) -> Macro:
         """
         Runs a Sub or Function in Excel VBA that are not part of a specific workbook
         but e.g. are part of an add-in.
@@ -621,7 +631,7 @@ class App:
         return Macro(self, name)
 
     @property
-    def status_bar(self):
+    def status_bar(self) -> str | bool:
         """
         Gets or sets the value of the status bar.
         Returns ``False`` if Excel has control of it.
@@ -631,11 +641,11 @@ class App:
         return self.impl.status_bar
 
     @status_bar.setter
-    def status_bar(self, value):
+    def status_bar(self, value: str | bool) -> None:
         self.impl.status_bar = value
 
     @property
-    def cut_copy_mode(self):
+    def cut_copy_mode(self) -> str | None:
         """
         Gets or sets the status of the cut or copy mode.
         Accepts ``False`` for setting and returns ``None``,
@@ -646,11 +656,11 @@ class App:
         return self.impl.cut_copy_mode
 
     @cut_copy_mode.setter
-    def cut_copy_mode(self, value):
+    def cut_copy_mode(self, value: bool) -> None:
         self.impl.cut_copy_mode = value
 
     @contextmanager
-    def properties(self, **kwargs):
+    def properties(self, **kwargs: Any) -> Generator[App, None, None]:
         """
         Context manager that allows you to easily change the app's properties
         temporarily. Once the code leaves the with block, the properties are changed
@@ -689,13 +699,25 @@ class App:
             for attribute, value in initial_state.items():
                 setattr(self, attribute, value)
 
-    def create_report(self, template=None, output=None, book_settings=None, **data):
+    def create_report(
+        self,
+        template: str | PathLike[str] | None = None,
+        output: str | PathLike[str] | None = None,
+        book_settings: dict[str, Any] | None = None,
+        **data: Any,
+    ) -> Book:
         warnings.warn("Deprecated. Use render_template instead.")
         return self.render_template(
             template=template, output=output, book_settings=book_settings, **data
         )
 
-    def render_template(self, template=None, output=None, book_settings=None, **data):
+    def render_template(
+        self,
+        template: str | PathLike[str] | None = None,
+        output: str | PathLike[str] | None = None,
+        book_settings: dict[str, Any] | None = None,
+        **data: Any,
+    ) -> Book:
         """
         This function requires xlwings :bdg-secondary:`PRO`.
 
@@ -742,7 +764,14 @@ class App:
             **data,
         )
 
-    def alert(self, prompt, title=None, buttons="ok", mode=None, callback=None):
+    def alert(
+        self,
+        prompt: str,
+        title: str | None = None,
+        buttons: str = "ok",
+        mode: str | None = None,
+        callback: str | None = None,
+    ) -> str | None:
         """
         This corresponds to ``MsgBox`` in VBA, shows an alert/message box and returns
         the value of the pressed button. For xlwings Server, instead of
@@ -783,22 +812,22 @@ class App:
         """
         return self.impl.alert(prompt, title, buttons, mode, callback)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<App [{self.engine.name}] {self.pid}>"
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return type(other) is App and other.pid == self.pid
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.pid)
 
-    def __enter__(self):
+    def __enter__(self) -> App:
         return self
 
-    def __exit__(self, exc_type, exc_value, exc_tb):
+    def __exit__(self, exc_type: Any, exc_value: Any, exc_tb: Any) -> None:
         self.quit()
         if sys.platform.startswith("win"):
             try:
@@ -889,27 +918,27 @@ class Book:
 
     def __init__(
         self,
-        fullname=None,
-        update_links=None,
-        read_only=None,
-        format=None,
-        password=None,
-        write_res_password=None,
-        ignore_read_only_recommended=None,
-        origin=None,
-        delimiter=None,
-        editable=None,
-        notify=None,
-        converter=None,
-        add_to_mru=None,
-        local=None,
-        corrupt_load=None,
-        impl=None,
-        json=None,
-        mode=None,
-        engine=None,
-        **kwargs,
-    ):
+        fullname: str | PathLike[str] | None = None,
+        update_links: bool | None = None,
+        read_only: bool | None = None,
+        format: str | None = None,
+        password: str | None = None,
+        write_res_password: str | None = None,
+        ignore_read_only_recommended: bool | None = None,
+        origin: int | None = None,
+        delimiter: str | None = None,
+        editable: bool | None = None,
+        notify: bool | None = None,
+        converter: int | None = None,
+        add_to_mru: bool | None = None,
+        local: bool | None = None,
+        corrupt_load: int | None = None,
+        impl: Any = None,
+        json: dict[str, Any] | None = None,
+        mode: str | None = None,
+        engine: str | None = None,
+        **kwargs: Any,
+    ) -> None:
         if not impl:
             if json:
                 engine = engine if engine else "remote"
@@ -974,7 +1003,7 @@ class Book:
         self.impl = impl
 
     @property
-    def api(self):
+    def api(self) -> Any:
         """
         Returns the native object (``pywin32`` or ``appscript`` obj) of the engine being
         used.
@@ -983,7 +1012,7 @@ class Book:
         """
         return self.impl.api
 
-    def json(self):
+    def json(self) -> dict[str, Any]:
         """
         Returns a JSON serializable object as expected by the MS Office Scripts or
         Google Apps Script xlwings module. Only available with book objects that have
@@ -993,7 +1022,7 @@ class Book:
         """
         return self.impl.json()
 
-    async def sync(self):
+    async def sync(self) -> None:
         """
         Flushes all pending actions to Excel. Only available in xlwings Lite.
         Use this when you need the side effects of previous
@@ -1002,21 +1031,21 @@ class Book:
         """
         await self.impl.sync()
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return (
             isinstance(other, Book)
             and self.app == other.app
             and self.name == other.name
         )
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.app, self.name))
 
     @classmethod
-    def caller(cls):
+    def caller(cls) -> Book:
         """
         References the calling book when the Python function is called from Excel via
         ``RunPython``. Pack it into the function being called from Excel, e.g.::
@@ -1062,7 +1091,7 @@ class Book:
                 "or set a mock caller first with Book.set_mock_caller()."
             )
 
-    def set_mock_caller(self):
+    def set_mock_caller(self) -> None:
         """
         Sets the Excel file which is used to mock ``xw.Book.caller()`` when the code is
         called from Python and not from Excel via ``RunPython``.
@@ -1087,7 +1116,7 @@ class Book:
         """
         Book._mock_caller = self
 
-    def macro(self, name):
+    def macro(self, name: str) -> Macro:
         """
         Runs a Sub or Function in Excel VBA.
 
@@ -1121,14 +1150,14 @@ class Book:
         return self.app.macro("'{0}'!{1}".format(self.name, name))
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Returns the name of the book as str.
         """
         return self.impl.name
 
     @property
-    def sheets(self):
+    def sheets(self) -> Sheets:
         """
         Returns a sheets collection that represents all the sheets in the book.
 
@@ -1137,7 +1166,7 @@ class Book:
         return Sheets(impl=self.impl.sheets)
 
     @property
-    def app(self):
+    def app(self) -> App:
         """
         Returns an app object that represents the creator of the book.
 
@@ -1145,7 +1174,7 @@ class Book:
         """
         return App(impl=self.impl.app)
 
-    def close(self):
+    def close(self) -> None:
         """
         Closes the book without saving it.
 
@@ -1153,7 +1182,9 @@ class Book:
         """
         self.impl.close()
 
-    def save(self, path=None, password=None):
+    def save(
+        self, path: str | PathLike[str] | None = None, password: str | None = None
+    ) -> None:
         """
         Saves the Workbook. If a path is provided, this works like SaveAs() in
         Excel. If no path is specified and if the file hasn't been saved previously,
@@ -1187,7 +1218,7 @@ class Book:
             self.impl.save(path, password=password)
 
     @property
-    def fullname(self):
+    def fullname(self) -> str:
         """
         Returns the name of the object, including its path on disk, as a string.
         Read-only String.
@@ -1196,7 +1227,7 @@ class Book:
         return self.impl.fullname
 
     @property
-    def names(self):
+    def names(self) -> Names:
         """
         Returns a names collection that represents all the names in the specified book
         (including all sheet-specific names).
@@ -1206,7 +1237,7 @@ class Book:
         """
         return Names(impl=self.impl.names)
 
-    def activate(self, steal_focus=False):
+    def activate(self, steal_focus: bool = False) -> None:
         """
         Activates the book.
 
@@ -1220,7 +1251,7 @@ class Book:
         self.impl.activate()
 
     @property
-    def selection(self):
+    def selection(self) -> Range | None:
         """
         Returns the selected cells as Range.
 
@@ -1230,14 +1261,14 @@ class Book:
 
     def to_pdf(
         self,
-        path=None,
-        include=None,
-        exclude=None,
-        layout=None,
-        exclude_start_string="#",
-        show=False,
-        quality="standard",
-    ):
+        path: str | PathLike[str] | None = None,
+        include: int | str | list[int | str] | None = None,
+        exclude: int | str | list[int | str] | None = None,
+        layout: str | PathLike[str] | None = None,
+        exclude_start_string: str = "#",
+        show: bool = False,
+        quality: str = "standard",
+    ) -> str:
         """
         Exports the whole Excel workbook or a subset of the sheets to a PDF file.
         If you want to print hidden sheets, you will need to list them explicitely
@@ -1307,10 +1338,10 @@ class Book:
             quality=quality,
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<Book [{0}]>".format(self.name)
 
-    def render_template(self, **data):
+    def render_template(self, **data: Any) -> None:
         """
         This method requires xlwings :bdg-secondary:`PRO`.
 
@@ -1336,7 +1367,7 @@ class Book:
             sheet.render_template(**data)
 
     @property
-    def sheet_names(self):
+    def sheet_names(self) -> list[str]:
         """
         Returns
         -------
@@ -1349,10 +1380,10 @@ class Book:
         """
         return [sheet.name for sheet in self.sheets]
 
-    def __enter__(self):
+    def __enter__(self) -> Book:
         return self
 
-    def __exit__(self, exc_type, exc_value, exc_tb):
+    def __exit__(self, exc_type: Any, exc_value: Any, exc_tb: Any) -> None:
         self.close()
 
 
@@ -1372,14 +1403,14 @@ class Sheet:
     .. versionchanged:: 0.9.0
     """
 
-    def __init__(self, sheet=None, impl=None):
+    def __init__(self, sheet: str | int | None = None, impl: Any = None) -> None:
         if impl is None:
             self.impl = books.active.sheets(sheet).impl
         else:
             self.impl = impl
 
     @property
-    def api(self):
+    def api(self) -> Any:
         """
         Returns the native object (``pywin32`` or ``appscript`` obj)
         of the engine being used.
@@ -1388,26 +1419,26 @@ class Sheet:
         """
         return self.impl.api
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return (
             isinstance(other, Sheet)
             and self.book == other.book
             and self.name == other.name
         )
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.book, self.name))
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Gets or sets the name of the Sheet."""
         return self.impl.name
 
     @name.setter
-    def name(self, value):
+    def name(self, value: str) -> None:
         if value in [None, ""]:
             raise ValueError("A sheet name can't be empty.")
         elif any(char in value for char in ["\\", "/", "?", "*", "[", "]"]):
@@ -1424,7 +1455,7 @@ class Sheet:
             self.impl.name = value
 
     @property
-    def names(self):
+    def names(self) -> Names:
         """
         Returns a names collection that represents all the sheet-specific names
         (names defined with the "SheetName!" prefix).
@@ -1435,7 +1466,7 @@ class Sheet:
         return Names(impl=self.impl.names)
 
     @property
-    def freeze_panes(self):
+    def freeze_panes(self) -> FreezePanes:
         """
         Interface to freeze/unfreeze panes.
 
@@ -1451,16 +1482,20 @@ class Sheet:
         return FreezePanes(impl=self.impl.freeze_panes, sheet=self)
 
     @property
-    def book(self):
+    def book(self) -> Book:
         """Returns the Book of the specified Sheet. Read-only."""
         return Book(impl=self.impl.book)
 
     @property
-    def index(self):
+    def index(self) -> int:
         """Returns the index of the Sheet (1-based as in Excel)."""
         return self.impl.index
 
-    def range(self, cell1, cell2=None):
+    def range(
+        self,
+        cell1: str | tuple[int, int] | Range,
+        cell2: str | tuple[int, int] | Range | None = None,
+    ) -> Range:
         """
         Returns a Range object from the active sheet of the active book,
         see :meth:`Range`.
@@ -1478,7 +1513,7 @@ class Sheet:
         return Range(impl=self.impl.range(cell1, cell2))
 
     @property
-    def cells(self):
+    def cells(self) -> Range:
         """
         Returns a Range object that represents all the cells on the Sheet
         (not just the cells that are currently in use).
@@ -1487,12 +1522,12 @@ class Sheet:
         """
         return Range(impl=self.impl.cells)
 
-    def activate(self):
+    def activate(self) -> None:
         """Activates the Sheet and returns it."""
         self.book.activate()
         return self.impl.activate()
 
-    def select(self):
+    def select(self) -> None:
         """
         Selects the Sheet. Activates the book if it isn't the active one.
 
@@ -1501,22 +1536,22 @@ class Sheet:
         self.book.activate()
         return self.impl.select()
 
-    def clear_contents(self):
+    def clear_contents(self) -> None:
         """Clears the content of the whole sheet but leaves the formatting."""
         return self.impl.clear_contents()
 
-    def clear_formats(self):
+    def clear_formats(self) -> None:
         """Clears the format of the whole sheet but leaves the content.
 
         .. versionadded:: 0.26.2
         """
         return self.impl.clear_formats()
 
-    def clear(self):
+    def clear(self) -> None:
         """Clears the content and formatting of the whole sheet."""
         return self.impl.clear()
 
-    def autofit(self, axis=None):
+    def autofit(self, axis: str | None = None) -> None:
         """
         Autofits the width of either columns, rows or both on a whole Sheet.
 
@@ -1539,7 +1574,7 @@ class Sheet:
         """
         return self.impl.autofit(axis)
 
-    def delete(self):
+    def delete(self) -> None:
         """
         Deletes the Sheet.
 
@@ -1547,7 +1582,7 @@ class Sheet:
         """
         return self.impl.delete()
 
-    def to_html(self, path=None):
+    def to_html(self, path: str | PathLike[str] | None = None) -> None:
         """
         Export a Sheet as HTML page.
 
@@ -1564,7 +1599,13 @@ class Sheet:
         path = utils.fspath(path)
         self.impl.to_html(self.name + ".html" if path is None else path)
 
-    def to_pdf(self, path=None, layout=None, show=False, quality="standard"):
+    def to_pdf(
+        self,
+        path: str | PathLike[str] | None = None,
+        layout: str | PathLike[str] | None = None,
+        show: bool = False,
+        quality: str = "standard",
+    ) -> str:
         """
         Exports the sheet to a PDF file.
 
@@ -1615,7 +1656,12 @@ class Sheet:
             quality=quality,
         )
 
-    def copy(self, before=None, after=None, name=None):
+    def copy(
+        self,
+        before: Sheet | None = None,
+        after: Sheet | None = None,
+        name: str | None = None,
+    ) -> Sheet:
         """
         Copy a sheet to the current or a new Book. By default, it places the copied
         sheet after all existing sheets in the current Book. Returns the copied sheet.
@@ -1684,7 +1730,7 @@ class Sheet:
             copied_sheet.name = name
         return copied_sheet
 
-    def render_template(self, **data):
+    def render_template(self, **data: Any) -> None:
         """
         This method requires xlwings :bdg-secondary:`PRO`.
 
@@ -1714,7 +1760,7 @@ class Sheet:
         render_sheet(self, **data)
 
     @property
-    def charts(self):
+    def charts(self) -> Charts:
         """
         See :meth:`Charts <xlwings.main.Charts>`
 
@@ -1723,7 +1769,7 @@ class Sheet:
         return Charts(impl=self.impl.charts)
 
     @property
-    def shapes(self):
+    def shapes(self) -> Shapes:
         """
         See :meth:`Shapes <xlwings.main.Shapes>`
 
@@ -1732,7 +1778,7 @@ class Sheet:
         return Shapes(impl=self.impl.shapes)
 
     @property
-    def tables(self):
+    def tables(self) -> Tables:
         """
         See :meth:`Tables <xlwings.main.Tables>`
 
@@ -1741,7 +1787,7 @@ class Sheet:
         return Tables(impl=self.impl.tables)
 
     @property
-    def pictures(self):
+    def pictures(self) -> Pictures:
         """
         See :meth:`Pictures <xlwings.main.Pictures>`
 
@@ -1750,7 +1796,7 @@ class Sheet:
         return Pictures(impl=self.impl.pictures)
 
     @property
-    def used_range(self):
+    def used_range(self) -> Range:
         """
         Used Range of Sheet.
 
@@ -1764,7 +1810,7 @@ class Sheet:
         return Range(impl=self.impl.used_range)
 
     @property
-    def visible(self):
+    def visible(self) -> bool:
         """Gets or sets the visibility of the Sheet (bool).
 
         .. versionadded:: 0.21.1
@@ -1772,11 +1818,11 @@ class Sheet:
         return self.impl.visible
 
     @visible.setter
-    def visible(self, value):
+    def visible(self, value: bool) -> None:
         self.impl.visible = value
 
     @property
-    def page_setup(self):
+    def page_setup(self) -> PageSetup:
         """
         Returns a PageSetup object.
 
@@ -1784,13 +1830,13 @@ class Sheet:
         """
         return PageSetup(self.impl.page_setup)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str | tuple[int, int]) -> Range:
         if isinstance(item, str):
             return self.range(item)
         else:
             return self.cells[item]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<Sheet [{1}]{0}>".format(self.name, self.book.name)
 
 
