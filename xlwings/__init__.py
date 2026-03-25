@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Any, Callable, TypeVar, overload
+from typing import Any, Callable, TypeVar
 
 __version__ = "0.0.0"
 
@@ -122,6 +122,8 @@ if "excel" in [engine.name for engine in engines]:
     engines.active = engines["excel"]
 
 # UDFs
+_F = TypeVar("_F", bound=Callable[..., Any])
+
 on_server = os.environ.get("XLWINGS_ON_SERVER") == "true"
 
 if on_server:
@@ -153,15 +155,6 @@ elif sys.platform.startswith("win") and has_pywin32:
     except:  # noqa: E722
         pass
 else:
-    _F = TypeVar("_F", bound=Callable[..., Any])
-
-    @overload
-    def func(f: _F) -> _F:
-        ...
-
-    @overload
-    def func(f: None = None, *args: Any, **kwargs: Any) -> Callable[[_F], _F]:
-        ...
 
     def func(f: _F | None = None, *args: Any, **kwargs: Any) -> _F | Callable[[_F], _F]:
         def inner(f: _F) -> _F:
@@ -172,14 +165,6 @@ else:
         else:
             return inner(f)
 
-    @overload
-    def sub(f: _F) -> _F:
-        ...
-
-    @overload
-    def sub(f: None = None, *args: Any, **kwargs: Any) -> Callable[[_F], _F]:
-        ...
-
     def sub(f: _F | None = None, *args: Any, **kwargs: Any) -> _F | Callable[[_F], _F]:
         def inner(f: _F) -> _F:
             return f
@@ -188,14 +173,6 @@ else:
             return inner
         else:
             return inner(f)
-
-    @overload
-    def script(f: _F) -> _F:
-        ...
-
-    @overload
-    def script(f: None = None, *args: Any, **kwargs: Any) -> Callable[[_F], _F]:
-        ...
 
     def script(
         f: _F | None = None, *args: Any, **kwargs: Any
