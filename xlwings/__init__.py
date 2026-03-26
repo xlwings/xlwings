@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import os
 import sys
-from functools import wraps
+from typing import Any, Callable, TypeVar
 
 __version__ = "0.0.0"
 
@@ -120,6 +122,8 @@ if "excel" in [engine.name for engine in engines]:
     engines.active = engines["excel"]
 
 # UDFs
+_F = TypeVar("_F", bound=Callable[..., Any])
+
 on_server = os.environ.get("XLWINGS_ON_SERVER") == "true"
 
 if on_server:
@@ -152,9 +156,8 @@ elif sys.platform.startswith("win") and has_pywin32:
         pass
 else:
 
-    def func(f=None, *args, **kwargs):
-        @wraps(f)
-        def inner(f):
+    def func(f: _F | None = None, *args: Any, **kwargs: Any) -> _F | Callable[[_F], _F]:
+        def inner(f: _F) -> _F:
             return f
 
         if f is None:
@@ -162,9 +165,8 @@ else:
         else:
             return inner(f)
 
-    def sub(f=None, *args, **kwargs):
-        @wraps(f)
-        def inner(f):
+    def sub(f: _F | None = None, *args: Any, **kwargs: Any) -> _F | Callable[[_F], _F]:
+        def inner(f: _F) -> _F:
             return f
 
         if f is None:
@@ -172,21 +174,30 @@ else:
         else:
             return inner(f)
 
-    script = sub
+    def script(
+        f: _F | None = None, *args: Any, **kwargs: Any
+    ) -> _F | Callable[[_F], _F]:
+        def inner(f: _F) -> _F:
+            return f
 
-    def ret(*args, **kwargs):
-        def inner(f):
+        if f is None:
+            return inner
+        else:
+            return inner(f)
+
+    def ret(*args: Any, **kwargs: Any) -> Callable[[_F], _F]:
+        def inner(f: _F) -> _F:
             return f
 
         return inner
 
-    def arg(*args, **kwargs):
-        def inner(f):
+    def arg(*args: Any, **kwargs: Any) -> Callable[[_F], _F]:
+        def inner(f: _F) -> _F:
             return f
 
         return inner
 
-    def raise_missing_pywin32():
+    def raise_missing_pywin32() -> None:
         raise ImportError(
             "Couldn't find 'pywin32'. Install it via"
             "'pip install pywin32' or 'conda install pywin32'."

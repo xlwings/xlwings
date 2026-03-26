@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import concurrent
 import copy
@@ -16,7 +18,17 @@ from importlib import (
     reload,
 )
 from random import random
-from typing import Annotated, get_args, get_origin, get_type_hints
+from typing import (
+    Annotated,
+    Any,
+    Callable,
+    TypeVar,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
+
+_F = TypeVar("_F", bound=Callable[..., Any])
 
 import pythoncom
 import pywintypes
@@ -141,8 +153,8 @@ def extract_type_and_annotations(type_hint):
         return top_level_type, []
 
 
-def xlfunc(f=None, **kwargs):
-    def inner(f):
+def xlfunc(f: _F | None = None, **kwargs: Any) -> _F | Callable[[_F], _F]:
+    def inner(f: _F) -> _F:
         if not hasattr(f, "__xlfunc__"):
             type_hints = get_type_hints(f, include_extras=True)  # requires Python 3.9
             xlf = f.__xlfunc__ = {}
@@ -216,8 +228,8 @@ def xlfunc(f=None, **kwargs):
         return inner(f)
 
 
-def xlsub(f=None, **kwargs):
-    def inner(f):
+def xlsub(f: _F | None = None, **kwargs: Any) -> _F | Callable[[_F], _F]:
+    def inner(f: _F) -> _F:
         f = xlfunc(**kwargs)(f)
         f.__xlfunc__["sub"] = True
         return f
@@ -228,11 +240,11 @@ def xlsub(f=None, **kwargs):
         return inner(f)
 
 
-def xlret(convert=None, **kwargs):
+def xlret(convert: Any = None, **kwargs: Any) -> Callable[[_F], _F]:
     if convert is not None:
         kwargs["convert"] = convert
 
-    def inner(f):
+    def inner(f: _F) -> _F:
         xlf = xlfunc(f).__xlfunc__
         xlr = xlf["ret"]
         xlr["options"].update(kwargs)
@@ -241,11 +253,11 @@ def xlret(convert=None, **kwargs):
     return inner
 
 
-def xlarg(arg, convert=None, **kwargs):
+def xlarg(arg: str, convert: Any = None, **kwargs: Any) -> Callable[[_F], _F]:
     if convert is not None:
         kwargs["convert"] = convert
 
-    def inner(f):
+    def inner(f: _F) -> _F:
         xlf = xlfunc(f).__xlfunc__
         if arg.lstrip("*") not in xlf["argmap"]:
             raise Exception("Invalid argument name '" + arg + "'.")
