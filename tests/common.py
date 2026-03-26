@@ -14,14 +14,16 @@ SPEC = None  # This was used to support Excel 2011: '/Applications/Microsoft Off
 
 
 class TestBase(unittest.TestCase):
-    def __init__(self, methodName):
+    def __init__(self, methodName="runTest"):
         super(TestBase, self).__init__(methodName)
 
         # Patch the test method being run to skip the test if it
         # throws NotImplementedError. This allows us to not consider
         # such tests failures, though they will still show up (as
         # skipped tests).
-        test_method = getattr(self, methodName)
+        test_method = getattr(self, methodName, None)
+        if test_method is None:
+            return
 
         def wrapped_method(self, *args, **kwargs):
             try:
