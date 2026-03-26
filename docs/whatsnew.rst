@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.34.0 (Mar 26, 2026)
+----------------------
+
+* :bdg-info:`Enhancement` The public API is now fully type-hinted! This allows for better autocomplete and inline documentation in IDEs (:issue:`2685`).
+
 v0.33.22 (Mar 22, 2026)
 -----------------------
 
