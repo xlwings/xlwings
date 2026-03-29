@@ -1036,6 +1036,19 @@ class Book:
         """
         await self.impl.sync()
 
+    async def load(self) -> Book:
+        """Fetch values for all sheets from Excel. After calling this,
+        ``.value`` works for all ranges.
+
+        Requires xlwings Lite.
+
+        Returns
+        -------
+        Book
+        """
+        await self.impl.load()
+        return self
+
     def __eq__(self, other: object) -> bool:
         return (
             isinstance(other, Book)
@@ -1531,6 +1544,19 @@ class Sheet:
         """Activates the Sheet and returns it."""
         self.book.activate()
         return self.impl.activate()
+
+    async def load(self) -> Sheet:
+        """Fetch values for this sheet from Excel. After calling this,
+        ``.value`` works for ranges on this sheet.
+
+        Requires xlwings Lite.
+
+        Returns
+        -------
+        Sheet
+        """
+        await self.impl.load()
+        return self
 
     def select(self) -> None:
         """
@@ -2554,6 +2580,28 @@ class Range:
     @value.setter
     def value(self, data: Any) -> None:
         conversion.write(data, self, self._options)
+
+    async def get_value(self) -> Any:
+        """Fetch values from Excel on demand.
+
+        Requires xlwings Lite. Works in both lazy and non-lazy mode:
+
+        - In lazy mode (``@script(lazy=True)`` or notebooks): this is the primary
+          way to read data since ``.value`` is not available.
+        - In non-lazy mode: returns fresh data from Excel (bypassing the preloaded
+          cache).
+
+        Returns
+        -------
+        object : returned object depends on the converter being used,
+                 see :meth:`xlwings.Range.options`
+        """
+        return await conversion.async_read(
+            self,
+            None,
+            self._options,
+            pipeline_overrides=self._impl.get_async_pipeline_overrides(self._options),
+        )
 
     def expand(self, mode: str = "table") -> Range:
         """

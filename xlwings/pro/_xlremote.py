@@ -318,6 +318,13 @@ class Book(base_classes.Book):
         # Yield to the browser event loop so it can repaint (to print to output pane)
         await asyncio.sleep(0.01)
 
+    async def load(self):
+        """Fetch values for all sheets from Excel."""
+        if sys.platform != "emscripten":
+            raise NotImplementedError("Book.load() is only supported in xlwings Lite")
+        for sheet in self.sheets:
+            await sheet.load()
+
     @property
     def name(self):
         return self.api["book"]["name"]
@@ -508,6 +515,16 @@ class Sheet(base_classes.Sheet):
     def freeze_panes(self):
         return FreezePanes(self)
 
+    async def load(self):
+        """Fetch values for this sheet from Excel."""
+        if sys.platform != "emscripten":
+            raise NotImplementedError("Sheet.load() is only supported in xlwings Lite")
+        import js
+
+        values_js = await js.xlwingsGetSheetValues(self.name)
+        self._api["values"] = values_js.to_py()
+        get_range_api.cache_clear()
+
 
 @lru_cache(None)
 def get_range_api(api_values, arg1, arg2=None):
@@ -643,6 +660,22 @@ class Range(base_classes.Range):
             return self.arg2[0] - self.arg1[0] + 1, self.arg2[1] - self.arg1[1] + 1
         else:
             return 1, 1
+
+    def get_async_pipeline_overrides(self, options):
+        """Return async stage replacements for the converter pipeline."""
+        if sys.platform != "emscripten":
+            raise NotImplementedError("get_value() is only supported in xlwings Lite")
+        from ..conversion.standard import (
+            AsyncExpandRangeStage,
+            AsyncReadValueFromRangeStage,
+            ExpandRangeStage,
+            ReadValueFromRangeStage,
+        )
+
+        overrides = {ReadValueFromRangeStage: AsyncReadValueFromRangeStage(options)}
+        if options.get("expand", None):
+            overrides[ExpandRangeStage] = AsyncExpandRangeStage(options)
+        return overrides
 
     @property
     def raw_value(self):
