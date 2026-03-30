@@ -54,7 +54,7 @@ class AsyncExpandRangeStage:
         if c.range and self.expand:
             import js
 
-            expanded_address = await js.xlwingsGetExpandedAddress(
+            expanded_address = await js.xlwings.getExpandedAddress(
                 c.range.sheet.name, c.range.address, self.expand
             )
             expanded_address = str(expanded_address)
@@ -140,7 +140,7 @@ class AsyncReadValueFromRangeStage:
             parts = []
             for i in range(math.ceil(c.range.shape[0] / chunksize)):
                 chunk_range = c.range[i * chunksize : (i * chunksize) + chunksize, :]
-                values_js = await js.xlwingsGetRangeValues(
+                values_js = await js.xlwings.getRangeValues(
                     c.range.sheet.name, chunk_range.address
                 )
                 chunk_values = values_js.to_py()
@@ -150,7 +150,7 @@ class AsyncReadValueFromRangeStage:
                     parts.extend([chunk_values])
             c.value = parts
         else:
-            values_js = await js.xlwingsGetRangeValues(
+            values_js = await js.xlwings.getRangeValues(
                 c.range.sheet.name, c.range.address
             )
             c.value = values_js.to_py()

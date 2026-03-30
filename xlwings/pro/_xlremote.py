@@ -521,7 +521,7 @@ class Sheet(base_classes.Sheet):
             raise NotImplementedError("Sheet.load() is only supported in xlwings Lite")
         import js
 
-        values_js = await js.xlwingsGetSheetValues(self.name)
+        values_js = await js.xlwings.getSheetValues(self.name)
         self._api["values"] = values_js.to_py()
         get_range_api.cache_clear()
 
