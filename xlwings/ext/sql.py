@@ -64,7 +64,11 @@ def _sql(query, *tables_or_aliases):
 
     # Process arguments into (alias, table) pairs
     for table_or_alias in tables_or_aliases:
-        if len(table_or_alias[0]) == 1 and isinstance(table_or_alias[0][0], str):
+        if (
+            len(table_or_alias) == 1
+            and len(table_or_alias[0]) == 1
+            and isinstance(table_or_alias[0][0], str)
+        ):
             current_alias = table_or_alias[0][0]
         else:
             if current_alias is None:
