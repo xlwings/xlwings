@@ -856,6 +856,21 @@ def test_book_load_not_supported(book):
         asyncio.run(book.load())
 
 
+def test_books_get_active_not_supported(book):
+    with pytest.raises(NotImplementedError):
+        asyncio.run(book.app.books.get_active())
+
+
+def test_sheets_get_active_not_supported(book):
+    with pytest.raises(NotImplementedError):
+        asyncio.run(book.sheets.get_active())
+
+
+def test_app_get_selection_not_supported(book):
+    with pytest.raises(NotImplementedError):
+        asyncio.run(book.app.get_selection())
+
+
 # Pipeline.async_call()
 
 

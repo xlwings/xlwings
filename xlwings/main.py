@@ -380,6 +380,14 @@ class App:
         """
         return Range(impl=self.impl.selection) if self.impl.selection else None
 
+    async def get_selection(self) -> "Range | None":
+        """Returns the selected cells as Range, fetched live from Excel.
+
+        .. versionadded:: 0.35.0
+        """
+        impl = await self.impl.get_selection()
+        return Range(impl=impl) if impl else None
+
     def activate(self, steal_focus: bool = False) -> None:
         """
         Activates the Excel app.
@@ -1276,6 +1284,13 @@ class Book:
         .. versionadded:: 0.9.0
         """
         return Range(impl=self.app.selection.impl) if self.app.selection else None
+
+    async def get_selection(self) -> "Range | None":
+        """Returns the selected cells as Range, fetched live from Excel.
+
+        .. versionadded:: 0.35.0
+        """
+        return await self.app.get_selection()
 
     def to_pdf(
         self,
@@ -5296,6 +5311,15 @@ class Books(Collection[Book]):
         """
         return Book(impl=self.impl.active)
 
+    async def get_active(self) -> Book:
+        """Returns the active Book with metadata only (lazy loading).
+
+        Use ``await range.get_value()`` to read cell values on demand.
+
+        .. versionadded:: 0.35.0
+        """
+        return Book(impl=await self.impl.get_active())
+
     def add(self) -> Book:
         """
         Creates a new Book. The new Book becomes the active Book. Returns a Book object.
@@ -5401,6 +5425,13 @@ class Sheets(Collection[Sheet]):
         Returns the active Sheet.
         """
         return Sheet(impl=self.impl.active)
+
+    async def get_active(self) -> Sheet:
+        """Returns the active Sheet, fetched live from Excel.
+
+        .. versionadded:: 0.35.0
+        """
+        return Sheet(impl=await self.impl.get_active())
 
     def __call__(self, name_or_index: int | str | Sheet) -> Sheet:
         if isinstance(name_or_index, Sheet):

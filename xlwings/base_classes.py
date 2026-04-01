@@ -145,6 +145,11 @@ class App:
     def alert(self, prompt, title, buttons, mode, callback):
         raise NotImplementedError()
 
+    async def get_selection(self):
+        raise NotImplementedError(
+            "App.get_selection() is only supported in xlwings Lite (Pyodide)"
+        )
+
 
 class Books:
     @property
@@ -163,6 +168,11 @@ class Books:
 
     def add(self):
         raise NotImplementedError()
+
+    async def get_active(self):
+        raise NotImplementedError(
+            "Books.get_active() is only supported in xlwings Lite (Pyodide)"
+        )
 
     def open(
         self,
@@ -252,6 +262,11 @@ class Sheets:
 
     def add(self, before=None, after=None):
         raise NotImplementedError()
+
+    async def get_active(self):
+        raise NotImplementedError(
+            "Sheets.get_active() is only supported in xlwings Lite (Pyodide)"
+        )
 
 
 class Sheet:

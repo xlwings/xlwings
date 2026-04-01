@@ -182,6 +182,26 @@ class App(base_classes.App):
         book = self.books.active
         return Range(sheet=book.sheets.active, arg1=book.api["book"]["selection"])
 
+    async def get_selection(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(
+                "App.get_selection() is only supported in xlwings Lite"
+            )
+        import js
+
+        result = (await js.xlwings.getSelection()).to_py()
+        sheet_index = int(result["sheetIndex"])
+        address = result["address"]
+        book = self.books.active
+        sheet = Sheet(
+            api=book.api["sheets"][sheet_index],
+            sheets=book.sheets,
+            index=sheet_index + 1,
+        )
+        if address is None:
+            return None  # Non-cell selection (e.g., shape)
+        return Range(sheet=sheet, arg1=address)
+
     @property
     def visible(self):
         return True
@@ -221,6 +241,20 @@ class Books(base_classes.Books):
     @property
     def active(self):
         return self._active
+
+    async def get_active(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(
+                "Books.get_active() is only supported in xlwings Lite"
+            )
+        import js
+        from pyodide.ffi import to_js
+
+        book_data_js = await js.xlwings.getBookData(
+            js.Object.fromEntries(to_js({"lazy": True}))
+        )
+        book_data = book_data_js.to_py()
+        return self.open(book_data)
 
     def open(self, json):
         book = Book(api=json, books=self)
@@ -363,6 +397,16 @@ class Sheets(base_classes.Sheets):
     @property
     def active(self):
         ix = self.book.api["book"]["active_sheet_index"]
+        return Sheet(api=self.api[ix], sheets=self, index=ix + 1)
+
+    async def get_active(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(
+                "Sheets.get_active() is only supported in xlwings Lite"
+            )
+        import js
+
+        ix = int(await js.xlwings.getActiveSheetIndex())
         return Sheet(api=self.api[ix], sheets=self, index=ix + 1)
 
     @property
