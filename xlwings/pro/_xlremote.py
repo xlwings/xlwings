@@ -356,8 +356,10 @@ class Book(base_classes.Book):
         """Fetch values for all sheets from Excel."""
         if sys.platform != "emscripten":
             raise NotImplementedError("Book.load() is only supported in xlwings Lite")
-        for sheet in self.sheets:
-            await sheet.load()
+        import js
+
+        self._json = (await js.xlwings.getBookData()).to_py()
+        get_range_api.cache_clear()
 
     @property
     def name(self):
@@ -560,13 +562,20 @@ class Sheet(base_classes.Sheet):
         return FreezePanes(self)
 
     async def load(self):
-        """Fetch values for this sheet from Excel."""
+        """Fetch values, tables, pictures, and names for this sheet from Excel."""
         if sys.platform != "emscripten":
             raise NotImplementedError("Sheet.load() is only supported in xlwings Lite")
         import js
+        from pyodide.ffi import to_js
 
-        values_js = await js.xlwings.getSheetValues(self.name)
-        self._api["values"] = values_js.to_py()
+        book_data_js = await js.xlwings.getBookData(
+            js.Object.fromEntries(to_js({"include": self.name}))
+        )
+        book_data = book_data_js.to_py()
+        for sheet_data in book_data["sheets"]:
+            if sheet_data["name"] == self.name:
+                self._api.update(sheet_data)
+                break
         get_range_api.cache_clear()
 
 
