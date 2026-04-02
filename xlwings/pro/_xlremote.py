@@ -342,7 +342,7 @@ class Book(base_classes.Book):
         import js
         from pyodide.ffi import to_js
 
-        actions = self._json["actions"]
+        actions = self._json.get("actions", [])
         if actions:
             actions_js = to_js(
                 {"actions": actions}, dict_converter=js.Object.fromEntries
@@ -359,6 +359,7 @@ class Book(base_classes.Book):
         import js
 
         self._json = (await js.xlwings.getBookData()).to_py()
+        self._json.setdefault("actions", [])
         get_range_api.cache_clear()
 
     @property
