@@ -20,7 +20,7 @@ import warnings
 from contextlib import contextmanager
 from os import PathLike
 from pathlib import Path
-from typing import Any, Generator, Iterator
+from typing import Any, Generator, Generic, Iterator, TypeVar
 
 import xlwings
 
@@ -45,7 +45,10 @@ except ImportError:
     PIL = None
 
 
-class Collection:
+_T = TypeVar("_T")
+
+
+class Collection(Generic[_T]):
     def __init__(self, impl: Any) -> None:
         self.impl = impl
 
@@ -57,7 +60,7 @@ class Collection:
         """
         return self.impl.api
 
-    def __call__(self, name_or_index: int | str) -> Any:
+    def __call__(self, name_or_index: int | str) -> _T:
         return self._wrap(impl=self.impl(name_or_index))
 
     def __len__(self) -> int:
@@ -70,11 +73,11 @@ class Collection:
         """
         return len(self)
 
-    def __iter__(self) -> Iterator[Any]:
+    def __iter__(self) -> Iterator[_T]:
         for impl in self.impl:
             yield self._wrap(impl=impl)
 
-    def __getitem__(self, key: int | str) -> Any:
+    def __getitem__(self, key: int | str) -> _T:
         if isinstance(key, numbers.Number):
             length = len(self)
             if key >= length:
@@ -3484,7 +3487,7 @@ class Shape:
         return "<Shape '{0}' in {1}>".format(self.name, self.parent)
 
 
-class Shapes(Collection):
+class Shapes(Collection[Shape]):
     """
     A collection of all :meth:`shape <Shape>` objects on the specified sheet:
 
@@ -3899,7 +3902,7 @@ class Table:
         return "<Table '{0}' in {1}>".format(self.name, self.parent)
 
 
-class Tables(Collection):
+class Tables(Collection[Table]):
     """A collection of all :meth:`table <Table>` objects on the specified sheet:
 
     >>> import xlwings as xw
@@ -4243,7 +4246,7 @@ class Chart:
         return "<Chart '{0}' in {1}>".format(self.name, self.parent)
 
 
-class Charts(Collection):
+class Charts(Collection[Chart]):
     """
     A collection of all :meth:`chart <Chart>` objects on the specified sheet:
 
@@ -4490,7 +4493,7 @@ class Picture:
         self.impl.lock_aspect_ratio = value
 
 
-class Pictures(Collection):
+class Pictures(Collection[Picture]):
     """
     A collection of all :meth:`picture <Picture>` objects on the specified sheet:
 
@@ -5221,7 +5224,7 @@ class FreezePanes:
         self.impl.unfreeze()
 
 
-class Books(Collection):
+class Books(Collection[Book]):
     """
     A collection of all :meth:`book <Book>` objects:
 
@@ -5327,7 +5330,7 @@ class Books(Collection):
         return Book(impl=impl)
 
 
-class Sheets(Collection):
+class Sheets(Collection[Sheet]):
     """
     A collection of all :meth:`sheet <Sheet>` objects:
 
