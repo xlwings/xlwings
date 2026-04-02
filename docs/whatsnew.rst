@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.35.0 (unreleased)
+--------------------
+
+* :bdg-info:`Enhancement` Renamed ``Book.sync()`` to ``Book.flush()``. ``Book.sync()`` is now deprecated.
+
 v0.34.0 (Mar 26, 2026)
 ----------------------
 

@@ -336,9 +336,9 @@ class Book(base_classes.Book):
     def json(self):
         return self._json
 
-    async def sync(self):
+    async def flush(self):
         if sys.platform != "emscripten":
-            raise NotImplementedError("Book.sync() is only supported in xlwings Lite")
+            raise NotImplementedError("Book.flush() is only supported in xlwings Lite")
         import js
         from pyodide.ffi import to_js
 

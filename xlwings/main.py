@@ -1035,14 +1035,28 @@ class Book:
         """
         return self.impl.json()
 
-    async def sync(self) -> None:
+    async def flush(self) -> None:
         """
         Flushes all pending actions to Excel. Only available in xlwings Lite.
         Use this when you need the side effects of previous
         operations (e.g., files written by ``Range.to_png()``) to be available
         before continuing.
+
+        .. versionadded:: 0.35.0
         """
-        await self.impl.sync()
+        await self.impl.flush()
+
+    async def sync(self) -> None:
+        """
+        .. deprecated:: 0.34.1
+            Use :meth:`flush` instead.
+        """
+        warnings.warn(
+            "Book.sync() is deprecated, use Book.flush() instead.",
+            FutureWarning,
+            stacklevel=2,
+        )
+        await self.flush()
 
     async def load(self) -> Book:
         """Fetch values for all sheets from Excel. After calling this,
