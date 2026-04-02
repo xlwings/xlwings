@@ -358,8 +358,10 @@ class Book(base_classes.Book):
             raise NotImplementedError("Book.load() is only supported in xlwings Lite")
         import js
 
-        self._json = (await js.xlwings.getBookData()).to_py()
-        self._json.setdefault("actions", [])
+        data = (await js.xlwings.getBookData()).to_py()
+        data.setdefault("actions", [])
+        self._api = data
+        self._json = data
         get_range_api.cache_clear()
 
     @property
