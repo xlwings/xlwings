@@ -241,6 +241,9 @@ class Book:
     async def load(self):
         raise NotImplementedError("Book.load() is only supported in xlwings Lite")
 
+    async def flush(self):
+        raise NotImplementedError("Book.flush() is only supported in xlwings Lite")
+
 
 class Sheets:
     @property
