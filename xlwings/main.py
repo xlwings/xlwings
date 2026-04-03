@@ -1059,8 +1059,7 @@ class Book:
         await self.flush()
 
     async def load(self) -> Book:
-        """Fetch values for all sheets from Excel. After calling this,
-        ``.value`` works for all ranges.
+        """Loads the book's current data from Excel on demand.
 
         Requires xlwings Lite.
 
@@ -1575,8 +1574,7 @@ class Sheet:
         return self.impl.activate()
 
     async def load(self) -> Sheet:
-        """Fetch values for this sheet from Excel. After calling this,
-        ``.value`` works for ranges on this sheet.
+        """Loads the sheet's current data from Excel on demand.
 
         Requires xlwings Lite.
 
@@ -2613,12 +2611,7 @@ class Range:
     async def get_value(self) -> Any:
         """Fetch values from Excel on demand.
 
-        Requires xlwings Lite. Works in both lazy and non-lazy mode:
-
-        - In lazy mode (``@script(lazy=True)`` or notebooks): this is the primary
-          way to read data since ``.value`` is not available.
-        - In non-lazy mode: returns fresh data from Excel (bypassing the preloaded
-          cache).
+        Requires xlwings Lite.
 
         Returns
         -------
@@ -5326,9 +5319,11 @@ class Books(Collection[Book]):
         return Book(impl=self.impl.active)
 
     async def get_active(self) -> Book:
-        """Returns the active Book with metadata only (lazy loading).
+        """Returns the active Book without pre-loading values (lazy loading).
 
-        Use ``await range.get_value()`` to read cell values on demand.
+        Requires xlwings Lite.
+
+        Use ``await myrange.get_value()`` to read cell values on demand.
 
         .. versionadded:: 0.35.0
         """
