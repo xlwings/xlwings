@@ -1048,7 +1048,7 @@ class Book:
 
     async def sync(self) -> None:
         """
-        .. deprecated:: 0.34.1
+        .. deprecated:: 0.35.0
             Use :meth:`flush` instead.
         """
         warnings.warn(
