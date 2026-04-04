@@ -383,6 +383,8 @@ class App:
     async def get_selection(self) -> "Range | None":
         """Returns the selected cells as Range, fetched live from Excel.
 
+        Requires xlwings Lite.
+
         .. versionadded:: 0.35.0
         """
         impl = await self.impl.get_selection()
@@ -1037,10 +1039,9 @@ class Book:
 
     async def flush(self) -> None:
         """
-        Flushes all pending actions to Excel. Only available in xlwings Lite.
-        Use this when you need the side effects of previous
-        operations (e.g., files written by ``Range.to_png()``) to be available
-        before continuing.
+        Flushes all pending actions to Excel and the Output pane.
+
+        Requires xlwings Lite.
 
         .. versionadded:: 0.35.0
         """
@@ -1300,6 +1301,8 @@ class Book:
 
     async def get_selection(self) -> "Range | None":
         """Returns the selected cells as Range, fetched live from Excel.
+
+        Requires xlwings Lite.
 
         .. versionadded:: 0.35.0
         """
@@ -5437,6 +5440,8 @@ class Sheets(Collection[Sheet]):
 
     async def get_active(self) -> Sheet:
         """Returns the active Sheet, fetched live from Excel.
+
+        Requires xlwings Lite.
 
         .. versionadded:: 0.35.0
         """
