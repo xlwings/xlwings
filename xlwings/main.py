@@ -20,7 +20,7 @@ import warnings
 from contextlib import contextmanager
 from os import PathLike
 from pathlib import Path
-from typing import Any, Generator, Generic, Iterator, TypeVar
+from typing import Any, ClassVar, Generator, Generic, Iterator, TypeVar
 
 import xlwings
 
@@ -49,6 +49,8 @@ _T = TypeVar("_T")
 
 
 class Collection(Generic[_T]):
+    _wrap: ClassVar[type]
+
     def __init__(self, impl: Any) -> None:
         self.impl = impl
 
