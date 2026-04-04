@@ -42,6 +42,33 @@ datetime_pattern = r"^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]
 datetime_regex = re.compile(datetime_pattern)
 
 
+def _update_api_in_place(target, source):
+    """Update target dict in-place from source, preserving references to nested dicts
+    inside lists (matched by 'name' key). This ensures that e.g. Sheet or Name objects
+    holding references to dicts inside target['sheets'] see the updated values."""
+    for key, value in source.items():
+        if isinstance(value, list) and key in target and isinstance(target[key], list):
+            old_by_name = {
+                item["name"]: item
+                for item in target[key]
+                if isinstance(item, dict) and "name" in item
+            }
+            new_list = []
+            for item in value:
+                if isinstance(item, dict) and item.get("name") in old_by_name:
+                    old_by_name[item["name"]].update(item)
+                    new_list.append(old_by_name[item["name"]])
+                else:
+                    new_list.append(item)
+            target[key] = new_list
+        elif (
+            isinstance(value, dict) and key in target and isinstance(target[key], dict)
+        ):
+            target[key].update(value)
+        else:
+            target[key] = value
+
+
 def _clean_value_data_element(
     value, datetime_builder, empty_as, number_builder, err_to_str
 ):
@@ -359,7 +386,7 @@ class Book(base_classes.Book):
         import js
 
         data = (await js.xlwings.getBookData()).to_py()
-        self._api = data
+        _update_api_in_place(self._api, data)
         get_range_api.cache_clear()
 
     @property
