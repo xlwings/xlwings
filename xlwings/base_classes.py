@@ -147,7 +147,7 @@ class App:
 
     async def get_selection(self):
         raise NotImplementedError(
-            "App.get_selection() is only supported in xlwings Lite (Pyodide)"
+            "App.get_selection() is only supported in xlwings Lite"
         )
 
 
@@ -171,7 +171,7 @@ class Books:
 
     async def get_active(self):
         raise NotImplementedError(
-            "Books.get_active() is only supported in xlwings Lite (Pyodide)"
+            "Books.get_active() is only supported in xlwings Lite"
         )
 
     def open(
@@ -268,7 +268,7 @@ class Sheets:
 
     async def get_active(self):
         raise NotImplementedError(
-            "Sheets.get_active() is only supported in xlwings Lite (Pyodide)"
+            "Sheets.get_active() is only supported in xlwings Lite"
         )
 
 
