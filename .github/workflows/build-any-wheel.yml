@@ -1,0 +1,31 @@
+# No dlls, no built Excel files
+name: Build any wheel
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build any wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Python dependencies
+        run: python -m pip install wheel setuptools
+      - name: Stamp version with commit hash
+        run: |
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          sed -i "s/__version__ = \"0.0.0\"/__version__ = \"0.0.0+${COMMIT_HASH}\"/" xlwings/__init__.py
+      - name: Build wheel
+        env:
+          BUILD_RUST: 0
+        run: python setup.py bdist_wheel
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: any-wheel
+          path: ./dist

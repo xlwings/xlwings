@@ -1,3 +1,4 @@
+import asyncio
 import datetime as dt
 import json
 import os
@@ -834,3 +835,63 @@ def test_table_set_show_totals(book):
             },
         ]
     }
+
+
+# Lazy loading: these methods are only supported in xlwings Lite
+# and should raise NotImplementedError on all other platforms/engines.
+
+
+def test_get_value_not_supported(book):
+    with pytest.raises(NotImplementedError):
+        asyncio.run(book.sheets[0].range("A1").get_value())
+
+
+def test_sheet_load_not_supported(book):
+    with pytest.raises(NotImplementedError):
+        asyncio.run(book.sheets[0].load())
+
+
+def test_book_load_not_supported(book):
+    with pytest.raises(NotImplementedError):
+        asyncio.run(book.load())
+
+
+def test_books_get_active_not_supported(book):
+    with pytest.raises(NotImplementedError):
+        asyncio.run(book.app.books.get_active())
+
+
+def test_sheets_get_active_not_supported(book):
+    with pytest.raises(NotImplementedError):
+        asyncio.run(book.sheets.get_active())
+
+
+def test_app_get_selection_not_supported(book):
+    with pytest.raises(NotImplementedError):
+        asyncio.run(book.app.get_selection())
+
+
+# Pipeline.async_call()
+
+
+def test_pipeline_async_call_mixed_stages():
+    """Pipeline.async_call() handles both sync and async stages in order."""
+    from xlwings.conversion.framework import Pipeline
+
+    log = []
+
+    class SyncStage:
+        def __call__(self, ctx):
+            log.append("sync")
+            ctx["value"] += 1
+
+    class AsyncStage:
+        async def __call__(self, ctx):
+            log.append("async")
+            ctx["value"] += 10
+
+    pipeline = Pipeline([SyncStage(), AsyncStage(), SyncStage()])
+    ctx = {"value": 0}
+    asyncio.run(pipeline.async_call(ctx))
+    assert ctx["value"] == 12
+    assert log == ["sync", "async", "sync"]

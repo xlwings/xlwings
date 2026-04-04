@@ -380,6 +380,16 @@ class App:
         """
         return Range(impl=self.impl.selection) if self.impl.selection else None
 
+    async def get_selection(self) -> "Range | None":
+        """Returns the selected cells as Range, fetched live from Excel.
+
+        Requires xlwings Lite.
+
+        .. versionadded:: 0.35.0
+        """
+        impl = await self.impl.get_selection()
+        return Range(impl=impl) if impl else None
+
     def activate(self, steal_focus: bool = False) -> None:
         """
         Activates the Excel app.
@@ -1027,14 +1037,39 @@ class Book:
         """
         return self.impl.json()
 
+    async def flush(self) -> None:
+        """
+        Flushes all pending actions to Excel and the Output pane.
+
+        Requires xlwings Lite.
+
+        .. versionadded:: 0.35.0
+        """
+        await self.impl.flush()
+
     async def sync(self) -> None:
         """
-        Flushes all pending actions to Excel. Only available in xlwings Lite.
-        Use this when you need the side effects of previous
-        operations (e.g., files written by ``Range.to_png()``) to be available
-        before continuing.
+        .. deprecated:: 0.35.0
+            Use :meth:`flush` instead.
         """
-        await self.impl.sync()
+        warnings.warn(
+            "Book.sync() is deprecated, use Book.flush() instead.",
+            FutureWarning,
+            stacklevel=2,
+        )
+        await self.flush()
+
+    async def load(self) -> Book:
+        """Loads the book's current data from Excel on demand.
+
+        Requires xlwings Lite.
+
+        Returns
+        -------
+        Book
+        """
+        await self.impl.load()
+        return self
 
     def __eq__(self, other: object) -> bool:
         return (
@@ -1263,6 +1298,15 @@ class Book:
         .. versionadded:: 0.9.0
         """
         return Range(impl=self.app.selection.impl) if self.app.selection else None
+
+    async def get_selection(self) -> "Range | None":
+        """Returns the selected cells as Range, fetched live from Excel.
+
+        Requires xlwings Lite.
+
+        .. versionadded:: 0.35.0
+        """
+        return await self.app.get_selection()
 
     def to_pdf(
         self,
@@ -1531,6 +1575,18 @@ class Sheet:
         """Activates the Sheet and returns it."""
         self.book.activate()
         return self.impl.activate()
+
+    async def load(self) -> Sheet:
+        """Loads the sheet's current data from Excel on demand.
+
+        Requires xlwings Lite.
+
+        Returns
+        -------
+        Sheet
+        """
+        await self.impl.load()
+        return self
 
     def select(self) -> None:
         """
@@ -2554,6 +2610,23 @@ class Range:
     @value.setter
     def value(self, data: Any) -> None:
         conversion.write(data, self, self._options)
+
+    async def get_value(self) -> Any:
+        """Fetch values from Excel on demand.
+
+        Requires xlwings Lite.
+
+        Returns
+        -------
+        object : returned object depends on the converter being used,
+                 see :meth:`xlwings.Range.options`
+        """
+        return await conversion.async_read(
+            self,
+            None,
+            self._options,
+            pipeline_overrides=self._impl.get_async_pipeline_overrides(self._options),
+        )
 
     def expand(self, mode: str = "table") -> Range:
         """
@@ -5248,6 +5321,17 @@ class Books(Collection[Book]):
         """
         return Book(impl=self.impl.active)
 
+    async def get_active(self) -> Book:
+        """Returns the active Book without pre-loading values (lazy loading).
+
+        Requires xlwings Lite.
+
+        Use ``await myrange.get_value()`` to read cell values on demand.
+
+        .. versionadded:: 0.35.0
+        """
+        return Book(impl=await self.impl.get_active())
+
     def add(self) -> Book:
         """
         Creates a new Book. The new Book becomes the active Book. Returns a Book object.
@@ -5353,6 +5437,15 @@ class Sheets(Collection[Sheet]):
         Returns the active Sheet.
         """
         return Sheet(impl=self.impl.active)
+
+    async def get_active(self) -> Sheet:
+        """Returns the active Sheet, fetched live from Excel.
+
+        Requires xlwings Lite.
+
+        .. versionadded:: 0.35.0
+        """
+        return Sheet(impl=await self.impl.get_active())
 
     def __call__(self, name_or_index: int | str | Sheet) -> Sheet:
         if isinstance(name_or_index, Sheet):

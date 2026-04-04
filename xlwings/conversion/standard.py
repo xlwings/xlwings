@@ -44,6 +44,27 @@ class ExpandRangeStage:
                 c.range = c.range.expand(self.expand)
 
 
+class AsyncExpandRangeStage:
+    """Async expand stage that resolves expansion via JS global (xlwings Lite only)."""
+
+    def __init__(self, options):
+        self.expand = options.get("expand", None)
+
+    async def __call__(self, c):
+        if c.range and self.expand:
+            import js
+
+            expanded_address = await js.xlwings.getExpandedAddress(
+                c.range.sheet.name, c.range.address, self.expand
+            )
+            expanded_address = str(expanded_address)
+            # Strip sheet name prefix if present (e.g., "Sheet1!A1:B2" -> "A1:B2")
+            if "!" in expanded_address:
+                expanded_address = expanded_address.split("!", 1)[1]
+            if expanded_address != c.range.address:
+                c.range = c.range.sheet.range(expanded_address)
+
+
 class WriteValueToRangeStage:
     def __init__(self, options, raw=False):
         self.raw = raw
@@ -100,6 +121,39 @@ class ReadValueFromRangeStage:
             c.value = parts
         elif c.range:
             c.value = c.range.raw_value
+
+
+class AsyncReadValueFromRangeStage:
+    """Async read stage that fetches values on demand from Excel via JS global
+    (xlwings Lite only)."""
+
+    def __init__(self, options):
+        self.options = options
+
+    async def __call__(self, c):
+        if not c.range:
+            return
+        import js
+
+        chunksize = self.options.get("chunksize")
+        if chunksize:
+            parts = []
+            for i in range(math.ceil(c.range.shape[0] / chunksize)):
+                chunk_range = c.range[i * chunksize : (i * chunksize) + chunksize, :]
+                values_js = await js.xlwings.getRangeValues(
+                    c.range.sheet.name, chunk_range.address
+                )
+                chunk_values = values_js.to_py()
+                if isinstance(chunk_values[0], (list, tuple)):
+                    parts.extend(chunk_values)
+                else:
+                    parts.extend([chunk_values])
+            c.value = parts
+        else:
+            values_js = await js.xlwings.getRangeValues(
+                c.range.sheet.name, c.range.address
+            )
+            c.value = values_js.to_py()
 
 
 class CleanDataFromReadStage:

@@ -480,6 +480,7 @@ def script(
     exclude: str | None = None,
     button: str | None = None,
     show_taskpane: bool | None = None,
+    lazy: bool = False,
     **kwargs: Any,
 ) -> Any:
     def inner(func):
@@ -511,6 +512,7 @@ def script(
             # target_cell is deprecated
             "button": button or kwargs.get("target_cell"),
             "show_taskpane": show_taskpane,
+            "lazy": lazy,
         }
         wrapper.__xlscript__.update(kwargs)
 

@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.35.0 (Apr X, 2026)
+---------------------
+
+* :bdg-info:`Enhancement` Renamed ``Book.sync()`` to ``Book.flush()``. ``Book.sync()`` is now deprecated.
+* :bdg-info:`Enhancement` Added a lazy API for xlwings Lite to be able to load data from Excel on demand: ``Books.get_active()``, ``Sheets.get_active()``, ``App.get_selection()``, ``Book.get_selection()``, ``Book.load()``, ``Sheet.load()``, ``Range.get_value()``.
+
 v0.34.0 (Mar 26, 2026)
 ----------------------
 

@@ -86,6 +86,19 @@ def read(rng, value, options, engine_name=None):
     return ctx.value
 
 
+async def async_read(rng, value, options, pipeline_overrides=None, engine_name=None):
+    """Async version of read() that supports async pipeline stages.
+    pipeline_overrides: dict mapping stage classes to replacement instances."""
+    convert = options.get("convert", None)
+    pipeline = accessors.get(convert, convert).reader(options)
+    if pipeline_overrides:
+        for original_cls, replacement in pipeline_overrides.items():
+            pipeline.insert_stage(replacement, replace=original_cls)
+    ctx = ConversionContext(rng=rng, value=value, engine_name=engine_name)
+    await pipeline.async_call(ctx)
+    return ctx.value
+
+
 def write(value, rng, options, engine_name=None):
     # Don't allow to write lists and tuples as jagged arrays as appscript and pywin32
     # don't handle that properly. This should really be handled in Ensure2DStage, but

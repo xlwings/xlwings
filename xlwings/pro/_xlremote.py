@@ -42,6 +42,33 @@ datetime_pattern = r"^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]
 datetime_regex = re.compile(datetime_pattern)
 
 
+def _update_api_in_place(target, source):
+    """Update target dict in-place from source, preserving references to nested dicts
+    inside lists (matched by 'name' key). This ensures that e.g. Sheet or Name objects
+    holding references to dicts inside target['sheets'] see the updated values."""
+    for key, value in source.items():
+        if isinstance(value, list) and key in target and isinstance(target[key], list):
+            old_by_name = {
+                item["name"]: item
+                for item in target[key]
+                if isinstance(item, dict) and "name" in item
+            }
+            new_list = []
+            for item in value:
+                if isinstance(item, dict) and item.get("name") in old_by_name:
+                    old_by_name[item["name"]].update(item)
+                    new_list.append(old_by_name[item["name"]])
+                else:
+                    new_list.append(item)
+            target[key] = new_list
+        elif (
+            isinstance(value, dict) and key in target and isinstance(target[key], dict)
+        ):
+            target[key].update(value)
+        else:
+            target[key] = value
+
+
 def _clean_value_data_element(
     value, datetime_builder, empty_as, number_builder, err_to_str
 ):
@@ -182,6 +209,26 @@ class App(base_classes.App):
         book = self.books.active
         return Range(sheet=book.sheets.active, arg1=book.api["book"]["selection"])
 
+    async def get_selection(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(
+                "App.get_selection() is only supported in xlwings Lite"
+            )
+        import js
+
+        result = (await js.xlwings.getSelection()).to_py()
+        sheet_index = int(result["sheetIndex"])
+        address = result["address"]
+        book = self.books.active
+        sheet = Sheet(
+            api=book.api["sheets"][sheet_index],
+            sheets=book.sheets,
+            index=sheet_index + 1,
+        )
+        if address is None:
+            return None  # Non-cell selection (e.g., shape)
+        return Range(sheet=sheet, arg1=address)
+
     @property
     def visible(self):
         return True
@@ -221,6 +268,20 @@ class Books(base_classes.Books):
     @property
     def active(self):
         return self._active
+
+    async def get_active(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(
+                "Books.get_active() is only supported in xlwings Lite"
+            )
+        import js
+        from pyodide.ffi import to_js
+
+        book_data_js = await js.xlwings.getBookData(
+            js.Object.fromEntries(to_js({"lazy": True}))
+        )
+        book_data = book_data_js.to_py()
+        return self.open(book_data)
 
     def open(self, json):
         book = Book(api=json, books=self)
@@ -302,13 +363,13 @@ class Book(base_classes.Book):
     def json(self):
         return self._json
 
-    async def sync(self):
+    async def flush(self):
         if sys.platform != "emscripten":
-            raise NotImplementedError("Book.sync() is only supported in xlwings Lite")
+            raise NotImplementedError("Book.flush() is only supported in xlwings Lite")
         import js
         from pyodide.ffi import to_js
 
-        actions = self._json["actions"]
+        actions = self._json.get("actions", [])
         if actions:
             actions_js = to_js(
                 {"actions": actions}, dict_converter=js.Object.fromEntries
@@ -317,6 +378,16 @@ class Book(base_classes.Book):
             self._json["actions"] = []
         # Yield to the browser event loop so it can repaint (to print to output pane)
         await asyncio.sleep(0.01)
+
+    async def load(self):
+        """Fetch values for all sheets from Excel."""
+        if sys.platform != "emscripten":
+            raise NotImplementedError("Book.load() is only supported in xlwings Lite")
+        import js
+
+        data = (await js.xlwings.getBookData()).to_py()
+        _update_api_in_place(self._api, data)
+        get_range_api.cache_clear()
 
     @property
     def name(self):
@@ -356,6 +427,16 @@ class Sheets(base_classes.Sheets):
     @property
     def active(self):
         ix = self.book.api["book"]["active_sheet_index"]
+        return Sheet(api=self.api[ix], sheets=self, index=ix + 1)
+
+    async def get_active(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError(
+                "Sheets.get_active() is only supported in xlwings Lite"
+            )
+        import js
+
+        ix = int(await js.xlwings.getActiveSheetIndex())
         return Sheet(api=self.api[ix], sheets=self, index=ix + 1)
 
     @property
@@ -508,6 +589,23 @@ class Sheet(base_classes.Sheet):
     def freeze_panes(self):
         return FreezePanes(self)
 
+    async def load(self):
+        """Fetch values, tables, pictures, and names for this sheet from Excel."""
+        if sys.platform != "emscripten":
+            raise NotImplementedError("Sheet.load() is only supported in xlwings Lite")
+        import js
+        from pyodide.ffi import to_js
+
+        book_data_js = await js.xlwings.getBookData(
+            js.Object.fromEntries(to_js({"include": self.name}))
+        )
+        book_data = book_data_js.to_py()
+        for sheet_data in book_data["sheets"]:
+            if sheet_data["name"] == self.name:
+                self._api.update(sheet_data)
+                break
+        get_range_api.cache_clear()
+
 
 @lru_cache(None)
 def get_range_api(api_values, arg1, arg2=None):
@@ -643,6 +741,22 @@ class Range(base_classes.Range):
             return self.arg2[0] - self.arg1[0] + 1, self.arg2[1] - self.arg1[1] + 1
         else:
             return 1, 1
+
+    def get_async_pipeline_overrides(self, options):
+        """Return async stage replacements for the converter pipeline."""
+        if sys.platform != "emscripten":
+            raise NotImplementedError("get_value() is only supported in xlwings Lite")
+        from ..conversion.standard import (
+            AsyncExpandRangeStage,
+            AsyncReadValueFromRangeStage,
+            ExpandRangeStage,
+            ReadValueFromRangeStage,
+        )
+
+        overrides = {ReadValueFromRangeStage: AsyncReadValueFromRangeStage(options)}
+        if options.get("expand", None):
+            overrides[ExpandRangeStage] = AsyncExpandRangeStage(options)
+        return overrides
 
     @property
     def raw_value(self):

@@ -1,3 +1,5 @@
+import inspect
+
 import xlwings
 
 
@@ -77,6 +79,12 @@ class Pipeline(list):
     def __call__(self, *args, **kwargs):
         for stage in self:
             stage(*args, **kwargs)
+
+    async def async_call(self, *args, **kwargs):
+        for stage in self:
+            result = stage(*args, **kwargs)
+            if inspect.isawaitable(result):
+                await result
 
 
 accessors = {}

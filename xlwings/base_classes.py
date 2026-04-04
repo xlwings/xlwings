@@ -145,6 +145,11 @@ class App:
     def alert(self, prompt, title, buttons, mode, callback):
         raise NotImplementedError()
 
+    async def get_selection(self):
+        raise NotImplementedError(
+            "App.get_selection() is only supported in xlwings Lite"
+        )
+
 
 class Books:
     @property
@@ -163,6 +168,11 @@ class Books:
 
     def add(self):
         raise NotImplementedError()
+
+    async def get_active(self):
+        raise NotImplementedError(
+            "Books.get_active() is only supported in xlwings Lite"
+        )
 
     def open(
         self,
@@ -228,6 +238,12 @@ class Book:
     def to_pdf(self, path, quality):
         raise NotImplementedError()
 
+    async def load(self):
+        raise NotImplementedError("Book.load() is only supported in xlwings Lite")
+
+    async def flush(self):
+        raise NotImplementedError("Book.flush() is only supported in xlwings Lite")
+
 
 class Sheets:
     @property
@@ -249,6 +265,11 @@ class Sheets:
 
     def add(self, before=None, after=None):
         raise NotImplementedError()
+
+    async def get_active(self):
+        raise NotImplementedError(
+            "Sheets.get_active() is only supported in xlwings Lite"
+        )
 
 
 class Sheet:
@@ -346,8 +367,14 @@ class Sheet:
     def to_html(self, path):
         raise NotImplementedError()
 
+    async def load(self):
+        raise NotImplementedError("Sheet.load() is only supported in xlwings Lite")
+
 
 class Range:
+    def get_async_pipeline_overrides(self, options):
+        raise NotImplementedError("get_value() is only supported in xlwings Lite")
+
     def adjust_indent(self, amount):
         raise NotImplementedError()
 
