@@ -3,7 +3,6 @@ name: Build any wheel
 
 on:
   workflow_dispatch:
-  push:
 
 jobs:
   build:
