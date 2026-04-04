@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Dict, Any, Type
+
 import xlwings
 
 
@@ -79,7 +83,7 @@ class Pipeline(list):
             stage(*args, **kwargs)
 
 
-accessors = {}
+accessors: Dict[Any, Type[Accessor]] = {}
 
 
 class Accessor:
@@ -93,8 +97,8 @@ class Accessor:
 
     @classmethod
     def register(cls, *types):
-        for type in types:
-            accessors[type] = cls
+        for type_ in types:
+            accessors[type_] = cls
 
     @classmethod
     def router(cls, value, rng, options):
