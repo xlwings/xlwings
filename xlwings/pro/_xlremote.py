@@ -359,9 +359,7 @@ class Book(base_classes.Book):
         import js
 
         data = (await js.xlwings.getBookData()).to_py()
-        data.setdefault("actions", [])
         self._api = data
-        self._json = data
         get_range_api.cache_clear()
 
     @property
