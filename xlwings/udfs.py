@@ -274,6 +274,8 @@ def xlarg(arg: str, convert: Any = None, **kwargs: Any) -> Callable[[_F], _F]:
 udf_modules = {}
 
 RPC_E_SERVERCALL_RETRYLATER = {-2147418111, -2146777998}
+DISP_E_EXCEPTION = -2147352567
+RETRYABLE_SCODES = {None, -2146827284}
 MAX_BACKOFF_MS = 512
 
 
@@ -325,11 +327,12 @@ class ComRange(Range):
         """
         return ComRange(self)
 
-    async def _com(self, fn, *args, backoff=1):
+    async def _com(self, fn, *args, max_backoff=1, exp_base=2):
         """
-        :param backoff: if the call fails, time to wait in ms
-          before the next one. Random exponential backoff to
-          a cap.
+        Retries follow a random exponential backoff to a cap.
+
+        :param max_backoff: if the call fails, maximum time to wait in ms
+        :param exp_base: base of the exponential ramp up. Default: 2
         """
 
         loop = asyncio.get_running_loop()
@@ -344,12 +347,23 @@ class ComRange(Range):
             # to handle the TypeInfo call when requested
             pass
         except Exception as e:
-            if getattr(e, "hresult", 0) not in RPC_E_SERVERCALL_RETRYLATER:
+            hresult = getattr(e, "hresult", 0)
+            if hresult in RPC_E_SERVERCALL_RETRYLATER:
+                pass
+            elif hresult == DISP_E_EXCEPTION:
+                exc = e.args[2] if len(getattr(e, "args", ())) > 2 else None
+                scode = exc[5] if exc else None
+                if scode not in RETRYABLE_SCODES:
+                    raise
+            else:
                 raise
 
-        await asyncio.sleep(backoff / 1e3)
+        await asyncio.sleep(max_backoff * random() / 1e3)
         return await self._com(
-            fn, *args, backoff=min(backoff * round(1 + random()), MAX_BACKOFF_MS)
+            fn,
+            *args,
+            max_backoff=min(max_backoff * exp_base, MAX_BACKOFF_MS),
+            exp_base=exp_base,
         )
 
     async def clear_contents(self):
