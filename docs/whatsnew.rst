@@ -1,11 +1,15 @@
 Changelog
 =========
 
-v0.35.0 (Apr X, 2026)
+v0.35.0 (Apr 5, 2026)
 ---------------------
 
-* :bdg-info:`Enhancement` Renamed ``Book.sync()`` to ``Book.flush()``. ``Book.sync()`` is now deprecated.
-* :bdg-info:`Enhancement` Added a lazy API for xlwings Lite to be able to load data from Excel on demand: ``Books.get_active()``, ``Sheets.get_active()``, ``App.get_selection()``, ``Book.get_selection()``, ``Book.load()``, ``Sheet.load()``, ``Range.get_value()``.
+* :bdg-info:`Enhancement` xlwings Lite: Renamed ``await Book.sync()`` to ``await Book.flush()``. ``Book.sync()`` is now deprecated.
+* :bdg-info:`Enhancement` xlwings Lite: Added a lazy API (async) to be able to load data from Excel on demand: ``await Books.get_active()``, ``await Sheets.get_active()``, ``await App.get_selection()``, ``await Book.get_selection()``, ``await Range.get_value()``. Also added on-demand loading methods: ``await Book.load()``, ``await Sheet.load()``. For more details, see the (upcoming) xlwings Lite docs (:issue:`2686`).
+* :bdg-warning:`Bug Fix` Fix ``SQL`` formula for 1 column tables (:issue:`2687`).
+* :bdg-warning:`Bug Fix` Fix type hints for collections (:issue:`2688`).
+* :bdg-info:`Enhancement` Improve reliability for UDFs with ``async_mode="threading"`` (:issue:`2682`).
+
 
 v0.34.0 (Mar 26, 2026)
 ----------------------
@@ -15,7 +19,7 @@ v0.34.0 (Mar 26, 2026)
 v0.33.22 (Mar 22, 2026)
 -----------------------
 
-* :bdg-info:`Enhancement` Added ``Range.to_png()`` and ``Book.sync()`` for xlwings Lite (:issue:`#2684`).
+* :bdg-info:`Enhancement` Added ``Range.to_png()`` and ``await Book.sync()`` for xlwings Lite (:issue:`#2684`).
 
 v0.33.21 (Mar 9, 2026)
 ----------------------
