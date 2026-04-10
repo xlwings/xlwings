@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.35.1 (Apr 10, 2026)
+----------------------
+
+* :bdg-warning:`Bug Fix` Fixed an issue with xlings Lite on newer versions of Pyodide (:issues:`2690`).
+
+
 v0.35.0 (Apr 5, 2026)
 ---------------------
 
