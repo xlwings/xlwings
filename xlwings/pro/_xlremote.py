@@ -278,7 +278,7 @@ class Books(base_classes.Books):
         from pyodide.ffi import to_js
 
         book_data_js = await js.xlwings.getBookData(
-            js.Object.fromEntries(to_js({"lazy": True}))
+            to_js({"lazy": True}, dict_converter=js.Object.fromEntries)
         )
         book_data = book_data_js.to_py()
         return self.open(book_data)
@@ -597,7 +597,7 @@ class Sheet(base_classes.Sheet):
         from pyodide.ffi import to_js
 
         book_data_js = await js.xlwings.getBookData(
-            js.Object.fromEntries(to_js({"include": self.name}))
+            to_js({"include": self.name}, dict_converter=js.Object.fromEntries)
         )
         book_data = book_data_js.to_py()
         for sheet_data in book_data["sheets"]:
