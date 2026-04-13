@@ -1163,15 +1163,16 @@ class Range(base_classes.Range):
 
     @property
     def coords(self):
-        if self._coords is missing:
-            self._coords = (
+        if self.xl is not None:
+            return (
                 self.xl.Worksheet,
                 self.xl.Row,
                 self.xl.Column,
                 self.xl.Rows.Count,
                 self.xl.Columns.Count,
             )
-        return self._coords
+        else:
+            return self._coords
 
     @property
     def api(self):
