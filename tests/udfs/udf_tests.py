@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 from typing import Annotated
 
 import xlwings as xw
@@ -70,6 +70,12 @@ def read_date(x):
 
 
 @xw.func
+def read_time(x):
+    # FIXME: This does not work, because `x` is a float here.
+    return x == time(12, 13, 14)
+
+
+@xw.func
 def write_date():
     return datetime(1969, 12, 31)
 
@@ -82,6 +88,12 @@ def read_datetime(x):
 @xw.func
 def write_datetime():
     return datetime(1976, 2, 15, 13, 6, 23)
+
+
+@xw.func
+def write_time():
+    # FIXME: For some reason, this ends up as a time on `1900/01/02` in Excel instead of on `1900/01/01`.
+    return time(12, 13, 14)
 
 
 @xw.func
