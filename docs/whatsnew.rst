@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.35.2 (Apr 27, 2026)
+----------------------
+
+* :bdg-warning:`Bug Fix` Fix type hints when calling decorated functions in Python (:issue:`2694`).
+
 v0.35.1 (Apr 10, 2026)
 ----------------------
 
