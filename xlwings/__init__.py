@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, TypeVar, overload
 
 __version__ = "0.0.0"
 
@@ -156,6 +156,14 @@ elif sys.platform.startswith("win") and has_pywin32:
         pass
 else:
 
+    @overload
+    def func(f: _F) -> _F:
+        ...
+
+    @overload
+    def func(f: None = ..., *args: Any, **kwargs: Any) -> Callable[[_F], _F]:
+        ...
+
     def func(f: _F | None = None, *args: Any, **kwargs: Any) -> _F | Callable[[_F], _F]:
         def inner(f: _F) -> _F:
             return f
@@ -165,6 +173,14 @@ else:
         else:
             return inner(f)
 
+    @overload
+    def sub(f: _F) -> _F:
+        ...
+
+    @overload
+    def sub(f: None = ..., *args: Any, **kwargs: Any) -> Callable[[_F], _F]:
+        ...
+
     def sub(f: _F | None = None, *args: Any, **kwargs: Any) -> _F | Callable[[_F], _F]:
         def inner(f: _F) -> _F:
             return f
@@ -173,6 +189,14 @@ else:
             return inner
         else:
             return inner(f)
+
+    @overload
+    def script(f: _F) -> _F:
+        ...
+
+    @overload
+    def script(f: None = ..., *args: Any, **kwargs: Any) -> Callable[[_F], _F]:
+        ...
 
     def script(
         f: _F | None = None, *args: Any, **kwargs: Any

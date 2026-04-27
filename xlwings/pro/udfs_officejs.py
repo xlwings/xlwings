@@ -28,6 +28,7 @@ from typing import (
     get_args,
     get_origin,
     get_type_hints,
+    overload,
 )
 
 _F = TypeVar("_F", bound=Callable[..., Any])
@@ -83,6 +84,16 @@ def extract_type_and_annotations(type_hint):
     else:
         top_level_type = origin or type_hint
         return top_level_type, []
+
+
+@overload
+def xlfunc(f: _F) -> _F:
+    ...
+
+
+@overload
+def xlfunc(f: None = ..., **kwargs: Any) -> Callable[[_F], _F]:
+    ...
 
 
 def xlfunc(f: _F | None = None, **kwargs: Any) -> _F | Callable[[_F], _F]:
@@ -472,6 +483,26 @@ def custom_functions_meta(module, typehinted_params_to_exclude=None):
 
 
 # Custom scripts
+@overload
+def script(f: _F) -> _F:
+    ...
+
+
+@overload
+def script(
+    f: None = ...,
+    name: str | None = ...,
+    required_roles: list[str] | None = ...,
+    include: str | None = ...,
+    exclude: str | None = ...,
+    button: str | None = ...,
+    show_taskpane: bool | None = ...,
+    lazy: bool = ...,
+    **kwargs: Any,
+) -> Callable[[_F], _F]:
+    ...
+
+
 def script(
     f: Callable[..., Any] | None = None,
     name: str | None = None,
