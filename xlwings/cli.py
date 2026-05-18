@@ -744,10 +744,12 @@ def export_vba_modules(book, overwrite=False):
     # TODO: catch error when Trust Access to VBA Object model isn't enabled
     # TODO: raise error if editing while file hashes differ
     type_to_ext = {100: "cls", 1: "bas", 2: "cls", 3: "frm"}
+    type_to_dir = {100: "Sheets", 1: "Modules", 2: "Classes", 3: "Forms"}
     path_to_type = {}
     for vb_component in book.api.VBProject.VBComponents:
         file_path = (
             Path(".").resolve()
+            / f"{type_to_dir[vb_component.Type]}"
             / f"{vb_component.Name}.{type_to_ext[vb_component.Type]}"
         )
         path_to_type[str(file_path)] = vb_component.Type
@@ -805,7 +807,7 @@ def vba_import(args):
 
     book = vba_get_book(args)
 
-    for path in Path(".").resolve().glob("*"):
+    for path in Path(".").resolve().glob("**"):
         if path.suffix == ".bas":
             try:
                 vb_component = book.api.VBProject.VBComponents(path.stem)
