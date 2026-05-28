@@ -12,7 +12,9 @@ The view function accepts pretty much any object of interest, whether that's a n
 
 ```{image} ./images/xw_view.png
 ```
-*Changed in version 0.22.0: Earlier versions were not formatting the output as Excel table.*
+```{versionchanged} 0.22.0
+Earlier versions were not formatting the output as Excel table.
+```
 
 ## The load function
 

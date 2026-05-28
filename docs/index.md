@@ -32,13 +32,10 @@ More in-depths explanations about converters, debugging or how to write your own
 
 Use advanced features such as:
 
-* xlwings Server (self-hosted): no local Python required
 * xlwings Reports: work with templates
 * 1-click installer: bundle Python and all your packages
 * Embedded code: easy deployment
 * Ultra fast file reader: no Excel required
-* No more VBA: Call Python from Office Scripts and Office.js
-* Excel on the web & Google Sheets
 
 Free for non-commercial use only.
 :::::

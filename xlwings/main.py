@@ -212,7 +212,8 @@ class Apps:
         Provides the PIDs of the Excel instances
         that act as keys in the Apps collection.
 
-        *New in version 0.13.0.*
+        ```{versionadded} 0.13.0
+        ```
         """
         return self.impl.keys()
 
@@ -227,7 +228,8 @@ class Apps:
         """
         Returns the active app.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         for app in self.impl:
             return App(impl=app)
@@ -252,7 +254,8 @@ class Apps:
         """
         Returns the number of apps.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return len(self)
 
@@ -262,7 +265,8 @@ class Apps:
         called with `App.quit()` and `App.kill()` and when the Python interpreter
         exits.
 
-        *New in version 0.30.2.*
+        ```{versionadded} 0.30.2
+        ```
         """
         self.impl.cleanup()
 
@@ -356,7 +360,8 @@ class App:
         Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.impl.api
 
@@ -375,7 +380,8 @@ class App:
         15
         ```
 
-        *Changed in version 0.9.0.*
+        ```{versionchanged} 0.9.0
+        ```
         """
         return utils.VersionNumber(self.impl.version)
 
@@ -384,7 +390,8 @@ class App:
         """
         Returns the selected cells as Range.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return Range(impl=self.impl.selection) if self.impl.selection else None
 
@@ -393,7 +400,8 @@ class App:
 
         Requires xlwings Lite.
 
-        *New in version 0.35.0.*
+        ```{versionadded} 0.35.0
+        ```
         """
         impl = await self.impl.get_selection()
         return Range(impl=impl) if impl else None
@@ -409,7 +417,8 @@ class App:
             and hand over focus from Python to Excel.
 
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         # Win Excel >= 2013 fails if visible=False...
         # we may somehow not be using the correct HWND
@@ -426,7 +435,8 @@ class App:
         """
         Gets or sets the visibility of Excel to `True` or  `False`.
 
-        *New in version 0.3.3.*
+        ```{versionadded} 0.3.3
+        ```
         """
         return self.impl.visible
 
@@ -438,7 +448,8 @@ class App:
         """
         Quits the application without saving any workbooks.
 
-        *New in version 0.3.3.*
+        ```{versionadded} 0.3.3
+        ```
 
         """
         return self.impl.quit()
@@ -447,7 +458,8 @@ class App:
         """
         Forces the Excel app to quit by killing its process.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.impl.kill()
 
@@ -458,7 +470,8 @@ class App:
         the script is doing, but it will run faster. Remember to set the screen_updating
         property back to True when your script ends.
 
-        *New in version 0.3.3.*
+        ```{versionadded} 0.3.3
+        ```
         """
         return self.impl.screen_updating
 
@@ -473,7 +486,8 @@ class App:
         alert messages while code is running; when a message requires a response, Excel
         chooses the default response.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.impl.display_alerts
 
@@ -486,7 +500,8 @@ class App:
         """
         `True` if events are enabled. Read/write boolean.
 
-        *New in version 0.24.4.*
+        ```{versionadded} 0.24.4
+        ```
         """
         return self.impl.enable_events
 
@@ -502,7 +517,8 @@ class App:
         that are displayed by your code). Read/write Boolean.
         NOTE: Not supported on macOS.
 
-        *New in version 0.24.4.*
+        ```{versionadded} 0.24.4
+        ```
         """
         return self.impl.interactive
 
@@ -516,7 +532,8 @@ class App:
         Returns the path to `XLSTART` which is where the xlwings add-in gets
         copied to by doing `xlwings addin install`.
 
-        *New in version 0.19.4.*
+        ```{versionadded} 0.19.4
+        ```
         """
         return self.impl.startup_path
 
@@ -534,7 +551,8 @@ class App:
         >>> wb.app.calculation = 'manual'
         ```
 
-        *Changed in version 0.9.0.*
+        ```{versionchanged} 0.9.0
+        ```
         """
         return self.impl.calculation
 
@@ -546,7 +564,8 @@ class App:
         """
         Calculates all open books.
 
-        *New in version 0.3.6.*
+        ```{versionadded} 0.3.6
+        ```
 
         """
         self.impl.calculate()
@@ -556,7 +575,8 @@ class App:
         """
         A collection of all Book objects that are currently open.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return Books(impl=self.impl.books)
 
@@ -565,7 +585,8 @@ class App:
         """
         Returns the Window handle (Windows-only).
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.impl.hwnd
 
@@ -574,7 +595,8 @@ class App:
         """
         Returns the path to where the App is installed.
 
-        *New in version 0.28.4.*
+        ```{versionadded} 0.28.4
+        ```
         """
         return self.impl.path
 
@@ -583,7 +605,8 @@ class App:
         """
         Returns the PID of the app.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.impl.pid
 
@@ -595,7 +618,8 @@ class App:
         """
         Range object from the active sheet of the active book, see `Range`.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.books.active.sheets.active.range(cell1, cell2)
 
@@ -652,7 +676,8 @@ class App:
         ```
         See also: `Book.macro`
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return Macro(self, name)
 
@@ -662,7 +687,8 @@ class App:
         Gets or sets the value of the status bar.
         Returns `False` if Excel has control of it.
 
-        *New in version 0.20.0.*
+        ```{versionadded} 0.20.0
+        ```
         """
         return self.impl.status_bar
 
@@ -677,7 +703,8 @@ class App:
         Accepts `False` for setting and returns `None`,
         `copy` or `cut` when getting the status.
 
-        *New in version 0.24.0.*
+        ```{versionadded} 0.24.0
+        ```
         """
         return self.impl.cut_copy_mode
 
@@ -713,7 +740,8 @@ class App:
         with app.properties(status_bar='Calculating...'):
             # do stuff
         ```
-        *New in version 0.24.4.*
+        ```{versionadded} 0.24.4
+        ```
         """
         initial_state = {}
         for attribute, value in kwargs.items():
@@ -777,7 +805,8 @@ class App:
         wb: xlwings Book
 
 
-        *New in version 0.24.4.*
+        ```{versionadded} 0.24.4
+        ```
         """
         from .pro.reports import render_template
 
@@ -833,7 +862,8 @@ class App:
             `"no"`.
 
 
-        *New in version 0.27.13.*
+        ```{versionadded} 0.27.13
+        ```
         """
         return self.impl.alert(prompt, title, buttons, mode, callback)
 
@@ -930,7 +960,8 @@ class Book:
         A JSON object as delivered by the MS Office Scripts or Google Apps Script
         xlwings module but in a deserialized form, i.e., as dictionary.
 
-        *New in version 0.26.0.*
+        ```{versionadded} 0.26.0
+        ```
 
     mode : str, default None
         Either `"i"` (interactive (default)) or `"r"` (read). In interactive mode,
@@ -938,7 +969,8 @@ class Book:
         mode, xlwings reads from the file directly, without requiring Excel to be
         installed. Read mode requires xlwings :bdg-secondary:`PRO`.
 
-        *New in version 0.28.0.*
+        ```{versionadded} 0.28.0
+        ```
     """
 
     def __init__(
@@ -1033,7 +1065,8 @@ class Book:
         Returns the native object (`pywin32` or `appscript` obj) of the engine being
         used.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.impl.api
 
@@ -1043,7 +1076,8 @@ class Book:
         Google Apps Script xlwings module. Only available with book objects that have
         been instantiated via `xw.Book(json=...)`.
 
-        *New in version 0.26.0.*
+        ```{versionadded} 0.26.0
+        ```
         """
         return self.impl.json()
 
@@ -1053,13 +1087,15 @@ class Book:
 
         Requires xlwings Lite.
 
-        *New in version 0.35.0.*
+        ```{versionadded} 0.35.0
+        ```
         """
         await self.impl.flush()
 
     async def sync(self) -> None:
         """
-        *Deprecated since version 0.35.0.*
+        ```{deprecated} 0.35.0
+        ```
             Use `flush` instead.
         """
         warnings.warn(
@@ -1110,7 +1146,8 @@ class Book:
         To be able to easily invoke such code from Python for debugging, use
         `xw.Book.set_mock_caller()`.
 
-        *New in version 0.3.0.*
+        ```{versionadded} 0.3.0
+        ```
         """
         wb, from_xl, hwnd = None, None, None
         for arg in sys.argv:
@@ -1163,7 +1200,8 @@ class Book:
             xw.Book('file.xlsm').set_mock_caller()
             my_macro()
         ```
-        *New in version 0.3.1.*
+        ```{versionadded} 0.3.1
+        ```
         """
         Book._mock_caller = self
 
@@ -1197,7 +1235,8 @@ class Book:
 
         See also: `App.macro`
 
-        *New in version 0.7.1.*
+        ```{versionadded} 0.7.1
+        ```
         """
         return self.app.macro("'{0}'!{1}".format(self.name, name))
 
@@ -1213,7 +1252,8 @@ class Book:
         """
         Returns a sheets collection that represents all the sheets in the book.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return Sheets(impl=self.impl.sheets)
 
@@ -1222,7 +1262,8 @@ class Book:
         """
         Returns an app object that represents the creator of the book.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return App(impl=self.impl.app)
 
@@ -1230,7 +1271,8 @@ class Book:
         """
         Closes the book without saving it.
 
-        *New in version 0.1.1.*
+        ```{versionadded} 0.1.1
+        ```
         """
         self.impl.close()
 
@@ -1252,7 +1294,8 @@ class Book:
         password : str, default None
             Protection password with max. 15 characters
 
-            *New in version 0.25.1.*
+            ```{versionadded} 0.25.1
+            ```
 
         Example
         -------
@@ -1264,7 +1307,8 @@ class Book:
         ```
 
 
-        *New in version 0.3.1.*
+        ```{versionadded} 0.3.1
+        ```
         """
         if path:
             path = utils.fspath(path)
@@ -1286,7 +1330,8 @@ class Book:
         Returns a names collection that represents all the names in the specified book
         (including all sheet-specific names).
 
-        *Changed in version 0.9.0.*
+        ```{versionchanged} 0.9.0
+        ```
 
         """
         return Names(impl=self.impl.names)
@@ -1309,7 +1354,8 @@ class Book:
         """
         Returns the selected cells as Range.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return Range(impl=self.app.selection.impl) if self.app.selection else None
 
@@ -1318,7 +1364,8 @@ class Book:
 
         Requires xlwings Lite.
 
-        *New in version 0.35.0.*
+        ```{versionadded} 0.35.0
+        ```
         """
         return await self.app.get_selection()
 
@@ -1363,22 +1410,26 @@ class Book:
             layout) or otherwise needs the same amount of pages as the report (each
             report page is printed on the respective page in the layout PDF).
 
-            *New in version 0.24.3.*
+            ```{versionadded} 0.24.3
+            ```
 
         exclude_start_string : str, default `'#'`
             Sheet names that start with this character/string will not be printed.
 
-            *New in version 0.24.4.*
+            ```{versionadded} 0.24.4
+            ```
 
         show : bool, default False
             Once created, open the PDF file with the default application.
 
-            *New in version 0.24.6.*
+            ```{versionadded} 0.24.6
+            ```
 
         quality : str, default `'standard'`
             Quality of the PDF file. Can either be `'standard'` or `'minimum'`.
 
-            *New in version 0.26.2.*
+            ```{versionadded} 0.26.2
+            ```
 
         Examples
         --------
@@ -1390,7 +1441,8 @@ class Book:
 
         See also `xlwings.Sheet.to_pdf`
 
-        *New in version 0.21.1.*
+        ```{versionadded} 0.21.1
+        ```
         """
         return utils.to_pdf(
             self,
@@ -1413,7 +1465,8 @@ class Book:
         Replaces all Jinja variables (e.g `{{ myvar }}`) in the book
         with the keyword argument of the same name.
 
-        *New in version 0.25.0.*
+        ```{versionadded} 0.25.0
+        ```
 
         Parameters
         ----------
@@ -1443,7 +1496,8 @@ class Book:
             List of sheet names in order of appearance.
 
 
-        *New in version 0.28.1.*
+        ```{versionadded} 0.28.1
+        ```
         """
         return [sheet.name for sheet in self.sheets]
 
@@ -1469,7 +1523,8 @@ class Sheet:
     <Sheet [Book1]Sheet2>
     ```
 
-    *Changed in version 0.9.0.*
+    ```{versionchanged} 0.9.0
+    ```
     """
 
     def __init__(self, sheet: str | int | None = None, impl: Any = None) -> None:
@@ -1484,7 +1539,8 @@ class Sheet:
         Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.impl.api
 
@@ -1529,7 +1585,8 @@ class Sheet:
         Returns a names collection that represents all the sheet-specific names
         (names defined with the "SheetName!" prefix).
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
 
         """
         return Names(impl=self.impl.names)
@@ -1571,7 +1628,8 @@ class Sheet:
         Returns a Range object from the active sheet of the active book,
         see `Range`.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         if isinstance(cell1, Range):
             if cell1.sheet != self:
@@ -1589,7 +1647,8 @@ class Sheet:
         Returns a Range object that represents all the cells on the Sheet
         (not just the cells that are currently in use).
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return Range(impl=self.impl.cells)
 
@@ -1614,7 +1673,8 @@ class Sheet:
         """
         Selects the Sheet. Activates the book if it isn't the active one.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         self.book.activate()
         return self.impl.select()
@@ -1626,7 +1686,8 @@ class Sheet:
     def clear_formats(self) -> None:
         """Clears the format of the whole sheet but leaves the content.
 
-        *New in version 0.26.2.*
+        ```{versionadded} 0.26.2
+        ```
         """
         return self.impl.clear_formats()
 
@@ -1655,7 +1716,8 @@ class Sheet:
         >>> wb.sheets['Sheet1'].autofit()
         ```
 
-        *New in version 0.2.3.*
+        ```{versionadded} 0.2.3
+        ```
         """
         return self.impl.autofit(axis)
 
@@ -1663,7 +1725,8 @@ class Sheet:
         """
         Deletes the Sheet.
 
-        *New in version 0.6.0.*
+        ```{versionadded} 0.6.0
+        ```
         """
         return self.impl.delete()
 
@@ -1679,7 +1742,8 @@ class Sheet:
             current working directory.
 
 
-        *New in version 0.28.1.*
+        ```{versionadded} 0.28.1
+        ```
         """
         path = utils.fspath(path)
         self.impl.to_html(self.name + ".html" if path is None else path)
@@ -1710,17 +1774,20 @@ class Sheet:
             layout) or otherwise needs the same amount of pages as the report (each
             report page is printed on the respective page in the layout PDF).
 
-            *New in version 0.24.3.*
+            ```{versionadded} 0.24.3
+            ```
 
         show : bool, default False
             Once created, open the PDF file with the default application.
 
-            *New in version 0.24.6.*
+            ```{versionadded} 0.24.6
+            ```
 
         quality : str, default `'standard'`
             Quality of the PDF file. Can either be `'standard'` or `'minimum'`.
 
-            *New in version 0.26.2.*
+            ```{versionadded} 0.26.2
+            ```
 
         Examples
         --------
@@ -1733,7 +1800,8 @@ class Sheet:
 
         See also `xlwings.Book.to_pdf`
 
-        *New in version 0.22.3.*
+        ```{versionadded} 0.22.3
+        ```
         """
         return self.book.to_pdf(
             self.name + ".pdf" if path is None else path,
@@ -1753,7 +1821,8 @@ class Sheet:
         Copy a sheet to the current or a new Book. By default, it places the copied
         sheet after all existing sheets in the current Book. Returns the copied sheet.
 
-        *New in version 0.22.0.*
+        ```{versionadded} 0.22.0
+        ```
 
         Arguments
         ---------
@@ -1827,7 +1896,8 @@ class Sheet:
         strings, numbers, lists, simple dicts, NumPy arrays, Pandas DataFrames,
         PIL Image objects that have a filename and Matplotlib figures.
 
-        *New in version 0.22.0.*
+        ```{versionadded} 0.22.0
+        ```
 
         Parameters
         ----------
@@ -1853,7 +1923,8 @@ class Sheet:
         """
         See `Charts`
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return Charts(impl=self.impl.charts)
 
@@ -1862,7 +1933,8 @@ class Sheet:
         """
         See `Shapes`
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return Shapes(impl=self.impl.shapes)
 
@@ -1871,7 +1943,8 @@ class Sheet:
         """
         See `Tables`
 
-        *New in version 0.21.0.*
+        ```{versionadded} 0.21.0
+        ```
         """
         return Tables(impl=self.impl.tables)
 
@@ -1880,7 +1953,8 @@ class Sheet:
         """
         See `Pictures`
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return Pictures(impl=self.impl.pictures)
 
@@ -1894,7 +1968,8 @@ class Sheet:
         xw.Range
 
 
-        *New in version 0.13.0.*
+        ```{versionadded} 0.13.0
+        ```
         """
         return Range(impl=self.impl.used_range)
 
@@ -1902,7 +1977,8 @@ class Sheet:
     def visible(self) -> bool:
         """Gets or sets the visibility of the Sheet (bool).
 
-        *New in version 0.21.1.*
+        ```{versionadded} 0.21.1
+        ```
         """
         return self.impl.visible
 
@@ -1915,7 +1991,8 @@ class Sheet:
         """
         Returns a PageSetup object.
 
-        *New in version 0.24.2.*
+        ```{versionadded} 0.24.2
+        ```
         """
         return PageSetup(self.impl.page_setup)
 
@@ -2012,7 +2089,8 @@ class Range:
         Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.impl.api
 
@@ -2126,7 +2204,8 @@ class Range:
             If `True`, will include cell errors such as `#N/A` as strings. By
             default, they will be converted to `None`.
 
-            *New in version 0.28.0.*
+            ```{versionadded} 0.28.0
+            ```
 
         => For converter-specific options, see `converters`.
 
@@ -2143,7 +2222,8 @@ class Range:
         """
         Returns the Sheet object to which the Range belongs.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return Sheet(impl=self.impl.sheet)
 
@@ -2168,7 +2248,8 @@ class Range:
         Integer
 
 
-        *New in version 0.3.5.*
+        ```{versionadded} 0.3.5
+        ```
         """
         return self.impl.row
 
@@ -2182,7 +2263,8 @@ class Range:
         Integer
 
 
-        *New in version 0.3.5.*
+        ```{versionadded} 0.3.5
+        ```
         """
         return self.impl.column
 
@@ -2208,7 +2290,8 @@ class Range:
     def clear_formats(self) -> None:
         """Clears the format of a Range but leaves the content.
 
-        *New in version 0.26.2.*
+        ```{versionadded} 0.26.2
+        ```
         """
         return self.impl.clear_formats()
 
@@ -2247,7 +2330,8 @@ class Range:
         <Range [Book1]Sheet1!$B$2>
         ```
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return Range(impl=self.impl.end(direction))
 
@@ -2274,7 +2358,8 @@ class Range:
         """
         Gets or sets an  array formula for the given Range.
 
-        *New in version 0.7.1.*
+        ```{versionadded} 0.7.1
+        ```
         """
         return self.impl.formula_array
 
@@ -2311,7 +2396,8 @@ class Range:
         float
 
 
-        *New in version 0.4.0.*
+        ```{versionadded} 0.4.0
+        ```
         """
         return self.impl.column_width
 
@@ -2337,7 +2423,8 @@ class Range:
         float
 
 
-        *New in version 0.4.0.*
+        ```{versionadded} 0.4.0
+        ```
         """
         return self.impl.row_height
 
@@ -2355,7 +2442,8 @@ class Range:
         float
 
 
-        *New in version 0.4.0.*
+        ```{versionadded} 0.4.0
+        ```
         """
         return self.impl.width
 
@@ -2369,7 +2457,8 @@ class Range:
         float
 
 
-        *New in version 0.4.0.*
+        ```{versionadded} 0.4.0
+        ```
         """
         return self.impl.height
 
@@ -2384,7 +2473,8 @@ class Range:
         float
 
 
-        *New in version 0.6.0.*
+        ```{versionadded} 0.6.0
+        ```
         """
         return self.impl.left
 
@@ -2399,7 +2489,8 @@ class Range:
         float
 
 
-        *New in version 0.6.0.*
+        ```{versionadded} 0.6.0
+        ```
         """
         return self.impl.top
 
@@ -2421,7 +2512,8 @@ class Range:
         '0.00%'
         ```
 
-        *New in version 0.2.3.*
+        ```{versionadded} 0.2.3
+        ```
         """
         return self.impl.number_format
 
@@ -2478,7 +2570,8 @@ class Range:
         >>> sheet1.range((1,1), (3,3)).get_address(True, False, external=True)
         '[Book1]Sheet1!A$1:C$3'
         ```
-        *New in version 0.2.3.*
+        ```{versionadded} 0.2.3
+        ```
         """
 
         if include_sheetname and not external:
@@ -2504,7 +2597,8 @@ class Range:
         Returns a string value that represents the range reference.
         Use `get_address()` to be able to provide parameters.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.impl.address
 
@@ -2532,7 +2626,8 @@ class Range:
         * To autofit only the height of the rows use
           `myrange.rows.autofit()`
 
-        *Changed in version 0.9.0.*
+        ```{versionchanged} 0.9.0
+        ```
         """
         return self.impl.autofit()
 
@@ -2563,7 +2658,8 @@ class Range:
         True
         ```
 
-        *New in version 0.3.0.*
+        ```{versionadded} 0.3.0
+        ```
         """
         return self.impl.color
 
@@ -2576,7 +2672,8 @@ class Range:
         """
         Sets or gets the name of a Range.
 
-        *New in version 0.4.0.*
+        ```{versionadded} 0.4.0
+        ```
         """
         impl = self.impl.name
         return impl and Name(impl=impl)
@@ -2594,7 +2691,8 @@ class Range:
         Returns a `RangeRows` object that represents the rows in the specified
         range.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return RangeRows(self)
 
@@ -2604,7 +2702,8 @@ class Range:
         Returns a `RangeColumns` object that represents the columns in the
         specified range.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return RangeColumns(self)
 
@@ -2613,7 +2712,8 @@ class Range:
         """
         Tuple of Range dimensions.
 
-        *New in version 0.3.0.*
+        ```{versionadded} 0.3.0
+        ```
         """
         return self.impl.shape
 
@@ -2622,7 +2722,8 @@ class Range:
         """
         Number of elements in the Range.
 
-        *New in version 0.3.0.*
+        ```{versionadded} 0.3.0
+        ```
         """
         a, b = self.shape
         return a * b
@@ -2690,7 +2791,8 @@ class Range:
         $A$1:$B$1
         ```
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return expansion.expanders.get(mode, mode).expand(self)
 
@@ -2793,7 +2895,8 @@ class Range:
         None
 
 
-        *Changed in version 0.30.3.*
+        ```{versionchanged} 0.30.3
+        ```
             `shift` is now a required argument.
 
         """
@@ -2909,7 +3012,8 @@ class Range:
         'http://www.xlwings.org'
         ```
 
-        *New in version 0.3.0.*
+        ```{versionadded} 0.3.0
+        ```
         """
         if self.formula.lower().startswith("="):
             # If it's a formula, extract the URL from the formula string
@@ -2944,7 +3048,8 @@ class Range:
             hold to select this cell.'
 
 
-        *New in version 0.3.0.*
+        ```{versionadded} 0.3.0
+        ```
         """
         if text_to_display is None:
             text_to_display = address
@@ -2976,7 +3081,8 @@ class Range:
         Range object: Range
 
 
-        *New in version 0.3.0.*
+        ```{versionadded} 0.3.0
+        ```
         """
 
         if row_size is not None:
@@ -3000,7 +3106,8 @@ class Range:
         Range object : Range
 
 
-        *New in version 0.3.0.*
+        ```{versionadded} 0.3.0
+        ```
         """
         return Range(
             self(row_offset + 1, column_offset + 1),
@@ -3027,7 +3134,8 @@ class Range:
         (4, 5)
         ```
 
-        *New in version 0.3.5.*
+        ```{versionadded} 0.3.5
+        ```
         """
         return self(self.shape[0], self.shape[1]).options(**self._options)
 
@@ -3035,7 +3143,8 @@ class Range:
         """
         Selects the range. Select only works on the active book.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         self.impl.select()
 
@@ -3080,7 +3189,8 @@ class Range:
         """
         Returns a Table object if the range is part of one, otherwise `None`.
 
-        *New in version 0.21.0.*
+        ```{versionadded} 0.21.0
+        ```
         """
         if self.impl.table:
             return Table(impl=self.impl.table)
@@ -3094,7 +3204,8 @@ class Range:
         disabled. If not all cells have the same value in a range, on Windows it returns
         `None` and on macOS `False`.
 
-        *New in version 0.23.2.*
+        ```{versionadded} 0.23.2
+        ```
         """
         return self.impl.wrap_text
 
@@ -3108,7 +3219,8 @@ class Range:
         Returns a Note object.
         Before the introduction of threaded comments, a Note was called a Comment.
 
-        *New in version 0.24.2.*
+        ```{versionadded} 0.24.2
+        ```
         """
         return Note(impl=self.impl.note) if self.impl.note else None
 
@@ -3125,7 +3237,8 @@ class Range:
             Either 'picture' or 'bitmap'.
 
 
-        *New in version 0.24.8.*
+        ```{versionadded} 0.24.8
+        ```
         """
         self.impl.copy_picture(appearance, format)
 
@@ -3142,7 +3255,8 @@ class Range:
             the current working directory otherwise.
 
 
-        *New in version 0.24.8.*
+        ```{versionadded} 0.24.8
+        ```
         """
         path = utils.fspath(path)
         if sys.platform == "emscripten":
@@ -3202,7 +3316,8 @@ class Range:
             Quality of the PDF file. Can either be `'standard'` or `'minimum'`.
 
 
-        *New in version 0.26.2.*
+        ```{versionadded} 0.26.2
+        ```
         """
         return utils.to_pdf(self, path=path, layout=layout, show=show, quality=quality)
 
@@ -3224,7 +3339,8 @@ class Range:
             `"growth_trend"`, `"linear_trend"`, `"flash_fill`
 
 
-        *New in version 0.30.1.*
+        ```{versionadded} 0.30.1
+        ```
         """
         self.impl.autofill(destination=destination, type_=type_)
 
@@ -3271,7 +3387,8 @@ class RangeRows(Ranges):
         """
         Returns the number of rows.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.rng.shape[0]
 
@@ -3338,7 +3455,8 @@ class RangeColumns(Ranges):
         """
         Returns the number of columns.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.rng.shape[1]
 
@@ -3382,7 +3500,8 @@ class Shape:
     <Shape 'Rectangle 1' in <Sheet [Book1]Sheet1>>
     ```
 
-    *Changed in version 0.9.0.*
+    ```{versionchanged} 0.9.0
+    ```
     """
 
     def __init__(self, *args: Any, **options: Any) -> None:
@@ -3402,7 +3521,8 @@ class Shape:
         Returns the native object (`pywin32` or `appscript` obj) of the engine
         being used.
 
-        *New in version 0.19.2.*
+        ```{versionadded} 0.19.2
+        ```
         """
         return self.impl.api
 
@@ -3411,7 +3531,8 @@ class Shape:
         """
         Returns or sets the name of the shape.
 
-        *New in version 0.5.0.*
+        ```{versionadded} 0.5.0
+        ```
         """
         return self.impl.name
 
@@ -3424,7 +3545,8 @@ class Shape:
         """
         Returns the type of the shape.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.impl.type
 
@@ -3434,7 +3556,8 @@ class Shape:
         Returns or sets the number of points that represent the horizontal position of
         the shape.
 
-        *New in version 0.5.0.*
+        ```{versionadded} 0.5.0
+        ```
         """
         return self.impl.left
 
@@ -3448,7 +3571,8 @@ class Shape:
         Returns or sets the number of points that represent the vertical position of
         the shape.
 
-        *New in version 0.5.0.*
+        ```{versionadded} 0.5.0
+        ```
         """
         return self.impl.top
 
@@ -3461,7 +3585,8 @@ class Shape:
         """
         Returns or sets the number of points that represent the width of the shape.
 
-        *New in version 0.5.0.*
+        ```{versionadded} 0.5.0
+        ```
         """
         return self.impl.width
 
@@ -3474,7 +3599,8 @@ class Shape:
         """
         Returns or sets the number of points that represent the height of the shape.
 
-        *New in version 0.5.0.*
+        ```{versionadded} 0.5.0
+        ```
         """
         return self.impl.height
 
@@ -3486,7 +3612,8 @@ class Shape:
         """
         Deletes the shape.
 
-        *New in version 0.5.0.*
+        ```{versionadded} 0.5.0
+        ```
         """
         self.impl.delete()
 
@@ -3494,7 +3621,8 @@ class Shape:
         """
         Activates the shape.
 
-        *New in version 0.5.0.*
+        ```{versionadded} 0.5.0
+        ```
         """
         self.impl.activate()
 
@@ -3516,7 +3644,8 @@ class Shape:
             One of `scale_from_top_left` (default), `scale_from_bottom_right`,
             `scale_from_middle`
 
-        *New in version 0.19.2.*
+        ```{versionadded} 0.19.2
+        ```
         """
         self.impl.scale_height(
             factor=factor,
@@ -3542,7 +3671,8 @@ class Shape:
             One of `scale_from_top_left` (default), `scale_from_bottom_right`,
             `scale_from_middle`
 
-        *New in version 0.19.2.*
+        ```{versionadded} 0.19.2
+        ```
         """
         self.impl.scale_width(
             factor=factor,
@@ -3555,7 +3685,8 @@ class Shape:
         """
         Returns or sets the text of a shape.
 
-        *New in version 0.21.4.*
+        ```{versionadded} 0.21.4
+        ```
         """
         return self.impl.text
 
@@ -3586,7 +3717,8 @@ class Shape:
         """
         Returns the parent of the shape.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return Sheet(impl=self.impl.parent)
 
@@ -3615,7 +3747,8 @@ class Shapes(Collection[Shape]):
             <Shape 'Rectangle 1' in <Sheet [Book1]Sheet1>>])
     ```
 
-    *New in version 0.9.0.*
+    ```{versionadded} 0.9.0
+    ```
     """
 
     _wrap = Shape
@@ -3626,7 +3759,8 @@ class PageSetup:
         """
         Represents a PageSetup object.
 
-        *New in version 0.24.2.*
+        ```{versionadded} 0.24.2
+        ```
         """
         self.impl = impl
 
@@ -3636,7 +3770,8 @@ class PageSetup:
         Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
-        *New in version 0.24.2.*
+        ```{versionadded} 0.24.2
+        ```
         """
         return self.impl.api
 
@@ -3655,7 +3790,8 @@ class PageSetup:
         >>> mysheet.page_setup.print_area = None  # clear the print_area
         ```
 
-        *New in version 0.24.2.*
+        ```{versionadded} 0.24.2
+        ```
         """
         return self.impl.print_area
 
@@ -3670,7 +3806,8 @@ class Note:
         Represents a cell Note.
         Before the introduction of threaded comments, a Note was called a Comment.
 
-        *New in version 0.24.2.*
+        ```{versionadded} 0.24.2
+        ```
         """
         self.impl = impl
 
@@ -3680,7 +3817,8 @@ class Note:
         Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
-        *New in version 0.24.2.*
+        ```{versionadded} 0.24.2
+        ```
         """
         return self.impl.api
 
@@ -3699,7 +3837,8 @@ class Note:
         >>> 'mynote'
         ```
 
-        *New in version 0.24.2.*
+        ```{versionadded} 0.24.2
+        ```
         """
         return self.impl.text
 
@@ -3711,7 +3850,8 @@ class Note:
         """
         Delete the note.
 
-        *New in version 0.24.2.*
+        ```{versionadded} 0.24.2
+        ```
         """
         self.impl.delete()
 
@@ -3727,7 +3867,8 @@ class Table:
     <Table 'Table 1' in <Sheet [Book1]Sheet1>>
     ```
 
-    *New in version 0.21.0.*
+    ```{versionadded} 0.21.0
+    ```
     """
 
     def __init__(self, *args: Any, **options: Any) -> None:
@@ -3900,7 +4041,8 @@ class Table:
         Updates the Excel table with the provided data.
         Currently restricted to DataFrames.
 
-        *Changed in version 0.24.0.*
+        ```{versionchanged} 0.24.0
+        ```
 
         Arguments
         ---------
@@ -4009,7 +4151,8 @@ class Table:
     def resize(self, range: Range) -> None:
         """Resize a Table by providing an xlwings range object
 
-        *New in version 0.24.4.*
+        ```{versionadded} 0.24.4
+        ```
         """
         self.impl.resize(range)
 
@@ -4037,7 +4180,8 @@ class Tables(Collection[Table]):
             <Table 'Table2' in <Sheet [Book11]Sheet1>>])
     ```
 
-    *New in version 0.21.0.*
+    ```{versionadded} 0.21.0
+    ```
     """
 
     _wrap = Table
@@ -4144,7 +4288,8 @@ class Chart:
         Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.impl.api
 
@@ -4164,7 +4309,8 @@ class Chart:
         """
         Returns the parent of the chart.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         # Chart sheet (parent is Book) is not supported
         return Sheet(impl=self.impl.parent)
@@ -4250,7 +4396,8 @@ class Chart:
         `xy_scatter_smooth`,
         `xy_scatter_smooth_no_markers`
 
-        *New in version 0.1.1.*
+        ```{versionadded} 0.1.1
+        ```
         """
         return self.impl.chart_type
 
@@ -4334,7 +4481,8 @@ class Chart:
             the current working directory otherwise.
 
 
-        *New in version 0.24.8.*
+        ```{versionadded} 0.24.8
+        ```
         """
         path = utils.fspath(path)
         if path is None:
@@ -4369,7 +4517,8 @@ class Chart:
             Quality of the PDF file. Can either be `'standard'` or `'minimum'`.
 
 
-        *New in version 0.26.2.*
+        ```{versionadded} 0.26.2
+        ```
         """
         return utils.to_pdf(self, path=path, show=show, quality=quality)
 
@@ -4388,7 +4537,8 @@ class Charts(Collection[Chart]):
             <Chart 'Chart 1' in <Sheet [Book1]Sheet1>>])
     ```
 
-    *New in version 0.9.0.*
+    ```{versionadded} 0.9.0
+    ```
     """
 
     _wrap = Chart
@@ -4450,7 +4600,8 @@ class Picture:
     <Picture 'Picture 1' in <Sheet [Book1]Sheet1>>
     ```
 
-    *Changed in version 0.9.0.*
+    ```{versionchanged} 0.9.0
+    ```
     """
 
     def __init__(self, impl: Any = None) -> None:
@@ -4462,7 +4613,8 @@ class Picture:
         Returns the native object (`pywin32` or `appscript` obj) of the engine
         being used.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.impl.api
 
@@ -4471,7 +4623,8 @@ class Picture:
         """
         Returns the parent of the picture.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return Sheet(impl=self.impl.parent)
 
@@ -4480,7 +4633,8 @@ class Picture:
         """
         Returns or sets the name of the picture.
 
-        *New in version 0.5.0.*
+        ```{versionadded} 0.5.0
+        ```
         """
         return self.impl.name
 
@@ -4502,7 +4656,8 @@ class Picture:
         Returns or sets the number of points that represent the horizontal position
         of the picture.
 
-        *New in version 0.5.0.*
+        ```{versionadded} 0.5.0
+        ```
         """
         return self.impl.left
 
@@ -4516,7 +4671,8 @@ class Picture:
         Returns or sets the number of points that represent the vertical position
         of the picture.
 
-        *New in version 0.5.0.*
+        ```{versionadded} 0.5.0
+        ```
         """
         return self.impl.top
 
@@ -4529,7 +4685,8 @@ class Picture:
         """
         Returns or sets the number of points that represent the width of the picture.
 
-        *New in version 0.5.0.*
+        ```{versionadded} 0.5.0
+        ```
         """
         return self.impl.width
 
@@ -4542,7 +4699,8 @@ class Picture:
         """
         Returns or sets the number of points that represent the height of the picture.
 
-        *New in version 0.5.0.*
+        ```{versionadded} 0.5.0
+        ```
         """
         return self.impl.height
 
@@ -4554,7 +4712,8 @@ class Picture:
         """
         Deletes the picture.
 
-        *New in version 0.5.0.*
+        ```{versionadded} 0.5.0
+        ```
         """
         self.impl.delete()
 
@@ -4594,7 +4753,8 @@ class Picture:
             See under `Pictures.add()`
 
 
-        *New in version 0.5.0.*
+        ```{versionadded} 0.5.0
+        ```
         """
 
         filename, is_temp_file = utils.process_image(
@@ -4621,7 +4781,8 @@ class Picture:
         `False` will allow you to change height and width independently of each other
         (read/write).
 
-        *New in version 0.24.0.*
+        ```{versionadded} 0.24.0
+        ```
         """
         return self.impl.lock_aspect_ratio
 
@@ -4641,7 +4802,8 @@ class Pictures(Collection[Picture]):
               <Picture 'Picture 2' in <Sheet [Book1]Sheet1>>])
     ```
 
-    *New in version 0.9.0.*
+    ```{versionadded} 0.9.0
+    ```
     """
 
     _wrap = Picture
@@ -4712,7 +4874,8 @@ class Pictures(Collection[Picture]):
             The xlwings Range object of where you want to insert the picture. If you use
             `anchor`, you must not provide values for `top`/`left`.
 
-            *New in version 0.24.3.*
+            ```{versionadded} 0.24.3
+            ```
 
         export_options : dict, default None
             For Matplotlib plots, this dictionary is passed on to `image.savefig()`
@@ -4721,7 +4884,8 @@ class Pictures(Collection[Picture]):
             `export_options={"dpi": 300}`. For Plotly, the options are passed to
             `write_image()`.
 
-            *New in version 0.27.7.*
+            ```{versionadded} 0.27.7
+            ```
 
         Returns
         -------
@@ -4847,7 +5011,8 @@ class Names:
     >>> book.sheets[0].names  # sheet scope only
     ```
 
-    *New in version 0.9.0.*
+    ```{versionadded} 0.9.0
+    ```
     """
 
     def __init__(self, impl: Any) -> None:
@@ -4859,7 +5024,8 @@ class Names:
         Returns the native object (`pywin32` or `appscript` obj)
         of the engine beingused.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.impl.api
 
@@ -4897,7 +5063,8 @@ class Names:
         Name
 
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return Name(impl=self.impl.add(name, refers_to))
 
@@ -4953,7 +5120,8 @@ class Name:
     <Name 'MyName': =Sheet1!$A$3>
     ```
 
-    *New in version 0.9.0.*
+    ```{versionadded} 0.9.0
+    ```
     """
 
     def __init__(self, impl: Any) -> None:
@@ -4965,7 +5133,8 @@ class Name:
         Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.impl.api
 
@@ -4973,7 +5142,8 @@ class Name:
         """
         Deletes the name.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         self.impl.delete()
 
@@ -4982,7 +5152,8 @@ class Name:
         """
         Returns or sets the name of the name object.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.impl.name
 
@@ -4996,7 +5167,8 @@ class Name:
         Returns or sets the formula that the name is defined to refer to,
         in A1-style notation, beginning with an equal sign.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return self.impl.refers_to
 
@@ -5009,7 +5181,8 @@ class Name:
         """
         Returns the Range object referred to by a Name object.
 
-        *New in version 0.9.0.*
+        ```{versionadded} 0.9.0
+        ```
         """
         return Range(impl=self.impl.refers_to_range)
 
@@ -5067,7 +5240,8 @@ def view(
 
     See also: `load`
 
-    *Changed in version 0.22.0.*
+    ```{versionchanged} 0.22.0
+    ```
     """
     if sheet is None:
         sheet = Book().sheets.active
@@ -5127,7 +5301,8 @@ def load(index: bool | int = 1, header: bool | int = 1, chunksize: int = 5000) -
 
     See also: `view`
 
-    *Changed in version 0.23.1.*
+    ```{versionchanged} 0.23.1
+    ```
     """
     selection = books.active.selection
     if selection.shape == (1, 1):
@@ -5172,7 +5347,8 @@ class Characters:
     support in AppleScript.
     ```
 
-    *New in version 0.23.0.*
+    ```{versionadded} 0.23.0
+    ```
     """
 
     def __init__(self, impl: Any) -> None:
@@ -5184,7 +5360,8 @@ class Characters:
         Returns the native object (`pywin32` or `appscript` obj) of the engine
         being used.
 
-        *New in version 0.23.0.*
+        ```{versionadded} 0.23.0
+        ```
         """
         return self.impl.api
 
@@ -5199,7 +5376,8 @@ class Characters:
         Pyt
         ```
 
-        *New in version 0.23.0.*
+        ```{versionadded} 0.23.0
+        ```
         """
         return self.impl.text
 
@@ -5214,7 +5392,8 @@ class Characters:
         True
         ```
 
-        *New in version 0.23.0.*
+        ```{versionadded} 0.23.0
+        ```
         """
         return Font(self.impl.font)
 
@@ -5245,7 +5424,8 @@ class Font:
     * `mysheet['A1'].font`
     * `mysheet.shapes[0].font`
 
-    *New in version 0.23.0.*
+    ```{versionadded} 0.23.0
+    ```
     """
 
     def __init__(self, impl: Any) -> None:
@@ -5257,7 +5437,8 @@ class Font:
         Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
-        *New in version 0.23.0.*
+        ```{versionadded} 0.23.0
+        ```
         """
         return self.impl.api
 
@@ -5272,7 +5453,8 @@ class Font:
         True
         ```
 
-        *New in version 0.23.0.*
+        ```{versionadded} 0.23.0
+        ```
         """
         return self.impl.bold
 
@@ -5291,7 +5473,8 @@ class Font:
         True
         ```
 
-        *New in version 0.23.0.*
+        ```{versionadded} 0.23.0
+        ```
         """
         return self.impl.italic
 
@@ -5310,7 +5493,8 @@ class Font:
         13
         ```
 
-        *New in version 0.23.0.*
+        ```{versionadded} 0.23.0
+        ```
         """
         return self.impl.size
 
@@ -5329,7 +5513,8 @@ class Font:
         (255, 0, 0)
         ```
 
-        *New in version 0.23.0.*
+        ```{versionadded} 0.23.0
+        ```
         """
         return self.impl.color
 
@@ -5348,7 +5533,8 @@ class Font:
         Calibri
         ```
 
-        *New in version 0.23.0.*
+        ```{versionadded} 0.23.0
+        ```
         """
         return self.impl.name
 
@@ -5405,7 +5591,8 @@ class Books(Collection[Book]):
     Books([<Book [Book1]>, <Book [Book2]>])
     ```
 
-    *New in version 0.9.0.*
+    ```{versionadded} 0.9.0
+    ```
     """
 
     _wrap = Book
@@ -5424,7 +5611,8 @@ class Books(Collection[Book]):
 
         Use `await myrange.get_value()` to read cell values on demand.
 
-        *New in version 0.35.0.*
+        ```{versionadded} 0.35.0
+        ```
         """
         return Book(impl=await self.impl.get_active())
 
@@ -5524,7 +5712,8 @@ class Sheets(Collection[Sheet]):
     Sheets([<Sheet [Book1]Sheet1>, <Sheet [Book1]Sheet2>])
     ```
 
-    *New in version 0.9.0.*
+    ```{versionadded} 0.9.0
+    ```
     """
 
     _wrap = Sheet
@@ -5541,7 +5730,8 @@ class Sheets(Collection[Sheet]):
 
         Requires xlwings Lite.
 
-        *New in version 0.35.0.*
+        ```{versionadded} 0.35.0
+        ```
         """
         return Sheet(impl=await self.impl.get_active())
 
