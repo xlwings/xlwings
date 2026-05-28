@@ -165,3 +165,10 @@ latex_documents = [
 latex_domain_indices = False
 htmlhelp_basename = "xlwingsdoc"
 texinfo_domain_indices = False
+
+# Autodocs (recommended settings by Furo)
+
+# Automatically extract typehints when specified and place them in
+# descriptions of the relevant function/method.
+autodoc_typehints = "description"
+autodoc_typehints_description_target = "documented_params"
