@@ -1,5 +1,6 @@
 furo
+myst-parser[linkify]
+sphinx
+sphinx-autobuild
 sphinx-copybutton
 sphinx-design
-sphinx
-sphinxcontrib-httpdomain
