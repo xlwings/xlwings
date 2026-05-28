@@ -3,7 +3,7 @@
 Since v0.27.4, xlwings works with locally synced files on OneDrive, OneDrive for Business, and SharePoint. Some constellations will work out-of-the-box, while others require you to edit the configuration via the `xlwings.conf` file (see [User Config](addin.md#user-config-ribbonconfig-file)) or the workbook's `xlwings.conf` sheet (see [Workbook Config](addin.md#workbook-config-xlwingsconf-sheet)).
 
 ```{note}
-This documentation is for OneDrive and SharePoint files that are synced to a local folder. This means that both, the Excel and Python file, need to show the green check mark in the File Explorer/Finder as status---a cloud icon will not work. If, in turn, you are looking for the documentation to run xlwings with Excel on the web, see {ref}`remote_interpreter`.
+This documentation is for OneDrive and SharePoint files that are synced to a local folder. This means that both, the Excel and Python file, need to show the green check mark in the File Explorer/Finder as status---a cloud icon will not work. If, in turn, you are looking for the documentation to run xlwings with Excel on the web, see [xlwings Server](https://server.xlwings.org).
 ```
 
 An easy workaround if you run into issues is to:

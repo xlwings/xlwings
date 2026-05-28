@@ -1,5 +1,3 @@
-(customaddin)=
-
 # Custom Add-ins
 
 ```{versionadded} 0.22.0
@@ -54,7 +52,7 @@ If you are only deploying UDFs via your add-in, you probably don't need a Ribbon
 
 ## Configuration
 
-As mentioned before, configuration works the same as with xlwings, so you could have your users override the default configuration we did above by adding a `myaddin.conf` sheet on their workbook or you could use the `myaddin.conf` file in the user's home directory. For details see {ref}`xlwings_addin`.
+As mentioned before, configuration works the same as with xlwings, so you could have your users override the default configuration we did above by adding a `myaddin.conf` sheet on their workbook or you could use the `myaddin.conf` file in the user's home directory. For details see [Add-in & Settings](addin.md#add-in--settings).
 
 ## Installation
 

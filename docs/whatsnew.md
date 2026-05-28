@@ -278,7 +278,7 @@ Other changes include:
           await asyncio.sleep(1)
   ```
 
-For more details, see: {ref}`pro/server/officejs_custom_functions:Streaming functions ("RTD functions")`
+For more details, see: [Streaming functions ("RTD functions")](https://server.xlwings.org)
 
 ## v0.30.16 (Mar 16, 2024)
 
@@ -320,7 +320,7 @@ For more details, see: {ref}`pro/server/officejs_custom_functions:Streaming func
 
 ## v0.30.9 (Jun 12, 2023)
 
-- {bdg-info}`Enhancement` {bdg-secondary}`PRO` Custom functions: added support for `help_url`, which allows you to link to more information via the function wizard/formula builder. See {ref}`pro/server/officejs_custom_functions:Help URL` ({issue}`2283`).
+- {bdg-info}`Enhancement` {bdg-secondary}`PRO` Custom functions: added support for `help_url`, which allows you to link to more information via the function wizard/formula builder. See [Help URL](https://server.xlwings.org) ({issue}`2283`).
 - {bdg-warning}`Bug Fix` {bdg-secondary}`PRO` Fixed a bug with sheet-scoped named ranges in case the scope and refers_to point to different sheets ({issue}`2280`).
 
 ## v0.30.8 (May 27, 2023)
@@ -330,7 +330,7 @@ For more details, see: {ref}`pro/server/officejs_custom_functions:Streaming func
 ## v0.30.7 (May 18, 2023)
 
 - {bdg-info}`Enhancement` {bdg-secondary}`PRO` xlwings Server: added named range support for Office Scripts, Office.js, and Google Apps Script clients in addition to the VBA client ({issue}`2257`).
-- {bdg-info}`Enhancement` {bdg-secondary}`PRO` xlwings Server: the documentation has been improved to point out that the `book` object has to be closed at the end of a request in oder to prevent a memory leak. This can be done via `mybook.close()` or by using `Book` as a context manager (`with xw.Book(json=data) as book:```). Note that your framework may offer better means to automatically close the book at the end of a request via middleware or similar mechanism. As an example, for FastAPI, you can use dependency injection. See {ref}`pro/server/server:Introduction` ({issue}`2260`).
+- {bdg-info}`Enhancement` {bdg-secondary}`PRO` xlwings Server: the documentation has been improved to point out that the `book` object has to be closed at the end of a request in oder to prevent a memory leak. This can be done via `mybook.close()` or by using `Book` as a context manager (`with xw.Book(json=data) as book:```). Note that your framework may offer better means to automatically close the book at the end of a request via middleware or similar mechanism. As an example, for FastAPI, you can use dependency injection. See [Introduction](https://server.xlwings.org) ({issue}`2260`).
 
 ## v0.30.6 (May 5, 2023)
 
@@ -367,7 +367,7 @@ For more details, see: {ref}`pro/server/officejs_custom_functions:Streaming func
 
 ## v0.30.0 (Mar 2, 2023)
 
-- {bdg-info}`Feature` {bdg-secondary}`PRO` xlwings Server now supports custom functions (a.k.a. user-defined functions or UDFs) on Windows, macOS, and Web via the Office.js add-ins. See {ref}`pro/server/officejs_custom_functions:Office.js Custom Functions` ({issue}`2177`).
+- {bdg-info}`Feature` {bdg-secondary}`PRO` xlwings Server now supports custom functions (a.k.a. user-defined functions or UDFs) on Windows, macOS, and Web via the Office.js add-ins. See [Office.js Custom Functions](https://server.xlwings.org) ({issue}`2177`).
 - {bdg-warning}`Bug Fix` {bdg-secondary}`PRO` xlwings Reports: fixed `render_template()` on Windows when the template had hidden sheets ({issue}`2166`).
 
 ## v0.29.1 (Feb 5, 2023)
@@ -378,7 +378,7 @@ For more details, see: {ref}`pro/server/officejs_custom_functions:Streaming func
 
 ## v0.29.0 (Jan 29, 2023)
 
-- {bdg-success}`Feature` {bdg-secondary}`PRO` xlwings Server now supports Office.js add-ins! Check out the comprehensive {ref}`documentation <officejs_addins>` ({issue}`2151`).
+- {bdg-success}`Feature` {bdg-secondary}`PRO` xlwings Server now supports Office.js add-ins! Check out the comprehensive [documentation](https://server.xlwings.org) ({issue}`2151`).
 
 ## v0.28.9 (Jan 21, 2023)
 
@@ -399,7 +399,7 @@ For more details, see: {ref}`pro/server/officejs_custom_functions:Streaming func
 
 ## v0.28.6 (Dec 15, 2022)
 
-- {bdg-success}`Feature` xlwings now allows to authenticate and authorize users via Azure AD in connection with the Ribbon add-in or VBA standalone module. This is useful in connection with a server component, such as xlwings Server, where the acquired access tokens can be validated, see {ref}`Server Auth <server_auth>` ({issue}`2122`).
+- {bdg-success}`Feature` xlwings now allows to authenticate and authorize users via Azure AD in connection with the Ribbon add-in or VBA standalone module. This is useful in connection with a server component, such as xlwings Server, where the acquired access tokens can be validated, see [Server Auth](https://server.xlwings.org) ({issue}`2122`).
 - {bdg-info}`Enhancement` {bdg-secondary}`PRO` xlwings Server: added support for reading the Names collection via `mybook.names` and `mysheet.names` ({issue}`2123`).
 - {bdg-success}`Feature` The xlwings CLI (command-line interface) is now also available as a standalone executable for a limited set of uses cases. It can be downloaded from the [GitHub Release page](https://github.com/xlwings/xlwings/releases) and can be useful to run `xlwings vba ...`, `xlwings auth ...`, and `xlwings addin ... -f` without having to install a full Python installation ({issue}`2121`).
 - {bdg-danger}`Breaking Change` {bdg-secondary}`PRO`: xlwings Server: `auth` replaces the `apiKey` argument in the `runPython` and `RunRemotePython` calls respectively. Technically it's only a deprecation, so `apiKey` still works for now ({issue}`2104`).
@@ -564,11 +564,11 @@ with xw.Book("myfile.xlsx", mode="r") as book:
 
 ## v0.27.0 and v0.27.1 (Mar 8, 2022)
 
-- {bdg-success}`Feature` {bdg-secondary}`PRO` This release adds support for xlwings Server to the Excel Desktop apps on both Windows and macOS. The new VBA function `RunRemotePython` is equivalent to `runPython` in the JavaScript modules of Google Sheets and Excel on the web, see {ref}`xlwings Server<remote_interpreter>` ({issue}`1841`).
+- {bdg-success}`Feature` {bdg-secondary}`PRO` This release adds support for xlwings Server to the Excel Desktop apps on both Windows and macOS. The new VBA function `RunRemotePython` is equivalent to `runPython` in the JavaScript modules of Google Sheets and Excel on the web, see [xlwings Server](https://server.xlwings.org) ({issue}`1841`).
 - {bdg-info}`Enhancement` The xlwings package is now uploaded as wheel to PyPI in addition to the source format ({issue}`1855`).
 - {bdg-info}`Enhancement` The xlwings package is now compatible with Poetry ({issue}`1265`).
 - {bdg-info}`Enhancement` The add-in and the dll files are now code signed ({issue}`1848`).
-- {bdg-danger}`Breaking Change` {bdg-secondary}`PRO` The JavaScript modules (Google Sheet/Excel on the web ) changed the parameters in `runPython`, see {ref}`xlwings Server<remote_interpreter>` ({issue}`1852`).
+- {bdg-danger}`Breaking Change` {bdg-secondary}`PRO` The JavaScript modules (Google Sheet/Excel on the web ) changed the parameters in `runPython`, see [xlwings Server](https://server.xlwings.org) ({issue}`1852`).
 - {bdg-danger}`Breaking Change` `xlwings vba edit` has been refactored and there is an additional command `xlwings vba import` to edit your VBA code outside of the VBA editor, e.g., in VS Code or any other editor, see [Command Line Client (CLI)](command_line.md#command-line-client-cli) ({issue}`1843`).
 - {bdg-danger}`Breaking Change` The `--unprotected` flag has been removed from the `xlwings addin install` command. You can still manually remove the password (`xlwings`) though ({issue}`1850`).
 - {bdg-warning}`Bug Fix` {bdg-secondary}`PRO` The `Markdown` class has been fixed in case the first line was empty ({issue}`1856`).
@@ -592,7 +592,7 @@ with xw.Book("myfile.xlsx", mode="r") as book:
 
 ## v0.26.0 and v0.26.1 (Feb 1, 2022)
 
-- {bdg-secondary}`PRO` {bdg-success}`Feature` Added experimental support for Google Sheets and Excel on the web via a remote Python interpreter. For all the details, see {ref}`xlwings Server <remote_interpreter>`.
+- {bdg-secondary}`PRO` {bdg-success}`Feature` Added experimental support for Google Sheets and Excel on the web via a remote Python interpreter. For all the details, see [xlwings Server](https://server.xlwings.org).
 - {bdg-secondary}`PRO` {bdg-warning}`Bug Fix` 0.26.1 fixes an issue with the `xlwings copy gs` command.
 - xlwings PRO is now free for noncommercial usage under the [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0), see [xlwings PRO](pro/license_key.md#license-key) for the details.
 
@@ -826,7 +826,7 @@ v0.22.1 (Feb 4, 2021)
 
 v0.22.0 (Jan 29, 2021)
 
-- {bdg-success}`Feature` While it's always been possible to _somehow_ create your own xlwings-based add-ins, this release adds a toolchain to make it a lot easier to create your own white-labeled add-in, see [Custom Add-in](customaddin.md#custom-add-in) ({issue}`1488`).
+- {bdg-success}`Feature` While it's always been possible to _somehow_ create your own xlwings-based add-ins, this release adds a toolchain to make it a lot easier to create your own white-labeled add-in, see [Custom Add-ins](customaddin.md#custom-add-ins) ({issue}`1488`).
 - {bdg-info}`Enhancement` `xw.view` now formats the pandas DataFrames as Excel table and with the new `xw.load` function, you can easily load a DataFrame from your active workbook into a Jupyter notebook. See [Jupyter Notebooks: Interact with Excel](jupyternotebooks.md#jupyter-notebooks-interact-with-excel) for a full tutorial ({issue}`1487`).
 - {bdg-success}`Feature` New method {meth}`mysheet.copy() <xlwings.Sheet.copy>` ({issue}`123`).
 - {bdg-secondary}`PRO` {bdg-success}`Feature`: in addition to `xw.create_report()`, you can now also work within a workbook by using the new {meth}`mysheet.render_template() <xlwings.Sheet.render_template>` method, see also [Quickstart](pro/reports/reports.md#quickstart) ({issue}`1478`).
@@ -1392,7 +1392,7 @@ def myfunction():
     return ...
 ```
 
-For details, check out the (also new) and comprehensive API docs about the decorators: [UDF decorators](api/udf_decorators.md#udf-decorators)
+For details, check out the (also new) and comprehensive API docs about the decorators: [UDF decorators](api/udf_decorators.rst)
 
 v0.10.2 (Dec 31, 2016)
 
@@ -1472,7 +1472,7 @@ v0.9.0 (Aug 2, 2016)
 
 Exciting times! v0.9.0 is a complete rewrite of xlwings with loads of syntax changes (hence the version jump). But more
 importantly, this release adds a ton of new features and bug fixes that would have otherwise been impossible. Some of the
-highlights are listed below, but make sure to check out the full [migration guide](whatsnew.md#migrate-to-v09) for the syntax changes in details.
+highlights are listed below, but make sure to check out the full migration guide below for the syntax changes in details.
 Note, however, that the syntax for user defined functions (UDFs) did not change.
 At this point, the API is fairly stable and we're expecting only smaller changes on our way towards a stable v1.0 release.
 
@@ -1548,7 +1548,7 @@ Migrate to v0.9
 
 The purpose of this document is to enable you a smooth experience when upgrading to xlwings v0.9.0 and above by laying out
 the concept and syntax changes in detail. If you want to get an overview of the new features and bug fixes, have a look at the
-[release notes](whatsnew.md#v090-aug-2-2016). Note that the syntax for User Defined Functions (UDFs) didn't change.
+release notes above. Note that the syntax for User Defined Functions (UDFs) didn't change.
 
 Full qualification: Using collections
 
