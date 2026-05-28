@@ -419,22 +419,28 @@ def render_template(template, output, book_settings=None, app=None, **data):
     In ``my_template.xlsx``, put the following Jinja variables in two cells:
     ``{{ title }}`` and ``{{ df }}``
 
+    ```pycon
     >>> from xlwings.reports import render_template
     >>> import pandas as pd
     >>> df = pd.DataFrame(data=[[1,2],[3,4]])
     >>> mybook = render_template('my_template.xlsx', 'my_report.xlsx',
                                  title='MyTitle', df=df)
+    ```
 
     With many template variables it may be useful to collect the data first:
 
+    ```pycon
     >>> data = dict(title='MyTitle', df=df)
     >>> mybook = render_template('my_template.xlsx', 'my_report.xlsx', **data)
+    ```
 
     If you need to handle external links or a password, use it like so:
 
+    ```pycon
     >>> mybook = render_template('my_template.xlsx', 'my_report.xlsx',
                                  book_settings={'update_links': True,
                                  'password': 'mypassword'}, **data)
+    ```
     """
     shutil.copyfile(template, output)
     if app:

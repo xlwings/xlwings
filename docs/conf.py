@@ -67,13 +67,17 @@ html_context = {}
 if os.environ.get("READTHEDOCS", "") == "True":
     html_context["READTHEDOCS"] = True
 
+sys.path.insert(0, os.path.abspath("_ext"))
+
 extensions = [
     "myst_parser",
     "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
     "sphinx.ext.mathjax",
     "sphinx.ext.extlinks",
     "sphinx_copybutton",
     "sphinx_design",
+    "myst_docstrings",
 ]
 
 templates_path = ["_templates"]
