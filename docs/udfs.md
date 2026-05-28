@@ -10,9 +10,9 @@ This tutorial gets you quickly started on how to write User Defined Functions.
 
 ## One-time Excel preparations
 
-1) Enable `Trust access to the VBA project object model` under `File > Options > Trust Center > Trust Center Settings > Macro Settings`. You only need to do this once. Also, this is only required for importing the functions, i.e. end users won't need to bother about this.
+1. Enable `Trust access to the VBA project object model` under `File > Options > Trust Center > Trust Center Settings > Macro Settings`. You only need to do this once. Also, this is only required for importing the functions, i.e. end users won't need to bother about this.
 
-2) Install the add-in via command prompt: `xlwings addin install` (see [Add-in & Settings](addin.md#add-in--settings)).
+2. Install the add-in via command prompt: `xlwings addin install` (see [Add-in & Settings](addin.md#add-in--settings)).
 
 ## Workbook preparation
 
@@ -23,23 +23,29 @@ This automatically adds the xlwings reference to the generated workbook.
 
 The default add-in settings expect a Python source file in the way it is created by `quickstart`:
 
-* in the same directory as the Excel file
-* with the same name as the Excel file, but with a `.py` ending instead of `.xlsm`.
+- in the same directory as the Excel file
+- with the same name as the Excel file, but with a `.py` ending instead of `.xlsm`.
 
 Alternatively, you can point to a specific module via `UDF Modules` in the xlwings ribbon.
 
-* The Image below shows the correct input for the "UDF Modules" field in the xlwings ribbon with a module called "my_udf.py":
+- The Image below shows the correct input for the "UDF Modules" field in the xlwings ribbon with a module called "my_udf.py":
 
-```{image} ./images/udf_modules.png
-```
-* If the module is not within the same directory as the Excel file, you point to it via the "PYTHONPATH" field. The image below shows the configuration if the module was in the folder "C:\\py_folder" (just an example so it fits in the field window):
+  ```{image} ./images/udf_modules.png
 
-```{image} ./images/pythonpath.png
-```
-* For reference, this is how your xlwings.conf file would look like with these settings:
+  ```
 
-```{image} ./images/pythonpath_conf.png
-```
+- If the module is not within the same directory as the Excel file, you point to it via the "PYTHONPATH" field. The image below shows the configuration if the module was in the folder "C:\\py_folder" (just an example so it fits in the field window):
+
+  ```{image} ./images/pythonpath.png
+
+  ```
+
+- For reference, this is how your xlwings.conf file would look like with these settings:
+
+  ```{image} ./images/pythonpath_conf.png
+
+  ```
+
 Let's assume you have a Workbook `myproject.xlsm`, then you would write the following code in `myproject.py`:
 
 ```python
@@ -51,12 +57,14 @@ def double_sum(x, y):
     return 2 * (x + y)
 ```
 
-* Now click on `Import Python UDFs` in the xlwings tab to pick up the changes made to `myproject.py`.
-* Enter the formula `=double_sum(1, 2)` into a cell and you will see the correct result:
+- Now click on `Import Python UDFs` in the xlwings tab to pick up the changes made to `myproject.py`.
+- Enter the formula `=double_sum(1, 2)` into a cell and you will see the correct result:
 
   ```{image} ./images/double_sum.png
+
   ```
-* The docstring (in triple-quotes) will be shown as function description in Excel.
+
+- The docstring (in triple-quotes) will be shown as function description in Excel.
 
 ```{note}
 * You only need to re-import your functions if you change the function arguments or the function name.
@@ -86,15 +94,17 @@ def add_one(data):
 
 To use this formula in Excel,
 
-* Click on `Import Python UDFs` again
-* Fill in the values in the range `A1:B2`
-* Select the range `D1:E2`
-* Type in the formula `=add_one(A1:B2)`
-* Press `Ctrl+Shift+Enter` to create an array formula. If you did everything correctly, you'll see the formula
+- Click on `Import Python UDFs` again
+- Fill in the values in the range `A1:B2`
+- Select the range `D1:E2`
+- Type in the formula `=add_one(A1:B2)`
+- Press `Ctrl+Shift+Enter` to create an array formula. If you did everything correctly, you'll see the formula
   surrounded by curly braces as in this screenshot:
 
-```{image} ./images/array_formula.png
-```
+  ```{image} ./images/array_formula.png
+
+  ```
+
 ### Number of array dimensions: ndim
 
 The above formula has the issue that it expects a "two dimensional" input, e.g. a nested list of the form
@@ -220,6 +230,7 @@ For further details see the [Converters and Options](converters.md#converters-an
 ## Using type hints instead of decorators
 
 ```{versionadded} 0.32.0
+
 ```
 
 Since v0.32.0, xlwings has supported type hints that you can use instead of or in combination with decorators:
@@ -319,9 +330,13 @@ def dynamic_array(r: int, c: int) -> Annotated[np.ndarray, {"expand": "table"}]:
 ```
 
 ```{image} ./images/dynamic_array1.png
+
 ```
+
 ```{image} ./images/dynamic_array2.png
+
 ```
+
 ```{note}
 * Expanding array formulas will overwrite cells without prompting
 * Pre v0.15.0 doesn't allow to have volatile functions as arguments, e.g. you cannot use functions like `=TODAY()` as arguments.
@@ -441,6 +456,7 @@ This is an experimental feature
 ```
 
 ```{versionadded} v0.14.0
+
 ```
 
 xlwings offers an easy way to write asynchronous functions in Excel. Asynchronous functions return immediately with

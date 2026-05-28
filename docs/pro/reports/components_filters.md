@@ -17,7 +17,9 @@ sheet.render_template(df=df)
 ```
 
 ```{image} ../../images/reports_df_filters.png
+
 ```
+
 ### DataFrames Filters
 
 ### noheader
@@ -240,7 +242,9 @@ The `vmerge` filter does not work in Excel tables, as Excel tables don't support
 ```
 
 ```{image} ../../images/vmerge.png
+
 ```
+
 Note that the screenshot uses 4 [Frames](components_filters.md#frames-multi-column-layout) and the text is centered/vertically aligned in the template.
 
 Syntax (arguments are optional):
@@ -328,13 +332,17 @@ with xw.App(visible=True) as app:
 ```
 
 ```{image} ../../images/formatter_reports.png
+
 ```
+
 ## Excel Tables
 
 Using Excel tables is the recommended way to format tables as the styling can be applied dynamically across columns and rows. You can also use themes and apply alternating colors to rows/columns. Go to `Insert` > `Table` and make sure that you activate `My table has headers` before clicking on `OK`. Add the placeholder as usual on the top-left of your Excel table (note that this example makes use of [Frames](components_filters.md#frames-multi-column-layout)):
 
 ```{image} ../../images/excel_table_template.png
+
 ```
+
 Running the following script:
 
 ```python
@@ -351,7 +359,9 @@ with xw.App(visible=True) as app:
 Will produce the following report:
 
 ```{image} ../../images/excel_table_report.png
+
 ```
+
 Headers of Excel tables are relatively strict, e.g. you can't have multi-line headers or merged cells. To get around these limitations, uncheck the `Header Row` checkbox under `Table Design` and use the `noheader` filter (see DataFrame filters). This will allow you to design your own headers outside of the Excel Table.
 
 ```{note}
@@ -364,41 +374,50 @@ To use Excel charts in your reports, follow this process:
 
 1. Add some sample/dummy data to your Excel template:
 
-    ```{image} ../../images/reports_chart1.png
-    ```
+   ```{image} ../../images/reports_chart1.png
 
-2. If your data source is dynamic, turn it into an Excel Table (`Insert` > `Table`). Make sure you do this *before* adding the chart in the next step.
+   ```
 
-    ```{image} ../../images/reports_chart2.png
-    ```
+2. If your data source is dynamic, turn it into an Excel Table (`Insert` > `Table`). Make sure you do this _before_ adding the chart in the next step.
+
+   ```{image} ../../images/reports_chart2.png
+
+   ```
+
 3. Add your chart and style it:
 
-    ```{image} ../../images/reports_chart3.png
-    ```
+   ```{image} ../../images/reports_chart3.png
+
+   ```
+
 4. Reduce the Excel table to a 2 x 2 range and add the placeholder in the top-left corner (in our example `{{ chart_data }}`) . You can leave in some dummy data or clear the values of the Excel table:
 
-    ```{image} ../../images/reports_chart4.png
-    ```
+   ```{image} ../../images/reports_chart4.png
+
+   ```
+
 5. Assuming your file is called `mytemplate.xlsx` and your sheet `template` like on the previous screenshot, you can run the following code:
 
-```python
-import xlwings as xw
-import pandas as pd
+   ```python
+   import xlwings as xw
+   import pandas as pd
 
-df = pd.DataFrame(data={'Q1': [1000, 2000, 3000],
-                        'Q2': [4000, 5000, 6000],
-                        'Q3': [7000, 8000, 9000]},
-                  index=['North', 'South', 'West'])
+   df = pd.DataFrame(data={'Q1': [1000, 2000, 3000],
+                           'Q2': [4000, 5000, 6000],
+                           'Q3': [7000, 8000, 9000]},
+                   index=['North', 'South', 'West'])
 
-book = xw.Book("mytemplate.xlsx")
-sheet = book.sheets['template'].copy(name='report')
-sheet.render_template(chart_data=df.reset_index())
-```
+   book = xw.Book("mytemplate.xlsx")
+   sheet = book.sheets['template'].copy(name='report')
+   sheet.render_template(chart_data=df.reset_index())
+   ```
 
-This will produce the following report, with the chart source correctly adjusted:
+   This will produce the following report, with the chart source correctly adjusted:
 
-    ```{image} ../../images/reports_chart5.png
-    ```
+   ```{image} ../../images/reports_chart5.png
+
+   ```
+
 ```{note}
 If you don't want the source data on your report, you can place it on a separate sheet. It's easiest if you add and design the chart on the separate sheet, before cutting the chart and pasting it on your report template. To prevent the data sheet from being printed when calling `to_pdf`, you can give it a name that starts with `#` and it will be ignored. NOTE that if you start your sheet name with `##`, it won't be printed but also not rendered!
 ```
@@ -424,7 +443,7 @@ If you want to use vector-based graphics, you can use `svg` on Windows and `pdf`
 
 Available filters for Images:
 
-* **width**: Set the width in pixels (height will be scaled proportionally).
+- **width**: Set the width in pixels (height will be scaled proportionally).
 
   Example:
 
@@ -432,7 +451,7 @@ Available filters for Images:
   {{ logo | width(200) }}
   ```
 
-* **height**: Set the height in pixels (width will be scaled proportionally).
+- **height**: Set the height in pixels (width will be scaled proportionally).
 
   Example:
 
@@ -440,7 +459,7 @@ Available filters for Images:
   {{ logo | height(200) }}
   ```
 
-* **width and height**: Setting both width and height will distort the proportions of the image!
+- **width and height**: Setting both width and height will distort the proportions of the image!
 
   Example:
 
@@ -448,7 +467,7 @@ Available filters for Images:
   {{ logo | height(200) | width(200) }}
   ```
 
-* **scale**: Scale your image using a factor (height and width will be scaled proportionally).
+- **scale**: Scale your image using a factor (height and width will be scaled proportionally).
 
   Example:
 
@@ -456,7 +475,7 @@ Available filters for Images:
   {{ logo | scale(1.2) }}
   ```
 
-* **top**: Top margin. Has the effect of moving the image down (positive pixel number) or up (negative pixel number), relative to the top border of the cell. This is very handy to fine-tune the position of graphics object.
+- **top**: Top margin. Has the effect of moving the image down (positive pixel number) or up (negative pixel number), relative to the top border of the cell. This is very handy to fine-tune the position of graphics object.
 
   See also: `left`
 
@@ -466,7 +485,7 @@ Available filters for Images:
   {{ logo | top(5) }}
   ```
 
-* **left**: Left margin. Has the effect of moving the image right (positive pixel number) or left (negative pixel number), relative to the left border of the cell. This is very handy to fine-tune the position of graphics object.
+- **left**: Left margin. Has the effect of moving the image right (positive pixel number) or left (negative pixel number), relative to the left border of the cell. This is very handy to fine-tune the position of graphics object.
 
   See also: `top`
 
@@ -512,11 +531,11 @@ sheet.render_template(lineplot=fig)
 
 To change the appearance of the Matplotlib or Plotly plot, you can use the same filters as with images. Additionally, you can use the following filter:
 
-* **format**: allows to change the default image format from `png` to e.g., `vector`, which will export the plot as vector graphics (`svg` on Windows and `pdf` on macOS). As an example, to make the chart smaller and use the vector format, you would write the following placeholder:
+- **format**: allows to change the default image format from `png` to e.g., `vector`, which will export the plot as vector graphics (`svg` on Windows and `pdf` on macOS). As an example, to make the chart smaller and use the vector format, you would write the following placeholder:
 
-```python
-{{ lineplot | scale(0.8) | format("vector") }}
-```
+  ```python
+  {{ lineplot | scale(0.8) | format("vector") }}
+  ```
 
 ## Text
 
@@ -525,6 +544,7 @@ You can work with placeholders in text that lives in cells or shapes like text b
 ### Simple Text without Formatting
 
 ```{versionadded} 0.21.4
+
 ```
 
 You can use any shapes like rectangles or circles, not just text boxes:
@@ -537,16 +557,20 @@ with xw.App(visible=True) as app:
 This code turns this template:
 
 ```{image} ../../images/shape_text_template.png
+
 ```
+
 into this report:
 
 ```{image} ../../images/shape_text_report.png
+
 ```
+
 While this works for simple text, you will lose the formatting if you have any. To prevent that, use a `Markdown` object, as explained in the next section.
 
 If you will be printing on a [PDF Layout](components_filters.md#pdf-layout) with a dark background, you may need to change the font color to white. This has the nasty side effect that you won't see anything on the screen anymore. To solve that issue, use the `fontcolor` filter:
 
-* **fontcolor**: Change the color of the whole (!) cell or shape. The primary purpose of this filter is to make white fonts visible in Excel. For most other colors, you can just change the color in Excel itself. Note that this filter changes the font of the whole cell or shape and only has an effect if there is just a single placeholder---if you need to manipulate single words, use Markdown instead, see below. Black and white can be used as word, otherwise use a hex notation of your desired color.
+- **fontcolor**: Change the color of the whole (!) cell or shape. The primary purpose of this filter is to make white fonts visible in Excel. For most other colors, you can just change the color in Excel itself. Note that this filter changes the font of the whole cell or shape and only has an effect if there is just a single placeholder---if you need to manipulate single words, use Markdown instead, see below. Black and white can be used as word, otherwise use a hex notation of your desired color.
 
   Example:
 
@@ -558,6 +582,7 @@ If you will be printing on a [PDF Layout](components_filters.md#pdf-layout) with
 ### Markdown Formatting
 
 ```{versionadded} 0.23.0
+
 ```
 
 You can format text in cells or shapes via Markdown syntax. Note that you can also use placeholders in the Markdown text that will take the values from the variables you supply via the `render_template` method:
@@ -589,11 +614,15 @@ sheet.render_template(myplaceholder=Markdown(mytext),
 This will render this template with the placeholder in a cell and a shape:
 
 ```{image} ../../images/markdown_template.png
+
 ```
+
 Like this (this uses the default formatting):
 
 ```{image} ../../images/markdown1.png
+
 ```
+
 For more details about Markdown, especially about how to change the styling, see [Markdown Formatting](markdown.md#markdown-formatting).
 
 ## Date and Time
@@ -634,8 +663,8 @@ This corresponds to the following f-string in Python: `f"{performance:0.1%}"`. T
 Frames are vertical containers in which content is being aligned according to their height. That is,
 within Frames:
 
-* Variables do not overwrite existing cell values as they do without Frames.
-* Formatting is applied dynamically, depending on the number of rows your object uses in Excel
+- Variables do not overwrite existing cell values as they do without Frames.
+- Formatting is applied dynamically, depending on the number of rows your object uses in Excel
 
 To use Frames, insert a Note with the text `<frame>` into **row 1** of your Excel template wherever you want a new dynamic column
 to start. Frames go from one `<frame>` to the next `<frame>` or the right border of the used range.
@@ -645,11 +674,13 @@ The following screenshot defines two frames. The first one goes from column A to
 goes from column F to column I, since this is the last column that is used.
 
 ```{image} ../../images/frame_template.png
+
 ```
+
 You can define and format DataFrames by formatting
 
-* one header and
-* one data row
+- one header and
+- one data row
 
 If you use the `noheader` filter for DataFrames, you can leave the header away and format a single data row.
 Alternatively, you could also use Excel Tables, as they can make formatting easier.
@@ -673,6 +704,7 @@ with xw.App(visible=True) as app:
 will generate this report:
 
 ```{image} ../../images/frame_report.png
+
 ```
 
 ## PDF Layout
@@ -697,4 +729,5 @@ Note that the layout PDF either needs to consist of a single page (will be used 
 To create your layout PDF, you can use any program capable of exporting a file in PDF format such as PowerPoint or Word, but for the best results consider using a professional desktop publishing software such as Adobe InDesign.
 
 ```{image} ../../images/reports_pdf_layout.png
+
 ```

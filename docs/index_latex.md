@@ -62,14 +62,6 @@ pro/reports/index
 ```{toctree}
 :maxdepth: 2
 :hidden:
-:caption: xlwings Server
-
-pro/server/index
-```
-
-```{toctree}
-:maxdepth: 2
-:hidden:
 :caption: About
 
 whatsnew

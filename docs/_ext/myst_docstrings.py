@@ -20,15 +20,27 @@ class EvalMystDirective(SphinxDirective):
     has_content = True
 
     def run(self):
+        from docutils import nodes
+
         document = self.state.document
+        # Save state that MyST modifies
         prev_children = document.children
+        prev_sub_defs = dict(document.substitution_defs)
+        prev_sub_names = dict(document.substitution_names)
         children = document.children = []
         try:
             parser = MystParser()
             parser.parse("\n".join(self.content), document)
         finally:
             document.children = prev_children
-        return children
+            # Restore substitution state to prevent "Duplicate substitution
+            # definition" errors when eval-myst runs multiple times per doc.
+            document.substitution_defs = prev_sub_defs
+            document.substitution_names = prev_sub_names
+        # Filter out substitution_definition nodes
+        return [
+            c for c in children if not isinstance(c, nodes.substitution_definition)
+        ]
 
 
 def _rst_inline_to_md(text: str) -> str:

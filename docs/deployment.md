@@ -20,7 +20,8 @@ PYTHONPATH, "C:\path\to\myproject.zip"
 
 ## RunFrozenPython
 
-.. versionchanged:: 0.15.2
+```{versionadded} 0.15.2
+```
 
 You can use a freezer like PyInstaller, cx_Freeze, py2exe etc. to freeze your Python module into an executable so that
 the recipient doesn't have to install a full Python distribution.
