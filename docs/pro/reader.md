@@ -91,7 +91,7 @@ While xlwings reads in cell errors such as `#N/A` as `None` by default, you may 
 ```python
 with xw.Book("myfile.xlsx", mode="r") as book:
     sheet1 = book.sheets[0]
-    data = sheet1["A1:B2"].option(err_to_str=True).value
+    data = sheet1["A1:B2"].options(err_to_str=True).value
 ```
 
 ## Limitations

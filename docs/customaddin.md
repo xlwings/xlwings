@@ -33,7 +33,7 @@ Compared to the xlwings add-in, the custom add-in offers an additional level of 
 Let's open the VBA editor by clicking on `Alt+F11` (Windows) or `Option+F11` (macOS). In our project, select `ThisWorkbook`, then change the Property `IsAddin` from `True` to `False`, see the following screenshot:
 
 ```{image} ./images/custom_addin_vba_properties.png
-    :scale: 40%
+:scale: 40%
 ```
 This will make the sheet `_myaddin.conf` visible (again, we'll see how to change the name of `myaddin` at the end of this tutorial):
 

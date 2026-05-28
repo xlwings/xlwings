@@ -63,7 +63,7 @@ See also {meth}`render_templates (API reference) <xlwings.pro.reports.render_tem
 Sometimes, it's useful to render a single book or sheet instead of using the `myapp.render_template` method. This is a workbook stored as `Book1.xlsx`:
 
 ```{image} ../../images/sheet_rendering1.png
-    :scale: 60%
+:scale: 60%
 ```
 Running the following code:
 
@@ -79,7 +79,7 @@ book.to_pdf()
 Copies the template sheet first and then fills it in:
 
 ```{image} ../../images/sheet_rendering2.png
-    :scale: 60%
+:scale: 60%
 ```
 See also the {meth}`mysheet.render_template (API reference) <xlwings.Sheet.render_template>` and {meth}`mybook.render_template (API reference) <xlwings.Book.render_template>`.
 
