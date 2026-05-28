@@ -49,9 +49,18 @@ def _rst_inline_to_md(text: str) -> str:
     return re.sub(r"``(.*?)``", r"`\1`", text)
 
 
+def _md_inline_to_rst(text: str) -> str:
+    """Convert MD single backticks to RST double backticks.
+
+    Used for content that stays as native RST (field lists).
+    Avoids converting already-double backticks.
+    """
+    return re.sub(r"(?<!`)(`)(?!`)(.+?)(?<!`)(`)", r"``\2``", text)
+
+
 def _is_rst_field(line: str) -> bool:
-    """Check if a line is an RST field list entry or continuation."""
-    return bool(re.match(r"^:(param|type|returns?|rtype|raises)\s", line))
+    """Check if a line is an RST field list entry."""
+    return bool(re.match(r"^:(param|type|returns?|rtype|raises)\b", line))
 
 
 def _is_rst_directive(line: str) -> bool:
@@ -96,12 +105,13 @@ def process_docstring(
                 segments.append((current_type, current_lines))
                 current_lines = []
             current_type = "rst"
-            # Convert inline literals in the field description
-            current_lines.append(_rst_inline_to_md(line))
+            # Docstrings use MD backticks, but field list content stays as
+            # native RST, so convert single backticks to double.
+            current_lines.append(_md_inline_to_rst(line))
             i += 1
             # Collect continuation lines (indented)
             while i < len(lines) and lines[i] and lines[i][0] == " ":
-                current_lines.append(_rst_inline_to_md(lines[i]))
+                current_lines.append(_md_inline_to_rst(lines[i]))
                 i += 1
             continue
 
