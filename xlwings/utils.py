@@ -480,8 +480,7 @@ def fullname_url_to_local_path(
     sheet_onedrive_commercial_config=None,
     sheet_sharepoint_config=None,
 ):
-    """
-    When AutoSave is enabled in Excel with either OneDrive or SharePoint, VBA/COM's
+    """When AutoSave is enabled in Excel with either OneDrive or SharePoint, VBA/COM's
     Workbook.FullName turns into a URL without any possibilities to get the local file
     path. While OneDrive and OneDrive for Business make it easy enough to derive the
     local path from the URL, SharePoint allows to define the "Site name" and "Site
@@ -493,22 +492,14 @@ def fullname_url_to_local_path(
     compared to the online/URL version. And (3) the OneDriveCommercial env var sometimes
     seems to actually point to the local SharePoint folder.
 
-    Parameters
-    ----------
-    url : str
-        URL as returned by VBA's FullName
-
-    sheet_onedrive_consumer_config : str
-        Optional Path to the local OneDrive (Personal) as defined in the Workbook's
-        config sheet
-
-    sheet_onedrive_commercial_config : str
-        Optional Path to the local OneDrive for Business as defined in the Workbook's
-        config sheet
-
-    sheet_sharepoint_config : str
-        Optional Path to the local SharePoint drive as defined in the Workbook's config
-        sheet
+    Args:
+        url: URL as returned by VBA's FullName
+        sheet_onedrive_consumer_config: Optional Path to the local OneDrive (Personal)
+            as defined in the Workbook's config sheet
+        sheet_onedrive_commercial_config: Optional Path to the local OneDrive for
+            Business as defined in the Workbook's config sheet
+        sheet_sharepoint_config: Optional Path to the local SharePoint drive as defined
+            in the Workbook's config sheet
     """
     # Directory config files can't be used
     # since the whole purpose of this exercise is to find out about a book's dir

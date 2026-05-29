@@ -56,8 +56,7 @@ class Collection(Generic[_T]):
 
     @property
     def api(self) -> Any:
-        """
-        Returns the native object (`pywin32` or `appscript` obj)
+        """Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
         """
         return self.impl.api
@@ -70,9 +69,7 @@ class Collection(Generic[_T]):
 
     @property
     def count(self) -> int:
-        """
-        Returns the number of objects in the collection.
-        """
+        """Returns the number of objects in the collection."""
         return len(self)
 
     def __iter__(self) -> Iterator[_T]:
@@ -194,8 +191,7 @@ class Engine:
 
 
 class Apps:
-    """
-    A collection of all `app` objects:
+    """A collection of all `app` objects:
 
     ```pycon
     >>> import xlwings as xw
@@ -208,8 +204,7 @@ class Apps:
         self.impl = impl
 
     def keys(self) -> list[int]:
-        """
-        Provides the PIDs of the Excel instances
+        """Provides the PIDs of the Excel instances
         that act as keys in the Apps collection.
 
         ```{versionadded} 0.13.0
@@ -218,15 +213,12 @@ class Apps:
         return self.impl.keys()
 
     def add(self, **kwargs: Any) -> App:
-        """
-        Creates a new App. The new App becomes the active one. Returns an App object.
-        """
+        """Creates a new App. The new App becomes the active one. Returns an App object."""
         return App(impl=self.impl.add(**kwargs))
 
     @property
     def active(self) -> App | None:
-        """
-        Returns the active app.
+        """Returns the active app.
 
         ```{versionadded} 0.9.0
         ```
@@ -251,8 +243,7 @@ class Apps:
 
     @property
     def count(self) -> int:
-        """
-        Returns the number of apps.
+        """Returns the number of apps.
 
         ```{versionadded} 0.9.0
         ```
@@ -260,10 +251,9 @@ class Apps:
         return len(self)
 
     def cleanup(self) -> None:
-        """
-        Removes Excel zombie processes (Windows-only). Note that this is automatically
-        called with `App.quit()` and `App.kill()` and when the Python interpreter
-        exits.
+        """Removes Excel zombie processes (Windows-only). Note that this is
+        automatically called with `App.quit()` and `App.kill()` and when the Python
+        interpreter exits.
 
         ```{versionadded} 0.30.2
         ```
@@ -279,8 +269,7 @@ engines = Engines()
 
 
 class App:
-    """
-    An app corresponds to an Excel instance and should normally be used as context
+    """An app corresponds to an Excel instance and should normally be used as context
     manager to make sure that everything is properly cleaned up again and to prevent
     zombie processes. New Excel instances can be fired up like so:
 
@@ -301,17 +290,14 @@ class App:
     <Excel App 1668>
     ```
 
-    Parameters
-    ----------
-    visible : bool, default None
-        Returns or sets a boolean value that determines whether the app is visible. The
-        default leaves the state unchanged or sets visible=True if the object doesn't
-        exist yet.
+    Args:
+        visible: Returns or sets a boolean value that determines whether the app is visible. The
+            default leaves the state unchanged or sets visible=True if the object doesn't
+            exist yet.
 
-    spec : str, default None
-        Mac-only, use the full path to the Excel application,
-        e.g. `/Applications/Microsoft Office 2011/Microsoft Excel` or
-        `/Applications/Microsoft Excel`
+        spec: Mac-only, use the full path to the Excel application,
+            e.g. `/Applications/Microsoft Office 2011/Microsoft Excel` or
+            `/Applications/Microsoft Excel`
 
         On Windows, if you want to change the version of Excel that xlwings talks to, go
         to `Control Panel > Programs and Features` and `Repair` the Office version
@@ -356,8 +342,7 @@ class App:
 
     @property
     def api(self) -> Any:
-        """
-        Returns the native object (`pywin32` or `appscript` obj)
+        """Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
         ```{versionadded} 0.9.0
@@ -367,18 +352,15 @@ class App:
 
     @property
     def version(self) -> utils.VersionNumber:
-        """
-        Returns the Excel version number object.
+        """Returns the Excel version number object.
 
-        Examples
-        --------
-        ```pycon
-        >>> import xlwings as xw
-        >>> xw.App().version
-        VersionNumber('15.24')
-        >>> xw.apps[10559].version.major
-        15
-        ```
+        Examples:
+            >>> import xlwings as xw
+            >>> xw.App().version
+            VersionNumber('15.24')
+            >>> xw.apps[10559].version.major
+            15
+            ```
 
         ```{versionchanged} 0.9.0
         ```
@@ -387,8 +369,7 @@ class App:
 
     @property
     def selection(self) -> Range | None:
-        """
-        Returns the selected cells as Range.
+        """Returns the selected cells as Range.
 
         ```{versionadded} 0.9.0
         ```
@@ -407,15 +388,11 @@ class App:
         return Range(impl=impl) if impl else None
 
     def activate(self, steal_focus: bool = False) -> None:
-        """
-        Activates the Excel app.
+        """Activates the Excel app.
 
-        Parameters
-        ----------
-        steal_focus : bool, default False
-            If True, make frontmost application
-            and hand over focus from Python to Excel.
-
+        Args:
+            steal_focus: If True, make frontmost application
+                and hand over focus from Python to Excel.
 
         ```{versionadded} 0.9.0
         ```
@@ -432,8 +409,7 @@ class App:
 
     @property
     def visible(self) -> bool:
-        """
-        Gets or sets the visibility of Excel to `True` or  `False`.
+        """Gets or sets the visibility of Excel to `True` or  `False`.
 
         ```{versionadded} 0.3.3
         ```
@@ -445,8 +421,7 @@ class App:
         self.impl.visible = value
 
     def quit(self) -> None:
-        """
-        Quits the application without saving any workbooks.
+        """Quits the application without saving any workbooks.
 
         ```{versionadded} 0.3.3
         ```
@@ -455,8 +430,7 @@ class App:
         return self.impl.quit()
 
     def kill(self) -> None:
-        """
-        Forces the Excel app to quit by killing its process.
+        """Forces the Excel app to quit by killing its process.
 
         ```{versionadded} 0.9.0
         ```
@@ -465,10 +439,9 @@ class App:
 
     @property
     def screen_updating(self) -> bool:
-        """
-        Turn screen updating off to speed up your script. You won't be able to see what
-        the script is doing, but it will run faster. Remember to set the screen_updating
-        property back to True when your script ends.
+        """Turn screen updating off to speed up your script. You won't be able to see
+        what the script is doing, but it will run faster. Remember to set the
+        screen_updating property back to True when your script ends.
 
         ```{versionadded} 0.3.3
         ```
@@ -481,8 +454,7 @@ class App:
 
     @property
     def display_alerts(self) -> bool:
-        """
-        The default value is True. Set this property to False to suppress prompts and
+        """The default value is True. Set this property to False to suppress prompts and
         alert messages while code is running; when a message requires a response, Excel
         chooses the default response.
 
@@ -497,8 +469,7 @@ class App:
 
     @property
     def enable_events(self) -> bool:
-        """
-        `True` if events are enabled. Read/write boolean.
+        """`True` if events are enabled. Read/write boolean.
 
         ```{versionadded} 0.24.4
         ```
@@ -511,8 +482,7 @@ class App:
 
     @property
     def interactive(self) -> bool:
-        """
-        `True` if Excel is in interactive mode. If you set this property to `False`,
+        """`True` if Excel is in interactive mode. If you set this property to `False`,
         Excel blocks all input from the keyboard and mouse (except input to dialog boxes
         that are displayed by your code). Read/write Boolean.
         NOTE: Not supported on macOS.
@@ -528,8 +498,7 @@ class App:
 
     @property
     def startup_path(self) -> str:
-        """
-        Returns the path to `XLSTART` which is where the xlwings add-in gets
+        """Returns the path to `XLSTART` which is where the xlwings add-in gets
         copied to by doing `xlwings addin install`.
 
         ```{versionadded} 0.19.4
@@ -539,17 +508,15 @@ class App:
 
     @property
     def calculation(self) -> str:
-        """
-        Returns or sets a calculation value that represents the calculation mode.
+        """Returns or sets a calculation value that represents the calculation mode.
         Modes: `'manual'`, `'automatic'`, `'semiautomatic'`
 
-        Examples
-        --------
-        ```pycon
-        >>> import xlwings as xw
-        >>> wb = xw.Book()
-        >>> wb.app.calculation = 'manual'
-        ```
+        Examples:
+            ```pycon
+            >>> import xlwings as xw
+            >>> wb = xw.Book()
+            >>> wb.app.calculation = 'manual'
+            ```
 
         ```{versionchanged} 0.9.0
         ```
@@ -561,8 +528,7 @@ class App:
         self.impl.calculation = value
 
     def calculate(self) -> None:
-        """
-        Calculates all open books.
+        """Calculates all open books.
 
         ```{versionadded} 0.3.6
         ```
@@ -572,8 +538,7 @@ class App:
 
     @property
     def books(self) -> Books:
-        """
-        A collection of all Book objects that are currently open.
+        """A collection of all Book objects that are currently open.
 
         ```{versionadded} 0.9.0
         ```
@@ -582,8 +547,7 @@ class App:
 
     @property
     def hwnd(self) -> int | None:
-        """
-        Returns the Window handle (Windows-only).
+        """Returns the Window handle (Windows-only).
 
         ```{versionadded} 0.9.0
         ```
@@ -592,8 +556,7 @@ class App:
 
     @property
     def path(self) -> str:
-        """
-        Returns the path to where the App is installed.
+        """Returns the path to where the App is installed.
 
         ```{versionadded} 0.28.4
         ```
@@ -602,8 +565,7 @@ class App:
 
     @property
     def pid(self) -> int:
-        """
-        Returns the PID of the app.
+        """Returns the PID of the app.
 
         ```{versionadded} 0.9.0
         ```
@@ -615,8 +577,7 @@ class App:
         cell1: str | tuple[int, int] | Range,
         cell2: str | tuple[int, int] | Range | None = None,
     ) -> Range:
-        """
-        Range object from the active sheet of the active book, see `Range`.
+        """Range object from the active sheet of the active book, see `Range`.
 
         ```{versionadded} 0.9.0
         ```
@@ -624,18 +585,13 @@ class App:
         return self.books.active.sheets.active.range(cell1, cell2)
 
     def macro(self, name: str) -> Macro:
-        """
-        Runs a Sub or Function in Excel VBA that are not part of a specific workbook
+        """Runs a Sub or Function in Excel VBA that are not part of a specific workbook
         but e.g. are part of an add-in.
 
-        Arguments
-        ---------
-        name : Name of Sub or Function with or without module name,
-               e.g., `'Module1.MyMacro'` or `'MyMacro'`
+        Args:
+            name: e.g., `'Module1.MyMacro'` or `'MyMacro'`
 
-        Examples
-        --------
-        This VBA function:
+        Examples:
 
         ```vb.net
         Function MySum(x, y)
@@ -683,8 +639,7 @@ class App:
 
     @property
     def status_bar(self) -> str | bool:
-        """
-        Gets or sets the value of the status bar.
+        """Gets or sets the value of the status bar.
         Returns `False` if Excel has control of it.
 
         ```{versionadded} 0.20.0
@@ -698,8 +653,7 @@ class App:
 
     @property
     def cut_copy_mode(self) -> str | None:
-        """
-        Gets or sets the status of the cut or copy mode.
+        """Gets or sets the status of the cut or copy mode.
         Accepts `False` for setting and returns `None`,
         `copy` or `cut` when getting the status.
 
@@ -714,32 +668,30 @@ class App:
 
     @contextmanager
     def properties(self, **kwargs: Any) -> Generator[App, None, None]:
-        """
-        Context manager that allows you to easily change the app's properties
+        """Context manager that allows you to easily change the app's properties
         temporarily. Once the code leaves the with block, the properties are changed
         back to their previous state.
         Note: Must be used as context manager or else will have no effect. Also, you can
         only use app properties that you can both read and write.
 
-        Examples
-        --------
+        Examples:
+            ```python
+            import xlwings as xw
+            app = App()
 
-        ```python
-        import xlwings as xw
-        app = App()
-
-        # Sets app.display_alerts = False
-        with app.properties(display_alerts=False):
+            # Sets app.display_alerts = False
+            with app.properties(display_alerts=False):
             # do stuff
 
-        # Sets app.calculation = 'manual' and app.enable_events = True
-        with app.properties(calculation='manual', enable_events=True):
+            # Sets app.calculation = 'manual' and app.enable_events = True
+            with app.properties(calculation='manual', enable_events=True):
             # do stuff
 
-        # Makes sure the status bar is reset even if an error happens in the with block
-        with app.properties(status_bar='Calculating...'):
+            # Makes sure the status bar is reset even if an error happens in the with block
+            with app.properties(status_bar='Calculating...'):
             # do stuff
-        ```
+            ```
+
         ```{versionadded} 0.24.4
         ```
         """
@@ -772,8 +724,7 @@ class App:
         book_settings: dict[str, Any] | None = None,
         **data: Any,
     ) -> Book:
-        """
-        This function requires xlwings :bdg-secondary:`PRO`.
+        """This function requires xlwings `PRO`.
 
         This is a convenience wrapper around `mysheet.render_template`
 
@@ -784,26 +735,16 @@ class App:
         strings, numbers, lists, simple dicts, NumPy arrays, Pandas DataFrames, pictures
         and Matplotlib/Plotly figures.
 
-        Parameters
-        ----------
-        template: str or path-like object
-            Path to your Excel template, e.g. `r'C:\\Path\\to\\my_template.xlsx'`
+        Args:
+            template: Path to your Excel template, e.g. `r'C:\\Path\\to\\my_template.xlsx'`
 
-        output: str or path-like object
-            Path to your Report, e.g. `r'C:\\Path\\to\\my_report.xlsx'`
+            output: Path to your Report, e.g. `r'C:\\Path\\to\\my_report.xlsx'`
 
-        book_settings: dict, default None
-            A dictionary of `xlwings.Book` parameters, for details see:
-            `xlwings.Book`.
-            For example: `book_settings={'update_links': False}`.
+            book_settings: A dictionary of `xlwings.Book` parameters, for details see:
+                `xlwings.Book`.
+                For example: `book_settings={'update_links': False}`.
 
-        data: kwargs
-            All key/value pairs that are used in the template.
-
-        Returns
-        -------
-        wb: xlwings Book
-
+            data: All key/value pairs that are used in the template.
 
         ```{versionadded} 0.24.4
         ```
@@ -878,8 +819,7 @@ class App:
 
 
 class Book:
-    """
-    A book object is a member of the `books` collection:
+    """A book object is a member of the `books` collection:
 
     ```pycon
     >>> import xlwings as xw
@@ -904,59 +844,36 @@ class Book:
     | Unsaved book | `xw.Book('Book1')` | `xw.books['Book1']` |
     | Book by (full)name | `xw.Book(r'C:/path/to/file.xlsx')` | `xw.books.open(r'C:/path/to/file.xlsx')` |
 
-    Parameters
-    ----------
-    fullname : str or path-like object, default None
-        Full path or name (incl. xlsx, xlsm etc.) of existing workbook or name of an
-        unsaved workbook. Without a full path, it looks for the file in the current
-        working directory.
-    update_links : bool, default None
-        If this argument is omitted, the user is prompted to specify how links will be
-        updated
-    read_only : bool, default False
-        True to open workbook in read-only mode
-    format : str
-        If opening a text file, this specifies the delimiter character
-    password : str
-        Password to open a protected workbook
-    write_res_password : str
-        Password to write to a write-reserved workbook
-    ignore_read_only_recommended : bool, default False
-        Set to `True` to mute the read-only recommended message
-    origin : int
-        For text files only. Specifies where it originated. Use Platform constants.
-    delimiter : str
-        If format argument is 6, this specifies the delimiter.
-    editable : bool, default False
-        This option is only for legacy Microsoft Excel 4.0 addins.
-    notify : bool, default False
-        Notify the user when a file becomes available If the file cannot be opened in
-        read/write mode.
-    converter : int
-        The index of the first file converter to try when opening the file.
-    add_to_mru : bool, default False
-        Add this workbook to the list of recently added workbooks.
-    local : bool, default False
-        If `True`, saves files against the language of Excel, otherwise against the
-        language of VBA. Not supported on macOS.
-    corrupt_load : int, default xlNormalLoad
-        Can be one of xlNormalLoad, xlRepairFile or xlExtractData.
-        Not supported on macOS.
-    json : dict
-        A JSON object as delivered by the MS Office Scripts or Google Apps Script
-        xlwings module but in a deserialized form, i.e., as dictionary.
-
-        ```{versionadded} 0.26.0
-        ```
-
-    mode : str, default None
-        Either `"i"` (interactive (default)) or `"r"` (read). In interactive mode,
-        xlwings opens the workbook in Excel, i.e., Excel needs to be installed. In read
-        mode, xlwings reads from the file directly, without requiring Excel to be
-        installed. Read mode requires xlwings :bdg-secondary:`PRO`.
-
-        ```{versionadded} 0.28.0
-        ```
+    Args:
+        fullname: Full path or name (incl. xlsx, xlsm etc.) of existing workbook or name of an
+            unsaved workbook. Without a full path, it looks for the file in the current
+            working directory.
+        update_links: If this argument is omitted, the user is prompted to specify how links will be
+            updated
+        read_only: True to open workbook in read-only mode
+        format: If opening a text file, this specifies the delimiter character
+        password: Password to open a protected workbook
+        write_res_password: Password to write to a write-reserved workbook
+        ignore_read_only_recommended: Set to `True` to mute the read-only recommended message
+        origin: For text files only. Specifies where it originated. Use Platform constants.
+        delimiter: If format argument is 6, this specifies the delimiter.
+        editable: This option is only for legacy Microsoft Excel 4.0 addins.
+        notify: Notify the user when a file becomes available If the file cannot be opened in
+            read/write mode.
+        converter: The index of the first file converter to try when opening the file.
+        add_to_mru: Add this workbook to the list of recently added workbooks.
+        local: If `True`, saves files against the language of Excel, otherwise against the
+            language of VBA. Not supported on macOS.
+        corrupt_load: Can be one of xlNormalLoad, xlRepairFile or xlExtractData.
+            Not supported on macOS.
+        json: A JSON object as delivered by the MS Office Scripts or Google Apps Script
+            xlwings module but in a deserialized form, i.e., as dictionary.
+            *New in version 0.26.0.*
+        mode: Either `"i"` (interactive (default)) or `"r"` (read). In interactive mode,
+            xlwings opens the workbook in Excel, i.e., Excel needs to be installed. In read
+            mode, xlwings reads from the file directly, without requiring Excel to be
+            installed. Read mode requires xlwings `PRO`.
+            *New in version 0.28.0.*
     """
 
     def __init__(
@@ -1047,8 +964,7 @@ class Book:
 
     @property
     def api(self) -> Any:
-        """
-        Returns the native object (`pywin32` or `appscript` obj) of the engine being
+        """Returns the native object (`pywin32` or `appscript` obj) of the engine being
         used.
 
         ```{versionadded} 0.9.0
@@ -1057,8 +973,7 @@ class Book:
         return self.impl.api
 
     def json(self) -> dict[str, Any]:
-        """
-        Returns a JSON serializable object as expected by the MS Office Scripts or
+        """Returns a JSON serializable object as expected by the MS Office Scripts or
         Google Apps Script xlwings module. Only available with book objects that have
         been instantiated via `xw.Book(json=...)`.
 
@@ -1068,8 +983,7 @@ class Book:
         return self.impl.json()
 
     async def flush(self) -> None:
-        """
-        Flushes all pending actions to Excel and the Output pane.
+        """Flushes all pending actions to Excel and the Output pane.
 
         Requires xlwings Lite.
 
@@ -1079,8 +993,7 @@ class Book:
         await self.impl.flush()
 
     async def sync(self) -> None:
-        """
-        ```{deprecated} 0.35.0
+        """```{deprecated} 0.35.0
         ```
             Use `flush` instead.
         """
@@ -1096,9 +1009,6 @@ class Book:
 
         Requires xlwings Lite.
 
-        Returns
-        -------
-        Book
         """
         await self.impl.load()
         return self
@@ -1118,8 +1028,7 @@ class Book:
 
     @classmethod
     def caller(cls) -> Book:
-        """
-        References the calling book when the Python function is called from Excel via
+        """References the calling book when the Python function is called from Excel via
         `RunPython`. Pack it into the function being called from Excel, e.g.:
 
         ```python
@@ -1166,58 +1075,52 @@ class Book:
             )
 
     def set_mock_caller(self) -> None:
-        """
-        Sets the Excel file which is used to mock `xw.Book.caller()` when the code is
+        """Sets the Excel file which is used to mock `xw.Book.caller()` when the code is
         called from Python and not from Excel via `RunPython`.
 
-        Examples
-        --------
+        Examples:
+            ```python
+            # This code runs unchanged from Excel via RunPython and from Python directly
+            import os
+            import xlwings as xw
 
-        ```python
-        # This code runs unchanged from Excel via RunPython and from Python directly
-        import os
-        import xlwings as xw
-
-        def my_macro():
+            def my_macro():
             sht = xw.Book.caller().sheets[0]
             sht.range('A1').value = 'Hello xlwings!'
 
-        if __name__ == '__main__':
+            if __name__ == '__main__':
             xw.Book('file.xlsm').set_mock_caller()
             my_macro()
-        ```
+            ```
+
         ```{versionadded} 0.3.1
         ```
         """
         Book._mock_caller = self
 
     def macro(self, name: str) -> Macro:
-        """
-        Runs a Sub or Function in Excel VBA.
+        """Runs a Sub or Function in Excel VBA.
 
-        Arguments
-        ---------
-        name : Name of Sub or Function with or without module name, e.g.,
-        `'Module1.MyMacro'` or `'MyMacro'`
+        Args:
+            name:
+                `'Module1.MyMacro'` or `'MyMacro'`
 
-        Examples
-        --------
-        This VBA function:
+        Examples:
 
-        ```vb.net
-        Function MySum(x, y)
-            MySum = x + y
-        End Function
-        ```
-        can be accessed like this:
+            ```vb.net
+            Function MySum(x, y)
+                MySum = x + y
+            End Function
+            ```
+            can be accessed like this:
 
-        ```pycon
-        >>> import xlwings as xw
-        >>> wb = xw.books.active
-        >>> my_sum = wb.macro('MySum')
-        >>> my_sum(1, 2)
-        3
-        ```
+            ```pycon
+            >>> import xlwings as xw
+            >>> wb = xw.books.active
+            >>> my_sum = wb.macro('MySum')
+            >>> my_sum(1, 2)
+            3
+            ```
 
         See also: `App.macro`
 
@@ -1228,15 +1131,12 @@ class Book:
 
     @property
     def name(self) -> str:
-        """
-        Returns the name of the book as str.
-        """
+        """Returns the name of the book as str."""
         return self.impl.name
 
     @property
     def sheets(self) -> Sheets:
-        """
-        Returns a sheets collection that represents all the sheets in the book.
+        """Returns a sheets collection that represents all the sheets in the book.
 
         ```{versionadded} 0.9.0
         ```
@@ -1245,8 +1145,7 @@ class Book:
 
     @property
     def app(self) -> App:
-        """
-        Returns an app object that represents the creator of the book.
+        """Returns an app object that represents the creator of the book.
 
         ```{versionadded} 0.9.0
         ```
@@ -1254,8 +1153,7 @@ class Book:
         return App(impl=self.impl.app)
 
     def close(self) -> None:
-        """
-        Closes the book without saving it.
+        """Closes the book without saving it.
 
         ```{versionadded} 0.1.1
         ```
@@ -1265,32 +1163,25 @@ class Book:
     def save(
         self, path: str | PathLike[str] | None = None, password: str | None = None
     ) -> None:
-        """
-        Saves the Workbook. If a path is provided, this works like SaveAs() in
+        """Saves the Workbook. If a path is provided, this works like SaveAs() in
         Excel. If no path is specified and if the file hasn't been saved previously,
         it's saved in the current working directory with the current filename.
         Existing files are overwritten without prompting. To change the file type,
         provide the appropriate extension, e.g. to save `myfile.xlsx` in the `xlsb`
         format, provide `myfile.xlsb` as path.
 
-        Arguments
-        ---------
-        path : str or path-like object, default None
-            Path where you want to save the Book.
-        password : str, default None
-            Protection password with max. 15 characters
+        Args:
+            path: Path where you want to save the Book.
+            password: Protection password with max. 15 characters
+                *New in version 0.25.1.*
 
-            ```{versionadded} 0.25.1
+        Example:
+            ```pycon
+            >>> import xlwings as xw
+            >>> wb = xw.Book()
+            >>> wb.save()
+            >>> wb.save(r'C:\\path\\to\\new_file_name.xlsx')
             ```
-
-        Example
-        -------
-        ```pycon
-        >>> import xlwings as xw
-        >>> wb = xw.Book()
-        >>> wb.save()
-        >>> wb.save(r'C:\\path\\to\\new_file_name.xlsx')
-        ```
 
 
         ```{versionadded} 0.3.1
@@ -1303,8 +1194,7 @@ class Book:
 
     @property
     def fullname(self) -> str:
-        """
-        Returns the name of the object, including its path on disk, as a string.
+        """Returns the name of the object, including its path on disk, as a string.
         Read-only String.
 
         """
@@ -1312,8 +1202,7 @@ class Book:
 
     @property
     def names(self) -> Names:
-        """
-        Returns a names collection that represents all the names in the specified book
+        """Returns a names collection that represents all the names in the specified book
         (including all sheet-specific names).
 
         ```{versionchanged} 0.9.0
@@ -1323,13 +1212,10 @@ class Book:
         return Names(impl=self.impl.names)
 
     def activate(self, steal_focus: bool = False) -> None:
-        """
-        Activates the book.
+        """Activates the book.
 
-        Parameters
-        ----------
-        steal_focus : bool, default False
-            If True, make frontmost window and hand over focus from Python to Excel.
+        Args:
+            steal_focus: If True, make frontmost window and hand over focus from Python to Excel.
 
         """
         self.app.activate(steal_focus=steal_focus)
@@ -1337,8 +1223,7 @@ class Book:
 
     @property
     def selection(self) -> Range | None:
-        """
-        Returns the selected cells as Range.
+        """Returns the selected cells as Range.
 
         ```{versionadded} 0.9.0
         ```
@@ -1365,67 +1250,45 @@ class Book:
         show: bool = False,
         quality: str = "standard",
     ) -> str:
-        """
-        Exports the whole Excel workbook or a subset of the sheets to a PDF file.
+        """Exports the whole Excel workbook or a subset of the sheets to a PDF file.
         If you want to print hidden sheets, you will need to list them explicitely
         under `include`.
 
-        Parameters
-        ----------
-        path : str or path-like object, default None
-            Path to the PDF file, defaults to the same name as the workbook, in the same
-            directory. For unsaved workbooks, it defaults to the current working
-            directory instead.
+        Args:
+            path: Path to the PDF file, defaults to the same name as the workbook, in the same
+                directory. For unsaved workbooks, it defaults to the current working
+                directory instead.
 
-        include : int or str or list, default None
-            Which sheets to include: provide a selection of sheets in the form of sheet
-            indices (1-based like in Excel) or sheet names. Can be an int/str for a
-            single sheet or a list of int/str for multiple sheets.
+            include: Which sheets to include: provide a selection of sheets in the form of sheet
+                indices (1-based like in Excel) or sheet names. Can be an int/str for a
+                single sheet or a list of int/str for multiple sheets.
 
-        exclude : int or str or list, default None
-            Which sheets to exclude: provide a selection of sheets in the form of sheet
-            indices (1-based like in Excel) or sheet names. Can be an int/str for a
-            single sheet or a list of int/str for multiple sheets.
+            exclude: Which sheets to exclude: provide a selection of sheets in the form of sheet
+                indices (1-based like in Excel) or sheet names. Can be an int/str for a
+                single sheet or a list of int/str for multiple sheets.
 
-        layout : str or path-like object, default None
-            This argument requires xlwings :bdg-secondary:`PRO`.
+            layout: This argument requires xlwings `PRO`.
+                Path to a PDF file on which the report will be printed. This is ideal for
+                headers and footers as well as borderless printing of graphics/artwork. The
+                PDF file either needs to have only 1 page (every report page uses the same
+                layout) or otherwise needs the same amount of pages as the report (each
+                report page is printed on the respective page in the layout PDF).
+                *New in version 0.24.3.*
+            exclude_start_string: Sheet names that start with this character/string will
+                not be printed. *New in version 0.24.4.*
+            show: Once created, open the PDF file with the default application.
+                *New in version 0.24.6.*
+            quality: Quality of the PDF file. Can either be `'standard'` or `'minimum'`.
+                *New in version 0.26.2.*
 
-            Path to a PDF file on which the report will be printed. This is ideal for
-            headers and footers as well as borderless printing of graphics/artwork. The
-            PDF file either needs to have only 1 page (every report page uses the same
-            layout) or otherwise needs the same amount of pages as the report (each
-            report page is printed on the respective page in the layout PDF).
-
-            ```{versionadded} 0.24.3
+        Examples:
+            ```pycon
+            >>> wb = xw.Book()
+            >>> wb.sheets[0]['A1'].value = 'PDF'
+            >>> wb.to_pdf()
             ```
 
-        exclude_start_string : str, default `'#'`
-            Sheet names that start with this character/string will not be printed.
-
-            ```{versionadded} 0.24.4
-            ```
-
-        show : bool, default False
-            Once created, open the PDF file with the default application.
-
-            ```{versionadded} 0.24.6
-            ```
-
-        quality : str, default `'standard'`
-            Quality of the PDF file. Can either be `'standard'` or `'minimum'`.
-
-            ```{versionadded} 0.26.2
-            ```
-
-        Examples
-        --------
-        ```pycon
-        >>> wb = xw.Book()
-        >>> wb.sheets[0]['A1'].value = 'PDF'
-        >>> wb.to_pdf()
-        ```
-
-        See also `xlwings.Sheet.to_pdf`
+            See also `xlwings.Sheet.to_pdf`
 
         ```{versionadded} 0.21.1
         ```
@@ -1445,8 +1308,7 @@ class Book:
         return "<Book [{0}]>".format(self.name)
 
     def render_template(self, **data: Any) -> None:
-        """
-        This method requires xlwings :bdg-secondary:`PRO`.
+        """This method requires xlwings `PRO`.
 
         Replaces all Jinja variables (e.g `{{ myvar }}`) in the book
         with the keyword argument of the same name.
@@ -1454,31 +1316,23 @@ class Book:
         ```{versionadded} 0.25.0
         ```
 
-        Parameters
-        ----------
-        data: kwargs
-            All key/value pairs that are used in the template.
+        Args:
+            data: All key/value pairs that are used in the template.
 
-        Examples
-        --------
-
-        ```pycon
-        >>> import xlwings as xw
-        >>> book = xw.Book()
-        >>> book.sheets[0]['A1:A2'].value = '{{ myvar }}'
-        >>> book.render_template(myvar='test')
-        ```
+        Examples:
+            ```pycon
+            >>> import xlwings as xw
+            >>> book = xw.Book()
+            >>> book.sheets[0]['A1:A2'].value = '{{ myvar }}'
+            >>> book.render_template(myvar='test')
+            ```
         """
         for sheet in reversed(self.sheets):
             sheet.render_template(**data)
 
     @property
     def sheet_names(self) -> list[str]:
-        """
-        Returns
-        -------
-
-        sheet_names : List
+        """Returns:
             List of sheet names in order of appearance.
 
 
@@ -1495,8 +1349,7 @@ class Book:
 
 
 class Sheet:
-    """
-    A sheet object is a member of the `sheets` collection:
+    """A sheet object is a member of the `sheets` collection:
 
     ```pycon
     >>> import xlwings as xw
@@ -1521,8 +1374,7 @@ class Sheet:
 
     @property
     def api(self) -> Any:
-        """
-        Returns the native object (`pywin32` or `appscript` obj)
+        """Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
         ```{versionadded} 0.9.0
@@ -1567,8 +1419,7 @@ class Sheet:
 
     @property
     def names(self) -> Names:
-        """
-        Returns a names collection that represents all the sheet-specific names
+        """Returns a names collection that represents all the sheet-specific names
         (names defined with the "SheetName!" prefix).
 
         ```{versionadded} 0.9.0
@@ -1579,19 +1430,16 @@ class Sheet:
 
     @property
     def freeze_panes(self) -> FreezePanes:
-        """
-        Interface to freeze/unfreeze panes.
+        """Interface to freeze/unfreeze panes.
 
-        Examples
-        --------
-
-        ```pycon
-        >>> mysheet.freeze_panes.freeze_at("A1")
-        >>> mysheet.freeze_panes.freeze_at(mysheet["A1"])
-        >>> mysheet.freeze_panes.freeze_at("A:A")
-        >>> mysheet.freeze_panes.freeze_at("1:1")
-        >>> mysheet.freeze_panes.unfreeze()
-        ```
+        Examples:
+            ```pycon
+            >>> mysheet.freeze_panes.freeze_at("A1")
+            >>> mysheet.freeze_panes.freeze_at(mysheet["A1"])
+            >>> mysheet.freeze_panes.freeze_at("A:A")
+            >>> mysheet.freeze_panes.freeze_at("1:1")
+            >>> mysheet.freeze_panes.unfreeze()
+            ```
         """
         return FreezePanes(impl=self.impl.freeze_panes, sheet=self)
 
@@ -1610,8 +1458,7 @@ class Sheet:
         cell1: str | tuple[int, int] | Range,
         cell2: str | tuple[int, int] | Range | None = None,
     ) -> Range:
-        """
-        Returns a Range object from the active sheet of the active book,
+        """Returns a Range object from the active sheet of the active book,
         see `Range`.
 
         ```{versionadded} 0.9.0
@@ -1629,8 +1476,7 @@ class Sheet:
 
     @property
     def cells(self) -> Range:
-        """
-        Returns a Range object that represents all the cells on the Sheet
+        """Returns a Range object that represents all the cells on the Sheet
         (not just the cells that are currently in use).
 
         ```{versionadded} 0.9.0
@@ -1648,16 +1494,12 @@ class Sheet:
 
         Requires xlwings Lite.
 
-        Returns
-        -------
-        Sheet
         """
         await self.impl.load()
         return self
 
     def select(self) -> None:
-        """
-        Selects the Sheet. Activates the book if it isn't the active one.
+        """Selects the Sheet. Activates the book if it isn't the active one.
 
         ```{versionadded} 0.9.0
         ```
@@ -1682,25 +1524,21 @@ class Sheet:
         return self.impl.clear()
 
     def autofit(self, axis: str | None = None) -> None:
-        """
-        Autofits the width of either columns, rows or both on a whole Sheet.
+        """Autofits the width of either columns, rows or both on a whole Sheet.
 
-        Arguments
-        ---------
-        axis : string, default None
-            - To autofit rows, use one of the following: `rows` or `r`
-            - To autofit columns, use one of the following: `columns` or `c`
-            - To autofit rows and columns, provide no arguments
+        Args:
+            axis: - To autofit rows, use one of the following: `rows` or `r`
+                - To autofit columns, use one of the following: `columns` or `c`
+                - To autofit rows and columns, provide no arguments
 
-        Examples
-        --------
-        ```pycon
-        >>> import xlwings as xw
-        >>> wb = xw.Book()
-        >>> wb.sheets['Sheet1'].autofit('c')
-        >>> wb.sheets['Sheet1'].autofit('r')
-        >>> wb.sheets['Sheet1'].autofit()
-        ```
+        Examples:
+            ```pycon
+            >>> import xlwings as xw
+            >>> wb = xw.Book()
+            >>> wb.sheets['Sheet1'].autofit('c')
+            >>> wb.sheets['Sheet1'].autofit('r')
+            >>> wb.sheets['Sheet1'].autofit()
+            ```
 
         ```{versionadded} 0.2.3
         ```
@@ -1708,8 +1546,7 @@ class Sheet:
         return self.impl.autofit(axis)
 
     def delete(self) -> None:
-        """
-        Deletes the Sheet.
+        """Deletes the Sheet.
 
         ```{versionadded} 0.6.0
         ```
@@ -1717,15 +1554,11 @@ class Sheet:
         return self.impl.delete()
 
     def to_html(self, path: str | PathLike[str] | None = None) -> None:
-        """
-        Export a Sheet as HTML page.
+        """Export a Sheet as HTML page.
 
-        Parameters
-        ----------
-
-        path : str or path-like, default None
-            Path where you want to save the HTML file. Defaults to Sheet name in the
-            current working directory.
+        Args:
+            path: Path where you want to save the HTML file. Defaults to Sheet name in the
+                current working directory.
 
 
         ```{versionadded} 0.28.1
@@ -1741,50 +1574,34 @@ class Sheet:
         show: bool = False,
         quality: str = "standard",
     ) -> str:
-        """
-        Exports the sheet to a PDF file.
+        """Exports the sheet to a PDF file.
 
-        Parameters
-        ----------
-        path : str or path-like object, default None
-            Path to the PDF file, defaults to the name of the sheet in the same
-            directory of the workbook. For unsaved workbooks, it defaults to the current
-            working directory instead.
+        Args:
+            path: Path to the PDF file, defaults to the name of the sheet in the same
+                directory of the workbook. For unsaved workbooks, it defaults to the current
+                working directory instead.
 
-        layout : str or path-like object, default None
-            This argument requires xlwings :bdg-secondary:`PRO`.
+            layout: This argument requires xlwings `PRO`.
+                Path to a PDF file on which the report will be printed. This is ideal for
+                headers and footers as well as borderless printing of graphics/artwork. The
+                PDF file either needs to have only 1 page (every report page uses the same
+                layout) or otherwise needs the same amount of pages as the report (each
+                report page is printed on the respective page in the layout PDF).
+                *New in version 0.24.3.*
+            show: Once created, open the PDF file with the default application.
+                *New in version 0.24.6.*
+            quality: Quality of the PDF file. Can either be `'standard'` or `'minimum'`.
+                *New in version 0.26.2.*
 
-            Path to a PDF file on which the report will be printed. This is ideal for
-            headers and footers as well as borderless printing of graphics/artwork. The
-            PDF file either needs to have only 1 page (every report page uses the same
-            layout) or otherwise needs the same amount of pages as the report (each
-            report page is printed on the respective page in the layout PDF).
-
-            ```{versionadded} 0.24.3
+        Examples:
+            ```pycon
+            >>> wb = xw.Book()
+            >>> sheet = wb.sheets[0]
+            >>> sheet['A1'].value = 'PDF'
+            >>> sheet.to_pdf()
             ```
 
-        show : bool, default False
-            Once created, open the PDF file with the default application.
-
-            ```{versionadded} 0.24.6
-            ```
-
-        quality : str, default `'standard'`
-            Quality of the PDF file. Can either be `'standard'` or `'minimum'`.
-
-            ```{versionadded} 0.26.2
-            ```
-
-        Examples
-        --------
-        ```pycon
-        >>> wb = xw.Book()
-        >>> sheet = wb.sheets[0]
-        >>> sheet['A1'].value = 'PDF'
-        >>> sheet.to_pdf()
-        ```
-
-        See also `xlwings.Book.to_pdf`
+            See also `xlwings.Book.to_pdf`
 
         ```{versionadded} 0.22.3
         ```
@@ -1803,48 +1620,39 @@ class Sheet:
         after: Sheet | None = None,
         name: str | None = None,
     ) -> Sheet:
-        """
-        Copy a sheet to the current or a new Book. By default, it places the copied
+        """Copy a sheet to the current or a new Book. By default, it places the copied
         sheet after all existing sheets in the current Book. Returns the copied sheet.
 
         ```{versionadded} 0.22.0
         ```
 
-        Arguments
-        ---------
-        before : sheet object, default None
-            The sheet object before which you want to place the sheet
+        Args:
+            before: The sheet object before which you want to place the sheet
 
-        after : sheet object, default None
-            The sheet object after which you want to place the sheet,
-            by default it is placed after all existing sheets
+            after: The sheet object after which you want to place the sheet,
+                by default it is placed after all existing sheets
 
-        name : str, default None
-            The sheet name of the copy
+            name: The sheet name of the copy
 
-        Returns
-        -------
-        Sheet object: Sheet
+        Returns:
             The copied sheet
 
-        Examples
-        --------
+        Examples:
+            ```python
+            # Create two books and add a value to the first sheet of the first book
+            first_book = xw.Book()
+            second_book = xw.Book()
+            first_book.sheets[0]['A1'].value = 'some value'
 
-        ```python
-        # Create two books and add a value to the first sheet of the first book
-        first_book = xw.Book()
-        second_book = xw.Book()
-        first_book.sheets[0]['A1'].value = 'some value'
+            # Copy to same Book with the default location and name
+            first_book.sheets[0].copy()
 
-        # Copy to same Book with the default location and name
-        first_book.sheets[0].copy()
+            # Copy to same Book with custom sheet name
+            first_book.sheets[0].copy(name='copied')
 
-        # Copy to same Book with custom sheet name
-        first_book.sheets[0].copy(name='copied')
-
-        # Copy to second Book requires to use before or after
-        first_book.sheets[0].copy(after=second_book.sheets[0])
-        ```
+            # Copy to second Book requires to use before or after
+            first_book.sheets[0].copy(after=second_book.sheets[0])
+            ```
         """
         # copy() doesn't return the copied sheet object and has an awkward default
         # (copy it to a new workbook if neither before or after are provided),
@@ -1873,8 +1681,7 @@ class Sheet:
         return copied_sheet
 
     def render_template(self, **data: Any) -> None:
-        """
-        This method requires xlwings :bdg-secondary:`PRO`.
+        """This method requires xlwings `PRO`.
 
         Replaces all Jinja variables (e.g `{{ myvar }}`) in the sheet with the keyword
         argument that has the same name. Following variable types are supported:
@@ -1885,20 +1692,16 @@ class Sheet:
         ```{versionadded} 0.22.0
         ```
 
-        Parameters
-        ----------
-        data: kwargs
-            All key/value pairs that are used in the template.
+        Args:
+            data: All key/value pairs that are used in the template.
 
-        Examples
-        --------
-
-        ```pycon
-        >>> import xlwings as xw
-        >>> book = xw.Book()
-        >>> book.sheets[0]['A1:A2'].value = '{{ myvar }}'
-        >>> book.sheets[0].render_template(myvar='test')
-        ```
+        Examples:
+            ```pycon
+            >>> import xlwings as xw
+            >>> book = xw.Book()
+            >>> book.sheets[0]['A1:A2'].value = '{{ myvar }}'
+            >>> book.sheets[0].render_template(myvar='test')
+            ```
         """
         from .pro.reports.main import render_sheet
 
@@ -1906,8 +1709,7 @@ class Sheet:
 
     @property
     def charts(self) -> Charts:
-        """
-        See `Charts`
+        """See `Charts`
 
         ```{versionadded} 0.9.0
         ```
@@ -1916,8 +1718,7 @@ class Sheet:
 
     @property
     def shapes(self) -> Shapes:
-        """
-        See `Shapes`
+        """See `Shapes`
 
         ```{versionadded} 0.9.0
         ```
@@ -1926,8 +1727,7 @@ class Sheet:
 
     @property
     def tables(self) -> Tables:
-        """
-        See `Tables`
+        """See `Tables`
 
         ```{versionadded} 0.21.0
         ```
@@ -1936,8 +1736,7 @@ class Sheet:
 
     @property
     def pictures(self) -> Pictures:
-        """
-        See `Pictures`
+        """See `Pictures`
 
         ```{versionadded} 0.9.0
         ```
@@ -1946,13 +1745,7 @@ class Sheet:
 
     @property
     def used_range(self) -> Range:
-        """
-        Used Range of Sheet.
-
-        Returns
-        -------
-        xw.Range
-
+        """Used Range of Sheet.
 
         ```{versionadded} 0.13.0
         ```
@@ -1974,8 +1767,7 @@ class Sheet:
 
     @property
     def page_setup(self) -> PageSetup:
-        """
-        Returns a PageSetup object.
+        """Returns a PageSetup object.
 
         ```{versionadded} 0.24.2
         ```
@@ -1993,40 +1785,34 @@ class Sheet:
 
 
 class Range:
-    """
-    Returns a Range object that represents a cell or a range of cells.
+    """Returns a Range object that represents a cell or a range of cells.
 
-    Arguments
-    ---------
-    cell1 : str or tuple or Range
-        Name of the range in the upper-left corner in A1 notation or as index-tuple or
-        as name or as xw.Range object. It can also specify a range using the range
-        operator (a colon), .e.g. 'A1:B2'
+    Args:
+        cell1: Name of the range in the upper-left corner in A1 notation or as index-tuple or
+            as name or as xw.Range object. It can also specify a range using the range
+            operator (a colon), .e.g. 'A1:B2'
 
-    cell2 : str or tuple or Range, default None
-        Name of the range in the lower-right corner in A1 notation or as index-tuple or
-        as name or as xw.Range object.
+        cell2: Name of the range in the lower-right corner in A1 notation or as index-tuple or
+            as name or as xw.Range object.
 
-    Examples
-    --------
+    Examples:
+        ```python
+        import xlwings as xw
+        sheet1 = xw.Book("MyBook.xlsx").sheets[0]
 
-    ```python
-    import xlwings as xw
-    sheet1 = xw.Book("MyBook.xlsx").sheets[0]
+        sheet1.range("A1")
+        sheet1.range("A1:C3")
+        sheet1.range((1,1))
+        sheet1.range((1,1), (3,3))
+        sheet1.range("NamedRange")
 
-    sheet1.range("A1")
-    sheet1.range("A1:C3")
-    sheet1.range((1,1))
-    sheet1.range((1,1), (3,3))
-    sheet1.range("NamedRange")
-
-    # Or using index/slice notation
-    sheet1["A1"]
-    sheet1["A1:C3"]
-    sheet1[0, 0]
-    sheet1[0:4, 0:4]
-    sheet1["NamedRange"]
-    ```
+        # Or using index/slice notation
+        sheet1["A1"]
+        sheet1["A1:C3"]
+        sheet1[0, 0]
+        sheet1[0:4, 0:4]
+        sheet1["NamedRange"]
+        ```
     """
 
     def __init__(
@@ -2071,8 +1857,7 @@ class Range:
 
     @property
     def api(self) -> Any:
-        """
-        Returns the native object (`pywin32` or `appscript` obj)
+        """Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
         ```{versionadded} 0.9.0
@@ -2101,26 +1886,20 @@ class Range:
             yield self(i + 1)
 
     def adjust_indent(self, amount: int) -> None:
-        """
-        Adjusts the indentation in a Range.
+        """Adjusts the indentation in a Range.
 
-        Arguments
-        ---------
-        amount : int
-            Number of spaces by which the indent is adjusted.
-            Can be positive or negative.
+        Args:
+            amount: Number of spaces by which the indent is adjusted.
+                Can be positive or negative.
         """
         self.impl.adjust_indent(amount)
 
     def group(self, by: str | None = None) -> None:
-        """
-        Group rows or columns.
+        """Group rows or columns.
 
-        Arguments
-        ---------
-        by : str, optional
-            "columns" or "rows". Figured out automatically if the range is defined as
-            '1:3' or 'A:C', respectively.
+        Args:
+            by: "columns" or "rows". Figured out automatically if the range is defined as
+                '1:3' or 'A:C', respectively.
         """
         if ":" in self.impl.arg1_input and by is None:
             by = utils.determine_columns_or_rows(self.impl.arg1_input)
@@ -2131,14 +1910,11 @@ class Range:
         self.impl.group(by)
 
     def ungroup(self, by: str | None = None) -> None:
-        """
-        Ungroup rows or columns
+        """Ungroup rows or columns
 
-        Arguments
-        ---------
-        by : str, optional
-            "columns" or "rows". Figured out automatically if the range is defined as
-            '1:3' or 'A:C', respectively.
+        Args:
+            by: "columns" or "rows". Figured out automatically if the range is defined as
+                '1:3' or 'A:C', respectively.
         """
         if ":" in self.impl.arg1_input and by is None:
             by = utils.determine_columns_or_rows(self.impl.arg1_input)
@@ -2149,55 +1925,32 @@ class Range:
         self.impl.ungroup(by)
 
     def options(self, convert: Any = None, **options: Any) -> Range:
-        """
-        Allows you to set a converter and their options. Converters define how Excel
+        """Allows you to set a converter and their options. Converters define how Excel
         Ranges and their values are being converted both during reading and writing
         operations. If no explicit converter is specified, the base converter is being
         applied, see `converters`.
 
-        Arguments
-        ---------
-        `convert` : object, default None
-            A converter, e.g. `dict`, `np.array`, `pd.DataFrame`, `pd.Series`,
-            defaults to default converter
+        Args:
+            convert: A converter, e.g. `dict`, `np.array`, `pd.DataFrame`,
+                `pd.Series`, defaults to default converter.
 
-        Keyword Arguments
-        -----------------
-        ndim : int, default None
-            number of dimensions
+        Keyword Args:
+            ndim: Number of dimensions.
+            numbers: Type of numbers, e.g. `int`.
+            dates: E.g. `datetime.date`, defaults to `datetime.datetime`.
+            empty: Transformation of empty cells.
+            transpose: Transpose values.
+            expand: One of `'table'`, `'down'`, `'right'`.
+            chunksize: Use a chunksize, e.g. `10000` to prevent timeout or
+                memory issues when reading or writing large amounts of data.
+                Works with all formats, including DataFrames, NumPy arrays,
+                and list of lists.
+            err_to_str: If `True`, will include cell errors such as `#N/A` as
+                strings. By default, they will be converted to `None`.
+                *New in version 0.28.0.*
 
-        numbers : type, default None
-            type of numbers, e.g. `int`
+        For converter-specific options, see `converters`.
 
-        dates : type, default None
-            e.g. `datetime.date` defaults to `datetime.datetime`
-
-        empty : object, default None
-            transformation of empty cells
-
-        transpose : Boolean, default False
-            transpose values
-
-        expand : str, default None
-            One of `'table'`, `'down'`, `'right'`
-
-        chunksize : int
-            Use a chunksize, e.g. `10000` to prevent timeout or memory issues when
-            reading or writing large amounts of data. Works with all formats, including
-            DataFrames, NumPy arrays, and list of lists.
-
-        err_to_str : Boolean, default False
-            If `True`, will include cell errors such as `#N/A` as strings. By
-            default, they will be converted to `None`.
-
-            ```{versionadded} 0.28.0
-            ```
-
-        => For converter-specific options, see `converters`.
-
-        Returns
-        -------
-        Range object
 
         """
         options["convert"] = convert
@@ -2205,8 +1958,7 @@ class Range:
 
     @property
     def sheet(self) -> Sheet:
-        """
-        Returns the Sheet object to which the Range belongs.
+        """Returns the Sheet object to which the Range belongs.
 
         ```{versionadded} 0.9.0
         ```
@@ -2218,21 +1970,12 @@ class Range:
 
     @property
     def count(self) -> int:
-        """
-        Returns the number of cells.
-
-        """
+        """Returns the number of cells."""
         return len(self)
 
     @property
     def row(self) -> int:
-        """
-        Returns the number of the first row in the specified range. Read-only.
-
-        Returns
-        -------
-        Integer
-
+        """Returns the number of the first row in the specified range. Read-only.
 
         ```{versionadded} 0.3.5
         ```
@@ -2241,13 +1984,7 @@ class Range:
 
     @property
     def column(self) -> int:
-        """
-        Returns the number of the first column in the in the specified range. Read-only.
-
-        Returns
-        -------
-        Integer
-
+        """Returns the number of the first column in the in the specified range. Read-only.
 
         ```{versionadded} 0.3.5
         ```
@@ -2256,8 +1993,7 @@ class Range:
 
     @property
     def raw_value(self) -> Any:
-        """
-        Gets and sets the values directly as delivered from/accepted by the engine that
+        """Gets and sets the values directly as delivered from/accepted by the engine that
         s being used (`pywin32` or `appscript`) without going through any of
         xlwings' data cleaning/converting. This can be helpful if speed is an issue but
         naturally will be engine specific, i.e. might remove the cross-platform
@@ -2287,34 +2023,30 @@ class Range:
 
     @property
     def has_array(self) -> bool:
-        """
-        `True` if the range is part of a legacy CSE Array formula
+        """`True` if the range is part of a legacy CSE Array formula
         and `False` otherwise.
         """
         return self.impl.has_array
 
     def end(self, direction: str) -> Range:
-        """
-        Returns a Range object that represents the cell at the end of the region that
+        """Returns a Range object that represents the cell at the end of the region that
         contains the source range. Equivalent to pressing Ctrl+Up, Ctrl+down,
         Ctrl+left, or Ctrl+right.
 
-        Parameters
-        ----------
-        direction : One of 'up', 'down', 'right', 'left'
+        Args:
+            direction:
 
-        Examples
-        --------
-        ```pycon
-        >>> import xlwings as xw
-        >>> wb = xw.Book()
-        >>> sheet1 = xw.sheets[0]
-        >>> sheet1.range('A1:B2').value = 1
-        >>> sheet1.range('A1').end('down')
-        <Range [Book1]Sheet1!$A$2>
-        >>> sheet1.range('B2').end('right')
-        <Range [Book1]Sheet1!$B$2>
-        ```
+        Examples:
+            ```pycon
+            >>> import xlwings as xw
+            >>> wb = xw.Book()
+            >>> sheet1 = xw.sheets[0]
+            >>> sheet1.range('A1:B2').value = 1
+            >>> sheet1.range('A1').end('down')
+            <Range [Book1]Sheet1!$A$2>
+            >>> sheet1.range('B2').end('right')
+            <Range [Book1]Sheet1!$B$2>
+            ```
 
         ```{versionadded} 0.9.0
         ```
@@ -2341,8 +2073,7 @@ class Range:
 
     @property
     def formula_array(self) -> str | None:
-        """
-        Gets or sets an  array formula for the given Range.
+        """Gets or sets an  array formula for the given Range.
 
         ```{versionadded} 0.7.1
         ```
@@ -2363,8 +2094,7 @@ class Range:
 
     @property
     def column_width(self) -> float | None:
-        """
-        Gets or sets the width, in characters, of a Range.
+        """Gets or sets the width, in characters, of a Range.
         One unit of column width is equal to the width of one character in the Normal
         style. For proportional fonts, the width of the character 0 (zero) is used.
 
@@ -2377,11 +2107,6 @@ class Range:
         Note: If the Range is outside the used range of the Worksheet, and columns in
         the Range have different widths, returns the width of the first column.
 
-        Returns
-        -------
-        float
-
-
         ```{versionadded} 0.4.0
         ```
         """
@@ -2393,8 +2118,7 @@ class Range:
 
     @property
     def row_height(self) -> float | None:
-        """
-        Gets or sets the height, in points, of a Range.
+        """Gets or sets the height, in points, of a Range.
         If all rows in the Range have the same height, returns the height.
         If rows in the Range have different heights, returns None.
 
@@ -2403,11 +2127,6 @@ class Range:
 
         Note: If the Range is outside the used range of the Worksheet, and rows in the
         Range have different heights, returns the height of the first row.
-
-        Returns
-        -------
-        float
-
 
         ```{versionadded} 0.4.0
         ```
@@ -2420,13 +2139,7 @@ class Range:
 
     @property
     def width(self) -> float:
-        """
-        Returns the width, in points, of a Range. Read-only.
-
-        Returns
-        -------
-        float
-
+        """Returns the width, in points, of a Range. Read-only.
 
         ```{versionadded} 0.4.0
         ```
@@ -2435,13 +2148,7 @@ class Range:
 
     @property
     def height(self) -> float:
-        """
-        Returns the height, in points, of a Range. Read-only.
-
-        Returns
-        -------
-        float
-
+        """Returns the height, in points, of a Range. Read-only.
 
         ```{versionadded} 0.4.0
         ```
@@ -2450,14 +2157,8 @@ class Range:
 
     @property
     def left(self) -> float:
-        """
-        Returns the distance, in points, from the left edge of column A to the left
+        """Returns the distance, in points, from the left edge of column A to the left
         edge of the range. Read-only.
-
-        Returns
-        -------
-        float
-
 
         ```{versionadded} 0.6.0
         ```
@@ -2466,14 +2167,8 @@ class Range:
 
     @property
     def top(self) -> float:
-        """
-        Returns the distance, in points, from the top edge of row 1 to the top edge of
+        """Returns the distance, in points, from the top edge of row 1 to the top edge of
         the range. Read-only.
-
-        Returns
-        -------
-        float
-
 
         ```{versionadded} 0.6.0
         ```
@@ -2482,21 +2177,19 @@ class Range:
 
     @property
     def number_format(self) -> str:
-        """
-        Gets and sets the number_format of a Range.
+        """Gets and sets the number_format of a Range.
 
-        Examples
-        --------
-        ```pycon
-        >>> import xlwings as xw
-        >>> wb = xw.Book()
-        >>> sheet1 = wb.sheets[0]
-        >>> sheet1.range('A1').number_format
-        'General'
-        >>> sheet1.range('A1:C3').number_format = '0.00%'
-        >>> sheet1.range('A1:C3').number_format
-        '0.00%'
-        ```
+        Examples:
+            ```pycon
+            >>> import xlwings as xw
+            >>> wb = xw.Book()
+            >>> sheet1 = wb.sheets[0]
+            >>> sheet1.range('A1').number_format
+            'General'
+            >>> sheet1.range('A1:C3').number_format = '0.00%'
+            >>> sheet1.range('A1:C3').number_format
+            '0.00%'
+            ```
 
         ```{versionadded} 0.2.3
         ```
@@ -2514,48 +2207,37 @@ class Range:
         include_sheetname: bool = False,
         external: bool = False,
     ) -> str:
-        """
-        Returns the address of the range in the specified format. `address` can be
+        """Returns the address of the range in the specified format. `address` can be
         used instead if none of the defaults need to be changed.
 
-        Arguments
-        ---------
-        row_absolute : bool, default True
-            Set to True to return the row part of the reference as an absolute
-            reference.
+        Args:
+            row_absolute: Set to True to return the row part of the reference as an absolute
+                reference.
 
-        column_absolute : bool, default True
-            Set to True to return the column part of the reference as an absolute
-            reference.
+            column_absolute: Set to True to return the column part of the reference as an absolute
+                reference.
 
-        include_sheetname : bool, default False
-            Set to True to include the Sheet name in the address. Ignored if
-            external=True.
+            include_sheetname: Set to True to include the Sheet name in the address. Ignored if
+                external=True.
 
-        external : bool, default False
-            Set to True to return an external reference with workbook and worksheet
-            name.
+            external: Set to True to return an external reference with workbook and worksheet
+                name.
 
-        Returns
-        -------
-        str
+        Examples:
+            ```pycon
+            >>> import xlwings as xw
+            >>> wb = xw.Book()
+            >>> sheet1 = wb.sheets[0]
+            >>> sheet1.range((1,1)).get_address()
+            '$A$1'
+            >>> sheet1.range((1,1)).get_address(False, False)
+            'A1'
+            >>> sheet1.range((1,1), (3,3)).get_address(True, False, True)
+            'Sheet1!A$1:C$3'
+            >>> sheet1.range((1,1), (3,3)).get_address(True, False, external=True)
+            '[Book1]Sheet1!A$1:C$3'
+            ```
 
-        Examples
-        --------
-
-        ```pycon
-        >>> import xlwings as xw
-        >>> wb = xw.Book()
-        >>> sheet1 = wb.sheets[0]
-        >>> sheet1.range((1,1)).get_address()
-        '$A$1'
-        >>> sheet1.range((1,1)).get_address(False, False)
-        'A1'
-        >>> sheet1.range((1,1), (3,3)).get_address(True, False, True)
-        'Sheet1!A$1:C$3'
-        >>> sheet1.range((1,1), (3,3)).get_address(True, False, external=True)
-        '[Book1]Sheet1!A$1:C$3'
-        ```
         ```{versionadded} 0.2.3
         ```
         """
@@ -2579,8 +2261,7 @@ class Range:
 
     @property
     def address(self) -> str:
-        """
-        Returns a string value that represents the range reference.
+        """Returns a string value that represents the range reference.
         Use `get_address()` to be able to provide parameters.
 
         ```{versionadded} 0.9.0
@@ -2590,22 +2271,16 @@ class Range:
 
     @property
     def current_region(self) -> Range:
-        """
-        This property returns a Range object representing a range bounded by (but not
+        """This property returns a Range object representing a range bounded by (but not
         including) any combination of blank rows and blank columns or the edges of the
         worksheet. It corresponds to `Ctrl-*` on Windows and `Shift-Ctrl-Space` on
         Mac.
-
-        Returns
-        -------
-        Range object
         """
 
         return Range(impl=self.impl.current_region)
 
     def autofit(self) -> None:
-        """
-        Autofits the width and height of all cells in the range.
+        """Autofits the width and height of all cells in the range.
 
         * To autofit only the width of the columns use
           `myrange.columns.autofit()`
@@ -2619,33 +2294,27 @@ class Range:
 
     @property
     def color(self) -> tuple[int, int, int] | None:
-        """
-        Gets and sets the background color of the specified Range.
+        """Gets and sets the background color of the specified Range.
 
         To set the color, either use an RGB tuple `(0, 0, 0)` or a hex string
         like `#efefef` or an Excel color constant.
         To remove the background, set the color to `None`, see Examples.
 
-        Returns
-        -------
-        RGB : tuple
+        Examples:
+            ```pycon
+            >>> import xlwings as xw
+            >>> wb = xw.Book()
+            >>> sheet1 = xw.sheets[0]
+            >>> sheet1.range('A1').color = (255, 255, 255)  # or '#ffffff'
+            >>> sheet1.range('A2').color
+            (255, 255, 255)
+            >>> sheet1.range('A2').color = None
+            >>> sheet1.range('A2').color is None
+            True
+            ```
 
-        Examples
-        --------
-        ```pycon
-        >>> import xlwings as xw
-        >>> wb = xw.Book()
-        >>> sheet1 = xw.sheets[0]
-        >>> sheet1.range('A1').color = (255, 255, 255)  # or '#ffffff'
-        >>> sheet1.range('A2').color
-        (255, 255, 255)
-        >>> sheet1.range('A2').color = None
-        >>> sheet1.range('A2').color is None
-        True
-        ```
-
-        ```{versionadded} 0.3.0
-        ```
+            ```{versionadded} 0.3.0
+            ```
         """
         return self.impl.color
 
@@ -2655,8 +2324,7 @@ class Range:
 
     @property
     def name(self) -> Name | None:
-        """
-        Sets or gets the name of a Range.
+        """Sets or gets the name of a Range.
 
         ```{versionadded} 0.4.0
         ```
@@ -2673,8 +2341,7 @@ class Range:
 
     @property
     def rows(self) -> RangeRows:
-        """
-        Returns a `RangeRows` object that represents the rows in the specified
+        """Returns a `RangeRows` object that represents the rows in the specified
         range.
 
         ```{versionadded} 0.9.0
@@ -2684,8 +2351,7 @@ class Range:
 
     @property
     def columns(self) -> RangeColumns:
-        """
-        Returns a `RangeColumns` object that represents the columns in the
+        """Returns a `RangeColumns` object that represents the columns in the
         specified range.
 
         ```{versionadded} 0.9.0
@@ -2695,8 +2361,7 @@ class Range:
 
     @property
     def shape(self) -> tuple[int, int]:
-        """
-        Tuple of Range dimensions.
+        """Tuple of Range dimensions.
 
         ```{versionadded} 0.3.0
         ```
@@ -2705,8 +2370,7 @@ class Range:
 
     @property
     def size(self) -> int:
-        """
-        Number of elements in the Range.
+        """Number of elements in the Range.
 
         ```{versionadded} 0.3.0
         ```
@@ -2716,15 +2380,9 @@ class Range:
 
     @property
     def value(self) -> Any:
-        """
-        Gets and sets the values for the given Range. See `xlwings.Range.options`
+        """Gets and sets the values for the given Range. See `xlwings.Range.options`
         about how to set options, e.g., to transform it into a DataFrame or how to set
         a chunksize.
-
-        Returns
-        -------
-        object : returned object depends on the converter being used,
-                 see `xlwings.Range.options`
         """
         return conversion.read(self, None, self._options)
 
@@ -2736,11 +2394,6 @@ class Range:
         """Fetch values from Excel on demand.
 
         Requires xlwings Lite.
-
-        Returns
-        -------
-        object : returned object depends on the converter being used,
-                 see `xlwings.Range.options`
         """
         return await conversion.async_read(
             self,
@@ -2750,32 +2403,23 @@ class Range:
         )
 
     def expand(self, mode: str = "table") -> Range:
-        """
-        Expands the range according to the mode provided. Ignores empty top-left cells
+        """Expands the range according to the mode provided. Ignores empty top-left cells
         (unlike `Range.end()`).
 
-        Parameters
-        ----------
-        mode : str, default 'table'
-            One of `'table'` (=down and right), `'down'`, `'right'`.
+        Args:
+            mode: One of `'table'` (=down and right), `'down'`, `'right'`.
 
-        Returns
-        -------
-        Range
-
-        Examples
-        --------
-
-        ```pycon
-        >>> import xlwings as xw
-        >>> wb = xw.Book()
-        >>> sheet1 = wb.sheets[0]
-        >>> sheet1.range('A1').value = [[None, 1], [2, 3]]
-        >>> sheet1.range('A1').expand().address
-        $A$1:$B$2
-        >>> sheet1.range('A1').expand('right').address
-        $A$1:$B$1
-        ```
+        Examples:
+            ```pycon
+            >>> import xlwings as xw
+            >>> wb = xw.Book()
+            >>> sheet1 = wb.sheets[0]
+            >>> sheet1.range('A1').value = [[None, 1], [2, 3]]
+            >>> sheet1.range('A1').expand().address
+            $A$1:$B$2
+            >>> sheet1.range('A1').expand('right').address
+            $A$1:$B$1
+            ```
 
         ```{versionadded} 0.9.0
         ```
@@ -2865,60 +2509,34 @@ class Range:
     def insert(
         self, shift: str, copy_origin: str = "format_from_left_or_above"
     ) -> None:
-        """
-        Insert a cell or range of cells into the sheet.
+        """Insert a cell or range of cells into the sheet.
 
-        Parameters
-        ----------
-        shift : str
-            Use `right` or `down`.
-        copy_origin : str, default format_from_left_or_above
-            Use `format_from_left_or_above` or `format_from_right_or_below`.
-            Note that copy_origin is only supported on Windows.
-
-        Returns
-        -------
-        None
-
+        Args:
+            shift: Use `right` or `down`.
+            copy_origin: Use `format_from_left_or_above` or `format_from_right_or_below`.
+                Note that copy_origin is only supported on Windows.
 
         ```{versionchanged} 0.30.3
+        `shift` is now a required argument.
         ```
-            `shift` is now a required argument.
-
         """
         self.impl.insert(shift, copy_origin)
 
     def delete(self, shift: str | None = None) -> None:
-        """
-        Deletes a cell or range of cells.
+        """Deletes a cell or range of cells.
 
-        Parameters
-        ----------
-        shift : str, default None
-            Use `left` or `up`. If omitted, Excel decides based on the shape of
-            the range.
-
-        Returns
-        -------
-        None
-
+        Args:
+            shift: Use `left` or `up`. If omitted, Excel decides based on the shape of
+                the range.
         """
         self.impl.delete(shift)
 
     def copy(self, destination: Range | None = None) -> None:
-        """
-        Copy a range to a destination range or clipboard.
+        """Copy a range to a destination range or clipboard.
 
-        Parameters
-        ----------
-        destination : xlwings.Range
-            xlwings Range to which the specified range will be copied. If omitted,
-            the range is copied to the clipboard.
-
-        Returns
-        -------
-        None
-
+        Args:
+            destination: xlwings Range to which the specified range will be copied.
+                If omitted, the range is copied to the clipboard.
         """
         self.impl.copy(destination)
 
@@ -2929,19 +2547,13 @@ class Range:
         skip_blanks: bool = False,
         transpose: bool = False,
     ) -> None:
-        """
-        A newer variant of copy that replaces copy/paste.
+        """A newer variant of copy that replaces copy/paste.
 
-        Parameters
-        ----------
-        source_range : xlwings.Range
-
-        copy_type : string, default "all"
-            One of "all", "formats", "formulas", "link", "values"
-
-        skip_blanks : bool, default False
-
-        transpose : bool, default False
+        Args:
+            source_range
+            copy_type: One of "all", "formats", "formulas", "link", "values"
+            skip_blanks
+            transpose
         """
         self.impl.copy_from(source_range, copy_type, skip_blanks, transpose)
 
@@ -2952,27 +2564,16 @@ class Range:
         skip_blanks: bool = False,
         transpose: bool = False,
     ) -> None:
-        """
-        Pastes a range from the clipboard into the specified range.
+        """Pastes a range from the clipboard into the specified range.
 
-        Parameters
-        ----------
-        paste : str, default None
-            One of `all_merging_conditional_formats`, `all`, `all_except_borders`,
-            `all_using_source_theme`, `column_widths`, `comments`, `formats`,
-            `formulas`, `formulas_and_number_formats`, `validation`, `values`,
-            `values_and_number_formats`.
-        operation : str, default None
-            One of "add", "divide", "multiply", "subtract".
-        skip_blanks : bool, default False
-            Set to `True` to skip over blank cells
-        transpose : bool, default False
-            Set to `True` to transpose rows and columns.
-
-        Returns
-        -------
-        None
-
+        Args:
+            paste: One of `all_merging_conditional_formats`, `all`, `all_except_borders`,
+                `all_using_source_theme`, `column_widths`, `comments`, `formats`,
+                `formulas`, `formulas_and_number_formats`, `validation`, `values`,
+                `values_and_number_formats`.
+            operation: One of "add", "divide", "multiply", "subtract".
+            skip_blanks: Set to `True` to skip over blank cells
+            transpose: Set to `True` to transpose rows and columns.
         """
         self.impl.paste(
             paste=paste,
@@ -2983,20 +2584,18 @@ class Range:
 
     @property
     def hyperlink(self) -> str:
-        """
-        Returns the hyperlink address of the specified Range (single Cell only)
+        """Returns the hyperlink address of the specified Range (single Cell only)
 
-        Examples
-        --------
-        ```pycon
-        >>> import xlwings as xw
-        >>> wb = xw.Book()
-        >>> sheet1 = wb.sheets[0]
-        >>> sheet1.range('A1').value
-        'www.xlwings.org'
-        >>> sheet1.range('A1').hyperlink
-        'http://www.xlwings.org'
-        ```
+        Examples:
+            ```pycon
+            >>> import xlwings as xw
+            >>> wb = xw.Book()
+            >>> sheet1 = wb.sheets[0]
+            >>> sheet1.range('A1').value
+            'www.xlwings.org'
+            >>> sheet1.range('A1').hyperlink
+            'http://www.xlwings.org'
+            ```
 
         ```{versionadded} 0.3.0
         ```
@@ -3018,21 +2617,15 @@ class Range:
         text_to_display: str | None = None,
         screen_tip: str | None = None,
     ) -> None:
-        """
-        Adds a hyperlink to the specified Range (single Cell)
+        """Adds a hyperlink to the specified Range (single Cell)
 
-        Arguments
-        ---------
-        address : str
-            The address of the hyperlink.
-        text_to_display : str, default None
-            The text to be displayed for the hyperlink. Defaults to the hyperlink
-            address.
-        screen_tip: str, default None
-            The screen tip to be displayed when the mouse pointer is paused over the
-            hyperlink. Default is set to '<address> - Click once to follow. Click and
-            hold to select this cell.'
-
+        Args:
+            address: The address of the hyperlink.
+            text_to_display: The text to be displayed for the hyperlink. Defaults to the hyperlink
+                address.
+            screen_tip: The screen tip to be displayed when the mouse pointer is paused over the
+                hyperlink. Default is set to '<address> - Click once to follow. Click and
+                hold to select this cell.'
 
         ```{versionadded} 0.3.0
         ```
@@ -3050,22 +2643,13 @@ class Range:
     def resize(
         self, row_size: int | None = None, column_size: int | None = None
     ) -> Range:
-        """
-        Resizes the specified Range
+        """Resizes the specified Range
 
-        Arguments
-        ---------
-        row_size: int > 0
-            The number of rows in the new range (if None, the number of rows in the
-            range is unchanged).
-        column_size: int > 0
-            The number of columns in the new range (if None, the number of columns in
-            the range is unchanged).
-
-        Returns
-        -------
-        Range object: Range
-
+        Args:
+            row_size: The number of rows in the new range (if None, the number of rows
+                in the range is unchanged).
+            column_size: The number of columns in the new range (if None, the number of
+                columns in the range is unchanged).
 
         ```{versionadded} 0.3.0
         ```
@@ -3083,14 +2667,8 @@ class Range:
         return Range(self(1, 1), self(row_size, column_size)).options(**self._options)
 
     def offset(self, row_offset: int = 0, column_offset: int = 0) -> Range:
-        """
-        Returns a Range object that represents a Range that's offset from the
+        """Returns a Range object that represents a Range that's offset from the
         specified range.
-
-        Returns
-        -------
-        Range object : Range
-
 
         ```{versionadded} 0.3.0
         ```
@@ -3102,23 +2680,17 @@ class Range:
 
     @property
     def last_cell(self) -> Range:
-        """
-        Returns the bottom right cell of the specified range. Read-only.
+        """Returns the bottom right cell of the specified range. Read-only.
 
-        Returns
-        -------
-        Range
-
-        Example
-        -------
-        ```pycon
-        >>> import xlwings as xw
-        >>> wb = xw.Book()
-        >>> sheet1 = wb.sheets[0]
-        >>> myrange = sheet1.range('A1:E4')
-        >>> myrange.last_cell.row, myrange.last_cell.column
-        (4, 5)
-        ```
+        Example:
+            ```pycon
+            >>> import xlwings as xw
+            >>> wb = xw.Book()
+            >>> sheet1 = wb.sheets[0]
+            >>> myrange = sheet1.range('A1:E4')
+            >>> myrange.last_cell.row, myrange.last_cell.column
+            (4, 5)
+            ```
 
         ```{versionadded} 0.3.5
         ```
@@ -3126,8 +2698,7 @@ class Range:
         return self(self.shape[0], self.shape[1]).options(**self._options)
 
     def select(self) -> None:
-        """
-        Selects the range. Select only works on the active book.
+        """Selects the range. Select only works on the active book.
 
         ```{versionadded} 0.9.0
         ```
@@ -3136,44 +2707,34 @@ class Range:
 
     @property
     def merge_area(self) -> Range:
-        """
-        Returns a Range object that represents the merged Range containing the
+        """Returns a Range object that represents the merged Range containing the
         specified cell. If the specified cell isn't in a merged range, this property
         returns the specified cell.
-
         """
         return Range(impl=self.impl.merge_area)
 
     @property
     def merge_cells(self) -> bool:
-        """
-        Returns `True` if the Range contains merged cells, otherwise `False`
-        """
+        """Returns `True` if the Range contains merged cells, otherwise `False`"""
         return self.impl.merge_cells
 
     def merge(self, across: bool = False) -> None:
-        """
-        Creates a merged cell from the specified Range object.
+        """Creates a merged cell from the specified Range object.
 
-        Parameters
-        ----------
-        across : bool, default False
-            True to merge cells in each row of the specified Range as separate merged
-            cells.
+        Args:
+            across: True to merge cells in each row of the specified Range as separate
+                merged cells.
         """
         with self.sheet.book.app.properties(display_alerts=False):
             self.impl.merge(across)
 
     def unmerge(self) -> None:
-        """
-        Separates a merged area into individual cells.
-        """
+        """Separates a merged area into individual cells."""
         self.impl.unmerge()
 
     @property
     def table(self) -> Table | None:
-        """
-        Returns a Table object if the range is part of one, otherwise `None`.
+        """Returns a Table object if the range is part of one, otherwise `None`.
 
         ```{versionadded} 0.21.0
         ```
@@ -3185,8 +2746,7 @@ class Range:
 
     @property
     def wrap_text(self) -> bool | None:
-        """
-        Returns `True` if the wrap_text property is enabled and `False` if it's
+        """Returns `True` if the wrap_text property is enabled and `False` if it's
         disabled. If not all cells have the same value in a range, on Windows it returns
         `None` and on macOS `False`.
 
@@ -3201,8 +2761,7 @@ class Range:
 
     @property
     def note(self) -> Note | None:
-        """
-        Returns a Note object.
+        """Returns a Note object.
         Before the introduction of threaded comments, a Note was called a Comment.
 
         ```{versionadded} 0.24.2
@@ -3211,17 +2770,11 @@ class Range:
         return Note(impl=self.impl.note) if self.impl.note else None
 
     def copy_picture(self, appearance: str = "screen", format: str = "picture") -> None:
-        """
-        Copies the range to the clipboard as picture.
+        """Copies the range to the clipboard as picture.
 
-        Parameters
-        ----------
-        appearance : str, default 'screen'
-            Either 'screen' or 'printer'.
-
-        format : str, default 'picture'
-            Either 'picture' or 'bitmap'.
-
+        Args:
+            appearance: Either 'screen' or 'printer'.
+            format: Either 'picture' or 'bitmap'.
 
         ```{versionadded} 0.24.8
         ```
@@ -3229,17 +2782,12 @@ class Range:
         self.impl.copy_picture(appearance, format)
 
     def to_png(self, path: str | PathLike[str] | None = None) -> None:
-        """
-        Exports the range as PNG picture.
+        """Exports the range as PNG picture.
 
-        Parameters
-        ----------
-
-        path : str or path-like, default None
-            Path where you want to store the picture. Defaults to the name of the range
-            in the same directory as the Excel file if the Excel file is stored and to
-            the current working directory otherwise.
-
+        Args:
+            path: Path where you want to store the picture. Defaults to the name of the range
+                in the same directory as the Excel file if the Excel file is stored and to
+                the current working directory otherwise.
 
         ```{versionadded} 0.24.8
         ```
@@ -3275,32 +2823,20 @@ class Range:
         show: bool | None = None,
         quality: str = "standard",
     ) -> str:
-        """
-        Exports the range as PDF.
+        """Exports the range as PDF.
 
-        Parameters
-        ----------
-
-        path : str or path-like, default None
-            Path where you want to store the pdf. Defaults to the address of the range
-            in the same directory as the Excel file if the Excel file is stored and to
-            the current working directory otherwise.
-
-        layout : str or path-like object, default None
-            This argument requires xlwings :bdg-secondary:`PRO`.
-
-            Path to a PDF file on which the report will be printed. This is ideal for
-            headers and footers as well as borderless printing of graphics/artwork. The
-            PDF file either needs to have only 1 page (every report page uses the same
-            layout) or otherwise needs the same amount of pages as the report (each
-            report page is printed on the respective page in the layout PDF).
-
-        show : bool, default False
-            Once created, open the PDF file with the default application.
-
-        quality : str, default `'standard'`
-            Quality of the PDF file. Can either be `'standard'` or `'minimum'`.
-
+        Args:
+            path: Path where you want to store the pdf. Defaults to the address of the range
+                in the same directory as the Excel file if the Excel file is stored and to
+                the current working directory otherwise.
+            layout: This argument requires xlwings `PRO`.
+                Path to a PDF file on which the report will be printed. This is ideal for
+                headers and footers as well as borderless printing of graphics/artwork. The
+                PDF file either needs to have only 1 page (every report page uses the same
+                layout) or otherwise needs the same amount of pages as the report (each
+                report page is printed on the respective page in the layout PDF).
+            show: Once created, open the PDF file with the default application.
+            quality: Quality of the PDF file. Can either be `'standard'` or `'minimum'`.
 
         ```{versionadded} 0.26.2
         ```
@@ -3308,22 +2844,16 @@ class Range:
         return utils.to_pdf(self, path=path, layout=layout, show=show, quality=quality)
 
     def autofill(self, destination: Range, type_: str = "fill_default") -> None:
-        """
-        Autofills the destination Range. Note that the destination Range must include
+        """Autofills the destination Range. Note that the destination Range must include
         the origin Range.
 
-        Arguments
-        ---------
+        Args:
+            destination: The origin.
 
-        destination : Range
-            The origin.
-
-        type_ : str, default `"fill_default"`
-            One of the following strings: `"fill_copy"`, `"fill_days"`,
-            `"fill_default"`, `"fill_formats"`, `"fill_months"`,
-            `"fill_series"`, `"fill_values"`, `"fill_weekdays"`, `"fill_years"`,
-            `"growth_trend"`, `"linear_trend"`, `"flash_fill`
-
+            type_: One of the following strings: `"fill_copy"`, `"fill_days"`,
+                `"fill_default"`, `"fill_formats"`, `"fill_months"`,
+                `"fill_series"`, `"fill_values"`, `"fill_weekdays"`, `"fill_years"`,
+                `"growth_trend"`, `"linear_trend"`, `"flash_fill`
 
         ```{versionadded} 0.30.1
         ```
@@ -3340,38 +2870,34 @@ class Ranges:
 
 
 class RangeRows(Ranges):
-    """
-    Represents the rows of a range. Do not construct this class directly, use
+    """Represents the rows of a range. Do not construct this class directly, use
     `Range.rows` instead.
 
-    Example
-    -------
+    Example:
+        ```python
+        import xlwings as xw
 
-    ```python
-    import xlwings as xw
+        wb = xw.Book("MyBook.xlsx")
+        sheet1 = wb.sheets[0]
+        myrange = sheet1.range('A1:C4')
 
-    wb = xw.Book("MyBook.xlsx")
-    sheet1 = wb.sheets[0]
-    myrange = sheet1.range('A1:C4')
+        assert len(myrange.rows) == 4  # or myrange.rows.count
 
-    assert len(myrange.rows) == 4  # or myrange.rows.count
+        myrange.rows[0].value = 'a'
 
-    myrange.rows[0].value = 'a'
+        assert myrange.rows[2] == sheet1.range('A3:C3')
+        assert myrange.rows(2) == sheet1.range('A2:C2')
 
-    assert myrange.rows[2] == sheet1.range('A3:C3')
-    assert myrange.rows(2) == sheet1.range('A2:C2')
-
-    for r in myrange.rows:
+        for r in myrange.rows:
         print(r.address)
-    ```
+        ```
     """
 
     def __init__(self, rng: Range) -> None:
         self.rng = rng
 
     def __len__(self) -> int:
-        """
-        Returns the number of rows.
+        """Returns the number of rows.
 
         ```{versionadded} 0.9.0
         ```
@@ -3381,9 +2907,7 @@ class RangeRows(Ranges):
     count = property(__len__)
 
     def autofit(self) -> None:
-        """
-        Autofits the height of the rows.
-        """
+        """Autofits the height of the rows."""
         self.rng.impl.autofit(axis="r")
 
     def __iter__(self) -> Iterator[Range]:
@@ -3408,38 +2932,34 @@ class RangeRows(Ranges):
 
 
 class RangeColumns(Ranges):
-    """
-    Represents the columns of a range. Do not construct this class directly, use
+    """Represents the columns of a range. Do not construct this class directly, use
     `Range.columns` instead.
 
-    Example
-    -------
+    Example:
+        ```python
+        import xlwings as xw
 
-    ```python
-    import xlwings as xw
+        wb = xw.Book("MyFile.xlsx")
+        sheet1 = wb.sheets[0]
+        myrange = sheet1.range('A1:C4')
 
-    wb = xw.Book("MyFile.xlsx")
-    sheet1 = wb.sheets[0]
-    myrange = sheet1.range('A1:C4')
+        assert len(myrange.columns) == 3  # or myrange.columns.count
 
-    assert len(myrange.columns) == 3  # or myrange.columns.count
+        myrange.columns[0].value = 'a'
 
-    myrange.columns[0].value = 'a'
+        assert myrange.columns[2] == sheet1.range('C1:C4')
+        assert myrange.columns(2) == sheet1.range('B1:B4')
 
-    assert myrange.columns[2] == sheet1.range('C1:C4')
-    assert myrange.columns(2) == sheet1.range('B1:B4')
-
-    for c in myrange.columns:
+        for c in myrange.columns:
         print(c.address)
-    ```
+        ```
     """
 
     def __init__(self, rng: Range) -> None:
         self.rng = rng
 
     def __len__(self) -> int:
-        """
-        Returns the number of columns.
+        """Returns the number of columns.
 
         ```{versionadded} 0.9.0
         ```
@@ -3449,9 +2969,7 @@ class RangeColumns(Ranges):
     count = property(__len__)
 
     def autofit(self) -> None:
-        """
-        Autofits the width of the columns.
-        """
+        """Autofits the width of the columns."""
         self.rng.impl.autofit(axis="c")
 
     def __iter__(self) -> Iterator[Range]:
@@ -3476,8 +2994,7 @@ class RangeColumns(Ranges):
 
 
 class Shape:
-    """
-    The shape object is a member of the `shapes` collection:
+    """The shape object is a member of the `shapes` collection:
 
     ```pycon
     >>> import xlwings as xw
@@ -3503,8 +3020,7 @@ class Shape:
 
     @property
     def api(self) -> Any:
-        """
-        Returns the native object (`pywin32` or `appscript` obj) of the engine
+        """Returns the native object (`pywin32` or `appscript` obj) of the engine
         being used.
 
         ```{versionadded} 0.19.2
@@ -3514,8 +3030,7 @@ class Shape:
 
     @property
     def name(self) -> str:
-        """
-        Returns or sets the name of the shape.
+        """Returns or sets the name of the shape.
 
         ```{versionadded} 0.5.0
         ```
@@ -3528,8 +3043,7 @@ class Shape:
 
     @property
     def type(self) -> str:
-        """
-        Returns the type of the shape.
+        """Returns the type of the shape.
 
         ```{versionadded} 0.9.0
         ```
@@ -3538,9 +3052,8 @@ class Shape:
 
     @property
     def left(self) -> float:
-        """
-        Returns or sets the number of points that represent the horizontal position of
-        the shape.
+        """Returns or sets the number of points that represent the horizontal position
+        of the shape.
 
         ```{versionadded} 0.5.0
         ```
@@ -3553,8 +3066,7 @@ class Shape:
 
     @property
     def top(self) -> float:
-        """
-        Returns or sets the number of points that represent the vertical position of
+        """Returns or sets the number of points that represent the vertical position of
         the shape.
 
         ```{versionadded} 0.5.0
@@ -3568,8 +3080,7 @@ class Shape:
 
     @property
     def width(self) -> float:
-        """
-        Returns or sets the number of points that represent the width of the shape.
+        """Returns or sets the number of points that represent the width of the shape.
 
         ```{versionadded} 0.5.0
         ```
@@ -3582,8 +3093,7 @@ class Shape:
 
     @property
     def height(self) -> float:
-        """
-        Returns or sets the number of points that represent the height of the shape.
+        """Returns or sets the number of points that represent the height of the shape.
 
         ```{versionadded} 0.5.0
         ```
@@ -3595,8 +3105,7 @@ class Shape:
         self.impl.height = value
 
     def delete(self) -> None:
-        """
-        Deletes the shape.
+        """Deletes the shape.
 
         ```{versionadded} 0.5.0
         ```
@@ -3604,8 +3113,7 @@ class Shape:
         self.impl.delete()
 
     def activate(self) -> None:
-        """
-        Activates the shape.
+        """Activates the shape.
 
         ```{versionadded} 0.5.0
         ```
@@ -3619,16 +3127,12 @@ class Shape:
         scale: str = "scale_from_top_left",
     ) -> None:
         """
-        factor : float
-            For example 1.5 to scale it up to 150%
-
-        relative_to_original_size : bool, optional
-            If `False`, it scales relative to current height (default).
-            For `True` must be a picture or OLE object.
-
-        scale : str, optional
-            One of `scale_from_top_left` (default), `scale_from_bottom_right`,
-            `scale_from_middle`
+        Args:
+            factor: For example 1.5 to scale it up to 150%
+            relative_to_original_size: If `False`, it scales relative to current
+                height (default). For `True` must be a picture or OLE object.
+            scale: One of `scale_from_top_left` (default), `scale_from_bottom_right`,
+                `scale_from_middle`
 
         ```{versionadded} 0.19.2
         ```
@@ -3646,16 +3150,12 @@ class Shape:
         scale: str = "scale_from_top_left",
     ) -> None:
         """
-        factor : float
-            For example 1.5 to scale it up to 150%
-
-        relative_to_original_size : bool, optional
-            If `False`, it scales relative to current width (default).
-            For `True` must be a picture or OLE object.
-
-        scale : str, optional
-            One of `scale_from_top_left` (default), `scale_from_bottom_right`,
-            `scale_from_middle`
+        Args:
+            factor: For example 1.5 to scale it up to 150%
+            relative_to_original_size: If `False`, it scales relative to current
+                width (default). For `True` must be a picture or OLE object.
+            scale: One of `scale_from_top_left` (default), `scale_from_bottom_right`,
+                `scale_from_middle`
 
         ```{versionadded} 0.19.2
         ```
@@ -3668,8 +3168,7 @@ class Shape:
 
     @property
     def text(self) -> str:
-        """
-        Returns or sets the text of a shape.
+        """Returns or sets the text of a shape.
 
         ```{versionadded} 0.21.4
         ```
@@ -3700,8 +3199,7 @@ class Shape:
 
     @property
     def parent(self) -> Sheet:
-        """
-        Returns the parent of the shape.
+        """Returns the parent of the shape.
 
         ```{versionadded} 0.9.0
         ```
@@ -3723,8 +3221,7 @@ class Shape:
 
 
 class Shapes(Collection[Shape]):
-    """
-    A collection of all `shape` objects on the specified sheet:
+    """A collection of all `shape` objects on the specified sheet:
 
     ```pycon
     >>> import xlwings as xw
@@ -3742,8 +3239,7 @@ class Shapes(Collection[Shape]):
 
 class PageSetup:
     def __init__(self, impl: Any) -> None:
-        """
-        Represents a PageSetup object.
+        """Represents a PageSetup object.
 
         ```{versionadded} 0.24.2
         ```
@@ -3752,8 +3248,7 @@ class PageSetup:
 
     @property
     def api(self) -> Any:
-        """
-        Returns the native object (`pywin32` or `appscript` obj)
+        """Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
         ```{versionadded} 0.24.2
@@ -3763,18 +3258,15 @@ class PageSetup:
 
     @property
     def print_area(self) -> str | None:
-        """
-        Gets or sets the range address that defines the print area.
+        """Gets or sets the range address that defines the print area.
 
-        Examples
-        --------
-
-        ```pycon
-        >>> mysheet.page_setup.print_area = '$A$1:$B$3'
-        >>> mysheet.page_setup.print_area
-        '$A$1:$B$3'
-        >>> mysheet.page_setup.print_area = None  # clear the print_area
-        ```
+        Examples:
+            ```pycon
+            >>> mysheet.page_setup.print_area = '$A$1:$B$3'
+            >>> mysheet.page_setup.print_area
+            '$A$1:$B$3'
+            >>> mysheet.page_setup.print_area = None  # clear the print_area
+            ```
 
         ```{versionadded} 0.24.2
         ```
@@ -3788,8 +3280,7 @@ class PageSetup:
 
 class Note:
     def __init__(self, impl: Any) -> None:
-        """
-        Represents a cell Note.
+        """Represents a cell Note.
         Before the introduction of threaded comments, a Note was called a Comment.
 
         ```{versionadded} 0.24.2
@@ -3799,8 +3290,7 @@ class Note:
 
     @property
     def api(self) -> Any:
-        """
-        Returns the native object (`pywin32` or `appscript` obj)
+        """Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
         ```{versionadded} 0.24.2
@@ -3810,18 +3300,16 @@ class Note:
 
     @property
     def text(self) -> str:
-        """
-        Gets or sets the text of a note. Keep in mind that the note must already exist!
+        """Gets or sets the text of a note. Keep in mind that the note must already
+        exist!
 
-        Examples
-        --------
-
-        ```pycon
-        >>> sheet = xw.Book(...).sheets[0]
-        >>> sheet['A1'].note.text = 'mynote'
-        >>> sheet['A1'].note.text
-        >>> 'mynote'
-        ```
+        Examples:
+            ```pycon
+            >>> sheet = xw.Book(...).sheets[0]
+            >>> sheet['A1'].note.text = 'mynote'
+            >>> sheet['A1'].note.text
+            >>> 'mynote'
+            ```
 
         ```{versionadded} 0.24.2
         ```
@@ -3833,8 +3321,7 @@ class Note:
         self.impl.text = value
 
     def delete(self) -> None:
-        """
-        Delete the note.
+        """Delete the note.
 
         ```{versionadded} 0.24.2
         ```
@@ -3843,8 +3330,7 @@ class Note:
 
 
 class Table:
-    """
-    The table object is a member of the `tables` collection:
+    """The table object is a member of the `tables` collection:
 
     ```pycon
     >>> import xlwings as xw
@@ -3868,24 +3354,19 @@ class Table:
 
     @property
     def api(self) -> Any:
-        """
-        Returns the native object (`pywin32` or `appscript` obj)
+        """Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
         """
         return self.impl.api
 
     @property
     def parent(self) -> Sheet:
-        """
-        Returns the parent of the table.
-        """
+        """Returns the parent of the table."""
         return Sheet(impl=self.impl.parent)
 
     @property
     def name(self) -> str:
-        """
-        Returns or sets the name of the Table.
-        """
+        """Returns or sets the name of the Table."""
         return self.impl.name
 
     @name.setter
@@ -3912,7 +3393,9 @@ class Table:
 
     @property
     def header_row_range(self) -> Range | None:
-        """Returns an xlwings range object that represents the range of the header row"""
+        """Returns an xlwings range object that represents the range of the header
+        row
+        """
         if self.impl.header_row_range:
             return Range(impl=self.impl.header_row_range)
         else:
@@ -4023,50 +3506,39 @@ class Table:
             return None
 
     def update(self, data: Any, index: bool = True) -> Table:
-        """
-        Updates the Excel table with the provided data.
+        """Updates the Excel table with the provided data.
         Currently restricted to DataFrames.
 
         ```{versionchanged} 0.24.0
         ```
 
-        Arguments
-        ---------
+        Args:
+            data: Currently restricted to pandas DataFrames.
+            index: Whether or not the index of a pandas DataFrame should be written to the
+                Excel table.
 
-        data : pandas DataFrame
-            Currently restricted to pandas DataFrames.
-        index : bool, default True
-            Whether or not the index of a pandas DataFrame should be written to the
-            Excel table.
+        Examples:
+            ```python
+            import pandas as pd
+            import xlwings as xw
 
-        Returns
-        -------
-        Table
+            sheet = xw.Book('Book1.xlsx').sheets[0]
+            table_name = 'mytable'
 
-        Examples
-        --------
-
-        ```python
-        import pandas as pd
-        import xlwings as xw
-
-        sheet = xw.Book('Book1.xlsx').sheets[0]
-        table_name = 'mytable'
-
-        # Sample DataFrame
-        nrows, ncols = 3, 3
-        df = pd.DataFrame(data=nrows * [ncols * ['test']],
+            # Sample DataFrame
+            nrows, ncols = 3, 3
+            df = pd.DataFrame(data=nrows * [ncols * ['test']],
                           columns=['col ' + str(i) for i in range(ncols)])
 
-        # Hide the index, then insert a new table if it doesn't exist yet,
-        # otherwise update the existing one
-        df = df.set_index('col 0')
-        if table_name in [table.name for table in sheet.tables]:
+            # Hide the index, then insert a new table if it doesn't exist yet,
+            # otherwise update the existing one
+            df = df.set_index('col 0')
+            if table_name in [table.name for table in sheet.tables]:
             sheet.tables[table_name].update(df)
-        else:
+            else:
             mytable = sheet.tables.add(source=sheet['A1'],
                                        name=table_name).update(df)
-        ```
+            ```
         """
         type_error_msg = "Currently, only pandas DataFrames are supported by update"
         if pd:
@@ -4182,55 +3654,33 @@ class Tables(Collection[Table]):
         destination: Range | None = None,
         table_style_name: str = "TableStyleMedium2",
     ) -> Table:
-        """
-        Creates a Table to the specified sheet.
+        """Creates a Table to the specified sheet.
 
-        Arguments
-        ---------
+        Args:
+            source: An xlwings range object, representing the data source.
+            name: The name of the Table. By default, it uses the autogenerated name that is
+                assigned by Excel.
+            source_type: This currently defaults to `xlSrcRange`, i.e. expects an xlwings range
+                object. No other options are allowed at the moment.
+            link_source: Currently not implemented as this is only in case `source_type` is
+                `xlSrcExternal`.
+            has_headers: Indicates whether the data being imported has column labels. Defaults to
+                `True`. Possible values: `True`, `False`, `'guess'`
+            destination: Currently not implemented as this is used in case `source_type` is
+                `xlSrcExternal`.
+            table_style_name: Possible strings: `'TableStyleLightN'` (where N is 1-21),
+                `'TableStyleMediumN'` (where N is 1-28),
+                `'TableStyleDarkN'` (where N is 1-11)
 
-        source : xlwings range, default None
-            An xlwings range object, representing the data source.
-
-        name : str, default None
-            The name of the Table. By default, it uses the autogenerated name that is
-            assigned by Excel.
-
-        source_type : str, default None
-            This currently defaults to `xlSrcRange`, i.e. expects an xlwings range
-            object. No other options are allowed at the moment.
-
-        link_source : bool, default None
-            Currently not implemented as this is only in case `source_type` is
-            `xlSrcExternal`.
-
-        has_headers : bool or str, default True
-            Indicates whether the data being imported has column labels. Defaults to
-            `True`. Possible values: `True`, `False`, `'guess'`
-
-        destination : xlwings range, default None
-            Currently not implemented as this is used in case `source_type` is
-            `xlSrcExternal`.
-
-        table_style_name : str, default 'TableStyleMedium2'
-            Possible strings: `'TableStyleLightN'` (where N is 1-21),
-            `'TableStyleMediumN'` (where N is 1-28),
-            `'TableStyleDarkN'` (where N is 1-11)
-
-        Returns
-        -------
-        Table
-
-        Examples
-        --------
-
-        ```pycon
-        >>> import xlwings as xw
-        >>> sheet = xw.Book().sheets[0]
-        >>> sheet['A1'].value = [['a', 'b'], [1, 2]]
-        >>> table = sheet.tables.add(source=sheet['A1'].expand(), name='MyTable')
-        >>> table
-        <Table 'MyTable' in <Sheet [Book1]Sheet1>>
-        ```
+        Examples:
+            ```pycon
+            >>> import xlwings as xw
+            >>> sheet = xw.Book().sheets[0]
+            >>> sheet['A1'].value = [['a', 'b'], [1, 2]]
+            >>> table = sheet.tables.add(source=sheet['A1'].expand(), name='MyTable')
+            >>> table
+            <Table 'MyTable' in <Sheet [Book1]Sheet1>>
+            ```
         """
 
         impl = self.impl.add(
@@ -4247,8 +3697,7 @@ class Tables(Collection[Table]):
 
 
 class Chart:
-    """
-    The chart object is a member of the `charts` collection:
+    """The chart object is a member of the `charts` collection:
 
     ```pycon
     >>> import xlwings as xw
@@ -4270,8 +3719,7 @@ class Chart:
 
     @property
     def api(self) -> Any:
-        """
-        Returns the native object (`pywin32` or `appscript` obj)
+        """Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
         ```{versionadded} 0.9.0
@@ -4281,9 +3729,7 @@ class Chart:
 
     @property
     def name(self) -> str:
-        """
-        Returns or sets the name of the chart.
-        """
+        """Returns or sets the name of the chart."""
         return self.impl.name
 
     @name.setter
@@ -4292,8 +3738,7 @@ class Chart:
 
     @property
     def parent(self) -> Sheet:
-        """
-        Returns the parent of the chart.
+        """Returns the parent of the chart.
 
         ```{versionadded} 0.9.0
         ```
@@ -4303,8 +3748,7 @@ class Chart:
 
     @property
     def chart_type(self) -> str:
-        """
-        Returns and sets the chart type of the chart.
+        """Returns and sets the chart type of the chart.
         The following chart types are available:
 
         `3d_area`,
@@ -4392,20 +3836,16 @@ class Chart:
         self.impl.chart_type = value
 
     def set_source_data(self, source: Range) -> None:
-        """
-        Sets the source data range for the chart.
+        """Sets the source data range for the chart.
 
-        Arguments
-        ---------
-        source : Range
-            Range object, e.g. `xw.books['Book1'].sheets[0].range('A1')`
+        Args:
+            source: Range object, e.g. `xw.books['Book1'].sheets[0].range('A1')`
         """
         self.impl.set_source_data(source.impl)
 
     @property
     def left(self) -> float:
-        """
-        Returns or sets the number of points that represent the horizontal position
+        """Returns or sets the number of points that represent the horizontal position
         of the chart.
         """
         return self.impl.left
@@ -4416,8 +3856,7 @@ class Chart:
 
     @property
     def top(self) -> float:
-        """
-        Returns or sets the number of points that represent the vertical position
+        """Returns or sets the number of points that represent the vertical position
         of the chart.
         """
         return self.impl.top
@@ -4428,8 +3867,8 @@ class Chart:
 
     @property
     def width(self) -> float:
-        """
-        Returns or sets the number of points that represent the width of the chart.
+        """Returns or sets the number of points that represent the width of the
+        chart.
         """
         return self.impl.width
 
@@ -4439,8 +3878,8 @@ class Chart:
 
     @property
     def height(self) -> float:
-        """
-        Returns or sets the number of points that represent the height of the chart.
+        """Returns or sets the number of points that represent the height of the
+        chart.
         """
         return self.impl.height
 
@@ -4449,22 +3888,16 @@ class Chart:
         self.impl.height = value
 
     def delete(self) -> None:
-        """
-        Deletes the chart.
-        """
+        """Deletes the chart."""
         self.impl.delete()
 
     def to_png(self, path: str | PathLike[str] | None = None) -> None:
-        """
-        Exports the chart as PNG picture.
+        """Exports the chart as PNG picture.
 
-        Parameters
-        ----------
-
-        path : str or path-like, default None
-            Path where you want to store the picture. Defaults to the name of the chart
-            in the same directory as the Excel file if the Excel file is stored and to
-            the current working directory otherwise.
+        Args:
+            path: Path where you want to store the picture. Defaults to the name of the
+                chart in the same directory as the Excel file if the Excel file is
+                stored and to the current working directory otherwise.
 
 
         ```{versionadded} 0.24.8
@@ -4485,23 +3918,14 @@ class Chart:
         show: bool | None = None,
         quality: str = "standard",
     ) -> str:
-        """
-        Exports the chart as PDF.
+        """Exports the chart as PDF.
 
-        Parameters
-        ----------
-
-        path : str or path-like, default None
-            Path where you want to store the pdf. Defaults to the name of the chart in
-            the same directory as the Excel file if the Excel file is stored and to the
-            current working directory otherwise.
-
-        show : bool, default False
-            Once created, open the PDF file with the default application.
-
-        quality : str, default `'standard'`
-            Quality of the PDF file. Can either be `'standard'` or `'minimum'`.
-
+        Args:
+            path: Path where you want to store the pdf. Defaults to the name of the
+                chart in the same directory as the Excel file if the Excel file is
+                stored and to the current working directory otherwise.
+            show: Once created, open the PDF file with the default application.
+            quality: Quality of the PDF file. Can either be `'standard'` or `'minimum'`.
 
         ```{versionadded} 0.26.2
         ```
@@ -4513,8 +3937,7 @@ class Chart:
 
 
 class Charts(Collection[Chart]):
-    """
-    A collection of all `chart` objects on the specified sheet:
+    """A collection of all `chart` objects on the specified sheet:
 
     ```pycon
     >>> import xlwings as xw
@@ -4532,41 +3955,25 @@ class Charts(Collection[Chart]):
     def add(
         self, left: float = 0, top: float = 0, width: float = 355, height: float = 211
     ) -> Chart:
-        """
-        Creates a new chart on the specified sheet.
+        """Creates a new chart on the specified sheet.
 
-        Arguments
-        ---------
+        Args:
+            left: left position in points
+            top: top position in points
+            width: width in points
+            height: height in points
 
-        left : float, default 0
-            left position in points
-
-        top : float, default 0
-            top position in points
-
-        width : float, default 355
-            width in points
-
-        height : float, default 211
-            height in points
-
-        Returns
-        -------
-        Chart
-
-        Examples
-        --------
-
-        ```pycon
-        >>> import xlwings as xw
-        >>> sht = xw.Book().sheets[0]
-        >>> sht.range('A1').value = [['Foo1', 'Foo2'], [1, 2]]
-        >>> chart = sht.charts.add()
-        >>> chart.set_source_data(sht.range('A1').expand())
-        >>> chart.chart_type = 'line'
-        >>> chart.name
-        'Chart1'
-        ```
+        Examples:
+            ```pycon
+            >>> import xlwings as xw
+            >>> sht = xw.Book().sheets[0]
+            >>> sht.range('A1').value = [['Foo1', 'Foo2'], [1, 2]]
+            >>> chart = sht.charts.add()
+            >>> chart.set_source_data(sht.range('A1').expand())
+            >>> chart.chart_type = 'line'
+            >>> chart.name
+            'Chart1'
+            ```
         """
 
         impl = self.impl.add(left, top, width, height)
@@ -4575,8 +3982,7 @@ class Charts(Collection[Chart]):
 
 
 class Picture:
-    """
-    The picture object is a member of the `pictures`
+    """The picture object is a member of the `pictures`
     collection:
 
     ```pycon
@@ -4595,8 +4001,7 @@ class Picture:
 
     @property
     def api(self) -> Any:
-        """
-        Returns the native object (`pywin32` or `appscript` obj) of the engine
+        """Returns the native object (`pywin32` or `appscript` obj) of the engine
         being used.
 
         ```{versionadded} 0.9.0
@@ -4606,8 +4011,7 @@ class Picture:
 
     @property
     def parent(self) -> Sheet:
-        """
-        Returns the parent of the picture.
+        """Returns the parent of the picture.
 
         ```{versionadded} 0.9.0
         ```
@@ -4616,8 +4020,7 @@ class Picture:
 
     @property
     def name(self) -> str:
-        """
-        Returns or sets the name of the picture.
+        """Returns or sets the name of the picture.
 
         ```{versionadded} 0.5.0
         ```
@@ -4638,8 +4041,7 @@ class Picture:
 
     @property
     def left(self) -> float:
-        """
-        Returns or sets the number of points that represent the horizontal position
+        """Returns or sets the number of points that represent the horizontal position
         of the picture.
 
         ```{versionadded} 0.5.0
@@ -4653,8 +4055,7 @@ class Picture:
 
     @property
     def top(self) -> float:
-        """
-        Returns or sets the number of points that represent the vertical position
+        """Returns or sets the number of points that represent the vertical position
         of the picture.
 
         ```{versionadded} 0.5.0
@@ -4668,8 +4069,7 @@ class Picture:
 
     @property
     def width(self) -> float:
-        """
-        Returns or sets the number of points that represent the width of the picture.
+        """Returns or sets the number of points that represent the width of the picture.
 
         ```{versionadded} 0.5.0
         ```
@@ -4682,8 +4082,8 @@ class Picture:
 
     @property
     def height(self) -> float:
-        """
-        Returns or sets the number of points that represent the height of the picture.
+        """Returns or sets the number of points that represent the height of the
+        picture.
 
         ```{versionadded} 0.5.0
         ```
@@ -4695,8 +4095,7 @@ class Picture:
         self.impl.height = value
 
     def delete(self) -> None:
-        """
-        Deletes the picture.
+        """Deletes the picture.
 
         ```{versionadded} 0.5.0
         ```
@@ -4722,22 +4121,13 @@ class Picture:
         format: str | None = None,
         export_options: dict[str, Any] | None = None,
     ) -> Picture:
-        """
-        Replaces an existing picture with a new one, taking over the attributes of the
-        existing picture.
+        """Replaces an existing picture with a new one, taking over the attributes of
+        the existing picture.
 
-        Arguments
-        ---------
-
-        image : str or path-like object or matplotlib.figure.Figure
-            Either a filepath or a Matplotlib figure object.
-
-        format : str, default None
-            See under `Pictures.add()`
-
-        export_options : dict, default None
-            See under `Pictures.add()`
-
+        Args:
+            image: Either a filepath or a Matplotlib figure object.
+            format: See under `Pictures.add()`
+            export_options: See under `Pictures.add()`
 
         ```{versionadded} 0.5.0
         ```
@@ -4762,8 +4152,7 @@ class Picture:
 
     @property
     def lock_aspect_ratio(self) -> bool:
-        """
-        `True` will keep the original proportion,
+        """`True` will keep the original proportion,
         `False` will allow you to change height and width independently of each other
         (read/write).
 
@@ -4778,8 +4167,7 @@ class Picture:
 
 
 class Pictures(Collection[Picture]):
-    """
-    A collection of all `picture` objects on the specified sheet:
+    """A collection of all `picture` objects on the specified sheet:
 
     ```pycon
     >>> import xlwings as xw
@@ -4814,90 +4202,57 @@ class Pictures(Collection[Picture]):
         anchor: Range | None = None,
         export_options: dict[str, Any] | None = None,
     ) -> Picture:
-        """
-        Adds a picture to the specified sheet.
+        """Adds a picture to the specified sheet.
 
-        Arguments
-        ---------
-
-        image : str or path-like object or matplotlib.figure.Figure
-            Either a filepath or a Matplotlib figure object.
-
-        left : float, default None
-            Left position in points, defaults to 0. If you use `top`/`left`, you
-            must not provide a value for `anchor`.
-
-        top : float, default None
-            Top position in points, defaults to 0. If you use `top`/`left`,
-            you must not provide a value for `anchor`.
-
-        width : float, default None
-            Width in points. Defaults to original width.
-
-        height : float, default None
-            Height in points. Defaults to original height.
-
-        name : str, default None
-            Excel picture name. Defaults to Excel standard name if not provided,
-            e.g., 'Picture 1'.
-
-        update : bool, default False
-            Replace an existing picture with the same name. Requires `name` to be set.
-
-        scale : float, default None
-            Scales your picture by the provided factor.
-
-        format : str, default None
-            Only used if image is a Matplotlib or Plotly plot. By default, the plot is
-            inserted in the "png" format, but you may want to change this to a
-            vector-based format like "svg" on Windows (may require Microsoft 365) or
-            "eps" on macOS for better print quality. If you use `'vector'`, it will be
-            using `'svg'` on Windows and `'eps'` on macOS. To find out which formats
-            your version of Excel supports, see:
+        Args:
+            image: Either a filepath or a Matplotlib figure object.
+            left: Left position in points, defaults to 0. If you use `top`/`left`, you
+                must not provide a value for `anchor`.
+            top: Top position in points, defaults to 0. If you use `top`/`left`,
+                you must not provide a value for `anchor`.
+            width: Width in points. Defaults to original width.
+            height: Height in points. Defaults to original height.
+            name: Excel picture name. Defaults to Excel standard name if not provided,
+                e.g., 'Picture 1'.
+            update: Replace an existing picture with the same name. Requires `name` to
+                be set.
+            scale: Scales your picture by the provided factor.
+            format: Only used if image is a Matplotlib or Plotly plot. By default, the
+                plot is inserted in the "png" format, but you may want to change this to
+                a vector-based format like "svg" on Windows (may require Microsoft 365)
+                or "eps" on macOS for better print quality. If you use `'vector'`, it
+                will be using `'svg'` on Windows and `'eps'` on macOS. To find out which
+                formats your version of Excel supports, see:
             https://support.microsoft.com/en-us/topic/support-for-eps-images-has-been-turned-off-in-office-a069d664-4bcf-415e-a1b5-cbb0c334a840
+            anchor: The xlwings Range object of where you want to insert the picture. If
+                you use `anchor`, you must not provide values for `top`/`left`.
+                *New in version 0.24.3.*
+            export_options: For Matplotlib plots, this dictionary is passed on to
+                `image.savefig()` with the following defaults:
+                `{"bbox_inches": "tight", "dpi": 200}`, so if you want to leave the
+                picture uncropped and increase dpi to 300, use:
+                `export_options={"dpi": 300}`. For Plotly, the options are passed to
+                `write_image()`. *New in version 0.27.7.*
 
-        anchor: xw.Range, default None
-            The xlwings Range object of where you want to insert the picture. If you use
-            `anchor`, you must not provide values for `top`/`left`.
+        Examples:
+            1. Picture
 
-            ```{versionadded} 0.24.3
+            ```pycon
+            >>> import xlwings as xw
+            >>> sht = xw.Book().sheets[0]
+            >>> sht.pictures.add(r'C:\\path\\to\\file.png')
+            <Picture 'Picture 1' in <Sheet [Book1]Sheet1>>
             ```
 
-        export_options : dict, default None
-            For Matplotlib plots, this dictionary is passed on to `image.savefig()`
-            with the following defaults: `{"bbox_inches": "tight", "dpi": 200}`, so
-            if you want to leave the picture uncropped and increase dpi to 300, use:
-            `export_options={"dpi": 300}`. For Plotly, the options are passed to
-            `write_image()`.
+            2. Matplotlib
 
-            ```{versionadded} 0.27.7
+            ```pycon
+            >>> import matplotlib.pyplot as plt
+            >>> fig = plt.figure()
+            >>> plt.plot([1, 2, 3, 4, 5])
+            >>> sht.pictures.add(fig, name='MyPlot', update=True)
+            <Picture 'MyPlot' in <Sheet [Book1]Sheet1>>
             ```
-
-        Returns
-        -------
-        Picture
-
-        Examples
-        --------
-
-        1. Picture
-
-        ```pycon
-        >>> import xlwings as xw
-        >>> sht = xw.Book().sheets[0]
-        >>> sht.pictures.add(r'C:\\path\\to\\file.png')
-        <Picture 'Picture 1' in <Sheet [Book1]Sheet1>>
-        ```
-
-        2. Matplotlib
-
-        ```pycon
-        >>> import matplotlib.pyplot as plt
-        >>> fig = plt.figure()
-        >>> plt.plot([1, 2, 3, 4, 5])
-        >>> sht.pictures.add(fig, name='MyPlot', update=True)
-        <Picture 'MyPlot' in <Sheet [Book1]Sheet1>>
-        ```
         """
         if anchor:
             if top or left:
@@ -4986,8 +4341,7 @@ class Pictures(Collection[Picture]):
 
 
 class Names:
-    """
-    A collection of all `name` objects in the workbook:
+    """A collection of all `name` objects in the workbook:
 
     ```pycon
     >>> import xlwings as xw
@@ -5006,8 +4360,7 @@ class Names:
 
     @property
     def api(self) -> Any:
-        """
-        Returns the native object (`pywin32` or `appscript` obj)
+        """Returns the native object (`pywin32` or `appscript` obj)
         of the engine beingused.
 
         ```{versionadded} 0.9.0
@@ -5026,28 +4379,18 @@ class Names:
 
     @property
     def count(self) -> int:
-        """
-        Returns the number of objects in the collection.
-        """
+        """Returns the number of objects in the collection."""
         return len(self)
 
     def add(self, name: str, refers_to: str) -> Name:
-        """
-        Defines a new name for a range of cells.
+        """Defines a new name for a range of cells.
 
-        Parameters
-        ----------
-        name : str
-            Specifies the text to use as the name. Names cannot include spaces and
-            cannot be formatted as cell references.
+        Args:
+            name: Specifies the text to use as the name. Names cannot include spaces and
+                cannot be formatted as cell references.
 
-        refers_to : str
-            Describes what the name refers to, in English, using A1-style notation.
-
-        Returns
-        -------
-        Name
-
+            refers_to: Describes what the name refers to, in English, using A1-style
+                notation.
 
         ```{versionadded} 0.9.0
         ```
@@ -5096,8 +4439,7 @@ class Names:
 
 
 class Name:
-    """
-    The name object is a member of the `names` collection:
+    """The name object is a member of the `names` collection:
 
     ```pycon
     >>> import xlwings as xw
@@ -5115,8 +4457,7 @@ class Name:
 
     @property
     def api(self) -> Any:
-        """
-        Returns the native object (`pywin32` or `appscript` obj)
+        """Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
         ```{versionadded} 0.9.0
@@ -5125,8 +4466,7 @@ class Name:
         return self.impl.api
 
     def delete(self) -> None:
-        """
-        Deletes the name.
+        """Deletes the name.
 
         ```{versionadded} 0.9.0
         ```
@@ -5135,8 +4475,7 @@ class Name:
 
     @property
     def name(self) -> str:
-        """
-        Returns or sets the name of the name object.
+        """Returns or sets the name of the name object.
 
         ```{versionadded} 0.9.0
         ```
@@ -5149,8 +4488,7 @@ class Name:
 
     @property
     def refers_to(self) -> str:
-        """
-        Returns or sets the formula that the name is defined to refer to,
+        """Returns or sets the formula that the name is defined to refer to,
         in A1-style notation, beginning with an equal sign.
 
         ```{versionadded} 0.9.0
@@ -5164,8 +4502,7 @@ class Name:
 
     @property
     def refers_to_range(self) -> Range:
-        """
-        Returns the Range object referred to by a Name object.
+        """Returns the Range object referred to by a Name object.
 
         ```{versionadded} 0.9.0
         ```
@@ -5187,8 +4524,7 @@ class Name:
 def view(
     obj: Any, sheet: Sheet | None = None, table: bool = True, chunksize: int = 5000
 ) -> None:
-    """
-    Opens a new workbook and displays an object on its first sheet by default. If you
+    """Opens a new workbook and displays an object on its first sheet by default. If you
     provide a sheet object, it will clear the sheet before displaying the object on the
     existing sheet.
 
@@ -5197,32 +4533,23 @@ def view(
     this in a script as it depends on the active book.
     ```
 
-    Parameters
-    ----------
-    obj : any type with built-in converter
-        the object to display, e.g. numbers, strings, lists, numpy arrays, pandas
-        DataFrames
+    Args:
+        obj: the object to display, e.g. numbers, strings, lists, numpy arrays, pandas
+            DataFrames
+        sheet: Sheet object. If none provided, the first sheet of a new workbook is used.
+        table: If your object is a pandas DataFrame, by default it is formatted as an
+            Excel
+            Table
+        chunksize: Chunks the loading of big arrays.
 
-    sheet : Sheet, default None
-        Sheet object. If none provided, the first sheet of a new workbook is used.
-
-    table : bool, default True
-        If your object is a pandas DataFrame, by default it is formatted as an Excel
-        Table
-
-    chunksize : int, default 5000
-        Chunks the loading of big arrays.
-
-    Examples
-    --------
-
-    ```pycon
-    >>> import xlwings as xw
-    >>> import pandas as pd
-    >>> import numpy as np
-    >>> df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
-    >>> xw.view(df)
-    ```
+    Examples:
+        ```pycon
+        >>> import xlwings as xw
+        >>> import pandas as pd
+        >>> import numpy as np
+        >>> df = pd.DataFrame(np.random.rand(10, 4), columns=['a', 'b', 'c', 'd'])
+        >>> xw.view(df)
+        ```
 
     See also: `load`
 
@@ -5254,8 +4581,7 @@ def view(
 
 
 def load(index: bool | int = 1, header: bool | int = 1, chunksize: int = 5000) -> Any:
-    """
-    Loads the selected cell(s) of the active workbook into a pandas DataFrame. If you
+    """Loads the selected cell(s) of the active workbook into a pandas DataFrame. If you
     select a single cell that has adjacent cells, the range is auto-expanded (via
     current region) and turned into a pandas DataFrame. If you don't have pandas
     installed, it returns the values as nested lists.
@@ -5265,25 +4591,18 @@ def load(index: bool | int = 1, header: bool | int = 1, chunksize: int = 5000) -
     this in a script as it depends on the active book.
     ```
 
-    Parameters
-    ----------
-    index : bool or int, default 1
-        Defines the number of columns on the left that will be turned into the
-        DataFrame's index
+    Args:
+        index: Defines the number of columns on the left that will be turned into the
+            DataFrame's index
+        header: Defines the number of rows at the top that will be turned into the DataFrame's
+            columns
+        chunksize: Chunks the loading of big arrays.
 
-    header : bool or int, default 1
-        Defines the number of rows at the top that will be turned into the DataFrame's
-        columns
-
-    chunksize : int, default 5000
-        Chunks the loading of big arrays.
-
-    Examples
-    --------
-    ```pycon
-    >>> import xlwings as xw
-    >>> xw.load()
-    ```
+    Examples:
+        ```pycon
+        >>> import xlwings as xw
+        >>> xw.load()
+        ```
 
     See also: `view`
 
@@ -5322,8 +4641,8 @@ class Macro:
 
 
 class Characters:
-    """
-    The characters object can be accessed as an attribute of the range or shape object.
+    """The characters object can be accessed as an attribute of the range or shape
+    object.
 
     * `mysheet['A1'].characters`
     * `mysheet.shapes[0].characters`
@@ -5342,8 +4661,7 @@ class Characters:
 
     @property
     def api(self) -> Any:
-        """
-        Returns the native object (`pywin32` or `appscript` obj) of the engine
+        """Returns the native object (`pywin32` or `appscript` obj) of the engine
         being used.
 
         ```{versionadded} 0.23.0
@@ -5353,8 +4671,7 @@ class Characters:
 
     @property
     def text(self) -> str:
-        """
-        Returns or sets the text property of a `characters` object.
+        """Returns or sets the text property of a `characters` object.
 
         ```pycon
         >>> sheet['A1'].value = 'Python'
@@ -5369,8 +4686,7 @@ class Characters:
 
     @property
     def font(self) -> Font:
-        """
-        Returns or sets the text property of a `characters` object.
+        """Returns or sets the text property of a `characters` object.
 
         ```pycon
         >>> sheet['A1'].characters[1:3].font.bold = True
@@ -5404,8 +4720,7 @@ class Characters:
 
 
 class Font:
-    """
-    The font object can be accessed as an attribute of the range or shape object.
+    """The font object can be accessed as an attribute of the range or shape object.
 
     * `mysheet['A1'].font`
     * `mysheet.shapes[0].font`
@@ -5419,8 +4734,7 @@ class Font:
 
     @property
     def api(self) -> Any:
-        """
-        Returns the native object (`pywin32` or `appscript` obj)
+        """Returns the native object (`pywin32` or `appscript` obj)
         of the engine being used.
 
         ```{versionadded} 0.23.0
@@ -5430,8 +4744,7 @@ class Font:
 
     @property
     def bold(self) -> bool | None:
-        """
-        Returns or sets the bold property (boolean).
+        """Returns or sets the bold property (boolean).
 
         ```pycon
         >>> sheet['A1'].font.bold = True
@@ -5450,8 +4763,7 @@ class Font:
 
     @property
     def italic(self) -> bool | None:
-        """
-        Returns or sets the italic property (boolean).
+        """Returns or sets the italic property (boolean).
 
         ```pycon
         >>> sheet['A1'].font.italic = True
@@ -5470,8 +4782,7 @@ class Font:
 
     @property
     def size(self) -> float | None:
-        """
-        Returns or sets the size (float).
+        """Returns or sets the size (float).
 
         ```pycon
         >>> sheet['A1'].font.size = 13
@@ -5490,8 +4801,7 @@ class Font:
 
     @property
     def color(self) -> tuple[int, int, int] | None:
-        """
-        Returns or sets the color property (tuple).
+        """Returns or sets the color property (tuple).
 
         ```pycon
         >>> sheet['A1'].font.color = (255, 0, 0)  # or '#ff0000'
@@ -5510,8 +4820,7 @@ class Font:
 
     @property
     def name(self) -> str | None:
-        """
-        Returns or sets the name of the font (str).
+        """Returns or sets the name of the font (str).
 
         ```pycon
         >>> sheet['A1'].font.name = 'Calibri'
@@ -5530,27 +4839,18 @@ class Font:
 
 
 class FreezePanes:
-    """
-    Freeze panes interface. Use via `mysheet.freeze_panes`.
-    """
+    """Freeze panes interface. Use via `mysheet.freeze_panes`."""
 
     def __init__(self, impl: Any, sheet: Sheet) -> None:
         self.impl = impl
         self.sheet = sheet
 
     def freeze_at(self, frozen_range: str | Range) -> None:
-        """
-        Sets the frozen cells in the sheet.
+        """Sets the frozen cells in the sheet.
 
-        Parameters
-        ----------
+        Args:
+            frozen_range: E.g., "A1", "A:A", or "1:1" or mysheet["A1"], etc.
 
-        frozen_range : str or xw.Range
-            E.g., "A1", "A:A", or "1:1" or mysheet["A1"], etc.
-
-        Returns
-        -------
-        None
         """
         if isinstance(frozen_range, Range):
             if self.sheet != frozen_range.sheet:
@@ -5559,15 +4859,12 @@ class FreezePanes:
         self.impl.freeze_at(frozen_range)
 
     def unfreeze(self) -> None:
-        """
-        Removes all frozen panes in the sheet.
-        """
+        """Removes all frozen panes in the sheet."""
         self.impl.unfreeze()
 
 
 class Books(Collection[Book]):
-    """
-    A collection of all `book` objects:
+    """A collection of all `book` objects:
 
     ```pycon
     >>> import xlwings as xw
@@ -5585,9 +4882,7 @@ class Books(Collection[Book]):
 
     @property
     def active(self) -> Book:
-        """
-        Returns the active Book.
-        """
+        """Returns the active Book."""
         return Book(impl=self.impl.active)
 
     async def get_active(self) -> Book:
@@ -5603,9 +4898,7 @@ class Books(Collection[Book]):
         return Book(impl=await self.impl.get_active())
 
     def add(self) -> Book:
-        """
-        Creates a new Book. The new Book becomes the active Book. Returns a Book object.
-        """
+        """Creates a new Book. The new Book becomes the active Book. Returns a Book object."""
         return Book(impl=self.impl.add())
 
     def open(
@@ -5627,23 +4920,17 @@ class Books(Collection[Book]):
         corrupt_load: int | None = None,
         json: dict[str, Any] | None = None,
     ) -> Book:
-        """
-        Opens a Book if it is not open yet and returns it. If it is already open,
+        """Opens a Book if it is not open yet and returns it. If it is already open,
         it doesn't raise an exception but simply returns the Book object.
 
-        Parameters
-        ----------
-        fullname : str or path-like object
-            filename or fully qualified filename, e.g. `r'C:\\path\\to\\file.xlsx'`
-            or `'file.xlsm'`. Without a full path, it looks for the file in the
-            current working directory.
+        Args:
+            fullname: filename or fully qualified filename, e.g., `r'C:\\path\\to\\file.xlsx'`
+                or `'file.xlsm'`. Without a full path, it looks for the file in the
+                current working directory.
 
-        Other Parameters
+            Other Parameters
             see: `xlwings.Book()`
 
-        Returns
-        -------
-        Book : Book that has been opened.
 
         """
         if self.impl.app.engine.type == "remote":
@@ -5687,8 +4974,7 @@ class Books(Collection[Book]):
 
 
 class Sheets(Collection[Sheet]):
-    """
-    A collection of all `sheet` objects:
+    """A collection of all `sheet` objects:
 
     ```pycon
     >>> import xlwings as xw
@@ -5706,9 +4992,7 @@ class Sheets(Collection[Sheet]):
 
     @property
     def active(self) -> Sheet:
-        """
-        Returns the active Sheet.
-        """
+        """Returns the active Sheet."""
         return Sheet(impl=self.impl.active)
 
     async def get_active(self) -> Sheet:
@@ -5736,22 +5020,16 @@ class Sheets(Collection[Sheet]):
         before: Sheet | None = None,
         after: Sheet | None = None,
     ) -> Sheet:
-        """
-        Creates a new Sheet and makes it the active sheet.
+        """Creates a new Sheet and makes it the active sheet.
 
-        Parameters
-        ----------
-        name : str, default None
-            Name of the new sheet. If None, will default to Excel's default name.
-        before : Sheet, default None
-            An object that specifies the sheet before which the new sheet is added.
-        after : Sheet, default None
-            An object that specifies the sheet after which the new sheet is added.
+        Args:
+            name: Name of the new sheet. If None, will default to Excel's default name.
+            before: An object that specifies the sheet before which the new sheet is
+                added.
+            after: An object that specifies the sheet after which the new sheet is
+                added.
 
-        Returns
-        -------
-
-        sheet : Sheet
+        Returns:
             Added sheet object
 
         """
