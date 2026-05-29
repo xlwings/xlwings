@@ -62,6 +62,16 @@ Funding = "https://www.xlwings.org/pricing"
 Source = "https://github.com/xlwings/xlwings"
 Changelog = "https://docs.xlwings.org/en/stable/whatsnew.html"
 
+[dependency-groups]
+docs = [
+    "furo",
+    "myst-parser[linkify]",
+    "sphinx",
+    "sphinx-autobuild",
+    "sphinx-copybutton",
+    "sphinx-design",
+]
+
 [tool.maturin]
 exclude = ["xlwings/js/tsconfig.json", "xlwings/js/excel.d.ts"]
 module-name = "xlwings.xlwingslib"

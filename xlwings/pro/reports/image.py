@@ -16,7 +16,7 @@ from ...utils import fspath
 
 class Image:
     """
-    Use this class to provide images to either ``render_template()``.
+    Use this class to provide images to either `render_template()`.
 
     Arguments
     ---------

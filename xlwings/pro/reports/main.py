@@ -375,8 +375,7 @@ def create_report(template=None, output=None, book_settings=None, **data):
 
 
 def render_template(template, output, book_settings=None, app=None, **data):
-    """
-    This function requires xlwings :guilabel:`PRO`.
+    """This function requires xlwings `PRO`.
 
     This is a convenience wrapper around
     :meth:`mysheet.render_template <xlwings.Sheet.render_template>`
@@ -388,53 +387,48 @@ def render_template(template, output, book_settings=None, app=None, **data):
     strings, numbers, lists, simple dicts, NumPy arrays, Pandas DataFrames, pictures and
     Matplotlib/Plotly figures.
 
-    Parameters
-    ----------
-    template: str or path-like
-        Path to your Excel template, e.g. ``r'C:\\Path\\to\\my_template.xlsx'``
+    Args:
+        template: Path to your Excel template, e.g.
+            ``r'C:\\Path\\to\\my_template.xlsx'``
+        output: Path to your Report, e.g. ``r'C:\\Path\\to\\my_report.xlsx'``
+        book_settings: A dict of ``xlwings.Book`` parameters, for details see:
+            :attr:`xlwings.Book`.
+            For example: ``book_settings={'update_links': False}``.
+        app: By passing in an xlwings App instance, you can control where your report
+            runs and configure things like ``visible=False``. For details see
+            :attr:`xlwings.App`. By default, it creates the report in the currently
+            active instance of Excel.
+        data: All key/value pairs that are used in the template.
 
-    output: str or path-like
-        Path to your Report, e.g. ``r'C:\\Path\\to\\my_report.xlsx'``
+    Returns:
+        xlwings Book
 
-    book_settings: dict, default None
-        A dict of ``xlwings.Book`` parameters, for details see: :attr:`xlwings.Book`.
-        For example: ``book_settings={'update_links': False}``.
+    Examples:
+        In ``my_template.xlsx``, put the following Jinja variables in two cells:
+        ``{{ title }}`` and ``{{ df }}``
 
-    app: xlwings App, default None
-        By passing in an xlwings App instance, you can control where your report runs
-        and configure things like ``visible=False``. For details see
-        :attr:`xlwings.App`. By default, it creates the report in the currently active
-        instance of Excel.
+        ```pycon
+        >>> from xlwings.reports import render_template
+        >>> import pandas as pd
+        >>> df = pd.DataFrame(data=[[1,2],[3,4]])
+        >>> mybook = render_template('my_template.xlsx', 'my_report.xlsx',
+                                     title='MyTitle', df=df)
+        ```
 
-    data: kwargs
-        All key/value pairs that are used in the template.
+        With many template variables it may be useful to collect the data first:
 
-    Returns
-    -------
-    xlwings Book
+        ```pycon
+        >>> data = dict(title='MyTitle', df=df)
+        >>> mybook = render_template('my_template.xlsx', 'my_report.xlsx', **data)
+        ```
 
+        If you need to handle external links or a password, use it like so:
 
-    Examples
-    --------
-    In ``my_template.xlsx``, put the following Jinja variables in two cells:
-    ``{{ title }}`` and ``{{ df }}``
-
-    >>> from xlwings.reports import render_template
-    >>> import pandas as pd
-    >>> df = pd.DataFrame(data=[[1,2],[3,4]])
-    >>> mybook = render_template('my_template.xlsx', 'my_report.xlsx',
-                                 title='MyTitle', df=df)
-
-    With many template variables it may be useful to collect the data first:
-
-    >>> data = dict(title='MyTitle', df=df)
-    >>> mybook = render_template('my_template.xlsx', 'my_report.xlsx', **data)
-
-    If you need to handle external links or a password, use it like so:
-
-    >>> mybook = render_template('my_template.xlsx', 'my_report.xlsx',
-                                 book_settings={'update_links': True,
-                                 'password': 'mypassword'}, **data)
+        ```pycon
+        >>> mybook = render_template('my_template.xlsx', 'my_report.xlsx',
+                                     book_settings={'update_links': True,
+                                     'password': 'mypassword'}, **data)
+        ```
     """
     shutil.copyfile(template, output)
     if app:

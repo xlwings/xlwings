@@ -60,6 +60,7 @@ class MarkdownStyle:
     or shapes. Start by instantiating a ``MarkdownStyle`` object. Printing it will show
     you the current (default) style:
 
+    ```pycon
     >>> style = MarkdownStyle()
     >>> style
     <MarkdownStyle>
@@ -70,14 +71,17 @@ class MarkdownStyle:
     unordered_list.blank_lines_after: 1
     strong.bold: True
     emphasis.italic: True
+    ```
 
     You can override the defaults, e.g., to make ``**strong**`` text red instead of
     bold, do this:
 
+    ```pycon
     >>> style.strong.bold = False
     >>> style.strong.color = (255, 0, 0)
     >>> style.strong
     strong.color: (255, 0, 0)
+    ```
 
     .. versionadded:: 0.23.0
     """
@@ -134,8 +138,10 @@ class Markdown:
     Examples
     --------
 
+    ```pycon
     >>> mysheet['A1'].value = Markdown("A text with *emphasis* and **strong** style.")
     >>> myshape.text = Markdown("A text with *emphasis* and **strong** style.")
+    ```
 
     .. versionadded:: 0.23.0
     """

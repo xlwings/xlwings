@@ -91,3 +91,6 @@ node_modules
 .parcel-cache
 
 .hypothesis/
+
+# Claude Code
+.claude/settings.json

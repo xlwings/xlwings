@@ -1,5 +1,3 @@
-.. _python_book:
-
 Book
 ====
 
