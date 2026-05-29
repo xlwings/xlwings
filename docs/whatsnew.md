@@ -1392,7 +1392,7 @@ def myfunction():
     return ...
 ```
 
-For details, check out the (also new) and comprehensive API docs about the decorators: [UDF decorators](api/udf_decorators.rst)
+For details, check out the (also new) and comprehensive API docs about the decorators: [UDF decorators](api/udf_decorators.md)
 
 v0.10.2 (Dec 31, 2016)
 

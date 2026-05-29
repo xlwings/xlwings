@@ -294,14 +294,12 @@ class App:
         visible: Returns or sets a boolean value that determines whether the app is visible. The
             default leaves the state unchanged or sets visible=True if the object doesn't
             exist yet.
-
         spec: Mac-only, use the full path to the Excel application,
-            e.g. `/Applications/Microsoft Office 2011/Microsoft Excel` or
-            `/Applications/Microsoft Excel`
-
-        On Windows, if you want to change the version of Excel that xlwings talks to, go
-        to `Control Panel > Programs and Features` and `Repair` the Office version
-        that you want as default.
+            e.g., `/Applications/Microsoft Office 2011/Microsoft Excel` or
+            `/Applications/Microsoft Excel`.
+            On Windows, if you want to change the version of Excel that xlwings talks to, go
+            to `Control Panel > Programs and Features` and `Repair` the Office version
+            that you want as default.
 
 
     ```{note}
@@ -355,6 +353,7 @@ class App:
         """Returns the Excel version number object.
 
         Examples:
+            ```pycon
             >>> import xlwings as xw
             >>> xw.App().version
             VersionNumber('15.24')
@@ -592,36 +591,35 @@ class App:
             name: e.g., `'Module1.MyMacro'` or `'MyMacro'`
 
         Examples:
+            ```vb.net
+            Function MySum(x, y)
+                MySum = x + y
+            End Function
+            ```
+            can be accessed like this:
 
-        ```vb.net
-        Function MySum(x, y)
-            MySum = x + y
-        End Function
-        ```
-        can be accessed like this:
+            ```pycon
+            >>> import xlwings as xw
+            >>> app = xw.App()
+            >>> my_sum = app.macro('MySum')
+            >>> my_sum(1, 2)
+            3
+            ```
 
-        ```pycon
-        >>> import xlwings as xw
-        >>> app = xw.App()
-        >>> my_sum = app.macro('MySum')
-        >>> my_sum(1, 2)
-        3
-        ```
+            Types are supported too:
 
-        Types are supported too:
-
-        ```vb.net
-        Function MySum(x as integer, y as integer)
-            MySum = x + y
-        End Function
-        ```
-        ```pycon
-        >>> import xlwings as xw
-        >>> app = xw.App()
-        >>> my_sum = app.macro('MySum')
-        >>> my_sum(1, 2)
-        3
-        ```
+            ```vb.net
+            Function MySum(x as integer, y as integer)
+                MySum = x + y
+            End Function
+            ```
+            ```pycon
+            >>> import xlwings as xw
+            >>> app = xw.App()
+            >>> my_sum = app.macro('MySum')
+            >>> my_sum(1, 2)
+            3
+            ```
 
         However typed arrays are not supported. So the following won't work
 
@@ -993,9 +991,10 @@ class Book:
         await self.impl.flush()
 
     async def sync(self) -> None:
-        """```{deprecated} 0.35.0
+        """
+        ```{deprecated} 0.35.0
+        Use `flush` instead.
         ```
-            Use `flush` instead.
         """
         warnings.warn(
             "Book.sync() is deprecated, use Book.flush() instead.",
@@ -1527,9 +1526,9 @@ class Sheet:
         """Autofits the width of either columns, rows or both on a whole Sheet.
 
         Args:
-            axis: - To autofit rows, use one of the following: `rows` or `r`
-                - To autofit columns, use one of the following: `columns` or `c`
-                - To autofit rows and columns, provide no arguments
+            axis: To autofit rows, use `"rows"` or `"r"`. To autofit columns,
+                use `"columns"` or `"c"`. To autofit rows and columns, provide
+                no arguments.
 
         Examples:
             ```pycon
@@ -4223,7 +4222,7 @@ class Pictures(Collection[Picture]):
                 or "eps" on macOS for better print quality. If you use `'vector'`, it
                 will be using `'svg'` on Windows and `'eps'` on macOS. To find out which
                 formats your version of Excel supports, see:
-            https://support.microsoft.com/en-us/topic/support-for-eps-images-has-been-turned-off-in-office-a069d664-4bcf-415e-a1b5-cbb0c334a840
+                https://support.microsoft.com/en-us/topic/support-for-eps-images-has-been-turned-off-in-office-a069d664-4bcf-415e-a1b5-cbb0c334a840
             anchor: The xlwings Range object of where you want to insert the picture. If
                 you use `anchor`, you must not provide values for `top`/`left`.
                 *New in version 0.24.3.*

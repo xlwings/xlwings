@@ -5,7 +5,7 @@ This tutorial gets you quickly started on how to write User Defined Functions.
 ```{note}
 * UDFs are currently only available on Windows.
 * For details of how to control the behaviour of the arguments and return values, have a look at [Converters and Options](converters.md#converters-and-options).
-* For a comprehensive overview of the available decorators and their options, check out the corresponding API docs: [UDF decorators](api/udf_decorators.rst).
+* For a comprehensive overview of the available decorators and their options, check out the corresponding API docs: [UDF decorators](api/udf_decorators.md).
 ```
 
 ## One-time Excel preparations
