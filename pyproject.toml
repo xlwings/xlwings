@@ -48,6 +48,7 @@ all = [
     "requests",
     "pdfrw",
     "pytest",
+    "anyio",
     "mistune",
 ]
 vba_edit = ["watchgod"]

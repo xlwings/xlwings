@@ -6,6 +6,7 @@ from .pro.udfs_officejs import (
     custom_scripts_call,
     custom_scripts_meta,
     script,
+    sio_cancel_task,
     sio_connect,
     sio_custom_function_call,
     sio_disconnect,
