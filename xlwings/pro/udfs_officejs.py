@@ -429,15 +429,17 @@ async def custom_functions_call(
 
             def on_task_done(t):
                 if not t.cancelled() and t.exception() is not None:
-                    t.cancel()
                     logger.info(
-                        f"Task {t.get_name()} cancelled as it failed with exception: {t.exception()}"
+                        f"Task {t.get_name()} failed with exception: {t.exception()}"
                     )
-                del background_tasks[task_key]
+                background_tasks.pop(task_key, None)
+                task_key_to_sid_counts.pop(task_key, None)
+                task_key_to_task.pop(task_key, None)
 
             mytask.add_done_callback(on_task_done)
             return mytask
         else:
+            logger.info(f"Reusing existing stream for task key '{task_key}'")
             return
 
     elif inspect.iscoroutinefunction(func):
@@ -688,11 +690,13 @@ def custom_scripts_meta(module):
 
 
 # Socket.io (sid is the session ID)
-task_key_to_sids = {}
+# task_key_to_sid_counts: task_key -> {sid: subscription_count}
+task_key_to_sid_counts = {}
 task_key_to_task = {}
 
 
 async def sio_connect(sid, environ, auth, sio, authenticate=None):
+    auth = auth if isinstance(auth, dict) else {}
     token = auth.get("token")
     if authenticate:
         try:
@@ -705,24 +709,26 @@ async def sio_connect(sid, environ, auth, sio, authenticate=None):
         except Exception as e:
             logger.info(f"Socket.io: authentication failed for sid {sid}: {repr(e)}")
             await sio.disconnect(sid)
-    logger.info(f"Socket.io: connect {sid}")
+            return
+    else:
+        logger.info(f"Socket.io: connect {sid}")
 
 
 async def sio_disconnect(sid):
     logger.info(f"disconnect {sid}")
-    try:
-        # Using list() to prevent the loop from changing the dict directly
-        for task_key in list(task_key_to_sids.keys()):
-            task = task_key_to_task[task_key]
-            task_key_to_sids[task_key].discard(sid)
-            if not task_key_to_sids[task_key]:
+    # Using list() to prevent the loop from changing the dict directly
+    for task_key in list(task_key_to_sid_counts.keys()):
+        sid_counts = task_key_to_sid_counts.get(task_key)
+        if sid_counts is None:
+            continue
+        sid_counts.pop(sid, None)
+        if not sid_counts:
+            task = task_key_to_task.get(task_key)
+            if task:
                 task.cancel()
                 logger.info(f"Cancelled task {task.get_name()}")
-                del task_key_to_sids[task_key]
-                del task_key_to_task[task_key]
-    except KeyError:
-        # Renaming functions during development can cause issues
-        pass
+            task_key_to_sid_counts.pop(task_key, None)
+            task_key_to_task.pop(task_key, None)
     await asyncio.sleep(0)  # Allow event loop to cancel the tasks
     active_tasks = [
         task.get_name()
@@ -738,9 +744,36 @@ async def sio_custom_function_call(
     if typehint_to_value is None:
         typehint_to_value = {}
     task_key = data["task_key"]
-    task_key_to_sids[task_key] = task_key_to_sids.get(task_key, set()).union({sid})
-    task = await custom_functions_call(
-        data, custom_functions, current_user, sio, typehint_to_value
-    )
+    sid_counts = task_key_to_sid_counts.setdefault(task_key, {})
+    sid_counts[sid] = sid_counts.get(sid, 0) + 1
+    try:
+        task = await custom_functions_call(
+            data, custom_functions, current_user, sio, typehint_to_value
+        )
+    except Exception:
+        sid_counts[sid] -= 1
+        if sid_counts[sid] <= 0:
+            sid_counts.pop(sid, None)
+        if not sid_counts:
+            task_key_to_sid_counts.pop(task_key, None)
+        raise
     if task:
         task_key_to_task[task_key] = task
+
+
+async def sio_cancel_task(sid, task_key):
+    sid_counts = task_key_to_sid_counts.get(task_key)
+    if sid_counts is None:
+        return
+    count = sid_counts.get(sid, 0)
+    if count > 1:
+        sid_counts[sid] = count - 1
+    else:
+        sid_counts.pop(sid, None)
+    if not sid_counts:
+        task = task_key_to_task.get(task_key)
+        if task:
+            task.cancel()
+            logger.info(f"Cancelled task {task.get_name()}")
+        task_key_to_sid_counts.pop(task_key, None)
+        task_key_to_task.pop(task_key, None)

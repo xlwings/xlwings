@@ -31,7 +31,7 @@ classifiers = [
 ]
 
 dynamic = ["version"]
-license = {text = "BSD 3-clause"}
+license = { text = "BSD 3-clause" }
 keywords = ["xls", "excel", "spreadsheet", "workbook", "vba", "macro"]
 
 
@@ -48,7 +48,9 @@ all = [
     "requests",
     "pdfrw",
     "pytest",
+    "anyio",
     "mistune",
+    "pytest",
 ]
 vba_edit = ["watchgod"]
 
@@ -70,6 +72,22 @@ docs = [
     "sphinx-autobuild",
     "sphinx-copybutton",
     "sphinx-design",
+]
+
+all = [
+    { include-group = "docs" },
+    "black",
+    "isort",
+    "Jinja2",
+    "pandas",
+    "matplotlib",
+    "plotly",
+    "flask",
+    "requests",
+    "pdfrw",
+    "pytest",
+    "anyio",
+    "mistune",
 ]
 
 [tool.maturin]
