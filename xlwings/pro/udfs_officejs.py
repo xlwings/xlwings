@@ -436,6 +436,11 @@ async def custom_functions_call(
                     logger.exception(f"Error in custom function '{func_name}'")
                     raise
 
+        # For xlwings Lite (streaming_callback), always restart the task since
+        # re-registration invalidates the old invocation/callback.
+        if task_key in background_tasks and streaming_callback:
+            background_tasks.pop(task_key).cancel()
+
         if task_key not in background_tasks:
             mytask = asyncio.create_task(task(), name=f"xlwings-{task_key}")
             background_tasks[task_key] = mytask
