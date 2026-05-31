@@ -352,10 +352,16 @@ async def check_user_roles(current_user, required_roles):
 
 
 async def custom_functions_call(
-    data, module, current_user=None, sio=None, typehint_to_value: dict = None
+    data,
+    module,
+    current_user=None,
+    sio=None,
+    typehint_to_value: dict = None,
+    streaming_callback=None,
 ):
     """
     sio : socketio.AsyncServer instance
+    streaming_callback : callable, used by Lite/Pyodide to push streaming results directly
     """
     func_name = data["func_name"]
     args = data["args"]
@@ -411,17 +417,24 @@ async def custom_functions_call(
             try:
                 async for result in func(*args):
                     result = convert(result, ret_info, data)
+                    if streaming_callback:
+                        streaming_callback(result)
+                    else:
+                        await sio.emit(
+                            f"xlwings:set-result-{task_key}",
+                            {"result": result},
+                        )
+            except Exception as e:  # noqa: E722
+                error_result = [[f"ERROR: {repr(e)}"]]
+                if streaming_callback:
+                    streaming_callback(error_result)
+                else:
                     await sio.emit(
                         f"xlwings:set-result-{task_key}",
-                        {"result": result},
+                        {"result": error_result},
                     )
-            except Exception as e:  # noqa: E722
-                await sio.emit(
-                    f"xlwings:set-result-{task_key}",
-                    {"result": [[f"ERROR: {repr(e)}"]]},
-                )
-                logger.exception(f"Error in custom function '{func_name}'")
-                raise
+                    logger.exception(f"Error in custom function '{func_name}'")
+                    raise
 
         if task_key not in background_tasks:
             mytask = asyncio.create_task(task(), name=f"xlwings-{task_key}")
