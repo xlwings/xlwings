@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.36.0 (May 31, 2026)
+
+- {bdg-info}`Enhancement` xlwings Server: Streaming functions are now more robust  ({issue}`2702`).
+- {bdg-info}`Enhancement` All documentation and doc strings are now written in Markdown instead of reStructuredText.
+
 ## v0.35.3 (May 6, 2026)
 
 - {bdg-info}`Enhancement` xlwings Server/Lite: Support `typing.Literal` for custom functions args ("enums") to show a dropdown in Excel formulas ({issue}`2695`).
