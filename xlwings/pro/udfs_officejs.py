@@ -446,13 +446,9 @@ async def custom_functions_call(
         if task_key in background_tasks and streaming_callback:
             old_task = background_tasks.pop(task_key)
             old_task.cancel()
-            logger.info(
-                f"[streaming] cancelled old task: {old_task.get_name()}, cancelled={old_task.cancelled()}"
-            )
-
-        logger.info(
-            f"[streaming] task_key={task_key}, in background_tasks={task_key in background_tasks}"
-        )
+            # Let the event loop process the cancellation before creating
+            # the new task, otherwise both tasks run concurrently.
+            await asyncio.sleep(0.5)
         if task_key not in background_tasks:
             mytask = asyncio.create_task(task(), name=f"xlwings-{task_key}")
             background_tasks[task_key] = mytask
