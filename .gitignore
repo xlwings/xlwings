@@ -1,4 +1,5 @@
 output.xlsx
+uv.lock
 
 .metadata
 *.py[cod]
