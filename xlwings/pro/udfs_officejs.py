@@ -433,6 +433,7 @@ async def custom_functions_call(
                     error_result = [[f"ERROR: {repr(e)}"]]
                     if streaming_callback:
                         streaming_callback(error_result)
+                        logger.exception(f"Error in custom function '{func_name}'")
                     else:
                         await sio.emit(
                             f"xlwings:set-result-{task_key}",
