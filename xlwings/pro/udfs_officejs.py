@@ -14,6 +14,7 @@ Commercial licenses can be purchased at https://www.xlwings.org
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import inspect
 import logging
 import os
@@ -358,10 +359,12 @@ async def custom_functions_call(
     sio=None,
     typehint_to_value: dict = None,
     streaming_callback=None,
+    streaming_context=None,
 ):
     """
     sio : socketio.AsyncServer instance
     streaming_callback : callable, used by Lite/Pyodide to push streaming results directly
+    streaming_context : context manager applied inside the streaming task (e.g., stdout redirect)
     """
     func_name = data["func_name"]
     args = data["args"]
@@ -414,27 +417,29 @@ async def custom_functions_call(
         task_key = data["task_key"]
 
         async def task():
-            try:
-                async for result in func(*args):
-                    result = convert(result, ret_info, data)
+            ctx = streaming_context or contextlib.nullcontext()
+            with ctx:
+                try:
+                    async for result in func(*args):
+                        result = convert(result, ret_info, data)
+                        if streaming_callback:
+                            streaming_callback(result)
+                        else:
+                            await sio.emit(
+                                f"xlwings:set-result-{task_key}",
+                                {"result": result},
+                            )
+                except Exception as e:  # noqa: E722
+                    error_result = [[f"ERROR: {repr(e)}"]]
                     if streaming_callback:
-                        streaming_callback(result)
+                        streaming_callback(error_result)
                     else:
                         await sio.emit(
                             f"xlwings:set-result-{task_key}",
-                            {"result": result},
+                            {"result": error_result},
                         )
-            except Exception as e:  # noqa: E722
-                error_result = [[f"ERROR: {repr(e)}"]]
-                if streaming_callback:
-                    streaming_callback(error_result)
-                else:
-                    await sio.emit(
-                        f"xlwings:set-result-{task_key}",
-                        {"result": error_result},
-                    )
-                    logger.exception(f"Error in custom function '{func_name}'")
-                    raise
+                        logger.exception(f"Error in custom function '{func_name}'")
+                        raise
 
         # For xlwings Lite (streaming_callback), always restart the task since
         # re-registration invalidates the old invocation/callback.
