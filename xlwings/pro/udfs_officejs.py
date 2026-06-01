@@ -444,13 +444,24 @@ async def custom_functions_call(
         # For xlwings Lite (streaming_callback), always restart the task since
         # re-registration invalidates the old invocation/callback.
         if task_key in background_tasks and streaming_callback:
-            background_tasks.pop(task_key).cancel()
+            old_task = background_tasks.pop(task_key)
+            old_task.cancel()
+            logger.info(
+                f"[streaming] cancelled old task: {old_task.get_name()}, cancelled={old_task.cancelled()}"
+            )
 
+        logger.info(
+            f"[streaming] task_key={task_key}, in background_tasks={task_key in background_tasks}"
+        )
         if task_key not in background_tasks:
             mytask = asyncio.create_task(task(), name=f"xlwings-{task_key}")
             background_tasks[task_key] = mytask
+            logger.info(f"[streaming] created task: {mytask.get_name()}")
 
             def on_task_done(t):
+                logger.info(
+                    f"[streaming] task done: {t.get_name()}, cancelled={t.cancelled()}, exception={t.exception() if not t.cancelled() else 'N/A'}"
+                )
                 if not t.cancelled() and t.exception() is not None:
                     logger.info(
                         f"Task {t.get_name()} failed with exception: {t.exception()}"
