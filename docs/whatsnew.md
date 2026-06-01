@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.36.1 (May 31, 2026)
+
+- {bdg-info}`Enhancement` xlwings Lite: Added support for streaming functions.
+
 ## v0.36.0 (May 31, 2026)
 
 - {bdg-info}`Enhancement` xlwings Server: Streaming functions are now more robust  ({issue}`2702`).
