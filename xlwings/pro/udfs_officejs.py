@@ -672,32 +672,58 @@ def script(
 
 
 async def custom_scripts_call(
-    module, script_name, current_user=None, typehint_to_value: dict = None
+    module, script_name, current_user=None, typehint_to_value: dict = None, args=None
 ):
     if typehint_to_value is None:
         typehint_to_value = {}
-    # Currently, there are no arguments from the client accepted, only internally
-    # provided args via type hints are allowed
+    if args is None:
+        args = []
     func = getattr(module, script_name)
 
     # Get the function signature
     sig = inspect.signature(func)
+    # Resolve type hints so `from __future__ import annotations` works
+    resolved_hints = get_type_hints(inspect.unwrap(func))
     # Prepend current_user, which will be removed again by the script decorator
-    args = [current_user]
+    call_args = [current_user]
 
     # Iterate over the parameters and check their type hints
+    arg_iter = iter(args)
     for param in sig.parameters.values():
-        if param.annotation in typehint_to_value:
-            args.append(typehint_to_value[param.annotation])
-        else:
+        if param.kind in (
+            inspect.Parameter.KEYWORD_ONLY,
+            inspect.Parameter.VAR_KEYWORD,
+        ):
             raise XlwingsError(
-                "Scripts currently only allow Book and CurrentUser as params"
+                f"Script '{script_name}': keyword-only and **kwargs parameters "
+                f"are not supported ('{param.name}')"
             )
+        hint = resolved_hints.get(param.name)
+        if hint in typehint_to_value:
+            call_args.append(typehint_to_value[hint])
+        elif param.kind == inspect.Parameter.VAR_POSITIONAL:
+            call_args.extend(arg_iter)
+        else:
+            try:
+                call_args.append(next(arg_iter))
+            except StopIteration:
+                if param.default is not inspect.Parameter.empty:
+                    call_args.append(param.default)
+                else:
+                    raise XlwingsError(
+                        f"Script '{script_name}': missing required argument "
+                        f"'{param.name}'"
+                    )
+    leftover = list(arg_iter)
+    if leftover:
+        raise XlwingsError(
+            f"Script '{script_name}' received {len(leftover)} extra argument(s)"
+        )
 
     if inspect.iscoroutinefunction(func):
-        book = await func(*args)
+        book = await func(*call_args)
     else:
-        book = func(*args)
+        book = func(*call_args)
 
     return book
 
