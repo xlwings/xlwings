@@ -264,6 +264,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: xlwings.exe
+          generate_release_notes: true
           body: |
             * Release Notes: https://docs.xlwings.org/en/latest/whatsnew.html
             * Installation: To install this release, you must use a package manager like `uv`, `pip`, or `conda`, you can't install from source directly, see https://docs.xlwings.org/en/stable/installation.html

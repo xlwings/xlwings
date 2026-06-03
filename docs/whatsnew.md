@@ -1,8 +1,12 @@
 # Changelog
 
+## v0.36.2 (Jun 3, 2026)
+
+- xlwings Server: Allow `@script` to accept arbitrary arguments.
+
 ## v0.36.1 (May 31, 2026)
 
-- {bdg-info}`Enhancement` xlwings Lite: Added support for streaming functions.
+- {bdg-info}`Enhancement` xlwings Lite: Added support for streaming functions ({issue}`2703`).
 
 ## v0.36.0 (May 31, 2026)
 
