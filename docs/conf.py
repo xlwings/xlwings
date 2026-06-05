@@ -111,6 +111,7 @@ myst_linkify_fuzzy_links = False
 
 html_theme = "furo"
 html_static_path = ["_static"]
+html_css_files = ["custom.css"]
 html_show_sourcelink = False
 html_copy_source = False
 html_title = "xlwings Documentation"
@@ -134,6 +135,9 @@ html_theme_options = {
     },
     "dark_css_variables": {
         "color-brand-primary": "white",
+        # Lighter green than light mode (#28a745) for contrast on the dark
+        # sidebar; drives the active sidebar item's accent bar/text/tint.
+        "color-brand-content": "#3fbf5f",
         "color-announcement-background": "#28a745",
     },
     "announcement": '<a href="https://lite.xlwings.org/" target="_blank"> xlwings Lite</a> is now available in the add-in store for free!</a>',

@@ -1,0 +1,10 @@
+{% extends "furo/page.html" %}
+
+{% block body %}
+  {{ super() }}
+  {# Keep the selected sidebar item visible across navigations. Loaded here,
+     right after the sidebar markup (emitted by super() above), so it runs during
+     parse — before first paint — which is what prevents the visible "spin". An
+     external file (not inline) keeps it CSP-friendly. See sidebar-scroll.js. #}
+  <script src="{{ pathto('_static/sidebar-scroll.js', 1) }}"></script>
+{% endblock body %}

@@ -1,0 +1,18 @@
+/* --- Active sidebar item -------------------------------------------------
+   Furo's default for the current page is just bold text (the "current"
+   background variable resolves to the sidebar background, so it's invisible).
+   Make it clearly stand out: a brand-green left accent bar, a faint tinted
+   background, and green bold text. Uses --color-brand-* / color-mix so it
+   adapts to both light and dark mode automatically. */
+.sidebar-tree .current-page > .reference {
+  font-weight: bold;
+  color: var(--color-brand-content);
+  background: color-mix(in srgb, var(--color-brand-content) 12%, transparent);
+  border-left: 3px solid var(--color-brand-content);
+  /* Keep text aligned despite the 3px border. */
+  padding-left: calc(var(--sidebar-item-spacing-horizontal) - 3px);
+}
+
+.sidebar-tree .current-page > .reference:hover {
+  background: color-mix(in srgb, var(--color-brand-content) 20%, transparent);
+}
