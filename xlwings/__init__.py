@@ -37,6 +37,49 @@ class NoSuchObjectError(XlwingsError):
     pass
 
 
+class ObjectCacheMissError(XlwingsError):
+    """Raised when an object handle can't be resolved from the object cache, e.g.,
+    because the cached object has expired or been evicted. Carries the cache ``key`` so
+    that the caller can render a "stale" object handle instead of a hard error."""
+
+    def __init__(self, key=None):
+        self.key = key
+        super().__init__(
+            "Object handle is no longer cached"
+            if key is None
+            else f"Object handle is no longer cached: {key}"
+        )
+
+
+class ObjectHandle:
+    """Wraps a return value of a custom function so that it's stored as an object handle
+    with custom presentation. Use it to override the cell text, icon, and the properties
+    shown on the object handle's card on a per-object basis::
+
+        import xlwings as xw
+
+        @func
+        def make_obj() -> object:
+            df = build()
+            return xw.ObjectHandle(
+                df,
+                text=f"{len(df)} rows",
+                icon=xw.ObjectHandleIcons.table,
+                properties={"Region": str(df["region"].iloc[0])},
+            )
+
+    The wrapped object (``obj``) is what gets cached; ``text``, ``icon``, and
+    ``properties`` only shape the object handle's appearance. ``properties`` is merged on
+    top of the automatically derived ones, with the supplied values taking precedence.
+    """
+
+    def __init__(self, obj, *, text=None, icon=None, properties=None):
+        self.obj = obj
+        self.text = text
+        self.icon = icon
+        self.properties = properties or {}
+
+
 # API
 from .main import (
     App,
@@ -65,6 +108,8 @@ __all__ = (
     "Chart",
     "Engine",
     "Name",
+    "ObjectCacheMissError",
+    "ObjectHandle",
     "Picture",
     "Range",
     "RangeColumns",
