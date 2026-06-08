@@ -71,6 +71,16 @@ class ObjectHandle:
     The wrapped object (``obj``) is what gets cached; ``text``, ``icon``, and
     ``properties`` only shape the object handle's appearance. ``properties`` is merged on
     top of the automatically derived ones, with the supplied values taking precedence.
+
+    As a type hint, ``ObjectHandle[T]`` marks a custom function argument as an object
+    handle while preserving ``T`` as the type seen by editors and type checkers, e.g.::
+
+        @func
+        def view(obj: ObjectHandle[pd.DataFrame]):
+            return obj  # obj is a DataFrame as far as the type checker is concerned
+
+    This is equivalent to annotating the argument with ``object`` but without losing the
+    static type information.
     """
 
     def __init__(self, obj, *, text=None, icon=None, properties=None):
@@ -78,6 +88,11 @@ class ObjectHandle:
         self.text = text
         self.icon = icon
         self.properties = properties or {}
+
+    def __class_getitem__(cls, item):
+        from typing import Annotated
+
+        return Annotated[item, cls]
 
 
 # API

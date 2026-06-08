@@ -37,7 +37,7 @@ _F = TypeVar("_F", bound=Callable[..., Any])
 
 import xlwings as xw
 
-from .. import XlwingsError, __version__, conversion
+from .. import ObjectHandle, XlwingsError, __version__, conversion
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +82,14 @@ def extract_type_and_annotations(type_hint):
     if origin is Annotated:
         base_type, *annotations = get_args(type_hint)
         top_level_type = get_origin(base_type) or base_type
+        # ObjectHandle[T] (i.e. Annotated[T, ObjectHandle]) marks an object handle while
+        # keeping T as the type seen by editors/type checkers. Convert via the object
+        # cache (registered for `object`), not via T's own converter.
+        if ObjectHandle in annotations:
+            top_level_type = object
+        # Only the dict-style annotations carry conversion options; drop markers such as
+        # ObjectHandle so downstream code can assume annotations are option dicts.
+        annotations = [a for a in annotations if isinstance(a, dict)]
         return top_level_type, annotations
     else:
         top_level_type = origin or type_hint
