@@ -90,10 +90,14 @@ def extract_type_and_annotations(type_hint):
         # Only the dict-style annotations carry conversion options; drop markers such as
         # ObjectHandle so downstream code can assume annotations are option dicts.
         annotations = [a for a in annotations if isinstance(a, dict)]
-        return top_level_type, annotations
     else:
         top_level_type = origin or type_hint
-        return top_level_type, []
+        annotations = []
+    # A bare ObjectHandle (e.g. `-> ObjectHandle`) is an alias for `object`, i.e. it's
+    # converted via the object cache.
+    if top_level_type is ObjectHandle:
+        top_level_type = object
+    return top_level_type, annotations
 
 
 def extract_enum_descriptor(type_hint, func_name, param_name):
