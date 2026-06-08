@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.36.3 (Jun 8, 2026)
+
+- xlwings Server: Internal refactor for object handles.
+
 ## v0.36.2 (Jun 3, 2026)
 
 - xlwings Server: Allow `@script` to accept arbitrary arguments.
