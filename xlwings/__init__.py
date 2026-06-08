@@ -58,8 +58,8 @@ class ObjectHandle:
 
         import xlwings as xw
 
-        @func
-        def make_obj() -> object:
+        @xw.func
+        def make_obj() -> xw.ObjectHandle:
             df = build()
             return xw.ObjectHandle(
                 df,
@@ -68,15 +68,15 @@ class ObjectHandle:
                 properties={"Region": str(df["region"].iloc[0])},
             )
 
-    The wrapped object (``obj``) is what gets cached; ``text``, ``icon``, and
+    The wrapped object (``df``) is what gets cached; ``text``, ``icon``, and
     ``properties`` only shape the object handle's appearance. ``properties`` is merged on
     top of the automatically derived ones, with the supplied values taking precedence.
 
     As a type hint, ``ObjectHandle[T]`` marks a custom function argument as an object
     handle while preserving ``T`` as the type seen by editors and type checkers, e.g.::
 
-        @func
-        def view(obj: ObjectHandle[pd.DataFrame]):
+        @xw.func
+        def view(obj: xw.ObjectHandle[pd.DataFrame]):
             return obj  # obj is a DataFrame as far as the type checker is concerned
 
     This is equivalent to annotating the argument with ``object`` but without losing the
