@@ -1,3 +1,7 @@
+{# The epub/latex builders use the basic theme (no Furo), so extending
+   "furo/page.html" unconditionally fails there with TemplateNotFound. Only
+   override the Furo HTML build; let other builders use their own page.html. #}
+{% if builder == "html" or builder == "dirhtml" %}
 {% extends "furo/page.html" %}
 
 {% block body %}
@@ -8,3 +12,6 @@
      external file (not inline) keeps it CSP-friendly. See sidebar-scroll.js. #}
   <script src="{{ pathto('_static/sidebar-scroll.js', 1) }}"></script>
 {% endblock body %}
+{% else %}
+{% extends "!page.html" %}
+{% endif %}
