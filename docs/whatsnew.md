@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.36.4 (Jun 9, 2026)
+
+- xlwings Server: Introduced `CachedObject` for type hint support of cached function args.
+
 ## v0.36.3 (Jun 8, 2026)
 
 - xlwings Server: Internal refactor for object handles.
