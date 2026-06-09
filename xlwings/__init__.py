@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Any, Callable, TypeVar, overload
+from typing import TYPE_CHECKING, Annotated, Any, Callable, TypeVar, overload
 
 __version__ = "0.0.0"
+
+# TypeVar for the CachedObject[T] type alias (defined after the ObjectHandle class).
+_CachedT = TypeVar("_CachedT")
 
 # Platform specifics
 if sys.platform.startswith("darwin"):
@@ -72,15 +75,10 @@ class ObjectHandle:
     ``properties`` only shape the object handle's appearance. ``properties`` is merged on
     top of the automatically derived ones, with the supplied values taking precedence.
 
-    As a type hint, ``ObjectHandle[T]`` marks a custom function argument as an object
-    handle while preserving ``T`` as the type seen by editors and type checkers, e.g.::
-
-        @xw.func
-        def view(obj: xw.ObjectHandle[pd.DataFrame]):
-            return obj  # obj is a DataFrame as far as the type checker is concerned
-
-    This is equivalent to annotating the argument with ``object`` but without losing the
-    static type information.
+    Use ``ObjectHandle`` (bare) as the return type hint to store the returned object as an
+    object handle (``object`` works too). To type a custom function *argument* that is an
+    object handle, use :data:`CachedObject` instead, which keeps the wrapped type visible
+    to editors and type checkers.
     """
 
     def __init__(self, obj, *, text=None, icon=None, properties=None):
@@ -93,6 +91,16 @@ class ObjectHandle:
         from typing import Annotated
 
         return Annotated[item, cls]
+
+
+if TYPE_CHECKING:
+    # For type checkers, ``CachedObject[T]`` is just ``T``, so editors show the real type
+    # of an object-handle argument (e.g. CachedObject[pd.DataFrame] -> pd.DataFrame).
+    CachedObject = Annotated[_CachedT, ObjectHandle]
+else:
+    # At runtime it's ObjectHandle, so CachedObject[T] == ObjectHandle[T] ==
+    # Annotated[T, ObjectHandle], which custom functions convert via the object cache.
+    CachedObject = ObjectHandle
 
 
 # API
@@ -123,6 +131,7 @@ __all__ = (
     "Chart",
     "Engine",
     "Name",
+    "CachedObject",
     "ObjectCacheMissError",
     "ObjectHandle",
     "Picture",
