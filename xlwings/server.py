@@ -1,4 +1,8 @@
 # ruff: noqa: F401
+from .pro.object_handles import (
+    ObjectCacheConverter,
+    stale_object_handle,
+)
 from .pro.udfs_officejs import (
     custom_functions_call,
     custom_functions_code,
