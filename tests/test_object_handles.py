@@ -139,6 +139,17 @@ def test_object_handle_properties_override_function_level():
     assert set(entity["properties"]) == {"FromWrapper", oh.RESERVED_PROPERTY}
 
 
+def test_none_cannot_be_cached():
+    # Usually a function that forgot its return statement. None must be rejected at
+    # write time: the stores use None for "missing", so a cached None would read as a
+    # permanently "Expired object" card on every consumer.
+    with pytest.raises(xw.XlwingsError, match="forget to return"):
+        Converter.write_value(None, {})
+    # The wrapper can't smuggle one in either.
+    with pytest.raises(xw.XlwingsError, match="forget to return"):
+        Converter.write_value(xw.ObjectHandle(None, text="empty"), {})
+
+
 def test_object_handle_properties_cannot_shadow_reserved_key():
     handle = xw.ObjectHandle(
         pd.DataFrame({"a": [1]}),
@@ -194,6 +205,16 @@ def test_lru_read_refreshes_recency():
     with pytest.raises(xw.ObjectCacheMissError):
         Converter.read_value(key2, {})
     assert Converter.read_value(key3, {}) == "three"
+
+
+def test_lru_rejects_nonpositive_maxsize():
+    # 0 would evict every entry on write; negatives would crash the eviction loop.
+    # Both are misconfigurations (e.g. via XLWINGS_OBJECT_CACHE_MAXSIZE) that must fail
+    # at construction, not on the first object-handle write.
+    with pytest.raises(ValueError, match="positive integer"):
+        oh.LRUObjectCache(maxsize=0)
+    with pytest.raises(ValueError, match="positive integer"):
+        oh.LRUObjectCache(maxsize=-5)
 
 
 def test_lru_clear():

@@ -68,12 +68,19 @@ class ObjectHandle:
                 df,
                 text=f"{len(df)} rows",
                 icon=xw.ObjectHandleIcons.table,
-                properties={"Region": str(df["region"].iloc[0])},
+                properties={
+                    "Region": {
+                        "type": "String",
+                        "basicValue": str(df["region"].iloc[0]),
+                    },
+                },
             )
 
     The wrapped object (``df``) is what gets cached; ``text``, ``icon``, and
-    ``properties`` only shape the object handle's appearance. ``properties`` is merged on
-    top of the automatically derived ones, with the supplied values taking precedence.
+    ``properties`` only shape the object handle's appearance. ``properties`` follows the
+    Excel entity property format (see the example above) and, when provided, replaces
+    the automatically derived properties (such as type and shape) as the complete set
+    shown on the card.
 
     Use ``ObjectHandle`` (bare) as the return type hint to store the returned object as an
     object handle (``object`` works too). To type a custom function *argument* that is an

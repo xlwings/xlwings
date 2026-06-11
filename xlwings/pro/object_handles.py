@@ -61,6 +61,11 @@ class LRUObjectCache:
     """
 
     def __init__(self, maxsize=100):
+        # A maxsize < 1 is always a misconfiguration: 0 would evict every entry on
+        # write (every handle instantly "expired"), negative values would crash the
+        # eviction loop. Fail at construction, where the bad config is visible.
+        if maxsize < 1:
+            raise ValueError(f"maxsize must be a positive integer, got {maxsize!r}")
         self.maxsize = maxsize
         self._store = {}
 
@@ -196,6 +201,16 @@ class ObjectCacheConverter(Converter):
             icon = obj.icon or icon
             user_properties = obj.properties or user_properties
             obj = obj.obj
+
+        if obj is None:
+            # Usually a function that forgot its return statement. Failing here keeps
+            # the error at the producing cell; a cached None would be indistinguishable
+            # from a missing entry on read (the stores return None for absent keys) and
+            # would surface as a misleading "Expired object" card on every consumer.
+            raise XlwingsError(
+                "Cannot create an object handle for None. "
+                "Did your function forget to return a value?"
+            )
 
         if RESERVED_PROPERTY in user_properties:
             raise XlwingsError(
