@@ -1,5 +1,6 @@
 # ruff: noqa: F401
 from .pro.object_handles import (
+    CONVERTER_KEYS as OBJECT_CONVERTER_KEYS,
     ObjectCacheConverter,
     stale_object_handle,
 )

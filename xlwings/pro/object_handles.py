@@ -33,6 +33,13 @@ from ..conversion import Converter
 # xlwings-server), which reads it to substitute Entity arguments with their cache key.
 RESERVED_PROPERTY = "object_handle_cache_key"
 
+# The keys under which the runtimes (xlwings-server/Lite) register
+# ObjectCacheConverter: ObjectCacheConverter.register(*CONVERTER_KEYS). The same keys
+# tell custom_functions_call which functions produce object handles (via their return
+# options' "convert" value) and therefore take part in superseded-generation tracking -
+# keeping both sides in one place so they can't drift apart.
+CONVERTER_KEYS = (object, "object", "obj")
+
 # Marker string the frontend substitutes for an Entity argument that isn't one of our
 # object handles (e.g., a Stocks/Geography entity passed by mistake). It's a plain string
 # (like the cache key) so it passes through xlwings' value cleaning unchanged - a dict
@@ -48,8 +55,10 @@ class LRUObjectCache:
     objects, keyed by the handle's UUID.
 
     Every write stores under a fresh UUID (recalculating a producing function never
-    overwrites the previous entry), so without a bound the cache would grow with every
-    recalculation. The LRU cap keeps that in check: reads refresh an entry's recency, and
+    overwrites the previous entry); ``evict_superseded`` deletes the previous generation
+    on recalculation, so the cache normally holds one live object per handle cell. The
+    LRU cap is the backstop for the untracked paths (deleted formulas, streaming
+    functions, calls without a caller address): reads refresh an entry's recency, and
     writes evict the least recently used entries beyond ``maxsize``. Eviction is graceful
     by design - resolving an evicted handle raises ``ObjectCacheMissError``, which the
     runtimes turn into the "Expired object" card that a recalculation regenerates.
@@ -60,7 +69,7 @@ class LRUObjectCache:
     concerns - this store keeps plain object references.
     """
 
-    def __init__(self, maxsize=100):
+    def __init__(self, maxsize=1000):
         # A maxsize < 1 is always a misconfiguration: 0 would evict every entry on
         # write (every handle instantly "expired"), negative values would crash the
         # eviction loop. Fail at construction, where the bad config is visible.
@@ -83,6 +92,10 @@ class LRUObjectCache:
         while len(self._store) > self.maxsize:
             del self._store[next(iter(self._store))]
 
+    def delete(self, cache_id):
+        """Removes the entry if present. Used by ``evict_superseded``."""
+        self._store.pop(cache_id, None)
+
     def clear(self):
         self._store.clear()
 
@@ -93,6 +106,57 @@ class LRUObjectCache:
 # The active store. Runtimes with their own backend replace this, e.g.:
 # from xlwings.pro import object_handles; object_handles.cache = RedisObjectCache()
 cache = LRUObjectCache()
+
+# Cache ids written by each producing cell's last invocation, keyed by user/caller
+# address (e.g. "Excel[Book1.xlsx]Sheet1!A1"). Every write stores under a fresh UUID,
+# so without this map, recalculating a producing cell would leave the superseded
+# generation in the cache until LRU eviction - with large objects, up to maxsize
+# orphaned generations can exhaust memory long before the LRU bound kicks in.
+# Backends with shared storage (e.g. Redis in xlwings Server) keep this map themselves
+# (see ``evict_superseded``) so that any worker can delete the superseded entries.
+_producer_cache_ids = {}
+
+
+def evict_superseded(caller_address, converted_result, user_id=None, session_id=None):
+    """Deletes the cache entries written by this cell's previous invocation that the new
+    (converted) result no longer references. Called by ``custom_functions_call`` after
+    each call of a handle-producing function (return options convert via
+    ``CONVERTER_KEYS``) that carries a caller address, keeping the cache at roughly one
+    live object per handle cell.
+
+    The producer map is scoped by user id and the frontend's per-runtime session id
+    when available: caller addresses are not unique across users (everybody has a
+    "Book1.xlsx"), and user ids don't distinguish anonymous users (auth disabled), so
+    without scoping, one user's recalculation could evict another user's live handle.
+
+    A store can take over the producer tracking by implementing
+    ``evict_superseded(scope, new_ids)`` - backends with shared storage do this so the
+    map is visible to all workers. Otherwise the map is kept in-process here; stores
+    without a ``delete`` method are left to their own expiry/eviction policy.
+    """
+    new_ids = set()
+    if isinstance(converted_result, list):
+        for row in converted_result:
+            if not isinstance(row, list):
+                continue
+            for value in row:
+                if isinstance(value, dict) and value.get("type") == "Entity":
+                    prop = (value.get("properties") or {}).get(RESERVED_PROPERTY)
+                    if isinstance(prop, dict) and prop.get("basicValue"):
+                        new_ids.add(prop["basicValue"])
+    scope_parts = [part for part in (user_id, session_id) if part]
+    scope = ":".join([*scope_parts, caller_address])
+    backend_evict = getattr(cache, "evict_superseded", None)
+    if backend_evict is not None:
+        backend_evict(scope, new_ids)
+        return
+    old_ids = _producer_cache_ids.pop(scope, set())
+    delete = getattr(cache, "delete", None)
+    if delete is not None:
+        for cache_id in old_ids - new_ids:
+            delete(cache_id)
+    if new_ids:
+        _producer_cache_ids[scope] = new_ids
 
 
 def _derived_properties(obj):

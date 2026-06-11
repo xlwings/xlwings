@@ -25,11 +25,13 @@ def anyio_backend():
 def _cache_context():
     # Register the converter as the runtimes (xlwings-server/Lite) do, so resolution via
     # conversion.read() works, and give each test a fresh default store.
-    Converter.register(object, "object", "obj")
+    Converter.register(*oh.CONVERTER_KEYS)
     original_cache = oh.cache
     oh.cache = oh.LRUObjectCache()
+    oh._producer_cache_ids.clear()
     yield
     oh.cache = original_cache
+    oh._producer_cache_ids.clear()
 
 
 def _write(obj, options=None):
@@ -225,6 +227,192 @@ def test_lru_clear():
         Converter.read_value(key, {})
 
 
+# Superseded-generation cleanup (evict_superseded)
+
+
+def test_recalculation_evicts_superseded_generation():
+    # Every write stores under a fresh UUID, so a recalculating cell would otherwise
+    # leave its previous generation in the cache until LRU eviction.
+    addr = "Excel[Book1.xlsx]Sheet1!A1"
+    entity1, key1 = _write("gen1")
+    oh.evict_superseded(addr, [[entity1]])
+    entity2, key2 = _write("gen2")
+    oh.evict_superseded(addr, [[entity2]])
+
+    with pytest.raises(xw.ObjectCacheMissError):
+        Converter.read_value(key1, {})
+    assert Converter.read_value(key2, {}) == "gen2"
+    assert len(oh.cache) == 1
+
+
+def test_superseded_eviction_is_scoped_to_the_caller():
+    # One cell's recalculation must never touch another cell's live handle.
+    entity_a, key_a = _write("a")
+    oh.evict_superseded("Excel[Book1.xlsx]Sheet1!A1", [[entity_a]])
+    entity_b, key_b = _write("b")
+    oh.evict_superseded("Excel[Book1.xlsx]Sheet1!B1", [[entity_b]])
+
+    assert Converter.read_value(key_a, {}) == "a"
+    assert Converter.read_value(key_b, {}) == "b"
+
+
+def test_non_handle_result_clears_previous_generation():
+    # A cell that used to produce a handle but now returns a plain value no longer
+    # references its old entry, so the entry (and the tracking) must go.
+    addr = "Excel[Book1.xlsx]Sheet1!A1"
+    entity, key = _write("gen1")
+    oh.evict_superseded(addr, [[entity]])
+    oh.evict_superseded(addr, [["plain value"]])
+
+    with pytest.raises(xw.ObjectCacheMissError):
+        Converter.read_value(key, {})
+    assert addr not in oh._producer_cache_ids
+
+
+def test_superseded_eviction_is_scoped_to_the_user():
+    # Caller addresses are not unique across users (everybody has a "Book1.xlsx"), so
+    # one user's recalculation must not evict another user's live handle.
+    addr = "Excel[Book1.xlsx]Sheet1!A1"
+    entity_a, key_a = _write("user a's object")
+    oh.evict_superseded(addr, [[entity_a]], user_id="user_a")
+    entity_b, key_b = _write("user b's object")
+    oh.evict_superseded(addr, [[entity_b]], user_id="user_b")
+
+    assert Converter.read_value(key_a, {}) == "user a's object"
+    assert Converter.read_value(key_b, {}) == "user b's object"
+
+
+def test_superseded_eviction_is_scoped_to_the_session():
+    # With auth disabled all users share one user id, so the frontend's per-runtime
+    # session id is what keeps two users' independent copies of an identically-named
+    # workbook ("workbook1.xlsx"!A1) from evicting each other's live handles.
+    addr = "Excel[workbook1.xlsx]Sheet1!A1"
+    entity_a, key_a = _write("session a's object")
+    oh.evict_superseded(addr, [[entity_a]], user_id="n/a", session_id="session_a")
+    entity_b, key_b = _write("session b's object")
+    oh.evict_superseded(addr, [[entity_b]], user_id="n/a", session_id="session_b")
+
+    assert Converter.read_value(key_a, {}) == "session a's object"
+    assert Converter.read_value(key_b, {}) == "session b's object"
+
+
+def test_store_can_take_over_producer_tracking():
+    # A store implementing evict_superseded(scope, new_ids) (e.g. Redis in
+    # xlwings-server, where the map must be visible to all workers) replaces the
+    # in-process map entirely.
+    calls = []
+
+    class TrackingStore(oh.LRUObjectCache):
+        def evict_superseded(self, scope, new_ids):
+            calls.append((scope, new_ids))
+
+    oh.cache = TrackingStore()
+    entity, key = _write("gen1")
+    oh.evict_superseded("Excel[Book1.xlsx]Sheet1!A1", [[entity]], user_id="user_a")
+
+    assert calls == [("user_a:Excel[Book1.xlsx]Sheet1!A1", {key})]
+    assert not oh._producer_cache_ids
+
+
+def test_evict_superseded_tolerates_store_without_delete():
+    # Custom backends only need get/set/clear; without delete, superseded entries are
+    # left to the store's own expiry policy, but tracking must still advance.
+    class MinimalStore:
+        def __init__(self):
+            self._d = {}
+
+        def get(self, cache_id):
+            return self._d.get(cache_id)
+
+        def set(self, cache_id, obj):
+            self._d[cache_id] = obj
+
+        def clear(self):
+            self._d.clear()
+
+    oh.cache = MinimalStore()
+    addr = "Excel[Book1.xlsx]Sheet1!A1"
+    entity1, key1 = _write("gen1")
+    oh.evict_superseded(addr, [[entity1]])
+    entity2, key2 = _write("gen2")
+    oh.evict_superseded(addr, [[entity2]])
+
+    assert oh._producer_cache_ids[addr] == {key2}
+    # No delete method: the old entry stays (backend expiry's job), but nothing blew up.
+    assert Converter.read_value(key1, {}) == "gen1"
+
+
+@pytest.mark.anyio
+async def test_custom_functions_call_evicts_previous_generation():
+    # End-to-end: recalculating a producing cell (same caller_address) replaces its
+    # cache entry instead of accumulating one orphan per recalculation.
+    from xlwings.server import custom_functions_call, func
+
+    @func
+    async def make() -> object:
+        return pd.DataFrame({"a": [1]})
+
+    module = types.ModuleType("_oh_test_module_producer")
+    module.make = make
+
+    data = {
+        "func_name": "make",
+        "args": [],
+        "version": xw.__version__,
+        "client": "Office.js",
+        "runtime": "1.4",
+        "caller_address": "Excel[Book1.xlsx]Sheet1!A1",
+        "session_id": "test-session",
+    }
+    result1 = await custom_functions_call(dict(data), module)
+    key1 = result1[0][0]["properties"][oh.RESERVED_PROPERTY]["basicValue"]
+    result2 = await custom_functions_call(dict(data), module)
+    key2 = result2[0][0]["properties"][oh.RESERVED_PROPERTY]["basicValue"]
+
+    with pytest.raises(xw.ObjectCacheMissError):
+        Converter.read_value(key1, {})
+    assert Converter.read_value(key2, {}) is not None
+    assert len(oh.cache) == 1
+
+
+@pytest.mark.anyio
+async def test_non_producing_functions_skip_producer_tracking():
+    # Functions that can't return handles must not pay the producer-map lookup on every
+    # call (a Redis round trip per call in xlwings Server). Consequence: a cell whose
+    # formula changes from a producing to a non-producing function keeps its last
+    # generation until LRU eviction/expiry - the same backstop that covers deleted
+    # formulas, which never trigger a call at all.
+    from xlwings.server import custom_functions_call, func
+
+    @func
+    async def make() -> object:
+        return pd.DataFrame({"a": [1]})
+
+    @func
+    async def plain():
+        return 1
+
+    module = types.ModuleType("_oh_test_module_plain")
+    module.make = make
+    module.plain = plain
+
+    data = {
+        "args": [],
+        "version": xw.__version__,
+        "client": "Office.js",
+        "runtime": "1.4",
+        "caller_address": "Excel[Book1.xlsx]Sheet1!A1",
+        "session_id": "test-session",
+    }
+    result = await custom_functions_call({**data, "func_name": "make"}, module)
+    key = result[0][0]["properties"][oh.RESERVED_PROPERTY]["basicValue"]
+    await custom_functions_call({**data, "func_name": "plain"}, module)
+
+    # The plain call neither deleted the old generation nor touched the tracking.
+    assert Converter.read_value(key, {}) is not None
+    assert oh._producer_cache_ids == {"test-session:Excel[Book1.xlsx]Sheet1!A1": {key}}
+
+
 # Type hints (ObjectHandle[T] / CachedObject[T])
 
 
@@ -247,15 +435,22 @@ def test_object_handle_type_hint_resolves_via_cache():
     assert xw.ObjectHandle in annotation.__metadata__
 
 
-def test_bare_object_handle_return_hint_is_alias_for_object():
-    # `-> ObjectHandle` is an alias for `-> object`: it converts via the object cache.
+def test_object_handle_return_hints_are_aliases_for_object():
+    # `-> ObjectHandle` and `-> ObjectHandle[T]` are aliases for `-> object`: they
+    # convert via the object cache. custom_functions_call relies on this to decide
+    # which functions take part in superseded-generation tracking.
     from xlwings.server import func
 
     @func
     async def make() -> xw.ObjectHandle:
         return pd.DataFrame({"a": [1]})
 
+    @func
+    async def make_typed() -> xw.ObjectHandle[pd.DataFrame]:
+        return pd.DataFrame({"a": [1]})
+
     assert make.__xlfunc__["ret"]["options"]["convert"] is object
+    assert make_typed.__xlfunc__["ret"]["options"]["convert"] is object
 
 
 @pytest.mark.anyio

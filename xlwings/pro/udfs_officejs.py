@@ -38,6 +38,7 @@ _F = TypeVar("_F", bound=Callable[..., Any])
 import xlwings as xw
 
 from .. import ObjectHandle, XlwingsError, __version__, conversion
+from . import object_handles
 
 logger = logging.getLogger(__name__)
 
@@ -490,6 +491,24 @@ async def custom_functions_call(
         ret = func(*args)
 
     ret = convert(ret, ret_info, data)
+    caller_address = data.get("caller_address")
+    produces_handles = (
+        ret_info["options"].get("convert") in object_handles.CONVERTER_KEYS
+    )
+    if caller_address and produces_handles:
+        # Deterministically drop the object-handle entries that this cell's previous
+        # invocation wrote. Only handle-producing functions are tracked - for any other
+        # function this would be a pointless producer-map lookup on every call (a Redis
+        # round trip in xlwings Server). The price: a cell whose formula changes from a
+        # producing to a non-producing function keeps its last generation until LRU
+        # eviction/expiry - the same backstop that covers deleted formulas (which never
+        # trigger a call) and streaming functions (which carry no caller address).
+        object_handles.evict_superseded(
+            caller_address,
+            ret,
+            user_id=getattr(current_user, "id", None),
+            session_id=data.get("session_id"),
+        )
     return ret
 
 
