@@ -108,7 +108,7 @@ class LRUObjectCache:
 cache = LRUObjectCache()
 
 # Cache ids written by each producing cell's last invocation, keyed by user/caller
-# address (e.g. "Excel[Book1.xlsx]Sheet1!A1"). Every write stores under a fresh UUID,
+# address (e.g. "[Book1.xlsx]Sheet1!A1"). Every write stores under a fresh UUID,
 # so without this map, recalculating a producing cell would leave the superseded
 # generation in the cache until LRU eviction - with large objects, up to maxsize
 # orphaned generations can exhaust memory long before the LRU bound kicks in.
@@ -144,7 +144,12 @@ def evict_superseded(caller_address, converted_result, user_id=None, session_id=
                     prop = (value.get("properties") or {}).get(RESERVED_PROPERTY)
                     if isinstance(prop, dict) and prop.get("basicValue"):
                         new_ids.add(prop["basicValue"])
-    scope_parts = [part for part in (user_id, session_id) if part]
+    # str() because custom backends may pass user objects with non-string ids (e.g.
+    # integer database keys); the explicit None/"" check keeps falsy-but-valid ids
+    # like 0.
+    scope_parts = [
+        str(part) for part in (user_id, session_id) if part not in (None, "")
+    ]
     scope = ":".join([*scope_parts, caller_address])
     backend_evict = getattr(cache, "evict_superseded", None)
     if backend_evict is not None:

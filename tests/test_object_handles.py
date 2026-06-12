@@ -296,6 +296,17 @@ def test_superseded_eviction_is_scoped_to_the_session():
     assert Converter.read_value(key_b, {}) == "session b's object"
 
 
+def test_scope_tolerates_non_string_and_falsy_user_ids():
+    # custom_functions_call is a public API: custom backends may pass user objects with
+    # non-string ids (e.g. integer database keys). They must not crash the scope
+    # construction, and a falsy-but-valid id like 0 must not be dropped (it would
+    # otherwise share the anonymous scope).
+    addr = "Excel[Book1.xlsx]Sheet1!A1"
+    entity, key = _write("gen1")
+    oh.evict_superseded(addr, [[entity]], user_id=0)
+    assert oh._producer_cache_ids == {f"0:{addr}": {key}}
+
+
 def test_store_can_take_over_producer_tracking():
     # A store implementing evict_superseded(scope, new_ids) (e.g. Redis in
     # xlwings-server, where the map must be visible to all workers) replaces the
