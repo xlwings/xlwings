@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.36.5 (Jun 12, 2026)
+
+- xlwings Server and xlwings Lite: fix memory leak with object handles during recalculation. 
+
 ## v0.36.4 (Jun 9, 2026)
 
 - xlwings Server: Introduced `CachedObject` for type hint support of cached function args.
