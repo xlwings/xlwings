@@ -4,6 +4,13 @@
 {% if builder == "html" or builder == "dirhtml" %}
 {% extends "furo/page.html" %}
 
+{% block extrahead %}
+  {{ super() }}
+  {# Privacy-friendly analytics by Plausible #}
+  <script async src="https://plausible.io/js/pa-ocvg7L7SuzC2sN5_TyjkW.js"></script>
+  <script src="{{ pathto('_static/plausible-init.js', 1) }}"></script>
+{% endblock extrahead %}
+
 {% block body %}
   {{ super() }}
   {# Keep the selected sidebar item visible across navigations. Loaded here,
