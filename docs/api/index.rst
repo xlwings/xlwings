@@ -17,6 +17,7 @@ API Reference
     app
     apps
     book
+    book_async
     books
     characters
     chart

@@ -18,6 +18,7 @@ import contextlib
 import inspect
 import logging
 import os
+import warnings
 from functools import wraps
 from pathlib import Path
 from textwrap import dedent
@@ -660,6 +661,47 @@ def _enum_value_entry(enum_type, value, tooltips):
 
 
 # Custom scripts
+def _is_book_hint(hint) -> bool:
+    """True if a type hint refers to the injected book (xw.Book or xw.BookAsync).
+
+    xw.BookAsync is a Book subclass, so `hint == xw.Book` alone would miss it.
+    """
+    return hint is xw.Book or hint is xw.BookAsync
+
+
+def _book_param_hint(func):
+    """Return the type hint of the injected book *parameter*, or None if absent.
+
+    Only parameter annotations are considered — never the return annotation or
+    unrelated parameter names. A script must have exactly one Book/BookAsync
+    parameter (the injected workbook), so more than one is an error rather than
+    an ambiguous guess. Zero returns None: the sync path stays the default and
+    the existing runtime raises "No xlwings.Book found" at call time.
+    """
+    try:
+        type_hints = get_type_hints(inspect.unwrap(func))
+        params = inspect.signature(func).parameters
+    except Exception:
+        # A bad/forward-ref annotation shouldn't crash decoration; the caller
+        # falls back to sync (BookAsync just won't be auto-detected).
+        return None
+    book_hints = [
+        type_hints[pname] for pname in params if _is_book_hint(type_hints.get(pname))
+    ]
+    if len(book_hints) > 1:
+        raise XlwingsError(
+            "@script functions must have exactly one parameter annotated "
+            "'xw.Book' or 'xw.BookAsync' (the injected workbook); found "
+            f"{len(book_hints)}."
+        )
+    return book_hints[0] if book_hints else None
+
+
+def _script_uses_book_async(func) -> bool:
+    """True if the script's injected book parameter is annotated `xw.BookAsync`."""
+    return _book_param_hint(func) is xw.BookAsync
+
+
 @overload
 def script(f: _F) -> _F:
     ...
@@ -674,7 +716,6 @@ def script(
     exclude: str | list[str] | None = ...,
     button: str | None = ...,
     show_taskpane: bool | None = ...,
-    lazy: bool = ...,
     **kwargs: Any,
 ) -> Callable[[_F], _F]:
     ...
@@ -688,10 +729,45 @@ def script(
     exclude: str | list[str] | None = None,
     button: str | None = None,
     show_taskpane: bool | None = None,
-    lazy: bool = False,
     **kwargs: Any,
 ) -> Any:
+    # Opt into the async, on-demand API by annotating the book parameter
+    # `book: xw.BookAsync` (see the "Async API" docs in xlwings Lite). The choice
+    # sits on the parameter it affects, and type checkers see it.
+    #
+    # `lazy=True` is a deprecated, pre-release alias that does the same thing at
+    # the decorator level. Internally we always emit the `"lazy"` metadata key
+    # the JS side keys off, so the wire protocol is unchanged. args_lazy is None
+    # when `lazy=` wasn't passed, letting the BookAsync annotation decide.
+    if "lazy" in kwargs:
+        warnings.warn(
+            "The 'lazy' argument of @script is deprecated; annotate the book "
+            "parameter with 'xw.BookAsync' instead (equivalent to the old "
+            "lazy=True).",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        lazy = kwargs.pop("lazy")
+        if not isinstance(lazy, bool):
+            raise XlwingsError(
+                f"The 'lazy' argument of @script must be a boolean, not {lazy!r}."
+            )
+        args_lazy = lazy
+    else:
+        args_lazy = None  # nothing specified — the annotation decides
+
     def inner(func):
+        # BookAsync on the book parameter is the way to opt into the async API.
+        # It takes precedence, but must not contradict a deprecated lazy=False.
+        annotation_lazy = _script_uses_book_async(func)
+        if annotation_lazy and args_lazy is False:
+            raise XlwingsError(
+                "@script: the book parameter is annotated 'xw.BookAsync' (async "
+                "API) but lazy=False was passed. Drop the conflicting argument."
+            )
+        # Precedence: deprecated lazy= if given, else the annotation, else sync.
+        lazy_value = args_lazy if args_lazy is not None else annotation_lazy
+
         @wraps(func)
         async def wrapper(*args, **kwargs):
             # Remove the first arg and assign it to current_user
@@ -707,7 +783,7 @@ def script(
             sig = inspect.signature(func)
 
             for param_name, arg_value in zip(sig.parameters.keys(), args):
-                if param_name in type_hints and type_hints[param_name] == xw.Book:
+                if param_name in type_hints and _is_book_hint(type_hints[param_name]):
                     return arg_value
 
             raise XlwingsError("No xlwings.Book found in your function arguments!")
@@ -720,7 +796,8 @@ def script(
             # target_cell is deprecated
             "button": button or kwargs.get("target_cell"),
             "show_taskpane": show_taskpane,
-            "lazy": lazy,
+            # Internal wire key consumed by the JS side; BookAsync -> lazy=True.
+            "lazy": lazy_value,
         }
         wrapper.__xlscript__.update(kwargs)
 
@@ -764,6 +841,11 @@ async def custom_scripts_call(
                 f"are not supported ('{param.name}')"
             )
         hint = resolved_hints.get(param.name)
+        # BookAsync is a Book subclass and a type hint for the async API; the
+        # caller keys the injected book under xw.Book, so normalize before the
+        # lookup.
+        if hint is xw.BookAsync:
+            hint = xw.Book
         if hint in typehint_to_value:
             call_args.append(typehint_to_value[hint])
         elif param.kind == inspect.Parameter.VAR_POSITIONAL:

@@ -1347,6 +1347,30 @@ class Book:
         self.close()
 
 
+class BookAsync(Book):
+    """Type hint for the async API in xlwings Lite scripts.
+
+    Annotate a script's `book` parameter with `xw.BookAsync` to opt into the
+    async, on-demand API --- no cell values are pre-loaded, and you read them via
+    `await myrange.get_value()`:
+
+    ```python
+    import xlwings as xw
+    from xlwings import script
+
+    @script
+    async def myfunc(book: xw.BookAsync):
+        data = await book.sheets[0]["A1:B2"].get_value()
+    ```
+
+    At runtime it's a plain `Book`; the annotation only signals
+    xlwings Lite to skip loading the values of the entire book up front.
+
+    ```{versionadded} 0.36.9
+    ```
+    """
+
+
 class Sheet:
     """A sheet object is a member of the `sheets` collection:
 
@@ -4885,8 +4909,10 @@ class Books(Collection[Book]):
         return Book(impl=self.impl.active)
 
     async def get_active(self) -> Book:
-        """Returns the active Book without pre-loading values (lazy loading).
+        """Returns the active Book without pre-loading values.
 
+        This is the entry point to the async API, which reads on demand
+        (lazy loading) instead of snapshotting the whole workbook up front.
         Requires xlwings Lite.
 
         Use `await myrange.get_value()` to read cell values on demand.
