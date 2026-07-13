@@ -293,3 +293,35 @@ async def test_book_async_annotated_book_is_injected():
     assert len(actions) == 1
     assert actions[0]["values"] == [["async"]]
     book.close()
+
+
+@pytest.mark.anyio
+async def test_book_async_marks_injected_book_lazy():
+    # A BookAsync annotation must mark the injected book lazy, even though the
+    # caller constructs it eagerly (xw.Book(json=...), as xlwings Lite does).
+    # Sync `.value` reads then raise instead of silently returning None.
+    @script
+    async def my_script(book: xw.BookAsync):
+        book.sheets.active["A1"].value  # sync read on a lazy book -> raises
+
+    book = xw.Book(json=BOOK_JSON)
+    assert book.impl._lazy is False  # eager as constructed
+    mod = _make_module(my_script=my_script)
+    with pytest.raises(XlwingsError, match="haven't been loaded"):
+        await custom_scripts_call(mod, "my_script", typehint_to_value={xw.Book: book})
+    assert book.impl._lazy is True  # annotation flipped it
+    book.close()
+
+
+@pytest.mark.anyio
+async def test_plain_book_annotation_stays_eager():
+    # Without BookAsync, the injected book stays eager and sync reads work.
+    @script
+    async def my_script(book: xw.Book):
+        book.sheets.active["A1"].value  # must not raise
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=my_script)
+    await custom_scripts_call(mod, "my_script", typehint_to_value={xw.Book: book})
+    assert book.impl._lazy is False
+    book.close()

@@ -238,7 +238,7 @@ class Book:
     def to_pdf(self, path, quality):
         raise NotImplementedError()
 
-    async def load(self):
+    async def load(self, values=None):
         raise NotImplementedError("Book.load() is only supported in xlwings Lite")
 
     async def flush(self):
@@ -367,7 +367,7 @@ class Sheet:
     def to_html(self, path):
         raise NotImplementedError()
 
-    async def load(self):
+    async def load(self, values=None):
         raise NotImplementedError("Sheet.load() is only supported in xlwings Lite")
 
 

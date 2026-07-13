@@ -1003,13 +1003,20 @@ class Book:
         )
         await self.flush()
 
-    async def load(self) -> Book:
-        """Loads the book's current data from Excel on demand.
+    async def load(self, values: bool | None = None) -> Book:
+        """(Re)loads the book's data from Excel on demand.
+
+        On an async book (see `xw.BookAsync`), this loads only *metadata*
+        (tables, pictures, names) by default — not cell values — since
+        bulk-loading values would defeat the point of the async API. Pass
+        `values=True` to also snapshot all cell values, after which sync
+        `.value` reads work again. On a regular book, everything including
+        values is loaded regardless.
 
         Requires xlwings Lite.
 
         """
-        await self.impl.load()
+        await self.impl.load(values=values)
         return self
 
     def __eq__(self, other: object) -> bool:
@@ -1512,13 +1519,17 @@ class Sheet:
         self.book.activate()
         return self.impl.activate()
 
-    async def load(self) -> Sheet:
-        """Loads the sheet's current data from Excel on demand.
+    async def load(self, values: bool | None = None) -> Sheet:
+        """(Re)loads the sheet's data from Excel on demand.
+
+        Like `Book.load`, this loads only *metadata* by default on an async book
+        and everything (including values) on a regular book. Pass `values=True`
+        to also load this sheet's cell values.
 
         Requires xlwings Lite.
 
         """
-        await self.impl.load()
+        await self.impl.load(values=values)
         return self
 
     def select(self) -> None:

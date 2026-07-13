@@ -845,10 +845,19 @@ async def custom_scripts_call(
         # BookAsync is a Book subclass and a type hint for the async API; the
         # caller keys the injected book under xw.Book, so normalize before the
         # lookup.
-        if hint is xw.BookAsync:
+        book_is_async = hint is xw.BookAsync
+        if book_is_async:
             hint = xw.Book
         if hint in typehint_to_value:
-            call_args.append(typehint_to_value[hint])
+            injected_book = typehint_to_value[hint]
+            # A BookAsync annotation makes the injected book lazy: no cell values
+            # were pre-loaded, so sync `.value` reads raise until values are
+            # loaded (see Range.raw_value in the remote backend). The book is
+            # constructed by the caller (e.g. xw.Book(json=...) in xlwings Lite),
+            # which can't know the annotation, so we set it here.
+            if book_is_async:
+                injected_book.impl._lazy = True
+            call_args.append(injected_book)
         elif param.kind == inspect.Parameter.VAR_POSITIONAL:
             call_args.extend(arg_iter)
         else:
