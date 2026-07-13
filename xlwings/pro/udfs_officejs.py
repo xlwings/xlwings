@@ -735,16 +735,17 @@ def script(
     # `book: xw.BookAsync` (see the "Async API" docs in xlwings Lite). The choice
     # sits on the parameter it affects, and type checkers see it.
     #
-    # `lazy=True` is a deprecated, pre-release alias that does the same thing at
-    # the decorator level. Internally we always emit the `"lazy"` metadata key
-    # the JS side keys off, so the wire protocol is unchanged. args_lazy is None
-    # when `lazy=` wasn't passed, letting the BookAsync annotation decide.
+    # `lazy=` is a deprecated alias that does the same
+    # thing at the decorator level. Internally we always emit the `"lazy"`
+    # metadata key the JS side keys off, so the wire protocol is unchanged.
+    # args_lazy is None when `lazy=` wasn't passed, letting the BookAsync
+    # annotation decide.
     if "lazy" in kwargs:
         warnings.warn(
             "The 'lazy' argument of @script is deprecated; annotate the book "
             "parameter with 'xw.BookAsync' instead (equivalent to the old "
             "lazy=True).",
-            DeprecationWarning,
+            UserWarning,
             stacklevel=2,
         )
         lazy = kwargs.pop("lazy")

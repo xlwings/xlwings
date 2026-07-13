@@ -187,7 +187,7 @@ def test_book_annotation_defaults_to_sync():
 
 
 def test_lazy_true_is_deprecated_alias():
-    with pytest.warns(DeprecationWarning, match="'lazy'.*deprecated.*BookAsync"):
+    with pytest.warns(UserWarning, match="'lazy'.*deprecated.*BookAsync"):
 
         @script(lazy=True)
         def my_script(book: xw.Book):
@@ -199,7 +199,7 @@ def test_lazy_true_is_deprecated_alias():
 
 
 def test_lazy_false_is_deprecated_alias():
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(UserWarning):
 
         @script(lazy=False)
         def my_script(book: xw.Book):
@@ -229,7 +229,7 @@ def test_book_async_annotation_sets_lazy_true():
 
 
 def test_book_async_agrees_with_lazy_true():
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(UserWarning):
 
         @script(lazy=True)
         async def my_script(book: xw.BookAsync):
@@ -240,7 +240,7 @@ def test_book_async_agrees_with_lazy_true():
 
 def test_book_async_conflicts_with_lazy_false():
     with pytest.raises(XlwingsError, match="BookAsync"):
-        with pytest.warns(DeprecationWarning):
+        with pytest.warns(UserWarning):
 
             @script(lazy=False)
             async def my_script(book: xw.BookAsync):
