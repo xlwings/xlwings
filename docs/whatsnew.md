@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.36.10 (Jul 13, 2026)
+
+- xlwings Lite: on async books, `book.load()` and `sheet.load()` now load metadata only (tables, pictures, names). Pass `values=True` to also load cell values.
+
 ## v0.36.9 (Jul 13, 2026)
 
 - xlwings Lite: introduced `xw.BookAsync`.
