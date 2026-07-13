@@ -31,28 +31,42 @@ except ImportError:
 from .. import NoSuchObjectError, XlwingsError, __version__, base_classes, utils
 from ..constants import MAX_COLUMNS, MAX_ROWS
 
+# Private marker set on a sheet's api dict once its cell values have been loaded
+# on an async (lazy) book. Stored on the dict (not keyed by sheet name) so it
+# survives renames; the sheet's api dict is preserved across metadata reloads by
+# _update_api_in_place. Only read locally (never serialized back to JS).
+_SHEET_VALUES_LOADED_KEY = "_xlwings_values_loaded"
+
+
+def _mark_sheet_values_loaded(sheet_api):
+    sheet_api[_SHEET_VALUES_LOADED_KEY] = True
+
+
+def _sheet_values_loaded(sheet_api):
+    return sheet_api.get(_SHEET_VALUES_LOADED_KEY, False)
+
 
 def _normalize_jsnull(obj):
-    """Recursively replace Pyodide's ``JsNull`` sentinel with Python ``None``.
+    """Recursively replace Pyodide's `JsNull` sentinel with Python `None`.
 
-    Pyodide >= 0.28 converts JS ``null`` to ``pyodide.ffi.jsnull`` instead of
-    ``None``. Book data coming back from Office.js via ``.to_py()`` therefore
-    contains ``JsNull`` for empty/absent fields (e.g. ``scope_sheet_index`` on
-    book-scoped names, ``address`` for non-cell selections), which breaks the
-    ``is None`` checks throughout this module. Normalize everything back to
-    ``None`` at the JS boundary so downstream code stays Pyodide-version
+    Pyodide >= 0.28 converts JS `null` to `pyodide.ffi.jsnull` instead of
+    `None`. Book data coming back from Office.js via `.to_py()` therefore
+    contains `JsNull` for empty/absent fields (e.g. `scope_sheet_index` on
+    book-scoped names, `address` for non-cell selections), which breaks the
+    `is None` checks throughout this module. Normalize everything back to
+    `None` at the JS boundary so downstream code stays Pyodide-version
     agnostic.
 
-    The ``values`` arrays (cell data) are skipped here for two reasons. First,
-    *book* data (``getBookData()``) represents empty cells as ``""``, not
-    ``null``, so a book's ``values`` cannot contain ``JsNull``. Second, walking
+    The `values` arrays (cell data) are skipped here for two reasons. First,
+    *book* data (`getBookData()`) represents empty cells as `""`, not
+    `null`, so a book's `values` cannot contain `JsNull`. Second, walking
     them would mean an extra full pass over every cell of an eagerly-loaded book
-    (e.g. ``xw.Book(json=...)`` in xlwings Lite's notebook runner).
+    (e.g. `xw.Book(json=...)` in xlwings Lite's notebook runner).
 
     Note this is *not* true for custom function *arguments*: Excel's custom
-    functions runtime sends empty cells in a range argument as JS ``null`` ->
-    ``JsNull``. Those don't pass through here — UDFs use a separate engine, so
-    they're normalized in ``_xlofficejs._clean_value_data_element`` instead.
+    functions runtime sends empty cells in a range argument as JS `null` ->
+    `JsNull`. Those don't pass through here — UDFs use a separate engine, so
+    they're normalized in `_xlofficejs._clean_value_data_element` instead.
     """
     try:
         from pyodide.ffi import JsNull
@@ -322,13 +336,16 @@ class Books(base_classes.Books):
         )
         # open() normalizes JsNull -> None
         book_data = book_data_js.to_py()
-        return self.open(book_data)
+        # The book was fetched lazily (structure only, no cell values), so mark
+        # it: sync `.value` reads raise until values are loaded, and `load()`
+        # defaults to metadata-only. See Book.load / Range.api.
+        return self.open(book_data, lazy=True)
 
-    def open(self, json):
+    def open(self, json, lazy=False):
         # Normalize here (rather than only at the getBookData boundary) so that
         # callers passing raw `.to_py()` data straight to `xw.Book(json=...)`
         # (e.g. xlwings Lite's notebook runner) also get JsNull -> None.
-        book = Book(api=_normalize_jsnull(json), books=self)
+        book = Book(api=_normalize_jsnull(json), books=self, lazy=lazy)
         self.books.append(book)
         self._active = book
         return book
@@ -375,10 +392,17 @@ class Books(base_classes.Books):
 
 
 class Book(base_classes.Book):
-    def __init__(self, api, books):
+    def __init__(self, api, books, lazy=False):
         self.books = books
         self._api = api
         self._json = {"actions": []}
+        # Async/lazy book: fetched with structure only (no cell values). While
+        # lazy, sync `.value` reads on a sheet whose values haven't been loaded
+        # raise (use `await get_value()` or `await load(values=True)`), and
+        # `load()` defaults to metadata-only. Whether a sheet's values are loaded
+        # is marked per sheet on its api dict (see `_SHEET_VALUES_LOADED_KEY`), so
+        # it survives sheet renames.
+        self._lazy = lazy
         if api["version"] != __version__ and api["client"] != "Office.js":
             raise XlwingsError(
                 f"Your xlwings version is different on the client ({api['version']}) "
@@ -423,14 +447,38 @@ class Book(base_classes.Book):
         # Yield to the browser event loop so it can repaint (to print to output pane)
         await asyncio.sleep(0.01)
 
-    async def load(self):
-        """Fetch values for all sheets from Excel."""
+    async def load(self, values=None):
+        """(Re)load the book's data from Excel on demand.
+
+        On an async (lazy) book, this defaults to loading only *metadata* -
+        sheet structure, tables, pictures, names - and not cell values, since
+        bulk-loading values would defeat the point of the async API. Pass
+        `values=True` to also snapshot all cell values (after which sync
+        `.value` reads work again).
+
+        On a regular (eager) book, everything including values is loaded, as
+        before.
+        """
         if sys.platform != "emscripten":
             raise NotImplementedError("Book.load() is only supported in xlwings Lite")
         import js
+        from pyodide.ffi import to_js
 
-        data = _normalize_jsnull((await js.xlwings.getBookData()).to_py())
+        # Default: metadata-only for lazy books, full for eager books.
+        load_values = (not self._lazy) if values is None else bool(values)
+        # getBookData(lazy=True) returns structure only (empty values); a plain
+        # call returns everything.
+        opts = to_js({"lazy": not load_values}, dict_converter=js.Object.fromEntries)
+        data = _normalize_jsnull((await js.xlwings.getBookData(opts)).to_py())
+        if not load_values:
+            # Metadata-only: don't let the empty `values` payload clobber any
+            # values already loaded on this book.
+            for sheet in data.get("sheets", []):
+                sheet.pop("values", None)
         _update_api_in_place(self._api, data)
+        if load_values:
+            for sheet in self._api.get("sheets", []):
+                _mark_sheet_values_loaded(sheet)
         get_range_api.cache_clear()
 
     @property
@@ -633,21 +681,37 @@ class Sheet(base_classes.Sheet):
     def freeze_panes(self):
         return FreezePanes(self)
 
-    async def load(self):
-        """Fetch values, tables, pictures, and names for this sheet from Excel."""
+    async def load(self, values=None):
+        """(Re)load this sheet's data from Excel on demand.
+
+        Like `Book.load`, this loads only *metadata* (tables, pictures, names,
+        structure) by default on an async (lazy) book, and everything including
+        values on a regular book. Pass `values=True` to also load this sheet's
+        cell values.
+        """
         if sys.platform != "emscripten":
             raise NotImplementedError("Sheet.load() is only supported in xlwings Lite")
         import js
         from pyodide.ffi import to_js
 
-        book_data_js = await js.xlwings.getBookData(
-            to_js({"include": self.name}, dict_converter=js.Object.fromEntries)
+        book = self.book
+        load_values = (not book._lazy) if values is None else bool(values)
+        opts = to_js(
+            {"include": self.name, "lazy": not load_values},
+            dict_converter=js.Object.fromEntries,
         )
+        book_data_js = await js.xlwings.getBookData(opts)
         book_data = _normalize_jsnull(book_data_js.to_py())
         for sheet_data in book_data["sheets"]:
             if sheet_data["name"] == self.name:
+                if not load_values:
+                    # Don't clobber any values already present with the empty
+                    # metadata-only payload.
+                    sheet_data.pop("values", None)
                 self._api.update(sheet_data)
                 break
+        if load_values:
+            _mark_sheet_values_loaded(self._api)
         get_range_api.cache_clear()
 
 
@@ -804,6 +868,17 @@ class Range(base_classes.Range):
 
     @property
     def raw_value(self):
+        # On an async (lazy) book, cell values aren't pre-loaded. Reading `.value`
+        # synchronously would silently return None; raise instead and point to
+        # the async API. `await get_value()` doesn't go through here (it fetches
+        # via getRangeValues), and `await book.load(values=True)` marks the sheet
+        # as loaded, after which sync reads work again.
+        if self.sheet.book._lazy and not _sheet_values_loaded(self.sheet.api):
+            raise XlwingsError(
+                f"Cell values of sheet '{self.sheet.name}' haven't been loaded "
+                "(async book). Use 'await myrange.get_value()' to read on demand, "
+                "or 'await book.load(values=True)' to load all values first."
+            )
         return self.api
 
     @raw_value.setter
