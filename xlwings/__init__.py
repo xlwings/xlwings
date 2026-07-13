@@ -114,6 +114,7 @@ else:
 from .main import (
     App,
     Book,
+    BookAsync,
     Chart,
     Engine,
     Name,
@@ -135,6 +136,7 @@ from .utils import xlserial_to_datetime as to_datetime
 __all__ = (
     "App",
     "Book",
+    "BookAsync",
     "Chart",
     "Engine",
     "Name",

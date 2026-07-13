@@ -172,3 +172,124 @@ async def test_var_keyword_rejected():
             mod, "my_script", typehint_to_value={xw.Book: book}, args=[]
         )
     book.close()
+
+
+# --- Sync/async selection (BookAsync annotation + deprecated lazy=) ---
+
+
+def test_book_annotation_defaults_to_sync():
+    @script
+    def my_script(book: xw.Book):
+        pass
+
+    # Plain xw.Book maps to the internal lazy=False wire key.
+    assert my_script.__xlscript__["lazy"] is False
+
+
+def test_lazy_true_is_deprecated_alias():
+    with pytest.warns(UserWarning, match="'lazy'.*deprecated.*BookAsync"):
+
+        @script(lazy=True)
+        def my_script(book: xw.Book):
+            pass
+
+    assert my_script.__xlscript__["lazy"] is True
+    # The deprecated kwarg is consumed, not leaked into the metadata twice.
+    assert list(my_script.__xlscript__.keys()).count("lazy") == 1
+
+
+def test_lazy_false_is_deprecated_alias():
+    with pytest.warns(UserWarning):
+
+        @script(lazy=False)
+        def my_script(book: xw.Book):
+            pass
+
+    assert my_script.__xlscript__["lazy"] is False
+
+
+def test_lazy_non_boolean_rejected():
+    # bool("false") is True, so a stringy `lazy` must be rejected, not coerced.
+    with pytest.raises(XlwingsError, match="'lazy'.*must be a boolean"):
+
+        @script(lazy="false")
+        def my_script(book: xw.Book):
+            pass
+
+
+# --- BookAsync annotation ---
+
+
+def test_book_async_annotation_sets_lazy_true():
+    @script
+    async def my_script(book: xw.BookAsync):
+        pass
+
+    assert my_script.__xlscript__["lazy"] is True
+
+
+def test_book_async_agrees_with_lazy_true():
+    with pytest.warns(UserWarning):
+
+        @script(lazy=True)
+        async def my_script(book: xw.BookAsync):
+            pass
+
+    assert my_script.__xlscript__["lazy"] is True
+
+
+def test_book_async_conflicts_with_lazy_false():
+    with pytest.raises(XlwingsError, match="BookAsync"):
+        with pytest.warns(UserWarning):
+
+            @script(lazy=False)
+            async def my_script(book: xw.BookAsync):
+                pass
+
+
+def test_book_async_return_annotation_does_not_enable_async():
+    # A BookAsync *return* annotation must not enable the async API — only the
+    # injected book parameter's annotation counts.
+    @script
+    def my_script(book: xw.Book) -> xw.BookAsync:
+        return book
+
+    assert my_script.__xlscript__["lazy"] is False
+
+
+def test_book_async_unrelated_param_does_not_enable_async():
+    # A BookAsync annotation on a non-book parameter alongside a sync book is
+    # ambiguous (two book-typed params) and must be rejected, not silently
+    # treated as async.
+    with pytest.raises(XlwingsError, match="exactly one parameter"):
+
+        @script
+        def my_script(value: xw.BookAsync, book: xw.Book):
+            pass
+
+
+def test_multiple_book_params_rejected():
+    with pytest.raises(XlwingsError, match="exactly one parameter"):
+
+        @script
+        def my_script(book1: xw.Book, book2: xw.Book):
+            pass
+
+
+@pytest.mark.anyio
+async def test_book_async_annotated_book_is_injected():
+    # The injected book is keyed under xw.Book by the caller; a BookAsync
+    # annotation must still resolve to it at call time.
+    @script
+    async def my_script(book: xw.BookAsync):
+        book.sheets.active["A1"].value = "async"
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=my_script)
+    result = await custom_scripts_call(
+        mod, "my_script", typehint_to_value={xw.Book: book}
+    )
+    actions = _get_actions(result)
+    assert len(actions) == 1
+    assert actions[0]["values"] == [["async"]]
+    book.close()
