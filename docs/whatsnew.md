@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.36.9 (Jul 13, 2026)
+
+- xlwings Lite: introduced `xw.BookAsync`.
+
 ## v0.36.8 (Jun 28, 2026)
 
 - xlwings Server and xlwings Lite: converters can now define an async write stage.
@@ -55,7 +59,7 @@
 ## v0.35.0 (Apr 5, 2026)
 
 - {bdg-info}`Enhancement` xlwings Lite: Renamed `await Book.sync()` to `await Book.flush()`. `Book.sync()` is now deprecated.
-- {bdg-info}`Enhancement` xlwings Lite: Added a lazy API (async) to be able to load data from Excel on demand: `await Books.get_active()`, `await Sheets.get_active()`, `await App.get_selection()`, `await Book.get_selection()`, `await Range.get_value()`. Also added on-demand loading methods: `await Book.load()`, `await Sheet.load()`. For more details, see the (upcoming) xlwings Lite docs ({issue}`2686`).
+- {bdg-info}`Enhancement` xlwings Lite: Added an async API to be able to load data from Excel on demand: `await Books.get_active()`, `await Sheets.get_active()`, `await App.get_selection()`, `await Book.get_selection()`, `await Range.get_value()`. Also added on-demand loading methods: `await Book.load()`, `await Sheet.load()`. For more details, see the xlwings Lite Async API docs ({issue}`2686`).
 - {bdg-warning}`Bug Fix` Fix `SQL` formula for 1 column tables ({issue}`2687`).
 - {bdg-warning}`Bug Fix` Fix type hints for collections ({issue}`2688`).
 - {bdg-info}`Enhancement` Improve reliability for UDFs with `async_mode="threading"` ({issue}`2682`).
