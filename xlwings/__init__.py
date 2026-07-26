@@ -156,6 +156,13 @@ __all__ = (
     "sheets",
     "view",
     "to_datetime",
+    # UDF decorators, defined further below depending on platform/environment.
+    # 'sub' is deliberately left out: it's a deprecated alias of 'script' and
+    # doesn't exist when running on the server.
+    "arg",
+    "func",
+    "ret",
+    "script",
 )
 
 # Populate engines list
