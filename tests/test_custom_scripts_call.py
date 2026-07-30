@@ -3,7 +3,9 @@ Tests for custom_scripts_call argument binding: positional args, defaults,
 *args, missing/extra argument errors, and typehint injection.
 """
 
+import datetime as dt
 import types
+from typing import Optional, Union
 
 import pytest
 
@@ -324,4 +326,123 @@ async def test_plain_book_annotation_stays_eager():
     mod = _make_module(my_script=my_script)
     await custom_scripts_call(mod, "my_script", typehint_to_value={xw.Book: book})
     assert book.impl._lazy is False
+    book.close()
+
+
+# --- Date coercion ---
+# JSON has no date type, so date arguments arrive as ISO strings and are
+# converted via the type hint, matching how custom functions handle dates.
+# These assert on what the function *received*: writing a date to a cell
+# serializes it back to a string in the action payload.
+
+
+@pytest.mark.anyio
+async def test_date_and_datetime_hints_are_coerced():
+    got = {}
+
+    @script
+    def my_script(book: xw.Book, d: dt.date, ts: dt.datetime, name: str):
+        got.update(d=d, ts=ts, name=name)
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=my_script)
+    await custom_scripts_call(
+        mod,
+        "my_script",
+        typehint_to_value={xw.Book: book},
+        args=["2026-07-30", "2026-07-30T14:30", "2026-07-30"],
+    )
+    assert got["d"] == dt.date(2026, 7, 30)
+    assert got["ts"] == dt.datetime(2026, 7, 30, 14, 30)
+    assert got["name"] == "2026-07-30"  # a str hint stays a string
+    book.close()
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "hint", [Optional[dt.date], "dt.date | None", Union[dt.date, None]]
+)
+async def test_optional_date_hints_are_coerced(hint):
+    # An optional date still gets a date control in the UI, so it must coerce
+    # through the union rather than staying a string.
+    got = {}
+
+    def my_script(book, d=None):
+        got["d"] = d
+
+    my_script.__annotations__ = {"book": xw.Book, "d": hint}
+    my_script = script(my_script)
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=my_script)
+    await custom_scripts_call(
+        mod, "my_script", typehint_to_value={xw.Book: book}, args=["2026-07-30"]
+    )
+    assert got["d"] == dt.date(2026, 7, 30)
+    book.close()
+
+
+@pytest.mark.anyio
+async def test_optional_date_default_stays_none():
+    got = {}
+
+    @script
+    def my_script(book: xw.Book, d: Optional[dt.date] = None):
+        got["d"] = d
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=my_script)
+    await custom_scripts_call(mod, "my_script", typehint_to_value={xw.Book: book})
+    assert got["d"] is None
+    book.close()
+
+
+@pytest.mark.anyio
+async def test_date_default_is_not_reparsed():
+    # Python defaults are already real objects, so they must pass through.
+    got = {}
+
+    @script
+    def my_script(book: xw.Book, d: dt.date = dt.date(2001, 2, 3)):
+        got["d"] = d
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=my_script)
+    await custom_scripts_call(mod, "my_script", typehint_to_value={xw.Book: book})
+    assert got["d"] == dt.date(2001, 2, 3)
+    book.close()
+
+
+@pytest.mark.anyio
+async def test_malformed_date_raises():
+    @script
+    def my_script(book: xw.Book, d: dt.date):
+        pass
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=my_script)
+    with pytest.raises(XlwingsError, match="must be a date in ISO format"):
+        await custom_scripts_call(
+            mod, "my_script", typehint_to_value={xw.Book: book}, args=["not-a-date"]
+        )
+    book.close()
+
+
+@pytest.mark.anyio
+async def test_var_positional_dates_are_coerced():
+    got = {}
+
+    @script
+    def my_script(book: xw.Book, *dates: dt.date):
+        got["dates"] = dates
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=my_script)
+    await custom_scripts_call(
+        mod,
+        "my_script",
+        typehint_to_value={xw.Book: book},
+        args=["2026-01-02", "2026-03-04"],
+    )
+    assert got["dates"] == (dt.date(2026, 1, 2), dt.date(2026, 3, 4))
     book.close()
