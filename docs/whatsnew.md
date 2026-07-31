@@ -1,5 +1,12 @@
 # Changelog
 
+For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
+
+## v0.36.11 (Jul 31, 2026)
+
+- xlwings Lite and xlwings Server: script arguments hinted as `datetime.date` or `datetime.datetime` are now converted into `date`/`datetime` objects instead of ISO-formatted strings.
+- Fix false positives with Pyright/Pylance (reportPrivateImportUsage).
+
 ## v0.36.10 (Jul 13, 2026)
 
 - xlwings Lite: on async books, `book.load()` and `sheet.load()` now load metadata only (tables, pictures, names). Pass `values=True` to also load cell values.
