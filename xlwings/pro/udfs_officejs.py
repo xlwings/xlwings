@@ -15,9 +15,11 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import datetime as dt
 import inspect
 import logging
 import os
+import types
 import warnings
 from functools import wraps
 from pathlib import Path
@@ -28,6 +30,7 @@ from typing import (
     Callable,
     Literal,
     TypeVar,
+    Union,
     get_args,
     get_origin,
     get_type_hints,
@@ -814,6 +817,48 @@ def script(
         return inner(f)
 
 
+def _unwrap_optional_hint(hint):
+    """Return X for Optional[X] / X | None, otherwise the hint unchanged.
+
+    Restricted to unions on purpose: unwrapping any generic would turn
+    `list[int]` into `int`.
+    """
+    # types.UnionType (the `X | None` form) only exists on Python 3.10+.
+    union_types = {Union, getattr(types, "UnionType", Union)}
+    if get_origin(hint) not in union_types:
+        return hint
+    members = [arg for arg in get_args(hint) if arg is not type(None)]
+    return members[0] if len(members) == 1 else hint
+
+
+def _coerce_script_arg(value, hint, script_name, param_name):
+    """Convert a JSON script argument to the type its hint asks for.
+
+    JSON has no date type, so a `dt.date`/`dt.datetime` parameter would
+    otherwise receive an ISO string while the same hint on a custom function
+    yields a real date object. Only values that came over the wire pass through
+    here; Python defaults are already the right type.
+    """
+    if hint is None or not isinstance(value, str):
+        return value
+    # An optional date still gets a date control in the UI, so coerce through
+    # the union rather than leaving `Optional[date]` as a string.
+    hint = _unwrap_optional_hint(hint)
+    if hint is dt.datetime:
+        parse, expected = dt.datetime.fromisoformat, "a date and time"
+    elif hint is dt.date:
+        parse, expected = dt.date.fromisoformat, "a date"
+    else:
+        return value
+    try:
+        return parse(value)
+    except ValueError:
+        raise XlwingsError(
+            f"Script '{script_name}': argument '{param_name}' must be "
+            f"{expected} in ISO format, got {value!r}"
+        ) from None
+
+
 async def custom_scripts_call(
     module, script_name, current_user=None, typehint_to_value: dict = None, args=None
 ):
@@ -859,10 +904,15 @@ async def custom_scripts_call(
                 injected_book.impl._lazy = True
             call_args.append(injected_book)
         elif param.kind == inspect.Parameter.VAR_POSITIONAL:
-            call_args.extend(arg_iter)
+            call_args.extend(
+                _coerce_script_arg(value, hint, script_name, param.name)
+                for value in arg_iter
+            )
         else:
             try:
-                call_args.append(next(arg_iter))
+                call_args.append(
+                    _coerce_script_arg(next(arg_iter), hint, script_name, param.name)
+                )
             except StopIteration:
                 if param.default is not inspect.Parameter.empty:
                     call_args.append(param.default)
