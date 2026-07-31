@@ -19,6 +19,7 @@ import datetime as dt
 import inspect
 import logging
 import os
+import re
 import types
 import warnings
 from functools import wraps
@@ -145,6 +146,20 @@ def extract_enum_descriptor(type_hint, func_name, param_name):
     }
 
 
+def _validate_excel_name(name):
+    # Office custom function names must start with a letter and may only contain
+    # letters, numbers, periods, and underscores (max 128 characters)
+    if name is None:
+        return None
+    if len(name) > 128 or not re.fullmatch(r"[^\W\d_][\w.]*", name):
+        raise XlwingsError(
+            f"Invalid custom function name '{name}': it must start with a letter "
+            "and contain only letters, numbers, periods, and underscores "
+            "(max. 128 characters)."
+        )
+    return name
+
+
 @overload
 def xlfunc(f: _F) -> _F:
     ...
@@ -220,6 +235,9 @@ def xlfunc(f: _F | None = None, **kwargs: Any) -> _F | Callable[[_F], _F]:
                     xlf["ret"]["options"].update(annotations[0])
 
         f.__xlfunc__["volatile"] = check_bool("volatile", default=False, **kwargs)
+        # The Excel-facing function name (case-preserved); the metadata id and
+        # the dispatch key remain the Python function name
+        f.__xlfunc__["excel_name"] = _validate_excel_name(kwargs.get("name"))
         # If there's a global namespace defined in the manifest, this will be the
         # sub-namespace, i.e. NAMESPACE.SUBNAMESPACE.FUNCTIONNAME
         f.__xlfunc__["namespace"] = kwargs.get("namespace")
@@ -589,10 +607,11 @@ def custom_functions_meta(module, typehinted_params_to_exclude=None):
             if xlfunc["help_url"]:
                 func["helpUrl"] = xlfunc["help_url"]
             func["id"] = xlfunc["name"].upper()
+            display_name = xlfunc.get("excel_name") or xlfunc["name"].upper()
             if xlfunc["namespace"]:
-                func["name"] = f"{xlfunc['namespace'].upper()}.{xlfunc['name'].upper()}"
+                func["name"] = f"{xlfunc['namespace'].upper()}.{display_name}"
             else:
-                func["name"] = xlfunc["name"].upper()
+                func["name"] = display_name
             if inspect.isasyncgenfunction(obj):
                 func["options"] = {
                     "stream": True,
@@ -642,6 +661,13 @@ def custom_functions_meta(module, typehinted_params_to_exclude=None):
                 params.append(param)
             func["parameters"] = params
             funcs.append(func)
+    # With `name=` aliases, two functions with different ids can end up with the
+    # same Excel-facing name, which would be ambiguous in Excel
+    seen_names = set()
+    for func in funcs:
+        if func["name"].upper() in seen_names:
+            raise XlwingsError(f"Duplicate custom function name: '{func['name']}'")
+        seen_names.add(func["name"].upper())
     result = {
         "allowCustomDataForDataTypeAny": True,
         "allowErrorForDataTypeAny": True,

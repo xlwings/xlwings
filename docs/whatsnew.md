@@ -2,6 +2,10 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.36.12 (Jul 31, 2026)
+
+- xlwings Lite and xlwings Server: you can now set the name of a custom functions to be different from the Python function name via `@func(name="myName")`.
+
 ## v0.36.11 (Jul 31, 2026)
 
 - xlwings Lite and xlwings Server: script arguments hinted as `datetime.date` or `datetime.datetime` are now converted into `date`/`datetime` objects instead of ISO-formatted strings.
