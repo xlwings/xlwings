@@ -50,6 +50,20 @@ logger = logging.getLogger(__name__)
 # Tasks started by streaming functions
 background_tasks = {}
 
+MODULE_NAMESPACE_ATTRIBUTE = "__xlwings_func_namespace__"
+
+
+def get_custom_function_namespace(function, module=None):
+    """Return the explicit or defining-module namespace for a custom function."""
+    namespace = function.__xlfunc__.get("namespace")
+    if namespace is not None:
+        return namespace
+
+    defining_module = inspect.getmodule(function)
+    if defining_module is None:
+        defining_module = module
+    return getattr(defining_module, MODULE_NAMESPACE_ATTRIBUTE, None)
+
 
 def func_sig(f):
     sig = inspect.signature(f)
@@ -608,8 +622,9 @@ def custom_functions_meta(module, typehinted_params_to_exclude=None):
                 func["helpUrl"] = xlfunc["help_url"]
             func["id"] = xlfunc["name"].upper()
             display_name = xlfunc.get("excel_name") or xlfunc["name"].upper()
-            if xlfunc["namespace"]:
-                func["name"] = f"{xlfunc['namespace'].upper()}.{display_name}"
+            namespace = get_custom_function_namespace(obj, module)
+            if namespace:
+                func["name"] = f"{namespace.upper()}.{display_name}"
             else:
                 func["name"] = display_name
             if inspect.isasyncgenfunction(obj):

@@ -2,6 +2,10 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.36.13 (Aug 2, 2026)
+
+- xlwings Lite and xlwings Server: custom-function namespaces can now be set for an entire Python module via `__xlwings_func_namespace__ = "namespace"`.
+
 ## v0.36.12 (Jul 31, 2026)
 
 - xlwings Lite and xlwings Server: you can now set the name of a custom functions to be different from the Python function name via `@func(name="myName")`.
