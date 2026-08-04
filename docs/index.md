@@ -9,7 +9,8 @@ xlwings (Open Source) is a [BSD-licensed](http://opensource.org/licenses/BSD-3-C
 **Numpy arrays** and **Pandas Series/DataFrames** are fully supported. xlwings-powered workbooks are easy to distribute and work
 on **Windows** and **Mac**.
 
-::::::{grid} 2
+::::::{grid} 1 2 2 2
+:gutter: 3
 :margin: 5 0 0 0
 
 :::::{grid-item-card} {octicon}`rocket;2em;sd-text-success` Getting Started
