@@ -52,6 +52,33 @@ background_tasks = {}
 
 MODULE_NAMESPACE_ATTRIBUTE = "__xlwings_func_namespace__"
 
+# Typehints whose values are injected into custom functions by the framework instead of
+# being provided by Excel, e.g. xlwings Server's CurrentUser. Such parameters are hidden
+# from the custom function's Excel-facing signature, are skipped when converting the
+# incoming args, and may appear in any position - including keyword-only, i.e. after
+# *args. Frameworks built on top of xlwings register their own types via
+# register_injectable_typehint().
+# NOTE: this registry only applies to custom functions. xw.Book must NOT be registered
+# here: it is injected into custom *scripts* (via custom_scripts_call), which handle it
+# separately, while custom functions never receive a book. Registering it would hide
+# xw.Book params from the Excel-facing signature and silently shift the remaining args.
+_injectable_typehints = set()
+
+
+def register_injectable_typehint(type_hint) -> None:
+    """Mark a typehint as framework-injected so that parameters annotated with it are
+    excluded from the Excel-facing signature and may be placed anywhere in the signature.
+    """
+    _injectable_typehints.add(type_hint)
+
+
+def is_injectable_typehint(type_hint) -> bool:
+    try:
+        return type_hint in _injectable_typehints
+    except TypeError:
+        # Unhashable typehints (e.g. some parametrized generics) are never injectable
+        return False
+
 
 def get_custom_function_namespace(function, module=None):
     """Return the explicit or defining-module namespace for a custom function."""
@@ -67,10 +94,23 @@ def get_custom_function_namespace(function, module=None):
 
 def func_sig(f):
     sig = inspect.signature(f)
+    # Resolved lazily and tolerantly: a UDF may carry typehints that can't be resolved
+    # here (e.g. under `from __future__ import annotations` with local names), which
+    # must not break the signature check itself.
+    try:
+        type_hints = get_type_hints(f)
+    except Exception:
+        type_hints = {}
     vararg = None
     args = []
     defaults = []
+    injected = []
     for param in sig.parameters.values():
+        # Framework-injected params (e.g. CurrentUser) are never supplied by Excel, so
+        # they're allowed in any position, including keyword-only after *args.
+        if is_injectable_typehint(type_hints.get(param.name)):
+            injected.append(param.name)
+            continue
         if param.kind is inspect.Parameter.POSITIONAL_OR_KEYWORD:
             args.append(param.name)
             if param.default is not inspect.Signature.empty:
@@ -80,7 +120,12 @@ def func_sig(f):
             vararg = param.name
         else:
             raise XlwingsError("xlwings does not support UDFs with keyword arguments")
-    return {"args": args, "defaults": defaults, "vararg": vararg}
+    return {
+        "args": args,
+        "defaults": defaults,
+        "vararg": vararg,
+        "injected": injected,
+    }
 
 
 def check_bool(kw, default, **func_kwargs):
@@ -391,17 +436,32 @@ async def convert(result, ret_info, data):
 
 
 def provide_values_for_special_args(func, args, typehint_to_value: dict) -> tuple:
+    """Inject framework-provided values (e.g. CurrentUser, xw.Book) into the call.
+
+    Returns (args, kwargs): params declared before *args are inserted positionally at
+    their signature index, while keyword-only params (i.e. those after *args) are
+    returned as kwargs since they can't be passed positionally.
+    """
     if typehint_to_value is None:
         typehint_to_value = {}
 
     type_hints = get_type_hints(func)
+    parameters = inspect.signature(func).parameters
     args_list = list(args)
-    for param, hint in type_hints.items():
-        if hint in typehint_to_value:
-            param_index = list(func.__code__.co_varnames).index(param)
-            args_list.insert(param_index, typehint_to_value[hint])
-    args = tuple(args_list)
-    return args
+    kwargs = {}
+    for index, (param, spec) in enumerate(parameters.items()):
+        hint = type_hints.get(param)
+        try:
+            value_provided = hint in typehint_to_value
+        except TypeError:
+            value_provided = False
+        if not value_provided:
+            continue
+        if spec.kind is inspect.Parameter.KEYWORD_ONLY:
+            kwargs[param] = typehint_to_value[hint]
+        else:
+            args_list.insert(index, typehint_to_value[hint])
+    return tuple(args_list), kwargs
 
 
 async def check_user_roles(current_user, required_roles):
@@ -489,7 +549,7 @@ async def custom_functions_call(
             )
 
     # Handle function args that are provided behind the scenes and not via Excel
-    args = provide_values_for_special_args(func, args, typehint_to_value)
+    args, kwargs = provide_values_for_special_args(func, args, typehint_to_value)
 
     if inspect.isasyncgenfunction(func):
         # Streaming functions
@@ -499,7 +559,7 @@ async def custom_functions_call(
             ctx = streaming_context or contextlib.nullcontext()
             with ctx:
                 try:
-                    async for result in func(*args):
+                    async for result in func(*args, **kwargs):
                         result = await convert(result, ret_info, data)
                         if streaming_callback:
                             streaming_callback(result)
@@ -559,9 +619,9 @@ async def custom_functions_call(
             return
 
     elif inspect.iscoroutinefunction(func):
-        ret = await func(*args)
+        ret = await func(*args, **kwargs)
     else:
-        ret = func(*args)
+        ret = func(*args, **kwargs)
 
     ret = await convert(ret, ret_info, data)
     if caller_address and produces_handles:
@@ -609,6 +669,8 @@ def custom_functions_code(
 
 
 def custom_functions_meta(module, typehinted_params_to_exclude=None):
+    # Kept for backwards compatibility: injectable typehints are normally registered via
+    # register_injectable_typehint() and are then already absent from xlfunc["args"].
     if typehinted_params_to_exclude is None:
         typehinted_params_to_exclude = []
     funcs = []

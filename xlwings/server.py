@@ -11,6 +11,8 @@ from .pro.udfs_officejs import (
     custom_scripts_call,
     custom_scripts_meta,
     get_custom_function_namespace,
+    is_injectable_typehint,
+    register_injectable_typehint,
     script,
     sio_cancel_task,
     sio_connect,
