@@ -28,6 +28,17 @@ BOOK_JSON = {
 }
 
 
+class FakeCurrentUser:
+    """Stands in for xlwings Server's CurrentUser, i.e. a framework-injected value."""
+
+    def __init__(self, name="alice"):
+        self.name = name
+        self.roles = []
+
+    async def has_required_roles(self, required_roles):
+        return True
+
+
 def _make_module(**funcs):
     """Create a module with the given functions as attributes."""
     mod = types.ModuleType("test_scripts")
@@ -176,6 +187,139 @@ async def test_var_keyword_rejected():
     book.close()
 
 
+@pytest.mark.anyio
+async def test_injectable_var_keyword_still_rejected():
+    # **kwargs is rejected even when annotated with an injectable typehint: the
+    # exemption is for keyword-only params, not for arbitrary keyword collection.
+    @script
+    def my_script(book: xw.Book, **kwargs: FakeCurrentUser):
+        pass
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=my_script)
+    with pytest.raises(XlwingsError, match="keyword-only"):
+        await custom_scripts_call(
+            mod,
+            "my_script",
+            typehint_to_value={xw.Book: book, FakeCurrentUser: FakeCurrentUser()},
+            args=[],
+        )
+    book.close()
+
+
+# --- Keyword-only params for framework-injected values ---
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "signature, args",
+    [
+        ("book: xw.Book, *args: str, user: FakeCurrentUser", ["a", "b"]),
+        ("book: xw.Book, *, user: FakeCurrentUser", []),
+        ("book: xw.Book, name: str, *, user: FakeCurrentUser", ["a"]),
+    ],
+    ids=["after-varargs", "bare-star", "with-positional"],
+)
+async def test_keyword_only_injected_value(signature, args):
+    """An injected value may sit after *args, where the caller can't reach it."""
+    namespace = {"xw": xw, "FakeCurrentUser": FakeCurrentUser, "script": script}
+    exec(
+        f"""
+@script
+def my_script({signature}):
+    book.sheets.active["A1"].value = user.name
+""",
+        namespace,
+    )
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=namespace["my_script"])
+    result = await custom_scripts_call(
+        mod,
+        "my_script",
+        typehint_to_value={xw.Book: book, FakeCurrentUser: FakeCurrentUser()},
+        args=args,
+    )
+    actions = _get_actions(result)
+    assert len(actions) == 1
+    assert actions[0]["values"] == [["alice"]]
+    book.close()
+
+
+@pytest.mark.anyio
+async def test_keyword_only_book_is_injected_and_returned():
+    # The book may itself be keyword-only: the @script decorator has to find it in
+    # kwargs to return it, not just among the positional args.
+    @script
+    def my_script(user: FakeCurrentUser, *args: str, book: xw.Book):
+        book.sheets.active["A1"].value = user.name
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=my_script)
+    result = await custom_scripts_call(
+        mod,
+        "my_script",
+        typehint_to_value={xw.Book: book, FakeCurrentUser: FakeCurrentUser()},
+        args=[],
+    )
+    assert result is book
+    assert _get_actions(result)[0]["values"] == [["alice"]]
+    book.close()
+
+
+@pytest.mark.anyio
+async def test_keyword_only_book_async_stays_lazy():
+    # The BookAsync -> Book normalization and the lazy flag must also apply when
+    # the book is keyword-only.
+    @script
+    async def my_script(*args: str, book: xw.BookAsync):
+        pass
+
+    book = xw.Book(json=BOOK_JSON)
+    assert book.impl._lazy is False
+    mod = _make_module(my_script=my_script)
+    await custom_scripts_call(mod, "my_script", typehint_to_value={xw.Book: book})
+    assert book.impl._lazy is True
+    book.close()
+
+
+@pytest.mark.anyio
+async def test_keyword_only_arg_not_supplied_by_caller_is_rejected():
+    # Only values the framework provides are exempt. A keyword-only param whose
+    # type isn't in typehint_to_value could never be filled, so it still raises.
+    @script
+    def my_script(book: xw.Book, *args: str, user: FakeCurrentUser):
+        pass
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=my_script)
+    with pytest.raises(XlwingsError, match="keyword-only"):
+        await custom_scripts_call(
+            mod, "my_script", typehint_to_value={xw.Book: book}, args=[]
+        )
+    book.close()
+
+
+@pytest.mark.anyio
+async def test_positional_args_unaffected_by_keyword_only_injection():
+    # The injected keyword-only param must not consume any caller arg: the
+    # positional args keep binding in order.
+    @script
+    def my_script(book: xw.Book, a: str, b: str, *, user: FakeCurrentUser):
+        book.sheets.active["A1"].value = f"{user.name}|{a}|{b}"
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=my_script)
+    result = await custom_scripts_call(
+        mod,
+        "my_script",
+        typehint_to_value={xw.Book: book, FakeCurrentUser: FakeCurrentUser()},
+        args=["x", "y"],
+    )
+    assert _get_actions(result)[0]["values"] == [["alice|x|y"]]
+    book.close()
+
+
 # --- Sync/async selection (BookAsync annotation + deprecated lazy=) ---
 
 
@@ -295,6 +439,61 @@ async def test_book_async_annotated_book_is_injected():
     assert len(actions) == 1
     assert actions[0]["values"] == [["async"]]
     book.close()
+
+
+@pytest.mark.anyio
+async def test_optional_book_is_injected_and_returned():
+    # `= None` makes get_type_hints() report Optional[Book]. The injection path
+    # unwraps it, so the book-detection paths must agree - otherwise the script
+    # runs and then raises "No xlwings.Book found".
+    @script
+    def my_script(book: Optional[xw.Book] = None):
+        book.sheets.active["A1"].value = "optional"
+
+    book = xw.Book(json=BOOK_JSON)
+    mod = _make_module(my_script=my_script)
+    result = await custom_scripts_call(
+        mod, "my_script", typehint_to_value={xw.Book: book}
+    )
+    assert result is book
+    assert _get_actions(result)[0]["values"] == [["optional"]]
+    book.close()
+
+
+def test_optional_book_async_is_detected_as_async():
+    # An Optional[BookAsync] annotation must still opt into the async API,
+    # i.e. produce lazy=True metadata rather than silently staying sync.
+    @script
+    async def my_script(book: Optional[xw.BookAsync] = None):
+        pass
+
+    assert my_script.__xlscript__["lazy"] is True
+
+
+@pytest.mark.anyio
+async def test_optional_book_async_marks_injected_book_lazy():
+    @script
+    async def my_script(book: Optional[xw.BookAsync] = None):
+        pass
+
+    book = xw.Book(json=BOOK_JSON)
+    assert book.impl._lazy is False
+    mod = _make_module(my_script=my_script)
+    result = await custom_scripts_call(
+        mod, "my_script", typehint_to_value={xw.Book: book}
+    )
+    assert result is book
+    assert book.impl._lazy is True
+    book.close()
+
+
+def test_optional_book_still_counts_toward_multiple_book_params():
+    # Optional book hints must be seen by the "exactly one book param" guard too.
+    with pytest.raises(XlwingsError, match="exactly one parameter"):
+
+        @script
+        def my_script(a: Optional[xw.Book] = None, b: xw.Book = None):
+            pass
 
 
 @pytest.mark.anyio

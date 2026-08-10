@@ -2,6 +2,10 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.36.14 (Aug 10, 2026)
+
+- xlwings Server: functions now accept the framework-provided type hinted args (`CurrentUser`, `xw.Book`, and `xw.BookAsync`) in any position.
+
 ## v0.36.13 (Aug 2, 2026)
 
 - xlwings Lite and xlwings Server: custom-function namespaces can now be set for an entire Python module via `__xlwings_func_namespace__ = "namespace"`.
