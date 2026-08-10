@@ -72,7 +72,25 @@ def register_injectable_typehint(type_hint) -> None:
     _injectable_typehints.add(type_hint)
 
 
+def _unwrap_optional_hint(hint):
+    """Return X for Optional[X] / X | None, otherwise the hint unchanged.
+
+    Restricted to unions on purpose: unwrapping any generic would turn
+    `list[int]` into `int`.
+    """
+    # types.UnionType (the `X | None` form) only exists on Python 3.10+.
+    union_types = {Union, getattr(types, "UnionType", Union)}
+    if get_origin(hint) not in union_types:
+        return hint
+    members = [arg for arg in get_args(hint) if arg is not type(None)]
+    return members[0] if len(members) == 1 else hint
+
+
 def is_injectable_typehint(type_hint) -> bool:
+    # A `= None` default makes get_type_hints() report Optional[X] rather than X, so
+    # unwrap before the lookup - otherwise `user: CurrentUser = None` wouldn't be
+    # recognized as injectable.
+    type_hint = _unwrap_optional_hint(type_hint)
     try:
         return type_hint in _injectable_typehints
     except TypeError:
@@ -450,7 +468,9 @@ def provide_values_for_special_args(func, args, typehint_to_value: dict) -> tupl
     args_list = list(args)
     kwargs = {}
     for index, (param, spec) in enumerate(parameters.items()):
-        hint = type_hints.get(param)
+        # Unwrap Optional[X] so that `user: CurrentUser = None` resolves to the same
+        # key as `user: CurrentUser` (see is_injectable_typehint).
+        hint = _unwrap_optional_hint(type_hints.get(param))
         try:
             value_provided = hint in typehint_to_value
         except TypeError:
@@ -771,8 +791,47 @@ def _is_book_hint(hint) -> bool:
     """True if a type hint refers to the injected book (xw.Book or xw.BookAsync).
 
     xw.BookAsync is a Book subclass, so `hint == xw.Book` alone would miss it.
+    Optional[X] is unwrapped so that a `book: xw.Book = None` parameter is still
+    recognized as the book - the injection path accepts it, so every detection
+    path has to agree (else the script runs but the book isn't found afterwards).
     """
+    hint = _unwrap_optional_hint(hint)
     return hint is xw.Book or hint is xw.BookAsync
+
+
+def _normalize_book_hint(hint):
+    """Return (lookup_hint, is_async_book) for an injected-value lookup.
+
+    BookAsync is a Book subclass and a type hint for the async API; the caller keys
+    the injected book under xw.Book, so normalize before the lookup. Unhashable
+    hints (e.g. some parametrized generics) are never injectable, so map them to
+    None to keep the `in typehint_to_value` test from raising.
+
+    Optional[X] is unwrapped first: a `= None` default makes get_type_hints() report
+    Optional[X] rather than X (see is_injectable_typehint).
+    """
+    hint = _unwrap_optional_hint(hint)
+    if hint is xw.BookAsync:
+        return xw.Book, True
+    try:
+        hash(hint)
+    except TypeError:
+        return None, False
+    return hint, False
+
+
+def _inject_value(hint, typehint_to_value):
+    """Return the framework-provided value for an injected parameter."""
+    lookup_hint, book_is_async = _normalize_book_hint(hint)
+    value = typehint_to_value[lookup_hint]
+    # A BookAsync annotation makes the injected book lazy: no cell values were
+    # pre-loaded, so sync `.value` reads raise until values are loaded (see
+    # Range.raw_value in the remote backend). The book is constructed by the caller
+    # (e.g. xw.Book(json=...) in xlwings Lite), which can't know the annotation, so
+    # we set it here.
+    if book_is_async:
+        value.impl._lazy = True
+    return value
 
 
 def _book_param_hint(func):
@@ -791,8 +850,12 @@ def _book_param_hint(func):
         # A bad/forward-ref annotation shouldn't crash decoration; the caller
         # falls back to sync (BookAsync just won't be auto-detected).
         return None
+    # Unwrapped, so that callers can compare the result against xw.Book/xw.BookAsync
+    # by identity even when the parameter is annotated Optional[...] (= None).
     book_hints = [
-        type_hints[pname] for pname in params if _is_book_hint(type_hints.get(pname))
+        _unwrap_optional_hint(type_hints[pname])
+        for pname in params
+        if _is_book_hint(type_hints.get(pname))
     ]
     if len(book_hints) > 1:
         raise XlwingsError(
@@ -889,7 +952,12 @@ def script(
             type_hints = get_type_hints(func)
             sig = inspect.signature(func)
 
+            # Keyword-only params (e.g. an injected value after *args) arrive via
+            # kwargs, so check both when looking for the book to return.
             for param_name, arg_value in zip(sig.parameters.keys(), args):
+                if param_name in type_hints and _is_book_hint(type_hints[param_name]):
+                    return arg_value
+            for param_name, arg_value in kwargs.items():
                 if param_name in type_hints and _is_book_hint(type_hints[param_name]):
                     return arg_value
 
@@ -918,20 +986,6 @@ def script(
         return inner
     else:
         return inner(f)
-
-
-def _unwrap_optional_hint(hint):
-    """Return X for Optional[X] / X | None, otherwise the hint unchanged.
-
-    Restricted to unions on purpose: unwrapping any generic would turn
-    `list[int]` into `int`.
-    """
-    # types.UnionType (the `X | None` form) only exists on Python 3.10+.
-    union_types = {Union, getattr(types, "UnionType", Union)}
-    if get_origin(hint) not in union_types:
-        return hint
-    members = [arg for arg in get_args(hint) if arg is not type(None)]
-    return members[0] if len(members) == 1 else hint
 
 
 def _coerce_script_arg(value, hint, script_name, param_name):
@@ -977,10 +1031,19 @@ async def custom_scripts_call(
     resolved_hints = get_type_hints(inspect.unwrap(func))
     # Prepend current_user, which will be removed again by the script decorator
     call_args = [current_user]
+    call_kwargs = {}
 
     # Iterate over the parameters and check their type hints
     arg_iter = iter(args)
     for param in sig.parameters.values():
+        hint = resolved_hints.get(param.name)
+        injectable = _normalize_book_hint(hint)[0] in typehint_to_value
+        if param.kind is inspect.Parameter.KEYWORD_ONLY and injectable:
+            # Args arrive positionally, so a keyword-only param can never be filled
+            # by the caller - but a framework-injected one (e.g. CurrentUser) is
+            # provided here and may therefore sit after *args.
+            call_kwargs[param.name] = _inject_value(hint, typehint_to_value)
+            continue
         if param.kind in (
             inspect.Parameter.KEYWORD_ONLY,
             inspect.Parameter.VAR_KEYWORD,
@@ -989,23 +1052,8 @@ async def custom_scripts_call(
                 f"Script '{script_name}': keyword-only and **kwargs parameters "
                 f"are not supported ('{param.name}')"
             )
-        hint = resolved_hints.get(param.name)
-        # BookAsync is a Book subclass and a type hint for the async API; the
-        # caller keys the injected book under xw.Book, so normalize before the
-        # lookup.
-        book_is_async = hint is xw.BookAsync
-        if book_is_async:
-            hint = xw.Book
-        if hint in typehint_to_value:
-            injected_book = typehint_to_value[hint]
-            # A BookAsync annotation makes the injected book lazy: no cell values
-            # were pre-loaded, so sync `.value` reads raise until values are
-            # loaded (see Range.raw_value in the remote backend). The book is
-            # constructed by the caller (e.g. xw.Book(json=...) in xlwings Lite),
-            # which can't know the annotation, so we set it here.
-            if book_is_async:
-                injected_book.impl._lazy = True
-            call_args.append(injected_book)
+        if injectable:
+            call_args.append(_inject_value(hint, typehint_to_value))
         elif param.kind == inspect.Parameter.VAR_POSITIONAL:
             call_args.extend(
                 _coerce_script_arg(value, hint, script_name, param.name)
@@ -1031,9 +1079,9 @@ async def custom_scripts_call(
         )
 
     if inspect.iscoroutinefunction(func):
-        book = await func(*call_args)
+        book = await func(*call_args, **call_kwargs)
     else:
-        book = func(*call_args)
+        book = func(*call_args, **call_kwargs)
 
     return book
 
