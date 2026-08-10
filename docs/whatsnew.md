@@ -4,7 +4,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 
 ## v0.36.14 (Aug 10, 2026)
 
-- xlwings Server: functions now accept the framework-provided type hinted args (`CurrentUser`, `xw.Book`, and `xw.BookAsync`) in any position.
+- xlwings Lite and xlwings Server: functions now accept the framework-provided type hinted args (`CurrentUser`, `xw.Book`, and `xw.BookAsync`) in any position.
 
 ## v0.36.13 (Aug 2, 2026)
 
