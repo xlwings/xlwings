@@ -111,8 +111,10 @@ public:
 
 	~AutoSafeArrayAccessData()
 	{
-		if(_pSA != NULL && FAILED(SafeArrayUnaccessData(_pSA)))
-			throw formatted_exception() << "Could not unaccess safe array data.";
+		// Destructors are implicitly noexcept, so a throw here would call
+		// std::terminate rather than propagate. Ignore the failure instead.
+		if(_pSA != NULL)
+			SafeArrayUnaccessData(_pSA);
 	}
 };
 
@@ -134,8 +136,10 @@ public:
 
 	~AutoSafeArrayCreate()
 	{
-		if(pSafeArray != NULL && FAILED(SafeArrayDestroy(pSafeArray)))
-			throw formatted_exception() << "Could not destroy safe array.";
+		// Destructors are implicitly noexcept, so a throw here would call
+		// std::terminate rather than propagate. Ignore the failure instead.
+		if(pSafeArray != NULL)
+			SafeArrayDestroy(pSafeArray);
 	}
 };
 

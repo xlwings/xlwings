@@ -20,28 +20,34 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-      - uses: pre-commit/action@v3.0.1
+      # Inlined from pre-commit/action@v3.0.1, which pins actions/cache@v4 (Node 20)
+      - run: python -m pip install pre-commit
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-3|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
+      - run: pre-commit run --show-diff-on-failure --color=always --all-files
 
   pre-build:
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build]') || contains(github.event.head_commit.message, '[build-cli]')
     runs-on: windows-2025
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           architecture: "x64"
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 3.1.100
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@v3
       - name: Install Python dependencies
         run: |
           python -m pip install pythonnet wheel setuptools-rust
@@ -52,7 +58,7 @@ jobs:
           curl -L https://www.nuget.org/api/v2/package/Aspose.Cells/17.12.0 -o ./aspose/aspose.cells.nupkg
           unzip ./aspose/aspose.cells.nupkg -d ./aspose/
       - name: Caching dlls
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         id: cache
         with:
           path: |
@@ -72,7 +78,7 @@ jobs:
         run: |
           python ./scripts/build_excel_files.py
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pre-build
           retention-days: 1
@@ -126,11 +132,11 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: pre-build
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
           architecture: "x64"
@@ -147,7 +153,7 @@ jobs:
       - name: Set up QEMU
         # Required for Linux cross-compilation
         if: matrix.platform.os == 'ubuntu-latest'
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         with:
           platforms: all
 
@@ -185,7 +191,7 @@ jobs:
           python setup.py bdist_wheel
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Package-${{matrix.python-version}}-${{ matrix.platform.os }}-${{ matrix.platform.target }}-${{matrix.platform.manylinux}}
           path: ./dist
@@ -214,11 +220,11 @@ jobs:
     runs-on: windows-2025
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: pre-build
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: "pip"
@@ -229,7 +235,7 @@ jobs:
           pyinstaller ./xlwings/cli.py --onefile --name xlwings --icon ./resources/xlwings.ico
           cp ./dist/xlwings.exe ./xlwings.exe
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cli
           retention-days: 1
@@ -243,7 +249,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           architecture: "x64"
@@ -251,17 +257,17 @@ jobs:
         run: |
           python -m pip install wheel twine
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: Package-*
           merge-multiple: true
           path: Package
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: cli
       - name: GH Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: xlwings.exe
           generate_release_notes: true
