@@ -72,6 +72,7 @@ docs = [
     "sphinx-autobuild",
     "sphinx-copybutton",
     "sphinx-design",
+    "sphinx-llm",
 ]
 
 all = [

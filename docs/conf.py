@@ -77,6 +77,7 @@ extensions = [
     "sphinx.ext.extlinks",
     "sphinx_copybutton",
     "sphinx_design",
+    "sphinx_llm.txt",
     "myst_docstrings",
 ]
 
@@ -143,6 +144,15 @@ html_theme_options = {
     "announcement": '<a href="https://lite.xlwings.org/" target="_blank"> xlwings Lite</a> is now available in the add-in store for free!</a>',
 }
 
+# -- LLM-friendly output -----------------------------------------------------
+# Generates llms.txt, llms-full.txt, and a rendered Markdown version of each
+# page alongside the regular HTML documentation.
+llms_txt_description = (
+    "Documentation for xlwings, a Python library to automate Excel, write "
+    "user-defined functions, and build interactive Excel tools."
+)
+llms_txt_suffix_mode = "replace"
+
 copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
 copybutton_prompt_is_regexp = True
 
@@ -174,3 +184,24 @@ texinfo_domain_indices = False
 
 autodoc_typehints = "description"
 autodoc_typehints_description_target = "documented"
+
+
+def _prepare_markdown_doctree(app, doctree, docname):
+    """Fix internal references and asset URLs in generated Markdown."""
+    if app.builder.name != "markdown":
+        return
+
+    from docutils import nodes
+
+    for node in doctree.findall(nodes.reference):
+        if node.get("refid") and not node.get("refuri"):
+            node["internal"] = True
+
+    for node in doctree.findall(nodes.image):
+        image = app.env.images.get(node["uri"])
+        if image:
+            node["uri"] = f"/_images/{image[1]}"
+
+
+def setup(app):
+    app.connect("doctree-resolved", _prepare_markdown_doctree)
