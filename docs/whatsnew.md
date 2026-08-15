@@ -6,7 +6,6 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 
 - xlwings Server: Added `xw.WithScript` to run a custom script after a custom function returns.
 
-
 ## v0.36.14 (Aug 10, 2026)
 
 - xlwings Lite and xlwings Server: functions now accept the framework-provided type hinted args (`CurrentUser`, `xw.Book`, and `xw.BookAsync`) in any position.
@@ -48,7 +47,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 
 ## v0.36.5 (Jun 12, 2026)
 
-- xlwings Server and xlwings Lite: fix memory leak with object handles during recalculation. 
+- xlwings Server and xlwings Lite: fix memory leak with object handles during recalculation.
 
 ## v0.36.4 (Jun 9, 2026)
 
@@ -68,7 +67,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 
 ## v0.36.0 (May 31, 2026)
 
-- {bdg-info}`Enhancement` xlwings Server: Streaming functions are now more robust  ({issue}`2702`).
+- {bdg-info}`Enhancement` xlwings Server: Streaming functions are now more robust ({issue}`2702`).
 - {bdg-info}`Enhancement` All documentation and doc strings are now written in Markdown instead of reStructuredText.
 
 ## v0.35.3 (May 6, 2026)
