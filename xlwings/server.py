@@ -1,4 +1,5 @@
 # ruff: noqa: F401
+from . import CustomFunctionResult, WithScript
 from .pro.object_handles import (
     CONVERTER_KEYS as OBJECT_CONVERTER_KEYS,
     ObjectCacheConverter,
