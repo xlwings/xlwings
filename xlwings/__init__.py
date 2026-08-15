@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import sys
 from typing import TYPE_CHECKING, Annotated, Any, Callable, TypeVar, overload
@@ -100,6 +101,121 @@ class ObjectHandle:
         return Annotated[item, cls]
 
 
+def _as_sheet_list(value, name):
+    """Normalize an include/exclude option to the comma-separated string the client
+    expects, accepting either a string or a list/tuple of sheet names."""
+    if value is None:
+        return ""
+    if isinstance(value, (list, tuple)):
+        for sheet in value:
+            if not isinstance(sheet, str):
+                raise XlwingsError(
+                    f"WithScript: '{name}' must contain sheet names as strings."
+                )
+        return ",".join(value)
+    if not isinstance(value, str):
+        raise XlwingsError(
+            f"WithScript: '{name}' must be a string or a list of sheet names."
+        )
+    return value
+
+
+class WithScript:
+    """Wraps the return value of a custom function to request that a custom script runs
+    after the function returns::
+
+        import xlwings as xw
+
+        @xw.func
+        def hello_with_script(name):
+            return xw.WithScript(
+                f"Hello {name}!",
+                "hello_args",
+                args=[name, 42],
+                exclude="MySheet",
+            )
+
+    ``value`` is converted and written to the cell exactly as it would be without the
+    wrapper, so this composes with every return type, including object handles and
+    DataFrames. ``script`` is either the custom script function itself or its name as a
+    string. ``args`` are passed on to the script and must be JSON-serializable.
+    ``include``/``exclude``/``lazy`` control the workbook payload sent with the follow-up
+    call, exactly like they do for a task pane button. Use either ``include`` or
+    ``exclude``, not both.
+
+    The script runs at the next calculation boundary after the custom function returns
+    (or, on hosts below ExcelApi 1.8, on a best-effort basis right after it returns, with
+    no guarantee that the cell value has been committed). A custom function may not write
+    to the grid during its own invocation, which is why the script can't run inline. Note
+    that every invocation that returns a ``WithScript`` triggers the script, so filling a
+    formula down N rows runs it N times. Not supported in streaming functions.
+    """
+
+    def __init__(self, value, script, *, args=None, include="", exclude="", lazy=False):
+        if isinstance(value, WithScript):
+            raise XlwingsError(
+                "Cannot nest WithScript objects: only one script can be requested per "
+                "return value."
+            )
+        if args is None:
+            args = []
+        if not isinstance(args, (list, tuple)):
+            raise XlwingsError("WithScript: 'args' must be a list.")
+        args = list(args)
+        try:
+            # allow_nan=False: NaN/Infinity are accepted by json.dumps but aren't valid
+            # JSON, so they'd pass here only to blow up when the HTTP response is
+            # serialized - far away from the line that caused it.
+            json.dumps(args, allow_nan=False)
+        except (TypeError, ValueError) as e:
+            raise XlwingsError(
+                f"WithScript: 'args' must be JSON-serializable: {e}"
+            ) from None
+        if not isinstance(lazy, bool):
+            # A non-bool such as "false" would be truthy in JavaScript, i.e. it would do
+            # the opposite of what was written.
+            raise XlwingsError("WithScript: 'lazy' must be True or False.")
+        self.value = value
+        self.script_name = script if isinstance(script, str) else script.__name__
+        self.args = args
+        # The client splits these on ",", so normalize lists/tuples here instead of
+        # handing it something it would call .split() on.
+        self.include = _as_sheet_list(include, "include")
+        self.exclude = _as_sheet_list(exclude, "exclude")
+        if self.include and self.exclude:
+            # getBookData() throws on this, but only once the follow-up runs - long after
+            # the cell value was delivered successfully.
+            raise XlwingsError(
+                "WithScript: use either 'include' or 'exclude', but not both."
+            )
+        self.lazy = lazy
+
+    @property
+    def payload(self):
+        """The script request as sent to the client. Excludes ``value``, which travels
+        separately as the (converted) cell value."""
+        return {
+            "script_name": self.script_name,
+            "args": self.args,
+            "include": self.include,
+            "exclude": self.exclude,
+            "lazy": self.lazy,
+        }
+
+
+class CustomFunctionResult:
+    """Envelope returned by ``custom_functions_call`` when the custom function requested
+    a follow-up script via :class:`WithScript`. Carries the already-converted cell value
+    alongside the script request, so the two stay coupled instead of being passed via
+    ambient state. Functions that don't use ``WithScript`` return their converted value
+    directly, unchanged.
+    """
+
+    def __init__(self, value, script):
+        self.value = value
+        self.script = script
+
+
 if TYPE_CHECKING:
     # For type checkers, ``CachedObject[T]`` is just ``T``, so editors show the real type
     # of an object-handle argument (e.g. CachedObject[pd.DataFrame] -> pd.DataFrame).
@@ -141,8 +257,10 @@ __all__ = (
     "Engine",
     "Name",
     "CachedObject",
+    "CustomFunctionResult",
     "ObjectCacheMissError",
     "ObjectHandle",
+    "WithScript",
     "Picture",
     "Range",
     "RangeColumns",

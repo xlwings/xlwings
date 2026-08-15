@@ -42,7 +42,14 @@ _F = TypeVar("_F", bound=Callable[..., Any])
 
 import xlwings as xw
 
-from .. import ObjectHandle, XlwingsError, __version__, conversion
+from .. import (
+    CustomFunctionResult,
+    ObjectHandle,
+    WithScript,
+    XlwingsError,
+    __version__,
+    conversion,
+)
 from . import object_handles
 
 logger = logging.getLogger(__name__)
@@ -580,6 +587,15 @@ async def custom_functions_call(
             with ctx:
                 try:
                     async for result in func(*args, **kwargs):
+                        if isinstance(result, WithScript):
+                            # Reject rather than ignore: the streaming result travels
+                            # over socket.io and never passes through the HTTP response
+                            # that carries script requests, so honoring it is impossible.
+                            # A side-effect API that silently no-ops is worse than one
+                            # that fails.
+                            raise XlwingsError(
+                                "WithScript is not supported in streaming functions."
+                            )
                         result = await convert(result, ret_info, data)
                         if streaming_callback:
                             streaming_callback(result)
@@ -643,6 +659,17 @@ async def custom_functions_call(
     else:
         ret = func(*args, **kwargs)
 
+    # Unwrap a requested follow-up script BEFORE the return converter is selected.
+    # ret_info drives that selection, so an explicit converter (e.g. `-> object` or
+    # `@ret(convert=...)`) would otherwise receive the wrapper itself and, in the case of
+    # object handles, silently cache it - handing Excel a valid-looking handle to a
+    # WithScript while the script never runs. Unwrapping here means `value` flows through
+    # the original conversion untouched, so this composes with every return type.
+    script_payload = None
+    if isinstance(ret, WithScript):
+        script_payload = ret.payload
+        ret = ret.value
+
     ret = await convert(ret, ret_info, data)
     if caller_address and produces_handles:
         # Deterministically drop the object-handle entries that this cell's previous
@@ -659,6 +686,8 @@ async def custom_functions_call(
             session_id=data.get("session_id"),
             discriminator=producer_scope,
         )
+    if script_payload is not None:
+        return CustomFunctionResult(value=ret, script=script_payload)
     return ret
 
 
