@@ -2,6 +2,11 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.36.15 (Aug 15, 2026)
+
+- xlwings Server: Added `xw.WithScript` to run a custom script after a custom function returns.
+
+
 ## v0.36.14 (Aug 10, 2026)
 
 - xlwings Lite and xlwings Server: functions now accept the framework-provided type hinted args (`CurrentUser`, `xw.Book`, and `xw.BookAsync`) in any position.
