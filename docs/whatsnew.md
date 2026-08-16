@@ -2,6 +2,10 @@
 
 For more details, check out the linked pull requests under [GitHub Releases](https://github.com/xlwings/xlwings/releases).
 
+## v0.36.16 (Aug 16, 2026)
+
+- xlwings Server: Removed unnecessary arguments in `xw.WithScript`.
+
 ## v0.36.15 (Aug 15, 2026)
 
 - xlwings Server: Added `xw.WithScript` to run a custom script after a custom function returns.
