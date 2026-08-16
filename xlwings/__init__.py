@@ -269,6 +269,20 @@ except (ImportError, LicenseError, AttributeError):
     __pro__ = False
 
 try:
+    # The Caller type hint for custom functions. Imported here (rather than only from
+    # xlwings.server) so it's available as xw.Caller, like the other custom-function
+    # types above. Importing it also registers it as an injectable typehint.
+    from .pro.caller import Caller  # noqa: F401
+
+    # Unlike the other names in __all__, Caller lives under pro/ and is therefore
+    # license-gated: importing it runs LicenseHandler.validate_license("pro"). Only
+    # advertise it once it's actually bound, or `from xlwings import *` would raise
+    # AttributeError on an install without a valid PRO license.
+    __all__ += ("Caller",)
+except (ImportError, LicenseError, AttributeError):
+    pass
+
+try:
     # Separately handled in case the Rust extension is missing
     from .pro import _xlcalamine
 
