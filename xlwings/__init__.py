@@ -139,9 +139,9 @@ class WithScript:
     wrapper, so this composes with every return type, including object handles and
     DataFrames. ``script`` is either the custom script function itself or its name as a
     string. ``args`` are passed on to the script and must be JSON-serializable.
-    ``include``/``exclude``/``lazy`` control the workbook payload sent with the follow-up
-    call, exactly like they do for a task pane button. Use either ``include`` or
-    ``exclude``, not both.
+    ``include``/``exclude`` control the workbook payload sent with the follow-up call,
+    exactly like they do for a task pane button. Use either ``include`` or ``exclude``,
+    not both.
 
     The script runs at the next calculation boundary after the custom function returns
     (or, on hosts below ExcelApi 1.8, on a best-effort basis right after it returns, with
@@ -151,7 +151,7 @@ class WithScript:
     formula down N rows runs it N times. Not supported in streaming functions.
     """
 
-    def __init__(self, value, script, *, args=None, include="", exclude="", lazy=False):
+    def __init__(self, value, script, *, args=None, include="", exclude=""):
         if isinstance(value, WithScript):
             raise XlwingsError(
                 "Cannot nest WithScript objects: only one script can be requested per "
@@ -171,10 +171,6 @@ class WithScript:
             raise XlwingsError(
                 f"WithScript: 'args' must be JSON-serializable: {e}"
             ) from None
-        if not isinstance(lazy, bool):
-            # A non-bool such as "false" would be truthy in JavaScript, i.e. it would do
-            # the opposite of what was written.
-            raise XlwingsError("WithScript: 'lazy' must be True or False.")
         self.value = value
         self.script_name = script if isinstance(script, str) else script.__name__
         self.args = args
@@ -188,7 +184,6 @@ class WithScript:
             raise XlwingsError(
                 "WithScript: use either 'include' or 'exclude', but not both."
             )
-        self.lazy = lazy
 
     @property
     def payload(self):
@@ -199,7 +194,6 @@ class WithScript:
             "args": self.args,
             "include": self.include,
             "exclude": self.exclude,
-            "lazy": self.lazy,
         }
 
 

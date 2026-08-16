@@ -281,19 +281,6 @@ def test_with_script_rejects_include_and_exclude_together():
         xw.WithScript("v", "s", include=["A"], exclude=["B"])
 
 
-def test_with_script_rejects_non_boolean_lazy():
-    """A non-bool like "false" is truthy in JavaScript, so it would silently do the
-    opposite of what was written."""
-    import xlwings as xw
-
-    for value in ("false", "", 0, 1, None):
-        with pytest.raises(xw.XlwingsError, match="must be True or False"):
-            xw.WithScript("v", "s", lazy=value)
-
-    assert xw.WithScript("v", "s", lazy=True).lazy is True
-    assert xw.WithScript("v", "s", lazy=False).lazy is False
-
-
 def test_with_script_accepts_callable_or_string():
     import xlwings as xw
 
@@ -315,13 +302,12 @@ def test_with_script_is_not_a_sequence():
 def test_with_script_payload():
     import xlwings as xw
 
-    wrapped = xw.WithScript("v", "myscript", args=[1, "a"], include="Sheet1", lazy=True)
+    wrapped = xw.WithScript("v", "myscript", args=[1, "a"], include="Sheet1")
     assert wrapped.payload == {
         "script_name": "myscript",
         "args": [1, "a"],
         "include": "Sheet1",
         "exclude": "",
-        "lazy": True,
     }
 
 
@@ -359,7 +345,6 @@ def wrapped(name):
         "args": ["x"],
         "include": "",
         "exclude": "MySheet",
-        "lazy": False,
     }
 
 
