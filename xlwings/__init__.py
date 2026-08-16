@@ -101,25 +101,6 @@ class ObjectHandle:
         return Annotated[item, cls]
 
 
-def _as_sheet_list(value, name):
-    """Normalize an include/exclude option to the comma-separated string the client
-    expects, accepting either a string or a list/tuple of sheet names."""
-    if value is None:
-        return ""
-    if isinstance(value, (list, tuple)):
-        for sheet in value:
-            if not isinstance(sheet, str):
-                raise XlwingsError(
-                    f"WithScript: '{name}' must contain sheet names as strings."
-                )
-        return ",".join(value)
-    if not isinstance(value, str):
-        raise XlwingsError(
-            f"WithScript: '{name}' must be a string or a list of sheet names."
-        )
-    return value
-
-
 class WithScript:
     """Wraps the return value of a custom function to request that a custom script runs
     after the function returns::
@@ -132,16 +113,11 @@ class WithScript:
                 f"Hello {name}!",
                 "hello_args",
                 args=[name, 42],
-                exclude="MySheet",
             )
 
     ``value`` is converted and written to the cell exactly as it would be without the
-    wrapper, so this composes with every return type, including object handles and
-    DataFrames. ``script`` is either the custom script function itself or its name as a
+    wrapper. ``script`` is either the custom script function itself or its name as a
     string. ``args`` are passed on to the script and must be JSON-serializable.
-    ``include``/``exclude`` control the workbook payload sent with the follow-up call,
-    exactly like they do for a task pane button. Use either ``include`` or ``exclude``,
-    not both.
 
     The script runs at the next calculation boundary after the custom function returns
     (or, on hosts below ExcelApi 1.8, on a best-effort basis right after it returns, with
@@ -151,7 +127,7 @@ class WithScript:
     formula down N rows runs it N times. Not supported in streaming functions.
     """
 
-    def __init__(self, value, script, *, args=None, include="", exclude=""):
+    def __init__(self, value, script, *, args=None):
         if isinstance(value, WithScript):
             raise XlwingsError(
                 "Cannot nest WithScript objects: only one script can be requested per "
@@ -174,16 +150,6 @@ class WithScript:
         self.value = value
         self.script_name = script if isinstance(script, str) else script.__name__
         self.args = args
-        # The client splits these on ",", so normalize lists/tuples here instead of
-        # handing it something it would call .split() on.
-        self.include = _as_sheet_list(include, "include")
-        self.exclude = _as_sheet_list(exclude, "exclude")
-        if self.include and self.exclude:
-            # getBookData() throws on this, but only once the follow-up runs - long after
-            # the cell value was delivered successfully.
-            raise XlwingsError(
-                "WithScript: use either 'include' or 'exclude', but not both."
-            )
 
     @property
     def payload(self):
@@ -192,8 +158,6 @@ class WithScript:
         return {
             "script_name": self.script_name,
             "args": self.args,
-            "include": self.include,
-            "exclude": self.exclude,
         }
 
 
