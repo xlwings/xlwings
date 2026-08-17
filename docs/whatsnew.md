@@ -5,6 +5,7 @@ For more details, check out the linked pull requests under [GitHub Releases](htt
 ## v0.36.17 (Aug 17, 2026)
 
 - xlwings Lite and xlwings Server: custom functions can now access the calling cell by adding an argument with the `xw.Caller` type hint, which provides the address, row/column and sheet/book name of the cell that called the function.
+- xlwings Lite: added support for `xw.WithScript`.
 
 ## v0.36.16 (Aug 16, 2026)
 

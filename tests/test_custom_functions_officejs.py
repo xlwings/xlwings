@@ -263,6 +263,43 @@ def test_with_script_accepts_callable_or_string():
     assert xw.WithScript("v", "myscript").script_name == "myscript"
 
 
+def test_with_script_records_module_for_callables_only():
+    """The defining module is what lets multi-module runtimes (xlwings Lite) resolve a
+    script unambiguously. A bare string carries no module, so it must stay None rather
+    than defaulting to something that would resolve to the wrong script."""
+    import xlwings as xw
+
+    def myscript(book):
+        pass
+
+    assert xw.WithScript("v", myscript).script_module == myscript.__module__
+    assert xw.WithScript("v", "myscript").script_module is None
+
+
+def test_with_script_accepts_non_function_callables():
+    """Anything with a __name__ is accepted, not just plain functions - the module is
+    read defensively so an exotic callable can't turn into an AttributeError."""
+    import functools
+
+    import xlwings as xw
+
+    class Callable:
+        __name__ = "myscript"
+
+        def __call__(self, book):
+            pass
+
+    wrapped = xw.WithScript("v", Callable())
+    assert wrapped.script_name == "myscript"
+
+    def myscript(book, flag):
+        pass
+
+    partial = functools.partial(myscript, flag=True)
+    partial.__name__ = "myscript"
+    assert xw.WithScript("v", partial).script_name == "myscript"
+
+
 def test_with_script_is_not_a_sequence():
     """Ensure2DStage and _check_not_jagged special-case list/tuple: a WithScript that
     subclassed either would be spread across cells instead of treated as one value."""
@@ -277,7 +314,17 @@ def test_with_script_payload():
     wrapped = xw.WithScript("v", "myscript", args=[1, "a"])
     assert wrapped.payload == {
         "script_name": "myscript",
+        "script_module": None,
         "args": [1, "a"],
+    }
+
+    def myscript(book):
+        pass
+
+    assert xw.WithScript("v", myscript).payload == {
+        "script_name": "myscript",
+        "script_module": myscript.__module__,
+        "args": [],
     }
 
 
@@ -312,6 +359,7 @@ def wrapped(name):
     assert result.value == [["Hello x!"]]
     assert result.script == {
         "script_name": "hello_args",
+        "script_module": None,
         "args": ["x"],
     }
 
