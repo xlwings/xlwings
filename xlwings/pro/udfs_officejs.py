@@ -484,10 +484,25 @@ def provide_values_for_special_args(func, args, typehint_to_value: dict) -> tupl
             value_provided = False
         if not value_provided:
             continue
+        value = typehint_to_value[hint]
+        if value is None:
+            # Imported here, not at module level: caller.py imports from this module.
+            from .caller import Caller
+
+            # `caller: Caller` promises a value, so surface the anomaly here instead of
+            # letting it become an AttributeError inside the user's function. Excel always
+            # sends an address for regular custom functions (streaming ones can't use the
+            # hint at all), so this only fires on a missing or malformed address. Writing
+            # `caller: Caller | None` opts out and accepts the None.
+            if hint is Caller and type_hints.get(param) is Caller:
+                raise XlwingsError(
+                    "Could not determine the calling cell: Excel didn't provide a valid "
+                    f"address. Annotate '{param}' as `Caller | None` to handle this case."
+                )
         if spec.kind is inspect.Parameter.KEYWORD_ONLY:
-            kwargs[param] = typehint_to_value[hint]
+            kwargs[param] = value
         else:
-            args_list.insert(index, typehint_to_value[hint])
+            args_list.insert(index, value)
     return tuple(args_list), kwargs
 
 
@@ -738,7 +753,26 @@ def custom_functions_meta(module, typehinted_params_to_exclude=None):
                 func["name"] = f"{namespace.upper()}.{display_name}"
             else:
                 func["name"] = display_name
+            type_hints = get_type_hints(obj)
             if inspect.isasyncgenfunction(obj):
+                # Office.js sets either "stream" or "requiresAddress", never both, so a
+                # streaming function never learns its calling cell. Fail at registration
+                # rather than injecting None at call time: the hint can't work here, and a
+                # silent None would push the problem into the user's function body.
+                # Imported here, not at module level: caller.py imports from this module.
+                from .caller import Caller
+
+                caller_params = [
+                    name
+                    for name, hint in type_hints.items()
+                    if name != "return" and _unwrap_optional_hint(hint) is Caller
+                ]
+                if caller_params:
+                    raise XlwingsError(
+                        f"Streaming function '{xlfunc['name']}' can't use the Caller type "
+                        f"hint (parameter '{caller_params[0]}'): Excel doesn't provide the "
+                        "calling cell for streaming functions."
+                    )
                 func["options"] = {
                     "stream": True,
                 }
@@ -751,7 +785,6 @@ def custom_functions_meta(module, typehinted_params_to_exclude=None):
                 func["options"]["volatile"] = True
             func["result"] = {"dimensionality": "matrix", "type": "any"}
 
-            type_hints = get_type_hints(obj)
             params = []
             for arg in xlfunc["args"]:
                 if (
