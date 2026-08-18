@@ -207,5 +207,16 @@ def _prepare_markdown_doctree(app, doctree, docname):
             node["uri"] = f"/_images/{image[1]}"
 
 
+def _add_markdown_twin_flag(app, pagename, templatename, context, doctree):
+    """Flag pages that have a rendered Markdown twin.
+
+    sphinx_llm emits a .md file per source document, but not for generated
+    pages like genindex/search — linking those would 404. base.html uses this
+    to decide whether to emit the text/markdown <link rel="alternate">.
+    """
+    context["has_markdown_twin"] = pagename in app.env.found_docs
+
+
 def setup(app):
     app.connect("doctree-resolved", _prepare_markdown_doctree)
+    app.connect("html-page-context", _add_markdown_twin_flag)

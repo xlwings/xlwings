@@ -1,0 +1,21 @@
+{# The epub/latex builders use the basic theme (no Furo), so extending
+   "furo/base.html" unconditionally fails there with TemplateNotFound. Only
+   override the Furo HTML build; let other builders use their own base.html. #}
+{% if builder == "html" or builder == "dirhtml" %}
+{% extends "furo/base.html" %}
+
+{% block extrahead %}
+  {{ super() }}
+  {# Point LLMs/agents at the machine-readable docs index and at this page's
+     Markdown source. Without these, llms.txt is only findable by guessing the
+     conventional path. #}
+  <link rel="alternate" type="text/plain" href="{{ pathto('llms.txt', 1) }}" title="llms.txt">
+  {# Only source documents get a rendered .md twin; generated pages like
+     genindex/search don't, so linking one there would 404. #}
+  {% if has_markdown_twin %}
+  <link rel="alternate" type="text/markdown" href="{{ pathto(pagename ~ '.md', 1) }}" title="Markdown version of this page">
+  {% endif %}
+{% endblock extrahead %}
+{% else %}
+{% extends "!base.html" %}
+{% endif %}
