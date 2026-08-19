@@ -16,3 +16,10 @@
 .sidebar-tree .current-page > .reference:hover {
   background: color-mix(in srgb, var(--color-brand-content) 20%, transparent);
 }
+
+/* Keep the permalink icon subordinate to and optically centered on headings. */
+.headerlink-icon {
+  width: 0.72em;
+  height: 0.72em;
+  vertical-align: -0.06em;
+}
