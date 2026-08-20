@@ -1043,6 +1043,14 @@ class Range(base_classes.Range):
         self.append_json_action(func="setRowHeight", args=value)
 
     @property
+    def wrap_text(self):
+        raise NotImplementedError()
+
+    @wrap_text.setter
+    def wrap_text(self, value):
+        self.append_json_action(func="setWrapText", args=bool(value))
+
+    @property
     def formula_array(self):
         raise NotImplementedError()
 
