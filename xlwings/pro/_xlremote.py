@@ -1003,6 +1003,17 @@ class Range(base_classes.Range):
             raise ValueError('Color must be supplied in hex format e.g., "#FFA500".')
         self.append_json_action(func="setRangeColor", args=value)
 
+    @property
+    def formula(self):
+        raise NotImplementedError()
+
+    @formula.setter
+    def formula(self, value):
+        if not isinstance(value, list):
+            nrows, ncols = self.shape
+            value = [[value] * ncols] * nrows
+        self.append_json_action(func="setFormula", values=value)
+
     def add_hyperlink(self, address, text_to_display=None, screen_tip=None):
         self.append_json_action(
             func="addHyperlink", args=[address, text_to_display, screen_tip]
