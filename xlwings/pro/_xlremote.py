@@ -1025,6 +1025,16 @@ class Range(base_classes.Range):
         self.formula = value
 
     @property
+    def column_width(self):
+        raise NotImplementedError()
+
+    @column_width.setter
+    def column_width(self, value):
+        # In characters, as everywhere else in xlwings. The Office.js side
+        # converts to points, which is what range.format.columnWidth expects.
+        self.append_json_action(func="setColumnWidth", args=value)
+
+    @property
     def formula_array(self):
         raise NotImplementedError()
 
