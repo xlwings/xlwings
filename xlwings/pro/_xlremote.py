@@ -238,6 +238,7 @@ class App(base_classes.App):
         self.apps = apps
         self._pid = App._next_pid
         App._next_pid -= 1
+        self._display_alerts = True
         self._books = Books(self)
         if add_book:
             self._books.add()
@@ -257,6 +258,17 @@ class App(base_classes.App):
     @property
     def pid(self):
         return self._pid
+
+    @property
+    def display_alerts(self):
+        # Office.js never shows the alerts that this suppresses on the desktop
+        # engines, but Range.merge() toggles it, so it has to be readable and
+        # writable rather than raising.
+        return self._display_alerts
+
+    @display_alerts.setter
+    def display_alerts(self, value):
+        self._display_alerts = value
 
     @property
     def selection(self):
