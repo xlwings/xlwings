@@ -1024,6 +1024,17 @@ class Range(base_classes.Range):
         # dynamic array formulas, which is what formula2 stands for.
         self.formula = value
 
+    @property
+    def formula_array(self):
+        raise NotImplementedError()
+
+    @formula_array.setter
+    def formula_array(self, value):
+        # Office.js can't write legacy CSE array formulas (savedAsArray is
+        # read-only). Writing the formula to the top-left cell only lets it
+        # spill instead, which is the modern equivalent.
+        self.sheet.range((self.row, self.column)).formula = value
+
     def add_hyperlink(self, address, text_to_display=None, screen_tip=None):
         self.append_json_action(
             func="addHyperlink", args=[address, text_to_display, screen_tip]
