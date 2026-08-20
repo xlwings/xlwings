@@ -1014,6 +1014,16 @@ class Range(base_classes.Range):
             value = [[value] * ncols] * nrows
         self.append_json_action(func="setFormula", values=value)
 
+    @property
+    def formula2(self):
+        raise NotImplementedError()
+
+    @formula2.setter
+    def formula2(self, value):
+        # Office.js has no separate formula2: range.formulas already writes
+        # dynamic array formulas, which is what formula2 stands for.
+        self.formula = value
+
     def add_hyperlink(self, address, text_to_display=None, screen_tip=None):
         self.append_json_action(
             func="addHyperlink", args=[address, text_to_display, screen_tip]
