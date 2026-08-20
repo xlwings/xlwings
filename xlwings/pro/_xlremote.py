@@ -1104,6 +1104,34 @@ class Range(base_classes.Range):
             args=value,
         )
 
+    def autofill(self, destination, type_):
+        types = {
+            "fill_copy": "FillCopy",
+            "fill_days": "FillDays",
+            "fill_default": "FillDefault",
+            "fill_formats": "FillFormats",
+            "fill_months": "FillMonths",
+            "fill_series": "FillSeries",
+            "fill_values": "FillValues",
+            "fill_weekdays": "FillWeekdays",
+            "fill_years": "FillYears",
+            "growth_trend": "GrowthTrend",
+            "linear_trend": "LinearTrend",
+            "flash_fill": "FlashFill",
+        }
+        if type_ not in types:
+            raise XlwingsError(
+                f"Invalid autofill type '{type_}'. "
+                f"Must be one of: {', '.join(sorted(types))}."
+            )
+        if destination.sheet.index != self.sheet.index:
+            raise XlwingsError(
+                "range.autofill() requires the destination to be on the same sheet."
+            )
+        self.append_json_action(
+            func="rangeAutofill", args=[destination.address, types[type_]]
+        )
+
     def copy(self, destination=None):
         if destination is None:
             raise XlwingsError("range.copy() requires a destination argument.")
