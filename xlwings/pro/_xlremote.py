@@ -1035,6 +1035,14 @@ class Range(base_classes.Range):
         self.append_json_action(func="setColumnWidth", args=value)
 
     @property
+    def row_height(self):
+        raise NotImplementedError()
+
+    @row_height.setter
+    def row_height(self, value):
+        self.append_json_action(func="setRowHeight", args=value)
+
+    @property
     def formula_array(self):
         raise NotImplementedError()
 
