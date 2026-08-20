@@ -1156,6 +1156,9 @@ class Range(base_classes.Range):
     def merge(self, across):
         self.append_json_action(func="rangeMerge", args=bool(across))
 
+    def unmerge(self):
+        self.append_json_action(func="rangeUnmerge")
+
     def group(self, by):
         self.append_json_action(func="rangeGroup", args=[by])
 
