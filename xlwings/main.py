@@ -20,7 +20,7 @@ import warnings
 from contextlib import contextmanager
 from os import PathLike
 from pathlib import Path
-from typing import Any, ClassVar, Generator, Generic, Iterator, TypeVar
+from typing import Any, ClassVar, Generator, Generic, Iterator, TypeVar, overload
 
 import xlwings
 
@@ -2951,6 +2951,14 @@ class RangeRows(Ranges):
     def __call__(self, key: int) -> Range:
         return self.rng[key - 1, :]
 
+    @overload
+    def __getitem__(self, key: int) -> Range:
+        ...
+
+    @overload
+    def __getitem__(self, key: slice) -> RangeRows:
+        ...
+
     def __getitem__(self, key: int | slice) -> Range | RangeRows:
         if isinstance(key, slice):
             return RangeRows(rng=self.rng[key, :])
@@ -3012,6 +3020,14 @@ class RangeColumns(Ranges):
 
     def __call__(self, key: int) -> Range:
         return self.rng[:, key - 1]
+
+    @overload
+    def __getitem__(self, key: int) -> Range:
+        ...
+
+    @overload
+    def __getitem__(self, key: slice) -> RangeColumns:
+        ...
 
     def __getitem__(self, key: int | slice) -> Range | RangeColumns:
         if isinstance(key, slice):
