@@ -46,15 +46,15 @@ def book():
 def fake_js(monkeypatch):
     """Fake sys.platform + js so get_formula() runs its real logic.
 
-    getRangeFormulas records the (sheet_name, address) it was called with and
+    getRangeData records the (sheet_name, address, mode) it was called with and
     returns a formula grid matching the requested shape.
     """
     monkeypatch.setattr(sys, "platform", "emscripten")
 
     calls = []
 
-    async def get_range_formulas(sheet_name, address):
-        calls.append((sheet_name, address))
+    async def get_range_data(sheet_name, address, mode):
+        calls.append((sheet_name, address, mode))
         tuple1, tuple2 = xw.utils.a1_to_tuples(address)
         if tuple2:
             nrows = tuple2[0] - tuple1[0] + 1
@@ -65,10 +65,10 @@ def fake_js(monkeypatch):
             [f"=R{tuple1[0] + r}C{tuple1[1] + c}" for c in range(ncols)]
             for r in range(nrows)
         ]
-        return SimpleNamespace(to_py=lambda: grid)
+        return SimpleNamespace(to_py=lambda: {"formulas": grid})
 
     js = ModuleType("js")
-    js.xlwings = SimpleNamespace(getRangeFormulas=get_range_formulas)
+    js.xlwings = SimpleNamespace(getRangeData=get_range_data)
     monkeypatch.setitem(sys.modules, "js", js)
     return calls
 
@@ -161,7 +161,7 @@ async def test_get_formula_respects_ndim_1_on_a_single_cell(book, fake_js):
 @pytest.mark.anyio
 async def test_get_formula_passes_sheet_name_and_address(book, fake_js):
     await book.sheets[0]["B2:C3"].get_formula()
-    assert fake_js == [("S1", "$B$2:$C$3")]
+    assert fake_js == [("S1", "$B$2:$C$3", "formulas")]
 
 
 @pytest.mark.anyio

@@ -2439,9 +2439,6 @@ class Range:
     async def get_formula(self) -> str | list[str] | list[list[str]]:
         """Fetch formulas from Excel on demand.
 
-        Unlike `formula`, this doesn't require the formulas to be part of the
-        payload sent to Python, so it works on the Office.js engine.
-
         The returned shape follows the same rules as reading `value`: a single
         cell gives a string, a 1-by-n or n-by-1 range a flat list, and anything
         else a nested list. `options(ndim=...)` applies as usual.

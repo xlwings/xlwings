@@ -1062,14 +1062,30 @@ class Range(base_classes.Range):
             raise NotImplementedError("get_formula() is only supported in xlwings Lite")
         import js
 
-        formulas_js = await js.xlwings.getRangeFormulas(self.sheet.name, self.address)
-        return _normalize_jsnull(formulas_js.to_py())
+        data_js = await js.xlwings.getRangeData(
+            self.sheet.name, self.address, "formulas"
+        )
+        return _normalize_jsnull(data_js.to_py())["formulas"]
 
     @formula.setter
     def formula(self, value):
+        nrows, ncols = self.shape
         if not isinstance(value, list):
-            nrows, ncols = self.shape
             value = [[value] * ncols] * nrows
+        elif value and not isinstance(value[0], list):
+            if nrows == 1 and len(value) == ncols:
+                value = [value]
+            elif ncols == 1 and len(value) == nrows:
+                value = [[item] for item in value]
+            else:
+                raise ValueError(
+                    "A flat formula list requires a single-row or single-column "
+                    "range with matching dimensions."
+                )
+        elif len(value) != nrows or any(
+            not isinstance(row, list) or len(row) != ncols for row in value
+        ):
+            raise ValueError("Formula dimensions must match the target range.")
         self.append_json_action(func="setFormula", values=value)
 
     @property
@@ -1093,10 +1109,14 @@ class Range(base_classes.Range):
 
     @column_width.setter
     def column_width(self, value):
-        # NOTE: unlike the COM API (Windows/macOS desktop), where the width
-        # is measured in characters, Office.js measures it in points, and the
-        # value is passed through as-is. The same value therefore results in a
-        # different column width depending on the engine.
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, numbers.Real)
+            or not 0 <= value <= 255
+        ):
+            raise ValueError("column_width must be a number between 0 and 255.")
+        # Keep the public xlwings unit (characters). The Office.js callback
+        # converts it to points using the workbook's actual standard width.
         self.append_json_action(func="setColumnWidth", args=value)
 
     @property
@@ -1121,10 +1141,7 @@ class Range(base_classes.Range):
 
     @formula_array.setter
     def formula_array(self, value):
-        # Office.js can't write legacy CSE array formulas (savedAsArray is
-        # read-only). Writing the formula to the top-left cell only lets it
-        # spill instead, which is the modern equivalent.
-        self.sheet.range((self.row, self.column)).formula = value
+        self.append_json_action(func="setFormulaArray", args=value)
 
     def add_hyperlink(self, address, text_to_display=None, screen_tip=None):
         self.append_json_action(
@@ -1177,7 +1194,11 @@ class Range(base_classes.Range):
                 f"Invalid autofill type '{type_}'. "
                 f"Must be one of: {', '.join(sorted(types))}."
             )
-        if destination.sheet.index != self.sheet.index:
+        destination_impl = destination.impl
+        if (
+            destination_impl.sheet.book is not self.sheet.book
+            or destination_impl.sheet.api is not self.sheet.api
+        ):
             raise XlwingsError(
                 "range.autofill() requires the destination to be on the same sheet."
             )

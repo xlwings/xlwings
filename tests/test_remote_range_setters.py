@@ -70,6 +70,26 @@ def test_formula_accepts_nested_list(book):
     assert last_action(book)["values"] == [["=1", "=2"]]
 
 
+def test_formula_normalizes_flat_list_for_row(book):
+    book.sheets[0]["A1:B1"].formula = ["=1", "=2"]
+    assert last_action(book)["values"] == [["=1", "=2"]]
+
+
+def test_formula_normalizes_flat_list_for_column(book):
+    book.sheets[0]["A1:A2"].formula = ["=1", "=2"]
+    assert last_action(book)["values"] == [["=1"], ["=2"]]
+
+
+def test_formula_rejects_ambiguous_flat_list(book):
+    with pytest.raises(ValueError, match="flat formula list"):
+        book.sheets[0]["A1:B2"].formula = ["=1", "=2"]
+
+
+def test_formula_rejects_mismatched_nested_list(book):
+    with pytest.raises(ValueError, match="dimensions"):
+        book.sheets[0]["A1:B2"].formula = [["=1", "=2"]]
+
+
 def test_formula2_delegates_to_formula(book):
     book.sheets[0]["A1"].formula2 = "=SEQUENCE(3)"
     action = last_action(book)
@@ -77,15 +97,13 @@ def test_formula2_delegates_to_formula(book):
     assert action["values"] == [["=SEQUENCE(3)"]]
 
 
-def test_formula_array_targets_top_left_cell_only(book):
-    # Office.js can't write CSE arrays, so the formula goes into the top-left
-    # cell and spills from there.
+def test_formula_array_targets_the_full_range(book):
     book.sheets[0]["B2:B4"].formula_array = "=TRANSPOSE(A1:C1)"
     action = last_action(book)
-    assert action["func"] == "setFormula"
-    assert action["values"] == [["=TRANSPOSE(A1:C1)"]]
+    assert action["func"] == "setFormulaArray"
+    assert action["args"] == ["=TRANSPOSE(A1:C1)"]
     assert (action["start_row"], action["start_column"]) == (1, 1)
-    assert (action["row_count"], action["column_count"]) == (1, 1)
+    assert (action["row_count"], action["column_count"]) == (3, 1)
 
 
 def test_column_width(book):
@@ -94,6 +112,12 @@ def test_column_width(book):
     assert action["func"] == "setColumnWidth"
     assert action["args"] == [12]
     assert action["column_count"] == 3
+
+
+@pytest.mark.parametrize("value", [-1, 256, "12", True])
+def test_column_width_rejects_invalid_values(book, value):
+    with pytest.raises(ValueError, match="between 0 and 255"):
+        book.sheets[0]["A1"].column_width = value
 
 
 def test_row_height(book):
@@ -163,6 +187,13 @@ def test_autofill_rejects_unknown_type(book):
 def test_autofill_rejects_destination_on_other_sheet(book):
     with pytest.raises(XlwingsError, match="same sheet"):
         book.sheets[0]["A1"].autofill(book.sheets[1]["A1:A5"], "fill_series")
+
+
+def test_autofill_rejects_same_sheet_index_in_another_book(book):
+    other_impl = R.App(R.Apps(), add_book=False).books.open(_book_json(n_sheets=2))
+    other_book = xw.Book(impl=other_impl)
+    with pytest.raises(XlwingsError, match="same sheet"):
+        book.sheets[0]["A1"].autofill(other_book.sheets[0]["A1:A5"], "fill_series")
 
 
 # --- getters remain unimplemented ---

@@ -93,12 +93,11 @@ Done — setters:
 - [x] `formula` (setter) — `setFormula`
 - [x] `formula2` (setter) — delegates to `formula`; Office.js `range.formulas`
       already writes dynamic array formulas
-- [x] `formula_array` (setter) — writes the formula to the top-left cell only so
-      it spills; Office.js can't write legacy CSE arrays (`savedAsArray` is
-      read-only)
-- [x] `column_width` (setter) — `setColumnWidth`; the value is passed through
-      as points, which is what Office.js uses. Note that this differs from the
-      COM API, which measures column widths in characters
+- [x] `formula_array` (setter) — `setFormulaArray`; uses Office.js'
+      desktop-only `formulaArray` API and raises on unsupported hosts
+- [x] `column_width` (setter) — `setColumnWidth`; accepts xlwings' public
+      character units and converts them to Office.js points using the sheet's
+      standard character and point widths
 - [x] `row_height` (setter) — `setRowHeight`; points on both sides
 - [x] `wrap_text` (setter) — `setWrapText`
 
@@ -123,10 +122,11 @@ Also implemented along the way:
 
 Done — async getters (fetched on demand, so the sync payload stays small):
 
-- [x] `get_formula()` — `js.xlwings.getRangeFormulas`. The result goes through
-      `AdjustDimensionsStage`, the same stage `.value` reads use, so the shape
-      rules match: scalar for a single cell, flat list for a 1-by-n or n-by-1
-      range, nested list otherwise --- and `options(ndim=...)` works too. Works
+- [x] `get_formula()` — `js.xlwings.getRangeData(..., "formulas")`. The result
+      goes through `AdjustDimensionsStage`, the same stage `.value` reads use,
+      so the shape rules match: scalar for a single cell, flat list for a
+      1-by-n or n-by-1 range, nested list otherwise --- and `options(ndim=...)`
+      works too. Works
       on a lazy (async) book without loading values, since it doesn't read the
       payload. The sync `formula` / `formula2` getters still raise, but now
       point at `get_formula()`. Lite-only, like `get_value()`.
