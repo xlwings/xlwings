@@ -691,10 +691,17 @@ class Sheet(base_classes.Sheet):
 
     @property
     def used_range(self):
-        # NOTE: unlike the COM API, this always starts at A1: the Office.js
-        # client sends the cell values as "A1:<last cell of the used range>",
-        # so the used range's top-left corner isn't part of the payload. A
-        # sheet whose used range is e.g. C5:D10 therefore reports A1:D10.
+        address = self.api.get("used_range_address")
+        if address:
+            return Range(sheet=self, arg1=address)
+        if address is None and "used_range_address" in self.api:
+            # The client reported an empty sheet, which has no used range.
+            # Excel's COM API reports A1 in that case.
+            return Range(sheet=self, arg1=(1, 1))
+        # Fallback for clients that don't send `used_range_address` yet: derive
+        # the extent from the shape of the values payload. Since those values
+        # are anchored at A1, the used range's real top-left corner is lost,
+        # i.e. a sheet whose used range is C5:D10 reports A1:D10.
         if self.book._lazy and not _sheet_values_loaded(self.api):
             raise XlwingsError(
                 f"Cell values of sheet '{self.name}' haven't been loaded "

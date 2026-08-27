@@ -1,10 +1,10 @@
 """
 Tests for Sheet.used_range on the remote (Office.js) backend.
 
-The Office.js client sends cell values as "A1:<last cell of the used range>",
-so the used range is derived from the shape of that payload and always starts
-at A1 --- unlike the COM API, where it starts at the used range's real
-top-left corner.
+The Office.js client sends the used range's address as `used_range_address`,
+which is what's used when present. Clients that don't send it yet fall back to
+deriving the extent from the shape of the `values` payload --- which is always
+anchored at A1, so the real top-left corner is lost in that case.
 """
 
 import pytest
@@ -13,28 +13,70 @@ import xlwings as xw
 from xlwings import XlwingsError
 from xlwings.pro import _xlremote as R
 
+_MISSING = object()
 
-def _book_json(values):
+
+def _book_json(values, used_range_address=_MISSING):
+    sheet = {
+        "name": "S1",
+        "values": values,
+        "pictures": [],
+        "tables": [],
+    }
+    if used_range_address is not _MISSING:
+        sheet["used_range_address"] = used_range_address
     return {
         "client": "Office.js",
         "version": xw.__version__,
         "book": {"name": "B", "active_sheet_index": 0, "selection": "A1"},
         "names": [],
-        "sheets": [
-            {
-                "name": "S1",
-                "values": values,
-                "pictures": [],
-                "tables": [],
-            }
-        ],
+        "sheets": [sheet],
     }
 
 
-def _book(values, lazy=False):
+def _book(values, lazy=False, used_range_address=_MISSING):
     apps = R.Apps()
-    impl = R.App(apps, add_book=False).books.open(_book_json(values), lazy=lazy)
+    impl = R.App(apps, add_book=False).books.open(
+        _book_json(values, used_range_address), lazy=lazy
+    )
     return xw.Book(impl=impl)
+
+
+# --- with used_range_address in the payload (current clients) ---
+
+
+def test_used_range_uses_the_reported_address():
+    book = _book([[None, None], [None, 1]], used_range_address="B2")
+    assert book.sheets[0].used_range.address == "$B$2"
+
+
+def test_used_range_keeps_the_real_origin():
+    # The values payload is anchored at A1, but the used range isn't
+    values = [[None] * 4 for _ in range(10)]
+    book = _book(values, used_range_address="C5:D10")
+    used = book.sheets[0].used_range
+    assert used.address == "$C$5:$D$10"
+    assert used.shape == (6, 2)
+
+
+def test_used_range_null_address_means_empty_sheet():
+    used = _book([[]], used_range_address=None).sheets[0].used_range
+    assert used.address == "$A$1"
+    assert used.shape == (1, 1)
+
+
+def test_used_range_address_wins_over_values_shape():
+    book = _book([[1, 2, 3], [4, 5, 6]], used_range_address="A1:B2")
+    assert book.sheets[0].used_range.address == "$A$1:$B$2"
+
+
+def test_used_range_address_is_used_on_lazy_book_without_values():
+    # The address doesn't need the values payload, so no need to raise
+    book = _book([[]], lazy=True, used_range_address="B2:C3")
+    assert book.sheets[0].used_range.address == "$B$2:$C$3"
+
+
+# --- fallback: clients that don't send used_range_address ---
 
 
 def test_used_range_address():
