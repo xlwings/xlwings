@@ -690,6 +690,26 @@ class Sheet(base_classes.Sheet):
         self.append_json_action(func="sheetClearFormats")
 
     @property
+    def used_range(self):
+        # NOTE: unlike the COM API, this always starts at A1: the Office.js
+        # client sends the cell values as "A1:<last cell of the used range>",
+        # so the used range's top-left corner isn't part of the payload. A
+        # sheet whose used range is e.g. C5:D10 therefore reports A1:D10.
+        if self.book._lazy and not _sheet_values_loaded(self.api):
+            raise XlwingsError(
+                f"Cell values of sheet '{self.name}' haven't been loaded "
+                "(async book). Use 'await book.load(values=True)' or "
+                "'await sheet.load(values=True)' first."
+            )
+        values = self.api["values"]
+        nrows = len(values)
+        ncols = max((len(row) for row in values), default=0)
+        if nrows == 0 or ncols == 0:
+            # Empty sheet: Excel reports A1 as the used range
+            return Range(sheet=self, arg1=(1, 1))
+        return Range(sheet=self, arg1=(1, 1), arg2=(nrows, ncols))
+
+    @property
     def freeze_panes(self):
         return FreezePanes(self)
 

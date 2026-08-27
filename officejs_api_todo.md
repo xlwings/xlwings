@@ -1,6 +1,6 @@
 # Office.js ("remote") engine — NotImplemented API surface
 
-Status as of 2026-08-20, based on comparing `xlwings/base_classes.py` against
+Status as of 2026-08-27, based on comparing `xlwings/base_classes.py` against
 `xlwings/pro/_xlremote.py`. Check off items as they get implemented (or mark
 them `n/a` if they can't/shouldn't be supported in Office.js).
 
@@ -65,7 +65,11 @@ payload sent to Python.
 
 ## Sheet
 
-- [ ] `used_range`
+- [x] `used_range` — derived from the shape of the sheet's `values` payload.
+      Note that it always starts at A1, unlike the COM API: the Office.js
+      client sends values as `A1:<last cell of the used range>`, so a sheet
+      whose used range is C5:D10 reports A1:D10. Raises on an unloaded lazy
+      (async) book, like `Range.value` does.
 - [ ] `visible` (get/set)
 - [ ] `charts`
 - [ ] `shapes`
