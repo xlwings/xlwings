@@ -2436,16 +2436,26 @@ class Range:
             pipeline_overrides=self._impl.get_async_pipeline_overrides(self._options),
         )
 
-    async def get_formula(self) -> str | list[list[str]]:
+    async def get_formula(self) -> str | list[str] | list[list[str]]:
         """Fetch formulas from Excel on demand.
 
         Unlike `formula`, this doesn't require the formulas to be part of the
-        payload sent to Python, so it works on the Office.js engine. Returns a
-        string for a single cell and a nested list for a multi-cell range.
+        payload sent to Python, so it works on the Office.js engine.
+
+        The returned shape follows the same rules as reading `value`: a single
+        cell gives a string, a 1-by-n or n-by-1 range a flat list, and anything
+        else a nested list. `options(ndim=...)` applies as usual.
 
         Requires xlwings Lite.
         """
-        return await self._impl.get_formula()
+        from .conversion.framework import ConversionContext
+        from .conversion.standard import AdjustDimensionsStage
+
+        # Reuse the stage that `.value` reads go through, so the shape rules
+        # (and `ndim`) stay in one place.
+        c = ConversionContext(rng=self, value=await self._impl.get_formula())
+        AdjustDimensionsStage(self._options)(c)
+        return c.value
 
     def expand(self, mode: str = "table") -> Range:
         """Expands the range according to the mode provided. Ignores empty top-left cells

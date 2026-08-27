@@ -121,9 +121,11 @@ Also implemented along the way:
 
 Done — async getters (fetched on demand, so the sync payload stays small):
 
-- [x] `get_formula()` — `js.xlwings.getRangeFormulas`. Returns a scalar for a
-      single cell and a nested list for a range, like the COM API. Works on a
-      lazy (async) book without loading values, since it doesn't read the
+- [x] `get_formula()` — `js.xlwings.getRangeFormulas`. The result goes through
+      `AdjustDimensionsStage`, the same stage `.value` reads use, so the shape
+      rules match: scalar for a single cell, flat list for a 1-by-n or n-by-1
+      range, nested list otherwise --- and `options(ndim=...)` works too. Works
+      on a lazy (async) book without loading values, since it doesn't read the
       payload. The sync `formula` / `formula2` getters still raise, but now
       point at `get_formula()`. Lite-only, like `get_value()`.
 

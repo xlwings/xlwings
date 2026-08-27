@@ -78,6 +78,13 @@ def anyio_backend():
     return "asyncio"
 
 
+def _shape_of(obj):
+    """Nesting shape of a read result: scalar, flat list, or nested list."""
+    if not isinstance(obj, list):
+        return "scalar"
+    return "nested" if obj and isinstance(obj[0], list) else "flat"
+
+
 # --- sync getter still raises, pointing at the async API ---
 
 
@@ -91,16 +98,64 @@ def test_formula_getter_raises_with_a_hint(book):
 
 @pytest.mark.anyio
 async def test_get_formula_single_cell_returns_a_scalar(book, fake_js):
-    # Matches the COM API, which returns a scalar for a single cell
     assert await book.sheets[0]["A1"].get_formula() == "=R1C1"
 
 
 @pytest.mark.anyio
-async def test_get_formula_range_returns_a_nested_list(book, fake_js):
+async def test_get_formula_horizontal_range_returns_a_flat_list(book, fake_js):
+    # Squeezed like `.value`, not nested
+    assert await book.sheets[0]["A1:C1"].get_formula() == [
+        "=R1C1",
+        "=R1C2",
+        "=R1C3",
+    ]
+
+
+@pytest.mark.anyio
+async def test_get_formula_vertical_range_returns_a_flat_list(book, fake_js):
+    assert await book.sheets[0]["A1:A3"].get_formula() == [
+        "=R1C1",
+        "=R2C1",
+        "=R3C1",
+    ]
+
+
+@pytest.mark.anyio
+async def test_get_formula_2d_range_returns_a_nested_list(book, fake_js):
     assert await book.sheets[0]["A1:B2"].get_formula() == [
         ["=R1C1", "=R1C2"],
         ["=R2C1", "=R2C2"],
     ]
+
+
+@pytest.mark.anyio
+async def test_get_formula_shape_matches_value_reads(book, fake_js):
+    # The whole point: get_formula() squeezes exactly like `.value` does
+    sheet = book.sheets[0]
+    sheet["A1:C1"].value = [1, 2, 3]
+    sheet["E1:E3"].value = [[1], [2], [3]]
+    for address in ["A1", "A1:C1", "E1:E3", "A1:B2"]:
+        value_shape = _shape_of(sheet[address].value)
+        formula_shape = _shape_of(await sheet[address].get_formula())
+        assert value_shape == formula_shape, address
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "address, expected",
+    [
+        ("A1", [["=R1C1"]]),
+        ("A1:C1", [["=R1C1", "=R1C2", "=R1C3"]]),
+        ("A1:A3", [["=R1C1"], ["=R2C1"], ["=R3C1"]]),
+    ],
+)
+async def test_get_formula_respects_ndim_2(book, fake_js, address, expected):
+    assert await book.sheets[0][address].options(ndim=2).get_formula() == expected
+
+
+@pytest.mark.anyio
+async def test_get_formula_respects_ndim_1_on_a_single_cell(book, fake_js):
+    assert await book.sheets[0]["A1"].options(ndim=1).get_formula() == ["=R1C1"]
 
 
 @pytest.mark.anyio

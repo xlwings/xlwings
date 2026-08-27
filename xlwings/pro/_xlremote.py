@@ -1053,16 +1053,17 @@ class Range(base_classes.Range):
         )
 
     async def get_formula(self):
+        """Fetch this range's formulas as a raw 2D list.
+
+        The caller (`Range.get_formula`) applies the `ndim` option, so that the
+        returned shape matches what reading `.value` gives.
+        """
         if sys.platform != "emscripten":
             raise NotImplementedError("get_formula() is only supported in xlwings Lite")
         import js
 
         formulas_js = await js.xlwings.getRangeFormulas(self.sheet.name, self.address)
-        formulas = _normalize_jsnull(formulas_js.to_py())
-        if self.shape == (1, 1):
-            # Match the COM API, which returns a scalar for a single cell
-            return formulas[0][0]
-        return formulas
+        return _normalize_jsnull(formulas_js.to_py())
 
     @formula.setter
     def formula(self, value):
