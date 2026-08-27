@@ -89,8 +89,9 @@ Done — setters:
 - [x] `formula_array` (setter) — writes the formula to the top-left cell only so
       it spills; Office.js can't write legacy CSE arrays (`savedAsArray` is
       read-only)
-- [x] `column_width` (setter) — `setColumnWidth`; stays in characters on the
-      Python side, the JS handler converts to points
+- [x] `column_width` (setter) — `setColumnWidth`; the value is passed through
+      as points, which is what Office.js uses. Note that this differs from the
+      COM API, which measures column widths in characters
 - [x] `row_height` (setter) — `setRowHeight`; points on both sides
 - [x] `wrap_text` (setter) — `setWrapText`
 

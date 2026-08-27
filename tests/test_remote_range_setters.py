@@ -88,7 +88,7 @@ def test_formula_array_targets_top_left_cell_only(book):
     assert (action["row_count"], action["column_count"]) == (1, 1)
 
 
-def test_column_width_stays_in_characters(book):
+def test_column_width(book):
     book.sheets[0]["A1:C1"].column_width = 12
     action = last_action(book)
     assert action["func"] == "setColumnWidth"

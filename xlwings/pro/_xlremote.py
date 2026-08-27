@@ -1042,8 +1042,10 @@ class Range(base_classes.Range):
 
     @column_width.setter
     def column_width(self, value):
-        # In characters, as everywhere else in xlwings. The Office.js side
-        # converts to points, which is what range.format.columnWidth expects.
+        # NOTE: unlike the COM API (Windows/macOS desktop), where the width
+        # is measured in characters, Office.js measures it in points, and the
+        # value is passed through as-is. The same value therefore results in a
+        # different column width depending on the engine.
         self.append_json_action(func="setColumnWidth", args=value)
 
     @property
