@@ -65,11 +65,12 @@ payload sent to Python.
 
 ## Sheet
 
-- [x] `used_range` — derived from the shape of the sheet's `values` payload.
-      Note that it always starts at A1, unlike the COM API: the Office.js
-      client sends values as `A1:<last cell of the used range>`, so a sheet
-      whose used range is C5:D10 reports A1:D10. Raises on an unloaded lazy
-      (async) book, like `Range.value` does.
+- [x] `used_range` — the client sends the used range's address as
+      `used_range_address` (an exception to the "no new payload data" rule:
+      the `values` payload is anchored at A1, so the real top-left corner
+      can't be recovered from it). Clients that don't send it fall back to
+      deriving the extent from the shape of `values`, which then starts at A1
+      and raises on an unloaded lazy (async) book.
 - [ ] `visible` (get/set)
 - [ ] `charts`
 - [ ] `shapes`
