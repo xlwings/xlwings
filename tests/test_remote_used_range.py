@@ -76,6 +76,20 @@ def test_used_range_address_is_used_on_lazy_book_without_values():
     assert book.sheets[0].used_range.address == "$B$2:$C$3"
 
 
+def test_used_range_on_lazy_book_doesnt_ask_to_load_values():
+    # Regression: the client must send used_range_address in lazy mode too,
+    # since it's metadata, not cell values. Reading used_range on an async book
+    # used to raise "haven't been loaded".
+    book = _book([[]], lazy=True, used_range_address="A1:D10")
+    used = book.sheets[0].used_range  # must not raise
+    assert used.address == "$A$1:$D$10"
+
+
+def test_used_range_null_address_on_lazy_book_means_empty_sheet():
+    book = _book([[]], lazy=True, used_range_address=None)
+    assert book.sheets[0].used_range.address == "$A$1"
+
+
 # --- fallback: clients that don't send used_range_address ---
 
 

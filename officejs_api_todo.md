@@ -68,7 +68,9 @@ payload sent to Python.
 - [x] `used_range` — the client sends the used range's address as
       `used_range_address` (an exception to the "no new payload data" rule:
       the `values` payload is anchored at A1, so the real top-left corner
-      can't be recovered from it). Clients that don't send it fall back to
+      can't be recovered from it). It's metadata rather than cell values, so
+      the client sends it in lazy mode too and `used_range` works on an async
+      book without loading any values. Clients that don't send it fall back to
       deriving the extent from the shape of `values`, which then starts at A1
       and raises on an unloaded lazy (async) book.
 - [ ] `visible` (get/set)
