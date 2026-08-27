@@ -119,9 +119,17 @@ Also implemented along the way:
       `app.properties(display_alerts=False)`. Stored but unused, as Office.js
       never shows those alerts.
 
+Done — async getters (fetched on demand, so the sync payload stays small):
+
+- [x] `get_formula()` — `js.xlwings.getRangeFormulas`. Returns a scalar for a
+      single cell and a nested list for a range, like the COM API. Works on a
+      lazy (async) book without loading values, since it doesn't read the
+      payload. The sync `formula` / `formula2` getters still raise, but now
+      point at `get_formula()`. Lite-only, like `get_value()`.
+
 Deferred — getters (would require more data in the JSON payload):
 
-- `formula` / `formula2` / `formula_array` (getters)
+- `formula_array` (getter)
 - `column_width` / `row_height` / `wrap_text` (getters)
 - `color` / `number_format` (getters; setters already work)
 - `left` / `top` / `width` / `height`
@@ -183,3 +191,4 @@ whether the remote engine should support them too:
 - [ ] `Book.load()`
 - [ ] `Sheet.load()`
 - [ ] `Range.get_value()`
+- [ ] `Range.get_formula()`

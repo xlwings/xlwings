@@ -1044,7 +1044,25 @@ class Range(base_classes.Range):
 
     @property
     def formula(self):
-        raise NotImplementedError()
+        # Formulas aren't part of the payload that the client sends with every
+        # request, to keep it small. Use `await get_formula()` instead, which
+        # fetches them on demand.
+        raise NotImplementedError(
+            "Reading formulas synchronously isn't supported on this engine. "
+            "Use 'await myrange.get_formula()' to fetch them on demand."
+        )
+
+    async def get_formula(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError("get_formula() is only supported in xlwings Lite")
+        import js
+
+        formulas_js = await js.xlwings.getRangeFormulas(self.sheet.name, self.address)
+        formulas = _normalize_jsnull(formulas_js.to_py())
+        if self.shape == (1, 1):
+            # Match the COM API, which returns a scalar for a single cell
+            return formulas[0][0]
+        return formulas
 
     @formula.setter
     def formula(self, value):
@@ -1055,7 +1073,12 @@ class Range(base_classes.Range):
 
     @property
     def formula2(self):
-        raise NotImplementedError()
+        # See `formula`: Office.js has no separate formula2, and reading is
+        # async on this engine.
+        raise NotImplementedError(
+            "Reading formulas synchronously isn't supported on this engine. "
+            "Use 'await myrange.get_formula()' to fetch them on demand."
+        )
 
     @formula2.setter
     def formula2(self, value):

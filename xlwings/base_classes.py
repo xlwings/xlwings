@@ -375,6 +375,9 @@ class Range:
     def get_async_pipeline_overrides(self, options):
         raise NotImplementedError("get_value() is only supported in xlwings Lite")
 
+    async def get_formula(self):
+        raise NotImplementedError("get_formula() is only supported in xlwings Lite")
+
     def adjust_indent(self, amount):
         raise NotImplementedError()
 
