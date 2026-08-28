@@ -432,6 +432,50 @@ def test_sheet_visible_set_visible(book):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_delete_keeps_active_index_valid():
+    # Deleting a sheet must leave active_sheet_index pointing at an existing
+    # sheet, otherwise Sheets.active raises IndexError.
+    def fresh():
+        return xw.Book(json=json.loads(json.dumps(data)))
+
+    # delete a sheet after the active one: index unchanged
+    book = fresh()
+    book.sheets[0].activate()
+    book.sheets[2].delete()
+    assert book.sheets.active.name == "Sheet 1"
+
+    # delete a sheet before the active one: index shifts down with it
+    book = fresh()
+    book.sheets[2].activate()
+    book.sheets[0].delete()
+    assert book.sheets.active.name == "Sheet3"
+
+    # delete the active sheet itself: the next one takes its place
+    book = fresh()
+    book.sheets[1].activate()
+    book.sheets[1].delete()
+    assert book.sheets.active.name == "Sheet3"
+
+    # delete the active sheet when it's the last one: falls back to the
+    # new last sheet rather than running off the end
+    book = fresh()
+    book.sheets[2].activate()
+    book.sheets[2].delete()
+    assert book.sheets.active.name == "Sheet2"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_delete_after_add_keeps_active_index_valid():
+    # Sheets.add() makes the new sheet active; deleting it must restore a
+    # valid index (the original IndexError repro).
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    sheet = book.sheets.add(name="freshsheet")
+    sheet.delete()
+    assert book.sheets.active.name in ("Sheet 1", "Sheet2", "Sheet3")
+    assert len(book.sheets) == 3
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_sheet_visible_added_sheet():
     # Sheets.add() seeds "visibility", so the getter works before the next
     # round-trip rather than raising KeyError. Uses its own book: adding a

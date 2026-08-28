@@ -693,7 +693,17 @@ class Sheet(base_classes.Sheet):
         return Tables(parent=self)
 
     def delete(self):
-        del self.book.api["sheets"][self.index - 1]
+        ix = self.index - 1
+        del self.book.api["sheets"][ix]
+        # Keep the locally tracked active sheet pointing at an existing sheet:
+        # deleting a sheet at or before it shifts the remaining ones down, and
+        # deleting the last sheet would otherwise leave the index out of range.
+        book_api = self.book.api["book"]
+        active_ix = book_api["active_sheet_index"]
+        if active_ix > ix:
+            book_api["active_sheet_index"] = active_ix - 1
+        elif active_ix == ix:
+            book_api["active_sheet_index"] = min(ix, len(self.book.api["sheets"]) - 1)
         self.append_json_action(func="sheetDelete")
 
     def clear(self):
