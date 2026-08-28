@@ -1309,6 +1309,7 @@ def test_table_add_seeds_show_table_style_flags():
         "get_merge_area",
         "get_merge_cells",
         "get_table",
+        "get_hyperlink",
     ],
 )
 def test_range_async_getters_not_supported(book, getter):
@@ -1370,6 +1371,59 @@ def test_range_group_a_getters_pass_through(book, getter, reported):
 
     with mock.patch.object(type(rng.impl), "_get_range_data", fake):
         assert asyncio.run(getattr(rng, getter)()) == reported
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_hyperlink_sync_points_at_async(book):
+    # The public hyperlink property reads .formula first, so it raises that
+    # property's message; both point at an async method to use instead.
+    with pytest.raises(NotImplementedError, match=r"get_formula\(\)"):
+        book.sheets[0].range("A1").hyperlink
+    # The impl property names get_hyperlink() for anyone reaching it directly.
+    with pytest.raises(NotImplementedError, match=r"get_hyperlink\(\)"):
+        book.sheets[0].range("A1").impl.hyperlink
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "formula,hyperlink,expected",
+    [
+        # set pragmatically: comes from the cell's hyperlink object
+        ("plain text", "http://xlwings.org", "http://xlwings.org"),
+        # a HYPERLINK() formula keeps the target in the formula string
+        ('=HYPERLINK("http://xlwings.org","xlwings")', None, "http://xlwings.org"),
+    ],
+)
+def test_range_get_hyperlink(book, formula, hyperlink, expected):
+    rng = book.sheets[0].range("A1")
+    fetched = {"formulas": [[formula]], "hyperlink": hyperlink}
+
+    async def fake(self, key, method=None):
+        return fetched[key]
+
+    with mock.patch.object(type(rng.impl), "_get_range_data", fake):
+        assert asyncio.run(rng.get_hyperlink()) == expected
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "formula,hyperlink",
+    [
+        ("plain text", None),  # no hyperlink at all
+        ("=SUM(A1:B2)", None),  # a formula, but not a HYPERLINK() one
+    ],
+)
+def test_range_get_hyperlink_raises_without_one(book, formula, hyperlink):
+    # The desktop engines raise rather than returning None, so this does too.
+    rng = book.sheets[0].range("A1")
+    fetched = {"formulas": [[formula]], "hyperlink": hyperlink}
+
+    async def fake(self, key, method=None):
+        return fetched[key]
+
+    with mock.patch.object(type(rng.impl), "_get_range_data", fake):
+        with pytest.raises(Exception, match="doesn't seem to contain a hyperlink"):
+            asyncio.run(rng.get_hyperlink())
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")

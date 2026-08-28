@@ -2546,6 +2546,27 @@ class Range:
         """
         return await self._impl.get_height()
 
+    async def get_hyperlink(self) -> str:
+        """Fetch this cell's hyperlink address from Excel on demand.
+
+        Mirrors `hyperlink`, including its HYPERLINK()-formula branch and its
+        exception when the cell has no hyperlink, but fetches asynchronously.
+        Requires xlwings Lite.
+        """
+        formula = await self.get_formula()
+        if isinstance(formula, str) and formula.lower().startswith("="):
+            # A HYPERLINK() formula keeps its target in the formula string
+            # rather than in the cell's hyperlink object.
+            match = re.compile(r"\"(.+?)\"").search(formula)
+            if match is None:
+                raise Exception("The cell doesn't seem to contain a hyperlink!")
+            return match.group(1)
+        address = await self._impl.get_hyperlink()
+        if address is None:
+            # The desktop engines raise rather than returning nothing.
+            raise Exception("The cell doesn't seem to contain a hyperlink!")
+        return address
+
     async def get_current_region(self) -> Range:
         """Fetch the current region from Excel on demand.
 

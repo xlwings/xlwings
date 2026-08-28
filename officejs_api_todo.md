@@ -279,13 +279,20 @@ addresses that the `Range`/`Table` object is then built from locally):
       range isn't in a table. The client reports the table's *name*, which the
       Python side resolves to its position, since `Table`'s constructor indexes
       the sheet's tables list
+- [x] `hyperlink` (getter) — `get_hyperlink()`, from `range.hyperlink`
+      (`RangeHyperlink.address`, falling back to `documentReference` for
+      in-workbook targets). It's a *public* async method rather than only an
+      impl one, because `Range.hyperlink` in `main.py` reads `self.formula`
+      first to handle `HYPERLINK()` formulas --- the sync property this engine
+      raises on. `get_hyperlink()` reproduces both branches, and raises
+      "The cell doesn't seem to contain a hyperlink!" when there is none, as
+      both desktop engines do rather than returning `None`
 - [x] `rows` / `columns` — **already worked**: `main.py` builds `RangeRows` /
       `RangeColumns` from the range itself and never calls the impl. They were
       listed here by mistake
 
 Still deferred — getters that need more than a mode:
 
-- `hyperlink` (getter; `add_hyperlink()` already works)
 - `note` — needs the `Note` class
 - `characters` — needs the `Characters` class
 - `get_address()`

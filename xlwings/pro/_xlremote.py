@@ -1316,6 +1316,16 @@ class Range(base_classes.Range):
             "Use 'await myrange.get_table()' to fetch it on demand."
         )
 
+    @property
+    def hyperlink(self):
+        raise NotImplementedError(
+            "Reading the hyperlink synchronously isn't supported on this engine. "
+            "Use 'await myrange.get_hyperlink()' to fetch it on demand."
+        )
+
+    async def get_hyperlink(self):
+        return await self._get_range_data("hyperlink")
+
     async def get_current_region(self):
         address = await self._get_range_data("current_region")
         return Range(sheet=self.sheet, arg1=address)
