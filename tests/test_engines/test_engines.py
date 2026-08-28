@@ -74,6 +74,7 @@ data = {
     "sheets": [
         {
             "name": "Sheet 1",
+            "visibility": "Visible",
             "values": [
                 ["a", "b", "c", ""],
                 [1.1, 2.2, 3.3, "2021-01-01T00:00:00.000Z"],
@@ -132,12 +133,14 @@ data = {
         },
         {
             "name": "Sheet2",
+            "visibility": "Hidden",
             "values": [["aa", "bb"], [11.1, 22.2]],
             "pictures": [],
             "tables": [],
         },
         {
             "name": "Sheet3",
+            "visibility": "VeryHidden",
             "values": [
                 ["", "string"],
                 [-1.1, 1.1],
@@ -396,6 +399,50 @@ def test_sheet_active(book):
 def test_sheets_iteration(book):
     for ix, sheet in enumerate(book.sheets):
         assert sheet.name == "Sheet 1" if ix == 0 else "Sheet2"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_visible(book):
+    # Office.js' "VeryHidden" maps to False like "Hidden" does, as xlwings'
+    # public API is a bool.
+    assert book.sheets[0].visible is True
+    assert book.sheets[1].visible is False
+    assert book.sheets[2].visible is False
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_visible_set_hidden(book):
+    book.sheets[0].visible = False
+    assert book.json()["actions"][0]["func"] == "setSheetVisibility"
+    assert book.json()["actions"][0]["args"] == ["Hidden"]
+    assert book.json()["actions"][0]["sheet_position"] == 0
+    # written through, so a read-after-write in the same script is correct
+    assert book.sheets[0].visible is False
+    book.sheets[0].visible = True
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_visible_set_visible(book):
+    book.sheets[1].visible = True
+    assert book.json()["actions"][0]["func"] == "setSheetVisibility"
+    assert book.json()["actions"][0]["args"] == ["Visible"]
+    assert book.json()["actions"][0]["sheet_position"] == 1
+    assert book.sheets[1].visible is True
+    book.sheets[1].visible = False
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_visible_added_sheet():
+    # Sheets.add() seeds "visibility", so the getter works before the next
+    # round-trip rather than raising KeyError. Uses its own book: adding a
+    # sheet mutates the module-scoped fixture's active_sheet_index.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    sheet = book.sheets.add(name="freshsheet")
+    assert sheet.visible is True
+    sheet.visible = False
+    assert book.json()["actions"][-1]["func"] == "setSheetVisibility"
+    assert book.json()["actions"][-1]["args"] == ["Hidden"]
+    assert sheet.visible is False
 
 
 # book name
