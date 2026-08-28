@@ -1344,6 +1344,49 @@ def test_range_sync_getters_point_at_async(book, prop, hint):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "getter,reported",
+    [
+        # COM reports None for a range whose cells don't agree; Office.js does
+        # the same, so these pass it through rather than inventing a default.
+        ("get_column_width", None),
+        ("get_row_height", None),
+        ("get_wrap_text", None),
+        ("get_number_format", None),
+        ("get_formula_array", None),
+        ("get_color", None),
+        # ...and the ordinary uniform case still comes back as-is
+        ("get_row_height", 15.0),
+        ("get_wrap_text", True),
+        ("get_number_format", "General"),
+        ("get_formula_array", "{=SUM(A1:B2)}"),
+    ],
+)
+def test_range_group_a_getters_pass_through(book, getter, reported):
+    rng = book.sheets[0].range("A1:B2")
+
+    async def fake(self, key, method=None):
+        return reported
+
+    with mock.patch.object(type(rng.impl), "_get_range_data", fake):
+        assert asyncio.run(getattr(rng, getter)()) == reported
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_scalar_getters_are_not_matrices(book):
+    # number_format and formula_array are single strings on every engine, so
+    # they must not go through the value-shaping stage.
+    rng = book.sheets[0].range("A1:B2")
+
+    async def fake(self, key, method=None):
+        return "General" if key == "number_format" else "{=SUM(A1:B2)}"
+
+    with mock.patch.object(type(rng.impl), "_get_range_data", fake):
+        assert asyncio.run(rng.get_number_format()) == "General"
+        assert asyncio.run(rng.get_formula_array()) == "{=SUM(A1:B2)}"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_range_matrix_getters_apply_ndim(book):
     # The matrix-valued getters reuse the stage .value goes through, so the
     # shape rules and options(ndim=...) match reading values.
@@ -1352,8 +1395,8 @@ def test_range_matrix_getters_apply_ndim(book):
     async def fake(self):
         return [["#,##0", "0.00"], ["General", "General"]]
 
-    with mock.patch.object(type(rng.impl), "get_number_format", fake, create=True):
-        assert asyncio.run(rng.get_number_format()) == [
+    with mock.patch.object(type(rng.impl), "get_formula", fake, create=True):
+        assert asyncio.run(rng.get_formula()) == [
             ["#,##0", "0.00"],
             ["General", "General"],
         ]
@@ -1363,13 +1406,11 @@ def test_range_matrix_getters_apply_ndim(book):
     async def fake_single(self):
         return [["#,##0"]]
 
-    with mock.patch.object(
-        type(single.impl), "get_number_format", fake_single, create=True
-    ):
+    with mock.patch.object(type(single.impl), "get_formula", fake_single, create=True):
         # a single cell squeezes to a scalar...
-        assert asyncio.run(single.get_number_format()) == "#,##0"
+        assert asyncio.run(single.get_formula()) == "#,##0"
         # ...unless ndim asks otherwise
-        assert asyncio.run(single.options(ndim=2).get_number_format()) == [["#,##0"]]
+        assert asyncio.run(single.options(ndim=2).get_formula()) == [["#,##0"]]
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")

@@ -243,15 +243,23 @@ shared plumbing knowing what `"both"` means.
 
 Done — Group A getters (plain Office.js `range.*` properties):
 
-- [x] `formula_array` (getter) — `get_formula_array()`
+- [x] `formula_array` (getter) — `get_formula_array()`. A single string or
+      `None`, like `formula_array` on the other engines --- *not* a per-cell
+      matrix, so unlike `get_formula()` it doesn't go through
+      `AdjustDimensionsStage`
 - [x] `column_width` / `row_height` / `wrap_text` (getters) — `column_width`
       converts Office.js points back to xlwings' characters. The setter can
       measure the workbook's real digit width because it resets the column
       first; a getter mustn't mutate the sheet, so it assumes 7px (Calibri 11)
       and is off by a couple of percent for other Normal-style fonts. Office.js
       returns `null` for a non-uniform range, which passes through as `None`
-- [x] `color` / `number_format` (getters) — `color` converts Office.js'
-      `"#RRGGBB"` to the RGB tuple the other backends return, `None` when unset
+- [x] `color` / `number_format` (getters) — `color` converts to the RGB tuple
+      the other backends return, `None` when unset. Office.js may report a
+      *named* HTML colour ("orange") rather than `#RRGGBB`, which the client
+      normalizes first, since `hex_to_rgb()` would raise on it.
+      `number_format` is a single string (or `None` when the cells disagree),
+      matching COM's scalar `NumberFormat`; Office.js reports a per-cell
+      matrix, so the client collapses it
 - [x] `left` / `top` / `width` / `height` — these had no sync property on this
       engine at all; they now raise pointing at the async version like the rest
 
@@ -284,10 +292,12 @@ Still deferred — getters that need more than a mode:
 
 Two notes on shape and scope:
 
-- Anything returning a cell matrix (`formula_array`, and the `color` /
-  `number_format` getters) should run through `AdjustDimensionsStage` the way
-  `get_formula()` does, so the result matches how `.value` reads shape and
-  `options(ndim=...)` keeps working.
+- ~~Anything returning a cell matrix (`formula_array`, and the `color` /
+  `number_format` getters) should run through `AdjustDimensionsStage`~~ ---
+  **wrong**: on every engine `formula_array`, `color` and `number_format` are
+  *scalars*, not per-cell matrices. Only `get_formula()` is a matrix and goes
+  through that stage. The non-uniform case is expressed as `None`, which both
+  COM and Office.js do.
 - `current_region`, `merge_area`, `rows` / `columns` and `table` return
   *ranges*, not data. The async fetch only needs to resolve the address; the
   `Range` object itself is then built synchronously from it.

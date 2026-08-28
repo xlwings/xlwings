@@ -2469,19 +2469,23 @@ class Range:
         AdjustDimensionsStage(self._options)(c)
         return c.value
 
-    async def get_formula_array(self) -> str | list[str] | list[list[str]]:
-        """Fetch array formulas from Excel on demand.
+    async def get_formula_array(self) -> str | None:
+        """Fetch the array formula for this range from Excel on demand.
 
-        Shaped like `get_formula`. Requires xlwings Lite.
+        A single string, or `None` if the range holds no array formula --- the
+        same scalar contract as `formula_array` on the other engines, not the
+        per-cell matrix `get_formula()` returns. Requires xlwings Lite.
         """
-        return await self._get_matrix_on_demand("formula_array")
+        return await self._impl.get_formula_array()
 
-    async def get_number_format(self) -> str | list[str] | list[list[str]]:
-        """Fetch number formats from Excel on demand.
+    async def get_number_format(self) -> str | None:
+        """Fetch the number format from Excel on demand.
 
-        Shaped like `get_formula`. Requires xlwings Lite.
+        A single format string, or `None` if the range's cells don't share one
+        --- matching `number_format` on the other engines. Requires xlwings
+        Lite.
         """
-        return await self._get_matrix_on_demand("number_format")
+        return await self._impl.get_number_format()
 
     async def get_color(self) -> tuple[int, int, int] | None:
         """Fetch the fill color from Excel on demand, as an RGB tuple.
@@ -2490,10 +2494,11 @@ class Range:
         """
         return await self._impl.get_color()
 
-    async def get_wrap_text(self) -> bool:
+    async def get_wrap_text(self) -> bool | None:
         """Fetch the wrap text setting from Excel on demand.
 
-        Requires xlwings Lite.
+        `None` if the range doesn't have a uniform wrap setting, matching the
+        desktop engines. Requires xlwings Lite.
         """
         return await self._impl.get_wrap_text()
 
@@ -2574,21 +2579,6 @@ class Range:
         """
         impl = await self._impl.get_table()
         return Table(impl=impl) if impl else None
-
-    async def _get_matrix_on_demand(self, key: str):
-        """Shared shaping for the on-demand getters that return a cell matrix.
-
-        Runs the raw 2D result through the same stage `.value` reads use, so
-        the shape rules and `options(ndim=...)` stay in one place.
-        """
-        # Prevent circular imports
-        from .conversion.framework import ConversionContext
-        from .conversion.standard import AdjustDimensionsStage
-
-        value = await getattr(self._impl, f"get_{key}")()
-        c = ConversionContext(rng=self, value=value)
-        AdjustDimensionsStage(self._options)(c)
-        return c.value
 
     def expand(self, mode: str = "table") -> Range:
         """Expands the range according to the mode provided. Ignores empty top-left cells
