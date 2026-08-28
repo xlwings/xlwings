@@ -1359,6 +1359,17 @@ class Range(base_classes.Range):
         )
 
     @property
+    def characters(self):
+        # Office.js has no character-range object for cells: TextRange (and so
+        # getSubstring) only exists on shapes. The cell-level `textRuns` in
+        # getCellProperties is a runs model that would mean reimplementing
+        # Excel's rich-text splitting, so this raises rather than half-doing it.
+        raise NotImplementedError(
+            "Range.characters is not supported in Office.js, which has no "
+            "character-range object for cells. Shape.characters works."
+        )
+
+    @property
     def note(self):
         # The payload carries the sheet's notes keyed by address, so this
         # knows whether one exists without a fetch -- as the sync property
@@ -2327,6 +2338,49 @@ class FreezePanes(base_classes.FreezePanes):
         self.append_json_action(func="freezePaneUnfreeze")
 
 
+class Characters(base_classes.Characters):
+    """A character slice of a shape's text.
+
+    Office.js exposes character ranges through `TextRange.getSubstring()`,
+    which only shapes have --- `Range.characters` raises, see there.
+    """
+
+    def __init__(self, parent, start=None, length=None):
+        self.parent = parent
+        self.start = start
+        self.length = length
+
+    @property
+    def api(self):
+        raise NotImplementedError(
+            "Characters.api isn't available on this engine, which addresses "
+            "shapes by index rather than holding a native object."
+        )
+
+    @property
+    def text(self):
+        raise NotImplementedError(
+            "Reading characters synchronously isn't supported on this engine. "
+            "Use 'await mycharacters.get_text()' to fetch it on demand."
+        )
+
+    async def get_text(self):
+        return await self.parent._get_shape_data(
+            "characters_text", start=self.start, length=self.length
+        )
+
+    @property
+    def font(self):
+        return Font(self, None)
+
+    def __getitem__(self, item):
+        if isinstance(item, slice):
+            start = item.start or 0
+            length = None if item.stop is None else item.stop - start
+            return Characters(self.parent, start=start, length=length)
+        return Characters(self.parent, start=item, length=1)
+
+
 class Note(base_classes.Note):
     def __init__(self, range):
         self.range = range
@@ -2451,19 +2505,24 @@ class Shape(base_classes.Shape):
         self.api["height"] = value
         self.append_json_action(func="setShapeHeight", args=[self.index - 1, value])
 
-    async def _get_shape_data(self, key):
+    async def _get_shape_data(self, key, start=None, length=None):
         """Fetch one on-demand property for this shape from the client.
 
         Shape text is unbounded, so it's fetched when asked for rather than
-        shipped with every request for every shape in the workbook.
+        shipped with every request for every shape in the workbook. `start` and
+        `length` narrow the read to a character slice, for `Characters`.
         """
         if sys.platform != "emscripten":
             raise NotImplementedError(f"get_{key}() is only supported in xlwings Lite")
         import js
         from pyodide.ffi import to_js
 
+        options = to_js(
+            {"start": start, "length": length},
+            dict_converter=js.Object.fromEntries,
+        )
         data_js = await js.xlwings.getShapeData(
-            self.parent.name, self.index - 1, to_js([key])
+            self.parent.name, self.index - 1, to_js([key]), options
         )
         return _normalize_jsnull(data_js.to_py())[key]
 
@@ -2515,15 +2574,11 @@ class Shape(base_classes.Shape):
 
     @property
     def font(self):
-        raise NotImplementedError(
-            "Shape.font is not supported in Office.js on this engine yet."
-        )
+        return Font(self, None)
 
     @property
     def characters(self):
-        raise NotImplementedError(
-            "Shape.characters is not supported in Office.js on this engine yet."
-        )
+        return Characters(self)
 
 
 class Shapes(Collection):
@@ -2558,6 +2613,18 @@ class Font(base_classes.Font):
         self.parent = parent
         self._api = api
 
+    def _shape_and_slice(self):
+        """The shape this font belongs to, plus its character slice if any.
+
+        Returns (None, None, None) for a Range parent, which uses the range
+        font action instead.
+        """
+        if isinstance(self.parent, Shape):
+            return self.parent, None, None
+        if isinstance(self.parent, Characters):
+            return self.parent.parent, self.parent.start, self.parent.length
+        return None, None, None
+
     def append_json_action(self, **kwargs):
         if isinstance(self.parent, Range):
             self.parent.append_json_action(
@@ -2565,11 +2632,19 @@ class Font(base_classes.Font):
                     **kwargs,
                 }
             )
-        else:
+            return
+        shape, start, length = self._shape_and_slice()
+        if shape is None:
             raise NotImplementedError(
-                "Setting font attributes is only supported on a Range in "
-                "Office.js, not on shapes or characters."
+                "Setting font attributes is only supported on a Range, a Shape "
+                "or a Shape's characters in Office.js."
             )
+        # Shapes take their own action: the range one addresses cells.
+        attribute, value = kwargs["args"]
+        shape.append_json_action(
+            func="setShapeFontProperty",
+            args=[shape.index - 1, start, length, attribute, value],
+        )
 
     @property
     def api(self):
@@ -2581,12 +2656,21 @@ class Font(base_classes.Font):
         They come from a single Office.js object, so there's nothing to gain
         from fetching them individually.
         """
-        if not isinstance(self.parent, Range):
+        if isinstance(self.parent, Range):
+            return await self.parent._get_range_data("font")
+        shape, start, length = self._shape_and_slice()
+        if shape is None:
             raise NotImplementedError(
-                "Reading font attributes is only supported on a Range in "
-                "Office.js, not on shapes or characters."
+                "Reading font attributes is only supported on a Range, a Shape "
+                "or a Shape's characters in Office.js."
             )
-        return await self.parent._get_range_data("font")
+        font = await shape._get_shape_data("font", start=start, length=length)
+        # A shape with no text has no font to report.
+        return (
+            font
+            if font is not None
+            else dict.fromkeys(["bold", "italic", "size", "color", "name"])
+        )
 
     async def get_bold(self):
         return (await self._get_font())["bold"]

@@ -73,8 +73,8 @@ payload sent to Python.
         address a shape. It checks `textFrame.hasText` first (reading
         `textRange.text` on an empty shape throws) and reports `None`
         otherwise, as the desktop engines do
-  - [ ] `font` — needs `Characters`/`TextRange` plumbing; raises for now
-  - [ ] `characters` — needs the `Characters` class
+  - [x] `font` — via `getShapeData`'s `font` key and `setShapeFontProperty`
+  - [x] `characters` — returns the `Characters` above
   - [x] `activate()` — **n/a**: Office.js has no way to activate or select a
         shape. `setZOrder(bringToFront)` is a *different* operation, so it
         raises rather than doing something else under the same name
@@ -83,9 +83,18 @@ payload sent to Python.
         `relative_to_original_size` onto `ShapeScaleType`
         (`CurrentSize`/`OriginalSize`) and xlwings' `scale_from_*` onto
         `ShapeScaleFrom`; an unknown anchor raises `ValueError`
-- [ ] `Characters`
-  - [ ] `text`
-  - [ ] `font`
+- [x] `Characters` — **shapes only**. Office.js exposes character ranges
+      through `TextRange.getSubstring(start, length)`, which only shapes have.
+      A slice is carried as start/length and passed to `getShapeData`, so
+      `shape.characters[3:7]` narrows both the text read and the font action
+  - [x] `text` — `await mycharacters.get_text()`; the sync property points at
+        it, like the other on-demand getters
+  - [x] `font` — reads through `getShapeData`'s `font` key and writes via
+        `setShapeFontProperty`, which carries the slice. `Range.characters`
+        raises: there's no character-range object for cells. Cell-level
+        `textRuns` (via `getCellProperties`, ExcelApi 1.18) is a *runs* model,
+        so emulating a character slice would mean reimplementing Excel's
+        rich-text splitting
 - [x] `Note` — `Excel.Note` has `content` and `delete()`, so this maps
       directly. The client sends a per-sheet `notes` array keyed by cell
       address: `Range.note` is a *sync* property that has to know whether a
@@ -310,6 +319,7 @@ addresses that the `Range`/`Table` object is then built from locally):
       range isn't in a table. The client reports the table's *name*, which the
       Python side resolves to its position, since `Table`'s constructor indexes
       the sheet's tables list
+- [x] `characters` — **n/a** for a Range: see `Characters` above
 - [x] `note` — returns the `Note` above, or `None` when the cell has none
 - [x] `hyperlink` (getter) — `get_hyperlink()`, from `range.hyperlink`
       (`RangeHyperlink.address`, falling back to `documentReference` for
@@ -330,7 +340,6 @@ addresses that the `Range`/`Table` object is then built from locally):
 
 Still deferred — getters that need more than a mode:
 
-- `characters` — needs the `Characters` class
 
 Two notes on shape and scope:
 
@@ -370,11 +379,10 @@ route (a `getRangeData` mode that loads `range.format.font`):
       the range fill). A range whose cells disagree reports `None`, which is
       what the public annotations already said.
 
-`Font.append_json_action()` still raises for any parent that isn't a `Range`,
-so `Shape.font` and `Characters.font` need that path before their setters work
---- but it now raises with the reason rather than a bare `NotImplementedError`,
-and the getters raise the same way. That's unblocked by the `Shape` and
-`Characters` classes above, not by anything in this section.
+`Font` now handles all three parents: a `Range` uses `setFontProperty`, while a
+`Shape` or a `Characters` slice uses `setShapeFontProperty` (the range action
+addresses cells, so it can't serve shapes). Reading works the same way, through
+`getRangeData`'s or `getShapeData`'s `font` key.
 
 ## Picture
 

@@ -763,14 +763,88 @@ def test_shape_delete():
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_shape_unsupported_members(book):
-    shape = book.sheets[0].shapes[0]
     with pytest.raises(NotImplementedError, match="no way to activate"):
-        shape.activate()
-    # both need the Characters class, which doesn't exist on this engine
-    with pytest.raises(NotImplementedError):
-        shape.font
-    with pytest.raises(NotImplementedError):
-        shape.characters
+        book.sheets[0].shapes[0].activate()
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "item,start,length",
+    [
+        (slice(3, 7), 3, 4),
+        (slice(None, 5), 0, 5),
+        (slice(2, None), 2, None),
+        (2, 2, 1),
+    ],
+)
+def test_shape_characters_slicing(item, start, length):
+    # The slice is carried as start/length, which is what getSubstring takes.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    characters = book.sheets[0].shapes[0].characters[item]
+    characters.font.bold = True
+    action = book.json()["actions"][-1]
+    assert action["func"] == "setShapeFontProperty"
+    assert action["args"] == [0, start, length, "bold", True]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_shape_font_setter_uses_shape_action():
+    # A shape's font can't use the range font action, which addresses cells.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    book.sheets[0].shapes[0].font.italic = True
+    action = book.json()["actions"][-1]
+    assert action["func"] == "setShapeFontProperty"
+    # no slice: the whole text range
+    assert action["args"] == [0, None, None, "italic", True]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_shape_font_and_characters_getters(book):
+    shape = book.sheets[0].shapes[0]
+
+    async def fake(self, key, start=None, length=None):
+        return {
+            "characters_text": "slice",
+            "font": {
+                "bold": True,
+                "italic": False,
+                "size": 12.0,
+                "color": "#00ff00",
+                "name": "Arial",
+            },
+        }[key]
+
+    with mock.patch.object(xw.pro._xlremote.Shape, "_get_shape_data", fake):
+        assert asyncio.run(shape.font.get_bold()) is True
+        assert asyncio.run(shape.characters[1:4].get_text()) == "slice"
+        assert asyncio.run(shape.characters[1:4].font.get_color()) == (0, 255, 0)
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_shape_font_getter_on_shape_without_text(book):
+    # getShapeData reports null for a shape with no text; the attributes come
+    # back as None rather than raising.
+    shape = book.sheets[0].shapes[0]
+
+    async def fake(self, key, start=None, length=None):
+        return None
+
+    with mock.patch.object(xw.pro._xlremote.Shape, "_get_shape_data", fake):
+        assert asyncio.run(shape.font.get_bold()) is None
+        assert asyncio.run(shape.font.get_color()) is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_shape_characters_sync_text_points_at_async(book):
+    with pytest.raises(NotImplementedError, match=r"get_text\(\)"):
+        book.sheets[0].shapes[0].characters.text
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_characters_not_supported(book):
+    # Office.js has no character-range object for cells; only shapes have one.
+    with pytest.raises(NotImplementedError, match="no.*character-range object"):
+        book.sheets[0]["A1"].characters
 
 
 @pytest.mark.skipif(engine == "calamine", reason="calamine engine")

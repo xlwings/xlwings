@@ -4925,6 +4925,13 @@ class Characters:
         else:
             return Characters(self.impl[item])
 
+    async def get_text(self) -> str | None:
+        """Fetch the characters' text from Excel on demand.
+
+        `None` if the shape holds no text. Requires xlwings Lite.
+        """
+        return await self.impl.get_text()
+
 
 class Font:
     """The font object can be accessed as an attribute of the range or shape object.
