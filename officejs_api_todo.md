@@ -325,15 +325,25 @@ All setters work. The getters have the same constraint as the `Range` getters
 above — font attributes aren't in the payload — so they'd follow the same async
 route (a `getRangeData` mode that loads `range.format.font`):
 
-- [ ] `bold` (getter)
-- [ ] `italic` (getter)
-- [ ] `size` (getter)
-- [ ] `color` (getter)
-- [ ] `name` (getter)
+- [x] `bold` (getter)
+- [x] `italic` (getter)
+- [x] `size` (getter)
+- [x] `color` (getter)
+- [x] `name` (getter)
 
-`Font.append_json_action()` also raises for any parent that isn't a `Range`
-(see its `TODO: support Shape and getters`), so `Shape.font` and
-`Characters.font` need that path before their setters can work either.
+      One `font` read key covers all five: they come from a single
+      `range.format.font` object, so `_get_font()` fetches them together and
+      each `get_*()` picks its attribute --- there's nothing to gain from
+      fetching them one at a time. `get_color()` returns the RGB tuple the
+      other backends return (and normalizes a named HTML colour first, like
+      the range fill). A range whose cells disagree reports `None`, which is
+      what the public annotations already said.
+
+`Font.append_json_action()` still raises for any parent that isn't a `Range`,
+so `Shape.font` and `Characters.font` need that path before their setters work
+--- but it now raises with the reason rather than a bare `NotImplementedError`,
+and the getters raise the same way. That's unblocked by the `Shape` and
+`Characters` classes above, not by anything in this section.
 
 ## Picture
 

@@ -2301,7 +2301,8 @@ class FreezePanes(base_classes.FreezePanes):
 
 
 class Font(base_classes.Font):
-    # TODO: support Shape and getters
+    # TODO: support Shape (Shape.font and Characters.font need a parent that
+    # isn't a Range; the setters below raise for those, see append_json_action)
     def __init__(self, parent, api):
         self.parent = parent
         self._api = api
@@ -2314,15 +2315,50 @@ class Font(base_classes.Font):
                 }
             )
         else:
-            raise NotImplementedError()
+            raise NotImplementedError(
+                "Setting font attributes is only supported on a Range in "
+                "Office.js, not on shapes or characters."
+            )
 
     @property
     def api(self):
         return self._api
 
+    async def _get_font(self):
+        """Fetch all five font attributes in one round-trip.
+
+        They come from a single Office.js object, so there's nothing to gain
+        from fetching them individually.
+        """
+        if not isinstance(self.parent, Range):
+            raise NotImplementedError(
+                "Reading font attributes is only supported on a Range in "
+                "Office.js, not on shapes or characters."
+            )
+        return await self.parent._get_range_data("font")
+
+    async def get_bold(self):
+        return (await self._get_font())["bold"]
+
+    async def get_italic(self):
+        return (await self._get_font())["italic"]
+
+    async def get_size(self):
+        return (await self._get_font())["size"]
+
+    async def get_name(self):
+        return (await self._get_font())["name"]
+
+    async def get_color(self):
+        color = (await self._get_font())["color"]
+        return utils.hex_to_rgb(color) if color else None
+
     @property
     def bold(self):
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "Reading font attributes synchronously isn't supported on this "
+            "engine. Use 'await myrange.font.get_bold()' to fetch it on demand."
+        )
 
     @bold.setter
     def bold(self, value):
@@ -2330,7 +2366,10 @@ class Font(base_classes.Font):
 
     @property
     def italic(self):
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "Reading font attributes synchronously isn't supported on this "
+            "engine. Use 'await myrange.font.get_italic()' to fetch it on demand."
+        )
 
     @italic.setter
     def italic(self, value):
@@ -2338,7 +2377,10 @@ class Font(base_classes.Font):
 
     @property
     def size(self):
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "Reading font attributes synchronously isn't supported on this "
+            "engine. Use 'await myrange.font.get_size()' to fetch it on demand."
+        )
 
     @size.setter
     def size(self, value):
@@ -2346,7 +2388,10 @@ class Font(base_classes.Font):
 
     @property
     def color(self):
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "Reading font attributes synchronously isn't supported on this "
+            "engine. Use 'await myrange.font.get_color()' to fetch it on demand."
+        )
 
     @color.setter
     def color(self, color_or_rgb):
@@ -2356,7 +2401,10 @@ class Font(base_classes.Font):
 
     @property
     def name(self):
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "Reading font attributes synchronously isn't supported on this "
+            "engine. Use 'await myrange.font.get_name()' to fetch it on demand."
+        )
 
     @name.setter
     def name(self, value):

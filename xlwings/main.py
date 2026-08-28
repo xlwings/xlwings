@@ -5036,6 +5036,42 @@ class Font:
     def name(self, value: str) -> None:
         self.impl.name = value
 
+    async def get_bold(self) -> bool | None:
+        """Fetch the bold property from Excel on demand.
+
+        `None` if the range's cells don't all agree. Requires xlwings Lite.
+        """
+        return await self.impl.get_bold()
+
+    async def get_italic(self) -> bool | None:
+        """Fetch the italic property from Excel on demand.
+
+        `None` if the range's cells don't all agree. Requires xlwings Lite.
+        """
+        return await self.impl.get_italic()
+
+    async def get_size(self) -> float | None:
+        """Fetch the font size from Excel on demand.
+
+        `None` if the range's cells don't all agree. Requires xlwings Lite.
+        """
+        return await self.impl.get_size()
+
+    async def get_color(self) -> tuple[int, int, int] | None:
+        """Fetch the font colour from Excel on demand, as an RGB tuple.
+
+        `None` if unset or if the range's cells don't all agree. Requires
+        xlwings Lite.
+        """
+        return await self.impl.get_color()
+
+    async def get_name(self) -> str | None:
+        """Fetch the font name from Excel on demand.
+
+        `None` if the range's cells don't all agree. Requires xlwings Lite.
+        """
+        return await self.impl.get_name()
+
 
 class FreezePanes:
     """Freeze panes interface. Use via `mysheet.freeze_panes`."""

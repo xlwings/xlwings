@@ -1628,6 +1628,107 @@ def test_range_merge_area_and_table_fall_back(book):
         assert asyncio.run(rng.get_table()) is None
 
 
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "attribute,value",
+    [
+        ("bold", True),
+        ("italic", True),
+        ("size", 13),
+        ("color", "#ff0000"),
+        ("name", "Calibri"),
+    ],
+)
+def test_font_setters(book, attribute, value):
+    setattr(book.sheets[0].range("A1").font, attribute, value)
+    action = book.json()["actions"][-1]
+    assert action["func"] == "setFontProperty"
+    assert action["args"] == [attribute, value]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_font_color_setter_rejects_non_hex(book):
+    with pytest.raises(ValueError, match="hex format"):
+        book.sheets[0].range("A1").font.color = (255, 0, 0)
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "getter,expected",
+    [
+        ("get_bold", True),
+        ("get_italic", False),
+        ("get_size", 13.0),
+        ("get_color", (255, 0, 0)),
+        ("get_name", "Calibri"),
+    ],
+)
+def test_font_async_getters(book, getter, expected):
+    # All five come from one Office.js object, so they're fetched together.
+    font = book.sheets[0].range("A1").font
+
+    async def fake(self, key, method=None):
+        assert key == "font"
+        return {
+            "bold": True,
+            "italic": False,
+            "size": 13.0,
+            "color": "#ff0000",
+            "name": "Calibri",
+        }
+
+    with mock.patch.object(xw.pro._xlremote.Range, "_get_range_data", fake):
+        assert asyncio.run(getattr(font, getter)()) == expected
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_font_color_none_when_unset(book):
+    font = book.sheets[0].range("A1").font
+
+    async def fake(self, key, method=None):
+        return {
+            "bold": None,
+            "italic": None,
+            "size": None,
+            "color": None,
+            "name": None,
+        }
+
+    with mock.patch.object(xw.pro._xlremote.Range, "_get_range_data", fake):
+        # None is also what a range whose cells disagree reports
+        assert asyncio.run(font.get_color()) is None
+        assert asyncio.run(font.get_bold()) is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "prop,hint",
+    [
+        ("bold", "get_bold()"),
+        ("italic", "get_italic()"),
+        ("size", "get_size()"),
+        ("color", "get_color()"),
+        ("name", "get_name()"),
+    ],
+)
+def test_font_sync_getters_point_at_async(book, prop, hint):
+    with pytest.raises(NotImplementedError, match=re.escape(hint)):
+        getattr(book.sheets[0].range("A1").font, prop)
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_font_on_non_range_parent_raises(book):
+    # Shape.font and Characters.font would land here; Office.js only exposes
+    # font attributes through a Range on this engine.
+    from xlwings.pro._xlremote import Font
+
+    font = Font(parent=object(), api={})
+    with pytest.raises(NotImplementedError, match="only supported on a Range"):
+        font.bold = True
+    with pytest.raises(NotImplementedError, match="only supported on a Range"):
+        asyncio.run(font.get_bold())
+
+
 def test_get_value_not_supported(book):
     with pytest.raises(NotImplementedError):
         asyncio.run(book.sheets[0].range("A1").get_value())
