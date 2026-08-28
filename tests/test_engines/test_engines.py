@@ -968,6 +968,35 @@ def test_app_quit_not_supported(book):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_book_save():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    book.save()
+    actions = book.json()["actions"]
+    assert actions[-1]["func"] == "save"
+    assert actions[-1]["args"] == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_book_save_path_not_supported(book):
+    # Office.js has no SaveAs, so a path must raise rather than silently
+    # saving in place somewhere else.
+    with pytest.raises(NotImplementedError, match="no SaveAs"):
+        book.save("/tmp/somewhere.xlsx")
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_book_save_password_not_supported(book):
+    with pytest.raises(NotImplementedError, match="password"):
+        book.save(password="secret")
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_book_to_pdf_not_supported(book):
+    with pytest.raises(NotImplementedError, match="no PDF export"):
+        book.to_pdf()
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_app_calculation_get():
     book = xw.Book(json=json.loads(json.dumps(data)))
     assert book.app.calculation == "automatic"

@@ -619,6 +619,26 @@ class Book(base_classes.Book):
     def app(self):
         return self.books.app
 
+    def save(self, path=None, password=None):
+        if path is not None:
+            raise NotImplementedError(
+                "Book.save() can't take a path in Office.js, which has no SaveAs "
+                "equivalent: Workbook.save() only saves in place. Call save() "
+                "without arguments instead."
+            )
+        if password is not None:
+            raise NotImplementedError(
+                "Book.save() can't take a password in Office.js, which has no API "
+                "for setting one."
+            )
+        self.append_json_action(func="save", args=[])
+
+    def to_pdf(self, path, quality):
+        raise NotImplementedError(
+            "Book.to_pdf() is not supported in Office.js, which has no PDF export "
+            "API."
+        )
+
     def close(self):
         assert self.api is not None, "Seems this book was already closed."
         self.books.books.remove(self)

@@ -115,8 +115,17 @@ backend.
 
 ## Book
 
-- [ ] `save()`
-- [ ] `to_pdf()`
+Verified against the `Excel.Workbook` typings: its methods are `save()`,
+`close()`, `focus()`, the `getActive*` family, `getSelectedRange(s)` and
+`insertWorksheetsFromBase64()`. There is no PDF export anywhere on the type,
+which settles `Sheet.to_pdf()` and `Range.to_pdf()` below as well.
+
+- [x] `save()` — no-argument form only, mapping to
+      `workbook.save(Excel.SaveBehavior.save)`. `path` raises (Office.js has no
+      SaveAs, so silently saving in place would be wrong) and so does
+      `password` (no API for it). Like every JSON action the save lands after
+      the script returns, which the public docstring now notes
+- [x] `to_pdf()` — **n/a**: Office.js has no PDF export API
 
 ## Sheet
 

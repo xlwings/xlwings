@@ -1196,6 +1196,13 @@ class Book:
             >>> wb.save(r'C:\\path\\to\\new_file_name.xlsx')
             ```
 
+        ```{note}
+        On xlwings Server and xlwings Lite, the workbook is saved in place
+        after your script returns, as Office.js applies the change on its next
+        turn rather than while the script runs. `path` and `password` aren't
+        supported there, since Office.js has neither a SaveAs nor a password
+        API.
+        ```
 
         ```{versionadded} 0.3.1
         ```
