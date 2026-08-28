@@ -261,9 +261,12 @@ addresses that the `Range`/`Table` object is then built from locally):
 - [x] `current_region` — `get_current_region()`, via `getSurroundingRegion()`
 - [x] `merge_area` / `merge_cells` — both from
       `getMergedAreasOrNullObject()`. Office.js reports every merged area
-      overlapping the range and none at all for an unmerged cell, so
-      `get_merge_area()` returns the first area, falling back to the range
-      itself, which is what the other backends do
+      overlapping the range, and none at all for an unmerged cell, whereas COM
+      echoes the cell back --- so `get_merge_area()` falls back to the range
+      itself, matching `Range.MergeArea`. `get_merge_cells()` is tri-state like
+      COM's `Range.MergeCells`: `True` when the whole range is merged, `False`
+      when none of it is, and `None` when it's only partly merged (compared by
+      cell count, since Office.js has no such flag)
 - [x] `table` — `get_table()`, via `getTables(false)`. Returns `None` when the
       range isn't in a table. The client reports the table's *name*, which the
       Python side resolves to its position, since `Table`'s constructor indexes

@@ -2557,10 +2557,12 @@ class Range:
         """
         return Range(impl=await self._impl.get_merge_area())
 
-    async def get_merge_cells(self) -> bool:
+    async def get_merge_cells(self) -> bool | None:
         """Fetch whether this range contains merged cells, on demand.
 
-        Requires xlwings Lite.
+        `True` if the whole range is merged, `False` if none of it is, and
+        `None` for a range that's only partly merged --- the same tri-state
+        the desktop engines report. Requires xlwings Lite.
         """
         return await self._impl.get_merge_cells()
 

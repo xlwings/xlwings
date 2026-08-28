@@ -1408,6 +1408,20 @@ def test_range_group_b_getters_build_objects(book):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("reported", [True, False, None])
+def test_range_merge_cells_is_tristate(book, reported):
+    # Mirrors COM's Range.MergeCells: True when the whole range is merged,
+    # False when none of it is, None when it's only partly merged.
+    rng = book.sheets[0].range("A1:C1")
+
+    async def fake(self, key, method=None):
+        return reported
+
+    with mock.patch.object(type(rng.impl), "_get_range_data", fake):
+        assert asyncio.run(rng.get_merge_cells()) is reported
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_range_merge_area_and_table_fall_back(book):
     # An unmerged cell reports no merged area; xlwings returns the cell itself.
     # A range outside any table reports no table; xlwings returns None.
