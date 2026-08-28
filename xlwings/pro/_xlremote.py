@@ -1286,15 +1286,18 @@ class Range(base_classes.Range):
             "Use 'await myrange.get_height()' to fetch it on demand."
         )
 
-    async def _get_range_data(self, key):
+    async def _get_range_data(self, key, method=None):
         """Fetch one on-demand property for this range from the client.
 
         Group A of the Range getters: everything that's a plain Office.js
         `range.*` property. `getRangeData` takes a list of keys and returns
-        them under the same names, so this is a thin wrapper.
+        them under the same names, so this is a thin wrapper. `method` names
+        the caller for the error message where it differs from the key.
         """
         if sys.platform != "emscripten":
-            raise NotImplementedError(f"get_{key}() is only supported in xlwings Lite")
+            raise NotImplementedError(
+                f"{method or f'get_{key}'}() is only supported in xlwings Lite"
+            )
         import js
         from pyodide.ffi import to_js
 
@@ -1341,14 +1344,7 @@ class Range(base_classes.Range):
         The public `Range.get_formula` applies the `ndim` option on top, so that
         what the *user* gets back matches the shape of reading `.value`.
         """
-        if sys.platform != "emscripten":
-            raise NotImplementedError("get_formula() is only supported in xlwings Lite")
-        import js
-
-        data_js = await js.xlwings.getRangeData(
-            self.sheet.name, self.address, "formulas"
-        )
-        return _normalize_jsnull(data_js.to_py())["formulas"]
+        return await self._get_range_data("formulas", method="get_formula")
 
     @formula.setter
     def formula(self, value):

@@ -235,8 +235,11 @@ coding, not a second implementation.
 
 `mode` now takes a **list of keys** — `getRangeData(sheet, address,
 ["number_format", "color"])` — so several properties come back in one
-round-trip. The legacy single strings (`"values"`, `"formulas"`, `"both"`) still
-work, since the Wingman workbook tool exposes them as a public contract.
+round-trip. The old single strings are gone. Lite's Wingman `read_range` tool
+still shows the model a `"values"`/`"formulas"`/`"both"` enum, but that's its
+own vocabulary: it translates to read keys at the call site
+(`RANGE_MODE_READ_KEYS` in `static/js/wingman/workbook.js`) rather than the
+shared plumbing knowing what `"both"` means.
 
 Done — Group A getters (plain Office.js `range.*` properties):
 
