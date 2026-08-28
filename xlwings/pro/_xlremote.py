@@ -1237,7 +1237,10 @@ class Range(base_classes.Range):
 
     @property
     def color(self):
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "Reading the fill color synchronously isn't supported on this "
+            "engine. Use 'await myrange.get_color()' to fetch it on demand."
+        )
 
     @color.setter
     def color(self, value):
@@ -1254,6 +1257,82 @@ class Range(base_classes.Range):
             "Reading formulas synchronously isn't supported on this engine. "
             "Use 'await myrange.get_formula()' to fetch them on demand."
         )
+
+    @property
+    def left(self):
+        raise NotImplementedError(
+            "Reading the left position synchronously isn't supported on this "
+            "engine. Use 'await myrange.get_left()' to fetch it on demand."
+        )
+
+    @property
+    def top(self):
+        raise NotImplementedError(
+            "Reading the top position synchronously isn't supported on this "
+            "engine. Use 'await myrange.get_top()' to fetch it on demand."
+        )
+
+    @property
+    def width(self):
+        raise NotImplementedError(
+            "Reading the width synchronously isn't supported on this engine. "
+            "Use 'await myrange.get_width()' to fetch it on demand."
+        )
+
+    @property
+    def height(self):
+        raise NotImplementedError(
+            "Reading the height synchronously isn't supported on this engine. "
+            "Use 'await myrange.get_height()' to fetch it on demand."
+        )
+
+    async def _get_range_data(self, key):
+        """Fetch one on-demand property for this range from the client.
+
+        Group A of the Range getters: everything that's a plain Office.js
+        `range.*` property. `getRangeData` takes a list of keys and returns
+        them under the same names, so this is a thin wrapper.
+        """
+        if sys.platform != "emscripten":
+            raise NotImplementedError(f"get_{key}() is only supported in xlwings Lite")
+        import js
+        from pyodide.ffi import to_js
+
+        data_js = await js.xlwings.getRangeData(
+            self.sheet.name, self.address, to_js([key])
+        )
+        return _normalize_jsnull(data_js.to_py())[key]
+
+    async def get_formula_array(self):
+        return await self._get_range_data("formula_array")
+
+    async def get_number_format(self):
+        return await self._get_range_data("number_format")
+
+    async def get_color(self):
+        color = await self._get_range_data("color")
+        return utils.hex_to_rgb(color) if color else None
+
+    async def get_wrap_text(self):
+        return await self._get_range_data("wrap_text")
+
+    async def get_column_width(self):
+        return await self._get_range_data("column_width")
+
+    async def get_row_height(self):
+        return await self._get_range_data("row_height")
+
+    async def get_left(self):
+        return await self._get_range_data("left")
+
+    async def get_top(self):
+        return await self._get_range_data("top")
+
+    async def get_width(self):
+        return await self._get_range_data("width")
+
+    async def get_height(self):
+        return await self._get_range_data("height")
 
     async def get_formula(self):
         """Fetch this range's formulas as a raw 2D list.
@@ -1312,7 +1391,10 @@ class Range(base_classes.Range):
 
     @property
     def column_width(self):
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "Reading the column width synchronously isn't supported on this engine. "
+            "Use 'await myrange.get_column_width()' to fetch it on demand."
+        )
 
     @column_width.setter
     def column_width(self, value):
@@ -1328,7 +1410,10 @@ class Range(base_classes.Range):
 
     @property
     def row_height(self):
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "Reading the row height synchronously isn't supported on this engine. "
+            "Use 'await myrange.get_row_height()' to fetch it on demand."
+        )
 
     @row_height.setter
     def row_height(self, value):
@@ -1336,7 +1421,10 @@ class Range(base_classes.Range):
 
     @property
     def wrap_text(self):
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "Reading the wrap text flag synchronously isn't supported on this engine. "
+            "Use 'await myrange.get_wrap_text()' to fetch it on demand."
+        )
 
     @wrap_text.setter
     def wrap_text(self, value):
@@ -1344,7 +1432,10 @@ class Range(base_classes.Range):
 
     @property
     def formula_array(self):
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "Reading array formulas synchronously isn't supported on this engine. "
+            "Use 'await myrange.get_formula_array()' to fetch it on demand."
+        )
 
     @formula_array.setter
     def formula_array(self, value):
@@ -1357,7 +1448,10 @@ class Range(base_classes.Range):
 
     @property
     def number_format(self):
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "Reading the number format synchronously isn't supported on this engine. "
+            "Use 'await myrange.get_number_format()' to fetch it on demand."
+        )
 
     @number_format.setter
     def number_format(self, value):

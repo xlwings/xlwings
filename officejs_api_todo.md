@@ -226,18 +226,34 @@ row/column counts. Today `mode` accepts `"values"`, `"formulas"` and `"both"`
 most of the list below is a new `mode` plus a thin async wrapper on the Python
 side — not new plumbing:
 
-**Open question — where a new `mode` has to land.** `getRangeData` is defined in
-xlwings-server. The Lite addin doesn't define it: it reads
-`globalThis.xlwings?.getRangeData` and raises `range_read_unavailable` if it's
-missing (`static/js/wingman/workbook.js`). So adding a mode may be one change or
-two coordinated ones across repos, depending on how Lite is provisioned with
-that function. Worth settling before the first async getter, since every one of
-them goes through this path. TODO: confirm and write down the mechanism.
+**Settled — where a new mode lands.** `getRangeData` is defined only in
+xlwings-server and reaches Lite through `globalThis.xlwings`, which Lite reads
+rather than defines. So a new mode is a **one-repo change** (plus the Python
+wrapper); Lite picks it up when it bumps its xlwings-server dependency. The
+`range_read_unavailable` guard in `static/js/wingman/workbook.js` is defensive
+coding, not a second implementation.
 
-- `formula_array` (getter)
-- `column_width` / `row_height` / `wrap_text` (getters)
-- `color` / `number_format` (getters; setters already work)
-- `left` / `top` / `width` / `height`
+`mode` now takes a **list of keys** — `getRangeData(sheet, address,
+["number_format", "color"])` — so several properties come back in one
+round-trip. The legacy single strings (`"values"`, `"formulas"`, `"both"`) still
+work, since the Wingman workbook tool exposes them as a public contract.
+
+Done — Group A getters (plain Office.js `range.*` properties):
+
+- [x] `formula_array` (getter) — `get_formula_array()`
+- [x] `column_width` / `row_height` / `wrap_text` (getters) — `column_width`
+      converts Office.js points back to xlwings' characters. The setter can
+      measure the workbook's real digit width because it resets the column
+      first; a getter mustn't mutate the sheet, so it assumes 7px (Calibri 11)
+      and is off by a couple of percent for other Normal-style fonts. Office.js
+      returns `null` for a non-uniform range, which passes through as `None`
+- [x] `color` / `number_format` (getters) — `color` converts Office.js'
+      `"#RRGGBB"` to the RGB tuple the other backends return, `None` when unset
+- [x] `left` / `top` / `width` / `height` — these had no sync property on this
+      engine at all; they now raise pointing at the async version like the rest
+
+Still deferred — getters that need more than a mode:
+
 - `current_region`
 - `merge_area` / `merge_cells`
 - `hyperlink` (getter; `add_hyperlink()` already works)

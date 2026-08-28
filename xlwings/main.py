@@ -2469,6 +2469,93 @@ class Range:
         AdjustDimensionsStage(self._options)(c)
         return c.value
 
+    async def get_formula_array(self) -> str | list[str] | list[list[str]]:
+        """Fetch array formulas from Excel on demand.
+
+        Shaped like `get_formula`. Requires xlwings Lite.
+        """
+        return await self._get_matrix_on_demand("formula_array")
+
+    async def get_number_format(self) -> str | list[str] | list[list[str]]:
+        """Fetch number formats from Excel on demand.
+
+        Shaped like `get_formula`. Requires xlwings Lite.
+        """
+        return await self._get_matrix_on_demand("number_format")
+
+    async def get_color(self) -> tuple[int, int, int] | None:
+        """Fetch the fill color from Excel on demand, as an RGB tuple.
+
+        Returns `None` if the range has no fill. Requires xlwings Lite.
+        """
+        return await self._impl.get_color()
+
+    async def get_wrap_text(self) -> bool:
+        """Fetch the wrap text setting from Excel on demand.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_wrap_text()
+
+    async def get_column_width(self) -> float | None:
+        """Fetch the column width from Excel on demand, in characters.
+
+        Returns `None` if the range's columns aren't all the same width.
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_column_width()
+
+    async def get_row_height(self) -> float | None:
+        """Fetch the row height from Excel on demand, in points.
+
+        Returns `None` if the range's rows aren't all the same height.
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_row_height()
+
+    async def get_left(self) -> float:
+        """Fetch the distance from the sheet's left edge, in points, on demand.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_left()
+
+    async def get_top(self) -> float:
+        """Fetch the distance from the sheet's top edge, in points, on demand.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_top()
+
+    async def get_width(self) -> float:
+        """Fetch the range's width in points from Excel on demand.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_width()
+
+    async def get_height(self) -> float:
+        """Fetch the range's height in points from Excel on demand.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_height()
+
+    async def _get_matrix_on_demand(self, key: str):
+        """Shared shaping for the on-demand getters that return a cell matrix.
+
+        Runs the raw 2D result through the same stage `.value` reads use, so
+        the shape rules and `options(ndim=...)` stay in one place.
+        """
+        # Prevent circular imports
+        from .conversion.framework import ConversionContext
+        from .conversion.standard import AdjustDimensionsStage
+
+        value = await getattr(self._impl, f"get_{key}")()
+        c = ConversionContext(rng=self, value=value)
+        AdjustDimensionsStage(self._options)(c)
+        return c.value
+
     def expand(self, mode: str = "table") -> Range:
         """Expands the range according to the mode provided. Ignores empty top-left cells
         (unlike `Range.end()`).

@@ -2,7 +2,9 @@ import asyncio
 import datetime as dt
 import json
 import os
+import re
 from pathlib import Path
+from unittest import mock
 
 import pytest
 
@@ -1287,6 +1289,79 @@ def test_table_add_seeds_show_table_style_flags():
 
 # Lazy loading: these methods are only supported in xlwings Lite
 # and should raise NotImplementedError on all other platforms/engines.
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "getter",
+    [
+        "get_formula_array",
+        "get_number_format",
+        "get_color",
+        "get_wrap_text",
+        "get_column_width",
+        "get_row_height",
+        "get_left",
+        "get_top",
+        "get_width",
+        "get_height",
+    ],
+)
+def test_range_async_getters_not_supported(book, getter):
+    # Lite-only, like get_value()/get_formula().
+    with pytest.raises(NotImplementedError):
+        asyncio.run(getattr(book.sheets[0].range("A1"), getter)())
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "prop,hint",
+    [
+        ("color", "get_color()"),
+        ("column_width", "get_column_width()"),
+        ("row_height", "get_row_height()"),
+        ("wrap_text", "get_wrap_text()"),
+        ("formula_array", "get_formula_array()"),
+        ("number_format", "get_number_format()"),
+        ("left", "get_left()"),
+        ("top", "get_top()"),
+        ("width", "get_width()"),
+        ("height", "get_height()"),
+    ],
+)
+def test_range_sync_getters_point_at_async(book, prop, hint):
+    # The sync properties raise, but name the async method to use instead.
+    with pytest.raises(NotImplementedError, match=re.escape(hint)):
+        getattr(book.sheets[0].range("A1"), prop)
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_matrix_getters_apply_ndim(book):
+    # The matrix-valued getters reuse the stage .value goes through, so the
+    # shape rules and options(ndim=...) match reading values.
+    rng = book.sheets[0].range("A1:B2")
+
+    async def fake(self):
+        return [["#,##0", "0.00"], ["General", "General"]]
+
+    with mock.patch.object(type(rng.impl), "get_number_format", fake, create=True):
+        assert asyncio.run(rng.get_number_format()) == [
+            ["#,##0", "0.00"],
+            ["General", "General"],
+        ]
+
+    single = book.sheets[0].range("A1")
+
+    async def fake_single(self):
+        return [["#,##0"]]
+
+    with mock.patch.object(
+        type(single.impl), "get_number_format", fake_single, create=True
+    ):
+        # a single cell squeezes to a scalar...
+        assert asyncio.run(single.get_number_format()) == "#,##0"
+        # ...unless ndim asks otherwise
+        assert asyncio.run(single.options(ndim=2).get_number_format()) == [["#,##0"]]
 
 
 def test_get_value_not_supported(book):
