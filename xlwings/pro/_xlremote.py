@@ -2402,12 +2402,32 @@ class Shape(base_classes.Shape):
         self.api["height"] = value
         self.append_json_action(func="setShapeHeight", args=[self.index - 1, value])
 
+    async def _get_shape_data(self, key):
+        """Fetch one on-demand property for this shape from the client.
+
+        Shape text is unbounded, so it's fetched when asked for rather than
+        shipped with every request for every shape in the workbook.
+        """
+        if sys.platform != "emscripten":
+            raise NotImplementedError(f"get_{key}() is only supported in xlwings Lite")
+        import js
+        from pyodide.ffi import to_js
+
+        data_js = await js.xlwings.getShapeData(
+            self.parent.name, self.index - 1, to_js([key])
+        )
+        return _normalize_jsnull(data_js.to_py())[key]
+
+    async def get_text(self):
+        return await self._get_shape_data("text")
+
     @property
     def text(self):
-        # Not in the payload: shapes carry their geometry, not their text.
+        # Not in the payload: shape text is unbounded, so it's fetched on
+        # demand rather than shipped with every request.
         raise NotImplementedError(
-            "Reading a shape's text isn't supported on this engine, which "
-            "doesn't send it with the workbook."
+            "Reading a shape's text synchronously isn't supported on this "
+            "engine. Use 'await myshape.get_text()' to fetch it on demand."
         )
 
     @text.setter

@@ -65,8 +65,14 @@ payload sent to Python.
         than mapped onto names implying a precision Office.js doesn't have
   - [x] `left` / `top` / `width` / `height` (get/set)
   - [x] `index` — impl-only, as on `Table` and `Picture`
-  - [x] `text` (setter) — the getter raises: the payload carries geometry, not
-        text
+  - [x] `text` (get/set) — the setter is a JSON action; the getter is
+        `await shape.get_text()`. Shape text is unbounded, so it's fetched on
+        demand rather than shipped for every shape on every request. That
+        needed a new client function, `getShapeData(sheetName, shapeIndex,
+        keys)` --- `getRangeData` is keyed by range address, so it can't
+        address a shape. It checks `textFrame.hasText` first (reading
+        `textRange.text` on an empty shape throws) and reports `None`
+        otherwise, as the desktop engines do
   - [ ] `font` — needs `Characters`/`TextRange` plumbing; raises for now
   - [ ] `characters` — needs the `Characters` class
   - [x] `activate()` — **n/a**: Office.js has no way to activate or select a

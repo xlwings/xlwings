@@ -656,9 +656,30 @@ def test_shape_text_setter_and_getter(book):
     action = book.json()["actions"][-1]
     assert action["func"] == "setShapeText"
     assert action["args"] == [0, "hello"]
-    # the payload carries geometry, not text, so reading it isn't supported
-    with pytest.raises(NotImplementedError, match="doesn't send it"):
+    # shape text is unbounded, so it's fetched on demand rather than sent
+    # with every request; the sync property points at the async method
+    with pytest.raises(NotImplementedError, match=r"get_text\(\)"):
         shape.text
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("reported", ["hello world", None])
+def test_shape_get_text(book, reported):
+    # None is what a shape without text reports, as on the desktop engines.
+    shape = book.sheets[0].shapes[0]
+
+    async def fake(self, key):
+        assert key == "text"
+        return reported
+
+    with mock.patch.object(xw.pro._xlremote.Shape, "_get_shape_data", fake):
+        assert asyncio.run(shape.get_text()) == reported
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_shape_get_text_not_supported_off_lite(book):
+    with pytest.raises(NotImplementedError, match="only supported in xlwings Lite"):
+        asyncio.run(book.sheets[0].shapes[0].get_text())
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")

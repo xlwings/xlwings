@@ -3418,6 +3418,14 @@ class Shape:
     def __repr__(self) -> str:
         return "<Shape '{0}' in {1}>".format(self.name, self.parent)
 
+    async def get_text(self) -> str | None:
+        """Fetch the shape's text from Excel on demand.
+
+        `None` if the shape holds no text, as on the other engines. Requires
+        xlwings Lite.
+        """
+        return await self.impl.get_text()
+
 
 class Shapes(Collection[Shape]):
     """A collection of all `shape` objects on the specified sheet:
