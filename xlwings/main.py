@@ -2445,6 +2445,7 @@ class Range:
 
         Requires xlwings Lite.
         """
+        # Prevent circular imports
         from .conversion.framework import ConversionContext
         from .conversion.standard import AdjustDimensionsStage
 

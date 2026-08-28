@@ -1055,8 +1055,9 @@ class Range(base_classes.Range):
     async def get_formula(self):
         """Fetch this range's formulas as a raw 2D list.
 
-        The caller (`Range.get_formula`) applies the `ndim` option, so that the
-        returned shape matches what reading `.value` gives.
+        Always 2D and unsqueezed, which is what `AdjustDimensionsStage` expects.
+        The public `Range.get_formula` applies the `ndim` option on top, so that
+        what the *user* gets back matches the shape of reading `.value`.
         """
         if sys.platform != "emscripten":
             raise NotImplementedError("get_formula() is only supported in xlwings Lite")
