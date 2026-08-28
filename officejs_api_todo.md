@@ -255,15 +255,28 @@ Done — Group A getters (plain Office.js `range.*` properties):
 - [x] `left` / `top` / `width` / `height` — these had no sync property on this
       engine at all; they now raise pointing at the async version like the rest
 
+Done — Group B getters (resolved through Office.js *method* calls, returning
+addresses that the `Range`/`Table` object is then built from locally):
+
+- [x] `current_region` — `get_current_region()`, via `getSurroundingRegion()`
+- [x] `merge_area` / `merge_cells` — both from
+      `getMergedAreasOrNullObject()`. Office.js reports every merged area
+      overlapping the range and none at all for an unmerged cell, so
+      `get_merge_area()` returns the first area, falling back to the range
+      itself, which is what the other backends do
+- [x] `table` — `get_table()`, via `getTables(false)`. Returns `None` when the
+      range isn't in a table. The client reports the table's *name*, which the
+      Python side resolves to its position, since `Table`'s constructor indexes
+      the sheet's tables list
+- [x] `rows` / `columns` — **already worked**: `main.py` builds `RangeRows` /
+      `RangeColumns` from the range itself and never calls the impl. They were
+      listed here by mistake
+
 Still deferred — getters that need more than a mode:
 
-- `current_region`
-- `merge_area` / `merge_cells`
 - `hyperlink` (getter; `add_hyperlink()` already works)
-- `note`
-- `table`
-- `characters`
-- `rows` / `columns`
+- `note` — needs the `Note` class
+- `characters` — needs the `Characters` class
 - `get_address()`
 
 Two notes on shape and scope:

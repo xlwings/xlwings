@@ -2541,6 +2541,38 @@ class Range:
         """
         return await self._impl.get_height()
 
+    async def get_current_region(self) -> Range:
+        """Fetch the current region from Excel on demand.
+
+        The region bounded by blank rows and columns around this range, i.e.
+        `Ctrl-*`. Requires xlwings Lite.
+        """
+        return Range(impl=await self._impl.get_current_region())
+
+    async def get_merge_area(self) -> Range:
+        """Fetch the merged range containing this cell from Excel on demand.
+
+        Returns this range itself if it isn't part of a merged range.
+        Requires xlwings Lite.
+        """
+        return Range(impl=await self._impl.get_merge_area())
+
+    async def get_merge_cells(self) -> bool:
+        """Fetch whether this range contains merged cells, on demand.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_merge_cells()
+
+    async def get_table(self) -> Table | None:
+        """Fetch the Table this range is part of from Excel on demand.
+
+        Returns `None` if the range isn't part of a table. Requires xlwings
+        Lite.
+        """
+        impl = await self._impl.get_table()
+        return Table(impl=impl) if impl else None
+
     async def _get_matrix_on_demand(self, key: str):
         """Shared shaping for the on-demand getters that return a cell matrix.
 

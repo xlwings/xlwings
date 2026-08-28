@@ -1305,6 +1305,10 @@ def test_table_add_seeds_show_table_style_flags():
         "get_top",
         "get_width",
         "get_height",
+        "get_current_region",
+        "get_merge_area",
+        "get_merge_cells",
+        "get_table",
     ],
 )
 def test_range_async_getters_not_supported(book, getter):
@@ -1327,6 +1331,10 @@ def test_range_async_getters_not_supported(book, getter):
         ("top", "get_top()"),
         ("width", "get_width()"),
         ("height", "get_height()"),
+        ("current_region", "get_current_region()"),
+        ("merge_area", "get_merge_area()"),
+        ("merge_cells", "get_merge_cells()"),
+        ("table", "get_table()"),
     ],
 )
 def test_range_sync_getters_point_at_async(book, prop, hint):
@@ -1362,6 +1370,55 @@ def test_range_matrix_getters_apply_ndim(book):
         assert asyncio.run(single.get_number_format()) == "#,##0"
         # ...unless ndim asks otherwise
         assert asyncio.run(single.options(ndim=2).get_number_format()) == [["#,##0"]]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_rows_and_columns(book):
+    # rows/columns are built from the range itself in main.py and never touch
+    # the impl, so they already work on this engine.
+    rng = book.sheets[0].range("A1:B3")
+    assert len(rng.rows) == 3
+    assert len(rng.columns) == 2
+    assert rng.rows[0].address == "$A$1:$B$1"
+    assert rng.columns[1].address == "$B$1:$B$3"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_group_b_getters_build_objects(book):
+    # These fetch an address (or a name) and build the object locally.
+    rng = book.sheets[0].range("A1")
+    # not hardcoded: an earlier test renames this table, and Table.name writes
+    # through to the module-level `data` dict the fixture book wraps
+    table_name = book.sheets[0].tables[0].name
+    fetched = {
+        "current_region": "$A$1:$C$5",
+        "merge_area": "$A$1:$B$1",
+        "merge_cells": True,
+        "table": table_name,
+    }
+
+    async def fake(self, key, method=None):
+        return fetched[key]
+
+    with mock.patch.object(type(rng.impl), "_get_range_data", fake):
+        assert asyncio.run(rng.get_current_region()).address == "$A$1:$C$5"
+        assert asyncio.run(rng.get_merge_area()).address == "$A$1:$B$1"
+        assert asyncio.run(rng.get_merge_cells()) is True
+        assert asyncio.run(rng.get_table()).name == table_name
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_merge_area_and_table_fall_back(book):
+    # An unmerged cell reports no merged area; xlwings returns the cell itself.
+    # A range outside any table reports no table; xlwings returns None.
+    rng = book.sheets[0].range("A1")
+
+    async def fake(self, key, method=None):
+        return None
+
+    with mock.patch.object(type(rng.impl), "_get_range_data", fake):
+        assert asyncio.run(rng.get_merge_area()).address == "$A$1"
+        assert asyncio.run(rng.get_table()) is None
 
 
 def test_get_value_not_supported(book):

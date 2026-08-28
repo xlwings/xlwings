@@ -1286,6 +1286,60 @@ class Range(base_classes.Range):
             "Use 'await myrange.get_height()' to fetch it on demand."
         )
 
+    @property
+    def current_region(self):
+        raise NotImplementedError(
+            "Reading the current region synchronously isn't supported on this "
+            "engine. Use 'await myrange.get_current_region()' to fetch it on "
+            "demand."
+        )
+
+    @property
+    def merge_area(self):
+        raise NotImplementedError(
+            "Reading the merge area synchronously isn't supported on this "
+            "engine. Use 'await myrange.get_merge_area()' to fetch it on demand."
+        )
+
+    @property
+    def merge_cells(self):
+        raise NotImplementedError(
+            "Reading whether cells are merged synchronously isn't supported on "
+            "this engine. Use 'await myrange.get_merge_cells()' to fetch it on "
+            "demand."
+        )
+
+    @property
+    def table(self):
+        raise NotImplementedError(
+            "Reading the table synchronously isn't supported on this engine. "
+            "Use 'await myrange.get_table()' to fetch it on demand."
+        )
+
+    async def get_current_region(self):
+        address = await self._get_range_data("current_region")
+        return Range(sheet=self.sheet, arg1=address)
+
+    async def get_merge_area(self):
+        address = await self._get_range_data("merge_area")
+        # Office.js reports no merged areas for an unmerged cell; xlwings
+        # returns the cell itself in that case.
+        return Range(sheet=self.sheet, arg1=address) if address else self
+
+    async def get_merge_cells(self):
+        return await self._get_range_data("merge_cells")
+
+    async def get_table(self):
+        name = await self._get_range_data("table")
+        if not name:
+            return None
+        # Table's constructor indexes the sheet's tables list, so resolve the
+        # name the client reported to its position there.
+        for ix, table in enumerate(self.sheet.api["tables"]):
+            if table["name"] == name:
+                return Table(self.sheet, ix + 1)
+        raise KeyError(name)
+
     async def _get_range_data(self, key, method=None):
         """Fetch one on-demand property for this range from the client.
 
