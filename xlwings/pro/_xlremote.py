@@ -270,6 +270,63 @@ class App(base_classes.App):
     def display_alerts(self, value):
         self._display_alerts = value
 
+    def _unsupported(name, detail, read_only=False):
+        # Office.js' Excel.Application doesn't expose these, so they raise with
+        # the reason rather than a bare NotImplementedError. read_only mirrors
+        # the public API: path, startup_path and version have no setter there,
+        # so defining one here would turn AttributeError into the wrong error.
+        message = f"App.{name} is not supported in Office.js: {detail}"
+
+        def getter(self):
+            raise NotImplementedError(message)
+
+        if read_only:
+            return property(getter)
+
+        def setter(self, value):
+            raise NotImplementedError(message)
+
+        return property(getter, setter)
+
+    cut_copy_mode = _unsupported("cut_copy_mode", "it has no clipboard API.")
+    enable_events = _unsupported(
+        "enable_events", "Excel.Application has no equivalent property."
+    )
+    interactive = _unsupported(
+        "interactive", "Excel.Application has no equivalent property."
+    )
+    status_bar = _unsupported(
+        "status_bar", "Excel.Application has no equivalent property."
+    )
+    path = _unsupported(
+        "path",
+        "an add-in has no access to the Excel installation's paths.",
+        read_only=True,
+    )
+    startup_path = _unsupported(
+        "startup_path",
+        "an add-in has no access to the Excel installation's paths.",
+        read_only=True,
+    )
+    version = _unsupported(
+        "version",
+        "Excel.Application only exposes calculationEngineVersion, which is not "
+        "the application version.",
+        read_only=True,
+    )
+    del _unsupported
+
+    def quit(self):
+        raise NotImplementedError(
+            "App.quit() is not supported in Office.js: an add-in can't close the "
+            "Excel application."
+        )
+
+    def calculate(self):
+        # args=[] rather than omitting it: append_json_action wraps a missing
+        # args as [None], and this action takes no arguments.
+        self.books.active.append_json_action(func="calculate", args=[])
+
     @property
     def selection(self):
         book = self.books.active

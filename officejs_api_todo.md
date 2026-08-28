@@ -77,18 +77,38 @@ payload sent to Python.
 
 ## App
 
-- [ ] `calculation` (get/set)
-- [ ] `calculate()`
-- [ ] `cut_copy_mode` (get/set)
+Verified against the `Excel.Application` typings, whose entire surface is:
+`calculationMode`, `calculationState`, `calculationEngineVersion`,
+`cultureInfo`, `decimalSeparator`, `thousandsSeparator`, `useSystemSeparators`,
+`iterativeCalculation`, `activeWindow`, `windows`, plus the methods
+`calculate()`, `checkSpelling()`, `enterEditingMode()`, `union()`,
+`suspendApiCalculationUntilNextSync()` and
+`suspendScreenUpdatingUntilNextSync()`. Everything not on that list is `n/a`.
+
+- [ ] `calculation` (get/set) — maps to `calculationMode`, with
+      `semiautomatic` ↔ `AutomaticExceptTables`. The setter is a JSON action;
+      the getter needs a payload field or an async getter — undecided
+- [x] `calculate()` — `calculate` JSON action, calling
+      `application.calculate(Excel.CalculationType.full)`. No payload cost
+- [x] `cut_copy_mode` (get/set) — **n/a**: Office.js has no clipboard API
 - [x] `display_alerts` (get/set) — stored but unused; Office.js shows no alerts
-- [ ] `enable_events` (get/set)
-- [ ] `interactive` (get/set)
-- [ ] `screen_updating` (get/set)
-- [ ] `status_bar` (get/set)
-- [ ] `path`
-- [ ] `startup_path`
-- [ ] `version`
-- [ ] `quit()`
+- [x] `enable_events` (get/set) — **n/a**: no equivalent property
+- [x] `interactive` (get/set) — **n/a**: no equivalent property
+- [ ] `screen_updating` (get/set) — only
+      `suspendScreenUpdatingUntilNextSync()` exists, which suspends until the
+      next sync rather than being a settable flag. Needs a semantics decision
+      before it can be mapped
+- [x] `status_bar` (get/set) — **n/a**: no equivalent property
+- [x] `path` — **n/a**: an add-in has no access to the installation's paths
+- [x] `startup_path` — **n/a**: as `path`
+- [x] `version` — **n/a**: only `calculationEngineVersion` exists, which is not
+      the application version
+- [x] `quit()` — **n/a**: an add-in can't close the Excel application
+
+The `n/a` members raise `NotImplementedError` with the reason. `path`,
+`startup_path` and `version` are read-only in the public API, so they define no
+setter --- assigning to them raises `AttributeError` there, as on every other
+backend.
 
 ## Book
 

@@ -937,6 +937,50 @@ def test_table_set_show_totals(book):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "attribute",
+    ["cut_copy_mode", "enable_events", "interactive", "status_bar"],
+)
+def test_app_unsupported_read_write(book, attribute):
+    # Excel.Application has no equivalent, so both accessors raise with the
+    # reason rather than a bare NotImplementedError.
+    with pytest.raises(NotImplementedError, match="not supported in Office.js"):
+        getattr(book.app, attribute)
+    with pytest.raises(NotImplementedError, match="not supported in Office.js"):
+        setattr(book.app, attribute, True)
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("attribute", ["path", "startup_path", "version"])
+def test_app_unsupported_read_only(book, attribute):
+    with pytest.raises(NotImplementedError, match="not supported in Office.js"):
+        getattr(book.app, attribute)
+    # read-only in the public API, so assigning raises AttributeError here too
+    with pytest.raises(AttributeError):
+        setattr(book.app, attribute, "x")
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_app_quit_not_supported(book):
+    with pytest.raises(NotImplementedError, match="can't close the Excel"):
+        book.app.quit()
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_app_calculate():
+    # App queues onto books.active (the convention alert() and selection use),
+    # and the App is process-global here, so other tests creating books move
+    # books.active. Assert on the App's own active book rather than on a
+    # specific one.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    book.app.calculate()
+    actions = book.app.impl.books.active.json()["actions"]
+    assert actions[-1]["func"] == "calculate"
+    assert actions[-1]["args"] == []
+    assert actions[-1]["sheet_position"] is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_table_insert_row_range_not_supported(book):
     # Office.js has no InsertRowRange equivalent. Returning None would be
     # indistinguishable from the documented "table isn't empty" answer, so
