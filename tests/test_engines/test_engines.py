@@ -98,6 +98,24 @@ data = {
                 [4.4, 5.5, 6.6, ""],
                 ["Total", "", 9.9, ""],
             ],
+            "shapes": [
+                {
+                    "name": "myshape1",
+                    "type": "GeometricShape",
+                    "left": 11,
+                    "top": 22,
+                    "width": 33,
+                    "height": 44,
+                },
+                {
+                    "name": "mypic1",
+                    "type": "Image",
+                    "left": 50,
+                    "top": 60,
+                    "width": 20,
+                    "height": 10,
+                },
+            ],
             "pictures": [
                 {
                     "name": "mypic1",
@@ -581,6 +599,114 @@ def test_pictures_width(book):
 def test_pictures_height(book):
     assert book.sheets[0].pictures[0].height == 10
     assert book.sheets[0].pictures[1].height == 30
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_shapes_collection(book):
+    shapes = book.sheets[0].shapes
+    assert len(shapes) == 2
+    assert [shape.name for shape in shapes] == ["myshape1", "mypic1"]
+    # index is impl-only on Shape, as it is on Table and Picture
+    assert shapes["myshape1"].impl.index == 1
+    assert "myshape1" in shapes
+    assert "nope" not in shapes
+    # a picture is a shape too, so it appears in both collections
+    assert shapes["mypic1"].type == "Image"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_shape_properties(book):
+    shape = book.sheets[0].shapes[0]
+    assert shape.name == "myshape1"
+    assert shape.type == "GeometricShape"
+    assert shape.left == 11
+    assert shape.top == 22
+    assert shape.width == 33
+    assert shape.height == 44
+    assert shape.parent.name == book.sheets[0].name
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "attribute,func,value",
+    [
+        ("name", "setShapeName", "renamed"),
+        ("left", "setShapeLeft", 123),
+        ("top", "setShapeTop", 234),
+        ("width", "setShapeWidth", 345),
+        ("height", "setShapeHeight", 456),
+    ],
+)
+def test_shape_setters(attribute, func, value):
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    shape = book.sheets[0].shapes[0]
+    setattr(shape, attribute, value)
+    action = book.json()["actions"][-1]
+    assert action["func"] == func
+    assert action["args"] == [0, value]
+    assert action["sheet_position"] == 0
+    # written through, so a read-after-write in the same script is correct
+    assert getattr(shape, attribute) == value
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_shape_text_setter_and_getter(book):
+    shape = book.sheets[0].shapes[0]
+    shape.text = "hello"
+    action = book.json()["actions"][-1]
+    assert action["func"] == "setShapeText"
+    assert action["args"] == [0, "hello"]
+    # the payload carries geometry, not text, so reading it isn't supported
+    with pytest.raises(NotImplementedError, match="doesn't send it"):
+        shape.text
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "method,relative,scale,expected",
+    [
+        ("scale_height", False, "scale_from_top_left", "CurrentSize"),
+        ("scale_width", True, "scale_from_middle", "OriginalSize"),
+    ],
+)
+def test_shape_scale(method, relative, scale, expected):
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    shape = book.sheets[0].shapes[0]
+    getattr(shape, method)(1.5, relative, scale)
+    action = book.json()["actions"][-1]
+    assert action["func"] == "scaleShape"
+    assert action["args"][1] == 1.5
+    assert action["args"][2] == expected
+    assert action["args"][4] == method.split("_")[1]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_shape_scale_invalid_anchor(book):
+    with pytest.raises(ValueError, match="Invalid scale"):
+        book.sheets[0].shapes[0].scale_height(1.5, False, "nonsense")
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_shape_delete():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    sheet = book.sheets[0]
+    sheet.shapes[0].delete()
+    assert len(sheet.shapes) == 1
+    action = book.json()["actions"][-1]
+    assert action["func"] == "deleteShape"
+    assert action["args"] == [0]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_shape_unsupported_members(book):
+    shape = book.sheets[0].shapes[0]
+    with pytest.raises(NotImplementedError, match="no way to activate"):
+        shape.activate()
+    # both need the Characters class, which doesn't exist on this engine
+    with pytest.raises(NotImplementedError):
+        shape.font
+    with pytest.raises(NotImplementedError):
+        shape.characters
 
 
 @pytest.mark.skipif(engine == "calamine", reason="calamine engine")

@@ -46,6 +46,13 @@ _CALCULATION_PY2JS = {
 }
 _CALCULATION_JS2PY = {v: k for k, v in _CALCULATION_PY2JS.items()}
 
+# xlwings' scale anchors mapped to Office.js' Excel.ShapeScaleFrom.
+_SHAPE_SCALE_FROM = {
+    "scale_from_top_left": "ScaleFromTopLeft",
+    "scale_from_middle": "ScaleFromMiddle",
+    "scale_from_bottom_right": "ScaleFromBottomRight",
+}
+
 
 def _mark_sheet_values_loaded(sheet_api):
     sheet_api[_SHEET_VALUES_LOADED_KEY] = True
@@ -700,6 +707,7 @@ class Sheets(base_classes.Sheets):
             "visibility": "Visible",
             "values": [[]],
             "pictures": [],
+            "shapes": [],
             "tables": [],
         }
 
@@ -813,6 +821,10 @@ class Sheet(base_classes.Sheet):
     @property
     def pictures(self):
         return Pictures(self)
+
+    @property
+    def shapes(self):
+        return Shapes(self)
 
     @property
     def page_setup(self):
@@ -2302,6 +2314,154 @@ class FreezePanes(base_classes.FreezePanes):
 
     def unfreeze(self):
         self.append_json_action(func="freezePaneUnfreeze")
+
+
+class Shape(base_classes.Shape):
+    def __init__(self, parent, key):
+        self._parent = parent
+        self._api = self.parent.api["shapes"][key - 1]
+        self.key = key
+
+    def append_json_action(self, **kwargs):
+        self.parent.book.append_json_action(
+            **{
+                **kwargs,
+                **{
+                    "sheet_position": self.parent.index - 1,
+                },
+            }
+        )
+
+    @property
+    def api(self):
+        return self._api
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @property
+    def index(self):
+        if isinstance(self.key, numbers.Number):
+            return self.key
+        for ix, obj in enumerate(self.parent.api["shapes"]):
+            if obj["name"] == self.key:
+                return ix + 1
+        raise KeyError(self.key)
+
+    @property
+    def name(self):
+        return self.api["name"]
+
+    @name.setter
+    def name(self, value):
+        self.api["name"] = value
+        self.append_json_action(func="setShapeName", args=[self.index - 1, value])
+
+    @property
+    def type(self):
+        # Office.js' ShapeType is Unsupported/Image/GeometricShape/Group/Line,
+        # a much coarser set than the desktop engines' shape types, so it's
+        # passed through as-is rather than mapped onto names that would imply
+        # a precision Office.js doesn't have.
+        return self.api["type"]
+
+    @property
+    def left(self):
+        return self.api["left"]
+
+    @left.setter
+    def left(self, value):
+        self.api["left"] = value
+        self.append_json_action(func="setShapeLeft", args=[self.index - 1, value])
+
+    @property
+    def top(self):
+        return self.api["top"]
+
+    @top.setter
+    def top(self, value):
+        self.api["top"] = value
+        self.append_json_action(func="setShapeTop", args=[self.index - 1, value])
+
+    @property
+    def width(self):
+        return self.api["width"]
+
+    @width.setter
+    def width(self, value):
+        self.api["width"] = value
+        self.append_json_action(func="setShapeWidth", args=[self.index - 1, value])
+
+    @property
+    def height(self):
+        return self.api["height"]
+
+    @height.setter
+    def height(self, value):
+        self.api["height"] = value
+        self.append_json_action(func="setShapeHeight", args=[self.index - 1, value])
+
+    @property
+    def text(self):
+        # Not in the payload: shapes carry their geometry, not their text.
+        raise NotImplementedError(
+            "Reading a shape's text isn't supported on this engine, which "
+            "doesn't send it with the workbook."
+        )
+
+    @text.setter
+    def text(self, value):
+        self.append_json_action(func="setShapeText", args=[self.index - 1, value])
+
+    def delete(self):
+        del self.parent.api["shapes"][self.index - 1]
+        self.append_json_action(func="deleteShape", args=[self.index - 1])
+
+    def activate(self):
+        raise NotImplementedError(
+            "Shape.activate() is not supported in Office.js, which has no way "
+            "to activate or select a shape."
+        )
+
+    def scale_height(self, factor, relative_to_original_size, scale):
+        self._scale("height", factor, relative_to_original_size, scale)
+
+    def scale_width(self, factor, relative_to_original_size, scale):
+        self._scale("width", factor, relative_to_original_size, scale)
+
+    def _scale(self, axis, factor, relative_to_original_size, scale):
+        try:
+            scale_from = _SHAPE_SCALE_FROM[scale]
+        except KeyError:
+            raise ValueError(
+                f"Invalid scale: {scale!r}. Must be one of "
+                f"{sorted(_SHAPE_SCALE_FROM)}."
+            ) from None
+        scale_type = "OriginalSize" if relative_to_original_size else "CurrentSize"
+        self.append_json_action(
+            func="scaleShape",
+            args=[self.index - 1, factor, scale_type, scale_from, axis],
+        )
+
+    @property
+    def font(self):
+        raise NotImplementedError(
+            "Shape.font is not supported in Office.js on this engine yet."
+        )
+
+    @property
+    def characters(self):
+        raise NotImplementedError(
+            "Shape.characters is not supported in Office.js on this engine yet."
+        )
+
+
+class Shapes(Collection):
+    # base_classes has no Shapes; the desktop engines subclass their Collection
+    # directly too.
+    _attr = "shapes"
+    _wrap = Shape
 
 
 class PageSetup(base_classes.PageSetup):

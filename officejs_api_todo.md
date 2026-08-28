@@ -53,19 +53,30 @@ payload sent to Python.
   - [ ] `to_pdf()`
 - [ ] `Charts`
   - [ ] `add()`
-- [ ] `Shape`
-  - [ ] `parent`
-  - [ ] `name` (get/set)
-  - [ ] `type`
-  - [ ] `left` / `top` / `width` / `height` (get/set)
-  - [ ] `index`
-  - [ ] `text`
-  - [ ] `font`
-  - [ ] `characters`
-  - [ ] `activate()`
-  - [ ] `delete()`
-  - [ ] `scale_width()`
-  - [ ] `scale_height()`
+- [x] `Shape` — the client now sends a per-sheet `shapes` array (one load
+      covers pictures too, since a picture is a shape whose type is `Image`),
+      so the getters are payload reads and the setters queue `setShape*` JSON
+      actions
+  - [x] `parent`
+  - [x] `name` (get/set)
+  - [x] `type` — Office.js' `ShapeType` is only
+        `Unsupported`/`Image`/`GeometricShape`/`Group`/`Line`, far coarser than
+        the desktop engines' ~30 types, so it's passed through as-is rather
+        than mapped onto names implying a precision Office.js doesn't have
+  - [x] `left` / `top` / `width` / `height` (get/set)
+  - [x] `index` — impl-only, as on `Table` and `Picture`
+  - [x] `text` (setter) — the getter raises: the payload carries geometry, not
+        text
+  - [ ] `font` — needs `Characters`/`TextRange` plumbing; raises for now
+  - [ ] `characters` — needs the `Characters` class
+  - [x] `activate()` — **n/a**: Office.js has no way to activate or select a
+        shape. `setZOrder(bringToFront)` is a *different* operation, so it
+        raises rather than doing something else under the same name
+  - [x] `delete()`
+  - [x] `scale_width()` / `scale_height()` — `scaleShape`, mapping
+        `relative_to_original_size` onto `ShapeScaleType`
+        (`CurrentSize`/`OriginalSize`) and xlwings' `scale_from_*` onto
+        `ShapeScaleFrom`; an unknown anchor raises `ValueError`
 - [ ] `Characters`
   - [ ] `text`
   - [ ] `font`
@@ -154,7 +165,7 @@ which settles `Sheet.to_pdf()` and `Range.to_pdf()` below as well.
 - [ ] `charts` — `Excel.Worksheet` has `charts`, so this is reachable, but it
       returns a collection whose element class doesn't exist yet. Belongs with
       the `Chart` work above rather than here
-- [ ] `shapes` — as `charts`: `Excel.Worksheet.shapes` exists, `Shape` doesn't
+- [x] `shapes` — returns the `Shapes` collection above
 - [x] `page_setup` — returns the `PageSetup` above
 - [x] `autofit()` — `setSheetAutofit` JSON action. Separate from the range-level
       `setAutofit`, which resolves its target through `getRange()` using the
