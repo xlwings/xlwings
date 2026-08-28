@@ -90,8 +90,10 @@ payload sent to Python.
   - [x] `name` (get/set)
   - [x] `type` — Office.js' `ShapeType` is only
         `Unsupported`/`Image`/`GeometricShape`/`Group`/`Line`, far coarser than
-        the desktop engines' ~30 types, so it's passed through as-is rather
-        than mapped onto names implying a precision Office.js doesn't have
+        the desktop engines' 32 types --- but four of the five have an xlwings
+        equivalent (`picture`, `auto_shape`, `group`, `line`), so it reports
+        those rather than Office.js' own names, keeping `shape.type` portable.
+        `Unsupported` has no equivalent and passes through
   - [x] `left` / `top` / `width` / `height` (get/set)
   - [x] `index` — impl-only, as on `Table` and `Picture`
   - [x] `text` (get/set) — the setter is a JSON action; the getter is

@@ -127,6 +127,17 @@ _CHART_TYPE_PY2JS = {
 }
 _CHART_TYPE_JS2PY = {v: k for k, v in _CHART_TYPE_PY2JS.items()}
 
+# Office.js' Excel.ShapeType mapped onto xlwings' shape type names, so
+# Shape.type speaks the same vocabulary as the desktop engines. Office.js'
+# set is much coarser (5 vs 32), but each of its members has an xlwings
+# equivalent except "Unsupported", which passes through as-is.
+_SHAPE_TYPE_JS2PY = {
+    "Image": "picture",
+    "GeometricShape": "auto_shape",
+    "Group": "group",
+    "Line": "line",
+}
+
 # xlwings' scale anchors mapped to Office.js' Excel.ShapeScaleFrom.
 _SHAPE_SCALE_FROM = {
     "scale_from_top_left": "ScaleFromTopLeft",
@@ -2755,11 +2766,12 @@ class Shape(base_classes.Shape):
 
     @property
     def type(self):
-        # Office.js' ShapeType is Unsupported/Image/GeometricShape/Group/Line,
-        # a much coarser set than the desktop engines' shape types, so it's
-        # passed through as-is rather than mapped onto names that would imply
-        # a precision Office.js doesn't have.
-        return self.api["type"]
+        # Office.js' ShapeType is far coarser than the desktop engines' (5 vs
+        # 32), but each of its members maps onto an xlwings name, so the
+        # property speaks the same vocabulary everywhere. "Unsupported" has no
+        # equivalent and passes through.
+        shape_type = self.api["type"]
+        return _SHAPE_TYPE_JS2PY.get(shape_type, shape_type)
 
     @property
     def left(self):

@@ -837,14 +837,15 @@ def test_shapes_collection(book):
     assert "myshape1" in shapes
     assert "nope" not in shapes
     # a picture is a shape too, so it appears in both collections
-    assert shapes["mypic1"].type == "Image"
+    assert shapes["mypic1"].type == "picture"
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_shape_properties(book):
     shape = book.sheets[0].shapes[0]
     assert shape.name == "myshape1"
-    assert shape.type == "GeometricShape"
+    # mapped to xlwings' vocabulary, as on the desktop engines
+    assert shape.type == "auto_shape"
     assert shape.left == 11
     assert shape.top == 22
     assert shape.width == 33
@@ -942,6 +943,27 @@ def test_shape_delete():
     action = book.json()["actions"][-1]
     assert action["func"] == "deleteShape"
     assert action["args"] == [0]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "reported,expected",
+    [
+        ("Image", "picture"),
+        ("GeometricShape", "auto_shape"),
+        ("Group", "group"),
+        ("Line", "line"),
+        # no xlwings equivalent, so it passes through
+        ("Unsupported", "Unsupported"),
+    ],
+)
+def test_shape_type_uses_xlwings_names(reported, expected):
+    # Office.js' ShapeType is coarser than the desktop engines', but each of
+    # its members maps onto an xlwings name, so the property is portable.
+    payload = json.loads(json.dumps(data))
+    payload["sheets"][0]["shapes"][0]["type"] = reported
+    book = xw.Book(json=payload)
+    assert book.sheets[0].shapes[0].type == expected
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
