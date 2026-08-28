@@ -337,9 +337,20 @@ route (a `getRangeData` mode that loads `range.format.font`):
 
 ## Picture
 
-- [ ] `left` (get/set)
-- [ ] `top` (get/set)
-- [ ] `lock_aspect_ratio` (get/set)
+- [x] `left` (get/set)
+- [x] `top` (get/set)
+- [x] `lock_aspect_ratio` (get/set)
+
+      Case 1: the three properties are now loaded into the per-sheet
+      `pictures` payload (`Excel.Shape` has `left`, `top` and
+      `lockAspectRatio`), so the getters are payload reads and the setters
+      queue `setPictureLeft` / `setPictureTop` /
+      `setPictureLockAspectRatio`. `Pictures.add()` seeds them, as
+      `Sheets.add()` and `Tables.add()` had to.
+
+      Fixed alongside: the existing `width` / `height` setters queued their
+      action without updating the local api dict, so reading them back in the
+      same script returned the old value.
 
 `index` is already implemented (as a property, not a method), along with
 `name`, `width`, `height`, `delete()` and `update()`.

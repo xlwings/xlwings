@@ -1755,11 +1755,41 @@ class Picture(base_classes.Picture):
         self.append_json_action(func="setPictureName", args=[self.index - 1, value])
 
     @property
+    def left(self):
+        return self.api["left"]
+
+    @left.setter
+    def left(self, value):
+        self.api["left"] = value
+        self.append_json_action(func="setPictureLeft", args=[self.index - 1, value])
+
+    @property
+    def top(self):
+        return self.api["top"]
+
+    @top.setter
+    def top(self, value):
+        self.api["top"] = value
+        self.append_json_action(func="setPictureTop", args=[self.index - 1, value])
+
+    @property
+    def lock_aspect_ratio(self):
+        return self.api["lock_aspect_ratio"]
+
+    @lock_aspect_ratio.setter
+    def lock_aspect_ratio(self, value):
+        self.api["lock_aspect_ratio"] = value
+        self.append_json_action(
+            func="setPictureLockAspectRatio", args=[self.index - 1, value]
+        )
+
+    @property
     def width(self):
         return self.api["width"]
 
     @width.setter
     def width(self, value):
+        self.api["width"] = value
         self.append_json_action(func="setPictureWidth", args=[self.index - 1, value])
 
     @property
@@ -1768,6 +1798,7 @@ class Picture(base_classes.Picture):
 
     @height.setter
     def height(self, value):
+        self.api["height"] = value
         self.append_json_action(func="setPictureHeight", args=[self.index - 1, value])
 
     @property
@@ -1859,7 +1890,16 @@ class Pictures(Collection, base_classes.Pictures):
             ],
         )
         self.parent._api["pictures"].append(
-            {"name": "Image", "width": None, "height": None}
+            {
+                "name": "Image",
+                "width": None,
+                "height": None,
+                # Seeded so the getters work before the next round-trip
+                # refreshes the payload, rather than raising KeyError.
+                "left": left if left else 0,
+                "top": top if top else 0,
+                "lock_aspect_ratio": None,
+            }
         )
         return Picture(self.parent, len(self.parent.api["pictures"]))
 

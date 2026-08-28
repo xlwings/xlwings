@@ -102,11 +102,17 @@ data = {
                     "name": "mypic1",
                     "height": 10,
                     "width": 20,
+                    "left": 50,
+                    "top": 60,
+                    "lock_aspect_ratio": True,
                 },
                 {
                     "name": "mypic2",
                     "height": 30,
                     "width": 40,
+                    "left": 70,
+                    "top": 80,
+                    "lock_aspect_ratio": False,
                 },
             ],
             "tables": [
@@ -534,6 +540,55 @@ def test_pictures_width(book):
 def test_pictures_height(book):
     assert book.sheets[0].pictures[0].height == 10
     assert book.sheets[0].pictures[1].height == 30
+
+
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
+def test_pictures_left_top_lock_aspect_ratio(book):
+    assert book.sheets[0].pictures[0].left == 50
+    assert book.sheets[0].pictures[0].top == 60
+    assert book.sheets[0].pictures[0].lock_aspect_ratio is True
+    # the second picture is the inverse, so a getter reading the wrong
+    # entry can't pass by accident
+    assert book.sheets[0].pictures[1].left == 70
+    assert book.sheets[0].pictures[1].top == 80
+    assert book.sheets[0].pictures[1].lock_aspect_ratio is False
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "attribute,func,value",
+    [
+        ("left", "setPictureLeft", 123),
+        ("top", "setPictureTop", 456),
+        ("lock_aspect_ratio", "setPictureLockAspectRatio", False),
+        ("width", "setPictureWidth", 321),
+        ("height", "setPictureHeight", 654),
+    ],
+)
+def test_pictures_geometry_setters(attribute, func, value):
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    picture = book.sheets[0].pictures[0]
+    setattr(picture, attribute, value)
+    action = book.json()["actions"][-1]
+    assert action["func"] == func
+    assert action["args"] == [0, value]
+    assert action["sheet_position"] == 0
+    # written through, so a read-after-write in the same script is correct
+    assert getattr(picture, attribute) == value
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_pictures_add_seeds_geometry():
+    # Pictures.add() seeds the new picture's api dict, so the getters work
+    # before the next round-trip rather than raising KeyError.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    sheet = book.sheets[0]
+    picture = sheet.pictures.add(
+        this_dir.parent / "sample_picture.png", name="new", left=5, top=15
+    )
+    assert picture.left == 5
+    assert picture.top == 15
+    assert picture.lock_aspect_ratio is None
 
 
 @pytest.mark.skipif(engine == "calamine", reason="calamine engine")
