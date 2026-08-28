@@ -46,6 +46,32 @@ _CALCULATION_PY2JS = {
 }
 _CALCULATION_JS2PY = {v: k for k, v in _CALCULATION_PY2JS.items()}
 
+
+def _color_to_hex(color_or_rgb):
+    """Normalize xlwings' accepted colour forms to the `#RRGGBB` Office.js wants.
+
+    The public API takes an RGB tuple, a hex string or an integer, matching the
+    desktop engines. `None` passes through, since it means "no fill" rather
+    than a colour.
+    """
+    if color_or_rgb is None:
+        return None
+    if isinstance(color_or_rgb, str):
+        # Already hex; normalize a missing "#" so the client always gets the
+        # same shape.
+        return color_or_rgb if color_or_rgb.startswith("#") else f"#{color_or_rgb}"
+    if isinstance(color_or_rgb, int) and not isinstance(color_or_rgb, bool):
+        return utils.rgb_to_hex(*utils.int_to_rgb(color_or_rgb))
+    try:
+        red, green, blue = color_or_rgb
+    except (TypeError, ValueError):
+        raise ValueError(
+            "Color must be an RGB tuple like (255, 0, 0), a hex string like "
+            f'"#FFA500", or an integer --- got {color_or_rgb!r}.'
+        ) from None
+    return utils.rgb_to_hex(red, green, blue)
+
+
 # xlwings' chart types mapped to Office.js' Excel.ChartType. These are the
 # enum's *values* ("Line"), which is what Office.js sends and accepts --
 # not its member names ("line"). All 73 xlwings types have an equivalent;
@@ -1384,9 +1410,7 @@ class Range(base_classes.Range):
 
     @color.setter
     def color(self, value):
-        if not isinstance(value, str):
-            raise ValueError('Color must be supplied in hex format e.g., "#FFA500".')
-        self.append_json_action(func="setRangeColor", args=value)
+        self.append_json_action(func="setRangeColor", args=_color_to_hex(value))
 
     @property
     def formula(self):
@@ -3034,9 +3058,9 @@ class Font(base_classes.Font):
 
     @color.setter
     def color(self, color_or_rgb):
-        if not isinstance(color_or_rgb, str):
-            raise ValueError('Color must be supplied in hex format e.g., "#FFA500".')
-        self.append_json_action(func="setFontProperty", args=["color", color_or_rgb])
+        self.append_json_action(
+            func="setFontProperty", args=["color", _color_to_hex(color_or_rgb)]
+        )
 
     @property
     def name(self):

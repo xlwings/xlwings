@@ -2180,9 +2180,57 @@ def test_font_setters(book, attribute, value):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
-def test_font_color_setter_rejects_non_hex(book):
-    with pytest.raises(ValueError, match="hex format"):
-        book.sheets[0].range("A1").font.color = (255, 0, 0)
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        # the forms the public API documents, matching the desktop engines
+        ((255, 255, 255), "#ffffff"),
+        ((255, 0, 0), "#ff0000"),
+        ("#FFA500", "#FFA500"),
+        ("FFA500", "#FFA500"),  # a missing "#" is normalized
+        (255, "#ff0000"),  # Excel colour constant (little-endian int)
+    ],
+)
+def test_range_color_setter_accepts_every_form(value, expected):
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    book.sheets[0].range("A1").color = value
+    action = book.json()["actions"][-1]
+    assert action["func"] == "setRangeColor"
+    assert action["args"] == [expected]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_color_setter_none_clears():
+    # Documented: setting None removes the background.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    book.sheets[0].range("A1").color = None
+    assert book.json()["actions"][-1]["args"] == [None]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("value", [(1, 2), (1, 2, 3, 4), object()])
+def test_range_color_setter_rejects_invalid(book, value):
+    with pytest.raises(ValueError, match="Color must be an RGB tuple"):
+        book.sheets[0].range("A1").color = value
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "value,expected",
+    [((255, 0, 0), "#ff0000"), ("#00ff00", "#00ff00")],
+)
+def test_font_color_setter_accepts_tuple_and_hex(value, expected):
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    book.sheets[0].range("A1").font.color = value
+    action = book.json()["actions"][-1]
+    assert action["func"] == "setFontProperty"
+    assert action["args"] == ["color", expected]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_font_color_setter_rejects_invalid(book):
+    with pytest.raises(ValueError, match="Color must be an RGB tuple"):
+        book.sheets[0].range("A1").font.color = (1, 2)
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
