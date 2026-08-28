@@ -685,6 +685,48 @@ def test_sheet_names_add(book):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_name_refers_to_setter():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    name = book.names[0]
+    assert name.api["book_scope"] is True
+    name.refers_to = "=Sheet2!$C$3"
+    action = book.json()["actions"][-1]
+    assert action["func"] == "setNameRefersTo"
+    assert action["args"] == [name.api["name"], True, None, "=Sheet2!$C$3"]
+    # refers_to is computed from sheet_index/address, so the setter updates
+    # those -- check it round-trips through the getter and refers_to_range
+    assert name.refers_to == "=Sheet2!$C$3"
+    assert name.refers_to_range.sheet.name == "Sheet2"
+    assert name.refers_to_range.address == "$C$3"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_name_refers_to_setter_sheet_scope():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    name = next(n for n in book.names if not n.api["book_scope"])
+    name.refers_to = "=Sheet2!$D$4"
+    action = book.json()["actions"][-1]
+    assert action["func"] == "setNameRefersTo"
+    # sheet-scoped names carry their scope index, as nameDelete does
+    assert action["args"][1] is False
+    assert action["args"][2] == name.api["scope_sheet_index"]
+    assert action["args"][3] == "=Sheet2!$D$4"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_name_refers_to_setter_unknown_sheet(book):
+    with pytest.raises(ValueError, match="doesn't exist"):
+        book.names[0].refers_to = "=NoSuchSheet!$A$1"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_name_name_setter_not_supported(book):
+    # Excel.NamedItem.name is read-only in Office.js.
+    with pytest.raises(NotImplementedError, match="read-only"):
+        book.names[0].name = "newname"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_sheet_name_delete(book):
     book.names[0].delete()
     assert book.json()["actions"][0]["func"] == "nameDelete"

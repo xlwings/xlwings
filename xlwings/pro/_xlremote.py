@@ -1710,11 +1710,45 @@ class Name(base_classes.Name):
         sheet_name = f"'{sheet.name}'" if " " in sheet.name else sheet.name
         return f"={sheet_name}!{sheet.range(self.api['address']).address}"
 
+    @name.setter
+    def name(self, value):
+        # Excel.NamedItem.name is readonly in Office.js: a named item can't be
+        # renamed, only deleted and recreated -- which changes its identity and
+        # drops its comment and visibility, so it isn't done implicitly here.
+        raise NotImplementedError(
+            "Name.name can't be set in Office.js, where Excel.NamedItem.name is "
+            "read-only. Delete the name and add it again under the new name."
+        )
+
     @property
     def refers_to_range(self):
         book = self.parent if isinstance(self.parent, Book) else self.parent.book
         sheet = book.sheets(self.api["sheet_index"] + 1)
         return sheet.range(self.api["address"])
+
+    @refers_to.setter
+    def refers_to(self, value):
+        book = self.parent if isinstance(self.parent, Book) else self.parent.book
+        sheet_name = value.split("!")[0].replace("=", "").replace("'", "")
+        for sheet in book.sheets:
+            if sheet.name == sheet_name:
+                sheet_index = sheet.index - 1
+                break
+        else:
+            raise ValueError(f"Sheet '{sheet_name}' doesn't exist!")
+        self.parent.append_json_action(
+            func="setNameRefersTo",
+            args=[
+                self.api["name"],
+                self.api["book_scope"],
+                self.api["scope_sheet_index"],
+                value,
+            ],
+        )
+        # refers_to is computed from these, so update them rather than storing
+        # the string itself.
+        self.api["sheet_index"] = sheet_index
+        self.api["address"] = value.split("!")[1].replace("$", "")
 
     def delete(self):
         # TODO: delete in api

@@ -323,8 +323,16 @@ getters are one-liners and the setters are JSON actions:
 
 ## Name
 
-- [ ] `name` (setter; getter works)
-- [ ] `refers_to` (setter; getter works)
+- [x] `name` (setter) — **n/a**: `Excel.NamedItem.name` is read-only in
+      Office.js, so a named item can't be renamed. Delete-and-recreate would
+      change its identity and drop its comment and visibility, so the setter
+      raises rather than doing that implicitly. The getter already worked
+- [x] `refers_to` (setter) — `setNameRefersTo` JSON action writing
+      `NamedItem.formula`, the writable counterpart of the read-only `name`.
+      Handles book- and sheet-scoped names (passing `scope_sheet_index` the way
+      `nameDelete` does). The getter is computed from `sheet_index` and
+      `address`, so the setter updates those rather than storing the string;
+      an unknown sheet raises `ValueError`
 
 ## Lite-only (work in xlwings Lite, raise on remote/server)
 
