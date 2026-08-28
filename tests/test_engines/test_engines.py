@@ -99,6 +99,16 @@ data = {
                 ["Total", "", 9.9, ""],
             ],
             "notes": [{"address": "$A$1", "text": "mynote"}],
+            "charts": [
+                {
+                    "name": "mychart1",
+                    "chart_type": "Line",
+                    "left": 10,
+                    "top": 20,
+                    "width": 300,
+                    "height": 200,
+                }
+            ],
             "shapes": [
                 {
                     "name": "myshape1",
@@ -600,6 +610,118 @@ def test_pictures_width(book):
 def test_pictures_height(book):
     assert book.sheets[0].pictures[0].height == 10
     assert book.sheets[0].pictures[1].height == 30
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_charts_collection(book):
+    charts = book.sheets[0].charts
+    assert len(charts) == 1
+    assert charts[0].name == "mychart1"
+    assert "mychart1" in charts
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_properties(book):
+    chart = book.sheets[0].charts[0]
+    # the payload carries Office.js' enum value; the getter maps it back
+    assert chart.chart_type == "line"
+    assert chart.left == 10
+    assert chart.top == 20
+    assert chart.width == 300
+    assert chart.height == 200
+    assert chart.parent.name == book.sheets[0].name
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "attribute,func,value,expected",
+    [
+        ("name", "setChartName", "renamed", "renamed"),
+        ("chart_type", "setChartType", "pie", "Pie"),
+        ("left", "setChartPosition", 111, 111),
+        ("top", "setChartPosition", 222, 222),
+        ("width", "setChartPosition", 333, 333),
+        ("height", "setChartPosition", 444, 444),
+    ],
+)
+def test_chart_setters(attribute, func, value, expected):
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    chart = book.sheets[0].charts[0]
+    setattr(chart, attribute, value)
+    action = book.json()["actions"][-1]
+    assert action["func"] == func
+    assert expected in action["args"]
+    # written through, so a read-after-write in the same script is correct
+    assert getattr(chart, attribute) == value
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_type_invalid(book):
+    with pytest.raises(ValueError, match="Invalid chart type"):
+        book.sheets[0].charts[0].chart_type = "nonsense"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_charts_add_defers_until_source_data():
+    # Office.js' charts.add() needs a type and source data together, which the
+    # documented xlwings flow doesn't have at add() time -- so the chart is
+    # created on the first set_source_data() instead.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    sheet = book.sheets[0]
+    before = len(sheet.charts)
+    chart = sheet.charts.add()
+    assert book.json()["actions"] == []
+    assert len(sheet.charts) == before
+
+    chart.set_source_data(sheet["A1:B2"])
+    assert len(sheet.charts) == before + 1
+    action = book.json()["actions"][-1]
+    assert action["func"] == "addChart"
+    assert action["args"][1] == "ColumnClustered"
+    assert action["args"][3] == "$A$1:$B$2"
+
+    # ...and the documented follow-up calls work on the created chart
+    chart.chart_type = "line"
+    assert book.json()["actions"][-1]["func"] == "setChartType"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_set_source_data_on_existing_chart():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    sheet = book.sheets[0]
+    sheet.charts[0].set_source_data(sheet["A1:B2"])
+    action = book.json()["actions"][-1]
+    assert action["func"] == "setChartSourceData"
+    assert action["args"] == [0, sheet.name, "$A$1:$B$2"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_delete():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    sheet = book.sheets[0]
+    sheet.charts[0].delete()
+    assert len(sheet.charts) == 0
+    assert book.json()["actions"][-1]["func"] == "deleteChart"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_delete_pending_chart():
+    # A chart that never got source data was never created in Excel, so
+    # deleting it queues nothing.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    book.sheets[0].charts.add().delete()
+    assert book.json()["actions"] == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_to_png_and_to_pdf_not_supported(book):
+    chart = book.sheets[0].charts[0]
+    with pytest.raises(NotImplementedError, match=r"get_png\(\)"):
+        chart.to_png("out.png")
+    with pytest.raises(NotImplementedError, match="no PDF export"):
+        chart.to_pdf("out.pdf")
+    with pytest.raises(NotImplementedError, match="only supported in xlwings Lite"):
+        asyncio.run(chart.get_png())
 
 
 @pytest.mark.skipif(engine == "calamine", reason="calamine engine")

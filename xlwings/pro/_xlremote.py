@@ -46,6 +46,87 @@ _CALCULATION_PY2JS = {
 }
 _CALCULATION_JS2PY = {v: k for k, v in _CALCULATION_PY2JS.items()}
 
+# xlwings' chart types mapped to Office.js' Excel.ChartType. These are the
+# enum's *values* ("Line"), which is what Office.js sends and accepts --
+# not its member names ("line"). All 73 xlwings types have an equivalent;
+# the names differ only in casing and a few spellings.
+_CHART_TYPE_PY2JS = {
+    "3d_area": "3DArea",
+    "3d_area_stacked": "3DAreaStacked",
+    "3d_area_stacked_100": "3DAreaStacked100",
+    "3d_bar_clustered": "3DBarClustered",
+    "3d_bar_stacked": "3DBarStacked",
+    "3d_bar_stacked_100": "3DBarStacked100",
+    "3d_column": "3DColumn",
+    "3d_column_clustered": "3DColumnClustered",
+    "3d_column_stacked": "3DColumnStacked",
+    "3d_column_stacked_100": "3DColumnStacked100",
+    "3d_line": "3DLine",
+    "3d_pie": "3DPie",
+    "3d_pie_exploded": "3DPieExploded",
+    "area": "Area",
+    "area_stacked": "AreaStacked",
+    "area_stacked_100": "AreaStacked100",
+    "bar_clustered": "BarClustered",
+    "bar_of_pie": "BarOfPie",
+    "bar_stacked": "BarStacked",
+    "bar_stacked_100": "BarStacked100",
+    "bubble": "Bubble",
+    "bubble_3d_effect": "Bubble3DEffect",
+    "column_clustered": "ColumnClustered",
+    "column_stacked": "ColumnStacked",
+    "column_stacked_100": "ColumnStacked100",
+    "cone_bar_clustered": "ConeBarClustered",
+    "cone_bar_stacked": "ConeBarStacked",
+    "cone_bar_stacked_100": "ConeBarStacked100",
+    "cone_col": "ConeCol",
+    "cone_col_clustered": "ConeColClustered",
+    "cone_col_stacked": "ConeColStacked",
+    "cone_col_stacked_100": "ConeColStacked100",
+    "cylinder_bar_clustered": "CylinderBarClustered",
+    "cylinder_bar_stacked": "CylinderBarStacked",
+    "cylinder_bar_stacked_100": "CylinderBarStacked100",
+    "cylinder_col": "CylinderCol",
+    "cylinder_col_clustered": "CylinderColClustered",
+    "cylinder_col_stacked": "CylinderColStacked",
+    "cylinder_col_stacked_100": "CylinderColStacked100",
+    "doughnut": "Doughnut",
+    "doughnut_exploded": "DoughnutExploded",
+    "line": "Line",
+    "line_markers": "LineMarkers",
+    "line_markers_stacked": "LineMarkersStacked",
+    "line_markers_stacked_100": "LineMarkersStacked100",
+    "line_stacked": "LineStacked",
+    "line_stacked_100": "LineStacked100",
+    "pie": "Pie",
+    "pie_exploded": "PieExploded",
+    "pie_of_pie": "PieOfPie",
+    "pyramid_bar_clustered": "PyramidBarClustered",
+    "pyramid_bar_stacked": "PyramidBarStacked",
+    "pyramid_bar_stacked_100": "PyramidBarStacked100",
+    "pyramid_col": "PyramidCol",
+    "pyramid_col_clustered": "PyramidColClustered",
+    "pyramid_col_stacked": "PyramidColStacked",
+    "pyramid_col_stacked_100": "PyramidColStacked100",
+    "radar": "Radar",
+    "radar_filled": "RadarFilled",
+    "radar_markers": "RadarMarkers",
+    "stock_hlc": "StockHLC",
+    "stock_ohlc": "StockOHLC",
+    "stock_vhlc": "StockVHLC",
+    "stock_vohlc": "StockVOHLC",
+    "surface": "Surface",
+    "surface_top_view": "SurfaceTopView",
+    "surface_top_view_wireframe": "SurfaceTopViewWireframe",
+    "surface_wireframe": "SurfaceWireframe",
+    "xy_scatter": "XYScatter",
+    "xy_scatter_lines": "XYScatterLines",
+    "xy_scatter_lines_no_markers": "XYScatterLinesNoMarkers",
+    "xy_scatter_smooth": "XYScatterSmooth",
+    "xy_scatter_smooth_no_markers": "XYScatterSmoothNoMarkers",
+}
+_CHART_TYPE_JS2PY = {v: k for k, v in _CHART_TYPE_PY2JS.items()}
+
 # xlwings' scale anchors mapped to Office.js' Excel.ShapeScaleFrom.
 _SHAPE_SCALE_FROM = {
     "scale_from_top_left": "ScaleFromTopLeft",
@@ -708,6 +789,7 @@ class Sheets(base_classes.Sheets):
             "values": [[]],
             "pictures": [],
             "shapes": [],
+            "charts": [],
             "notes": [],
             "tables": [],
         }
@@ -826,6 +908,10 @@ class Sheet(base_classes.Sheet):
     @property
     def shapes(self):
         return Shapes(self)
+
+    @property
+    def charts(self):
+        return Charts(self)
 
     @property
     def page_setup(self):
@@ -2336,6 +2422,190 @@ class FreezePanes(base_classes.FreezePanes):
 
     def unfreeze(self):
         self.append_json_action(func="freezePaneUnfreeze")
+
+
+class Chart(base_classes.Chart):
+    def __init__(self, parent, key, pending=None):
+        self._parent = parent
+        self.key = key
+        # A chart added via Charts.add() isn't created in Excel until it gets
+        # source data, since Office.js' charts.add() requires it. `pending`
+        # holds the geometry until then.
+        self._pending = pending
+        self._api = None if pending is not None else parent.api["charts"][key - 1]
+
+    def append_json_action(self, **kwargs):
+        self.parent.book.append_json_action(
+            **{
+                **kwargs,
+                **{
+                    "sheet_position": self.parent.index - 1,
+                },
+            }
+        )
+
+    @property
+    def api(self):
+        return self._api if self._api is not None else self._pending
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @property
+    def index(self):
+        if isinstance(self.key, numbers.Number):
+            return self.key
+        for ix, obj in enumerate(self.parent.api["charts"]):
+            if obj["name"] == self.key:
+                return ix + 1
+        raise KeyError(self.key)
+
+    @property
+    def name(self):
+        return self.api["name"]
+
+    @name.setter
+    def name(self, value):
+        self.api["name"] = value
+        if self._pending is None:
+            self.append_json_action(func="setChartName", args=[self.index - 1, value])
+
+    @property
+    def chart_type(self):
+        chart_type = self.api["chart_type"]
+        return _CHART_TYPE_JS2PY.get(chart_type, chart_type)
+
+    @chart_type.setter
+    def chart_type(self, value):
+        try:
+            js_value = _CHART_TYPE_PY2JS[value]
+        except KeyError:
+            raise ValueError(
+                f"Invalid chart type: {value!r}. Must be one of "
+                f"{sorted(_CHART_TYPE_PY2JS)}."
+            ) from None
+        self.api["chart_type"] = js_value
+        if self._pending is None:
+            self.append_json_action(
+                func="setChartType", args=[self.index - 1, js_value]
+            )
+
+    def set_source_data(self, rng):
+        if self._pending is not None:
+            # First source data: this is where the chart can finally be
+            # created, since Office.js needs the type and data together.
+            pending = self._pending
+            self.parent.api["charts"].append(pending)
+            self.key = len(self.parent.api["charts"])
+            self._api = pending
+            self._pending = None
+            self.append_json_action(
+                func="addChart",
+                args=[
+                    pending["name"],
+                    pending["chart_type"],
+                    rng.sheet.name,
+                    rng.address,
+                    pending["left"],
+                    pending["top"],
+                    pending["width"],
+                    pending["height"],
+                ],
+            )
+            return
+        self.append_json_action(
+            func="setChartSourceData",
+            args=[self.index - 1, rng.sheet.name, rng.address],
+        )
+
+    def _set_position(self, attribute, value):
+        self.api[attribute] = value
+        if self._pending is None:
+            self.append_json_action(
+                func="setChartPosition", args=[self.index - 1, attribute, value]
+            )
+
+    @property
+    def left(self):
+        return self.api["left"]
+
+    @left.setter
+    def left(self, value):
+        self._set_position("left", value)
+
+    @property
+    def top(self):
+        return self.api["top"]
+
+    @top.setter
+    def top(self, value):
+        self._set_position("top", value)
+
+    @property
+    def width(self):
+        return self.api["width"]
+
+    @width.setter
+    def width(self, value):
+        self._set_position("width", value)
+
+    @property
+    def height(self):
+        return self.api["height"]
+
+    @height.setter
+    def height(self, value):
+        self._set_position("height", value)
+
+    def delete(self):
+        if self._pending is not None:
+            # Never created in Excel, so there's nothing to delete there.
+            self._pending = None
+            return
+        del self.parent.api["charts"][self.index - 1]
+        self.append_json_action(func="deleteChart", args=[self.index - 1])
+
+    async def get_png(self):
+        """Fetch the chart as a base64-encoded PNG."""
+        if sys.platform != "emscripten":
+            raise NotImplementedError("get_png() is only supported in xlwings Lite")
+        import js
+
+        return await js.xlwings.getChartImage(self.parent.name, self.index - 1)
+
+    def to_png(self, path):
+        raise NotImplementedError(
+            "Chart.to_png() can't write a file synchronously on this engine. "
+            "Use 'await mychart.get_png()' for the base64-encoded image."
+        )
+
+    def to_pdf(self, path, quality):
+        raise NotImplementedError(
+            "Chart.to_pdf() is not supported in Office.js, which has no PDF "
+            "export API."
+        )
+
+
+class Charts(Collection):
+    # base_classes.Charts has a different shape (it declares _wrap as a method),
+    # so this follows Shapes and subclasses Collection alone.
+    _attr = "charts"
+    _wrap = Chart
+
+    def add(self, left, top, width, height):
+        # Office.js' charts.add() needs a type and source data, which xlwings
+        # doesn't have yet at this point -- so hold the geometry and create the
+        # chart on the first set_source_data().
+        pending = {
+            "name": "Chart",
+            "chart_type": _CHART_TYPE_PY2JS["column_clustered"],
+            "left": left,
+            "top": top,
+            "width": width,
+            "height": height,
+        }
+        return Chart(self.parent, len(self.api) + 1, pending=pending)
 
 
 class Characters(base_classes.Characters):

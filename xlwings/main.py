@@ -4142,6 +4142,14 @@ class Chart:
     def __repr__(self) -> str:
         return "<Chart '{0}' in {1}>".format(self.name, self.parent)
 
+    async def get_png(self) -> str:
+        """Fetch the chart as a base64-encoded PNG from Excel on demand.
+
+        `to_png()` writes a file, which this engine can't do synchronously;
+        this returns the image data instead. Requires xlwings Lite.
+        """
+        return await self.impl.get_png()
+
 
 class Charts(Collection[Chart]):
     """A collection of all `chart` objects on the specified sheet:

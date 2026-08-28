@@ -42,17 +42,30 @@ payload sent to Python.
 
 ## Missing classes (no implementation at all)
 
-- [ ] `Chart`
-  - [ ] `parent`
-  - [ ] `name`
-  - [ ] `chart_type` (get/set)
-  - [ ] `left` / `top` / `width` / `height` (get/set)
-  - [ ] `set_source_data()`
-  - [ ] `delete()`
-  - [ ] `to_png()`
-  - [ ] `to_pdf()`
-- [ ] `Charts`
-  - [ ] `add()`
+- [x] `Chart` — the client sends a per-sheet `charts` array, so the getters
+      are payload reads and the setters queue `setChart*` JSON actions
+  - [x] `parent`
+  - [x] `name` (get/set)
+  - [x] `chart_type` (get/set) — all 73 xlwings chart types map to an
+        `Excel.ChartType`. The mapping uses the enum's *values* (`"Line"`),
+        which is what Office.js sends and accepts, not its member names
+        (`"line"`); an unknown type raises `ValueError`
+  - [x] `left` / `top` / `width` / `height` (get/set)
+  - [x] `set_source_data()`
+  - [x] `delete()`
+  - [x] `to_png()` — raises, but `await mychart.get_png()` returns the
+        base64-encoded PNG from `Chart.getImage()`. Writing a file
+        synchronously isn't something this engine can do; the image itself is
+        the one export Office.js does support
+  - [x] `to_pdf()` — **n/a**: no PDF export, as for `Book` and `Sheet`
+- [x] `Charts`
+  - [x] `add()` — **deferred creation**: Office.js' `charts.add()` needs a
+        chart type *and* source data together, while xlwings' `add()` takes
+        only geometry and expects `set_source_data()` afterwards. So `add()`
+        holds the geometry locally and the chart is created on the first
+        `set_source_data()`, which keeps the documented
+        add/set_source_data/chart_type flow working. A chart that never gets
+        source data is never created, and deleting it queues nothing
 - [x] `Shape` — the client now sends a per-sheet `shapes` array (one load
       covers pictures too, since a picture is a shape whose type is `Image`),
       so the getters are payload reads and the setters queue `setShape*` JSON
@@ -184,9 +197,7 @@ which settles `Sheet.to_pdf()` and `Range.to_pdf()` below as well.
       since xlwings' public API is a bool. `Sheets.add()` seeds `visibility`
       on the new sheet's api dict, so the getter works before the next
       round-trip.
-- [ ] `charts` — `Excel.Worksheet` has `charts`, so this is reachable, but it
-      returns a collection whose element class doesn't exist yet. Belongs with
-      the `Chart` work above rather than here
+- [x] `charts` — returns the `Charts` collection above
 - [x] `shapes` — returns the `Shapes` collection above
 - [x] `page_setup` — returns the `PageSetup` above
 - [x] `autofit()` — `setSheetAutofit` JSON action. Separate from the range-level
