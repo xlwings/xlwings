@@ -571,6 +571,7 @@ class Sheets(base_classes.Sheets):
 
         api = {
             "name": name,
+            "visibility": "Visible",
             "values": [[]],
             "pictures": [],
             "tables": [],
@@ -632,6 +633,21 @@ class Sheet(base_classes.Sheet):
             args=value,
         )
         self.api["name"] = value
+
+    @property
+    def visible(self):
+        # Office.js also knows "VeryHidden", which maps to False like "Hidden"
+        # does: xlwings' public API is a bool, so the distinction is dropped.
+        return self.api["visibility"] == "Visible"
+
+    @visible.setter
+    def visible(self, value):
+        visibility = "Visible" if value else "Hidden"
+        self.append_json_action(
+            func="setSheetVisibility",
+            args=visibility,
+        )
+        self.api["visibility"] = visibility
 
     @property
     def index(self):
