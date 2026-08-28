@@ -792,6 +792,7 @@ class Sheets(base_classes.Sheets):
             "charts": [],
             "notes": [],
             "tables": [],
+            "print_area": None,
         }
 
         if before:

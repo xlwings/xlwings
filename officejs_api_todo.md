@@ -4,6 +4,22 @@ Status as of 2026-08-28, based on comparing `xlwings/base_classes.py` against
 `xlwings/pro/_xlremote.py`. Check off items as they get implemented (or mark
 them `n/a` if they can't/shouldn't be supported in Office.js).
 
+## Adding a payload-backed getter? Check the collection's `add()`
+
+Anything that creates an object locally --- `Sheets.add()`, `Sheet.copy()`,
+`Tables.add()`, `Pictures.add()` --- hand-builds its api dict so the public API
+can read the object back before the next round-trip. Add a key to the payload
+without adding it there and the new getter raises `KeyError` on a freshly
+created object. That bug shipped three times (`Sheets`, `Tables`, `Pictures`)
+and was latent a fourth (`print_area`).
+
+`test_add_seeds_every_payload_key` and its siblings now catch it: they compare
+each `add()`'s seeded keys against the fixture, which mirrors what the client
+sends. A helper wouldn't have helped --- the dicts are genuinely different
+shapes, and the values are per-class (Excel's defaults, the caller's arguments,
+or `None`). The failure mode was drift between two lists, which is a test's job
+rather than an abstraction's.
+
 ## The general pattern: setters are sync, getters are async
 
 This applies to **every** class here, not just `Range`, so it's worth stating

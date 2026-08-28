@@ -612,6 +612,67 @@ def test_pictures_height(book):
     assert book.sheets[0].pictures[1].height == 30
 
 
+# Collections that create an object locally, so that the public API can read it
+# back before the next round-trip. Each entry is the collection's attribute on
+# the sheet, plus a callable that adds one. Their seeded keys have to keep
+# matching the payload the client sends, which the fixture mirrors -- three
+# separate getters have shipped KeyError bugs from that drifting apart.
+_SEEDING_COLLECTIONS = [
+    (
+        "pictures",
+        lambda sheet: sheet.pictures.add(this_dir.parent / "sample_picture.png"),
+    ),
+    ("tables", lambda sheet: sheet.tables.add(source=sheet["A1:B2"])),
+]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("attribute,add", _SEEDING_COLLECTIONS)
+def test_add_seeds_every_payload_key(attribute, add):
+    """A locally created object must carry every key the client sends.
+
+    Otherwise its getters raise KeyError until the next round-trip refreshes
+    the payload -- the bug that hit Sheets.add(), Tables.add() and
+    Pictures.add() in turn.
+    """
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    sheet = book.sheets[0]
+    from_payload = set(sheet.impl.api[attribute][0])
+    add(sheet)
+    seeded = set(sheet.impl.api[attribute][-1])
+    missing = from_payload - seeded
+    assert not missing, (
+        f"{attribute}.add() doesn't seed {sorted(missing)}, so those getters "
+        f"raise KeyError on a newly added object"
+    )
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheets_add_seeds_every_payload_key():
+    # Same check for sheets, whose payload entry is keyed differently (its
+    # values are nested collections rather than scalars).
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    from_payload = set(book.sheets[0].impl.api)
+    sheet = book.sheets.add(name="seedcheck")
+    missing = from_payload - set(sheet.impl.api)
+    # used_range_address is client-only metadata, not something add() can know
+    missing -= {"used_range_address"}
+    assert not missing, (
+        f"Sheets.add() doesn't seed {sorted(missing)}, so those getters raise "
+        f"KeyError on a newly added sheet"
+    )
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_copy_seeds_every_payload_key():
+    # Sheet.copy() builds its entry from the source sheet's, so it inherits
+    # the keys -- but pin it, since it's a separate code path.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    from_payload = set(book.sheets[0].impl.api)
+    copied = book.sheets[0].copy()
+    assert from_payload - set(copied.impl.api) == set()
+
+
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_charts_collection(book):
     charts = book.sheets[0].charts
