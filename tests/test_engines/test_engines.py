@@ -36,6 +36,7 @@ data = {
         "name": f"engines.{file_extension}",
         "active_sheet_index": 0,
         "selection": "B3:B4",
+        "calculation": "Automatic",
     },
     "names": [
         {
@@ -964,6 +965,67 @@ def test_app_unsupported_read_only(book, attribute):
 def test_app_quit_not_supported(book):
     with pytest.raises(NotImplementedError, match="can't close the Excel"):
         book.app.quit()
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_app_calculation_get():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    assert book.app.calculation == "automatic"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "value,js_value",
+    [
+        ("automatic", "Automatic"),
+        ("manual", "Manual"),
+        ("semiautomatic", "AutomaticExceptTables"),
+    ],
+)
+def test_app_calculation_set(value, js_value):
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    book.app.calculation = value
+    actions = book.app.impl.books.active.json()["actions"]
+    assert actions[-1]["func"] == "setCalculation"
+    assert actions[-1]["args"] == [js_value]
+    # written through, so a read-after-write in the same script is correct
+    assert book.app.calculation == value
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_app_calculation_set_invalid():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    with pytest.raises(ValueError, match="Invalid calculation mode"):
+        book.app.calculation = "nonsense"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_app_calculation_get_missing_from_payload():
+    # Clients that predate the payload field get a pointed error rather than a
+    # KeyError.
+    payload = json.loads(json.dumps(data))
+    del payload["book"]["calculation"]
+    book = xw.Book(json=payload)
+    with pytest.raises(NotImplementedError, match="newer version"):
+        book.app.calculation
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_app_screen_updating():
+    # Office.js can only suspend until its next sync, so the setter queues an
+    # action either way and the getter raises.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    book.app.screen_updating = False
+    actions = book.app.impl.books.active.json()["actions"]
+    assert actions[-1]["func"] == "setScreenUpdating"
+    assert actions[-1]["args"] == [False]
+
+    book.app.screen_updating = True
+    actions = book.app.impl.books.active.json()["actions"]
+    assert actions[-1]["args"] == [True]
+
+    with pytest.raises(NotImplementedError, match="suspendScreenUpdatingUntilNextSync"):
+        book.app.screen_updating
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")

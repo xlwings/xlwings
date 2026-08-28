@@ -442,6 +442,13 @@ class App:
         what the script is doing, but it will run faster. Remember to set the
         screen_updating property back to True when your script ends.
 
+        ```{note}
+        On xlwings Server and xlwings Lite, Office.js can only suspend screen
+        updating until its next sync rather than turning it off indefinitely,
+        so the effect ends on its own before your script does. Setting it back
+        to `True` is a no-op there, and reading the property isn't supported.
+        ```
+
         ```{versionadded} 0.3.3
         ```
         """

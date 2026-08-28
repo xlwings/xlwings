@@ -85,19 +85,22 @@ Verified against the `Excel.Application` typings, whose entire surface is:
 `suspendApiCalculationUntilNextSync()` and
 `suspendScreenUpdatingUntilNextSync()`. Everything not on that list is `n/a`.
 
-- [ ] `calculation` (get/set) — maps to `calculationMode`, with
-      `semiautomatic` ↔ `AutomaticExceptTables`. The setter is a JSON action;
-      the getter needs a payload field or an async getter — undecided
+- [x] `calculation` (get/set) — maps to `calculationMode`, with
+      `semiautomatic` ↔ `AutomaticExceptTables`. The client now sends it as
+      `book.calculation`, loaded in an existing `context.sync()` so it costs no
+      extra round-trip; the setter queues `setCalculation`. A payload without
+      the field (an older client) raises rather than `KeyError`
 - [x] `calculate()` — `calculate` JSON action, calling
       `application.calculate(Excel.CalculationType.full)`. No payload cost
 - [x] `cut_copy_mode` (get/set) — **n/a**: Office.js has no clipboard API
 - [x] `display_alerts` (get/set) — stored but unused; Office.js shows no alerts
 - [x] `enable_events` (get/set) — **n/a**: no equivalent property
 - [x] `interactive` (get/set) — **n/a**: no equivalent property
-- [ ] `screen_updating` (get/set) — only
-      `suspendScreenUpdatingUntilNextSync()` exists, which suspends until the
-      next sync rather than being a settable flag. Needs a semantics decision
-      before it can be mapped
+- [x] `screen_updating` (set only) — Office.js only has
+      `suspendScreenUpdatingUntilNextSync()`, so setting `False` queues that
+      call and setting `True` is a no-op: the suspension ends at the next sync
+      by itself. The getter raises, as there's no flag to read back. The
+      public docstring documents the narrower Server/Lite behaviour
 - [x] `status_bar` (get/set) — **n/a**: no equivalent property
 - [x] `path` — **n/a**: an add-in has no access to the installation's paths
 - [x] `startup_path` — **n/a**: as `path`

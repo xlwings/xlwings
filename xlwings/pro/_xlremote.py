@@ -37,6 +37,15 @@ from ..constants import MAX_COLUMNS, MAX_ROWS
 # _update_api_in_place. Only read locally (never serialized back to JS).
 _SHEET_VALUES_LOADED_KEY = "_xlwings_values_loaded"
 
+# xlwings' public calculation modes mapped to Office.js' Excel.CalculationMode.
+# xlwings' "semiautomatic" is Office.js' "AutomaticExceptTables".
+_CALCULATION_PY2JS = {
+    "automatic": "Automatic",
+    "manual": "Manual",
+    "semiautomatic": "AutomaticExceptTables",
+}
+_CALCULATION_JS2PY = {v: k for k, v in _CALCULATION_PY2JS.items()}
+
 
 def _mark_sheet_values_loaded(sheet_api):
     sheet_api[_SHEET_VALUES_LOADED_KEY] = True
@@ -320,6 +329,46 @@ class App(base_classes.App):
         raise NotImplementedError(
             "App.quit() is not supported in Office.js: an add-in can't close the "
             "Excel application."
+        )
+
+    @property
+    def calculation(self):
+        calculation = self.books.active.api["book"].get("calculation")
+        if calculation is None:
+            raise NotImplementedError(
+                "This client doesn't send the calculation mode. It requires a "
+                "newer version of the xlwings JavaScript module."
+            )
+        return _CALCULATION_JS2PY[calculation]
+
+    @calculation.setter
+    def calculation(self, value):
+        try:
+            js_value = _CALCULATION_PY2JS[value]
+        except KeyError:
+            raise ValueError(
+                f"Invalid calculation mode: {value!r}. Must be one of "
+                f"{sorted(_CALCULATION_PY2JS)}."
+            ) from None
+        self.books.active.api["book"]["calculation"] = js_value
+        self.books.active.append_json_action(func="setCalculation", args=[js_value])
+
+    @property
+    def screen_updating(self):
+        # Office.js has no screen updating flag to read back, only a
+        # suspend-until-next-sync call. See the setter.
+        raise NotImplementedError(
+            "App.screen_updating can't be read in Office.js, which has no screen "
+            "updating property, only suspendScreenUpdatingUntilNextSync()."
+        )
+
+    @screen_updating.setter
+    def screen_updating(self, value):
+        # Office.js can only suspend screen updating until its next sync, not
+        # turn it off indefinitely. Setting it back to True is therefore a
+        # no-op: the suspension ends on its own at the next sync.
+        self.books.active.append_json_action(
+            func="setScreenUpdating", args=[bool(value)]
         )
 
     def calculate(self):
