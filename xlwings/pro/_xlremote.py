@@ -1707,6 +1707,50 @@ class Table(base_classes.Table):
         self.append_json_action(func="showTotalsTable", args=[self.index - 1, value])
 
     @property
+    def show_table_style_first_column(self):
+        return self.api["show_table_style_first_column"]
+
+    @show_table_style_first_column.setter
+    def show_table_style_first_column(self, value):
+        self.api["show_table_style_first_column"] = value
+        self.append_json_action(
+            func="showTableStyleFirstColumn", args=[self.index - 1, value]
+        )
+
+    @property
+    def show_table_style_last_column(self):
+        return self.api["show_table_style_last_column"]
+
+    @show_table_style_last_column.setter
+    def show_table_style_last_column(self, value):
+        self.api["show_table_style_last_column"] = value
+        self.append_json_action(
+            func="showTableStyleLastColumn", args=[self.index - 1, value]
+        )
+
+    @property
+    def show_table_style_row_stripes(self):
+        return self.api["show_table_style_row_stripes"]
+
+    @show_table_style_row_stripes.setter
+    def show_table_style_row_stripes(self, value):
+        self.api["show_table_style_row_stripes"] = value
+        self.append_json_action(
+            func="showTableStyleRowStripes", args=[self.index - 1, value]
+        )
+
+    @property
+    def show_table_style_column_stripes(self):
+        return self.api["show_table_style_column_stripes"]
+
+    @show_table_style_column_stripes.setter
+    def show_table_style_column_stripes(self, value):
+        self.api["show_table_style_column_stripes"] = value
+        self.append_json_action(
+            func="showTableStyleColumnStripes", args=[self.index - 1, value]
+        )
+
+    @property
     def table_style(self):
         return self.api["table_style"]
 
@@ -1769,6 +1813,13 @@ class Tables(Collection, base_classes.Tables):
                 "show_headers": None,
                 "show_totals": None,
                 "table_style": "",
+                # Excel's defaults for a new table, so the getters work before
+                # the next round-trip refreshes the payload.
+                "show_autofilter": True,
+                "show_table_style_first_column": False,
+                "show_table_style_last_column": False,
+                "show_table_style_row_stripes": True,
+                "show_table_style_column_stripes": False,
             }
         )
         return Table(self.parent, len(self.parent.api["tables"]))

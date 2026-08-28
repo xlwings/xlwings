@@ -117,6 +117,10 @@ data = {
                     "show_totals": False,
                     "table_style": "TableStyleMedium2",
                     "show_autofilter": True,
+                    "show_table_style_first_column": True,
+                    "show_table_style_last_column": False,
+                    "show_table_style_row_stripes": True,
+                    "show_table_style_column_stripes": False,
                 },
                 {
                     "name": "Table2",
@@ -128,6 +132,10 @@ data = {
                     "show_totals": True,
                     "table_style": "TableStyleLight1",
                     "show_autofilter": False,
+                    "show_table_style_first_column": False,
+                    "show_table_style_last_column": True,
+                    "show_table_style_row_stripes": False,
+                    "show_table_style_column_stripes": True,
                 },
             ],
         },
@@ -926,6 +934,66 @@ def test_table_set_show_totals(book):
             },
         ]
     }
+
+
+@pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
+def test_table_show_table_style_flags(book):
+    table1 = book.sheets[0].tables[0]
+    table2 = book.sheets[0].tables[1]
+    assert table1.show_table_style_first_column is True
+    assert table1.show_table_style_last_column is False
+    assert table1.show_table_style_row_stripes is True
+    assert table1.show_table_style_column_stripes is False
+    # Table2 is the inverse of Table1, so a getter reading the wrong field
+    # can't pass by accident.
+    assert table2.show_table_style_first_column is False
+    assert table2.show_table_style_last_column is True
+    assert table2.show_table_style_row_stripes is False
+    assert table2.show_table_style_column_stripes is True
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "attribute,func,value",
+    [
+        ("show_table_style_first_column", "showTableStyleFirstColumn", False),
+        ("show_table_style_last_column", "showTableStyleLastColumn", True),
+        ("show_table_style_row_stripes", "showTableStyleRowStripes", False),
+        ("show_table_style_column_stripes", "showTableStyleColumnStripes", True),
+    ],
+)
+def test_table_set_show_table_style_flags(book, attribute, func, value):
+    table = book.sheets[0].tables[0]
+    setattr(table, attribute, value)
+    assert book.json() == {
+        "actions": [
+            {
+                "func": func,
+                "args": [0, value],
+                "values": None,
+                "sheet_position": 0,
+                "start_row": None,
+                "start_column": None,
+                "row_count": None,
+                "column_count": None,
+            },
+        ]
+    }
+    # written through, so a read-after-write in the same script is correct
+    assert getattr(table, attribute) is value
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_table_add_seeds_show_table_style_flags():
+    # Tables.add() seeds the flags with Excel's defaults, so the getters work
+    # before the next round-trip rather than raising KeyError.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    table = book.sheets[0].tables.add(source=book.sheets[0]["A1:B2"])
+    assert table.show_table_style_first_column is False
+    assert table.show_table_style_last_column is False
+    assert table.show_table_style_row_stripes is True
+    assert table.show_table_style_column_stripes is False
+    assert table.show_autofilter is True
 
 
 # Lazy loading: these methods are only supported in xlwings Lite

@@ -250,10 +250,17 @@ straight off it. These need the same fields added on the client side, then the
 getters are one-liners and the setters are JSON actions:
 
 - [ ] `display_name` (get/set)
-- [ ] `show_table_style_first_column` (get/set)
-- [ ] `show_table_style_last_column` (get/set)
-- [ ] `show_table_style_row_stripes` (get/set)
-- [ ] `show_table_style_column_stripes` (get/set)
+- [x] `show_table_style_first_column` (get/set)
+- [x] `show_table_style_last_column` (get/set)
+- [x] `show_table_style_row_stripes` (get/set)
+- [x] `show_table_style_column_stripes` (get/set)
+
+      The four flags are named differently in Office.js: `highlightFirstColumn`,
+      `highlightLastColumn`, `showBandedRows` and `showBandedColumns`. They're
+      now loaded into the per-sheet `tables` payload under their xlwings names,
+      so the getters are payload reads; the setters queue
+      `showTableStyle*` JSON actions. `Tables.add()` seeds them (plus
+      `show_autofilter`, which it was missing) with Excel's defaults.
 
 - [ ] `insert_row_range` — returns a `Range`, so it needs an address rather
       than a flag
