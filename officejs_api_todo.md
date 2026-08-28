@@ -143,13 +143,27 @@ which settles `Sheet.to_pdf()` and `Range.to_pdf()` below as well.
       since xlwings' public API is a bool. `Sheets.add()` seeds `visibility`
       on the new sheet's api dict, so the getter works before the next
       round-trip.
-- [ ] `charts`
-- [ ] `shapes`
-- [ ] `page_setup`
-- [ ] `autofit()`
-- [ ] `copy()`
-- [ ] `select()`
-- [ ] `to_html()`
+- [ ] `charts` — `Excel.Worksheet` has `charts`, so this is reachable, but it
+      returns a collection whose element class doesn't exist yet. Belongs with
+      the `Chart` work above rather than here
+- [ ] `shapes` — as `charts`: `Excel.Worksheet.shapes` exists, `Shape` doesn't
+- [ ] `page_setup` — as `charts`: `Excel.Worksheet.pageLayout` exists,
+      `PageSetup` doesn't
+- [x] `autofit()` — `setSheetAutofit` JSON action. Separate from the range-level
+      `setAutofit`, which resolves its target through `getRange()` using the
+      action's row/column coordinates; a sheet-level action has none, so it
+      autofits `sheet.getRange()` (the whole sheet) instead
+- [x] `copy()` — `copySheet` JSON action, mapping onto
+      `Worksheet.copy(positionType, relativeTo)`. The public `Sheet.copy()`
+      identifies the new sheet by diffing sheet names before and after the
+      call, so the impl inserts the copy into the local api list synchronously
+      (as `Sheets.add()` does) rather than relying on the queued action; it
+      predicts Excel's `"<name> (n)"` naming and the client renames the copy to
+      match, so both sides agree. Copying to a *different* book raises:
+      Office.js positions the copy within the same workbook only
+- [x] `select()` — Office.js has no separate select, so this activates the
+      sheet, reusing the existing `activateSheet` action
+- [x] `to_html()` — **n/a**: Office.js has no HTML export API
 
 ## Range
 

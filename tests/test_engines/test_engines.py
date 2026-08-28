@@ -968,6 +968,91 @@ def test_app_quit_not_supported(book):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "axis,expected",
+    [
+        ("rows", ["rows"]),
+        ("r", ["rows"]),
+        ("columns", ["columns"]),
+        ("c", ["columns"]),
+        (None, ["rows", "columns"]),
+    ],
+)
+def test_sheet_autofit(axis, expected):
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    book.sheets[0].autofit(axis)
+    actions = book.json()["actions"]
+    assert [a["func"] for a in actions] == ["setSheetAutofit"] * len(expected)
+    assert [a["args"][0] for a in actions] == expected
+    assert all(a["sheet_position"] == 0 for a in actions)
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_autofit_invalid_axis(book):
+    with pytest.raises(ValueError, match="Invalid axis"):
+        book.sheets[0].autofit("diagonal")
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_select():
+    # Office.js has no separate select; selecting a sheet activates it.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    book.sheets[1].select()
+    actions = book.json()["actions"]
+    assert actions[-1]["func"] == "activateSheet"
+    assert book.sheets.active.name == book.sheets[1].name
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_to_html_not_supported(book):
+    with pytest.raises(NotImplementedError, match="no HTML export"):
+        book.sheets[0].to_html()
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_copy():
+    # The public copy() finds the new sheet by diffing names before/after, so
+    # the local api list has to gain it synchronously.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    names_before = [sheet.name for sheet in book.sheets]
+    copied = book.sheets[0].copy()
+    assert copied.name == f"{names_before[0]} (2)"
+    assert [sheet.name for sheet in book.sheets] == names_before + [copied.name]
+    action = book.json()["actions"][-1]
+    assert action["func"] == "copySheet"
+    assert action["args"] == ["After", len(names_before) - 1, copied.name]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_copy_before_and_name():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    copied = book.sheets[0].copy(before=book.sheets[0], name="mycopy")
+    assert copied.name == "mycopy"
+    assert [sheet.name for sheet in book.sheets][0] == "mycopy"
+    funcs = [a["func"] for a in book.json()["actions"]]
+    # copied, then renamed to the requested name by the public method
+    assert funcs[-2:] == ["copySheet", "setSheetName"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_copy_increments_suffix():
+    payload = json.loads(json.dumps(data))
+    first = payload["sheets"][0]["name"]
+    payload["sheets"].append(dict(payload["sheets"][0], name=f"{first} (2)"))
+    book = xw.Book(json=payload)
+    copied = book.sheets[0].copy()
+    assert copied.name == f"{first} (3)"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_copy_to_other_book_not_supported():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    other = xw.Book(json=json.loads(json.dumps(data)))
+    with pytest.raises(NotImplementedError, match="different book"):
+        book.sheets[0].copy(after=other.sheets[0])
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_book_save():
     book = xw.Book(json=json.loads(json.dumps(data)))
     book.save()

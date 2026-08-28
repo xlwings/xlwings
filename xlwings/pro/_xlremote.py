@@ -818,6 +818,57 @@ class Sheet(base_classes.Sheet):
     def tables(self):
         return Tables(parent=self)
 
+    def autofit(self, axis=None):
+        if axis in ("rows", "r"):
+            self.append_json_action(func="setSheetAutofit", args="rows")
+        elif axis in ("columns", "c"):
+            self.append_json_action(func="setSheetAutofit", args="columns")
+        elif axis is None:
+            self.append_json_action(func="setSheetAutofit", args="rows")
+            self.append_json_action(func="setSheetAutofit", args="columns")
+        else:
+            raise ValueError(
+                f"Invalid axis: {axis!r}. Use 'rows'/'r', 'columns'/'c' or None."
+            )
+
+    def select(self):
+        # Office.js only has activate(); selecting a sheet is activating it.
+        self.activate()
+
+    def copy(self, before=None, after=None):
+        # The public Sheet.copy() finds the new sheet by diffing sheet names
+        # before and after this call, so the local api list has to gain the
+        # copy right away -- a queued action alone would leave it empty and
+        # the diff would raise. Same approach as Sheets.add().
+        target = before if before is not None else after
+        if target.book is not self.book:
+            raise NotImplementedError(
+                "Sheet.copy() can't copy to a different book in Office.js, whose "
+                "Worksheet.copy() only positions the copy within the same workbook."
+            )
+        if before is not None:
+            position, target_ix = "Before", before.index - 1
+        else:
+            position, target_ix = "After", after.index - 1
+        sheets_api = self.book.api["sheets"]
+        existing = {sheet["name"] for sheet in sheets_api}
+        # Excel names the copy "<name> (2)", incrementing until it's free.
+        suffix = 2
+        while f"{self.name} ({suffix})" in existing:
+            suffix += 1
+        name = f"{self.name} ({suffix})"
+        new_ix = target_ix if position == "Before" else target_ix + 1
+        api = dict(self.api)
+        api["name"] = name
+        sheets_api.insert(new_ix, api)
+        self.append_json_action(func="copySheet", args=[position, target_ix, name])
+
+    def to_html(self, path):
+        raise NotImplementedError(
+            "Sheet.to_html() is not supported in Office.js, which has no HTML "
+            "export API."
+        )
+
     def delete(self):
         ix = self.index - 1
         del self.book.api["sheets"][ix]
