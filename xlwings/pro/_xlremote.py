@@ -1707,6 +1707,18 @@ class Table(base_classes.Table):
         self.append_json_action(func="showTotalsTable", args=[self.index - 1, value])
 
     @property
+    def insert_row_range(self):
+        # Office.js' Excel.Table has no InsertRowRange equivalent: its only
+        # range accessors are getRange(), getDataBodyRange(),
+        # getHeaderRowRange() and getTotalRowRange(). Returning None would be
+        # indistinguishable from the documented "table isn't empty" answer, so
+        # raise instead of answering wrongly.
+        raise NotImplementedError(
+            "Table.insert_row_range is not supported in Office.js, which has no "
+            "InsertRowRange equivalent."
+        )
+
+    @property
     def display_name(self):
         # Office.js' Excel.Table only has `name`, so display_name aliases it.
         # The two are equivalent in practice anyway: on macOS, setting

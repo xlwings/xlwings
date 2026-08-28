@@ -268,9 +268,12 @@ getters are one-liners and the setters are JSON actions:
       so the getters are payload reads; the setters queue
       `showTableStyle*` JSON actions. `Tables.add()` seeds them (plus
       `show_autofilter`, which it was missing) with Excel's defaults.
-
-- [ ] `insert_row_range` — returns a `Range`, so it needs an address rather
-      than a flag
+- [x] `insert_row_range` --- **n/a**: Office.js' `Excel.Table` has no
+      `InsertRowRange` equivalent; its only range accessors are `getRange()`,
+      `getDataBodyRange()`, `getHeaderRowRange()` and `getTotalRowRange()`,
+      all of which are already implemented. Raises rather than returning
+      `None`, which is the documented answer for a non-empty table and so
+      would be indistinguishable from a real result.
 
 ## Name
 

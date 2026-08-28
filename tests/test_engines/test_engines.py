@@ -937,6 +937,15 @@ def test_table_set_show_totals(book):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_table_insert_row_range_not_supported(book):
+    # Office.js has no InsertRowRange equivalent. Returning None would be
+    # indistinguishable from the documented "table isn't empty" answer, so
+    # this raises rather than answering wrongly.
+    with pytest.raises(NotImplementedError, match="InsertRowRange"):
+        book.sheets[0].tables[0].insert_row_range
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_table_display_name_aliases_name():
     # Office.js' Excel.Table only has `name`, so display_name aliases it --
     # keeping scripts that use display_name portable across backends.
