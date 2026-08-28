@@ -287,6 +287,11 @@ addresses that the `Range`/`Table` object is then built from locally):
       raises on. `get_hyperlink()` reproduces both branches, and raises
       "The cell doesn't seem to contain a hyperlink!" when there is none, as
       both desktop engines do rather than returning `None`
+- [x] `get_address()` — **no fetch needed**: the engine already knows the
+      range's coordinates (the `address` property is built from them), so this
+      is local string formatting. Honours `row_absolute` / `col_absolute` and
+      the `external` prefix, quoting it when the book or sheet name contains a
+      space, as Excel does
 - [x] `rows` / `columns` — **already worked**: `main.py` builds `RangeRows` /
       `RangeColumns` from the range itself and never calls the impl. They were
       listed here by mistake
@@ -295,7 +300,6 @@ Still deferred — getters that need more than a mode:
 
 - `note` — needs the `Note` class
 - `characters` — needs the `Characters` class
-- `get_address()`
 
 Two notes on shape and scope:
 

@@ -1151,6 +1151,31 @@ class Range(base_classes.Range):
             func="rangeClearFormats",
         )
 
+    def get_address(self, row_absolute, col_absolute, external):
+        # Purely local: the engine already knows the range's coordinates, so
+        # this is string formatting rather than something to fetch.
+        if self.arg1 is None:
+            return
+        row_prefix = "$" if row_absolute else ""
+        col_prefix = "$" if col_absolute else ""
+        nrows, ncols = self.shape
+
+        def cell(row, column):
+            return f"{col_prefix}{utils.col_name(column)}{row_prefix}{row}"
+
+        address = cell(self.row, self.column)
+        if nrows != 1 or ncols != 1:
+            address += f":{cell(self.row + nrows - 1, self.column + ncols - 1)}"
+        if not external:
+            return address
+        # Excel quotes the sheet name when it or the book name has spaces.
+        book_name = self.sheet.book.name
+        sheet_name = self.sheet.name
+        prefix = f"[{book_name}]{sheet_name}"
+        if " " in book_name or " " in sheet_name:
+            prefix = f"'{prefix}'"
+        return f"{prefix}!{address}"
+
     @property
     def address(self):
         # Handle non-cell selection

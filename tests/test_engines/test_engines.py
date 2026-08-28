@@ -1373,6 +1373,49 @@ def test_range_group_a_getters_pass_through(book, getter, reported):
         assert asyncio.run(getattr(rng, getter)()) == reported
 
 
+@pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
+@pytest.mark.parametrize(
+    "kwargs,expected",
+    [
+        ({}, "$A$1:$C$3"),
+        ({"row_absolute": False}, "$A1:$C3"),
+        ({"column_absolute": False}, "A$1:C$3"),
+        ({"row_absolute": False, "column_absolute": False}, "A1:C3"),
+        # the fixture's sheet is "Sheet 1", so Excel quotes the prefix
+        ({"include_sheetname": True}, "'Sheet 1'!$A$1:$C$3"),
+        ({"external": True}, "'[engines.xlsm]Sheet 1'!$A$1:$C$3"),
+    ],
+)
+def test_range_get_address(book, kwargs, expected):
+    # Purely local: the engine already knows the coordinates.
+    assert book.sheets[0].range((1, 1), (3, 3)).get_address(**kwargs) == expected
+
+
+@pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
+def test_range_get_address_single_cell(book):
+    rng = book.sheets[0].range((1, 1))
+    assert rng.get_address() == "$A$1"
+    assert rng.get_address(False, False) == "A1"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_get_address_matches_address(book):
+    # The address property is the get_address() default.
+    for arg1, arg2 in [((1, 1), None), ((1, 1), (3, 3)), ((2, 3), (5, 7))]:
+        rng = book.sheets[0].range(arg1, arg2) if arg2 else book.sheets[0].range(arg1)
+        assert rng.address == rng.get_address()
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_get_address_quotes_names_with_spaces():
+    # Excel quotes the prefix when the book or sheet name contains a space.
+    payload = json.loads(json.dumps(data))
+    payload["book"]["name"] = "My Book.xlsx"
+    book = xw.Book(json=payload)
+    rng = book.sheets[0].range((1, 1))
+    assert rng.get_address(external=True) == "'[My Book.xlsx]Sheet 1'!$A$1"
+
+
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_range_hyperlink_sync_points_at_async(book):
     # The public hyperlink property reads .formula first, so it raises that
