@@ -1072,22 +1072,25 @@ class Range(base_classes.Range):
     def formula(self, value):
         nrows, ncols = self.shape
         if not isinstance(value, list):
-            value = [[value] * ncols] * nrows
-        elif value and not isinstance(value[0], list):
-            if nrows == 1 and len(value) == ncols:
-                value = [value]
-            elif ncols == 1 and len(value) == nrows:
-                value = [[item] for item in value]
-            else:
-                raise ValueError(
-                    "A flat formula list requires a single-row or single-column "
-                    "range with matching dimensions."
-                )
-        elif len(value) != nrows or any(
-            not isinstance(row, list) or len(row) != ncols for row in value
-        ):
-            raise ValueError("Formula dimensions must match the target range.")
-        self.append_json_action(func="setFormula", values=value)
+            # Scalars broadcast over the whole range, like on the other engines.
+            self.append_json_action(func="setFormula", values=[[value] * ncols] * nrows)
+            return
+        if value and not isinstance(value[0], list):
+            # A flat list is a row, unless the target is a single column. This
+            # mirrors how `.value` treats flat lists.
+            value = [[item] for item in value] if ncols == 1 and nrows != 1 else [value]
+        if not value or not value[0]:
+            return
+        # Like `.value`, the data wins over the target's current shape: writing
+        # more formulas than the range holds expands it instead of raising.
+        target = self
+        if len(value) != nrows or len(value[0]) != ncols:
+            target = Range(
+                self.sheet,
+                self.arg1,
+                (self.arg1[0] + len(value) - 1, self.arg1[1] + len(value[0]) - 1),
+            )
+        target.append_json_action(func="setFormula", values=value)
 
     @property
     def formula2(self):

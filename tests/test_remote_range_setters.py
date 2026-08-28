@@ -80,14 +80,46 @@ def test_formula_normalizes_flat_list_for_column(book):
     assert last_action(book)["values"] == [["=1"], ["=2"]]
 
 
-def test_formula_rejects_ambiguous_flat_list(book):
-    with pytest.raises(ValueError, match="flat formula list"):
-        book.sheets[0]["A1:B2"].formula = ["=1", "=2"]
+def test_formula_expands_single_cell_to_fit_flat_list(book):
+    # Like `.value`, the data wins over the target's shape.
+    book.sheets[0]["A1"].formula = ["=1", "=2"]
+    action = last_action(book)
+    assert action["values"] == [["=1", "=2"]]
+    assert (action["row_count"], action["column_count"]) == (1, 2)
 
 
-def test_formula_rejects_mismatched_nested_list(book):
-    with pytest.raises(ValueError, match="dimensions"):
-        book.sheets[0]["A1:B2"].formula = [["=1", "=2"]]
+def test_formula_expands_single_cell_to_fit_nested_list(book):
+    book.sheets[0]["A1"].formula = [["=1", "=2"], ["=3", "=4"]]
+    action = last_action(book)
+    assert action["values"] == [["=1", "=2"], ["=3", "=4"]]
+    assert (action["row_count"], action["column_count"]) == (2, 2)
+
+
+def test_formula_flat_list_writes_a_row_on_a_multi_row_range(book):
+    book.sheets[0]["A1:B2"].formula = ["=1", "=2"]
+    action = last_action(book)
+    assert action["values"] == [["=1", "=2"]]
+    assert (action["row_count"], action["column_count"]) == (1, 2)
+
+
+def test_formula_resizes_when_nested_list_is_smaller_than_range(book):
+    book.sheets[0]["A1:B2"].formula = [["=1", "=2"]]
+    action = last_action(book)
+    assert action["values"] == [["=1", "=2"]]
+    assert (action["row_count"], action["column_count"]) == (1, 2)
+
+
+def test_formula_expansion_keeps_the_ranges_origin(book):
+    book.sheets[0]["B2"].formula = ["=1", "=2", "=3"]
+    action = last_action(book)
+    assert (action["start_row"], action["start_column"]) == (1, 1)
+    assert (action["row_count"], action["column_count"]) == (1, 3)
+
+
+def test_formula_ignores_empty_list(book):
+    before = len(actions(book))
+    book.sheets[0]["A1"].formula = []
+    assert len(actions(book)) == before
 
 
 def test_formula2_delegates_to_formula(book):
