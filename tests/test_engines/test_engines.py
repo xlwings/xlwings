@@ -98,6 +98,7 @@ data = {
                 [4.4, 5.5, 6.6, ""],
                 ["Total", "", 9.9, ""],
             ],
+            "notes": [{"address": "$A$1", "text": "mynote"}],
             "shapes": [
                 {
                     "name": "myshape1",
@@ -599,6 +600,48 @@ def test_pictures_width(book):
 def test_pictures_height(book):
     assert book.sheets[0].pictures[0].height == 10
     assert book.sheets[0].pictures[1].height == 30
+
+
+@pytest.mark.skipif(engine == "calamine", reason="calamine engine")
+def test_range_note(book):
+    note = book.sheets[0]["A1"].note
+    assert note is not None
+    assert note.text == "mynote"
+    # a cell without one reports None, as on the other engines
+    assert book.sheets[0]["B2"].note is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_note_text_setter():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    book.sheets[0]["A1"].note.text = "updated"
+    action = book.json()["actions"][-1]
+    assert action["func"] == "setNoteText"
+    assert action["args"] == ["$A$1", "updated"]
+    assert action["sheet_position"] == 0
+    # written through, so a read-after-write in the same script is correct
+    assert book.sheets[0]["A1"].note.text == "updated"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_note_delete():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    book.sheets[0]["A1"].note.delete()
+    action = book.json()["actions"][-1]
+    assert action["func"] == "deleteNote"
+    assert action["args"] == ["$A$1"]
+    # gone locally too, so Range.note reports None right away
+    assert book.sheets[0]["A1"].note is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_note_missing_from_payload():
+    # Clients that predate the payload field report no note rather than
+    # raising, which is what None means anyway.
+    payload = json.loads(json.dumps(data))
+    del payload["sheets"][0]["notes"]
+    book = xw.Book(json=payload)
+    assert book.sheets[0]["A1"].note is None
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")

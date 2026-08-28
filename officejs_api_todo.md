@@ -86,9 +86,16 @@ payload sent to Python.
 - [ ] `Characters`
   - [ ] `text`
   - [ ] `font`
-- [ ] `Note`
-  - [ ] `text` (get/set)
-  - [ ] `delete()`
+- [x] `Note` — `Excel.Note` has `content` and `delete()`, so this maps
+      directly. The client sends a per-sheet `notes` array keyed by cell
+      address: `Range.note` is a *sync* property that has to know whether a
+      note exists, so it can't be an async fetch, and note text is short
+      enough to carry along (unlike a shape's, which is fetched on demand)
+  - [x] `text` (get/set) — the setter queues `setNoteText`, which raises
+        client-side if the note doesn't exist, since the public API documents
+        that the note must already exist and the desktop engines fail there too
+  - [x] `delete()` — `deleteNote`, also removing the local entry so
+        `Range.note` reports `None` immediately
 - [x] `PageSetup`
   - [x] `print_area` (get/set) — the client sends the sheet's print area as
         `print_area`, so the getter is a payload read and the setter queues
@@ -303,6 +310,7 @@ addresses that the `Range`/`Table` object is then built from locally):
       range isn't in a table. The client reports the table's *name*, which the
       Python side resolves to its position, since `Table`'s constructor indexes
       the sheet's tables list
+- [x] `note` — returns the `Note` above, or `None` when the cell has none
 - [x] `hyperlink` (getter) — `get_hyperlink()`, from `range.hyperlink`
       (`RangeHyperlink.address`, falling back to `documentReference` for
       in-workbook targets). It's a *public* async method rather than only an
@@ -322,7 +330,6 @@ addresses that the `Range`/`Table` object is then built from locally):
 
 Still deferred — getters that need more than a mode:
 
-- `note` — needs the `Note` class
 - `characters` — needs the `Characters` class
 
 Two notes on shape and scope:

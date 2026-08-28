@@ -708,6 +708,7 @@ class Sheets(base_classes.Sheets):
             "values": [[]],
             "pictures": [],
             "shapes": [],
+            "notes": [],
             "tables": [],
         }
 
@@ -1356,6 +1357,16 @@ class Range(base_classes.Range):
             "Reading the table synchronously isn't supported on this engine. "
             "Use 'await myrange.get_table()' to fetch it on demand."
         )
+
+    @property
+    def note(self):
+        # The payload carries the sheet's notes keyed by address, so this
+        # knows whether one exists without a fetch -- as the sync property
+        # requires. Returns None when there's no note, like the other engines.
+        for note in self.sheet.api.get("notes", []):
+            if note["address"] == self.address:
+                return Note(self)
+        return None
 
     @property
     def hyperlink(self):
@@ -2314,6 +2325,44 @@ class FreezePanes(base_classes.FreezePanes):
 
     def unfreeze(self):
         self.append_json_action(func="freezePaneUnfreeze")
+
+
+class Note(base_classes.Note):
+    def __init__(self, range):
+        self.range = range
+
+    @property
+    def api(self):
+        return self._entry
+
+    @property
+    def _entry(self):
+        """This note's entry in the sheet's notes payload, keyed by address."""
+        for note in self.range.sheet.api.get("notes", []):
+            if note["address"] == self.range.address:
+                return note
+        return None
+
+    @property
+    def text(self):
+        entry = self._entry
+        return entry["text"] if entry else None
+
+    @text.setter
+    def text(self, value):
+        entry = self._entry
+        if entry is not None:
+            entry["text"] = value
+        self.range.append_json_action(
+            func="setNoteText", args=[self.range.address, value]
+        )
+
+    def delete(self):
+        notes = self.range.sheet.api.get("notes", [])
+        entry = self._entry
+        if entry is not None:
+            notes.remove(entry)
+        self.range.append_json_action(func="deleteNote", args=[self.range.address])
 
 
 class Shape(base_classes.Shape):
