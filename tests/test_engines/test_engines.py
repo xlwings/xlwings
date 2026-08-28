@@ -78,6 +78,7 @@ data = {
         {
             "name": "Sheet 1",
             "visibility": "Visible",
+            "print_area": "$A$1:$B$3",
             "values": [
                 ["a", "b", "c", ""],
                 [1.1, 2.2, 3.3, "2021-01-01T00:00:00.000Z"],
@@ -416,6 +417,46 @@ def test_sheet_active(book):
 def test_sheets_iteration(book):
     for ix, sheet in enumerate(book.sheets):
         assert sheet.name == "Sheet 1" if ix == 0 else "Sheet2"
+
+
+@pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
+def test_sheet_page_setup_print_area(book):
+    assert book.sheets[0].page_setup.print_area == "$A$1:$B$3"
+    # a sheet without one reports None, not an empty string
+    assert book.sheets[1].page_setup.print_area is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_page_setup_print_area_setter():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    page_setup = book.sheets[0].page_setup
+    page_setup.print_area = "$C$1:$D$5"
+    action = book.json()["actions"][-1]
+    assert action["func"] == "setPrintArea"
+    assert action["args"] == ["$C$1:$D$5"]
+    assert action["sheet_position"] == 0
+    # written through, so a read-after-write in the same script is correct
+    assert page_setup.print_area == "$C$1:$D$5"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_page_setup_print_area_clear():
+    # The public API documents `print_area = None` as the way to clear it.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    page_setup = book.sheets[0].page_setup
+    page_setup.print_area = None
+    assert book.json()["actions"][-1]["args"] == [None]
+    assert page_setup.print_area is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_page_setup_print_area_missing_from_payload():
+    # Clients that predate the payload field report no print area rather than
+    # raising, which is what None means anyway.
+    payload = json.loads(json.dumps(data))
+    del payload["sheets"][0]["print_area"]
+    book = xw.Book(json=payload)
+    assert book.sheets[0].page_setup.print_area is None
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")

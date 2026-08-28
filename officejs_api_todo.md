@@ -72,8 +72,16 @@ payload sent to Python.
 - [ ] `Note`
   - [ ] `text` (get/set)
   - [ ] `delete()`
-- [ ] `PageSetup`
-  - [ ] `print_area` (get/set)
+- [x] `PageSetup`
+  - [x] `print_area` (get/set) — the client sends the sheet's print area as
+        `print_area`, so the getter is a payload read and the setter queues
+        `setPrintArea`. Office.js reports it as a `RangeAreas` (one or more
+        rectangles), which the client joins with commas the way Excel writes
+        them, and `None` when there is none --- matching win32, which maps its
+        empty string to `None`. Clearing (`print_area = None`, which the public
+        API documents) passes an empty string to `setPrintArea`, since
+        Office.js has no explicit clear method. Sent in lazy mode too, like
+        `used_range_address`, so it works on an async book
 
 ## App
 
@@ -147,8 +155,7 @@ which settles `Sheet.to_pdf()` and `Range.to_pdf()` below as well.
       returns a collection whose element class doesn't exist yet. Belongs with
       the `Chart` work above rather than here
 - [ ] `shapes` — as `charts`: `Excel.Worksheet.shapes` exists, `Shape` doesn't
-- [ ] `page_setup` — as `charts`: `Excel.Worksheet.pageLayout` exists,
-      `PageSetup` doesn't
+- [x] `page_setup` — returns the `PageSetup` above
 - [x] `autofit()` — `setSheetAutofit` JSON action. Separate from the range-level
       `setAutofit`, which resolves its target through `getRange()` using the
       action's row/column coordinates; a sheet-level action has none, so it

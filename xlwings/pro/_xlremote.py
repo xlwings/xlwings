@@ -815,6 +815,10 @@ class Sheet(base_classes.Sheet):
         return Pictures(self)
 
     @property
+    def page_setup(self):
+        return PageSetup(self)
+
+    @property
     def tables(self):
         return Tables(parent=self)
 
@@ -2298,6 +2302,24 @@ class FreezePanes(base_classes.FreezePanes):
 
     def unfreeze(self):
         self.append_json_action(func="freezePaneUnfreeze")
+
+
+class PageSetup(base_classes.PageSetup):
+    def __init__(self, sheet):
+        self.sheet = sheet
+
+    @property
+    def api(self):
+        return self.sheet.api
+
+    @property
+    def print_area(self):
+        return self.sheet.api.get("print_area")
+
+    @print_area.setter
+    def print_area(self, value):
+        self.sheet.api["print_area"] = value
+        self.sheet.append_json_action(func="setPrintArea", args=[value])
 
 
 class Font(base_classes.Font):
