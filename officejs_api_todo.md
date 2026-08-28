@@ -249,7 +249,14 @@ neighbouring `show_headers` / `show_totals` / `show_autofilter` flags are read
 straight off it. These need the same fields added on the client side, then the
 getters are one-liners and the setters are JSON actions:
 
-- [ ] `display_name` (get/set)
+- [x] `display_name` (get/set) --- aliases `name`. Office.js' `Excel.Table` has
+      no `displayName` property (its full property set is `name`, `style`,
+      `showHeaders`, `showTotals`, `showFilterButton`, `highlightFirstColumn`,
+      `highlightLastColumn`, `showBandedRows`, `showBandedColumns`), and the
+      two are equivalent in practice: on macOS setting `display_name` changes
+      the name too, and Office Scripts dropped the distinction as well.
+      Aliasing keeps scripts that use `display_name` portable across backends
+      instead of raising for a distinction this host doesn't make.
 - [x] `show_table_style_first_column` (get/set)
 - [x] `show_table_style_last_column` (get/set)
 - [x] `show_table_style_row_stripes` (get/set)

@@ -936,6 +936,24 @@ def test_table_set_show_totals(book):
     }
 
 
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_table_display_name_aliases_name():
+    # Office.js' Excel.Table only has `name`, so display_name aliases it --
+    # keeping scripts that use display_name portable across backends.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    table = book.sheets[0].tables[0]
+    # not hardcoded: an earlier test renames this table, and Table.name writes
+    # through to the module-level `data` dict that the fixture book wraps
+    assert table.display_name == table.name
+
+    table.display_name = "myname"
+    assert table.display_name == "myname"
+    assert table.name == "myname"
+    # emits the same action as setting name
+    assert book.json()["actions"][0]["func"] == "setTableName"
+    assert book.json()["actions"][0]["args"] == [0, "myname"]
+
+
 @pytest.mark.skipif(engine == "calamine", reason="unsupported by calamine")
 def test_table_show_table_style_flags(book):
     table1 = book.sheets[0].tables[0]

@@ -1707,6 +1707,18 @@ class Table(base_classes.Table):
         self.append_json_action(func="showTotalsTable", args=[self.index - 1, value])
 
     @property
+    def display_name(self):
+        # Office.js' Excel.Table only has `name`, so display_name aliases it.
+        # The two are equivalent in practice anyway: on macOS, setting
+        # display_name changes the name too, and Office Scripts dropped the
+        # distinction as well.
+        return self.name
+
+    @display_name.setter
+    def display_name(self, value):
+        self.name = value
+
+    @property
     def show_table_style_first_column(self):
         return self.api["show_table_style_first_column"]
 
