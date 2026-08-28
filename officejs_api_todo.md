@@ -242,12 +242,6 @@ Done — action methods:
 - [x] `autofill()` — `rangeAutofill`; rejects a destination on another sheet,
       since Office.js resolves it against the source's sheet
 
-Not implementable — `paste()`:
-
-- `paste()` reads the system clipboard, which Office.js has no API for.
-  `range.copyFrom()` needs an explicit source range and is already exposed as
-  `Range.copy()`, so there's nothing to map `paste()` onto. Left raising.
-
 Also implemented along the way:
 
 - [x] `App.display_alerts` — required by `Range.merge()`, which wraps itself in
@@ -364,11 +358,16 @@ Two notes on shape and scope:
   *ranges*, not data. The async fetch only needs to resolve the address; the
   `Range` object itself is then built synchronously from it.
 
-Deferred — methods that need to return data or aren't pure JSON actions:
+Done — the remaining methods:
 
-- `copy_picture()`
-- `to_pdf()`
-- `paste()` (see above — no Office.js clipboard API)
+- [x] `to_png()` — **already worked**, via the `rangeToPng` action. It's the
+      one image export this engine has, alongside `Chart.get_png()`
+- [x] `copy_picture()` — **n/a**: copies to the system clipboard, which
+      Office.js has no API for. The error points at `to_png()`, which covers
+      the "get this range as an image" case
+- [x] `paste()` — **n/a**: same missing clipboard API. The error points at
+      `copy()`, which takes an explicit source range
+- [x] `to_pdf()` — **n/a**: no PDF export, as for `Book`, `Sheet` and `Chart`
 
 ## Font
 
@@ -463,20 +462,24 @@ getters are one-liners and the setters are JSON actions:
 
 ## Lite-only (work in xlwings Lite, raise on remote/server)
 
-These are implemented but gated on `sys.platform == "emscripten"`; decide
-whether the remote engine should support them too:
+**Decided (2026-08-28): Lite only, for now.** These stay gated on
+`sys.platform == "emscripten"` and raise on the remote/server engine. General
+async API support for the server may come later, but it isn't in scope here.
 
-- [ ] `App.get_selection()`
-- [ ] `Books.get_active()`
-- [ ] `Sheets.get_active()`
-- [ ] `Book.flush()`
-- [ ] `Book.load()`
-- [ ] `Sheet.load()`
-- [ ] `Range.get_value()`
-- [ ] `Range.get_formula()`
+- [x] `App.get_selection()`
+- [x] `Books.get_active()`
+- [x] `Sheets.get_active()`
+- [x] `Book.flush()`
+- [x] `Book.load()`
+- [x] `Sheet.load()`
+- [x] `Range.get_value()`
+- [x] `Range.get_formula()`
 
-Note that every async getter added per the `Range` section above lands in this
-list too: the `sys.platform != "emscripten"` guard makes it Lite-only by
-default. So the more of the deferred getters get implemented this way, the
-wider the Lite/remote gap grows — worth deciding the remote story once, rather
-than per getter.
+Every async getter added since lands in this list too, under the same
+decision: the `Range` `get_*()` family (values, formulas, formats, geometry,
+`current_region`, `merge_area`, `merge_cells`, `table`, `hyperlink`), the
+`Font` getters, `Shape.get_text()`, `Characters.get_text()` and
+`Chart.get_png()`. They all carry the same `sys.platform != "emscripten"`
+guard, so the Lite/remote gap is now wide by design rather than by accident ---
+closing it means giving the server a request/response path mid-script, which is
+a much larger change than any single getter.

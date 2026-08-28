@@ -1783,6 +1783,27 @@ class Range(base_classes.Range):
     def to_png(self, path):
         self.append_json_action(func="rangeToPng", args=[path])
 
+    def copy_picture(self, appearance, format):
+        # Copies to the system clipboard, which Office.js has no API for --
+        # the same reason paste() can't work. Range.to_png() covers the
+        # "get this range as an image" case.
+        raise NotImplementedError(
+            "Range.copy_picture() is not supported in Office.js, which has no "
+            "clipboard API. Use 'to_png()' to export the range as an image."
+        )
+
+    def paste(self, paste=None, operation=None, skip_blanks=False, transpose=False):
+        raise NotImplementedError(
+            "Range.paste() is not supported in Office.js, which has no clipboard "
+            "API. Use 'copy()' with an explicit source range instead."
+        )
+
+    def to_pdf(self, path, quality):
+        raise NotImplementedError(
+            "Range.to_pdf() is not supported in Office.js, which has no PDF "
+            "export API."
+        )
+
     @property
     def font(self):
         return Font(self, self.sheet.book.api)

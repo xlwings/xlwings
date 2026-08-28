@@ -963,6 +963,29 @@ def test_shape_characters_sync_text_points_at_async(book):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_to_png(book):
+    # Already worked via the rangeToPng action, unlike the other exports.
+    book.sheets[0]["A1"].to_png("out.png")
+    action = book.json()["actions"][-1]
+    assert action["func"] == "rangeToPng"
+    assert action["args"] == ["out.png"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "call,match",
+    [
+        (lambda rng: rng.copy_picture(), "no clipboard API"),
+        (lambda rng: rng.paste(), "no clipboard API"),
+        (lambda rng: rng.to_pdf(), "no PDF export"),
+    ],
+)
+def test_range_unsupported_exports(book, call, match):
+    with pytest.raises(NotImplementedError, match=match):
+        call(book.sheets[0]["A1"])
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_range_characters_not_supported(book):
     # Office.js has no character-range object for cells; only shapes have one.
     with pytest.raises(NotImplementedError, match="no.*character-range object"):
