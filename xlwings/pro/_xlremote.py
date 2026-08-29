@@ -13,6 +13,7 @@ Commercial licenses can be purchased at https://www.xlwings.org
 
 import asyncio
 import base64
+import copy
 import datetime as dt
 import numbers
 import re
@@ -70,6 +71,11 @@ def _color_to_hex(color_or_rgb):
             f'"#FFA500", or an integer --- got {color_or_rgb!r}.'
         ) from None
     return utils.rgb_to_hex(red, green, blue)
+
+
+def _address_key(address):
+    """Return a comparison key for equivalent absolute/relative A1 addresses."""
+    return address.replace("$", "").upper() if address is not None else None
 
 
 # xlwings' chart types mapped to Office.js' Excel.ChartType. These are the
@@ -999,7 +1005,11 @@ class Sheet(base_classes.Sheet):
             suffix += 1
         name = f"{self.name} ({suffix})"
         new_ix = target_ix if position == "Before" else target_ix + 1
-        api = dict(self.api)
+        # A copied worksheet starts with the same metadata, but it must own its
+        # nested collections. A shallow copy would make changes to charts,
+        # shapes, notes, tables, pictures or cached values leak back to the
+        # source sheet's local representation.
+        api = copy.deepcopy(self.api)
         api["name"] = name
         sheets_api.insert(new_ix, api)
         self.append_json_action(func="copySheet", args=[position, target_ix, name])
@@ -1497,7 +1507,7 @@ class Range(base_classes.Range):
         # knows whether one exists without a fetch -- as the sync property
         # requires. Returns None when there's no note, like the other engines.
         for note in self.sheet.api.get("notes", []):
-            if note["address"] == self.address:
+            if _address_key(note["address"]) == _address_key(self.address):
                 return Note(self)
         return None
 
@@ -2489,6 +2499,7 @@ class Chart(base_classes.Chart):
         # source data, since Office.js' charts.add() requires it. `pending`
         # holds the geometry until then.
         self._pending = pending
+        self._uses_default_name = pending is not None
         self._api = None if pending is not None else parent.api["charts"][key - 1]
 
     def append_json_action(self, **kwargs):
@@ -2525,6 +2536,7 @@ class Chart(base_classes.Chart):
     @name.setter
     def name(self, value):
         self.api["name"] = value
+        self._uses_default_name = False
         if self._pending is None:
             self.append_json_action(func="setChartName", args=[self.index - 1, value])
 
@@ -2553,6 +2565,8 @@ class Chart(base_classes.Chart):
             # First source data: this is where the chart can finally be
             # created, since Office.js needs the type and data together.
             pending = self._pending
+            if self._uses_default_name:
+                pending["name"] = Charts.unique_default_name(self.parent.api["charts"])
             self.parent.api["charts"].append(pending)
             self.key = len(self.parent.api["charts"])
             self._api = pending
@@ -2650,12 +2664,22 @@ class Charts(Collection):
     _attr = "charts"
     _wrap = Chart
 
+    @staticmethod
+    def unique_default_name(charts):
+        existing = {chart["name"].casefold() for chart in charts}
+        name = "Chart"
+        suffix = 2
+        while name.casefold() in existing:
+            name = f"Chart {suffix}"
+            suffix += 1
+        return name
+
     def add(self, left, top, width, height):
         # Office.js' charts.add() needs a type and source data, which xlwings
         # doesn't have yet at this point -- so hold the geometry and create the
         # chart on the first set_source_data().
         pending = {
-            "name": "Chart",
+            "name": self.unique_default_name(self.api),
             "chart_type": _CHART_TYPE_PY2JS["column_clustered"],
             "left": left,
             "top": top,
@@ -2720,7 +2744,7 @@ class Note(base_classes.Note):
     def _entry(self):
         """This note's entry in the sheet's notes payload, keyed by address."""
         for note in self.range.sheet.api.get("notes", []):
-            if note["address"] == self.range.address:
+            if _address_key(note["address"]) == _address_key(self.range.address):
                 return note
         return None
 

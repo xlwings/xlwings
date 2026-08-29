@@ -5,9 +5,9 @@ Formulas deliberately aren't part of the payload the client sends with every
 request (that would grow every request for data most scripts never read), so
 the sync `formula` getter raises and formulas are fetched on demand instead.
 
-`js` isn't available in the test environment and get_formula() gates on
-``sys.platform == "emscripten"``, so the fixture below fakes just enough of
-that surface to run the real logic.
+The Pyodide bridge modules aren't available in the test environment and
+get_formula() gates on ``sys.platform == "emscripten"``, so the fixture below
+fakes just enough of that surface to run the real logic.
 """
 
 import sys
@@ -44,9 +44,9 @@ def book():
 
 @pytest.fixture
 def fake_js(monkeypatch):
-    """Fake sys.platform + js so get_formula() runs its real logic.
+    """Fake sys.platform and the Pyodide bridge so the real logic can run.
 
-    getRangeData records the (sheet_name, address, mode) it was called with and
+    getRangeData records the (sheet_name, address, keys) it was called with and
     returns a formula grid matching the requested shape.
     """
     monkeypatch.setattr(sys, "platform", "emscripten")
@@ -70,6 +70,17 @@ def fake_js(monkeypatch):
     js = ModuleType("js")
     js.xlwings = SimpleNamespace(getRangeData=get_range_data)
     monkeypatch.setitem(sys.modules, "js", js)
+
+    pyodide = ModuleType("pyodide")
+    ffi = ModuleType("pyodide.ffi")
+
+    def to_js(value):
+        return value
+
+    ffi.to_js = to_js
+    pyodide.ffi = ffi
+    monkeypatch.setitem(sys.modules, "pyodide", pyodide)
+    monkeypatch.setitem(sys.modules, "pyodide.ffi", ffi)
     return calls
 
 
@@ -161,7 +172,7 @@ async def test_get_formula_respects_ndim_1_on_a_single_cell(book, fake_js):
 @pytest.mark.anyio
 async def test_get_formula_passes_sheet_name_and_address(book, fake_js):
     await book.sheets[0]["B2:C3"].get_formula()
-    assert fake_js == [("S1", "$B$2:$C$3", "formulas")]
+    assert fake_js == [("S1", "$B$2:$C$3", ["formulas"])]
 
 
 @pytest.mark.anyio

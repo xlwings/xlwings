@@ -208,7 +208,10 @@ which settles `Sheet.to_pdf()` and `Range.to_pdf()` below as well.
       the client sends it in lazy mode too and `used_range` works on an async
       book without loading any values. Clients that don't send it fall back to
       deriving the extent from the shape of `values`, which then starts at A1
-      and raises on an unloaded lazy (async) book.
+      and raises on an unloaded lazy (async) book. Office.js deliberately uses
+      its values-only used range here, so formatting-only cells don't extend
+      `used_range`. This differs from desktop COM behavior, but keeps remote
+      metadata and eager value snapshots bounded to cells containing data.
 - [x] `visible` (get/set) — case 1: the getter reads the payload's
       `visibility` field; the setter queues a `setSheetVisibility` JSON action.
       Office.js' third state, `VeryHidden`, maps to `False` like `Hidden` does,

@@ -98,7 +98,10 @@ data = {
                 [4.4, 5.5, 6.6, ""],
                 ["Total", "", 9.9, ""],
             ],
-            "notes": [{"address": "$A$1", "text": "mynote"}],
+            # Office.js Range.address is relative ("A1"), while xlwings'
+            # Range.address is absolute ("$A$1"). The engine normalizes them
+            # when matching notes to cells.
+            "notes": [{"address": "A1", "text": "mynote"}],
             "charts": [
                 {
                     "name": "mychart1",
@@ -674,6 +677,19 @@ def test_sheet_copy_seeds_every_payload_key():
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_copy_owns_its_nested_metadata():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    source = book.sheets[0]
+    copied = source.copy()
+
+    for key in ["values", "pictures", "shapes", "charts", "notes", "tables"]:
+        assert copied.impl.api[key] is not source.impl.api[key]
+
+    copied.charts[0].name = "copied-chart"
+    assert source.charts[0].name == "mychart1"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_charts_collection(book):
     charts = book.sheets[0].charts
     assert len(charts) == 1
@@ -744,6 +760,23 @@ def test_charts_add_defers_until_source_data():
     # ...and the documented follow-up calls work on the created chart
     chart.chart_type = "line"
     assert book.json()["actions"][-1]["func"] == "setChartType"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_charts_add_assigns_unique_default_names():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    sheet = book.sheets[0]
+    first = sheet.charts.add()
+    second = sheet.charts.add()
+
+    first.set_source_data(sheet["A1:B2"])
+    second.set_source_data(sheet["A1:B2"])
+
+    add_actions = [
+        action for action in book.json()["actions"] if action["func"] == "addChart"
+    ]
+    names = [action["args"][0] for action in add_actions]
+    assert len(names) == len(set(names)) == 2
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
