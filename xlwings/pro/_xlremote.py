@@ -2668,9 +2668,7 @@ class Chart(base_classes.Chart):
         )
 
 
-class Charts(Collection):
-    # base_classes.Charts has a different shape (it declares _wrap as a method),
-    # so this follows Shapes and subclasses Collection alone.
+class Charts(Collection, base_classes.Charts):
     _attr = "charts"
     _wrap = Chart
 
