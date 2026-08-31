@@ -2145,6 +2145,12 @@ class Range:
         One unit of column width is equal to the width of one character in the Normal
         style. For proportional fonts, the width of the character 0 (zero) is used.
 
+        ```{note}
+        On xlwings Server and xlwings Lite this is in **points** instead: it's
+        the unit that host measures column widths in, and converting to
+        characters can't be done exactly without measuring the workbook's font.
+        ```
+
         If all columns in the Range have the same width, returns the width.
         If columns in the Range have different widths, returns None.
 
@@ -2506,11 +2512,15 @@ class Range:
         return await self._impl.get_wrap_text()
 
     async def get_column_width(self) -> float | None:
-        """Fetch the column width on demand, in characters.
+        """Fetch the column width on demand.
 
-        Returns `None` if the range's columns aren't all the same width. The
-        value can differ from what `column_width` was set to by a percent or
-        two, on a workbook whose Normal style uses a non-default font.
+        Returns `None` if the range's columns aren't all the same width.
+
+        ```{note}
+        On xlwings Server and xlwings Lite this is in **points**, the unit
+        this host measures column widths in, rather than the characters the
+        desktop engines report. `column_width` takes points there too.
+        ```
 
         Requires xlwings Lite.
         """

@@ -1645,18 +1645,15 @@ class Range(base_classes.Range):
 
     @column_width.setter
     def column_width(self, value):
-        if (
-            isinstance(value, bool)
-            or not isinstance(value, numbers.Real)
-            or not 0 <= value <= 255
-        ):
-            raise ValueError("column_width must be a number between 0 and 255.")
-        # Sent in xlwings' public unit (characters); the client converts to the
-        # points Office.js wants, measuring the workbook's real character width
-        # to do it. `get_column_width()` converts back, but has to assume a
-        # default character width -- it can't measure without changing the
-        # sheet -- so a write/read round-trip can drift by a percent or two on
-        # a workbook whose Normal style isn't the default font.
+        if isinstance(value, bool) or not isinstance(value, numbers.Real):
+            raise ValueError("column_width must be a number.")
+        if value < 0:
+            raise ValueError("column_width can't be negative.")
+        # Points, which is what this host measures column widths in -- the
+        # desktop engines pass their own raw unit (characters) through the same
+        # way. Converting between the two can't be done exactly without
+        # measuring the workbook's font, so the raw value is passed on and
+        # cross-engine code converts if it needs to.
         self.append_json_action(func="setColumnWidth", args=value)
 
     @property

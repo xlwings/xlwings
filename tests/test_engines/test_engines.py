@@ -1137,6 +1137,32 @@ def test_shape_characters_sync_text_points_at_async(book):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_column_width_passes_points_through(book):
+    # Points on this engine, which is what the host measures in -- no
+    # conversion, so a value written is the value read back.
+    book.sheets[0]["A1"].column_width = 110.5
+    action = book.json()["actions"][-1]
+    assert action["func"] == "setColumnWidth"
+    assert action["args"] == [110.5]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("value", [-1, True, "wide", None])
+def test_range_column_width_rejects_invalid(book, value):
+    with pytest.raises(ValueError, match="column_width"):
+        book.sheets[0]["A1"].column_width = value
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_range_column_width_allows_zero_and_large_values(book):
+    # 0 hides the column, and points aren't capped at the 255 that bounded the
+    # old character unit.
+    for value in [0, 400]:
+        book.sheets[0]["A1"].column_width = value
+        assert book.json()["actions"][-1]["args"] == [value]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_range_to_png(book):
     # Already worked via the rangeToPng action, unlike the other exports.
     book.sheets[0]["A1"].to_png("out.png")
