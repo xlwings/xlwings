@@ -2755,14 +2755,23 @@ class Note(base_classes.Note):
 
     @property
     def text(self):
-        entry = self._entry
-        return entry["text"] if entry else None
+        # The payload says which cells have a note, not what they say: note
+        # text is unbounded, so sending it would put every note's full text in
+        # every request.
+        raise NotImplementedError(
+            "Reading a note's text synchronously isn't supported on this "
+            "engine. Use 'await mynote.get_text()' to fetch it on demand."
+        )
+
+    async def get_text(self):
+        if sys.platform != "emscripten":
+            raise NotImplementedError("get_text() is only supported in xlwings Lite")
+        import js
+
+        return await js.xlwings.getNoteText(self.range.sheet.name, self.range.address)
 
     @text.setter
     def text(self, value):
-        entry = self._entry
-        if entry is not None:
-            entry["text"] = value
         self.range.append_json_action(
             func="setNoteText", args=[self.range.address, value]
         )

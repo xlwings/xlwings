@@ -101,7 +101,7 @@ data = {
             # Office.js Range.address is relative ("A1"), while xlwings'
             # Range.address is absolute ("$A$1"). The engine normalizes them
             # when matching notes to cells.
-            "notes": [{"address": "A1", "text": "mynote"}],
+            "notes": [{"address": "A1"}],
             "charts": [
                 {
                     "name": "mychart1",
@@ -853,11 +853,23 @@ def test_chart_to_pdf_and_get_png_not_supported(book):
 
 @pytest.mark.skipif(engine == "calamine", reason="calamine engine")
 def test_range_note(book):
-    note = book.sheets[0]["A1"].note
-    assert note is not None
-    assert note.text == "mynote"
+    # The payload says which cells have a note, not what they say, so this is
+    # answerable synchronously without carrying every note's text.
+    assert book.sheets[0]["A1"].note is not None
     # a cell without one reports None, as on the other engines
     assert book.sheets[0]["B2"].note is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_note_text_sync_points_at_async(book):
+    with pytest.raises(NotImplementedError, match=r"get_text\(\)"):
+        book.sheets[0]["A1"].note.text
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_note_get_text_not_supported_off_lite(book):
+    with pytest.raises(NotImplementedError, match="only supported in xlwings Lite"):
+        asyncio.run(book.sheets[0]["A1"].note.get_text())
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
@@ -868,8 +880,6 @@ def test_note_text_setter():
     assert action["func"] == "setNoteText"
     assert action["args"] == ["$A$1", "updated"]
     assert action["sheet_position"] == 0
-    # written through, so a read-after-write in the same script is correct
-    assert book.sheets[0]["A1"].note.text == "updated"
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
