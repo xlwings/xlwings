@@ -619,7 +619,13 @@ def test_pictures_height(book):
 # back before the next round-trip. Each entry is the collection's attribute on
 # the sheet, plus a callable that adds one. Their seeded keys have to keep
 # matching the payload the client sends, which the fixture mirrors -- three
-# separate getters have shipped KeyError bugs from that drifting apart.
+# separate getters have shipped KeyError bugs from that drifting apart, and a
+# fourth (print_area) was latent.
+#
+# A shared seeding helper wouldn't prevent this: the dicts are genuinely
+# different shapes and their values are per-class (Excel's defaults, the
+# caller's arguments, or None). The failure mode is drift between two lists,
+# which is what these tests are for.
 _SEEDING_COLLECTIONS = [
     (
         "pictures",
