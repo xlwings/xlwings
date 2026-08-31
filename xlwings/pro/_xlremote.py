@@ -2638,9 +2638,11 @@ class Chart(base_classes.Chart):
         return await js.xlwings.getChartImage(self.parent.name, self.index - 1)
 
     def to_png(self, path):
+        # Unlike Range.to_png(), there's no action for this yet. get_png()
+        # returns the image data, which the caller can write themselves.
         raise NotImplementedError(
-            "Chart.to_png() can't write a file synchronously on this engine. "
-            "Use 'await mychart.get_png()' for the base64-encoded image."
+            "Chart.to_png() is not supported on this engine yet. Use "
+            "'await mychart.get_png()' for the base64-encoded image."
         )
 
     def to_pdf(self, path, quality):
