@@ -1539,10 +1539,10 @@ class Range(base_classes.Range):
     async def _get_range_data(self, key, method=None):
         """Fetch one on-demand property for this range from the client.
 
-        Group A of the Range getters: everything that's a plain Office.js
-        `range.*` property. `getRangeData` takes a list of keys and returns
-        them under the same names, so this is a thin wrapper. `method` names
-        the caller for the error message where it differs from the key.
+        `getRangeData` takes a list of read keys and returns them under the
+        same names, so this is a thin wrapper around it. `method` names the
+        calling method in the error message, for the keys whose name differs
+        from it.
         """
         if sys.platform != "emscripten":
             raise NotImplementedError(
