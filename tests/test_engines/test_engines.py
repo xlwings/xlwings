@@ -833,6 +833,16 @@ def test_chart_to_png_defaults_the_path(book):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_to_png_requires_source_data_for_pending_chart(book):
+    chart = book.sheets[0].charts.add()
+
+    with pytest.raises(xw.XlwingsError, match="set_source_data"):
+        chart.to_png("out.png")
+
+    assert book.json()["actions"] == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_chart_to_pdf_and_get_png_not_supported(book):
     chart = book.sheets[0].charts[0]
     with pytest.raises(NotImplementedError, match="has no PDF export"):

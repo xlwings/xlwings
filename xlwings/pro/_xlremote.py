@@ -2638,6 +2638,11 @@ class Chart(base_classes.Chart):
         return await js.xlwings.getChartImage(self.parent.name, self.index - 1)
 
     def to_png(self, path):
+        if self._pending is not None:
+            raise XlwingsError(
+                "Chart.to_png() requires source data. Call Chart.set_source_data() "
+                "first."
+            )
         # Like Range.to_png(), this queues an action that writes the file; it
         # lands when the script returns or on the next `await book.flush()`.
         self.append_json_action(func="chartToPng", args=[self.index - 1, path])
