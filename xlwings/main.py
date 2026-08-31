@@ -2471,9 +2471,8 @@ class Range:
     async def get_formula_array(self) -> str | None:
         """Fetch the array formula for this range on demand.
 
-        A single string, or `None` if the range holds no array formula --- the
-        same scalar contract as `formula_array` on the other engines, not the
-        per-cell matrix `get_formula()` returns.
+        A single string, or `None` if the range holds no array formula. Unlike
+        `get_formula()`, this isn't a value per cell.
 
         Requires xlwings Lite.
         """
@@ -2482,8 +2481,7 @@ class Range:
     async def get_number_format(self) -> str | None:
         """Fetch the number format on demand.
 
-        A single format string, or `None` if the range's cells don't share one
-        --- matching `number_format` on the other engines.
+        A single format string, or `None` if the range's cells don't share one.
 
         Requires xlwings Lite.
         """
@@ -2501,8 +2499,7 @@ class Range:
     async def get_wrap_text(self) -> bool | None:
         """Fetch the wrap text setting on demand.
 
-        `None` if the range doesn't have a uniform wrap setting, matching the
-        desktop engines.
+        `None` if the range doesn't have a uniform wrap setting.
 
         Requires xlwings Lite.
         """
@@ -2557,8 +2554,8 @@ class Range:
     async def get_hyperlink(self) -> str:
         """Fetch this cell's hyperlink address on demand.
 
-        Mirrors `hyperlink`, including its HYPERLINK()-formula branch and its
-        exception when the cell has no hyperlink, but fetches asynchronously.
+        The async equivalent of `hyperlink`: same result, including for cells
+        that use a `HYPERLINK()` formula. Raises if the cell has no hyperlink.
 
         Requires xlwings Lite.
         """
@@ -2599,8 +2596,7 @@ class Range:
         """Fetch whether this range contains merged cells, on demand.
 
         `True` if the whole range is merged, `False` if none of it is, and
-        `None` for a range that's only partly merged --- the same tri-state
-        the desktop engines report.
+        `None` if it's only partly merged.
 
         Requires xlwings Lite.
         """
@@ -3436,7 +3432,7 @@ class Shape:
     async def get_text(self) -> str | None:
         """Fetch the shape's text on demand.
 
-        `None` if the shape holds no text, as on the other engines.
+        `None` if the shape holds no text.
 
         Requires xlwings Lite.
         """
