@@ -2198,6 +2198,15 @@ class Names(base_classes.Names):
                 "sheet_index": _get_sheet_index(self.parent),
                 "address": refers_to.split("!")[1].replace("$", ""),
                 "book_scope": True if is_parent_book else False,
+                # A sheet-scoped name is scoped to the sheet it was added
+                # through; a book-scoped one has no scope sheet. Both are part
+                # of the payload, so delete() and the refers_to setter read
+                # them -- without them those raise KeyError on a name added
+                # mid-script.
+                "scope_sheet_name": None if is_parent_book else self.parent.name,
+                "scope_sheet_index": (
+                    None if is_parent_book else self.parent.index - 1
+                ),
             },
         )
 

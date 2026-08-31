@@ -1341,6 +1341,27 @@ def test_sheet_names_add(book):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_names_add_seeds_scope_so_the_name_is_usable():
+    # A name added mid-script has to be usable straight away: delete() and the
+    # refers_to setter both read the scope keys, which add() didn't seed.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+
+    book_scoped = book.names.add("BookScoped", f"={book.sheets[0].name}!$A$1")
+    book_scoped.refers_to = f"={book.sheets[0].name}!$B$2"
+    assert book.json()["actions"][-1]["args"][1:3] == [True, None]
+    book_scoped.delete()
+    assert book.json()["actions"][-1]["func"] == "nameDelete"
+
+    sheet = book.sheets[0]
+    sheet_scoped = sheet.names.add("SheetScoped", f"={sheet.name}!$C$3")
+    sheet_scoped.refers_to = f"={sheet.name}!$D$4"
+    # sheet-scoped names carry their scope index, which nameDelete needs too
+    assert book.json()["actions"][-1]["args"][1:3] == [False, sheet.index - 1]
+    sheet_scoped.delete()
+    assert book.json()["actions"][-1]["func"] == "nameDelete"
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_name_refers_to_setter():
     book = xw.Book(json=json.loads(json.dumps(data)))
     name = book.names[0]
