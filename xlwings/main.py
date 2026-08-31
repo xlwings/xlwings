@@ -2473,7 +2473,9 @@ class Range:
 
         A single string, or `None` if the range holds no array formula --- the
         same scalar contract as `formula_array` on the other engines, not the
-        per-cell matrix `get_formula()` returns. Requires xlwings Lite.
+        per-cell matrix `get_formula()` returns.
+
+        Requires xlwings Lite.
         """
         return await self._impl.get_formula_array()
 
@@ -2481,15 +2483,18 @@ class Range:
         """Fetch the number format from Excel on demand.
 
         A single format string, or `None` if the range's cells don't share one
-        --- matching `number_format` on the other engines. Requires xlwings
-        Lite.
+        --- matching `number_format` on the other engines.
+
+        Requires xlwings Lite.
         """
         return await self._impl.get_number_format()
 
     async def get_color(self) -> tuple[int, int, int] | None:
         """Fetch the fill color from Excel on demand, as an RGB tuple.
 
-        Returns `None` if the range has no fill. Requires xlwings Lite.
+        Returns `None` if the range has no fill.
+
+        Requires xlwings Lite.
         """
         return await self._impl.get_color()
 
@@ -2497,7 +2502,9 @@ class Range:
         """Fetch the wrap text setting from Excel on demand.
 
         `None` if the range doesn't have a uniform wrap setting, matching the
-        desktop engines. Requires xlwings Lite.
+        desktop engines.
+
+        Requires xlwings Lite.
         """
         return await self._impl.get_wrap_text()
 
@@ -2505,6 +2512,7 @@ class Range:
         """Fetch the column width from Excel on demand, in characters.
 
         Returns `None` if the range's columns aren't all the same width.
+
         Requires xlwings Lite.
         """
         return await self._impl.get_column_width()
@@ -2513,6 +2521,7 @@ class Range:
         """Fetch the row height from Excel on demand, in points.
 
         Returns `None` if the range's rows aren't all the same height.
+
         Requires xlwings Lite.
         """
         return await self._impl.get_row_height()
@@ -2550,6 +2559,7 @@ class Range:
 
         Mirrors `hyperlink`, including its HYPERLINK()-formula branch and its
         exception when the cell has no hyperlink, but fetches asynchronously.
+
         Requires xlwings Lite.
         """
         formula = await self.get_formula()
@@ -2570,7 +2580,9 @@ class Range:
         """Fetch the current region from Excel on demand.
 
         The region bounded by blank rows and columns around this range, i.e.
-        `Ctrl-*`. Requires xlwings Lite.
+        `Ctrl-*`.
+
+        Requires xlwings Lite.
         """
         return Range(impl=await self._impl.get_current_region())
 
@@ -2578,6 +2590,7 @@ class Range:
         """Fetch the merged range containing this cell from Excel on demand.
 
         Returns this range itself if it isn't part of a merged range.
+
         Requires xlwings Lite.
         """
         return Range(impl=await self._impl.get_merge_area())
@@ -2587,15 +2600,18 @@ class Range:
 
         `True` if the whole range is merged, `False` if none of it is, and
         `None` for a range that's only partly merged --- the same tri-state
-        the desktop engines report. Requires xlwings Lite.
+        the desktop engines report.
+
+        Requires xlwings Lite.
         """
         return await self._impl.get_merge_cells()
 
     async def get_table(self) -> Table | None:
         """Fetch the Table this range is part of from Excel on demand.
 
-        Returns `None` if the range isn't part of a table. Requires xlwings
-        Lite.
+        Returns `None` if the range isn't part of a table.
+
+        Requires xlwings Lite.
         """
         impl = await self._impl.get_table()
         return Table(impl=impl) if impl else None
@@ -3420,8 +3436,9 @@ class Shape:
     async def get_text(self) -> str | None:
         """Fetch the shape's text from Excel on demand.
 
-        `None` if the shape holds no text, as on the other engines. Requires
-        xlwings Lite.
+        `None` if the shape holds no text, as on the other engines.
+
+        Requires xlwings Lite.
         """
         return await self.impl.get_text()
 
@@ -4145,7 +4162,9 @@ class Chart:
         """Fetch the chart as a base64-encoded PNG from Excel on demand.
 
         `to_png()` writes a file, which this engine can't do synchronously;
-        this returns the image data instead. Requires xlwings Lite.
+        this returns the image data instead.
+
+        Requires xlwings Lite.
         """
         return await self.impl.get_png()
 
@@ -4935,7 +4954,9 @@ class Characters:
     async def get_text(self) -> str | None:
         """Fetch the characters' text from Excel on demand.
 
-        `None` if the shape holds no text. Requires xlwings Lite.
+        `None` if the shape holds no text.
+
+        Requires xlwings Lite.
         """
         return await self.impl.get_text()
 
@@ -5061,36 +5082,45 @@ class Font:
     async def get_bold(self) -> bool | None:
         """Fetch the bold property from Excel on demand.
 
-        `None` if the range's cells don't all agree. Requires xlwings Lite.
+        `None` if the range's cells don't all agree.
+
+        Requires xlwings Lite.
         """
         return await self.impl.get_bold()
 
     async def get_italic(self) -> bool | None:
         """Fetch the italic property from Excel on demand.
 
-        `None` if the range's cells don't all agree. Requires xlwings Lite.
+        `None` if the range's cells don't all agree.
+
+        Requires xlwings Lite.
         """
         return await self.impl.get_italic()
 
     async def get_size(self) -> float | None:
         """Fetch the font size from Excel on demand.
 
-        `None` if the range's cells don't all agree. Requires xlwings Lite.
+        `None` if the range's cells don't all agree.
+
+        Requires xlwings Lite.
         """
         return await self.impl.get_size()
 
     async def get_color(self) -> tuple[int, int, int] | None:
         """Fetch the font colour from Excel on demand, as an RGB tuple.
 
-        `None` if unset or if the range's cells don't all agree. Requires
-        xlwings Lite.
+        `None` if unset or if the range's cells don't all agree.
+
+        Requires xlwings Lite.
         """
         return await self.impl.get_color()
 
     async def get_name(self) -> str | None:
         """Fetch the font name from Excel on demand.
 
-        `None` if the range's cells don't all agree. Requires xlwings Lite.
+        `None` if the range's cells don't all agree.
+
+        Requires xlwings Lite.
         """
         return await self.impl.get_name()
 
@@ -5147,6 +5177,7 @@ class Books(Collection[Book]):
 
         This is the entry point to the async API, which reads on demand
         (lazy loading) instead of snapshotting the whole workbook up front.
+
         Requires xlwings Lite.
 
         Use `await myrange.get_value()` to read cell values on demand.
