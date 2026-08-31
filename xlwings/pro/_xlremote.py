@@ -2442,14 +2442,18 @@ class Tables(Collection, base_classes.Tables):
         )
         self.parent._api["tables"].append(
             {
-                "name": "",
-                "range_address": None,
+                # What the caller asked for, so reading these back before the
+                # next round-trip gives the requested values rather than
+                # placeholders. An unnamed table gets its name from Excel, so
+                # there's nothing to seed until the payload refreshes.
+                "name": name if name else "",
+                "range_address": source.address if source else None,
                 "header_row_range_address": None,
                 "data_body_range_address": None,
                 "total_row_range_address": None,
-                "show_headers": None,
-                "show_totals": None,
-                "table_style": "",
+                "show_headers": has_headers if has_headers is not None else True,
+                "show_totals": False,
+                "table_style": table_style_name if table_style_name else "",
                 # Excel's defaults for a new table, so the getters work before
                 # the next round-trip refreshes the payload.
                 "show_autofilter": True,

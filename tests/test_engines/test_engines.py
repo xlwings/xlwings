@@ -1929,6 +1929,32 @@ def test_table_set_show_table_style_flags(book, attribute, func, value):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_tables_add_seeds_the_requested_values():
+    # A table added mid-script has to read back as what the caller asked for,
+    # not as placeholders: name was hardcoded to "" here, so table.name and
+    # display_name came back empty until the next round-trip.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    sheet = book.sheets[0]
+    table = sheet.tables.add(
+        source=sheet["A1:B2"], name="MyTable", table_style_name="TableStyleLight1"
+    )
+    assert table.name == "MyTable"
+    assert table.display_name == "MyTable"
+    assert table.range.address == "$A$1:$B$2"
+    assert table.table_style == "TableStyleLight1"
+    assert table.show_headers is True
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_tables_add_without_a_name_leaves_it_empty():
+    # Excel assigns the name in that case, so there's nothing to seed until
+    # the payload refreshes.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    sheet = book.sheets[0]
+    assert sheet.tables.add(source=sheet["A1:B2"]).name == ""
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_table_add_seeds_show_table_style_flags():
     # Tables.add() seeds the flags with Excel's defaults, so the getters work
     # before the next round-trip rather than raising KeyError.
