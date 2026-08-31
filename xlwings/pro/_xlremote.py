@@ -759,7 +759,7 @@ class Book(base_classes.Book):
 
     def to_pdf(self, path, quality):
         raise NotImplementedError(
-            "Book.to_pdf() is not supported on this engine, which has no PDF " "export."
+            "Book.to_pdf() is not supported on this engine, which has no PDF export."
         )
 
     def close(self):
@@ -1008,8 +1008,7 @@ class Sheet(base_classes.Sheet):
 
     def to_html(self, path):
         raise NotImplementedError(
-            "Sheet.to_html() is not supported on this engine, which has no HTML "
-            "export."
+            "Sheet.to_html() is not supported on this engine, which has no HTML export."
         )
 
     def delete(self):
@@ -1839,8 +1838,7 @@ class Range(base_classes.Range):
 
     def to_pdf(self, path, quality):
         raise NotImplementedError(
-            "Range.to_pdf() is not supported on this engine, which has no PDF "
-            "export."
+            "Range.to_pdf() is not supported on this engine, which has no PDF export."
         )
 
     @property
@@ -2663,8 +2661,7 @@ class Chart(base_classes.Chart):
 
     def to_pdf(self, path, quality):
         raise NotImplementedError(
-            "Chart.to_pdf() is not supported on this engine, which has no PDF "
-            "export."
+            "Chart.to_pdf() is not supported on this engine, which has no PDF export."
         )
 
 
@@ -2923,8 +2920,7 @@ class Shape(base_classes.Shape):
             scale_from = _SHAPE_SCALE_FROM[scale]
         except KeyError:
             raise ValueError(
-                f"Invalid scale: {scale!r}. Must be one of "
-                f"{sorted(_SHAPE_SCALE_FROM)}."
+                f"Invalid scale: {scale!r}. Must be one of {sorted(_SHAPE_SCALE_FROM)}."
             ) from None
         scale_type = "OriginalSize" if relative_to_original_size else "CurrentSize"
         self.append_json_action(
@@ -3110,43 +3106,3 @@ class Font(base_classes.Font):
     @name.setter
     def name(self, value):
         self.append_json_action(func="setFontProperty", args=["name", value])
-
-
-if __name__ == "__main__":
-    # python -m xlwings.pro._xlremote
-    import inspect
-
-    def print_unimplemented_attributes(class_name, base_class, derived_class=None):
-        if class_name == "Apps":
-            return
-        base_attributes = set(
-            attr
-            for attr in vars(base_class)
-            if not (attr.startswith("_") or attr == "api")
-        )
-        if derived_class:
-            derived_attributes = set(
-                attr for attr in vars(derived_class) if not attr.startswith("_")
-            )
-        else:
-            derived_attributes = set()
-        unimplemented_attributes = base_attributes - derived_attributes
-
-        if unimplemented_attributes:
-            print("")
-            print(f"    xlwings.{class_name}")
-            print("")
-            for attribute in unimplemented_attributes:
-                if not attribute.startswith("__") and attribute not in (
-                    "api",
-                    "xl",
-                    "hwnd",
-                ):
-                    if callable(getattr(base_class, attribute)):
-                        print(f"        - {attribute}()")
-                    else:
-                        print(f"        - {attribute}")
-
-    for name, obj in inspect.getmembers(base_classes):
-        if inspect.isclass(obj):
-            print_unimplemented_attributes(name, obj, globals().get(name))
