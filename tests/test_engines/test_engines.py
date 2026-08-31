@@ -814,10 +814,27 @@ def test_chart_delete_pending_chart():
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
-def test_chart_to_png_and_to_pdf_not_supported(book):
+def test_chart_to_png(book):
+    # Queues an action that writes the file, like Range.to_png(); it lands
+    # when the script returns or on the next await book.flush().
+    book.sheets[0].charts[0].to_png("out.png")
+    action = book.json()["actions"][-1]
+    assert action["func"] == "chartToPng"
+    assert action["args"] == [0, "out.png"]
+    assert action["sheet_position"] == 0
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_to_png_defaults_the_path(book):
+    # The public method resolves the default before reaching the impl.
     chart = book.sheets[0].charts[0]
-    with pytest.raises(NotImplementedError, match=r"get_png\(\)"):
-        chart.to_png("out.png")
+    chart.to_png()
+    assert book.json()["actions"][-1]["args"][1].endswith(f"{chart.name}.png")
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_chart_to_pdf_and_get_png_not_supported(book):
+    chart = book.sheets[0].charts[0]
     with pytest.raises(NotImplementedError, match="has no PDF export"):
         chart.to_pdf("out.pdf")
     with pytest.raises(NotImplementedError, match="only supported in xlwings Lite"):

@@ -4161,7 +4161,8 @@ class Chart:
     async def get_png(self) -> str:
         """Fetch the chart as a base64-encoded PNG from Excel on demand.
 
-        Returns the image data rather than writing a file.
+        Returns the image data rather than writing a file, which is what
+        `to_png()` does.
 
         Requires xlwings Lite.
         """
