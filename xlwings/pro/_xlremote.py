@@ -2932,6 +2932,12 @@ class Shape(base_classes.Shape):
             func="scaleShape",
             args=[self.index - 1, factor, scale_type, scale_from, axis],
         )
+        # Keep width/height in step, so reading them back in the same script
+        # reflects the scaling. Only the current-size case is predictable:
+        # scaling from the original size needs a size this engine doesn't
+        # know, so leave those to the next round-trip.
+        if not relative_to_original_size and self.api.get(axis) is not None:
+            self.api[axis] = self.api[axis] * factor
 
     @property
     def font(self):

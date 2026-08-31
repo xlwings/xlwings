@@ -995,6 +995,31 @@ def test_shape_scale(method, relative, scale, expected):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_shape_scale_updates_the_local_geometry():
+    # Scaling has to be visible to a read-after-write in the same script, the
+    # way the width/height setters are.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    shape = book.sheets[0].shapes[0]
+    width, height = shape.width, shape.height
+
+    shape.scale_width(1.5, False, "scale_from_top_left")
+    shape.scale_height(2.0, False, "scale_from_top_left")
+    assert shape.width == width * 1.5
+    assert shape.height == height * 2.0
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_shape_scale_from_original_size_leaves_geometry_alone():
+    # The original size isn't something this engine knows, so that case waits
+    # for the next round-trip rather than guessing.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    shape = book.sheets[0].shapes[0]
+    width = shape.width
+    shape.scale_width(1.5, True, "scale_from_top_left")
+    assert shape.width == width
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_shape_scale_invalid_anchor(book):
     with pytest.raises(ValueError, match="Invalid scale"):
         book.sheets[0].shapes[0].scale_height(1.5, False, "nonsense")
