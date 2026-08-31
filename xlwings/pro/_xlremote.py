@@ -2865,9 +2865,10 @@ class Shape(base_classes.Shape):
     async def _get_shape_data(self, key, start=None, length=None):
         """Fetch one on-demand property for this shape from the client.
 
-        Shape text is unbounded, so it's fetched when asked for rather than
-        shipped with every request for every shape in the workbook. `start` and
-        `length` narrow the read to a character slice, for `Characters`.
+        A shape's geometry is in the payload, but its text isn't: that lives
+        on a separate text frame, so reading it costs its own round-trip
+        whether or not anything asks for it. `start` and `length` narrow the
+        read to a character slice, for `Characters`.
         """
         if sys.platform != "emscripten":
             raise NotImplementedError(f"get_{key}() is only supported in xlwings Lite")
@@ -2888,8 +2889,9 @@ class Shape(base_classes.Shape):
 
     @property
     def text(self):
-        # Not in the payload: shape text is unbounded, so it's fetched on
-        # demand rather than shipped with every request.
+        # Not in the payload: a shape's text lives on a separate text frame,
+        # so it's fetched on demand rather than costing a round-trip for
+        # every shape on every request.
         raise NotImplementedError(
             "Reading a shape's text synchronously isn't supported on this "
             "engine. Use 'await myshape.get_text()' to fetch it on demand."
