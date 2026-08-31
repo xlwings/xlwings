@@ -443,10 +443,10 @@ class App:
         screen_updating property back to True when your script ends.
 
         ```{note}
-        On xlwings Server and xlwings Lite, Office.js can only suspend screen
-        updating until its next sync rather than turning it off indefinitely,
-        so the effect ends on its own before your script does. Setting it back
-        to `True` is a no-op there, and reading the property isn't supported.
+        On xlwings Server and xlwings Lite, screen updating can only be
+        suspended until the next sync rather than turned off indefinitely, so
+        the effect ends on its own before your script does. Setting it back to
+        `True` is a no-op there, and reading the property isn't supported.
         ```
 
         ```{versionadded} 0.3.3
@@ -1198,10 +1198,9 @@ class Book:
 
         ```{note}
         On xlwings Server and xlwings Lite, the workbook is saved in place
-        after your script returns, as Office.js applies the change on its next
-        turn rather than while the script runs. `path` and `password` aren't
-        supported there, since Office.js has neither a SaveAs nor a password
-        API.
+        after your script returns rather than while it runs. `path` and
+        `password` aren't supported there: the book can only be saved in
+        place, and there's no way to set a password.
         ```
 
         ```{versionadded} 0.3.1

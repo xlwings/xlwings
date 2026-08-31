@@ -812,7 +812,7 @@ def test_chart_to_png_and_to_pdf_not_supported(book):
     chart = book.sheets[0].charts[0]
     with pytest.raises(NotImplementedError, match=r"get_png\(\)"):
         chart.to_png("out.png")
-    with pytest.raises(NotImplementedError, match="no PDF export"):
+    with pytest.raises(NotImplementedError, match="has no PDF export"):
         chart.to_pdf("out.pdf")
     with pytest.raises(NotImplementedError, match="only supported in xlwings Lite"):
         asyncio.run(chart.get_png())
@@ -1091,8 +1091,8 @@ def test_range_to_png(book):
 @pytest.mark.parametrize(
     "call,match",
     [
-        (lambda rng: rng.copy_picture(), "no clipboard API"),
-        (lambda rng: rng.paste(), "no clipboard API"),
+        (lambda rng: rng.copy_picture(), "no clipboard access"),
+        (lambda rng: rng.paste(), "no clipboard access"),
         (lambda rng: rng.to_pdf(), "no PDF export"),
     ],
 )
@@ -1104,7 +1104,7 @@ def test_range_unsupported_exports(book, call, match):
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_range_characters_not_supported(book):
     # Office.js has no character-range object for cells; only shapes have one.
-    with pytest.raises(NotImplementedError, match="no.*character-range object"):
+    with pytest.raises(NotImplementedError, match="address a range of characters"):
         book.sheets[0]["A1"].characters
 
 
@@ -1345,7 +1345,7 @@ def test_name_refers_to_setter_unknown_sheet(book):
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_name_name_setter_not_supported(book):
     # Excel.NamedItem.name is read-only in Office.js.
-    with pytest.raises(NotImplementedError, match="read-only"):
+    with pytest.raises(NotImplementedError, match="is read-only"):
         book.names[0].name = "newname"
 
 
@@ -1610,16 +1610,16 @@ def test_table_set_show_totals(book):
 def test_app_unsupported_read_write(book, attribute):
     # Excel.Application has no equivalent, so both accessors raise with the
     # reason rather than a bare NotImplementedError.
-    with pytest.raises(NotImplementedError, match="not supported in Office.js"):
+    with pytest.raises(NotImplementedError, match="not supported on this engine"):
         getattr(book.app, attribute)
-    with pytest.raises(NotImplementedError, match="not supported in Office.js"):
+    with pytest.raises(NotImplementedError, match="not supported on this engine"):
         setattr(book.app, attribute, True)
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 @pytest.mark.parametrize("attribute", ["path", "startup_path", "version"])
 def test_app_unsupported_read_only(book, attribute):
-    with pytest.raises(NotImplementedError, match="not supported in Office.js"):
+    with pytest.raises(NotImplementedError, match="not supported on this engine"):
         getattr(book.app, attribute)
     # read-only in the public API, so assigning raises AttributeError here too
     with pytest.raises(AttributeError):
@@ -1670,7 +1670,7 @@ def test_sheet_select():
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_sheet_to_html_not_supported(book):
-    with pytest.raises(NotImplementedError, match="no HTML export"):
+    with pytest.raises(NotImplementedError, match="has no HTML export"):
         book.sheets[0].to_html()
 
 
@@ -1730,7 +1730,7 @@ def test_book_save():
 def test_book_save_path_not_supported(book):
     # Office.js has no SaveAs, so a path must raise rather than silently
     # saving in place somewhere else.
-    with pytest.raises(NotImplementedError, match="no SaveAs"):
+    with pytest.raises(NotImplementedError, match="can only save the book in place"):
         book.save("/tmp/somewhere.xlsx")
 
 
@@ -1742,7 +1742,7 @@ def test_book_save_password_not_supported(book):
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_book_to_pdf_not_supported(book):
-    with pytest.raises(NotImplementedError, match="no PDF export"):
+    with pytest.raises(NotImplementedError, match="has no PDF export"):
         book.to_pdf()
 
 
@@ -1803,7 +1803,7 @@ def test_app_screen_updating():
     actions = book.app.impl.books.active.json()["actions"]
     assert actions[-1]["args"] == [True]
 
-    with pytest.raises(NotImplementedError, match="suspendScreenUpdatingUntilNextSync"):
+    with pytest.raises(NotImplementedError, match="suspend screen updating"):
         book.app.screen_updating
 
 
@@ -1826,7 +1826,7 @@ def test_table_insert_row_range_not_supported(book):
     # Office.js has no InsertRowRange equivalent. Returning None would be
     # indistinguishable from the documented "table isn't empty" answer, so
     # this raises rather than answering wrongly.
-    with pytest.raises(NotImplementedError, match="InsertRowRange"):
+    with pytest.raises(NotImplementedError, match="has no equivalent"):
         book.sheets[0].tables[0].insert_row_range
 
 

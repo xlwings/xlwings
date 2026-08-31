@@ -415,7 +415,7 @@ class App(base_classes.App):
         # the reason rather than a bare NotImplementedError. read_only mirrors
         # the public API: path, startup_path and version have no setter there,
         # so defining one here would turn AttributeError into the wrong error.
-        message = f"App.{name} is not supported in Office.js: {detail}"
+        message = f"App.{name} is not supported on this engine: {detail}"
 
         def getter(self):
             raise NotImplementedError(message)
@@ -428,16 +428,10 @@ class App(base_classes.App):
 
         return property(getter, setter)
 
-    cut_copy_mode = _unsupported("cut_copy_mode", "it has no clipboard API.")
-    enable_events = _unsupported(
-        "enable_events", "Excel.Application has no equivalent property."
-    )
-    interactive = _unsupported(
-        "interactive", "Excel.Application has no equivalent property."
-    )
-    status_bar = _unsupported(
-        "status_bar", "Excel.Application has no equivalent property."
-    )
+    cut_copy_mode = _unsupported("cut_copy_mode", "it has no clipboard access.")
+    enable_events = _unsupported("enable_events", "it has no equivalent setting.")
+    interactive = _unsupported("interactive", "it has no equivalent setting.")
+    status_bar = _unsupported("status_bar", "it has no equivalent setting.")
     path = _unsupported(
         "path",
         "an add-in has no access to the Excel installation's paths.",
@@ -450,16 +444,15 @@ class App(base_classes.App):
     )
     version = _unsupported(
         "version",
-        "Excel.Application only exposes calculationEngineVersion, which is not "
-        "the application version.",
+        "the Excel application version isn't available to an add-in.",
         read_only=True,
     )
     del _unsupported
 
     def quit(self):
         raise NotImplementedError(
-            "App.quit() is not supported in Office.js: an add-in can't close the "
-            "Excel application."
+            "App.quit() is not supported on this engine: an add-in can't close "
+            "the Excel application."
         )
 
     @property
@@ -489,8 +482,9 @@ class App(base_classes.App):
         # Office.js has no screen updating flag to read back, only a
         # suspend-until-next-sync call. See the setter.
         raise NotImplementedError(
-            "App.screen_updating can't be read in Office.js, which has no screen "
-            "updating property, only suspendScreenUpdatingUntilNextSync()."
+            "App.screen_updating can't be read on this engine, which can only "
+            "suspend screen updating until its next sync rather than reporting a "
+            "setting."
         )
 
     @screen_updating.setter
@@ -753,21 +747,19 @@ class Book(base_classes.Book):
     def save(self, path=None, password=None):
         if path is not None:
             raise NotImplementedError(
-                "Book.save() can't take a path in Office.js, which has no SaveAs "
-                "equivalent: Workbook.save() only saves in place. Call save() "
-                "without arguments instead."
+                "Book.save() can't take a path on this engine, which can only "
+                "save the book in place. Call save() without arguments instead."
             )
         if password is not None:
             raise NotImplementedError(
-                "Book.save() can't take a password in Office.js, which has no API "
-                "for setting one."
+                "Book.save() can't take a password on this engine, which has no "
+                "way to set one."
             )
         self.append_json_action(func="save", args=[])
 
     def to_pdf(self, path, quality):
         raise NotImplementedError(
-            "Book.to_pdf() is not supported in Office.js, which has no PDF export "
-            "API."
+            "Book.to_pdf() is not supported on this engine, which has no PDF " "export."
         )
 
     def close(self):
@@ -990,8 +982,8 @@ class Sheet(base_classes.Sheet):
         target = before if before is not None else after
         if target.book is not self.book:
             raise NotImplementedError(
-                "Sheet.copy() can't copy to a different book in Office.js, whose "
-                "Worksheet.copy() only positions the copy within the same workbook."
+                "Sheet.copy() can't copy to a different book on this engine, "
+                "which only positions the copy within the same workbook."
             )
         if before is not None:
             position, target_ix = "Before", before.index - 1
@@ -1016,8 +1008,8 @@ class Sheet(base_classes.Sheet):
 
     def to_html(self, path):
         raise NotImplementedError(
-            "Sheet.to_html() is not supported in Office.js, which has no HTML "
-            "export API."
+            "Sheet.to_html() is not supported on this engine, which has no HTML "
+            "export."
         )
 
     def delete(self):
@@ -1497,8 +1489,8 @@ class Range(base_classes.Range):
         # getCellProperties is a runs model that would mean reimplementing
         # Excel's rich-text splitting, so this raises rather than half-doing it.
         raise NotImplementedError(
-            "Range.characters is not supported in Office.js, which has no "
-            "character-range object for cells. Shape.characters works."
+            "Range.characters is not supported on this engine, which can't "
+            "address a range of characters within a cell. Shape.characters works."
         )
 
     @property
@@ -1834,20 +1826,20 @@ class Range(base_classes.Range):
         # the same reason paste() can't work. Range.to_png() covers the
         # "get this range as an image" case.
         raise NotImplementedError(
-            "Range.copy_picture() is not supported in Office.js, which has no "
-            "clipboard API. Use 'to_png()' to export the range as an image."
+            "Range.copy_picture() is not supported on this engine, which has no "
+            "clipboard access. Use 'to_png()' to export the range as an image."
         )
 
     def paste(self, paste=None, operation=None, skip_blanks=False, transpose=False):
         raise NotImplementedError(
-            "Range.paste() is not supported in Office.js, which has no clipboard "
-            "API. Use 'copy()' with an explicit source range instead."
+            "Range.paste() is not supported on this engine, which has no "
+            "clipboard access. Use 'copy()' with an explicit source range instead."
         )
 
     def to_pdf(self, path, quality):
         raise NotImplementedError(
-            "Range.to_pdf() is not supported in Office.js, which has no PDF "
-            "export API."
+            "Range.to_pdf() is not supported on this engine, which has no PDF "
+            "export."
         )
 
     @property
@@ -2126,8 +2118,8 @@ class Name(base_classes.Name):
         # renamed, only deleted and recreated -- which changes its identity and
         # drops its comment and visibility, so it isn't done implicitly here.
         raise NotImplementedError(
-            "Name.name can't be set in Office.js, where Excel.NamedItem.name is "
-            "read-only. Delete the name and add it again under the new name."
+            "Name.name can't be set on this engine, where a name is read-only. "
+            "Delete the name and add it again under the new name."
         )
 
     @property
@@ -2335,8 +2327,8 @@ class Table(base_classes.Table):
         # indistinguishable from the documented "table isn't empty" answer, so
         # raise instead of answering wrongly.
         raise NotImplementedError(
-            "Table.insert_row_range is not supported in Office.js, which has no "
-            "InsertRowRange equivalent."
+            "Table.insert_row_range is not supported on this engine, which has "
+            "no equivalent."
         )
 
     @property
@@ -2653,8 +2645,8 @@ class Chart(base_classes.Chart):
 
     def to_pdf(self, path, quality):
         raise NotImplementedError(
-            "Chart.to_pdf() is not supported in Office.js, which has no PDF "
-            "export API."
+            "Chart.to_pdf() is not supported on this engine, which has no PDF "
+            "export."
         )
 
 
@@ -2900,7 +2892,7 @@ class Shape(base_classes.Shape):
 
     def activate(self):
         raise NotImplementedError(
-            "Shape.activate() is not supported in Office.js, which has no way "
+            "Shape.activate() is not supported on this engine, which has no way "
             "to activate or select a shape."
         )
 
@@ -2989,7 +2981,7 @@ class Font(base_classes.Font):
         if shape is None:
             raise NotImplementedError(
                 "Setting font attributes is only supported on a Range, a Shape "
-                "or a Shape's characters in Office.js."
+                "or a Shape's characters on this engine."
             )
         # Shapes take their own action: the range one addresses cells.
         attribute, value = kwargs["args"]
@@ -3014,7 +3006,7 @@ class Font(base_classes.Font):
         if shape is None:
             raise NotImplementedError(
                 "Reading font attributes is only supported on a Range, a Shape "
-                "or a Shape's characters in Office.js."
+                "or a Shape's characters on this engine."
             )
         font = await shape._get_shape_data("font", start=start, length=length)
         # A shape with no text has no font to report.
