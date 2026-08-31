@@ -2508,7 +2508,9 @@ class Range:
     async def get_column_width(self) -> float | None:
         """Fetch the column width on demand, in characters.
 
-        Returns `None` if the range's columns aren't all the same width.
+        Returns `None` if the range's columns aren't all the same width. The
+        value can differ from what `column_width` was set to by a percent or
+        two, on a workbook whose Normal style uses a non-default font.
 
         Requires xlwings Lite.
         """
