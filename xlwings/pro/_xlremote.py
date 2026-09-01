@@ -1864,7 +1864,10 @@ class Range(base_classes.Range):
 class Collection(base_classes.Collection):
     def __init__(self, parent):
         self._parent = parent
-        self._api = parent.api[self._attr]
+        # Default to empty rather than raising KeyError: a client older than
+        # the payload field reports "no shapes"/"no charts", which is the same
+        # answer it would give for a sheet that genuinely has none.
+        self._api = parent.api.get(self._attr, [])
 
     @property
     def api(self):
@@ -2152,7 +2155,14 @@ class Name(base_classes.Name):
         self.api["address"] = value.split("!")[1].replace("$", "")
 
     def delete(self):
-        # TODO: delete in api
+        # Drop the local entry too, so `name in book.names` is right straight
+        # away rather than only after the next round-trip -- the other
+        # delete() methods do the same. The parent is a Book or a Sheet, so
+        # the list lives on its `names` collection rather than on `api`.
+        book = self.parent if isinstance(self.parent, Book) else self.parent.book
+        names = book.api["names"]
+        if self.api in names:
+            names.remove(self.api)
         self.parent.append_json_action(
             func="nameDelete",
             args=[
@@ -2190,24 +2200,26 @@ class Names(base_classes.Names):
                 ):
                     return sheet.index - 1
 
-        return Name(
-            self.parent,
-            {
-                "name": name,
-                "sheet_index": _get_sheet_index(self.parent),
-                "address": refers_to.split("!")[1].replace("$", ""),
-                "book_scope": True if is_parent_book else False,
-                # A sheet-scoped name is scoped to the sheet it was added
-                # through; a book-scoped one has no scope sheet. Both are part
-                # of the payload, so delete() and the refers_to setter read
-                # them -- without them those raise KeyError on a name added
-                # mid-script.
-                "scope_sheet_name": None if is_parent_book else self.parent.name,
-                "scope_sheet_index": (
-                    None if is_parent_book else self.parent.index - 1
-                ),
-            },
-        )
+        api = {
+            "name": name,
+            "sheet_index": _get_sheet_index(self.parent),
+            "address": refers_to.split("!")[1].replace("$", ""),
+            "book_scope": True if is_parent_book else False,
+            # A sheet-scoped name is scoped to the sheet it was added through;
+            # a book-scoped one has no scope sheet. Both are part of the
+            # payload, so delete() and the refers_to setter read them --
+            # without them those raise KeyError on a name added mid-script.
+            "scope_sheet_name": None if is_parent_book else self.parent.name,
+            "scope_sheet_index": None if is_parent_book else self.parent.index - 1,
+        }
+        # Register it on the book's list, which is the one the payload owns.
+        # Sheet.names builds a filtered copy of that list on each access, so
+        # appending to self.api would be thrown away for a sheet-scoped name.
+        book = self.parent if is_parent_book else self.parent.book
+        book.api["names"].append(api)
+        if not is_parent_book:
+            self.api.append(api)
+        return Name(self.parent, api)
 
     def __call__(self, name_or_index):
         if isinstance(name_or_index, numbers.Number):

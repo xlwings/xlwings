@@ -911,6 +911,18 @@ def test_range_note_missing_from_payload():
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("attribute", ["shapes", "charts", "pictures", "tables"])
+def test_collections_tolerate_an_older_client(attribute):
+    # A client that predates one of these payload fields should report an
+    # empty collection, not raise KeyError -- "no shapes" is the same answer
+    # a sheet with none would give.
+    payload = json.loads(json.dumps(data))
+    payload["sheets"][0].pop(attribute, None)
+    book = xw.Book(json=payload)
+    assert len(getattr(book.sheets[0], attribute)) == 0
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
 def test_shapes_collection(book):
     shapes = book.sheets[0].shapes
     assert len(shapes) == 2
@@ -1406,6 +1418,36 @@ def test_sheet_names_add(book):
     assert book.json()["actions"][0]["func"] == "namesAdd"
     assert book.json()["actions"][0]["args"] == ["test1", "=Sheet1!$A$1:$B$3"]
     assert book.json()["actions"][0]["sheet_position"] == 0
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_names_add_and_delete_update_the_collection():
+    # A name added mid-script has to be visible to `in` and len() straight
+    # away, and gone again after delete() -- not only after the next
+    # round-trip refreshes the payload.
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    before = len(book.names)
+
+    name = book.names.add("Added", f"={book.sheets[0].name}!$A$1")
+    assert "Added" in book.names
+    assert len(book.names) == before + 1
+
+    name.delete()
+    assert "Added" not in book.names
+    assert len(book.names) == before
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_sheet_names_add_and_delete_update_the_collection():
+    book = xw.Book(json=json.loads(json.dumps(data)))
+    sheet = book.sheets[0]
+    before = len(sheet.names)
+
+    name = sheet.names.add("SheetAdded", f"={sheet.name}!$B$2")
+    assert len(sheet.names) == before + 1
+
+    name.delete()
+    assert len(sheet.names) == before
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
