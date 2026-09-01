@@ -2768,7 +2768,9 @@ class Note(base_classes.Note):
             raise NotImplementedError("get_text() is only supported in xlwings Lite")
         import js
 
-        return await js.xlwings.getNoteText(self.range.sheet.name, self.range.address)
+        return _normalize_jsnull(
+            await js.xlwings.getNoteText(self.range.sheet.name, self.range.address)
+        )
 
     @text.setter
     def text(self, value):

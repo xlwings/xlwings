@@ -22,6 +22,8 @@ except ImportError:
     tz = None
 
 import xlwings as xw
+from xlwings import base_classes
+from xlwings.main import Note
 
 this_dir = Path(__file__).resolve().parent
 
@@ -870,6 +872,11 @@ def test_note_text_sync_points_at_async(book):
 def test_note_get_text_not_supported_off_lite(book):
     with pytest.raises(NotImplementedError, match="only supported in xlwings Lite"):
         asyncio.run(book.sheets[0]["A1"].note.get_text())
+
+
+def test_note_get_text_base_impl_points_at_lite():
+    with pytest.raises(NotImplementedError, match="only supported in xlwings Lite"):
+        asyncio.run(Note(base_classes.Note()).get_text())
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")

@@ -1004,6 +1004,9 @@ class Note:
     def text(self, value):
         raise NotImplementedError()
 
+    async def get_text(self):
+        raise NotImplementedError("Note.get_text() is only supported in xlwings Lite")
+
     def delete(self):
         raise NotImplementedError()
 
