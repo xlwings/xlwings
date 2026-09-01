@@ -3011,7 +3011,7 @@ class Range:
                 raise ValueError("path is required in xlwings Lite")
             self.impl.to_png(path)
             return
-        if not PIL:
+        if not PIL and self.sheet.book.app.engine.name != "remote":
             raise XlwingsError("Range.to_png() requires an installation of Pillow.")
         if path is None:
             # TODO: factor this out as it's used in multiple locations

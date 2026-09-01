@@ -1192,8 +1192,9 @@ def test_range_column_width_allows_zero_and_large_values(book):
 
 
 @pytest.mark.skipif(engine != "remote", reason="requires remote engine")
-def test_range_to_png(book):
+def test_range_to_png(book, monkeypatch):
     # Already worked via the rangeToPng action, unlike the other exports.
+    monkeypatch.setattr("xlwings.main.PIL", None)
     book.sheets[0]["A1"].to_png("out.png")
     action = book.json()["actions"][-1]
     assert action["func"] == "rangeToPng"
