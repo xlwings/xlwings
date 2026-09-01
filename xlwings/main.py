@@ -442,6 +442,13 @@ class App:
         what the script is doing, but it will run faster. Remember to set the
         screen_updating property back to True when your script ends.
 
+        ```{note}
+        On xlwings Server and xlwings Lite, screen updating can only be
+        suspended until the next sync rather than turned off indefinitely, so
+        the effect ends on its own before your script does. Setting it back to
+        `True` is a no-op there, and reading the property isn't supported.
+        ```
+
         ```{versionadded} 0.3.3
         ```
         """
@@ -1189,6 +1196,12 @@ class Book:
             >>> wb.save(r'C:\\path\\to\\new_file_name.xlsx')
             ```
 
+        ```{note}
+        On xlwings Server and xlwings Lite, the workbook is saved in place
+        after your script returns rather than while it runs. `path` and
+        `password` aren't supported there: the book can only be saved in
+        place, and there's no way to set a password.
+        ```
 
         ```{versionadded} 0.3.1
         ```
@@ -2128,15 +2141,18 @@ class Range:
 
     @property
     def column_width(self) -> float | None:
-        """Gets or sets the width, in characters, of a Range.
-        One unit of column width is equal to the width of one character in the Normal
-        style. For proportional fonts, the width of the character 0 (zero) is used.
+        """Gets or sets the width of a Range.
+
+        The unit depends on the engine: **characters** on the classic, locally
+        installed xlwings, where one unit is the width of one character in the
+        Normal style (for proportional fonts, the character 0), and **points**
+        on xlwings Server and xlwings Lite.
 
         If all columns in the Range have the same width, returns the width.
         If columns in the Range have different widths, returns None.
 
-        column_width must be in the range:
-        0 <= column_width <= 255
+        In characters, column_width must be in the range 0 <= column_width <=
+        255. In points it only has to be positive.
 
         Note: If the Range is outside the used range of the Worksheet, and columns in
         the Range have different widths, returns the width of the first column.
@@ -2425,7 +2441,7 @@ class Range:
         conversion.write(data, self, self._options)
 
     async def get_value(self) -> Any:
-        """Fetch values from Excel on demand.
+        """Fetch values on demand.
 
         Requires xlwings Lite.
         """
@@ -2435,6 +2451,169 @@ class Range:
             self._options,
             pipeline_overrides=self._impl.get_async_pipeline_overrides(self._options),
         )
+
+    async def get_formula(self) -> str | list[str] | list[list[str]]:
+        """Fetch formulas on demand.
+
+        The returned shape follows the same rules as reading `value`: a single
+        cell gives a string, a 1-by-n or n-by-1 range a flat list, and anything
+        else a nested list. `options(ndim=...)` applies as usual.
+
+        Requires xlwings Lite.
+        """
+        # Prevent circular imports
+        from .conversion.framework import ConversionContext
+        from .conversion.standard import AdjustDimensionsStage
+
+        # Reuse the stage that `.value` reads go through, so the shape rules
+        # (and `ndim`) stay in one place.
+        c = ConversionContext(rng=self, value=await self._impl.get_formula())
+        AdjustDimensionsStage(self._options)(c)
+        return c.value
+
+    async def get_formula_array(self) -> str | None:
+        """Fetch the array formula for this range on demand.
+
+        A single string, or `None` if the range holds no array formula. Unlike
+        `get_formula()`, this isn't a value per cell.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_formula_array()
+
+    async def get_number_format(self) -> str | None:
+        """Fetch the number format on demand.
+
+        A single format string, or `None` if the range's cells don't share one.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_number_format()
+
+    async def get_color(self) -> tuple[int, int, int] | None:
+        """Fetch the fill color on demand, as an RGB tuple.
+
+        Returns `None` if the range has no fill.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_color()
+
+    async def get_wrap_text(self) -> bool | None:
+        """Fetch the wrap text setting on demand.
+
+        `None` if the range doesn't have a uniform wrap setting.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_wrap_text()
+
+    async def get_column_width(self) -> float | None:
+        """Fetch the column width on demand, in points.
+
+        Returns `None` if the range's columns aren't all the same width.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_column_width()
+
+    async def get_row_height(self) -> float | None:
+        """Fetch the row height on demand, in points.
+
+        Returns `None` if the range's rows aren't all the same height.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_row_height()
+
+    async def get_left(self) -> float:
+        """Fetch the distance from the sheet's left edge, in points, on demand.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_left()
+
+    async def get_top(self) -> float:
+        """Fetch the distance from the sheet's top edge, in points, on demand.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_top()
+
+    async def get_width(self) -> float:
+        """Fetch the range's width in points, on demand.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_width()
+
+    async def get_height(self) -> float:
+        """Fetch the range's height in points, on demand.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_height()
+
+    async def get_hyperlink(self) -> str:
+        """Fetch this cell's hyperlink address on demand.
+
+        The async equivalent of `hyperlink`: same result, including for cells
+        that use a `HYPERLINK()` formula. Raises if the cell has no hyperlink.
+
+        Requires xlwings Lite.
+        """
+        formula = await self.get_formula()
+        if isinstance(formula, str) and formula.lower().startswith("="):
+            # A HYPERLINK() formula keeps its target in the formula string
+            # rather than in the cell's hyperlink object.
+            match = re.compile(r"\"(.+?)\"").search(formula)
+            if match is None:
+                raise Exception("The cell doesn't seem to contain a hyperlink!")
+            return match.group(1)
+        address = await self._impl.get_hyperlink()
+        if address is None:
+            # The desktop engines raise rather than returning nothing.
+            raise Exception("The cell doesn't seem to contain a hyperlink!")
+        return address
+
+    async def get_current_region(self) -> Range:
+        """Fetch the current region on demand.
+
+        The region bounded by blank rows and columns around this range, i.e.
+        `Ctrl-*`.
+
+        Requires xlwings Lite.
+        """
+        return Range(impl=await self._impl.get_current_region())
+
+    async def get_merge_area(self) -> Range:
+        """Fetch the merged range containing this cell, on demand.
+
+        Returns this range itself if it isn't part of a merged range.
+
+        Requires xlwings Lite.
+        """
+        return Range(impl=await self._impl.get_merge_area())
+
+    async def get_merge_cells(self) -> bool | None:
+        """Fetch whether this range contains merged cells, on demand.
+
+        `True` if the whole range is merged, `False` if none of it is, and
+        `None` if it's only partly merged.
+
+        Requires xlwings Lite.
+        """
+        return await self._impl.get_merge_cells()
+
+    async def get_table(self) -> Table | None:
+        """Fetch the Table this range is part of, on demand.
+
+        Returns `None` if the range isn't part of a table.
+
+        Requires xlwings Lite.
+        """
+        impl = await self._impl.get_table()
+        return Table(impl=impl) if impl else None
 
     def expand(self, mode: str = "table") -> Range:
         """Expands the range according to the mode provided. Ignores empty top-left cells
@@ -2832,7 +3011,7 @@ class Range:
                 raise ValueError("path is required in xlwings Lite")
             self.impl.to_png(path)
             return
-        if not PIL:
+        if not PIL and self.sheet.book.app.engine.name != "remote":
             raise XlwingsError("Range.to_png() requires an installation of Pillow.")
         if path is None:
             # TODO: factor this out as it's used in multiple locations
@@ -3269,6 +3448,15 @@ class Shape:
     def __repr__(self) -> str:
         return "<Shape '{0}' in {1}>".format(self.name, self.parent)
 
+    async def get_text(self) -> str | None:
+        """Fetch the shape's text on demand.
+
+        `None` if the shape holds no text.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_text()
+
 
 class Shapes(Collection[Shape]):
     """A collection of all `shape` objects on the specified sheet:
@@ -3377,6 +3565,13 @@ class Note:
         ```
         """
         self.impl.delete()
+
+    async def get_text(self) -> str | None:
+        """Fetch the note's text on demand.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_text()
 
 
 class Table:
@@ -3984,6 +4179,16 @@ class Chart:
 
     def __repr__(self) -> str:
         return "<Chart '{0}' in {1}>".format(self.name, self.parent)
+
+    async def get_png(self) -> str:
+        """Fetch the chart as a base64-encoded PNG, on demand.
+
+        Returns the image data rather than writing a file, which is what
+        `to_png()` does.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_png()
 
 
 class Charts(Collection[Chart]):
@@ -4768,6 +4973,15 @@ class Characters:
         else:
             return Characters(self.impl[item])
 
+    async def get_text(self) -> str | None:
+        """Fetch the characters' text on demand.
+
+        `None` if the shape holds no text.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_text()
+
 
 class Font:
     """The font object can be accessed as an attribute of the range or shape object.
@@ -4887,6 +5101,51 @@ class Font:
     def name(self, value: str) -> None:
         self.impl.name = value
 
+    async def get_bold(self) -> bool | None:
+        """Fetch the bold property on demand.
+
+        `None` if the range's cells don't all agree.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_bold()
+
+    async def get_italic(self) -> bool | None:
+        """Fetch the italic property on demand.
+
+        `None` if the range's cells don't all agree.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_italic()
+
+    async def get_size(self) -> float | None:
+        """Fetch the font size on demand.
+
+        `None` if the range's cells don't all agree.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_size()
+
+    async def get_color(self) -> tuple[int, int, int] | None:
+        """Fetch the font colour on demand, as an RGB tuple.
+
+        `None` if unset or if the range's cells don't all agree.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_color()
+
+    async def get_name(self) -> str | None:
+        """Fetch the font name on demand.
+
+        `None` if the range's cells don't all agree.
+
+        Requires xlwings Lite.
+        """
+        return await self.impl.get_name()
+
 
 class FreezePanes:
     """Freeze panes interface. Use via `mysheet.freeze_panes`."""
@@ -4940,6 +5199,7 @@ class Books(Collection[Book]):
 
         This is the entry point to the async API, which reads on demand
         (lazy loading) instead of snapshotting the whole workbook up front.
+
         Requires xlwings Lite.
 
         Use `await myrange.get_value()` to read cell values on demand.

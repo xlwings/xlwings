@@ -1,6 +1,3 @@
-# TODO: add all classes and use in _mac.py and _windows.py
-
-
 class Apps:
     def keys(self):
         raise NotImplementedError()
@@ -374,6 +371,62 @@ class Sheet:
 class Range:
     def get_async_pipeline_overrides(self, options):
         raise NotImplementedError("get_value() is only supported in xlwings Lite")
+
+    async def get_formula(self):
+        raise NotImplementedError("get_formula() is only supported in xlwings Lite")
+
+    async def get_formula_array(self):
+        raise NotImplementedError(
+            "get_formula_array() is only supported in xlwings Lite"
+        )
+
+    async def get_number_format(self):
+        raise NotImplementedError(
+            "get_number_format() is only supported in xlwings Lite"
+        )
+
+    async def get_wrap_text(self):
+        raise NotImplementedError("get_wrap_text() is only supported in xlwings Lite")
+
+    async def get_column_width(self):
+        raise NotImplementedError(
+            "get_column_width() is only supported in xlwings Lite"
+        )
+
+    async def get_row_height(self):
+        raise NotImplementedError("get_row_height() is only supported in xlwings Lite")
+
+    async def get_left(self):
+        raise NotImplementedError("get_left() is only supported in xlwings Lite")
+
+    async def get_top(self):
+        raise NotImplementedError("get_top() is only supported in xlwings Lite")
+
+    async def get_width(self):
+        raise NotImplementedError("get_width() is only supported in xlwings Lite")
+
+    async def get_height(self):
+        raise NotImplementedError("get_height() is only supported in xlwings Lite")
+
+    async def get_hyperlink(self):
+        raise NotImplementedError("get_hyperlink() is only supported in xlwings Lite")
+
+    async def get_current_region(self):
+        raise NotImplementedError(
+            "get_current_region() is only supported in xlwings Lite"
+        )
+
+    async def get_merge_area(self):
+        raise NotImplementedError("get_merge_area() is only supported in xlwings Lite")
+
+    async def get_merge_cells(self):
+        raise NotImplementedError("get_merge_cells() is only supported in xlwings Lite")
+
+    async def get_table(self):
+        raise NotImplementedError("get_table() is only supported in xlwings Lite")
+
+    async def get_color(self):
+        raise NotImplementedError("Range.get_color() is only supported in xlwings Lite")
 
     def adjust_indent(self, amount):
         raise NotImplementedError()
@@ -837,6 +890,9 @@ class Shape:
     def characters(self):
         raise NotImplementedError()
 
+    async def get_text(self):
+        raise NotImplementedError("Shape.get_text() is only supported in xlwings Lite")
+
 
 class Font:
     @property
@@ -883,6 +939,21 @@ class Font:
     def name(self, value):
         raise NotImplementedError()
 
+    async def get_bold(self):
+        raise NotImplementedError("get_bold() is only supported in xlwings Lite")
+
+    async def get_italic(self):
+        raise NotImplementedError("get_italic() is only supported in xlwings Lite")
+
+    async def get_size(self):
+        raise NotImplementedError("get_size() is only supported in xlwings Lite")
+
+    async def get_name(self):
+        raise NotImplementedError("Font.get_name() is only supported in xlwings Lite")
+
+    async def get_color(self):
+        raise NotImplementedError("Font.get_color() is only supported in xlwings Lite")
+
 
 class Characters:
     @property
@@ -899,6 +970,11 @@ class Characters:
 
     def __getitem__(self, item):
         raise NotImplementedError()
+
+    async def get_text(self):
+        raise NotImplementedError(
+            "Characters.get_text() is only supported in xlwings Lite"
+        )
 
 
 class PageSetup:
@@ -927,6 +1003,9 @@ class Note:
     @text.setter
     def text(self, value):
         raise NotImplementedError()
+
+    async def get_text(self):
+        raise NotImplementedError("Note.get_text() is only supported in xlwings Lite")
 
     def delete(self):
         raise NotImplementedError()
@@ -1127,6 +1206,9 @@ class Chart:
 
     def to_pdf(self, path, quality):
         raise NotImplementedError()
+
+    async def get_png(self):
+        raise NotImplementedError("get_png() is only supported in xlwings Lite")
 
 
 class Charts:
