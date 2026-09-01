@@ -2141,21 +2141,18 @@ class Range:
 
     @property
     def column_width(self) -> float | None:
-        """Gets or sets the width, in characters, of a Range.
-        One unit of column width is equal to the width of one character in the Normal
-        style. For proportional fonts, the width of the character 0 (zero) is used.
+        """Gets or sets the width of a Range.
 
-        ```{note}
-        On xlwings Server and xlwings Lite this is in **points** instead: it's
-        the unit that host measures column widths in, and converting to
-        characters can't be done exactly without measuring the workbook's font.
-        ```
+        The unit depends on the engine: **characters** on the classic, locally
+        installed xlwings, where one unit is the width of one character in the
+        Normal style (for proportional fonts, the character 0), and **points**
+        on xlwings Server and xlwings Lite.
 
         If all columns in the Range have the same width, returns the width.
         If columns in the Range have different widths, returns None.
 
-        column_width must be in the range:
-        0 <= column_width <= 255
+        In characters, column_width must be in the range 0 <= column_width <=
+        255. In points it only has to be positive.
 
         Note: If the Range is outside the used range of the Worksheet, and columns in
         the Range have different widths, returns the width of the first column.
@@ -2512,15 +2509,9 @@ class Range:
         return await self._impl.get_wrap_text()
 
     async def get_column_width(self) -> float | None:
-        """Fetch the column width on demand.
+        """Fetch the column width on demand, in points.
 
         Returns `None` if the range's columns aren't all the same width.
-
-        ```{note}
-        On xlwings Server and xlwings Lite this is in **points**, the unit
-        this host measures column widths in, rather than the characters the
-        desktop engines report. `column_width` takes points there too.
-        ```
 
         Requires xlwings Lite.
         """
