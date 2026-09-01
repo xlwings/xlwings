@@ -3553,12 +3553,6 @@ class Note:
     async def get_text(self) -> str | None:
         """Fetch the note's text on demand.
 
-        ```{note}
-        On xlwings Server and xlwings Lite, `text` can't be read directly:
-        note text is unbounded, so it isn't sent with every request. Setting
-        it works as usual.
-        ```
-
         Requires xlwings Lite.
         """
         return await self.impl.get_text()
