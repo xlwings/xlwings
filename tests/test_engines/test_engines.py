@@ -2534,6 +2534,454 @@ def test_font_on_non_range_parent_raises(book):
         asyncio.run(font.get_bold())
 
 
+# Borders
+
+BORDER_GRID_SIDES = list(base_classes.BORDER_GRID_SIDES)
+BORDER_SIDES = list(base_classes.BORDER_SIDES)
+
+
+def _border_actions(book):
+    """The queued setBorderProperty actions as (side, attribute, value)."""
+    return [
+        tuple(action["args"])
+        for action in book.json()["actions"]
+        if action["func"] == "setBorderProperty"
+    ]
+
+
+def _fake_borders(overrides=None):
+    """A fake _get_range_data("borders") payload: all eight sides uniform,
+    except for the given per-side overrides."""
+    borders = {
+        side: {"line_style": "continuous", "weight": "thin", "color": "#ff0000"}
+        for side in BORDER_SIDES
+    }
+    for side, values in (overrides or {}).items():
+        borders[side].update(values)
+
+    async def fake(self, key, method=None):
+        assert key == "borders"
+        return borders
+
+    return fake
+
+
+def test_border_enums():
+    # StrEnum members behave like their plain string values everywhere
+    assert [str(member) for member in xw.BorderIndex] == BORDER_SIDES
+    assert [str(member) for member in xw.BorderLineStyle] == [
+        "continuous",
+        "dash",
+        "dash_dot",
+        "dash_dot_dot",
+        "dot",
+        "double",
+        "slant_dash_dot",
+        "none",
+    ]
+    assert [str(member) for member in xw.BorderWeight] == [
+        "hairline",
+        "thin",
+        "medium",
+        "thick",
+    ]
+    assert xw.BorderWeight.thin == "thin"
+    assert {"thin": 1}[xw.BorderWeight.thin] == 1
+    assert json.dumps({"style": xw.BorderLineStyle.none}) == '{"style": "none"}'
+    assert xw.BorderIndex("edge_top") is xw.BorderIndex.edge_top
+    assert "outside" not in [str(member) for member in xw.BorderIndex]
+
+
+@pytest.mark.skipif(engine != "calamine", reason="requires calamine engine")
+def test_borders_not_supported_on_calamine(book):
+    with pytest.raises(NotImplementedError):
+        book.sheets[0].range("A1").borders
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("side", BORDER_SIDES + list(xw.BorderIndex))
+@pytest.mark.parametrize(
+    "attribute,value,expected",
+    [
+        ("line_style", "double", "double"),
+        ("line_style", xw.BorderLineStyle.double, "double"),
+        ("weight", "thick", "thick"),
+        ("weight", xw.BorderWeight.thick, "thick"),
+        ("color", "#ff0000", "#ff0000"),
+    ],
+)
+def test_border_setters(book, side, attribute, value, expected):
+    setattr(book.sheets[0].range("A1").borders[side], attribute, value)
+    actions = book.json()["actions"]
+    assert len(actions) == 1
+    assert actions[0]["func"] == "setBorderProperty"
+    assert actions[0]["args"] == [str(side), attribute, expected]
+    # plain strings, whether the caller used enums or not
+    assert json.loads(json.dumps(actions[0]["args"])) == actions[0]["args"]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize("value", [None, "none", xw.BorderLineStyle.none])
+def test_border_line_style_removal_forms(book, value):
+    book.sheets[0].range("A1").borders["edge_top"].line_style = value
+    assert _border_actions(book) == [("edge_top", "line_style", None)]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        ((255, 0, 0), "#ff0000"),
+        ([0, 255, 0], "#00ff00"),
+        ("#FFA500", "#ffa500"),
+        ("FFA500", "#ffa500"),  # a missing "#" is fine
+        (255, "#ff0000"),  # Excel colour constant (little-endian int)
+    ],
+)
+def test_border_color_setter_accepts_every_form(book, value, expected):
+    book.sheets[0].range("A1").borders["edge_top"].color = value
+    assert _border_actions(book) == [("edge_top", "color", expected)]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "value", [(1, 2), (1, 2, 3, 4), (256, 0, 0), "#ff00", "red", True, object()]
+)
+def test_border_color_setter_rejects_invalid(book, value):
+    with pytest.raises(ValueError, match="Color must be an RGB tuple"):
+        book.sheets[0].range("A1").borders["edge_top"].color = value
+    assert book.json()["actions"] == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_border_color_none_is_rejected(book):
+    # Unlike a fill, there's no "no colour": removal is line_style's job
+    borders = book.sheets[0].range("A1").borders
+    with pytest.raises(ValueError, match="line_style=None"):
+        borders["edge_top"].color = None
+    with pytest.raises(ValueError, match="line_style=None"):
+        borders.color = None
+    with pytest.raises(ValueError, match="line_style=None"):
+        borders.set("all", color=None)
+    assert book.json()["actions"] == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_border_weight_none_is_rejected(book):
+    borders = book.sheets[0].range("A1").borders
+    with pytest.raises(ValueError, match="line_style=None"):
+        borders["edge_top"].weight = None
+    with pytest.raises(ValueError, match="line_style=None"):
+        borders.weight = None
+    with pytest.raises(ValueError, match="line_style=None"):
+        borders.set("all", weight=None)
+    assert book.json()["actions"] == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "attribute,value,options",
+    [
+        ("line_style", "dashed", "'continuous', 'dash'"),
+        ("line_style", 1, "'continuous', 'dash'"),
+        ("weight", "bold", "'hairline', 'thin', 'medium', 'thick'"),
+        ("weight", 2, "'hairline', 'thin', 'medium', 'thick'"),
+    ],
+)
+def test_border_invalid_values_name_the_options(book, attribute, value, options):
+    with pytest.raises(ValueError, match=re.escape(options)):
+        setattr(book.sheets[0].range("A1").borders["edge_top"], attribute, value)
+    with pytest.raises(ValueError, match=re.escape(options)):
+        book.sheets[0].range("A1").borders.set("all", **{attribute: value})
+    assert book.json()["actions"] == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "key", ["outside", "inside", "all", "everything", "top", "EdgeTop", 8, None]
+)
+def test_borders_getitem_rejects_groups_and_invalid_sides(book, key):
+    # __getitem__ always returns a single Border, so groups aren't accepted
+    with pytest.raises(ValueError, match="'edge_top'"):
+        book.sheets[0].range("A1").borders[key]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_borders_iteration(book):
+    borders = book.sheets[0].range("A1").borders
+    assert len(borders) == 8
+    assert [border.impl.side for border in borders] == BORDER_SIDES
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "attribute,value,expected",
+    [
+        ("line_style", "continuous", "continuous"),
+        ("line_style", None, None),
+        ("weight", xw.BorderWeight.thin, "thin"),
+        ("color", (0, 0, 255), "#0000ff"),
+    ],
+)
+def test_borders_property_setter_is_set_all(book, attribute, value, expected):
+    # The collection property is a wrapper over set("all", ...): the six grid
+    # sides in table order, no diagonals
+    borders = book.sheets[0].range("A1:C3").borders
+    setattr(borders, attribute, value)
+    via_property = _border_actions(book)
+    book.impl._json = {"actions": []}
+    borders.set("all", **{attribute: value})
+    assert via_property == _border_actions(book)
+    assert via_property == [(side, attribute, expected) for side in BORDER_GRID_SIDES]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "which,expected_sides",
+    [
+        ("edge_top", ["edge_top"]),
+        (xw.BorderIndex.diagonal_up, ["diagonal_up"]),
+        (["edge_left", "edge_right"], ["edge_left", "edge_right"]),
+        # lists keep the caller's order and drop duplicates
+        (["edge_right", "edge_left", "edge_right"], ["edge_right", "edge_left"]),
+        ((xw.BorderIndex.edge_top, "inside_vertical"), ["edge_top", "inside_vertical"]),
+        ("outside", ["edge_top", "edge_bottom", "edge_left", "edge_right"]),
+        ("inside", ["inside_vertical", "inside_horizontal"]),
+        ("all", BORDER_GRID_SIDES),
+        ("everything", BORDER_SIDES),
+    ],
+)
+def test_borders_set_selectors(book, which, expected_sides):
+    book.sheets[0].range("A1:C3").borders.set(which, weight="thin")
+    assert _border_actions(book) == [
+        (side, "weight", "thin") for side in expected_sides
+    ]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_borders_set_defaults_to_all(book):
+    book.sheets[0].range("A1:C3").borders.set(weight="thin")
+    assert [side for side, _, _ in _border_actions(book)] == BORDER_GRID_SIDES
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "which", [None, "top", ["edge_top", "outside"], ["nope"], 8, ["edge_top", None]]
+)
+def test_borders_invalid_selector_queues_nothing(book, which):
+    borders = book.sheets[0].range("A1").borders
+    with pytest.raises(ValueError):
+        borders.set(which, weight="thin")
+    with pytest.raises(ValueError):
+        borders.clear(which)
+    assert book.json()["actions"] == []
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_borders_set_attribute_order_is_fixed(book):
+    # colour, weight, line style per side, whatever the keyword order
+    borders = book.sheets[0].range("A1:C3").borders
+    expected = []
+    for side in ["edge_top", "edge_bottom", "edge_left", "edge_right"]:
+        expected += [
+            (side, "color", "#ff0000"),
+            (side, "weight", "medium"),
+            (side, "line_style", "double"),
+        ]
+    borders.set("outside", line_style="double", color="#ff0000", weight="medium")
+    assert _border_actions(book) == expected
+    book.impl._json = {"actions": []}
+    borders.set("outside", weight="medium", color="#ff0000", line_style="double")
+    assert _border_actions(book) == expected
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_borders_set_omitted_attributes_queue_nothing(book):
+    borders = book.sheets[0].range("A1").borders
+    borders.set("outside")
+    borders.set()
+    assert book.json()["actions"] == []
+    borders.set("edge_top", weight="thin")
+    assert _border_actions(book) == [("edge_top", "weight", "thin")]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_borders_set_invalid_value_leaves_queue_unchanged(book):
+    borders = book.sheets[0].range("A1").borders
+    borders.set("edge_top", weight="thin")
+    before = book.json()["actions"]
+    with pytest.raises(ValueError):
+        borders.set("outside", color="#ff0000", weight="bold")
+    assert book.json()["actions"] == before
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_borders_set_removal_comes_after_weight(book):
+    book.sheets[0].range("A1").borders.set("edge_top", weight="thin", line_style=None)
+    assert _border_actions(book) == [
+        ("edge_top", "weight", "thin"),
+        ("edge_top", "line_style", None),
+    ]
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_borders_set_never_serializes_unset(book):
+    book.sheets[0].range("A1").borders.set("everything", weight="hairline")
+    dumped = json.dumps(book.json())
+    assert "object object" not in dumped
+    assert all(value == "hairline" for _, _, value in _border_actions(book))
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "args,expected_sides",
+    [
+        ((), BORDER_SIDES),
+        (("everything",), BORDER_SIDES),
+        (("all",), BORDER_GRID_SIDES),
+        (("inside",), ["inside_vertical", "inside_horizontal"]),
+        ((["edge_top", xw.BorderIndex.edge_bottom],), ["edge_top", "edge_bottom"]),
+    ],
+)
+def test_borders_clear(book, args, expected_sides):
+    borders = book.sheets[0].range("A1:C3").borders
+    borders.clear(*args)
+    expected = [(side, "line_style", None) for side in expected_sides]
+    assert _border_actions(book) == expected
+    # clear() is exactly set(which, line_style=None)
+    book.impl._json = {"actions": []}
+    borders.set(*(args or ("everything",)), line_style=None)
+    assert _border_actions(book) == expected
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "getter,expected",
+    [
+        ("get_line_style", "continuous"),
+        ("get_weight", "thin"),
+        ("get_color", (255, 0, 0)),
+    ],
+)
+def test_border_async_getters(book, getter, expected):
+    border = book.sheets[0].range("A1").borders["edge_bottom"]
+    with mock.patch.object(xw.pro._xlremote.Range, "_get_range_data", _fake_borders()):
+        assert asyncio.run(getattr(border, getter)()) == expected
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_border_async_getters_slice_their_side(book):
+    # All eight sides come from one read; each Border picks its own
+    fake = _fake_borders(
+        {
+            "edge_left": {
+                "line_style": "double",
+                "weight": "thick",
+                "color": "#00ff00",
+            },
+            "diagonal_up": {"line_style": "none", "weight": None, "color": None},
+        }
+    )
+    borders = book.sheets[0].range("A1").borders
+    with mock.patch.object(xw.pro._xlremote.Range, "_get_range_data", fake):
+        assert asyncio.run(borders["edge_left"].get_line_style()) == "double"
+        assert asyncio.run(borders["edge_left"].get_weight()) == "thick"
+        assert asyncio.run(borders["edge_left"].get_color()) == (0, 255, 0)
+        assert asyncio.run(borders["edge_bottom"].get_weight()) == "thin"
+        assert asyncio.run(borders["diagonal_up"].get_line_style()) == "none"
+        assert asyncio.run(borders["diagonal_up"].get_weight()) is None
+        assert asyncio.run(borders["diagonal_up"].get_color()) is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "getter,expected",
+    [
+        ("get_line_style", "continuous"),
+        ("get_weight", "thin"),
+        ("get_color", (255, 0, 0)),
+    ],
+)
+def test_borders_async_getters_ignore_diagonals(book, getter, expected):
+    fake = _fake_borders(
+        {
+            "diagonal_down": {"line_style": "none", "weight": None, "color": None},
+            "diagonal_up": {
+                "line_style": "dash",
+                "weight": "thick",
+                "color": "#0000ff",
+            },
+        }
+    )
+    borders = book.sheets[0].range("A1:C3").borders
+    with mock.patch.object(xw.pro._xlremote.Range, "_get_range_data", fake):
+        assert asyncio.run(getattr(borders, getter)()) == expected
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "getter,override",
+    [
+        ("get_line_style", {"line_style": "double"}),
+        ("get_weight", {"weight": "thick"}),
+        ("get_color", {"color": "#00ff00"}),
+    ],
+)
+@pytest.mark.parametrize("side", BORDER_GRID_SIDES)
+def test_borders_async_getters_none_when_grid_sides_differ(
+    book, getter, override, side
+):
+    fake = _fake_borders({side: override})
+    borders = book.sheets[0].range("A1:C3").borders
+    with mock.patch.object(xw.pro._xlremote.Range, "_get_range_data", fake):
+        assert asyncio.run(getattr(borders, getter)()) is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+def test_borders_async_getters_none_when_unset(book):
+    # None is also what a range whose cells disagree reports
+    fake = _fake_borders(
+        {
+            side: {"line_style": None, "weight": None, "color": None}
+            for side in BORDER_SIDES
+        }
+    )
+    borders = book.sheets[0].range("A1:C3").borders
+    with mock.patch.object(xw.pro._xlremote.Range, "_get_range_data", fake):
+        assert asyncio.run(borders.get_line_style()) is None
+        assert asyncio.run(borders.get_weight()) is None
+        assert asyncio.run(borders.get_color()) is None
+        assert asyncio.run(borders["edge_top"].get_color()) is None
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "prop,hint",
+    [
+        ("line_style", "await myrange.borders['edge_top'].get_line_style()"),
+        ("weight", "await myrange.borders['edge_top'].get_weight()"),
+        ("color", "await myrange.borders['edge_top'].get_color()"),
+    ],
+)
+def test_border_sync_getters_point_at_async(book, prop, hint):
+    with pytest.raises(NotImplementedError, match=re.escape(hint)):
+        getattr(book.sheets[0].range("A1").borders["edge_top"], prop)
+
+
+@pytest.mark.skipif(engine != "remote", reason="requires remote engine")
+@pytest.mark.parametrize(
+    "prop,hint",
+    [
+        ("line_style", "await myrange.borders.get_line_style()"),
+        ("weight", "await myrange.borders.get_weight()"),
+        ("color", "await myrange.borders.get_color()"),
+    ],
+)
+def test_borders_sync_getters_point_at_async(book, prop, hint):
+    with pytest.raises(NotImplementedError, match=re.escape(hint)):
+        getattr(book.sheets[0].range("A1").borders, prop)
+
+
 def test_get_value_not_supported(book):
     with pytest.raises(NotImplementedError):
         asyncio.run(book.sheets[0].range("A1").get_value())

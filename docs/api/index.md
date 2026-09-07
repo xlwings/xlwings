@@ -20,6 +20,8 @@ apps
 book
 book_async
 books
+border
+borders
 characters
 chart
 charts
